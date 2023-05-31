@@ -7,6 +7,7 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     [Serializable, VolumeComponentMenu("Post-processing/Panini Projection")]
     [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
+    [URPHelpURL("Post-Processing-Panini-Projection")]
     public sealed class PaniniProjection : VolumeComponent, IPostProcessComponent
     {
         /// <summary>

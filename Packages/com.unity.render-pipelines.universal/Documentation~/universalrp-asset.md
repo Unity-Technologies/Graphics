@@ -130,7 +130,7 @@ This section allows you to fine-tune global post-processing settings.
 | __Post Process Data__ | The asset containing references to shaders and Textures that the Renderer uses for post-processing.<br/>**Note:** Changes to this property are necessary only for advanced customization use cases. |
 | __Grading Mode__ | Select the [color grading](https://docs.unity3d.com/Manual/PostProcessing-ColorGrading.html) mode to use for the Project.<ul><li>__High Dynamic Range__: This mode works best for high precision grading similar to movie production workflows. Unity applies color grading before tonemapping.</li><li>__Low Dynamic Range__: This mode follows a more classic workflow. Unity applies a limited range of color grading after tonemapping.</li></ul> |
 | __LUT Size__     | Set the size of the internal and external [look-up textures (LUTs)](https://docs.unity3d.com/Manual/PostProcessing-ColorGrading.html) that the Universal Render Pipeline uses for color grading. Higher sizes provide more precision, but have a potential cost of performance and memory use. You cannot mix and match LUT sizes, so decide on a size before you start the color grading process.<br />The default value, **32**, provides a good balance of speed and quality. |
-| __Fast sRGB/Liner Conversions__ | Select this option to use faster, but less accurate approximation functions when converting between the sRGB and Linear color spaces.|
+| __Fast sRGB/Linear Conversions__ | Select this option to use faster, but less accurate approximation functions when converting between the sRGB and Linear color spaces.|
 | __Volume Update Mode__ | Select how Unity updates Volumes: every frame or when triggered via scripting. In the Editor, Unity updates Volumes every frame when not in the Play mode.|
 
 

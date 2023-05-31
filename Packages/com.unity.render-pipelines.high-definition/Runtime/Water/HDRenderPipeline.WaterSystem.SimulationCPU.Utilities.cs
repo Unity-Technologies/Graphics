@@ -17,6 +17,14 @@ namespace UnityEngine.Rendering.HighDefinition
             return r < 0 ? r + m : r;
         }
 
+        static int HandleWrapMode(int coord, int resolution, TextureWrapMode wrapMode)
+        {
+            // Only handle repeat and clamp because heh
+            if (wrapMode == TextureWrapMode.Repeat)
+                return SignedMod(coord, resolution);
+            return Mathf.Clamp(coord, 0, resolution - 1);
+        }
+
         // This function does a "repeat" load
         static float4 LoadTexture2DArray(NativeArray<float4> textureRawBuffer, int2 coord, int sliceIndex, int resolution)
         {
@@ -27,11 +35,11 @@ namespace UnityEngine.Rendering.HighDefinition
             return textureRawBuffer[repeatCoord.x + repeatCoord.y * resolution + bandOffset];
         }
 
-        static float4 LoadTexture2D(NativeArray<uint> textureRawBuffer, int2 coord, int2 resolution)
+        static float4 LoadTexture2D(NativeArray<uint> textureRawBuffer, TextureWrapMode wrapModeU, TextureWrapMode wrapModeV, int2 coord, int2 resolution)
         {
             int2 repeatCoord = coord;
-            repeatCoord.x = SignedMod(repeatCoord.x, resolution.x);
-            repeatCoord.y = SignedMod(repeatCoord.y, resolution.y);
+            repeatCoord.x = HandleWrapMode(repeatCoord.x, resolution.x, wrapModeU);
+            repeatCoord.y = HandleWrapMode(repeatCoord.y, resolution.y, wrapModeV);
             int tapIndex = repeatCoord.x + repeatCoord.y * resolution.x;
             uint packedData = textureRawBuffer[tapIndex];
             return float4(packedData & 0xff, (packedData >> 8) & 0xff, (packedData >> 16) & 0xff, (packedData >> 24) & 0xff) / 255.0f;
@@ -80,16 +88,16 @@ namespace UnityEngine.Rendering.HighDefinition
             return lerp(i0, i1, fract.y);
         }
 
-        static float4 SampleTexture2DBilinear(NativeArray<uint> textureBuffer, float2 uvCoord, int2 resolution)
+        static float4 SampleTexture2DBilinear(NativeArray<uint> textureBuffer, float2 uvCoord, int2 resolution, TextureWrapMode wrapModeU, TextureWrapMode wrapModeV)
         {
             // Convert the position from uv to floating pixel coordinates (for the bilinear interpolation)
             PrepareCoordinates(uvCoord, resolution, out int2 currentTapCoord, out float2 fract);
 
             // Read the four samples we want
-            float4 p0 = LoadTexture2D(textureBuffer, currentTapCoord, resolution);
-            float4 p1 = LoadTexture2D(textureBuffer, currentTapCoord + new int2(1, 0), resolution);
-            float4 p2 = LoadTexture2D(textureBuffer, currentTapCoord + new int2(0, 1), resolution);
-            float4 p3 = LoadTexture2D(textureBuffer, currentTapCoord + new int2(1, 1), resolution);
+            float4 p0 = LoadTexture2D(textureBuffer, wrapModeU, wrapModeV, currentTapCoord, resolution);
+            float4 p1 = LoadTexture2D(textureBuffer, wrapModeU, wrapModeV, currentTapCoord + new int2(1, 0), resolution);
+            float4 p2 = LoadTexture2D(textureBuffer, wrapModeU, wrapModeV, currentTapCoord + new int2(0, 1), resolution);
+            float4 p3 = LoadTexture2D(textureBuffer, wrapModeU, wrapModeV, currentTapCoord + new int2(1, 1), resolution);
 
             // Do the bilinear interpolation
             float4 i0 = lerp(p0, p1, fract.x);
@@ -179,13 +187,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static void EvaluateGroup0CurrentData(in WaterSimSearchData wsd, float2 currentUV, out CurrentData currentData)
         {
-            float3 largeDirection = SampleTexture2DBilinear(wsd.group0CurrentMap, EvaluateWaterGroup0CurrentUV(wsd, currentUV), wsd.group0CurrentMapResolution).xyz;
+            float3 largeDirection = SampleTexture2DBilinear(wsd.group0CurrentMap, EvaluateWaterGroup0CurrentUV(wsd, currentUV), wsd.group0CurrentMapResolution, wsd.group0CurrentMapWrapModeU, wsd.group0CurrentMapWrapModeV).xyz;
             DecompressDirection(wsd, largeDirection, wsd.spectrum.groupOrientation.x * Mathf.Deg2Rad, wsd.group0CurrentMapInfluence, out currentData);
         }
 
         static void EvaluateGroup1CurrentData(in WaterSimSearchData wsd, float2 currentUV, out CurrentData currentData)
         {
-            float3 ripplesDirection = SampleTexture2DBilinear(wsd.group1CurrentMap, EvaluateWaterGroup1CurrentUV(wsd, currentUV), wsd.group1CurrentMapResolution).xyz;
+            float3 ripplesDirection = SampleTexture2DBilinear(wsd.group1CurrentMap, EvaluateWaterGroup1CurrentUV(wsd, currentUV), wsd.group1CurrentMapResolution, wsd.group1CurrentMapWrapModeU, wsd.group1CurrentMapWrapModeV).xyz;
             DecompressDirection(wsd, ripplesDirection, wsd.spectrum.groupOrientation.y * Mathf.Deg2Rad, wsd.group1CurrentMapInfluence, out currentData);
         }
 
@@ -298,7 +306,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (wsd.activeMask)
             {
                 float2 waterMaskUV = float2(uv.x - wsd.maskOffset.x, uv.y + wsd.maskOffset.y) * wsd.maskScale + 0.5f;
-                waterMask = SampleTexture2DBilinear(wsd.maskBuffer, waterMaskUV, wsd.maskResolution).xyz;
+                waterMask = SampleTexture2DBilinear(wsd.maskBuffer, waterMaskUV, wsd.maskResolution, wsd.maskWrapModeU, wsd.maskWrapModeV).xyz;
                 waterMask = wsd.maskRemap.xxx + waterMask * wsd.maskRemap.yyy;
             }
             return waterMask;

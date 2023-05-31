@@ -5,6 +5,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-GetTextureDimensions")]
     [VFXInfo(category = "Sampling")]
     class TextureDimensions : VFXOperatorDynamicType
     {

@@ -854,9 +854,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Surface gradient decal blending
             if (asset.currentPlatformRenderPipelineSettings.supportSurfaceGradient)
+            { 
                 Shader.EnableKeyword("DECAL_SURFACE_GRADIENT");
+                Shader.EnableKeyword("PATH_TRACING_ADDITIVE_NORMAL_BLENDING");
+            }
             else
+            { 
                 Shader.DisableKeyword("DECAL_SURFACE_GRADIENT");
+                Shader.DisableKeyword("PATH_TRACING_ADDITIVE_NORMAL_BLENDING");
+            }
         }
 
         void CleanupLightLoop()
@@ -982,139 +988,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return new Vector3(light.finalColor.r, light.finalColor.g, light.finalColor.b);
         }
 
-        static float Saturate(float x)
-        {
-            return Mathf.Max(0, Mathf.Min(x, 1));
-        }
-
-        static float Rcp(float x)
-        {
-            return 1.0f / x;
-        }
-
-        static float Rsqrt(float x)
-        {
-            return Rcp(Mathf.Sqrt(x));
-        }
-
-        static float ComputeCosineOfHorizonAngle(float r, float R)
-        {
-            float sinHoriz = R * Rcp(r);
-            return -Mathf.Sqrt(Saturate(1 - sinHoriz * sinHoriz));
-        }
-
-        static float ChapmanUpperApprox(float z, float cosTheta)
-        {
-            float c = cosTheta;
-            float n = 0.761643f * ((1 + 2 * z) - (c * c * z));
-            float d = c * z + Mathf.Sqrt(z * (1.47721f + 0.273828f * (c * c * z)));
-
-            return 0.5f * c + (n * Rcp(d));
-        }
-
-        static float ChapmanHorizontal(float z)
-        {
-            float r = Rsqrt(z);
-            float s = z * r; // sqrt(z)
-
-            return 0.626657f * (r + 2 * s);
-        }
-
-        static Vector3 ComputeAtmosphericOpticalDepth(
-            float airScaleHeight, float aerosolScaleHeight, in Vector3 airExtinctionCoefficient, float aerosolExtinctionCoefficient,
-            float R, float r, float cosTheta, bool alwaysAboveHorizon = false)
-        {
-            Vector2 H = new Vector2(airScaleHeight, aerosolScaleHeight);
-            Vector2 rcpH = new Vector2(Rcp(H.x), Rcp(H.y));
-
-            Vector2 z = r * rcpH;
-            Vector2 Z = R * rcpH;
-
-            float cosHoriz = ComputeCosineOfHorizonAngle(r, R);
-            float sinTheta = Mathf.Sqrt(Saturate(1 - cosTheta * cosTheta));
-
-            Vector2 ch;
-            ch.x = ChapmanUpperApprox(z.x, Mathf.Abs(cosTheta)) * Mathf.Exp(Z.x - z.x); // Rescaling adds 'exp'
-            ch.y = ChapmanUpperApprox(z.y, Mathf.Abs(cosTheta)) * Mathf.Exp(Z.y - z.y); // Rescaling adds 'exp'
-
-            if ((!alwaysAboveHorizon) && (cosTheta < cosHoriz)) // Below horizon, intersect sphere
-            {
-                float sinGamma = (r / R) * sinTheta;
-                float cosGamma = Mathf.Sqrt(Saturate(1 - sinGamma * sinGamma));
-
-                Vector2 ch_2;
-                ch_2.x = ChapmanUpperApprox(Z.x, cosGamma); // No need to rescale
-                ch_2.y = ChapmanUpperApprox(Z.y, cosGamma); // No need to rescale
-
-                ch = ch_2 - ch;
-            }
-            else if (cosTheta < 0)   // Above horizon, lower hemisphere
-            {
-                // z_0 = n * r_0 = (n * r) * sin(theta) = z * sin(theta).
-                // Ch(z, theta) = 2 * exp(z - z_0) * Ch(z_0, Pi/2) - Ch(z, Pi - theta).
-                Vector2 z_0 = z * sinTheta;
-                Vector2 b = new Vector2(Mathf.Exp(Z.x - z_0.x), Mathf.Exp(Z.x - z_0.x)); // Rescaling cancels out 'z' and adds 'Z'
-                Vector2 a;
-                a.x = 2 * ChapmanHorizontal(z_0.x);
-                a.y = 2 * ChapmanHorizontal(z_0.y);
-                Vector2 ch_2 = a * b;
-
-                ch = ch_2 - ch;
-            }
-
-            Vector2 optDepth = ch * H;
-
-            Vector3 airExtinction = airExtinctionCoefficient;
-            float aerosolExtinction = aerosolExtinctionCoefficient;
-
-            return new Vector3(optDepth.x * airExtinction.x + optDepth.y * aerosolExtinction,
-                optDepth.x * airExtinction.y + optDepth.y * aerosolExtinction,
-                optDepth.x * airExtinction.z + optDepth.y * aerosolExtinction);
-        }
-
-        // Computes transmittance along the light path segment.
-        internal static Vector3 EvaluateAtmosphericAttenuation(
-            float airScaleHeight, float aerosolScaleHeight, in Vector3 airExtinctionCoefficient, float aerosolExtinctionCoefficient,
-            in Vector3 C, float R, in Vector3 L, in Vector3 X)
-        {
-            float r = Vector3.Distance(X, C);
-            float cosHoriz = ComputeCosineOfHorizonAngle(r, R);
-            float cosTheta = Vector3.Dot(X - C, L) * Rcp(r);
-
-            if (cosTheta > cosHoriz) // Above horizon
-            {
-                Vector3 oDepth = ComputeAtmosphericOpticalDepth(
-                    airScaleHeight, aerosolScaleHeight, airExtinctionCoefficient, aerosolExtinctionCoefficient,
-                    R, r, cosTheta, true);
-
-                Vector3 transm;
-
-                transm.x = Mathf.Exp(-oDepth.x);
-                transm.y = Mathf.Exp(-oDepth.y);
-                transm.z = Mathf.Exp(-oDepth.z);
-
-                return transm;
-            }
-            else
-            {
-                return Vector3.zero;
-            }
-        }
-
-        static Vector3 EvaluateAtmosphericAttenuation(PhysicallyBasedSky skySettings, Vector3 L, Vector3 X)
-        {
-            Vector3 C = skySettings.GetPlanetCenterPosition(X); // X = camPosWS
-            float R = skySettings.GetPlanetaryRadius();
-            float airScaleHeight = skySettings.GetAirScaleHeight();
-            float aerosolScaleHeight = skySettings.GetAerosolScaleHeight();
-            Vector3 airExtinctionCoefficient = skySettings.GetAirExtinctionCoefficient();
-            float aerosolExtinctionCoefficient = skySettings.GetAerosolExtinctionCoefficient();
-
-            return EvaluateAtmosphericAttenuation(
-                airScaleHeight, aerosolScaleHeight, airExtinctionCoefficient, aerosolExtinctionCoefficient,
-                C, R, L, X);
-        }
-
         // This function evaluates if there is currently enough screen space sahdow slots of a given light based on its light type
         bool EnoughScreenSpaceShadowSlots(GPULightType gpuLightType, int screenSpaceChannelSlot)
         {
@@ -1130,13 +1003,12 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         internal bool GetEnvLightData(CommandBuffer cmd, HDCamera hdCamera, in ProcessedProbeData processedProbe, ref EnvLightData envLightData,
-            out int fetchIndex, out Vector4 scaleOffset, out Matrix4x4 vp, out Vector3 capturedForwardWS)
+            out int fetchIndex, out Vector4 scaleOffset, out Matrix4x4 vp)
         {
             // Initialize the fetch index
             fetchIndex = -1;
             scaleOffset = Vector4.zero;
             vp = Matrix4x4.identity;
-            capturedForwardWS = Vector3.zero;
 
             // By default, rough reflections are enabled for both types of probes.
             envLightData.roughReflections = 1.0f;
@@ -1212,9 +1084,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     // Propagate the smoothness information to the env light data
                     envLightData.roughReflections = probe.settings.roughReflections ? 1.0f : 0.0f;
-
-                    capturedForwardWS = renderData.captureRotation * Vector3.forward;
-                    //capturedForwardWS.z *= -1; // Transform to RHS standard
 
                     //We must use the setting resolved from the probe, not from the frameSettings.
                     //Using the frmaeSettings from the probe is wrong because it can be disabled (not ticking on using custom frame settings in the probe reflection component)
@@ -1620,6 +1489,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             {
                                 m_CurrentSunLightDataIndex = i;
                                 m_CurrentSunLight = additionalLightData.legacyLight;
+                                m_CurrentSunLightAdditionalLightData = additionalLightData;
                             }
                         }
 
@@ -1647,7 +1517,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 m_EnableBakeShadowMask = m_EnableBakeShadowMask || m_ProcessedLightsBuilder.bakedShadowsCount > 0;
                 m_CurrentShadowSortedSunLightIndex = m_GpuLightsBuilder.currentShadowSortedSunLightIndex;
-                m_CurrentSunLightAdditionalLightData = m_GpuLightsBuilder.currentSunLightAdditionalLightData;
                 m_CurrentSunShadowMapFlags = m_GpuLightsBuilder.currentSunShadowMapFlags;
                 m_CurrentSunLightDirectionalLightData = m_GpuLightsBuilder.currentSunLightDirectionalLightData;
 
@@ -1831,15 +1700,14 @@ namespace UnityEngine.Rendering.HighDefinition
                     int fetchIndex;
                     Vector4 scaleOffset;
                     Matrix4x4 vp;
-                    Vector3 capturedForwardWS;
                     EnvLightData envLightData = new EnvLightData();
 
-                    if (GetEnvLightData(cmd, hdCamera, processedProbe, ref envLightData, out fetchIndex, out scaleOffset, out vp, out capturedForwardWS))
+                    if (GetEnvLightData(cmd, hdCamera, processedProbe, ref envLightData, out fetchIndex, out scaleOffset, out vp))
                     {
                         switch (processedProbe.hdProbe)
                         {
                             case PlanarReflectionProbe planarProbe:
-                                SetPlanarReflectionData(fetchIndex, ref vp, ref scaleOffset, ref capturedForwardWS);
+                                SetPlanarReflectionData(fetchIndex, ref vp, ref scaleOffset);
                             break;
                             case HDAdditionalReflectionData reflectionData:
                                 SetCubeReflectionData(fetchIndex, ref scaleOffset);
@@ -2216,7 +2084,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 rayTracingShadowFlag = 1.0f;
         }
 
-        unsafe void SetPlanarReflectionData(int index, ref Matrix4x4 vp, ref Vector4 scaleOffset, ref Vector3 capturedForwardWS)
+        unsafe void SetPlanarReflectionData(int index, ref Matrix4x4 vp, ref Vector4 scaleOffset)
         {
             Debug.Assert(index < k_MaxPlanarReflectionsOnScreen);
 
@@ -2225,9 +2093,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             for (int j = 0; j < 4; ++j)
                 m_EnvLightReflectionData._PlanarScaleOffset[index * 4 + j] = scaleOffset[j];
-
-            for (int j = 0; j < 3; ++j)
-                m_EnvLightReflectionData._PlanarCaptureForward[index * 4 + j] = capturedForwardWS[j];
         }
 
         unsafe void SetCubeReflectionData(int index, ref Vector4 scaleOffset)

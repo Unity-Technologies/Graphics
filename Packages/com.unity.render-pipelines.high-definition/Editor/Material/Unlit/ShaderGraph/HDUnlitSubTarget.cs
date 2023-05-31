@@ -31,7 +31,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         protected override bool supportDistortion => true;
         protected override bool supportForward => true;
-        protected override bool supportPathtracing => true;
+        protected override bool supportPathtracing => !TargetsVFX();
 
         HDUnlitData m_UnlitData;
 

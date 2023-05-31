@@ -4,18 +4,30 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-
-## [16.0.0] - 2023-01-18
-
-This version is compatible with Unity 2023.2.0a1.
+## [Unreleased]
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [16.0.0] - 2023-03-22
+
+This version is compatible with Unity 2023.2.0a9.
+
+### Added
+- Common C# & Shader Code for Scalable Temporal Post-Processing Upscaler.
+
+### Changed
+- Unified the Create, Clone and Ensure workflows for RenderPipelineGlobalSettings.
+
+### Fixed
+- Updated the Render Graph documentation to reflect API changes.
+- Fixed an IES Importer issue producing incorrect results.
+- Fixed the Revert Property for animation curves on Volume Components so it now works correctly.
+- Fixed Decal Projector Editor fields so they are now saved when editing a prefab.
 
 ## [15.0.3] - 2022-12-02
 
-This version is compatible with Unity 2023.1.0a23.
+This version is compatible with Unity 2023.2.0a1.
 
 ### Added
 - Added HDR output utilities to handle keywords and shader stripping.
@@ -33,7 +45,7 @@ This version is compatible with Unity 2023.1.0a23.
 
 ## [15.0.2] - 2022-11-04
 
-This version is compatible with Unity 2023.1.0a19.
+This version is compatible with Unity 2023.1.0a23.
 
 ### Added
 - Extended RendererList to handle UI, WireFrame, CameraSetup and Gizmo draw.
@@ -61,7 +73,7 @@ This version is compatible with Unity 2023.1.0a19.
 
 ## [15.0.1] - 2022-08-04
 
-This version is compatible with Unity 2023.1.0a6.
+This version is compatible with Unity 2023.1.0a19.
 
 ### Added
 - An extension method to fetch the Render Pipeline assets from a BuildTarget.
@@ -81,7 +93,7 @@ This version is compatible with Unity 2023.1.0a6.
 
 ## [15.0.0] - 2022-06-13
 
-This version is compatible with Unity 2023.1.0a1.
+This version is compatible with Unity 2023.1.0a6.
 
 ### Added
 - Extension method to fetch the Render Pipeline assets from a BuildTarget.
@@ -119,14 +131,10 @@ This version is compatible with Unity 2023.1.0a1.
 
 ## [14.0.3] - 2021-05-09
 
-This version is compatible with Unity 2022.2.0a14.
-
 ### Fixed
 - Added Shader Stripping Watcher so you get notifications when a Shader Variant is stripped.
 
 ## [14.0.2] - 2021-02-04
-
-This version is compatible with Unity 2022.2.0a8.
 
 ### Added
 - Added new extension `TryRemoveElementsInRange` to remove a range of elements from a `IList`.

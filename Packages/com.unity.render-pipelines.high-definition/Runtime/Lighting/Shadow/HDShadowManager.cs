@@ -86,6 +86,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4 shadowMapSize;
 
         public Vector4 shadowFilterParams0;
+        public Vector4 dirLightPCSSParams0;
+        public Vector4 dirLightPCSSParams1;
 
         public Vector3 cacheTranslationDelta;
         public float isInCachedAtlas;
@@ -207,6 +209,16 @@ namespace UnityEngine.Rendering.HighDefinition
         public byte blockerSampleCount;
         public byte filterSampleCount;
 
+        // Parameters specific to directional lights
+        public float dirLightPCSSDepth2RadialScale;         // scales depth to light cone radius (in shadowmap space)
+        public float dirLightPCSSRadial2DepthScale;         // scales radius to light cone depth (in shadowmap space)
+        public float dirLightPCSSMaxBlockerDistance;        // Maximum distance of blockers, limiting blur size
+        public float dirLightPCSSMaxSamplingDistance;       // Maximum sampling distance, to avoid light leaks
+        public float dirLightPCSSMinFilterSizeTexels;       // Minimum filter size (in texels)
+        public float dirLightPCSSMinFilterRadial2DepthScale;// Minimum filter radius to light cone depth (in shadowmap space)
+        public float dirLightPCSSBlockerRadial2DepthScale;  // scales radius to light cone depth (in shadowmap space)
+        public float dirLightPCSSBlockerSamplingClumpExponent; // Blocker sample clump exponent to apply to linear radial range
+
         public byte typeData;
 
         public BitArray8 flags;
@@ -288,6 +300,14 @@ namespace UnityEngine.Rendering.HighDefinition
             shadowSoftness = default;
             blockerSampleCount = default;
             filterSampleCount = default;
+            dirLightPCSSDepth2RadialScale = default;
+            dirLightPCSSRadial2DepthScale = default;
+            dirLightPCSSMaxBlockerDistance = default;
+            dirLightPCSSMaxSamplingDistance = default;
+            dirLightPCSSMinFilterSizeTexels = default;
+            dirLightPCSSMinFilterRadial2DepthScale = default;
+            dirLightPCSSBlockerRadial2DepthScale = default;
+            dirLightPCSSBlockerSamplingClumpExponent = default;
             minFilterSize = default;
             kernelSize = default;
             evsmParams = default;
@@ -479,6 +499,20 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         [WriteOnly] public NativeList<HDShadowRequestHandle> shadowRequests;
         [WriteOnly] public NativeList<HDShadowRequestHandle> mixedRequestsPendingBlits;
+
+        public void initEmpty()
+        {
+            shadowRequests = new(Allocator.Persistent);
+            mixedRequestsPendingBlits = new(Allocator.Persistent);
+        }
+        public void DisposeNativeCollections()
+        {
+            if (mixedRequestsPendingBlits.IsCreated)
+                mixedRequestsPendingBlits.Dispose();
+            if (shadowRequests.IsCreated)
+                shadowRequests.Dispose();
+        }
+
     }
 
     internal struct HDCachedShadowManagerDataForShadowRequestUpdateJob
@@ -504,7 +538,6 @@ namespace UnityEngine.Rendering.HighDefinition
     internal struct HDCachedShadowAtlasDataForShadowRequestUpdateJob
     {
         [WriteOnly] public NativeList<HDShadowRequestHandle> shadowRequests;
-        public NativeParallelHashMap<int, HDCachedShadowAtlas.CachedShadowRecord> placedShadows;
         public NativeParallelHashMap<int, HDCachedShadowAtlas.CachedShadowRecord> shadowsPendingRendering;
         [WriteOnly] public NativeParallelHashMap<int, int> shadowsWithValidData;                            // Shadows that have been placed and rendered at least once (OnDemand shadows are not rendered unless requested explicitly). It is a dictionary for fast access by shadow index.
         [ReadOnly] public NativeParallelHashMap<int, HDLightRenderEntity> registeredLightDataPendingPlacement;
@@ -512,11 +545,36 @@ namespace UnityEngine.Rendering.HighDefinition
         // but they lost their spot (e.g. post defrag). They don't have a light associated anymore if not by index, so we keep a separate collection.
 
         public NativeParallelHashMap<int, HDCachedShadowAtlas.CachedTransform> transformCaches;
-        [ReadOnly] public NativeList<HDCachedShadowAtlas.CachedShadowRecord> tempListForPlacement;
         internal bool LightIsPendingPlacement(int lightIdxForCachedShadows)
         {
             return (registeredLightDataPendingPlacement.ContainsKey(lightIdxForCachedShadows) ||
                     recordsPendingPlacement.ContainsKey(lightIdxForCachedShadows));
+        }
+
+        public void initEmpty()
+        {
+            shadowRequests = new(Allocator.Persistent);
+            shadowsPendingRendering = new(1, Allocator.Persistent);
+            shadowsWithValidData = new(1, Allocator.Persistent);
+            registeredLightDataPendingPlacement = new(1, Allocator.Persistent);
+            recordsPendingPlacement = new(1, Allocator.Persistent);
+            transformCaches = new(1, Allocator.Persistent);
+        }
+
+        public void DisposeNativeCollections()
+        {
+            if (transformCaches.IsCreated)
+                transformCaches.Dispose();
+            if (recordsPendingPlacement.IsCreated)
+                recordsPendingPlacement.Dispose();
+            if (registeredLightDataPendingPlacement.IsCreated)
+                registeredLightDataPendingPlacement.Dispose();
+            if (shadowsWithValidData.IsCreated)
+                shadowsWithValidData.Dispose();
+            if (shadowsPendingRendering.IsCreated)
+                shadowsPendingRendering.Dispose();
+            if (shadowRequests.IsCreated)
+                shadowRequests.Dispose();
         }
     }
 
@@ -557,6 +615,8 @@ namespace UnityEngine.Rendering.HighDefinition
         HDDynamicShadowAtlas m_CascadeAtlas;
         HDDynamicShadowAtlas m_Atlas;
         HDDynamicShadowAtlas m_AreaLightShadowAtlas;
+
+        HDDynamicShadowAtlasDataForShadowRequestUpdateJob m_emptyAreaLightShadowAtlasJob;
 
         Material                    m_ClearShadowMaterial;
         Material                    m_BlitShadowMaterial;
@@ -600,6 +660,8 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 m_AreaLightShadowAtlas.DisposeNativeCollections();
             }
+
+            m_emptyAreaLightShadowAtlasJob.DisposeNativeCollections();
 
             if (m_ShadowRequests.IsCreated)
             {
@@ -702,6 +764,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_AreaLightShadowAtlas.DisposeNativeCollections();
 
                 m_AreaLightShadowAtlas = new HDDynamicShadowAtlas(areaAtlasInitParams);
+            }
+            else
+            {
+                m_emptyAreaLightShadowAtlasJob.DisposeNativeCollections();
+                m_emptyAreaLightShadowAtlasJob.initEmpty();
             }
 
             HDShadowAtlas.HDShadowAtlasInitParameters cachedPunctualAtlasInitParams = punctualAtlasInitParams;
@@ -814,7 +881,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (m_ShadowRequestCount >= m_MaxShadowRequests)
             {
-                Debug.LogWarning("Max shadow requests count reached, dropping all exceeding requests. You can increase this limit by changing the max requests in the HDRP asset");
+                Debug.LogWarning("Max shadow requests count reached, dropping all exceeding requests. You can increase this limit by changing the Maximum Shadows on Screen property in the HDRP asset.");
                 return -1;
             }
 
@@ -925,6 +992,15 @@ namespace UnityEngine.Rendering.HighDefinition
             data.shadowFilterParams0.y = HDShadowUtils.Asfloat(shadowRequest.blockerSampleCount);
             data.shadowFilterParams0.z = HDShadowUtils.Asfloat(shadowRequest.filterSampleCount);
             data.shadowFilterParams0.w = shadowRequest.minFilterSize;
+
+            data.dirLightPCSSParams0.x = shadowRequest.dirLightPCSSDepth2RadialScale;
+            data.dirLightPCSSParams0.y = shadowRequest.dirLightPCSSRadial2DepthScale;
+            data.dirLightPCSSParams0.z = shadowRequest.dirLightPCSSMaxBlockerDistance;
+            data.dirLightPCSSParams0.w = shadowRequest.dirLightPCSSMaxSamplingDistance;
+            data.dirLightPCSSParams1.x = shadowRequest.dirLightPCSSMinFilterSizeTexels;
+            data.dirLightPCSSParams1.y = shadowRequest.dirLightPCSSMinFilterRadial2DepthScale;
+            data.dirLightPCSSParams1.z = shadowRequest.dirLightPCSSBlockerRadial2DepthScale;
+            data.dirLightPCSSParams1.w = shadowRequest.dirLightPCSSBlockerSamplingClumpExponent;
 
             data.zBufferParam = shadowRequest.zBufferParam;
             if (atlas.HasBlurredEVSM())
@@ -1087,10 +1163,11 @@ namespace UnityEngine.Rendering.HighDefinition
             shadowManagerData.areaShadowFilteringQuality = HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.areaShadowFilteringQuality;
             m_Atlas.GetUnmanageDataForShadowRequestJobs(ref shadowManagerData.atlas);
             m_CascadeAtlas.GetUnmanageDataForShadowRequestJobs(ref shadowManagerData.cascadeShadowAtlas);
-            m_AreaLightShadowAtlas.GetUnmanageDataForShadowRequestJobs(ref shadowManagerData.areaShadowAtlas);
+            if (ShaderConfig.s_AreaLights == 1)
+                m_AreaLightShadowAtlas.GetUnmanageDataForShadowRequestJobs(ref shadowManagerData.areaShadowAtlas);
+            else
+                shadowManagerData.areaShadowAtlas = m_emptyAreaLightShadowAtlasJob;
             cachedShadowManager.GetUnmanagedDataForShadowRequestJobs(ref shadowManagerData.cachedShadowManager);
-
-
         }
 
         public void Clear()

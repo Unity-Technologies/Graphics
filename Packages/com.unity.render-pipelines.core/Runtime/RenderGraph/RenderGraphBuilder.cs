@@ -137,6 +137,31 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         }
 
         /// <summary>
+        /// Specify a RayTracingAccelerationStructure resource to build during the pass.
+        /// </summary>
+        /// <param name="accelStruct">The RayTracingAccelerationStructure resource to build during the pass.</param>
+        /// <returns>An updated resource handle to the input resource.</returns>
+        public RayTracingAccelerationStructureHandle WriteRayTracingAccelerationStructure(in RayTracingAccelerationStructureHandle input)
+        {
+            CheckResource(input.handle);
+            m_Resources.IncrementWriteCount(input.handle);
+            m_RenderPass.AddResourceWrite(input.handle);
+            return input;
+        }
+
+        /// <summary>
+        /// Specify a RayTracingAccelerationStructure resource to use during the pass.
+        /// </summary>
+        /// <param name="input">The RayTracingAccelerationStructure resource to use during the pass.</param>
+        /// <returns>An updated resource handle to the input resource.</returns>
+        public RayTracingAccelerationStructureHandle ReadRayTracingAccelerationStructure(in RayTracingAccelerationStructureHandle input)
+        {
+            CheckResource(input.handle);
+            m_RenderPass.AddResourceRead(input.handle);
+            return input;
+        }
+
+        /// <summary>
         /// Specify a Renderer List resource to use during the pass.
         /// </summary>
         /// <param name="input">The Renderer List resource to use during the pass.</param>

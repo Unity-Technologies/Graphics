@@ -403,6 +403,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>When enabled, HDRP calculates volumetric voxelization asynchronously.</summary>
         [FrameSettingsField(2, displayedName: "Volume Voxelizations", positiveDependencies: new[] { AsyncCompute }, tooltip: "When enabled, HDRP calculates volumetric voxelization asynchronously.")]
         VolumeVoxelizationsAsync = 45,
+        /// <summary>When enabled, HDRP calculates High Quality Lines partially asynchronously.</summary>
+        [FrameSettingsField(2, displayedName: "High Quality Line Rendering", positiveDependencies: new[] { AsyncCompute }, tooltip: "When enabled, HDRP calculates High Quality Lines partially asynchronously")]
+        HighQualityLinesAsync = 52,
 
         //lightLoop settings (group 3)
         /// <summary>When enabled, HDRP uses FPTL for forward opaque.</summary>
@@ -445,232 +448,12 @@ namespace UnityEngine.Rendering.HighDefinition
     [DebuggerTypeProxy(typeof(FrameSettingsDebugView))]
     partial struct FrameSettings
     {
-        internal static FrameSettings NewDefaultCamera() => new FrameSettings()
-        {
-            bitDatas = new BitArray128(new uint[]
-            {
-                (uint)FrameSettingsField.ShadowMaps,
-                (uint)FrameSettingsField.ContactShadows,
-                (uint)FrameSettingsField.Shadowmask,
-                (uint)FrameSettingsField.ScreenSpaceShadows,
-                (uint)FrameSettingsField.SSR,
-                (uint)FrameSettingsField.TransparentSSR,
-                (uint)FrameSettingsField.SSAO,
-                (uint)FrameSettingsField.SSGI,
-                (uint)FrameSettingsField.SubsurfaceScattering,
-                (uint)FrameSettingsField.Transmission,   // Caution: this is only for debug, it doesn't save the cost of Transmission execution
-                (uint)FrameSettingsField.AtmosphericScattering,
-                (uint)FrameSettingsField.Volumetrics,
-                (uint)FrameSettingsField.ReprojectionForVolumetrics,
-                (uint)FrameSettingsField.LightLayers,
-                (uint)FrameSettingsField.ExposureControl,
-                (uint)FrameSettingsField.LitShaderMode, //deffered ; enum with only two value saved as a bool
-                (uint)FrameSettingsField.TransparentPrepass,
-                (uint)FrameSettingsField.TransparentPostpass,
-                (uint)FrameSettingsField.CustomPass,
-                (uint)FrameSettingsField.VirtualTexturing,
-                (uint)FrameSettingsField.MotionVectors, // Enable/disable whole motion vectors pass (Camera + Object).
-                (uint)FrameSettingsField.ObjectMotionVectors,
-                (uint)FrameSettingsField.RenderingLayerMaskBuffer,
-                (uint)FrameSettingsField.Decals,
-                (uint)FrameSettingsField.DecalLayers,
-                (uint)FrameSettingsField.Refraction, // Depends on DepthPyramid - If not enable, just do a copy of the scene color (?) - how to disable refraction ?
-                (uint)FrameSettingsField.Distortion,
-                (uint)FrameSettingsField.RoughDistortion,
-                (uint)FrameSettingsField.Postprocess,
-                (uint)FrameSettingsField.CustomPostProcess,
-                (uint)FrameSettingsField.StopNaN,
-                (uint)FrameSettingsField.DepthOfField,
-                (uint)FrameSettingsField.MotionBlur,
-                (uint)FrameSettingsField.PaniniProjection,
-                (uint)FrameSettingsField.Bloom,
-                (uint)FrameSettingsField.LensFlareDataDriven,
-                (uint)FrameSettingsField.LensDistortion,
-                (uint)FrameSettingsField.LensFlareScreenSpace,
-                (uint)FrameSettingsField.ChromaticAberration,
-                (uint)FrameSettingsField.Vignette,
-                (uint)FrameSettingsField.ColorGrading,
-                (uint)FrameSettingsField.Tonemapping,
-                (uint)FrameSettingsField.FilmGrain,
-                (uint)FrameSettingsField.Dithering,
-                (uint)FrameSettingsField.Antialiasing,
-                (uint)FrameSettingsField.AfterPostprocess,
-                (uint)FrameSettingsField.LowResTransparent,
-                (uint)FrameSettingsField.ZTestAfterPostProcessTAA,
-                (uint)FrameSettingsField.OpaqueObjects,
-                (uint)FrameSettingsField.TransparentObjects,
-                (uint)FrameSettingsField.AsyncCompute,
-                (uint)FrameSettingsField.LightListAsync,
-                (uint)FrameSettingsField.SSRAsync,
-                (uint)FrameSettingsField.SSRAsync,
-                (uint)FrameSettingsField.SSAOAsync,
-                (uint)FrameSettingsField.ContactShadowsAsync,
-                (uint)FrameSettingsField.VolumeVoxelizationsAsync,
-                (uint)FrameSettingsField.DeferredTile,
-                (uint)FrameSettingsField.ComputeLightEvaluation,
-                (uint)FrameSettingsField.ComputeLightVariants,
-                (uint)FrameSettingsField.ComputeMaterialVariants,
-                (uint)FrameSettingsField.FPTLForForwardOpaque,
-                (uint)FrameSettingsField.BigTilePrepass,
-                (uint)FrameSettingsField.TransparentsWriteMotionVector,
-                (uint)FrameSettingsField.ReflectionProbe,
-                (uint)FrameSettingsField.PlanarProbe,
-                (uint)FrameSettingsField.SkyReflection,
-                (uint)FrameSettingsField.DirectSpecularLighting,
-                (uint)FrameSettingsField.RayTracing,
-                (uint)FrameSettingsField.RaytracingVFX,
-                (uint)FrameSettingsField.ProbeVolume,
-                (uint)FrameSettingsField.VolumetricClouds,
-                (uint)FrameSettingsField.Water,
-
-                (uint)FrameSettingsField.WaterDeformation,
-                (uint)FrameSettingsField.WaterExclusion,
-                (uint)FrameSettingsField.ComputeThickness
-                // (uint)FullResolutionCloudsForSky
-            }),
-            lodBias = 1,
-            sssQualityMode = SssQualityMode.FromQualitySettings,
-            sssQualityLevel = 0,
-            sssCustomSampleBudget = (int)DefaultSssSampleBudgetForQualityLevel.Low,
-            sssCustomDownsampleSteps = (int)DefaultSssDownsampleSteps.Low,
-            msaaMode = MSAAMode.None,
-        };
-        internal static FrameSettings NewDefaultRealtimeReflectionProbe() => new FrameSettings()
-        {
-            bitDatas = new BitArray128(new uint[]
-            {
-                (uint)FrameSettingsField.ShadowMaps,
-                //(uint)FrameSettingsField.ContactShadow,
-                //(uint)FrameSettingsField.ShadowMask,
-                //(uint)FrameSettingsField.SSR,
-                //(uint)FrameSettingsField.SSAO,
-                //(uint)FrameSettingsField.SSGI,
-                (uint)FrameSettingsField.SubsurfaceScattering,
-                (uint)FrameSettingsField.Transmission,   // Caution: this is only for debug, it doesn't save the cost of Transmission execution
-                //(uint)FrameSettingsField.AtmosphericScaterring,
-                (uint)FrameSettingsField.Volumetrics,
-                (uint)FrameSettingsField.ReprojectionForVolumetrics,
-                (uint)FrameSettingsField.LightLayers,
-                //(uint)FrameSettingsField.ExposureControl,
-                (uint)FrameSettingsField.LitShaderMode, //deffered ; enum with only two value saved as a bool
-                (uint)FrameSettingsField.TransparentPrepass,
-                (uint)FrameSettingsField.TransparentPostpass,
-                (uint)FrameSettingsField.CustomPass,
-                (uint)FrameSettingsField.VirtualTexturing,
-                (uint)FrameSettingsField.MotionVectors, // Enable/disable whole motion vectors pass (Camera + Object).
-                (uint)FrameSettingsField.ObjectMotionVectors,
-                (uint)FrameSettingsField.Decals,
-                (uint)FrameSettingsField.DecalLayers,
-                //(uint)FrameSettingsField.Refraction, // Depends on DepthPyramid - If not enable, just do a copy of the scene color (?) - how to disable refraction ?
-                //(uint)FrameSettingsField.Distortion,
-                //(uint)FrameSettingsField.RoughDistortion,
-                //(uint)FrameSettingsField.Postprocess,
-                //(uint)FrameSettingsField.CustomPostProcess,
-                //(uint)FrameSettingsField.AfterPostprocess,
-                (uint)FrameSettingsField.OpaqueObjects,
-                (uint)FrameSettingsField.TransparentObjects,
-                (uint)FrameSettingsField.AsyncCompute,
-                (uint)FrameSettingsField.LightListAsync,
-                (uint)FrameSettingsField.SSRAsync,
-                (uint)FrameSettingsField.SSRAsync,
-                (uint)FrameSettingsField.SSAOAsync,
-                (uint)FrameSettingsField.ContactShadowsAsync,
-                (uint)FrameSettingsField.VolumeVoxelizationsAsync,
-                (uint)FrameSettingsField.DeferredTile,
-                (uint)FrameSettingsField.ComputeLightEvaluation,
-                (uint)FrameSettingsField.ComputeLightVariants,
-                (uint)FrameSettingsField.ComputeMaterialVariants,
-                (uint)FrameSettingsField.FPTLForForwardOpaque,
-                (uint)FrameSettingsField.BigTilePrepass,
-                (uint)FrameSettingsField.ReflectionProbe,
-                (uint)FrameSettingsField.RayTracing,
-                (uint)FrameSettingsField.RaytracingVFX,
-                // (uint)FrameSettingsField.EnableSkyReflection,
-                (uint)FrameSettingsField.ProbeVolume,
-                (uint)FrameSettingsField.DirectSpecularLighting,
-                // (uint)FrameSettingsField.VolumetricClouds,
-                // (uint)FrameSettingsField.Water,
-                // (uint)FrameSettingsField.WaterExclusion,
-                // (uint)FullResolutionCloudsForSky
-            }),
-            lodBias = 1,
-            sssQualityMode = SssQualityMode.FromQualitySettings,
-            sssQualityLevel = 0,
-            sssCustomSampleBudget = (int)DefaultSssSampleBudgetForQualityLevel.Low,
-            sssCustomDownsampleSteps = (int)DefaultSssDownsampleSteps.Low,
-            msaaMode = MSAAMode.None,
-        };
-        internal static FrameSettings NewDefaultCustomOrBakeReflectionProbe() => new FrameSettings()
-        {
-            bitDatas = new BitArray128(new uint[]
-            {
-                (uint)FrameSettingsField.ShadowMaps,
-                (uint)FrameSettingsField.ContactShadows,
-                (uint)FrameSettingsField.Shadowmask,
-                //(uint)FrameSettingsField.SSR,
-                (uint)FrameSettingsField.SSAO,
-                //(uint)FrameSettingsField.SSGI,
-                (uint)FrameSettingsField.SubsurfaceScattering,
-                (uint)FrameSettingsField.Transmission,   // Caution: this is only for debug, it doesn't save the cost of Transmission execution
-                (uint)FrameSettingsField.AtmosphericScattering,
-                (uint)FrameSettingsField.Volumetrics,
-                (uint)FrameSettingsField.ReprojectionForVolumetrics,
-                (uint)FrameSettingsField.LightLayers,
-                //(uint)FrameSettingsField.ExposureControl,
-                (uint)FrameSettingsField.LitShaderMode, //deffered ; enum with only two value saved as a bool
-                (uint)FrameSettingsField.TransparentPrepass,
-                (uint)FrameSettingsField.TransparentPostpass,
-                (uint)FrameSettingsField.CustomPass,
-                (uint)FrameSettingsField.VirtualTexturing,
-                //(uint)FrameSettingsField.MotionVectors, // Enable/disable whole motion vectors pass (Camera + Object).
-                //(uint)FrameSettingsField.ObjectMotionVectors,
-                (uint)FrameSettingsField.Decals,
-                (uint)FrameSettingsField.DecalLayers,
-                (uint)FrameSettingsField.Refraction, // Depends on DepthPyramid - If not enable, just do a copy of the scene color (?) - how to disable rough refraction ?
-                (uint)FrameSettingsField.Distortion,
-                (uint)FrameSettingsField.RoughDistortion,
-                //(uint)FrameSettingsField.Postprocess,
-                //(uint)FrameSettingsField.CustomPostProcess,
-                //(uint)FrameSettingsField.AfterPostprocess,
-                (uint)FrameSettingsField.OpaqueObjects,
-                (uint)FrameSettingsField.TransparentObjects,
-                (uint)FrameSettingsField.AsyncCompute,
-                (uint)FrameSettingsField.LightListAsync,
-                //(uint)FrameSettingsField.SSRAsync,
-                (uint)FrameSettingsField.SSAOAsync,
-                (uint)FrameSettingsField.ContactShadowsAsync,
-                (uint)FrameSettingsField.VolumeVoxelizationsAsync,
-                (uint)FrameSettingsField.DeferredTile,
-                (uint)FrameSettingsField.ComputeLightEvaluation,
-                (uint)FrameSettingsField.ComputeLightVariants,
-                (uint)FrameSettingsField.ComputeMaterialVariants,
-                (uint)FrameSettingsField.FPTLForForwardOpaque,
-                (uint)FrameSettingsField.BigTilePrepass,
-                (uint)FrameSettingsField.ReplaceDiffuseForIndirect,
-                // (uint)FrameSettingsField.EnableSkyReflection,
-                // (uint)FrameSettingsField.DirectSpecularLighting,
-                (uint)FrameSettingsField.VolumetricClouds,
-                (uint)FrameSettingsField.Water,
-
-                (uint)FrameSettingsField.WaterDeformation,
-                (uint)FrameSettingsField.WaterExclusion,
-                (uint)FrameSettingsField.ProbeVolume,
-                // (uint)FullResolutionCloudsForSky
-            }),
-            lodBias = 1,
-            sssQualityMode = SssQualityMode.FromQualitySettings,
-            sssQualityLevel = 0,
-            sssCustomSampleBudget = (int)DefaultSssSampleBudgetForQualityLevel.Low,
-            sssCustomDownsampleSteps = (int)DefaultSssDownsampleSteps.Low,
-            msaaMode = MSAAMode.None,
-        };
-
         // Each time you add data in the framesettings. Attempt to add boolean one only if possible.
         // BitArray is quick in computation and take not a lot of space. It can contains only boolean value.
         // If anyone wants more than 128 bit, the BitArray256 already exist. Just replace this one with it should be enough.
         // For more, you should write one using previous as exemple.
         [SerializeField]
-        BitArray128 bitDatas;
+        internal BitArray128 bitDatas;
 
         /// <summary>
         /// If <c>lodBiasMode</c> is <c>LODBiasMode.Fixed</c>, then this value overwrites <c>QualitySettings.lodBias</c>.
@@ -825,13 +608,15 @@ namespace UnityEngine.Rendering.HighDefinition
         internal float specularGlobalDimmer => bitDatas[(int)FrameSettingsField.DirectSpecularLighting] ? 1f : 0f;
 
         // When render graph debug is active, we need async information to be accurate even if not supported. Actual execution will be disabled down the line.
-        bool asyncEnabled => (SystemInfo.supportsAsyncCompute || RenderGraph.requireDebugData) && bitDatas[(int)FrameSettingsField.AsyncCompute];
+        bool asyncEnabled => (SystemInfo.supportsAsyncCompute || RenderGraph.isRenderGraphViewerActive) && bitDatas[(int)FrameSettingsField.AsyncCompute];
 
         internal bool BuildLightListRunsAsync() => asyncEnabled && bitDatas[(int)FrameSettingsField.LightListAsync];
         internal bool SSRRunsAsync() => asyncEnabled && bitDatas[(int)FrameSettingsField.SSRAsync];
         internal bool SSAORunsAsync() => asyncEnabled && bitDatas[(int)FrameSettingsField.SSAOAsync];
         internal bool ContactShadowsRunsAsync() => asyncEnabled && bitDatas[(int)FrameSettingsField.ContactShadowsAsync];
         internal bool VolumeVoxelizationRunsAsync() => asyncEnabled && bitDatas[(int)FrameSettingsField.VolumeVoxelizationsAsync];
+        internal bool HighQualityLinesRunsAsync() => SystemInfo.supportsAsyncCompute && bitDatas[(int)FrameSettingsField.AsyncCompute] && bitDatas[(uint)FrameSettingsField.HighQualityLinesAsync];
+
 
         /// <summary>Override a frameSettings according to a mask.</summary>
         /// <param name="overriddenFrameSettings">Overrided FrameSettings. Must contains default data before attempting the override.</param>
@@ -959,10 +744,11 @@ namespace UnityEngine.Rendering.HighDefinition
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.LowResTransparent] &= renderPipelineSettings.lowresTransparentSettings.enabled && sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.TransparentObjects];
 
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.LightListAsync] &= sanitizedFrameSettings.asyncEnabled;
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SSRAsync] &= (sanitizedFrameSettings.asyncEnabled && !rayTracingActive);
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SSAOAsync] &= (sanitizedFrameSettings.asyncEnabled && !rayTracingActive);
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SSRAsync] &= sanitizedFrameSettings.asyncEnabled;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SSAOAsync] &= sanitizedFrameSettings.asyncEnabled;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ContactShadowsAsync] &= (sanitizedFrameSettings.asyncEnabled && !rayTracingActive);
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.VolumeVoxelizationsAsync] &= sanitizedFrameSettings.asyncEnabled;
+			sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.HighQualityLinesAsync] &= sanitizedFrameSettings.asyncEnabled;
 
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.CustomPass] &= renderPipelineSettings.supportCustomPass;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.CustomPass] &= camera.cameraType != CameraType.Preview;

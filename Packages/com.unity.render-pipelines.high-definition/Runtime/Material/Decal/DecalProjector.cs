@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 #if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.Rendering.HighDefinition;
@@ -180,6 +181,26 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         [SerializeField]
+        private IntScalableSettingValue m_TransparentTextureResolution = new IntScalableSettingValue
+        {
+            @override = 256,
+            useOverride = true,
+        };
+
+        /// <summary>
+        /// Resolution that is used when the projector affects transparency and a shader graph is being used
+        /// </summary>
+        public IntScalableSettingValue TransparentTextureResolution
+        {
+            get => m_TransparentTextureResolution;
+            set
+            {
+                m_TransparentTextureResolution = value;
+                OnValidate();
+            }
+        }
+
+        [SerializeField]
         RenderingLayerMask m_DecalLayerMask = RenderingLayerMask.DecalLayerDefault;
         /// <summary>
         /// The layer of the decal.
@@ -341,6 +362,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void Reset() => InitMaterial();
 
+#if UNITY_EDITOR
+        static List<DecalProjector> m_DecalProjectorInstances;  // List of decal projectors that have had OnEnable() called on them
+#endif
         void OnEnable()
         {
             InitMaterial();
@@ -357,14 +381,31 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
             cachedEditorLayer = gameObject.layer;
             // Handle scene visibility
-            SceneVisibilityManager.visibilityChanged += UpdateDecalVisibility;
-            PrefabStage.prefabStageOpened += RegisterDecalVisibilityUpdatePrefabStage;
-            if (PrefabStageUtility.GetCurrentPrefabStage() != null) // In case the prefab stage is already opened when enabling the decal
-                RegisterDecalVisibilityUpdatePrefabStage();
+
+            // Create a list to keep track of all active decal projectors and register our event handlers that dispatch events to each one.
+            // We do this instead of registering event handlers individually for each instance as that generates far more garbage on the heap
+            if (m_DecalProjectorInstances == null)
+            {
+                m_DecalProjectorInstances = new List<DecalProjector>();
+                SceneVisibilityManager.visibilityChanged += UpdateDecalVisibilityDispatcher;
+                PrefabStage.prefabStageOpened += RegisterDecalVisibilityUpdatePrefabStage;
+
+                if (PrefabStageUtility.GetCurrentPrefabStage() != null) // In case the prefab stage is already opened when enabling the decal
+                    RegisterDecalVisibilityUpdatePrefabStage();
+            }
+            m_DecalProjectorInstances.Add(this);
 #endif
         }
 
 #if UNITY_EDITOR
+        // Handler for the SceneVisibilityManager.visibilityChanged event, calls UpdateDecalVisibility() on each active decal projector
+        static void UpdateDecalVisibilityDispatcher()
+        {
+            foreach (DecalProjector decalProjector in m_DecalProjectorInstances)
+                decalProjector.UpdateDecalVisibility();
+        }
+
+        // Handle the SceneVisibilityManager.visibilityChanged event for this decal projector
         void UpdateDecalVisibility()
         {
             // This callback is called before HDRP is initialized after a domain reload
@@ -388,15 +429,27 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void RegisterDecalVisibilityUpdatePrefabStage(PrefabStage stage = null)
+        // Handler for the PrefabStage.prefabStageOpened event
+        static void RegisterDecalVisibilityUpdatePrefabStage(PrefabStage stage = null)
         {
-            SceneView.duringSceneGui -= UpdateDecalVisibilityPrefabStage;
-            SceneView.duringSceneGui += UpdateDecalVisibilityPrefabStage;
+            SceneView.duringSceneGui -= UpdateDecalVisibilityPrefabStageDispatcher;
+            SceneView.duringSceneGui += UpdateDecalVisibilityPrefabStageDispatcher;
         }
 
         void UnregisterDecalVisibilityUpdatePrefabStage()
-            => SceneView.duringSceneGui -= UpdateDecalVisibilityPrefabStage;
+        {
+            SceneView.duringSceneGui -= UpdateDecalVisibilityPrefabStageDispatcher;
+        }
 
+        // Handler for the SceneView.duringSceneGui event, calls UpdateDecalVisibilityPrefabStage() on each active decal projector
+        static void UpdateDecalVisibilityPrefabStageDispatcher(SceneView sv)
+        {
+            foreach (DecalProjector decalProjector in m_DecalProjectorInstances)
+                decalProjector.UpdateDecalVisibilityPrefabStage(sv);
+
+        }
+
+        // Handle the SceneView.duringSceneGui event for this decal projector
         bool m_LastPrefabStageVisibility = true;
         void UpdateDecalVisibilityPrefabStage(SceneView sv)
         {
@@ -424,7 +477,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 DecalSystem.instance.RemoveDecal(m_Handle);
             m_LastPrefabStageVisibility = showDecal;
         }
-#endif
+#endif  // UNITY_EDITOR
 
         void OnDisable()
         {
@@ -434,9 +487,20 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_Handle = null;
             }
 #if UNITY_EDITOR
-            SceneVisibilityManager.visibilityChanged -= UpdateDecalVisibility;
-            UnregisterDecalVisibilityUpdatePrefabStage();
-            PrefabStage.prefabStageOpened -= RegisterDecalVisibilityUpdatePrefabStage;
+            // Remove this instance from the list tracking active decal projectors.
+            // We do this by swapping the last element of the array into the slot we are deleting rather than shuffling the entire contents above the slot down as it's faster and the actual ordering is not significant
+            int instanceIndex = m_DecalProjectorInstances.FindIndex((x) => ReferenceEquals(x, this));
+            m_DecalProjectorInstances[instanceIndex] = m_DecalProjectorInstances[m_DecalProjectorInstances.Count - 1];
+            m_DecalProjectorInstances.RemoveAt(m_DecalProjectorInstances.Count - 1);
+
+            // If the list of active instances is now empty delete it and un-register our event handlers
+            if (m_DecalProjectorInstances.Count == 0)
+            {
+                SceneVisibilityManager.visibilityChanged -= UpdateDecalVisibilityDispatcher;
+                PrefabStage.prefabStageOpened -= RegisterDecalVisibilityUpdatePrefabStage;
+                UnregisterDecalVisibilityUpdatePrefabStage();
+                m_DecalProjectorInstances = null;
+            }
 #endif
         }
 
@@ -462,11 +526,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (m_Material != null)
                     {
                         m_Handle = DecalSystem.instance.AddDecal(this);
-
-                        if (!DecalSystem.IsHDRenderPipelineDecal(m_Material.shader)) // non HDRP/decal shaders such as shader graph decal do not affect transparency
-                        {
-                            m_AffectsTransparency = false;
-                        }
                     }
 
                     // notify the editor that material has changed so it can update the shader foldout
@@ -504,6 +563,15 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
 
             return true;
+        }
+
+        /// <summary>
+        /// If called it will force an update of the shader graph textures in the transparent decal atlas
+        /// if the DecalProjector has Affects Transparent enabled
+        /// </summary>
+        public void UpdateTransparentShaderGraphTextures()
+        {
+            DecalSystem.instance.UpdateTransparentShaderGraphTextures(m_Handle, this);
         }
     }
 }

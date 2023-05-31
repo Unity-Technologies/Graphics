@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: 0779414d9195ad041b1747b36c7d2e58
+VisualEffectImporter:
+  externalObjects: {}
+  serializedVersion: 1
+  template:
+    name: Head & Trail
+    category: Built-in
+    description: This system loops infinitely, creating multiple child trails that
+      follow their parent/root particles. It's useful for quickly setting up GPU
+      event-based trails and can be tweaked to create effects like wizard spells,
+      magic abilities, missile trails, etc.
+    icon: {fileID: 2800000, guid: caebc41a219a402419aebd2158be2e8c, type: 3}
+    thumbnail: {fileID: 2800000, guid: a7160eac4dcba2b478fa804f93baed89, type: 3}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

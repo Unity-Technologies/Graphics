@@ -25,7 +25,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     WaterSurface currentWater = waterSurfaces[surfaceIdx];
 
                     // If the resources are invalid, we cannot render this surface
-                    if (!currentWater.simulation.ValidResources((int)m_WaterBandResolution, WaterConsts.k_WaterHighBandCount) || currentWater.debugMode == WaterDebugMode.None)
+                    if (currentWater.debugMode == WaterDebugMode.None)
                         continue;
 
                     // Render the water surface
@@ -78,6 +78,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                     (WaterRenderingMaskData data, RenderGraphContext ctx) =>
                     {
+                        ConstantBuffer.UpdateData(ctx.cmd, data.parameters.waterCB);
+                        ConstantBuffer.UpdateData(ctx.cmd, data.parameters.waterRenderingCB);
+                        ConstantBuffer.UpdateData(ctx.cmd, data.parameters.waterDeformationCB);
+
                         // We will be writing directly to the color and depth buffers
                         CoreUtils.SetRenderTarget(ctx.cmd, data.colorBuffer, data.depthBuffer);
 
@@ -102,30 +106,11 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Normally we should bind this into the material property block, but on metal there seems to be an issue. This fixes it.
                         ctx.cmd.SetGlobalFloat("_CullWaterMask", (int)CullMode.Off);
 
-                        // Bind the two constant buffers
-                        ConstantBuffer.Push(ctx.cmd, data.parameters.waterCB, data.parameters.waterMaterial, HDShaderIDs._ShaderVariablesWater);
-                        ConstantBuffer.Push(ctx.cmd, data.parameters.waterRenderingCB, data.parameters.waterMaterial, HDShaderIDs._ShaderVariablesWaterRendering);
-                        ConstantBuffer.Push(ctx.cmd, data.parameters.waterDeformationCB, data.parameters.waterMaterial, HDShaderIDs._ShaderVariablesWaterDeformation);
+                        // Bind the debug constant buffer
                         ConstantBuffer.Push(ctx.cmd, data.waterDebugCB, data.parameters.waterMaterial, HDShaderIDs._ShaderVariablesWaterDebug);
 
                         // For the debug mode, we don't bother using the indirect method as we do not care about perf.
-                        if (data.parameters.instancedQuads)
-                        {
-                            DrawInstancedQuadsCPU(ctx.cmd, data.parameters, k_WaterMaskPass);
-                        }
-                        else
-                        {
-                            // Based on if this is a custom mesh or not trigger the right geometry/geometries and shader pass
-                            if (!data.parameters.customMesh)
-                            {
-                                ConstantBuffer.Push(ctx.cmd, data.parameters.waterRenderingCB, data.parameters.waterMaterial, HDShaderIDs._ShaderVariablesWaterRendering);
-                                ctx.cmd.DrawMesh(data.parameters.tessellableMesh, Matrix4x4.identity, data.parameters.waterMaterial, 0, k_WaterMaskPass, data.parameters.mbp);
-                            }
-                            else
-                            {
-                                DrawMeshRenderers(ctx.cmd, data.parameters, k_WaterMaskPass);
-                            }
-                        }
+                        DrawWaterSurface(ctx.cmd, data.parameters, k_WaterMaskPass, false, null, null, null);
 
                         // Reset the keywords
                         ResetWaterShaderKeyword(ctx.cmd);

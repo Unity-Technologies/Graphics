@@ -30,7 +30,7 @@
 // Note: currently quality settings for PCSS need to be expose in UI and is control in HDLightUI.cs file IsShadowSettings
 #elif defined(SHADOW_HIGH)
 #define PUNCTUAL_FILTER_ALGORITHM(sd, posSS, posTC, tex, samp, bias) SampleShadow_PCSS(posTC, posSS, sd.shadowMapSize.xy * (sd.isInCachedAtlas ? _CachedShadowAtlasSize.zw : _ShadowAtlasSize.zw), sd.atlasOffset, sd.shadowFilterParams0.x, sd.shadowFilterParams0.w, asint(sd.shadowFilterParams0.y), asint(sd.shadowFilterParams0.z), tex, samp, s_point_clamp_sampler, bias, sd.zBufferParam, true, (sd.isInCachedAtlas ? _CachedShadowAtlasSize.xz : _ShadowAtlasSize.xz))
-#define DIRECTIONAL_FILTER_ALGORITHM(sd, posSS, posTC, tex, samp, bias) SampleShadow_PCSS(posTC, posSS, sd.shadowMapSize.xy * _CascadeShadowAtlasSize.zw, sd.atlasOffset, sd.shadowFilterParams0.x, sd.shadowFilterParams0.w, asint(sd.shadowFilterParams0.y), asint(sd.shadowFilterParams0.z), tex, samp, s_point_clamp_sampler, bias, sd.zBufferParam, false, _CascadeShadowAtlasSize.xz)
+#define DIRECTIONAL_FILTER_ALGORITHM(sd, posSS, posTC, tex, samp, bias) SampleShadow_PCSS_Directional(sd, posTC, posSS, sd.shadowMapSize.xy * _CascadeShadowAtlasSize.zw, sd.atlasOffset, sd.shadowMapSize.z, asint(sd.shadowFilterParams0.y), asint(sd.shadowFilterParams0.z), tex, samp, s_point_clamp_sampler, bias)
 #endif
 
 #ifdef AREA_SHADOW_LOW
@@ -250,6 +250,8 @@ void LoadDirectionalShadowDatas(inout HDShadowData sd, HDShadowContext shadowCon
 #if defined(SHADOW_HIGH)
     sd.shadowFilterParams0.x = shadowContext.shadowDatas[index].shadowFilterParams0.x;
     sd.zBufferParam = shadowContext.shadowDatas[index].zBufferParam;
+    sd.dirLightPCSSParams0.xy = shadowContext.shadowDatas[index].dirLightPCSSParams0.xy;
+    sd.dirLightPCSSParams1.z = shadowContext.shadowDatas[index].dirLightPCSSParams1.z;
 #endif
     sd.cacheTranslationDelta = shadowContext.shadowDatas[index].cacheTranslationDelta;
 }

@@ -285,15 +285,6 @@ float3 UnpackFromR11G11B10f(uint rgb)
 }
 
 //-----------------------------------------------------------------------------
-// Color packing
-//-----------------------------------------------------------------------------
-
-float4 UnpackFromR8G8B8A8(uint rgba)
-{
-    return float4(rgba & 255, (rgba >> 8) & 255, (rgba >> 16) & 255, (rgba >> 24) & 255) * (1.0 / 255);
-}
-
-//-----------------------------------------------------------------------------
 // Quaternion packing
 //-----------------------------------------------------------------------------
 
@@ -588,6 +579,47 @@ float2 Unpack8ToFloat2(float f)
     float y = y_expanded / 15.0;
     return float2(x, y);
 }
+
+//-----------------------------------------------------------------------------
+// Color packing
+//-----------------------------------------------------------------------------
+
+float4 UnpackFromR8G8B8A8(uint rgba)
+{
+    return float4(rgba & 255, (rgba >> 8) & 255, (rgba >> 16) & 255, (rgba >> 24) & 255) * (1.0 / 255);
+}
+
+float2 PackToR5G6B5(float3 rgb)
+{
+    uint rgb16 = (PackFloatToUInt(rgb.x, 0,  5) |
+                  PackFloatToUInt(rgb.y, 5,  6) |
+                  PackFloatToUInt(rgb.z, 11, 5));
+    return float2(PackByte(rgb16 >> 8), PackByte(rgb16 & 0xFF));
+}
+
+float3 UnpackFromR5G6B5(float2 rgb)
+{
+    uint rgb16 = (UnpackByte(rgb.x) << 8) | UnpackByte(rgb.y);
+    return float3(UnpackUIntToFloat(rgb16, 0,  5),
+                  UnpackUIntToFloat(rgb16, 5,  6),
+                  UnpackUIntToFloat(rgb16, 11, 5));
+}
+
+uint PackToR7G7B6(float3 rgb)
+{
+    uint rgb20 = (PackFloatToUInt(rgb.x, 0,  7) |
+                  PackFloatToUInt(rgb.y, 7,  7) |
+                  PackFloatToUInt(rgb.z, 14, 6));
+    return rgb20;
+}
+
+float3 UnpackFromR7G7B6(uint rgb)
+{
+    return float3(UnpackUIntToFloat(rgb, 0,  7),
+                  UnpackUIntToFloat(rgb, 7,  7),
+                  UnpackUIntToFloat(rgb, 14, 6));
+}
+
 
 #if SHADER_API_MOBILE || SHADER_API_GLES3
 #pragma warning (enable : 3205) // conversion of larger type to smaller

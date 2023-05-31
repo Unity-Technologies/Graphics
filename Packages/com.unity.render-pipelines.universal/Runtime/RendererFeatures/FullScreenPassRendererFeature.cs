@@ -3,12 +3,12 @@ using UnityEngine;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
-using UnityEngine.XR;
 
 /// <summary>
 /// FullScreenPass is a renderer feature used to change screen appearance such as post processing effect. This implementation
 /// lets it's user create an effect with minimal code involvement.
 /// </summary>
+[URPHelpURL("renderer-features/renderer-feature-full-screen-pass")]
 public class FullScreenPassRendererFeature : ScriptableRendererFeature
 {
     /// <summary>

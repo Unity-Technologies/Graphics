@@ -84,7 +84,7 @@ public class AovOutput : MonoBehaviour
         _props.SetTexture("_ColorTexture", buffers[2]);
 
         CoreUtils.DrawFullScreen(
-            cmd, _material, _depthTexture, _props
+            cmd, _material, _depthTexture, _props, 1
         );
 
         _props.SetTexture("_ColorTexture", buffers[3]);

@@ -80,7 +80,14 @@ half3 SampleProbeVolumeVertex(in float3 absolutePositionWS, in float3 normalWS, 
     half3 bakedGI;
     // The screen space position is used for noise, which is irrelevant when doing vertex sampling
     float2 positionSS = float2(0, 0);
-    EvaluateAdaptiveProbeVolume(absolutePositionWS, normalWS, viewDir, positionSS, bakedGI);
+    if (_EnableProbeVolumes)
+    {
+        EvaluateAdaptiveProbeVolume(absolutePositionWS, normalWS, viewDir, positionSS, bakedGI);
+    }
+    else
+    {
+        bakedGI = SampleSH(normalWS);
+    }
     return bakedGI;
 #else
     return half3(0, 0, 0);
@@ -93,7 +100,14 @@ half3 SampleProbeVolumePixel(in half3 vertexValue, in float3 absolutePositionWS,
     return vertexValue;
 #elif defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
     half3 bakedGI;
-    EvaluateAdaptiveProbeVolume(absolutePositionWS, normalWS, viewDir, positionSS, bakedGI);
+    if (_EnableProbeVolumes)
+    {
+        EvaluateAdaptiveProbeVolume(absolutePositionWS, normalWS, viewDir, positionSS, bakedGI);
+    }
+    else
+    {
+        bakedGI = SampleSH(normalWS);
+    }
 #ifdef UNITY_COLORSPACE_GAMMA
     bakedGI = LinearToSRGB(bakedGI);
 #endif
@@ -251,10 +265,9 @@ half3 CalculateIrradianceFromReflectionProbes(half3 reflectVector, float3 positi
         float4 scaleOffset0 = urp_ReflProbes_MipScaleOffset[probeIndex * 7 + (uint)mip0];
         float4 scaleOffset1 = urp_ReflProbes_MipScaleOffset[probeIndex * 7 + (uint)mip1];
 
-        half4 encodedIrradiance0 = half4(SAMPLE_TEXTURE2D_LOD(urp_ReflProbes_Atlas, samplerurp_ReflProbes_Atlas, uv * scaleOffset0.xy + scaleOffset0.zw, 0.0));
-        half4 encodedIrradiance1 = half4(SAMPLE_TEXTURE2D_LOD(urp_ReflProbes_Atlas, samplerurp_ReflProbes_Atlas, uv * scaleOffset1.xy + scaleOffset1.zw, 0.0));
-        real4 hdr = urp_ReflProbes_HDR[probeIndex];
-        irradiance += weight * DecodeHDREnvironment(lerp(encodedIrradiance0, encodedIrradiance1, mipBlend), hdr);
+        half3 irradiance0 = half4(SAMPLE_TEXTURE2D_LOD(urp_ReflProbes_Atlas, samplerurp_ReflProbes_Atlas, uv * scaleOffset0.xy + scaleOffset0.zw, 0.0)).rgb;
+        half3 irradiance1 = half4(SAMPLE_TEXTURE2D_LOD(urp_ReflProbes_Atlas, samplerurp_ReflProbes_Atlas, uv * scaleOffset1.xy + scaleOffset1.zw, 0.0)).rgb;
+        irradiance += weight * lerp(irradiance0, irradiance1, mipBlend);
         totalWeight += weight;
     }
 #else

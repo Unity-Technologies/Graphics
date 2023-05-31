@@ -80,5 +80,16 @@ namespace UnityEditor.VFX.HDRP
                 yield return nameof(enableRayTracing);
             }
         }
+
+        public override IEnumerable<string> additionalDefines
+        {
+            get
+            {
+                foreach (var define in base.additionalDefines)
+                    yield return define;
+
+                yield return "_CONSERVATIVE_DEPTH_OFFSET";
+            }
+        }
     }
 }

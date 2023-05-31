@@ -6,8 +6,10 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         static internal void ApplyCommonPreset(WaterSurface waterSurface)
         {
-            waterSurface.cpuSimulation = false;
             waterSurface.timeMultiplier = 1.0f;
+            waterSurface.cpuSimulation = false;
+            waterSurface.cpuFullResolution = false;
+            waterSurface.cpuEvaluateRipples = false;
 
             // Simulation
             waterSurface.waterMask = null;
@@ -43,6 +45,13 @@ namespace UnityEngine.Rendering.HighDefinition
             waterSurface.refractionColor = new Color(0.1f, 0.5f, 0.5f).linear;
             waterSurface.maxRefractionDistance = 0.5f;
             waterSurface.absorptionDistance = 1.5f;
+
+            // Caustics
+            waterSurface.caustics = true;
+            waterSurface.causticsBand = 2;
+            waterSurface.causticsIntensity = 0.5f;
+            waterSurface.causticsResolution = WaterSurface.WaterCausticsResolution.Caustics256;
+            waterSurface.virtualPlaneDistance = 4.0f;
 
             // Foam
             waterSurface.foam = false;
@@ -92,7 +101,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Caustics
             waterSurface.caustics = false;
-            waterSurface.causticsBand = 2;
         }
 
         static internal void ApplyWaterRiverPreset(WaterSurface waterSurface)
@@ -125,12 +133,7 @@ namespace UnityEngine.Rendering.HighDefinition
             waterSurface.directLightBodyScattering = 0.5f;
 
             // Caustics
-            waterSurface.caustics = true;
-            waterSurface.causticsIntensity = 0.5f;
             waterSurface.causticsPlaneBlendDistance = 1.0f;
-            waterSurface.causticsResolution = WaterSurface.WaterCausticsResolution.Caustics256;
-            waterSurface.causticsBand = 1;
-            waterSurface.virtualPlaneDistance = 4.0f;
         }
 
         static internal void ApplyWaterPoolPreset(WaterSurface waterSurface)
@@ -139,7 +142,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Set the various parameters
             waterSurface.surfaceType = WaterSurfaceType.Pool;
-            waterSurface.geometryType = WaterGeometryType.Quad;
+            waterSurface.geometryType = WaterGeometryType.InstancedQuads;
+            waterSurface.cpuSimulation = false;
+            waterSurface.tessellation = false;
 
             // Make the time multiplier a bit slower
             waterSurface.timeMultiplier = 0.8f;
@@ -162,12 +167,7 @@ namespace UnityEngine.Rendering.HighDefinition
             waterSurface.directLightTipScattering = 0.2f;
 
             // Caustics
-            waterSurface.caustics = true;
-            waterSurface.causticsIntensity = 0.5f;
             waterSurface.causticsPlaneBlendDistance = 2.0f;
-            waterSurface.causticsResolution = WaterSurface.WaterCausticsResolution.Caustics256;
-            waterSurface.causticsBand = 0;
-            waterSurface.virtualPlaneDistance = 4.0f;
 
             // Under Water
             waterSurface.underWater = true;

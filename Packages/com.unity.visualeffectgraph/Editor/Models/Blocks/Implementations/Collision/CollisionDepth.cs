@@ -6,6 +6,7 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Block
 {
+    [VFXHelpURL("Block-CollideWithDepthBuffer")]
     [VFXInfo(category = "Collision")]
     class CollisionDepth : CollisionBase
     {

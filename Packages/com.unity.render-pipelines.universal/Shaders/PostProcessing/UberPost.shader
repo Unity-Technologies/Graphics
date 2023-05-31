@@ -14,7 +14,11 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
         #pragma never_use_dxc metal
         #pragma multi_compile_fragment _ DEBUG_DISPLAY
         #pragma multi_compile_fragment _ SCREEN_COORD_OVERRIDE
-        #pragma multi_compile_local_fragment _ HDR_ENCODING
+        #pragma multi_compile_local_fragment _ HDR_INPUT HDR_ENCODING
+
+        #ifdef HDR_ENCODING
+        #define HDR_INPUT 1 // this should be defined when HDR_ENCODING is defined
+        #endif
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Filtering.hlsl"
@@ -27,6 +31,7 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Debug/DebuggingFullscreen.hlsl"
+        #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/DynamicScalingClamping.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRendering.hlsl"
 
         // Hardcoded dependencies to reduce the number of variants
@@ -45,6 +50,7 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
         TEXTURE2D(_BlueNoise_Texture);
         TEXTURE2D_X(_OverlayUITexture);
 
+        float4 _BloomTexture_TexelSize;
         float4 _Lut_Params;
         float4 _UserLut_Params;
         float4 _Bloom_Params;
@@ -108,6 +114,7 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
         #define MinNits                 _HDROutputLuminanceParams.x
         #define MaxNits                 _HDROutputLuminanceParams.y
         #define PaperWhite              _HDROutputLuminanceParams.z
+        #define OneOverPaperWhite       _HDROutputLuminanceParams.w
 
         float2 DistortUV(float2 uv)
         {
@@ -153,15 +160,15 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
                 float2 end = uv - coords * dot(coords, coords) * ChromaAmount;
                 float2 delta = (end - uv) / 3.0;
 
-                half r = SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, SCREEN_COORD_REMOVE_SCALEBIAS(uvDistorted)                ).x;
-                half g = SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, SCREEN_COORD_REMOVE_SCALEBIAS(DistortUV(delta + uv)      )).y;
-                half b = SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, SCREEN_COORD_REMOVE_SCALEBIAS(DistortUV(delta * 2.0 + uv))).z;
+                half r = SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, ClampUVForBilinear(SCREEN_COORD_REMOVE_SCALEBIAS(uvDistorted)                , _BlitTexture_TexelSize.xy)).x;
+                half g = SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, ClampUVForBilinear(SCREEN_COORD_REMOVE_SCALEBIAS(DistortUV(delta + uv)      ), _BlitTexture_TexelSize.xy)).y;
+                half b = SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, ClampUVForBilinear(SCREEN_COORD_REMOVE_SCALEBIAS(DistortUV(delta * 2.0 + uv)), _BlitTexture_TexelSize.xy)).z;
 
                 color = half3(r, g, b);
             }
             #else
             {
-                color = SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, SCREEN_COORD_REMOVE_SCALEBIAS(uvDistorted)).xyz;
+                color = SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, ClampUVForBilinear(SCREEN_COORD_REMOVE_SCALEBIAS(uvDistorted), _BlitTexture_TexelSize.xy)).xyz;
             }
             #endif
 
@@ -174,9 +181,9 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
 
             #if defined(BLOOM)
             {
-                float2 uvBloom = uvDistorted;
+                float2 uvBloom = ClampUVForBilinear(uvDistorted, _BloomTexture_TexelSize.xy);
                 #if defined(_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
-                    uvBloom = RemapFoveatedRenderingDistort(uvBloom);
+                    uvBloom = RemapFoveatedRenderingNonUniformToLinear(uvBloom);
                 #endif
 
                 #if _BLOOM_HQ
@@ -235,7 +242,7 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
 
             #if _FILM_GRAIN
             {
-                color = ApplyGrain(color, uv, TEXTURE2D_ARGS(_Grain_Texture, sampler_LinearRepeat), GrainIntensity, GrainResponse, GrainScale, GrainOffset);
+                color = ApplyGrain(color, uv, TEXTURE2D_ARGS(_Grain_Texture, sampler_LinearRepeat), GrainIntensity, GrainResponse, GrainScale, GrainOffset, OneOverPaperWhite);
             }
             #endif
 
@@ -253,7 +260,7 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
 
             #if _DITHERING
             {
-                color = ApplyDithering(color, uv, TEXTURE2D_ARGS(_BlueNoise_Texture, sampler_PointRepeat), DitheringScale, DitheringOffset);
+                color = ApplyDithering(color, uv, TEXTURE2D_ARGS(_BlueNoise_Texture, sampler_PointRepeat), DitheringScale, DitheringOffset, PaperWhite, OneOverPaperWhite);
                 // Assume color > 0 and prevent 0 - ditherNoise.
                 // Negative colors can cause problems if fed back to the postprocess via render to FP16 texture.
                 color = max(color, 0);

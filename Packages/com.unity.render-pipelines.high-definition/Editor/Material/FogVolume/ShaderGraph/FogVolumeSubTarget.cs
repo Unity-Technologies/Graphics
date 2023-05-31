@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Internal;
@@ -146,8 +147,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             return new DefineCollection
             {
-                { new KeywordDescriptor{ displayName = mode.ToString(), referenceName = $"FOG_VOLUME_BLENDING_{mode.ToString().ToUpper()}" }, 1 },
+                { new KeywordDescriptor{ displayName = ToStringInvariant(mode), referenceName = $"FOG_VOLUME_BLENDING_{ ToStringInvariant(mode).ToUpper(CultureInfo.InvariantCulture)}" }, 1 },
             };
+        }
+        
+        private string ToStringInvariant(LocalVolumetricFogBlendingMode value)
+        {
+            return Enum.GetName(typeof(LocalVolumetricFogBlendingMode), value)?.ToString(CultureInfo.InvariantCulture);
         }
 
         PassCollection GetVoxelizePasses()

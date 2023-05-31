@@ -14,48 +14,50 @@ namespace UnityEngine.Rendering.Universal
         [NativeDisableParallelForRestriction]
         public NativeArray<uint> tileMasks;
 
-        public int itemsPerLight;
-        public int lightCount;
+        public int rangesPerItem;
+        public int itemsPerTile;
         public int wordsPerTile;
         public int2 tileResolution;
 
-        public void Execute(int rowIndex)
+        public void Execute(int jobIndex)
         {
+            var rowIndex = jobIndex % tileResolution.y;
+            var viewIndex = jobIndex / tileResolution.y;
             var compactCount = 0;
-            var lightIndices = new NativeArray<short>(lightCount, Allocator.Temp);
-            var lightRanges = new NativeArray<InclusiveRange>(lightCount, Allocator.Temp);
+            var itemIndices = new NativeArray<short>(itemsPerTile, Allocator.Temp);
+            var itemRanges = new NativeArray<InclusiveRange>(itemsPerTile, Allocator.Temp);
 
             // Compact the light ranges for the current row.
-            for (var lightIndex = 0; lightIndex < lightCount; lightIndex++)
+            for (var itemIndex = 0; itemIndex < itemsPerTile; itemIndex++)
             {
-                var range = tileRanges[lightIndex * itemsPerLight + 1 + rowIndex];
+                var range = tileRanges[viewIndex * rangesPerItem * itemsPerTile + itemIndex * rangesPerItem + 1 + rowIndex];
                 if (!range.isEmpty)
                 {
-                    lightIndices[compactCount] = (short)lightIndex;
-                    lightRanges[compactCount] = range;
+                    itemIndices[compactCount] = (short)itemIndex;
+                    itemRanges[compactCount] = range;
                     compactCount++;
                 }
             }
 
-            var rowBaseMaskIndex = rowIndex * wordsPerTile * tileResolution.x;
+            var rowBaseMaskIndex = viewIndex * wordsPerTile * tileResolution.x * tileResolution.y + rowIndex * wordsPerTile * tileResolution.x;
             for (var tileIndex = 0; tileIndex < tileResolution.x; tileIndex++)
             {
                 var tileBaseIndex = rowBaseMaskIndex + tileIndex * wordsPerTile;
                 for (var i = 0; i < compactCount; i++)
                 {
-                    var lightIndex = (int)lightIndices[i];
-                    var wordIndex = lightIndex / 32;
-                    var lightMask = 1u << (lightIndex % 32);
-                    var range = lightRanges[i];
+                    var itemIndex = (int)itemIndices[i];
+                    var wordIndex = itemIndex / 32;
+                    var itemMask = 1u << (itemIndex % 32);
+                    var range = itemRanges[i];
                     if (range.Contains((short)tileIndex))
                     {
-                        tileMasks[tileBaseIndex + wordIndex] |= lightMask;
+                        tileMasks[tileBaseIndex + wordIndex] |= itemMask;
                     }
                 }
             }
 
-            lightIndices.Dispose();
-            lightRanges.Dispose();
+            itemIndices.Dispose();
+            itemRanges.Dispose();
         }
     }
 }

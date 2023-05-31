@@ -17,6 +17,23 @@
 #define NUM_LANE_SEGMENT_SETUP (1024)
 #define NUM_LANE_RASTER_BIN (1024)
 
+// Generated from UnityEngine.Rendering.LineRendering+ShaderVariables
+// PackingRules = Exact
+CBUFFER_START(ShaderVariables)
+    float2 _DimBin;
+    int _SegmentCount;
+    int _BinCount;
+    float4 _SizeScreen;
+    float4 _SizeBin;
+    int _VertexCount;
+    int _VertexStride;
+    int _ActiveBinCount;
+    int _ClusterDepth;
+    int2 _ShadingAtlasDimensions;
+    int _ClusterCount;
+    float _TileOpacityThreshold;
+CBUFFER_END
+
 // Generated from UnityEngine.Rendering.LineRendering+ClusterRecord
 // PackingRules = Exact
 struct ClusterRecord
@@ -25,24 +42,6 @@ struct ClusterRecord
     uint clusterIndex;
     uint clusterOffset;
 };
-
-// Generated from UnityEngine.Rendering.LineRendering+ShaderVariables
-// PackingRules = Exact
-CBUFFER_START(ShaderVariables)
-    float2 _DimBin;
-    int _SegmentCount;
-    int _BinCount;
-    float4 _SizeScreen;
-    float3 _SizeBin;
-    int _VertexCount;
-    int _VertexStride;
-    int _ActiveBinCount;
-    int _ClusterDepth;
-    int _ClusterCount;
-    float2 _Unused0;
-    float _TileOpacityThreshold;
-    int _GroupShadingSampleOffset;
-CBUFFER_END
 
 // Generated from UnityEngine.Rendering.LineRendering+SegmentRecord
 // PackingRules = Exact

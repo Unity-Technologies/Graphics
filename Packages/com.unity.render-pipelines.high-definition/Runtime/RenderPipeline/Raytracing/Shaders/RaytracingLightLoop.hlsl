@@ -123,6 +123,9 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 #if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
     if (rayContext.useAPV == 1)
     {
+        // At this point bakeDiffuseLighting only contain emissives when using APV
+        real3 emissive = builtinData.bakeDiffuseLighting;
+
         if (_EnableProbeVolumes && rayContext.useAPV == 1)
         {
             // Reflect normal to get lighting for reflection probe tinting
@@ -151,6 +154,9 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         // Make sure the baked diffuse lighting is tinted with the diffuse color
         ModifyBakedDiffuseLighting(V, posInput, preLightData, bsdfData, builtinData);
     #endif
+    
+        // Add emissiveon top of diffuse
+        builtinData.bakeDiffuseLighting += emissive;
     }
 #endif
 

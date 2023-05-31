@@ -30,48 +30,45 @@ namespace UnityEditor.ShaderGraph
         {
             Action<ShaderStringBuilder> customDecl = (builder) =>
             {
-                builder.AppendLine("Gradient {0}_Definition()", referenceName);
-                using (builder.BlockScope())
+                StringBuilder colors = new("{");
+                StringBuilder alphas = new("{");
+                for (int i = 0; i < 8; ++i)
                 {
-                    string[] colors = new string[8];
-                    for (int i = 0; i < colors.Length; i++)
-                        colors[i] = string.Format("g.colors[{0}] = {1}4(0, 0, 0, 0);", i, concretePrecision.ToShaderString());
-                    for (int i = 0; i < value.colorKeys.Length; i++)
-                        colors[i] = string.Format("g.colors[{0}] = {1}4({2}, {3}, {4}, {5});"
-                            , i
+                    if (i < value.colorKeys.Length)
+                        colors.AppendFormat("{0}4({1},{2},{3},{4})"
                             , concretePrecision.ToShaderString()
                             , NodeUtils.FloatToShaderValue(value.colorKeys[i].color.r)
                             , NodeUtils.FloatToShaderValue(value.colorKeys[i].color.g)
                             , NodeUtils.FloatToShaderValue(value.colorKeys[i].color.b)
                             , NodeUtils.FloatToShaderValue(value.colorKeys[i].time));
+                    else colors.AppendFormat("{0}4(0,0,0,0)", concretePrecision.ToShaderString());
 
-                    string[] alphas = new string[8];
-                    for (int i = 0; i < alphas.Length; i++)
-                        alphas[i] = string.Format("g.alphas[{0}] = {1}2(0, 0);", i, concretePrecision.ToShaderString());
-                    for (int i = 0; i < value.alphaKeys.Length; i++)
-                        alphas[i] = string.Format("g.alphas[{0}] = {1}2({2}, {3});"
-                            , i
+                    if (i < value.alphaKeys.Length)
+                        alphas.AppendFormat("{0}2({1},{2})"
                             , concretePrecision.ToShaderString()
                             , NodeUtils.FloatToShaderValue(value.alphaKeys[i].alpha)
                             , NodeUtils.FloatToShaderValue(value.alphaKeys[i].time));
+                    else alphas.AppendFormat("{0}2(0,0)", concretePrecision.ToShaderString());
 
-                    builder.AppendLine("Gradient g;");
-                    builder.AppendLine("g.type = {0};",
-                        (int)value.mode);
-                    builder.AppendLine("g.colorsLength = {0};",
-                        value.colorKeys.Length);
-                    builder.AppendLine("g.alphasLength = {0};",
-                        value.alphaKeys.Length);
-
-                    for (int i = 0; i < colors.Length; i++)
-                        builder.AppendLine(colors[i]);
-
-                    for (int i = 0; i < alphas.Length; i++)
-                        builder.AppendLine(alphas[i]);
-                    builder.AppendLine("return g;", true);
+                    if (i < 7)
+                    {
+                        colors.Append(",");
+                        alphas.Append(",");
+                    }
+                    else
+                    {
+                        colors.Append("}");
+                        alphas.Append("}");
+                    }
                 }
-                builder.TryAppendIndentation();
-                builder.Append("#define {0} {0}_Definition()", referenceName);
+
+                builder.AppendLine("static Gradient {0} = {{{1},{2},{3},{4},{5}}};"
+                    , referenceName
+                    , (int)value.mode
+                    , value.colorKeys.Length
+                    , value.alphaKeys.Length
+                    , colors.ToString()
+                    , alphas.ToString());
             };
 
             action(

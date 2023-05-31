@@ -53,7 +53,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             {
                 resourceArray.Resize(sharedResourcesCount+1); // First N elements are reserved for shared persistent resources and are kept as is. Element 0 is null
 
-                pool.CheckFrameAllocation(onException, frameIndex);
+                if (pool != null)
+                    pool.CheckFrameAllocation(onException, frameIndex);
             }
 
             public void Cleanup()
@@ -68,12 +69,14 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                     }
                 }
                 // Then cleanup the pool
-                pool.Cleanup();
+                if (pool != null)
+                    pool.Cleanup();
             }
 
             public void PurgeUnusedGraphicsResources(int frameIndex)
             {
-                pool.PurgeUnusedResources(frameIndex);
+                if (pool != null)
+                    pool.PurgeUnusedResources(frameIndex);
             }
 
             public int AddNewRenderGraphResource<ResType>(out ResType outRes, bool pooledResource = true)
@@ -167,6 +170,19 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return resource;
         }
 
+        internal RayTracingAccelerationStructure GetRayTracingAccelerationStructure(in RayTracingAccelerationStructureHandle handle)
+        {
+            if (!handle.IsValid())
+                return null;
+
+            var accelStructureResource = GetRayTracingAccelerationStructureResource(handle.handle);
+            var resource = accelStructureResource.graphicsResource;
+            if (resource == null)
+                throw new InvalidOperationException("Trying to use a acceleration structure ({accelStructureResource.GetName()}) that was already released or not yet created. Make sure you declare it for reading in your pass or you don't read it before it's been written to at least once.");
+
+            return resource;
+        }
+
         private RenderGraphResourceRegistry()
         {
         }
@@ -186,6 +202,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             m_RenderGraphResources[(int)RenderGraphResourceType.Texture].pool = new TexturePool();
 
             m_RenderGraphResources[(int)RenderGraphResourceType.Buffer].pool = new BufferPool();
+
+            // RayTracingAccelerationStructures can be imported only.
+            m_RenderGraphResources[(int)RenderGraphResourceType.AccelerationStructure].pool = null;
         }
 
         internal void BeginRenderGraph(int executionCount)
@@ -516,6 +535,27 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return m_RenderGraphResources[(int)RenderGraphResourceType.Buffer].resourceArray[handle] as BufferResource;
         }
 
+        RayTracingAccelerationStructureResource GetRayTracingAccelerationStructureResource(in ResourceHandle handle)
+        {
+            return m_RenderGraphResources[(int)RenderGraphResourceType.AccelerationStructure].resourceArray[handle] as RayTracingAccelerationStructureResource;
+        }
+
+        internal int GetRayTracingAccelerationStructureResourceCount()
+        {
+            return GetResourceCount(RenderGraphResourceType.AccelerationStructure);
+        }
+
+        internal RayTracingAccelerationStructureHandle ImportRayTracingAccelerationStructure(in RayTracingAccelerationStructure accelStruct, string name)
+        {
+            int newHandle = m_RenderGraphResources[(int)RenderGraphResourceType.AccelerationStructure].AddNewRenderGraphResource(out RayTracingAccelerationStructureResource accelStructureResource, false);
+            accelStructureResource.graphicsResource = accelStruct;
+            accelStructureResource.imported = true;
+            accelStructureResource.forceRelease = false;
+            accelStructureResource.desc.name = name;
+
+            return new RayTracingAccelerationStructureHandle(newHandle);
+        }
+
         internal void UpdateSharedResourceLastFrameIndex(int type, int index)
         {
             m_RenderGraphResources[type].resourceArray[index].sharedResourceLastFrameUsed = m_ExecutionCount;
@@ -756,8 +796,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
                 for (int type = 0; type < (int)RenderGraphResourceType.Count; ++type)
                 {
-                    m_RenderGraphResources[type].pool.LogResources(m_ResourceLogger);
-                    m_ResourceLogger.LogLine("");
+                    if (m_RenderGraphResources[type].pool != null)
+                    {
+                        m_RenderGraphResources[type].pool.LogResources(m_ResourceLogger);
+                        m_ResourceLogger.LogLine("");
+                    }
                 }
             }
         }

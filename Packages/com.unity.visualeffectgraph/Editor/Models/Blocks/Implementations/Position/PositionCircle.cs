@@ -5,6 +5,7 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Block
 {
+    [VFXHelpURL("Block-SetPosition(Circle)")]
     [VFXInfo(category = "Attribute/position/Composition/{0}", variantProvider = typeof(PositionBaseProvider))]
     class PositionCircle : PositionBase
     {

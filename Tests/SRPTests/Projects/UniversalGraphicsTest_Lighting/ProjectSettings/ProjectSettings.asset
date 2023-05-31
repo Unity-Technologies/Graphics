@@ -713,7 +713,9 @@ PlayerSettings:
     29: LWRP_DEBUG_STATIC_POSTFX
     4: LWRP_DEBUG_STATIC_POSTFX
     7: LWRP_DEBUG_STATIC_POSTFX
-  additionalCompilerArguments: {}
+  additionalCompilerArguments:
+    Standalone:
+    - -warnaserror+
   platformArchitecture: {}
   scriptingBackend:
     Android: 0

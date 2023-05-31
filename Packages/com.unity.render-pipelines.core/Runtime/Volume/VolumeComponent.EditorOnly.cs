@@ -11,12 +11,15 @@ namespace UnityEngine.Rendering
         {
             revertMethod = property =>
             {
-                var defaultVolumeComponent = VolumeManager.instance.GetDefaultVolumeComponent(property.serializedObject.targetObject.GetType());
-                Undo.RecordObject(property.serializedObject.targetObject, $"Revert property {property.propertyPath} from {property.serializedObject}");
+                var targetObject = property.serializedObject.targetObject;
+                var type = targetObject.GetType();
+                var defaultVolumeComponent = (VolumeComponent) CreateInstance(type);
+                Undo.RecordObject(targetObject, $"Revert property {property.propertyPath} from {property.serializedObject}");
                 SerializedObject serializedObject = new SerializedObject(defaultVolumeComponent);
                 var serializedProperty = serializedObject.FindProperty(property.propertyPath);
                 property.serializedObject.CopyFromSerializedProperty(serializedProperty);
                 property.serializedObject.ApplyModifiedProperties();
+                VolumeManager.instance.OnVolumeComponentChanged(targetObject as VolumeComponent);
             };
 
             return true;

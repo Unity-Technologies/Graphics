@@ -1,9 +1,9 @@
-using System;
 using System.Linq;
 using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
+    //[VFXHelpURL("Operator-Sequential(Line)")]
     [VFXInfo(category = "Math")]
     class SequentialLine : VFXOperator
     {

@@ -31,12 +31,13 @@ MonoBehaviour:
     supportVolumetricClouds: 0
     supportLightLayers: 1
     renderingLayerMaskBuffer: 0
-    supportWater: 0
+    supportWater: 1
     waterSimulationResolution: 128
-    supportWaterExclusion: 0
-    supportWaterDeformation: 0
+    supportWaterExclusion: 1
+    supportWaterDeformation: 1
     deformationAtlasSize: 512
-    supportWaterFoam: 0
+    maximumDeformerCount: 64
+    supportWaterFoam: 1
     foamAtlasSize: 512
     waterCPUSimulation: 0
     supportComputeThickness: 0
@@ -65,14 +66,17 @@ MonoBehaviour:
     supportSurfaceGradient: 0
     decalNormalBufferHP: 0
     supportHighQualityLineRendering: 0
+    highQualityLineRenderingMemoryBudget: 128
     msaaSampleCount: 1
     supportMotionVectors: 1
     supportRuntimeAOVAPI: 0
     supportDitheringCrossFade: 0
     supportTerrainHole: 1
     lightProbeSystem: 0
+    oldLightProbeSystem: 0
     probeVolumeMemoryBudget: 1024
-    supportProbeVolumeStreaming: 0
+    supportProbeVolumeGPUStreaming: 0
+    supportProbeVolumeDiskStreaming: 0
     probeVolumeSHBands: 1
     supportProbeVolumeScenarios: 0
     supportProbeVolumeScenarioBlending: 1
@@ -311,13 +315,14 @@ MonoBehaviour:
   m_DefaultMaterialQualityLevel: 4
   diffusionProfileSettings: {fileID: 11400000, guid: 802c802428a2d9640a87e821dfcdd9e8,
     type: 2}
+  m_VolumeProfile: {fileID: 0}
   virtualTexturingSettings:
     streamingCpuCacheSizeInMegaBytes: 256
     streamingGpuCacheSettings:
     - format: 0
       sizeInMegaBytes: 128
   m_UseRenderGraph: 1
-  m_Version: 22
+  m_Version: 23
   m_ObsoleteFrameSettings:
     overrides: 0
     enableShadow: 0

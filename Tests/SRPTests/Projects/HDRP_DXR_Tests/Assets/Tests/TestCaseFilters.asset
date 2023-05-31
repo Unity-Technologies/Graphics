@@ -98,15 +98,6 @@ MonoBehaviour:
     Reason: Strict Mode not supported
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: 4bc2576a0bbdfd74a86bfb57af91ccaa, type: 3}
-    ColorSpace: -1
-    BuildPlatform: -2
-    GraphicsDevice: 4
-    XrSdk: 
-    StereoModes: 0
-    Reason: corruption on yamato
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
     - {fileID: 102900000, guid: 45325940ed3cc4d44a619c66066ec3d6, type: 3}
     ColorSpace: -1
     BuildPlatform: 44
@@ -114,3 +105,30 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: Inconsistent on Yamato
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 4bc2576a0bbdfd74a86bfb57af91ccaa, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 4
+    XrSdk: 
+    StereoModes: 0
+    Reason: 'issue on Yamato only: jira: https://jira.unity3d.com/browse/UUM-26542'
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 144910001ec5a1f499c7dddc124aeed4, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 19
+    GraphicsDevice: 4
+    XrSdk: 
+    StereoModes: 0
+    Reason: 'issue on Yamato only: jira: https://jira.unity3d.com/browse/UUM-26542'
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 94394be5b934f2543b05529545e764f9, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 19
+    GraphicsDevice: 4
+    XrSdk: 
+    StereoModes: 0
+    Reason: 'issue on Yamato only: jira: https://jira.unity3d.com/browse/UUM-26542'

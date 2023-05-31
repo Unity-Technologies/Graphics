@@ -78,7 +78,7 @@ namespace UnityEditor.VFX.UI
 
             styleSheets.Add(VFXView.LoadStyleSheet("VFXBlackboard"));
 
-            RegisterCallback<MouseDownEvent>(OnMouseClick, TrickleDown.TrickleDown);
+            RegisterCallback<MouseDownEvent>(OnMouseClick);
             RegisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
             RegisterCallback<DragPerformEvent>(OnDragPerformEvent);
             RegisterCallback<DragLeaveEvent>(OnDragLeaveEvent);
@@ -91,6 +91,7 @@ namespace UnityEditor.VFX.UI
             m_AddButton = this.Q<Button>(name: "addButton");
             m_AddButton.style.width = 27;
             m_AddButton.style.height = 27;
+            m_AddButton.SetEnabled(false);
 
             m_DragIndicator = new VisualElement();
 
@@ -251,7 +252,8 @@ namespace UnityEditor.VFX.UI
             if (evt.clickCount == 2 && evt.button == (int)MouseButton.LeftMouse && m_CanEdit && controller != null)
             {
                 StartEditingPath();
-                evt.PreventDefault();
+                evt.StopPropagation();
+                focusController.IgnoreEvent(evt);
             }
         }
 

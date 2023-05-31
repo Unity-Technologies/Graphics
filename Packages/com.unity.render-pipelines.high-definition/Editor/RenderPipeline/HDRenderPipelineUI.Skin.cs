@@ -13,6 +13,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent lightingSectionTitle = EditorGUIUtility.TrTextContent("Lighting");
             public static readonly GUIContent materialSectionTitle = EditorGUIUtility.TrTextContent("Material");
             public static readonly GUIContent postProcessSectionTitle = EditorGUIUtility.TrTextContent("Post-processing");
+            public static readonly GUIContent volumesSectionTitle = EditorGUIUtility.TrTextContent("Volumes");
             public static readonly GUIContent xrTitle = EditorGUIUtility.TrTextContent("XR");
             public static readonly GUIContent virtualTexturingTitle = EditorGUIUtility.TrTextContent("Virtual Texturing", "Virtual Texturing Settings. These are only available when Virtual Texturing is enabled in the Player Settings.");
             public static readonly GUIContent lightLoopSubTitle = EditorGUIUtility.TrTextContent("Lights");
@@ -27,6 +28,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent skySubTitle = EditorGUIUtility.TrTextContent("Sky");
             public static readonly GUIContent decalsSubTitle = EditorGUIUtility.TrTextContent("Decals");
             public static readonly GUIContent decalsMetalAndAOSubTitle = EditorGUIUtility.TrTextContent("Decals Metal And AO");
+            public static readonly GUIContent decalResolutionSubTitle = EditorGUIUtility.TrTextContent("Transparent Texture Resolution");
+            public static readonly GUIContent decalResolutionTiers = EditorGUIUtility.TrTextContent("Resolution Tiers");
 
             public static readonly GUIContent shadowSubTitle = EditorGUIUtility.TrTextContent("Shadows");
 
@@ -50,6 +53,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent nearBlurSubTitle = EditorGUIUtility.TrTextContent("Near Blur");
             public static readonly GUIContent maxRadiusQuality = EditorGUIUtility.TrTextContent("Max Radius");
             public static readonly GUIContent sampleCountQuality = EditorGUIUtility.TrTextContent("Sample Count");
+            public static readonly GUIContent pbrResolutionQualityTitle = EditorGUIUtility.TrTextContent("Enable High Resolution");
             public static readonly GUIContent resolutionQuality = EditorGUIUtility.TrTextContent("Resolution");
             public static readonly GUIContent highQualityPrefiltering = EditorGUIUtility.TrTextContent("High Quality Prefiltering");
             public static readonly GUIContent highQualityFiltering = EditorGUIUtility.TrTextContent("High Quality Filtering");
@@ -88,8 +92,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent RTRRayMaxIterations = EditorGUIUtility.TrTextContent("Ray Max Iterations");
             public static readonly GUIContent RTRDenoise = EditorGUIUtility.TrTextContent("Denoise");
             public static readonly GUIContent RTRDenoiserRadius = EditorGUIUtility.TrTextContent("Denoiser Radius");
-            public static readonly GUIContent RTRSmoothDenoising = EditorGUIUtility.TrTextContent("Affect Smooth Surfaces");
-
+            public static readonly GUIContent RTRDenoiserAntiFlicker = EditorGUIUtility.TrTextContent("Anti Flickering Strength");
+            
             // RTGI
             public static readonly GUIContent RTGISettingsSubTitle = EditorGUIUtility.TrTextContent("Ray Traced Global Illumination (Performance)");
             public static readonly GUIContent RTGIRayLength = EditorGUIUtility.TrTextContent("Max Ray Length");
@@ -117,6 +121,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent waterSimulationResolutionContent = EditorGUIUtility.TrTextContent("Simulation Resolution", "Specifies the resolution of the water simulation. A higher resolution increases the visual quality, but increases the cost.");
             public static readonly GUIContent supportWaterDeformationContent = EditorGUIUtility.TrTextContent("Deformation", "When enabled, HDRP allocates additional memory to support water deformation.");
             public static readonly GUIContent deformationAtlasSizeContent = EditorGUIUtility.TrTextContent("Deformation Atlas Size", "Specifies the size of the atlas used to store texture water deformers.");
+            public static readonly GUIContent maximumDeformerCountContent = EditorGUIUtility.TrTextContent("Maximum Deformer Count", "Sets the maximum amount of water deformers HDRP can support.");
             public static readonly GUIContent supportWaterFoamContent = EditorGUIUtility.TrTextContent("Foam", "When enabled, HDRP allocates additional memory to support water foam.");
             public static readonly GUIContent foamAtlasSizeContent = EditorGUIUtility.TrTextContent("Foam Atlas Size", "Specifies the size of the atlas used to store texture water foam.");
             public static readonly GUIContent supportWaterExclusionContent = EditorGUIUtility.TrTextContent("Exclusion", "When enabled, HDRP allocates a stencil bit to support water excluders.");
@@ -125,6 +130,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // High Quality Line Rendering
             public static readonly GUIContent highQualityLineRenderingSubTitle = EditorGUIUtility.TrTextContent("High Quality Line Rendering");
             public static readonly GUIContent supportHighQualityLineRenderingContent = EditorGUIUtility.TrTextContent("Enable", "When enabled, HDRP allocates memory for high quality line rendering. This allows you to render lines with high quality anti-aliasing and transparency in your Unity Project.");
+            public static readonly GUIContent highQualityLineRenderingMemoryBudget = EditorGUIUtility.TrTextContent("Memory Budget", "Determines the size of graphics memory allocations for high quality line rendering.");
             // Compute Thickness
             public static readonly GUIContent computeThicknessSubTitle = EditorGUIUtility.TrTextContent("Compute Thickness");
             public static readonly GUIContent computeThicknessEnableContent = EditorGUIUtility.TrTextContent("Enable", "When enabled, HDRP allocates memory for the Compute Thickness pass. For each Game Object layer selected in LayerMask, the thickness of all objects in that layer is written in a buffer. This buffer can be sampled only in Shader Graph via HDSampleBuffer node with the layer index as input.");
@@ -308,6 +314,9 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent lutSize = EditorGUIUtility.TrTextContent("Grading LUT Size", "Sets size of the internal and external color grading lookup textures (LUTs).");
             public static readonly GUIContent lutFormat = EditorGUIUtility.TrTextContent("Grading LUT Format", "Specifies the encoding format for color grading lookup textures. Lower precision formats are faster and use less memory at the expense of color precision.");
             public static readonly GUIContent bufferFormat = EditorGUIUtility.TrTextContent("Buffer Format", "Specifies the encoding format of the color buffers that are used during post processing. Lower precision formats are faster and use less memory at the expense of color precision.");
+
+            public static readonly GUIContent volumeProfileLabel = EditorGUIUtility.TrTextContent("Volume Profile", "Settings that will override the values defined in the Default Volume Profile set in the Render Pipeline Global settings. Local Volumes inside scenes may override these settings further.");
+            public static System.Lazy<GUIStyle> volumeProfileContextMenuStyle = new(() => new GUIStyle(CoreEditorStyles.contextMenuStyle) { margin = new RectOffset(0, 1, 3, 0) });
 
             public static readonly GUIContent[] shadowBitDepthNames = { new GUIContent("32 bit"), new GUIContent("16 bit") };
             public static readonly int[] shadowBitDepthValues = { (int)DepthBits.Depth32, (int)DepthBits.Depth16 };

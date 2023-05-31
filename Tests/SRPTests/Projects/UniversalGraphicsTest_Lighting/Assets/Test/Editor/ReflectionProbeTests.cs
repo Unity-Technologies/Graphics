@@ -90,7 +90,7 @@ public class Editmode_ParametricReflectionProbeTests
                 break;
             case BakeAPI.BakeAll:
             {
-                var probe = Object.FindObjectOfType<ReflectionProbe>();
+                var probe = Object.FindAnyObjectByType<ReflectionProbe>();
                 Assert.That(probe, !Is.EqualTo(null), "Couldn't find ReflectionProbe");
                 Debug.Log("Found reflection probe: " + probe.name);
 
@@ -103,7 +103,7 @@ public class Editmode_ParametricReflectionProbeTests
             break;
             case BakeAPI.BakeSingle:
             {
-                var probe = Object.FindObjectOfType<ReflectionProbe>();
+                var probe = Object.FindAnyObjectByType<ReflectionProbe>();
                 Assert.That(probe, !Is.EqualTo(null), "Couldn't find ReflectionProbe");
                 Debug.Log("Found reflection probe: " + probe.name);
 
@@ -118,7 +118,7 @@ public class Editmode_ParametricReflectionProbeTests
         Assert.That(result, Is.True);
 
         // Get Test settings.
-        var graphicsTestSettingsCustom = Object.FindObjectOfType<UniversalGraphicsTestSettings>();
+        var graphicsTestSettingsCustom = Object.FindAnyObjectByType<UniversalGraphicsTestSettings>();
         Assert.That(graphicsTestSettingsCustom, !Is.EqualTo(null), "Couldn't find GraphicsTestSettingsCustom");
 
         // Load reference image.
@@ -135,7 +135,7 @@ public class Editmode_ParametricReflectionProbeTests
         // Compare screenshots.
         GraphicsTestCase testCase = new GraphicsTestCase(settings, referenceImage);
         var cameras = GameObject.FindGameObjectsWithTag("MainCamera").Select(x => x.GetComponent<Camera>());
-        ImageAssert.AreEqual(testCase.ReferenceImage, cameras.Where(x => x != null), graphicsTestSettingsCustom.ImageComparisonSettings);
+        ImageAssert.AreEqual(testCase.ReferenceImage, cameras.Where(x => x != null), graphicsTestSettingsCustom.ImageComparisonSettings, testCase.ReferenceImagePathLog);
         UnityEditor.TestTools.Graphics.ResultsUtility.ExtractImagesFromTestProperties(TestContext.CurrentContext.Test);
     }
 

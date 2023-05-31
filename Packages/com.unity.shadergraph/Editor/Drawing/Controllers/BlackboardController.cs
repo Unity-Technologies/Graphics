@@ -582,6 +582,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (m_BlackboardCategoryControllers.ContainsKey(categoryInfo.categoryGuid) == false)
             {
                 m_BlackboardCategoryControllers.Add(categoryInfo.categoryGuid, blackboardCategoryController);
+                m_DefaultCategoryController = m_BlackboardCategoryControllers.Values.FirstOrDefault();
             }
             else
             {

@@ -36,6 +36,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected VFXContext m_ContextVFX = null;
         protected VFXTaskCompiledData m_TaskDataVFX;
         protected bool TargetsVFX() => m_ContextVFX != null;
+        protected bool TargetVFXSupportsRaytracing() => TargetsVFX() && ((VFXAbstractParticleOutput)m_ContextVFX).isRayTraced;
 
         protected virtual int ComputeMaterialNeedsUpdateHash() => 0;
 
@@ -76,6 +77,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             hdMetadata.migrateFromOldCrossPipelineSG = m_MigrateFromOldCrossPipelineSG;
             hdMetadata.hdSubTargetVersion = systemData.version;
             hdMetadata.hasVertexModificationInMotionVector = systemData.customVelocity || systemData.tessellation || graph.AnyVertexAnimationActive();
+            hdMetadata.isVFXCompatible = graph.IsVFXCompatible();
             return hdMetadata;
         }
 
@@ -141,9 +143,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         protected SubShaderDescriptor PostProcessSubShader(SubShaderDescriptor subShaderDescriptor)
         {
-            if (TargetsVFX())
-                subShaderDescriptor = VFXSubTarget.PostProcessSubShader(subShaderDescriptor, m_ContextVFX, m_TaskDataVFX);
-
             if (String.IsNullOrEmpty(subShaderDescriptor.pipelineTag))
                 subShaderDescriptor.pipelineTag = HDRenderPipeline.k_ShaderTagName;
 
@@ -206,6 +205,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
 
             subShaderDescriptor.passes = finalPasses;
+
+            if (TargetsVFX())
+                subShaderDescriptor = VFXSubTarget.PostProcessSubShader(subShaderDescriptor, m_ContextVFX, m_TaskDataVFX);
 
             return subShaderDescriptor;
         }

@@ -1,28 +1,36 @@
+#ifndef UNITY_RAY_TRACING_LIGHT_CLUSTER_INCLUDED
+#define UNITY_RAY_TRACING_LIGHT_CLUSTER_INCLUDED
+
 // This allows us to either use the light cluster to pick which lights should be used, or use all the lights available
 
 uint GetTotalLightClusterCellCount(int cellIndex)
 {
-    return _RaytracingLightCluster[cellIndex * (_LightPerCellCount + 4) + 0];
+    return _RaytracingLightCluster[cellIndex * (_LightPerCellCount + CELL_META_DATA_SIZE) + CELL_META_DATA_TOTAL_INDEX];
 }
 
-uint GetPunctualLightClusterCellCount(int cellIndex)
+uint GetPunctualLightEndIndexInClusterCell(int cellIndex)
 {
-    return _RaytracingLightCluster[cellIndex * (_LightPerCellCount + 4) + 1];
+    return _RaytracingLightCluster[cellIndex * (_LightPerCellCount + CELL_META_DATA_SIZE) + CELL_META_DATA_PUNCTUAL_END_INDEX];
 }
 
-uint GetAreaLightClusterCellCount(int cellIndex)
+uint GetAreaLightEndIndexInClusterCell(int cellIndex)
 {
-    return _RaytracingLightCluster[cellIndex * (_LightPerCellCount + 4) + 2];
+    return _RaytracingLightCluster[cellIndex * (_LightPerCellCount + CELL_META_DATA_SIZE) + CELL_META_DATA_AREA_END_INDEX];
 }
 
-uint GetEnvLightClusterCellCount(int cellIndex)
+uint GetEnvLightEndIndexInClusterCell(int cellIndex)
 {
-    return _RaytracingLightCluster[cellIndex * (_LightPerCellCount + 4) + 3];
+    return _RaytracingLightCluster[cellIndex * (_LightPerCellCount + CELL_META_DATA_SIZE) + CELL_META_DATA_ENV_END_INDEX];
+}
+
+uint GetDecalEndIndexInClusterCell(int cellIndex)
+{
+    return _RaytracingLightCluster[cellIndex * (_LightPerCellCount + CELL_META_DATA_SIZE) + CELL_META_DATA_DECAL_END_INDEX];
 }
 
 uint GetLightClusterCellLightByIndex(int cellIndex, int lightIndex)
 {
-    return _RaytracingLightCluster[cellIndex * (_LightPerCellCount + 4) + 4 + lightIndex];
+    return _RaytracingLightCluster[cellIndex * (_LightPerCellCount + CELL_META_DATA_SIZE) + CELL_META_DATA_SIZE + lightIndex];
 }
 
 bool PointInsideCluster(float3 positionWS)
@@ -40,6 +48,7 @@ uint GetClusterCellIndex(float3 positionWS)
     return gridPosition.z + gridPosition.y * 32 + gridPosition.x * 2048;
 }
 
+
 void GetLightCountAndStartCluster(float3 positionWS, uint lightCategory, out uint lightStart, out uint lightEnd, out uint cellIndex)
 {
     lightStart = 0;
@@ -52,9 +61,27 @@ void GetLightCountAndStartCluster(float3 positionWS, uint lightCategory, out uin
         // Deduce the cell index
         cellIndex = GetClusterCellIndex(positionWS);
 
-        // Grab the light count
-        lightStart = lightCategory == 0 ? 0 : (lightCategory == 1 ? GetPunctualLightClusterCellCount(cellIndex) : GetAreaLightClusterCellCount(cellIndex));
-        lightEnd = lightCategory == 0 ? GetPunctualLightClusterCellCount(cellIndex) : (lightCategory == 1 ? GetAreaLightClusterCellCount(cellIndex) : GetEnvLightClusterCellCount(cellIndex));
+        // Grab the light count -- in principle all invocations take the same branch 
+        switch (lightCategory)
+        {
+            case 0: // LIGHTCATEGORY_PUNCTUAL
+                lightStart = 0;
+                lightEnd = GetPunctualLightEndIndexInClusterCell(cellIndex);
+                break;
+            case 1: // LIGHTCATEGORY_AREA
+                lightStart = GetPunctualLightEndIndexInClusterCell(cellIndex);
+                lightEnd = GetAreaLightEndIndexInClusterCell(cellIndex);
+                break;
+            case 2: // LIGHTCATEGORY_ENV
+                lightStart = GetAreaLightEndIndexInClusterCell(cellIndex);
+                lightEnd = GetEnvLightEndIndexInClusterCell(cellIndex);
+                break;
+            case 3: // LIGHTCATEGORY_DECAL
+                lightStart = GetEnvLightEndIndexInClusterCell(cellIndex);
+                lightEnd = GetDecalEndIndexInClusterCell(cellIndex);
+                break;
+                
+        }
     }
 }
 
@@ -116,4 +143,7 @@ float3 RayTraceReflectionProbes(float3 rayOrigin, float3 rayDirection, inout flo
     totalWeight = saturate(totalWeight);
     return result;
 }
+#endif
+
+
 #endif

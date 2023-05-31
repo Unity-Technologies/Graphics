@@ -1,6 +1,10 @@
 using System;
 using System.Linq;
 
+#if UNITY_EDITOR
+using UnityEditor.Rendering;
+#endif
+
 namespace UnityEngine.Rendering.HighDefinition
 {
     partial class HDRenderPipelineGlobalSettings : IVersionable<HDRenderPipelineGlobalSettings.Version>, IMigratableAsset
@@ -24,6 +28,8 @@ namespace UnityEngine.Rendering.HighDefinition
             GenericRenderingLayers,
             SupportRuntimeDebugDisplayToStripRuntimeDebugShaders, 
             EnableAmethystFeaturesByDefault, 
+            ShaderStrippingSettings,
+            RenderingPathFrameSettings,
         }
 
         static Version[] skipedStepWhenCreatedFromHDRPAsset = new Version[] { };
@@ -33,18 +39,22 @@ namespace UnityEngine.Rendering.HighDefinition
         Version IVersionable<Version>.version { get => m_Version; set => m_Version = value; }
 
 #if UNITY_EDITOR
-        static readonly MigrationDescription<Version, HDRenderPipelineGlobalSettings> k_Migration = MigrationDescription.New(
+        private static readonly MigrationDescription<Version, HDRenderPipelineGlobalSettings> k_Migration = MigrationDescription.New(
             MigrationStep.New(Version.UpdateMSAA, (HDRenderPipelineGlobalSettings data) =>
             {
+#pragma warning disable 618 // Type or member is obsolete
                 FrameSettingsOverrideMask unusedMaskForDefault = new FrameSettingsOverrideMask();
-                FrameSettings.MigrateMSAA(ref data.m_RenderingPathDefaultCameraFrameSettings, ref unusedMaskForDefault);
-                FrameSettings.MigrateMSAA(ref data.m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings, ref unusedMaskForDefault);
-                FrameSettings.MigrateMSAA(ref data.m_RenderingPathDefaultRealtimeReflectionFrameSettings, ref unusedMaskForDefault);
+                FrameSettings.MigrateMSAA(ref data.m_ObsoleteRenderingPathDefaultCameraFrameSettings, ref unusedMaskForDefault);
+                FrameSettings.MigrateMSAA(ref data.m_ObsoleteRenderingPathDefaultBakedOrCustomReflectionFrameSettings, ref unusedMaskForDefault);
+                FrameSettings.MigrateMSAA(ref data.m_ObsoleteRenderingPathDefaultRealtimeReflectionFrameSettings, ref unusedMaskForDefault);
+#pragma warning restore 618
             }),
 
             MigrationStep.New(Version.UpdateLensFlare, (HDRenderPipelineGlobalSettings data) =>
             {
-                FrameSettings.MigrateToLensFlare(ref data.m_RenderingPathDefaultCameraFrameSettings);
+#pragma warning disable 618 // Type or member is obsolete
+                FrameSettings.MigrateToLensFlare(ref data.m_ObsoleteRenderingPathDefaultCameraFrameSettings);
+#pragma warning restore 618
             }),
             MigrationStep.New(Version.MovedSupportRuntimeDebugDisplayToGlobalSettings, (HDRenderPipelineGlobalSettings data) =>
             {
@@ -72,20 +82,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Profile from resources is read only in released packages, so we have to copy it to the assets folder
                 if (data.IsVolumeProfileFromResources())
                 {
-                    string path = "Assets/" + HDProjectSettingsReadOnlyBase.projectSettingsFolderPath + '/' + volumeProfile.name + ".asset";
-                    if (!UnityEditor.AssetDatabase.IsValidFolder("Assets/" + HDProjectSettingsReadOnlyBase.projectSettingsFolderPath))
-                        UnityEditor.AssetDatabase.CreateFolder("Assets", HDProjectSettingsReadOnlyBase.projectSettingsFolderPath);
-
-                    //try load one if one already exist
-                    volumeProfile = UnityEditor.AssetDatabase.LoadAssetAtPath<VolumeProfile>(path);
-                    if (volumeProfile == null || volumeProfile.Equals(null))
-                    {
-                        //else create it
-                        UnityEditor.AssetDatabase.CopyAsset(UnityEditor.AssetDatabase.GetAssetPath(volumeProfile), path);
-                        volumeProfile = UnityEditor.AssetDatabase.LoadAssetAtPath<VolumeProfile>(path);
-                    }
-
-                    data.volumeProfile = volumeProfile;
+                    data.volumeProfile = CopyVolumeProfileFromResourcesToAssets(volumeProfile);
                 }
 
                 UnityEditor.AssetDatabase.MakeEditable(UnityEditor.AssetDatabase.GetAssetPath(volumeProfile));
@@ -143,7 +140,26 @@ namespace UnityEngine.Rendering.HighDefinition
             }),
             MigrationStep.New(Version.EnableAmethystFeaturesByDefault, (HDRenderPipelineGlobalSettings data) =>
             {
-                FrameSettings.MigrateAmethystFeatures(ref data.m_RenderingPathDefaultCameraFrameSettings);
+#pragma warning disable 618 // Type or member is obsolete
+                FrameSettings.MigrateAmethystFeatures(ref data.m_ObsoleteRenderingPathDefaultCameraFrameSettings);
+#pragma warning restore 618
+            }),
+            MigrationStep.New(Version.ShaderStrippingSettings, (HDRenderPipelineGlobalSettings data) =>
+            {
+#pragma warning disable 618 // Type or member is obsolete
+                data.m_ShaderStrippingSetting.exportShaderVariants = data.m_ExportShaderVariants;
+                data.m_ShaderStrippingSetting.shaderVariantLogLevel = data.m_ShaderVariantLogLevel;
+                data.m_ShaderStrippingSetting.stripRuntimeDebugShaders= data.m_StripDebugVariants;
+#pragma warning restore 618
+            })
+            ,
+            MigrationStep.New(Version.RenderingPathFrameSettings, (HDRenderPipelineGlobalSettings data) =>
+            {
+#pragma warning disable 618 // Type or member is obsolete
+                data.m_RenderingPath.GetDefaultFrameSettings(FrameSettingsRenderType.Camera)                  = data.m_ObsoleteRenderingPathDefaultCameraFrameSettings;
+                data.m_RenderingPath.GetDefaultFrameSettings(FrameSettingsRenderType.CustomOrBakedReflection) = data.m_ObsoleteRenderingPathDefaultBakedOrCustomReflectionFrameSettings;
+                data.m_RenderingPath.GetDefaultFrameSettings(FrameSettingsRenderType.RealtimeReflection)      = data.m_ObsoleteRenderingPathDefaultRealtimeReflectionFrameSettings;
+#pragma warning restore 618
             })
         );
         bool IMigratableAsset.Migrate()
@@ -163,7 +179,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (assetToUpgrade == null || assetToUpgrade.Equals(null))
             {
                 assetToUpgrade = RenderPipelineGlobalSettingsUtils.Create<HDRenderPipelineGlobalSettings>(defaultPath);
-                GraphicsSettings.RegisterRenderPipelineSettings<HDRenderPipeline>(assetToUpgrade);
+                EditorGraphicsSettings.RegisterRenderPipelineSettings<HDRenderPipeline>(assetToUpgrade);
             }
 
             Debug.Assert(assetToUpgrade);
@@ -173,9 +189,9 @@ namespace UnityEngine.Rendering.HighDefinition
             assetToUpgrade.volumeProfile        = oldAsset.m_ObsoleteDefaultVolumeProfile;
             assetToUpgrade.lookDevVolumeProfile = oldAsset.m_ObsoleteDefaultLookDevProfile;
 
-            assetToUpgrade.m_RenderingPathDefaultCameraFrameSettings                  = oldAsset.m_ObsoleteFrameSettingsMovedToDefaultSettings;
-            assetToUpgrade.m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings = oldAsset.m_ObsoleteBakedOrCustomReflectionFrameSettingsMovedToDefaultSettings;
-            assetToUpgrade.m_RenderingPathDefaultRealtimeReflectionFrameSettings      = oldAsset.m_ObsoleteRealtimeReflectionFrameSettingsMovedToDefaultSettings;
+            assetToUpgrade.m_ObsoleteRenderingPathDefaultCameraFrameSettings                  = oldAsset.m_ObsoleteFrameSettingsMovedToDefaultSettings;
+            assetToUpgrade.m_ObsoleteRenderingPathDefaultBakedOrCustomReflectionFrameSettings = oldAsset.m_ObsoleteBakedOrCustomReflectionFrameSettingsMovedToDefaultSettings;
+            assetToUpgrade.m_ObsoleteRenderingPathDefaultRealtimeReflectionFrameSettings      = oldAsset.m_ObsoleteRealtimeReflectionFrameSettingsMovedToDefaultSettings;
 
             assetToUpgrade.m_RenderPipelineResources           = oldAsset.m_ObsoleteRenderPipelineResources;
             assetToUpgrade.m_RenderPipelineRayTracingResources = oldAsset.m_ObsoleteRenderPipelineRayTracingResources;

@@ -26,6 +26,7 @@ namespace UnityEditor.ShaderGraph.Internal
         [SerializeField] bool m_RequiresTime;
         [SerializeField] bool m_RequiresVertexSkinning;
         [SerializeField] bool m_RequiresVertexID;
+        [SerializeField] List<UVChannel> m_RequiresMeshUVDerivatives;
 
         internal static ShaderGraphRequirements none
         {
@@ -34,7 +35,8 @@ namespace UnityEditor.ShaderGraph.Internal
                 return new ShaderGraphRequirements
                 {
                     m_RequiresTransforms = new List<NeededTransform>(),
-                    m_RequiresMeshUVs = new List<UVChannel>()
+                    m_RequiresMeshUVs = new List<UVChannel>(),
+                    m_RequiresMeshUVDerivatives = new List<UVChannel>()
                 };
             }
         }
@@ -117,6 +119,12 @@ namespace UnityEditor.ShaderGraph.Internal
             internal set { m_RequiresMeshUVs = value; }
         }
 
+        public List<UVChannel> requiresMeshUVDerivatives
+        {
+            get { return m_RequiresMeshUVDerivatives; }
+            internal set { m_RequiresMeshUVDerivatives = value; }
+        }
+
         public bool requiresDepthTexture
         {
             get { return m_RequiresDepthTexture; }
@@ -181,10 +189,17 @@ namespace UnityEditor.ShaderGraph.Internal
                 newReqs.m_RequiresMeshUVs.AddRange(m_RequiresMeshUVs);
             if (other.m_RequiresMeshUVs != null)
                 newReqs.m_RequiresMeshUVs.AddRange(other.m_RequiresMeshUVs);
+
+            newReqs.m_RequiresMeshUVDerivatives = new List<UVChannel>();
+            if (m_RequiresMeshUVDerivatives != null)
+                newReqs.m_RequiresMeshUVDerivatives.AddRange(m_RequiresMeshUVDerivatives);
+            if (other.m_RequiresMeshUVDerivatives != null)
+                newReqs.m_RequiresMeshUVDerivatives.AddRange(other.m_RequiresMeshUVDerivatives);
+
             return newReqs;
         }
 
-        internal static ShaderGraphRequirements FromNodes<T>(List<T> nodes, ShaderStageCapability stageCapability = ShaderStageCapability.All, bool includeIntermediateSpaces = true)
+        internal static ShaderGraphRequirements FromNodes<T>(List<T> nodes, ShaderStageCapability stageCapability = ShaderStageCapability.All, bool includeIntermediateSpaces = true, bool[] texCoordNeedsDerivs = null)
             where T : AbstractMaterialNode
         {
             var requiresTransforms = nodes.OfType<IMayRequireTransform>().SelectMany(o => o.RequiresTransform()).Distinct().ToList();
@@ -206,11 +221,20 @@ namespace UnityEditor.ShaderGraph.Internal
             bool requiresVertexID = nodes.OfType<IMayRequireVertexID>().Any(x => x.RequiresVertexID(stageCapability));
 
             var meshUV = new List<UVChannel>();
+            var meshUVDerivatives = new List<UVChannel>();
             for (int uvIndex = 0; uvIndex < ShaderGeneratorNames.UVCount; ++uvIndex)
             {
                 var channel = (UVChannel)uvIndex;
                 if (nodes.OfType<IMayRequireMeshUV>().Any(x => x.RequiresMeshUV(channel)))
+                {
                     meshUV.Add(channel);
+                    if (texCoordNeedsDerivs is not null &&
+                        uvIndex < texCoordNeedsDerivs.Length &&
+                        texCoordNeedsDerivs[uvIndex])
+                    {
+                        meshUVDerivatives.Add(channel);
+                    }
+                }
             }
 
             // if anything needs tangentspace we have make
@@ -245,11 +269,22 @@ namespace UnityEditor.ShaderGraph.Internal
                 m_RequiresVertexColor = requiresVertexColor,
                 m_RequiresFaceSign = requiresFaceSign,
                 m_RequiresMeshUVs = meshUV,
+                m_RequiresMeshUVDerivatives = meshUVDerivatives,
                 m_RequiresDepthTexture = requiresDepthTexture,
                 m_RequiresCameraOpaqueTexture = requiresCameraOpaqueTexture,
                 m_RequiresTime = requiresTime,
                 m_RequiresVertexSkinning = requiresVertexSkinning,
                 m_RequiresVertexID = requiresVertexID,
+            };
+
+            return reqs;
+        }
+
+        internal static ShaderGraphRequirements FromUvDerivativeList(List<UVChannel> meshUVDerivatives)
+        {
+            var reqs = new ShaderGraphRequirements()
+            {
+                m_RequiresMeshUVDerivatives = meshUVDerivatives,
             };
 
             return reqs;

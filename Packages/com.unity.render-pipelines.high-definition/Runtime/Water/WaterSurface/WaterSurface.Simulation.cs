@@ -137,11 +137,33 @@ namespace UnityEngine.Rendering.HighDefinition
         public float ripplesFadeDistance = 200.0f;
         #endregion
 
+        /// <summary>Used to sync different water surfaces simulation time, for example across network.</summary>
+        public DateTime simulationStart
+        {
+            get
+            {
+                float timeScale = Time.timeScale * timeMultiplier;
+                if (timeScale == 0.0f) timeScale = 1.0f;
+
+                return DateTime.Now - TimeSpan.FromSeconds(simulation != null ? simulation.simulationTime / timeScale : 0.0f);
+            }
+            set
+            {
+                TimeSpan elapsed = DateTime.Now - value;
+                if (simulation != null)
+                    simulation.simulationTime = (float)elapsed.TotalSeconds * Time.timeScale * timeMultiplier;
+            }
+        }
+
+        internal int numActiveBands => HDRenderPipeline.EvaluateBandCount(surfaceType, ripples);
+
         // Internal simulation data
         internal WaterSimulationResources simulation = null;
 
-        internal void CheckResources(int bandResolution, int bandCount, bool activeFoam, bool cpuSimActive, out bool gpuSpectrumValid, out bool cpuSpectrumValid, out bool historyValid)
+        internal void CheckResources(int bandResolution, bool activeFoam, bool cpuSimActive, out bool gpuSpectrumValid, out bool cpuSpectrumValid, out bool historyValid)
         {
+            int bandCount = numActiveBands;
+
             // By default we shouldn't need an update
             gpuSpectrumValid = true;
             cpuSpectrumValid = true;
@@ -196,11 +218,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // Evaluate the spectrum parameters
             WaterSpectrumParameters spectrum = EvaluateSpectrumParams(surfaceType);
 
-            if (simulation.spectrum.numActiveBands != spectrum.numActiveBands)
-            {
-                historyValid = false;
-            }
-
             // If the spectrum defining data changed, we need to invalidate the buffers
             if (simulation.spectrum != spectrum)
             {
@@ -215,11 +232,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Re-evaluate the simulation data
             simulation.rendering = EvaluateRenderingParams(surfaceType);
-        }
-
-        bool SpectrumParametersAreValid(WaterSpectrumParameters spectrum)
-        {
-            return (simulation.spectrum == spectrum);
         }
 
         internal static void EvaluateWaterSurfaceMatrices(bool instancedQuads, Vector3 position, Quaternion rotation, ref float4x4 waterToWorld, ref float4x4 worldToWater)
@@ -242,9 +254,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     // We need to evaluate the radio between the first and second band
                     float swellSecondBandRatio = HDRenderPipeline.EvaluateSwellSecondPatchSize(swellPatchSize);
-
-                    // Propagate the high frequency bands flag
-                    spectrum.numActiveBands = ripples ? 3 : 2;
 
                     // Set the patch groups
                     spectrum.patchGroup.x = 0;
@@ -280,9 +289,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 break;
                 case WaterSurfaceType.River:
                 {
-                    // Propagate the high frequency bands flag
-                    spectrum.numActiveBands = ripples ? 2 : 1;
-
                     // Set the patch groups
                     spectrum.patchGroup.x = 0;
                     spectrum.patchGroup.y = ripplesMotionMode == WaterPropertyOverrideMode.Inherit ? 0 : 1;
@@ -312,9 +318,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 break;
                 case WaterSurfaceType.Pool:
                 {
-                    // Propagate the high frequency bands flag
-                    spectrum.numActiveBands = 1;
-
                     // Set the patch groups
                     spectrum.patchGroup.x = 1;
 
@@ -346,6 +349,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 rendering.patchFadeA[index] = 0.0f;
                 rendering.patchFadeB[index] = 1.0f;
+                rendering.maxFadeDistance = float.MaxValue;
             }
             else
             {
@@ -362,6 +366,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 rendering.patchFadeA[index] = -1.0f / Mathf.Max(customDistance, 0.001f);
                 rendering.patchFadeB[index] = 1.0f - customStart * rendering.patchFadeA[index];
+                rendering.maxFadeDistance = Mathf.Max(rendering.maxFadeDistance, customStart + customDistance);
             }
         }
 
@@ -371,6 +376,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Propagate the simulation time to the rendering structure
             rendering.simulationTime = simulation.simulationTime;
+            rendering.maxFadeDistance = 0.0f;
 
             switch (type)
             {
@@ -390,7 +396,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Fade parameters
                     ComputeDistanceFade(ref rendering, 0, largeBand0FadeMode, largeBand0FadeStart, largeBand0FadeDistance);
                     ComputeDistanceFade(ref rendering, 1, largeBand1FadeMode, largeBand1FadeStart, largeBand1FadeDistance);
-                    ComputeDistanceFade(ref rendering, 2, ripplesFadeMode, ripplesFadeStart, ripplesFadeDistance);
+                    if (ripples) ComputeDistanceFade(ref rendering, 2, ripplesFadeMode, ripplesFadeStart, ripplesFadeDistance);
                 }
                 break;
                 case WaterSurfaceType.River:
@@ -405,7 +411,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     // Fade parameters
                     ComputeDistanceFade(ref rendering, 0, largeBand0FadeMode, largeBand0FadeStart, largeBand0FadeDistance);
-                    ComputeDistanceFade(ref rendering, 1, ripplesFadeMode, ripplesFadeStart, ripplesFadeDistance);
+                    if (ripples) ComputeDistanceFade(ref rendering, 1, ripplesFadeMode, ripplesFadeStart, ripplesFadeDistance);
                 }
                 break;
                 case WaterSurfaceType.Pool:
@@ -418,7 +424,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     rendering.patchCurrentSpeed.x = ripplesCurrentSpeedValue * WaterConsts.k_KilometerPerHourToMeterPerSecond;
 
                     // Fade parameters
-                    ComputeDistanceFade(ref rendering, 0, ripplesFadeMode, ripplesFadeStart, ripplesFadeDistance);
+                    if (ripples) ComputeDistanceFade(ref rendering, 0, ripplesFadeMode, ripplesFadeStart, ripplesFadeDistance);
                 }
                 break;
             }

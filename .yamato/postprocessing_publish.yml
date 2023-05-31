@@ -8,6 +8,7 @@ test_editors:
   - 2022.1
   - 2021.3
   - 2020.3
+  - 2019.4
 test_platforms:
   - name: win
     type: Unity::VM

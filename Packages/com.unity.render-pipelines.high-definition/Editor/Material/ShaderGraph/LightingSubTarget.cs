@@ -122,6 +122,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 }
             }
 
+            if(pass.IsPathTracing())
+            {
+                pass.keywords.Add(CoreKeywordDescriptors.DecalsRayTracing);
+            }
+
             if (pass.IsForward())
             {
                 pass.keywords.Add(CoreKeywordDescriptors.Shadow);

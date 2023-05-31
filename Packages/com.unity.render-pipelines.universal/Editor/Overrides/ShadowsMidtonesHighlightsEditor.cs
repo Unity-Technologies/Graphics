@@ -53,11 +53,11 @@ namespace UnityEditor.Rendering.Universal
 
             using (new EditorGUILayout.HorizontalScope())
             {
-                m_TrackballUIDrawer.OnGUI(m_Shadows.value, m_Shadows.overrideState, Styles.shadowsLabel, GetWheelValue);
+                m_TrackballUIDrawer.OnGUI(m_Shadows.value, enableOverrides ? m_Shadows.overrideState : null, Styles.shadowsLabel, GetWheelValue);
                 GUILayout.Space(4f);
-                m_TrackballUIDrawer.OnGUI(m_Midtones.value, m_Midtones.overrideState, Styles.midtonesLabel, GetWheelValue);
+                m_TrackballUIDrawer.OnGUI(m_Midtones.value, enableOverrides ? m_Midtones.overrideState : null, Styles.midtonesLabel, GetWheelValue);
                 GUILayout.Space(4f);
-                m_TrackballUIDrawer.OnGUI(m_Highlights.value, m_Highlights.overrideState, Styles.highlightsLabel, GetWheelValue);
+                m_TrackballUIDrawer.OnGUI(m_Highlights.value, enableOverrides ? m_Highlights.overrideState : null, Styles.highlightsLabel, GetWheelValue);
             }
             EditorGUILayout.Space();
 

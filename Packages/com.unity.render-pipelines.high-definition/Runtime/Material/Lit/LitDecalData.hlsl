@@ -1,5 +1,5 @@
 void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, float3 vtxNormal, inout SurfaceData surfaceData
-#if defined(DECAL_SURFACE_GRADIENT) && defined(SURFACE_GRADIENT)
+#if (defined(DECAL_SURFACE_GRADIENT) && defined(SURFACE_GRADIENT)) || defined(PATH_TRACING_ADDITIVE_NORMAL_BLENDING)
     , inout float3 normalTS
 #endif
 )
@@ -12,7 +12,7 @@ void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, float3 vtxNormal
     // Always test the normal as we can have decompression artifact
     if (decalSurfaceData.normalWS.w < 1.0)
     {
-#if defined(DECAL_SURFACE_GRADIENT) && defined(SURFACE_GRADIENT)
+#if (defined(DECAL_SURFACE_GRADIENT) && defined(SURFACE_GRADIENT)) || defined(PATH_TRACING_ADDITIVE_NORMAL_BLENDING)
         normalTS += SurfaceGradientFromVolumeGradient(vtxNormal, decalSurfaceData.normalWS.xyz);
 #else
         surfaceData.normalWS.xyz = SafeNormalize(surfaceData.normalWS.xyz * decalSurfaceData.normalWS.w + decalSurfaceData.normalWS.xyz);

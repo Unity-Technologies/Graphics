@@ -1,14 +1,12 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using UnityEditor.ShaderGraph;
-using UnityEditor.ShaderGraph.Internal;
+
 using UnityEngine;
 
 
 namespace UnityEditor.VFX
 {
+    [VFXHelpURL("Context-OutputPrimitive")]
     [VFXInfo(variantProvider = typeof(VFXPlanarPrimitiveVariantProvider))]
     class VFXPlanarPrimitiveOutput : VFXShaderGraphParticleOutput
     {

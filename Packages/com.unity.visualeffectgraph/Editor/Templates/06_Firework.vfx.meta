@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: d379eac073f73024780a8968d2259cef
+VisualEffectImporter:
+  externalObjects: {}
+  serializedVersion: 1
+  template:
+    name: Firework
+    category: Built-in
+    description: This system loops infinitely, creating multiple bursts of particles
+      in a firework fashion. It's useful for quickly setting up a trigger on die
+      event and can be tweaked to create effects like fireworks, impacts, hits, etc.
+    icon: {fileID: 2800000, guid: e81d1aad004b59347b9428aa392dd26f, type: 3}
+    thumbnail: {fileID: 2800000, guid: a470305953dc9c941b100d56afe7edd0, type: 3}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

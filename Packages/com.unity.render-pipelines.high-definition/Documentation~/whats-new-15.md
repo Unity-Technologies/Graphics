@@ -9,6 +9,14 @@ This page contains an overview of new features, improvements, and issues resolve
 
 Starting from HDRP 15, two new options are available to perform sharpening with Temporal Anti-aliasing. The first new option is a post-process pass that will offer higher quality sharpening, control on how much sharpening will happen and an option to reduce possible ringing artifacts. The second option is to run Contrast Adaptive Sharpening from AMD FidelityFX.
 
+### High Quality Line Rendering
+
+Introducing a specialized rendering path for line topology with the **High Quality Line Renderer**. Use this feature to render hair, wires, and other line-based geometry with high quality anti-aliasing and transparency.
+
+|       Hardware Lines       |     High Quality Lines     |
+|:--------------------------:|:--------------------------:|
+| ![](Images/HQLines-HW.png) | ![](Images/HQLines-SW.png) |
+
 ### Specular Fade
 
 Specular light can now completely be faded when using a specular color workflow using the **HDRP/Lit** and **HDRP/StackLit** shaders by toggling a new option that can be found in the HDRP Global Settings under **Miscellaneous/Specular Fade**.
@@ -20,8 +28,7 @@ Specular light can now completely be faded when using a specular color workflow 
 ### Screen Space Lens Flare
 ![](Images/ScreenSpaceLensFlare-header.png)
 
-To complete [Lens Flare Data Driven](shared/lens-flare/lens-flare-component.md), HDRP 15 introduces a new Screen Space Lens Flare post-process override.
-This effect allows you to use what is on screen to create multiple types of flares based on the [Bloom](Post-Processing-Bloom.md) texture. This is especially useful for view-dependent bright spots (specular reflection, overexposed areas) which doesn't have a defined position in world space.
+HDRP 15 includes a new [Screen Space Lens Flare](shared/lens-flare/Override-Screen-Space-Lens-Flare.md) post-processing override, in addition to the existing [Lens Flare (SRP)](shared/lens-flare/lens-flare-component.md) component. The override uses what's on the screen to create multiple types of lens flare, based on the texture from the [Bloom](Post-Processing-Bloom.md) override. Screen space lens flares are useful for bright spots in your scene that appear depending on the camera view, for example a bright specular reflection on a shiny metal object, or a bright outside area viewed from a dark indoor area.
 
 ### Material Type in ShaderGraph
 

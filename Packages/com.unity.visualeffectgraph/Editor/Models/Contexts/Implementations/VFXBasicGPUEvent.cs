@@ -11,6 +11,7 @@ namespace UnityEditor.VFX
         /* expected emptiness */
     };
 
+    [VFXHelpURL("Context-GPUEvent")]
     [VFXInfo(experimental = true)]
     class VFXBasicGPUEvent : VFXContext
     {

@@ -18,6 +18,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent type { get; } = EditorGUIUtility.TrTextContent("Type");
             public static GUIContent projection { get; } = EditorGUIUtility.TrTextContent("Projection");
             public static GUIContent rotation { get; } = EditorGUIUtility.TrTextContent("Rotation");
+            public static GUIContent lockSun { get; } = EditorGUIUtility.TrTextContent("Lock Sun");
             public static GUIContent textureRotation { get; } = EditorGUIUtility.TrTextContent("Texture Rotation");
             public static GUIContent textureOffset { get; } = EditorGUIUtility.TrTextContent("Texture Offset");
             public static GUIContent pointSpotShadow { get; } = EditorGUIUtility.TrTextContent("Point/Spot Shadow");
@@ -45,6 +46,9 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_Scale;
         SerializedDataParameter m_ProjectionDistance;
         SerializedDataParameter m_PlateRotation;
+        SerializedDataParameter m_skyRotation;
+        SerializedDataParameter m_SunInitialRotation;
+        SerializedDataParameter m_LockSun;
         SerializedDataParameter m_PlateTexRotation;
         SerializedDataParameter m_PlateTexOffset;
         SerializedDataParameter m_BlendAmount;
@@ -66,8 +70,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             m_EnableLuxIntensityMode = true;
 
-            // HDRI sky does not have control over sun display.
-            m_CommonUIElementsMask = 0xFFFFFFFF & ~(uint)(SkySettingsUIElement.IncludeSunInBaking);
+            // HDRI sky does not have control over sun display and is using its own version of rotation to allow
+            // locking of the sun position with it.
+            m_CommonUIElementsMask = 0xFFFFFFFF & ~(uint)(SkySettingsUIElement.IncludeSunInBaking) & ~(uint)(SkySettingsUIElement.Rotation);
 
             var o = new PropertyFetcher<HDRISky>(serializedObject);
             m_hdriSky = Unpack(o.Find(x => x.hdriSky));
@@ -86,6 +91,9 @@ namespace UnityEditor.Rendering.HighDefinition
             m_Scale = Unpack(o.Find(x => x.scale));
             m_ProjectionDistance = Unpack(o.Find(x => x.projectionDistance));
             m_PlateRotation = Unpack(o.Find(x => x.plateRotation));
+            m_skyRotation = Unpack(o.Find(x => x.rotation));
+            m_SunInitialRotation = Unpack(o.Find(x => x.sunInitialRotation));
+            m_LockSun = Unpack(o.Find(x => x.lockSun));
             m_PlateTexRotation = Unpack(o.Find(x => x.plateTexRotation));
             m_PlateTexOffset = Unpack(o.Find(x => x.plateTexOffset));
             m_BlendAmount = Unpack(o.Find(x => x.blendAmount));
@@ -93,6 +101,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_DirLightShadow = Unpack(o.Find(x => x.dirLightShadow));
             m_RectLightShadow = Unpack(o.Find(x => x.rectLightShadow));
             m_ShadowTint = Unpack(o.Find(x => x.shadowTint));
+
 
             m_IntensityTexture = RTHandles.Alloc(1, 1, colorFormat: GraphicsFormat.R32G32B32A32_SFloat);
             if (HDRenderPipelineGlobalSettings.instance?.renderPipelineResources != null)
@@ -148,6 +157,32 @@ namespace UnityEditor.Rendering.HighDefinition
             m_UpperHemisphereLuxColor.overrideState.boolValue = m_hdriSky.overrideState.boolValue;
         }
 
+        //Iterating over directional lights and finding the one with the highest intensity as its most likely to be the sun
+        Light GetSun()
+        {
+            Light sunObject = null;
+            var lights = FindObjectsByType<Light>(FindObjectsInactive.Exclude, FindObjectsSortMode.InstanceID);
+            foreach (var light in lights)
+            {
+                if (light.type != LightType.Directional)
+                    continue;
+
+                //Setting first directional light as sun as a fallback
+                if(sunObject == null)
+                    sunObject = light;
+
+                HDAdditionalLightData additionalLightData = light.gameObject.GetComponent<HDAdditionalLightData>();
+                if (additionalLightData != null)
+                {
+                    //But if we find one with shadows enabled it should be our sun
+                    if (additionalLightData.ShadowsEnabled())
+                        sunObject = light;
+                }
+            }
+
+            return sunObject;
+        }
+
         bool IsFlowmapFormatInvalid(SerializedDataParameter map)
         {
             if (!map.overrideState.boolValue || map.value.objectReferenceValue == null)
@@ -187,8 +222,56 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
-            base.CommonSkySettingsGUI();
+            bool skyRotationChanged = false;
+            EditorGUI.BeginChangeCheck();
+            PropertyField(m_skyRotation);
+            if (EditorGUI.EndChangeCheck())
+            {
+                skyRotationChanged = true;
+            }
 
+            if (m_LockSun.value.boolValue)
+            {
+                if (skyRotationChanged && m_LockSun.overrideState.boolValue)
+                {
+                    Light sunObject = GetSun();
+                    if (sunObject != null)
+                    {
+                        Undo.RecordObject(sunObject.transform, "Rotate Sun Object");
+
+                        Vector3 currentRotation = sunObject.transform.rotation.eulerAngles;
+                        Vector3 newRotation = new Vector3(currentRotation.x,
+                            m_SunInitialRotation.value.floatValue + m_skyRotation.value.floatValue, currentRotation.z);
+
+                        sunObject.transform.rotation = Quaternion.Euler(newRotation);
+                        EditorUtility.SetDirty(sunObject);
+                    }
+                }
+            }
+
+            if (m_skyRotation.overrideState.boolValue)
+            {
+                using (new IndentLevelScope())
+                {
+                    EditorGUI.BeginChangeCheck();
+                    PropertyField(m_LockSun, Styles.lockSun);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        if (m_LockSun.value.boolValue)
+                        {
+                            Light sunObject = GetSun();
+                            m_SunInitialRotation.value.floatValue = sunObject != null ? sunObject.transform.eulerAngles.y - m_skyRotation.value.floatValue : float.NegativeInfinity;
+                        }
+                        else
+                        {
+                            //Resetting the initial rotation if we dont have the sun locked
+                            if (!float.IsNegativeInfinity(m_SunInitialRotation.value.floatValue))
+                                m_SunInitialRotation.value.floatValue = float.NegativeInfinity;
+                        }
+                    }
+                }
+            }
+            base.CommonSkySettingsGUI();
             PropertyField(m_EnableBackplate, Styles.backplate);
 
             if (m_EnableBackplate.value.boolValue)

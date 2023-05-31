@@ -10,6 +10,7 @@ The **Rendering Debugger** is a specific window for the Scriptable Render Pipeli
 * [Rendering](#RenderingPanel)
 * [Probe Volume](#ProbeVolume)
 * [Camera](#CameraPanel)
+* [Virtual Texturing](#VirtualTexturingPanel)
 
 ![](Images/RenderPipelineDebug1.png)
 The Rendering Debugger
@@ -609,12 +610,16 @@ The **Rendering** panel has tools that you can use to visualize various HDRP ren
 </thead>
 <tbody>
 <tr>
-<td rowspan="11"><strong>Fullscreen Debug Mode</strong></td>
+<td rowspan="12"><strong>Fullscreen Debug Mode</strong></td>
 <td colspan="2">Use the drop-down to select a rendering mode to display as an overlay on the screen.</td>
 </tr>
 <tr>
 <td><strong>Motion Vectors</strong></td>
 <td>Select this option to display motion vectors. Note that object motion vectors aren't visible in the Scene view.</td>
+</tr>
+<tr>
+<td><strong>World Space Position</strong></td>
+<td>Select this option to display world space positions.</td>
 </tr>
 <tr>
 <td><strong>NaN Tracker</strong></td>
@@ -645,6 +650,11 @@ The **Rendering** panel has tools that you can use to visualize various HDRP ren
 <td>Select this option to display what texture tile each pixel uses. Pixels that this debug view renders with the same color request the same texture tile to be streamed into video memory by the streaming virtual texturing system. This debug view is useful to see which areas of the screen use textures that the virtual texturing system steams into video memory. It can help to identify issues with the virtual texture streaming system.</td>
 </tr>
 <tr>
+<tr>
+<td><strong>LensFlareScreenSpace</strong></td>
+<td>Display the lens flares that the <a href="shared/lens-flare/Override-Screen-Space-Lens-Flare.html">Screen Space Lens Flare</a> override generates.</td>
+</tr>
+<tr>
 <td><strong>Compute Thickness</strong></td>
 <td>Select this option to display thickness for each layer selected in the current HDRP Asset.<br/>
 Debug View Color Scale:<br/>
@@ -656,6 +666,10 @@ Debug View Color Scale:<br/>
 <tr>
 <td><strong>Max Pixel Cost</strong></td>
 <td>The scale of the transparency overdraw heat map. For example, a value of 10 displays a red pixel if 10 transparent pixels overlap. Any number of overdraw above this value also displays as red.<br/>This property only appears if you set <strong>Fullscreen Debug Mode</strong> to <strong>TransparencyOverdraw</strong>.</td>
+</tr>
+<tr>
+<td><strong>High Quality Lines</strong></td>
+<td>Select this option to view underlying data used by tile-based software rasterizer for the <a href="Override-High-Quality-Lines.md">High Quality Line Rendering</a> feature.<ul><li> <strong>Segments per Tile</strong> displays a heatmap representing the number of segments in each tile. </li><li><strong>Tile Processor UV</strong> displays the uv coordinate for each tile.</li><li><strong>Cluster Depth</strong> displays segments based on their depth in the cluster structure that's used for transparent sorting.</li></ul></td>
 </tr>
 <tr>
 <td rowspan="8"><strong>MipMaps</strong></td>
@@ -801,3 +815,14 @@ Unity processes **Sanitized**, **Overridden**, and **Default** in a specific ord
 
 - In the image above, **Ray Tracing** is disabled at the **Sanitized** step, but enabled at the **Default** and **Overridden** steps. This means that, although **Ray Tracing** is enabled in the Frame Settings this Camera uses, it's not enabled in the HDRP Asset’s **Render Pipeline Supported Features**.
 - Also in the image above, **Decals** is disabled at the **Overridden** step, but enabled at the **Default** step. This means that **Decals** is enabled in the default Camera Frame Settings but disabled for that specific Camera’s **Custom Frame Settings**.
+
+<a name="VirtualTexturingPanel"></a>
+
+## Virtual Texturing panel
+
+You can use the **Virtual Texturing** panel to visualize [Streaming Virtual Texturing](https://docs.unity3d.com/Manual/svt-streaming-virtual-texturing.html).
+
+| **Debug Option**                     | **Description**                                               |
+| ------------------------------------ | ------------------------------------------------------------- |
+| **Debug disable Feedback Streaming** | Deactivate Streaming Virtual Texturing to quickly assess its cost in performance and memory at runtime. |
+| **Textures with Preloaded Mips**        | Display the total number of virtual textures Unity has loaded into the scene. Unity tries to preload the least detailed mipmap level (least being 128x128) into GPU memory. This number increases every time a material is loaded. |

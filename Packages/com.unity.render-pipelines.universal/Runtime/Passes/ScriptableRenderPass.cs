@@ -597,7 +597,10 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="context">Use this render context to issue any draw commands during execution</param>
         /// <param name="renderingData">Current rendering state information</param>
-        public abstract void Execute(ScriptableRenderContext context, ref RenderingData renderingData);
+        public virtual void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
+        {
+            Debug.LogWarning("Execute is not implemented, the pass " + this.ToString() + " won't be executed in the current render loop.");
+        }
 
         /// <summary>
         /// Record the render graph pass. This is where custom rendering occurs. Specific details are left to the implementation

@@ -402,69 +402,6 @@ namespace UnityEngine.Rendering.Universal
             return retLocalBound;
         }
 
-        static public int GetFirstUnusedIndex(NativeArray<bool> usedValues)
-        {
-            for (int i = 0; i < usedValues.Length; i++)
-            {
-                if (!usedValues[i])
-                    return i;
-            }
-
-            return -1;
-        }
-
-        static public void SortEdges(int edgeMapSize, NativeArray<ShadowEdge> unsortedEdges, out NativeArray<ShadowEdge> sortedEdges, out NativeArray<int> shapeStartingEdge)
-        {
-            sortedEdges = new NativeArray<ShadowEdge>(unsortedEdges.Length, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-            shapeStartingEdge = new NativeArray<int>(unsortedEdges.Length, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-
-            NativeArray<int> edgeMap = new NativeArray<int>(edgeMapSize, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-            NativeArray<bool> usedEdges = new NativeArray<bool>(edgeMapSize, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-
-            for (int i = 0; i < unsortedEdges.Length; i++)
-            {
-                edgeMap[unsortedEdges[i].v0] = i;
-                usedEdges[i] = false;
-                shapeStartingEdge[i] = -1;
-            }
-
-            int currentShape = 0;
-            bool findStartingEdge = true;
-            int edgeIndex = -1;
-            int startingEdge = 0;
-            for (int i = 0; i < unsortedEdges.Length; i++)
-            {
-                if (findStartingEdge)
-                {
-                    edgeIndex = GetFirstUnusedIndex(usedEdges);
-                    startingEdge = edgeIndex;
-                    shapeStartingEdge[currentShape++] = i;
-                    findStartingEdge = false;
-                }
-                
-                if (edgeIndex >= 0)
-                {
-                    usedEdges[edgeIndex] = true;
-                    sortedEdges[i] = unsortedEdges[edgeIndex];
-                    int nextVertex = unsortedEdges[edgeIndex].v1;
-                    edgeIndex = edgeMap[nextVertex];
-
-                    if (edgeIndex == startingEdge)
-                        findStartingEdge = true;
-                }
-            }
-
-            usedEdges.Dispose();
-            edgeMap.Dispose();
-        }
-
-        static public void InitializeShapeIsClosedArray(NativeArray<int> inShapeStartingEdge, out NativeArray<bool> outShapeIsClosedArray)
-        {
-            outShapeIsClosedArray = new NativeArray<bool>(inShapeStartingEdge.Length, Allocator.Persistent);
-            for (int i = 0; i < outShapeIsClosedArray.Length; i++)
-                outShapeIsClosedArray[i] = true;
-        }
-
         static public void CalculateEdgesFromLines(NativeArray<int> indices, out NativeArray<ShadowEdge> outEdges, out NativeArray<int> outShapeStartingEdge, out NativeArray<bool> outShapeIsClosedArray)
         {
             unsafe
@@ -669,28 +606,86 @@ namespace UnityEngine.Rendering.Universal
 
         static public void CalculateEdgesFromTriangles(NativeArray<Vector3> vertices, NativeArray<int> indices, bool duplicatesVertices, out NativeArray<Vector3> newVertices, out NativeArray<ShadowEdge> outEdges, out NativeArray<int> outShapeStartingEdge, out NativeArray<bool> outShapeIsClosedArray)
         {
-            NativeArray<int> processedIndices = indices;
-            if (duplicatesVertices) // If this duplicates vertices (like sprite shape does)
+            unsafe
             {
-                VertexDictionary vertexDictionary = new VertexDictionary();
-                processedIndices = vertexDictionary.GetIndexRemap(vertices, indices);
+                // Run clipper to calculate edges..
+                Clipper2D.Solution solution = new Clipper2D.Solution();
+                Clipper2D.ExecuteArguments executeArguments = new Clipper2D.ExecuteArguments(Clipper2D.InitOptions.ioDefault, Clipper2D.ClipType.ctUnion);
+
+                int triangleCount = indices.Length / 3;
+                NativeArray<Vector2> points = new NativeArray<Vector2>(indices.Length, Allocator.Persistent);
+                NativeArray<int> pathSizes = new NativeArray<int>(triangleCount, Allocator.Persistent);
+                NativeArray<Clipper2D.PathArguments> pathArguments = new NativeArray<Clipper2D.PathArguments>(triangleCount, Allocator.Persistent);
+
+                // Pointers to our native arrays for performance in editor
+                Vector2* pointsPtr = (Vector2*)points.GetUnsafePtr<Vector2>();
+                int* pathSizesPtr = (int*)pathSizes.GetUnsafePtr<int>();
+                Clipper2D.PathArguments* pathArgumentsPtr = (Clipper2D.PathArguments*)pathArguments.GetUnsafePtr<Clipper2D.PathArguments>();
+                Vector3* verticesPtr = (Vector3*)vertices.GetUnsafePtr<Vector3>();
+
+                // Copy input data for Clipper2D.Execute
+                Clipper2D.PathArguments sharedPathArg = new Clipper2D.PathArguments(Clipper2D.PolyType.ptSubject, true);
+                for (int i = 0; i < triangleCount; i++)
+                {
+                    pathSizesPtr[i] = 3;
+                    pathArgumentsPtr[i] = sharedPathArg;
+
+                    int pointOffset = 3 * i;
+                    pointsPtr[pointOffset] = verticesPtr[indices[pointOffset]];
+                    pointsPtr[pointOffset + 1] = verticesPtr[indices[pointOffset + 1]];
+                    pointsPtr[pointOffset + 2] = verticesPtr[indices[pointOffset + 2]];
+                }
+
+                Clipper2D.Execute(ref solution, points, pathSizes, pathArguments, executeArguments, Allocator.Persistent);
+
+                // Cleanup execute inputs because we have necessary data in our solution
+                points.Dispose();
+                pathSizes.Dispose();
+                pathArguments.Dispose();
+
+                // Copy solution to outputs
+                int pointLen = solution.points.Length;
+                int shapeCount = solution.pathSizes.Length;
+                newVertices = new NativeArray<Vector3>(pointLen, Allocator.Persistent);
+                outEdges = new NativeArray<ShadowEdge>(pointLen, Allocator.Persistent);
+                outShapeStartingEdge = new NativeArray<int>(shapeCount, Allocator.Persistent);
+                outShapeIsClosedArray = new NativeArray<bool>(shapeCount, Allocator.Persistent);
+
+                // More pointers for edtor time perfomance
+                int* solutionPathSizesPtr = (int*)solution.pathSizes.GetUnsafePtr<int>();
+                Vector2* solutionPointsPtr = (Vector2*)solution.points.GetUnsafePtr<Vector2>();
+
+                Vector3* newVerticesPtr = (Vector3*)newVertices.GetUnsafePtr<Vector3>();
+                ShadowEdge* outEdgesPtr = (ShadowEdge*)outEdges.GetUnsafePtr<ShadowEdge>();
+                int* outShapeStartingEdgePtr = (int*)outShapeStartingEdge.GetUnsafePtr<int>();
+                bool* outShapeIsClosedArrayPtr = (bool*)outShapeIsClosedArray.GetUnsafePtr<bool>();
+
+                // Copy output data from the solution
+                int nextStart = 0;
+                for (int shapeIndex = 0; shapeIndex < shapeCount; shapeIndex++)
+                {
+                    // Copy shape info to outputs
+                    int curStart = nextStart;
+                    int curPathSize = solutionPathSizesPtr[shapeIndex];
+                    outShapeStartingEdgePtr[shapeIndex] = nextStart;
+                    nextStart += curPathSize;
+
+                    // Copy vertices and edges to outputs;
+                    int previousVertex = nextStart - 1;
+                    for (int pointIndex = curStart; pointIndex < nextStart; pointIndex++)
+                    {
+                        newVerticesPtr[pointIndex] = solutionPointsPtr[pointIndex];
+                        outEdgesPtr[pointIndex] = new ShadowEdge(previousVertex, pointIndex);
+                        previousVertex = pointIndex;
+                    }
+
+                    // All shapes are closed since they are created from triangles
+                    outShapeIsClosedArrayPtr[shapeIndex] = true;
+                }
+
+                // Cleanup solution
+                solution.Dispose();
             }
-
-            FixTriangleWindingOrder(vertices, processedIndices);
-
-            // Add our edges to an edge list
-            EdgeDictionary edgeDictionary = new EdgeDictionary();
-            NativeArray<ShadowEdge> unsortedEdges = edgeDictionary.GetOutsideEdges(vertices, processedIndices);
-
-            NativeArray<ShadowEdge> remappedEdges;
-            RemapGeometry(vertices, indices, unsortedEdges, out newVertices, out remappedEdges);
-
-            SortEdges(newVertices.Length, remappedEdges, out outEdges, out outShapeStartingEdge);
-
-            // Cleanup
-            unsortedEdges.Dispose();
-
-            InitializeShapeIsClosedArray(outShapeStartingEdge, out outShapeIsClosedArray);
         }
 
         static public void ReverseWindingOrder(NativeArray<int> inShapeStartingEdge, NativeArray<ShadowEdge> inOutSortedEdges)

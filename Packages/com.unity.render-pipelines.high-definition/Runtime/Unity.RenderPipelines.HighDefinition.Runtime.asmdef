@@ -1,10 +1,12 @@
 {
     "name": "Unity.RenderPipelines.HighDefinition.Runtime",
+    "rootNamespace": "",
     "references": [
         "Unity.RenderPipelines.Core.Runtime",
+        "Unity.RenderPipelines.Core.Runtime.Shared",
         "Unity.ugui",
         "Unity.Mathematics",
-		"Unity.Collections",
+        "Unity.Collections",
         "Unity.Burst",
         "Unity.RenderPipelines.HighDefinition.Config.Runtime",
         "Unity.Rendering.Denoising.Runtime",
@@ -45,9 +47,9 @@
             "define": "ENABLE_NVIDIA_MODULE"
         },
         {
-            "name" : "com.unity.mathematics",
-            "expression" : "1.2.1",
-            "define" : "ENABLE_MATHEMATICS_1_2_1"
+            "name": "com.unity.mathematics",
+            "expression": "1.2.1",
+            "define": "ENABLE_MATHEMATICS_1_2_1"
         },
         {
             "name": "com.unity.burst",

@@ -37,14 +37,13 @@ void VFXTransformPSInputs(inout VFX_VARYING_PS_INPUTS input)
 }
 #endif
 
-float4 VFXTransformFinalColor(float4 color)
+float4 VFXTransformFinalColor(float4 color, float4 positionCS)
 {
 #ifdef DEBUG_DISPLAY
     if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_TRANSPARENCY_OVERDRAW)
     {
         color = _DebugTransparencyOverdrawWeight * float4(TRANSPARENCY_OVERDRAW_COST, TRANSPARENCY_OVERDRAW_COST, TRANSPARENCY_OVERDRAW_COST, TRANSPARENCY_OVERDRAW_A);
     }
-
 #endif
     return color;
 }
@@ -243,4 +242,9 @@ float4 VFXApplyPreExposure(float4 color, VFX_VARYING_PS_INPUTS input)
 float3 VFXGetCameraWorldDirection()
 {
     return -_CameraViewMatrix._m20_m21_m22;
+}
+
+#define VFXComputePixelOutputToNormalBuffer(i,normalWS,uvData,outNormalBuffer) \
+{ \
+    outNormalBuffer = 0; \
 }

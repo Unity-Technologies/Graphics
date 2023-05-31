@@ -17,6 +17,7 @@ namespace UnityEditor.VFX.Block
         };
     }
 
+    [VFXHelpURL("Block-SetPosition(Mesh)")]
     [VFXInfo(category = "Attribute/position/Composition/Set", variantProvider = typeof(PositionMeshProvider))]
     class PositionMesh : PositionBase
     {

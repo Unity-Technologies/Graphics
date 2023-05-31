@@ -1,5 +1,4 @@
 using System.IO;
-
 using UnityEngine;
 using UnityEditor.VFX;
 using UnityEngine.VFX;
@@ -51,7 +50,6 @@ namespace UnityEditor
             UnityEngine.VFX.VFXManager.activateVFX = true;
         }
 
-        public const string templateAssetName = "SimpleParticleSystem.vfx";
         public const string templateBlockSubgraphAssetName = "DefaultSubgraphBlock.vfxblock";
         public const string templateOperatorSubgraphAssetName = "DefaultSubgraphOperator.vfxoperator";
 
@@ -112,20 +110,18 @@ VisualEffectResource:
         {
             VFXLibrary.LogUnsupportedSRP();
 
-            string templateString = "";
-            try
+            void OnTemplateCreate(string templateFilePath)
             {
-                templateString = System.IO.File.ReadAllText(templatePath + templateAssetName);
-            }
-            catch (System.Exception e)
-            {
-                Debug.LogError("Couldn't read template for new vfx asset : " + e.Message);
-                return;
+                if (!string.IsNullOrEmpty(templateFilePath))
+                {
+                    var texture = EditorGUIUtility.FindTexture(typeof(VisualEffectAsset));
+                    var action = ScriptableObject.CreateInstance<DoCreateNewVFX>();
+                    action.templatePath = templateFilePath;
+                    ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, action, "New VFX.vfx", texture, null);
+                }
             }
 
-            Texture2D texture = EditorGUIUtility.FindTexture(typeof(VisualEffectAsset));
-            var action = ScriptableObject.CreateInstance<DoCreateNewVFX>();
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, action, "New VFX.vfx", texture, null);
+            VFXTemplateWindow.PickTemplate(OnTemplateCreate);
         }
 
         [MenuItem("Assets/Create/Visual Effects/Visual Effect Defaults", false, 307)]
@@ -144,16 +140,24 @@ VisualEffectResource:
             return resources == null || resources.Length == 0;
         }
 
-        public static void CreateTemplateAsset(string pathName)
+        public static void CreateTemplateAsset(string pathName, string templateFilePath)
         {
-            try
-            {
-                var templateString = System.IO.File.ReadAllText(templatePath + templateAssetName);
-                System.IO.File.WriteAllText(pathName, templateString);
-            }
-            catch (FileNotFoundException)
+            if (string.IsNullOrEmpty(templateFilePath))
             {
                 CreateNewAsset(pathName);
+            }
+            else
+            {
+                var templateFullPath = Path.GetFullPath(templateFilePath);
+                if (File.Exists(templateFullPath))
+                {
+                    var templateString = File.ReadAllText(templateFullPath);
+                    File.WriteAllText(pathName, templateString);
+                }
+                else
+                {
+                    Debug.LogError($"Could not find template at '{templateFullPath}'");
+                }
             }
 
             AssetDatabase.ImportAsset(pathName);
@@ -161,9 +165,11 @@ VisualEffectResource:
 
         internal class DoCreateNewVFX : EndNameEditAction
         {
+            public string templatePath { get; set; }
+
             public override void Action(int instanceId, string pathName, string resourceFile)
             {
-                CreateTemplateAsset(pathName);
+                CreateTemplateAsset(pathName, templatePath);
                 var resource = VisualEffectResource.GetResourceAtPath(pathName);
                 ProjectWindowUtil.FrameObjectInProjectWindow(resource.asset.GetInstanceID());
             }

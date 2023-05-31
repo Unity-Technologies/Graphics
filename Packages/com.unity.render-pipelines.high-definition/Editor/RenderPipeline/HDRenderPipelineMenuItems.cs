@@ -151,6 +151,40 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
+        static bool ContributesGI(GameObject go) => (GameObjectUtility.GetStaticEditorFlags(go) & StaticEditorFlags.ContributeGI) != 0;
+
+        [MenuItem("Edit/Rendering/Global Illumination/Convert Selected Mesh Renderers to receive GI from Light Probes", priority = CoreUtils.Priorities.editMenuPriority + 1)]
+        internal static void ConvertSelectedObjectsToAPV()
+        {
+            foreach (var obj in Selection.objects)
+            {
+                if (obj is GameObject)
+                {
+                    GameObject gameObj = obj as GameObject;
+                    if (gameObj.TryGetComponent<MeshRenderer>(out var mesh) && ContributesGI(gameObj) && mesh.receiveGI == ReceiveGI.Lightmaps)
+                    {
+                        Undo.RecordObject(mesh, "MeshRenderer Receive GI update");
+                        mesh.receiveGI = ReceiveGI.LightProbes;
+                        EditorUtility.SetDirty(mesh);
+                    }
+                }
+            }
+        }
+
+        [MenuItem("Edit/Rendering/Global Illumination/Convert Loaded Mesh Renderers to receive GI from Light Probes", priority = CoreUtils.Priorities.editMenuPriority + 1)]
+        internal static void ConvertLoadedObjectsToAPV()
+        {
+            foreach (var mesh in Resources.FindObjectsOfTypeAll<MeshRenderer>())
+            {
+                if (ContributesGI(mesh.gameObject) && mesh.receiveGI == ReceiveGI.Lightmaps)
+                {
+                    Undo.RecordObject(mesh, "MeshRenderer Receive GI update");
+                    mesh.receiveGI = ReceiveGI.LightProbes;
+                    EditorUtility.SetDirty(mesh);
+                }
+            }
+        }
+
         class DoCreateNewAsset<TAssetType> : ProjectWindowCallback.EndNameEditAction where TAssetType : ScriptableObject
         {
             public override void Action(int instanceId, string pathName, string resourceFile)

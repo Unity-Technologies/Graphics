@@ -54,18 +54,11 @@ namespace UnityEditor.Rendering.HighDefinition
         static internal void WaterSurfaceFoamSection(WaterSurfaceEditor serialized, Editor owner)
         {
             HDRenderPipelineAsset currentAsset = HDRenderPipeline.currentAsset;
-            if (!currentAsset?.currentPlatformRenderPipelineSettings.supportWater ?? false)
-            {
-                EditorGUILayout.Space();
-                HDEditorUtils.QualitySettingsHelpBox("The current HDRP Asset does not support Water Surfaces.", MessageType.Error,
-                    HDRenderPipelineUI.ExpandableGroup.Rendering, "m_RenderPipelineSettings.supportWater");
-                return;
-            }
             if (!currentAsset?.currentPlatformRenderPipelineSettings.supportWaterFoam ?? false)
             {
                 EditorGUILayout.Space();
                 HDEditorUtils.QualitySettingsHelpBox("The current HDRP Asset does not support foam for Water Surfaces.", MessageType.Error,
-                    HDRenderPipelineUI.ExpandableGroup.Rendering, "m_RenderPipelineSettings.supportWaterFoam");
+                    HDRenderPipelineUI.ExpandableGroup.Rendering, HDRenderPipelineUI.ExpandableRendering.Water, "m_RenderPipelineSettings.supportWaterFoam");
                 return;
             }
 
@@ -92,8 +85,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 // We only support foam for oceans and rivers
                 if (surfaceType == WaterSurfaceType.Pool)
                 {
-                    EditorGUILayout.LabelField("Foam", EditorStyles.boldLabel);
-                    EditorGUILayout.HelpBox("Foam rendering is currently not supported for Pools.", MessageType.Info, wide: true);
+                    EditorGUILayout.LabelField(k_SimulationFoam, EditorStyles.boldLabel);
+                    EditorGUILayout.HelpBox("Simulation foam rendering is not supported for Pools.", MessageType.Info, wide: true);
                 }
                 else
                 {

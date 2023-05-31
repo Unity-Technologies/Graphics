@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering.Universal
     internal class URPHelpURLAttribute : CoreRPHelpURLAttribute
     {
         public URPHelpURLAttribute(string pageName, string pageHash = "")
-            : base(pageName, Documentation.packageName, pageHash)
+            : base(pageName, pageHash, Documentation.packageName)
         {
         }
     }
@@ -17,5 +17,12 @@ namespace UnityEngine.Rendering.Universal
         /// The name of the package
         /// </summary>
         public const string packageName = "com.unity.render-pipelines.universal";
+
+        /// <summary>
+        /// Generates a Universal Render Pipeline help url for the given page name
+        /// </summary>
+        /// <param name="pageName">The page name</param>
+        /// <returns>The full url</returns>
+        public static string GetPageLink(string pageName) => GetPageLink(packageName, pageName);
     }
 }

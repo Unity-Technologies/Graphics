@@ -65,6 +65,24 @@ namespace UnityEngine.Rendering.HighDefinition
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Denoising/DiffuseShadowDenoiser.compute")]
         public ComputeShader diffuseShadowDenoiserCS;
 
+        // ReBlur
+        [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Denoising/ReBlur/ReBlur_PreBlur.compute")]
+        public ComputeShader reblurPreBlurCS;
+        [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Denoising/ReBlur/ReBlur_TemporalAccumulation.compute")]
+        public ComputeShader reblurTemporalAccumulationCS;
+        [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Denoising/ReBlur/ReBlur_MipGeneration.compute")]
+        public ComputeShader reblurMipGenerationCS;
+        [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Denoising/ReBlur/ReBlur_HistoryFix.compute")]
+        public ComputeShader reblurHistoryFixCS;
+        [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Denoising/ReBlur/ReBlur_Blur.compute")]
+        public ComputeShader reblurBlurCS;
+        [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Denoising/ReBlur/ReBlur_PostBlur.compute")]
+        public ComputeShader reblurPostBlurCS;
+        [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Denoising/ReBlur/ReBlur_CopyHistory.compute")]
+        public ComputeShader reblurCopyHistoryCS;
+        [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Denoising/ReBlur/ReBlur_TemporalStabilization.compute")]
+        public ComputeShader reblurTemporalStabilizationCS;
+
         // Deferred Lighting
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Deferred/RaytracingGBuffer.raytrace")]
         public RayTracingShader gBufferRaytracingRT;

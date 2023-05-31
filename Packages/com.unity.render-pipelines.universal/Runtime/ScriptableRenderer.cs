@@ -243,7 +243,6 @@ namespace UnityEngine.Rendering.Universal
             if (setInverseMatrices)
             {
                 Matrix4x4 gpuProjectionMatrix = cameraData.GetGPUProjectionMatrix(isTargetFlipped); // TODO: invProjection might NOT match the actual projection (invP*P==I) as the target flip logic has diverging paths.
-                Matrix4x4 viewAndProjectionMatrix = gpuProjectionMatrix * viewMatrix;
                 Matrix4x4 inverseViewMatrix = Matrix4x4.Inverse(viewMatrix);
                 Matrix4x4 inverseProjectionMatrix = Matrix4x4.Inverse(gpuProjectionMatrix);
                 Matrix4x4 inverseViewProjection = inverseViewMatrix * inverseProjectionMatrix;
@@ -347,6 +346,12 @@ namespace UnityEngine.Rendering.Universal
             CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SCREEN_COORD_OVERRIDE, cameraData.useScreenCoordOverride);
             cmd.SetGlobalVector(ShaderPropertyId.screenSizeOverride, cameraData.screenSizeOverride);
             cmd.SetGlobalVector(ShaderPropertyId.screenCoordScaleBias, cameraData.screenCoordScaleBias);
+
+            // { w / RTHandle.maxWidth, h / RTHandle.maxHeight } : xy = currFrame, zw = prevFrame
+            // TODO(@sandy-carter) set to RTHandles.rtHandleProperties.rtHandleScale once dynamic scaling is set up
+            // setting ShaderPropertyId.rtHandleScale as an uniform is temporarily disabled since it breaks the RG path when preview cameras are selected.
+            // to be investigated and reenabled as part of the dynamic scaling work
+            //cmd.SetGlobalVector(ShaderPropertyId.rtHandleScale, Vector4.one);
 
             // Calculate a bias value which corrects the mip lod selection logic when image scaling is active.
             // We clamp this value to 0.0 or less to make sure we don't end up reducing image detail in the downsampling case.
@@ -454,18 +459,22 @@ namespace UnityEngine.Rendering.Universal
             float timeFourth = time / 4f;
             float timeHalf = time / 2f;
 
+            float lastTime = time - ShaderUtils.PersistentDeltaTime;
+
             // Time values
             Vector4 timeVector = time * new Vector4(1f / 20f, 1f, 2f, 3f);
             Vector4 sinTimeVector = new Vector4(Mathf.Sin(timeEights), Mathf.Sin(timeFourth), Mathf.Sin(timeHalf), Mathf.Sin(time));
             Vector4 cosTimeVector = new Vector4(Mathf.Cos(timeEights), Mathf.Cos(timeFourth), Mathf.Cos(timeHalf), Mathf.Cos(time));
             Vector4 deltaTimeVector = new Vector4(deltaTime, 1f / deltaTime, smoothDeltaTime, 1f / smoothDeltaTime);
             Vector4 timeParametersVector = new Vector4(time, Mathf.Sin(time), Mathf.Cos(time), 0.0f);
+            Vector4 lastTimeParametersVector = new Vector4(lastTime, Mathf.Sin(lastTime), Mathf.Cos(lastTime), 0.0f);
 
             cmd.SetGlobalVector(ShaderPropertyId.time, timeVector);
             cmd.SetGlobalVector(ShaderPropertyId.sinTime, sinTimeVector);
             cmd.SetGlobalVector(ShaderPropertyId.cosTime, cosTimeVector);
             cmd.SetGlobalVector(ShaderPropertyId.deltaTime, deltaTimeVector);
             cmd.SetGlobalVector(ShaderPropertyId.timeParameters, timeParametersVector);
+            cmd.SetGlobalVector(ShaderPropertyId.lastTimeParameters, lastTimeParametersVector);
         }
 
         /// <summary>
@@ -735,10 +744,12 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Called by Dispose().
         /// Override this function to clean up resources in your renderer.
+        /// Be sure to call this base dispose in your overridden function to free resources allocated by the base. 
         /// </summary>
         /// <param name="disposing"></param>
         protected virtual void Dispose(bool disposing)
         {
+            DebugHandler?.Dispose();
         }
 
         internal virtual void ReleaseRenderTargets()
@@ -851,8 +862,6 @@ namespace UnityEngine.Rendering.Universal
 
                     ClearRenderingState(cmd);
                     SetShaderTimeValues(cmd, time, deltaTime, smoothDeltaTime);
-
-                    data.renderer.SetupLights(rgContext.renderContext, ref data.renderingData);
                 });
             }
         }
@@ -861,6 +870,8 @@ namespace UnityEngine.Rendering.Universal
         {
             internal CullingResults cullResults;
             internal Camera camera;
+            internal VFX.VFXCameraXRSettings cameraXRSettings;
+            internal XRPass xrPass;
         };
 
         internal void ProcessVFXCameraCommand(RenderGraph renderGraph, ref RenderingData renderingData)
@@ -871,17 +882,23 @@ namespace UnityEngine.Rendering.Universal
                 passData.camera = renderingData.cameraData.camera;
                 passData.cullResults = renderingData.cullResults;
 
-                VFX.VFXCameraXRSettings cameraXRSettings;
-                cameraXRSettings.viewTotal = renderingData.cameraData.xr.enabled ? 2u : 1u;
-                cameraXRSettings.viewCount = renderingData.cameraData.xr.enabled ? (uint)renderingData.cameraData.xr.viewCount : 1u;
-                cameraXRSettings.viewOffset = (uint)renderingData.cameraData.xr.multipassId;
+                passData.cameraXRSettings.viewTotal = renderingData.cameraData.xr.enabled ? 2u : 1u;
+                passData.cameraXRSettings.viewCount = renderingData.cameraData.xr.enabled ? (uint)renderingData.cameraData.xr.viewCount : 1u;
+                passData.cameraXRSettings.viewOffset = (uint)renderingData.cameraData.xr.multipassId;
+                passData.xrPass = renderingData.cameraData.xr.enabled ? renderingData.cameraData.xr : null;
 
                 builder.AllowPassCulling(false);
 
                 builder.SetRenderFunc((VFXProcessCameraPassData data, RenderGraphContext context) =>
                 {
+                    if (data.xrPass != null)
+                        data.xrPass.StartSinglePass(context.cmd);
+
                     //Triggers dispatch per camera, all global parameters should have been setup at this stage.
-                    VFX.VFXManager.ProcessCameraCommand(data.camera, context.cmd, cameraXRSettings, data.cullResults);
+                    VFX.VFXManager.ProcessCameraCommand(data.camera, context.cmd, data.cameraXRSettings, data.cullResults);
+
+                    if (data.xrPass != null)
+                        data.xrPass.StopSinglePass(context.cmd);
                 });
 
             }
@@ -1226,7 +1243,13 @@ namespace UnityEngine.Rendering.Universal
                     cameraXRSettings.viewCount = cameraData.xr.enabled ? (uint)cameraData.xr.viewCount : 1u;
                     cameraXRSettings.viewOffset = (uint)cameraData.xr.multipassId;
 
+                    if (cameraData.xr.enabled)
+                        cameraData.xr.StartSinglePass(cmd);
+
                     VFX.VFXManager.ProcessCameraCommand(camera, cmd, cameraXRSettings, renderingData.cullResults);
+
+                    if (cameraData.xr.enabled)
+                        cameraData.xr.StopSinglePass(cmd);
                 }
 #endif
 

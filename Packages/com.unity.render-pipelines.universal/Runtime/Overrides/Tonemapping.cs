@@ -65,6 +65,7 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     [Serializable, VolumeComponentMenu("Post-processing/Tonemapping")]
     [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
+    [URPHelpURL("post-processing-tonemapping")]
     public sealed class Tonemapping : VolumeComponent, IPostProcessComponent
     {
         /// <summary>

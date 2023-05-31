@@ -11,6 +11,7 @@ using UnityEngine.UIElements;
 using UnityEditor.Searcher;
 using UnityEngine.Profiling;
 using UnityEngine.Pool;
+using Object = UnityEngine.Object;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -22,7 +23,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         public string slotName;
     }
 
-    class SearchWindowProvider : ScriptableObject
+    class SearchWindowProvider : IDisposable
     {
         internal EditorWindow m_EditorWindow;
         internal GraphData m_Graph;
@@ -51,11 +52,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_Icon.Apply();
         }
 
-        void OnDestroy()
+        public void Dispose()
         {
             if (m_Icon != null)
             {
-                DestroyImmediate(m_Icon);
+                Object.DestroyImmediate(m_Icon);
                 m_Icon = null;
             }
 

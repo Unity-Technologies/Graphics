@@ -156,7 +156,8 @@ namespace UnityEngine.Rendering.Universal
             public float varianceClampScale;
             public float contrastAdaptiveSharpening;
 
-            [NonSerialized] public int resetHistoryFrames;  // Number of frames the history is reset. 0 no reset, 1 normal reset, 2 XR reset, -1 infinite (toggle on)
+            [NonSerialized] public int resetHistoryFrames;      // Number of frames the history is reset. 0 no reset, 1 normal reset, 2 XR reset, -1 infinite (toggle on)
+            [NonSerialized] public int jitterFrameCountOffset;  // Jitter "seed" == Time.frameCount + jitterFrameCountOffset. Used for testing determinism.
 
             public static Settings Create()
             {
@@ -170,6 +171,7 @@ namespace UnityEngine.Rendering.Universal
                 s.contrastAdaptiveSharpening = 0.0f; // Disabled
 
                 s.resetHistoryFrames = 0;
+                s.jitterFrameCountOffset = 0;
 
                 return s;
             }
@@ -182,10 +184,11 @@ namespace UnityEngine.Rendering.Universal
             bool isJitter = cameraData.IsTemporalAAEnabled();
             if (isJitter)
             {
-                int taaFrameIndex = Time.frameCount;
+                int taaFrameCountOffset = cameraData.taaSettings.jitterFrameCountOffset;
+                int taaFrameIndex = Time.frameCount + taaFrameCountOffset;
 
-                float actualWidth = cameraData.pixelWidth;
-                float actualHeight = cameraData.pixelHeight;
+                float actualWidth = cameraData.cameraTargetDescriptor.width;
+                float actualHeight = cameraData.cameraTargetDescriptor.height;
                 float jitterScale = cameraData.taaSettings.jitterScale;
 
                 var jitter = CalculateJitter(taaFrameIndex) * jitterScale;

@@ -152,17 +152,11 @@ namespace UnityEditor.VFX
 
         public override void OnEnable()
         {
-            VFXLibrary.OnSRPChanged += OnSRPChanged;
             InitSubOutputs(m_SubOutputs, false);
             base.OnEnable();
         }
 
-        public virtual void OnDisable()
-        {
-            VFXLibrary.OnSRPChanged -= OnSRPChanged;
-        }
-
-        private void OnSRPChanged()
+        public override void OnSRPChanged()
         {
             m_CurrentSubOutput = null;
         }

@@ -11,6 +11,7 @@ using UnityEngine.Experimental.Rendering;
 namespace UnityEngine.Rendering.HighDefinition.Compositor
 {
     // The main entry point for the compositing operations. Manages the list of layers, output displays, etc.
+    [AddComponentMenu("")] // Hide.
     [ExecuteAlways]
     internal class CompositionManager : MonoBehaviour
     {

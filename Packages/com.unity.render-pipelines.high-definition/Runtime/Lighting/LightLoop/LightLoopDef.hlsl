@@ -9,12 +9,10 @@
 // Depending if we are in ray tracing or not we need to use a different set of environement data
 #if defined(RAY_TRACING_ENVIRONMENT_DATA) || defined(SHADER_STAGE_RAY_TRACING)
 #define PLANAR_CAPTURE_VP _PlanarCaptureVPRT
-#define PLANAR_CAPTURE_FORWARD _PlanarCaptureForwardRT
 #define PLANAR_SCALE_OFFSET _PlanarScaleOffsetRT
 #define CUBE_SCALE_OFFSET _CubeScaleOffsetRT
 #else
 #define PLANAR_CAPTURE_VP _PlanarCaptureVP
-#define PLANAR_CAPTURE_FORWARD _PlanarCaptureForward
 #define PLANAR_SCALE_OFFSET _PlanarScaleOffset
 #define CUBE_SCALE_OFFSET _CubeScaleOffset
 #endif
@@ -131,6 +129,25 @@ EnvLightData InitDefaultRefractionEnvLightData(int envIndex)
 bool IsEnvIndexCubemap(int index)   { return index >= 0; }
 bool IsEnvIndexTexture2D(int index) { return index < 0; }
 
+float EdgeSampleFade(float2 positionNDC, float2 samplePositionNDC, float amplitude = 100.0f)
+{
+    float2 ndc = samplePositionNDC;
+    float2 rcoords = abs(saturate(ndc.xy) * 2.0 - 1.0);
+
+    // When the object normal is not aligned with the reflection plane, the reflected ray might deviate too much and go out
+    // of the reflection frustum. So we apply blending when the reflection sample coords are on the edges of the texture
+    // These "edges" depend on the screen space coordinates of the pixel, because it is expected that a pixel on the
+    // edge of the screen will sample on the edge of the texture
+
+    // Blending factors taking the above into account
+    bool2 blend = (positionNDC < ndc.xy) ^ (ndc.xy < 0.5);
+    float2 alphas = saturate(amplitude * abs(ndc.xy - positionNDC));
+    alphas = float2(Smoothstep01(alphas.x), Smoothstep01(alphas.y));
+
+    float2 weights = lerp(1.0, saturate(2.0 - 2.0 * rcoords), blend * alphas);
+    return weights.x * weights.y;
+}
+
 // Note: index is whatever the lighting architecture want, it can contain information like in which texture to sample (in case we have a compressed BC6H texture and an uncompressed for real time reflection ?)
 // EnvIndex can also be use to fetch in another array of struct (to  atlas information etc...).
 // Cubemap      : texCoord = direction vector
@@ -150,40 +167,19 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
         if (cacheType == ENVCACHETYPE_TEXTURE2D)
         {
             //_ReflAtlasPlanarCaptureVP is in capture space
-            float3 ndc = ComputeNormalizedDeviceCoordinatesWithZ(texCoord, PLANAR_CAPTURE_VP[index]);
+            float4 samplePosCS = ComputeClipSpacePosition(texCoord, PLANAR_CAPTURE_VP[index]);
+#if UNITY_UV_STARTS_AT_TOP
+            samplePosCS.y = -samplePosCS.y;
+#endif
+            float2 ndc = samplePosCS.xy * rcp(samplePosCS.w);
+            ndc.xy = ndc.xy * 0.5 + 0.5;
             float2 atlasCoords = GetReflectionAtlasCoordsPlanar(PLANAR_SCALE_OFFSET[index], ndc.xy, lod);
 
-            color.rgb = SAMPLE_TEXTURE2D_ARRAY_LOD(_ReflectionAtlas, s_trilinear_clamp_sampler, atlasCoords, sliceIdx, lod).rgb;
-#if UNITY_REVERSED_Z
-            // We check that the sample was capture by the probe according to its frustum planes, except the far plane.
-            //   When using oblique projection, the far plane is so distorded that it is not reliable for this check.
-            //   and most of the time, what we want, is the clipping from the oblique near plane.
-            color.a = any(ndc.xy < 0) || any(ndc.xyz > 1) ? 0.0 : 1.0;
-#else
-            color.a = any(ndc.xyz < 0) || any(ndc.xy > 1) ? 0.0 : 1.0;
-#endif
-            float3 capturedForwardWS = PLANAR_CAPTURE_FORWARD[index].xyz;
-            if (dot(capturedForwardWS, texCoord) < 0.0)
-                color.a = 0.0;
-            else
+            color.a = all(abs(samplePosCS.xyz) < samplePosCS.w) ? 1.0 : 0.0;
+            if (color.a > 0.0)
             {
-                // Controls the blending on the edges of the screen
-                const float amplitude = 100.0;
-
-                float2 rcoords = abs(saturate(ndc.xy) * 2.0 - 1.0);
-
-                // When the object normal is not aligned with the reflection plane, the reflected ray might deviate too much and go out
-                // of the reflection frustum. So we apply blending when the reflection sample coords are on the edges of the texture
-                // These "edges" depend on the screen space coordinates of the pixel, because it is expected that a pixel on the
-                // edge of the screen will sample on the edge of the texture
-
-                // Blending factors taking the above into account
-                bool2 blend = (positionNDC < ndc.xy) ^ (ndc.xy < 0.5);
-                float2 alphas = saturate(amplitude * abs(ndc.xy - positionNDC));
-                alphas = float2(Smoothstep01(alphas.x), Smoothstep01(alphas.y));
-
-                float2 weights = lerp(1.0, saturate(2.0 - 2.0 * rcoords), blend * alphas);
-                color.a *= weights.x * weights.y;
+                color.rgb = SAMPLE_TEXTURE2D_ARRAY_LOD(_ReflectionAtlas, s_trilinear_clamp_sampler, atlasCoords, sliceIdx, lod).rgb;
+                color.a *= EdgeSampleFade(positionNDC, ndc.xy);
             }
         }
         else if (cacheType == ENVCACHETYPE_CUBEMAP)

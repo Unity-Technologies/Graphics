@@ -1344,6 +1344,162 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        [Range(1, 64)]
+        [SerializeField] int m_DirLightPCSSBlockerSampleCount = 24;
+        /// <summary>
+        /// Controls the number of samples used to detect blockers for directional lights PCSS shadows.
+        /// </summary>
+        // Note: We duplicate this setting so its default value can be different than other light types
+        public int dirLightPCSSBlockerSampleCount
+        {
+            get => m_DirLightPCSSBlockerSampleCount;
+            set
+            {
+                if (m_DirLightPCSSBlockerSampleCount == value)
+                    return;
+
+                m_DirLightPCSSBlockerSampleCount = Mathf.Clamp(value, 1, 64);
+
+                if (lightEntity.valid)
+                {
+                    HDLightRenderDatabase.instance.EditAdditionalLightUpdateDataAsRef(lightEntity).dirLightPCSSBlockerSampleCount = (byte)m_DirLightPCSSBlockerSampleCount;
+                }
+            }
+        }
+
+        [Range(1, 64)]
+        [SerializeField] int m_DirLightPCSSFilterSampleCount = 16;
+        /// <summary>
+        /// Controls the number of samples used to filter for directional lights PCSS shadows.
+        /// </summary>
+        // Note: We duplicate this setting so its default value can be different than other light types
+        public int dirLightPCSSFilterSampleCount
+        {
+            get => m_DirLightPCSSFilterSampleCount;
+            set
+            {
+                if (m_DirLightPCSSFilterSampleCount == value)
+                    return;
+
+                m_DirLightPCSSFilterSampleCount = Mathf.Clamp(value, 1, 64);
+
+                if (lightEntity.valid)
+                {
+                    HDLightRenderDatabase.instance.EditAdditionalLightUpdateDataAsRef(lightEntity).dirLightPCSSFilterSampleCount = (byte)m_DirLightPCSSFilterSampleCount;
+                }
+            }
+        }
+
+        [SerializeField] float m_DirLightPCSSMaxBlockerDistance = 64.0f;
+        /// <summary>
+        /// Maximum distance of PCSS shadow blockers determining blur fliter kernel size, the higher it it the blurier distant object can be
+        /// However, cascades clamp the distance so higher values potentially cause more inter-cascade disrepancies
+        /// </summary>
+        public float dirLightPCSSMaxBlockerDistance
+        {
+            get => m_DirLightPCSSMaxBlockerDistance;
+            set
+            {
+                m_DirLightPCSSMaxBlockerDistance = Math.Max(value, 0.0f);
+                if (lightEntity.valid)
+                {
+                    HDLightRenderDatabase.instance.EditAdditionalLightUpdateDataAsRef(lightEntity).dirLightPCSSMaxBlockerDistance = m_DirLightPCSSMaxBlockerDistance;
+                }
+            }
+        }
+
+        [SerializeField] float m_DirLightPCSSMaxSamplingDistance = 0.5f;
+        /// <summary>
+        /// Maximum distance from the receiver PCSS shadow sampling occurs, this is to avoid light bleeding due to distant
+        /// blockers hiding the cone apex and leading to missing occlusion, the lower the least light bleeding but too low will cause self-shadowing
+        /// Note that the algorithm will also clamp the sampling distance in function of the blocker distance, to avoid light bleeding with very close blockers
+        /// </summary>
+        public float dirLightPCSSMaxSamplingDistance
+        {
+            get => m_DirLightPCSSMaxSamplingDistance;
+            set
+            {
+                m_DirLightPCSSMaxSamplingDistance = Math.Max(value, 0.0f);
+                if (lightEntity.valid)
+                {
+                    HDLightRenderDatabase.instance.EditAdditionalLightUpdateDataAsRef(lightEntity).dirLightPCSSMaxSamplingDistance = m_DirLightPCSSMaxSamplingDistance;
+                }
+            }
+        }
+        [SerializeField] float m_DirLightPCSSMinFilterSizeTexels = 1.5f;
+        /// <summary>
+        /// Minimum PCSS filter size (in shadowmap texels) to avoid aliasing
+        /// </summary>
+        public float dirLightPCSSMinFilterSizeTexels
+        {
+            get => m_DirLightPCSSMinFilterSizeTexels;
+            set
+            {
+                m_DirLightPCSSMinFilterSizeTexels = Math.Max(value, 0.0f);
+                if (lightEntity.valid)
+                {
+                    HDLightRenderDatabase.instance.EditAdditionalLightUpdateDataAsRef(lightEntity).dirLightPCSSMinFilterSizeTexels = m_DirLightPCSSMinFilterSizeTexels;
+                }
+            }
+        }
+
+        [SerializeField] float m_DirLightPCSSMinFilterMaxAngularDiameter = 10.0f;
+        /// <summary>
+        /// Maximum angular diameter to use to reach minimum filter size, this makes a wider cone at the apex
+        /// So that we quickly reach minimum filter size while avoiding self-shadowing
+        /// </summary>
+        public float dirLightPCSSMinFilterMaxAngularDiameter
+        {
+            get => m_DirLightPCSSMinFilterMaxAngularDiameter;
+            set
+            {
+                m_DirLightPCSSMinFilterMaxAngularDiameter = Math.Max(value, 0.0f);
+                if (lightEntity.valid)
+                {
+                    HDLightRenderDatabase.instance.EditAdditionalLightUpdateDataAsRef(lightEntity).dirLightPCSSMinFilterMaxAngularDiameter = m_DirLightPCSSMinFilterMaxAngularDiameter;
+                }
+            }
+        }
+
+        [SerializeField] float m_DirLightPCSSBlockerSearchAngularDiameter = 12.0f;
+        /// <summary>
+        /// Angular diameter to use for blocker search, will include blockers outside of the light cone
+        /// when greater than m_AngularDiameter to reduce light bleeding.  Increasing this value too much may
+        /// result in self-shadowing artifacts.  A value below m_AngularDiameter will get clamped to m_AngularDiameter
+        /// </summary>
+        public float dirLightPCSSBlockerSearchAngularDiameter
+        {
+            get => m_DirLightPCSSBlockerSearchAngularDiameter;
+            set
+            {
+                m_DirLightPCSSBlockerSearchAngularDiameter = Math.Max(value, 0.0f);
+                if (lightEntity.valid)
+                {
+                    HDLightRenderDatabase.instance.EditAdditionalLightUpdateDataAsRef(lightEntity).dirLightPCSSBlockerSearchAngularDiameter = m_DirLightPCSSBlockerSearchAngularDiameter;
+                }
+            }
+        }
+
+        [Range(1, 6)]
+        [SerializeField] float m_DirLightPCSSBlockerSamplingClumpExponent = 2.0f;
+        /// <summary>
+        /// Affects how blocker search samples are distributed.  Samples distance to center is elevated to this power.
+        /// A clump exponent of 1 means uniform distribution on the sampling disk.
+        /// A clump exponent of 2 means distance from center of the uniform distribution are squared (clumped toward center)
+        /// </summary>
+        public float dirLightPCSSBlockerSamplingClumpExponent
+        {
+            get => m_DirLightPCSSBlockerSamplingClumpExponent;
+            set
+            {
+                m_DirLightPCSSBlockerSamplingClumpExponent = Math.Max(value, 0.0f);
+                if (lightEntity.valid)
+                {
+                    HDLightRenderDatabase.instance.EditAdditionalLightUpdateDataAsRef(lightEntity).dirLightPCSSBlockerSamplingClumpExponent = m_DirLightPCSSBlockerSamplingClumpExponent;
+                }
+            }
+        }
+
         // Improved Moment Shadows settings
         [Range(1, 32)]
         [SerializeField, FormerlySerializedAs("kernelSize")]
@@ -2740,6 +2896,15 @@ namespace UnityEngine.Rendering.HighDefinition
             data.m_AreaLightEmissiveMeshShadowCastingMode = m_AreaLightEmissiveMeshShadowCastingMode;
             data.m_AreaLightEmissiveMeshMotionVectorGenerationMode = m_AreaLightEmissiveMeshMotionVectorGenerationMode;
             data.m_AreaLightEmissiveMeshLayer = m_AreaLightEmissiveMeshLayer;
+            data.dirLightPCSSMaxBlockerDistance = dirLightPCSSMaxBlockerDistance;
+            data.dirLightPCSSMaxSamplingDistance = dirLightPCSSMaxSamplingDistance;
+            data.dirLightPCSSMinFilterSizeTexels = dirLightPCSSMinFilterSizeTexels;
+            data.dirLightPCSSMinFilterMaxAngularDiameter = dirLightPCSSMinFilterMaxAngularDiameter;
+            data.dirLightPCSSBlockerSearchAngularDiameter = dirLightPCSSBlockerSearchAngularDiameter;
+            data.dirLightPCSSBlockerSamplingClumpExponent = dirLightPCSSBlockerSamplingClumpExponent;
+            data.dirLightPCSSBlockerSampleCount = dirLightPCSSBlockerSampleCount;
+            data.dirLightPCSSFilterSampleCount = dirLightPCSSFilterSampleCount;
+
 
 #if UNITY_EDITOR
             data.timelineWorkaround = timelineWorkaround;

@@ -11,6 +11,7 @@
 		${VFXInclude("Shaders/ParticlePlanarPrimitives/PassDepth.template"),IS_OPAQUE_PARTICLE}
 		${VFXInclude("Shaders/ParticlePlanarPrimitives/PassVelocity.template"),USE_MOTION_VECTORS_PASS}
 		${VFXInclude("Shaders/ParticlePlanarPrimitives/PassForward.template")}
+		${VFXIncludeRP("Templates/PlanarPrimitive/PassFullScreenDebug.template")}
 		${VFXInclude("Shaders/ParticlePlanarPrimitives/PassShadowCaster.template"),USE_CAST_SHADOWS_PASS}
 	}
 

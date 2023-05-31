@@ -1,13 +1,6 @@
 using System;
 using UnityEngine;
-using NUnit.Framework;
 using System.Collections;
-using System.Linq;
-using UnityEngine;
-using UnityEngine.Rendering;
-using UnityEngine.SceneManagement;
-using UnityEngine.TestTools;
-using UnityEngine.TestTools.Graphics;
 
 public class MoveCameraOnAwake : MonoBehaviour
 {

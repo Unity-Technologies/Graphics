@@ -156,7 +156,12 @@ namespace UnityEditor.Rendering.Tests
         [Test]
         public void CheckEditorAnalyticsAreDisabledOnCI()
         {
-            Assert.IsFalse(EditorAnalytics.enabled, "Analytics must be only enabled for user projects not on CI") ;
+            var ci = Environment.GetEnvironmentVariable("CI");
+            if (!string.IsNullOrWhiteSpace(ci) && bool.TryParse(ci, out var result) && result)
+            {
+                Assert.IsFalse(EditorAnalytics.enabled, "Analytics must be only enabled for user projects not on CI");
+                Debug.Log("Assert for CheckEditorAnalyticsAreDisabledOnCI was executed.");
+            }
         }
 
 

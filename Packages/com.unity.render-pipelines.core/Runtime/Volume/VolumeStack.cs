@@ -14,39 +14,45 @@ namespace UnityEngine.Rendering
         // Holds the state of _all_ component types you can possibly add on volumes
         internal readonly Dictionary<Type, VolumeComponent> components = new();
 
-        // Holds the default value for every volume parameter for faster per-frame stack reset.
-        internal (VolumeParameter parameter, VolumeParameter defaultValue)[] defaultParameters;
+        // Flat list of every volume parameter for faster per-frame stack reset.
+        internal VolumeParameter[] parameters;
 
+        // Flag indicating that some properties have received overrides, therefore they must be reset in the next update.
         internal bool requiresReset = true;
+
+        // Flag indicating that default state has changed, therefore all properties in the stack must be reset in the next update.
+        internal bool requiresResetForAllProperties = true;
 
         internal VolumeStack()
         {
         }
 
-        internal void Reload(List<VolumeComponent> componentDefaultStates)
+        internal void Clear()
         {
-            components.Clear();
-            requiresReset = true;
+            foreach (var component in components)
+                CoreUtils.Destroy(component.Value);
 
-            List<(VolumeParameter parameter, VolumeParameter defaultValue)> defaultParametersList = new();
-            foreach (var defaultVolumeComponent in componentDefaultStates)
+            components.Clear();
+
+            parameters = null;
+        }
+
+        internal void Reload(Type[] componentTypes)
+        {
+            Clear();
+
+            requiresReset = true;
+            requiresResetForAllProperties = true;
+
+            List<VolumeParameter> parametersList = new();
+            foreach (var type in componentTypes)
             {
-                var type = defaultVolumeComponent.GetType();
                 var component = (VolumeComponent)ScriptableObject.CreateInstance(type);
                 components.Add(type, component);
-
-                int count = component.parameters.Count;
-                for (int i = 0; i < count; i++)
-                {
-                    defaultParametersList.Add(new()
-                    {
-                        parameter = component.parameters[i],
-                        defaultValue = defaultVolumeComponent.parameters[i]
-                    });
-                }
+                parametersList.AddRange(component.parameters);
             }
 
-            defaultParameters = defaultParametersList.ToArray();
+            parameters = parametersList.ToArray();
         }
 
         /// <summary>
@@ -82,10 +88,7 @@ namespace UnityEngine.Rendering
         /// </summary>
         public void Dispose()
         {
-            foreach (var component in components)
-                CoreUtils.Destroy(component.Value);
-
-            components.Clear();
+            Clear();
         }
     }
 }

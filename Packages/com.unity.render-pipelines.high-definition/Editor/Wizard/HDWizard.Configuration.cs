@@ -148,7 +148,8 @@ namespace UnityEditor.Rendering.HighDefinition
         [InitializeOnLoadMethod]
         static void InitializeEntryList()
         {
-            if (EditorWindow.HasOpenInstances<HDWizard>())
+            //Check for playmode has been added to ensure the editor window wont take focus when entering playmode
+            if (EditorWindow.HasOpenInstances<HDWizard>() && !EditorApplication.isPlayingOrWillChangePlaymode)
             {
                 EditorApplication.update += DelayedRebuildEntryList;
 
@@ -526,16 +527,9 @@ namespace UnityEditor.Rendering.HighDefinition
             var defaultAssetList = HDRenderPipelineGlobalSettings.instance.renderPipelineEditorResources.defaultDiffusionProfileSettingsList;
             HDRenderPipelineGlobalSettings.instance.diffusionProfileSettingsList = new DiffusionProfileSettings[0]; // clear the diffusion profile list
 
-            if (!AssetDatabase.IsValidFolder("Assets/" + HDProjectSettings.projectSettingsFolderPath))
-                AssetDatabase.CreateFolder("Assets", HDProjectSettings.projectSettingsFolderPath);
-
             foreach (var diffusionProfileAsset in defaultAssetList)
             {
-                string defaultDiffusionProfileSettingsPath = "Assets/" + HDProjectSettings.projectSettingsFolderPath + "/" + diffusionProfileAsset.name + ".asset";
-                AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(diffusionProfileAsset), defaultDiffusionProfileSettingsPath);
-
-                var userAsset = AssetDatabase.LoadAssetAtPath<DiffusionProfileSettings>(defaultDiffusionProfileSettingsPath);
-                HDRenderPipelineGlobalSettings.instance.AddDiffusionProfile(userAsset);
+                HDRenderPipelineGlobalSettings.instance.AddDiffusionProfile((DiffusionProfileSettings)diffusionProfileAsset);
             }
 
             EditorUtility.SetDirty(HDRenderPipelineGlobalSettings.instance);

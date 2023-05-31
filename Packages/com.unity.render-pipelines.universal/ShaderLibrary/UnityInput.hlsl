@@ -3,7 +3,7 @@
 #ifndef UNIVERSAL_SHADER_VARIABLES_INCLUDED
 #define UNIVERSAL_SHADER_VARIABLES_INCLUDED
 
-#if defined(STEREO_INSTANCING_ON) && (defined(SHADER_API_D3D11) || defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE) || defined(SHADER_API_PSSL) || defined(SHADER_API_VULKAN))
+#if defined(STEREO_INSTANCING_ON) && (defined(SHADER_API_D3D11) || defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE) || defined(SHADER_API_PSSL) || defined(SHADER_API_VULKAN) || (defined(SHADER_API_METAL) && !defined(UNITY_COMPILER_DXC)))
 #define UNITY_STEREO_INSTANCING_ENABLED
 #endif
 
@@ -42,6 +42,7 @@ float4 _SinTime; // sin(t/8), sin(t/4), sin(t/2), sin(t)
 float4 _CosTime; // cos(t/8), cos(t/4), cos(t/2), cos(t)
 float4 unity_DeltaTime; // dt, 1/dt, smoothdt, 1/smoothdt
 float4 _TimeParameters; // t, sin(t), cos(t)
+float4 _LastTimeParameters; // t, sin(t), cos(t)
 
 #if !defined(USING_STEREO_MATRICES)
 float3 _WorldSpaceCameraPos;
@@ -83,6 +84,13 @@ float4 unity_OrthoParams;
 // scaleBias.w = unused
 uniform float4 _ScaleBias;
 uniform float4 _ScaleBiasRt;
+
+// TODO: setting _RTHandleScale as an uniform is temporarily disabled since it breaks the RG path when preview cameras are selected.
+// to be investigated and reenabled as part of the dynamic scaling work
+
+// { w / RTHandle.maxWidth, h / RTHandle.maxHeight } : xy = currFrame, zw = prevFrame
+//uniform float4 _RTHandleScale = float4(1.0, 1.0, 1.0, 1.0);
+#define _RTHandleScale float4(1.0, 1.0, 1.0, 1.0)
 
 float4 unity_CameraWorldClipPlanes[6];
 

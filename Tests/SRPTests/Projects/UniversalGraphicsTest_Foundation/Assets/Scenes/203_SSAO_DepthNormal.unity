@@ -254,6 +254,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: SSAO_Scene
       objectReference: {fileID: 0}
+    - target: {fileID: 6326748449727965702, guid: 144d97346f1c24d4ebabd0eec382b95d,
+        type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: d9d744ecb35aa40609673ac2c4902c8e, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

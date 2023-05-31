@@ -150,26 +150,6 @@ namespace UnityEditor.VFX
                     return defaultMesh;
                 }
             }
-
-            public string userTemplateDirectory
-            {
-                get
-                {
-                    LoadUserResourcesIfNeeded();
-                    if (s_Instance != null)
-                        return s_Instance.userTemplateDirectory;
-
-                    return "";
-                }
-
-                set
-                {
-                    if (s_Instance == null)
-                        s_Instance = FindFirstObjectByType<VFXResources>();
-                    if (s_Instance != null)
-                        s_Instance.userTemplateDirectory = value;
-                }
-            }
         }
 
         private static string defaultPath { get { return VisualEffectGraphPackageInfo.assetPackagePath + "/"; } }
@@ -354,9 +334,6 @@ namespace UnityEditor.VFX
 
         [SerializeField]
         Mesh mesh = null;
-
-        [SerializeField]
-        string userTemplateDirectory = "";
 
         static AnimationCurve defaultAnimationCurve;
         static Gradient defaultGradient;

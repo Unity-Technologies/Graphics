@@ -33,6 +33,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// </summary>
     [HDRPHelpURL("Default-Settings-Window")]
     [DisplayInfo(name = "HDRP Global Settings Asset", order = CoreUtils.Sections.section4 + 2)]
+    [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
     partial class HDRenderPipelineGlobalSettings : RenderPipelineGlobalSettings<HDRenderPipelineGlobalSettings, HDRenderPipeline>
     {
 #if UNITY_EDITOR
@@ -90,65 +91,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #endif // UNITY_EDITOR
 
-        #region Volume
-        private Volume s_DefaultVolume = null;
-
-        internal Volume GetOrCreateDefaultVolume()
-        {
-            if (s_DefaultVolume == null || s_DefaultVolume.Equals(null))
-            {
-                var go = new GameObject("Default Volume") { hideFlags = HideFlags.HideAndDontSave };
-                s_DefaultVolume = go.AddComponent<Volume>();
-                s_DefaultVolume.isGlobal = true;
-                s_DefaultVolume.priority = float.MinValue;
-                s_DefaultVolume.sharedProfile = GetOrCreateDefaultVolumeProfile();
-#if UNITY_EDITOR
-                UnityEditor.AssemblyReloadEvents.beforeAssemblyReload += () =>
-                {
-                    DestroyDefaultVolume();
-                };
-#endif
-            }
-
-            if (
-                // In case the asset was deleted or the reference removed
-                s_DefaultVolume.sharedProfile == null || s_DefaultVolume.sharedProfile.Equals(null)
-#if UNITY_EDITOR
-                // In case the serialization recreated an empty volume sharedProfile
-                || !UnityEditor.AssetDatabase.Contains(s_DefaultVolume.sharedProfile)
-#endif
-            )
-            {
-                s_DefaultVolume.sharedProfile = volumeProfile;
-            }
-
-            if (s_DefaultVolume.sharedProfile != volumeProfile)
-            {
-                s_DefaultVolume.sharedProfile = volumeProfile;
-            }
-
-            if (s_DefaultVolume == null)
-            {
-                Debug.LogError("[HDRP] Cannot Create Default Volume.");
-            }
-
-            return s_DefaultVolume;
-        }
-
-#if UNITY_EDITOR
-        private void DestroyDefaultVolume()
-        {
-            if (s_DefaultVolume != null && !s_DefaultVolume.Equals(null))
-            {
-                CoreUtils.Destroy(s_DefaultVolume.gameObject);
-                s_DefaultVolume = null;
-            }
-        }
-
-#endif
-
-        #endregion
-
         #region VolumeProfile
 
         [SerializeField, FormerlySerializedAs("m_VolumeProfileDefault")]
@@ -167,7 +109,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
             if (volumeProfile == null || volumeProfile.Equals(null))
             {
-                volumeProfile = renderPipelineEditorResources.defaultSettingsVolumeProfile;
+                volumeProfile = CopyVolumeProfileFromResourcesToAssets(renderPipelineEditorResources.defaultSettingsVolumeProfile);
             }
 #endif
             return volumeProfile;
@@ -177,6 +119,24 @@ namespace UnityEngine.Rendering.HighDefinition
         internal bool IsVolumeProfileFromResources()
         {
             return volumeProfile != null && !volumeProfile.Equals(null) && renderPipelineEditorResources != null && volumeProfile.Equals(renderPipelineEditorResources.defaultSettingsVolumeProfile);
+        }
+
+        static VolumeProfile CopyVolumeProfileFromResourcesToAssets(VolumeProfile profileInResourcesFolder)
+        {
+            string path = $"Assets/{HDProjectSettingsReadOnlyBase.projectSettingsFolderPath}/{profileInResourcesFolder.name}.asset";
+            if (!UnityEditor.AssetDatabase.IsValidFolder($"Assets/{HDProjectSettingsReadOnlyBase.projectSettingsFolderPath}"))
+                UnityEditor.AssetDatabase.CreateFolder("Assets", HDProjectSettingsReadOnlyBase.projectSettingsFolderPath);
+
+            //try load one if one already exist
+            var profile = UnityEditor.AssetDatabase.LoadAssetAtPath<VolumeProfile>(path);
+            if (profile == null || profile.Equals(null))
+            {
+                //else create it
+                UnityEditor.AssetDatabase.CopyAsset(UnityEditor.AssetDatabase.GetAssetPath(profileInResourcesFolder), path);
+                profile = UnityEditor.AssetDatabase.LoadAssetAtPath<VolumeProfile>(path);
+            }
+
+            return profile;
         }
 
 #endif
@@ -198,7 +158,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (lookDevVolumeProfile == null || lookDevVolumeProfile.Equals(null))
             {
-                lookDevVolumeProfile = renderPipelineEditorResources.lookDev.defaultLookDevVolumeProfile;
+                lookDevVolumeProfile = CopyVolumeProfileFromResourcesToAssets(renderPipelineEditorResources.lookDev.defaultLookDevVolumeProfile);
             }
             return lookDevVolumeProfile;
         }
@@ -214,28 +174,20 @@ namespace UnityEngine.Rendering.HighDefinition
         #region Camera's FrameSettings
         // To be able to turn on/off FrameSettings properties at runtime for debugging purpose without affecting the original one
         // we create a runtime copy (m_ActiveFrameSettings that is used, and any parametrization is done on serialized frameSettings)
-        [SerializeField]
-        FrameSettings m_RenderingPathDefaultCameraFrameSettings = FrameSettings.NewDefaultCamera();
+        [SerializeField, FormerlySerializedAs("m_RenderingPathDefaultCameraFrameSettings"), Obsolete("Kept For Migration. #from(2023.2")]
+        FrameSettings m_ObsoleteRenderingPathDefaultCameraFrameSettings = FrameSettingsDefaults.Get(FrameSettingsRenderType.Camera);
+        
+        [SerializeField, FormerlySerializedAs("m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings"), Obsolete("Kept For Migration. #from(2023.2")]
+        FrameSettings m_ObsoleteRenderingPathDefaultBakedOrCustomReflectionFrameSettings = FrameSettingsDefaults.Get(FrameSettingsRenderType.CustomOrBakedReflection);
 
-        [SerializeField]
-        FrameSettings m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings = FrameSettings.NewDefaultCustomOrBakeReflectionProbe();
+        [SerializeField, FormerlySerializedAs("m_RenderingPathDefaultRealtimeReflectionFrameSettings"), Obsolete("Kept For Migration. #from(2023.2")]
+        FrameSettings m_ObsoleteRenderingPathDefaultRealtimeReflectionFrameSettings = FrameSettingsDefaults.Get(FrameSettingsRenderType.RealtimeReflection);
 
-        [SerializeField]
-        FrameSettings m_RenderingPathDefaultRealtimeReflectionFrameSettings = FrameSettings.NewDefaultRealtimeReflectionProbe();
+        [SerializeField] private RenderingPathFrameSettings m_RenderingPath = new();
 
         internal ref FrameSettings GetDefaultFrameSettings(FrameSettingsRenderType type)
         {
-            switch (type)
-            {
-                case FrameSettingsRenderType.Camera:
-                    return ref m_RenderingPathDefaultCameraFrameSettings;
-                case FrameSettingsRenderType.CustomOrBakedReflection:
-                    return ref m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings;
-                case FrameSettingsRenderType.RealtimeReflection:
-                    return ref m_RenderingPathDefaultRealtimeReflectionFrameSettings;
-                default:
-                    throw new System.ArgumentException("Unknown FrameSettingsRenderType");
-            }
+            return ref m_RenderingPath.GetDefaultFrameSettings(type);
         }
 
         #endregion
@@ -644,9 +596,11 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
 
         [SerializeField]
+        [Obsolete("This field is not used anymore. #from(2023.2)")]
         internal string DLSSProjectId = "000000";
 
         [SerializeField]
+        [Obsolete("This field is not used anymore. #from(2023.2)")]
         internal bool useDLSSCustomProjectId = false;
 
         [SerializeField]
@@ -656,6 +610,11 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Controls whether diffusion profiles referenced by an imported material should be automatically added to the list.
         /// </summary>
         public bool autoRegisterDiffusionProfiles = true;
+
+
+        public bool analyticDerivativeEmulation = false;
+
+        public bool analyticDerivativeDebugOutput = false;
 
         #endregion
 

@@ -1,8 +1,8 @@
-using System;
 using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-SampleTexture3D")]
     [VFXInfo(category = "Sampling")]
     class SampleTexture3D : VFXOperator
     {

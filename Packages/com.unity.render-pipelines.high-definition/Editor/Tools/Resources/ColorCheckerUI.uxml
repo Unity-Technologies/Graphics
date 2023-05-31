@@ -1,0 +1,45 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
+    <ui:VisualElement name="margin" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); width: auto; height: auto; max-height: 0; margin-top: 10px; margin-bottom: 10px;" />
+    <ui:DropdownField index="-1" choices="System.Collections.Generic.List`1[System.String]" name="ModesDropdown" />
+    <ui:VisualElement name="textureMode" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0);">
+        <uie:ObjectField label="Texture" allow-scene-objects="true" type="UnityEngine.Texture2D, UnityEngine.CoreModule" binding-path="userTexture" name="userTexture" tooltip="Base Texture, lit." style="height: auto; padding-bottom: 5px; width: 60%;" />
+        <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); justify-content: flex-start; align-items: stretch; align-self: flex-start; margin-left: 0; margin-right: 0; flex-direction: row; flex-wrap: nowrap; width: 100%; height: auto;">
+            <uie:ObjectField label="Unlit Texture" allow-scene-objects="true" type="UnityEngine.Texture2D, UnityEngine.CoreModule" binding-path="userTextureRaw" name="rawTexture" tooltip="Comparison texture, unlit." style="width: 60%; height: 19px; align-self: flex-start;" />
+            <ui:Toggle label="Pre Exposure " name="unlitTextureExposure" binding-path="unlitTextureExposure" value="true" tooltip="Make the texture values adapt to exposure. Uncheck this when using raw values." style="width: 40%; height: auto; justify-content: space-around; align-items: stretch; align-self: flex-start; flex-direction: row; padding-right: 0; padding-left: 20px; padding-top: 2px;" />
+        </ui:VisualElement>
+        <ui:Slider picking-mode="Ignore" label="Slicer" value="0" high-value="1" name="textureSlice" tooltip="Slice the color checker between the texture and the unlit raw texture. Both are still affected by post process." binding-path="textureSlice" show-input-field="true" style="padding-top: 10px;" />
+    </ui:VisualElement>
+    <ui:VisualElement name="colorfields" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: column-reverse;" />
+    <ui:VisualElement name="customControls" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0);">
+        <ui:Button tabindex="-1" text="Reset Values" display-tooltip-when-elided="true" name="resetBtn" tooltip="reset the color fields to default values" />
+        <ui:SliderInt picking-mode="Ignore" label="Material Fields" value="6" high-value="12" name="materialFieldsCount" show-input-field="true" low-value="1" binding-path="materialFieldsCount" tooltip="Number of materials " />
+        <ui:VisualElement name="colorfieldsCtrl" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); height: auto; min-width: 100%; min-height: auto; max-height: initial;">
+            <ui:SliderInt picking-mode="Ignore" value="24" high-value="64" low-value="1" show-input-field="true" inverted="false" label="Color Fields" name="fieldCount" binding-path="fieldCount" tooltip="Number of colors" />
+            <ui:SliderInt picking-mode="Ignore" label="Fields per Row" value="6" high-value="16" name="fieldsPerRow" show-input-field="true" binding-path="fieldsPerRow" low-value="1" tooltip="How many fields per row" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+    <ui:VisualElement name="materialElement" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); display: none;">
+        <ui:VisualElement name="materialRow" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row; align-items: flex-start; justify-content: flex-start; align-self: stretch; max-height: 22px;">
+            <ui:Label tabindex="-1" text="Gold" display-tooltip-when-elided="true" style="align-self: center; margin-right: 3px;" />
+            <uie:ColorField value="#FFE29BFF" show-alpha="false" show-eye-dropper="false" focusable="true" style="width: 15%; margin-right: 50px; visibility: visible; overflow: hidden; display: flex;" />
+            <ui:Label tabindex="-1" text="is Metal" display-tooltip-when-elided="true" style="align-self: center; align-items: auto; margin-right: 3px;" />
+            <ui:Toggle value="true" style="justify-content: flex-start; align-items: center; align-self: center; flex-direction: row; -unity-text-align: upper-right; white-space: normal; text-overflow: clip;" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+    <ui:VisualElement name="margin" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); width: auto; height: auto; max-height: 0; margin-top: 10px; margin-bottom: 10px;" />
+    <ui:VisualElement name="colorfieldsAdjustments" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0);">
+        <ui:Slider picking-mode="Ignore" label="Fields Margin" value="0.08" high-value="1" binding-path="gridThickness" show-input-field="true" name="fieldsMargin" tooltip="Controls thickness of the margin around the fields" />
+        <ui:VisualElement name="gradientElement" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row; flex-wrap: nowrap; align-items: auto; justify-content: flex-start; align-self: auto; height: auto; min-height: auto; max-height: 18px;">
+            <ui:Toggle label="Add Gradient " binding-path="addGradient" name="gradientToggle" tooltip="Add a Gradient" style="justify-content: flex-start; align-self: auto; align-items: flex-start; margin-right: 25px; width: auto;" />
+            <uie:ColorField value="#E9E9E3FF" show-alpha="false" name="gradientA" binding-path="gradientA" style="height: 18px; width: 16%; align-self: auto;" />
+            <uie:ColorField value="#131416FF" show-alpha="false" show-eye-dropper="true" name="gradientB" binding-path="gradientB" style="width: 16%; height: 18px;" />
+            <ui:FloatField value="2.2" binding-path="gradientPower" name="gradientPower" tooltip="Power applied to the blend value used to create the gradient." style="width: 10%; justify-content: flex-start; align-items: flex-start; align-self: flex-start;" />
+        </ui:VisualElement>
+        <ui:Toggle label="Spherical Normals" name="sphericalToggle" binding-path="spherical" tooltip="Generate spherical normals for each field. Geometry will stay flat." />
+        <ui:Toggle label="Compare to Unlit" binding-path="unlitCompare" name="unlit" tooltip="Split the fields with lit and pre-exposed unlit values, useful to check calibration. Be mindful that the post process still applies on both sides." style="flex-direction: row;" />
+    </ui:VisualElement>
+    <ui:Toggle label="Face Camera" binding-path="faceCamera" tooltip="Make the checker always face the view. Not supported in path tracing." name="faceCam" style="align-self: flex-start;" />
+    <ui:Slider picking-mode="Ignore" label="Scale" value="0.1" high-value="1" name="sizeSlider" binding-path="fieldSize" show-input-field="true" tooltip="Controls scale of the object." />
+    <ui:VisualElement name="margin" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); width: auto; height: auto; max-height: 0; margin-top: 10px; margin-bottom: 10px;" />
+    <ui:Label text="Object not saved in build." style="font-size: 10px; -unity-text-align: upper-right;" />
+</ui:UXML>

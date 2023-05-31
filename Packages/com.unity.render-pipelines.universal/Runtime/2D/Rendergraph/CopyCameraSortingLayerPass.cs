@@ -1,4 +1,5 @@
 using System;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal
@@ -38,9 +39,8 @@ namespace UnityEngine.Rendering.Universal
             filterMode = downsamplingMethod == Downsampling.None || downsamplingMethod == Downsampling._4xBox ? FilterMode.Point : FilterMode.Bilinear;
         }
 
-        private static void Execute(ref RenderingData renderingData, RTHandle source)
+        private static void Execute(RasterCommandBuffer cmd, RTHandle source)
         {
-            var cmd = renderingData.commandBuffer;
             using (new ProfilingScope(cmd, m_ExecuteProfilingSampler))
             {
                 Vector2 viewportScale = source.useScaling ? new Vector2(source.rtHandleProperties.rtHandleScale.x, source.rtHandleProperties.rtHandleScale.y) : Vector2.one;
@@ -50,24 +50,22 @@ namespace UnityEngine.Rendering.Universal
 
         class PassData
         {
-            internal RenderingData renderingData;
             internal TextureHandle source;
         }
 
         public void Render(RenderGraph graph, ref RenderingData renderingData, in TextureHandle cameraColorAttachment, in TextureHandle destination)
         {
-            using (var builder = graph.AddRenderPass<PassData>("Copy Camera Sorting Layer Pass", out var passData, m_ProfilingSampler))
+            using (var builder = graph.AddRasterRenderPass<PassData>("Copy Camera Sorting Layer Pass", out var passData, m_ProfilingSampler))
             {
-                passData.renderingData = renderingData;
                 passData.source = cameraColorAttachment;
 
-                builder.UseColorBuffer(destination, 0);
-                builder.ReadTexture(passData.source);
+                builder.UseTextureFragment(destination, 0);
+                builder.UseTexture(passData.source);
                 builder.AllowPassCulling(false);
 
-                builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
+                builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
                 {
-                    Execute(ref data.renderingData, data.source);
+                    Execute(context.cmd, data.source);
                 });
             }
 

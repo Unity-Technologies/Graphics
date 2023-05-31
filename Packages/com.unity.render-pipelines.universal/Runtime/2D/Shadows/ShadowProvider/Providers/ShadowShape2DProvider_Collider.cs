@@ -90,7 +90,8 @@ namespace UnityEngine.Rendering.Universal
                 m_ShadowShapeMinMaxBounds = new List<MinMaxBounds>();
 
             // Fetch collider space.
-            var colliderSpace = collider.localToWorldMatrix;
+            var attachedBody = collider.attachedRigidbody;
+            var colliderSpace = attachedBody ? attachedBody.transform.localToWorldMatrix : Matrix4x4.identity;
 
             // If the shape hash has changed, grab a new potential visible geometry group.
             var shapeHash = collider.GetShapeHash();
@@ -135,7 +136,7 @@ namespace UnityEngine.Rendering.Universal
             }
             else
             {
-                // If the collider space nor the culling bounds have not changed then finsih.
+                // If the collider space nor the culling bounds have not changed then finish.
                 if (colliderSpace.Equals(m_LastColliderSpace) &&
                     CompareApproximately(ref m_LastWorldCullingBounds, ref worldCullingBounds))
                 {

@@ -6,6 +6,7 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Block
 {
+    [VFXHelpURL("Block-SetPosition(AABox)")]
     [VFXInfo(category = "Attribute/position/Composition/{0}", variantProvider = typeof(PositionBaseProvider))]
     class PositionAABox : PositionBase
     {

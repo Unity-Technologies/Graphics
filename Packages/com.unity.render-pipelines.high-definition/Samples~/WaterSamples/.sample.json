@@ -1,0 +1,5 @@
+{
+    "displayName":"Water Samples",
+    "description": "Adds Water Samples to your project. Open the scenes to see examples of setup using Water Surface. This scene requires Text Mesh Pro to render text explanations.",
+    "createSeparatePackage": false
+}

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using static UnityEditor.EditorGUI;
@@ -48,6 +49,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedProperty m_ColorPyramidOffset;
         SerializedProperty m_UnderWaterScatteringColorMode;
         SerializedProperty m_UnderWaterScatteringColor;
+        SerializedProperty m_UnderWaterRefraction;
         SerializedProperty m_UnderWaterAmbientProbeContribution;
 
         void OnEnableAppearance(PropertyFetcher<WaterSurface> o)
@@ -94,6 +96,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_ColorPyramidOffset = o.Find(x => x.colorPyramidOffset);
             m_UnderWaterScatteringColorMode = o.Find(x => x.underWaterScatteringColorMode);
             m_UnderWaterScatteringColor = o.Find(x => x.underWaterScatteringColor);
+            m_UnderWaterRefraction = o.Find(x => x.underWaterRefraction);
             m_UnderWaterAmbientProbeContribution = o.Find(x => x.underWaterAmbientProbeContribution);
         }
 
@@ -159,20 +162,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static internal void WaterCustomMaterialField(WaterSurfaceEditor serialized, Editor owner)
         {
-            int buttonWidth = 60;
-            float indentOffset = EditorGUI.indentLevel * 15f;
+            const int buttonWidth = 60;
             Rect lineRect = EditorGUILayout.GetControlRect();
-            var labelRect = new Rect(lineRect.x, lineRect.y, EditorGUIUtility.labelWidth - indentOffset - 3, lineRect.height);
-            var fieldRect = new Rect(labelRect.xMax + 5, lineRect.y, lineRect.width - labelRect.width - buttonWidth - 5, lineRect.height);
-            var buttonNewRect = new Rect(fieldRect.xMax, lineRect.y, buttonWidth, lineRect.height);
+            var fieldRect = new Rect(lineRect.x, lineRect.y, lineRect.width - buttonWidth - 2, lineRect.height);
+            var buttonNewRect = new Rect(fieldRect.xMax + 2, lineRect.y, buttonWidth, lineRect.height);
 
             // Display the label
-            EditorGUI.PrefixLabel(labelRect, k_CustomMaterial);
-
-            using (new EditorGUI.PropertyScope(fieldRect, GUIContent.none, serialized.m_CustomMaterial))
-            {
-                serialized.m_CustomMaterial.objectReferenceValue = (Material)EditorGUI.ObjectField(fieldRect, (Material)serialized.m_CustomMaterial.objectReferenceValue, typeof(Material), false);
-            }
+            PropertyField(fieldRect, serialized.m_CustomMaterial, k_CustomMaterial);
 
             if (GUI.Button(buttonNewRect, k_WaterNewLMaterialLabel, EditorStyles.miniButton))
             {
@@ -242,22 +238,39 @@ namespace UnityEditor.Rendering.HighDefinition
 
                     if (bandCount != 1)
                     {
-                        switch (surfaceType)
+                        int bandIdx = HDRenderPipeline.SanitizeCausticsBand(serialized.m_CausticsBand.intValue, bandCount);
+
+                        GUIContent label = null;
+                        List<GUIContent> options = new();
+                        List<int> values = new();
+                        if (surfaceType == WaterSurfaceType.OceanSeaLake)
                         {
-                            case WaterSurfaceType.OceanSeaLake:
-                            {
-                                serialized.m_CausticsBand.intValue = EditorGUILayout.IntSlider(k_CausticsBandSwell, serialized.m_CausticsBand.intValue, 0, bandCount - 1);
-                            }
-                            break;
-                            case WaterSurfaceType.River:
-                                serialized.m_CausticsBand.intValue = EditorGUILayout.IntSlider(k_CausticsBandAgitation, serialized.m_CausticsBand.intValue, 0, bandCount - 1);
-                            break;
-                            default:
-                                break;
+                            label = k_CausticsBandSwell;
+                            options.Add(new GUIContent("Swell First Band"));
+                            options.Add(new GUIContent("Swell Second Band"));
+                            values.Add(0);
+                            values.Add(1);
                         }
+                        if (surfaceType == WaterSurfaceType.River)
+                        {
+                            label = k_CausticsBandAgitation;
+                            options.Add(new GUIContent("Agitation"));
+                            values.Add(0);
+                            if (bandIdx == 1 && serialized.m_Ripples.boolValue)
+                                bandIdx = 2;
+                        }
+
+                        if (serialized.m_Ripples.boolValue)
+                        {
+                            options.Add(new GUIContent("Ripples"));
+                            values.Add(2);
+                        }
+
+                        EditorGUI.BeginChangeCheck();
+                        int value = EditorGUILayout.IntPopup(label, bandIdx, options.ToArray(), values.ToArray());
+                        if (EditorGUI.EndChangeCheck())
+                            serialized.m_CausticsBand.intValue = value;
                     }
-                    else
-                        serialized.m_CausticsBand.intValue = 0;
 
                     EditorGUILayout.PropertyField(serialized.m_CausticsVirtualPlaneDistance, k_CausticsVirtualPlaneDistance);
                     serialized.m_CausticsVirtualPlaneDistance.floatValue = Mathf.Max(serialized.m_CausticsVirtualPlaneDistance.floatValue, 0.001f);
@@ -285,7 +298,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
 
                     // Display an info box if the wind speed is null for the target band
-                    if (!WaterBandHasAgitation(serialized, owner, serialized.m_CausticsBand.intValue))
+                    if (!WaterBandHasAgitation(serialized, owner, HDRenderPipeline.SanitizeCausticsBand(serialized.m_CausticsBand.intValue, bandCount)))
                     {
                         EditorGUILayout.HelpBox("The selected simulation band has currently a null wind speed and will not generate caustics.", MessageType.Info, wide: true);
                     }
@@ -344,6 +357,9 @@ namespace UnityEditor.Rendering.HighDefinition
                         using (new IndentLevelScope())
                             ColorFieldLinear(serialized.m_UnderWaterScatteringColor, k_UnderWaterScatteringColor);
                     }
+
+                    // Refraction fallback
+                    EditorGUILayout.PropertyField(serialized.m_UnderWaterRefraction, k_UnderWaterRefraction);
 
                     // Ambient probe contribution
                     serialized.m_UnderWaterAmbientProbeContribution.floatValue = EditorGUILayout.Slider(k_UnderWaterAmbientProbeContribution, serialized.m_UnderWaterAmbientProbeContribution.floatValue, 0.0f, 1.0f);

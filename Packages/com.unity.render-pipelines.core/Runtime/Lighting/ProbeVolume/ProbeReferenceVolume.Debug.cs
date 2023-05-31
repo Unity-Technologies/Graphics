@@ -77,6 +77,7 @@ namespace UnityEngine.Rendering
         public float exposureCompensation;
         public bool drawProbeSamplingDebug = false;
         public float probeSamplingDebugSize = 0.3f;
+        public bool debugWithSamplingNoise = false;
         public bool drawVirtualOffsetPush;
         public float offsetSize = 0.025f;
         public bool freezeStreaming;
@@ -257,6 +258,7 @@ namespace UnityEngine.Rendering
             ProbeReferenceVolume.probeSamplingDebugData.camera = sceneView.camera;
             ProbeReferenceVolume.probeSamplingDebugData.coordinates = screenCoordinates;
 
+            SceneView.currentDrawingSceneView.Repaint(); // useful when 'Always Refresh' is not toggled
         }
 #endif
 
@@ -419,6 +421,7 @@ namespace UnityEngine.Rendering
             {
                 var probeContainerChildren = new DebugUI.Container();
                 probeContainerChildren.children.Add(new DebugUI.FloatField { displayName = "Debug Size", tooltip = "The size of gizmos shown in the debug view.", getter = () => probeVolumeDebug.probeSamplingDebugSize, setter = value => probeVolumeDebug.probeSamplingDebugSize = value, min = () => kProbeSizeMin, max = () => kProbeSizeMax });
+                probeContainerChildren.children.Add(new DebugUI.BoolField { displayName = "Debug With Sampling Noise", tooltip = "Enable Sampling Noise for this debug view. It should be enabled for accuracy but it can make results more difficult to read", getter = () => probeVolumeDebug.debugWithSamplingNoise, setter = value =>{probeVolumeDebug.debugWithSamplingNoise = value;}, onValueChanged = RefreshDebug });
                 probeContainer.children.Add(probeContainerChildren);
             }
 
@@ -665,6 +668,7 @@ namespace UnityEngine.Rendering
                 m_ProbeSamplingDebugMaterial.SetVector("_DebugLocator02Color", new Vector4(0.3f, 0.3f, 0.3f, 1.0f));
                 m_ProbeSamplingDebugMaterial.SetFloat("_ProbeSize", probeVolumeDebug.probeSamplingDebugSize);
                 m_ProbeSamplingDebugMaterial.SetTexture("_NumbersTex", m_displayNumbersTexture);
+                m_ProbeSamplingDebugMaterial.SetInt("_DebugSamplingNoise", Convert.ToInt32(probeVolumeDebug.debugWithSamplingNoise));
                 m_ProbeSamplingDebugMaterial.SetInt("_ForceDebugNormalViewBias", 0); // Add a secondary locator to show intermediate position (with no Anti-Leak) when Anti-Leak is active
 
                 m_ProbeSamplingDebugMaterial.SetBuffer("_positionNormalBuffer", probeSamplingDebugData.positionNormalBuffer);
@@ -719,6 +723,7 @@ namespace UnityEngine.Rendering
                         var probeBuffer = debug.probeBuffers[i];
                         m_ProbeSamplingDebugMaterial02.SetInt("_DebugProbeVolumeSampling", 1);
                         props.SetFloat("_ProbeSize", probeVolumeDebug.probeSamplingDebugSize);
+                        props.SetInt("_DebugSamplingNoise", Convert.ToInt32(probeVolumeDebug.debugWithSamplingNoise));
                         m_ProbeSamplingDebugMaterial02.SetBuffer("_positionNormalBuffer", probeSamplingDebugData.positionNormalBuffer);
                         Graphics.DrawMeshInstanced(debugMesh, 0, m_ProbeSamplingDebugMaterial02, probeBuffer, probeBuffer.Length, props, ShadowCastingMode.Off, false, 0, camera, LightProbeUsage.Off, null);
                     }

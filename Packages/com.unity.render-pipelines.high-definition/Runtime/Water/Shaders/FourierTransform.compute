@@ -29,8 +29,8 @@
 #pragma kernel ColPassTi_64             FFT_PASS_TI=ColPassTi_64 COLUMN_PASS FFT_RESOLUTION=64 BUTTERFLY_COUNT=6 COMPENSATION_FACTOR=0.25
 
 // Input and output textures
-Texture2DArray<float4> _FFTRealBuffer;
-Texture2DArray<float4> _FFTImaginaryBuffer;
+RWTexture2DArray<float4> _FFTRealBuffer;
+RWTexture2DArray<float4> _FFTImaginaryBuffer;
 RWTexture2DArray<float4> _FFTRealBufferRW;
 RWTexture2DArray<float4> _FFTImaginaryBufferRW;
 
@@ -95,8 +95,8 @@ void FFT_PASS_TI(uint3 id : SV_DispatchThreadID)
     #endif
 
     // Load entire row or column into scratch array
-    pingPongArray[0][position.x].xyz = LOAD_TEXTURE2D_ARRAY(_FFTRealBuffer, texturePos, id.z).xyz;
-    pingPongArray[1][position.x].xyz = LOAD_TEXTURE2D_ARRAY(_FFTImaginaryBuffer, texturePos, id.z).xyz;
+    pingPongArray[0][position.x].xyz =_FFTRealBuffer[int3(texturePos, id.z)].xyz;
+    pingPongArray[1][position.x].xyz = _FFTImaginaryBuffer[int3(texturePos, id.z)].xyz;
 
     uint4 textureIndices = uint4(0, 1, 2, 3);
     for (int i = 0; i < BUTTERFLY_COUNT - 1; i++)

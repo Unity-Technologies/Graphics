@@ -22,6 +22,12 @@ MonoBehaviour:
   skyAmbientMode:
     m_OverrideState: 1
     m_Value: 0
+  windOrientation:
+    m_OverrideState: 0
+    m_Value: 0
+  windSpeed:
+    m_OverrideState: 0
+    m_Value: 0
   fogType:
     m_OverrideState: 0
     m_Value: 0
@@ -58,6 +64,24 @@ MonoBehaviour:
   maximumIntensity:
     m_OverrideState: 1
     m_Value: 10
+  denoising:
+    m_OverrideState: 0
+    m_Value: 0
+  useAOVs:
+    m_OverrideState: 0
+    m_Value: 1
+  temporal:
+    m_OverrideState: 0
+    m_Value: 0
+  asyncDenoising:
+    m_OverrideState: 0
+    m_Value: 1
+  skyImportanceSampling:
+    m_OverrideState: 0
+    m_Value: 0
+  tilingParameters:
+    m_OverrideState: 0
+    m_Value: {x: 1, y: 1, z: 0, w: 0}
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -99,7 +123,7 @@ MonoBehaviour:
     m_Value: 0
   color:
     m_OverrideState: 1
-    m_Value: {r: 1, g: 1, b: 0, a: 1}
+    m_Value: {r: 0.38679248, g: 0.38679248, b: 0.0018244971, a: 1}
   tint:
     m_OverrideState: 1
     m_Value: {r: 1, g: 0, b: 0, a: 1}
@@ -125,8 +149,8 @@ MonoBehaviour:
     m_OverrideState: 1
     m_Value: 10
   enableVolumetricFog:
-    m_OverrideState: 0
-    m_Value: 0
+    m_OverrideState: 1
+    m_Value: 1
   albedo:
     m_OverrideState: 0
     m_Value: {r: 1, g: 1, b: 1, a: 1}
@@ -140,8 +164,8 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value: 2
   anisotropy:
-    m_OverrideState: 0
-    m_Value: 0
+    m_OverrideState: 1
+    m_Value: 0.7
   sliceDistributionUniformity:
     m_OverrideState: 0
     m_Value: 0.75
@@ -156,10 +180,10 @@ MonoBehaviour:
     m_Value: 64
   m_VolumetricFogBudget:
     m_OverrideState: 0
-    m_Value: 0.25
+    m_Value: 0.33
   m_ResolutionDepthRatio:
     m_OverrideState: 0
-    m_Value: 0.5
+    m_Value: 0.666
   directionalLightsOnly:
     m_OverrideState: 0
     m_Value: 0

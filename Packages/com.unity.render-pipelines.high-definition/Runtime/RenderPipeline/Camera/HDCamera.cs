@@ -34,6 +34,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Matrix4x4 invViewMatrix;
             /// <summary>Projection matrix.</summary>
             public Matrix4x4 projMatrix;
+            /// <summary>Non-jittered Projection matrix.</summary>
+            public Matrix4x4 nonJitteredProjMatrix;
             /// <summary>Inverse Projection matrix.</summary>
             public Matrix4x4 invProjMatrix;
             /// <summary>View Projection matrix.</summary>
@@ -108,8 +110,14 @@ namespace UnityEngine.Rendering.HighDefinition
         public FrameSettings frameSettings { get; private set; }
         /// <summary>RTHandle properties for the camera history buffers.</summary>
         public RTHandleProperties historyRTHandleProperties { get { return m_HistoryRTSystem.rtHandleProperties; } }
+
+        private VolumeStack m_VolumeStack;
         /// <summary>Volume stack used for this camera.</summary>
-        public VolumeStack volumeStack { get; private set; }
+        public VolumeStack volumeStack
+        {
+            get => m_VolumeStack ??= VolumeManager.instance.CreateStack();
+            private set => m_VolumeStack = value;
+        }
         /// <summary>Current time for this camera.</summary>
         public float time; // Take the 'animateMaterials' setting into account.
 
@@ -125,25 +133,137 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Flag that tracks if one of the objects that is included into the RTAS had its material changed.</summary>
         public bool materialsDirty = false;
 
+        // internal only for now, to be publicly available when history API is implemented in SRP Core
+        // HistoryChannelCount should always be the last value, preceded by RenderLoopHistory
+        // New history channels for internal purpose can be added right before them
+        /// <summary>Enum that lists the potential different history channels of a given camera.</summary>
+        internal enum HistoryChannel
+        {
+            CustomUserHistory0 = 0,
+            CustomUserHistory1 = 1,
+            CustomUserHistory2 = 2,
+            CustomUserHistory3 = 3,
+            CustomUserHistory4 = 4,
+            CustomUserHistory5 = 5,
+            CustomUserHistory6 = 6,
+            CustomUserHistory7 = 7,
+            RenderLoopHistory  = 8,
+
+            HistoryChannelCount
+        }
+
         // Pass all the systems that may want to initialize per-camera data here.
         // That way you will never create an HDCamera and forget to initialize the data.
         /// <summary>
-        /// Get the existing HDCamera for the provided camera or create a new if it does not exist yet.
+        /// Get the existing HDCamera with its history for the provided camera or create a new one if it does not exist yet.
         /// </summary>
         /// <param name="camera">Camera for which the HDCamera is needed.</param>
         /// <param name="xrMultipassId">XR multi-pass Id.</param>
         /// <returns></returns>
         public static HDCamera GetOrCreate(Camera camera, int xrMultipassId = 0)
         {
-            HDCamera hdCamera;
+            return GetOrCreate(camera, xrMultipassId, HistoryChannel.RenderLoopHistory);
+        }
 
-            if (!s_Cameras.TryGetValue((camera, xrMultipassId), out hdCamera))
+        // internal only for now, to be publicly available when history API is implemented in SRP Core
+        /// <summary>
+        /// Get the existing HDCamera with its history for the provided camera or create a new one if it does not exist yet.
+        /// Provided camera can point to different HDCameras, i.e different history channels, depending on the use of XR and user render requests
+        /// Having multiple and separate history channels prevent any conflict that could affect temporal effects.
+        /// </summary>
+        /// <param name="camera">Camera for which the HDCamera is needed.</param>
+        /// <param name="xrMultipassId">XR multi-pass Id.</param>
+        /// <param name="historyChannel">history channel used to differentiate user render requests and render loop history. Internal only for now.</param>
+        /// <returns></returns>
+        internal static HDCamera GetOrCreate(Camera camera, int xrMultipassId, HistoryChannel historyChannel)
+        {
+            HDCamera hdCamera;
+            
+            if (historyChannel == HistoryChannel.HistoryChannelCount)
+                throw new System.Exception("No camera can be created with this history channel " + historyChannel + " (internal use only)");
+
+            if (!s_Cameras.TryGetValue((camera, xrMultipassId, historyChannel), out hdCamera))
             {
                 hdCamera = new HDCamera(camera);
-                s_Cameras.Add((camera, xrMultipassId), hdCamera);
+                s_Cameras.Add((camera, xrMultipassId, historyChannel), hdCamera);
             }
 
             return hdCamera;
+        }
+
+        // internal only for now, to be publicly available when history API is implemented in SRP Core
+        /// <summary>
+        /// Check if a given history channel is already existing for a pair of camera and XR multi-pass Id.
+        /// </summary>
+        /// <param name="camera">Camera.</param>
+        /// <param name="xrMultipassId">XR multi-pass Id.</param>
+        /// <param name="historyChannel">History channel to check.</param>
+        /// <returns>Return true if the history channel exists, false otherwise</returns>
+        internal static bool IsHistoryChannelExisting(Camera camera, int xrMultipassId = 0, HistoryChannel historyChannel = HistoryChannel.CustomUserHistory0)
+        {
+            return s_Cameras.ContainsKey((camera, xrMultipassId, historyChannel));
+        }
+
+        // internal only for now, to be publicly available when history API is implemented in SRP Core
+        /// <summary>
+        /// Get free user history channel for a given camera.
+        /// For their requests, users can also use the default render loop history channel but at their own risks.
+        /// If every channel is used, it will throw an exception.
+        /// </summary>
+        /// <param name="camera">Camera.</param>
+        /// <param name="xrMultipassId">XR multi-pass Id.</param>
+        /// <returns>Return the next free user history channel if any or throw an exception if none.</returns>
+        internal static HistoryChannel GetFreeUserHistoryChannel(Camera camera, int xrMultipassId = 0)
+        {
+            for(HistoryChannel channel = HistoryChannel.CustomUserHistory0; channel <= HistoryChannel.CustomUserHistory7; ++channel)
+            {
+                if(!IsHistoryChannelExisting(camera, xrMultipassId, channel))
+                {
+                    // History channel not used for the given pair of camera and xr pass id, sending it back
+                    return channel;
+                }
+            }
+
+            throw new System.Exception("All 8 user history channels are already existing for camera " + camera.name + " and XR pass " + xrMultipassId + ", use FreeUserHistoryChannel() or use an existing one.");
+        }
+        
+        // internal only for now, to be publicly available when history API is implemented in SRP Core
+        /// <summary>
+        /// Free given user history channel for a pair of camera and XR multi-pass Id if existing.
+        /// </summary>        
+        /// <param name="camera">Camera.</param>
+        /// <param name="xrMultipassId">XR multi-pass Id.</param>
+        /// <param name="channel">User history channel to remove.</param>
+        /// <returns>Return true if deleted, false otherwise.</returns>
+        internal static bool FreeUserHistoryChannel(Camera camera, int xrMultipassId = 0, HistoryChannel channel = HistoryChannel.CustomUserHistory0)
+        {
+            var key = (camera, xrMultipassId, channel);
+
+            // We don't touch main render loop even if users used it for their requests
+            if(channel >= HistoryChannel.CustomUserHistory0 && channel <= HistoryChannel.CustomUserHistory7 && s_Cameras.TryGetValue(key, out var hdCam))
+            {
+                hdCam.Dispose();
+                return s_Cameras.Remove(key);
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        // internal only for now, to be publicly available when history API is implemented in SRP Core
+        /// <summary>
+        /// Free all existing user history channels for a pair of camera and XR multi-pass Id.
+        /// </summary>        
+        /// <param name="camera">Camera.</param>
+        /// <param name="xrMultipassId">XR multi-pass Id.</param>
+        /// <returns></returns>
+        internal static void FreeAllUserHistoryChannels(Camera camera, int xrMultipassId = 0)
+        {
+            for(HistoryChannel channel = HistoryChannel.CustomUserHistory0; channel <= HistoryChannel.CustomUserHistory7; ++channel)
+            {
+                FreeUserHistoryChannel(camera, xrMultipassId, channel);
+            }
         }
 
         /// <summary>
@@ -160,12 +280,6 @@ namespace UnityEngine.Rendering.HighDefinition
             colorPyramidHistoryIsValid = false;
             colorPyramidHistoryValidFrames = 0;
             dofHistoryIsValid = false;
-
-            // Reset the volumetric cloud offset animation data
-            volumetricCloudsAnimationData.lastTime = -1.0f;
-            volumetricCloudsAnimationData.cloudOffset = new Vector2(0.0f, 0.0f);
-            volumetricCloudsAnimationData.verticalShapeOffset = 0.0f;
-            volumetricCloudsAnimationData.verticalErosionOffset = 0.0f;
 
             // Camera was potentially Reset() so we need to reset timers on the renderers.
             if (visualSky != null)
@@ -349,9 +463,6 @@ namespace UnityEngine.Rendering.HighDefinition
         internal ShadowHistoryUsage[] shadowHistoryUsage = null;
         // This property allows us to track for the various history accumulation based effects, the last registered validity frame ubdex of each effect as well as the resolution at which it was built.
         internal HistoryEffectValidity[] historyEffectUsage = null;
-
-        // This property allows us to track the volumetric cloud animation data
-        internal VolumetricCloudsAnimationData volumetricCloudsAnimationData;
 
         // Boolean that allows us to track if the current camera maps to a real time reflection probe.
         internal bool realtimeReflectionProbe = false;
@@ -740,8 +851,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             frustumPlaneEquations = new Vector4[6];
 
-            volumeStack = VolumeManager.instance.CreateStack();
-
             m_DepthBufferMipChainInfo.Allocate();
 
             // Initially, we don't want to clear any history buffer
@@ -973,7 +1082,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     if (numColorPyramidBuffersRequired != 0 || forceReallocHistorySystem)
                     {
-                        AllocHistoryFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain, HistoryBufferAllocatorFunction, numColorPyramidBuffersRequired);
+                        // Make sure we don't try to allocate a history target with zero buffers
+                        bool needColorPyramid = numColorPyramidBuffersRequired > 0;
+
+                        if (needColorPyramid)
+                            AllocHistoryFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain, HistoryBufferAllocatorFunction, numColorPyramidBuffersRequired);
 
                         // Handle the AOV history buffers
                         var cameraHistory = GetHistoryRTHandleSystem();
@@ -981,7 +1094,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             var aovHistory = GetHistoryRTHandleSystem(aovRequest);
                             BindHistoryRTHandleSystem(aovHistory);
-                            AllocHistoryFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain, HistoryBufferAllocatorFunction, numColorPyramidBuffersRequired);
+                            if (needColorPyramid)
+                                AllocHistoryFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain, HistoryBufferAllocatorFunction, numColorPyramidBuffersRequired);
                         }
                         BindHistoryRTHandleSystem(cameraHistory);
                     }
@@ -1485,9 +1599,8 @@ namespace UnityEngine.Rendering.HighDefinition
         #region Private API
 
 
-        static Dictionary<(Camera, int), HDCamera> s_Cameras = new Dictionary<(Camera, int), HDCamera>();
-        static List<(Camera, int)> s_Cleanup = new List<(Camera, int)>(); // Recycled to reduce GC pressure
-
+        static Dictionary<(Camera, int, HistoryChannel), HDCamera> s_Cameras = new Dictionary<(Camera, int, HistoryChannel), HDCamera>();
+        static List<(Camera, int, HistoryChannel)> s_Cleanup = new List<(Camera, int, HistoryChannel)>(); // Recycled to reduce GC pressure
         HDAdditionalCameraData m_AdditionalCameraData = null; // Init in Update
         BufferedRTHandleSystem m_HistoryRTSystem = new BufferedRTHandleSystem();
         int m_NumVolumetricBuffersAllocated = 0;
@@ -1695,6 +1808,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             viewConstants.viewMatrix = gpuView;
             viewConstants.invViewMatrix = gpuView.inverse;
+            viewConstants.nonJitteredProjMatrix = gpuNonJitteredProj;
             viewConstants.projMatrix = gpuProj;
             viewConstants.invProjMatrix = gpuProj.inverse;
             viewConstants.viewProjMatrix = gpuProj * gpuView;

@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using UnityEngine;
 using System.Collections.Generic;
@@ -7,6 +6,7 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-Position(Depth)")]
     [VFXInfo(category = "Sampling")]
     class PositionDepth : VFXOperator
     {

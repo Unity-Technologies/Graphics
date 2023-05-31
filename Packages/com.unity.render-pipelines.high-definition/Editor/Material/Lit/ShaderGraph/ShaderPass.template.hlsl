@@ -5,6 +5,7 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
     // specularOcclusion need to be init ahead of decal to quiet the compiler that modify the SurfaceData struct
     // however specularOcclusion can come from the graph, so need to be init here so it can be override.
     surfaceData.specularOcclusion = 1.0;
+    surfaceData.thickness = 0.0;
 
     $SurfaceDescription.BaseColor:                  surfaceData.baseColor =                 surfaceDescription.BaseColor;
     $SurfaceDescription.Smoothness:                 surfaceData.perceptualSmoothness =      surfaceDescription.Smoothness;
@@ -12,7 +13,7 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
     $SurfaceDescription.SpecularOcclusion:          surfaceData.specularOcclusion =         surfaceDescription.SpecularOcclusion;
     $SurfaceDescription.Metallic:                   surfaceData.metallic =                  surfaceDescription.Metallic;
     $SurfaceDescription.SubsurfaceMask:             surfaceData.subsurfaceMask =            surfaceDescription.SubsurfaceMask;
-    $SurfaceDescription.TransmissionMask:           surfaceData.transmissionMask =          surfaceDescription.TransmissionMask;
+    $SurfaceDescription.TransmissionMask:           surfaceData.transmissionMask =          surfaceDescription.TransmissionMask.xxx;
     $SurfaceDescription.Thickness:                  surfaceData.thickness =                 surfaceDescription.Thickness;
     $SurfaceDescription.DiffusionProfileHash:       surfaceData.diffusionProfileHash =      asuint(surfaceDescription.DiffusionProfileHash);
     $SurfaceDescription.Specular:                   surfaceData.specularColor =             surfaceDescription.Specular;
@@ -54,6 +55,13 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
 
     #ifdef _MATERIAL_FEATURE_TRANSMISSION
         surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_LIT_TRANSMISSION;
+    #endif
+
+    #ifdef _MATERIAL_FEATURE_COLORED_TRANSMISSION
+        surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_LIT_TRANSMISSION;
+        surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_LIT_COLORED_TRANSMISSION;
+
+        $SurfaceDescription.TransmissionTint: surfaceData.transmissionMask = surfaceDescription.TransmissionTint;
     #endif
 
     #ifdef _MATERIAL_FEATURE_ANISOTROPY

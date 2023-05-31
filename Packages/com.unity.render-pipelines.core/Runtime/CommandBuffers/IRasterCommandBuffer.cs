@@ -115,6 +115,16 @@ namespace UnityEngine.Experimental.Rendering
         /// <param name="material">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.DrawMesh.html)</param>
         public void DrawMesh(Mesh mesh, Matrix4x4 matrix, Material material) ;
 
+        /// <summary>Wraps [DrawMultipleMeshes](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.DrawMultipleMeshes.html) on a CommandBuffer.</summary>
+        /// <param name="matrices">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.DrawMultipleMeshes.html)</param>
+        /// <param name="meshes">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.DrawMultipleMeshes.html)</param>
+        /// <param name="subsetIndices">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.DrawMultipleMeshes.html)</param>
+        /// <param name="count">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.DrawMultipleMeshes.html)</param>
+        /// <param name="material">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.DrawMultipleMeshes.html)</param>
+        /// <param name="shaderPass">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.DrawMultipleMeshes.html)</param>
+        /// <param name="properties">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.DrawMultipleMeshes.html)</param>
+        public void DrawMultipleMeshes(Matrix4x4[] matrices, Mesh[] meshes, int[] subsetIndices, int count, Material material, int shaderPass, MaterialPropertyBlock properties) ;
+
         /// <summary>Wraps [DrawRenderer](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.DrawRenderer.html) on a CommandBuffer.</summary>
         /// <param name="renderer">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.DrawRenderer.html)</param>
         /// <param name="material">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.DrawRenderer.html)</param>

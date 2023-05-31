@@ -1,9 +1,8 @@
-using System;
 using UnityEngine;
-using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Operator
 {
+    //[VFXHelpURL("Operator-Sequential3D")]
     [VFXInfo(category = "Math")]
     class Sequential3D : VFXOperator
     {

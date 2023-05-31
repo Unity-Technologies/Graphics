@@ -5,6 +5,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-Discretize")]
     [VFXInfo(category = "Math/Clamp")]
     class Discretize : VFXOperatorNumericUnified, IVFXOperatorNumericUnifiedConstrained
     {

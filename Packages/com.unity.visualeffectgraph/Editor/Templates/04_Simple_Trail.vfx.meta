@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: ec20b30b8d1256c4595d1f88ed076e2f
+VisualEffectImporter:
+  externalObjects: {}
+  serializedVersion: 1
+  template:
+    name: Simple Trail
+    category: Built-in
+    description: This system loops infinitely, creating a simple trail with a slow
+      oscillating movement. It can be useful when you want to create a basic setup
+      for a world space trail. It can be tweaked and used as a starting point for
+      effects like speed trails, chimney smoke, slash, and more.
+    icon: {fileID: 2800000, guid: e5a019bfd128b514ba2b9e0b2a60fc67, type: 3}
+    thumbnail: {fileID: 2800000, guid: 9daa3fda7c4df3f4d8ce3e8a479b199b, type: 3}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

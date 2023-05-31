@@ -4,6 +4,23 @@ All notable changes to this project template will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [16.0.1] - 2023-05-15
+
+### Changed
+
+- Enable Adaptative Probe Volumes by default
+
+## [16.0.0] - 2023-05-10
+
+### Changed
+
+- Removed deprecated TextMeshPro package dependency
+- Upgraded UGUI package to version 2.0.0
+
+## [14.0.2] - 2023-04-07
+
+- Save scene with up to date binaries
+
 ## [14.0.1] - 2022-12-16
 
 Regenerate packages

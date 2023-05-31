@@ -74,6 +74,14 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty evsmLightLeakBias;
         public SerializedProperty evsmVarianceBias;
         public SerializedProperty evsmBlurPasses;
+        public SerializedProperty dirLightPCSSMaxBlockerDistance;
+        public SerializedProperty dirLightPCSSMaxSamplingDistance;
+        public SerializedProperty dirLightPCSSMinFilterSizeTexels;
+        public SerializedProperty dirLightPCSSMinFilterMaxAngularDiameter;
+        public SerializedProperty dirLightPCSSBlockerSearchAngularDiameter;
+        public SerializedProperty dirLightPCSSBlockerSamplingClumpExponent;
+        public SerializedProperty dirLightPCSSBlockerSampleCount;
+        public SerializedProperty dirLightPCSSFilterSampleCount;
 
         // Improved moment shadows data
         public SerializedProperty lightAngle;
@@ -290,6 +298,14 @@ namespace UnityEditor.Rendering.HighDefinition
                 evsmVarianceBias = o.Find("m_EvsmVarianceBias");
                 evsmLightLeakBias = o.Find("m_EvsmLightLeakBias");
                 evsmBlurPasses = o.Find("m_EvsmBlurPasses");
+                dirLightPCSSMaxBlockerDistance = o.Find("m_DirLightPCSSMaxBlockerDistance");
+                dirLightPCSSMaxSamplingDistance = o.Find("m_DirLightPCSSMaxSamplingDistance");
+                dirLightPCSSMinFilterSizeTexels = o.Find("m_DirLightPCSSMinFilterSizeTexels");
+                dirLightPCSSMinFilterMaxAngularDiameter = o.Find("m_DirLightPCSSMinFilterMaxAngularDiameter");
+                dirLightPCSSBlockerSearchAngularDiameter = o.Find("m_DirLightPCSSBlockerSearchAngularDiameter");
+                dirLightPCSSBlockerSamplingClumpExponent = o.Find("m_DirLightPCSSBlockerSamplingClumpExponent");
+                dirLightPCSSBlockerSampleCount = o.Find("m_DirLightPCSSBlockerSampleCount");
+                dirLightPCSSFilterSampleCount = o.Find("m_DirLightPCSSFilterSampleCount");
 
                 // Moment light
                 lightAngle = o.Find("m_LightAngle");

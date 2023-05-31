@@ -21,18 +21,22 @@ namespace UnityEngine.Rendering.HighDefinition
             /// <summary>
             /// The water foam is rendered in a 256x256 texture.
             /// </summary>
+            [InspectorName("Low 256")]
             Resolution256 = 256,
             /// <summary>
             /// The water foam is rendered in a 512x512 texture.
             /// </summary>
+            [InspectorName("Medium 512")]
             Resolution512 = 512,
             /// <summary>
             /// The water foam is rendered in a 1024x1024 texture.
             /// </summary>
+            [InspectorName("High 1024")]
             Resolution1024 = 1024,
             /// <summary>
             /// The water foam is rendered in a 2048x2048 texture.
             /// </summary>
+            [InspectorName("Very High 2048")]
             Resolution2048 = 2048,
         }
 

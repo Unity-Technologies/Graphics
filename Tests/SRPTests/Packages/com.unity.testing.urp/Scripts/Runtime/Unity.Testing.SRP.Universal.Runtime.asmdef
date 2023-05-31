@@ -1,5 +1,6 @@
 {
     "name": "UniversalGraphicsTests",
+    "rootNamespace": "",
     "references": [
         "GUID:c081bc530f560634bb5c21d4b323a7f1",
         "GUID:15fc0a57446b3144c949da3e2b9737a9",
@@ -20,5 +21,17 @@
     "defineConstraints": [
         "UNITY_INCLUDE_TESTS"
     ],
-    "versionDefines": []
+    "versionDefines": [
+        {
+            "name": "com.unity.xr.oculus",
+            "expression": "0.0.1",
+            "define": "XR_SDK;OCULUS_SDK"
+        },
+        {
+            "name": "com.unity.xr.mock-hmd",
+            "expression": "1.2.0-preview.1",
+            "define": "USE_XR_MOCK_HMD"
+        }
+    ],
+    "noEngineReferences": false
 }

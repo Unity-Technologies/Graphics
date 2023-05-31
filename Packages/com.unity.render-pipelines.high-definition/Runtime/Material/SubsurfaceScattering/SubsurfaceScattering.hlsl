@@ -208,7 +208,7 @@ float GetDiffusePower(uint diffusionProfileIndex)
 #ifdef MATERIAL_INCLUDE_TRANSMISSION
 
 // Assume that bsdfData.diffusionProfileIndex is init
-void FillMaterialTransmission(uint diffusionProfileIndex, float thickness, float transmissionMask, inout BSDFData bsdfData)
+void FillMaterialTransmission(uint diffusionProfileIndex, float thickness, float3 transmissionMask, inout BSDFData bsdfData)
 {
     float2 remap = _WorldScalesAndFilterRadiiAndThicknessRemaps[diffusionProfileIndex].zw;
 

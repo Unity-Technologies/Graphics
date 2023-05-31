@@ -1,11 +1,10 @@
-using System;
 using System.Linq;
 using UnityEngine;
-using UnityEditor.VFX;
 using System.Collections.Generic;
 
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-Clamp")]
     [VFXInfo(category = "Math/Clamp")]
     class Clamp : VFXOperatorNumericUnified, IVFXOperatorNumericUnifiedConstrained
     {

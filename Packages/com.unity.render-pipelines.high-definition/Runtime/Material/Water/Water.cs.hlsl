@@ -5,12 +5,6 @@
 #ifndef WATER_CS_HLSL
 #define WATER_CS_HLSL
 //
-// UnityEngine.Rendering.HighDefinition.Water+MaterialFeatureFlags:  static fields
-//
-#define MATERIALFEATUREFLAGS_WATER_STANDARD (1)
-#define MATERIALFEATUREFLAGS_WATER_CINEMATIC (2)
-
-//
 // UnityEngine.Rendering.HighDefinition.Water+BSDFData:  static fields
 //
 #define DEBUGVIEW_WATER_BSDFDATA_DIFFUSE_COLOR (1650)
@@ -28,6 +22,12 @@
 #define DEBUGVIEW_WATER_BSDFDATA_SURFACE_INDEX (1662)
 
 //
+// UnityEngine.Rendering.HighDefinition.Water+MaterialFeatureFlags:  static fields
+//
+#define MATERIALFEATUREFLAGS_WATER_STANDARD (1)
+#define MATERIALFEATUREFLAGS_WATER_CINEMATIC (2)
+
+//
 // UnityEngine.Rendering.HighDefinition.Water+SurfaceData:  static fields
 //
 #define DEBUGVIEW_WATER_SURFACEDATA_BASE_COLOR (1600)
@@ -39,6 +39,7 @@
 #define DEBUGVIEW_WATER_SURFACEDATA_FOAM (1606)
 #define DEBUGVIEW_WATER_SURFACEDATA_TIP_THICKNESS (1607)
 #define DEBUGVIEW_WATER_SURFACEDATA_CAUSTICS (1608)
+#define DEBUGVIEW_WATER_SURFACEDATA_REFRACTED_POSITION_WS (1609)
 
 // Generated from UnityEngine.Rendering.HighDefinition.Water+BSDFData
 // PackingRules = Exact
@@ -155,6 +156,9 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
             break;
         case DEBUGVIEW_WATER_SURFACEDATA_CAUSTICS:
             result = surfacedata.caustics.xxx;
+            break;
+        case DEBUGVIEW_WATER_SURFACEDATA_REFRACTED_POSITION_WS:
+            result = surfacedata.refractedPositionWS;
             break;
     }
 }

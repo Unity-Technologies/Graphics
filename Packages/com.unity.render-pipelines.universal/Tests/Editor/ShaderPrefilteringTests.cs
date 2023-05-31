@@ -170,28 +170,28 @@ namespace ShaderStrippingAndPrefiltering
             // Main Light Shadows
             expected = helper.defaultPrefilteringData;
             expected.mainLightShadowsPrefilteringMode = PrefilteringModeMainLightShadows.SelectMainLight;
-            expected.additionalLightsShadowsPrefilteringMode = PrefilteringMode.SelectOnly;
+            expected.additionalLightsShadowsPrefilteringMode = PrefilteringMode.Remove;
             actual = helper.CreatePrefilteringSettings(ShaderFeatures.MainLightShadows);
             helper.AssertPrefilteringData(expected, actual);
 
             // Main Light Shadows & OFF
             expected = helper.defaultPrefilteringData;
             expected.mainLightShadowsPrefilteringMode = PrefilteringModeMainLightShadows.SelectMainLightAndOff;
-            expected.additionalLightsShadowsPrefilteringMode = PrefilteringMode.Select;
+            expected.additionalLightsShadowsPrefilteringMode = PrefilteringMode.Remove;
             actual = helper.CreatePrefilteringSettings(ShaderFeatures.MainLightShadows | ShaderFeatures.ShadowsKeepOffVariants);
             helper.AssertPrefilteringData(expected, actual);
 
             // Main Light Shadows & Cascade
             expected = helper.defaultPrefilteringData;
             expected.mainLightShadowsPrefilteringMode = PrefilteringModeMainLightShadows.SelectMainLightAndCascades;
-            expected.additionalLightsShadowsPrefilteringMode = PrefilteringMode.SelectOnly;
+            expected.additionalLightsShadowsPrefilteringMode = PrefilteringMode.Remove;
             actual = helper.CreatePrefilteringSettings(ShaderFeatures.MainLightShadows | ShaderFeatures.MainLightShadowsCascade);
             helper.AssertPrefilteringData(expected, actual);
 
             // Main Light Shadows & Cascade & OFF
             expected = helper.defaultPrefilteringData;
             expected.mainLightShadowsPrefilteringMode = PrefilteringModeMainLightShadows.SelectAll;
-            expected.additionalLightsShadowsPrefilteringMode = PrefilteringMode.Select;
+            expected.additionalLightsShadowsPrefilteringMode = PrefilteringMode.Remove;
             actual = helper.CreatePrefilteringSettings(ShaderFeatures.MainLightShadows | ShaderFeatures.MainLightShadowsCascade | ShaderFeatures.ShadowsKeepOffVariants);
             helper.AssertPrefilteringData(expected, actual);
         }

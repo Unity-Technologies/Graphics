@@ -10,8 +10,7 @@ using UnityEngine.VFX;
 using UnityEditor.Callbacks;
 using UnityEditor.VFX;
 using UnityEditor.VFX.UI;
-using UnityEngine.Experimental.Rendering;
-
+using UnityEngine.UIElements;
 using UnityObject = UnityEngine.Object;
 
 
@@ -87,9 +86,21 @@ class VFXExternalShaderProcessor : AssetPostprocessor
     }
 }
 
+// This custom editor is used to hide the VisualEffectImport header in the inspector
+[CustomEditor(typeof(VisualEffectImporter))]
+[CanEditMultipleObjects]
+class VisualEffectImporterEditor : Editor
+{
+    public override VisualElement CreateInspectorGUI()
+    {
+        hideInspector = true;
+        return null;
+    }
+}
+
 [CustomEditor(typeof(VisualEffectAsset))]
 [CanEditMultipleObjects]
-class VisualEffectAssetEditor : Editor
+class VisualEffectAssetEditor : UnityEditor.Editor
 {
 #if UNITY_2021_1_OR_NEWER
     [OnOpenAsset(OnOpenAssetAttributeMode.Validate)]

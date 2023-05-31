@@ -243,6 +243,7 @@ namespace UnityEditor.ShaderGraph
                 subscriptOptions: StructFieldOptions.Optional);
             public static FieldDescriptor uv3 = new FieldDescriptor(SurfaceDescriptionInputs.name, "uv3", "", ShaderValueType.Float4,
                 subscriptOptions: StructFieldOptions.Optional);
+
             public static FieldDescriptor VertexColor = new FieldDescriptor(SurfaceDescriptionInputs.name, "VertexColor", "", ShaderValueType.Float4,
                 subscriptOptions: StructFieldOptions.Optional);
             public static FieldDescriptor TimeParameters = new FieldDescriptor(SurfaceDescriptionInputs.name, "TimeParameters", "", ShaderValueType.Float3,

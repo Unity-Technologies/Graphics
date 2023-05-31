@@ -96,6 +96,7 @@ namespace UnityEditor.Rendering
         // Fuctions for raster (native render passes) only
         static List<FunctionInfo> rasterFunctions = new List<FunctionInfo> {
                 "DrawMesh",
+                "DrawMultipleMeshes",
                 "DrawRenderer",
                 "DrawRendererList",
                 "DrawProcedural",

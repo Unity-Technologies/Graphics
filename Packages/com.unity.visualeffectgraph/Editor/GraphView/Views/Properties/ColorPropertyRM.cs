@@ -155,6 +155,18 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        public override object FilterValue(object value)
+        {
+
+            Color colorValue = (Color)value;
+            value =  new Color(Mathf.Max(colorValue.r, 0),
+                Mathf.Max(colorValue.g, 0),
+                Mathf.Max(colorValue.b, 0),
+                Mathf.Max(colorValue.a, 0));
+
+            return value;
+        }
+
         public override bool showsEverything { get { return true; } }
     }
 }

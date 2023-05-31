@@ -1,7 +1,6 @@
-using System;
-
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-Sign")]
     [VFXInfo(category = "Math/Arithmetic")]
     class Sign : VFXOperatorNumericUniform
     {

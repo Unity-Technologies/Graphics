@@ -1,8 +1,6 @@
-using System;
-using UnityEditor.VFX;
-
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-Subtract")]
     [VFXInfo(category = "Math/Arithmetic")]
     class Subtract : VFXOperatorNumericCascadedUnified
     {

@@ -78,10 +78,15 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float4 _AreaShadowAtlasSize;
     float4 _CachedShadowAtlasSize;
     float4 _CachedAreaShadowAtlasSize;
+    float4 _BoundsSS;
+    float _UpDirectionX;
+    float _UpDirectionY;
+    float _BufferStride;
+    int _EnableUnderwater;
     int _SpecularFade;
     uint _EnableRenderingLayers;
     int _ReflectionsMode;
-    int _UnusedPadding2;
+    uint _RayTracingCheckerIndex;
     uint _DirectionalLightCount;
     uint _PunctualLightCount;
     uint _AreaLightCount;

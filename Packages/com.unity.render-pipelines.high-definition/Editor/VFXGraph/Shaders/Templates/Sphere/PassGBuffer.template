@@ -12,17 +12,12 @@ Pass
     #pragma multi_compile _ PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
 
 	#define UNITY_MATERIAL_LIT
-	#if defined(SHADER_API_D3D11)
-        #define VFX_POSITION_QUALIFIER linear noperspective centroid
-    #else
-        #define VFX_POSITION_QUALIFIER
-    #endif
 
 	${VFXIncludeRP("VFXLitVaryings.template")}
 
 	struct ps_input
 	{
-		VFX_POSITION_QUALIFIER float4 pos : SV_POSITION;
+		SV_POSITION_QUALIFIERS float4 pos : SV_POSITION;
 
 		${VFXHDRPLitDeclareVaryings}
 
@@ -51,7 +46,7 @@ ${VFXEnd}
 	${VFXIncludeRP("VFXLit.template")}
 					
 	#pragma fragment frag
-	void frag(ps_input i, OUTPUT_GBUFFER(outGBuffer), out float oDepth : SV_DepthLessEqual)
+	void frag(ps_input i, OUTPUT_GBUFFER(outGBuffer), out float oDepth : DEPTH_OFFSET_SEMANTIC)
 	{
 		UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 		VFXTransformPSInputs(i);

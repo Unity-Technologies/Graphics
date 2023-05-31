@@ -554,8 +554,7 @@
         }
     ],
     "m_CustomEditorGUI": "",
-    "m_SupportVFX": false,
-    "m_SupportComputeForVertexSetup": false
+    "m_SupportVFX": false
 }
 
 {

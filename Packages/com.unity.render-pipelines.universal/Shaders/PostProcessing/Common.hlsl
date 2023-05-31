@@ -19,7 +19,12 @@
 //     On all other platforms we could basically get away with preset 15 which has slightly better edge quality.
 
 // Tweakable params (can be changed to get different performance and quality tradeoffs)
+#if SHADER_API_PS5 && defined(HDR_INPUT)
+// The console implementation does not generate artefacts when the input pixels are in nits (monitor HDR range).
+#define FXAA_PC 0
+#else
 #define FXAA_PC 1
+#endif
 #define FXAA_GREEN_AS_LUMA 0
 #define FXAA_QUALITY__PRESET 12
 
@@ -153,7 +158,7 @@ half3 ApplyColorGrading(half3 input, float postExposure, TEXTURE2D_PARAM(lutTex,
     return input;
 }
 
-half3 ApplyGrain(half3 input, float2 uv, TEXTURE2D_PARAM(GrainTexture, GrainSampler), float intensity, float response, float2 scale, float2 offset)
+half3 ApplyGrain(half3 input, float2 uv, TEXTURE2D_PARAM(GrainTexture, GrainSampler), float intensity, float response, float2 scale, float2 offset, float oneOverPaperWhite)
 {
     // Grain in range [0;1] with neutral at 0.5
     half grain = SAMPLE_TEXTURE2D(GrainTexture, GrainSampler, uv * scale + offset).w;
@@ -162,13 +167,17 @@ half3 ApplyGrain(half3 input, float2 uv, TEXTURE2D_PARAM(GrainTexture, GrainSamp
     grain = (grain - 0.5) * 2.0;
 
     // Noisiness response curve based on scene luminance
-    float lum = 1.0 - sqrt(Luminance(input));
+    float lum = Luminance(input);
+    #ifdef HDR_INPUT
+    lum *= oneOverPaperWhite;
+    #endif
+    lum = 1.0 - sqrt(lum);
     lum = lerp(1.0, lum, response);
 
     return input + input * grain * intensity * lum;
 }
 
-half3 ApplyDithering(half3 input, float2 uv, TEXTURE2D_PARAM(BlueNoiseTexture, BlueNoiseSampler), float2 scale, float2 offset)
+half3 ApplyDithering(half3 input, float2 uv, TEXTURE2D_PARAM(BlueNoiseTexture, BlueNoiseSampler), float2 scale, float2 offset, float paperWhite, float oneOverPaperWhite)
 {
     // Symmetric triangular distribution on [-1,1] with maximal density at 0
     float noise = SAMPLE_TEXTURE2D(BlueNoiseTexture, BlueNoiseSampler, uv * scale + offset).a * 2.0 - 1.0;
@@ -176,8 +185,13 @@ half3 ApplyDithering(half3 input, float2 uv, TEXTURE2D_PARAM(BlueNoiseTexture, B
 
 #if UNITY_COLORSPACE_GAMMA
     input += noise / 255.0;
+#elif defined(HDR_INPUT)
+    input = input * oneOverPaperWhite;
+    // Do not call GetSRGBToLinear/GetLinearToSRGB because the "fast" version will clamp values!
+    input = SRGBToLinear(LinearToSRGB(input) + noise / 255.0);
+    input = input * paperWhite;
 #else
-    input = GetSRGBToLinear(GetLinearToSRGB(input) + noise / 255.0);
+    input = GetSRGBToLinear(GetLinearToSRGB(input) + noise /255.0);
 #endif
 
     return input;
@@ -189,7 +203,7 @@ static const FxaaFloat kRelativeContrastThreshold = 0.15;
 static const FxaaFloat kAbsoluteContrastThreshold = 0.03;
 #endif
 
-half3 ApplyFXAA(half3 color, float2 positionNDC, int2 positionSS, float4 sourceSize, TEXTURE2D_X(inputTexture))
+half3 ApplyFXAA(half3 color, float2 positionNDC, int2 positionSS, float4 sourceSize, TEXTURE2D_X(inputTexture), float paperWhite, float oneOverPaperWhite)
 {
 #if _FXAA
     FxaaTex tex = {sampler_LinearClamp, _BlitTexture};
@@ -201,6 +215,7 @@ half3 ApplyFXAA(half3 color, float2 positionNDC, int2 positionSS, float4 sourceS
     FxaaFloat kFxaaConsoleEdgeSharpness = 0;
     FxaaFloat kFxaaConsoleEdgeThreshold = 0;
     FxaaFloat kFxaaConsoleEdgeThresholdMin = 0;
+    FxaaFloat2 fxaaHDROutputPaperWhiteNits = 0;
 
 #if FXAA_PC_CONSOLE == 1
     fxaaConsolePos = FxaaFloat4(positionNDC.xy - 0.5*sourceSize.zw, positionNDC.xy + 0.5*sourceSize.zw);
@@ -210,6 +225,7 @@ half3 ApplyFXAA(half3 color, float2 positionNDC, int2 positionSS, float4 sourceS
     kFxaaConsoleEdgeThreshold = 0.125;
     kFxaaConsoleEdgeThresholdMin = 0.05;
 #endif
+    fxaaHDROutputPaperWhiteNits = FxaaFloat2(paperWhite, oneOverPaperWhite);
 
     return FxaaPixelShader(
         positionNDC,
@@ -228,7 +244,8 @@ half3 ApplyFXAA(half3 color, float2 positionNDC, int2 positionSS, float4 sourceS
         kFxaaConsoleEdgeSharpness,
         kFxaaConsoleEdgeThreshold,
         kFxaaConsoleEdgeThresholdMin,
-        kUnusedFloat4
+        kUnusedFloat4,
+        fxaaHDROutputPaperWhiteNits
     ).rgb;
 #else
     return color;

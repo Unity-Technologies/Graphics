@@ -1,4 +1,5 @@
 using System;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal
@@ -11,9 +12,7 @@ namespace UnityEngine.Rendering.Universal
 
         private class PassData
         {
-            internal RenderingData renderingData;
-            internal FilteringSettings filterSettings;
-            internal DrawingSettings drawSettings;
+            internal RendererListHandle rendererList;
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -21,18 +20,12 @@ namespace UnityEngine.Rendering.Universal
             throw new NotImplementedException();
         }
 
-        private static void Execute(ScriptableRenderContext context, PassData passData, ref RenderingData renderingData)
+        private static void Execute(RasterCommandBuffer cmd, PassData passData)
         {
-            var cmd = renderingData.commandBuffer;
             using (new ProfilingScope(cmd, m_ExecuteProfilingSampler))
             {
                 cmd.ClearRenderTarget(RTClearFlags.Color, RendererLighting.k_NormalClearColor, 1, 0);
-                context.ExecuteCommandBuffer(cmd);
-                cmd.Clear();
-
-                var param = new RendererListParams(renderingData.cullResults, passData.drawSettings, passData.filterSettings);
-                var rl = context.CreateRendererList(ref param);
-                cmd.DrawRendererList(rl);
+                cmd.DrawRendererList(passData.rendererList);
             }
         }
 
@@ -41,9 +34,8 @@ namespace UnityEngine.Rendering.Universal
             if (!layerBatch.lightStats.useNormalMap)
                 return;
 
-            using (var builder = graph.AddRenderPass<PassData>("Normals 2D Pass", out var passData, m_ProfilingSampler))
+            using (var builder = graph.AddRasterRenderPass<PassData>("Normals 2D Pass", out var passData, m_ProfilingSampler))
             {
-
                 var filterSettings = new FilteringSettings();
                 filterSettings.renderQueueRange = RenderQueueRange.all;
                 filterSettings.layerMask = -1;
@@ -52,16 +44,16 @@ namespace UnityEngine.Rendering.Universal
                 var drawSettings = CreateDrawingSettings(k_NormalsRenderingPassName, ref renderingData, SortingCriteria.CommonTransparent);
 
                 builder.AllowPassCulling(false);
-                builder.UseColorBuffer(in normalTexture, 0);
-                builder.UseDepthBuffer(depthTexture, DepthAccess.Write);
+                builder.UseTextureFragment(normalTexture, 0);
+                builder.UseTextureFragmentDepth(depthTexture, IBaseRenderGraphBuilder.AccessFlags.Write);
 
-                passData.filterSettings = filterSettings;
-                passData.drawSettings = drawSettings;
-                passData.renderingData = renderingData;
+                var param = new RendererListParams(renderingData.cullResults, drawSettings, filterSettings);
+                passData.rendererList = graph.CreateRendererList(param);
+                builder.UseRendererList(passData.rendererList);
 
-                builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
+                builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
                 {
-                    Execute(context.renderContext, data, ref data.renderingData);
+                    Execute(context.cmd, data);
                 });
             }
         }

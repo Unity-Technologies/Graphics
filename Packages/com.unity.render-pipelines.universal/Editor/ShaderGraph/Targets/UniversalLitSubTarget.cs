@@ -143,6 +143,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
+            context.AddBlock(UniversalBlockFields.VertexDescription.MotionVector, target.additionalMotionVectorMode == AdditionalMotionVectorMode.Custom);
+
             context.AddBlock(BlockFields.SurfaceDescription.Smoothness);
             context.AddBlock(BlockFields.SurfaceDescription.NormalOS, normalDropOffSpace == NormalDropOffSpace.Object);
             context.AddBlock(BlockFields.SurfaceDescription.NormalTS, normalDropOffSpace == NormalDropOffSpace.Tangent);
@@ -350,6 +352,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // cull the shadowcaster pass if we know it will never be used
                 if (target.castShadows || target.allowMaterialOverride)
                     result.passes.Add(PassVariant(CorePasses.ShadowCaster(target), CorePragmas.Instanced));
+
+                if (target.alwaysRenderMotionVectors)
+                    result.customTags = string.Concat(result.customTags, " ", UniversalTarget.kAlwaysRenderMotionVectorsTag);
+                result.passes.Add(PassVariant(CorePasses.MotionVectors(target), CorePragmas.MotionVectors));
 
                 if (target.mayWriteDepth)
                     result.passes.Add(PassVariant(CorePasses.DepthOnly(target), CorePragmas.Instanced));
@@ -618,7 +624,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     displayName = "DepthNormals",
                     referenceName = "SHADERPASS_DEPTHNORMALS",
                     lightMode = "DepthNormals",
-                    useInPreview = false,
+                    useInPreview = true,
 
                     // Template
                     passTemplatePath = UniversalTarget.kUberTemplatePath,
@@ -658,7 +664,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     displayName = "DepthNormalsOnly",
                     referenceName = "SHADERPASS_DEPTHNORMALSONLY",
                     lightMode = "DepthNormalsOnly",
-                    useInPreview = false,
+                    useInPreview = true,
 
                     // Template
                     passTemplatePath = UniversalTarget.kUberTemplatePath,

@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: b7261d938a155b74cb61a60a16d9f2aa
+VisualEffectImporter:
+  externalObjects: {}
+  serializedVersion: 1
+  template:
+    name: Minimal System
+    category: Built-in
+    description: This template provides a simple system with pre-wired context with
+      spawn, init, update, and output. It's useful when starting from scratch and
+      wanting to avoid deleting unnecessary blocks.
+    icon: {fileID: 2800000, guid: cfaffeb6eec377d43902caf7b0b9c935, type: 3}
+    thumbnail: {fileID: 2800000, guid: 6e3e22332cef02447956ecfdf9352294, type: 3}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

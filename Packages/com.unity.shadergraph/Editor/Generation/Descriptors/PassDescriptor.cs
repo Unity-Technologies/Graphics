@@ -9,6 +9,9 @@ namespace UnityEditor.ShaderGraph
         public string lightMode;
         public bool useInPreview;
         public bool virtualTextureFeedback;
+        public bool analyticDerivativesEnabled;
+        public bool analyticDerivativesApplyEmulate;
+
 
         // Templates
         public string passTemplatePath;

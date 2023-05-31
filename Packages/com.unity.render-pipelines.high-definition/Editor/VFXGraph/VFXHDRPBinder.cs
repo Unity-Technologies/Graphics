@@ -23,6 +23,8 @@ namespace UnityEditor.VFX.HDRP
         public override string SRPAssetTypeStr { get { return typeof(HDRenderPipelineAsset).Name; } }
         public override Type SRPOutputDataType { get { return typeof(VFXHDRPSubOutput); } }
 
+        public override bool IsShaderVFXCompatible(Shader shader) => shader.TryGetMetadataOfType<HDMetadata>(out var metadata) && metadata.isVFXCompatible;
+
         public override void SetupMaterial(Material mat, bool hasMotionVector = false, bool hasShadowCasting = false, ShaderGraphVfxAsset shaderGraph = null)
         {
             try
@@ -228,17 +230,7 @@ namespace UnityEditor.VFX.HDRP
                     Structs.SurfaceDescriptionInputs,
                     AppendVFXInterpolator(HDStructs.VaryingsMeshToPS, context, data),
                 },
-
-                pragmasReplacement = new (PragmaDescriptor, PragmaDescriptor)[]
-                {
-                    //Irrelevant general multicompile instancing (VFX will append them when needed)
-                    ( Pragma.MultiCompileInstancing, ShaderGraphBinder.kPragmaDescriptorNone),
-                    ( Pragma.DOTSInstancing, ShaderGraphBinder.kPragmaDescriptorNone),
-                    ( Pragma.InstancingOptions(InstancingOptions.RenderingLayer), ShaderGraphBinder.kPragmaDescriptorNone ),
-                    ( Pragma.InstancingOptions(InstancingOptions.NoLightProbe), ShaderGraphBinder.kPragmaDescriptorNone ),
-                    ( Pragma.InstancingOptions(InstancingOptions.NoLodFade), ShaderGraphBinder.kPragmaDescriptorNone ),
-                },
-
+                
                 fieldDependencies = ElementSpaceDependencies,
                 useFragInputs = true
             };

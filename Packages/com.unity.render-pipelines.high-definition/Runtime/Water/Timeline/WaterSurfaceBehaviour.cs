@@ -28,7 +28,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_Target.simulation.DisableTimeSteps();
 
                 // Grab the total timeline time
-                double currentTime = playable.GetGraph().GetRootPlayable(0).GetTime();
+                var duration = playable.GetOutput(0).GetDuration();
+                var currentTime = playable.GetTime();
+                var numberOfFullLoops = (int)(currentTime / duration);
+                currentTime -= numberOfFullLoops * duration;
 
                 // Let's go through the Playables and add the relevant ones (partially)
                 double currentTotalTime = 0.0;

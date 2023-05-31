@@ -1,8 +1,8 @@
-using System;
 using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-Remap(-11)")]
     [VFXInfo(category = "Math/Remap")]
     class RemapToNegOnePosOne : VFXOperatorNumericUniform
     {

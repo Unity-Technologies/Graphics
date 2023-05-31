@@ -45,6 +45,46 @@ namespace UnityEngine.Rendering
         }
     }
 
+    /// <summary>
+    /// Use this attribute to define the help URP.
+    /// </summary>
+    /// <example>
+    /// [CoreRPHelpURLAttribute("Volume")]
+    /// public class Volume : MonoBehaviour
+    /// </example>
+    [Conditional("UNITY_EDITOR")]
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Enum, AllowMultiple = false)]
+    public class CurrentPipelineHelpURLAttribute : HelpURLAttribute
+    {
+        private string pageName { get; }
+        /// <summary>
+        /// The constructor of the attribute
+        /// </summary>
+        /// <param name="pageName"></param>
+        public CurrentPipelineHelpURLAttribute(string pageName)
+            : base(null)
+        {
+            this.pageName = pageName;
+        }
+
+        /// <summary>
+        /// Returns the URL to the given page in the current Render Pipeline package documentation site.
+        /// </summary>
+        public override string URL
+        {
+            get
+            {
+#if UNITY_EDITOR
+                if (DocumentationUtils.TryGetPackageInfoForType(GraphicsSettings.currentRenderPipeline?.GetType() ?? typeof(DocumentationInfo), out var package, out var version))
+                {
+                    return DocumentationInfo.GetPackageLink(package, version, this.pageName);
+                }
+#endif
+                return null;
+            }
+        }
+    }
+
     //We need to have only one version number amongst packages (so public)
     /// <summary>
     /// Documentation Info class.
@@ -70,20 +110,29 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
+        /// Generates a help URL for the given package and page name.
+        /// </summary>
+        /// <param name="packageName">The package name.</param>
+        /// <param name="packageVersion">The package version.</param>
+        /// <param name="pageName">The page name without the extension.</param>
+        /// <returns>The full URL of the page.</returns>
+        public static string GetPackageLink(string packageName, string packageVersion, string pageName) => string.Format(url, packageName, packageVersion, pageName, "");
+
+        /// <summary>
         /// Generates a help url for the given package and page name
         /// </summary>
         /// <param name="packageName">The package name</param>
-        /// <param name="pageName">The page name</param>
-        /// <returns>The full url page</returns>
+        /// <param name="pageName">The page name without the extension.</param>
+        /// <returns>The full URL of the page.</returns>
         public static string GetPageLink(string packageName, string pageName) => string.Format(url, packageName, version, pageName, "");
 
         /// <summary>
         /// Generates a help url for the given package and page name
         /// </summary>
         /// <param name="packageName">The package name</param>
-        /// <param name="pageName">The page name</param>
+        /// <param name="pageName">The page name without the extension.</param>
         /// <param name="pageHash">The page hash</param>
-        /// <returns>The full url page</returns>
+        /// <returns>The full URL of the page.</returns>
         public static string GetPageLink(string packageName, string pageName, string pageHash) => string.Format(url, packageName, version, pageName, pageHash);
     }
 

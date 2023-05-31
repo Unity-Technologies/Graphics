@@ -1,3 +1,7 @@
+using System;
+using UnityEngine;
+using UnityEngine.Rendering;
+
 namespace UnityEditor.Rendering
 {
     /// <summary>
@@ -6,29 +10,44 @@ namespace UnityEditor.Rendering
     public static partial class RenderPipelineGlobalSettingsUI
     {
         /// <summary>
-        /// Draws the shader stripping settinsg
+        /// Draw Volume Profile property field with a foldout scope that ensures that the target cannot become null.
         /// </summary>
-        /// <param name="serialized">The serialized global settings</param>
-        /// <param name="owner">The owner editor</param>
-        /// <param name="additionalShaderStrippingSettings">Pass another drawer if you want to specify additional shader stripping settings</param>
-        public static void DrawShaderStrippingSettings(ISerializedRenderPipelineGlobalSettings serialized, Editor owner, CoreEditorDrawer<ISerializedRenderPipelineGlobalSettings>.IDrawer additionalShaderStrippingSettings = null)
+        /// <param name="volumeProfileSerializedProperty">Target serialized property</param>
+        /// <param name="volumeProfileLabel">Label for the property field</param>
+        /// <param name="getOrCreateVolumeProfile">Callback that creates and returns a valid Volume Profile</param>
+        /// <param name="labelFoldoutExpanded">Reference parameter indicating whether the foldout is expanded</param>
+        /// <returns>The volume profile</returns>
+        public static VolumeProfile DrawVolumeProfileAssetField(
+            SerializedProperty volumeProfileSerializedProperty,
+            GUIContent volumeProfileLabel,
+            Func<VolumeProfile> getOrCreateVolumeProfile,
+            ref bool labelFoldoutExpanded)
         {
-            CoreEditorUtils.DrawSectionHeader(Styles.shaderStrippingSettingsLabel);
-
-            var oldWidth = EditorGUIUtility.labelWidth;
-            EditorGUIUtility.labelWidth = Styles.labelWidth;
-
-            EditorGUILayout.Space();
-            using (new EditorGUI.IndentLevelScope())
+            VolumeProfile asset;
+            using (new EditorGUILayout.HorizontalScope())
             {
-                EditorGUILayout.PropertyField(serialized.shaderVariantLogLevel, Styles.shaderVariantLogLevelLabel);
-                EditorGUILayout.PropertyField(serialized.exportShaderVariants, Styles.exportShaderVariantsLabel);
-                EditorGUILayout.PropertyField(serialized.stripDebugVariants, Styles.stripRuntimeDebugShadersLabel);
+                var oldAssetValue = volumeProfileSerializedProperty.objectReferenceValue;
+                EditorGUILayout.PropertyField(volumeProfileSerializedProperty, volumeProfileLabel);
+                asset = volumeProfileSerializedProperty.objectReferenceValue as VolumeProfile;
+                if (asset == null)
+                {
+                    if (oldAssetValue != null)
+                    {
+                        Debug.Log("This Volume Profile Asset cannot be null. Rolling back to previous value.");
+                        volumeProfileSerializedProperty.objectReferenceValue = oldAssetValue;
+                        asset = oldAssetValue as VolumeProfile;
+                    }
+                    else
+                    {
+                        asset = getOrCreateVolumeProfile();
+                    }
+                }
 
-                additionalShaderStrippingSettings?.Draw(serialized, owner);
+                labelFoldoutExpanded = GUI.Toggle(
+                    GUILayoutUtility.GetLastRect(), labelFoldoutExpanded, GUIContent.none, EditorStyles.foldout);
             }
-            EditorGUILayout.Space();
-            EditorGUIUtility.labelWidth = oldWidth;
+
+            return asset;
         }
     }
 }

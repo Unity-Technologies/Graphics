@@ -165,107 +165,79 @@ void PrepareCausticsGeometry(uint3 currentThread : SV_DispatchThreadID)
     _CauticsGeometryRW.Store((6 * quadIndex + 5) * 4, D);
 }
 
-static const float sizeMultiplier[4] = {1.0, 4.0, 32.0, 128.0};
-
-/*
-0.0
-1 * 0.5
-1 * 0.5 + 2
-1 * 0.5 + 2 + 4
-1 * 0.5 + 2 + 4 + 8
-1 * 0.5 + 2 + 4 + 8 + 16
-*/
-static const float offsets[4] = {0.0, 0.5, 4.5, 36.5};
-
-// Function that evaluates the bounds of a given grid based on it's coordinates
-void ComputeGridBounds(int x, int y, float centerGridSize,
+// Function that evaluates the bounds of a given patch based on it's index
+void ComputePatchBounds(uint patch,
                         inout float2 center,
-                        inout float2 size)
+                        inout float2 size,
+                        inout float2 rotation)
 {
-    int absX = abs(x);
-    int absY = abs(y);
-    float signX = sign(x);
-    float signY = sign(y);
+    uint id = patch % 4;
+    float scale = 1 << (patch >> 2);
 
-    // Size of the patch
-    size = float2(centerGridSize * sizeMultiplier[absX], centerGridSize * sizeMultiplier[absY]);
+    center = float2(-0.25f, -0.75f);
+    size = float2(1.5f, 0.5f) * 0.5f;
 
-    // Offset position of the patch
-    center = float2(signX * (offsets[absX] * centerGridSize + size.x * 0.5), signY * (offsets[absY] * centerGridSize + size.y * 0.5));
+    rotation = float2(scale, 0);
+    if (id == 1) rotation = float2(0, -scale);
+    if (id == 2) rotation = float2(-scale, 0);
+    if (id == 3) rotation = float2(0, scale);
+
+    center = center.x * rotation.xy + center.y * float2(-rotation.y, rotation.x);
+    size = size.x * abs(rotation.xy) + size.y * abs(rotation.yx);
+
+    center = center * _GridSize + _PatchOffset.xz;
+    size = size * _GridSize + _MaxWaveDisplacement;
 }
 
-bool ClampPatchToRegion(inout float2 center, inout float2 size)
+bool PatchIsInRegion(float2 center, float2 size)
 {
-    // AABB of the region
-    float2 regionMin = _RegionCenter - _RegionExtent * 0.5;
-    float2 regionMax = _RegionCenter + _RegionExtent * 0.5;
-
-    // AABB of the patch
-    float2 patchMin = center - size * 0.5;
-    float2 patchMax = center + size * 0.5;
-
-    float2 intersectionMin = max(regionMin, patchMin);
-    float2 intersectionMax = min(regionMax, patchMax);
-
-    // Evaluate the new dimensions
-    center = (intersectionMax + intersectionMin) * 0.5;
-    size = (intersectionMax - intersectionMin);
-
-    // Validate the patch
-    return all(intersectionMin < intersectionMax);
+    return all(abs(_RegionCenter - center) < _RegionExtent + size);
 }
+
+#define MAX_PATCH_COUNT (7*7)
 
 // Group share flag that allows us to keep track of the valid instances
-groupshared int gs_instanceValidity[49];
-groupshared float4 gs_instanceData[49];
+groupshared uint gs_instanceValidity[MAX_PATCH_COUNT];
+groupshared float2 gs_instanceData[MAX_PATCH_COUNT];
 
 // Structure that holds the per data patch info
 StructuredBuffer<FrustumGPU> _FrustumGPUBuffer;
-RWStructuredBuffer<float4> _WaterPatchDataRW;
+RWStructuredBuffer<float2> _WaterPatchDataRW;
 RWStructuredBuffer<int> _WaterInstanceDataRW;
 
-[numthreads(49, 1, 1)]
-void EVALUATE_INSTANCE_DATA(uint3 currentThread : SV_DispatchThreadID)
+[numthreads(MAX_PATCH_COUNT, 1, 1)]
+void EVALUATE_INSTANCE_DATA(uint currentPatch : SV_DispatchThreadID)
 {
-    // Grab the index of the patch to evaluate
-    uint currentPatch = currentThread.x;
+    // Compute the patch center and size while accounting for it's maximal deformation
+    float2 center, size, rotation;
+    ComputePatchBounds(currentPatch, center, size, rotation);
 
-    // Evaluate the grid parameters
-    uint radius = (_WaterLODCount - 1);
-    uint gridResolution = 1 + radius * 2;
-    int x = currentPatch % gridResolution;
-    int y = currentPatch / gridResolution;
+    // Only include the instance if it is valid
+    bool patchIsVisible = (currentPatch >> 2) < _MaxLOD;
 
-    // Compute the grid center and size
-    float2 center;
-    float2 size;
-    ComputeGridBounds(x - radius, y - radius, _GridSize.x, center, size);
-
-    // Frustum cull the patch while accounting for it's maximal deformation
-    OrientedBBox obb;
-    obb.right = float3(1.0, 0, 0);
-    obb.up = float3(0, 1.0, 0);
-    obb.extentX = size.x * 0.5 + _MaxWaveDisplacement;
-    obb.extentY = _MaxWaveHeight + _MaxWaterDeformation;
-    obb.extentZ = size.y * 0.5 + _MaxWaveDisplacement;
-    obb.center = float3(_PatchOffset.x + center.x, _PatchOffset.y, _PatchOffset.z + center.y);
-
-    // Need to make sure that
-    obb.center = GetCameraRelativePositionWS(obb.center);
-
-    // Only include the instance if it is valid and potientially visible
-    bool patchIsVisible = currentPatch < _NumWaterPatches ? FrustumOBBIntersection(obb, _FrustumGPUBuffer[0]) : 0;
-
-    // In case this is an non-infinite surface, we need to clamp the patch to the allowed region
 #if !defined(INFINITE_WATER)
-    float2 centerWS = center + _PatchOffset.xz;
-    patchIsVisible = patchIsVisible && ClampPatchToRegion(centerWS, size);
-    center = centerWS - _PatchOffset.xz;
+    // In case this is an non-infinite surface, we cull patches outside of the allowed region
+    patchIsVisible = patchIsVisible && PatchIsInRegion(center, size);
 #endif
+
+    // Frustum cull the patch
+    if (patchIsVisible)
+    {
+        OrientedBBox obb;
+        obb.center = float3(center.x, _PatchOffset.y, center.y);
+        obb.right = float3(1.0, 0, 0);
+        obb.up = float3(0, 1.0, 0);
+        obb.extentX = size.x;
+        obb.extentY = _MaxWaveHeight + _MaxWaterDeformation;
+        obb.extentZ = size.y;
+
+        obb.center = GetCameraRelativePositionWS(obb.center);
+        patchIsVisible = FrustumOBBIntersection(obb, _FrustumGPUBuffer[0]);
+    }
 
     // Propagate the patch data
     gs_instanceValidity[currentPatch] = patchIsVisible;
-    gs_instanceData[currentPatch] = float4(size.x, size.y, center.x, center.y);
+    gs_instanceData[currentPatch] = rotation;
 
     // Wait untill all workers have processed their patch data
     GroupMemoryBarrierWithGroupSync();
@@ -275,7 +247,7 @@ void EVALUATE_INSTANCE_DATA(uint3 currentThread : SV_DispatchThreadID)
     {
         // For each patch that needs to be processed
         uint totalInstanceCount = 0;
-        for (uint patchIdx = 0; patchIdx < _NumWaterPatches; ++patchIdx)
+        for (uint patchIdx = 0; patchIdx < _MaxLOD * 4; ++patchIdx)
         {
             if (gs_instanceValidity[patchIdx])
             {

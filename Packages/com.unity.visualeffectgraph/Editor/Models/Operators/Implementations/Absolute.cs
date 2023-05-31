@@ -1,6 +1,6 @@
-using System;
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-Absolute")]
     [VFXInfo(category = "Math/Arithmetic")]
     class Absolute : VFXOperatorNumericUniform
     {

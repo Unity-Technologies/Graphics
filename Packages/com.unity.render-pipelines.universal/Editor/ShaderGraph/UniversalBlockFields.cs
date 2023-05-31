@@ -6,6 +6,14 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
     static class UniversalBlockFields
     {
         [GenerateBlocks("Universal Render Pipeline")]
+        public struct VertexDescription
+        {
+            public static string name = "VertexDescription";
+            public static BlockFieldDescriptor MotionVector = new BlockFieldDescriptor(VertexDescription.name, "MotionVector", "Motion Vector", "VERTEXDESCRIPTION_MOTIONVECTOR",
+                new Vector3Control(new Vector3(0.0f, 0.0f, 0.0f)), ShaderStage.Vertex);
+        }
+
+        [GenerateBlocks("Universal Render Pipeline")]
         public struct SurfaceDescription
         {
             public static string name = "SurfaceDescription";

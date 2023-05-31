@@ -20,6 +20,7 @@ namespace UnityEditor.VFX
         }
     }
 
+    [VFXHelpURL("Block-Burst")]
     [VFXInfo(category = "Spawn", variantProvider = typeof(VFXSpawnerBurstVariantCollection))]
     class VFXSpawnerBurst : VFXAbstractSpawner
     {

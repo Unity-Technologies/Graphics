@@ -6,6 +6,7 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-Switch")]
     [VFXInfo(category = "Logic")]
     class Switch : VFXOperatorDynamicBranch
     {

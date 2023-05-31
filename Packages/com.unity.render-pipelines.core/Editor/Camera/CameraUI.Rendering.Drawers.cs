@@ -19,9 +19,6 @@ namespace UnityEditor.Rendering
             public static void Drawer_Rendering_Dithering(ISerializedCamera p, Editor owner)
             {
                 EditorGUILayout.PropertyField(p.dithering, Styles.dithering);
-
-                if (PlayerSettings.useHDRDisplay && p.dithering.boolValue)
-                    EditorGUILayout.HelpBox(Styles.unsupportedDitheringWithHDROutputWarning, MessageType.Warning);
             }
 
             /// <summary>Draws Culling mask related fields on the inspector</summary>

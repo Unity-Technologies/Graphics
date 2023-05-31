@@ -1,6 +1,5 @@
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
-using UnityEngine.Experimental.Rendering.Universal;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -23,6 +22,7 @@ namespace UnityEngine.Rendering.Universal
             internal TextureHandle cameraSortingLayerTexture;
 
             internal TextureHandle overlayUITexture;
+            internal TextureHandle debugScreenTexture;
         }
 
         private Attachments m_Attachments = new Attachments();
@@ -114,7 +114,7 @@ namespace UnityEngine.Rendering.Universal
 
                 for (var i = 0; i < m_Attachments.lightTextures.Length; i++)
                 {
-                    m_Attachments.lightTextures[i] = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, RendererLighting.k_ShapeLightTextureIDs[i], false);
+                    m_Attachments.lightTextures[i] = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, RendererLighting.k_ShapeLightTextureIDs[i], false, FilterMode.Bilinear);
                 }
             }
 
@@ -147,7 +147,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     cameraTargetDescriptor.useMipMap = false;
                     cameraTargetDescriptor.autoGenerateMips = false;
-                    cameraTargetDescriptor.depthBufferBits = (int) DepthBits.None;
+                    cameraTargetDescriptor.depthBufferBits = (int)DepthBits.None;
 
                     RenderingUtils.ReAllocateIfNeeded(ref m_RenderGraphCameraColorHandle, cameraTargetDescriptor, cameraTargetFilterMode, TextureWrapMode.Clamp, name: "_CameraTargetAttachment");
                 }
@@ -194,11 +194,16 @@ namespace UnityEngine.Rendering.Universal
             CreateResources(renderGraph, ref renderingData);
             SetupRenderGraphCameraProperties(renderGraph, ref renderingData, false);
 
-            DebugHandler?.Setup(ref renderingData);
+            OnBeforeRendering(renderGraph);
 
             OnMainRendering(renderGraph, ref renderingData);
 
             OnAfterRendering(renderGraph, ref renderingData);
+        }
+
+        private void OnBeforeRendering(RenderGraph renderGraph)
+        {
+            m_LightPass.Setup(renderGraph, ref m_Renderer2DData);
         }
 
         private void OnMainRendering(RenderGraph renderGraph, ref RenderingData renderingData)
@@ -235,7 +240,7 @@ namespace UnityEngine.Rendering.Universal
                 ClearLightTextures(renderGraph, ref m_Renderer2DData, ref layerBatch);
 
                 // Light Pass
-                m_LightPass.Render(renderGraph, ref renderingData, ref m_Renderer2DData, ref layerBatch, m_Attachments.lightTextures, m_Attachments.normalTexture, m_Attachments.intermediateDepth);
+                m_LightPass.Render(renderGraph, ref m_Renderer2DData, ref layerBatch, m_Attachments.lightTextures, m_Attachments.normalTexture, m_Attachments.intermediateDepth);
 
                 // Clear camera targets
                 if (i == 0 && clearFlags != RTClearFlags.None)
@@ -264,7 +269,14 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 // Light Volume Pass
-                m_LightPass.Render(renderGraph, ref renderingData, ref m_Renderer2DData, ref layerBatch, m_Attachments.colorAttachment, m_Attachments.normalTexture, m_Attachments.depthAttachment, true);
+                m_LightPass.Render(renderGraph, ref m_Renderer2DData, ref layerBatch, m_Attachments.colorAttachment, m_Attachments.normalTexture, m_Attachments.depthAttachment, true);
+            }
+
+            bool shouldRenderUI = cameraData.rendersOverlayUI;
+            bool outputToHDR = cameraData.isHDROutputActive;
+            if (shouldRenderUI && outputToHDR)
+            {
+                m_DrawOffscreenUIPass.RenderOffscreen(renderGraph, out m_Attachments.overlayUITexture, ref renderingData);
             }
         }
 
@@ -276,41 +288,73 @@ namespace UnityEngine.Rendering.Universal
             if (drawGizmos)
                 DrawRenderGraphGizmos(renderGraph, m_Attachments.colorAttachment, m_Attachments.depthAttachment, GizmoSubset.PreImageEffects, ref renderingData);
 
-            var finalTextureHandle = m_Attachments.colorAttachment;
+            DebugHandler debugHandler = ScriptableRenderPass.GetActiveDebugHandler(ref renderingData);
+            bool resolveToDebugScreen = debugHandler != null && debugHandler.WriteToDebugScreenTexture(ref renderingData.cameraData);
+            // Allocate debug screen texture if HDR debug views are enabled.
+            if (resolveToDebugScreen)
+            {
+                RenderTextureDescriptor descriptor = renderingData.cameraData.cameraTargetDescriptor;
+                HDRDebugViewPass.ConfigureDescriptor(ref descriptor);
+                m_Attachments.debugScreenTexture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, descriptor, "_DebugScreenTexture", false);
+            }
+
             bool applyPostProcessing = renderingData.postProcessingEnabled && m_PostProcessPasses.isCreated;
+
+            cameraData.camera.TryGetComponent<PixelPerfectCamera>(out var ppc);
+            bool isPixelPerfectCameraEnabled = ppc != null && ppc.enabled && ppc.cropFrame != PixelPerfectCamera.CropFrame.None;
+            bool requirePixelPerfectUpscale = isPixelPerfectCameraEnabled && ppc.requiresUpscalePass;
+
+            // When using Upscale Render Texture on a Pixel Perfect Camera, we want all post-processing effects done with a low-res RT,
+            // and only upscale the low-res RT to fullscreen when blitting it to camera target. Also, final post processing pass is not run in this case,
+            // so FXAA is not supported (you don't want to apply FXAA when everything is intentionally pixelated).
+            bool requireFinalPostProcessPass = renderingData.cameraData.resolveFinalTarget && !ppcUpscaleRT && applyPostProcessing && cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing;
+
+            bool hasPassesAfterPostProcessing = activeRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRenderingPostProcessing) != null;
+            bool needsColorEncoding = DebugHandler == null || !DebugHandler.HDRDebugViewIsActive(ref cameraData);
+
+            var finalTextureHandle = m_Attachments.colorAttachment;
+
             if (applyPostProcessing)
             {
-                postProcessPass.RenderPostProcessingRenderGraph(renderGraph, in m_Attachments.colorAttachment, in m_Attachments.internalColorLut, in m_Attachments.afterPostProcessColor, ref renderingData, true);
+                postProcessPass.RenderPostProcessingRenderGraph(renderGraph, in m_Attachments.colorAttachment, in m_Attachments.internalColorLut, m_Attachments.overlayUITexture, in m_Attachments.afterPostProcessColor, ref renderingData, true, resolveToDebugScreen, needsColorEncoding);
                 finalTextureHandle = m_Attachments.afterPostProcessColor;
             }
 
-            cameraData.camera.TryGetComponent<PixelPerfectCamera>(out var ppc);
-            if (ppc != null && ppc.enabled && ppc.cropFrame != PixelPerfectCamera.CropFrame.None)
+            if (isPixelPerfectCameraEnabled)
             {
                 // Do PixelPerfect upscaling when using the Stretch Fill option
-                if (ppc.requiresUpscalePass)
+                if (requirePixelPerfectUpscale)
                 {
-                    m_UpscalePass.Render(renderGraph, ref cameraData, ref renderingData, in m_Attachments.colorAttachment, in m_Attachments.upscaleTexture);
+                    m_UpscalePass.Render(renderGraph, ref cameraData, ref renderingData, in finalTextureHandle, in m_Attachments.upscaleTexture);
                     finalTextureHandle = m_Attachments.upscaleTexture;
                 }
 
                 ClearTargets2DPass.Render(renderGraph, m_Attachments.backBufferColor, TextureHandle.nullHandle, RTClearFlags.Color, Color.black);
             }
 
-            // When using Upscale Render Texture on a Pixel Perfect Camera, we want all post-processing effects done with a low-res RT,
-            // and only upscale the low-res RT to fullscreen when blitting it to camera target. Also, final post processing pass is not run in this case,
-            // so FXAA is not supported (you don't want to apply FXAA when everything is intentionally pixelated).
-            bool requireFinalPostProcessPass =
-                renderingData.cameraData.resolveFinalTarget && !ppcUpscaleRT && applyPostProcessing && cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing;
-
+            // We need to switch the "final" blit target to debugScreenTexture if HDR debug views are enabled.
+            var finalBlitTarget = resolveToDebugScreen ? m_Attachments.debugScreenTexture : m_Attachments.backBufferColor;
             if (requireFinalPostProcessPass)
             {
-                postProcessPass.RenderFinalPassRenderGraph(renderGraph, in finalTextureHandle, ref renderingData);
+                postProcessPass.RenderFinalPassRenderGraph(renderGraph, in finalTextureHandle, m_Attachments.overlayUITexture, in finalBlitTarget, ref renderingData, needsColorEncoding);
+                finalTextureHandle = finalBlitTarget;
             }
             else
             {
-                m_FinalBlitPass.Render(renderGraph, ref renderingData, finalTextureHandle, m_Attachments.backBufferColor, m_Attachments.overlayUITexture);
+                m_FinalBlitPass.Render(renderGraph, ref renderingData, finalTextureHandle, finalBlitTarget, m_Attachments.overlayUITexture);
+                finalTextureHandle = finalBlitTarget;
             }
+
+            // We can explicitely render the overlay UI from URP when HDR output is not enabled.
+            // SupportedRenderingFeatures.active.rendersUIOverlay should also be set to true.
+            bool shouldRenderUI = renderingData.cameraData.rendersOverlayUI;
+            bool outputToHDR = renderingData.cameraData.isHDROutputActive;
+            if (shouldRenderUI && !outputToHDR)
+                m_DrawOverlayUIPass.RenderOverlay(renderGraph, in finalTextureHandle, ref renderingData);
+
+            // If HDR debug views are enabled, DebugHandler will perform the blit from debugScreenTexture (== finalTextureHandle) to backBufferColor.
+            DebugHandler?.Setup(ref renderingData);
+            DebugHandler?.Render(renderGraph, ref renderingData, finalTextureHandle, m_Attachments.overlayUITexture, m_Attachments.backBufferColor);
 
             if (drawGizmos)
                 DrawRenderGraphGizmos(renderGraph, m_Attachments.backBufferColor, m_Attachments.depthAttachment, GizmoSubset.PostImageEffects, ref renderingData);
@@ -337,6 +381,8 @@ namespace UnityEngine.Rendering.Universal
         {
             m_RenderGraphCameraColorHandle?.Release();
             m_RenderGraphCameraDepthHandle?.Release();
+            m_CameraSortingLayerHandle?.Release();
+            m_LightPass.Dispose();
         }
     }
 
@@ -345,9 +391,6 @@ namespace UnityEngine.Rendering.Universal
         static private ProfilingSampler s_ClearProfilingSampler = new ProfilingSampler("Clear Targets");
         private class PassData
         {
-            internal TextureHandle color;
-            internal TextureHandle depth;
-
             internal RTClearFlags clearFlags;
             internal Color clearColor;
         }
@@ -359,17 +402,17 @@ namespace UnityEngine.Rendering.Universal
             if (clearFlags != RTClearFlags.Color)
                 Debug.Assert(depthHandle.IsValid(), "Trying to clear an invalid depth target");
 
-            using (var builder = graph.AddRenderPass<PassData>("Clear Target", out var passData, s_ClearProfilingSampler))
+            using (var builder = graph.AddRasterRenderPass<PassData>("Clear Target", out var passData, s_ClearProfilingSampler))
             {
-                passData.color = builder.UseColorBuffer(colorHandle, 0);
+                builder.UseTextureFragment(colorHandle, 0);
                 if (depthHandle.IsValid())
-                    passData.depth = builder.UseDepthBuffer(depthHandle, DepthAccess.Write);
+                    builder.UseTextureFragmentDepth(depthHandle, IBaseRenderGraphBuilder.AccessFlags.Write);
                 passData.clearFlags = clearFlags;
                 passData.clearColor = clearColor;
 
                 builder.AllowPassCulling(false);
 
-                builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
+                builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
                 {
                     context.cmd.ClearRenderTarget(data.clearFlags, data.clearColor, 1, 0);
                 });

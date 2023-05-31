@@ -121,6 +121,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent materialIDText = new GUIContent("Material Type", "Specifies additional feature for this Material. Customize you Material with different settings depending on which Material Type you select.");
             public static GUIContent transmissionEnableText = new GUIContent("Transmission", "When enabled HDRP processes the transmission effect for subsurface scattering. Simulates the translucency of the object.");
             public static string transparentSSSErrorMessage = "Transparent Materials With SubSurface Scattering is not supported.";
+            public static GUIContent clearCoatEnabledText = new GUIContent("Clear Coat", "Controls whether the clear coat effect is enabled or not.");
 
             // Per pixel displacement
             public static GUIContent ppdMinSamplesText = new GUIContent("Minimum Steps", "Controls the minimum number of steps HDRP uses for per pixel displacement mapping.");
@@ -183,6 +184,7 @@ namespace UnityEditor.Rendering.HighDefinition
         MaterialProperty specularAAThreshold = null;
         const string kSpecularAAThreshold = "_SpecularAAThreshold";
         MaterialProperty transmissionEnable = null;
+        MaterialProperty clearCoatEnabled = null;
 
         // Per pixel displacement params
         MaterialProperty ppdMinSamples = null;
@@ -311,6 +313,7 @@ namespace UnityEditor.Rendering.HighDefinition
             blendMode = FindProperty(kBlendMode);
 
             transmissionEnable = FindProperty(kTransmissionEnable);
+            clearCoatEnabled = FindProperty(kClearCoatEnabled);
 
             if ((m_Features & Features.DoubleSidedNormalMode) != 0)
             {
@@ -741,6 +744,11 @@ namespace UnityEditor.Rendering.HighDefinition
                     materialEditor.ShaderProperty(transmissionEnable, Styles.transmissionEnableText);
                     EditorGUI.indentLevel--;
                 }
+            }
+
+            if (clearCoatEnabled != null)
+            {
+                materialEditor.ShaderProperty(clearCoatEnabled, Styles.clearCoatEnabledText);
             }
 
             // We only display the ray tracing option if the asset supports it (and the attributes exists in this shader)

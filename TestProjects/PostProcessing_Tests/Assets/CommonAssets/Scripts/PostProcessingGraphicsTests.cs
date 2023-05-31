@@ -18,7 +18,13 @@ public class PostProcessingGraphicsTests
         yield return null;
 
         var camera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
+
+#if UNITY_2020_3_OR_NEWER
+        var settings = Object.FindFirstObjectByType<PostProcessingGraphicsTestSettings>();
+#else
         var settings = Object.FindObjectOfType<PostProcessingGraphicsTestSettings>();
+#endif
+
         Assert.IsNotNull(settings, "Invalid test scene, couldn't find PostProcessingGraphicsTestSettings");
 
         for (int i = 0; i < settings.WaitFrames; i++)

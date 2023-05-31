@@ -35,6 +35,11 @@ namespace UnityEngine.Experimental.Rendering
         // MSAA level (number of samples per pixel) shared by all XR displays
         static MSAASamples s_MSAASamples = MSAASamples.None;
 
+#if ENABLE_VR && ENABLE_XR_MODULE
+        // Occlusion Mesh scaling factor
+        static float s_OcclusionMeshScaling = 1.0f;
+#endif
+
         // Internal resources used by XR rendering
         static Material s_OcclusionMeshMaterial;
         static Material s_MirrorViewMaterial;
@@ -91,10 +96,10 @@ namespace UnityEngine.Experimental.Rendering
 
             foveatedRenderingCaps = SystemInfo.foveatedRenderingCaps;
 
-            if (occlusionMeshPS != null)
+            if (occlusionMeshPS != null && s_OcclusionMeshMaterial == null)
                 s_OcclusionMeshMaterial = CoreUtils.CreateEngineMaterial(occlusionMeshPS);
 
-            if (mirrorViewPS != null)
+            if (mirrorViewPS != null && s_MirrorViewMaterial == null)
                 s_MirrorViewMaterial = CoreUtils.CreateEngineMaterial(mirrorViewPS);
 
             if (XRGraphicsAutomatedTests.enabled)
@@ -113,7 +118,7 @@ namespace UnityEngine.Experimental.Rendering
             s_MSAASamples = msaaSamples;
 
 #if ENABLE_VR && ENABLE_XR_MODULE
-            SubsystemManager.GetInstances(s_DisplayList);
+            SubsystemManager.GetSubsystems(s_DisplayList);
 
             foreach (var display in s_DisplayList)
                 display.SetMSAALevel((int)s_MSAASamples);
@@ -130,13 +135,66 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         /// <summary>
+        /// Used by the render pipeline to scale all occlusion meshes used by all XRPasses.
+        /// </summary>
+        /// <param name="occlusionMeshScale">A value of 1.0f represents 100% of the original mesh size. A value less or equal to 0.0f disables occlusion mesh draw. </param>
+        internal static void SetOcclusionMeshScale(float occlusionMeshScale)
+        {
+#if ENABLE_VR && ENABLE_XR_MODULE
+            Debug.Assert(occlusionMeshScale <= 1.0f);
+            s_OcclusionMeshScaling = occlusionMeshScale;
+#endif
+        }
+
+        /// <summary>
+        /// Returned value used by the render pipeline to scale all occlusion meshes used by all XRPasses.
+        /// </summary>
+        internal static float GetOcclusionMeshScale()
+        {
+#if ENABLE_VR && ENABLE_XR_MODULE
+            return s_OcclusionMeshScaling;
+#else
+            return 1.0f;
+#endif
+        }
+
+        /// <summary>
+        /// Used to communicate to the XR device how to render the XR MirrorView. Note: not all blit modes are supported by all providers. Blitmode set here serves as preference purpose.
+        /// </summary>
+        /// <param name="mirrorBlitMode"> Mirror view mode to be set as preferred. See `XRMirrorViewBlitMode` for the builtin blit modes. </param>
+        internal static void SetMirrorViewMode(int mirrorBlitMode)
+        {
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (s_Display == null)
+                return;
+
+            s_Display.SetPreferredMirrorBlitMode(mirrorBlitMode);
+#endif
+        }
+
+        /// <summary>
+        /// Get current blit modes preferred by XRDisplay
+        /// </summary>
+        internal static int GetMirrorViewMode()
+        {
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (s_Display == null)
+                return XRMirrorViewBlitMode.None;
+
+            return s_Display.GetPreferredMirrorBlitMode();
+#else
+            return 0;
+#endif
+        }
+
+        /// <summary>
         /// Used by the render pipeline to scale the render target on the XR device.
         /// </summary>
         /// <param name="renderScale">A value of 1.0f represents 100% of the original resolution.</param>
         public static void SetRenderScale(float renderScale)
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
-            SubsystemManager.GetInstances(s_DisplayList);
+            SubsystemManager.GetSubsystems(s_DisplayList);
 
             foreach (var display in s_DisplayList)
                 display.scaleOfAllRenderTargets = renderScale;
@@ -188,8 +246,17 @@ namespace UnityEngine.Experimental.Rendering
         /// </summary>
         public static void Dispose()
         {
-            CoreUtils.Destroy(s_OcclusionMeshMaterial);
-            CoreUtils.Destroy(s_MirrorViewMaterial);
+            if (s_OcclusionMeshMaterial != null)
+            {
+                CoreUtils.Destroy(s_OcclusionMeshMaterial);
+                s_OcclusionMeshMaterial = null;
+            }
+
+            if (s_MirrorViewMaterial != null)
+            {
+                CoreUtils.Destroy(s_MirrorViewMaterial);
+                s_MirrorViewMaterial = null;
+            }
         }
 
         // Used by the render pipeline to communicate to the XR device the range of the depth buffer.
@@ -223,7 +290,7 @@ namespace UnityEngine.Experimental.Rendering
         static void RefreshDeviceInfo()
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
-            SubsystemManager.GetInstances(s_DisplayList);
+            SubsystemManager.GetSubsystems(s_DisplayList);
 
             if (s_DisplayList.Count > 0)
             {
@@ -370,6 +437,7 @@ namespace UnityEngine.Experimental.Rendering
                 renderTargetDesc        = rtDesc,
                 cullingParameters       = cullingParameters,
                 occlusionMeshMaterial   = s_OcclusionMeshMaterial,
+                occlusionMeshScale      = GetOcclusionMeshScale(),
                 foveatedRenderingInfo   = xrRenderPass.foveatedRenderingInfo,
                 multipassId             = s_Layout.GetActivePasses().Count,
                 cullingPassId           = xrRenderPass.cullingPassIndex,

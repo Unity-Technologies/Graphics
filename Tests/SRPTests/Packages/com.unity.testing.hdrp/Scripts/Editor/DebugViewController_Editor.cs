@@ -23,6 +23,7 @@ public class DebugViewController_Editor : Editor
     SerializedProperty s_lightingTileClusterCategory;
     SerializedProperty s_lightingClusterDebugMode;
     SerializedProperty s_lightingClusterDistance;
+    SerializedProperty s_lightingShadowDebugMode;
 
     public void OnEnable()
     {
@@ -40,6 +41,8 @@ public class DebugViewController_Editor : Editor
         s_lightingTileClusterCategory = serializedObject.FindProperty("lightingTileClusterCategory");
         s_lightingClusterDebugMode = serializedObject.FindProperty("lightingClusterDebugMode");
         s_lightingClusterDistance = serializedObject.FindProperty("lightingClusterDistance");
+
+        s_lightingShadowDebugMode = serializedObject.FindProperty("lightingShadowDebugMode");
     }
 
     public override void OnInspectorGUI()
@@ -86,6 +89,7 @@ public class DebugViewController_Editor : Editor
                             }
                         }
                     }
+                    s_lightingShadowDebugMode.intValue = (int) (ShadowMapDebugMode) EditorGUILayout.EnumPopup(new GUIContent("Shadow Debug Mode"), (ShadowMapDebugMode)s_lightingShadowDebugMode.intValue);
                     break;
 
                 case DebugViewController.SettingType.Rendering:

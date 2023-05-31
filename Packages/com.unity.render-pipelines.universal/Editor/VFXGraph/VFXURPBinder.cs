@@ -18,6 +18,11 @@ namespace UnityEditor.VFX.URP
         public override string SRPAssetTypeStr { get { return "UniversalRenderPipelineAsset"; } }
         public override Type SRPOutputDataType { get { return null; } } // null by now but use VFXURPSubOutput when there is a need to store URP specific data
 
+        public override bool IsShaderVFXCompatible(Shader shader)
+        {
+            return shader.TryGetMetadataOfType<UniversalMetadata>(out var metadata) && metadata.isVFXCompatible;
+        }
+
         public override void SetupMaterial(Material material, bool hasMotionVector = false, bool hasShadowCasting = false, ShaderGraphVfxAsset shaderGraph = null)
         {
             ShaderUtils.UpdateMaterial(material, ShaderUtils.MaterialUpdateType.ModifiedShader, shaderGraph);
@@ -237,7 +242,7 @@ namespace UnityEditor.VFX.URP
                 },
 
                 fieldDependencies = ElementSpaceDependencies,
-                pragmasReplacement = new (PragmaDescriptor, PragmaDescriptor)[]
+                pragmasReplacement = new []
                 {
                     ( Pragma.Vertex("vert"), Pragma.Vertex("VertVFX") ),
 
@@ -246,12 +251,6 @@ namespace UnityEditor.VFX.URP
                     ( Pragma.Target(ShaderModel.Target30), Pragma.Target(ShaderModel.Target45) ),
                     ( Pragma.Target(ShaderModel.Target35), Pragma.Target(ShaderModel.Target45) ),
                     ( Pragma.Target(ShaderModel.Target40), Pragma.Target(ShaderModel.Target45) ),
-
-                    //Irrelevant general multicompile instancing (VFX will append them when needed)
-                    ( Pragma.MultiCompileInstancing, ShaderGraphBinder.kPragmaDescriptorNone),
-                    ( Pragma.InstancingOptions(InstancingOptions.RenderingLayer), ShaderGraphBinder.kPragmaDescriptorNone ),
-                    ( Pragma.InstancingOptions(InstancingOptions.NoLightProbe), ShaderGraphBinder.kPragmaDescriptorNone ),
-                    ( Pragma.InstancingOptions(InstancingOptions.NoLodFade), ShaderGraphBinder.kPragmaDescriptorNone ),
                 },
                 useFragInputs = false
             };

@@ -21,9 +21,9 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceShadows"
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
 #if UNITY_REVERSED_Z
-            float deviceDepth = SAMPLE_TEXTURE2D_X(_CameraDepthTexture, sampler_CameraDepthTexture, input.texcoord.xy).r;
+            float deviceDepth = SAMPLE_TEXTURE2D_X(_CameraDepthTexture, sampler_PointClamp, input.texcoord.xy).r;
 #else
-            float deviceDepth = SAMPLE_TEXTURE2D_X(_CameraDepthTexture, sampler_CameraDepthTexture, input.texcoord.xy).r;
+            float deviceDepth = SAMPLE_TEXTURE2D_X(_CameraDepthTexture, sampler_PointClamp, input.texcoord.xy).r;
             deviceDepth = deviceDepth * 2.0 - 1.0;
 #endif
 

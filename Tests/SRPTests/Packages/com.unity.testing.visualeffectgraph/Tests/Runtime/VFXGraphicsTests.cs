@@ -161,7 +161,7 @@ namespace UnityEngine.VFX.Test
                 {
                     camera.targetTexture = null;
 
-                    ImageAssert.AreEqual(testCase.ReferenceImage, camera, imageComparisonSettings);
+                    ImageAssert.AreEqual(testCase.ReferenceImage, camera, imageComparisonSettings, testCase.ReferenceImagePathLog);
 
                 }
                 finally

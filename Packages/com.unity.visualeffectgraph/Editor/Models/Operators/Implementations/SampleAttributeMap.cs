@@ -5,6 +5,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-SampleAttributeMap")]
     [VFXInfo(category = "Sampling", experimental = true)]
     class SampleAttributeMap : VFXOperatorDynamicType
     {

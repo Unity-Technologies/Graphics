@@ -24,10 +24,9 @@ namespace UnityEngine.Rendering.Universal
                 currentFrameIndex = Time.frameCount,
             };
 
-            using (renderGraph.RecordAndExecute(rgParams))
-            {
-                RecordRenderGraph(renderGraph, context, ref renderingData);
-            }
+            var executor = renderGraph.RecordAndExecute(rgParams);
+            RecordRenderGraph(renderGraph, context, ref renderingData);
+            executor.Dispose();
         }
     }
 }

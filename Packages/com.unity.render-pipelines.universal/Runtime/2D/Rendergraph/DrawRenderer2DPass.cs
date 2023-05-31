@@ -23,58 +23,43 @@ namespace UnityEngine.Rendering.Universal
             throw new NotImplementedException();
         }
 
-        private static void Execute(ScriptableRenderContext context, PassData passData, ref RenderingData renderingData, ref Renderer2DData rendererData)
+        private static void Execute(RasterGraphContext context, PassData passData)
         {
-            var isLitView = true;
-
-#if UNITY_EDITOR
-            if (renderingData.cameraData.isSceneViewCamera)
-                isLitView = UnityEditor.SceneView.currentDrawingSceneView.sceneLighting;
-
-            if (renderingData.cameraData.camera.cameraType == CameraType.Preview)
-                isLitView = false;
-#endif
-
-            var cmd = renderingData.commandBuffer;
+            var cmd = context.cmd;
             using (new ProfilingScope(cmd, m_ExecuteProfilingSampler))
             {
-                var blendStylesCount = rendererData.lightBlendStyles.Length;
+                var blendStylesCount = passData.lightBlendStyles.Length;
 
-                cmd.SetGlobalFloat(k_HDREmulationScaleID, rendererData.hdrEmulationScale);
-                cmd.SetGlobalFloat(k_UseSceneLightingID, isLitView ? 1.0f : 0.0f);
+                cmd.SetGlobalFloat(k_HDREmulationScaleID, passData.hdrEmulationScale);
+                cmd.SetGlobalFloat(k_UseSceneLightingID, passData.useSceneLighting ? 1.0f : 0.0f);
                 cmd.SetGlobalColor(k_RendererColorID, Color.white);
-                RendererLighting.SetLightShaderGlobals(rendererData, cmd);
+                RendererLighting.SetLightShaderGlobals(ref passData.lightBlendStyles, cmd);
 
-                if (passData.layerBatch.lightStats.useLights)
+                if (passData.layerUseLights)
                 {
                     for (var blendStyleIndex = 0; blendStyleIndex < blendStylesCount; blendStyleIndex++)
                     {
                         cmd.SetGlobalTexture(RendererLighting.k_ShapeLightTextureIDs[blendStyleIndex], passData.lightTextures[blendStyleIndex]);
 
                         var blendStyleMask = (uint)(1 << blendStyleIndex);
-                        var blendStyleUsed = (passData.layerBatch.lightStats.blendStylesUsed & blendStyleMask) > 0;
+                        var blendStyleUsed = (passData.layerBlendStylesUsed & blendStyleMask) > 0;
                         RendererLighting.EnableBlendStyle(cmd, blendStyleIndex, blendStyleUsed);
                     }
                 }
                 else
                 {
-                    if (rendererData.lightCullResult.IsSceneLit())
+                    if (passData.isSceneLit)
                     {
                         for (var blendStyleIndex = 0; blendStyleIndex < blendStylesCount; blendStyleIndex++)
                         {
-                            cmd.SetGlobalTexture(RendererLighting.k_ShapeLightTextureIDs[blendStyleIndex], Texture2D.blackTexture);
+                            cmd.SetGlobalTexture(RendererLighting.k_ShapeLightTextureIDs[blendStyleIndex], context.defaultResources.blackTexture);
                             RendererLighting.EnableBlendStyle(cmd, blendStyleIndex, blendStyleIndex == 0);
                         }
                     }
                 }
 
-                context.ExecuteCommandBuffer(cmd);
-                cmd.Clear();
-
                 // Draw all renderers in layer batch
-                var param = new RendererListParams(renderingData.cullResults, passData.drawSettings, passData.filterSettings);
-                var rl = context.CreateRendererList(ref param);
-                cmd.DrawRendererList(rl);
+                cmd.DrawRendererList(passData.rendererList);
 
                 RendererLighting.DisableAllKeywords(cmd);
             }
@@ -82,40 +67,58 @@ namespace UnityEngine.Rendering.Universal
 
         class PassData
         {
-            internal FilteringSettings filterSettings;
-            internal DrawingSettings drawSettings;
-            internal RenderingData renderingData;
-            internal Renderer2DData renderer2DData;
-            internal LayerBatch layerBatch;
+            internal bool useSceneLighting;
+            internal Light2DBlendStyle[] lightBlendStyles;
+            internal float hdrEmulationScale;
+            internal bool isSceneLit;
+            internal bool layerUseLights;
+            internal uint layerBlendStylesUsed;
             internal TextureHandle[] lightTextures;
+            internal RendererListHandle rendererList;
         }
 
         public void Render(RenderGraph graph, ref RenderingData renderingData, ref Renderer2DData rendererData, ref LayerBatch layerBatch, ref FilteringSettings filterSettings, in TextureHandle cameraColorAttachment, in TextureHandle cameraDepthAttachment, in TextureHandle[] lightTextures)
         {
-            using (var builder = graph.AddRenderPass<PassData>("Renderer 2D Pass", out var passData, m_ProfilingSampler))
+            using (var builder = graph.AddRasterRenderPass<PassData>("Renderer 2D Pass", out var passData, m_ProfilingSampler))
             {
-                passData.filterSettings = filterSettings;
-                passData.drawSettings = CreateDrawingSettings(k_ShaderTags, ref renderingData, SortingCriteria.CommonTransparent);
-                passData.renderingData = renderingData;
-                passData.renderer2DData = rendererData;
-                passData.layerBatch = layerBatch;
+                passData.useSceneLighting = true;
+
+#if UNITY_EDITOR
+                if (renderingData.cameraData.isSceneViewCamera)
+                    passData.useSceneLighting = UnityEditor.SceneView.currentDrawingSceneView.sceneLighting;
+
+                if (renderingData.cameraData.camera.cameraType == CameraType.Preview)
+                    passData.useSceneLighting = false;
+#endif
+
+                passData.lightBlendStyles = rendererData.lightBlendStyles;
+                passData.hdrEmulationScale = rendererData.hdrEmulationScale;
+                passData.isSceneLit = rendererData.lightCullResult.IsSceneLit();
+                passData.layerUseLights = layerBatch.lightStats.useLights;
+                passData.layerBlendStylesUsed = layerBatch.lightStats.blendStylesUsed;
+
+                var drawSettings = CreateDrawingSettings(k_ShaderTags, ref renderingData, SortingCriteria.CommonTransparent);
+                var param = new RendererListParams(renderingData.cullResults, drawSettings, filterSettings);
+                passData.rendererList = graph.CreateRendererList(param);
+                builder.UseRendererList(passData.rendererList);
 
                 if (layerBatch.lightStats.useLights)
                 {
                     passData.lightTextures = lightTextures;
                     for (var i = 0; i < lightTextures.Length; i++)
                     {
-                        passData.lightTextures[i] = builder.ReadTexture(lightTextures[i]);
+                        builder.UseTexture(lightTextures[i]);
                     }
                 }
 
-                builder.UseColorBuffer(cameraColorAttachment, 0);
-                builder.UseDepthBuffer(cameraDepthAttachment, DepthAccess.Write);
+                builder.UseTextureFragment(cameraColorAttachment, 0);
+                builder.UseTextureFragmentDepth(cameraDepthAttachment, IBaseRenderGraphBuilder.AccessFlags.Write);
                 builder.AllowPassCulling(false);
+                builder.AllowGlobalStateModification(true);
 
-                builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
+                builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
                 {
-                    Execute(context.renderContext, data, ref data.renderingData, ref data.renderer2DData);
+                    Execute(context, data);
                 });
             }
         }

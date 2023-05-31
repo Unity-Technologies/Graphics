@@ -23,6 +23,7 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     [Serializable, VolumeComponentMenu("Post-processing/Bloom")]
     [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
+    [URPHelpURL("post-processing-bloom")]
     public sealed partial class Bloom : VolumeComponent, IPostProcessComponent
     {
         /// <summary>

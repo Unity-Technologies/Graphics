@@ -5,9 +5,190 @@ using System.Linq;
 using System.Reflection;
 using UnityEditor;
 using UnityEditor.Rendering;
+using ActionTest = System.Action<UnityEngine.AnimationCurve, UnityEngine.AnimationCurve, UnityEngine.AnimationCurve, UnityEngine.Rendering.VolumeStack, UnityEngine.Rendering.VolumeManager>;
 
 namespace UnityEngine.Rendering.Tests
 {
+    public class VolumeComponentAnimCurveTests
+    {
+        #region Interpolation
+        static bool TestAnimationCurveInterp(AnimationCurve lhsCurve, AnimationCurve rhsCurve, float t, float startTime, float endTime, int numSteps, float eps, bool debugPrint)
+        {
+            AnimationCurve midCurve = new AnimationCurve(lhsCurve.keys);
+            KeyframeUtility.InterpAnimationCurve(ref midCurve, rhsCurve, t);
+
+            for (int i = 0; i <= numSteps; i++)
+            {
+                float timeT = ((float)i) / ((float)numSteps);
+                float currTime = Mathf.Lerp(startTime, endTime, timeT);
+
+                float lhsVal = lhsCurve.Evaluate(currTime);
+                float rhsVal = rhsCurve.Evaluate(currTime);
+
+                float expectedVal = Mathf.Lerp(lhsVal, rhsVal, t);
+
+                float actualVal = midCurve.Evaluate(currTime);
+
+                float offset = actualVal - expectedVal;
+                if (debugPrint)
+                {
+                    Debug.Log(i.ToString() + ": " + offset.ToString());
+                }
+
+                if (Mathf.Abs(offset) >= eps)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        static AnimationCurve CreateTestCurve(int index)
+        {
+            AnimationCurve testCurve = new AnimationCurve();
+            if (index == 0)
+            {
+                testCurve.AddKey(new Keyframe(0.0f, 3.0f, 2.0f, 2.0f));
+                testCurve.AddKey(new Keyframe(4.0f, 2.0f, -1.0f, -1.0f));
+                testCurve.AddKey(new Keyframe(7.0f, 2.6f, -1.0f, -1.0f));
+            }
+            else if (index == 1)
+            {
+                testCurve.AddKey(new Keyframe(-1.0f, 3.0f, 2.0f, 2.0f));
+                testCurve.AddKey(new Keyframe(4.0f, 2.0f, 3.0f, 3.0f));
+                testCurve.AddKey(new Keyframe(5.0f, 2.6f, 0.0f, 0.0f));
+                testCurve.AddKey(new Keyframe(9.0f, 2.6f, -5.0f, -5.0f));
+            }
+            else if (index == 2)
+            {
+                // Needed for the same positions as curve 0 but different values and tangents
+                testCurve.AddKey(new Keyframe(0.0f, 1.0f, -1.0f, 3.0f));
+                testCurve.AddKey(new Keyframe(4.0f, 6.0f, -9.0f, -2.0f));
+                testCurve.AddKey(new Keyframe(7.0f, 5.2f, -3.0f, -4.0f));
+            }
+            else
+            {
+                // Need for the test case where two curves have no overlap
+                testCurve.AddKey(new Keyframe(11.0f, 1.0f, -1.0f, 3.0f));
+                testCurve.AddKey(new Keyframe(14.0f, 6.0f, -9.0f, -2.0f));
+                testCurve.AddKey(new Keyframe(17.0f, 5.2f, -3.0f, -4.0f));
+            }
+
+            return testCurve;
+        }
+
+        static TestCaseData[] s_AnimationCurveTestDatas =
+        {
+            new TestCaseData(CreateTestCurve(0), CreateTestCurve(1), 0.25f)
+                .SetName("CurveTest 1"),
+            new TestCaseData(CreateTestCurve(1), CreateTestCurve(2), 0.25f)
+                .SetName("CurveTest 2"),
+            new TestCaseData(CreateTestCurve(0), CreateTestCurve(2), 0.25f)
+                .SetName("CurveTest Same Positions"),
+            new TestCaseData(CreateTestCurve(0), CreateTestCurve(3), 0.25f)
+                .SetName("CurveTest No Overlap"),
+        };
+
+        [Test, TestCaseSource(nameof(s_AnimationCurveTestDatas))]
+        public void RenderInterpolateAnimationCurve(AnimationCurve lhsCurve, AnimationCurve rhsCurve, float t)
+        {
+            Assert.IsTrue(TestAnimationCurveInterp(lhsCurve, rhsCurve, t, -5.0f, 20.0f, 100, 1e-5f, false));
+        }
+
+        #endregion
+
+        class TestAnimationCurveVolumeComponent : VolumeComponent
+        {
+            public AnimationCurveParameter testParameter = new (AnimationCurve.Linear(0.5f, 10.0f, 1.0f, 15.0f), true);
+        }
+
+        static TestCaseData[] s_AnimationCurveKeysNotSharedTestDatas =
+        {
+            new TestCaseData(null)
+                .SetName("Reloading the stack makes the parameters be the same as TestAnimationCurveVolumeComponent")
+                .Returns((2,2,2)),
+            new TestCaseData((ActionTest)((parameterInterpolated, _, _, stack, volumeManager) =>
+                {
+                    // The replace data will call: AnimationCurveParameter.SetValue make sure the C++ reference is not shared
+                    volumeManager.ReplaceData(stack);
+
+                    // Check that the value that stores the interpolated data, if is modified both default values are modified
+                    parameterInterpolated.RemoveKey(1);
+                }))
+                .SetName("When Replacing the current interpolated values by the ones in the default, applying modifications to the interpolated parameter do not modify the default parameters")
+                .Returns((1,2,2)),
+            new TestCaseData((ActionTest)((_, _, defaultComponentParameterUsedToInitializeStack, _, _) =>
+                {
+                    defaultComponentParameterUsedToInitializeStack.AddKey(0.0f, 1.0f);
+                }))
+                .SetName("When modifying the default component used to initialize the stack, the parameters on the stack remain the same, as they should be cloned")
+                .Returns((2,2,3)),
+            new TestCaseData((ActionTest)((_, defaultParameterForFastAccess, _, _, _) =>
+                {
+                    defaultParameterForFastAccess.AddKey(0.0f, 1.0f);
+                    defaultParameterForFastAccess.AddKey(0.6f, 2.0f);
+                }))
+                .SetName("Check that the default parameter on the stack do not modifies the interpolated value or either the default used to initialize the stack")
+                .Returns((2,4,2)),
+            new TestCaseData((ActionTest)((_, defaultParameterForFastAccess, _, stack, volumeManager) =>
+                {
+                    defaultParameterForFastAccess.AddKey(0.0f, 1.0f);
+                    defaultParameterForFastAccess.AddKey(0.6f, 2.0f);
+
+                    volumeManager.ReplaceData(stack);
+                }))
+                .SetName("Check that ReplaceData should have modified the interpolated value with the default value stored in the stack and not the one used from the default")
+                .Returns((4,4,2)),
+            new TestCaseData((ActionTest)((_, _, _, stack, _) =>
+                {
+                    stack.Clear();
+                }))
+                .SetName("Check that clearing the stack should modify and release memory from the volume components that are locally in the stack, but not the default volume used to initialize the stack or the parameterDefaultState stored in VolumeManager")
+                .Returns((-1,2,2)),
+        };
+
+        private TestAnimationCurveVolumeComponent m_DefaultComponent;
+
+        [SetUp]
+        public void Setup()
+        {
+            m_DefaultComponent = ScriptableObject.CreateInstance<TestAnimationCurveVolumeComponent>();
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            ScriptableObject.DestroyImmediate(m_DefaultComponent);
+        }
+
+        [Test, Description("UUM-20458, UUM-20456"), TestCaseSource(nameof(s_AnimationCurveKeysNotSharedTestDatas))]
+        public (int, int, int) AnimationCurveParameterKeysAreNotShared(ActionTest actionToPerform)
+        {
+            var vm = new VolumeManager();
+            vm.baseComponentTypeArray = new[] {typeof(TestAnimationCurveVolumeComponent)};
+            vm.EvaluateVolumeDefaultState();
+
+            // Initialize the stack
+            var stack = vm.CreateStack();
+
+            actionToPerform?.Invoke(
+                stack.parameters[0].GetValue<AnimationCurve>(),                 // parameterInterpolated
+                vm.m_ParametersDefaultState[0].GetValue<AnimationCurve>(),      // defaultParameterForFastAccess
+                m_DefaultComponent.testParameter.GetValue<AnimationCurve>(),    // defaultComponentParameterUsedToInitializeStack
+                stack,
+                vm);
+
+            return (
+                stack.parameters == null ?
+                    -1 : stack.parameters[0].GetValue<AnimationCurve>().length,                 // parameterInterpolated
+                vm.m_ParametersDefaultState == null ?
+                    -1 : vm.m_ParametersDefaultState[0].GetValue<AnimationCurve>().length,      // defaultParameterForFastAccess
+                m_DefaultComponent.testParameter.GetValue<AnimationCurve>().length              // defaultComponentParameterUsedToInitializeStack
+                );
+        }
+    }
+
     public class VolumeComponentEditorTests
     {
 #pragma warning disable CS0618
@@ -178,140 +359,27 @@ namespace UnityEngine.Rendering.Tests
         [Test]
         public void TestSupportedOnAvoidedIfHideInInspector()
         {
-            Type[] types = new[]
+            Type[] componentTypesWithHideInInspectorAttribute =
             {
                 typeof(VolumeComponentNoAdditionalAttributes),
                 typeof(VolumeComponentAllAdditionalAttributes),
                 typeof(VolumeComponentMixedAdditionalAttributes)
             };
 
-            Type volumeComponentProvider = ReflectionUtils.FindTypeByName("UnityEngine.Rendering.VolumeManager");
-            var volumeComponents = volumeComponentProvider.InvokeStatic("FilterVolumeComponentTypes",
-                types, typeof(RenderPipeline), typeof(RenderPipelineAsset)) as List<(string, Type)>;
+            var volumeManager = new VolumeManager();
+            volumeManager.Initialize();
 
+            var types = volumeManager.baseComponentTypeArray;
+            Assert.NotNull(types);
+            foreach (var t in componentTypesWithHideInInspectorAttribute)
+                Assert.True(types.Contains(t));
 
-            Assert.NotNull(volumeComponents);
-            Assert.False(volumeComponents.Any());
-        }
+            var typesForDisplay = volumeManager.GetVolumeComponentsForDisplay(typeof(RenderPipelineAsset));
+            Assert.NotNull(typesForDisplay);
+            foreach (var t in componentTypesWithHideInInspectorAttribute)
+                Assert.False(typesForDisplay.Any(p => p.Item2 == t));
 
-        static private bool TestAnimationCurveInterp(AnimationCurve lhsCurve, AnimationCurve rhsCurve, float t, float startTime, float endTime, int numSteps, float eps, bool debugPrint)
-        {
-            AnimationCurve midCurve = new AnimationCurve(lhsCurve.keys);
-            KeyframeUtility.InterpAnimationCurve(ref midCurve, rhsCurve, t);
-
-            for (int i = 0; i <= numSteps; i++)
-            {
-                float timeT = ((float)i) / ((float)numSteps);
-                float currTime = Mathf.Lerp(startTime, endTime, timeT);
-
-                float lhsVal = lhsCurve.Evaluate(currTime);
-                float rhsVal = rhsCurve.Evaluate(currTime);
-
-                float expectedVal = Mathf.Lerp(lhsVal, rhsVal, t);
-
-                float actualVal = midCurve.Evaluate(currTime);
-
-                float offset = actualVal - expectedVal;
-                if (debugPrint)
-                {
-                    Debug.Log(i.ToString() + ": " + offset.ToString());
-                }
-
-                if (Mathf.Abs(offset) >= eps)
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        static private AnimationCurve CreateTestCurve(int index)
-        {
-            AnimationCurve testCurve = new AnimationCurve();
-            if (index == 0)
-            {
-                testCurve.AddKey(new Keyframe(0.0f, 3.0f, 2.0f, 2.0f));
-                testCurve.AddKey(new Keyframe(4.0f, 2.0f, -1.0f, -1.0f));
-                testCurve.AddKey(new Keyframe(7.0f, 2.6f, -1.0f, -1.0f));
-            }
-            else if (index == 1)
-            {
-                testCurve.AddKey(new Keyframe(-1.0f, 3.0f, 2.0f, 2.0f));
-                testCurve.AddKey(new Keyframe(4.0f, 2.0f, 3.0f, 3.0f));
-                testCurve.AddKey(new Keyframe(5.0f, 2.6f, 0.0f, 0.0f));
-                testCurve.AddKey(new Keyframe(9.0f, 2.6f, -5.0f, -5.0f));
-            }
-            else if (index == 2)
-            {
-                // Needed for the same positions as curve 0 but different values and tangents
-                testCurve.AddKey(new Keyframe(0.0f, 1.0f, -1.0f, 3.0f));
-                testCurve.AddKey(new Keyframe(4.0f, 6.0f, -9.0f, -2.0f));
-                testCurve.AddKey(new Keyframe(7.0f, 5.2f, -3.0f, -4.0f));
-            }
-            else
-            {
-                // Need for the test case where two curves have no overlap
-                testCurve.AddKey(new Keyframe(11.0f, 1.0f, -1.0f, 3.0f));
-                testCurve.AddKey(new Keyframe(14.0f, 6.0f, -9.0f, -2.0f));
-                testCurve.AddKey(new Keyframe(17.0f, 5.2f, -3.0f, -4.0f));
-            }
-
-            return testCurve;
-        }
-
-        public class AnimationCurveTestPair
-        {
-            public AnimationCurve lhsCurve;
-            public AnimationCurve rhsCurve;
-            public float t;
-            public string testName;
-        };
-
-        static object[] s_AnimationCurveTestPairs =
-        {
-            new AnimationCurveTestPair
-            {
-                lhsCurve = CreateTestCurve(0),
-                rhsCurve = CreateTestCurve(1),
-                t = 0.25f,
-                testName = "CurveTest 1"
-            },
-            new AnimationCurveTestPair
-            {
-                lhsCurve = CreateTestCurve(1),
-                rhsCurve = CreateTestCurve(2),
-                t = 0.25f,
-                testName = "CurveTest 2"
-            },
-            new AnimationCurveTestPair
-            {
-                lhsCurve = CreateTestCurve(0),
-                rhsCurve = CreateTestCurve(2),
-                t = 0.25f,
-                testName = "CurveTest Same Positions"
-            },
-            new AnimationCurveTestPair
-            {
-                lhsCurve = CreateTestCurve(0),
-                rhsCurve = CreateTestCurve(3),
-                t = 0.25f,
-                testName = "CurveTest No Overlap"
-            }
-        };
-
-        [Test, TestCaseSource(nameof(s_AnimationCurveTestPairs))]
-        public void RenderInterpolateAnimationCurve(AnimationCurveTestPair testPairData)
-        {
-            AnimationCurve lhsCurve = testPairData.lhsCurve;
-            AnimationCurve rhsCurve = testPairData.rhsCurve;
-
-            bool success = TestAnimationCurveInterp(lhsCurve, rhsCurve, testPairData.t, -5.0f, 20.0f, 100, 1e-5f, false);
-            if (!success)
-            {
-                Debug.Log("Animation Curve Test Failed: " + testPairData.testName);
-            }
-            Assert.IsTrue(success);
+            volumeManager.Deinitialize();
         }
     }
 }

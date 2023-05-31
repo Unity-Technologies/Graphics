@@ -43,7 +43,7 @@ void ClosestHitGBuffer(inout RayIntersectionGBuffer rayIntersectionGbuffer : SV_
 
     // Then export it to the gbuffer
     EncodeIntoStandardGBuffer(standardLitData, rayIntersectionGbuffer.gbuffer0, rayIntersectionGbuffer.gbuffer1, rayIntersectionGbuffer.gbuffer2, rayIntersectionGbuffer.gbuffer3);
-    rayIntersectionGbuffer.t = standardLitData.isUnlit != 0 ? RAY_TRACING_DISTANCE_FLAG_UNLIT : RayTCurrent();
+    rayIntersectionGbuffer.t = standardLitData.isUnlit != 0 ? -RayTCurrent() : RayTCurrent();
 }
 
 // Generic function that handles the reflection code

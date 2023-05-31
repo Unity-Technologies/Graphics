@@ -104,17 +104,14 @@ void RaytracingReflectionsHalfRes(uint3 dispatchThreadId : SV_DispatchThreadID, 
     // Compute the pixel position to process
     uint2 halfResCoord = groupId * RAYTRACING_REFLECTIONS_TILE_SIZE + groupThreadId;
 
-    // Pixel where we will store the result of the direction generation
-    uint2 outputCoord = halfResCoord * 2;
-
     // Pixel coordinate in full res that we will be using to pick depth, normal and smoothness values.
-    uint2 sourceCoord = ComputeSourceCoordinates(halfResCoord, _RaytracingFrameIndex);
+    uint2 sourceCoord = ComputeSourceCoordinates(halfResCoord, _RayTracingCheckerIndex);
 
     // Read the depth value
     float depthValue = LOAD_TEXTURE2D_X(_DepthTexture, sourceCoord).r;
 
     // We initialize the output texture in case we early return. The last channel is set to -1.0 to mark the invalidity of the direction.
-    _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(outputCoord)] = float4(0.0, 0.0, 0.0, -1.0);
+    _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(sourceCoord)] = float4(0.0, 0.0, 0.0, -1.0);
 
     // This point is part of the background, we don't really care
     if (depthValue == UNITY_RAW_FAR_CLIP_VALUE)
@@ -145,14 +142,14 @@ void RaytracingReflectionsHalfRes(uint3 dispatchThreadId : SV_DispatchThreadID, 
     float roughness = PerceptualRoughnessToRoughness(normalData.perceptualRoughness);
 
     // Generate a GGX direction
-    GGXSample ggxSample = GenerateGGXSampleDirection(halfResCoord, normalData.normalWS, viewWS, roughness, _RaytracingFrameIndex);
+    GGXSample ggxSample = GenerateGGXSampleDirection(halfResCoord, normalData.normalWS, viewWS, roughness, _RayTracingReflectionFrameIndex);
 
     // If we failed, return.
     if (dot(ggxSample.direction, normalData.normalWS) <= 0.00f)
         return;
 
     // Store the generated direction and inverted PDF
-    _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(outputCoord)] = float4(ggxSample.direction, 1.0 / ggxSample.pdf);
+    _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(sourceCoord)] = float4(ggxSample.direction, 1.0 / ggxSample.pdf);
 }
 
 [numthreads(RAYTRACING_REFLECTIONS_TILE_SIZE, RAYTRACING_REFLECTIONS_TILE_SIZE, 1)]
@@ -163,17 +160,14 @@ void RaytracingReflectionsTransparentHalfRes(uint3 dispatchThreadId : SV_Dispatc
     // Compute the pixel position to process
     uint2 halfResCoord = groupId * RAYTRACING_REFLECTIONS_TILE_SIZE + groupThreadId;
 
-    // Pixel where we will store the result of the direction generation
-    uint2 outputCoord = halfResCoord * 2;
-
     // Pixel coordinate in full res that we will be using to pick depth and normal
-    uint2 sourceCoord = ComputeSourceCoordinates(halfResCoord, _RaytracingFrameIndex);
+    uint2 sourceCoord = ComputeSourceCoordinates(halfResCoord, _RayTracingCheckerIndex);
 
     // Read the depth value
     float depthValue = LOAD_TEXTURE2D_X(_DepthTexture, sourceCoord).r;
 
     // We initialize the output texture in case we early return. The last channel is set to -1.0 to mark the invalidity of the direction.
-    _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(outputCoord)] = float4(0.0, 0.0, 0.0, -1.0);
+    _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(sourceCoord)] = float4(0.0, 0.0, 0.0, -1.0);
 
     // This point is part of the background, we don't really care
     if (depthValue == UNITY_RAW_FAR_CLIP_VALUE)
@@ -199,7 +193,7 @@ void RaytracingReflectionsTransparentHalfRes(uint3 dispatchThreadId : SV_Dispatc
         return;
 
     // Store the reflected direction and 1.0 in the w channel.
-    _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(outputCoord)] = float4(reflect(-viewWS, normalData.normalWS), 1.0);
+    _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(sourceCoord)] = float4(reflect(-viewWS, normalData.normalWS), 1.0);
 }
 
 [numthreads(RAYTRACING_REFLECTIONS_TILE_SIZE, RAYTRACING_REFLECTIONS_TILE_SIZE, 1)]
@@ -245,7 +239,7 @@ void RaytracingReflectionsFullRes(uint3 dispatchThreadId : SV_DispatchThreadID, 
     float roughness = PerceptualRoughnessToRoughness(normalData.perceptualRoughness);
 
     // Generate a GGX direction
-    GGXSample ggxSample = GenerateGGXSampleDirection(currentCoord, normalData.normalWS, viewWS, roughness, _RaytracingFrameIndex);
+    GGXSample ggxSample = GenerateGGXSampleDirection(currentCoord, normalData.normalWS, viewWS, roughness, _RayTracingReflectionFrameIndex);
 
     // If we failed, return.
     if (dot(ggxSample.direction, normalData.normalWS) <= 0.00f)

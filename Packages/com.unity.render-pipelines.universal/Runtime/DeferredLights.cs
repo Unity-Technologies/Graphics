@@ -140,6 +140,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         // Color buffer count (not including dephStencil).
         internal int GBufferSliceCount { get { return 4 + (UseRenderPass ? 1 : 0) + (UseShadowMask ? 1 : 0) + (UseRenderingLayers ? 1 : 0); } }
 
+        internal int GBufferInputAttachmentCount { get { return 4 + (UseShadowMask ? 1 : 0); } }
+
         internal GraphicsFormat GetGBufferFormat(int index)
         {
             if (index == GBufferAlbedoIndex) // sRGB albedo, materialFlags
@@ -153,7 +155,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             else if (index == GbufferDepthIndex) // Render-pass on mobiles: reading back real depth-buffer is either inefficient (Arm Vulkan) or impossible (Metal).
                 return GraphicsFormat.R32_SFloat;
             else if (index == GBufferShadowMask) // Optional: shadow mask is outputed in mixed lighting subtractive mode for non-static meshes only
-                return GraphicsFormat.R8G8B8A8_UNorm;
+                return GraphicsFormat.B8G8R8A8_UNorm;
             else if (index == GBufferRenderingLayers) // Optional: rendering layers is outputed when light layers are enabled (subset of rendering layers)
                 return RenderingLayerUtils.GetFormat(RenderingLayerMaskSize);
             else
@@ -265,7 +267,33 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_LightCookieManager = initParams.lightCookieManager;
         }
 
-        internal void SetupLights(ScriptableRenderContext context, ref RenderingData renderingData)
+        static ProfilingSampler s_SetupDeferredLights = new ProfilingSampler("Setup Deferred lights.");
+        private class SetupLightPassData
+        {
+            internal RenderingData renderingData;
+            internal DeferredLights deferredLights;
+        };
+        /// <summary>
+        /// Sets up the ForwardLight data for RenderGraph execution
+        /// </summary>
+        internal void SetupRenderGraphLights(RenderGraph renderGraph, ref RenderingData renderingData)
+        {
+            using (var builder = renderGraph.AddLowLevelPass<SetupLightPassData>("SetupDeferredLights", out var passData,
+                s_SetupDeferredLights))
+            {
+                passData.renderingData = renderingData;
+                passData.deferredLights = this;
+
+                builder.AllowPassCulling(false);
+
+                builder.SetRenderFunc((SetupLightPassData data, LowLevelGraphContext rgContext) =>
+                {
+                    data.deferredLights.SetupLights(rgContext.legacyCmd, ref data.renderingData);
+                });
+            }
+        }
+
+        internal void SetupLights(CommandBuffer cmd, ref RenderingData renderingData)
         {
             Profiler.BeginSample(k_SetupLights);
 
@@ -286,7 +314,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             );
 
             {
-                var cmd = renderingData.commandBuffer;
                 using (new ProfilingScope(cmd, m_ProfilingSetupLightConstants))
                 {
                     // Shared uniform constants for all lights.
@@ -314,9 +341,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                     RenderingLayerUtils.SetupProperties(CommandBufferHelpers.GetRasterCommandBuffer(cmd), RenderingLayerMaskSize);
                 }
-
-                context.ExecuteCommandBuffer(cmd);
-                cmd.Clear();
             }
 
             Profiler.EndSample();
@@ -375,8 +399,27 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // Release the old handles before creating the new one
                 for (int i = 0; i < this.GbufferRTHandles.Length; ++i)
                 {
-                    RTHandles.Release(this.GbufferRTHandles[i]);
+                    if (i == GBufferLightingIndex) // Not on GBuffer to release
+                        continue;
+                    this.GbufferRTHandles[i].Release();
+                    this.GbufferAttachments[i].Release();
                 }
+            }
+        }
+
+        internal void ReAllocateGBufferIfNeeded(RenderTextureDescriptor gbufferSlice, int gbufferIndex)
+        {
+            if (this.GbufferRTHandles != null)
+            {
+                // In case DeferredLight does not own the RTHandle, we can skip realloc.
+                if (this.GbufferRTHandles[gbufferIndex].GetInstanceID() != this.GbufferAttachments[gbufferIndex].GetInstanceID())
+                    return;
+
+                gbufferSlice.depthBufferBits = 0; // make sure no depth surface is actually created
+                gbufferSlice.stencilFormat = GraphicsFormat.None;
+                gbufferSlice.graphicsFormat = GetGBufferFormat(gbufferIndex);
+                RenderingUtils.ReAllocateIfNeeded(ref GbufferRTHandles[gbufferIndex], gbufferSlice, FilterMode.Point, TextureWrapMode.Clamp, name: k_GBufferNames[gbufferIndex]);
+                GbufferAttachments[gbufferIndex] = GbufferRTHandles[gbufferIndex];
             }
         }
 
@@ -406,6 +449,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             this.DeferredInputAttachments[1] = this.GbufferAttachments[1];
             this.DeferredInputAttachments[2] = this.GbufferAttachments[2];
             this.DeferredInputAttachments[3] = this.GbufferAttachments[4];
+            if (UseShadowMask)
+                this.DeferredInputAttachments[4] = this.GbufferAttachments[GBufferShadowMask];
         }
 
         internal bool IsRuntimeSupportedThisFrame()
@@ -434,15 +479,17 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             if (this.DeferredInputAttachments == null && this.UseRenderPass && this.GbufferAttachments.Length >= 3)
             {
-                this.DeferredInputAttachments = new RTHandle[4]
+                var inputCount = 4 + (UseShadowMask ?  1 : 0);
+                this.DeferredInputAttachments = new RTHandle[inputCount];
+                this.DeferredInputIsTransient = new bool[inputCount];
+                int i, j = 0;
+                for (i = 0; i < inputCount; i++, j++)
                 {
-                    GbufferAttachments[0], GbufferAttachments[1], GbufferAttachments[2], GbufferAttachments[4],
-                };
-
-                this.DeferredInputIsTransient = new bool[4]
-                {
-                    true, true, true, false
-                };
+                    if (j == GBufferLightingIndex)
+                        j++;
+                    DeferredInputAttachments[i] = GbufferAttachments[j];
+                    DeferredInputIsTransient[i] = j != GbufferDepthIndex;
+                }
             }
             this.DepthAttachmentHandle = this.DepthAttachment;
         }

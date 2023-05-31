@@ -203,9 +203,10 @@ namespace UnityEditor.ShaderGraph
             asset.slotDependencies.Clear();
 
             ShaderStageCapability effectiveShaderStage = ShaderStageCapability.All;
+            var shaderStageCapabilityCache = new Dictionary<SlotReference, ShaderStageCapability>();
             foreach (var slot in outputSlots)
             {
-                var stage = NodeUtils.GetEffectiveShaderStageCapability(slot, true);
+                var stage = NodeUtils.GetEffectiveShaderStageCapability(slot, true, shaderStageCapabilityCache);
                 if (effectiveShaderStage == ShaderStageCapability.All && stage != ShaderStageCapability.All)
                     effectiveShaderStage = stage;
 
@@ -299,7 +300,7 @@ namespace UnityEditor.ShaderGraph
                     var prop = propertiesList.Find(p => p.guid == child.guid);
                     // Not all properties in the category are actually on the graph.
                     // In particular, it seems as if keywords are not properties on sub-graphs.
-                    if (prop != null)
+                    if (prop != null  && !orderedProperties.Contains(prop))
                         orderedProperties.Add(prop);
                 }
             }
@@ -493,6 +494,8 @@ namespace UnityEditor.ShaderGraph
             // contributing to the same input, so we cache these in a map while building
             var inputCapabilities = new Dictionary<string, SlotCapability>();
 
+            var shaderStageCapabilityCache = new Dictionary<SlotReference, ShaderStageCapability>();
+
             // Walk all property node output slots, computing and caching the capabilities for that slot
             var propertyNodes = graph.GetNodes<PropertyNode>();
             foreach (var propertyNode in propertyNodes)
@@ -507,7 +510,7 @@ namespace UnityEditor.ShaderGraph
                         capabilityInfo.slotName = slotName;
                         inputCapabilities.Add(propertyNode.property.displayName, capabilityInfo);
                     }
-                    capabilityInfo.capabilities &= NodeUtils.GetEffectiveShaderStageCapability(slot, false);
+                    capabilityInfo.capabilities &= NodeUtils.GetEffectiveShaderStageCapability(slot, false, shaderStageCapabilityCache);
                 }
             }
             asset.inputCapabilities.AddRange(inputCapabilities.Values);

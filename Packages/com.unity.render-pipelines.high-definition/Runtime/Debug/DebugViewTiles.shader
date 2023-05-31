@@ -165,9 +165,12 @@ Shader "Hidden/HDRP/DebugViewTiles"
 
                 PositionInputs posInput = GetPositionInput(pixelCoord.xy, _ClusterDebugLightViewportSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, pixelCoord / GetTileSize());
 
+                // Ensure the mouse pixel coord is always within the screen to avoid calculating tileCoords outside of [0, NumTiles)
+                int2 mousePixelCoordClamped = clamp(_MousePixelCoord.xy, int2(0, 0), _ScreenSize.xy);
+
                 float2 debugViewportScaling = _ClusterDebugLightViewportSize.xy / _ScreenSize.xy;
                 int2 tileCoord = (float2)pixelCoord / GetTileSize();
-                int2 mouseTileCoord = (_MousePixelCoord.xy * debugViewportScaling) / GetTileSize();
+                int2 mouseTileCoord = (mousePixelCoordClamped * debugViewportScaling) / GetTileSize();
                 int2 offsetInTile = pixelCoord - tileCoord * GetTileSize();
 
                 int n = 0;

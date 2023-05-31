@@ -8,7 +8,9 @@
         "Unity.VisualEffectGraph.Editor",
         "UnityEditor.TestTools.Graphics",
         "UnityEngine.TestRunner",
-        "UnityEditor.TestRunner"
+        "UnityEditor.TestRunner",
+        "Unity.Timeline",
+        "Unity.Timeline.Editor"
     ],
     "includePlatforms": [
         "Editor"
@@ -23,6 +25,17 @@
     "defineConstraints": [
         "UNITY_INCLUDE_TESTS"
     ],
-    "versionDefines": [],
+    "versionDefines": [
+    {
+        "name": "com.unity.timeline",
+        "expression": "[0.0.0-builtin]",
+        "define": "VFX_HAS_TIMELINE"
+    },
+    {
+        "name": "com.unity.timeline",
+        "expression": "1.0.0",
+        "define": "VFX_HAS_TIMELINE"
+    }
+    ],
     "noEngineReferences": false
 }

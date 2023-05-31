@@ -22,6 +22,15 @@ namespace UnityEngine.Rendering.Universal
             m_AdditionalLightsShadowCasterPass = new AdditionalLightsShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
         }
 
+        /// <inheritdoc />
+        protected override void Dispose(bool disposing)
+        {
+            m_MainLightShadowCasterPass?.Dispose();
+            m_AdditionalLightsShadowCasterPass?.Dispose();
+
+            base.Dispose(disposing);
+        }
+
         public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             ConfigureCameraTarget(k_CameraTarget, k_CameraTarget);
@@ -42,9 +51,22 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(m_AdditionalLightsShadowCasterPass);
         }
 
+
+        static ProfilingSampler s_SetupLights = new ProfilingSampler("Setup URP lights.");
+        private class SetupLightPassData
+        {
+            internal RenderingData renderingData;
+            internal ForwardLights forwardLights;
+        };
+        private void SetupRenderGraphLights(RenderGraph renderGraph, ref RenderingData renderingData)
+        {
+            m_ForwardLights.SetupRenderGraphLights(renderGraph, ref renderingData);
+        }
+
         internal override void OnRecordRenderGraph(RenderGraph renderGraph, ScriptableRenderContext context, ref RenderingData renderingData)
         {
             m_ForwardLights.PreSetup(ref renderingData);
+            SetupRenderGraphLights(renderGraph, ref renderingData);
 
             TextureHandle mainShadowsTexture = TextureHandle.nullHandle;
             TextureHandle additionalShadowsTexture = TextureHandle.nullHandle;
@@ -56,8 +78,8 @@ namespace UnityEngine.Rendering.Universal
 
             SetupRenderGraphCameraProperties(renderGraph, ref renderingData, true);
 
-            var targetHandle = renderGraph.ImportBackbuffer(BuiltinRenderTextureType.CameraTarget);
-            var depthHandle = renderGraph.ImportBackbuffer(BuiltinRenderTextureType.Depth);
+            var targetHandle = renderGraph.ImportBackbuffer(BuiltinRenderTextureType.CurrentActive);
+            var depthHandle = renderGraph.ImportBackbuffer(BuiltinRenderTextureType.CurrentActive);
 
             ClearTargetsPass.Render(renderGraph, targetHandle, depthHandle, renderingData.cameraData);
 
@@ -66,7 +88,7 @@ namespace UnityEngine.Rendering.Universal
 
         public override void SetupLights(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            m_ForwardLights.Setup(context, ref renderingData);
+            m_ForwardLights.SetupLights(renderingData.commandBuffer, ref renderingData);
         }
     }
 }

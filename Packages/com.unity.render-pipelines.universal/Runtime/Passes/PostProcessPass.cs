@@ -491,7 +491,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.MotionBlur)))
                 {
-                    DoMotionBlur(cmd, GetSource(), GetDestination(), ref cameraData);
+                    DoMotionBlur(cmd, GetSource(), GetDestination(), m_MotionVectors, ref cameraData);
                     Swap(ref renderer);
                 }
             }
@@ -506,7 +506,6 @@ namespace UnityEngine.Rendering.Universal
                     Swap(ref renderer);
                 }
             }
-
 
             // Combined post-processing stack
             using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.UberPostProcess)))
@@ -536,7 +535,7 @@ namespace UnityEngine.Rendering.Universal
                     }
                 }
 
-                 // Lens Flare
+                // Lens Flare
                 if (useLensFlare)
                 {
                     bool usePanini;
@@ -555,9 +554,13 @@ namespace UnityEngine.Rendering.Universal
                         paniniCropToFit = 1.0f;
                     }
 
+                    using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.LensFlareDataDrivenComputeOcclusion)))
+                    {
+                        LensFlareDataDrivenComputeOcclusion(cameraData.camera, cmd, GetSource(), usePanini, paniniDistance, paniniCropToFit);
+                    }
                     using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.LensFlareDataDriven)))
                     {
-                        DoLensFlareDatadriven(cameraData.camera, cmd, GetSource(), usePanini, paniniDistance, paniniCropToFit);
+                        LensFlareDataDriven(cameraData.camera, cmd, GetSource(), usePanini, paniniDistance, paniniCropToFit);
                     }
                 }
 
@@ -636,6 +639,7 @@ namespace UnityEngine.Rendering.Universal
                     if (resolveToDebugScreen)
                     {
                         debugHandler.BlitTextureToDebugScreenTexture(cmd, GetSource(), m_Materials.uber, 0);
+                        renderer.ConfigureCameraColorTarget(debugHandler.DebugScreenTextureHandle);
                     }
                     else
                     {
@@ -657,7 +661,7 @@ namespace UnityEngine.Rendering.Universal
         void DoSubpixelMorphologicalAntialiasing(ref CameraData cameraData, CommandBuffer cmd, RTHandle source, RTHandle destination)
         {
             var camera = cameraData.camera;
-            var pixelRect = cameraData.pixelRect;
+            var pixelRect = new Rect(Vector2.zero, new Vector2(cameraData.cameraTargetDescriptor.width, cameraData.cameraTargetDescriptor.height));
             var material = m_Materials.subpixelMorphologicalAntialiasing;
             const int kStencilBit = 64;
 
@@ -905,7 +909,7 @@ namespace UnityEngine.Rendering.Universal
                 switch (light.type)
                 {
                     case LightType.Directional:
-                        return LensFlareCommonSRP.ShapeAttenuationDirLight(light.transform.forward, wo);
+                        return LensFlareCommonSRP.ShapeAttenuationDirLight(light.transform.forward, cam.transform.forward);
                     case LightType.Point:
                         return LensFlareCommonSRP.ShapeAttenuationPointLight();
                     case LightType.Spot:
@@ -918,14 +922,40 @@ namespace UnityEngine.Rendering.Universal
             return 1.0f;
         }
 
-        void DoLensFlareDatadriven(Camera camera, CommandBuffer cmd, RenderTargetIdentifier source, bool usePanini, float paniniDistance, float paniniCropToFit)
+        void LensFlareDataDrivenComputeOcclusion(Camera camera, CommandBuffer cmd, RenderTargetIdentifier source, bool usePanini, float paniniDistance, float paniniCropToFit)
+        {
+            if (!LensFlareCommonSRP.IsOcclusionRTCompatible())
+                return;
+
+            var gpuView = camera.worldToCameraMatrix;
+            var gpuNonJitteredProj = GL.GetGPUProjectionMatrix(camera.projectionMatrix, true);
+            // Zero out the translation component.
+            gpuView.SetColumn(3, new Vector4(0, 0, 0, 1));
+            var gpuVP = gpuNonJitteredProj * camera.worldToCameraMatrix;
+
+            cmd.SetGlobalTexture(m_Depth.name, m_Depth.nameID);
+
+            LensFlareCommonSRP.ComputeOcclusion(
+                m_Materials.lensFlareDataDriven, camera,
+                (float)m_Descriptor.width, (float)m_Descriptor.height,
+                usePanini, paniniDistance, paniniCropToFit, true,
+                camera.transform.position,
+                gpuVP,
+                cmd,
+                false, false, null, null,
+                ShaderConstants._FlareOcclusionTex, -1, ShaderConstants._FlareOcclusionIndex, ShaderConstants._FlareTex, ShaderConstants._FlareColorValue,
+                -1, ShaderConstants._FlareData0, ShaderConstants._FlareData1, ShaderConstants._FlareData2, ShaderConstants._FlareData3, ShaderConstants._FlareData4);
+        }
+
+        void LensFlareDataDriven(Camera camera, CommandBuffer cmd, RenderTargetIdentifier source, bool usePanini, float paniniDistance, float paniniCropToFit)
         {
             var gpuView = camera.worldToCameraMatrix;
             var gpuNonJitteredProj = GL.GetGPUProjectionMatrix(camera.projectionMatrix, true);
             // Zero out the translation component.
             gpuView.SetColumn(3, new Vector4(0, 0, 0, 1));
             var gpuVP = gpuNonJitteredProj * camera.worldToCameraMatrix;
-            LensFlareCommonSRP.DoLensFlareDataDrivenCommon(m_Materials.lensFlareDataDriven, LensFlareCommonSRP.Instance, camera, (float)m_Descriptor.width, (float)m_Descriptor.height,
+
+            LensFlareCommonSRP.DoLensFlareDataDrivenCommon(m_Materials.lensFlareDataDriven, camera, (float)m_Descriptor.width, (float)m_Descriptor.height,
                 usePanini, paniniDistance, paniniCropToFit,
                 true,
                 camera.transform.position,
@@ -959,9 +989,9 @@ namespace UnityEngine.Rendering.Universal
                 RenderingUtils.ReAllocateIfNeeded(ref m_StreakTmpTexture, desc, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_StreakTmpTexture");
                 RenderingUtils.ReAllocateIfNeeded(ref m_StreakTmpTexture2, desc, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_StreakTmpTexture2");
             }
-            
+
             RenderingUtils.ReAllocateIfNeeded(ref m_ScreenSpaceLensFlareResult, desc, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_ScreenSpaceLensFlareResult");
-            
+
             LensFlareCommonSRP.DoLensFlareScreenSpaceCommon(
                 m_Materials.lensFlareScreenSpace,
                 camera,
@@ -1011,7 +1041,7 @@ namespace UnityEngine.Rendering.Universal
                 ShaderConstants._LensFlareScreenSpaceParams4,
                 ShaderConstants._LensFlareScreenSpaceParams5,
                 false);
-                
+
             cmd.SetGlobalTexture(ShaderConstants._Bloom_Texture, bloomTexture);
         }
 
@@ -1056,7 +1086,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
 
-        void DoMotionBlur(CommandBuffer cmd, RTHandle source, RTHandle destination, ref CameraData cameraData)
+        void DoMotionBlur(CommandBuffer cmd, RTHandle source, RTHandle destination, RTHandle motionVectors, ref CameraData cameraData)
         {
             var material = m_Materials.cameraMotionBlur;
 
@@ -1065,9 +1095,17 @@ namespace UnityEngine.Rendering.Universal
             material.SetFloat("_Intensity", m_MotionBlur.intensity.value);
             material.SetFloat("_Clamp", m_MotionBlur.clamp.value);
 
+            int pass = (int)m_MotionBlur.quality.value;
+            var mode = m_MotionBlur.mode.value;
+            if (mode == MotionBlurMode.CameraAndObjects)
+            {
+                pass += 3;
+                material.SetTexture(MotionVectorRenderPass.k_MotionVectorTextureName, motionVectors);
+            }
+
             PostProcessUtils.SetSourceSize(cmd, source);
 
-            Blitter.BlitCameraTexture(cmd, source, destination, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, material, (int)m_MotionBlur.quality.value);
+            Blitter.BlitCameraTexture(cmd, source, destination, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, material, pass);
         }
 
 #endregion
@@ -1385,8 +1423,7 @@ namespace UnityEngine.Rendering.Universal
 
         void SetupGrain(ref CameraData cameraData, Material material)
         {
-            // TODO: Investigate how to make grain work with HDR output.
-            if (!m_HasFinalPass && m_FilmGrain.IsActive() && !cameraData.isHDROutputActive)
+            if (!m_HasFinalPass && m_FilmGrain.IsActive())
             {
                 material.EnableKeyword(ShaderKeywordStrings.FilmGrain);
                 PostProcessUtils.ConfigureFilmGrain(
@@ -1404,8 +1441,7 @@ namespace UnityEngine.Rendering.Universal
 
         void SetupDithering(ref CameraData cameraData, Material material)
         {
-            // TODO: Investigate how to make dithering work with HDR output.
-            if (!m_HasFinalPass && cameraData.isDitheringEnabled && !cameraData.isHDROutputActive)
+            if (!m_HasFinalPass && cameraData.isDitheringEnabled)
             {
                 material.EnableKeyword(ShaderKeywordStrings.Dithering);
                 m_DitheringTextureIndex = PostProcessUtils.ConfigureDithering(
@@ -1446,11 +1482,12 @@ namespace UnityEngine.Rendering.Universal
             if (RequireSRGBConversionBlitToBackBuffer(ref cameraData))
                 material.EnableKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
 
+            HDROutputUtils.Operation hdrOperations = HDROutputUtils.Operation.None;
             bool requireHDROutput = RequireHDROutput(ref cameraData);
             if (requireHDROutput)
             {
                 // If there is a final post process pass, it's always the final pass so do color encoding
-                HDROutputUtils.Operation hdrOperations = m_EnableColorEncodingIfNeeded ? HDROutputUtils.Operation.ColorEncoding : HDROutputUtils.Operation.None;
+                hdrOperations = m_EnableColorEncodingIfNeeded ? HDROutputUtils.Operation.ColorEncoding : HDROutputUtils.Operation.None;
                 // If the color space conversion wasn't applied by the uber pass, do it here
                 if (!cameraData.postProcessEnabled)
                     hdrOperations |= HDROutputUtils.Operation.ColorConversion;
@@ -1469,8 +1506,7 @@ namespace UnityEngine.Rendering.Universal
 
             var colorLoadAction = cameraData.isDefaultViewport ? RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load;
 
-            // TODO: Investigate how to make FXAA work with HDR output.
-            bool isFxaaEnabled = (cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing) && !cameraData.isHDROutputActive;
+            bool isFxaaEnabled = (cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing);
 
             // FSR is only considered "enabled" when we're performing upscaling. (downscaling uses a linear filter unconditionally)
             bool isFsrEnabled = ((cameraData.imageScalingMode == ImageScalingMode.Upscaling) && (cameraData.upscalingFilter == ImageUpscalingFilter.FSR));
@@ -1485,6 +1521,7 @@ namespace UnityEngine.Rendering.Universal
                 // When FXAA is enabled in scaled renders, we execute it in a separate blit since it's not designed to be used in
                 // situations where the input and output resolutions do not match.
                 // When FSR is active, we always need an additional pass since it has a very particular color encoding requirement.
+
                 // NOTE: An ideal implementation could inline this color conversion logic into the UberPost pass, but the current code structure would make
                 //       this process very complex. Specifically, we'd need to guarantee that the uber post output is always written to a UNORM format render
                 //       target in order to preserve the precision of specially encoded color data.
@@ -1497,12 +1534,18 @@ namespace UnityEngine.Rendering.Universal
 
                 // Select a UNORM format since we've already performed tonemapping. (Values are in 0-1 range)
                 // This improves precision and is required if we want to avoid excessive banding when FSR is in use.
-                tempRtDesc.graphicsFormat = UniversalRenderPipeline.MakeUnormRenderTextureGraphicsFormat();
+                if (!requireHDROutput)
+                    tempRtDesc.graphicsFormat = UniversalRenderPipeline.MakeUnormRenderTextureGraphicsFormat();
 
                 m_Materials.scalingSetup.shaderKeywords = null;
 
                 if (isSetupRequired)
                 {
+                    if (requireHDROutput)
+                    {
+                        SetupHDROutput(m_Materials.scalingSetup, hdrOperations);
+                    }
+
                     if (isFxaaEnabled)
                     {
                         m_Materials.scalingSetup.EnableKeyword(ShaderKeywordStrings.Fxaa);
@@ -1510,7 +1553,7 @@ namespace UnityEngine.Rendering.Universal
 
                     if (isFsrEnabled)
                     {
-                        m_Materials.scalingSetup.EnableKeyword(ShaderKeywordStrings.Gamma20);
+                        m_Materials.scalingSetup.EnableKeyword(hdrOperations.HasFlag(HDROutputUtils.Operation.ColorEncoding) ? ShaderKeywordStrings.Gamma20AndHDRInput : ShaderKeywordStrings.Gamma20);
                     }
 
                     RenderingUtils.ReAllocateIfNeeded(ref m_ScalingSetupTarget, tempRtDesc, FilterMode.Point, TextureWrapMode.Clamp, name: "_ScalingSetupTexture");
@@ -1567,7 +1610,7 @@ namespace UnityEngine.Rendering.Universal
                                 if (cameraData.fsrSharpness > 0.0f)
                                 {
                                     // RCAS is performed during the final post blit, but we set up the parameters here for better logical grouping.
-                                    material.EnableKeyword(ShaderKeywordStrings.Rcas);
+                                    material.EnableKeyword(requireHDROutput ? ShaderKeywordStrings.EasuRcasAndHDRInput : ShaderKeywordStrings.Rcas);
                                     FSRUtils.SetRcasConstantsLinear(cmd, sharpness);
                                 }
 
@@ -1613,6 +1656,7 @@ namespace UnityEngine.Rendering.Universal
             if (resolveToDebugScreen)
             {
                 debugHandler.BlitTextureToDebugScreenTexture(cmd, sourceTex, material, 0);
+                cameraData.renderer.ConfigureCameraColorTarget(debugHandler.DebugScreenTextureHandle);
             }
             else
             {
@@ -1649,6 +1693,10 @@ namespace UnityEngine.Rendering.Universal
 
             public MaterialLibrary(PostProcessData data)
             {
+                // NOTE NOTE NOTE NOTE NOTE NOTE
+                // If you create something here you must also destroy it in Cleanup()
+                // or it will leak during enter/leave play mode cycles
+                // NOTE NOTE NOTE NOTE NOTE NOTE
                 stopNaN = Load(data.shaders.stopNanPS);
                 subpixelMorphologicalAntialiasing = Load(data.shaders.subpixelMorphologicalAntialiasingPS);
                 gaussianDepthOfField = Load(data.shaders.gaussianDepthOfFieldPS);
@@ -1694,6 +1742,8 @@ namespace UnityEngine.Rendering.Universal
                 CoreUtils.Destroy(easu);
                 CoreUtils.Destroy(uber);
                 CoreUtils.Destroy(finalPass);
+                CoreUtils.Destroy(lensFlareDataDriven);
+                CoreUtils.Destroy(lensFlareScreenSpace);
             }
         }
 

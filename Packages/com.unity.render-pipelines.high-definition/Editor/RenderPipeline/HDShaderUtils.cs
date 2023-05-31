@@ -153,7 +153,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (resetter != null)
             {
-                CoreEditorUtils.RemoveMaterialKeywords(material);
+                RemoveMaterialKeyword(material, id);
                 // We need to reapply ToggleOff/Toggle keyword after reset via ApplyMaterialPropertyDrawers
                 MaterialEditor.ApplyMaterialPropertyDrawers(material);
                 resetter(material);

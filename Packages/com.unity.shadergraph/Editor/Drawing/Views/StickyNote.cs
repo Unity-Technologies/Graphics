@@ -422,7 +422,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_TitleField.SelectAll();
 
                 e.StopPropagation();
-                e.PreventDefault();
+                focusController.IgnoreEvent(e);
             }
         }
 
@@ -457,7 +457,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_ContentsField.style.display = DisplayStyle.Flex;
                 m_ContentsField.Q("unity-text-input").Focus();
                 e.StopPropagation();
-                e.PreventDefault();
+                focusController.IgnoreEvent(e);
             }
         }
 

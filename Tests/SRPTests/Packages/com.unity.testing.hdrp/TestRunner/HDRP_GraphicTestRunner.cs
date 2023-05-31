@@ -198,7 +198,7 @@ public class HDRP_GraphicTestRunner
         if (settingsSG == null || !settingsSG.compareSGtoBI)
         {
             // Standard Test
-            ImageAssert.AreEqual(testCase.ReferenceImage, camera, settings?.ImageComparisonSettings);
+            ImageAssert.AreEqual(testCase.ReferenceImage, camera, settings?.ImageComparisonSettings, testCase.ReferenceImagePathLog);
 
             // For some reason, tests on mac os have started failing with render graph enabled by default.
             // Some tests have 400+ gcalloc in them. Unfortunately it's not reproductible outside of command line so it's impossible to debug.
@@ -229,7 +229,7 @@ public class HDRP_GraphicTestRunner
             // First test: Shader Graph
             try
             {
-                ImageAssert.AreEqual(testCase.ReferenceImage, camera, (settings != null) ? settings.ImageComparisonSettings : null);
+                ImageAssert.AreEqual(testCase.ReferenceImage, camera, (settings != null) ? settings.ImageComparisonSettings : null, testCase.ReferenceImagePathLog);
             }
             catch (AssertionException)
             {
@@ -245,7 +245,7 @@ public class HDRP_GraphicTestRunner
             // Second test: HDRP/Lit Materials
             try
             {
-                ImageAssert.AreEqual(testCase.ReferenceImage, camera, (settings != null) ? settings.ImageComparisonSettings : null);
+                ImageAssert.AreEqual(testCase.ReferenceImage, camera, (settings != null) ? settings.ImageComparisonSettings : null, testCase.ReferenceImagePathLog);
             }
             catch (AssertionException)
             {

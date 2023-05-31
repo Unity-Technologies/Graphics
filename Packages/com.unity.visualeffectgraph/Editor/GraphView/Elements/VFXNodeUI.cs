@@ -101,20 +101,19 @@ namespace UnityEditor.VFX.UI
 
         bool m_Hovered;
 
-        void OnMouseEnter(MouseEnterEvent e)
+        void OnPointerEnter(PointerEnterEvent e)
         {
+            // Prevent VisualElement from setting hover pseudo-state
             m_Hovered = true;
             UpdateBorder();
-            e.PreventDefault();
-            //e.StopPropagation();
+            e.StopPropagation();
         }
 
-        void OnMouseLeave(MouseLeaveEvent e)
+        void OnPointerLeave(PointerLeaveEvent e)
         {
             m_Hovered = false;
             UpdateBorder();
-            e.PreventDefault();
-            //e.StopPropagation();
+            e.StopPropagation();
         }
 
         bool m_Selected;
@@ -159,8 +158,8 @@ namespace UnityEditor.VFX.UI
             this.AddStyleSheetPath("VFXNode");
             AddToClassList("VFXNodeUI");
 
-            RegisterCallback<MouseEnterEvent>(OnMouseEnter);
-            RegisterCallback<MouseLeaveEvent>(OnMouseLeave);
+            RegisterCallback<PointerEnterEvent>(OnPointerEnter);
+            RegisterCallback<PointerLeaveEvent>(OnPointerLeave);
             RegisterCallback<FocusInEvent>(OnFocusIn);
 
             m_SelectionBorder = this.Query("selection-border");
@@ -211,7 +210,7 @@ namespace UnityEditor.VFX.UI
             }
             if (settingsContainer != null)
             {
-                var activeSettings = controller.model.GetSettings(false, VFXSettingAttribute.VisibleFlags.InGraph);
+                var activeSettings = controller.model.GetSettings(false, VFXSettingAttribute.VisibleFlags.InGraph).ToList();
                 for (int i = 0; i < m_Settings.Count; ++i)
                     m_Settings[i].RemoveFromHierarchy();
 

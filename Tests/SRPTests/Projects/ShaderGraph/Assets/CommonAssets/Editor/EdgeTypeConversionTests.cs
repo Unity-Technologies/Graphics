@@ -110,7 +110,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 var outputNode = edge.outputSlot.node;
                 var outputSlot = outputNode.GetOutputSlots<MaterialSlot>().First(s => s.id == edge.outputSlot.slotId);
 
-                var redirNode = RedirectNodeData.Create(m_Graph, outputSlot.valueType, Vector2.zero, edge.inputSlot, edge.outputSlot, null);
+                var redirNode = RedirectNodeData.Create(m_Graph, outputSlot.concreteValueType, Vector2.zero, edge.inputSlot, edge.outputSlot, null);
 
                 m_Graph.ValidateGraph();
                 CompileNodeShader(m_CFNode, GenerationMode.Preview, m_CFNode.name);

@@ -31,6 +31,12 @@ namespace UnityEditor.ShaderGraph
             var activeSubTargetType = activeSubTarget.value.GetType();
             var activeSubTargetCurrent = subTargets.FirstOrDefault(x => x.GetType() == activeSubTargetType);
             var index = subTargets.IndexOf(activeSubTargetCurrent);
+            if (index == -1)
+            {
+                ShaderGraphImporter.subtargetNotFoundError = true;
+                index = 0;
+            }
+            else ShaderGraphImporter.subtargetNotFoundError = false;            
             subTargets[index] = activeSubTarget;
         }
 

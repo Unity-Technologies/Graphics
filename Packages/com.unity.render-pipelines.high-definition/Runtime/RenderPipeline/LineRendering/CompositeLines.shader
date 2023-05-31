@@ -55,7 +55,7 @@ Shader "Hidden/HDRP/CompositeLines"
         {
             ZWrite On ZTest Less Cull Off
 
-            Blend 0 One SrcAlpha // Color
+            Blend 0 One OneMinusSrcAlpha // Color
             Blend 1 One Zero     // Motion
 
             HLSLPROGRAM

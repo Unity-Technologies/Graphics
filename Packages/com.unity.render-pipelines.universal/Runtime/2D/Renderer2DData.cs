@@ -108,7 +108,7 @@ namespace UnityEngine.Rendering.Universal
         internal bool useDepthStencilBuffer => m_UseDepthStencilBuffer;
         internal Texture2D fallOffLookup => m_FallOffLookup;
         internal Shader lightShader => m_LightShader;
-        internal Shader blitShader => m_CoreBlitShader;
+        internal Shader coreBlitPS => m_CoreBlitShader;
         internal Shader blitHDROverlay => m_BlitHDROverlay;
         internal Shader samplingShader => m_SamplingShader;
         internal PostProcessData postProcessData { get => m_PostProcessData; set { m_PostProcessData = value; } }
@@ -139,6 +139,12 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
             return new Renderer2D(this);
+        }
+
+        internal void Dispose()
+        {
+            for (var i = 0; i < m_LightBlendStyles.Length; ++i)
+                m_LightBlendStyles[i].renderTargetHandle?.Release();
         }
 
         /// <summary>

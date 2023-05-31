@@ -4,6 +4,7 @@ using System.Collections.Generic;
 
 namespace UnityEditor.VFX.Block
 {
+    [VFXHelpURL("Block-FlipbookPlayer")]
     [VFXInfo(category = "FlipBook")]
     class FlipbookPlay : VFXBlock
     {

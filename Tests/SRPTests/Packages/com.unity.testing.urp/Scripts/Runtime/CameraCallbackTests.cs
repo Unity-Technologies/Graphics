@@ -7,6 +7,21 @@ using UnityEngine.Rendering.Universal.Internal;
 [CreateAssetMenu]
 public class CameraCallbackTests : ScriptableRendererFeature
 {
+    /*
+     * This feature is unused and should probably be deleted.
+     * Until that's decided I'm commenting it out as it gives warnings in the project.
+     */
+    public override void Create()
+    {
+
+    }
+
+    public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
+    {
+
+    }
+
+    /*
     static RTHandle beforeAll;
     static RTHandle afterOpaque;
     static RTHandle afterSkybox;
@@ -179,5 +194,6 @@ public class CameraCallbackTests : ScriptableRendererFeature
         {
             CoreUtils.Destroy(m_BlitMaterial);
         }
-    }
+    }*/
+
 }

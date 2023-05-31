@@ -56,9 +56,9 @@ void CameraMiss(inout PathPayload payload : SV_RayPayload)
         return;
     }
 
-    // We use the pixel coordinates to access the skytexture, so we first have to remove the tiling 
+    // We use the pixel coordinates to access the skytexture, so we first have to remove the tiling
     uint2 tileCount = uint2(_PathTracingTilingParameters.xy);
-    uint2 pixelCoord = payload.pixelCoord / tileCount; 
+    uint2 pixelCoord = payload.pixelCoord / tileCount;
     payload.value = IsSkyEnabled() && _PathTracingCameraSkyEnabled ?
         GetSkyBackground(pixelCoord).rgb : _PathTracingCameraClearColor.rgb * GetInverseCurrentExposureMultiplier();
 

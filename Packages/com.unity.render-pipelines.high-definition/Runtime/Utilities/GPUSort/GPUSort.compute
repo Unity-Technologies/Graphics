@@ -1,6 +1,7 @@
 #pragma kernel Kernel
+#pragma kernel CopyBuffer
 
-#pragma multi_compile STAGE_BMS STAGE_LOCAL_DISPERSE STAGE_BIG_FLIP STAGE_BIG_DISPERSE
+#pragma multi_compile _ STAGE_BMS STAGE_LOCAL_DISPERSE STAGE_BIG_FLIP STAGE_BIG_DISPERSE
 
 // Disable warning for auto unrolling of single iteration loop.
 #pragma warning(disable : 3557)
@@ -14,9 +15,16 @@ struct Semantics
     uint3 dispatchThreadID : SV_DispatchThreadID;
 };
 
+//resources for buffer copy
+RWByteAddressBuffer _CopySrcBuffer;
+RWByteAddressBuffer _CopyDstBuffer;
+uint _CopyEntriesCount;
+
 static Semantics s_Semantics;
 
 uint _H;
+
+
 
 // Global scratch space.
 RWByteAddressBuffer _KeyBuffer;
@@ -170,3 +178,11 @@ void Kernel(Semantics s)
     _ValueBuffer.Store((offset + t * 2 + 1) << 2, gs_Values[t * 2 + 1]);
 #endif
 }
+
+[numthreads(64, 1, 1)]
+void CopyBuffer(Semantics s)
+{
+    if(s.dispatchThreadID.x < _CopyEntriesCount)
+        _CopyDstBuffer.Store(s.dispatchThreadID.x << 2, _CopySrcBuffer.Load(s.dispatchThreadID.x << 2));
+}
+

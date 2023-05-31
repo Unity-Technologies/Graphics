@@ -13,7 +13,7 @@ namespace UnityEngine.Rendering.Universal
     /// Class <c>ShadowShape2DProvider</c> has methods called by a <c>ShadowCaster2D</c> to determine if it should be listed as a Casting Option, and to provide geometry if it is the active <c>ShadowShape2DProvider</c>
     /// </summary>
     [Serializable]
-    public abstract class ShadowShape2DProvider
+    public abstract class ShadowShape2DProvider : ScriptableObject
     {
         /// <summary>
         /// Gets the name to be listed in the <c>ShadowCaster2D</c> Casting Option drop down.
@@ -40,6 +40,12 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="sourceComponent">The component associated with the provider</param>
         public virtual void   Disabled(in Component sourceComponent) {}
 
+
+#if UNITY_EDITOR
+        public virtual void OnInspectorEnabled(SerializedObject serializedObject) { }
+        public virtual void OnInspectorGUI(SerializedObject serializedObject) { }
+#endif
+
         /// <summary>
         /// Called for each component on a <c>ShadowCaster2D's</c> <c>GameObject</c>. Returns true if the provided component is the data source of the <c>ShadowShapeProvider</c>.
         /// </summary>
@@ -60,6 +66,6 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="sourceComponent">The component associated with the provider</param>
         /// <param name="worldCullingBounds">The bounds enclosing the region of the view frustum and all visible lights</param>
         /// <param name="persistantShadowShape">An instance of <c>ShadowShape2D</c> that is used by the <c>ShadowCaster2D</c></param>
-        public abstract void  OnBeforeRender(in Component sourceComponent, in Bounds worldCullingBounds, ShadowShape2D persistantShadowShape);
+        public virtual void  OnBeforeRender(in Component sourceComponent, in Bounds worldCullingBounds, ShadowShape2D persistantShadowShape) { }
     }
 }

@@ -2,15 +2,41 @@
 void SetupInstanceID() {}
 
 /// VERTEX STAGE START
+
+#ifdef TESSELLATION_ON
+#define VaryingsType VaryingsToDS
+#define VaryingsMeshType VaryingsMeshToDS
+#define PackedVaryingsType PackedVaryingsToDS
+#define PackVaryingsType PackVaryingsToDS
+
 struct PackedVaryingsToDS
 {
     PackedVaryingsMeshToDS vmesh;
 };
 
-VaryingsMeshToDS VertMeshWater(AttributesMesh input)
+struct VaryingsToDS
 {
-    VaryingsMeshToDS output;
-    ZERO_INITIALIZE(VaryingsMeshToDS, output); // Only required with custom interpolator to quiet the shader compiler about not fully initialized struct
+    VaryingsMeshToDS vmesh;
+};
+
+PackedVaryingsToDS PackVaryingsToDS(VaryingsToDS input)
+{
+    PackedVaryingsToDS output;
+    output.vmesh = PackVaryingsMeshToDS(input.vmesh);
+    return output;
+}
+
+#else
+#define VaryingsType VaryingsToPS
+#define VaryingsMeshType VaryingsMeshToPS
+#define PackedVaryingsType PackedVaryingsToPS
+#define PackVaryingsType PackVaryingsToPS
+#endif
+
+VaryingsMeshType VertMeshWater(AttributesMesh input)
+{
+    VaryingsMeshType output;
+    ZERO_INITIALIZE(VaryingsMeshType, output); // Only required with custom interpolator to quiet the shader compiler about not fully initialized struct
 
     // Deduce the actual instance ID of the current instance (it is then stored in unity_InstanceID)
     UNITY_SETUP_INSTANCE_ID(input);
@@ -27,6 +53,8 @@ VaryingsMeshToDS VertMeshWater(AttributesMesh input)
 #else
     input.positionOS = WaterSimulationPosition(input.positionOS);
 #endif
+
+    float3 positionPredisplacementRWS = mul(_WaterSurfaceTransformRWS, float4(input.positionOS, 1.0)).xyz;
 
     // Due to the fact that a first clipping pass is done at the end of the vertex stage, we need to ensure that
     // the base triangles that were outside the frustum and need to be visible. We then have to apply the displacement to them
@@ -45,31 +73,41 @@ VaryingsMeshToDS VertMeshWater(AttributesMesh input)
     #endif
     output.texCoord0 = input.uv0;
     output.texCoord1 = input.uv1;
+
+	#ifdef TESSELLATION_ON
     output.tessellationFactor = _WaterMaxTessellationFactor;
+    #else
+    output.positionCS = TransformWorldToHClip(output.positionRWS);
+	#endif
+
+    #if defined(WATER_DISPLACEMENT)
+    // discard vertices outside of the region for non infinite surface
+    // 0.1 offset is to account for precision issue. Should be dependent on the grid size but this also works
+    if (any(abs(GetAbsolutePositionWS(positionPredisplacementRWS).xz - _RegionCenter) > _RegionExtent + 0.1f))
+    {
+        #ifdef TESSELLATION_ON
+        output.tessellationFactor = -1;
+        #else
+        output.positionCS.w = FLT_NAN;
+        #endif
+    }
+    #endif
+
     return output;
 }
 
-struct VaryingsToDS
+PackedVaryingsType Vert(AttributesMesh inputMesh)
 {
-    VaryingsMeshToDS vmesh;
-};
-
-PackedVaryingsToDS PackVaryingsToDS(VaryingsToDS input)
-{
-    PackedVaryingsToDS output;
-    output.vmesh = PackVaryingsMeshToDS(input.vmesh);
-    return output;
-}
-
-PackedVaryingsToDS Vert(AttributesMesh inputMesh)
-{
-    VaryingsToDS varyingsType;
+    VaryingsType varyingsType;
     varyingsType.vmesh = VertMeshWater(inputMesh);
-    return PackVaryingsToDS(varyingsType);
+    return PackVaryingsType(varyingsType);
 }
+
 // VERTEX STAGE END
 
+#ifdef TESSELLATION_ON
 // TESSELATION STAGE START
+
 VaryingsToDS UnpackVaryingsToDS(PackedVaryingsToDS input)
 {
     VaryingsToDS output;
@@ -230,6 +268,19 @@ PackedVaryingsToPS Domain(TessellationFactors tessFactors, const OutputPatch<Pac
 
     VaryingsToDS varying = InterpolateWithBaryCoordsToDS(varying0, varying1, varying2, baryCoords);
 
+    // Discard vertices outside of region
+    if (varying0.vmesh.tessellationFactor < 0 ||
+        varying1.vmesh.tessellationFactor < 0 ||
+        varying2.vmesh.tessellationFactor < 0)
+    {
+        PackedVaryingsToPS output;
+        ZERO_INITIALIZE(PackedVaryingsToPS, output);
+        output.vmesh.positionCS.w = FLT_NAN;
+        return output;
+    }
+
     return VertTesselation(varying);
 }
+
 // TESSELATION STAGE END
+#endif

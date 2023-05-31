@@ -29,6 +29,7 @@ namespace UnityEngine.Rendering.Universal
 
             m_ShaderTagIdList = new List<ShaderTagId>();
             m_ShaderTagIdList.Add(new ShaderTagId(DecalShaderPassNames.DecalMeshForwardEmissive));
+            m_ShaderTagIdList.Add(new ShaderTagId(DecalShaderPassNames.DecalProjectorForwardEmissive));
 
             m_PassData = new PassData();
         }

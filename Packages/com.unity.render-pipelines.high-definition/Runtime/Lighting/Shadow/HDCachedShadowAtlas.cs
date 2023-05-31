@@ -216,14 +216,11 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void GetUnmanageDataForShadowRequestJobs(ref HDCachedShadowAtlasDataForShadowRequestUpdateJob dataForShadowRequestUpdateJob)
         {
             dataForShadowRequestUpdateJob.shadowRequests = m_ShadowRequests;
-            dataForShadowRequestUpdateJob.placedShadows = m_PlacedShadows;
             dataForShadowRequestUpdateJob.shadowsPendingRendering = m_ShadowsPendingRendering;
             dataForShadowRequestUpdateJob.shadowsWithValidData = m_ShadowsWithValidData;
             dataForShadowRequestUpdateJob.registeredLightDataPendingPlacement = m_RegisteredLightDataPendingPlacement;
             dataForShadowRequestUpdateJob.recordsPendingPlacement = m_RecordsPendingPlacement;
             dataForShadowRequestUpdateJob.transformCaches = m_TransformCaches;
-            dataForShadowRequestUpdateJob.tempListForPlacement = m_TempListForPlacement;
-
         }
         // ---------------------------------------------------------------------------------------
 

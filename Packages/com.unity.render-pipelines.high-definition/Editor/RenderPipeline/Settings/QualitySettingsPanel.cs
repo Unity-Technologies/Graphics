@@ -123,12 +123,16 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 void DrawTag(ref Rect _rect, GUIContent label)
                 {
+                    var labelRect = _rect;
                     EditorStyles.label.CalcMinMaxWidth(label, out var minWidth, out var maxWidth);
-                    minWidth += 6;
-                    rect.x -= minWidth;
-                    rect.width = minWidth;
-                    GUI.Box(rect, label);
-                    rect.x -= 2;
+                    labelRect.width = EditorStyles.label.CalcSize(label).x;
+                    labelRect.height = EditorStyles.label.CalcSize(label).y;
+                    var height = EditorStyles.label.CalcHeight(label,labelRect.width);
+                    labelRect.y += height/4f;
+                    labelRect.x -= minWidth;
+                    var style = new GUIStyle(EditorStyles.label);
+                    style.normal.background = Texture2D.grayTexture;
+                    GUI.Box(labelRect, label, style);
                 }
 
                 var asset = m_HDRPAssets[index];

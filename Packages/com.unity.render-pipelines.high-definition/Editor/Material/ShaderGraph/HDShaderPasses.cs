@@ -458,6 +458,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 defines = GenerateDefines(supportLighting ? CoreDefines.Forward : CoreDefines.ForwardUnlit, useVFX, useTessellation),
                 includes = GenerateIncludes(),
 
+                analyticDerivativesEnabled = (HDRenderPipelineGlobalSettings.instance is not null) ? HDRenderPipelineGlobalSettings.instance.analyticDerivativeEmulation : false,
+                analyticDerivativesApplyEmulate = true,
+
                 virtualTextureFeedback = true,
                 customInterpolators = CoreCustomInterpolators.Common
             };
@@ -786,6 +789,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 defines = GenerateDefines(CoreDefines.ShaderGraphRaytracingDefault, useVFX, useTessellation),
                 keywords = GBufferKeywords,
                 includes = GBufferIncludes,
+                analyticDerivativesEnabled = (HDRenderPipelineGlobalSettings.instance is not null) ? HDRenderPipelineGlobalSettings.instance.analyticDerivativeEmulation : false,
+                analyticDerivativesApplyEmulate = true,
                 virtualTextureFeedback = true,
                 customInterpolators = CoreCustomInterpolators.Common,
             };
@@ -825,7 +830,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         #region Lit Forward
 
-        public static PassDescriptor GenerateLitForward(bool useVFX, bool useTessellation)
+        public static PassDescriptor GenerateLitForward(bool useVFX, bool useTessellation, bool useDebugSymbols)
         {
             return new PassDescriptor
             {
@@ -840,7 +845,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // We need motion vector version as Forward pass support transparent motion vector and we can't use ifdef for it
                 requiredFields = CoreRequiredFields.BasicLighting,
                 renderStates = CoreRenderStates.Forward,
-                pragmas = GeneratePragmas(CorePragmas.DotsInstanced, useVFX, useTessellation),
+                pragmas = GeneratePragmas(CorePragmas.DotsInstanced, useVFX, useTessellation, useDebugSymbols),
                 defines = GenerateDefines(CoreDefines.ForwardLit, useVFX, useTessellation),
                 includes = ForwardIncludes,
                 virtualTextureFeedback = true,
@@ -1246,6 +1251,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 var includes = new IncludeCollection { CoreIncludes.RaytracingCorePregraph };
 
+
                 // We want the generic payload if this is not a gbuffer or a subsurface subshader
                 includes.Add(CoreIncludes.kRaytracingIntersection, IncludeLocation.Pregraph);
 
@@ -1254,7 +1260,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 {
                     includes.Add(CoreIncludes.kLighting, IncludeLocation.Pregraph);
                     includes.Add(CoreIncludes.kLightLoopDef, IncludeLocation.Pregraph);
+                    // Ensure to include ray tracing light cluster
+                    includes.Add(CoreIncludes.kRaytracingLightCluster, IncludeLocation.Pregraph);
                 }
+
 
                 // Each material has a specific hlsl file that should be included pre-graph and holds the lighting model
                 includes.Add(CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph);
@@ -1263,6 +1272,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 includes.Add(CoreIncludes.CoreUtility);
                 includes.Add(CoreIncludes.kRaytracingCommon, IncludeLocation.Pregraph);
+                if (supportLighting)
+                {
+                    includes.Add(CoreIncludes.kDecalUtilities, IncludeLocation.Pregraph);
+                    includes.Add(CoreIncludes.kPostDecalsPlaceholder, IncludeLocation.Pregraph);
+                }
                 includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
 
                 // post graph includes
@@ -1276,6 +1290,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             { Defines.shadowLow },
             { Defines.raytracingDefault },
+            { Defines.pathtracingDisableLightCluster },
             { CoreKeywordDescriptors.HasLightloop, 1 },
         };
 
@@ -1397,6 +1412,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Raytracing Quality
             public static DefineCollection raytracingDefault = new DefineCollection { { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 } };
             public static DefineCollection raytracingRaytraced = new DefineCollection { { RayTracingQualityNode.GetRayTracingQualityKeyword(), 1 } };
+
+            // Path tracing specific defines 
+            public static DefineCollection pathtracingDisableLightCluster = new DefineCollection { { CoreKeywordDescriptors.DisableLightloopTileAndCluster, 1 }, { CoreKeywordDescriptors.PathTracingclusteredDecals, 1 } };
         }
 
         #endregion

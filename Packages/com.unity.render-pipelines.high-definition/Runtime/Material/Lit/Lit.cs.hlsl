@@ -74,6 +74,7 @@
 #define MATERIALFEATUREFLAGS_LIT_ANISOTROPY (16)
 #define MATERIALFEATUREFLAGS_LIT_IRIDESCENCE (32)
 #define MATERIALFEATUREFLAGS_LIT_CLEAR_COAT (64)
+#define MATERIALFEATUREFLAGS_LIT_COLORED_TRANSMISSION (128)
 
 // Generated from UnityEngine.Rendering.HighDefinition.Lit+SurfaceData
 // PackingRules = Exact
@@ -91,7 +92,7 @@ struct SurfaceData
     uint diffusionProfileHash;
     real subsurfaceMask;
     real thickness;
-    real transmissionMask;
+    real3 transmissionMask;
     float3 tangentWS;
     real anisotropy;
     real iridescenceThickness;
@@ -184,7 +185,7 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
             result = surfacedata.thickness.xxx;
             break;
         case DEBUGVIEW_LIT_SURFACEDATA_TRANSMISSION_MASK:
-            result = surfacedata.transmissionMask.xxx;
+            result = surfacedata.transmissionMask;
             break;
         case DEBUGVIEW_LIT_SURFACEDATA_TANGENT:
             result = surfacedata.tangentWS * 0.5 + 0.5;

@@ -52,7 +52,8 @@ namespace UnityEditor.Rendering.HighDefinition
         LitAniso = 2,
         LitIridescence = 3,
         LitSpecular = 4,
-        LitTranslucent = 5
+        LitTranslucent = 5,
+        LitColoredTranslucent = 6,
     };
 
     enum NormalMapSpace
@@ -339,6 +340,14 @@ namespace UnityEngine.Rendering.HighDefinition
             return index == -1 ? ShaderID.SG_External : index + ShaderID.Count_Standard;
         }
 
+        internal static void RemoveMaterialKeyword(Material material, ShaderID shaderID)
+        {
+            // To avoid keeping unused keywords when switching shader on a material, we want to clear the list
+            // But we can only do that on our standard shaders because ShaderGraphs may define their own keywords
+            if (0 <= (int)shaderID && shaderID < ShaderID.Count_Standard)
+                material.shaderKeywords = null;
+        }
+
         /// <summary>
         /// Setup properties, keywords and passes on a material to ensure it is in a valid state for rendering with HDRP. This function is only for materials using HDRP Shaders or ShaderGraphs.
         /// </summary>
@@ -351,12 +360,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (resetter == null)
                 return false;
 
-            // To avoid keeping unused keywords when switching shader on a material, we want to clear the list
-            // But we can only do that on our standard shaders because custom shaders or ShaderGraphs may define
-            // their own keywords, so we can't clear them
-            if (0 <= (int)shaderID && shaderID < ShaderID.Count_Standard)
-                material.shaderKeywords = null;
-
+            RemoveMaterialKeyword(material, shaderID);
             resetter(material);
             return true;
         }

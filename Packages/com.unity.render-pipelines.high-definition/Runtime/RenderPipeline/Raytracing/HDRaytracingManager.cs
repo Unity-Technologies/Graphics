@@ -56,8 +56,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // Denoisers
         HDTemporalFilter m_TemporalFilter;
         HDDiffuseDenoiser m_DiffuseDenoiser;
-        HDReflectionDenoiser m_ReflectionDenoiser;
         HDDiffuseShadowDenoiser m_DiffuseShadowDenoiser;
+        ReBlurDenoiser m_ReBlurDenoiser;
 
         // Ray-count manager data
         RayCountManager m_RayCountManager;
@@ -165,14 +165,17 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_RayCountManager != null)
                 m_RayCountManager.Release();
 
-            if (m_ReflectionDenoiser != null)
-                m_ReflectionDenoiser.Release();
             if (m_TemporalFilter != null)
                 m_TemporalFilter.Release();
             if (m_DiffuseShadowDenoiser != null)
                 m_DiffuseShadowDenoiser.Release();
             if (m_DiffuseDenoiser != null)
                 m_DiffuseDenoiser.Release();
+            if (m_ReBlurDenoiser != null)
+            {
+                m_ReBlurDenoiser.Release();
+                m_ReBlurDenoiser = null;
+            }
         }
 
         static bool IsValidRayTracedMaterial(Material currentMaterial)
@@ -976,14 +979,14 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_DiffuseDenoiser;
         }
 
-        internal HDReflectionDenoiser GetReflectionDenoiser()
+        internal ReBlurDenoiser GetReBlurDenoiser()
         {
-            if (m_ReflectionDenoiser == null)
+            if (m_ReBlurDenoiser == null)
             {
-                m_ReflectionDenoiser = new HDReflectionDenoiser();
-                m_ReflectionDenoiser.Init(m_GlobalSettings.renderPipelineRayTracingResources);
+                m_ReBlurDenoiser = new ReBlurDenoiser();
+                m_ReBlurDenoiser.Init(m_GlobalSettings.renderPipelineRayTracingResources);
             }
-            return m_ReflectionDenoiser;
+            return m_ReBlurDenoiser;
         }
 
         internal HDDiffuseShadowDenoiser GetDiffuseShadowDenoiser()

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Unity.Mathematics;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -16,7 +17,6 @@ namespace UnityEngine.Rendering.Universal
         List<int> m_NeedsRemove;
 
         // Pre-allocated arrays for filling constant buffers
-        Vector4[] m_HDR;
         Vector4[] m_BoxMax;
         Vector4[] m_BoxMin;
         Vector4[] m_ProbePosition;
@@ -36,11 +36,11 @@ namespace UnityEngine.Rendering.Universal
             public fixed int levels[k_MaxMipCount];
             public Texture texture;
             public int lastUsed;
+            public Vector4 hdrData;
         }
 
         static class ShaderProperties
         {
-            public static readonly int HDR = Shader.PropertyToID("urp_ReflProbes_HDR");
             public static readonly int BoxMin = Shader.PropertyToID("urp_ReflProbes_BoxMin");
             public static readonly int BoxMax = Shader.PropertyToID("urp_ReflProbes_BoxMax");
             public static readonly int ProbePosition = Shader.PropertyToID("urp_ReflProbes_ProbePosition");
@@ -64,13 +64,15 @@ namespace UnityEngine.Rendering.Universal
 
             // m_Resolution = math.min((int)reflectionProbeResolution, SystemInfo.maxTextureSize);
             m_Resolution = 1;
+            var format = GraphicsFormat.B10G11R11_UFloatPack32;
+            if (!SystemInfo.IsFormatSupported(format, FormatUsage.Render)) { format = GraphicsFormat.R16G16B16A16_SFloat; }
             m_AtlasTexture0 = new RenderTexture(new RenderTextureDescriptor
             {
                 width = m_Resolution.x,
                 height = m_Resolution.y,
                 volumeDepth = 1,
                 dimension = TextureDimension.Tex2D,
-                colorFormat = RenderTextureFormat.DefaultHDR,
+                graphicsFormat = format,
                 useMipMap = false,
                 msaaSamples = 1
             });
@@ -92,7 +94,6 @@ namespace UnityEngine.Rendering.Universal
             m_NeedsUpdate = new List<int>(maxProbes);
             m_NeedsRemove = new List<int>(maxProbes);
 
-            m_HDR = new Vector4[maxProbes];
             m_BoxMax = new Vector4[maxProbes];
             m_BoxMin = new Vector4[maxProbes];
             m_ProbePosition = new Vector4[maxProbes];
@@ -162,7 +163,7 @@ namespace UnityEngine.Rendering.Universal
                 if (!wasCached)
                 {
                     cachedProbe.size = texture.width;
-                    var mipCount = math.ceillog2(cachedProbe.size * 2) + 1;
+                    var mipCount = math.ceillog2(cachedProbe.size * 4) + 1;
                     var level = m_AtlasAllocator.levelCount + 2 - mipCount;
                     cachedProbe.mipCount = math.min(mipCount, k_MaxMipCount);
                     cachedProbe.texture = texture;
@@ -213,6 +214,7 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 cachedProbe.lastUsed = frameIndex;
+                cachedProbe.hdrData = probe.hdrData;
 
                 m_Cache[id] = cachedProbe;
             }
@@ -250,7 +252,6 @@ namespace UnityEngine.Rendering.Universal
                 var probe = probes[probeIndex];
                 var id = probe.reflectionProbe.GetInstanceID();
                 if (!m_Cache.TryGetValue(id, out var cachedProbe)) continue;
-                m_HDR[probeIndex] = probe.hdrData;
                 m_BoxMax[probeIndex] = new Vector4(probe.bounds.max.x, probe.bounds.max.y, probe.bounds.max.z, probe.blendDistance);
                 m_BoxMin[probeIndex] = new Vector4(probe.bounds.min.x, probe.bounds.min.y, probe.bounds.min.z, probe.importance);
                 m_ProbePosition[probeIndex] = new Vector4(probe.localToWorldMatrix.m03, probe.localToWorldMatrix.m13, probe.localToWorldMatrix.m23, (probe.isBoxProjection ? 1 : -1) * (cachedProbe.mipCount));
@@ -275,11 +276,10 @@ namespace UnityEngine.Rendering.Universal
                         var dataIndex = cachedProbe.dataIndices[mip];
                         var scaleBias = GetScaleOffset(level, dataIndex, true);
                         var sizeWithoutPadding = (1 << (m_AtlasAllocator.levelCount + 1 - level)) - 2;
-                        Blitter.BlitCubeToOctahedral2DQuadWithPadding(cmd, cachedProbe.texture, new Vector2(sizeWithoutPadding, sizeWithoutPadding), scaleBias, mip, true, 2);
+                        Blitter.BlitCubeToOctahedral2DQuadWithPadding(cmd, cachedProbe.texture, new Vector2(sizeWithoutPadding, sizeWithoutPadding), scaleBias, mip, true, 2, cachedProbe.hdrData);
                     }
                 }
 
-                cmd.SetGlobalVectorArray(ShaderProperties.HDR, m_HDR);
                 cmd.SetGlobalVectorArray(ShaderProperties.BoxMin, m_BoxMin);
                 cmd.SetGlobalVectorArray(ShaderProperties.BoxMax, m_BoxMax);
                 cmd.SetGlobalVectorArray(ShaderProperties.ProbePosition, m_ProbePosition);

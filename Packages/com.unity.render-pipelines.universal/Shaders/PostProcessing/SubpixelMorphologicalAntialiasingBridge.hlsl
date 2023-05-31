@@ -56,7 +56,7 @@ VaryingsEdge VertEdge(Attributes input)
     float2 uv  = GetFullScreenTriangleTexCoord(input.vertexID);
 
     output.positionCS = pos;
-    output.texcoord   = uv * _BlitScaleBias.xy + _BlitScaleBias.zw;
+    output.texcoord   = DYNAMIC_SCALING_APPLY_SCALEBIAS(uv);
 
     SMAAEdgeDetectionVS(output.texcoord, output.offsets);
     return output;
@@ -90,7 +90,7 @@ VaryingsBlend VertBlend(Attributes input)
     float2 uv  = GetFullScreenTriangleTexCoord(input.vertexID);
 
     output.positionCS = pos;
-    output.texcoord   = uv * _BlitScaleBias.xy + _BlitScaleBias.zw;
+    output.texcoord   = DYNAMIC_SCALING_APPLY_SCALEBIAS(uv);
 
     SMAABlendingWeightCalculationVS(output.texcoord, output.pixcoord, output.offsets);
     return output;
@@ -123,7 +123,7 @@ VaryingsNeighbor VertNeighbor(Attributes input)
     float2 uv  = GetFullScreenTriangleTexCoord(input.vertexID);
 
     output.positionCS = pos;
-    output.texcoord   = uv * _BlitScaleBias.xy + _BlitScaleBias.zw;
+    output.texcoord   = DYNAMIC_SCALING_APPLY_SCALEBIAS(uv);
 
     SMAANeighborhoodBlendingVS(output.texcoord, output.offset);
     return output;

@@ -22,7 +22,7 @@ namespace Unity.Testing.XR.Runtime
 
                     // Validate MockHMD is enabled and running
                     List<XRDisplaySubsystem> xrDisplays = new List<XRDisplaySubsystem>();
-                    SubsystemManager.GetInstances(xrDisplays);
+                    SubsystemManager.GetSubsystems(xrDisplays);
                     Assume.That(xrDisplays.Count == 1 && xrDisplays[0].running, "XR display MockHMD is not running!");
 
                     // Configure MockHMD to use single-pass and compare reference image against second view (right eye)

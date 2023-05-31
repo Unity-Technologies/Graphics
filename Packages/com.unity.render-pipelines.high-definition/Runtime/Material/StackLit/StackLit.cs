@@ -173,7 +173,7 @@ namespace UnityEngine.Rendering.HighDefinition
             [SurfaceDataAttributes("Subsurface Mask")]
             public float subsurfaceMask;
             [SurfaceDataAttributes("Transmission Mask")]
-            public float transmissionMask;
+            public Vector3 transmissionMask;
 
             // Transmission
             // + Diffusion Profile

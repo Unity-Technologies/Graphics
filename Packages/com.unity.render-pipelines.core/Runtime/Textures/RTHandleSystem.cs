@@ -103,7 +103,7 @@ namespace UnityEngine.Rendering
                 {
                     leakingResources = string.Format("{0}\n    {1}", leakingResources, rt.name);
                 }
-                Debug.LogError(string.Format("RTHandle.Initialize should only be called once before allocating any Render Texture. This may be caused by an unreleased RTHandle resource.\n{0}\n", leakingResources));
+                Debug.LogError(string.Format("RTHandleSystem.Initialize should only be called once before allocating any Render Texture. This may be caused by an unreleased RTHandle resource.\n{0}\n", leakingResources));
             }
 
             m_MaxWidths = width;
@@ -520,6 +520,8 @@ namespace UnityEngine.Rendering
             if (isShadowMap || depthBufferBits != DepthBits.None)
             {
                 RenderTextureFormat format = isShadowMap ? RenderTextureFormat.Shadowmap : RenderTextureFormat.Depth;
+                GraphicsFormat stencilFormat = !isShadowMap && SystemInfo.IsFormatSupported(GraphicsFormat.R8_UInt, FormatUsage.StencilSampling) ? GraphicsFormat.R8_UInt : GraphicsFormat.None;
+
                 rt = new RenderTexture(width, height, (int)depthBufferBits, format, RenderTextureReadWrite.Linear)
                 {
                     hideFlags = HideFlags.HideAndDontSave,
@@ -534,6 +536,7 @@ namespace UnityEngine.Rendering
                     autoGenerateMips = autoGenerateMips,
                     anisoLevel = anisoLevel,
                     mipMapBias = mipMapBias,
+                    stencilFormat = stencilFormat,
                     antiAliasing = (int)msaaSamples,
                     bindTextureMS = bindTextureMS,
                     useDynamicScale = m_HardwareDynamicResRequested && useDynamicScale,
@@ -795,7 +798,7 @@ namespace UnityEngine.Rendering
             if (isShadowMap || depthBufferBits != DepthBits.None)
             {
                 RenderTextureFormat format = isShadowMap ? RenderTextureFormat.Shadowmap : RenderTextureFormat.Depth;
-                GraphicsFormat stencilFormat = isShadowMap ? GraphicsFormat.None : GraphicsFormat.R8_UInt;
+                GraphicsFormat stencilFormat = !isShadowMap && SystemInfo.IsFormatSupported(GraphicsFormat.R8_UInt, FormatUsage.StencilSampling) ? GraphicsFormat.R8_UInt : GraphicsFormat.None;
                 rt = new RenderTexture(width, height, (int)depthBufferBits, format, RenderTextureReadWrite.Linear)
                 {
                     hideFlags = HideFlags.HideAndDontSave,

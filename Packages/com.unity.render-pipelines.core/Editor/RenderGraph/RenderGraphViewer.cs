@@ -54,6 +54,7 @@ public class RenderGraphViewer : EditorWindow
         CulledPasses = 1 << 1,
         Textures = 1 << 2,
         Buffers = 1 << 3,
+        AccelerationStructures = 1 << 4,
     }
 
     struct ResourceElementInfo
@@ -596,8 +597,8 @@ public class RenderGraphViewer : EditorWindow
         resourceScrollView.name = "GraphViewer.ResourceScrollView";
 
         // Has to match RenderGraphModule.RenderGraphResourceType order.
-        Filter[] resourceFilterFlags = { Filter.Textures, Filter.Buffers };
-        string[] resourceNames = { "Textures Resources", "Buffer Resources" };
+        Filter[] resourceFilterFlags = { Filter.Textures, Filter.Buffers, Filter.AccelerationStructures };
+        string[] resourceNames = { "Textures Resources", "Buffer Resources", "Acceleration Structure Resources" };
 
         for (int i = 0; i < (int)RenderGraphResourceType.Count; ++i)
         {
@@ -639,6 +640,7 @@ public class RenderGraphViewer : EditorWindow
 
         m_HeaderElement = new VisualElement();
         m_HeaderElement.name = "Header";
+        m_HeaderElement.style.flexWrap = new StyleEnum<Wrap>(Wrap.Wrap);
         m_HeaderElement.style.flexDirection = FlexDirection.Row;
         m_HeaderElement.style.justifyContent = Justify.SpaceBetween;
         m_HeaderElement.style.minHeight = 25.0f;

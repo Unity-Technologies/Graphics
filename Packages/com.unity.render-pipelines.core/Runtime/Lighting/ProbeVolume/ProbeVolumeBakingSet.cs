@@ -4,11 +4,13 @@ using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.IO.LowLevel.Unsafe;
-using CellData = UnityEngine.Rendering.ProbeReferenceVolume.CellData;
-using CellDesc = UnityEngine.Rendering.ProbeReferenceVolume.CellDesc;
+using UnityEngine.Serialization;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
+
+using CellData = UnityEngine.Rendering.ProbeReferenceVolume.CellData;
+using CellDesc = UnityEngine.Rendering.ProbeReferenceVolume.CellDesc;
 
 namespace UnityEngine.Rendering
 {
@@ -134,7 +136,12 @@ namespace UnityEngine.Rendering
 
         [SerializeField] private List<string> m_SceneGUIDs = new List<string>();
         [SerializeField] internal List<string> scenesToNotBake = new List<string>();
-        [SerializeField] internal List<string> lightingScenarios = new List<string>();
+        [SerializeField, FormerlySerializedAs("lightingScenarios")] internal List<string> m_LightingScenarios = new List<string>();
+
+        /// <summary>The list of scene GUIDs.</summary>
+        public IReadOnlyList<string> sceneGUIDs => m_SceneGUIDs;
+        /// <summary>The list of lighting scenarios.</summary>
+        public IReadOnlyList<string> lightingScenarios => m_LightingScenarios;
 
         // List of cell descriptors.
         [SerializeField] internal SerializedDictionary<int, CellDesc> cellDescs = new SerializedDictionary<int, CellDesc>();
@@ -193,8 +200,6 @@ namespace UnityEngine.Rendering
         Stack<NativeArray<byte>> m_ReadOperationScratchBuffers = new Stack<NativeArray<byte>>();
         List<int> m_PrunedIndexList = new List<int>();
         List<int> m_PrunedScenarioIndexList = new List<int>();
-
-        internal IReadOnlyList<string> sceneGUIDs => m_SceneGUIDs;
 
         // Baking Profile
 
@@ -259,8 +264,8 @@ namespace UnityEngine.Rendering
 
             ProbeReferenceVolume.instance.sceneData?.SyncBakingSets();
 
-            if (lightingScenarios.Count == 0)
-                lightingScenarios = new List<string>() { ProbeReferenceVolume.defaultLightingScenario };
+            if (m_LightingScenarios.Count == 0)
+                m_LightingScenarios = new List<string>() { ProbeReferenceVolume.defaultLightingScenario };
 
             if (version != CoreUtils.GetLastEnumValue<Version>())
             {
@@ -270,12 +275,12 @@ namespace UnityEngine.Rendering
             settings.Upgrade();
         }
 
-        public void OnAfterDeserialize()
+        void ISerializationCallbackReceiver.OnAfterDeserialize()
         {
-            if (!lightingScenarios.Contains(lightingScenario))
+            if (!m_LightingScenarios.Contains(lightingScenario))
             {
-                if (lightingScenarios.Count != 0)
-                    lightingScenario = lightingScenarios[0];
+                if (m_LightingScenarios.Count != 0)
+                    lightingScenario = m_LightingScenarios[0];
                 else
                     lightingScenario = ProbeReferenceVolume.defaultLightingScenario;
             }
@@ -296,7 +301,7 @@ namespace UnityEngine.Rendering
             }
         }
 
-        public void OnBeforeSerialize()
+        void ISerializationCallbackReceiver.OnBeforeSerialize()
         {
             m_SerializedPerSceneCellList = new List<SerializedPerSceneCellList>();
             foreach (var kvp in perSceneCellLists)
@@ -341,7 +346,7 @@ namespace UnityEngine.Rendering
             singleSceneMode = false;
             settings = set.settings;
             m_SceneGUIDs = set.sceneGUIDs;
-            lightingScenarios = set.lightingScenarios;
+            m_LightingScenarios = set.lightingScenarios;
             bakedMinDistanceBetweenProbes = set.profile.minDistanceBetweenProbes;
             bakedSimplificationLevels = set.profile.simplificationLevels;
         }
@@ -359,40 +364,100 @@ namespace UnityEngine.Rendering
                 renderersLayerMask == otherProfile.renderersLayerMask;
         }
 
-        internal void RemoveScene(string guid)
+        /// <summary>
+        /// Removes a scene from the baking set.
+        /// </summary>
+        /// <param name ="guid">The GUID of the scene to remove.</param>
+        public void RemoveScene(string guid)
         {
+            var sceneData = ProbeReferenceVolume.instance.sceneData;
             m_SceneGUIDs.Remove(guid);
             scenesToNotBake.Remove(guid);
-            ProbeReferenceVolume.instance.sceneData.sceneToBakingSet.Remove(guid);
+            sceneData.sceneToBakingSet.Remove(guid);
+#if UNITY_EDITOR
+            EditorUtility.SetDirty(sceneData.parentAsset);
+            EditorUtility.SetDirty(this);
+#endif
+        }
+
+        /// <summary>
+        /// Tries to add a scene to the baking set.
+        /// </summary>
+        /// <param name ="guid">The GUID of the scene to add.</param>
+        /// <returns>Whether the scene was successfull added to the baking set.</returns>
+        public bool TryAddScene(string guid)
+        {
+            var sceneData = ProbeReferenceVolume.instance.sceneData;
+            var sceneSet = sceneData.GetBakingSetForScene(guid);
+            if (sceneSet != null)
+                return false;
+            AddScene(guid);
+            return true;
         }
 
         internal void AddScene(string guid)
         {
+            var sceneData = ProbeReferenceVolume.instance.sceneData;
             m_SceneGUIDs.Add(guid);
-            ProbeReferenceVolume.instance.sceneData.sceneToBakingSet[guid] = this;
+            sceneData.sceneToBakingSet[guid] = this;
+#if UNITY_EDITOR
+            EditorUtility.SetDirty(sceneData.parentAsset);
+            EditorUtility.SetDirty(this);
+#endif
         }
 
         internal void SetScene(string guid, int index)
         {
+            var sceneData = ProbeReferenceVolume.instance.sceneData;
             scenesToNotBake.Remove(m_SceneGUIDs[index]);
-            ProbeReferenceVolume.instance.sceneData.sceneToBakingSet.Remove(m_SceneGUIDs[index]);
+            sceneData.sceneToBakingSet.Remove(m_SceneGUIDs[index]);
             m_SceneGUIDs[index] = guid;
-            ProbeReferenceVolume.instance.sceneData.sceneToBakingSet[guid] = this;
+            sceneData.sceneToBakingSet[guid] = this;
+#if UNITY_EDITOR
+            EditorUtility.SetDirty(sceneData.parentAsset);
+            EditorUtility.SetDirty(this);
+#endif
+        }
+
+        /// <summary>
+        /// Changes the baking status of a scene. Objects in scenes disabled for baking will still contribute to
+        /// lighting for other scenes.
+        /// </summary>
+        /// <param name ="guid">The GUID of the scene to remove.</param>
+        /// <param name ="enableForBaking">Wheter or not this scene should be included when baking lighting.</param>
+        /// <returns>Whether the scene was successfull added to the baking set.</returns>
+        public void SetSceneBaking(string guid, bool enableForBaking)
+        {
+            if (enableForBaking)
+                scenesToNotBake.Remove(guid);
+            else if (m_SceneGUIDs.Contains(guid))
+                scenesToNotBake.Add(guid);
+        }
+
+        /// <summary>
+        /// Tries to add a lighting scenario to the baking set.
+        /// </summary>
+        /// <param name ="name">The name of the scenario to add.</param>
+        /// <returns>Whether the scenario was successfully created.</returns>
+        public bool TryAddScenario(string name)
+        {
+            if (m_LightingScenarios.Contains(name))
+                return false;
+            m_LightingScenarios.Add(name);
+#if UNITY_EDITOR
+            EditorUtility.SetDirty(this);
+#endif
+            return true;
         }
 
         internal string CreateScenario(string name)
         {
-            if (lightingScenarios.Contains(name))
-            {
-                string renamed;
-                int index = 1;
-                do
-                    renamed = $"{name} ({index++})";
-                while (lightingScenarios.Contains(renamed));
-                name = renamed;
-            }
-            lightingScenarios.Add(name);
-            return name;
+            int index = 1;
+            string renamed = name;
+            while (!TryAddScenario(renamed))
+                renamed = $"{name} ({index++})";
+
+            return renamed;
         }
 
         internal bool RemoveScenario(string name)
@@ -415,7 +480,7 @@ namespace UnityEngine.Rendering
             }
 
             scenarios.Remove(name);
-            return lightingScenarios.Remove(name);
+            return m_LightingScenarios.Remove(name);
         }
 
         internal ProbeVolumeBakingSet Clone()
@@ -436,7 +501,7 @@ namespace UnityEngine.Rendering
             if (lightingScenario == scenario && m_ScenarioBlendingFactor == 0.0f)
                 return;
 
-            if (!lightingScenarios.Contains(scenario))
+            if (!m_LightingScenarios.Contains(scenario))
             {
                 if (verbose)
                     Debug.LogError($"Scenario '{scenario}' does not exist.");
@@ -477,7 +542,7 @@ namespace UnityEngine.Rendering
             }
 
             // null scenario is valid in order to reset blending.
-            if (otherScenario != null && !lightingScenarios.Contains(otherScenario))
+            if (otherScenario != null && !m_LightingScenarios.Contains(otherScenario))
             {
                 Debug.LogError($"Scenario '{otherScenario}' does not exist.");
                 return;
@@ -560,13 +625,13 @@ namespace UnityEngine.Rendering
                 perSceneCellLists.Add(sceneGUID, new List<int>());
         }
 
-        internal void RenameScenario(string scenario, string newName)
+        internal string RenameScenario(string scenario, string newName)
         {
-            if (!lightingScenarios.Contains(scenario))
-                return;
+            if (!m_LightingScenarios.Contains(scenario))
+                return newName;
 
-            lightingScenarios.Remove(scenario);
-            lightingScenarios.Add(newName);
+            m_LightingScenarios.Remove(scenario);
+            newName = CreateScenario(newName);
 
             // If the scenario was not baked at least once, this does not exist.
             if (scenarios.TryGetValue(scenario, out var data))
@@ -591,6 +656,8 @@ namespace UnityEngine.Rendering
                 RenameAsset(data.cellOptionalDataAsset.assetGUID, cellOptionalDataFileName);
 #endif
             }
+
+            return newName;
         }
 
 

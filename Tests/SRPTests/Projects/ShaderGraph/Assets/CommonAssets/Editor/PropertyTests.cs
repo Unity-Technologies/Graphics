@@ -190,7 +190,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             }
 
             // Should be no properties, keywords, dropdowns
-            Assert.IsTrue(m_Window.graphObject.graph.properties.Count() == 0 && m_Window.graphObject.graph.properties.Count() == 0 && m_Window.graphObject.graph.dropdowns.Count() == 0);
+            Assert.IsTrue(m_Window.graphObject.graph.properties.Count() == 0 && m_Window.graphObject.graph.dropdowns.Count() == 0);
             yield return null;
         }
 

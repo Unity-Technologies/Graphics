@@ -1,3 +1,4 @@
+using System;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
@@ -7,7 +8,6 @@ namespace UnityEditor.Rendering.Universal
     [CustomEditor(typeof(UniversalRenderPipelineGlobalSettings))]
     sealed class UniversalGlobalSettingsEditor : Editor
     {
-
         [MenuItem("Assets/Create/Rendering/URP Global Settings Asset", priority = CoreUtils.Sections.section4 + 2)]
         internal static void CreateAsset()
         {
@@ -16,9 +16,38 @@ namespace UnityEditor.Rendering.Universal
 
         SerializedUniversalRenderPipelineGlobalSettings m_SerializedGlobalSettings;
 
+        Editor m_DefaultVolumeProfileEditor;
+        Editor m_LookDevVolumeProfileEditor;
+
+        internal Editor GetDefaultVolumeProfileEditor(VolumeProfile asset)
+        {
+            CreateCachedEditor(asset, typeof(VolumeProfileEditor), ref m_DefaultVolumeProfileEditor);
+            var editor = m_DefaultVolumeProfileEditor as VolumeProfileEditor;
+            editor.componentList.SetIsGlobalDefaultVolumeProfile(true);
+            return m_DefaultVolumeProfileEditor;
+        }
+
         void OnEnable()
         {
             m_SerializedGlobalSettings = new SerializedUniversalRenderPipelineGlobalSettings(serializedObject);
+
+            Undo.undoRedoPerformed += OnUndoRedoPerformed;
+        }
+
+        void OnDisable()
+        {
+            CoreUtils.Destroy(m_DefaultVolumeProfileEditor);
+
+            Undo.undoRedoPerformed -= OnUndoRedoPerformed;
+        }
+
+        void OnUndoRedoPerformed()
+        {
+            if (target is UniversalRenderPipelineGlobalSettings settings &&
+                settings.volumeProfile != VolumeManager.instance.globalDefaultProfile)
+            {
+                VolumeProfileUtils.UpdateGlobalDefaultVolumeProfile<UniversalRenderPipeline>(settings.volumeProfile);
+            }
         }
 
         public override void OnInspectorGUI()

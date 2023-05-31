@@ -375,6 +375,11 @@ namespace UnityEngine.Rendering.Universal
         /// True if this camera should render to high dynamic range color targets.
         /// </summary>
         public bool isHdrEnabled;
+        
+        /// <summary>
+        /// True if this camera allow color conversion and encoding for high dynamic range displays.
+        /// </summary>
+        public bool allowHDROutput;
 
         /// <summary>
         /// True if this camera requires to write _CameraDepthTexture.
@@ -426,7 +431,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// True if the Camera should output to an HDR display.
         /// </summary>
-        public bool isHDROutputActive => UniversalRenderPipeline.HDROutputIsActive() && isHdrEnabled && resolveToScreen;
+        public bool isHDROutputActive => UniversalRenderPipeline.HDROutputIsActive() && allowHDROutput && resolveToScreen;
 
         /// <summary>
         /// True if the Camera should render overlay UI.
@@ -449,7 +454,7 @@ namespace UnityEngine.Rendering.Universal
             if (!SystemInfo.graphicsUVStartsAtTop)
                 return false;
 
-            if (cameraType == CameraType.SceneView)
+            if (cameraType == CameraType.SceneView || cameraType == CameraType.Preview)
                 return true;
 
             var handleID = new RenderTargetIdentifier(handle.nameID, 0, CubemapFace.Unknown, 0);
@@ -822,6 +827,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly int cosTime = Shader.PropertyToID("_CosTime");
         public static readonly int deltaTime = Shader.PropertyToID("unity_DeltaTime");
         public static readonly int timeParameters = Shader.PropertyToID("_TimeParameters");
+        public static readonly int lastTimeParameters = Shader.PropertyToID("_LastTimeParameters");
 
         public static readonly int scaledScreenParams = Shader.PropertyToID("_ScaledScreenParams");
         public static readonly int worldSpaceCameraPos = Shader.PropertyToID("_WorldSpaceCameraPos");
@@ -855,11 +861,21 @@ namespace UnityEngine.Rendering.Universal
         public static readonly int billboardTangent = Shader.PropertyToID("unity_BillboardTangent");
         public static readonly int billboardCameraParams = Shader.PropertyToID("unity_BillboardCameraParams");
 
+        public static readonly int previousViewProjectionNoJitter = Shader.PropertyToID("_PrevViewProjMatrix");
+        public static readonly int viewProjectionNoJitter = Shader.PropertyToID("_NonJitteredViewProjMatrix");
+#if ENABLE_VR && ENABLE_XR_MODULE
+        public static readonly int previousViewProjectionNoJitterStereo = Shader.PropertyToID("_PrevViewProjMatrixStereo");
+        public static readonly int viewProjectionNoJitterStereo = Shader.PropertyToID("_NonJitteredViewProjMatrixStereo");
+#endif
+
         public static readonly int blitTexture = Shader.PropertyToID("_BlitTexture");
         public static readonly int blitScaleBias = Shader.PropertyToID("_BlitScaleBias");
         public static readonly int sourceTex = Shader.PropertyToID("_SourceTex");
         public static readonly int scaleBias = Shader.PropertyToID("_ScaleBias");
         public static readonly int scaleBiasRt = Shader.PropertyToID("_ScaleBiasRt");
+
+        // This uniform is specific to the RTHandle system
+        public static readonly int rtHandleScale = Shader.PropertyToID("_RTHandleScale");
 
         // Required for 2D Unlit Shadergraph master node as it doesn't currently support hidden properties.
         public static readonly int rendererColor = Shader.PropertyToID("_RendererColor");
@@ -1061,8 +1077,14 @@ namespace UnityEngine.Rendering.Universal
         /// <summary> Keyword used for Robust Contrast-Adaptive Sharpening (RCAS) when doing upsampling. </summary>
         public const string Rcas = "_RCAS";
 
+        /// <summary> Keyword used for Robust Contrast-Adaptive Sharpening (RCAS) when doing upsampling, after EASU has ran and with HDR Dsiplay output. </summary>
+        public const string EasuRcasAndHDRInput = "_EASU_RCAS_AND_HDR_INPUT";
+
         /// <summary> Keyword used for Gamma 2.0. </summary>
         public const string Gamma20 = "_GAMMA_20";
+
+        /// <summary> Keyword used for Gamma 2.0 with HDR_INPUT. </summary>
+        public const string Gamma20AndHDRInput = "_GAMMA_20_AND_HDR_INPUT";
 
         /// <summary> Keyword used for high quality sampling for Depth Of Field. </summary>
         public const string HighQualitySampling = "_HIGH_QUALITY_SAMPLING";
@@ -1142,6 +1164,9 @@ namespace UnityEngine.Rendering.Universal
         /// <summary> Keyword used for Normal maps. </summary>
         public const string _NORMALMAP = "_NORMALMAP";
 
+        /// <summary> Keyword used for Alembic precomputed velocity. </summary>
+        public const string _ADD_PRECOMPUTED_VELOCITY = "_ADD_PRECOMPUTED_VELOCITY";
+
         /// <summary> Keyword used for editor visualization. </summary>
         public const string EDITOR_VISUALIZATION = "EDITOR_VISUALIZATION";
 
@@ -1171,6 +1196,12 @@ namespace UnityEngine.Rendering.Universal
 
         /// <summary> Keyword used for sixteenth size downsampling. </summary>
         public const string DOWNSAMPLING_SIZE_16 = "DOWNSAMPLING_SIZE_16";
+
+        /// <summary> Keyword used for mixed Spherical Harmonic (SH) evaluation in URP Lit shaders.</summary>
+        public const string EVALUATE_SH_MIXED = "EVALUATE_SH_MIXED";
+
+        /// <summary> Keyword used for vertex Spherical Harmonic (SH) evaluation in URP Lit shaders.</summary>
+        public const string EVALUATE_SH_VERTEX = "EVALUATE_SH_VERTEX";
 
         /// <summary> Keyword used for APV with SH L1 </summary>
         public const string ProbeVolumeL1 = "PROBE_VOLUMES_L1";
@@ -1281,6 +1312,7 @@ namespace UnityEngine.Rendering.Universal
             else
             {
                 desc = camera.targetTexture.descriptor;
+                desc.msaaSamples = msaaSamples;
                 desc.width = scaledWidth;
                 desc.height = scaledHeight;
 
@@ -1320,10 +1352,10 @@ namespace UnityEngine.Rendering.Universal
             // replace the requested desc.msaaSamples value with the actual value the engine falls back to
             desc.msaaSamples = SystemInfo.GetRenderTextureSupportedMSAASampleCount(desc);
 
-            // if the target platform doesn't support storing multisampled RTs and we are doing a separate opaque pass, using a Load load action on the subsequent passes
+            // if the target platform doesn't support storing multisampled RTs and we are doing any offscreen passes, using a Load load action on the subsequent passes
             // will result in loading Resolved data, which on some platforms is discarded, resulting in losing the results of the previous passes.
             // As a workaround we disable MSAA to make sure that the results of previous passes are stored. (fix for Case 1247423).
-            if (!SystemInfo.supportsStoreAndResolveAction && requiresOpaqueTexture)
+            if (!SystemInfo.supportsStoreAndResolveAction)
                 desc.msaaSamples = 1;
 
             return desc;
@@ -1638,6 +1670,7 @@ namespace UnityEngine.Rendering.Universal
         PaniniProjection,
         UberPostProcess,
         Bloom,
+        LensFlareDataDrivenComputeOcclusion,
         LensFlareDataDriven,
         LensFlareScreenSpace,
         MotionVectors,
@@ -1673,5 +1706,54 @@ namespace UnityEngine.Rendering.Universal
         [HideInDebugUI] RG_FinalBlit,
 
         FinalBlit
+    }
+
+    // Internal class to detect and cache runtime platform information.
+    // TODO: refine the logic to provide platform abstraction. Eg, we should devide platforms based on capabilities and perf budget.
+    // TODO: isXRMobile is a bad catagory. Alignment and refactor needed.
+    // TODO: Compress all the query data into "isXRMobile" style bools and enums.
+    internal static class PlatformAutoDetect
+    {
+        /// <summary>
+        /// Detect and cache runtime platform information. This function should only be called once when creating the URP.
+        /// </summary>
+        internal static void Initialize()
+        {
+            bool isRunningMobile = false;
+#if ENABLE_VR && ENABLE_VR_MODULE
+#if PLATFORM_WINRT || PLATFORM_ANDROID
+            isRunningMobile = IsRunningXRMobile();
+#endif
+#endif
+            isXRMobile = isRunningMobile;
+        }
+
+#if ENABLE_VR && ENABLE_VR_MODULE
+#if PLATFORM_WINRT || PLATFORM_ANDROID
+        // XR mobile platforms are not treated as dedicated mobile platforms in Core. Handle them specially here. (Quest and HL).
+        private static List<XR.XRDisplaySubsystem> displaySubsystemList = new List<XR.XRDisplaySubsystem>();
+        private static bool IsRunningXRMobile()
+        {
+            var platform = Application.platform;
+            if (platform == RuntimePlatform.WSAPlayerX86 || platform == RuntimePlatform.WSAPlayerARM || platform == RuntimePlatform.WSAPlayerX64 || platform == RuntimePlatform.Android)
+            {
+                XR.XRDisplaySubsystem display = null;
+                SubsystemManager.GetInstances(displaySubsystemList);
+
+                if (displaySubsystemList.Count > 0)
+                    display = displaySubsystemList[0];
+
+                if (display != null)
+                    return true;
+            }
+            return false;
+        }
+#endif
+#endif
+
+        /// <summary>
+        /// If true, the runtime platform is an XR mobile platform.
+        /// </summary>
+        static internal bool isXRMobile { get; private set; } = false;
     }
 }

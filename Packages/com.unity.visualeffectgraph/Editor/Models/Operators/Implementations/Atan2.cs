@@ -1,5 +1,6 @@
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-Atan2")]
     [VFXInfo(category = "Math/Trigonometry")]
     class Atan2 : VFXOperatorNumericUniform
     {

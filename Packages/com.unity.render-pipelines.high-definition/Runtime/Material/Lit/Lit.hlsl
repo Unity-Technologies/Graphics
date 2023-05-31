@@ -97,51 +97,54 @@ TEXTURE2D_X(_ShadowMaskTexture); // Alias for shadow mask, so we don't need to k
 // If a user do a lighting architecture without material classification, this can be remove
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.cs.hlsl"
 
+#define MATERIALFEATUREFLAGS_ANY_SSS (MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING | MATERIALFEATUREFLAGS_LIT_TRANSMISSION | MATERIALFEATUREFLAGS_LIT_COLORED_TRANSMISSION)
+
 // Combination need to be define in increasing "comlexity" order as define by FeatureFlagsToTileVariant
 static const uint kFeatureVariantFlags[NUM_FEATURE_VARIANTS] =
 {
+    // Number in parenthesis is occupancy on PS4
     // Precomputed illumination (no dynamic lights) with standard
-    /*  0 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_ENV | LIGHTFEATUREFLAGS_SSREFLECTION | MATERIALFEATUREFLAGS_LIT_STANDARD,
+    /*  0 (3) */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_ENV | LIGHTFEATUREFLAGS_SSREFLECTION | MATERIALFEATUREFLAGS_LIT_STANDARD,
     // Precomputed illumination (no dynamic lights) with standard, SSS and transmission
-    /*  1 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_ENV | LIGHTFEATUREFLAGS_SSREFLECTION | MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING | MATERIALFEATUREFLAGS_LIT_TRANSMISSION | MATERIALFEATUREFLAGS_LIT_STANDARD,
+    /*  1 (3) */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_ENV | LIGHTFEATUREFLAGS_SSREFLECTION | MATERIALFEATUREFLAGS_ANY_SSS | MATERIALFEATUREFLAGS_LIT_STANDARD,
     // Precomputed illumination (no dynamic lights) for all material types
-    /*  2 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_ENV | LIGHTFEATUREFLAGS_SSREFLECTION | MATERIAL_FEATURE_MASK_FLAGS,
+    /*  2 (3) */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_ENV | LIGHTFEATUREFLAGS_SSREFLECTION | MATERIAL_FEATURE_MASK_FLAGS,
 
-    /*  3 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | MATERIALFEATUREFLAGS_LIT_STANDARD,
-    /*  4 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_AREA | MATERIALFEATUREFLAGS_LIT_STANDARD,
-    /*  5 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_ENV | LIGHTFEATUREFLAGS_SSREFLECTION | MATERIALFEATUREFLAGS_LIT_STANDARD,
-    /*  6 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | LIGHTFEATUREFLAGS_ENV | LIGHTFEATUREFLAGS_SSREFLECTION | MATERIALFEATUREFLAGS_LIT_STANDARD,
-    /*  7 */ LIGHT_FEATURE_MASK_FLAGS_OPAQUE | MATERIALFEATUREFLAGS_LIT_STANDARD,
+    /*  3 (3) */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | MATERIALFEATUREFLAGS_LIT_STANDARD,
+    /*  4 (2) */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_AREA | MATERIALFEATUREFLAGS_LIT_STANDARD,
+    /*  5 (3) */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_ENV | LIGHTFEATUREFLAGS_SSREFLECTION | MATERIALFEATUREFLAGS_LIT_STANDARD,
+    /*  6 (3) */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | LIGHTFEATUREFLAGS_ENV | LIGHTFEATUREFLAGS_SSREFLECTION | MATERIALFEATUREFLAGS_LIT_STANDARD,
+    /*  7 (2) */ LIGHT_FEATURE_MASK_FLAGS_OPAQUE | MATERIALFEATUREFLAGS_LIT_STANDARD,
 
     // Standard with SSS and Transmission
-    /*  8 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING | MATERIALFEATUREFLAGS_LIT_TRANSMISSION | MATERIALFEATUREFLAGS_LIT_STANDARD,
-    /*  9 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_AREA | MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING | MATERIALFEATUREFLAGS_LIT_TRANSMISSION | MATERIALFEATUREFLAGS_LIT_STANDARD,
-    /* 10 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_ENV | LIGHTFEATUREFLAGS_SSREFLECTION | MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING | MATERIALFEATUREFLAGS_LIT_TRANSMISSION | MATERIALFEATUREFLAGS_LIT_STANDARD,
-    /* 11 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | LIGHTFEATUREFLAGS_ENV | LIGHTFEATUREFLAGS_SSREFLECTION | MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING | MATERIALFEATUREFLAGS_LIT_TRANSMISSION | MATERIALFEATUREFLAGS_LIT_STANDARD,
-    /* 12 */ LIGHT_FEATURE_MASK_FLAGS_OPAQUE | MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING | MATERIALFEATUREFLAGS_LIT_TRANSMISSION | MATERIALFEATUREFLAGS_LIT_STANDARD,
+    /*  8 (3) */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | MATERIALFEATUREFLAGS_ANY_SSS | MATERIALFEATUREFLAGS_LIT_STANDARD,
+    /*  9 (2) */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_AREA | MATERIALFEATUREFLAGS_ANY_SSS | MATERIALFEATUREFLAGS_LIT_STANDARD,
+    /* 10 (3) */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_ENV | LIGHTFEATUREFLAGS_SSREFLECTION | MATERIALFEATUREFLAGS_ANY_SSS | MATERIALFEATUREFLAGS_LIT_STANDARD,
+    /* 11 (2) */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | LIGHTFEATUREFLAGS_ENV | LIGHTFEATUREFLAGS_SSREFLECTION | MATERIALFEATUREFLAGS_ANY_SSS | MATERIALFEATUREFLAGS_LIT_STANDARD,
+    /* 12 (2) */ LIGHT_FEATURE_MASK_FLAGS_OPAQUE | MATERIALFEATUREFLAGS_ANY_SSS | MATERIALFEATUREFLAGS_LIT_STANDARD,
 
     // Anisotropy
-    /* 13 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | MATERIALFEATUREFLAGS_LIT_ANISOTROPY | MATERIALFEATUREFLAGS_LIT_STANDARD,
-    /* 14 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_AREA | MATERIALFEATUREFLAGS_LIT_ANISOTROPY | MATERIALFEATUREFLAGS_LIT_STANDARD,
-    /* 15 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_ENV | LIGHTFEATUREFLAGS_SSREFLECTION | MATERIALFEATUREFLAGS_LIT_ANISOTROPY | MATERIALFEATUREFLAGS_LIT_STANDARD,
-    /* 16 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | LIGHTFEATUREFLAGS_ENV | LIGHTFEATUREFLAGS_SSREFLECTION | MATERIALFEATUREFLAGS_LIT_ANISOTROPY | MATERIALFEATUREFLAGS_LIT_STANDARD,
-    /* 17 */ LIGHT_FEATURE_MASK_FLAGS_OPAQUE | MATERIALFEATUREFLAGS_LIT_ANISOTROPY | MATERIALFEATUREFLAGS_LIT_STANDARD,
+    /* 13 (3) */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | MATERIALFEATUREFLAGS_LIT_ANISOTROPY | MATERIALFEATUREFLAGS_LIT_STANDARD,
+    /* 14 (2) */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_AREA | MATERIALFEATUREFLAGS_LIT_ANISOTROPY | MATERIALFEATUREFLAGS_LIT_STANDARD,
+    /* 15 (3) */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_ENV | LIGHTFEATUREFLAGS_SSREFLECTION | MATERIALFEATUREFLAGS_LIT_ANISOTROPY | MATERIALFEATUREFLAGS_LIT_STANDARD,
+    /* 16 (3) */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | LIGHTFEATUREFLAGS_ENV | LIGHTFEATUREFLAGS_SSREFLECTION | MATERIALFEATUREFLAGS_LIT_ANISOTROPY | MATERIALFEATUREFLAGS_LIT_STANDARD,
+    /* 17 (2) */ LIGHT_FEATURE_MASK_FLAGS_OPAQUE | MATERIALFEATUREFLAGS_LIT_ANISOTROPY | MATERIALFEATUREFLAGS_LIT_STANDARD,
 
     // Standard with clear coat
-    /* 18 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | MATERIALFEATUREFLAGS_LIT_CLEAR_COAT | MATERIALFEATUREFLAGS_LIT_STANDARD,
-    /* 19 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_AREA | MATERIALFEATUREFLAGS_LIT_CLEAR_COAT | MATERIALFEATUREFLAGS_LIT_STANDARD,
-    /* 20 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_ENV | LIGHTFEATUREFLAGS_SSREFLECTION | MATERIALFEATUREFLAGS_LIT_CLEAR_COAT | MATERIALFEATUREFLAGS_LIT_STANDARD,
-    /* 21 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | LIGHTFEATUREFLAGS_ENV | LIGHTFEATUREFLAGS_SSREFLECTION | MATERIALFEATUREFLAGS_LIT_CLEAR_COAT | MATERIALFEATUREFLAGS_LIT_STANDARD,
-    /* 22 */ LIGHT_FEATURE_MASK_FLAGS_OPAQUE | MATERIALFEATUREFLAGS_LIT_CLEAR_COAT | MATERIALFEATUREFLAGS_LIT_STANDARD,
+    /* 18 (3) */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | MATERIALFEATUREFLAGS_LIT_CLEAR_COAT | MATERIALFEATUREFLAGS_LIT_STANDARD,
+    /* 19 (2) */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_AREA | MATERIALFEATUREFLAGS_LIT_CLEAR_COAT | MATERIALFEATUREFLAGS_LIT_STANDARD,
+    /* 20 (3) */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_ENV | LIGHTFEATUREFLAGS_SSREFLECTION | MATERIALFEATUREFLAGS_LIT_CLEAR_COAT | MATERIALFEATUREFLAGS_LIT_STANDARD,
+    /* 21 (2) */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | LIGHTFEATUREFLAGS_ENV | LIGHTFEATUREFLAGS_SSREFLECTION | MATERIALFEATUREFLAGS_LIT_CLEAR_COAT | MATERIALFEATUREFLAGS_LIT_STANDARD,
+    /* 22 (2) */ LIGHT_FEATURE_MASK_FLAGS_OPAQUE | MATERIALFEATUREFLAGS_LIT_CLEAR_COAT | MATERIALFEATUREFLAGS_LIT_STANDARD,
 
     // Standard with Iridescence
-    /* 23 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | MATERIALFEATUREFLAGS_LIT_IRIDESCENCE | MATERIALFEATUREFLAGS_LIT_STANDARD,
-    /* 24 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_AREA | MATERIALFEATUREFLAGS_LIT_IRIDESCENCE | MATERIALFEATUREFLAGS_LIT_STANDARD,
-    /* 25 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_ENV | LIGHTFEATUREFLAGS_SSREFLECTION | MATERIALFEATUREFLAGS_LIT_IRIDESCENCE | MATERIALFEATUREFLAGS_LIT_STANDARD,
-    /* 26 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | LIGHTFEATUREFLAGS_ENV | LIGHTFEATUREFLAGS_SSREFLECTION | MATERIALFEATUREFLAGS_LIT_IRIDESCENCE | MATERIALFEATUREFLAGS_LIT_STANDARD,
-    /* 27 */ LIGHT_FEATURE_MASK_FLAGS_OPAQUE | MATERIALFEATUREFLAGS_LIT_IRIDESCENCE | MATERIALFEATUREFLAGS_LIT_STANDARD,
+    /* 23 (3) */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | MATERIALFEATUREFLAGS_LIT_IRIDESCENCE | MATERIALFEATUREFLAGS_LIT_STANDARD,
+    /* 24 (2) */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_AREA | MATERIALFEATUREFLAGS_LIT_IRIDESCENCE | MATERIALFEATUREFLAGS_LIT_STANDARD,
+    /* 25 (3) */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_ENV | LIGHTFEATUREFLAGS_SSREFLECTION | MATERIALFEATUREFLAGS_LIT_IRIDESCENCE | MATERIALFEATUREFLAGS_LIT_STANDARD,
+    /* 26 (3) */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | LIGHTFEATUREFLAGS_ENV | LIGHTFEATUREFLAGS_SSREFLECTION | MATERIALFEATUREFLAGS_LIT_IRIDESCENCE | MATERIALFEATUREFLAGS_LIT_STANDARD,
+    /* 27 (2) */ LIGHT_FEATURE_MASK_FLAGS_OPAQUE | MATERIALFEATUREFLAGS_LIT_IRIDESCENCE | MATERIALFEATUREFLAGS_LIT_STANDARD,
 
-    /* 28 */ LIGHT_FEATURE_MASK_FLAGS_OPAQUE | MATERIAL_FEATURE_MASK_FLAGS, // Catch all case with MATERIAL_FEATURE_MASK_FLAGS is needed in case we disable material classification
+    /* 28 (2) */ LIGHT_FEATURE_MASK_FLAGS_OPAQUE | MATERIAL_FEATURE_MASK_FLAGS, // Catch all case with MATERIAL_FEATURE_MASK_FLAGS is needed in case we disable material classification
 };
 
 uint FeatureFlagsToTileVariant(uint featureFlags)
@@ -285,6 +288,14 @@ void FillMaterialAdvancedSSS(inout BSDFData bsdfData)
     float lobeA, lobeB, lobeMix;
     if (GetDualLobeParameters(bsdfData.diffusionProfileIndex, lobeA, lobeB, lobeMix))
         bsdfData.materialFeatures |= MATERIALFEATUREFLAGS_SSS_DUAL_LOBE;
+}
+
+void FillMaterialColoredTranslucent(float3 transmissionMask, inout BSDFData bsdfData)
+{
+    bsdfData.diffusionProfileIndex = 0;
+    bsdfData.fresnel0              = IorToFresnel0(1.4f);
+    bsdfData.thickness             = 0.0f;
+    bsdfData.transmittance         = transmissionMask;
 }
 
 // This function is use to help with debugging and must be implemented by any lit material
@@ -451,7 +462,10 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
     {
         // Assign profile id and overwrite fresnel0
-        FillMaterialTransmission(bsdfData.diffusionProfileIndex, surfaceData.thickness, surfaceData.transmissionMask, bsdfData);
+        if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_COLORED_TRANSMISSION))
+            FillMaterialColoredTranslucent(surfaceData.transmissionMask, bsdfData);
+        else
+            FillMaterialTransmission(bsdfData.diffusionProfileIndex, surfaceData.thickness, surfaceData.transmissionMask, bsdfData);
     }
 
     if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_ANISOTROPY))
@@ -511,10 +525,12 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
 //GBuffer2      f0.r,   f0.g,   f0.b,   featureID(3) / coatMask(5)
 //GBuffer3      bakedDiffuseLighting.rgb
 
-//FeatureName   Subsurface Scattering + Transmission
+//FeatureName   Subsurface Scattering + Transmission + Colored Transmission
 //GBuffer0      baseColor.r,    baseColor.g,    baseColor.b,   diffusionProfile(4) / subsurfaceMask(4)
 //GBuffer1      normal.xy (1212),   perceptualRoughness
-//GBuffer2      specularOcclusion(7) / IsLightmap(1),  thickness,  diffusionProfile(4) / transmissionMask(4), featureID(3) / coatMask(5)
+//GBuffer2 SSS  specularOcclusion(7) / IsLightmap(1),  thickness,  diffusionProfile(4) / transmissionMask(4),  coatMask(5) / featureID(3)
+//GBuffer2 Tra  specularOcclusion(7) / IsLightmap(1),  thickness,  diffusionProfile(4) / transmissionMask(4),  coatMask(4) / colored(1) / featureID(3)
+//GBuffer2 ColT specularOcclusion(7) / IsLightmap(1),  transmissionTint.rgb (20) / colored(1) / featureID(3)
 //GBuffer3      bakedDiffuseLighting.rgb
 
 //FeatureName   Anisotropic
@@ -569,6 +585,11 @@ void EncodeIntoGBuffer( SurfaceData surfaceData
     float encodedSpecularOcclusion = surfaceData.specularOcclusion;
 #endif
 
+    // Ensure that surfaceData.coatMask is 0 if the feature is not enabled
+    // Warning: overriden by Translucent if using a transmission tint
+    float coatMask = HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT) ? surfaceData.coatMask : 0.0;
+    uint encodedCoatMask = PackFloatToUInt(surfaceData.coatMask, 3, 5);
+
     // RT0 - 8:8:8:8 sRGB
     // Warning: the contents are later overwritten for Standard and SSS!
     outGBuffer0 = float4(surfaceData.baseColor, encodedSpecularOcclusion);
@@ -599,10 +620,22 @@ void EncodeIntoGBuffer( SurfaceData surfaceData
         SSSData sssData = ConvertSurfaceDataToSSSData(surfaceData);
         EncodeIntoSSSBuffer(sssData, positionSS, outGBuffer0);
 
-        // We duplicate storage of diffusion profile in G-Buffer 2.
-        // It allows us to delay reading the G-Buffer 0 until the end of the deferred lighting shader.
-        float transmissionMaskProfile = PackFloatInt8bit(surfaceData.transmissionMask, sssData.diffusionProfileIndex, 16);
-        outGBuffer2.rgb = float3(encodedSpecularOcclusion, surfaceData.thickness, transmissionMaskProfile);
+        if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_COLORED_TRANSMISSION))
+        {
+            uint rgb20 = PackToR7G7B6(surfaceData.transmissionMask);
+            outGBuffer2.rgb = float3(encodedSpecularOcclusion, PackByte((rgb20 >> 12) & 0xFF), PackByte((rgb20 >> 4) & 0xFF));
+            encodedCoatMask = ((rgb20 & 0xF) << 4) | (1 << 3);
+        }
+        else
+        {
+            // We duplicate storage of diffusion profile in G-Buffer 2.
+            // It allows us to delay reading the G-Buffer 0 until the end of the deferred lighting shader.
+            float transmissionMaskProfile = PackFloatInt8bit(surfaceData.transmissionMask.x, sssData.diffusionProfileIndex, 16);
+            outGBuffer2.rgb = float3(encodedSpecularOcclusion, surfaceData.thickness, transmissionMaskProfile);
+
+            if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
+                encodedCoatMask = PackFloatToUInt(coatMask, 4, 4) | (0 << 3);
+        }
     }
     else if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_ANISOTROPY))
     {
@@ -693,10 +726,8 @@ void EncodeIntoGBuffer( SurfaceData surfaceData
         outGBuffer2.rgb = FastLinearToSRGB(fresnel0); // TODO: optimize
     }
 
-    // Ensure that surfaceData.coatMask is 0 if the feature is not enabled
-    float coatMask = HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT) ? surfaceData.coatMask : 0.0;
     // Note: no need to store MATERIALFEATUREFLAGS_LIT_STANDARD, always present
-    outGBuffer2.a  = PackFloatInt8bit(coatMask, materialFeatureId, 8);
+    outGBuffer2.a = PackByte(encodedCoatMask | materialFeatureId);
 
 #ifdef DEBUG_DISPLAY
     if (_DebugLightingMode >= DEBUGLIGHTINGMODE_DIFFUSE_LIGHTING && _DebugLightingMode <= DEBUGLIGHTINGMODE_EMISSIVE_LIGHTING)
@@ -793,13 +824,14 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
     // SurfaceData
 
     // Material classification only uses the G-Buffer 2.
-    float coatMask;
-    uint materialFeatureId;
-    UnpackFloatInt8bit(inGBuffer2.a, 8, coatMask, materialFeatureId);
+    uint materialFeatureId = UnpackByte(inGBuffer2.a) & 0x7;
+    bool coloredTransmission = UnpackByte(inGBuffer2.a) & 0x8;
+    float coatMask = UnpackCoatMask(inGBuffer2);
 
     uint pixelFeatureFlags    = MATERIALFEATUREFLAGS_LIT_STANDARD; // Only sky/background do not have the Standard flag.
     bool pixelHasSubsurface   = materialFeatureId == GBUFFER_LIT_TRANSMISSION_SSS || materialFeatureId == GBUFFER_LIT_SSS;
     bool pixelHasTransmission = materialFeatureId == GBUFFER_LIT_TRANSMISSION_SSS || materialFeatureId == GBUFFER_LIT_TRANSMISSION;
+    bool pixelHasTransmiRGB   = materialFeatureId == GBUFFER_LIT_TRANSMISSION && coloredTransmission;
     bool pixelHasAnisotropy   = materialFeatureId == GBUFFER_LIT_ANISOTROPIC;
     bool pixelHasIridescence  = materialFeatureId == GBUFFER_LIT_IRIDESCENCE;
     bool pixelHasClearCoat    = coatMask > 0.0;
@@ -807,6 +839,7 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
     // Disable pixel features disabled by the tile.
     pixelFeatureFlags |= tileFeatureFlags & (pixelHasSubsurface   ? MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING : 0);
     pixelFeatureFlags |= tileFeatureFlags & (pixelHasTransmission ? MATERIALFEATUREFLAGS_LIT_TRANSMISSION          : 0);
+    pixelFeatureFlags |= tileFeatureFlags & (pixelHasTransmiRGB   ? MATERIALFEATUREFLAGS_LIT_COLORED_TRANSMISSION  : 0);
     pixelFeatureFlags |= tileFeatureFlags & (pixelHasAnisotropy   ? MATERIALFEATUREFLAGS_LIT_ANISOTROPY            : 0);
     pixelFeatureFlags |= tileFeatureFlags & (pixelHasIridescence  ? MATERIALFEATUREFLAGS_LIT_IRIDESCENCE           : 0);
     pixelFeatureFlags |= tileFeatureFlags & (pixelHasClearCoat    ? MATERIALFEATUREFLAGS_LIT_CLEAR_COAT            : 0);
@@ -884,8 +917,8 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
         sssData.subsurfaceMask = 0.0f; // Initialize to prevent compiler error, but value is never used
         #endif
 
-        // Overwrite the diffusion profile extracted just above.
-        // We must do this so the compiler can optimize away the read from the G-Buffer 0 to the very end (in PostEvaluateBSDF)
+        // We read profile from G-Buffer 2 so the compiler can optimize away the read from the G-Buffer 0 to the very end (in PostEvaluateBSDF)
+        // When using translucency, we exchange diffusion profile and coat mask
         UnpackFloatInt8bit(inGBuffer2.b, 16, transmissionMask, sssData.diffusionProfileIndex);
 
         // Reminder: when using SSS we exchange specular occlusion and subsurfaceMask/profileID
@@ -904,7 +937,13 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
         // The neutral value of thickness and transmittance is 0 (handled by ZERO_INITIALIZE).
         if (HasFlag(pixelFeatureFlags, MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
         {
-            FillMaterialTransmission(sssData.diffusionProfileIndex, inGBuffer2.g, transmissionMask, bsdfData);
+            if (HasFlag(pixelFeatureFlags, MATERIALFEATUREFLAGS_LIT_COLORED_TRANSMISSION))
+            {
+                uint rgb20 = (UnpackByte(inGBuffer2.g) << 12) | (UnpackByte(inGBuffer2.b) << 4) | (UnpackByte(inGBuffer2.a) >> 4);
+                FillMaterialColoredTranslucent(UnpackFromR7G7B6(rgb20), bsdfData);
+            }
+            else
+                FillMaterialTransmission(sssData.diffusionProfileIndex, inGBuffer2.g, transmissionMask.xxx, bsdfData);
         }
     }
     else

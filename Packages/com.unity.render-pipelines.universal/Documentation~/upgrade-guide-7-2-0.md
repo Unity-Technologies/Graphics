@@ -4,7 +4,7 @@ On this page, you will find information about upgrading from an older version of
 
 ## Building your Project for consoles
 
-To build a Project for the **PlayStation 4** or **Xbox One**, you need to install an additional package for each platform you want to support.
+To build a Project for a console, you need to install an additional package for each platform you want to support.
 
 For more information, see the documentation on [Building for Consoles](Building-For-Consoles.md).
 

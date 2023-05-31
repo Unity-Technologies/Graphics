@@ -16,6 +16,7 @@ using UnityEditor.VersionControl;
 using UnityEditor.Searcher;
 
 using Unity.Profiling;
+using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -245,7 +246,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
             }
 
-            m_SearchWindowProvider = ScriptableObject.CreateInstance<SearcherProvider>();
+            m_SearchWindowProvider = new SearcherProvider();
             m_SearchWindowProvider.Initialize(editorWindow, m_Graph, m_GraphView);
             m_GraphView.nodeCreationRequest = NodeCreationRequest;
             //regenerate entries when graph view is refocused, to propogate subgraph changes
@@ -354,16 +355,13 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void NodeCreationRequest(NodeCreationContext c)
         {
-            if (EditorWindow.focusedWindow == m_EditorWindow) //only display the search window when current graph view is focused
-            {
-                m_SearchWindowProvider.connectedPort = null;
-                m_SearchWindowProvider.target = c.target ?? m_HoveredContextView;
-                var displayPosition = (c.screenMousePosition - m_EditorWindow.position.position);
+            m_SearchWindowProvider.connectedPort = null;
+            m_SearchWindowProvider.target = c.target ?? m_HoveredContextView;
+            var displayPosition = (c.screenMousePosition - m_EditorWindow.position.position);
 
-                SearcherWindow.Show(m_EditorWindow, (m_SearchWindowProvider as SearcherProvider).LoadSearchWindow(),
-                    item => (m_SearchWindowProvider as SearcherProvider).OnSearcherSelectEntry(item, c.screenMousePosition - m_EditorWindow.position.position),
-                    displayPosition, null, new SearcherWindow.Alignment(SearcherWindow.Alignment.Vertical.Center, SearcherWindow.Alignment.Horizontal.Left));
-            }
+            SearcherWindow.Show(m_EditorWindow, (m_SearchWindowProvider as SearcherProvider).LoadSearchWindow(),
+                item => (m_SearchWindowProvider as SearcherProvider).OnSearcherSelectEntry(item, c.screenMousePosition - m_EditorWindow.position.position),
+                displayPosition, null, new SearcherWindow.Alignment(SearcherWindow.Alignment.Vertical.Center, SearcherWindow.Alignment.Horizontal.Left));
         }
 
         // Master Preview, Inspector and Blackboard all need to keep their layouts when hidden in order to restore user preferences.
@@ -540,10 +538,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (graphViewChange.elementsToRemove != null)
             {
                 m_Graph.owner.RegisterCompleteObjectUndo("Remove Elements");
-                m_Graph.RemoveElements(graphViewChange.elementsToRemove.OfType<IShaderNodeView>().Select(v => v.node).ToArray(),
+                m_Graph.RemoveElements(
+                    graphViewChange.elementsToRemove.OfType<IShaderNodeView>().Select(v => v.node).ToArray(),
                     graphViewChange.elementsToRemove.OfType<Edge>().Select(e => (IEdge)e.userData).ToArray(),
                     graphViewChange.elementsToRemove.OfType<ShaderGroup>().Select(g => g.userData).ToArray(),
-                    graphViewChange.elementsToRemove.OfType<StickyNote>().Select(n => n.userData).ToArray());
+                    graphViewChange.elementsToRemove.OfType<StickyNote>().Select(n => n.userData).ToArray(),
+                    graphViewChange.elementsToRemove.OfType<SGBlackboardField>().Select(f => (ShaderInput)f.userData).ToArray()
+                );
                 foreach (var edge in graphViewChange.elementsToRemove.OfType<Edge>())
                 {
                     if (edge.input != null)
@@ -1435,7 +1436,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             if (m_SearchWindowProvider != null)
             {
-                Object.DestroyImmediate(m_SearchWindowProvider);
+                m_SearchWindowProvider.Dispose();
                 m_SearchWindowProvider = null;
             }
         }

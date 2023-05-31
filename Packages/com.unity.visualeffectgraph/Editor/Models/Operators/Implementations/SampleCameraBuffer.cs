@@ -2,6 +2,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-SampleCameraBuffer")]
     [VFXInfo(category = "Sampling")]
     class SampleCameraBuffer : VFXOperator
     {

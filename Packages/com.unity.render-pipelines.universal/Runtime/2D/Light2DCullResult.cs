@@ -63,7 +63,7 @@ namespace UnityEngine.Rendering.Universal
                 returnStats.totalLights++;
                 if (light.normalMapQuality != Light2D.NormalMapQuality.Disabled)
                     returnStats.totalNormalMapUsage++;
-                if (light.volumeIntensity > 0)
+                if (light.volumeIntensity > 0 && light.volumetricEnabled)
                     returnStats.totalVolumetricUsage++;
 
                 returnStats.blendStylesUsed |= (uint)(1 << light.blendStyleIndex);

@@ -154,3 +154,30 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: UUM-21181
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 9e498e31909a6427582110fd758d2f9d, type: 3}
+    ColorSpace: 1
+    BuildPlatform: 13
+    GraphicsDevice: 11
+    XrSdk: OculusLoader
+    StereoModes: 0
+    Reason: Instability on Quest OpenGLES3
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 743d01f5817f118469f5095b0192f5ce, type: 3}
+    ColorSpace: 1
+    BuildPlatform: 13
+    GraphicsDevice: 11
+    XrSdk: OculusLoader
+    StereoModes: 0
+    Reason: Instability on Quest OpenGLES3
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 0}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 4
+    XrSdk: 
+    StereoModes: 0
+    Reason: 

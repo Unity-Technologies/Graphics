@@ -249,7 +249,7 @@ void Frag(PackedVaryings packedInput,
     float2 positionSS = input.positionCS.xy * _ScreenSize.zw;
 
 #if defined(_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
-    positionSS = RemapFoveatedRenderingDistortCS(input.positionCS.xy, true) * _ScreenSize.zw;
+    positionSS = RemapFoveatedRenderingNonUniformToLinearCS(input.positionCS.xy, true) * _ScreenSize.zw;
 #endif
 
 #ifdef DECAL_PROJECTOR

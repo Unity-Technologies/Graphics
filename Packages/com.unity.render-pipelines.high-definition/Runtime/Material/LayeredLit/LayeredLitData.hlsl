@@ -772,7 +772,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.metallic = SURFACEDATA_BLEND_SCALAR(surfaceData, metallic, weights);
     surfaceData.tangentWS = normalize(input.tangentToWorld[0].xyz); // The tangent is not normalize in tangentToWorld for mikkt. Tag: SURFACE_GRADIENT
     surfaceData.subsurfaceMask = SURFACEDATA_BLEND_SCALAR(surfaceData, subsurfaceMask, weights);
-    surfaceData.transmissionMask = SURFACEDATA_BLEND_SCALAR(surfaceData, transmissionMask, weights);
+    surfaceData.transmissionMask = SURFACEDATA_BLEND_VECTOR3(surfaceData, transmissionMask, weights);
     surfaceData.thickness = SURFACEDATA_BLEND_SCALAR(surfaceData, thickness, weights);
     surfaceData.diffusionProfileHash = SURFACEDATA_BLEND_DIFFUSION_PROFILE(surfaceData, diffusionProfileHash, weights); // We don't need the hash as we only use it to compute the diffusion profile index
 
@@ -806,7 +806,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.specularOcclusion = 1.0;
     surfaceData.normalWS = float3(0.0, 0.0, 0.0);
 
-#if HAVE_DECALS && (defined(DECAL_SURFACE_GRADIENT) && defined(SURFACE_GRADIENT))
+#if HAVE_DECALS && ((defined(DECAL_SURFACE_GRADIENT) && defined(SURFACE_GRADIENT)) || defined(PATH_TRACING_ADDITIVE_NORMAL_BLENDING))
     if (_EnableDecals)
     {
         DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, input, alpha);
@@ -816,7 +816,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     GetNormalWS(input, normalTS, surfaceData.normalWS, doubleSidedConstants);
 
-#if HAVE_DECALS && (!defined(DECAL_SURFACE_GRADIENT) || !defined(SURFACE_GRADIENT))
+#if HAVE_DECALS && ((!defined(DECAL_SURFACE_GRADIENT) || !defined(SURFACE_GRADIENT)) && !defined(PATH_TRACING_ADDITIVE_NORMAL_BLENDING))
     if (_EnableDecals)
     {
         // Both uses and modifies 'surfaceData.normalWS'.

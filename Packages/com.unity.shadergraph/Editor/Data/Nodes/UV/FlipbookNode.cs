@@ -146,6 +146,7 @@ namespace UnityEditor.ShaderGraph
                 {
                     s.AppendLine("Tile = floor(fmod(Tile + $precision(0.00001), Width*Height));");
                     s.AppendLine("$precision2 tileCount = $precision2(1.0, 1.0) / $precision2(Width, Height);");
+                    s.AppendLine("$precision base = floor((Tile + $precision(0.5)) * tileCount.x);");
 
                     AppendInvertSpecificLines(s);
 
@@ -158,20 +159,20 @@ namespace UnityEditor.ShaderGraph
         {
             if (m_InvertX)
             {
-                stringBuilder.AppendLine("$precision tileX = (Invert.x * Width - ((Tile - Width * floor(Tile * tileCount.x)) + Invert.x * 1));");
+                stringBuilder.AppendLine("$precision tileX = (Invert.x * Width - (Tile - Width * base + Invert.x * 1));");
             }
             else
             {
-                stringBuilder.AppendLine("$precision tileX = (Tile - Width * floor(Tile * tileCount.x));");
+                stringBuilder.AppendLine("$precision tileX = (Tile - Width * base);");
             }
 
             if (m_InvertY)
             {
-                stringBuilder.AppendLine("$precision tileY = (Invert.y * Height - (floor(Tile * tileCount.x) + Invert.y * 1));");
+                stringBuilder.AppendLine("$precision tileY = (Invert.y * Height - (base + Invert.y * 1));");
             }
             else
             {
-                stringBuilder.AppendLine("$precision tileY = (floor(Tile * tileCount.x));");
+                stringBuilder.AppendLine("$precision tileY = base;");
             }
         }
 
@@ -180,13 +181,18 @@ namespace UnityEditor.ShaderGraph
             using (var tempSlots = PooledList<MaterialSlot>.Get())
             {
                 GetInputSlots(tempSlots);
+                var result = false;
                 foreach (var slot in tempSlots)
                 {
                     if (slot.RequiresMeshUV(channel))
-                        return true;
+                    {
+                        result = true;
+                        break;
+                    }
                 }
 
-                return false;
+                tempSlots.Clear();
+                return result;
             }
         }
     }

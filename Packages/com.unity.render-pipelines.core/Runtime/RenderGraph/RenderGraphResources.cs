@@ -9,6 +9,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     {
         Texture = 0,
         Buffer,
+        AccelerationStructure,
         Count
     }
 

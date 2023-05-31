@@ -5,6 +5,7 @@ using System.Text;
 
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-AgeOverLifetime")]
     [VFXInfo(category = "Attribute")]
     class AgeOverLifetime : VFXOperator
     {

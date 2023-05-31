@@ -794,6 +794,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void Dispose()
         {
+            ClearMessage();
+
             foreach (var portInputView in inputContainer.Query<PortInputView>().ToList())
                 portInputView.Dispose();
 

@@ -14,5 +14,15 @@ Shader "Hidden/HdrpAovTest/AovShader"
             #include "AovShader.hlsl"
             ENDHLSL
         }
+
+        // Depth
+        Pass
+        {
+            HLSLPROGRAM
+            #pragma vertex Vertex
+            #pragma fragment FragmentDepth
+            #include "AovShader.hlsl"
+            ENDHLSL
+        }
     }
 }

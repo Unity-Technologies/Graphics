@@ -67,9 +67,6 @@ LightmapSettings:
     m_LightmapParameters: {fileID: 0}
     m_LightmapsBakeMode: 1
     m_TextureCompression: 1
-    m_FinalGather: 0
-    m_FinalGatherFiltering: 1
-    m_FinalGatherRayCount: 256
     m_ReflectionCompression: 2
     m_MixedBakeMode: 2
     m_BakeBackend: 1
@@ -978,6 +975,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_InternalMesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
+  m_ExclusionRenderer: {fileID: 0}
+  version: 1
 --- !u!4 &922751345
 Transform:
   m_ObjectHideFlags: 0
@@ -1592,9 +1591,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d8f6fd535518f5540b4bcc3099582f77, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Version: 1
+  m_Version: 2
   decalLayerMask: 2
   lightLayerMask: 1
+  largeBand0FadeToggle: 1
+  largeBand1FadeToggle: 1
+  ripplesFadeToggle: 1
   surfaceType: 2
   geometryType: 0
   meshRenderers: []
@@ -1607,6 +1609,10 @@ MonoBehaviour:
   endSmoothness: 0.85
   smoothnessFadeStart: 100
   smoothnessFadeDistance: 500
+  tessellation: 0
+  maxTessellationFactor: 3
+  tessellationFactorFadeStart: 150
+  tessellationFactorFadeRange: 1850
   refractionColor: {r: 0, g: 0.45, b: 0.65, a: 1}
   maxRefractionDistance: 1
   absorptionDistance: 5
@@ -1623,6 +1629,8 @@ MonoBehaviour:
   causticsResolution: 512
   causticsBand: 0
   virtualPlaneDistance: 6.56
+  causticsDirectionalShadow: 0
+  causticsDirectionalShadowDimmer: 0.25
   renderingLayerMask: 513
   debugMode: 0
   waterMaskDebugMode: 0
@@ -1712,11 +1720,11 @@ MonoBehaviour:
   largeWindSpeed: 30
   largeChaos: 0.8
   largeBand0Multiplier: 1
-  largeBand0FadeToggle: 1
+  largeBand0FadeMode: 2
   largeBand0FadeStart: 1500
   largeBand0FadeDistance: 3000
   largeBand1Multiplier: 1
-  largeBand1FadeToggle: 1
+  largeBand1FadeMode: 2
   largeBand1FadeStart: 300
   largeBand1FadeDistance: 800
   ripples: 1
@@ -1724,7 +1732,7 @@ MonoBehaviour:
   ripplesOrientationValue: 0
   ripplesWindSpeed: 8
   ripplesChaos: 0.8
-  ripplesFadeToggle: 1
+  ripplesFadeMode: 2
   ripplesFadeStart: 50
   ripplesFadeDistance: 200
   waterMask: {fileID: 0}
@@ -1991,9 +1999,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d8f6fd535518f5540b4bcc3099582f77, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Version: 1
+  m_Version: 2
   decalLayerMask: 1
   lightLayerMask: 1
+  largeBand0FadeToggle: 1
+  largeBand1FadeToggle: 1
+  ripplesFadeToggle: 1
   surfaceType: 0
   geometryType: 3
   meshRenderers: []
@@ -2006,6 +2017,10 @@ MonoBehaviour:
   endSmoothness: 0.85
   smoothnessFadeStart: 100
   smoothnessFadeDistance: 500
+  tessellation: 1
+  maxTessellationFactor: 3
+  tessellationFactorFadeStart: 150
+  tessellationFactorFadeRange: 1850
   refractionColor: {r: 0.1, g: 0.5, b: 0.5, a: 1}
   maxRefractionDistance: 0.5
   absorptionDistance: 1.5
@@ -2022,6 +2037,8 @@ MonoBehaviour:
   causticsResolution: 256
   causticsBand: 2
   virtualPlaneDistance: 5
+  causticsDirectionalShadow: 0
+  causticsDirectionalShadowDimmer: 0.25
   renderingLayerMask: 257
   debugMode: 0
   waterMaskDebugMode: 0
@@ -2093,11 +2110,11 @@ MonoBehaviour:
   largeWindSpeed: 30
   largeChaos: 0.85
   largeBand0Multiplier: 1
-  largeBand0FadeToggle: 1
+  largeBand0FadeMode: 1
   largeBand0FadeStart: 1500
   largeBand0FadeDistance: 3000
   largeBand1Multiplier: 1
-  largeBand1FadeToggle: 1
+  largeBand1FadeMode: 1
   largeBand1FadeStart: 300
   largeBand1FadeDistance: 800
   ripples: 1
@@ -2105,7 +2122,7 @@ MonoBehaviour:
   ripplesOrientationValue: 0
   ripplesWindSpeed: 8
   ripplesChaos: 0.8
-  ripplesFadeToggle: 1
+  ripplesFadeMode: 1
   ripplesFadeStart: 50
   ripplesFadeDistance: 200
   waterMask: {fileID: 0}

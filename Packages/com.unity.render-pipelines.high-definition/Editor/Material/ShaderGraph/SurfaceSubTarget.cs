@@ -41,7 +41,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected virtual bool supportForward => false;
         protected virtual bool supportLighting => false;
         protected virtual bool supportDistortion => false;
-        protected override bool supportRaytracing => true;
+        protected override bool supportRaytracing => !TargetsVFX() || TargetVFXSupportsRaytracing();
 
         protected override int ComputeMaterialNeedsUpdateHash()
         {
@@ -402,7 +402,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 systemData.opaqueCullMode,
                 systemData.zTest,
                 builtinData.backThenFrontRendering,
-                builtinData.transparencyFog
+                builtinData.transparencyFog,
+                systemData.renderQueueType
             );
 
             // Add all shader properties required by the inspector for Tessellation

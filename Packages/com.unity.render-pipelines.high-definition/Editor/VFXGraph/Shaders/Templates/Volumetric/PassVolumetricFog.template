@@ -71,7 +71,7 @@ VertexToFragment Vert(vs_input i)
     uint viewIndex = unity_StereoEyeIndex;
 
     // Cull particles in case more draw calls were issued than necessary, this happens quite a lot when dispatching large number of quads
-    if (quadIndex > indirectBuffer[0])
+    if (quadIndex > indirectBuffer[batchIndex])
         return o;
 
     ${VFXInitInstancing}
@@ -131,7 +131,7 @@ VertexToFragment Vert(vs_input i)
     distanceToParticleSphere = max(distanceToParticleSphere, vBufferNearplane);
 
     // Calculate the start slice index from the front position of the particle
-    uint startSliceIndex = DistanceToSlice(distanceToParticleSphere);
+    uint startSliceIndex = DistanceToSlice(distanceToParticleSphere) + 1;
     uint sliceIndex = startSliceIndex + quadIndexPerParticle;
     o.depthSlice = sliceIndex + viewIndex * _VBufferSliceCount;
     float sliceDistanceToCamera = VBufferDistanceToSliceIndex(sliceIndex);

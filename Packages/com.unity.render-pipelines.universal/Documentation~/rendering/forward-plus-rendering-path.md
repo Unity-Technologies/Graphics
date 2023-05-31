@@ -31,8 +31,4 @@ When you set the Rendering Path to Forward+, Unity ignores the values in the fol
 
 ## Limitations
 
-The Forward+ Rendering Path has the following limitations:
-
-* Does not support the orthographic Camera projection.
-
-* Does not support XR platforms.
+The Forward+ Rendering Path has no limitations compared with the Forward Rendering Path.

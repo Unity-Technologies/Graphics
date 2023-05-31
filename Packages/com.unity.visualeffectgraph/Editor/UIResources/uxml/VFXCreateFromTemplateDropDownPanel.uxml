@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<UXML xmlns:ui="UnityEngine.UIElements">
+    <ui:Button name="createNew" text="Create from template" tooltip="Create a new VFX asset starting from a template" style="margin-top:8px" />
+    <ui:Button name="insert" text="Insert template" tooltip="Insert a template into the current VFX asset" />
+</UXML>

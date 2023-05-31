@@ -58,18 +58,11 @@ namespace UnityEditor.Rendering
         static Dictionary<Type, Type> s_WidgetStateMap; // DebugUI.Widget type -> DebugState type
         static Dictionary<Type, DebugUIDrawer> s_WidgetDrawerMap; // DebugUI.Widget type -> DebugUIDrawer
 
-        static bool s_Open;
         public static bool open
         {
-            get => s_Open;
-            private set
-            {
-                if (s_Open ^ value)
-                    OnDebugWindowToggled?.Invoke(value);
-                s_Open = value;
-            }
+            get => DebugManager.instance.displayEditorUI;
+            private set => DebugManager.instance.displayEditorUI = value;
         }
-        static event Action<bool> OnDebugWindowToggled;
 
         protected override void OnHelpButtonClicked()
         {
@@ -109,9 +102,6 @@ namespace UnityEditor.Rendering
 
             //find if it where open, relink static event end propagate the info
             open = (Resources.FindObjectsOfTypeAll<DebugWindow>()?.Length ?? 0) > 0;
-            if (OnDebugWindowToggled == null)
-                OnDebugWindowToggled += DebugManager.instance.ToggleEditorUI;
-            DebugManager.instance.ToggleEditorUI(open);
         }
 
         static void RebuildTypeMaps()
@@ -171,9 +161,6 @@ namespace UnityEditor.Rendering
 
         void OnEnable()
         {
-            if (OnDebugWindowToggled == null)
-                OnDebugWindowToggled += DebugManager.instance.ToggleEditorUI;
-
             open = true;
 
             DebugManager.instance.refreshEditorRequested = false;

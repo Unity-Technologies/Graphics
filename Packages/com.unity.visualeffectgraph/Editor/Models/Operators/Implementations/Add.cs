@@ -3,6 +3,7 @@ using UnityEditor.VFX;
 
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-Add")]
     [VFXInfo(category = "Math/Arithmetic")]
     class Add : VFXOperatorNumericCascadedUnified
     {

@@ -1,6 +1,8 @@
 #pragma kernel Main
 #pragma kernel MainArgs
 
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/LineRendering/Core/LineRenderingCommon.hlsl"
 
 #define THREADING_BLOCK_SIZE NUM_LANE_RASTER_BIN
@@ -101,7 +103,15 @@ void Main(Group group)
     const SegmentRecord s_segment = LoadSegmentRecord(_SegmentRecordBuffer, s_segmentIndex);
 
     uint2 v_segmentMin, v_segmentMax;
-    GetSegmentBoundingBox(s_segment, v_segmentMin, v_segmentMax);
+
+    if(s_segmentIndex < gs_ActiveSegmentCount)
+        GetSegmentBoundingBox(s_segment, v_segmentMin, v_segmentMax);
+    else
+    {
+        // Fall back to a zero-sized AABB to prevent uninitialized memory creating a huge one. 
+        v_segmentMin = 0;
+        v_segmentMax = 0;
+    }
 
     const Wave wave = group.GetWave();
 

@@ -12,7 +12,7 @@
 //-------------------------------------------------------------------------------------
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/SampleUVMapping.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl"
-#ifndef SHADER_STAGE_RAY_TRACING
+#if !defined(SHADER_STAGE_RAY_TRACING) || (SHADERPASS == SHADERPASS_PATH_TRACING)
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalUtilities.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitDecalData.hlsl"
 #endif
@@ -254,7 +254,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.geomNormalWS = input.tangentToWorld[2];
     surfaceData.specularOcclusion = 1.0;
 
-#if HAVE_DECALS && (defined(DECAL_SURFACE_GRADIENT) && defined(SURFACE_GRADIENT))
+#if HAVE_DECALS && ((defined(DECAL_SURFACE_GRADIENT) && defined(SURFACE_GRADIENT)) || defined(PATH_TRACING_ADDITIVE_NORMAL_BLENDING)) 
     if (_EnableDecals)
     {
         DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, input, alpha);
@@ -264,7 +264,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     GetNormalWS(input, normalTS, surfaceData.normalWS, doubleSidedConstants);
 
-#if HAVE_DECALS && (!defined(DECAL_SURFACE_GRADIENT) || !defined(SURFACE_GRADIENT))
+#if HAVE_DECALS && ((!defined(DECAL_SURFACE_GRADIENT) || !defined(SURFACE_GRADIENT)) && !defined(PATH_TRACING_ADDITIVE_NORMAL_BLENDING))
     if (_EnableDecals)
     {
         // Both uses and modifies 'surfaceData.normalWS'.

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine.Assertions;
 
 namespace UnityEngine.Rendering
@@ -7,7 +8,7 @@ namespace UnityEngine.Rendering
     /// <summary>
     /// An Asset which holds a set of settings to use with a <see cref="Volume"/>.
     /// </summary>
-    [CoreRPHelpURL("Volume-Profile", "com.unity.render-pipelines.high-definition")]
+    [CurrentPipelineHelpURL("Volume-Profile")]
     [Icon("Packages/com.unity.render-pipelines.core/Editor/Icons/Processed/VolumeProfile Icon.asset")]
     public sealed class VolumeProfile : ScriptableObject
     {
@@ -340,5 +341,19 @@ namespace UnityEngine.Rendering
                 if (components[i] == null)
                     components.RemoveAt(i);
         }
+
+#if UNITY_EDITOR
+        void OnValidate()
+        {
+            // Delay the callback because when undoing the deletion of a VolumeComponent from a profile,
+            // it's possible VolumeComponent.OnEnable() has not yet been called, resulting in a crash when trying to
+            // update the default state.
+            EditorApplication.delayCall += () =>
+            {
+                if (VolumeManager.instance.isInitialized)
+                    VolumeManager.instance.OnVolumeProfileChanged(this);
+            };
+        }
+#endif
     }
 }

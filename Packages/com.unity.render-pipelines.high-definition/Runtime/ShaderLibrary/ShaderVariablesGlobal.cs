@@ -61,7 +61,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4 _ScreenSize;                 // { w, h, 1 / w, 1 / h }
         public Vector4 _PostProcessScreenSize;      // { w, h, 1.0 / w, 1.0 / h }
 
-        // Those two uniforms are specific to the RTHandle system
+        // Those four uniforms are specific to the RTHandle system
         public Vector4 _RTHandleScale;                      // { w / RTHandle.maxWidth, h / RTHandle.maxHeight } : xy = currFrame, zw = prevFrame
         public Vector4 _RTHandleScaleHistory;               // Same as above but the RTHandle handle size is that of the history buffer
         public Vector4 _RTHandlePostProcessScale;           // { postProcessWidth / RTHandle.maxWidth, postProcessWidth / RTHandle.maxHeight } : xy = currFrame, zw = prevFrame
@@ -157,10 +157,17 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4 _CachedShadowAtlasSize;
         public Vector4 _CachedAreaShadowAtlasSize;
 
+        // Water Line
+        public Vector4 _BoundsSS;
+        public float _UpDirectionX;
+        public float _UpDirectionY;
+        public float _BufferStride;
+        public int _EnableUnderwater;
+
         public int _SpecularFade;
         public uint _EnableRenderingLayers;
         public int _ReflectionsMode;
-        public int _UnusedPadding2;
+        public uint _RayTracingCheckerIndex;
 
         public uint _DirectionalLightCount;
         public uint _PunctualLightCount;

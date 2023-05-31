@@ -123,9 +123,9 @@ namespace UnityEngine.Rendering.Universal
             public Shader cameraMotionVector;
 
             /// <summary>
-            /// Object Motion Vectors shader.
+            /// Object Motion Vector Fallback shader (used for shaders which don't have a pass with a "MotionVectors" LightMode tag).
             /// </summary>
-            [Reload("Shaders/ObjectMotionVectors.shader")]
+            [Reload("Shaders/ObjectMotionVectorFallback.shader")]
             public Shader objectMotionVector;
         }
 

@@ -99,6 +99,7 @@ namespace UnityEditor.Rendering.Universal
                 if (m_StrippingData.IsKeywordEnabled(kw))
                     return true;
             }
+
             // To strip out the OFF variant, it needs to check if
             // * Strip unused variants has been enabled
             // * The keyword is present in that pass

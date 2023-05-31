@@ -73,6 +73,12 @@ namespace UnityEngine.Rendering.HighDefinition
     [HDRPHelpURL("Post-Processing-Depth-of-Field")]
     public sealed class DepthOfField : VolumeComponentWithQuality, IPostProcessComponent
     {
+        // Sampling ratios for adaptive sampling.
+        // X: ratio of the sharp part tiles of PBR dof that have high variance of CoC.
+        // Y: ratio of the blurry / sharp tiles that have low variance of CoC.
+        internal static Vector2 s_HighQualityAdaptiveSamplingWeights = new Vector2(4.0f, 1.0f);
+        internal static Vector2 s_LowQualityAdaptiveSamplingWeights  = new Vector2(1.0f, 0.75f);
+
         /// <summary>
         /// Specifies the mode that HDRP uses to set the focus for the depth of field effect.
         /// </summary>
@@ -231,7 +237,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             set { m_HighQualityFiltering.value = value; }
         }
-
+    
         /// <summary>
         /// When enabled, HDRP uses a more accurate but slower physically based method to compute the depth of field effect.
         /// </summary>

@@ -6,59 +6,65 @@ namespace UnityEngine.Rendering.Tests
 {
     public class VolumeComponentEditorSupportedOnTests : RenderPipelineTests
     {
-        [VolumeComponentMenu("Supported On Tests/No supported on")]
-        public class VolumeComponentNoSupportedOn : VolumeComponent
+        [VolumeComponentMenu("SupportedOnTests/SupportedEverywhere")]
+        public class VolumeComponentSupportedEverywhere : VolumeComponent
         {
         }
 
-        [HideInInspector]
-        [VolumeComponentMenu("Supported On Tests/Hidden")]
-        public class VolumeComponentHidden : VolumeComponent
-        {
-        }
-
-        [VolumeComponentMenu("Supported On Tests/Not Specified Pipeline Supported On")]
+        [VolumeComponentMenu("SupportedOnTests/SupportedOnAnySRP")]
         [SupportedOnRenderPipeline]
-        public class VolumeComponentNotSpecifiedSupportedOn : VolumeComponent
+        public class VolumeComponentSupportedOnAnySRP : VolumeComponent
         {
         }
 
-        [VolumeComponentMenu("Supported On Tests/Not Specified Pipeline Supported On")]
-        [SupportedOnRenderPipeline(typeof(CustomRenderPipelineAsset))]
-        public class VolumeComponentCustomRenderPipelineAsset : VolumeComponent
+        [VolumeComponentMenu("SupportedOnTests/SupportedOnCustomSRP")]
+        [SupportedOnRenderPipeline(typeof(CustomSRPAsset))]
+        public class VolumeComponentSupportedOnCustomSRP : VolumeComponent
         {
         }
 
-        class CustomRenderPipelineAsset : RenderPipelineAsset
+        class CustomSRPAsset : RenderPipelineAsset
         {
-            protected override RenderPipeline CreatePipeline()
-                => new CustomRenderPipeline();
+            protected override RenderPipeline CreatePipeline() => throw new NotImplementedException();
         }
 
-        class CustomRenderPipeline : RenderPipeline
+        class AnotherSRPAsset : RenderPipelineAsset
         {
-            protected override void Render(ScriptableRenderContext context, Camera[] cameras)
-            {
-            }
+            protected override RenderPipeline CreatePipeline() => throw new NotImplementedException();
         }
 
         static TestCaseData[] s_TestCaseDataGetItem =
         {
-            new TestCaseData(null, null, typeof(VolumeComponentNoSupportedOn))
-                .SetName("Given null types when asking for supported volume components then returns volume component only without attribute (BuiltIn)"),
-            new TestCaseData(typeof(CustomRenderPipeline), typeof(CustomRenderPipelineAsset), typeof(VolumeComponentNoSupportedOn))
-                .SetName("Given CustomRenderPipeline types when asking for supported volume components then return contains volume component without attribute (BuiltIn)"),
-            new TestCaseData(typeof(CustomRenderPipeline), typeof(CustomRenderPipelineAsset), typeof(VolumeComponentNotSpecifiedSupportedOn))
-                .SetName("Given CustomRenderPipeline types when asking for supported volume components then return contains volume component with attribute but without specified pipeline type (Any SRP pipeline)"),
-            new TestCaseData(typeof(CustomRenderPipeline), typeof(CustomRenderPipelineAsset), typeof(VolumeComponentCustomRenderPipelineAsset))
-                .SetName("Given CustomRenderPipeline types when asking for supported volume components then return contains volume component with attribute with specified pipeline type (Specific SRP pipeline)"),
+            new TestCaseData(
+                    null,
+                    new[] { typeof(VolumeComponentSupportedEverywhere) },
+                    new[] { typeof(VolumeComponentSupportedOnAnySRP), typeof(VolumeComponentSupportedOnCustomSRP) })
+                .SetName("Given null SRP asset (Builtin), volumeManager.baseComponentTypeArray contains volume component without attribute but not others"),
+
+            new TestCaseData(
+                    typeof(CustomSRPAsset),
+                    new[] { typeof(VolumeComponentSupportedEverywhere), typeof(VolumeComponentSupportedOnAnySRP), typeof(VolumeComponentSupportedOnCustomSRP)},
+                    new Type[] {})
+                .SetName("Given CustomSRPAsset, volumeManager.baseComponentTypeArray contains all volume components"),
+
+            new TestCaseData(
+                    typeof(AnotherSRPAsset),
+                    new[] { typeof(VolumeComponentSupportedEverywhere), typeof(VolumeComponentSupportedOnAnySRP)},
+                    new[] { typeof(VolumeComponentSupportedOnCustomSRP) })
+                .SetName("Given AnotherSRPAsset, volumeManager.baseComponentTypeArray does not contains component that only supports CustomSRP")
         };
 
         [Test, TestCaseSource(nameof(s_TestCaseDataGetItem))]
-        public void TestGetSupportedVolumeComponents(Type renderPipelineType, Type renderPipelineAssetType, Type expectedType)
+        public void TestVolumeManagerSupportedOnFiltering(Type renderPipelineAssetType, Type[] expectedTypes, Type[] notExpectedTypes)
         {
-            var volumeComponents = VolumeManager.GetSupportedVolumeComponents(renderPipelineType, renderPipelineAssetType);
-            Assert.That(() => volumeComponents.First(t => t.Item2 == expectedType), Throws.Nothing);
+            var volumeManager = new VolumeManager();
+            volumeManager.LoadBaseTypes(renderPipelineAssetType);
+
+            foreach (var expectedType in expectedTypes)
+                Assert.That(() => volumeManager.baseComponentTypeArray.First(t => t == expectedType), Throws.Nothing);
+
+            foreach (var notExpectedType in notExpectedTypes)
+                Assert.That(() => volumeManager.baseComponentTypeArray.First(t => t == notExpectedType), Throws.InvalidOperationException);
         }
     }
 }

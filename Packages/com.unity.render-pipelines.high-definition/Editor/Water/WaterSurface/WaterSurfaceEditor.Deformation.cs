@@ -31,18 +31,11 @@ namespace UnityEditor.Rendering.HighDefinition
         static internal void WaterSurfaceDeformationSection(WaterSurfaceEditor serialized, Editor owner)
         {
             HDRenderPipelineAsset currentAsset = HDRenderPipeline.currentAsset;
-            if (!currentAsset?.currentPlatformRenderPipelineSettings.supportWater ?? false)
-            {
-                EditorGUILayout.Space();
-                HDEditorUtils.QualitySettingsHelpBox("The current HDRP Asset does not support Water Surfaces.", MessageType.Error,
-                    HDRenderPipelineUI.ExpandableGroup.Rendering, "m_RenderPipelineSettings.supportWater");
-                return;
-            }
             if (!currentAsset?.currentPlatformRenderPipelineSettings.supportWaterDeformation ?? false)
             {
                 EditorGUILayout.Space();
                 HDEditorUtils.QualitySettingsHelpBox("The current HDRP Asset does not support deformation for Water Surfaces.", MessageType.Error,
-                    HDRenderPipelineUI.ExpandableGroup.Rendering, "m_RenderPipelineSettings.supportWaterDeformation");
+                    HDRenderPipelineUI.ExpandableGroup.Rendering, HDRenderPipelineUI.ExpandableRendering.Water, "m_RenderPipelineSettings.supportWaterDeformation");
                 return;
             }
 

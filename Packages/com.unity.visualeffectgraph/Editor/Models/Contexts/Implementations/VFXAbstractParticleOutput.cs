@@ -139,7 +139,7 @@ namespace UnityEditor.VFX
         public virtual bool isRayTraced { get { return !HasStrips(true) && enableRayTracing; } }
         protected virtual bool needsExposureWeight { get { return true; } }
 
-        private bool hasExposure { get { return needsExposureWeight && subOutput.supportsExposure; } }
+        protected virtual bool hasExposure { get { return needsExposureWeight && subOutput.supportsExposure; } }
 
         public virtual void SetupMaterial(Material material) { }
 
@@ -600,12 +600,12 @@ namespace UnityEditor.VFX
                 }
                 if (!subOutput.supportsExcludeFromTAA)
                     yield return "excludeFromTAA";
-                if (sort == SortActivationMode.Off || HasStrips(true))
+                if (!HasSorting())
                 {
                     yield return "sortMode";
                     yield return "revertSorting";
                 }
-                if (!VFXViewPreference.displayExperimentalOperator)
+                if (!VFXViewPreference.displayExperimentalOperator || !VFXLibrary.currentSRPBinder.GetSupportsRayTracing())
                     yield return "enableRayTracing";
                 if (!isRayTraced)
                 {

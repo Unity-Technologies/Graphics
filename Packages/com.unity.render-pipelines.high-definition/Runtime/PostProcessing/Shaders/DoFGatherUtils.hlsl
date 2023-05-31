@@ -20,7 +20,6 @@ TEXTURE2D_X(_TileList);
 #define RING_OCCLUSION
 //#define PER_TILE_BG_FG_CLASSIFICATION     // Disabled because of artifacts (case 1413534)
 #define PHYSICAL_WEIGHTS
-#define FORCE_POINT_SAMPLING
 //#define USE_BLUE_NOISE                    // Increase quality at the cost of performance
 
 #ifndef NON_UNIFORM_DENSITY
@@ -120,12 +119,12 @@ CTYPE GetColorSample(float2 sampleTC, float lod)
 
 void LoadTileData(float2 sampleTC, SampleData centerSample, float rings, inout DoFTile tileData)
 {
-    float4 cocRanges = LOAD_TEXTURE2D_X(_TileList, ResScale * sampleTC / TILE_RES);
+    float4 cocRanges = LOAD_TEXTURE2D_X(_TileList, ResScale * sampleTC / TILE_RES) * OneOverResScale;
 
     // Note: for the far-field, we don't need to search further than than the central CoC.
     // If there is a larger CoC that overlaps the central pixel then it will have greater depth
     float limit = min(cocRanges.y, 2 * abs(centerSample.CoC));
-    tileData.maxRadius = max(limit, -cocRanges.w) * OneOverResScale;
+    tileData.maxRadius = max(limit, -cocRanges.w);
 
     // Detect tiles than need more samples
     tileData.numSamples = rings;
@@ -133,7 +132,7 @@ void LoadTileData(float2 sampleTC, SampleData centerSample, float rings, inout D
 
 #ifdef ADAPTIVE_SAMPLING
     float minRadius = min(cocRanges.x, -cocRanges.z) * OneOverResScale;
-    tileData.numSamples = (minRadius / tileData.maxRadius < 0.1) ? tileData.numSamples * 4 : tileData.numSamples;
+    tileData.numSamples = (int)ceil((minRadius / tileData.maxRadius < 0.1) ? tileData.numSamples * AdaptiveSamplingWeights.x : tileData.numSamples * AdaptiveSamplingWeights.y);
 #endif
 
     // By default split the fg and bg layers at 0

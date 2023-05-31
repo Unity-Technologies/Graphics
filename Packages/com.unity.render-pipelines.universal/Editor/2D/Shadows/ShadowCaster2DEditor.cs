@@ -1,3 +1,4 @@
+
 using UnityEditor.EditorTools;
 using UnityEditor.Rendering.Universal.Path2D;
 using UnityEngine;
@@ -64,8 +65,13 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_ShadowMesh;
         SerializedProperty m_TrimEdge;
         SerializedProperty m_AlphaCutoff;
+        SerializedProperty m_ShadowShape2DProvider;
+        Editor             m_ShadowShape2DProviderEditor;
+
         SortingLayerDropDown m_SortingLayerDropDown;
         CastingSourceDropDown m_CastingSourceDropDown;
+
+        System.Type m_LastShadowShape2DProviderType = null;
 
         public void OnEnable()
         {
@@ -80,6 +86,12 @@ namespace UnityEditor.Rendering.Universal
             m_SortingLayerDropDown.OnEnable(serializedObject, "m_ApplyToSortingLayers");
 
             m_CastingSourceDropDown = new CastingSourceDropDown();
+
+            m_ShadowShape2DProvider = serializedObject.FindProperty("m_ShadowShape2DProvider");
+
+            Object provider = m_ShadowShape2DProvider.objectReferenceValue as Object;
+            if (provider)
+                m_ShadowShape2DProviderEditor = Editor.CreateEditor(provider);
         }
 
         public void ShadowCaster2DSceneGUI()
@@ -127,8 +139,28 @@ namespace UnityEditor.Rendering.Universal
             }
 
             m_SortingLayerDropDown.OnTargetSortingLayers(serializedObject, targets, Styles.sortingLayerPrefixLabel, null);
-
             serializedObject.ApplyModifiedProperties();
+
+            if (usingShapeProvider)
+            {
+                Object provider = m_ShadowShape2DProvider.objectReferenceValue as Object;
+                if (provider.GetType() != m_LastShadowShape2DProviderType)
+                {
+                    if (provider)
+                        m_ShadowShape2DProviderEditor = Editor.CreateEditor(provider);
+
+                    m_LastShadowShape2DProviderType = provider.GetType();
+                }
+            }
+            else
+            {
+                m_ShadowShape2DProviderEditor = null;
+                m_LastShadowShape2DProviderType = null;
+            }
+
+            if (m_ShadowShape2DProviderEditor != null)
+                m_ShadowShape2DProviderEditor.OnInspectorGUI();
+
         }
     }
 }

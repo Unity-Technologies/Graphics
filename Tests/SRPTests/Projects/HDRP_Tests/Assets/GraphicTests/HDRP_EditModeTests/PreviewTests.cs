@@ -75,7 +75,6 @@ namespace UnityEditor.Previews
         }
 
         [UnityTest]
-        [Ignore("Case https://jira.unity3d.com/browse/UUM-18048")]
         public IEnumerator CreatePreviewDoesNotLeakMemoryInWorkers()
         {
             var logEntryString = "There are remaining Allocations on the JobTempAlloc.";

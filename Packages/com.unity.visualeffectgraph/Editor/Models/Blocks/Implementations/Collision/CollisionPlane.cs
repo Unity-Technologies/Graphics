@@ -5,6 +5,7 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Block
 {
+    [VFXHelpURL("Block-CollideWithPlane")]
     [VFXInfo(category = "Collision")]
     class CollisionPlane : CollisionBase
     {

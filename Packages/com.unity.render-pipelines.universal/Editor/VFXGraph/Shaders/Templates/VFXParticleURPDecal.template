@@ -1,0 +1,15 @@
+﻿{
+	SubShader
+	{
+		HLSLINCLUDE
+		#define mainTexture baseColorMap
+		ENDHLSL
+
+		${VFXInclude("Shaders/VFXParticleHeader.template")}
+		${VFXInclude("Shaders/ParticleHexahedron/PassSelection.template")}
+		${VFXIncludeRP("Templates/URPDecal/PassDBuffer.template")}
+		${VFXIncludeRP("Templates/URPDecal/PassGBuffer.template")}
+		${VFXIncludeRP("Templates/URPDecal/PassScreenSpace.template")}
+		${VFXIncludeRP("Templates/URPDecal/PassForwardEmissive.template"), AFFECT_EMISSIVE}
+	}
+}

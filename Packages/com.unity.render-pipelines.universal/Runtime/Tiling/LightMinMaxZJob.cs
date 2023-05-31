@@ -8,7 +8,7 @@ namespace UnityEngine.Rendering.Universal
     [BurstCompile]
     struct LightMinMaxZJob : IJobFor
     {
-        public float4x4 worldToViewMatrix;
+        public Fixed2<float4x4> worldToViews;
 
         [ReadOnly]
         public NativeArray<VisibleLight> lights;
@@ -16,10 +16,13 @@ namespace UnityEngine.Rendering.Universal
 
         public void Execute(int index)
         {
-            var light = lights[index];
+            var lightIndex = index % lights.Length;
+            var light = lights[lightIndex];
             var lightToWorld = (float4x4)light.localToWorldMatrix;
             var originWS = lightToWorld.c3.xyz;
-            var originVS = math.mul(worldToViewMatrix, math.float4(originWS, 1)).xyz;
+            var viewIndex = index / lights.Length;
+            var worldToView = worldToViews[viewIndex];
+            var originVS = math.mul(worldToView, math.float4(originWS, 1)).xyz;
             originVS.z *= -1;
 
             var minMax = math.float2(originVS.z - light.range, originVS.z + light.range);
@@ -32,7 +35,7 @@ namespace UnityEngine.Rendering.Universal
                 float coneHeight = light.range * cosAngleA;
                 float3 spotDirectionWS = lightToWorld.c2.xyz;
                 var endPointWS = originWS + spotDirectionWS * coneHeight;
-                var endPointVS = math.mul(worldToViewMatrix, math.float4(endPointWS, 1)).xyz;
+                var endPointVS = math.mul(worldToView, math.float4(endPointWS, 1)).xyz;
                 endPointVS.z *= -1;
                 var angleB = math.PI * 0.5f - angleA;
                 var coneRadius = light.range * cosAngleA * math.sin(angleA) / math.sin(angleB);

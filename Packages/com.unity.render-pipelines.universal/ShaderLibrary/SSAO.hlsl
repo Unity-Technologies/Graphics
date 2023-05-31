@@ -235,7 +235,7 @@ float SampleAndGetLinearEyeDepth(float2 uv)
 half3 ReconstructViewPos(float2 uv, float linearDepth)
 {
     #if defined(_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
-        uv = RemapFoveatedRenderingDistort(uv);
+        uv = RemapFoveatedRenderingNonUniformToLinear(uv);
     #endif
 
     // Screen is y-inverted.
@@ -355,7 +355,7 @@ half4 SSAO(Varyings input) : SV_Target
         return PackAONormal(HALF_ZERO, HALF_ZERO);
 
     #if defined(_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
-        float2 pixelDensity = RemapFoveatedRenderingDensity(RemapFoveatedRenderingDistort(uv));
+        float2 pixelDensity = RemapFoveatedRenderingDensity(RemapFoveatedRenderingNonUniformToLinear(uv));
     #else
         float2 pixelDensity = float2(1.0f, 1.0f);
     #endif
@@ -396,7 +396,7 @@ half4 SSAO(Varyings input) : SV_Target
         #endif
 
         #if defined(_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
-            uv_s1_01 = RemapFoveatedRenderingResolve(uv_s1_01);
+            uv_s1_01 = RemapFoveatedRenderingLinearToNonUniform(uv_s1_01);
         #endif
 
         // Relative depth of the sample point

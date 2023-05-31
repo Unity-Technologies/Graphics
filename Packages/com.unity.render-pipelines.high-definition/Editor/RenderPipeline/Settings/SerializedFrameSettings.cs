@@ -1,6 +1,5 @@
 using UnityEngine.Rendering.HighDefinition;
 using System;
-
 using Object = UnityEngine.Object;
 
 namespace UnityEditor.Rendering.HighDefinition
@@ -9,8 +8,8 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         SerializedProperty m_RootData;
         SerializedProperty m_RootOverrides;
-        SerializedBitArray128 m_BitDatas;
-        SerializedBitArray128 m_BitOverrides;
+        SerializedBitArrayAny m_BitDatas;
+        SerializedBitArrayAny m_BitOverrides;
         public SerializedProperty sssQualityMode;
         public SerializedProperty sssQualityLevel;
         public SerializedProperty sssCustomSampleBudget;
@@ -81,8 +80,16 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             m_RootData = rootData;
             m_RootOverrides = rootOverrides;
-            m_BitDatas = rootData.FindPropertyRelative("bitDatas").ToSerializeBitArray128();
-            m_BitOverrides = rootOverrides?.FindPropertyRelative("mask").ToSerializeBitArray128();  //rootOverride can be null in case of hdrpAsset defaults
+
+            var bitArrayTargetObjects = rootData.serializedObject.targetObjects;
+            SerializedObject[] bitArrayTargetSerializedObjects = new SerializedObject[bitArrayTargetObjects.Length];
+            for (int i = 0; i < bitArrayTargetObjects.Length; i++)
+            {
+                bitArrayTargetSerializedObjects[i] = new SerializedObject(bitArrayTargetObjects[i]);
+            }
+
+            m_BitDatas = rootData.FindPropertyRelative("bitDatas").ToSerializedBitArray(bitArrayTargetSerializedObjects);
+            m_BitOverrides = rootOverrides?.FindPropertyRelative("mask").ToSerializedBitArray(bitArrayTargetSerializedObjects);  //rootOverride can be null in case of hdrpAsset defaults
 
             sssQualityMode = rootData.FindPropertyRelative("sssQualityMode");
             sssQualityLevel = rootData.FindPropertyRelative("sssQualityLevel");

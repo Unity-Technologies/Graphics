@@ -1074,7 +1074,7 @@
     "m_BlendPreserveSpecular": true,
     "m_ReceiveDecals": true,
     "m_ReceiveSSR": true,
-    "m_ReceiveSSRTransparent": false,
+    "m_ReceiveSSRTransparent": true,
     "m_SpecularAA": false,
     "m_SpecularOcclusionMode": 1,
     "m_OverrideBakedGI": false
@@ -1911,7 +1911,7 @@
     "m_SGVersion": 0,
     "m_Type": "UnityEditor.Rendering.HighDefinition.ShaderGraph.SystemData",
     "m_ObjectId": "5cc1ac2d57954ab6bf56ad7e4b4bb8ab",
-    "m_MaterialNeedsUpdateHash": 23,
+    "m_MaterialNeedsUpdateHash": 24,
     "m_SurfaceType": 1,
     "m_RenderingPass": 4,
     "m_BlendMode": 0,

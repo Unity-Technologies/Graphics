@@ -150,6 +150,10 @@ void EvaluateLightProbeBuiltin(float3 positionRWS, float3 normalWS, float3 backN
     else
     {
         // Note: Probe volume here refer to LPPV not APV
+#if SHADEROPTIONS_CAMERA_RELATIVE_RENDERING == 1
+        if (unity_ProbeVolumeParams.y == 0.0)
+            positionRWS += _WorldSpaceCameraPos;
+#endif
         SampleProbeVolumeSH4(TEXTURE3D_ARGS(unity_ProbeVolumeSH, samplerunity_ProbeVolumeSH), positionRWS, normalWS, backNormalWS, GetProbeVolumeWorldToObject(),
             unity_ProbeVolumeParams.y, unity_ProbeVolumeParams.z, unity_ProbeVolumeMin.xyz, unity_ProbeVolumeSizeInv.xyz, bakeDiffuseLighting, backBakeDiffuseLighting);
     }
@@ -242,11 +246,17 @@ float4 SampleShadowMask(float3 positionRWS, float2 uvStaticLightmap) // normalWS
 {
 #if defined(LIGHTMAP_ON)
     float2 uv = uvStaticLightmap * unity_LightmapST.xy + unity_LightmapST.zw;
-    float4 rawOcclusionMask = SAMPLE_TEXTURE2D_LIGHTMAP(SHADOWMASK_NAME, SHADOWMASK_SAMPLER_NAME, SHADOWMASK_SAMPLE_EXTRA_ARGS); // Can't reuse sampler from Lightmap because with shader graph, the compile could optimize out the lightmaps if metal is 1
+    return SAMPLE_TEXTURE2D_LIGHTMAP(SHADOWMASK_NAME, SHADOWMASK_SAMPLER_NAME, SHADOWMASK_SAMPLE_EXTRA_ARGS); // Can't reuse sampler from Lightmap because with shader graph, the compile could optimize out the lightmaps if metal is 1
+#elif (defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2))
+    return 1;
 #else
     float4 rawOcclusionMask;
     if (unity_ProbeVolumeParams.x == 1.0)
     {
+#if SHADEROPTIONS_CAMERA_RELATIVE_RENDERING == 1
+        if (unity_ProbeVolumeParams.y == 0.0)
+            positionRWS += _WorldSpaceCameraPos;
+#endif
         rawOcclusionMask = SampleProbeOcclusion(TEXTURE3D_ARGS(unity_ProbeVolumeSH, samplerunity_ProbeVolumeSH), positionRWS, GetProbeVolumeWorldToObject(),
             unity_ProbeVolumeParams.y, unity_ProbeVolumeParams.z, unity_ProbeVolumeMin.xyz, unity_ProbeVolumeSizeInv.xyz);
     }
@@ -255,9 +265,9 @@ float4 SampleShadowMask(float3 positionRWS, float2 uvStaticLightmap) // normalWS
         // Note: Default value when the feature is not enabled is float(1.0, 1.0, 1.0, 1.0) in C++
         rawOcclusionMask = unity_ProbesOcclusion;
     }
-#endif
 
     return rawOcclusionMask;
+#endif
 }
 
 #endif

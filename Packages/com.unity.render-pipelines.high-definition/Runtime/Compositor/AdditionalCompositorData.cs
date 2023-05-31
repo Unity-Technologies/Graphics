@@ -11,6 +11,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
     };
 
     // This class store some additional per-camera data (filters, custom clear modes, etc) that are used by the compositor.
+    [AddComponentMenu("")] // Hide.
     internal class AdditionalCompositorData : MonoBehaviour
     {
         public Texture clearColorTexture = null;

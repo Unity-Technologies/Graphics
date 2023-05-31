@@ -21,9 +21,9 @@ namespace UnityEditor.Rendering
             if (renderPipelineType != null)
             {
                 if (assetCreated != null)
-                    GraphicsSettings.RegisterRenderPipelineSettings(renderPipelineType, assetCreated);
+                    EditorGraphicsSettings.RegisterRenderPipelineSettings(renderPipelineType, assetCreated);
                 else
-                    GraphicsSettings.UnregisterRenderPipelineSettings(renderPipelineType);
+                    EditorGraphicsSettings.UnregisterRenderPipelineSettings(renderPipelineType);
             }
 
             ProjectWindowUtil.ShowCreatedAsset(assetCreated);

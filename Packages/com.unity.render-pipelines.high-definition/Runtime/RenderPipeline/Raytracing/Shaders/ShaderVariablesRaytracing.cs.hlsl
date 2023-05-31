@@ -30,7 +30,7 @@ GLOBAL_CBUFFER_START(ShaderVariablesRaytracing, b3)
     int _RayTracingAPVRayMiss;
     float _RayTracingRayBias;
     float _RayTracingDistantRayBias;
-    int _PaddingRT0;
+    int _RayTracingReflectionFrameIndex;
 CBUFFER_END
 
 

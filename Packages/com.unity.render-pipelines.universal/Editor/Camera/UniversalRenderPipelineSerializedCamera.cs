@@ -41,6 +41,7 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty taaMipBias { get; }
         public SerializedProperty taaVarianceClampScale { get; }
         public SerializedProperty taaContrastAdaptiveSharpening { get; }
+        public SerializedProperty allowHDROutput { get; }
 
         public (Camera camera, UniversalRenderPipelineSerializedCamera serializedCamera) this[int index]
         {
@@ -111,6 +112,8 @@ namespace UnityEditor.Rendering.Universal
             taaMipBias = taaSettings.FindPropertyRelative(nameof(TemporalAA.Settings.mipBias));
             taaVarianceClampScale = taaSettings.FindPropertyRelative(nameof(TemporalAA.Settings.varianceClampScale));
             taaContrastAdaptiveSharpening = taaSettings.FindPropertyRelative(nameof(TemporalAA.Settings.contrastAdaptiveSharpening));
+            
+            allowHDROutput = serializedAdditionalDataObject.FindProperty("m_AllowHDROutput");
         }
 
         /// <summary>

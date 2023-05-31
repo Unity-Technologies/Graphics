@@ -216,7 +216,7 @@ namespace UnityEngine.Rendering
             );
         }
 
-        internal void UpdateSceneBounds(Scene scene, bool updateGlobalVolumes)
+        internal void UpdateSceneBounds(Scene scene, bool onSceneSave)
         {
             var volumes = Object.FindObjectsByType<ProbeVolume>(FindObjectsSortMode.InstanceID);
             float prevBrickSize = ProbeReferenceVolume.instance.MinBrickSize();
@@ -225,7 +225,12 @@ namespace UnityEngine.Rendering
             var sceneGUID = GetSceneGUID(scene);
             var profile = GetBakingSetForScene(sceneGUID);
             if (profile != null)
-                ProbeReferenceVolume.instance.SetMinBrickAndMaxSubdiv(profile.minBrickSize, profile.maxSubdivision);
+            {
+                if (onSceneSave)
+                    ProbeReferenceVolume.instance.SetMinBrickAndMaxSubdiv(profile.minBrickSize, profile.maxSubdivision);
+                else
+                    ProbeReferenceVolume.instance.SetMinBrickAndMaxSubdiv(ProbeVolumeBakingSet.GetMinBrickSize(profile.minDistanceBetweenProbes), ProbeVolumeBakingSet.GetMaxSubdivision(profile.simplificationLevels));
+            }
             else
             {
                 hasProbeVolumes.TryGetValue(sceneGUID, out bool previousHasPV);
@@ -246,7 +251,7 @@ namespace UnityEngine.Rendering
             Bounds newBound = new Bounds();
             foreach (var volume in volumes)
             {
-                bool forceUpdate = updateGlobalVolumes && volume.mode == ProbeVolume.Mode.Global;
+                bool forceUpdate = onSceneSave && volume.mode == ProbeVolume.Mode.Global;
                 if (!forceUpdate && volume.gameObject.scene != scene)
                     continue;
 
@@ -304,9 +309,9 @@ namespace UnityEngine.Rendering
         internal void OnSceneSaving(Scene scene, string path = null)
         {
             // If we are called from the scene callback, we want to update all global volumes that are potentially affected
-            bool updateGlobalVolumes = path != null;
+            bool onSceneSave = path != null;
 
-            UpdateSceneBounds(scene, updateGlobalVolumes);
+            UpdateSceneBounds(scene, onSceneSave);
             EnsurePerSceneData(scene);
         }
 

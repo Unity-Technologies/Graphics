@@ -31,10 +31,11 @@ namespace UnityEngine.Rendering.Universal
             Version_Unserialized = 0,
             Version_1 = 1,
             Version_2 = 2,
-            Version_3 = 3
+            Version_3 = 3,
+            Version_4 = 4
         }
 
-        const ComponentVersions k_CurrentComponentVersion = ComponentVersions.Version_3;
+        const ComponentVersions k_CurrentComponentVersion = ComponentVersions.Version_4;
         [SerializeField] ComponentVersions m_ComponentVersion = ComponentVersions.Version_Unserialized;
 
         internal enum ShadowCastingSources
@@ -614,7 +615,7 @@ namespace UnityEngine.Rendering.Universal
                     m_CastingOption = ShadowCastingOptions.NoShadow;
             }
 
-            if(m_ComponentVersion < ComponentVersions.Version_3)
+            if(m_ComponentVersion < ComponentVersions.Version_4)
             {
                 m_ShadowMesh = null;
                 m_ForceShadowMeshRebuild = true;

@@ -230,7 +230,7 @@ Shader "HDRP/Lit"
     //-------------------------------------------------------------------------------------
 
     #pragma shader_feature_local _ALPHATEST_ON
-    #pragma shader_feature_local_fragment _DEPTHOFFSET_ON
+    #pragma shader_feature_local _DEPTHOFFSET_ON
     #pragma shader_feature_local _DOUBLESIDED_ON
     #pragma shader_feature_local _ _VERTEX_DISPLACEMENT _PIXEL_DISPLACEMENT
     #pragma shader_feature_local_vertex _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
@@ -286,9 +286,8 @@ Shader "HDRP/Lit"
     #pragma shader_feature_local_raytracing _SPECULARCOLORMAP
     #pragma shader_feature_local_raytracing _TRANSMITTANCECOLORMAP
 
-    #pragma shader_feature_local_fragment _DISABLE_DECALS
+    #pragma shader_feature_local _DISABLE_DECALS
     #pragma shader_feature_local_fragment _DISABLE_SSR
-    #pragma shader_feature_local_raytracing _DISABLE_DECALS
     #pragma shader_feature_local_raytracing _DISABLE_SSR
     // Bit of a mystery why this is not possible to have frequency specific.
     #pragma shader_feature_local _DISABLE_SSR_TRANSPARENT
@@ -1270,6 +1269,9 @@ Shader "HDRP/Lit"
 
             #define SHADERPASS SHADERPASS_PATH_TRACING
 
+            #pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT
+            #pragma multi_compile _ PATH_TRACING_ADDITIVE_NORMAL_BLENDING
+
             // This is just because it needs to be defined, shadow maps are not used.
             #define SHADOW_LOW
 
@@ -1280,6 +1282,7 @@ Shader "HDRP/Lit"
                 #define _REFRACTION_THIN
             #endif
 
+            #define LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl"
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl"
@@ -1291,6 +1294,9 @@ Shader "HDRP/Lit"
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
             #define HAS_LIGHTLOOP
+            #define PATH_TRACING_CLUSTERED_DECALS
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracingLightLoop.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RayTracingLightCluster.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RayTracingCommon.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitData.hlsl"

@@ -55,6 +55,7 @@ namespace UnityEditor.VFX.Block
         }
     }
 
+    [VFXHelpURL("Block-SetAttribute")]
     [VFXInfo(category = "Attribute/{0}/Composition/{1}", variantProvider = typeof(SetAttributeVariantReadWritable))]
     class SetAttribute : VFXBlock
     {

@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
@@ -6,6 +5,7 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Block
 {
+    [VFXHelpURL("Block-SetPosition(Depth)")]
     [VFXInfo(category = "Attribute/position/Composition/Set")]
     class PositionDepth : VFXBlock
     {

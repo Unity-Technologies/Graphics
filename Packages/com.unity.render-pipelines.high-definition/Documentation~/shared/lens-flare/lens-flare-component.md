@@ -6,6 +6,8 @@ Unity’s Scriptable Render Pipeline (SRP) includes the Lens Flare (SRP) compone
 
 ![](../../images/shared/lens-flare/lens-flare-comp.png)
 
+Use the Lens Flare (SRP) component to create lens flares for lights that have specific locations in your scene, for example bright bulbs. You can also create lens flares using the [Screen Space Lens Flare](Override-Screen-Space-Lens-Flare.md) volume override, or use both the Lens Flare (SRP) component and the Screen Space Lens Flare override in the same scene.
+
 ## Creating lens flares in SRP
 
 The Lens Flare (SRP) component controls where the lens flare is as well as properties such as attenuation and whether the lens flare considers occlusion. For properties that define how the lens flare looks, SRP uses the [Lens Flare (SRP) Data](lens-flare-asset.md) asset. Each Lens Flare (SRP) component must reference a Lens Flare (SRP) data asset to display a lens flare on-screen.

@@ -24,10 +24,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Grab the current water surface
                 WaterSurface currentWater = waterSurfaces[surfaceIdx];
 
-                // If the resources are invalid, we cannot render this surface
-                if (!currentWater.simulation.ValidResources((int)m_WaterBandResolution, WaterConsts.k_WaterHighBandCount))
-                    continue;
-
                 // Render the water surface
                 WaterRenderingParameters parameters = PrepareWaterRenderingParameters(hdCamera, settings, currentWater, surfaceIdx, surfaceIdx == m_UnderWaterSurfaceIndex);
 

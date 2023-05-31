@@ -10,6 +10,8 @@ namespace UnityEngine.Rendering.HighDefinition
     internal sealed class VirtualTexturingSettingsSRP
     {
         public int streamingCpuCacheSizeInMegaBytes = 256;
+        public int streamingMipPreloadTexturesPerFrame = 0;
+        public int streamingPreloadMipCount = 1;
         public List<GPUCacheSettingSRP> streamingGpuCacheSettings = new List<GPUCacheSettingSRP>() { new GPUCacheSettingSRP() { format = Experimental.Rendering.GraphicsFormat.None, sizeInMegaBytes = 128 } };
     }
 

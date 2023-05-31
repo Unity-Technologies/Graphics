@@ -130,6 +130,12 @@ To implement the example:
 
 5. Select the paint bucket GameObject. In the **Rendering Layer Mask** field, clear the `Receive decals` layer. Now the Decal Projector does not affect this GameObject.
 
+## Limitations
+
+This feature has the following limitations:
+
+* Rendering Layers are not supported on OpenGL and OpenGL ES API.
+
 ## <a name="performance"></a>Performance
 
 This section contains information related to the impact of Rendering Layers on performance.

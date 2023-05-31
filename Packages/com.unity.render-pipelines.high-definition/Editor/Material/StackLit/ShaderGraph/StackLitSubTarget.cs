@@ -34,7 +34,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected override string subShaderInclude => CoreIncludes.kStackLit;
 
         // SubShader features
-        protected override bool supportPathtracing => true;
+        protected override bool supportPathtracing => !TargetsVFX();
         protected override bool supportDistortion => true;
         protected override bool requireSplitLighting => stackLitData.subsurfaceScattering;
 
@@ -279,7 +279,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddBlock(tangentBlock);
             context.AddBlock(HDBlockFields.SurfaceDescription.Anisotropy, stackLitData.anisotropy);
             context.AddBlock(HDBlockFields.SurfaceDescription.SubsurfaceMask, stackLitData.subsurfaceScattering);
-            context.AddBlock(HDBlockFields.SurfaceDescription.TransmissionMask, stackLitData.transmission);
+            context.AddBlock(HDBlockFields.SurfaceDescription.TransmissionTint, stackLitData.transmission);
             context.AddBlock(HDBlockFields.SurfaceDescription.Thickness, stackLitData.transmission);
             context.AddBlock(HDBlockFields.SurfaceDescription.DiffusionProfileHash, stackLitData.subsurfaceScattering || stackLitData.transmission);
 

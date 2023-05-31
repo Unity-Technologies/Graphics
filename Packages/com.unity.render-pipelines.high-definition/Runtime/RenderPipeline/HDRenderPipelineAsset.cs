@@ -37,7 +37,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Migrate();
             ///////////////////////////
 
-            HDRenderPipeline.SetupDLSSFeature(HDRenderPipelineGlobalSettings.instance);
+            HDRenderPipeline.SetupDLSSFeature();
         }
 
         void Reset()
@@ -113,8 +113,11 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField, FormerlySerializedAs("renderPipelineSettings")]
         RenderPipelineSettings m_RenderPipelineSettings = RenderPipelineSettings.NewDefault();
 
-        /// <summary>Return the current use RenderPipelineSettings (i.e for the current platform)</summary>
-        public RenderPipelineSettings currentPlatformRenderPipelineSettings => m_RenderPipelineSettings;
+        /// <summary>
+        /// Settings currently used by HDRP.
+        /// Note that setting this property has a significant cost as it will cause the whole pipeline to be rebuilt from scratch.
+        /// </summary>
+        public RenderPipelineSettings currentPlatformRenderPipelineSettings { get => m_RenderPipelineSettings ; set { m_RenderPipelineSettings = value; OnValidate(); } }
 
         internal void TurnOffRayTracing()
         {
@@ -139,6 +142,19 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField]
         [Obsolete("Use HDRP Global Settings' diffusionProfileSettingsList instead")]
         internal DiffusionProfileSettings diffusionProfileSettings;
+
+        [SerializeField]
+        private VolumeProfile m_VolumeProfile;
+
+        /// <summary>
+        /// A volume profile that can be used to override global default volume profile values. This provides a way e.g.
+        /// to have different volume default values per quality level without having to place global volumes in scenes.
+        /// </summary>
+        public VolumeProfile volumeProfile
+        {
+            get => m_VolumeProfile;
+            set => m_VolumeProfile = value;
+        }
 
         /// <summary>Names used for display of rendering layer masks.</summary>
         public override string[] renderingLayerMaskNames

@@ -1192,6 +1192,7 @@ namespace UnityEngine.Rendering.HighDefinition
             ref PrepassOutput prepassOutput,
             TextureHandle clearCoatMask,
             TextureHandle rayCountTexture,
+            TextureHandle historyValidationTexture,
             Texture skyTexture,
             bool transparent)
         {
@@ -1215,7 +1216,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (usesRaytracedReflections)
             {
                 result = RenderRayTracedReflections(renderGraph, hdCamera,
-                    prepassOutput, clearCoatMask, skyTexture, rayCountTexture,
+                    prepassOutput, clearCoatMask, skyTexture, rayCountTexture, historyValidationTexture,
                     m_ShaderVariablesRayTracingCB, transparent);
             }
             else

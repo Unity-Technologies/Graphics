@@ -62,7 +62,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public void Dispose()
         {
-            m_DeferredLights.ReleaseGbufferResources();
+            m_DeferredLights?.ReleaseGbufferResources();
         }
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
@@ -93,14 +93,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                         continue;
 
                     // No need to setup temporaryRTs if we are using input attachments as they will be Memoryless
-                    if (m_DeferredLights.UseRenderPass && i != m_DeferredLights.GBufferShadowMask && i != m_DeferredLights.GBufferRenderingLayers && (i != m_DeferredLights.GbufferDepthIndex && !m_DeferredLights.HasDepthPrepass))
+                    if (m_DeferredLights.UseRenderPass && (i != m_DeferredLights.GbufferDepthIndex && !m_DeferredLights.HasDepthPrepass))
                         continue;
 
-                    RenderTextureDescriptor gbufferSlice = cameraTextureDescriptor;
-                    gbufferSlice.depthBufferBits = 0; // make sure no depth surface is actually created
-                    gbufferSlice.stencilFormat = GraphicsFormat.None;
-                    gbufferSlice.graphicsFormat = m_DeferredLights.GetGBufferFormat(i);
-                    RenderingUtils.ReAllocateIfNeeded(ref m_DeferredLights.GbufferAttachments[i], gbufferSlice, FilterMode.Point, TextureWrapMode.Clamp, name: DeferredLights.k_GBufferNames[i]);
+                    m_DeferredLights.ReAllocateGBufferIfNeeded(cameraTextureDescriptor, i);
+
                     cmd.SetGlobalTexture(m_DeferredLights.GbufferAttachments[i].name, m_DeferredLights.GbufferAttachments[i].nameID);
                 }
             }
@@ -134,9 +131,9 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         static void ExecutePass(RasterCommandBuffer cmd, PassData data, RendererList rendererList, RendererList errorRendererList, ref RenderingData renderingData)
         {
-            bool usesRenderingLayers = data.deferredLights.UseRenderingLayers;
+            bool usesRenderingLayers = data.deferredLights.UseRenderingLayers && !data.deferredLights.HasNormalPrepass;
             if (usesRenderingLayers)
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.WriteRenderingLayers, data.deferredLights.UseRenderingLayers);
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.WriteRenderingLayers, true);
 
             if (data.deferredLights.IsOverlay)
                 data.deferredLights.ClearStencilPartial(cmd);

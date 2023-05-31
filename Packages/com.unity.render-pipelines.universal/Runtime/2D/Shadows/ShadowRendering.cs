@@ -279,10 +279,13 @@ namespace UnityEngine.Rendering.Universal
                 }
                 else
                 {
-                    if (ShadowCasterIsVisible(shadowCaster) && shadowCaster.selfShadows)
-                        cmdBuffer.DrawMesh(shadowCaster.mesh, shadowCaster.transform.localToWorldMatrix, geometryShadowMaterial, 0, 0);
-                    else
-                        cmdBuffer.DrawMesh(shadowCaster.mesh, shadowCaster.transform.localToWorldMatrix, geometryUnshadowMaterial, 0, 0);
+                    if (shadowCaster.mesh != null)
+                    {
+                        if (ShadowCasterIsVisible(shadowCaster) && shadowCaster.selfShadows)
+                            cmdBuffer.DrawMesh(shadowCaster.mesh, shadowCaster.transform.localToWorldMatrix, geometryShadowMaterial, 0, 0);
+                        else
+                            cmdBuffer.DrawMesh(shadowCaster.mesh, shadowCaster.transform.localToWorldMatrix, geometryUnshadowMaterial, 0, 0);
+                    }
                 }
             }
 
@@ -290,7 +293,7 @@ namespace UnityEngine.Rendering.Universal
             for (var i = 0; i < shadowCasters.Count; i++)
             {
                 ShadowCaster2D shadowCaster = shadowCasters[i];
-                if (ShadowCasterIsVisible(shadowCaster) && shadowCaster.castingOption == ShadowCaster2D.ShadowCastingOptions.CastShadow)
+                if (ShadowCasterIsVisible(shadowCaster) && shadowCaster.castingOption == ShadowCaster2D.ShadowCastingOptions.CastShadow && shadowCaster.mesh != null)
                 {
                     Renderer renderer = GetRendererFromCaster(shadowCaster, light, layerToRender);
                     SetShadowProjectionGlobals(cmdBuffer, shadowCaster, light);
@@ -315,7 +318,8 @@ namespace UnityEngine.Rendering.Universal
                     }
                     else
                     {
-                        cmdBuffer.DrawMesh(shadowCaster.mesh, shadowCaster.transform.localToWorldMatrix, geometryUnshadowMaterial, 0, 1);
+                        if(shadowCaster.mesh != null)
+                            cmdBuffer.DrawMesh(shadowCaster.mesh, shadowCaster.transform.localToWorldMatrix, geometryUnshadowMaterial, 0, 1);
                     }
                 }
             }

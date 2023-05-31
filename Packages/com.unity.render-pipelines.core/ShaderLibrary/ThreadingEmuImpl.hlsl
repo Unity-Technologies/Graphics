@@ -15,6 +15,7 @@ namespace Threading
     groupshared uint g_Scratch[THREADING_BLOCK_SIZE];
 
 #define EMULATED_WAVE_REDUCE(TYPE, OP) \
+    GroupMemoryBarrierWithGroupSync(); \
     g_Scratch[indexG] = asuint(v); \
     GroupMemoryBarrierWithGroupSync(); \
     [unroll] \
@@ -27,6 +28,7 @@ namespace Threading
     return as##TYPE(g_Scratch[offset]); \
 
 #define EMULATED_WAVE_REDUCE_CMP(TYPE, OP) \
+    GroupMemoryBarrierWithGroupSync(); \
     g_Scratch[indexG] = asuint(v); \
     GroupMemoryBarrierWithGroupSync(); \
     [unroll] \
@@ -39,6 +41,7 @@ namespace Threading
     return as##TYPE(g_Scratch[offset]); \
 
 #define EMULATED_WAVE_PREFIX(TYPE, OP, FILL_VALUE) \
+    GroupMemoryBarrierWithGroupSync(); \
     g_Scratch[indexG] = asuint(v); \
     GroupMemoryBarrierWithGroupSync(); \
     [unroll] \
@@ -73,19 +76,19 @@ namespace Threading
     // These emulated functions do not emulate the execution mask.
     // So they WILL produce incorrect results if you have divergent lanes.
 
-    #define DEFINE_API_FOR_TYPE(TYPE)                                                                                                                             \
-        bool Wave::AllEqual(TYPE v)                 { bool isEqual = (ReadLaneFirst(v) == v); GroupMemoryBarrierWithGroupSync(); return AllTrue(isEqual);       } \
-        TYPE Wave::Product(TYPE v)                  { EMULATED_WAVE_REDUCE(TYPE, *)                                                                             } \
-        TYPE Wave::Sum(TYPE v)                      { EMULATED_WAVE_REDUCE(TYPE, +)                                                                             } \
-        TYPE Wave::Max(TYPE v)                      { EMULATED_WAVE_REDUCE_CMP(TYPE, max)                                                                       } \
-        TYPE Wave::Min(TYPE v)                      { EMULATED_WAVE_REDUCE_CMP(TYPE, min)                                                                       } \
-        TYPE Wave::InclusivePrefixSum (TYPE v)      { return PrefixSum(v) + v;                                                                                  } \
-        TYPE Wave::InclusivePrefixProduct (TYPE v)  { return PrefixProduct(v) * v;                                                                              } \
-        TYPE Wave::PrefixSum (TYPE v)               { EMULATED_WAVE_PREFIX(TYPE, +, (TYPE)0)                                                                    } \
-        TYPE Wave::PrefixProduct (TYPE v)           { EMULATED_WAVE_PREFIX(TYPE, *, (TYPE)1)                                                                    } \
-        TYPE Wave::ReadLaneAt(TYPE v, uint i)       { g_Scratch[indexG] = asuint(v); GroupMemoryBarrierWithGroupSync(); return as##TYPE(g_Scratch[offset + i]); } \
-        TYPE Wave::ReadLaneFirst(TYPE v)            { return ReadLaneAt(v, 0u);                                                                                 } \
-        TYPE Wave::ReadLaneShuffle(TYPE v, uint i)  { return ReadLaneAt(v, i);                                                                                  } \
+    #define DEFINE_API_FOR_TYPE(TYPE)                                                                                                                                                                \
+        bool Wave::AllEqual(TYPE v)                 { return AllTrue(ReadLaneFirst(v) == v);                                                                                                       } \
+        TYPE Wave::Product(TYPE v)                  { EMULATED_WAVE_REDUCE(TYPE, *)                                                                                                                } \
+        TYPE Wave::Sum(TYPE v)                      { EMULATED_WAVE_REDUCE(TYPE, +)                                                                                                                } \
+        TYPE Wave::Max(TYPE v)                      { EMULATED_WAVE_REDUCE_CMP(TYPE, max)                                                                                                          } \
+        TYPE Wave::Min(TYPE v)                      { EMULATED_WAVE_REDUCE_CMP(TYPE, min)                                                                                                          } \
+        TYPE Wave::InclusivePrefixSum (TYPE v)      { return PrefixSum(v) + v;                                                                                                                     } \
+        TYPE Wave::InclusivePrefixProduct (TYPE v)  { return PrefixProduct(v) * v;                                                                                                                 } \
+        TYPE Wave::PrefixSum (TYPE v)               { EMULATED_WAVE_PREFIX(TYPE, +, (TYPE)0)                                                                                                       } \
+        TYPE Wave::PrefixProduct (TYPE v)           { EMULATED_WAVE_PREFIX(TYPE, *, (TYPE)1)                                                                                                       } \
+        TYPE Wave::ReadLaneAt(TYPE v, uint i)       { GroupMemoryBarrierWithGroupSync(); g_Scratch[indexG] = asuint(v); GroupMemoryBarrierWithGroupSync(); return as##TYPE(g_Scratch[offset + i]); } \
+        TYPE Wave::ReadLaneFirst(TYPE v)            { return ReadLaneAt(v, 0u);                                                                                                                    } \
+        TYPE Wave::ReadLaneShuffle(TYPE v, uint i)  { return ReadLaneAt(v, i);                                                                                                                     } \
 
     // Currently just support scalars.
     DEFINE_API_FOR_TYPE(uint)
@@ -108,6 +111,8 @@ namespace Threading
         uint indexDw = indexL % 32u;
         uint offsetDw = (indexL / 32u) * 32u;
         uint indexScratch = offset + offsetDw + indexDw;
+
+        GroupMemoryBarrierWithGroupSync();
 
         g_Scratch[indexG] = v << indexDw;
 
@@ -161,6 +166,7 @@ namespace Threading
     }
 
 #define EMULATED_GROUP_REDUCE(TYPE, OP) \
+    GroupMemoryBarrierWithGroupSync(); \
     g_Scratch[groupIndex] = asuint(v); \
     GroupMemoryBarrierWithGroupSync(); \
     [unroll] \
@@ -173,6 +179,7 @@ namespace Threading
     return as##TYPE(g_Scratch[0]); \
 
 #define EMULATED_GROUP_REDUCE_CMP(TYPE, OP) \
+    GroupMemoryBarrierWithGroupSync(); \
     g_Scratch[groupIndex] = asuint(v); \
     GroupMemoryBarrierWithGroupSync(); \
     [unroll] \
@@ -185,6 +192,7 @@ namespace Threading
     return as##TYPE(g_Scratch[0]); \
 
 #define EMULATED_GROUP_PREFIX(TYPE, OP, FILL_VALUE) \
+    GroupMemoryBarrierWithGroupSync(); \
     g_Scratch[groupIndex] = asuint(v); \
     GroupMemoryBarrierWithGroupSync(); \
     [unroll] \
@@ -210,19 +218,19 @@ namespace Threading
         return THREADING_BLOCK_SIZE / THREADING_WAVE_SIZE;
     }
 
-    #define DEFINE_API_FOR_TYPE_GROUP(TYPE)                                                                                                                     \
-        bool Group::AllEqual(TYPE v)                  { bool isEqual = (ReadThreadFirst(v) == v); GroupMemoryBarrierWithGroupSync(); return AllTrue(isEqual); } \
-        TYPE Group::Product(TYPE v)                   { EMULATED_GROUP_REDUCE(TYPE, *)                                                                        } \
-        TYPE Group::Sum(TYPE v)                       { EMULATED_GROUP_REDUCE(TYPE, +)                                                                        } \
-        TYPE Group::Max(TYPE v)                       { EMULATED_GROUP_REDUCE_CMP(TYPE, max)                                                                  } \
-        TYPE Group::Min(TYPE v)                       { EMULATED_GROUP_REDUCE_CMP(TYPE, min)                                                                  } \
-        TYPE Group::InclusivePrefixSum (TYPE v)       { return PrefixSum(v) + v;                                                                              } \
-        TYPE Group::InclusivePrefixProduct (TYPE v)   { return PrefixProduct(v) * v;                                                                          } \
-        TYPE Group::PrefixSum (TYPE v)                { EMULATED_GROUP_PREFIX(TYPE, +, (TYPE)0)                                                               } \
-        TYPE Group::PrefixProduct (TYPE v)            { EMULATED_GROUP_PREFIX(TYPE, *, (TYPE)1)                                                               } \
-        TYPE Group::ReadThreadAt(TYPE v, uint i)      { g_Scratch[groupIndex] = asuint(v); GroupMemoryBarrierWithGroupSync(); return as##TYPE(g_Scratch[i]);  } \
-        TYPE Group::ReadThreadFirst(TYPE v)           { return ReadThreadAt(v, 0u);                                                                           } \
-        TYPE Group::ReadThreadShuffle(TYPE v, uint i) { return ReadThreadAt(v, i);                                                                            } \
+    #define DEFINE_API_FOR_TYPE_GROUP(TYPE)                                                                                                                                                       \
+        bool Group::AllEqual(TYPE v)                  { return AllTrue(ReadThreadFirst(v) == v);                                                                                                } \
+        TYPE Group::Product(TYPE v)                   { EMULATED_GROUP_REDUCE(TYPE, *)                                                                                                          } \
+        TYPE Group::Sum(TYPE v)                       { EMULATED_GROUP_REDUCE(TYPE, +)                                                                                                          } \
+        TYPE Group::Max(TYPE v)                       { EMULATED_GROUP_REDUCE_CMP(TYPE, max)                                                                                                    } \
+        TYPE Group::Min(TYPE v)                       { EMULATED_GROUP_REDUCE_CMP(TYPE, min)                                                                                                    } \
+        TYPE Group::InclusivePrefixSum (TYPE v)       { return PrefixSum(v) + v;                                                                                                                } \
+        TYPE Group::InclusivePrefixProduct (TYPE v)   { return PrefixProduct(v) * v;                                                                                                            } \
+        TYPE Group::PrefixSum (TYPE v)                { EMULATED_GROUP_PREFIX(TYPE, +, (TYPE)0)                                                                                                 } \
+        TYPE Group::PrefixProduct (TYPE v)            { EMULATED_GROUP_PREFIX(TYPE, *, (TYPE)1)                                                                                                 } \
+        TYPE Group::ReadThreadAt(TYPE v, uint i)      { GroupMemoryBarrierWithGroupSync(); g_Scratch[groupIndex] = asuint(v); GroupMemoryBarrierWithGroupSync(); return as##TYPE(g_Scratch[i]); } \
+        TYPE Group::ReadThreadFirst(TYPE v)           { return ReadThreadAt(v, 0u);                                                                                                             } \
+        TYPE Group::ReadThreadShuffle(TYPE v, uint i) { return ReadThreadAt(v, i);                                                                                                              } \
 
     // Currently just support scalars.
     DEFINE_API_FOR_TYPE_GROUP(uint)
@@ -245,6 +253,8 @@ namespace Threading
         uint indexDw = groupIndex % 32u;
         uint offsetDw = (groupIndex / 32u) * 32u;
         uint indexScratch = offsetDw + indexDw;
+
+        GroupMemoryBarrierWithGroupSync();
 
         g_Scratch[groupIndex] = v << indexDw;
 

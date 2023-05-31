@@ -4,18 +4,49 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-
-## [16.0.0] - 2023-01-18
-
-This version is compatible with Unity 2023.2.0a1.
+## [Unreleased]
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [16.0.0] - 2023-03-22
+
+This version is compatible with Unity 2023.2.0a9.
+
+### Changed
+- Reduced the import cost of VFX Graph objects, especially when importing many objects at once.
+
+### Fixed
+- Added extra memory to allow external threads to steal VFX update jobs.
+- Fixed the range not being applied in the UI when setting up a value out of the allowed range.
+- Fixed minor issues with Cube and Sphere particle outputs.
+- Fixed a crash when loading a subscene with VFX in DOTS.
+- Enabled correct generation of the interpolator modifiers for packed structure in HDRP Shader Graph.
+- Enabled minimizing the generated interpolator count with VFX Shader Graph to improve its performance and avoid reaching the limit.
+- Fixed mesh LOD flickering when using TAA.
+- Fixed mismatching LOD between eyes in multi-pass VR.
+- Restored missing tooltips.
+- Re-enabled Volumetric Test in XR.
+- Fixed the `Dispose()` method of `MeshToSDFBaker` leading to memory leaks
+- Fixed an unexpected motion vector when adding precompute velocity that was enabled in Shader Graph.
+- Fixed unexpected per frame garbage while using Timeline.
+- Fixed a crash when removing VFXRenderer from a disabled GameObject.
+- Enabled the exposure weight slider to be hidden when a shadergraph was assigned to an output context.
+- Fixed an error in the console when clicking on the [+] button in the blackboard in the "No Asset" window.
+- Fixed errors in the console when undoing changes from gizmo in some specific conditions.
+- Fixed panning and zooming a VFX Graph was synchronized between all opened tabs. Also when multiple VFX Graph tabs are opened they are now properly restored after Unity is restarted.
+- Enabled the option to filter out DXR and META passes from SG generated shaders.
+- Forced positive color values in the graph UI.
+- Fixed incorrect MotionVectors when using multiple camera or multi pass stereo.
+- Fixed incorrect MotionVectors in XR with Stereo Instancing.
+- Enabled taking user's preference for the Search Window mode into account for object fields in VFX Graph (classic / advanced).
+- Enabled hiding **Sorting mode** and **Revert sorting** when the blend mode is set to Opaque.
+- Enabled hiding the log message asking to check the asset for version control in an empty VFX window,  when resetting Editor Layout.
+- Enabled keeping the bottom margin on blocks when collapsed.
 
 ## [15.0.3] - 2022-12-02
 
-This version is compatible with Unity 2023.1.0a23.
+This version is compatible with Unity 2023.2.0a1.
 
 ### Fixed
 - Fixed wrong particle count if read before first readback.
@@ -33,7 +64,7 @@ This version is compatible with Unity 2023.1.0a23.
 
 ## [15.0.2] - 2022-11-04
 
-This version is compatible with Unity 2023.1.0a19.
+This version is compatible with Unity 2023.1.0a23.
 
 ### Changed
 - Reduced the time taken by VFXGraph.CheckCompilationVersion that would previously potentially query all assets on every domain reload.
@@ -78,7 +109,7 @@ This version is compatible with Unity 2023.1.0a19.
 
 ## [15.0.1] - 2022-08-04
 
-This version is compatible with Unity 2023.1.0a6.
+This version is compatible with Unity 2023.1.0a19.
 
 ### Changed
 - Reduced time taken by code generation when a VFX asset is imported.
@@ -97,7 +128,7 @@ This version is compatible with Unity 2023.1.0a6.
 
 ## [15.0.0] - 2022-06-13
 
-This version is compatible with Unity 2023.1.0a1.
+This version is compatible with Unity 2023.1.0a6.
 
 ### Changed
 - Sticky notes are no longer lost when you convert to block subgraph.
@@ -121,8 +152,6 @@ This version is compatible with Unity 2023.1.0a1.
 - Added a Visual Effect Graph to the scene did not take the default parent into account.
 
 ## [14.0.3] - 2021-05-09
-
-This version is compatible with Unity 2022.2.0a14.
 
 ### Added
 - New Timeline Integration which supports scrubbing.
@@ -154,8 +183,6 @@ This version is compatible with Unity 2022.2.0a14.
 - The VFX asset preview isn't animated by default anymore to save CPU usage.
 
 ## [14.0.2] - 2021-02-04
-
-This version is compatible with Unity 2022.2.0a8.
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.

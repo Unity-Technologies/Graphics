@@ -5,6 +5,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-SquaredDistance")]
     [VFXInfo(category = "Math/Vector")]
     class SquaredDistance : VFXOperatorNumericUniform
     {

@@ -3,7 +3,9 @@
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Shadow/ShadowSamplingTent.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/GlobalSamplers.hlsl"
 #include "Core.hlsl"
+#include "Shadows.deprecated.hlsl"
 
 #define MAX_SHADOW_CASCADES 4
 
@@ -46,18 +48,16 @@
 #endif
 
 TEXTURE2D_X(_ScreenSpaceShadowmapTexture);
-SAMPLER(sampler_ScreenSpaceShadowmapTexture);
 
 TEXTURE2D_SHADOW(_MainLightShadowmapTexture);
-SAMPLER_CMP(sampler_MainLightShadowmapTexture);
-
 TEXTURE2D_SHADOW(_AdditionalLightsShadowmapTexture);
-SAMPLER_CMP(sampler_AdditionalLightsShadowmapTexture);
+SAMPLER_CMP(sampler_LinearClampCompare);
 
 // GLES3 causes a performance regression in some devices when using CBUFFER.
 #ifndef SHADER_API_GLES3
-CBUFFER_START(MainLightShadows)
+CBUFFER_START(LightShadows)
 #endif
+
 // Last cascade is initialized with a no-op matrix. It always transforms
 // shadow coord to half3(0, 0, NEAR_PLANE). We use this trick to avoid
 // branching since ComputeCascadeIndex can return cascade index = MAX_SHADOW_CASCADES
@@ -67,10 +67,28 @@ float4      _CascadeShadowSplitSpheres1;
 float4      _CascadeShadowSplitSpheres2;
 float4      _CascadeShadowSplitSpheres3;
 float4      _CascadeShadowSplitSphereRadii;
-half4       _MainLightShadowOffset0; // xy: offset0, zw: offset1
-half4       _MainLightShadowOffset1; // xy: offset2, zw: offset3
-half4       _MainLightShadowParams;   // (x: shadowStrength, y: >= 1.0 if soft shadows, 0.0 otherwise, z: main light fade scale, w: main light fade bias)
+
+float4      _MainLightShadowOffset0; // xy: offset0, zw: offset1
+float4      _MainLightShadowOffset1; // xy: offset2, zw: offset3
+float4      _MainLightShadowParams;   // (x: shadowStrength, y: >= 1.0 if soft shadows, 0.0 otherwise, z: main light fade scale, w: main light fade bias)
 float4      _MainLightShadowmapSize;  // (xy: 1/width and 1/height, zw: width and height)
+
+float4      _AdditionalShadowOffset0; // xy: offset0, zw: offset1
+float4      _AdditionalShadowOffset1; // xy: offset2, zw: offset3
+float4      _AdditionalShadowFadeParams; // x: additional light fade scale, y: additional light fade bias, z: 0.0, w: 0.0)
+float4      _AdditionalShadowmapSize; // (xy: 1/width and 1/height, zw: width and height)
+
+#if defined(ADDITIONAL_LIGHT_CALCULATE_SHADOWS)
+#if !USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
+// Point lights can use 6 shadow slices. Some mobile GPUs performance decrease drastically with uniform
+// blocks bigger than 8kb while others have a 64kb max uniform block size. This number ensures size of buffer
+// AdditionalLightShadows stays reasonable. It also avoids shader compilation errors on SHADER_API_GLES30
+// devices where max number of uniforms per shader GL_MAX_FRAGMENT_UNIFORM_VECTORS is low (224)
+float4      _AdditionalShadowParams[MAX_VISIBLE_LIGHTS];         // Per-light data
+float4x4    _AdditionalLightsWorldToShadow[MAX_VISIBLE_LIGHTS];  // Per-shadow-slice-data
+#endif
+#endif
+
 #ifndef SHADER_API_GLES3
 CBUFFER_END
 #endif
@@ -79,34 +97,8 @@ CBUFFER_END
     #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
         StructuredBuffer<float4>   _AdditionalShadowParams_SSBO;        // Per-light data - TODO: test if splitting _AdditionalShadowParams_SSBO[lightIndex].w into a separate StructuredBuffer<int> buffer is faster
         StructuredBuffer<float4x4> _AdditionalLightsWorldToShadow_SSBO; // Per-shadow-slice-data - A shadow casting light can have 6 shadow slices (if it's a point light)
-
-        half4       _AdditionalShadowOffset0; // xy: offset0, zw: offset1
-        half4       _AdditionalShadowOffset1; // xy: offset2, zw: offset3
-        half4       _AdditionalShadowFadeParams; // x: additional light fade scale, y: additional light fade bias, z: 0.0, w: 0.0)
-        float4      _AdditionalShadowmapSize; // (xy: 1/width and 1/height, zw: width and height)
-    #else
-        // GLES3 causes a performance regression in some devices when using CBUFFER.
-        #ifndef SHADER_API_GLES3
-        CBUFFER_START(AdditionalLightShadows)
-        #endif
-
-        // Point lights can use 6 shadow slices. Some mobile GPUs performance decrease drastically with uniform
-        // blocks bigger than 8kb while others have a 64kb max uniform block size. This number ensures size of buffer
-        // AdditionalLightShadows stays reasonable. It also avoids shader compilation errors on SHADER_API_GLES30
-        // devices where max number of uniforms per shader GL_MAX_FRAGMENT_UNIFORM_VECTORS is low (224)
-        half4       _AdditionalShadowParams[MAX_VISIBLE_LIGHTS];         // Per-light data
-        float4x4    _AdditionalLightsWorldToShadow[MAX_VISIBLE_LIGHTS];  // Per-shadow-slice-data
-        half4       _AdditionalShadowOffset0; // xy: offset0, zw: offset1
-        half4       _AdditionalShadowOffset1; // xy: offset2, zw: offset3
-        half4       _AdditionalShadowFadeParams; // x: additional light fade scale, y: additional light fade bias, z: 0.0, w: 0.0)
-        float4      _AdditionalShadowmapSize; // (xy: 1/width and 1/height, zw: width and height)
-
-        #ifndef SHADER_API_GLES3
-        CBUFFER_END
-        #endif
     #endif
 #endif
-
 
 float4 _ShadowBias; // x: depth bias, y: normal bias
 
@@ -194,9 +186,9 @@ half SampleScreenSpaceShadowmap(float4 shadowCoord)
     shadowCoord.xy = UnityStereoTransformScreenSpaceTex(shadowCoord.xy);
 
 #if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
-    half attenuation = SAMPLE_TEXTURE2D_ARRAY(_ScreenSpaceShadowmapTexture, sampler_ScreenSpaceShadowmapTexture, shadowCoord.xy, unity_StereoEyeIndex).x;
+    half attenuation = SAMPLE_TEXTURE2D_ARRAY(_ScreenSpaceShadowmapTexture, sampler_PointClamp, shadowCoord.xy, unity_StereoEyeIndex).x;
 #else
-    half attenuation = half(SAMPLE_TEXTURE2D(_ScreenSpaceShadowmapTexture, sampler_ScreenSpaceShadowmapTexture, shadowCoord.xy).x);
+    half attenuation = half(SAMPLE_TEXTURE2D(_ScreenSpaceShadowmapTexture, sampler_PointClamp, shadowCoord.xy).x);
 #endif
 
     return attenuation;
@@ -323,7 +315,7 @@ half MainLightRealtimeShadow(float4 shadowCoord)
     #else
         ShadowSamplingData shadowSamplingData = GetMainLightShadowSamplingData();
         half4 shadowParams = GetMainLightShadowParams();
-        return SampleShadowmap(TEXTURE2D_ARGS(_MainLightShadowmapTexture, sampler_MainLightShadowmapTexture), shadowCoord, shadowSamplingData, shadowParams, false);
+        return SampleShadowmap(TEXTURE2D_ARGS(_MainLightShadowmapTexture, sampler_LinearClampCompare), shadowCoord, shadowSamplingData, shadowParams, false);
     #endif
 }
 
@@ -356,7 +348,7 @@ half AdditionalLightRealtimeShadow(int lightIndex, float3 positionWS, half3 ligh
             float4 shadowCoord = mul(_AdditionalLightsWorldToShadow[shadowSliceIndex], float4(positionWS, 1.0));
         #endif
 
-        return SampleShadowmap(TEXTURE2D_ARGS(_AdditionalLightsShadowmapTexture, sampler_AdditionalLightsShadowmapTexture), shadowCoord, shadowSamplingData, shadowParams, true);
+        return SampleShadowmap(TEXTURE2D_ARGS(_AdditionalLightsShadowmapTexture, sampler_LinearClampCompare), shadowCoord, shadowSamplingData, shadowParams, true);
     #else
         return half(1.0);
     #endif

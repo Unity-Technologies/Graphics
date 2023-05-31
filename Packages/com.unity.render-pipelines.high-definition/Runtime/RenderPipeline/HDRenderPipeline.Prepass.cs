@@ -75,7 +75,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled() || hdCamera.frameSettings.IsEnabled(FrameSettingsField.ClearGBuffers);
         }
 
-        struct PrepassOutput
+        internal struct PrepassOutput
         {
             // Buffers that may be output by the prepass.
             // They will be MSAA depending on the frame settings
@@ -107,6 +107,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public TextureHandle stencilBuffer;
             public BufferHandle coarseStencilBuffer;
+
+            // Output by the water system to mark underwater pixels (during transparent prepass)
+            public BufferHandle waterLine;
         }
 
         TextureHandle CreateDepthBuffer(RenderGraph renderGraph, bool clear, MSAASamples msaaSamples)
@@ -596,7 +599,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public DBufferOutput dBuffer;
         }
 
-        struct GBufferOutput
+        internal struct GBufferOutput
         {
             public TextureHandle[] mrt;
             public int gBufferCount;
@@ -1131,7 +1134,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle decalBuffer;
         }
 
-        struct DBufferOutput
+        internal struct DBufferOutput
         {
             public TextureHandle[] mrt;
             public int dBufferCount;

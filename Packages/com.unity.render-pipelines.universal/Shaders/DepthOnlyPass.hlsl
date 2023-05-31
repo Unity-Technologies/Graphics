@@ -25,6 +25,7 @@ Varyings DepthOnlyVertex(Attributes input)
 {
     Varyings output = (Varyings)0;
     UNITY_SETUP_INSTANCE_ID(input);
+    UNITY_TRANSFER_INSTANCE_ID(input, output);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
     output.uv = TRANSFORM_TEX(input.texcoord, _BaseMap);
@@ -34,6 +35,7 @@ Varyings DepthOnlyVertex(Attributes input)
 
 half DepthOnlyFragment(Varyings input) : SV_TARGET
 {
+    UNITY_SETUP_INSTANCE_ID(input);
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
     Alpha(SampleAlbedoAlpha(input.uv, TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap)).a, _BaseColor, _Cutoff);

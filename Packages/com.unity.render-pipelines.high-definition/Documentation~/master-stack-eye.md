@@ -172,4 +172,5 @@ Depending on the [Graph Settings](#graph-settings) you use, Shader Graph can add
 <th>Description</th>
 </tr>
 [!include[](snippets/shader-properties/support-vfx-graph.md)]
+[!include[](snippets/shader-properties/support-high-quality-line-rendering.md)]
 </table>

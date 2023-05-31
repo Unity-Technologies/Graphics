@@ -13,7 +13,7 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     class FBXMaterialDescriptionPreprocessor : AssetPostprocessor
     {
-        static readonly uint k_Version = 2;
+        static readonly uint k_Version = 3;
         static readonly int k_Order = -980;
         static readonly string k_ShaderPath = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.shader";
         public override uint GetVersion()
@@ -85,9 +85,6 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 material.renderQueue = -1;
             }
-
-            if (description.TryGetProperty("ReflectionFactor", out floatProperty))
-                material.SetFloat("_Metallic", floatProperty);
 
             if (description.TryGetProperty("DiffuseColor", out textureProperty) && textureProperty.texture != null)
             {

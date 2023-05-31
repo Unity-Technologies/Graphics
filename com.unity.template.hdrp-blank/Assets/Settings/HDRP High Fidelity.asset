@@ -54,7 +54,7 @@ MonoBehaviour:
     supportRuntimeAOVAPI: 0
     supportDitheringCrossFade: 1
     supportTerrainHole: 0
-    lightProbeSystem: 0
+    lightProbeSystem: 1
     probeVolumeMemoryBudget: 1024
     probeVolumeBlendingMemoryBudget: 128
     supportProbeVolumeStreaming: 0

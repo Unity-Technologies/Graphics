@@ -1,0 +1,163 @@
+#pragma kernel TemporalAccumulation
+
+#pragma only_renderers d3d11 xboxseries ps5
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Denoising/ReBlur/ReBlur_Utilities.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Denoising/ReBlur/ReBlur_BilateralUtilities.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/ReBlurDenoiser.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/HDTemporalFilter.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/ScreenSpaceLighting.hlsl"
+
+#define REBLUR_TA_TILE_SIZE 8
+
+// #pragma enable_d3d11_debug_symbols
+
+// Depth and history depth
+TEXTURE2D_X(_DepthTexture);
+TEXTURE2D_X_UINT(_ValidationBuffer);
+TEXTURE2D_X(_ClearCoatMaskTexture);
+
+// Input texture
+TEXTURE2D_X(_LightingDistanceTexture);
+
+// Output texture
+RW_TEXTURE2D_X(float4, _LightingDistanceTextureRW);
+RW_TEXTURE2D_X(uint, _AccumulationTextureRW);
+
+float2 EvaluateVirtualMotionUV(float3 virtualPositionWS)
+{
+    // Compute the previous frame's uv for reprojection
+    float4 prevHClip = mul(UNITY_MATRIX_PREV_VP, float4(virtualPositionWS, 1.0));
+    prevHClip.xyz /= prevHClip.w;
+    return prevHClip.xy * 0.5 + 0.5;
+}
+
+[numthreads(REBLUR_TA_TILE_SIZE, REBLUR_TA_TILE_SIZE, 1)]
+void TemporalAccumulation(uint3 currentCoord : SV_DispatchThreadID,
+                            int groupIndex : SV_GroupIndex,
+                            uint2 groupThreadId : SV_GroupThreadID,
+                            uint2 groupId : SV_GroupID)
+{
+    // Handle the XR case
+    UNITY_XR_ASSIGN_VIEW_INDEX(currentCoord.z);
+
+    // Fetch the full resolution depth
+    float depthValue = LOAD_TEXTURE2D_X(_DepthTexture, currentCoord.xy).x;
+
+    // If this is a background pixel, we have nothing to do here
+    if (depthValue == UNITY_RAW_FAR_CLIP_VALUE)
+        return;
+
+    // Read the validation mask
+    uint validationMask = LOAD_TEXTURE2D_X(_ValidationBuffer, currentCoord.xy).x;
+    uint disocclusion = (validationMask & (HISTORYREJECTIONFLAGS_REPROJECTION | HISTORYREJECTIONFLAGS_PREVIOUS_DEPTH | HISTORYREJECTIONFLAGS_POSITION)) != 0;
+
+    // Grab the signal of the current frame (lighting + distance)
+    float4 lightingDistance = LOAD_TEXTURE2D_X(_LightingDistanceTexture, currentCoord.xy);
+
+    // if we have a discocclusion, means we cannot use any of the history signals and we will be relying on the history fix
+    if (disocclusion  || _ReBlurHistoryValidity == 0.0)
+    {
+        _LightingDistanceTextureRW[COORD_TEXTURE2D_X(currentCoord.xy)] = lightingDistance;
+        _AccumulationTextureRW[COORD_TEXTURE2D_X(currentCoord.xy)] = 0;
+        return;
+    }
+
+    // Normal and roughness
+    NormalData normalData;
+    DecodeFromNormalBuffer(currentCoord.xy, normalData);
+
+    // Override the roughness by the clearcoat value of this is a clear coat
+    float4 coatMask = LOAD_TEXTURE2D_X(_ClearCoatMaskTexture, currentCoord.xy);
+    normalData.perceptualRoughness = HasClearCoatMask(coatMask) ? CLEAR_COAT_SSR_PERCEPTUAL_ROUGHNESS : normalData.perceptualRoughness;
+
+    // Evaluate the position of the current pixel
+    PositionInputs posInputs = GetPositionInput(currentCoord.xy, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix());
+
+    // Evaluate the view vector
+    float3 viewWS = GetWorldSpaceNormalizeViewDir(posInputs.positionWS);
+
+    // Compute N dot V
+    float NdotV = abs(dot(normalData.normalWS, viewWS));
+     
+    // Surface motion history (the disocclusion code guarantees that the reprojected surface motion is inside the viewport and is an equivalent point)
+    float2 historyUVUnscaled;
+    float2 historySurfaceMotionCoord;
+    float2 historySurfaceMotionUV;
+    float2 velocity;
+    EvaluateSurfaceMotionUV(currentCoord.xy, posInputs, historyUVUnscaled, historySurfaceMotionCoord, historySurfaceMotionUV, velocity);
+
+    // Fetch the depth of the history pixel.
+    float historySurfaceDepth = LOAD_TEXTURE2D_X(_HistoryDepthTexture, historySurfaceMotionCoord).r;
+
+    // Compute the world space position (from previous frame)
+    float3 historySurfacePositionWS = ComputeWorldSpacePosition(historyUVUnscaled, historySurfaceDepth, UNITY_MATRIX_PREV_I_VP);
+
+    // Evaluate the parallax
+    float paralax = ComputeParallax(viewWS, historySurfacePositionWS);
+
+    // Read the history signal
+    float4 surfaceHistory = LOAD_TEXTURE2D_X(_LightingDistanceHistoryBuffer, historySurfaceMotionCoord);
+    uint accHistory = LOAD_TEXTURE2D_X(_AccumulationHistoryBuffer, historySurfaceMotionCoord).x;
+
+    // Evaluate the theorical accumulation speed
+    float accumulationFactor = GetSpecAccumSpeed(normalData.perceptualRoughness, NdotV, paralax);
+
+    // Cap the accumulation factor with the history one
+    accumulationFactor = min(min(accumulationFactor, accHistory + 1), MAX_ACCUM_FRAME_NUM);
+
+    // Blend both signals
+    float4 surfaceLightingDistance = lerp(surfaceHistory, lightingDistance, 1 / (1.0 + accumulationFactor));
+
+    // Compute the previous virtual position
+    float3 virtualPositionWS = GetVirtualPosition(posInputs.positionWS, viewWS, NdotV, normalData.perceptualRoughness, surfaceLightingDistance.w);
+
+    // Compute the previous frame's uv for reprojection
+    float2 historyVirtualUV = EvaluateVirtualMotionUV(virtualPositionWS);
+    if (UVInScreen(historyVirtualUV))
+    {
+        // Fetch the depth of the history pixel. If the history position was a background point, invalidate the history
+        float historyVirtualDepth = LOAD_TEXTURE2D_X(_HistoryDepthTexture, historySurfaceMotionCoord).r;
+
+        // Compute the world space position (from previous frame)
+        float3 historyVirtualPositionWS = ComputeWorldSpacePosition(historyUVUnscaled, historyVirtualDepth, UNITY_MATRIX_PREV_I_VP);
+
+        // Read the history signal
+        float4 virtualHistory = LOAD_TEXTURE2D_X(_LightingDistanceHistoryBuffer, historySurfaceMotionCoord).r;
+
+        // Compute amount of virtual motion.
+        float amount = GetSpecularDominantFactor(NdotV, normalData.perceptualRoughness);
+
+        float confidence = 1.0;
+
+        // Find virtual motion-based accumulation speed.
+        float Avirt = GetSpecAccumSpeed(normalData.perceptualRoughness, NdotV, 0);
+
+        float Amin = min(Avirt, MIP_LEVEL_COUNT * sqrt(normalData.perceptualRoughness)); // MIP_NUM = 3-4
+        float a = lerp(1/(1 + Amin), 1/(1 + Avirt), confidence);
+        Avirt = 1.0 / a - 1.0;
+
+        // Combine virtual motion-based reprojected history with the noisy input.
+        float Ahitdist = min(Avirt, MAX_ACCUM_FRAME_NUM);
+        float4 virtualLightingDistance;
+        virtualLightingDistance.xyz = lerp(virtualHistory.xyz, lightingDistance.xyz, 1/(1 + Avirt));
+        virtualLightingDistance.w = lerp(virtualHistory.w, lightingDistance.w, 1/(1 + Ahitdist));
+        
+        // Mix surface and virtual motion-based combined specular
+        // signals into the final result.
+        float4 currentResult = lerp(surfaceLightingDistance, virtualLightingDistance, amount);
+
+        // Mix surface and virtual motoin-based numbers of accumulated
+        // frames into a single value for the next frame.
+        a = lerp( 1/(1 + accumulationFactor), 1/(1 + Avirt), amount );
+        float Acurr = 1.0 / a - 1.0;
+    }
+
+    // Normalize the result
+    _LightingDistanceTextureRW[COORD_TEXTURE2D_X(currentCoord.xy)] = surfaceLightingDistance;
+    _AccumulationTextureRW[COORD_TEXTURE2D_X(currentCoord.xy)] = accumulationFactor;
+}

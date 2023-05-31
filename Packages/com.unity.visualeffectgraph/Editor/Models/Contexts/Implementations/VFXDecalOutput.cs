@@ -1,12 +1,11 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.VFX.Block;
+
 using UnityEngine;
-using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
+    [VFXHelpURL("Context-OutputForwardDecal")]
     [VFXInfo]
     class VFXDecalOutput : VFXAbstractParticleOutput
     {
@@ -16,7 +15,7 @@ namespace UnityEditor.VFX
         public override bool supportsUV { get { return true; } }
         public override CullMode defaultCullMode { get { return CullMode.Back; } }
         public override bool hasShadowCasting { get { return false; } }
-
+        public override bool supportSoftParticles { get { return false; } }
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
         {
             get

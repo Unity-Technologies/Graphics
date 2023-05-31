@@ -9,7 +9,7 @@ namespace UnityEngine.Rendering.HighDefinition
     public partial class HDRenderPipeline
     {
         // Controls the maximum number of deformers that are supported in one frame
-        const int k_MaxNumWaterDeformers = 64;
+        int m_MaxDeformerCount;
 
         // Flag that allows us to track if the system currently supports foam.
         bool m_ActiveWaterDeformation = false;
@@ -44,13 +44,14 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!m_ActiveWaterDeformation)
                 return;
 
-            m_WaterDeformersData = new ComputeBuffer(k_MaxNumWaterDeformers, System.Runtime.InteropServices.Marshal.SizeOf<WaterDeformerData>());
-            m_WaterDeformersDataCPU = new NativeArray<WaterDeformerData>(k_MaxNumWaterDeformers, Allocator.Persistent);
+            m_MaxDeformerCount = m_Asset.currentPlatformRenderPipelineSettings.maximumDeformerCount;
+            m_WaterDeformersData = new ComputeBuffer(m_MaxDeformerCount, System.Runtime.InteropServices.Marshal.SizeOf<WaterDeformerData>());
+            m_WaterDeformersDataCPU = new NativeArray<WaterDeformerData>(m_MaxDeformerCount, Allocator.Persistent);
             m_DeformerMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.waterDeformationPS);
             m_WaterDeformationCS = defaultResources.shaders.waterDeformationCS;
             m_FilterDeformationKernel = m_WaterDeformationCS.FindKernel("FilterDeformation");
             m_EvaluateDeformationSurfaceGradientKernel = m_WaterDeformationCS.FindKernel("EvaluateDeformationSurfaceGradient");
-            m_DeformerAtlas = new PowerOfTwoTextureAtlas((int)m_Asset.currentPlatformRenderPipelineSettings.deformationAtlasSize, 1, GraphicsFormat.R16_UNorm, name: "Water Deformation Atlas", useMipMap: false);
+            m_DeformerAtlas = new PowerOfTwoTextureAtlas((int)m_Asset.currentPlatformRenderPipelineSettings.deformationAtlasSize, 0, GraphicsFormat.R16_UNorm, name: "Water Deformation Atlas", useMipMap: false);
         }
 
         void ReleaseWaterDeformers()
@@ -66,21 +67,20 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void ProcessWaterDeformers(CommandBuffer cmd)
         {
+            if (WaterDeformer.instanceCount >= m_MaxDeformerCount)
+                Debug.LogWarning("Maximum amount of Water Deformer reached. Adjust the maximum amount supported in the HDRP asset.");
+
             // Reset the requested textures
             m_DeformerAtlas.ResetRequestedTexture();
 
             // Grab all the deformers in the scene
             var deformerArray = WaterDeformer.instancesAsArray;
-            int numDeformers = WaterDeformer.instanceCount;
+            int numDeformers = Mathf.Min(WaterDeformer.instanceCount, m_MaxDeformerCount);
 
             // Loop through the deformers and reserve space
             bool needRelayout = false;
             for (int deformerIdx = 0; deformerIdx < numDeformers; ++deformerIdx)
             {
-                // If we don't have any slots left, we're done
-                if (m_ActiveWaterDeformers >= k_MaxNumWaterDeformers)
-                    break;
-
                 // Grab the current deformer to process
                 WaterDeformer deformer = deformerArray[deformerIdx];
                 if (deformer.type == WaterDeformerType.Texture && deformer.texture != null)
@@ -103,10 +103,6 @@ namespace UnityEngine.Rendering.HighDefinition
             WaterDeformerData data = new WaterDeformerData();
             for (int deformerIdx = 0; deformerIdx < numDeformers; ++deformerIdx)
             {
-                // If we don't have any slots left, we're done
-                if (m_ActiveWaterDeformers >= k_MaxNumWaterDeformers)
-                    break;
-
                 // Grab the current deformer to process
                 WaterDeformer currentDeformer = deformerArray[deformerIdx];
 
@@ -172,14 +168,11 @@ namespace UnityEngine.Rendering.HighDefinition
                             // General
                             data.scaleOffset = scaleBias;
                             data.blendRegion = currentDeformer.range;
-
-                            // Validate it and push it to the buffer
-                            m_WaterDeformersDataCPU[m_ActiveWaterDeformers] = data;
-                            m_ActiveWaterDeformers++;
                         }
                         break;
                 }
 
+                // Validate it and push it to the buffer
                 m_WaterDeformersDataCPU[m_ActiveWaterDeformers] = data;
                 m_ActiveWaterDeformers++;
             }
@@ -232,15 +225,18 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_SVWaterDeformation._WaterDeformationCenter = currentWater.deformationAreaOffset + (currentWater.IsInfinite() ? Vector2.zero : new Vector2(currentWater.transform.position.x, currentWater.transform.position.z));
                     m_SVWaterDeformation._WaterDeformationExtent = currentWater.deformationAreaSize;
                     m_SVWaterDeformation._WaterDeformationResolution = (int)currentWater.deformationRes;
+                    ConstantBuffer.UpdateData(cmd, m_SVWaterDeformation);
+
+                    // Bind the constant buffers
+                    ConstantBuffer.Set<ShaderVariablesWater>(m_DeformerMaterial, HDShaderIDs._ShaderVariablesWater);
+                    ConstantBuffer.Set<ShaderVariablesWaterDeformation>(m_DeformerMaterial, HDShaderIDs._ShaderVariablesWaterDeformation);
+                    ConstantBuffer.Set<ShaderVariablesWaterDeformation>(cmd, m_WaterDeformationCS, HDShaderIDs._ShaderVariablesWaterDeformation);
 
                     // Clear the render target to black and draw all the deformers to the texture
                     CoreUtils.SetRenderTarget(cmd, currentWater.deformationSGBuffer, clearFlag: ClearFlag.Color, Color.black);
-                    ConstantBuffer.Push(cmd, m_SVWaterDeformation, m_DeformerMaterial, HDShaderIDs._ShaderVariablesWaterDeformation);
-                    ConstantBuffer.Push(cmd, m_ShaderVariablesWater, m_DeformerMaterial, HDShaderIDs._ShaderVariablesWater);
                     cmd.DrawProcedural(Matrix4x4.identity, m_DeformerMaterial, 0, MeshTopology.Triangles, 6, m_ActiveWaterDeformers);
 
                     // Evaluate the normals
-                    ConstantBuffer.Push(cmd, m_SVWaterDeformation, m_WaterDeformationCS, HDShaderIDs._ShaderVariablesWaterDeformation);
                     int numTiles = (m_SVWaterDeformation._WaterDeformationResolution + 7) / 8;
 
                     // First we need to clear the edge pixel and blur the deformation a bit

@@ -22,7 +22,8 @@ Texture2D:
   m_MipCount: 11
   m_IsReadable: 1
   m_IsPreProcessed: 0
-  m_IgnoreMasterTextureLimit: 0
+  m_IgnoreMipmapLimit: 0
+  m_MipmapLimitGroupName: 
   m_StreamingMipmaps: 0
   m_StreamingMipmapsPriority: 0
   m_VTOnly: 0
@@ -68,10 +69,8 @@ MonoBehaviour:
     basic settings, a camera, and a spot light.'
   preview: {fileID: -4409557695059603292}
   dependencies:
-  - dependency: {fileID: 2800000, guid: f20112bdeec2e8d4d9f80e8390e37263, type: 3}
-    instantiationMode: 0
-  - dependency: {fileID: 2800000, guid: 188dfe7e559f13248ba2c41eb5a59328, type: 3}
-    instantiationMode: 0
+  - dependency: {fileID: 2800000, guid: 32b23d5d74f3aee4f9364e34e2f59379, type: 3}
+    instantiationMode: 1
   - dependency: {fileID: 11400000, guid: f1e2cc38998412b4196e54731593f665, type: 2}
     instantiationMode: 0
   - dependency: {fileID: 2100000, guid: 73c176f402d2c2f4d929aa5da7585d17, type: 2}
@@ -79,4 +78,5 @@ MonoBehaviour:
   - dependency: {fileID: 2800000, guid: 31f47d3807109374ab564767abda71ab, type: 3}
     instantiationMode: 0
   templatePipeline: {fileID: 11500000, guid: 3e16798181882d74b87f8b88be8bdbe7, type: 3}
+  badge: {fileID: 0}
   addToDefaults: 0

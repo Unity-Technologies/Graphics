@@ -148,11 +148,12 @@ namespace UnityEditor.Rendering
             if (m_UseOcclusion.boolValue)
             {
                 ++EditorGUI.indentLevel;
-                EditorGUILayout.PropertyField(m_BackgroundCloudOcclusion, Styles.backgroundCloudOcclusion);
-                EditorGUILayout.PropertyField(m_OcclusionRadius, Styles.occlusionRadius);
-                EditorGUILayout.PropertyField(m_SamplesCount, Styles.sampleCount);
+                if (RenderPipelineManager.currentPipeline is ICloudBackground)
+                    EditorGUILayout.PropertyField(m_BackgroundCloudOcclusion, Styles.backgroundCloudOcclusion);
                 if (RenderPipelineManager.currentPipeline is IVolumetricCloud volumetricCloud && volumetricCloud.IsVolumetricCloudUsable())
                     EditorGUILayout.PropertyField(m_VolumetricCloudOcclusion, Styles.volumetricCloudOcclusion);
+                EditorGUILayout.PropertyField(m_OcclusionRadius, Styles.occlusionRadius);
+                EditorGUILayout.PropertyField(m_SamplesCount, Styles.sampleCount);
                 EditorGUILayout.PropertyField(m_OcclusionOffset, Styles.occlusionOffset);
                 EditorGUI.BeginChangeCheck();
                 EditorGUILayout.PropertyField(m_OcclusionRemapCurve, Styles.occlusionRemapCurve);
@@ -188,13 +189,13 @@ namespace UnityEditor.Rendering
             static public readonly GUIContent attenuationByLightShape = EditorGUIUtility.TrTextContent("Attenuation By Light Shape", "When enabled, if the component is attached to a light, automatically reduces the effect of the lens flare based on the type and shape of the light.");
             static public readonly GUIContent radialScreenAttenuationCurve = EditorGUIUtility.TrTextContent("Screen Attenuation Curve", "Specifies the curve that modifies the intensity of the lens flare based on its distance from the edge of the screen.");
             static public readonly GUIContent enableOcclusion = EditorGUIUtility.TrTextContent("Enable", "When enabled, the renderer uses the depth buffer to occlude (partially or completely) the lens flare. Partial occlusion also occurs when the lens flare is partially offscreen.");
-            static public readonly GUIContent backgroundCloudOcclusion = EditorGUIUtility.TrTextContent("Background Cloud", "When enabled, the occlusion is attenuated by the Background Clouds used on the Visual Environnement (Cloud layer).");
+            static public readonly GUIContent backgroundCloudOcclusion = EditorGUIUtility.TrTextContent("Background Clouds", "When enabled, the occlusion is attenuated by the Background Clouds used on the Visual Environnement (Cloud layer).");
             static public readonly GUIContent occlusionRadius = EditorGUIUtility.TrTextContent("Occlusion Radius", "Sets the radius, in meters, around the light used to compute the occlusion of the lens flare. If this area is half occluded by geometry (or half off-screen), the intensity of the lens flare is cut by half.");
             static public readonly GUIContent sampleCount = EditorGUIUtility.TrTextContent("Sample Count", "Sets the number of random samples used inside the Occlusion Radius area. A higher sample count gives a smoother attenuation when occluded.");
             static public readonly GUIContent occlusionOffset = EditorGUIUtility.TrTextContent("Occlusion Offset", "Sets the offset of the occlusion area in meters between the GameObject this asset is attached to, and the Camera. A positive value moves the occlusion area closer to the Camera.");
             static public readonly GUIContent occlusionRemapCurve = EditorGUIUtility.TrTextContent("Occlusion Remap Curve", "Specifies the curve used to remap the occlusion of the flare. By default, the occlusion is linear, between 0 and 1. This can be specifically useful to occlude flare more drastically when behind clouds.");
             static public readonly GUIContent allowOffScreen = EditorGUIUtility.TrTextContent("Allow Off Screen", "When enabled, allows the lens flare to affect the scene even when it is outside the Camera's field of view.");
-            static public readonly GUIContent volumetricCloudOcclusion = EditorGUIUtility.TrTextContent("Volumetric Cloud Occlusion", "When enabled, HDRP uses the volumetric cloud texture (in screen space) for the occlusion.");
+            static public readonly GUIContent volumetricCloudOcclusion = EditorGUIUtility.TrTextContent("Volumetric Clouds", "When enabled, HDRP uses the volumetric clouds texture (in screen space) for the occlusion.");
         }
     }
 }

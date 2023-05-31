@@ -35,6 +35,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty waterSimulationResolution;
         public SerializedProperty supportWaterDeformation;
         public SerializedProperty deformationAtlasSize;
+        public SerializedProperty maximumDeformerCount;
         public SerializedProperty supportWaterFoam;
         public SerializedProperty foamAtlasSize;
         public SerializedProperty supportWaterExclusion;
@@ -57,11 +58,11 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty supportSurfaceGradient;
         public SerializedProperty decalNormalBufferHP;
         public SerializedProperty supportHighQualityLineRendering;
+        public SerializedProperty highQualityLineRenderingMemoryBudget;
 
         public SerializedProperty MSAASampleCount;
         public SerializedProperty supportMotionVectors;
         public SerializedProperty supportRuntimeAOVAPI;
-        public SerializedProperty supportDitheringCrossFade;
         public SerializedProperty supportTerrainHole;
         public SerializedProperty supportRayTracing;
         public SerializedProperty supportVFXRayTracing;
@@ -96,6 +97,9 @@ namespace UnityEditor.Rendering.HighDefinition
 #pragma warning disable 618 // Type or member is obsolete
         [FormerlySerializedAs("enableUltraQualitySSS"), FormerlySerializedAs("increaseSssSampleCount"), Obsolete("For data migration")]
         SerializedProperty m_ObsoleteincreaseSssSampleCount;
+
+        [FormerlySerializedAs("supportDitheringCrossFade"), Obsolete("Merged with LOD Quality Setting")]
+        private SerializedProperty m_ObsoleteSupportDitheringCrossFade;
 #pragma warning restore 618
 
         public SerializedRenderPipelineSettings(SerializedProperty root)
@@ -118,6 +122,7 @@ namespace UnityEditor.Rendering.HighDefinition
             waterSimulationResolution = root.Find((RenderPipelineSettings s) => s.waterSimulationResolution);
             supportWaterDeformation = root.Find((RenderPipelineSettings s) => s.supportWaterDeformation);
             deformationAtlasSize = root.Find((RenderPipelineSettings s) => s.deformationAtlasSize);
+            maximumDeformerCount = root.Find((RenderPipelineSettings s) => s.maximumDeformerCount);
             supportWaterFoam = root.Find((RenderPipelineSettings s) => s.supportWaterFoam);
             foamAtlasSize = root.Find((RenderPipelineSettings s) => s.foamAtlasSize);
             supportWaterExclusion = root.Find((RenderPipelineSettings s) => s.supportWaterExclusion);
@@ -143,7 +148,6 @@ namespace UnityEditor.Rendering.HighDefinition
             MSAASampleCount = root.Find((RenderPipelineSettings s) => s.msaaSampleCount);
             supportMotionVectors = root.Find((RenderPipelineSettings s) => s.supportMotionVectors);
             supportRuntimeAOVAPI = root.Find((RenderPipelineSettings s) => s.supportRuntimeAOVAPI);
-            supportDitheringCrossFade = root.Find((RenderPipelineSettings s) => s.supportDitheringCrossFade);
             supportTerrainHole = root.Find((RenderPipelineSettings s) => s.supportTerrainHole);
             supportDistortion = root.Find((RenderPipelineSettings s) => s.supportDistortion);
             supportTransparentBackface = root.Find((RenderPipelineSettings s) => s.supportTransparentBackface);
@@ -161,6 +165,7 @@ namespace UnityEditor.Rendering.HighDefinition
             supportVFXRayTracing = root.Find((RenderPipelineSettings s) => s.supportVFXRayTracing);
             supportedRayTracingMode = root.Find((RenderPipelineSettings s) => s.supportedRayTracingMode);
             supportHighQualityLineRendering = root.Find((RenderPipelineSettings s) => s.supportHighQualityLineRendering);
+            highQualityLineRenderingMemoryBudget = root.Find((RenderPipelineSettings s) => s.highQualityLineRenderingMemoryBudget);
 
             lightLoopSettings = new SerializedGlobalLightLoopSettings(root.Find((RenderPipelineSettings s) => s.lightLoopSettings));
             hdShadowInitParams = new SerializedHDShadowInitParameters(root.Find((RenderPipelineSettings s) => s.hdShadowInitParams));
@@ -178,6 +183,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
 #pragma warning disable 618 // Type or member is obsolete
             m_ObsoleteincreaseSssSampleCount = root.Find((RenderPipelineSettings s) => s.m_ObsoleteincreaseSssSampleCount);
+            m_ObsoleteSupportDitheringCrossFade = root.Find((RenderPipelineSettings s) => s.supportDitheringCrossFade);
 #pragma warning restore 618
         }
     }

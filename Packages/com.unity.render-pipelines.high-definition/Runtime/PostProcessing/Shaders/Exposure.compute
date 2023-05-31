@@ -69,6 +69,27 @@ void KPrePass(uint2 dispatchThreadId : SV_DispatchThreadID)
 groupshared float4 gs_luminances[REDUCTION_TOTAL_THREADS];
 groupshared float gs_weights[REDUCTION_TOTAL_THREADS];
 
+// This kernel runs twice, and as the final output, produces the average normalized luminance of the texture produced by
+// the pre-pass.
+//
+// Let's work through the math, but with a simplified example. Instead of a 2D texture, let's assume we have a 1D
+// texture. And instead of a 1024 -> 32 -> 1 reduction, let's assume we have a 4 -> 2 -> 1 reduction.
+//
+// Say the input texture has the following four pixels: (a, A), (b, B), (c, C), (d, D). The first channel of each pixel
+// is the log luminance, and the second channel is the weight.
+//
+// The first pass combines two pixels per thread, and outputs the following two-pixel two-channel intermediate texture:
+// ((a*A + b*B) / (A + B), (A + B)), ((c*C + d*D) / (C + D), (C + D))
+// The second pass calculates exposure as follows:
+// ((a*A + b*B) / (A + B) * (A + B) + (c*C + d*D) / (C + D) * (C + D)) / (A + B + C + D)
+// which simplifies to:
+// (a*A + b*B + c*C + d*D) / (A + B + C + D)
+// which is the normalized weighted average of the log luminances. We can thus work with weights that don't have to sum
+// up to 1.
+//
+// Notice that (A + B) multiplied in the first pass is cancelled out in the second pass. This is done for two reasons:
+// It enables parallel reduction, and it keeps the values of the intermediate texture in a reasonable range to fit in
+// the fp16 data format. We spend a bit more ALU, but we avoid fp16 quantization artifacts.
 [numthreads(REDUCTION_GROUP_SIZE,REDUCTION_GROUP_SIZE,1)]
 void KReduction(uint2 groupId : SV_GroupID, uint2 groupThreadId : SV_GroupThreadID)
 {

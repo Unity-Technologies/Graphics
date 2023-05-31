@@ -7,7 +7,7 @@ using UnityEditor;
 namespace UnityEngine.Rendering
 {
     /// <summary>
-    /// Debug Dispaly Settings Volume
+    /// Debug Display Settings Volume
     /// </summary>
     public class DebugDisplaySettingsVolume : IDebugDisplaySettingsData
     {
@@ -44,6 +44,18 @@ namespace UnityEngine.Rendering
             public static readonly string global = "Global";
             public static readonly string local = "Local";
         }
+
+        const string k_PanelTitle = "Volume";
+
+#if UNITY_EDITOR
+        internal static void OpenInRenderingDebugger()
+        {
+            EditorApplication.ExecuteMenuItem("Window/Analysis/Rendering Debugger");
+            var idx = DebugManager.instance.FindPanelIndex(k_PanelTitle);
+            if (idx != -1)
+                DebugManager.instance.RequestEditorWindowPanelIndex(idx);
+        }
+#endif
 
         internal static class WidgetFactory
         {
@@ -264,7 +276,7 @@ namespace UnityEngine.Rendering
                         row = new DebugUI.Table.Row()
                         {
                             displayName = fieldName,
-                            children = { CreateVolumeParameterWidget(Strings.interpolatedValue, stackComponent.parameters[currentParam]) },
+                            children = { CreateVolumeParameterWidget(Strings.interpolatedValue, stackComponent.parameterList[currentParam]) },
                         };
 
                         foreach (var volume in volumes)
@@ -272,11 +284,11 @@ namespace UnityEngine.Rendering
                             VolumeParameter param = null;
                             var profile = volume.HasInstantiatedProfile() ? volume.profile : volume.sharedProfile;
                             if (profile.TryGet(selectedType, out VolumeComponent component))
-                                param = component.parameters[currentParam];
-                            row.children.Add(CreateVolumeParameterWidget(volume.name + " (" + profile.name + ")", param, () => !component.parameters[currentParam].overrideState));
+                                param = component.parameterList[currentParam];
+                            row.children.Add(CreateVolumeParameterWidget(volume.name + " (" + profile.name + ")", param, () => !component.parameterList[currentParam].overrideState));
                         }
 
-                        row.children.Add(CreateVolumeParameterWidget(Strings.defaultValue, inst.parameters[currentParam]));
+                        row.children.Add(CreateVolumeParameterWidget(Strings.defaultValue, inst.parameterList[currentParam]));
                         rows.Add(row);
                     }
 
@@ -341,7 +353,7 @@ namespace UnityEngine.Rendering
             }
         }
 
-        [DisplayInfo(name = "Volume", order = int.MaxValue)]
+        [DisplayInfo(name = k_PanelTitle, order = int.MaxValue)]
         internal class SettingsPanel : DebugDisplaySettingsPanel<DebugDisplaySettingsVolume>
         {
             public SettingsPanel(DebugDisplaySettingsVolume data)

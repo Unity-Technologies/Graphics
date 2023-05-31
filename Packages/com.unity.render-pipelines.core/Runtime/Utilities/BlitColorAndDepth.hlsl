@@ -2,6 +2,7 @@
 #define UNITY_CORE_BLIT_COLOR_AND_DEPTH_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/DynamicScaling.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl"
 
 TEXTURE2D (_BlitTexture);
@@ -34,7 +35,7 @@ Varyings Vert(Attributes input)
     float2 uv  = GetFullScreenTriangleTexCoord(input.vertexID);
 
     output.positionCS = pos;
-    output.texcoord   = uv * _BlitScaleBias.xy + _BlitScaleBias.zw;
+    output.texcoord   = DYNAMIC_SCALING_APPLY_SCALEBIAS(uv);
 
     return output;
 }

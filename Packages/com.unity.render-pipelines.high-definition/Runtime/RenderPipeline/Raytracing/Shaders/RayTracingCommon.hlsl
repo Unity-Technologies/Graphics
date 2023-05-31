@@ -60,14 +60,28 @@ struct StandardBSDFData
     uint isUnlit;
 };
 
-// This function defines what is the source pixel from where we should read the depth and normal for rendering in half resolution
-uint2 ComputeSourceCoordinates(uint2 halfResCoord, int frameIndex)
+// This function compute the checkerboard undersampling position
+uint ComputeCheckerBoardIndex(uint2 traceCoord, uint subPixelIndex)
 {
-    return halfResCoord * 2;
+    uint localOffset = (traceCoord.x & 1 + traceCoord.y & 1) & 1;
+    uint checkerBoardLocation = (subPixelIndex + localOffset) & 0x3;
+    return checkerBoardLocation;
+}
+
+uint2 HalfResolutionIndexToOffset(uint index)
+{
+    return uint2(index & 0x1, index / 2);
+}
+
+// This function defines what is the source pixel from where we should read the depth and normal for rendering in half resolution
+uint2 ComputeSourceCoordinates(uint2 halfResCoord, uint subPixelIndex)
+{
+    // TODO, there remains spots where the half res checker board pattern is still broken, there needs to be a pass done on it
+    uint checkerBoardIndex = ComputeCheckerBoardIndex(halfResCoord, subPixelIndex);
+    return halfResCoord * 2; //+ HalfResolutionIndexToOffset(checkerBoardIndex);
 }
 
 // These need to be negative for RayDistanceIndicatesHitSkyOrUnlit
-#define RAY_TRACING_DISTANCE_FLAG_UNLIT -1.0
 #define RAY_TRACING_DISTANCE_FLAG_SKY 0.0
 
 bool RayTracingGBufferIsUnlit(float rayDistance)

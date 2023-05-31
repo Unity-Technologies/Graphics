@@ -34,7 +34,7 @@ namespace UnityEditor.Rendering.Universal
                     if (providerType.IsAbstract)
                         continue;
 
-                    providers.Add(Activator.CreateInstance(providerType) as ShadowShape2DProvider);
+                    providers.Add(ScriptableObject.CreateInstance(providerType) as ShadowShape2DProvider);
                 }
 
                 // Fetch the components to check.
@@ -47,7 +47,7 @@ namespace UnityEditor.Rendering.Universal
                     {
                         if (provider.IsShapeSource(component))
                         {
-                            results.Add(new ShadowShapeProviderData(component, Activator.CreateInstance(provider.GetType()) as ShadowShape2DProvider));
+                            results.Add(new ShadowShapeProviderData(component, ScriptableObject.CreateInstance(provider.GetType()) as ShadowShape2DProvider));
                         }
                     }
                 }

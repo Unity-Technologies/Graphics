@@ -27,6 +27,7 @@ namespace UnityEditor.VFX.Block
         }
     }
 
+    [VFXHelpURL("Block-SetSpawnEvent")]
     [VFXInfo(category = "Attribute", variantProvider = typeof(AttributeProviderSpawner))]
     class VFXSpawnerSetAttribute : VFXAbstractSpawner
     {

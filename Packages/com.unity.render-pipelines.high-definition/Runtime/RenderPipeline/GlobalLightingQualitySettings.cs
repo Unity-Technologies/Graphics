@@ -143,13 +143,13 @@ namespace UnityEngine.Rendering.HighDefinition
             RTRDenoise[(int)ScalableSettingLevelParameter.Level.Medium] = true;
             RTRDenoise[(int)ScalableSettingLevelParameter.Level.High] = true;
 
-            RTRDenoiserRadius[(int)ScalableSettingLevelParameter.Level.Low] = 8;
-            RTRDenoiserRadius[(int)ScalableSettingLevelParameter.Level.Medium] = 12;
-            RTRDenoiserRadius[(int)ScalableSettingLevelParameter.Level.High] = 16;
+            RTRDenoiserRadiusDimmer[(int)ScalableSettingLevelParameter.Level.Low] = 0.75f;
+            RTRDenoiserRadiusDimmer[(int)ScalableSettingLevelParameter.Level.Medium] = 0.75f;
+            RTRDenoiserRadiusDimmer[(int)ScalableSettingLevelParameter.Level.High] = 1.0f;
 
-            RTRSmoothDenoising[(int)ScalableSettingLevelParameter.Level.Low] = true;
-            RTRSmoothDenoising[(int)ScalableSettingLevelParameter.Level.Medium] = false;
-            RTRSmoothDenoising[(int)ScalableSettingLevelParameter.Level.High] = false;
+            RTRDenoiserAntiFlicker[(int)ScalableSettingLevelParameter.Level.Low] = 1.0f;
+            RTRDenoiserAntiFlicker[(int)ScalableSettingLevelParameter.Level.Medium] = 1.0f;
+            RTRDenoiserAntiFlicker[(int)ScalableSettingLevelParameter.Level.High] = 1.0f;
 
             // Fog
             Fog_ControlMode[(int)ScalableSettingLevelParameter.Level.Low] = FogControl.Balance;
@@ -261,11 +261,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public int[] RTRRayMaxIterations = new int[s_QualitySettingCount];
         /// <summary>Flag that enables the first denoising pass. The array must have one entry per scalable setting level.</summary>
         public bool[] RTRDenoise = new bool[s_QualitySettingCount];
+        /// <summary>Flag that defines the radius of the denoiser. The array must have one entry per scalable setting level.</summary>
+        [Range(0.0f, 1.0f)]
+        public float[] RTRDenoiserRadiusDimmer = new float[s_QualitySettingCount];
         /// <summary>Flag that defines the radius of the first denoiser. The array must have one entry per scalable setting level, and elements must be between 1 and 32.</summary>
-        [Range(1, 32)]
-        public int[] RTRDenoiserRadius = new int[s_QualitySettingCount];
-        /// <summary>Flag that defines smooth denoising status. The array must have one entry per scalable setting level.</summary>
-        public bool[] RTRSmoothDenoising = new bool[s_QualitySettingCount];
+        [Range(0.0f, 1.0f)]
+        public float[] RTRDenoiserAntiFlicker = new float[s_QualitySettingCount];
 
         // TODO: Volumetric fog quality
         /// <summary>Controls which control mode should be used to define the volumetric fog parameters. The array must have one entry per scalable setting level.</summary>

@@ -208,7 +208,7 @@ namespace UnityEditor.VFX
                     m_DisplayExtraDebugInfo = EditorGUILayout.Toggle(new GUIContent("Show Additional Debug info", "When enabled, additional information becomes available in the inspector when selecting blocks, such as the attributes they use and their shader code."), m_DisplayExtraDebugInfo);
                     m_AdvancedLogs = EditorGUILayout.Toggle(new GUIContent("Verbose Mode for compilation", "When enabled, additional information about the data, expressions, and generated shaders is displayed in the console whenever a graph is compiled."), m_AdvancedLogs);
                     m_AllowShaderExternalization = EditorGUILayout.Toggle(new GUIContent("Experimental shader externalization", "When enabled, the generated shaders are stored alongside the Visual Effect asset, enabling their direct modification."), m_AllowShaderExternalization);
-                    
+
                     bool oldGenerateShaderWithDebugSymbols = m_GenerateShadersWithDebugSymbols;
                     m_GenerateShadersWithDebugSymbols = EditorGUILayout.Toggle(new GUIContent("Generate Shaders with Debug Symbols", "When enabled, the VFX shaders are generated with debug symbols."), m_GenerateShadersWithDebugSymbols);
                     if (oldGenerateShaderWithDebugSymbols != m_GenerateShadersWithDebugSymbols && DisplayReimportPopup())
@@ -232,7 +232,6 @@ namespace UnityEditor.VFX
 
                     m_CameraBuffersFallback = (VFXMainCameraBufferFallback)EditorGUILayout.EnumPopup(new GUIContent("Main Camera fallback", "Specifies the camera source for MainCamera Operators and Blocks to use when in the editor."), m_CameraBuffersFallback);
                     m_VisualEffectTargetListed = EditorGUILayout.Toggle(new GUIContent("Show Target in Shader Graph (deprecated)", "When enabled, the Visual Effect Target is listed in Active Targets dropdown in Shader Graph."), m_VisualEffectTargetListed);
-                    var userTemplateDirectory = EditorGUILayout.DelayedTextField(new GUIContent("User Systems", "Directory for user-generated VFX templates (e.g. Assets/VFX/Templates)"), VFXResources.defaultResources.userTemplateDirectory);
 
                     m_AuthoringPrewarmStepCountPerSeconds = EditorGUILayout.IntField(new GUIContent("Authoring Prewarm Step Count Per Second", "Specifies the step count per second for prewarming during VFX authoring. High values may impact performance."), m_AuthoringPrewarmStepCountPerSeconds);
                     m_AuthoringPrewarmMaxTime = EditorGUILayout.FloatField(new GUIContent("Authoring Prewarm Maximum Time", "Specifies the maximum prewarming time allowed during VFX authoring in seconds. High values may impact performance."), m_AuthoringPrewarmMaxTime);
@@ -256,16 +255,8 @@ namespace UnityEditor.VFX
                         EditorPrefs.SetFloat(authoringPrewarmMaxTimeKey, m_AuthoringPrewarmMaxTime);
 
                         EditorPrefs.SetBool(visualEffectTargetListedKey, m_VisualEffectTargetListed);
-
-                        userTemplateDirectory = userTemplateDirectory.Replace('\\', '/');
-                        userTemplateDirectory = userTemplateDirectory.TrimEnd(new char[] { '/' });
-                        userTemplateDirectory = userTemplateDirectory.TrimStart(new char[] { '/' });
-                        VFXResources.defaultResources.userTemplateDirectory = userTemplateDirectory;
                     }
                 }
-
-                if ((VFXResources.defaultResources.userTemplateDirectory.Length > 0) && (!System.IO.Directory.Exists(VFXResources.defaultResources.userTemplateDirectory)))
-                    EditorGUILayout.HelpBox("The specified User Systems directory does not exist in the project.", MessageType.Warning);
 
                 base.OnGUI(searchContext);
             }

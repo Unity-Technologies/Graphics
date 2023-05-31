@@ -62,10 +62,12 @@ HDRP renders Material depth in a Depth Prepass to apply decals to opaque Materia
 
 **Note:** When you use the **Rendering Layer Mask** of a Mesh Renderer or Terrain to disable decal on a specific Decal Layer, it doesn't affect your application's performance.
 
+
+<a name="additive-normal-blending"></a>
 ## Additive Normal Blending
 
-You can use Additive normal blending to blend decal normals with the normals of a specific GameObject.
-In the following image examples, the screenshot on the left does not use additive normal blending, and the screenshot on the right uses additive normal blending.:
+You can use Additive normal blending to blend decal normals with the normals of a specific GameObject. 
+In the following image examples, the screenshot on the left doesn't use additive normal blending, and the screenshot on the right uses additive normal blending.
 
 ![](Images/HDRPFeatures-SurfGrad.png)
 

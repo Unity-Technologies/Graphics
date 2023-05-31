@@ -30,7 +30,10 @@ namespace UnityEngine.Rendering
             
             /// <summary>Keyword string for converting to the correct output color space and applying the color encoding. </summary>
             public const string HDR_COLORSPACE_CONVERSION_AND_ENCODING = "HDR_COLORSPACE_CONVERSION_AND_ENCODING";
-            
+
+            /// <summary>Keyword string to enable when a shader must be aware the input color space is in nits HDR range. </summary>
+            public const string HDR_INPUT = "HDR_INPUT";
+
             /// <summary>Keyword for converting to the correct output color space. </summary>
             internal static readonly ShaderKeyword HDRColorSpaceConversion = new ShaderKeyword(HDR_COLORSPACE_CONVERSION);
             
@@ -39,6 +42,9 @@ namespace UnityEngine.Rendering
             
             /// <summary>Keyword for converting to the correct output color space and applying the color encoding. </summary>
             internal static readonly ShaderKeyword HDRColorSpaceConversionAndEncoding = new ShaderKeyword(HDR_COLORSPACE_CONVERSION_AND_ENCODING);
+
+            /// <summary>Keyword to enable when a shader must be aware the input color space is in nits HDR range. </summary>
+            internal static readonly ShaderKeyword HDRInput = new ShaderKeyword(HDR_INPUT);
         }
 
         static class ShaderPropertyId
@@ -103,29 +109,20 @@ namespace UnityEngine.Rendering
         /// <param name="operations">HDR color operations the shader applies.</param>
         public static void ConfigureHDROutput(Material material, ColorGamut gamut, Operation operations)
         {
-            if (operations == Operation.None)
-                return;
-
             int colorSpace;
             int encoding;
             if (!GetColorSpaceForGamut(gamut, out colorSpace) || !GetColorEncodingForGamut(gamut, out encoding))
-                return;
+                return; // only exit here if there is an error or unsupported mode
 
             material.SetInteger(ShaderPropertyId.hdrColorSpace, colorSpace);
             material.SetInteger(ShaderPropertyId.hdrEncoding, encoding);
 
-            if (operations.HasFlag(Operation.ColorConversion) && operations.HasFlag(Operation.ColorEncoding))
-            {
-                material.EnableKeyword(ShaderKeywords.HDRColorSpaceConversionAndEncoding.name);
-            }
-            else if (operations.HasFlag(Operation.ColorEncoding))
-            {
-                material.EnableKeyword(ShaderKeywords.HDREncoding.name);
-            }
-            else if (operations.HasFlag(Operation.ColorConversion))
-            {
-                material.EnableKeyword(ShaderKeywords.HDRColorSpaceConversion.name);
-            }
+            CoreUtils.SetKeyword(material, ShaderKeywords.HDRColorSpaceConversionAndEncoding.name, operations.HasFlag(Operation.ColorConversion) && operations.HasFlag(Operation.ColorEncoding));
+            CoreUtils.SetKeyword(material, ShaderKeywords.HDREncoding.name, operations.HasFlag(Operation.ColorEncoding) && !operations.HasFlag(Operation.ColorConversion));
+            CoreUtils.SetKeyword(material, ShaderKeywords.HDRColorSpaceConversion.name, operations.HasFlag(Operation.ColorConversion) && !operations.HasFlag(Operation.ColorEncoding));
+
+            // Optimizing shader variants: define HDR_INPUT only if HDR_COLORSPACE_CONVERSION and HDR_ENCODING were not previously defined
+            CoreUtils.SetKeyword(material, ShaderKeywords.HDRInput.name, operations == Operation.None);
         }
 
         /// <summary>
@@ -136,29 +133,20 @@ namespace UnityEngine.Rendering
         /// <param name="operations">HDR color operations the shader applies.</param>
         public static void ConfigureHDROutput(ComputeShader computeShader, ColorGamut gamut, Operation operations)
         {
-            if (operations == Operation.None)
-                return;
-
             int colorSpace;
             int encoding;
             if (!GetColorSpaceForGamut(gamut, out colorSpace) || !GetColorEncodingForGamut(gamut, out encoding))
-                return;
+                return; // only exit here if there is an error or unsupported mode
 
             computeShader.SetInt(ShaderPropertyId.hdrColorSpace, colorSpace);
             computeShader.SetInt(ShaderPropertyId.hdrEncoding, encoding);
 
-            if (operations.HasFlag(Operation.ColorConversion) && operations.HasFlag(Operation.ColorEncoding))
-            {
-                computeShader.EnableKeyword(ShaderKeywords.HDRColorSpaceConversionAndEncoding.name);
-            }
-            else if (operations.HasFlag(Operation.ColorEncoding))
-            {
-                computeShader.EnableKeyword(ShaderKeywords.HDREncoding.name);
-            }
-            else if (operations.HasFlag(Operation.ColorConversion))
-            {
-                computeShader.EnableKeyword(ShaderKeywords.HDRColorSpaceConversion.name);
-            }
+            CoreUtils.SetKeyword(computeShader, ShaderKeywords.HDRColorSpaceConversionAndEncoding.name, operations.HasFlag(Operation.ColorConversion) && operations.HasFlag(Operation.ColorEncoding));
+            CoreUtils.SetKeyword(computeShader, ShaderKeywords.HDREncoding.name, operations.HasFlag(Operation.ColorEncoding) && !operations.HasFlag(Operation.ColorConversion));
+            CoreUtils.SetKeyword(computeShader, ShaderKeywords.HDRColorSpaceConversion.name, operations.HasFlag(Operation.ColorConversion) && !operations.HasFlag(Operation.ColorEncoding));
+
+            // Optimizing shader variants: define HDR_INPUT only if HDR_COLORSPACE_CONVERSION and HDR_ENCODING were not previously defined
+            CoreUtils.SetKeyword(computeShader, ShaderKeywords.HDRInput.name, operations == Operation.None);
         }
 
         /// <summary>
@@ -169,7 +157,7 @@ namespace UnityEngine.Rendering
         /// <returns>True if the shader variant is valid and should not be stripped.</returns>
         public static bool IsShaderVariantValid(ShaderKeywordSet shaderKeywordSet, bool isHDREnabled)
         {
-            bool hasHDRKeywords = shaderKeywordSet.IsEnabled(ShaderKeywords.HDREncoding) || shaderKeywordSet.IsEnabled(ShaderKeywords.HDRColorSpaceConversion) || shaderKeywordSet.IsEnabled(ShaderKeywords.HDRColorSpaceConversionAndEncoding);
+            bool hasHDRKeywords = shaderKeywordSet.IsEnabled(ShaderKeywords.HDREncoding) || shaderKeywordSet.IsEnabled(ShaderKeywords.HDRColorSpaceConversion) || shaderKeywordSet.IsEnabled(ShaderKeywords.HDRColorSpaceConversionAndEncoding) || shaderKeywordSet.IsEnabled(ShaderKeywords.HDRInput);
             
             // If we don't plan to enable HDR, remove all HDR Output variants
             if (!isHDREnabled && hasHDRKeywords)

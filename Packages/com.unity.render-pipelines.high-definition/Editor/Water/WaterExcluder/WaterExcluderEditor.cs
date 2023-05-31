@@ -28,7 +28,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 EditorGUILayout.Space();
                 HDEditorUtils.QualitySettingsHelpBox("The current HDRP Asset does not support exclusion for Water Surfaces.", MessageType.Error,
-                    HDRenderPipelineUI.ExpandableGroup.Rendering, "m_RenderPipelineSettings.supportWaterExclusion");
+                    HDRenderPipelineUI.ExpandableGroup.Rendering, HDRenderPipelineUI.ExpandableRendering.Water, "m_RenderPipelineSettings.supportWaterExclusion");
                 return;
             }
 
@@ -53,6 +53,18 @@ namespace UnityEditor.Rendering.HighDefinition
         [DrawGizmo(GizmoType.Selected | GizmoType.Active)]
         static void DrawGizmosSelected(WaterExcluder waterSurface, GizmoType gizmoType)
         {
+        }
+
+        void OnSceneGUI()
+        {
+            WaterExcluder deformer = target as WaterExcluder;
+            var mesh = deformer.m_InternalMesh;
+            var tr = deformer.transform;
+
+            if (mesh != null)
+            {
+                Handles.DrawOutline(new GameObject[] { deformer.m_ExclusionRenderer }, Color.white);
+            }
         }
     }
 }

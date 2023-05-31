@@ -161,4 +161,5 @@ This set of settings only appears if you set **Surface Type** to **Transparent**
 <th>Description</th>
 </tr>
 [!include[](snippets/shader-properties/support-vfx-graph.md)]
+[!include[](snippets/shader-properties/support-high-quality-line-rendering.md)]
 </table>

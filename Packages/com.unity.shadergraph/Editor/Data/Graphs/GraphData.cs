@@ -547,8 +547,8 @@ namespace UnityEditor.ShaderGraph
         }
 
         // TODO: Need a better way to handle this
-#if VFX_GRAPH_10_0_0_OR_NEWER
         public bool hasVFXCompatibleTarget => activeTargets.Any(o => o.SupportsVFX());
+#if VFX_GRAPH_10_0_0_OR_NEWER
         public bool hasVFXTarget
         {
             get
@@ -1094,13 +1094,24 @@ namespace UnityEditor.ShaderGraph
             m_AddedEdges.Remove(edge);
         }
 
+        public void RemoveEdges(IEdge[] edges)
+        {
+            if (edges.Length == 0)
+                return;
+            foreach (var edge in edges)
+            {
+                RemoveEdgeNoValidate(edge);
+            }
+            ValidateGraph();
+        }
+
         public void RemoveEdge(IEdge e)
         {
             RemoveEdgeNoValidate(e);
             ValidateGraph();
         }
 
-        public void RemoveElements(AbstractMaterialNode[] nodes, IEdge[] edges, GroupData[] groups, StickyNoteData[] notes)
+        public void RemoveElements(AbstractMaterialNode[] nodes, IEdge[] edges, GroupData[] groups, StickyNoteData[] notes, ShaderInput[] inputs = null)
         {
             foreach (var node in nodes)
             {
@@ -1142,6 +1153,14 @@ namespace UnityEditor.ShaderGraph
             foreach (var groupData in groups)
             {
                 RemoveGroupNoValidate(groupData);
+            }
+
+            if (inputs != null)
+            {
+                foreach (var shaderInput in inputs)
+                {
+                    RemoveGraphInputNoValidate(shaderInput);
+                }
             }
 
             ValidateGraph();
@@ -1254,14 +1273,27 @@ namespace UnityEditor.ShaderGraph
             return m_NodeDictionary.TryGetValue(node.objectId, out var foundNode) && node == foundNode;
         }
 
+        public void GetEdges(MaterialSlot slot, List<IEdge> foundEdges)
+        {
+            List<IEdge> candidateEdges;
+            if (!m_NodeEdges.TryGetValue(slot.owner.objectId, out candidateEdges))
+                return;
+
+            foreach (var edge in candidateEdges)
+            {
+                var cs = slot.isInputSlot ? edge.inputSlot : edge.outputSlot;
+                if (cs.node == slot.owner && cs.slotId == slot.id)
+                    foundEdges.Add(edge);
+            }
+        }
+
         public void GetEdges(SlotReference s, List<IEdge> foundEdges)
         {
-            MaterialSlot slot = s.slot;
-
             List<IEdge> candidateEdges;
             if (!m_NodeEdges.TryGetValue(s.node.objectId, out candidateEdges))
                 return;
 
+            MaterialSlot slot = s.slot;
             foreach (var edge in candidateEdges)
             {
                 var cs = slot.isInputSlot ? edge.inputSlot : edge.outputSlot;
@@ -1664,7 +1696,7 @@ namespace UnityEditor.ShaderGraph
 
         void ReplacePropertyNodeWithConcreteNodeNoValidate(PropertyNode propertyNode, bool deleteNodeIfNoConcreteFormExists = true)
         {
-            var property = properties.FirstOrDefault(x => x == propertyNode.property);
+            var property = properties.FirstOrDefault(x => x == propertyNode.property) ?? propertyNode.property;
             if (property == null)
                 return;
 

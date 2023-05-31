@@ -8,21 +8,12 @@ using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    class SerializedHDRenderPipelineGlobalSettings : ISerializedRenderPipelineGlobalSettings
+    class SerializedHDRenderPipelineGlobalSettings
     {
-        #region ISerializedRenderPipelineGlobalSettings
-        public SerializedObject serializedObject { get; }
-        public SerializedProperty shaderVariantLogLevel { get; }
-        public SerializedProperty exportShaderVariants { get; }
-        public SerializedProperty stripDebugVariants { get; }
-        #endregion
+        public SerializedObject serializedObject;
 
         public SerializedProperty renderPipelineResources;
         public SerializedProperty renderPipelineRayTracingResources;
-
-        public SerializedFrameSettings defaultCameraFrameSettings;
-        public SerializedFrameSettings defaultBakedOrCustomReflectionFrameSettings;
-        public SerializedFrameSettings defaultRealtimeReflectionFrameSettings;
 
         public SerializedProperty defaultVolumeProfile;
         public SerializedProperty lookDevVolumeProfile;
@@ -36,10 +27,10 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty specularFade;
         public SerializedProperty autoRegisterDiffusionProfiles;
 
-        public SerializedProperty rendererListCulling;
+        public SerializedProperty analyticDerivativeEmulation;
+        public SerializedProperty analyticDerivativeDebugOutput;
 
-        public SerializedProperty DLSSProjectId;
-        public SerializedProperty useDLSSCustomProjectId;
+        public SerializedProperty rendererListCulling;
 
         public SerializedProperty apvScenesData;
 
@@ -91,9 +82,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
             renderPipelineResources = serializedObject.FindProperty("m_RenderPipelineResources");
             renderPipelineRayTracingResources = serializedObject.FindProperty("m_RenderPipelineRayTracingResources");
-            defaultCameraFrameSettings = new SerializedFrameSettings(serializedObject.FindProperty("m_RenderingPathDefaultCameraFrameSettings"), null); //no overrides in HDRPAsset
-            defaultBakedOrCustomReflectionFrameSettings = new SerializedFrameSettings(serializedObject.FindProperty("m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings"), null); //no overrides in HDRPAsset
-            defaultRealtimeReflectionFrameSettings = new SerializedFrameSettings(serializedObject.FindProperty("m_RenderingPathDefaultRealtimeReflectionFrameSettings"), null); //no overrides in HDRPAsset
+
+            var serializedRenderingPathProperty = serializedObject.FindProperty("m_RenderingPath");
+            if (serializedRenderingPathProperty == null)
+                throw new Exception($"Unable to find m_RenderingPath property on object {typeof(HDRenderPipelineGlobalSettings)}");
 
             InitializeCustomPostProcessesLists();
 
@@ -126,11 +118,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 },
             };
 
-            // ISerializedRenderPipelineGlobalSettings
-            shaderVariantLogLevel = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.shaderVariantLogLevel);
-            exportShaderVariants = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.exportShaderVariants);
-            stripDebugVariants = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.stripDebugVariants);
-
             // HDRP
             lensAttenuation = serializedObject.FindProperty("lensAttenuationMode");
             colorGradingSpace = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.colorGradingSpace);
@@ -139,8 +126,8 @@ namespace UnityEditor.Rendering.HighDefinition
             specularFade               = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.specularFade);
             autoRegisterDiffusionProfiles = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.autoRegisterDiffusionProfiles);
 
-            DLSSProjectId = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.DLSSProjectId);
-            useDLSSCustomProjectId = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.useDLSSCustomProjectId);
+            analyticDerivativeEmulation = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.analyticDerivativeEmulation);
+            analyticDerivativeDebugOutput = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.analyticDerivativeDebugOutput);
 
             apvScenesData = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.apvScenesData);
         }

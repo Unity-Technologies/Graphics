@@ -193,6 +193,16 @@ These settings determine the method that the Cameras and Reflection Probes using
   </tr>
   <tr>
     <td></td>
+    <td><strong>Lens Flare Data Driven</strong></td>
+    <td>Enable to use the <a href="Shared/lens-flare/lens-flare-component.md">Lens Flare (SRP)</a> component.</td>
+  </tr>
+  <tr>
+    <td></td>
+    <td><strong>Lens Flare Screen Space</strong></td>
+    <td>Enable to use the <a href="Shared/lens-flare/Override-Screen-Space-Lens-Flare.md">Screen Space Lens Flare</a> volume override.</td>
+    </tr>
+  <tr>
+    <td></td>
     <td><strong>Film Grain</strong></td>
     <td>Enable the checkbox to allow HDRP to add film grain to Cameras affected by a Volume containing the <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@13.1/manual/Post-Processing-Film-Grain.html">Film Grain</a> override.</td>
   </tr>

@@ -397,6 +397,21 @@ namespace UnityEngine.Rendering.Universal
     }
 
     /// <summary>
+    /// The type of Spherical Harmonics lighting evaluation in a shader.
+    /// </summary>
+    public enum ShEvalMode
+    {
+        /// <summary>Unity selects a mode automatically.</summary>
+        Auto = 0,
+        /// <summary>Evaluate lighting per vertex.</summary>
+        PerVertex = 1,
+        /// <summary>Evaluate lighting partially per vertex, partially per pixel.</summary>
+        Mixed = 2,
+        /// <summary>Evaluate lighting per pixel.</summary>
+        PerPixel = 3,
+    }
+
+    /// <summary>
     /// The asset that contains the URP setting.
     /// You can use this asset as a graphics quality level.
     /// </summary>
@@ -446,6 +461,14 @@ namespace UnityEngine.Rendering.Universal
 #endif
         [SerializeField] bool m_EnableLODCrossFade = true;
         [SerializeField] LODCrossFadeDitheringType m_LODCrossFadeDitheringType = LODCrossFadeDitheringType.BlueNoise;
+
+        // ShEvalMode.Auto is handled in shader preprocessor.
+#if UNITY_EDITOR // multi_compile _ EVALUATE_SH_MIXED EVALUATE_SH_VERTEX
+        [ShaderKeywordFilter.RemoveIf(ShEvalMode.PerPixel,  keywordNames:  new [] { ShaderKeywordStrings.EVALUATE_SH_MIXED, ShaderKeywordStrings.EVALUATE_SH_VERTEX })]
+        [ShaderKeywordFilter.SelectIf(ShEvalMode.Mixed,     keywordNames:  new [] { ShaderKeywordStrings.EVALUATE_SH_MIXED })]
+        [ShaderKeywordFilter.SelectIf(ShEvalMode.PerVertex, keywordNames: new [] { ShaderKeywordStrings.EVALUATE_SH_VERTEX })]
+#endif
+        [SerializeField] ShEvalMode m_ShEvalMode = ShEvalMode.Auto;
 
         // Probe volume settings
 #if UNITY_EDITOR
@@ -555,6 +578,8 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] ShadowResolution m_ShadowAtlasResolution = ShadowResolution._256;
 
         [SerializeField] VolumeFrameworkUpdateMode m_VolumeFrameworkUpdateMode = VolumeFrameworkUpdateMode.EveryFrame;
+
+        [SerializeField] VolumeProfile m_VolumeProfile;
 
         [SerializeField] TextureResources m_Textures;
 
@@ -1136,6 +1161,15 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
+        /// Defines the type of Spherical Harmonic (SH) evaluation in lighting.
+        /// </summary>
+        public ShEvalMode shEvalMode
+        {
+            get { return m_ShEvalMode; }
+            internal set { m_ShEvalMode = value; }
+        }
+
+        /// <summary>
         /// Determines what system to use.
         /// </summary>
         public LightProbeSystem lightProbeSystem
@@ -1462,6 +1496,16 @@ namespace UnityEngine.Rendering.Universal
         /// Returns the selected update mode for volumes.
         /// </summary>
         public VolumeFrameworkUpdateMode volumeFrameworkUpdateMode => m_VolumeFrameworkUpdateMode;
+
+        /// <summary>
+        /// A volume profile that can be used to override global default volume profile values. This provides a way e.g.
+        /// to have different volume default values per quality level without having to place global volumes in scenes.
+        /// </summary>
+        public VolumeProfile volumeProfile
+        {
+            get => m_VolumeProfile;
+            set => m_VolumeProfile = value;
+        }
 
         /// <summary>
         /// Previously returned the debug level for this Render Pipeline Asset but is now deprecated. Replaced to use the profiler and is no longer used.

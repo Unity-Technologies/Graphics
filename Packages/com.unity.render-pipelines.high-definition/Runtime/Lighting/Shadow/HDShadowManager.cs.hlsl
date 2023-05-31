@@ -28,6 +28,8 @@ struct HDShadowData
     real4 zBufferParam;
     float4 shadowMapSize;
     float4 shadowFilterParams0;
+    float4 dirLightPCSSParams0;
+    float4 dirLightPCSSParams1;
     float3 cacheTranslationDelta;
     float isInCachedAtlas;
     float4x4 shadowToWorld;

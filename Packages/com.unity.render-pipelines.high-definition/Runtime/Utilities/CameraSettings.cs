@@ -258,7 +258,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             bufferClearing = BufferClearing.NewDefault(),
             culling = Culling.NewDefault(),
-            renderingPathCustomFrameSettings = FrameSettings.NewDefaultCamera(),
+            renderingPathCustomFrameSettings = FrameSettingsDefaults.Get(FrameSettingsRenderType.Camera),
             frustum = Frustum.NewDefault(),
             customRenderingSettings = false,
             volumes = Volumes.NewDefault(),

@@ -23,6 +23,7 @@ namespace UnityEditor
         {
             bool automaticRenderQueue = GetAutomaticQueueControlSetting(material);
             BaseShaderGUI.UpdateMaterialSurfaceOptions(material, automaticRenderQueue);
+            BaseShaderGUI.UpdateMotionVectorKeywordsAndPass(material);
         }
 
         public override void ValidateMaterial(Material material)

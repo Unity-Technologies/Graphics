@@ -629,6 +629,7 @@ namespace UnityEditor.VFX.Test
         }
 
         [UnityTest]
+		[Timeout(900000)]
         public IEnumerator CreateComponent_And_Check_NoneTexture_Constraint_Doesnt_Generate_Any_Error()
         {
             yield return new EnterPlayMode();
@@ -645,17 +646,22 @@ namespace UnityEditor.VFX.Test
             var initialize = graph.children.First(o => o is VFXBasicInitialize);
             bool r = operatorSample3D.outputSlots.First().Link(initialize.children.OfType<VFXBlock>().First().inputSlots.First());
             Assert.IsTrue(r);
-            graph.SetExpressionGraphDirty();
-            graph.RecompileIfNeeded();
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
 
-            GameObject currentObject = new GameObject("TemporaryGameObject_NoneTexture", typeof(VisualEffect));
+            var currentObject = new GameObject("TemporaryGameObject_NoneTexture", typeof(VisualEffect));
             var vfx = currentObject.GetComponent<VisualEffect>();
             var asset = graph.visualEffectResource.asset;
             vfx.visualEffectAsset = asset;
 
-            int maxFrame = 512;
-            while ((vfx.culled || vfx.aliveParticleCount == 0) && --maxFrame > 0)
+            int maxFrame = 64;
+            while (vfx.culled && --maxFrame > 0)
                 yield return null;
+            Assert.Greater(maxFrame, 0u, "Culling Test Failure");
+
+            maxFrame = 64;
+            while (vfx.aliveParticleCount == 0 && --maxFrame > 0)
+                yield return null;
+            Assert.Greater(maxFrame, 0u, "Alive Particle Count failure");
 
             //Wait for a few frame to be sure the rendering has been triggered
             for (int i = 0; i < 3; ++i)
@@ -901,7 +907,7 @@ namespace UnityEditor.VFX.Test
             {
                 expectedValue = new Vector2(5.0f, 6.0f);
                 parameter.value = expectedValue;
-                graph.RecompileIfNeeded();
+                graph.RecompileIfNeeded(false, true);
             }
 
             if (modifyValue)

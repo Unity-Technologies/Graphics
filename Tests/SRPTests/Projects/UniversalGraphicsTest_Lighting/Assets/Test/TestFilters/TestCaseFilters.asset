@@ -98,3 +98,12 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: 
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 677cb6424a7fe3947974395b6c3d70a4, type: 3}
+    ColorSpace: 1
+    BuildPlatform: 13
+    GraphicsDevice: 11
+    XrSdk: OculusLoader
+    StereoModes: 0
+    Reason: Unstable on Quest/opengles3

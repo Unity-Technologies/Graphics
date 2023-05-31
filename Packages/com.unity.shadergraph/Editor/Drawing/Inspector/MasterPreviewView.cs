@@ -12,6 +12,7 @@ using Object = UnityEngine.Object;
 using UnityEditor.UIElements;
 using UnityEngine.UIElements;
 using UnityEngine.UIElements.StyleSheets;
+using UnityEditor.SearchService;
 
 namespace UnityEditor.ShaderGraph.Drawing.Inspector
 {
@@ -51,9 +52,9 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         }
 
         List<string> m_DoNotShowPrimitives = new List<string>(new string[] { PrimitiveType.Plane.ToString() });
-
         static Type s_ContextualMenuManipulator = AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypesOrNothing()).FirstOrDefault(t => t.FullName == "UnityEngine.UIElements.ContextualMenuManipulator");
         static Type s_ObjectSelector = AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypesOrNothing()).FirstOrDefault(t => t.FullName == "UnityEditor.ObjectSelector");
+
 
         public string assetName
         {
@@ -184,9 +185,9 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
         void ChangeMeshCustom()
         {
-            MethodInfo ShowMethod = s_ObjectSelector.GetMethod("Show", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly, Type.DefaultBinder, new[] { typeof(Object), typeof(Type), typeof(Object), typeof(bool), typeof(List<int>), typeof(Action<Object>), typeof(Action<Object>) }, new ParameterModifier[7]);
+            var ShowMethod = s_ObjectSelector.GetMethod("Show", BindingFlags.Instance | BindingFlags.NonPublic, null, new[] { typeof(UnityEngine.Object), typeof(Type), typeof(UnityEngine.Object), typeof(bool), typeof(List<int>), typeof(Action<UnityEngine.Object>), typeof(Action<UnityEngine.Object>), typeof(bool) }, new ParameterModifier[8]);
             m_PreviousMesh = m_Graph.previewData.serializedMesh.mesh;
-            ShowMethod.Invoke(Get(), new object[] { null, typeof(Mesh), null, false, null, (Action<Object>)OnMeshChanged, (Action<Object>)OnMeshChanged });
+            ShowMethod.Invoke(Get(), new object[] { null, typeof(Mesh), null, false, null, (Action<Object>)OnMeshChanged, (Action<Object>)OnMeshChanged, false });
         }
 
         void OnGeometryChanged(GeometryChangedEvent evt)

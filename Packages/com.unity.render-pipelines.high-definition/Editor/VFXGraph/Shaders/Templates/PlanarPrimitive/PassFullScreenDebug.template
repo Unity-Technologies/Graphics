@@ -1,0 +1,47 @@
+Pass
+{
+    Name "FullScreenDebug"
+    Tags{ "LightMode" = "FullScreenDebug" }
+    
+    HLSLPROGRAM
+    #pragma target 4.5
+    #define DEBUG_DISPLAY
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/FullScreenDebug.hlsl"
+    
+    struct ps_input
+    {
+        float4 pos : SV_POSITION;
+
+        #if VFX_SHADERGRAPH_HAS_UV1
+        float4 uv1 : TEXCOORD1;
+        #endif
+        #if VFX_SHADERGRAPH_HAS_UV2
+        float4 uv2 : TEXCOORD2;
+        #endif
+        #if VFX_SHADERGRAPH_HAS_UV3
+        float4 uv3 : TEXCOORD3;
+        #endif
+        #if VFX_SHADERGRAPH_HAS_COLOR
+        float4 vertexColor : COLOR;
+        #endif
+
+        ${VFXAdditionalInterpolantsDeclaration}
+
+        UNITY_VERTEX_OUTPUT_STEREO
+        VFX_VERTEX_OUTPUT_INSTANCE_INDEX
+    };
+    
+    #define VFX_VARYING_PS_INPUTS ps_input
+    #define VFX_VARYING_POSCS pos
+
+    ${VFXBegin:VFXVertexAdditionalProcess}
+    ${VFXPassFullScreenDebugCommonVertex}
+    ${VFXEnd}
+
+    ${VFXInclude("Shaders/ParticlePlanarPrimitives/Pass.template")}
+
+    ${VFXPassFullScreenDebugCommonFragment}
+
+    ENDHLSL
+}

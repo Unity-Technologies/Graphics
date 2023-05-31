@@ -150,6 +150,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         lightCluster.EvaluateClusterDebugView(m_RenderGraph, hdCamera, prepassOutput.depthBuffer, prepassOutput.depthPyramidTexture);
                     }
 
+                    DecalSystem.instance.UpdateShaderGraphAtlasTextures(m_RenderGraph);
+
                     if (hdCamera.viewCount == 1)
                     {
                         colorBuffer = RenderPathTracing(m_RenderGraph, hdCamera, colorBuffer);
@@ -179,9 +181,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     StartXRSinglePass(m_RenderGraph, hdCamera);
 
+                    // Render the software line raster path.
+                    RenderLines(m_RenderGraph, prepassOutput.depthPyramidTexture, hdCamera, gpuLightListOutput);
+
                     // Evaluate the clear coat mask texture based on the lit shader mode
                     var clearCoatMask = hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred ? prepassOutput.gbuffer.mrt[2] : m_RenderGraph.defaultResources.blackTextureXR;
-                    lightingBuffers.ssrLightingBuffer = RenderSSR(m_RenderGraph, hdCamera, ref prepassOutput, clearCoatMask, rayCountTexture, m_SkyManager.GetSkyReflection(hdCamera), transparent: false);
+                    lightingBuffers.ssrLightingBuffer = RenderSSR(m_RenderGraph, hdCamera, ref prepassOutput, clearCoatMask, rayCountTexture, historyValidationTexture, m_SkyManager.GetSkyReflection(hdCamera), transparent: false);
                     lightingBuffers.ssgiLightingBuffer = RenderScreenSpaceIndirectDiffuse(hdCamera, prepassOutput, rayCountTexture, historyValidationTexture, gpuLightListOutput.lightList);
 
                     if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && GetRayTracingClusterState())
@@ -223,6 +228,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     SendGeometryGraphicsBuffers(m_RenderGraph, prepassOutput.normalBuffer, prepassOutput.depthPyramidTexture, hdCamera);
 
                     DoUserAfterOpaqueAndSky(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.resolvedDepthBuffer, prepassOutput.resolvedNormalBuffer, prepassOutput.resolvedMotionVectorsBuffer);
+
+                    DecalSystem.instance.UpdateShaderGraphAtlasTextures(m_RenderGraph);
 
                     // No need for old stencil values here since from transparent on different features are tagged
                     ClearStencilBuffer(m_RenderGraph, hdCamera, prepassOutput.depthBuffer);
@@ -291,6 +298,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
 #if ENABLE_VIRTUALTEXTURES
+                //Check debug data to see if user disabled streaming.
+                if (HDDebugDisplaySettings.Instance != null && HDDebugDisplaySettings.Instance.vtSettings.data.debugDisableResolving)
+                    resolveVirtualTextureFeedback = false;
+
                 // Note: This pass rely on availability of vtFeedbackBuffer buffer (i.e it need to be write before we read it here)
                 // We don't write it when FullScreenDebug mode or path tracer.
                 if (resolveVirtualTextureFeedback)
@@ -320,7 +331,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 PushFullScreenExposureDebugTexture(m_RenderGraph, postProcessDest, fullScreenDebugFormat);
                 PushFullScreenHDRDebugTexture(m_RenderGraph, postProcessDest, fullScreenDebugFormat);
                 PushFullScreenDebugTexture(m_RenderGraph, colorBuffer, FullScreenDebugMode.VolumetricFog);
-                
+
                 ResetCameraSizeForAfterPostProcess(m_RenderGraph, hdCamera, commandBuffer);
 
                 RenderCustomPass(m_RenderGraph, hdCamera, postProcessDest, prepassOutput, customPassCullingResults, cullingResults, CustomPassInjectionPoint.AfterPostProcess, aovRequest, aovCustomPassBuffers);
@@ -1364,9 +1375,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // This means our flagging process needs to happen before the transparent depth prepass as we use the depth to discriminate pixels that do not need recursive rendering.
             var flagMaskBuffer = RenderRayTracingFlagMask(renderGraph, cullingResults, hdCamera, prepassOutput.depthBuffer);
 
-            // Render the software line raster path.
-            RenderLines(renderGraph, prepassOutput.depthPyramidTexture, hdCamera, lightLists);
-
             // Immediately compose the lines if the user wants lines in the color pyramid (refraction), but with poor TAA ghosting.
             ComposeLines(renderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, prepassOutput.motionVectorsBuffer, (int)LineRendering.CompositionMode.BeforeColorPyramid);
 
@@ -1376,7 +1384,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var waterGBuffer = RenderWaterGBuffer(m_RenderGraph, cullingResults, hdCamera, prepassOutput.depthBuffer, prepassOutput.normalBuffer, currentColorPyramid, prepassOutput.depthPyramidTexture, lightLists);
 
             // Render the transparent SSR lighting
-            var ssrLightingBuffer = RenderSSR(renderGraph, hdCamera, ref prepassOutput, renderGraph.defaultResources.blackTextureXR, rayCountTexture, skyTexture, transparent: true);
+            var ssrLightingBuffer = RenderSSR(renderGraph, hdCamera, ref prepassOutput, renderGraph.defaultResources.blackTextureXR, rayCountTexture, renderGraph.defaultResources.blackTextureXR, skyTexture, transparent: true);
 
             colorBuffer = RaytracingRecursiveRender(renderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, flagMaskBuffer, rayCountTexture);
 
@@ -1419,7 +1427,8 @@ namespace UnityEngine.Rendering.HighDefinition
             colorBuffer = ResolveMSAAColor(renderGraph, hdCamera, colorBuffer, m_NonMSAAColorBuffer);
 
             // Render the under water if necessary
-            colorBuffer = RenderUnderWaterVolume(renderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, prepassOutput.normalBuffer, waterGBuffer);
+            colorBuffer = RenderUnderWaterVolume(renderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, prepassOutput.normalBuffer, waterGBuffer, out var waterLine);
+            prepassOutput.waterLine = waterLine;
 
             // Render All forward error
             RenderForwardError(renderGraph, hdCamera, colorBuffer, prepassOutput.resolvedDepthBuffer, cullingResults);
@@ -1973,31 +1982,25 @@ namespace UnityEngine.Rendering.HighDefinition
 
             TextureHandle renderingLayerMaskBuffer = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RenderingLayerMaskBuffer) ? prepassOutput.renderingLayersBuffer : TextureHandle.nullHandle;
 
-            bool executed = false;
-            CustomPassVolume.GetActivePassVolumes(injectionPoint, m_ActivePassVolumes);
-            foreach (var customPass in m_ActivePassVolumes)
+            var customPassTargets = new CustomPass.RenderTargets
             {
-                if (customPass == null)
-                    return false;
+                // TODO RENDERGRAPH: we can't replace the Lazy<RTHandle> buffers with RenderGraph resource because they are part of the current public API.
+                // To replace them correctly we need users to actually write render graph passes and explicit whether or not they want to use those buffers.
+                // We'll do it when we switch fully to render graph for custom passes.
+                customColorBuffer = m_CustomPassColorBuffer,
+                customDepthBuffer = m_CustomPassDepthBuffer,
 
-                var customPassTargets = new CustomPass.RenderTargets
-                {
-                    // TODO RENDERGRAPH: we can't replace the Lazy<RTHandle> buffers with RenderGraph resource because they are part of the current public API.
-                    // To replace them correctly we need users to actually write render graph passes and explicit whether or not they want to use those buffers.
-                    // We'll do it when we switch fully to render graph for custom passes.
-                    customColorBuffer = m_CustomPassColorBuffer,
-                    customDepthBuffer = m_CustomPassDepthBuffer,
+                // Render Graph Specific textures
+                colorBufferRG = colorBuffer,
+                nonMSAAColorBufferRG = m_NonMSAAColorBuffer,
+                depthBufferRG = prepassOutput.depthBuffer,
+                normalBufferRG = prepassOutput.resolvedNormalBuffer,
+                motionVectorBufferRG = prepassOutput.resolvedMotionVectorsBuffer,
+                renderingLayerMaskRG = renderingLayerMaskBuffer,
+                waterLineRG = prepassOutput.waterLine,
+            };
 
-                    // Render Graph Specific textures
-                    colorBufferRG = colorBuffer,
-                    nonMSAAColorBufferRG = m_NonMSAAColorBuffer,
-                    depthBufferRG = prepassOutput.depthBuffer,
-                    normalBufferRG = prepassOutput.resolvedNormalBuffer,
-                    motionVectorBufferRG = prepassOutput.resolvedMotionVectorsBuffer,
-                    renderingLayerMaskRG = renderingLayerMaskBuffer,
-                };
-                executed |= customPass.Execute(renderGraph, hdCamera, cullingResults, cameraCullingResults, customPassTargets);
-            }
+            bool executed = CustomPassVolume.ExecuteAllCustomPasses(renderGraph, hdCamera, cullingResults, cameraCullingResults, injectionPoint, customPassTargets);
 
             // Push the custom pass buffer, in case it was requested in the AOVs
             aovRequest.PushCustomPassTexture(renderGraph, injectionPoint, colorBuffer, m_CustomPassColorBuffer, aovCustomPassBuffers);

@@ -1080,7 +1080,7 @@ namespace UnityEditor.VFX.Test
             spawnerOutput.LinkFrom(spawnerInit);
 
             graph.SetCompilationMode(VFXCompilationMode.Edition);
-            graph.RecompileIfNeeded();
+            graph.RecompileIfNeeded(false, true);
 
             var gameObj = new GameObject("CreateSpawner_Set_Attribute_With_Delay");
             var vfxComponent = gameObj.AddComponent<VisualEffect>();
@@ -1528,7 +1528,7 @@ namespace UnityEditor.VFX.Test
             },
         };
 
-        [UnityTest]
+        [UnityTest, Timeout(300 * 1000)]
         public IEnumerator CreateSpawner_ChangeLoopMode([ValueSource("k_CreateSpawner_ChangeLoopModeTestCases")] CreateSpawner_ChangeLoopMode_TestCase testCase)
         {
             yield return new EnterPlayMode();

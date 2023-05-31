@@ -237,7 +237,7 @@ Shader "HDRP/TerrainLit"
             // In deferred, depth only pass don't output anything.
             // In forward it output the normal buffer
             #pragma multi_compile _ WRITE_NORMAL_BUFFER
-            #pragma multi_compile_fragment _ WRITE_DECAL_BUFFER WRITE_RENDERING_LAYER
+            #pragma multi_compile _ WRITE_DECAL_BUFFER WRITE_RENDERING_LAYER
             #pragma multi_compile _ WRITE_MSAA_DEPTH
 
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
@@ -503,6 +503,9 @@ Shader "HDRP/TerrainLit"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
             #define SHADERPASS SHADERPASS_PATH_TRACING
+
+            #pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT
+            #pragma multi_compile _ PATH_TRACING_ADDITIVE_NORMAL_BLENDING
 
             #pragma multi_compile _ DEBUG_DISPLAY
             #pragma multi_compile _ SENSORSDK_OVERRIDE_REFLECTANCE

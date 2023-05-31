@@ -9,7 +9,7 @@ using PackageInfo = UnityEditor.PackageManager.PackageInfo;
 
 /// <remarks>
 /// To implement this, the package needs to starts with k_srpPrefixPackage
-/// Then, in the package.json, an array can be added after the path variable of the sample as such:
+/// Then, in the package.json, an array can be added after the path variable of the sample. The path should start from the Packages/ folder, as such:
 /// "samples": [
 /// {
 ///     "displayName": "Sample name",
@@ -17,8 +17,10 @@ using PackageInfo = UnityEditor.PackageManager.PackageInfo;
 ///     "path": "Samples~/Stuff",
 ///     "dependencies": 
 ///         [
-///             "CommonMaterials",
-///             "CommonTextures"
+///             "com.unity.render-pipelines.core/Samples~/CommonMeshes",
+///             "com.unity.render-pipelines.core/Samples~/CommonTextures",
+///             "com.unity.render-pipelines.universal/Samples~/CommonURPMaterials",
+///             "com.unity.render-pipelines.high-definition/Samples~/CommonHDRPMaterials",
 ///         ]
 /// },
 /// {
@@ -46,7 +48,7 @@ class SampleDependencyImporter : IPackageManagerExtension
         PackageManagerExtensions.RegisterExtension(new SampleDependencyImporter());
     }
     
-    const string k_srpPrefixPackage = "com.unity.render-pipelines.";
+    const string k_srpPrefixPackage = "com.unity.";
     PackageInfo m_PackageInfo;
     List<Sample> m_Samples;
     SampleList m_SampleList;
@@ -157,11 +159,22 @@ class SampleDependencyImporter : IPackageManagerExtension
         var assetsImported = false;
         for (int i = 0; i < paths.Length; ++i)
         {
-            var dependencyPath = Path.GetFullPath($"Packages/{packageInfo.name}/Samples~/{paths[i]}");
+            var dependencyPath = Path.GetFullPath($"Packages/{paths[i]}");
             if (Directory.Exists(dependencyPath))
             {
-                CopyDirectory(dependencyPath, $"{Application.dataPath}/Samples/{packageInfo.displayName}/{packageInfo.version}/{paths[i]}");
+                //Getting the PackageInfo from the path to be able to retrieve the displayName and version of the package. 
+                PackageInfo currentDependencyPackageInfo = PackageInfo.FindForAssetPath(dependencyPath);
+                //Split the path from the package folder into an array of folders
+                string[] foldersArray = paths[i].Split('/'); 
+                //Last folder is the one we want to copy
+                string folderToCopyName = foldersArray[Mathf.Max(foldersArray.Length-1,0)]; 
+              
+                CopyDirectory(dependencyPath, $"{Application.dataPath}/Samples/{currentDependencyPackageInfo.displayName}/{folderToCopyName}");
                 assetsImported = true;
+            }
+            else
+            {
+                Debug.LogError($"The dependency located at {dependencyPath} does not exists and has not been imported. Make sure the package of the dependency is imported in the project.");
             }
         }
 

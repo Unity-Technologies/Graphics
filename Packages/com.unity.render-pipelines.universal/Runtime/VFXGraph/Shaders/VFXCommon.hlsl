@@ -23,11 +23,6 @@ float4 VFXApplyPreExposure(float4 color, VFX_VARYING_PS_INPUTS input)
 }
 #endif
 
-float4 VFXTransformFinalColor(float4 color)
-{
-    return color;
-}
-
 float2 VFXGetNormalizedScreenSpaceUV(float4 clipPos)
 {
     return GetNormalizedScreenSpaceUV(clipPos);
@@ -181,6 +176,17 @@ float4 VFXApplyAO(float4 color, float4 posCS)
     return color;
 }
 
+float4 VFXTransformFinalColor(float4 color, float4 posCS)
+{
+    if (IsOnlyAOLightingFeatureEnabled())
+    {
+        color.rgb = (float3)1.0f;
+        color = VFXApplyAO(color, posCS);
+    }
+
+    return color;
+}
+
 float4 VFXApplyFog(float4 color,float4 posCS,float3 posWS)
 {
    float4 fog = (float4)0;
@@ -204,14 +210,17 @@ float3 VFXGetCameraWorldDirection()
     return unity_CameraToWorld._m02_m12_m22;
 }
 
-void VFXComputePixelOutputToNormalBuffer(float3 normalWS, out float4 outNormalBuffer)
-{
 #if defined(_GBUFFER_NORMALS_OCT)
-    float2 octNormalWS = PackNormalOctQuadEncode(normalWS);           // values between [-1, +1], must use fp32 on some platforms
-    float2 remappedOctNormalWS = saturate(octNormalWS * 0.5 + 0.5);   // values between [ 0,  1]
-    half3 packedNormalWS = PackFloat2To888(remappedOctNormalWS);      // values between [ 0,  1]
-    outNormalBuffer = float4(packedNormalWS, 0.0);
-#else
-    outNormalBuffer = float4(normalWS, 0.0);
-#endif
+#define VFXComputePixelOutputToNormalBuffer(i,normalWS,uvData,outNormalBuffer) \
+{ \
+    float2 octNormalWS = PackNormalOctQuadEncode(normalWS);         /*values between [-1, +1], must use fp32 on some platforms*/ \
+    float2 remappedOctNormalWS = saturate(octNormalWS * 0.5 + 0.5); /*values between [ 0,  1]*/ \
+    half3 packedNormalWS = PackFloat2To888(remappedOctNormalWS);    /*values between [ 0,  1]*/ \
+	outNormalBuffer = float4(packedNormalWS, 0.0); \
 }
+#else
+#define VFXComputePixelOutputToNormalBuffer(i,normalWS,uvData,outNormalBuffer) \
+{ \
+    outNormalBuffer = float4(normalWS, 0.0); \
+}
+#endif

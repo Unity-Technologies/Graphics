@@ -49,7 +49,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public enum LightProbeSystem
         {
             /// <summary>The legacy light probe system.</summary>
-            [InspectorName("Light Probe Groups (Legacy)")]
+            [InspectorName("Light Probe Groups")]
             LegacyLightProbes = 0,
             /// <summary>Probe Volume system.</summary>
             ProbeVolumes = 1,
@@ -125,7 +125,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 msaaSampleCount = MSAASamples.None,
                 supportMotionVectors = true,
                 supportRuntimeAOVAPI = false,
-                supportDitheringCrossFade = true,
                 supportTerrainHole = false,
 
                 supportComputeThickness = false,
@@ -154,6 +153,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 waterSimulationResolution = WaterSimulationResolution.Medium128,
                 supportWaterDeformation = false,
                 deformationAtlasSize = WaterAtlasSize.AtlasSize512,
+                maximumDeformerCount = 64,
                 supportWaterFoam = false,
                 foamAtlasSize = WaterAtlasSize.AtlasSize512,
                 supportWaterExclusion = false,
@@ -172,6 +172,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 supportHighQualityLineRendering = false,
                 supportProbeVolumeGPUStreaming = false,
                 supportProbeVolumeDiskStreaming = false,
+                highQualityLineRenderingMemoryBudget = LineRendering.MemoryBudget.MemoryBudgetLow,
                 probeVolumeSHBands = ProbeVolumeSHBands.SphericalHarmonicsL1,
             };
             return settings;
@@ -267,6 +268,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool supportWaterDeformation;
         /// <summary>Defines the resolution of the deformer atlas.</summary>
         public WaterAtlasSize deformationAtlasSize;
+        /// <summary>Maximum amount of water deformers supported.</summary>
+        public int maximumDeformerCount;
         /// <summary>Support Water Surfaces foam.</summary>
         public bool supportWaterFoam;
         /// <summary>Defines the resolution of the foam system atlas.</summary>
@@ -339,6 +342,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool decalNormalBufferHP;
         /// <summary>Support High Quality Line Rendering.</summary>
         public bool supportHighQualityLineRendering;
+        /// <summary>High Quality Line Rendering Memory Budget.</summary>
+        public LineRendering.MemoryBudget highQualityLineRenderingMemoryBudget;
 
         /// <summary>Default Number of samples when using MSAA.</summary>
         public MSAASamples msaaSampleCount;
@@ -368,15 +373,13 @@ namespace UnityEngine.Rendering.HighDefinition
         [Obsolete("Use lightProbeSystem instead", false)]
         internal bool oldSupportProbeVolume;
 
+        /// <summary> Support LOD Dithering Cross-Fade/// </summary>
+        [Obsolete("This setting has no effect, use LOD Quality Setting instead", false)]
+        public bool supportDitheringCrossFade;
 
         /// <summary>Support runtime AOV API.</summary>
         public bool supportRuntimeAOVAPI;
-        /// <summary>Support dithered cross-fade.</summary>
-#if UNITY_EDITOR // multi_compile _ LOD_FADE_CROSSFADE
-        // Remove if dithering cross-fade is not supported
-        // [ShaderKeywordFilter.RemoveIf(true, keywordNames: "LOD_FADE_CROSSFADE")]
-#endif
-        public bool supportDitheringCrossFade;
+
         /// <summary>Support terrain holes.</summary>
         public bool supportTerrainHole;
         /// <summary>Determines what system to use.</summary>

@@ -28,6 +28,8 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty mainLightShadowsSupportedProp { get; }
         public SerializedProperty mainLightShadowmapResolutionProp { get; }
 
+        public SerializedProperty shEvalModeProp { get; }
+
         internal SerializedProperty lightProbeSystem;
         internal SerializedProperty probeVolumeTextureSize;
         internal SerializedProperty probeVolumeBlendingTextureSize;
@@ -70,6 +72,7 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty enableRenderGraph { get; }
 
         public SerializedProperty volumeFrameworkUpdateModeProp { get; }
+        public SerializedProperty volumeProfileProp { get; }
 
         public SerializedProperty colorGradingMode { get; }
         public SerializedProperty colorGradingLutSize { get; }
@@ -102,6 +105,8 @@ namespace UnityEditor.Rendering.Universal
             upscalingFilter = serializedObject.FindProperty("m_UpscalingFilter");
             fsrOverrideSharpness = serializedObject.FindProperty("m_FsrOverrideSharpness");
             fsrSharpness = serializedObject.FindProperty("m_FsrSharpness");
+
+            shEvalModeProp = serializedObject.FindProperty("m_ShEvalMode");
 
             lightProbeSystem = serializedObject.FindProperty("m_LightProbeSystem");
             probeVolumeTextureSize = serializedObject.FindProperty("m_ProbeVolumeMemoryBudget");
@@ -150,6 +155,7 @@ namespace UnityEditor.Rendering.Universal
             enableRenderGraph = serializedObject.FindProperty("m_EnableRenderGraph");
 
             volumeFrameworkUpdateModeProp = serializedObject.FindProperty("m_VolumeFrameworkUpdateMode");
+            volumeProfileProp = serializedObject.FindProperty("m_VolumeProfile");
 
             storeActionsOptimizationProperty = serializedObject.FindProperty("m_StoreActionsOptimization");
 

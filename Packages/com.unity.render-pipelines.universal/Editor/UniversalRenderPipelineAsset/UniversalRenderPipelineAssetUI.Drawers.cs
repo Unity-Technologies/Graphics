@@ -19,6 +19,7 @@ namespace UnityEditor.Rendering.Universal
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
             AdaptivePerformance = 1 << 6,
 #endif
+            Volumes = 1 << 7,
         }
 
         enum ExpandableAdditional
@@ -112,7 +113,8 @@ namespace UnityEditor.Rendering.Universal
             CED.FoldoutGroup(Styles.qualitySettingsText, Expandable.Quality, k_ExpandedState, DrawQuality),
             CED.AdditionalPropertiesFoldoutGroup(Styles.lightingSettingsText, Expandable.Lighting, k_ExpandedState, ExpandableAdditional.Lighting, k_AdditionalPropertiesState, DrawLighting, DrawLightingAdditional),
             CED.AdditionalPropertiesFoldoutGroup(Styles.shadowSettingsText, Expandable.Shadows, k_ExpandedState, ExpandableAdditional.Shadows, k_AdditionalPropertiesState, DrawShadows, DrawShadowsAdditional),
-            CED.FoldoutGroup(Styles.postProcessingSettingsText, Expandable.PostProcessing, k_ExpandedState, DrawPostProcessing)
+            CED.FoldoutGroup(Styles.postProcessingSettingsText, Expandable.PostProcessing, k_ExpandedState, DrawPostProcessing),
+            CED.FoldoutGroup(Styles.volumeSettingsText, Expandable.Volumes, k_ExpandedState, DrawVolumes)
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
             , CED.FoldoutGroup(Styles.adaptivePerformanceText, Expandable.AdaptivePerformance, k_ExpandedState, CED.Group(DrawAdaptivePerformance))
 #endif
@@ -170,9 +172,6 @@ namespace UnityEditor.Rendering.Universal
                 {
                     serialized.fsrSharpness.floatValue = EditorGUILayout.Slider(Styles.fsrSharpnessText, serialized.fsrSharpness.floatValue, 0.0f, 1.0f);
                 }
-
-                if (PlayerSettings.useHDRDisplay && serialized.hdr.boolValue)
-                    EditorGUILayout.HelpBox(Styles.unsupportedFsrWithHDROutputWarning, MessageType.Warning);
 
                 --EditorGUI.indentLevel;
             }
@@ -246,6 +245,7 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUI.indentLevel--;
                 EditorGUILayout.Space();
             }
+
             // Additional light
             EditorGUILayout.PropertyField(serialized.additionalLightsRenderingModeProp, Styles.addditionalLightsRenderingModeText);
             EditorGUI.indentLevel++;
@@ -293,6 +293,7 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.PropertyField(serialized.mixedLightingSupportedProp, Styles.mixedLightingSupportLabel);
             EditorGUILayout.PropertyField(serialized.useRenderingLayers, Styles.useRenderingLayers);
             EditorGUILayout.PropertyField(serialized.supportsLightCookies, Styles.supportsLightCookies);
+            EditorGUILayout.PropertyField(serialized.shEvalModeProp, Styles.shEvalModeText);
 
             if (serialized.useRenderingLayers.boolValue && !ValidateRendererGraphicsAPIsForLightLayers(serialized.asset, out var unsupportedGraphicsApisMessage))
                 EditorGUILayout.HelpBox(Styles.lightlayersUnsupportedMessage.text + unsupportedGraphicsApisMessage, MessageType.Warning, true);
@@ -562,7 +563,53 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUILayout.HelpBox(Styles.colorGradingLutSizeWarning, MessageType.Warning);
 
             EditorGUILayout.PropertyField(serialized.useFastSRGBLinearConversion, Styles.useFastSRGBLinearConversion);
+        }
+
+        static Editor s_VolumeProfileEditor;
+        static void DrawVolumes(SerializedUniversalRenderPipelineAsset serialized, Editor ownerEditor)
+        {
             CoreEditorUtils.DrawPopup(Styles.volumeFrameworkUpdateMode, serialized.volumeFrameworkUpdateModeProp, Styles.volumeFrameworkUpdateOptions);
+
+            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.PropertyField(serialized.volumeProfileProp, Styles.volumeProfileLabel);
+            var profile = serialized.volumeProfileProp.objectReferenceValue as VolumeProfile;
+            if (EditorGUI.EndChangeCheck() && UniversalRenderPipeline.asset == serialized.serializedObject.targetObject && RenderPipelineManager.currentPipeline is UniversalRenderPipeline)
+                VolumeManager.instance.SetQualityDefaultProfile(serialized.volumeProfileProp.objectReferenceValue as VolumeProfile);
+
+            var contextMenuButtonRect = GUILayoutUtility.GetRect(CoreEditorStyles.contextMenuIcon,
+                Styles.volumeProfileContextMenuStyle.Value);
+            if (GUI.Button(contextMenuButtonRect, CoreEditorStyles.contextMenuIcon,
+                    Styles.volumeProfileContextMenuStyle.Value))
+            {
+                var srpAsset = serialized.serializedObject.targetObject as UniversalRenderPipelineAsset;
+                var pos = new Vector2(contextMenuButtonRect.x, contextMenuButtonRect.yMax);
+                VolumeProfileUtils.OnVolumeProfileContextClick(pos, s_VolumeProfileEditor as VolumeProfileEditor,
+                    defaultVolumeProfilePath: $"Assets/{srpAsset.name}_VolumeProfile.asset",
+                    onNewVolumeProfileCreated: volumeProfile =>
+                    {
+                        Undo.RecordObject(srpAsset, "Set UniversalRenderPipelineAsset Volume Profile");
+                        srpAsset.volumeProfile = volumeProfile;
+                        if (UniversalRenderPipeline.asset == srpAsset)
+                            VolumeManager.instance.SetQualityDefaultProfile(volumeProfile);
+                        EditorUtility.SetDirty(srpAsset);
+                    });
+            }
+            EditorGUILayout.EndHorizontal();
+            GUILayout.Space(2);
+
+            if (profile != null)
+            {
+                Editor.CreateCachedEditor(profile, typeof(VolumeProfileEditor), ref s_VolumeProfileEditor);
+                bool oldEnabled = GUI.enabled;
+                GUI.enabled = AssetDatabase.IsOpenForEdit(profile);
+                s_VolumeProfileEditor.OnInspectorGUI();
+                GUI.enabled = oldEnabled;
+            }
+            else
+            {
+                CoreUtils.Destroy(s_VolumeProfileEditor);
+            }
         }
 
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER

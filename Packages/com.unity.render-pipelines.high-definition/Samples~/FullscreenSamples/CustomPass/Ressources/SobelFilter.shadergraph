@@ -28,9 +28,6 @@
             "m_Id": "2805408839624792a63b48a4ce9ca1ed"
         },
         {
-            "m_Id": "28245bd9fbe848ac9ecf973338533c06"
-        },
-        {
             "m_Id": "0fa402d6d9e140598f15614f7a4c5c20"
         },
         {
@@ -1969,9 +1966,6 @@
             },
             {
                 "m_Id": "de75af276241415cb52a9913b0a9be50"
-            },
-            {
-                "m_Id": "28245bd9fbe848ac9ecf973338533c06"
             }
         ]
     },
@@ -3860,40 +3854,6 @@
 
 {
     "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.BlockNode",
-    "m_ObjectId": "28245bd9fbe848ac9ecf973338533c06",
-    "m_Group": {
-        "m_Id": ""
-    },
-    "m_Name": "SurfaceDescription.FullscreenEyeDepth",
-    "m_DrawState": {
-        "m_Expanded": true,
-        "m_Position": {
-            "serializedVersion": "2",
-            "x": 0.0,
-            "y": 0.0,
-            "width": 0.0,
-            "height": 0.0
-        }
-    },
-    "m_Slots": [
-        {
-            "m_Id": "4796c93125e1453f82d230de5fefd322"
-        }
-    ],
-    "synonyms": [],
-    "m_Precision": 0,
-    "m_PreviewExpanded": true,
-    "m_DismissedVersion": 0,
-    "m_PreviewMode": 0,
-    "m_CustomColors": {
-        "m_SerializableColors": []
-    },
-    "m_SerializedDescriptor": "SurfaceDescription.FullscreenEyeDepth"
-}
-
-{
-    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.Vector2MaterialSlot",
     "m_ObjectId": "28733e4dd4bb4699928f918c6ba22007",
     "m_Id": 0,
@@ -4871,7 +4831,8 @@
         }
     ],
     "m_CustomEditorGUI": "",
-    "m_SupportVFX": false
+    "m_SupportVFX": false,
+    "m_SupportLineRendering": false
 }
 
 {
@@ -4944,21 +4905,6 @@
         "z": 0.0,
         "w": 0.0
     }
-}
-
-{
-    "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
-    "m_ObjectId": "4796c93125e1453f82d230de5fefd322",
-    "m_Id": 0,
-    "m_DisplayName": "Eye Depth",
-    "m_SlotType": 0,
-    "m_Hidden": false,
-    "m_ShaderOutputName": "FullscreenEyeDepth",
-    "m_StageCapability": 2,
-    "m_Value": 0.0,
-    "m_DefaultValue": 0.0,
-    "m_Labels": []
 }
 
 {
@@ -7377,7 +7323,7 @@
     "m_DepthWrite": false,
     "m_depthWriteMode": 0,
     "m_AllowMaterialOverride": false,
-    "m_DepthTestMode": 8
+    "m_DepthTestMode": 0
 }
 
 {

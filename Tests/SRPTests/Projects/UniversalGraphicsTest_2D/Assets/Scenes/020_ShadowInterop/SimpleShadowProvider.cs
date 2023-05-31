@@ -6,6 +6,11 @@ using UnityEngine.Rendering.Universal;
 
 internal class SimpleShadowProvider : ShadowShape2DProvider
 {
+    public override string ProviderName(string componentName)
+    {
+        return "Simple Shadow Provider";
+    }
+
     public override bool IsShapeSource(in Component sourceComponent)
     {
         return sourceComponent is Transform;

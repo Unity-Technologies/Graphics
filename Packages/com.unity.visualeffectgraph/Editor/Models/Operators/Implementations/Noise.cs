@@ -14,6 +14,7 @@ namespace UnityEditor.VFX.Operator
         };
     }
 
+    [VFXHelpURL("Operator-CellularNoise")]
     [VFXInfo(category = "Noise", variantProvider = typeof(NoiseVariantProvider))]
     class Noise : NoiseBase
     {

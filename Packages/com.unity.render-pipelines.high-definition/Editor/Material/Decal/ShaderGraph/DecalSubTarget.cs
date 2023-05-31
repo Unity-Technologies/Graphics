@@ -184,6 +184,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 AddAffectsProperty(HDMaterialProperties.kAffectSmoothness);
             if (decalData.affectsEmission)
                 AddAffectsProperty(HDMaterialProperties.kAffectEmission);
+            if (decalData.transparentDynamicUpdate)
+                AddAffectsProperty(HDMaterialProperties.kTransparentDynamicUpdateDecals);
 
             // Color mask configuration for writing to the mask map
             AddColorMaskProperty(kDecalColorMask0);
@@ -235,6 +237,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     { DecalPasses.DecalProjectorForwardEmissive, new FieldCondition(AffectsEmission, true) },
                     { DecalPasses.DBufferMesh, new FieldCondition(DecalDefault, true) },
                     { DecalPasses.DecalMeshForwardEmissive, new FieldCondition(AffectsEmission, true) },
+                    { DecalPasses.AtlasProjector, new FieldCondition(DecalDefault, true) },
                     { DecalPasses.ScenePicking, new FieldCondition(DecalDefault, true) },
                     { DecalPasses.Preview, new FieldCondition(Fields.IsPreview, true) },
                 },
@@ -346,6 +349,25 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 pragmas = DecalPragmas.InstancedDecal,
                 defines = DecalDefines.Emission,
                 includes = DecalIncludes.Default,
+                customInterpolators = CoreCustomInterpolators.Common,
+            };
+
+            public static PassDescriptor AtlasProjector = new PassDescriptor()
+            {
+                // Definition
+                displayName = DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.AtlasProjector],
+                referenceName = "SHADERPASS_ATLAS_PROJECTOR",
+                lightMode = DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.AtlasProjector],
+                useInPreview = false,
+
+                // Port mask
+                validPixelBlocks = DecalBlockMasks.FragmentDefault,
+
+                structs = CoreStructCollections.Basic,
+                renderStates = DecalRenderStates.AtlasProjector,
+                pragmas = DecalPragmas.InstancedDecal,
+                keywords = DecalDefines.Decals,
+                includes = DecalIncludes.Transparent,
                 customInterpolators = CoreCustomInterpolators.Common,
             };
 
@@ -481,6 +503,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 { RenderState.ZWrite(ZWrite.Off) },
             };
 
+            public static RenderStateCollection AtlasProjector = new RenderStateCollection
+            {
+                { RenderState.Blend("Blend 0 One Zero") },
+                { RenderState.Cull(Cull.Off) },
+                { RenderState.ZTest(ZTest.Always) },
+                { RenderState.ZWrite(ZWrite.Off) }
+            };
+
             public static RenderStateCollection Preview = new RenderStateCollection
             {
                 { RenderState.ZTest(ZTest.LEqual) },
@@ -572,6 +602,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             const string kFunctions = "Packages/com.unity.shadergraph/ShaderGraphLibrary/Functions.hlsl";
             const string kDecal = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl";
             const string kPassDecal = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDecal.hlsl";
+            const string kPassDecalTransparent = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDecalTransparent.hlsl";
 
             public static IncludeCollection Default = new IncludeCollection
             {
@@ -582,6 +613,17 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 { kDecal, IncludeLocation.Pregraph },
                 { CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph },
                 { kPassDecal, IncludeLocation.Postgraph },
+            };
+
+            public static IncludeCollection Transparent = new IncludeCollection
+            {
+                { kPacking, IncludeLocation.Pregraph },
+                { kColor, IncludeLocation.Pregraph },
+                { kFunctions, IncludeLocation.Pregraph },
+                { CoreIncludes.MinimalCorePregraph },
+                { CoreIncludes.kPickingSpaceTransforms, IncludeLocation.Pregraph },
+                { kDecal, IncludeLocation.Pregraph },
+                { kPassDecalTransparent, IncludeLocation.Postgraph },
             };
 
             public static IncludeCollection ScenePicking = new IncludeCollection

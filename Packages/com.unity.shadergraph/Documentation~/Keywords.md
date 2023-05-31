@@ -9,7 +9,7 @@ Keywords enable you to create shaders:
 * With features that behave differently on certain platforms.
 * That scale in complexity based on conditions you set.
 
-There are three types of Keywords: Boolean, Enum, and Built-in. Unity defines a Keyword in the graph, shader, and optionally, the Material Inspector based on its type. See [Boolean Keyword](#BooleanKeywords), [Enum Keyword](#EnumKeywords), and [Built-in Keyword](#BuiltinKeywords) for more information about Keyword types. For more information about how these Keywords affect the final shader, see documentation on M[Making multiple shader program variants](https://docs.unity3d.com/Manual/SL-MultipleProgramVariants.html).
+There are three types of Keywords: Boolean, Enum, and Built-in. Unity defines a Keyword in the graph, shader, and optionally, the Material Inspector based on its type. See [Boolean Keyword](#BooleanKeywords), [Enum Keyword](#EnumKeywords), and [Built-in Keyword](#BuiltinKeywords) for more information about Keyword types. For more information about how these Keywords affect the final shader, see documentation on [Making multiple shader program variants](https://docs.unity3d.com/Manual/SL-MultipleProgramVariants.html).
 
 In Shader Graph, you first define a Keyword on the [Blackboard](Blackboard.md), then use a [Keyword Node](Keyword-Node.md) to create a branch in the graph.
 
@@ -22,7 +22,7 @@ Although some fields are specific to certain types of Keywords, all Keywords hav
 | **Name**           | **Type** | **Description**                                              |
 | ------------------ | -------- | ------------------------------------------------------------ |
 | **Display Name**   | String   | The display name of the Keyword. Unity shows this name in the title bar of nodes that reference the corresponding Keyword, and also in the Material Inspector if you expose that Keyword. |
-| **Exposed**        | Boolean  | When you set this parameter to **true**, Unity displays this Keyword in the Material Inspector. If you set it to **false**, the Keyword does not appear in the Material Inspector. |
+| **Exposed**        | Boolean  | When you set this parameter to **true**, Unity displays this Keyword in the Material Inspector. If you set it to **false**, the Keyword does not appear in the Material Inspector. <br/><br/> If you intend to access a GLOBAL shader variable, be sure to add it as you would normally add an input variable, but deselect **Exposed**.|
 | **Reference Name** | String   | The internal name for the Keyword in the shader.<br/><br/>If you overwrite the Reference Name parameter, take note of the following:<br/>&#8226; Keyword Reference Names are always in full capitals, so Unity converts all lowercase letters to uppercase.<br/>&#8226; If the Reference Name contains any characters that HLSL does not support, Unity replaces those characters with underscores.<br/>&#8226; Right-click on a Reference Name, and select **Reset Reference** to revert to the default Reference Name. |
 | **Definition**     | Enum     | Sets how the Keyword is defined in the shader. Determines when to compile keyword variants.
 <br/><br/>There are three available options.<br/>&#8226; **Shader Feature**: Unity only compiles keyword variants when a Material selects the relevant option. For this option to be available in the Player, a Material selecting it must exist at build-time.<br/>&#8226; **Multi Compile**:Pre-compiles all the variant possibilities. This is slower and uses more memory, but allows the option to be dynamically switched in the Player.

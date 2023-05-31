@@ -6,7 +6,7 @@ A Sample Texture 2D node can also sample a normal map. For more information, see
 
 [!include[nodes-sample-errors](./snippets/sample-nodes/nodes-sample-errors.md)]
 
-![An image that displays the Graph window with a Sample Texture 2D node.](images/sg-sample-texture-2d-node.png)
+![An image that displays the Graph window with a Sample Texture 2D node.](./images/sg-sample-texture-2d-node.png)
 
 ## Create Node menu category
 
@@ -14,13 +14,13 @@ The Sample Texture 2D node is under the **Input** &gt; **Texture** category in t
 
 ## Compatibility
 
-The Sample Texture 3D [!include[nodes-compatibility-all](./snippets/nodes-compatibility-all.md)]
+The Sample Texture 2D [!include[nodes-compatibility-all](./snippets/nodes-compatibility-all.md)]
 
 [!include[nodes-sample-fragment-lod](./snippets/sample-nodes/nodes-sample-fragment-lod.md)]
 
 ## Inputs
 
-The Sample Texture 3D [!include[nodes-inputs](./snippets/nodes-inputs.md)]
+The Sample Texture 2D [!include[nodes-inputs](./snippets/nodes-inputs.md)]
 
 <table>
 <thead>
@@ -49,7 +49,7 @@ The Sample Texture 3D [!include[nodes-inputs](./snippets/nodes-inputs.md)]
 
 ## Controls
 
-The Sample Texture 3D [!include[nodes-controls](./snippets/nodes-controls.md)]
+The Sample Texture 2D [!include[nodes-controls](./snippets/nodes-controls.md)]
 
 <table>
 <thead>
@@ -91,13 +91,13 @@ The Sample Texture 3D [!include[nodes-controls](./snippets/nodes-controls.md)]
 
 ## Additional node settings
 
-The Sample Texture 3D [!include[nodes-additional-settings](./snippets/nodes-additional-settings.md)]
+The Sample Texture 2D [!include[nodes-additional-settings](./snippets/nodes-additional-settings.md)]
 
 [!include[nodes-sample-mip-bias-sample-mode-table](./snippets/sample-nodes/nodes-sample-mip-bias-sample-mode-table.md)]
 
 ## Outputs
 
-The Sample Texture 3D [!include[nodes-outputs](./snippets/nodes-outputs.md)]
+The Sample Texture 2D [!include[nodes-outputs](./snippets/nodes-outputs.md)]
 
 [!include[nodes-sample-rgba-output-table](./snippets/sample-nodes/nodes-sample-rgba-output-table.md)]
 
@@ -115,7 +115,7 @@ When the Mip Sampling Mode is set to **Gradient**, the Sample Texture 2D node ca
 
 ## Generated code example
 
-[!include[nodes-generated-code](./snippets/nodes-generated-code.md)], based on the selected [**Type**](#controls) on the Sample Texture 3D node:
+[!include[nodes-generated-code](./snippets/nodes-generated-code.md)], based on the selected [**Type**](#controls) on the Sample Texture 2D node:
 
 ### Default
 
@@ -140,7 +140,7 @@ float _SampleTexture2D_A = _SampleTexture2D_RGBA.a;
 
 ## Related nodes
 
-[!include[nodes-related](./snippets/nodes-related.md)] Sample Texture 3D node:
+[!include[nodes-related](./snippets/nodes-related.md)] Sample Texture 2D node:
 
 
 - [Sample Texture 2D Array node](Sample-Texture-2D-Array-Node.md)

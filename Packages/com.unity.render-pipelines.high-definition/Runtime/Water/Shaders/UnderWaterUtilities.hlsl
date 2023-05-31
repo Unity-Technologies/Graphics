@@ -12,11 +12,29 @@ float GetWaterCameraHeight()
     return _WaterCameraHeightBuffer[unity_StereoEyeIndex];
 }
 
-TEXTURE2D_X_UINT(_WaterRegionTexture);
+StructuredBuffer<uint> _WaterLine;
 
-bool IsUnderWater(uint2 coord)
+float GetUnderWaterDistance(uint2 coord)
 {
-    return LOAD_TEXTURE2D_X(_WaterRegionTexture, coord) == 1;
+    float2 upVector = float2(_UpDirectionX, _UpDirectionY);
+    float2 rightVector = float2(_UpDirectionY, -_UpDirectionX);
+
+    // Find index to sample in 1D buffer
+    uint xr = unity_StereoEyeIndex * _BufferStride;
+    uint2 boundsX = uint2(0xFFFFFFFF - _WaterLine[0 + xr], _WaterLine[1 + xr]);
+    uint posX = round(dot((float2)coord.xy, rightVector) - _BoundsSS.x);
+    posX = clamp(posX, boundsX.x, boundsX.y);
+
+    // Decompress water line height
+    float posY = dot((float2)coord.xy, upVector) - _BoundsSS.z;
+    uint packedValue = _WaterLine[posX + 2 + xr] & 0xFFFF;
+    float waterLine = packedValue - 1;
+
+    // Normalize distance to water line
+    float maxHeight = (_BoundsSS.w - _BoundsSS.z);
+    float distanceToWaterLine = (floor(posY) - waterLine) / maxHeight;
+
+    return distanceToWaterLine;
 }
 
 Texture2D<float4> _WaterCausticsDataBuffer;
@@ -43,7 +61,7 @@ float EvaluateSimulationCaustics(float3 refractedWaterPosRWS, float refractedWat
         triplanarW = ComputeTriplanarWeights(_WaterProceduralGeometry ? mul(_WaterSurfaceTransform_Inverse, float4(normalData.normalWS, 0.0)).xyz : normalData.normalWS);
 
         // Convert the position to absolute world space and move the position to the water local space
-        float3 causticPosOS = GetAbsolutePositionWS(refractedWaterPosRWS * _CausticsTilingFactor);
+        float3 causticPosOS = GetAbsolutePositionWS(refractedWaterPosRWS) * _CausticsTilingFactor;
         causticPosOS = _WaterProceduralGeometry ? mul(_WaterSurfaceTransform_Inverse, float4(causticPosOS, 1.0)).xyz : causticPosOS;
 
         // Evaluate the triplanar coodinates
@@ -55,9 +73,15 @@ float EvaluateSimulationCaustics(float3 refractedWaterPosRWS, float refractedWat
         float sharpness = (1.0 - causticWeight) * _CausticsMaxLOD;
 
         // sample the caustics texture
+        #if defined(SHADER_STAGE_COMPUTE)
         causticsValues.x = SAMPLE_TEXTURE2D_LOD(_WaterCausticsDataBuffer, s_linear_repeat_sampler, uv0, sharpness).x;
         causticsValues.y = SAMPLE_TEXTURE2D_LOD(_WaterCausticsDataBuffer, s_linear_repeat_sampler, uv1, sharpness).x;
         causticsValues.z = SAMPLE_TEXTURE2D_LOD(_WaterCausticsDataBuffer, s_linear_repeat_sampler, uv2, sharpness).x;
+        #else
+        causticsValues.x = SAMPLE_TEXTURE2D_BIAS(_WaterCausticsDataBuffer, s_linear_repeat_sampler, uv0, sharpness).x;
+        causticsValues.y = SAMPLE_TEXTURE2D_BIAS(_WaterCausticsDataBuffer, s_linear_repeat_sampler, uv1, sharpness).x;
+        causticsValues.z = SAMPLE_TEXTURE2D_BIAS(_WaterCausticsDataBuffer, s_linear_repeat_sampler, uv2, sharpness).x;
+        #endif
     }
 
     // Evaluate the triplanar weights and blend the samples togheter

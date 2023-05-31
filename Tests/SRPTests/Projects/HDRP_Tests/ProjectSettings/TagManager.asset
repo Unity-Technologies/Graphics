@@ -34,9 +34,9 @@ TagManager:
   - 
   - 
   - 
-  - 
-  - 
-  - 
+  - Global Custom Pass 0
+  - Global Custom Pass 1
+  - Global Custom Pass 2
   m_SortingLayers:
   - name: Default
     uniqueID: 0

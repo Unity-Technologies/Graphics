@@ -1,7 +1,6 @@
-using System;
-
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-Negate")]
     [VFXInfo(category = "Math/Arithmetic")]
     class Negate : VFXOperatorNumericUniform
     {

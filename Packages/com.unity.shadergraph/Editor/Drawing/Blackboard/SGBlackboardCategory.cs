@@ -141,6 +141,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             hierarchy.Add(m_DragIndicator);
 
+            // setting Capabilities.Selectable adds a ClickSelector
             capabilities |= Capabilities.Selectable | Capabilities.Movable | Capabilities.Droppable | Capabilities.Deletable | Capabilities.Renamable | Capabilities.Copiable;
 
             ClearClassList();
@@ -294,7 +295,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             if ((e.clickCount == 2) && e.button == (int)MouseButton.LeftMouse && IsRenamable())
             {
                 OpenTextEditor();
-                e.PreventDefault();
+                e.StopPropagation();
+
+                // Prevent MouseDown from refocusing the Label on PostDispatch
+                focusController.IgnoreEvent(e);
             }
             else if (e.clickCount == 1 && e.button == (int)MouseButton.LeftMouse && IsRenamable())
             {
@@ -318,7 +322,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_RenameInProgress = true;
         }
 
-        void OnEditTextFinished()
+        internal void OnEditTextFinished()
         {
             m_TitleLabel.visible = true;
             m_TextField.style.display = DisplayStyle.None;

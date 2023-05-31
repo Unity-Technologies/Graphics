@@ -143,7 +143,7 @@ namespace UnityEngine.Rendering.Universal
         {
             using (var builder = renderGraph.AddRenderPass<PassData>("Draw Screen Space UI Pass - Overlay", out var passData, base.profilingSampler))
             {
-                builder.WriteTexture(colorBuffer);
+                builder.UseColorBuffer(colorBuffer, 0);
 
                 passData.cmd = renderingData.commandBuffer;
                 passData.camera = renderingData.cameraData.camera;

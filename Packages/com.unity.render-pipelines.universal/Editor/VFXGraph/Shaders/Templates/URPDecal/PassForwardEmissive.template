@@ -1,0 +1,68 @@
+﻿Pass
+{
+    Name "DecalProjectorForwardEmissive"
+    Tags
+    {
+        "LightMode" = "DecalProjectorForwardEmissive"
+    }
+
+    // Render State
+    Cull Front
+    Blend 0 SrcAlpha One
+    ZTest Greater
+    ZWrite Off
+
+    // --------------------------------------------------
+    // Pass
+
+    HLSLPROGRAM
+
+    // Pragmas
+    #pragma target 4.5
+    #pragma exclude_renderers gles3 glcore
+    #pragma editor_sync_compilation
+
+    // Keywords
+    #pragma multi_compile _ _DECAL_LAYERS
+
+    ${VFXIncludeRP("VFXDecalVaryings.template")}
+
+    struct ps_input
+    {
+        float4 pos : SV_POSITION;
+        ${VFXURPDecalDeclareVaryings}
+        UNITY_VERTEX_OUTPUT_STEREO
+    };
+
+    ${VFXURPDecalVaryingsMacros}
+
+    ${VFXBegin:VFXVertexAdditionalProcess}
+    ${VFXURPDecalFillVaryings}
+    ${VFXEnd}
+
+    ${VFXInclude("Shaders/ParticleHexahedron/Pass.template")}
+    #define SHADERPASS SHADERPASS_FORWARD_EMISSIVE_PROJECTOR
+    #if defined(DECAL_ANGLE_FADE)
+        #define DECAL_LOAD_NORMAL
+    #endif
+    ${VFXIncludeRP("VFXDecal.template")}
+
+    #pragma fragment frag
+    void frag(ps_input i, out half4 outEmissive : SV_Target0)
+    {
+        SurfaceData surfaceData;
+        ZERO_INITIALIZE(SurfaceData, surfaceData);
+        InputData inputData;
+        ZERO_INITIALIZE(InputData, inputData);
+        DecalSurfaceData decalSurfaceData;
+        ZERO_INITIALIZE(DecalSurfaceData, decalSurfaceData);
+
+        PrepareSurfaceAndInputData(i, surfaceData, decalSurfaceData, inputData);
+
+        outEmissive.rgb = decalSurfaceData.emissive;
+        outEmissive.a = decalSurfaceData.baseColor.a;
+    }
+    ENDHLSL
+}
+
+

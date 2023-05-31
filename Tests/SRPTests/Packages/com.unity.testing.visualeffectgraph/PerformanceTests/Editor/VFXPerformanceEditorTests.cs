@@ -215,6 +215,8 @@ namespace UnityEditor.VFX.PerformanceTest
             }
         }
 
+        private const uint kRepeatCount = 1;
+
         //Measure backup (for undo/redo & Duplicate) time for every existing asset
         [Timeout(k_BuildTimeout), Version(k_Version), Test, Performance]
         public void Backup_And_Restore([ValueSource(nameof(allActiveSRP))] string srp, [ValueSource(nameof(allVisualEffectAsset))] string vfxAssetPath)
@@ -225,7 +227,7 @@ namespace UnityEditor.VFX.PerformanceTest
 
             if (graph)
             {
-                for (int i = 0; i < 4; ++i)
+                for (int i = 0; i < kRepeatCount; ++i)
                 {
                     using (Measure.Scope("VFXGraph.Backup_And_Restore.Main"))
                     {
@@ -264,7 +266,7 @@ namespace UnityEditor.VFX.PerformanceTest
             LoadVFXGraph(vfxAssetPath, out fullPath, out graph);
             if (graph)
             {
-                for (int i = 0; i < 4; ++i)
+                for (int i = 0; i < kRepeatCount; ++i)
                 {
                     using (Measure.Scope("VFXGraph.Compile.Main"))
                     {

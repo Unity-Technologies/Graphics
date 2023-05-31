@@ -8,18 +8,18 @@ namespace UnityEngine.Rendering.Universal
     internal class CaptureMotionVectorsPass : ScriptableRenderPass
     {
         static ProfilingSampler s_ProfilingSampler = new ProfilingSampler("MotionVecTest");
-        static Material s_Material;
-        static float s_intensity;
+        Material m_Material;
+        float m_intensity;
 
         public CaptureMotionVectorsPass(Material material)
         {
-            s_Material = material;
+            m_Material = material;
             renderPassEvent = RenderPassEvent.BeforeRenderingPostProcessing + 1;
         }
 
         public void SetIntensity(float intensity)
         {
-            s_intensity = intensity;
+            m_intensity = intensity;
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -27,7 +27,7 @@ namespace UnityEngine.Rendering.Universal
             //Todo: test code is not working for XR
             CommandBuffer cmd = CommandBufferPool.Get();
 
-            ExecutePass(renderingData.cameraData.renderer.cameraColorTargetHandle, cmd, renderingData.cameraData);
+            ExecutePass(renderingData.cameraData.renderer.cameraColorTargetHandle, cmd, renderingData.cameraData, m_Material, m_intensity);
 
             context.ExecuteCommandBuffer(cmd);
             cmd.Clear();
@@ -35,26 +35,28 @@ namespace UnityEngine.Rendering.Universal
             CommandBufferPool.Release(cmd);
         }
 
-        static void ExecutePass(RTHandle targetHandle, CommandBuffer cmd, CameraData cameraData)
+
+        static void ExecutePass(RTHandle targetHandle, CommandBuffer cmd, CameraData cameraData, Material material, float motionIntensity)
         {
             var camera = cameraData.camera;
             if (camera.cameraType != CameraType.Game)
                 return;
 
-            if (s_Material == null)
+            if (material == null)
                 return;
-
 
             using (new ProfilingScope(cmd, s_ProfilingSampler))
             {
-                s_Material.SetFloat("_Intensity", s_intensity);
-                Blitter.BlitCameraTexture(cmd, targetHandle, targetHandle, s_Material, 0);
+                material.SetFloat("_Intensity", motionIntensity);
+                Blitter.BlitCameraTexture(cmd, targetHandle, targetHandle, material, 0);
             }
         }
         internal class PassData
         {
             internal TextureHandle target;
             internal CameraData cameraData;
+            internal Material material;
+            internal float intensity;
         }
 
         public override void RecordRenderGraph(RenderGraph renderGraph, FrameResources frameResources, ref RenderingData renderingData)
@@ -66,10 +68,12 @@ namespace UnityEngine.Rendering.Universal
                 TextureHandle color = renderer.activeColorTexture;
                 passData.target = builder.UseColorBuffer(color, 0);
                 passData.cameraData = renderingData.cameraData;
+                passData.material = m_Material;
+                passData.intensity = m_intensity;
 
                 builder.SetRenderFunc((PassData data, RenderGraphContext rgContext) =>
                 {
-                    ExecutePass(data.target, rgContext.cmd, data.cameraData);
+                    ExecutePass(data.target, rgContext.cmd, data.cameraData, data.material, data.intensity);
                 });
             }
         }

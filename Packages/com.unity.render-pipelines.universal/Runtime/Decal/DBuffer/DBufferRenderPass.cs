@@ -54,6 +54,7 @@ namespace UnityEngine.Rendering.Universal
 
             m_ShaderTagIdList = new List<ShaderTagId>();
             m_ShaderTagIdList.Add(new ShaderTagId(DecalShaderPassNames.DBufferMesh));
+            m_ShaderTagIdList.Add(new ShaderTagId(DecalShaderPassNames.DBufferProjectorVFX));
 
             int dBufferCount = (int)settings.surfaceData + 1;
             dBufferColorHandles = new RTHandle[dBufferCount];

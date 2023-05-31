@@ -1,4 +1,4 @@
-﻿using NUnit.Framework;
+using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -14,7 +14,15 @@ namespace UnityEditor.Rendering
                 AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(globalsetting));
             }
 
-            GraphicsSettings.UnregisterRenderPipelineSettings<DummyRenderPipeline>();
+            EditorGraphicsSettings.UnregisterRenderPipelineSettings<DummyRenderPipeline>();
+        }
+
+        public class DummyRenderPipelineAsset : RenderPipelineAsset<DummyRenderPipeline>
+        {
+            protected override RenderPipeline CreatePipeline()
+            {
+                throw new System.NotImplementedException();
+            }
         }
 
         public class DummyRenderPipeline : RenderPipeline
@@ -25,6 +33,7 @@ namespace UnityEditor.Rendering
             }
         }
 
+        [SupportedOnRenderPipeline(typeof(DummyRenderPipelineAsset))]
         public class DummyRenderPipelineGlobalSettings : RenderPipelineGlobalSettings<DummyRenderPipelineGlobalSettings, DummyRenderPipeline>
         {
             internal static string defaultPath => "Assets/Tests/DummyRenderPipelineGlobalSettings.asset";

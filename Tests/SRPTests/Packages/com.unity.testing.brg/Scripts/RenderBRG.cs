@@ -121,10 +121,10 @@ public unsafe class RenderBRG : MonoBehaviour
 
     private bool m_initialized;
 
-    private NativeHashMap<RangeKey, int> m_rangeHash;
+    private NativeParallelHashMap<RangeKey, int> m_rangeHash;
     private NativeList<DrawRange> m_drawRanges;
 
-    private NativeHashMap<DrawKey, int> m_batchHash;
+    private NativeParallelHashMap<DrawKey, int> m_batchHash;
     private NativeList<DrawBatch> m_drawBatches;
 
     private NativeList<DrawInstance> m_instances;
@@ -799,8 +799,8 @@ public unsafe class RenderBRG : MonoBehaviour
 
         m_renderers = new NativeArray<DrawRenderer>(renderers.Length, Allocator.Persistent);
         m_pickingIDs = new NativeArray<int>(numPickingIDs, Allocator.Persistent);
-        m_batchHash = new NativeHashMap<DrawKey, int>(1024, Allocator.Persistent);
-        m_rangeHash = new NativeHashMap<RangeKey, int>(1024, Allocator.Persistent);
+        m_batchHash = new NativeParallelHashMap<DrawKey, int>(1024, Allocator.Persistent);
+        m_rangeHash = new NativeParallelHashMap<RangeKey, int>(1024, Allocator.Persistent);
         m_drawBatches = new NativeList<DrawBatch>(Allocator.Persistent);
         m_drawRanges = new NativeList<DrawRange>(Allocator.Persistent);
 
@@ -819,7 +819,7 @@ public unsafe class RenderBRG : MonoBehaviour
             sizeOfFloat3x4);
 
         // Bin renderers first so we know exactly how many instances we will need.
-        var renderersByKey = new NativeMultiHashMap<DrawKey, int>(1024, Allocator.Temp);
+        var renderersByKey = new NativeParallelMultiHashMap<DrawKey, int>(1024, Allocator.Temp);
         int totalInstances = BinRenderers(renderers, renderersByKey);
 
         // RawBuffer mode can handle unlimited instances per batch, but
@@ -968,7 +968,7 @@ public unsafe class RenderBRG : MonoBehaviour
 
     private void CreateBatchesForRenderers(
         MeshRenderer[] renderers,
-        NativeMultiHashMap<DrawKey, int> renderersByKey,
+        NativeParallelMultiHashMap<DrawKey, int> renderersByKey,
         BRGBatchAllocator instanceAllocator,
         BRGBatchAllocator.BatchAllocation batchAllocation,
         NativeArray<Vector4> vectorBuffer)
@@ -1068,7 +1068,7 @@ public unsafe class RenderBRG : MonoBehaviour
         internalDrawIndices[drawBatchIndex]++;
     }
 
-    private int BinRenderers(MeshRenderer[] renderers, NativeMultiHashMap<DrawKey, int> renderersByKey)
+    private int BinRenderers(MeshRenderer[] renderers, NativeParallelMultiHashMap<DrawKey, int> renderersByKey)
     {
         int totalInstances = 0;
 

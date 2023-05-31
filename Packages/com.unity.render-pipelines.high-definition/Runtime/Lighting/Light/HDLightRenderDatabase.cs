@@ -84,7 +84,15 @@ namespace UnityEngine.Rendering.HighDefinition
         public float customSpotLightShadowCone;
         public float cachedShadowTranslationUpdateThreshold;
         public float cachedShadowAngleUpdateThreshold;
+        public float dirLightPCSSMaxBlockerDistance;
+        public float dirLightPCSSMaxSamplingDistance;
+        public float dirLightPCSSMinFilterSizeTexels;
+        public float dirLightPCSSMinFilterMaxAngularDiameter;
+        public float dirLightPCSSBlockerSearchAngularDiameter;
+        public float dirLightPCSSBlockerSamplingClumpExponent;
         public int lightIdxForCachedShadows;
+        public byte dirLightPCSSBlockerSampleCount;
+        public byte dirLightPCSSFilterSampleCount;
         public byte filterSampleCount;
         public byte blockerSampleCount;
         public byte kernelSize;
@@ -149,6 +157,14 @@ namespace UnityEngine.Rendering.HighDefinition
             customSpotLightShadowCone = additionalLightData.customSpotLightShadowCone;
             cachedShadowTranslationUpdateThreshold = additionalLightData.cachedShadowTranslationUpdateThreshold;
             cachedShadowAngleUpdateThreshold = additionalLightData.cachedShadowAngleUpdateThreshold;
+            dirLightPCSSMaxBlockerDistance = additionalLightData.dirLightPCSSMaxBlockerDistance;
+            dirLightPCSSMaxSamplingDistance = additionalLightData.dirLightPCSSMaxSamplingDistance;
+            dirLightPCSSMinFilterSizeTexels = additionalLightData.dirLightPCSSMinFilterSizeTexels;
+            dirLightPCSSMinFilterMaxAngularDiameter = additionalLightData.dirLightPCSSMinFilterMaxAngularDiameter;
+            dirLightPCSSBlockerSearchAngularDiameter = additionalLightData.dirLightPCSSBlockerSearchAngularDiameter;
+            dirLightPCSSBlockerSamplingClumpExponent = additionalLightData.dirLightPCSSBlockerSamplingClumpExponent;
+            dirLightPCSSBlockerSampleCount = (byte)additionalLightData.dirLightPCSSBlockerSampleCount;
+            dirLightPCSSFilterSampleCount = (byte)additionalLightData.dirLightPCSSFilterSampleCount;
             blockerSampleCount = (byte)additionalLightData.blockerSampleCount;
             filterSampleCount = (byte)additionalLightData.filterSampleCount;
             kernelSize = (byte)additionalLightData.kernelSize;
@@ -581,13 +597,13 @@ namespace UnityEngine.Rendering.HighDefinition
         private int m_AttachedGameObjects = 0;
         private HDLightRenderEntity m_DefaultLightEntity = HDLightRenderEntity.Invalid;
 
-        private NativeList<LightEntityInfo> m_LightEntities = new NativeList<LightEntityInfo>(Allocator.Persistent);
+        private NativeList<LightEntityInfo> m_LightEntities;
 
         // Technically only used for spot lights. Not good for perf, would like to deprecate this whenever possible.
         private DynamicArray<SpotLightCallbackData> m_CustomViewCallbackEvents = new DynamicArray<SpotLightCallbackData>();
         private int m_ValidCustomViewCallbackEvents;
-        private NativeList<HDShadowRequestSetHandle> m_ShadowRequestSetHandles = new NativeList<HDShadowRequestSetHandle>(Allocator.Persistent);
-        private NativeList<HDShadowRequestSetHandle> m_ShadowRequestSetPackedHandles = new NativeList<HDShadowRequestSetHandle>(Allocator.Persistent);
+        private NativeList<HDShadowRequestSetHandle> m_ShadowRequestSetHandles;
+        private NativeList<HDShadowRequestSetHandle> m_ShadowRequestSetPackedHandles;
 
         private Queue<int> m_FreeIndices = new Queue<int>();
         private Dictionary<int, LightEntityInfo> m_LightsToEntityItem = new Dictionary<int, LightEntityInfo>();

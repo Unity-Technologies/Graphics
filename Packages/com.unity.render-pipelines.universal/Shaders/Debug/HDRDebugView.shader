@@ -24,33 +24,20 @@ Shader "Hidden/Universal/HDRDebugView"
 
 
     float4 _HDRDebugParams; // xy: brightness min/max, z: paper white brightness, w: color primairies
-    #define _IsRec709 (int)(_HDRDebugParams.w == 0)
     #define _MinNits    _HDRDebugParams.x
     #define _MaxNits    _HDRDebugParams.y
     #define _PaperWhite _HDRDebugParams.z
 
     float2 RGBtoxy(float3 rgb)
     {
-        float3 XYZ = 0;
-        if (_IsRec709)
-        {
-            XYZ = RotateRec709ToXYZ(rgb);
-        }
-        else
-        {
-            XYZ = RotateRec2020ToXYZ(rgb);
-        }
+        float3 XYZ = RotateOutputSpaceToXYZ(rgb);
         return XYZtoxy(XYZ);
     }
 
     float3 uvToGamut(float2 uv)
     {
         float3 xyzColor = xyYtoXYZ(float3(uv.x, uv.y, 1.0f));
-        float3 linearRGB = RotateXYZToRec2020(xyzColor);
-        if (_IsRec709)
-        {
-            linearRGB = RotateXYZToRec709(xyzColor);
-        }
+        float3 linearRGB = RotateXYZToOutputSpace(xyzColor);
 
         float scale = 1.0f / length(linearRGB);
 

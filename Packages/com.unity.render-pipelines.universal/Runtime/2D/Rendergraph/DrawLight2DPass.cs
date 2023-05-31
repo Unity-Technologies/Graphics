@@ -1,4 +1,5 @@
 using System;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal
@@ -9,17 +10,48 @@ namespace UnityEngine.Rendering.Universal
         private static readonly ProfilingSampler m_ProfilingSamplerVolume = new ProfilingSampler("LightVolume2DPass");
         private static readonly ProfilingSampler m_ExecuteProfilingSampler = new ProfilingSampler("Draw Lights");
         private static readonly int k_InverseHDREmulationScaleID = Shader.PropertyToID("_InverseHDREmulationScale");
-        private static readonly int k_CookieTexID = Shader.PropertyToID("_CookieTex");
+        private static readonly int k_NormalMapID = Shader.PropertyToID("_NormalMap");
+        private static readonly int k_LightLookupID = Shader.PropertyToID("_LightLookup");
+        private static readonly int k_FalloffLookupID = Shader.PropertyToID("_FalloffLookup");
+
         TextureHandle[] intermediateTexture = new TextureHandle[1];
+        private RTHandle m_FallOffRTHandle = null;
+        private RTHandle m_LightLookupRTHandle = null;
+        private int lightLookupInstanceID;
+
+        public void Setup(RenderGraph renderGraph, ref Renderer2DData rendererData)
+        {
+            if (m_FallOffRTHandle == null)
+                m_FallOffRTHandle = RTHandles.Alloc(rendererData.fallOffLookup);
+
+            // Reallocate external texture if needed
+            var lightLookupTexture = Light2DLookupTexture.GetLightLookupTexture();
+            if (lightLookupInstanceID != lightLookupTexture.GetInstanceID())
+            {
+                m_LightLookupRTHandle = RTHandles.Alloc(lightLookupTexture);
+                lightLookupInstanceID = lightLookupTexture.GetInstanceID();
+            }
+
+            foreach (var light in rendererData.lightCullResult.visibleLights)
+            {
+                if (light.useCookieSprite && light.m_CookieSpriteTexture != null)
+                    light.m_CookieSpriteTextureHandle = renderGraph.ImportTexture(light.m_CookieSpriteTexture);
+            }
+        }
+
+        public void Dispose()
+        {
+            m_FallOffRTHandle?.Release();
+            m_LightLookupRTHandle?.Release();
+        }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             throw new NotImplementedException();
         }
 
-        private static void Execute(ScriptableRenderContext context, PassData passData, ref RenderingData renderingData, ref LayerBatch layerBatch)
+        private static void Execute(RasterCommandBuffer cmd, PassData passData, ref LayerBatch layerBatch)
         {
-            var cmd = renderingData.commandBuffer;
             using (new ProfilingScope(cmd, m_ExecuteProfilingSampler))
             {
                 cmd.SetGlobalFloat(k_InverseHDREmulationScaleID, 1.0f / passData.rendererData.hdrEmulationScale);
@@ -65,6 +97,7 @@ namespace UnityEngine.Rendering.Universal
                         var slotIndex = RendererLighting.lightBatch.SlotIndex(index);
                         bool canBatch = RendererLighting.lightBatch.CanBatch(light, lightMaterial, index, out int lightHash);
 
+                        // Set shader global properties
                         RendererLighting.SetPerLightShaderGlobals(cmd, light, slotIndex, passData.isVolumetric, false, LightBatch.isBatchingSupported);
 
                         if (light.normalMapQuality != Light2D.NormalMapQuality.Disabled || light.lightType == Light2D.LightType.Point)
@@ -81,7 +114,6 @@ namespace UnityEngine.Rendering.Universal
                         {
                             cmd.DrawMesh(lightMesh, light.GetMatrix(), lightMaterial);
                         }
-
                     }
 
                     RendererLighting.EnableBlendStyle(cmd, blendStyleIndex, false);
@@ -92,53 +124,55 @@ namespace UnityEngine.Rendering.Universal
 
         class PassData
         {
-            internal RenderingData renderingData;
             internal LayerBatch layerBatch;
             internal Renderer2DData rendererData;
-            internal TextureHandle normalTexture;
             internal bool isVolumetric;
         }
 
-        public void Render(RenderGraph graph, ref RenderingData renderingData, ref Renderer2DData rendererData, ref LayerBatch layerBatch, in TextureHandle lightTexture, in TextureHandle normalTexture, in TextureHandle depthTexture, bool isVolumetric = false)
+        public void Render(RenderGraph graph, ref Renderer2DData rendererData, ref LayerBatch layerBatch, in TextureHandle lightTexture, in TextureHandle normalTexture, in TextureHandle depthTexture, bool isVolumetric = false)
         {
             intermediateTexture[0] = lightTexture;
-            Render(graph, ref renderingData, ref rendererData, ref layerBatch, intermediateTexture, normalTexture, depthTexture, isVolumetric);
+            Render(graph, ref rendererData, ref layerBatch, intermediateTexture, normalTexture, depthTexture, isVolumetric);
         }
 
-        public void Render(RenderGraph graph, ref RenderingData renderingData, ref Renderer2DData rendererData, ref LayerBatch layerBatch, in TextureHandle[] lightTextures, in TextureHandle normalTexture, in TextureHandle depthTexture, bool isVolumetric = false)
+        public void Render(RenderGraph graph, ref Renderer2DData rendererData, ref LayerBatch layerBatch, in TextureHandle[] lightTextures, in TextureHandle normalTexture, in TextureHandle depthTexture, bool isVolumetric = false)
         {
             if (!layerBatch.lightStats.useLights ||
                 isVolumetric && !layerBatch.lightStats.useVolumetricLights)
                 return;
 
-            using (var builder = graph.AddRenderPass<PassData>("Light 2D Pass", out var passData, !isVolumetric ? m_ProfilingSampler : m_ProfilingSamplerVolume))
+            if (layerBatch.lightStats.useNormalMap)
+                RenderGraphUtils.SetGlobalTexture(graph, k_NormalMapID, normalTexture, "Set Normal");
+
+            RenderGraphUtils.SetGlobalTexture(graph, k_FalloffLookupID, graph.ImportTexture(m_FallOffRTHandle), "Set Global FalloffLookup");
+            RenderGraphUtils.SetGlobalTexture(graph, k_LightLookupID, graph.ImportTexture(m_LightLookupRTHandle), "Set Global LightLookup");
+
+            using (var builder = graph.AddRasterRenderPass<PassData>("Light 2D Pass", out var passData, !isVolumetric ? m_ProfilingSampler : m_ProfilingSamplerVolume))
             {
                 for (var i = 0; i < lightTextures.Length; i++)
-                {
-                    builder.UseColorBuffer(lightTextures[i], i);
-                }
+                    builder.UseTextureFragment(lightTextures[i], i);
 
-                builder.UseDepthBuffer(depthTexture, DepthAccess.Write);
+                builder.UseTextureFragmentDepth(depthTexture, IBaseRenderGraphBuilder.AccessFlags.Write);
 
                 if (layerBatch.lightStats.useNormalMap)
+                    builder.UseTexture(normalTexture);
+
+                foreach (var light in rendererData.lightCullResult.visibleLights)
                 {
-                    builder.ReadTexture(normalTexture);
-                    passData.normalTexture = normalTexture;
+                    if (light.m_CookieSpriteTextureHandle.IsValid() && light.IsLitLayer(layerBatch.startLayerID))
+                        builder.UseTexture(light.m_CookieSpriteTextureHandle);
                 }
 
-                passData.renderingData = renderingData;
                 passData.layerBatch = layerBatch;
                 passData.rendererData = rendererData;
                 passData.isVolumetric = isVolumetric;
 
                 builder.AllowPassCulling(false);
+                builder.AllowGlobalStateModification(true);
 
-                builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
+                builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
                 {
-                    if (data.layerBatch.lightStats.useNormalMap)
-                        context.cmd.SetGlobalTexture("_NormalMap", data.normalTexture);
-
-                    Execute(context.renderContext, data, ref data.renderingData, ref data.layerBatch);
+                    Execute(context.cmd, data, ref data.layerBatch);
                 });
             }
         }

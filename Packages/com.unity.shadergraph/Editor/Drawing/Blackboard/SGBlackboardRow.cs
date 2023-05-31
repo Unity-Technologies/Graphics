@@ -77,7 +77,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void Dispose()
         {
-            Clear();
+            RemoveFromHierarchy();
             m_ExpandButton.clickable = null;
             m_Root = null;
             m_ItemContainer = null;

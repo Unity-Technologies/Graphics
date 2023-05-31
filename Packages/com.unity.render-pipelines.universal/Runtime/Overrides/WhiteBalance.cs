@@ -7,6 +7,7 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     [Serializable, VolumeComponentMenu("Post-processing/White Balance")]
     [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
+    [URPHelpURL("Post-Processing-White-Balance")]
     public sealed class WhiteBalance : VolumeComponent, IPostProcessComponent
     {
         /// <summary>

@@ -68,6 +68,18 @@ namespace UnityEditor.ShaderGraph
 
                 if (target is IHasMetadata metadata)
                     builder.AppendLine($"\"ShaderGraphTargetId\"=\"{metadata.identifier}\"");
+
+                // IgnoreProjector
+                if(!string.IsNullOrEmpty(descriptor.IgnoreProjector))
+                    builder.AppendLine($"\"IgnoreProjector\"=\"{descriptor.IgnoreProjector}\"");
+
+                // PreviewType
+                if(!string.IsNullOrEmpty(descriptor.PreviewType))
+                    builder.AppendLine($"\"PreviewType\"=\"{descriptor.PreviewType}\"");
+
+                // CanUseSpriteAtlas
+                if(!string.IsNullOrEmpty(descriptor.CanUseSpriteAtlas))
+                    builder.AppendLine($"\"CanUseSpriteAtlas\"=\"{descriptor.CanUseSpriteAtlas}\"");
             }
         }
 
@@ -475,6 +487,7 @@ namespace UnityEditor.ShaderGraph
 
         internal static void GetActiveFieldsAndPermutationsForNodes(PassDescriptor pass,
             KeywordCollector keywordCollector, List<AbstractMaterialNode> vertexNodes, List<AbstractMaterialNode> pixelNodes,
+            bool[] texCoordNeedsDerivs,
             List<int>[] vertexNodePermutations, List<int>[] pixelNodePermutations,
             ActiveFields activeFields, out ShaderGraphRequirementsPerKeyword graphRequirements)
         {
@@ -523,8 +536,8 @@ namespace UnityEditor.ShaderGraph
                     }
 
                     // Get requirements for this permutation
-                    vertexRequirements[i].SetRequirements(ShaderGraphRequirements.FromNodes(localVertexNodes, ShaderStageCapability.Vertex, false));
-                    pixelRequirements[i].SetRequirements(ShaderGraphRequirements.FromNodes(localPixelNodes, ShaderStageCapability.Fragment, false));
+                    vertexRequirements[i].SetRequirements(ShaderGraphRequirements.FromNodes(localVertexNodes, ShaderStageCapability.Vertex, false, texCoordNeedsDerivs));
+                    pixelRequirements[i].SetRequirements(ShaderGraphRequirements.FromNodes(localPixelNodes, ShaderStageCapability.Fragment, false, texCoordNeedsDerivs));
 
                     // Add active fields
                     var conditionalFields = GetActiveFieldsFromConditionals(GetConditionalFieldsFromPixelRequirements(pixelRequirements[i].requirements));
@@ -542,8 +555,8 @@ namespace UnityEditor.ShaderGraph
             else
             {
                 // Get requirements
-                vertexRequirements.baseInstance.SetRequirements(ShaderGraphRequirements.FromNodes(vertexNodes, ShaderStageCapability.Vertex, false));
-                pixelRequirements.baseInstance.SetRequirements(ShaderGraphRequirements.FromNodes(pixelNodes, ShaderStageCapability.Fragment, false));
+                vertexRequirements.baseInstance.SetRequirements(ShaderGraphRequirements.FromNodes(vertexNodes, ShaderStageCapability.Vertex, false, texCoordNeedsDerivs));
+                pixelRequirements.baseInstance.SetRequirements(ShaderGraphRequirements.FromNodes(pixelNodes, ShaderStageCapability.Fragment, false, texCoordNeedsDerivs));
 
                 // Add active fields
                 var conditionalFields = GetActiveFieldsFromConditionals(GetConditionalFieldsFromPixelRequirements(pixelRequirements.baseInstance.requirements));
@@ -608,6 +621,15 @@ namespace UnityEditor.ShaderGraph
                 new ConditionalField(StructFields.VertexDescriptionInputs.uv1,                                          requirements.requiresMeshUVs.Contains(UVChannel.UV1)),
                 new ConditionalField(StructFields.VertexDescriptionInputs.uv2,                                          requirements.requiresMeshUVs.Contains(UVChannel.UV2)),
                 new ConditionalField(StructFields.VertexDescriptionInputs.uv3,                                          requirements.requiresMeshUVs.Contains(UVChannel.UV3)),
+
+                new ConditionalField(GeneratorDerivativeUtils.uv0Ddx,                                                   requirements.requiresMeshUVDerivatives.Contains(UVChannel.UV0)),
+                new ConditionalField(GeneratorDerivativeUtils.uv0Ddy,                                                   requirements.requiresMeshUVDerivatives.Contains(UVChannel.UV0)),
+                new ConditionalField(GeneratorDerivativeUtils.uv1Ddx,                                                   requirements.requiresMeshUVDerivatives.Contains(UVChannel.UV1)),
+                new ConditionalField(GeneratorDerivativeUtils.uv1Ddy,                                                   requirements.requiresMeshUVDerivatives.Contains(UVChannel.UV1)),
+                new ConditionalField(GeneratorDerivativeUtils.uv2Ddx,                                                   requirements.requiresMeshUVDerivatives.Contains(UVChannel.UV2)),
+                new ConditionalField(GeneratorDerivativeUtils.uv2Ddy,                                                   requirements.requiresMeshUVDerivatives.Contains(UVChannel.UV2)),
+                new ConditionalField(GeneratorDerivativeUtils.uv3Ddx,                                                   requirements.requiresMeshUVDerivatives.Contains(UVChannel.UV3)),
+                new ConditionalField(GeneratorDerivativeUtils.uv3Ddy,                                                   requirements.requiresMeshUVDerivatives.Contains(UVChannel.UV3)),
 
                 new ConditionalField(StructFields.VertexDescriptionInputs.TimeParameters,                               requirements.requiresTime),
 

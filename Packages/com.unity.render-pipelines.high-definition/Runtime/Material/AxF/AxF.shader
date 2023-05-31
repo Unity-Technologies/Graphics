@@ -186,10 +186,9 @@ Shader "HDRP/AxF"
     #pragma shader_feature_local _ALPHATEST_ON
     #pragma shader_feature_local _DOUBLESIDED_ON
 
-    #pragma shader_feature_local_fragment _DISABLE_DECALS
+    #pragma shader_feature_local _DISABLE_DECALS
     #pragma shader_feature_local_fragment _DISABLE_SSR
     #pragma shader_feature_local_fragment _DISABLE_SSR_TRANSPARENT
-    #pragma shader_feature_local_raytracing _DISABLE_DECALS
     #pragma shader_feature_local_raytracing _DISABLE_SSR
     #pragma shader_feature_local_raytracing _DISABLE_SSR_TRANSPARENT
 
@@ -824,9 +823,12 @@ Shader "HDRP/AxF"
 
             #define SHADERPASS SHADERPASS_PATH_TRACING
 
+            #pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT
+
             // This is just because it needs to be defined, shadow maps are not used.
             #define SHADOW_LOW
 
+            #define LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl"
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl"
@@ -838,6 +840,9 @@ Shader "HDRP/AxF"
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
             #define HAS_LIGHTLOOP
+            #define PATH_TRACING_CLUSTERED_DECALS
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracingLightLoop.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RayTracingLightCluster.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RayTracingCommon.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/AxF/AxF.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/AxF/AxFData.hlsl"

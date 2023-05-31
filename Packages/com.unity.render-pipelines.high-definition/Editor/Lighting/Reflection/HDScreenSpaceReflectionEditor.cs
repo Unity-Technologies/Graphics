@@ -42,7 +42,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_ClampValue;
         SerializedDataParameter m_Denoise;
         SerializedDataParameter m_DenoiserRadius;
-        SerializedDataParameter m_AffectsSmoothSurfaces;
+        SerializedDataParameter m_DenoiserAntiFlickeringStrength;
         SerializedDataParameter m_Mode;
 
         // Mixed
@@ -92,7 +92,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_ClampValue = Unpack(o.Find(x => x.clampValue));
             m_Denoise = Unpack(o.Find(x => x.denoise));
             m_DenoiserRadius = Unpack(o.Find(x => x.denoiserRadius));
-            m_AffectsSmoothSurfaces = Unpack(o.Find(x => x.affectSmoothSurfaces));
+            m_DenoiserAntiFlickeringStrength = Unpack(o.Find(x => x.denoiserAntiFlickeringStrength));
             m_Mode = Unpack(o.Find(x => x.mode));
 
             // Mixed
@@ -138,7 +138,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static public readonly GUIContent k_DenoiseText = EditorGUIUtility.TrTextContent("Denoise", "Enable denoising on the ray traced reflections.");
         static public readonly GUIContent k_FullResolutionText = EditorGUIUtility.TrTextContent("Full Resolution", "Enables full resolution mode.");
         static public readonly GUIContent k_DenoiseRadiusText = EditorGUIUtility.TrTextContent("Denoiser Radius", "Controls the radius of reflection denoiser.");
-        static public readonly GUIContent k_AffectsSmoothSurfacesText = EditorGUIUtility.TrTextContent("Affects Smooth Surfaces", "When enabled, the denoiser also affects perfectly smooth surfaces. When you use Quality mode with multiple bounces, the denoiser always affects smooth surfaces by default.");
+        static public readonly GUIContent k_DenoiserAntiFlickeringStrengthText = EditorGUIUtility.TrTextContent("Anti Flickering", "Controls the anti-flickering strength of reflection denoiser.");
         static public readonly GUIContent k_MaxMixedRaySteps = EditorGUIUtility.TrTextContent("Max Ray Steps", "Sets the maximum number of steps HDRP uses for mixed tracing.");
 
         void RayTracingQualityModeGUI()
@@ -156,7 +156,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 using (new IndentLevelScope())
                 {
                     PropertyField(m_DenoiserRadius, k_DenoiseRadiusText);
-                    PropertyField(m_AffectsSmoothSurfaces, k_AffectsSmoothSurfacesText);
+                    PropertyField(m_DenoiserAntiFlickeringStrength, k_DenoiserAntiFlickeringStrengthText);
                 }
             }
         }
@@ -180,7 +180,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 using (new IndentLevelScope())
                 {
                     PropertyField(m_DenoiserRadius, k_DenoiseRadiusText);
-                    PropertyField(m_AffectsSmoothSurfaces, k_AffectsSmoothSurfacesText);
+                    PropertyField(m_DenoiserAntiFlickeringStrength, k_DenoiserAntiFlickeringStrengthText);
                 }
             }
         }
@@ -355,8 +355,8 @@ namespace UnityEditor.Rendering.HighDefinition
             settings.Save<bool>(m_FullResolution);
             settings.Save<bool>(m_RayMaxIterationsRT);
             settings.Save<bool>(m_Denoise);
-            settings.Save<int>(m_DenoiserRadius);
-            settings.Save<bool>(m_AffectsSmoothSurfaces);
+            settings.Save<float>(m_DenoiserRadius);
+            settings.Save<float>(m_DenoiserAntiFlickeringStrength);
             // SSR
             settings.Save<int>(m_RayMaxIterations);
 
@@ -376,8 +376,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 settings.TryLoad<bool>(ref m_FullResolution);
                 settings.TryLoad<bool>(ref m_RayMaxIterationsRT);
                 settings.TryLoad<bool>(ref m_Denoise);
-                settings.TryLoad<int>(ref m_DenoiserRadius);
-                settings.TryLoad<bool>(ref m_AffectsSmoothSurfaces);
+                settings.TryLoad<float>(ref m_DenoiserRadius);
+                settings.TryLoad<float>(ref m_DenoiserAntiFlickeringStrength);
             }
             // SSR
             else
@@ -397,8 +397,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 CopySetting(ref m_FullResolution, settings.lightingQualitySettings.RTRFullResolution[level]);
                 CopySetting(ref m_RayMaxIterationsRT, settings.lightingQualitySettings.RTRRayMaxIterations[level]);
                 CopySetting(ref m_Denoise, settings.lightingQualitySettings.RTRDenoise[level]);
-                CopySetting(ref m_DenoiserRadius, settings.lightingQualitySettings.RTRDenoiserRadius[level]);
-                CopySetting(ref m_AffectsSmoothSurfaces, settings.lightingQualitySettings.RTRSmoothDenoising[level]);
+                CopySetting(ref m_DenoiserRadius, settings.lightingQualitySettings.RTRDenoiserRadiusDimmer[level]);
+                CopySetting(ref m_DenoiserAntiFlickeringStrength, settings.lightingQualitySettings.RTRDenoiserAntiFlicker[level]);
             }
             // SSR
             else

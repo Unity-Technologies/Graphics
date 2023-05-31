@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: a8d8823499ff50847aa460cb119c445d
+VisualEffectImporter:
+  externalObjects: {}
+  serializedVersion: 1
+  template:
+    name: Simple Loop
+    category: Built-in
+    description: "A system that loops infinitely and spawns a stream of particles
+      in an upward direction affected by gravity. It\u2019s a useful starting point
+      for continuous streams and can be adjusted  to create effects like smoke stacks,
+      rain, etc.."
+    icon: {fileID: 2800000, guid: 05467359047240c4d96993adad333488, type: 3}
+    thumbnail: {fileID: 2800000, guid: 4a42d40ceca84d442be405142e3f9e18, type: 3}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

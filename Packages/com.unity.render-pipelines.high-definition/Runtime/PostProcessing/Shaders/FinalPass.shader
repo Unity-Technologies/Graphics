@@ -12,10 +12,14 @@ Shader "Hidden/HDRP/FinalPass"
         #pragma multi_compile_local_fragment _ DITHER
         #pragma multi_compile_local_fragment _ ENABLE_ALPHA
         #pragma multi_compile_local_fragment _ APPLY_AFTER_POST
-        #pragma multi_compile_local_fragment _ HDR_ENCODING FUTURE_HDR_OUTPUT
+        #pragma multi_compile_local_fragment _ HDR_INPUT HDR_ENCODING
 
         #pragma multi_compile_local_fragment _ CATMULL_ROM_4 RCAS BYPASS
         #define DEBUG_UPSCALE_POINT 0
+
+        #ifdef HDR_ENCODING
+        #define HDR_INPUT 1 // this should be defined when HDR_ENCODING is defined
+        #endif
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
@@ -47,7 +51,6 @@ Shader "Hidden/HDRP/FinalPass"
             // When this mode is active, ApplyRCAS returns a four component vector (rgba) instead of a three component vector (rgb).
             #define FSR_ENABLE_ALPHA 1
         #endif
-        #include "Packages/com.unity.render-pipelines.core/Runtime/PostProcessing/Shaders/FSRCommon.hlsl"
 
         float2 _GrainParams;            // x: intensity, y: response
         float4 _GrainTextureParams;     // xy: _ScreenSize.xy / GrainTextureSize.xy, zw: (random offset in UVs) *  _GrainTextureParams.xy
@@ -58,10 +61,14 @@ Shader "Hidden/HDRP/FinalPass"
 
         float4 _HDROutputParams;
         float4 _HDROutputParams2;
-        #define _MinNits    _HDROutputParams.x
-        #define _MaxNits    _HDROutputParams.y
-        #define _PaperWhite _HDROutputParams.z
-        #define _RangeReductionMode    (int)_HDROutputParams2.x
+        #define _MinNits            _HDROutputParams.x
+        #define _MaxNits            _HDROutputParams.y
+        #define _PaperWhite         _HDROutputParams.z
+        #define _OneOverPaperWhite  _HDROutputParams.w
+        #define _RangeReductionMode (int)_HDROutputParams2.x
+
+        #define FSR_EASU_ONE_OVER_PAPER_WHITE _OneOverPaperWhite
+        #include "Packages/com.unity.render-pipelines.core/Runtime/PostProcessing/Shaders/FSRCommon.hlsl"
 
         struct Attributes
         {
@@ -128,7 +135,7 @@ Shader "Hidden/HDRP/FinalPass"
 
             #if FXAA
             CTYPE beforeFXAA = outColor;
-            RunFXAA(_InputTexture, sampler_LinearClamp, outColor, positionSS, positionNDC);
+            RunFXAA(_InputTexture, sampler_LinearClamp, outColor, positionSS, positionNDC, _PaperWhite, _OneOverPaperWhite);
 
             #if defined(ENABLE_ALPHA)
             // When alpha processing is enabled, FXAA should not affect pixels with zero alpha
@@ -137,15 +144,12 @@ Shader "Hidden/HDRP/FinalPass"
             #endif //FXAA
 
             // Saturate is only needed for dither or grain to work. Otherwise we don't saturate because output might be HDR
-            #if (defined(GRAIN) || defined(DITHER)) && !defined(FUTURE_HDR_OUTPUT)
+            #if (defined(GRAIN) || defined(DITHER)) && !defined(HDR_INPUT)
             outColor = saturate(outColor);
             #endif
 
             #if GRAIN
             {
-#ifdef FUTURE_HDR_OUTPUT
-                    outColor.xyz = InvertibleTonemap(outColor.xyz);
-#endif
                 // Grain in range [0;1] with neutral at 0.5
                 float grain = SAMPLE_TEXTURE2D(_GrainTexture, s_linear_repeat_sampler, (SCREEN_COORD_APPLY_SCALEBIAS(positionNDC) * _GrainTextureParams.xy) + _GrainTextureParams.zw).w;
 
@@ -153,11 +157,15 @@ Shader "Hidden/HDRP/FinalPass"
                 grain = (grain - 0.5) * 2.0;
 
                 // Noisiness response curve based on scene luminance
-                float lum = 1.0 - sqrt(Luminance(outColor));
+                float lum = Luminance(outColor);
+
+                #ifdef HDR_INPUT
+                // Color values are in nits. So divide by the paperWhite nits to get an approximation for perceptual luminance.
+                lum *= _OneOverPaperWhite;
+                #endif
+
+                lum = 1.0 - sqrt(lum);
                 lum = lerp(1.0, lum, _GrainParams.y);
-#ifdef FUTURE_HDR_OUTPUT
-                outColor.xyz = InvertibleTonemapInverse(outColor.xyz);
-#endif
                 outColor.xyz += outColor.xyz * grain * _GrainParams.x * lum;
             }
             #endif
@@ -168,12 +176,19 @@ Shader "Hidden/HDRP/FinalPass"
                 float3 ditherParams = _DitherParams;
                 // Symmetric triangular distribution on [-1,1] with maximal density at 0
                 float noise = SAMPLE_TEXTURE2D_ARRAY(_BlueNoiseTexture, s_linear_repeat_sampler, positionNDC * ditherParams.xy, ditherParams.z).a;
+                #ifdef HDR_INPUT
+                float3 sRGBColor = LinearToSRGB(outColor.xyz * _OneOverPaperWhite);
+                #else
                 float3 sRGBColor = LinearToSRGB(outColor.xyz);
+                #endif
                 noise = noise * 2.0 - 1.0;
                 noise = FastSign(noise) * (1.0 - sqrt(1.0 - abs(noise)));
 
-                //outColor += noise / 255.0;
+                #ifdef HDR_INPUT
+                outColor.xyz = SRGBToLinear(sRGBColor + noise / 255.0) * _PaperWhite;
+                #else
                 outColor.xyz = SRGBToLinear(sRGBColor + noise / 255.0);
+                #endif
             }
             #endif
 

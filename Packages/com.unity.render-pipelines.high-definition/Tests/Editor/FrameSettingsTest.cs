@@ -81,25 +81,13 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
                 //init
                 FrameSettings fs = default;
                 FrameSettingsOverrideMask fso = default;
-                FrameSettingsRenderType defaultFSType = RandomUtilities.RandomEnumValue<FrameSettingsRenderType>(i);
-                FrameSettings defaultFS;
-                FrameSettings result = FrameSettings.NewDefaultCamera();
+
+                var defaultFSType = RandomUtilities.RandomEnumValue<FrameSettingsRenderType>(i);
+                var defaultFS = FrameSettingsDefaults.Get(defaultFSType);
+                var result = FrameSettingsDefaults.Get(FrameSettingsRenderType.Camera);
+
                 FrameSettings tester = default;
                 RenderPipelineSettings supportedFeatures = new RenderPipelineSettings();
-                switch (defaultFSType)
-                {
-                    case FrameSettingsRenderType.Camera:
-                        defaultFS = FrameSettings.NewDefaultCamera();
-                        break;
-                    case FrameSettingsRenderType.CustomOrBakedReflection:
-                        defaultFS = FrameSettings.NewDefaultCustomOrBakeReflectionProbe();
-                        break;
-                    case FrameSettingsRenderType.RealtimeReflection:
-                        defaultFS = FrameSettings.NewDefaultRealtimeReflectionProbe();
-                        break;
-                    default:
-                        throw new ArgumentException("Unknown FrameSettingsRenderType");
-                }
 
                 //change randomly override values
                 for (int j = 0; j < 10; ++j)
@@ -151,25 +139,13 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
                 //init
                 FrameSettings fs = default;
                 FrameSettingsOverrideMask fso = default;
-                FrameSettingsRenderType defaultFSType = RandomUtilities.RandomEnumValue<FrameSettingsRenderType>(i);
-                FrameSettings defaultFS;
-                FrameSettings result = FrameSettings.NewDefaultCamera();
+
+                var defaultFSType = RandomUtilities.RandomEnumValue<FrameSettingsRenderType>(i);
+                var defaultFS = FrameSettingsDefaults.Get(defaultFSType);
+                var result = FrameSettingsDefaults.Get(FrameSettingsRenderType.Camera);
+
                 FrameSettings tester = default;
                 RenderPipelineSettings supportedFeatures = new RenderPipelineSettings();
-                switch (defaultFSType)
-                {
-                    case FrameSettingsRenderType.Camera:
-                        defaultFS = FrameSettings.NewDefaultCamera();
-                        break;
-                    case FrameSettingsRenderType.CustomOrBakedReflection:
-                        defaultFS = FrameSettings.NewDefaultCustomOrBakeReflectionProbe();
-                        break;
-                    case FrameSettingsRenderType.RealtimeReflection:
-                        defaultFS = FrameSettings.NewDefaultRealtimeReflectionProbe();
-                        break;
-                    default:
-                        throw new ArgumentException("Unknown FrameSettingsRenderType");
-                }
 
                 //change randomly override values
                 for (int j = 0; j < 10; ++j)
