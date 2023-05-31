@@ -36,7 +36,6 @@ MonoBehaviour:
     supportWaterExclusion: 0
     supportWaterDeformation: 0
     deformationAtlasSize: 512
-    maximumDeformerCount: 64
     supportWaterFoam: 0
     foamAtlasSize: 512
     waterCPUSimulation: 0
@@ -69,8 +68,8 @@ MonoBehaviour:
     highQualityLineRenderingMemoryBudget: 128
     msaaSampleCount: 1
     supportMotionVectors: 1
-    supportDitheringCrossFade: 1
     supportRuntimeAOVAPI: 0
+    supportDitheringCrossFade: 1
     supportTerrainHole: 0
     lightProbeSystem: 1
     oldLightProbeSystem: 0
@@ -151,10 +150,6 @@ MonoBehaviour:
       drawDistance: 1000
       atlasWidth: 2048
       atlasHeight: 2048
-      transparentTextureResolution:
-        m_Values: 000100000002000000040000
-        m_SchemaId:
-          m_Id: With3Levels
       perChannelMask: 1
     postProcessSettings:
       m_LutSize: 32
@@ -285,14 +280,8 @@ MonoBehaviour:
       RTRFullResolution: 000001
       RTRRayMaxIterations: 200000003000000040000000
       RTRDenoise: 010101
-      RTRDenoiserRadiusDimmer:
-      - 0.75
-      - 0.75
-      - 1
-      RTRDenoiserAntiFlicker:
-      - 1
-      - 1
-      - 1
+      RTRDenoiserRadius: 080000000c00000010000000
+      RTRSmoothDenoising: 010000
       Fog_ControlMode: 000000000000000000000000
       Fog_Budget:
       - 0.25
@@ -324,16 +313,13 @@ MonoBehaviour:
   availableMaterialQualityLevels: -1
   m_DefaultMaterialQualityLevel: 4
   diffusionProfileSettings: {fileID: 0}
-  m_VolumeProfile: {fileID: 0}
   virtualTexturingSettings:
     streamingCpuCacheSizeInMegaBytes: 256
-    streamingMipPreloadTexturesPerFrame: 0
-    streamingPreloadMipCount: 1
     streamingGpuCacheSettings:
     - format: 0
       sizeInMegaBytes: 128
   m_UseRenderGraph: 1
-  m_Version: 24
+  m_Version: 23
   m_ObsoleteFrameSettings:
     overrides: 0
     enableShadow: 0
