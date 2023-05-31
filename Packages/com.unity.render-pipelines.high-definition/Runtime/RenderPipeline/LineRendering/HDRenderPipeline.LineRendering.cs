@@ -196,14 +196,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
             LineRendering.Instance.Draw(new LineRendering.Arguments
             {
-                camera       = hdCamera.camera,
-                renderGraph  = renderGraph,
-                depthTexture = depthPrepassTexture,
-                settings     = systemSettings,
-                shadingAtlas = LineRendering.Instance.GetShadingAtlas(renderGraph, hdCamera.camera),
-                viewport     = new Vector2(hdCamera.actualWidth, hdCamera.actualHeight),
-                matrixIVP    = hdCamera.mainViewConstants.nonJitteredViewProjMatrix.inverse,
-                targets      = targets
+                camera         = hdCamera.camera,
+                cameraPosition = hdCamera.camera.transform.position,
+                cameraFrustum  = hdCamera.frustum,
+                renderGraph    = renderGraph,
+                depthTexture   = depthPrepassTexture,
+                settings       = systemSettings,
+                shadingAtlas   = LineRendering.Instance.GetShadingAtlas(renderGraph, hdCamera.camera),
+                viewport       = new Vector2(hdCamera.actualWidth, hdCamera.actualHeight),
+                matrixIVP      = hdCamera.mainViewConstants.nonJitteredViewProjMatrix.inverse,
+                targets        = targets
             });
 
             PushFullScreenDebugTexture(renderGraph, m_LineColorBuffer, FullScreenDebugMode.HighQualityLines);

@@ -1,5 +1,7 @@
-#pragma kernel Main
-#pragma kernel PreIntegrateAzimuthalScattering
+#pragma kernel ComputeAttenuationForward  COMPUTE_HAIR_ATTENUATION=ComputeAttenuationForward  FORWARD
+#pragma kernel ComputeAttenuationBackward COMPUTE_HAIR_ATTENUATION=ComputeAttenuationBackward
+#pragma kernel ComputeAzimuthalScattering
+#pragma kernel ComputeLongitudinalScattering
 
 #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
@@ -9,13 +11,10 @@
 // This define is required to map the reflectance to absorption for the preintegration.
 #define _ABSORPTION_FROM_COLOR 1
 
-// #pragma enable_d3d11_debug_symbols
-
 #define DIM 64
 #define SPHERE_SAMPLES 32
-
 #define DPHI radians(10)
-#define DH   0.01
+#define DH   0.1
 
 // HDRP generic includes
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -35,9 +34,6 @@ SurfaceData ConfigureFiberSurface(float diffuseColor, float perceptualSmoothness
     // Our fiber scattering function is the Marschner-based BSDF.
     surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_HAIR_MARSCHNER;
 
-    // Skip the scattering component of the BCSDF as we are pre-integrating from the single-scattered reflectance.
-    surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_SCATTERING;
-
     // Setup any extra flags
     surfaceData.materialFeatures |= flags;
 
@@ -52,16 +48,16 @@ SurfaceData ConfigureFiberSurface(float diffuseColor, float perceptualSmoothness
     // Radial Smoothness (Azimuthal Roughness).
     // TODO: Support varying azimuthal roughness. We don't have enough dimensions in the LUT to parameterize this as well,
     // so we fall back to a sensible default for now, this one is generally acceptable for human hair (less so for animal fur).
-    surfaceData.perceptualRadialSmoothness = 0.3;
+    surfaceData.perceptualRadialSmoothness = 0.7;
 
     // Cuticle Angle
-    surfaceData.cuticleAngle = 2;
+    surfaceData.cuticleAngle = -3;
 
     // The theoretical fiber points points down the +x axis.
-    surfaceData.hairStrandDirectionWS = float3(1, 0, 0);
+    surfaceData.hairStrandDirectionWS = float3(0, 0, 1);
 
     // Be sure to define the normal as well as it defines the hair shading basis
-    surfaceData.geomNormalWS = float3(0, 0, 1);
+    surfaceData.geomNormalWS = float3(0, 1, 0);
 
     return surfaceData;
 }
@@ -70,23 +66,28 @@ SurfaceData ConfigureFiberSurface(float diffuseColor, float perceptualSmoothness
 // X - Perceptual Smoothness
 // Y - Theta
 // Z - Diffuse Color (single channel)
-RWTexture3D<float2> _PreIntegratedHairFiberScatteringUAV;
+RWTexture3D<float2> _HairAttenuationUAV;
 
 // Pre-integrate the average attenuation on the front and back hemisphere on a hair fiber.
 // Ref: Equation 6 & 12 in "Dual Scattering Approximation for Fast Multiple Scattering in Hair"
 // -----------------------------------------------------------------
 
 [numthreads(8, 8, 8)]
-void Main (uint3 dispatchThreadID : SV_DispatchThreadID)
+void COMPUTE_HAIR_ATTENUATION (uint3 dispatchThreadID : SV_DispatchThreadID)
 {
     // Convert the dispatch coordinates to the generation space [0,1].
     float3 UVW = float3(((float3)dispatchThreadID + 0.5) / DIM);
 
     // Configure a theoretical hair fiber to evaluate the average attenuation.
+    // SurfaceData surfaceData = ConfigureFiberSurface(float3(0.2289961, 0.3141261, 0.5849056), UVW.x);
     SurfaceData surfaceData = ConfigureFiberSurface(UVW.z, UVW.x);
 
     // Use the conversion from the surface data to compute all of the per-lobe bsdf information.
     BSDFData bsdfData = ConvertSurfaceDataToBSDFData(uint2(0, 0), surfaceData);
+
+    // The shading coordinate system.
+    const float3x3 localToWorld = GetLocalFrame(bsdfData.geomNormalWS, bsdfData.hairStrandDirectionWS);
+    const float3x3 worldToLocal = transpose(localToWorld);
 
     // Unused in this case.
     PreLightData preLightData;
@@ -95,61 +96,71 @@ void Main (uint3 dispatchThreadID : SV_DispatchThreadID)
     // Configure the initial incident theta direction.
     float sinThetaI = UVW.y;
 
-    // Instead of integrating over the front and back hemispheres separately, we instead uniformly sample the sphere and
-    // sort the average energy as front or back scattering depending on the random direction's orientation.
+    // Accumulation target for the integral.
+    float attenuation = 0;
 
-    float2 A = 0;
-    uint2  C = 0;
-
+    // Integrate over the forward or backward scattering hemisphere.
     for (uint w = 0; w < SPHERE_SAMPLES; w++)
     {
-       float2 U = Hammersley2d(w, SPHERE_SAMPLES);
-       float3 V = SampleSphereUniform(U.x, U.y);
+        float2 U = Hammersley2d(w, SPHERE_SAMPLES);
 
-       // This needs to vary if we are sampling the reference.
-       bsdfData.h = -1 + 2 * GenerateHashedRandomFloat(w);
+#if 0
+        float3 V  = SampleHemisphereUniform(U.x, U.y);
+        float PDF = INV_TWO_PI;
+#else
+        float3 V  = SampleHemisphereCosine(U.x, U.y);
+        float PDF = dot(float3(0, 0, 1), V) * INV_PI;
+#endif
 
-       // Integrate phi for isotropic irradiance
-       for (float phi = -HALF_PI; phi < HALF_PI; phi += DPHI)
-       {
-            // Places a light on the back scattering hemisphere (due to the constriction of phi to the -pi/2 to pi/2 range).
+        // Re-orient the hemisphere for y-up.
+        V = V.xzy;
+
+#ifdef FORWARD
+        // Flip the hemisphere to observe forward scattering.
+        V.y = -V.y;
+#endif
+
+        // Transform into the shading coordinate system.
+        const float3 wi = mul(V, worldToLocal);
+
+        // Integrate phi for isotropic irradiance
+        for (float phi = 0; phi < PI; phi += DPHI)
+        {
             float3 L = SphericalToCartesian(phi, sinThetaI);
 
-            // Align it with the fiber.
-            L = L.zyx;
+            // Transform into the shading coordinate system.
+            const float3 wo = mul(L, worldToLocal);
 
-            // Invoke the fiber scattering function.
-            // Note, currently some issues with importance sampling the reference here (NaNs) so uniform for now.
-#if 0
-            CBSDF cbsdf = EvaluateBSDF(V, L, preLightData, bsdfData);
-#else
-            CBSDF cbsdf = EvaluateHairReference(L, V, bsdfData);
-#endif
-            // PDF = 1/2PI since we technically uniform sample the hemisphere.
-            const float Fs = Luminance(cbsdf.specR) * abs(V.z) / INV_TWO_PI;
+            // Integrate over the fiber width.
+            for (float h = -1; h < +1; h += DH)
+            {
+                // This needs to vary if we are sampling the reference.
+                bsdfData.h = h;
 
-            // Sort the energy based on which hemisphere the outgoing direction was measured from.
-            // Doing this effectively simplifies the complex longitudinal scattering lobes into one
-            // forward (TT dominant) and one backward (R / TRT dominant) lobe. The theoretical fiber
-            // is facing +X, the incident light is on the back hemisphere; thus, outgoing directions
-            // in the front hemisphere must be negative in the Z direction.
-            if (V.z < 0)
-            {
-                // Contribute to the average forward scattering.
-                A.x += Fs; C.x++;
+                // Invoke the fiber scattering function.
+                CBSDF cbsdf = EvaluateHairReference(wo, wi, bsdfData);
+
+                attenuation += (0.5 * Luminance(cbsdf.specR) * abs(wi.z) * DH * DPHI * rcp((float)SPHERE_SAMPLES)) / PDF;
             }
-            else
-            {
-                // Contribute to the average backward scattering.
-                A.y += Fs; C.y++;
-            }
-       }
+        }
     }
 
-    // Note: Need to divide by 2/PI Here instead of 1/PI as suggest by the paper to match the reference.
-    // It's possibly due to how we sampling on the sphere instead of hemisphere but still not totally clear why.
-    _PreIntegratedHairFiberScatteringUAV[dispatchThreadID] = (2 / PI) * (A / float2(C));
+    attenuation *= INV_PI;
+
+    // Update the LUT
+    float2 A = _HairAttenuationUAV[dispatchThreadID];
+    {
+        // Manual read/write since it's not allowed to swizzle a UAV directly
+        #ifdef FORWARD
+        A.x = attenuation;
+        #else
+        A.y = attenuation;
+        #endif
+    }
+    _HairAttenuationUAV[dispatchThreadID] = A;
 }
+
+// TODO: Store the global term in the lower bits?
 
 // Pre-integrate the azimuthal scattering distributions for the three primary lobes, parameterized by:
 // X: Phi
@@ -157,10 +168,10 @@ void Main (uint3 dispatchThreadID : SV_DispatchThreadID)
 // Z: Azimuthal Roughness
 // -----------------------------------------------------------------
 
-RWTexture3D<float4> _PreIntegratedAverageHairFiberScatteringUAV;
+RWTexture3D<float4> _HairAzimuthalScatteringUAV;
 
 [numthreads(8, 8, 8)]
-void PreIntegrateAzimuthalScattering (uint3 dispatchThreadID : SV_DispatchThreadID)
+void ComputeAzimuthalScattering (uint3 dispatchThreadID : SV_DispatchThreadID)
 {
     // Convert the dispatch coordinates to the generation space [0,1].
     const float3 UV = ((float3)dispatchThreadID + 0.5) / DIM;
@@ -170,7 +181,7 @@ void PreIntegrateAzimuthalScattering (uint3 dispatchThreadID : SV_DispatchThread
     const float eta = ModifiedRefractionIndex(UV.y); // IOR currently fixed for human hair (1.55).
     const float s   = LogisticScaleFromBeta(UV.z);   // Convert to azimuthal roughness logistic scale
 
-    float3 NG = 0;
+    float3 N = 0;
 
     // Integrate over the fiber width.
     for (float h = -1; h < 1; h += DH)
@@ -183,10 +194,62 @@ void PreIntegrateAzimuthalScattering (uint3 dispatchThreadID : SV_DispatchThread
         const float NTT  = AzimuthalScattering(phi, 1, s, gammaO, gammaT);
         const float NTRT = AzimuthalScattering(phi, 2, s, gammaO, gammaT);
 
-        NG += float3( NR,
-                      NTT,
-                      NTRT ) * DH;
+        N += float3( NR,
+                     NTT,
+                     NTRT ) * DH;
     }
 
-    _PreIntegratedAverageHairFiberScatteringUAV[dispatchThreadID] = float4(NG, 1);
+    _HairAzimuthalScatteringUAV[dispatchThreadID] = float4(0.5 * N, 1);
+}
+
+// Pre-integrate the azimuthal scattering distributions for the three primary lobes, parameterized by:
+// X: Cos Theta I
+// Y: Cos Theta O
+// Z: Longitudinal Roughness
+// -----------------------------------------------------------------
+
+RWTexture3D<float4> _HairLongitudinalScatteringUAV;
+
+[numthreads(8, 8, 8)]
+void ComputeLongitudinalScattering (uint3 dispatchThreadID : SV_DispatchThreadID)
+{
+    // Convert the dispatch coordinates to the generation space [0,1].
+    const float3 UV = ((float3)dispatchThreadID + 0.5) / DIM;
+
+    ReferenceAngles angles;
+    ZERO_INITIALIZE(ReferenceAngles, angles);
+    {
+        // Small epsilon to suppress various compiler warnings + div-zero guard
+        const float epsilon = 1e-5;
+
+        angles.sinThetaI = -1 + 2 * UV.x;
+        angles.sinThetaO = -1 + 2 * UV.y;
+        angles.cosThetaI = SafeSqrt(1 - (Sq(angles.sinThetaI) + epsilon));
+        angles.cosThetaO = SafeSqrt(1 - (Sq(angles.sinThetaO) + epsilon));
+    }
+
+    ReferenceBSDFData data;
+    ZERO_INITIALIZE(ReferenceBSDFData, data);
+    {
+        LongitudinalVarianceFromBeta(UV.z, data.v);
+
+        // Pre-integrated long. scattering is hardcoded for 3º cuticle tilt.
+        data.alpha = radians(3);
+
+        // Fill the alpha terms for each lobe
+        GetAlphaScalesFromAlpha(data.alpha, data.sinAlpha, data.cosAlpha);
+    }
+
+    // Re-used directly from the reference.
+    float M[3];
+
+    for (uint p = 0; p < 3; ++p)
+    {
+        float sinThetaO, cosThetaO;
+        ApplyCuticleTilts(p, angles, data, sinThetaO, cosThetaO);
+
+        M[p] = LongitudinalScattering(angles.cosThetaI, cosThetaO, angles.sinThetaI, sinThetaO, data.v[p]);
+    }
+
+    _HairLongitudinalScatteringUAV[dispatchThreadID] = float4(M[0], M[1], M[2], 1);
 }

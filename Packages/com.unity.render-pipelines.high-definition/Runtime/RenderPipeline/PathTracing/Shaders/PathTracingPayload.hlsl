@@ -7,16 +7,19 @@
 // Segment ID
 //
 // Identifies segments (or rays) along our path:
-//   0:                        Camera ray
-//   1 - SEGMENT_ID_MAX_DEPTH: Continuation ray (ID == depth)
-//   SEGMENT_ID_TRANSMISSION:  Transmission (or Shadow) ray
-//   SEGMENT_ID_NEAREST_HIT:   Nearest surface hit query ray
-//   SEGMENT_ID_RANDOM_WALK:   Random walk ray (used in SSS)
+//   0:                          Camera ray
+//   1 - SEGMENT_ID_MAX_DEPTH:   Continuation ray (ID == depth)
+//   SEGMENT_ID_TRANSMISSION:    Transmission (or Shadow) ray
+//   SEGMENT_ID_NEAREST_HIT:     Nearest surface hit query ray
+//   SEGMENT_ID_RANDOM_WALK:     Random walk ray (used in SSS)
+//   SEGMENT_ID_DUAL_SCATTERING: Dual scattering ray (used in hair multiple scattering optimization)
 //
-#define SEGMENT_ID_TRANSMISSION (UINT_MAX - 0)
-#define SEGMENT_ID_NEAREST_HIT  (UINT_MAX - 1)
-#define SEGMENT_ID_RANDOM_WALK  (UINT_MAX - 2)
-#define SEGMENT_ID_MAX_DEPTH    (UINT_MAX - 3)
+#define SEGMENT_ID_TRANSMISSION        (UINT_MAX - 0)
+#define SEGMENT_ID_NEAREST_HIT         (UINT_MAX - 1)
+#define SEGMENT_ID_RANDOM_WALK         (UINT_MAX - 2)
+#define SEGMENT_ID_MAX_DEPTH           (UINT_MAX - 3)
+#define SEGMENT_ID_DUAL_SCATTERING     (UINT_MAX - 4)
+#define SEGMENT_ID_DUAL_SCATTERING_VIS (UINT_MAX - 5)
 
 // Path Tracing Payload
 struct PathPayload

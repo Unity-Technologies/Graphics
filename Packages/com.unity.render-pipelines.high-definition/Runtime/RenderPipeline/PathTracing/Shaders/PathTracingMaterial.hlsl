@@ -17,6 +17,11 @@ struct MaterialData
     // (to be consistent with the view vector and geometric normal)
     float3   V;
     float3   Nv;
+
+#ifdef _PATH_TRACED_DUAL_SCATTERING
+    // World space position is required for shooting strand count rays during light evaluation for dual scattered hair.
+    float3 positionWS;
+#endif
 };
 
 struct MaterialResult

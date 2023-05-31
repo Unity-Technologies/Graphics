@@ -2,6 +2,7 @@ using System;
 using System.Runtime.InteropServices;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEngine.Rendering
 {
@@ -10,6 +11,8 @@ namespace UnityEngine.Rendering
         internal struct Arguments
         {
             public Camera         camera;
+            public Vector3        cameraPosition;
+            public Frustum        cameraFrustum; // TODO: Frustum us HDRP-specific, we should not use it here.
             public RenderGraph    renderGraph;
             public TextureHandle  depthTexture;
             public SystemSettings settings;
@@ -115,6 +118,8 @@ namespace UnityEngine.Rendering
             public float shadingFraction;
             /// <summary>Unique identifier for the renderer data.</summary>
             public int hash;
+            /// <summary>Bounds of the renderer</summary>
+            public Bounds bounds;
         }
 
         /// <summary>
@@ -259,10 +264,10 @@ namespace UnityEngine.Rendering
                     {
                         vertexStream0           = CreateBuffer(16 * parameters.countVertex, sizeof(uint), GraphicsBuffer.Target.Raw, "Record Buffer [Vertex Stream 0]"),
                         vertexStream1           = CreateBuffer(16 * parameters.countVertex, sizeof(uint), GraphicsBuffer.Target.Raw, "Record Buffer [Vertex Stream 1]"),
-                        counterBuffer = CreateBuffer(8, sizeof(uint), GraphicsBuffer.Target.Raw, "Counters"),
-                        recordBufferSegment = CreateBuffer(4 * 4 * 2 * parameters.countSegment, sizeof(uint), GraphicsBuffer.Target.Raw, "Record Buffer [Segment]"),
-                        viewSpaceDepthRange = CreateBuffer(2, sizeof(float), GraphicsBuffer.Target.Raw, "View Space Depth Range"),
-                        constantBuffer = CreateBuffer(1, constantBufferSize, GraphicsBuffer.Target.Constant, "Line Rendering Constants"),
+                        counterBuffer           = CreateBuffer(8, sizeof(uint), GraphicsBuffer.Target.Raw, "Counters"),
+                        recordBufferSegment     = CreateBuffer(4 * 2 * parameters.countSegment, sizeof(uint), GraphicsBuffer.Target.Raw, "Record Buffer [Segment]"),
+                        viewSpaceDepthRange     = CreateBuffer(2, sizeof(float), GraphicsBuffer.Target.Raw, "View Space Depth Range"),
+                        constantBuffer          = CreateBuffer(1, constantBufferSize, GraphicsBuffer.Target.Constant, "Line Rendering Constants"),
 
                         groupShadingSampleAtlas = renderGraph.CreateTexture(new TextureDesc(shadingSampleAtlasWidth, shadingSampleAtlasHeight)
                         {

@@ -178,9 +178,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     StartXRSinglePass(m_RenderGraph, hdCamera);
 
-                    // Render the software line raster path.
-                    RenderLines(m_RenderGraph, prepassOutput.depthPyramidTexture, hdCamera, gpuLightListOutput);
-
                     // Evaluate the clear coat mask texture based on the lit shader mode
                     var clearCoatMask = hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred ? prepassOutput.gbuffer.mrt[2] : m_RenderGraph.defaultResources.blackTextureXR;
                     lightingBuffers.ssrLightingBuffer = RenderSSR(m_RenderGraph, hdCamera, ref prepassOutput, default, clearCoatMask, rayCountTexture, historyValidationTexture, m_SkyManager.GetSkyReflection(hdCamera), transparent: false);
@@ -339,7 +336,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     aovRequest.PushCameraTexture(m_RenderGraph, AOVBuffers.VolumetricFog, hdCamera, colorBuffer, aovBuffers);
                 }
-                
+
                 ResetCameraSizeForAfterPostProcess(m_RenderGraph, hdCamera, commandBuffer);
 
                 RenderCustomPass(m_RenderGraph, hdCamera, postProcessDest, prepassOutput, customPassCullingResults, cullingResults, CustomPassInjectionPoint.AfterPostProcess, aovRequest, aovCustomPassBuffers);
@@ -1622,6 +1619,9 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // this needs to be before transparency
             RenderProbeVolumeDebug(renderGraph, hdCamera, prepassOutput.depthPyramidTexture, normalBuffer);
+
+            // Render the software line raster path.
+            RenderLines(m_RenderGraph, prepassOutput.depthPyramidTexture, hdCamera, lightLists);
 
             // Immediately compose the lines if the user wants lines in the color pyramid (refraction), but with poor TAA ghosting.
             ComposeLines(renderGraph, hdCamera, colorBuffer, transparentPrepass.depthBufferPreRefraction, prepassOutput.motionVectorsBuffer, (int)LineRendering.CompositionMode.BeforeColorPyramid);

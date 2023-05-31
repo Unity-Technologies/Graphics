@@ -1832,6 +1832,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             definition = KeywordDefinition.Predefined,
             scope = KeywordScope.Global,
         };
+
+        public static KeywordDescriptor Native16Bit = new KeywordDescriptor()
+        {
+            displayName = "Native 16 Bit",
+            referenceName = "UNITY_DEVICE_SUPPORTS_NATIVE_16BIT",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+        };
     }
     #endregion
 

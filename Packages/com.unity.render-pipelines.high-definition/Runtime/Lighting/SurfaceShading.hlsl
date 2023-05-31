@@ -95,18 +95,20 @@ DirectLighting ShadeSurface_Directional(LightLoopContext lightLoopContext,
             SHADOW_TYPE shadow = EvaluateShadow_Directional(lightLoopContext, posInput, light, builtinData, GetNormalForShadowBias(bsdfData));
             float NdotL  = dot(bsdfData.normalWS, L); // No microshadowing when facing away from light (use for thin transmission as well)
             shadow *= NdotL >= 0.0 ? ComputeMicroShadowing(GetAmbientOcclusionForMicroShadowing(bsdfData), NdotL, _MicroShadowOpacity) : 1.0;
-            lightColor.rgb *= ComputeShadowColor(shadow, light.shadowTint, light.penumbraTint);
 
-#ifdef LIGHT_EVALUATION_SPLINE_SHADOW_VISIBILITY_SAMPLE
-            if ((light.shadowIndex >= 0))
+#ifdef LIGHT_EVALUATION_BSDF_HANDLES_VISIBILITY
+            if (DirectionalOccluderInRendererBounds(lightLoopContext, light, posInput))
             {
-                bsdfData.splineVisibility = lightLoopContext.splineVisibility;
+            #if _USE_SPLINE_VISIBILITY_FOR_MULTIPLE_SCATTERING
+                // Use the shadow sample as a visibility term. Otherwise the volumetric data will be used to compute the self-shadow.
+                bsdfData.visibility = shadow;
+            #endif
             }
             else
-            {
-                bsdfData.splineVisibility = -1;
-            }
 #endif
+            {
+                lightColor.rgb *= ComputeShadowColor(shadow, light.shadowTint, light.penumbraTint);
+            }
         }
 
         // Simulate a sphere/disk light with this hack.
@@ -188,24 +190,22 @@ DirectLighting ShadeSurface_Punctual(LightLoopContext lightLoopContext,
         {
             PositionInputs shadowPositionInputs = posInput;
 
-#ifdef LIGHT_EVALUATION_SPLINE_SHADOW_BIAS
-            shadowPositionInputs.positionWS += L * GetSplineOffsetForShadowBias(bsdfData);
-#endif
             // This code works for both surface reflection and thin object transmission.
             SHADOW_TYPE shadow = EvaluateShadow_Punctual(lightLoopContext, shadowPositionInputs, light, builtinData, GetNormalForShadowBias(bsdfData), L, distances);
-            lightColor.rgb *= ComputeShadowColor(shadow, light.shadowTint, light.penumbraTint);
 
-#ifdef LIGHT_EVALUATION_SPLINE_SHADOW_VISIBILITY_SAMPLE
-            if ((light.shadowIndex >= 0) && (light.shadowDimmer > 0))
+#ifdef LIGHT_EVALUATION_BSDF_HANDLES_VISIBILITY
+            if (PunctualOccluderInRendererBounds(lightLoopContext, light, posInput, L))
             {
-                // Evaluate the shadow map a second time (this time unbiased for the spline).
-                bsdfData.splineVisibility = EvaluateShadow_Punctual(lightLoopContext, posInput, light, builtinData, GetNormalForShadowBias(bsdfData), L, distances).x;
+            #if _USE_SPLINE_VISIBILITY_FOR_MULTIPLE_SCATTERING
+                // Use the shadow sample as a visibility term. Otherwise the volumetric data will be used to compute the self-shadow.
+                bsdfData.visibility = shadow;
+            #endif
             }
             else
-            {
-                bsdfData.splineVisibility = -1;
-            }
 #endif
+            {
+                lightColor.rgb *= ComputeShadowColor(shadow, light.shadowTint, light.penumbraTint);
+            }
 
 #ifdef DEBUG_DISPLAY
             // The step with the attenuation is required to avoid seeing the screen tiles at the end of lights because the attenuation always falls to 0 before the tile ends.

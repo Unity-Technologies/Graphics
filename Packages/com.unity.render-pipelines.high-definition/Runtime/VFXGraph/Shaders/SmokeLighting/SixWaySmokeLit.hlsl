@@ -376,10 +376,6 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
             // Shadows
             #ifndef SKIP_RASTERIZED_AREA_SHADOWS
             {
-                #ifdef LIGHT_EVALUATION_SPLINE_SHADOW_BIAS
-                posInput.positionWS += -lightData.forward * GetSplineOffsetForShadowBias(bsdfData);
-                #endif
-
                 SHADOW_TYPE shadow = EvaluateShadow_RectArea(lightLoopContext, posInput, lightData, builtinData, bsdfData.normalWS, normalize(lightData.positionRWS), length(lightData.positionRWS));
                 lightColor *= ComputeShadowColor(shadow, lightData.shadowTint, lightData.penumbraTint);
             }
@@ -444,10 +440,6 @@ DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
         // Shadows
         #ifndef SKIP_RASTERIZED_AREA_SHADOWS
         {
-            #ifdef LIGHT_EVALUATION_SPLINE_SHADOW_BIAS
-            posInput.positionWS += -lightData.forward * GetSplineOffsetForShadowBias(bsdfData);
-            #endif
-
             SHADOW_TYPE shadow = EvaluateShadow_RectArea(lightLoopContext, posInput, lightData, builtinData, bsdfData.normalWS, normalize(lightData.positionRWS), length(lightData.positionRWS));
             lightColor *= ComputeShadowColor(shadow, lightData.shadowTint, lightData.penumbraTint);
         }

@@ -29,7 +29,6 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     context.contactShadow    = 1.0;
     context.shadowContext    = InitShadowContext();
     context.shadowValue      = 1.0;
-    context.splineVisibility = -1;
     context.sampleReflection = 0;
 #ifdef APPLY_FOG_ON_SKY_REFLECTIONS
     context.positionWS       = posInput.positionWS;
@@ -154,7 +153,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         // Make sure the baked diffuse lighting is tinted with the diffuse color
         ModifyBakedDiffuseLighting(V, posInput, preLightData, bsdfData, builtinData);
     #endif
-    
+
         // Add emissiveon top of diffuse
         builtinData.bakeDiffuseLighting += emissive;
     }
