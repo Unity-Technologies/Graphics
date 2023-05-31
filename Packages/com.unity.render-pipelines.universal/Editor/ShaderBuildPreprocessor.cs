@@ -199,9 +199,6 @@ namespace UnityEditor.Rendering.Universal
         // Called after the build has finished...
         public void OnPostprocessBuild(BuildReport report)
         {
-            // SaveAssets() is called here to update the Prefiltering Serialized variables inside the URP Assets.
-            AssetDatabase.SaveAssets();
-
             XRPlatformBuildTimeDetect.ClearInstance();
 #if PROFILE_BUILD
             Profiler.enabled = false;
