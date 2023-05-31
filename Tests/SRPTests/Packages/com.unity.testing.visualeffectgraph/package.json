@@ -6,7 +6,7 @@
   "unityRelease": "0b4",
   "description": "This package contains common graphics tests from several scriptable renderpipeline",
   "dependencies": {
-    "com.unity.visualeffectgraph": "15.0.5",
+    "com.unity.visualeffectgraph": "15.0.6",
     "com.unity.testframework.graphics": "7.15.0-exp.1",
     "com.unity.testing.graphics-performance": "8.0.0",
     "com.unity.test-framework": "1.3.3",

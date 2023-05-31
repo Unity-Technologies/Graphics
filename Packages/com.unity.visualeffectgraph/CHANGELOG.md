@@ -9,6 +9,34 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [15.0.5] - 2023-05-23
+
+This version is compatible with Unity 2023.1.0b19.
+
+### Changed
+- Greatly reduced the import cost of VFX Graph objects, especially when importing many at once.
+
+### Fixed
+- Fixed an issue that the Exposure weight slider was not hidden when a shadergraph was assigned to an output context.
+- Fixed range was not applied in UI when setting up a value out of allowed range.
+- Fixed crash when removing VFXRenderer from a disabled gameobject.
+- Fixed an unexpected per frame garbage while using timeline.
+- Fixed minor issues with Cube and Sphere particle outputs.
+- Fixed an issue that Motion Vector are wrong when transform isn't changed every frame.
+- Fixed an issue with unexpected motion vector when add precompute velocity was enabled in Shader Graph.
+- Improved error feedback in case of missing reference in custom spawner.
+- Removed Loop And Delay block listing in favor of Spawn Context Settings (see in inspector).
+- Fixed a crash when logging an error messages for unexpected buffers.
+- Filter out  DXR passes from SG generated shaders.
+- Filter out META pass from SG generated shaders.
+- Forces positive color values in graph.
+- Allow particle sorting with HDRP decals.
+- Hide "Sorting mode" and "Revert sorting" when blend mode is set to Opaque.
+- Hide log message asking to check out the asset for version control in empty VFX window, when reseting Editor Layout.
+- Keep some bottom margin on blocks when collapsed.
+- Fixed wrong evaluation of time in VFX Control Track while using Playables API.
+- Fixed broken documentation link for VFX Graph nodes (when documentation is available).
+
 ## [15.0.4] - 2023-03-23
 
 This version is compatible with Unity 2023.1.0b10.

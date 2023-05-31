@@ -9,6 +9,30 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [15.0.5] - 2023-05-23
+
+This version is compatible with Unity 2023.1.0b19.
+
+### Changed
+- Added HDR Output override per camera.
+
+### Fixed
+- Fixed profiling code causing 2-3ms of overhead on URP.
+- 2D - Fixed NullReferenceException is thrown when opening Light Explorer with 2D Lights.
+- Fixed an issue causing Dynamic Resolution to be disabled during URP rendering.
+- 2D - Fixed uninitialized SpriteProps in CanvasRenderer.
+- Fixed removal of renderer features if a renderer feature is missing.
+- Fixed Screen flicker in Scene view.
+- Fixed errors caused by Camera's Preview window.
+- Increased lighting BRDF specular max for half float math (mobile) to match the visual look of full float math (desktop) better.
+- Disabled MSAA on devices without MSAA store support (Apple GPUs A8 and lower).
+- Fixed rendering on HDR displays with the 2D renderer or the Universal renderer and no post processing.
+- Fixed HDR output too saturated when HDR rendering is disabled on the camera.
+- Fixed Volumetric Light 2D.
+- Fixed an issue where using the Reflection Probe Node with the Forward+ rendering path would result in flickering on the object.
+- Fix for the UI being drawn twice in some scenarios
+- Fixed an issue where the ShadowShape2DProvider_Collider would improperly track a collider using a Rigidbody2D
+
 
 ## [15.0.4] - 2023-03-23
 
