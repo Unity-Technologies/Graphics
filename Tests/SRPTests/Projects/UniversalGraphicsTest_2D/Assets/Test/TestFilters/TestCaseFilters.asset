@@ -51,10 +51,19 @@ MonoBehaviour:
     Reason: ObjectSpace UV use is not-deterministic.Fix ShaderGraph.
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 0}
+    - {fileID: 102900000, guid: 7599bce7824e37a4e98f14a6a979d514, type: 3}
     ColorSpace: -1
-    BuildPlatform: -2
+    BuildPlatform: 42
     GraphicsDevice: 4
-    XrSdk: 
+    XrSdk: None
     StereoModes: 0
-    Reason: 
+    Reason: UUM-27717
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 7599bce7824e37a4e98f14a6a979d514, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 43
+    GraphicsDevice: 4
+    XrSdk: None
+    StereoModes: 0
+    Reason: UUM-27717
