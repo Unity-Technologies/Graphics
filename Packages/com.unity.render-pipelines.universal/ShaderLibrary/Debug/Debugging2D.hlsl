@@ -72,7 +72,7 @@ bool CalculateDebugColorForRenderingSettings(in SurfaceData2D surfaceData, in In
     {
         return true;
     }
-    return TryGetDebugColorInvalidMode(debugColor);
+    return false;
 }
 
 bool CalculateDebugColorLightingSettings(inout SurfaceData2D surfaceData, inout InputData2D inputData, inout half4 debugColor)

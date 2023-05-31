@@ -69,27 +69,30 @@ Shader "Hidden/Light2D-Shape"
             {
                 Varyings o = (Varyings)0;
                 o.lightOffset = a.color;
+
+#if USE_STRUCTURED_BUFFER_FOR_LIGHT2D_DATA
                 PerLight2D light = GetPerLight2D(o.lightOffset);
+#endif
 
                 float3 positionOS = a.positionOS;
 
-                positionOS.x = positionOS.x + light.FalloffDistance * a.color.r;
-                positionOS.y = positionOS.y + light.FalloffDistance * a.color.g;
+                positionOS.x = positionOS.x + _L2D_FALLOFF_DISTANCE * a.color.r;
+                positionOS.y = positionOS.y + _L2D_FALLOFF_DISTANCE * a.color.g;
 
                 o.positionCS = TransformObjectToHClip(positionOS);
-                o.color = light.Color * _InverseHDREmulationScale;
+                o.color = _L2D_COLOR * _InverseHDREmulationScale;
                 o.color.a = a.color.a;
 #if USE_VOLUMETRIC
-                o.color.a = light.Color.a  * light.VolumeOpacity;
+                o.color.a = _L2D_COLOR.a  * _L2D_VOLUME_OPACITY;
 #endif
 
                 // If Sprite use UV.
-                o.uv = (light.LightType == 2) ? a.uv : float2(a.color.a, light.FalloffIntensity);
+                o.uv = (_L2D_LIGHT_TYPE == 2) ? a.uv : float2(a.color.a, _L2D_FALLOFF_INTENSITY);
 
                 float4 worldSpacePos;
                 worldSpacePos.xyz = TransformObjectToWorld(positionOS);
                 worldSpacePos.w = 1;
-                TRANSFER_NORMALS_LIGHTING(o, worldSpacePos, light.Position.xyz, light.Position.w)
+                TRANSFER_NORMALS_LIGHTING(o, worldSpacePos, _L2D_POSITION.xyz, _L2D_POSITION.w)
                 TRANSFER_SHADOWS(o)
 
                 return o;
@@ -97,10 +100,13 @@ Shader "Hidden/Light2D-Shape"
 
             FragmentOutput frag(Varyings i) : SV_Target
             {
+#if USE_STRUCTURED_BUFFER_FOR_LIGHT2D_DATA
                 PerLight2D light = GetPerLight2D(i.lightOffset);
+#endif
+
                 half4 lightColor = i.color;
 
-                if (light.LightType == 2)
+                if (_L2D_LIGHT_TYPE == 2)
                 {
                     half4 cookie = SAMPLE_TEXTURE2D(_CookieTex, sampler_CookieTex, i.uv);
 #if USE_ADDITIVE_BLENDING
@@ -120,8 +126,8 @@ Shader "Hidden/Light2D-Shape"
 #endif
                 }
 
-                APPLY_NORMALS_LIGHTING(i, lightColor, light.Position.xyz, light.Position.w);
-                APPLY_SHADOWS(i, lightColor, light.ShadowIntensity);
+                APPLY_NORMALS_LIGHTING(i, lightColor, _L2D_POSITION.xyz, _L2D_POSITION.w);
+                APPLY_SHADOWS(i, lightColor, _L2D_SHADOW_INTENSITY);
                 return ToFragmentOutput(lightColor);
             }
             ENDHLSL

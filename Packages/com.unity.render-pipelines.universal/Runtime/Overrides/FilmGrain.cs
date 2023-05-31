@@ -69,6 +69,7 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     [Serializable, VolumeComponentMenu("Post-processing/Film Grain")]
     [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
+    [URPHelpURL("Post-Processing-Film-Grain")]
     public sealed class FilmGrain : VolumeComponent, IPostProcessComponent
     {
         /// <summary>

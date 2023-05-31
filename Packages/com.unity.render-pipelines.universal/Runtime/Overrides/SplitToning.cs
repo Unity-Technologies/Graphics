@@ -7,6 +7,7 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     [Serializable, VolumeComponentMenu("Post-processing/Split Toning")]
     [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
+    [URPHelpURL("Post-Processing-Split-Toning")]
     public sealed class SplitToning : VolumeComponent, IPostProcessComponent
     {
         /// <summary>

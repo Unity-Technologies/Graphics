@@ -103,7 +103,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 ),
             CED.FoldoutGroup(lightLoopSettingsHeaderContent, Expandable.LightLoop, k_ExpandedState, isBoxed ? FoldoutOption.Indent | FoldoutOption.Boxed : FoldoutOption.Indent,
                 CED.Group(206, (serialized, owner) => Drawer_SectionLightLoopSettings(serialized, owner, withOverride))
-                ),
+                )
+			// Message below isn't required as the async compute still works for rasterize effect, it is only when effect are setup for raytracing that it doesn't work
+			/*			
             CED.Group((serialized, owner) =>
             {
                 var hdrpAsset = GetHDRPAssetFor(owner);
@@ -119,7 +121,8 @@ namespace UnityEditor.Rendering.HighDefinition
                             EditorGUILayout.HelpBox("Asynchronous execution of Raytracing effects is not supported. Asynchronous Execution will be forced to false for them", MessageType.Warning);
                     }
                 }
-            }));
+            }*/
+			);
 
         static HDRenderPipelineAsset GetHDRPAssetFor(Editor owner)
         {

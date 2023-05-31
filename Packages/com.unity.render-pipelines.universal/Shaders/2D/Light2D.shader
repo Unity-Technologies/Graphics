@@ -78,23 +78,23 @@ Shader "Hidden/Light2D"
                 Varyings o = (Varyings)0;
                 float3 positionOS = a.positionOS;
 
-                positionOS.x = positionOS.x + light.FalloffDistance * a.color.r;
-                positionOS.y = positionOS.y + light.FalloffDistance * a.color.g;
+                positionOS.x = positionOS.x + _L2D_FALLOFF_DISTANCE * a.color.r;
+                positionOS.y = positionOS.y + _L2D_FALLOFF_DISTANCE * a.color.g;
 
                 o.positionCS = TransformObjectToHClip(positionOS);
-                o.color = light.Color * _InverseHDREmulationScale;
+                o.color = _L2D_COLOR * _InverseHDREmulationScale;
                 o.color.a = a.color.a;
 #if USE_VOLUMETRIC
-                o.color.a = light.Color.a * light.VolumeOpacity;
+                o.color.a = _L2D_COLOR.a * _L2D_VOLUME_OPACITY;
 #endif
 
                 // If Sprite use UV.
-                o.uv = (light.LightType == 2) ? a.uv : float2(a.color.a, light.FalloffIntensity);
+                o.uv = (_L2D_LIGHT_TYPE == 2) ? a.uv : float2(a.color.a, _L2D_FALLOFF_INTENSITY);
 
                 float4 worldSpacePos;
                 worldSpacePos.xyz = TransformObjectToWorld(positionOS);
                 worldSpacePos.w = 1;
-                TRANSFER_NORMALS_LIGHTING(o, worldSpacePos, light.Position.xyz, light.Position.w)
+                TRANSFER_NORMALS_LIGHTING(o, worldSpacePos, _L2D_POSITION.xyz, _L2D_POSITION.w)
                 TRANSFER_SHADOWS(o)
                 return o;
             }
@@ -109,11 +109,11 @@ Shader "Hidden/Light2D"
                 worldSpacePos.xyz = TransformObjectToWorld(a.positionOS);
                 worldSpacePos.w = 1;
 
-                float4 lightSpacePos = mul(light.InvMatrix, worldSpacePos);
+                float4 lightSpacePos = mul(_L2D_INVMATRIX, worldSpacePos);
                 float halfTexelOffset = 0.5 * _LightLookup_TexelSize.x;
                 output.lookupUV = 0.5 * (lightSpacePos.xy + 1) + halfTexelOffset;
 
-                TRANSFER_NORMALS_LIGHTING(output, worldSpacePos, light.Position.xyz, light.Position.w)
+                TRANSFER_NORMALS_LIGHTING(output, worldSpacePos, _L2D_POSITION.xyz, _L2D_POSITION.w)
                 TRANSFER_SHADOWS(output)
                 return output;
             }
@@ -121,9 +121,12 @@ Shader "Hidden/Light2D"
             Varyings vert(Attributes attributes)
             {
 
-                PerLight2D light = GetPerLight2D(attributes.color);
+                PerLight2D light;
+#if USE_STRUCTURED_BUFFER_FOR_LIGHT2D_DATA
+                light = GetPerLight2D(attributes.color);
+#endif
 
-                switch (light.LightType)
+                switch (_L2D_LIGHT_TYPE)
                 {
                     case 0:
                     case 1:
@@ -149,7 +152,7 @@ Shader "Hidden/Light2D"
             FragmentOutput frag_shape(Varyings i, PerLight2D light)
             {
                 half4 lightColor = i.color;
-                if (light.LightType == 2)
+                if (_L2D_LIGHT_TYPE == 2)
                 {
                     half4 cookie = SAMPLE_TEXTURE2D(_CookieTex, sampler_CookieTex, i.uv);
 #if USE_ADDITIVE_BLENDING
@@ -170,9 +173,9 @@ Shader "Hidden/Light2D"
                 }
 
 #if !USE_VOLUMETRIC
-                APPLY_NORMALS_LIGHTING(i, lightColor, light.Position.xyz, light.Position.w);
+                APPLY_NORMALS_LIGHTING(i, lightColor, _L2D_POSITION.xyz, _L2D_POSITION.w);
 #endif
-                APPLY_SHADOWS(i, lightColor, light.ShadowIntensity);
+                APPLY_SHADOWS(i, lightColor, _L2D_SHADOW_INTENSITY);
                 return ToFragmentOutput(lightColor);
             }
 
@@ -181,22 +184,22 @@ Shader "Hidden/Light2D"
                 half4 lookupValue = SAMPLE_TEXTURE2D(_LightLookup, sampler_LightLookup, i.lookupUV);  // r = distance, g = angle, b = x direction, a = y direction
 
                 // Inner Radius
-                half attenuation = saturate(light.InnerRadiusMult * lookupValue.r);   // This is the code to take care of our inner radius
+                half attenuation = saturate(_L2D_INNER_RADIUS_MULT * lookupValue.r);   // This is the code to take care of our inner radius
 
                 // Spotlight
-                half isFullSpotlight = light.InnerAngle == 1.0f;
-                half spotAttenuation = saturate((light.OuterAngle - lookupValue.g + isFullSpotlight) * (1.0f / (light.OuterAngle - light.InnerAngle)));
+                half isFullSpotlight = _L2D_INNER_ANGLE == 1.0f;
+                half spotAttenuation = saturate((_L2D_OUTER_ANGLE - lookupValue.g + isFullSpotlight) * (1.0f / (_L2D_OUTER_ANGLE - _L2D_INNER_ANGLE)));
                 attenuation = attenuation * spotAttenuation;
 
                 half2 mappedUV;
                 mappedUV.x = attenuation;
-                mappedUV.y = light.FalloffIntensity;
+                mappedUV.y = _L2D_FALLOFF_INTENSITY;
                 attenuation = SAMPLE_TEXTURE2D(_FalloffLookup, sampler_FalloffLookup, mappedUV).r;
 
-                half4 lightColor = light.Color;
+                half4 lightColor = _L2D_COLOR;
 #if USE_POINT_LIGHT_COOKIES
                 half4 cookieColor = SAMPLE_TEXTURE2D(_PointLightCookieTex, sampler_PointLightCookieTex, i.lookupUV);
-                lightColor = cookieColor * light.Color;
+                lightColor = cookieColor * _L2D_COLOR;
 #endif
 
 #if USE_ADDITIVE_BLENDING || USE_VOLUMETRIC
@@ -205,13 +208,14 @@ Shader "Hidden/Light2D"
                 lightColor.a = attenuation;
 #endif
 
+
 #if !USE_VOLUMETRIC
-                APPLY_NORMALS_LIGHTING(i, lightColor, light.Position.xyz, light.Position.w);
+                APPLY_NORMALS_LIGHTING(i, lightColor, _L2D_POSITION.xyz, _L2D_POSITION.w);
 #endif
-                APPLY_SHADOWS(i, lightColor, light.ShadowIntensity);
+                APPLY_SHADOWS(i, lightColor, _L2D_SHADOW_INTENSITY);
 
 #if USE_VOLUMETRIC
-                lightColor *= light.VolumeOpacity;
+                lightColor *= _L2D_VOLUME_OPACITY;
 #endif
 
                 return ToFragmentOutput(lightColor * _InverseHDREmulationScale);
@@ -219,8 +223,13 @@ Shader "Hidden/Light2D"
 
             FragmentOutput frag(Varyings i) : SV_Target
             {
-                PerLight2D light = GetPerLight2D(i.lightOffset);
-                switch (light.LightType)
+
+                PerLight2D light;
+#if USE_STRUCTURED_BUFFER_FOR_LIGHT2D_DATA
+                light = GetPerLight2D(i.lightOffset);
+#endif
+
+                switch (_L2D_LIGHT_TYPE)
                 {
                     case 0:
                     case 1:

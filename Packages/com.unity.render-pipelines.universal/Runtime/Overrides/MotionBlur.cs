@@ -44,6 +44,7 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     [Serializable, VolumeComponentMenu("Post-processing/Motion Blur")]
     [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
+    [URPHelpURL("Post-Processing-Motion-Blur")]
     public sealed class MotionBlur : VolumeComponent, IPostProcessComponent
     {
         /// <summary>

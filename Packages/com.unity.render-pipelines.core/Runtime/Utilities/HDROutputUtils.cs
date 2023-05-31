@@ -117,23 +117,12 @@ namespace UnityEngine.Rendering
             material.SetInteger(ShaderPropertyId.hdrColorSpace, colorSpace);
             material.SetInteger(ShaderPropertyId.hdrEncoding, encoding);
 
-            if (operations.HasFlag(Operation.ColorConversion) && operations.HasFlag(Operation.ColorEncoding))
-            {
-                material.EnableKeyword(ShaderKeywords.HDRColorSpaceConversionAndEncoding.name);
-            }
-            else if (operations.HasFlag(Operation.ColorEncoding))
-            {
-                material.EnableKeyword(ShaderKeywords.HDREncoding.name);
-            }
-            else if (operations.HasFlag(Operation.ColorConversion))
-            {
-                material.EnableKeyword(ShaderKeywords.HDRColorSpaceConversion.name);
-            }
-            else
-            {
-                // Optimizing shader variants: define HDR_INPUT only if HDR_COLORSPACE_CONVERSION and HDR_ENCODING were not previously defined
-                material.EnableKeyword(ShaderKeywords.HDRInput.name);
-            }
+            CoreUtils.SetKeyword(material, ShaderKeywords.HDRColorSpaceConversionAndEncoding.name, operations.HasFlag(Operation.ColorConversion) && operations.HasFlag(Operation.ColorEncoding));
+            CoreUtils.SetKeyword(material, ShaderKeywords.HDREncoding.name, operations.HasFlag(Operation.ColorEncoding) && !operations.HasFlag(Operation.ColorConversion));
+            CoreUtils.SetKeyword(material, ShaderKeywords.HDRColorSpaceConversion.name, operations.HasFlag(Operation.ColorConversion) && !operations.HasFlag(Operation.ColorEncoding));
+
+            // Optimizing shader variants: define HDR_INPUT only if HDR_COLORSPACE_CONVERSION and HDR_ENCODING were not previously defined
+            CoreUtils.SetKeyword(material, ShaderKeywords.HDRInput.name, operations == Operation.None);
         }
 
         /// <summary>
@@ -152,23 +141,12 @@ namespace UnityEngine.Rendering
             computeShader.SetInt(ShaderPropertyId.hdrColorSpace, colorSpace);
             computeShader.SetInt(ShaderPropertyId.hdrEncoding, encoding);
 
-            if (operations.HasFlag(Operation.ColorConversion) && operations.HasFlag(Operation.ColorEncoding))
-            {
-                computeShader.EnableKeyword(ShaderKeywords.HDRColorSpaceConversionAndEncoding.name);
-            }
-            else if (operations.HasFlag(Operation.ColorEncoding))
-            {
-                computeShader.EnableKeyword(ShaderKeywords.HDREncoding.name);
-            }
-            else if (operations.HasFlag(Operation.ColorConversion))
-            {
-                computeShader.EnableKeyword(ShaderKeywords.HDRColorSpaceConversion.name);
-            }
-            else
-            {
-                // Optimizing shader variants: define HDR_INPUT only if HDR_COLORSPACE_CONVERSION and HDR_ENCODING were not previously defined
-                computeShader.EnableKeyword(ShaderKeywords.HDRInput.name);
-            }
+            CoreUtils.SetKeyword(computeShader, ShaderKeywords.HDRColorSpaceConversionAndEncoding.name, operations.HasFlag(Operation.ColorConversion) && operations.HasFlag(Operation.ColorEncoding));
+            CoreUtils.SetKeyword(computeShader, ShaderKeywords.HDREncoding.name, operations.HasFlag(Operation.ColorEncoding) && !operations.HasFlag(Operation.ColorConversion));
+            CoreUtils.SetKeyword(computeShader, ShaderKeywords.HDRColorSpaceConversion.name, operations.HasFlag(Operation.ColorConversion) && !operations.HasFlag(Operation.ColorEncoding));
+
+            // Optimizing shader variants: define HDR_INPUT only if HDR_COLORSPACE_CONVERSION and HDR_ENCODING were not previously defined
+            CoreUtils.SetKeyword(computeShader, ShaderKeywords.HDRInput.name, operations == Operation.None);
         }
 
         /// <summary>
