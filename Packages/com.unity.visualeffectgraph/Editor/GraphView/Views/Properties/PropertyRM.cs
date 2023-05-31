@@ -1,15 +1,13 @@
 using System.Collections.Generic;
-using System.Reflection;
 using System.Linq;
+
 using UnityEngine;
 using UnityEngine.UIElements;
-using UnityEditor.UIElements;
-using UnityEditor.VFX;
-using UnityEditor.VFX.UIElements;
-using Object = UnityEngine.Object;
-using Type = System.Type;
 using UnityEngine.Profiling;
 using UnityEngine.VFX;
+
+using Object = UnityEngine.Object;
+using Type = System.Type;
 
 namespace UnityEditor.VFX.UI
 {
@@ -377,7 +375,11 @@ namespace UnityEditor.VFX.UI
 
             if (type != null)
             {
-                if (type.IsEnum)
+                if (controller.customAttributes?.SingleOrDefault(x => x is VFXSettingFieldTypeAttribute) is VFXSettingFieldTypeAttribute fieldTypeAttribute)
+                {
+                    propertyType = fieldTypeAttribute.type;
+                }
+                else if (type.IsEnum)
                 {
                     propertyType = typeof(EnumPropertyRM);
                 }

@@ -96,3 +96,8 @@ EditorToolbarDropdown:disabled, ToolbarToggle:disabled
 {
     background-color: var(--unity-colors-toolbar_button-background-checked);
 }
+
+VFXView.graphView > Label.icon-badge__text {
+    padding: 8px;
+    max-width: 350px;
+}

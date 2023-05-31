@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+
 using UnityEditor.Experimental.GraphView;
-using UnityEditor.Graphing.Util;
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEngine.Profiling;
@@ -14,11 +14,59 @@ namespace UnityEditor.VFX.UI
 {
     class VFXNodeUI : Node, IControlledElement, ISettableControlledElement<VFXNodeController>, IVFXMovable
     {
+
+        bool m_Selected;
         VFXNodeController m_Controller;
-        Controller IControlledElement.controller
+        readonly List<PropertyRM> m_Settings = new();
+        protected VisualElement m_SettingsDivider;
+
+
+        static string UXMLResourceToPackage(string resourcePath)
         {
-            get { return m_Controller; }
+            return VisualEffectAssetEditorUtility.editorResourcesPath + "/" + resourcePath + ".uxml";
         }
+
+        public VFXNodeUI() : base(UXMLResourceToPackage("uxml/VFXNode"))
+        {
+            styleSheets.Add(EditorGUIUtility.Load("StyleSheets/GraphView/Node.uss") as StyleSheet);
+            Initialize();
+        }
+
+        public VFXNodeUI(string template) : base(UXMLResourceToPackage(template))
+        {
+            Initialize();
+        }
+
+        public virtual bool superCollapsed => controller.superCollapsed;
+        public VisualElement settingsContainer { get; private set; }
+        public virtual bool hasSettingDivider => true;
+
+        public override bool expanded
+        {
+            get => base.expanded;
+            set
+            {
+                if (base.expanded == value)
+                    return;
+
+                base.expanded = value;
+                controller.expanded = value;
+                if (controller.HasActivationAnchor)
+                {
+                    var anchorController = controller.inputPorts[0];
+                    var anchor = inputContainer.Children()
+                        .Cast<VFXDataAnchor>()
+                        .SingleOrDefault(x => x.controller == anchorController);
+                    if (anchor != null)
+                    {
+                        this.UpdateActivationPortPosition(anchor);
+                    }
+                }
+            }
+        }
+
+        protected bool hasSettings { get; private set; }
+        Controller IControlledElement.controller => m_Controller;
 
         public delegate void SelectionEvent(bool selfSelected);
 
@@ -30,27 +78,20 @@ namespace UnityEditor.VFX.UI
 
         public VFXNodeController controller
         {
-            get { return m_Controller; }
+            get => m_Controller;
             set
             {
-                if (m_Controller != null)
-                {
-                    m_Controller.UnregisterHandler(this);
-                }
+                m_Controller?.UnregisterHandler(this);
                 m_Controller = value;
                 OnNewController();
-                if (m_Controller != null)
-                {
-                    m_Controller.RegisterHandler(this);
-                }
+                m_Controller?.RegisterHandler(this);
             }
         }
-
 
         protected virtual void OnNewController()
         {
             if (controller != null)
-                viewDataKey = string.Format("NodeID-{0}", controller.model.GetInstanceID());
+                viewDataKey = $"NodeID-{controller.model.GetInstanceID()}";
         }
 
         public void OnSelectionMouseDown(MouseDownEvent e)
@@ -69,20 +110,6 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public VisualElement settingsContainer { get; private set; }
-        private List<PropertyRM> m_Settings = new List<PropertyRM>();
-
-
-        static string UXMLResourceToPackage(string resourcePath)
-        {
-            return VisualEffectAssetEditorUtility.editorResourcesPath + "/" + resourcePath + ".uxml";
-        }
-
-        public VFXNodeUI(string template) : base(UXMLResourceToPackage(template))
-        {
-            Initialize();
-        }
-
         void OnFocusIn(FocusInEvent e)
         {
             var gv = GetFirstAncestorOfType<VFXView>();
@@ -91,66 +118,28 @@ namespace UnityEditor.VFX.UI
             e.StopPropagation();
         }
 
-        VisualElement m_SelectionBorder;
-
-        public VFXNodeUI() : base(UXMLResourceToPackage("uxml/VFXNode"))
-        {
-            styleSheets.Add(EditorGUIUtility.Load("StyleSheets/GraphView/Node.uss") as StyleSheet);
-            Initialize();
-        }
-
-        bool m_Hovered;
-
         void OnPointerEnter(PointerEnterEvent e)
         {
-            // Prevent VisualElement from setting hover pseudo-state
-            m_Hovered = true;
-            UpdateBorder();
             e.StopPropagation();
         }
 
         void OnPointerLeave(PointerLeaveEvent e)
         {
-            m_Hovered = false;
-            UpdateBorder();
             e.StopPropagation();
         }
-
-        bool m_Selected;
 
         public override void OnSelected()
         {
             base.OnSelected();
             m_Selected = true;
-            if (onSelectionDelegate != null)
-            {
-                onSelectionDelegate(m_Selected);
-            }
-            UpdateBorder();
+            onSelectionDelegate?.Invoke(m_Selected);
         }
 
         public override void OnUnselected()
         {
             m_Selected = false;
-            if (onSelectionDelegate != null)
-            {
-                onSelectionDelegate(m_Selected);
-            }
-            UpdateBorder();
+            onSelectionDelegate?.Invoke(m_Selected);
             base.OnUnselected();
-        }
-
-        void UpdateBorder()
-        {
-            m_SelectionBorder.style.borderBottomWidth =
-                m_SelectionBorder.style.borderTopWidth =
-                    m_SelectionBorder.style.borderLeftWidth =
-                        m_SelectionBorder.style.borderRightWidth = (m_Selected ? 2 : (m_Hovered ? 1 : 0));
-
-            m_SelectionBorder.style.borderBottomColor =
-                m_SelectionBorder.style.borderTopColor =
-                    m_SelectionBorder.style.borderLeftColor =
-                        m_SelectionBorder.style.borderRightColor = m_Selected ? new Color(68.0f / 255.0f, 192.0f / 255.0f, 255.0f / 255.0f, 1.0f) : (m_Hovered ? new Color(68.0f / 255.0f, 192.0f / 255.0f, 255.0f / 255.0f, 0.5f) : Color.clear);
         }
 
         void Initialize()
@@ -161,8 +150,6 @@ namespace UnityEditor.VFX.UI
             RegisterCallback<PointerEnterEvent>(OnPointerEnter);
             RegisterCallback<PointerLeaveEvent>(OnPointerLeave);
             RegisterCallback<FocusInEvent>(OnFocusIn);
-
-            m_SelectionBorder = this.Query("selection-border");
         }
 
         public virtual void OnControllerChanged(ref ControllerChangedEvent e)
@@ -179,31 +166,19 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        protected virtual bool HasPosition()
-        {
-            return true;
-        }
-
-        protected VisualElement m_SettingsDivider;
-
-
-        public virtual bool hasSettingDivider
-        {
-            get { return true; }
-        }
+        protected virtual bool HasPosition() => true;
 
         protected virtual void SyncSettings()
         {
             Profiler.BeginSample("VFXNodeUI.SyncSettings");
-            if (settingsContainer == null && controller.settings != null)
+            var settings = controller.settings;
+            if (settingsContainer == null && settings != null)
             {
-                object settings = controller.settings;
-
                 settingsContainer = this.Q("settings");
 
                 m_SettingsDivider = this.Q("settings-divider");
 
-                foreach (var setting in controller.settings)
+                foreach (var setting in settings)
                 {
                     AddSetting(setting);
                 }
@@ -211,14 +186,13 @@ namespace UnityEditor.VFX.UI
             if (settingsContainer != null)
             {
                 var activeSettings = controller.model.GetSettings(false, VFXSettingAttribute.VisibleFlags.InGraph).ToList();
-                for (int i = 0; i < m_Settings.Count; ++i)
-                    m_Settings[i].RemoveFromHierarchy();
+                m_Settings.ForEach(x => x.RemoveFromHierarchy());
 
                 hasSettings = false;
                 for (int i = 0; i < m_Settings.Count; ++i)
                 {
                     PropertyRM prop = m_Settings[i];
-                    if (prop != null && activeSettings.Any(s => s.field.Name == controller.settings[i].name))
+                    if (prop != null && activeSettings.Any(s => s.field.Name == settings[i].name))
                     {
                         hasSettings = true;
                         settingsContainer.Add(prop);
@@ -241,12 +215,6 @@ namespace UnityEditor.VFX.UI
             if (m_SettingsDivider != null)
                 m_SettingsDivider.visible = hasSettingDivider && hasSettings;
             Profiler.EndSample();
-        }
-
-        protected bool hasSettings
-        {
-            get;
-            private set;
         }
 
         void SyncAnchors()
@@ -286,10 +254,9 @@ namespace UnityEditor.VFX.UI
                 container.Clear();
                 for (int i = 0; i < ports.Count; ++i)
                 {
-                    VFXDataAnchor anchor = null;
                     VFXDataAnchorController portController = ports[i];
 
-                    if (existingAnchors.TryGetValue(portController, out anchor))
+                    if (existingAnchors.TryGetValue(portController, out var anchor))
                         existingAnchors.Remove(portController);
                     else
                         anchor = InstantiateDataAnchor(portController, this); // new anchor
@@ -327,7 +294,7 @@ namespace UnityEditor.VFX.UI
                 anchor.AddToClassList("subgraphblock");
 
             var settingsCount = expanded ? settingsContainer.childCount : 0;
-            anchor.style.top = -30 - settingsCount * 17 - (settingsCount > 0 ? 17 : -1);
+            anchor.style.top = -28 - settingsCount * 18 - (settingsCount > 0 ? 18 : 1);
             titleContainer.AddToClassList("activationslot");
             anchor.AddToClassList("activationslot");
             AddToClassList("activationslot");
@@ -354,10 +321,8 @@ namespace UnityEditor.VFX.UI
         {
             title = controller.title;
 
-            foreach (var setting in m_Settings)
-            {
-                setting.UpdateGUI(true);
-            }
+            m_Settings.ForEach(x => x.UpdateGUI(true));
+
             foreach (VFXEditableDataAnchor input in GetPorts(true, false).OfType<VFXEditableDataAnchor>())
             {
                 input.AssetMoved();
@@ -380,12 +345,6 @@ namespace UnityEditor.VFX.UI
             }
 
             base.expanded = controller.expanded;
-            /*
-            if (m_CollapseButton != null)
-            {
-                m_CollapseButton.SetEnabled(false);
-                m_CollapseButton.SetEnabled(true);
-            }*/
 
             SyncSettings();
             SyncAnchors();
@@ -399,60 +358,27 @@ namespace UnityEditor.VFX.UI
             UpdateCollapse();
         }
 
-        public override bool expanded
-        {
-            get { return base.expanded; }
-            set
-            {
-                if (base.expanded == value)
-                    return;
-
-                base.expanded = value;
-                controller.expanded = value;
-                if (controller.HasActivationAnchor)
-                {
-                    var anchorController = controller.inputPorts[0];
-                    var anchor = inputContainer.Children()
-                        .Cast<VFXDataAnchor>()
-                        .SingleOrDefault(x => x.controller == anchorController);
-                    if (anchor != null)
-                    {
-                        this.UpdateActivationPortPosition(anchor);
-                    }
-                }
-            }
-        }
-
         public virtual VFXDataAnchor InstantiateDataAnchor(VFXDataAnchorController controller, VFXNodeUI node)
         {
-            if (controller.direction == Direction.Input)
-            {
-                VFXEditableDataAnchor anchor = VFXEditableDataAnchor.Create(controller, node);
-
-                return anchor;
-            }
-            else
-            {
-                return VFXOutputDataAnchor.Create(controller, node);
-            }
+            return controller.direction == Direction.Input
+                ? VFXEditableDataAnchor.Create(controller, node)
+                : VFXOutputDataAnchor.Create(controller, node);
         }
 
         public IEnumerable<VFXDataAnchor> GetPorts(bool input, bool output)
         {
             if (input)
             {
-                foreach (var child in inputContainer.Children())
+                foreach (var child in inputContainer.Children().OfType<VFXDataAnchor>())
                 {
-                    if (child is VFXDataAnchor)
-                        yield return child as VFXDataAnchor;
+                    yield return child;
                 }
             }
             if (output)
             {
-                foreach (var child in outputContainer.Children())
+                foreach (var child in outputContainer.Children().OfType<VFXDataAnchor>())
                 {
-                    if (child is VFXDataAnchor)
-                        yield return child as VFXDataAnchor;
+                    yield return child;
                 }
             }
         }
@@ -463,17 +389,8 @@ namespace UnityEditor.VFX.UI
             {
                 if (setting.parent == null)
                     continue;
-                float portLabelWidth = setting.GetPreferredLabelWidth() + 5;
-                float portControlWidth = setting.GetPreferredControlWidth();
-
-                if (labelWidth < portLabelWidth)
-                {
-                    labelWidth = portLabelWidth;
-                }
-                if (controlWidth < portControlWidth)
-                {
-                    controlWidth = portControlWidth;
-                }
+                labelWidth = Math.Max(labelWidth, setting.GetPreferredLabelWidth() + 5);
+                controlWidth = Math.Max(controlWidth, setting.GetPreferredControlWidth());
             }
         }
 
@@ -510,11 +427,6 @@ namespace UnityEditor.VFX.UI
 
         public virtual void RefreshLayout()
         {
-        }
-
-        public virtual bool superCollapsed
-        {
-            get { return controller.superCollapsed; }
         }
     }
 }

@@ -45,6 +45,16 @@ namespace UnityEditor.VFX
         public bool snapToPower { get; } = false;
     }
 
+    sealed class TemplatedTypeAttribute : PropertyAttribute
+    {
+        public string type { get; }
+
+        public TemplatedTypeAttribute(string type)
+        {
+            this.type = type;
+        }
+    }
+
     // Attribute used to constrain a property to a Regex query
     [System.AttributeUsage(AttributeTargets.Field, Inherited = true, AllowMultiple = false)]
     sealed class RegexAttribute : PropertyAttribute
@@ -72,6 +82,7 @@ namespace UnityEditor.VFX
             Enum = GraphAttribute | 1 << 9,
             MinMax = GraphAttribute | 1 << 10,
             Logarithmic = GraphAttribute | 1 << 11,
+            TemplatedType = 1 << 12,
 
             // Tells whether this attribute modifies the expression graph
             GraphAttribute = 1 << 31,
@@ -91,6 +102,7 @@ namespace UnityEditor.VFX
             { typeof(EnumAttribute),        Type.Enum },
             { typeof(MinMaxAttribute),      Type.MinMax},
             { typeof(LogarithmicAttribute), Type.Logarithmic},
+            { typeof(TemplatedTypeAttribute), Type.TemplatedType},
         };
 
         public VFXPropertyAttributes(params object[] attributes) : this()

@@ -31,7 +31,7 @@ namespace UnityEditor.VFX
         {
         }
 
-        public IEnumerable<VFXExpression> expressions { get { return m_ExpressionsData.Keys; } }
+        public IEnumerable<VFXExpression> expressions => m_ExpressionsData.Keys;
 
         public void AddExpressionsFromSlotContainer(IVFXSlotContainer slotContainer, int blockId)
         {
@@ -132,6 +132,7 @@ namespace UnityEditor.VFX
             {
                 m_ExpressionsData.Add(exp, new List<Data>());
             }
+
             m_ExpressionsData[exp].Add(data);
         }
 
@@ -141,6 +142,6 @@ namespace UnityEditor.VFX
                 AddExpression(exp.exp, exp.name, id);
         }
 
-        private Dictionary<VFXExpression, List<Data>> m_ExpressionsData = new Dictionary<VFXExpression, List<Data>>();
+        private readonly Dictionary<VFXExpression, List<Data>> m_ExpressionsData = new();
     }
 }

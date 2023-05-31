@@ -394,22 +394,27 @@ namespace UnityEditor.VFX
                 m_Parent.Invalidate(model, cause);
         }
 
-        public virtual IEnumerable<VFXSetting> GetSettings(bool listHidden, VFXSettingAttribute.VisibleFlags flags = VFXSettingAttribute.VisibleFlags.All)
+        public virtual IEnumerable<VFXSetting> GetSettings(bool listHidden, VFXSettingAttribute.VisibleFlags flags = VFXSettingAttribute.VisibleFlags.Default)
         {
-            return GetType().GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).Where(f =>
-            {
-                var attrArray = f.GetCustomAttributes(typeof(VFXSettingAttribute), true);
-                if (attrArray.Length == 1)
+            return GetType().GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+                .Select(f =>
                 {
-                    var attr = attrArray[0] as VFXSettingAttribute;
-                    if (listHidden)
-                        return true;
+                    var attrArray = f.GetCustomAttributes(typeof(VFXSettingAttribute), true);
+                    if (attrArray.Length == 1)
+                    {
+                        var attr = (VFXSettingAttribute)attrArray[0];
+                        return listHidden || attr.visibleFlags.HasFlag(flags) && !filteredOutSettings.Contains(f.Name)
+                            ? new {field =  f, attribute =  attr}
+                            : null;
+                    }
 
-                    return (attr.visibleFlags & flags) != 0 && !filteredOutSettings.Contains(f.Name);
-                }
-                return false;
-            }).Select(field => new VFXSetting(field, this));
+                    return null;
+                })
+                .Where(x => x != null)
+                .Select(x => new VFXSetting(x.field, this, x.attribute.visibleFlags));
         }
+
+
 
         static protected VFXExpression TransformExpression(VFXExpression input, SpaceableType dstSpaceType, VFXExpression matrix)
         {

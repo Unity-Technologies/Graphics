@@ -67,9 +67,9 @@ namespace UnityEditor.VFX
             foreach (var exp in expressionContext.RegisteredExpressions)
             {
                 var reduced = expressionContext.GetReduced(exp);
-                if (expressionsToReduced.ContainsKey(exp))
+                if (expressionsToReduced.TryGetValue(exp, out var previousReducedExpression))
                 {
-                    if (reduced != expressionsToReduced[exp])
+                    if (reduced != previousReducedExpression)
                         throw new InvalidOperationException("Unexpected diverging expression reduction");
                     continue;
                 }
@@ -94,6 +94,11 @@ namespace UnityEditor.VFX
                 if (types.Count() != 1)
                     throw new InvalidOperationException("Diverging type usage for GraphicsBuffer : " + types.Select(o => o.ToString()).Aggregate((a, b) => a + b));
                 m_GraphicsBufferUsageType.Add(expression.Key, types.First());
+            }
+
+            if (target == VFXDeviceTarget.GPU)
+            {
+                m_CustomHLSLExpressions = expressionContext.hlslCodeHolders;
             }
         }
 
@@ -285,62 +290,23 @@ namespace UnityEditor.VFX
             return outMapper;
         }
 
-        public HashSet<VFXExpression> Expressions
-        {
-            get
-            {
-                return m_Expressions;
-            }
-        }
+        public HashSet<VFXExpression> Expressions => m_Expressions;
 
-        public List<VFXExpression> FlattenedExpressions
-        {
-            get
-            {
-                return m_FlattenedExpressions;
-            }
-        }
+        public List<VFXExpression> FlattenedExpressions => m_FlattenedExpressions;
 
-        public uint CommonExpressionCount
-        {
-            get
-            {
-                return m_CommonExpressionCount;
-            }
-        }
+        public uint CommonExpressionCount => m_CommonExpressionCount;
 
-        public Dictionary<VFXExpression, VFXExpression> GPUExpressionsToReduced
-        {
-            get
-            {
-                return m_GPUExpressionsToReduced;
-            }
-        }
+        public Dictionary<VFXExpression, VFXExpression> GPUExpressionsToReduced => m_GPUExpressionsToReduced;
 
-        public Dictionary<VFXExpression, VFXExpression> CPUExpressionsToReduced
-        {
-            get
-            {
-                return m_CPUExpressionsToReduced;
-            }
-        }
+        public Dictionary<VFXExpression, VFXExpression> CPUExpressionsToReduced => m_CPUExpressionsToReduced;
 
-        public IEnumerable<VFXLayoutElementDesc> GlobalEventAttributes
-        {
-            get
-            {
-                return m_GlobalEventAttributes;
-            }
-        }
+        public IEnumerable<VFXLayoutElementDesc> GlobalEventAttributes => m_GlobalEventAttributes;
 
-        public ReadOnlyDictionary<VFXExpression, Type> GraphicsBufferTypeUsage
-        {
-            get
-            {
-                return new ReadOnlyDictionary<VFXExpression, Type>(m_GraphicsBufferUsageType);
-            }
-        }
+        public ReadOnlyDictionary<VFXExpression, Type> GraphicsBufferTypeUsage => new ReadOnlyDictionary<VFXExpression, Type>(m_GraphicsBufferUsageType);
 
+        public IHLSLCodeHolder[] customHLSLExpressions => m_CustomHLSLExpressions;
+
+        private IHLSLCodeHolder[] m_CustomHLSLExpressions;
         private Dictionary<VFXExpression, Type> m_GraphicsBufferUsageType = new Dictionary<VFXExpression, Type>();
         private HashSet<VFXExpression> m_Expressions = new HashSet<VFXExpression>();
         private Dictionary<VFXExpression, VFXExpression> m_CPUExpressionsToReduced = new Dictionary<VFXExpression, VFXExpression>();

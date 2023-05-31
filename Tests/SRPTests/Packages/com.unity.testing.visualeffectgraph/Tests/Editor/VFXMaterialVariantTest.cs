@@ -76,7 +76,7 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(VFXAbstractRenderedOutput.BlendMode.Opaque, withoutOverride.GetMaterialBlendMode());
             Assert.AreEqual(VFXAbstractRenderedOutput.BlendMode.Additive, withOverride.GetMaterialBlendMode());
 
-            //Serialized data and override check 
+            //Serialized data and override check
             var materialSettingsWithout = ExtractMaterialSettings(withoutOverride);
             var materialSettingsWith = ExtractMaterialSettings(withOverride);
 
@@ -228,7 +228,7 @@ namespace UnityEditor.VFX.Test
             Assert.IsNotNull(particleOutput.GetSetting("materialSettings"));
 
             var allSettings = particleOutput
-                .GetSettings(true, VFXSettingAttribute.VisibleFlags.All)
+                .GetSettings(true, VFXSettingAttribute.VisibleFlags.Default)
                 .Select(o => o.name)
                 .ToArray();
             Assert.Contains("materialSettings", allSettings);

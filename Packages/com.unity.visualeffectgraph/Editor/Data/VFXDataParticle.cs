@@ -246,7 +246,7 @@ namespace UnityEditor.VFX
         }
 
         [FormerlySerializedAs("boundsSettingMode")]
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.All),
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.Default),
          Tooltip("Specifies how the bounds are set. They can be set manually, recorded in the Target GameObject window, or computed automatically at a small performance cost."),
          SerializeField]
         public BoundsSettingMode boundsMode = BoundsSettingMode.Recorded;

@@ -167,6 +167,21 @@ namespace UnityEditor.VFX
             throw new NotImplementedException(type.ToString());
         }
 
+        public static Type StringToType(string type)
+        {
+            switch (type)
+            {
+                case "float": return typeof(float);
+                case "float2": return typeof(Vector2);
+                case "float3": return typeof(Vector3);
+                case "float4": return typeof(Vector4);
+                case "int": return typeof(int);
+                case "uint": return typeof(uint);
+            }
+
+            throw new NotSupportedException($"Type not supported: {type}");
+        }
+
         public static bool IsTypeValidOnGPU(VFXValueType type)
         {
             switch (type)
@@ -185,6 +200,7 @@ namespace UnityEditor.VFX
                 case VFXValueType.CameraBuffer:
                 case VFXValueType.Matrix4x4:
                 case VFXValueType.Boolean:
+                case VFXValueType.Buffer:
                     return true;
             }
 

@@ -1,26 +1,17 @@
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using UnityEditor.Experimental.GraphView;
-using UnityEngine;
 using UnityEngine.UIElements;
-using UnityEngine.VFX;
-using UnityEditor.VFX.UIElements;
 
 namespace UnityEditor.VFX.UI
 {
     class VFXOperatorUI : VFXNodeUI
     {
         VisualElement m_EditButton;
+        VisualElement m_EditContainer;
+        float m_LastExpendedWidth;
 
         public VFXOperatorUI()
         {
             this.AddStyleSheetPath("VFXOperator");
-
-            m_Middle = new VisualElement();
-            m_Middle.name = "middle";
-            inputContainer.parent.Insert(1, m_Middle);
 
             m_EditButton = new VisualElement() { name = "edit" };
             m_EditButton.Add(new VisualElement() { name = "icon" });
@@ -29,8 +20,6 @@ namespace UnityEditor.VFX.UI
 
             RegisterCallback<GeometryChangedEvent>(OnPostLayout);
         }
-
-        VisualElement m_EditContainer;
 
         void OnEdit()
         {
@@ -51,8 +40,6 @@ namespace UnityEditor.VFX.UI
                 UpdateCollapse();
             }
         }
-
-        VisualElement m_Middle;
 
         public new VFXOperatorController controller
         {
@@ -156,15 +143,6 @@ namespace UnityEditor.VFX.UI
         {
             base.SelfChange();
 
-            bool hasMiddle = inputContainer.childCount != 0;
-            if (hasMiddle)
-            {
-                if (m_Middle.parent == null)
-                    inputContainer.parent.Insert(1, m_Middle);
-            }
-            else if (m_Middle.parent != null)
-                m_Middle.RemoveFromHierarchy();
-
             if (isEditable)
             {
                 if (m_EditButton.parent == null)
@@ -187,12 +165,16 @@ namespace UnityEditor.VFX.UI
                     m_EditButton.RemoveFromHierarchy();
             }
 
-            if (!base.expanded && m_EditContainer != null && m_EditContainer.parent != null)
+            if (!expanded && m_EditContainer != null && m_EditContainer.parent != null)
                 m_EditContainer.RemoveFromHierarchy();
         }
 
         void OnPostLayout(GeometryChangedEvent e)
         {
+            if (expanded)
+            {
+                m_LastExpendedWidth = layout.width;
+            }
             RefreshLayout();
         }
 
@@ -201,12 +183,12 @@ namespace UnityEditor.VFX.UI
             base.RefreshLayout();
             if (!superCollapsed)
             {
-                float settingsLabelWidth = 30;
-                float settingsControlWidth = 50;
+                var settingsLabelWidth = 30f;
+                var settingsControlWidth = 50f;
                 GetPreferedSettingsWidths(ref settingsLabelWidth, ref settingsControlWidth);
 
-                float labelWidth = 30;
-                float controlWidth = 50;
+                var labelWidth = 30f;
+                var controlWidth = 50f;
                 GetPreferedWidths(ref labelWidth, ref controlWidth);
 
                 ApplySettingsWidths(settingsLabelWidth, settingsControlWidth);
@@ -218,10 +200,9 @@ namespace UnityEditor.VFX.UI
                 // so that the expand/collapse button does not move
                 if (!expanded)
                 {
-                    var newMinWidth = resolvedStyle.width;
-                    if (resolvedStyle.minWidth.value < newMinWidth)
+                    if (resolvedStyle.minWidth.value < m_LastExpendedWidth)
                     {
-                        style.minWidth = newMinWidth;
+                        style.minWidth = m_LastExpendedWidth;
                     }
 
                     return;

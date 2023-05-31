@@ -66,6 +66,7 @@ namespace UnityEditor.VFX
         public ReadOnlyDictionary<VFXExpression, Type> graphicsBufferUsage;
         public VFXMapping[] parameters;
         public (VFXSlot slot, VFXData data)[] linkedEventOut;
+        public IHLSLCodeHolder[] hlslCodeHolders;
         public int indexInShaderSource;
     }
 
@@ -1172,6 +1173,7 @@ namespace UnityEditor.VFX
                     foreach (var task in compiledData.contextToCompiledData[context].tasks)
                     {
                         var contextData = compiledData.taskToCompiledData[task];
+                        contextData.hlslCodeHolders = m_ExpressionGraph.customHLSLExpressions;
                         contextData.cpuMapper = cpuMapper;
                         contextData.parameters = context.additionalMappings.ToArray();
                         contextData.linkedEventOut = ComputeEventListFromSlot(context.allLinkedOutputSlot).ToArray();

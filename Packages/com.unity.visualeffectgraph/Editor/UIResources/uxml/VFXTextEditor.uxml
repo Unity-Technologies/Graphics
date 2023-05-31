@@ -1,0 +1,8 @@
+<UXML
+    xmlns:ui="UnityEngine.UIElements"
+    xmlns:uie="UnityEditor.UIElements">
+    <ui:ScrollView vertical-scroller-visibility="AlwaysVisible">
+        <ui:Label name="emptyMessage" text="Click on the edit button in a Custom HLSL node to open some code." style="display:none" />
+        <ui:VisualElement name="container" pickingMode="Ignore" />
+    </ui:ScrollView>
+</UXML>

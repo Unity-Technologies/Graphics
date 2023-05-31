@@ -172,7 +172,7 @@ namespace UnityEditor.VFX.UI
         protected override void UpdateIndeterminate()
         {
             base.UpdateEnabled();
-            m_VectorField.visible = !indeterminate;
+            m_VectorField.control.indeterminate = indeterminate;
         }
 
         public override bool showsEverything { get { return true; } }

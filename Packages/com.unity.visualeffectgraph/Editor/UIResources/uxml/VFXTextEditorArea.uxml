@@ -1,0 +1,16 @@
+<UXML
+    xmlns:ui="UnityEngine.UIElements"
+    xmlns:uie="UnityEditor.UIElements">
+    <ui:VisualElement name="container" pickingMode="Ignore">
+        <uie:Toolbar>
+            <ui:Label name="Label" />
+            <uie:ToolbarButton name="Save" tooltip="Save changes" />
+            <ui:VisualElement style="flex-grow:1" />
+            <uie:ToolbarButton name="Close" tooltip="Close" />
+        </uie:Toolbar>
+        <ui:TextField name="TextEditor"
+                      multiline="True"
+                      pickingMode="Ignore">
+        </ui:TextField>
+    </ui:VisualElement>
+</UXML>
