@@ -1339,6 +1339,7 @@ namespace UnityEngine.Rendering.Universal
             else
             {
                 desc = camera.targetTexture.descriptor;
+                desc.msaaSamples = msaaSamples;
                 desc.width = scaledWidth;
                 desc.height = scaledHeight;
 
