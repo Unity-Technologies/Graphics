@@ -62,7 +62,7 @@ Material:
     - _BlendModePreserveSpecular: 1
     - _CastShadows: 0
     - _ClipDistance: 5
-    - _ClipOffset: 10
+    - _ClipOffset: 15
     - _Cull: 0
     - _DstBlend: 0
     - _PerBladeRandomTimeOffset: 0.204

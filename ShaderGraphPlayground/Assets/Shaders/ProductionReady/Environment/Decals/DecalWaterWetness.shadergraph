@@ -271,7 +271,7 @@
     "m_Hidden": false,
     "m_ShaderOutputName": "Occlusion",
     "m_StageCapability": 2,
-    "m_Value": 1.0,
+    "m_Value": 0.0,
     "m_DefaultValue": 1.0,
     "m_Labels": []
 }
@@ -286,7 +286,7 @@
     "m_Hidden": false,
     "m_ShaderOutputName": "_Sharpness",
     "m_StageCapability": 3,
-    "m_Value": 500000.0,
+    "m_Value": 100000.0,
     "m_DefaultValue": 0.0,
     "m_Labels": []
 }
@@ -325,7 +325,7 @@
     "m_Hidden": false,
     "m_ShaderOutputName": "Smoothness",
     "m_StageCapability": 2,
-    "m_Value": 0.699999988079071,
+    "m_Value": 1.0,
     "m_DefaultValue": 0.5,
     "m_Labels": []
 }
@@ -550,7 +550,7 @@
     },
     "m_Name": "DecalEdgeMask",
     "m_DrawState": {
-        "m_Expanded": false,
+        "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
             "x": -390.0,

@@ -625,6 +625,20 @@
             },
             "m_InputSlot": {
                 "m_Node": {
+                    "m_Id": "384336cf54794cc78901ac549afe7870"
+                },
+                "m_SlotId": 2
+            }
+        },
+        {
+            "m_OutputSlot": {
+                "m_Node": {
+                    "m_Id": "130e64d3b33c4e4e80c8a84f54a049d8"
+                },
+                "m_SlotId": 4
+            },
+            "m_InputSlot": {
+                "m_Node": {
                     "m_Id": "38b49fefa9404239a245c9d535e275d6"
                 },
                 "m_SlotId": 0
@@ -642,6 +656,20 @@
                     "m_Id": "38b49fefa9404239a245c9d535e275d6"
                 },
                 "m_SlotId": 1
+            }
+        },
+        {
+            "m_OutputSlot": {
+                "m_Node": {
+                    "m_Id": "130e64d3b33c4e4e80c8a84f54a049d8"
+                },
+                "m_SlotId": 4
+            },
+            "m_InputSlot": {
+                "m_Node": {
+                    "m_Id": "f8eb70c2048c478eafd0d25a21850e7a"
+                },
+                "m_SlotId": 0
             }
         },
         {
@@ -1160,34 +1188,6 @@
                     "m_Id": "843149e0e3a944adad3235c0305bb4b5"
                 },
                 "m_SlotId": 1
-            }
-        },
-        {
-            "m_OutputSlot": {
-                "m_Node": {
-                    "m_Id": "38b49fefa9404239a245c9d535e275d6"
-                },
-                "m_SlotId": 2
-            },
-            "m_InputSlot": {
-                "m_Node": {
-                    "m_Id": "384336cf54794cc78901ac549afe7870"
-                },
-                "m_SlotId": 2
-            }
-        },
-        {
-            "m_OutputSlot": {
-                "m_Node": {
-                    "m_Id": "38b49fefa9404239a245c9d535e275d6"
-                },
-                "m_SlotId": 2
-            },
-            "m_InputSlot": {
-                "m_Node": {
-                    "m_Id": "f8eb70c2048c478eafd0d25a21850e7a"
-                },
-                "m_SlotId": 0
             }
         },
         {
@@ -3077,7 +3077,7 @@
     "m_ShaderOutputName": "A",
     "m_StageCapability": 3,
     "m_Value": {
-        "x": 0.0,
+        "x": 0.4000000059604645,
         "y": 0.0,
         "z": 0.0,
         "w": 0.0
@@ -4314,7 +4314,7 @@
     "m_ShaderOutputName": "B",
     "m_StageCapability": 3,
     "m_Value": {
-        "x": 0.5,
+        "x": 0.699999988079071,
         "y": 1.0,
         "z": 1.0,
         "w": 1.0
@@ -5257,9 +5257,9 @@
     },
     "m_Color": {
         "color": {
-            "r": 0.45685669779777529,
-            "g": 0.5471698045730591,
-            "b": 0.33875492215156557,
+            "r": 0.4713892936706543,
+            "g": 0.5490196347236633,
+            "b": 0.33725491166114809,
             "a": 1.0
         },
         "mode": 0
@@ -6820,7 +6820,7 @@
     },
     "m_Name": "Lerp",
     "m_DrawState": {
-        "m_Expanded": false,
+        "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
             "x": -243.7500457763672,
@@ -10087,9 +10087,9 @@
     },
     "m_Color": {
         "color": {
-            "r": 0.5028747916221619,
-            "g": 0.5754716992378235,
-            "b": 0.20426532626152039,
+            "r": 0.5187700986862183,
+            "g": 0.5764706134796143,
+            "b": 0.20392155647277833,
             "a": 1.0
         },
         "mode": 0
@@ -16504,7 +16504,7 @@
     "m_ShaderOutputName": "B",
     "m_StageCapability": 3,
     "m_Value": {
-        "x": 5.0,
+        "x": 3.0,
         "y": 2.0,
         "z": 2.0,
         "w": 2.0
@@ -18152,9 +18152,9 @@
     },
     "m_Color": {
         "color": {
-            "r": 0.20010033249855042,
-            "g": 0.3207547068595886,
-            "b": 0.04425507038831711,
+            "r": 0.23073114454746247,
+            "g": 0.32156863808631899,
+            "b": 0.04313725233078003,
             "a": 1.0
         },
         "mode": 0
