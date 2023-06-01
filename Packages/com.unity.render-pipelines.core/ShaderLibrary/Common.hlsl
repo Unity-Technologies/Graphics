@@ -904,6 +904,7 @@ real Pow4(real x)
 #endif
 
 TEMPLATE_3_FLT(RangeRemap, min, max, t, return saturate((t - min) / (max - min)))
+TEMPLATE_3_FLT(RangeRemapFrom01, min, max, t,  return (max - min) * t + min)
 
 float4x4 Inverse(float4x4 m)
 {

@@ -1,6 +1,5 @@
 // Upgrade NOTE: replaced 'defined at' with 'defined (at)'
 
-
 #ifdef DEBUG_DISPLAY
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
 #endif
@@ -8,9 +7,13 @@
 #error SHADERPASS must be defined (at) this point
 #endif
 
-// Make VFX only sample probe volumes as SH0 for performance.
-#define PROBE_VOLUMES_SAMPLING_MODE PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L0
+#if defined(VFX_MATERIAL_TYPE_SIX_WAY_SMOKE)
+#include "Packages/com.unity.visualeffectgraph/Shaders/SixWay/VFXSixWayCommon.hlsl"
+#endif
 
+#if defined(VFX_MATERIAL_TYPE_SIX_WAY_SMOKE) && (SHADERPASS == SHADERPASS_FORWARD)
+//Do nothing. In Six-way lighting forward pass, these includes are required earlier, defined in VFXVertexProbeSampling.template
+#else
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
 
 #if (SHADERPASS == SHADERPASS_FORWARD) || (SHADERPASS == SHADERPASS_RAYTRACING_INDIRECT) || (SHADERPASS == SHADERPASS_RAYTRACING_FORWARD)
@@ -26,45 +29,41 @@
     #define HAS_LIGHTLOOP
 
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
-    #ifdef VFX_MATERIAL_TYPE_SIX_WAY_SMOKE
-        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/VFXGraph/Shaders/SmokeLighting/SixWaySmokeLit.hlsl"
+
+    #ifdef HDRP_MATERIAL_TYPE_SIMPLE
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/SimpleLit.hlsl"
         #define _DISABLE_SSR
+    #if defined(SHADER_STAGE_RAY_TRACING)
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/SimpleLitRayTracing.hlsl"
+    #endif
+    #else
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
+    #if defined(SHADER_STAGE_RAY_TRACING)
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitRayTracing.hlsl"
+    #endif
+    #endif
+
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.hlsl"
+
+#else // (SHADERPASS == SHADERPASS_FORWARD) || (SHADERPASS == SHADERPASS_RAYTRACING_INDIRECT) || (SHADERPASS == SHADERPASS_RAYTRACING_FORWARD)
+    #ifdef VFX_MATERIAL_TYPE_SIX_WAY_SMOKE
+        #include  "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/SixWayLit/SixWaySmokeLit.hlsl"
     #else
         #ifdef HDRP_MATERIAL_TYPE_SIMPLE
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/SimpleLit.hlsl"
-            #define _DISABLE_SSR
-        #if defined(SHADER_STAGE_RAY_TRACING)
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/SimpleLitRayTracing.hlsl"
-        #endif
+            #if defined(SHADER_STAGE_RAY_TRACING)
+                #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/SimpleLitRayTracing.hlsl"
+            #endif
         #else
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
-        #if defined(SHADER_STAGE_RAY_TRACING)
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitRayTracing.hlsl"
-        #endif
-        #endif
-    #endif
-
-        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.hlsl"
-
-#else // (SHADERPASS == SHADERPASS_FORWARD) || (SHADERPASS == SHADERPASS_RAYTRACING_INDIRECT) || (SHADERPASS == SHADERPASS_RAYTRACING_FORWARD)
-
-#ifdef VFX_MATERIAL_TYPE_SIX_WAY_SMOKE
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/VFXGraph/Shaders/SmokeLighting/SixWaySmokeLit.hlsl"
-#else
-    #ifdef HDRP_MATERIAL_TYPE_SIMPLE
-        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/SimpleLit.hlsl"
-        #if defined(SHADER_STAGE_RAY_TRACING)
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/SimpleLitRayTracing.hlsl"
-        #endif
-    #else
-        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
-        #if defined(SHADER_STAGE_RAY_TRACING)
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitRayTracing.hlsl"
+            #if defined(SHADER_STAGE_RAY_TRACING)
+                #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitRayTracing.hlsl"
+            #endif
         #endif
     #endif
-#endif
 
 #endif // (SHADERPASS == SHADERPASS_FORWARD)
+#endif
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl"
 
@@ -157,52 +156,50 @@ SurfaceData VFXGetSurfaceData(const VFX_VARYING_PS_INPUTS i, float3 normalWS,con
         #ifdef VFX_VARYING_ABSORPTIONRANGE
         surfaceData.absorptionRange = i.VFX_VARYING_ABSORPTIONRANGE;
         #endif
-        surfaceData.rigRTBk = SampleTexture(VFX_SAMPLER(positiveAxesLightmap),uvData).rgb;
-        surfaceData.rigLBtF = SampleTexture(VFX_SAMPLER(negativeAxesLightmap),uvData).rgb;
+        float4 lightmapPositive = SampleTexture(VFX_SAMPLER(positiveAxesLightmap),uvData);
+        float4 lightmapNegative = SampleTexture(VFX_SAMPLER(negativeAxesLightmap),uvData);
+        surfaceData.rightTopBack = lightmapPositive.rgb;
+        surfaceData.leftBottomFront = lightmapNegative.rgb;
         #if VFX_STRIPS_SWAP_UV
-            SixWaySwapUV(surfaceData.rigRTBk, surfaceData.rigLBtF);
+            SixWaySwapUV(surfaceData.rightTopBack, surfaceData.leftBottomFront);
         #endif
-        float mapAlpha = SampleTexture(VFX_SAMPLER(positiveAxesLightmap),uvData).a;
-        color.a *= SampleTexture(VFX_SAMPLER(positiveAxesLightmap),uvData).a;
+        float mapAlpha = lightmapPositive.a;
+        color.a *= mapAlpha;
         #if VFX_SIX_WAY_REMAP
             #if VFX_BLENDMODE_PREMULTIPLY
-                surfaceData.rigRTBk /= (mapAlpha + VFX_EPSILON);
-                surfaceData.rigLBtF /= (mapAlpha + VFX_EPSILON);
+                surfaceData.rightTopBack /= (mapAlpha + VFX_EPSILON);
+                surfaceData.leftBottomFront /= (mapAlpha + VFX_EPSILON);
             #endif
             #if defined(VFX_VARYING_LIGHTMAP_REMAP_RANGES)
                 float4 remapRanges = i.VFX_VARYING_LIGHTMAP_REMAP_RANGES;
-                RemapLightMapsRangesFrom(surfaceData.rigRTBk, surfaceData.rigLBtF, mapAlpha, remapRanges);
+                RemapLightMapsRangesFrom(surfaceData.rightTopBack, surfaceData.leftBottomFront, mapAlpha, remapRanges);
             #endif
             #if defined(VFX_VARYING_LIGHTMAP_REMAP_CONTROLS)
                 float2 lightmapControls = i.VFX_VARYING_LIGHTMAP_REMAP_CONTROLS;
-                RemapLightMaps(surfaceData.rigRTBk, surfaceData.rigLBtF, lightmapControls);
+                RemapLightMaps(surfaceData.rightTopBack, surfaceData.leftBottomFront, lightmapControls);
             #elif defined(VFX_VARYING_LIGHTMAP_REMAP_CURVE)
                 float4 remapCurve = i.VFX_VARYING_LIGHTMAP_REMAP_CURVE;
-                RemapLightMaps(surfaceData.rigRTBk, surfaceData.rigLBtF, remapCurve);
+                RemapLightMaps(surfaceData.rightTopBack, surfaceData.leftBottomFront, remapCurve);
             #endif
             #if defined(VFX_VARYING_LIGHTMAP_REMAP_RANGES)
-                RemapLightMapsRangesTo(surfaceData.rigRTBk, surfaceData.rigLBtF, mapAlpha, remapRanges);
+                RemapLightMapsRangesTo(surfaceData.rightTopBack, surfaceData.leftBottomFront, mapAlpha, remapRanges);
             #endif
             #if VFX_BLENDMODE_PREMULTIPLY
-                surfaceData.rigRTBk *= (mapAlpha + VFX_EPSILON);
-                surfaceData.rigLBtF *= (mapAlpha + VFX_EPSILON);
+                surfaceData.rightTopBack *= (mapAlpha + VFX_EPSILON);
+                surfaceData.leftBottomFront *= (mapAlpha + VFX_EPSILON);
             #endif
         #endif
         float invEnergy = INV_PI;
-        surfaceData.rigRTBk *= invEnergy;
-        surfaceData.rigLBtF *= invEnergy;
+        surfaceData.rightTopBack *= invEnergy;
+        surfaceData.leftBottomFront *= invEnergy;
         #if VFX_SIX_WAY_USE_ALPHA_REMAP
             color.a = SampleCurve(i.VFX_VARYING_ALPHA_REMAP, color.a);
         #endif
 
-        #if defined(VFX_VARYING_BAKE_DIFFUSE_LIGHTING) && defined(VFX_VARYING_BACK_BAKE_DIFFUSE_LIGHTING)
+        #if defined(VFX_VARYING_BAKE_DIFFUSE_LIGHTING)
             surfaceData.bakeDiffuseLighting0 = i.VFX_VARYING_BAKE_DIFFUSE_LIGHTING[0];
             surfaceData.bakeDiffuseLighting1 = i.VFX_VARYING_BAKE_DIFFUSE_LIGHTING[1];
             surfaceData.bakeDiffuseLighting2 = i.VFX_VARYING_BAKE_DIFFUSE_LIGHTING[2];
-
-            surfaceData.backBakeDiffuseLighting0 = i.VFX_VARYING_BACK_BAKE_DIFFUSE_LIGHTING[0];
-            surfaceData.backBakeDiffuseLighting1 = i.VFX_VARYING_BACK_BAKE_DIFFUSE_LIGHTING[1];
-            surfaceData.backBakeDiffuseLighting2 = i.VFX_VARYING_BACK_BAKE_DIFFUSE_LIGHTING[2];
         #endif
 
         #ifdef VFX_VARYING_TANGENT

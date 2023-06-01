@@ -1,118 +1,38 @@
 ﻿${VFXBegin:VFXVertexProbeDeclareVaryings}
-//Store the contributions along the 2x3 directions (6xfloat3)
-// the matrices are considered as arrays so the semantic must be incremented by 3
-float3x3 bakeDiffuseLighting : BAKEDIFFUSE0;
-float3x3 backBakeDiffuseLighting : BAKEDIFFUSE3;
+//Store a compacted version of the contributions in the six directions (3xfloat4)
+#if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
+#define INDIRECT_INTERPOLATION
+#else
+#define INDIRECT_INTERPOLATION nointerpolation
+#endif
+
+INDIRECT_INTERPOLATION float4 bakeDiffuseLighting[3] : BAKEDIFFUSE0;
 ${VFXEnd}
 
 ${VFXBegin:VFXVertexProbeVaryingsMacros}
 #define VFX_VARYING_BAKE_DIFFUSE_LIGHTING bakeDiffuseLighting
-#define VFX_VARYING_BACK_BAKE_DIFFUSE_LIGHTING backBakeDiffuseLighting
 ${VFXEnd}
 
 ${VFXBegin:VFXVertexProbeFillVaryings}
 #if VFX_MATERIAL_TYPE_SIX_WAY_SMOKE
-    #if !defined(PROBE_VOLUMES_L1) && !defined(PROBE_VOLUMES_L2)
-        EvaluateLightProbeBuiltInSixWay(o);
-    #else
-        EvaluateAdaptiveProbeVolumeSixWay(o);
-    #endif
+#if VFX_PRIMITIVE_QUAD || VFX_PRIMITIVE_TRIANGLE || VFX_PRIMITIVE_OCTAGON
+float4 inTangent = float4(o.VFX_VARYING_TANGENT, 1.0f);
+#else
+float4 inTangent = o.VFX_VARYING_TANGENT;
+#endif
+    GatherDiffuseGIData(o.VFX_VARYING_NORMAL, inTangent, o.VFX_VARYING_POSWS,
+                                                          o.VFX_VARYING_BAKE_DIFFUSE_LIGHTING[0],
+                                                          o.VFX_VARYING_BAKE_DIFFUSE_LIGHTING[1],
+                                                          o.VFX_VARYING_BAKE_DIFFUSE_LIGHTING[2]);
 #endif
 ${VFXEnd}
 
-${VFXBegin:VFXVertexProbeDeclareFunctions}
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl"
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinGIUtilities.hlsl"
 
-float3x3 GetLocalTBN(VFX_VARYING_PS_INPUTS input)
-{
-    float3 zVec = -input.VFX_VARYING_NORMAL.xyz;
-    float3 xVec = input.VFX_VARYING_TANGENT.xyz;
-    float3 yVec = cross(zVec, xVec);
-    return float3x3(xVec, yVec, zVec);
-}
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
+#define HAS_LIGHTLOOP
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/SixWayLit/SixWaySmokeLit.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.hlsl"
 
-#if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
 
-void SampleAPVSixWay(APVSample apvSample, inout VFX_VARYING_PS_INPUTS input)
-{
-    float3 bakeDiffuseLighting, backBakeDiffuseLighting;
-    float3x3 tbn = GetLocalTBN(input);
-
-    for (int i = 0; i<3; i++)
-    {
-        EvaluateAPVL1(apvSample, tbn[i], bakeDiffuseLighting);
-        EvaluateAPVL1(apvSample, -tbn[i], backBakeDiffuseLighting);
-        input.VFX_VARYING_BAKE_DIFFUSE_LIGHTING[i] = bakeDiffuseLighting + apvSample.L0;
-        input.VFX_VARYING_BACK_BAKE_DIFFUSE_LIGHTING[i] = backBakeDiffuseLighting + apvSample.L0;
-    }
-}
-
-void EvaluateAmbientProbeSixWay(float weight, inout VFX_VARYING_PS_INPUTS input)
-{
-    float3 bakeDiffuseLighting = 0;
-    float3 backBakeDiffuseLighting = 0;
-    float3x3 tbn = GetLocalTBN(input);
-
-    for (int i = 0; i<3; i++)
-    {
-        bakeDiffuseLighting = lerp(EvaluateAmbientProbe(tbn[i]), bakeDiffuseLighting, weight);
-        backBakeDiffuseLighting = lerp(EvaluateAmbientProbe(-tbn[i]), backBakeDiffuseLighting, weight);
-        input.VFX_VARYING_BAKE_DIFFUSE_LIGHTING[i] = bakeDiffuseLighting;
-        input.VFX_VARYING_BACK_BAKE_DIFFUSE_LIGHTING[i] = backBakeDiffuseLighting;
-    }
-}
-
-void EvaluateAdaptiveProbeVolumeSixWay(inout VFX_VARYING_PS_INPUTS input)
-{
-    APVResources apvRes = FillAPVResources();
-    float3 posWS = GetAbsolutePositionWS(input.VFX_VARYING_POSWS);
-    float4 posSS = input.VFX_VARYING_POSCS * 0.5f;
-    posSS.xy = float2(posSS.x, posSS.y * _ProjectionParams.x) + posSS.w;
-    float3 V = GetWorldSpaceNormalizeViewDir(input.VFX_VARYING_POSWS);
-
-    if (_PVSamplingNoise > 0)
-    {
-        float noise1D_0 = (InterleavedGradientNoise(posSS, 0) * 2.0f - 1.0f) * _PVSamplingNoise;
-        posWS += noise1D_0;
-    }
-
-    APVSample apvSample = SampleAPV(posWS, float3(0,0,0), V);
-
-    if (apvSample.status != APV_SAMPLE_STATUS_INVALID)
-    {
-        #if MANUAL_FILTERING == 0
-        apvSample.Decode();
-        #endif
-
-        SampleAPVSixWay(apvSample, input); //Sample Only L1 even if L2 is available
-
-        if (_Weight < 1.f)
-        {
-            EvaluateAmbientProbeSixWay(_Weight, input);
-        }
-    }
-    else
-    {
-        // no valid brick, fallback to ambient probe
-        EvaluateAmbientProbeSixWay(0.0f, input);
-    }
-}
-
-#endif
-
-void EvaluateLightProbeBuiltInSixWay(inout VFX_VARYING_PS_INPUTS input)
-{
-    float3x3 tbn = GetLocalTBN(input);
-
-    for (int i = 0; i<3; i++)
-    {
-        float3 bakeDiffuseLighting = 0;
-        float3 backBakeDiffuseLighting = 0;
-        EvaluateLightProbeBuiltin(input.VFX_VARYING_POSWS, tbn[i], -tbn[i], bakeDiffuseLighting, backBakeDiffuseLighting);
-        input.VFX_VARYING_BAKE_DIFFUSE_LIGHTING[i] = bakeDiffuseLighting;
-        input.VFX_VARYING_BACK_BAKE_DIFFUSE_LIGHTING[i] = backBakeDiffuseLighting;
-    }
-}
-${VFXEnd}

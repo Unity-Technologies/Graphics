@@ -56,16 +56,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
 
-            if (TargetsVFX())
-            {
-                string inspector;
-                if (supportLighting)
-                    inspector = typeof(VFXShaderGraphGUILit).FullName;
-                else
-                    inspector = typeof(VFXShaderGraphGUIUnlit).FullName;
-                context.AddCustomEditorForRenderPipeline(inspector, typeof(HDRenderPipelineAsset));
-            }
-
             base.Setup(ref context);
         }
 

@@ -13,5 +13,10 @@ namespace UnityEditor.Rendering.Universal
     {
         protected override uint materialFilter => uint.MaxValue & ~(uint)Expandable.SurfaceInputs;
     }
+
+    internal class VFXSixWayGUI : SixWayGUI
+    {
+        protected override uint materialFilter => uint.MaxValue & ~(uint)Expandable.SurfaceInputs;
+    }
 }
 #endif

@@ -133,6 +133,7 @@ namespace UnityEditor.VFX.URP
                     case ShaderUtils.ShaderID.SG_Lit:
                     case ShaderUtils.ShaderID.SG_SpriteLit:
                     case ShaderUtils.ShaderID.SG_SpriteCustomLit: return "Lit";
+                    case ShaderUtils.ShaderID.SG_SixWaySmokeLit: return "Six-way Lit";
                 }
             }
             return string.Empty;
@@ -189,23 +190,14 @@ namespace UnityEditor.VFX.URP
             }
         };
 
-        static StructDescriptor AppendVFXInterpolator(StructDescriptor interpolator, VFXContext context, VFXTaskCompiledData contextData)
-        {
-            var fields = interpolator.fields.ToList();
-			
-			fields.AddRange(VFXSubTarget.GetVFXInterpolators(UniversalStructs.Varyings.name, context, contextData));
-
-            fields.Add(StructFields.Varyings.worldToElement0);
-            fields.Add(StructFields.Varyings.worldToElement1);
-            fields.Add(StructFields.Varyings.worldToElement2);
-
-            fields.Add(StructFields.Varyings.elementToWorld0);
-            fields.Add(StructFields.Varyings.elementToWorld1);
-            fields.Add(StructFields.Varyings.elementToWorld2);
-
-            interpolator.fields = fields.ToArray();
-            return interpolator;
-        }
+        static readonly FieldDescriptor[] VaryingsAdditionalFields = {
+            StructFields.Varyings.worldToElement0,
+            StructFields.Varyings.worldToElement1,
+            StructFields.Varyings.worldToElement2,
+            StructFields.Varyings.elementToWorld0,
+            StructFields.Varyings.elementToWorld1,
+            StructFields.Varyings.elementToWorld2,
+        };
 
         static IEnumerable<FieldDescriptor> GenerateSurfaceDescriptionInput(VFXContext context, VFXTaskCompiledData contextData)
         {
@@ -217,7 +209,7 @@ namespace UnityEditor.VFX.URP
                 alreadyAddedField.Add(field.name);
                 yield return field;
             }
-			
+
 			// VFX Material Properties
 			if (contextData.SGInputs != null)
             {
@@ -230,10 +222,10 @@ namespace UnityEditor.VFX.URP
 
 					if (alreadyAddedField.Contains(name))
 						throw new Exception($"Name conflict detected in SurfaceDescriptionInputs: {name}");
-					
+
                     yield return new FieldDescriptor(StructFields.SurfaceDescriptionInputs.name, name, "", shaderValueType);
                 }
-            }			
+            }
         }
 
         public override ShaderGraphBinder GetShaderGraphDescriptor(VFXContext context, VFXTaskCompiledData data)
@@ -244,16 +236,15 @@ namespace UnityEditor.VFX.URP
                 populateWithCustomInterpolators = true,
                 fields = GenerateSurfaceDescriptionInput(context, data).ToArray()
             };
-
             return new ShaderGraphBinder()
             {
-                structs = new StructCollection
+                baseStructs = new StructCollection
                 {
                     AttributesMeshVFX, // TODO: Could probably re-use the original HD Attributes Mesh and just ensure Instancing enabled.
-                    AppendVFXInterpolator(UniversalStructs.Varyings, context, data),
-                    surfaceDescriptionInputWithVFX, //N.B. FragInput is in SurfaceDescriptionInputs
                     Structs.VertexDescriptionInputs,
+                    surfaceDescriptionInputWithVFX
                 },
+                varyingsAdditionalFields = VaryingsAdditionalFields,
 
                 fieldDependencies = ElementSpaceDependencies,
                 pragmasReplacement = new []

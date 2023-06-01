@@ -1,0 +1,101 @@
+﻿#define USE_EMISSIVE_MAP HDRP_USE_EMISSIVE_MAP || URP_USE_EMISSIVE_MAP
+
+${VFXBegin:SixWayVaryingsMacros}
+    #if VFX_SIX_WAY_COLOR_ABSORPTION
+        #define VFX_VARYING_ABSORPTIONRANGE absorptionRange
+    #endif
+    #if VFX_SIX_WAY_USE_ALPHA_REMAP
+        #define VFX_VARYING_ALPHA_REMAP alphaRemap
+    #endif
+    #if VFX_SIX_WAY_USE_ONE_EMISSIVE_CHANNEL
+        #define VFX_VARYING_EMISSIVE_GRADIENT emissiveControls.xy
+        #if VFX_SIX_WAY_EMISSIVE_CHANNEL_SCALE
+            #define VFX_VARYING_EMISSIVE_CHANNEL_SCALE emissiveControls.z
+        #endif
+        #define VFX_VARYING_EMISSIVE_MULTIPLIER emissiveControls.w
+    #endif
+
+    #if VFX_SIX_WAY_REMAP_RANGES
+        #define VFX_VARYING_LIGHTMAP_REMAP_RANGES lightmapRemapRanges
+    #endif
+    #if VFX_SIX_WAY_REMAP_NONLIN
+        #define VFX_VARYING_LIGHTMAP_REMAP_CONTROLS lightmapRemapControls
+    #endif
+    #if VFX_SIX_WAY_REMAP_CURVE
+        #define VFX_VARYING_LIGHTMAP_REMAP_CURVE lightRemapCurve
+    #endif
+    #if USE_EMISSIVE_MAP
+        #define VFX_VARYING_EMISSIVESCALE emissiveScale
+    #endif
+${VFXEnd}
+
+${VFXBegin:SixWayDeclareVaryings}
+    #if VFX_SIX_WAY_USE_ALPHA_REMAP
+        nointerpolation float4 alphaRemap : TEXCOORD10;
+    #endif
+    #if VFX_SIX_WAY_USE_ONE_EMISSIVE_CHANNEL
+        nointerpolation float4 emissiveControls : TEXCOORD11;
+    #endif
+    #if VFX_SIX_WAY_REMAP_NONLIN
+        VFX_OPTIONAL_INTERPOLATION float2 lightmapRemapControls : TEXCOORD12;
+    #endif
+
+    #if VFX_SIX_WAY_REMAP_CURVE
+    nointerpolation float4 lightRemapCurve : TEXCOORD13;
+    #endif
+
+    #if VFX_SIX_WAY_REMAP_RANGES
+        VFX_OPTIONAL_INTERPOLATION float4 lightmapRemapRanges : TEXCOORD14;
+    #endif
+
+    #if USE_EMISSIVE_MAP
+        VFX_OPTIONAL_INTERPOLATION float emissiveScale : TEXCOORD0;
+    #endif
+
+    #if VFX_SIX_WAY_COLOR_ABSORPTION
+        VFX_OPTIONAL_INTERPOLATION float absorptionRange : TEXCOORD15;
+    #endif
+${VFXVertexProbeDeclareVaryings}
+${VFXEnd}
+
+${VFXBegin:SixWayFillVaryings}
+#if defined(VFX_VARYING_EMISSIVE_MULTIPLIER)
+${VFXLoadParameter:{emissiveMultiplier}}
+o.VFX_VARYING_EMISSIVE_MULTIPLIER = emissiveMultiplier;
+#endif
+
+#if defined(VFX_VARYING_EMISSIVE_CHANNEL_SCALE)
+${VFXLoadParameter:{emissiveChannelScale}}
+o.VFX_VARYING_EMISSIVE_CHANNEL_SCALE = emissiveChannelScale;
+#endif
+#if defined(VFX_VARYING_ALPHA_REMAP)
+${VFXLoadParameter:{alphaRemap}}
+o.VFX_VARYING_ALPHA_REMAP = alphaRemap;
+#endif
+#if defined(VFX_VARYING_EMISSIVE_GRADIENT)
+${VFXLoadParameter:{emissiveGradient}}
+o.VFX_VARYING_EMISSIVE_GRADIENT = emissiveGradient;
+#endif
+
+#ifdef VFX_VARYING_ABSORPTIONRANGE
+${VFXLoadParameter:{absorptionRange}}
+o.VFX_VARYING_ABSORPTIONRANGE = absorptionRange;
+#endif
+
+#if defined(VFX_VARYING_LIGHTMAP_REMAP_CONTROLS)
+${VFXLoadParameter:{lightmapRemapControls}}
+o.VFX_VARYING_LIGHTMAP_REMAP_CONTROLS = lightmapRemapControls;
+#endif
+
+#if defined(VFX_VARYING_LIGHTMAP_REMAP_RANGES)
+${VFXLoadParameter:{remapFrom}}
+${VFXLoadParameter:{remapTo}}
+o.VFX_VARYING_LIGHTMAP_REMAP_RANGES = float4(remapFrom, remapTo);
+#endif
+
+#if defined(VFX_VARYING_LIGHTMAP_REMAP_CURVE)
+${VFXLoadParameter:{lightRemapCurve}}
+o.VFX_VARYING_LIGHTMAP_REMAP_CURVE = lightRemapCurve;
+#endif
+${VFXEnd}
+

@@ -806,6 +806,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             if (m_ActiveSubTarget.value is UniversalUnlitSubTarget)
                 return true;
 
+            if (m_ActiveSubTarget.value is UniversalSixWaySubTarget)
+                return true;
+
             if (m_ActiveSubTarget.value is UniversalLitSubTarget)
                 return true;
 

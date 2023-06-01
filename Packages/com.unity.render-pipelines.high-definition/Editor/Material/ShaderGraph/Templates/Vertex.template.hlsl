@@ -144,6 +144,10 @@ FragInputs BuildFragInputs(VaryingsMeshToPS input)
     $FragInputs.texCoord2:                      output.texCoord2 =                  input.texCoord2;
     $FragInputs.texCoord3:                      output.texCoord3 =                  input.texCoord3;
     $FragInputs.color:                          output.color =                      input.color;
+    $FragInputs.diffuseGIData0:                 output.diffuseGIData[0] =           input.diffuseGIData0;
+    $FragInputs.diffuseGIData1:                 output.diffuseGIData[1] =           input.diffuseGIData1;
+    $FragInputs.diffuseGIData2:                 output.diffuseGIData[2] =           input.diffuseGIData2;
+
 
 #ifdef HAVE_VFX_MODIFICATION
     // FragInputs from VFX come from two places: Interpolator or CBuffer.

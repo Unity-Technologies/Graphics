@@ -352,7 +352,7 @@ float EvaluateLight_EnvIntersection(float3 positionWS, float3 normalWS, EnvLight
 #endif
 #define LIGHT_EVALUATION_NO_CONTACT_SHADOWS
 // TODO: validate that the condition will work!
-#if !HDRP_ENABLE_SHADOWS
+#if defined(_RECEIVE_SHADOWS_OFF)
 #define LIGHT_EVALUATION_NO_SHADOWS
 #endif
 #define LIGHT_EVALUATION_NO_CLOUDS_SHADOWS

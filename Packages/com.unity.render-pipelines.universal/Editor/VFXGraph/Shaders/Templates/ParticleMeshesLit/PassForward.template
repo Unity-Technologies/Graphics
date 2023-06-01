@@ -1,7 +1,7 @@
 // Forward pass
 Pass
 {
-    Tags { "LightMode"="UniversalForward" }
+    Tags { "LightMode"="${VFXURPForwardPassName}" }
 
     ${VFXStencilForward}
 
@@ -9,9 +9,9 @@ Pass
     #pragma target 4.5
     ${VFXPassForwardLitAdditionalPragma}
     ${VFXURPForwardDefines}
-    //#pragma enable_d3d11_debug_symbols
 
     ${VFXIncludeRP("VFXLitVaryings.template")}
+	${VFXIncludeRP("VFXVertexProbeSampling.template"),VFX_MATERIAL_TYPE_SIX_WAY_SMOKE}
 
     struct ps_input
     {
@@ -41,7 +41,7 @@ Pass
         float4 vertexColor : COLOR1;
         #endif
         float3 normal : TEXCOORD2;
-        #if USE_NORMAL_MAP || SHADERGRAPH_NEEDS_TANGENT_FORWARD
+        #if USE_NORMAL_MAP || SHADERGRAPH_NEEDS_TANGENT_FORWARD || VFX_MATERIAL_TYPE_SIX_WAY_SMOKE
         float4 tangent : TEXCOORD3;
         #endif
         #if USE_SOFT_PARTICLE || USE_ALPHA_TEST || USE_FLIPBOOK_INTERPOLATION || VFX_FEATURE_MOTION_VECTORS_FORWARD
@@ -67,6 +67,10 @@ Pass
 
 ${VFXURPLitVaryingsMacros}
 
+#if VFX_MATERIAL_TYPE_SIX_WAY_SMOKE
+${VFXVertexProbeVaryingsMacros}
+#endif
+
 #define VFX_VARYING_PS_INPUTS ps_input
 #define VFX_VARYING_POSCS pos
 #define VFX_VARYING_UV uv
@@ -75,13 +79,16 @@ ${VFXURPLitVaryingsMacros}
 #define VFX_VARYING_FRAMEBLEND builtInInterpolants.z
 #define VFX_VARYING_MOTIONVECTORSCALE builtInInterpolants2.xy
 #define VFX_VARYING_NORMAL normal
-#if USE_NORMAL_MAP || SHADERGRAPH_NEEDS_TANGENT_FORWARD
+#if USE_NORMAL_MAP || SHADERGRAPH_NEEDS_TANGENT_FORWARD || VFX_MATERIAL_TYPE_SIX_WAY_SMOKE
 #define VFX_VARYING_TANGENT tangent
 #endif
 #define VFX_VARYING_POSWS posWS
 
+${VFXVertexProbeDeclareFunctions}
+
 ${VFXBegin:VFXVertexAdditionalProcess}
 ${VFXURPLitFillVaryings}
+${VFXVertexProbeFillVaryings}
 ${VFXEnd}
 
     ${VFXIncludeRP("Templates/ParticleMeshesLit/Pass.template")}
@@ -103,6 +110,10 @@ ${VFXEnd}
         VFX_FRAG_SETUP_INSTANCE_ID(i);
         ${VFXComputeNormalWS}
 
+#if !USE_DOUBLE_SIDED
+		const bool frontFace = true;
+#endif
+
         #ifdef VFX_SHADERGRAPH
             ${VFXAdditionalInterpolantsPreparation}
             ${SHADERGRAPH_PIXEL_CALL_FORWARD}
@@ -110,7 +121,7 @@ ${VFXEnd}
             ${VFXIncludeRP("VFXSGSurfaceData.template")}
             outColor = VFXGetPixelOutputForwardShaderGraph(i, surface, normalWS);
         #else
-            outColor = VFXGetPixelOutputForward(i, normalWS, uvData);
+            outColor = VFXGetPixelOutputForward(i, normalWS, uvData, frontFace);
         #endif
     }
     ENDHLSL

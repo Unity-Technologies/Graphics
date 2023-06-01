@@ -58,6 +58,7 @@ $Varyings.screenPosition: #define VARYINGS_NEED_SCREENPOSITION
 $Varyings.fogFactorAndVertexLight: #define VARYINGS_NEED_FOG_AND_VERTEX_LIGHT
 $Varyings.shadowCoord: #define VARYINGS_NEED_SHADOW_COORD
 $Varyings.cullFace: #define VARYINGS_NEED_CULLFACE
+$Varyings.diffuseGIData0: #define VARYINGS_NEED_SIX_WAY_DIFFUSE_GI_DATA
 $features.graphVertex: #define FEATURES_GRAPH_VERTEX
 $Universal.UseLegacySpriteBlocks: #define UNIVERSAL_USELEGACYSPRITEBLOCKS
 $splice(PassInstancing)

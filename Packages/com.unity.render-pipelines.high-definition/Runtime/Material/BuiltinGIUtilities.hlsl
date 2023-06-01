@@ -49,6 +49,21 @@ real3 EvaluateAmbientProbe(real3 normalWS)
     return SampleSH9(_AmbientProbeData, normalWS);
 }
 
+real3 EvaluateAmbientProbeL1(real3 normalWS)
+{
+    real4 SHCoefficients[3];
+    SHCoefficients[0] = _AmbientProbeData[0];
+    SHCoefficients[1] = _AmbientProbeData[1];
+    SHCoefficients[2] = _AmbientProbeData[2];
+
+    return SampleSH4_L1(SHCoefficients, normalWS);
+}
+
+real3 EvaluateAmbientProbeL0()
+{
+    return real3(_AmbientProbeData[0].w, _AmbientProbeData[1].w, _AmbientProbeData[2].w);
+}
+
 real3 EvaluateLightProbe(real3 normalWS)
 {
     real4 SHCoefficients[7];
@@ -61,6 +76,21 @@ real3 EvaluateLightProbe(real3 normalWS)
     SHCoefficients[6] = unity_SHC;
 
     return SampleSH9(SHCoefficients, normalWS);
+}
+
+real3 EvaluateLightProbeL1(real3 normalWS)
+{
+    real4 SHCoefficients[3];
+    SHCoefficients[0] = unity_SHAr;
+    SHCoefficients[1] = unity_SHAg;
+    SHCoefficients[2] = unity_SHAb;
+
+    return SampleSH4_L1(SHCoefficients, normalWS);
+}
+
+real3 EvaluateLightProbeL0()
+{
+    return real3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
 }
 
 #if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)

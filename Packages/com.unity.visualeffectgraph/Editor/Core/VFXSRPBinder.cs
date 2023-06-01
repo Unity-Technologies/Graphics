@@ -19,7 +19,8 @@ namespace UnityEditor.VFX
             public static readonly PragmaDescriptor kPragmaDescriptorNone = new() { value = "None" };
             public static readonly KeywordDescriptor kKeywordDescriptorNone = new() { referenceName = "None" };
 
-            public StructCollection structs;
+            public StructCollection baseStructs;
+            public FieldDescriptor[] varyingsAdditionalFields;
             public DependencyCollection fieldDependencies;
             public (PragmaDescriptor oldDesc, PragmaDescriptor newDesc)[] pragmasReplacement;
             public (KeywordDescriptor oldDesc, KeywordDescriptor newDesc)[] keywordsReplacement;

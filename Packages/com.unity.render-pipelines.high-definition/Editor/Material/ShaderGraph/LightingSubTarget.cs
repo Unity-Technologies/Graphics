@@ -40,6 +40,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public override void Setup(ref TargetSetupContext context)
         {
             context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
+            if (TargetsVFX())
+            {
+                var inspector = typeof(VFXShaderGraphGUILit).FullName;
+                context.AddCustomEditorForRenderPipeline(inspector, typeof(HDRenderPipelineAsset));
+            }
             base.Setup(ref context);
         }
 

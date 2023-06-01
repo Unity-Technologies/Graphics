@@ -14,10 +14,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             StructCollection structs = input == null ? new StructCollection() : new StructCollection { input };
 
-            if (useVFX) // Do nothing the struct will be replace in PostProcessSubShader of VFXHDRPSubTargets
-                return structs;
-            else
-                structs.Add(useTessellation ? CoreStructCollections.BasicTessellation : CoreStructCollections.Basic);
+            structs.Add(useTessellation && !useVFX ? CoreStructCollections.BasicTessellation : CoreStructCollections.Basic);
 
             return structs;
         }

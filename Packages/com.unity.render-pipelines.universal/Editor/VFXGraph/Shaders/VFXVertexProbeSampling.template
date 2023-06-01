@@ -1,0 +1,36 @@
+${VFXBegin:VFXVertexProbeDeclareVaryings}
+//Store a compacted version of the contributions in the six directions (3xfloat4)
+#if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
+#define INDIRECT_INTERPOLATION
+#else
+#define INDIRECT_INTERPOLATION nointerpolation
+#endif
+
+INDIRECT_INTERPOLATION float4 bakeDiffuseLighting[3] : BAKEDIFFUSE0;
+${VFXEnd}
+
+${VFXBegin:VFXVertexProbeVaryingsMacros}
+#define VFX_VARYING_BAKE_DIFFUSE_LIGHTING bakeDiffuseLighting
+${VFXEnd}
+
+${VFXBegin:VFXVertexProbeFillVaryings}
+#if VFX_MATERIAL_TYPE_SIX_WAY_SMOKE
+   EvaluateProbesSixWay(o);
+#endif
+${VFXEnd}
+
+${VFXBegin:VFXVertexProbeDeclareFunctions}
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SixWayLighting.hlsl"
+
+void EvaluateProbesSixWay(inout VFX_VARYING_PS_INPUTS input)
+{
+    float3 positionWS = GetAbsolutePositionWS(input.VFX_VARYING_POSWS);
+    float3 normalWS = input.VFX_VARYING_NORMAL.xyz;
+    float3 tangentWS = input.VFX_VARYING_TANGENT.xyz;
+
+    GatherDiffuseGIData(positionWS, normalWS, tangentWS, input.VFX_VARYING_BAKE_DIFFUSE_LIGHTING[0],
+                                                         input.VFX_VARYING_BAKE_DIFFUSE_LIGHTING[1],
+                                                         input.VFX_VARYING_BAKE_DIFFUSE_LIGHTING[2]);
+}
+
+${VFXEnd}

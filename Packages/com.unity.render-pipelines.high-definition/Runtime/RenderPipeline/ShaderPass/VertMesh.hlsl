@@ -232,6 +232,9 @@ VaryingsMeshType VertMesh(AttributesMesh input, float3 worldSpaceOffset
     output.color = input.color;
 #endif
 
+#if defined(VARYINGS_NEED_SIX_WAY_DIFFUSE_GI_DATA)
+    GatherDiffuseGIData(normalWS, tangentWS, positionRWS, output.diffuseGIData0, output.diffuseGIData1, output.diffuseGIData2);
+#endif
     return output;
 }
 
@@ -298,6 +301,9 @@ VaryingsMeshToPS VertMeshTesselation(VaryingsMeshToDS input)
     output.color = input.color;
 #endif
 
+#if defined(VARYINGS_NEED_SIX_WAY_DIFFUSE_GI_DATA)
+    GatherDiffuseGIData(input.normalWS, input.tangentWS, input.positionRWS, output.diffuseGIData0, output.diffuseGIData1, output.diffuseGIData2);
+#endif
     // Call is last to deal with 'not completly initialize warning'. We don't want to ZeroInitialize the output struct to be able to detect issue.
 #ifdef USE_CUSTOMINTERP_SUBSTRUCT
     // If custom interpolators are in use, we need to write them to the shader graph generated VaryingsMesh

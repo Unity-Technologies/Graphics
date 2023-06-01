@@ -2,20 +2,18 @@
 
 #ifndef VFX_SHADERGRAPH
 
-void VFXGetURPLitData(out SurfaceData surfaceData, out InputData inputData, VFX_VARYING_PS_INPUTS i, float3 normalWS, const VFXUVData uvData, uint2 tileIndex)
+#if VFX_MATERIAL_TYPE_SIX_WAY_SMOKE
+#define SurfaceData SixWaySurfaceData
+#endif
+
+void VFXGetURPLitData(out SurfaceData surfaceData, out InputData inputData, VFX_VARYING_PS_INPUTS i, float3 normalWS, const VFXUVData uvData, bool frontFace, uint2 tileIndex)
 {
     float3 posRWS = VFXGetPositionRWS(i);
     float4 posSS = i.VFX_VARYING_POSCS;
     PositionInputs posInput = GetPositionInput(posSS.xy, _ScreenSize.zw, posSS.z, posSS.w, posRWS, tileIndex);
-    
-    float alpha;
-    surfaceData = VFXGetSurfaceData(i, normalWS, uvData, alpha);        
-    inputData = VFXGetInputData(i, posInput, surfaceData, normalWS);
-}
 
-void VFXGetURPLitData(out SurfaceData surfaceData, out InputData inputData, VFX_VARYING_PS_INPUTS i, float3 normalWS, const VFXUVData uvData)
-{
-    VFXGetURPLitData(surfaceData, inputData, i, normalWS, uvData, uint2(0,0));
+    surfaceData = VFXGetSurfaceData(i, normalWS, uvData);
+    inputData = VFXGetInputData(i, posInput, normalWS, frontFace);
 }
 #endif
 

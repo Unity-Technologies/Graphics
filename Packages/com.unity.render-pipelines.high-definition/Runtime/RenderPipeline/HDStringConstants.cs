@@ -1319,6 +1319,11 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Enable affect Emission (decal only.</summary>
         public const string kAffectEmission = "_AffectEmission";
 
+        /// <summary>Enable Receive Shadows Off (six-way only.) </summary>
+        public const string kReceiveShadows = "_ReceiveShadows";
+        /// <summary>Use Color Absorption (six-way only.) </summary>
+        public const string kUseColorAbsorption = "_UseColorAbsorption";
+
         // Internal properties
 
         internal const string kStencilRef = "_StencilRef";

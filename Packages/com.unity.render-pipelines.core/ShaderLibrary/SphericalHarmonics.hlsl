@@ -85,6 +85,22 @@ half3 SampleSH9(half4 SHCoefficients[7], half3 N)
 
     return res;
 }
+
+half3 SampleSH4_L1(half4 SHCoefficients[3], half3 N)
+{
+    half4 shAr = SHCoefficients[0];
+    half4 shAg = SHCoefficients[1];
+    half4 shAb = SHCoefficients[2];
+
+    // Linear + constant polynomial terms
+    half3 res = SHEvalLinearL1(N, shAr, shAg, shAb);
+
+    #ifdef UNITY_COLORSPACE_GAMMA
+    res = LinearToSRGB(res);
+    #endif
+
+    return res;
+}
 #endif
 
 float3 SampleSH9(float4 SHCoefficients[7], float3 N)
@@ -122,6 +138,22 @@ float3 SampleSH9(StructuredBuffer<float4> data, float3 N)
     SHCoefficients[6] = data[6];
 
     return SampleSH9(SHCoefficients, N);
+}
+
+float3 SampleSH4_L1(float4 SHCoefficients[3], float3 N)
+{
+    float4 shAr = SHCoefficients[0];
+    float4 shAg = SHCoefficients[1];
+    float4 shAb = SHCoefficients[2];
+
+    // Linear + constant polynomial terms
+    float3 res = SHEvalLinearL1(N, (float3)shAr, (float3)shAg, (float3)shAb);
+
+    #ifdef UNITY_COLORSPACE_GAMMA
+    res = LinearToSRGB(res);
+    #endif
+
+    return res;
 }
 
 void GetCornetteShanksPhaseFunction(out float3 zh, float anisotropy)
