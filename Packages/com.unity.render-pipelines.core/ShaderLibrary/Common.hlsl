@@ -235,6 +235,8 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/API/GLCore.hlsl"
 #elif defined(SHADER_API_GLES3)
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/API/GLES3.hlsl"
+#elif defined(SHADER_API_WEBGPU)
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/API/WebGPU.hlsl"
 #else
 #error unsupported shader api
 #endif
@@ -992,7 +994,7 @@ float ComputeTextureLOD(float3 duvw_dx, float3 duvw_dy, float3 duvw_dz, float sc
     #define MIP_COUNT_SUPPORTED 1
 #endif
     // TODO: Bug workaround, switch defines GLCORE when it shouldn't
-#if ((defined(SHADER_API_GLCORE) && !defined(SHADER_API_SWITCH)) || defined(SHADER_API_VULKAN)) && !defined(SHADER_STAGE_COMPUTE)
+#if ((defined(SHADER_API_GLCORE) && !defined(SHADER_API_SWITCH)) || defined(SHADER_API_VULKAN) || defined(SHADER_API_WEBGPU)) && !defined(SHADER_STAGE_COMPUTE)
     // OpenGL only supports textureSize for width, height, depth
     // textureQueryLevels (GL_ARB_texture_query_levels) needs OpenGL 4.3 or above and doesn't compile in compute shaders
     // tex.GetDimensions converted to textureQueryLevels
@@ -1022,7 +1024,7 @@ uint GetMipCount(TEXTURE2D_PARAM(tex, smp))
 #define DXC_SAMPLER_COMPATIBILITY 1
 
 // On DXC platforms which don't care about explicit sampler precison we want the emulated types to work directly e.g without needing to redefine 'sampler2D' to 'sampler2D_f'
-#if !defined(SHADER_API_GLES3) && !defined(SHADER_API_VULKAN) && !defined(SHADER_API_METAL) && !defined(SHADER_API_SWITCH)
+#if !defined(SHADER_API_GLES3) && !defined(SHADER_API_VULKAN) && !defined(SHADER_API_METAL) && !defined(SHADER_API_SWITCH) && !defined(SHADER_API_WEBGPU)
     #define sampler1D_f sampler1D
     #define sampler2D_f sampler2D
     #define sampler3D_f sampler3D
@@ -1441,7 +1443,7 @@ void ApplyDepthOffsetPositionInput(float3 V, float depthOffsetVS, float3 viewFor
 // Terrain/Brush heightmap encoding/decoding
 // ----------------------------------------------------------------------------
 
-#if defined(SHADER_API_VULKAN) || defined(SHADER_API_GLES3)
+#if defined(SHADER_API_VULKAN) || defined(SHADER_API_GLES3) || defined(SHADER_API_WEBGPU)
 
 // For the built-in target this is already a defined symbol
 #ifndef BUILTIN_TARGET_API

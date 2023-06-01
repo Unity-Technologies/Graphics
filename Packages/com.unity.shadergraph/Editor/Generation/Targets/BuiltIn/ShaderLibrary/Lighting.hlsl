@@ -55,7 +55,7 @@ struct Light
 };
 
 // WebGL1 does not support the variable conditioned for loops used for additional lights
-#if !defined(_USE_WEBGL1_LIGHTS) && defined(UNITY_PLATFORM_WEBGL) && !defined(SHADER_API_GLES3)
+#if !defined(_USE_WEBGL1_LIGHTS) && defined(UNITY_PLATFORM_WEBGL) && !defined(SHADER_API_GLES3) && !defined(SHADER_API_WEBGPU) && !defined(SHADER_API_VULKAN)
     #define _USE_WEBGL1_LIGHTS 1
     #define _WEBGL1_MAX_LIGHTS 8
 #else

@@ -146,7 +146,8 @@ namespace UnityEngine.Rendering.Universal
                     return k_MaxVisibleAdditionalLightsMobileShaderLevelLessThan45;
 
                 // GLES can be selected as platform on Windows (not a mobile platform) but uniform buffer size so we must use a low light count.
-                return (isMobile || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3)
+                // WebGPU's minimal limits are based on mobile rather than desktop, so it will need to assume mobile.
+                return (isMobile || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3 || SystemInfo.graphicsDeviceType == GraphicsDeviceType.WebGPU)
                     ? k_MaxVisibleAdditionalLightsMobile : k_MaxVisibleAdditionalLightsNonMobile;
             }
         }
