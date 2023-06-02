@@ -68,6 +68,10 @@ These settings control the draw distance and resolution of the decals atlas that
 | **- Draw Distance**                          | The maximum distance from the Camera at which Unity draws Decals. |
 | **- Atlas Width**                            | The Decal Atlas width. This atlas stores all decals that project onto transparent surfaces. |
 | **- Atlas Height**                           | The Decal Atlas height. This atlas stores all decals that project onto transparent surfaces. |
+| ***- Transparent Texture Resolution Tiers*** | Set the resolution that transparent textures take up within the decal atlas. The same resolution is used for all textures of a material (base color, normal, mask). |
+| **- Low**									   | Set the transparent texture resolution to this quality. DecalProjectors with their **Transparent Texture Resolution** set to **Low** use this resolution for their textures in the decal atlas. |
+| **- Medium**								   | Set the transparent texture resolution to this quality. DecalProjectors with their **Transparent Texture Resolution** set to **Medium** use this resolution for their textures in the decal atlas. |
+| **- High**								   | Set the transparent texture resolution to this quality. DecalProjectors with their **Transparent Texture Resolution** set to **High** use this resolution for their textures in the decal atlas. |
 | **- Metal and Ambient Occlusion properties** | Enable the checkbox to allow decals to affect metallic and ambient occlusion Material properties. Enabling this feature has a performance impact. |
 | **- Maximum Clustered Decals on Screen**     | The maximum number of clustered decals that can affect transparent GameObjects on screen. Clustered decals refer to a list of decals that HDRP uses when it renders transparent GameObjects. |
 | **- Layers**                                 | Enable the checkbox to allow decals to only affect specific layers.|
