@@ -59,6 +59,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // APV
             [Reload("Runtime/Lighting/ProbeVolume/ProbeVolumeBlendStates.compute")]
             public ComputeShader probeVolumeBlendStatesCS;
+            [Reload("Runtime/Lighting/ProbeVolume/ProbeVolumeUploadData.compute")]
+            public ComputeShader probeVolumeUploadDataCS;
 
             // APV Debug
             [Reload("Runtime/Debug/ProbeVolumeDebug.shader")]

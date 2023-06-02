@@ -551,6 +551,11 @@ namespace UnityEngine.Rendering
             m_BrickMetaPool.Release(bm);
             m_BricksToVoxels.Remove(cellInfo);
 
+            ReleaseChunks(cellInfo);
+        }
+
+        public void ReleaseChunks(CellIndexInfo cellInfo)
+        {
             // Clear allocated chunks
             foreach (var entryInfo in cellInfo.updateInfo.entriesInfo)
             {

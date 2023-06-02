@@ -84,6 +84,8 @@ namespace UnityEngine.Rendering
         public bool displayCellStreamingScore;
         public bool displayIndexFragmentation;
         public int otherStateIndex = 0;
+        public bool verboseStreamingLog;
+
 
         public ProbeVolumeDebug()
         {
@@ -451,16 +453,6 @@ namespace UnityEngine.Rendering
 
             probeContainer.children.Add(new DebugUI.FloatField { displayName = "Debug Draw Distance", tooltip = "How far from the Scene Camera to draw probe debug visualizations. Large distances can impact Editor performance.", getter = () => probeVolumeDebug.probeCullingDistance, setter = value => probeVolumeDebug.probeCullingDistance = value, min = () => 0.0f });
 
-            var streamingContainer = new DebugUI.Container() { displayName = "Streaming" };
-            streamingContainer.children.Add(new DebugUI.BoolField { displayName = "Freeze Streaming", tooltip = "Stop Unity from streaming probe data in or out of GPU memory.", getter = () => probeVolumeDebug.freezeStreaming, setter = value => probeVolumeDebug.freezeStreaming = value });
-            streamingContainer.children.Add(new DebugUI.Value { displayName = "Index Fragmentation Rate", getter = () => instance.indexFragmentationRate });
-            streamingContainer.children.Add(new DebugUI.BoolField { displayName = "Display Streaming Score", getter = () => probeVolumeDebug.displayCellStreamingScore, setter = value => probeVolumeDebug.displayCellStreamingScore = value });
-            streamingContainer.children.Add(new DebugUI.BoolField { displayName = "Display Index Fragmentation", getter = () => probeVolumeDebug.displayIndexFragmentation, setter = value => probeVolumeDebug.displayIndexFragmentation = value });
-
-            streamingContainer.children.Add(new DebugUI.BoolField { displayName = "Maximum cell streaming", tooltip = "Enable streaming as many cells as possible every frame.", getter = () => instance.loadMaxCellsPerFrame, setter = value => instance.loadMaxCellsPerFrame = value, onValueChanged = RefreshDebug });
-            if (!instance.loadMaxCellsPerFrame)
-                streamingContainer.children.Add(new DebugUI.IntField { displayName = "Loaded Cells Per Frame", tooltip = "Determines the maximum number of Cells Unity streams per frame. Loading more Cells per frame can impact performance.", getter = () => instance.numberOfCellsLoadedPerFrame, setter = value => instance.SetNumberOfCellsLoadedPerFrame(value), min = () => 1, max = () => kMaxCellLoadedPerFrame });
-
             if (parameters.supportsRuntimeDebug)
             {
                 // Cells / Bricks visualization is not implemented in a runtime compatible way atm.
@@ -470,7 +462,27 @@ namespace UnityEngine.Rendering
                 widgetList.Add(probeContainer);
             }
 
-            if (parameters.supportGPUStreaming)
+            var streamingContainer = new DebugUI.Container() { displayName = "Streaming" };
+            streamingContainer.children.Add(new DebugUI.BoolField { displayName = "Freeze Streaming", tooltip = "Stop Unity from streaming probe data in or out of GPU memory.", getter = () => probeVolumeDebug.freezeStreaming, setter = value => probeVolumeDebug.freezeStreaming = value });
+            streamingContainer.children.Add(new DebugUI.BoolField { displayName = "Display Streaming Score", getter = () => probeVolumeDebug.displayCellStreamingScore, setter = value => probeVolumeDebug.displayCellStreamingScore = value });
+            streamingContainer.children.Add(new DebugUI.BoolField { displayName = "Maximum cell streaming", tooltip = "Enable streaming as many cells as possible every frame.", getter = () => instance.loadMaxCellsPerFrame, setter = value => instance.loadMaxCellsPerFrame = value, onValueChanged = RefreshDebug });
+            if (!instance.loadMaxCellsPerFrame)
+            {
+                var maxCellStreamingContainerChildren = new DebugUI.Container();
+                maxCellStreamingContainerChildren.children.Add(new DebugUI.IntField { displayName = "Loaded Cells Per Frame", tooltip = "Determines the maximum number of Cells Unity streams per frame. Loading more Cells per frame can impact performance.", getter = () => instance.numberOfCellsLoadedPerFrame, setter = value => instance.SetNumberOfCellsLoadedPerFrame(value), min = () => 1, max = () => kMaxCellLoadedPerFrame });
+                streamingContainer.children.Add(maxCellStreamingContainerChildren);
+            }
+            // Those are mostly for internal dev purpose.
+            if (Debug.isDebugBuild)
+            {
+                streamingContainer.children.Add(new DebugUI.BoolField { displayName = "Display Index Fragmentation", getter = () => probeVolumeDebug.displayIndexFragmentation, setter = value => probeVolumeDebug.displayIndexFragmentation = value });
+                var indexDefragContainerChildren = new DebugUI.Container();
+                indexDefragContainerChildren.children.Add(new DebugUI.Value { displayName = "Index Fragmentation Rate", getter = () => instance.indexFragmentationRate });
+                streamingContainer.children.Add(indexDefragContainerChildren);
+                streamingContainer.children.Add(new DebugUI.BoolField { displayName = "Verbose Log", getter = () => probeVolumeDebug.verboseStreamingLog, setter = value => probeVolumeDebug.verboseStreamingLog = value });
+            }
+
+            if (parameters.supportGPUStreaming || parameters.supportDiskStreaming)
             {
                 widgetList.Add(streamingContainer);
             }

@@ -16,9 +16,9 @@ namespace UnityEditor.Rendering
             return Path.Combine(libraryPath, kTempAPVStreamingAssetsPath);
         }
 
-        void CopyStreamableAsset(in ProbeVolumeBakingSet.StreamableAsset asset, string basePath)
+        void CopyStreamableAsset(ProbeVolumeStreamableAsset asset, string basePath)
         {
-            var assetPath = AssetDatabase.GUIDToAssetPath(asset.assetGUID);
+            var assetPath = asset.GetAssetPath();
             if (!File.Exists(assetPath))
             {
                 Debug.LogError($"Missing APV data asset {assetPath}. Please make sure that the lighting has been baked properly.");

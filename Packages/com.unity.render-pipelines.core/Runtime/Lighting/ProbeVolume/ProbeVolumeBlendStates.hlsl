@@ -4,35 +4,6 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/ProbeVolume.hlsl"
 
-struct APVResourcesRW
-{
-    RWTexture3D<float4> L0_L1Rx;
-    RWTexture3D<float4> L1G_L1Ry;
-    RWTexture3D<float4> L1B_L1Rz;
-    RWTexture3D<float4> L2_0;
-    RWTexture3D<float4> L2_1;
-    RWTexture3D<float4> L2_2;
-    RWTexture3D<float4> L2_3;
-};
-
-#define LOAD_APV_RES_L1(res, target) \
-    res.L0_L1Rx  = CALL_MERGE_NAME(target, _L0_L1Rx); \
-    res.L1G_L1Ry = CALL_MERGE_NAME(target, _L1G_L1Ry); \
-    res.L1B_L1Rz = CALL_MERGE_NAME(target, _L1B_L1Rz);
-#define LOAD_APV_RES_L2(res, target) \
-    res.L2_0 = CALL_MERGE_NAME(target, _L2_0); \
-    res.L2_1 = CALL_MERGE_NAME(target, _L2_1); \
-    res.L2_2 = CALL_MERGE_NAME(target, _L2_2); \
-    res.L2_3 = CALL_MERGE_NAME(target, _L2_3);
-
-#ifndef PROBE_VOLUMES_L2
-# define LOAD_APV_RES(res, target) LOAD_APV_RES_L1(res, target)
-#else
-# define LOAD_APV_RES(res, target) \
-    LOAD_APV_RES_L1(res, target) \
-    LOAD_APV_RES_L2(res, target)
-#endif
-
 APVSample BlendAPVSamples(APVSample state0, APVSample state1, float factor)
 {
     APVSample result;

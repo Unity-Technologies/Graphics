@@ -596,6 +596,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     probeSamplingDebugMesh = defaultResources.assets.probeSamplingDebugMesh,
                     probeSamplingDebugTexture = defaultResources.textures.numbersDisplayTex,
                     offsetDebugShader = defaultResources.shaders.probeVolumeOffsetDebugShader,
+                    streamingUploadShader = defaultResources.shaders.probeVolumeUploadDataCS,
                     scenarioBlendingShader = supportBlending ? defaultResources.shaders.probeVolumeBlendStatesCS : null,
                     sceneData = m_GlobalSettings.GetOrCreateAPVSceneData(),
                     shBands = m_Asset.currentPlatformRenderPipelineSettings.probeVolumeSHBands,
