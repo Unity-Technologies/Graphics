@@ -199,7 +199,6 @@ namespace UnityEditor.Rendering.Universal
         // Called after the build has finished...
         public void OnPostprocessBuild(BuildReport report)
         {
-            AssetDatabase.SaveAssets();
             XRPlatformBuildTimeDetect.ClearInstance();
 #if PROFILE_BUILD
             Profiler.enabled = false;
