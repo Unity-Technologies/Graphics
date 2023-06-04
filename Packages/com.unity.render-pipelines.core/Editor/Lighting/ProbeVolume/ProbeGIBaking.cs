@@ -565,9 +565,10 @@ namespace UnityEngine.Rendering
             return result;
         }
 
-        static void OnBakeStarted()
+        static public bool InitializeBake()
         {
-            if (!ProbeReferenceVolume.instance.isInitialized || !ProbeReferenceVolume.instance.enabledBySRP) return;
+            if (ProbeVolumeLightingTab.instance?.PrepareAPVBake() == false) return false;
+            if (!ProbeReferenceVolume.instance.isInitialized || !ProbeReferenceVolume.instance.enabledBySRP) return false;
 
             using var scope = new BakingSetupProfiling(BakingSetupProfiling.Stages.PrepareWorldSubdivision);
 
@@ -579,20 +580,20 @@ namespace UnityEngine.Rendering
                     EnsurePerSceneDataInOpenScenes();
             }
 
-            if (ProbeReferenceVolume.instance.perSceneDataList.Count == 0) return;
+            if (ProbeReferenceVolume.instance.perSceneDataList.Count == 0) return false;
 
             var sceneDataList = GetPerSceneDataList();
-            if (sceneDataList.Count == 0) return;
+            if (sceneDataList.Count == 0) return false;
 
             var pvList = GetProbeVolumeList();
-            if (pvList.Count == 0) return; // We have no probe volumes.
+            if (pvList.Count == 0) return false; // We have no probe volumes.
 
             CachePVHashes(pvList);
 
             currentBakingState = BakingStage.Started;
 
             if (!SetBakingContext(sceneDataList))
-                return;
+                return false;
 
             m_TotalCellCounts = new CellCounts();
             m_ProfileInfo = GetProfileInfoFromBakingSet(m_BakingSet);
@@ -618,12 +619,28 @@ namespace UnityEngine.Rendering
             foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
             {
                 // It can be null if the scene was never added to a baking set and we are baking in single scene mode, in that case we don't have a baking set for it yet and we need to skip 
-                if (ProbeReferenceVolume.instance.sceneData.GetBakingSetForScene(data.gameObject.scene)) 
+                if (ProbeReferenceVolume.instance.sceneData.GetBakingSetForScene(data.gameObject.scene))
                     data.Initialize();
             }
 
+            return true;
+        }
+
+        static void OnBakeStarted()
+        {
+            if (!InitializeBake())
+                return;
+
+            UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted += OnAdditionalProbesBakeCompleted;
+            ProbeReferenceVolume.instance.checksDuringBakeAction = CheckPVChanges;
+            AdditionalGIBakeRequestsManager.instance.AddRequestsToLightmapper();
+            Lightmapping.bakeCompleted += OnBakeCompletedCleanup;
+
             using (new BakingSetupProfiling(BakingSetupProfiling.Stages.PlaceProbes))
-                RunPlacement();
+            {
+                Vector3[] positions = RunPlacement();
+                UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(m_BakingBatch.index, positions);
+            }
 
             currentBakingState = BakingStage.PlacementDone;
         }
@@ -955,43 +972,11 @@ namespace UnityEngine.Rendering
             }
         }
 
-        static void OnAdditionalProbesBakeCompleted()
+        static public void ApplyPostBakeOperations(NativeArray<SphericalHarmonicsL2> sh, NativeArray<float> validity)
         {
-            if (currentBakingState != BakingStage.PlacementDone)
-            {
-                // This can happen if a baking job is canceled and a phantom call to OnAdditionalProbesBakeCompleted cannot be dequeued.
-                // TODO: Investigate with the lighting team if we have a cleaner way.
-                return;
-            }
-            currentBakingState = BakingStage.OnBakeCompletedStarted;
-
-            using var scope = new BakingCompleteProfiling(BakingCompleteProfiling.Stages.FinalizingBake);
-
-            UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted -= OnAdditionalProbesBakeCompleted;
-            s_ForceInvalidatedProbesAndTouchupVols.Clear();
-            s_CustomDilationThresh.Clear();
-
             var probeRefVolume = ProbeReferenceVolume.instance;
             var bakingCells = m_BakingBatch.cells;
             var numCells = bakingCells.Count;
-
-            int numUniqueProbes = m_BakingBatch.uniqueProbeCount;
-
-            var sh = new NativeArray<SphericalHarmonicsL2>(numUniqueProbes, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
-            var validity = new NativeArray<float>(numUniqueProbes, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
-
-            if (numUniqueProbes != 0)
-            {
-                var bakedProbeOctahedralDepth = new NativeArray<float>(numUniqueProbes * 64, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
-                bool validBakedProbes = UnityEditor.Experimental.Lightmapping.GetAdditionalBakedProbes(m_BakingBatch.index, sh, validity, bakedProbeOctahedralDepth);
-                bakedProbeOctahedralDepth.Dispose();
-
-                if (!validBakedProbes)
-                {
-                    Debug.LogError("Lightmapper failed to produce valid probe data.  Please consider clearing lighting data and rebake.");
-                    return;
-                }
-            }
 
             m_CellPosToIndex.Clear();
             m_BakedCells.Clear();
@@ -1202,10 +1187,7 @@ namespace UnityEngine.Rendering
             CleanupOccluders();
 
             m_BakingBatchIndex = 0;
-
-            // Reset index
-            UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(m_BakingBatch.index, null);
-
+            
             // Force maximum sh bands to perform baking, we need to store what sh bands was selected from the settings as we need to restore it after.
             var prevSHBands = ProbeReferenceVolume.instance.shBands;
             ProbeReferenceVolume.instance.ForceSHBand(ProbeVolumeSHBands.SphericalHarmonicsL2);
@@ -1269,6 +1251,44 @@ namespace UnityEngine.Rendering
             ProbeVolumeLightingTab.instance?.UpdateScenarioStatuses(ProbeReferenceVolume.instance.lightingScenario);
 
             currentBakingState = BakingStage.OnBakeCompletedFinished;
+        }
+
+        static void OnAdditionalProbesBakeCompleted()
+        {
+            if (currentBakingState != BakingStage.PlacementDone)
+            {
+                // This can happen if a baking job is canceled and a phantom call to OnAdditionalProbesBakeCompleted cannot be dequeued.
+                // TODO: Investigate with the lighting team if we have a cleaner way.
+                return;
+            }
+            currentBakingState = BakingStage.OnBakeCompletedStarted;
+
+            using var scope = new BakingCompleteProfiling(BakingCompleteProfiling.Stages.FinalizingBake);
+
+            UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted -= OnAdditionalProbesBakeCompleted;
+            s_ForceInvalidatedProbesAndTouchupVols.Clear();
+            s_CustomDilationThresh.Clear();
+
+
+            int numUniqueProbes = m_BakingBatch.uniqueProbeCount;
+
+            var sh = new NativeArray<SphericalHarmonicsL2>(numUniqueProbes, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+            var validity = new NativeArray<float>(numUniqueProbes, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+
+            if (numUniqueProbes != 0)
+            {
+                var bakedProbeOctahedralDepth = new NativeArray<float>(numUniqueProbes * 64, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+                bool validBakedProbes = UnityEditor.Experimental.Lightmapping.GetAdditionalBakedProbes(m_BakingBatch.index, sh, validity, bakedProbeOctahedralDepth);
+                bakedProbeOctahedralDepth.Dispose();
+
+                if (!validBakedProbes)
+                {
+                    Debug.LogError("Lightmapper failed to produce valid probe data.  Please consider clearing lighting data and rebake.");
+                    return;
+                }
+            }
+
+            ApplyPostBakeOperations(sh, validity);
         }
 
         static void AnalyzeBrickForIndirectionEntries(ref BakingCell cell)
@@ -2055,15 +2075,9 @@ namespace UnityEngine.Rendering
             ProbeReferenceVolume.instance.ResetDebugViewToMaxSubdiv();
         }
 
-        public static void RunPlacement()
+        public static Vector3[] RunPlacement()
         {
-            UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted += OnAdditionalProbesBakeCompleted;
-            ProbeReferenceVolume.instance.checksDuringBakeAction = CheckPVChanges;
-            AdditionalGIBakeRequestsManager.instance.AddRequestsToLightmapper();
-            Lightmapping.bakeCompleted += OnBakeCompletedCleanup;
-
             ClearBakingBatch();
-
 
             ProbeSubdivisionResult result;
 
@@ -2085,16 +2099,19 @@ namespace UnityEngine.Rendering
                     result = BakeBricks(ctx);
             }
 
-            // Compute probe positions and send them to the Lightmapper
+            // Compute probe positions
+            Vector3[] positions;
             using (new BakingSetupProfiling(BakingSetupProfiling.Stages.ApplySubdivisionResults))
             {
                 float brickSize = m_ProfileInfo.minBrickSize;
                 Matrix4x4 newRefToWS = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, new Vector3(brickSize, brickSize, brickSize));
-                ApplySubdivisionResults(result, newRefToWS);
+                ApplySubdivisionResults(result, newRefToWS, out positions);
             }
 
             // Restore loaded asset settings
             ProbeReferenceVolume.instance.SetMinBrickAndMaxSubdiv(prevBrickSize, prevMaxSubdiv);
+
+            return positions;
         }
 
         public static ProbeSubdivisionContext PrepareProbeSubdivisionContext(bool liveContext = false)
@@ -2241,7 +2258,7 @@ namespace UnityEngine.Rendering
             return normalizedPos.z * (cellCount.x * cellCount.y) + normalizedPos.y * cellCount.x + normalizedPos.x;
         }
 
-        public static void ApplySubdivisionResults(ProbeSubdivisionResult results, Matrix4x4 refToWS)
+        public static void ApplySubdivisionResults(ProbeSubdivisionResult results, Matrix4x4 refToWS, out Vector3[] positions)
         {
             // For now we just have one baking batch. Later we'll have more than one for a set of scenes.
             // All probes need to be baked only once for the whole batch and not once per cell
@@ -2277,13 +2294,11 @@ namespace UnityEngine.Rendering
                 m_BakingBatch.cellIndex2SceneReferences[cell.index] = new HashSet<string>(results.scenesPerCells[cell.position]);
             }
 
-            var positions = positionList.ToArray();
+            positions = positionList.ToArray();
 
             // Virtually offset positions before passing them to lightmapper
             using (new BakingSetupProfiling(BakingSetupProfiling.Stages.ApplyVirtualOffsets))
                 ApplyVirtualOffsets(positions, out m_BakingBatch.virtualOffsets);
-
-            UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(m_BakingBatch.index, positions);
         }
     }
 }
