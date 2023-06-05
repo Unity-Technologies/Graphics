@@ -2653,8 +2653,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 renderContext.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
-                renderContext.DrawGizmos(hdCamera.camera, GizmoSubset.PreImageEffects);
-                renderContext.DrawGizmos(hdCamera.camera, GizmoSubset.PostImageEffects);
+
+#if UNITY_EDITOR
+                if(UnityEditor.Handles.ShouldRenderGizmos())
+                {
+                    renderContext.DrawGizmos(hdCamera.camera, GizmoSubset.PreImageEffects);
+                    renderContext.DrawGizmos(hdCamera.camera, GizmoSubset.PostImageEffects);
+                }
+#endif
             }
         }
 
