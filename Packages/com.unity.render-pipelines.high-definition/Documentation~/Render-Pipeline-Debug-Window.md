@@ -656,12 +656,11 @@ The **Rendering** panel has tools that you can use to visualize various HDRP ren
 </tr>
 <tr>
 <td><strong>Compute Thickness</strong></td>
-<td>Select this option to display thickness for each layer selected in the current HDRP Asset.<br/>
-Debug View Color Scale:<br/>
-* 🟠 Orange: Compute Thickness Feature not enabled<br/>
-* 🟣 Purple: Layer not used<br/>
-* 🔴 Red: Negative thickness, due to open meshes, flipped triangles or odd number of triangle of optical path.<br/>
-* ⚫ Grey: Thickness equal 0, Background, Z-Fight or no thickness computed for this pixel.</td>
+<td>Select this option to display thickness for each layer selected in the current HDRP Asset and configure the following properties:
+<br/> &#8226; <strong>Layer Mask</strong>: Set the layer number to visualize in the debug view.
+<br/> &#8226; <strong>Show Overlap Count</strong>: Highlight the triangles that intersect for each pixel.
+<br/> &#8226; <strong>Thickness Scale</strong>: Set the range (in meters) of the ComputeThickness debug view. When you enable Show Overlap Count, this setting affects the Overlap Count debug view. <br/>
+For more information on how to debug compute thickness, refer to <a href="Compute-Thickness.md">Sample and use material thickness</a>.</td>
 </tr>
 <tr>
 <td><strong>Max Pixel Cost</strong></td>

@@ -1,77 +1,161 @@
 # Compute Thickness
 
-![](Images/ComputeThickness_Ground.png)
+![](Images/ComputeThickness.png)
 
-HDRP provides a screen-space pass to compute the accumulated thickness for objects (opaque or transparent) in a given LayerMask. HDRP computes the optical path and overlap count, which can be useful for [Subsurface Scattering](Subsurface-Scattering.md) or [Refraction](Override-Screen-Space-Refraction.md). The overlap count can be used for non-closed or flat geometry like vegetation. This thickness can be sampled in a ShaderGraph via the HD Sampler Buffer node using the LayerMask as an input.
+HDRP can use the optical path to make transparent or opaque materials appear more dense in larger internal areas of a mesh. This is called compute thickness.
 
-### Enable Compute Thickness
+Compute thickness is ideal for transparent materials that use [subsurface scattering](Subsurface-Scattering.md) or [refraction](Refraction-in-HDRP.md). You can also use it on flat geometry like grass and leaves.
 
-1. Open the Project Settings.
-2. In **Quality** > **HDRP**, open the **Rendering** section and enable **Compute Thickness**.
-3. In **Graphics** > **HDRP Global Settings** > **Frame Settings**, open the **Rendering** section and enable Compute Thickness.
+To use compute thickness, perform the following actions: 
 
-### Compute Thickness Parameters
+1. [Enable compute thickness in your scene](#computethickness-enable).
+2. [Create a shader graph that samples the thickness of a material](#computethickness-shader-graph) 
+3. [Set up a compute thickness layer](#computethickness-layers).
 
-As the thickness is computed fullscreen it has an impact on the memory footprint, HDRP allows you to choose the resolution at which it is computed.
+<a name="computethickness-enable"></a>
 
-In **Quality** > **HDRP**, open the **Rendering**, then under **Compute Thickness** you can choose **Resolution**:
+## Enable compute thickness
 
-* Quarter: Quarter resolution of the current resolution
-* Half: Half resolution of the current resolution
-* Full: Current full screen resolution
+To enable compute thickness in your project, set up the following properties: 
 
-To compute an object thickness, at least one Layer Mask needs to be selected on the HDRP Asset:
+1. Open the Project Settings (**Edit** > **Project Settings**).
+2. In **Quality** > **HDRP**, open the **Rendering** section.
+3. Enable the **Compute Thickness** toggle.
+4. In **Graphics** > **HDRP Global Settings** > **Frame Settings**.
+5. In the **Camera** section, select the **Rendering** heading. 
+6. Enable the **Compute Thickness** toggle.
 
-In **Quality** > **HDRP**, open the **Rendering**, then under **Compute Thickness** you can select one or more **LayerMask**.
+<a name="computethickness-shader-graph"></a>
+## Sample the thickness of a material in shader graph
 
-For each selected layer, a texture is created containingthe thickness of all the objects flagged with this Layer Mask.
-For example, you could use one layer for vegetation objects and another layer for refractive objects.
+To create a material that uses compute thickness, use the [HD Sample Buffer node](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest?subfolder=/manual/HD-Sample-Buffer-Node.html):
 
-On the HD Sample Buffer node, HDRP provides 2 outputs:
-* Thickness: Worldspace value in meters, between the near and the far plane of the camera.
-    * To work properly, the object needs to be closed in the optical path, which means there need to be the same number of front and back faces for a given pixel.
-* Overlap: Count the number of triangles for a given pixel. This is useful for vegetation or flat surfaces. This number can then be multiplied in a ShaderGraph by the thickness of a leaf for exemple.
+1. In a Shader graph window, create a **HD Sample Buffer** node.
+2. Open the **Source Buffer** dropdown and select **Thickness**.
+3. Select one of the following outputs to set the type of thickness HDRP samples:
+	* **Thickness**: This option samples the Worldspace value in meters, between the near and the far plane of the camera. Use this output for GameObjects with closed geometry.
+	* **Overlap Count**: This is useful for vegetation or flat surfaces. Multiply this output with other nodes to control how thick this material appears.
+5. In the **Layer Mask** field, enter the number of the [compute thickness layer](#computethickness-layers).
 
-### Compute Thickness Limitations
+To test how the HD Sample Buffer node works on its own, connect the **Thickness** output to the **Base Color** Fragment node.
 
-* Do not support [Tesselation](Tessellation.md)
-* Do not support [Alpha Clipping](Alpha-Clipping.md)
-* Mixing open and closed mesh on the same layer can cause negatives values. For better results, use separate layers. 
-* Mixing transparent and opaque objects can creates issues:
+<a name="computethickness-layers"></a>
+## Set up a compute thickness layer
 
-The Compute Thickness for opaque and transparent objects is not calculted at the same time: 
+Compute thickness requires [layers](https://docs.unity3d.com/Manual/Layers.html) to do the following: 
 
-For transparent objects, the thickness computed depends on the already present opaque objects in the scene.<br/>
-For opaque objects, the thickness computed does **not** depend on the already present transparent objects in the scene.  
+- [Determine which GameObjects to calculate the thickness of.](#computethickness-layers-assign)
+- [Create a compute thickness layer mask](#computethickness-layer-mask) to use in the HD Sample Buffer node, the Project Settings window, and the HDRP Asset.
 
-In the images below, the thickness of the stand on the object is thiner when transparent due to the interaction with the opaque white plane.
+Use layers to manage and optimize compute thickness in your scene. For example, you can use one layer for vegetation objects and another layer for refractive objects.
 
-|            Opaque           |          Transparent          |
-|:----------------------------:|:----------------------------:|
-| ![](Images/ComputeThickness_Stand_Opaque.png) | ![](Images/ComputeThickness_Stand_Transparent.png) |
+**Important:** Assign GameObjects with closed (solid) geometry to a different layer from GameObjects with open or flat geometry. If you assign them both to the same layer, it can create black artifacts.
 
-Opaque objects are rendered before transparent objects. When both opaque and transparent objects are in the same LayerMask, opaque objects cannot be accumulated by transparent objects, but transparent objects will accumulate with already present opaque objects.
+<a name="computethickness-layers-assign"></a>
+### Assign GameObjects to a compute thickness layer
 
-### Compute Thickness Debug Mode
+To set up a compute thickness layer, perform the following actions: 
 
-To open the debug mode, select **Window** > **Analysis** > **Rendering Debugger** > **Rendering** > **Fullscreen Debug Mode** > **Compute Thickness**
+1. [Create a new layer](https://docs.unity3d.com/Manual/create-layers.html) and name it Compute Thickness.
+2. Select a GameObject you want to apply compute thickness to.
+3. In the Inspector window, open the **Layer** dropdown and select the Compute Thickness layer. 
+
+**Note**: The **Layer** drop-down lists each layer by its layer number. Use the layer number to assign this layer as a layer mask in the [HD Sample Buffer node](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest?subfolder=/manual/HD-Sample-Buffer-Node.html).
+
+<a name="computethickness-layer-mask"></a>
+### Create and apply a compute thickness layer mask
+
+To create a layer mask to apply compute thickness to, assign the compute thickness layer to the following properties: 
+
+* In the [Compute Thickness shader graph](#computethickness-shader-graph): 
+   1. Go to the HD Sample Buffer node. 
+   2. In the Layer Mask input, enter the layer number of the compute thickness layer.
+* In the Project Settings window:
+   1. Go to **Quality** > **HDRP**
+   2. Select the **Compute thickness** tab.
+   3. Open the **Layer Mask** dropdown and select the custom layer you want to compute the thickness of. 
+   4. Go to **Graphics** > **HDRP Global Settings**
+   5. Open the **Rendering** tab.
+   6. Enable the **Compute thickness** toggle.
+* In the HDRP Asset:
+   1. Open the **Rendering tab**. 
+   2. Select the **Compute thickness** tab.
+   3. Open the **Layer Mask** dropdown and select the custom layer you want to compute the thickness of.
+
+HDRP creates a texture that contains the thickness of all the GameObjects in each compute thickness layer. You can sample this texture in the [HD Sample Buffer node](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest?subfolder=/manual/HD-Sample-Buffer-Node.html) in Shader Graph.
+
+**Note**: If you create more than one layer that uses compute thickness, the thickness of these layers doesn’t affect each other.
+
+## Set up compute thickness for opaque and transparent materials
+
+HDRP calculates compute thickness for opaque materials before transparent materials. This means opaque materials affect the thickness of transparent materials, but opaque materials do not affect each other’s thickness. 
+
+For example, the image below displays two spheres that use a compute thickness material and intersect an opaque checkerboard plane. The transparent sphere (A) has a dark edge where the plane intersects it, but the opaque plane does not affect the opaque sphere (B).
+
+![](Images/computethickness_transparency.png)
+A: A sphere with a transparent compute thickness material intersecting an opaque plane.
+B: A sphere with an opaque compute thickness material intersecting an opaque plane.
+
+To use compute thickness on opaque and transparent materials in a scene, add GameObjects with an opaque compute thickness material to a different layer from GameObjects that use a transparent compute thickness material. This stops the materials from clipping in front and behind each other.
+
+<a name="computethickness-optimize"></a>
+## Optimize a compute thickness material
+
+HDRP calculates thickness for the full screen which can have a high impact on memory usage. To reduce the amount of memory compute thickness uses, change the following properties: 
+
+- [Lower the compute thickness resolution.](#computethickness-resolution)
+- [Reduce the number of layers HDRP calculates compute thickness on.](#computethickness-optimize-layers)
+
+<a name="computethickness-resolution"></a>
+### Set the resolution of compute thickness 
+
+To control the memory impact of compute thickness, reduce the target resolution of compute thickness in the [HDRP Asset](HDRP-Asset.md):
+
+1. Open the **Rendering** section.
+2. Expand the **Compute Thickness** section.
+3. Open the **Resolution** dropdown. 
+4. Select one of the following options:
+
+- **Quarter**: Renders the thickness at quarter the current screen resolution.
+- **Half**: Renders the thickness at half the current screen resolution. This resolution is the best balance of detail and performance.
+- **Full**: Renders the thickness at the current full screen resolution.
+
+<a name="computethickness-optimize-layers"></a>
+### Set the number of compute thickness layers
+
+The amount of memory compute thickness uses increases when you enable it on multiple layers. You can change the number of layers HDRP calculates the thickness for in the [HDRP Asset](HDRP-Asset.md):
+
+1. Open the **Rendering** section.
+2. Expand the **Compute Thickness** section.
+3. Select the **Layer Mask** dropdown.
+4. Select the layers to apply compute thickness to.
+
+## Debug compute thickness
+
+To visualize the compute thickness debug mode, perform the following actions: 
+
+1. Open the Rendering Debugger window (menu: **Window** > **Analysis** > **Rendering Debugger)**.
+2. Select the Rendering tab.
+3. Open the Fullscreen Debug Mode dropdown and select **Compute Thickness**.
+
+This view displays the thickness or overlap count of the objects in the layer you select in the **Layer Mask** property.
 
 ![](Images/ComputeThickness_Debug.png)
+A: The default appearance of the compute thickness debug view.
+B: The compute thickness debug view when you enable **Show Overlap Count** .
 
-From there, you can use different parameters:
-|||
-|:----------------------------:|:----------------------------:|
-| **Layer Mask** | Specifies which layer is currently being viewed in the debug view. |
-| **Show Overlap Count** | When enabled, HDRP shows only the number of triangles for a given pixel. |
-| **Thickness Scale** | Controls the scale the thickness (or Overlap Count). |
+| **Debug view color**                                         | **Description**                                              |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| ![img](Images/computethickness_debug_vidris.png)Vidris color scale | A gradient scale that represents thickness. Purple represents the minimum thickness and yellow represents the maximum thickness.<br/>When you enable **Show Overlap Count,** yellow areas indicate a high number of overlapping triangles. |
+| ![img](Images/computethickness_debug_red.png)Red             | Negative thickness caused by an open mesh, flipped triangles, or an odd number of triangles in the optical path. |
+| ![img](Images/computethickness_debug_gray.png)Gray           | The default background color. <br/>Gray areas inside a mesh indicate pixels that are in a similar position (z-fight) or have no thickness. |
+| ![img](Images/computethickness_debug_orange.png)Orange       | Compute Thickness is not active in the HDRP Global Settings. To fix this, [enable compute thickness](#computethickness-enable). |
+| ![img](Images/computethickness_debug_pink.png)Pink           | This layer is not assigned to the HDRP Asset’s Layer Mask property. To fix this, [enable compute thickness](#computethickness-enable). |
 
-|           Thickness          |         Overlap Count        |
-|:----------------------------:|:----------------------------:|
-| ![](Images/ComputeThickness_Thickness.png) | ![](Images/ComputeThickness_OverlapCount.png) |
+## Limitations
 
-The Compute Thickness debug mode uses the Viridis color scale.
-Debug View Color Scale:
-* 🟠 Orange: Compute Thickness Feature not enabled
-* 🟣 Purple: Layer not used
-* 🔴 Red: Negative thickness, due to open meshes, flipped triangles or odd number of triangle of optical path.
-* ⚫ Grey: Thickness equal 0, Background, Z-Fight or no thickness computed for this pixel
+Compute thickness does not support the following: 
+- Tessellation.
+- [Alpha Clipping](Alpha-Clipping.md).
+- Transparent and opaque GameObjects in the same layer.
+- GameObjects that have closed and open geometry in the same layer.
