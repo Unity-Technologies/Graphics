@@ -179,6 +179,7 @@ namespace UnityEngine.Rendering
         protected virtual void OnEnable()
         {
             // Automatically grab all fields of type VolumeParameter for this instance
+            parameterList.Clear();
             FindParameters(this, parameterList);
 
             foreach (var parameter in parameterList)
