@@ -67,15 +67,45 @@
                             },
                             {
                                 "rid": 3203010815456182406
+                            },
+                            {
+                                "rid": 3203010997064826899
+                            },
+                            {
+                                "rid": 3203010997064826902
                             }
                         ],
                         "m_GraphWireModels": [],
                         "m_GraphStickyNoteModels": [
                             {
-                                "rid": 3203010815456182384
+                                "rid": 3203010815456182405
                             },
                             {
-                                "rid": 3203010815456182405
+                                "rid": 3203010997064826890
+                            },
+                            {
+                                "rid": 3203010997064826891
+                            },
+                            {
+                                "rid": 3203010997064826892
+                            },
+                            {
+                                "rid": 3203010997064826893
+                            },
+                            {
+                                "rid": 3203010997064826894
+                            },
+                            {
+                                "rid": 3203010997064826895
+                            },
+                            {
+                                "rid": 3203010997064826896
+                            },
+                            {
+                                "rid": 3203010997064826897
+                            },
+                            {
+                                "rid": 3203010997064826898
                             }
                         ],
                         "m_GraphPlacematModels": [],
@@ -185,11 +215,27 @@
                                 },
                                 "m_Category": 0,
                                 "m_Index": 11
+                            },
+                            {
+                                "m_Guid": {
+                                    "m_Value0": 11515432969479938927,
+                                    "m_Value1": 5543301788705931575
+                                },
+                                "m_Category": 0,
+                                "m_Index": 12
+                            },
+                            {
+                                "m_Guid": {
+                                    "m_Value0": 17105959383905493805,
+                                    "m_Value1": 17593708966501284294
+                                },
+                                "m_Category": 0,
+                                "m_Index": 13
                             }
                         ],
                         "m_StencilTypeName": "UnityEditor.ShaderGraph.GraphUI.ShaderGraphStencil, Unity.ShaderGraph.GraphUI, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null",
                         "graphHandlerBox": {
-                            "json": "{\n    \"m_serializedData\": [\n        {\n            \"layerName\": \"User\",\n            \"layerData\": [\n                {\n                    \"id\": \"08ac395a4315d4856b851499af448950\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+NodeHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"0c5dd81f0fd624b69ab5ade83a496999\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+NodeHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"12ba5f6d38a14bc2573674192adc5ffe\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+NodeHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"1393596c19b0d0f3b85bba15d2922d96\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+NodeHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"1e908ce4915c8ae30c688f766adbf9b0\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+NodeHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"4cf369a23a8f5089a2c96852ed4b15ce\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+NodeHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"6b4a121041860d9f099f7e9948e452c9\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+NodeHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"7b23fcc9ce6d6f3f358b381d40a74e25\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+NodeHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"a3ed80c9b94ba702caf59e0197edd778\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+NodeHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"afbfabca1d232a00b5d9f567b0e9940e\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+NodeHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"be139ecd5c7eeb3b14c7c45454502974\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+NodeHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"DefaultContextDescriptor\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+NodeHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"DefaultContextDescriptor.BaseColor.TypeField.c0\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+FieldHeader`1[[System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                    \"valueData\": \"{\\n    \\\"m_data\\\": 0.5\\n}\"\n                },\n                {\n                    \"id\": \"DefaultContextDescriptor.BaseColor.TypeField.c1\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+FieldHeader`1[[System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                    \"valueData\": \"{\\n    \\\"m_data\\\": 0.5\\n}\"\n                },\n                {\n                    \"id\": \"DefaultContextDescriptor.BaseColor.TypeField.c2\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+FieldHeader`1[[System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                    \"valueData\": \"{\\n    \\\"m_data\\\": 0.5\\n}\"\n                },\n                {\n                    \"id\": \"DefaultContextDescriptor.In\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+PortHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"FragIn\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+NodeHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"FragIn.In\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+PortHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"FragIn.Out\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+PortHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"MaterialPropertyContext\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+NodeHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"MaterialPropertyContext.Out\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+PortHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"VertIn\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+NodeHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"VertIn.In\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+PortHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"VertIn.Out\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+PortHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"VertOut\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+NodeHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"VertOut.In\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+PortHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"VertOut.Out\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+PortHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                }\n            ]\n        }\n    ],\n    \"m_metadata\": {\n        \"serializedBlocks\": [\n            {\n                \"key\": \"MaterialPropertyContext\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_contextDescriptor\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":true}\"\n                        },\n                        {\n                            \"key\": \"_RegistryKey\",\n                            \"valueType\": \"UnityEditor.ShaderGraph.GraphDelta.RegistryKey, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                            \"valueEntry\": \"{\\\"data\\\":{\\\"Name\\\":\\\"_Context\\\",\\\"Version\\\":1}}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"VertIn\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_contextDescriptor\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":true}\"\n                        },\n                        {\n                            \"key\": \"_RegistryKey\",\n                            \"valueType\": \"UnityEditor.ShaderGraph.GraphDelta.RegistryKey, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                            \"valueEntry\": \"{\\\"data\\\":{\\\"Name\\\":\\\"_Context\\\",\\\"Version\\\":1}}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"MaterialPropertyContext.Out\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_isInput\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":false}\"\n                        },\n                        {\n                            \"key\": \"_isHorizontal\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":false}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"VertIn.In\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_isInput\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":true}\"\n                        },\n                        {\n                            \"key\": \"_isHorizontal\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":false}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"VertOut\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_contextDescriptor\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":true}\"\n                        },\n                        {\n                            \"key\": \"_RegistryKey\",\n                            \"valueType\": \"UnityEditor.ShaderGraph.GraphDelta.RegistryKey, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                            \"valueEntry\": \"{\\\"data\\\":{\\\"Name\\\":\\\"_Context\\\",\\\"Version\\\":1}}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"VertIn.Out\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_isInput\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":false}\"\n                        },\n                        {\n                            \"key\": \"_isHorizontal\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":false}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"VertOut.In\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_isInput\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":true}\"\n                        },\n                        {\n                            \"key\": \"_isHorizontal\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":false}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"FragIn\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_contextDescriptor\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":true}\"\n                        },\n                        {\n                            \"key\": \"_RegistryKey\",\n                            \"valueType\": \"UnityEditor.ShaderGraph.GraphDelta.RegistryKey, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                            \"valueEntry\": \"{\\\"data\\\":{\\\"Name\\\":\\\"_Context\\\",\\\"Version\\\":1}}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"VertOut.Out\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_isInput\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":false}\"\n                        },\n                        {\n                            \"key\": \"_isHorizontal\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":false}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"FragIn.In\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_isInput\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":true}\"\n                        },\n                        {\n                            \"key\": \"_isHorizontal\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":false}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"DefaultContextDescriptor\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_contextDescriptor\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":true}\"\n                        },\n                        {\n                            \"key\": \"_RegistryKey\",\n                            \"valueType\": \"UnityEditor.ShaderGraph.GraphDelta.RegistryKey, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                            \"valueEntry\": \"{\\\"data\\\":{\\\"Name\\\":\\\"_Context\\\",\\\"Version\\\":1}}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"FragIn.Out\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_isInput\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":false}\"\n                        },\n                        {\n                            \"key\": \"_isHorizontal\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":false}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"DefaultContextDescriptor.In\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_isInput\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":true}\"\n                        },\n                        {\n                            \"key\": \"_isHorizontal\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":false}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"DefaultContextDescriptor.BaseColor.TypeField.c0\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_ReconcretizeOnDataChange\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":true}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"DefaultContextDescriptor.BaseColor.TypeField.c1\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_ReconcretizeOnDataChange\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":true}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"DefaultContextDescriptor.BaseColor.TypeField.c2\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_ReconcretizeOnDataChange\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":true}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"0c5dd81f0fd624b69ab5ade83a496999\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_RegistryKey\",\n                            \"valueType\": \"UnityEditor.ShaderGraph.GraphDelta.RegistryKey, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                            \"valueEntry\": \"{\\\"data\\\":{\\\"Name\\\":\\\"SampleTexture2D\\\",\\\"Version\\\":1}}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"afbfabca1d232a00b5d9f567b0e9940e\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_RegistryKey\",\n                            \"valueType\": \"UnityEditor.ShaderGraph.GraphDelta.RegistryKey, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                            \"valueEntry\": \"{\\\"data\\\":{\\\"Name\\\":\\\"SampleTexture2DArray\\\",\\\"Version\\\":1}}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"7b23fcc9ce6d6f3f358b381d40a74e25\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_RegistryKey\",\n                            \"valueType\": \"UnityEditor.ShaderGraph.GraphDelta.RegistryKey, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                            \"valueEntry\": \"{\\\"data\\\":{\\\"Name\\\":\\\"SurfaceGradientResolveNormal\\\",\\\"Version\\\":1}}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"1e908ce4915c8ae30c688f766adbf9b0\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_RegistryKey\",\n                            \"valueType\": \"UnityEditor.ShaderGraph.GraphDelta.RegistryKey, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                            \"valueEntry\": \"{\\\"data\\\":{\\\"Name\\\":\\\"SampleTriplanar\\\",\\\"Version\\\":1}}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"be139ecd5c7eeb3b14c7c45454502974\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_RegistryKey\",\n                            \"valueType\": \"UnityEditor.ShaderGraph.GraphDelta.RegistryKey, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                            \"valueEntry\": \"{\\\"data\\\":{\\\"Name\\\":\\\"GradientNoise\\\",\\\"Version\\\":1}}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"1393596c19b0d0f3b85bba15d2922d96\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_RegistryKey\",\n                            \"valueType\": \"UnityEditor.ShaderGraph.GraphDelta.RegistryKey, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                            \"valueEntry\": \"{\\\"data\\\":{\\\"Name\\\":\\\"Noise2D\\\",\\\"Version\\\":1}}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"08ac395a4315d4856b851499af448950\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_RegistryKey\",\n                            \"valueType\": \"UnityEditor.ShaderGraph.GraphDelta.RegistryKey, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                            \"valueEntry\": \"{\\\"data\\\":{\\\"Name\\\":\\\"Noise3D\\\",\\\"Version\\\":1}}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"12ba5f6d38a14bc2573674192adc5ffe\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_RegistryKey\",\n                            \"valueType\": \"UnityEditor.ShaderGraph.GraphDelta.RegistryKey, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                            \"valueEntry\": \"{\\\"data\\\":{\\\"Name\\\":\\\"NormalFromHeight\\\",\\\"Version\\\":1}}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"a3ed80c9b94ba702caf59e0197edd778\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_RegistryKey\",\n                            \"valueType\": \"UnityEditor.ShaderGraph.GraphDelta.RegistryKey, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                            \"valueEntry\": \"{\\\"data\\\":{\\\"Name\\\":\\\"NormalFromTexture\\\",\\\"Version\\\":1}}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"6b4a121041860d9f099f7e9948e452c9\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_RegistryKey\",\n                            \"valueType\": \"UnityEditor.ShaderGraph.GraphDelta.RegistryKey, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                            \"valueEntry\": \"{\\\"data\\\":{\\\"Name\\\":\\\"SimpleNoise\\\",\\\"Version\\\":1}}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"4cf369a23a8f5089a2c96852ed4b15ce\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_RegistryKey\",\n                            \"valueType\": \"UnityEditor.ShaderGraph.GraphDelta.RegistryKey, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                            \"valueEntry\": \"{\\\"data\\\":{\\\"Name\\\":\\\"VoronoiNoise\\\",\\\"Version\\\":1}}\"\n                        }\n                    ]\n                }\n            }\n        ]\n    },\n    \"edges\": [\n        {\n            \"m_output\": {\n                \"m_path\": [],\n                \"m_fullPath\": [\n                    77,\n                    97,\n                    116,\n                    101,\n                    114,\n                    105,\n                    97,\n                    108,\n                    80,\n                    114,\n                    111,\n                    112,\n                    101,\n                    114,\n                    116,\n                    121,\n                    67,\n                    111,\n                    110,\n                    116,\n                    101,\n                    120,\n                    116,\n                    46,\n                    79,\n                    117,\n                    116\n                ]\n            },\n            \"m_input\": {\n                \"m_path\": [],\n                \"m_fullPath\": [\n                    86,\n                    101,\n                    114,\n                    116,\n                    73,\n                    110,\n                    46,\n                    73,\n                    110\n                ]\n            }\n        },\n        {\n            \"m_output\": {\n                \"m_path\": [],\n                \"m_fullPath\": [\n                    86,\n                    101,\n                    114,\n                    116,\n                    73,\n                    110,\n                    46,\n                    79,\n                    117,\n                    116\n                ]\n            },\n            \"m_input\": {\n                \"m_path\": [],\n                \"m_fullPath\": [\n                    86,\n                    101,\n                    114,\n                    116,\n                    79,\n                    117,\n                    116,\n                    46,\n                    73,\n                    110\n                ]\n            }\n        },\n        {\n            \"m_output\": {\n                \"m_path\": [],\n                \"m_fullPath\": [\n                    86,\n                    101,\n                    114,\n                    116,\n                    79,\n                    117,\n                    116,\n                    46,\n                    79,\n                    117,\n                    116\n                ]\n            },\n            \"m_input\": {\n                \"m_path\": [],\n                \"m_fullPath\": [\n                    70,\n                    114,\n                    97,\n                    103,\n                    73,\n                    110,\n                    46,\n                    73,\n                    110\n                ]\n            }\n        },\n        {\n            \"m_output\": {\n                \"m_path\": [],\n                \"m_fullPath\": [\n                    70,\n                    114,\n                    97,\n                    103,\n                    73,\n                    110,\n                    46,\n                    79,\n                    117,\n                    116\n                ]\n            },\n            \"m_input\": {\n                \"m_path\": [],\n                \"m_fullPath\": [\n                    68,\n                    101,\n                    102,\n                    97,\n                    117,\n                    108,\n                    116,\n                    67,\n                    111,\n                    110,\n                    116,\n                    101,\n                    120,\n                    116,\n                    68,\n                    101,\n                    115,\n                    99,\n                    114,\n                    105,\n                    112,\n                    116,\n                    111,\n                    114,\n                    46,\n                    73,\n                    110\n                ]\n            }\n        }\n    ],\n    \"defaultConnections\": [\n        {\n            \"m_context\": \"uv0\",\n            \"m_input\": {\n                \"m_path\": [],\n                \"m_fullPath\": [\n                    48,\n                    99,\n                    53,\n                    100,\n                    100,\n                    56,\n                    49,\n                    102,\n                    48,\n                    102,\n                    100,\n                    54,\n                    50,\n                    52,\n                    98,\n                    54,\n                    57,\n                    97,\n                    98,\n                    53,\n                    97,\n                    100,\n                    101,\n                    56,\n                    51,\n                    97,\n                    52,\n                    57,\n                    54,\n                    57,\n                    57,\n                    57,\n                    46,\n                    85,\n                    86\n                ]\n            }\n        },\n        {\n            \"m_context\": \"uv0\",\n            \"m_input\": {\n                \"m_path\": [],\n                \"m_fullPath\": [\n                    97,\n                    102,\n                    98,\n                    102,\n                    97,\n                    98,\n                    99,\n                    97,\n                    49,\n                    100,\n                    50,\n                    51,\n                    50,\n                    97,\n                    48,\n                    48,\n                    98,\n                    53,\n                    100,\n                    57,\n                    102,\n                    53,\n                    54,\n                    55,\n                    98,\n                    48,\n                    101,\n                    57,\n                    57,\n                    52,\n                    48,\n                    101,\n                    46,\n                    85,\n                    86\n                ]\n            }\n        },\n        {\n            \"m_context\": \"WorldSpacePosition\",\n            \"m_input\": {\n                \"m_path\": [],\n                \"m_fullPath\": [\n                    49,\n                    101,\n                    57,\n                    48,\n                    56,\n                    99,\n                    101,\n                    52,\n                    57,\n                    49,\n                    53,\n                    99,\n                    56,\n                    97,\n                    101,\n                    51,\n                    48,\n                    99,\n                    54,\n                    56,\n                    56,\n                    102,\n                    55,\n                    54,\n                    54,\n                    97,\n                    100,\n                    98,\n                    102,\n                    57,\n                    98,\n                    48,\n                    46,\n                    80,\n                    111,\n                    115,\n                    105,\n                    116,\n                    105,\n                    111,\n                    110\n                ]\n            }\n        },\n        {\n            \"m_context\": \"WorldSpaceNormal\",\n            \"m_input\": {\n                \"m_path\": [],\n                \"m_fullPath\": [\n                    49,\n                    101,\n                    57,\n                    48,\n                    56,\n                    99,\n                    101,\n                    52,\n                    57,\n                    49,\n                    53,\n                    99,\n                    56,\n                    97,\n                    101,\n                    51,\n                    48,\n                    99,\n                    54,\n                    56,\n                    56,\n                    102,\n                    55,\n                    54,\n                    54,\n                    97,\n                    100,\n                    98,\n                    102,\n                    57,\n                    98,\n                    48,\n                    46,\n                    78,\n                    111,\n                    114,\n                    109,\n                    97,\n                    108\n                ]\n            }\n        },\n        {\n            \"m_context\": \"uv0\",\n            \"m_input\": {\n                \"m_path\": [],\n                \"m_fullPath\": [\n                    98,\n                    101,\n                    49,\n                    51,\n                    57,\n                    101,\n                    99,\n                    100,\n                    53,\n                    99,\n                    55,\n                    101,\n                    101,\n                    98,\n                    51,\n                    98,\n                    49,\n                    52,\n                    99,\n                    55,\n                    99,\n                    52,\n                    53,\n                    52,\n                    53,\n                    52,\n                    53,\n                    48,\n                    50,\n                    57,\n                    55,\n                    52,\n                    46,\n                    85,\n                    86\n                ]\n            }\n        },\n        {\n            \"m_context\": \"uv0\",\n            \"m_input\": {\n                \"m_path\": [],\n                \"m_fullPath\": [\n                    49,\n                    51,\n                    57,\n                    51,\n                    53,\n                    57,\n                    54,\n                    99,\n                    49,\n                    57,\n                    98,\n                    48,\n                    100,\n                    48,\n                    102,\n                    51,\n                    98,\n                    56,\n                    53,\n                    98,\n                    98,\n                    97,\n                    49,\n                    53,\n                    100,\n                    50,\n                    57,\n                    50,\n                    50,\n                    100,\n                    57,\n                    54,\n                    46,\n                    85,\n                    86\n                ]\n            }\n        },\n        {\n            \"m_context\": \"WorldSpacePosition\",\n            \"m_input\": {\n                \"m_path\": [],\n                \"m_fullPath\": [\n                    48,\n                    56,\n                    97,\n                    99,\n                    51,\n                    57,\n                    53,\n                    97,\n                    52,\n                    51,\n                    49,\n                    53,\n                    100,\n                    52,\n                    56,\n                    53,\n                    54,\n                    98,\n                    56,\n                    53,\n                    49,\n                    52,\n                    57,\n                    57,\n                    97,\n                    102,\n                    52,\n                    52,\n                    56,\n                    57,\n                    53,\n                    48,\n                    46,\n                    80,\n                    111,\n                    115,\n                    105,\n                    116,\n                    105,\n                    111,\n                    110\n                ]\n            }\n        },\n        {\n            \"m_context\": \"WorldSpacePosition\",\n            \"m_input\": {\n                \"m_path\": [],\n                \"m_fullPath\": [\n                    49,\n                    50,\n                    98,\n                    97,\n                    53,\n                    102,\n                    54,\n                    100,\n                    51,\n                    56,\n                    97,\n                    49,\n                    52,\n                    98,\n                    99,\n                    50,\n                    53,\n                    55,\n                    51,\n                    54,\n                    55,\n                    52,\n                    49,\n                    57,\n                    50,\n                    97,\n                    100,\n                    99,\n                    53,\n                    102,\n                    102,\n                    101,\n                    46,\n                    80,\n                    111,\n                    115,\n                    105,\n                    116,\n                    105,\n                    111,\n                    110,\n                    87,\n                    83\n                ]\n            }\n        },\n        {\n            \"m_context\": \"WorldSpaceNormal\",\n            \"m_input\": {\n                \"m_path\": [],\n                \"m_fullPath\": [\n                    49,\n                    50,\n                    98,\n                    97,\n                    53,\n                    102,\n                    54,\n                    100,\n                    51,\n                    56,\n                    97,\n                    49,\n                    52,\n                    98,\n                    99,\n                    50,\n                    53,\n                    55,\n                    51,\n                    54,\n                    55,\n                    52,\n                    49,\n                    57,\n                    50,\n                    97,\n                    100,\n                    99,\n                    53,\n                    102,\n                    102,\n                    101,\n                    46,\n                    78,\n                    111,\n                    114,\n                    109,\n                    97,\n                    108,\n                    87,\n                    83\n                ]\n            }\n        },\n        {\n            \"m_context\": \"WorldSpaceTangent\",\n            \"m_input\": {\n                \"m_path\": [],\n                \"m_fullPath\": [\n                    49,\n                    50,\n                    98,\n                    97,\n                    53,\n                    102,\n                    54,\n                    100,\n                    51,\n                    56,\n                    97,\n                    49,\n                    52,\n                    98,\n                    99,\n                    50,\n                    53,\n                    55,\n                    51,\n                    54,\n                    55,\n                    52,\n                    49,\n                    57,\n                    50,\n                    97,\n                    100,\n                    99,\n                    53,\n                    102,\n                    102,\n                    101,\n                    46,\n                    84,\n                    97,\n                    110,\n                    103,\n                    101,\n                    110,\n                    116,\n                    87,\n                    83\n                ]\n            }\n        },\n        {\n            \"m_context\": \"WorldSpaceBiTangent\",\n            \"m_input\": {\n                \"m_path\": [],\n                \"m_fullPath\": [\n                    49,\n                    50,\n                    98,\n                    97,\n                    53,\n                    102,\n                    54,\n                    100,\n                    51,\n                    56,\n                    97,\n                    49,\n                    52,\n                    98,\n                    99,\n                    50,\n                    53,\n                    55,\n                    51,\n                    54,\n                    55,\n                    52,\n                    49,\n                    57,\n                    50,\n                    97,\n                    100,\n                    99,\n                    53,\n                    102,\n                    102,\n                    101,\n                    46,\n                    66,\n                    105,\n                    116,\n                    97,\n                    110,\n                    103,\n                    101,\n                    110,\n                    116,\n                    87,\n                    83\n                ]\n            }\n        },\n        {\n            \"m_context\": \"uv0\",\n            \"m_input\": {\n                \"m_path\": [],\n                \"m_fullPath\": [\n                    97,\n                    51,\n                    101,\n                    100,\n                    56,\n                    48,\n                    99,\n                    57,\n                    98,\n                    57,\n                    52,\n                    98,\n                    97,\n                    55,\n                    48,\n                    50,\n                    99,\n                    97,\n                    102,\n                    53,\n                    57,\n                    101,\n                    48,\n                    49,\n                    57,\n                    55,\n                    101,\n                    100,\n                    100,\n                    55,\n                    55,\n                    56,\n                    46,\n                    85,\n                    86\n                ]\n            }\n        },\n        {\n            \"m_context\": \"WorldSpaceNormal\",\n            \"m_input\": {\n                \"m_path\": [],\n                \"m_fullPath\": [\n                    97,\n                    51,\n                    101,\n                    100,\n                    56,\n                    48,\n                    99,\n                    57,\n                    98,\n                    57,\n                    52,\n                    98,\n                    97,\n                    55,\n                    48,\n                    50,\n                    99,\n                    97,\n                    102,\n                    53,\n                    57,\n                    101,\n                    48,\n                    49,\n                    57,\n                    55,\n                    101,\n                    100,\n                    100,\n                    55,\n                    55,\n                    56,\n                    46,\n                    78,\n                    111,\n                    114,\n                    109,\n                    97,\n                    108,\n                    87,\n                    83\n                ]\n            }\n        },\n        {\n            \"m_context\": \"WorldSpaceTangent\",\n            \"m_input\": {\n                \"m_path\": [],\n                \"m_fullPath\": [\n                    97,\n                    51,\n                    101,\n                    100,\n                    56,\n                    48,\n                    99,\n                    57,\n                    98,\n                    57,\n                    52,\n                    98,\n                    97,\n                    55,\n                    48,\n                    50,\n                    99,\n                    97,\n                    102,\n                    53,\n                    57,\n                    101,\n                    48,\n                    49,\n                    57,\n                    55,\n                    101,\n                    100,\n                    100,\n                    55,\n                    55,\n                    56,\n                    46,\n                    84,\n                    97,\n                    110,\n                    103,\n                    101,\n                    110,\n                    116,\n                    87,\n                    83\n                ]\n            }\n        },\n        {\n            \"m_context\": \"WorldSpaceBiTangent\",\n            \"m_input\": {\n                \"m_path\": [],\n                \"m_fullPath\": [\n                    97,\n                    51,\n                    101,\n                    100,\n                    56,\n                    48,\n                    99,\n                    57,\n                    98,\n                    57,\n                    52,\n                    98,\n                    97,\n                    55,\n                    48,\n                    50,\n                    99,\n                    97,\n                    102,\n                    53,\n                    57,\n                    101,\n                    48,\n                    49,\n                    57,\n                    55,\n                    101,\n                    100,\n                    100,\n                    55,\n                    55,\n                    56,\n                    46,\n                    66,\n                    105,\n                    116,\n                    97,\n                    110,\n                    103,\n                    101,\n                    110,\n                    116,\n                    87,\n                    83\n                ]\n            }\n        },\n        {\n            \"m_context\": \"uv0\",\n            \"m_input\": {\n                \"m_path\": [],\n                \"m_fullPath\": [\n                    54,\n                    98,\n                    52,\n                    97,\n                    49,\n                    50,\n                    49,\n                    48,\n                    52,\n                    49,\n                    56,\n                    54,\n                    48,\n                    100,\n                    57,\n                    102,\n                    48,\n                    57,\n                    57,\n                    102,\n                    55,\n                    101,\n                    57,\n                    57,\n                    52,\n                    56,\n                    101,\n                    52,\n                    53,\n                    50,\n                    99,\n                    57,\n                    46,\n                    85,\n                    86\n                ]\n            }\n        },\n        {\n            \"m_context\": \"uv0\",\n            \"m_input\": {\n                \"m_path\": [],\n                \"m_fullPath\": [\n                    52,\n                    99,\n                    102,\n                    51,\n                    54,\n                    57,\n                    97,\n                    50,\n                    51,\n                    97,\n                    56,\n                    102,\n                    53,\n                    48,\n                    56,\n                    57,\n                    97,\n                    50,\n                    99,\n                    57,\n                    54,\n                    56,\n                    53,\n                    50,\n                    101,\n                    100,\n                    52,\n                    98,\n                    49,\n                    53,\n                    99,\n                    101,\n                    46,\n                    85,\n                    86\n                ]\n            }\n        }\n    ],\n    \"referableNames\": [],\n    \"referenceNodeMappings\": []\n}"
+                            "json": "{\n    \"m_serializedData\": [\n        {\n            \"layerName\": \"User\",\n            \"layerData\": [\n                {\n                    \"id\": \"08ac395a4315d4856b851499af448950\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+NodeHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"0c5dd81f0fd624b69ab5ade83a496999\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+NodeHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"0c5dd81f0fd624b69ab5ade83a496999.Type.TypeField.c0\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+FieldHeader`1[[System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                    \"valueData\": \"{\\n    \\\"m_data\\\": 0.0\\n}\"\n                },\n                {\n                    \"id\": \"12ba5f6d38a14bc2573674192adc5ffe\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+NodeHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"1393596c19b0d0f3b85bba15d2922d96\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+NodeHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"1e908ce4915c8ae30c688f766adbf9b0\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+NodeHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"2d63f2ab6d9364edc6f9e9ed166929f4\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+NodeHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"4cf369a23a8f5089a2c96852ed4b15ce\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+NodeHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"6b4a121041860d9f099f7e9948e452c9\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+NodeHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"6f63ac3c4609cf9f37c19a6e9bc3ed4c\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+NodeHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"7b23fcc9ce6d6f3f358b381d40a74e25\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+NodeHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"a3ed80c9b94ba702caf59e0197edd778\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+NodeHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"afbfabca1d232a00b5d9f567b0e9940e\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+NodeHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"be139ecd5c7eeb3b14c7c45454502974\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+NodeHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"DefaultContextDescriptor\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+NodeHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"DefaultContextDescriptor.BaseColor.TypeField.c0\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+FieldHeader`1[[System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                    \"valueData\": \"{\\n    \\\"m_data\\\": 0.5\\n}\"\n                },\n                {\n                    \"id\": \"DefaultContextDescriptor.BaseColor.TypeField.c1\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+FieldHeader`1[[System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                    \"valueData\": \"{\\n    \\\"m_data\\\": 0.5\\n}\"\n                },\n                {\n                    \"id\": \"DefaultContextDescriptor.BaseColor.TypeField.c2\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+FieldHeader`1[[System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                    \"valueData\": \"{\\n    \\\"m_data\\\": 0.5\\n}\"\n                },\n                {\n                    \"id\": \"DefaultContextDescriptor.In\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+PortHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"FragIn\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+NodeHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"FragIn.In\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+PortHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"FragIn.Out\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+PortHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"MaterialPropertyContext\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+NodeHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"MaterialPropertyContext.Out\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+PortHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"VertIn\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+NodeHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"VertIn.In\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+PortHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"VertIn.Out\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+PortHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"VertOut\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+NodeHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"VertOut.In\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+PortHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"VertOut.Out\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+PortHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                }\n            ]\n        }\n    ],\n    \"m_metadata\": {\n        \"serializedBlocks\": [\n            {\n                \"key\": \"MaterialPropertyContext\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_contextDescriptor\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":true}\"\n                        },\n                        {\n                            \"key\": \"_RegistryKey\",\n                            \"valueType\": \"UnityEditor.ShaderGraph.GraphDelta.RegistryKey, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                            \"valueEntry\": \"{\\\"data\\\":{\\\"Name\\\":\\\"_Context\\\",\\\"Version\\\":1}}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"VertIn\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_contextDescriptor\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":true}\"\n                        },\n                        {\n                            \"key\": \"_RegistryKey\",\n                            \"valueType\": \"UnityEditor.ShaderGraph.GraphDelta.RegistryKey, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                            \"valueEntry\": \"{\\\"data\\\":{\\\"Name\\\":\\\"_Context\\\",\\\"Version\\\":1}}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"MaterialPropertyContext.Out\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_isInput\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":false}\"\n                        },\n                        {\n                            \"key\": \"_isHorizontal\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":false}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"VertIn.In\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_isInput\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":true}\"\n                        },\n                        {\n                            \"key\": \"_isHorizontal\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":false}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"VertOut\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_contextDescriptor\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":true}\"\n                        },\n                        {\n                            \"key\": \"_RegistryKey\",\n                            \"valueType\": \"UnityEditor.ShaderGraph.GraphDelta.RegistryKey, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                            \"valueEntry\": \"{\\\"data\\\":{\\\"Name\\\":\\\"_Context\\\",\\\"Version\\\":1}}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"VertIn.Out\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_isInput\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":false}\"\n                        },\n                        {\n                            \"key\": \"_isHorizontal\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":false}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"VertOut.In\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_isInput\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":true}\"\n                        },\n                        {\n                            \"key\": \"_isHorizontal\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":false}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"FragIn\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_contextDescriptor\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":true}\"\n                        },\n                        {\n                            \"key\": \"_RegistryKey\",\n                            \"valueType\": \"UnityEditor.ShaderGraph.GraphDelta.RegistryKey, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                            \"valueEntry\": \"{\\\"data\\\":{\\\"Name\\\":\\\"_Context\\\",\\\"Version\\\":1}}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"VertOut.Out\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_isInput\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":false}\"\n                        },\n                        {\n                            \"key\": \"_isHorizontal\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":false}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"FragIn.In\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_isInput\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":true}\"\n                        },\n                        {\n                            \"key\": \"_isHorizontal\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":false}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"DefaultContextDescriptor\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_contextDescriptor\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":true}\"\n                        },\n                        {\n                            \"key\": \"_RegistryKey\",\n                            \"valueType\": \"UnityEditor.ShaderGraph.GraphDelta.RegistryKey, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                            \"valueEntry\": \"{\\\"data\\\":{\\\"Name\\\":\\\"_Context\\\",\\\"Version\\\":1}}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"FragIn.Out\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_isInput\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":false}\"\n                        },\n                        {\n                            \"key\": \"_isHorizontal\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":false}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"DefaultContextDescriptor.In\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_isInput\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":true}\"\n                        },\n                        {\n                            \"key\": \"_isHorizontal\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":false}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"DefaultContextDescriptor.BaseColor.TypeField.c0\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_ReconcretizeOnDataChange\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":true}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"DefaultContextDescriptor.BaseColor.TypeField.c1\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_ReconcretizeOnDataChange\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":true}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"DefaultContextDescriptor.BaseColor.TypeField.c2\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_ReconcretizeOnDataChange\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":true}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"0c5dd81f0fd624b69ab5ade83a496999\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_RegistryKey\",\n                            \"valueType\": \"UnityEditor.ShaderGraph.GraphDelta.RegistryKey, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                            \"valueEntry\": \"{\\\"data\\\":{\\\"Name\\\":\\\"SampleTexture2D\\\",\\\"Version\\\":1}}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"afbfabca1d232a00b5d9f567b0e9940e\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_RegistryKey\",\n                            \"valueType\": \"UnityEditor.ShaderGraph.GraphDelta.RegistryKey, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                            \"valueEntry\": \"{\\\"data\\\":{\\\"Name\\\":\\\"SampleTexture2DArray\\\",\\\"Version\\\":1}}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"7b23fcc9ce6d6f3f358b381d40a74e25\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_RegistryKey\",\n                            \"valueType\": \"UnityEditor.ShaderGraph.GraphDelta.RegistryKey, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                            \"valueEntry\": \"{\\\"data\\\":{\\\"Name\\\":\\\"SurfaceGradientResolveNormal\\\",\\\"Version\\\":1}}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"1e908ce4915c8ae30c688f766adbf9b0\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_RegistryKey\",\n                            \"valueType\": \"UnityEditor.ShaderGraph.GraphDelta.RegistryKey, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                            \"valueEntry\": \"{\\\"data\\\":{\\\"Name\\\":\\\"SampleTriplanar\\\",\\\"Version\\\":1}}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"be139ecd5c7eeb3b14c7c45454502974\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_RegistryKey\",\n                            \"valueType\": \"UnityEditor.ShaderGraph.GraphDelta.RegistryKey, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                            \"valueEntry\": \"{\\\"data\\\":{\\\"Name\\\":\\\"GradientNoise\\\",\\\"Version\\\":1}}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"1393596c19b0d0f3b85bba15d2922d96\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_RegistryKey\",\n                            \"valueType\": \"UnityEditor.ShaderGraph.GraphDelta.RegistryKey, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                            \"valueEntry\": \"{\\\"data\\\":{\\\"Name\\\":\\\"Noise2D\\\",\\\"Version\\\":1}}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"08ac395a4315d4856b851499af448950\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_RegistryKey\",\n                            \"valueType\": \"UnityEditor.ShaderGraph.GraphDelta.RegistryKey, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                            \"valueEntry\": \"{\\\"data\\\":{\\\"Name\\\":\\\"Noise3D\\\",\\\"Version\\\":1}}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"12ba5f6d38a14bc2573674192adc5ffe\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_RegistryKey\",\n                            \"valueType\": \"UnityEditor.ShaderGraph.GraphDelta.RegistryKey, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                            \"valueEntry\": \"{\\\"data\\\":{\\\"Name\\\":\\\"NormalFromHeight\\\",\\\"Version\\\":1}}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"a3ed80c9b94ba702caf59e0197edd778\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_RegistryKey\",\n                            \"valueType\": \"UnityEditor.ShaderGraph.GraphDelta.RegistryKey, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                            \"valueEntry\": \"{\\\"data\\\":{\\\"Name\\\":\\\"NormalFromTexture\\\",\\\"Version\\\":1}}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"6b4a121041860d9f099f7e9948e452c9\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_RegistryKey\",\n                            \"valueType\": \"UnityEditor.ShaderGraph.GraphDelta.RegistryKey, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                            \"valueEntry\": \"{\\\"data\\\":{\\\"Name\\\":\\\"SimpleNoise\\\",\\\"Version\\\":1}}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"4cf369a23a8f5089a2c96852ed4b15ce\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_RegistryKey\",\n                            \"valueType\": \"UnityEditor.ShaderGraph.GraphDelta.RegistryKey, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                            \"valueEntry\": \"{\\\"data\\\":{\\\"Name\\\":\\\"VoronoiNoise\\\",\\\"Version\\\":1}}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"6f63ac3c4609cf9f37c19a6e9bc3ed4c\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_RegistryKey\",\n                            \"valueType\": \"UnityEditor.ShaderGraph.GraphDelta.RegistryKey, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                            \"valueEntry\": \"{\\\"data\\\":{\\\"Name\\\":\\\"DDX\\\",\\\"Version\\\":1}}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"2d63f2ab6d9364edc6f9e9ed166929f4\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_RegistryKey\",\n                            \"valueType\": \"UnityEditor.ShaderGraph.GraphDelta.RegistryKey, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                            \"valueEntry\": \"{\\\"data\\\":{\\\"Name\\\":\\\"DDY\\\",\\\"Version\\\":1}}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"0c5dd81f0fd624b69ab5ade83a496999.Type.TypeField.c0\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_ReconcretizeOnDataChange\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":true}\"\n                        }\n                    ]\n                }\n            }\n        ]\n    },\n    \"edges\": [\n        {\n            \"m_output\": {\n                \"m_path\": [],\n                \"m_fullPath\": [\n                    77,\n                    97,\n                    116,\n                    101,\n                    114,\n                    105,\n                    97,\n                    108,\n                    80,\n                    114,\n                    111,\n                    112,\n                    101,\n                    114,\n                    116,\n                    121,\n                    67,\n                    111,\n                    110,\n                    116,\n                    101,\n                    120,\n                    116,\n                    46,\n                    79,\n                    117,\n                    116\n                ]\n            },\n            \"m_input\": {\n                \"m_path\": [],\n                \"m_fullPath\": [\n                    86,\n                    101,\n                    114,\n                    116,\n                    73,\n                    110,\n                    46,\n                    73,\n                    110\n                ]\n            }\n        },\n        {\n            \"m_output\": {\n                \"m_path\": [],\n                \"m_fullPath\": [\n                    86,\n                    101,\n                    114,\n                    116,\n                    73,\n                    110,\n                    46,\n                    79,\n                    117,\n                    116\n                ]\n            },\n            \"m_input\": {\n                \"m_path\": [],\n                \"m_fullPath\": [\n                    86,\n                    101,\n                    114,\n                    116,\n                    79,\n                    117,\n                    116,\n                    46,\n                    73,\n                    110\n                ]\n            }\n        },\n        {\n            \"m_output\": {\n                \"m_path\": [],\n                \"m_fullPath\": [\n                    86,\n                    101,\n                    114,\n                    116,\n                    79,\n                    117,\n                    116,\n                    46,\n                    79,\n                    117,\n                    116\n                ]\n            },\n            \"m_input\": {\n                \"m_path\": [],\n                \"m_fullPath\": [\n                    70,\n                    114,\n                    97,\n                    103,\n                    73,\n                    110,\n                    46,\n                    73,\n                    110\n                ]\n            }\n        },\n        {\n            \"m_output\": {\n                \"m_path\": [],\n                \"m_fullPath\": [\n                    70,\n                    114,\n                    97,\n                    103,\n                    73,\n                    110,\n                    46,\n                    79,\n                    117,\n                    116\n                ]\n            },\n            \"m_input\": {\n                \"m_path\": [],\n                \"m_fullPath\": [\n                    68,\n                    101,\n                    102,\n                    97,\n                    117,\n                    108,\n                    116,\n                    67,\n                    111,\n                    110,\n                    116,\n                    101,\n                    120,\n                    116,\n                    68,\n                    101,\n                    115,\n                    99,\n                    114,\n                    105,\n                    112,\n                    116,\n                    111,\n                    114,\n                    46,\n                    73,\n                    110\n                ]\n            }\n        }\n    ],\n    \"defaultConnections\": [\n        {\n            \"m_context\": \"uv0\",\n            \"m_input\": {\n                \"m_path\": [],\n                \"m_fullPath\": [\n                    48,\n                    99,\n                    53,\n                    100,\n                    100,\n                    56,\n                    49,\n                    102,\n                    48,\n                    102,\n                    100,\n                    54,\n                    50,\n                    52,\n                    98,\n                    54,\n                    57,\n                    97,\n                    98,\n                    53,\n                    97,\n                    100,\n                    101,\n                    56,\n                    51,\n                    97,\n                    52,\n                    57,\n                    54,\n                    57,\n                    57,\n                    57,\n                    46,\n                    85,\n                    86\n                ]\n            }\n        },\n        {\n            \"m_context\": \"uv0\",\n            \"m_input\": {\n                \"m_path\": [],\n                \"m_fullPath\": [\n                    97,\n                    102,\n                    98,\n                    102,\n                    97,\n                    98,\n                    99,\n                    97,\n                    49,\n                    100,\n                    50,\n                    51,\n                    50,\n                    97,\n                    48,\n                    48,\n                    98,\n                    53,\n                    100,\n                    57,\n                    102,\n                    53,\n                    54,\n                    55,\n                    98,\n                    48,\n                    101,\n                    57,\n                    57,\n                    52,\n                    48,\n                    101,\n                    46,\n                    85,\n                    86\n                ]\n            }\n        },\n        {\n            \"m_context\": \"WorldSpacePosition\",\n            \"m_input\": {\n                \"m_path\": [],\n                \"m_fullPath\": [\n                    49,\n                    101,\n                    57,\n                    48,\n                    56,\n                    99,\n                    101,\n                    52,\n                    57,\n                    49,\n                    53,\n                    99,\n                    56,\n                    97,\n                    101,\n                    51,\n                    48,\n                    99,\n                    54,\n                    56,\n                    56,\n                    102,\n                    55,\n                    54,\n                    54,\n                    97,\n                    100,\n                    98,\n                    102,\n                    57,\n                    98,\n                    48,\n                    46,\n                    80,\n                    111,\n                    115,\n                    105,\n                    116,\n                    105,\n                    111,\n                    110\n                ]\n            }\n        },\n        {\n            \"m_context\": \"WorldSpaceNormal\",\n            \"m_input\": {\n                \"m_path\": [],\n                \"m_fullPath\": [\n                    49,\n                    101,\n                    57,\n                    48,\n                    56,\n                    99,\n                    101,\n                    52,\n                    57,\n                    49,\n                    53,\n                    99,\n                    56,\n                    97,\n                    101,\n                    51,\n                    48,\n                    99,\n                    54,\n                    56,\n                    56,\n                    102,\n                    55,\n                    54,\n                    54,\n                    97,\n                    100,\n                    98,\n                    102,\n                    57,\n                    98,\n                    48,\n                    46,\n                    78,\n                    111,\n                    114,\n                    109,\n                    97,\n                    108\n                ]\n            }\n        },\n        {\n            \"m_context\": \"uv0\",\n            \"m_input\": {\n                \"m_path\": [],\n                \"m_fullPath\": [\n                    98,\n                    101,\n                    49,\n                    51,\n                    57,\n                    101,\n                    99,\n                    100,\n                    53,\n                    99,\n                    55,\n                    101,\n                    101,\n                    98,\n                    51,\n                    98,\n                    49,\n                    52,\n                    99,\n                    55,\n                    99,\n                    52,\n                    53,\n                    52,\n                    53,\n                    52,\n                    53,\n                    48,\n                    50,\n                    57,\n                    55,\n                    52,\n                    46,\n                    85,\n                    86\n                ]\n            }\n        },\n        {\n            \"m_context\": \"uv0\",\n            \"m_input\": {\n                \"m_path\": [],\n                \"m_fullPath\": [\n                    49,\n                    51,\n                    57,\n                    51,\n                    53,\n                    57,\n                    54,\n                    99,\n                    49,\n                    57,\n                    98,\n                    48,\n                    100,\n                    48,\n                    102,\n                    51,\n                    98,\n                    56,\n                    53,\n                    98,\n                    98,\n                    97,\n                    49,\n                    53,\n                    100,\n                    50,\n                    57,\n                    50,\n                    50,\n                    100,\n                    57,\n                    54,\n                    46,\n                    85,\n                    86\n                ]\n            }\n        },\n        {\n            \"m_context\": \"WorldSpacePosition\",\n            \"m_input\": {\n                \"m_path\": [],\n                \"m_fullPath\": [\n                    48,\n                    56,\n                    97,\n                    99,\n                    51,\n                    57,\n                    53,\n                    97,\n                    52,\n                    51,\n                    49,\n                    53,\n                    100,\n                    52,\n                    56,\n                    53,\n                    54,\n                    98,\n                    56,\n                    53,\n                    49,\n                    52,\n                    57,\n                    57,\n                    97,\n                    102,\n                    52,\n                    52,\n                    56,\n                    57,\n                    53,\n                    48,\n                    46,\n                    80,\n                    111,\n                    115,\n                    105,\n                    116,\n                    105,\n                    111,\n                    110\n                ]\n            }\n        },\n        {\n            \"m_context\": \"WorldSpacePosition\",\n            \"m_input\": {\n                \"m_path\": [],\n                \"m_fullPath\": [\n                    49,\n                    50,\n                    98,\n                    97,\n                    53,\n                    102,\n                    54,\n                    100,\n                    51,\n                    56,\n                    97,\n                    49,\n                    52,\n                    98,\n                    99,\n                    50,\n                    53,\n                    55,\n                    51,\n                    54,\n                    55,\n                    52,\n                    49,\n                    57,\n                    50,\n                    97,\n                    100,\n                    99,\n                    53,\n                    102,\n                    102,\n                    101,\n                    46,\n                    80,\n                    111,\n                    115,\n                    105,\n                    116,\n                    105,\n                    111,\n                    110,\n                    87,\n                    83\n                ]\n            }\n        },\n        {\n            \"m_context\": \"WorldSpaceNormal\",\n            \"m_input\": {\n                \"m_path\": [],\n                \"m_fullPath\": [\n                    49,\n                    50,\n                    98,\n                    97,\n                    53,\n                    102,\n                    54,\n                    100,\n                    51,\n                    56,\n                    97,\n                    49,\n                    52,\n                    98,\n                    99,\n                    50,\n                    53,\n                    55,\n                    51,\n                    54,\n                    55,\n                    52,\n                    49,\n                    57,\n                    50,\n                    97,\n                    100,\n                    99,\n                    53,\n                    102,\n                    102,\n                    101,\n                    46,\n                    78,\n                    111,\n                    114,\n                    109,\n                    97,\n                    108,\n                    87,\n                    83\n                ]\n            }\n        },\n        {\n            \"m_context\": \"WorldSpaceTangent\",\n            \"m_input\": {\n                \"m_path\": [],\n                \"m_fullPath\": [\n                    49,\n                    50,\n                    98,\n                    97,\n                    53,\n                    102,\n                    54,\n                    100,\n                    51,\n                    56,\n                    97,\n                    49,\n                    52,\n                    98,\n                    99,\n                    50,\n                    53,\n                    55,\n                    51,\n                    54,\n                    55,\n                    52,\n                    49,\n                    57,\n                    50,\n                    97,\n                    100,\n                    99,\n                    53,\n                    102,\n                    102,\n                    101,\n                    46,\n                    84,\n                    97,\n                    110,\n                    103,\n                    101,\n                    110,\n                    116,\n                    87,\n                    83\n                ]\n            }\n        },\n        {\n            \"m_context\": \"WorldSpaceBiTangent\",\n            \"m_input\": {\n                \"m_path\": [],\n                \"m_fullPath\": [\n                    49,\n                    50,\n                    98,\n                    97,\n                    53,\n                    102,\n                    54,\n                    100,\n                    51,\n                    56,\n                    97,\n                    49,\n                    52,\n                    98,\n                    99,\n                    50,\n                    53,\n                    55,\n                    51,\n                    54,\n                    55,\n                    52,\n                    49,\n                    57,\n                    50,\n                    97,\n                    100,\n                    99,\n                    53,\n                    102,\n                    102,\n                    101,\n                    46,\n                    66,\n                    105,\n                    116,\n                    97,\n                    110,\n                    103,\n                    101,\n                    110,\n                    116,\n                    87,\n                    83\n                ]\n            }\n        },\n        {\n            \"m_context\": \"uv0\",\n            \"m_input\": {\n                \"m_path\": [],\n                \"m_fullPath\": [\n                    97,\n                    51,\n                    101,\n                    100,\n                    56,\n                    48,\n                    99,\n                    57,\n                    98,\n                    57,\n                    52,\n                    98,\n                    97,\n                    55,\n                    48,\n                    50,\n                    99,\n                    97,\n                    102,\n                    53,\n                    57,\n                    101,\n                    48,\n                    49,\n                    57,\n                    55,\n                    101,\n                    100,\n                    100,\n                    55,\n                    55,\n                    56,\n                    46,\n                    85,\n                    86\n                ]\n            }\n        },\n        {\n            \"m_context\": \"WorldSpaceNormal\",\n            \"m_input\": {\n                \"m_path\": [],\n                \"m_fullPath\": [\n                    97,\n                    51,\n                    101,\n                    100,\n                    56,\n                    48,\n                    99,\n                    57,\n                    98,\n                    57,\n                    52,\n                    98,\n                    97,\n                    55,\n                    48,\n                    50,\n                    99,\n                    97,\n                    102,\n                    53,\n                    57,\n                    101,\n                    48,\n                    49,\n                    57,\n                    55,\n                    101,\n                    100,\n                    100,\n                    55,\n                    55,\n                    56,\n                    46,\n                    78,\n                    111,\n                    114,\n                    109,\n                    97,\n                    108,\n                    87,\n                    83\n                ]\n            }\n        },\n        {\n            \"m_context\": \"WorldSpaceTangent\",\n            \"m_input\": {\n                \"m_path\": [],\n                \"m_fullPath\": [\n                    97,\n                    51,\n                    101,\n                    100,\n                    56,\n                    48,\n                    99,\n                    57,\n                    98,\n                    57,\n                    52,\n                    98,\n                    97,\n                    55,\n                    48,\n                    50,\n                    99,\n                    97,\n                    102,\n                    53,\n                    57,\n                    101,\n                    48,\n                    49,\n                    57,\n                    55,\n                    101,\n                    100,\n                    100,\n                    55,\n                    55,\n                    56,\n                    46,\n                    84,\n                    97,\n                    110,\n                    103,\n                    101,\n                    110,\n                    116,\n                    87,\n                    83\n                ]\n            }\n        },\n        {\n            \"m_context\": \"WorldSpaceBiTangent\",\n            \"m_input\": {\n                \"m_path\": [],\n                \"m_fullPath\": [\n                    97,\n                    51,\n                    101,\n                    100,\n                    56,\n                    48,\n                    99,\n                    57,\n                    98,\n                    57,\n                    52,\n                    98,\n                    97,\n                    55,\n                    48,\n                    50,\n                    99,\n                    97,\n                    102,\n                    53,\n                    57,\n                    101,\n                    48,\n                    49,\n                    57,\n                    55,\n                    101,\n                    100,\n                    100,\n                    55,\n                    55,\n                    56,\n                    46,\n                    66,\n                    105,\n                    116,\n                    97,\n                    110,\n                    103,\n                    101,\n                    110,\n                    116,\n                    87,\n                    83\n                ]\n            }\n        },\n        {\n            \"m_context\": \"uv0\",\n            \"m_input\": {\n                \"m_path\": [],\n                \"m_fullPath\": [\n                    54,\n                    98,\n                    52,\n                    97,\n                    49,\n                    50,\n                    49,\n                    48,\n                    52,\n                    49,\n                    56,\n                    54,\n                    48,\n                    100,\n                    57,\n                    102,\n                    48,\n                    57,\n                    57,\n                    102,\n                    55,\n                    101,\n                    57,\n                    57,\n                    52,\n                    56,\n                    101,\n                    52,\n                    53,\n                    50,\n                    99,\n                    57,\n                    46,\n                    85,\n                    86\n                ]\n            }\n        },\n        {\n            \"m_context\": \"uv0\",\n            \"m_input\": {\n                \"m_path\": [],\n                \"m_fullPath\": [\n                    52,\n                    99,\n                    102,\n                    51,\n                    54,\n                    57,\n                    97,\n                    50,\n                    51,\n                    97,\n                    56,\n                    102,\n                    53,\n                    48,\n                    56,\n                    57,\n                    97,\n                    50,\n                    99,\n                    57,\n                    54,\n                    56,\n                    53,\n                    50,\n                    101,\n                    100,\n                    52,\n                    98,\n                    49,\n                    53,\n                    99,\n                    101,\n                    46,\n                    85,\n                    86\n                ]\n            }\n        }\n    ],\n    \"referableNames\": [],\n    \"referenceNodeMappings\": []\n}"
                         },
                         "targetSettingsBox": {
                             "json": "{\n    \"m_SGVersion\": 0,\n    \"m_Type\": \"UnityEditor.ShaderGraph.SerializableTargetSettings+TargetSettingsObject\",\n    \"m_ObjectId\": \"b9589cdcca224239a3aa18c607bbf4ac\",\n    \"m_GraphTargets\": [\n        {\n            \"m_Id\": \"a3fc5a3af77a433eb26f14573d375250\"\n        }\n    ]\n}\n\n{\n    \"m_SGVersion\": 2,\n    \"m_Type\": \"UnityEditor.Rendering.Universal.ShaderGraph.UniversalUnlitSubTarget\",\n    \"m_ObjectId\": \"8c5aea3858244de9ae4ada4af56ddefe\"\n}\n\n{\n    \"m_SGVersion\": 1,\n    \"m_Type\": \"UnityEditor.Rendering.Universal.ShaderGraph.UniversalTarget\",\n    \"m_ObjectId\": \"a3fc5a3af77a433eb26f14573d375250\",\n    \"m_Datas\": [],\n    \"m_ActiveSubTarget\": {\n        \"m_Id\": \"8c5aea3858244de9ae4ada4af56ddefe\"\n    },\n    \"m_AllowMaterialOverride\": false,\n    \"m_SurfaceType\": 0,\n    \"m_ZTestMode\": 4,\n    \"m_ZWriteControl\": 0,\n    \"m_AlphaMode\": 0,\n    \"m_RenderFace\": 2,\n    \"m_AlphaClip\": false,\n    \"m_CastShadows\": true,\n    \"m_ReceiveShadows\": true,\n    \"m_AdditionalMotionVectorMode\": 0,\n    \"m_AlembicMotionVectors\": false,\n    \"m_SupportsLODCrossFade\": false,\n    \"m_CustomEditorGUI\": \"\",\n    \"m_SupportVFX\": false\n}\n\n"
@@ -410,8 +456,8 @@
                         "m_HasUserColor": false,
                         "m_Version": 2,
                         "m_Position": {
-                            "x": -1945.289306640625,
-                            "y": -443.62017822265627
+                            "x": -2546.45361328125,
+                            "y": -448.6201477050781
                         },
                         "m_Title": "Sample Texture 2D",
                         "m_Tooltip": "",
@@ -427,7 +473,7 @@
                             ],
                             "m_ValueList": [
                                 {
-                                    "rid": 3203010815456182343
+                                    "rid": 3203010997064826880
                                 },
                                 {
                                     "rid": 3203010815456182344
@@ -451,15 +497,6 @@
                         "m_IsPreviewExpanded": false,
                         "m_NodePreviewMode": 0
                     }
-                },
-                {
-                    "rid": 3203010815456182343,
-                    "type": {
-                        "class": "AnyConstant",
-                        "ns": "Unity.GraphToolsFoundation.Editor",
-                        "asm": "UnityEditor.GraphToolsFoundationModule"
-                    },
-                    "data": {}
                 },
                 {
                     "rid": 3203010815456182344,
@@ -549,8 +586,8 @@
                         "m_HasUserColor": false,
                         "m_Version": 2,
                         "m_Position": {
-                            "x": -1945.289306640625,
-                            "y": -147.6201629638672
+                            "x": -2095.9384765625,
+                            "y": 786.9923706054688
                         },
                         "m_Title": "Sample Texture 2D Array",
                         "m_Tooltip": "",
@@ -567,7 +604,7 @@
                             ],
                             "m_ValueList": [
                                 {
-                                    "rid": 3203010815456182348
+                                    "rid": 3203010997064826881
                                 },
                                 {
                                     "rid": 3203010815456182349
@@ -594,15 +631,6 @@
                         "m_IsPreviewExpanded": false,
                         "m_NodePreviewMode": 0
                     }
-                },
-                {
-                    "rid": 3203010815456182348,
-                    "type": {
-                        "class": "AnyConstant",
-                        "ns": "Unity.GraphToolsFoundation.Editor",
-                        "asm": "UnityEditor.GraphToolsFoundationModule"
-                    },
-                    "data": {}
                 },
                 {
                     "rid": 3203010815456182349,
@@ -728,8 +756,8 @@
                         "m_HasUserColor": false,
                         "m_Version": 2,
                         "m_Position": {
-                            "x": -1515.269775390625,
-                            "y": -443.36767578125
+                            "x": -2096.09375,
+                            "y": 387.985107421875
                         },
                         "m_Title": "Sample Triplanar",
                         "m_Tooltip": "",
@@ -748,7 +776,7 @@
                             ],
                             "m_ValueList": [
                                 {
-                                    "rid": 3203010815456182359
+                                    "rid": 3203010997064826882
                                 },
                                 {
                                     "rid": 3203010815456182360
@@ -781,15 +809,6 @@
                         "m_IsPreviewExpanded": false,
                         "m_NodePreviewMode": 0
                     }
-                },
-                {
-                    "rid": 3203010815456182359,
-                    "type": {
-                        "class": "AnyConstant",
-                        "ns": "Unity.GraphToolsFoundation.Editor",
-                        "asm": "UnityEditor.GraphToolsFoundationModule"
-                    },
-                    "data": {}
                 },
                 {
                     "rid": 3203010815456182360,
@@ -987,8 +1006,8 @@
                         "m_HasUserColor": false,
                         "m_Version": 2,
                         "m_Position": {
-                            "x": -1117.7615966796875,
-                            "y": -443.38189697265627
+                            "x": -1610.991455078125,
+                            "y": 136.6181640625
                         },
                         "m_Title": "Gradient Noise",
                         "m_Tooltip": "",
@@ -1003,7 +1022,7 @@
                             ],
                             "m_ValueList": [
                                 {
-                                    "rid": 3203010815456182367
+                                    "rid": 3203010997064826883
                                 },
                                 {
                                     "rid": 3203010815456182368
@@ -1024,15 +1043,6 @@
                         "m_IsPreviewExpanded": false,
                         "m_NodePreviewMode": 0
                     }
-                },
-                {
-                    "rid": 3203010815456182367,
-                    "type": {
-                        "class": "AnyConstant",
-                        "ns": "Unity.GraphToolsFoundation.Editor",
-                        "asm": "UnityEditor.GraphToolsFoundationModule"
-                    },
-                    "data": {}
                 },
                 {
                     "rid": 3203010815456182368,
@@ -1127,8 +1137,8 @@
                         "m_HasUserColor": false,
                         "m_Version": 2,
                         "m_Position": {
-                            "x": -808.4945068359375,
-                            "y": -437.4424743652344
+                            "x": -1611.1265869140625,
+                            "y": -442.4425048828125
                         },
                         "m_Title": "Noise 2D",
                         "m_Tooltip": "",
@@ -1146,7 +1156,7 @@
                             ],
                             "m_ValueList": [
                                 {
-                                    "rid": 3203010815456182371
+                                    "rid": 3203010997064826884
                                 },
                                 {
                                     "rid": 3203010815456182372
@@ -1176,15 +1186,6 @@
                         "m_IsPreviewExpanded": false,
                         "m_NodePreviewMode": 0
                     }
-                },
-                {
-                    "rid": 3203010815456182371,
-                    "type": {
-                        "class": "AnyConstant",
-                        "ns": "Unity.GraphToolsFoundation.Editor",
-                        "asm": "UnityEditor.GraphToolsFoundationModule"
-                    },
-                    "data": {}
                 },
                 {
                     "rid": 3203010815456182372,
@@ -1387,8 +1388,8 @@
                         "m_HasUserColor": false,
                         "m_Version": 2,
                         "m_Position": {
-                            "x": -808.5711059570313,
-                            "y": -150.50015258789063
+                            "x": -1611.301025390625,
+                            "y": -153.00013732910157
                         },
                         "m_Title": "Noise 3D",
                         "m_Tooltip": "",
@@ -1406,7 +1407,7 @@
                             ],
                             "m_ValueList": [
                                 {
-                                    "rid": 3203010815456182378
+                                    "rid": 3203010997064826885
                                 },
                                 {
                                     "rid": 3203010815456182379
@@ -1436,15 +1437,6 @@
                         "m_IsPreviewExpanded": false,
                         "m_NodePreviewMode": 0
                     }
-                },
-                {
-                    "rid": 3203010815456182378,
-                    "type": {
-                        "class": "AnyConstant",
-                        "ns": "Unity.GraphToolsFoundation.Editor",
-                        "asm": "UnityEditor.GraphToolsFoundationModule"
-                    },
-                    "data": {}
                 },
                 {
                     "rid": 3203010815456182379,
@@ -1627,39 +1619,6 @@
                     }
                 },
                 {
-                    "rid": 3203010815456182384,
-                    "type": {
-                        "class": "StickyNoteModel",
-                        "ns": "Unity.GraphToolsFoundation.Editor",
-                        "asm": "UnityEditor.GraphToolsFoundationModule"
-                    },
-                    "data": {
-                        "m_Guid": {
-                            "m_Value0": 13993107489536810117,
-                            "m_Value1": 6643571172738473414
-                        },
-                        "m_Color": {
-                            "r": 0.0,
-                            "g": 0.0,
-                            "b": 0.0,
-                            "a": 0.0
-                        },
-                        "m_HasUserColor": false,
-                        "m_Version": 2,
-                        "m_Title": "Sample Hexagon Tile",
-                        "m_Contents": "",
-                        "m_ThemeName": "Classic",
-                        "m_TextSizeName": "Small",
-                        "m_Position": {
-                            "serializedVersion": "2",
-                            "x": -1515.406982421875,
-                            "y": -167.52587890625,
-                            "width": 282.8180236816406,
-                            "height": 160.0
-                        }
-                    }
-                },
-                {
                     "rid": 3203010815456182385,
                     "type": {
                         "class": "SGNodeModel",
@@ -1680,8 +1639,8 @@
                         "m_HasUserColor": false,
                         "m_Version": 2,
                         "m_Position": {
-                            "x": -1515.3939208984375,
-                            "y": 7.48760986328125
+                            "x": -2095.89404296875,
+                            "y": -152.76234436035157
                         },
                         "m_Title": "Normal From Height",
                         "m_Tooltip": "",
@@ -1696,7 +1655,7 @@
                             ],
                             "m_ValueList": [
                                 {
-                                    "rid": 3203010815456182386
+                                    "rid": 3203010997064826886
                                 },
                                 {
                                     "rid": 3203010815456182387
@@ -1717,15 +1676,6 @@
                         "m_IsPreviewExpanded": false,
                         "m_NodePreviewMode": 0
                     }
-                },
-                {
-                    "rid": 3203010815456182386,
-                    "type": {
-                        "class": "AnyConstant",
-                        "ns": "Unity.GraphToolsFoundation.Editor",
-                        "asm": "UnityEditor.GraphToolsFoundationModule"
-                    },
-                    "data": {}
                 },
                 {
                     "rid": 3203010815456182387,
@@ -1820,8 +1770,8 @@
                         "m_HasUserColor": false,
                         "m_Version": 2,
                         "m_Position": {
-                            "x": -1512.4989013671875,
-                            "y": 187.30810546875
+                            "x": -2095.79248046875,
+                            "y": -443.69195556640627
                         },
                         "m_Title": "Normal From Texture",
                         "m_Tooltip": "",
@@ -1839,7 +1789,7 @@
                             ],
                             "m_ValueList": [
                                 {
-                                    "rid": 3203010815456182390
+                                    "rid": 3203010997064826887
                                 },
                                 {
                                     "rid": 3203010815456182391
@@ -1869,15 +1819,6 @@
                         "m_IsPreviewExpanded": false,
                         "m_NodePreviewMode": 0
                     }
-                },
-                {
-                    "rid": 3203010815456182390,
-                    "type": {
-                        "class": "AnyConstant",
-                        "ns": "Unity.GraphToolsFoundation.Editor",
-                        "asm": "UnityEditor.GraphToolsFoundationModule"
-                    },
-                    "data": {}
                 },
                 {
                     "rid": 3203010815456182391,
@@ -2039,8 +1980,8 @@
                         "m_HasUserColor": false,
                         "m_Version": 2,
                         "m_Position": {
-                            "x": -1117.8050537109375,
-                            "y": -267.9935302734375
+                            "x": -1611.034912109375,
+                            "y": 316.006591796875
                         },
                         "m_Title": "Simple Noise",
                         "m_Tooltip": "",
@@ -2055,7 +1996,7 @@
                             ],
                             "m_ValueList": [
                                 {
-                                    "rid": 3203010815456182397
+                                    "rid": 3203010997064826888
                                 },
                                 {
                                     "rid": 3203010815456182398
@@ -2076,15 +2017,6 @@
                         "m_IsPreviewExpanded": false,
                         "m_NodePreviewMode": 0
                     }
-                },
-                {
-                    "rid": 3203010815456182397,
-                    "type": {
-                        "class": "AnyConstant",
-                        "ns": "Unity.GraphToolsFoundation.Editor",
-                        "asm": "UnityEditor.GraphToolsFoundationModule"
-                    },
-                    "data": {}
                 },
                 {
                     "rid": 3203010815456182398,
@@ -2179,8 +2111,8 @@
                         "m_HasUserColor": false,
                         "m_Version": 2,
                         "m_Position": {
-                            "x": -808.3109741210938,
-                            "y": 136.28634643554688
+                            "x": -1611.0408935546875,
+                            "y": 495.2864685058594
                         },
                         "m_Title": "Voronoi Noise",
                         "m_Tooltip": "",
@@ -2196,7 +2128,7 @@
                             ],
                             "m_ValueList": [
                                 {
-                                    "rid": 3203010815456182401
+                                    "rid": 3203010997064826889
                                 },
                                 {
                                     "rid": 3203010815456182402
@@ -2220,15 +2152,6 @@
                         "m_IsPreviewExpanded": false,
                         "m_NodePreviewMode": 0
                     }
-                },
-                {
-                    "rid": 3203010815456182401,
-                    "type": {
-                        "class": "AnyConstant",
-                        "ns": "Unity.GraphToolsFoundation.Editor",
-                        "asm": "UnityEditor.GraphToolsFoundationModule"
-                    },
-                    "data": {}
                 },
                 {
                     "rid": 3203010815456182402,
@@ -2364,8 +2287,8 @@
                         "m_TextSizeName": "Small",
                         "m_Position": {
                             "serializedVersion": "2",
-                            "x": -405.28863525390627,
-                            "y": -437.2900085449219,
+                            "x": -2546.2890625,
+                            "y": -147.6119384765625,
                             "width": 200.0,
                             "height": 160.0
                         }
@@ -2392,8 +2315,8 @@
                         "m_HasUserColor": false,
                         "m_Version": 2,
                         "m_Position": {
-                            "x": -405.3653259277344,
-                            "y": -238.05503845214845
+                            "x": -2546.6796875,
+                            "y": 32.7330322265625
                         },
                         "m_Title": "Surface Gradient Resolve Normal",
                         "m_Tooltip": "",
@@ -2494,6 +2417,593 @@
                             "e33": 0.0
                         },
                         "m_StoredLength": 3,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 3203010997064826880,
+                    "type": {
+                        "class": "AnyConstant",
+                        "ns": "Unity.GraphToolsFoundation.Editor",
+                        "asm": "UnityEditor.GraphToolsFoundationModule"
+                    },
+                    "data": {}
+                },
+                {
+                    "rid": 3203010997064826881,
+                    "type": {
+                        "class": "AnyConstant",
+                        "ns": "Unity.GraphToolsFoundation.Editor",
+                        "asm": "UnityEditor.GraphToolsFoundationModule"
+                    },
+                    "data": {}
+                },
+                {
+                    "rid": 3203010997064826882,
+                    "type": {
+                        "class": "AnyConstant",
+                        "ns": "Unity.GraphToolsFoundation.Editor",
+                        "asm": "UnityEditor.GraphToolsFoundationModule"
+                    },
+                    "data": {}
+                },
+                {
+                    "rid": 3203010997064826883,
+                    "type": {
+                        "class": "AnyConstant",
+                        "ns": "Unity.GraphToolsFoundation.Editor",
+                        "asm": "UnityEditor.GraphToolsFoundationModule"
+                    },
+                    "data": {}
+                },
+                {
+                    "rid": 3203010997064826884,
+                    "type": {
+                        "class": "AnyConstant",
+                        "ns": "Unity.GraphToolsFoundation.Editor",
+                        "asm": "UnityEditor.GraphToolsFoundationModule"
+                    },
+                    "data": {}
+                },
+                {
+                    "rid": 3203010997064826885,
+                    "type": {
+                        "class": "AnyConstant",
+                        "ns": "Unity.GraphToolsFoundation.Editor",
+                        "asm": "UnityEditor.GraphToolsFoundationModule"
+                    },
+                    "data": {}
+                },
+                {
+                    "rid": 3203010997064826886,
+                    "type": {
+                        "class": "AnyConstant",
+                        "ns": "Unity.GraphToolsFoundation.Editor",
+                        "asm": "UnityEditor.GraphToolsFoundationModule"
+                    },
+                    "data": {}
+                },
+                {
+                    "rid": 3203010997064826887,
+                    "type": {
+                        "class": "AnyConstant",
+                        "ns": "Unity.GraphToolsFoundation.Editor",
+                        "asm": "UnityEditor.GraphToolsFoundationModule"
+                    },
+                    "data": {}
+                },
+                {
+                    "rid": 3203010997064826888,
+                    "type": {
+                        "class": "AnyConstant",
+                        "ns": "Unity.GraphToolsFoundation.Editor",
+                        "asm": "UnityEditor.GraphToolsFoundationModule"
+                    },
+                    "data": {}
+                },
+                {
+                    "rid": 3203010997064826889,
+                    "type": {
+                        "class": "AnyConstant",
+                        "ns": "Unity.GraphToolsFoundation.Editor",
+                        "asm": "UnityEditor.GraphToolsFoundationModule"
+                    },
+                    "data": {}
+                },
+                {
+                    "rid": 3203010997064826890,
+                    "type": {
+                        "class": "StickyNoteModel",
+                        "ns": "Unity.GraphToolsFoundation.Editor",
+                        "asm": "UnityEditor.GraphToolsFoundationModule"
+                    },
+                    "data": {
+                        "m_Guid": {
+                            "m_Value0": 3984735395702085978,
+                            "m_Value1": 1769635413338908987
+                        },
+                        "m_Color": {
+                            "r": 0.0,
+                            "g": 0.0,
+                            "b": 0.0,
+                            "a": 0.0
+                        },
+                        "m_HasUserColor": false,
+                        "m_Version": 2,
+                        "m_Title": "FUNDAMENTAL",
+                        "m_Contents": "",
+                        "m_ThemeName": "Classic",
+                        "m_TextSizeName": "Small",
+                        "m_Position": {
+                            "serializedVersion": "2",
+                            "x": -2517.045654296875,
+                            "y": -568.5,
+                            "width": 200.0,
+                            "height": 100.0
+                        }
+                    }
+                },
+                {
+                    "rid": 3203010997064826891,
+                    "type": {
+                        "class": "StickyNoteModel",
+                        "ns": "Unity.GraphToolsFoundation.Editor",
+                        "asm": "UnityEditor.GraphToolsFoundationModule"
+                    },
+                    "data": {
+                        "m_Guid": {
+                            "m_Value0": 5247955830328758098,
+                            "m_Value1": 4728903348250805352
+                        },
+                        "m_Color": {
+                            "r": 0.0,
+                            "g": 0.0,
+                            "b": 0.0,
+                            "a": 0.0
+                        },
+                        "m_HasUserColor": false,
+                        "m_Version": 2,
+                        "m_Title": "PRIMARY",
+                        "m_Contents": "",
+                        "m_ThemeName": "Classic",
+                        "m_TextSizeName": "Small",
+                        "m_Position": {
+                            "serializedVersion": "2",
+                            "x": -2066.545654296875,
+                            "y": -568.4999389648438,
+                            "width": 200.0001220703125,
+                            "height": 100.0
+                        }
+                    }
+                },
+                {
+                    "rid": 3203010997064826892,
+                    "type": {
+                        "class": "StickyNoteModel",
+                        "ns": "Unity.GraphToolsFoundation.Editor",
+                        "asm": "UnityEditor.GraphToolsFoundationModule"
+                    },
+                    "data": {
+                        "m_Guid": {
+                            "m_Value0": 7455363343823562410,
+                            "m_Value1": 1762793177416049836
+                        },
+                        "m_Color": {
+                            "r": 0.0,
+                            "g": 0.0,
+                            "b": 0.0,
+                            "a": 0.0
+                        },
+                        "m_HasUserColor": false,
+                        "m_Version": 2,
+                        "m_Title": "Surfgrad from Height",
+                        "m_Contents": "",
+                        "m_ThemeName": "Classic",
+                        "m_TextSizeName": "Small",
+                        "m_Position": {
+                            "serializedVersion": "2",
+                            "x": -2096.0,
+                            "y": 149.9542236328125,
+                            "width": 222.0,
+                            "height": 100.0
+                        }
+                    }
+                },
+                {
+                    "rid": 3203010997064826893,
+                    "type": {
+                        "class": "StickyNoteModel",
+                        "ns": "Unity.GraphToolsFoundation.Editor",
+                        "asm": "UnityEditor.GraphToolsFoundationModule"
+                    },
+                    "data": {
+                        "m_Guid": {
+                            "m_Value0": 11163178596845839130,
+                            "m_Value1": 11755819133142624091
+                        },
+                        "m_Color": {
+                            "r": 0.0,
+                            "g": 0.0,
+                            "b": 0.0,
+                            "a": 0.0
+                        },
+                        "m_HasUserColor": false,
+                        "m_Version": 2,
+                        "m_Title": "Surfgrad from Normal",
+                        "m_Contents": "",
+                        "m_ThemeName": "Classic",
+                        "m_TextSizeName": "Small",
+                        "m_Position": {
+                            "serializedVersion": "2",
+                            "x": -2096.0,
+                            "y": 30.750045776367189,
+                            "width": 226.5001220703125,
+                            "height": 100.0
+                        }
+                    }
+                },
+                {
+                    "rid": 3203010997064826894,
+                    "type": {
+                        "class": "StickyNoteModel",
+                        "ns": "Unity.GraphToolsFoundation.Editor",
+                        "asm": "UnityEditor.GraphToolsFoundationModule"
+                    },
+                    "data": {
+                        "m_Guid": {
+                            "m_Value0": 11445921993705585025,
+                            "m_Value1": 10576934855418216977
+                        },
+                        "m_Color": {
+                            "r": 0.0,
+                            "g": 0.0,
+                            "b": 0.0,
+                            "a": 0.0
+                        },
+                        "m_HasUserColor": false,
+                        "m_Version": 2,
+                        "m_Title": "Sample Planar",
+                        "m_Contents": "",
+                        "m_ThemeName": "Classic",
+                        "m_TextSizeName": "Small",
+                        "m_Position": {
+                            "serializedVersion": "2",
+                            "x": -2095.8671875,
+                            "y": 269.0685729980469,
+                            "width": 226.5001220703125,
+                            "height": 100.0
+                        }
+                    }
+                },
+                {
+                    "rid": 3203010997064826895,
+                    "type": {
+                        "class": "StickyNoteModel",
+                        "ns": "Unity.GraphToolsFoundation.Editor",
+                        "asm": "UnityEditor.GraphToolsFoundationModule"
+                    },
+                    "data": {
+                        "m_Guid": {
+                            "m_Value0": 13799681823242654545,
+                            "m_Value1": 9765062458300237800
+                        },
+                        "m_Color": {
+                            "r": 0.0,
+                            "g": 0.0,
+                            "b": 0.0,
+                            "a": 0.0
+                        },
+                        "m_HasUserColor": false,
+                        "m_Version": 2,
+                        "m_Title": "Sample Hexagon Tile",
+                        "m_Contents": "",
+                        "m_ThemeName": "Classic",
+                        "m_TextSizeName": "Small",
+                        "m_Position": {
+                            "serializedVersion": "2",
+                            "x": -2096.000244140625,
+                            "y": 668.0000610351563,
+                            "width": 268.7386474609375,
+                            "height": 100.0
+                        }
+                    }
+                },
+                {
+                    "rid": 3203010997064826896,
+                    "type": {
+                        "class": "StickyNoteModel",
+                        "ns": "Unity.GraphToolsFoundation.Editor",
+                        "asm": "UnityEditor.GraphToolsFoundationModule"
+                    },
+                    "data": {
+                        "m_Guid": {
+                            "m_Value0": 4964832458861604736,
+                            "m_Value1": 14182415189890935301
+                        },
+                        "m_Color": {
+                            "r": 0.0,
+                            "g": 0.0,
+                            "b": 0.0,
+                            "a": 0.0
+                        },
+                        "m_HasUserColor": false,
+                        "m_Version": 2,
+                        "m_Title": "SECONDARY",
+                        "m_Contents": "",
+                        "m_ThemeName": "Classic",
+                        "m_TextSizeName": "Small",
+                        "m_Position": {
+                            "serializedVersion": "2",
+                            "x": -1598.2247314453125,
+                            "y": -568.2711791992188,
+                            "width": 200.0001220703125,
+                            "height": 100.0
+                        }
+                    }
+                },
+                {
+                    "rid": 3203010997064826897,
+                    "type": {
+                        "class": "StickyNoteModel",
+                        "ns": "Unity.GraphToolsFoundation.Editor",
+                        "asm": "UnityEditor.GraphToolsFoundationModule"
+                    },
+                    "data": {
+                        "m_Guid": {
+                            "m_Value0": 5648240694373050133,
+                            "m_Value1": 5087129046952300665
+                        },
+                        "m_Color": {
+                            "r": 0.0,
+                            "g": 0.0,
+                            "b": 0.0,
+                            "a": 0.0
+                        },
+                        "m_HasUserColor": false,
+                        "m_Version": 2,
+                        "m_Title": "Triplanar Weights",
+                        "m_Contents": "Triplanar Direction Masks",
+                        "m_ThemeName": "Classic",
+                        "m_TextSizeName": "Small",
+                        "m_Position": {
+                            "serializedVersion": "2",
+                            "x": -1611.0001220703125,
+                            "y": 699.0001220703125,
+                            "width": 200.0,
+                            "height": 100.0
+                        }
+                    }
+                },
+                {
+                    "rid": 3203010997064826898,
+                    "type": {
+                        "class": "StickyNoteModel",
+                        "ns": "Unity.GraphToolsFoundation.Editor",
+                        "asm": "UnityEditor.GraphToolsFoundationModule"
+                    },
+                    "data": {
+                        "m_Guid": {
+                            "m_Value0": 1331969241129921018,
+                            "m_Value1": 7154124165874535043
+                        },
+                        "m_Color": {
+                            "r": 0.0,
+                            "g": 0.0,
+                            "b": 0.0,
+                            "a": 0.0
+                        },
+                        "m_HasUserColor": false,
+                        "m_Version": 2,
+                        "m_Title": "Generate Basis TB",
+                        "m_Contents": "",
+                        "m_ThemeName": "Classic",
+                        "m_TextSizeName": "Small",
+                        "m_Position": {
+                            "serializedVersion": "2",
+                            "x": -1611.0,
+                            "y": 813.5,
+                            "width": 200.0,
+                            "height": 100.0
+                        }
+                    }
+                },
+                {
+                    "rid": 3203010997064826899,
+                    "type": {
+                        "class": "SGNodeModel",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "m_Guid": {
+                            "m_Value0": 11515432969479938927,
+                            "m_Value1": 5543301788705931575
+                        },
+                        "m_Color": {
+                            "r": 0.0,
+                            "g": 0.0,
+                            "b": 0.0,
+                            "a": 0.0
+                        },
+                        "m_HasUserColor": false,
+                        "m_Version": 2,
+                        "m_Position": {
+                            "x": -1611.37060546875,
+                            "y": 927.9432983398438
+                        },
+                        "m_Title": "DDX",
+                        "m_Tooltip": "",
+                        "m_NodePreviewModel": {
+                            "rid": -2
+                        },
+                        "m_InputConstantsById": {
+                            "m_KeyList": [
+                                "Mode",
+                                "In"
+                            ],
+                            "m_ValueList": [
+                                {
+                                    "rid": 3203010997064826900
+                                },
+                                {
+                                    "rid": 3203010997064826901
+                                }
+                            ]
+                        },
+                        "m_State": 0,
+                        "m_Collapsed": false,
+                        "m_CurrentModeIndex": 0,
+                        "m_RegistryKey": {
+                            "Name": "DDX",
+                            "Version": 1
+                        },
+                        "m_GraphDataName": "6f63ac3c4609cf9f37c19a6e9bc3ed4c",
+                        "m_IsPreviewExpanded": false,
+                        "m_NodePreviewMode": 0
+                    }
+                },
+                {
+                    "rid": 3203010997064826900,
+                    "type": {
+                        "class": "AnyConstant",
+                        "ns": "Unity.GraphToolsFoundation.Editor",
+                        "asm": "UnityEditor.GraphToolsFoundationModule"
+                    },
+                    "data": {}
+                },
+                {
+                    "rid": 3203010997064826901,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "6f63ac3c4609cf9f37c19a6e9bc3ed4c",
+                        "portName": "In",
+                        "m_StoredValue": {
+                            "e00": 0.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 1,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 3203010997064826902,
+                    "type": {
+                        "class": "SGNodeModel",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "m_Guid": {
+                            "m_Value0": 17105959383905493805,
+                            "m_Value1": 17593708966501284294
+                        },
+                        "m_Color": {
+                            "r": 0.0,
+                            "g": 0.0,
+                            "b": 0.0,
+                            "a": 0.0
+                        },
+                        "m_HasUserColor": false,
+                        "m_Version": 2,
+                        "m_Position": {
+                            "x": -1610.8726806640625,
+                            "y": 1083.334228515625
+                        },
+                        "m_Title": "DDY",
+                        "m_Tooltip": "",
+                        "m_NodePreviewModel": {
+                            "rid": -2
+                        },
+                        "m_InputConstantsById": {
+                            "m_KeyList": [
+                                "Mode",
+                                "In"
+                            ],
+                            "m_ValueList": [
+                                {
+                                    "rid": 3203010997064826903
+                                },
+                                {
+                                    "rid": 3203010997064826904
+                                }
+                            ]
+                        },
+                        "m_State": 0,
+                        "m_Collapsed": false,
+                        "m_CurrentModeIndex": 0,
+                        "m_RegistryKey": {
+                            "Name": "DDY",
+                            "Version": 1
+                        },
+                        "m_GraphDataName": "2d63f2ab6d9364edc6f9e9ed166929f4",
+                        "m_IsPreviewExpanded": false,
+                        "m_NodePreviewMode": 0
+                    }
+                },
+                {
+                    "rid": 3203010997064826903,
+                    "type": {
+                        "class": "AnyConstant",
+                        "ns": "Unity.GraphToolsFoundation.Editor",
+                        "asm": "UnityEditor.GraphToolsFoundationModule"
+                    },
+                    "data": {}
+                },
+                {
+                    "rid": 3203010997064826904,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "2d63f2ab6d9364edc6f9e9ed166929f4",
+                        "portName": "In",
+                        "m_StoredValue": {
+                            "e00": 0.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 1,
                         "m_StoredHeight": 1,
                         "m_StoredPrimitive": 3
                     }
