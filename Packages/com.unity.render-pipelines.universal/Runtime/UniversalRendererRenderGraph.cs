@@ -410,10 +410,6 @@ namespace UnityEngine.Rendering.Universal
             CreateRenderingLayersTexture(renderGraph, cameraData.cameraTargetDescriptor);
 
             CreateAfterPostProcessTexture(renderGraph, cameraData.cameraTargetDescriptor);
-
-            LensFlareCommonSRP.mergeNeeded = 0;
-            LensFlareCommonSRP.maxLensFlareWithOcclusionTemporalSample = 1;
-            LensFlareCommonSRP.Initialize();
         }
 
         void SetupRenderingLayers(ref RenderingData renderingData)
