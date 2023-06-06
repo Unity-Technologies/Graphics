@@ -599,6 +599,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 TextureHandle logLutOutput = ColorGradingPass(renderGraph, hdCamera);
 
                 bool lensFlareScreenSpace = m_LensFlareScreenSpace.IsActive() && m_LensFlareScreenSpaceFS;
+
                 if (lensFlareScreenSpace)
                 {
                     bloomTexture = LensFlareScreenSpacePass(renderGraph, hdCamera, source, screenSpaceLensFlareBloomMipTexture);

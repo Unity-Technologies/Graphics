@@ -158,7 +158,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 foamAtlasSize = WaterAtlasSize.AtlasSize512,
                 supportWaterExclusion = false,
                 waterCPUSimulation = false,
-
+                
+                supportScreenSpaceLensFlare = true,
+                supportDataDrivenLensFlare = true,
                 supportRayTracing = false,
                 supportVFXRayTracing = false,
                 supportedRayTracingMode = SupportedRayTracingMode.Both,
@@ -359,6 +361,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>Support motion vectors.</summary>
         public bool supportMotionVectors;
+        
+        // Post Processing
+        /// <summary>Support Screen Space Lens Flare.</summary>
+        public bool supportScreenSpaceLensFlare;
+        /// <summary>Support Data Driven Lens Flare.</summary>
+        public bool supportDataDrivenLensFlare;
 
         /// <summary>Support runtime debug display.</summary>
         [Obsolete("Use HDRenderPipelineGlobalSettings.instance.stripDebugVariants) instead.@from(23.1)", false)]

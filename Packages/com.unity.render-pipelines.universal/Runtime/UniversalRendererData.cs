@@ -121,6 +121,18 @@ namespace UnityEngine.Rendering.Universal
             /// </summary>
             [Reload("Shaders/CameraMotionVectors.shader")]
             public Shader cameraMotionVector;
+            
+            /// <summary>
+            /// Screen Space Lens Flare shader.
+            /// </summary>
+            [Reload("Shaders/PostProcessing/LensFlareScreenSpace.shader")]
+            public Shader screenSpaceLensFlare;
+            
+            /// <summary>
+            /// Data Driven Lens Flare shader.
+            /// </summary>
+            [Reload("Shaders/PostProcessing/LensFlareDataDriven.shader")]
+            public Shader dataDrivenLensFlare;
         }
 
         /// <summary>

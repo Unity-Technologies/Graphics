@@ -36,7 +36,9 @@ namespace ShaderStrippingAndPrefiltering
                 | ShaderFeatures.DrawProcedural
                 | ShaderFeatures.LightCookies
                 | ShaderFeatures.LODCrossFade
-                | ShaderFeatures.AutoSHMode;
+                | ShaderFeatures.AutoSHMode
+                | ShaderFeatures.DataDrivenLensFlare
+                | ShaderFeatures.ScreenSpaceLensFlare;
 
             internal RendererRequirements defaultRendererRequirements = new()
             {

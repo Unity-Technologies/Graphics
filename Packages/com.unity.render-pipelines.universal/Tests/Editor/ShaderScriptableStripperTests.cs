@@ -700,6 +700,8 @@ namespace ShaderStrippingAndPrefiltering
         [TestCase("Hidden/Universal Render Pipeline/CameraMotionVectors")]
         [TestCase("Hidden/Universal Render Pipeline/CopyDepth")]
         [TestCase("Hidden/Universal Render Pipeline/SubpixelMorphologicalAntialiasing")]
+        [TestCase("Hidden/Universal Render Pipeline/LensFlareDataDriven")]
+        [TestCase("Hidden/Universal Render Pipeline/LensFlareScreenSpace")]
         public void TestStripUnusedFeatures(string shaderName)
         {
             Shader shader = Shader.Find(shaderName);
@@ -729,6 +731,8 @@ namespace ShaderStrippingAndPrefiltering
             TestStripUnusedFeatures_LightCookies(shader);
             TestStripUnusedFeatures_ProbesVolumes(shader);
             TestStripUnusedFeatures_SHAuto(shader);
+            TestStripUnusedFeatures_DataDrivenLensFlare(shader);
+            TestStripUnusedFeatures_ScreenSpaceLensFlare(shader);
         }
 
         public void TestStripUnusedFeatures_DebugDisplay(Shader shader)
@@ -898,7 +902,33 @@ namespace ShaderStrippingAndPrefiltering
             TestHelper.s_PassKeywords = shShaderKeywords;
             helper.AreEqual(shader != null, helper.stripper.StripUnusedFeatures_SHAuto(ref helper.data, ref helper.featureStripTool));
         }
+        
+        public void TestStripUnusedFeatures_ScreenSpaceLensFlare(Shader shader)
+        {
+            TestHelper helper;
 
+            helper = new TestHelper(shader, ShaderFeatures.ScreenSpaceLensFlare);
+            helper.IsFalse(helper.stripper.StripUnusedFeatures_ScreenSpaceLensFlare(ref helper.data));
+
+            helper = new TestHelper(shader, ShaderFeatures.None);
+            bool isLensFlareScreenSpace = shader != null && shader.name == "Hidden/Universal Render Pipeline/LensFlareScreenSpace";
+            //We should strip the shader only if it's the lens flare one. 
+            helper.IsTrue(isLensFlareScreenSpace ? helper.stripper.StripUnusedFeatures_ScreenSpaceLensFlare(ref helper.data) : !helper.stripper.StripUnusedFeatures_ScreenSpaceLensFlare(ref helper.data));
+        }
+        
+        public void TestStripUnusedFeatures_DataDrivenLensFlare(Shader shader)
+        {
+            
+            TestHelper helper;
+
+            helper = new TestHelper(shader, ShaderFeatures.DataDrivenLensFlare);
+            helper.IsFalse(helper.stripper.StripUnusedFeatures_DataDrivenLensFlare(ref helper.data));
+
+            helper = new TestHelper(shader, ShaderFeatures.None);
+            bool isLensFlareDataDriven = shader != null && shader.name == "Hidden/Universal Render Pipeline/LensFlareDataDriven";
+            //We should strip the shader only if it's the lens flare one. 
+            helper.IsTrue(isLensFlareDataDriven ? helper.stripper.StripUnusedFeatures_DataDrivenLensFlare(ref helper.data) : !helper.stripper.StripUnusedFeatures_DataDrivenLensFlare(ref helper.data));
+        }
 
         public void TestStripUnusedFeatures_DeferredRendering(Shader shader)
         {

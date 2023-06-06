@@ -65,6 +65,11 @@ namespace UnityEditor.Rendering.HighDefinition
             RTGIQuality = 1 << 6,
             SSGIQuality = 1 << 7
         }
+        
+        internal enum ExpandablePostProcess
+        {
+            LensFlare = 1 << 0
+        }
 
         internal enum ExpandablePostProcessQuality
         {
@@ -93,6 +98,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static readonly ExpandedState<ExpandableDecal, HDRenderPipelineAsset> k_ExpandableDecalState = new (0, "HDRP");
         static readonly ExpandedState<ExpandableLighting, HDRenderPipelineAsset> k_ExpandableLightingState = new(0, "HDRP");
         static readonly ExpandedState<ExpandableLightingQuality, HDRenderPipelineAsset> k_ExpandableLightingQualityState = new(0, "HDRP");
+        static readonly ExpandedState<ExpandablePostProcess, HDRenderPipelineAsset> k_ExpandablePostProcessState = new(0, "HDRP");
         static readonly ExpandedState<ExpandablePostProcessQuality, HDRenderPipelineAsset> k_ExpandablePostProcessQualityState = new(0, "HDRP");
 
         static readonly ExpandedState<ExpandableShadows, HDRenderPipelineAsset> k_LightsExpandedState = new(0, "HDRP");
@@ -182,7 +188,10 @@ namespace UnityEditor.Rendering.HighDefinition
                     QualityDrawer(Styles.SSGISettingsSubTitle, ExpandableLightingQuality.SSGIQuality, k_ExpandableLightingQualityState, DrawSSGIQualitySetting)
                     ),
                 SubInspectors[ExpandableGroup.Material] = CED.FoldoutGroup(Styles.materialSectionTitle, ExpandableGroup.Material, k_ExpandedGroupState, Drawer_SectionMaterialUnsorted),
-                SubInspectors[ExpandableGroup.PostProcess] = CED.FoldoutGroup(Styles.postProcessSectionTitle, ExpandableGroup.PostProcess, k_ExpandedGroupState, Drawer_SectionPostProcessSettings),
+                SubInspectors[ExpandableGroup.PostProcess] = CED.FoldoutGroup(Styles.postProcessSectionTitle, ExpandableGroup.PostProcess, k_ExpandedGroupState,
+                    CED.Group(GroupOption.Indent, Drawer_SectionPostProcessSettings),
+                    CED.FoldoutGroup(Styles.LensFlareTitle, ExpandablePostProcess.LensFlare, k_ExpandablePostProcessState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_LensFlare)
+                ),
                 SubInspectors[ExpandableGroup.PostProcessQuality] = CED.FoldoutGroup(Styles.postProcessQualitySubTitle, ExpandableGroup.PostProcessQuality, k_ExpandedGroupState,
                     QualityDrawer(Styles.depthOfFieldQualitySettings, ExpandablePostProcessQuality.DepthOfFieldQuality, k_ExpandablePostProcessQualityState, DrawDepthOfFieldQualitySetting),
                     QualityDrawer(Styles.motionBlurQualitySettings, ExpandablePostProcessQuality.MotionBlurQuality, k_ExpandablePostProcessQualityState, DrawMotionBlurQualitySetting),
@@ -1151,6 +1160,12 @@ namespace UnityEditor.Rendering.HighDefinition
 
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightLoopSettings.supportFabricConvolution, Styles.supportFabricBSDFConvolutionContent);
         }
+        
+        static void Drawer_LensFlare(SerializedHDRenderPipelineAsset serialized, Editor owner)
+        {
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportDataDrivenLensFlare, Styles.supportDataDrivenLensFlare);
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportScreenSpaceLensFlare, Styles.supportScreenSpaceLensFlare);
+        }
 
         const string supportedFormaterMultipleValue = "\u2022 {0} --Multiple different values--";
         const string supportedFormater = "\u2022 {0} ({1})";
@@ -1221,6 +1236,9 @@ namespace UnityEditor.Rendering.HighDefinition
             AppendSupport(builder, serialized.renderPipelineSettings.supportRayTracing, Styles.supportRaytracing);
             AppendSupport(builder, serialized.renderPipelineSettings.lightProbeSystem, Styles.lightProbeSystemContent);
             AppendSupport(builder, serialized.renderPipelineSettings.supportedRayTracingMode, Styles.supportedRayTracingMode);
+            
+            AppendSupport(builder, serialized.renderPipelineSettings.supportScreenSpaceLensFlare, Styles.supportScreenSpaceLensFlare);
+            AppendSupport(builder, serialized.renderPipelineSettings.supportDataDrivenLensFlare, Styles.supportDataDrivenLensFlare);
 
             EditorGUILayout.HelpBox(builder.ToString(), MessageType.Info, wide: true);
         }
