@@ -47,9 +47,9 @@ MonoBehaviour:
 
           <b>Virtual offset</b> allows
           us to move the capture position of light probes. It can be enabled globally
-          in the <b>Lighting</b> > <b>Probe Volumes</b> pannel, moving all probes
-          that are inside geometry over a specified distance. Or it can be applied
-          manually as we did for this project, by using Prode Adustment Volumes in
+          in the <b>Lighting</b> > <b>Probe Volumes</b> panel, automatically adjusting
+          the capture position of those that are inside geometry. Or it can be applied
+          manually as we did for this project, by using Probe Adustment Volumes in
           a specified location.
 
 
@@ -64,7 +64,7 @@ MonoBehaviour:
 
 
           1. Move the
-          cube to  <b>X: 41 Y:0 Z:3</b>
+          cube to  <b>X:41 Y:0 Z:3</b>
 
 
           2. Disable the <b>Probe Adustment

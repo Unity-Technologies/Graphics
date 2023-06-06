@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: LightProbes
   m_EditorClassIdentifier: 
   TutorialTitle:
-    m_Untranslated: Adaptive Probe Volume
+    m_Untranslated: Adaptive Probe Volumes
   m_ProgressTrackingEnabled: 1
   m_LessonId: 1013
   m_Version: 0

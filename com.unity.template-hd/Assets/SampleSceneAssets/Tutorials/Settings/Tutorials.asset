@@ -121,7 +121,7 @@ MonoBehaviour:
     Tutorial: {fileID: 11400000, guid: b4e4869767e279b4aa35c5b0d2f9872b, type: 2}
   - OrderInView: 12
     Heading:
-      m_Untranslated: Adaptive Probe Volume
+      m_Untranslated: Adaptive Probe Volumes
     Text:
       m_Untranslated: Learn how Adaptive Light Probes produce indirect lighting for
         dynamic objects

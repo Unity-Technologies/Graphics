@@ -49,14 +49,15 @@ MonoBehaviour:
           the minimum spacing that we want (in this case <b>0.6m)</b> and the maximum
           spacing <b>(5.4m).</b> Then the system attempts to automatically detect
           areas where fewer probes are necessary and adjust the density. These areas
-          are called <b>Subdivision Levels.</b>
+          are called <b>Subdivision Levels</b> and this scene is split into 0.6m,
+          1.8m and 5.4m levels.
 
 
-          While it is quite useful
-          to limit the number of probes in order to reduce the bake time and disk
-          space, some seams can appear when sampling happens between two subdivision
-          levels. To fix this, we increased the amount of sampling noise in the Volume
-          settings which also works well with <b>Temporal Anti Aliasing</b>.
+          While it is quite useful to limit the
+          number of probes in order to reduce the bake time and disk space, some
+          seams can appear when sampling happens between two subdivision levels.
+          To fix this, we increased the amount of sampling noise in the Volume settings
+          which also works well with <b>Temporal Anti Aliasing</b>.
 
 
           To
