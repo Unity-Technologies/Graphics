@@ -974,8 +974,13 @@ namespace UnityEngine.Rendering.HighDefinition
                         m_MaskTextureScaleBias[m_DecalDatasCount] = m_Mask;
 
                         m_DecalDatasWSPositions[m_DecalDatasCount] = m_Positions[decalIndex];
-                        Unity.Mathematics.float4x4 sizeOffset = m_ResolvedSizeOffsets[decalIndex];
-                        m_DecalDatasWSRanges[m_DecalDatasCount] = new Vector3(sizeOffset.c0.x, sizeOffset.c1.y, sizeOffset.c2.z);
+                        // compute AABB for the decal, for use in world space clustering
+                        var decalXExtents = cachedDecalToWorld[decalIndex].GetRow(0);
+                        var decalYExtents = cachedDecalToWorld[decalIndex].GetRow(1);
+                        var decalZExtents = cachedDecalToWorld[decalIndex].GetRow(2);
+                        m_DecalDatasWSRanges[m_DecalDatasCount] = new Vector3(Mathf.Abs(decalXExtents.x) + Mathf.Abs(decalXExtents.y) + Mathf.Abs(decalXExtents.z),
+                                                                              Mathf.Abs(decalYExtents.x) + Mathf.Abs(decalYExtents.y) + Mathf.Abs(decalYExtents.z),
+                                                                              Mathf.Abs(decalZExtents.x) + Mathf.Abs(decalZExtents.y) + Mathf.Abs(decalZExtents.z));
 
                         GetDecalVolumeDataAndBound(cachedDecalToWorld[decalIndex], worldToView);
                         m_DecalDatasCount++;
