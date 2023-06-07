@@ -170,9 +170,10 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Returns true if contains renderer feature with specified type.
         /// </summary>
+        /// <param name="rendererFeature">RenderFeature output parameter.</param>
         /// <typeparam name="T">Renderer Feature type.</typeparam>
         /// <returns></returns>
-        internal bool TryGetRendererFeature<T>(out T rendererFeature) where T : ScriptableRendererFeature
+        public bool TryGetRendererFeature<T>(out T rendererFeature) where T : ScriptableRendererFeature
         {
             foreach (var target in rendererFeatures)
             {

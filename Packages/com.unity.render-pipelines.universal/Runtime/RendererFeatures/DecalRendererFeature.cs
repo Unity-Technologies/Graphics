@@ -162,10 +162,13 @@ namespace UnityEngine.Rendering.Universal
         }
     }
 
+    /// <summary>
+    /// The class for the decal renderer feature.
+    /// </summary>
     [DisallowMultipleRendererFeature("Decal")]
     [Tooltip("With this Renderer Feature, Unity can project specific Materials (decals) onto other objects in the Scene.")]
     [URPHelpURL("renderer-feature-decal")]
-    internal class DecalRendererFeature : ScriptableRendererFeature
+    public class DecalRendererFeature : ScriptableRendererFeature
     {
         private static SharedDecalEntityManager sharedDecalEntityManager { get; } = new SharedDecalEntityManager();
 
@@ -222,6 +225,7 @@ namespace UnityEngine.Rendering.Universal
         internal bool requiresDecalLayers => m_Settings.decalLayers;
         internal static bool isGLDevice => SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3 || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore;
 
+        /// <inheritdoc />
         public override void Create()
         {
 #if UNITY_EDITOR
@@ -437,6 +441,7 @@ namespace UnityEngine.Rendering.Universal
             return true;
         }
 
+        /// <inheritdoc />
         public override void OnCameraPreCull(ScriptableRenderer renderer, in CameraData cameraData)
         {
             if (cameraData.cameraType == CameraType.Preview)
@@ -475,6 +480,7 @@ namespace UnityEngine.Rendering.Universal
             m_DrawErrorSystem.Execute(cameraData);
         }
 
+        /// <inheritdoc />
         public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
         {
             if (renderingData.cameraData.cameraType == CameraType.Preview)
@@ -517,6 +523,7 @@ namespace UnityEngine.Rendering.Universal
             return m_Technique == DecalTechnique.GBuffer || m_Technique == DecalTechnique.ScreenSpace;
         }
 
+        /// <inheritdoc />
         public override void SetupRenderPasses(ScriptableRenderer renderer, in RenderingData renderingData)
         {
             if (m_Technique == DecalTechnique.DBuffer)
@@ -552,6 +559,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        /// <inheritdoc />
         protected override void Dispose(bool disposing)
         {
             m_DBufferRenderPass?.Dispose();
