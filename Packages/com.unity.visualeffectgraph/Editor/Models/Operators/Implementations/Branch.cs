@@ -13,7 +13,7 @@ namespace UnityEditor.VFX.Operator
             get
             {
                 var exclude = new[] { typeof(GPUEvent) };
-                return VFXLibrary.GetSlotsType().Except(exclude).Where(o => !o.IsSubclassOf(typeof(Texture)));
+                return VFXLibrary.GetSlotsType().Except(exclude);
             }
         }
 

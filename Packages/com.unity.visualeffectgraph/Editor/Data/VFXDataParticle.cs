@@ -593,6 +593,7 @@ namespace UnityEditor.VFX
             Dictionary<VFXContext, int> contextSpawnToBufferIndex,
             VFXDependentBuffersData dependentBuffers,
             Dictionary<VFXContext, List<VFXContextLink>[]> effectiveFlowInputLinks,
+            Dictionary<VFXData, uint> dataToSystemIndex,
             VFXSystemNames systemNames = null)
         {
             bool hasKill = IsAttributeStored(VFXAttribute.Alive);
@@ -617,8 +618,13 @@ namespace UnityEditor.VFX
                 {
                     throw new InvalidOperationException("Unexpected multiple input dependency for GPU event");
                 }
-                attributeSourceBufferIndex = dependentBuffers.attributeBuffers[m_DependenciesIn.FirstOrDefault()];
+
+                var dependency = m_DependenciesIn.First();
+
+                attributeSourceBufferIndex = dependentBuffers.attributeBuffers[dependency];
                 eventGPUFrom = dependentBuffers.eventBuffers[this];
+               
+                systemValueMappings.Add(new VFXMapping("parentSystemIndex", (int)dataToSystemIndex[dependency]));
             }
 
             if (attributeBufferIndex != -1)
@@ -653,13 +659,16 @@ namespace UnityEditor.VFX
             {
                 systemFlag |= VFXSystemFlag.SystemHasKill;
 
-                deadListBufferIndex = outBufferDescs.Count;
-                outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Counter, size = capacity, stride = 4 });
-                systemBufferMappings.Add(new VFXMapping("deadList", deadListBufferIndex));
+                if (!hasStrip) // No dead list for strips
+                {
+                    deadListBufferIndex = outBufferDescs.Count;
+                    outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Counter, size = capacity, stride = 4 });
+                    systemBufferMappings.Add(new VFXMapping("deadList", deadListBufferIndex));
 
-                deadListCountIndex = outBufferDescs.Count;
-                outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Raw, size = 1, stride = 4 });
-                systemBufferMappings.Add(new VFXMapping("deadListCount", deadListCountIndex));
+                    deadListCountIndex = outBufferDescs.Count;
+                    outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Raw, size = 1, stride = 4 });
+                    systemBufferMappings.Add(new VFXMapping("deadListCount", deadListCountIndex));
+                }
             }
 
             if (hasStrip)
