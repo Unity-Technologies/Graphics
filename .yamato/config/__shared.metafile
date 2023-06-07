@@ -149,6 +149,7 @@ test_platforms:
           - [OSX_Metal]: GIT_BRANCH='$GIT_BRANCH'
           - [OSX_Metal]: GIT_REVISION='$GIT_REVISION'
           - [OSX_Metal]: GIT_COMMIT_TIME='$GIT_COMMIT_TIME'
+          - [OSX_Metal]: UTR_VERSION='$UTR_VERSION'
     after:
       - [OSX_OpenGlCore, OSX_Metal, OSX_Apple_Silicon_Metal, iPhone_Metal, Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan, Linux_OpenGlCore, Linux_Vulkan]: <shared.platform.commands.log_parser>
     after_build:
@@ -195,6 +196,7 @@ test_platforms:
           - [OSX_Metal]: GIT_BRANCH='$GIT_BRANCH'
           - [OSX_Metal]: GIT_REVISION='$GIT_REVISION'
           - [OSX_Metal]: GIT_COMMIT_TIME='$GIT_COMMIT_TIME'
+          - [OSX_Metal]: UTR_VERSION='$UTR_VERSION'
     after:
       - [OSX_OpenGlCore, OSX_Metal, OSX_Apple_Silicon_Metal, iPhone_Metal, Linux_OpenGlCore, Linux_Vulkan, Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: <shared.platform.commands.log_parser>
 
@@ -247,6 +249,7 @@ test_platforms:
           - [OSX_Metal]: GIT_BRANCH='$GIT_BRANCH'
           - [OSX_Metal]: GIT_REVISION='$GIT_REVISION'
           - [OSX_Metal]: GIT_COMMIT_TIME='$GIT_COMMIT_TIME'
+          - [OSX_Metal]: UTR_VERSION='$UTR_VERSION'
     after:
       - [OSX_OpenGlCore, OSX_Metal, OSX_Apple_Silicon_Metal, iPhone_Metal, Linux_OpenGlCore, Linux_Vulkan, Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: <shared.platform.commands.log_parser>
 
