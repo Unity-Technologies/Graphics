@@ -142,7 +142,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static HDLightUI()
         {
-            Func<SerializedHDLight, bool> isArea = (serialized) => !serialized.settings.lightType.GetEnumValue<LightType>().IsArea();
+            Func<SerializedHDLight, bool> isArea = (serialized) => serialized.settings.lightType.GetEnumValue<LightType>().IsArea();
 
             Inspector = CED.Group(
                 CED.AdditionalPropertiesFoldoutGroup(LightUI.Styles.generalHeader, Expandable.General, k_ExpandedState, AdditionalProperties.General, k_AdditionalPropertiesState,
