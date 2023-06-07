@@ -48,13 +48,13 @@ MonoBehaviour:
           <b>Virtual offset</b> allows
           us to move the capture position of light probes. It can be enabled globally
           in the <b>Lighting</b> > <b>Probe Volumes</b> panel, automatically adjusting
-          the capture position of those that are inside geometry. Or it can be applied
+          the capture position of probes that are inside geometry. Or it can be applied
           manually as we did for this project, by using Probe Adustment Volumes in
           a specified location.
 
 
           The bright line seen in the image is
-          caused by the overly bright probes below the floor. To fix it we added
+          caused by the overly bright probes below the floor. To fix it, we added
           a probe adjustment volume that would virtually lift the said probes up
           by ~0.6 meters during the baking process.
 

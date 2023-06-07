@@ -41,12 +41,12 @@ MonoBehaviour:
       Text:
         m_Untranslated: "The problem here is actually the same as in the previous
           step. However, adjusting <b>Sampling Noise</b> for indoor environments
-          could cause leaking artifacts thus we can't really apply the same fix.
-          \n\nWith the help of <b>Local Probe Volumes</b> we can override the <b>probe
+          could cause leaking artifacts, thus we can't really apply the same fix.
+          \n\nWith the help of <b>Local Probe Volumes,</b> we can override the <b>probe
           spacing</b> to be <b>0.6 m</b> and make sure there are no gaps<b>(Fill
-          empty spaces.)</b> This way we essentially force a single Subdivision Level
-          and fill the room with probes evenly. This will result in slightly more
-          probes placed, but will get rid of the seams without having to use additional
+          empty spaces).</b> This way we essentially force a single Subdivision Level
+          and fill the room with probes evenly. This results in slightly more probes
+          placed, but will get rid of the seams without having to use additional
           noise.\n\nTo undo the fix:\n\n1. Move the cube to <b>X:25.3 Y:2 Z:1.5</b>\n\n2.
           In the <i>Hierarchy</i> window select the local volume under <b>Lighting</b>
           > <b>Adaptive Probe Volumes</b> > <b>Probe Volume Local.</b>\n\n3. Disable
