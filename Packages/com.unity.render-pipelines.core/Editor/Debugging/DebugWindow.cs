@@ -226,6 +226,7 @@ namespace UnityEditor.Rendering
                 return;
 
             // Clear states from memory that don't have a corresponding widget
+            List<string> keysToRemove = new ();
             foreach (var state in m_WidgetStates)
             {
                 var widget = DebugManager.instance.GetItem(state.Key);
@@ -234,7 +235,14 @@ namespace UnityEditor.Rendering
                     var s = state.Value;
                     Undo.ClearUndo(s); // Don't leave dangling states in the global undo/redo stack
                     DestroyImmediate(s);
+                    keysToRemove.Add(state.Key);
                 }
+            }
+
+            // Cleanup null entries because they can break the dictionary serialization
+            foreach (var key in keysToRemove)
+            {
+                m_WidgetStates.Remove(key);
             }
 
             UpdateWidgetStates();

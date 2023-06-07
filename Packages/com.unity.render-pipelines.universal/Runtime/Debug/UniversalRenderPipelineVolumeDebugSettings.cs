@@ -34,7 +34,7 @@ namespace UnityEngine.Rendering.Universal
                 if (selectedCamera != null && selectedCamera.TryGetComponent<UniversalAdditionalCameraData>(out var selectedAdditionalCameraData))
                     return selectedAdditionalCameraData.volumeLayerMask;
 
-                return (LayerMask)0;
+                return 1; // "Default"
             }
         }
 

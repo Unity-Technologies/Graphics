@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Unity.Mathematics;
 using UnityEditor;
 
 namespace UnityEngine.Rendering
@@ -16,10 +17,8 @@ namespace UnityEngine.Rendering
         /// <summary>Current volume component to debug.</summary>
         public int selectedComponent { get; set; } = 0;
 
-        private Camera m_SelectedCamera;
-
         /// <summary>Current camera to debug.</summary>
-        public Camera selectedCamera => m_SelectedCamera;
+        public Camera selectedCamera => selectedCameraIndex < 0 ? null : cameras.ElementAt(selectedCameraIndex);
 
         /// <summary>
         /// The selected camera index, use the property for better handling
@@ -29,21 +28,15 @@ namespace UnityEngine.Rendering
         /// <summary>Selected camera index.</summary>
         public int selectedCameraIndex
         {
-            get => m_SelectedCameraIndex;
+            get
+            {
+                var count = cameras.Count();
+                return count > 0 ? Math.Clamp(m_SelectedCameraIndex, 0, count-1) : -1;
+            }
             set
             {
-                m_SelectedCameraIndex = value;
-
                 var count = cameras.Count();
-                if (count != 0)
-                {
-                    m_SelectedCamera = m_SelectedCameraIndex < 0 || m_SelectedCameraIndex >= count ?
-                        cameras.First() : cameras.ElementAt(m_SelectedCameraIndex);
-                }
-                else
-                {
-                    m_SelectedCamera = null;
-                }
+                m_SelectedCameraIndex = Math.Clamp(value, 0, count-1);
             }
         }
 
@@ -101,7 +94,7 @@ namespace UnityEngine.Rendering
         /// <summary>Type of the current component to debug.</summary>
         public Type selectedComponentType
         {
-            get => volumeComponentsPathAndType[selectedComponent - 1].Item2;
+            get => selectedComponent > 0 ? volumeComponentsPathAndType[selectedComponent - 1].Item2 : null;
             set
             {
                 var index = volumeComponentsPathAndType.FindIndex(t => t.Item2 == value);

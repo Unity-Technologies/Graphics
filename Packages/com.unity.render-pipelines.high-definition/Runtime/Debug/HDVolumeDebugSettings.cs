@@ -44,7 +44,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         return selectedCameraAdditionalData.volumeLayerMask;
                 }
 
-                return (LayerMask)0;
+                return 1; // "Default"
             }
         }
 
