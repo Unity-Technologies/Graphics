@@ -208,7 +208,7 @@ namespace UnityEngine.Rendering.HighDefinition
             internal (Vector4, Vector4) GetBakingParameters()
             {
                 Vector4 params2 = new Vector4(
-                    -rotation.value / 360.0f,
+                    rotation.value / 360.0f,
                     NumSteps,
                     thickness.value * (0.1f - 0.005f) + 0.005f, // [0.005, 0.1]
                     altitude.value
