@@ -223,10 +223,6 @@ namespace UnityEngine.Rendering.Universal
                 frameResources.motionVectorDepth = CreateRenderGraphTexture(renderGraph, depthDescriptor, "_MotionVectorDepthTexture", true);
             }
             #endregion
-
-            LensFlareCommonSRP.mergeNeeded = 0;
-            LensFlareCommonSRP.maxLensFlareWithOcclusionTemporalSample = 1;
-            LensFlareCommonSRP.Initialize();
         }
 
         internal override void OnRecordRenderGraph(RenderGraph renderGraph, ScriptableRenderContext context, ref RenderingData renderingData)
