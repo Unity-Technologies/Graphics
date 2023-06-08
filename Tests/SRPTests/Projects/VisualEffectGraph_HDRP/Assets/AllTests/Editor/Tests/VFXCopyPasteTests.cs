@@ -381,11 +381,14 @@ namespace UnityEditor.VFX.Test
                 .Where(x => !string.IsNullOrEmpty(x))
                 .ToList();
 
-            var vfxDatas = m_ViewController.graph.children.OfType<VFXData>().Distinct().ToArray();
-            Assert.AreEqual(8, vfxDatas.Length, "There should be one distinct VFXData per system (8 spawners and 8 initialize");
+            var models = new HashSet<ScriptableObject>();
+            m_ViewController.graph.CollectDependencies(models);
+            var vfxDatas = models.OfType<VFXData>().ToArray();
 
+            const int dataExpectedCount = 2 * (spawnerCount + GPUSystemsCount);
+            Assert.AreEqual(dataExpectedCount, vfxDatas.Length, "There should be one distinct VFXData per system (8 spawners and 8 initialize");
             // Assert all names are unique, and the expected number of elements was obtained
-            Assert.AreEqual(2 * (spawnerCount + GPUSystemsCount), uniqueNames.Count, "Some systems have the same name or are null or empty.");
+            Assert.AreEqual(dataExpectedCount, uniqueNames.Count, "Some systems have the same name or are null or empty.");
         }
     }
 }
