@@ -12,10 +12,11 @@ namespace UnityEditor.Rendering.Universal
         class ImguiLabelWidthGUIScope : GUI.Scope
         {
             float m_LabelWidth;
+
             public ImguiLabelWidthGUIScope()
             {
                 m_LabelWidth = EditorGUIUtility.labelWidth;
-                EditorGUIUtility.labelWidth = 251;
+                EditorGUIUtility.labelWidth = 260;
             }
 
             protected override void CloseScope()
@@ -31,17 +32,26 @@ namespace UnityEditor.Rendering.Universal
 
         #region Rendering Layer Names
 
-        public static VisualElement CreateRenderingLayerNamesSection(SerializedUniversalRenderPipelineGlobalSettings serialized, Editor owner)
+        public static VisualElement CreateImguiSections(SerializedUniversalRenderPipelineGlobalSettings serialized, Editor owner)
         {
             return new IMGUIContainer(() =>
             {
-                using var labelWidthScope = new ImguiLabelWidthGUIScope();
-                using var changedScope = new EditorGUI.ChangeCheckScope();
+                GUILayout.BeginHorizontal();
+                GUILayout.Space(10);
+                GUILayout.BeginVertical();
 
-                RenderingLayerNamesSection.Draw(serialized, owner);
+                using (new ImguiLabelWidthGUIScope())
+                using (var changedScope = new EditorGUI.ChangeCheckScope())
+                {
+                    RenderingLayerNamesSection.Draw(serialized, owner);
+                    MiscSection.Draw(serialized, owner);
 
-                if (changedScope.changed)
-                    serialized.serializedObject.ApplyModifiedProperties();
+                    if (changedScope.changed)
+                        serialized.serializedObject.ApplyModifiedProperties();
+                }
+
+                GUILayout.EndVertical();
+                GUILayout.EndHorizontal();
             });
         }
 
@@ -90,20 +100,6 @@ namespace UnityEditor.Rendering.Universal
 
         #region Misc Settings
 
-        public static VisualElement CreateMiscSection(SerializedUniversalRenderPipelineGlobalSettings serialized, Editor owner)
-        {
-            return new IMGUIContainer(() =>
-            {
-                using var labelWidthScope = new ImguiLabelWidthGUIScope();
-                using var changedScope = new EditorGUI.ChangeCheckScope();
-
-                MiscSection.Draw(serialized, owner);
-
-                if (changedScope.changed)
-                    serialized.serializedObject.ApplyModifiedProperties();
-            });
-        }
-
         private static readonly CED.IDrawer MiscSection =
             CED.Group((s, owner) =>
             {
@@ -115,6 +111,7 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUILayout.PropertyField(s.serializedObject.FindProperty("m_ShaderStrippingSetting"));
                 EditorGUILayout.PropertyField(s.serializedObject.FindProperty("m_URPShaderStrippingSetting"));
             });
+
         #endregion
     }
 }

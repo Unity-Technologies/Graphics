@@ -20,13 +20,15 @@ namespace UnityEditor.Rendering.Universal
 
         DefaultVolumeProfileEditor m_DefaultVolumeProfileEditor;
         VisualElement m_DefaultVolumeProfileEditorRoot;
-        bool m_DefaultVolumeProfileFoldoutExpanded = true;
+        EditorPrefBool m_DefaultVolumeProfileFoldoutExpanded;
 
         void OnEnable()
         {
             m_SerializedGlobalSettings = new SerializedUniversalRenderPipelineGlobalSettings(serializedObject);
 
             Undo.undoRedoPerformed += OnUndoRedoPerformed;
+
+            m_DefaultVolumeProfileFoldoutExpanded = new EditorPrefBool($"{GetType()}.DefaultVolumeProfileFoldoutExpanded", true);
         }
 
         void OnDisable()
@@ -55,7 +57,8 @@ namespace UnityEditor.Rendering.Universal
 
         void DestroyDefaultVolumeProfileEditor()
         {
-            m_DefaultVolumeProfileEditor?.Destroy();
+            if (m_DefaultVolumeProfileEditor != null)
+                m_DefaultVolumeProfileEditor.Destroy();
             m_DefaultVolumeProfileEditor = null;
             m_DefaultVolumeProfileEditorRoot?.Clear();
         }
@@ -67,8 +70,7 @@ namespace UnityEditor.Rendering.Universal
             root.Add(new IMGUIContainer(() => m_SerializedGlobalSettings.serializedObject.Update()));
 
             root.Add(CreateVolumeProfileSection());
-            root.Add(UniversalRenderPipelineGlobalSettingsUI.CreateRenderingLayerNamesSection(m_SerializedGlobalSettings, this));
-            root.Add(UniversalRenderPipelineGlobalSettingsUI.CreateMiscSection(m_SerializedGlobalSettings, this));
+            root.Add(UniversalRenderPipelineGlobalSettingsUI.CreateImguiSections(m_SerializedGlobalSettings, this));
 
             return root;
         }
@@ -89,6 +91,9 @@ namespace UnityEditor.Rendering.Universal
 
             m_DefaultVolumeProfileEditor = new DefaultVolumeProfileEditor(this, volumeProfile);
             m_DefaultVolumeProfileEditorRoot.Add(m_DefaultVolumeProfileEditor.Create());
+
+            m_DefaultVolumeProfileEditorRoot.Q<HelpBox>("volume-override-info-box").text = EditorGUIUtility.TrTextContent(
+                "The values in the Default Volume can be overridden by a Volume Profile assigned to URP asset and Volumes inside scenes.").text;
         }
 
         public VisualElement CreateVolumeProfileSection()
@@ -99,6 +104,7 @@ namespace UnityEditor.Rendering.Universal
             if (VolumeManager.instance.isInitialized)
                 CreateDefaultVolumeProfileEditor();
 
+            section.AddToClassList("volume-profile-section");
             section.Add(new IMGUIContainer(() =>
             {
                 using var changedScope = new EditorGUI.ChangeCheckScope();
@@ -112,7 +118,7 @@ namespace UnityEditor.Rendering.Universal
 
                 // Propagate foldout expander state from IMGUI to UITK
                 m_DefaultVolumeProfileEditorRoot.style.display =
-                    m_DefaultVolumeProfileFoldoutExpanded ? DisplayStyle.Flex : DisplayStyle.None;
+                    m_DefaultVolumeProfileFoldoutExpanded.value ? DisplayStyle.Flex : DisplayStyle.None;
 
                 if (changedScope.changed)
                     m_SerializedGlobalSettings.serializedObject.ApplyModifiedProperties();
@@ -143,13 +149,15 @@ namespace UnityEditor.Rendering.Universal
 
                 var globalSettings = serialized.serializedObject.targetObject as UniversalRenderPipelineGlobalSettings;
 
+                bool expanded = m_DefaultVolumeProfileFoldoutExpanded.value;
                 var previousDefaultVolumeProfileAsset = serialized.defaultVolumeProfile.objectReferenceValue;
                 VolumeProfile defaultVolumeProfileAsset = RenderPipelineGlobalSettingsUI.DrawVolumeProfileAssetField(
                     serialized.defaultVolumeProfile,
                     UniversalRenderPipelineGlobalSettingsUI.Styles.defaultVolumeProfileLabel,
                     getOrCreateVolumeProfile: () => globalSettings.GetOrCreateDefaultVolumeProfile(),
-                    ref m_DefaultVolumeProfileFoldoutExpanded
+                    ref expanded
                 );
+                m_DefaultVolumeProfileFoldoutExpanded.value = expanded;
 
                 EditorGUIUtility.labelWidth = oldWidth;
 

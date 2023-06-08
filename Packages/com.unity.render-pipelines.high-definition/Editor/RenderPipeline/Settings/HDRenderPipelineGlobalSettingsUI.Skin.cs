@@ -7,8 +7,7 @@ namespace UnityEditor.Rendering.HighDefinition
         internal class Styles
         {
             public const int labelWidth = 220;
-            public const int defaultVolumeLabelWidth = 250;
-            public const int volumeProfileEditorLabelWidth = 280;
+            public const int defaultVolumeLabelWidth = 260;
 
             public static readonly GUIContent defaultVolumeProfileSectionLabel = EditorGUIUtility.TrTextContent("Default Volume Profile");
             public static readonly GUIContent defaultVolumeProfileAssetLabel = EditorGUIUtility.TrTextContent("Volume Profile", "Settings that will be applied project-wide to all Volumes by default when High Definition Render Pipeline is active.");

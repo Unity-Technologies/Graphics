@@ -16,6 +16,7 @@ namespace UnityEditor.Rendering
 
         const int k_ContainerMarginLeft = 10;
         const int k_ImguiContainerPaddingLeft = 18;
+        const int k_DefaultVolumeLabelWidth = 274;
 
         static Lazy<GUIStyle> s_ImguiContainerScopeStyle = new(() => new GUIStyle
         {
@@ -116,6 +117,7 @@ namespace UnityEditor.Rendering
                     (e as IMGUIContainer).onGUIHandler = () =>
                     {
                         using var indentScope = new SettingsProviderGUIScope();
+                        EditorGUIUtility.labelWidth = k_DefaultVolumeLabelWidth;
                         VolumeComponentEditorOnGUI(filteredCategoryEditors[i]);
                     };
                 };

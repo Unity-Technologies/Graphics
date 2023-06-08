@@ -1,5 +1,4 @@
 .srp-global-settings__container {
-    margin-left: 9px;
     margin-top: 1px;
 }
 
@@ -8,6 +7,7 @@
     font-size: 20px;
     -unity-font-style: bold;
     margin-bottom: 4px;
+    margin-left: 10px;
 }
 
 .srp-global-settings__help-button-container {
@@ -17,4 +17,9 @@
 
 #srp-global-settings__help-button {
     margin: 2px;
+}
+
+.volume-profile-section {
+    margin-left: 10px;
+    margin-bottom: 10px;
 }

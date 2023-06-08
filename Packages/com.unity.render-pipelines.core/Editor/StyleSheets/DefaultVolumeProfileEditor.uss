@@ -18,5 +18,5 @@
 
 /* Allow foldout headers inside ListViews to start from the left */
 .unity-list-view {
-    margin-left: -10px;
+    margin-left: -13px;
 }
