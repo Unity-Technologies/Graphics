@@ -46,8 +46,6 @@ namespace UnityEditor.VFX
         {
             base.OnEnable();
 
-            VFXLibrary.OnSRPChanged += OnSRPChanged;
-
             if (object.ReferenceEquals(shader, null)) shader = VFXResources.defaultResources.shader;
 
             if (m_Shader != null)
@@ -62,11 +60,10 @@ namespace UnityEditor.VFX
 
         public virtual void OnDisable()
         {
-            VFXLibrary.OnSRPChanged -= OnSRPChanged;
             DestroyCachedMaterial();
         }
 
-        private void OnSRPChanged()
+        public override void OnSRPChanged()
         {
             DestroyCachedMaterial();
         }
@@ -123,6 +120,7 @@ namespace UnityEditor.VFX
             Dictionary<VFXContext, int> contextSpawnToBufferIndex,
             VFXDependentBuffersData dependentBuffers,
             Dictionary<VFXContext, List<VFXContextLink>[]> effectiveFlowInputLinks,
+            Dictionary<VFXData, uint> dataToSystemIndex,
             VFXSystemNames systemNames = null)
         {
             var context = m_Owners[0];

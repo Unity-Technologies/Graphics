@@ -461,7 +461,7 @@ namespace UnityEditor.VFX
 
         public void SetDefaultData(bool notify)
         {
-            InnerSetData(VFXData.CreateDataType(GetGraph(), ownedType), notify);
+            InnerSetData(VFXData.CreateDataType(ownedType), notify);
         }
 
         public virtual void OnDataChanges(VFXData oldData, VFXData newData)
@@ -475,8 +475,6 @@ namespace UnityEditor.VFX
                 if (m_Data != null)
                 {
                     m_Data.OnContextRemoved(this);
-                    if (m_Data.owners.Count() == 0)
-                        m_Data.Detach(notify);
                 }
                 OnDataChanges(m_Data, data);
                 m_Data = data;
@@ -488,9 +486,10 @@ namespace UnityEditor.VFX
                     Invalidate(InvalidationCause.kStructureChanged);
 
                 // Propagate data downwards
-                foreach (var output in m_OutputFlowSlot.SelectMany(o => o.link.Select(l => l.context)))
-                    if (output.ownedType == ownedType)
-                        output.InnerSetData(data, notify);
+                if (ownedType.HasFlag(VFXDataType.Particle)) // Only propagate for particle type atm
+                    foreach (var output in m_OutputFlowSlot.SelectMany(o => o.link.Select(l => l.context)))
+                        if (output.ownedType == ownedType)
+                            output.InnerSetData(data, notify);
             }
         }
 
