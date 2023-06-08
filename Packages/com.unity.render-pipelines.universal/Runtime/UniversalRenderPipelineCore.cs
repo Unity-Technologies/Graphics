@@ -367,7 +367,7 @@ namespace UnityEngine.Rendering.Universal
         /// True if this camera should render to high dynamic range color targets.
         /// </summary>
         public bool isHdrEnabled;
-        
+
         /// <summary>
         /// True if this camera allow color conversion and encoding for high dynamic range displays.
         /// </summary>
@@ -668,6 +668,11 @@ namespace UnityEngine.Rendering.Universal
         public bool supportsMainLightShadows;
 
         /// <summary>
+        /// True if additional lights shadows are enabled in the URP Asset
+        /// </summary>
+        internal bool mainLightShadowsEnabled;
+
+        /// <summary>
         /// True if screen space shadows are required.
         /// Obsolete, this feature was replaced by new 'ScreenSpaceShadows' renderer feature
         /// </summary>
@@ -705,6 +710,11 @@ namespace UnityEngine.Rendering.Universal
         /// True if additional lights shadows are enabled.
         /// </summary>
         public bool supportsAdditionalLightShadows;
+
+        /// <summary>
+        /// True if additional lights shadows are enabled in the URP Asset
+        /// </summary>
+        internal bool additionalLightShadowsEnabled;
 
         /// <summary>
         /// The width of the additional light shadow map.

@@ -494,6 +494,12 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             using var profScope = new ProfilingScope(null, m_ProfilingSetupSampler);
 
+            if (!renderingData.shadowData.additionalLightShadowsEnabled)
+                return false;
+
+            if (!renderingData.shadowData.supportsAdditionalLightShadows)
+                return SetupForEmptyRendering(ref renderingData);
+
             Clear();
 
             renderTargetWidth = renderingData.shadowData.additionalLightsShadowmapWidth;
@@ -950,11 +956,10 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // If the OFF variant has been stripped, the additional light shadows keyword must always be enabled
                 bool hasOffVariant = !renderingData.cameraData.renderer.stripShadowsOffVariants;
                 renderingData.shadowData.isKeywordAdditionalLightShadowsEnabled = !hasOffVariant || anyShadowSliceRenderer;
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightShadows, renderingData.shadowData.isKeywordAdditionalLightShadowsEnabled);
 
                 bool softShadows = renderingData.shadowData.supportsSoftShadows && (mainLightHasSoftShadows || additionalLightHasSoftShadows);
                 renderingData.shadowData.isKeywordSoftShadowsEnabled = softShadows;
-
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightShadows, renderingData.shadowData.isKeywordAdditionalLightShadowsEnabled);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadows, renderingData.shadowData.isKeywordSoftShadowsEnabled);
 
                 if (anyShadowSliceRenderer)
