@@ -799,6 +799,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// Any pass writing to (building) an imported RayTracingAccelerationStructure will be considered having side effects and can't be automatically culled.
         /// </summary>
         /// <param name="accelStruct">External RayTracingAccelerationStructure that needs to be imported.</param>
+		/// <param name="name">Optional name for identifying the RayTracingAccelerationStructure in the Render Graph.</param>
         /// <returns>A new RayTracingAccelerationStructureHandle.</returns>
         public RayTracingAccelerationStructureHandle ImportRayTracingAccelerationStructure(in RayTracingAccelerationStructure accelStruct, string name = null)
         {
