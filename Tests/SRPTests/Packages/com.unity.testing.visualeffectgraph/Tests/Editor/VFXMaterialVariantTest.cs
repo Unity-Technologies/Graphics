@@ -325,6 +325,8 @@ namespace UnityEditor.VFX.Test
             new Cross_Pipeline_VFX_Override_Test_Case() { compilationMode = VFXCompilationMode.Runtime, createEditor = true },
         };
 
+        private static System.Reflection.PropertyInfo kGetAllowLocking = typeof(Material).GetProperty("allowLocking", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+
         [UnityTest, Description("Cover behavior from UUM-29663, in editor, both settings from HDRP & URP must be kept")]
         public IEnumerator Cross_Pipeline_VFX_Override([ValueSource(nameof(k_Cross_Pipeline_Cases))] Cross_Pipeline_VFX_Override_Test_Case testCase)
         {
@@ -380,6 +382,13 @@ namespace UnityEditor.VFX.Test
                 Assert.AreEqual(2, materials.Length);
                 Assert.IsNotNull(actualMaterial);
                 Assert.IsNotNull(parentMaterial);
+                Assert.IsNotNull(kGetAllowLocking);
+
+                Assert.IsTrue(actualMaterial.enableInstancing);
+                Assert.IsTrue(parentMaterial.enableInstancing);
+
+                Assert.IsFalse((bool)kGetAllowLocking.GetValue(actualMaterial));
+                Assert.IsTrue((bool)kGetAllowLocking.GetValue(parentMaterial));
             }
             else
             {
@@ -387,6 +396,11 @@ namespace UnityEditor.VFX.Test
                 actualMaterial = materials.FirstOrDefault();
                 Assert.IsNotNull(actualMaterial);
                 Assert.IsFalse(actualMaterial.isVariant);
+
+                Assert.IsTrue(actualMaterial.enableInstancing);
+
+                Assert.IsNotNull(kGetAllowLocking);
+                Assert.IsTrue((bool)kGetAllowLocking.GetValue(actualMaterial));
             }
 
             var serializedMaterial = new SerializedObject(actualMaterial);
