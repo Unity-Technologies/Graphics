@@ -1254,6 +1254,7 @@ namespace UnityEngine.Rendering
             Label[] m_Labels = null;
             GroupBox probeDistanceGroupBox = null;
             GroupBox probeSamplingGroupBox = null;
+            TextElement vertexSamplingWarning = null;
 
             int maxSubdiv;
             float minDistance;
@@ -1287,6 +1288,7 @@ namespace UnityEngine.Rendering
 
                 EnableGroupBox(probeDistanceGroupBox, ProbeReferenceVolume.instance.probeVolumeDebug.drawBricks);
                 EnableGroupBox(probeSamplingGroupBox, ProbeReferenceVolume.instance.probeVolumeDebug.drawProbeSamplingDebug);
+                EnableTextArea(vertexSamplingWarning, ProbeReferenceVolume.instance.vertexSampling);
 
                 if (m_Labels == null) return true;
 
@@ -1312,6 +1314,14 @@ namespace UnityEngine.Rendering
                     return;
 
                 groupBox.style.display = b ? DisplayStyle.Flex : DisplayStyle.None;
+            }
+
+            void EnableTextArea(TextElement text, bool b)
+            {
+                if (text == null)
+                    return;
+
+                text.style.display = b ? DisplayStyle.Flex : DisplayStyle.None;
             }
 
             public override void OnCreated()
@@ -1382,6 +1392,14 @@ namespace UnityEngine.Rendering
                 selectPixelButton.RegisterCallback<MouseDownEvent>(e => ProbeReferenceVolume.probeSamplingDebugData.update = ProbeSamplingDebugUpdate.Always);
 
                 probeSampling_row.Add(selectPixelButton);
+
+                vertexSamplingWarning = new TextElement();
+                vertexSamplingWarning.text = "Warning: Probe Sampling is currently set to\n" +
+                                             "per-vertex. This debug mode shows per-pixel\n" +
+                                             "information.";
+                vertexSamplingWarning.style.display = DisplayStyle.None;
+
+                probeSampling_row.Add(vertexSamplingWarning);
 
                 probeDistanceGroupBox.style.display = DisplayStyle.None;
                 probeSamplingGroupBox.style.display = DisplayStyle.None;

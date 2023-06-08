@@ -477,7 +477,7 @@ namespace UnityEngine.Rendering.Universal
             if(standardRequest != null || singleRequest != null)
             {
                 RenderTexture destination = standardRequest != null ? standardRequest.destination : singleRequest.destination;
-                
+
                 //don't go further if no destination texture
                 if(destination == null)
                 {
@@ -547,7 +547,7 @@ namespace UnityEngine.Rendering.Universal
                             break;
                         case TextureDimension.Tex3D:
                             if((SystemInfo.copyTextureSupport & CopyTextureSupport.DifferentTypes) != 0)
-                            {    
+                            {
                                 isCopySupported = true;
                                 Graphics.CopyTexture(temporaryRT, 0, 0, destination, slice, mipLevel);
                             }
@@ -558,7 +558,7 @@ namespace UnityEngine.Rendering.Universal
                                 isCopySupported = true;
                                 Graphics.CopyTexture(temporaryRT, 0, 0, destination, face, mipLevel);
                             }
-                            break;                        
+                            break;
                         case TextureDimension.CubeArray:
                             if((SystemInfo.copyTextureSupport & CopyTextureSupport.DifferentTypes) != 0)
                             {
@@ -689,6 +689,7 @@ namespace UnityEngine.Rendering.Universal
 
                 bool apvIsEnabled = asset != null && asset.lightProbeSystem == LightProbeSystem.ProbeVolumes;
                 ProbeReferenceVolume.instance.SetEnableStateFromSRP(apvIsEnabled);
+                ProbeReferenceVolume.instance.SetVertexSamplingEnabled(asset.shEvalMode  == ShEvalMode.PerVertex || asset.shEvalMode  == ShEvalMode.Mixed);
                 // We need to verify and flush any pending asset loading for probe volume.
                 if (apvIsEnabled && ProbeReferenceVolume.instance.isInitialized)
                 {
