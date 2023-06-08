@@ -252,6 +252,7 @@ namespace UnityEngine.Rendering
 #endif
         }
 
+        /// <summary>Called after deserializing</summary>
         void ISerializationCallbackReceiver.OnAfterDeserialize()
         {
             if (!m_LightingScenarios.Contains(lightingScenario))
@@ -294,6 +295,7 @@ namespace UnityEngine.Rendering
             }
         }
 
+        /// <summary>Called before serializing</summary>
         void ISerializationCallbackReceiver.OnBeforeSerialize()
         {
             m_SerializedPerSceneCellList = new List<SerializedPerSceneCellList>();
@@ -422,7 +424,6 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name ="guid">The GUID of the scene to remove.</param>
         /// <param name ="enableForBaking">Wheter or not this scene should be included when baking lighting.</param>
-        /// <returns>Whether the scene was successfull added to the baking set.</returns>
         public void SetSceneBaking(string guid, bool enableForBaking)
         {
             if (enableForBaking)

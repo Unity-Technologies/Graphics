@@ -1374,24 +1374,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void RenderProbeVolumeDebug(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthPyramidBuffer, TextureHandle normalBuffer)
         {
-            if (IsAPVEnabled())
-            {
-#if UNITY_EDITOR
-                if (ProbeReferenceVolume.probeSamplingDebugData.camera != hdCamera.camera)
-                    return;
-#endif
-
-                if (ProbeReferenceVolume.probeSamplingDebugData.update != ProbeSamplingDebugUpdate.Never)
-                {
-                    WriteApvPositionNormalDebugBuffer(renderGraph, ProbeReferenceVolume.probeSamplingDebugData.positionNormalBuffer, ProbeReferenceVolume.probeSamplingDebugData.coordinates, depthPyramidBuffer, normalBuffer);
-
-                    if (ProbeReferenceVolume.probeSamplingDebugData.update == ProbeSamplingDebugUpdate.Once)
-                    {
-                        ProbeReferenceVolume.probeSamplingDebugData.update = ProbeSamplingDebugUpdate.Never;
-                        ProbeReferenceVolume.probeSamplingDebugData.forceScreenCenterCoordinates = false;
-                    }
-                }
-            }
+            if (IsAPVEnabled() && ProbeReferenceVolume.instance.GetProbeSamplingDebugResources(hdCamera.camera, out var resultBuffer, out Vector2 coords))
+                WriteApvPositionNormalDebugBuffer(renderGraph, resultBuffer, coords, depthPyramidBuffer, normalBuffer);
         }
 
         class WriteApvData

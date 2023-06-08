@@ -42,14 +42,14 @@ namespace UnityEngine.Rendering
         Size
     }
 
-    public enum ProbeSamplingDebugUpdate
+    enum ProbeSamplingDebugUpdate
     {
         Never,
         Once,
         Always
     }
 
-    public class ProbeSamplingDebugData
+    class ProbeSamplingDebugData
     {
         public ProbeSamplingDebugUpdate update = ProbeSamplingDebugUpdate.Never; // When compute buffer should be updated
         public Vector2 coordinates = new Vector2(0.5f, 0.5f);
@@ -192,7 +192,7 @@ namespace UnityEngine.Rendering
 
         Texture m_displayNumbersTexture;
 
-        public static ProbeSamplingDebugData probeSamplingDebugData = new ProbeSamplingDebugData();
+        internal static ProbeSamplingDebugData probeSamplingDebugData = new ProbeSamplingDebugData();
 
         Mesh m_DebugOffsetMesh;
         Material m_DebugOffsetMaterial;
@@ -220,6 +220,44 @@ namespace UnityEngine.Rendering
             {
                 DrawProbeDebug(camera);
             }
+        }
+
+        /// <summary>
+        /// Checks if APV sampling debug is enabled
+        /// </summary>
+        /// <returns>True if APV sampling debug is enabled</returns>
+        public bool IsProbeSamplingDebugEnabled()
+        {
+            return probeSamplingDebugData.update != ProbeSamplingDebugUpdate.Never;
+        }
+
+        /// <summary>
+        /// Returns the resources used for APV probe sampling debug mode
+        /// </summary>
+        /// <param name="camera">The camera for which to evaluate the debug mode</param>
+        /// <param name="resultBuffer">The buffer that should be filled with position and normal</param>
+        /// <param name="coords">The screen space coords to sample the position and normal</param>
+        /// <returns>True if the pipeline should write position and normal at coords in resultBuffer</returns>
+        public bool GetProbeSamplingDebugResources(Camera camera, out GraphicsBuffer resultBuffer, out Vector2 coords)
+        {
+            resultBuffer = probeSamplingDebugData.positionNormalBuffer;
+            coords = probeSamplingDebugData.coordinates;
+
+#if UNITY_EDITOR
+            if (probeSamplingDebugData.camera != camera)
+                return false;
+#endif
+
+            if (probeSamplingDebugData.update == ProbeSamplingDebugUpdate.Never)
+                return false;
+
+            if (probeSamplingDebugData.update == ProbeSamplingDebugUpdate.Once)
+            {
+                probeSamplingDebugData.update = ProbeSamplingDebugUpdate.Never;
+                probeSamplingDebugData.forceScreenCenterCoordinates = false;
+            }
+
+            return true;
         }
 
 #if UNITY_EDITOR

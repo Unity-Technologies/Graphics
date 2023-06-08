@@ -32,10 +32,9 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             bool enableProbeVolumes = false;
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume))
-                enableProbeVolumes = ProbeVolumeLighting.instance.UpdateShaderVariablesProbeVolumes(
+                enableProbeVolumes = ProbeReferenceVolume.instance.UpdateShaderVariablesProbeVolumes(cmd,
                     hdCamera.volumeStack.GetComponent<ProbeVolumesOptions>(),
-                    hdCamera.taaFrameIndex,
-                    cmd);
+                    hdCamera.taaFrameIndex);
             cb._EnableProbeVolumes = enableProbeVolumes ? 1u : 0u;
         }
     }

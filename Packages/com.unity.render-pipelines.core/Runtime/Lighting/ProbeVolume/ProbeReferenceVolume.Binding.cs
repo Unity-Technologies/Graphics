@@ -3,9 +3,9 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Rendering
 {
-    public class ProbeVolumeLighting
+    public partial class ProbeReferenceVolume
     {
-        public static class ShaderIDs
+        internal static class ShaderIDs
         {
             // Adaptive Probe Volume
             public static readonly int _APVResIndex = Shader.PropertyToID("_APVResIndex");
@@ -21,6 +21,14 @@ namespace UnityEngine.Rendering
             public static readonly int _APVResValidity = Shader.PropertyToID("_APVResValidity");
         }
 
+
+        ComputeBuffer m_EmptyIndexBuffer = null;
+
+        /// <summary>
+        /// Bind the global APV resources
+        /// </summary>
+        /// <param name="cmdBuffer">Command buffer</param>
+        /// <param name="isProbeVolumeEnabled">True if APV is enabled</param>
         public void BindAPVRuntimeResources(CommandBuffer cmdBuffer, bool isProbeVolumeEnabled)
         {
             bool needToBindNeutral = true;
@@ -83,27 +91,17 @@ namespace UnityEngine.Rendering
             }
         }
 
-        private ComputeBuffer m_EmptyIndexBuffer = null;
-
-        public static ProbeVolumeLighting instance
+        /// <summary>
+        /// Update the constant buffer used by Probe Volumes in shaders.
+        /// </summary>
+        /// <param name="cmd">A command buffer used to perform the data update.</param>
+        /// <param name="probeVolumeOptions">probe volume options from the active volume stack</param>
+        /// <param name="taaFrameIndex">TAA frame index</param>
+        /// <returns>True if successful</returns>
+        public bool UpdateShaderVariablesProbeVolumes(CommandBuffer cmd, ProbeVolumesOptions probeVolumeOptions, int taaFrameIndex)
         {
-            get
-            {
-                return _instance;
-            }
-        }
-        static ProbeVolumeLighting _instance = new ProbeVolumeLighting();
-
-        public void Cleanup()
-        {
-            CoreUtils.SafeRelease(m_EmptyIndexBuffer);
-            m_EmptyIndexBuffer = null;
-        }
-
-        public bool UpdateShaderVariablesProbeVolumes(ProbeVolumesOptions probeVolumeOptions, int taaFrameIndex, CommandBuffer cmd)
-        {
-            bool loadedData = ProbeReferenceVolume.instance.DataHasBeenLoaded();
-            var weight = ProbeReferenceVolume.instance.probeVolumesWeight;
+            bool loadedData = DataHasBeenLoaded();
+            var weight = probeVolumesWeight;
             bool enableProbeVolumes = loadedData && weight > 0f;
 
             if (enableProbeVolumes)
@@ -121,7 +119,7 @@ namespace UnityEngine.Rendering
                 parameters.reflNormalizationUpperClamp = probeVolumeOptions.occlusionOnlyReflectionNormalization.value ? 1.0f : 7.0f;
 
                 parameters.minValidNormalWeight = probeVolumeOptions.minValidDotProductValue.value;
-                ProbeReferenceVolume.instance.UpdateConstantBuffer(cmd, parameters);
+                UpdateConstantBuffer(cmd, parameters);
             }
 
             return enableProbeVolumes;

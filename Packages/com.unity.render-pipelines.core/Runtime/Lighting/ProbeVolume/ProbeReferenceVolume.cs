@@ -937,6 +937,9 @@ namespace UnityEngine.Rendering
         /// </summary>
         public void Cleanup()
         {
+            CoreUtils.SafeRelease(m_EmptyIndexBuffer);
+            m_EmptyIndexBuffer = null;
+
             if (!m_ProbeReferenceVolumeInit) return;
 
 #if UNITY_EDITOR
@@ -1847,12 +1850,7 @@ namespace UnityEngine.Rendering
             cell.poolInfo.chunkList.Clear();
         }
 
-        /// <summary>
-        /// Update the constant buffer used by Probe Volumes in shaders.
-        /// </summary>
-        /// <param name="cmd">A command buffer used to perform the data update.</param>
-        /// <param name="parameters">Parameters to be used when sampling the probe volume.</param>
-        public void UpdateConstantBuffer(CommandBuffer cmd, ProbeVolumeShadingParameters parameters)
+        internal void UpdateConstantBuffer(CommandBuffer cmd, ProbeVolumeShadingParameters parameters)
         {
             float normalBias = parameters.normalBias;
             float viewBias = parameters.viewBias;
@@ -1863,7 +1861,6 @@ namespace UnityEngine.Rendering
                 viewBias *= MinDistanceBetweenProbes();
             }
 
-            var minCellPos = m_CellIndices.GetGlobalIndirectionMinEntry();
             var indexDim = m_CellIndices.GetGlobalIndirectionDimension();
             var poolDim = m_Pool.GetPoolDimensions();
             m_CellIndices.GetMinMaxEntry(out Vector3Int minEntry, out Vector3Int maxEntry);

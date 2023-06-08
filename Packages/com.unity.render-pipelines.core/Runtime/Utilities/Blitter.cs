@@ -218,6 +218,14 @@ namespace UnityEngine.Rendering
             BlitTexture(cmd.m_WrappedCommandBuffer, source, scaleBias, mipLevel, bilinear);
         }
 
+        /// <summary>
+        /// Blit a RTHandle texture.
+        /// </summary>
+        /// <param name="cmd">Command Buffer used for rendering.</param>
+        /// <param name="source">Source RTHandle.</param>
+        /// <param name="scaleBias">Scale and bias for sampling the input texture.</param>
+        /// <param name="mipLevel">Mip level to blit.</param>
+        /// <param name="bilinear">Enable bilinear filtering.</param>
         public static void BlitTexture(CommandBuffer cmd, RTHandle source, Vector4 scaleBias, float mipLevel, bool bilinear)
         {
             s_PropertyBlock.SetFloat(BlitShaderIDs._BlitMipLevel, mipLevel);
@@ -237,6 +245,14 @@ namespace UnityEngine.Rendering
             BlitTexture2D(cmd.m_WrappedCommandBuffer, source, scaleBias, mipLevel, bilinear);
         }
 
+        /// <summary>
+        /// Blit a RTHandle texture 2D.
+        /// </summary>
+        /// <param name="cmd">Command Buffer used for rendering.</param>
+        /// <param name="source">Source RTHandle.</param>
+        /// <param name="scaleBias">Scale and bias for sampling the input texture.</param>
+        /// <param name="mipLevel">Mip level to blit.</param>
+        /// <param name="bilinear">Enable bilinear filtering.</param>
         public static void BlitTexture2D(CommandBuffer cmd, RTHandle source, Vector4 scaleBias, float mipLevel, bool bilinear)
         {
             s_PropertyBlock.SetFloat(BlitShaderIDs._BlitMipLevel, mipLevel);
@@ -257,6 +273,15 @@ namespace UnityEngine.Rendering
             BlitColorAndDepth(cmd.m_WrappedCommandBuffer, sourceColor, sourceDepth, scaleBias, mipLevel, blitDepth);
         }
 
+        /// <summary>
+        /// Blit a 2D texture and depth buffer.
+        /// </summary>
+        /// <param name="cmd">Command Buffer used for rendering.</param>
+        /// <param name="sourceColor">Source Texture for color.</param>
+        /// <param name="sourceDepth">Source RenderTexture for depth.</param>
+        /// <param name="scaleBias">Scale and bias for sampling the input texture.</param>
+        /// <param name="mipLevel">Mip level to blit.</param>
+        /// <param name="blitDepth">Enable depth blit.</param>
         public static void BlitColorAndDepth(CommandBuffer cmd, Texture sourceColor, RenderTexture sourceDepth, Vector4 scaleBias, float mipLevel, bool blitDepth)
         {
             s_PropertyBlock.SetFloat(BlitShaderIDs._BlitMipLevel, mipLevel);
@@ -280,6 +305,14 @@ namespace UnityEngine.Rendering
             BlitTexture(cmd.m_WrappedCommandBuffer, source, scaleBias, material, pass);
         }
 
+        /// <summary>
+        /// Blit a RTHandle texture
+        /// </summary>
+        /// <param name="cmd">Command Buffer used for rendering.</param>
+        /// <param name="source">Source RTHandle.</param>
+        /// <param name="scaleBias">Scale and bias for sampling the input texture.</param>
+        /// <param name="material">Material to invoke when blitting.</param>
+        /// <param name="pass">Pass idx within the material to invoke.</param>
         public static void BlitTexture(CommandBuffer cmd, RTHandle source, Vector4 scaleBias, Material material, int pass)
         {
             s_PropertyBlock.SetVector(BlitShaderIDs._BlitScaleBias, scaleBias);
@@ -300,6 +333,14 @@ namespace UnityEngine.Rendering
             BlitTexture(cmd.m_WrappedCommandBuffer, source, scaleBias, material, pass);
         }
 
+        /// <summary>
+        /// Blit a RTHandle texture
+        /// </summary>
+        /// <param name="cmd">Command Buffer used for rendering.</param>
+        /// <param name="source">Source render target.</param>
+        /// <param name="scaleBias">Scale and bias for sampling the input texture.</param>
+        /// <param name="material">Material to invoke when blitting.</param>
+        /// <param name="pass">Pass idx within the material to invoke.</param>
         public static void BlitTexture(CommandBuffer cmd, RenderTargetIdentifier source, Vector4 scaleBias, Material material, int pass)
         {
             s_PropertyBlock.SetVector(BlitShaderIDs._BlitScaleBias, scaleBias);

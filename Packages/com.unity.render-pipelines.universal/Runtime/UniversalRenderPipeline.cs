@@ -711,7 +711,7 @@ namespace UnityEngine.Rendering.Universal
 
                 // do AdaptiveProbeVolume stuff
                 if (apvIsEnabled)
-                    ProbeVolumeLighting.instance.BindAPVRuntimeResources(cmd, true);
+                    ProbeReferenceVolume.instance.BindAPVRuntimeResources(cmd, true);
 
                 // Must be called before culling because it emits intermediate renderers via Graphics.DrawInstanced.
                 ProbeReferenceVolume.instance.RenderDebug(camera);
