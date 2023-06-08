@@ -64,27 +64,23 @@ Texture2D<float4> _WaterCausticsDataBuffer;
 
 float EvaluateSimulationCaustics(float3 refractedWaterPosRWS, float refractedWaterDepth, float2 distortedWaterNDC)
 {
-    // Will hold the results of the caustics evaluation
-    float3 causticsValues = 0.0;
-    float3 triplanarW = 0.0;
-    float causticWeight = 0.0;
-
     // We cannot have same variable names in different constant buffers, use some defines to select the correct ones
     #if defined(_TRANSPARENT_REFRACTIVE_SORT) || defined(SUPPORT_WATER_ABSORPTION)
     #define _CausticsIntensity          _UnderWaterCausticsIntensity
     #define _CausticsPlaneBlendDistance _UnderWaterCausticsPlaneBlendDistance
-    #define _WaterProceduralGeometry    _UnderWaterProceduralGeometry
-    #define _WaterSurfaceTransform_Inverse _UnderWaterSurfaceTransform_Inverse
     #define _CausticsTilingFactor       _UnderWaterCausticsTilingFactor
     #define _CausticsRegionSize         _UnderWaterCausticsRegionSize
     #define _CausticsMaxLOD             _UnderWaterCausticsMaxLOD
+    #define _WaterSurfaceTransform_Inverse _UnderWaterSurfaceTransform_Inverse
     #endif
+
+    float caustics = 0.0f;
 
     // TODO: Is this worth a multicompile?
     if (_CausticsIntensity != 0.0f)
     {
         // Evaluate the caustics weight
-        causticWeight = saturate(refractedWaterDepth / _CausticsPlaneBlendDistance);
+        float causticWeight = saturate(refractedWaterDepth / _CausticsPlaneBlendDistance);
 
         // Evaluate the normal of the surface (using partial derivatives of the absolute world pos is not possible as it is not stable enough)
         NormalData normalData;
@@ -92,11 +88,12 @@ float EvaluateSimulationCaustics(float3 refractedWaterPosRWS, float refractedWat
         DecodeFromNormalBuffer(normalBuffer, normalData);
 
         // Evaluate the triplanar weights
-        triplanarW = ComputeTriplanarWeights(_WaterProceduralGeometry ? mul(_WaterSurfaceTransform_Inverse, float4(normalData.normalWS, 0.0)).xyz : normalData.normalWS);
+        float3 normalOS = mul((float3x3)_WaterSurfaceTransform_Inverse, normalData.normalWS);
+        float3 triplanarW = ComputeTriplanarWeights(normalOS);
 
         // Convert the position to absolute world space and move the position to the water local space
-        float3 causticPosOS = GetAbsolutePositionWS(refractedWaterPosRWS) * _CausticsTilingFactor;
-        causticPosOS = _WaterProceduralGeometry ? mul(_WaterSurfaceTransform_Inverse, float4(causticPosOS, 1.0)).xyz : causticPosOS;
+        float3 causticPosAWS = GetAbsolutePositionWS(refractedWaterPosRWS) * _CausticsTilingFactor;
+        float3 causticPosOS = mul(_WaterSurfaceTransform_Inverse, float4(causticPosAWS, 1.0f));
 
         // Evaluate the triplanar coodinates
         float3 sampleCoord = causticPosOS / (_CausticsRegionSize * 0.5) + 0.5;
@@ -107,6 +104,7 @@ float EvaluateSimulationCaustics(float3 refractedWaterPosRWS, float refractedWat
         float sharpness = (1.0 - causticWeight) * _CausticsMaxLOD;
 
         // sample the caustics texture
+        float3 causticsValues;
         #if defined(SHADER_STAGE_COMPUTE)
         causticsValues.x = SAMPLE_TEXTURE2D_LOD(_WaterCausticsDataBuffer, s_linear_repeat_sampler, uv0, sharpness).x;
         causticsValues.y = SAMPLE_TEXTURE2D_LOD(_WaterCausticsDataBuffer, s_linear_repeat_sampler, uv1, sharpness).x;
@@ -116,12 +114,12 @@ float EvaluateSimulationCaustics(float3 refractedWaterPosRWS, float refractedWat
         causticsValues.y = SAMPLE_TEXTURE2D_BIAS(_WaterCausticsDataBuffer, s_linear_repeat_sampler, uv1, sharpness).x;
         causticsValues.z = SAMPLE_TEXTURE2D_BIAS(_WaterCausticsDataBuffer, s_linear_repeat_sampler, uv2, sharpness).x;
         #endif
+
+        caustics = dot(causticsValues, triplanarW.yzx) * causticWeight * _CausticsIntensity;
     }
 
     // Evaluate the triplanar weights and blend the samples togheter
-    return 1.0 + lerp(0, causticsValues.x * triplanarW.y
-            + causticsValues.y * triplanarW.z
-            + causticsValues.z * triplanarW.x, causticWeight) * _CausticsIntensity;
+    return 1.0 + caustics;
 }
 
 #if defined(_TRANSPARENT_REFRACTIVE_SORT) || defined(SUPPORT_WATER_ABSORPTION) || defined(_ENABLE_FOG_ON_TRANSPARENT)

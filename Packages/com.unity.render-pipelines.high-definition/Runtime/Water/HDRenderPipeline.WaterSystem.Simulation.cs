@@ -143,6 +143,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Matrix to convert from the world space to water space
         internal float4x4 worldToWaterMatrix;
+        internal float4x4 worldToWaterMatrixCustom;
     }
 
     internal class WaterSimulationResources

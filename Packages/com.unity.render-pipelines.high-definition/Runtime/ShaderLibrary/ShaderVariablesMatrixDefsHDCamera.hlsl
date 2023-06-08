@@ -31,4 +31,20 @@
 
 #endif // USING_STEREO_MATRICES
 
+// Matrix overrides for water system
+#if defined(WATER_ONE_BAND) || defined(WATER_TWO_BANDS) || defined(WATER_THREE_BANDS)
+
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/WaterSystemDef.cs.hlsl"
+
+#define _WaterCustomMeshTransform GetRawUnityObjectToWorld()
+#define _WaterCustomMeshTransform_Inverse GetRawUnityWorldToObject()
+
+#undef UNITY_MATRIX_M
+#define UNITY_MATRIX_M ApplyCameraTranslationToMatrix(_WaterSurfaceTransform)
+
+#undef UNITY_MATRIX_I_M
+#define UNITY_MATRIX_I_M ApplyCameraTranslationToInverseMatrix(_WaterSurfaceTransform_Inverse)
+
+#endif
+
 #endif // UNITY_SHADER_VARIABLES_MATRIX_DEFS_HDCAMERA_INCLUDED

@@ -22,12 +22,12 @@ namespace UnityEditor.Rendering.HighDefinition
         public override string documentationURL => Documentation.GetPageLink("PackVertexData_Water");
 
         // Inputs
-        const int kPositionWSInputSlotId = 0;
-        const string kPositionWSInputSlotName = "PositionWS";
+        const int kPositionOSInputSlotId = 0;
+        const string kPositionOSInputSlotName = "PositionOS";
 
         // Inputs
-        const int kNormalWSInputSlotId = 1;
-        const string kNormalWSInputSlotName = "NormalWS";
+        const int kNormalOSInputSlotId = 1;
+        const string kNormalOSInputSlotName = "NormalOS";
 
         const int kDisplacementInputSlotId = 2;
         const string kDisplacementInputSlotName = "Displacement";
@@ -53,8 +53,8 @@ namespace UnityEditor.Rendering.HighDefinition
         public sealed override void UpdateNodeAfterDeserialization()
         {
             // Inputs
-            AddSlot(new Vector3MaterialSlot(kPositionWSInputSlotId, kPositionWSInputSlotName, kPositionWSInputSlotName, SlotType.Input, Vector3.zero, ShaderStageCapability.Vertex));
-            AddSlot(new Vector3MaterialSlot(kNormalWSInputSlotId, kNormalWSInputSlotName, kNormalWSInputSlotName, SlotType.Input, Vector3.zero, ShaderStageCapability.Vertex));
+            AddSlot(new Vector3MaterialSlot(kPositionOSInputSlotId, kPositionOSInputSlotName, kPositionOSInputSlotName, SlotType.Input, Vector3.zero, ShaderStageCapability.Vertex));
+            AddSlot(new Vector3MaterialSlot(kNormalOSInputSlotId, kNormalOSInputSlotName, kNormalOSInputSlotName, SlotType.Input, Vector3.zero, ShaderStageCapability.Vertex));
             AddSlot(new Vector3MaterialSlot(kDisplacementInputSlotId, kDisplacementInputSlotName, kDisplacementInputSlotName, SlotType.Input, Vector3.zero, ShaderStageCapability.Vertex));
             AddSlot(new Vector1MaterialSlot(kLowFrequencyHeightInputSlotId, kLowFrequencyHeightInputSlotName, kLowFrequencyHeightInputSlotName, SlotType.Input, 0, ShaderStageCapability.Vertex));
 
@@ -66,8 +66,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
             RemoveSlotsNameNotMatching(new[]
             {
-                kPositionWSInputSlotId,
-                kNormalWSInputSlotId,
+                kPositionOSInputSlotId,
+                kNormalOSInputSlotId,
                 kDisplacementInputSlotId,
                 kLowFrequencyHeightInputSlotId,
 
@@ -82,35 +82,29 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             if (generationMode == GenerationMode.ForReals)
             {
-                sb.AppendLine("PackedWaterData packedWaterData;");
-                sb.AppendLine("ZERO_INITIALIZE(PackedWaterData, packedWaterData);");
-
-                string positionWS = GetSlotValue(kPositionWSInputSlotId, generationMode);
-                string normalWS = GetSlotValue(kNormalWSInputSlotId, generationMode);
+                string positionOS = GetSlotValue(kPositionOSInputSlotId, generationMode);
+                string normalOS = GetSlotValue(kNormalOSInputSlotId, generationMode);
                 string displacement = GetSlotValue(kDisplacementInputSlotId, generationMode);
                 string lowFrequencyHeight = GetSlotValue(kLowFrequencyHeightInputSlotId, generationMode);
 
-                sb.AppendLine("PackWaterVertexData({0}, {1}, {2}, {3}, packedWaterData);",
-                    positionWS,
-                    normalWS,
-                    displacement,
+                sb.AppendLine("$precision3 {0} = {1};",
+                    GetVariableNameForSlot(kPositionOSOutputSlotId),
+                    positionOS
+                );
+
+                sb.AppendLine("$precision3 {0} = {1};",
+                    GetVariableNameForSlot(kNormalOSOutputSlotId),
+                    normalOS
+                );
+
+                sb.AppendLine("$precision4 {0} = float4({1}.xyz, 0.0);",
+                    GetVariableNameForSlot(kUV0OutputSlotId),
+                    displacement
+                );
+
+                sb.AppendLine("$precision4 {0} = float4({1}, 0.0, 0.0, 0.0);",
+                    GetVariableNameForSlot(kUV1OutputSlotId),
                     lowFrequencyHeight
-                );
-
-                sb.AppendLine("$precision3 {0} = packedWaterData.positionOS;",
-                    GetVariableNameForSlot(kPositionOSOutputSlotId)
-                );
-
-                sb.AppendLine("$precision3 {0} = packedWaterData.normalOS;",
-                    GetVariableNameForSlot(kNormalOSOutputSlotId)
-                );
-
-                sb.AppendLine("$precision4 {0} = packedWaterData.uv0;",
-                    GetVariableNameForSlot(kUV0OutputSlotId)
-                );
-
-                sb.AppendLine("$precision4 {0} = packedWaterData.uv1;",
-                    GetVariableNameForSlot(kUV1OutputSlotId)
                 );
             }
             else

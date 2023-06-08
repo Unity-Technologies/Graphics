@@ -637,7 +637,18 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool IsProceduralGeometry()
         {
-            return IsInstancedQuads() || (geometryType == WaterGeometryType.Quad || meshRenderers.Count == 0);
+            return IsInstancedQuads() || IsQuad();
+        }
+
+        internal bool IsCustomMesh()
+        {
+            return geometryType == WaterGeometryType.Custom && meshRenderers.Count != 0;
+
+        }
+
+        internal bool IsQuad()
+        {
+            return geometryType == WaterGeometryType.Quad || (geometryType == WaterGeometryType.Custom && meshRenderers.Count == 0);
         }
 
         internal float3 UpVector()

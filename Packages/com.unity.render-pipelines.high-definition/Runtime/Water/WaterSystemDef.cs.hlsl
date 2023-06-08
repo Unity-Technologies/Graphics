@@ -5,6 +5,19 @@
 #ifndef WATERSYSTEMDEF_CS_HLSL
 #define WATERSYSTEMDEF_CS_HLSL
 //
+// UnityEngine.Rendering.HighDefinition.WaterMaskDebugMode:  static fields
+//
+#define WATERMASKDEBUGMODE_RED_CHANNEL (0)
+#define WATERMASKDEBUGMODE_GREEN_CHANNEL (1)
+#define WATERMASKDEBUGMODE_BLUE_CHANNEL (2)
+
+//
+// UnityEngine.Rendering.HighDefinition.WaterFoamDebugMode:  static fields
+//
+#define WATERFOAMDEBUGMODE_SURFACE_FOAM (0)
+#define WATERFOAMDEBUGMODE_DEEP_FOAM (1)
+
+//
 // UnityEngine.Rendering.HighDefinition.WaterDebugMode:  static fields
 //
 #define WATERDEBUGMODE_NONE (0)
@@ -21,12 +34,6 @@
 #define WATERCURRENTDEBUGMODE_RIPPLES (1)
 
 //
-// UnityEngine.Rendering.HighDefinition.WaterFoamDebugMode:  static fields
-//
-#define WATERFOAMDEBUGMODE_SURFACE_FOAM (0)
-#define WATERFOAMDEBUGMODE_DEEP_FOAM (1)
-
-//
 // UnityEngine.Rendering.HighDefinition.WaterAtlasSize:  static fields
 //
 #define WATERATLASSIZE_ATLAS_SIZE64 (64)
@@ -36,27 +43,18 @@
 #define WATERATLASSIZE_ATLAS_SIZE1024 (1024)
 #define WATERATLASSIZE_ATLAS_SIZE2048 (2048)
 
-//
-// UnityEngine.Rendering.HighDefinition.WaterMaskDebugMode:  static fields
-//
-#define WATERMASKDEBUGMODE_RED_CHANNEL (0)
-#define WATERMASKDEBUGMODE_GREEN_CHANNEL (1)
-#define WATERMASKDEBUGMODE_BLUE_CHANNEL (2)
-
-// Generated from UnityEngine.Rendering.HighDefinition.WaterGeneratorData
+// Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesWaterDebug
 // PackingRules = Exact
-struct WaterGeneratorData
-{
-    float3 position;
-    float rotation;
-    float2 regionSize;
-    int type;
-    int padding0;
-    float2 padding1;
-    float deepFoamDimmer;
-    float surfaceFoamDimmer;
-    float4 scaleOffset;
-};
+CBUFFER_START(ShaderVariablesWaterDebug)
+    int _WaterDebugMode;
+    int _WaterMaskDebugMode;
+    int _WaterCurrentDebugMode;
+    float _CurrentDebugMultiplier;
+    int _WaterFoamDebugMode;
+    int _PaddingWDbg0;
+    int _PaddingWDbg1;
+    int _PaddingWDbg2;
+CBUFFER_END
 
 // Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesWaterDeformation
 // PackingRules = Exact
@@ -68,35 +66,29 @@ CBUFFER_START(ShaderVariablesWaterDeformation)
     int _WaterDeformationResolution;
 CBUFFER_END
 
-// Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesWaterRendering
+// Generated from UnityEngine.Rendering.HighDefinition.WaterSurfaceProfile
 // PackingRules = Exact
-CBUFFER_START(ShaderVariablesWaterRendering)
-    float4 _PatchRotation;
-    float4 _PatchOffset;
-    float2 _GridSize;
-    uint _MaxLOD;
-    float _MaxWaterDeformation;
-    float2 _CurrentMapInfluence;
-    float _CausticsIntensity;
-    float _CausticsPlaneBlendDistance;
-    float _CausticsTilingFactor;
-    int _WaterProceduralGeometry;
-    float _CausticsMaxLOD;
-    float _CausticsShadowIntensity;
-    float4 _Group0CurrentRegionScaleOffset;
-    float4 _Group1CurrentRegionScaleOffset;
-    uint _WaterRenderingLayer;
-    float _WaterMaxTessellationFactor;
-    float _WaterTessellationFadeStart;
-    float _WaterTessellationFadeRange;
-    float2 _RegionCenter;
-    float2 _RegionExtent;
-    float4 _WaterAmbientProbe;
-    float4x4 _WaterSurfaceTransformRWS;
-    float4x4 _WaterSurfaceTransform_Inverse;
-    float4x4 _WaterCustomMeshTransform;
-    float4x4 _WaterCustomMeshTransform_Inverse;
-CBUFFER_END
+struct WaterSurfaceProfile
+{
+    float bodyScatteringHeight;
+    float maxRefractionDistance;
+    uint renderingLayers;
+    int cameraUnderWater;
+    float3 transparencyColor;
+    float outScatteringCoefficient;
+    float3 scatteringColor;
+    float envPerceptualRoughness;
+    float smoothnessFadeStart;
+    float smoothnessFadeDistance;
+    float roughnessEndValue;
+    float colorPyramidScale;
+    float3 upDirection;
+    int colorPyramidMipOffset;
+    int disableIOR;
+    float tipScatteringHeight;
+    float underWaterAmbientProbeContribution;
+    float absorptionDistanceMultiplier;
+};
 
 // Generated from UnityEngine.Rendering.HighDefinition.WaterDeformerData
 // PackingRules = Exact
@@ -122,28 +114,48 @@ struct WaterDeformerData
     float4 scaleOffset;
 };
 
-// Generated from UnityEngine.Rendering.HighDefinition.WaterSurfaceProfile
+// Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesWaterRendering
 // PackingRules = Exact
-struct WaterSurfaceProfile
+CBUFFER_START(ShaderVariablesWaterRendering)
+    float4x4 _WaterSurfaceTransform;
+    float4x4 _WaterSurfaceTransform_Inverse;
+    float4 _PatchRotation;
+    float4 _PatchOffset;
+    float2 _GridSize;
+    float2 _GridOffset;
+    float2 _RegionExtent;
+    float2 _CurrentMapInfluence;
+    uint _MaxLOD;
+    float _MaxWaterDeformation;
+    float _CausticsMaxLOD;
+    float _CausticsTilingFactor;
+    float _CausticsIntensity;
+    float _CausticsShadowIntensity;
+    float _CausticsPlaneBlendDistance;
+    float _PaddingW1;
+    float4 _Group0CurrentRegionScaleOffset;
+    float4 _Group1CurrentRegionScaleOffset;
+    uint _WaterRenderingLayer;
+    float _WaterMaxTessellationFactor;
+    float _WaterTessellationFadeStart;
+    float _WaterTessellationFadeRange;
+    float4 _WaterAmbientProbe;
+    float4x4 _WaterCustomTransform_Inverse;
+CBUFFER_END
+
+// Generated from UnityEngine.Rendering.HighDefinition.WaterGeneratorData
+// PackingRules = Exact
+struct WaterGeneratorData
 {
-    float bodyScatteringHeight;
-    float maxRefractionDistance;
-    uint renderingLayers;
-    int cameraUnderWater;
-    float3 transparencyColor;
-    float outScatteringCoefficient;
-    float3 scatteringColor;
-    float envPerceptualRoughness;
-    float smoothnessFadeStart;
-    float smoothnessFadeDistance;
-    float roughnessEndValue;
-    float colorPyramidScale;
-    float3 upDirection;
-    int colorPyramidMipOffset;
-    int disableIOR;
-    float tipScatteringHeight;
-    float underWaterAmbientProbeContribution;
-    float absorptionDistanceMultiplier;
+    float3 position;
+    float rotation;
+    float2 regionSize;
+    int type;
+    int padding0;
+    float2 padding1;
+    float deepFoamDimmer;
+    float surfaceFoamDimmer;
+    float4 scaleOffset;
 };
 
 // Generated from UnityEngine.Rendering.HighDefinition.WaterSectorData
@@ -187,7 +199,7 @@ CBUFFER_START(ShaderVariablesWater)
     float4 _TransparencyColor;
     float4 _ScatteringColorTips;
     float _DisplacementScattering;
-    int _PaddingW1;
+    int _PaddingWR1;
     int _SurfaceIndex;
     float _CausticsRegionSize;
     float4 _WaterUpDirection;
@@ -210,19 +222,6 @@ CBUFFER_START(ShaderVariablesWater)
     float2 _WaterMaskRemap;
     float _AmbientScattering;
     int _CausticsBandIndex;
-CBUFFER_END
-
-// Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesWaterDebug
-// PackingRules = Exact
-CBUFFER_START(ShaderVariablesWaterDebug)
-    int _WaterDebugMode;
-    int _WaterMaskDebugMode;
-    int _WaterCurrentDebugMode;
-    float _CurrentDebugMultiplier;
-    int _WaterFoamDebugMode;
-    int _PaddingWDbg0;
-    int _PaddingWDbg1;
-    int _PaddingWDbg2;
 CBUFFER_END
 
 

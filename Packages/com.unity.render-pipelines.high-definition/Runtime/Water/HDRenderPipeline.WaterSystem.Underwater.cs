@@ -165,7 +165,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             cb._UnderWaterSurfaceIndex = m_UnderWaterSurfaceIndex;
             cb._UnderWaterSurfaceTransform_Inverse = waterSurface.simulation.rendering.worldToWaterMatrix;
-            cb._UnderWaterProceduralGeometry = waterSurface.geometryType == WaterGeometryType.Custom && waterSurface.meshRenderers.Count != 0 ? 1 : 0;
             cb._UnderWaterCausticsIntensity = waterSurface.caustics ? waterSurface.causticsIntensity : 0.0f; ;
             cb._UnderWaterCausticsPlaneBlendDistance = waterSurface.causticsPlaneBlendDistance;
             cb._UnderWaterCausticsTilingFactor = 1.0f / waterSurface.causticsTilingFactor;

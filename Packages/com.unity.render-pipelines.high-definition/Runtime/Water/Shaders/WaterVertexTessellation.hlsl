@@ -52,9 +52,15 @@ VaryingsMeshType VertMeshWater(AttributesMesh input)
     input.positionOS = WaterSimulationPositionInstanced(input.positionOS, unity_InstanceID);
 #else
     input.positionOS = WaterSimulationPosition(input.positionOS);
+    #if defined(WATER_DISPLACEMENT)
+    // In case we are using custom geometries, we need to apply the tranform of each custom geometry to ensure
+    // that they are correctly connected
+    input.positionOS = mul(_WaterCustomMeshTransform, float4(input.positionOS, 1.0f)).xyz;
+    input.normalOS = SafeNormalize(mul(input.normalOS, (float3x3)_WaterCustomMeshTransform_Inverse));
+    #endif
 #endif
 
-    float3 positionPredisplacementRWS = mul(_WaterSurfaceTransformRWS, float4(input.positionOS, 1.0)).xyz;
+    float3 positionPredisplacementOS = input.positionOS;
 
     // Due to the fact that a first clipping pass is done at the end of the vertex stage, we need to ensure that
     // the base triangles that were outside the frustum and need to be visible. We then have to apply the displacement to them
@@ -65,25 +71,21 @@ VaryingsMeshType VertMeshWater(AttributesMesh input)
         );
 
     // Export for the following stage
-    output.positionRWS =  mul(_WaterSurfaceTransformRWS, float4(input.positionOS, 1.0)).xyz;
-    #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
+    output.positionRWS =  TransformObjectToWorld(input.positionOS);
     output.normalWS = input.normalOS;
-    #else
-    output.normalWS = TransformCustomMeshNormal(input.normalOS);
-    #endif
     output.texCoord0 = input.uv0;
     output.texCoord1 = input.uv1;
 
-	#ifdef TESSELLATION_ON
+    #ifdef TESSELLATION_ON
     output.tessellationFactor = _WaterMaxTessellationFactor;
     #else
     output.positionCS = TransformWorldToHClip(output.positionRWS);
-	#endif
+    #endif
 
     #if defined(WATER_DISPLACEMENT)
     // discard vertices outside of the region for non infinite surface
     // 0.1 offset is to account for precision issue. Should be dependent on the grid size but this also works
-    if (any(abs(GetAbsolutePositionWS(positionPredisplacementRWS).xz - _RegionCenter) > _RegionExtent + 0.1f))
+    if (any(abs(positionPredisplacementOS.xz) > _RegionExtent + 0.1f))
     {
         #ifdef TESSELLATION_ON
         output.tessellationFactor = -1;
@@ -131,9 +133,6 @@ VaryingsMeshToPS VertMeshTesselation(VaryingsMeshToDS input)
     UNITY_SETUP_INSTANCE_ID(input);
     // Transfer the unprocessed instance ID to the next stage
     UNITY_TRANSFER_INSTANCE_ID(input, output);
-
-    // Restore the pre-vertex value to apply the actual deformation
-    input.positionRWS = input.texCoord1.xyz;
 
     // Apply the mesh modifications that come from the shader graph
     input = ApplyTessellationModification(input, _TimeParameters.xyz);

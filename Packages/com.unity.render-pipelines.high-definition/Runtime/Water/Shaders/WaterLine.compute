@@ -16,7 +16,6 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/Shaders/UnderWaterUtilities.hlsl"
 
 TEXTURE2D_X(_DepthTexture);
-//TEXTURE2D_X_UINT2(_StencilTexture);
 
 // 1D WaterLine Buffer, contains the vertical (along upVector) height of the water line
 // first two elements contains the horizontal min and max of the visible water line

@@ -88,7 +88,6 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float _UnderWaterCausticsIntensity;
     float _UnderWaterCausticsPlaneBlendDistance;
     float4x4 _UnderWaterSurfaceTransform_Inverse;
-    int _UnderWaterProceduralGeometry;
     float _UnderWaterCausticsTilingFactor;
     float _UnderWaterCausticsMaxLOD;
     float _UnderWaterCausticsShadowIntensity;
@@ -96,6 +95,7 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     int _SpecularFade;
     uint _EnableRenderingLayers;
     int _ReflectionsMode;
+    int _Padding;
     uint _DirectionalLightCount;
     uint _PunctualLightCount;
     uint _AreaLightCount;

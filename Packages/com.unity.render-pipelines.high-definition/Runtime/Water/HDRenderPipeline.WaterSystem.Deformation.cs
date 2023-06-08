@@ -222,7 +222,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_ActiveWaterDeformers > 0)
                 {
                     // Fill the deformation constant buffer
-                    m_SVWaterDeformation._WaterDeformationCenter = currentWater.deformationAreaOffset + (currentWater.IsInfinite() ? Vector2.zero : new Vector2(currentWater.transform.position.x, currentWater.transform.position.z));
+                    m_SVWaterDeformation._WaterDeformationCenter = currentWater.deformationAreaOffset + new Vector2(currentWater.transform.position.x, currentWater.transform.position.z);
                     m_SVWaterDeformation._WaterDeformationExtent = currentWater.deformationAreaSize;
                     m_SVWaterDeformation._WaterDeformationResolution = (int)currentWater.deformationRes;
                     ConstantBuffer.UpdateData(cmd, m_SVWaterDeformation);
