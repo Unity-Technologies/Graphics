@@ -116,21 +116,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         public bool IsAttachment(in TextureHandle res)
         {
-            if (res.handle.IsVersioned)
+            // We ignore the version when checking if any version is used it is considered a match
+
+            if (depthBuffer.handle.index == res.handle.index) return true;
+            for (int i = 0; i < colorBuffers.Length; i++)
             {
-                if (depthBuffer.handle == res.handle) return true;
-                for (int i = 0; i < colorBuffers.Length; i++)
-                {
-                    if (colorBuffers[i].handle == res.handle) return true;
-                }
-            }
-            else
-            {
-                if (depthBuffer.handle.index == res.handle.index) return true;
-                for (int i = 0; i < colorBuffers.Length; i++)
-                {
-                    if (colorBuffers[i].handle.index == res.handle.index) return true;
-                }
+                if (colorBuffers[i].handle.index == res.handle.index) return true;
             }
 
             return false;
@@ -194,7 +185,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public void SetColorBufferRaw(TextureHandle resource, int index)
         {
             Debug.Assert(index < RenderGraph.kMaxMRTCount && index >= 0);
-            if (colorBuffers[index].handle == resource.handle || colorBuffers[index].handle == TextureHandle.nullHandle.handle)
+            if (colorBuffers[index].handle.Equals(resource.handle) || colorBuffers[index].handle.IsNull())
             {
                 colorBufferMaxIndex = Math.Max(colorBufferMaxIndex, index);
                 colorBuffers[index] = resource;
@@ -218,7 +209,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public void SetDepthBufferRaw(TextureHandle resource)
         {
             // If no depth buffer yet or it's the same one as previous allow the call otherwise log an error.
-            if (depthBuffer.handle == resource.handle || depthBuffer.handle == TextureHandle.nullHandle.handle)
+            if (depthBuffer.handle.Equals(resource.handle) || depthBuffer.handle.IsNull())
             {
                 depthBuffer = resource;
             }

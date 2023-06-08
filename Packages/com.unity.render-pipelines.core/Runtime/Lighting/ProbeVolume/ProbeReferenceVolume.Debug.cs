@@ -42,14 +42,14 @@ namespace UnityEngine.Rendering
         Size
     }
 
-    public enum ProbeSamplingDebugUpdate
+    enum ProbeSamplingDebugUpdate
     {
         Never,
         Once,
         Always
     }
 
-    public class ProbeSamplingDebugData
+    class ProbeSamplingDebugData
     {
         public ProbeSamplingDebugUpdate update = ProbeSamplingDebugUpdate.Never; // When compute buffer should be updated
         public Vector2 coordinates = new Vector2(0.5f, 0.5f);
@@ -84,6 +84,8 @@ namespace UnityEngine.Rendering
         public bool displayCellStreamingScore;
         public bool displayIndexFragmentation;
         public int otherStateIndex = 0;
+        public bool verboseStreamingLog;
+
 
         public ProbeVolumeDebug()
         {
@@ -190,7 +192,7 @@ namespace UnityEngine.Rendering
 
         Texture m_displayNumbersTexture;
 
-        public static ProbeSamplingDebugData probeSamplingDebugData = new ProbeSamplingDebugData();
+        internal static ProbeSamplingDebugData probeSamplingDebugData = new ProbeSamplingDebugData();
 
         Mesh m_DebugOffsetMesh;
         Material m_DebugOffsetMaterial;
@@ -218,6 +220,44 @@ namespace UnityEngine.Rendering
             {
                 DrawProbeDebug(camera);
             }
+        }
+
+        /// <summary>
+        /// Checks if APV sampling debug is enabled
+        /// </summary>
+        /// <returns>True if APV sampling debug is enabled</returns>
+        public bool IsProbeSamplingDebugEnabled()
+        {
+            return probeSamplingDebugData.update != ProbeSamplingDebugUpdate.Never;
+        }
+
+        /// <summary>
+        /// Returns the resources used for APV probe sampling debug mode
+        /// </summary>
+        /// <param name="camera">The camera for which to evaluate the debug mode</param>
+        /// <param name="resultBuffer">The buffer that should be filled with position and normal</param>
+        /// <param name="coords">The screen space coords to sample the position and normal</param>
+        /// <returns>True if the pipeline should write position and normal at coords in resultBuffer</returns>
+        public bool GetProbeSamplingDebugResources(Camera camera, out GraphicsBuffer resultBuffer, out Vector2 coords)
+        {
+            resultBuffer = probeSamplingDebugData.positionNormalBuffer;
+            coords = probeSamplingDebugData.coordinates;
+
+#if UNITY_EDITOR
+            if (probeSamplingDebugData.camera != camera)
+                return false;
+#endif
+
+            if (probeSamplingDebugData.update == ProbeSamplingDebugUpdate.Never)
+                return false;
+
+            if (probeSamplingDebugData.update == ProbeSamplingDebugUpdate.Once)
+            {
+                probeSamplingDebugData.update = ProbeSamplingDebugUpdate.Never;
+                probeSamplingDebugData.forceScreenCenterCoordinates = false;
+            }
+
+            return true;
         }
 
 #if UNITY_EDITOR
@@ -451,16 +491,6 @@ namespace UnityEngine.Rendering
 
             probeContainer.children.Add(new DebugUI.FloatField { displayName = "Debug Draw Distance", tooltip = "How far from the Scene Camera to draw probe debug visualizations. Large distances can impact Editor performance.", getter = () => probeVolumeDebug.probeCullingDistance, setter = value => probeVolumeDebug.probeCullingDistance = value, min = () => 0.0f });
 
-            var streamingContainer = new DebugUI.Container() { displayName = "Streaming" };
-            streamingContainer.children.Add(new DebugUI.BoolField { displayName = "Freeze Streaming", tooltip = "Stop Unity from streaming probe data in or out of GPU memory.", getter = () => probeVolumeDebug.freezeStreaming, setter = value => probeVolumeDebug.freezeStreaming = value });
-            streamingContainer.children.Add(new DebugUI.Value { displayName = "Index Fragmentation Rate", getter = () => instance.indexFragmentationRate });
-            streamingContainer.children.Add(new DebugUI.BoolField { displayName = "Display Streaming Score", getter = () => probeVolumeDebug.displayCellStreamingScore, setter = value => probeVolumeDebug.displayCellStreamingScore = value });
-            streamingContainer.children.Add(new DebugUI.BoolField { displayName = "Display Index Fragmentation", getter = () => probeVolumeDebug.displayIndexFragmentation, setter = value => probeVolumeDebug.displayIndexFragmentation = value });
-
-            streamingContainer.children.Add(new DebugUI.BoolField { displayName = "Maximum cell streaming", tooltip = "Enable streaming as many cells as possible every frame.", getter = () => instance.loadMaxCellsPerFrame, setter = value => instance.loadMaxCellsPerFrame = value, onValueChanged = RefreshDebug });
-            if (!instance.loadMaxCellsPerFrame)
-                streamingContainer.children.Add(new DebugUI.IntField { displayName = "Loaded Cells Per Frame", tooltip = "Determines the maximum number of Cells Unity streams per frame. Loading more Cells per frame can impact performance.", getter = () => instance.numberOfCellsLoadedPerFrame, setter = value => instance.SetNumberOfCellsLoadedPerFrame(value), min = () => 1, max = () => kMaxCellLoadedPerFrame });
-
             if (parameters.supportsRuntimeDebug)
             {
                 // Cells / Bricks visualization is not implemented in a runtime compatible way atm.
@@ -470,7 +500,27 @@ namespace UnityEngine.Rendering
                 widgetList.Add(probeContainer);
             }
 
-            if (parameters.supportGPUStreaming)
+            var streamingContainer = new DebugUI.Container() { displayName = "Streaming" };
+            streamingContainer.children.Add(new DebugUI.BoolField { displayName = "Freeze Streaming", tooltip = "Stop Unity from streaming probe data in or out of GPU memory.", getter = () => probeVolumeDebug.freezeStreaming, setter = value => probeVolumeDebug.freezeStreaming = value });
+            streamingContainer.children.Add(new DebugUI.BoolField { displayName = "Display Streaming Score", getter = () => probeVolumeDebug.displayCellStreamingScore, setter = value => probeVolumeDebug.displayCellStreamingScore = value });
+            streamingContainer.children.Add(new DebugUI.BoolField { displayName = "Maximum cell streaming", tooltip = "Enable streaming as many cells as possible every frame.", getter = () => instance.loadMaxCellsPerFrame, setter = value => instance.loadMaxCellsPerFrame = value, onValueChanged = RefreshDebug });
+            if (!instance.loadMaxCellsPerFrame)
+            {
+                var maxCellStreamingContainerChildren = new DebugUI.Container();
+                maxCellStreamingContainerChildren.children.Add(new DebugUI.IntField { displayName = "Loaded Cells Per Frame", tooltip = "Determines the maximum number of Cells Unity streams per frame. Loading more Cells per frame can impact performance.", getter = () => instance.numberOfCellsLoadedPerFrame, setter = value => instance.SetNumberOfCellsLoadedPerFrame(value), min = () => 1, max = () => kMaxCellLoadedPerFrame });
+                streamingContainer.children.Add(maxCellStreamingContainerChildren);
+            }
+            // Those are mostly for internal dev purpose.
+            if (Debug.isDebugBuild)
+            {
+                streamingContainer.children.Add(new DebugUI.BoolField { displayName = "Display Index Fragmentation", getter = () => probeVolumeDebug.displayIndexFragmentation, setter = value => probeVolumeDebug.displayIndexFragmentation = value });
+                var indexDefragContainerChildren = new DebugUI.Container();
+                indexDefragContainerChildren.children.Add(new DebugUI.Value { displayName = "Index Fragmentation Rate", getter = () => instance.indexFragmentationRate });
+                streamingContainer.children.Add(indexDefragContainerChildren);
+                streamingContainer.children.Add(new DebugUI.BoolField { displayName = "Verbose Log", getter = () => probeVolumeDebug.verboseStreamingLog, setter = value => probeVolumeDebug.verboseStreamingLog = value });
+            }
+
+            if (parameters.supportGPUStreaming || parameters.supportDiskStreaming)
             {
                 widgetList.Add(streamingContainer);
             }

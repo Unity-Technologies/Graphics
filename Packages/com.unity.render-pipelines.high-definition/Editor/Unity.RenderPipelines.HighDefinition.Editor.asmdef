@@ -49,6 +49,11 @@
             "name": "com.unity.rendering.denoising",
             "expression": "1.0.0",
             "define": "ENABLE_UNITY_DENOISING_PLUGIN"
+        },
+        {
+            "name": "com.unity.demoteam.hair",
+            "expression": "0.0.0",
+            "define": "HAS_UNITY_HAIR_PACKAGE"
         }
     ],
     "noEngineReferences": false

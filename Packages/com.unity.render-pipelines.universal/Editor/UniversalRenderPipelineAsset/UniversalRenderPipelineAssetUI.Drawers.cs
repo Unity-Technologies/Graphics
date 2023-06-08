@@ -554,7 +554,7 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUILayout.HelpBox(Styles.colorGradingModeWarning, MessageType.Warning);
             else if (isHdrOn && serialized.colorGradingMode.intValue == (int)ColorGradingMode.HighDynamicRange)
                 EditorGUILayout.HelpBox(Styles.colorGradingModeSpecInfo, MessageType.Info);
-            else if (isHdrOn && PlayerSettings.useHDRDisplay && serialized.colorGradingMode.intValue == (int)ColorGradingMode.LowDynamicRange)
+            else if (isHdrOn && PlayerSettings.allowHDRDisplaySupport && serialized.colorGradingMode.intValue == (int)ColorGradingMode.LowDynamicRange)
                 EditorGUILayout.HelpBox(Styles.colorGradingModeWithHDROutput, MessageType.Warning);
 
             EditorGUILayout.DelayedIntField(serialized.colorGradingLutSize, Styles.colorGradingLutSize);
@@ -563,6 +563,8 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUILayout.HelpBox(Styles.colorGradingLutSizeWarning, MessageType.Warning);
 
             EditorGUILayout.PropertyField(serialized.useFastSRGBLinearConversion, Styles.useFastSRGBLinearConversion);
+            EditorGUILayout.PropertyField(serialized.supportDataDrivenLensFlare, Styles.supportDataDrivenLensFlare);
+            EditorGUILayout.PropertyField(serialized.supportScreenSpaceLensFlare, Styles.supportScreenSpaceLensFlare);
         }
 
         static Editor s_VolumeProfileEditor;
@@ -582,9 +584,11 @@ namespace UnityEditor.Rendering.Universal
             if (GUI.Button(contextMenuButtonRect, CoreEditorStyles.contextMenuIcon,
                     Styles.volumeProfileContextMenuStyle.Value))
             {
+                var profileEditor = s_VolumeProfileEditor as VolumeProfileEditor;
                 var srpAsset = serialized.serializedObject.targetObject as UniversalRenderPipelineAsset;
                 var pos = new Vector2(contextMenuButtonRect.x, contextMenuButtonRect.yMax);
-                VolumeProfileUtils.OnVolumeProfileContextClick(pos, s_VolumeProfileEditor as VolumeProfileEditor,
+                VolumeProfileUtils.OnVolumeProfileContextClick(pos, srpAsset.volumeProfile, profileEditor.componentList.editors,
+                    overrideStateOnReset: false,
                     defaultVolumeProfilePath: $"Assets/{srpAsset.name}_VolumeProfile.asset",
                     onNewVolumeProfileCreated: volumeProfile =>
                     {

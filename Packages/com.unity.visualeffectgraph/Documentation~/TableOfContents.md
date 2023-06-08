@@ -26,6 +26,7 @@
   * [Project Settings](VisualEffectProjectSettings.md)
   * [Preferences](VisualEffectPreferences.md)
   * [Visual Effect Bounds](visual-effect-bounds.md)
+  * [Custom HLSL](CustomHLSL-Common.md)
 * [The Visual Effect Component](VisualEffectComponent.md)
   * [C# Component API](ComponentAPI.md)
   * [Using Visual Effects with Timeline](Timeline.md)
@@ -93,6 +94,8 @@
       * [Trigger Event Always](Block-TriggerEventAlways.md)
       * [Trigger Event On Die](Block-TriggerEventOnDie.md)
       * [Trigger Event Rate](Block-TriggerEventRate.md)
+    * HLSL
+      * [Custom HLSL](Block-CustomHLSL.md)
     * Implicit
       * [Integration : Update Position](Block-UpdatePosition.md)
       * [Integration : Update Rotation](Block-UpdateRotation.md)
@@ -192,6 +195,8 @@
       * [Color Luma](Operator-ColorLuma.md)
       * [HSV to RGB](Operator-HSVToRGB.md)
       * [RBG to HSV](Operator-RGBToHSV.md)
+    * HLSL
+      * [Custom HLSL](Operator-CustomHLSL.md)
     * Inline
       * [AABox](Operator-InlineAABox.md)
       * [AnimationCurve](Operator-InlineAnimationCurve.md)

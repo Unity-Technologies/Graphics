@@ -12,18 +12,20 @@ namespace UnityEngine.Rendering
     public class DebugDisplaySettingsVolume : IDebugDisplaySettingsData
     {
         /// <summary>Current volume debug settings.</summary>
-        public IVolumeDebugSettings2 volumeDebugSettings { get; }
+        public IVolumeDebugSettings volumeDebugSettings { get; }
 
         /// <summary>
         /// Constructor with the settings
         /// </summary>
         /// <param name="volumeDebugSettings"></param>
-        public DebugDisplaySettingsVolume(IVolumeDebugSettings2 volumeDebugSettings)
+        public DebugDisplaySettingsVolume(IVolumeDebugSettings volumeDebugSettings)
         {
             this.volumeDebugSettings = volumeDebugSettings;
         }
 
         internal int volumeComponentEnumIndex;
+
+        internal Dictionary<string, VolumeComponent> debugState = new Dictionary<string, VolumeComponent>();
 
         static class Styles
         {
@@ -39,8 +41,12 @@ namespace UnityEngine.Rendering
             public static readonly string component = "Component";
             public static readonly string debugViewNotSupported = "Debug view not supported";
             public static readonly string volumeInfo = "Volume Info";
-            public static readonly string interpolatedValue = "Interpolated Value";
-            public static readonly string defaultValue = "Default Value";
+            public static readonly string resultValue = "Result";
+            public static readonly string resultValueTooltip = "The interpolated result value of the parameter. This value is used to render the camera.";
+            public static readonly string globalDefaultValue = "Default";
+            public static readonly string globalDefaultValueTooltip = "Default value for this parameter, defined by the Default Volume Profile in Global Settings.";
+            public static readonly string qualityLevelValue = "SRP Asset";
+            public static readonly string qualityLevelValueTooltip = "Override value for this parameter, defined by the Volume Profile in the current SRP Asset.";
             public static readonly string global = "Global";
             public static readonly string local = "Local";
         }
@@ -65,7 +71,8 @@ namespace UnityEngine.Rendering
                 var componentNames = new List<GUIContent>() { Styles.none };
                 var componentValues = new List<int>() { componentIndex++ };
 
-                foreach (var type in panel.data.volumeDebugSettings.volumeComponentsPathAndType)
+                var volumesAndTypes = VolumeManager.instance.GetVolumeComponentsForDisplay(GraphicsSettings.currentRenderPipelineAssetType);
+                foreach (var type in volumesAndTypes)
                 {
                     componentNames.Add(new GUIContent() { text = type.Item1 });
                     componentValues.Add(componentIndex++);
@@ -186,29 +193,31 @@ namespace UnityEngine.Rendering
                 };
             }
 
+            static DebugUI.Value s_EmptyDebugUIValue = new DebugUI.Value { getter = () => string.Empty };
+
             public static DebugUI.Table CreateVolumeTable(DebugDisplaySettingsVolume data)
             {
                 var table = new DebugUI.Table()
                 {
                     displayName = Strings.parameter,
-                    isReadOnly = true
+                    isReadOnly = true,
+                    isHiddenCallback = () => data.volumeDebugSettings.selectedComponent == 0
                 };
 
                 Type selectedType = data.volumeDebugSettings.selectedComponentType;
                 if (selectedType == null)
                     return table;
 
-                var stack = data.volumeDebugSettings.selectedCameraVolumeStack ?? VolumeManager.instance.stack;
+                var volumeManager = VolumeManager.instance;
+                var stack = data.volumeDebugSettings.selectedCameraVolumeStack ?? volumeManager.stack;
                 var stackComponent = stack.GetComponent(selectedType);
                 if (stackComponent == null)
                     return table;
 
                 var volumes = data.volumeDebugSettings.GetVolumes();
 
-                var inst = (VolumeComponent)ScriptableObject.CreateInstance(selectedType);
-
                 // First row for volume info
-                var row = new DebugUI.Table.Row()
+                var row1 = new DebugUI.Table.Row()
                 {
                     displayName = Strings.volumeInfo,
                     opened = true, // Open by default for the in-game view
@@ -216,7 +225,8 @@ namespace UnityEngine.Rendering
                     {
                         new DebugUI.Value()
                         {
-                             displayName = Strings.interpolatedValue,
+                             displayName = Strings.resultValue,
+                             tooltip = Strings.resultValueTooltip,
                              getter = () => string.Empty
                         }
                     }
@@ -226,15 +236,30 @@ namespace UnityEngine.Rendering
                 var row2 = new DebugUI.Table.Row()
                 {
                     displayName = "GameObject",
-                    children = { new DebugUI.Value() { getter = () => string.Empty } }
+                    children = { s_EmptyDebugUIValue }
+                };
+
+                // Third row, links to volume profile assets
+                var row3 = new DebugUI.Table.Row()
+                {
+                    displayName = "Volume Profile",
+                    children = { s_EmptyDebugUIValue }
+                };
+
+                // Fourth row, empty (to separate from actual data)
+                var row4 = new DebugUI.Table.Row()
+                {
+                    displayName =  string.Empty ,
+                    children = { s_EmptyDebugUIValue }
                 };
 
                 foreach (var volume in volumes)
                 {
                     var profile = volume.HasInstantiatedProfile() ? volume.profile : volume.sharedProfile;
-                    row.children.Add(new DebugUI.Value()
+                    row1.children.Add(new DebugUI.Value()
                     {
                         displayName = profile.name,
+                        tooltip = $"Override value for this parameter, defined by {profile.name}",
                         getter = () =>
                         {
                             var scope = volume.isGlobal ? Strings.global : Strings.local;
@@ -242,19 +267,58 @@ namespace UnityEngine.Rendering
                             return scope + " (" + (weight * 100f) + "%)";
                         }
                     });
-
-                    row2.children.Add(new DebugUI.ObjectField()
-                    {
-                        displayName = profile.name,
-                        getter = () => volume,
-                    });
+                    row2.children.Add(new DebugUI.ObjectField() { displayName = string.Empty, getter = () => volume });
+                    row3.children.Add(new DebugUI.ObjectField() { displayName = string.Empty, getter = () => profile });
+                    row4.children.Add(s_EmptyDebugUIValue);
                 }
 
-                row.children.Add(new DebugUI.Value() { displayName = Strings.defaultValue, getter = () => string.Empty });
-                table.children.Add(row);
+                // Default value profiles
+                var globalDefaultComponent = GetSelectedVolumeComponent(volumeManager.globalDefaultProfile);
+                var qualityDefaultComponent = GetSelectedVolumeComponent(volumeManager.qualityDefaultProfile);
+                List<(VolumeProfile, VolumeComponent)> customDefaultComponents = new();
+                if (volumeManager.customDefaultProfiles != null)
+                {
+                    foreach (var customProfile in volumeManager.customDefaultProfiles)
+                    {
+                        var customDefaultComponent = GetSelectedVolumeComponent(customProfile);
+                        if (customDefaultComponent != null)
+                            customDefaultComponents.Add((customProfile, customDefaultComponent));
+                    }
+                }
 
-                row2.children.Add(new DebugUI.Value() { getter = () => string.Empty });
+                foreach (var (customProfile, _) in customDefaultComponents)
+                {
+                    row1.children.Add(new DebugUI.Value() { displayName = customProfile.name, getter = () => string.Empty });
+                    row2.children.Add(s_EmptyDebugUIValue);
+                    row3.children.Add(new DebugUI.ObjectField() { displayName = string.Empty, getter = () => customProfile });
+                    row4.children.Add(s_EmptyDebugUIValue);
+                }
+
+                row1.children.Add(new DebugUI.Value() { displayName = Strings.qualityLevelValue, tooltip = Strings.qualityLevelValueTooltip, getter = () => string.Empty });
+                row2.children.Add(s_EmptyDebugUIValue);
+                row3.children.Add(new DebugUI.ObjectField() { displayName = string.Empty, getter = () => volumeManager.qualityDefaultProfile });
+                row4.children.Add(s_EmptyDebugUIValue);
+
+                row1.children.Add(new DebugUI.Value() { displayName = Strings.globalDefaultValue, tooltip = Strings.globalDefaultValueTooltip, getter = () => string.Empty });
+                row2.children.Add(s_EmptyDebugUIValue);
+                row3.children.Add(new DebugUI.ObjectField() { displayName = string.Empty, getter = () => volumeManager.globalDefaultProfile });
+                row4.children.Add(s_EmptyDebugUIValue);
+
+                table.children.Add(row1);
                 table.children.Add(row2);
+                table.children.Add(row3);
+                table.children.Add(row4);
+
+                VolumeComponent GetSelectedVolumeComponent(VolumeProfile profile)
+                {
+                    if (profile != null)
+                    {
+                        foreach (var component in profile.components)
+                            if (component.GetType() == selectedType)
+                                return component;
+                    }
+                    return null;
+                }
 
                 // Build rows - recursively handles nested parameters
                 var rows = new List<DebugUI.Table.Row>();
@@ -273,10 +337,10 @@ namespace UnityEngine.Rendering
 #endif
 
                         int currentParam = rows.Count + skip;
-                        row = new DebugUI.Table.Row()
+                        DebugUI.Table.Row row = new DebugUI.Table.Row()
                         {
                             displayName = fieldName,
-                            children = { CreateVolumeParameterWidget(Strings.interpolatedValue, stackComponent.parameterList[currentParam]) },
+                            children = { CreateVolumeParameterWidget(Strings.resultValue, stackComponent.parameterList[currentParam]) },
                         };
 
                         foreach (var volume in volumes)
@@ -288,7 +352,16 @@ namespace UnityEngine.Rendering
                             row.children.Add(CreateVolumeParameterWidget(volume.name + " (" + profile.name + ")", param, () => !component.parameterList[currentParam].overrideState));
                         }
 
-                        row.children.Add(CreateVolumeParameterWidget(Strings.defaultValue, inst.parameterList[currentParam]));
+                        foreach (var (customProfile, customComponent) in customDefaultComponents)
+                            row.children.Add(CreateVolumeParameterWidget(customProfile.name,
+                                customComponent != null ? customComponent.parameterList[currentParam] : null));
+
+                        row.children.Add(CreateVolumeParameterWidget(Strings.qualityLevelValue,
+                            qualityDefaultComponent != null ? qualityDefaultComponent.parameterList[currentParam] : null));
+
+                        row.children.Add(CreateVolumeParameterWidget(Strings.globalDefaultValue,
+                            globalDefaultComponent != null ? globalDefaultComponent.parameterList[currentParam] : null));
+
                         rows.Add(row);
                     }
 
@@ -361,6 +434,8 @@ namespace UnityEngine.Rendering
             {
                 AddWidget(WidgetFactory.CreateCameraSelector(this, (_, __) => Refresh()));
                 AddWidget(WidgetFactory.CreateComponentSelector(this, (_, __) => Refresh()));
+                m_VolumeTable = WidgetFactory.CreateVolumeTable(m_Data);
+                AddWidget(m_VolumeTable);
             }
 
             DebugUI.Table m_VolumeTable = null;

@@ -25,11 +25,11 @@ namespace UnityEngine.Rendering.HighDefinition
         // --- Following bits are used exclusively for what happens after opaque ---
         WaterExclusion = (1 << 0),    // Prevents water surface from being rendered.
         ExcludeFromTAA = (1 << 1),    // Disable Temporal Antialiasing for certain objects
-        DistortionVectors = (1 << 2),    // Distortion pass - reset after distortion pass, shared with SMAA
-        SMAA = (1 << 2),    // Subpixel Morphological Antialiasing
+        DistortionVectors = (1 << 2), // Distortion pass - reset after distortion pass, shared with SMAA
+        SMAA = (1 << 2),              // Subpixel Morphological Antialiasing
         // Reserved TraceReflectionRay = (1 << 3) for transparent SSR or RTR
-        WaterSurface = (1 << 4), // Reserved for water surface usage
-        AfterOpaqueReservedBits = 0x38,        // Reserved for future usage
+        Refractive = (1 << 4),        // Indicates there's a refractive object
+        WaterSurface = (1 << 5),      // Reserved for water surface usage
 
         // --- Following are user bits, we don't touch them inside HDRP and is up to the user to handle them ---
         UserBit0 = (1 << 6),

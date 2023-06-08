@@ -549,7 +549,7 @@ namespace UnityEngine.Rendering.Universal
                 renderPassInputs.requiresNormalsTexture = true;
 
 #if UNITY_EDITOR
-            if (m_ProbeVolumeDebugPass.NeedsNormal())
+            if (ProbeReferenceVolume.instance.IsProbeSamplingDebugEnabled())
                 renderPassInputs.requiresNormalsTexture = true;
 #endif
 

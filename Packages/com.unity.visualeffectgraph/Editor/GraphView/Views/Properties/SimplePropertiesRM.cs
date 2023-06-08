@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Reflection;
+
 using UnityEngine;
 using UnityEngine.UIElements;
+
 using EnumField = UnityEditor.VFX.UIElements.VFXEnumField;
 
 namespace UnityEditor.VFX.UI
@@ -42,6 +43,82 @@ namespace UnityEditor.VFX.UI
         void OnDisplayMenu(EnumField field)
         {
             field.filteredOutValues = provider.filteredOutEnumerators;
+        }
+    }
+
+    [Serializable]
+    struct MultipleValuesChoice<T> where T: class
+    {
+        [SerializeField]
+        private T selection;
+        [SerializeField]
+        private int selectedIndex;
+
+        public List<T> values { get; set; }
+
+        public void SetSelection(T value)
+        {
+            selectedIndex = values?.IndexOf(value) ?? -1;
+
+            if (selectedIndex >= 0)
+            {
+                selection = value;
+            }
+        }
+
+        public T GetSelection()
+        {
+            return selection;
+        }
+    }
+
+    class ListPropertyRM : PropertyRM<MultipleValuesChoice<string>>
+    {
+        private DropdownField m_Field;
+        public ListPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
+        {
+            var choices = (MultipleValuesChoice<string>)m_Provider.value;
+            m_Field = new DropdownField(null, choices.values ?? new List<string>(), 0, FormatSelectedValueCallback);
+            m_Field.RegisterValueChangedCallback(OnValueChanged);
+            Add(m_Field);
+        }
+
+        private void OnValueChanged(ChangeEvent<string> evt)
+        {
+            m_Value.SetSelection(evt.newValue);
+            NotifyValueChanged();
+        }
+
+        public override float GetPreferredControlWidth() => 120;
+        protected override void UpdateEnabled()
+        {
+        }
+
+        protected override void UpdateIndeterminate()
+        {
+        }
+
+        public override void UpdateGUI(bool force)
+        {
+            if (m_Value.values?.Count > 0)
+            {
+                m_Field.choices = m_Value.values;
+                m_Field.SetEnabled(true);
+                m_Field.value = m_Value.GetSelection();
+            }
+            else
+            {
+                m_Field.value = null;
+                m_Field.SetEnabled(false);
+            }
+        }
+
+        public override bool showsEverything => false;
+
+        private string FormatSelectedValueCallback(string selection)
+        {
+
+            return selection;
         }
     }
 

@@ -606,7 +606,6 @@ namespace UnityEngine.Rendering.Universal
                     if (s_CachedVolumeStacks == null)
                         s_CachedVolumeStacks = new List<VolumeStack>(4);
 
-                    VolumeManager.instance.DestroyStack(m_VolumeStack);
                     s_CachedVolumeStacks.Add(m_VolumeStack);
                 }
 

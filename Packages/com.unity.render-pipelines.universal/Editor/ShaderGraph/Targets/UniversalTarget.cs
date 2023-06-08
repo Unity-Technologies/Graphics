@@ -581,7 +581,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 onChange();
             });
 
-            context.AddProperty("Alpha Clipping", new Toggle() { value = alphaClip }, (evt) =>
+            context.AddProperty("Alpha Clipping", "Avoid using when Alpha and AlphaThreshold are constant for the entire material as enabling in this case could introduce visual artifacts and will add an unnecessary performance cost when used with MSAA (due to AlphaToMask)", 0, new Toggle() { value = alphaClip }, (evt) =>
             {
                 if (Equals(alphaClip, evt.newValue))
                     return;
@@ -804,6 +804,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 return false;
 
             if (m_ActiveSubTarget.value is UniversalUnlitSubTarget)
+                return true;
+
+            if (m_ActiveSubTarget.value is UniversalSixWaySubTarget)
                 return true;
 
             if (m_ActiveSubTarget.value is UniversalLitSubTarget)

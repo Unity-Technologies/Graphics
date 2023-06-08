@@ -1,0 +1,25 @@
+.srp-global-settings__container {
+    margin-top: 1px;
+}
+
+.srp-global-settings__header-container {
+    flex-direction: row;
+    font-size: 20px;
+    -unity-font-style: bold;
+    margin-bottom: 4px;
+    margin-left: 10px;
+}
+
+.srp-global-settings__help-button-container {
+    align-items: flex-end;
+    flex-grow: 1;
+}
+
+#srp-global-settings__help-button {
+    margin: 2px;
+}
+
+.volume-profile-section {
+    margin-left: 10px;
+    margin-bottom: 10px;
+}

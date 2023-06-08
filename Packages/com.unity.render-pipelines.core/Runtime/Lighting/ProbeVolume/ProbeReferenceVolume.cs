@@ -58,6 +58,10 @@ namespace UnityEngine.Rendering
         /// </summary>
         public ComputeShader scenarioBlendingShader;
         /// <summary>
+        /// The compute shader used to upload streamed data to the GPU.
+        /// </summary>
+        public ComputeShader streamingUploadShader;
+        /// <summary>
         /// The <see cref="ProbeVolumeSceneData"/>
         /// </summary>
         public ProbeVolumeSceneData sceneData;
@@ -187,9 +191,9 @@ namespace UnityEngine.Rendering
             public int index;
             public int probeCount;
             public int minSubdiv;
-            public int maxSubdiv;
             public int indexChunkCount;
             public int shChunkCount;
+            public int bricksCount;
 
             // This is data that is generated at bake time to not having to re-analyzing the content of the cell for the indirection buffer.
             // This is not technically part of the descriptor of the cell but it needs to be here because it's computed at bake time and needs
@@ -206,7 +210,6 @@ namespace UnityEngine.Rendering
         {
             // Shared Data
             public NativeArray<byte> validityNeighMaskData;
-            public NativeArray<Brick> bricks { get; internal set; }
 
             // Scenario Data
             public struct PerScenarioData
@@ -224,6 +227,9 @@ namespace UnityEngine.Rendering
             }
 
             public Dictionary<string, PerScenarioData> scenarios = new Dictionary<string, PerScenarioData>();
+            
+            // Brick data.
+            public NativeArray<Brick> bricks { get; internal set; }
 
             // Support Data
             public NativeArray<Vector3> probePositions { get; internal set; }
@@ -249,17 +255,29 @@ namespace UnityEngine.Rendering
                 }
             }
 
-            public void Cleanup()
+            public void Cleanup(bool cleanScenarioList)
             {
-                validityNeighMaskData.Dispose();
-                validityNeighMaskData = default;
-                bricks.Dispose();
-                bricks = default;
+                // GPU Data. Will not exist if disk streaming is enabled.
+                if (validityNeighMaskData.IsCreated)
+                {
+                    validityNeighMaskData.Dispose();
+                    validityNeighMaskData = default;
 
-                foreach (var scenario in scenarios.Values)
-                    CleanupPerScenarioData(scenario);
+                    foreach (var scenario in scenarios.Values)
+                        CleanupPerScenarioData(scenario);
+                }
 
-                scenarios.Clear();
+                // When using disk streaming, we don't want to clear this list as it's the only place where we know which scenarios are available for the cell
+                // This is ok because the scenario data isn't instantiated here.
+                if (cleanScenarioList)
+                    scenarios.Clear();
+
+                // Bricks and support data. May not exist with disk streaming.
+                if (bricks.IsCreated)
+                {
+                    bricks.Dispose();
+                    bricks = default;
+                }
 
                 if (probePositions.IsCreated)
                 {
@@ -329,6 +347,33 @@ namespace UnityEngine.Rendering
             }
         }
 
+        internal class CellStreamingInfo
+        {
+            public CellStreamingRequest request = null;
+            public CellStreamingRequest blendingRequest0 = null;
+            public CellStreamingRequest blendingRequest1 = null;
+            public float streamingScore;
+
+            public bool IsStreaming()
+            {
+                return request != null && request.IsStreaming();
+            }
+
+            public bool IsBlendingStreaming()
+            {
+                return blendingRequest0 != null && blendingRequest0.IsStreaming()
+                    || blendingRequest1 != null && blendingRequest1.IsStreaming();
+            }
+
+            public void Clear()
+            {
+                request = null;
+                blendingRequest0 = null;
+                blendingRequest1 = null;
+                streamingScore = 0;
+            }
+        }
+
         [DebuggerDisplay("Index = {desc.index} Loaded = {loaded}")]
         internal class Cell : IComparable<Cell>
         {
@@ -339,8 +384,8 @@ namespace UnityEngine.Rendering
             public CellPoolInfo poolInfo = new CellPoolInfo();
             public CellIndexInfo indexInfo = new CellIndexInfo();
             public CellBlendingInfo blendingInfo = new CellBlendingInfo();
+            public CellStreamingInfo streamingInfo = new CellStreamingInfo();
 
-            public float streamingScore;
             public int referenceCount = 0;
             public bool loaded; // "Loaded" means the streaming system decided the cell should be loaded. It does not mean it's ready for GPU consumption (because of blending or disk streaming)
 
@@ -352,9 +397,9 @@ namespace UnityEngine.Rendering
 
             public int CompareTo(Cell other)
             {
-                if (streamingScore < other.streamingScore)
+                if (streamingInfo.streamingScore < other.streamingInfo.streamingScore)
                     return -1;
-                else if (streamingScore > other.streamingScore)
+                else if (streamingInfo.streamingScore > other.streamingInfo.streamingScore)
                     return 1;
                 else
                     return 0;
@@ -385,8 +430,8 @@ namespace UnityEngine.Rendering
                 poolInfo.Clear();
                 indexInfo.Clear();
                 blendingInfo.Clear();
+                streamingInfo.Clear();
 
-                streamingScore = 0;
                 referenceCount = 0;
                 loaded = false;
                 scenario0 = default;
@@ -558,12 +603,13 @@ namespace UnityEngine.Rendering
             /// Texture containing packed validity binary data for the neighbourhood of each probe. Only used when L1. Otherwise this info is stored
             /// in the alpha channel of L2_3.
             /// </summary>
-            public Texture3D Validity;
+            public RenderTexture Validity;
 
         }
 
         bool m_IsInitialized = false;
         bool m_SupportScenarios = false;
+        bool m_ForceNoDiskStreaming = false;
         bool m_SupportDiskStreaming = false;
         bool m_SupportGPUStreaming = false;
         RefVolTransform m_Transform;
@@ -597,6 +643,7 @@ namespace UnityEngine.Rendering
         {
             // Empty, but defined to make this future proof without having to change public API
         }
+
         /// <summary>
         ///  An action that is used by the SRP to retrieve extra data that was baked together with the bake
         /// </summary>
@@ -629,7 +676,7 @@ namespace UnityEngine.Rendering
 
         internal bool supportLightingScenarios => m_SupportScenarios;
         internal bool enableScenarioBlending => m_SupportScenarios && m_BlendingMemoryBudget != 0 && ProbeBrickBlendingPool.isSupported;
-        internal bool diskStreamingEnabled => m_SupportDiskStreaming;
+        internal bool diskStreamingEnabled => m_SupportDiskStreaming && !m_ForceNoDiskStreaming;
 
         bool m_NeedsIndexRebuild = false;
         bool m_HasChangedIndex = false;
@@ -773,6 +820,13 @@ namespace UnityEngine.Rendering
                     m_CurrentBakingSet.Cleanup();
                 m_CurrentBakingSet = null;
                 m_CurrGlobalBounds = new Bounds();
+
+                // Restart pool from zero to avoid unnecessary memory consumption when going from a big to a small scene.
+                if (m_ScratchBufferPool != null)
+                {
+                    m_ScratchBufferPool.Cleanup();
+                    m_ScratchBufferPool = null;
+                }
             }
         }
 
@@ -806,9 +860,13 @@ namespace UnityEngine.Rendering
             m_SupportScenarios = parameters.supportScenarios;
             m_SHBands = parameters.shBands;
             m_ProbeVolumesWeight = 1f;
-            m_SupportDiskStreaming = parameters.supportDiskStreaming && SystemInfo.supportsComputeShaders;
-            m_SupportGPUStreaming = parameters.supportGPUStreaming || m_SupportDiskStreaming; // GPU Streaming is always enabled with disk streaming.
+            m_SupportGPUStreaming = parameters.supportGPUStreaming;
+            m_SupportDiskStreaming = parameters.supportDiskStreaming && SystemInfo.supportsComputeShaders && m_SupportGPUStreaming; // GPU Streaming is required for Disk Streaming
+            // For now this condition is redundant with m_SupportDiskStreaming but we plan to support disk streaming without compute in the future.
+            // So we need to split the conditions to plan for that.
+            m_DiskStreamingUseCompute = SystemInfo.supportsComputeShaders && parameters.streamingUploadShader != null;
             InitializeDebug(parameters);
+            ProbeBrickPool.Initialize(parameters);
             ProbeBrickBlendingPool.Initialize(parameters);
             InitProbeReferenceVolume(m_MemoryBudget, m_BlendingMemoryBudget, m_SHBands);
             m_IsInitialized = true;
@@ -862,6 +920,16 @@ namespace UnityEngine.Rendering
 
             DeinitProbeReferenceVolume();
             InitProbeReferenceVolume(m_MemoryBudget, m_BlendingMemoryBudget, shBands);
+
+            foreach (var data in perSceneDataList)
+                data.QueueSceneLoading();
+
+            PerformPendingOperations();
+        }
+
+        internal void ForceNoDiskStreaming(bool state)
+        {
+            m_ForceNoDiskStreaming = state;
         }
 
         /// <summary>
@@ -869,6 +937,9 @@ namespace UnityEngine.Rendering
         /// </summary>
         public void Cleanup()
         {
+            CoreUtils.SafeRelease(m_EmptyIndexBuffer);
+            m_EmptyIndexBuffer = null;
+
             if (!m_ProbeReferenceVolumeInit) return;
 
 #if UNITY_EDITOR
@@ -885,6 +956,7 @@ namespace UnityEngine.Rendering
 
             CleanupLoadedData();
             CleanupDebug();
+            CleanupStreaming();
             m_IsInitialized = false;
         }
 
@@ -935,7 +1007,7 @@ namespace UnityEngine.Rendering
                 if (cell.blendingInfo.blending)
                 {
                     m_LoadedBlendingCells.Remove(cell);
-                    UnloadBlendingCell(cell.blendingInfo);
+                    UnloadBlendingCell(cell);
                 }
                 else
                     m_ToBeLoadedBlendingCells.Remove(cell);
@@ -943,7 +1015,20 @@ namespace UnityEngine.Rendering
                 if (cell.indexInfo.flatIndicesInGlobalIndirection != null)
                     m_CellIndices.MarkEntriesAsUnloaded(cell.indexInfo.flatIndicesInGlobalIndirection);
 
-                ReleaseBricks(cell);
+                if (diskStreamingEnabled)
+                {
+                    if (cell.streamingInfo.IsStreaming())
+                    {
+                        CancelStreamingRequest(cell);
+                    }
+                    else
+                    {
+                        ReleaseBricks(cell);
+                        cell.data.Cleanup(!diskStreamingEnabled); // Release CPU data
+                    }
+                }
+                else
+                    ReleaseBricks(cell);
 
                 cell.loaded = false;
                 cell.debugProbes = null;
@@ -952,13 +1037,16 @@ namespace UnityEngine.Rendering
             }
         }
 
-        internal void UnloadBlendingCell(CellBlendingInfo blendingCell)
+        internal void UnloadBlendingCell(Cell cell)
         {
-            if (blendingCell.blending)
+            if (diskStreamingEnabled && cell.streamingInfo.IsBlendingStreaming())
+                CancelBlendingStreamingRequest(cell);
+
+            if (cell.blendingInfo.blending)
             {
-                m_BlendingPool.Deallocate(blendingCell.chunkList);
-                blendingCell.chunkList.Clear();
-                blendingCell.blending = false;
+                m_BlendingPool.Deallocate(cell.blendingInfo.chunkList);
+                cell.blendingInfo.chunkList.Clear();
+                cell.blendingInfo.blending = false;
             }
         }
 
@@ -974,7 +1062,7 @@ namespace UnityEngine.Rendering
         internal void UnloadAllBlendingCells()
         {
             for (int i = 0; i < m_LoadedBlendingCells.size; ++i)
-                UnloadBlendingCell(m_LoadedBlendingCells[i].blendingInfo);
+                UnloadBlendingCell(m_LoadedBlendingCells[i]);
 
             m_ToBeLoadedBlendingCells.AddRange(m_LoadedBlendingCells);
             m_LoadedBlendingCells.Clear();
@@ -982,7 +1070,7 @@ namespace UnityEngine.Rendering
 
         void AddCell(int cellIndex)
         {
-            // The same cell can exist in more than one asset
+            // The same cell can exist in more than one scene
             // Need to check existence because we don't want to add cells more than once to streaming structures
             // TODO: Check perf if relevant?
             if (!cells.TryGetValue(cellIndex, out var cell))
@@ -1019,7 +1107,7 @@ namespace UnityEngine.Rendering
         internal bool LoadCell(Cell cell, bool ignoreErrorLog = false)
         {
             // First try to allocate pool memory. This is what is most likely to fail.
-            if (ReservePoolChunks(cell.data.bricks.Length, cell.poolInfo.chunkList, ignoreErrorLog))
+            if (ReservePoolChunks(cell.desc.bricksCount, cell.poolInfo.chunkList, ignoreErrorLog))
             {
                 int indirectionBufferEntries = cell.indexInfo.indirectionEntryInfo.Length;
 
@@ -1047,17 +1135,9 @@ namespace UnityEngine.Rendering
                     }
                     cell.loaded = true;
 
-                    // Copy proper data inside index buffers and pool textures.
-                    if (diskStreamingEnabled)
-                    {
-                        PushDiskStreamingRequest(cell);
-                    }
-                    else
-                    {
-                        if (scenarioValid)
-                            // Copy proper data inside index buffers and pool textures.
-                            AddBricks(cell);
-                    }
+                    // Copy proper data inside index buffers and pool textures or kick off streaming request.
+                    if (scenarioValid)
+                        AddBricks(cell);
 
                     minLoadedCellPos = Vector3Int.Min(minLoadedCellPos, cell.desc.position);
                     maxLoadedCellPos = Vector3Int.Max(maxLoadedCellPos, cell.desc.position);
@@ -1097,7 +1177,8 @@ namespace UnityEngine.Rendering
             }
         }
 
-        void RecomputeMinMaxLoadedCellPos()
+        // This will compute the min/max position of loaded cells as well as the max number of SH chunk for a cell.
+        void ComputeCellGlobalInfo()
         {
             minLoadedCellPos = new Vector3Int(int.MaxValue, int.MaxValue, int.MaxValue);
             maxLoadedCellPos = new Vector3Int(int.MinValue, int.MinValue, int.MinValue);
@@ -1182,7 +1263,7 @@ namespace UnityEngine.Rendering
             }
 
             ClearDebugData();
-            RecomputeMinMaxLoadedCellPos();
+            ComputeCellGlobalInfo();
         }
 
         void PerformPendingIndexChangeAndInit()
@@ -1572,6 +1653,15 @@ namespace UnityEngine.Rendering
                 m_BlendingPool.Update(m_TemporaryDataLocation, srcChunks, chunkList, chunkIndex, m_SHBands, poolIndex);
         }
 
+        void UpdatePool(CommandBuffer cmd, List<Chunk> chunkList, CellStreamingScratchBuffer dataBuffer, CellStreamingScratchBufferLayout layout, int poolIndex)
+        {
+            // Update pool textures with incoming SH data and ignore any potential frame latency related issues for now.
+            if (poolIndex == -1)
+                m_Pool.Update(cmd, dataBuffer, layout, chunkList, updateSharedData: true, m_Pool.GetValidityTexture(), m_SHBands);
+            else
+                m_BlendingPool.Update(cmd, dataBuffer, layout, chunkList, m_SHBands, poolIndex, m_Pool.GetValidityTexture());
+        }
+
         void UpdatePoolValidity(List<Chunk> chunkList, NativeArray<byte> validityNeighMaskData, int chunkIndex)
         {
             var chunkSizeInProbes = ProbeBrickPool.GetChunkSizeInBrickCount() * ProbeBrickPool.kBrickProbeCountTotal;
@@ -1599,37 +1689,59 @@ namespace UnityEngine.Rendering
             if (!bypassBlending && !m_BlendingPool.Allocate(cell.poolInfo.shChunkCount, cell.blendingInfo.chunkList))
                 return false;
 
-            // Now that we are sure probe data will be uploaded, we can register the cell in the pool
-            if (!cell.indexInfo.indexUpdated)
+            if (diskStreamingEnabled)
             {
-                // Update the cell index
-                UpdateCellIndex(cell);
-                // Upload validity data directly to main pool - constant per scenario, will not need blending, therefore we use the cellInfo chunk list.
-                var chunkList = cell.poolInfo.chunkList;
-                for (int chunkIndex = 0; chunkIndex < chunkList.Count; ++chunkIndex)
-                    UpdatePoolValidity(chunkList, cell.data.validityNeighMaskData, chunkIndex);
-            }
-
-            if (bypassBlending)
-            {
-                if (cell.blendingInfo.blendingFactor != scenarioBlendingFactor)
+                if (bypassBlending)
                 {
-                    var chunkList = cell.poolInfo.chunkList;
-                    for (int chunkIndex = 0; chunkIndex < chunkList.Count; ++chunkIndex)
-                    {
-                        // No blending so do the same operation as AddBricks would do. But because cell is already loaded,
-                        // no index or chunk data must change, so only probe values need to be updated
-                        UpdatePool(chunkList, cell.scenario0, cell.data.validityNeighMaskData, chunkIndex, -1);
-                    }
+                    if (cell.blendingInfo.blendingFactor != scenarioBlendingFactor)
+                        PushDiskStreamingRequest(cell, lightingScenario, -1, OnStreamingComplete);
+
+                    // As we bypass blending, we don't load the blending data so we want to avoid trying to blend them later on.
+                    cell.blendingInfo.MarkUpToDate();
+                }
+                else
+                {
+                    PushDiskStreamingRequest(cell, lightingScenario, 0, OnBlendingStreamingComplete);
+                    PushDiskStreamingRequest(cell, otherScenario, 1, OnBlendingStreamingComplete);
                 }
             }
             else
             {
-                var chunkList = cell.blendingInfo.chunkList;
-                for (int chunkIndex = 0; chunkIndex < chunkList.Count; ++chunkIndex)
+                // Now that we are sure probe data will be uploaded, we can register the cell in the pool
+                if (!cell.indexInfo.indexUpdated)
                 {
-                    UpdatePool(chunkList, cell.scenario0, cell.data.validityNeighMaskData, chunkIndex, 0);
-                    UpdatePool(chunkList, cell.scenario1, cell.data.validityNeighMaskData, chunkIndex, 1);
+                    // Update the cell index
+                    UpdateCellIndex(cell);
+                    // Upload validity data directly to main pool - constant per scenario, will not need blending, therefore we use the cellInfo chunk list.
+                    var chunkList = cell.poolInfo.chunkList;
+                    for (int chunkIndex = 0; chunkIndex < chunkList.Count; ++chunkIndex)
+                        UpdatePoolValidity(chunkList, cell.data.validityNeighMaskData, chunkIndex);
+                }
+
+                if (bypassBlending)
+                {
+                    if (cell.blendingInfo.blendingFactor != scenarioBlendingFactor)
+                    {
+                        var chunkList = cell.poolInfo.chunkList;
+                        for (int chunkIndex = 0; chunkIndex < chunkList.Count; ++chunkIndex)
+                        {
+                            // No blending so do the same operation as AddBricks would do. But because cell is already loaded,
+                            // no index or chunk data must change, so only probe values need to be updated
+                            UpdatePool(chunkList, cell.scenario0, cell.data.validityNeighMaskData, chunkIndex, -1);
+                        }
+                    }
+
+                    // As we bypass blending, we don't load the blending data so we want to avoid trying to blend them later on.
+                    cell.blendingInfo.MarkUpToDate();
+                }
+                else
+                {
+                    var chunkList = cell.blendingInfo.chunkList;
+                    for (int chunkIndex = 0; chunkIndex < chunkList.Count; ++chunkIndex)
+                    {
+                        UpdatePool(chunkList, cell.scenario0, cell.data.validityNeighMaskData, chunkIndex, 0);
+                        UpdatePool(chunkList, cell.scenario1, cell.data.validityNeighMaskData, chunkIndex, 1);
+                    }
                 }
             }
 
@@ -1654,6 +1766,25 @@ namespace UnityEngine.Rendering
             chunkList.Clear();
         }
 
+        void UpdatePoolAndIndex(Cell cell, CellStreamingScratchBuffer dataBuffer, CellStreamingScratchBufferLayout layout, int poolIndex, CommandBuffer cmd)
+        {
+            if (diskStreamingEnabled && m_DiskStreamingUseCompute)
+            {
+                Debug.Assert(dataBuffer.buffer != null);
+                UpdatePool(cmd, cell.poolInfo.chunkList, dataBuffer, layout, poolIndex);
+            }
+            else
+            {
+                // In order not to pre-allocate for the worse case, we update the texture by smaller chunks with a preallocated DataLoc
+                for (int chunkIndex = 0; chunkIndex < cell.poolInfo.chunkList.Count; ++chunkIndex)
+                    UpdatePool(cell.poolInfo.chunkList, cell.scenario0, cell.data.validityNeighMaskData, chunkIndex, poolIndex);
+            }
+
+            // Index may already be updated when simply switching scenarios.
+            if (!cell.indexInfo.indexUpdated)
+                UpdateCellIndex(cell);
+        }
+
         bool AddBricks(Cell cell)
         {
             using var pm = new ProfilerMarker("AddBricks").Auto();
@@ -1665,17 +1796,20 @@ namespace UnityEngine.Rendering
             // If enabled but blending factor is 0, upload here in case blending pool is not already allocated
             if (!enableScenarioBlending || scenarioBlendingFactor == 0.0f || !cell.hasTwoScenarios)
             {
-                // In order not to pre-allocate for the worse case, we update the texture by smaller chunks with a preallocated DataLoc
-                for (int chunkIndex = 0; chunkIndex < cell.poolInfo.chunkList.Count; ++chunkIndex)
-                    UpdatePool(cell.poolInfo.chunkList, cell.scenario0, cell.data.validityNeighMaskData, chunkIndex, -1);
+                if (diskStreamingEnabled)
+                {
+                    PushDiskStreamingRequest(cell, m_CurrentBakingSet.lightingScenario, -1, OnStreamingComplete);
+                }
+                else
+                {
+                    UpdatePoolAndIndex(cell, null, default, -1, null);
+                }
 
-                UpdateCellIndex(cell);
                 cell.blendingInfo.blendingFactor = 0.0f;
             }
             else if (enableScenarioBlending)
             {
                 cell.blendingInfo.Prioritize();
-                m_HasRemainingCellsToBlend = true;
                 // Cell index update is delayed until probe data is loaded
                 cell.indexInfo.indexUpdated = false;
             }
@@ -1708,6 +1842,7 @@ namespace UnityEngine.Rendering
 
             // clean up the index
             m_Index.RemoveBricks(cell.indexInfo);
+            cell.indexInfo.indexUpdated = false;
 
             // clean up the pool
             m_Pool.Deallocate(cell.poolInfo.chunkList);
@@ -1715,12 +1850,7 @@ namespace UnityEngine.Rendering
             cell.poolInfo.chunkList.Clear();
         }
 
-        /// <summary>
-        /// Update the constant buffer used by Probe Volumes in shaders.
-        /// </summary>
-        /// <param name="cmd">A command buffer used to perform the data update.</param>
-        /// <param name="parameters">Parameters to be used when sampling the probe volume.</param>
-        public void UpdateConstantBuffer(CommandBuffer cmd, ProbeVolumeShadingParameters parameters)
+        internal void UpdateConstantBuffer(CommandBuffer cmd, ProbeVolumeShadingParameters parameters)
         {
             float normalBias = parameters.normalBias;
             float viewBias = parameters.viewBias;
@@ -1731,7 +1861,6 @@ namespace UnityEngine.Rendering
                 viewBias *= MinDistanceBetweenProbes();
             }
 
-            var minCellPos = m_CellIndices.GetGlobalIndirectionMinEntry();
             var indexDim = m_CellIndices.GetGlobalIndirectionDimension();
             var poolDim = m_Pool.GetPoolDimensions();
             m_CellIndices.GetMinMaxEntry(out Vector3Int minEntry, out Vector3Int maxEntry);
@@ -1771,6 +1900,7 @@ namespace UnityEngine.Rendering
                     m_Pool.Cleanup();
                     m_BlendingPool.Cleanup();
                 }
+
                 m_TemporaryDataLocation.Cleanup();
             }
 

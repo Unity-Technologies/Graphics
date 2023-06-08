@@ -14,7 +14,7 @@ To configure settings related to reflection probes, in a URP Asset, select **Lig
 
 The Reflection Probes section contains the following properties:
 
-| __Property__ | __Description__ |
+| **Property** | **Description** |
 | --- | --- |
 | **Probe Blending** | Select this property to enable [reflection probe blending](#reflection-probe-blending). |
 | **Box Projection** | Select this property to enable reflection probe box projection. |
@@ -24,6 +24,7 @@ The Reflection Probes section contains the following properties:
 Reflection probe blending lets you avoid a situation where a reflection suddenly appears on an object when it enters the probe box volume. When reflection probe blending is enabled, Unity gradually fades probe cubemaps in and out as the reflective object passes from one volume to the other.
 
 URP supports reflection probe blending in all Rendering Paths.
+
 ### Reflection probe volume
 
 Each reflection probe has a box volume. A reflection probe only affects parts of a GameObject that are inside the box volume. When a pixel of an object is outside of any reflection probe volume, Unity uses the skybox reflection.

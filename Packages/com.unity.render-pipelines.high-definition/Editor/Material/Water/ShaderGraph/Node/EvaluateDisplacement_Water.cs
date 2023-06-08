@@ -21,8 +21,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override string documentationURL => Documentation.GetPageLink("EvaluateDisplacement_Water");
 
-        const int kPositionWSInputSlotId = 0;
-        const string kPositionWSInputSlotName = "PositionWS";
+        const int kPositionOSInputSlotId = 0;
+        const string kPositionWSInputSlotName = "PositionOS";
 
         const int kDisplacementOutputSlotId = 1;
         const string kDisplacementOutputSlotName = "Displacement";
@@ -35,7 +35,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public sealed override void UpdateNodeAfterDeserialization()
         {
             // Inputs
-            AddSlot(new Vector3MaterialSlot(kPositionWSInputSlotId, kPositionWSInputSlotName, kPositionWSInputSlotName, SlotType.Input, Vector3.zero, ShaderStageCapability.Vertex));
+            AddSlot(new PositionMaterialSlot(kPositionOSInputSlotId, kPositionWSInputSlotName, kPositionWSInputSlotName, CoordinateSpace.Object, ShaderStageCapability.Vertex));
 
             // Outputs
             AddSlot(new Vector3MaterialSlot(kDisplacementOutputSlotId, kDisplacementOutputSlotName, kDisplacementOutputSlotName, SlotType.Output, Vector3.zero));
@@ -44,7 +44,7 @@ namespace UnityEditor.Rendering.HighDefinition
             RemoveSlotsNameNotMatching(new[]
             {
                 // Inputs
-                kPositionWSInputSlotId,
+                kPositionOSInputSlotId,
                 // Outputs
                 kDisplacementOutputSlotId,
                 kLowFrequencyHeightOutputSlotId,
@@ -58,9 +58,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 sb.AppendLine("WaterDisplacementData displacementData;");
                 sb.AppendLine("ZERO_INITIALIZE(WaterDisplacementData, displacementData);");
 
-                string positionWS = GetSlotValue(kPositionWSInputSlotId, generationMode);
+                string positionOS = GetSlotValue(kPositionOSInputSlotId, generationMode);
                 sb.AppendLine("EvaluateWaterDisplacement({0}, displacementData);",
-                    positionWS
+                    positionOS
                 );
 
                 sb.AppendLine("$precision3 {0} = displacementData.displacement;",

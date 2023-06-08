@@ -45,8 +45,15 @@ namespace UnityEditor.VFX.UI
 
         void OnEnable()
         {
-            s_VFXWindows.Add(this);
-            DisableViewDataPersistence();
+            if (this.m_DisplayedResource == null && TryGetNoAssetWindow(out _))
+            {
+                this.Close();
+            }
+            else
+            {
+                s_VFXWindows.Add(this);
+                DisableViewDataPersistence();
+            }
         }
 
         protected void SetupFramingShortcutHandler(VFXView view)
@@ -87,7 +94,7 @@ namespace UnityEditor.VFX.UI
         public static VFXViewWindow GetWindow(VFXGraph vfxGraph, bool createIfNeeded = false, bool show = true)
         {
             return GetWindowLambda(
-                x => x.displayedResource == vfxGraph?.visualEffectResource,
+                x => x.displayedResource == (vfxGraph != null ? vfxGraph.visualEffectResource : null),
                 createIfNeeded,
                 show);
         }
@@ -119,12 +126,11 @@ namespace UnityEditor.VFX.UI
 
         static VFXViewWindow GetWindowLambda(Func<VFXViewWindow, bool> func, bool createIfNeeded, bool show)
         {
-            var windows = GetAllWindows();
-            var window = windows.SingleOrDefault(func);
+            var window = s_VFXWindows.SingleOrDefault(func);
             if (window == null)
             {
                 // Get the empty VFX window if it's opened
-                window = windows.SingleOrDefault(x => x.m_DisplayedResource == null);
+                TryGetNoAssetWindow(out window);
             }
 
             if (window == null && createIfNeeded)
@@ -342,7 +348,7 @@ namespace UnityEditor.VFX.UI
 
         static VFXViewWindow CreateWindow()
         {
-            var lastVFXWindow = GetAllWindows().LastOrDefault();
+            var lastVFXWindow = s_VFXWindows.LastOrDefault();
 
             var window = CreateInstance<VFXViewWindow>();
 
@@ -354,9 +360,17 @@ namespace UnityEditor.VFX.UI
             return window;
         }
 
+        static bool TryGetNoAssetWindow(out VFXViewWindow noAssetWindow)
+        {
+            var noAssetWindows = s_VFXWindows.Where(x => x.m_DisplayedResource == null);
+            noAssetWindow = noAssetWindows.FirstOrDefault();
+
+            return noAssetWindow != null;
+        }
+
         static bool TryToTabNextTo(EditorWindow nextToWindow, EditorWindow window)
         {
-            if (nextToWindow?.m_Parent is DockArea dockArea)
+            if (nextToWindow != null && nextToWindow.m_Parent is DockArea dockArea)
             {
                 var index = dockArea.m_Panes.IndexOf(nextToWindow);
                 dockArea.AddTab(index + 1, window);

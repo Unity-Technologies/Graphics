@@ -1308,7 +1308,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.viewCount = hdCamera.viewCount;
                     passData.filterVolume = ((int)fog.denoisingMode.value & (int)FogDenoisingMode.Gaussian) != 0;
                     passData.sliceCount = (int)(cvp.z);
-                    passData.filteringNeedsExtraBuffer = !(SystemInfo.IsFormatSupported(GraphicsFormat.R16G16B16A16_SFloat, FormatUsage.LoadStore));
+                    passData.filteringNeedsExtraBuffer = !(SystemInfo.IsFormatSupported(GraphicsFormat.R16G16B16A16_SFloat, GraphicsFormatUsage.LoadStore));
 
                     ComputeVolumetricFogSliceCountAndScreenFraction(fog, out var maxSliceCount, out _);
                     UpdateShaderVariableslVolumetrics(ref m_ShaderVariablesVolumetricCB, hdCamera, passData.resolution, maxSliceCount);

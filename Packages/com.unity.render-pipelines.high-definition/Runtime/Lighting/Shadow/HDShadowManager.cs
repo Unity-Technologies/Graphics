@@ -381,7 +381,8 @@ namespace UnityEngine.Rendering.HighDefinition
             shadowResolutionDirectional = new IntScalableSetting(new[] { 256, 512, 1024, 2048 }, ScalableSettingSchemaId.With4Levels),
             shadowResolutionArea = new IntScalableSetting(new[] { 256, 512, 1024, 2048 }, ScalableSettingSchemaId.With4Levels),
             shadowResolutionPunctual = new IntScalableSetting(new[] { 256, 512, 1024, 2048 }, ScalableSettingSchemaId.With4Levels),
-            shadowFilteringQuality = HDShadowFilteringQuality.Medium,
+            punctualShadowFilteringQuality = HDShadowFilteringQuality.Medium,   
+            directionalShadowFilteringQuality = HDShadowFilteringQuality.Medium,   
             areaShadowFilteringQuality = HDAreaShadowFilteringQuality.Medium,
             supportScreenSpaceShadows = false,
             maxScreenSpaceShadowSlots = 4,
@@ -400,14 +401,18 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Depth bits for directional shadows.</summary>
         public DepthBits directionalShadowsDepthBits;
 
-        /// <summary>Shadow filtering quality.</summary>
+        /// <summary>Punctual shadow filtering quality.</summary>
 #if UNITY_EDITOR // multi_compile_fragment SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH
         // [ShaderKeywordFilter.SelectIf(HDShadowFilteringQuality.Low, keywordNames: "SHADOW_LOW")]
         // [ShaderKeywordFilter.SelectIf(HDShadowFilteringQuality.Medium, keywordNames: "SHADOW_MEDIUM")]
         // [ShaderKeywordFilter.SelectIf(HDShadowFilteringQuality.High, keywordNames: "SHADOW_HIGH")]
 #endif
-        [FormerlySerializedAs("shadowQuality")]
-        public HDShadowFilteringQuality shadowFilteringQuality;
+        [FormerlySerializedAs("shadowQuality"), FormerlySerializedAs("shadowFilteringQuality")]
+        public HDShadowFilteringQuality punctualShadowFilteringQuality;
+
+        /// <summary>Directional shadow filtering quality.</summary>
+        [FormerlySerializedAs("shadowQuality"), FormerlySerializedAs("shadowFilteringQuality")]
+        public HDShadowFilteringQuality directionalShadowFilteringQuality;
 
         /// <summary>Area Shadow filtering quality.</summary>
 #if UNITY_EDITOR // multi_compile_fragment AREA_SHADOW_MEDIUM AREA_SHADOW_HIGH
@@ -822,7 +827,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Keep in sync with both HDShadowSampling.hlsl
         public static DirectionalShadowAlgorithm GetDirectionalShadowAlgorithm()
         {
-            switch (HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.shadowFilteringQuality)
+            switch (HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.directionalShadowFilteringQuality)
             {
                 case HDShadowFilteringQuality.Low:
                 {

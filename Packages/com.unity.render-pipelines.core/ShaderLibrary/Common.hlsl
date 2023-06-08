@@ -235,6 +235,8 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/API/GLCore.hlsl"
 #elif defined(SHADER_API_GLES3)
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/API/GLES3.hlsl"
+#elif defined(SHADER_API_WEBGPU)
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/API/WebGPU.hlsl"
 #else
 #error unsupported shader api
 #endif
@@ -734,7 +736,7 @@ real FastATan(real x)
 
 real FastAtan2(real y, real x)
 {
-    return FastATan(y / x) + (y >= 0.0 ? PI : -PI) * (x < 0.0);
+    return FastATan(y / x) + real(y >= 0.0 ? PI : -PI) * (x < 0.0);
 }
 
 #if (SHADER_TARGET >= 45)
@@ -781,7 +783,8 @@ TEMPLATE_2_REAL(PositivePow, base, power, return pow(abs(base), power))
 //        for behavior depending on pow(0, y) giving always 0, especially for 0 < y < 1.
 //
 // Ref: https://msdn.microsoft.com/en-us/library/windows/desktop/bb509636(v=vs.85).aspx
-TEMPLATE_2_REAL(SafePositivePow, base, power, return pow(max(abs(base), real(REAL_EPS)), power))
+TEMPLATE_2_FLT(SafePositivePow, base, power, return pow(max(abs(base), float(FLT_EPS)), power))
+TEMPLATE_2_ONLY_HALF(SafePositivePow, base, power, return pow(max(abs(base), half(HALF_EPS)), power))
 
 // Helpers for making shadergraph functions consider precision spec through the same $precision token used for variable types
 TEMPLATE_2_FLT(SafePositivePow_float, base, power, return pow(max(abs(base), float(FLT_EPS)), power))
@@ -903,6 +906,7 @@ real Pow4(real x)
 #endif
 
 TEMPLATE_3_FLT(RangeRemap, min, max, t, return saturate((t - min) / (max - min)))
+TEMPLATE_3_FLT(RangeRemapFrom01, min, max, t,  return (max - min) * t + min)
 
 float4x4 Inverse(float4x4 m)
 {
@@ -990,7 +994,7 @@ float ComputeTextureLOD(float3 duvw_dx, float3 duvw_dy, float3 duvw_dz, float sc
     #define MIP_COUNT_SUPPORTED 1
 #endif
     // TODO: Bug workaround, switch defines GLCORE when it shouldn't
-#if ((defined(SHADER_API_GLCORE) && !defined(SHADER_API_SWITCH)) || defined(SHADER_API_VULKAN)) && !defined(SHADER_STAGE_COMPUTE)
+#if ((defined(SHADER_API_GLCORE) && !defined(SHADER_API_SWITCH)) || defined(SHADER_API_VULKAN) || defined(SHADER_API_WEBGPU)) && !defined(SHADER_STAGE_COMPUTE)
     // OpenGL only supports textureSize for width, height, depth
     // textureQueryLevels (GL_ARB_texture_query_levels) needs OpenGL 4.3 or above and doesn't compile in compute shaders
     // tex.GetDimensions converted to textureQueryLevels
@@ -1020,7 +1024,7 @@ uint GetMipCount(TEXTURE2D_PARAM(tex, smp))
 #define DXC_SAMPLER_COMPATIBILITY 1
 
 // On DXC platforms which don't care about explicit sampler precison we want the emulated types to work directly e.g without needing to redefine 'sampler2D' to 'sampler2D_f'
-#if !defined(SHADER_API_GLES3) && !defined(SHADER_API_VULKAN) && !defined(SHADER_API_METAL) && !defined(SHADER_API_SWITCH)
+#if !defined(SHADER_API_GLES3) && !defined(SHADER_API_VULKAN) && !defined(SHADER_API_METAL) && !defined(SHADER_API_SWITCH) && !defined(SHADER_API_WEBGPU)
     #define sampler1D_f sampler1D
     #define sampler2D_f sampler2D
     #define sampler3D_f sampler3D
@@ -1439,7 +1443,7 @@ void ApplyDepthOffsetPositionInput(float3 V, float depthOffsetVS, float3 viewFor
 // Terrain/Brush heightmap encoding/decoding
 // ----------------------------------------------------------------------------
 
-#if defined(SHADER_API_VULKAN) || defined(SHADER_API_GLES3)
+#if defined(SHADER_API_VULKAN) || defined(SHADER_API_GLES3) || defined(SHADER_API_WEBGPU)
 
 // For the built-in target this is already a defined symbol
 #ifndef BUILTIN_TARGET_API
@@ -1483,23 +1487,28 @@ bool HasFlag(uint bitfield, uint flag)
 }
 
 // Normalize that account for vectors with zero length
-real3 SafeNormalize(float3 inVec)
+float3 SafeNormalize(float3 inVec)
 {
     float dp3 = max(FLT_MIN, dot(inVec, inVec));
     return inVec * rsqrt(dp3);
 }
 
-real3 SafeNormalize(half3 inVec)
+half3 SafeNormalize(half3 inVec)
 {
     half dp3 = max(HALF_MIN, dot(inVec, inVec));
     return inVec * rsqrt(dp3);
 }
 
-// Checks if a vector is normalized
 bool IsNormalized(float3 inVec)
 {
-    real l = length(inVec);
-    return length(l) < 1.0001 && length(l) > 0.9999;
+    float squaredLength = dot(inVec, inVec);
+    return 0.9998 < squaredLength && squaredLength < 1.0002001;
+}
+
+bool IsNormalized(half3 inVec)
+{
+    half squaredLength = dot(inVec, inVec);
+    return 0.998 < squaredLength && squaredLength < 1.002;
 }
 
 // Division which returns 1 for (inf/inf) and (0/0).

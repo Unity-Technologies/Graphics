@@ -105,6 +105,8 @@ namespace UnityEditor.VFX
         public static readonly VFXAttribute[] AllAttributeReadOnly = new VFXAttribute[] { Seed, ParticleId, ParticleIndexInStrip, SpawnTime, SpawnIndex, SpawnCount, StripIndex, ParticleCountInStrip, SpawnIndexInStrip };
         public static readonly VFXAttribute[] AllAttributeWriteOnly = new VFXAttribute[] { EventCount };
         public static readonly VFXAttribute[] AllAttributeLocalOnly = new VFXAttribute[] { EventCount, ParticleIndexInStrip, StripIndex, ParticleCountInStrip };
+        public static readonly VFXAttribute[] AllAttributeWritable = AllAttribute.Except(AllAttributeReadOnly).ToArray();
+        public static readonly VFXAttribute[] AllAttributeReadable = AllAttribute.Except(AllAttributeWriteOnly).ToArray();
 
         public static readonly VFXAttribute[] AllAttributeAffectingAABB = new VFXAttribute[]
         {
@@ -118,6 +120,7 @@ namespace UnityEditor.VFX
 
         public static readonly string[] AllExceptLocalOnly = All.Except(AllLocalOnly).ToArray();
         public static readonly string[] AllWritable = All.Except(AllReadOnly).ToArray();
+        public static readonly string[] AllReadable = All.Except(AllWriteOnly).ToArray();
         public static readonly string[] AllReadWritable = All.Except(AllReadOnly).Except(AllWriteOnly).ToArray();
 
         public static readonly VFXAttribute[] AllVariadicAttribute = new VFXAttribute[]
@@ -166,6 +169,26 @@ namespace UnityEditor.VFX
             {
                 throw new InvalidOperationException("Can't mix spaceable and variadic attributes : " + name);
             }
+        }
+
+        public static VFXAttribute FindWithMode(string attributeName, VFXAttributeMode mode)
+        {
+            switch (mode)
+            {
+                case VFXAttributeMode.None:
+                    return AllAttribute.SingleOrDefault(x => x.name == attributeName);
+                case VFXAttributeMode.Read:
+                    return AllAttributeReadable.SingleOrDefault(x => x.name == attributeName);
+                case VFXAttributeMode.Write:
+                    return AllAttributeWritable.SingleOrDefault(x => x.name == attributeName);
+                case VFXAttributeMode.ReadWrite:
+                    return AllAttributeReadable.Intersect(AllAttributeWritable).SingleOrDefault(x => x.name == attributeName);
+                case VFXAttributeMode.ReadSource:
+                    break;
+            }
+
+            return new VFXAttribute();
+            //throw new ArgumentException($"Attribute `{attributeName}` is not found or not compatible is mode `{mode}`");
         }
 
         public static VFXAttribute Find(string attributeName)

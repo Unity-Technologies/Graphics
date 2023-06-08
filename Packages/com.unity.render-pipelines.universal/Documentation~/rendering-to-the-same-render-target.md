@@ -9,13 +9,13 @@ You use the Base Camera's **Output Target** property to define the render target
 ## Setting up split screen rendering
 ![Setting up split screen rendering in URP](Images/camera-split-screen-viewport.png)
 
-1. Create a Camera in your Scene. Its **Render Mode** defaults to **Base**, making it a Base Camera.
+1. Create a Camera in your scene. Its **Render Mode** defaults to **Base**, making it a Base Camera.
 2. Select the Camera. In the Inspector, scroll to the Output section. Ensure that **Output Target** is set to **Camera**, and change the values for *Viewport rect* to the following:
     * X: 0
     * Y: 0
     * W: 0.5
     * H: 1
-3. Create another Camera in your Scene. Its **Render Mode** defaults to **Base**, making it a Base Camera.
+3. Create another Camera in your scene. Its **Render Mode** defaults to **Base**, making it a Base Camera.
 4. Select the Camera. In the Inspector, scroll to the Output section. Ensure that **Output Target** is set to **Camera**, and change the values for *Viewport rect* to the following:
     * X: 0.5
     * Y: 0

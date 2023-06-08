@@ -60,6 +60,18 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         /// <summary>
+        /// Returns if the XR display is running in HDR mode.
+        /// </summary>
+        static public bool isHDRDisplayOutputActive
+        {
+#if ENABLE_VR && ENABLE_XR_MODULE
+            get => s_Display?.hdrOutputSettings?.active ?? false;
+#else
+            get => false;
+#endif
+        }
+
+        /// <summary>
         /// Valid empty pass when a camera is not using XR.
         /// </summary>
         public static readonly XRPass emptyPass = new XRPass();

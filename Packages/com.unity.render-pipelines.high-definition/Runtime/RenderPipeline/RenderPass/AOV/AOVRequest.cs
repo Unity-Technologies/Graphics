@@ -38,7 +38,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Motion vectors buffer.</summary>
         MotionVectors,
         /// <summary> The world space position of visible surfaces.</summary>
-        WorldSpacePosition
+        WorldSpacePosition,
+        /// <summary>Render only volumetric fog</summary>
+        VolumetricFogOnly
     }
 
     /// <summary>Use this request to define how to render an AOV.</summary>
@@ -192,6 +194,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     break;
                 case DebugFullScreen.WorldSpacePosition:
                     debug.SetFullScreenDebugMode(FullScreenDebugMode.WorldSpacePosition);
+                    break;
+                case DebugFullScreen.VolumetricFogOnly:
+                    debug.SetFullScreenDebugMode(FullScreenDebugMode.VolumetricFog);
                     break;
                 default:
                     throw new ArgumentException("Unknown DebugFullScreen");

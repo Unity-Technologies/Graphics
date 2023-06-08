@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.Analytics;
@@ -123,7 +124,7 @@ namespace UnityEditor.Rendering
                     }
                     else if (t.IsPrimitive || t.IsEnum)
                     {
-                        diff[field.Name] = valueCurrent.ToString();
+                        diff[field.Name] = ConvertPrimitiveWithInvariants(valueCurrent);
                     }
                     else if (t.IsArray && valueCurrent is IList valueCurrentList)
                     {
@@ -177,7 +178,7 @@ namespace UnityEditor.Rendering
                     else if (t.IsPrimitive || t.IsEnum)
                     {
                         if (!valueCurrent.Equals(valueDefault))
-                            diff[field.Name] = valueCurrent.ToString();
+                            diff[field.Name] = ConvertPrimitiveWithInvariants(valueCurrent);
                     }
                     else if (t.IsArray && valueCurrent is IList valueCurrentList)
                     {
@@ -203,6 +204,13 @@ namespace UnityEditor.Rendering
             }
 
             return diff;
+        }
+
+        static string ConvertPrimitiveWithInvariants(object obj)
+        {
+            if (obj is IConvertible convertible)
+                return convertible.ToString(CultureInfo.InvariantCulture);
+            return obj.ToString();
         }
 
         static string[] ToStringArray(Dictionary<string, string> diff)

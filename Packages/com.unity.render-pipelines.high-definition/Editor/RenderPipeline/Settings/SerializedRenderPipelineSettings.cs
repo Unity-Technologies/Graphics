@@ -80,6 +80,9 @@ namespace UnityEditor.Rendering.HighDefinition
         internal SerializedProperty supportProbeVolumeDiskStreaming;
         internal SerializedProperty probeVolumeSHBands;
 
+        public SerializedProperty supportScreenSpaceLensFlare;
+        public SerializedProperty supportDataDrivenLensFlare;
+        
         public SerializedGlobalLightLoopSettings lightLoopSettings;
         public SerializedHDShadowInitParameters hdShadowInitParams;
         public SerializedGlobalDecalSettings decalSettings;
@@ -175,6 +178,9 @@ namespace UnityEditor.Rendering.HighDefinition
             lowresTransparentSettings = new SerializedLowResTransparencySettings(root.Find((RenderPipelineSettings s) => s.lowresTransparentSettings));
             xrSettings = new SerializedXRSettings(root.Find((RenderPipelineSettings s) => s.xrSettings));
             postProcessQualitySettings = new SerializedPostProcessingQualitySettings(root.Find((RenderPipelineSettings s) => s.postProcessQualitySettings));
+            
+            supportScreenSpaceLensFlare = root.Find((RenderPipelineSettings s) => s.supportScreenSpaceLensFlare);
+            supportDataDrivenLensFlare = root.Find((RenderPipelineSettings s) => s.supportDataDrivenLensFlare);
 
             lightSettings = new SerializedLightSettings(root.Find((RenderPipelineSettings s) => s.lightSettings));
             lodBias = new SerializedScalableSetting(root.Find((RenderPipelineSettings s) => s.lodBias));

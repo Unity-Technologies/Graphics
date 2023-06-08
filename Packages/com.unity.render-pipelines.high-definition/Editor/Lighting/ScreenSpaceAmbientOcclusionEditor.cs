@@ -101,13 +101,15 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnInspectorGUI()
         {
-            if (!HDRenderPipeline.currentAsset?.currentPlatformRenderPipelineSettings.supportSSAO ?? false)
+            HDRenderPipelineAsset currentAsset = HDRenderPipeline.currentAsset;
+            bool notSupported = currentAsset != null && !currentAsset.currentPlatformRenderPipelineSettings.supportSSAO;
+            if (notSupported)
             {
                 EditorGUILayout.Space();
-                HDEditorUtils.QualitySettingsHelpBox(Styles.currentAssetDoesNotSupportSSAO, MessageType.Error,
+                HDEditorUtils.QualitySettingsHelpBox(Styles.currentAssetDoesNotSupportSSAO, MessageType.Warning,
                     HDRenderPipelineUI.ExpandableGroup.Lighting, "m_RenderPipelineSettings.supportSSAO");
-                return;
             }
+            using var disableScope = new EditorGUI.DisabledScope(notSupported);
 
             if (HDRenderPipeline.assetSupportsRayTracing)
             {

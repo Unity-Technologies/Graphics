@@ -8,7 +8,6 @@ using UnityEngine.LowLevel;
 using UnityEngine.PlayerLoop;
 using UnityEngine.Rendering;
 using UnityEngine.Assertions;
-using System.Linq;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -2479,6 +2478,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Reserve wanted resolution in the shadow atlas
             int resolution = GetResolutionFromSettings(shadowType, initParameters);
+
+            //Exit out early if we dont want to render the shadow anyways
+            if (resolution == 0)
+                return;
+
             Vector2 viewportSize = new Vector2(resolution, resolution);
 
             bool viewPortRescaling = false;
@@ -2562,10 +2566,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             return -offset;
         }
-
-
-
-
 
         // We need these old states to make timeline and the animator record the intensity value and the emissive mesh changes
         [System.NonSerialized]
@@ -2673,9 +2673,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
 
                     // If the current light unit is not supported by the new light type, we change it
-                    var supportedUnits = GetSupportedLightUnits(lightData.legacyLight.type);
-                    if (!supportedUnits.Any(u => u == lightData.lightUnit))
-                        lightData.lightUnit = supportedUnits.First();
+                    UInt64 supportedUnitsMask = GetSupportedLightUnitsBitMask(lightData.legacyLight.type);
+                    if ((supportedUnitsMask & (1UL << (int)lightData.lightUnit)) == 0) 
+                        lightData.lightUnit = GetSupportedLightUnits(lightData.legacyLight.type)[0];
                 }
 
                 // TODO: The rest of this loop only handles animation. Iterate over a separate list in builds,
@@ -3489,7 +3489,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Set the shadow resolution.
         /// </summary>
-        /// <param name="resolution">Must be between 16 and 16384</param>
+        /// <param name="resolution">Must be between 16 and 16384 but we will allow 0 to turn off the shadow</param>
         public void SetShadowResolution(int resolution)
         {
             if (shadowResolution.@override != resolution)

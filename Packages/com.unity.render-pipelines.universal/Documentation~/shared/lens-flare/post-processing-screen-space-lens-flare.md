@@ -8,9 +8,9 @@ To calculate lens flares, the Universal Render Pipeline (URP) fetches bright are
 
 The **Screen Space Lens Flare** creates lens flares from the following:
 
-- Emissive surfaces.
-- Bright spots in your scene that appear depending on the camera view, for example a bright specular reflection on a shiny metal object, or a bright outside area viewed from a dark indoor area.
-- All onscreen lights.
+* Emissive surfaces.
+* Bright spots in your scene that appear depending on the camera view, for example a bright specular reflection on a shiny metal object, or a bright outside area viewed from a dark indoor area.
+* All onscreen lights.
 
 You can use the [Lens Flare (SRP)](lens-flare-component.md) component instead to create a flare for a light that has a specific position in the scene. You can also use both the **Lens Flare (SRP)** component and the **Screen Space Lens Flare** override in the same scene.
 
@@ -22,10 +22,10 @@ URP uses the same buffer as the Bloom override to fetch the bright areas and ren
 
 You can create the following types of lens flare:
 
-- Regular flares, which are a brightened distorted version of the bright areas of the screen.
-- Reversed flares, which are regular flares flipped upside-down and reversed.
-- Warped flares, which are regular flares transformed using polar coordinates, to mimic a circular camera lens.
-- Streaks, which are flares stretched in one direction, to mimic an anamorphic camera lens. 
+* Regular flares, which are a brightened distorted version of the bright areas of the screen.
+* Reversed flares, which are regular flares flipped upside-down and reversed.
+* Warped flares, which are regular flares transformed using polar coordinates, to mimic a circular camera lens.
+* Streaks, which are flares stretched in one direction, to mimic an anamorphic camera lens. 
 
 You can control which types of flares appear and how many there are. You can also control the chromatic aberration effect URP adds to the flares.
 
@@ -34,7 +34,7 @@ The left image shows an emissive cube with bloom but no lens flares. The right i
 
 ## Enable screen space lens flares
 
-**Screen Space Lens Flare** uses the [Volume](../../Volumes.md) system, so to enable and modify **Screen Space Lens Flare** properties, you must add a **Screen Space Lens Flare** override to a [Volume](../../VolumeOverrides.md) in your Scene.
+**Screen Space Lens Flare** uses the [Volume](../../Volumes.md) system, so to enable and modify **Screen Space Lens Flare** properties, you must add a **Screen Space Lens Flare** override to a [Volume](../../VolumeOverrides.md) in your scene.
 
 ## Use screen space lens flares
 

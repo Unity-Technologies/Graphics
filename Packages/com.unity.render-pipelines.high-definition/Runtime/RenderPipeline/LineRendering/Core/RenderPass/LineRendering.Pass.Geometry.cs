@@ -217,6 +217,8 @@ namespace UnityEngine.Rendering
                             mpb.SetInteger("_VertexOffset", resources.offsetsVertex[i]);
                             // Need to manually reinterpret the bits from uint -> float (and then back to uint on GPU..).
                             mpb.SetVector("unity_RenderingLayer", new Vector4(BitConverter.Int32BitsToSingle((int)renderer.renderingLayerMask), 0f, 0f, 0f));
+                            mpb.SetVector("unity_RendererBounds_Min", renderer.bounds.min);
+                            mpb.SetVector("unity_RendererBounds_Max", renderer.bounds.max);
 
                             mpb.CopySHCoefficientArraysFrom( new []{ renderer.probe } );
                         }

@@ -1,8 +1,9 @@
 # Using the Light Batching Debugger
 
 The **Light Batching Debugger** visualizes how Unity batches [2D Lights](2DLightProperties.md) and [Shadow Casters](2DShadows.md) according to the [Sorting Layers](https://docs.unity3d.com/Manual/class-TagManager.html#SortingLayers) they target in the scene. For Unity to batch Sorting Layers, the layers need to fulfill the following conditions:
-- The layers share the same sets of Lights; that is, the 2D Lights target the same Sorting Layers. 
-- The layers share the same sets of Shadow Casters; that is, the Shadow Casters target the same Sorting Layers.
+
+* The layers share the same sets of Lights; that is, the 2D Lights target the same Sorting Layers. 
+* The layers share the same sets of Shadow Casters; that is, the Shadow Casters target the same Sorting Layers.
 
 The debugger compares adjacent batches and highlights the Lights or Shadow Casters that target each Sorting Layer, and displays which Lights or Shadow Casters you need to add or remove for Unity to be able to batch the Sorting Layers.
 

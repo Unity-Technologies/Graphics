@@ -477,7 +477,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             using (new ProfilingScope(ProfilingSampler.Get(HDProfileId.CalculateShadowIndices)))
             {
-                var shadowFilteringQuality = renderPipelineAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.shadowFilteringQuality;
+                var punctualShadowFilteringQuality = renderPipelineAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.punctualShadowFilteringQuality;
+                var directionalShadowFilteringQuality = renderPipelineAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.directionalShadowFilteringQuality;
 
                 int lightCounts = visibleLights.sortedLightCounts;
 
@@ -563,7 +564,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     worldSpaceCameraPos = worldSpaceCameraPos,
                     shaderConfigCameraRelativeRendering = ShaderConfig.s_CameraRelativeRendering,
                     shadowRequestCount = shadowManager.GetShadowRequestCount(),
-                    shadowFilteringQuality = shadowFilteringQuality,
+                    punctualShadowFilteringQuality = punctualShadowFilteringQuality,
+                    directionalShadowFilteringQuality = directionalShadowFilteringQuality,
                     usesReversedZBuffer = usesReversedZBuffer,
 
                     validIndexCalculationsMarker = ShadowRequestUpdateProfiling.validIndexCalculationsMarker,
@@ -625,7 +627,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                             SetDirectionalRequestSettings(ref shadowRequest, shadowRequestHandle, visibleLight, worldSpaceCameraPos,
                                 shadowRequest.cullingSplit.invViewProjection, shadowRequest.cullingSplit.projection, shadowRequest.cullingSplit.deviceProjectionMatrix, viewportSize,
-                                lightIndex, shadowFilteringQuality, updateInfo, shaderConfigCameraRelativeRendering, frustumPlanesStorage);
+                                lightIndex, directionalShadowFilteringQuality, updateInfo, shaderConfigCameraRelativeRendering, frustumPlanesStorage);
 
                             shadowRequest.shouldUseCachedShadowData = false;
                             shadowRequest.shouldRenderCachedComponent = true;
@@ -675,7 +677,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         SetDirectionalRequestSettings(ref shadowRequest, shadowRequestHandle, visibleLight, worldSpaceCameraPos,
                             shadowRequest.cullingSplit.invViewProjection, shadowRequest.cullingSplit.projection, shadowRequest.cullingSplit.deviceProjectionMatrix, viewportSize,
-                            lightIndex, shadowFilteringQuality, updateInfo, shaderConfigCameraRelativeRendering, frustumPlanesStorage);
+                            lightIndex, directionalShadowFilteringQuality, updateInfo, shaderConfigCameraRelativeRendering, frustumPlanesStorage);
                     }
                 }
 
@@ -728,13 +730,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     UpdateCachedSpotShadowRequestsAndResolutionRequests(visibleLights, callbacks, m_CachedSpotUpdateInfos,
                         shadowRequestsDatabase.hdShadowRequestStorage, shadowRequestsDatabase.cachedViewPositionsStorage,
-                        lightEntities.additionalLightDataUpdateInfos, shadowFilteringQuality,
+                        lightEntities.additionalLightDataUpdateInfos, punctualShadowFilteringQuality,
                         shadowRequestsDatabase.frustumPlanesStorage, shaderConfigCameraRelativeRendering, worldSpaceCameraPos,
                         usesReversedZBuffer);
 
                     UpdateDynamicSpotShadowRequestsAndResolutionRequests(visibleLights, callbacks, m_DynamicSpotUpdateInfos,
                         shadowRequestsDatabase.hdShadowRequestStorage,
-                        lightEntities.additionalLightDataUpdateInfos, shadowFilteringQuality,
+                        lightEntities.additionalLightDataUpdateInfos, punctualShadowFilteringQuality,
                         shadowRequestsDatabase.frustumPlanesStorage, shaderConfigCameraRelativeRendering, worldSpaceCameraPos,
                         usesReversedZBuffer);
                 }

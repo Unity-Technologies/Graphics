@@ -19,9 +19,9 @@ namespace UnityEngine.Rendering.Universal
             const int HEIGHT = 256;
 
             var textureFormat = GraphicsFormat.R8G8B8A8_UNorm;
-            if (RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.R16G16B16A16_SFloat, FormatUsage.SetPixels))
+            if (SystemInfo.IsFormatSupported(GraphicsFormat.R16G16B16A16_SFloat, GraphicsFormatUsage.SetPixels))
                 textureFormat = GraphicsFormat.R16G16B16A16_SFloat;
-            else if (RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.R32G32B32A32_SFloat, FormatUsage.SetPixels))
+            else if (SystemInfo.IsFormatSupported(GraphicsFormat.R32G32B32A32_SFloat, GraphicsFormatUsage.SetPixels))
                 textureFormat = GraphicsFormat.R32G32B32A32_SFloat;
 
             var texture = new Texture2D(WIDTH, HEIGHT, textureFormat, TextureCreationFlags.None);

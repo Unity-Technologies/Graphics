@@ -53,8 +53,10 @@ void InitBuiltinData(PositionInputs posInput, float alpha, float3 normalWS, floa
     // Sample lightmap/lightprobe/volume proxy
     builtinData.bakeDiffuseLighting = 0.0;
     builtinData.backBakeDiffuseLighting = 0.0;
+#ifndef LIGHT_EVALUATION_SKIP_INDIRECT_DIFFUSE
     SampleBakedGI(  posInput, normalWS, backNormalWS, builtinData.renderingLayers, texCoord1.xy, texCoord2.xy,
                     builtinData.bakeDiffuseLighting, builtinData.backBakeDiffuseLighting);
+#endif
 
     builtinData.isLightmap =
 #if defined(LIGHTMAP_ON) || defined(DYNAMICLIGHTMAP_ON)

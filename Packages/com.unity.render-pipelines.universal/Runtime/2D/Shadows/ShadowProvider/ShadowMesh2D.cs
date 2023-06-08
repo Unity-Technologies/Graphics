@@ -302,6 +302,8 @@ namespace UnityEngine.Rendering.Universal
             if (m_TrimEdge == k_TrimEdgeUninitialized)
                 m_TrimEdge = m_InitialTrim;
 
+
+            bool disposeVertices = false;
             NativeArray<ShadowEdge> edges;
             NativeArray<int> shapeStartingIndices;
             NativeArray<bool> shapeIsClosedArray;
@@ -320,7 +322,7 @@ namespace UnityEngine.Rendering.Universal
                 NativeArray<Vector3> newVertices;
                 ShadowUtility.CalculateEdgesFromTriangles(vertices, indices, true, out newVertices, out edges, out shapeStartingIndices, out shapeIsClosedArray);
 
-                vertices.Dispose();
+                disposeVertices = true;
                 vertices = newVertices;
             }
             else // if (outlineTopology == ShadowShape2D.OutlineTopology.Lines)
@@ -351,8 +353,12 @@ namespace UnityEngine.Rendering.Universal
                 m_LocalBounds = ShadowUtility.GenerateShadowMesh(m_Mesh, vertices, edges, shapeStartingIndices, shapeIsClosedArray, allowTrimming, createInteriorGeometry, outlineTopology);
             }
 
+            if(disposeVertices)
+                vertices.Dispose();
+
             edges.Dispose();
             shapeStartingIndices.Dispose();
+            shapeIsClosedArray.Dispose();
         }
 
         public void SetShapeWithLines(NativeArray<Vector3> vertices, NativeArray<int> indices, bool allowTrimming)

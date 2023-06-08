@@ -49,11 +49,11 @@ namespace UnityEngine.Experimental.Rendering
 
             if (!m_ExecutingPass.IsRead(h.handle) && !m_ExecutingPass.IsWritten(h.handle))
             {
-                throw new Exception("Pass " + m_ExecutingPass.name + " is trying to use a texture on the command buffer that was never registered with the pass builder. Please indicate the texture use to the pass builder.");
+                throw new Exception("Pass '" + m_ExecutingPass.name + "' is trying to use a texture on the command buffer that was never registered with the pass builder. Please indicate the texture use to the pass builder.");
             }
             if (m_ExecutingPass.IsAttachment(h))
             {
-                throw new Exception("Pass " + m_ExecutingPass.name + " is using a texture as a fragment attachment (UseTextureFragment/UseTextureFragmentDepth) but is also trying to bind it as regular texture. Please fix this pass. ");
+                throw new Exception("Pass '" + m_ExecutingPass.name + "' is using a texture as a fragment attachment (UseTextureFragment/UseTextureFragmentDepth) but is also trying to bind it as regular texture. Please fix this pass. ");
             }
 #endif
         }
@@ -65,11 +65,11 @@ namespace UnityEngine.Experimental.Rendering
 
             if (!m_ExecutingPass.IsRead(h.handle))
             {
-                throw new Exception("Pass " + m_ExecutingPass.name + " is trying to read a texture on the command buffer that was never registered with the pass builder. Please indicate the texture as read to the pass builder.");
+                throw new Exception("Pass '" + m_ExecutingPass.name + "' is trying to read a texture on the command buffer that was never registered with the pass builder. Please indicate the texture as read to the pass builder.");
             }
             if (m_ExecutingPass.IsAttachment(h))
             {
-                throw new Exception("Pass " + m_ExecutingPass.name + " is using a texture as a fragment attachment (UseTextureFragment/UseTextureFragmentDepth) but is also trying to bind it as regular texture. Please fix this pass. ");
+                throw new Exception("Pass '" + m_ExecutingPass.name + "' is using a texture as a fragment attachment (UseTextureFragment/UseTextureFragmentDepth) but is also trying to bind it as regular texture. Please fix this pass. ");
             }
 #endif
         }
@@ -79,13 +79,18 @@ namespace UnityEngine.Experimental.Rendering
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
             if (m_ExecutingPass == null) return;
 
+            if (h.IsBuiltin())
+            {
+                throw new Exception("Pass '" + m_ExecutingPass.name + "' is trying to write to a built-in texture. This is not allowed built-in textures are small default resources like `white` or `black` that cannot be written to.");
+            }
+
             if (!m_ExecutingPass.IsWritten(h.handle))
             {
-                throw new Exception("Pass " + m_ExecutingPass.name + " is trying to write a texture on the command buffer that was never registered with the pass builder. Please indicate the texture as written to the pass builder.");
+                throw new Exception("Pass '" + m_ExecutingPass.name + "' is trying to write a texture on the command buffer that was never registered with the pass builder. Please indicate the texture as written to the pass builder.");
             }
             if (m_ExecutingPass.IsAttachment(h))
             {
-                throw new Exception("Pass " + m_ExecutingPass.name + " is using a texture as a fragment attachment (UseTextureFragment/UseTextureFragmentDepth) but is also trying to bind it as regular texture. Please fix this pass. ");
+                throw new Exception("Pass '" + m_ExecutingPass.name + "' is using a texture as a fragment attachment (UseTextureFragment/UseTextureFragmentDepth) but is also trying to bind it as regular texture. Please fix this pass. ");
             }
 #endif
         }

@@ -152,6 +152,7 @@ When importing these two map Textures, disable **sRGB**. For best results, do no
 
 ## Limitations
 
+* Volumetric clouds have the same behavior and limitations as transparent objects in the Before Refraction render queue.
 * By default, volumetric clouds are disabled on [Planar Reflection Probes](Planar-Reflection-Probe.md) and realtime [Reflection Probes](Reflection-Probe.md) because of the performance cost.
 * When enabled for [Reflection Probes](Reflection-Probe.md), the volumetric clouds are rendered at low resolution, without any form of temporal accumulation for performance and stability reasons.
 * By default volumetric clouds are enabled on the baked [Reflection Probes](Reflection-Probe.md) if the asset allows it. They are rendered at full resolution without any form of temporal accumulation.

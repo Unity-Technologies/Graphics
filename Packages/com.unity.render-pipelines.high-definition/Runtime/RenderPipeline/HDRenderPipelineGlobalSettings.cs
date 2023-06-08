@@ -1,5 +1,6 @@
 using System;
-using System.Collections.Generic; //needed for list of Custom Post Processes injections
+using System.Collections.Generic;
+using System.ComponentModel; //needed for list of Custom Post Processes injections
 using System.IO;
 using System.Linq;
 using UnityEngine.Serialization;
@@ -34,6 +35,7 @@ namespace UnityEngine.Rendering.HighDefinition
     [HDRPHelpURL("Default-Settings-Window")]
     [DisplayInfo(name = "HDRP Global Settings Asset", order = CoreUtils.Sections.section4 + 2)]
     [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
+    [DisplayName("HDRP")]
     partial class HDRenderPipelineGlobalSettings : RenderPipelineGlobalSettings<HDRenderPipelineGlobalSettings, HDRenderPipeline>
     {
 #if UNITY_EDITOR

@@ -71,6 +71,7 @@ namespace UnityEngine.Rendering.Universal
                 public static readonly ProfilingSampler getPerObjectLightFlags = new ProfilingSampler($"{k_Name}.{nameof(GetPerObjectLightFlags)}");
                 public static readonly ProfilingSampler getMainLightIndex = new ProfilingSampler($"{k_Name}.{nameof(GetMainLightIndex)}");
                 public static readonly ProfilingSampler setupPerFrameShaderConstants = new ProfilingSampler($"{k_Name}.{nameof(SetupPerFrameShaderConstants)}");
+                public static readonly ProfilingSampler setupPerCameraShaderConstants = new ProfilingSampler($"{k_Name}.{nameof(SetupPerCameraShaderConstants)}");
 
                 public static class Renderer
                 {
@@ -145,7 +146,8 @@ namespace UnityEngine.Rendering.Universal
                     return k_MaxVisibleAdditionalLightsMobileShaderLevelLessThan45;
 
                 // GLES can be selected as platform on Windows (not a mobile platform) but uniform buffer size so we must use a low light count.
-                return (isMobile || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3)
+                // WebGPU's minimal limits are based on mobile rather than desktop, so it will need to assume mobile.
+                return (isMobile || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3 || SystemInfo.graphicsDeviceType == GraphicsDeviceType.WebGPU)
                     ? k_MaxVisibleAdditionalLightsMobile : k_MaxVisibleAdditionalLightsNonMobile;
             }
         }
@@ -351,7 +353,7 @@ namespace UnityEngine.Rendering.Universal
 
             // When HDR is active we render UI overlay per camera as we want all UI to be calibrated to white paper inside a single pass
             // for performance reasons otherwise we render UI overlay after all camera
-            SupportedRenderingFeatures.active.rendersUIOverlay = HDROutputIsActive();
+            SupportedRenderingFeatures.active.rendersUIOverlay = HDROutputForAnyDisplayIsActive();
 
             // TODO: Would be better to add Profiling name hooks into RenderPipelineManager.
             // C#8 feature, only in >= 2020.2
@@ -683,6 +685,8 @@ namespace UnityEngine.Rendering.Universal
                 context.ExecuteCommandBuffer(cmd); // Send all the commands enqueued so far in the CommandBuffer cmd, to the ScriptableRenderContext context
                 cmd.Clear();
 
+                SetupPerCameraShaderConstants(cmd);
+
                 bool apvIsEnabled = asset != null && asset.lightProbeSystem == LightProbeSystem.ProbeVolumes;
                 ProbeReferenceVolume.instance.SetEnableStateFromSRP(apvIsEnabled);
                 // We need to verify and flush any pending asset loading for probe volume.
@@ -707,7 +711,7 @@ namespace UnityEngine.Rendering.Universal
 
                 // do AdaptiveProbeVolume stuff
                 if (apvIsEnabled)
-                    ProbeVolumeLighting.instance.BindAPVRuntimeResources(cmd, true);
+                    ProbeReferenceVolume.instance.BindAPVRuntimeResources(cmd, true);
 
                 // Must be called before culling because it emits intermediate renderers via Graphics.DrawInstanced.
                 ProbeReferenceVolume.instance.RenderDebug(camera);
@@ -1409,7 +1413,7 @@ namespace UnityEngine.Rendering.Universal
             renderingData.cameraData = cameraData;
             InitializeLightData(settings, visibleLights, mainLightIndex, out renderingData.lightData);
             InitializeShadowData(settings, visibleLights, mainLightCastShadows, additionalLightsCastShadows && !renderingData.lightData.shadeAdditionalLightsPerVertex, out renderingData.shadowData);
-            InitializePostProcessingData(settings, out renderingData.postProcessingData);
+            InitializePostProcessingData(settings, cameraData.isHDROutputActive, out renderingData.postProcessingData);
             renderingData.supportsDynamicBatching = settings.supportsDynamicBatching;
             var isForwardPlus = cameraData.renderer is UniversalRenderer { renderingModeActual: RenderingMode.ForwardPlus };
             renderingData.perObjectData = GetPerObjectLightFlags(renderingData.lightData.additionalLightsCount, isForwardPlus);
@@ -1514,17 +1518,19 @@ namespace UnityEngine.Rendering.Universal
             shadowData.mainLightRenderTargetHeight = (shadowData.mainLightShadowCascadesCount == 2) ? shadowData.mainLightShadowmapHeight >> 1 : shadowData.mainLightShadowmapHeight;
         }
 
-        static void InitializePostProcessingData(UniversalRenderPipelineAsset settings, out PostProcessingData postProcessingData)
+        static void InitializePostProcessingData(UniversalRenderPipelineAsset settings, bool isHDROutputActive, out PostProcessingData postProcessingData)
         {
             postProcessingData.gradingMode = settings.supportsHDR
                 ? settings.colorGradingMode
                 : ColorGradingMode.LowDynamicRange;
 
-            if (HDROutputIsActive())
+            if (isHDROutputActive)
                 postProcessingData.gradingMode = ColorGradingMode.HighDynamicRange;
 
             postProcessingData.lutSize = settings.colorGradingLutSize;
             postProcessingData.useFastSRGBLinearConversion = settings.useFastSRGBLinearConversion;
+            postProcessingData.supportScreenSpaceLensFlare = settings.supportScreenSpaceLensFlare;
+            postProcessingData.supportDataDrivenLensFlare = settings.supportDataDrivenLensFlare;
         }
 
         static void InitializeLightData(UniversalRenderPipelineAsset settings, NativeArray<VisibleLight> visibleLights, int mainLightIndex, out LightData lightData)
@@ -1702,24 +1708,6 @@ namespace UnityEngine.Rendering.Universal
         {
             using var profScope = new ProfilingScope(Profiling.Pipeline.setupPerFrameShaderConstants);
 
-            // When glossy reflections are OFF in the shader we set a constant color to use as indirect specular
-            SphericalHarmonicsL2 ambientSH = RenderSettings.ambientProbe;
-            Color linearGlossyEnvColor = new Color(ambientSH[0, 0], ambientSH[1, 0], ambientSH[2, 0]) * RenderSettings.reflectionIntensity;
-            Color glossyEnvColor = CoreUtils.ConvertLinearToActiveColorSpace(linearGlossyEnvColor);
-            Shader.SetGlobalVector(ShaderPropertyId.glossyEnvironmentColor, glossyEnvColor);
-
-            // Used as fallback cubemap for reflections
-            Shader.SetGlobalTexture(ShaderPropertyId.glossyEnvironmentCubeMap, ReflectionProbe.defaultTexture);
-            Shader.SetGlobalVector(ShaderPropertyId.glossyEnvironmentCubeMapHDR, ReflectionProbe.defaultTextureHDRDecodeValues);
-
-            // Ambient
-            Shader.SetGlobalVector(ShaderPropertyId.ambientSkyColor, CoreUtils.ConvertSRGBToActiveColorSpace(RenderSettings.ambientSkyColor));
-            Shader.SetGlobalVector(ShaderPropertyId.ambientEquatorColor, CoreUtils.ConvertSRGBToActiveColorSpace(RenderSettings.ambientEquatorColor));
-            Shader.SetGlobalVector(ShaderPropertyId.ambientGroundColor, CoreUtils.ConvertSRGBToActiveColorSpace(RenderSettings.ambientGroundColor));
-
-            // Used when subtractive mode is selected
-            Shader.SetGlobalVector(ShaderPropertyId.subtractiveShadowColor, CoreUtils.ConvertSRGBToActiveColorSpace(RenderSettings.subtractiveShadowColor));
-
             // Required for 2D Unlit Shadergraph master node as it doesn't currently support hidden properties.
             Shader.SetGlobalColor(ShaderPropertyId.rendererColor, Color.white);
 
@@ -1733,6 +1721,29 @@ namespace UnityEngine.Rendering.Universal
                 Shader.SetGlobalFloat(ShaderPropertyId.ditheringTextureInvSize, 1.0f / asset.textures.blueNoise64LTex.width);
                 Shader.SetGlobalTexture(ShaderPropertyId.ditheringTexture, asset.textures.blueNoise64LTex);
             }
+        }
+
+        static void SetupPerCameraShaderConstants(CommandBuffer cmd)
+        {
+            using var profScope = new ProfilingScope(Profiling.Pipeline.setupPerCameraShaderConstants);
+
+            // When glossy reflections are OFF in the shader we set a constant color to use as indirect specular
+            SphericalHarmonicsL2 ambientSH = RenderSettings.ambientProbe;
+            Color linearGlossyEnvColor = new Color(ambientSH[0, 0], ambientSH[1, 0], ambientSH[2, 0]) * RenderSettings.reflectionIntensity;
+            Color glossyEnvColor = CoreUtils.ConvertLinearToActiveColorSpace(linearGlossyEnvColor);
+            cmd.SetGlobalVector(ShaderPropertyId.glossyEnvironmentColor, glossyEnvColor);
+
+            // Used as fallback cubemap for reflections
+            cmd.SetGlobalTexture(ShaderPropertyId.glossyEnvironmentCubeMap, ReflectionProbe.defaultTexture);
+            cmd.SetGlobalVector(ShaderPropertyId.glossyEnvironmentCubeMapHDR, ReflectionProbe.defaultTextureHDRDecodeValues);
+
+            // Ambient
+            cmd.SetGlobalVector(ShaderPropertyId.ambientSkyColor, CoreUtils.ConvertSRGBToActiveColorSpace(RenderSettings.ambientSkyColor));
+            cmd.SetGlobalVector(ShaderPropertyId.ambientEquatorColor, CoreUtils.ConvertSRGBToActiveColorSpace(RenderSettings.ambientEquatorColor));
+            cmd.SetGlobalVector(ShaderPropertyId.ambientGroundColor, CoreUtils.ConvertSRGBToActiveColorSpace(RenderSettings.ambientGroundColor));
+
+            // Used when subtractive mode is selected
+            cmd.SetGlobalVector(ShaderPropertyId.subtractiveShadowColor, CoreUtils.ConvertSRGBToActiveColorSpace(RenderSettings.subtractiveShadowColor));
         }
 
         static void CheckAndApplyDebugSettings(ref RenderingData renderingData)
@@ -1835,11 +1846,29 @@ namespace UnityEngine.Rendering.Universal
         /// Checks if the hardware (main display and platform) and the render pipeline support HDR.
         /// </summary>
         /// <returns>True if the main display and platform support HDR and HDR output is enabled on the platform.</returns>
-        internal static bool HDROutputIsActive()
+        internal static bool HDROutputForMainDisplayIsActive()
         {
             bool hdrOutputSupported = SystemInfo.hdrDisplaySupportFlags.HasFlag(HDRDisplaySupportFlags.Supported) && asset.supportsHDR;
             bool hdrOutputActive = HDROutputSettings.main.available && HDROutputSettings.main.active;
             return hdrOutputSupported && hdrOutputActive;
+        }
+
+        /// <summary>
+        /// Checks if any of the display devices we can output to are HDR capable and enabled.
+        /// </summary>
+        /// <returns>Return true if any of the display devices we can output HDR to have enabled HDR output</returns>
+        internal static bool HDROutputForAnyDisplayIsActive()
+        {
+            bool hdrDisplayOutputActive = HDROutputForMainDisplayIsActive();
+#if ENABLE_VR && ENABLE_XR_MODULE
+            // If we are rendering to xr then we need to look at the XR Display rather than the main non-xr display.
+            if (XRSystem.displayActive)
+            {
+                hdrDisplayOutputActive |= XRSystem.isHDRDisplayOutputActive;
+            }
+#endif
+
+            return hdrDisplayOutputActive;
         }
 
         /// <summary>
@@ -1898,12 +1927,12 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        internal static void GetHDROutputLuminanceParameters(Tonemapping tonemapping, out Vector4 hdrOutputParameters)
+        internal static void GetHDROutputLuminanceParameters(HDROutputUtils.HDRDisplayInformation hdrDisplayInformation, ColorGamut hdrDisplayColorGamut, Tonemapping tonemapping, out Vector4 hdrOutputParameters)
         {
-            float minNits = HDROutputSettings.main.minToneMapLuminance;
-            float maxNits = HDROutputSettings.main.maxToneMapLuminance;
-            float paperWhite = HDROutputSettings.main.paperWhiteNits;
-            //ColorPrimaries colorPrimaries = ColorGamutUtility.GetColorPrimaries(HDROutputSettings.main.displayColorGamut);
+            float minNits = hdrDisplayInformation.minToneMapLuminance;
+            float maxNits = hdrDisplayInformation.maxToneMapLuminance;
+            float paperWhite = hdrDisplayInformation.paperWhiteNits;
+            //ColorPrimaries colorPrimaries = ColorGamutUtility.GetColorPrimaries(hdrDisplayColorGamut);
 
             if (!tonemapping.detectPaperWhite.value)
             {

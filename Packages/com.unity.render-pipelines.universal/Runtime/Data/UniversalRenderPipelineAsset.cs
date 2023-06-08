@@ -569,6 +569,8 @@ namespace UnityEngine.Rendering.Universal
         [ShaderKeywordFilter.SelectOrRemove(true, keywordNames: ShaderKeywordStrings.UseFastSRGBLinearConversion)]
 #endif
         [SerializeField] bool m_UseFastSRGBLinearConversion = false;
+        [SerializeField] bool m_SupportDataDrivenLensFlare = true;
+        [SerializeField] bool m_SupportScreenSpaceLensFlare = true;
 
         // Deprecated settings
         [SerializeField] ShadowQuality m_ShadowType = ShadowQuality.HardShadows;
@@ -614,6 +616,16 @@ namespace UnityEngine.Rendering.Universal
         /// The default high tier resolution for additional lights shadow texture.
         /// </summary>
         public static readonly int AdditionalLightsDefaultShadowResolutionTierHigh = 1024;
+
+        /// <summary>
+        /// The list of renderer data used by this pipeline asset.
+        /// </summary>
+        public ReadOnlySpan<ScriptableRendererData> rendererDataList => m_RendererDataList;
+
+        /// <summary>
+        /// The list of renderers used by this pipeline asset.
+        /// </summary>
+        public ReadOnlySpan<ScriptableRenderer> renderers => m_Renderers;
 
 #if UNITY_EDITOR
         [NonSerialized]
@@ -992,7 +1004,7 @@ namespace UnityEngine.Rendering.Universal
                 GraphicsFormat result = GraphicsFormat.None;
                 foreach (var format in s_LightCookieFormatList[(int)m_AdditionalLightsCookieFormat])
                 {
-                    if (SystemInfo.IsFormatSupported(format, FormatUsage.Render))
+                    if (SystemInfo.IsFormatSupported(format, GraphicsFormatUsage.Render))
                     {
                         result = format;
                         break;
@@ -1560,6 +1572,22 @@ namespace UnityEngine.Rendering.Universal
         public bool useFastSRGBLinearConversion
         {
             get { return m_UseFastSRGBLinearConversion; }
+        }
+        
+        /// <summary>
+        /// Returns true if Screen Space Lens Flare are supported by this asset, false otherwise.
+        /// </summary>
+        public bool supportScreenSpaceLensFlare
+        {
+            get { return m_SupportScreenSpaceLensFlare; }
+        }
+        
+        /// <summary>
+        /// Returns true if Data Driven Lens Flare are supported by this asset, false otherwise.
+        /// </summary>
+        public bool supportDataDrivenLensFlare
+        {
+            get { return m_SupportDataDrivenLensFlare; }
         }
 
         /// <summary>

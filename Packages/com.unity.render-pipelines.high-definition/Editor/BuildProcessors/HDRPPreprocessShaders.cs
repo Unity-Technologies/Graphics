@@ -32,6 +32,20 @@ namespace UnityEditor.Rendering.HighDefinition
                     shader == hdrpAsset.renderPipelineResources.materials.waterExclusionMaterial.shader)
                     return true;
             }
+            
+            // If Screen Space Lens Flare is disabled, strip all the shaders
+            if (!hdrpAsset.currentPlatformRenderPipelineSettings.supportScreenSpaceLensFlare)
+            {
+                if (shader == hdrpAsset.renderPipelineResources.shaders.lensFlareScreenSpacePS)
+                    return true;
+            }
+            
+            // If Data Driven Lens Flare is disabled, strip all the shaders (the preview shader LensFlareDataDrivenPreview.shader in Core will not be stripped)
+            if (!hdrpAsset.currentPlatformRenderPipelineSettings.supportDataDrivenLensFlare)
+            {
+                if (shader == hdrpAsset.renderPipelineResources.shaders.lensFlareDataDrivenPS)
+                    return true;
+            }
 
             // Remove editor only pass
             bool isSceneSelectionPass = snippet.passName == "SceneSelectionPass";
@@ -172,9 +186,16 @@ namespace UnityEditor.Rendering.HighDefinition
             // Strip every useless shadow configs
             var shadowInitParams = hdrpAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams;
 
-            foreach (var shadowVariant in m_ShadowKeywords.ShadowVariants)
+            foreach (var shadowVariant in m_ShadowKeywords.PunctualShadowVariants)
             {
-                if (shadowVariant.Key != shadowInitParams.shadowFilteringQuality)
+                if (shadowVariant.Key != shadowInitParams.punctualShadowFilteringQuality)
+                    if (inputData.shaderKeywordSet.IsEnabled(shadowVariant.Value))
+                        return true;
+            }
+
+            foreach (var shadowVariant in m_ShadowKeywords.DirectionalShadowVariants)
+            {
+                if (shadowVariant.Key != shadowInitParams.directionalShadowFilteringQuality)
                     if (inputData.shaderKeywordSet.IsEnabled(shadowVariant.Value))
                         return true;
             }
@@ -274,8 +295,8 @@ namespace UnityEditor.Rendering.HighDefinition
 #endif
 
             // HDR Output
-            if (!HDROutputUtils.IsShaderVariantValid(inputData.shaderKeywordSet, PlayerSettings.useHDRDisplay))
-                return true;
+            if (!HDROutputUtils.IsShaderVariantValid(inputData.shaderKeywordSet, PlayerSettings.allowHDRDisplaySupport))
+                 return true;
 
             return false;
         }

@@ -144,7 +144,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 if (!lightLayersEnabled)
                 {
-                    HDEditorUtils.QualitySettingsHelpBox("Enable 'Light Layers' in your HDRP Asset if you want defined which lights affect water surfaces. There is a performance cost of enabling this option.",
+                    HDEditorUtils.QualitySettingsHelpBox("Enable 'Light Layers' in your HDRP Asset if you want to control which lights affect water surfaces. There is a performance cost of enabling this option.",
                         MessageType.Info, HDRenderPipelineUI.ExpandableGroup.Lighting, "m_RenderPipelineSettings.supportLightLayers");
                     EditorGUILayout.Space();
                 }

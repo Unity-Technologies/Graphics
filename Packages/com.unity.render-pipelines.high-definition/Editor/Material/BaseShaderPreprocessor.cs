@@ -9,30 +9,46 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     internal class ShadowKeywords
     {
-        ShaderKeyword ShadowLow;
-        ShaderKeyword ShadowMedium;
-        ShaderKeyword ShadowHigh;
+        ShaderKeyword PunctualShadowLow;
+        ShaderKeyword PunctualShadowMedium;
+        ShaderKeyword PunctualShadowHigh;
+
+        ShaderKeyword DirectionalShadowLow;
+        ShaderKeyword DirectionalShadowMedium;
+        ShaderKeyword DirectionalShadowHigh;
 
         ShaderKeyword AreaShadowMedium;
         ShaderKeyword AreaShadowHigh;
 
-        public Dictionary<HDShadowFilteringQuality, ShaderKeyword> ShadowVariants;
+        public Dictionary<HDShadowFilteringQuality, ShaderKeyword> PunctualShadowVariants;
+        public Dictionary<HDShadowFilteringQuality, ShaderKeyword> DirectionalShadowVariants;
         public Dictionary<HDAreaShadowFilteringQuality, ShaderKeyword> AreaShadowVariants;
 
         public ShadowKeywords()
         {
-            ShadowLow = new ShaderKeyword("SHADOW_LOW");
-            ShadowMedium = new ShaderKeyword("SHADOW_MEDIUM");
-            ShadowHigh = new ShaderKeyword("SHADOW_HIGH");
+            PunctualShadowLow = new ShaderKeyword("PUNCTUAL_SHADOW_LOW");
+            PunctualShadowMedium = new ShaderKeyword("PUNCTUAL_SHADOW_MEDIUM");
+            PunctualShadowHigh = new ShaderKeyword("PUNCTUAL_SHADOW_HIGH");
+
+            DirectionalShadowLow = new ShaderKeyword("DIRECTIONAL_SHADOW_LOW");
+            DirectionalShadowMedium = new ShaderKeyword("DIRECTIONAL_SHADOW_MEDIUM");
+            DirectionalShadowHigh = new ShaderKeyword("DIRECTIONAL_SHADOW_HIGH");
 
             AreaShadowMedium = new ShaderKeyword("AREA_SHADOW_MEDIUM");
             AreaShadowHigh = new ShaderKeyword("AREA_SHADOW_HIGH");
 
-            ShadowVariants = new Dictionary<HDShadowFilteringQuality, ShaderKeyword>
+            PunctualShadowVariants = new Dictionary<HDShadowFilteringQuality, ShaderKeyword>
             {
-                {HDShadowFilteringQuality.Low, ShadowLow},
-                {HDShadowFilteringQuality.Medium, ShadowMedium},
-                {HDShadowFilteringQuality.High, ShadowHigh},
+                {HDShadowFilteringQuality.Low, PunctualShadowLow},
+                {HDShadowFilteringQuality.Medium, PunctualShadowMedium},
+                {HDShadowFilteringQuality.High, PunctualShadowHigh},
+            };
+
+            DirectionalShadowVariants = new Dictionary<HDShadowFilteringQuality, ShaderKeyword>
+            {
+                {HDShadowFilteringQuality.Low, DirectionalShadowLow},
+                {HDShadowFilteringQuality.Medium, DirectionalShadowMedium},
+                {HDShadowFilteringQuality.High, DirectionalShadowHigh},
             };
 
             AreaShadowVariants = new Dictionary<HDAreaShadowFilteringQuality, ShaderKeyword>

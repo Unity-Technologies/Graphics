@@ -9,6 +9,35 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [16.0.1] - 2023-05-23
+
+This version is compatible with Unity 2023.2.0a17.
+
+### Changed
+- Optimized `VFX.Update` per component overhead.
+- Enabled VFX systems receiving GPU events to now enter sleep state.
+
+### Fixed
+- Fixed the broken documentation link for VFX Graph nodes (when documentation is available).
+- Fixed Motion Vector so it is now correct when transform isn't changed every frame.
+- Improved error feedback in case of missing reference in custom spawner.
+- Removed Loop And Delay block listing in favor of Spawn Context Settings (which can be accessed through the Inspector).
+- Fixed shader errors when building with sphere or cube outputs.
+- Fixed shader graph with VFX compatibility were not reimported if imported before VFX package is installed.
+- Fixed a crash when logging an error messages for unexpected buffers.
+- Fixed Opacity Channel "Metallic Map Blue" for VFX URP Decals.
+- Fixed an unexpected asset database error while importing VFX and ShaderGraph dependency.
+- Fixed the wrong evaluation of time in VFX Control Track while using Playables API.
+- Enabled the lighting debug to provide the ambient occlusion contribution on Unlit.
+- Enabled integrating the debug view for VertexDensity and QuadOverdraw.
+- Fixed data serialization that could lead to corrupted state.
+- Fixed a memory leak in the Unity Editor with VFX Graph objects.
+- Fix OutputUpdate warnings about spaces after end of line
+- Removed an error message when a point cache asset is missing, and replaced it with error feedback.
+- Fixed flickering with Volumetric Fog Output.
+- Fix strips tangents and buffer type with Shader Graph
+- Fix potential infinite loop when opening VFX Graph due to space issue
+
 ## [16.0.0] - 2023-03-22
 
 This version is compatible with Unity 2023.2.0a9.

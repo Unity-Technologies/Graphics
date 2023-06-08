@@ -92,8 +92,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // To determine if the shader is forward only, we can't rely on the presence of GBuffer pass because that depends on the active subshader, which
             // depends on the active render pipeline, giving an inconsistent result. The properties of a shader are always the same so it's ok to check them
             bool forwardOnly = material.shader.FindPropertyIndex(kZTestGBuffer) == -1;
+            bool hasRefraction = material.GetRefractionModel() != ScreenSpaceRefraction.RefractionModel.None;
 
-            ComputeStencilProperties(receivesLighting, forwardOnly, receivesSSR, useSplitLighting, out int stencilRef, out int stencilWriteMask,
+            ComputeStencilProperties(receivesLighting, forwardOnly, receivesSSR, useSplitLighting, hasRefraction, out int stencilRef, out int stencilWriteMask,
                 out int stencilRefDepth, out int stencilWriteMaskDepth, out int stencilRefGBuffer, out int stencilWriteMaskGBuffer,
                 out int stencilRefMV, out int stencilWriteMaskMV
             );
@@ -126,7 +127,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        static public void ComputeStencilProperties(bool receivesLighting, bool forwardOnly, bool receivesSSR, bool useSplitLighting, out int stencilRef, out int stencilWriteMask,
+        static public void ComputeStencilProperties(bool receivesLighting, bool forwardOnly, bool receivesSSR, bool useSplitLighting, bool hasRefraction, out int stencilRef, out int stencilWriteMask,
             out int stencilRefDepth, out int stencilWriteMaskDepth, out int stencilRefGBuffer, out int stencilWriteMaskGBuffer,
             out int stencilRefMV, out int stencilWriteMaskMV)
         {
@@ -174,6 +175,12 @@ namespace UnityEngine.Rendering.HighDefinition
             stencilWriteMaskDepth |= (int)StencilUsage.TraceReflectionRay;
             stencilWriteMaskGBuffer |= (int)StencilUsage.TraceReflectionRay;
             stencilWriteMaskMV |= (int)StencilUsage.TraceReflectionRay;
+
+            if (hasRefraction)
+            {
+                stencilRefDepth |= (int)StencilUsage.Refractive;
+                stencilWriteMaskDepth |= (int)StencilUsage.Refractive;
+            }
 
             if (!receivesLighting)
             {

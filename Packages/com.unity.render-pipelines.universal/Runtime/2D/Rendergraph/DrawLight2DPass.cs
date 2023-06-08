@@ -11,6 +11,7 @@ namespace UnityEngine.Rendering.Universal
         private static readonly ProfilingSampler m_ExecuteProfilingSampler = new ProfilingSampler("Draw Lights");
         private static readonly int k_InverseHDREmulationScaleID = Shader.PropertyToID("_InverseHDREmulationScale");
         private static readonly int k_NormalMapID = Shader.PropertyToID("_NormalMap");
+        private static readonly int k_ShadowMapID = Shader.PropertyToID("_ShadowTex");
         private static readonly int k_LightLookupID = Shader.PropertyToID("_LightLookup");
         private static readonly int k_FalloffLookupID = Shader.PropertyToID("_FalloffLookup");
 
@@ -72,14 +73,18 @@ namespace UnityEngine.Rendering.Universal
                     if (!passData.isVolumetric)
                         RendererLighting.EnableBlendStyle(cmd, blendStyleIndex, blendStyleUsed);
 
-                    var visibleLights = passData.rendererData.lightCullResult.visibleLights;
-                    foreach (var light in visibleLights)
+                    bool isShadow = passData.shadowIndex != -1;
+                    var lights = isShadow ? passData.layerBatch.shadowLights : passData.layerBatch.lights;
+
+                    for (int i = 0; i < lights.Count; ++i)
                     {
+                        var light = lights[i];
+
                         // Check if light is valid
                         if (light == null ||
                             light.lightType == Light2D.LightType.Global ||
                             light.blendStyleIndex != blendStyleIndex ||
-                            !light.IsLitLayer(layerBatch.startLayerID))
+                            (isShadow && passData.shadowIndex != i) )
                             continue;
 
                         // Check if light is volumetric
@@ -97,13 +102,18 @@ namespace UnityEngine.Rendering.Universal
                         var slotIndex = RendererLighting.lightBatch.SlotIndex(index);
                         bool canBatch = RendererLighting.lightBatch.CanBatch(light, lightMaterial, index, out int lightHash);
 
+                        bool breakBatch = !canBatch;
+                        if (breakBatch && LightBatch.isBatchingSupported)
+                            RendererLighting.lightBatch.Flush(cmd);
+
                         // Set shader global properties
-                        RendererLighting.SetPerLightShaderGlobals(cmd, light, slotIndex, passData.isVolumetric, false, LightBatch.isBatchingSupported);
+                        RendererLighting.SetPerLightShaderGlobals(cmd, light, slotIndex, passData.isVolumetric, isShadow, LightBatch.isBatchingSupported);
 
                         if (light.normalMapQuality != Light2D.NormalMapQuality.Disabled || light.lightType == Light2D.LightType.Point)
                             RendererLighting.SetPerPointLightShaderGlobals(passData.rendererData, cmd, light, slotIndex, LightBatch.isBatchingSupported);
 
                         RendererLighting.SetCookieShaderGlobals(cmd, light);
+                        ShadowRendering.SetGlobalShadowProp(cmd);
 
                         if (LightBatch.isBatchingSupported)
                         {
@@ -126,16 +136,17 @@ namespace UnityEngine.Rendering.Universal
         {
             internal LayerBatch layerBatch;
             internal Renderer2DData rendererData;
+            internal int shadowIndex;
             internal bool isVolumetric;
         }
 
-        public void Render(RenderGraph graph, ref Renderer2DData rendererData, ref LayerBatch layerBatch, in TextureHandle lightTexture, in TextureHandle normalTexture, in TextureHandle depthTexture, bool isVolumetric = false)
+        public void Render(RenderGraph graph, ref Renderer2DData rendererData, ref LayerBatch layerBatch, in TextureHandle lightTexture, in TextureHandle normalTexture, in TextureHandle depthTexture, in TextureHandle shadowTexture, int shadowlightIndex = -1, bool isVolumetric = false)
         {
             intermediateTexture[0] = lightTexture;
-            Render(graph, ref rendererData, ref layerBatch, intermediateTexture, normalTexture, depthTexture, isVolumetric);
+            Render(graph, ref rendererData, ref layerBatch, intermediateTexture, normalTexture, depthTexture, shadowTexture, shadowlightIndex, isVolumetric);
         }
 
-        public void Render(RenderGraph graph, ref Renderer2DData rendererData, ref LayerBatch layerBatch, in TextureHandle[] lightTextures, in TextureHandle normalTexture, in TextureHandle depthTexture, bool isVolumetric = false)
+        public void Render(RenderGraph graph, ref Renderer2DData rendererData, ref LayerBatch layerBatch, in TextureHandle[] lightTextures, in TextureHandle normalTexture, in TextureHandle depthTexture, in TextureHandle shadowTexture, int shadowlightIndex = -1, bool isVolumetric = false)
         {
             if (!layerBatch.lightStats.useLights ||
                 isVolumetric && !layerBatch.lightStats.useVolumetricLights)
@@ -143,6 +154,9 @@ namespace UnityEngine.Rendering.Universal
 
             if (layerBatch.lightStats.useNormalMap)
                 RenderGraphUtils.SetGlobalTexture(graph, k_NormalMapID, normalTexture, "Set Normal");
+
+            if (layerBatch.lightStats.useShadows)
+                RenderGraphUtils.SetGlobalTexture(graph, k_ShadowMapID, shadowTexture, "Set Shadows");
 
             RenderGraphUtils.SetGlobalTexture(graph, k_FalloffLookupID, graph.ImportTexture(m_FallOffRTHandle), "Set Global FalloffLookup");
             RenderGraphUtils.SetGlobalTexture(graph, k_LightLookupID, graph.ImportTexture(m_LightLookupRTHandle), "Set Global LightLookup");
@@ -157,14 +171,19 @@ namespace UnityEngine.Rendering.Universal
                 if (layerBatch.lightStats.useNormalMap)
                     builder.UseTexture(normalTexture);
 
-                foreach (var light in rendererData.lightCullResult.visibleLights)
+                if (layerBatch.lightStats.useShadows)
+                    builder.UseTexture(shadowTexture);
+
+                var lights = shadowlightIndex != -1 ? layerBatch.shadowLights : layerBatch.lights;
+                foreach (var light in lights)
                 {
-                    if (light.m_CookieSpriteTextureHandle.IsValid() && light.IsLitLayer(layerBatch.startLayerID))
+                    if (light.m_CookieSpriteTextureHandle.IsValid())
                         builder.UseTexture(light.m_CookieSpriteTextureHandle);
                 }
 
                 passData.layerBatch = layerBatch;
                 passData.rendererData = rendererData;
+                passData.shadowIndex = shadowlightIndex;
                 passData.isVolumetric = isVolumetric;
 
                 builder.AllowPassCulling(false);

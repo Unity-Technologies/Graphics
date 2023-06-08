@@ -188,7 +188,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { WaterSurfaceGBuffer, 1},
             { DecalSurfaceGradient, 1},
             { UseClusturedLightList, 1},
-            { CoreKeywordDescriptors.Shadow, 0 },
+            { CoreKeywordDescriptors.PunctualShadow, 0 },
+            { CoreKeywordDescriptors.DirectionalShadow, 0 },
             { CoreKeywordDescriptors.AreaShadow, 0 },
             { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },
         };
@@ -316,7 +317,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 requiredFields = BasicWaterMask,
                 renderStates = WaterMask,
                 pragmas = GeneratePragmas(useTessellation, useDebugSymbols),
-                defines = HDShaderPasses.GenerateDefines(WaterMaskDefines, false, useTessellation),
+                defines = GenerateDefines(WaterMaskDefines, false, useTessellation, false),
                 includes = GenerateIncludes(),
 
                 virtualTextureFeedback = false,
@@ -336,6 +337,23 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 return includes;
             }
+        }
+        #endregion
+
+        #region Descriptors
+        public struct VertexDescriptionInputs
+        {
+            public static string name = "VertexDescriptionInputs";
+            public static FieldDescriptor LowFrequencyHeight = new FieldDescriptor(name, "LowFrequencyHeight", "", ShaderValueType.Float, subscriptOptions: StructFieldOptions.Static);
+            public static FieldDescriptor Displacement = new FieldDescriptor(name, "Displacement", "", ShaderValueType.Float3, subscriptOptions: StructFieldOptions.Static);
+        }
+
+        [GenerateBlocks]
+        public struct VertexDescription
+        {
+            public static string name = "VertexDescription";
+            public static BlockFieldDescriptor LowFrequencyHeight = new BlockFieldDescriptor(name, "LowFrequencyHeight", "", new FloatControl(0.0f), ShaderStage.Vertex);
+            public static BlockFieldDescriptor Displacement = new BlockFieldDescriptor(name, "Displacement", "", new Vector3Control(Vector3.zero), ShaderStage.Vertex);
         }
         #endregion
 
@@ -368,11 +386,19 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             base.GetFields(ref context);
 
+            bool legacyGraph = context.connectedBlocks.Contains(HDBlockFields.VertexDescription.UV0) ||
+                context.connectedBlocks.Contains(HDBlockFields.VertexDescription.UV1);
+
             // Water specific properties
-            context.AddField(StructFields.VertexDescriptionInputs.uv0);
-            context.AddField(StructFields.VertexDescriptionInputs.uv1);
             context.AddField(StructFields.VertexDescriptionInputs.WorldSpacePosition);
+            context.AddField(StructFields.VertexDescriptionInputs.WorldSpaceNormal);
             context.AddField(StructFields.SurfaceDescriptionInputs.FaceSign);
+
+            context.AddField(StructFields.VertexDescriptionInputs.uv0, legacyGraph);
+            context.AddField(StructFields.VertexDescriptionInputs.uv1, legacyGraph);
+
+            context.AddField(VertexDescriptionInputs.Displacement, !legacyGraph);
+            context.AddField(VertexDescriptionInputs.LowFrequencyHeight, !legacyGraph);
 
             if (context.pass.displayName.EndsWith("Tessellation"))
                 context.AddField(HDFields.GraphTessellation);
@@ -385,16 +411,18 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddBlock(BlockFields.VertexDescription.Normal);
             context.AddBlock(HDBlockFields.VertexDescription.UV0);
             context.AddBlock(HDBlockFields.VertexDescription.UV1);
+            context.AddBlock(VertexDescription.LowFrequencyHeight);
+            context.AddBlock(VertexDescription.Displacement);
 
             // Fragment shader
+            context.AddBlock(BlockFields.SurfaceDescription.Smoothness);
             context.AddBlock(BlockFields.SurfaceDescription.BaseColor);
             context.AddBlock(BlockFields.SurfaceDescription.NormalWS);
             context.AddBlock(WaterBlocks.LowFrequencyNormalWS);
-            context.AddBlock(BlockFields.SurfaceDescription.Smoothness);
-            context.AddBlock(WaterBlocks.Foam);
-            context.AddBlock(WaterBlocks.TipThickness);
             context.AddBlock(WaterBlocks.RefractedPositionWS);
+            context.AddBlock(WaterBlocks.TipThickness);
             context.AddBlock(WaterBlocks.Caustics);
+            context.AddBlock(WaterBlocks.Foam);
         }
 
         protected override void CollectPassKeywords(ref PassDescriptor pass)
@@ -429,7 +457,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             stencilRefWaterVar.displayName = "Stencil Water Ref GBuffer";
             stencilRefWaterVar.hidden = true;
             stencilRefWaterVar.floatType = FloatType.Default;
-            stencilRefWaterVar.value = (int)StencilUsage.WaterSurface;
+            stencilRefWaterVar.value = (int)(StencilUsage.WaterSurface | StencilUsage.ExcludeFromTAA);
             stencilRefWaterVar.overrideHLSLDeclaration = true;
             stencilRefWaterVar.hlslDeclarationOverride = HLSLDeclaration.Global;
             stencilRefWaterVar.generatePropertyBlock = false;
@@ -440,7 +468,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             stencilWriteMaskWaterVar.displayName = "Stencil Water Write Mask GBuffer";
             stencilWriteMaskWaterVar.hidden = true;
             stencilWriteMaskWaterVar.floatType = FloatType.Default;
-            stencilWriteMaskWaterVar.value = (int)StencilUsage.WaterSurface;
+            stencilWriteMaskWaterVar.value = (int)(StencilUsage.WaterSurface | StencilUsage.ExcludeFromTAA);
             stencilWriteMaskWaterVar.overrideHLSLDeclaration = true;
             stencilWriteMaskWaterVar.hlslDeclarationOverride = HLSLDeclaration.Global;
             stencilWriteMaskWaterVar.generatePropertyBlock = false;

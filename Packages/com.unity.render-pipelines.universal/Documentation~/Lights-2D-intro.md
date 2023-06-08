@@ -1,5 +1,5 @@
 # Introduction to the 2D Lighting system
-The 2D Lighting system included with URP consists of a set of artist friendly tools and runtime components that help you quickly create a lit 2D Scene through core Unity components such as the [Sprite Renderer](https://docs.unity3d.com/Manual/class-SpriteRenderer.html), and 2D Light components that act as 2D counterparts to familiar 3D Light components.
+The 2D Lighting system included with URP consists of a set of artist friendly tools and runtime components that help you quickly create a lit 2D scene through core Unity components such as the [Sprite Renderer](https://docs.unity3d.com/Manual/class-SpriteRenderer.html), and 2D Light components that act as 2D counterparts to familiar 3D Light components.
 
 These tools are designed to integrate seamlessly with 2D Renderers such as the [Sprite Renderer](https://docs.unity3d.com/Manual/Sprites.html), [Tilemap Renderer](https://docs.unity3d.com/Manual/class-Tilemap.html), and [Sprite Shape Renderer](https://docs.unity3d.com/Manual/class-SpriteShapeRenderer.html). This system of tools and components are optimized for mobile systems, and for running on multiple platforms.
 
@@ -16,7 +16,7 @@ The 2D lighting model was designed specifically to work with 2D worlds that are 
 The lighting calculation in 2D Lights is not physics based as it is with 3D Lights. The details of the lighting model calculation can be found here.
 
 ### No interoperability with 3D Lights and 3D Renderers
-Currently both 3D and 2D Lights can only affect 3D and 2D Renderers respectively. 2D Lighting does not work on or effect 3D Renderers such as the [Mesh Renderer](https://docs.unity3d.com/Manual/class-MeshRenderer.html), while 3D Lighting will similarly have no effect on 2D Renderers such as the [Sprite Renderer](https://docs.unity3d.com/Manual/class-SpriteRenderer.html). While interoperability between the respective Lights and Renderers may be developed in the future, currently a combination of 2D and 3D Lights and 2D and 3D Renderers in a single Scene can be achieved by using the camera stacking technique.
+Currently both 3D and 2D Lights can only affect 3D and 2D Renderers respectively. 2D Lighting does not work on or effect 3D Renderers such as the [Mesh Renderer](https://docs.unity3d.com/Manual/class-MeshRenderer.html), while 3D Lighting will similarly have no effect on 2D Renderers such as the [Sprite Renderer](https://docs.unity3d.com/Manual/class-SpriteRenderer.html). While interoperability between the respective Lights and Renderers may be developed in the future, currently a combination of 2D and 3D Lights and 2D and 3D Renderers in a single scene can be achieved by using the camera stacking technique.
 
 ## Technical details of the 2D Lighting graphics pipeline
 The 2D Lighting graphics pipeline rendering process can be broken down into 2 distinct phases:
@@ -30,7 +30,7 @@ These two phases are only repeated  for each distinctly lit set of Light Layers.
 The default setup allows a number of [batches](https://docs.unity3d.com/Manual/DrawCallBatching.html) to be drawn ahead of time before drawing the Renderers to reduce target switching. The ideal setup would allow the pipeline to render the Light Render Textures for all the batches and only then move on to draw the Renderers. This prevents loading and unloading of the color target. Refer to [Optimization](#optimization) for more detailed information.
 
 ### Pre-phase: Calculate Sorting Layer batching
-Before proceeding with the rendering phases, the 2D Lighting graphics pipeline first analyses the Scene to assess which Layers can be batched together in a single draw operation. The following is the criteria that determine whether Layers are batched together:
+Before proceeding with the rendering phases, the 2D Lighting graphics pipeline first analyses the scene to assess which Layers can be batched together in a single draw operation. The following is the criteria that determine whether Layers are batched together:
 1. They are consecutive Layers.
 2. They share the exact same set of Lights.
 

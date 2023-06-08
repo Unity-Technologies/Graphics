@@ -7,8 +7,16 @@ using UnityEditor.Rendering;
 using UnityEditor.SceneManagement;
 using UnityEditorInternal;
 using UnityEditor.Overlays;
+using UnityEditor.LightBaking;
+using UnityEngine.LightBaking;
+using UnityEngine.LightBaking.PostProcessing;
+using UnityEngine.LightTransport;
 using UnityEngine.UIElements;
 using UnityEngine.SceneManagement;
+using UnityEngine.Assertions;
+using Unity.Collections;
+
+using Button = UnityEngine.UIElements.Button;
 
 namespace UnityEngine.Rendering
 {
@@ -128,14 +136,12 @@ namespace UnityEngine.Rendering
             get
             {
                 var set = activeSet != null ? activeSet : defaultSet;
-                if (m_ActiveSetEditor == null)
-                    m_ActiveSetEditor = Editor.CreateEditor(set);
-                if (m_ActiveSetEditor.target != set)
-                    Editor.CreateCachedEditor(set, m_ActiveSetEditor.GetType(), ref m_ActiveSetEditor);
+                Editor.CreateCachedEditor(set, typeof(ProbeVolumeBakingSetEditor), ref m_ActiveSetEditor);
                 return (ProbeVolumeBakingSetEditor)m_ActiveSetEditor;
             }
         }
 
+        /*
         SerializedObject m_LightmapSettings;
         SerializedProperty m_LightingSettingsAsset;
         SerializedObject lightmapSettings
@@ -152,6 +158,7 @@ namespace UnityEngine.Rendering
                 return m_LightmapSettings;
             }
         }
+        */
 
         public override void OnEnable()
         {
@@ -289,78 +296,18 @@ namespace UnityEngine.Rendering
             {
                 // Order of options defined by Styles.bakeOptionsText
                 int option = (int)data;
-                if (option == 0) // bake probes
+                switch (option)
                 {
-                    BakeAllReflectionProbes();
-                }
-                if (option == 1) // clear
-                {
-                    ClearBakedData();
+                    case 0: BakeAllReflectionProbes(); break;
+                    case 1: ClearBakedData(); break;
+                    default: Debug.Log("invalid option in BakeButtonCallback"); break;
                 }
             }
 
             if (EditorGUI.LargeSplitButtonWithDropdownList(Styles.generateLighting, Styles.bakeOptionsText, BakeButtonCallback))
             {
-                // Make sure APV is enabled
-                var sceneData = ProbeReferenceVolume.instance.sceneData;
-                if (!ProbeReferenceVolume.instance.isInitialized || !ProbeReferenceVolume.instance.enabledBySRP || sceneData == null)
-                {
+                if (PrepareAPVBake())
                     Lightmapping.BakeAsync();
-                    return;
-                }
-
-                bool createPV = m_SingleSceneMode ? !ActiveSceneHasProbeVolume() : NoSceneHasProbeVolume();
-                if (createPV && EditorUtility.DisplayDialog("No Probe Volume in Scene", "Probe Volumes are enabled for this Project, but none exist in the Scene.\n\n" +
-                            "Do you wish to add a Probe Volume to the Active Scene?", "Yes", "No"))
-                    CreateProbeVolume();
-                if (m_SingleSceneMode)
-                {
-                    if (GetFirstProbeVolumeInNonActiveScene() != null)
-                    {
-                        int res = EditorUtility.DisplayDialogComplex("Create Baking Set?", "You are using the Single Scene Baking Mode and have more than one Scene loaded. It is not possible to generate lighting.\n\n" +
-                            "Do you want to create a Baking Set instead?", "Yes", "Cancel", "Bake anyway");
-                        if (res == 0)
-                            ConvertTempBakingSet();
-                        if (res == 1)
-                            return;
-                    }
-                }
-
-                SaveTempBakingSetIfNeeded();
-
-                // Exclude scenes unchecked from the UI and scenes from other baking sets
-                ProbeGIBaking.partialBakeSceneList = new();
-                for (int i = 0; i < SceneManager.sceneCount; i++)
-                {
-                    var scene = SceneManager.GetSceneAt(i);
-                    var guid = ProbeVolumeSceneData.GetSceneGUID(scene);
-                    if (!scene.isLoaded || sceneData.GetBakingSetForScene(guid) != activeSet) continue;
-                    if (sceneData.SceneHasProbeVolumes(guid) && activeSet.scenesToNotBake.Contains(guid)) continue;
-
-                    ProbeGIBaking.partialBakeSceneList.Add(guid);
-                }
-
-                if (ProbeGIBaking.partialBakeSceneList.Count == activeSet.sceneGUIDs.Count)
-                    ProbeGIBaking.partialBakeSceneList = null;
-
-                if (ProbeGIBaking.partialBakeSceneList != null)
-                {
-                    // Layout has changed and is incompatible.
-                    if (!activeSet.freezePlacement &&
-                        (activeSet.bakedMinDistanceBetweenProbes != activeSet.minDistanceBetweenProbes ||
-                        activeSet.bakedSimplificationLevels != activeSet.simplificationLevels))
-                    {
-                        if (EditorUtility.DisplayDialog("Incompatible Layout", "You are partially baking the set with an incompatible cell layout. Proceeding will invalidate all previously bake data.\n\n" + "Do you wish to continue?", "Yes", "No"))
-                            ClearBakedData();
-                        else
-                            return;
-                    }
-                }
-
-                if (ProbeReferenceVolume.instance.supportLightingScenarios && !activeSet.m_LightingScenarios.Contains(activeSet.lightingScenario))
-                    activeSet.SetActiveScenario(activeSet.m_LightingScenarios[0], false);
-
-                Lightmapping.BakeAsync();
             }
         }
 
@@ -989,6 +936,190 @@ namespace UnityEngine.Rendering
         static bool BakeAllReflectionProbes()
         {
             return (bool)k_Lightmapping_BakeAllReflectionProbesSnapshots.Invoke(null, null);
+        }
+
+        internal bool PrepareAPVBake()
+        {
+            // Make sure APV is enabled
+            var sceneData = ProbeReferenceVolume.instance.sceneData;
+            if (!ProbeReferenceVolume.instance.isInitialized || !ProbeReferenceVolume.instance.enabledBySRP || sceneData == null)
+            {
+                Lightmapping.BakeAsync();
+                return false;
+            }
+
+            bool createPV = m_SingleSceneMode ? !ActiveSceneHasProbeVolume() : NoSceneHasProbeVolume();
+            if (createPV && EditorUtility.DisplayDialog("No Probe Volume in Scene", "Probe Volumes are enabled for this Project, but none exist in the Scene.\n\n" +
+                        "Do you wish to add a Probe Volume to the Active Scene?", "Yes", "No"))
+                CreateProbeVolume();
+            if (m_SingleSceneMode)
+            {
+                if (GetFirstProbeVolumeInNonActiveScene() != null)
+                {
+                    int res = EditorUtility.DisplayDialogComplex("Create Baking Set?", "You are using the Single Scene Baking Mode and have more than one Scene loaded. It is not possible to generate lighting.\n\n" +
+                        "Do you want to create a Baking Set instead?", "Yes", "Cancel", "Bake anyway");
+                    if (res == 0)
+                        ConvertTempBakingSet();
+                    if (res == 1)
+                        return false;
+                }
+            }
+
+            SaveTempBakingSetIfNeeded();
+
+            // Exclude scenes unchecked from the UI and scenes from other baking sets
+            ProbeGIBaking.partialBakeSceneList = new();
+            for (int i = 0; i < SceneManager.sceneCount; i++)
+            {
+                var scene = SceneManager.GetSceneAt(i);
+                var guid = ProbeVolumeSceneData.GetSceneGUID(scene);
+                if (!scene.isLoaded || sceneData.GetBakingSetForScene(guid) != activeSet) continue;
+                if (sceneData.SceneHasProbeVolumes(guid) && activeSet.scenesToNotBake.Contains(guid)) continue;
+
+                ProbeGIBaking.partialBakeSceneList.Add(guid);
+            }
+
+            if (ProbeGIBaking.partialBakeSceneList.Count == activeSet.sceneGUIDs.Count)
+                ProbeGIBaking.partialBakeSceneList = null;
+
+            if (ProbeGIBaking.partialBakeSceneList != null)
+            {
+                // Layout has changed and is incompatible.
+                if (!activeSet.freezePlacement &&
+                    (activeSet.bakedMinDistanceBetweenProbes != activeSet.minDistanceBetweenProbes ||
+                    activeSet.bakedSimplificationLevels != activeSet.simplificationLevels))
+                {
+                    if (EditorUtility.DisplayDialog("Incompatible Layout", "You are partially baking the set with an incompatible cell layout. Proceeding will invalidate all previously bake data.\n\n" + "Do you wish to continue?", "Yes", "No"))
+                        ClearBakedData();
+                    else
+                        return false;
+                }
+            }
+
+            if (ProbeReferenceVolume.instance.supportLightingScenarios && !activeSet.m_LightingScenarios.Contains(activeSet.lightingScenario))
+                activeSet.SetActiveScenario(activeSet.m_LightingScenarios[0], false);
+
+            return true;
+        }
+
+        static void BakeProbeVolumeOnly()
+        {
+            if (!ProbeGIBaking.InitializeBake())
+                return;
+
+            Vector3[] probePositions = ProbeGIBaking.RunPlacement();
+
+            using LightBaker.BakeInput input = new LightBaker.BakeInput();
+            using InputExtraction.SourceMap map = new InputExtraction.SourceMap();
+            LightingSettings lightingSettings = Lightmapping.GetLightingSettingsOrDefaultsFallback();
+
+            // Input extraction is done on the set of open scenes and does not include APV positions.
+            string LightBakerTempOutputPath = "DeleteThisArgumentFromExtractFromScene";
+            bool result = InputExtraction.ExtractFromScene(LightBakerTempOutputPath, input, map);
+            Assert.IsTrue(result, "InputExtraction.ExtractFromScene failed.");
+
+            input.SetProbePositions(probePositions);
+
+            // TODO don't block the UI, spin up a C# thread for the bake.
+
+            IDeviceContext ctx = null;
+            IProbeIntegrator integrator = null;
+            IWorld world = null;
+            IProbePostProcessor postProcessor = null;
+            switch (lightingSettings.lightmapper)
+            {
+                case LightingSettings.Lightmapper.ProgressiveCPU:
+                    {
+                        ctx = new WintermuteContext();
+                        integrator = new WintermuteProbeIntegrator();
+                        world = new WintermuteWorld();
+                        postProcessor = new WintermuteProbePostProcessor();
+                    }
+                    break;
+                default:
+                    {
+                        ctx = new RadeonRaysContext();
+                        integrator = new RadeonRaysProbeIntegrator();
+                        world = new RadeonRaysWorld();
+                        postProcessor = new RadeonRaysProbePostProcessor();
+                    }
+                    break;
+            }
+
+            var contextInitialized = ctx.Initialize();
+            Assert.AreEqual(true, contextInitialized);
+
+            var progress = new BakeProgressState();
+            var worldResult = LightBaker.PopulateWorld(input, progress, ctx, world);
+            Assert.AreEqual(LightBaker.ResultType.Success, worldResult.type, "PopulateWorld failed.");
+
+            // TODO: Calculate validity data using the unified ray intersector API here
+            // TODO: Offset probe positions based on validity data.
+
+            // Get settings from the LightingSettings asset
+            int lightprobeSampleCountMultiplier = (int)lightingSettings.lightProbeSampleCountMultiplier;
+            var bounceCount = lightingSettings.maxBounces;
+            int sampleCountDirect = lightingSettings.directSampleCount * lightprobeSampleCountMultiplier;
+            int sampleCountIndirect = lightingSettings.indirectSampleCount * lightprobeSampleCountMultiplier;
+            int sampleCountValidity = 4096;
+            float pushoff = 0.001f;
+
+            // Calculate L2 SH and validity based on offset probe positions.
+            const int sizeOfFloat = 4;
+            var positionsLength = probePositions.Length;
+            ulong positionsBytes = (ulong)(sizeOfFloat * 3 * positionsLength);
+            var positionsBufferID = ctx.CreateBuffer(positionsBytes);
+            using var positionsNative = new NativeArray<Vector3>(probePositions, Allocator.TempJob);
+            ctx.WriteBuffer(positionsBufferID, positionsNative.Reinterpret<byte>(sizeOfFloat * 3));
+            var positionsSlice = new BufferSlice(positionsBufferID, 0);
+            integrator.Prepare(world, positionsSlice, pushoff, bounceCount);
+            integrator.SetProgressReporter(progress);
+
+            const int SHL2RGBElements = 3 * 9;
+            const int sizeSHL2RGB = sizeOfFloat * SHL2RGBElements;
+            var positionOffset = 0; // can be used to bake portions/tiles of the full set of positions.
+            var shBytes = (ulong)(sizeSHL2RGB * positionsLength);
+            var directRadianceBufferId = ctx.CreateBuffer(shBytes);
+            var indirectRadianceBufferId = ctx.CreateBuffer(shBytes);
+            var directRadianceSlice = new BufferSlice(directRadianceBufferId, 0);
+            var indirectRadianceSlice = new BufferSlice(indirectRadianceBufferId, 0);
+
+            // Bake direct radiance.
+            var integrationResult = integrator.IntegrateDirectRadiance(ctx, positionOffset, positionsLength,
+                sampleCountDirect, directRadianceSlice);
+            Assert.AreEqual(IProbeIntegrator.ResultType.Success, integrationResult.type, "IntegrateDirectRadiance failed.");
+
+            // Bake indirect radiance.
+            integrationResult = integrator.IntegrateIndirectRadiance(ctx, positionOffset, positionsLength,
+                sampleCountIndirect, indirectRadianceSlice);
+            Assert.AreEqual(IProbeIntegrator.ResultType.Success, integrationResult.type, "IntegrateIndirectRadiance failed.");
+
+            // Bake validity.
+            var validityBytes = (ulong)(sizeOfFloat * positionsLength);
+            var validityBufferId = ctx.CreateBuffer(validityBytes);
+            var validitySlice = new BufferSlice(validityBufferId, 0);
+            var validityResult = integrator.IntegrateValidity(ctx, positionOffset, positionsLength,
+                sampleCountValidity, validitySlice);
+            Assert.AreEqual(IProbeIntegrator.ResultType.Success, validityResult.type, "IntegrateLightProbeValidity failed.");
+
+            // Composit direct and indirect radiance.
+            postProcessor.AddSphericalHarmonicsL2(ctx, directRadianceSlice, indirectRadianceSlice, directRadianceSlice, positionsLength);
+
+            // Post process (convert radiance to irradiance and transform to the format expected by Unity).
+            var irradianceBufferId = ctx.CreateBuffer(shBytes);
+            var irradianceSlice = new BufferSlice(irradianceBufferId, 0);
+            postProcessor.ConvolveRadianceToIrradiance(ctx, directRadianceSlice, irradianceSlice, positionsLength);
+            postProcessor.ConvertToUnityFormat(ctx, irradianceSlice, irradianceSlice, positionsLength);
+
+            // Blocking read back to get results back from GPU memory.
+            using var irradianceResults = new NativeArray<SphericalHarmonicsL2>(positionsLength, Allocator.Temp);
+            ctx.ReadBuffer(irradianceBufferId, irradianceResults.Reinterpret<byte>(sizeSHL2RGB));
+            using var validityResults = new NativeArray<float>(positionsLength, Allocator.Temp);
+            ctx.ReadBuffer(validityBufferId, validityResults.Reinterpret<byte>(sizeOfFloat));
+
+            // Output data in result buffers is now ready, in CPU side memory.
+
+            ProbeGIBaking.ApplyPostBakeOperations(irradianceResults, validityResults);
         }
 
         static T ObjectFieldWithNew<T>(GUIContent label, T obj, Func<T> onClick) where T : Object

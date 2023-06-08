@@ -1,7 +1,7 @@
 # Screen Space Shadows Renderer Feature
 
 The Screen Space Shadows [Renderer Feature](urp-renderer-feature.md) calculates screen-space shadows for opaque objects affected by the main directional light and draws them in the scene. To render screen-space shadows, URP requires an additional render target. This increases the amount of memory your application requires, but if your project uses forward rendering, screen-space shadows can benefit the runtime resource intensity. This is because if you use screen-space shadows, URP doesn't need to access the cascade shadow maps multiple times.
-![Show screen space shadows](Images/ssshadows/ssshadows-result.png)<br/>*Screen-space shadows in a sample Scene.*
+![Show screen space shadows](Images/ssshadows/ssshadows-result.png)<br/>*Screen-space shadows in a sample scene.*
 
 ![Show screen space shadows texture](Images/ssshadows/ssshadows-shadow-texture.png)<br/>*The screen-space shadows texture for the above image.*
 

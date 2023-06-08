@@ -88,7 +88,7 @@ namespace UnityEditor.VFX
             "InternalSourceAttributesElement"
         };
 
-        public static IEnumerable<FieldDescriptor> GetVFXInterpolators(string structName, VFXContext context, VFXTaskCompiledData taskData)
+        public static IEnumerable<(string name, ShaderValueType type, string interpolation)> GetVFXInterpolators(VFXContext context, VFXTaskCompiledData taskData)
         {
             if (taskData.SGInputs != null)
             {
@@ -102,7 +102,7 @@ namespace UnityEditor.VFX
                     if (!VFXSubTarget.kVFXShaderValueTypeMap.TryGetValue(VFXExpression.TypeToType(exp.valueType), out var shaderValueType))
                         throw new Exception($"Unsupported interpolator type for {name}: {exp.valueType}");
 
-                    yield return new FieldDescriptor(structName, name, "", shaderValueType, subscriptOptions: StructFieldOptions.Static, interpolation: interpolationStr);
+                    yield return (name, shaderValueType, interpolationStr);
                 }
             }
         }
@@ -334,7 +334,39 @@ namespace UnityEditor.VFX
             return overridenPragmas;
         }
 
+
+        static StructCollection ApplyVaryingsStructModifier(StructCollection inStructs, VFXSRPBinder.ShaderGraphBinder shaderGraphSRPInfo, List<(string name, ShaderValueType type, string interpolation)> cachedVFXInterpolators)
+        {
+            // A key difference between Material Shader and VFX Shader generation is how surface properties are provided. Material Shaders
+            // simply provide properties via UnityPerMaterial cbuffer. VFX expects these same properties to be computed in the vertex
+            // stage (because we must evaluate them with the VFX blocks), and packed with the interpolators for the fragment stage.
+
+            var outStructs = new StructCollection();
+            outStructs.Add(shaderGraphSRPInfo.baseStructs);
+            foreach (var inStruct in inStructs)
+            {
+                //Currently all the varyings structs contain the string "Varyings" in it, in URP and HDRP
+                if (inStruct.descriptor.name.Contains("Varyings"))
+                {
+                    var modifiedVaryingsDescriptor = inStruct.descriptor;
+                    var fieldList = inStruct.descriptor.fields.ToList();
+                    var vfxInterpolators = cachedVFXInterpolators.Select(o =>
+                        new FieldDescriptor(inStruct.descriptor.name, o.name, string.Empty, o.type, subscriptOptions: StructFieldOptions.Static, interpolation: o.interpolation));
+                    fieldList.AddRange(vfxInterpolators);
+                    fieldList.AddRange(shaderGraphSRPInfo.varyingsAdditionalFields);
+                    modifiedVaryingsDescriptor.fields = fieldList.ToArray();
+                    outStructs.Add(modifiedVaryingsDescriptor, inStruct.fieldConditions);
+                }
+            }
+            return outStructs;
+        }
+
         static readonly (KeywordDescriptor oldDesc, KeywordDescriptor newDesc)[] k_CommonKeywordReplacement =
+        {
+            (new KeywordDescriptor() {referenceName = Rendering.BuiltIn.ShaderGraph.BuiltInFields.VelocityPrecomputed.define}, VFXSRPBinder.ShaderGraphBinder.kKeywordDescriptorNone)
+        };
+
+        static readonly (KeywordDescriptor oldDesc, KeywordDescriptor newDesc)[] k_CommonDefineReplacement =
         {
             (new KeywordDescriptor() {referenceName = Rendering.BuiltIn.ShaderGraph.BuiltInFields.VelocityPrecomputed.define}, VFXSRPBinder.ShaderGraphBinder.kKeywordDescriptorNone)
         };
@@ -364,6 +396,32 @@ namespace UnityEditor.VFX
                 return overridenKeywords;
             }
             return keywords;
+        }
+
+        static DefineCollection ApplyDefineModifier(DefineCollection defines, VFXSRPBinder.ShaderGraphBinder shaderGraphSRPInfo)
+        {
+            if (defines != null)
+            {
+                var defineReplacement = k_CommonDefineReplacement;
+                //So far, no SRP custom define replacement
+
+                var overridenDefines = new DefineCollection();
+                foreach (var define in defines)
+                {
+                    var currentDefine = define;
+
+                    var replacement = defineReplacement.FirstOrDefault(o => o.oldDesc.referenceName == define.descriptor.referenceName);
+                    if (replacement.newDesc.referenceName == VFXSRPBinder.ShaderGraphBinder.kPragmaDescriptorNone.value)
+                        continue; //Skip this irrelevant pragmas, kPragmaDescriptorNone shouldn't be null/empty
+
+                    if (!string.IsNullOrEmpty(replacement.newDesc.referenceName))
+                        currentDefine = new DefineCollection.Item(replacement.newDesc, currentDefine.index, currentDefine.fieldConditions);
+
+                    overridenDefines.Add(currentDefine.descriptor, currentDefine.index, currentDefine.fieldConditions);
+                }
+                return overridenDefines;
+            }
+            return defines;
         }
 
         internal static SubShaderDescriptor PostProcessSubShader(SubShaderDescriptor subShaderDescriptor, VFXContext context, VFXTaskCompiledData data)
@@ -420,17 +478,18 @@ namespace UnityEditor.VFX
             var addPragmaRequireCubeArray = data.uniformMapper.textures.Any(o => o.valueType == VFXValueType.TextureCubeArray);
 
             PassCollection vfxPasses = new PassCollection();
+            var cachedVFXInterpolators = GetVFXInterpolators(context, data).ToList();
             for (int i = 0; i < passes.Length; i++)
             {
                 var passDescriptor = passes[i].descriptor;
 
                 passDescriptor.pragmas = ApplyPragmaModifier(passDescriptor.pragmas, shaderGraphSRPInfo, addPragmaRequireCubeArray);
                 passDescriptor.keywords = ApplyKeywordModifier(passDescriptor.keywords, shaderGraphSRPInfo);
+                passDescriptor.defines = ApplyDefineModifier(passDescriptor.defines, shaderGraphSRPInfo);
 
                 // Warning: We are replacing the struct provided in the regular pass. It is ok as for now the VFX editor don't support
                 // tessellation or raytracing
-                passDescriptor.structs = new StructCollection();
-                passDescriptor.structs.Add(shaderGraphSRPInfo.structs);
+                passDescriptor.structs = ApplyVaryingsStructModifier(passDescriptor.structs, shaderGraphSRPInfo, cachedVFXInterpolators);
                 passDescriptor.structs.Add(attributesStruct);
                 passDescriptor.structs.Add(sourceAttributesStruct);
 

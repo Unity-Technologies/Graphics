@@ -520,7 +520,7 @@ namespace UnityEngine.Rendering
             if (isShadowMap || depthBufferBits != DepthBits.None)
             {
                 RenderTextureFormat format = isShadowMap ? RenderTextureFormat.Shadowmap : RenderTextureFormat.Depth;
-                GraphicsFormat stencilFormat = !isShadowMap && SystemInfo.IsFormatSupported(GraphicsFormat.R8_UInt, FormatUsage.StencilSampling) ? GraphicsFormat.R8_UInt : GraphicsFormat.None;
+                GraphicsFormat stencilFormat = !isShadowMap && SystemInfo.IsFormatSupported(GraphicsFormat.R8_UInt, GraphicsFormatUsage.StencilSampling) ? GraphicsFormat.R8_UInt : GraphicsFormat.None;
 
                 rt = new RenderTexture(width, height, (int)depthBufferBits, format, RenderTextureReadWrite.Linear)
                 {
@@ -798,7 +798,7 @@ namespace UnityEngine.Rendering
             if (isShadowMap || depthBufferBits != DepthBits.None)
             {
                 RenderTextureFormat format = isShadowMap ? RenderTextureFormat.Shadowmap : RenderTextureFormat.Depth;
-                GraphicsFormat stencilFormat = !isShadowMap && SystemInfo.IsFormatSupported(GraphicsFormat.R8_UInt, FormatUsage.StencilSampling) ? GraphicsFormat.R8_UInt : GraphicsFormat.None;
+                GraphicsFormat stencilFormat = !isShadowMap && SystemInfo.IsFormatSupported(GraphicsFormat.R8_UInt, GraphicsFormatUsage.StencilSampling) ? GraphicsFormat.R8_UInt : GraphicsFormat.None;
                 rt = new RenderTexture(width, height, (int)depthBufferBits, format, RenderTextureReadWrite.Linear)
                 {
                     hideFlags = HideFlags.HideAndDontSave,

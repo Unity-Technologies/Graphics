@@ -146,9 +146,12 @@ namespace UnityEditor.VFX
         {
         }
 
-        sealed public override VFXValue CopyExpression(Mode mode)
+        public string templateType { get; set; }
+
+        public sealed override VFXValue CopyExpression(Mode mode)
         {
             var copy = new VFXGraphicsBufferValue(Get(), mode);
+            copy.templateType = templateType;
             return copy;
         }
     }

@@ -10,11 +10,16 @@ To activate HDR output, follow these steps.
 
 1. Locate the [URP Asset](./../universalrp-asset.md) in the Project window under **Assets** > **Settings**.
 2. Navigate to **Quality** > **HDR** and enable the checkbox to enable **HDR**.
-3. Next, navigate to **Edit** > **Project Settings** > **Player** > **Other Settings** and enable **Allow HDR Display Output**.
+3. Navigate to **Edit** > **Project Settings** > **Player** > **Other Settings** and enable the following settings:
 
-However, if you switch to a URP Asset that does not have HDR enabled, URP disables HDR Output until you change to a URP Asset with HDR enabled.
+    * **Allow HDR Display Output**
+    * **Use HDR Display Output**
 
-**Note**: If HDR Output is active, the grading mode falls back to HDR, even if there is a different Color Grading Mode active in the URP Asset.
+  > **Note**: Only enable **Use HDR Display Output** if you need the main display to use HDR Output.
+
+If you switch to a URP Asset that does not have HDR enabled, URP disables HDR Output until you change to a URP Asset with HDR enabled.
+
+> **Note**: If HDR Output is active, the grading mode falls back to HDR, even if there is a different Color Grading Mode active in the URP Asset.
 
 ## HDR tone mapping in URP
 
@@ -26,11 +31,11 @@ In order to configure these settings effectively, you need to understand how cer
 
 To properly make use of the capabilities of HDR displays, your **Tonemapping** configuration must take into account the capabilities of the target display, specifically these three values (in nits):
 
-- **Minimum supported brightness**.
-- **Maximum supported brightness**.
-- **Paper White value**: This value represents the brightness of a paper-white surface represented on the display, which determines the display's brightness overall.
+* **Minimum supported brightness**.
+* **Maximum supported brightness**.
+* **Paper White value**: This value represents the brightness of a paper-white surface represented on the display, which determines the display's brightness overall.
 
-**Note**: Low Dynamic Range (LDR) and High Dynamic Range (HDR) content do not appear equally bright on displays with the same Paper White value. This is because displays apply extra processing to low dynamic range content that bumps its brightness levels up. For this reason, it is best practice to implement a calibration menu for your application.
+> **Note**: Low Dynamic Range (LDR) and High Dynamic Range (HDR) content do not appear equally bright on displays with the same Paper White value. This is because displays apply extra processing to low dynamic range content that bumps its brightness levels up. For this reason, it is best practice to implement a calibration menu for your application.
 
 ### Usable user interfaces depend on accurate Paper White values
 
@@ -50,8 +55,8 @@ After you enable **Allow HDR Display Output**, HDR Tonemapping options become vi
 
 URP provides two **Tonemapping** modes: **Neutral** and **ACES**. Each Tonemapping mode has some unique properties.
 
-- **Neutral** mode is especially suitable for situations where you do not want the tone mapper to color grade your content.
-- **ACES** mode uses the ACES reference color space for feature films. It produces a cinematic, contrasty result.
+* **Neutral** mode is especially suitable for situations where you do not want the tone mapper to color grade your content.
+* **ACES** mode uses the ACES reference color space for feature films. It produces a cinematic, contrasty result.
 
 ### Neutral
 
@@ -67,9 +72,9 @@ URP provides two **Tonemapping** modes: **Neutral** and **ACES**. Each Tonemappi
 
 ### Misuse of Hue Shift Amount
 
-Creators might author some content with the intention to use **Hue Shift Amount** to produce special effects. In the illustration below, the **Hue Shift Amount** is 0 for Image A and 1 for Image B. The flames image B appear more intense because of the hue shift effect. It is preferable not to author content in this way, because settings optimized for special effects can have undesirable effects on other content in the Scene.
+Creators might author some content with the intention to use **Hue Shift Amount** to produce special effects. In the illustration below, the **Hue Shift Amount** is 0 for Image A and 1 for Image B. The flames image B appear more intense because of the hue shift effect. It is preferable not to author content in this way, because settings optimized for special effects can have undesirable effects on other content in the scene.
 
-![Hue Shift Amount Comparison](./../Images/post-proc/hdr/HDR-Output-HueShift.png)</br>*Image A: Output when Hue Shift Amount is 0.*</br>*Image B: Output when Hue Shift Amount is 1.*
+![Hue Shift Amount Comparison](./../Images/post-proc/hdr/HDR-Output-HueShift.png)<br/>*Image A: Output when Hue Shift Amount is 0.*<br/>*Image B: Output when Hue Shift Amount is 1.*
 
 ### ACES
 
@@ -93,24 +98,28 @@ URP offers three debug views for HDR rendering. To access them, navigate to **Wi
 
 ![Gamut Debug View](./../Images/post-proc/hdr/HDR-Output-GamutView.png)
 
-The triangles in this debug view indicate which parts of two specific color gamuts this Scene covers. The small triangle displays the [Rec709](https://en.wikipedia.org/wiki/Rec._709) gamut values, and the large triangle displays the [Rec2020](https://en.wikipedia.org/wiki/Rec._2020) gamut values. This enables you to check color plot changes while color grading. It can also help you ensure that you benefit from the wider color gamut available in HDR.
+The triangles in this debug view indicate which parts of three specific color gamuts this scene covers. The small triangle displays the [Rec709](https://en.wikipedia.org/wiki/Rec._709) gamut values, the medium triangle displays the [P3-D65](https://en.wikipedia.org/wiki/DCI-P3) gamut values, and the large triangle displays the [Rec2020](https://en.wikipedia.org/wiki/Rec._2020) gamut values. This enables you to check color plot changes while color grading. It can also help you ensure that you benefit from the wider color gamut available in HDR.
 
 ### Gamut Clip
 
 ![Gamut Clip Debug View](./../Images/post-proc/hdr/HDR-Output-GamutClip.png)
 
-This debug view indicates the relationship between scene values and specific color gamuts. Areas of the screen outside of the Rec709 color gamut are red, and areas with values within the Rec709 gamut are green.
+This debug view indicates the relationship between scene values and specific color gamuts. Areas of the screen with values within the Rec709 gamut are green, areas outside of the Rec709 gamut but inside the P3-D65 gamut are blue, and areas outside of both are red.
 
 ### Values exceeding Paper White
 
 ![Values Exceeding Paper White Debug View](./../Images/post-proc/hdr/HDR-Output-OverPaperWhite.png)
 
-This debug view uses a color coded gradient to indicate parts of the Scene that exceed the Paper White value. The gradient ranges from yellow to red. Yellow corresponds to **Paper White** +1, and red corresponds to **Max Nits**.
+This debug view uses a color coded gradient to indicate parts of the scene that exceed the Paper White value. The gradient ranges from yellow to red. Yellow corresponds to **Paper White** +1, and red corresponds to **Max Nits**.
 
 ## Platform Compatibility
 
 URP only supports HDR Output on the following platforms:
 
-- Windows with DirectX 12 or Vulkan
-- Devices that use Metal
-- Consoles
+* Windows with DirectX 11, DirectX 12 or Vulkan
+* Devices that use Metal
+* Consoles
+* XR devices with HDR support
+
+> **Note**: DirectX 11 only supports HDR Output in the Player, it does not support HDR Output in the Editor.
+

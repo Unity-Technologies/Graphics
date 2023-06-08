@@ -59,16 +59,19 @@ namespace UnityEngine.Rendering.Universal
         }
     }
 
+    /// <summary>
+    /// The class for the SSAO renderer feature.
+    /// </summary>
     [DisallowMultipleRendererFeature("Screen Space Ambient Occlusion")]
     [Tooltip("The Ambient Occlusion effect darkens creases, holes, intersections and surfaces that are close to each other.")]
     [URPHelpURL("post-processing-ssao")]
-    internal class ScreenSpaceAmbientOcclusion : ScriptableRendererFeature
+    public class ScreenSpaceAmbientOcclusion : ScriptableRendererFeature
     {
         // Serialized Fields
         [SerializeField] private ScreenSpaceAmbientOcclusionSettings m_Settings = new ScreenSpaceAmbientOcclusionSettings();
 
         [Reload("Textures/BlueNoise256/LDR_LLL1_{0}.png", 0, 7)]
-        public Texture2D[] m_BlueNoise256Textures;
+        internal Texture2D[] m_BlueNoise256Textures;
 
         [SerializeField]
         [HideInInspector]

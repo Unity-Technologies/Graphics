@@ -9,6 +9,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     [DebuggerDisplay("Buffer ({handle.index})")]
     public struct BufferHandle
     {
+        // Minor Warning: This calls the zeroing constructor this means that the embedded ResourceHandle struct will also be zero-ed
+        // which then means ResourceHandle.type will be set to zero == Texture. As this is an "invalid" bufferhandle I guess setting it
+        // to type texture just makes it even more properly invalid and not a big issue. But something to keep in mind for tooling/logging.
         private static BufferHandle s_NullHandle = new BufferHandle();
 
         /// <summary>

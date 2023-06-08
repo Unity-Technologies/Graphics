@@ -175,7 +175,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             {
                 throw new ArgumentException("GrabRead is only valid on UseTexture");
             }
-            return new BufferHandle(UseResource(input.handle, flags));
+            return new BufferHandle(UseResource(input.handle, flags).index);
         }
 
         // UseTexture and UseTextureFragment are currently forced to be mutually exclusive in the same pass

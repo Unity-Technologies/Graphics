@@ -49,6 +49,16 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public static FieldDescriptor EnableShadowMatte = new FieldDescriptor(string.Empty, "EnableShadowMatte", "_ENABLE_SHADOW_MATTE");
 
+        public override void Setup(ref TargetSetupContext context)
+        {
+            if (TargetsVFX())
+            {
+                var inspector = typeof(VFXShaderGraphGUIUnlit).FullName;
+                context.AddCustomEditorForRenderPipeline(inspector, typeof(HDRenderPipelineAsset));
+            }
+            base.Setup(ref context);
+        }
+
         void AddShadowMatteIncludes(ref PassCollection.Item unlitShadowPass, bool rayTracingPass)
         {
             unlitShadowPass.descriptor.includes.Add(CoreIncludes.kHDShadow, IncludeLocation.Pregraph, new FieldCondition(EnableShadowMatte, true));
@@ -110,7 +120,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             if (pass.IsForward())
             {
-                pass.keywords.Add(CoreKeywordDescriptors.Shadow, new FieldCondition(HDUnlitSubTarget.EnableShadowMatte, true));
+                pass.keywords.Add(CoreKeywordDescriptors.PunctualShadow, new FieldCondition(HDUnlitSubTarget.EnableShadowMatte, true));
+                pass.keywords.Add(CoreKeywordDescriptors.DirectionalShadow, new FieldCondition(HDUnlitSubTarget.EnableShadowMatte, true));
                 pass.keywords.Add(CoreKeywordDescriptors.AreaShadow, new FieldCondition(HDUnlitSubTarget.EnableShadowMatte, true));
                 pass.keywords.Add(CoreKeywordDescriptors.ScreenSpaceShadow, new FieldCondition(HDUnlitSubTarget.EnableShadowMatte, true));
             }

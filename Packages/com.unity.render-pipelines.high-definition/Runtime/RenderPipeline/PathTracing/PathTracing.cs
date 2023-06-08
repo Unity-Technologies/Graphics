@@ -597,7 +597,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         ctx.cmd.SetRayTracingVectorParam(data.shader, HDShaderIDs._PathTracingDoFParameters, data.dofParameters);
                         ctx.cmd.SetRayTracingVectorParam(data.shader, HDShaderIDs._PathTracingTilingParameters, data.tilingParameters);
 
-                        
+
                         if (data.enableDecals)
                             DecalSystem.instance.SetAtlas(ctx.cmd); // for clustered decals
 

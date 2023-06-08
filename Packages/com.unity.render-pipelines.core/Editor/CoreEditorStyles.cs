@@ -83,7 +83,13 @@ namespace UnityEditor.Rendering
 
         static System.Lazy<GUIStyle> m_HelpBox = new(() =>
         {
-            var style = new GUIStyle() { imagePosition = ImagePosition.ImageLeft, fontSize = 10, wordWrap = true };
+            var style = new GUIStyle()
+            {
+                imagePosition = ImagePosition.ImageLeft,
+                fontSize = 10,
+                wordWrap = true,
+                alignment = TextAnchor.MiddleLeft
+            };
             style.normal.textColor = EditorStyles.helpBox.normal.textColor;
             return style;
         });

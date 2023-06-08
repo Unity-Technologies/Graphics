@@ -1,7 +1,7 @@
 #ifndef UNITY_INSTANCING_INCLUDED
 #define UNITY_INSTANCING_INCLUDED
 
-#if SHADER_TARGET >= 35 && (defined(SHADER_API_D3D11) || defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE) || defined(SHADER_API_XBOXONE) || defined(SHADER_API_GAMECORE) || defined(SHADER_API_PSSL) || defined(SHADER_API_VULKAN) || defined(SHADER_API_METAL))
+#if SHADER_TARGET >= 35 && (defined(SHADER_API_D3D11) || defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE) || defined(SHADER_API_XBOXONE) || defined(SHADER_API_GAMECORE) || defined(SHADER_API_PSSL) || defined(SHADER_API_VULKAN) || defined(SHADER_API_METAL) || defined(SHADER_API_WEBGPU))
     #define UNITY_SUPPORT_INSTANCING
 #endif
 
@@ -14,7 +14,7 @@
 #endif
 
 // These platforms support dynamically adjusting the instancing CB size according to the current batch.
-#if defined(SHADER_API_D3D11) || defined(SHADER_API_GLCORE) || defined(SHADER_API_GLES3) || defined(SHADER_API_METAL) || defined(SHADER_API_PSSL) || defined(SHADER_API_VULKAN) || defined(SHADER_API_SWITCH)
+#if defined(SHADER_API_D3D11) || defined(SHADER_API_GLCORE) || defined(SHADER_API_GLES3) || defined(SHADER_API_METAL) || defined(SHADER_API_PSSL) || defined(SHADER_API_VULKAN) || defined(SHADER_API_SWITCH) || defined(SHADER_API_WEBGPU)
     #define UNITY_INSTANCING_SUPPORT_FLEXIBLE_ARRAY_SIZE
 #endif
 
@@ -67,7 +67,7 @@
     #endif
 #endif
 
-#if defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE) || defined(SHADER_API_METAL) || defined(SHADER_API_VULKAN)
+#if defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE) || defined(SHADER_API_METAL) || defined(SHADER_API_VULKAN) || defined(SHADER_API_WEBGPU)
     // These platforms have constant buffers disabled normally, but not here (see CBUFFER_START/CBUFFER_END in HLSLSupport.cginc).
     #define UNITY_INSTANCING_CBUFFER_SCOPE_BEGIN(name)  cbuffer name {
     #define UNITY_INSTANCING_CBUFFER_SCOPE_END          }
@@ -266,7 +266,7 @@
     #elif defined(UNITY_MAX_INSTANCE_COUNT)
         #define UNITY_INSTANCED_ARRAY_SIZE  UNITY_MAX_INSTANCE_COUNT
     #else
-        #if (defined(SHADER_API_VULKAN) && defined(SHADER_API_MOBILE)) || defined(SHADER_API_SWITCH)
+        #if (defined(SHADER_API_VULKAN) && defined(SHADER_API_MOBILE)) || defined(SHADER_API_SWITCH) || defined(SHADER_API_WEBGPU)
             #define UNITY_INSTANCED_ARRAY_SIZE  250
         #else
             #define UNITY_INSTANCED_ARRAY_SIZE  500

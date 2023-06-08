@@ -47,7 +47,7 @@ namespace UnityEngine.Rendering.Universal
                 if (providerType.IsAbstract)
                     continue;
 
-                providers.Add(ScriptableObject.CreateInstance(providerType) as ShadowShape2DProvider);
+                providers.Add(Activator.CreateInstance(providerType) as ShadowShape2DProvider);
             }
 
             // Fetch the components to check.

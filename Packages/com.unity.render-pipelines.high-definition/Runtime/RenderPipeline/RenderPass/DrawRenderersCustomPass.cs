@@ -39,7 +39,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Sorting flags of the objects to render.
         /// </summary>
-        public SortingCriteria sortingCriteria = SortingCriteria.CommonOpaque;
+        public SortingCriteria sortingCriteria = HDUtils.k_OpaqueSortingCriteria;
 
         /// <summary>
         /// Select which type of override to apply on the DrawRenderers pass.

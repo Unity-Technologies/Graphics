@@ -2,7 +2,7 @@
 
 To add a Renderer Feature to a Renderer:
 
-1. In the __Project__ window, select a Renderer.
+1. In the **Project** window, select a Renderer.
 
     ![Select a Renderer.](Images/add-renderer-feature/renderer-feature-select-renderer.png)
 
@@ -10,9 +10,9 @@ To add a Renderer Feature to a Renderer:
 
     ![Inspector window shows the Renderer properties.](Images/add-renderer-feature/renderer-feature-inspector-no-rend-features.png)
 
-2. In the Inspector window, select __Add Renderer Feature__. In the list, select a Renderer Feature.
+2. In the Inspector window, select **Add Renderer Feature**. In the list, select a Renderer Feature.
 
-    ![Select __Add Renderer Feature__, then select a Renderer Feature.](Images/add-renderer-feature/renderer-feature-select-renderer-feature.png)
+    ![Select **Add Renderer Feature**, then select a Renderer Feature.](Images/add-renderer-feature/renderer-feature-select-renderer-feature.png)
 
     Unity adds the selected Renderer Feature to the Renderer.
 

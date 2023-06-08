@@ -36,7 +36,8 @@ namespace Unity.Rendering.Universal
             SG_Decal,               // UniversalDecalSubTarget
             SG_SpriteUnlit,         // UniversalSpriteUnlitSubTarget
             SG_SpriteLit,           // UniversalSpriteLitSubTarget
-            SG_SpriteCustomLit      // UniversalSpriteCustomLitSubTarget
+            SG_SpriteCustomLit,      // UniversalSpriteCustomLitSubTarget
+            SG_SixWaySmokeLit       // UniversalSixWaySubTarget
         }
 
         internal static bool IsShaderGraph(this ShaderID id)
@@ -154,6 +155,10 @@ namespace Unity.Rendering.Universal
                 case ShaderID.SG_SpriteLit:
                     break;
                 case ShaderID.SG_SpriteCustomLit:
+                    break;
+                case ShaderID.SG_SixWaySmokeLit:
+                    ShaderGraphLitGUI.UpdateMaterial(material, updateType);
+                    SixWayGUI.UpdateSixWayKeywords(material);
                     break;
                 default:
                     break;

@@ -1262,7 +1262,7 @@ namespace UnityEngine.Rendering.Universal
                     material.EnableKeyword(hdrOperations.HasFlag(HDROutputUtils.Operation.ColorEncoding) ? ShaderKeywordStrings.Gamma20AndHDRInput : ShaderKeywordStrings.Gamma20);
 
                 if (hdrOperations.HasFlag(HDROutputUtils.Operation.ColorEncoding))
-                    SetupHDROutput(material, hdrOperations);
+                    SetupHDROutput(renderingData.cameraData.hdrDisplayInformation, renderingData.cameraData.hdrDisplayColorGamut, material, hdrOperations);
 
                 builder.AllowGlobalStateModification(true);
                 passData.destinationTexture = builder.UseTextureFragment(destination, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
@@ -1473,7 +1473,7 @@ namespace UnityEngine.Rendering.Universal
                 if (!cameraData.postProcessEnabled)
                     hdrOperations |= HDROutputUtils.Operation.ColorConversion;
 
-                SetupHDROutput(material, hdrOperations);
+                SetupHDROutput(cameraData.hdrDisplayInformation, cameraData.hdrDisplayColorGamut, material, hdrOperations);
             }
             DebugHandler debugHandler = GetActiveDebugHandler(ref renderingData);
             bool resolveToDebugScreen = debugHandler != null && debugHandler.WriteToDebugScreenTexture(ref cameraData);
@@ -1690,6 +1690,8 @@ namespace UnityEngine.Rendering.Universal
             m_Tonemapping = stack.GetComponent<Tonemapping>();
             m_FilmGrain = stack.GetComponent<FilmGrain>();
             m_UseFastSRGBLinearConversion = renderingData.postProcessingData.useFastSRGBLinearConversion;
+            m_SupportDataDrivenLensFlare = renderingData.postProcessingData.supportDataDrivenLensFlare;
+            m_SupportScreenSpaceLensFlare = renderingData.postProcessingData.supportScreenSpaceLensFlare;
             // TODO RENDERGRAPH: the descriptor should come from postProcessingTarget, not cameraTarget
             m_Descriptor = renderingData.cameraData.cameraTargetDescriptor;
             m_Descriptor.useMipMap = false;
@@ -1706,8 +1708,8 @@ namespace UnityEngine.Rendering.Universal
             bool useSubPixelMorpAA = cameraData.antialiasing == AntialiasingMode.SubpixelMorphologicalAntiAliasing;
             var dofMaterial = m_DepthOfField.mode.value == DepthOfFieldMode.Gaussian ? m_Materials.gaussianDepthOfField : m_Materials.bokehDepthOfField;
             bool useDepthOfField = m_DepthOfField.IsActive() && !isSceneViewCamera && dofMaterial != null;
-            bool useLensFlare = !LensFlareCommonSRP.Instance.IsEmpty();
-            bool useLensFlareScreenSpace = m_LensFlareScreenSpace.IsActive();
+            bool useLensFlare = !LensFlareCommonSRP.Instance.IsEmpty() && m_SupportDataDrivenLensFlare;
+            bool useLensFlareScreenSpace = m_LensFlareScreenSpace.IsActive() && m_SupportScreenSpaceLensFlare;
             bool useMotionBlur = m_MotionBlur.IsActive() && !isSceneViewCamera;
             bool usePaniniProjection = m_PaniniProjection.IsActive() && !isSceneViewCamera;
             bool isFsrEnabled = ((cameraData.imageScalingMode == ImageScalingMode.Upscaling) && (cameraData.upscalingFilter == ImageUpscalingFilter.FSR));
@@ -1826,7 +1828,7 @@ namespace UnityEngine.Rendering.Universal
                     // Otherwise encoding will happen in the final post process pass or the final blit pass
                     HDROutputUtils.Operation hdrOperations = !m_HasFinalPass && m_EnableColorEncodingIfNeeded ? HDROutputUtils.Operation.ColorEncoding : HDROutputUtils.Operation.None;
 
-                    SetupHDROutput(m_Materials.uber, hdrOperations);
+                    SetupHDROutput(cameraData.hdrDisplayInformation, cameraData.hdrDisplayColorGamut, m_Materials.uber, hdrOperations);
                 }
 
                 DebugHandler debugHandler = GetActiveDebugHandler(ref renderingData);

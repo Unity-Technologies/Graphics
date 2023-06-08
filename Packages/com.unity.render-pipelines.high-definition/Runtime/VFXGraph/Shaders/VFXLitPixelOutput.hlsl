@@ -23,18 +23,28 @@ float4 VFXCalcPixelOutputForward(const SurfaceData surfaceData, const BuiltinDat
 
     #endif
 
-    LightLoopOutput lightLoopOutput;
-    LightLoop(GetWorldSpaceNormalizeViewDir(posRWS), posInput, preLightData, bsdfData, builtinData, featureFlags, lightLoopOutput);
+    #if VFX_MATERIAL_TYPE_SIX_WAY_SMOKE
+    featureFlags &= ~(LIGHTFEATUREFLAGS_ENV | LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_SSREFRACTION | LIGHTFEATUREFLAGS_SSREFLECTION);
+    #endif
 
-    // Alias
-    float3 diffuseLighting = lightLoopOutput.diffuseLighting;
-    float3 specularLighting = lightLoopOutput.specularLighting;
+    float4 outColor = float4(0,0,0,0);
+    #if IS_TRANSPARENT_PARTICLE
+    if(_EnableBlendModePreserveSpecularLighting || builtinData.opacity > 0)
+        #endif
+    {
+        LightLoopOutput lightLoopOutput;
+        LightLoop(GetWorldSpaceNormalizeViewDir(posRWS), posInput, preLightData, bsdfData, builtinData, featureFlags, lightLoopOutput);
 
-    diffuseLighting *= GetCurrentExposureMultiplier();
-    specularLighting *= GetCurrentExposureMultiplier();
+        // Alias
+        float3 diffuseLighting = lightLoopOutput.diffuseLighting;
+        float3 specularLighting = lightLoopOutput.specularLighting;
 
-    float4 outColor = ApplyBlendMode(diffuseLighting, specularLighting, builtinData.opacity);
-    outColor = EvaluateAtmosphericScattering(posInput, GetWorldSpaceNormalizeViewDir(posRWS), outColor);
+        diffuseLighting *= GetCurrentExposureMultiplier();
+        specularLighting *= GetCurrentExposureMultiplier();
+
+        outColor = ApplyBlendMode(diffuseLighting, specularLighting, builtinData.opacity);
+        outColor = EvaluateAtmosphericScattering(posInput, GetWorldSpaceNormalizeViewDir(posRWS), outColor);
+    }
 
 #ifdef DEBUG_DISPLAY
     float4 debugColor = 0;

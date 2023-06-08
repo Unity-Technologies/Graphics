@@ -321,6 +321,9 @@
         },
         {
             "m_Id": "08e902ec350e4cb99fc0b45eab5a8e59"
+        },
+        {
+            "m_Id": "513d246c1fee4cb1bd3e39f0070ca35e"
         }
     ],
     "m_GroupDatas": [
@@ -839,6 +842,20 @@
             "m_InputSlot": {
                 "m_Node": {
                     "m_Id": "f56675d88caa4cb9bb33059d9354678e"
+                },
+                "m_SlotId": 0
+            }
+        },
+        {
+            "m_OutputSlot": {
+                "m_Node": {
+                    "m_Id": "70054e3bf5213b839168ebc624dedb49"
+                },
+                "m_SlotId": 2
+            },
+            "m_InputSlot": {
+                "m_Node": {
+                    "m_Id": "513d246c1fee4cb1bd3e39f0070ca35e"
                 },
                 "m_SlotId": 0
             }
@@ -1490,8 +1507,8 @@
     ],
     "m_VertexContext": {
         "m_Position": {
-            "x": 124.66670227050781,
-            "y": -448.6666564941406
+            "x": 233.59996032714845,
+            "y": -464.7999572753906
         },
         "m_Blocks": [
             {
@@ -1511,6 +1528,9 @@
             },
             {
                 "m_Id": "302997bca1c5498cb6695cfb2b9c9857"
+            },
+            {
+                "m_Id": "513d246c1fee4cb1bd3e39f0070ca35e"
             }
         ]
     },
@@ -2202,6 +2222,8 @@
     "m_AlphaClip": true,
     "m_CastShadows": true,
     "m_ReceiveShadows": true,
+    "m_AdditionalMotionVectorMode": 2,
+    "m_AlembicMotionVectors": false,
     "m_SupportsLODCrossFade": false,
     "m_CustomEditorGUI": "",
     "m_SupportVFX": false
@@ -4625,6 +4647,40 @@
 
 {
     "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.BlockNode",
+    "m_ObjectId": "513d246c1fee4cb1bd3e39f0070ca35e",
+    "m_Group": {
+        "m_Id": ""
+    },
+    "m_Name": "VertexDescription.MotionVector",
+    "m_DrawState": {
+        "m_Expanded": true,
+        "m_Position": {
+            "serializedVersion": "2",
+            "x": 0.0,
+            "y": 0.0,
+            "width": 0.0,
+            "height": 0.0
+        }
+    },
+    "m_Slots": [
+        {
+            "m_Id": "de61dbf61d90456c91cd06c2c7371327"
+        }
+    ],
+    "synonyms": [],
+    "m_Precision": 0,
+    "m_PreviewExpanded": true,
+    "m_DismissedVersion": 0,
+    "m_PreviewMode": 0,
+    "m_CustomColors": {
+        "m_SerializableColors": []
+    },
+    "m_SerializedDescriptor": "VertexDescription.MotionVector"
+}
+
+{
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.DynamicValueMaterialSlot",
     "m_ObjectId": "52633d74cf06a78ba285e54b23356614",
     "m_Id": 1,
@@ -5263,6 +5319,29 @@
 
 {
     "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector3MaterialSlot",
+    "m_ObjectId": "644c830d57fb4ec4bd7d0652ddefe74d",
+    "m_Id": 2,
+    "m_DisplayName": "ObjectSpaceMotionVector",
+    "m_SlotType": 1,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "ObjectSpaceMotionVector",
+    "m_StageCapability": 3,
+    "m_Value": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+    },
+    "m_DefaultValue": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+    },
+    "m_Labels": []
+}
+
+{
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.DotProductNode",
     "m_ObjectId": "64dfb31347ab4d7287efb52434b8836c",
     "m_Group": {
@@ -5806,6 +5885,9 @@
         },
         {
             "m_Id": "ba7c020b2b982b859715bbc6bcd89b37"
+        },
+        {
+            "m_Id": "644c830d57fb4ec4bd7d0652ddefe74d"
         }
     ],
     "synonyms": [],
@@ -8438,10 +8520,10 @@
     "m_Type": "UnityEditor.ShaderGraph.Vector3MaterialSlot",
     "m_ObjectId": "ba7c020b2b982b859715bbc6bcd89b37",
     "m_Id": 1,
-    "m_DisplayName": "windObjectPosition",
+    "m_DisplayName": "AnimatedVertexObjectSpacePosition",
     "m_SlotType": 1,
     "m_Hidden": false,
-    "m_ShaderOutputName": "windObjectPosition",
+    "m_ShaderOutputName": "AnimatedVertexObjectSpacePosition",
     "m_StageCapability": 3,
     "m_Value": {
         "x": 0.0,
@@ -9571,6 +9653,29 @@
     "m_Labels": [
         "X"
     ]
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector3MaterialSlot",
+    "m_ObjectId": "de61dbf61d90456c91cd06c2c7371327",
+    "m_Id": 0,
+    "m_DisplayName": "Motion Vector",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "MotionVector",
+    "m_StageCapability": 1,
+    "m_Value": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+    },
+    "m_DefaultValue": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+    },
+    "m_Labels": []
 }
 
 {

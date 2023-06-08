@@ -10,8 +10,8 @@ If you want to examine the code that strips shaders in URP, see the `Editor/Shad
 
 For more information on stripping shader variants, see the following pages:
 
-- [Check how many shader variants you have](https://docs.unity3d.com/Manual/shader-how-many-variants.html).
-- See the [standard guidance about shader stripping](https://docs.unity3d.com/Manual/shader-variant-stripping.html), which applies to all render pipelines.
+* [Check how many shader variants you have](https://docs.unity3d.com/Manual/shader-how-many-variants.html).
+* See the [standard guidance about shader stripping](https://docs.unity3d.com/Manual/shader-variant-stripping.html), which applies to all render pipelines.
 
 ## Strip feature shader variants
 
@@ -19,8 +19,8 @@ By default, URP compiles variants where a feature is enabled, and variants where
 
 To reduce the number of variants, you can enable **Strip Unused Variants** in the [URP Global Settings](urp-global-settings.md) and do the following:
 
-- Disable a feature in all URP Assets in your build, so URP keeps only variants where the feature is disabled.
-- Enable a feature in all URP Assets in your build, so URP keeps only variants where the feature is enabled.
+* Disable a feature in all URP Assets in your build, so URP keeps only variants where the feature is disabled.
+* Enable a feature in all URP Assets in your build, so URP keeps only variants where the feature is enabled.
 
 If you disable the **Strip Unused Variants setting**, URP can't strip variants where the feature is disabled. This might increase the number of variants.
 
@@ -30,8 +30,8 @@ To let Unity strip variants related to a feature, make sure you disable it in al
 
 Unity includes the following URP Assets in your build:
 
-- The URP Asset you set as the default render pipeline asset in [Graphics Settings](https://docs.unity3d.com/Manual/class-GraphicsSettings.html).
-- Any URP Asset you set as a **Render Pipeline Asset** in a [Quality Settings level](https://docs.unity3d.com/Manual/class-QualitySettings.html) you enable for the current build target.
+* The URP Asset you set as the default render pipeline asset in [Graphics Settings](https://docs.unity3d.com/Manual/class-GraphicsSettings.html).
+* Any URP Asset you set as a **Render Pipeline Asset** in a [Quality Settings level](https://docs.unity3d.com/Manual/class-QualitySettings.html) you enable for the current build target.
 
 Avoid including URP Assets in your build that use different [rendering paths](urp-universal-renderer.html#rendering-path-comparison) because this causes Unity to create two sets of variants for each keyword.
 
@@ -58,7 +58,7 @@ Enable **Strip Unused Post Processing Variants** in [URP Global Settings](urp-gl
 
 For example if your project uses only the Bloom effect, URP keeps Bloom variants but strips all other post-processing variants.
 
-Unity checks for Volume Overrides in all scenes, so you can't strip variants by removing a Scene from your build but keeping it in your project.
+Unity checks for Volume Overrides in all scenes, so you can't strip variants by removing a scene from your build but keeping it in your project.
 
 | **Volume Override removed** | **Shader keywords this turns off** |
 | - | - |

@@ -4,13 +4,25 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
         #pragma target 4.5
         #pragma editor_sync_compilation
         #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+        //#pragma enable_d3d11_debug_symbols
 
         #pragma multi_compile_fragment _ DEBUG_DISPLAY
 
-        // #pragma enable_d3d11_debug_symbols
+        #if defined(SUPPORT_WATER) || defined(SUPPORT_WATER_CAUSTICS) || defined(SUPPORT_WATER_CAUSTICS_SHADOW)
+        #define SUPPORT_WATER_ABSORPTION
+        #endif
+        #ifdef SUPPORT_WATER_CAUSTICS_SHADOW
+        #define SUPPORT_WATER_CAUSTICS
+        #endif
+
+        // Defined for caustics
+        #define SHADOW_LOW
+        #define AREA_SHADOW_LOW
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/AtmosphericScattering/AtmosphericScattering.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/SkyUtils.hlsl"
@@ -18,6 +30,9 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
         TEXTURE2D_X_MSAA(float4, _ColorTextureMS);
         TEXTURE2D_X_MSAA(float,  _DepthTextureMS);
         TEXTURE2D_X(_ColorTexture);
+
+        // Water absorption stuff
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/Shaders/UnderWaterUtilities.hlsl"
 
         struct Attributes
         {
@@ -44,6 +59,11 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
         {
             PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
 
+            #ifdef SUPPORT_WATER_ABSORPTION
+            if (_EnableWater == 0 || !EvaluateUnderwaterAbsorption(posInput, color, opacity))
+            {
+            #endif
+
             if (depth == UNITY_RAW_FAR_CLIP_VALUE)
             {
                 // When a pixel is at far plane, the world space coordinate reconstruction is not reliable.
@@ -55,6 +75,10 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
             }
 
             EvaluateAtmosphericScattering(posInput, V, color, opacity); // Premultiplied alpha
+
+            #ifdef SUPPORT_WATER_ABSORPTION
+            }
+            #endif
         }
 
         float4 Frag(Varyings input) : SV_Target
@@ -83,7 +107,7 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
             return float4(volColor, 1.0 - volOpacity.x);
         }
 
-        float4 FragPBRFog(Varyings input) : SV_Target
+        float4 FragPolychromatic(Varyings input) : SV_Target
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
             float2 positionSS = input.positionCS.xy;
@@ -97,7 +121,7 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
             return float4(volColor + (1 - volOpacity) * surfColor.rgb, surfColor.a); // Premultiplied alpha (over operator), preserve alpha for the alpha channel for compositing
         }
 
-        float4 FragMSAAPBRFog(Varyings input, uint sampleIndex: SV_SampleIndex) : SV_Target
+        float4 FragMSAAPolychromatic(Varyings input, uint sampleIndex: SV_SampleIndex) : SV_Target
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
             float2 positionSS = input.positionCS.xy;
@@ -118,7 +142,7 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
         // 0: NOMSAA
         Pass
         {
-            Name "NoMSAA"
+            Name "Default"
 
             Cull Off    ZWrite Off
             Blend One SrcAlpha, Zero One // Premultiplied alpha for RGB, preserve alpha for the alpha channel
@@ -145,33 +169,35 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
             ENDHLSL
         }
 
-        // 2: NOMSAA PBR FOG
+        // 2: NOMSAA Polychromatic Alpha
         Pass
         {
-            Name "NoMSAA PBR"
+            Name "Polychromatic Alpha"
 
             Cull Off    ZWrite Off
             Blend Off   // Manual blending
             ZTest Less  // Required for XR occlusion mesh optimization
 
             HLSLPROGRAM
+                #pragma multi_compile_fragment NO_WATER SUPPORT_WATER SUPPORT_WATER_CAUSTICS SUPPORT_WATER_CAUSTICS_SHADOW
                 #pragma vertex Vert
-                #pragma fragment FragPBRFog
+                #pragma fragment FragPolychromatic
             ENDHLSL
         }
 
-        // 3: MSAA PBR FOG
+        // 3: MSAA Polychromatic Alpha
         Pass
         {
-            Name "MSAA PBR"
+            Name "MSAA + Polychromatic Alpha"
 
             Cull Off    ZWrite Off
             Blend Off   // Manual blending
             ZTest Less  // Required for XR occlusion mesh optimization
 
             HLSLPROGRAM
+                #pragma multi_compile_fragment NO_WATER SUPPORT_WATER SUPPORT_WATER_CAUSTICS SUPPORT_WATER_CAUSTICS_SHADOW
                 #pragma vertex Vert
-                #pragma fragment FragMSAAPBRFog
+                #pragma fragment FragMSAAPolychromatic
             ENDHLSL
         }
 

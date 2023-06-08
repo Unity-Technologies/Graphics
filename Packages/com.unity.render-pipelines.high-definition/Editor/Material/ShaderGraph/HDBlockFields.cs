@@ -150,10 +150,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 new FloatControl(0.7f), ShaderStage.Fragment);
             public static BlockFieldDescriptor CuticleAngle = new BlockFieldDescriptor(SurfaceDescription.name, "CuticleAngle", "Cuticle Angle", "SURFACEDESCRIPTION_CUTICLEANGLE",
                 new FloatControl(3f), ShaderStage.Fragment);
-            public static BlockFieldDescriptor StrandCountProbe = new BlockFieldDescriptor(SurfaceDescription.name, "StrandCountProbe", "Strand Count Probe", "SURFACEDESCRIPTION_STRANDCOUNTPROBE",
+            public static BlockFieldDescriptor StrandCountProbe = new BlockFieldDescriptor(SurfaceDescription.name, "StrandCountProbe", "Scattering Probe", "SURFACEDESCRIPTION_STRANDCOUNTPROBE",
                 new Vector4Control(Vector4.zero), ShaderStage.Fragment);
-            public static BlockFieldDescriptor StrandShadowBias = new BlockFieldDescriptor(SurfaceDescription.name, "StrandShadowBias", "Strand Shadow Bias", "SURFACEDESCRIPTION_STRANDSHADOWBIAS",
-                new FloatControl(0f), ShaderStage.Fragment);
             public static BlockFieldDescriptor AbsorptionCoefficient = new BlockFieldDescriptor(SurfaceDescription.name, "AbsorptionCoefficient", "Absorption", "SURFACEDESCRIPTION_ABSORPTIONCOEFFICIENT",
                 new Vector3Control(new Vector3(.06f, 0.1f, 0.2f)), ShaderStage.Fragment);
             public static BlockFieldDescriptor Eumelanin = new BlockFieldDescriptor(SurfaceDescription.name, "Eumelanin", "Eumelanin", "SURFACEDESCRIPTION_EUMELANIN",

@@ -2,7 +2,7 @@
 
 The **Render Pipeline Converter** converts assets made for a Built-in Render Pipeline project to assets compatible with URP.
 
-> **NOTE:** The conversion process makes irreversible changes to the project. Back up your project before the conversion.
+> **Note**: The conversion process makes irreversible changes to the project. Back up your project before the conversion.
 
 ## How to use the Render Pipeline Converter
 
@@ -38,7 +38,7 @@ To convert project assets:
 
 5. Click **Convert Assets** to start the conversion process.
 
-    > **NOTE:** The conversion process makes irreversible changes to the project. Back up your project before the conversion.
+    > **Note**: The conversion process makes irreversible changes to the project. Back up your project before the conversion.
 
     When the conversion process finishes, the window shows the status of each converter.
 
@@ -88,7 +88,7 @@ Available converters:
 
     This converter converts the animation clips. It runs after the **Material Upgrade** converter finishes.
 
-    > **NOTE:** This converter is available only if the project contains animations that affect the properties of Materials, or Post-processing Stack v2 properties.
+    > **Note**: This converter is available only if the project contains animations that affect the properties of Materials, or Post-processing Stack v2 properties.
 
 * **Read-only Material Converter**
 

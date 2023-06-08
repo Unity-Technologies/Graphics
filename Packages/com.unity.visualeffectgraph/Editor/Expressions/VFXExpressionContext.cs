@@ -59,14 +59,14 @@ namespace UnityEditor.VFX
 
                 try
                 {
-                    foreach (var exp in m_EndExpressions)
-                        Compile(exp);
+                    bool needToPatch = HasAny(VFXExpressionContextOption.GPUDataTransformation | VFXExpressionContextOption.PatchReadToEventAttribute);
+                    var gpuTransformation = needToPatch && Has(VFXExpressionContextOption.GPUDataTransformation);
+                    var spawnEventPath = needToPatch && Has(VFXExpressionContextOption.PatchReadToEventAttribute);
 
-                    if (HasAny(VFXExpressionContextOption.GPUDataTransformation | VFXExpressionContextOption.PatchReadToEventAttribute))
+                    foreach (var exp in m_EndExpressions)
                     {
-                        var gpuTransformation = Has(VFXExpressionContextOption.GPUDataTransformation);
-                        var spawnEventPath = Has(VFXExpressionContextOption.PatchReadToEventAttribute);
-                        foreach (var exp in m_EndExpressions)
+                        Compile(exp);
+                        if (needToPatch)
                             m_ReducedCache[exp] = PatchVFXExpression(GetReduced(exp), null /* no source in end expression */, gpuTransformation, spawnEventPath, m_GlobalEventAttribute);
                     }
                 }
@@ -166,9 +166,9 @@ namespace UnityEditor.VFX
                         case VFXValueType.Buffer:
                         {
                             //Save expression usage for later HLSL shader generation
-                            if (targetExpression is VFXExpressionSampleBuffer)
+                            if (targetExpression is VFXExpressionSampleBuffer expressionSampleBuffer)
                             {
-                                var sampledType = (targetExpression as VFXExpressionSampleBuffer).GetSampledType();
+                                var sampledType = expressionSampleBuffer.GetSampledType();
                                 if (!m_GraphicsBufferUsageType.TryGetValue(input, out var registeredType))
                                 {
                                     m_GraphicsBufferUsageType.Add(input, sampledType);
@@ -176,6 +176,13 @@ namespace UnityEditor.VFX
                                 else if (registeredType != sampledType)
                                 {
                                     throw new InvalidOperationException(string.Format("Diverging type usage for GraphicsBuffer : {0}, {1}", registeredType, sampledType));
+                                }
+                            }
+                            else if (input is VFXGraphicsBufferValue graphicsBufferValue && !string.IsNullOrEmpty(graphicsBufferValue.templateType))
+                            {
+                                if (!m_GraphicsBufferUsageType.TryGetValue(input, out var _))
+                                {
+                                    m_GraphicsBufferUsageType.Add(input, StringToType(graphicsBufferValue.templateType));
                                 }
                             }
                         }
@@ -245,6 +252,10 @@ namespace UnityEditor.VFX
                         reduced = expression;
                     }
 
+                    if (expression is IHLSLCodeHolder hlslCodeHolder)
+                    {
+                        m_HLSLCollection.Add(hlslCodeHolder);
+                    }
                     m_ReducedCache[expression] = reduced;
                 }
                 return reduced;
@@ -252,6 +263,7 @@ namespace UnityEditor.VFX
 
             public void Invalidate()
             {
+                m_HLSLCollection.Clear();
                 m_ReducedCache.Clear();
                 m_GraphicsBufferUsageType.Clear();
             }
@@ -290,6 +302,7 @@ namespace UnityEditor.VFX
             public ReadOnlyCollection<VFXExpression> RegisteredExpressions { get { return m_EndExpressions.ToList().AsReadOnly(); } }
 
             public IEnumerable<KeyValuePair<VFXExpression, Type>> GraphicsBufferUsageType { get { return m_GraphicsBufferUsageType; } }
+            public IHLSLCodeHolder[] hlslCodeHolders => m_HLSLCollection.ToArray();
 
             private Dictionary<VFXExpression, VFXExpression> m_ReducedCache = new Dictionary<VFXExpression, VFXExpression>();
             private HashSet<VFXExpression> m_EndExpressions = new HashSet<VFXExpression>();
@@ -297,6 +310,7 @@ namespace UnityEditor.VFX
 
             private IEnumerable<VFXLayoutElementDesc> m_GlobalEventAttribute;
             private VFXExpressionContextOption m_ReductionOptions;
+            private readonly HashSet<IHLSLCodeHolder> m_HLSLCollection = new ();
         }
     }
 }

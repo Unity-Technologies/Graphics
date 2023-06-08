@@ -69,8 +69,8 @@ namespace UnityEditor.VFX.HDRP
         protected LightmapRemapMode lightmapRemapMode = LightmapRemapMode.None;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Enables the modification of the light map ranges.")]
-
         protected bool lightmapRemapRanges = false;
+
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, the alpha of the particles can be remapped with the Alpha Remap curve.")]
         protected bool useAlphaRemap = false;
 
@@ -283,8 +283,7 @@ namespace UnityEditor.VFX.HDRP
                         if (useColorAbsorption)
                         {
                             var absorptionStrenghtExp = slotExpressions.First(o => o.name == "absorptionStrength").exp;
-                            var absorptionRangeExp = (absorptionStrenghtExp + VFXValue.Constant(1.0f / Mathf.PI)) /
-                                                     VFXValue.Constant(1 - 1.0f / Mathf.PI);
+                            var absorptionRangeExp = (VFXValue.Constant(1 - 1.0f / Mathf.PI) * absorptionStrenghtExp + VFXValue.Constant(1.0f / Mathf.PI));
                             yield return new VFXNamedExpression(absorptionRangeExp, "absorptionRange");
                         }
 
@@ -370,7 +369,7 @@ namespace UnityEditor.VFX.HDRP
                                 yield return "VFX_SIX_WAY_REMAP_RANGES";
                             if (useColorAbsorption)
                             {
-                                yield return "VFX_SIX_WAY_ABSORPTION";
+                                yield return "VFX_SIX_WAY_COLOR_ABSORPTION";
                             }
                             switch (lightmapRemapMode)
                             {
@@ -425,7 +424,6 @@ namespace UnityEditor.VFX.HDRP
 
                 if (materialType == MaterialType.SixWaySmokeLit)
                 {
-                    yield return nameof(shaderGraph);
                     yield return nameof(preserveSpecularLighting);
                     yield return nameof(enableSpecular);
                     yield return nameof(doubleSided);
@@ -438,7 +436,7 @@ namespace UnityEditor.VFX.HDRP
                     if (emissiveMode != EmissiveMode.SingleChannel)
                         yield return nameof(useEmissiveChannelScale);
                 }
-                else
+                if (materialType != MaterialType.SixWaySmokeLit || GetOrRefreshShaderGraphObject() != null)
                 {
                     yield return nameof(useColorAbsorption);
                     yield return nameof(emissiveMode);

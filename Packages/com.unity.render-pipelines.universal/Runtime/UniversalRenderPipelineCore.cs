@@ -221,19 +221,26 @@ namespace UnityEngine.Rendering.Universal
             m_JitterMatrix = jitterMatrix;
         }
 
+#if ENABLE_VR && ENABLE_XR_MODULE
+        private bool m_CachedRenderIntoTextureXR;
+        private bool m_InitBuiltinXRConstants;
+#endif
         // Helper function to populate builtin stereo matricies as well as URP stereo matricies
         internal void PushBuiltinShaderConstantsXR(RasterCommandBuffer cmd, bool renderIntoTexture)
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
-            if (xr.enabled)
+            bool needsUpdate = !m_InitBuiltinXRConstants || m_CachedRenderIntoTextureXR != renderIntoTexture;
+            if (needsUpdate && xr.enabled )
             {
-                cmd.SetViewProjectionMatrices(GetViewMatrix(), GetProjectionMatrix());
+                var projection0 = GetProjectionMatrix();
+                var view0 = GetViewMatrix();
+                cmd.SetViewProjectionMatrices(view0, projection0);
                 if (xr.singlePassEnabled)
                 {
-                    for (int viewId = 0; viewId < xr.viewCount; viewId++)
-                    {
-                        XRBuiltinShaderConstants.UpdateBuiltinShaderConstants(GetViewMatrix(viewId), GetProjectionMatrix(viewId), renderIntoTexture, viewId);
-                    }
+                    var projection1 = GetProjectionMatrix(1);
+                    var view1 = GetViewMatrix(1);
+                    XRBuiltinShaderConstants.UpdateBuiltinShaderConstants(view0, projection0, renderIntoTexture, 0);
+                    XRBuiltinShaderConstants.UpdateBuiltinShaderConstants(view1, projection1, renderIntoTexture, 1);
                     XRBuiltinShaderConstants.SetBuiltinShaderConstants(cmd);
                 }
                 else
@@ -242,6 +249,8 @@ namespace UnityEngine.Rendering.Universal
                     Vector3 worldSpaceCameraPos = Matrix4x4.Inverse(GetViewMatrix(0)).GetColumn(3);
                     cmd.SetGlobalVector(ShaderPropertyId.worldSpaceCameraPos, worldSpaceCameraPos);
                 }
+                m_CachedRenderIntoTextureXR = renderIntoTexture;
+                m_InitBuiltinXRConstants = true;
             }
 #endif
         }
@@ -406,8 +415,9 @@ namespace UnityEngine.Rendering.Universal
             get
             {
 #if ENABLE_VR && ENABLE_XR_MODULE
+                // For some XR platforms we need to encode in SRGB but can't use a _SRGB format texture, only required for 8bit per channel 32 bit formats.
                 if (xr.enabled)
-                    return !xr.renderTargetDesc.sRGB && (QualitySettings.activeColorSpace == ColorSpace.Linear);
+                    return !xr.renderTargetDesc.sRGB && (xr.renderTargetDesc.graphicsFormat == GraphicsFormat.R8G8B8A8_UNorm || xr.renderTargetDesc.graphicsFormat == GraphicsFormat.B8G8R8A8_UNorm) && (QualitySettings.activeColorSpace == ColorSpace.Linear);
 #endif
 
                 return targetTexture == null && Display.main.requiresSrgbBlitToBackbuffer;
@@ -431,7 +441,69 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// True if the Camera should output to an HDR display.
         /// </summary>
-        public bool isHDROutputActive => UniversalRenderPipeline.HDROutputIsActive() && allowHDROutput && resolveToScreen;
+        public bool isHDROutputActive
+        {
+            get
+            {
+                bool hdrDisplayOutputActive = UniversalRenderPipeline.HDROutputForMainDisplayIsActive();
+#if ENABLE_VR && ENABLE_XR_MODULE
+                // If we are rendering to xr then we need to look at the XR Display rather than the main non-xr display.
+                if (xr.enabled)
+                    hdrDisplayOutputActive = xr.isHDRDisplayOutputActive;
+#endif
+        		return hdrDisplayOutputActive && allowHDROutput && resolveToScreen;
+            }
+        }
+
+        /// <summary>
+        /// HDR Display information about the current display this camera is rendering to.
+        /// </summary>
+        public HDROutputUtils.HDRDisplayInformation hdrDisplayInformation
+        {
+            get
+            {
+                HDROutputUtils.HDRDisplayInformation displayInformation;
+#if ENABLE_VR && ENABLE_XR_MODULE
+                // If we are rendering to xr then we need to look at the XR Display rather than the main non-xr display.
+                if (xr.enabled)
+                {
+                    displayInformation = xr.hdrDisplayOutputInformation;
+                }
+                else
+#endif
+                {
+                    HDROutputSettings displaySettings = HDROutputSettings.main;
+                    displayInformation = new HDROutputUtils.HDRDisplayInformation(displaySettings.maxFullFrameToneMapLuminance,
+                        displaySettings.maxToneMapLuminance,
+                        displaySettings.minToneMapLuminance,
+                        displaySettings.paperWhiteNits);
+                }
+
+                return displayInformation;
+            }
+        }
+
+        /// <summary>
+        /// HDR Display Color Gamut
+        /// </summary>
+        public ColorGamut hdrDisplayColorGamut
+        {
+            get
+            {
+#if ENABLE_VR && ENABLE_XR_MODULE
+                // If we are rendering to xr then we need to look at the XR Display rather than the main non-xr display.
+                if (xr.enabled)
+                {
+                    return xr.hdrDisplayOutputColorGamut;
+                }
+                else
+#endif
+                {
+                    HDROutputSettings displaySettings = HDROutputSettings.main;
+                    return displaySettings.displayColorGamut;
+                }
+            }
+        }
 
         /// <summary>
         /// True if the Camera should render overlay UI.
@@ -911,6 +983,16 @@ namespace UnityEngine.Rendering.Universal
         /// True if fast approximation functions are used when converting between the sRGB and Linear color spaces, false otherwise.
         /// </summary>
         public bool useFastSRGBLinearConversion;
+        
+        /// <summary>
+        /// Returns true if Screen Space Lens Flare are supported by this asset, false otherwise.
+        /// </summary>
+        public bool supportScreenSpaceLensFlare;
+        
+        /// <summary>
+        /// Returns true if Data Driven Lens Flare are supported by this asset, false otherwise.
+        /// </summary>
+        public bool supportDataDrivenLensFlare;
     }
 
     /// <summary>
@@ -1270,9 +1352,9 @@ namespace UnityEngine.Rendering.Universal
             if (isHdrEnabled)
             {
                 // TODO: we need a proper format scoring system. Score formats, sort, pick first or pick first supported (if not in score).
-                if (!needsAlpha && requestHDRColorBufferPrecision != HDRColorBufferPrecision._64Bits && RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.B10G11R11_UFloatPack32, FormatUsage.Linear | FormatUsage.Render))
+                if (!needsAlpha && requestHDRColorBufferPrecision != HDRColorBufferPrecision._64Bits && SystemInfo.IsFormatSupported(GraphicsFormat.B10G11R11_UFloatPack32, GraphicsFormatUsage.Linear | GraphicsFormatUsage.Render))
                     return GraphicsFormat.B10G11R11_UFloatPack32;
-                if (RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.R16G16B16A16_SFloat, FormatUsage.Linear | FormatUsage.Render))
+                if (SystemInfo.IsFormatSupported(GraphicsFormat.R16G16B16A16_SFloat, GraphicsFormatUsage.Linear | GraphicsFormatUsage.Render))
                     return GraphicsFormat.R16G16B16A16_SFloat;
                 return SystemInfo.GetGraphicsFormat(DefaultFormat.HDR); // This might actually be a LDR format on old devices.
             }
@@ -1285,7 +1367,7 @@ namespace UnityEngine.Rendering.Universal
         // NOTE: This function does not guarantee that the returned format will contain an alpha channel.
         internal static GraphicsFormat MakeUnormRenderTextureGraphicsFormat()
         {
-            if (RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.A2B10G10R10_UNormPack32, FormatUsage.Linear | FormatUsage.Render))
+            if (SystemInfo.IsFormatSupported(GraphicsFormat.A2B10G10R10_UNormPack32, GraphicsFormatUsage.Linear | GraphicsFormatUsage.Render))
                 return GraphicsFormat.A2B10G10R10_UNormPack32;
             else
                 return GraphicsFormat.R8G8B8A8_UNorm;

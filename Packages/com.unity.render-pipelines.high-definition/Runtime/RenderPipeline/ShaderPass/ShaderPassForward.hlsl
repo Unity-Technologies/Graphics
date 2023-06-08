@@ -77,8 +77,12 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplayMaterial.hlsl"
 
+#if defined(_TRANSPARENT_REFRACTIVE_SORT) || defined(_ENABLE_FOG_ON_TRANSPARENT)
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/Shaders/UnderWaterUtilities.hlsl"
+#endif
+
 //NOTE: some shaders set target1 to be
-//   Blend 1 SrcAlpha OneMinusSrcAlpha
+//   Blend 1 One OneMinusSrcAlpha
 //The reason for this blend mode is to let virtual texturing alpha dither work.
 //Anything using Target1 should write 1.0 or 0.0 in alpha to write / not write into the target.
 
@@ -88,6 +92,10 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
         #define SSS_BUFFER_TARGET SV_Target3
     #elif defined(_WRITE_TRANSPARENT_MOTION_VECTOR)
         #define MOTION_VECTOR_TARGET SV_Target2
+        #ifdef _TRANSPARENT_REFRACTIVE_SORT
+            #define BEFORE_REFRACTION_TARGET SV_Target3
+            #define BEFORE_REFRACTION_ALPHA_TARGET SV_Target4
+        #endif
     #endif
     #if defined(SHADER_API_PSSL)
         //For exact packing on pssl, we want to write exact 16 bit unorm (respect exact bit packing).
@@ -97,10 +105,14 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
     #endif
 #else
     #ifdef OUTPUT_SPLIT_LIGHTING
-    #define DIFFUSE_LIGHTING_TARGET SV_Target1
-    #define SSS_BUFFER_TARGET SV_Target2
+        #define DIFFUSE_LIGHTING_TARGET SV_Target1
+        #define SSS_BUFFER_TARGET SV_Target2
     #elif defined(_WRITE_TRANSPARENT_MOTION_VECTOR)
-    #define MOTION_VECTOR_TARGET SV_Target1
+        #define MOTION_VECTOR_TARGET SV_Target1
+        #ifdef _TRANSPARENT_REFRACTIVE_SORT
+            #define BEFORE_REFRACTION_TARGET SV_Target2
+            #define BEFORE_REFRACTION_ALPHA_TARGET SV_Target3
+        #endif
     #endif
 #endif
 
@@ -114,6 +126,10 @@ void Frag(PackedVaryingsToPS packedInput
         , OUTPUT_SSSBUFFER(outSSSBuffer) : SSS_BUFFER_TARGET
     #elif defined(_WRITE_TRANSPARENT_MOTION_VECTOR)
           , out float4 outMotionVec : MOTION_VECTOR_TARGET
+        #ifdef _TRANSPARENT_REFRACTIVE_SORT
+          , out float4 outBeforeRefractionColor : BEFORE_REFRACTION_TARGET
+          , out float4 outBeforeRefractionAlpha : BEFORE_REFRACTION_ALPHA_TARGET
+        #endif
     #endif
     #ifdef _DEPTHOFFSET_ON
         , out float outputDepth : DEPTH_OFFSET_SEMANTIC
@@ -219,7 +235,12 @@ void Frag(PackedVaryingsToPS packedInput
             ENCODE_INTO_SSSBUFFER(surfaceData, posInput.positionSS, outSSSBuffer);
 #else
             outColor = ApplyBlendMode(diffuseLighting, specularLighting, builtinData.opacity);
-            outColor = EvaluateAtmosphericScattering(posInput, V, outColor);
+
+        #ifdef _TRANSPARENT_REFRACTIVE_SORT
+            ComputeRefractionSplitColor(posInput, V, outColor, outBeforeRefractionColor, outBeforeRefractionAlpha);
+        #elif defined(_ENABLE_FOG_ON_TRANSPARENT)
+            outColor = ComputeFog(posInput, V, outColor);
+        #endif
 #endif
 
 #ifdef _WRITE_TRANSPARENT_MOTION_VECTOR
@@ -258,5 +279,6 @@ void Frag(PackedVaryingsToPS packedInput
         vtAlphaValue = 1.0f - bsdfData.transmittanceMask;
     #endif
     outVTFeedback = PackVTFeedbackWithAlpha(builtinData.vtPackedFeedback, input.positionSS.xy, vtAlphaValue);
+    outVTFeedback.rgb *= outVTFeedback.a; // premuliplied alpha
 #endif
 }

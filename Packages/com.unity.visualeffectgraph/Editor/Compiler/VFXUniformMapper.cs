@@ -50,10 +50,7 @@ namespace UnityEditor.VFX
                     return;
                 }
 
-                List<string> previousNames;
-                expressions.TryGetValue(exp, out previousNames);
-
-                if (previousNames == null)
+                if (!expressions.TryGetValue(exp, out var previousNames))
                 {
                     previousNames = new List<string>();
                     expressions[exp] = previousNames;
@@ -68,11 +65,12 @@ namespace UnityEditor.VFX
                 {
                     foreach (var data in datas)
                     {
+                        m_CurrentUniformIndex++;
                         m_NameCounts.TryGetValue(data.name, out uint count);
                         m_NameCounts[data.name] = count + 1u;
-                        previousNames.Add(data.id == -1 &&
-                                           (!VFXExpression.IsUniform(exp.valueType)
-                                            || !m_NeedsNameSuffixes ) ? data.name : $"{data.name}_{VFXCodeGeneratorHelper.GeneratePrefix(count)}");
+                        string name = data.id == -1 && (!VFXExpression.IsUniform(exp.valueType) || !m_NeedsNameSuffixes) ? data.name : $"{data.name}_{VFXCodeGeneratorHelper.GeneratePrefix(count)}";
+                        if (!previousNames.Contains(name))
+                            previousNames.Add(name);
                     }
                 }
             }

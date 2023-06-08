@@ -38,9 +38,9 @@ namespace UnityEngine.Rendering.Universal
         //                                                  Public
         //============================================================================================================
         public override int Priority() { return 10; }  // give higher than default menu priority
-        public override bool IsShapeSource(in Component sourceComponent) { return sourceComponent is SpriteSkin; }
+        public override bool IsShapeSource(Component sourceComponent) { return sourceComponent is SpriteSkin; }
 
-        public override void OnPersistantDataCreated(in Component sourceComponent, ShadowShape2D persistantShadowShape)
+        public override void OnPersistantDataCreated(Component sourceComponent, ShadowShape2D persistantShadowShape)
         {
             SpriteSkin spriteSkin = (SpriteSkin)sourceComponent;
             SpriteRenderer spriteRenderer;
@@ -52,7 +52,7 @@ namespace UnityEngine.Rendering.Universal
             TryToSetPersistantShapeData(spriteSkin, persistantShadowShape, true);
         }
 
-        public override void OnBeforeRender(in Component sourceComponent, in Bounds worldCullingBounds, ShadowShape2D persistantShadowShape)
+        public override void OnBeforeRender(Component sourceComponent, Bounds worldCullingBounds, ShadowShape2D persistantShadowShape)
         {
             SpriteSkin spriteSkin = (SpriteSkin)sourceComponent;
             if (spriteSkin != null && spriteSkin.vertexDeformationHash != m_LastDeformedVertexHash)

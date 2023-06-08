@@ -9,6 +9,28 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [16.0.1] - 2023-05-23
+
+This version is compatible with Unity 2023.2.0a17.
+
+### Changed
+- Reduced the import times of shadergraphs.
+
+### Fixed
+- Fixed an issue where the Gradient Noise Node was causing implicit truncation warnings.
+- Fixed an issue where custom interpolator previews would provide erroneous results when connecting through a reroute node.
+- Fixed an issue where the reroute node would sometimes show the wrong color for its appropriate inputs.
+- Fixed an issue where the subgraph gradient blackboard properties could have naming conflicts with parent graphs.
+- Fixed an issue where the view position of the graph editor would sometimes be forgotten when swapping between two open shadergraph editor windows.
+- Improved blackboard property drag speed when reordering the blackboard.
+- Made adjustments to flipbook node to avoid dropping frames on AMD GPU.
+- Fixed parallax nodes so that they use the default UV Input Slot correctly.
+- Corrected a regression in float preview properties not updating previews.
+- Added an issue where multi-selection events would trigger when you right-click on blackboard items.
+- Enabled ShaderGraph styles to be applied correctly when the system locale is set in Turks.
+- Fixed clicking or dragging on a text field and clicking in the Graph Inspector performing the wrong actions.
+- Fixed Rename action by double-clicking in Blackboard not working.
+
 ## [16.0.0] - 2023-03-22
 
 This version is compatible with Unity 2023.2.0a9.

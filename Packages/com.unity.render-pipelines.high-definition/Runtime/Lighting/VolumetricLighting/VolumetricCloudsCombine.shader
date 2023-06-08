@@ -7,6 +7,7 @@ Shader "Hidden/HDRP/VolumetricCloudsCombine"
         HLSLINCLUDE
         #pragma target 4.5
         #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+        //#pragma enable_d3d11_debug_symbols
 
         #pragma vertex Vert
         #pragma fragment Frag
@@ -14,6 +15,14 @@ Shader "Hidden/HDRP/VolumetricCloudsCombine"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/VolumetricLighting/VolumetricCloudsDef.cs.hlsl"
+
+        // For refraction sorting, clouds are considered pre-refraction transparents
+        #define _TRANSPARENT_REFRACTIVE_SORT
+        #define _ENABLE_FOG_ON_TRANSPARENT
+        #define _BlendMode BLENDMODE_ALPHA
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/AtmosphericScattering/AtmosphericScattering.hlsl"
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/Shaders/UnderWaterUtilities.hlsl"
 
         TEXTURE2D_X(_CameraColorTexture);
         TEXTURE2D_X(_VolumetricCloudsLightingTexture);
@@ -187,6 +196,49 @@ Shader "Hidden/HDRP/VolumetricCloudsCombine"
                 // Inverse the exposure
                 clouds.rgb *= GetInverseCurrentExposureMultiplier();
                 return clouds;
+            }
+            ENDHLSL
+        }
+
+        Pass
+        {
+            // Pass 7
+            // This pass does per pixel sorting with refractive objects
+            // Mainly used to correctly sort clouds above water
+
+            Cull   Off
+            ZTest  Less // Required for XR occlusion mesh optimization
+            ZWrite Off
+
+            // If this is a background pixel, we want the cloud value, otherwise we do not.
+            Blend  One OneMinusSrcAlpha
+
+            Blend 1 One OneMinusSrcAlpha // before refraction
+            Blend 2 One OneMinusSrcAlpha // before refraction alpha
+
+            HLSLPROGRAM
+
+            TEXTURE2D_X(_VolumetricCloudsDepthTexture);
+
+            void Frag(Varyings input
+                , out float4 outColor : SV_Target0
+                , out float4 outBeforeRefractionColor : SV_Target1
+                , out float4 outBeforeRefractionAlpha : SV_Target2
+            )
+            {
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
+                // Read cloud data
+                float cloudDepth = LOAD_TEXTURE2D_X(_VolumetricCloudsDepthTexture, input.positionCS.xy).x;
+                outColor = LOAD_TEXTURE2D_X(_VolumetricCloudsLightingTexture, input.positionCS.xy);
+                outColor.a = 1.0f - outColor.a;
+
+                // Compute pos inputs
+                PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, cloudDepth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
+                float3 V = -normalize(posInput.positionWS);
+
+                // Sort clouds with refractive objects
+                ComputeRefractionSplitColor(posInput, V, outColor, outBeforeRefractionColor, outBeforeRefractionAlpha);
             }
             ENDHLSL
         }

@@ -368,7 +368,7 @@ namespace UnityEngine.Rendering.HighDefinition
             float maxWaveHeight = parameters.waterCB._MaxWaveHeight + parameters.waterRenderingCB._MaxWaterDeformation;
             uint maxLOD = parameters.waterRenderingCB._MaxLOD;
             Vector4 patchOffset = parameters.waterRenderingCB._PatchOffset;
-            float2 regionCenter = parameters.waterRenderingCB._RegionCenter;
+            float2 regionCenter = parameters.waterRenderingCB._GridOffset;
             float2 regionExtent = parameters.waterRenderingCB._RegionExtent;
 
             for (int lod = 0; lod < maxLOD; lod++)
@@ -427,7 +427,7 @@ namespace UnityEngine.Rendering.HighDefinition
             bool drawInfinitePatch = parameters.drawInfiniteMesh;
             if (!parameters.infinite)
             {
-                float2 offset = cb._RegionCenter - new Vector2(cb._PatchOffset.x, cb._PatchOffset.z);
+                float2 offset = cb._GridOffset - new Vector2(cb._PatchOffset.x, cb._PatchOffset.z);
 
                 drawCentralPatch = (abs(offset.x) < cb._RegionExtent.x + cb._GridSize.x * 0.5f) &&
                                    (abs(offset.y) < cb._RegionExtent.y + cb._GridSize.y * 0.5f);
@@ -480,11 +480,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 MeshRenderer currentRenderer = parameters.meshRenderers[meshRenderer];
                 if (currentRenderer != null)
                 {
-                    // can this be sent to cmd.DrawMesh ? that would avoid having to reupload the constant buffer
-                    parameters.waterRenderingCB._WaterCustomMeshTransform = currentRenderer.transform.localToWorldMatrix;
-                    parameters.waterRenderingCB._WaterCustomMeshTransform_Inverse = currentRenderer.transform.worldToLocalMatrix;
-                    ConstantBuffer.Push(cmd, parameters.waterRenderingCB, parameters.waterMaterial, HDShaderIDs._ShaderVariablesWaterRendering);
-
                     MeshFilter filter;
                     currentRenderer.TryGetComponent(out filter);
                     if (filter != null)
@@ -492,7 +487,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         Mesh mesh = filter.sharedMesh;
                         int numSubMeshes = mesh.subMeshCount;
                         for (int subMeshIdx = 0; subMeshIdx < numSubMeshes; ++subMeshIdx)
-                            cmd.DrawMesh(mesh, Matrix4x4.identity, parameters.waterMaterial, subMeshIdx, passIndex, parameters.mbp);
+                            cmd.DrawMesh(mesh, currentRenderer.transform.localToWorldMatrix, parameters.waterMaterial, subMeshIdx, passIndex, parameters.mbp);
                     }
                 }
             }

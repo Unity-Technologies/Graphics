@@ -3,7 +3,7 @@ Shader "Hidden/HDRP/DepthValues"
     HLSLINCLUDE
         #pragma target 4.5
         #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
-        #pragma multi_compile_fragment _ _HAS_MOTION_VECTORS
+        #pragma multi_compile_fragment _ _HAS_MOTION_VECTORS _DEPTH_ONLY
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
@@ -31,8 +31,10 @@ Shader "Hidden/HDRP/DepthValues"
 
         struct FragOut
         {
+            #ifndef _DEPTH_ONLY
             float4 depthValues : SV_Target0;
             float4 normal : SV_Target1;
+            #endif
             #ifdef _HAS_MOTION_VECTORS
             float2 motionVectors : SV_Target2;
             #endif
@@ -55,36 +57,45 @@ Shader "Hidden/HDRP/DepthValues"
             FragOut fragO;
             int2 pixelCoords = int2(input.texcoord);
             float depthVal = LOAD_TEXTURE2D_X_MSAA(_DepthTextureMS, pixelCoords, 0).x;
+            #ifndef _DEPTH_ONLY
             fragO.depthValues = float4(depthVal, depthVal, depthVal, 0.0f);
             fragO.normal = LOAD_TEXTURE2D_X_MSAA(_NormalTextureMS, pixelCoords, 0);
+            #endif
             #ifdef _HAS_MOTION_VECTORS
             fragO.motionVectors = LOAD_TEXTURE2D_X_MSAA(_MotionVectorTextureMS, pixelCoords, 0);
             #endif
-            fragO.actualDepth = fragO.depthValues.x;
+            fragO.actualDepth = depthVal;
             return fragO;
+        }
+
+        void AccumulateSample(inout float4 depthValues, int2 pixelCoords, int sampleIdx, out uint closestSample)
+        {
+            float depthVal = LOAD_TEXTURE2D_X_MSAA(_DepthTextureMS, pixelCoords, sampleIdx).x;
+            if (depthVal > depthValues.x)
+            {
+                depthValues.x = depthVal;
+                closestSample = sampleIdx;
+            }
+            depthValues.y = min(depthVal, depthValues.y);
+            depthValues.z += depthVal;
         }
 
         FragOut Frag2X(Varyings input)
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
             FragOut fragO;
-            fragO.depthValues = float4(0.0f, 100000.0f, 0.0f, 0.0f);
+            float4 depthValues = float4(0.0f, 100000.0f, 0.0f, 0.0f);
             int2 pixelCoords = int2(input.texcoord);
             uint closestSample = 0;
             for(int sampleIdx = 0; sampleIdx < 2; ++sampleIdx)
-            {
-                float depthVal = LOAD_TEXTURE2D_X_MSAA(_DepthTextureMS, pixelCoords, sampleIdx).x;
-                if (depthVal > fragO.depthValues.x)
-                {
-                    fragO.depthValues.x = depthVal;
-                    closestSample = sampleIdx;
-                }
-                fragO.depthValues.y = min(depthVal, fragO.depthValues.y);
-                fragO.depthValues.z += depthVal;
-            }
-            fragO.depthValues.z *= 0.5;
-            fragO.actualDepth = fragO.depthValues.x;
+                AccumulateSample(depthValues, pixelCoords, sampleIdx, closestSample);
+            depthValues.z *= 0.5;
+
+            #ifndef _DEPTH_ONLY
+            fragO.depthValues = depthValues;
             fragO.normal = LOAD_TEXTURE2D_X_MSAA(_NormalTextureMS, pixelCoords, 0);
+            #endif
+            fragO.actualDepth = depthValues.x;
             #ifdef _HAS_MOTION_VECTORS
             // We pick the closest sample to camera, not really a great solution, but resolving motion vectors is ill defined.
             fragO.motionVectors = LOAD_TEXTURE2D_X_MSAA(_MotionVectorTextureMS, pixelCoords, closestSample);
@@ -96,23 +107,18 @@ Shader "Hidden/HDRP/DepthValues"
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
             FragOut fragO;
-            fragO.depthValues = float4(0.0f, 100000.0f, 0.0f, 0.0f);
+            float4 depthValues = float4(0.0f, 100000.0f, 0.0f, 0.0f);
             int2 pixelCoords = int2(input.texcoord);
             uint closestSample = 0;
             for(int sampleIdx = 0; sampleIdx < 4; ++sampleIdx)
-            {
-                float depthVal = LOAD_TEXTURE2D_X_MSAA(_DepthTextureMS, pixelCoords, sampleIdx).x;
-                if (depthVal > fragO.depthValues.x)
-                {
-                    fragO.depthValues.x = depthVal;
-                    closestSample = sampleIdx;
-                }
-                fragO.depthValues.y = min(depthVal, fragO.depthValues.y);
-                fragO.depthValues.z += depthVal;
-            }
-            fragO.depthValues.z *= 0.25;
-            fragO.actualDepth = fragO.depthValues.x;
+                AccumulateSample(depthValues, pixelCoords, sampleIdx, closestSample);
+            depthValues.z *= 0.25;
+
+            #ifndef _DEPTH_ONLY
+            fragO.depthValues = depthValues;
             fragO.normal = LOAD_TEXTURE2D_X_MSAA(_NormalTextureMS, pixelCoords, 0);
+            #endif
+            fragO.actualDepth = depthValues.x;
             #ifdef _HAS_MOTION_VECTORS
             // We pick the closest sample to camera, not really a great solution, but resolving motion vectors is ill defined.
             fragO.motionVectors = LOAD_TEXTURE2D_X_MSAA(_MotionVectorTextureMS, pixelCoords, closestSample);
@@ -124,23 +130,18 @@ Shader "Hidden/HDRP/DepthValues"
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
             FragOut fragO;
-            fragO.depthValues = float4(0.0f, 100000.0f, 0.0f, 0.0f);
+            float4 depthValues = float4(0.0f, 100000.0f, 0.0f, 0.0f);
             int2 pixelCoords = int2(input.texcoord);
             uint closestSample = 0;
             for(int sampleIdx = 0; sampleIdx < 8; ++sampleIdx)
-            {
-                float depthVal = LOAD_TEXTURE2D_X_MSAA(_DepthTextureMS, pixelCoords, sampleIdx).x;
-                if (depthVal > fragO.depthValues.x)
-                {
-                    fragO.depthValues.x = depthVal;
-                    closestSample = sampleIdx;
-                }
-                fragO.depthValues.y = min(depthVal, fragO.depthValues.y);
-                fragO.depthValues.z += depthVal;
-            }
-            fragO.depthValues.z *= 0.125;
-            fragO.actualDepth = fragO.depthValues.x;
+                AccumulateSample(depthValues, pixelCoords, sampleIdx, closestSample);
+            depthValues.z *= 0.125;
+
+            #ifndef _DEPTH_ONLY
+            fragO.depthValues = depthValues;
             fragO.normal = LOAD_TEXTURE2D_X_MSAA(_NormalTextureMS, pixelCoords, 0);
+            #endif
+            fragO.actualDepth = depthValues.x;
             #ifdef _HAS_MOTION_VECTORS
             // We pick the closest sample to camera, not really a great solution, but resolving motion vectors is ill defined.
             fragO.motionVectors = LOAD_TEXTURE2D_X_MSAA(_MotionVectorTextureMS, pixelCoords, closestSample);

@@ -9,19 +9,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public enum MaterialType
         {
             Approximate,
-            Physical
-        }
-
-        public enum ScatteringMode
-        {
-            Approximate,
-            Physical
+            Physical,
+            PhysicalCinematic
         }
 
         public enum DirectionalFractionMode
         {
-            StrandProbe,
-            Shadowmap
+            ScatteringData,
+            ShadowMap
         }
 
         public enum ColorParameterization
@@ -37,21 +32,20 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             Strands
         }
 
+        public enum CinematicSampleCount
+        {
+            Low,
+            Medium,
+            High,
+            Ultra
+        }
+
         [SerializeField]
         MaterialType m_MaterialType;
         public MaterialType materialType
         {
             get => m_MaterialType;
             set => m_MaterialType = value;
-        }
-
-        [SerializeField]
-        ScatteringMode m_ScatteringMode;
-
-        public ScatteringMode scatteringMode
-        {
-            get => m_ScatteringMode;
-            set => m_ScatteringMode = value;
         }
 
         [SerializeField]
@@ -79,6 +73,24 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             get => m_GeometryType;
             set => m_GeometryType = value;
+        }
+
+        [SerializeField]
+        CinematicSampleCount m_EnvironmentSamples = CinematicSampleCount.Medium;
+
+        public CinematicSampleCount environmentSamples
+        {
+            get => m_EnvironmentSamples;
+            set => m_EnvironmentSamples = value;
+        }
+
+        [SerializeField]
+        CinematicSampleCount m_AreaLightSamples = CinematicSampleCount.Medium;
+
+        public CinematicSampleCount areaLightSamples
+        {
+            get => m_AreaLightSamples;
+            set => m_AreaLightSamples = value;
         }
     }
 }

@@ -121,12 +121,18 @@ namespace UnityEngine.Rendering.Universal
             /// </summary>
             [Reload("Shaders/CameraMotionVectors.shader")]
             public Shader cameraMotionVector;
-
+            
             /// <summary>
-            /// Object Motion Vector Fallback shader (used for shaders which don't have a pass with a "MotionVectors" LightMode tag).
+            /// Screen Space Lens Flare shader.
             /// </summary>
-            [Reload("Shaders/ObjectMotionVectorFallback.shader")]
-            public Shader objectMotionVector;
+            [Reload("Shaders/PostProcessing/LensFlareScreenSpace.shader")]
+            public Shader screenSpaceLensFlare;
+            
+            /// <summary>
+            /// Data Driven Lens Flare shader.
+            /// </summary>
+            [Reload("Shaders/PostProcessing/LensFlareDataDriven.shader")]
+            public Shader dataDrivenLensFlare;
         }
 
         /// <summary>

@@ -108,7 +108,8 @@ namespace UnityEngine.Rendering.HighDefinition
             MigrationStep.New(Version.ShadowFilteringVeryHighQualityRemoval, (HDRenderPipelineAsset data) =>
             {
                 ref var shadowInit = ref data.m_RenderPipelineSettings.hdShadowInitParams;
-                shadowInit.shadowFilteringQuality = shadowInit.shadowFilteringQuality > HDShadowFilteringQuality.High ? HDShadowFilteringQuality.High : shadowInit.shadowFilteringQuality;
+                shadowInit.punctualShadowFilteringQuality = shadowInit.punctualShadowFilteringQuality > HDShadowFilteringQuality.High ? HDShadowFilteringQuality.High : shadowInit.punctualShadowFilteringQuality;
+                shadowInit.directionalShadowFilteringQuality = shadowInit.directionalShadowFilteringQuality > HDShadowFilteringQuality.High ? HDShadowFilteringQuality.High : shadowInit.directionalShadowFilteringQuality;
             }),
             MigrationStep.New(Version.SeparateColorGradingAndTonemappingFrameSettings, (HDRenderPipelineAsset data) =>
             {

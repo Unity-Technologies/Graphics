@@ -191,7 +191,7 @@ void ComputePatchBounds(uint patch,
 
 bool PatchIsInRegion(float2 center, float2 size)
 {
-    return all(abs(_RegionCenter - center) < _RegionExtent + size);
+    return all(abs(center - _GridOffset) < _RegionExtent + size);
 }
 
 #define MAX_PATCH_COUNT (7*7)

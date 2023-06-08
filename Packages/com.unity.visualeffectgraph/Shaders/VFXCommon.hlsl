@@ -13,6 +13,17 @@
 #define FIXED_RAND2(h) float2(FIXED_RAND(h),FIXED_RAND(h))
 #define FIXED_RAND3(h) float3(FIXED_RAND(h),FIXED_RAND(h),FIXED_RAND(h))
 #define FIXED_RAND4(h) float4(FIXED_RAND(h),FIXED_RAND(h),FIXED_RAND(h),FIXED_RAND(h))
+
+#define VFXRAND Rand(attributes.seed)
+#define VFXRAND2 float2(VFXRAND,VFXRAND)
+#define VFXRAND3 float3(VFXRAND,VFXRAND,VFXRAND)
+#define VFXRAND4 float4(VFXRAND,VFXRAND,VFXRAND,VFXRAND)
+#define VFXFIXED_RAND(h) FixedRand(attributes.particleId ^ asuint(systemSeed) ^ h)
+#define VFXFIXED_RAND2(h) float2(VFXFIXED_RAND(h),VFXFIXED_RAND(h))
+#define VFXFIXED_RAND3(h) float3(VFXFIXED_RAND(h),VFXFIXED_RAND(h),VFXFIXED_RAND(h))
+#define VFXFIXED_RAND4(h) float4(VFXFIXED_RAND(h),VFXFIXED_RAND(h),VFXFIXED_RAND(h),VFXFIXED_RAND(h))
+
+
 #define KILL {kill = true;}
 #define SAMPLE sampleSignal
 #define SAMPLE_SPLINE_POSITION(v,u) sampleSpline(v.x,u)
@@ -37,6 +48,9 @@
 #define UNITY_HALF_PI       1.57079632679f
 #define UNITY_INV_HALF_PI   0.636619772367f
 #endif
+
+#define VFXGradient float3
+#define VFXCurve float4
 
 struct VFXSampler2D
 {

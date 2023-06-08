@@ -269,6 +269,11 @@ namespace UnityEngine.Rendering
         /// </summary>
         public class Table : Container
         {
+            static GUIStyle columnHeaderStyle = new GUIStyle()
+            {
+                alignment = TextAnchor.MiddleCenter
+            };
+
             /// <summary>Row Container.</summary>
             public class Row : Foldout
             {
@@ -379,26 +384,28 @@ namespace UnityEngine.Rendering
                         }
                     }
 
-                    UnityEditor.IMGUI.Controls.MultiColumnHeaderState.Column CreateColumn(string name)
+                    UnityEditor.IMGUI.Controls.MultiColumnHeaderState.Column CreateColumn(string name, string tooltip)
                     {
                         var col = new UnityEditor.IMGUI.Controls.MultiColumnHeaderState.Column()
                         {
                             canSort = false,
                             headerTextAlignment = TextAlignment.Center,
-                            headerContent = new GUIContent(name),
+                            headerContent = new GUIContent(name, tooltip ?? string.Empty)
                         };
 
-                        GUIStyle style = UnityEditor.IMGUI.Controls.MultiColumnHeader.DefaultStyles.columnHeaderCenterAligned;
-                        style.CalcMinMaxWidth(col.headerContent, out col.width, out float _);
+                        columnHeaderStyle.CalcMinMaxWidth(col.headerContent, out col.width, out float _);
                         col.width = Mathf.Min(col.width, 50f);
                         return col;
                     }
 
                     var cols = new UnityEditor.IMGUI.Controls.MultiColumnHeaderState.Column[m_ColumnCount + 1];
-                    cols[0] = CreateColumn(displayName);
+                    cols[0] = CreateColumn(displayName, tooltip);
                     cols[0].allowToggleVisibility = false;
                     for (int i = 0; i < m_ColumnCount; i++)
-                        cols[i + 1] = CreateColumn(((Container)children[0]).children[i].displayName);
+                    {
+                        var elem = ((Container) children[0]).children[i];
+                        cols[i + 1] = CreateColumn(elem.displayName, elem.tooltip);
+                    }
 
                     var state = new UnityEditor.IMGUI.Controls.MultiColumnHeaderState(cols);
                     m_Header = new UnityEditor.IMGUI.Controls.MultiColumnHeader(state) { height = 23 };

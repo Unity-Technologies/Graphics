@@ -21,7 +21,7 @@ namespace UnityEditor.Rendering.HighDefinition
             UpdateNodeAfterDeserialization();
         }
 
-        public override string documentationURL => Documentation.GetPageLink("SGNode-HD-Scene-Color");
+        public override string documentationURL => NodeUtils.GetDocumentationString("HD-Scene-Color");
 
         [SerializeField]
         bool m_Exposure;

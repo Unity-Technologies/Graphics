@@ -14,7 +14,7 @@ namespace UnityEditor.Rendering
                 AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(globalsetting));
             }
 
-            EditorGraphicsSettings.UnregisterRenderPipelineSettings<DummyRenderPipeline>();
+            EditorGraphicsSettings.SetRenderPipelineGlobalSettingsAsset<DummyRenderPipeline>(null);
         }
 
         public class DummyRenderPipelineAsset : RenderPipelineAsset<DummyRenderPipeline>

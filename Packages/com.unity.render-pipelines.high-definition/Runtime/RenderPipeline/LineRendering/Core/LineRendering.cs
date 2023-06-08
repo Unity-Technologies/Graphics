@@ -7,6 +7,7 @@ using UnityEditor;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using UnityEngine.Profiling;
+using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEngine.Rendering
 {
@@ -54,6 +55,7 @@ namespace UnityEngine.Rendering
         }
 
         private bool m_IsInitialized = false;
+        private List<RendererData> m_VisibleDatas = new List<RendererData>();
 
         // Compute resources and utility container.
         private SystemResources m_SystemResources;
@@ -251,6 +253,37 @@ namespace UnityEngine.Rendering
             var renderDatas = GetValidRenderDatas(args.renderGraph, args.camera);
 
             if (renderDatas.Length == 0)
+                return;
+
+            // Cull the render datas to lighten the CPU and GPU load further down the line
+            Vector3 cameraOffset = Vector3.zero;
+            if (ShaderConfig.s_CameraRelativeRendering != 0) // TODO: ShaderConfig is HDRP-specific, we should not use it here.
+                cameraOffset = args.cameraPosition;
+
+            m_VisibleDatas.Clear();
+            foreach (var renderData in renderDatas)
+            {
+                // We're using the OrientedBBox although it is in world space and really a AABB
+                OrientedBBox obb;
+                Bounds worldBounds = renderData.bounds;
+
+                obb.center = worldBounds.center;
+                obb.center -= cameraOffset;
+
+                obb.right = Vector3.right;
+                obb.up = Vector3.up;
+
+                obb.extentX = worldBounds.extents.x;
+                obb.extentY = worldBounds.extents.y;
+                obb.extentZ = worldBounds.extents.z;
+
+                if (GeometryUtils.Overlap(obb, args.cameraFrustum, 6, 8))
+                {
+                    m_VisibleDatas.Add(renderData);
+                }
+            }
+
+            if (m_VisibleDatas.Count == 0)
                 return;
 
             foreach (var renderData in SortRenderDatasByCameraDistance(renderDatas, args.camera))

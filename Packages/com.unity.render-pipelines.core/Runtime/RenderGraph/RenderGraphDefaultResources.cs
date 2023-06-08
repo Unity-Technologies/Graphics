@@ -57,7 +57,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
             clearTextureXR = renderGraph.ImportTexture(TextureXR.GetClearTexture(), true);
             magentaTextureXR = renderGraph.ImportTexture(TextureXR.GetMagentaTexture(), true);
-            blackTextureXR = renderGraph.ImportTexture(TextureXR.GetBlackTexture());
+            blackTextureXR = renderGraph.ImportTexture(TextureXR.GetBlackTexture(), true);
             blackTextureArrayXR = renderGraph.ImportTexture(TextureXR.GetBlackTextureArray(), true);
             blackUIntTextureXR = renderGraph.ImportTexture(TextureXR.GetBlackUIntTexture(), true);
             blackTexture3DXR = renderGraph.ImportTexture(TextureXR.GetBlackTexture3D(), true);

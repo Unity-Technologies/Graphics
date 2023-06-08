@@ -362,7 +362,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="overrideRenderState">The render states to override when rendering the objects.</param>
         /// <param name="sorting">How the objects are sorted before being rendered.</param>
         /// <param name="renderingLayerMask">The rendering layer mask used to filter which object to render. See https://docs.unity3d.com/ScriptReference/Renderer-renderingLayerMask.html for more information.</param>
-        public static void DrawRenderers(in CustomPassContext ctx, LayerMask layerMask, CustomPass.RenderQueueType renderQueueFilter = CustomPass.RenderQueueType.All, Material overrideMaterial = null, int overrideMaterialIndex = 0, RenderStateBlock overrideRenderState = default(RenderStateBlock), SortingCriteria sorting = SortingCriteria.CommonOpaque, uint renderingLayerMask = uint.MaxValue)
+        public static void DrawRenderers(in CustomPassContext ctx, LayerMask layerMask, CustomPass.RenderQueueType renderQueueFilter = CustomPass.RenderQueueType.All, Material overrideMaterial = null, int overrideMaterialIndex = 0, RenderStateBlock overrideRenderState = default(RenderStateBlock), SortingCriteria sorting = HDUtils.k_OpaqueSortingCriteria, uint renderingLayerMask = uint.MaxValue)
             => DrawRenderers(ctx, litForwardTags, layerMask, renderQueueFilter, overrideMaterial, overrideMaterialIndex, overrideRenderState, sorting, renderingLayerMask);
 
         /// <summary>
@@ -377,7 +377,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="overrideRenderState">The render states to override when rendering the objects.</param>
         /// <param name="sorting">How the objects are sorted before being rendered.</param>
         /// <param name="renderingLayerMask">The rendering layer mask used to filter which object to render. See https://docs.unity3d.com/ScriptReference/Renderer-renderingLayerMask.html for more information.</param>
-        public static void DrawRenderers(in CustomPassContext ctx, ShaderTagId[] shaderTags, LayerMask layerMask, CustomPass.RenderQueueType renderQueueFilter = CustomPass.RenderQueueType.All, Material overrideMaterial = null, int overrideMaterialIndex = 0, RenderStateBlock overrideRenderState = default(RenderStateBlock), SortingCriteria sorting = SortingCriteria.CommonOpaque, uint renderingLayerMask = uint.MaxValue)
+        public static void DrawRenderers(in CustomPassContext ctx, ShaderTagId[] shaderTags, LayerMask layerMask, CustomPass.RenderQueueType renderQueueFilter = CustomPass.RenderQueueType.All, Material overrideMaterial = null, int overrideMaterialIndex = 0, RenderStateBlock overrideRenderState = default(RenderStateBlock), SortingCriteria sorting = HDUtils.k_OpaqueSortingCriteria, uint renderingLayerMask = uint.MaxValue)
         {
             PerObjectData renderConfig = HDUtils.GetRendererConfiguration(ctx.hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume), ctx.hdCamera.frameSettings.IsEnabled(FrameSettingsField.Shadowmask));
 

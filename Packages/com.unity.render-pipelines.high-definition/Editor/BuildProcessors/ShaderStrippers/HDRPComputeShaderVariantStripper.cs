@@ -38,7 +38,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     shader == hdAsset.renderPipelineResources.shaders.fourierTransformCS ||
                     shader == hdAsset.renderPipelineResources.shaders.waterEvaluationCS ||
                     shader == hdAsset.renderPipelineResources.shaders.waterLightingCS ||
-                    shader == hdAsset.renderPipelineResources.shaders.underWaterRenderingCS ||
+                    shader == hdAsset.renderPipelineResources.shaders.waterLineCS ||
                     shader == hdAsset.renderPipelineResources.shaders.waterDeformationCS ||
                     shader == hdAsset.renderPipelineResources.shaders.waterFoamCS)
                     return true;
@@ -49,8 +49,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (shader == hdAsset.renderPipelineResources.shaders.volumetricCloudsCS ||
                     shader == hdAsset.renderPipelineResources.shaders.volumetricCloudsTraceCS ||
-                    shader == hdAsset.renderPipelineResources.shaders.volumetricCloudMapGeneratorCS ||
-                    shader == hdAsset.renderPipelineResources.shaders.volumetricCloudsCombineCS)
+                    shader == hdAsset.renderPipelineResources.shaders.volumetricCloudMapGeneratorCS)
                     return true;
             }
 
@@ -100,9 +99,18 @@ namespace UnityEditor.Rendering.HighDefinition
             // Strip every useless shadow configs
             var shadowInitParams = hdAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams;
 
-            foreach (var shadowVariant in m_ShadowKeywords.ShadowVariants)
+            foreach (var shadowVariant in m_ShadowKeywords.PunctualShadowVariants)
             {
-                if (shadowVariant.Key != shadowInitParams.shadowFilteringQuality)
+                if (shadowVariant.Key != shadowInitParams.punctualShadowFilteringQuality)
+                {
+                    if (inputData.shaderKeywordSet.IsEnabled(shadowVariant.Value))
+                        return true;
+                }
+            }
+
+            foreach (var shadowVariant in m_ShadowKeywords.DirectionalShadowVariants)
+            {
+                if (shadowVariant.Key != shadowInitParams.directionalShadowFilteringQuality)
                 {
                     if (inputData.shaderKeywordSet.IsEnabled(shadowVariant.Value))
                         return true;
@@ -157,7 +165,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 return true;
 
             // HDR Output
-            if (!HDROutputUtils.IsShaderVariantValid(inputData.shaderKeywordSet, PlayerSettings.useHDRDisplay))
+            if (!HDROutputUtils.IsShaderVariantValid(inputData.shaderKeywordSet, PlayerSettings.allowHDRDisplaySupport))
                 return true;
 
             return false;

@@ -45,11 +45,11 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             if (generationMode == GenerationMode.ForReals)
             {
-                sb.AppendLine("$precision3 {0} = GetWaterVertexPosition(IN.WorldSpacePosition);",
+                sb.AppendLine("$precision3 {0} = IN.ObjectSpacePosition;",
                   GetVariableNameForSlot(kPositionOSOutputSlotId),
                   CoordinateSpace.Object.ToVariableName(InterpolatorType.Position));
 
-                sb.AppendLine("$precision3 {0} = GetWaterVertexNormal(IN.WorldSpaceNormal);",
+                sb.AppendLine("$precision3 {0} = IN.ObjectSpaceNormal;",
                   GetVariableNameForSlot(kNormalOSOutputSlotId),
                   CoordinateSpace.Object.ToVariableName(InterpolatorType.Position));
             }

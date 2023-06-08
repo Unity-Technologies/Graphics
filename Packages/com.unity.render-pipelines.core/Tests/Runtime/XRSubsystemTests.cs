@@ -73,6 +73,10 @@ namespace UnityEngine.Rendering.Tests
             }
             Assert.AreEqual(targetScale, occlusionScale);
             yield return WaitOneFrame();
+
+            // Reset to default 1.0f
+            XRSRPSettings.occlusionMeshScale = 1.0f;
+            yield return WaitOneFrame();
         }
 
         [UnityTest]

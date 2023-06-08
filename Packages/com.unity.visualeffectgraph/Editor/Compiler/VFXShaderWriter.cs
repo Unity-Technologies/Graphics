@@ -5,7 +5,6 @@ using System.Text;
 using System.Globalization;
 using UnityEngine;
 using UnityEngine.VFX;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Collections.ObjectModel;
 
@@ -26,6 +25,14 @@ namespace UnityEditor.VFX
             }
             return prefix;
         }
+    }
+
+    interface IHLSLCodeHolder : IEquatable<IHLSLCodeHolder>
+    {
+        ShaderInclude shaderFile { get; }
+        string sourceCode { get; set; }
+        string customCode { get; }
+        bool HasShaderFile();
     }
 
     class VFXShaderWriter
@@ -327,6 +334,10 @@ namespace UnityEditor.VFX
                     var structureName = GetStructureName(type);
                     WriteLineFormat("StructuredBuffer<{0}> {1};", structureName, name);
                 }
+                else if (buffer is VFXGraphicsBufferValue graphicsBufferValue && !string.IsNullOrEmpty(graphicsBufferValue.templateType))
+                {
+                    WriteLineFormat("{0} {1};", VFXExpression.TypeToCode(buffer.valueType), name);
+                }
                 else
                 {
                     WriteLineFormat("{0} {1};", VFXExpression.TypeToCode(buffer.valueType), name);
@@ -340,8 +351,8 @@ namespace UnityEditor.VFX
             {
                 var names = mapper.GetNames(texture);
                 // TODO At the moment issue all names sharing the same texture as different texture slots. This is not optimized as it required more texture binding than necessary
-                // TODO : Investigate why we need Distinct in the first place
-                foreach (var name in names.Distinct())
+                Debug.Assert(names.Distinct().Count() == names.Count);
+                foreach (var name in names)
                 {
                     if (skipNames != null && skipNames.Contains(name))
                         continue;
@@ -472,9 +483,9 @@ namespace UnityEditor.VFX
             return parameters.Count == 0 ? "" : parameters.Aggregate((a, b) => a + ", " + b);
         }
 
-        private static string GetFunctionParameterType(VFXValueType type)
+        private static string GetFunctionParameterType(VFXExpression exp)
         {
-            switch (type)
+            switch (exp.valueType)
             {
                 case VFXValueType.Texture2D: return "VFXSampler2D";
                 case VFXValueType.Texture2DArray: return "VFXSampler2DArray";
@@ -482,8 +493,11 @@ namespace UnityEditor.VFX
                 case VFXValueType.TextureCube: return "VFXSamplerCube";
                 case VFXValueType.TextureCubeArray: return "VFXSamplerCubeArray";
                 case VFXValueType.CameraBuffer: return "VFXSamplerCameraBuffer";
+                case VFXValueType.Buffer:
+                    var bufferExpression = (VFXGraphicsBufferValue)exp;
+                    return string.IsNullOrEmpty(bufferExpression.templateType) ? "ByteAddressBuffer" : $"StructuredBuffer<{bufferExpression.templateType}>";
                 default:
-                    return VFXExpression.TypeToCode(type);
+                    return VFXExpression.TypeToCode(exp.valueType);
             }
         }
 
@@ -525,7 +539,7 @@ namespace UnityEditor.VFX
             foreach (var parameter in parameters)
             {
                 var inputModifier = GetInputModifier(parameter.mode);
-                var parameterType = GetFunctionParameterType(parameter.expression.valueType);
+                var parameterType = GetFunctionParameterType(parameter.expression);
                 parametersCode.Add(string.Format("{0}{1} {2}", inputModifier, parameterType, parameter.name));
             }
 

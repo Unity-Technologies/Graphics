@@ -49,9 +49,9 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <returns>The GraphicsFormat to use with the Normals texture.</returns>
         public static GraphicsFormat GetGraphicsFormat()
         {
-            if (RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.R8G8B8A8_SNorm, FormatUsage.Render))
+            if (SystemInfo.IsFormatSupported(GraphicsFormat.R8G8B8A8_SNorm, GraphicsFormatUsage.Render))
                 return GraphicsFormat.R8G8B8A8_SNorm; // Preferred format
-            else if (RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.R16G16B16A16_SFloat, FormatUsage.Render))
+            else if (SystemInfo.IsFormatSupported(GraphicsFormat.R16G16B16A16_SFloat, GraphicsFormatUsage.Render))
                 return GraphicsFormat.R16G16B16A16_SFloat; // fallback
             else
                 return GraphicsFormat.R32G32B32A32_SFloat; // fallback

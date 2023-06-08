@@ -2,6 +2,8 @@ Shader "Hidden/Universal Render Pipeline/LensFlareScreenSpace"
 {
     SubShader
     {
+        Tags{ "RenderPipeline" = "UniversalPipeline" }
+        
         Pass
         {
             Name "LensFlareScreenSpac Prefilter"

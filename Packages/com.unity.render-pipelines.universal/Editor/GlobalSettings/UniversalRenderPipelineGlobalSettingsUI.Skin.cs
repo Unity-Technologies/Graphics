@@ -6,8 +6,7 @@ namespace UnityEditor.Rendering.Universal
     {
         internal class Styles
         {
-            public const int defaultVolumeLabelWidth = 250;
-            public const int volumeProfileEditorLabelWidth = 280;
+            public const int defaultVolumeLabelWidth = 260;
 
             public static readonly GUIContent defaultVolumeProfileHeaderLabel = EditorGUIUtility.TrTextContent("Default Volume Profile");
             public static readonly GUIContent defaultVolumeProfileLabel = EditorGUIUtility.TrTextContent("Volume Profile", "Settings that will be applied project-wide to all Volumes by default when Universal Render Pipeline is active.");

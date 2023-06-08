@@ -150,7 +150,8 @@ namespace UnityEditor.VFX.Test
                 gpuMapper = new VFXExpressionMapper(),
                 uniformMapper = new VFXUniformMapper(new VFXExpressionMapper(), true, true),
                 graphicsBufferUsage = new ReadOnlyDictionary<VFXExpression, Type>(new Dictionary<VFXExpression, Type>()),
-                linkedEventOut = Array.Empty<(VFXSlot slot, VFXData data)>()
+                linkedEventOut = Array.Empty<(VFXSlot slot, VFXData data)>(),
+                hlslCodeHolders = Array.Empty<IHLSLCodeHolder>()
             };
             var task = new VFXTask { templatePath = updateContext.codeGeneratorTemplate, type = updateContext.taskType };
             HashSet<string> dependencies = new HashSet<string>();
@@ -181,7 +182,9 @@ namespace UnityEditor.VFX.Test
                 gpuMapper = new VFXExpressionMapper(),
                 uniformMapper = new VFXUniformMapper(new VFXExpressionMapper(), true, true),
                 graphicsBufferUsage = new ReadOnlyDictionary<VFXExpression, Type>(new Dictionary<VFXExpression, Type>()),
-                linkedEventOut = new (VFXSlot slot, VFXData data)[] { }
+                linkedEventOut = new (VFXSlot slot, VFXData data)[] { },
+                hlslCodeHolders = Array.Empty<IHLSLCodeHolder>()
+
             };
             HashSet<string> dependencies = new HashSet<string>();
             var task = new VFXTask { templatePath = updateContext.codeGeneratorTemplate, type = updateContext.taskType };
@@ -406,7 +409,7 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void ShaderGraph_Interpolators_Generation()
         {
-            string vfxPath = "Assets/AllTests/Editor/Tests/SGInterpolatorTest.vfx"; 
+            string vfxPath = "Assets/AllTests/Editor/Tests/SGInterpolatorTest.vfx";
             AssetDatabase.ImportAsset(vfxPath);
             var vfx = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(vfxPath).GetResource();
 

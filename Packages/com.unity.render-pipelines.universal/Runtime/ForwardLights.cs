@@ -452,10 +452,9 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 var stack = VolumeManager.instance.stack;
 
-                bool enableProbeVolumes = ProbeVolumeLighting.instance.UpdateShaderVariablesProbeVolumes(
+                bool enableProbeVolumes = ProbeReferenceVolume.instance.UpdateShaderVariablesProbeVolumes(cmd,
                     stack.GetComponent<ProbeVolumesOptions>(),
-                    renderingData.cameraData.IsTemporalAAEnabled() ? Time.frameCount : 0,
-                    cmd);
+                    renderingData.cameraData.IsTemporalAAEnabled() ? Time.frameCount : 0);
 
                 cmd.SetGlobalInt("_EnableProbeVolumes", enableProbeVolumes ? 1 : 0);
 

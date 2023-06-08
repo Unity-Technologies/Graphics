@@ -86,6 +86,12 @@ namespace UnityEngine.Rendering.Universal
 
         // Use Fast conversions between SRGB and Linear
         bool m_UseFastSRGBLinearConversion;
+        
+        // Support Screen Space Lens Flare post process effect
+        bool m_SupportScreenSpaceLensFlare;
+        
+        // Support Data Driven Lens Flare post process effect
+        bool m_SupportDataDrivenLensFlare;
 
         // Blit to screen or color frontbuffer at the end
         bool m_ResolveToScreen;
@@ -118,14 +124,14 @@ namespace UnityEngine.Rendering.Universal
             m_Materials = new MaterialLibrary(data);
 
             // Only two components are needed for edge render texture, but on some vendors four components may be faster.
-            if (SystemInfo.IsFormatSupported(GraphicsFormat.R8G8_UNorm, FormatUsage.Render) && SystemInfo.graphicsDeviceVendor.ToLowerInvariant().Contains("arm"))
+            if (SystemInfo.IsFormatSupported(GraphicsFormat.R8G8_UNorm, GraphicsFormatUsage.Render) && SystemInfo.graphicsDeviceVendor.ToLowerInvariant().Contains("arm"))
                 m_SMAAEdgeFormat = GraphicsFormat.R8G8_UNorm;
             else
                 m_SMAAEdgeFormat = GraphicsFormat.R8G8B8A8_UNorm;
 
-            if (SystemInfo.IsFormatSupported(GraphicsFormat.R16_UNorm, FormatUsage.Linear | FormatUsage.Render))
+            if (SystemInfo.IsFormatSupported(GraphicsFormat.R16_UNorm, GraphicsFormatUsage.Linear | GraphicsFormatUsage.Render))
                 m_GaussianCoCFormat = GraphicsFormat.R16_UNorm;
-            else if (SystemInfo.IsFormatSupported(GraphicsFormat.R16_SFloat, FormatUsage.Linear | FormatUsage.Render))
+            else if (SystemInfo.IsFormatSupported(GraphicsFormat.R16_SFloat, GraphicsFormatUsage.Linear | GraphicsFormatUsage.Render))
                 m_GaussianCoCFormat = GraphicsFormat.R16_SFloat;
             else // Expect CoC banding
                 m_GaussianCoCFormat = GraphicsFormat.R8_UNorm;
@@ -155,7 +161,7 @@ namespace UnityEngine.Rendering.Universal
             m_BlitMaterial = postProcessParams.blitMaterial;
 
             // Texture format pre-lookup
-            const FormatUsage usage = FormatUsage.Linear | FormatUsage.Render;
+            const GraphicsFormatUsage usage = GraphicsFormatUsage.Linear | GraphicsFormatUsage.Render;
             if (SystemInfo.IsFormatSupported(postProcessParams.requestHDRFormat, usage))
             {
                 m_DefaultHDRFormat = postProcessParams.requestHDRFormat;
@@ -309,6 +315,8 @@ namespace UnityEngine.Rendering.Universal
             m_Tonemapping = stack.GetComponent<Tonemapping>();
             m_FilmGrain = stack.GetComponent<FilmGrain>();
             m_UseFastSRGBLinearConversion = renderingData.postProcessingData.useFastSRGBLinearConversion;
+            m_SupportScreenSpaceLensFlare = renderingData.postProcessingData.supportScreenSpaceLensFlare;
+            m_SupportDataDrivenLensFlare = renderingData.postProcessingData.supportDataDrivenLensFlare;
 
             var cmd = renderingData.commandBuffer;
             if (m_IsFinalPass)
@@ -374,8 +382,8 @@ namespace UnityEngine.Rendering.Universal
             bool useSubPixeMorpAA = cameraData.antialiasing == AntialiasingMode.SubpixelMorphologicalAntiAliasing;
             var dofMaterial = m_DepthOfField.mode.value == DepthOfFieldMode.Gaussian ? m_Materials.gaussianDepthOfField : m_Materials.bokehDepthOfField;
             bool useDepthOfField = m_DepthOfField.IsActive() && !isSceneViewCamera && dofMaterial != null;
-            bool useLensFlare = !LensFlareCommonSRP.Instance.IsEmpty();
-            bool useLensFlareScreenSpace = m_LensFlareScreenSpace.IsActive();
+            bool useLensFlare = !LensFlareCommonSRP.Instance.IsEmpty() && m_SupportDataDrivenLensFlare;
+            bool useLensFlareScreenSpace = m_LensFlareScreenSpace.IsActive() && m_SupportScreenSpaceLensFlare;
             bool useMotionBlur = m_MotionBlur.IsActive() && !isSceneViewCamera;
             bool usePaniniProjection = m_PaniniProjection.IsActive() && !isSceneViewCamera;
 
@@ -583,7 +591,7 @@ namespace UnityEngine.Rendering.Universal
                     // Color space conversion is already applied through color grading, do encoding if uber post is the last pass
                     // Otherwise encoding will happen in the final post process pass or the final blit pass
                     HDROutputUtils.Operation hdrOperation = !m_HasFinalPass && m_EnableColorEncodingIfNeeded ? HDROutputUtils.Operation.ColorEncoding : HDROutputUtils.Operation.None;
-                    SetupHDROutput(m_Materials.uber, hdrOperation);
+                    SetupHDROutput(cameraData.hdrDisplayInformation, cameraData.hdrDisplayColorGamut, m_Materials.uber, hdrOperation);
                 }
 
                 if (m_UseFastSRGBLinearConversion)
@@ -1456,13 +1464,13 @@ namespace UnityEngine.Rendering.Universal
         #endregion
 
 #region HDR Output
-        void SetupHDROutput(Material material, HDROutputUtils.Operation hdrOperations)
+        void SetupHDROutput(HDROutputUtils.HDRDisplayInformation hdrDisplayInformation, ColorGamut hdrDisplayColorGamut, Material material, HDROutputUtils.Operation hdrOperations)
         {
             Vector4 hdrOutputLuminanceParams;
-            UniversalRenderPipeline.GetHDROutputLuminanceParameters(m_Tonemapping, out hdrOutputLuminanceParams);
+            UniversalRenderPipeline.GetHDROutputLuminanceParameters(hdrDisplayInformation, hdrDisplayColorGamut, m_Tonemapping, out hdrOutputLuminanceParams);
             material.SetVector(ShaderPropertyId.hdrOutputLuminanceParams, hdrOutputLuminanceParams);
 
-            HDROutputUtils.ConfigureHDROutput(material, HDROutputSettings.main.displayColorGamut, hdrOperations);
+            HDROutputUtils.ConfigureHDROutput(material, hdrDisplayColorGamut, hdrOperations);
         }
 #endregion
 
@@ -1492,7 +1500,7 @@ namespace UnityEngine.Rendering.Universal
                 if (!cameraData.postProcessEnabled)
                     hdrOperations |= HDROutputUtils.Operation.ColorConversion;
 
-                SetupHDROutput(material, hdrOperations);
+                SetupHDROutput(cameraData.hdrDisplayInformation, cameraData.hdrDisplayColorGamut, material, hdrOperations);
             }
 
             DebugHandler debugHandler = GetActiveDebugHandler(ref renderingData);
@@ -1543,7 +1551,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     if (requireHDROutput)
                     {
-                        SetupHDROutput(m_Materials.scalingSetup, hdrOperations);
+                        SetupHDROutput(cameraData.hdrDisplayInformation, cameraData.hdrDisplayColorGamut, m_Materials.scalingSetup, hdrOperations);
                     }
 
                     if (isFxaaEnabled)

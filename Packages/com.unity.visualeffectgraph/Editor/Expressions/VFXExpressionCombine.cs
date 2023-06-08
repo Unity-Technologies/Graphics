@@ -1,6 +1,6 @@
 using System;
 using System.Linq;
-using System.Runtime.CompilerServices;
+
 using UnityEngine;
 using UnityEngine.VFX;
 
@@ -51,7 +51,7 @@ namespace UnityEditor.VFX
             return null;
         }
 
-        sealed public override string GetCodeString(string[] parents)
+        public sealed override string GetCodeString(string[] parents)
         {
             return string.Format("{0}({1})", TypeToCode(valueType), parents.Aggregate((a, b) => string.Format("{0}, {1}", a, b)));
         }

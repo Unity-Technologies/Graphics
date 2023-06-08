@@ -1387,41 +1387,78 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle depthTexture;
             public TextureHandle volumetricLighting;
             public TextureHandle depthBuffer;
-            public TextureHandle intermediateTexture;
             public Matrix4x4 pixelCoordToViewDirWS;
             public Material opaqueAtmosphericalScatteringMaterial;
             public int fogDebugPassIndex;
             public bool pbrFog;
             public bool msaa;
             public bool volumetricFogDebug;
+
+            public bool polychromaticAlpha;
+            public TextureHandle outputColorBuffer;
+
+            public bool water;
+            public bool causticsShadow;
+            public BufferHandle waterLine;
+            public BufferHandle waterSurfaceProfiles;
+            public BufferHandle waterCameraHeight;
+            public TextureHandle waterStencil;
+            public TextureHandle waterGBuffer3;
+            public TextureHandle causticsData;
+            public TextureHandle normalBuffer;
         }
 
-        public void RenderOpaqueAtmosphericScattering(RenderGraph renderGraph, HDCamera hdCamera,
-            TextureHandle colorBuffer,
-            TextureHandle depthTexture,
-            TextureHandle volumetricLighting,
-            TextureHandle depthBuffer)
+        public TextureHandle RenderOpaqueAtmosphericScattering(RenderGraph renderGraph, HDCamera hdCamera, in HDRenderPipeline.TransparentPrepassOutput transparentPrepass,
+            TextureHandle colorBuffer, TextureHandle depthTexture, TextureHandle volumetricLighting, TextureHandle depthBuffer, TextureHandle normalBuffer)
         {
-            if (!(Fog.IsFogEnabled(hdCamera) || Fog.IsPBRFogEnabled(hdCamera)))
-                return;
+            bool waterEnabled = transparentPrepass.waterGBuffer.valid;
+            if (!Fog.IsFogEnabled(hdCamera) && !Fog.IsPBRFogEnabled(hdCamera) && !waterEnabled)
+                return colorBuffer;
 
             using (var builder = renderGraph.AddRenderPass<OpaqueAtmosphericScatteringPassData>("Opaque Atmospheric Scattering", out var passData, ProfilingSampler.Get(HDProfileId.OpaqueAtmosphericScattering)))
             {
                 passData.opaqueAtmosphericalScatteringMaterial = m_OpaqueAtmScatteringMaterial;
                 passData.msaa = hdCamera.msaaEnabled;
-                passData.pbrFog = Fog.IsPBRFogEnabled(hdCamera);
                 passData.pixelCoordToViewDirWS = hdCamera.mainViewConstants.pixelCoordToViewDirWS;
                 if (volumetricLighting.IsValid())
                     passData.volumetricLighting = builder.ReadTexture(volumetricLighting);
                 else
                     passData.volumetricLighting = TextureHandle.nullHandle;
-                passData.colorBuffer = builder.WriteTexture(colorBuffer);
                 passData.depthTexture = builder.ReadTexture(depthTexture);
-                passData.depthBuffer = builder.ReadTexture(depthBuffer);
-                if (Fog.IsPBRFogEnabled(hdCamera))
-                    passData.intermediateTexture = builder.CreateTransientTexture(colorBuffer);
+                passData.depthBuffer = builder.ReadTexture(transparentPrepass.depthBufferPreRefraction);
                 passData.volumetricFogDebug = m_CurrentDebugDisplaySettings.data.fullScreenDebugMode == FullScreenDebugMode.VolumetricFog;
                 passData.fogDebugPassIndex = m_FogDebugPasses[(int)(passData.msaa ? OpaqueAtmScatteringPass.FogMSAA : OpaqueAtmScatteringPass.Fog)];
+
+                // Water stuff
+                passData.water = waterEnabled;
+                if (waterEnabled)
+                {
+                    passData.waterLine = builder.ReadBuffer(transparentPrepass.waterLine);
+                    passData.waterSurfaceProfiles = builder.ReadBuffer(transparentPrepass.waterSurfaceProfiles);
+                    passData.waterCameraHeight = builder.ReadBuffer(transparentPrepass.waterGBuffer.cameraHeight);
+                    passData.waterStencil = builder.ReadTexture(depthBuffer);
+                    passData.waterGBuffer3 = builder.ReadTexture(transparentPrepass.waterGBuffer.waterGBuffer3);
+
+                    if (transparentPrepass.underWaterSurface != null && transparentPrepass.underWaterSurface.caustics)
+                    {
+                        passData.causticsData = renderGraph.ImportTexture(transparentPrepass.underWaterSurface.simulation.gpuBuffers.causticsBuffer);
+                        passData.normalBuffer = builder.ReadTexture(normalBuffer);
+                        passData.causticsShadow = transparentPrepass.underWaterSurface.causticsDirectionalShadow;
+                    }
+                }
+
+                passData.polychromaticAlpha = waterEnabled || Fog.IsPBRFogEnabled(hdCamera);
+                if (passData.polychromaticAlpha)
+                {
+                    passData.colorBuffer = builder.ReadTexture(colorBuffer);
+                    passData.outputColorBuffer = builder.WriteTexture(renderGraph.CreateTexture(colorBuffer));
+                }
+                else
+                {
+                    passData.colorBuffer = builder.WriteTexture(colorBuffer);
+                    passData.outputColorBuffer = colorBuffer;
+                }
+
 
                 builder.SetRenderFunc(
                     (OpaqueAtmosphericScatteringPassData data, RenderGraphContext ctx) =>
@@ -1434,19 +1471,36 @@ namespace UnityEngine.Rendering.HighDefinition
                         if (data.volumetricLighting.IsValid())
                             mpb.SetTexture(HDShaderIDs._VBufferLighting, data.volumetricLighting);
 
-                        if (data.pbrFog)
+                        if (data.polychromaticAlpha)
                         {
-                            mpb.SetTexture(data.msaa ? HDShaderIDs._ColorTextureMS : HDShaderIDs._ColorTexture, data.colorBuffer);
+                            bool caustics = data.causticsData.IsValid();
+
+                            CoreUtils.SetKeyword(ctx.cmd, "NO_WATER", !data.water);
+                            CoreUtils.SetKeyword(ctx.cmd, "SUPPORT_WATER", data.water && !caustics);
+                            CoreUtils.SetKeyword(ctx.cmd, "SUPPORT_WATER_CAUSTICS", data.water && caustics && !data.causticsShadow);
+                            CoreUtils.SetKeyword(ctx.cmd, "SUPPORT_WATER_CAUSTICS_SHADOW", data.water && caustics && data.causticsShadow);
+
+                            if (data.water)
+                            {
+                                if (caustics)
+                                {
+                                    mpb.SetTexture(HDShaderIDs._WaterCausticsDataBuffer, data.causticsData);
+                                    mpb.SetTexture(HDShaderIDs._NormalBufferTexture, data.normalBuffer);
+                                }
+
+                                mpb.SetBuffer(HDShaderIDs._WaterLineBuffer, data.waterLine);
+                                mpb.SetBuffer(HDShaderIDs._WaterCameraHeightBuffer, data.waterCameraHeight);
+                                mpb.SetBuffer(HDShaderIDs._WaterSurfaceProfiles, data.waterSurfaceProfiles);
+                                mpb.SetTexture(HDShaderIDs._WaterGBufferTexture3, data.waterGBuffer3);
+                                mpb.SetTexture(HDShaderIDs._RefractiveDepthBuffer, data.waterStencil, RenderTextureSubElement.Depth);
+                                mpb.SetTexture(HDShaderIDs._StencilTexture, data.waterStencil, RenderTextureSubElement.Stencil);
+                            }
 
                             // Necessary to perform dual-source (polychromatic alpha) blending which is not supported by Unity.
-                            // We load from the color buffer, perform blending manually, and store to the atmospheric scattering buffer.
-                            // Then we perform a copy from the atmospheric scattering buffer back to the color buffer.
+                            // We load from the color buffer, perform blending manually, and store to a new color buffer.
 
-                            // Color -> Intermediate.
-                            HDUtils.DrawFullScreen(ctx.cmd, data.opaqueAtmosphericalScatteringMaterial, data.intermediateTexture, data.depthBuffer, mpb, data.msaa ? 3 : 2);
-                            // Intermediate -> Color.
-                            // Note: Blit does not support MSAA (and is probably slower).
-                            ctx.cmd.CopyTexture(data.intermediateTexture, data.colorBuffer);
+                            mpb.SetTexture(data.msaa ? HDShaderIDs._ColorTextureMS : HDShaderIDs._ColorTexture, data.colorBuffer);
+                            HDUtils.DrawFullScreen(ctx.cmd, data.opaqueAtmosphericalScatteringMaterial, data.outputColorBuffer, data.depthBuffer, mpb, data.msaa ? 3 : 2);
                         }
                         else
                         {
@@ -1459,6 +1513,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             }
                         }
                     });
+
+                return passData.outputColorBuffer;
             }
         }
 

@@ -3,6 +3,7 @@ using System.Reflection;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -22,12 +23,33 @@ namespace UnityEditor.Rendering.HighDefinition
 
         #region Resources
 
+        public static VisualElement CreateImguiSections(SerializedHDRenderPipelineGlobalSettings serialized, Editor owner)
+        {
+            return new IMGUIContainer(() =>
+            {
+                GUILayout.BeginHorizontal();
+                GUILayout.Space(10);
+                GUILayout.BeginVertical();
+
+                using (var changedScope = new EditorGUI.ChangeCheckScope())
+                {
+                    Inspector.Draw(serialized, owner);
+                    if (changedScope.changed)
+                        serialized.serializedObject.ApplyModifiedProperties();
+                }
+
+                GUILayout.EndVertical();
+                GUILayout.EndHorizontal();
+            });
+        }
+
         static readonly CED.IDrawer ResourcesSection = CED.Group(
             CED.Group((serialized, owner) => CoreEditorUtils.DrawSectionHeader(Styles.resourceLabel)),
             CED.Group((serialized, owner) => EditorGUILayout.Space()),
             CED.Group(DrawResourcesSection),
             CED.Group((serialized, owner) => EditorGUILayout.Space())
         );
+
         static void DrawResourcesSection(SerializedHDRenderPipelineGlobalSettings serialized, Editor owner)
         {
             using (new EditorGUI.IndentLevelScope())
@@ -112,97 +134,16 @@ namespace UnityEditor.Rendering.HighDefinition
 
         #endregion // Custom Post Processes
 
-        #region Volume Profiles
+        #region LookDev Volume Profile
 
         static readonly CED.IDrawer VolumeSection = CED.Group(
-            CED.Group((serialized, owner) => CoreEditorUtils.DrawSectionHeader(
-                Styles.defaultVolumeProfileSectionLabel,
-                Documentation.GetPageLink(DocumentationUrls.k_Volumes),
-                pos => OnDefaultVolumeProfileSectionContextClick(pos, serialized, owner))),
-            CED.Group((serialized, owner) => EditorGUILayout.Space()),
-            CED.Group(DrawDefaultVolumeSection),
-            CED.Group((serialized, owner) => EditorGUILayout.Space()),
             CED.Group((serialized, owner) => CoreEditorUtils.DrawSectionHeader(
                 Styles.lookDevVolumeProfileSectionLabel,
                 Documentation.GetPageLink(DocumentationUrls.k_LookDev),
                 pos => OnLookDevVolumeProfileSectionContextClick(pos, serialized, owner))),
-            CED.Group((serialized, owner) => EditorGUILayout.Space()),
+            CED.Group((_, _) => EditorGUILayout.Space()),
             CED.Group(DrawLookDevVolumeSection)
         );
-
-        private static bool s_DefaultVolumeProfileFoldoutExpanded = true;
-
-        static void DrawDefaultVolumeSection(SerializedHDRenderPipelineGlobalSettings serialized, Editor owner)
-        {
-            if (owner is not HDRenderPipelineGlobalSettingsEditor hdGlobalSettingsEditor)
-                return;
-
-            using (new EditorGUI.IndentLevelScope())
-            {
-                var oldWidth = EditorGUIUtility.labelWidth;
-                EditorGUIUtility.labelWidth = Styles.defaultVolumeLabelWidth;
-
-                HDRenderPipelineGlobalSettings globalSettings = serialized.serializedObject.targetObject as HDRenderPipelineGlobalSettings;
-
-                var previousDefaultVolumeProfileAsset = serialized.defaultVolumeProfile.objectReferenceValue;
-                VolumeProfile defaultVolumeProfileAsset = RenderPipelineGlobalSettingsUI.DrawVolumeProfileAssetField(
-                    serialized.defaultVolumeProfile,
-                    Styles.defaultVolumeProfileAssetLabel,
-                    getOrCreateVolumeProfile: () => globalSettings.GetOrCreateDefaultVolumeProfile(),
-                    ref s_DefaultVolumeProfileFoldoutExpanded
-                );
-                EditorGUIUtility.labelWidth = Styles.volumeProfileEditorLabelWidth;
-
-                if (defaultVolumeProfileAsset != previousDefaultVolumeProfileAsset)
-                {
-                    var defaultValuesAsset = globalSettings.renderPipelineEditorResources.defaultSettingsVolumeProfile;
-                    if (previousDefaultVolumeProfileAsset == null)
-                    {
-                        VolumeProfileUtils.UpdateGlobalDefaultVolumeProfile<HDRenderPipeline>(defaultVolumeProfileAsset, defaultValuesAsset);
-                    }
-                    else
-                    {
-                        bool confirmed = VolumeProfileUtils.UpdateGlobalDefaultVolumeProfileWithConfirmation<HDRenderPipeline>(defaultVolumeProfileAsset, defaultValuesAsset);
-                        if (!confirmed)
-                            serialized.defaultVolumeProfile.objectReferenceValue = previousDefaultVolumeProfileAsset;
-                    }
-                }
-
-                if (defaultVolumeProfileAsset != null && s_DefaultVolumeProfileFoldoutExpanded)
-                {
-                    var editor = hdGlobalSettingsEditor.GetDefaultVolumeProfileEditor(defaultVolumeProfileAsset) as VolumeProfileEditor;
-                    bool oldEnabled = GUI.enabled;
-                    GUI.enabled = AssetDatabase.IsOpenForEdit(defaultVolumeProfileAsset);
-                    GUILayout.Space(4);
-                    editor.OnInspectorGUI();
-                    GUI.enabled = oldEnabled;
-                }
-                EditorGUIUtility.labelWidth = oldWidth;
-            }
-        }
-
-        static void OnDefaultVolumeProfileSectionContextClick(Vector2 pos, SerializedHDRenderPipelineGlobalSettings serialized, Editor owner)
-        {
-            if (owner is not HDRenderPipelineGlobalSettingsEditor hdGlobalSettingsEditor)
-                return;
-
-            var editor = hdGlobalSettingsEditor.GetDefaultVolumeProfileEditor(
-                serialized.defaultVolumeProfile.objectReferenceValue as VolumeProfile) as VolumeProfileEditor;
-
-            VolumeProfileUtils.OnVolumeProfileContextClick(pos, editor,
-                defaultVolumeProfilePath: $"Assets/{HDProjectSettings.projectSettingsFolderPath}/VolumeProfile_Default.asset",
-                onNewVolumeProfileCreated: volumeProfile =>
-                {
-                    var globalSettings =
-                        serialized.serializedObject.targetObject as HDRenderPipelineGlobalSettings;
-
-                    Undo.RecordObject(globalSettings, "Set Global Settings Volume Profile");
-                    globalSettings.volumeProfile = volumeProfile;
-                    var defaultValuesAsset = globalSettings.renderPipelineEditorResources.defaultSettingsVolumeProfile;
-                    VolumeProfileUtils.UpdateGlobalDefaultVolumeProfile<HDRenderPipeline>(volumeProfile, defaultValuesAsset);
-                    EditorUtility.SetDirty(globalSettings);
-                });
-        }
 
         private static bool s_LookDevVolumeProfileFoldoutExpanded = true;
 
@@ -223,7 +164,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     getOrCreateVolumeProfile: () => globalSettings.GetOrAssignLookDevVolumeProfile(),
                     ref s_LookDevVolumeProfileFoldoutExpanded
                 );
-                EditorGUIUtility.labelWidth = Styles.volumeProfileEditorLabelWidth;
 
                 if (lookDevAsset != null && s_LookDevVolumeProfileFoldoutExpanded)
                 {
@@ -251,13 +191,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
             var editor = hdGlobalSettingsEditor.GetLookDevDefaultVolumeProfileEditor(
                 serialized.lookDevVolumeProfile.objectReferenceValue as VolumeProfile) as VolumeProfileEditor;
+            var globalSettings = serialized.serializedObject.targetObject as HDRenderPipelineGlobalSettings;
 
-            VolumeProfileUtils.OnVolumeProfileContextClick(pos, editor,
+            VolumeProfileUtils.OnVolumeProfileContextClick(pos, globalSettings.lookDevVolumeProfile, editor.componentList.editors,
+                overrideStateOnReset: false,
                 defaultVolumeProfilePath: $"Assets/{HDProjectSettings.projectSettingsFolderPath}/LookDevProfile_Default.asset",
                 onNewVolumeProfileCreated: volumeProfile =>
                 {
-                    var globalSettings =
-                        serialized.serializedObject.targetObject as HDRenderPipelineGlobalSettings;
 
                     Undo.RecordObject(globalSettings, "Set Global Settings LookDev Profile");
                     globalSettings.lookDevVolumeProfile = volumeProfile;
@@ -281,10 +221,15 @@ namespace UnityEditor.Rendering.HighDefinition
 #pragma warning disable 618 // Obsolete warning
                 CoreEditorUtils.DrawSectionHeader(RenderPipelineGlobalSettingsUI.Styles.shaderStrippingSettingsLabel);
 #pragma warning restore 618 // Obsolete warning
-                EditorGUI.indentLevel++;
-                EditorGUILayout.Space();
-                EditorGUILayout.PropertyField(s.serializedObject.FindProperty("m_ShaderStrippingSetting"));
-                EditorGUI.indentLevel--;
+                var oldWidth = EditorGUIUtility.labelWidth;
+                EditorGUIUtility.labelWidth = Styles.labelWidth;
+
+                using (new EditorGUI.IndentLevelScope())
+                {
+                    EditorGUILayout.Space();
+                    EditorGUILayout.PropertyField(s.serializedObject.FindProperty("m_ShaderStrippingSetting"));
+                }
+                EditorGUIUtility.labelWidth = oldWidth;
             })
         );
         static void DrawMiscSettings(SerializedHDRenderPipelineGlobalSettings serialized, Editor owner)
@@ -375,17 +320,19 @@ namespace UnityEditor.Rendering.HighDefinition
 
         #endregion
 
-        public static readonly CED.IDrawer Inspector = CED.Group(
-        VolumeSection,
-        CED.Group((serialized, owner) => EditorGUILayout.Space()),
-        FrameSettingsSection,
-        CED.Group((serialized, owner) => EditorGUILayout.Space()),
-        LayerNamesSection,
-        CED.Group((serialized, owner) => EditorGUILayout.Space()),
-        CustomPostProcessesSection,
-        CED.Group((serialized, owner) => EditorGUILayout.Space()),
-        MiscSection,
-        CED.Group((serialized, owner) => EditorGUILayout.Space()),
-        ResourcesSection);
+
+
+        static readonly CED.IDrawer Inspector = CED.Group(
+            VolumeSection,
+            CED.Group((serialized, owner) => EditorGUILayout.Space()),
+            FrameSettingsSection,
+            CED.Group((serialized, owner) => EditorGUILayout.Space()),
+            LayerNamesSection,
+            CED.Group((serialized, owner) => EditorGUILayout.Space()),
+            CustomPostProcessesSection,
+            CED.Group((serialized, owner) => EditorGUILayout.Space()),
+            MiscSection,
+            CED.Group((serialized, owner) => EditorGUILayout.Space()),
+            ResourcesSection);
     }
 }

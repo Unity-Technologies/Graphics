@@ -105,9 +105,9 @@ namespace UnityEngine.Rendering.Universal
         //                                                  Public
         //============================================================================================================
         public override int Priority() { return 1; }  // give higher than default menu priority
-        public override bool IsShapeSource(in Component sourceComponent) { return sourceComponent is SpriteRenderer; }
+        public override bool IsShapeSource(Component sourceComponent) { return sourceComponent is SpriteRenderer; }
 
-        public override void OnPersistantDataCreated(in Component sourceComponent, ShadowShape2D persistantShadowShape)
+        public override void OnPersistantDataCreated(Component sourceComponent, ShadowShape2D persistantShadowShape)
         {
             SpriteRenderer spriteRenderer = (SpriteRenderer)sourceComponent;
 
@@ -123,7 +123,7 @@ namespace UnityEngine.Rendering.Universal
             TryToSetPersistantShapeData(spriteRenderer, persistantShadowShape, true);
         }
 
-        public override void OnBeforeRender(in Component sourceComponent, in Bounds worldCullingBounds, ShadowShape2D persistantShadowShape)
+        public override void OnBeforeRender(Component sourceComponent, Bounds worldCullingBounds, ShadowShape2D persistantShadowShape)
         {
             SpriteRenderer spriteRenderer = (SpriteRenderer)sourceComponent;
             persistantShadowShape.SetFlip(spriteRenderer.flipX, spriteRenderer.flipY);

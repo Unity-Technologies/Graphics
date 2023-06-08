@@ -49,8 +49,10 @@ HDRP's water implementation does not use motion vectors. This means that techniq
 Although water surfaces can receive [Ray-Traced Reflections](Ray-Traced-Reflections.md), they cannot contribute to them. This means if you hold up a mirror to a water surface, the water does not reflect in the mirror, for example.
 
 #### Reflection and refraction
-Water surfaces do not affect transparent refractive objects.
-Also, although [Screen Space Reflection](Override-Screen-Space-Reflection.md) is compatible with water surfaces, it does not fall back to [Reflection Probes](Reflection-in-HDRP.md) underwater.
+HDRP treats Water surfaces as refractive transparent objects. This means water has the same behavior and limitations as refractive transparent GameObjects in the Default render queue. This has the following results:
+- Water surfaces don't appear correctly behind another refractive transparent object.
+- If you enable **Transparent Depth Prepass** on a transparent GameObject, then any water surface behind the transparent GameObject disappears.
+- [Screen Space Reflection](Override-Screen-Space-Reflection.md) does not fall back to [Reflection Probes](Reflection-in-HDRP.md) underwater.
 
 #### Decals
 HDRP provides limited decal support for water surfaces. Global opacity controls the strength of the decal influence. Also, certain [Decal Shader](Decal-Shader.md) Surface Options do not work with water surfaces:

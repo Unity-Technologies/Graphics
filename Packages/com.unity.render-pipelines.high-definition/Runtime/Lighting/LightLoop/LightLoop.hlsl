@@ -195,7 +195,6 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     context.shadowContext    = InitShadowContext();
     context.shadowValue      = 1;
     context.sampleReflection = 0;
-    context.splineVisibility = -1;
 #ifdef APPLY_FOG_ON_SKY_REFLECTIONS
     context.positionWS       = posInput.positionWS;
 #endif
@@ -231,21 +230,9 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
                     IsNonZeroBSDF(V, L, preLightData, bsdfData) &&
                     !ShouldEvaluateThickObjectTransmission(V, L, preLightData, bsdfData, light.shadowIndex))
                 {
-                    float3 positionWS = posInput.positionWS;
-
-#ifdef LIGHT_EVALUATION_SPLINE_SHADOW_BIAS
-                    positionWS += L * GetSplineOffsetForShadowBias(bsdfData);
-#endif
                     context.shadowValue = GetDirectionalShadowAttenuation(context.shadowContext,
-                                                                          posInput.positionSS, positionWS, GetNormalForShadowBias(bsdfData),
+                                                                          posInput.positionSS, posInput.positionWS, GetNormalForShadowBias(bsdfData),
                                                                           light.shadowIndex, L);
-
-#ifdef LIGHT_EVALUATION_SPLINE_SHADOW_VISIBILITY_SAMPLE
-                    // Tap the shadow a second time for strand visibility term.
-                    context.splineVisibility = GetDirectionalShadowAttenuation(context.shadowContext,
-                                                                               posInput.positionSS, posInput.positionWS, GetNormalForShadowBias(bsdfData),
-                                                                               light.shadowIndex, L);
-#endif
                 }
             }
         }
@@ -466,6 +453,10 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 #if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
         if (!builtinData.isLightmap)
             replaceBakeDiffuseLighting = true;
+#endif
+
+#if defined(LIGHT_EVALUATION_SKIP_INDIRECT_DIFFUSE)
+        replaceBakeDiffuseLighting = false;
 #endif
 
         if (replaceBakeDiffuseLighting)

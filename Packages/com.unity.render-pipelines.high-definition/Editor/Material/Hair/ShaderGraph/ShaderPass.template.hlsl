@@ -52,7 +52,6 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
     $SurfaceDescription.CuticleAngle:                surfaceData.cuticleAngle =                   surfaceDescription.CuticleAngle;
 
     $SurfaceDescription.StrandCountProbe:            surfaceData.strandCountProbe =               surfaceDescription.StrandCountProbe;
-    $SurfaceDescription.StrandShadowBias:            surfaceData.strandShadowBias =               surfaceDescription.StrandShadowBias;
 
     // These static material feature allow compile time optimization
     surfaceData.materialFeatures = 0;
@@ -64,6 +63,10 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
 
     #ifdef _MATERIAL_FEATURE_HAIR_MARSCHNER
         surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_HAIR_MARSCHNER;
+    #endif
+
+    #ifdef _MATERIAL_FEATURE_HAIR_MARSCHNER_CINEMATIC
+        surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_HAIR_MARSCHNER_CINEMATIC;
     #endif
 
     float3 doubleSidedConstants = GetDoubleSidedConstants();

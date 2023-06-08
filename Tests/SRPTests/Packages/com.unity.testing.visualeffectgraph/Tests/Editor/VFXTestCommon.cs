@@ -10,6 +10,7 @@ using UnityEngine.UIElements;
 using UnityEditor.Experimental.GraphView;
 using System.IO;
 using System.Runtime.CompilerServices;
+using UnityEditor.ShaderGraph.Internal;
 #if VFX_HAS_TIMELINE
 using UnityEngine.Playables;
 using UnityEngine.Timeline;
@@ -65,6 +66,18 @@ namespace UnityEditor.VFX.Test
             return graph;
         }
 
+        public static ShaderGraphVfxAsset CopyTemporaryShaderGraph(string path)
+        {
+            var guid = System.Guid.NewGuid().ToString();
+            var tempFilePath = $"{tempBasePath}sg_{guid}.shadergraph";
+            System.IO.Directory.CreateDirectory(tempBasePath);
+            File.Copy(path, tempFilePath);
+
+            AssetDatabase.ImportAsset(tempFilePath);
+            var shaderGraphAsset = AssetDatabase.LoadAssetAtPath<ShaderGraphVfxAsset>(tempFilePath);
+            return shaderGraphAsset;
+        }
+
 #if VFX_HAS_TIMELINE
         public static TimelineAsset CopyTemporaryTimeline(string path)
         {
@@ -113,6 +126,7 @@ namespace UnityEditor.VFX.Test
             {
                 File.Delete(meta);
             }
+            AssetDatabase.Refresh();
         }
 
         public static U GetFieldValue<T, U>(T obj, string fieldName)

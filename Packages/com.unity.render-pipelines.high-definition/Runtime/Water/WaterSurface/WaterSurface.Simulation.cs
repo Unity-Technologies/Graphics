@@ -234,11 +234,19 @@ namespace UnityEngine.Rendering.HighDefinition
             simulation.rendering = EvaluateRenderingParams(surfaceType);
         }
 
-        internal static void EvaluateWaterSurfaceMatrices(bool instancedQuads, Vector3 position, Quaternion rotation, ref float4x4 waterToWorld, ref float4x4 worldToWater)
+        internal static void EvaluateWaterSurfaceMatrices(bool quad, bool customMesh, Vector3 position, Quaternion rotation, ref float4x4 waterToWorld, ref float4x4 worldToWater, ref float4x4 worldToWater2)
         {
             // Evaluate the right transform based on the type of surface
-            waterToWorld = instancedQuads ? Matrix4x4.Translate(new Vector3(0.0f, position.y, 0.0f)):  Matrix4x4.TRS(position, rotation, Vector3.one);
-            worldToWater = math.inverse(waterToWorld);
+            if (customMesh)
+            {
+                waterToWorld = worldToWater = Matrix4x4.identity;
+                worldToWater2 = math.inverse(Matrix4x4.TRS(position, rotation, Vector3.one));
+            }
+            else
+            {
+                waterToWorld = quad ? Matrix4x4.TRS(position, rotation, Vector3.one) : Matrix4x4.Translate(position);
+                worldToWater = worldToWater2 = math.inverse(waterToWorld);
+            }
         }
 
         // Function that evaluates the spectrum data for the ocean/sea/lake case
@@ -430,7 +438,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Make sure the matrices are evaluated
-            EvaluateWaterSurfaceMatrices(IsInstancedQuads(), transform.position, transform.rotation, ref rendering.waterToWorldMatrix, ref rendering.worldToWaterMatrix);
+            EvaluateWaterSurfaceMatrices(IsQuad(), IsCustomMesh(), transform.position, transform.rotation, ref rendering.waterToWorldMatrix, ref rendering.worldToWaterMatrix, ref rendering.worldToWaterMatrixCustom);
             return rendering;
         }
 

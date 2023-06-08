@@ -4,7 +4,7 @@ Tonemapping is the process of remapping the HDR values of an image to a new rang
 
 ## Using Tonemapping
 
-**Tonemapping**  uses the [Volume](Volumes.md) system, so to enable and modify **Tonemapping** properties, you must add a **Tonemapping** override to a [Volume](Volumes.md) in your Scene.
+**Tonemapping**  uses the [Volume](Volumes.md) system, so to enable and modify **Tonemapping** properties, you must add a **Tonemapping** override to a [Volume](Volumes.md) in your scene.
 
 To add **Tonemapping** to a Volume:
 

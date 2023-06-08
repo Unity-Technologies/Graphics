@@ -18,10 +18,10 @@ namespace UnityEditor.VFX.HDRP
             NormalBased
         }
 
-        [SerializeField, VFXSetting(VFXSettingAttribute.VisibleFlags.All), Tooltip("How the distortion is handled")]
+        [SerializeField, VFXSetting(VFXSettingAttribute.VisibleFlags.Default), Tooltip("How the distortion is handled")]
         protected DistortionMode distortionMode = DistortionMode.ScreenSpace;
 
-        [SerializeField, VFXSetting(VFXSettingAttribute.VisibleFlags.All), Tooltip("Whether Distortion scales with the distance")]
+        [SerializeField, VFXSetting(VFXSettingAttribute.VisibleFlags.Default), Tooltip("Whether Distortion scales with the distance")]
         protected bool scaleByDistance = true;
 
         public override sealed bool CanBeCompiled()

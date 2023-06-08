@@ -329,6 +329,7 @@ namespace UnityEngine.Rendering
                 {
                     Color s_LoadedColor = new Color(0, 1, 0.5f, 0.2f);
                     Color s_UnloadedColor = new Color(1, 0.0f, 0.0f, 0.2f);
+                    Color s_StreamingColor = new Color(0.0f, 0.0f, 1.0f, 0.2f);
                     Color s_LowScoreColor = new Color(0, 0, 0, 0.2f);
                     Color s_HighScoreColor = new Color(1, 1, 0, 0.2f);
 
@@ -357,12 +358,15 @@ namespace UnityEngine.Rendering
                             output.center = positionF * cellSizeInMeters + cellSizeInMeters * 0.5f * Vector4.one;
                             if (debugDisplay.displayCellStreamingScore)
                             {
-                                float lerpFactor = (cell.streamingScore - minStreamingScore) / streamingScoreRange;
+                                float lerpFactor = (cell.streamingInfo.streamingScore - minStreamingScore) / streamingScoreRange;
                                 output.color = Color.Lerp(s_HighScoreColor, s_LowScoreColor, lerpFactor);
                             }
                             else
                             {
-                                output.color = cell.loaded ? s_LoadedColor : s_UnloadedColor;
+                                if (cell.streamingInfo.IsStreaming())
+                                    output.color = s_StreamingColor;
+                                else
+                                    output.color = cell.loaded ? s_LoadedColor : s_UnloadedColor;
                             }
                             yield return output;
                         }

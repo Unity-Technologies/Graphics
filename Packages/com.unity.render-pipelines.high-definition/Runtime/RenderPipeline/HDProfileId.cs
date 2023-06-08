@@ -8,6 +8,7 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         CopyDepthBuffer,
         CopyDepthInTargetTexture,
+        DuplicateDepthBuffer,
         BuildCoarseStencilAndResolveIfNeeded,
         AmbientOcclusion,
         HorizonSSAO,
@@ -21,6 +22,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ApplyDistortion,
         ForwardDepthPrepass,
         DeferredDepthPrepass,
+        PreRefractionDepthPrepass,
         TransparentDepthPrepass,
         GBuffer,
         DBufferRender,
@@ -117,7 +119,6 @@ namespace UnityEngine.Rendering.HighDefinition
         WaterSurfaceRenderingMaskDebug,
         WaterSurfacePrepareLighting,
         WaterSurfaceRenderingDeferred,
-        WaterSurfaceRenderingUnderWater,
         WaterSurfaceRenderingWaterLine,
 
         // RT Cluster
@@ -232,7 +233,9 @@ namespace UnityEngine.Rendering.HighDefinition
         // Low res transparency
         DownsampleDepth,
         LowResTransparent,
+        CombineAndUpsampleTransparent,
         UpsampleLowResTransparent,
+        CombineTransparents,
 
         // Line Rendering
         LineRenderingSetup,

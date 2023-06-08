@@ -207,6 +207,9 @@ namespace UnityEditor.Rendering
         /// <param name="value">The value</param>
         public void SetBitAt(uint bitIndex, bool value)
         {
+            // Update the serialized object to make sure we have the latest values.
+            Update();
+
             AssertInRange(bitIndex);
 
             int part = (int)bitIndex / 64;

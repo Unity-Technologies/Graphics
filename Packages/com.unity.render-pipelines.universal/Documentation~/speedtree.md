@@ -1,6 +1,6 @@
 # SpeedTree Shaders
 
-The Universal Render Pipeline uses the SpeedTree system for tree Shaders.  To read more about that, [read the SpeedTree documentation in the Unity main manual](https://docs.unity3d.com/Manual/SpeedTree.html).
+The Universal Render Pipeline uses the SpeedTree system for tree Shaders. To read more about that, [read the SpeedTree documentation in the Unity main manual](https://docs.unity3d.com/Manual/SpeedTree.html).
 
 When you use SpeedTree Shaders in URP, keep the following in mind:
 

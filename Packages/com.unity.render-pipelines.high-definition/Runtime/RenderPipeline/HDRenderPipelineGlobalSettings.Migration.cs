@@ -179,7 +179,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (assetToUpgrade == null || assetToUpgrade.Equals(null))
             {
                 assetToUpgrade = RenderPipelineGlobalSettingsUtils.Create<HDRenderPipelineGlobalSettings>(defaultPath);
-                EditorGraphicsSettings.RegisterRenderPipelineSettings<HDRenderPipeline>(assetToUpgrade);
+                EditorGraphicsSettings.SetRenderPipelineGlobalSettingsAsset<HDRenderPipeline>(assetToUpgrade);
             }
 
             Debug.Assert(assetToUpgrade);

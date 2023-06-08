@@ -217,16 +217,6 @@ float EvaluateFoam(float jacobian, float foamAmount)
     return saturate(-jacobian + foamAmount);
 }
 
-// Transforms normal from object to world space
-float3 TransformCustomMeshNormal(float3 normalOS, bool doNormalize = true)
-{
-    // Normal need to be multiply by inverse transpose
-    float3 normalWS = mul(normalOS, (float3x3)_WaterCustomMeshTransform_Inverse);
-    if (doNormalize)
-        return SafeNormalize(normalWS);
-    return normalWS;
-}
-
 #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
 float3 WaterSimulationPositionInstanced(float3 objectPosition, uint instanceID)
 {
@@ -239,7 +229,7 @@ float3 WaterSimulationPositionInstanced(float3 objectPosition, uint instanceID)
     simulationPos.x = objectPosition.x * patchData.x - objectPosition.z * patchData.y;
     simulationPos.z = objectPosition.x * patchData.y + objectPosition.z * patchData.x;
 
-    simulationPos.xz = simulationPos.xz * _GridSize + _PatchOffset.xz;
+    simulationPos.xz = simulationPos.xz * _GridSize + _PatchOffset.xz - _GridOffset;
 
     // Return the simulation position
     return simulationPos;
@@ -258,29 +248,18 @@ float3 WaterSimulationPosition(float3 objectPosition)
     simulationPos.x = objectPosition.x * _PatchRotation.x - objectPosition.z * _PatchRotation.y;
     simulationPos.z = objectPosition.x * _PatchRotation.y + objectPosition.z * _PatchRotation.x;
 
-    simulationPos.xz = simulationPos.xz * gridSize + _PatchOffset.xz;
+    simulationPos.xz = simulationPos.xz * gridSize + _PatchOffset.xz - _GridOffset;
 
     #ifndef WATER_DISPLACEMENT
     // Clamp the mesh inside the region so that it's never empty
-    simulationPos.xz = max(simulationPos.xz, _RegionCenter - _RegionExtent);
-    simulationPos.xz = min(simulationPos.xz, _RegionCenter + _RegionExtent);
+    simulationPos.xz = max(simulationPos.xz, -_RegionExtent);
+    simulationPos.xz = min(simulationPos.xz,  _RegionExtent);
     #endif
 
     // Return the simulation position
     return simulationPos;
 }
 #endif
-
-float3 GetWaterVertexPosition(float3 positionRWS)
-{
-    // In case we are using custom geometries, we need to apply the tranform of each custom geometry to ensure that they are correctly connected
-    return mul(_WaterCustomMeshTransform, float4(GetAbsolutePositionWS(positionRWS), 1.0)).xyz;
-}
-
-float3 GetWaterVertexNormal(float3 normalOS)
-{
-    return _WaterProceduralGeometry ? float3(0, 1, 0) : normalOS;
-}
 
 struct WaterDisplacementData
 {
@@ -364,7 +343,7 @@ void SampleSimulation_VS(WaterSimCoord waterCoord, float3 waterMask, float dista
 void EvaluateWaterDisplacement(float3 positionOS, out WaterDisplacementData displacementData)
 {
     // Evaluate the pre-displaced absolute position
-    float3 positionRWS = mul(_WaterSurfaceTransformRWS, float4(positionOS, 1.0)).xyz;
+    float3 positionRWS = TransformObjectToWorld(positionOS);
     // Evaluate the distance to the camera
     float distanceToCamera = length(positionRWS);
 
@@ -443,22 +422,6 @@ void EvaluateWaterDisplacement(float3 positionOS, out WaterDisplacementData disp
 #if defined(SHADER_STAGE_VERTEX) && !defined(WATER_DISPLACEMENT)
     ZERO_INITIALIZE(WaterDisplacementData, displacementData);
 #endif
-}
-
-struct PackedWaterData
-{
-    float3 positionOS;
-    float3 normalOS;
-    float4 uv0;
-    float4 uv1;
-};
-
-void PackWaterVertexData(float3 positionOS, float3 normalOS, float3 displacement, float lowFrequencyHeight, out PackedWaterData packedWaterData)
-{
-    packedWaterData.positionOS = positionOS + displacement;
-    packedWaterData.normalOS = normalOS;
-    packedWaterData.uv0 = float4(positionOS.x, positionOS.z, displacement.y, 0.0);
-    packedWaterData.uv1 = float4(lowFrequencyHeight, length(float2(displacement.x, displacement.z)), 0.0, 0.0);
 }
 
 // UV to sample the foam mask
@@ -543,7 +506,7 @@ void SampleSimulation_PS(WaterSimCoord waterCoord,  float3 waterMask, float dist
 void EvaluateWaterAdditionalData(float3 positionOS, float3 transformedPosition, float3 meshNormalOS, out WaterAdditionalData waterAdditionalData)
 {
     // Evaluate the pre-displaced absolute position
-    float3 positionRWS = mul(_WaterSurfaceTransformRWS, float4(positionOS, 1.0)).xyz;
+    float3 positionRWS = TransformObjectToWorld(positionOS);
     // Evaluate the distance to the camera
     float distanceToCamera = length(positionRWS);
     // Get the world space transformed postion
@@ -628,9 +591,9 @@ void EvaluateWaterAdditionalData(float3 positionOS, float3 transformedPosition, 
 
     // Evaluate the normals
     float3 lowFrequencyNormalOS = SurfaceGradientResolveNormal(meshNormalOS, float3(lFSurfaceGradient.x, 0, lFSurfaceGradient.y));
-    waterAdditionalData.lowFrequencyNormalWS = mul(_WaterSurfaceTransformRWS, float4(lowFrequencyNormalOS, 0.0)).xyz;
+    waterAdditionalData.lowFrequencyNormalWS = TransformObjectToWorldDir(lowFrequencyNormalOS, false);
     float3 normalOS = SurfaceGradientResolveNormal(meshNormalOS, float3(surfaceGradient.x, 0, surfaceGradient.y));
-    waterAdditionalData.normalWS = mul(_WaterSurfaceTransformRWS, float4(normalOS, 0.0)).xyz;
+    waterAdditionalData.normalWS = TransformObjectToWorldDir(normalOS, false);
 
 #ifdef WATER_DISPLACEMENT
     // Attenuate using the foam mask
@@ -797,9 +760,9 @@ float EdgeBlendingFactor(float2 screenPosition, float distanceToWaterSurface)
 }
 
 void ComputeWaterRefractionParams(float3 waterPosRWS, float3 waterNormal, float3 lowFrequencyNormals,
-    float2 screenUV, float3 viewWS, bool aboveWater, bool disableUnderWaterIOR,
+    float2 screenUV, float3 viewWS, bool aboveWater, bool disableUnderWaterIOR, float3 upVector,
     float maxRefractionDistance, float3 transparencyColor, float outScatteringCoeff,
-    out float3 refractedWaterPosRWS, out float2 distortedWaterNDC, out float refractedWaterDistance, out float3 absorptionTint)
+    out float3 refractedWaterPosRWS, out float2 distortedWaterNDC, out float3 absorptionTint)
 {
     // Compute the position of the surface behind the water surface
     float  directWaterDepth = SampleCameraDepth(screenUV);
@@ -813,7 +776,7 @@ void ComputeWaterRefractionParams(float3 waterPosRWS, float3 waterNormal, float3
     float3 distortedWaterWS;
     if (aboveWater || disableUnderWaterIOR)
     {
-        refractedView = lerp(waterNormal, float3(0, 1, 0), EdgeBlendingFactor(screenUV, length(waterPosRWS))) * float3(1, 0, 1);
+        refractedView = lerp(waterNormal, upVector, EdgeBlendingFactor(screenUV, length(waterPosRWS))) * (1 - upVector);
         distortedWaterWS = waterPosRWS + refractedView * min(underWaterDistance, maxRefractionDistance);
 
         // When disable IOR is active, we are sure that refraction data is always avalaible on screen
@@ -833,7 +796,7 @@ void ComputeWaterRefractionParams(float3 waterPosRWS, float3 waterNormal, float3
     // Compute the position of the surface behind the water surface
     float refractedWaterDepth = SampleCameraDepth(distortedWaterNDC);
     refractedWaterPosRWS = ComputeWorldSpacePosition(distortedWaterNDC, refractedWaterDepth, UNITY_MATRIX_I_VP);
-    refractedWaterDistance = refractedWaterDepth == UNITY_RAW_FAR_CLIP_VALUE ? WATER_BACKGROUND_ABSORPTION_DISTANCE : length(refractedWaterPosRWS - waterPosRWS);
+    float refractedWaterDistance = refractedWaterDepth == UNITY_RAW_FAR_CLIP_VALUE ? WATER_BACKGROUND_ABSORPTION_DISTANCE : length(refractedWaterPosRWS - waterPosRWS);
 
     // If the point that we are reading is closer than the water surface
     if (dot(refractedWaterPosRWS - waterPosRWS, viewWS) > 0.0)
@@ -874,7 +837,7 @@ float3 EvaluateRefractionColor(float3 absorptionTint, float3 caustics)
 float3 EvaluateScatteringColor(float3 positionOS, float lowFrequencyHeight, float horizontalDisplacement, float3 absorptionTint, float deepFoam)
 {
     // Evaluate the pre-displaced absolute position
-    float3 positionRWS = mul(_WaterSurfaceTransformRWS, float4(positionOS, 1.0)).xyz;
+    float3 positionRWS = TransformObjectToWorld(positionOS);
     float distanceToCamera = length(positionRWS);
 
     // Evaluate the scattering terms (where the refraction doesn't happen)

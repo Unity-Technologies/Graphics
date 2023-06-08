@@ -65,7 +65,7 @@ namespace UnityEngine.Rendering.Universal
             // m_Resolution = math.min((int)reflectionProbeResolution, SystemInfo.maxTextureSize);
             m_Resolution = 1;
             var format = GraphicsFormat.B10G11R11_UFloatPack32;
-            if (!SystemInfo.IsFormatSupported(format, FormatUsage.Render)) { format = GraphicsFormat.R16G16B16A16_SFloat; }
+            if (!SystemInfo.IsFormatSupported(format, GraphicsFormatUsage.Render)) { format = GraphicsFormat.R16G16B16A16_SFloat; }
             m_AtlasTexture0 = new RenderTexture(new RenderTextureDescriptor
             {
                 width = m_Resolution.x,

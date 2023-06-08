@@ -314,29 +314,29 @@ You can access and change any properties of the URP Asset which have a `set` met
 
 The following properties of the URP Asset have a `set` method:
 
-- cascadeBorder
-- colorGradingLutSize
-- colorGradingMode
-- conservativeEnclosingSphere
-- enableRenderGraph
-- fsrOverrideSharpness
-- fsrSharpness
-- hdrColorBufferPrecision
-- maxAdditionalLightsCount
-- msaaSampleCount
-- numIterationsEnclosingSphere
-- renderScale
-- shadowCascadeCount
-- shadowDepthBias
-- shadowDistance
-- shadowNormalBias
-- storeActionsOptimization
-- supportsCameraDepthTexture
-- supportsCameraOpaqueTexture
-- supportsDynamicBatching
-- supportsHDR
-- upscalingFilter
-- useAdaptivePerformance
-- useSRPBatcher
+* cascadeBorder
+* colorGradingLutSize
+* colorGradingMode
+* conservativeEnclosingSphere
+* enableRenderGraph
+* fsrOverrideSharpness
+* fsrSharpness
+* hdrColorBufferPrecision
+* maxAdditionalLightsCount
+* msaaSampleCount
+* numIterationsEnclosingSphere
+* renderScale
+* shadowCascadeCount
+* shadowDepthBias
+* shadowDistance
+* shadowNormalBias
+* storeActionsOptimization
+* supportsCameraDepthTexture
+* supportsCameraOpaqueTexture
+* supportsDynamicBatching
+* supportsHDR
+* upscalingFilter
+* useAdaptivePerformance
+* useSRPBatcher
 
 For more information on these properties, see [Universal Render Pipeline Asset API](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@16.0/api/UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset.html#properties).

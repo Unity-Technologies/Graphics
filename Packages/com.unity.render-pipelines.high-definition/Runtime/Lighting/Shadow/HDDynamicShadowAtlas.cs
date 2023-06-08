@@ -78,6 +78,10 @@ namespace UnityEngine.Rendering.HighDefinition
             for (int i = 0; i < requestsCount; ++i)
             {
                 ref var shadowRequest = ref resolutionRequests.ElementAt(fullShadowList[i].index);
+
+                if (shadowRequest.resolution == Vector2.zero)
+                    continue;
+
                 // shadow atlas layouting
                 Rect viewport = new Rect(Vector2.zero, shadowRequest.resolution);
                 curH = Mathf.Max(curH, viewport.height);

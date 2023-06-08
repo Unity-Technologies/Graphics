@@ -19,7 +19,7 @@ public class UniversalGraphicsTests
 
     public const string universalPackagePath = "Assets/ReferenceImages";
 
-    [UnityTest, Category("UniversalRP"), UnityPlatform(exclude = new[] { RuntimePlatform.GameCoreXboxSeries, RuntimePlatform.GameCoreXboxOne })] // Disabled for Instability https://jira.unity3d.com/browse/UUM-27717
+    [UnityTest, Category("UniversalRP")]
     [PrebuildSetup("SetupGraphicsTestCases")]
     [UseGraphicsTestCases(universalPackagePath)]
     public IEnumerator Run(GraphicsTestCase testCase)

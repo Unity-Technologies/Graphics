@@ -5,19 +5,6 @@ using NUnit.Framework;
 
 namespace UnityEngine.Rendering.Tests
 {
-    [Serializable]
-    public class TestVolume : VolumeComponent
-    {
-        public static readonly float DefaultValue = 123.0f;
-        public static readonly float OverrideValue = 456.0f;
-        public static readonly float OverrideValue2 = 789.0f;
-        public static readonly float OverrideValue3 = 999.0f;
-
-        public FloatParameter param = new(DefaultValue);
-
-        public bool IsActive() => true;
-    }
-
     [TestFixture("Local")]
     [TestFixture("Global")]
     class VolumeManagerTests
@@ -47,7 +34,7 @@ namespace UnityEngine.Rendering.Tests
             m_VolumeProfile = ScriptableObject.CreateInstance<VolumeProfile>();
 
             var volumeComponent = m_VolumeProfile.Add<TestVolume>();
-            volumeComponent.param.Override(TestVolume.OverrideValue);
+            volumeComponent.param.Override(TestVolume.k_OverrideValue);
 
             volumeManager = new VolumeManager();
             volumeManager.Initialize();
@@ -106,18 +93,18 @@ namespace UnityEngine.Rendering.Tests
 
             volumeManager.Update(camera.transform, k_defaultLayer);
             Assert.AreEqual(true, stack.requiresReset); // Local volume present - stack reset needed
-            Assert.AreEqual(TestVolume.OverrideValue, stack.GetComponent<TestVolume>().param.value);
+            Assert.AreEqual(TestVolume.k_OverrideValue, stack.GetComponent<TestVolume>().param.value);
 
             disableAction.Invoke(volumeManager, volume);
             volumeManager.Update(camera.transform, k_defaultLayer);
 
-            Assert.AreEqual(TestVolume.DefaultValue, stack.GetComponent<TestVolume>().param.value); // Value still resets to default
+            Assert.AreEqual(TestVolume.k_DefaultValue, stack.GetComponent<TestVolume>().param.value); // Value still resets to default
 
             enableAction.Invoke(volumeManager, volume);
             volumeManager.Update(camera.transform, k_defaultLayer);
 
             Assert.AreEqual(true, stack.requiresReset); // Local volume is back - stack reset needed
-            Assert.AreEqual(TestVolume.OverrideValue, stack.GetComponent<TestVolume>().param.value); // Value overridden again
+            Assert.AreEqual(TestVolume.k_OverrideValue, stack.GetComponent<TestVolume>().param.value); // Value overridden again
         }
 
         [Test]
@@ -129,7 +116,7 @@ namespace UnityEngine.Rendering.Tests
             volumeManager.Register(volume, volume.gameObject.layer);
 
             volumeManager.Update(camera.transform, k_defaultLayer);
-            Assert.AreEqual(TestVolume.OverrideValue, stack.GetComponent<TestVolume>().param.value);
+            Assert.AreEqual(TestVolume.k_OverrideValue, stack.GetComponent<TestVolume>().param.value);
 
             const float PriorityOverrideValue = 999.0f;
             var priorityVolumeProfile = ScriptableObject.CreateInstance<VolumeProfile>();
@@ -148,7 +135,7 @@ namespace UnityEngine.Rendering.Tests
             volumeManager.SetLayerDirty(volume.gameObject.layer); // Mark dirty to apply new priority (normally done by Volume.Update())
 
             volumeManager.Update(camera.transform, k_defaultLayer);
-            Assert.AreEqual(TestVolume.OverrideValue, stack.GetComponent<TestVolume>().param.value);
+            Assert.AreEqual(TestVolume.k_OverrideValue, stack.GetComponent<TestVolume>().param.value);
 
             CoreUtils.Destroy(priorityVolumeProfile);
         }
@@ -167,13 +154,13 @@ namespace UnityEngine.Rendering.Tests
         public void Setup()
         {
             m_VolumeProfile1 = ScriptableObject.CreateInstance<VolumeProfile>();
-            m_VolumeProfile1.Add<TestVolume>().param.Override(TestVolume.OverrideValue);
+            m_VolumeProfile1.Add<TestVolume>().param.Override(TestVolume.k_OverrideValue);
 
             m_VolumeProfile2 = ScriptableObject.CreateInstance<VolumeProfile>();
-            m_VolumeProfile2.Add<TestVolume>().param.Override(TestVolume.OverrideValue2);
+            m_VolumeProfile2.Add<TestVolume>().param.Override(TestVolume.k_OverrideValue2);
 
             m_VolumeProfile3 = ScriptableObject.CreateInstance<VolumeProfile>();
-            m_VolumeProfile3.Add<TestVolume>().param.Override(TestVolume.OverrideValue3);
+            m_VolumeProfile3.Add<TestVolume>().param.Override(TestVolume.k_OverrideValue3);
         }
 
         [TearDown]
@@ -194,10 +181,10 @@ namespace UnityEngine.Rendering.Tests
             LayerMask defaultLayer = 1;
             var camera = new GameObject("Camera", typeof(Camera));
             Assert.AreEqual(true, stack.requiresReset); // Initially, reset is required
-            Assert.AreEqual(TestVolume.DefaultValue, stack.GetComponent<TestVolume>().param.value); // Default value retrievable without calling Update()
+            Assert.AreEqual(TestVolume.k_DefaultValue, stack.GetComponent<TestVolume>().param.value); // Default value retrievable without calling Update()
             volumeManager.Update(camera.transform, defaultLayer);
             Assert.AreEqual(false, stack.requiresReset); // No volumes - no stack reset needed
-            Assert.AreEqual(TestVolume.DefaultValue, stack.GetComponent<TestVolume>().param.value);
+            Assert.AreEqual(TestVolume.k_DefaultValue, stack.GetComponent<TestVolume>().param.value);
         }
 
         [Test]
@@ -206,22 +193,22 @@ namespace UnityEngine.Rendering.Tests
             volumeManager = new VolumeManager();
             volumeManager.Initialize(m_VolumeProfile1, null);
 
-            Assert.AreEqual(TestVolume.OverrideValue, GetDefaultState().param.value);
+            Assert.AreEqual(TestVolume.k_OverrideValue, GetDefaultState().param.value);
 
             volumeManager.SetQualityDefaultProfile(m_VolumeProfile2);
-            Assert.AreEqual(TestVolume.OverrideValue2, GetDefaultState().param.value);
+            Assert.AreEqual(TestVolume.k_OverrideValue2, GetDefaultState().param.value);
 
             volumeManager.SetCustomDefaultProfiles(new List<VolumeProfile> { m_VolumeProfile3 });
-            Assert.AreEqual(TestVolume.OverrideValue3, GetDefaultState().param.value);
+            Assert.AreEqual(TestVolume.k_OverrideValue3, GetDefaultState().param.value);
 
             volumeManager.SetGlobalDefaultProfile(null);
-            Assert.AreEqual(TestVolume.OverrideValue3, GetDefaultState().param.value);
+            Assert.AreEqual(TestVolume.k_OverrideValue3, GetDefaultState().param.value);
 
             volumeManager.SetQualityDefaultProfile(null);
-            Assert.AreEqual(TestVolume.OverrideValue3, GetDefaultState().param.value);
+            Assert.AreEqual(TestVolume.k_OverrideValue3, GetDefaultState().param.value);
 
             volumeManager.SetCustomDefaultProfiles(null);
-            Assert.AreEqual(TestVolume.DefaultValue, GetDefaultState().param.value);
+            Assert.AreEqual(TestVolume.k_DefaultValue, GetDefaultState().param.value);
         }
 
         [Test]
@@ -231,10 +218,10 @@ namespace UnityEngine.Rendering.Tests
             volumeManager.Initialize();
 
             volumeManager.SetCustomDefaultProfiles(new List<VolumeProfile> { m_VolumeProfile1, m_VolumeProfile2 });
-            Assert.AreEqual(TestVolume.OverrideValue2, GetDefaultState().param.value);
+            Assert.AreEqual(TestVolume.k_OverrideValue2, GetDefaultState().param.value);
 
             volumeManager.SetCustomDefaultProfiles(new List<VolumeProfile> { m_VolumeProfile2, m_VolumeProfile1 });
-            Assert.AreEqual(TestVolume.OverrideValue, GetDefaultState().param.value);
+            Assert.AreEqual(TestVolume.k_OverrideValue, GetDefaultState().param.value);
         }
     }
 }

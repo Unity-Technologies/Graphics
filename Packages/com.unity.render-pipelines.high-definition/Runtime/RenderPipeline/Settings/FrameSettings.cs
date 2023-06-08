@@ -710,6 +710,10 @@ namespace UnityEngine.Rendering.HighDefinition
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Water] &= sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Refraction] && renderPipelineSettings.supportWater && !preview;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.WaterDeformation] &= sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Water] && renderPipelineSettings.supportWaterDeformation;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.WaterExclusion] &= sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Water] && renderPipelineSettings.supportWaterExclusion;
+            
+            // Disable Lens Flares if they are unchecked in the HDRP Assets
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.LensFlareScreenSpace] &= sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.LensFlareScreenSpace] && renderPipelineSettings.supportScreenSpaceLensFlare;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.LensFlareDataDriven] &= sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.LensFlareDataDriven] && renderPipelineSettings.supportDataDrivenLensFlare;
 
             // We must take care of the scene view fog flags in the editor
             bool atmosphericScattering = sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.AtmosphericScattering] &= sceneViewFog && !preview;

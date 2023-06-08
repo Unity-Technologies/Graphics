@@ -13,24 +13,14 @@ MonoBehaviour:
   m_Name: VFXUI
   m_EditorClassIdentifier: 
   groupInfos: []
-  stickyNoteInfos:
-  - title: TODO
-    position:
-      serializedVersion: 2
-      x: 440
-      y: 1215
-      width: 347
-      height: 100
-    contents: Enable MotionVector when SG is able to output it
-    theme: Classic
-    textSize: Small
+  stickyNoteInfos: []
   categories: []
   uiBounds:
     serializedVersion: 2
     x: -883
     y: -268
     width: 2586
-    height: 1663
+    height: 1664
 --- !u!114 &114350483966674976
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1819,7 +1809,7 @@ MonoBehaviour:
   zWriteMode: 0
   zTestMode: 0
   useAlphaClipping: 0
-  generateMotionVector: 0
+  generateMotionVector: 1
   excludeFromTAA: 0
   sortingPriority: 0
   m_SubOutputs: []

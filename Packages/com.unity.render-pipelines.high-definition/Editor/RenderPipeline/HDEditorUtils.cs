@@ -209,11 +209,13 @@ namespace UnityEditor.Rendering.HighDefinition
         internal static int DrawRenderingLayerMask(Rect rect, int renderingLayer, GUIContent label = null, bool allowHelpBox = true)
         {
             string[] renderingLayerMaskNames = HDRenderPipelineGlobalSettings.instance.renderingLayerNames;
+            int value = EditorGUI.MaskField(rect, label ?? GUIContent.none, renderingLayer, renderingLayerMaskNames);
+
             int maskCount = (int)Mathf.Log(renderingLayer, 2) + 1;
             if (allowHelpBox && renderingLayerMaskNames.Length < maskCount && maskCount <= 16)
                 EditorGUILayout.HelpBox($"One or more of the Rendering Layers is not defined in the HDRP Global Settings asset.", MessageType.Warning);
 
-            return EditorGUI.MaskField(rect, label ?? GUIContent.none, renderingLayer, renderingLayerMaskNames);
+            return value;
         }
 
         internal static void DrawRenderingLayerMask(Rect rect, SerializedProperty property, GUIContent label)

@@ -38,6 +38,10 @@ struct FragInputs
         float4 texCoord3;
     #endif
 
+    #ifdef FRAG_INPUTS_USE_SIX_WAY_DIFFUSE_GI_DATA
+        float4 diffuseGIData[3];
+    #endif
+
     float4 color; // vertex color
 
     // TODO: confirm with Morten following statement

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -50,8 +49,8 @@ namespace UnityEditor.Rendering
 
         public void CreateComponentTree(List<Element> tree)
         {
-            var currentPipeline = RenderPipelineManager.currentPipeline;
-            if (currentPipeline == null)
+            var currentPipelineAssetType = GraphicsSettings.currentRenderPipelineAssetType;
+            if (currentPipelineAssetType == null)
             {
                 tree.Add(new GroupElement(0, "No SRP in use"));
                 return;
@@ -59,26 +58,23 @@ namespace UnityEditor.Rendering
 
             tree.Add(new GroupElement(0, "Volume Overrides"));
 
-            var volumeComponentTypesFiltered =
-                VolumeManager.instance.GetVolumeComponentsForDisplay(currentPipeline.GetType());
+            var volumeComponentTypesFiltered = VolumeManager.instance.GetVolumeComponentsForDisplay(currentPipelineAssetType);
+            if (volumeComponentTypesFiltered.Count == 0)
+                return;
 
-            if (volumeComponentTypesFiltered.Any())
+            var rootNode = new PathNode();
+            foreach (var (path, t) in volumeComponentTypesFiltered)
             {
-                var rootNode = new PathNode();
+                // Skip components that have already been added to the volume
+                if (m_Target.Has(t))
+                    continue;
 
-                foreach (var (path, t) in volumeComponentTypesFiltered)
-                {
-                    // Skip components that have already been added to the volume
-                    if (m_Target.Has(t))
-                        continue;
-
-                    // Prep the categories & types tree
-                    AddNode(rootNode, path, t);
-                }
-
-                // Recursively add all elements to the tree
-                Traverse(rootNode, 1, tree);
+                // Prep the categories & types tree
+                AddNode(rootNode, path, t);
             }
+
+            // Recursively add all elements to the tree
+            Traverse(rootNode, 1, tree);
         }
 
         public bool GoToChild(Element element, bool addIfComponent)

@@ -39,7 +39,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        public override string documentationURL => Documentation.GetPageLink("SGNode-HD-Scene-Depth");
+        public override string documentationURL => NodeUtils.GetDocumentationString("HD-Scene-Depth");
 
         public HDSceneDepthNode()
         {

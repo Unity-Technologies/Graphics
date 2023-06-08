@@ -59,7 +59,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        public override string documentationURL => Documentation.GetPageLink("SGNode-HD-Sample-Buffer");
+        public override string documentationURL => NodeUtils.GetDocumentationString("HD-Sample-Buffer");
 
 
         public static List<HDSampleBufferNode> nodeList = new();
@@ -221,7 +221,7 @@ namespace UnityEditor.Rendering.HighDefinition
                                 break;
                             case BufferType.IsUnderWater:
                                 s.AppendLine("uint2 pixelCoords = uint2(uv * _ScreenSize.xy);");
-                                s.AppendLine("return _EnableUnderwater ? GetUnderWaterDistance(pixelCoords) : 1.0f;");
+                                s.AppendLine("return _UnderWaterSurfaceIndex != -1 ? GetUnderWaterDistance(pixelCoords) : 1.0f;");
                                 break;
                             default:
                                 s.AppendLine("return 0.0;");

@@ -159,14 +159,8 @@ void RenderClouds(uint3 traceCoord : SV_DispatchThreadID, int groupIndex : SV_Gr
     // Minimal distance to the clouds
     float minimalDistance = min(result.meanDistance, ray.maxRayLength);
 
-    // If we are processing local clouds, we store the distance information as a depth, otherwise we just store the distance (for the fog).
-#if defined(LOCAL_VOLUMETRIC_CLOUDS)
     // Compute the cloud depth
     float cloudMinDistance = clamp(minimalDistance, _ProjectionParams.y, _ProjectionParams.z);
     float cloudMinDepth = result.invalidRay ? ray.depthValue : ConvertCloudDepth(ray.direction * cloudMinDistance);
     _CloudsDepthTextureRW[COORD_TEXTURE2D_X(traceCoord.xy)] = cloudMinDepth;
-#else
-    // Output the cloud distance
-    _CloudsDepthTextureRW[COORD_TEXTURE2D_X(traceCoord.xy)] = result.invalidRay ? ray.maxRayLength : max(minimalDistance, _ProjectionParams.y);
-#endif
 }

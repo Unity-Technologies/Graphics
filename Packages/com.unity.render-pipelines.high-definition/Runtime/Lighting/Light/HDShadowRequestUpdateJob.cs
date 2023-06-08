@@ -66,7 +66,8 @@ namespace UnityEngine.Rendering.HighDefinition
         [Unity.Collections.ReadOnly] public Vector3 worldSpaceCameraPos;
         [Unity.Collections.ReadOnly] public int shaderConfigCameraRelativeRendering;
         [Unity.Collections.ReadOnly] public int shadowRequestCount;
-        [Unity.Collections.ReadOnly] public HDShadowFilteringQuality shadowFilteringQuality;
+        [Unity.Collections.ReadOnly] public HDShadowFilteringQuality punctualShadowFilteringQuality;
+        [Unity.Collections.ReadOnly] public HDShadowFilteringQuality directionalShadowFilteringQuality;
         [Unity.Collections.ReadOnly] public bool usesReversedZBuffer;
 
         public ProfilerMarker validIndexCalculationsMarker;
@@ -349,7 +350,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     HDGpuLightsBuilder.SetPointRequestSettings(ref shadowRequest, shadowRequestHandle, in pointUpdateInfo.visibleLight,
                         worldSpaceCameraPos, shadowRequest.cullingSplit.invViewProjection, shadowRequest.cullingSplit.projection, viewportSize,
-                        lightIndex, shadowFilteringQuality, updateInfo, shaderConfigCameraRelativeRendering, frustumPlanesStorage);
+                        lightIndex, punctualShadowFilteringQuality, updateInfo, shaderConfigCameraRelativeRendering, frustumPlanesStorage);
 
                     hasUpdatedRequestData = true;
                     shadowRequest.shouldUseCachedShadowData = false;
@@ -370,7 +371,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     HDGpuLightsBuilder.SetPointRequestSettings(ref shadowRequest, shadowRequestHandle, in pointUpdateInfo.visibleLight,
                         worldSpaceCameraPos, shadowRequest.cullingSplit.invViewProjection, shadowRequest.cullingSplit.projection, viewportSize,
-                        lightIndex, shadowFilteringQuality, updateInfo, shaderConfigCameraRelativeRendering, frustumPlanesStorage);
+                        lightIndex, punctualShadowFilteringQuality, updateInfo, shaderConfigCameraRelativeRendering, frustumPlanesStorage);
                 }
             }
         }
@@ -396,7 +397,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 HDGpuLightsBuilder.SetPointRequestSettings(ref shadowRequest, shadowRequestHandle, in pointUpdateInfo.visibleLight,
                     worldSpaceCameraPos, shadowRequest.cullingSplit.invViewProjection, shadowRequest.cullingSplit.projection, viewportSize,
-                    lightIndex, shadowFilteringQuality, updateInfo, shaderConfigCameraRelativeRendering, frustumPlanesStorage);
+                    lightIndex, punctualShadowFilteringQuality, updateInfo, shaderConfigCameraRelativeRendering, frustumPlanesStorage);
             }
         }
 
@@ -433,7 +434,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     HDGpuLightsBuilder.SetSpotRequestSettings(ref shadowRequest, shadowRequestHandle, spotUpdateInfo.visibleLight,
                         0f, worldSpaceCameraPos, shadowRequest.cullingSplit.invViewProjection, shadowRequest.cullingSplit.projection, viewportSize,
-                        lightIndex, shadowFilteringQuality, updateInfo, shaderConfigCameraRelativeRendering, frustumPlanesStorage);
+                        lightIndex, punctualShadowFilteringQuality, updateInfo, shaderConfigCameraRelativeRendering, frustumPlanesStorage);
 
                     hasUpdatedRequestData = true;
                     shadowRequest.shouldUseCachedShadowData = false;
@@ -454,7 +455,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     HDGpuLightsBuilder.SetSpotRequestSettings(ref shadowRequest, shadowRequestHandle, spotUpdateInfo.visibleLight,
                         0f, worldSpaceCameraPos, shadowRequest.cullingSplit.invViewProjection, shadowRequest.cullingSplit.projection, viewportSize,
-                        lightIndex, shadowFilteringQuality, updateInfo, shaderConfigCameraRelativeRendering, frustumPlanesStorage);
+                        lightIndex, punctualShadowFilteringQuality, updateInfo, shaderConfigCameraRelativeRendering, frustumPlanesStorage);
                 }
             }
         }
@@ -480,7 +481,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 HDGpuLightsBuilder.SetSpotRequestSettings(ref shadowRequest, shadowRequestHandle, spotUpdateInfo.visibleLight,
                     0f, worldSpaceCameraPos, shadowRequest.cullingSplit.invViewProjection, shadowRequest.cullingSplit.projection, viewportSize,
-                    lightIndex, shadowFilteringQuality, updateInfo, shaderConfigCameraRelativeRendering, frustumPlanesStorage);
+                    lightIndex, punctualShadowFilteringQuality, updateInfo, shaderConfigCameraRelativeRendering, frustumPlanesStorage);
             }
         }
 

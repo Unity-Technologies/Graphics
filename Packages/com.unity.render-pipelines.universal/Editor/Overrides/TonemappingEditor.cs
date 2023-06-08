@@ -47,7 +47,7 @@ namespace UnityEditor.Rendering.Universal
                 return;
             }
 
-            if (PlayerSettings.useHDRDisplay && hdrTonemapMode != (int)TonemappingMode.None)
+            if (PlayerSettings.allowHDRDisplaySupport && hdrTonemapMode != (int)TonemappingMode.None)
             {
                 EditorGUILayout.LabelField("HDR Output");
 

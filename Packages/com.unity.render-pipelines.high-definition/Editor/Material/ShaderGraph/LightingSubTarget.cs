@@ -40,6 +40,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public override void Setup(ref TargetSetupContext context)
         {
             context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
+            if (TargetsVFX())
+            {
+                var inspector = typeof(VFXShaderGraphGUILit).FullName;
+                context.AddCustomEditorForRenderPipeline(inspector, typeof(HDRenderPipelineAsset));
+            }
             base.Setup(ref context);
         }
 
@@ -129,7 +134,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             if (pass.IsForward())
             {
-                pass.keywords.Add(CoreKeywordDescriptors.Shadow);
+                pass.keywords.Add(CoreKeywordDescriptors.PunctualShadow);
+                pass.keywords.Add(CoreKeywordDescriptors.DirectionalShadow);
                 pass.keywords.Add(CoreKeywordDescriptors.AreaShadow);
                 pass.keywords.Add(CoreKeywordDescriptors.ScreenSpaceShadow);
 

@@ -86,6 +86,10 @@ namespace UnityEngine.Rendering.Universal
 
             m_Renderer2DData.lightCullResult = new Light2DCullResult();
 
+            LensFlareCommonSRP.mergeNeeded = 0;
+            LensFlareCommonSRP.maxLensFlareWithOcclusionTemporalSample = 1;
+            LensFlareCommonSRP.Initialize();
+
             // No need to initialize blitter dhe UniversalRenderPipeline already does this
         }
 

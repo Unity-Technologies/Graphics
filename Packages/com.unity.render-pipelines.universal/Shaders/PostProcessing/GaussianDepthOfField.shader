@@ -75,7 +75,7 @@ Shader "Hidden/Universal Render Pipeline/GaussianDepthOfField"
         struct PrefilterOutput
         {
             half  coc   : SV_Target0;
-            half3 color : SV_Target1;
+            half4 color : SV_Target1;
         };
 
         PrefilterOutput FragPrefilter(Varyings input)
@@ -128,7 +128,7 @@ Shader "Hidden/Universal Render Pipeline/GaussianDepthOfField"
 
             PrefilterOutput o;
             o.coc   = farCoC;
-            o.color = color;
+            o.color = half4(color, 0);
             return o;
         }
 

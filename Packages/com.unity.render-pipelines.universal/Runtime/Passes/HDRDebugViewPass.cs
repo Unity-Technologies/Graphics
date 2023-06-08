@@ -92,7 +92,7 @@ namespace UnityEngine.Rendering.Universal
             if (cameraData.isHDROutputActive)
             {
                 Tonemapping tonemapping = VolumeManager.instance.stack.GetComponent<Tonemapping>();
-                UniversalRenderPipeline.GetHDROutputLuminanceParameters(tonemapping, out luminanceParams);
+                UniversalRenderPipeline.GetHDROutputLuminanceParameters(cameraData.hdrDisplayInformation, cameraData.hdrDisplayColorGamut, tonemapping, out luminanceParams);
             }
             else
             {
@@ -137,7 +137,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 if (data.cameraData.isHDROutputActive)
                 {
-                    HDROutputUtils.ConfigureHDROutput(data.material, HDROutputSettings.main.displayColorGamut, HDROutputUtils.Operation.ColorEncoding);
+                    HDROutputUtils.ConfigureHDROutput(data.material, data.cameraData.hdrDisplayColorGamut, HDROutputUtils.Operation.ColorEncoding);
                 }
 
                 cmd.ClearRandomWriteTargets();

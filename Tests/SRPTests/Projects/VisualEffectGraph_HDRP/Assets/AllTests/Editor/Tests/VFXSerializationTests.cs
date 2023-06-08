@@ -573,9 +573,8 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(0, graph.children.OfType<VFXParameter>().SelectMany(o => o.nodes).Where(o => !o.linkedSlots.Any()).Count());
             yield return null;
 
-            var window = VFXViewWindow.GetWindow<VFXViewWindow>();
-            var resource = graph.GetResource();
-            window.LoadAsset(resource.asset, null);
+            VFXViewWindow.GetWindow((VFXGraph)null, true)
+                .LoadAsset(graph.GetResource().asset, null);
             yield return null;
 
             Assert.AreEqual(8, graph.children.OfType<VFXParameter>().Count());

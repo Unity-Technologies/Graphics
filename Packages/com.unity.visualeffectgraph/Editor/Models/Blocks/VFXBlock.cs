@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.VFX;
-using Type = System.Type;
 
 namespace UnityEditor.VFX
 {
@@ -71,7 +70,7 @@ namespace UnityEditor.VFX
         public VFXExpression activationExpression => m_ActivationSlot.GetExpression();
         public virtual IEnumerable<string> includes { get { return Enumerable.Empty<string>(); } }
         public virtual IEnumerable<string> defines { get { return Enumerable.Empty<string>(); } }
-        public virtual string source { get { return null; } }
+        public virtual string source => null;
 
         public override void OnEnable()
         {
@@ -150,15 +149,10 @@ namespace UnityEditor.VFX
         {
             get
             {
-                var attribs = new Dictionary<VFXAttribute, VFXAttributeMode>();
-                foreach (var a in attributes)
+                foreach (var attrib in attributes.GroupBy(x => x.attrib))
                 {
-                    VFXAttributeMode mode = VFXAttributeMode.None;
-                    attribs.TryGetValue(a.attrib, out mode);
-                    mode |= a.mode;
-                    attribs[a.attrib] = mode;
+                    yield return new VFXAttributeInfo(attrib.Key, attrib.Aggregate(VFXAttributeMode.None, (acc, x) => acc | x.mode));
                 }
-                return attribs.Select(kvp => new VFXAttributeInfo(kvp.Key, kvp.Value));
             }
         }
 

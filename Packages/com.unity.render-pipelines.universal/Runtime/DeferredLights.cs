@@ -186,7 +186,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         internal bool AccurateGbufferNormals
         {
             get { return m_AccurateGbufferNormals; }
-            set { m_AccurateGbufferNormals = value || !RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.R8G8B8A8_SNorm, FormatUsage.Render); }
+            set { m_AccurateGbufferNormals = value || !SystemInfo.IsFormatSupported(GraphicsFormat.R8G8B8A8_SNorm, GraphicsFormatUsage.Render); }
         }
         // We browse all visible lights and found the mixed lighting setup every frame.
         internal MixedLightingSetup MixedLightingSetup { get; set; }

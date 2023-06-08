@@ -166,8 +166,13 @@ void ComputeSurfaceScattering(inout PathPayload payload : SV_RayPayload, Attribu
                 value *= (mtlResult.diffValue + mtlResult.specValue) / pdf;
                 if (Luminance(value) > 0.001)
                 {
+                    #ifndef _PATH_TRACED_DUAL_SCATTERING
                     // Shoot a transmission ray
                     shadowPayload.segmentID = SEGMENT_ID_TRANSMISSION;
+                #else
+                    shadowPayload.segmentID = SEGMENT_ID_DUAL_SCATTERING_VIS;
+                #endif
+
                     shadowPayload.value = 1.0;
                     ray.TMax -= _RayTracingRayBias;
 
@@ -416,7 +421,7 @@ void AnyHit(inout PathPayload payload : SV_RayPayload, AttributeData attributeDa
 
 #endif // _ALPHATEST_ON
 
-    if (payload.segmentID == SEGMENT_ID_NEAREST_HIT )
+    if      (payload.segmentID == SEGMENT_ID_NEAREST_HIT )
     {
         // We just need the nearest hit distance here
         payload.rayTHit = min(payload.rayTHit, RayTCurrent());
@@ -444,7 +449,6 @@ void AnyHit(inout PathPayload payload : SV_RayPayload, AttributeData attributeDa
     }
     else if (payload.segmentID == SEGMENT_ID_TRANSMISSION)
     {
-
 #ifdef _SURFACE_TYPE_TRANSPARENT
 
     #ifndef _ALPHATEST_ON
@@ -484,6 +488,21 @@ void AnyHit(inout PathPayload payload : SV_RayPayload, AttributeData attributeDa
 #endif // _SURFACE_TYPE_TRANSPARENT
 
     }
+#ifdef _PATH_TRACED_DUAL_SCATTERING
+    else if (payload.segmentID == SEGMENT_ID_DUAL_SCATTERING)
+    {
+        // We have intersected one strand.
+        payload.alpha = payload.alpha + 1.0;
+
+        // And keep going until TMax.
+        IgnoreHit();
+    }
+    else if (payload.segmentID == SEGMENT_ID_DUAL_SCATTERING_VIS)
+    {
+        IgnoreHit();
+        return;
+    }
+#endif
 }
 
 #endif // UNITY_PATH_TRACING_INTEGRATOR_INCLUDED

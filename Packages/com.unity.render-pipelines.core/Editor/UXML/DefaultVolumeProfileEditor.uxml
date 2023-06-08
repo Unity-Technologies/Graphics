@@ -1,0 +1,8 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xmlns:uib="Unity.UI.Builder">
+    <Style src="project://database/Packages/com.unity.render-pipelines.core/Editor/StyleSheets/DefaultVolumeProfileEditor.uss"/>
+    <ui:VisualElement class="content-container">
+        <uie:ToolbarSearchField class="search-field"/>
+        <ui:HelpBox message-type="Info" name="volume-override-info-box"/>
+    </ui:VisualElement>
+    <ui:VisualElement name="component-list"/>
+</ui:UXML>

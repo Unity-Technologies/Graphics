@@ -234,6 +234,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private void OnEnable()
         {
+        #if UNITY_EDITOR
+            // Need to do this here for similar reasons as we do in OnValidate.
+            s_FirstOnValidateCalled = false;
+        #endif
+
             RegisterCallbacks();
             TryGetDependentComponents();
 
@@ -484,7 +489,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Override
             var strandLOD = m_RendererLODFixed;
 
-            if (m_RendererLODMode == LineRendering.RendererLODMode.CameraDistance)
+            if (m_RendererLODMode == LineRendering.RendererLODMode.CameraDistance && m_RendererLODCameraDistanceCurve != null)
             {
                 var distanceToCamera = Vector3.Distance(camera.transform.position, transform.position);
                 strandLOD = m_RendererLODCameraDistanceCurve.Evaluate(distanceToCamera);
@@ -504,6 +509,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 renderingLayerMask   = m_MeshRenderer.renderingLayerMask,
                 indexBuffer          = renderGraph.ImportBuffer(m_IndexBuffer),
                 distanceToCamera     = Vector3.Distance(transform.position, camera.transform.position),
+                bounds               = m_MeshRenderer.bounds,
 
                 // LOD
                 segmentsPerLine = (int)m_SegmentsPerLine,

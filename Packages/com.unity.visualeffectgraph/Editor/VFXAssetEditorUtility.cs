@@ -140,6 +140,13 @@ VisualEffectResource:
             return resources == null || resources.Length == 0;
         }
 
+        [MenuItem("Assets/Create/Visual Effects/HLSL File", false)]
+        public static void CreateHLSLFileAsset()
+        {
+            var action = ScriptableObject.CreateInstance<DoCreateHLSLFile>();
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, action, "New custom node.hlsl", null, null);
+        }
+
         public static void CreateTemplateAsset(string pathName, string templateFilePath)
         {
             if (string.IsNullOrEmpty(templateFilePath))
@@ -192,6 +199,21 @@ VisualEffectResource:
                 ProjectWindowUtil.FrameObjectInProjectWindow(sg.GetInstanceID());
             }
         }
+
+        internal class DoCreateHLSLFile : EndNameEditAction
+        {
+            public override void Action(int instanceId, string pathName, string resourceFile)
+            {
+                File.Create(pathName).Close();
+
+                AssetDatabase.ImportAsset(pathName);
+
+                var asset = AssetDatabase.LoadAssetAtPath<TextAsset>(pathName);
+
+                ProjectWindowUtil.FrameObjectInProjectWindow(asset.GetInstanceID());
+            }
+        }
+
 
         [MenuItem("Assets/Create/Visual Effects/Visual Effect Subgraph Operator", false, 308)]
         public static void CreateVisualEffectSubgraphOperator()

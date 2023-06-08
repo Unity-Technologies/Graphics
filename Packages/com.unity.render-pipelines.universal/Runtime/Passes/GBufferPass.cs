@@ -245,6 +245,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("GBuffer Pass", out var passData, m_ProfilingSampler))
             {
+                // Note: This code is pretty confusing as passData.gbuffer[i] and gbuffer[i] actually point to the same array but seem to be mixed in this code.
                 passData.gbuffer = gbuffer = m_DeferredLights.GbufferTextureHandles;
                 for (int i = 0; i < m_DeferredLights.GBufferSliceCount; i++)
                 {
@@ -264,7 +265,10 @@ namespace UnityEngine.Rendering.Universal.Internal
                     else
                         gbuffer[i] = cameraColor;
 
-                    passData.gbuffer[i] = builder.UseTextureFragment(gbuffer[i], i, IBaseRenderGraphBuilder.AccessFlags.Write);
+                    // Note: We don't store the returned handle here it is a versioned handle.
+                    // In general it should be fine to use unversioned handles anyway especially unversioned resources
+                    // should be registered in the frame resources (cfr. SetFrameResourcesGBufferArray call below)
+                    builder.UseTextureFragment(gbuffer[i], i, IBaseRenderGraphBuilder.AccessFlags.Write);
                 }
 
                 SetFrameResourcesGBufferArray(frameResources, gbuffer);

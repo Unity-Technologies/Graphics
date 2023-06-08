@@ -60,6 +60,9 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent dofPhysicallyBased = EditorGUIUtility.TrTextContent("Physically Based");
             public static readonly GUIContent limitNearBlur = EditorGUIUtility.TrTextContent("Limit Manual Range Near Blur");
             public static readonly GUIContent maxSamplesQuality = EditorGUIUtility.TrTextContent("Max Samples");
+            
+            // Lens Flares
+            public static readonly GUIContent LensFlareTitle = EditorGUIUtility.TrTextContent("Lens Flares");
 
             // SSAO
             public static readonly GUIContent SSAOQualitySettingSubTitle = EditorGUIUtility.TrTextContent("Screen Space Ambient Occlusion");
@@ -196,6 +199,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent probeVolumeSHBands = EditorGUIUtility.TrTextContent("SH Bands", "Determines up to what SH bands the Probe Volume will use. Choosing L2 will lead to better quality, but also higher memory and runtime cost.");
             public static readonly GUIContent maxLocalVolumetricFogSizeStyle = EditorGUIUtility.TrTextContent("Max Local Fog Size", "Specifies the maximum size for the individual 3D Local Volumetric Fog texture that HDRP uses for Local Volumetric Fog. This settings will affect your memory consumption.");
             public static readonly GUIContent maxLocalVolumetricFogOnScreenStyle = EditorGUIUtility.TrTextContent("Max Local Fog On Screen", "Sets the maximum number of Local Volumetric Fog can handle on screen at once. This settings will affect your memory consumption.");
+            public static readonly GUIContent supportScreenSpaceLensFlare = EditorGUIUtility.TrTextContent("Screen Space Lens Flare", "When enabled, HDRP allocates shader variants and memory for Screen Space Lens Flare effect.");
+            public static readonly GUIContent supportDataDrivenLensFlare = EditorGUIUtility.TrTextContent("Data Driven Lens Flare", "When enabled, HDRP allocates shader variants and memory for Data Driven Lens Flare effect.");
 
             public const string cacheErrorFormat = "This configuration will lead to more than 2 GB reserved for this cache at runtime! ({0} requested) Only {1} element will be reserved instead.";
             public const string cacheInfoFormat = "Reserving {0} in memory at runtime.";
@@ -256,7 +261,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent atlasWidthContent = EditorGUIUtility.TrTextContent("Atlas Width", "Sets the width of the Decal Atlas.");
             public static readonly GUIContent atlasHeightContent = EditorGUIUtility.TrTextContent("Atlas Height", "Sets the height of the Decal Atlas.");
             public static readonly GUIContent metalAndAOContent = EditorGUIUtility.TrTextContent("Metal and Ambient Occlusion Properties", "When enabled, Decals affect metal and ambient occlusion properties.");
-            public static readonly GUIContent filteringQuality = EditorGUIUtility.TrTextContent("Shadow Filtering Quality", "Specifies the quality of shadows. See the documentation for details on the algorithm HDRP uses for each preset.");
+            public static readonly GUIContent punctualFilteringQuality = EditorGUIUtility.TrTextContent("Punctual Shadow Filtering Quality", "Specifies the quality of punctual shadows. See the documentation for details on the algorithm HDRP uses for each preset.");
+            public static readonly GUIContent directionalFilteringQuality = EditorGUIUtility.TrTextContent("Directional Shadow Filtering Quality", "Specifies the quality of directional shadows. See the documentation for details on the algorithm HDRP uses for each preset.");
             public static readonly GUIContent areaFilteringQuality = EditorGUIUtility.TrTextContent("Area Shadow Filtering Quality", "Specifies the quality of area shadows. See the documentation for details on the algorithm HDRP uses for each preset.");
 
             public static readonly GUIContent enabled = EditorGUIUtility.TrTextContent("Enable", "When enabled, HDRP dynamically lowers the resolution of render targets to reduce the workload on the GPU.");

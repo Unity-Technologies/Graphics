@@ -9,7 +9,7 @@
 
 #include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/GPUPrefixSum/GPUPrefixSum.Data.cs.hlsl"
 
-#pragma enable_d3d11_debug_symbols
+// #pragma enable_d3d11_debug_symbols
 
 ByteAddressBuffer   _InputBuffer;
 RWByteAddressBuffer _OutputBuffer;

@@ -314,9 +314,6 @@ namespace UnityEditor.VFX.HDRP
             outputTask.bufferMappings.Add(VFXDataParticle.k_IndirectBufferName);
             outputTask.bufferMappings.Add("maxSliceCount");
 
-            // TODO: we shouldn't need to declare this buffer here to be able to bind it in the other tasks
-            outputTask.bufferMappings.Add("maxSliceTempBuffer");
-
             compiledData.AllocateIndirectBuffer();
 
             compiledData.buffers.Add(new VFXContextBufferDescriptor
@@ -329,16 +326,6 @@ namespace UnityEditor.VFX.HDRP
                 bufferCount = 1,
             });
 
-            compiledData.buffers.Add(new VFXContextBufferDescriptor
-            {
-                baseName = "maxSliceTempBuffer",
-                bufferSizeMode = VFXContextBufferSizeMode.ScaleWithCapacity,
-                bufferType = ComputeBufferType.Structured,
-                stride = sizeof(uint),
-                bufferCount = 1,
-                capacityScaleMultiplier = 1.0f / VFXCodeGenerator.nbThreadsPerGroup,
-            });
-
             // Volumetric output task need to be inserted before the output work
             compiledData.tasks.Insert(0, new VFXTask
             {
@@ -346,7 +333,7 @@ namespace UnityEditor.VFX.HDRP
                 additionalDefines = new string[] { "VFX_VOLUMETRIC_FOG_PASS_CLEAR", "HAVE_VFX_MODIFICATION" },
                 type = VFXTaskType.PerCameraUpdate,
                 shaderType = VFXTaskShaderType.ComputeShader,
-                bufferMappings = new() { "maxSliceTempBuffer", "maxSliceCount" },
+                bufferMappings = new() { "maxSliceCount" },
                 name = "Clear",
             });
 
@@ -356,7 +343,7 @@ namespace UnityEditor.VFX.HDRP
                 additionalDefines = new string[] { "VFX_VOLUMETRIC_FOG_PASS_0", "HAVE_VFX_MODIFICATION" },
                 type = VFXTaskType.PerCameraUpdate,
                 shaderType = VFXTaskShaderType.ComputeShader,
-                bufferMappings = new() { "maxSliceCount", "maxSliceTempBuffer" },
+                bufferMappings = new() { "maxSliceCount"},
                 name = "Count",
             });
 
@@ -366,7 +353,7 @@ namespace UnityEditor.VFX.HDRP
                 additionalDefines = new string[] { "VFX_VOLUMETRIC_FOG_PASS_1", "HAVE_VFX_MODIFICATION" },
                 type = VFXTaskType.PerCameraUpdate,
                 shaderType = VFXTaskShaderType.ComputeShader,
-                bufferMappings = new() { "maxSliceCount", new VFXTask.BufferMapping(VFXDataParticle.k_IndirectBufferName, "outputBuffer"), "maxSliceTempBuffer"},
+                bufferMappings = new() { "maxSliceCount", new VFXTask.BufferMapping(VFXDataParticle.k_IndirectBufferName, "outputBuffer")},
                 name = "Fill",
             });
 

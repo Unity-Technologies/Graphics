@@ -59,8 +59,8 @@ VertexToFragment Vert(vs_input i)
     UNITY_SETUP_INSTANCE_ID(i);
 
     // Call manually init instancing to get the correct batch index needed to compute the particle ID and call VFXInitInstancing with the correct parameters.
-    uint batchIndex, unused;
-    VFXInitInstancing(0, unused, batchIndex);
+    uint batchIndex, unused1, unused2;
+    VFXInitInstancing(0, unused1, batchIndex, unused2);
 
     uint id = i.vertexId + VFX_GET_INSTANCE_ID(i) * 2048 * 4;
     uint quadCountPerParticle = maxSliceCount[batchIndex];

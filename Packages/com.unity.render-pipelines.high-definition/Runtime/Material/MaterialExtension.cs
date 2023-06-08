@@ -273,6 +273,7 @@ namespace UnityEngine.Rendering.HighDefinition
             SG_Eye,
             SG_Water,
             SG_FogVolume,
+            SG_SixWay,
             Count_All,
             Count_ShaderGraph = Count_All - Count_Standard,
             SG_External = -1, // material packaged outside of HDRP
@@ -302,6 +303,7 @@ namespace UnityEngine.Rendering.HighDefinition
             "EyeSubTarget",
             "WaterSubTarget",
             "FogVolumeSubTarget",
+            "HDSixWaySubTarget",
         };
 
         // list of methods for resetting keywords
@@ -325,6 +327,7 @@ namespace UnityEngine.Rendering.HighDefinition
             { ShaderID.SG_Decal, ShaderGraphAPI.ValidateDecalMaterial },
             { ShaderID.SG_Eye, ShaderGraphAPI.ValidateLightingMaterial },
             { ShaderID.SG_FogVolume, ShaderGraphAPI.ValidateFogVolumeMaterial },
+            { ShaderID.SG_SixWay, ShaderGraphAPI.ValidateSixWayMaterial },
         };
 
         internal static ShaderID GetShaderID(Material material)

@@ -1,13 +1,13 @@
 # Rendering in the Universal Render Pipeline
 
-The Universal Render Pipeline (URP) renders Scenes using the following components:
+The Universal Render Pipeline (URP) renders scenes using the following components:
 
-- URP Renderer. URP contains the following Renderers:
-    - [Universal Renderer](urp-universal-renderer.md).
-    - [2D Renderer](Setup.md#2d-renderer-setup).
-- [Shading models](shading-model.md) for shaders shipped with URP
-- Camera
-- [URP Asset](universalrp-asset.md)
+* URP Renderer. URP contains the following Renderers:
+    * [Universal Renderer](urp-universal-renderer.md).
+    * [2D Renderer](Setup.md#2d-renderer-setup).
+* [Shading models](shading-model.md) for shaders shipped with URP
+* Camera
+* [URP Asset](universalrp-asset.md)
 
 The following illustration shows the frame rendering loop of the URP Universal Renderer.
 
@@ -17,7 +17,7 @@ When the [render pipeline is active in Graphics Settings](InstallURPIntoAProject
 
 The URP renderer executes a Camera loop for each Camera, which performs the following steps:
 
-1. Culls rendered objects in your Scene
+1. Culls rendered objects in your scene
 2. Builds data for the renderer
 3. Executes a renderer that outputs an image to the framebuffer.
 
@@ -38,8 +38,8 @@ The Camera loop performs the following steps:
 
 | Step                         | Description                                                  |
 | ---------------------------- | ------------------------------------------------------------ |
-| __Setup Culling Parameters__ | Configures parameters that determine how the culling system culls Lights and shadows. You can override this part of the render pipeline with a custom renderer. |
-| __Culling__                  | Uses the culling parameters from the previous step to compute a list of visible renderers, shadow casters, and Lights that are visible to the Camera. Culling parameters and Camera [layer distances](https://docs.unity3d.com/ScriptReference/Camera-layerCullDistances.html) affect culling and rendering performance. |
-| __Build Rendering Data__     | Catches information based on the culling output, quality settings from the [URP Asset](universalrp-asset.md), [Camera](cameras.md), and the current running platform to build the `RenderingData`. The rendering data tells the renderer the amount of rendering work and quality required for the Camera and the currently chosen platform. |
-| __Setup Renderer__           | Builds a list of render passes, and queues them for execution according to the rendering data. You can override this part of the render pipeline with a custom renderer. |
-| __Execute Renderer__         | Executes each render pass in the queue. The renderer outputs the Camera image to the framebuffer. |
+| **Setup Culling Parameters** | Configures parameters that determine how the culling system culls Lights and shadows. You can override this part of the render pipeline with a custom renderer. |
+| **Culling**                  | Uses the culling parameters from the previous step to compute a list of visible renderers, shadow casters, and Lights that are visible to the Camera. Culling parameters and Camera [layer distances](https://docs.unity3d.com/ScriptReference/Camera-layerCullDistances.html) affect culling and rendering performance. |
+| **Build Rendering Data**     | Catches information based on the culling output, quality settings from the [URP Asset](universalrp-asset.md), [Camera](cameras.md), and the current running platform to build the `RenderingData`. The rendering data tells the renderer the amount of rendering work and quality required for the Camera and the currently chosen platform. |
+| **Setup Renderer**           | Builds a list of render passes, and queues them for execution according to the rendering data. You can override this part of the render pipeline with a custom renderer. |
+| **Execute Renderer**         | Executes each render pass in the queue. The renderer outputs the Camera image to the framebuffer. |

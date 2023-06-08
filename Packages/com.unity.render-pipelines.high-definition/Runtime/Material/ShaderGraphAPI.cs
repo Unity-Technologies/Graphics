@@ -92,5 +92,11 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             FogVolumeAPI.SetupFogVolumeKeywordsAndProperties(material);
         }
+
+        public static void ValidateSixWayMaterial(Material material)
+        {
+            ValidateLightingMaterial(material);
+            SixWayAPI.ValidateMaterial(material);
+        }
     }
 }

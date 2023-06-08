@@ -128,6 +128,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         Material m_ApplyDistortionMaterial;
         Material m_FinalBlitWithOETF;
+        Material m_FinalBlitWithOETFTexArraySingleSlice;
 
         Material m_ClearStencilBufferMaterial;
 
@@ -232,15 +233,97 @@ namespace UnityEngine.Rendering.HighDefinition
             return currentPlatformRenderPipelineSettings.hdShadowInitParams.supportScreenSpaceShadows ? currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots : 0;
         }
 
-        static bool HDROutputActiveForCameraType(CameraType cameraType)
-        {
-            return HDROutputIsActive() && cameraType == CameraType.Game;
-        }
-
-        internal static bool HDROutputIsActive()
+        /// <summary>
+        /// Checks the hardware (main display and platform) is HDR capable and the pipeline supports it
+        /// </summary>
+        /// <returns>Return true if the main display and platform is HDR capable and has enabled HDR output</returns>
+        internal static bool HDROutputForMainDisplayIsActive()
         {
             // TODO: Until we can test it, disable on Mac.
-            return SystemInfo.graphicsDeviceType != GraphicsDeviceType.Metal && SystemInfo.hdrDisplaySupportFlags.HasFlag(HDRDisplaySupportFlags.Supported) && HDROutputSettings.main.active;
+            return SystemInfo.graphicsDeviceType != GraphicsDeviceType.Metal &&
+                   SystemInfo.hdrDisplaySupportFlags.HasFlag(HDRDisplaySupportFlags.Supported) &&
+                   HDROutputSettings.main.active;
+        }
+
+        /// <summary>
+        /// Checks if any of the display devices we can output to are HDR capable and enabled.
+        /// </summary>
+        /// <returns>Return true if any of the display devices we can output HDR to have enabled HDR output</returns>
+        internal static bool HDROutputForAnyDisplayIsActive()
+        {
+            bool hdrDisplayOutputActive = HDROutputForMainDisplayIsActive();
+#if ENABLE_VR && ENABLE_XR_MODULE
+            // If we are rendering to xr then we need to look at the XR Display rather than the main non-xr display.
+            if (XRSystem.displayActive)
+            {
+                hdrDisplayOutputActive |= XRSystem.isHDRDisplayOutputActive;
+            }
+#endif
+            return hdrDisplayOutputActive;
+        }
+
+        static bool HDROutputActiveForCameraType(HDCamera camera)
+        {
+            return HDROutputIsActive(camera) && camera.camera.cameraType == CameraType.Game;
+        }
+
+        static bool HDROutputIsActive(HDCamera camera)
+        {
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (camera.xr.enabled)
+            {
+                return camera.xr.isHDRDisplayOutputActive;
+            }
+            else
+#endif
+            {
+                return HDROutputForMainDisplayIsActive();
+            }
+        }
+
+        /// <summary>
+        /// Returns a subset of the HDROutputSettings information that can be passed around.
+        /// </summary>
+        /// <returns>HDRDisplayInformation for the display associated with the camera.</returns>
+        static HDROutputUtils.HDRDisplayInformation HDRDisplayInformationForCamera(HDCamera camera)
+        {
+            HDROutputUtils.HDRDisplayInformation displayInformation;
+#if ENABLE_VR && ENABLE_XR_MODULE
+            // If we are rendering to xr then we need to look at the XR Display rather than the main non-xr display.
+            if (camera.xr.enabled)
+            {
+                displayInformation = camera.xr.hdrDisplayOutputInformation;
+            }
+            else
+#endif
+            {
+                HDROutputSettings displaySettings = HDROutputSettings.main;
+                displayInformation = new HDROutputUtils.HDRDisplayInformation(displaySettings.maxFullFrameToneMapLuminance,
+                    displaySettings.maxToneMapLuminance,
+                    displaySettings.minToneMapLuminance,
+                    displaySettings.paperWhiteNits);
+            }
+
+            return displayInformation;
+        }
+
+        /// <summary>
+        /// Returns the current color gamut that the display associated with camera uses.
+        /// </summary>
+        /// <returns>The color gamut used.</returns>
+        static ColorGamut HDRDisplayColorGamutForCamera(HDCamera camera)
+        {
+#if ENABLE_VR && ENABLE_XR_MODULE
+            // If we are rendering to xr then we need to look at the XR Display rather than the main non-xr display.
+            if (camera.xr.enabled)
+            {
+                return camera.xr.hdrDisplayOutputColorGamut;
+            }
+            else
+#endif
+            {
+                return HDROutputSettings.main.displayColorGamut;
+            }
         }
 
         void SetHDRState(HDCamera camera)
@@ -461,8 +544,14 @@ namespace UnityEngine.Rendering.HighDefinition
             m_UpsampleTransparency = CoreUtils.CreateEngineMaterial(defaultResources.shaders.upsampleTransparentPS);
 
             m_ApplyDistortionMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.applyDistortionPS);
+
             m_FinalBlitWithOETF = CoreUtils.CreateEngineMaterial(defaultResources.shaders.compositeUIAndOETFApplyPS);
 
+            if (TextureXR.useTexArray)
+            {
+                m_FinalBlitWithOETFTexArraySingleSlice = CoreUtils.CreateEngineMaterial(defaultResources.shaders.compositeUIAndOETFApplyPS);
+                m_FinalBlitWithOETFTexArraySingleSlice.EnableKeyword("BLIT_SINGLE_SLICE");
+            }
 
             m_ClearStencilBufferMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.clearStencilBufferPS);
 
@@ -507,6 +596,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     probeSamplingDebugMesh = defaultResources.assets.probeSamplingDebugMesh,
                     probeSamplingDebugTexture = defaultResources.textures.numbersDisplayTex,
                     offsetDebugShader = defaultResources.shaders.probeVolumeOffsetDebugShader,
+                    streamingUploadShader = defaultResources.shaders.probeVolumeUploadDataCS,
                     scenarioBlendingShader = supportBlending ? defaultResources.shaders.probeVolumeBlendStatesCS : null,
                     sceneData = m_GlobalSettings.GetOrCreateAPVSceneData(),
                     shBands = m_Asset.currentPlatformRenderPipelineSettings.probeVolumeSHBands,
@@ -679,9 +769,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 ,
                 overridesRealtimeReflectionProbes = true // Don't display the real time reflection probes checkbox UI in Quality Settings
                 ,
-                autoAmbientProbeBaking = false
+                ambientProbeBaking = false
                 ,
-                autoDefaultReflectionProbeBaking = false
+                defaultReflectionProbeBaking = false
                 ,
                 rendersUIOverlay = true,
                 supportsHDR = true,
@@ -882,8 +972,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             DecalSystem.instance.Cleanup();
 
-            ProbeVolumeLighting.instance.Cleanup();
-
             m_MaterialList.ForEach(material => material.Cleanup());
 
             CleanupDebug();
@@ -896,6 +984,7 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.Destroy(m_ApplyDistortionMaterial);
             CoreUtils.Destroy(m_ClearStencilBufferMaterial);
             CoreUtils.Destroy(m_FinalBlitWithOETF);
+            CoreUtils.Destroy(m_FinalBlitWithOETFTexArraySingleSlice);
 
             XRSystem.Dispose();
             m_SkyManager.Cleanup();
@@ -1394,12 +1483,19 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (!visibleProbe.reflectionProbe.TryGetComponent<HDAdditionalReflectionData>(out additionalReflectionData))
                     additionalReflectionData = visibleProbe.reflectionProbe.gameObject.AddComponent<HDAdditionalReflectionData>();
 
+                //Excluding any probes that are set to off
+                if (additionalReflectionData.IsTurnedOff())
+                    continue;
+
                 AddVisibleProbeVisibleIndexIfUpdateIsRequired(additionalReflectionData, request, renderRequestIndicesWhereTheProbeIsVisible);
             }
 
             // Planar probes
             for (var i = 0; i < cullingResults.hdProbeCullingResults.visibleProbes.Count; ++i)
             {
+                if (cullingResults.hdProbeCullingResults.visibleProbes[i].IsTurnedOff())
+                    continue;
+
                 AddVisibleProbeVisibleIndexIfUpdateIsRequired(cullingResults.hdProbeCullingResults.visibleProbes[i], request, renderRequestIndicesWhereTheProbeIsVisible);
             }
         }
@@ -1409,6 +1505,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // Don't add it if it has already been updated this frame or not a real time probe
             // TODO: discard probes that are baked once per frame and already baked this frame
             if (!probe.requiresRealtimeUpdate)
+                return;
+
+            if (probe.IsTurnedOff())
                 return;
 
             var viewerTransform = request.hdCamera.camera.transform;
@@ -1447,8 +1546,6 @@ namespace UnityEngine.Rendering.HighDefinition
             ScriptableRenderContext renderContext
         )
         {
-            var renderSteps = visibleProbe.NextRenderSteps();
-
             var position = ProbeCapturePositionSettings.ComputeFrom(
                 visibleProbe,
                 viewerTransform
@@ -1456,6 +1553,12 @@ namespace UnityEngine.Rendering.HighDefinition
             cameraSettings.Clear();
             cameraPositionSettings.Clear();
             cameraCubemapFaces.Clear();
+
+            if (visibleProbe.IsTurnedOff())
+                return;
+
+            var renderSteps = visibleProbe.NextRenderSteps();
+
             HDRenderUtilities.GenerateRenderingSettingsFor(
                 visibleProbe.settings, position,
                 cameraSettings, cameraPositionSettings, cameraCubemapFaces, overrideSceneCullingMask, renderSteps,
@@ -1463,12 +1566,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 referenceAspect: referenceAspect
             );
 
+
             var probeFormat = (GraphicsFormat)m_Asset.currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionProbeFormat;
 
             switch (visibleProbe.type)
             {
                 case ProbeSettings.ProbeType.ReflectionProbe:
                     int desiredProbeSize = (int)visibleProbe.cubeResolution;
+
                     var desiredProbeFormat = ((HDRenderPipeline)RenderPipelineManager.currentPipeline).currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionProbeFormat;
 
                     if (visibleProbe.realtimeTextureRTH == null || visibleProbe.realtimeTextureRTH.rt.width != desiredProbeSize ||
@@ -1478,25 +1583,52 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                     break;
                 case ProbeSettings.ProbeType.PlanarProbe:
-                    int desiredPlanarProbeSize = (int)visibleProbe.resolution;
-                    if (visibleProbe.realtimeTextureRTH == null || visibleProbe.realtimeTextureRTH.rt.width != desiredPlanarProbeSize || visibleProbe.realtimeTextureRTH.rt.graphicsFormat != probeFormat)
+
+                    if (visibleProbe.IsTurnedOff())
                     {
-                        visibleProbe.SetTexture(ProbeSettings.Mode.Realtime, HDRenderUtilities.CreatePlanarProbeRenderTarget(desiredPlanarProbeSize, probeFormat));
-                    }
-                    if (visibleProbe.realtimeDepthTextureRTH == null || visibleProbe.realtimeDepthTextureRTH.rt.width != desiredPlanarProbeSize)
-                    {
-                        visibleProbe.SetDepthTexture(ProbeSettings.Mode.Realtime, HDRenderUtilities.CreatePlanarProbeDepthRenderTarget(desiredPlanarProbeSize));
-                    }
-                    // Set the viewer's camera as the default camera anchor
-                    for (var i = 0; i < cameraSettings.Count; ++i)
-                    {
-                        var v = cameraSettings[i];
-                        if (v.volumes.anchorOverride == null)
+                        RenderTexture rt = new RenderTexture(1, 1, 1, probeFormat)
                         {
-                            v.volumes.anchorOverride = viewerTransform;
-                            cameraSettings[i] = v;
+                            dimension = TextureDimension.Tex2D,
+                            enableRandomWrite = false,
+                            useMipMap = true,
+                            autoGenerateMips = false,
+                            depth = 0
+                        };
+                        rt.Create();
+                        visibleProbe.SetTexture(ProbeSettings.Mode.Realtime, rt);
+                    }
+                    else
+                    {
+
+                        int desiredPlanarProbeSize = (int) visibleProbe.resolution;
+
+                        if (visibleProbe.realtimeTextureRTH == null ||
+                            visibleProbe.realtimeTextureRTH.rt.width != desiredPlanarProbeSize ||
+                            visibleProbe.realtimeTextureRTH.rt.graphicsFormat != probeFormat)
+                        {
+                            visibleProbe.SetTexture(ProbeSettings.Mode.Realtime,
+                                HDRenderUtilities.CreatePlanarProbeRenderTarget(desiredPlanarProbeSize, probeFormat));
+                        }
+
+                        if (visibleProbe.realtimeDepthTextureRTH == null ||
+                            visibleProbe.realtimeDepthTextureRTH.rt.width != desiredPlanarProbeSize)
+                        {
+                            visibleProbe.SetDepthTexture(ProbeSettings.Mode.Realtime,
+                                HDRenderUtilities.CreatePlanarProbeDepthRenderTarget(desiredPlanarProbeSize));
+                        }
+
+                        // Set the viewer's camera as the default camera anchor
+                        for (var i = 0; i < cameraSettings.Count; ++i)
+                        {
+                            var v = cameraSettings[i];
+                            if (v.volumes.anchorOverride == null)
+                            {
+                                v.volumes.anchorOverride = viewerTransform;
+                                cameraSettings[i] = v;
+                            }
                         }
                     }
+
                     break;
             }
 
@@ -1709,6 +1841,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 var visibleProbe = probeToRenderAndDependencies.Key;
                 var visibilities = probeToRenderAndDependencies.Value;
 
+                if (visibleProbe.IsTurnedOff())
+                    continue;
+
                 // Two cases:
                 //   - If the probe is view independent, we add only one render request per face that is
                 //      a dependency for all its 'visibleIn' render requests
@@ -1855,7 +1990,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // When HDR is active we render UI overlay per camera as we want all UI to be calibrated to white paper inside a single pass
             // for performance reasons otherwise we render UI overlay after all camera
-            SupportedRenderingFeatures.active.rendersUIOverlay = HDROutputIsActive();
+            SupportedRenderingFeatures.active.rendersUIOverlay = HDROutputForAnyDisplayIsActive();
 
 #if UNITY_2021_1_OR_NEWER
             if (!m_ValidAPI || cameras.Count == 0)
@@ -2203,7 +2338,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 var originalTarget = camera.targetTexture;
 
                 RenderTexture destination = standardRequest.destination;
-                
+
                 //don't go further if no destination texture
                 if(destination == null)
                 {
@@ -2294,7 +2429,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             break;
                         case TextureDimension.Tex3D:
                             if((SystemInfo.copyTextureSupport & CopyTextureSupport.DifferentTypes) != 0)
-                            {    
+                            {
                                 isCopySupported = true;
                                 Graphics.CopyTexture(temporaryRT, 0, 0, destination, slice, mipLevel);
                             }
@@ -2305,7 +2440,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 isCopySupported = true;
                                 Graphics.CopyTexture(temporaryRT, 0, 0, destination, face, mipLevel);
                             }
-                            break;                        
+                            break;
                         case TextureDimension.CubeArray:
                             if((SystemInfo.copyTextureSupport & CopyTextureSupport.DifferentTypes) != 0)
                             {
@@ -2481,7 +2616,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 PrepareVisibleLocalVolumetricFogList(hdCamera, cmd);
 
                 // do AdaptiveProbeVolume stuff
-                ProbeVolumeLighting.instance.BindAPVRuntimeResources(cmd, hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume));
+                ProbeReferenceVolume.instance.BindAPVRuntimeResources(cmd, hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume));
 
                 // Note: Legacy Unity behave like this for ShadowMask
                 // When you select ShadowMask in Lighting panel it recompile shaders on the fly with the SHADOW_MASK keyword.
@@ -2878,7 +3013,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 rendererConfiguration = rendererConfiguration,
                 renderQueueRange = renderQueueRange != null ? renderQueueRange.Value : HDRenderQueue.k_RenderQueue_AllOpaque,
-                sortingCriteria = SortingCriteria.CommonOpaque,
+                sortingCriteria = HDUtils.k_OpaqueSortingCriteria,
                 stateBlock = stateBlock,
                 overrideMaterial = overrideMaterial,
                 excludeObjectMotionVectors = excludeObjectMotionVectors
@@ -2901,7 +3036,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 rendererConfiguration = rendererConfiguration,
                 renderQueueRange = renderQueueRange != null ? renderQueueRange.Value : HDRenderQueue.k_RenderQueue_AllOpaque,
-                sortingCriteria = SortingCriteria.CommonOpaque,
+                sortingCriteria = HDUtils.k_OpaqueSortingCriteria,
                 stateBlock = stateBlock,
                 overrideMaterial = overrideMaterial,
                 excludeObjectMotionVectors = excludeObjectMotionVectors
@@ -3014,8 +3149,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 renderContext.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
-                renderContext.DrawGizmos(hdCamera.camera, GizmoSubset.PreImageEffects);
-                renderContext.DrawGizmos(hdCamera.camera, GizmoSubset.PostImageEffects);
+
+#if UNITY_EDITOR
+                if(UnityEditor.Handles.ShouldRenderGizmos())
+                {
+                    renderContext.DrawGizmos(hdCamera.camera, GizmoSubset.PreImageEffects);
+                    renderContext.DrawGizmos(hdCamera.camera, GizmoSubset.PostImageEffects);
+                }
+#endif
             }
         }
 

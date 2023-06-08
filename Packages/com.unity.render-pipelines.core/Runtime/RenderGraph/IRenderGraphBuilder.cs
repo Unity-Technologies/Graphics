@@ -173,7 +173,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// The graph will automatically bind the texture as an MRT output on the indicated index slot.
         /// Write in shader as  float4 out : SV_Target{index} = value; This texture always needs to be written as an
         /// render target (SV_Targetx) writing using other methods (like `operator[] =` ) may not work even if
-        /// using the current fragment+sampleIdx pos. When using operator[] please use the WriteTexture function instead.
+        /// using the current fragment+sampleIdx pos. When using operator[] please use the UseTexture function instead.
         /// Reading:
         /// Indicates this pass will read a texture on the current fragment position. If the texture is msaa then the sample index to read
         /// may be chosen by the shader. This informs the graph that any shaders in pass will only read from this

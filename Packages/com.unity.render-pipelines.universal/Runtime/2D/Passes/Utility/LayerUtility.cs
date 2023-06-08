@@ -1,4 +1,5 @@
 using Unity.Mathematics;
+using System.Collections.Generic;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -15,6 +16,10 @@ namespace UnityEngine.Rendering.Universal
         private unsafe fixed int renderTargetIds[4];
         private unsafe fixed bool renderTargetUsed[4];
 
+        public List<Light2D> lights;
+        public List<Light2D> shadowLights;
+        public List<ShadowCasterGroup2D> shadowCasters;
+
         public void InitRTIds(int index)
         {
             for (var i = 0; i < 4; i++)
@@ -25,6 +30,10 @@ namespace UnityEngine.Rendering.Universal
                     renderTargetIds[i] = Shader.PropertyToID($"_LightTexture_{index}_{i}");
                 }
             }
+
+            lights = new List<Light2D>();
+            shadowLights = new List<Light2D>();
+            shadowCasters = new List<ShadowCasterGroup2D>();
         }
 
         public RenderTargetIdentifier GetRTId(CommandBuffer cmd, RenderTextureDescriptor desc, int index)
@@ -138,10 +147,10 @@ namespace UnityEngine.Rendering.Universal
             for (var i = 0; i < cachedSortingLayers.Length;)
             {
                 var layerToRender = cachedSortingLayers[i].id;
-                var lightStats = lightCullResult.GetLightStatsByLayer(layerToRender);
                 ref var layerBatch = ref s_LayerBatches[batchCount++];
+                var lightStats = lightCullResult.GetLightStatsByLayer(layerToRender, ref layerBatch);
 
-                // Find the highest layer that share the same set of lights as this layer.
+                // Find the highest layer that share the same set of lights and shadows as this layer.
                 var upperLayerInBatch = FindUpperBoundInBatch(i, cachedSortingLayers, lightCullResult);
 
                 // Some renderers override their sorting layer value with short.MinValue or short.MaxValue.

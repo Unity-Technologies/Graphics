@@ -56,16 +56,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
 
-            if (TargetsVFX())
-            {
-                string inspector;
-                if (supportLighting)
-                    inspector = typeof(VFXShaderGraphGUILit).FullName;
-                else
-                    inspector = typeof(VFXShaderGraphGUIUnlit).FullName;
-                context.AddCustomEditorForRenderPipeline(inspector, typeof(HDRenderPipelineAsset));
-            }
-
             base.Setup(ref context);
         }
 
@@ -390,6 +380,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             HDSubShaderUtilities.AddAlphaCutoffShaderProperties(collector, systemData.alphaTest, builtinData.alphaTestShadow);
             HDSubShaderUtilities.AddDoubleSidedProperty(collector, systemData.doubleSidedMode);
             HDSubShaderUtilities.AddPrePostPassProperties(collector, builtinData.transparentDepthPrepass, builtinData.transparentDepthPostpass);
+
+            collector.AddShaderProperty(new BooleanShaderProperty
+            {
+                value = builtinData.transparentPerPixelSorting,
+                hidden = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
+                overrideReferenceName = kPerPixelSorting,
+            });
 
             // Add all shader properties required by the inspector
             HDSubShaderUtilities.AddBlendingStatesShaderProperties(

@@ -68,7 +68,7 @@ namespace MultipleSRP.EditMode
 
             Undo.IncrementCurrentGroup();
 
-            EditorGraphicsSettings.UnregisterRenderPipelineSettings(m_RenderPipelineType);
+            EditorGraphicsSettings.SetRenderPipelineGlobalSettingsAsset(m_RenderPipelineType, null);
 
             Assert.IsFalse(GraphicsSettings.TryGetCurrentRenderPipelineGlobalSettings(out var _));
 
@@ -86,19 +86,19 @@ namespace MultipleSRP.EditMode
 
             Assert.IsTrue(GraphicsSettings.TryGetCurrentRenderPipelineGlobalSettings(out var settings));
 
-            EditorGraphicsSettings.UnregisterRenderPipelineSettings(m_RenderPipelineType);
+            EditorGraphicsSettings.SetRenderPipelineGlobalSettingsAsset(m_RenderPipelineType, null);
 
             Assert.IsFalse(GraphicsSettings.TryGetCurrentRenderPipelineGlobalSettings(out var _));
 
             Undo.IncrementCurrentGroup();
 
-            EditorGraphicsSettings.RegisterRenderPipelineSettings(m_RenderPipelineType, settings);
+            EditorGraphicsSettings.SetRenderPipelineGlobalSettingsAsset(m_RenderPipelineType, settings);
 
             Undo.PerformUndo();
 
             Assert.IsFalse(GraphicsSettings.TryGetCurrentRenderPipelineGlobalSettings(out var _));
 
-            EditorGraphicsSettings.RegisterRenderPipelineSettings(m_RenderPipelineType, settings);
+            EditorGraphicsSettings.SetRenderPipelineGlobalSettingsAsset(m_RenderPipelineType, settings);
 
             Assert.IsTrue(GraphicsSettings.TryGetCurrentRenderPipelineGlobalSettings(out var newSettings));
             Assert.IsTrue(ReferenceEquals(settings, newSettings));
@@ -109,7 +109,7 @@ namespace MultipleSRP.EditMode
         {
             GraphicsSettings.defaultRenderPipeline = LoadAsset();
 
-            EditorGraphicsSettings.UnregisterRenderPipelineSettings(m_RenderPipelineType);
+            EditorGraphicsSettings.SetRenderPipelineGlobalSettingsAsset(m_RenderPipelineType, null);
             Assert.IsFalse(GraphicsSettings.TryGetCurrentRenderPipelineGlobalSettings(out var _));
 
             Camera.main.Render();

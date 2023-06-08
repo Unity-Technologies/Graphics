@@ -85,12 +85,8 @@ float4 unity_OrthoParams;
 uniform float4 _ScaleBias;
 uniform float4 _ScaleBiasRt;
 
-// TODO: setting _RTHandleScale as an uniform is temporarily disabled since it breaks the RG path when preview cameras are selected.
-// to be investigated and reenabled as part of the dynamic scaling work
-
 // { w / RTHandle.maxWidth, h / RTHandle.maxHeight } : xy = currFrame, zw = prevFrame
-//uniform float4 _RTHandleScale = float4(1.0, 1.0, 1.0, 1.0);
-#define _RTHandleScale float4(1.0, 1.0, 1.0, 1.0)
+uniform float4 _RTHandleScale;
 
 float4 unity_CameraWorldClipPlanes[6];
 

@@ -77,9 +77,9 @@ For more information on how parallax mapping works, refer to the [Heightmap](htt
 
 ### Decals
 
-With the Decal Renderer Feature, Unity can project specific Materials (decals) onto other objects in the Scene. The decals interact with the Scene's lighting and wrap around Meshes.
+With the Decal Renderer Feature, Unity can project specific Materials (decals) onto other objects in the scene. The decals interact with the scene's lighting and wrap around Meshes.
 
-![Decal Projector in the Scene.](Images/decal/decal-projector-selected-with-inspector.png)
+![Decal Projector in the scene.](Images/decal/decal-projector-selected-with-inspector.png)
 
 For examples of how to use Decals, see the [Decals samples in URP Package Samples](package-sample-urp-package-samples.md#decals).
 
@@ -225,7 +225,7 @@ URP supports the following lighting modes:
 
 * [Baked Indirect](https://docs.unity3d.com/Manual/LightMode-Mixed-BakedIndirect.html)
     
-    When you set a Scene's Lighting Mode to **Baked Indirect**, Mixed Lights behave like Realtime Lights, with the additional benefit of baking indirect lighting into lightmaps. GameObjects lit by Mixed Lights cast real-time shadows up to the Shadow Distance you define in the Project.
+    When you set a scene's Lighting Mode to **Baked Indirect**, Mixed Lights behave like Realtime Lights, with the additional benefit of baking indirect lighting into lightmaps. GameObjects lit by Mixed Lights cast real-time shadows up to the Shadow Distance you define in the Project.
 
 * [Subtractive](https://docs.unity3d.com/Manual/LightMode-Mixed-Subtractive.html)
 
@@ -233,7 +233,7 @@ URP supports the following lighting modes:
 
 ### Lens Flare
 
-Lens Flares simulate the effect of lights refracting inside a camera lens. They are used to represent really bright lights, or, more subtly, they can add a bit more atmosphere to your Scene. 
+Lens Flares simulate the effect of lights refracting inside a camera lens. They are used to represent really bright lights, or, more subtly, they can add a bit more atmosphere to your scene. 
 
 ![Lens Flare effect example](Images/whats-new/urp-12/urp-lens-flare-art-demo.png)<br/>*A sample URP scene using lens flares.*
 
@@ -309,7 +309,7 @@ For more information, refer to [Full Screen Pass Renderer Feature](renderer-feat
 
 ### Rendering Debugger
 
-The **Rendering Debugger** window lets you visualize various lighting, rendering, and Material properties. The visualizations help you identify rendering issues and optimize Scenes and rendering configurations.
+The **Rendering Debugger** window lets you visualize various lighting, rendering, and Material properties. The visualizations help you identify rendering issues and optimize scenes and rendering configurations.
 
 For more information, refer to [Rendering Debugger](features/rendering-debugger.md).
 

@@ -1,0 +1,53 @@
+#Save {
+    align-self: flex-start;
+}
+
+#Close {
+    border-width: 0px;
+    padding-right: 0px;
+}
+
+#emptyMessage {
+    flex-grow: 1;
+    -unity-text-align: middle-center;
+}
+
+TextField {
+    margin-top: 0px;
+}
+
+TextField > TextInput {
+    color: #F1F1F1;
+    padding-top: 8px;
+    border-top-right-radius: 0px;
+    border-top-left-radius: 0px;
+}
+
+Label {
+    margin: 1px 3px 0px 3px;
+    align-self: center;
+}
+
+ToolbarButton {
+    padding-bottom: 2px;
+}
+
+Toolbar {
+    height: auto;
+    margin: 4px 3px 0px 3px;
+    padding: 0px 3px 0px 3px;
+    border-width: 1px 1px 0px 1px;
+    border-top-right-radius: 3px;
+    border-top-left-radius: 3px;
+}
+
+TemplateContainer {
+    flex-grow: 1;
+}
+TemplateContainer ScrollView {
+    flex-grow: 1;
+}
+
+.unity-scroll-view__content-container {
+    flex-grow: 1;
+}

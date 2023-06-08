@@ -46,7 +46,7 @@ To edit the names of Rendering Layers:
 
 This section describes how to configure the following application example:
 
-* The Scene contains two Point Lights (marked `A` and `B` in the illustration) and two Sphere GameObjects (`C` and `D` in the illustration).
+* The scene contains two Point Lights (marked `A` and `B` in the illustration) and two Sphere GameObjects (`C` and `D` in the illustration).
 
 * Light `A` affects Sphere `D`, but not Sphere `C`. Light `B` affects Sphere `C`, but not Sphere `D`.
 
@@ -86,7 +86,7 @@ To implement the example:
 
 In the illustration above, Light `A` does not affect Sphere `C`, and the Sphere does not cast shadow from Light `A`.
 
-The **Custom Shadow Layers** property lets you configure the Scene so that Sphere `C` casts the shadow from Light `A`.
+The **Custom Shadow Layers** property lets you configure the scene so that Sphere `C` casts the shadow from Light `A`.
 
 1. Select Light `A`.
 
@@ -96,7 +96,7 @@ The **Custom Shadow Layers** property lets you configure the Scene so that Spher
 
 Now Light `A` does not affect Sphere `C`, but Sphere `C` casts shadow from Light `A`.
 
-The following illustrations show the Scene with the **Custom Shadow Layers** property off and on.
+The following illustrations show the scene with the **Custom Shadow Layers** property off and on.
 
 ![Custom Shadow Layers property off](../Images/lighting/rendering-layers/custom-shadow-layers-off.png)
 
@@ -106,7 +106,7 @@ The following illustrations show the Scene with the **Custom Shadow Layers** pro
 
 This section describes how to configure the following application example:
 
-* The Scene contains a Decal Projector.
+* The scene contains a Decal Projector.
 
 * The Decal Projector projects a decal on the wall and the ground, but not on the paint bucket.
 
@@ -118,7 +118,7 @@ To implement the example:
 
 1. [Enable Rendering Layers for Decals](#enable-decals) in your project.
 
-2. [Create a Decal Projector](../renderer-feature-decal.md#how-to-use-the-feature) in the Scene.
+2. [Create a Decal Projector](../renderer-feature-decal.md#how-to-use-the-feature) in the scene.
 
 3. Go to **Project Settings > Graphics > URP Global Settings**. Add a Rendering Layer called `Receive decals`.
 

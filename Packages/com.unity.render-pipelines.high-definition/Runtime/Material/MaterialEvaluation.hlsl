@@ -8,14 +8,14 @@
 // AggregateLighting is init to zero and transfer to EvaluateBSDF, but the LightLoop can't access its content.
 struct DirectLighting
 {
-    real3 diffuse;
-    real3 specular;
+    float3 diffuse;
+    float3 specular;
 };
 
 struct IndirectLighting
 {
-    real3 specularReflected;
-    real3 specularTransmitted;
+    float3 specularReflected;
+    float3 specularTransmitted;
 };
 
 struct AggregateLighting
@@ -43,10 +43,10 @@ void AccumulateIndirectLighting(IndirectLighting src, inout AggregateLighting ds
 // Ambient occlusion
 struct AmbientOcclusionFactor
 {
-    real3 indirectAmbientOcclusion;
-    real3 directAmbientOcclusion;
-    real3 indirectSpecularOcclusion;
-    real3 directSpecularOcclusion;
+    float3 indirectAmbientOcclusion;
+    float3 directAmbientOcclusion;
+    float3 indirectSpecularOcclusion;
+    float3 directSpecularOcclusion;
 };
 
 // Get screen space ambient occlusion only:

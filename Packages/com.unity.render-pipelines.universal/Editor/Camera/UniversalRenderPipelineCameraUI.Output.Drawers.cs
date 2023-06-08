@@ -41,7 +41,7 @@ namespace UnityEditor.Rendering.Universal
                             CED.Group(
                                 CED.Group(DrawerOutputHDR),
                                 CED.Conditional(
-                                    (serialized, owner) => PlayerSettings.useHDRDisplay,
+                                    (serialized, owner) => PlayerSettings.allowHDRDisplaySupport,
                                     CED.Group(DrawerOutputHDROutput)
                                     ),
                                 CED.Group(DrawerOutputMSAA),
@@ -236,7 +236,7 @@ namespace UnityEditor.Rendering.Universal
                         var rpAsset = UniversalRenderPipeline.asset;
                         bool perCameraHDRDisabled = !p.baseCameraSettings.HDR.boolValue && (rpAsset == null || rpAsset.supportsHDR);
                         
-                        if (allowHDROutput && PlayerSettings.useHDRDisplay && perCameraHDRDisabled)
+                        if (allowHDROutput && PlayerSettings.allowHDRDisplaySupport && perCameraHDRDisabled)
                         {
                             EditorGUILayout.HelpBox(Styles.disabledHDRRenderingWithHDROutput, MessageType.Warning);
                         }

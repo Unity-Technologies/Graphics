@@ -47,8 +47,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Combine pass via hardware blending.
         Material m_CloudCombinePass;
-        ComputeShader m_CloudsCombineCS;
-        int m_CombineCloudsWaterKernel;
 
         struct VolumetricCloudsCameraData
         {
@@ -110,8 +108,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Create the material needed for the combination
             m_CloudCombinePass = CoreUtils.CreateEngineMaterial(defaultResources.shaders.volumetricCloudsCombinePS);
-            m_CloudsCombineCS = m_Asset.renderPipelineResources.shaders.volumetricCloudsCombineCS;
-            m_CombineCloudsWaterKernel = m_CloudsCombineCS.FindKernel("CombineCloudsWater");
 
             m_VolumetricCloudsTraceCS = m_Asset.renderPipelineResources.shaders.volumetricCloudsTraceCS;
             m_CloudRenderKernel = m_VolumetricCloudsTraceCS.FindKernel("RenderClouds");
@@ -583,38 +579,71 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // Material
             public Material cloudsCombineMaterial;
-            public ShaderVariablesClouds cloudsCB;
+            public bool perPixelSorting;
 
-            // Input buffer
-            public TextureHandle volumetricCloudsBuffer;
+            // Input buffers
+            public TextureHandle volumetricCloudsLightingTexture;
+            public TextureHandle volumetricCloudsDepthTexture;
+            public TextureHandle depthAndStencil;
 
-            // Output buffer
-            public TextureHandle colorBuffer;
+            public BufferHandle waterLine;
+            public BufferHandle cameraHeightBuffer;
+            public BufferHandle waterSurfaceProfiles;
+            public TextureHandle waterGBuffer3;
         }
 
-        void CombineVolumetricCloudsOpaque(RenderGraph renderGraph, HDCamera hdCamera, in VolumetricClouds settings, TVolumetricCloudsCameraType cameraType, TextureHandle colorBuffer, TextureHandle volumetricClouds)
+        void CombineVolumetricClouds(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle resolvedDepthBuffer, in TransparentPrepassOutput transparentPrepass)
         {
+            if (!transparentPrepass.clouds.valid)
+                return;
+
             using (var builder = renderGraph.AddRenderPass<VolumetricCloudsCombineOpaqueData>("Volumetric Clouds Combine", out var passData, ProfilingSampler.Get(HDProfileId.VolumetricCloudsCombine)))
             {
-                builder.EnableAsyncCompute(false);
-
                 // Parameters
                 passData.cloudsCombineMaterial = m_CloudCombinePass;
-                float perceptualBlending = settings.perceptualBlending.value;
-                passData.cloudsCB._CubicTransmittance = cameraType == TVolumetricCloudsCameraType.Default && hdCamera.msaaEnabled ? perceptualBlending : 0;
+                passData.perPixelSorting = transparentPrepass.enablePerPixelSorting;
 
-                // Input buffer
-                passData.volumetricCloudsBuffer = builder.ReadTexture(volumetricClouds);
+                // Input buffers
+                passData.volumetricCloudsLightingTexture = builder.ReadTexture(transparentPrepass.clouds.lightingBuffer);
 
-                // Output buffer
-                passData.colorBuffer = builder.WriteTexture(colorBuffer);
+                if (passData.perPixelSorting)
+                {
+                    passData.volumetricCloudsDepthTexture = builder.ReadTexture(transparentPrepass.clouds.depthBuffer);
+                    passData.depthAndStencil = builder.ReadTexture(resolvedDepthBuffer);
+
+                    passData.waterLine = builder.ReadBuffer(transparentPrepass.waterLine);
+                    passData.cameraHeightBuffer = builder.ReadBuffer(transparentPrepass.waterGBuffer.cameraHeight);
+                    passData.waterSurfaceProfiles = builder.ReadBuffer(transparentPrepass.waterSurfaceProfiles);
+                    passData.waterGBuffer3 = builder.ReadTexture(transparentPrepass.waterGBuffer.waterGBuffer3);
+                }
+
+                // Output buffers
+                builder.UseColorBuffer(colorBuffer, 0);
+
+                if (passData.perPixelSorting)
+                {
+                    builder.UseDepthBuffer(transparentPrepass.beforeRefraction, DepthAccess.Read); // Dummy buffer to avoid 'Setting MRT without a depth buffer is not supported'
+                    builder.UseColorBuffer(transparentPrepass.beforeRefraction, 1);
+                    builder.UseColorBuffer(transparentPrepass.beforeRefractionAlpha, 2);
+                }
 
                 builder.SetRenderFunc(
                     (VolumetricCloudsCombineOpaqueData data, RenderGraphContext ctx) =>
                     {
-                        ConstantBuffer.Push(ctx.cmd, data.cloudsCB, data.cloudsCombineMaterial, HDShaderIDs._ShaderVariablesClouds);
-                        data.cloudsCombineMaterial.SetTexture(HDShaderIDs._VolumetricCloudsLightingTexture, data.volumetricCloudsBuffer);
-                        HDUtils.DrawFullScreen(ctx.cmd, data.cloudsCombineMaterial, data.colorBuffer, null, 0);
+                        data.cloudsCombineMaterial.SetTexture(HDShaderIDs._VolumetricCloudsLightingTexture, data.volumetricCloudsLightingTexture);
+
+                        if (data.perPixelSorting)
+                        {
+                            data.cloudsCombineMaterial.SetTexture(HDShaderIDs._RefractiveDepthBuffer, data.depthAndStencil, RenderTextureSubElement.Depth);
+                            data.cloudsCombineMaterial.SetTexture(HDShaderIDs._StencilTexture, data.depthAndStencil, RenderTextureSubElement.Stencil);
+                            data.cloudsCombineMaterial.SetTexture(HDShaderIDs._VolumetricCloudsDepthTexture, data.volumetricCloudsDepthTexture);
+                            data.cloudsCombineMaterial.SetBuffer(HDShaderIDs._WaterCameraHeightBuffer, data.cameraHeightBuffer);
+                            data.cloudsCombineMaterial.SetBuffer(HDShaderIDs._WaterSurfaceProfiles, data.waterSurfaceProfiles);
+                            data.cloudsCombineMaterial.SetTexture(HDShaderIDs._WaterGBufferTexture3, data.waterGBuffer3);
+                            data.cloudsCombineMaterial.SetBuffer(HDShaderIDs._WaterLineBuffer, data.waterLine);
+                        }
+
+                        ctx.cmd.DrawProcedural(Matrix4x4.identity, data.cloudsCombineMaterial, data.perPixelSorting ? 7 : 0, MeshTopology.Triangles, 3);
                     });
             }
         }
@@ -640,64 +669,14 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle outputColorBuffer;
         }
 
-        TextureHandle CombineVolumetricCloudsWater(RenderGraph renderGraph, HDCamera hdCamera,
-            TextureHandle colorBuffer, TextureHandle depthStencilBuffer,
-            VolumetricCloudsOutput volumetricCloudsOutput)
-        {
-            // If the camera doesn't have clouds or water, we shouldn't do anything
-            WaterRendering waterSettings = hdCamera.volumeStack.GetComponent<WaterRendering>();
-
-            if (!volumetricCloudsOutput.valid || !waterSettings.enable.value
-                || !hdCamera.frameSettings.IsEnabled(FrameSettingsField.Water)
-                || WaterSurface.instanceCount == 0
-                || !hdCamera.frameSettings.IsEnabled(FrameSettingsField.TransparentObjects))
-                return colorBuffer;
-
-            // TODO: Dispatch indirect on water tiles.
-            using (var builder = renderGraph.AddRenderPass<VolumetricCloudsCombineWaterData>("Volumetric Clouds Combine", out var passData, ProfilingSampler.Get(HDProfileId.VolumetricCloudsCombine)))
-            {
-                builder.EnableAsyncCompute(false);
-
-                // Parameters
-                passData.tileX = (hdCamera.actualWidth + 7) / 8;
-                passData.tileY = (hdCamera.actualHeight + 7) / 8;
-                passData.viewCount = hdCamera.viewCount;
-                passData.cloudsCombineCS = m_CloudsCombineCS;
-                passData.kernel = m_CombineCloudsWaterKernel;
-
-                // Input buffers
-                passData.volumetricCloudsLighting = builder.ReadTexture(volumetricCloudsOutput.lightingBuffer);
-                passData.volumetricCloudsDepth = builder.ReadTexture(volumetricCloudsOutput.depthBuffer);
-                passData.colorBuffer = builder.WriteTexture(colorBuffer);
-                passData.depthStencilBuffer = builder.WriteTexture(depthStencilBuffer);
-
-                // Output buffers
-                passData.outputColorBuffer = builder.WriteTexture(renderGraph.CreateTexture(colorBuffer));
-
-                builder.SetRenderFunc(
-                    (VolumetricCloudsCombineWaterData data, RenderGraphContext ctx) =>
-                    {
-                        ctx.cmd.SetComputeTextureParam(data.cloudsCombineCS, data.kernel, HDShaderIDs._VolumetricCloudsLightingTexture, data.volumetricCloudsLighting);
-                        ctx.cmd.SetComputeTextureParam(data.cloudsCombineCS, data.kernel, HDShaderIDs._VolumetricCloudsDepthTexture, data.volumetricCloudsDepth);
-                        ctx.cmd.SetComputeTextureParam(data.cloudsCombineCS, data.kernel, HDShaderIDs._DepthTexture, data.depthStencilBuffer);
-                        ctx.cmd.SetComputeTextureParam(data.cloudsCombineCS, data.kernel, HDShaderIDs._StencilTexture, data.depthStencilBuffer, 0, RenderTextureSubElement.Stencil);
-                        ctx.cmd.SetComputeTextureParam(data.cloudsCombineCS, data.kernel, HDShaderIDs._CameraColorTexture, data.colorBuffer);
-                        ctx.cmd.SetComputeTextureParam(data.cloudsCombineCS, data.kernel, HDShaderIDs._CameraColorTextureRW, data.outputColorBuffer);
-                        ctx.cmd.DispatchCompute(data.cloudsCombineCS, data.kernel, data.tileX, data.tileY, data.viewCount);
-                    });
-
-                return passData.outputColorBuffer;
-            }
-        }
-
-        struct VolumetricCloudsOutput
+        internal struct VolumetricCloudsOutput
         {
             public TextureHandle lightingBuffer;
             public TextureHandle depthBuffer;
             public bool valid;
         }
 
-        VolumetricCloudsOutput RenderVolumetricClouds(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthPyramid, TextureHandle motionVector, TextureHandle volumetricLighting, TextureHandle maxZMask)
+        void RenderVolumetricClouds(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthPyramid, TextureHandle motionVector, TextureHandle volumetricLighting, TextureHandle maxZMask, ref TransparentPrepassOutput transparentPrepass)
         {
             // If the current volume does not enable the feature, quit right away.
             VolumetricClouds settings = hdCamera.volumeStack.GetComponent<VolumetricClouds>();
@@ -707,11 +686,13 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
             if (skipCloudRendering)
             {
-                VolumetricCloudsOutput emptyClouds = new VolumetricCloudsOutput();
-                emptyClouds.lightingBuffer = renderGraph.defaultResources.whiteTextureXR;
-                emptyClouds.depthBuffer = renderGraph.defaultResources.blackTextureXR;
-                emptyClouds.valid = false;
-                return emptyClouds;
+                transparentPrepass.clouds = new VolumetricCloudsOutput()
+                {
+                    lightingBuffer = renderGraph.defaultResources.whiteTextureXR,
+                    depthBuffer = renderGraph.defaultResources.blackTextureXR,
+                    valid = false,
+                };
+                return;
             }
 
             // Make sure the volumetric clouds are animated properly
@@ -723,25 +704,18 @@ namespace UnityEngine.Rendering.HighDefinition
             bool fullResolutionClouds = cameraType == TVolumetricCloudsCameraType.BakedReflection;
 
             // Render the clouds
-            VolumetricCloudsOutput output;
             if (accumulationClouds)
-                output = RenderVolumetricClouds_Accumulation(renderGraph, hdCamera, cameraType, colorBuffer, depthPyramid, motionVector, volumetricLighting, maxZMask);
+                transparentPrepass.clouds = RenderVolumetricClouds_Accumulation(renderGraph, hdCamera, cameraType, colorBuffer, depthPyramid, motionVector, volumetricLighting, maxZMask);
             else if (fullResolutionClouds)
-                output = RenderVolumetricClouds_FullResolution(renderGraph, hdCamera, cameraType, colorBuffer, depthPyramid, motionVector, volumetricLighting, maxZMask);
+                transparentPrepass.clouds = RenderVolumetricClouds_FullResolution(renderGraph, hdCamera, cameraType, colorBuffer, depthPyramid, motionVector, volumetricLighting, maxZMask);
             else
-                output = RenderVolumetricClouds_LowResolution(renderGraph, hdCamera, cameraType, colorBuffer, depthPyramid, motionVector, volumetricLighting, maxZMask);
+                transparentPrepass.clouds = RenderVolumetricClouds_LowResolution(renderGraph, hdCamera, cameraType, colorBuffer, depthPyramid, motionVector, volumetricLighting, maxZMask);
 
             // Push the texture to the debug menu
             if (m_CurrentDebugDisplaySettings.data.volumetricCloudDebug == VolumetricCloudsDebug.Lighting)
-                PushFullScreenDebugTexture(m_RenderGraph, output.lightingBuffer, FullScreenDebugMode.VolumetricClouds);
+                PushFullScreenDebugTexture(m_RenderGraph, transparentPrepass.clouds.lightingBuffer, FullScreenDebugMode.VolumetricClouds);
             else
-                PushFullScreenDebugTexture(m_RenderGraph, output.depthBuffer, FullScreenDebugMode.VolumetricClouds, GraphicsFormat.R32_SFloat);
-
-            // Now that the volumetric clouds texture has been generated, combine it with the opaque and sky
-            CombineVolumetricCloudsOpaque(renderGraph, hdCamera, settings, cameraType, colorBuffer, output.lightingBuffer);
-
-            // Return the scattering and transmittance
-            return output;
+                PushFullScreenDebugTexture(m_RenderGraph, transparentPrepass.clouds.depthBuffer, FullScreenDebugMode.VolumetricClouds, GraphicsFormat.R32_SFloat);
         }
 
         void PreRenderVolumetricClouds(RenderGraph renderGraph, HDCamera hdCamera)

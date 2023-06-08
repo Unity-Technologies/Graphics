@@ -349,9 +349,7 @@ namespace UnityEngine.Rendering.Universal
 
             // { w / RTHandle.maxWidth, h / RTHandle.maxHeight } : xy = currFrame, zw = prevFrame
             // TODO(@sandy-carter) set to RTHandles.rtHandleProperties.rtHandleScale once dynamic scaling is set up
-            // setting ShaderPropertyId.rtHandleScale as an uniform is temporarily disabled since it breaks the RG path when preview cameras are selected.
-            // to be investigated and reenabled as part of the dynamic scaling work
-            //cmd.SetGlobalVector(ShaderPropertyId.rtHandleScale, Vector4.one);
+            cmd.SetGlobalVector(ShaderPropertyId.rtHandleScale, Vector4.one);
 
             // Calculate a bias value which corrects the mip lod selection logic when image scaling is active.
             // We clamp this value to 0.0 or less to make sure we don't end up reducing image detail in the downsampling case.
@@ -1812,9 +1810,14 @@ namespace UnityEngine.Rendering.Universal
                 {
                     // As alternative we would need a way to check if rts are not going to be used as shader resource
                     bool colorAttachmentChanged = false;
-                    for (int i = 0; i < m_ActiveColorAttachments.Length; i++)
+
+                    // Special handling for the first attachment to support `renderPass.overrideCameraTarget`.
+                    if (passColorAttachment.nameID != m_ActiveColorAttachments[0])
+                        colorAttachmentChanged = true;
+                    // Check the rest of attachments (1-8)
+                    for (int i = 1; i < m_ActiveColorAttachments.Length; i++)
                     {
-                        if (renderPass.colorAttachmentHandles[i]?.nameID != m_ActiveColorAttachments[i])
+                        if (renderPass.colorAttachmentHandles[i] != m_ActiveColorAttachments[i])
                         {
                             colorAttachmentChanged = true;
                             break;
@@ -1822,7 +1825,7 @@ namespace UnityEngine.Rendering.Universal
                     }
 
                     // Only setup render target if current render pass attachments are different from the active ones
-                    if (colorAttachmentChanged || passColorAttachment.nameID != m_ActiveColorAttachments[0] || passDepthAttachment.nameID != m_ActiveDepthAttachment || finalClearFlag != ClearFlag.None ||
+                    if (colorAttachmentChanged || passDepthAttachment.nameID != m_ActiveDepthAttachment || finalClearFlag != ClearFlag.None ||
                         renderPass.colorStoreActions[0] != m_ActiveColorStoreActions[0] || renderPass.depthStoreAction != m_ActiveDepthStoreAction)
                     {
                         SetRenderTarget(cmd, passColorAttachment, passDepthAttachment, finalClearFlag, finalClearColor, renderPass.colorStoreActions[0], renderPass.depthStoreAction);

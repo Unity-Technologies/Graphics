@@ -50,6 +50,7 @@ class VFXSlotContainerEditor : Editor
         foreach (var prop in settingFields.Select(t => new KeyValuePair<VFXSetting, SerializedProperty>(t, FindProperty(t))).Where(t => t.Value != null))
         {
             var fieldInfo = prop.Key.field;
+            var disabledScope = new EditorGUI.DisabledScope(prop.Key.visibility.HasFlag(VFXSettingAttribute.VisibleFlags.ReadOnly));
             EditorGUI.BeginChangeCheck();
             var stringAttribute = fieldInfo.GetCustomAttributes<StringProviderAttribute>(true);
             var rangeAttribute = fieldInfo.GetCustomAttributes<RangeAttribute>(false).FirstOrDefault();
@@ -136,6 +137,7 @@ class VFXSlotContainerEditor : Editor
             {
                 modifiedSetting = prop.Value;
             }
+            disabledScope.Dispose();
         }
 
         return modifiedSetting;
@@ -384,6 +386,7 @@ class VFXSlotContainerEditor : Editor
             { VFXValueType.TextureCube, new Color32(250, 137, 137, 255) },
             { VFXValueType.TextureCubeArray, new Color32(250, 137, 137, 255) },
             { VFXValueType.CameraBuffer, new Color32(250, 137, 137, 255) },
+            { VFXValueType.Buffer, new Color32(250, 137, 137, 255) },
             { VFXValueType.Uint32, new Color32(125, 110, 191, 255) },
         };
 

@@ -46,6 +46,9 @@ namespace UnityEngine.Rendering.Universal
 
         public static void AddShadowCasterGroupToList(ShadowCasterGroup2D shadowCaster, List<ShadowCasterGroup2D> list)
         {
+            if (list.Contains(shadowCaster))
+                return;
+
             int positionToInsert = 0;
             for (positionToInsert = 0; positionToInsert < list.Count; positionToInsert++)
             {

@@ -68,6 +68,10 @@ These settings control the draw distance and resolution of the decals atlas that
 | **- Draw Distance**                          | The maximum distance from the Camera at which Unity draws Decals. |
 | **- Atlas Width**                            | The Decal Atlas width. This atlas stores all decals that project onto transparent surfaces. |
 | **- Atlas Height**                           | The Decal Atlas height. This atlas stores all decals that project onto transparent surfaces. |
+| ***- Transparent Texture Resolution Tiers*** | Set the resolution that transparent textures take up within the decal atlas. The same resolution is used for all textures of a material (base color, normal, mask). |
+| **- Low**									   | Set the transparent texture resolution to this quality. DecalProjectors with their **Transparent Texture Resolution** set to **Low** use this resolution for their textures in the decal atlas. |
+| **- Medium**								   | Set the transparent texture resolution to this quality. DecalProjectors with their **Transparent Texture Resolution** set to **Medium** use this resolution for their textures in the decal atlas. |
+| **- High**								   | Set the transparent texture resolution to this quality. DecalProjectors with their **Transparent Texture Resolution** set to **High** use this resolution for their textures in the decal atlas. |
 | **- Metal and Ambient Occlusion properties** | Enable the checkbox to allow decals to affect metallic and ambient occlusion Material properties. Enabling this feature has a performance impact. |
 | **- Maximum Clustered Decals on Screen**     | The maximum number of clustered decals that can affect transparent GameObjects on screen. Clustered decals refer to a list of decals that HDRP uses when it renders transparent GameObjects. |
 | **- Layers**                                 | Enable the checkbox to allow decals to only affect specific layers.|
@@ -93,6 +97,16 @@ These settings control the draw distance and resolution of the decals atlas that
 | **- Forced Screen Percentage**              | The specific screen percentage that HDRP uses for dynamic resolution. This property is only visible when you enable the **Force Screen Percentage**.. |
 | **- Low Res Transparency Min Threshold**    | The minimum percentage threshold allowed to clamp low resolution transparency. When the resolution percentage falls below this threshold, HDRP will clamp the low resolution to this percentage. |
 | **- Ray Tracing Half Resolution Threshold** | The minimum percentage threshold allowed to render ray tracing effects at half resolution. When the resolution percentage falls below this threshold, HDRP will render ray tracing effects at full resolution. |
+
+<a name="Compute Thickness"></a>
+
+## Compute Thickness
+
+| **Property**   | **Description**                                              |
+| -------------- | ------------------------------------------------------------ |
+| **Enable**     | Enable the checkbox to sample the thickness of GameObjects to use in a shader graph material. For more information, refer to [Sample and use material thickness](Compute-Thickness.md). |
+| **Resolution** | Set the resolution of a material’s thickness: <br/>&#8226;**Quarter**: Renders the thickness at quarter the current screen resolution.<br/>&#8226;**Half**: Renders the thickness at half the current screen resolution. This resolution is the best balance of detail and performance.<br/>&#8226;**Full**: Renders the thickness at full screen resolution. |
+| **Layer Mask** | Select one or more layers to compute the thickness of.       |
 
 <a name="Lighting"></a>
 
@@ -172,8 +186,9 @@ These settings adjust the size of the shadowmask. Smaller values causes Unity to
 | -------------------------------- | ------------------------------------------------------------ |
 | **Shadowmask**                  | Enable the checkbox to make HDRP support the [Shadowmask lighting mode](Lighting-Mode-Shadowmask.md) in your Unity Project. |
 | **Maximum** **Shadow on Screen** | The maximum number of shadows you can have in view. A Spot Light casts a single shadow, a Point Light casts six shadows, and a Directional Light casts shadows equal to the number of cascades defined in the [HD Shadow Settings](Override-Shadows.md) override. |
-| **Shadow Filtering Quality**     | Use the drop-down to select the filtering quality for shadows. Higher values increase the shadow quality in HDRP as better filtering near the edges of shadows reduce aliasing effects. For information on each filtering quality preset, see the [Filtering Qualities table](#filtering-qualities). |
-| **Area Shadow Filtering Quality**| Use the drop-down to select the filtering quality for area shadows. Higher values increase the area shadow quality in HDRP as better filtering improves the shape of the penumbra of very soft shadows and reduces light leaking. For information on each area filtering quality preset, see the [Filtering Qualities table](#filtering-qualities). |
+| **Punctual Shadow Filtering Quality** | Use the drop-down to select the filtering quality for punctual shadows. A higher shadow quality makes the shadow softer. For information on each filtering quality preset, see the [Filtering Quality](#filtering-quality) table. |
+| **Directional Shadow Filtering Quality** | Use the drop-down to select the filtering quality for punctual shadows. A higher shadow quality makes the shadow softer. For information on each filtering quality preset, see the [Filtering Quality](#filtering-quality) table. |
+| **Area Shadow Filtering Quality**| Use the drop-down to select the filtering quality for area shadows. Higher values increase the area shadow quality in HDRP as better filtering improves the shape of the penumbra of very soft shadows and reduces light leaking. For information on each area filtering quality preset, see the [Filtering Quality](#filtering-quality) table. |
 | **Screen Space Shadows**         | Enable the checkbox to allow HDRP to compute shadows in a separate pass and store them in a screen-aligned Texture. |
 | - **Maximum**                    | Set the maximum number of screen space shadows that HDRP can handle. |
 | - **Buffer Format**              | Defines the format (R11G11B10 or R16G16B16A16) of the buffer used for screen space shadows.|
@@ -195,7 +210,7 @@ They all share the same properties, except **Directional Light Shadows** which d
 | ***Light Atlas***   |                                                              |
 | **Resolution**      | Use the drop-down to select the resolution of the shadow atlas. |
 | **Precision**       | Use the drop-down to select the precision of the shadow map. This sets the bit depth of each pixel of the shadow map. **16 bit** is faster and uses less memory at the expense of precision. |
-| **Dynamic Rescale** | Enable the checkbox to allow HDRP to rescale the shadow atlas if all the shadows on the screen don’t currently fit onto it. |
+| **Dynamic Rescale** | Enable the checkbox to allow HDRP to rescale the shadow atlas if all the shadows on the screen don't currently fit onto it. |
 
 | ***Shadow Resolution Tiers***      |                                                              |
 | ---------------------------------- | ------------------------------------------------------------ |
@@ -208,16 +223,22 @@ They all share the same properties, except **Directional Light Shadows** which d
 
 #### Filtering Quality
 
-| **Shadow Filtering Quality** | **Algorithm**                                                |
+| **Punctual Shadow Filtering Quality** | **Algorithm**                                       |
 | ---------------------------- | ------------------------------------------------------------ |
-| **Low**                      | &#8226; **Point/Spot Lights**: Percentage Closer Filtering (PCF) 3x3 (4 taps).<br />&#8226; **Directional Lights**: PCF Tent 5x5 (9 taps). |
-| **Medium**                   | &#8226; **Point/Spot Lights**: PCF 5x5 (9 taps).<br />&#8226; **Directional Lights**: PCF Tent 5x5 (9 taps). |
-| **High**                     | &#8226;**Point/Spot/Directional Lights**: Percentage Closer Soft Shadows (PCSS). |
+| **Low**                      | Percentage Closer Filtering (PCF) 3x3 (4 taps). |
+| **Medium**                   | PCF 5x5 (9 taps). |
+| **High**                     | Percentage Closer Soft Shadows (PCSS). |
+
+| **Directional Shadow Filtering Quality** | **Algorithm**                                    |
+| ---------------------------- | ------------------------------------------------------------ |
+| **Low**                      | PCF Tent 5x5 (9 taps). |
+| **Medium**                   | PCF Tent 5x5 (9 taps). |
+| **High**                     | PCSS. |
 
 | **Area Shadow Filtering Quality** | **Algorithm**                                                |
 | --------------------------------- | ------------------------------------------------------------ |
-| **Medium**                        | &#8226; **Area Lights**: EVSM. |
-| **High**                          | &#8226; **Area Lights**: Percentage Closer Soft Shadows (PCSS). |
+| **Medium**                        | Exponential Variance Shadow Map (EVSM). |
+| **High**                          | PCSS. |
 
 The PCF algorithm applies a fixed size blur. PCSS applies a different blur size depending on the distance between the shadowed pixel and the shadow caster. This results in a more realistic shadow that is also more resource intensive to compute.
 

@@ -50,17 +50,17 @@ uint3 IndexToChunk(uint index, float2 poolSize)
 }
 
 [numthreads(4, 4, 4)]
-void BlendScenarios(uint3 probe : SV_DispatchThreadID, uint3 chunk : SV_GroupID)
+void BlendScenarios(uint3 probe : SV_DispatchThreadID, uint3 brick : SV_GroupID)
 {
-    uint cellIndex = chunk.z;
-    probe.z -= 4 * cellIndex;
+    uint chunkIndex = brick.z;
+    probe.z -= 4 * chunkIndex;
 
     // Load
     APVResources resources0, resources1;
     LOAD_APV_RES(resources0, _State0);
     LOAD_APV_RES(resources1, _State1);
 
-    uint3 srcChunk = _ChunkList[cellIndex].xyz;
+    uint3 srcChunk = _ChunkList[chunkIndex].xyz;
     APVSample state0 = LoadAndDecodeAPV(resources0, probe + srcChunk);
     APVSample state1 = LoadAndDecodeAPV(resources1, probe + srcChunk);
 
@@ -71,6 +71,6 @@ void BlendScenarios(uint3 probe : SV_DispatchThreadID, uint3 chunk : SV_GroupID)
     APVResourcesRW output;
     LOAD_APV_RES(output, _Out);
 
-    uint3 dstChunk = IndexToChunk(_ChunkList[cellIndex].w, _DstPoolDim);
+    uint3 dstChunk = IndexToChunk(_ChunkList[chunkIndex].w, _DstPoolDim);
     EncodeAndStoreAPV(output, state0, probe + dstChunk);
 }

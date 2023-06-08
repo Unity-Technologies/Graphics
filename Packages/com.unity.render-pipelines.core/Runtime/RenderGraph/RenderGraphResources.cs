@@ -50,11 +50,22 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             this.m_Version = version;
         }
 
-        public static implicit operator int(ResourceHandle handle) => handle.index;
         public bool IsValid()
         {
             var validity = m_Value & kValidityMask;
             return validity != 0 && (validity == s_CurrentValidBit || validity == s_SharedResourceValidBit);
+        }
+
+        public bool IsNull()
+        {
+            if (index == 0)
+            {
+                // Make sure everything is zero
+                Debug.Assert(m_Value == 0);
+                Debug.Assert(m_Version == 0);
+                return true;
+            }
+            return false;
         }
 
         static public void NewFrame(int executionIndex)

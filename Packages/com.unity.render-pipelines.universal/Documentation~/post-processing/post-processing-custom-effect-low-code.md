@@ -6,9 +6,9 @@ The example on this page shows how to use a Full Screen Render Pass to create a 
 
 This example requires the following:
 
-- A Unity project with the URP package installed.
+* A Unity project with the URP package installed.
 
-- The **Scriptable Render Pipeline Settings** property refers to a URP asset (**Project Settings** > **Graphics** > **Scriptable Render Pipeline Settings**).
+* The **Scriptable Render Pipeline Settings** property refers to a URP asset (**Project Settings** > **Graphics** > **Scriptable Render Pipeline Settings**).
 
 ## Create a Fullscreen Shader Graph
 
@@ -19,9 +19,9 @@ You must create a Fullscreen Shader Graph to create a custom post-processing eff
 3. In the **URP Sample Buffer** node's **Source Buffer** dropdown menu, select **BlitSource**.
 4. Add a **Vector 3** node.
 5. Assign the **Vector 3** node the following values:
-    - **X** = 0.2126
-    - **Y** = 0.7152
-    - **Z** = 0.0722
+    * **X** = 0.2126
+    * **Y** = 0.7152
+    * **Z** = 0.0722
 6. Add a **Dot Product** node.
 7. Connect the nodes as shown below.
 

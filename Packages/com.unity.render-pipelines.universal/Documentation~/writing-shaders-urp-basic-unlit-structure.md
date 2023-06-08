@@ -141,9 +141,9 @@ A Pass block can optionally contain a Pass tags block. For more information, see
 
 This block contains the HLSL program code.
 
-> **NOTE**: HLSL language is the preferred language for URP shaders.
+> **Note**: HLSL language is the preferred language for URP shaders.
 
-> **NOTE**: URP supports the CG language. If you add the CGPROGRAM/ENDCGPROGRAM block in a shader, Unity includes shaders from the Built-in Render Pipeline library automatically. If you include shaders from the SRP shader library, some SRP shader macros and functions might conflict with the Built-in Render Pipeline shader functions. Shaders with the CGPROGRAM block are not SRP Batcher compatible.
+> **Note**: URP supports the CG language. If you add the CGPROGRAM/ENDCGPROGRAM block in a shader, Unity includes shaders from the Built-in Render Pipeline library automatically. If you include shaders from the SRP shader library, some SRP shader macros and functions might conflict with the Built-in Render Pipeline shader functions. Shaders with the CGPROGRAM block are not SRP Batcher compatible.
 
 This block contains the `#include` declaration with the reference to the `Core.hlsl` file.
 

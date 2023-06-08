@@ -3,18 +3,17 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
+using System.Globalization;
+
 using UnityEngine;
 using UnityEngine.VFX;
+using UnityEngine.Profiling;
+using UnityEngine.Rendering;
 
 using UnityEditor.ShaderGraph;
 using UnityEditor.Graphing.Util;
 using UnityEditor.ShaderGraph.Serialization;
-
-using Object = UnityEngine.Object;
-using System.Text.RegularExpressions;
-using System.Globalization;
-using UnityEngine.Profiling;
-using UnityEngine.Rendering;
 
 namespace UnityEditor.VFX
 {
@@ -186,8 +185,8 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             var r = new VFXShaderWriter();
 
             // Hardcoded, duplicated from VFXParticleCommon.template
-            r.WriteLine("uint instanceIndex, instanceActiveIndex;");
-            r.WriteLine("index = VFXInitInstancing(index, instanceIndex, instanceActiveIndex);");
+            r.WriteLine("uint instanceIndex, instanceActiveIndex, instanceCurrentIndex;");
+            r.WriteLine("index = VFXInitInstancing(index, instanceIndex, instanceActiveIndex, instanceCurrentIndex);");
 
             return r;
         }
@@ -244,13 +243,16 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             {
                 comment = "";
                 int hash = 0;
-                foreach (var setting in settings)
+                foreach (var setting in settings.Where(x => x.valid))
                 {
                     var value = setting.value;
-                    hash = (hash * 397) ^ value.GetHashCode();
-                    comment += string.Format("{0}:{1} ", setting.field.Name, value.ToString());
+                    hash = (hash * 397) ^ (value?.GetHashCode() ?? 1);
+                    if (setting.visibility.HasFlag(VFXSettingAttribute.VisibleFlags.InGeneratedCodeComments))
+                    {
+                        comment += setting + " ";
+                    }
                 }
-                functionName = string.Format("{0}_{1}", block.GetType().Name, hash.ToString("X"));
+                functionName = $"{block.GetType().Name}_{hash:X}";
             }
             else
             {
@@ -445,11 +447,11 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             if (taskData.SGInputs != null)
             {
                 var interpolantsGenerationWriter = new VFXShaderWriter();
-                var expressionToName = new Dictionary<VFXExpression, string>(taskData.uniformMapper.expressionToCode);           
+                var expressionToName = new Dictionary<VFXExpression, string>(taskData.uniformMapper.expressionToCode);
                 string varyingVariableName = raytracing ? "input." : "output.";
 
                 // Expression tree
-                foreach (var interp in taskData.SGInputs.interpolators)               
+                foreach (var interp in taskData.SGInputs.interpolators)
                     interpolantsGenerationWriter.WriteVariable(interp.Key, expressionToName);
 
                 interpolantsGenerationWriter.WriteLine();
@@ -539,8 +541,8 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
                 return null;
 
             if (context is VFXShaderGraphParticleOutput shaderGraphContext &&
-                shaderGraphContext.GetOrRefreshShaderGraphObject() != null &&
-                shaderGraphContext.GetOrRefreshShaderGraphObject().generatesWithShaderGraph)
+                shaderGraphContext.GetOrRefreshShaderGraphObject() is { } shaderGraph &&
+                shaderGraph.generatesWithShaderGraph)
             {
                 var result = TryBuildFromShaderGraph(shaderGraphContext, taskData);
 
@@ -586,14 +588,28 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             var blockDeclared = new HashSet<string>();
 
             var expressionToName = context.GetData().GetAttributes()
-                .ToDictionary(o => new VFXAttributeExpression(o.attrib) as VFXExpression, o => (new VFXAttributeExpression(o.attrib)).GetCodeString(null));
-            expressionToName = expressionToName.Union(taskData.uniformMapper.expressionToCode)
+                .Select(x => new VFXAttributeExpression(x.attrib) as VFXExpression)
+                .ToDictionary(x => x, x => x.GetCodeString(null));
+            expressionToName = expressionToName
+                .Union(taskData.uniformMapper.expressionToCode)
                 .ToDictionary(s => s.Key, s => s.Value);
+
 
             int cpt = 0;
             foreach (var current in context.activeFlattenedChildrenWithImplicit)
             {
+                // Custom HLSL Blocks
+                if (current is IHLSLCodeHolder hlslCodeHolder)
+                {
+                    blockFunction.Write(hlslCodeHolder.customCode);
+                }
                 BuildBlock(taskData, blockFunction, blockCallFunction, blockDeclared, expressionToName, current, ref cpt);
+            }
+
+            // Custom HLSL Operators
+            foreach (var group in taskData.hlslCodeHolders.GroupBy(x => x.customCode.GetHashCode()))
+            {
+                blockFunction.Write(group.First().customCode);
             }
 
             //< Final composition
@@ -827,14 +843,11 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             if (enabledExp != null && !needsEnabledCheck && !enabledExp.Get<bool>())
                 throw new ArgumentException("This method should not be called on a disabled block");
 
-            var parameters = block.mergedAttributes.Select(o =>
+            var parameters = block.mergedAttributes.Select(o => new VFXShaderWriter.FunctionParameter
             {
-                return new VFXShaderWriter.FunctionParameter
-                {
-                    name = o.attrib.name,
-                    expression = new VFXAttributeExpression(o.attrib) as VFXExpression,
-                    mode = o.mode
-                };
+                name = o.attrib.name,
+                expression = new VFXAttributeExpression(o.attrib),
+                mode = o.mode
             }).ToList();
 
             foreach (var parameter in block.parameters)
@@ -942,19 +955,24 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
                 yield return "#define VFX_INSTANCING_FIXED_SIZE " + fixedSize;
                 yield return "#pragma multi_compile_instancing";
             }
+            else if (context is VFXBasicInitialize)
+            {
+                yield return "#define VFX_INSTANCING_VARIABLE_SIZE 1";
+            }
             else
             {
-                if (context is VFXBasicInitialize)
+                if (particleData.IsAttributeStored(VFXAttribute.Alive))
                 {
-                    yield return "#define VFX_INSTANCING_VARIABLE_SIZE 1";
+                    yield return "#define VFX_INSTANCING_FIXED_SIZE " + Math.Max(particleData.alignedCapacity, nbThreadsPerGroup);
                 }
                 else
                 {
-                    yield return "#define VFX_INSTANCING_FIXED_SIZE " + Math.Max(particleData.alignedCapacity, nbThreadsPerGroup);
+                    yield return "#define VFX_INSTANCING_VARIABLE_SIZE 1";
                 }
             }
 
             bool hasActiveIndirection = context.contextType == VFXContextType.Filter || context.contextType == VFXContextType.Output;
+            hasActiveIndirection = true; // TODO: how can we know if there are variable expressions with textures/buffers?
             if (hasActiveIndirection)
                 yield return "#define VFX_INSTANCING_ACTIVE_INDIRECTION 1";
 

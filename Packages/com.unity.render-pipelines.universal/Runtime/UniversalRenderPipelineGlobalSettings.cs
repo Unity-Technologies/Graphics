@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel;
 using UnityEditor;
 using UnityEngine.Serialization;
 
@@ -12,6 +13,7 @@ namespace UnityEngine.Rendering.Universal
     [URPHelpURL("urp-global-settings")]
     [DisplayInfo(name = "URP Global Settings Asset", order = CoreUtils.Sections.section4 + 2)]
     [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
+    [DisplayName("URP")]
     partial class UniversalRenderPipelineGlobalSettings : RenderPipelineGlobalSettings<UniversalRenderPipelineGlobalSettings, UniversalRenderPipeline>
     {
         #region Version system
