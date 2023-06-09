@@ -9,6 +9,74 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [15.0.5] - 2023-05-23
+
+This version is compatible with Unity 2023.1.0b19.
+
+### Changed
+- Enabled Extend Shadow Culling in Raytracing by default.
+- Changed references of Diffusion Profile in the HDRP Wizard check by the ones in the HDRP Package.
+- Added a script to drive dynamic resolution scaling in HDRP.
+- Added "WorldSpacePosition" to fullscreen debug modes.
+
+### Fixed
+- Fixed exception on first frame when using water scripting interactions.
+- Fixed lens flare permutation.
+- Fixed UI issues in Render Graph Viewer.
+- Fixed a shader error on mac with the fullscreen samples.
+- Fixed local volumetric fog being culled incorrectly when not axis aligned.
+- Improved warning message in the console when the max number of shadows is reached in the view.
+- Fixed clamp mouse pixel coords in tile debug view.
+- Fixed an issue where LOD-related frame render settings UI on the camera component would not reflect the current global default settings.
+- Fixed ray-traced emissive reflections.
+- Fixed swapped tooltips on decal materials for ambient occlusion and smoothness.
+- Fixed issue with Light Probe Proxy Volume not render correctly when Bounding Box Mode is Automatic World.
+- Fixed transparent decal textures added into atlas even if the material properties disabled them.
+- Fixed Volumetric Clouds jittering when sun is not casting shadow.
+- Fixed memory leak in HDLightRenderDatabase when switching between editor and play and no lights are in the scene.
+- Fixed an issue with ray tracing initialization when switching between render pipeline assets.
+- Added error when MSAA and non-MSAA buffers are bound simultaneously in custom passes.
+- Fixed missing pragma only_renderers in HDRP compute shaders.
+- Fixed the label and improved documentation for After Post Process depth test flag to give more detail about "Depth Test" being automatically disabled in some cases.
+- Fixed for low resolution transparents using shader graph and sampling the color or depth buffer.
+- Fixed albedo and specular color override to be properly considered as sRGB.
+- Fixed exposure for SSR debug rendering.
+- Fixed raytraced reflections for box lights being cut off if the range was too small.
+- Better Reflection Probe Debug_"Icon".
+- Fixed an issue with Mac and HDR showing wrong results when HDR is enabled.
+- Fixed for one frame glitch in the editor when using path tracing.
+- Fixed HDSceneDepth triggers errors about uninitialized value.
+- Path tracing will no longer produce incorrect results when dynamic resolution is enabled.
+- Fixed emissive mesh viewer of Area light missing from standalone player.
+- Fixed usage of FindObjectsByType to use FindObjectsSortMode.None.
+- Fixed init order that could cause DXR setup to fail after using the HDRP wizard to enable DXR on an existing HDRP project.
+- Fixed a bug occuring on TAAU when the camera rect gets adjusted has been fixed.
+- Volumetric clouds are synced per camera and not via a global time leading to discrepencies when you have a cameras that updates at different rate.
+- Fixed the PrefabStage with Lensflare not included in the object, include the lensflare only if it's included on the prefab (children included).
+- Ensure correct light position when changing distance on a Light Anchor.
+- Fixed material upgrader when executing tests.
+- Added API to sync simulation time.
+- Fixed some colliders being disabled when cancelling an APV bake.
+- Fixed UI allowing to freeze probe placement when no data have been baked.
+- Fixed DLSS Ultra performance setting which was not calculating the correct resolution. The setting was not pushing the correct resolution due to a typo in the code.
+- Fixed keyword clear when creating shadergraph material.
+- Fixed a shader compilation issue on fog volumes when Turkish language is installed as locale.
+- Fixed an issue where the quality settings tags were displayed cut-off.
+- Fixed the default value of _ZTestDepthEqualForOpaque in unlit ShaderGraphs.
+- Fixed free CullingGroups still being used during culling.
+- Fixed APV brick placement when multiple probe volumes with different object layer mask and subdivision levels overlaps.
+- Fixed ShaderGraph materials using SSS.
+- Fixed HDRP Decal Emisive Map is drawn incorrectly when Decal is at a certain distance from Camera and specific "Clipping Planes" property values are set under the "Camera" component.
+- Updated some missing HDRP component documentation URLs.
+- Changed the local volumetric fog prepare to before script updates to fix use case where rendering is done inside the script update.
+- Fixed the shadow culling planes for box-shaped spot lights.
+- Fixed static batching when using APV.
+- Fixed rendering cubemaps when underwater is enabled.
+- Fixing square artifacts on 1/4 res pbr dof and warning during player builds.
+- Enabling raytracing no longer disable screen space lighting effect (SSAO, SSR) async compute
+- Made HDRP RenderPIpelineSettings public to enable customizing the HDRP asset.
+- Properly take into account sky attenuation for baking.
+
 
 ## [15.0.4] - 2023-03-23
 

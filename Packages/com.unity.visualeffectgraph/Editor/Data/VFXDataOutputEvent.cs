@@ -47,6 +47,7 @@ namespace UnityEditor.VFX
             Dictionary<VFXContext, int> contextSpawnToBufferIndex,
             VFXDependentBuffersData dependentBuffers,
             Dictionary<VFXContext, List<VFXContextLink>[]> effectiveFlowInputLinks,
+            Dictionary<VFXData, uint> dataToSystemIndex,
             VFXSystemNames systemNames)
         {
             if (m_Contexts.Count != 1)

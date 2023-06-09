@@ -9,6 +9,30 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [15.0.5] - 2023-05-23
+
+This version is compatible with Unity 2023.1.0b19.
+
+### Fixed
+- Addressed issue where missing targets were not handled on import.
+- Addressed various issues with the Swizzle node.
+- Addressed issue where duplicate serialized blackboard category children would in subgraphs would brick the ShaderGraph editor.
+- Addressed error feedback on import of graphs with invalid or missing targets, allowing them to be modified and saved.
+- Fixed issue where node searcher would fail to populate when shadergraph was undocked after domain reload.
+- Fixed issue where custom mesh selector for master preview would fail to initialize.
+- Fixed issue where nodes with dynamic vectors would not correctly cache properties for previews.
+- Fixed issue where the Gradient Noise Node was causing implicit truncation warnings.
+- Fixed issue where custom interpolator previews would provide erroneous results when connecting through a reroute node.
+- Fixed issue where reroute node would sometimes show the wrong color for its appropriate inputs.
+- Fixed issue where subgraph gradient blackboard properties could have naming conflicts with parent graphs.
+- Fixed issue where the view position of the graph editor would sometimes be forgotten when swapping between two open shadergraph editor windows.
+- Fixed issues where nodes with warning or error badges would fail to clean up their resources properly and leave the shader graph editor in an error state.
+- Corrected a regression in float preview properties not updating previews.
+- Improved blackboard property drag speed when reordering the blackboard.
+- Made adjustments to flipbook node to avoid dropping frames on AMD GPU.
+- Fixed parallax nodes so that they use the default UV Input Slot correctly.
+- Improved performance of disconnecting nodes in large graphs.
+
 
 ## [15.0.4] - 2023-03-23
 

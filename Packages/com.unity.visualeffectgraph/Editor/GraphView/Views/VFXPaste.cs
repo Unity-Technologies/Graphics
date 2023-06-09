@@ -695,7 +695,6 @@ namespace UnityEditor.VFX.UI
                         var data = serializableGraph.datas[serializableGraph.contexts[i].dataIndex];
 
                         VFXData targetData = contextController.model.GetData();
-                        vfxViewController.graph.AddChild(targetData);
                         if (targetData != null)
                         {
                             PasteModelSettings(targetData, data.settings, targetData.GetType());

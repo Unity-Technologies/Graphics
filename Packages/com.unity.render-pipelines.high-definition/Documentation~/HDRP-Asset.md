@@ -95,6 +95,16 @@ These settings control the draw distance and resolution of the decals atlas that
 | **- Low Res Transparency Min Threshold**    | The minimum percentage threshold allowed to clamp low resolution transparency. When the resolution percentage falls below this threshold, HDRP will clamp the low resolution to this percentage. |
 | **- Ray Tracing Half Resolution Threshold** | The minimum percentage threshold allowed to render ray tracing effects at half resolution. When the resolution percentage falls below this threshold, HDRP will render ray tracing effects at full resolution. |
 
+<a name="Compute Thickness"></a>
+
+## Compute Thickness
+
+| **Property**   | **Description**                                              |
+| -------------- | ------------------------------------------------------------ |
+| **Enable**     | Enable the checkbox to sample the thickness of GameObjects to use in a shader graph material. For more information, refer to [Sample and use material thickness](Compute-Thickness.md). |
+| **Resolution** | Set the resolution of a material’s thickness: <br/>&#8226;**Quarter**: Renders the thickness at quarter the current screen resolution.<br/>&#8226;**Half**: Renders the thickness at half the current screen resolution. This resolution is the best balance of detail and performance.<br/>&#8226;**Full**: Renders the thickness at full screen resolution. |
+| **Layer Mask** | Select one or more layers to compute the thickness of.       |
+
 <a name="Lighting"></a>
 
 ## Lighting

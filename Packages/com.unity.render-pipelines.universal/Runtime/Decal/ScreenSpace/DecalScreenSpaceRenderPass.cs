@@ -46,7 +46,7 @@ namespace UnityEngine.Rendering.Universal
 
         private RendererListParams CreateRenderListParams(ref RenderingData renderingData)
         {
-            SortingCriteria sortingCriteria = renderingData.cameraData.defaultOpaqueSortFlags;
+            SortingCriteria sortingCriteria = SortingCriteria.None;
             DrawingSettings drawingSettings = RenderingUtils.CreateDrawingSettings(m_ShaderTagIdList, ref renderingData, sortingCriteria);
             return new RendererListParams(renderingData.cullResults, drawingSettings, m_FilteringSettings);
         }

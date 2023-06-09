@@ -598,14 +598,22 @@ namespace UnityEditor.VFX
             RenderPipelineManager.activeRenderPipelineTypeChanged += SRPChanged;
         }
 
-        public delegate void OnSRPChangedEvent();
-        public static event OnSRPChangedEvent OnSRPChanged;
-
-        private static void SRPChanged()
+        public static void SRPChanged()
         {
-            unsupportedSRPWarningIssued = false;
-            OnSRPChanged?.Invoke();
-            VFXAssetManager.Build();
+            Profiler.BeginSample("VFX.SRPChanged");
+            try
+            {
+                unsupportedSRPWarningIssued = false;
+                var allModels = Resources.FindObjectsOfTypeAll<VFXModel>();
+                foreach (var model in allModels)
+                    model.OnSRPChanged();
+
+                VFXAssetManager.Build();
+            }
+            finally
+            {
+                Profiler.EndSample();
+            }
         }
 
         private static LibrarySentinel m_Sentinel = null;

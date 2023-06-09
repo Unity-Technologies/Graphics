@@ -2686,7 +2686,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 rendererConfiguration = rendererConfiguration,
                 renderQueueRange = renderQueueRange != null ? renderQueueRange.Value : HDRenderQueue.k_RenderQueue_AllOpaque,
-                sortingCriteria = SortingCriteria.CommonOpaque,
+                sortingCriteria = HDUtils.k_OpaqueSortingCriteria,
                 stateBlock = stateBlock,
                 overrideMaterial = overrideMaterial,
                 excludeObjectMotionVectors = excludeObjectMotionVectors
@@ -2709,7 +2709,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 rendererConfiguration = rendererConfiguration,
                 renderQueueRange = renderQueueRange != null ? renderQueueRange.Value : HDRenderQueue.k_RenderQueue_AllOpaque,
-                sortingCriteria = SortingCriteria.CommonOpaque,
+                sortingCriteria = HDUtils.k_OpaqueSortingCriteria,
                 stateBlock = stateBlock,
                 overrideMaterial = overrideMaterial,
                 excludeObjectMotionVectors = excludeObjectMotionVectors
@@ -2822,8 +2822,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 renderContext.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
-                renderContext.DrawGizmos(hdCamera.camera, GizmoSubset.PreImageEffects);
-                renderContext.DrawGizmos(hdCamera.camera, GizmoSubset.PostImageEffects);
+
+#if UNITY_EDITOR
+                if(UnityEditor.Handles.ShouldRenderGizmos())
+                {
+                    renderContext.DrawGizmos(hdCamera.camera, GizmoSubset.PreImageEffects);
+                    renderContext.DrawGizmos(hdCamera.camera, GizmoSubset.PostImageEffects);
+                }
+#endif
             }
         }
 

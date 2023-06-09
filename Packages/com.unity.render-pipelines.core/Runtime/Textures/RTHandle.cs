@@ -200,6 +200,9 @@ namespace UnityEngine.Rendering
         /// <returns>The scaled size of the RTHandle.</returns>
         public Vector2Int GetScaledSize()
         {
+            if (!useScaling)
+                return referenceSize;
+
             if (scaleFunc != null)
             {
                 return scaleFunc(referenceSize);
