@@ -105,6 +105,8 @@ namespace UnityEditor.Rendering.Universal
         Shader m_StencilDeferred = Shader.Find("Hidden/Universal Render Pipeline/StencilDeferred");
         Shader m_UberPostShader = Shader.Find("Hidden/Universal Render Pipeline/UberPost");
         Shader m_HDROutputBlitShader = Shader.Find("Hidden/Universal/BlitHDROverlay");
+        Shader m_DataDrivenLensFlareShader = Shader.Find("Hidden/Universal Render Pipeline/LensFlareDataDriven");
+        Shader m_ScreenSpaceLensFlareShader = Shader.Find("Hidden/Universal Render Pipeline/LensFlareScreenSpace");
 
         // Pass names
         public static readonly string kPassNameUniversal2D = "Universal2D";
@@ -658,6 +660,24 @@ namespace UnityEditor.Rendering.Universal
             return stripTool.StripMultiCompileKeepOffVariant(m_ProbeVolumesL1, ShaderFeatures.ProbeVolumeL1, m_ProbeVolumesL2, ShaderFeatures.ProbeVolumeL2);
         }
 
+        internal bool StripUnusedFeatures_DataDrivenLensFlare(ref IShaderScriptableStrippingData strippingData)
+        {
+            // If this is not the right shader, then skip
+            if (strippingData.shader != m_DataDrivenLensFlareShader)
+                return false;
+            
+            return !strippingData.IsShaderFeatureEnabled(ShaderFeatures.DataDrivenLensFlare);
+        }
+        
+        internal bool StripUnusedFeatures_ScreenSpaceLensFlare(ref IShaderScriptableStrippingData strippingData)
+        {
+            // If this is not the right shader, then skip
+            if (strippingData.shader != m_ScreenSpaceLensFlareShader)
+                return false;
+
+            return !strippingData.IsShaderFeatureEnabled(ShaderFeatures.ScreenSpaceLensFlare);
+        }
+
         internal bool StripUnusedFeatures(ref IShaderScriptableStrippingData strippingData)
         {
             if (StripUnusedFeatures_DebugDisplay(ref strippingData))
@@ -676,6 +696,13 @@ namespace UnityEditor.Rendering.Universal
                 return true;
 
             if (StripUnusedFeatures_DeferredRendering(ref strippingData))
+                return true;
+            
+            if (StripUnusedFeatures_DataDrivenLensFlare(ref strippingData))
+                return true;
+           
+            // Eventhough, it's a post process and a volume override, we put that here since it depend on a URP asset property.
+            if (StripUnusedFeatures_ScreenSpaceLensFlare(ref strippingData))
                 return true;
 
             ShaderStripTool<ShaderFeatures> stripTool = new ShaderStripTool<ShaderFeatures>(strippingData.shaderFeatures, ref strippingData);

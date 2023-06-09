@@ -77,6 +77,15 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnInspectorGUI()
         {
+            
+            if (!HDRenderPipeline.currentAsset?.currentPlatformRenderPipelineSettings.supportScreenSpaceLensFlare ?? false)
+            {
+                EditorGUILayout.Space();
+                HDEditorUtils.QualitySettingsHelpBox("The current HDRP Asset does not support Screen Space Lens Flare.", MessageType.Error,
+                    HDRenderPipelineUI.ExpandableGroup.PostProcess, HDRenderPipelineUI.ExpandablePostProcess.LensFlare, "m_RenderPipelineSettings.supportScreenSpaceLensFlare");
+                return;
+            }
+            
             PropertyField(m_Intensity, s_Intensity);
             PropertyField(m_TintColor, s_TintColor);
             PropertyField(m_BloomMip, s_BloomMip);
