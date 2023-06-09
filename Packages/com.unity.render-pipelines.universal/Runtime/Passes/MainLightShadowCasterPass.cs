@@ -95,6 +95,9 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <seealso cref="RenderingData"/>
         public bool Setup(ref RenderingData renderingData)
         {
+            if (!renderingData.shadowData.mainLightShadowsEnabled)
+                return false;
+
             using var profScope = new ProfilingScope(m_ProfilingSetupSampler);
 
             ref ShadowData shadowData = ref renderingData.shadowData;
