@@ -644,6 +644,7 @@ namespace UnityEngine.Rendering
         /// <param name="scaleBiasRT">Scale and bias for the output texture.</param>
         /// <param name="bilinear">Enable bilinear filtering.</param>
         /// <param name="paddingInPixels">Padding in pixels.</param>
+        /// <param name="decodeInstructions">The purpose of this parameter is to blit HDR-encoded values to a non HDR texture. Use values from API that produce HDR-encoded values, for example <see cref="ReflectionProbe.textureHDRDecodeValues"/>. If this parameter is null, HDR decoding is disabled.</param>
         public static void BlitCubeToOctahedral2DQuadWithPadding(CommandBuffer cmd, Texture source, Vector2 textureSize, Vector4 scaleBiasRT, int mipLevelTex, bool bilinear, int paddingInPixels, Vector4? decodeInstructions = null)
         {
             var material = GetBlitMaterial(source.dimension);
