@@ -9,12 +9,14 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/VolumetricLighting/HDRenderPipeline.VolumetricLighting.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
 
-uint _VolumeMaterialDataIndex;
+uint _VolumetricFogGlobalIndex;
 StructuredBuffer<VolumetricMaterialRenderingData> _VolumetricMaterialData;
+ByteAddressBuffer _VolumetricGlobalIndirectionBuffer;
 
 float3 GetCubeVertexPosition(uint vertexIndex)
 {
-    return _VolumetricMaterialData[_VolumeMaterialDataIndex].obbVertexPositionWS[vertexIndex].xyz;
+    int index = _VolumetricGlobalIndirectionBuffer.Load(_VolumetricFogGlobalIndex << 2);
+    return _VolumetricMaterialData[index].obbVertexPositionWS[vertexIndex].xyz;
 }
 
 // VertexCubeSlicing needs GetCubeVertexPosition to be declared before
@@ -50,8 +52,9 @@ VertexToFragment Vert(uint instanceId : INSTANCEID_SEMANTIC, uint vertexId : VER
 
 #else
 
+    int materialDataIndex = _VolumetricGlobalIndirectionBuffer.Load(_VolumetricFogGlobalIndex << 2);
     output.positionCS = GetQuadVertexPosition(vertexId);
-    output.positionCS.xy = output.positionCS.xy * _VolumetricMaterialData[_VolumeMaterialDataIndex].viewSpaceBounds.zw + _VolumetricMaterialData[_VolumeMaterialDataIndex].viewSpaceBounds.xy;
+    output.positionCS.xy = output.positionCS.xy * _VolumetricMaterialData[materialDataIndex].viewSpaceBounds.zw + _VolumetricMaterialData[materialDataIndex].viewSpaceBounds.xy;
     output.positionCS.w = 1;
 
 #endif // USE_VERTEX_CUBE_SLICING

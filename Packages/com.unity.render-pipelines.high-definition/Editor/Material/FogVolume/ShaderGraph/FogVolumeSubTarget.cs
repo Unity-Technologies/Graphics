@@ -220,9 +220,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             var pass = new PassDescriptor
             {
                 // Definition
-                displayName = "OverdrawDebug",
+                displayName = HDShaderPassNames.s_VolumetricFogVFXOverdrawDebugStr,
                 referenceName = "SHADERPASS_FOGVOLUME_OVERDRAW_DEBUG",
-                lightMode = "OverdrawDebug",
+                lightMode = HDShaderPassNames.s_VolumetricFogVFXOverdrawDebugStr,
                 useInPreview = true,
 
                 // Port mask
