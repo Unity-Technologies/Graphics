@@ -610,7 +610,7 @@ The **Rendering** panel has tools that you can use to visualize various HDRP ren
 </thead>
 <tbody>
 <tr>
-<td rowspan="12"><strong>Fullscreen Debug Mode</strong></td>
+<td rowspan="15"><strong>Fullscreen Debug Mode</strong></td>
 <td colspan="2">Use the drop-down to select a rendering mode to display as an overlay on the screen.</td>
 </tr>
 <tr>
