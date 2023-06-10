@@ -1655,8 +1655,9 @@ namespace UnityEngine.Rendering.Universal
                         int writeIndex = 0;
                         for (int readIndex = 0; readIndex < renderPass.colorAttachmentHandles.Length; ++readIndex)
                         {
-                            if (renderPass.colorAttachmentHandles[readIndex].nameID != m_CameraColorTarget.nameID
-                                && renderPass.colorAttachmentHandles[readIndex].nameID != 0)
+                            if (renderPass.colorAttachmentHandles[readIndex] != null &&
+                                renderPass.colorAttachmentHandles[readIndex].nameID != 0 &&
+                                renderPass.colorAttachmentHandles[readIndex].nameID != m_CameraColorTarget.nameID)
                             {
                                 nonCameraAttachments[writeIndex] = renderPass.colorAttachmentHandles[readIndex];
                                 ++writeIndex;

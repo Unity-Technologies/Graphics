@@ -229,7 +229,8 @@ namespace UnityEngine.Rendering.Universal
         internal void PushBuiltinShaderConstantsXR(RasterCommandBuffer cmd, bool renderIntoTexture)
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
-            bool needsUpdate = !m_InitBuiltinXRConstants || m_CachedRenderIntoTextureXR != renderIntoTexture;
+            // Multipass always needs update to prevent wrong view projection matrix set by other passes
+            bool needsUpdate = !m_InitBuiltinXRConstants || m_CachedRenderIntoTextureXR != renderIntoTexture || !xr.singlePassEnabled;
             if (needsUpdate && xr.enabled )
             {
                 var projection0 = GetProjectionMatrix();
