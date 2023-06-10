@@ -33,5 +33,6 @@ namespace UnityEngine.Rendering.HighDefinition
         RayTracingDebug,
         Constant,
         FullScreenDebug,
+        PBRSky,
     }
 }

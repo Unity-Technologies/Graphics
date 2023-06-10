@@ -45,6 +45,13 @@ To change how much the atmosphere attenuates light, you can change the density o
 | ------------------------------ | ------------------------------------------------------- |
 | **Type**                       | Indicates a preset HDRP uses to simplify the Inspector. If you select **Earth (Simple)** or **Earth (Advanced)**, the Inspector only shows properties suitable to simulate Earth. |
 
+### Rendering
+
+| **Property**                   | **Description**                                         |
+| ------------------------------ | ------------------------------------------------------- |
+| **Rendering Mode**             | Indicates wether HDRP should use the default shader or a custom material. |
+| **Material**                   | The material used to render the fulscreen sky pass. It is recommended to make it using the **Physically Based Sky** Material type of ShaderGraph. |
+
 ### Planet
 
 | **Property**                   | **Description**                                              |
@@ -53,15 +60,15 @@ To change how much the atmosphere attenuates light, you can change the density o
 | **Planetary Radius**           | The radius of the planet in meters. The radius is the distance from the center of the planet to the sea level. Only available in **Spherical Mode**. |
 | **Planet Center Position**     | The world-space position of the planet's center in meters. This doesn't affect the precomputation. Only available in **Spherical Mode**. |
 | **Sea Level**                  | The world-space y coordinate of the planet's sea level in meters. Not available in **Spherical Mode**. |
-| **Planet Rotation**            | The orientation of the planet.                               |
-| **Ground Color Texture**       | Specifies a Texture that represents the planet's surface.    |
+| **Planet Rotation**            | The orientation of the planet. Not available in Custom **Rendering Mode**. |
+| **Ground Color Texture**       | Specifies a Texture that represents the planet's surface. Not available in Custom **Rendering Mode**. |
 | **Ground Tint**                | Specifies a color that HDRP uses to tint the **Ground Color Texture**. |
-| **Ground Emission Texture**    | Specifies a Texture that represents the emissive areas of the planet's surface. |
-| **Ground Emission Multiplier** | A multiplier that HDRP applies to the **Ground Emission Texture**. |
+| **Ground Emission Texture**    | Specifies a Texture that represents the emissive areas of the planet's surface. Not available in Custom **Rendering Mode**. |
+| **Ground Emission Multiplier** | A multiplier that HDRP applies to the **Ground Emission Texture**. Not available in Custom **Rendering Mode**. |
 
 ### Space
 
-To make this section visible, set **Type** to **Earth (Advanced)** or **Custom Planet**.
+To make this section visible, set **Type** to **Earth (Advanced)** or **Custom Planet**, and the **Rendering Mode** to **Default**.
 
 | **Property**                  | **Description**                                              |
 | ----------------------------- | ------------------------------------------------------------ |
@@ -129,6 +136,8 @@ The default values in either mode make it so the planet's surface is at **0** on
 * If in **Spherical Mode**, either decrease the **Planetary  Radius**, or move the **Planet Center Position** down.
 
 * If not in **Spherical Mode**, decrease the **Sea Level**.
+
+The planet does not render in the depth buffer, this means it won't occlude lens flare and will not behave correctly when using motion blur.
 
 ## Warmup performance impact
 

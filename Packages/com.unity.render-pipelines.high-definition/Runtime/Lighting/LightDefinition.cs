@@ -105,16 +105,23 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public float distanceFromCamera;      // -1 -> no sky interaction
         public float angularDiameter;         // Units: radians
+        public float skyAngularDiameter;      // artisitic override to have bigger moon
 
         public float flareFalloff;
         public float flareCosInner;
         public float flareCosOuter;
-        public float __unused__;
 
         public Vector3 flareTint;
         public float flareSize;               // Units: radians
 
         public Vector3 surfaceTint;
+        public int bodyType;                  // 0: emissive, 1: moon phase auto, 2: moon phase manual
+
+        public Vector2 phaseSinCos;
+        public Vector2 phaseAngleSinCos;
+
+        public Vector3 padding;
+        public float earthshine;
 
         public Vector4 surfaceTextureScaleOffset;     // -1 if unused (TODO: 16 bit)
     };

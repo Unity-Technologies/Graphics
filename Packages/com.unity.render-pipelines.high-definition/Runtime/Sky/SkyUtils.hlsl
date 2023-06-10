@@ -20,7 +20,7 @@ float3 GetSkyViewDirWS(float2 positionCS)
 // Returns latlong coords from view direction
 float2 GetLatLongCoords(float3 dir, float upperHemisphereOnly)
 {
-    const float2 invAtan = float2(0.1591, 0.3183);
+    const float2 invAtan = float2(0.1591, 0.3183); // float2(INV_TWO_PI, INV_PI)
 
     float fastATan2 = FastAtan2(dir.x, dir.z);
     float2 uv = float2(fastATan2, FastASin(dir.y)) * invAtan + 0.5;

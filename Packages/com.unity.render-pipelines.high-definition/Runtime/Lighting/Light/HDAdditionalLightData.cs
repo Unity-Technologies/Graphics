@@ -814,10 +814,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     HDLightRenderDatabase.instance.EditLightDataAsRef(lightEntity).interactsWithSky = m_InteractsWithSky;
             }
         }
+
         [SerializeField, FormerlySerializedAs("angularDiameter")]
         float m_AngularDiameter = 0.5f;
         /// <summary>
-        /// Angular diameter of the emissive celestial body represented by the light as seen from the camera (in degrees).
+        /// Angular diameter of the celestial body represented by the light as seen from the camera (in degrees).
         /// Used to render the sun/moon disk.
         /// </summary>
         public float angularDiameter
@@ -830,6 +831,52 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 m_AngularDiameter = value; // Serialization code clamps
                 HDLightRenderDatabase.instance.SetAngularDiameter(lightEntity, m_AngularDiameter);
+            }
+        }
+
+        [SerializeField]
+        bool m_DiameterMultiplerMode = true;
+
+        [SerializeField, Tooltip("Multiplier for the angular diameter of the celestial body used only when rendering the sun disk.")]
+        float m_DiameterMultiplier = 1.0f;
+        /// <summary>
+        /// Multiplier for the angular diameter of the celestial body used only when rendering the sun disk.
+        /// </summary>
+        public float diameterMultiplier
+        {
+            get => m_DiameterMultiplier;
+            set
+            {
+                if (m_DiameterMultiplier == value)
+                    return;
+
+                m_DiameterMultiplier = value;
+                if (lightEntity.valid)
+                    HDLightRenderDatabase.instance.EditLightDataAsRef(lightEntity).skyAngularDiameter = m_DiameterMultiplerMode ? m_DiameterMultiplier * m_AngularDiameter : m_DiameterOverride;
+            }
+        }
+
+        [SerializeField, Tooltip("Override for the angular diameter of the celestial body used only when rendering the sun disk.")]
+        float m_DiameterOverride = 0.5f;
+
+        [SerializeField, Tooltip("Controls wether the celestial body should be considered as a star or a moon.\nA Star will emit lighting while a Moon will receive lighting from the main directional light in the scene.")]
+        bool m_EmissiveLightSource = true;
+        /// <summary>
+        /// Sets if the celestial body is a star emitting light, or a moon receiving lighting.
+        /// </summary>
+        public bool emissiveLightSource
+        {
+            get => m_EmissiveLightSource;
+            set
+            {
+                if (m_EmissiveLightSource == value)
+                    return;
+
+                m_EmissiveLightSource = value;
+                if (lightEntity.valid)
+                {
+                    HDLightRenderDatabase.instance.EditLightDataAsRef(lightEntity).bodyType = m_EmissiveLightSource ? 0 : (m_AutomaticMoonPhase ? 1 : 2);
+                }
             }
         }
 
@@ -887,6 +934,82 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_FlareFalloff = value; // Serialization code clamps
                 if (lightEntity.valid)
                     HDLightRenderDatabase.instance.EditLightDataAsRef(lightEntity).flareFalloff = m_FlareFalloff;
+            }
+        }
+
+        [SerializeField, Tooltip("Controls wether the sunlit portion of the moon is computed manually or from the position of the main directional light.")]
+        bool m_AutomaticMoonPhase = true;
+        /// <summary>
+        /// Set to true if the phase should be computed from the position of the main directional light.
+        /// </summary>
+        public bool automaticMoonPhase
+        {
+            get => m_AutomaticMoonPhase;
+            set
+            {
+                if (m_AutomaticMoonPhase == value)
+                    return;
+
+                m_AutomaticMoonPhase = value;
+                if (lightEntity.valid)
+                    HDLightRenderDatabase.instance.EditLightDataAsRef(lightEntity).bodyType = m_EmissiveLightSource ? 0 : (m_AutomaticMoonPhase ? 1 : 2);
+            }
+        }
+
+        [SerializeField, Range(0, 1), Tooltip("Controls the percentage of the moon that receives sunlight.")]
+        float m_MoonPhase = 0.2f;
+        /// <summary>
+        /// The percentage of moon that receives sunlight.
+        /// </summary>
+        public float moonPhase
+        {
+            get => m_MoonPhase;
+            set
+            {
+                if (m_MoonPhase == value)
+                    return;
+
+                m_MoonPhase = value;
+                if (lightEntity.valid)
+                    HDLightRenderDatabase.instance.EditLightDataAsRef(lightEntity).moonPhase = m_MoonPhase;
+            }
+        }
+
+        [SerializeField, Range(0, 180.0f), Tooltip("Controls the angle of the lit side of the moon.")]
+        float m_MoonPhaseRotation = 0.0f;
+        /// <summary>
+        /// The rotation of the moon phase.
+        /// </summary>
+        public float moonPhaseRotation
+        {
+            get => m_MoonPhaseRotation;
+            set
+            {
+                if (m_MoonPhaseRotation == value)
+                    return;
+
+                m_MoonPhaseRotation = value;
+                if (lightEntity.valid)
+                    HDLightRenderDatabase.instance.EditLightDataAsRef(lightEntity).moonPhaseRotation = m_MoonPhaseRotation;
+            }
+        }
+
+        [SerializeField, Min(0.0f), Tooltip("Intensity of the sunlight reflected from the planet onto the moon.")]
+        float m_Earthshine = 1.0f;
+        /// <summary>
+        /// The intensity of the sunlight reflected from the planet onto the moon.
+        /// </summary>
+        public float earthshine
+        {
+            get => m_Earthshine;
+            set
+            {
+                if (m_Earthshine == value)
+                    return;
+
+                m_Earthshine = value;
+                if (lightEntity.valid)
+                    HDLightRenderDatabase.instance.EditLightDataAsRef(lightEntity).earthshine = m_Earthshine;
             }
         }
 
@@ -2835,9 +2958,17 @@ namespace UnityEngine.Rendering.HighDefinition
             data.m_UseScreenSpaceShadows = m_UseScreenSpaceShadows;
             data.m_InteractsWithSky = m_InteractsWithSky;
             data.m_AngularDiameter = m_AngularDiameter;
+            data.m_DiameterMultiplerMode = m_DiameterMultiplerMode;
+            data.m_DiameterMultiplier = m_DiameterMultiplier;
+            data.m_DiameterOverride = m_DiameterOverride;
+            data.m_EmissiveLightSource = m_EmissiveLightSource;
             data.m_FlareSize = m_FlareSize;
             data.m_FlareTint = m_FlareTint;
             data.m_FlareFalloff = m_FlareFalloff;
+            data.m_AutomaticMoonPhase = m_AutomaticMoonPhase;
+            data.m_MoonPhase = m_MoonPhase;
+            data.m_MoonPhaseRotation = m_MoonPhaseRotation;
+            data.m_Earthshine = m_Earthshine;
             data.m_SurfaceTexture = m_SurfaceTexture;
             data.m_SurfaceTint = m_SurfaceTint;
             data.m_Distance = m_Distance;
@@ -3728,6 +3859,7 @@ namespace UnityEngine.Rendering.HighDefinition
             lightRenderData.fadeDistance = m_FadeDistance;
             lightRenderData.distance = m_Distance;
             lightRenderData.angularDiameter = m_AngularDiameter;
+            lightRenderData.skyAngularDiameter = m_DiameterMultiplerMode ? m_DiameterMultiplier * m_AngularDiameter : m_DiameterOverride;
             lightRenderData.volumetricFadeDistance = m_VolumetricFadeDistance;
             lightRenderData.includeForRayTracing = m_IncludeForRayTracing;
             lightRenderData.useScreenSpaceShadows = m_UseScreenSpaceShadows;
@@ -3764,6 +3896,10 @@ namespace UnityEngine.Rendering.HighDefinition
             lightRenderData.penumbraTint = m_PenumbraTint;
             lightRenderData.interactsWithSky = m_InteractsWithSky;
             lightRenderData.surfaceTint = m_SurfaceTint;
+            lightRenderData.bodyType = m_EmissiveLightSource ? 0 : (m_AutomaticMoonPhase ? 1 : 2);
+            lightRenderData.moonPhase = m_MoonPhase;
+            lightRenderData.moonPhaseRotation = m_MoonPhaseRotation;
+            lightRenderData.earthshine = m_Earthshine;
             lightRenderData.shadowTint = m_ShadowTint;
             lightRenderData.flareTint = m_FlareTint;
 

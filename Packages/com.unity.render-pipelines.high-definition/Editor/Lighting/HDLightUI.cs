@@ -623,6 +623,59 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
+        static readonly int k_DiameterPopupWidth = 70;
+        static readonly string[] k_DiameterModeNames = new string[] { "Multiply", "Override" };
+        static void AngularDiameterOverrideField(SerializedHDLight serialized)
+        {
+            var rect = EditorGUILayout.GetControlRect();
+            rect.xMax -= k_DiameterPopupWidth + 2;
+
+            var popupRect = rect;
+            popupRect.x = rect.xMax + 2 - EditorGUI.indentLevel * 15;
+            popupRect.width = k_DiameterPopupWidth + EditorGUI.indentLevel * 15;
+
+            int mode = serialized.diameterMultiplerMode.boolValue ? 0 : 1;
+            mode = EditorGUI.Popup(popupRect, mode, k_DiameterModeNames);
+            serialized.diameterMultiplerMode.boolValue = mode == 0 ? true : false;
+
+            EditorGUI.BeginProperty(rect, GUIContent.none, serialized.diameterMultiplerMode);
+            if (mode == 0)
+            {
+                EditorGUI.PropertyField(rect, serialized.diameterMultiplier, s_Styles.diameterMultiplier);
+            }
+            else if (mode == 1)
+            {
+                EditorGUI.PropertyField(rect, serialized.diameterOverride, s_Styles.diameterOverride);
+            }
+            EditorGUI.EndProperty();
+        }
+
+        static readonly GUIContent[] k_BodyTypeNames = new GUIContent[] { new GUIContent("Star"), new GUIContent("Moon") };
+        static void BodyTypeField(SerializedHDLight serialized)
+        {
+            var rect = EditorGUILayout.GetControlRect();
+            EditorGUI.BeginProperty(rect, GUIContent.none, serialized.diameterMultiplerMode);
+            int mode = serialized.emissiveLightSource.boolValue ? 0 : 1;
+            mode = EditorGUI.Popup(rect, s_Styles.bodyType, mode, k_BodyTypeNames);
+            serialized.emissiveLightSource.boolValue = mode == 0 ? true : false;
+            EditorGUI.EndProperty();
+
+            EditorGUI.indentLevel++;
+            if (!serialized.emissiveLightSource.boolValue)
+            {
+                EditorGUILayout.PropertyField(serialized.automaticMoonPhase);
+                if (!serialized.automaticMoonPhase.boolValue)
+                {
+                    EditorGUI.indentLevel++;
+                    EditorGUILayout.PropertyField(serialized.moonPhase);
+                    EditorGUILayout.PropertyField(serialized.moonPhaseRotation);
+                    EditorGUI.indentLevel--;
+                }
+                EditorGUILayout.PropertyField(serialized.earthshine);
+            }
+            EditorGUI.indentLevel--;
+        }
+
         static void DrawCelestialBodyContent(SerializedHDLight serialized, Editor owner)
         {
             EditorGUI.BeginChangeCheck();
@@ -632,6 +685,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 using (new EditorGUI.DisabledScope(!serialized.interactsWithSky.boolValue))
                 {
                     EditorGUI.indentLevel++;
+                    AngularDiameterOverrideField(serialized);
+                    BodyTypeField(serialized);
                     EditorGUILayout.PropertyField(serialized.flareSize, s_Styles.flareSize);
                     EditorGUILayout.PropertyField(serialized.flareFalloff, s_Styles.flareFalloff);
                     EditorGUILayout.PropertyField(serialized.flareTint, s_Styles.flareTint);
@@ -648,6 +703,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 serialized.flareSize.floatValue = Mathf.Clamp(serialized.flareSize.floatValue, 0, 90);
                 serialized.flareFalloff.floatValue = Mathf.Max(serialized.flareFalloff.floatValue, 0);
                 serialized.distance.floatValue = Mathf.Max(serialized.distance.floatValue, 0);
+                serialized.diameterMultiplier.floatValue = Mathf.Max(serialized.diameterMultiplier.floatValue, 0);
+                serialized.diameterOverride.floatValue = Mathf.Clamp(serialized.diameterOverride.floatValue, 0, 90);
 
                 if (serialized.surfaceTexture.objectReferenceValue is Texture surfaceTexture && surfaceTexture != null)
                 {

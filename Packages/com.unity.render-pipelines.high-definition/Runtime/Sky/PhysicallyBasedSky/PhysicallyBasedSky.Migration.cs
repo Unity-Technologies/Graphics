@@ -14,6 +14,9 @@ namespace UnityEngine.Rendering.HighDefinition
             Initial,
             /// <summary>Version Step</summary>
             TypeEnum,
+
+            /// <summary>Latest Version</summary>
+            Count,
         }
 
         /// <summary>
@@ -35,7 +38,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         [SerializeField]
-        Version m_SkyVersion;
+        Version m_SkyVersion = MigrationDescription.LastVersion<Version>();
         Version IVersionable<Version>.version { get => m_SkyVersion; set => m_SkyVersion = value; }
 
         /// <summary>Obsolete field. Simplifies the interface by using parameters suitable to simulate Earth.</summary>

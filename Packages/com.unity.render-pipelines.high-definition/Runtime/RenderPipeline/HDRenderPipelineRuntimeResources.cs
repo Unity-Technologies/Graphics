@@ -502,6 +502,9 @@ namespace UnityEngine.Rendering.HighDefinition
             [Reload("Runtime/RenderPipelineResources/Material/MaterialWaterExclusion.mat")]
             public Material waterExclusionMaterial;
 
+            [Reload("Runtime/RenderPipelineResources/ShaderGraph/PhysicallyBasedSky.shadergraph")]
+            public Material pbrSkyMaterial;
+
             [Reload("Runtime/RenderPipelineResources/Material/AreaLightViewer.mat")]
             public Material areaLightMaterial; // never referenced but required by area light mesh renderer, otherwise shader is stripped
             [Reload("Runtime/RenderPipelineResources/Material/AreaLightCookieViewer.mat")]

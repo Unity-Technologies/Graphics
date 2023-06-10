@@ -17,21 +17,6 @@ namespace UnityEngine.Rendering.HighDefinition
     };
 
     /// <summary>
-    /// Physically Based Sky model volume parameter.
-    /// </summary>
-    [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
-    public sealed class PhysicallyBasedSkyModelParameter : VolumeParameter<PhysicallyBasedSkyModel>
-    {
-        /// <summary>
-        /// constructor.
-        /// </summary>
-        /// <param name="value">Model parameter.</param>
-        /// <param name="overrideState">Initial override state.</param>
-        public PhysicallyBasedSkyModelParameter(PhysicallyBasedSkyModel value, bool overrideState = false)
-            : base(value, overrideState) { }
-    }
-
-    /// <summary>
     /// Physically Based Sky Volume Component.
     /// </summary>
     [VolumeComponentMenu("Sky/Physically Based Sky")]
@@ -40,6 +25,17 @@ namespace UnityEngine.Rendering.HighDefinition
     [HDRPHelpURL("Override-Physically-Based-Sky")]
     public partial class PhysicallyBasedSky : SkySettings
     {
+        /// <summary>
+        /// The mode to render the sky.
+        /// </summary>
+        public enum RenderingMode
+        {
+            /// <summary>Use the default shader with the artistic overrides from the volume parameters.</summary>
+            Default,
+            /// <summary>Use a custom Material</summary>
+            Material,
+        };
+
         /* We use the measurements from Earth as the defaults. */
         const float k_DefaultEarthRadius = 6.3781f * 1000000;
         const float k_DefaultAirScatteringR = 5.8f / 1000000; // at 680 nm, without ozone
@@ -52,8 +48,19 @@ namespace UnityEngine.Rendering.HighDefinition
         const float k_DefaultAerosolScaleHeight = 1200;
         static readonly float k_DefaultAerosolMaximumAltitude = LayerDepthFromScaleHeight(k_DefaultAerosolScaleHeight);
 
+        internal static Material s_DefaultMaterial = null;
+
         /// <summary> Simplifies the interface by reducing the number of parameters available. </summary>
-        public PhysicallyBasedSkyModelParameter type = new PhysicallyBasedSkyModelParameter(PhysicallyBasedSkyModel.EarthAdvanced);
+        [Tooltip("Indicates a preset HDRP uses to simplify the Inspector.")]
+        public EnumParameter<PhysicallyBasedSkyModel> type = new (PhysicallyBasedSkyModel.EarthAdvanced);
+
+        /// <summary> Use the default shader or a custom material to render the atmosphere. </summary>
+        [Tooltip("Indicates wether HDRP should use the default shader with the textures set on the profile or a custom material to render the planet and space.")]
+        public EnumParameter<RenderingMode> renderingMode = new (RenderingMode.Default);
+
+        /// <summary> The material used for sky rendering. </summary>
+        [Tooltip("The material used to render the sky. It is recommended to use the **Physically Based Sky** Material type of ShaderGraph.")]
+        public MaterialParameter material = new MaterialParameter(s_DefaultMaterial);
 
         /// <summary> Allows to specify the location of the planet. If disabled, the planet is always below the camera in the world-space X-Z plane. </summary>
         [Tooltip("When enabled, you can define the planet in terms of a world-space position and radius. Otherwise, the planet is always below the Camera in the world-space x-z plane.")]
@@ -445,6 +452,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 hash = hash * 23 + horizonZenithShift.overrideState.GetHashCode();
 #else
                 // These parameters do NOT affect precomputation.
+                hash = hash * 23 + renderingMode.GetHashCode();
+                hash = hash * 23 + material.GetHashCode();
                 hash = hash * 23 + sphericalMode.GetHashCode();
                 hash = hash * 23 + seaLevel.GetHashCode();
                 hash = hash * 23 + planetCenterPosition.GetHashCode();
@@ -605,5 +614,15 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary> Returns the type of the sky renderer. </summary>
         /// <returns> PhysicallyBasedSkyRenderer type. </returns>
         public override Type GetSkyRendererType() { return typeof(PhysicallyBasedSkyRenderer); }
+
+        /// <summary>
+        /// Called though reflection by the VolumeManager.
+        /// </summary>
+        static void Init()
+        {
+            var globalSettings = HDRenderPipelineGlobalSettings.instance;
+            if (globalSettings != null)
+                s_DefaultMaterial = globalSettings.renderPipelineResources?.materials.pbrSkyMaterial;
+        }
     }
 }
