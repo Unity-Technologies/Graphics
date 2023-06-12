@@ -34,7 +34,7 @@ namespace UnityEditor.Rendering.HighDefinition
         const string kDeepFoamInputSlotName = "DeepFoam";
 
         const int kScatteringColorOutputSlotId = 4;
-        const string kScatteringColorOutputSlotName = "ScatteringColor";
+        const string kScatteringColorOutputSlotName = "BaseColor";
 
         public override bool hasPreview { get { return false; } }
 

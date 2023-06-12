@@ -26,6 +26,10 @@ VaryingsMeshToDS VertMeshWater(AttributesMesh input)
     input.positionOS = WaterSimulationPositionInstanced(input.positionOS, unity_InstanceID);
 #else
     input.positionOS = WaterSimulationPosition(input.positionOS);
+    // In case we are using custom geometries, we need to apply the tranform of each custom geometry to ensure
+    // that they are correctly connected
+    input.positionOS = mul(_WaterCustomMeshTransform, float4(input.positionOS, 1.0f)).xyz;
+    input.normalOS = SafeNormalize(mul(input.normalOS, (float3x3)_WaterCustomMeshTransform_Inverse));
 #endif
 
     // Due to the fact that a first clipping pass is done at the end of the vertex stage, we need to ensure that
@@ -37,12 +41,8 @@ VaryingsMeshToDS VertMeshWater(AttributesMesh input)
         );
 
     // Export for the following stage
-    output.positionRWS =  mul(_WaterSurfaceTransformRWS, float4(input.positionOS, 1.0)).xyz;
-    #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
+    output.positionRWS =  TransformObjectToWorld(input.positionOS);
     output.normalWS = input.normalOS;
-    #else
-    output.normalWS = TransformCustomMeshNormal(input.normalOS);
-    #endif
     output.texCoord0 = input.uv0;
     output.texCoord1 = input.uv1;
     output.tessellationFactor = _WaterMaxTessellationFactor;
@@ -93,9 +93,6 @@ VaryingsMeshToPS VertMeshTesselation(VaryingsMeshToDS input)
     UNITY_SETUP_INSTANCE_ID(input);
     // Transfer the unprocessed instance ID to the next stage
     UNITY_TRANSFER_INSTANCE_ID(input, output);
-
-    // Restore the pre-vertex value to apply the actual deformation
-    input.positionRWS = input.texCoord1.xyz;
 
     // Apply the mesh modifications that come from the shader graph
     input = ApplyTessellationModification(input, _TimeParameters.xyz);

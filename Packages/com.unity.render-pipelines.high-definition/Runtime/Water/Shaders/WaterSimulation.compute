@@ -197,8 +197,8 @@ void ComputeGridBounds(int x, int y, float centerGridSize,
 bool ClampPatchToRegion(inout float2 center, inout float2 size)
 {
     // AABB of the region
-    float2 regionMin = _RegionCenter - _RegionExtent * 0.5;
-    float2 regionMax = _RegionCenter + _RegionExtent * 0.5;
+    float2 regionMin = _GridOffset - _RegionExtent * 0.5;
+    float2 regionMax = _GridOffset + _RegionExtent * 0.5;
 
     // AABB of the patch
     float2 patchMin = center - size * 0.5;

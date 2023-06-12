@@ -301,7 +301,7 @@ namespace UnityEngine.Rendering.HighDefinition
             uint numWaterPatches = parameters.waterRenderingCB._NumWaterPatches;
             float maxWaveDisplacement = parameters.waterCB._MaxWaveDisplacement;
             Vector4 patchOffset = parameters.waterRenderingCB._PatchOffset;
-            float2 regionCenter = parameters.waterRenderingCB._RegionCenter;
+            float2 regionCenter = parameters.waterRenderingCB._GridOffset;
             float2 regionExtent = parameters.waterRenderingCB._RegionExtent;
 
             for (int y = -radius; y <= radius; ++y)
@@ -383,11 +383,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 MeshRenderer currentRenderer = parameters.meshRenderers[meshRenderer];
                 if (currentRenderer != null)
                 {
-                    // can this be sent to cmd.DrawMesh ? that would avoid having to reupload the constant buffer
-                    parameters.waterRenderingCB._WaterCustomMeshTransform = currentRenderer.transform.localToWorldMatrix;
-                    parameters.waterRenderingCB._WaterCustomMeshTransform_Inverse = currentRenderer.transform.worldToLocalMatrix;
-                    ConstantBuffer.Push(cmd, parameters.waterRenderingCB, parameters.waterMaterial, HDShaderIDs._ShaderVariablesWaterRendering);
-
                     MeshFilter filter;
                     currentRenderer.TryGetComponent(out filter);
                     if (filter != null)
@@ -395,7 +390,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         Mesh mesh = filter.sharedMesh;
                         int numSubMeshes = mesh.subMeshCount;
                         for (int subMeshIdx = 0; subMeshIdx < numSubMeshes; ++subMeshIdx)
-                            cmd.DrawMesh(mesh, Matrix4x4.identity, parameters.waterMaterial, subMeshIdx, passIndex, parameters.mbp);
+                            cmd.DrawMesh(mesh, currentRenderer.transform.localToWorldMatrix, parameters.waterMaterial, subMeshIdx, passIndex, parameters.mbp);
                     }
                 }
             }

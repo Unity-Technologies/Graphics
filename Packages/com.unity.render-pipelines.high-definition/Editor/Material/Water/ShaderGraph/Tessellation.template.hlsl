@@ -24,9 +24,14 @@ VertexDescriptionInputs VaryingsMeshToDSToVertexDescriptionInputs(VaryingsMeshTo
 {
     VertexDescriptionInputs output;
     ZERO_INITIALIZE(VertexDescriptionInputs, output);
-    // The only two variable that needs to be propagated from vertex to domain are the relative world space postion and the normalWS
-    output.WorldSpacePosition = input.positionRWS;
-    output.WorldSpaceNormal = input.normalWS;
+
+    // texcoord1 contains the pre displacement object space position
+    // normal is marked WS but it's actually in object space :(
+    $VertexDescriptionInputs.ObjectSpacePosition:  output.ObjectSpacePosition = input.texCoord1.xyz;
+    $VertexDescriptionInputs.WorldSpacePosition:   output.WorldSpacePosition  = TransformObjectToWorld(input.texCoord1.xyz);
+    $VertexDescriptionInputs.ObjectSpaceNormal:    output.ObjectSpaceNormal   = input.normalWS;
+    $VertexDescriptionInputs.WorldSpaceNormal:     output.WorldSpaceNormal    = TransformObjectToWorldNormal(input.normalWS);
+
     return output;
 }
 
@@ -48,14 +53,14 @@ VaryingsMeshToDS ApplyTessellationModification(VaryingsMeshToDS input, float3 ti
     // evaluate vertex graph
     VertexDescription vertexDescription = VertexDescriptionFunction(vertexDescriptionInputs);
 
-    // Convert the position to relative world space
-    float3 positionRWS = mul(_WaterSurfaceTransformRWS, float4(vertexDescription.Position, 1.0)).xyz;
+    // Backward compatibility with old graphs
+    $VertexDescriptionInputs.uv0: vertexDescription.Displacement = vertexDescription.uv0.xyz;
+    $VertexDescriptionInputs.uv1: vertexDescription.LowFrequencyHeight = vertexDescription.uv1.x;
 
     // Export for the following stage
-    input.positionRWS = positionRWS;
+    input.positionRWS = TransformObjectToWorld(vertexDescription.Position + vertexDescription.Displacement);
     input.normalWS = vertexDescription.Normal;
-    input.texCoord0 = vertexDescription.uv0;
-    input.texCoord1 = vertexDescription.uv1;
+    PackWaterVertexData(vertexDescription, input.texCoord0, input.texCoord1);
 
     return input;
 }

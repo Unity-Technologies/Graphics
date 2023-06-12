@@ -475,6 +475,10 @@ namespace UnityEngine.Rendering.HighDefinition
     [GenerateHLSL(needAccessors = false, generateCBuffer = true)]
     unsafe struct ShaderVariablesWaterRendering
     {
+        // Transform of the water surface
+        public Matrix4x4 _WaterSurfaceTransform;
+        public Matrix4x4 _WaterSurfaceTransform_Inverse;
+
         // Offset of the patch w/r to the origin
         public Vector4 _PatchOffset;
 
@@ -485,56 +489,46 @@ namespace UnityEngine.Rendering.HighDefinition
         // Number of water patches that need to be rendered
         public uint _NumWaterPatches;
 
-        // Padding
-        public float _CausticsShadowIntensity;
-        // Intensity of the water caustics
-        public float _CausticsIntensity;
+        // 2D offset for procedural surfaces
+        public Vector2 _GridOffset;
+        // Size of the quad in world space (to cull non-infinite instanced quads)
+        public Vector2 _RegionExtent;
+
         // Current Map Influence
         public Vector2 _CurrentMapInfluence;
+        // Maximum horizontal deformation
+        public float _MaxWaterDeformation;
+        // Offset applied to the caustics LOD
+        public float _CausticsMaxLOD;
+
+        // Tiling of the caustics texture
+        public float _CausticsTilingFactor;
+        // Intensity of the water caustics
+        public float _CausticsIntensity;
+        // Intensity of the water caustics in sun shadow
+        public float _CausticsShadowIntensity;
+        // Blend distance
+        public float _CausticsPlaneBlendDistance;
 
         // Scale & offset of the large
         public Vector4 _Group0CurrentRegionScaleOffset;
         // Scale & offset of the ripples
         public Vector4 _Group1CurrentRegionScaleOffset;
 
-        // Blend distance
-        public float _CausticsPlaneBlendDistance;
-        // Type of caustics that are rendered
-        public int _WaterCausticsEnabled;
         // Which rendering layers should affect this surface - for decals
         public uint _WaterRenderingLayer;
-        // Flag that defines if the geometry used is procedural or not
-        public int _WaterProceduralGeometry;
-
         // Max tessellation factor
         public float _WaterMaxTessellationFactor;
         // Distance at which the fade of the tessellation starts
         public float _WaterTessellationFadeStart;
         // Size of the range of the tessellation
         public float _WaterTessellationFadeRange;
-        // Flag that defines if the camera is in the underwater volume of this surface
-        public int _CameraInUnderwaterRegion;
-
-        // This is only used for the instanced quad (non-infinite)
-        // Center of the quad in world space
-        public Vector2 _RegionCenter;
-        // Size of the quad in world space
-        public Vector2 _RegionExtent;
 
         // Ambient probe of the water system
         public Vector4 _WaterAmbientProbe;
 
-        // Offset applied to the caustics LOD
-        public float _CausticsMaxLOD;
-        public float _MaxWaterDeformation;
-        public float _CausticsTilingFactor;
-        public float _PaddingWR2;
-
-        // Transform of the water surface
-        public Matrix4x4 _WaterSurfaceTransformRWS;
-        public Matrix4x4 _WaterSurfaceTransform_Inverse;
-        public Matrix4x4 _WaterCustomMeshTransform;
-        public Matrix4x4 _WaterCustomMeshTransform_Inverse;
+        // This matrix is used for caustics in case of a custom mesh
+        public Matrix4x4 _WaterCustomTransform_Inverse;
     }
 
     [GenerateHLSL(needAccessors = false, generateCBuffer = true)]
