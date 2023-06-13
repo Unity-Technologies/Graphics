@@ -28,7 +28,7 @@ editor-pinning-update:
       -  git checkout $GIT_BRANCH
       -  git clone git@github.cds.internal.unity3d.com:unity/gfx-sdet-tools.git
       -  cd gfx-sdet-tools && git rev-parse HEAD
-      -  python3 gfx-sdet-tools/scripts/update_revisions.py --track 2022.3 --unity-branch $ONO_BRANCH_2022_2 --api-key $CDS_GITHUB_SERVICE_TOKEN --commit-and-push --nr-commits-to-retrieve 1 --vcs git
+      -  python3 gfx-sdet-tools/scripts/update_revisions.py --track 2022.3 --unity-branch 2022.3/staging --api-key $CDS_GITHUB_SERVICE_TOKEN --commit-and-push --nr-commits-to-retrieve 1 --vcs git
     triggers:
         recurring:
           -  branch: 2022.3/staging
