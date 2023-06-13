@@ -390,6 +390,9 @@ namespace UnityEngine.Rendering
         // Evaluate static default values for VolumeComponents, which is the baseline to reset the values to at the start of Update.
         internal void EvaluateVolumeDefaultState()
         {
+            if (!isInitialized)
+                return;
+
             using var profilerScope = k_ProfilerMarkerEvaluateVolumeDefaultState.Auto();
 
             // TODO consider if the "component default values" array should be kept in memory separately. Creating the
