@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEditor.Rendering
 {
@@ -29,6 +30,50 @@ namespace UnityEditor.Rendering
             "_WINDQUALITY_BEST",
             "_WINDQUALITY_PALM"
         };
+        
+        static private class Uniforms
+        {
+            internal static int _WINDQUALITY = Shader.PropertyToID("_WINDQUALITY");
+            internal static int EFFECT_BILLBOARD = Shader.PropertyToID("EFFECT_BILLBOARD");
+            internal static int EFFECT_EXTRA_TEX = Shader.PropertyToID("EFFECT_EXTRA_TEX");
+            internal static int _TwoSided = Shader.PropertyToID("_TwoSided");
+            internal static int _WindQuality = Shader.PropertyToID("_WindQuality");
+        }
+        /// <summary>
+        /// Returns true if the material contains a SpeedTree Wind keyword.
+        /// </summary>
+        /// <param name="material">Material to check</param>
+        /// <returns> true if the material has a SpeedTree wind keyword that enables Vertex Shader wind animation </returns>
+        public static bool DoesMaterialHaveSpeedTreeWindKeyword(Material material)
+        {
+            foreach(string keyword in WindQualityString)
+                if(material.IsKeywordEnabled(keyword))
+                    return true;
+            return false;
+        }
+
+        /// <summary>
+        /// Checks the material for SpeedTree keywords to determine if the wind is enabled.
+        /// </summary>
+        /// <param name="material">Material to check</param>
+        /// <returns> true if the material has a SpeedTree wind keyword that enables Vertex Shader wind animation and WindQuality other than None (0) </returns>
+        public static bool IsWindEnabled(Material material) 
+        { 
+            return HasWindEnabledKeyword(material) && HasWindQualityPropertyEnabled(material); 
+        }
+        private static bool HasWindEnabledKeyword(Material material)
+        {
+            for(int i=1/*skip NONE*/; i<WindQualityString.Length; ++i)
+            {
+                if(material.IsKeywordEnabled(WindQualityString[i]))
+                    return true;
+            }
+            return false;
+        }
+        private static bool HasWindQualityPropertyEnabled(Material material)
+        {
+            return material.HasProperty("_WindQuality") && material.GetFloat(Uniforms._WindQuality) > 0.0f;
+        }
 
         /// <summary>
         /// Creates a material upgrader that handles the property renames that HD and Universal have in common when upgrading
@@ -48,25 +93,6 @@ namespace UnityEditor.Rendering
             RenameKeywordToFloat("EFFECT_HUE_VARIATION", "_HueVariationKwToggle", 1, 0);
         }
 
-        private static void ImportNewSpeedTree8Material(Material mat, int windQuality, bool isBillboard)
-        {
-            if (mat == null)
-                return;
-
-            int cullmode = 0;
-            mat.SetFloat("_WINDQUALITY", windQuality);
-            if (isBillboard)
-            {
-                mat.SetFloat("EFFECT_BILLBOARD", 1.0f);
-                cullmode = 2;
-            }
-
-            mat.SetFloat("_TwoSided", cullmode); // Temporary; Finalizer should read from this and apply the value to a pipeline-specific cull property
-
-            if (mat.IsKeywordEnabled("EFFECT_EXTRA_TEX"))
-                mat.SetFloat("EFFECT_EXTRA_TEX", 1.0f);
-        }
-
         /// <summary>
         /// Postprocesses materials while you are importing a SpeedTree 8 asset. Call from OnPostprocessSpeedTree in a MaterialPostprocessor.
         /// </summary>
@@ -84,13 +110,23 @@ namespace UnityEditor.Rendering
                 int wq = Mathf.Min(stImporter.windQualities[l], stImporter.bestWindQuality);
                 foreach (Renderer r in lod.renderers)
                 {
-                    // Override default motion vector generation mode pending
-                    // proper motion vector integration in SRPs.
-                    r.motionVectorGenerationMode = MotionVectorGenerationMode.Camera;
                     foreach (Material m in r.sharedMaterials)
                     {
+                        if (m == null)
+                            continue;
+
                         float cutoff = stImporter.alphaTestRef;
-                        ImportNewSpeedTree8Material(m, wq, isBillboard);
+                        int cullmode = isBillboard ? 2 : 0;
+
+                        m.SetFloat(Uniforms._WINDQUALITY, wq);
+                        if (isBillboard)
+                        {
+                            m.SetFloat(Uniforms.EFFECT_BILLBOARD, 1.0f);
+                        }
+                        m.SetFloat(Uniforms._TwoSided, cullmode); // Temporary; Finalizer should read from this and apply the value to a pipeline-specific cull property
+                        if (m.IsKeywordEnabled("EFFECT_EXTRA_TEX"))
+                            m.SetFloat(Uniforms.EFFECT_EXTRA_TEX, 1.0f);
+
                         if (finalizer != null)
                             finalizer(m);
                     }
@@ -121,7 +157,7 @@ namespace UnityEditor.Rendering
             // input WindQuality > enabled keyword > _WindQuality float value
             if (!WindIntValid(windQuality))
             {
-                windQuality = material.HasProperty("_WindQuality") ? (int)material.GetFloat("_WindQuality") : 0;
+                windQuality = material.HasProperty(Uniforms._WindQuality) ? (int)material.GetFloat(Uniforms._WindQuality) : 0;
                 if (!WindIntValid(windQuality))
                 {
                     windQuality = GetWindQualityFromKeywords(material.shaderKeywords);
@@ -155,9 +191,9 @@ namespace UnityEditor.Rendering
             }
 
             material.EnableKeyword(WindQualityString[windQuality]);
-            material.SetFloat("_WindQuality", windQuality); // A legacy float used in native code to apply wind data
+            material.SetFloat(Uniforms._WindQuality, windQuality); // A legacy float used in native code to apply wind data
             if (material.HasProperty("_WINDQUALITY"))
-                material.SetFloat("_WINDQUALITY", windQuality); // The actual name of the keyword enum for the shadergraph
+                material.SetFloat(Uniforms._WINDQUALITY, windQuality); // The actual name of the keyword enum for the shadergraph
         }
 
         private static int GetWindQualityFromKeywords(string[] matKws)

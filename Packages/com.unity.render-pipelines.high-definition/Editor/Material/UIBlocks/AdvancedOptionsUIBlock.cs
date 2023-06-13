@@ -152,6 +152,16 @@ namespace UnityEditor.Rendering.HighDefinition
                     mat.SetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr, enabled);
             }
 
+            // Check for SpeedTree materials and disable custom velocity per-obj motion vector pass
+            // if the tree has no vertex shader based wind animation.
+            foreach(Material mat in materials)
+            {
+                if(HDSpeedTree8MaterialUpgrader.IsHDSpeedTree8Material(mat))
+                {
+                    mat.SetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr, SpeedTree8MaterialUpgrader.IsWindEnabled(mat));
+                }
+            }
+
             bool GetEnabledMotionVectorVertexAnim(Material material)
             {
                 bool addPrecomputedVelocity = GetAddPrecomputeVelocity(material);

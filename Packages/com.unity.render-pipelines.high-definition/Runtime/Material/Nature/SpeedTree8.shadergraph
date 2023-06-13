@@ -258,6 +258,9 @@
         },
         {
             "m_Id": "05629fe38d3f4b0dbd47ab7292d14473"
+        },
+        {
+            "m_Id": "a40206c3dc974a9bb5cd9daf193a544e"
         }
     ],
     "m_GroupDatas": [
@@ -328,6 +331,20 @@
             "m_InputSlot": {
                 "m_Node": {
                     "m_Id": "d19c96e1972b40e68dbd1761b327f035"
+                },
+                "m_SlotId": 0
+            }
+        },
+        {
+            "m_OutputSlot": {
+                "m_Node": {
+                    "m_Id": "066f9c216003e98aba578554057a4294"
+                },
+                "m_SlotId": 2
+            },
+            "m_InputSlot": {
+                "m_Node": {
+                    "m_Id": "a40206c3dc974a9bb5cd9daf193a544e"
                 },
                 "m_SlotId": 0
             }
@@ -1089,6 +1106,9 @@
             },
             {
                 "m_Id": "c5bd883ee36b4a0eb5a4824a41fc7849"
+            },
+            {
+                "m_Id": "a40206c3dc974a9bb5cd9daf193a544e"
             }
         ]
     },
@@ -1400,6 +1420,9 @@
         },
         {
             "m_Id": "dc9e8dc6712da086a327ec57d173e7ac"
+        },
+        {
+            "m_Id": "8ac6d7e1347b49828c857b71a8404242"
         }
     ],
     "synonyms": [],
@@ -3788,7 +3811,7 @@
     "m_SupportLodCrossFade": false,
     "m_DoubleSidedMode": 2,
     "m_DOTSInstancing": false,
-    "m_CustomVelocity": false,
+    "m_CustomVelocity": true,
     "m_Tessellation": false,
     "m_TessellationMode": 0,
     "m_TessellationFactorMinDistance": 20.0,
@@ -4859,6 +4882,29 @@
 
 {
     "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector3MaterialSlot",
+    "m_ObjectId": "8ac6d7e1347b49828c857b71a8404242",
+    "m_Id": 2,
+    "m_DisplayName": "ObjectSpaceMotionVector",
+    "m_SlotType": 1,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "ObjectSpaceMotionVector",
+    "m_StageCapability": 3,
+    "m_Value": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+    },
+    "m_DefaultValue": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+    },
+    "m_Labels": []
+}
+
+{
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.Vector4MaterialSlot",
     "m_ObjectId": "8b97af0489b04757b83faa15b3b01e22",
     "m_Id": 0,
@@ -5421,6 +5467,40 @@
     "m_SpecularAA": false,
     "m_SpecularOcclusionMode": 0,
     "m_OverrideBakedGI": false
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.BlockNode",
+    "m_ObjectId": "a40206c3dc974a9bb5cd9daf193a544e",
+    "m_Group": {
+        "m_Id": ""
+    },
+    "m_Name": "VertexDescription.CustomVelocity",
+    "m_DrawState": {
+        "m_Expanded": true,
+        "m_Position": {
+            "serializedVersion": "2",
+            "x": 0.0,
+            "y": 0.0,
+            "width": 0.0,
+            "height": 0.0
+        }
+    },
+    "m_Slots": [
+        {
+            "m_Id": "f3fbcfc484a243e0bc03d1a398b2f400"
+        }
+    ],
+    "synonyms": [],
+    "m_Precision": 0,
+    "m_PreviewExpanded": true,
+    "m_DismissedVersion": 0,
+    "m_PreviewMode": 0,
+    "m_CustomColors": {
+        "m_SerializableColors": []
+    },
+    "m_SerializedDescriptor": "VertexDescription.CustomVelocity"
 }
 
 {
@@ -7244,10 +7324,10 @@
     "m_Type": "UnityEditor.ShaderGraph.Vector3MaterialSlot",
     "m_ObjectId": "dc9e8dc6712da086a327ec57d173e7ac",
     "m_Id": 1,
-    "m_DisplayName": "windObjectPosition",
+    "m_DisplayName": "AnimatedVertexObjectSpacePosition",
     "m_SlotType": 1,
     "m_Hidden": false,
-    "m_ShaderOutputName": "windObjectPosition",
+    "m_ShaderOutputName": "AnimatedVertexObjectSpacePosition",
     "m_StageCapability": 3,
     "m_Value": {
         "x": 0.0,
@@ -7700,6 +7780,29 @@
     "m_StageCapability": 2,
     "m_Value": false,
     "m_DefaultValue": false
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector3MaterialSlot",
+    "m_ObjectId": "f3fbcfc484a243e0bc03d1a398b2f400",
+    "m_Id": 0,
+    "m_DisplayName": "Velocity",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "CustomVelocity",
+    "m_StageCapability": 1,
+    "m_Value": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+    },
+    "m_DefaultValue": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+    },
+    "m_Labels": []
 }
 
 {
