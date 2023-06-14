@@ -2,6 +2,7 @@ using NUnit.Framework;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using UnityEditor;
 using UnityEditor.Rendering;
 
 namespace UnityEngine.Rendering.Tests
@@ -29,7 +30,7 @@ namespace UnityEngine.Rendering.Tests
         [SetUp]
         public void SetUp()
         {
-            m_GameObject = new("RemoveComponentTestsGO");
+            m_GameObject = new("RemoveComponentTestsRoot");
         }
 
         [TearDown]
@@ -39,22 +40,55 @@ namespace UnityEngine.Rendering.Tests
         }
         #endregion
 
-        protected static Type[] GenericRemoveComponent(
-                [DisallowNull] GameObject gameObject,
+        protected Type[] GenericRemoveComponent(
+                [DisallowNull] int selectionAmount,
                 [DisallowNull] Type componentToRemove,
                 [DisallowNull] Type[] componentsToAdd,
                 [DisallowNull] Action<Component> removeMethod)
         {
-            componentsToAdd.ToList().ForEach(type => gameObject.AddComponent(type));
-            removeMethod(gameObject.GetComponent(componentToRemove));
+            Assert.IsTrue(selectionAmount > 0, "GenericRemoveComponent should only be called with a non null selection");
 
-            return gameObject.GetComponents(typeof(ITest)).Select(c => c.GetType()).ToArray();
+            //Create object to select
+            GameObject[] selectedGameObjects = new GameObject[selectionAmount];
+            for (int i = 0; i < selectionAmount; ++i)
+            {
+                (selectedGameObjects[i] = new GameObject($"Selected_{i}", componentsToAdd)).transform.parent = m_GameObject.transform;
+            }
+
+            //update selected objects
+            Selection.objects = selectedGameObjects;
+
+            //Call method to test
+            removeMethod(Selection.activeGameObject.GetComponent(componentToRemove));
+
+            //Assert all selection have same component
+            var typesOfFirstSelected = selectedGameObjects[0].GetComponents<ITest>().Select(c => c.GetType());
+            Assert.IsTrue(DoesAllGameObjectHaveSameComponents(selectedGameObjects.Skip(1), typesOfFirstSelected), "Not all the GameObject of the selection have same Components");
+
+            //Will assert that remaining components are the desired ones
+            return typesOfFirstSelected.ToArray();
+        }
+
+        bool DoesAllGameObjectHaveSameComponents([NotNull] System.Collections.Generic.IEnumerable<GameObject> objectsToCheck, System.Collections.Generic.IEnumerable<Type> typesToCheck)
+        {
+            var typeAmount = typesToCheck.Count();
+            foreach(var objectToCheck in objectsToCheck)
+            {
+                if (objectToCheck.GetComponents<ITest>().Length != typeAmount)
+                    return false;
+
+                foreach (var typeToCheck in typesToCheck)
+                    if (!objectToCheck.TryGetComponent(typeToCheck, out _))
+                        return false;
+            }
+            return true;
         }
     }
 
     [TestOf(typeof(RemoveComponentUtils))]
     class RemoveComponentUtilsTests : RemoveComponent
     {
+        //No multiedition test needed as this is not Selection dependant
         static TestCaseData[] s_RemoveComponentTestCaseDatas =
         {
             new TestCaseData(typeof(Banana), new Type[] {typeof(Banana), typeof(AdditionalBanana)})
@@ -71,15 +105,16 @@ namespace UnityEngine.Rendering.Tests
         [Test, TestCaseSource(nameof(s_RemoveComponentTestCaseDatas))]
         public Type[] RemoveComponentAndPropagateTheDeleteToAdditionalDatas([DisallowNull] Type componentToRemove, [DisallowNull] Type[] componentsToAdd)
         {
-            return GenericRemoveComponent(m_GameObject, componentToRemove, componentsToAdd, RemoveComponentUtils.RemoveComponent);
+            return GenericRemoveComponent(1, componentToRemove, componentsToAdd, RemoveComponentUtils.RemoveComponent);
         }
     }
 
     [TestOf(typeof(RemoveAdditionalDataUtils))]
     class RemoveAdditionalDataUtilsTests : RemoveComponent
     {
+        //No multiedition test needed as this is not Selection dependant
         static TestCaseData[] s_TryGetComponentsToRemoveTestCaseDatas =
-         {
+        {
             new TestCaseData(typeof(AdditionalBanana))
                 .Returns(new string[] {"Banana"})
                 .SetName("For additional data targeting one component, return the targeted component (most common case)"),
@@ -105,27 +140,41 @@ namespace UnityEngine.Rendering.Tests
             return result;
         }
 
+        //No multiedition RECQUIRED: This is Selection dependent to handle correctly the popup
         static TestCaseData[] s_RemoveAdditionalDataComponentTestCaseDatas =
         {
-            new TestCaseData(typeof(AdditionalBanana), new Type[] {typeof(Banana), typeof(AdditionalBanana) })
+            new TestCaseData(1, typeof(AdditionalBanana), new Type[] {typeof(Banana), typeof(AdditionalBanana) })
                 .SetName("For single additional data, when removing it, the target component is deleted")
                 .Returns(Array.Empty<Type>()),
-            new TestCaseData(typeof(AdditionalBananaColor), new Type[] {typeof(Banana), typeof(AdditionalBanana), typeof(AdditionalBananaColor)})
+            new TestCaseData(1, typeof(AdditionalBananaColor), new Type[] {typeof(Banana), typeof(AdditionalBanana), typeof(AdditionalBananaColor)})
                 .SetName("For multiple additional datas, when removing one of them, target component is deleted, and the other additional data")
                 .Returns(Array.Empty<Type>()),
-           new TestCaseData(typeof(AdditionalBananaColor), new Type[] {typeof(Banana), typeof(Banana), typeof(AdditionalBanana), typeof(AdditionalBananaColor)})
+           new TestCaseData(1, typeof(AdditionalBananaColor), new Type[] {typeof(Banana), typeof(Banana), typeof(AdditionalBanana), typeof(AdditionalBananaColor)})
                 .SetName("For multiple additional component and datas, when removing one of them everything is removed")
                 .Returns(Array.Empty<Type>()),
-            new TestCaseData(typeof(AdditionalApple), new Type[] {typeof(Banana), typeof(AdditionalBanana), typeof(Apple), typeof(AdditionalApple)})
+            new TestCaseData(1, typeof(AdditionalApple), new Type[] {typeof(Banana), typeof(AdditionalBanana), typeof(Apple), typeof(AdditionalApple)})
                 .SetName("For multiple types of target component, when deleting an additional data, only the target component is being removed")
+                .Returns(new Type[] {typeof(Banana), typeof(AdditionalBanana)}),
+            new TestCaseData(3, typeof(AdditionalBanana), new Type[] {typeof(Banana), typeof(AdditionalBanana) })
+                .SetName("For single additional data, when removing it, the target component is deleted (multiedition case)")
+                .Returns(Array.Empty<Type>()),
+            new TestCaseData(3, typeof(AdditionalBananaColor), new Type[] {typeof(Banana), typeof(AdditionalBanana), typeof(AdditionalBananaColor)})
+                .SetName("For multiple additional datas, when removing one of them, target component is deleted, and the other additional data (multiedition case)")
+                .Returns(Array.Empty<Type>()),
+           new TestCaseData(3, typeof(AdditionalBananaColor), new Type[] {typeof(Banana), typeof(Banana), typeof(AdditionalBanana), typeof(AdditionalBananaColor)})
+                .SetName("For multiple additional component and datas, when removing one of them everything is removed (multiedition case)")
+                .Returns(Array.Empty<Type>()),
+            new TestCaseData(3, typeof(AdditionalApple), new Type[] {typeof(Banana), typeof(AdditionalBanana), typeof(Apple), typeof(AdditionalApple)})
+                .SetName("For multiple types of target component, when deleting an additional data, only the target component is being removed (multiedition case)")
                 .Returns(new Type[] {typeof(Banana), typeof(AdditionalBanana)})
         };
 
         [Test, TestCaseSource(nameof(s_RemoveAdditionalDataComponentTestCaseDatas))]
         [NUnit.Framework.Property("FogBugz", "1396805")]
-        public Type[] RemoveAdditionalDataComponentAndPropagateToComponent([DisallowNull] Type componentToRemove, [DisallowNull] Type[] componentsToAdd)
+        [NUnit.Framework.Property("Jira", "UUM-5452")]
+        public Type[] RemoveAdditionalDataComponentAndPropagateToComponent(int selectionAmount, [DisallowNull] Type componentToRemove, [DisallowNull] Type[] componentsToAdd)
         {
-            return GenericRemoveComponent(m_GameObject, componentToRemove, componentsToAdd, c => RemoveAdditionalDataUtils.RemoveAdditionalData(c, false));
+            return GenericRemoveComponent(selectionAmount, componentToRemove, componentsToAdd, c => RemoveAdditionalDataUtils.RemoveAdditionalData(new UnityEditor.MenuCommand(c), false));
         }
     }
 }
