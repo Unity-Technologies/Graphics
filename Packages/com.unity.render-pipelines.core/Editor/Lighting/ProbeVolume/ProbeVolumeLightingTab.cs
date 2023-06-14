@@ -9,13 +9,12 @@ using UnityEditorInternal;
 using UnityEditor.Overlays;
 using UnityEditor.LightBaking;
 using UnityEngine.LightBaking;
-using UnityEngine.LightBaking.PostProcessing;
 using UnityEngine.LightTransport;
+using UnityEngine.LightTransport.PostProcessing;
 using UnityEngine.UIElements;
 using UnityEngine.SceneManagement;
 using UnityEngine.Assertions;
 using Unity.Collections;
-
 using Button = UnityEngine.UIElements.Button;
 
 namespace UnityEngine.Rendering
@@ -1103,6 +1102,8 @@ namespace UnityEngine.Rendering
             Assert.AreEqual(IProbeIntegrator.ResultType.Success, validityResult.type, "IntegrateLightProbeValidity failed.");
 
             // Composit direct and indirect radiance.
+            var postProcessInit = postProcessor.Initialize(ctx);
+            Assert.AreEqual(true, postProcessInit);
             postProcessor.AddSphericalHarmonicsL2(ctx, directRadianceSlice, indirectRadianceSlice, directRadianceSlice, positionsLength);
 
             // Post process (convert radiance to irradiance and transform to the format expected by Unity).
