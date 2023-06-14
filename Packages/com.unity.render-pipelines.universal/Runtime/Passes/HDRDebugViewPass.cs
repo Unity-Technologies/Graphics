@@ -16,8 +16,8 @@ namespace UnityEngine.Rendering.Universal
 
         PassDataCIExy m_PassDataCIExy;
         PassDataDebugView m_PassDataDebugView;
-        internal RTHandle m_CIExyTarget;     // xyBuffer;
-        internal RTHandle m_PassthroughRT;
+        RTHandle m_CIExyTarget;     // xyBuffer;
+        RTHandle m_PassthroughRT;
         RTHandle m_CameraTargetHandle;
         Material m_material;
 
@@ -57,19 +57,6 @@ namespace UnityEngine.Rendering.Universal
             internal TextureHandle xyBuffer;
             internal TextureHandle passThrough;
             internal TextureHandle dstColor;
-        }
-
-        /// <summary>
-        /// Get a descriptor for the required color texture for this pass
-        /// </summary>
-        /// <param name="descriptor"></param>
-        /// <seealso cref="RenderTextureDescriptor"/>
-        public static void ConfigureDescriptor(ref RenderTextureDescriptor descriptor)
-        {
-            descriptor.useMipMap = false;
-            descriptor.autoGenerateMips = false;
-            descriptor.useDynamicScale = true;
-            descriptor.depthBufferBits = (int)DepthBits.None;
         }
 
         public static void ConfigureDescriptorForCIEPrepass(ref RenderTextureDescriptor descriptor)
@@ -162,11 +149,19 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Configure the pass
         /// </summary>
-        /// <param name="descriptor">Descriptor for the color buffer.</param>
+        /// <param name="cameraData">Descriptor for the color buffer.</param>
         /// <param name="hdrdebugMode">Active DebugMode for HDR.</param>
-        public void Setup(HDRDebugMode hdrdebugMode)
+        public void Setup(ref CameraData cameraData, HDRDebugMode hdrdebugMode)
         {
             m_PassDataDebugView.hdrDebugMode = hdrdebugMode;
+
+            RenderTextureDescriptor descriptor = cameraData.cameraTargetDescriptor;
+            DebugHandler.ConfigureColorDescriptorForDebugScreen(ref descriptor, cameraData.pixelWidth, cameraData.pixelHeight);
+            RenderingUtils.ReAllocateIfNeeded(ref m_PassthroughRT, descriptor, name: "_HDRDebugDummyRT");
+
+            RenderTextureDescriptor descriptorCIE = cameraData.cameraTargetDescriptor;
+            HDRDebugViewPass.ConfigureDescriptorForCIEPrepass(ref descriptorCIE);
+            RenderingUtils.ReAllocateIfNeeded(ref m_CIExyTarget, descriptorCIE, name: "_xyBuffer");
         }
 
         /// <inheritdoc/>
@@ -198,7 +193,7 @@ namespace UnityEngine.Rendering.Universal
         internal void RenderHDRDebug(RenderGraph renderGraph, ref RenderingData renderingData, TextureHandle srcColor, TextureHandle overlayUITexture, TextureHandle dstColor, HDRDebugMode hDRDebugMode)
         {
             RenderTextureDescriptor descriptor = renderingData.cameraData.cameraTargetDescriptor;
-            ConfigureDescriptor(ref descriptor);
+            DebugHandler.ConfigureColorDescriptorForDebugScreen(ref descriptor, renderingData.cameraData.pixelWidth, renderingData.cameraData.pixelHeight);
             var passThroughRT = UniversalRenderer.CreateRenderGraphTexture(renderGraph, descriptor, "_HDRDebugDummyRT", false);
 
             ConfigureDescriptorForCIEPrepass(ref descriptor);

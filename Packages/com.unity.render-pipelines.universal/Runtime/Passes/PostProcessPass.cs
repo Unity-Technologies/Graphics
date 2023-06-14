@@ -647,7 +647,7 @@ namespace UnityEngine.Rendering.Universal
                     if (resolveToDebugScreen)
                     {
                         debugHandler.BlitTextureToDebugScreenTexture(cmd, GetSource(), m_Materials.uber, 0);
-                        renderer.ConfigureCameraColorTarget(debugHandler.DebugScreenTextureHandle);
+                        renderer.ConfigureCameraTarget(debugHandler.DebugScreenColorHandle, debugHandler.DebugScreenDepthHandle);
                     }
                     else
                     {
@@ -1664,7 +1664,7 @@ namespace UnityEngine.Rendering.Universal
             if (resolveToDebugScreen)
             {
                 debugHandler.BlitTextureToDebugScreenTexture(cmd, sourceTex, material, 0);
-                cameraData.renderer.ConfigureCameraColorTarget(debugHandler.DebugScreenTextureHandle);
+                cameraData.renderer.ConfigureCameraTarget(debugHandler.DebugScreenColorHandle, debugHandler.DebugScreenDepthHandle);
             }
             else
             {

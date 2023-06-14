@@ -206,18 +206,24 @@ namespace UnityEngine.Rendering.Universal
                 }
                 DebugHandler.Setup(ref renderingData);
 
-                if (DebugHandler.IsActiveForCamera(ref cameraData) && DebugHandler.HDRDebugViewIsActive(ref cameraData))
+                if (DebugHandler.IsActiveForCamera(ref cameraData))
                 {
-                    RenderTextureDescriptor descriptor = cameraData.cameraTargetDescriptor;
-                    HDRDebugViewPass.ConfigureDescriptor(ref descriptor);
-                    RenderingUtils.ReAllocateIfNeeded(ref DebugHandler.m_DebugScreenTextureHandle, descriptor, name: "_DebugScreenTexture");
-                    RenderingUtils.ReAllocateIfNeeded(ref DebugHandler.hdrDebugViewPass.m_PassthroughRT, descriptor, name: "_HDRDebugDummyRT");
+                    if (DebugHandler.WriteToDebugScreenTexture(ref cameraData))
+                    {
+                        RenderTextureDescriptor descriptor = cameraData.cameraTargetDescriptor;
+                        DebugHandler.ConfigureColorDescriptorForDebugScreen(ref descriptor, cameraData.pixelWidth, cameraData.pixelHeight);
+                        RenderingUtils.ReAllocateIfNeeded(ref DebugHandler.DebugScreenColorHandle, descriptor, name: "_DebugScreenColor");
+                        
+                        RenderTextureDescriptor depthDesc = cameraData.cameraTargetDescriptor;
+                        DebugHandler.ConfigureDepthDescriptorForDebugScreen(ref depthDesc, k_DepthStencilFormat, cameraData.pixelWidth, cameraData.pixelHeight);
+                        RenderingUtils.ReAllocateIfNeeded(ref DebugHandler.DebugScreenDepthHandle, depthDesc, name: "_DebugScreenDepth");
+                    }
 
-                    RenderTextureDescriptor descriptorCIE = cameraData.cameraTargetDescriptor;
-                    HDRDebugViewPass.ConfigureDescriptorForCIEPrepass(ref descriptorCIE);
-                    RenderingUtils.ReAllocateIfNeeded(ref DebugHandler.hdrDebugViewPass.m_CIExyTarget, descriptorCIE, name: "_xyBuffer");
-
-                    EnqueuePass(DebugHandler.hdrDebugViewPass);
+                    if (DebugHandler.HDRDebugViewIsActive(ref cameraData))
+                    {
+                        DebugHandler.hdrDebugViewPass.Setup(ref cameraData, DebugHandler.DebugDisplaySettings.lightingSettings.hdrDebugMode);
+                        EnqueuePass(DebugHandler.hdrDebugViewPass);
+                    }
                 }
             }
 
@@ -281,7 +287,7 @@ namespace UnityEngine.Rendering.Universal
             bool outputToHDR = cameraData.isHDROutputActive;
             if (shouldRenderUI && outputToHDR)
             {
-                m_DrawOffscreenUIPass.Setup(cameraTargetDescriptor, depthTargetHandle);
+                m_DrawOffscreenUIPass.Setup(ref cameraData, k_DepthStencilFormat);
                 EnqueuePass(m_DrawOffscreenUIPass);
             }
 

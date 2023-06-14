@@ -99,8 +99,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             material.SetVector(ShaderPropertyId.hdrOutputLuminanceParams, hdrOutputParameters);
             HDROutputUtils.ConfigureHDROutput(material, hdrDisplayColorGamut, hdrOperation);
-            // Blit material does not reference HDR_INPUT, so we don't need to enable the keyword.
-            //material.EnableKeyword(ShaderKeywordStrings.HDRInput);
         }
 
         /// <inheritdoc/>
@@ -171,7 +169,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 {
                     int shaderPassIndex = m_Source.rt?.filterMode == FilterMode.Bilinear ? m_PassData.blitMaterialData.bilinearSamplerPass : m_PassData.blitMaterialData.nearestSamplerPass;
                     debugHandler.BlitTextureToDebugScreenTexture(cmd, m_Source, m_PassData.blitMaterialData.material, shaderPassIndex);
-                    cameraData.renderer.ConfigureCameraColorTarget(debugHandler.DebugScreenTextureHandle);
+                    cameraData.renderer.ConfigureCameraTarget(debugHandler.DebugScreenColorHandle, debugHandler.DebugScreenDepthHandle);
                 }
                 // TODO RENDERGRAPH: See https://jira.unity3d.com/projects/URP/issues/URP-1737
                 // This branch of the if statement must be removed for render graph and the new command list with a novel way of using Blitter with fill mode

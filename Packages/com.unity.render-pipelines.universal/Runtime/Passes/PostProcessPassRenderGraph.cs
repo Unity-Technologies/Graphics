@@ -1344,8 +1344,6 @@ namespace UnityEngine.Rendering.Universal
 
         public void RenderFinalBlit(RenderGraph renderGraph, in TextureHandle source, in TextureHandle overlayUITexture, in TextureHandle postProcessingTarget, ref RenderingData renderingData, bool performFXAA, bool performFsr, bool requireHDROutput, bool resolveToDebugScreen)
         {
-            UniversalRenderer renderer = (UniversalRenderer)renderingData.cameraData.renderer;
-
             using (var builder = renderGraph.AddRasterRenderPass<PostProcessingFinalBlitPassData>("Postprocessing Final Blit Pass", out var passData, ProfilingSampler.Get(URPProfileId.RG_FinalBlit)))
             {
                 builder.AllowGlobalStateModification(true);

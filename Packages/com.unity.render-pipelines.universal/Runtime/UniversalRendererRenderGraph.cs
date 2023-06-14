@@ -99,11 +99,16 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         InternalColorLut,
         /// <summary>
-        /// Output of post-process passes (uberPost and finalPost) when HDR debug views are enabled. It replaces
-        /// the backbuffer as standard output because the later cannot be sampled back (or may not be in HDR format).
+        /// Color output of post-process passes (uberPost and finalPost) when HDR debug views are enabled. It replaces
+        /// the backbuffer color as standard output because the later cannot be sampled back (or may not be in HDR format).
         /// If used, DebugHandler will perform the blit from DebugScreenTexture to BackBufferColor.
         /// </summary>
-        DebugScreenTexture,
+        DebugScreenColor,
+        /// <summary>
+        /// Depth output of post-process passes (uberPost and finalPost) when HDR debug views are enabled. It replaces
+        /// the backbuffer depth as standard output because the later cannot be sampled back.
+        /// </summary>
+        DebugScreenDepth,
         /// <summary>
         /// After Post Process Color. Stores the contents of the main color target after the post processing passes.
         /// </summary>
@@ -725,7 +730,7 @@ namespace UnityEngine.Rendering.Universal
             if (shouldRenderUI && outputToHDR)
             {
                 TextureHandle overlayUI;
-                m_DrawOffscreenUIPass.RenderOffscreen(renderGraph, out overlayUI, ref renderingData);
+                m_DrawOffscreenUIPass.RenderOffscreen(renderGraph, k_DepthStencilFormat, out overlayUI, ref renderingData);
                 resources.SetTexture(UniversalResource.OverlayUITexture, overlayUI);
             }
         }
@@ -769,13 +774,18 @@ namespace UnityEngine.Rendering.Universal
 
             DebugHandler debugHandler = ScriptableRenderPass.GetActiveDebugHandler(ref renderingData);
             bool resolveToDebugScreen = debugHandler != null && debugHandler.WriteToDebugScreenTexture(ref renderingData.cameraData);
-            // Allocate debug screen texture if HDR debug views are enabled.
+            // Allocate debug screen texture if the debug mode needs it.
             if (resolveToDebugScreen)
             {
-                RenderTextureDescriptor descriptor = renderingData.cameraData.cameraTargetDescriptor;
-                HDRDebugViewPass.ConfigureDescriptor(ref descriptor);
-                var debugScreenTexture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, descriptor, "_DebugScreenTexture", false);
-                resources.SetTexture(UniversalResource.DebugScreenTexture, debugScreenTexture);
+                RenderTextureDescriptor colorDesc = renderingData.cameraData.cameraTargetDescriptor;
+                DebugHandler.ConfigureColorDescriptorForDebugScreen(ref colorDesc, renderingData.cameraData.pixelWidth, renderingData.cameraData.pixelHeight);
+                var debugScreenColor = UniversalRenderer.CreateRenderGraphTexture(renderGraph, colorDesc, "_DebugScreenColor", false);
+                resources.SetTexture(UniversalResource.DebugScreenColor, debugScreenColor);
+                
+                RenderTextureDescriptor depthDesc = renderingData.cameraData.cameraTargetDescriptor;
+                DebugHandler.ConfigureDepthDescriptorForDebugScreen(ref depthDesc, k_DepthStencilFormat, renderingData.cameraData.pixelWidth, renderingData.cameraData.pixelHeight);
+                var debugScreenDepth = UniversalRenderer.CreateRenderGraphTexture(renderGraph, depthDesc, "_DebugScreenDepth", false);
+                resources.SetTexture(UniversalResource.DebugScreenDepth, debugScreenDepth);
             }
 
             // If the debugHandler displays HDR debug views, it needs to redirect (final) post-process output to an intermediate color target (debugScreenTexture)
@@ -808,7 +818,7 @@ namespace UnityEngine.Rendering.Universal
                 if (resolveToDebugScreen && isTargetBackbuffer)
                 {
                     debugHandlerColorTarget = target;
-                    target = resources.GetTexture(UniversalResource.DebugScreenTexture);
+                    target = resources.GetTexture(UniversalResource.DebugScreenColor);
                 }
 
                 bool doSRGBEncoding = resolvePostProcessingToCameraTarget && needsColorEncoding;
@@ -834,7 +844,7 @@ namespace UnityEngine.Rendering.Universal
                 if (resolveToDebugScreen)
                 {
                     debugHandlerColorTarget = target;
-                    target = resources.GetTexture(UniversalResource.DebugScreenTexture);
+                    target = resources.GetTexture(UniversalResource.DebugScreenColor);
                 }
 
                 m_PostProcessPasses.finalPostProcessPass.RenderFinalPassRenderGraph(renderGraph, in cameraColor, in overlayUITexture, in target, ref renderingData, needsColorEncoding);
@@ -861,7 +871,7 @@ namespace UnityEngine.Rendering.Universal
                 if (resolveToDebugScreen)
                 {
                     debugHandlerColorTarget = target;
-                    target = resources.GetTexture(UniversalResource.DebugScreenTexture);
+                    target = resources.GetTexture(UniversalResource.DebugScreenColor);
                 }
 
                 // make sure we are accessing the proper camera color in case it was replaced by injected passes
@@ -878,22 +888,23 @@ namespace UnityEngine.Rendering.Universal
             bool outputToHDR = renderingData.cameraData.isHDROutputActive;
             if (shouldRenderUI && !outputToHDR)
             {
-                TextureHandle backbuffer = resources.GetTexture(UniversalResource.BackBufferColor);
-                TextureHandle target = backbuffer;
+                TextureHandle target = resources.GetTexture(UniversalResource.BackBufferColor);
+                TextureHandle depthBuffer = resources.GetTexture(UniversalResource.BackBufferDepth);
 
                 if (resolveToDebugScreen)
                 {
                     debugHandlerColorTarget = target;
-                    target = resources.GetTexture(UniversalResource.DebugScreenTexture);
+                    target = resources.GetTexture(UniversalResource.DebugScreenColor);
+                    depthBuffer = resources.GetTexture(UniversalResource.DebugScreenDepth);
                 }
 
-                m_DrawOverlayUIPass.RenderOverlay(renderGraph, in target, ref renderingData);
+                m_DrawOverlayUIPass.RenderOverlay(renderGraph, in target, in depthBuffer, ref renderingData);
             }
 
             if (debugHandler != null)
             {
                 TextureHandle overlayUITexture = resources.GetTexture(UniversalResource.OverlayUITexture);
-                TextureHandle debugScreenTexture = resources.GetTexture(UniversalResource.DebugScreenTexture);
+                TextureHandle debugScreenTexture = resources.GetTexture(UniversalResource.DebugScreenColor);
 
                 debugHandler.Setup(ref renderingData);
                 debugHandler.Render(renderGraph, ref renderingData, debugScreenTexture, overlayUITexture, debugHandlerColorTarget);
