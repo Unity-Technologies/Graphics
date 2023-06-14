@@ -2,6 +2,7 @@
 #pragma kernel CopyBuffer
 
 #pragma multi_compile _ STAGE_BMS STAGE_LOCAL_DISPERSE STAGE_BIG_FLIP STAGE_BIG_DISPERSE
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
 // Disable warning for auto unrolling of single iteration loop.
 #pragma warning(disable : 3557)

@@ -1254,6 +1254,9 @@ namespace UnityEditor.Rendering.HighDefinition
             DrawEnableShadowMap(serialized, owner);
         }
 
+        static IntScalableSetting ShadowResolutionUnknown3Levels = new IntScalableSetting(new[] { -1, -1, -1,}, ScalableSettingSchemaId.With3Levels);
+        static IntScalableSetting ShadowResolutionUnknown4Levels = new IntScalableSetting(new[] { -1, -1, -1, -1 }, ScalableSettingSchemaId.With4Levels);
+
         static void DrawShadowMapContent(SerializedHDLight serialized, Editor owner)
         {
             var hdrp = HDRenderPipeline.currentAsset;
@@ -1355,8 +1358,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     if (serialized.HasMultipleLightTypes(owner))
                     {
+                        // Get the schema for the first light type selected
+                        var scalableSetting = ScalableSettings.ShadowResolution(lightType, hdrp);
+
                         serialized.shadowResolution.LevelAndIntGUILayout(
-                            s_Styles.shadowResolution, null, null
+                            s_Styles.shadowResolution,
+                            scalableSetting.schemaId.Equals(ScalableSettingSchemaId.With3Levels) ? ShadowResolutionUnknown3Levels : ShadowResolutionUnknown4Levels,
+                            hdrp.name
                         );
                     }
                     else

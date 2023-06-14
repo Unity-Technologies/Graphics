@@ -751,9 +751,14 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             using (var builder = renderGraph.AddRenderPass<DLSSData>("Deep Learning Super Sampling", out var passData, ProfilingSampler.Get(HDProfileId.DeepLearningSuperSampling)))
             {
+                hdCamera.RequestGpuExposureValue(GetExposureTexture(hdCamera));
                 passData.parameters = new DLSSPass.Parameters();
+                passData.parameters.resetHistory = hdCamera.resetPostProcessingHistory;
                 passData.parameters.hdCamera = hdCamera;
                 passData.parameters.drsSettings = currentAsset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings;
+                // Must check this with nvidia. After trying many things this gives the least amount of ghosting.
+                // For now we clamp the exposure to a reasonable value.
+                passData.parameters.preExposure = Mathf.Clamp(hdCamera.GpuExposureValue(), 0.35f, 2.0f);
 
                 var viewHandles = new DLSSPass.ViewResourceHandles();
                 viewHandles.source = builder.ReadTexture(source);
