@@ -225,7 +225,7 @@ namespace UnityEngine.Experimental.Rendering
         /// Queue up render commands to enable single-pass techniques.
         /// Note: depending on the platform and settings, either single-pass instancing or the multiview extension will be used.
         /// </summary>
-        /// <param name="cmd"></param>
+        /// <param name="cmd">CommandBuffer to modify</param>
         public void StartSinglePass(CommandBuffer cmd)
         {
             if (enabled)
@@ -252,6 +252,11 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
+        /// <summary>
+        /// Queue up render commands to enable single-pass techniques.
+        /// Note: depending on the platform and settings, either single-pass instancing or the multiview extension will be used.
+        /// </summary>
+        /// <param name="cmd">RasterCommandBuffer to modify</param>
         public void StartSinglePass(RasterCommandBuffer cmd)
         {
             StartSinglePass(cmd.m_WrappedCommandBuffer);
@@ -260,7 +265,7 @@ namespace UnityEngine.Experimental.Rendering
         /// <summary>
         /// Queue up render commands to disable single-pass techniques.
         /// </summary>
-        /// <param name="cmd"></param>
+        /// <param name="cmd">CommandBuffer to modify</param>
         public void StopSinglePass(CommandBuffer cmd)
         {
             if (enabled)
@@ -284,7 +289,7 @@ namespace UnityEngine.Experimental.Rendering
         /// <summary>
         /// Queue up render commands to disable single-pass techniques.
         /// </summary>
-        /// <param name="cmd"></param>
+        /// <param name="cmd">RasterCommandBuffer to modify</param>
         public void StopSinglePass(RasterCommandBuffer cmd)
         {
             StopSinglePass(cmd.m_WrappedCommandBuffer);
@@ -301,7 +306,7 @@ namespace UnityEngine.Experimental.Rendering
         /// where the corresponding view index is encoded into each vertex. The keyword
         /// "XR_OCCLUSION_MESH_COMBINED" is also enabled when rendering the combined mesh.
         /// </summary>
-        /// <param name="cmd"></param>
+        /// <param name="cmd">CommandBuffer to modify</param>
         public void RenderOcclusionMesh(CommandBuffer cmd)
         {
             if(occlusionMeshScale > 0)
@@ -309,8 +314,12 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         /// <summary>
-        /// RasterCommandBuffer version RenderOcclusionMesh.  
+        /// Generate commands to render the occlusion mesh for this pass.
+        /// In single-pass mode : the meshes for all views are combined into one mesh,
+        /// where the corresponding view index is encoded into each vertex. The keyword
+        /// "XR_OCCLUSION_MESH_COMBINED" is also enabled when rendering the combined mesh.
         /// </summary>
+        /// <param name="cmd">RasterCommandBuffer to modify</param>
         public void RenderOcclusionMesh(RasterCommandBuffer cmd)
         {
             if (occlusionMeshScale > 0)

@@ -719,6 +719,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <summary>
         /// Creates a new Shadow  Renderer List Render Graph resource.
         /// </summary>
+        /// <param name="shadowDrawingSettings">DrawSettings that describe the shadow drawcall.</param>
         /// <returns>A new RendererListHandle.</returns>
         public RendererListHandle CreateShadowRendererList(ref ShadowDrawingSettings shadowDrawingSettings)
         {
@@ -728,6 +729,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <summary>
         /// Creates a new Gizmo Renderer List Render Graph resource.
         /// </summary>
+        /// <param name="camera">The camera that is used for rendering the Gizmo.</param>
+        /// <param name="gizmoSubset">GizmoSubset that specifies whether gizmos render before or after postprocessing for a camera render. </param>
         /// <returns>A new RendererListHandle.</returns>
         public RendererListHandle CreateGizmoRendererList(in Camera camera, in GizmoSubset gizmoSubset)
         {
@@ -737,6 +740,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <summary>
         /// Creates a new UIOverlay Renderer List Render Graph resource.
         /// </summary>
+        /// <param name="camera">The camera that is used for rendering the UIOverlay.</param>
         /// <returns>A new RendererListHandle.</returns>
         public RendererListHandle CreateUIOverlayRendererList(in Camera camera)
         {
@@ -746,6 +750,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <summary>
         /// Creates a new WireOverlay Renderer List Render Graph resource.
         /// </summary>
+        /// <param name="camera">The camera that is used for rendering the WireOverlay.</param>
         /// <returns>A new RendererListHandle.</returns>
         public RendererListHandle CreateWireOverlayRendererList(in Camera camera)
         {
