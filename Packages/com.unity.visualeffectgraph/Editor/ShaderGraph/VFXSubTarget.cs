@@ -144,7 +144,7 @@ namespace UnityEditor.VFX
             out AdditionalCommandDescriptor blockFunctionDescriptor,
             out AdditionalCommandDescriptor blockCallFunctionDescriptor,
             out AdditionalCommandDescriptor interpolantsGenerationDescriptor,
-            out AdditionalCommandDescriptor interpolantsGenerationRTDescriptor,
+            out AdditionalCommandDescriptor buildFragInputsGenerationRTDescriptor,
             out AdditionalCommandDescriptor buildVFXFragInputsDescriptor,
             out AdditionalCommandDescriptor pixelPropertiesAssignDescriptor,
             out AdditionalCommandDescriptor defineSpaceDescriptor,
@@ -181,22 +181,21 @@ namespace UnityEditor.VFX
             blockCallFunctionDescriptor = new AdditionalCommandDescriptor("VFXProcessBlocks", blockCallFunction);
 
             // Vertex Input
-            VFXCodeGenerator.BuildVertexProperties(context, taskData, out var vertexPropertiesGeneration);
+            VFXCodeGenerator.BuildVertexProperties(taskData, out var vertexPropertiesGeneration);
             vertexPropertiesGenerationDescriptor = new AdditionalCommandDescriptor("VFXVertexPropertiesGeneration", vertexPropertiesGeneration);
 
             // Interpolator
-            VFXCodeGenerator.BuildInterpolatorBlocks(context, taskData, false, out var interpolatorsGeneration);
+            VFXCodeGenerator.BuildInterpolatorBlocks(taskData, out var interpolatorsGeneration);
             interpolantsGenerationDescriptor = new AdditionalCommandDescriptor("VFXInterpolantsGeneration", interpolatorsGeneration);
 
-            // Interpolator for ray tracing
-            VFXCodeGenerator.BuildInterpolatorBlocks(context, taskData, true, out var interpolatorsGenerationRT);
-            interpolantsGenerationRTDescriptor = new AdditionalCommandDescriptor("VFXInterpolantsGenerationRT", interpolatorsGenerationRT);
-
             // Frag Inputs - Only VFX will know if frag inputs come from interpolator or the CBuffer.
-            VFXCodeGenerator.BuildFragInputsGeneration(context, taskData, shaderGraphBinder.useFragInputs, out var buildFragInputsGeneration);
+            VFXCodeGenerator.BuildFragInputsGeneration(taskData, shaderGraphBinder.useFragInputs, out var buildFragInputsGeneration);
             buildVFXFragInputsDescriptor = new AdditionalCommandDescriptor("VFXSetFragInputs", buildFragInputsGeneration);
 
-            VFXCodeGenerator.BuildPixelPropertiesAssign(context, taskData, shaderGraphBinder.useFragInputs, out var pixelPropertiesAssign);
+            VFXCodeGenerator.BuildFragInputsGenerationRayTracing(taskData, shaderGraphBinder.useFragInputs, out var buildFragInputsGenerationRT);
+            buildFragInputsGenerationRTDescriptor = new AdditionalCommandDescriptor("VFXSetFragInputsRT", buildFragInputsGenerationRT);
+
+            VFXCodeGenerator.BuildPixelPropertiesAssign(taskData, shaderGraphBinder.useFragInputs, out var pixelPropertiesAssign);
             pixelPropertiesAssignDescriptor = new AdditionalCommandDescriptor("VFXPixelPropertiesAssign", pixelPropertiesAssign);
 
             VFXCodeGenerator.BuildFillGraphValues(taskData, graphValuesLayout, systemUniformMapper, out var fillGraphValues);
@@ -445,7 +444,7 @@ namespace UnityEditor.VFX
                 out var blockFunctionDescriptor,
                 out var blockCallFunctionDescriptor,
                 out var interpolantsGenerationDescriptor,
-                out var interpolantsGenerationRTDescriptor,
+                out var buildFragInputsGenerationRTDescriptor,
                 out var buildVFXFragInputs,
                 out var pixelPropertiesAssignDescriptor,
                 out var defineSpaceDescriptor,
@@ -504,7 +503,7 @@ namespace UnityEditor.VFX
                     blockFunctionDescriptor,
                     blockCallFunctionDescriptor,
                     interpolantsGenerationDescriptor,
-                    interpolantsGenerationRTDescriptor,
+                    buildFragInputsGenerationRTDescriptor,
                     buildVFXFragInputs,
                     pixelPropertiesAssignDescriptor,
                     defineSpaceDescriptor,

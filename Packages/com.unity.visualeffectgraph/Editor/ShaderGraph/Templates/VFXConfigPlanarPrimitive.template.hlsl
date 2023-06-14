@@ -227,11 +227,8 @@ bool GetMeshAndElementIndex(inout VFX_SRP_ATTRIBUTES input, inout AttributesElem
         output.tangentToWorld = CreateTangentToWorld(normalWS, tangentWS, /*sign(currentVertex.tangentOS.w)*/1);
 
         output.isFrontFace = dot(rayDirection, output.tangentToWorld[2]) < 0.0f;
-        VFX_SRP_VARYINGS input;
-        ZERO_INITIALIZE(VFX_SRP_VARYINGS, input);
 
-        $splice(VFXInterpolantsGenerationRT)
-        $splice(VFXSetFragInputs)
+        $splice(VFXSetFragInputsRT)
 
     #if VFX_FEATURE_MOTION_VECTORS
         $splice(VFXLoadCurrentFrameIndexParameter)

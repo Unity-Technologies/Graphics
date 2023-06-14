@@ -412,7 +412,7 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             parameterBufferContent = parameterBuffer.ToString();
         }
 
-        internal static void BuildVertexProperties(VFXContext context, VFXTaskCompiledData taskData, out string vertexProperties)
+        internal static void BuildVertexProperties(VFXTaskCompiledData taskData, out string vertexProperties)
         {
             if (taskData.SGInputs != null)
             {
@@ -441,14 +441,56 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             }
         }
 
-        internal static void BuildInterpolatorBlocks(VFXContext context, VFXTaskCompiledData taskData, bool raytracing,
+
+        internal static void BuildFragInputsGenerationRayTracing(VFXTaskCompiledData taskData, bool useFragInputs, out string buildFragInputsGeneration)
+        {
+            // Frag Inputs for Ray Tracing - Skips the interpolant struct generation and assigns the Frag Inputs directly.
+
+            if (taskData.SGInputs != null)
+            {
+                var fragInputsGeneration = new VFXShaderWriter();
+                string surfaceSetter = useFragInputs ? "output.vfx" : "output";
+
+                var expressionToName = new Dictionary<VFXExpression, string>(taskData.uniformMapper.expressionToCode);
+
+                // Expression tree
+                foreach (var interp in taskData.SGInputs.interpolators)
+                    fragInputsGeneration.WriteVariable(interp.Key, expressionToName);
+                fragInputsGeneration.WriteLine();
+
+
+                foreach (var input in taskData.SGInputs.fragInputs)
+                {
+                    var (name, exp) = (input.Key, input.Value);
+                    string inputExpStr;
+
+                    if (exp.Is(VFXExpression.Flags.Constant))
+                        inputExpStr = exp.GetCodeString(null); // From constant
+                    else if (taskData.SGInputs.IsInterpolant(exp))
+                    {
+                        inputExpStr = expressionToName[exp]; // From interpolator
+                    }
+                    else
+                        inputExpStr = $"graphValues.{taskData.uniformMapper.GetName(exp)}"; // From uniform
+
+                    fragInputsGeneration.WriteAssignement(exp.valueType, $"{surfaceSetter}.{name}", inputExpStr);
+                    fragInputsGeneration.WriteLine();
+                }
+
+                buildFragInputsGeneration = fragInputsGeneration.ToString();
+            }
+            else
+            {
+                buildFragInputsGeneration = string.Empty;
+            }
+        }
+        internal static void BuildInterpolatorBlocks(VFXTaskCompiledData taskData,
             out string interpolatorsGeneration)
         {
             if (taskData.SGInputs != null)
             {
                 var interpolantsGenerationWriter = new VFXShaderWriter();
                 var expressionToName = new Dictionary<VFXExpression, string>(taskData.uniformMapper.expressionToCode);
-                string varyingVariableName = raytracing ? "input." : "output.";
 
                 // Expression tree
                 foreach (var interp in taskData.SGInputs.interpolators)
@@ -460,7 +502,7 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
                 foreach (var interp in taskData.SGInputs.interpolators)
                 {
                     var (exp, name) = (interp.Key, interp.Value);
-                    interpolantsGenerationWriter.WriteAssignement(exp.valueType, varyingVariableName + name, expressionToName[exp]);
+                    interpolantsGenerationWriter.WriteAssignement(exp.valueType, $"output.{name}", expressionToName[exp]);
                     interpolantsGenerationWriter.WriteLine();
                 }
 
@@ -472,7 +514,7 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             }
         }
 
-        internal static void BuildFragInputsGeneration(VFXContext context, VFXTaskCompiledData taskData, bool useFragInputs, out string buildFragInputsGeneration)
+        internal static void BuildFragInputsGeneration(VFXTaskCompiledData taskData, bool useFragInputs, out string buildFragInputsGeneration)
         {
             if (taskData.SGInputs != null)
             {
@@ -503,7 +545,7 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             }
         }
 
-        internal static void BuildPixelPropertiesAssign(VFXContext context, VFXTaskCompiledData taskData, bool useFragInputs, out string buildFragInputsGeneration)
+        internal static void BuildPixelPropertiesAssign(VFXTaskCompiledData taskData, bool useFragInputs, out string buildFragInputsGeneration)
         {
             if (taskData.SGInputs != null)
             {

@@ -215,6 +215,8 @@ void GetElementData(inout AttributesElement element)
 $OutputType.Mesh:            $include("VFXConfigMesh.template.hlsl")
 $OutputType.PlanarPrimitive: $include("VFXConfigPlanarPrimitive.template.hlsl")
 
+#if !defined(SHADER_STAGE_RAY_TRACING)
+
 // Loads the element-specific attribute data, as well as fills any interpolator.
 bool GetInterpolatorAndElementData(inout VFX_SRP_VARYINGS output, inout AttributesElement element)
 {
@@ -318,6 +320,7 @@ void SetupVFXMatrices(AttributesElement element, inout VFX_SRP_VARYINGS output)
     output.worldToElement2 = worldToElement[2];
 #endif
 }
+#endif
 
 float4 VFXGetPreviousClipPosition(VFX_SRP_ATTRIBUTES input, AttributesElement element, float4 cPositionFallback)
 {
