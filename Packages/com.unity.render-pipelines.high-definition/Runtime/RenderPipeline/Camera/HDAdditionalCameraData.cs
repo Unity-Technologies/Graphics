@@ -730,6 +730,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void OnEnable()
         {
+            if(GraphicsSettings.currentRenderPipelineAssetType != typeof(HDRenderPipelineAsset))
+                return;
+
             // Be sure legacy HDR option is disable on camera as it cause banding in SceneView. Yes, it is a contradiction, but well, Unity...
             // When HDR option is enabled, Unity render in FP16 then convert to 8bit with a stretch copy (this cause banding as it should be convert to sRGB (or other color appropriate color space)), then do a final shader with sRGB conversion
             // When LDR, unity render in 8bitSRGB, then do a final shader with sRGB conversion
