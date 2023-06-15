@@ -105,6 +105,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_PassData.lutBuilderHdr = m_LutBuilderHdr;
             m_PassData.allowColorGradingACESHDR = m_AllowColorGradingACESHDR;
 
+            if (renderingData.cameraData.xr.supportsFoveatedRendering)
+                renderingData.commandBuffer.SetFoveatedRenderingMode(FoveatedRenderingMode.Disabled);
+
             CoreUtils.SetRenderTarget(renderingData.commandBuffer, m_InternalLut, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, ClearFlag.None, Color.clear);
             ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), m_PassData, ref renderingData, m_InternalLut);
         }
@@ -240,10 +243,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
 
                 cameraData.xr.StopSinglePass(cmd);
-
-
-                if (cameraData.xr.supportsFoveatedRendering)
-                    cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Disabled);
 
                 // Render the lut.
                 Blitter.BlitTexture(cmd, internalLutTarget, Vector2.one, material, 0);

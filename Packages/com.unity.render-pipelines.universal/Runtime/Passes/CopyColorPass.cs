@@ -120,23 +120,20 @@ namespace UnityEngine.Rendering.Universal.Internal
                 source = renderingData.cameraData.renderer.cameraColorTargetHandle;
             }
 
-            bool xrEnabled = renderingData.cameraData.xr.enabled;
-            bool disableFoveatedRenderingForPass = xrEnabled && renderingData.cameraData.xr.supportsFoveatedRendering;
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (renderingData.cameraData.xr.supportsFoveatedRendering)
+                cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Disabled);
+#endif
             ScriptableRenderer.SetRenderTarget(cmd, destination, k_CameraTarget, clearFlag, clearColor);
-            ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(cmd), m_PassData, source, renderingData.cameraData.xr.enabled, disableFoveatedRenderingForPass);
+            ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(cmd), m_PassData, source, renderingData.cameraData.xr.enabled);
         }
 
-        private static void ExecutePass(RasterCommandBuffer cmd, PassData passData, RTHandle source,  bool useDrawProceduralBlit,  bool disableFoveatedRenderingForPass)
+        private static void ExecutePass(RasterCommandBuffer cmd, PassData passData, RTHandle source,  bool useDrawProceduralBlit)
         {
             var samplingMaterial = passData.samplingMaterial;
             var copyColorMaterial = passData.copyColorMaterial;
             var downsamplingMethod = passData.downsamplingMethod;
             var sampleOffsetShaderHandle = passData.sampleOffsetShaderHandle;
-
-#if ENABLE_VR && ENABLE_XR_MODULE
-            if (disableFoveatedRenderingForPass)
-                cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Disabled);
-#endif
 
             if (samplingMaterial == null)
             {
@@ -175,7 +172,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             internal TextureHandle destination;
             // internal RenderingData renderingData;
             internal bool useProceduralBlit;
-            internal bool disableFoveatedRenderingForPass;
             internal Material samplingMaterial;
             internal Material copyColorMaterial;
             internal Downsampling downsamplingMethod;
@@ -195,7 +191,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 passData.destination = builder.UseTextureFragment(destination, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
                 passData.source = builder.UseTexture(source, IBaseRenderGraphBuilder.AccessFlags.Read);
                 passData.useProceduralBlit = renderingData.cameraData.xr.enabled;
-                passData.disableFoveatedRenderingForPass = renderingData.cameraData.xr.enabled && renderingData.cameraData.xr.supportsFoveatedRendering;
                 passData.samplingMaterial = m_SamplingMaterial;
                 passData.copyColorMaterial = m_CopyColorMaterial;
                 passData.downsamplingMethod = m_DownsamplingMethod;
@@ -206,7 +201,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
                 {
-                    ExecutePass(context.cmd, data, data.source, data.useProceduralBlit,  data.disableFoveatedRenderingForPass);
+                    ExecutePass(context.cmd, data, data.source, data.useProceduralBlit);
                 });
             }
 

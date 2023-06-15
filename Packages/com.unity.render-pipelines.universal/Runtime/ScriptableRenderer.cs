@@ -1542,18 +1542,19 @@ namespace UnityEngine.Rendering.Universal
 
             var cmd = renderingData.commandBuffer;
 
-            // Track CPU only as GPU markers for this scope were "too noisy".
-            using (new ProfilingScope(Profiling.RenderPass.setRenderPassAttachments))
-                SetRenderPassAttachments(cmd, renderPass, ref cameraData);
-
             // Selectively enable foveated rendering
             if (cameraData.xr.supportsFoveatedRendering)
             {
-                if (renderPass.renderPassEvent >= RenderPassEvent.BeforeRenderingPrePasses && renderPass.renderPassEvent < RenderPassEvent.BeforeRenderingPostProcessing)
+                if ((renderPass.renderPassEvent >= RenderPassEvent.BeforeRenderingPrePasses && renderPass.renderPassEvent < RenderPassEvent.BeforeRenderingPostProcessing) 
+                    || (renderPass.renderPassEvent > RenderPassEvent.AfterRendering && XRSystem.foveatedRenderingCaps.HasFlag(FoveatedRenderingCaps.FoveationImage)))
                 {
                     cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Enabled);
                 }
             }
+
+            // Track CPU only as GPU markers for this scope were "too noisy".
+            using (new ProfilingScope(Profiling.RenderPass.setRenderPassAttachments))
+                SetRenderPassAttachments(cmd, renderPass, ref cameraData);
 
             // Also, we execute the commands recorded at this point to ensure SetRenderTarget is called before RenderPass.Execute
             context.ExecuteCommandBuffer(cmd);
