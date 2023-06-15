@@ -384,10 +384,10 @@ namespace UnityEditor.Rendering.Universal
 
         internal bool StripUnusedFeatures_FoveatedRendering(ref IShaderScriptableStrippingData strippingData)
         {
-            // Strip Foveated Rendering variants on all platforms (except PS5)
+            // Strip Foveated Rendering variants on all platforms (except PS5 and Metal)
             // TODO: add a way to communicate this requirement from the xr plugin directly
             #if ENABLE_VR && ENABLE_XR_MODULE
-            if (strippingData.shaderCompilerPlatform != ShaderCompilerPlatform.PS5NGGC)
+            if (strippingData.shaderCompilerPlatform != ShaderCompilerPlatform.PS5NGGC && strippingData.shaderCompilerPlatform != ShaderCompilerPlatform.Metal)
             #endif
             {
                 if (strippingData.IsKeywordEnabled(m_FoveatedRenderingNonUniformRaster))

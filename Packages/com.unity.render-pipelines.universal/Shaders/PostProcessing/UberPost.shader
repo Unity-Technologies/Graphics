@@ -11,6 +11,8 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
         #pragma multi_compile_local_fragment _ _GAMMA_20 _LINEAR_TO_SRGB_CONVERSION
         #pragma multi_compile_local_fragment _ _USE_FAST_SRGB_LINEAR_CONVERSION
         #pragma multi_compile_fragment _ _FOVEATED_RENDERING_NON_UNIFORM_RASTER
+        // Foveated rendering currently not supported in dxc on metal
+        #pragma never_use_dxc metal
         #pragma multi_compile_fragment _ DEBUG_DISPLAY
         #pragma multi_compile_fragment _ SCREEN_COORD_OVERRIDE
         #pragma multi_compile_local_fragment _ HDR_INPUT HDR_ENCODING
@@ -263,7 +265,7 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
                 color = max(color, 0);
             }
             #endif
-            
+
             #ifdef HDR_ENCODING
             {
                 float4 uiSample = SAMPLE_TEXTURE2D_X(_OverlayUITexture, sampler_PointClamp, input.texcoord);
@@ -288,7 +290,10 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
 
     SubShader
     {
-        Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline"}
+        Tags
+        {
+            "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline"
+        }
         LOD 100
         ZTest Always ZWrite Off Cull Off
 

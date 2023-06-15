@@ -53,7 +53,7 @@ namespace UnityEngine.Rendering.Universal
 
         // Foveated Rendering
         #if ENABLE_VR && ENABLE_XR_MODULE
-        [ShaderKeywordFilter.ApplyRulesIfNotGraphicsAPI(GraphicsDeviceType.PlayStation5NGGC)]
+        [ShaderKeywordFilter.ApplyRulesIfNotGraphicsAPI(GraphicsDeviceType.PlayStation5NGGC, GraphicsDeviceType.Metal)]
         #endif
         [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings.FoveatedRenderingNonUniformRaster)]
         private const bool k_PrefilterFoveatedRenderingNonUniformRaster = true;
