@@ -90,6 +90,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ShaderVariablesWater waterCB;
 
             public TextureHandle colorBuffer;
+            public TextureHandle normalBuffer;
             public TextureHandle depthBuffer;
             public TextureHandle causticsData;
             public ComputeBufferHandle cameraHeightBuffer;
@@ -98,7 +99,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle outputColorBuffer;
         }
 
-        TextureHandle RenderUnderWaterVolume(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthBuffer)
+        TextureHandle RenderUnderWaterVolume(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle normalBuffer, TextureHandle depthBuffer)
         {
             // Are we in the volume of any surface at all?
             if (m_UnderWaterSurfaceIndex == -1 || WaterSurface.instancesAsArray == null || !hdCamera.frameSettings.IsEnabled(FrameSettingsField.Water))
@@ -126,6 +127,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // All the required textures
                 passData.colorBuffer = builder.ReadTexture(colorBuffer);
+                passData.normalBuffer = builder.ReadTexture(normalBuffer);
                 passData.depthBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.Read);
                 passData.cameraHeightBuffer = builder.ReadComputeBuffer(renderGraph.ImportComputeBuffer(m_WaterCameraHeightBuffer));
 
@@ -157,6 +159,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         ConstantBuffer.Push(ctx.cmd, data.waterRenderingCB, data.waterLightingCS, HDShaderIDs._ShaderVariablesWaterRendering);
                         ConstantBuffer.Push(ctx.cmd, data.waterCB, data.waterLightingCS, HDShaderIDs._ShaderVariablesWater);
                         ctx.cmd.SetComputeTextureParam(data.waterLightingCS, data.underWaterKernel, HDShaderIDs._WaterCausticsDataBuffer, data.causticsData);
+                        ctx.cmd.SetComputeTextureParam(data.waterLightingCS, data.underWaterKernel, HDShaderIDs._NormalBufferTexture, data.normalBuffer);
                         ctx.cmd.SetComputeTextureParam(data.waterLightingCS, data.underWaterKernel, HDShaderIDs._CameraColorTexture, data.colorBuffer);
                         ctx.cmd.SetComputeTextureParam(data.waterLightingCS, data.underWaterKernel, HDShaderIDs._DepthTexture, data.depthBuffer);
                         ctx.cmd.SetComputeTextureParam(data.waterLightingCS, data.underWaterKernel, HDShaderIDs._StencilTexture, data.depthBuffer, 0, RenderTextureSubElement.Stencil);
