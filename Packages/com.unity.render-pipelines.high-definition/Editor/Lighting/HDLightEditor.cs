@@ -172,7 +172,8 @@ namespace UnityEditor.Rendering.HighDefinition
             List<HDRISky> skies = new List<HDRISky>();
             foreach (var volume in volumes)
             {
-                foreach (var component in volume.profile.components)
+                var profile = volume.HasInstantiatedProfile() ? volume.profile : volume.sharedProfile;
+                foreach (var component in profile.components)
                 {
                     HDRISky sky = component as HDRISky;
                     if (sky != null)
