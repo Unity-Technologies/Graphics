@@ -1316,8 +1316,9 @@ namespace UnityEngine.Rendering
         /// <param name="parameters4">streaksIntensity, streaksLength, streaksOrientation, streaksThreshold</param>
         /// <param name="parameters5">downsampleStreak, warpedFlareScaleX, warpedFlareScaleY, freeSlot</param>
         /// <param name="cmd">Command Buffer</param>
-        /// <param name="colorBuffer">Command Buffer</param>
+        /// <param name="result">Result RT for the Lens Flare Screen Space</param>
         /// <param name="_BloomTexture">ShaderID for the BloomTexture</param>
+        /// <param name="_LensFlareScreenSpaceResultTexture">ShaderID for the LensFlareScreenSpaceResultTexture texture</param>
         /// <param name="_LensFlareScreenSpaceSpectralLut">ShaderID for the LensFlareScreenSpaceSpectralLut texture</param>
         /// <param name="_LensFlareScreenSpaceStreakTex">ShaderID for the LensFlareScreenSpaceStreakTex streak temp texture</param>
         /// <param name="_LensFlareScreenSpaceMipLevel">ShaderID for the LensFlareScreenSpaceMipLevel parameter</param>
