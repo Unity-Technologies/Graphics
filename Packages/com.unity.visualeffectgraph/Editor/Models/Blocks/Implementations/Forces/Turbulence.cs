@@ -6,6 +6,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
+    [VFXHelpURL("Block-Turbulence")]
     [VFXInfo(category = "Force")]
     class Turbulence : VFXBlock
     {

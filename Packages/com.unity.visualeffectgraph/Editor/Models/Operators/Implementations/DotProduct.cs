@@ -2,6 +2,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-DotProduct")]
     [VFXInfo(category = "Math/Vector")]
     class DotProduct : VFXOperatorNumericUniform
     {

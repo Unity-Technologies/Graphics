@@ -4,6 +4,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
+    [VFXHelpURL("Block-TriggerEventOnDie")]
     [VFXInfo(category = "GPUEvent", experimental = true)]
     class GPUEventOnDie : VFXBlock
     {

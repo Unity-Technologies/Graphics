@@ -5,6 +5,7 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-WorldToViewportPoint")]
     [VFXInfo(category = "Camera")]
     class WorldToViewportPoint : VFXOperator
     {

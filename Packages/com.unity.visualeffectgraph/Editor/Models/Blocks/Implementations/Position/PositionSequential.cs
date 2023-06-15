@@ -20,6 +20,7 @@ namespace UnityEditor.VFX.Block
         }
     }
 
+    [VFXHelpURL("Block-SetPosition(Sequential)")]
     [VFXInfo(category = "Attribute/{0}/Composition/{1}", variantProvider = typeof(PositionSequentialVariantProvider))]
     class PositionSequential : VFXBlock
     {

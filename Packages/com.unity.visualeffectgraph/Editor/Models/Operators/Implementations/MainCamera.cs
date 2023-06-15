@@ -1,10 +1,8 @@
-using System;
-using System.Linq;
-using UnityEngine;
 using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-MainCamera")]
     [VFXInfo(category = "BuiltIn")]
     class MainCamera : VFXOperator
     {

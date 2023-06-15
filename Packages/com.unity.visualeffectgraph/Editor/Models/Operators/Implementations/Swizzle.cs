@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-Swizzle")]
     [VFXInfo(category = "Math/Vector")]
     class Swizzle : VFXOperatorNumericUniform
     {

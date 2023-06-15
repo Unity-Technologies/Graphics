@@ -1,9 +1,8 @@
-using System;
-using System.Linq;
 using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-ColorLuma")]
     [VFXInfo(category = "Color")]
     class ColorLuma : VFXOperator
     {

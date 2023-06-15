@@ -1,9 +1,10 @@
 using System.Collections.Generic;
-using System.Linq;
+
 using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
+    [VFXHelpURL("Block-SetPosition(Line)")]
     [VFXInfo(category = "Attribute/position/Composition/{0}", variantProvider = typeof(PositionBaseProvider))]
     class PositionLine : PositionBase
     {

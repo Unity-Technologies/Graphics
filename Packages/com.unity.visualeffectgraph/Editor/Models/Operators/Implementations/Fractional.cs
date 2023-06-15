@@ -1,7 +1,6 @@
-using System;
-
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-Fractional")]
     [VFXInfo(category = "Math/Arithmetic")]
     class Fractional : VFXOperatorNumericUniform
     {

@@ -3,6 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
+    [VFXHelpURL("Block-CollideWithSphere")]
     [VFXInfo(category = "Collision")]
     class CollisionSphere : CollisionBase
     {

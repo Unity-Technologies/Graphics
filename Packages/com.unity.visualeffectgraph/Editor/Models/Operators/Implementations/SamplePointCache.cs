@@ -1,15 +1,13 @@
 using System;
-using System.Linq;
-using System.Collections.ObjectModel;
 using System.Collections.Generic;
+
 using UnityEngine;
-using UnityEngine.Rendering;
-using UnityEngine.VFX;
 using UnityEditor.Experimental.VFX.Utility;
 
 
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-SamplePointCache")]
     [VFXInfo(category = "Sampling", experimental = true)]
     class SamplePointCache : VFXOperator
     {

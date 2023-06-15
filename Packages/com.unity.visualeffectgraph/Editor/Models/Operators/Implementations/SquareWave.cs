@@ -1,10 +1,9 @@
-using System;
 using System.Linq;
 using System.Collections.Generic;
-using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-SquareWave")]
     [VFXInfo(category = "Math/Wave")]
     class SquareWave : VFXOperatorNumericUnified, IVFXOperatorNumericUnifiedConstrained
     {

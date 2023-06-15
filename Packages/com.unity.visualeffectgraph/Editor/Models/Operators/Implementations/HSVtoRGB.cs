@@ -1,9 +1,9 @@
-using System;
 using System.Linq;
 using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-HSVToRGB")]
     [VFXInfo(category = "Color")]
     class HSVtoRGB : VFXOperator
     {

@@ -1,10 +1,10 @@
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
+    [VFXHelpURL("Block-VariableRate")]
     [VFXInfo(category = "Spawn")]
     class VFXSpawnerVariableRate : VFXAbstractSpawner
     {

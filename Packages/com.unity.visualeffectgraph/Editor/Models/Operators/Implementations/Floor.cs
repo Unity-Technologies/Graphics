@@ -1,7 +1,6 @@
-using System;
-
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-Floor")]
     [VFXInfo(category = "Math/Clamp")]
     class Floor : VFXOperatorNumericUniform
     {
