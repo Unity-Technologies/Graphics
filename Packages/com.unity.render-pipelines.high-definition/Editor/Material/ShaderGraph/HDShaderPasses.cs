@@ -19,7 +19,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             return structs;
         }
 
-        public static PragmaCollection GeneratePragmas(PragmaCollection input, bool useVFX, bool useTessellation, bool useDebugSymbols = false)
+        public static PragmaCollection GeneratePragmas(PragmaCollection input, bool useVFX, bool useTessellation, bool useDebugSymbols = false, bool useInstancing = true)
         {
             PragmaCollection pragmas = input == null ? new PragmaCollection() : new PragmaCollection { input };
 
@@ -30,6 +30,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             if (useDebugSymbols && Unsupported.IsDeveloperMode())
                 pragmas.Add(Pragma.DebugSymbols);
+            
+            if (useInstancing)
+                pragmas.Add(Pragma.MultiCompileInstancing);
 
             return pragmas;
         }
@@ -1404,7 +1407,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             public static DefineCollection raytracingDefault = new DefineCollection { { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 } };
             public static DefineCollection raytracingRaytraced = new DefineCollection { { RayTracingQualityNode.GetRayTracingQualityKeyword(), 1 } };
 
-            // Path tracing specific defines 
+            // Path tracing specific defines
             public static DefineCollection pathtracingDisableLightCluster = new DefineCollection { { CoreKeywordDescriptors.DisableLightloopTileAndCluster, 1 }, { CoreKeywordDescriptors.PathTracingclusteredDecals, 1 } };
         }
 

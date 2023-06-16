@@ -20,6 +20,7 @@ Shader "Hidden/HDRP/BlitColorAndDepth"
         Pass
         {
             ZWrite Off ZTest Always Blend Off Cull Off
+            Name "ColorOnly"
 
             HLSLPROGRAM
                 #pragma vertex Vert
@@ -31,6 +32,7 @@ Shader "Hidden/HDRP/BlitColorAndDepth"
         Pass
         {
             ZWrite On ZTest Always Blend Off Cull Off
+            Name "ColorAndDepth"
 
             HLSLPROGRAM
                 #pragma vertex Vert

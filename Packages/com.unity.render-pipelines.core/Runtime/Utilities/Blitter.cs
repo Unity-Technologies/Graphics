@@ -39,6 +39,46 @@ namespace UnityEngine.Rendering
             public static readonly int _InputDepth = Shader.PropertyToID("_InputDepthTexture");
         }
 
+        // This enum needs to be in sync with the shader pass names and indices of the Blit.shader in every pipeline.
+        enum BlitShaderPassNames
+        {
+            Nearest = 0,
+            Bilinear = 1,
+            NearestQuad = 2,
+            BilinearQuad = 3,
+            NearestQuadPadding = 4,
+            BilinearQuadPadding = 5,
+            NearestQuadPaddingRepeat = 6,
+            BilinearQuadPaddingRepeat = 7,
+            BilinearQuadPaddingOctahedral = 8,
+            NearestQuadPaddingAlphaBlend = 9,
+            BilinearQuadPaddingAlphaBlend = 10,
+            NearestQuadPaddingAlphaBlendRepeat = 11,
+            BilinearQuadPaddingAlphaBlendRepeat = 12,
+            BilinearQuadPaddingAlphaBlendOctahedral = 13,
+            CubeToOctahedral = 14,
+            CubeToOctahedralLuminance = 15,
+            CubeToOctahedralAlpha = 16,
+            CubeToOctahedralRed = 17,
+            BilinearQuadLuminance = 18,
+            BilinearQuadAlpha = 19,
+            BilinearQuadRed = 20,
+            NearestCubeToOctahedralPadding = 21,
+            BilinearCubeToOctahedralPadding = 22,
+        }
+
+        enum BlitColorAndDepthPassNames
+        {
+            ColorOnly = 0,
+            ColorAndDepth = 1,
+        }
+
+        // This maps the requested shader indices to actual existing shader indices. When running in a build, it's possible
+        // that some shader pass are stripped or removed, causing a shift in all shader pass index. In this case, hardcoded
+        // shader passes become invalid. This array prevent this error from happening.
+        static int[] s_BlitShaderPassIndicesMap;
+        static int[] s_BlitColorAndDepthShaderPassIndicesMap;
+
         /// <summary>
         /// Initialize Blitter resources. Must be called once before any use
         /// </summary>
@@ -151,6 +191,17 @@ namespace UnityEngine.Rendering
                     return r;
                 }
             }
+            
+            // Build shader pass map:
+            var passNames = Enum.GetNames(typeof(BlitShaderPassNames));
+            s_BlitShaderPassIndicesMap = new int[passNames.Length];
+            for (int i = 0; i < passNames.Length; i++)
+                s_BlitShaderPassIndicesMap[i] = s_Blit.FindPass(passNames[i]);
+            
+            passNames = Enum.GetNames(typeof(BlitColorAndDepthPassNames));
+            s_BlitColorAndDepthShaderPassIndicesMap = new int[passNames.Length];
+            for (int i = 0; i < passNames.Length; i++)
+                s_BlitColorAndDepthShaderPassIndicesMap[i] = s_BlitColorAndDepth.FindPass(passNames[i]);
         }
 
         /// <summary>
@@ -229,7 +280,7 @@ namespace UnityEngine.Rendering
         public static void BlitTexture(CommandBuffer cmd, RTHandle source, Vector4 scaleBias, float mipLevel, bool bilinear)
         {
             s_PropertyBlock.SetFloat(BlitShaderIDs._BlitMipLevel, mipLevel);
-            BlitTexture(cmd, source, scaleBias, GetBlitMaterial(TextureXR.dimension), bilinear ? 1 : 0);
+            BlitTexture(cmd, source, scaleBias, GetBlitMaterial(TextureXR.dimension), s_BlitShaderPassIndicesMap[bilinear ? 1 : 0]);
         }
 
         /// <summary>
@@ -256,7 +307,7 @@ namespace UnityEngine.Rendering
         public static void BlitTexture2D(CommandBuffer cmd, RTHandle source, Vector4 scaleBias, float mipLevel, bool bilinear)
         {
             s_PropertyBlock.SetFloat(BlitShaderIDs._BlitMipLevel, mipLevel);
-            BlitTexture(cmd, source, scaleBias, GetBlitMaterial(TextureDimension.Tex2D), bilinear ? 1 : 0);
+            BlitTexture(cmd, source, scaleBias, GetBlitMaterial(TextureDimension.Tex2D), s_BlitShaderPassIndicesMap[bilinear ? 1 : 0]);
         }
 
         /// <summary>
@@ -289,7 +340,7 @@ namespace UnityEngine.Rendering
             s_PropertyBlock.SetTexture(BlitShaderIDs._BlitTexture, sourceColor);
             if (blitDepth)
                 s_PropertyBlock.SetTexture(BlitShaderIDs._InputDepth, sourceDepth, RenderTextureSubElement.Depth);
-            DrawTriangle(cmd, s_BlitColorAndDepth, blitDepth ? 1 : 0);
+            DrawTriangle(cmd, s_BlitColorAndDepth, s_BlitColorAndDepthShaderPassIndicesMap[blitDepth ? 1 : 0]);
         }
 
         /// <summary>
@@ -521,7 +572,7 @@ namespace UnityEngine.Rendering
             s_PropertyBlock.SetVector(BlitShaderIDs._BlitScaleBiasRt, scaleBiasRT);
             s_PropertyBlock.SetFloat(BlitShaderIDs._BlitMipLevel, mipLevelTex);
 
-            DrawQuad(cmd, GetBlitMaterial(source.dimension), bilinear ? 3 : 2);
+            DrawQuad(cmd, GetBlitMaterial(source.dimension), s_BlitShaderPassIndicesMap[bilinear ? 3 : 2]);
         }
 
         /// <summary>
@@ -544,9 +595,9 @@ namespace UnityEngine.Rendering
             s_PropertyBlock.SetVector(BlitShaderIDs._BlitTextureSize, textureSize);
             s_PropertyBlock.SetInt(BlitShaderIDs._BlitPaddingSize, paddingInPixels);
             if (source.wrapMode == TextureWrapMode.Repeat)
-                DrawQuad(cmd, GetBlitMaterial(source.dimension), bilinear ? 7 : 6);
+                DrawQuad(cmd, GetBlitMaterial(source.dimension), s_BlitShaderPassIndicesMap[bilinear ? 7 : 6]);
             else
-                DrawQuad(cmd, GetBlitMaterial(source.dimension), bilinear ? 5 : 4);
+                DrawQuad(cmd, GetBlitMaterial(source.dimension), s_BlitShaderPassIndicesMap[bilinear ? 5 : 4]);
         }
 
         /// <summary>
@@ -569,9 +620,9 @@ namespace UnityEngine.Rendering
             s_PropertyBlock.SetVector(BlitShaderIDs._BlitTextureSize, textureSize);
             s_PropertyBlock.SetInt(BlitShaderIDs._BlitPaddingSize, paddingInPixels);
             if (source.wrapMode == TextureWrapMode.Repeat)
-                DrawQuad(cmd, GetBlitMaterial(source.dimension), bilinear ? 12 : 11);
+                DrawQuad(cmd, GetBlitMaterial(source.dimension), s_BlitShaderPassIndicesMap[bilinear ? 12 : 11]);
             else
-                DrawQuad(cmd, GetBlitMaterial(source.dimension), bilinear ? 10 : 9);
+                DrawQuad(cmd, GetBlitMaterial(source.dimension), s_BlitShaderPassIndicesMap[bilinear ? 10 : 9]);
         }
 
         /// <summary>
@@ -593,7 +644,7 @@ namespace UnityEngine.Rendering
             s_PropertyBlock.SetFloat(BlitShaderIDs._BlitMipLevel, mipLevelTex);
             s_PropertyBlock.SetVector(BlitShaderIDs._BlitTextureSize, textureSize);
             s_PropertyBlock.SetInt(BlitShaderIDs._BlitPaddingSize, paddingInPixels);
-            DrawQuad(cmd, GetBlitMaterial(source.dimension), 8);
+            DrawQuad(cmd, GetBlitMaterial(source.dimension), s_BlitShaderPassIndicesMap[8]);
         }
 
         /// <summary>
@@ -615,7 +666,7 @@ namespace UnityEngine.Rendering
             s_PropertyBlock.SetFloat(BlitShaderIDs._BlitMipLevel, mipLevelTex);
             s_PropertyBlock.SetVector(BlitShaderIDs._BlitTextureSize, textureSize);
             s_PropertyBlock.SetInt(BlitShaderIDs._BlitPaddingSize, paddingInPixels);
-            DrawQuad(cmd, GetBlitMaterial(source.dimension), 13);
+            DrawQuad(cmd, GetBlitMaterial(source.dimension), s_BlitShaderPassIndicesMap[13]);
         }
 
         /// <summary>
@@ -631,7 +682,7 @@ namespace UnityEngine.Rendering
             s_PropertyBlock.SetFloat(BlitShaderIDs._BlitMipLevel, mipLevelTex);
             s_PropertyBlock.SetVector(BlitShaderIDs._BlitScaleBias, new Vector4(1, 1, 0, 0));
             s_PropertyBlock.SetVector(BlitShaderIDs._BlitScaleBiasRt, scaleBiasRT);
-            DrawQuad(cmd, GetBlitMaterial(source.dimension), 14);
+            DrawQuad(cmd, GetBlitMaterial(source.dimension), s_BlitShaderPassIndicesMap[14]);
         }
 
         /// <summary>
@@ -662,7 +713,7 @@ namespace UnityEngine.Rendering
                 s_PropertyBlock.SetVector(BlitShaderIDs._BlitDecodeInstructions, decodeInstructions.Value);
             }
 
-            DrawQuad(cmd, material, bilinear ? 22 : 21);
+            DrawQuad(cmd, material, s_BlitShaderPassIndicesMap[bilinear ? 22 : 21]);
             cmd.SetKeyword(material, s_DecodeHdrKeyword, false);
         }
 
@@ -693,7 +744,7 @@ namespace UnityEngine.Rendering
             s_PropertyBlock.SetFloat(BlitShaderIDs._BlitMipLevel, mipLevelTex);
             s_PropertyBlock.SetVector(BlitShaderIDs._BlitScaleBias, new Vector4(1, 1, 0, 0));
             s_PropertyBlock.SetVector(BlitShaderIDs._BlitScaleBiasRt, scaleBiasRT);
-            DrawQuad(cmd, GetBlitMaterial(source.dimension), pass);
+            DrawQuad(cmd, GetBlitMaterial(source.dimension), s_BlitShaderPassIndicesMap[pass]);
         }
 
         /// <summary>
@@ -725,7 +776,7 @@ namespace UnityEngine.Rendering
             s_PropertyBlock.SetVector(BlitShaderIDs._BlitScaleBiasRt, scaleBiasRT);
             s_PropertyBlock.SetFloat(BlitShaderIDs._BlitMipLevel, mipLevelTex);
 
-            DrawQuad(cmd, GetBlitMaterial(source.dimension), pass);
+            DrawQuad(cmd, GetBlitMaterial(source.dimension), s_BlitShaderPassIndicesMap[pass]);
         }
     }
 }

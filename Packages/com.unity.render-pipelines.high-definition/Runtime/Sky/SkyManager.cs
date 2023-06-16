@@ -1499,12 +1499,14 @@ namespace UnityEngine.Rendering.HighDefinition
                             // Necessary to perform dual-source (polychromatic alpha) blending which is not supported by Unity.
                             // We load from the color buffer, perform blending manually, and store to a new color buffer.
 
+                            int passIndex = data.msaa ? data.opaqueAtmosphericalScatteringMaterial.FindPass("MSAA + Polychromatic Alpha") : data.opaqueAtmosphericalScatteringMaterial.FindPass("Polychromatic Alpha");
                             mpb.SetTexture(data.msaa ? HDShaderIDs._ColorTextureMS : HDShaderIDs._ColorTexture, data.colorBuffer);
-                            HDUtils.DrawFullScreen(ctx.cmd, data.opaqueAtmosphericalScatteringMaterial, data.outputColorBuffer, data.depthBuffer, mpb, data.msaa ? 3 : 2);
+                            HDUtils.DrawFullScreen(ctx.cmd, data.opaqueAtmosphericalScatteringMaterial, data.outputColorBuffer, data.depthBuffer, mpb, passIndex);
                         }
                         else
                         {
-                            HDUtils.DrawFullScreen(ctx.cmd, data.opaqueAtmosphericalScatteringMaterial, data.colorBuffer, data.depthBuffer, mpb, data.msaa ? 1 : 0);
+                            int passIndex = data.msaa ? data.opaqueAtmosphericalScatteringMaterial.FindPass("MSAA") : data.opaqueAtmosphericalScatteringMaterial.FindPass("Default");
+                            HDUtils.DrawFullScreen(ctx.cmd, data.opaqueAtmosphericalScatteringMaterial, data.colorBuffer, data.depthBuffer, mpb, passIndex);
 
                             if (data.volumetricFogDebug)
                             {

@@ -9,13 +9,6 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     public partial class HDRenderPipeline
     {
-        private enum SMAAStage
-        {
-            EdgeDetection = 0,
-            BlendWeights = 1,
-            NeighborhoodBlending = 2
-        }
-
         GraphicsFormat m_PostProcessColorFormat = GraphicsFormat.B10G11R11_UFloatPack32;
         const GraphicsFormat k_CoCFormat = GraphicsFormat.R16_SFloat;
         internal const GraphicsFormat k_ExposureFormat = GraphicsFormat.R32G32_SFloat;
@@ -1808,10 +1801,10 @@ namespace UnityEngine.Rendering.HighDefinition
                         RTHandle prevHistory = (RTHandle)data.prevHistory;
                         RTHandle nextHistory = (RTHandle)data.nextHistory;
 
-                        const int taaPass = 0;
-                        const int excludeTaaPass = 1;
-                        const int taauPass = 2;
-                        const int copyHistoryPass = 3;
+                        int taaPass = data.temporalAAMaterial.FindPass("TAA");
+                        int excludeTaaPass = data.temporalAAMaterial.FindPass("Excluded From TAA");
+                        int taauPass = data.temporalAAMaterial.FindPass("TAAU");
+                        int copyHistoryPass = data.temporalAAMaterial.FindPass("Copy History");
 
                         if (data.resetPostProcessingHistory)
                         {
@@ -1956,22 +1949,26 @@ namespace UnityEngine.Rendering.HighDefinition
                         data.smaaMaterial.SetTexture(HDShaderIDs._SMAASearchTex, data.smaaSearchTex);
                         data.smaaMaterial.SetInt(HDShaderIDs._StencilRef, (int)StencilUsage.SMAA);
                         data.smaaMaterial.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.SMAA);
+                        
+                        int edgeDetectionPassIndex = data.smaaMaterial.FindPass("Edge detection");
+                        int blendWeightsPassIndex = data.smaaMaterial.FindPass("Blend Weights Calculation");
+                        int neighborhoodBlendingPassIndex = data.smaaMaterial.FindPass("Neighborhood Blending");
 
                         // -----------------------------------------------------------------------------
                         // EdgeDetection stage
                         ctx.cmd.SetGlobalTexture(HDShaderIDs._InputTexture, data.source);
-                        HDUtils.DrawFullScreen(ctx.cmd, data.smaaMaterial, data.smaaEdgeTex, data.depthBuffer, null, (int)SMAAStage.EdgeDetection);
+                        HDUtils.DrawFullScreen(ctx.cmd, data.smaaMaterial, data.smaaEdgeTex, data.depthBuffer, null, edgeDetectionPassIndex);
 
                         // -----------------------------------------------------------------------------
                         // BlendWeights stage
                         ctx.cmd.SetGlobalTexture(HDShaderIDs._InputTexture, data.smaaEdgeTex);
-                        HDUtils.DrawFullScreen(ctx.cmd, data.smaaMaterial, data.smaaBlendTex, data.depthBuffer, null, (int)SMAAStage.BlendWeights);
+                        HDUtils.DrawFullScreen(ctx.cmd, data.smaaMaterial, data.smaaBlendTex, data.depthBuffer, null, blendWeightsPassIndex);
 
                         // -----------------------------------------------------------------------------
                         // NeighborhoodBlending stage
                         ctx.cmd.SetGlobalTexture(HDShaderIDs._InputTexture, data.source);
                         data.smaaMaterial.SetTexture(HDShaderIDs._SMAABlendTex, data.smaaBlendTex);
-                        HDUtils.DrawFullScreen(ctx.cmd, data.smaaMaterial, data.destination, null, (int)SMAAStage.NeighborhoodBlending);
+                        HDUtils.DrawFullScreen(ctx.cmd, data.smaaMaterial, data.destination, null, neighborhoodBlendingPassIndex);
                     });
 
                 return passData.destination;

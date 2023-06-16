@@ -1000,7 +1000,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { Pragma.Vertex("Vert") },
             { Pragma.Fragment("Frag") },
             { Pragma.OnlyRenderers(PragmaRenderers.GetHighEndPlatformArray()) },
-            { Pragma.MultiCompileInstancing },
         };
 
         public static PragmaCollection BasicVFX = new PragmaCollection
@@ -1009,7 +1008,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { Pragma.Vertex("VertVFX") },
             { Pragma.Fragment("Frag") },
             { Pragma.OnlyRenderers(PragmaRenderers.GetHighEndPlatformArray()) },
-            { Pragma.MultiCompileInstancing },
         };
 
         public static PragmaCollection BasicTessellation = new PragmaCollection
@@ -1020,7 +1018,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { Pragma.Hull("Hull") },
             { Pragma.Domain("Domain") },
             { Pragma.OnlyRenderers(PragmaRenderers.GetHighEndPlatformArray()) },
-            { Pragma.MultiCompileInstancing },
         };
 
         public static PragmaCollection BasicRaytracing = new PragmaCollection

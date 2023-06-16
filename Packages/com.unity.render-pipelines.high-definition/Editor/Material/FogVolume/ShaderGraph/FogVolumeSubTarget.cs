@@ -15,7 +15,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     using BlendMode = UnityEngine.Rendering.BlendMode;
     using BlendOp = UnityEditor.ShaderGraph.BlendOp;
 
-    sealed partial class FogVolumeSubTarget : SurfaceSubTarget, IRequiresData<FogVolumeData>
+    sealed partial class FogVolumeSubTarget : HDSubTarget, IRequiresData<FogVolumeData>
     {
         public FogVolumeSubTarget() => displayName = "Fog Volume";
 
@@ -29,6 +29,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected override string customInspector => "Rendering.HighDefinition.FogVolumeShaderGUI";
         internal override MaterialResetter setupMaterialKeywordsAndPassFunc => ShaderGraphAPI.ValidateFogVolumeMaterial;
         protected override string renderType => HDRenderTypeTags.HDFogVolumeShader.ToString();
+        protected override string renderQueue { get; }
+        protected override string disableBatchingTag { get; }
         protected override ShaderID shaderID => ShaderID.SG_FogVolume;
         protected override FieldDescriptor subShaderField => new FieldDescriptor(kSubShader, "Fog Volume Subshader", "");
         protected override string subShaderInclude => null;
@@ -73,6 +75,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 }
             };
             yield return PostProcessSubShader(subShader);
+        }
+
+        protected override IEnumerable<KernelDescriptor> EnumerateKernels()
+        {
+            yield break;
         }
 
         public static StructDescriptor Varyings = new StructDescriptor()
@@ -150,7 +157,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 { new KeywordDescriptor{ displayName = ToStringInvariant(mode), referenceName = $"FOG_VOLUME_BLENDING_{ ToStringInvariant(mode).ToUpper(CultureInfo.InvariantCulture)}" }, 1 },
             };
         }
-        
+
         private string ToStringInvariant(LocalVolumetricFogBlendingMode value)
         {
             return Enum.GetName(typeof(LocalVolumetricFogBlendingMode), value)?.ToString(CultureInfo.InvariantCulture);
@@ -178,7 +185,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     { GetAttributes() },
                     { Varyings },
                 }, TargetsVFX(), false),
-                pragmas = HDShaderPasses.GeneratePragmas(null, TargetsVFX(), false, false),
+                pragmas = HDShaderPasses.GeneratePragmas(null, TargetsVFX(), false, false, false),
                 defines = HDShaderPasses.GenerateDefines(GetBlendModeDefine(fogVolumeData.blendMode), TargetsVFX(), false),
                 renderStates = GetRenderState(fogVolumeData.blendMode),
                 includes = FogVolumeIncludes.Voxelize,
@@ -206,7 +213,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     { GetAttributes() },
                     { Varyings },
                 }, TargetsVFX(), false),
-                pragmas = HDShaderPasses.GeneratePragmas(null, TargetsVFX(), false),
+                pragmas = HDShaderPasses.GeneratePragmas(null, TargetsVFX(), false, false, false),
                 defines = HDShaderPasses.GenerateDefines(null, TargetsVFX(), false),
                 renderStates = GetRenderState(LocalVolumetricFogBlendingMode.Additive), // We can't change the blend mode in ShaderGraph
                 includes = FogVolumeIncludes.Preview,
@@ -234,7 +241,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     { GetAttributes() },
                     { Varyings },
                 }, TargetsVFX(), false),
-                pragmas = HDShaderPasses.GeneratePragmas(null, TargetsVFX(), false),
+                pragmas = HDShaderPasses.GeneratePragmas(null, TargetsVFX(), false, false),
                 defines = HDShaderPasses.GenerateDefines(null, TargetsVFX(), false),
                 renderStates = GetRenderState(LocalVolumetricFogBlendingMode.Additive), // Overdraw always uses additive blending
                 includes = FogVolumeIncludes.OverdrawDebug,

@@ -525,6 +525,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 { CorePragmas.Basic },
                 { Pragma.DOTSInstancing },
+                Pragma.MultiCompileInstancing
             };
         }
         #endregion
