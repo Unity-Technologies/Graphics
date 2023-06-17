@@ -20,6 +20,15 @@ Shader "Hidden/Universal Render Pipeline/Debug/DebugReplacement"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Debug/Debugging3D.hlsl"
 
+            //--------------------------------------
+            // GPU Instancing
+            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DOTS.hlsl"
+
+            // -------------------------------------
+            // Includes
+            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Input.hlsl"
+
             struct Attributes
             {
                 float4 positionOS        : POSITION;
@@ -30,7 +39,7 @@ Shader "Hidden/Universal Render Pipeline/Debug/DebugReplacement"
                 float4 color             : COLOR;
                 float4 normal            : NORMAL;
                 float4 tangent           : TANGENT;
-
+                UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             struct Varyings
@@ -48,6 +57,7 @@ Shader "Hidden/Universal Render Pipeline/Debug/DebugReplacement"
             Varyings vert(Attributes input)
             {
                 Varyings output;
+                UNITY_SETUP_INSTANCE_ID(input);
                 output.texcoord0 = input.texcoord0;
                 output.texcoord1 = input.texcoord1;
                 output.texcoord2 = input.texcoord2;
