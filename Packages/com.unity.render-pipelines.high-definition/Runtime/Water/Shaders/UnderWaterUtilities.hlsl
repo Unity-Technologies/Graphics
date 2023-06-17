@@ -93,7 +93,7 @@ float EvaluateSimulationCaustics(float3 refractedWaterPosRWS, float refractedWat
 
         // Convert the position to absolute world space and move the position to the water local space
         float3 causticPosAWS = GetAbsolutePositionWS(refractedWaterPosRWS) * _CausticsTilingFactor;
-        float3 causticPosOS = mul(_WaterSurfaceTransform_Inverse, float4(causticPosAWS, 1.0f));
+        float3 causticPosOS = mul(_WaterSurfaceTransform_Inverse, float4(causticPosAWS, 1.0f)).xyz;
 
         // Evaluate the triplanar coodinates
         float3 sampleCoord = causticPosOS / (_CausticsRegionSize * 0.5) + 0.5;
