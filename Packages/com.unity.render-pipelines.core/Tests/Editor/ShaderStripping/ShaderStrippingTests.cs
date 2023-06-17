@@ -100,7 +100,7 @@ namespace UnityEditor.Rendering.Tests.ShaderStripping
         #endregion
 
         ShaderPrepocessorTests m_ShaderVariantStripper;
-        private RenderPipelineAsset m_PreviousPipeline;
+        RenderPipelineAsset m_PreviousPipeline;
         ShaderStrippingReportScope m_ReportTestScope;
 
         [SetUp]
@@ -108,17 +108,15 @@ namespace UnityEditor.Rendering.Tests.ShaderStripping
         {
             m_PreviousPipeline = GraphicsSettings.defaultRenderPipeline;
             GraphicsSettings.defaultRenderPipeline = null;
-            m_ReportTestScope = new ShaderStrippingReportScope();
-            m_ReportTestScope.OnPreprocessBuild(default);
+            Rendering.ShaderStripping.ReportBegin();
         }
 
         [TearDown]
         public void TearDown()
         {
+            Rendering.ShaderStripping.ReportEnd();
             m_ShaderVariantStripper = null;
             GraphicsSettings.defaultRenderPipeline = m_PreviousPipeline;
-            m_ReportTestScope.OnPostprocessBuild(default);
-            m_ReportTestScope = null;
         }
 
         static TestCaseData[] s_TestCaseDatas =
