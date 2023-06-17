@@ -36,13 +36,20 @@ namespace UnityEditor.VFX
             public string header { get; }
         }
 
-        private const string VFXTemplateWindowDocUrl = "https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@15.0/manual/index.html";
+        private const string VFXTemplateWindowDocUrl = "https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@{0}/manual/Templates-window.html";
         private const string BuiltInCategory = "Default VFX Graph Templates";
         private const string EmptyTemplateName = "Empty VFX";
         private const string EmptyTemplateDescription = "Create a completely empty VFX asset";
         private const string LastSelectedGuidKey = "VFXTemplateWindow.LastSelectedGuid";
         private const string CreateNewVFXAssetTitle = "Create new VFX Asset";
         private const string InsertTemplateTitle = "Insert a template into current VFX Asset";
+
+        private static readonly Dictionary<CreateMode, string> s_ModeToTitle = new ()
+        {
+            { CreateMode.CreateNew, CreateNewVFXAssetTitle },
+            { CreateMode.Insert, InsertTemplateTitle },
+            { CreateMode.None, CreateNewVFXAssetTitle },
+        };
 
         private readonly List<TreeViewItemData<IVFXTemplateDescriptor>> m_TemplatesTree = new ();
         private readonly ISaveFileDialogHelper m_SaveFileDialogHelper;
@@ -60,7 +67,6 @@ namespace UnityEditor.VFX
         private Action<string> m_UserCallback;
         private string m_LastSelectedTemplateGuid;
         private VFXView m_VfxView;
-        private VisualEffectResource m_EditedResource;
 
         private enum CreateMode
         {
@@ -80,13 +86,12 @@ namespace UnityEditor.VFX
 
         private static void ShowInternal(VFXView vfxView, CreateMode mode, Action<string> callback = null)
         {
-            var templateWindow = EditorWindow.GetWindowDontShow<VFXTemplateWindow>();
+            var templateWindow = EditorWindow.GetWindow<VFXTemplateWindow>(true, s_ModeToTitle[mode], false);
             templateWindow.minSize = new Vector2(800, 300);
             templateWindow.m_VfxView = vfxView;
-            templateWindow.m_EditedResource = vfxView != null ? vfxView.controller?.graph?.visualEffectResource : null;
-            templateWindow.m_CurrentMode = mode;
             templateWindow.m_UserCallback = callback;
-            templateWindow.ShowUtility();
+            templateWindow.m_CurrentMode = mode;
+            templateWindow.SetCallBack();
         }
 
         private void CreateGUI()
@@ -119,27 +124,29 @@ namespace UnityEditor.VFX
             m_ListOfTemplates.bindItem = BindTemplateItem;
             m_ListOfTemplates.unbindItem = UnbindTemplateItem;
 
+
+            LoadTemplates();
+        }
+
+        private void SetCallBack()
+        {
             switch (m_CurrentMode)
             {
                 case CreateMode.CreateNew:
-                    titleContent.text = CreateNewVFXAssetTitle;
                     m_VFXAssetCreationCallback = templatePath => CreateNewVisualEffect(templatePath, m_UserCallback);
                     break;
                 case CreateMode.Insert:
-                    titleContent.text = InsertTemplateTitle;
                     m_VFXAssetCreationCallback = InsertTemplateInVisualEffect;
                     break;
                 case CreateMode.None:
-                    titleContent.text = CreateNewVFXAssetTitle;
                     m_VFXAssetCreationCallback = m_UserCallback;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(m_CurrentMode), m_CurrentMode, null);
             }
-            LoadTemplates();
         }
 
-        private void OnOpenHelp() => Help.BrowseURL(VFXTemplateWindowDocUrl);
+        private void OnOpenHelp() => Help.BrowseURL(string.Format(VFXTemplateWindowDocUrl, VFXHelpURLAttribute.version));
 
         private void LoadTemplates()
         {
@@ -169,14 +176,13 @@ namespace UnityEditor.VFX
             m_VFXAssetCreationCallback?.Invoke(m_LastSelectedTemplatePath);
             Close();
             VFXAnalytics.GetInstance().OnSystemTemplateCreated(template.name);
-            m_EditedResource = null;
             m_VfxView = null;
             m_VFXAssetCreationCallback = null;
         }
 
         private void CreateNewVisualEffect(string templatePath, Action<string> userCallback)
         {
-            if (string.IsNullOrEmpty(templatePath))
+            if (templatePath == null)
             {
                 return;
             }
@@ -186,7 +192,7 @@ namespace UnityEditor.VFX
             {
                 VisualEffectAssetEditorUtility.CreateTemplateAsset(assetPath, templatePath);
 
-                if (GetView() is {} window)
+                if (GetViewWindow() is {} window)
                 {
                     var vfxAsset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(assetPath);
                     window.LoadAsset(vfxAsset, null);
@@ -200,7 +206,7 @@ namespace UnityEditor.VFX
         {
             if (!string.IsNullOrEmpty(templatePath))
             {
-                if (GetView() is {} window)
+                if (GetViewWindow() is {} window)
                 {
                     window.graphView.CreateTemplateSystem(templatePath, Vector2.zero, null);
                 }
@@ -211,15 +217,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        private VFXViewWindow GetView()
-        {
-            if (m_VfxView != null)
-            {
-                return VFXViewWindow.GetWindow(m_VfxView);
-            }
-
-            return m_EditedResource != null ? VFXViewWindow.GetWindow(m_EditedResource.asset) : null;
-        }
+        private VFXViewWindow GetViewWindow() => m_VfxView != null ? VFXViewWindow.GetWindow(m_VfxView) : null;
 
         private void OnSelectionChanged(IEnumerable<object> obj)
         {

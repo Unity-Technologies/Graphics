@@ -112,7 +112,7 @@ VisualEffectResource:
 
             void OnTemplateCreate(string templateFilePath)
             {
-                if (!string.IsNullOrEmpty(templateFilePath))
+                if (templateFilePath != null)
                 {
                     var texture = EditorGUIUtility.FindTexture(typeof(VisualEffectAsset));
                     var action = ScriptableObject.CreateInstance<DoCreateNewVFX>();

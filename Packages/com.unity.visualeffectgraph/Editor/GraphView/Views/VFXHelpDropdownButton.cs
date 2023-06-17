@@ -59,10 +59,7 @@ namespace UnityEditor.VFX.UI
         {
             if (string.IsNullOrEmpty(m_ManualUrlWithVersion))
             {
-                var assembly = GetType().Assembly;
-                var packageInfo = PackageManager.PackageInfo.FindForAssembly(assembly);
-                var version = string.Join('.', packageInfo.version.Split(".").Take(2));
-                m_ManualUrlWithVersion = string.Format(k_ManualUrl, version);
+                m_ManualUrlWithVersion = string.Format(k_ManualUrl, VFXHelpURLAttribute.version);
             }
 
             GotoUrl(m_ManualUrlWithVersion);
