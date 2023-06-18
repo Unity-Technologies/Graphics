@@ -1015,6 +1015,15 @@ namespace UnityEngine.Rendering
         }
 
 #if UNITY_EDITOR
+        internal void SetDefaults()
+        {
+            settings.SetDefaults();
+            m_LightingScenarios = new List<string> { ProbeReferenceVolume.defaultLightingScenario };
+
+            // We have to initialize that to not trigger a warning on new baking sets
+            chunkSizeInBricks = ProbeBrickPool.GetChunkSizeInBrickCount();
+
+        }
 
         string GetOrCreateFileName(ProbeVolumeStreamableAsset asset, string filePath)
         {
