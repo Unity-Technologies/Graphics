@@ -1016,7 +1016,7 @@ namespace UnityEditor.Rendering.Universal
                         DecalRendererFeature decal = rendererFeature as DecalRendererFeature;
                         if (decal != null)
                         {
-                            var technique = decal.GetTechnique(renderer);
+                            var technique = decal.GetTechnique(hasDeferredRenderer, false);
                             switch (technique)
                             {
                                 case DecalTechnique.DBuffer:
