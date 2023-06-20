@@ -838,7 +838,7 @@ MonoBehaviour:
   - name: color
     path: color
     tooltip: 
-    space: 0
+    space: -1
     spaceable: 0
     sheetType: m_Vector3f
     realType: Vector3
@@ -854,7 +854,7 @@ MonoBehaviour:
   - name: velocity
     path: velocity
     tooltip: 
-    space: 0
+    space: -1
     spaceable: 0
     sheetType: m_Float
     realType: Single
@@ -870,7 +870,7 @@ MonoBehaviour:
   - name: an_uint
     path: an_uint
     tooltip: 
-    space: 0
+    space: -1
     spaceable: 0
     sheetType: m_Uint
     realType: UInt32
@@ -886,7 +886,7 @@ MonoBehaviour:
   - name: a_int
     path: a_int
     tooltip: 
-    space: 0
+    space: -1
     spaceable: 0
     sheetType: m_Int
     realType: Int32
@@ -902,7 +902,7 @@ MonoBehaviour:
   - name: a_bool
     path: a_bool
     tooltip: 
-    space: 0
+    space: -1
     spaceable: 0
     sheetType: m_Bool
     realType: Boolean
@@ -918,7 +918,7 @@ MonoBehaviour:
   - name: a_mesh
     path: a_mesh
     tooltip: 
-    space: 0
+    space: -1
     spaceable: 0
     sheetType: m_NamedObject
     realType: Mesh
@@ -934,7 +934,7 @@ MonoBehaviour:
   - name: a_texture
     path: a_texture
     tooltip: 
-    space: 0
+    space: -1
     spaceable: 0
     sheetType: m_NamedObject
     realType: Texture2D
@@ -948,7 +948,7 @@ MonoBehaviour:
     enumValues: []
     descendantCount: 0
   m_ImportDependencies: []
-  m_GraphVersion: 13
+  m_GraphVersion: 14
   m_ResourceVersion: 1
   m_SubgraphDependencies: []
   m_CategoryPath: 
@@ -1268,7 +1268,7 @@ MonoBehaviour:
   m_Name: VFXDataParticle
   m_EditorClassIdentifier: 
   m_UIIgnoredErrors: []
-  m_Parent: {fileID: 114789286144881694}
+  m_Parent: {fileID: 0}
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
@@ -1971,7 +1971,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UIIgnoredErrors: []
-  m_Parent: {fileID: 114789286144881694}
+  m_Parent: {fileID: 0}
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
@@ -5567,7 +5567,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UIIgnoredErrors: []
-  m_Parent: {fileID: 114789286144881694}
+  m_Parent: {fileID: 0}
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
@@ -7719,7 +7719,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UIIgnoredErrors: []
-  m_Parent: {fileID: 114789286144881694}
+  m_Parent: {fileID: 0}
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
@@ -8729,7 +8729,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UIIgnoredErrors: []
-  m_Parent: {fileID: 114789286144881694}
+  m_Parent: {fileID: 0}
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
@@ -11270,7 +11270,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UIIgnoredErrors: []
-  m_Parent: {fileID: 114789286144881694}
+  m_Parent: {fileID: 0}
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
@@ -11291,7 +11291,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UIIgnoredErrors: []
-  m_Parent: {fileID: 114789286144881694}
+  m_Parent: {fileID: 0}
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
@@ -11312,7 +11312,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UIIgnoredErrors: []
-  m_Parent: {fileID: 114789286144881694}
+  m_Parent: {fileID: 0}
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1

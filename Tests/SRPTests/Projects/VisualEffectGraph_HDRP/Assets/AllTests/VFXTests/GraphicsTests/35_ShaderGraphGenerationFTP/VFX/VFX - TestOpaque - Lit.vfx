@@ -129,7 +129,7 @@ MonoBehaviour:
   - name: New Texture2DArray
     path: New Texture2DArray
     tooltip: 
-    space: 0
+    space: -1
     spaceable: 0
     sheetType: m_NamedObject
     realType: Texture2DArray
@@ -145,7 +145,7 @@ MonoBehaviour:
   - name: Normal
     path: Normal
     tooltip: 
-    space: 0
+    space: -1
     spaceable: 0
     sheetType: m_NamedObject
     realType: Texture2D
@@ -161,7 +161,7 @@ MonoBehaviour:
   - name: Albedo
     path: Albedo
     tooltip: 
-    space: 0
+    space: -1
     spaceable: 0
     sheetType: m_NamedObject
     realType: Texture2D
@@ -177,7 +177,7 @@ MonoBehaviour:
   - name: New Color
     path: New Color
     tooltip: 
-    space: 0
+    space: -1
     spaceable: 0
     sheetType: m_Vector4f
     realType: Color
@@ -193,7 +193,7 @@ MonoBehaviour:
   - name: Slice
     path: Slice
     tooltip: 
-    space: 0
+    space: -1
     spaceable: 0
     sheetType: m_Uint
     realType: UInt32
@@ -209,7 +209,7 @@ MonoBehaviour:
   - name: Alpha
     path: Alpha
     tooltip: 
-    space: 0
+    space: -1
     spaceable: 0
     sheetType: m_Float
     realType: Single
@@ -225,7 +225,7 @@ MonoBehaviour:
   - name: DoRotate
     path: DoRotate
     tooltip: 
-    space: 0
+    space: -1
     spaceable: 0
     sheetType: m_Bool
     realType: Boolean
@@ -239,7 +239,7 @@ MonoBehaviour:
     enumValues: []
     descendantCount: 0
   m_ImportDependencies: []
-  m_GraphVersion: 13
+  m_GraphVersion: 14
   m_ResourceVersion: 1
   m_SubgraphDependencies: []
   m_CategoryPath: 
@@ -289,7 +289,7 @@ MonoBehaviour:
   m_Name: VFXDataParticle
   m_EditorClassIdentifier: 
   m_UIIgnoredErrors: []
-  m_Parent: {fileID: 114350483966674976}
+  m_Parent: {fileID: 0}
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
@@ -2492,7 +2492,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UIIgnoredErrors: []
-  m_Parent: {fileID: 114350483966674976}
+  m_Parent: {fileID: 0}
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
