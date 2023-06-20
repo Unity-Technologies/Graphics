@@ -78,6 +78,7 @@ namespace UnityEditor.VFX.Test
             {
                 AssetDatabase.DeleteAsset(testAssetRandomFileName);
             }
+            VFXTestCommon.DeleteAllTemporaryGraph();
         }
 
         #pragma warning disable 0414
@@ -1256,6 +1257,82 @@ namespace UnityEditor.VFX.Test
 
             window.Close();
 
+            yield return null;
+        }
+
+        [UnityTest, Description("Repro from UUM-39696")]
+        public IEnumerator Convert_To_Subgraph_Block_With_Different_Slot_Type()
+        {
+            var kSourceAsset = "Assets/AllTests/Editor/Tests/VFXSubGraph_Repro_39696.vfx_";
+            var graph = VFXTestCommon.CopyTemporaryGraph(kSourceAsset);
+            Assert.IsNotNull(graph);
+            yield return null;
+
+            var assetPath = AssetDatabase.GetAssetPath(graph);
+            var asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(assetPath);
+            Assert.IsNotNull(asset);
+            Assert.IsTrue(VisualEffectAssetEditor.OnOpenVFX(asset.GetInstanceID(), 0));
+
+            var window = VFXViewWindow.GetWindow(asset);
+            window.LoadAsset(asset, null);
+            var viewController = window.graphView.controller;
+            Assert.IsNotNull(viewController);
+            yield return null;
+
+            var initializeContext = viewController.graph.children.OfType<VFXBasicInitialize>().Single();
+            var setVelocityBlock = initializeContext.children.OfType<VelocityDirection>().First();
+
+            var controller = viewController.GetNodeController(setVelocityBlock, 0);
+            var subgraphPath = $"Assets/TmpTests/subgraph_39696_{Guid.NewGuid()}.vfxblock";
+
+            VFXConvertSubgraph.ConvertToSubgraphBlock(window.graphView, new[] { controller }, Rect.zero, subgraphPath);
+            viewController.ApplyChanges();
+            yield return null;
+
+            //Main Graph Content
+            initializeContext = viewController.graph.children.OfType<VFXBasicInitialize>().Single();
+            setVelocityBlock = initializeContext.children.OfType<VelocityDirection>().FirstOrDefault();
+            Assert.IsNull(setVelocityBlock);
+
+            var subgraphBlock = initializeContext.children.OfType<VFXSubgraphBlock>().Single();
+            Assert.AreEqual(2u, subgraphBlock.inputSlots.Count);
+
+            Assert.AreEqual(subgraphBlock.inputSlots[0].valueType, VFXValueType.Boolean);
+            Assert.AreEqual(subgraphBlock.inputSlots[1].valueType, VFXValueType.Float);
+
+            Assert.IsTrue(subgraphBlock.inputSlots[0].HasLink());
+            Assert.IsTrue(subgraphBlock.inputSlots[1].HasLink());
+
+            //Subgraph Content
+            var subgraphContent = AssetDatabase.LoadAssetAtPath<VisualEffectSubgraph>(subgraphPath);
+            var subgraph = (VFXGraph)subgraphContent.GetOrCreateResource().graph;
+            var blockSubgraphContext = subgraph.children.OfType<VFXBlockSubgraphContext>().Single();
+            Assert.AreEqual(1u, blockSubgraphContext.children.Count());
+
+            var innerSetVelocityBlock = blockSubgraphContext.children.OfType<VelocityDirection>().First();
+            Assert.IsTrue(innerSetVelocityBlock.activationSlot.HasLink());
+
+            foreach (var slot in innerSetVelocityBlock.inputSlots)
+            {
+                if (slot.name == "MinSpeed")
+                    Assert.IsTrue(slot.HasLink());
+                else
+                    Assert.IsFalse(slot.HasLink(true));
+            }
+
+            var parameters = subgraph.children.OfType<VFXParameter>().ToList();
+            Assert.AreEqual(2, parameters.Count);
+
+            var enabled = parameters.First(o => o.exposedName == "enabled"); //There is an automatic dodge of reserved name, it shouldn't be _vfx_enabled here.
+            var minSpeed = parameters.First(o => o.exposedName == "MinSpeed");
+
+            Assert.IsTrue(enabled.exposed);
+            Assert.IsTrue(minSpeed.exposed);
+
+            Assert.AreEqual(typeof(bool), enabled.type);
+            Assert.AreEqual(typeof(float), minSpeed.type);
+
+            window.Close();
             yield return null;
         }
     }
