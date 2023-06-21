@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 Changes a few objects to no longer use lightmaps (bamboo floor, bamboo cage, long table 3rd room, column 3rd room)
+Removed Global Volume from scene (Default Volume Profile is now configured only through HDRP Global Settings)
 
 ### Added
 - Added Adaptative probe volume support and tutorials
