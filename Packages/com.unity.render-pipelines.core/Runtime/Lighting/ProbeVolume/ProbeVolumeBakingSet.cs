@@ -175,6 +175,12 @@ namespace UnityEngine.Rendering
         }
 
         #if UNITY_EDITOR
+        internal void SetDefaults()
+        {
+            settings.SetDefaults();
+            lightingScenarios = new List<string> { ProbeReferenceVolume.defaultLightingScenario };
+        }
+
         internal void SanitizeScenes()
         {
             // Remove entries in the list pointing to deleted scenes

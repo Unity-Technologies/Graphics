@@ -81,6 +81,8 @@ namespace UnityEngine.Rendering
         static readonly Expandable k_ExpandableDefault = Expandable.Baking | Expandable.BakingWarnings | Expandable.Scenarios | Expandable.Placement | Expandable.Settings;
         static ExpandedState<Expandable, ProbeVolumeBakingProcessSettings> k_Foldouts;
 
+        // This set is used to draw a read only inspector in case no other set has been created
+        // It's content must not be changed
         static ProbeVolumeBakingSet s_DefaultSet;
         static ProbeVolumeBakingSet defaultSet
         {
@@ -90,6 +92,7 @@ namespace UnityEngine.Rendering
                 {
                     s_DefaultSet = ScriptableObject.CreateInstance<ProbeVolumeBakingSet>();
                     s_DefaultSet.hideFlags = HideFlags.NotEditable | HideFlags.HideAndDontSave;
+                    s_DefaultSet.SetDefaults();
                 }
                 return s_DefaultSet;
             }
@@ -163,6 +166,18 @@ namespace UnityEngine.Rendering
             RefreshSceneAssets();
         }
 
+        bool FindActiveSet()
+        {
+            if (m_ActiveSet == null)
+            {
+                activeSet = sceneData.GetBakingSetForScene(SceneManager.GetActiveScene());
+                for (int i = 0; activeSet == null && i < SceneManager.sceneCount; i++)
+                    activeSet = sceneData.GetBakingSetForScene(SceneManager.GetSceneAt(i));
+            }
+
+            return m_ActiveSet != null;
+        }
+
         void Initialize()
         {
             if (!ProbeReferenceVolume.instance.isInitialized || !ProbeReferenceVolume.instance.enabledBySRP)
@@ -175,12 +190,7 @@ namespace UnityEngine.Rendering
             if (m_Initialized)
                 return;
 
-            if (m_ActiveSet == null)
-            {
-                activeSet = sceneData.GetBakingSetForScene(SceneManager.GetActiveScene());
-                for (int i = 0; activeSet == null && i < SceneManager.sceneCount; i++)
-                    activeSet = sceneData.GetBakingSetForScene(SceneManager.GetSceneAt(i));
-            }
+            FindActiveSet();
 
             Undo.undoRedoEvent += OnUndoRedo;
             EditorSceneManager.sceneOpened += OnSceneOpened;
@@ -288,53 +298,7 @@ namespace UnityEngine.Rendering
             }
 
             if (ButtonWithDropdownList(Styles.generateLighting, Styles.bakeOptionsText, BakeButtonCallback, GUILayout.Width(Styles.lightingButtonWidth)))
-            {
-                // Make sure APV is enabled
-                var sceneData = ProbeReferenceVolume.instance.sceneData;
-                if (!ProbeReferenceVolume.instance.isInitialized || !ProbeReferenceVolume.instance.enabledBySRP || sceneData == null)
-                {
-                    Lightmapping.BakeAsync();
-                    return;
-                }
-
-                bool createPV = m_SingleSceneMode ? !ActiveSceneHasProbeVolume() : NoSceneHasProbeVolume();
-                if (createPV && EditorUtility.DisplayDialog("No Probe Volume in Scene", "Probe Volumes are enabled for this Project, but none exist in the Scene.\n\n" +
-                            "Do you whish to add a Probe Volume to the Active Scene?", "Yes", "No"))
-                    CreateProbeVolume();
-                if (m_SingleSceneMode)
-                {
-                    if (GetFirstProbeVolumeInNonActiveScene() != null)
-                    {
-                        int res = EditorUtility.DisplayDialogComplex("Create Baking Set?", "You are using the Single Scene Baking Mode and have more than one Scene loaded. It is not possible to generate lighting.\n\n" +
-                            "Do you want to create a Baking Set instead?", "Yes", "Cancel", "Bake anyway");
-                        if (res == 0)
-                            ConvertTempBakingSet();
-                        if (res == 1)
-                            return;
-                    }
-                }
-
-                SaveTempBakingSetIfNeeded();
-
-                // Exclude scenes unchecked from the UI and scenes from other baking sets
-                ProbeGIBaking.partialBakeSceneList = new();
-                for (int i = 0; i < SceneManager.sceneCount; i++)
-                {
-                    var scene = SceneManager.GetSceneAt(i);
-                    var guid = ProbeVolumeSceneData.GetSceneGUID(scene);
-                    if (!scene.isLoaded || sceneData.GetBakingSetForScene(guid) != activeSet) continue;
-                    if (sceneData.SceneHasProbeVolumes(guid) && activeSet.scenesToNotBake.Contains(guid)) continue;
-
-                    ProbeGIBaking.partialBakeSceneList.Add(guid);
-                }
-                if (ProbeGIBaking.partialBakeSceneList.Count == SceneManager.loadedSceneCount)
-                    ProbeGIBaking.partialBakeSceneList = null;
-
-                if (ProbeReferenceVolume.instance.supportLightingScenarios && !activeSet.lightingScenarios.Contains(sceneData.lightingScenario))
-                    sceneData.SetActiveScenario(activeSet.lightingScenarios[0], false);
-
                 Lightmapping.BakeAsync();
-            }
         }
 
         internal void UpdateScenarioStatuses(string scenario)
@@ -503,7 +467,10 @@ namespace UnityEngine.Rendering
         void UseTemporaryBakingSet(string sceneGUID, ProbeVolumeBakingSet set = null)
         {
             if (set == null)
+            {
                 set = ScriptableObject.CreateInstance<ProbeVolumeBakingSet>();
+                set.SetDefaults();
+            }
 
             EditorUtility.SetDirty(set);
             var sceneData = FindSceneData(sceneGUID);
@@ -549,7 +516,7 @@ namespace UnityEngine.Rendering
             var newSet = ScriptableObject.CreateInstance<ProbeVolumeBakingSet>();
             newSet.name = "New Baking Set";
             newSet.singleSceneMode = false;
-            newSet.settings.SetDefaults();
+            newSet.SetDefaults();
             ProjectWindowUtil.CreateAsset(newSet, System.IO.Path.Combine(path, "New Baking Set.asset").Replace('\\', '/'));
             return newSet;
         }
@@ -978,6 +945,65 @@ namespace UnityEngine.Rendering
         static bool ButtonWithDropdownList(GUIContent content, string[] buttonNames, GenericMenu.MenuFunction2 callback, params GUILayoutOption[] options)
         {
             return (bool)k_EditorGUI_ButtonWithDropdownList.Invoke(null, new object[] { content, buttonNames, callback, options });
+        }
+
+        internal bool PrepareAPVBake()
+        {
+            if (!ProbeReferenceVolume.instance.isInitialized || !ProbeReferenceVolume.instance.enabledBySRP || sceneData == null)
+                return false;
+
+            // In case UI was never opened we have to setup some stuff
+            FindActiveSet();
+
+            if (activeSet == null)
+            {
+                // APV was never setup by the user, try to do it for him by creating a default baking set
+                var activeScene = SceneManager.GetActiveScene();
+                var activeSceneGUID = ProbeVolumeSceneData.GetSceneGUID(activeScene);
+                UseTemporaryBakingSet(activeSceneGUID);
+            }
+
+            bool createPV = m_SingleSceneMode ? !ActiveSceneHasProbeVolume() : NoSceneHasProbeVolume();
+            if (createPV && EditorUtility.DisplayDialog("No Probe Volume in Scene", "Probe Volumes are enabled for this Project, but none exist in the Scene.\n\n" +
+                        "Do you wish to add a Probe Volume to the Active Scene?", "Yes", "No"))
+                CreateProbeVolume();
+            if (m_SingleSceneMode)
+            {
+                if (GetFirstProbeVolumeInNonActiveScene() != null)
+                {
+                    int res = EditorUtility.DisplayDialogComplex("Create Baking Set?", "You are using the Single Scene Baking Mode and have more than one Scene loaded. It is not possible to generate lighting.\n\n" +
+                        "Do you want to create a Baking Set instead?", "Yes", "Cancel", "Bake anyway");
+                    if (res == 0)
+                        ConvertTempBakingSet();
+                    if (res == 1)
+                        return false;
+                }
+            }
+
+            SaveTempBakingSetIfNeeded();
+
+            if (!FindActiveSet())
+                return false;
+
+            // Exclude scenes unchecked from the UI and scenes from other baking sets
+            ProbeGIBaking.partialBakeSceneList = new();
+            for (int i = 0; i < SceneManager.sceneCount; i++)
+            {
+                var scene = SceneManager.GetSceneAt(i);
+                var guid = ProbeVolumeSceneData.GetSceneGUID(scene);
+                if (!scene.isLoaded || sceneData.GetBakingSetForScene(guid) != activeSet) continue;
+                if (sceneData.SceneHasProbeVolumes(guid) && activeSet.scenesToNotBake.Contains(guid)) continue;
+
+                ProbeGIBaking.partialBakeSceneList.Add(guid);
+            }
+
+            if (ProbeGIBaking.partialBakeSceneList.Count == activeSet.sceneGUIDs.Count)
+                ProbeGIBaking.partialBakeSceneList = null;
+
+            if (ProbeReferenceVolume.instance.supportLightingScenarios && !activeSet.lightingScenarios.Contains(sceneData.lightingScenario))
+                sceneData.SetActiveScenario(activeSet.lightingScenarios[0], false);
+
+            return true;
         }
 
         static T ObjectFieldWithNew<T>(GUIContent label, T obj, Func<T> onClick) where T : Object
