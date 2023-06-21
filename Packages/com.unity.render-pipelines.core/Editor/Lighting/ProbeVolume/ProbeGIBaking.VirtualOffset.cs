@@ -198,7 +198,7 @@ namespace UnityEngine.Rendering
             return cellToVolumes;
         }
 
-        static Vector3[] DoForceVirtualOffsets(Vector3[] positions, Dictionary<int, TouchupsPerCell> cellToVolumes)
+        static Vector3[] DoApplyVirtualOffsetsFromAdjustmentVolumes(Vector3[] positions, Dictionary<int, TouchupsPerCell> cellToVolumes)
         {
             float cellSize = m_BakingProfile.cellSizeInMeters;
             var offsets = new Vector3[positions.Length];
@@ -223,6 +223,16 @@ namespace UnityEngine.Rendering
 
         static void DoApplyVirtualOffsets(Vector3[] probePositions, out Vector3[] probeOffsets, VirtualOffsetSettings voSettings, Dictionary<int, TouchupsPerCell> cellToVolumes)
         {
+            var scaleForSearchDist = voSettings.searchMultiplier;
+            float rayOriginBias = voSettings.rayOriginBias;
+            float geometryBias = voSettings.outOfGeoOffset;
+
+            if (scaleForSearchDist == 0.0f)
+            {
+                probeOffsets = DoApplyVirtualOffsetsFromAdjustmentVolumes(probePositions, cellToVolumes);
+                return;
+            }
+
             // Limit memory usage based on ray cast / hit structures (of which there are lots per position)
             int maxPositionsPerBatch;
             {
@@ -305,10 +315,7 @@ namespace UnityEngine.Rendering
                         var brickSize = ProbeReferenceVolume.CellSize(subdivLevel);
                         var searchDistance = (brickSize * m_BakingProfile.minBrickSize) / ProbeBrickPool.kBrickCellCount;
 
-                        var scaleForSearchDist = voSettings.searchMultiplier;
                         var distanceSearch = scaleForSearchDist * searchDistance;
-                        float rayOriginBias = voSettings.rayOriginBias;
-                        float geometryBias = voSettings.outOfGeoOffset;
 
                         int cellIndex = PosToIndex(Vector3Int.FloorToInt(positions[batchPosIdx] / cellSize));
                         bool hasTouchups = cellToVolumes.TryGetValue(cellIndex, out var volumes), adjusted = false;

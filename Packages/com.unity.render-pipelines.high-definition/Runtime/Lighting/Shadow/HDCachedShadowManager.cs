@@ -308,7 +308,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
         internal void RegisterLight(HDAdditionalLightData lightData)
         {
-            if (!lightData.lightEntity.valid)
+            if (!lightData.lightEntity.valid || lightData.legacyLight.bakingOutput.lightmapBakeType == LightmapBakeType.Baked)
             {
                 return;
             }
