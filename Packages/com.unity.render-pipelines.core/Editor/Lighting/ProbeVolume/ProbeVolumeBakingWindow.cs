@@ -647,19 +647,9 @@ namespace UnityEngine.Rendering
 
         void OnGUI()
         {
-            // TODO: add the toolbar with search field for the list
-            // DrawToolbar();
-
-            string apvDisabledErrorMsg = "The Probe Volume is not enabled.";
-            var renderPipelineAsset = GraphicsSettings.renderPipelineAsset;
-            if (renderPipelineAsset != null && renderPipelineAsset.GetType().Name == "HDRenderPipelineAsset")
-            {
-                apvDisabledErrorMsg += " Make sure it is enabled in the HDRP Global Settings and in the HDRP asset in use.";
-            }
-
             if (!ProbeReferenceVolume.instance.isInitialized || !ProbeReferenceVolume.instance.enabledBySRP)
             {
-                EditorGUILayout.HelpBox(apvDisabledErrorMsg, MessageType.Error);
+                ProbeVolumeEditor.APVDisabledHelpBox();
                 return;
             }
 
