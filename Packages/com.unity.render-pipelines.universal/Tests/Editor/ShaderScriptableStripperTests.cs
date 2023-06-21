@@ -658,6 +658,7 @@ namespace ShaderStrippingAndPrefiltering
         [TestCase("Hidden/Universal Render Pipeline/CameraMotionVectors")]
         [TestCase("Hidden/Universal Render Pipeline/CopyDepth")]
         [TestCase("Hidden/Universal Render Pipeline/SubpixelMorphologicalAntialiasing")]
+        [TestCase("Hidden/Universal Render Pipeline/LensFlareDataDriven")]
         public void TestStripUnusedFeatures(string shaderName)
         {
             Shader shader = Shader.Find(shaderName);
@@ -686,6 +687,7 @@ namespace ShaderStrippingAndPrefiltering
             TestStripUnusedFeatures_AccurateGbufferNormals(shader);
             TestStripUnusedFeatures_LightCookies(shader);
             TestStripUnusedFeatures_SHAuto(shader);
+            TestStripUnusedFeatures_DataDrivenLensFlare(shader);
         }
 
         public void TestStripUnusedFeatures_DebugDisplay(Shader shader)
@@ -713,6 +715,20 @@ namespace ShaderStrippingAndPrefiltering
             TestHelper.s_EnabledKeywords = new List<string>() {ShaderKeywordStrings.DEBUG_DISPLAY};
             TestHelper.s_PassKeywords = new List<string>() {ShaderKeywordStrings.DEBUG_DISPLAY};
             helper.AreEqual(shader != null, helper.stripper.StripUnusedFeatures_DebugDisplay(ref helper.data));
+        }
+        
+        public void TestStripUnusedFeatures_DataDrivenLensFlare(Shader shader)
+        {
+
+            TestHelper helper;
+
+            helper = new TestHelper(shader, ShaderFeatures.DataDrivenLensFlare);
+            helper.IsFalse(helper.stripper.StripUnusedFeatures_DataDrivenLensFlare(ref helper.data));
+
+            helper = new TestHelper(shader, ShaderFeatures.None);
+            bool isLensFlareDataDriven = shader != null && shader.name == "Hidden/Universal Render Pipeline/LensFlareDataDriven";
+            //We should strip the shader only if it's the lens flare one. 
+            helper.IsTrue(isLensFlareDataDriven ? helper.stripper.StripUnusedFeatures_DataDrivenLensFlare(ref helper.data) : !helper.stripper.StripUnusedFeatures_DataDrivenLensFlare(ref helper.data));
         }
 
         public void TestStripUnusedFeatures_ScreenCoordOverride(Shader shader)

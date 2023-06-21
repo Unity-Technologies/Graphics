@@ -64,6 +64,7 @@ namespace UnityEditor.Rendering.Universal
         AutoSHMode = (1L << 41),
         AutoSHModePerVertex = (1L << 42),
         ExplicitSHMode = (1L << 43),
+        DataDrivenLensFlare = (1L << 44),
     }
 
     [Flags]
@@ -402,6 +403,9 @@ namespace UnityEditor.Rendering.Universal
 
             if (urpAsset.shEvalMode == ShEvalMode.Auto)
                 urpAssetShaderFeatures |= ShaderFeatures.AutoSHMode;
+            
+            if (urpAsset.supportDataDrivenLensFlare)
+                urpAssetShaderFeatures |= ShaderFeatures.DataDrivenLensFlare;
 
             // Check each renderer & renderer feature
             urpAssetShaderFeatures = GetSupportedShaderFeaturesFromRenderers(

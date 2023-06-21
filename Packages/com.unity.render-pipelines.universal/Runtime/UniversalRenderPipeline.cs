@@ -1414,6 +1414,7 @@ namespace UnityEngine.Rendering.Universal
 
             postProcessingData.lutSize = settings.colorGradingLutSize;
             postProcessingData.useFastSRGBLinearConversion = settings.useFastSRGBLinearConversion;
+            postProcessingData.supportDataDrivenLensFlare = settings.supportDataDrivenLensFlare;
         }
 
         static void InitializeLightData(UniversalRenderPipelineAsset settings, NativeArray<VisibleLight> visibleLights, int mainLightIndex, out LightData lightData)

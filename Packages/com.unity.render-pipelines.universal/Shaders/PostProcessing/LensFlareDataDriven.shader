@@ -2,6 +2,8 @@ Shader "Hidden/Universal Render Pipeline/LensFlareDataDriven"
 {
     SubShader
     {
+        Tags{ "RenderPipeline" = "UniversalPipeline" }
+        
         // Additive
         Pass
         {

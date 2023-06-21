@@ -110,6 +110,8 @@ namespace UnityEditor.Rendering.Universal
         Shader m_StencilDeferred = Shader.Find("Hidden/Universal Render Pipeline/StencilDeferred");
         Shader m_UberPostShader = Shader.Find("Hidden/Universal Render Pipeline/UberPost");
         Shader m_HDROutputBlitShader = Shader.Find("Hidden/Universal/BlitHDROverlay");
+        Shader m_DataDrivenLensFlareShader = Shader.Find("Hidden/Universal Render Pipeline/LensFlareDataDriven");
+
 
         // Pass names
         public static readonly string kPassNameUniversal2D = "Universal2D";
@@ -675,6 +677,15 @@ namespace UnityEditor.Rendering.Universal
         {
             return stripTool.StripMultiCompileKeepOffVariant(m_LightCookies, ShaderFeatures.LightCookies);
         }
+        
+        internal bool StripUnusedFeatures_DataDrivenLensFlare(ref IShaderScriptableStrippingData strippingData)
+        {
+            // If this is not the right shader, then skip
+            if (strippingData.shader != m_DataDrivenLensFlareShader)
+                return false;
+
+            return !strippingData.IsShaderFeatureEnabled(ShaderFeatures.DataDrivenLensFlare);
+        }
 
         internal bool StripUnusedFeatures(ref IShaderScriptableStrippingData strippingData)
         {
@@ -694,6 +705,9 @@ namespace UnityEditor.Rendering.Universal
                 return true;
 
             if (StripUnusedFeatures_DeferredRendering(ref strippingData))
+                return true;
+            
+            if (StripUnusedFeatures_DataDrivenLensFlare(ref strippingData))
                 return true;
 
             ShaderStripTool<ShaderFeatures> stripTool = new ShaderStripTool<ShaderFeatures>(strippingData.shaderFeatures, ref strippingData);

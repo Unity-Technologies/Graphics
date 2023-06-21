@@ -32,6 +32,13 @@ namespace UnityEditor.Rendering.HighDefinition
                     shader == hdrpAsset.renderPipelineResources.shaders.waterPS)
                     return true;
             }
+            
+            // If Data Driven Lens Flare is disabled, strip all the shaders (the preview shader LensFlareDataDrivenPreview.shader in Core will not be stripped)
+            if (!hdrpAsset.currentPlatformRenderPipelineSettings.supportDataDrivenLensFlare)
+            {
+                if (shader == hdrpAsset.renderPipelineResources.shaders.lensFlareDataDrivenPS)
+                    return true;
+            }
 
             // Remove editor only pass
             bool isSceneSelectionPass = snippet.passName == "SceneSelectionPass";
