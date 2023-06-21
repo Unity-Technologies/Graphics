@@ -406,7 +406,7 @@ Shader "Hidden/HDRP/TerrainLit_Basemap"
             #define SHADERPASS SHADERPASS_PATH_TRACING
 
             #pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT
-            #pragma multi_compile _ PATH_TRACING_ADDITIVE_NORMAL_BLENDING
+            #pragma multi_compile _ DECAL_SURFACE_GRADIENT
 
             #pragma multi_compile _ DEBUG_DISPLAY
             #pragma multi_compile _ SENSORSDK_OVERRIDE_REFLECTANCE

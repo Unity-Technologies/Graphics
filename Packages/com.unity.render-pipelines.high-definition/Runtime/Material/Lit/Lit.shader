@@ -1281,7 +1281,7 @@ Shader "HDRP/Lit"
             #define SHADERPASS SHADERPASS_PATH_TRACING
 
             #pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT
-            #pragma multi_compile _ PATH_TRACING_ADDITIVE_NORMAL_BLENDING
+            #pragma multi_compile _ DECAL_SURFACE_GRADIENT
 
             // This is just because it needs to be defined, shadow maps are not used.
             #define SHADOW_LOW

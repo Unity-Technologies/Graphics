@@ -130,6 +130,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             if(pass.IsPathTracing())
             {
                 pass.keywords.Add(CoreKeywordDescriptors.DecalsRayTracing);
+                pass.keywords.Add(CoreKeywordDescriptors.DecalSurfaceGradientRayTracing);
             }
 
             if (pass.IsForward())

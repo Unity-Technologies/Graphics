@@ -228,6 +228,7 @@ Pass
     // --------------------------------------------------
     // Build Surface Data (Specific Material)
 
+    $include("DecalCommon.template.hlsl")
     $include("ShaderPass.template.hlsl")
 
     // --------------------------------------------------
