@@ -534,7 +534,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="targetDepthBuffer">Target Depth buffer. Note: It's also the buffer which will do the Depth Test</param>
         /// <returns></returns>
         public static DrawRenderersCustomPass CreateDrawRenderersPass(RenderQueueType queue, LayerMask mask,
-            Material overrideMaterial, string overrideMaterialPassName = "Forward", SortingCriteria sorting = SortingCriteria.CommonOpaque,
+            Material overrideMaterial, string overrideMaterialPassName = "Forward", SortingCriteria sorting = HDUtils.k_OpaqueSortingCriteria,
             ClearFlag clearFlags = ClearFlag.None, TargetBuffer targetColorBuffer = TargetBuffer.Camera,
             TargetBuffer targetDepthBuffer = TargetBuffer.Camera)
         {
