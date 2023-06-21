@@ -167,14 +167,7 @@ namespace UnityEngine.Rendering
         {
             if (!ProbeReferenceVolume.instance.isInitialized || !ProbeReferenceVolume.instance.enabledBySRP)
             {
-                string apvDisabledErrorMsg = "Probe Volumes are not enabled.";
-                var renderPipelineAssetType = GraphicsSettings.currentRenderPipelineAssetType;
-                if (renderPipelineAssetType != null && renderPipelineAssetType.Name == "HDRenderPipelineAsset")
-                    apvDisabledErrorMsg += " Make sure Light Probe System is set to Probe Volumes in the HDRP asset in use.";
-                if (renderPipelineAssetType != null && renderPipelineAssetType.Name == "UniversalRenderPipelineAsset")
-                    apvDisabledErrorMsg += " Make sure Light Probe System is set to Probe Volumes in the URP asset in use.";
-
-                EditorGUILayout.HelpBox(apvDisabledErrorMsg, MessageType.Error);
+                ProbeVolumeEditor.APVDisabledHelpBox();
                 EditorGUILayout.Space();
                 return;
             }
