@@ -286,7 +286,7 @@ void WaterFogIndirect(uint2 groupThreadId : SV_GroupThreadID, uint groupId : SV_
 
     // Atmospheric fog on front faces, absorption on back faces
     float3 volColor = 0, volOpacity = 0;
-    if (DecodeWaterFrontFaceFromGBuffer(currentCoord))
+    if (!IsUnderWater(currentCoord))
     {
         // Compute the view vector
         float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);

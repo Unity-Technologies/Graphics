@@ -60,6 +60,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 // Set the simulation time
+                waterSurface.simulation.deltaTime = 1.0f / 60.0f;
                 waterSurface.simulation.simulationTime = (float)(currentTotalTime) * waterSurface.timeMultiplier;
             }
         }

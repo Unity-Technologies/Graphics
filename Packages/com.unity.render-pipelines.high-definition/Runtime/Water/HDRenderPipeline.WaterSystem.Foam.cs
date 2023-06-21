@@ -26,7 +26,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Materials and Compute shaders
         Material m_FoamMaterial;
-        MaterialPropertyBlock m_WaterFoamMBP = new MaterialPropertyBlock();
         ComputeShader m_WaterFoamCS;
         int m_ReprojectFoamKernel;
         int m_PostProcessFoamKernel;
@@ -176,35 +175,32 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Grab the foam buffers
             RTHandle currentFoamBuffer = currentWater.foamBuffers[0];
-            RTHandle previousFoamBuffer = currentWater.foamBuffers[1];
+            RTHandle tmpFoamBuffer = currentWater.foamBuffers[1];
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.WaterSurfaceFoam)))
             {
+                ConstantBuffer.Set<ShaderVariablesWater>(cmd, m_WaterFoamCS, HDShaderIDs._ShaderVariablesWater);
+                ConstantBuffer.Set<ShaderVariablesWater>(m_FoamMaterial, HDShaderIDs._ShaderVariablesWater);
+
                 // Reproject the previous frame's foam buffer
                 int tileC = ((int)currentWater.foamResolution + 7) / 8;
-                ConstantBuffer.Set<ShaderVariablesWater>(cmd, m_WaterFoamCS, HDShaderIDs._ShaderVariablesWater);
                 cmd.SetComputeVectorParam(m_WaterFoamCS, HDShaderIDs._PreviousFoamRegionData, currentWater.previousFoamData);
                 cmd.SetComputeTextureParam(m_WaterFoamCS, m_ReprojectFoamKernel, HDShaderIDs._WaterFoamBuffer, currentFoamBuffer);
-                cmd.SetComputeTextureParam(m_WaterFoamCS, m_ReprojectFoamKernel, HDShaderIDs._WaterFoamBufferRW, previousFoamBuffer);
+                cmd.SetComputeTextureParam(m_WaterFoamCS, m_ReprojectFoamKernel, HDShaderIDs._WaterFoamBufferRW, tmpFoamBuffer);
                 cmd.DispatchCompute(m_WaterFoamCS, m_ReprojectFoamKernel, tileC, tileC, 1);
 
+                // Apply an attenuation on the existing foam
+                CoreUtils.SetRenderTarget(cmd, tmpFoamBuffer);
+                cmd.DrawProcedural(Matrix4x4.identity, m_FoamMaterial, 2, MeshTopology.Triangles, 3, 1);
+
                 // Then we render the deformers and the generators
-                ConstantBuffer.Set<ShaderVariablesWater>(m_FoamMaterial, HDShaderIDs._ShaderVariablesWater);
-                CoreUtils.SetRenderTarget(cmd, currentFoamBuffer, ClearFlag.Color, Color.black);
                 if (waterDeformers)
                     cmd.DrawProcedural(Matrix4x4.identity, m_FoamMaterial, 0, MeshTopology.Triangles, 6, m_ActiveWaterDeformers);
                 if (foamGenerators)
                     cmd.DrawProcedural(Matrix4x4.identity, m_FoamMaterial, 1, MeshTopology.Triangles, 6, m_ActiveWaterFoamGenerators);
 
-                // Apply an attenuation and blend the current foam
-                CoreUtils.SetRenderTarget(cmd, previousFoamBuffer);
-                // Setup the mbp
-                m_WaterFoamMBP.Clear();
-                m_WaterFoamMBP.SetTexture(HDShaderIDs._WaterFoamBuffer, currentFoamBuffer);
-                cmd.DrawProcedural(Matrix4x4.identity, m_FoamMaterial, 2, MeshTopology.Triangles, 3, 1, m_WaterFoamMBP);
-
                 // To avoid the swap in swap out of the textures, we do this.
-                cmd.SetComputeTextureParam(m_WaterFoamCS, m_PostProcessFoamKernel, HDShaderIDs._WaterFoamBuffer, previousFoamBuffer);
+                cmd.SetComputeTextureParam(m_WaterFoamCS, m_PostProcessFoamKernel, HDShaderIDs._WaterFoamBuffer, tmpFoamBuffer);
                 cmd.SetComputeTextureParam(m_WaterFoamCS, m_PostProcessFoamKernel, HDShaderIDs._WaterFoamBufferRW, currentFoamBuffer);
                 cmd.DispatchCompute(m_WaterFoamCS, m_PostProcessFoamKernel, tileC, tileC, 1);
 

@@ -227,16 +227,13 @@ Shader "Hidden/HDRP/WaterFoam"
             Cull Off
             ZTest Off
             ZWrite Off
-            Blend One SrcAlpha
+            Blend Zero SrcAlpha
 
             HLSLPROGRAM
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/WaterSystemDef.cs.hlsl"
-
-            // Foam buffer
-            Texture2D<float2> _WaterFoamBuffer;
 
             struct Attributes
             {
@@ -259,7 +256,7 @@ Shader "Hidden/HDRP/WaterFoam"
             float4 Frag(Varyings input) : SV_Target
             {
                 // Attenuation formula must be in sync with UpdateWaterFoamSimulation in C#
-                return float4(SAMPLE_TEXTURE2D_LOD(_WaterFoamBuffer, s_linear_clamp_sampler, input.texcoord, 0).xy, 0.0, exp(-_DeltaTime * _FoamPersistenceMultiplier * 0.5));
+                return float4(0.0, 0.0, 0.0, exp(-_DeltaTime * _FoamPersistenceMultiplier * 0.5));
             }
             ENDHLSL
         }
