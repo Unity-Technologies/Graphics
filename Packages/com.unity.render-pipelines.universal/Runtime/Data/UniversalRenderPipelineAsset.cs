@@ -163,8 +163,6 @@ namespace UnityEngine.Rendering.Universal
         // Defaults for renderer features that are not dependent on other settings.
         // These are the filter rules if no such renderer features are present.
 
-        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings.ScreenSpaceOcclusion)]
-
         // TODO: decal settings needs some rework before we can filter DBufferMRT/DecalNormalBlend.
         // Atm the setup depends on the technique but settings are present for both at the same time.
         //[ShaderKeywordFilter.RemoveIf(true, keywordNames: new string[] {ShaderKeywordStrings.DBufferMRT1, ShaderKeywordStrings.DBufferMRT2, ShaderKeywordStrings.DBufferMRT3})]

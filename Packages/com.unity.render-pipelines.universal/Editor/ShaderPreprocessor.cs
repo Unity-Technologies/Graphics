@@ -850,8 +850,15 @@ namespace UnityEditor.Rendering.Universal
             return true;
         }
 
+        private static bool s_stripUnusedVariants = false;
         private static void FetchAllSupportedFeatures()
         {
+            UniversalRenderPipelineGlobalSettings globalSettings = UniversalRenderPipelineGlobalSettings.instance;
+            if (globalSettings)
+            {
+                s_stripUnusedVariants = globalSettings.stripUnusedVariants;
+            }
+
             List<UniversalRenderPipelineAsset> urps = new List<UniversalRenderPipelineAsset>();
 
             // TODO: Replace once we have official API for filtering urps per build target
@@ -1002,34 +1009,79 @@ namespace UnityEditor.Rendering.Universal
                     {
                         ScriptableRendererFeature rendererFeature = rendererData.rendererFeatures[rendererFeatureIndex];
 
+                        // Make sure the renderer feature isn't missing
+                        if (rendererFeature == null)
+                            continue;
+
+                        // We don't add disabled renderer features if "Strip Unused Variants" is enabled
+                        if (s_stripUnusedVariants && !rendererFeature.isActive)
+                            continue;
+
                         ScreenSpaceShadows ssshadows = rendererFeature as ScreenSpaceShadows;
-                        hasScreenSpaceShadows |= ssshadows != null;
+                        if (ssshadows != null)
+                        {
+                            // Add it if it's enabled or if unused variant should not be stripped
+                            if (ssshadows.isActive || !s_stripUnusedVariants)
+                                hasScreenSpaceShadows = true;
+
+                            continue;
+                        }
 
                         // Check for Screen Space Ambient Occlusion Renderer Feature
                         ScreenSpaceAmbientOcclusion ssao = rendererFeature as ScreenSpaceAmbientOcclusion;
-                        hasScreenSpaceOcclusion |= ssao != null;
+                        if (ssao != null)
+                        {
+                            // Keep _SCREEN_PACE_OCCLUSION and the Off variant when stripping of unused variants is disabled
+                            if (!s_stripUnusedVariants)
+                            {
+                                shaderFeatures |= ShaderFeatures.ScreenSpaceOcclusion;
+                                shaderFeatures |= ShaderFeatures.ScreenSpaceOcclusionAfterOpaque;
+                            }
 
-                        if (ssao?.afterOpaque ?? false)
-                            shaderFeatures |= ShaderFeatures.ScreenSpaceOcclusionAfterOpaque;
+                            // The feature is active (Tested a few lines above) so check for AfterOpaque
+                            else
+                            {
+                                if (ssao.afterOpaque)
+                                    shaderFeatures |= ShaderFeatures.ScreenSpaceOcclusionAfterOpaque;
+                                else
+                                    shaderFeatures |= ShaderFeatures.ScreenSpaceOcclusion;
+                            }
+
+                            continue;
+                        }
 
                         // Check for Decal Renderer Feature
                         DecalRendererFeature decal = rendererFeature as DecalRendererFeature;
                         if (decal != null)
                         {
-                            var technique = decal.GetTechnique(hasDeferredRenderer, false);
-                            switch (technique)
+                            // Keep all Decals variants when stripping of unused variants is disabled
+                            if (!s_stripUnusedVariants)
                             {
-                                case DecalTechnique.DBuffer:
-                                    shaderFeatures |= GetFromDecalSurfaceData(decal.GetDBufferSettings().surfaceData);
-                                    break;
-                                case DecalTechnique.ScreenSpace:
-                                    shaderFeatures |= GetFromNormalBlend(decal.GetScreenSpaceSettings().normalBlend);
-                                    shaderFeatures |= ShaderFeatures.DecalScreenSpace;
-                                    break;
-                                case DecalTechnique.GBuffer:
-                                    shaderFeatures |= GetFromNormalBlend(decal.GetScreenSpaceSettings().normalBlend);
-                                    shaderFeatures |= ShaderFeatures.DecalGBuffer;
-                                    break;
+                                shaderFeatures |= ShaderFeatures.DBufferMRT1;
+                                shaderFeatures |= ShaderFeatures.DBufferMRT2;
+                                shaderFeatures |= ShaderFeatures.DBufferMRT3;
+                                shaderFeatures |= ShaderFeatures.DecalNormalBlendLow;
+                                shaderFeatures |= ShaderFeatures.DecalNormalBlendMedium;
+                                shaderFeatures |= ShaderFeatures.DecalNormalBlendHigh;
+                                shaderFeatures |= ShaderFeatures.DecalGBuffer;
+                            }
+                            else
+                            {
+                                var technique = decal.GetTechnique(hasDeferredRenderer, false);
+                                switch (technique)
+                                {
+                                    case DecalTechnique.DBuffer:
+                                        shaderFeatures |= GetFromDecalSurfaceData(decal.GetDBufferSettings().surfaceData);
+                                        break;
+                                    case DecalTechnique.ScreenSpace:
+                                        shaderFeatures |= GetFromNormalBlend(decal.GetScreenSpaceSettings().normalBlend);
+                                        shaderFeatures |= ShaderFeatures.DecalScreenSpace;
+                                        break;
+                                    case DecalTechnique.GBuffer:
+                                        shaderFeatures |= GetFromNormalBlend(decal.GetScreenSpaceSettings().normalBlend);
+                                        shaderFeatures |= ShaderFeatures.DecalGBuffer;
+                                        break;
+                                }
                             }
                         }
                     }

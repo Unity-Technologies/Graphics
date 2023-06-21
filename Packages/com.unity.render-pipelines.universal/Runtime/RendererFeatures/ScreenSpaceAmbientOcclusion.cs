@@ -10,10 +10,6 @@ namespace UnityEngine.Rendering.Universal
     {
         // Parameters
         [SerializeField] internal bool Downsample = false;
-#if UNITY_EDITOR
-        // AfterOpaque requires also the "off variant" to be included
-        [ShaderKeywordFilter.SelectIf(true, overridePriority: true, keywordNames: new string[] {"", ShaderKeywordStrings.ScreenSpaceOcclusion})]
-#endif
         [SerializeField] internal bool AfterOpaque = false;
         [SerializeField] internal DepthSource Source = DepthSource.DepthNormals;
         [SerializeField] internal NormalQuality NormalSamples = NormalQuality.Medium;
@@ -41,11 +37,6 @@ namespace UnityEngine.Rendering.Universal
     [Tooltip("The Ambient Occlusion effect darkens creases, holes, intersections and surfaces that are close to each other.")]
     internal class ScreenSpaceAmbientOcclusion : ScriptableRendererFeature
     {
-#if UNITY_EDITOR
-        [ShaderKeywordFilter.SelectIf(true, overridePriority: true, keywordNames: ShaderKeywordStrings.ScreenSpaceOcclusion)]
-        private const bool k_RequiresScreenSpaceOcclusion = true;
-#endif
-
         // Serialized Fields
         [SerializeField, HideInInspector] private Shader m_Shader = null;
         [SerializeField] private ScreenSpaceAmbientOcclusionSettings m_Settings = new ScreenSpaceAmbientOcclusionSettings();
