@@ -236,9 +236,9 @@
             #define LOAD_FRAMEBUFFER_INPUT_MS(idx, sampleIdx, v2fname) DXC_DummySubpassVariable##idx
         #endif
 
-    #elif defined(SHADER_API_METAL) && defined(SHADER_API_DESKTOP)
+    #elif defined(SHADER_API_METAL) && defined(UNITY_NEEDS_RENDERPASS_FBFETCH_FALLBACK)
 
-                // On desktop metal we need special magic due to the need to support both intel and apple silicon
+        // On desktop metal we need special magic due to the need to support both intel and apple silicon
         // since the former does not support framebuffer fetch
         // Due to this we have special considerations:
         // 1. since we might need to bind the copy texture, to simplify our lives we always declare _UnityFBInput texture
