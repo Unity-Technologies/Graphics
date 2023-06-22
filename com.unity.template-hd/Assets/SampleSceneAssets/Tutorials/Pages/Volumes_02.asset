@@ -50,26 +50,15 @@ MonoBehaviour:
       Title:
         m_Untranslated: 
       Text:
-        m_Untranslated: "Let\u2019s see how the global default values are defined
-          for volumes.\n\n1. Under the <i>Edit</i> menu, select  <i>Project Settings.</i>
-          Under <i>Graphics,</i> select <b>HDRP Global Settings.</b> \n\n2. In the
-          <b>Default Volume Profile Section,</b> find the <b>Color Adjustments</b>
-          item and expand the foldout. (You can find it under the <b>Post-processing</b>
-          section, or use the search field to find it)\n\n3. Drag the <b>Saturation</b>
-          sllider left and right. You can see that the image gets desaturated out
-          as you drag to the left, and more vibrant as you drag to the right. \n\n4.
-          Undo your change.\n\n<b>Default Volume Profile</b> defines project-wide
-          default settings for all components. You should set the default values
-          for all volumes here, especially for settings that do not need to change
-          (for instance Motion Blur or Film Grain).\n\nUse <b>Global Volumes</b>
-          objects for settings that are constant within a scene (for instance Sky,
-          Fog or Shadows).\n\nFinally, use <b>Local Volumes</b> insides scenes to
-          override the default and global volume values depending on the position.\n\nThe
-          values set in the <b>Default Volume Profile</b> are applied at load time,
-          and do not have a runtime cost associated with them. In contrast, volume
-          overrides defined using <b>Global</b> and <b>Local Volumes</b> insides
-          scenes are evaluated every frame. Therefore it is recommended to use the
-          Default Volume Profile for values that do not need to change."
+        m_Untranslated: "Let\u2019s see how the Default Volume properties are defined.\n\n1.
+          Under <b>Edit</b> > <b>Project Settings</b> > <b>Graphics,</b> select <b>HDRP
+          Global Settings.</b> \n\n2. In the <b>Default Volume Profile</b> section,
+          search for the <b>Color Adjustments</b> component, using the dedicated
+          search bar.\n\n3. Expand the component, and move the <b>Saturation</b>
+          sllider left and right. \n\nYou can see that the entire Scene becomes either
+          less or more saturated, regardless of the camera position.\n\n4. Undo your
+          change by resetting the <b>Saturation</b> to 0. Alternatively, you may
+          right click on the property to revert it to its default value."
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
