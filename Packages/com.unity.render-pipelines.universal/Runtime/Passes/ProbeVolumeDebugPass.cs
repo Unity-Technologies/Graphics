@@ -12,7 +12,6 @@ namespace UnityEngine.Rendering.Universal
     internal partial class ProbeVolumeDebugPass : ScriptableRenderPass
     {
         ComputeShader m_ComputeShader;
-        int m_Kernel;
         RTHandle m_DepthTexture;
         RTHandle m_NormalTexture;
 
@@ -24,7 +23,6 @@ namespace UnityEngine.Rendering.Universal
             base.profilingSampler = new ProfilingSampler(nameof(ProbeVolumeDebugPass));
             renderPassEvent = evt;
             m_ComputeShader = computeShader;
-            m_Kernel = computeShader.FindKernel("ComputePositionNormal");
         }
 
         public void Setup(RTHandle depthBuffer, RTHandle normalBuffer)
@@ -42,7 +40,7 @@ namespace UnityEngine.Rendering.Universal
             ref CameraData cameraData = ref renderingData.cameraData;
             if (ProbeReferenceVolume.instance.GetProbeSamplingDebugResources(cameraData.camera, out var resultBuffer, out Vector2 coords))
             {
-                OutputPositionAndNormal(renderingData.commandBuffer, m_ComputeShader, m_Kernel, resultBuffer, coords, m_DepthTexture, m_NormalTexture);
+                OutputPositionAndNormal(renderingData.commandBuffer, m_ComputeShader, resultBuffer, coords, m_DepthTexture, m_NormalTexture);
             }
         }
 
@@ -50,7 +48,6 @@ namespace UnityEngine.Rendering.Universal
         class WriteApvData
         {
             public ComputeShader computeShader;
-            public int kernel;
             public BufferHandle resultBuffer;
             public Vector2 clickCoordinates;
             public TextureHandle depthBuffer;
@@ -79,18 +76,19 @@ namespace UnityEngine.Rendering.Universal
                     passData.depthBuffer = builder.ReadTexture(depthPyramidBuffer);
                     passData.normalBuffer = builder.ReadTexture(normalBuffer);
                     passData.computeShader = m_ComputeShader;
-                    passData.kernel = m_Kernel;
 
                     builder.SetRenderFunc((WriteApvData data, RenderGraphContext ctx) =>
                         {
-                            OutputPositionAndNormal(ctx.cmd, data.computeShader, data.kernel, data.resultBuffer, data.clickCoordinates, data.depthBuffer, data.normalBuffer);
+                            OutputPositionAndNormal(ctx.cmd, data.computeShader, data.resultBuffer, data.clickCoordinates, data.depthBuffer, data.normalBuffer);
                         });
                 }
             }
         }
 
-        static void OutputPositionAndNormal(CommandBuffer cmd, ComputeShader compute, int kernel, GraphicsBuffer resultBuffer, Vector2 clickCoordinates, RenderTargetIdentifier depthBuffer, RenderTargetIdentifier normalBuffer)
+        static void OutputPositionAndNormal(CommandBuffer cmd, ComputeShader compute, GraphicsBuffer resultBuffer, Vector2 clickCoordinates, RenderTargetIdentifier depthBuffer, RenderTargetIdentifier normalBuffer)
         {
+            int kernel = compute.FindKernel("ComputePositionNormal");
+
             cmd.SetComputeTextureParam(compute, kernel, "_CameraDepthTexture", depthBuffer);
             cmd.SetComputeTextureParam(compute, kernel, "_NormalBufferTexture", normalBuffer);
             cmd.SetComputeVectorParam(compute, "_positionSS", new Vector4(clickCoordinates.x, clickCoordinates.y, 0.0f, 0.0f));
