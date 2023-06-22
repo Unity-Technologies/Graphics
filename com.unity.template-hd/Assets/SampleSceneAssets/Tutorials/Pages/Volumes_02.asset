@@ -12,6 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ff771ccdf4150419d9ff4d342b069aae, type: 3}
   m_Name: Volumes_02
   m_EditorClassIdentifier: 
+  Title:
+    m_Untranslated: Explore the Default Volume
   m_Paragraphs:
     m_Items:
     - m_Type: 6
@@ -46,18 +48,28 @@ MonoBehaviour:
       m_TutorialButtonText: 
     - m_Type: 0
       Title:
-        m_Untranslated: Explore the Global Volume
+        m_Untranslated: 
       Text:
-        m_Untranslated: "Let\u2019s see how volumes are being used in this Scene.\r\n\r\n1.
-          In the <i>Hierarchy,</i> expand <b>Lighting</b> > <b>Volumes.</b>\r\n\r\n2.
-          Select the <b>Volume Global</b> GameObject.\r\n\n3. Notice the <b>Mode</b>
-          is <b>Global</b> in the <i>Inspector.</i>\r\n\n4. Disable the <b>Tonemapping</b>
-          Override. You can see that the image becomes more washed out as a result.\n\r\n5.
-          Undo your change.\r\n\r\n<b>Global Volumes</b> have an effect on cameras,
-          wherever they are located. This is important for setting up a baseline
-          for effects that often remain constant thoughtout the scene, no matter
-          the location of the camera, for instance:\n\u2022 Sky\n\u2022 Fog\n\u2022
-          Shadows\n\u2022 Tonemapping\n\u2022 Motion Blur\n\u2022 Film Grain \r"
+        m_Untranslated: "Let\u2019s see how the global default values are defined
+          for volumes.\n\n1. Under the <i>Edit</i> menu, select  <i>Project Settings.</i>
+          Under <i>Graphics,</i> select <b>HDRP Global Settings.</b> \n\n2. In the
+          <b>Default Volume Profile Section,</b> find the <b>Color Adjustments</b>
+          item and expand the foldout. (You can find it under the <b>Post-processing</b>
+          section, or use the search field to find it)\n\n3. Drag the <b>Saturation</b>
+          sllider left and right. You can see that the image gets desaturated out
+          as you drag to the left, and more vibrant as you drag to the right. \n\n4.
+          Undo your change.\n\n<b>Default Volume Profile</b> defines project-wide
+          default settings for all components. You should set the default values
+          for all volumes here, especially for settings that do not need to change
+          (for instance Motion Blur or Film Grain).\n\nUse <b>Global Volumes</b>
+          objects for settings that are constant within a scene (for instance Sky,
+          Fog or Shadows).\n\nFinally, use <b>Local Volumes</b> insides scenes to
+          override the default and global volume values depending on the position.\n\nThe
+          values set in the <b>Default Volume Profile</b> are applied at load time,
+          and do not have a runtime cost associated with them. In contrast, volume
+          overrides defined using <b>Global</b> and <b>Local Volumes</b> insides
+          scenes are evaluated every frame. Therefore it is recommended to use the
+          Default Volume Profile for values that do not need to change."
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}

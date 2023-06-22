@@ -12,6 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ff771ccdf4150419d9ff4d342b069aae, type: 3}
   m_Name: Volumes_04
   m_EditorClassIdentifier: 
+  Title:
+    m_Untranslated: Explore Local Volumes
   m_Paragraphs:
     m_Items:
     - m_Type: 6
@@ -35,19 +37,19 @@ MonoBehaviour:
       m_TutorialButtonText: 
     - m_Type: 0
       Title:
-        m_Untranslated: Explore Local Volumes
+        m_Untranslated: 
       Text:
         m_Untranslated: "Now let's see how the camera's Exposure is affected when
           entering <b>Volume Room 3.</b>\n\n1. With <b>Volume Room 3</b> selected,
-          disable the Exposure override. Notice that the Scene gets darker.\r\n\r\n2.
-          Undo your change.\r\n\r\nWhen the Exposure override for Room 3 is disabled,
+          disable the Exposure override. Notice that the Scene gets darker.\n\n2.
+          Undo your change.\n\nWhen the Exposure override for Room 3 is disabled,
           this area of the Scene inherits its Exposure settings directly from the
-          <b>Global</b> volume. \r\n\r\nHowever, these particular settings might
+          <b>Default Volume Profile.</b> \n\nHowever, these particular settings might
           not be acceptable for a relatively dark room, such as Room 3. Therefore,
           a <b>Local</b> volume for Room 3 has been created, with dedicated Exposure
-          overrides, among others.\r\n\r\nWhen the camera leaves <b>Volume Room 3,</b>
+          overrides, among others.\n\nWhen the camera leaves <b>Volume Room 3,</b>
           the overrides that were set for this room will no longer be applied to
-          the camera.\r"
+          the camera."
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}

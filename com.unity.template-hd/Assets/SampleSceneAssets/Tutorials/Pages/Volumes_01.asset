@@ -12,6 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ff771ccdf4150419d9ff4d342b069aae, type: 3}
   m_Name: Volumes_01
   m_EditorClassIdentifier: 
+  Title:
+    m_Untranslated: What are Volumes?
   m_Paragraphs:
     m_Items:
     - m_Type: 6
@@ -35,7 +37,7 @@ MonoBehaviour:
       m_TutorialButtonText: 
     - m_Type: 0
       Title:
-        m_Untranslated: What are Volumes?
+        m_Untranslated: 
       Text:
         m_Untranslated: 'In HDRP, Volumes allow you to overrides HDRP effects on
           your camera. This includes post-processing effects, shadows, lighting,
@@ -55,7 +57,12 @@ MonoBehaviour:
           <b>Local</b>
           volumes overrides are applied only to cameras whose position is within
           the zone of influence defined by the <b>Local</b> Volumes. The local volumes
-          can be a box, a sphere, as well as a custom (convex) mesh.'
+          can be a box, a sphere, as well as a custom (convex) mesh.
+
+
+          The
+          default values for all volumes are configured in the Default Volume Profile
+          that can be  edited in HDRP Global Settings.'
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
