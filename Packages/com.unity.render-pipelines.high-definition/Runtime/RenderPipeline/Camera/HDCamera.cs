@@ -930,7 +930,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     if (numColorPyramidBuffersRequired != 0 || forceReallocHistorySystem)
                     {
-                        AllocHistoryFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain, HistoryBufferAllocatorFunction, numColorPyramidBuffersRequired);
+                        // Make sure we don't try to allocate a history target with zero buffers
+                        bool needColorPyramid = numColorPyramidBuffersRequired > 0;
+
+                        if (needColorPyramid)
+                            AllocHistoryFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain, HistoryBufferAllocatorFunction, numColorPyramidBuffersRequired);
 
                         // Handle the AOV history buffers
                         var cameraHistory = GetHistoryRTHandleSystem();
@@ -938,7 +942,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             var aovHistory = GetHistoryRTHandleSystem(aovRequest);
                             BindHistoryRTHandleSystem(aovHistory);
-                            AllocHistoryFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain, HistoryBufferAllocatorFunction, numColorPyramidBuffersRequired);
+                            if (needColorPyramid)
+                                AllocHistoryFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain, HistoryBufferAllocatorFunction, numColorPyramidBuffersRequired);
                         }
                         BindHistoryRTHandleSystem(cameraHistory);
                     }
