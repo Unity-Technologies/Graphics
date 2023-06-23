@@ -58,17 +58,17 @@ MonoBehaviour:
           specific area of the scene via a Box, Sphere, Capsule or Mesh collider.
           Typically, the overriddes will be related to Post-processing and Exposure,
           as these can greatly vary depending on the position of the Camera in the
-          Scene.\n\n\n<b>Expert tips</b>\n\nFinally, a fourth type of Volumes exists
-          under <b>Edit</b> > <b>Project Settings</b> > <b>Quality</b> > <b>HDRP</b>
-          > <b>Volumes.</b> This <b>Quality Volume</b> lets you define properties
-          that are specific to a Render Pipeline Asset, and therefore it can be tied
-          to a given Quality level. This may be useful for settings up the properties
-          of more expensive effects, such as the Ray Tracing ones.\n\nThe properties
-          set in the <b>Default Volume</b> and the <b>Quality Volume</b> are applied
-          at load time, therefore they do not have a runtime cost associated with
-          them. In contrast, Volume overrides defined using <b>Global</b> and <b>Local
-          Volumes</b> inside the scenes are evaluated every frame. Therefore, it
-          is recommended to use the <b>Default Volume</b> and optionally the <b>Quality
+          Scene.\n\n\n<b>Expert tips</b>\n\nA fourth type of Volumes exists under
+          <b>Edit</b> > <b>Project Settings</b> > <b>Quality</b> > <b>HDRP</b> >
+          <b>Volumes.</b> This <b>Quality Volume</b> lets you define properties that
+          are specific to a Render Pipeline Asset, and therefore it can be tied to
+          a given Quality level and/or Platform. This may be useful for settings
+          up the properties of more expensive effects, such as the Ray Tracing ones.\n\nThe
+          properties set in the <b>Default Volume</b> and the <b>Quality Volume</b>
+          are applied at load time, therefore they do not have a runtime cost associated
+          with them. In contrast, Volume overrides defined using <b>Global</b> and
+          <b>Local Volumes</b> inside the scenes are evaluated every frame. Therefore,
+          it is recommended to use the <b>Default Volume</b> and optionally the <b>Quality
           Volume</b> for values that do not need to vary at runtime."
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
