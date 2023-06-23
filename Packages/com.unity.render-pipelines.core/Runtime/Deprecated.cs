@@ -69,4 +69,14 @@ namespace UnityEngine.Rendering
                 additionalCameraDatas.Remove(additionalCamera);
         }
     }
+
+    public sealed partial class DebugManager
+    {
+        /// <summary>
+        /// Toggle the debug window.
+        /// </summary>
+        /// <param name="open">State of the debug window.</param>
+        [Obsolete("Use DebugManager.instance.displayEditorUI.open property instead. #from(23.1)")]
+        public void ToggleEditorUI(bool open) => editorUIState.open = open;
+    }
 }
