@@ -499,7 +499,30 @@ namespace UnityEngine.Rendering.Universal
             RenderTextureDescriptor cameraTargetDescriptor = cameraData.cameraTargetDescriptor;
 
             var cmd = renderingData.commandBuffer;
-            DebugHandler?.Setup(context, ref renderingData);
+            if (DebugHandler != null)
+            {
+                DebugHandler.Setup(context, ref renderingData);
+                
+                if (DebugHandler.IsActiveForCamera(ref cameraData))
+                {
+                    if (DebugHandler.WriteToDebugScreenTexture(ref cameraData))
+                    {
+                        RenderTextureDescriptor colorDesc = cameraData.cameraTargetDescriptor;
+                        DebugHandler.ConfigureColorDescriptorForDebugScreen(ref colorDesc, cameraData.pixelWidth, cameraData.pixelHeight);
+                        RenderingUtils.ReAllocateIfNeeded(ref DebugHandler.DebugScreenColorHandle, colorDesc, name: "_DebugScreenColor");
+                        
+                        RenderTextureDescriptor depthDesc = cameraData.cameraTargetDescriptor;
+                        DebugHandler.ConfigureDepthDescriptorForDebugScreen(ref depthDesc, k_DepthBufferBits, cameraData.pixelWidth, cameraData.pixelHeight);
+                        RenderingUtils.ReAllocateIfNeeded(ref DebugHandler.DebugScreenDepthHandle, depthDesc, name: "_DebugScreenDepth");
+                    }
+
+                    if (DebugHandler.HDRDebugViewIsActive(ref cameraData))
+                    {
+                        DebugHandler.hdrDebugViewPass.Setup(ref cameraData, DebugHandler.DebugDisplaySettings.lightingSettings.hdrDebugMode);
+                        EnqueuePass(DebugHandler.hdrDebugViewPass);
+                    }
+                }
+            }
 
             if (cameraData.cameraType != CameraType.Game)
                 useRenderPassEnabled = false;
@@ -1112,7 +1135,7 @@ namespace UnityEngine.Rendering.Universal
             bool outputToHDR = cameraData.isHDROutputActive;
             if (shouldRenderUI && outputToHDR)
             {
-                m_DrawOffscreenUIPass.Setup(cameraTargetDescriptor, m_ActiveCameraDepthAttachment);
+                m_DrawOffscreenUIPass.Setup(ref cameraData, k_DepthBufferBits);
                 EnqueuePass(m_DrawOffscreenUIPass);
             }
 

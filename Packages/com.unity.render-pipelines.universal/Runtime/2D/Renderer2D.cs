@@ -201,6 +201,26 @@ namespace UnityEngine.Rendering.Universal
                     hasPostProcess = hasPostProcess && DebugHandler.IsPostProcessingAllowed;
                 }
                 DebugHandler.Setup(context, ref renderingData);
+
+                if (DebugHandler.IsActiveForCamera(ref cameraData))
+                {
+                    if (DebugHandler.WriteToDebugScreenTexture(ref cameraData))
+                    {
+                        RenderTextureDescriptor descriptor = cameraData.cameraTargetDescriptor;
+                        DebugHandler.ConfigureColorDescriptorForDebugScreen(ref descriptor, cameraData.pixelWidth, cameraData.pixelHeight);
+                        RenderingUtils.ReAllocateIfNeeded(ref DebugHandler.DebugScreenColorHandle, descriptor, name: "_DebugScreenColor");
+                        
+                        RenderTextureDescriptor depthDesc = cameraData.cameraTargetDescriptor;
+                        DebugHandler.ConfigureDepthDescriptorForDebugScreen(ref depthDesc, k_DepthBufferBits, cameraData.pixelWidth, cameraData.pixelHeight);
+                        RenderingUtils.ReAllocateIfNeeded(ref DebugHandler.DebugScreenDepthHandle, depthDesc, name: "_DebugScreenDepth");
+                    }
+
+                    if (DebugHandler.HDRDebugViewIsActive(ref cameraData))
+                    {
+                        DebugHandler.hdrDebugViewPass.Setup(ref cameraData, DebugHandler.DebugDisplaySettings.lightingSettings.hdrDebugMode);
+                        EnqueuePass(DebugHandler.hdrDebugViewPass);
+                    }
+                }
             }
 
 #if UNITY_EDITOR
@@ -263,7 +283,7 @@ namespace UnityEngine.Rendering.Universal
             bool outputToHDR = cameraData.isHDROutputActive;
             if (shouldRenderUI && outputToHDR)
             {
-                m_DrawOffscreenUIPass.Setup(cameraTargetDescriptor, depthTargetHandle);
+                m_DrawOffscreenUIPass.Setup(ref cameraData, k_DepthBufferBits);
                 EnqueuePass(m_DrawOffscreenUIPass);
             }
             

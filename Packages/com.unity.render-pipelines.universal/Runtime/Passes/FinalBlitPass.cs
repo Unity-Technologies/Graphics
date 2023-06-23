@@ -135,6 +135,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 if (resolveToDebugScreen)
                 {
                     debugHandler.BlitTextureToDebugScreenTexture(cmd, m_Source, blitMaterial, m_Source.rt?.filterMode == FilterMode.Bilinear ? 1 : 0);
+                    cameraData.renderer.ConfigureCameraTarget(debugHandler.DebugScreenColorHandle, debugHandler.DebugScreenDepthHandle);
                 }
                 else
                 {
