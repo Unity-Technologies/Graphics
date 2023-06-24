@@ -37,6 +37,8 @@ Shader "Hidden/HDRP/CompositeLines"
                                   out float4 color  : SV_Target0,
                                   out float4 motion : SV_Target1)
         {
+            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
 #if UNITY_UV_STARTS_AT_TOP
             input.positionCS.y = _ScreenParams.y - input.positionCS.y;
 #endif

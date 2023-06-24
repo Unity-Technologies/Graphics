@@ -98,7 +98,8 @@ namespace UnityEngine.Rendering
                 _SizeScreen           = new Vector4(args.viewport.x, args.viewport.y, 1 + (1f / args.viewport.x), 1 + (1f / args.viewport.y)),
                 _SizeBin              = new Vector4(Budgets.TileSizeBin, 2f * Budgets.TileSizeBin / args.viewport.x, 2f * Budgets.TileSizeBin / args.viewport.y, 0),
                 _ClusterDepth         = args.settings.clusterCount,
-                _TileOpacityThreshold = args.settings.tileOpacityThreshold
+                _TileOpacityThreshold = args.settings.tileOpacityThreshold,
+                _ViewIndex            = args.viewIndex
             };
 
             // Set up the various bin and clustering counts.
@@ -134,6 +135,9 @@ namespace UnityEngine.Rendering
 
 #if UNITY_EDITOR
             var shadersStillCompiling = renderDatas.Any(o => !ShaderUtil.IsPassCompiled(o.material, o.offscreenShadingPass));
+
+            // Disable the compiling indication if we are in XR.
+            shadersStillCompiling &= args.viewCount <= 1;
 #endif
 
             // Utility for binding the common buffers between passes one and two.
@@ -288,7 +292,15 @@ namespace UnityEngine.Rendering
 
             foreach (var renderData in SortRenderDatasByCameraDistance(renderDatas, args.camera))
             {
-                DrawInternal(renderData, ref args);
+                // [NOTE-HQ-LINES-SINGLE-PASS-STEREO]
+                // The software rasterizer doesn't support instancing and is thus incompatible with
+                // single-pass mode for XR stereo rendering. This is a problem since that is what HDRP
+                // use by default, so we have to manually support it with a multi-pass approach.
+                for (int viewIndex = 0; viewIndex < args.viewCount; ++viewIndex)
+                {
+                    args.viewIndex = viewIndex;
+                    DrawInternal(renderData, ref args);
+                }
             }
         }
     }

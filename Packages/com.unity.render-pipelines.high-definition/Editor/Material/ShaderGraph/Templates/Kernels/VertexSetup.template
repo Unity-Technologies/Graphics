@@ -208,6 +208,11 @@ void VertexSetup (uint3 dispatchThreadID : SV_DispatchThreadID)
 #endif
     }
 
+#if UNITY_ANY_INSTANCING_ENABLED
+    // See: [NOTE-HQ-LINES-SINGLE-PASS-STEREO]
+    inputMesh.instanceID = _ViewIndex; // TODO: View index.
+#endif
+
     AttributesPass inputPass;
     ZERO_INITIALIZE(AttributesPass, inputPass);
 
