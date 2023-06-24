@@ -46,7 +46,7 @@ HDRP 15 includes a new [Screen Space Lens Flare](shared/lens-flare/Override-Scre
 
 ### Compute Thickness
 
-![](C:/UnitySrc/docs/main/Packages/com.unity.render-pipelines.high-definition/Documentation~/Images/WhatsNew15_ComputeThickness.png)
+![](Images/WhatsNew15_ComputeThickness.png)
 
 HDRP 15 adds a full-screen pass called Compute Thickness. You can use this to calculate the density of solid or flat GameObjects. This effect improves the appearance of materials that use subsurface scattering or refraction. 
 
