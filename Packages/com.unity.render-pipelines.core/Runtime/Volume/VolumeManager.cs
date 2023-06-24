@@ -295,9 +295,10 @@ namespace UnityEngine.Rendering
         /// <param name="component">VolumeComponent that has changed.</param>
         public void OnVolumeComponentChanged(VolumeComponent component)
         {
-            var defaultProfiles = customDefaultProfiles.ToList()
-                .Prepend(qualityDefaultProfile)
-                .Prepend(globalDefaultProfile);
+            var defaultProfiles = new List<VolumeProfile> { globalDefaultProfile, globalDefaultProfile };
+            if (customDefaultProfiles != null)
+                defaultProfiles.AddRange(customDefaultProfiles);
+
             foreach (var defaultProfile in defaultProfiles)
             {
                 if (defaultProfile.components.Contains(component))
