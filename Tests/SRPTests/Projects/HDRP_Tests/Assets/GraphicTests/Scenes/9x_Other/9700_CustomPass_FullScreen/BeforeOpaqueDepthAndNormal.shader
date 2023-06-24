@@ -9,6 +9,7 @@ Shader "FullScreen/BeforeOpaqueDepthAndNormal"
 
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/RenderPass/CustomPass/CustomPassCommon.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
+    #pragma enable_d3d11_debug_symbols
 
     // The PositionInputs struct allow you to retrieve a lot of useful information for your fullScreenShader:
     // struct PositionInputs
@@ -32,13 +33,16 @@ Shader "FullScreen/BeforeOpaqueDepthAndNormal"
     // There are also a lot of utility function you can use inside Common.hlsl and Color.hlsl,
     // you can check them out in the source code of the core SRP package.
 
+    float _RTWidth;
+
     float4 FullScreenPass(Varyings varyings) : SV_Target
     {
         float depth = LoadCameraDepth(varyings.positionCS.xy);
         PositionInputs posInput = GetPositionInput(varyings.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
 
         NormalData normalData;
-        DecodeFromNormalBuffer(posInput.positionNDC.xy, normalData);
+        float2 uv = varyings.positionCS.xy / _RTWidth * _ScreenSize.xy;
+        DecodeFromNormalBuffer(uv, normalData);
 
         UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(varyings);
 
