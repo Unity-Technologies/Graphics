@@ -1,4 +1,4 @@
-#if !UNITY_EDITOR_OSX || MAC_FORCE_TESTS
+#if UNITY_EDITOR && (!UNITY_EDITOR_OSX || MAC_FORCE_TESTS)
 using System.Linq;
 using System.Collections;
 
@@ -12,7 +12,8 @@ using UnityEditor.VFX.Block;
 
 namespace UnityEditor.VFX.Test
 {
-    public class VFXSpaceBoundTest : VFXPlayModeTest
+    [TestFixture]
+    public class VFXSpaceBoundTests
     {
         [OneTimeTearDown]
         public void CleanUp()
@@ -29,8 +30,6 @@ namespace UnityEditor.VFX.Test
         {
             var objectPosition = new Vector3(0.123f, 0.0f, 0.0f);
             var boundPosition = new Vector3(0.0f, 0.0987f, 0.0f);
-
-            yield return new EnterPlayMode();
             var graph = VFXTestCommon.MakeTemporaryGraph();
 
             var spawnerContext = ScriptableObject.CreateInstance<VFXBasicSpawner>();
@@ -81,7 +80,7 @@ namespace UnityEditor.VFX.Test
             yield return null; //wait for exactly one more update if visible
 
             var renderer = vfxComponent.GetComponent<VFXRenderer>();
-            var parentFromCenter = VFXSpacePropagationTest.CollectParentExpression(basicInitialize.inputSlots[0][0].GetExpression()).ToArray();
+            var parentFromCenter = VFXTestCommon.CollectParentExpression(basicInitialize.inputSlots[0][0].GetExpression()).ToArray();
             if ((VFXSpace)systemSpace == VFXSpace.Local && (VFXSpace)boundSpace == VFXSpace.Local)
             {
                 Assert.IsFalse(parentFromCenter.Any(o => o.operation == VFXExpressionOperation.LocalToWorld || o.operation == VFXExpressionOperation.WorldToLocal));
@@ -117,7 +116,6 @@ namespace UnityEditor.VFX.Test
                 //Unknown case, should not happen
                 Assert.IsFalse(true);
             }
-            yield return new ExitPlayMode();
         }
     }
 }

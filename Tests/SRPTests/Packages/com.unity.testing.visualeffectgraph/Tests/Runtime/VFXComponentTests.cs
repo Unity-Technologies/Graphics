@@ -1,54 +1,50 @@
-#if !UNITY_EDITOR_OSX || MAC_FORCE_TESTS
+#if UNITY_EDITOR && (!UNITY_EDITOR_OSX || MAC_FORCE_TESTS)
+
 using System;
+using System.Collections;
+using System.IO;
+using System.Linq;
+using UnityEngine.TestTools;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.VFX;
-using UnityEditor.VFX;
-using UnityEngine.Rendering;
-using UnityEngine.TestTools;
-using System.Linq;
-using System.Collections;
 using UnityEditor.VFX.Block.Test;
-using System.Collections.Generic;
+using UnityEngine.Rendering;
+using UnityEngine.SceneManagement;
 
 namespace UnityEditor.VFX.Test
 {
-    public class VisualEffectTest : VFXPlayModeTest
+    [TestFixture]
+    public class VisualEffectTest
     {
-        [SerializeField] bool m_Init = false;
+        GameObject m_cubeEmpty;
+        GameObject m_sphereEmpty;
 
-        [SerializeField] GameObject m_cubeEmpty;
-        [SerializeField] GameObject m_sphereEmpty;
-        [SerializeField] GameObject m_mainObject;
-        [SerializeField] GameObject m_mainCamera;
-
-        [SerializeField] string m_pathTexture2D_A;
-        [SerializeField] string m_pathTexture2D_B;
-        [SerializeField] Texture2D m_texture2D_A;
-        [SerializeField] Texture2D m_texture2D_B;
-        [SerializeField] string m_pathTexture2DArray_A;
-        [SerializeField] string m_pathTexture2DArray_B;
-        [SerializeField] Texture2DArray m_texture2DArray_A;
-        [SerializeField] Texture2DArray m_texture2DArray_B;
-        [SerializeField] string m_pathTexture3D_A;
-        [SerializeField] string m_pathTexture3D_B;
-        [SerializeField] Texture3D m_texture3D_A;
-        [SerializeField] Texture3D m_texture3D_B;
-        [SerializeField] string m_pathTextureCube_A;
-        [SerializeField] string m_pathTextureCube_B;
-        [SerializeField] Cubemap m_textureCube_A;
-        [SerializeField] Cubemap m_textureCube_B;
-        [SerializeField] string m_pathTextureCubeArray_A;
-        [SerializeField] string m_pathTextureCubeArray_B;
-        [SerializeField] CubemapArray m_textureCubeArray_A;
-        [SerializeField] CubemapArray m_textureCubeArray_B;
+        string m_pathTexture2D_A;
+        string m_pathTexture2D_B;
+        Texture2D m_texture2D_A;
+        Texture2D m_texture2D_B;
+        string m_pathTexture2DArray_A;
+        string m_pathTexture2DArray_B;
+        Texture2DArray m_texture2DArray_A;
+        Texture2DArray m_texture2DArray_B;
+        string m_pathTexture3D_A;
+        string m_pathTexture3D_B;
+        Texture3D m_texture3D_A;
+        Texture3D m_texture3D_B;
+        string m_pathTextureCube_A;
+        string m_pathTextureCube_B;
+        Cubemap m_textureCube_A;
+        Cubemap m_textureCube_B;
+        string m_pathTextureCubeArray_A;
+        string m_pathTextureCubeArray_B;
+        CubemapArray m_textureCubeArray_A;
+        CubemapArray m_textureCubeArray_B;
 
         [OneTimeSetUp]
         public void Init()
         {
-            if (m_Init)
-                return;
-            m_Init = true;
+            VFXTestCommon.CloseAllUnecessaryWindows();
 
             var cubeEmptyName = "VFX_Test_Cube_Empty_Name";
             var sphereEmptyName = "VFX_Test_Sphere_Empty_Name";
@@ -104,38 +100,43 @@ namespace UnityEditor.VFX.Test
             AssetDatabase.CreateAsset(m_textureCubeArray_B, m_pathTextureCubeArray_B);
             m_textureCubeArray_A = AssetDatabase.LoadAssetAtPath<CubemapArray>(m_pathTextureCubeArray_A);
             m_textureCubeArray_B = AssetDatabase.LoadAssetAtPath<CubemapArray>(m_pathTextureCubeArray_B);
+        }
+
+        Scene m_SceneToUnload;
+        GameObject m_mainObject;
+        [SetUp]
+        public void Setup()
+        {
+            m_SceneToUnload = SceneManager.CreateScene("EmptyVisualEffectTest_" + Guid.NewGuid());
+            SceneManager.SetActiveScene(m_SceneToUnload);
 
             var mainObjectName = "VFX_Test_Main_Object";
             m_mainObject = new GameObject(mainObjectName);
 
             var mainCameraName = "VFX_Test_Main_Camera";
-            m_mainCamera = new GameObject(mainCameraName);
-            var camera = this.m_mainCamera.AddComponent<Camera>();
+            var mainCamera = new GameObject(mainCameraName);
+            var camera = mainCamera.AddComponent<Camera>();
+            mainCamera.tag = "MainCamera";
             camera.transform.localPosition = Vector3.one;
             camera.transform.LookAt(m_mainObject.transform.position);
+        }
 
-            Time.captureFramerate = 10;
-            UnityEngine.VFX.VFXManager.fixedTimeStep = 0.1f;
-            UnityEngine.VFX.VFXManager.maxDeltaTime = 0.1f;
-
-            ShaderUtil.allowAsyncCompilation = false;
-
-            VFXTestCommon.CloseAllUnecessaryWindows();
+        [TearDown]
+        public void Teardown()
+        {
+            SceneManager.UnloadSceneAsync(m_SceneToUnload);
         }
 
         [OneTimeTearDown]
         public void CleanUp()
         {
-            m_Init = false;
             Debug.unityLogger.logEnabled = true;
             Time.captureFramerate = 0;
-            UnityEngine.VFX.VFXManager.fixedTimeStep = 1.0f / 60.0f;
-            UnityEngine.VFX.VFXManager.maxDeltaTime = 1.0f / 20.0f;
+            VFXManager.fixedTimeStep = 1.0f / 60.0f;
+            VFXManager.maxDeltaTime = 1.0f / 20.0f;
 
-            UnityEngine.Object.DestroyImmediate(m_mainObject);
             UnityEngine.Object.DestroyImmediate(m_cubeEmpty);
             UnityEngine.Object.DestroyImmediate(m_sphereEmpty);
-            UnityEngine.Object.DestroyImmediate(m_mainCamera);
             AssetDatabase.DeleteAsset(m_pathTexture2D_A);
             AssetDatabase.DeleteAsset(m_pathTexture2D_B);
             AssetDatabase.DeleteAsset(m_pathTexture2DArray_A);
@@ -146,297 +147,14 @@ namespace UnityEditor.VFX.Test
             AssetDatabase.DeleteAsset(m_pathTextureCube_B);
             AssetDatabase.DeleteAsset(m_pathTextureCubeArray_A);
             AssetDatabase.DeleteAsset(m_pathTextureCubeArray_B);
+
             VFXTestCommon.DeleteAllTemporaryGraph();
-
-            ShaderUtil.allowAsyncCompilation = true;
-        }
-
-        VFXGraph CreateGraph_And_System()
-        {
-            var graph = VFXTestCommon.MakeTemporaryGraph();
-
-            var output = ScriptableObject.CreateInstance<VFXPointOutput>();
-            output.SetSettingValue("castShadows", true);
-            graph.AddChild(output);
-
-            var contextInitialize = ScriptableObject.CreateInstance<VFXBasicInitialize>();
-
-            var blockAttributeDesc = VFXLibrary.GetBlocks().FirstOrDefault(o => o.modelType == typeof(Block.SetAttribute));
-            var blockAttribute = blockAttributeDesc.CreateInstance();
-            blockAttribute.SetSettingValue("attribute", "position");
-            contextInitialize.AddChild(blockAttribute);
-
-            contextInitialize.LinkTo(output);
-            graph.AddChild(contextInitialize);
-
-            var spawner = ScriptableObject.CreateInstance<VFXBasicSpawner>();
-            spawner.LinkTo(contextInitialize);
-            graph.AddChild(spawner);
-            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));;
-
-            return graph;
-        }
-
-        VFXGraph CreateTemporaryGraph_With_GraphicsBuffer(IEnumerable<string> names)
-        {
-            var graph = VFXTestCommon.MakeTemporaryGraph();
-
-            var graphicsBufferDesc = VFXLibrary.GetParameters().Where(o => o.name.ToLowerInvariant().Contains("graphicsbuffer")).FirstOrDefault();
-            Assert.IsNotNull(graphicsBufferDesc);
-            foreach (var targetGraphicsBuffer in names)
-            {
-                var parameter = graphicsBufferDesc.CreateInstance();
-                parameter.SetSettingValue("m_ExposedName", targetGraphicsBuffer);
-                parameter.SetSettingValue("m_Exposed", true);
-                graph.AddChild(parameter);
-            }
-
-            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
-            return graph;
-        }
-
-        VFXGraph CreateTemporaryGraph_With_GraphicsBuffer(string name)
-        {
-            return CreateTemporaryGraph_With_GraphicsBuffer(new []{ name });
-        }
-
-        //Case 1406873, Vector4 & Color are bound to the same HLSL type
-        [UnityTest]
-        public IEnumerator CreateGraph_With_GraphicsBuffer_Using_SampleFloat4_And_Color()
-        {
-            var graphicsBuffers = new(string name, Type type)[] {("Buffer_A", typeof(Color)), ("Buffer_B", typeof(Vector4))};
-            var graph = CreateTemporaryGraph_With_GraphicsBuffer(graphicsBuffers.Select(o => o.name));
-
-            var contextInitialize = ScriptableObject.CreateInstance<VFXBasicInitialize>();
-            graph.AddChild(contextInitialize);
-
-            var spawner = ScriptableObject.CreateInstance<VFXBasicSpawner>();
-            spawner.LinkTo(contextInitialize);
-            graph.AddChild(spawner);
-
-            var output = ScriptableObject.CreateInstance<VFXPointOutput>();
-            output.LinkFrom(contextInitialize);
-            graph.AddChild(output);
-
-            foreach (var graphicsBuffer in graphicsBuffers)
-            {
-                var sampleBuffer = ScriptableObject.CreateInstance<UnityEditor.VFX.Operator.SampleBuffer>();
-                sampleBuffer.SetOperandType(graphicsBuffer.type);
-                graph.AddChild(sampleBuffer);
-
-                var param = graph.children.OfType<VFXParameter>().FirstOrDefault(o => o.exposedName == graphicsBuffer.name);
-                Assert.IsNotNull(param);
-                Assert.IsTrue(sampleBuffer.inputSlots[0].Link(param.outputSlots[0]));
-
-                var block = VFXLibrary.GetBlocks().FirstOrDefault(o =>
-                     o.model is UnityEditor.VFX.Block.SetAttribute setAttr
-                     && setAttr.attribute.Contains("color"));
-                Assert.IsNotNull(block);
-
-                var addAttribute = block.CreateInstance();
-                addAttribute.SetSettingValue("Composition", UnityEditor.VFX.Block.AttributeCompositionMode.Add);
-                contextInitialize.AddChild(addAttribute);
-                Assert.IsTrue(sampleBuffer.outputSlots[0].Link(addAttribute.inputSlots[0]));
-            }
-
-            var assetPath = AssetDatabase.GetAssetPath(graph);
-            AssetDatabase.ImportAsset(assetPath);
-
-            for (uint i = 0; i < 8; i++)
-                yield return null;
-
-            //Check compilation error
-            var allSubAsset = AssetDatabase.LoadAllAssetsAtPath(assetPath);
-            var computeInitialize = allSubAsset.OfType<ComputeShader>().FirstOrDefault(o => o.name.Contains("Initialize"));
-            Assert.IsNotNull(computeInitialize);
-            Assert.AreNotEqual(computeInitialize.FindKernel("CSMain"), -1);
-
-            yield return null;
-        }
-
-        // Deactivated test by now as GetGraphicsBuffer is not public
-        //[UnityTest]
-        public IEnumerator CreateComponent_And_BindGraphicsBuffer()
-        {
-            var targetGraphicsBuffer = "my_exposed_graphics_buffer";
-            var graph = CreateTemporaryGraph_With_GraphicsBuffer(targetGraphicsBuffer);
-
-            while (m_mainObject.GetComponent<VisualEffect>() != null)
-                UnityEngine.Object.DestroyImmediate(m_mainObject.GetComponent<VisualEffect>());
-            var vfx = m_mainObject.AddComponent<VisualEffect>();
-            vfx.visualEffectAsset = graph.visualEffectResource.asset;
-
-            yield return null;
-
-            Assert.IsTrue(vfx.HasGraphicsBuffer(targetGraphicsBuffer));
-            Assert.IsNull(vfx.GetGraphicsBuffer(targetGraphicsBuffer));
-
-            var newGraphicsBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, 1, 4);
-            vfx.SetGraphicsBuffer(targetGraphicsBuffer, newGraphicsBuffer);
-            Assert.IsNotNull(vfx.GetGraphicsBuffer(targetGraphicsBuffer));
-
-            var readGraphicBuffer = vfx.GetGraphicsBuffer(targetGraphicsBuffer);
-            Assert.IsNotNull(readGraphicBuffer);
-            Assert.AreEqual(newGraphicsBuffer.count, readGraphicBuffer.count);
-            Assert.AreEqual(newGraphicsBuffer.stride, readGraphicBuffer.stride);
-            Assert.AreEqual(newGraphicsBuffer.GetNativeBufferPtr(), readGraphicBuffer.GetNativeBufferPtr());
-
-            newGraphicsBuffer.Release();
-            yield return null;
-
-        }
-
-        [UnityTest]
-        public IEnumerator CreateComponent_With_Spaceable_Properties()
-        {
-            var graph = VFXTestCommon.MakeTemporaryGraph();
-
-            var coneParameter = VFXLibrary.GetParameters().FirstOrDefault(o => o.name.ToLowerInvariant() == "cone");
-            Assert.IsNotNull(coneParameter);
-
-            //Basic spaceable parameter
-            var baseName = "my_exposed_cone_";
-            var availableSpace = Enum.GetValues(typeof(VFXSpace)).Cast<VFXSpace>().ToArray();
-            var expectedSpaceCount = 3;
-            Assert.AreEqual(expectedSpaceCount, availableSpace.Count());
-            foreach (var space in availableSpace)
-            {
-                var parameter = coneParameter.CreateInstance();
-                parameter.SetSettingValue("m_ExposedName", baseName + space.ToString().ToLowerInvariant());
-                parameter.SetSettingValue("m_Exposed", true);
-                parameter.outputSlots[0].space = space;
-                graph.AddChild(parameter);
-            }
-
-            //Other parameter (not spaceable)
-            var intDesc = VFXLibrary.GetParameters().FirstOrDefault(o => o.name.ToLowerInvariant().Contains("int"));
-            Assert.IsNotNull(intDesc);
-            var parameterInteger = intDesc.CreateInstance();
-            parameterInteger.SetSettingValue("m_ExposedName", "my_exposed_integer");
-            parameterInteger.SetSettingValue("m_Exposed", true);
-            graph.AddChild(parameterInteger);
-
-            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
-
-            var visualEffectAsset = graph.visualEffectResource.asset;
-
-            var exposedProperties = new List<VFXExposedProperty>();
-            visualEffectAsset.GetExposedProperties(exposedProperties);
-            var valueCountInCone = 6;
-            Assert.AreEqual(valueCountInCone * expectedSpaceCount + 1, exposedProperties.Count);
-
-            foreach (var exposedProperty in exposedProperties)
-            {
-                var readSpace = visualEffectAsset.GetExposedSpace(exposedProperty.name);
-                var expectedSpace = VFXSpace.None;
-                foreach (var space in availableSpace)
-                {
-                    //There is a mix of exposed properties in this test component
-                    //The name indicates the expected space if mentioned
-                    //If not in name, then, it wasn't a spaceable property
-                    if (exposedProperty.name.IndexOf(space.ToString(),
-                            StringComparison.InvariantCultureIgnoreCase) > 0)
-                    {
-                        expectedSpace = space;
-                        break;
-                    }
-                }
-                Assert.AreEqual(readSpace, expectedSpace);
-            }
-            yield return null;
-        }
-
-        public enum GraphicsBufferResetCase
-        {
-            Reinit,
-            DisableAndRenable,
-            ChangeVisualEffectAsset,
-            EditSerializedObject
-        }
-
-        static GraphicsBufferResetCase[] s_GraphicsBufferResetCase = Enum.GetValues(typeof(GraphicsBufferResetCase)).Cast<GraphicsBufferResetCase>().ToArray();
-
-        // Deactivated test by now as GetGraphicsBuffer is not public
-        //[UnityTest]
-        public IEnumerator CreateComponent_And_BindGraphicsBuffer_And_([ValueSource("s_GraphicsBufferResetCase")] GraphicsBufferResetCase resetCase)
-        {
-            var targetGraphicsBuffer = "my_exposed_graphics_buffer";
-            var graph = CreateTemporaryGraph_With_GraphicsBuffer(targetGraphicsBuffer);
-            var targetInteger = "my_exposed_graphics_integer";
-
-            if (resetCase == GraphicsBufferResetCase.EditSerializedObject)
-            {
-                //Other value used for vfx editor update
-                var intDesc = VFXLibrary.GetParameters().Where(o => o.name.ToLowerInvariant().Contains("int")).FirstOrDefault();
-                Assert.IsNotNull(intDesc);
-                var parameterInteger = intDesc.CreateInstance();
-                parameterInteger.SetSettingValue("m_ExposedName", targetInteger);
-                parameterInteger.SetSettingValue("m_Exposed", true);
-                graph.AddChild(parameterInteger);
-
-                AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
-            }
-
-            while (m_mainObject.GetComponent<VisualEffect>() != null)
-                UnityEngine.Object.DestroyImmediate(m_mainObject.GetComponent<VisualEffect>());
-            var vfx = m_mainObject.AddComponent<VisualEffect>();
-            vfx.visualEffectAsset = graph.visualEffectResource.asset;
-
-            var newGraphicsBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, 1, 4);
-            vfx.SetGraphicsBuffer(targetGraphicsBuffer, newGraphicsBuffer);
-            Assert.IsNotNull(vfx.GetGraphicsBuffer(targetGraphicsBuffer));
-
-            switch (resetCase)
-            {
-                case GraphicsBufferResetCase.Reinit:
-                    vfx.Reinit();
-                    break;
-                case GraphicsBufferResetCase.DisableAndRenable:
-                    vfx.enabled = false;
-                    vfx.enabled = true;
-                    break;
-                case GraphicsBufferResetCase.ChangeVisualEffectAsset:
-                    vfx.visualEffectAsset = CreateTemporaryGraph_With_GraphicsBuffer(targetGraphicsBuffer).visualEffectResource.asset;
-                    vfx.visualEffectAsset = graph.visualEffectResource.asset;
-                    break;
-                case GraphicsBufferResetCase.EditSerializedObject:
-                    {
-                        vfx.SetInt(targetInteger, 123);
-
-                        var editor = Editor.CreateEditor(vfx);
-                        editor.serializedObject.Update();
-
-                        var propertySheet = editor.serializedObject.FindProperty("m_PropertySheet");
-                        var fieldName = VisualEffectSerializationUtility.GetTypeField(VFXExpression.TypeToType(VFXValueType.Int32)) + ".m_Array";
-                        var vfxField = propertySheet.FindPropertyRelative(fieldName);
-
-                        Assert.AreEqual(1, vfxField.arraySize);
-
-                        var property = vfxField.GetArrayElementAtIndex(0);
-                        property = property.FindPropertyRelative("m_Value");
-                        property.intValue = 666;
-                        editor.serializedObject.ApplyModifiedPropertiesWithoutUndo();
-
-                        GameObject.DestroyImmediate(editor);
-                    }
-                    break;
-            }
-
-            Assert.IsNotNull(vfx.GetGraphicsBuffer(targetGraphicsBuffer));
-
-            var readGraphicBuffer = vfx.GetGraphicsBuffer(targetGraphicsBuffer);
-            Assert.AreEqual(newGraphicsBuffer.GetNativeBufferPtr(), readGraphicBuffer.GetNativeBufferPtr());
-            newGraphicsBuffer.Release();
-
-            yield return null;
         }
 
         [UnityTest]
         public IEnumerator CreateComponent_And_Graph_Restart_Component_Expected()
         {
-            yield return new EnterPlayMode();
-
-            var graph = CreateGraph_And_System();
+            var graph = VFXTestCommon.CreateGraph_And_System();
 
             while (m_mainObject.GetComponent<VisualEffect>() != null)
                 UnityEngine.Object.DestroyImmediate(m_mainObject.GetComponent<VisualEffect>());
@@ -459,57 +177,12 @@ namespace UnityEditor.VFX.Test
                 yield return null;
 
             Assert.Less(VFXTestCommon.GetSpawnerState(vfxComponent, 0).totalTime, 1.0f);
-
-            yield return new ExitPlayMode();
-        }
-
-        [UnityTest]
-        public IEnumerator Check_VFXRenderer_DefaultRenderingLayerNames()
-        {
-            //The content of default rendering layer names is retrieved by reflection.
-            var layerNames = VisualEffectEditor.RendererEditor.s_DefaultRenderingLayerNames;
-            Assert.IsNotNull(layerNames);
-            Assert.IsTrue(layerNames.Length != 0);
-            Assert.IsFalse(layerNames.Any(o => string.IsNullOrEmpty(o)));
-            yield return null;
-        }
-
-        [UnityTest]
-        public IEnumerator CreateComponent_And_Graph_Modify_It_To_Generate_Expected_Exception()
-        {
-            var graph = CreateGraph_And_System();
-
-            yield return null;
-
-            while (m_mainObject.GetComponent<VisualEffect>() != null)
-                UnityEngine.Object.DestroyImmediate(m_mainObject.GetComponent<VisualEffect>());
-            var vfxComponent = m_mainObject.AddComponent<VisualEffect>();
-            vfxComponent.visualEffectAsset = graph.visualEffectResource.asset;
-            Assert.DoesNotThrow(() => VFXTestCommon.GetSpawnerState(vfxComponent, 0));
-
-            yield return null;
-
-            //Plug a GPU instruction on bounds, excepting an exception while recompiling
-            var getPositionDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.modelType == typeof(VFXAttributeParameter) && o.name.Contains(VFXAttribute.Position.name));
-            var getPosition = getPositionDesc.CreateInstance();
-            graph.AddChild(getPosition);
-            var initializeContext = graph.children.OfType<VFXBasicInitialize>().FirstOrDefault();
-            Assert.AreEqual(VFXValueType.Float3, initializeContext.inputSlots[0][0].valueType);
-
-            getPosition.outputSlots[0].Link(initializeContext.inputSlots[0][0]);
-
-            //LogAssert.Expect(LogType.Error, new System.Text.RegularExpressions.Regex("Exception while compiling expression graph:*")); < Incorrect with our katana configuration
-            Debug.unityLogger.logEnabled = false;
-            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
-            Debug.unityLogger.logEnabled = true;
-            Assert.Throws(typeof(IndexOutOfRangeException), () => VFXTestCommon.GetSpawnerState(vfxComponent, 0)); //This is the exception which matters for this test
         }
 
         [UnityTest]
         public IEnumerator CreateComponent_And_VerifyRendererState()
         {
-            yield return new EnterPlayMode();
-            var graph = CreateGraph_And_System();
+            var graph = VFXTestCommon.CreateGraph_And_System();
 
             //< Same Behavior as Drag & Drop
             GameObject currentObject = new GameObject("TemporaryGameObject_RenderState", /*typeof(Transform),*/ typeof(VisualEffect));
@@ -531,14 +204,12 @@ namespace UnityEditor.VFX.Test
             var actualShadowCastingMode = currentObject.GetComponent<VFXRenderer>().shadowCastingMode;
             Assert.AreEqual(actualShadowCastingMode, ShadowCastingMode.On);
 
-            yield return new ExitPlayMode();
         }
 
         [UnityTest]
         public IEnumerator CreateComponent_And_VerifyRenderBounds()
         {
-            yield return new EnterPlayMode();
-            var graph = CreateGraph_And_System();
+            var graph = VFXTestCommon.CreateGraph_And_System();
             var initializeContext = graph.children.OfType<VFXBasicInitialize>().FirstOrDefault();
 
             var center = new Vector3(1.0f, 2.0f, 3.0f);
@@ -559,8 +230,8 @@ namespace UnityEditor.VFX.Test
 
             int maxFrame = 512;
             while ((vfx.culled
-                    ||  currentObject.GetComponent<VFXRenderer>().bounds.extents.x == 0.0f)
-                   &&  --maxFrame > 0)
+                    || currentObject.GetComponent<VFXRenderer>().bounds.extents.x == 0.0f)
+                   && --maxFrame > 0)
             {
                 yield return null;
             }
@@ -576,17 +247,13 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(size.x / 2.0f, bounds.extents.x, 10e-5);
             Assert.AreEqual(size.y / 2.0f, bounds.extents.y, 10e-5);
             Assert.AreEqual(size.z / 2.0f, bounds.extents.z, 10e-5);
-
-            yield return new ExitPlayMode();
         }
 
         //Cover case : 1232862, RenderQuadIndirectCommand crashes
         [UnityTest]
         public IEnumerator CreateComponent_Disable_It_But_Enable_Renderer()
         {
-            yield return new EnterPlayMode();
-
-            var graph = CreateGraph_And_System();
+            var graph = VFXTestCommon.CreateGraph_And_System();
             var initializeContext = graph.children.OfType<VFXBasicInitialize>().FirstOrDefault();
 
             //Really big bbox to be sure it is in view
@@ -624,16 +291,12 @@ namespace UnityEditor.VFX.Test
             while (vfx.culled && --maxFrame > 0)
                 yield return null;
             Assert.IsFalse(vfx.culled);
-
-            yield return new ExitPlayMode();
         }
 
         [UnityTest]
-		[Timeout(900000)]
         public IEnumerator CreateComponent_And_Check_NoneTexture_Constraint_Doesnt_Generate_Any_Error()
         {
-            yield return new EnterPlayMode();
-            var graph = CreateGraph_And_System();
+            var graph = VFXTestCommon.CreateGraph_And_System();
 
             var burst = ScriptableObject.CreateInstance<VFXSpawnerBurst>();
             burst.inputSlots.First(o => o.name.ToLowerInvariant().Contains("count")).value = 147.0f;
@@ -666,14 +329,11 @@ namespace UnityEditor.VFX.Test
             //Wait for a few frame to be sure the rendering has been triggered
             for (int i = 0; i < 3; ++i)
                 yield return null;
-
-            yield return new ExitPlayMode();
         }
 
         [UnityTest]
         public IEnumerator CreateComponent_And_CheckDimension_Constraint()
         {
-            yield return new EnterPlayMode();
             var graph = VFXTestCommon.MakeTemporaryGraph();
 
             var contextInitialize = ScriptableObject.CreateInstance<VFXBasicInitialize>();
@@ -750,14 +410,11 @@ namespace UnityEditor.VFX.Test
             yield return null;
             LogAssert.Expect(LogType.Error, new System.Text.RegularExpressions.Regex("3D"));
             */
-            yield return new ExitPlayMode();
         }
 
         [UnityTest]
         public IEnumerator CreateComponent_Switch_Asset_Keep_Override()
         {
-            yield return new EnterPlayMode();
-
             var graph_A = VFXTestCommon.MakeTemporaryGraph();
             var graph_B = VFXTestCommon.MakeTemporaryGraph();
             var parametersVector3Desc = VFXLibrary.GetParameters().Where(o => o.model.type == typeof(Vector3)).First();
@@ -794,16 +451,11 @@ namespace UnityEditor.VFX.Test
 
             actualOverriden = vfx.GetVector3(commonExposedName);
             Assert.AreEqual(actualOverriden.x, expectedOverriden.x); Assert.AreEqual(actualOverriden.y, expectedOverriden.y); Assert.AreEqual(actualOverriden.z, expectedOverriden.z);
-
-            yield return new ExitPlayMode();
         }
 
-        //Regression test for 1258022
-        [UnityTest]
+        [UnityTest, Description("Regression test for 1258022")]
         public IEnumerator CreateComponent_Change_ExposedType_Keeping_Same_Name()
         {
-            yield return new EnterPlayMode();
-
             var graph = VFXTestCommon.MakeTemporaryGraph();
             var parametersVector3Desc = VFXLibrary.GetParameters().Where(o => o.model.type == typeof(Vector3)).First();
             var parametersGradientDesc = VFXLibrary.GetParameters().Where(o => o.model.type == typeof(Gradient)).First();
@@ -839,8 +491,6 @@ namespace UnityEditor.VFX.Test
             Assert.IsFalse(vfx.HasVector3(commonExposedName));
             Assert.IsTrue(vfx.HasGradient(commonExposedName));
             Assert.IsNotNull(vfx.GetGradient(commonExposedName));
-
-            yield return new ExitPlayMode();
         }
 
 #pragma warning disable 0414
@@ -850,8 +500,6 @@ namespace UnityEditor.VFX.Test
         [UnityTest]
         public IEnumerator CreateComponent_Modify_Value_Doesnt_Reset([ValueSource("trueOrFalse")] bool modifyValue, [ValueSource("trueOrFalse")] bool modifyAssetValue)
         {
-            yield return new EnterPlayMode();
-
             var graph = VFXTestCommon.MakeTemporaryGraph();
             var parametersVector2Desc = VFXLibrary.GetParameters().Where(o => o.model.type == typeof(Vector2)).First();
 
@@ -963,14 +611,11 @@ namespace UnityEditor.VFX.Test
                 Assert.IsTrue(vfx.HasVector2(exposedName));
                 Assert.AreEqual(expectedValue.x, vfx.GetVector2(exposedName).x); Assert.AreEqual(expectedValue.y, vfx.GetVector2(exposedName).y);
             }
-
-            yield return new ExitPlayMode();
         }
 
         [UnityTest]
         public IEnumerator CreateComponent_Modify_Asset_Keep_Override()
         {
-            yield return new EnterPlayMode();
             var graph = VFXTestCommon.MakeTemporaryGraph();
 
             var parametersVector3Desc = VFXLibrary.GetParameters().Where(o => o.model.type == typeof(Vector3)).First();
@@ -1029,61 +674,104 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(actualOverriden.x, expectedOverriden.x);
             Assert.AreEqual(actualOverriden.y, expectedOverriden.y);
             Assert.AreEqual(actualOverriden.z, expectedOverriden.z);
-
-            yield return new ExitPlayMode();
         }
 
-        [UnityTest]
-        public IEnumerator Create_Component_With_All_Basic_Type_Exposed_Check_Exposed_API()
+        [UnityTest, Description("Regression test UUM-6234")]
+        public IEnumerator Delete_Mesh_While_Rendering()
         {
             var graph = VFXTestCommon.MakeTemporaryGraph();
-            foreach (var type in s_supportedValueType)
+            string meshFilePath;
             {
-                var parameterDesc = VFXLibrary.GetParameters().First(o => VFXExpression.GetVFXValueTypeFromType(o.model.type) == type);
-                var newInstance = parameterDesc.CreateInstance();
-
-                newInstance.SetSettingValue("m_ExposedName", "abcd_" + type.ToString());
-                newInstance.SetSettingValue("m_Exposed", true);
-                graph.AddChild(newInstance);
-            }
-
-
-            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
-            yield return null;
-
-            var vfxAsset = graph.visualEffectResource.asset;
-
-            var exposedProperties = new List<VFXExposedProperty>();
-            vfxAsset.GetExposedProperties(exposedProperties);
-            foreach (var type in s_supportedValueType)
-            {
-                var expectedType = VFXExpression.TypeToType(type);
-                var whereExpectedType = exposedProperties.Where(o => o.type == expectedType);
-                Assert.IsTrue(whereExpectedType.Any());
-                var expectedName = "abcd_" + type.ToString();
-                var whereExpectedName = whereExpectedType.Where(o => o.name == expectedName);
-                Assert.AreEqual(1, whereExpectedName.Count());
-
-                var entry = whereExpectedName.First();
-                if (entry.type == typeof(Texture))
+                //Create Mesh Asset
+                Mesh mesh;
                 {
-                    var dimension = vfxAsset.GetTextureDimension(entry.name);
-                    switch (dimension)
+                    var resourceMesh = new Mesh()
                     {
-                        case TextureDimension.Tex2D:        Assert.AreEqual(type, VFXValueType.Texture2D);        break;
-                        case TextureDimension.Tex3D:        Assert.AreEqual(type, VFXValueType.Texture3D);        break;
-                        case TextureDimension.Cube:         Assert.AreEqual(type, VFXValueType.TextureCube);      break;
-                        case TextureDimension.Tex2DArray:   Assert.AreEqual(type, VFXValueType.Texture2DArray);   break;
-                        case TextureDimension.CubeArray:    Assert.AreEqual(type, VFXValueType.TextureCubeArray); break;
-                        default: Assert.Fail("Unknown expected type"); break;
-                    }
+                        vertices = new[]
+                        {
+                            new Vector3(0, 0, 0),
+                            new Vector3(1, 1, 0),
+                            new Vector3(1, 0, 0),
+                        },
+                        triangles = new[] {0, 1, 2}
+                    };
+                    var guid = System.Guid.NewGuid().ToString();
+                    meshFilePath = string.Format(VFXTestCommon.tempBasePath + "Mesh_{0}.asset", guid);
+                    AssetDatabase.CreateAsset(resourceMesh, meshFilePath);
+                    AssetDatabase.SaveAssets();
+                    mesh = AssetDatabase.LoadAssetAtPath<Mesh>(meshFilePath);
                 }
-                else
+                Assert.IsNotNull(mesh);
+
+                //Create VFXAsset
                 {
-                    Assert.IsFalse(VFXExpression.IsTexture(type));
+                    var staticMeshOutput = ScriptableObject.CreateInstance<VFXStaticMeshOutput>();
+                    var slots = staticMeshOutput.inputSlots.Where(o => o.value is Mesh).ToArray();
+                    Assert.IsTrue(slots.Any());
+                    foreach (var slot in slots)
+                    {
+                        if (slot.value is Mesh)
+                            slot.value = mesh;
+                    }
+                    graph.AddChild(staticMeshOutput);
+
+                    var particleOutput = ScriptableObject.CreateInstance<VFXMeshOutput>();
+                    particleOutput.SetSettingValue("castShadows", true);
+                    slots = particleOutput.inputSlots.Where(o => o.value is Mesh).ToArray();
+                    Assert.IsTrue(slots.Any());
+                    foreach (var slot in slots)
+                    {
+                        if (slot.value is Mesh)
+                            slot.value = mesh;
+                    }
+                    graph.AddChild(particleOutput);
+
+                    var contextInitialize = ScriptableObject.CreateInstance<VFXBasicInitialize>();
+                    contextInitialize.LinkTo(particleOutput);
+                    graph.AddChild(contextInitialize);
+
+                    var spawner = ScriptableObject.CreateInstance<VFXBasicSpawner>();
+                    spawner.LinkTo(contextInitialize);
+                    graph.AddChild(spawner);
+
+                    var burst = ScriptableObject.CreateInstance<VFXSpawnerBurst>();
+                    spawner.AddChild(burst);
+                    burst.inputSlots[0].value = 1.0f;
+                    AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
                 }
             }
-            Assert.AreEqual(s_supportedValueType.Length, exposedProperties.Count);
+
+            var cameraTransform = Camera.main.transform;
+            cameraTransform.localPosition = Vector3.one;
+            cameraTransform.LookAt(Vector3.zero);
+
+            //Create object and wait to have visible particles
+            GameObject currentObject = new GameObject("Delete_Mesh_While_Rendered_With_Output", /*typeof(Transform),*/ typeof(VisualEffect));
+            var vfx = currentObject.GetComponent<VisualEffect>();
+            vfx.visualEffectAsset = graph.visualEffectResource.asset;
+            int maxFrame = 64;
+            while (vfx.aliveParticleCount == 0 && maxFrame-- > 0)
+                yield return null;
+            Assert.IsTrue(maxFrame > 0);
+
+            //Delete Mesh & Wait a few frame
+            File.Delete(meshFilePath);
+            File.Delete(meshFilePath + ".meta");
+            for (int i = 0; i < 4; ++i)
+                yield return null;
+            AssetDatabase.Refresh();
+            for (int i = 0; i < 4; ++i)
+                yield return null;
+
+            //Check content from VFX
+            {
+                var meshOutput = graph.children.OfType<VFXMeshOutput>().First();
+                var meshSlot = meshOutput.inputSlots.First(o => o.property.type == typeof(Mesh));
+
+                var mesh = meshSlot.value as UnityEngine.Object;
+                Assert.IsTrue(mesh == null); //Mesh should be deleted at this point...
+                Assert.IsFalse(ReferenceEquals(mesh, null)); //... but expected missing reference
+            }
         }
 
         private object GetValue_A_Type(Type type)
@@ -1419,62 +1107,9 @@ namespace UnityEditor.VFX.Test
             }
         }
 
-        static readonly VFXValueType[] s_supportedValueType =
-        {
-            VFXValueType.Float,
-            VFXValueType.Float2,
-            VFXValueType.Float3,
-            VFXValueType.Float4,
-            VFXValueType.Int32,
-            VFXValueType.Uint32,
-            VFXValueType.Curve,
-            VFXValueType.ColorGradient,
-            VFXValueType.Mesh,
-            VFXValueType.Texture2D,
-            VFXValueType.Texture2DArray,
-            VFXValueType.Texture3D,
-            VFXValueType.TextureCube,
-            VFXValueType.TextureCubeArray,
-            VFXValueType.Boolean,
-            VFXValueType.Matrix4x4
-        };
-
-        public struct VFXNullableTest
-        {
-            internal VFXValueType type;
-            public override string ToString()
-            {
-                return type.ToString();
-            }
-        }
-
-        private static bool IsTypeNullable(Type type)
-        {
-            if (!type.IsValueType)
-                return true;
-            if (Nullable.GetUnderlyingType(type) != null)
-                return true;
-            return false;
-        }
-
-#pragma warning disable 0414
-        private static VFXNullableTest[] nullableTestCase = s_supportedValueType.Where(o => IsTypeNullable(VFXValue.TypeToType(o))).Select(o => new VFXNullableTest() { type = o }).ToArray();
-#pragma warning restore 0414
-
-        [UnityTest]
-        public IEnumerator Check_SetNullable_Throw_An_Exception_While_Using_Null([ValueSource("nullableTestCase")] VFXNullableTest valueType)
-        {
-            while (m_mainObject.GetComponent<VisualEffect>() != null)
-                UnityEngine.Object.DestroyImmediate(m_mainObject.GetComponent<VisualEffect>());
-            var vfx = m_mainObject.AddComponent<VisualEffect>();
-            yield return null;
-            Assert.Throws<System.ArgumentNullException>(() => fnSet_UsingBindings(valueType.type, vfx, "null", null));
-        }
-
         [UnityTest]
         public IEnumerator CreateComponentWithAllBasicTypeExposed([ValueSource("trueOrFalse")] bool linkMode, [ValueSource("trueOrFalse")] bool bindingModes)
         {
-            yield return new EnterPlayMode();
             var commonBaseName = "abcd_";
 
             var graph = VFXTestCommon.MakeTemporaryGraph();
@@ -1500,7 +1135,7 @@ namespace UnityEditor.VFX.Test
             {
                 var newInstance = parameter.CreateInstance();
 
-                VFXValueType type = s_supportedValueType.FirstOrDefault(e => VFXExpression.GetVFXValueTypeFromType(newInstance.type) == e);
+                VFXValueType type = VFXTestCommon.s_supportedValueType.FirstOrDefault(e => VFXExpression.GetVFXValueTypeFromType(newInstance.type) == e);
                 if (type != VFXValueType.None)
                 {
                     newInstance.SetSettingValue("m_ExposedName", commonBaseName + newInstance.type.UserFriendlyName());
@@ -1514,7 +1149,7 @@ namespace UnityEditor.VFX.Test
 
             if (linkMode)
             {
-                foreach (var type in s_supportedValueType)
+                foreach (var type in VFXTestCommon.s_supportedValueType)
                 {
                     VFXSlot slot = null;
                     for (int i = 0; i < allType.GetNbInputSlots(); ++i)
@@ -1557,12 +1192,12 @@ namespace UnityEditor.VFX.Test
 
             yield return null;
 
-            Func<AnimationCurve, AnimationCurve, bool> fnCompareCurve = delegate(AnimationCurve left, AnimationCurve right)
+            Func<AnimationCurve, AnimationCurve, bool> fnCompareCurve = delegate (AnimationCurve left, AnimationCurve right)
             {
                 return left.keys.Length == right.keys.Length;
             };
 
-            Func<Gradient, Gradient, bool> fnCompareGradient = delegate(Gradient left, Gradient right)
+            Func<Gradient, Gradient, bool> fnCompareGradient = delegate (Gradient left, Gradient right)
             {
                 return left.colorKeys.Length == right.colorKeys.Length;
             };
@@ -1570,7 +1205,7 @@ namespace UnityEditor.VFX.Test
             //Check default Value_A & change to Value_B (At this stage, it's useless to access with SerializedProperty)
             foreach (var parameter in VFXLibrary.GetParameters())
             {
-                VFXValueType type = s_supportedValueType.FirstOrDefault(e => VFXExpression.GetVFXValueTypeFromType(parameter.model.type) == e);
+                VFXValueType type = VFXTestCommon.s_supportedValueType.FirstOrDefault(e => VFXExpression.GetVFXValueTypeFromType(parameter.model.type) == e);
                 if (type == VFXValueType.None)
                     continue;
                 var currentName = commonBaseName + parameter.model.type.UserFriendlyName();
@@ -1604,7 +1239,7 @@ namespace UnityEditor.VFX.Test
             //Compare new setted values
             foreach (var parameter in VFXLibrary.GetParameters())
             {
-                VFXValueType type = s_supportedValueType.FirstOrDefault(e => VFXExpression.GetVFXValueTypeFromType(parameter.model.type) == e);
+                VFXValueType type = VFXTestCommon.s_supportedValueType.FirstOrDefault(e => VFXExpression.GetVFXValueTypeFromType(parameter.model.type) == e);
                 if (type == VFXValueType.None)
                     continue;
                 var currentName = commonBaseName + parameter.model.type.UserFriendlyName();
@@ -1639,7 +1274,7 @@ namespace UnityEditor.VFX.Test
             //Test ResetOverride function
             foreach (var parameter in VFXLibrary.GetParameters())
             {
-                VFXValueType type = s_supportedValueType.FirstOrDefault(e => VFXExpression.GetVFXValueTypeFromType(parameter.model.type) == e);
+                VFXValueType type = VFXTestCommon.s_supportedValueType.FirstOrDefault(e => VFXExpression.GetVFXValueTypeFromType(parameter.model.type) == e);
                 if (type == VFXValueType.None)
                     continue;
                 var currentName = commonBaseName + parameter.model.type.UserFriendlyName();
@@ -1694,7 +1329,6 @@ namespace UnityEditor.VFX.Test
                 }
                 yield return null;
             }
-            yield return new ExitPlayMode();
         }
 
         static uint s_VisualEffect_Spawned_Behind_Camera_Doesnt_Update_EventCount = 0u;
@@ -1706,26 +1340,14 @@ namespace UnityEditor.VFX.Test
         [UnityTest, Description("Regression test UUM-6379")]
         public IEnumerator VisualEffect_Spawned_Behind_Camera_Doesnt_Update()
         {
+            VFXTestCommon.CloseAllUnecessaryWindows();
             while (EditorWindow.HasOpenInstances<SceneView>())
                 EditorWindow.GetWindow<SceneView>().Close();
 
-            if (!EditorWindow.HasOpenInstances<GameView>())
-                EditorApplication.ExecuteMenuItem("Window/General/Game");
-
-            Assert.IsTrue(EditorWindow.HasOpenInstances<GameView>());
-
-            yield return new EnterPlayMode();
-
-            //Delete unexpected camera (will be restore with ExitPlayMode)
-            foreach (var camera in Camera.allCameras)
-            {
-                if (camera.gameObject == m_mainCamera)
-                    continue;
-
-                camera.enabled = false;
-            }
+            EditorApplication.ExecuteMenuItem("Window/General/Game");
 
             var graph = VFXTestCommon.MakeTemporaryGraph();
+            var mainCamera = Camera.main;
 
             var contextInitialize = ScriptableObject.CreateInstance<VFXBasicInitialize>();
             contextInitialize.GetData().SetSettingValue(nameof(VFXDataParticle.boundsMode), BoundsSettingMode.Manual);
@@ -1753,7 +1375,7 @@ namespace UnityEditor.VFX.Test
             AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
 
             var visualEffectObject = new GameObject("VFX_Behind_Camera");
-            visualEffectObject.transform.position = 10.0f * m_mainCamera.transform.position;
+            visualEffectObject.transform.position = 10.0f * mainCamera.transform.position;
 
             var vfx = visualEffectObject.AddComponent<VisualEffect>();
             vfx.visualEffectAsset = graph.visualEffectResource.asset;
@@ -1782,9 +1404,8 @@ namespace UnityEditor.VFX.Test
 
             Assert.IsTrue(s_VisualEffect_Spawned_Behind_Camera_Doesnt_Update_EventCount > 0u);
             Assert.IsFalse(vfx.culled);
-
-            yield return new ExitPlayMode();
         }
     }
 }
+
 #endif

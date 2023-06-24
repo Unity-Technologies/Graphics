@@ -406,7 +406,7 @@ MonoBehaviour:
   m_TaaSettings:
     quality: 3
     frameInfluence: 0.1
-    jitterScale: 1
+    jitterScale: 0
     mipBias: 0
     varianceClampScale: 0.9
     contrastAdaptiveSharpening: 0
