@@ -19,7 +19,7 @@ void PerlinFBM3D_float(float3 Position, float Frequency, int Octaves, out float 
     Out = EvaluatePerlinFractalBrownianMotion(Position,Frequency, Octaves);
 }
 
-#include "Packages/com.unity.visualeffectgraph\Shaders\VFXNoise.hlsl"
+#include "Packages/com.unity.visualeffectgraph/Shaders/VFXNoise.hlsl"
 
 void CellularNoise3D_float(float3 Position, out float Out)
 {
