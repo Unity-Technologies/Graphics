@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: LightProbes_06
   m_EditorClassIdentifier: 
   Title:
-    m_Untranslated: 'Highlight: Layer Mask'
+    m_Untranslated: Layer Mask
   m_Paragraphs:
     m_Items:
     - m_Type: 6
@@ -39,36 +39,33 @@ MonoBehaviour:
       Title:
         m_Untranslated: 
       Text:
-        m_Untranslated: 'This last one is to simply improve the baking performance
-          and save some space. We have an object called <b>ShadowProxy</b> that needs
-          to participate in the lighting calculations, however we do not need probes
-          around it, as they would be outside the playable area.
-
-
-          Using
-          the <b>Layer Mask,</b> under <b>Lighting > Probe Volumes,</b> we can control
-          which objects do not need probes generated around them.
-
-
-          If
-          you would like to see the difference, follow these steps:
-
-
-          1.
-          Take a look at the probe count currently visible on the screen.
-
-
-          2.
-          In the <i>Hierarchy</i> tab select the <b>Lighting</b> > <b>ShadowProxy.</b>
-
-
-          3.
-          In top right of the <i>Inspector</i> tab, change the <b>Layer</b> to <b>Default.</b>
-
-
-          4.
-          Rebake the lighting using the <b>Generate Lighting</b> button as in previous
-          steps. Notice there will be a lot more probes visible.'
+        m_Untranslated: "In certain situations, some objects should be prevented
+          from influencing the placement of probes. This is often the case for proxy
+          geometries or distance objects. Indeed, these objects usually do not require
+          more probes to be placed around them, as this would increase the baking
+          time and the size of the Probe Volumes' data on disk.\n\nFor example, we
+          have an object called <b>ShadowProxy</b> in the scene that is used to enforce
+          correct light baking and real-time shadowing indoors. However, we do not
+          need this object to be filled with probes, as they would be wastefully
+          placed outside the playable area.\n\nTo prevent this object from getting
+          probes generated around it, we have already used the <b>Layer Mask</b>
+          system.\n\nTo understand how the <b>ShadowProxy</b>  is excluded from the
+          Probe Placement calculation, follow these steps:\n\n1. Enable the Probe
+          Volumes debug visualization in <b>Window</b> > <b>Analysis</b> > <b>Rendering
+          Debugger</b> > <b>Probe Volume</b> > <b>Probe Visualization</b> > <b>Display
+          Probes.</b>\n\n2. Take a look at the probe count currently visible on the
+          screen. Unlike in the image above, probes do not fill entirely the space
+          within <b>ShadowProxy.</b>\n\n3. In the <i>Hierarchy</i> window, select
+          <b>Lighting</b> > <b>ShadowProxy.</b>\n\n4. At the top right of the <i>Inspector</i>
+          window, you can see that the Layer is set arbitrarily to \"PostProcessing\".
+          \n\n5. In the <i>Lighting</i> window, under the <b>Probe Volumes</b> tab,
+          see that <b>Probe Placement</b> > <b>Renderer Filter Settings</b> > <b>Layer
+          Mask</b> omits the \"PostProcessing\" layer.\n\nThis means that the <b>ShadowProxy</b>
+          won't be part of the probe placement calculations.\n\n6. Optionally, if
+          you wanted to force the <b>ShadowProxy</b> to be surrounded by probes,
+          you would need to assign it to the \"Default\" Layer for instance, and
+          click on <b>Generate Lighting</b> at the bottom of the <i>Lighting</i>
+          window."
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}

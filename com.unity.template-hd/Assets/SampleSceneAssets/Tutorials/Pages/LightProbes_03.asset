@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: LightProbes_03
   m_EditorClassIdentifier: 
   Title:
-    m_Untranslated: 'Highlight: Virtual offset'
+    m_Untranslated: Virtual Offset
   m_Paragraphs:
     m_Items:
     - m_Type: 6
@@ -39,41 +39,26 @@ MonoBehaviour:
       Title:
         m_Untranslated: 
       Text:
-        m_Untranslated: 'Unlike in the previous per-object lighting probe system,
-          individual probes can not be moved or deleted. This is a hard limitation
-          of the system. In cases where we would need to move a set of probes, we
-          could use virtual offset instead.
-
-
-          <b>Virtual offset</b> allows
-          us to move the capture position of light probes. It can be enabled globally
-          in the <b>Lighting</b> > <b>Probe Volumes</b> panel, automatically adjusting
-          the capture position of probes that are inside geometry. Or it can be applied
-          manually as we did for this project, by using Probe Adustment Volumes in
-          a specified location.
-
-
-          The bright line seen in the image is
-          caused by the overly bright probes below the floor. To fix it, we added
-          a probe adjustment volume that would virtually lift the said probes up
-          by ~0.6 meters during the baking process.
-
-
-          To undo the fix and
-          explore the issue further, follow these steps:
-
-
-          1. Move the
-          cube to  <b>X:41 Y:0 Z:3</b>
-
-
-          2. Disable the <b>Probe Adustment
-          Volume</b> under <b>Lighting</b> > <b>Adaptive Probe Volumes</b> in the
-          <i>Hierarchy</i> window.
-
-
-          3. Rebake the lighting by using the
-          <b>Generate Lighting.</b>'
+        m_Untranslated: "Because Probe Volumes only offer automatic probe placement,
+          individual probes cannot be moved or deleted. This is a core limitation
+          of the system. \n\nIn case you need to move a set of probes, you can instead
+          move their capture point instead, by tuning the global <b>Virtual Offset</b>
+          properties in the <i>Lighting</i> window, under the <b>Probe Volumes</b>
+          tab. For finer localized probe adjustments in the Scene, you may use instead
+          <b>Probe Adjustment Volumes,</b> found under <b>GameObject</b> > <b>Light</b>
+          > <b>Probe Volumes.</b>\n\nThe bright line seen in the image above is caused
+          by the overly bright probes under the floor. To fix this unwated light
+          leaking, we already added a probe adjustment volume that would virtually
+          lift up the capture points of the said probes by 0.62 meters when the lighting
+          is generated.\n\n\nTo reproduce the artifact seen in the image above, follow
+          these steps to disable the <b>Probe Adjustment Volume:</b>\n\n1. Place
+          a Cube at <b>X:41 Y:0 Z:3</b>\n\n2. In the <i>Hierarchy</i> window, disable
+          the <b>Probe Adjustment Volume</b> under <b>Lighting</b> > <b>Adaptive
+          Probe Volumes.</b>\n\n3. Click the <b>Generate Lighting</b> button at the
+          bottom of the <i>Lighting</i> window to rebake the lighting.\n\nAfter several
+          seconds, once the lighting has been rebaked, unwanted light leaking appears
+          above the floor.\n\n4. Re-enable the <b>Probe Adjustment Volume</b> and
+          regenerate the lighting to fix the issue again."
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}

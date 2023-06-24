@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: LightProbes_02
   m_EditorClassIdentifier: 
   Title:
-    m_Untranslated: 'Highlight: Dilation'
+    m_Untranslated: Dilation
   m_Paragraphs:
     m_Items:
     - m_Type: 6
@@ -39,49 +39,27 @@ MonoBehaviour:
       Title:
         m_Untranslated: 
       Text:
-        m_Untranslated: '<b>Adaptive Probe Volume</b> system has many features. Going
-          through all of them would take too long, so in this tutorial we will cover
-          the ones we actually use in the project. On the last page however, we''ll
-          provide links to the documentation and videos that cover the rest.
-
-
-          Firstly
-          we will cover the <b>Dilation.</b> Since the probe placement is automatic,
-          some of them may end up inside walls or other static objects. Probes that
-          sample backfaces are considered to be invalid and may cause lighting artifacts.
-          An example of this can be seen in the image above. Note that the wall itself
-          is not affected as it''s lit using lightmaps.
-
-
-          <b>Dilation</b>
-          replaces the invalid probes with valid data from neighboring probes, solving
-          the issue.
-
-
-          If you would like to explore the issue further,
-          follow these steps:
-
-
-          1. Re-enable APV if you disabled it in
-          the last section and add a cube at this location <b>X:17 Y:2 Z:-2</b>
-
-
-          2.
-          Open the Lighting tab <b>Windows</b> > <b>Rendering</b> > <b>Lighting.</b>
-
-
-          3.
-          Under <b>Probe Volumes</b> > <b>Probe Invalidity Settings,</b> uncheck
-          <b>Enable Dilation.</b>
-
-
-          4. Optionally, reduce the baking quality
-          to medium or draft, for faster bakes under <b>Scene</b> > <b>Lighting Settings</b>
-          > <b>Lighting Setting Asset.</b>
-
-
-          5. Rebake the lighting by
-          hitting the <b>Generate Lighting</b> button on the bottom.'
+        m_Untranslated: "Since the probe placement is automatic, some of them may
+          end up inside objects or behind inaccessible parts of the Scene. Probes
+          that sample backfaces are considered invalid and they may cause light leaking
+          which produces unwanted bright or dark patches on the geometries. An example
+          of this light leaking be seen in the image above. Note that the wall itself
+          is not affected because it's lit using lightmaps.\n\nThanks to the <b>Dilation</b>
+          feature, the system can replace the invalid probes with valid data from
+          neighboring probes, to prevent unwanted light leaking.\n\n\nTo reproduce
+          the issue in the image above, let's disable the <b>Dilation</b> and rebake
+          the lighting.\n\n1. Add a Cube at the following location: <b>X:17 Y:2 Z:-2</b>\n\n2.
+          Open <b>Windows</b> > <b>Rendering</b> > <b>Lighting.</b>\n\n3. At the
+          top of the <i>Lighting</i> window, select the <b>Probe Volumes</b> tab,
+          and under <b>Probe Invalidity Settings,</b> uncheck <b>Enable Dilation.</b>\n\n4.
+          Optionally, to speed up the rebaking of the lighting, choose a \"Draft\"
+          or \"Medium\" <b>Lighting Settings Asset</b> under the <b>Scene</b> tab
+          of the <i>Lighting</i> window. \n\n5. Click the <b>Generate Lighting</b>
+          button at the bottom of the <i>Lighting</i> window to rebake the lighting.\n\nAfter
+          several seconds, once the lighting has been rebaked, you will notice that
+          invalid probes are now wrongly affecting the Cube, because the <b>Dilation</b>
+          was turned off.\n\n6. <b>Enable Dilation</b> and generate the lighting
+          again to get rid of the light leaking."
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
