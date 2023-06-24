@@ -285,18 +285,17 @@ namespace UnityEngine.Rendering.HighDefinition
             MigrationStep.New(Version.MergeDitheringAndLODQualitySetting, (HDRenderPipelineAsset data) =>
             {
 #pragma warning disable 618 // Type or member is obsolete
-                if (data.m_RenderPipelineSettings.supportDitheringCrossFade)
+                if (!data.m_RenderPipelineSettings.supportDitheringCrossFade)
+                    return;
+
+                QualitySettings.ForEach(() =>
                 {
-                    var qualitySettings = QualitySettings.names;
-                    for (int i = 0; i < qualitySettings.Length; i++)
+                    if (QualitySettings.renderPipeline == data)
                     {
-                        QualitySettings.SetQualityLevel(i,false);
-                        if (QualitySettings.renderPipeline == data)
-                        {
-                            QualitySettings.enableLODCrossFade = true;
-                        }
+                        QualitySettings.enableLODCrossFade = true;
                     }
-                }
+                });
+
 #pragma warning restore 618
             })
             );

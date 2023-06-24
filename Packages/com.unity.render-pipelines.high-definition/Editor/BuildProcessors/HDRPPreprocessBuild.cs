@@ -48,14 +48,12 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Update all quality levels with the right max lod so that meshes can be stripped.
             // We don't take lod bias into account because it can be overridden per camera.
-            int currentQualityLevel = QualitySettings.GetQualityLevel();
-            int qualityLevelCount = QualitySettings.names.Length;
-            for (int i = 0; i < qualityLevelCount; ++i)
+            QualitySettings.ForEach((tier, name) =>
             {
                 if (!((QualitySettings.renderPipeline as IMigratableAsset)?.IsAtLastVersion() ?? true))
-                    throw new BuildFailedException($"Quality {QualitySettings.names[i]} use a non updated asset {AssetDatabase.GetAssetPath(QualitySettings.renderPipeline)}. Please use HDRP wizard to fix it.");
+                    throw new BuildFailedException(
+                        $"Quality {tier} - {name} use a non updated asset {AssetDatabase.GetAssetPath(QualitySettings.renderPipeline)}. Please use HDRP wizard to fix it.");
 
-                QualitySettings.SetQualityLevel(i, false);
                 var renderPipeline = QualitySettings.renderPipeline as HDRenderPipelineAsset;
                 if (renderPipeline != null)
                 {
@@ -65,8 +63,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     QualitySettings.maximumLODLevel = GetMinimumMaxLoDValue(hdPipelineAsset);
                 }
-            }
-            QualitySettings.SetQualityLevel(currentQualityLevel, false);
+            });
         }
     }
 }
