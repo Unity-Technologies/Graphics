@@ -283,7 +283,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 renderStates = CoreRenderStates.Meta,
                 // Note: no tessellation for meta pass
                 pragmas = GeneratePragmas(CorePragmas.DotsInstanced, useVFX, false),
-                defines = GenerateDefines(CoreDefines.ShaderGraphRaytracingDefault, useVFX, false),
+                defines = GenerateDefines(CoreDefines.Meta, useVFX, false),
                 keywords = new KeywordCollection() { CoreKeywordDescriptors.EditorVisualization },
                 includes = GenerateIncludes(),
             };
@@ -291,6 +291,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             IncludeCollection GenerateIncludes()
             {
                 var includes = new IncludeCollection();
+
+                // Use Unity's built-in matrices for meta pass rendering
+                includes.Add(CoreIncludes.kPickingSpaceTransforms, IncludeLocation.Pregraph);
 
                 includes.Add(CoreIncludes.CorePregraph);
                 if (supportLighting)
