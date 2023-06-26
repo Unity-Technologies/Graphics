@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Volumes_04
   m_EditorClassIdentifier: 
   Title:
-    m_Untranslated: Explore Local Volumes
+    m_Untranslated: Explore the Local Volumes
   m_Paragraphs:
     m_Items:
     - m_Type: 6
@@ -22,7 +22,7 @@ MonoBehaviour:
       Text:
         m_Untranslated: 
       m_Tutorial: {fileID: 0}
-      m_Image: {fileID: 2800000, guid: 954c855810cc7784fbc73fdcb6fca989, type: 3}
+      m_Image: {fileID: 2800000, guid: 6cfc0d71bf2fabc42b0d827e348e6320, type: 3}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
       m_Criteria:
@@ -39,17 +39,11 @@ MonoBehaviour:
       Title:
         m_Untranslated: 
       Text:
-        m_Untranslated: "Now let's see how the Camera's Exposure is affected when
-          entering <b>Volume Room 3.</b>\n\n1. With <b>Volume Room 3</b> selected,
-          disable the Exposure override. Notice that the Scene gets darker.\n\n2.
-          Undo your change.\n\nWhen the Exposure override for Room 3 is disabled,
-          this area of the Scene inherits its Exposure settings directly from the
-          <b>Default Volume Profile.</b> \n\nHowever, these particular settings might
-          not be acceptable for a relatively dark room, such as Room 3. Therefore,
-          a <b>Local</b> Volume for Room 3 has been created, with dedicated Exposure
-          overrides, among others.\n\nWhen the camera leaves <b>Volume Room 3,</b>
-          the overrides that were set for this room will no longer be applied to
-          the Camera."
+        m_Untranslated: "In this scene, there are 6 <b>Local</b> Volumes used to
+          control HDRP effects in specific rooms.\n\n1. Enable Gizmos in order to
+          see the boundaries of <b>Local</b> volumes.\n\n2. Select <b>Volume Room
+          3</b> and turn it on and off. \n\nNotice that this Volume fully encompass
+          the 3rd room and it has overrides for Exposure, White Balance and Fog."
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
@@ -69,8 +63,8 @@ MonoBehaviour:
     m_FocusMode: 0
     m_Orthographic: 0
     m_Size: 9.263008
-    m_Pivot: {x: 70.57888, y: 4.7853203, z: 5.1217413}
-    m_Rotation: {x: -0.029264731, y: 0.5817689, z: 0.02095274, w: 0.8125587}
+    m_Pivot: {x: 54.400105, y: 3.4359179, z: -3.8305416}
+    m_Rotation: {x: 0, y: 1, z: 0, w: -0.00000004371139}
     m_FrameObject:
       m_SceneGuid: 
       m_GameObjectGuid: 
