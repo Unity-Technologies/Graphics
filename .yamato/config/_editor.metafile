@@ -5,7 +5,7 @@ editor_priming_config:
   use_predefined_variables: True
   agent:
     type: Unity::VM
-    image: package-ci/ubuntu:v2.0.0-947723
+    image: automation-tooling/ubuntu-22.04-desktop:v2.933537
     flavor: b1.small
   skip_checkout: true
   commands:
@@ -24,7 +24,7 @@ editor_versions_file: .yamato/_latest_editor_versions_TRACK.metafile
 editor_pinning_config:
   agent:
     type: Unity::VM
-    image: package-ci/ubuntu:v2.0.0-947723
+    image: automation-tooling/ubuntu-22.04-desktop:v2.933537
     flavor: b1.small
   use_predefined_variables: True
   commands:
