@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Volumes_04
   m_EditorClassIdentifier: 
   Title:
-    m_Untranslated: Explore the Local Volumes
+    m_Untranslated: Explore Local Volumes
   m_Paragraphs:
     m_Items:
     - m_Type: 6
