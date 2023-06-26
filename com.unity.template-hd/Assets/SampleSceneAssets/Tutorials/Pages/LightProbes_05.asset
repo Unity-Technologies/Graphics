@@ -49,12 +49,12 @@ MonoBehaviour:
           of data on disk will thus slightly increase. However, it will prevent most
           lighting seams.\n\nTo reproduce the artifact seen in the image above, follow
           these steps:\n\n1. Add a Cube at <b>X:25.3 Y:2 Z:1.5</b>\n\n2. In the <i>Hierarchy</i>
-          window select <b>Lighting</b> > <b>Adaptive Probe Volumes</b> > <b>Probe
-          Volume Local.</b>\n\nNotice that the range slider has its Min and Max value
-          set at 0.6m.\n\n3. Disable the <b>Probe Volume Local</b> GameObject and
-          save the scene.\n\n4. Click the <b>Generate Lighting</b> button at the
-          bottom of the <i>Lighting</i> window to rebake the lighting.\n\nThe sampling
-          artifact will appear on the Cube.\n\n5. Re-enable the <b>Probe Volume Local</b>
+          window select <b>Lighting</b> > <b>Probe Volumes</b> > <b>Probe Volume
+          Local.</b>\n\nNotice that the range slider has its Min and Max value set
+          at 0.6m.\n\n3. Disable the <b>Probe Volume Local</b> GameObject and save
+          the scene.\n\n4. Click the <b>Generate Lighting</b> button at the bottom
+          of the <i>Lighting</i> window to rebake the lighting.\n\nThe sampling artifact
+          will appear on the Cube.\n\n5. Re-enable the <b>Probe Volume Local</b>
           GameObject and regenerate the lighting to fix the issue again."
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}

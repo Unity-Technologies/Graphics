@@ -53,12 +53,12 @@ MonoBehaviour:
           is generated.\n\n\nTo reproduce the artifact seen in the image above, follow
           these steps to disable the <b>Probe Adjustment Volume:</b>\n\n1. Place
           a Cube at <b>X:41 Y:0 Z:3</b>\n\n2. In the <i>Hierarchy</i> window, disable
-          the <b>Probe Adjustment Volume</b> under <b>Lighting</b> > <b>Adaptive
-          Probe Volumes.</b>\n\n3. Click the <b>Generate Lighting</b> button at the
-          bottom of the <i>Lighting</i> window to rebake the lighting.\n\nAfter several
-          seconds, once the lighting has been rebaked, unwanted light leaking appears
-          above the floor.\n\n4. Re-enable the <b>Probe Adjustment Volume</b> and
-          regenerate the lighting to fix the issue again."
+          the <b>Probe Adjustment Volume</b> under <b>Lighting</b> > <b>Probe Volumes.</b>\n\n3.
+          Click the <b>Generate Lighting</b> button at the bottom of the <i>Lighting</i>
+          window to rebake the lighting.\n\nAfter several seconds, once the lighting
+          has been rebaked, unwanted light leaking appears above the floor.\n\n4.
+          Re-enable the <b>Probe Adjustment Volume</b> and regenerate the lighting
+          to fix the issue again."
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
