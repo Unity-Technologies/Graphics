@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ff771ccdf4150419d9ff4d342b069aae, type: 3}
-  m_Name: Volumes_02
+  m_Name: Volumes_02_Global
   m_EditorClassIdentifier: 
   Title:
-    m_Untranslated: Explore the Default Volume
+    m_Untranslated: Explore the Global Volume
   m_Paragraphs:
     m_Items:
     - m_Type: 6
@@ -22,7 +22,7 @@ MonoBehaviour:
       Text:
         m_Untranslated: 
       m_Tutorial: {fileID: 0}
-      m_Image: {fileID: 2800000, guid: b976b90444d2f2643b196eee391988a9, type: 3}
+      m_Image: {fileID: 2800000, guid: 8d2b462398d6d8d43be9ae973c781087, type: 3}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
       m_Criteria:
@@ -50,15 +50,14 @@ MonoBehaviour:
       Title:
         m_Untranslated: 
       Text:
-        m_Untranslated: "Let\u2019s see how the Default Volume properties are defined.\n\n1.
-          Under <b>Edit</b> > <b>Project Settings</b> > <b>Graphics,</b> select <b>HDRP
-          Global Settings.</b> \n\n2. In the <b>Default Volume Profile</b> section,
-          search for the <b>Color Adjustments</b> component, using the dedicated
-          search bar.\n\n3. Expand the component, and move the <b>Saturation</b>
-          sllider left and right. \n\nYou can see that the entire Scene becomes either
-          less or more saturated, regardless of the camera position.\n\n4. Undo your
-          change by resetting the <b>Saturation</b> to 0. Alternatively, you may
-          right click on the property to revert it to its default value."
+        m_Untranslated: "Next, let\u2019s look at the Global Volume properties.\n\n1.
+          In the <i>Hierarchy,</i> expand <b>Lighting</b> > <b>Volumes.</b>\n\n2.
+          Select the <b>Volume Global</b> GameObject.\n\n3. Notice the <b>Mode</b>
+          is <b>Global</b> in the <i>Inspector.</i>\n\n4. Disable the <b>HDRI Sky</b>
+          Override. You can see that the sky disappears.\n\n5. Undo your change.\n\n<b>Global
+          Volumes</b> have an effect on cameras wherever they are located in the
+          scene. They are convenient for defining values that remain constant thoughtout
+          the scene, for instance:\n\\u2022 Sky\n\\u2022 Fog\n\\u2022 Shadows\n"
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
@@ -77,9 +76,9 @@ MonoBehaviour:
     m_CameraMode: 1
     m_FocusMode: 0
     m_Orthographic: 0
-    m_Size: 9.263008
-    m_Pivot: {x: 40.67289, y: 2.5719264, z: 4.804869}
-    m_Rotation: {x: 1.1704407e-17, y: 0.5372997, z: -7.456531e-18, w: 0.8433914}
+    m_Size: 10
+    m_Pivot: {x: 0.4612465, y: 9.553326, z: 0.66909266}
+    m_Rotation: {x: -0.11598007, y: 0.5433982, z: 0.07614133, w: 0.8279308}
     m_FrameObject:
       m_SceneGuid: 
       m_GameObjectGuid: 
