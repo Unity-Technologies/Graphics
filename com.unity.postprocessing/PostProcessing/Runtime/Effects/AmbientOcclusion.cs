@@ -197,16 +197,13 @@ namespace UnityEngine.Rendering.PostProcessing
                 state &= SystemInfo.supportsComputeShaders
                     && !RuntimeUtilities.isAndroidOpenGL
 #if UNITY_2023_2_OR_NEWER
-                    && SystemInfo.IsFormatSupported(GraphicsFormat.R32_SFloat, GraphicsFormatUsage.Render | GraphicsFormatUsage.Sparse)
-                    && SystemInfo.IsFormatSupported(GraphicsFormat.R16_SFloat, GraphicsFormatUsage.Render | GraphicsFormatUsage.Sparse)
-                    && SystemInfo.IsFormatSupported(GraphicsFormat.R8_UNorm, GraphicsFormatUsage.Render | GraphicsFormatUsage.Sparse);
+                    && SystemInfo.IsFormatSupported(GraphicsFormat.R32_SFloat, GraphicsFormatUsage.Render)
+                    && SystemInfo.IsFormatSupported(GraphicsFormat.R16_SFloat, GraphicsFormatUsage.Render)
+                    && SystemInfo.IsFormatSupported(GraphicsFormat.R8_UNorm, GraphicsFormatUsage.Render);
 #else
                     && SystemInfo.IsFormatSupported(GraphicsFormat.R32_SFloat, FormatUsage.Render)
-                    && SystemInfo.IsFormatSupported(GraphicsFormat.R32_SFloat, FormatUsage.Sparse)
                     && SystemInfo.IsFormatSupported(GraphicsFormat.R16_SFloat, FormatUsage.Render)
-                    && SystemInfo.IsFormatSupported(GraphicsFormat.R16_SFloat, FormatUsage.Sparse)
-                    && SystemInfo.IsFormatSupported(GraphicsFormat.R8_UNorm, FormatUsage.Render)
-                    && SystemInfo.IsFormatSupported(GraphicsFormat.R8_UNorm, FormatUsage.Sparse);
+                    && SystemInfo.IsFormatSupported(GraphicsFormat.R8_UNorm, FormatUsage.Render);
 #endif
             }
 
