@@ -41,8 +41,8 @@ MonoBehaviour:
       Text:
         m_Untranslated: "<b>Probe Volumes,</b> also called \"Adaptive Probe Volumes\"
           or \"APV\" for short, are a system that allows dynamic objects to receive
-          indirect diffuse lighting. It shares the same goal as the legacy <b>Light
-          Probes Groups,</b> but has major differences. Some of them are listed below:\n\n\u2022
+          indirect diffuse lighting. It shares the same goal as the <b>Light Probes
+          Groups,</b> but has major differences. Some of them are listed below:\n\n\u2022
           The probe placement is automatic and based on the Scene's geometric complexity:
           more probes will be placed around geometries, whereas empty areas of the
           Scene will receive fewer probes, depending on your <b>Min and Max Probe
