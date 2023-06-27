@@ -74,12 +74,8 @@ namespace UnityEditor.Rendering.Universal
         {
             if (m_WasModified)
             {
-                Analytics.RendererAssetData modifiedData = new Analytics.RendererAssetData();
-                modifiedData.instance_id = m_Renderer2DData.GetInstanceID();
-                modifiedData.was_create_event = false;
-                modifiedData.blending_layers_count = 0;
-                modifiedData.blending_modes_used = 0;
-                analytics.SendData(Analytics.AnalyticsDataTypes.k_Renderer2DDataString, modifiedData);
+                Analytics.RenderAssetAnalytic modifiedData = new Analytics.RenderAssetAnalytic(m_Renderer2DData.GetInstanceID(), false, 0, 0);
+                analytics.SendData(modifiedData);
             }
         }
 

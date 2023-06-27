@@ -1,3 +1,4 @@
+using System;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEngine.Analytics;
@@ -14,20 +15,32 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public int callbackOrder => int.MaxValue;
 
-        struct UsageEventData
+        [Serializable]
+        internal struct UsageEventData : IAnalytic.IData
         {
-            internal const string k_EventName = "uHDRPUsage";
-            internal const int k_CurrentVersion = 2;
-
             // Naming convention for analytics data
             public string build_target;
             public string asset_guid;
             public string[] changed_settings;
         }
 
+        [AnalyticInfo(eventName: "uHDRPUsage", vendorKey: "unity.vfxgraph", maxEventsPerHour: 10, maxNumberOfElements: 1000, version: 2)]
+        internal class Analytic : IAnalytic
+        {
+            public Analytic(UsageEventData data) { m_Data = data; }
+            public bool TryGatherData(out IAnalytic.IData data, out Exception error)
+            {
+                data = m_Data;
+                error = null;
+                return true;
+            }
+
+            UsageEventData m_Data;
+        }
+
         static void SendUsage()
         {
-            if (!EditorAnalytics.enabled || EditorAnalytics.RegisterEventWithLimit(UsageEventData.k_EventName, k_MaxEventsPerHour, k_MaxNumberOfElements, k_VendorKey, UsageEventData.k_CurrentVersion) != AnalyticsResult.Ok)
+            if (!EditorAnalytics.enabled)
                 return;
 
             var activeBuildTarget = EditorUserBuildSettings.activeBuildTarget;
@@ -47,7 +60,8 @@ namespace UnityEditor.Rendering.HighDefinition
                         asset_guid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(hdrpAsset.GetInstanceID())),
                         changed_settings = hdrpAsset.currentPlatformRenderPipelineSettings.ToNestedColumnWithDefault(defaults, true)
                     };
-                    EditorAnalytics.SendEventWithLimit(UsageEventData.k_EventName, data, UsageEventData.k_CurrentVersion);
+                    Analytic analytic = new Analytic(data);
+                    EditorAnalytics.SendAnalytic(analytic);
                 }
             }
         }

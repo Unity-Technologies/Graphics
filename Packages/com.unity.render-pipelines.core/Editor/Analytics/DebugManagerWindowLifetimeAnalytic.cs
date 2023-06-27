@@ -1,8 +1,9 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Linq;
 using UnityEngine.Analytics;
 using UnityEngine.Rendering;
+using static UnityEngine.Analytics.IAnalytic;
 
 namespace UnityEditor.Rendering.Analytics
 {
@@ -10,11 +11,8 @@ namespace UnityEditor.Rendering.Analytics
     // taxonomy = editor.analytics.uDebugManagerWindowLifetimeAnalytic.v1
     internal class DebugManagerWindowLifetimeAnalytic
     {
-        const int k_MaxEventsPerHour = 10;
-        const int k_MaxNumberOfElements = 1000;
-        const string k_VendorKey = "unity.srp";
 
-        private static DateTime?[] timeStamps = new DateTime?[2] { null, null};
+        private static DateTime?[] timeStamps = new DateTime?[2] { null, null };
 
         [InitializeOnLoadMethod]
         static void SubscribeToDebugManagerOpenCloseWindows()
@@ -49,30 +47,43 @@ namespace UnityEditor.Rendering.Analytics
             }
         }
 
-        [DebuggerDisplay("{window_mode} - {seconds_opened}")]
-        class Data
+        [AnalyticInfo(eventName: "uDebugManagerWindowLifetimeAnalytic", vendorKey: "unity.srp", maxEventsPerHour: 10, maxNumberOfElements: 1000)]
+        internal class Analytic : IAnalytic
         {
-            internal const string k_EventName = "uDebugManagerWindowLifetimeAnalytic";
-
-            // Naming convention for analytics data
-            public string window_mode;
-            public int seconds_opened;
-        }
-
-        static void Send(DebugManager.UIMode windowMode, DateTime start)
-        {
-            var elapsed = DateTime.Now - start;
-
-            if (EditorAnalytics.enabled &&
-                EditorAnalytics.RegisterEventWithLimit(Data.k_EventName, k_MaxEventsPerHour, k_MaxNumberOfElements, k_VendorKey) == AnalyticsResult.Ok)
+            public Analytic(DebugManager.UIMode windowMode, DateTime start)
             {
+                var elapsed = DateTime.Now - start;
                 using (UnityEngine.Pool.GenericPool<Data>.Get(out var data))
                 {
                     data.window_mode = windowMode.ToString();
                     data.seconds_opened = elapsed.Seconds;
-                    EditorAnalytics.SendEventWithLimit(Data.k_EventName, data);
+                    m_Data = data;
                 }
             }
+
+            [DebuggerDisplay("{window_mode} - {seconds_opened}")]
+            [Serializable]
+            class Data : IAnalytic.IData
+            {
+                // Naming convention for analytics data
+                public string window_mode;
+                public int seconds_opened;
+            }
+
+            public bool TryGatherData(out IAnalytic.IData data, out Exception error)
+            {
+                data = m_Data;
+                error = null;
+                return true;
+            }
+            Data m_Data;
+
+        };
+
+        static void Send(DebugManager.UIMode windowMode, DateTime start)
+        {
+            Analytic analytic = new Analytic(windowMode, start);
+            EditorAnalytics.SendAnalytic(analytic);
         }
-    }
+    };
 }

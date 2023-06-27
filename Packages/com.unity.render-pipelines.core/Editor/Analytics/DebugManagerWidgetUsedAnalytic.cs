@@ -1,5 +1,10 @@
-﻿using System.Diagnostics;
+using System;
+using System.Diagnostics;
+using System.IO;
 using UnityEngine.Analytics;
+using UnityEngine.Rendering;
+using static UnityEditor.Rendering.Analytics.DebugManagerWidgetUsedAnalytic.Analytic;
+using static UnityEngine.Rendering.DebugUI;
 
 namespace UnityEditor.Rendering.Analytics
 {
@@ -7,32 +12,43 @@ namespace UnityEditor.Rendering.Analytics
     // taxonomy = editor.analytics.uDebugManagerWidgetUsedAnalytic.v1
     internal class DebugManagerWidgetUsedAnalytic
     {
-        const int k_MaxEventsPerHour = 1000;
-        const int k_MaxNumberOfElements = 1000;
-        const string k_VendorKey = "unity.srp";
-
-        [DebuggerDisplay("{query_path} - {value}")]
-        class Data
+        [AnalyticInfo(eventName: "uDebugManagerWidgetUsedAnalytic", vendorKey: "unity.srp", maxEventsPerHour: 1000, maxNumberOfElements: 1000)]
+        internal class Analytic : IAnalytic
         {
-            internal const string k_EventName = "uDebugManagerWidgetUsedAnalytic";
-
-            // Naming convention for analytics data
-            public string query_path;
-            public string value;
-        }
-
-        public static void Send(string path, object value)
-        {
-            if (EditorAnalytics.enabled &&
-                EditorAnalytics.RegisterEventWithLimit(Data.k_EventName, k_MaxEventsPerHour, k_MaxNumberOfElements, k_VendorKey) == AnalyticsResult.Ok)
+            public Analytic(string path, object value)
             {
                 using (UnityEngine.Pool.GenericPool<Data>.Get(out var data))
                 {
                     data.query_path = path;
                     data.value = value.ToString();
-                    EditorAnalytics.SendEventWithLimit(Data.k_EventName, data);
+                    m_Data = data;
+
                 }
             }
+
+            [DebuggerDisplay("{query_path} - {value}")]
+            [Serializable]
+            class Data : IAnalytic.IData
+            {
+                // Naming convention for analytics data
+                public string query_path;
+                public string value;
+            }
+
+            public bool TryGatherData(out IAnalytic.IData data, out Exception error)
+            {
+                data = m_Data;
+                error = null;
+                return true;
+            }
+
+            Data m_Data;
+        };
+
+        public static void Send(string path, object value)
+        {
+            Analytic analytic = new Analytic(path, value);
+            EditorAnalytics.SendAnalytic(analytic);
         }
     }
 }

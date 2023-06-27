@@ -1,5 +1,7 @@
+using System;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.Analytics;
 using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.Analytics
@@ -8,30 +10,46 @@ namespace UnityEditor.Rendering.Analytics
     // taxonomy = editor.analytics.uVolumeProfileUsageAnalytic.v4
     internal class VolumeProfileUsageAnalytic
     {
-        [System.Diagnostics.DebuggerDisplay("{volume_name} - {scene_name}- {volume_profile_asset_guid}")]
-        class Data
+        [AnalyticInfo(eventName: "uVolumeProfileUsageAnalytic", version: 4)]
+        class Analytic : IAnalytic
         {
-            internal const string k_EventName = "uVolumeProfileUsageAnalytic";
-            internal const int k_Version = 4;
+            public Analytic(Volume volume, VolumeProfile volumeProfile)
+            {
+                using (GenericPool<Data>.Get(out var data))
+                {
+                    data.volume_name = Hash128.Compute(volume.name).ToString();
+                    data.scene_name = EditorSceneManager.GetActiveScene().GetGUID();
+                    data.volume_profile_asset_guid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(volumeProfile.GetInstanceID()));
+                    m_Data = data;
+                }
+            }
 
-            // Naming convention for analytics data
-            public string volume_name;
-            public string scene_name;
-            public string volume_profile_asset_guid;
-        }
+            [System.Diagnostics.DebuggerDisplay("{volume_name} - {scene_name}- {volume_profile_asset_guid}")]
+            [Serializable]
+            class Data : IAnalytic.IData
+            {
+                // Naming convention for analytics data
+                public string volume_name;
+                public string scene_name;
+                public string volume_profile_asset_guid;
+            }
+            public bool TryGatherData(out IAnalytic.IData data, out Exception error)
+            {
+                data = m_Data;
+                error = null;
+                return true;
+            }
+            Data m_Data;
+        };
 
         public static void Send(Volume volume, VolumeProfile volumeProfile)
         {
-            if (volume == null || volumeProfile == null || !AnalyticsUtils.TryRegisterEvent(Data.k_EventName, Data.k_Version))
+            if (volume == null || volumeProfile == null)
                 return;
 
-            using (GenericPool<Data>.Get(out var data))
-            {
-                data.volume_name = Hash128.Compute(volume.name).ToString();
-                data.scene_name = EditorSceneManager.GetActiveScene().GetGUID();
-                data.volume_profile_asset_guid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(volumeProfile.GetInstanceID()));
-                AnalyticsUtils.SendData<Data>(data, Data.k_EventName, Data.k_Version);
-            }
+            Analytic analytic = new Analytic(volume, volumeProfile);
+
+            AnalyticsUtils.SendData(analytic);
         }
     }
 }

@@ -11,21 +11,34 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
     {
         const int k_MaxEventsPerHour = 10;
         const int k_MaxNumberOfElements = 1000;
-        const string k_VendorKey = "unity.hdrp";
 
-        struct DefaultsEventData
+        [Serializable]
+        internal struct DefaultsEventData : IAnalytic.IData
         {
-            internal const string k_EventName = "uHDRPDefaults";
-
             // Naming convention for analytics data
             public string[] default_settings;
         }
+
+        [AnalyticInfo(eventName: "uHDRPDefaults", vendorKey: "unity.hdrp", maxEventsPerHour: 10, maxNumberOfElements: 1000)]
+        internal class Analytic : IAnalytic
+        {
+            public Analytic(DefaultsEventData data) { m_Data = data; }
+            public bool TryGatherData(out IAnalytic.IData data, out Exception error)
+            {
+                data = m_Data;
+                error = null;
+                return true;
+            }
+
+            DefaultsEventData m_Data;
+        }
+
 
         // We only need to send this event manually when we add new members or change values of the HDRP asset.
         [MenuItem("internal:Edit/Rendering/Analytics/Generate HDRP default values analytics", priority = 1)]
         static void GenerateDefaultValues()
         {
-            if (!EditorAnalytics.enabled || EditorAnalytics.RegisterEventWithLimit(DefaultsEventData.k_EventName, k_MaxEventsPerHour, k_MaxNumberOfElements, k_VendorKey) != AnalyticsResult.Ok)
+            if (!EditorAnalytics.enabled)
                 return;
 
             var data = new DefaultsEventData()
@@ -33,7 +46,8 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
                 default_settings = RenderPipelineSettings.NewDefault().ToNestedColumn()
             };
 
-            EditorAnalytics.SendEventWithLimit(DefaultsEventData.k_EventName, data);
+            Analytic analytic = new Analytic(data);
+            EditorAnalytics.SendAnalytic(analytic);
         }
     }
 
