@@ -39,22 +39,22 @@ MonoBehaviour:
       Title:
         m_Untranslated: 
       Text:
-        m_Untranslated: "<b>Adaptive Probe Volumes</b> is a system that allows dynamic
-          objects to receive indirect lighting. It shares the same goal as <b>Light
-          Probes,</b> but has major differences. Some of them are listed below:\n\n\u2022
-          The probe placement is automatic. Probes are no longer placed by hand.\n\u2022
-          The indirect lighting is applied per-pixel instead of per-object. This
-          allows us to achieve much better quality and in some cases even replace
-          lightmaps.\n\u2022 Can be used by the Reflection Probe system to reduce
-          indirect specular leaking.\n\u2022 Includes streaming functionality to
-          support large open worlds.\n\u2022 Affects Volumetric Fog and Screen Space
-          Global Illumination.\n\nTo better understand what effect it has on the
-          scene, you could temporarily turn it off and explore the level. Most notably
-          in the third room. Dynamic objects should look out of place. \n\nTo turn
-          it off:\nEdit > Project Settings > HDRP Global Settings > Frame Settings
-          > Camera > Lighting > Probe Volumes\n\nTo display the probes:\nWindow >
-          Analysis > Rendering Debugger > Probe Volume > Probe Visualization > Display
-          Probes"
+        m_Untranslated: "<b>Probe Volumes,</b> also known as \"Adaptive Probe Volumes\"
+          or \"APV\" for short, is a system that allows dynamic objects to receive
+          indirect lighting. It shares the same goal as <b>Light Probes,</b> but
+          has major differences. Some of them are listed below:\n\n\u2022 The probe
+          placement is automatic. Probes are no longer placed by hand.\n\u2022 The
+          indirect lighting is applied per-pixel instead of per-object. This allows
+          us to achieve much better quality and in some cases even replace lightmaps.\n\u2022
+          Can be used by the Reflection Probe system to reduce indirect specular
+          leaking.\n\u2022 Includes streaming functionality to support large open
+          worlds.\n\u2022 Affects Volumetric Fog and Screen Space Global Illumination.\n\nTo
+          better understand what effect it has on the scene, you could temporarily
+          turn it off and explore the level. Most notably in the third room. Dynamic
+          objects should look out of place. \n\nTo turn it off:\nEdit > Project Settings
+          > HDRP Global Settings > Frame Settings > Camera > Lighting > Probe Volumes\n\nTo
+          display the probes:\nWindow > Analysis > Rendering Debugger > Probe Volume
+          > Probe Visualization > Display Probes"
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
