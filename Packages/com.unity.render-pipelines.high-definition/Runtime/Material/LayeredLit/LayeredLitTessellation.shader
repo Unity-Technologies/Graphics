@@ -811,6 +811,11 @@ Shader "HDRP/LayeredLitTessellation"
 
             #define SHADERPASS SHADERPASS_LIGHT_TRANSPORT
             #pragma shader_feature EDITOR_VISUALIZATION
+
+            // Use Unity's built-in matrices for meta pass rendering
+            #define SCENEPICKINGPASS
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/PickingSpaceTransforms.hlsl"
+
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitSharePass.hlsl"
