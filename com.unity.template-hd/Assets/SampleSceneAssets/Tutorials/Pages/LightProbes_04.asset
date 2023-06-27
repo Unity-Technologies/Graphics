@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: LightProbes_04
   m_EditorClassIdentifier: 
   Title:
-    m_Untranslated: Probe Volumes Options
+    m_Untranslated: 'Highlight: Probe Volumes Options'
   m_Paragraphs:
     m_Items:
     - m_Type: 6
@@ -39,56 +39,43 @@ MonoBehaviour:
       Title:
         m_Untranslated: 
       Text:
-        m_Untranslated: 'We''ll now cover indirect lighting sampling issues between
-          probes having different spacing distances, or subdivision levels.
+        m_Untranslated: 'This issue might be difficult to spot, but the cube in the
+          picture has a seam in the middle. The upper half of it is darker while
+          the bottom is lighter.
 
 
-          Probes
-          are placed automatically using the <b>Min and Max Probe Spacing</b> properties
-          in the <i>Lighting</i> window, under the Probe Volumes tab. In this Scene,
-          the distance between Probes will fluctuate between 0.6m and 5.4m, depending
-          on the geometrical complexity. Empty areas may receive fewer probes, whereas
-          geometrically dense areas may have more probes.
+          It''s because probes over the scene
+          are not placed evenly. In the <b>Probe Volumes</b> settings we simply set
+          the minimum spacing that we want (in this case <b>0.6m)</b> and the maximum
+          spacing <b>(5.4m).</b> Then the system attempts to automatically detect
+          areas where fewer probes are necessary and adjust the density. These areas
+          are called <b>Subdivision Levels</b> and this scene is split into 0.6m,
+          1.8m and 5.4m levels.
 
 
-          While it may
-          be necessary to reduce the total number of probes in the scene by increasing
-          the <b>Probe Spacing</b> properties, some seams may appear when sampling
-          happens between different subdivision levels, as seen in the image above.
+          While it is quite useful to limit the
+          number of probes in order to reduce the bake time and disk space, some
+          seams can appear when sampling happens between two subdivision levels.
+          To fix this, we increased the amount of sampling noise in the Volume settings
+          which also works well with <b>Temporal Anti Aliasing</b>.
 
 
           To
-          prevent these unwanted indirect lighting seams, we can use the <b>Sampling
-          Noise</b> feature in the Volume system, in conjunction with <b>Temporal
-          Anti Aliasing</b>.
+          undo the fix and make the seam visible again follow these steps:
 
 
-
-          To reproduce the artifact seen in the image
-          above, follow these steps:
-
-
-          1. Add a Cube at <b>X:5 Y:5.5 Z:0</b>
+          1.
+          Move the cube to <b>X:5 Y:5.5 Z:0</b>
 
 
-          2.
-          In the <i>Hierarchy</i> window, select <b>Lighting</b> > <b>Volumes</b>
-          > <b>Volume Room 1.</b>
+          2. Select the <b>Volume
+          Room 1</b> in the <i>Hierarchy</i> tab under <b>Lighting</b> > <b>Volumes.</b>
 
 
-          3. In the <i>Inspector</i> window,
-          under <b>Probe Volume Options,</b> set the <b>Sampling Noise</b> to <b>0.</b>
-          The indirect lighting seam will become visible. As you can see, this feature
-          is fully real-time, it does not require the rebaking of the lighting.
-
-
-          If
-          you do not see the <b>Sampling Noise</b> property in the <i>Inspector,</i>
-          click the 3-dots menu on the Probe Volumes Options and enable "Show Additional
-          Properties".
-
-
-          4. Set the <b>Sampling Noise</b> back to <b>0.45.</b>'
+          3.
+          Under <b>Probe Volume Options,</b> change the <b>Sampling Noise</b> from
+          <b>0.45</b> to <b>0.1</b>(which is the default value). No need to rebake
+          this time.'
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
