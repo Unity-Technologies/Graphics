@@ -28,13 +28,13 @@ editor_pinning_config:
     flavor: b1.small
   use_predefined_variables: True
   commands:
-    - pip3 config set global.index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
-    - pip3 install ruamel.yaml
+    - sudo apt update
+    - sudo apt-get install python3 python3-pip unity-downloader-cli -y
+    - python3 -m pip config set global.index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
+    - python3 -m pip install ruamel.yaml
     - sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
     - curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
     - sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
-    - sudo apt update
-    - sudo apt install unity-downloader-cli
     - git config --global user.name "noreply@unity3d.com"
     - git config --global user.email "noreply@unity3d.com"
     - git checkout $GIT_BRANCH
