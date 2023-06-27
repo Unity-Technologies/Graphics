@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: LightProbes_04
   m_EditorClassIdentifier: 
   Title:
-    m_Untranslated: Virtual Offset
+    m_Untranslated: Probe Volumes Options
   m_Paragraphs:
     m_Items:
     - m_Type: 6
@@ -22,7 +22,7 @@ MonoBehaviour:
       Text:
         m_Untranslated: 
       m_Tutorial: {fileID: 0}
-      m_Image: {fileID: 2800000, guid: ed2e02c92159cf94faa7db9caa5f0ae4, type: 3}
+      m_Image: {fileID: 2800000, guid: 399229ca25d9e574583d583500a1afbe, type: 3}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
       m_Criteria:
@@ -39,26 +39,56 @@ MonoBehaviour:
       Title:
         m_Untranslated: 
       Text:
-        m_Untranslated: "Because Probe Volumes only offer automatic probe placement,
-          individual probes cannot be moved or deleted. This is a core limitation
-          of the system. \n\nIn case you need to move a set of probes, you can instead
-          move their capture point instead, by tuning the global <b>Virtual Offset</b>
-          properties in the <i>Lighting</i> window, under the <b>Probe Volumes</b>
-          tab. For finer localized probe adjustments in the Scene, you may use instead
-          <b>Probe Adjustment Volumes,</b> found under <b>GameObject</b> > <b>Light</b>
-          > <b>Probe Volumes.</b>\n\nThe bright line seen in the image above is caused
-          by the overly bright probes under the floor. To fix this unwated light
-          leaking, we already added a probe adjustment volume that would virtually
-          lift up the capture points of the said probes by 0.62 meters when the lighting
-          is generated.\n\n\nTo reproduce the artifact seen in the image above, follow
-          these steps to disable the <b>Probe Adjustment Volume:</b>\n\n1. Place
-          a Cube at <b>X:41 Y:0 Z:3</b>\n\n2. In the <i>Hierarchy</i> window, disable
-          the <b>Probe Adjustment Volume</b> under <b>Lighting</b> > <b>Probe Volumes.</b>\n\n3.
-          Click the <b>Generate Lighting</b> button at the bottom of the <i>Lighting</i>
-          window to rebake the lighting.\n\nAfter several seconds, once the lighting
-          has been rebaked, unwanted light leaking appears above the floor.\n\n4.
-          Re-enable the <b>Probe Adjustment Volume</b> and regenerate the lighting
-          to fix the issue again."
+        m_Untranslated: 'We''ll now cover indirect lighting sampling issues between
+          probes having different spacing distances, or subdivision levels.
+
+
+          Probes
+          are placed automatically using the <b>Min and Max Probe Spacing</b> properties
+          in the <i>Lighting</i> window, under the Probe Volumes tab. In this Scene,
+          the distance between Probes will fluctuate between 0.6m and 5.4m, depending
+          on the geometrical complexity. Empty areas may receive fewer probes, whereas
+          geometrically dense areas may have more probes.
+
+
+          While it may
+          be necessary to reduce the total number of probes in the scene by increasing
+          the <b>Probe Spacing</b> properties, some seams may appear when sampling
+          happens between different subdivision levels, as seen in the image above.
+
+
+          To
+          prevent these unwanted indirect lighting seams, we can use the <b>Sampling
+          Noise</b> feature in the Volume system, in conjunction with <b>Temporal
+          Anti Aliasing</b>.
+
+
+
+          To reproduce the artifact seen in the image
+          above, follow these steps:
+
+
+          1. Add a Cube at <b>X:5 Y:5.5 Z:0</b>
+
+
+          2.
+          In the <i>Hierarchy</i> window, select <b>Lighting</b> > <b>Volumes</b>
+          > <b>Volume Room 1.</b>
+
+
+          3. In the <i>Inspector</i> window,
+          under <b>Probe Volume Options,</b> set the <b>Sampling Noise</b> to <b>0.</b>
+          The indirect lighting seam will become visible. As you can see, this feature
+          is fully real-time, it does not require the rebaking of the lighting.
+
+
+          If
+          you do not see the <b>Sampling Noise</b> property in the <i>Inspector,</i>
+          click the 3-dots menu on the Probe Volumes Options and enable "Show Additional
+          Properties".
+
+
+          4. Set the <b>Sampling Noise</b> back to <b>0.45.</b>'
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
@@ -78,8 +108,8 @@ MonoBehaviour:
     m_FocusMode: 0
     m_Orthographic: 0
     m_Size: 10
-    m_Pivot: {x: 57.004322, y: -4.696989, z: -3.045011}
-    m_Rotation: {x: 0.07768114, y: 0.8142531, z: -0.11209687, w: 0.5642622}
+    m_Pivot: {x: 5.094, y: 12.54435, z: -17.047869}
+    m_Rotation: {x: -0, y: 0.9811074, z: 0.19346379, w: 0}
     m_FrameObject:
       m_SceneGuid: 
       m_GameObjectGuid: 

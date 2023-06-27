@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: LightProbes_01
   m_EditorClassIdentifier: 
   Title:
-    m_Untranslated: What are Probe Volumes?
+    m_Untranslated: Visualization and Debugging
   m_Paragraphs:
     m_Items:
     - m_Type: 6
@@ -39,24 +39,34 @@ MonoBehaviour:
       Title:
         m_Untranslated: 
       Text:
-        m_Untranslated: "<b>Probe Volumes,</b> also known as \"Adaptive Probe Volumes\"
-          or \"APV\" for short, are a system that allows dynamic objects to receive
-          indirect diffuse lighting. It shares the same goal as the <b>Light Probes
-          Groups,</b> but has major differences. Some of them are listed below:\n\n\u2022
-          The probe placement is automatic and based on the Scene's geometric complexity:
-          more probes will be placed around geometries, whereas empty areas of the
-          Scene will receive fewer probes, depending on your <b>Min and Max Probe
-          Spacing</b> settings. This automatic probe placement provides huge time-saving
-          opportunities.\n\n\u2022 The indirect lighting is applied per-pixel instead
-          of per-object. This allows to achieve much better lighting quality and,
-          in some cases, Probe Volumes can replace lightmaps, notably when the Probe
-          Spacing is lower than the corresponding Lightmap Resolution.\n\n\u2022
-          They can be used by the Reflection Probes to reduce indirect specular leaking.
-          This is particularly useful to prevent unwanted reflections in darker or
-          concave areas, without the need to place additional Reflection Probes in
-          these areas.\n\n\u2022 They can affect Volumetric Fog and Screen Space
-          Global Illumination.\n\n\u2022 Streaming functionalities are provided to
-          support larger scenes automatically."
+        m_Untranslated: 'To better understand the effect they have on the Scene,
+          you can temporarily turn the Probe Volumes off:
+
+
+          1. Disable
+          them via <b>Edit</b> > <b>Project Settings</b> > <b>HDRP Global Settings</b>
+          > <b>Frame Settings</b> > <b>Camera</b> > <b>Lighting</b> > <b>Probe Volumes.</b>
+
+
+          Note
+          that the dynamic objects in the third room will appear very bright, because
+          they are not lit anymore by the local probes, but rather by the global
+          probe derived from the Sky, which is very bright in this Scene.
+
+
+          2.
+          Re-enable the Probe Volumes by undoing the previous step.
+
+
+          3.
+          Enable the Probe Volumes debug visualization in <b>Window</b> > <b>Analysis</b>
+          > <b>Rendering Debugger</b> > <b>Probe Volume</b> > <b>Probe Visualization</b>
+          > <b>Display Probes.</b>
+
+
+          As you explore the Scene, you will
+          notice how probes outside the rooms are darker, and probes far from the
+          visible areas have a sparser distribution.'
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
