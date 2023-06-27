@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: LightProbes_03
   m_EditorClassIdentifier: 
   Title:
-    m_Untranslated: 'Highlight: Virtual offset'
+    m_Untranslated: Dilation
   m_Paragraphs:
     m_Items:
     - m_Type: 6
@@ -22,7 +22,7 @@ MonoBehaviour:
       Text:
         m_Untranslated: 
       m_Tutorial: {fileID: 0}
-      m_Image: {fileID: 2800000, guid: ed2e02c92159cf94faa7db9caa5f0ae4, type: 3}
+      m_Image: {fileID: 2800000, guid: dba7af2c858b3e8419de858d1f56abb5, type: 3}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
       m_Criteria:
@@ -39,41 +39,27 @@ MonoBehaviour:
       Title:
         m_Untranslated: 
       Text:
-        m_Untranslated: 'Unlike in the previous per-object lighting probe system,
-          individual probes can not be moved or deleted. This is a hard limitation
-          of the system. In cases where we would need to move a set of probes, we
-          could use virtual offset instead.
-
-
-          <b>Virtual offset</b> allows
-          us to move the capture position of light probes. It can be enabled globally
-          in the <b>Lighting</b> > <b>Probe Volumes</b> panel, automatically adjusting
-          the capture position of probes that are inside geometry. Or it can be applied
-          manually as we did for this project, by using Probe Adustment Volumes in
-          a specified location.
-
-
-          The bright line seen in the image is
-          caused by the overly bright probes below the floor. To fix it, we added
-          a probe adjustment volume that would virtually lift the said probes up
-          by ~0.6 meters during the baking process.
-
-
-          To undo the fix and
-          explore the issue further, follow these steps:
-
-
-          1. Move the
-          cube to  <b>X:41 Y:0 Z:3</b>
-
-
-          2. Disable the <b>Probe Adustment
-          Volume</b> under <b>Lighting</b> > <b>Adaptive Probe Volumes</b> in the
-          <i>Hierarchy</i> window.
-
-
-          3. Rebake the lighting by using the
-          <b>Generate Lighting.</b>'
+        m_Untranslated: "Since the probe placement is automatic, some of them may
+          end up inside objects or behind inaccessible parts of the Scene. Probes
+          that sample backfaces are considered invalid and they may cause light leaking
+          which produces unwanted bright or dark patches on the geometries. An example
+          of this light leaking be seen in the image above. Note that the wall itself
+          is not affected because it's lit using lightmaps.\n\nThanks to the <b>Dilation</b>
+          feature, the system can replace the invalid probes with valid data from
+          neighboring probes, to prevent unwanted light leaking.\n\n\nTo reproduce
+          the issue in the image above, let's disable the <b>Dilation</b> and rebake
+          the lighting.\n\n1. Add a Cube at the following location: <b>X:17 Y:2 Z:-2</b>\n\n2.
+          Open <b>Windows</b> > <b>Rendering</b> > <b>Lighting.</b>\n\n3. At the
+          top of the <i>Lighting</i> window, select the <b>Probe Volumes</b> tab,
+          and under <b>Probe Invalidity Settings,</b> uncheck <b>Enable Dilation.</b>\n\n4.
+          Optionally, to speed up the rebaking of the lighting, choose a \"Draft\"
+          or \"Medium\" <b>Lighting Settings Asset</b> under the <b>Scene</b> tab
+          of the <i>Lighting</i> window. \n\n5. Click the <b>Generate Lighting</b>
+          button at the bottom of the <i>Lighting</i> window to rebake the lighting.\n\nAfter
+          several seconds, once the lighting has been rebaked, you will notice that
+          invalid probes are now wrongly affecting the Cube, because the <b>Dilation</b>
+          was turned off.\n\n6. <b>Enable Dilation</b> and generate the lighting
+          again to get rid of the light leaking."
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
@@ -92,9 +78,9 @@ MonoBehaviour:
     m_CameraMode: 1
     m_FocusMode: 0
     m_Orthographic: 0
-    m_Size: 10
-    m_Pivot: {x: 57.004322, y: -4.696989, z: -3.045011}
-    m_Rotation: {x: 0.07768114, y: 0.8142531, z: -0.11209687, w: 0.5642622}
+    m_Size: 0.8660253
+    m_Pivot: {x: 17.65045, y: 2.008143, z: -1.55602}
+    m_Rotation: {x: -0.020402448, y: 0.94459444, z: -0.059666716, w: -0.32229057}
     m_FrameObject:
       m_SceneGuid: 
       m_GameObjectGuid: 
