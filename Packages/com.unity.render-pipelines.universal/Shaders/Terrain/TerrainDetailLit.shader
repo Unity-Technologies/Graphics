@@ -125,7 +125,7 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
                 // Vertex Lighting
                 output.NormalWS = TransformObjectToWorldNormal(input.NormalOS).xyz;
 
-                OUTPUT_SH(vertexInput.positionWS, output.NormalWS.xyz, GetWorldSpaceNormalizeViewDir(vertexInput.positionWS), output.vertexSH);
+                OUTPUT_SH4(vertexInput.positionWS, output.NormalWS.xyz, GetWorldSpaceNormalizeViewDir(vertexInput.positionWS), output.vertexSH);
 
                 Light mainLight = GetMainLight();
                 half3 attenuatedLightColor = mainLight.color * mainLight.distanceAttenuation;
