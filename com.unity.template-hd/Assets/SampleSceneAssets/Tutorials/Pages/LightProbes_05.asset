@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: LightProbes_05
   m_EditorClassIdentifier: 
   Title:
-    m_Untranslated: Local Probe Volumes
+    m_Untranslated: 'Sampling Artifact: Uniform Spacing'
   m_Paragraphs:
     m_Items:
     - m_Type: 6
@@ -39,25 +39,25 @@ MonoBehaviour:
       Title:
         m_Untranslated: 
       Text:
-        m_Untranslated: "Using <b>Sampling Noise</b> indoors can sometimes cause
-          leaking artifacts, as seen in the image above. \n\nThankfully, with the
-          help of a Local <b> Probe Volumes</b> added to the Scene, we can force
-          the <b>Probe Spacing</b> to be fixed within a certain zone, with no subdivision
-          level. In this Scene, this results in the placement of probes at a fixed
-          distance of 0.6m only.\n\nWith no subdivision levels in this particular
-          area, more probes are created: the baking time and the amount of data on
-          disk will thus slightly increase. However, it will prevent most lighting
-          seams.\n\nTo reproduce the artifact seen in the image above, follow these
-          steps:\n\n1. Add a Cube at <b>X:25.3 Y:2 Z:1.5</b>\n\n2. In the <i>Hierarchy</i>
-          window, select <b>Lighting</b> > <b>Probe Volumes</b> > <b>Probe Volume
-          Local.</b>\n\nYou can notice in the <i>Inspector</i> that the range slider
-          has its Min and Max value set at 0.6m, and that the <b>Fill Empty Spaces</b>
-          property is enabled, to ensure a fixed spacing for all probes.\n\n4. Disable
-          the <b>Probe Volume Local</b> GameObject and save the scene.\n\n5. Click
-          the <b>Generate Lighting</b> button at the bottom of the <i>Lighting</i>
-          window to rebake the lighting.\n\nThe sampling artifact will appear on
-          the Cube.\n\n6. Re-enable the <b>Probe Volume Local</b> GameObject and
-          regenerate the lighting to fix the issue again."
+        m_Untranslated: "In certain situations, the sampling between serveral <b>Subdivision
+          Levels</b> can produce visible lighting seams, as seen in the image above.
+          \n\nThankfully, by adding a Local <b> Probe Volume</b> in the Scene and
+          enabling its <b>Fill Empty Spaces</b> property, we can enforce an uniform
+          spacing between all probes. \n\nWith no <b>Subdivision Levels</b> in this
+          local <b> Probe Volume,</b> more probes are created: the baking time and
+          the amount of data on disk will thus slightly increase. However, it will
+          prevent most lighting seams.\n\n\nTo reproduce the artifact seen in the
+          image above, follow these steps:\n\n1. Add a Cube at <b>X:25.3 Y:2 Z:1.5</b>\n\n2.
+          In the <i>Hierarchy</i> window, select <b>Lighting</b> > <b>Probe Volumes</b>
+          > <b>Probe Volume Local.</b>\n\nYou can notice in the <i>Inspector</i>
+          that the range slider has its Min and Max value set at 0.6m, and that the
+          <b>Fill Empty Spaces</b> property is enabled, to ensure a fixed spacing
+          for all probes.\n\n4. Disable the <b>Probe Volume Local</b> GameObject
+          and save the scene.\n\n5. Click the <b>Generate Lighting</b> button at
+          the bottom of the <i>Lighting</i> window to rebake the lighting.\n\nThe
+          sampling artifact will appear on the Cube.\n\n6. Re-enable the <b>Probe
+          Volume Local</b> GameObject and regenerate the lighting to fix the issue
+          again."
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}

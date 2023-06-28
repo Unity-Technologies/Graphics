@@ -41,24 +41,25 @@ MonoBehaviour:
       Text:
         m_Untranslated: "Because Probe Volumes only offer automatic probe placement,
           individual probes cannot be moved or deleted. This is a core limitation
-          of the system. \n\nIn case you need to move a set of probes, you can 
-          move their capture point instead, by tuning the global <b>Virtual Offset</b>
+          of the system. \n\nHowever, if certain probes are in unwanted locations
+          (e.g. inside or behind geometries), you can let the system alter the capture
+          point of all probes in the Scene, by tuning the global <b>Virtual Offset</b>
           properties in the <i>Lighting</i> window, under the <b>Probe Volumes</b>
-          tab. For finer localized probe adjustments in the Scene, you may use instead
-          <b>Probe Adjustment Volumes,</b> found under <b>GameObject</b> > <b>Light</b>
-          > <b>Probe Volumes.</b>\n\nThe bright line seen in the image above is caused
-          by the overly bright probes under the floor. To fix this unwated light
-          leaking, we already added a probe adjustment volume that would virtually
-          lift up the capture points of the said probes by 0.62 meters when the lighting
-          is generated.\n\n\nTo reproduce the artifact seen in the image above, follow
-          these steps to disable the <b>Probe Adjustment Volume:</b>\n\n1. Place
-          a Cube at <b>X:41 Y:0 Z:3</b>\n\n2. In the <i>Hierarchy</i> window, disable
-          the <b>Probe Adjustment Volume</b> under <b>Lighting</b> > <b>Probe Volumes.</b>\n\n3.
-          Click the <b>Generate Lighting</b> button at the bottom of the <i>Lighting</i>
-          window to rebake the lighting.\n\nAfter several seconds, once the lighting
-          has been rebaked, unwanted light leaking appears above the floor.\n\n4.
-          Re-enable the <b>Probe Adjustment Volume</b> and regenerate the lighting
-          to fix the issue again."
+          tab. \n\nFor finer localized probe adjustments in the Scene, you may use
+          instead a dedicated <b>Probe Adjustment Volume</b> found under <b>GameObject</b>
+          > <b>Light</b> > <b>Probe Volumes.</b>\n\nThe bright line on the Cube seen
+          in the image above is caused by the overly bright probes under the floor.
+          To fix this unwated light leaking, we already added a probe adjustment
+          volume that would virtually lift up the capture points of the said probes
+          by 0.62 meters when the lighting is generated.\n\n\nTo reproduce the artifact
+          seen in the image above, follow these steps to disable the <b>Probe Adjustment
+          Volume:</b>\n\n1. Place a Cube at <b>X:41 Y:0 Z:3</b>\n\n2. In the <i>Hierarchy</i>
+          window, disable the <b>Probe Adjustment Volume</b> under <b>Lighting</b>
+          > <b>Probe Volumes.</b>\n\n3. Click the <b>Generate Lighting</b> button
+          at the bottom of the <i>Lighting</i> window to rebake the lighting.\n\nAfter
+          several seconds, once the lighting has been rebaked, unwanted light leaking
+          appears above the floor.\n\n4. Re-enable the <b>Probe Adjustment Volume</b>
+          and regenerate the lighting to fix the issue again."
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
