@@ -39,7 +39,7 @@ MonoBehaviour:
       Title:
         m_Untranslated: 
       Text:
-        m_Untranslated: "In certain situations, the sampling between serveral <b>Subdivision
+        m_Untranslated: "In certain situations, the sampling between different <b>Subdivision
           Levels</b> can produce visible lighting seams, as seen in the image above.
           \n\nThankfully, by adding a Local <b> Probe Volume</b> in the Scene and
           enabling its <b>Fill Empty Spaces</b> property, we can enforce an uniform
