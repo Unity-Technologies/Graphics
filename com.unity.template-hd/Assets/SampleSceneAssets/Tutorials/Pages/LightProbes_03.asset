@@ -41,7 +41,7 @@ MonoBehaviour:
       Text:
         m_Untranslated: "Because Probe Volumes only offer automatic probe placement,
           individual probes cannot be moved or deleted. This is a core limitation
-          of the system. \n\nIn case you need to move a set of probes, you can instead
+          of the system. \n\nIn case you need to move a set of probes, you can 
           move their capture point instead, by tuning the global <b>Virtual Offset</b>
           properties in the <i>Lighting</i> window, under the <b>Probe Volumes</b>
           tab. For finer localized probe adjustments in the Scene, you may use instead
