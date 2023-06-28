@@ -132,7 +132,7 @@ for t, c, sz in (
 
 #ifdef UNITY_DOTS_INSTANCING_UNIFORM_BUFFER
 CBUFFER_START(unity_DOTSInstanceData)
-    float4 unity_DOTSInstanceDataRaw[1024];
+    float4 unity_DOTSInstanceDataRaw[1024];	// warning: if you change 1024 value, you should also change BatchRendererGroup::GetConstantBufferMaxWindowSize() function in the c++ code base
 CBUFFER_END
 #else
 ByteAddressBuffer unity_DOTSInstanceData;
@@ -167,7 +167,7 @@ struct DOTSVisibleData
 // detected as an "instancing cbuffer" by some platforms that use string matching
 // to detect this.
 CBUFFER_START(UnityInstancingDOTS_InstanceVisibility)
-    DOTSVisibleData unity_DOTSVisibleInstances[UNITY_INSTANCED_ARRAY_SIZE];
+    DOTSVisibleData unity_DOTSVisibleInstances[256];	// warning: if you change 256 value you should also change kBRGVisibilityGLESMaxElementCount in c++ code base
 CBUFFER_END
 
 // Keep these in sync with SRP Batcher DOTSInstancingFlags
