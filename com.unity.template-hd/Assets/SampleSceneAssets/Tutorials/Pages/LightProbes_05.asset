@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: LightProbes_05
   m_EditorClassIdentifier: 
   Title:
-    m_Untranslated: 'Sampling Artifact: Uniform Spacing'
+    m_Untranslated: 'Sampling Artifacts: Uniform Spacing'
   m_Paragraphs:
     m_Items:
     - m_Type: 6
