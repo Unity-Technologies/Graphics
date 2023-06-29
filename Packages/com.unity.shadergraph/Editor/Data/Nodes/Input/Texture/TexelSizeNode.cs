@@ -7,7 +7,7 @@ using UnityEditor.ShaderGraph.Internal;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Input", "Texture", "Texel Size")]
-    class Texture2DPropertiesNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireMeshUV
+    class Texture2DPropertiesNode : AbstractMaterialNode, IGeneratesBodyCode
     {
         public const int OutputSlotWId = 0;
         public const int OutputSlotHId = 2;
@@ -38,11 +38,6 @@ namespace UnityEditor.ShaderGraph
         {
             sb.AppendLine(string.Format("$precision {0} = {1}.texelSize.z;", GetVariableNameForSlot(OutputSlotWId), GetSlotValue(TextureInputId, generationMode)));
             sb.AppendLine(string.Format("$precision {0} = {1}.texelSize.w;", GetVariableNameForSlot(OutputSlotHId), GetSlotValue(TextureInputId, generationMode)));
-        }
-
-        public bool RequiresMeshUV(UVChannel channel, ShaderStageCapability stageCapability)
-        {
-            return true;
         }
     }
 }
