@@ -58,11 +58,11 @@ MonoBehaviour:
           > <b>Volumes</b> > <b>Volume Room 1.</b>\n\n3. In the <i>Inspector</i>
           window, under <b>Probe Volume Options,</b> set the <b>Sampling Noise</b>
           to <b>0.</b> The indirect lighting seam will become obvious. As you can
-          see, this feature is fully real-time, it does not require the rebaking
-          of the lighting.\n\nIf you do not see the <b>Sampling Noise</b> property
-          in the <i>Inspector,</i> click the 3-dots menu on the Probe Volumes Options
-          and enable \"Show Additional Properties\".\n\n4. Set the <b>Sampling Noise</b>
-          back to <b>0.45.</b>"
+          see, this feature is fully real-time, therefore it does not require the
+          rebaking of the lighting.\n\nIf you do not see the <b>Sampling Noise</b>
+          property in the <i>Inspector,</i> click the 3-dots menu on the Probe Volumes
+          Options and enable \"Show Additional Properties\".\n\n4. Set the <b>Sampling
+          Noise</b> back to <b>0.45.</b>"
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
