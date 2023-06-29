@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: LightProbes_04
   m_EditorClassIdentifier: 
   Title:
-    m_Untranslated: 'Sampling Artifacts: Noise Sampling'
+    m_Untranslated: Sampling Noise
   m_Paragraphs:
     m_Items:
     - m_Type: 6
