@@ -43,15 +43,15 @@ MonoBehaviour:
           end up inside objects or behind inaccessible parts of the Scene. Probes
           that sample backfaces are considered invalid and they may cause light leaking
           which produces unwanted bright or dark patches on the geometries. An example
-          of this light leaking be seen in the image above. Note that the wall itself
-          is not affected because it's lit using lightmaps.\n\nThanks to the <b>Dilation</b>
-          feature, the system can replace the invalid probes with valid data from
-          neighboring probes, to prevent unwanted light leaking.\n\n\nTo reproduce
-          the issue in the image above, let's disable the <b>Dilation</b> and rebake
-          the lighting.\n\n1. Add a Cube at the following location: <b>X:17 Y:2 Z:-2</b>\n\n2.
-          Open <b>Windows</b> > <b>Rendering</b> > <b>Lighting.</b>\n\n3. At the
-          top of the <i>Lighting</i> window, select the <b>Probe Volumes</b> tab,
-          and under <b>Probe Invalidity Settings,</b> uncheck <b>Enable Dilation.</b>\n\n4.
+          of this light leaking can be seen in the image above. Note that the wall
+          itself is not affected because it's lit using lightmaps.\n\nThanks to the
+          <b>Dilation</b> feature, the system can replace the invalid probes with
+          valid data from neighboring probes, to prevent unwanted light leaking.\n\n\nTo
+          reproduce the issue in the image above, let's disable the <b>Dilation</b>
+          and rebake the lighting.\n\n1. Add a Cube at the following location: <b>X:17
+          Y:2 Z:-2</b>\n\n2. Open <b>Windows</b> > <b>Rendering</b> > <b>Lighting.</b>\n\n3.
+          At the top of the <i>Lighting</i> window, select the <b>Probe Volumes</b>
+          tab, and under <b>Probe Invalidity Settings,</b> uncheck <b>Enable Dilation.</b>\n\n4.
           Optionally, to speed up the rebaking of the lighting, choose a \"Draft\"
           or \"Medium\" <b>Lighting Settings Asset</b> under the <b>Scene</b> tab
           of the <i>Lighting</i> window. \n\n5. Click the <b>Generate Lighting</b>
