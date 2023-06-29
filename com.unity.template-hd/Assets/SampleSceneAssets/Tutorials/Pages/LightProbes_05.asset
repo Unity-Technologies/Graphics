@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: LightProbes_05
   m_EditorClassIdentifier: 
   Title:
-    m_Untranslated: 'Sampling Artifacts: Uniform Spacing'
+    m_Untranslated: Uniform Spacing
   m_Paragraphs:
     m_Items:
     - m_Type: 6
@@ -41,7 +41,7 @@ MonoBehaviour:
       Text:
         m_Untranslated: "In the image above, another lighting sampling artifact is
           visible due to the different <b>Subdivision Levels</b> encountered in this
-          room. In this particular scenario, increasing the <b>Sampling Noise</b>,
+          room. In this particular scenario, increasing the <b>Sampling Noise,</b>
           as seen in the previous step, was not considered because it may cause unwanted
           leaking artifacts.\n\nThankfully, we can prevent these artifacts by adding
           a Local <b> Probe Volume</b> in the Scene, forcing the <b>Probe Spacing</b>
