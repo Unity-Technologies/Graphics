@@ -131,7 +131,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         static void ExecutePass(RasterCommandBuffer cmd, PassData data, RendererList rendererList, RendererList errorRendererList, ref RenderingData renderingData)
         {
-            bool usesRenderingLayers = data.deferredLights.UseRenderingLayers && !data.deferredLights.HasNormalPrepass;
+            bool usesRenderingLayers = data.deferredLights.UseRenderingLayers && !data.deferredLights.HasRenderingLayerPrepass;
             if (usesRenderingLayers)
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.WriteRenderingLayers, true);
 
