@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.Universal.Internal;
@@ -582,8 +583,22 @@ namespace UnityEngine.Rendering.Universal
             if (IsGLDevice())
                 requiresRenderingLayer = false;
 
-            bool renderingLayerProvidesByDepthNormalPass = requiresRenderingLayer && renderingLayersEvent == RenderingLayerUtils.Event.DepthNormalPrePass;
-            bool renderingLayerProvidesRenderObjectPass = requiresRenderingLayer && renderingModeActual != RenderingMode.Deferred && renderingLayersEvent == RenderingLayerUtils.Event.Opaque;
+            bool renderingLayerProvidesByDepthNormalPass = false;
+            bool renderingLayerProvidesRenderObjectPass = false;
+            if (requiresRenderingLayer && renderingModeActual != RenderingMode.Deferred)
+            {
+                switch (renderingLayersEvent)
+                {
+                    case RenderingLayerUtils.Event.DepthNormalPrePass:
+                        renderingLayerProvidesByDepthNormalPass = true;
+                        break;
+                    case RenderingLayerUtils.Event.Opaque:
+                        renderingLayerProvidesRenderObjectPass = true;
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }
 
             // Enable depth normal prepass
             if (renderingLayerProvidesByDepthNormalPass)
@@ -1386,6 +1401,7 @@ namespace UnityEngine.Rendering.Universal
                 applyAdditionalShadow ? m_AdditionalLightsShadowCasterPass : null,
                 hasDepthPrepass,
                 hasNormalPrepass,
+                hasRenderingLayerPrepass,
                 m_DepthTexture,
                 m_ActiveCameraDepthAttachment,
                 m_ActiveCameraColorAttachment

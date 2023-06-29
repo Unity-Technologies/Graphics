@@ -70,6 +70,8 @@ namespace UnityEngine.Rendering.Universal
         // Serialized Fields
         [SerializeField] private ScreenSpaceAmbientOcclusionSettings m_Settings = new ScreenSpaceAmbientOcclusionSettings();
 
+        [SerializeField]
+        [HideInInspector]
         [Reload("Textures/BlueNoise256/LDR_LLL1_{0}.png", 0, 7)]
         internal Texture2D[] m_BlueNoise256Textures;
 
