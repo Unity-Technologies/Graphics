@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ff771ccdf4150419d9ff4d342b069aae, type: 3}
-  m_Name: LightProbes_01
+  m_Name: ProbeVolumes_06
   m_EditorClassIdentifier: 
   Title:
-    m_Untranslated: Visualization and Debugging
+    m_Untranslated: Uniform Spacing
   m_Paragraphs:
     m_Items:
     - m_Type: 6
@@ -22,7 +22,7 @@ MonoBehaviour:
       Text:
         m_Untranslated: 
       m_Tutorial: {fileID: 0}
-      m_Image: {fileID: 2800000, guid: 760bba328d6642a4db16fc74f5651703, type: 3}
+      m_Image: {fileID: 2800000, guid: 60e822da8f263e843bba169100d97123, type: 3}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
       m_Criteria:
@@ -39,34 +39,28 @@ MonoBehaviour:
       Title:
         m_Untranslated: 
       Text:
-        m_Untranslated: 'To better understand the effect they have on the Scene,
-          you can temporarily turn the Probe Volumes off:
-
-
-          1. Disable
-          them via <b>Edit</b> > <b>Project Settings</b> > <b>HDRP Global Settings</b>
-          > <b>Frame Settings</b> > <b>Camera</b> > <b>Lighting</b> > <b>Probe Volumes.</b>
-
-
-          Note
-          that the dynamic objects in the third room will appear very bright, because
-          they are not lit anymore by the local probes, but rather by the global
-          probe derived from the Sky, which is very bright in this Scene.
-
-
-          2.
-          Re-enable the Probe Volumes by undoing the previous step.
-
-
-          3.
-          Enable the Probe Volumes debug visualization in <b>Window</b> > <b>Analysis</b>
-          > <b>Rendering Debugger</b> > <b>Probe Volume</b> > <b>Probe Visualization</b>
-          > <b>Display Probes.</b>
-
-
-          As you explore the Scene, you will
-          notice how probes outside the rooms are darker, and probes far from the
-          visible areas have a sparser distribution.'
+        m_Untranslated: "In the image above, another lighting sampling artifact is
+          visible due to the different <b>Subdivision Levels</b> encountered in this
+          room. In this particular scenario, increasing the <b>Sampling Noise,</b>
+          as seen in the previous step, was not considered because it may cause unwanted
+          leaking artifacts.\n\nThankfully, we can prevent these artifacts by adding
+          a Local <b> Probe Volume</b> in the Scene, forcing the <b>Probe Spacing</b>
+          to be fixed, and enabling the <b>Fill Empty Spaces</b> property. This way,
+          we can enforce uniform spacing between all probes. \n\nWith no additional
+          <b>Subdivision Levels</b> in this local <b> Probe Volume,</b> more probes
+          are created. Therefore, the baking time and the amount of data on disk
+          will slightly increase.\n\n\nTo reproduce the artifact seen in the image
+          above, follow these steps:\n\n1. Add a Cube at <b>X:25.3 Y:2 Z:1.5</b>\n\n2.
+          In the <i>Hierarchy</i> window, select <b>Lighting</b> > <b>Probe Volumes</b>
+          > <b>Probe Volume Local.</b>\n\nYou can notice in the <i>Inspector</i>
+          that the range slider has its Min and Max value set at 0.6 m, and that
+          the <b>Fill Empty Spaces</b> property is enabled, to ensure a fixed spacing
+          for all probes.\n\n4. Disable the <b>Probe Volume Local</b> GameObject
+          and save the scene.\n\n5. Click the <b>Generate Lighting</b> button at
+          the bottom of the <i>Lighting</i> window to rebake the lighting.\n\nThe
+          sampling artifact will appear on the Cube.\n\n6. Re-enable the <b>Probe
+          Volume Local</b> GameObject and regenerate the lighting to fix the issue
+          again."
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
@@ -86,8 +80,8 @@ MonoBehaviour:
     m_FocusMode: 0
     m_Orthographic: 0
     m_Size: 10
-    m_Pivot: {x: 58.169, y: 3.0333738, z: 19.70951}
-    m_Rotation: {x: 0.003490679, y: -0, z: -0, w: 0.9999939}
+    m_Pivot: {x: 15.663096, y: 0.61878896, z: -13.118892}
+    m_Rotation: {x: 0.010864795, y: -0.9570991, z: 0.03620843, w: 0.2872846}
     m_FrameObject:
       m_SceneGuid: 
       m_GameObjectGuid: 

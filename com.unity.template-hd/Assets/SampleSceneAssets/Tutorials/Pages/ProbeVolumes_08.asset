@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ff771ccdf4150419d9ff4d342b069aae, type: 3}
-  m_Name: LightProbes_03
+  m_Name: ProbeVolumes_08
   m_EditorClassIdentifier: 
   Title:
-    m_Untranslated: Virtual Offset
+    m_Untranslated: Congratulations!
   m_Paragraphs:
     m_Items:
     - m_Type: 6
@@ -22,7 +22,7 @@ MonoBehaviour:
       Text:
         m_Untranslated: 
       m_Tutorial: {fileID: 0}
-      m_Image: {fileID: 2800000, guid: ed2e02c92159cf94faa7db9caa5f0ae4, type: 3}
+      m_Image: {fileID: 2800000, guid: 760bba328d6642a4db16fc74f5651703, type: 3}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
       m_Criteria:
@@ -39,27 +39,14 @@ MonoBehaviour:
       Title:
         m_Untranslated: 
       Text:
-        m_Untranslated: "Because Probe Volumes only offer automatic probe placement,
-          individual probes cannot be moved or deleted. This is a core limitation
-          of the system. \n\nHowever, if certain probes are in unwanted locations
-          (e.g. inside or behind geometries), you can let the system alter the capture
-          point of all probes in the Scene, by tuning the global <b>Virtual Offset</b>
-          properties in the <i>Lighting</i> window, under the <b>Probe Volumes</b>
-          tab. \n\nFor manual probe adjustments in parts of the Scene, you may use
-          local <b>Probe Adjustment Volumes</b> instead, found under <b>GameObject</b>
-          > <b>Light</b> > <b>Probe Volumes.</b>\n\nThe bright line on the Cube seen
-          in the image above is caused by the overly bright probes under the floor.
-          To fix this unwated light leaking, we already added a probe adjustment
-          volume that virtually lifts the capture points of the said probes by 0.62
-          meters when the lighting is generated.\n\n\nTo reproduce the artifact seen
-          in the image above, follow these steps to disable the <b>Probe Adjustment
-          Volume:</b>\n\n1. Place a Cube at <b>X:41 Y:0 Z:3</b>\n\n2. In the <i>Hierarchy</i>
-          window, disable the <b>Probe Adjustment Volume</b> under <b>Lighting</b>
-          > <b>Probe Volumes.</b>\n\n3. Click the <b>Generate Lighting</b> button
-          at the bottom of the <i>Lighting</i> window to rebake the lighting.\n\nAfter
-          several seconds, once the lighting has been rebaked, unwanted light leaking
-          appears above the floor.\n\n4. Re-enable the <b>Probe Adjustment Volume</b>
-          and regenerate the lighting to fix the issue again."
+        m_Untranslated: "In this tutorial, you learned about the advantages of Probe
+          Volumes compared to the Light Probe Groups, how they are placed automatically,
+          and how we tuned them for this scene. \n\nProbe Volumes are a broad topic.
+          A lot more information and tips on how to deal with specific issues can
+          be found in our <a href=\"https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@16.0/manual/probevolumes.html\">documentation.</a>
+          \n\nAdditionally, we have released an in-depth <a href=\"https://www.youtube.com/watch?v=iU7X5xICkc8\">video
+          presentation</a> from GDC 2023 about Probe Volumes.\n\n<b>Note:</b> You
+          do not need to save your changes in order to follow other tutorials."
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
@@ -75,12 +62,12 @@ MonoBehaviour:
       m_InstructionText: 
       m_TutorialButtonText: 
   m_CameraSettings:
-    m_CameraMode: 1
+    m_CameraMode: 0
     m_FocusMode: 0
     m_Orthographic: 0
-    m_Size: 10
-    m_Pivot: {x: 57.004322, y: -4.696989, z: -3.045011}
-    m_Rotation: {x: 0.07768114, y: 0.8142531, z: -0.11209687, w: 0.5642622}
+    m_Size: 0
+    m_Pivot: {x: 0, y: 0, z: 0}
+    m_Rotation: {x: 0, y: 0, z: 0, w: 0}
     m_FrameObject:
       m_SceneGuid: 
       m_GameObjectGuid: 
@@ -89,7 +76,7 @@ MonoBehaviour:
       m_ComponentIndex: 0
       m_AssetObject: {fileID: 0}
       m_Prefab: {fileID: 0}
-    m_Enabled: 1
+    m_Enabled: 0
   NextButton:
     m_Untranslated: Next
   DoneButton:

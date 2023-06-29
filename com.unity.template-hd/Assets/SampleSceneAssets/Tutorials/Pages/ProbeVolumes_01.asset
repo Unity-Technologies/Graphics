@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ff771ccdf4150419d9ff4d342b069aae, type: 3}
-  m_Name: LightProbes_04
+  m_Name: ProbeVolumes_01
   m_EditorClassIdentifier: 
   Title:
-    m_Untranslated: Sampling Noise
+    m_Untranslated: What are Probe Volumes?
   m_Paragraphs:
     m_Items:
     - m_Type: 6
@@ -22,7 +22,7 @@ MonoBehaviour:
       Text:
         m_Untranslated: 
       m_Tutorial: {fileID: 0}
-      m_Image: {fileID: 2800000, guid: 399229ca25d9e574583d583500a1afbe, type: 3}
+      m_Image: {fileID: 2800000, guid: 760bba328d6642a4db16fc74f5651703, type: 3}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
       m_Criteria:
@@ -39,30 +39,24 @@ MonoBehaviour:
       Title:
         m_Untranslated: 
       Text:
-        m_Untranslated: "We'll now cover indirect lighting sampling issues between
-          probes having different spacing distances, also called <b>Subdivision Levels.</b>
-          \n\nProbes are placed automatically using the <b>Min and Max Probe Spacing</b>
-          properties in the <i>Lighting</i> window, under the Probe Volumes tab, 
-          depending on the geometrical complexity. In this particular Scene, the
-          spacing between Probes will fluctuate between different <b>Subdivision
-          Levels</b> at 0.6 m, 1.8 m and 5.4 m. Empty areas may receive fewer probes,
-          whereas geometrically dense areas may have more probes. \n\nWhile it may
-          be necessary to reduce the total number of probes in the scene by increasing
-          the <b>Probe Spacing</b> properties, some unwanted lighting seams may appear
-          when sampling happens between different <b>Subdivision Levels,</b> as seen
-          in the image above.\n\nTo prevent these unwanted indirect lighting seams
-          in this scenario, we can use the <b>Sampling Noise</b> feature in the Volume
-          system, in conjunction with <b>Temporal Anti Aliasing.</b>\n\n\nTo reproduce
-          the artifact seen in the image above, follow these steps:\n\n1. Add a Cube
-          at <b>X:5 Y:5.5 Z:0</b>\n\n2. In the <i>Hierarchy</i> window, select <b>Lighting</b>
-          > <b>Volumes</b> > <b>Volume Room 1.</b>\n\n3. In the <i>Inspector</i>
-          window, under <b>Probe Volume Options,</b> set the <b>Sampling Noise</b>
-          to <b>0.</b> The indirect lighting seam will become obvious. As you can
-          see, this feature is fully real-time, therefore it does not require the
-          rebaking of the lighting.\n\nIf you do not see the <b>Sampling Noise</b>
-          property in the <i>Inspector,</i> click the 3-dots menu on the Probe Volumes
-          Options and enable \"Show Additional Properties\".\n\n4. Set the <b>Sampling
-          Noise</b> back to <b>0.45.</b>"
+        m_Untranslated: "<b>Probe Volumes,</b> also known as \"Adaptive Probe Volumes\"
+          or \"APV\" for short, are a system that allows dynamic objects to receive
+          indirect diffuse lighting. It shares the same goal as the <b>Light Probes
+          Groups,</b> but has major differences. Some of them are listed below:\n\n\u2022
+          The probe placement is automatic and based on the Scene's geometric complexity:
+          more probes will be placed around geometries, whereas empty areas of the
+          Scene will receive fewer probes, depending on your <b>Min and Max Probe
+          Spacing</b> settings. This automatic probe placement provides huge time-saving
+          opportunities.\n\n\u2022 The indirect lighting is applied per-pixel instead
+          of per-object. This allows to achieve much better lighting quality and,
+          in some cases, Probe Volumes can replace lightmaps, notably when the Probe
+          Spacing is lower than the corresponding Lightmap Resolution.\n\n\u2022
+          They can be used by the Reflection Probes to reduce indirect specular leaking.
+          This is particularly useful to prevent unwanted reflections in darker or
+          concave areas, without the need to place additional Reflection Probes in
+          these areas.\n\n\u2022 They can affect Volumetric Fog and Screen Space
+          Global Illumination.\n\n\u2022 Streaming functionalities are provided to
+          support larger scenes automatically."
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
@@ -82,8 +76,8 @@ MonoBehaviour:
     m_FocusMode: 0
     m_Orthographic: 0
     m_Size: 10
-    m_Pivot: {x: 5.094, y: 12.54435, z: -17.047869}
-    m_Rotation: {x: -0, y: 0.9811074, z: 0.19346379, w: 0}
+    m_Pivot: {x: 58.169, y: 3.0333738, z: 19.70951}
+    m_Rotation: {x: 0.003490679, y: -0, z: -0, w: 0.9999939}
     m_FrameObject:
       m_SceneGuid: 
       m_GameObjectGuid: 
