@@ -1,13 +1,13 @@
 {
   "dependencies": {
     "com.unity.cinemachine": "2.9.5",
-    "com.unity.collab-proxy": "2.0.1",
+    "com.unity.collab-proxy": "2.0.5",
     "com.unity.feature.development": "1.0.2",
-    "com.unity.inputsystem": "1.5.0",
+    "com.unity.inputsystem": "1.6.1",
     "com.unity.learn.iet-framework": "3.1.3",
     "com.unity.learn.iet-framework.authoring": "1.2.2",
-    "com.unity.render-pipelines.high-definition": "16.0.0",
-    "com.unity.timeline": "1.8.2",
+    "com.unity.render-pipelines.high-definition": "16.0.2",
+    "com.unity.timeline": "1.8.3",
     "com.unity.ugui": "2.0.0",
     "com.unity.visualscripting": "1.8.0",
     "com.unity.modules.ai": "1.0.0",

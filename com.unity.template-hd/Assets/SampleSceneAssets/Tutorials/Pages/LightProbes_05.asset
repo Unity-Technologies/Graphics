@@ -49,8 +49,8 @@ MonoBehaviour:
           placed, but will get rid of the seams without having to use additional
           noise.\n\nTo undo the fix:\n\n1. Move the cube to <b>X:25.3 Y:2 Z:1.5</b>\n\n2.
           In the <i>Hierarchy</i> window select the local volume under <b>Lighting</b>
-          > <b>Adaptive Probe Volumes</b> > <b>Probe Volume Local.</b>\n\n3. Disable
-          it and save the scene.\n\n4. Rebake the lighting using <b>Generate Lighting</b>
+          > <b>Probe Volumes</b> > <b>Probe Volume Local.</b>\n\n3. Disable it and
+          save the scene.\n\n4. Rebake the lighting using <b>Generate Lighting</b>
           button."
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
