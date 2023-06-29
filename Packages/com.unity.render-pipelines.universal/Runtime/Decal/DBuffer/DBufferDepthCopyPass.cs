@@ -26,13 +26,11 @@ namespace UnityEngine.Rendering.Universal
             var depthTarget = UniversalRenderer.CreateRenderGraphTexture(renderGraph, depthDesc, DBufferRenderPass.s_DBufferDepthName, true);
             TextureHandle cameraDepthTexture = frameResources.GetTexture(UniversalResource.CameraDepthTexture);
 
-            if (renderer.renderingModeActual == RenderingMode.Deferred)
-                depthTarget = cameraDepthTexture;
-
             TextureHandle depthTexture = (renderer.renderingModeActual == RenderingMode.Deferred) ? renderer.activeDepthTexture : cameraDepthTexture;
             frameResources.SetTexture(UniversalResource.DBufferDepth, depthTarget);
 
-            Render(renderGraph, depthTarget, depthTexture, ref renderingData, false);
+            // TODO: Render should be called with bindAsCameraDepth = false, but it breaks RenderGraph NRP. So needs to be investigated
+            Render(renderGraph, depthTarget, depthTexture, ref renderingData, true);
         }
     }
 }

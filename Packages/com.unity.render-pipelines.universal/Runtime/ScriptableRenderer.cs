@@ -874,7 +874,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal void ProcessVFXCameraCommand(RenderGraph renderGraph, ref RenderingData renderingData)
         {
-            using (var builder = renderGraph.AddRenderPass<VFXProcessCameraPassData>("ProcessVFXCameraCommand", out var passData,
+            using (var builder = renderGraph.AddLowLevelPass<VFXProcessCameraPassData>("ProcessVFXCameraCommand", out var passData,
                        Profiling.vfxProcessCamera))
             {
                 passData.camera = renderingData.cameraData.camera;
@@ -887,13 +887,13 @@ namespace UnityEngine.Rendering.Universal
 
                 builder.AllowPassCulling(false);
 
-                builder.SetRenderFunc((VFXProcessCameraPassData data, RenderGraphContext context) =>
+                builder.SetRenderFunc((VFXProcessCameraPassData data, LowLevelGraphContext context) =>
                 {
                     if (data.xrPass != null)
                         data.xrPass.StartSinglePass(context.cmd);
 
                     //Triggers dispatch per camera, all global parameters should have been setup at this stage.
-                    VFX.VFXManager.ProcessCameraCommand(data.camera, context.cmd, data.cameraXRSettings, data.cullResults);
+                    CommandBufferHelpers.VFXManager_ProcessCameraCommand(data.camera, context.cmd, data.cameraXRSettings, data.cullResults);
 
                     if (data.xrPass != null)
                         data.xrPass.StopSinglePass(context.cmd);
@@ -2167,5 +2167,7 @@ namespace UnityEngine.Rendering.Universal
                 return new BlockRange(m_BlockRanges[index], m_BlockRanges[index + 1]);
             }
         }
+
+        internal virtual bool supportsNativeRenderPassRendergraphCompiler { get => false; }
     }
 }

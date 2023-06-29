@@ -28,14 +28,6 @@ namespace UnityEngine.Rendering.Universal
             m_PassData = new PassData();
         }
 
-        // Common to RenderGraph and non-RenderGraph paths
-        private class PassData
-        {
-            internal CommandBuffer cmd;
-            internal Camera camera;
-            internal TextureHandle offscreenTexture;
-        }
-
         /// <summary>
         /// Get a descriptor for the required color texture for this pass.
         /// </summary>
@@ -67,11 +59,9 @@ namespace UnityEngine.Rendering.Universal
             descriptor.height = cameraHeight;
         }
 
-        private static void ExecutePass(ScriptableRenderContext context, PassData passData)
+        private static void ExecutePass(RasterCommandBuffer commandBuffer, PassData passData, RendererList rendererList)
         {
-            context.ExecuteCommandBuffer(passData.cmd);
-            passData.cmd.Clear();
-            context.DrawUIOverlay(passData.camera);
+            commandBuffer.DrawRendererList(rendererList);
         }
 
         // Non-RenderGraph path
@@ -103,9 +93,6 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            m_PassData.cmd = renderingData.commandBuffer;
-            m_PassData.camera = renderingData.cameraData.camera;
-
             if (m_RenderOffscreen)
             {
                 CoreUtils.SetRenderTarget(renderingData.commandBuffer, m_ColorTarget, m_DepthTarget, ClearFlag.Color, Color.clear);
@@ -136,50 +123,54 @@ namespace UnityEngine.Rendering.Universal
 
             using (new ProfilingScope(renderingData.commandBuffer, ProfilingSampler.Get(URPProfileId.DrawScreenSpaceUI)))
             {
-                ExecutePass(context, m_PassData);
+                RendererList rendererList = context.CreateUIOverlayRendererList(renderingData.cameraData.camera);
+                ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), m_PassData, rendererList);
             }
         }
 
         //RenderGraph path
+        private class PassData
+        {
+            internal RendererListHandle rendererList;
+        }
+
         internal void RenderOffscreen(RenderGraph renderGraph, GraphicsFormat depthStencilFormat, out TextureHandle output, ref RenderingData renderingData)
         {
-            using (var builder = renderGraph.AddRenderPass<PassData>("Draw Screen Space UI Pass - Offscreen", out var passData, base.profilingSampler))
+            using (var builder = renderGraph.AddRasterRenderPass<PassData>("Draw Screen Space UI Pass - Offscreen", out var passData, base.profilingSampler))
             {
                 RenderTextureDescriptor colorDescriptor = renderingData.cameraData.cameraTargetDescriptor;
                 ConfigureColorDescriptor(ref colorDescriptor, renderingData.cameraData.pixelWidth, renderingData.cameraData.pixelHeight);
                 output = UniversalRenderer.CreateRenderGraphTexture(renderGraph, colorDescriptor, "_OverlayUITexture", true);
-                builder.UseColorBuffer(output, 0);
+                builder.UseTextureFragment(output, 0);
+                
+                passData.rendererList = renderGraph.CreateUIOverlayRendererList(renderingData.cameraData.camera);
+                builder.UseRendererList(passData.rendererList);
 
                 RenderTextureDescriptor depthDescriptor = renderingData.cameraData.cameraTargetDescriptor;
                 ConfigureDepthDescriptor(ref depthDescriptor, depthStencilFormat, renderingData.cameraData.pixelWidth, renderingData.cameraData.pixelHeight);
                 TextureHandle depthBuffer = UniversalRenderer.CreateRenderGraphTexture(renderGraph, depthDescriptor, "_OverlayUITexture_Depth", false);
-                builder.UseDepthBuffer(depthBuffer, DepthAccess.ReadWrite);
+                builder.UseTextureFragmentDepth(depthBuffer, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
 
-                passData.cmd = renderingData.commandBuffer;
-                passData.camera = renderingData.cameraData.camera;
-                passData.offscreenTexture = output;
-
-                builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
+                builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
                 {
-                    ExecutePass(context.renderContext, data);
-                    data.cmd.SetGlobalTexture(ShaderPropertyId.overlayUITexture, data.offscreenTexture);
+                    ExecutePass(context.cmd, data, data.rendererList);
                 });
             }
         }
 
         internal void RenderOverlay(RenderGraph renderGraph, in TextureHandle colorBuffer, in TextureHandle depthBuffer, ref RenderingData renderingData)
         {
-            using (var builder = renderGraph.AddRenderPass<PassData>("Draw Screen Space UI Pass - Overlay", out var passData, base.profilingSampler))
+            using (var builder = renderGraph.AddRasterRenderPass<PassData>("Draw Screen Space UI Pass - Overlay", out var passData, base.profilingSampler))
             {
-                builder.UseColorBuffer(colorBuffer, 0);
-                builder.UseDepthBuffer(depthBuffer, DepthAccess.ReadWrite);
+                builder.UseTextureFragment(colorBuffer, 0);
+                builder.UseTextureFragmentDepth(depthBuffer, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
 
-                passData.cmd = renderingData.commandBuffer;
-                passData.camera = renderingData.cameraData.camera;
+                passData.rendererList = renderGraph.CreateUIOverlayRendererList(renderingData.cameraData.camera);
+                builder.UseRendererList(passData.rendererList);
 
-                builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
+                builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
                 {
-                    ExecutePass(context.renderContext, data);
+                    ExecutePass(context.cmd, data, data.rendererList);
                 });
             }
         }

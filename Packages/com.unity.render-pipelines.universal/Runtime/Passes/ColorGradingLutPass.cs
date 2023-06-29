@@ -258,7 +258,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 this.ConfigureDescriptor(in renderingData.postProcessingData, out var lutDesc, out var filterMode);
                 internalColorLut = UniversalRenderer.CreateRenderGraphTexture(renderGraph, lutDesc, "_InternalGradingLut", true);
 
-                passData.internalLut = builder.UseTextureFragment(internalColorLut, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
+                passData.internalLut = builder.UseTextureFragment(internalColorLut, 0, IBaseRenderGraphBuilder.AccessFlags.WriteAll);
                 passData.lutBuilderLdr = m_LutBuilderLdr;
                 passData.lutBuilderHdr = m_LutBuilderHdr;
                 passData.renderingData = renderingData;

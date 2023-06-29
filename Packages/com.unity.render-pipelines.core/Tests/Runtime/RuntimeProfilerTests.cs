@@ -68,7 +68,15 @@ namespace UnityEngine.Rendering.Tests
             for (int i = 0; i < k_NumFramesToRender; i++)
             {
                 m_DebugFrameTiming.UpdateFrameTiming();
-                camera.Render();
+
+                var rr = new UnityEngine.Rendering.RenderPipeline.StandardRequest();
+                rr.destination = RenderTexture.GetTemporary(128, 128, 24, UnityEngine.Experimental.Rendering.GraphicsFormat.R8G8B8A8_SRGB);
+                rr.mipLevel = 0;
+                rr.slice = 0;
+                rr.face = CubemapFace.Unknown;
+                UnityEngine.Rendering.RenderPipeline.SubmitRenderRequest(camera, rr);
+                RenderTexture.ReleaseTemporary(rr.destination);
+
                 yield return null;
             }
 

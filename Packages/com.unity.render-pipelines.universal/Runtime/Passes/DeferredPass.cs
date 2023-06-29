@@ -62,10 +62,21 @@ namespace UnityEngine.Rendering.Universal.Internal
                 passData.deferredLights = m_DeferredLights;
                 passData.renderingData = renderingData;
 
-                for (int i = 0; i < gbuffer.Length; ++i)
+                if (!m_DeferredLights.UseRenderPass)
                 {
-                    if (i != m_DeferredLights.GBufferLightingIndex)
-                        builder.UseTexture(gbuffer[i], IBaseRenderGraphBuilder.AccessFlags.Read);
+                    for (int i = 0; i < gbuffer.Length; ++i)
+                    {
+                        if (i != m_DeferredLights.GBufferLightingIndex)
+                            builder.UseTexture(gbuffer[i], IBaseRenderGraphBuilder.AccessFlags.Read);
+                    }
+                }
+                else
+                {
+                    for (int i = 0; i < gbuffer.Length; ++i)
+                    {
+                        if (i != m_DeferredLights.GBufferLightingIndex)
+                            builder.UseTextureFragmentInput(gbuffer[i], i, IBaseRenderGraphBuilder.AccessFlags.Read);
+                    }
                 }
 
                 builder.AllowPassCulling(false);

@@ -43,21 +43,21 @@ public class DrawRenderingLayersFeature : ScriptableRendererFeature
 
         public override void RecordRenderGraph(RenderGraph renderGraph, FrameResources frameResources, ref RenderingData renderingData)
         {
-            using (var builder = renderGraph.AddRenderPass<PassData>("Draw Rendering Layers", out var passData, m_ProfilingSampler))
+            using (var builder = renderGraph.AddLowLevelPass<PassData>("Draw Rendering Layers", out var passData, m_ProfilingSampler))
             {
                 UniversalRenderer renderer = (UniversalRenderer) renderingData.cameraData.renderer;
 
                 passData.color = renderer.activeColorTexture;
-                builder.UseColorBuffer(passData.color, 0);
-                builder.ReadTexture(renderingLayerTexture);
+                builder.UseTexture(passData.color, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
+                builder.UseTexture(renderingLayerTexture);
 
                 builder.AllowPassCulling(false);
 
                 passData.pass = this;
 
-                builder.SetRenderFunc((PassData data, RenderGraphContext rgContext) =>
+                builder.SetRenderFunc((PassData data, LowLevelGraphContext rgContext) =>
                 {
-                    data.pass.ExecutePass(rgContext.cmd, data.color);
+                    data.pass.ExecutePass(rgContext.legacyCmd, data.color);
                 });
             }
         }
@@ -99,6 +99,11 @@ public class DrawRenderingLayersFeature : ScriptableRendererFeature
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
+            ExecutePass(ref renderingData);
+        }
+
+        internal void ExecutePass(ref RenderingData renderingData)
+        {
             CommandBuffer cmd = renderingData.commandBuffer;
             using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
@@ -117,25 +122,28 @@ public class DrawRenderingLayersFeature : ScriptableRendererFeature
         {
             internal DrawRenderingLayersPrePass pass;
             internal RenderingData renderingData;
+            internal TextureHandle color;
         }
 
         public override void RecordRenderGraph(RenderGraph renderGraph, FrameResources frameResources, ref RenderingData renderingData)
         {
             UniversalRenderer renderer = (UniversalRenderer)renderingData.cameraData.renderer;
 
-            using (var builder = renderGraph.AddRenderPass<PassData>("Draw Rendering PrePass", out var passData, m_ProfilingSampler))
+            using (var builder = renderGraph.AddLowLevelPass<PassData>("Draw Rendering PrePass", out var passData, m_ProfilingSampler))
             {
                 renderingLayerTexture = renderGraph.ImportTexture(m_ColoredRenderingLayersTextureHandle);
-                builder.UseColorBuffer(renderingLayerTexture, 0);
+                builder.UseTexture(renderingLayerTexture, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
 
                 builder.AllowPassCulling(false);
 
                 passData.pass = this;
                 passData.renderingData = renderingData;
+                passData.color = renderingLayerTexture;
 
-                builder.SetRenderFunc((PassData data, RenderGraphContext rgContext) =>
+                builder.SetRenderFunc((PassData data, LowLevelGraphContext rgContext) =>
                 {
-                    data.pass.Execute(rgContext.renderContext, ref data.renderingData);
+                    rgContext.legacyCmd.SetRenderTarget(data.color);
+                    data.pass.ExecutePass(ref data.renderingData);
                 });
             }
         }

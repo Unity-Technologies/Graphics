@@ -241,8 +241,10 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 if (colorTarget.IsValid())
                     passData.albedoHdl = builder.UseTextureFragment(colorTarget, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
+
                 if (depthTarget.IsValid())
                     passData.depthHdl = builder.UseTextureFragmentDepth(depthTarget, IBaseRenderGraphBuilder.AccessFlags.Write);
+
                 if (mainShadowsTexture.IsValid())
                     builder.UseTexture(mainShadowsTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
                 if (additionalShadowsTexture.IsValid())

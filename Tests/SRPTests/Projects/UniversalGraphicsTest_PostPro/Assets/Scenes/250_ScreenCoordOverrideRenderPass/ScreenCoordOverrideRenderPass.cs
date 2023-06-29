@@ -64,24 +64,24 @@ public class ScreenCoordOverrideRenderPass : ScriptableRenderPass
 
         TextureHandle tempTex = renderGraph.CreateTexture(desc);
 
-        using (var builder = renderGraph.AddRenderPass<PassData>("Blit to TempTex", out var passData))
+        using (var builder = renderGraph.AddRasterRenderPass<PassData>("Blit to TempTex", out var passData))
         {
             var target = renderer.activeColorTexture;
-            passData.tempTex = builder.UseColorBuffer(tempTex, 0);
-            passData.targetTex = builder.ReadTexture(target);
+            passData.tempTex = builder.UseTextureFragment(tempTex, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
+            passData.targetTex = builder.UseTexture(target, IBaseRenderGraphBuilder.AccessFlags.Read);
 
-            builder.SetRenderFunc((PassData data, RenderGraphContext rgContext) =>
+            builder.SetRenderFunc((PassData data, RasterGraphContext rgContext) =>
             {
                 Blitter.BlitTexture(rgContext.cmd, data.targetTex, new Vector4(1, 1, 0, 0), m_Material, 0);
             });
         }
-        using (var builder = renderGraph.AddRenderPass<PassData>("Blit to TargetTex", out var passData))
+        using (var builder = renderGraph.AddRasterRenderPass<PassData>("Blit to TargetTex", out var passData))
         {
             var target = renderer.activeColorTexture;
-            passData.targetTex = builder.UseColorBuffer(target, 0);
-            passData.tempTex = builder.ReadTexture(tempTex);
+            passData.targetTex = builder.UseTextureFragment(target, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
+            passData.tempTex = builder.UseTexture(tempTex, IBaseRenderGraphBuilder.AccessFlags.Read);
 
-            builder.SetRenderFunc((PassData data, RenderGraphContext rgContext) =>
+            builder.SetRenderFunc((PassData data, RasterGraphContext rgContext) =>
             {
                 Blitter.BlitTexture(rgContext.cmd, data.tempTex, new Vector4(1, 1, 0, 0), 0.0f, false);
             });

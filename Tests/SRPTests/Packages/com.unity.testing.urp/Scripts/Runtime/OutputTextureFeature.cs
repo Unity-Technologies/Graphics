@@ -83,7 +83,7 @@ public class OutputTextureFeature : ScriptableRendererFeature
             CoreUtils.SetRenderTarget(cmd, m_Renderer.cameraColorTargetHandle, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, ClearFlag.None, Color.clear);
             m_PassData.profilingSampler = m_ProfilingSampler;
             m_PassData.material = m_Material;
-            ExecutePass(m_PassData, cmd);
+            ExecutePass(m_PassData, UnityEngine.Experimental.Rendering.CommandBufferHelpers.GetRasterCommandBuffer(cmd));
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
@@ -95,11 +95,11 @@ public class OutputTextureFeature : ScriptableRendererFeature
             internal Material material;
         }
 
-        private static void ExecutePass(PassData passData, CommandBuffer cmd)
+        private static void ExecutePass(PassData passData, UnityEngine.Experimental.Rendering.RasterCommandBuffer cmd)
         {
             using (new ProfilingScope(cmd, passData.profilingSampler))
             {
-                Blitter.BlitTexture(cmd,  Vector2.one, passData.material, 0);
+                Blitter.BlitTexture(cmd, Vector2.one, passData.material, 0);
             }
         }
 
@@ -107,14 +107,14 @@ public class OutputTextureFeature : ScriptableRendererFeature
         {
             UniversalRenderer renderer = (UniversalRenderer)renderingData.cameraData.renderer;
 
-            using (var builder = renderGraph.AddRenderPass<PassData>("Output Texture Pass", out var passData, m_ProfilingSampler))
+            using (var builder = renderGraph.AddRasterRenderPass<PassData>("Output Texture Pass", out var passData, m_ProfilingSampler))
             {
-                builder.UseColorBuffer(renderer.activeColorTexture, 0);
+                builder.UseTextureFragment(renderer.activeColorTexture, 0, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
                 builder.AllowPassCulling(false);
                 passData.profilingSampler = m_ProfilingSampler;
                 passData.material = m_Material;
 
-                builder.SetRenderFunc((PassData data, RenderGraphContext rgContext) =>
+                builder.SetRenderFunc((PassData data, RasterGraphContext rgContext) =>
                 {
                     ExecutePass(data, rgContext.cmd);
                 });

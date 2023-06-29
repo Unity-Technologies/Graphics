@@ -435,13 +435,26 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Blit a Texture with a given Material. Unity uses the reference name `_BlitTexture` to bind the input texture. Set the destination parameter before using this method.
+        /// Blit a quad with a given Material. Set the destination parameter before using this method.
         /// </summary>
         /// <param name="cmd">Command Buffer used for rendering.</param>
         /// <param name="scaleBias">Scale and bias values for sampling the input texture.</param>
         /// <param name="material">Material to invoke when blitting.</param>
         /// <param name="pass">Pass index within the Material to invoke.</param>
         public static void BlitTexture(CommandBuffer cmd, Vector4 scaleBias, Material material, int pass)
+        {
+            s_PropertyBlock.SetVector(BlitShaderIDs._BlitScaleBias, scaleBias);
+            DrawTriangle(cmd, material, pass);
+        }
+
+        /// <summary>
+        /// Blit a quad with a given Material. Set the destination parameter before using this method.
+        /// </summary>
+        /// <param name="cmd">Command Buffer used for rendering.</param>
+        /// <param name="scaleBias">Scale and bias values for sampling the input texture.</param>
+        /// <param name="material">Material to invoke when blitting.</param>
+        /// <param name="pass">Pass index within the Material to invoke.</param>
+        public static void BlitTexture(RasterCommandBuffer cmd, Vector4 scaleBias, Material material, int pass)
         {
             s_PropertyBlock.SetVector(BlitShaderIDs._BlitScaleBias, scaleBias);
             DrawTriangle(cmd, material, pass);

@@ -265,7 +265,16 @@ namespace UnityEngine.Experimental.Rendering
         /// <summary>
         /// Queue up render commands to disable single-pass techniques.
         /// </summary>
-        /// <param name="cmd">CommandBuffer to modify</param>
+        /// <param name="cmd">CommandBuffer to modify.</param>
+        public void StartSinglePass(LowLevelCommandBuffer cmd)
+        {
+            StartSinglePass(cmd.m_WrappedCommandBuffer);
+        }
+
+        /// <summary>
+        /// Queue up render commands to disable single-pass techniques.
+        /// </summary>
+        /// <param name="cmd">CommandBuffer to modify.</param>
         public void StopSinglePass(CommandBuffer cmd)
         {
             if (enabled)
@@ -291,6 +300,15 @@ namespace UnityEngine.Experimental.Rendering
         /// </summary>
         /// <param name="cmd">RasterCommandBuffer to modify</param>
         public void StopSinglePass(RasterCommandBuffer cmd)
+        {
+            StopSinglePass(cmd.m_WrappedCommandBuffer);
+        }
+
+        /// <summary>
+        /// Queue up render commands to disable single-pass techniques.
+        /// </summary>
+        /// <param name="cmd">The command buffer to use.</param>
+        public void StopSinglePass(LowLevelCommandBuffer cmd)
         {
             StopSinglePass(cmd.m_WrappedCommandBuffer);
         }

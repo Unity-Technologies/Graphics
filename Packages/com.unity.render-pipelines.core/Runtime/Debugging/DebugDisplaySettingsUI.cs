@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering
 {
@@ -57,6 +58,8 @@ namespace UnityEngine.Rendering
             };
 
             m_Settings.ForEach(onExecute);
+
+            RegisterRenderGraphDebug();
         }
 
         /// <summary>
@@ -66,20 +69,40 @@ namespace UnityEngine.Rendering
         {
             DebugManager debugManager = DebugManager.instance;
 
-            foreach (IDebugDisplaySettingsPanelDisposable disposableSettingsPanel in m_DisposablePanels)
+            if (m_DisposablePanels != null)
             {
-                DebugUI.Widget[] panelWidgets = disposableSettingsPanel.Widgets;
-                string panelId = disposableSettingsPanel.PanelName;
-                DebugUI.Panel panel = debugManager.GetPanel(panelId, true);
-                ObservableList<DebugUI.Widget> panelChildren = panel.children;
+                foreach (IDebugDisplaySettingsPanelDisposable disposableSettingsPanel in m_DisposablePanels)
+                {
+                    DebugUI.Widget[] panelWidgets = disposableSettingsPanel.Widgets;
+                    string panelId = disposableSettingsPanel.PanelName;
+                    DebugUI.Panel panel = debugManager.GetPanel(panelId, true);
+                    ObservableList<DebugUI.Widget> panelChildren = panel.children;
 
-                disposableSettingsPanel.Dispose();
-                panelChildren.Remove(panelWidgets);
+                    disposableSettingsPanel.Dispose();
+                    panelChildren.Remove(panelWidgets);
+                }
+
+                m_DisposablePanels = null;
             }
-
-            m_DisposablePanels = null;
+            UnregisterRenderGraphDebug();
 
             debugManager.UnregisterData(this);
+        }
+
+        static string k_PanelRenderGraph = "RenderGraph";
+        void RegisterRenderGraphDebug()
+        {
+            var panel = DebugManager.instance.GetPanel(k_PanelRenderGraph, true);
+            var renderGraphs = RenderGraph.GetRegisteredRenderGraphs();
+            foreach (var graph in renderGraphs)
+                graph.RegisterDebug(panel);
+        }
+        void UnregisterRenderGraphDebug()
+        {
+            var renderGraphs = RenderGraph.GetRegisteredRenderGraphs();
+
+            foreach (var graph in renderGraphs)
+                graph.UnRegisterDebug();
         }
 
         #region IDebugData

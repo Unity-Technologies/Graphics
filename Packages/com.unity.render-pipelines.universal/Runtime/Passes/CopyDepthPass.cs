@@ -221,7 +221,16 @@ namespace UnityEngine.Rendering.Universal.Internal
                 passData.cmd = renderingData.commandBuffer;
                 passData.copyResolvedDepth = m_CopyResolvedDepth;
                 passData.copyToDepth = CopyToDepth;
-                passData.destination = builder.UseTextureFragment(destination, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
+                if (CopyToDepth)
+                {
+                    // Wites depth using custom depth output
+                    passData.destination = builder.UseTextureFragmentDepth(destination, IBaseRenderGraphBuilder.AccessFlags.Write);
+                }
+                else
+                {
+                    // Writes depth as "grayscale color" output
+                    passData.destination = builder.UseTextureFragment(destination, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
+                }
                 passData.source = builder.UseTexture(source, IBaseRenderGraphBuilder.AccessFlags.Read);
 
                 // TODO RENDERGRAPH: culling? force culling off for testing

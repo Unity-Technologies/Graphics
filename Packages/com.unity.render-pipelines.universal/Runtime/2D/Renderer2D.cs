@@ -370,5 +370,7 @@ namespace UnityEngine.Rendering.Universal
         {
             return m_ColorTextureHandle;;
         }
+
+        internal override bool supportsNativeRenderPassRendergraphCompiler { get => false; }
     }
 }

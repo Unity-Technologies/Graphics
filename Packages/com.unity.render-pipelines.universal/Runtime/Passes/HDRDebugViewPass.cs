@@ -201,7 +201,7 @@ namespace UnityEngine.Rendering.Universal
 
             var luminanceParameters = GetLuminanceParameters(renderingData.cameraData);
 
-            using (var builder = renderGraph.AddRenderPass<PassDataCIExy>("Generate HDR DebugView CIExy", out var passData, base.profilingSampler))
+            using (var builder = renderGraph.AddRasterRenderPass<PassDataCIExy>("Generate HDR DebugView CIExy", out var passData, base.profilingSampler))
             {
                 passData.cmd = renderingData.commandBuffer;
                 passData.material = m_material;
@@ -209,15 +209,15 @@ namespace UnityEngine.Rendering.Universal
                 passData.srcColor = srcColor;
                 passData.xyBuffer = xyBuffer;
                 passData.passThrough = passThroughRT;
-                builder.UseColorBuffer(passThroughRT, 0);
-                builder.WriteTexture(xyBuffer);
-                builder.ReadTexture(srcColor);
-                builder.SetRenderFunc((PassDataCIExy data, RenderGraphContext context) =>
+                builder.UseTextureFragment(passThroughRT, 0);
+                builder.UseTexture(xyBuffer, IBaseRenderGraphBuilder.AccessFlags.Write);
+                builder.UseTexture(srcColor);
+                builder.SetRenderFunc((PassDataCIExy data, RasterGraphContext context) =>
                 {
-                    ExecuteCIExyPrepass(passData, passData.srcColor, passData.passThrough, passData.xyBuffer);
+                    ExecuteCIExyPrepass(data, data.srcColor, data.passThrough, data.xyBuffer);
                 });
             }
-            using (var builder = renderGraph.AddRenderPass<PassDataDebugView>("HDR DebugView", out var passData, base.profilingSampler))
+            using (var builder = renderGraph.AddRasterRenderPass<PassDataDebugView>("HDR DebugView", out var passData, base.profilingSampler))
             {
                 passData.cmd = renderingData.commandBuffer;
                 passData.material = m_material;
@@ -228,14 +228,14 @@ namespace UnityEngine.Rendering.Universal
                 passData.xyBuffer = xyBuffer;
                 passData.passThrough = passThroughRT;
                 passData.dstColor = dstColor;
-                builder.UseColorBuffer(dstColor, 0);
-                builder.ReadTexture(passThroughRT);
-                builder.ReadTexture(xyBuffer);
+                builder.UseTextureFragment(dstColor, 0);
+                builder.UseTexture(passThroughRT, IBaseRenderGraphBuilder.AccessFlags.Write);
+                builder.UseTexture(xyBuffer);
                 if (overlayUITexture.IsValid())
-                    builder.ReadTexture(overlayUITexture);
-                builder.SetRenderFunc((PassDataDebugView data, RenderGraphContext context) =>
+                    builder.UseTexture(overlayUITexture);
+                builder.SetRenderFunc((PassDataDebugView data, RasterGraphContext context) =>
                 {
-                    ExecuteHDRDebugViewFinalPass(passData, passData.passThrough, passData.xyBuffer, passData.overlayUITexture, passData.dstColor);
+                    ExecuteHDRDebugViewFinalPass(data, data.passThrough, data.xyBuffer, data.overlayUITexture, data.dstColor);
                 });
             }
         }

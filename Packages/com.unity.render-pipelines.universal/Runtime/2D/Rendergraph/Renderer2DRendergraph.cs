@@ -215,6 +215,42 @@ namespace UnityEngine.Rendering.Universal
                 m_Attachments.backBufferDepth = renderGraph.ImportTexture(m_RenderGraphBackbufferDepthHandle);
             }
 
+            RenderTargetIdentifier targetId;
+            RenderTargetInfo importInfo = new RenderTargetInfo();
+            if (cameraData.targetTexture != null)
+            {
+                targetId = new RenderTargetIdentifier(cameraData.targetTexture);
+                importInfo.width = cameraData.targetTexture.width;
+                importInfo.height = cameraData.targetTexture.height;
+                importInfo.volumeDepth = cameraData.targetTexture.volumeDepth;
+                importInfo.msaaSamples = cameraData.targetTexture.antiAliasing;
+                importInfo.format = cameraData.targetTexture.graphicsFormat;
+            }
+            else
+            {
+                targetId = BuiltinRenderTextureType.CameraTarget;
+                //NOTE: Carefull what you use here as many of the properties bake-in the camera rect so for example
+                //cameraData.cameraTargetDescriptor.width is the width of the recangle but not the actual rendertarget
+                //same with cameraData.camera.pixelWidth
+                importInfo.width = Screen.width;
+                importInfo.height = Screen.height;
+                importInfo.volumeDepth = 1;
+                importInfo.msaaSamples = Screen.msaaSamples; // cameraData.cameraTargetDescriptor.msaaSamples;
+                // The editor always allocates the system rendertarget with a single msaa sample
+                // See: ConfigureTargetTexture in PlayModeView.cs
+                if (Application.isEditor)
+                    importInfo.msaaSamples = 1;
+
+                importInfo.format = UniversalRenderPipeline.MakeRenderTextureGraphicsFormat(cameraData.isHdrEnabled, cameraData.hdrColorBufferPrecision, Graphics.preserveFramebufferAlpha);
+            }
+
+            ImportResourceParams importParams = new ImportResourceParams();
+            importParams.clearOnFirstUse = (renderingData.cameraData.renderType == CameraRenderType.Base) && !m_CreateColorTexture;
+            importParams.clearColor = renderingData.cameraData.backgroundColor;
+            importParams.discardOnLastUse = false;
+
+            m_Attachments.backBufferColor = renderGraph.ImportBackbuffer(targetId, importInfo, importParams);
+
             var postProcessDesc = PostProcessPass.GetCompatibleDescriptor(cameraTargetDescriptor, cameraTargetDescriptor.width, cameraTargetDescriptor.height, cameraTargetDescriptor.graphicsFormat, DepthBits.None);
             m_Attachments.afterPostProcessColor = UniversalRenderer.CreateRenderGraphTexture(renderGraph, postProcessDesc, "_AfterPostProcessTexture", true);
         }

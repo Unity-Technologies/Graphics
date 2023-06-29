@@ -2,7 +2,6 @@ using System;
 using System.Diagnostics;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
-using UnityEngine.Rendering.RendererUtils;
 using NameAndTooltip = UnityEngine.Rendering.DebugUI.Widget.NameAndTooltip;
 
 // Typedef for the in-engine RendererList API (to avoid conflicts with the experimental version)
@@ -224,11 +223,13 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         private static class Strings
         {
             public static readonly NameAndTooltip ClearRenderTargetsAtCreation = new() { name = "Clear Render Targets At Creation", tooltip = "Enable to clear all render textures before any rendergraph passes to check if some clears are missing." };
+            public static readonly NameAndTooltip ClearRenderTargetsAtFree = new() { name = "Clear Render Targets When Freed", tooltip = "Enable to clear all render textures when textures are freed by the graph to detect use after free of textures." };
             public static readonly NameAndTooltip DisablePassCulling = new() { name = "Disable Pass Culling", tooltip = "Enable to temporarily disable culling to asses if a pass is culled." };
             public static readonly NameAndTooltip ImmediateMode = new() { name = "Immediate Mode", tooltip = "Enable to force render graph to execute all passes in the order you registered them." };
             public static readonly NameAndTooltip EnableLogging = new() { name = "Enable Logging", tooltip = "Enable to allow HDRP to capture information in the log." };
             public static readonly NameAndTooltip LogFrameInformation = new() { name = "Log Frame Information", tooltip = "Enable to log information output from each frame." };
             public static readonly NameAndTooltip LogResources = new() { name = "Log Resources", tooltip = "Enable to log the current render graph's global resource usage." };
+            public static readonly NameAndTooltip EnableNativeCompiler = new() { name = "Enable Native Pass Compiler", tooltip = "Enable the new native pass compiler." };
         }
 
         public void RegisterDebug(string name, DebugUI.Panel debugPanel = null)
@@ -240,6 +241,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 children =
                 {
                     new DebugUI.BoolField { nameAndTooltip = Strings.ClearRenderTargetsAtCreation, getter = () => clearRenderTargetsAtCreation, setter = value => clearRenderTargetsAtCreation = value },
+                    new DebugUI.BoolField { nameAndTooltip = Strings.ClearRenderTargetsAtFree, getter = () => clearRenderTargetsAtRelease, setter = value => clearRenderTargetsAtRelease = value },
                     // We cannot expose this option as it will change the active render target and the debug menu won't know where to render itself anymore.
                     //    list.Add(new DebugUI.BoolField { displayName = "Clear Render Targets at release", getter = () => clearRenderTargetsAtRelease, setter = value => clearRenderTargetsAtRelease = value });
                     new DebugUI.BoolField { nameAndTooltip = Strings.DisablePassCulling, getter = () => disablePassCulling, setter = value => disablePassCulling = value },
@@ -266,6 +268,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                             if (!enableLogging)
                                 Debug.Log("You must first enable logging before this logging resources.");
                             logResources = true;
+
             #if UNITY_EDITOR
                             UnityEditor.SceneView.RepaintAll();
             #endif
@@ -282,10 +285,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public void UnRegisterDebug(string name)
         {
             //DebugManager.instance.RemovePanel(name.Length == 0 ? "Render Graph" : name);
-            m_DebugPanel.children.Remove(m_DebugItems);
+            if ( m_DebugPanel != null ) m_DebugPanel.children.Remove(m_DebugItems);
             m_DebugPanel = null;
             m_DebugItems = null;
         }
+
+
     }
 
     /// <summary>
@@ -347,7 +352,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     /// <summary>
     /// This class is the main entry point of the Render Graph system.
     /// </summary>
-    public class RenderGraph
+    public partial class RenderGraph
     {
         ///<summary>Maximum number of MRTs supported by Render Graph.</summary>
         public static readonly int kMaxMRTCount = 8;
@@ -447,7 +452,13 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
         }
 
-        RenderGraphResourceRegistry m_Resources;
+        public bool NativeRenderPassesEnabled
+        {
+            get; set;
+        }
+
+
+        internal/*for tests*/ RenderGraphResourceRegistry m_Resources;
         RenderGraphObjectPool m_RenderGraphPool = new RenderGraphObjectPool();
         RenderGraphBuilders m_builderInstance = new RenderGraphBuilders();
         List<RenderGraphPass> m_RenderPasses = new List<RenderGraphPass>(64);
@@ -599,10 +610,21 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return m_Resources.ImportTexture(rt);
         }
 
+        public TextureHandle ImportTexture(RTHandle rt, ImportResourceParams importParams )
+        {
+            return m_Resources.ImportTexture(rt, importParams);
+        }
+
+        public TextureHandle ImportTexture(RTHandle rt, RenderTargetInfo info, ImportResourceParams importParams = new ImportResourceParams() )
+        {
+            return m_Resources.ImportTexture(rt, info, importParams);
+        }
+
         /// <summary>
-        /// Import an external texture to the Render Graph and set the handle as builtin handle
+        /// Import an external texture to the Render Graph and set the handle as builtin handle. This can only happen from within the graph module
+        /// so it is internal.
         /// </summary>
-        internal TextureHandle ImportTexture(RTHandle rt, bool isBuiltin = false)
+        internal TextureHandle ImportTexture(RTHandle rt, bool isBuiltin)
         {
             return m_Resources.ImportTexture(rt, isBuiltin);
         }
@@ -612,9 +634,22 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// </summary>
         /// <param name="rt">Backbuffer render target identifier.</param>
         /// <returns>A new TextureHandle for the backbuffer.</returns>
+        public TextureHandle ImportBackbuffer(RenderTargetIdentifier rt, RenderTargetInfo info, ImportResourceParams importParams = new ImportResourceParams())
+        {
+            return m_Resources.ImportBackbuffer(rt, info, importParams);
+        }
+
+        /// <summary>
+        /// Import the final backbuffer to render graph.
+        /// </summary>
+        /// <param name="rt">Backbuffer render target identifier.</param>
+        /// <returns>A new TextureHandle for the backbuffer.</returns>
         public TextureHandle ImportBackbuffer(RenderTargetIdentifier rt)
         {
-            return m_Resources.ImportBackbuffer(rt);
+            RenderTargetInfo dummy = new RenderTargetInfo();
+            dummy.width = dummy.height = dummy.volumeDepth = dummy.msaaSamples = 1;
+            dummy.format = GraphicsFormat.R8G8B8A8_SRGB;
+            return m_Resources.ImportBackbuffer(rt, dummy, new ImportResourceParams());
         }
 
         /// <summary>
@@ -937,7 +972,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 #endif
         {
             var renderPass = m_RenderGraphPool.Get<RasterRenderGraphPass<PassData>>();
-            renderPass.Initialize(m_RenderPasses.Count, m_RenderGraphPool.Get<PassData>(), passName, sampler);
+            renderPass.Initialize(m_RenderPasses.Count, m_RenderGraphPool.Get<PassData>(), passName, RenderGraphPassType.Raster, sampler);
 
             passData = renderPass.data;
 
@@ -983,7 +1018,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 #endif
         {
             var renderPass = m_RenderGraphPool.Get<ComputeRenderGraphPass<PassData>>();
-            renderPass.Initialize(m_RenderPasses.Count, m_RenderGraphPool.Get<PassData>(), passName, sampler);
+            renderPass.Initialize(m_RenderPasses.Count, m_RenderGraphPool.Get<PassData>(), passName, RenderGraphPassType.Compute, sampler);
 
             passData = renderPass.data;
 
@@ -1038,7 +1073,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 #endif
         {
             var renderPass = m_RenderGraphPool.Get<LowLevelRenderGraphPass<PassData>>();
-            renderPass.Initialize(m_RenderPasses.Count, m_RenderGraphPool.Get<PassData>(), passName, sampler);
+            renderPass.Initialize(m_RenderPasses.Count, m_RenderGraphPool.Get<PassData>(), passName, RenderGraphPassType.LowLevel, sampler);
             renderPass.AllowGlobalState(true);
 
             passData = renderPass.data;
@@ -1066,7 +1101,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 #endif
         {
             var renderPass = m_RenderGraphPool.Get<RenderGraphPass<PassData>>();
-            renderPass.Initialize(m_RenderPasses.Count, m_RenderGraphPool.Get<PassData>(), passName, sampler);
+            renderPass.Initialize(m_RenderPasses.Count, m_RenderGraphPool.Get<PassData>(), passName, RenderGraphPassType.Legacy, sampler);
             renderPass.AllowGlobalState(true);// Old pass types allow global state by default as HDRP relies on it
 
             passData = renderPass.data;
@@ -1173,11 +1208,17 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 {
                     LogFrameInformation();
 
-                    CompileRenderGraph();
+                    if (NativeRenderPassesEnabled)
+                        CompileNativeRenderGraph();
+                    else
+                        CompileRenderGraph();
 
                     m_Resources.BeginExecute(m_CurrentFrameIndex);
 
-                    ExecuteRenderGraph();
+                    if (NativeRenderPassesEnabled)
+                        ExecuteNativeRenderGraph();
+                    else
+                        ExecuteRenderGraph();
                 }
             }
             catch (Exception e)
@@ -1980,7 +2021,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 {
                     // Log exception from the pass that raised it to have improved error logging quality for users
                     m_ExecutionExceptionWasRaised = true;
-                    Debug.LogError($"Render Graph Execution error at pass {passInfo.pass.name} ({passIndex})");
+                    Debug.LogError($"Render Graph execution error at pass '{passInfo.pass.name}' ({passIndex})");
                     Debug.LogException(e);
                 }
                 throw;
@@ -2015,6 +2056,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                             throw new InvalidOperationException("MRT setup is invalid. Some indices are not used.");
                         mrtArray[i] = m_Resources.GetTexture(colorBuffers[i]);
                     }
+
+                    CoreUtils.SetViewport(rgContext.cmd , m_Resources.GetTexture(colorBuffers[0]));
 
                     if (pass.depthBuffer.IsValid())
                     {

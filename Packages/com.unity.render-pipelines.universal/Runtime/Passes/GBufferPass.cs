@@ -219,7 +219,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             TextureHandle[] gbuffer = m_DeferredLights.GbufferTextureHandles;
 
-            Debug.Assert(gbuffer.Length <= 5, "GBufferPass.GetFrameResourcesGBufferArray: the gbuffer frame resources are limited to 5!");
+            Debug.Assert(gbuffer.Length <= 7, "GBufferPass.GetFrameResourcesGBufferArray: the gbuffer frame resources are limited to 7!");
 
             for (int i = 0; i < gbuffer.Length; ++i)
             {
@@ -231,7 +231,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         internal void SetFrameResourcesGBufferArray(FrameResources frameResources, TextureHandle[] gbuffer)
         {
-            Debug.Assert(gbuffer.Length <= 5, "GBufferPass.SetFrameResourcesGBufferArray: the gbuffer frame resources are limited to 5!");
+            Debug.Assert(gbuffer.Length <= 7, "GBufferPass.SetFrameResourcesGBufferArray: the gbuffer frame resources are limited to 7!");
 
             for (int i = 0; i < gbuffer.Length; ++i)
                 frameResources.SetTexture((UniversalResource)(UniversalResource.GBuffer0 + i), gbuffer[i]);

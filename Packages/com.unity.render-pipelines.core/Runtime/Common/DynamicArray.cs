@@ -10,12 +10,12 @@ namespace UnityEngine.Rendering
     [DebuggerDisplay("Size = {size} Capacity = {capacity}")]
     public class DynamicArray<T> where T : new()
     {
-        T[] m_Array = null;
+        protected T[] m_Array = null;
 
         /// <summary>
-        /// Number of elements in the array.
+        /// Number of elements in the array. There may be more elements allocated. Use `capacity` to query the number of allocated items.
         /// </summary>
-        public int size { get; private set; }
+        public int size { get; protected set; }
 
         /// <summary>
         /// Allocated size of the array.
@@ -26,12 +26,12 @@ namespace UnityEngine.Rendering
         /// <summary>
         ///  This keeps track of structural modifications to this array and allows us to raise exceptions when modifying during enumeration
         /// </summary>
-        internal int version { get; private set; }
+        protected internal int version { get; protected set; }
 #endif
 
         /// <summary>
         /// Constructor.
-        /// Defaults to a size of 32 elements.
+        /// Defaults to a capacity of 32 elements. The size will be 0.
         /// </summary>
         public DynamicArray()
         {
@@ -43,13 +43,27 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Constructor
+        /// Constructor. This constructor allocates memory and sets the size of the array to the specified number of elements.
         /// </summary>
-        /// <param name="size">Number of elements.</param>
+        /// <param name="size">Number of elements. The elements are initialized to the default value of the element type, 0 for integers.</param>
         public DynamicArray(int size)
         {
             m_Array = new T[size];
             this.size = size;
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            version = 0;
+#endif
+        }
+
+        /// <summary>
+        /// Constructor. This overload allows you to only allocate memory without setting the size.
+        /// </summary>
+        /// <param name="capacity">The nubmer of elements to allocate.</param>
+        /// <param name="resize">If true, also set the size of the array to the passed in capacity. If fase, only allocate data but keep the size at 0.</param>/// 
+        public DynamicArray(int capacity, bool resize)
+        {
+            m_Array = new T[capacity];
+            this.size = (resize) ? capacity : 0;
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
             version = 0;
 #endif
@@ -102,8 +116,11 @@ namespace UnityEngine.Rendering
         /// <param name="array">The array whose elements should be added to the end of the DynamicArray. The array itself cannot be null, but it can contain elements that are null, if type T is a reference type.</param>
         public void AddRange(DynamicArray<T> array)
         {
-            Reserve(size + array.size, true);
-            for (int i = 0; i < array.size; ++i)
+            // Save the size before reserve. Otherwise things break when self-appending i.e. `a.AddRange(a)`
+            var addedSize = array.size;
+
+            Reserve(size + addedSize, true);
+            for (int i = 0; i < addedSize; ++i)
                 m_Array[size++] = array[i];
             BumpVersion();
         }
@@ -248,12 +265,35 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Resize the Dynamic Array.
         /// This will reallocate memory if necessary and set the current size of the array to the provided size.
+        /// Note: The memory is not cleared so the elements may contain invalid data.
         /// </summary>
         /// <param name="newSize">New size for the array.</param>
         /// <param name="keepContent">Set to true if you want the current content of the array to be kept.</param>
         public void Resize(int newSize, bool keepContent = false)
         {
             Reserve(newSize, keepContent);
+            size = newSize;
+            BumpVersion();
+        }
+
+        /// <summary>
+        /// Resize the Dynamic Array.
+        /// This will reallocate memory if necessary and set the current size of the array to the provided size.
+        /// The elements are initialized to the default value of the element type, e.g. 0 for integers.
+        /// </summary>
+        /// <param name="newSize">New size for the array.</param>
+        public void ResizeAndClear(int newSize)
+        {
+            if (newSize > m_Array.Length)
+            {
+                // Reserve will allocate a whole new array that is cleared as part of the allocation
+                Reserve(newSize, false);
+            }
+            else
+            {
+                // We're not reallocating anything we need to clear the old values to the default.
+                Array.Clear(m_Array, 0, newSize);
+            }
             size = newSize;
             BumpVersion();
         }
@@ -302,8 +342,22 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="array">Input DynamicArray.</param>
         /// <returns>The internal array.</returns>
+        [Obsolete("This is deprecated because it returns an incorrect value. It may returns an array with elements beyond the size. Please use Span/ReadOnly if you want safe raw access to the DynamicArray memory.",false)]
         public static implicit operator T[](DynamicArray<T> array) => array.m_Array;
 
+        /// <summary>
+        /// Implicit conversion to ReadOnlySpan.
+        /// </summary>
+        /// <param name="array">Input DynamicArray.</param>
+        /// <returns>The internal array.</returns>
+        public static implicit operator ReadOnlySpan<T>(DynamicArray<T> array) => new ReadOnlySpan<T>(array.m_Array, 0, array.size);
+
+        /// <summary>
+        /// Implicit conversion to Span.
+        /// </summary>
+        /// <param name="array">Input DynamicArray.</param>
+        /// <returns>The internal array.</returns>
+        public static implicit operator Span<T>(DynamicArray<T> array) => new Span<T>(array.m_Array, 0, array.size);
 
         /// <summary>
         /// IEnumerator-like struct used to loop over this entire array. See the IEnumerator docs for more info:
@@ -531,7 +585,7 @@ namespace UnityEngine.Rendering
             return r;
         }
 
-        internal void BumpVersion()
+        protected internal void BumpVersion()
         {
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
             version++;
@@ -552,7 +606,7 @@ namespace UnityEngine.Rendering
     /// </summary>
     public static class DynamicArrayExtensions
     {
-        static int Partition<T>(T[] data, int left, int right) where T : IComparable<T>, new()
+        static int Partition<T>(Span<T> data, int left, int right) where T : IComparable<T>, new()
         {
             var pivot = data[left];
 
@@ -591,7 +645,7 @@ namespace UnityEngine.Rendering
             }
         }
 
-        static void QuickSort<T>(T[] data, int left, int right) where T : IComparable<T>, new()
+        static void QuickSort<T>(Span<T> data, int left, int right) where T : IComparable<T>, new()
         {
             if (left < right)
             {
@@ -608,7 +662,7 @@ namespace UnityEngine.Rendering
         // C# SUCKS
         // Had to copy paste because it's apparently impossible to pass a sort delegate where T is Comparable<T>, otherwise some boxing happens and allocates...
         // So two identical versions of the function, one with delegate but no Comparable and the other with just the comparable.
-        static int Partition<T>(T[] data, int left, int right, DynamicArray<T>.SortComparer comparer) where T : new()
+        static int Partition<T>(Span<T> data, int left, int right, DynamicArray<T>.SortComparer comparer) where T : new()
         {
             var pivot = data[left];
 
@@ -647,7 +701,7 @@ namespace UnityEngine.Rendering
             }
         }
 
-        static void QuickSort<T>(T[] data, int left, int right, DynamicArray<T>.SortComparer comparer) where T : new()
+        static void QuickSort<T>(Span<T> data, int left, int right, DynamicArray<T>.SortComparer comparer) where T : new()
         {
             if (left < right)
             {

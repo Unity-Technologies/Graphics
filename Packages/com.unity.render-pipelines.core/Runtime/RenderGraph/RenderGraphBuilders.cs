@@ -35,6 +35,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             m_Resources = resources;
             m_RenderGraph = renderGraph;
             m_Disposed = false;
+
+            if (renderPass.type == RenderGraphPassType.Raster)
+            {
+                CommandBuffer.ThrowOnSetRenderTarget = true;
+            }
         }
 
 
@@ -98,6 +103,14 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 m_RenderGraph.OnPassAdded(m_RenderPass);
             }
 
+            if (m_RenderPass.type == RenderGraphPassType.Raster)
+            {
+                CommandBuffer.ThrowOnSetRenderTarget = false;
+            }
+
+            m_RenderPass = null;
+            m_Resources = null;
+            m_RenderGraph = null;
             m_Disposed = true;
         }
 
@@ -216,14 +229,14 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         public TextureHandle UseTexture(in TextureHandle input, IBaseRenderGraphBuilder.AccessFlags flags)
         {
-            CheckUseFragment(input, flags);
+            CheckNotUseFragment(input, flags);
             TextureHandle h = new TextureHandle();
             h.handle = UseResource(input.handle, flags);
             return h;
         }
 
         // Shared validation between UseTextureFragment/UseTextureFragmentDepth
-        private void CheckUseFragment(TextureHandle tex, IBaseRenderGraphBuilder.AccessFlags flags)
+        private void CheckUseFragment(TextureHandle tex, IBaseRenderGraphBuilder.AccessFlags flags, bool isDepth)
         {
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
             if ((flags & IBaseRenderGraphBuilder.AccessFlags.GrabRead) == IBaseRenderGraphBuilder.AccessFlags.GrabRead)
@@ -234,6 +247,19 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             // We ignore the version as we don't allow mixing UseTexture/UseFragment between different versions
             // even though it should theoretically work (and we might do so in the future) for now we're overly strict.,
             bool alreadyUsed = false;
+
+            //TODO: Check grab textures here and allow if it's grabbed. For now
+            // UseTextureFragment()
+            // UseTexture(grab)
+            // will work but not the other way around
+            for (int i = 0; i < m_RenderPass.resourceReadLists[tex.handle.iType].Count; i++)
+            {
+                if (m_RenderPass.resourceReadLists[tex.handle.iType][i].index == tex.handle.index)
+                {
+                    alreadyUsed = true;
+                    break;
+                }
+            }
 
             for (int i = 0; i < m_RenderPass.resourceWriteLists[tex.handle.iType].Count; i++)
             {
@@ -247,32 +273,70 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             if (alreadyUsed)
             {
                 var name = m_Resources.GetRenderGraphResourceName(tex.handle);
-                throw new InvalidOperationException($"Trying to UseTextureFragment on a texture that is already used through UseTexture/UseTextureFragment. Consider using a Grab access mode or update your code. (pass {m_RenderPass.name} resource{name}).");
+                throw new InvalidOperationException($"Trying to UseTextureFragment on a texture that is already used through UseTexture/UseTextureFragment. Consider using a Grab access mode or update your code. (pass '{m_RenderPass.name}' resource '{name}').");
+            }
+
+            m_Resources.GetRenderTargetInfo(tex.handle, out var info);
+            // The old path is full of invalid uses that somehow work (or seemt to work) so we skip the tests if not using actual native renderpass
+            if (m_RenderGraph.NativeRenderPassesEnabled)
+            {
+                if (isDepth)
+                {
+                    if (!GraphicsFormatUtility.IsDepthFormat(info.format))
+                    {
+                        var name = m_Resources.GetRenderGraphResourceName(tex.handle);
+                        throw new InvalidOperationException($"Trying to UseTextureFragmentDepth on a texture thas has a color format {info.format}. Use a texture with a depth format instead. (pass '{m_RenderPass.name}' resource '{name}').");
+                    }
+                }
+                else
+                {
+                    if (GraphicsFormatUtility.IsDepthFormat(info.format))
+                    {
+                        var name = m_Resources.GetRenderGraphResourceName(tex.handle);
+                        throw new InvalidOperationException($"Trying to UseTextureFragment on a texture thas has a depth format. Use a texture with a color format instead. (pass '{m_RenderPass.name}' resource '{name}').");
+                    }
+                }
             }
 #endif
         }
 
         public TextureHandle UseTextureFragment(TextureHandle tex, int index, IBaseRenderGraphBuilder.AccessFlags flags)
         {
-            CheckUseFragment(tex, flags);
-            var result = UseResource(tex.handle, flags);
+            CheckUseFragment(tex, flags, false);
+            ResourceHandle result = UseResource(tex.handle, flags);
             // Note the version for the attachments is a bit arbitrary so we just use the latest for now
             // it doesn't really matter as it's really the Read/Write lists that determine that
             // This is just to keep track of the handle->mrt index mapping
-            var th = new TextureHandle(result);
-            m_RenderPass.SetColorBufferRaw(th, index);
+            var th = new TextureHandle();
+            th.handle = result;
+            m_RenderPass.SetColorBufferRaw(th, index, flags);
+            return th;
+        }
+
+        public TextureHandle UseTextureFragmentInput(TextureHandle tex, int index, IBaseRenderGraphBuilder.AccessFlags flags)
+        {
+            CheckUseFragment(tex, flags, false);
+            ResourceHandle result = UseResource(tex.handle, flags);
+            // Note the version for the attachments is a bit arbitrary so we just use the latest for now
+            // it doesn't really matter as it's really the Read/Write lists that determine that
+            // This is just to keep track of the handle->mrt index mapping
+            var th = new TextureHandle();
+            th.handle = result;
+            m_RenderPass.SetFragmentInputRaw(th, index, flags);
             return th;
         }
 
         public TextureHandle UseTextureFragmentDepth(TextureHandle tex, IBaseRenderGraphBuilder.AccessFlags flags)
         {
-            CheckUseFragment(tex, flags);
-            var result = UseResource(tex.handle, flags);
+            CheckUseFragment(tex, flags, true);
+            ResourceHandle result = UseResource(tex.handle, flags);
             // Note the version for the attachments is a bit arbitrary so we just use the latest for now
             // it doesn't really matter as it's really the Read/Write lists that determine that
             // This is just to keep track to bind this handle as a depth texture.
-            m_RenderPass.SetDepthBufferRaw(new TextureHandle(GetLatestVersionHandle(tex.handle)));
-            return new TextureHandle(result);
+            var th = new TextureHandle();
+            th.handle = result;
+            m_RenderPass.SetDepthBufferRaw(th, flags);
+            return th;
         }
 
         public void SetRenderFunc<PassData>(BaseRenderFunc<PassData, ComputeGraphContext> renderFunc) where PassData : class, new()
