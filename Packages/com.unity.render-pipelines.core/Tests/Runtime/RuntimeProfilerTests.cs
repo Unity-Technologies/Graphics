@@ -55,7 +55,7 @@ namespace UnityEngine.Rendering.Tests
         }
     }
 
-    [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.LinuxPlayer, RuntimePlatform.LinuxEditor })] // Disabled on Linux (case 1370861)
+    [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.LinuxPlayer, RuntimePlatform.LinuxEditor, RuntimePlatform.PS5 })] // Disabled on Linux (case 1370861), disabled on PS5 (for NGGC only, UUM-40909) 
     class RuntimeProfilerTests : RuntimeProfilerTestBase
     {
         [UnityTest]
