@@ -45,9 +45,9 @@ MonoBehaviour:
           (e.g. inside or behind geometries), you can let the system alter the capture
           point of all probes in the Scene, by tuning the global <b>Virtual Offset</b>
           properties in the <i>Lighting</i> window, under the <b>Probe Volumes</b>
-          tab. \n\nFor manual probe adjustments in the Scene, you may use instead
-          a local <b>Probe Adjustment Volume</b> found under <b>GameObject</b> >
-          <b>Light</b> > <b>Probe Volumes.</b>\n\nThe bright line on the Cube seen
+          tab. \n\nFor manual probe adjustments in parts of the Scene, you may use
+          local <b>Probe Adjustment Volumes</b> instead, found under <b>GameObject</b>
+          > <b>Light</b> > <b>Probe Volumes.</b>\n\nThe bright line on the Cube seen
           in the image above is caused by the overly bright probes under the floor.
           To fix this unwated light leaking, we already added a probe adjustment
           volume that virtually lifts the capture points of the said probes by 0.62
