@@ -57,6 +57,8 @@ If your computer has one of these graphics cards, it can run ray tracing in Unit
 
 Before you open Unity, make sure to update your NVIDIA drivers to the latest version, and make sure your Windows version is at least 1809.
 
+Ray tracing is also supported on specific console platforms. Consult console-specific documentation for more information.
+
 You can use the Boolean [`SystemInfo.supportsRayTracing`](https://docs.unity3d.com/ScriptReference/SystemInfo-supportsRayTracing.html) to check if the current system supports ray tracing. This function checks the operating system, GPU, graphics driver and API.
 
 <a name="Integration"></a>

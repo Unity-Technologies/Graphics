@@ -83,9 +83,9 @@ namespace UnityEditor.VFX
 
         public virtual void CheckGraphBeforeImport() { }
 
-        public virtual void OnUnknownChange()
-        {
-        }
+        public virtual void OnUnknownChange() { }
+
+        public virtual void OnSRPChanged() { }
 
         public virtual void GetSourceDependentAssets(HashSet<string> dependencies)
         {
@@ -492,12 +492,18 @@ namespace UnityEditor.VFX
 
         public VFXGraph GetGraph()
         {
-            var graph = this as VFXGraph;
-            if (graph != null)
-                return graph;
-            var parent = GetParent();
-            if (parent != null)
-                return parent.GetGraph();
+            switch (this)
+            {
+                case VFXGraph graph:
+                    return graph;
+                case VFXSlot { owner: VFXModel m }:
+                   return m.GetGraph();
+                case VFXData data:
+                    return data.owners.FirstOrDefault()?.GetGraph();
+                case { } m when m.GetParent() is { } parent:
+                    return parent.GetGraph();
+            }
+
             return null;
         }
 

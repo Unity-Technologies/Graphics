@@ -189,7 +189,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 messageType: MessageType.Info);
             public static readonly ConfigStyle dxrBuildTarget = new ConfigStyle(
                 label: L10n.Tr("Build Target"),
-                error: L10n.Tr("To build your Project as a Unity Player your build target must be StandaloneWindows64 or Playstation5."));
+                error: L10n.Tr("To build your Project as a Unity Player your build target must be StandaloneWindows64, Playstation5 or Xbox series X"));
             public static readonly ConfigStyle dxrStaticBatching = new ConfigStyle(
                 label: L10n.Tr("Static Batching"),
                 error: L10n.Tr("Static Batching is not supported!"));

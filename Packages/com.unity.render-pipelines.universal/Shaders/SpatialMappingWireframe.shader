@@ -53,7 +53,7 @@ Shader "Universal Render Pipeline/VR/SpatialMapping/Wireframe"
 
                 VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
                 output.projectionSpaceVertex = vertexInput.positionCS;
-                output.worldSpacePosition = mul(unity_ObjectToWorld, input.positionOS);
+                output.worldSpacePosition = mul(UNITY_MATRIX_M, input.positionOS);
 
                 return output;
             }

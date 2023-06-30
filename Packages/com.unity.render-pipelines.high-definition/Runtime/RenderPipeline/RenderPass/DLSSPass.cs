@@ -109,6 +109,8 @@ namespace UnityEngine.Rendering.HighDefinition
         #region public members, general engine code
         public struct Parameters
         {
+            public bool resetHistory;
+            public float preExposure;
             public HDCamera hdCamera;
             public GlobalDynamicResolutionSettings drsSettings;
         }
@@ -395,6 +397,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 Texture motionVectors,
                 Texture biasColorMask,
                 Texture output,
+                float preExposure,
                 CommandBuffer cmdBuffer)
             {
                 if (m_DlssContext == null)
@@ -409,7 +412,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_DlssContext.executeData.subrectHeight = m_Data.inputRes.height;
                 m_DlssContext.executeData.jitterOffsetX = m_Data.jitterX;
                 m_DlssContext.executeData.jitterOffsetY = m_Data.jitterY;
-                m_DlssContext.executeData.preExposure = 1.0f;
+                m_DlssContext.executeData.preExposure = preExposure;
                 m_DlssContext.executeData.invertYAxis = 1u;
                 m_DlssContext.executeData.invertXAxis = 0u;
                 m_DlssContext.executeData.reset = m_Data.reset ? 1 : 0;
@@ -466,6 +469,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public void SubmitCommands(
                 HDCamera camera,
+                float preExposure,
                 in DlssViewData viewData,
                 in CameraResources camResources,
                 CommandBuffer cmdBuffer)
@@ -496,7 +500,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         viewResources.depth,
                         viewResources.motionVectors,
                         viewResources.biasColorMask,
-                        viewResources.output, cmdBuffer);
+                        viewResources.output, preExposure, cmdBuffer);
                 }
 
                 if (camResources.copyToViews)
@@ -698,8 +702,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             dlssViewData.jitterX = -parameters.hdCamera.taaJitter.x;
             dlssViewData.jitterY = -parameters.hdCamera.taaJitter.y;
-            dlssViewData.reset = parameters.hdCamera.isFirstFrame;
-            cameraState.SubmitCommands(parameters.hdCamera, dlssViewData, resources, cmdBuffer);
+            dlssViewData.reset = parameters.resetHistory;
+            cameraState.SubmitCommands(parameters.hdCamera, parameters.preExposure, dlssViewData, resources, cmdBuffer);
         }
 
 #endif

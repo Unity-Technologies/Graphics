@@ -780,7 +780,7 @@ namespace UnityEditor.VFX.Test
             {
                 expectedValue = new Vector2(5.0f, 6.0f);
                 parameter.value = expectedValue;
-                graph.RecompileIfNeeded();
+                graph.RecompileIfNeeded(false, true);
             }
 
             if (modifyValue)

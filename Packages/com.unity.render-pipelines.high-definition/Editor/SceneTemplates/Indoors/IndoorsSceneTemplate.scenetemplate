@@ -10,8 +10,6 @@ Texture2D:
   m_ImageContentsHash:
     serializedVersion: 2
     Hash: 9812030355a6e0ad65f7605e66e4e8e2
-  m_ForcedFallbackFormat: 4
-  m_DownscaleFallback: 0
   m_IsAlphaChannelOptional: 1
   serializedVersion: 2
   m_Width: 1024
@@ -75,8 +73,8 @@ MonoBehaviour:
   - dependency: {fileID: 11400000, guid: f1e2cc38998412b4196e54731593f665, type: 2}
     instantiationMode: 0
   - dependency: {fileID: 2100000, guid: 73c176f402d2c2f4d929aa5da7585d17, type: 2}
-    instantiationMode: 0
+    instantiationMode: 1
   - dependency: {fileID: 2800000, guid: 31f47d3807109374ab564767abda71ab, type: 3}
-    instantiationMode: 0
+    instantiationMode: 1
   templatePipeline: {fileID: 11500000, guid: 3e16798181882d74b87f8b88be8bdbe7, type: 3}
   addToDefaults: 0

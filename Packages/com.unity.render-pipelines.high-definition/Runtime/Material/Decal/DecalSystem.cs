@@ -728,7 +728,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             {
                                 m_DecalDatas[m_DecalDatasCount].worldToDecal = decalToWorldBatch[instanceCount].inverse;
                                 m_DecalDatas[m_DecalDatasCount].normalToWorld = normalToWorldBatch[instanceCount];
-                                m_DecalDatas[m_DecalDatasCount].baseColor = m_BaseColor;
+                                m_DecalDatas[m_DecalDatasCount].baseColor
+                                    = new Vector4 (Mathf.GammaToLinearSpace(m_BaseColor.x), Mathf.GammaToLinearSpace(m_BaseColor.y), Mathf.GammaToLinearSpace(m_BaseColor.z), m_BaseColor.w);
                                 m_DecalDatas[m_DecalDatasCount].blendParams = m_BlendParams;
                                 m_DecalDatas[m_DecalDatasCount].remappingAOS = m_RemappingAOS;
                                 m_DecalDatas[m_DecalDatasCount].scalingBAndRemappingM = m_ScalingBAndRemappingM;

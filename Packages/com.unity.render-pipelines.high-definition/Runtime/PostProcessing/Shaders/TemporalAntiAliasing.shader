@@ -238,6 +238,14 @@ Shader "Hidden/HDRP/TemporalAA"
 
             // --------------- Gather neigbourhood data ---------------
             CTYPE color = Fetch4(_InputTexture, uv, 0.0, _RTHandleScaleForTAA).CTYPE_SWIZZLE;
+
+#if defined(ENABLE_ALPHA)
+            // Removes history rejection when the current alpha value is 0. Instead it does blend with the history color when alpha value is 0 on the current plane.
+            // The reasoning for blending again with the history when alpha is 0 is because we want the color to blend a bit with opacity, which is the main reason for the alpha values. sort of like a precomputed color
+            // As a safety, we set the color to black if alpha is 0. This results in better image quality when alpha is enabled.
+            color =  color.w > 0.0 ? color : (CTYPE)0;    
+#endif
+
             if (!excludeTAABit)
             {
                 color = clamp(color, 0, CLAMP_MAX);
@@ -295,7 +303,6 @@ Shader "Hidden/HDRP/TemporalAA"
                 unjitteredColor = ConvertToWorkingSpace(unjitteredColor);
                 unjitteredColor.xyz *= PerceptualWeight(unjitteredColor);
                 filteredColor.xyz = lerp(unjitteredColor.xyz, filteredColor.xyz, filteredColor.w);
-                blendFactor = color.w > 0 ? blendFactor : 1;
 #endif
                 // ---------------------------------------------------------------
 

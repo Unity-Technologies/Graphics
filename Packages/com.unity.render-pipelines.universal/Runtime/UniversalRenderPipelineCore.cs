@@ -595,6 +595,7 @@ namespace UnityEngine.Rendering.Universal
             else
             {
                 desc = camera.targetTexture.descriptor;
+                desc.msaaSamples = msaaSamples;
                 desc.width = camera.pixelWidth;
                 desc.height = camera.pixelHeight;
                 if (camera.cameraType == CameraType.SceneView && !isHdrEnabled)

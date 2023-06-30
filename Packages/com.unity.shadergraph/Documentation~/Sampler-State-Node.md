@@ -6,20 +6,28 @@ Defines a **Sampler State** for sampling textures. It should be used in conjunct
 
 When using a separate **Sample State Node** you can sample a **Texture 2D** twice, with different sampler parameters, without defining the **Texture 2D** itself twice.
 
-Some filtering and wrap modes are only available on certain platforms.
+Not all filtering, wrap, and Anisotropic filtering modes are available on all platforms.
 
 ## Ports
 
-| Name        | Direction           | Type  | Binding | Description |
-|:------------ |:-------------|:-----|:---|:---|
-| Out | Output      | Sampler State | None | Output value |
+| Name | Direction | Type          | Binding | Description  |
+|:-----|:----------|:--------------|:--------|:-------------|
+| Out  | Output    | Sampler State | None    | Output value |
 
 ## Controls
 
-| Name        | Type           | Options  | Description |
-|:------------ |:-------------|:-----|:---|
-| Filter | Dropdown | Linear, Point, Trilinear | Defines filtering mode for sampling. |
-| Wrap   | Dropdown | Repeat, Clamp, Mirror, MirrorOnce | Defines wrap mode for sampling. |
+| Name   | Type     | Options                           | Description |
+|:-------|:---------|:----------------------------------|:------------|
+| Filter | Dropdown | Linear, Point, Trilinear          | Specifies which filtering mode to use for sampling. |
+| Wrap   | Dropdown | Repeat, Clamp, Mirror, MirrorOnce | Specifies which wrap mode to use for sampling. |
+
+## Node Settings Controls
+
+The following control appears on the Node Settings tab of the Graph Inspector when you select the Sampler State Node.
+
+| Name                  | Type     | Options               | Description |
+|:----------------------|:---------|:----------------------|:------------|
+| Anisotropic Filtering | Dropdown | None, x2, x4, x8, x16 | Specifies the level of Anisotropic filtering to use to sample textures. |
 
 ## Generated Code Example
 

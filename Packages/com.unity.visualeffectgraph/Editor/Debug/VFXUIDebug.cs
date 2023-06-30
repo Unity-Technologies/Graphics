@@ -932,7 +932,7 @@ namespace UnityEditor.VFX.UI
         {
             var statUI = m_SystemInfos[systemId];// [0] is title bar
             if (statUI[3] is TextElement alive)
-                alive.text = stat.aliveCount.ToString();
+                alive.text = stat.sleeping ? "Sleeping" : stat.aliveCount.ToString();
             if (statUI[4] is TextElement maxAliveText)
             {
                 maxAliveText.SetEnabled(m_Graph.visualEffectResource != null && m_Graph.visualEffectResource.IsAssetEditable());
@@ -941,7 +941,7 @@ namespace UnityEditor.VFX.UI
             if (statUI[5] is TextElement efficiency)
             {
                 var eff = (int)((float)stat.aliveCount * 100.0f / (float)stat.capacity);
-                efficiency.text = string.Format("{0} %", eff);
+                efficiency.text = stat.sleeping ? "Sleeping" : string.Format("{0} %", eff);
                 if (eff < 51)
                     efficiency.style.color = Color.red.gamma;
                 else if (eff < 91)

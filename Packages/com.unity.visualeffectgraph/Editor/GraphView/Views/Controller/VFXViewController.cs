@@ -240,11 +240,17 @@ namespace UnityEditor.VFX.UI
 
                 if (model != null && model.name != m_Name)
                 {
+                    bool prevDirty = EditorUtility.IsDirty(model);
                     model.name = m_Name;
+                    if (!prevDirty)
+                        EditorUtility.ClearDirty(model);
                 }
                 if (graph != null && (graph as UnityObject).name != m_Name)
                 {
+                    bool prevDirty = EditorUtility.IsDirty(graph);
                     (graph as UnityObject).name = m_Name;
+                    if (!prevDirty)
+                        EditorUtility.ClearDirty(graph);
                 }
 
                 NotifyChange(Change.assetName);

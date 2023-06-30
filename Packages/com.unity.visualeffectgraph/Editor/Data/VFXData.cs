@@ -51,28 +51,21 @@ namespace UnityEditor.VFX
             get { return Enumerable.Empty<string>(); }
         }
 
-        public static VFXData CreateDataType(VFXGraph graph, VFXDataType type)
+        public static VFXData CreateDataType(VFXDataType type)
         {
-            VFXData newVFXData;
             switch (type)
             {
-                case VFXDataType.Particle:
+                case VFXDataType.Particle:  
                 case VFXDataType.ParticleStrip:
-                    newVFXData = ScriptableObject.CreateInstance<VFXDataParticle>();
-                    break;
+                    return ScriptableObject.CreateInstance<VFXDataParticle>();
                 case VFXDataType.Mesh:
-                    newVFXData = ScriptableObject.CreateInstance<VFXDataMesh>();
-                    break;
+                    return ScriptableObject.CreateInstance<VFXDataMesh>();
                 case VFXDataType.SpawnEvent:
-                    newVFXData = ScriptableObject.CreateInstance<VFXDataSpawner>();
-                    break;
+                    return ScriptableObject.CreateInstance<VFXDataSpawner>();
                 case VFXDataType.OutputEvent:
-                    newVFXData = ScriptableObject.CreateInstance<VFXDataOutputEvent>();
-                    break;
+                    return ScriptableObject.CreateInstance<VFXDataOutputEvent>();
                 default: return null;
             }
-            newVFXData.m_Parent = graph;
-            return newVFXData;
         }
 
         public override void OnEnable()
@@ -112,11 +105,15 @@ namespace UnityEditor.VFX
         {
             base.Sanitize(version);
 
-            if (m_Parent == null)
+            if (m_Parent != null)
             {
-                string assetPath = AssetDatabase.GetAssetPath(this);
-                m_Parent = VisualEffectResource.GetResourceAtPath(assetPath).GetOrCreateGraph();
+                Detach();
             }
+        }
+
+        protected override void OnAdded()
+        {
+            throw new InvalidOperationException("VFXData cannot be attached to a VFXModel but are referenced in VFXContext");
         }
 
         public abstract void CopySettings<T>(T dst) where T : VFXData;
@@ -136,6 +133,7 @@ namespace UnityEditor.VFX
             Dictionary<VFXContext, int> contextSpawnToBufferIndex,
             VFXDependentBuffersData dependentBuffers,
             Dictionary<VFXContext, List<VFXContextLink>[]> effectiveFlowInputLinks,
+            Dictionary<VFXData, uint> dataToSystemIndex,
             VFXSystemNames systemNames = null)
         {
             // Empty implementation by default

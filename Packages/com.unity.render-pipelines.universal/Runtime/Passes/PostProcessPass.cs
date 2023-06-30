@@ -342,7 +342,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             bool useMotionBlur = m_MotionBlur.IsActive() && !isSceneViewCamera;
             bool usePaniniProjection = m_PaniniProjection.IsActive() && !isSceneViewCamera;
 
-            int amountOfPassesRemaining = (useStopNan ? 1 : 0) + (useSubPixeMorpAA ? 1 : 0) + (useDepthOfField ? 1 : 0) + (useLensFlare ? 1 : 0) + (useMotionBlur ? 1 : 0) + (usePaniniProjection ? 1 : 0);
+            // amountOfPassesRemaining is the Swap() counter.
+            // NOTE: LensFlare is excluded as it does not call Swap() or Blit src->dst, but instead blends directly to the source RT.
+            int amountOfPassesRemaining = (useStopNan ? 1 : 0) + (useSubPixeMorpAA ? 1 : 0) + (useDepthOfField ? 1 : 0) + (useMotionBlur ? 1 : 0) + (usePaniniProjection ? 1 : 0);
 
             if (m_UseSwapBuffer && amountOfPassesRemaining > 0)
             {
