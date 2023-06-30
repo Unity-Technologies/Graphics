@@ -2624,7 +2624,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 PrepareVisibleLocalVolumetricFogList(hdCamera, cmd);
 
                 // do AdaptiveProbeVolume stuff
-                ProbeReferenceVolume.instance.BindAPVRuntimeResources(cmd, hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume));
+                if (IsAPVEnabled())
+                    ProbeReferenceVolume.instance.BindAPVRuntimeResources(cmd, hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume));
 
                 // Note: Legacy Unity behave like this for ShadowMask
                 // When you select ShadowMask in Lighting panel it recompile shaders on the fly with the SHADOW_MASK keyword.
