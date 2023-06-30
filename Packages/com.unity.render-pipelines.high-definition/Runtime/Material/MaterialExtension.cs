@@ -274,6 +274,7 @@ namespace UnityEngine.Rendering.HighDefinition
             SG_Water,
             SG_FogVolume,
             SG_SixWay,
+            SG_PBRSky,
             Count_All,
             Count_ShaderGraph = Count_All - Count_Standard,
             SG_External = -1, // material packaged outside of HDRP

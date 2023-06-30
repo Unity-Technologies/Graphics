@@ -10,6 +10,35 @@ using CoreRendererListDesc = UnityEngine.Rendering.RendererUtils.RendererListDes
 
 namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 {
+    public struct RenderTargetInfo
+    {
+        public int width;
+        public int height;
+        public int volumeDepth;
+        public int msaaSamples;
+        public GraphicsFormat format;
+        public bool bindMS;
+    }
+
+    /// <summary>
+    /// A helper struct describing the clear behavior of imported textures.
+    /// </summary>
+    public struct ImportResourceParams
+    {
+        /// <summary>
+        /// Clear the imported texture the first time it is used by the graph.
+        /// </summary>
+        public bool clearOnFirstUse;
+        /// <summary>
+        /// The color to clear with on first use. Ignored if clearOnFirstUse==false;
+        /// </summary>
+        public Color clearColor;
+        /// <summary>
+        /// Discard the imported texture the last time it is used by the graph.
+        /// </summary>
+        public bool discardOnLastUse;
+    }
+
     class RenderGraphResourceRegistry
     {
         const int kSharedResourceLifetime = 30;
@@ -259,7 +288,22 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
             CheckHandleValidity(res);
             var ver = m_RenderGraphResources[res.iType].resourceArray[res.index].version;
+            if (IsRenderGraphResourceShared(res))
+            {
+                ver -= m_ExecutionCount; //TODO(ddebaets) is this a good solution ?
+            }
             return new ResourceHandle(res, ver);
+        }
+
+        internal int GetLatestVersionNumber(in ResourceHandle res)
+        {
+            CheckHandleValidity(res);
+            var ver = m_RenderGraphResources[res.iType].resourceArray[res.index].version;
+            if (IsRenderGraphResourceShared(res))
+            {
+                ver -= m_ExecutionCount;//TODO(ddebaets) is this a good solution ?
+            }
+            return ver;
         }
 
         internal ResourceHandle GetZeroVersionedHandle(in ResourceHandle res)
@@ -272,8 +316,19 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
             CheckHandleValidity(res);
             var ver = m_RenderGraphResources[res.iType].resourceArray[res.index].NewVersion();
+            if (IsRenderGraphResourceShared(res))
+            {
+                ver -= m_ExecutionCount;//TODO(ddebaets) is this a good solution ?
+            }
             return new ResourceHandle(res, ver);
         }
+
+        internal IRenderGraphResource GetResourceLowLevel(in ResourceHandle res)
+        {
+            CheckHandleValidity(res);
+            return m_RenderGraphResources[res.iType].resourceArray[res.index];
+        }
+
         internal string GetRenderGraphResourceName(in ResourceHandle res)
         {
             CheckHandleValidity(res);
@@ -292,17 +347,19 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return m_RenderGraphResources[res.iType].resourceArray[res.index].imported;
         }
 
+        internal bool IsRenderGraphResourceForceReleased(RenderGraphResourceType type, int index)
+        {
+            CheckHandleValidity(type, index);
+            return m_RenderGraphResources[(int)type].resourceArray[index].forceRelease;
+        }
+
         internal bool IsRenderGraphResourceShared(RenderGraphResourceType type, int index)
         {
             CheckHandleValidity(type, index);
             return index <= m_RenderGraphResources[(int)type].sharedResourcesCount;
         }
 
-        internal bool IsRenderGraphResourceForceReleased(RenderGraphResourceType type, int index)
-        {
-            CheckHandleValidity(type, index);
-            return m_RenderGraphResources[(int) type].resourceArray[index].forceRelease;
-        }
+        internal bool IsRenderGraphResourceShared(in ResourceHandle res) => IsRenderGraphResourceShared(res.type, res.index);
 
         internal bool IsGraphicsResourceCreated(in ResourceHandle res)
         {
@@ -337,10 +394,103 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         // Texture Creation/Import APIs are internal because creation should only go through RenderGraph
         internal TextureHandle ImportTexture(RTHandle rt, bool isBuiltin = false)
         {
+            ImportResourceParams importParams = new ImportResourceParams();
+            importParams.clearOnFirstUse = false;
+            importParams.discardOnLastUse = false;
+
+            return ImportTexture(rt, importParams, isBuiltin);
+        }
+
+        // Texture Creation/Import APIs are internal because creation should only go through RenderGraph
+        internal TextureHandle ImportTexture(RTHandle rt, ImportResourceParams importParams, bool isBuiltin = false)
+        {
+            // Apparently existing code tries to import null textures !?? So we sort of allow them then :(
+            // Not sure what this actually "means" it allocates a RG handle but nothing is behind it
+            if (rt != null)
+            {
+                // Imported, try to get back to the original handle we imported and get the properties from there
+                if (rt.m_RT != null)
+                {
+                    // RTHandle wrapping a RenderTexture, ok we can get properties from that
+                }
+                else if (rt.m_ExternalTexture != null)
+                {
+                    // RTHandle wrapping a  regular 2D texture we can't render to that
+                }
+                else if (rt.m_NameID != emptyId)
+                {
+                    // RTHandle wrapping a RenderTargetIdentifier
+                    throw new Exception("Invalid import, you are importing a texture handle that wraps a RenderTargetIdentifier. The render graph can't know the properties of these textures so please use the ImportTexture overload that takes a RenderTargetInfo argument instead.");
+                }
+                else
+                {
+                    throw new Exception("Invalid render target handle: RT, External texture and NameID are all null or zero.");
+                }
+            }
+
             int newHandle = m_RenderGraphResources[(int)RenderGraphResourceType.Texture].AddNewRenderGraphResource(out TextureResource texResource);
             texResource.graphicsResource = rt;
             texResource.imported = true;
-            TextureHandle handle = new TextureHandle(newHandle, false, isBuiltin);
+            texResource.desc.clearBuffer = importParams.clearOnFirstUse;
+            texResource.desc.clearColor = importParams.clearColor;
+            texResource.desc.discardBuffer = importParams.discardOnLastUse;
+
+            var handle = new TextureHandle(newHandle, false, isBuiltin);
+            // Try getting the info straight away so if something goes wrong getting it we get the exceptions directly at import time. It is invalid to import
+            // a texture if we can't get it's info somehow. (The alternative is for the code calling ImportTexture to use the overload that takes a RenderTargetInfo).
+            if (rt != null)
+            {
+                RenderTargetInfo outInfo;
+                GetRenderTargetInfo(handle.handle, out outInfo);
+            }
+            return handle;
+        }
+
+        // Texture Creation/Import APIs are internal because creation should only go through RenderGraph
+        internal TextureHandle ImportTexture(RTHandle rt, RenderTargetInfo info, ImportResourceParams importParams)
+        {
+            int newHandle = m_RenderGraphResources[(int)RenderGraphResourceType.Texture].AddNewRenderGraphResource(out TextureResource texResource);
+            texResource.graphicsResource = rt;
+            texResource.imported = true;
+            // Be sure to clear the desc to the default state
+            texResource.desc = new TextureDesc();
+
+            // Apparently existing code tries to import null textures !?? So we sort of allow them then :(
+            if (rt != null)
+            {
+
+                if (rt.m_NameID != emptyId)
+                {
+                    // Store the info in the descriptor structure to avoid having a separate info structure being saved per resource
+                    // This descriptor will then be used to reconstruct the info (see GetRenderTargetInfo) but is not a full featured descriptor.
+                    // This is ok as this descriptor will never be used to create textures (as they are imported into the graph and thus externally created).
+                    texResource.desc.width = info.width;
+                    texResource.desc.height = info.height;
+                    texResource.desc.slices = info.volumeDepth;
+
+                    texResource.desc.msaaSamples = (MSAASamples)info.msaaSamples;
+                    texResource.desc.colorFormat = info.format;
+                    texResource.desc.bindTextureMS = info.bindMS;
+                    texResource.desc.clearBuffer = importParams.clearOnFirstUse;
+                    texResource.desc.clearColor = importParams.clearColor;
+                    texResource.desc.discardBuffer = importParams.discardOnLastUse;
+                }
+                // Anything else is an error and should take the overload not taking a RenderTargetInfo
+                else
+                {
+                    throw new Exception("Invalid import, you are importing a texture handle that isn't wrapping a RenderTargetIdentifier. You cannot use the overload taking RenderTargetInfo as the graph will automatically determine the texture properties based on the passed in handle.");
+
+                }
+            }
+            else
+            {
+                throw new Exception("Invalid import, null handle.");
+            }
+
+            var handle = new TextureHandle(newHandle);
+            // Try getting the info straight away so if something goes wrong getting it we get the exceptions directly at import time.
+            RenderTargetInfo outInfo;
+            GetRenderTargetInfo(handle.handle, out outInfo);
             return handle;
         }
 
@@ -408,7 +558,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             texResource.Reset(null);
         }
 
-        internal TextureHandle ImportBackbuffer(RenderTargetIdentifier rt)
+        internal TextureHandle ImportBackbuffer(RenderTargetIdentifier rt, RenderTargetInfo info, ImportResourceParams importParams)
         {
             if (m_CurrentBackbuffer != null)
                 m_CurrentBackbuffer.SetTexture(rt);
@@ -418,8 +568,131 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             int newHandle = m_RenderGraphResources[(int)RenderGraphResourceType.Texture].AddNewRenderGraphResource(out TextureResource texResource);
             texResource.graphicsResource = m_CurrentBackbuffer;
             texResource.imported = true;
+            texResource.desc = new TextureDesc();
+            texResource.desc.width = info.width;
+            texResource.desc.height = info.height;
+            texResource.desc.slices = info.volumeDepth;
+            texResource.desc.msaaSamples = (MSAASamples)info.msaaSamples;
+            texResource.desc.bindTextureMS = info.bindMS;
+            texResource.desc.colorFormat = info.format;
+            texResource.desc.clearBuffer = importParams.clearOnFirstUse;
+            texResource.desc.clearColor = importParams.clearColor;
+            texResource.desc.discardBuffer = importParams.discardOnLastUse;
 
-            return new TextureHandle(newHandle);
+            var handle = new TextureHandle(newHandle);
+            // Try getting the info straight away so if something goes wrong getting it we get the exceptions directly at import time.
+            RenderTargetInfo outInfo;
+            GetRenderTargetInfo(handle.handle, out outInfo);
+            return handle;
+        }
+
+        static RenderTargetIdentifier emptyId = new RenderTargetIdentifier();
+        static RenderTargetIdentifier builtinCameraRenderTarget = new RenderTargetIdentifier(BuiltinRenderTextureType.CameraTarget);
+
+        internal void GetRenderTargetInfo(ResourceHandle res, out RenderTargetInfo outInfo)
+        {
+            if (res.IsValid() == false || res.iType != (int)RenderGraphResourceType.Texture)
+            {
+                outInfo = new RenderTargetInfo();
+                throw new ArgumentException("Invalid Resource Handle passed to GetRenderTargetInfo");
+            }
+
+            // You can never have enough ways to reference a render target...
+            // This function is just perfect and certainly not full of legacy if's and but's
+
+            TextureResource tex = GetTextureResource(res);
+            if (tex.imported)
+            {
+                // Imported, try to get back to the original handle we imported and get the properties from there
+                RTHandle handle = tex.graphicsResource;
+                if (handle == null)
+                {
+                    // Apparently existing code tries to import null textures !?? So we sort of allow them then :(
+                    // throw new Exception("Invalid imported texture. The RTHandle provided was null.");
+                    outInfo = new RenderTargetInfo();
+                }
+                else if (handle.m_RT != null)
+                {
+                    outInfo = new RenderTargetInfo();
+                    outInfo.width = handle.m_RT.width;
+                    outInfo.height = handle.m_RT.height;
+                    outInfo.volumeDepth = handle.m_RT.volumeDepth;
+                    // If it's depth only, graphics format is null but depthStencilFormat is the real format
+                    outInfo.format = (handle.m_RT.graphicsFormat != GraphicsFormat.None) ? handle.m_RT.graphicsFormat : handle.m_RT.depthStencilFormat;
+                    outInfo.msaaSamples = handle.m_RT.antiAliasing;
+                    outInfo.bindMS = handle.m_RT.bindTextureMS;
+                }
+                else if (handle.m_ExternalTexture != null)
+                {
+                    outInfo = new RenderTargetInfo();
+                    outInfo.width = handle.m_ExternalTexture.width;
+                    outInfo.height = handle.m_ExternalTexture.height;
+                    outInfo.volumeDepth = 1; // XRTODO: Check dimension instead?
+                    if (handle.m_ExternalTexture is RenderTexture)
+                    {
+                        RenderTexture rt = (RenderTexture)handle.m_ExternalTexture;
+                        // If it's depth only, graphics format is null but depthStencilFormat is the real format
+                        outInfo.format = (rt.graphicsFormat != GraphicsFormat.None) ? rt.graphicsFormat : rt.depthStencilFormat;
+                        outInfo.msaaSamples = rt.antiAliasing;
+                    }
+                    else
+                    {
+                        //Note: This case will likely not work when used as an actual rendertarget. This is a regular 2D, Cube,...
+                        //texture an not a rendertarget texture so it will fail when bound as a rendertarget later.
+                        outInfo.format = handle.m_ExternalTexture.graphicsFormat;
+                        outInfo.msaaSamples = 1;
+                    }
+                    outInfo.bindMS = false;
+                }
+                else if (handle.m_NameID != emptyId)
+                {
+                    // WE can't really get info about RenderTargetIdentifier back. It simply doesn't expose this info.
+                    // But in some cases like the camera built-in target it also cant. If it's a BuiltinRenderTextureType
+                    // we can't know from the size/format/... from the enum. It's implicitly defined by the current camera,
+                    // screen resolution,.... we can't even hope to know or replicate the size calculation here
+                    // so we just say we don't know what this rt is and rely on the user passing in the info to us.
+                    var desc = GetTextureResourceDesc(res);
+                    outInfo = new RenderTargetInfo();
+                    if (desc.width == 0 || desc.height == 0 || desc.slices == 0 || desc.msaaSamples == 0 || desc.colorFormat == GraphicsFormat.None)
+                    {
+                        throw new Exception("Invalid imported texture. A RTHandle wrapping an RenderTargetIdentifier was imported without providing valid RenderTargetInfo.");
+                    }
+                    outInfo.width = desc.width;
+                    outInfo.height = desc.height;
+                    outInfo.volumeDepth = desc.slices;
+
+                    outInfo.msaaSamples = (int)desc.msaaSamples;
+                    outInfo.format = desc.colorFormat;
+                    outInfo.bindMS = desc.bindTextureMS;
+                }
+                else
+                {
+                    throw new Exception("Invalid imported texture. The RTHandle provided is invalid.");
+                }
+            }
+            else
+            {
+                // Managed by rendergraph, it might not be created yet so we look at the desc to find out
+                var desc = GetTextureResourceDesc(res);
+                var dim = desc.CalculateFinalDimensions();
+                outInfo = new RenderTargetInfo();
+                outInfo.width = dim.x;
+                outInfo.height = dim.y;
+                outInfo.volumeDepth = desc.slices;
+
+                outInfo.msaaSamples = (int)desc.msaaSamples;
+                outInfo.bindMS = desc.bindTextureMS;
+
+                if (desc.isShadowMap || desc.depthBufferBits != DepthBits.None)
+                {
+                    var format = desc.isShadowMap ? DefaultFormat.Shadow : DefaultFormat.DepthStencil;
+                    outInfo.format = SystemInfo.GetGraphicsFormat(format);
+                }
+                else
+                {
+                    outInfo.format = desc.colorFormat;
+                }
+            }
         }
 
         internal TextureHandle CreateTexture(in TextureDesc desc, int transientPassIndex = -1)
@@ -564,6 +837,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
             m_RenderGraphResources[type].resourceArray[index].sharedResourceLastFrameUsed = m_ExecutionCount;
         }
+        internal void UpdateSharedResourceLastFrameIndex(in ResourceHandle handle) => UpdateSharedResourceLastFrameIndex((int)handle.type, handle.index);
+
 
         void ManageSharedRenderGraphResources()
         {
@@ -610,6 +885,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             CreatePooledResource(rgContext, handle.iType, handle.index);
         }
 
+        internal bool forceManualClearOfResourceDisabled = false;
+
         void CreateTextureCallback(InternalRenderGraphContext rgContext, IRenderGraphResource res)
         {
             var resource = res as TextureResource;
@@ -622,7 +899,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
 #endif
 
-            if (resource.desc.clearBuffer || m_RenderGraphDebug.clearRenderTargetsAtCreation)
+            if ((forceManualClearOfResourceDisabled == false && resource.desc.clearBuffer) || m_RenderGraphDebug.clearRenderTargetsAtCreation)
             {
                 bool debugClear = m_RenderGraphDebug.clearRenderTargetsAtCreation && !resource.desc.clearBuffer;
                 using (new ProfilingScope(rgContext.cmd, ProfilingSampler.Get(debugClear ? RenderGraphProfileId.RenderGraphClearDebug : RenderGraphProfileId.RenderGraphClear)))
@@ -755,7 +1032,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                         throw new ArgumentException("Invalid RendererListHandle: RendererListHandleType is not recognized.");
                     }
                 }
-                
+
             }
 
             if (manualDispatch)

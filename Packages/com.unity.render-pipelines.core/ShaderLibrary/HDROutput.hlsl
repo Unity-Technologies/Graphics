@@ -450,7 +450,7 @@ float3 GTSApproxLinToPQ(float3 inputCol)
 // IMPORTANT! This wants the input in [0...10000] range, if the method requires scaling, it is done inside this function.
 float3 OETF(float3 inputCol, float maxNits)
 {
-    if (_HDREncoding == HDRENCODING_LINEAR || _HDREncoding == HDRENCODING_S_RGB)
+    if (_HDREncoding == HDRENCODING_LINEAR)
     {
         // IMPORTANT! This assumes that the maximum nits is always higher or same as the reference white. Seems like a sensible choice, but revisit if we find weird use cases (just min with the the max nits).
         // We need to map the value 1 to [reference white] nits.
@@ -469,6 +469,10 @@ float3 OETF(float3 inputCol, float maxNits)
     else if (_HDREncoding == HDRENCODING_GAMMA22)
     {
         return LinearToGamma22(inputCol / (float3)maxNits); // Usually used to encode into UNORM output 0->1 where 1 is the max display brightness, this will be very device specific so use our maxNits.
+    }
+    else if (_HDREncoding == HDRENCODING_S_RGB)
+    {
+        return inputCol / (float3)maxNits; // Usually used to encode into UNORM output 0->1 where 1 is the max display brightness, this will be very device specific so use our maxNits.
     }
     else
     {
@@ -500,7 +504,7 @@ float3 LinearToPQForLUT(float3 inputCol)
 
 float3 InverseOETF(float3 inputCol, float maxNits, int hdrEncoding)
 {
-    if (hdrEncoding == HDRENCODING_LINEAR || hdrEncoding == HDRENCODING_S_RGB)
+    if (hdrEncoding == HDRENCODING_LINEAR)
     {
         // IMPORTANT! This assumes that the maximum nits is always higher or same as the reference white. Seems like a sensible choice, but revisit if we find weird use cases (just min with the the max nits).
         // We need to map the value 1 to [reference white] nits.
@@ -514,6 +518,10 @@ float3 InverseOETF(float3 inputCol, float maxNits, int hdrEncoding)
     else if (hdrEncoding == HDRENCODING_GAMMA22)
     {
         return Gamma22ToLinear(inputCol) * maxNits;
+    }
+    else if (hdrEncoding == HDRENCODING_S_RGB)
+    {
+        return inputCol * maxNits;
     }
     else
     {

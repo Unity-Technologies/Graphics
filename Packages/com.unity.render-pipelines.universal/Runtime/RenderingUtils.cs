@@ -506,7 +506,7 @@ namespace UnityEngine.Rendering.Universal
             uint count = 0;
             for (int i = 0; i < source.Length; ++i)
             {
-                if (source[i].nameID != value.nameID && source[i].nameID != 0)
+                if (source[i] != null && source[i].nameID != 0 && source[i].nameID != value.nameID)
                     ++count;
             }
             return count;

@@ -1,0 +1,185 @@
+Pass
+{
+
+$splice(PassName)
+
+// Render State
+$splice(RenderState)
+
+// Debug
+$splice(Debug)
+
+// --------------------------------------------------
+// Pass
+
+HLSLPROGRAM
+
+// Pragmas
+$splice(PassPragmas)
+
+// Keywords
+$splice(PassKeywords)
+$splice(GraphKeywords)
+
+// Defines
+$Attributes.vertexID: #define ATTRIBUTES_NEED_VERTEXID
+
+$splice(PassInstancing)
+$splice(GraphDefines)
+
+// Includes
+$splice(PreGraphIncludes)
+
+// --------------------------------------------------
+// Structs and Packing
+
+$splice(PassStructs)
+
+$splice(InterpolatorPack)
+
+// --------------------------------------------------
+// Graph
+
+// Graph Properties
+$splice(GraphProperties)
+
+// Graph Includes
+$splice(GraphIncludes)
+
+// Graph Functions
+$splice(GraphFunctions)
+
+// Graph Pixel
+$splice(GraphPixel)
+
+// --------------------------------------------------
+// Build Graph Inputs
+
+$features.graphPixel: $include("SharedCode.template.hlsl")
+
+// --------------------------------------------------
+// Main
+
+float3 GetNormalWS(float3 normal, float3 normalTS)
+{
+    float3 tangent = normalize(cross(normal, float3(0.0, 1.0, 0.0)));
+    float3 bitangent = cross(tangent, normal);
+
+    float3x3 tangentToWorld = float3x3(tangent, bitangent, normal);
+    return SafeNormalize(TransformTangentToWorld(normalTS, tangentToWorld));
+}
+
+void BuildGroundNormal(inout SurfaceDescriptionInputs input, SurfaceDescription surfaceDescription)
+{
+    float3 N = input.WorldSpaceNormal;
+
+    $SurfaceDescription.GroundNormalOS: N = surfaceDescription.GroundNormalOS;
+    $SurfaceDescription.GroundNormalTS: N = GetNormalWS(N, surfaceDescription.GroundNormalTS);
+    $SurfaceDescription.GroundNormalWS: N = surfaceDescription.GroundNormalWS;
+
+    input.WorldSpaceNormal = N;
+}
+
+void RenderGround(inout SurfaceDescriptionInputs input, SurfaceDescription surfaceDescription)
+{
+    if (input.tGround < input.tFrag)
+    {
+        // Closest so far.
+        // Make it negative to communicate to EvaluatePbrAtmosphere that we intersected the ground.
+        input.tFrag = -input.tGround;
+        input.radiance = 0.0f;
+
+        float smoothness = 1.0f;
+        float3 albedo = _GroundAlbedo.xyz;
+
+        $SurfaceDescription.GroundSmoothness: smoothness = surfaceDescription.GroundSmoothness;
+        $SurfaceDescription.GroundEmission:   input.radiance = surfaceDescription.GroundEmission;
+        $SurfaceDescription.GroundColor:      albedo *= surfaceDescription.GroundColor;
+        BuildGroundNormal(input, surfaceDescription);
+
+        const float roughness = PerceptualSmoothnessToRoughness(smoothness);
+        const float F0 = IorToFresnel0(1.4f);
+        const float3 diffuse = Lambert() * albedo;
+
+        float3 N = input.WorldSpaceNormal;
+        float3 V = -input.WorldSpaceViewDirection;
+
+        float NdotV        = dot(N, V);
+        float clampedNdotV = ClampNdotV(NdotV);
+        float partLambdaV = GetSmithJointGGXPartLambdaV(clampedNdotV, roughness);
+
+        // Shade the ground.
+        for (uint i = 0; i < _DirectionalLightCount; i++)
+        {
+            DirectionalLightData light = _DirectionalLightDatas[i];
+
+            // Use scalar or integer cores (more efficient).
+            bool interactsWithSky = asint(light.distanceFromCamera) >= 0;
+
+            float3 L    = -light.forward.xyz;
+            float NdotL = dot(N, L);
+            float LdotV, NdotH, LdotH, invLenLV;
+            GetBSDFAngle(V, L, NdotL, NdotV, LdotV, NdotH, LdotH, invLenLV);
+
+            float3 intensity  = light.color.rgb;
+            float3 irradiance = SampleGroundIrradianceTexture(NdotL);
+
+            float DV       = DV_SmithJointGGX(NdotH, abs(NdotL), clampedNdotV, roughness, partLambdaV);
+            float specular = F0 * DV;
+
+            input.radiance += (diffuse + specular) * (irradiance * intensity); // Scale from unit intensity to light's intensity
+        }
+    }
+}
+
+float3 RenderSky(Varyings varyings)
+{
+    SurfaceDescriptionInputs input = BuildSurfaceDescriptionInputs(varyings);
+    const SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(input);
+
+    if (input.hitGround) // See the ground?
+        RenderGround(input, surfaceDescription);
+    else if (input.tFrag == FLT_INF) // See the stars?
+        input.radiance += surfaceDescription.SpaceColor;
+
+    float3 skyColor = 0, skyOpacity = 0;
+
+    if (input.intersectAtmosphere != 0)
+    {
+        float3 V = -input.WorldSpaceViewDirection;
+        float3 O = _PBRSkyCameraPosPS + _PlanetCenterPosition.xyz;
+        float distAlongRay = input.tFrag;
+        bool renderSunDisk = input.renderSunDisk != 0;
+        EvaluatePbrAtmosphere(O, V, distAlongRay, renderSunDisk, skyColor, skyOpacity);
+    }
+
+    skyColor += input.radiance * (1 - skyOpacity);
+    return skyColor * _IntensityMultiplier;
+}
+
+PackedVaryings Vert(Attributes input)
+{
+    Varyings output = (Varyings)0;
+    UNITY_SETUP_INSTANCE_ID(input);
+    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+    output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID, UNITY_RAW_FAR_CLIP_VALUE);
+    PackedVaryings packedOutput = PackVaryings(output);
+    return packedOutput;
+}
+
+float4 FragBaking(PackedVaryings packedInput) : SV_Target
+{
+    return float4(RenderSky(UnpackVaryings(packedInput)), 1.0f);
+}
+
+float4 Frag(PackedVaryings packedInput) : SV_Target
+{
+    Varyings input = UnpackVaryings(packedInput);
+    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+    return float4(RenderSky(input) * GetCurrentExposureMultiplier(), 1.0f);
+}
+
+$splice(PostGraphIncludes)
+
+ENDHLSL
+}

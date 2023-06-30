@@ -71,10 +71,15 @@ void OffscreenShadingFillFragInputs(
     texcoord = asfloat(_Vertex3RecordBuffer.Load2(8 * vertexID));
 #endif
 
+#if defined(UNITY_STEREO_INSTANCING_ENABLED)
+    // See: [NOTE-HQ-LINES-SINGLE-PASS-STEREO]
+    unity_StereoEyeIndex = _ViewIndex;
+#endif
+
     // Configure the fragment.
     {
         output.tangentToWorld = BuildTangentToWorld(float4(T, 1), N);
-        output.positionRWS    = ComputeWorldSpacePosition(positionCS, _InverseCamMatNoJitter);
+        output.positionRWS    = ComputeWorldSpacePosition(positionCS, UNITY_MATRIX_I_VP);
         output.positionSS     = ClipSpaceToRasterSpacePosition(positionCS);
         output.positionPixel  = output.positionSS;
         output.isFrontFace    = true;

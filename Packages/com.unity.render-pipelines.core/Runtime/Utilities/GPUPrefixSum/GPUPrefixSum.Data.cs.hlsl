@@ -18,5 +18,20 @@ struct LevelOffsets
     uint parentOffset;
 };
 
+//
+// Accessors for UnityEngine.Rendering.GPUPrefixSum+LevelOffsets
+//
+uint GetCount(LevelOffsets value)
+{
+    return value.count;
+}
+uint GetOffset(LevelOffsets value)
+{
+    return value.offset;
+}
+uint GetParentOffset(LevelOffsets value)
+{
+    return value.parentOffset;
+}
 
 #endif

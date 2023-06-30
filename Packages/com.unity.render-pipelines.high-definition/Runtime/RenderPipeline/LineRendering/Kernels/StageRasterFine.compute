@@ -434,6 +434,11 @@ void Main(Group group)
 {
     const uint groupIndex = group.groupIndex;
 
+#if defined(UNITY_STEREO_INSTANCING_ENABLED)
+    // See: [NOTE-HQ-LINES-SINGLE-PASS-STEREO]
+    unity_StereoEyeIndex = _ViewIndex;
+#endif
+
     // Generate the coverage mask look-up table.
     Coverage::GenLUT(groupIndex);
     GroupMemoryBarrierWithGroupSync();

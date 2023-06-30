@@ -647,7 +647,7 @@ namespace UnityEngine.Rendering.Universal
                     if (resolveToDebugScreen)
                     {
                         debugHandler.BlitTextureToDebugScreenTexture(cmd, GetSource(), m_Materials.uber, 0);
-                        renderer.ConfigureCameraColorTarget(debugHandler.DebugScreenTextureHandle);
+                        renderer.ConfigureCameraTarget(debugHandler.DebugScreenColorHandle, debugHandler.DebugScreenDepthHandle);
                     }
                     else
                     {
@@ -1399,7 +1399,7 @@ namespace UnityEngine.Rendering.Universal
 
             // Source material setup
             float postExposureLinear = Mathf.Pow(2f, m_ColorAdjustments.postExposure.value);
-            cmd.SetGlobalTexture(ShaderConstants._InternalLut, m_InternalLut.nameID);
+            material.SetTexture(ShaderConstants._InternalLut, m_InternalLut);
             material.SetVector(ShaderConstants._Lut_Params, new Vector4(1f / lutWidth, 1f / lutHeight, lutHeight - 1f, postExposureLinear));
             material.SetTexture(ShaderConstants._UserLut, m_ColorLookup.texture.value);
             material.SetVector(ShaderConstants._UserLut_Params, !m_ColorLookup.IsActive()
@@ -1664,7 +1664,7 @@ namespace UnityEngine.Rendering.Universal
             if (resolveToDebugScreen)
             {
                 debugHandler.BlitTextureToDebugScreenTexture(cmd, sourceTex, material, 0);
-                cameraData.renderer.ConfigureCameraColorTarget(debugHandler.DebugScreenTextureHandle);
+                cameraData.renderer.ConfigureCameraTarget(debugHandler.DebugScreenColorHandle, debugHandler.DebugScreenDepthHandle);
             }
             else
             {

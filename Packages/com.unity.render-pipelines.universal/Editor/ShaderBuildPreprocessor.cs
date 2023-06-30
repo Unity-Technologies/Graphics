@@ -555,33 +555,20 @@ namespace UnityEditor.Rendering.Universal
 
             // Main & Additional Light Shadows
 
-            // When the OFF variant is available, the shadow keywords can
-            // be stripped based on the settings in the URP Assets.
+            // Keeps the Off variant for Main and Additional Light shadows
             if (rendererRequirements.needsShadowsOff)
-            {
-                // Keeps the Off variant for Main and Additional Light shadows
                 shaderFeatures |= ShaderFeatures.ShadowsKeepOffVariants;
 
-                if (rendererRequirements.needsMainLightShadows)
-                {
-                    // Cascade count can be changed at runtime, so include both of them
-                    shaderFeatures |= ShaderFeatures.MainLightShadows;
-                    shaderFeatures |= ShaderFeatures.MainLightShadowsCascade;
-                }
-
-                if (rendererRequirements.needsAdditionalLightShadows)
-                    shaderFeatures |= ShaderFeatures.AdditionalLightShadows;
-            }
-            // When the OFF variant should be stripped, the Main & Additional Light Keywords
-            // are always included and Main Light Cascade is added if main light shadows are enabled in the asset
-            else
+            if (rendererRequirements.needsMainLightShadows)
             {
+                // Cascade count can be changed at runtime, so include both of them
                 shaderFeatures |= ShaderFeatures.MainLightShadows;
-                shaderFeatures |= ShaderFeatures.AdditionalLightShadows;
-
-                if (rendererRequirements.needsMainLightShadows)
-                    shaderFeatures |= ShaderFeatures.MainLightShadowsCascade;
+                shaderFeatures |= ShaderFeatures.MainLightShadowsCascade;
             }
+
+            // Additional Light Shadows
+            if (rendererRequirements.needsAdditionalLightShadows)
+                shaderFeatures |= ShaderFeatures.AdditionalLightShadows;
 
             // Soft shadows for Main and Additional Lights
             if (rendererRequirements.needsSoftShadows)
@@ -634,7 +621,7 @@ namespace UnityEditor.Rendering.Universal
                     continue;
 
                 // Rendering Layers...
-                if (rendererRequirements.isUniversalRenderer && rendererFeature.RequireRenderingLayers(isDeferredRenderer, out RenderingLayerUtils.Event rendererEvent, out _))
+                if (rendererRequirements.isUniversalRenderer && rendererFeature.RequireRenderingLayers(isDeferredRenderer, rendererRequirements.needsGBufferAccurateNormals, out RenderingLayerUtils.Event rendererEvent, out _))
                 {
                     usesRenderingLayers = true;
                     RenderingLayerUtils.CombineRendererEvents(isDeferredRenderer, rendererRequirements.msaaSampleCount, rendererEvent, ref renderingLayersEvent);
@@ -697,7 +684,7 @@ namespace UnityEditor.Rendering.Universal
                     }
                     else
                     {
-                        DecalTechnique technique = decal.GetTechnique(isDeferredRenderer, false);
+                        DecalTechnique technique = decal.GetTechnique(isDeferredRenderer, rendererRequirements.needsGBufferAccurateNormals, false);
                         switch (technique)
                         {
                             case DecalTechnique.DBuffer:

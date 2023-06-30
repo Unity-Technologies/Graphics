@@ -235,13 +235,13 @@ namespace UnityEngine.Rendering.Universal
             m_RecreateSystems = true;
         }
 
-        internal override bool RequireRenderingLayers(bool isDeferred, out RenderingLayerUtils.Event atEvent, out RenderingLayerUtils.MaskSize maskSize)
+        internal override bool RequireRenderingLayers(bool isDeferred, bool needsGBufferAccurateNormals, out RenderingLayerUtils.Event atEvent, out RenderingLayerUtils.MaskSize maskSize)
         {
             // In some cases the desired technique is wanted, even if not supported.
             // For example when building the player, so the variant can be included
             bool checkForInvalidTechniques = Application.isPlaying;
 
-            var technique = GetTechnique(isDeferred, checkForInvalidTechniques);
+            var technique = GetTechnique(isDeferred, needsGBufferAccurateNormals, checkForInvalidTechniques);
             atEvent = technique == DecalTechnique.DBuffer ? RenderingLayerUtils.Event.DepthNormalPrePass : RenderingLayerUtils.Event.Opaque;
             maskSize = RenderingLayerUtils.MaskSize.Bits8;
             return requiresDecalLayers;
@@ -284,7 +284,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             bool isDeferred = universalRenderer.renderingMode == RenderingMode.Deferred;
-            return GetTechnique(isDeferred);
+            return GetTechnique(isDeferred, universalRenderer.accurateGbufferNormals);
         }
 
         internal DecalTechnique GetTechnique(ScriptableRenderer renderer)
@@ -297,17 +297,19 @@ namespace UnityEngine.Rendering.Universal
             }
 
             bool isDeferred = universalRenderer.renderingModeActual == RenderingMode.Deferred;
-            return GetTechnique(isDeferred);
+            return GetTechnique(isDeferred, universalRenderer.accurateGbufferNormals);
         }
 
-        internal DecalTechnique GetTechnique(bool isDeferred, bool checkForInvalidTechniques = true)
+        internal DecalTechnique GetTechnique(bool isDeferred, bool needsGBufferAccurateNormals, bool checkForInvalidTechniques = true)
         {
             DecalTechnique technique = DecalTechnique.Invalid;
             switch (m_Settings.technique)
             {
                 case DecalTechniqueOption.Automatic:
-                    if (IsAutomaticDBuffer())
+                    if (IsAutomaticDBuffer() || isDeferred && needsGBufferAccurateNormals)
                         technique = DecalTechnique.DBuffer;
+                    else if (isDeferred)
+                        technique = DecalTechnique.GBuffer;
                     else
                         technique = DecalTechnique.ScreenSpace;
                     break;
@@ -428,7 +430,7 @@ namespace UnityEngine.Rendering.Universal
                 case DecalTechnique.DBuffer:
                     // the RenderPassEvent needs to be RenderPassEvent.AfterRenderingPrePasses + 1, so we are sure that if depth priming is enabled
                     // this copy happens after the primed depth is copied, so the depth texture is available
-                    m_CopyDepthPass = new DBufferCopyDepthPass(RenderPassEvent.AfterRenderingPrePasses + 1, m_CopyDepthMaterial);
+                    m_CopyDepthPass = new DBufferCopyDepthPass(RenderPassEvent.AfterRenderingPrePasses + 1, m_CopyDepthMaterial, false, true);
                     m_DecalDrawDBufferSystem = new DecalDrawDBufferSystem(m_DecalEntityManager);
 
                     m_DBufferRenderPass = new DBufferRenderPass(m_DBufferClearMaterial, m_DBufferSettings, m_DecalDrawDBufferSystem, m_Settings.decalLayers);
@@ -499,6 +501,20 @@ namespace UnityEngine.Rendering.Universal
             {
                 m_DecalUpdateCulledSystem.Execute();
                 m_DecalCreateDrawCallSystem.Execute();
+            }
+
+            if (m_Technique == DecalTechnique.DBuffer)
+            {
+                var universalRenderer = renderer as UniversalRenderer;
+                if (universalRenderer.renderingModeActual == RenderingMode.Deferred)
+                {
+                    m_CopyDepthPass.CopyToDepth = true;
+                }
+                else
+                {
+                    m_CopyDepthPass.CopyToDepth = true;
+                    m_CopyDepthPass.MssaSamples = 1;
+                }
             }
 
             switch (m_Technique)

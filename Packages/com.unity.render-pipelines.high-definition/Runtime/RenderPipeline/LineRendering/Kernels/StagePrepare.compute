@@ -49,6 +49,8 @@ void ClearClusters(uint3 dispatchThreadID : SV_DispatchThreadID)
     _ClusterCountersBuffer.Store(dispatchThreadID.x << 2, 0);
 }
 
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+
 groupshared float2 gs_ViewSpaceDepthRanges;
 
 [numthreads(64, 1, 1)]

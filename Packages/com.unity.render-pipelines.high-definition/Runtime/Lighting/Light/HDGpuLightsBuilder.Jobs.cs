@@ -684,17 +684,27 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 lightData.angularDiameter = lightRenderData.angularDiameter * Mathf.Deg2Rad;
+                lightData.skyAngularDiameter = lightRenderData.skyAngularDiameter * Mathf.Deg2Rad;
 
                 lightData.flareSize = Mathf.Max(lightRenderData.flareSize * Mathf.Deg2Rad, 5.960464478e-8f);
                 lightData.flareFalloff = lightRenderData.flareFalloff;
 
                 // On some vendors trigonometry has very bad precision, so we precompute what we can on CPU to avoid precision issues (case 1369376).
-                float radInner = 0.5f * lightData.angularDiameter;
+                float radInner = 0.5f * lightData.skyAngularDiameter;
                 lightData.flareCosInner = Mathf.Cos(radInner);
                 lightData.flareCosOuter = Mathf.Cos(radInner + lightData.flareSize);
 
                 lightData.flareTint = (Vector3)(Vector4)lightRenderData.flareTint;
                 lightData.surfaceTint = (Vector3)(Vector4)lightRenderData.surfaceTint;
+
+                lightData.bodyType = lightRenderData.bodyType;
+
+                float moonPhase = lightRenderData.moonPhase * 2.0f * Mathf.PI;
+                float moonRotation = lightRenderData.moonPhaseRotation * Mathf.Deg2Rad;
+                lightData.phaseSinCos = new Vector2(Mathf.Sin(moonPhase), Mathf.Cos(moonPhase));
+                lightData.phaseAngleSinCos = new Vector2(Mathf.Sin(moonRotation), Mathf.Cos(moonRotation));
+
+                lightData.earthshine = lightRenderData.earthshine * 0.01f; // earth reflects about 0.01% of sun light
 
                 if (useCameraRelativePosition)
                     lightData.positionRWS -= cameraPos;

@@ -74,7 +74,10 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent areaLightEmissiveMeshCustomLayer = EditorGUIUtility.TrTextContent("Custom Layer", "Specify on which layer the generated Mesh live.");
 
             public readonly GUIContent interactsWithSky = EditorGUIUtility.TrTextContent("Affect Physically Based Sky", "Check this option to make the light and the Physically Based sky affect one another.");
-            public readonly GUIContent angularDiameter = EditorGUIUtility.TrTextContent("Angular Diameter", "Angular diameter of the emissive celestial body represented by the light as seen from the camera (in degrees). Used to render the sun/moon disk.");
+            public readonly GUIContent angularDiameter = EditorGUIUtility.TrTextContent("Angular Diameter", "Angular diameter of the emissive celestial body represented by the light as seen from the camera (in degrees). Used to render the sun/moon disk and affects the sharpness of shadows.");
+            public readonly GUIContent diameterMultiplier = EditorGUIUtility.TrTextContent("Diameter Multiplier", "Multiplier of the angular diameter of the celestial body to affect the size of the disk without impacting shadows.");
+            public readonly GUIContent diameterOverride = EditorGUIUtility.TrTextContent("Diameter Override", "Override of the angular diameter of the celestial body to affect the size of the disk without impacting shadows.");
+            public readonly GUIContent bodyType = EditorGUIUtility.TrTextContent("Body Type", "Controls wether the celestial body should be considered as a star or a moon.");
             public readonly GUIContent flareSize = EditorGUIUtility.TrTextContent("Flare Size", "Size of the flare around the celestial body (in degrees).");
             public readonly GUIContent flareTint = EditorGUIUtility.TrTextContent("Flare Tint", "Tints the flare of the celestial body");
             public readonly GUIContent flareFalloff = EditorGUIUtility.TrTextContent("Flare Falloff", "The falloff rate of flare intensity as the angle from the light increases.");

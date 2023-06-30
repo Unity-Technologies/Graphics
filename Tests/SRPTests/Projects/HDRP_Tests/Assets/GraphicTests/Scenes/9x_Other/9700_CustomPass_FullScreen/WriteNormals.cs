@@ -15,6 +15,7 @@ class WriteNormals : CustomPass
     protected override void Execute(CustomPassContext ctx)
     {
         CoreUtils.SetRenderTarget(ctx.cmd, rt, ClearFlag.All, Color.clear);
+        ctx.cmd.SetGlobalFloat("_RTWidth", rt.width);
         ctx.cmd.Blit(ctx.cameraNormalBuffer, rt, material);
     }
 

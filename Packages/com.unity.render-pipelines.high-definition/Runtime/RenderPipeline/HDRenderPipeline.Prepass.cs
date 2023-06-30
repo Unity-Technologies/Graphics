@@ -1069,7 +1069,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public HDCamera hdCamera;
             public ComputeShader resolveStencilCS;
-            public int resolveKernel;
             public bool resolveIsNecessary;
             public bool resolveOnly;
 
@@ -1085,18 +1084,12 @@ namespace UnityEngine.Rendering.HighDefinition
             using (var builder = renderGraph.AddRenderPass<ResolveStencilPassData>("Resolve Stencil", out var passData, ProfilingSampler.Get(HDProfileId.BuildCoarseStencilAndResolveIfNeeded)))
             {
                 bool MSAAEnabled = hdCamera.msaaEnabled;
-                int kernel = SampleCountToPassIndex(hdCamera.msaaSamples);
 
                 passData.hdCamera = hdCamera;
                 passData.resolveOnly = resolveOnly;
                 // With MSAA, the following features require a copy of the stencil, if none are active, no need to do the resolve.
                 passData.resolveIsNecessary = (GetFeatureVariantsEnabled(hdCamera.frameSettings) || hdCamera.IsSSREnabled() || hdCamera.IsSSREnabled(transparent: true)) && MSAAEnabled;
                 passData.resolveStencilCS = defaultResources.shaders.resolveStencilCS;
-                if (passData.resolveIsNecessary && resolveOnly)
-                    passData.resolveKernel = (kernel - 1) + 7;
-                else
-                    passData.resolveKernel = passData.resolveIsNecessary ? kernel + 3 : kernel; // We have a different variant if we need to resolve to non-MSAA stencil
-
                 passData.inputDepth = builder.ReadTexture(output.depthBuffer);
                 passData.coarseStencilBuffer = builder.WriteBuffer(
                     renderGraph.CreateBuffer(new BufferDesc(HDUtils.DivRoundUp(m_MaxCameraWidth, 8) * HDUtils.DivRoundUp(m_MaxCameraHeight, 8) * m_MaxViewCount, sizeof(uint)) { name = "CoarseStencilBuffer" }));
@@ -1112,15 +1105,34 @@ namespace UnityEngine.Rendering.HighDefinition
                             return;
 
                         ComputeShader cs = data.resolveStencilCS;
-                        context.cmd.SetComputeBufferParam(cs, data.resolveKernel, HDShaderIDs._CoarseStencilBuffer, data.coarseStencilBuffer);
-                        context.cmd.SetComputeTextureParam(cs, data.resolveKernel, HDShaderIDs._StencilTexture, data.inputDepth, 0, RenderTextureSubElement.Stencil);
+                        context.cmd.SetComputeBufferParam(cs, 0, HDShaderIDs._CoarseStencilBuffer, data.coarseStencilBuffer);
+                        context.cmd.SetComputeTextureParam(cs, 0, HDShaderIDs._StencilTexture, data.inputDepth, 0, RenderTextureSubElement.Stencil);
 
                         if (data.resolveIsNecessary)
-                            context.cmd.SetComputeTextureParam(cs, data.resolveKernel, HDShaderIDs._OutputStencilBuffer, data.resolvedStencil);
+                            context.cmd.SetComputeTextureParam(cs, 0, HDShaderIDs._OutputStencilBuffer, data.resolvedStencil);
+
+                        context.cmd.DisableKeyword(cs, new(cs, "MSAA2X"));
+                        context.cmd.DisableKeyword(cs, new(cs, "MSAA4X"));
+                        context.cmd.DisableKeyword(cs, new(cs, "MSAA8X"));
+                        switch (data.hdCamera.msaaSamples)
+                        {
+                            case MSAASamples.MSAA2x:
+                                context.cmd.EnableKeyword(cs, new(cs, "MSAA2X"));
+                                break;
+                            case MSAASamples.MSAA4x:
+                                context.cmd.EnableKeyword(cs, new(cs, "MSAA4X"));
+                                break;
+                            case MSAASamples.MSAA8x:
+                                context.cmd.EnableKeyword(cs, new(cs, "MSAA8X"));
+                                break;
+                        }
+
+                        context.cmd.SetKeyword(cs, new(cs, "COARSE_STENCIL"), !data.resolveIsNecessary || !data.resolveOnly);
+                        context.cmd.SetKeyword(cs, new(cs, "RESOLVE"), data.resolveIsNecessary);
 
                         int coarseStencilWidth = HDUtils.DivRoundUp(data.hdCamera.actualWidth, 8);
                         int coarseStencilHeight = HDUtils.DivRoundUp(data.hdCamera.actualHeight, 8);
-                        context.cmd.DispatchCompute(cs, data.resolveKernel, coarseStencilWidth, coarseStencilHeight, data.hdCamera.viewCount);
+                        context.cmd.DispatchCompute(cs, 0, coarseStencilWidth, coarseStencilHeight, data.hdCamera.viewCount);
                     });
 
                 if (MSAAEnabled)

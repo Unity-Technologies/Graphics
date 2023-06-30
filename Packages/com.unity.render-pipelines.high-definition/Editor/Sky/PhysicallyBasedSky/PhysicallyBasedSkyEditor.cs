@@ -9,6 +9,8 @@ namespace UnityEditor.Rendering.HighDefinition
     class PhysicallyBasedSkyEditor : SkySettingsEditor
     {
         SerializedDataParameter m_Type;
+        SerializedDataParameter m_Mode;
+        SerializedDataParameter m_Material;
         SerializedDataParameter m_SphericalMode;
         SerializedDataParameter m_SeaLevel;
         SerializedDataParameter m_PlanetaryRadius;
@@ -59,6 +61,8 @@ namespace UnityEditor.Rendering.HighDefinition
             var o = new PropertyFetcher<PhysicallyBasedSky>(serializedObject);
 
             m_Type = Unpack(o.Find(x => x.type));
+            m_Mode = Unpack(o.Find(x => x.renderingMode));
+            m_Material = Unpack(o.Find(x => x.material));
             m_SphericalMode = Unpack(o.Find(x => x.sphericalMode));
             m_SeaLevel = Unpack(o.Find(x => x.seaLevel));
             m_PlanetaryRadius = Unpack(o.Find(x => x.planetaryRadius));
@@ -101,8 +105,14 @@ namespace UnityEditor.Rendering.HighDefinition
             using (var scope = new OverridablePropertyScope(m_Type, m_ModelTypeLabel, this))
                 if (scope.displayed)
                     m_Type.value.intValue = EditorGUILayout.IntPopup(m_ModelTypeLabel, m_Type.value.intValue, m_ModelTypes, m_ModelTypeValues);
-
             PhysicallyBasedSkyModel type = (PhysicallyBasedSkyModel)m_Type.value.intValue;
+
+            DrawHeader("Planet and Space");
+
+            PropertyField(m_Mode);
+            bool hasMaterial = m_Mode.value.intValue == 1;
+            if (hasMaterial)
+                PropertyField(m_Material);
 
             DrawHeader("Planet");
 
@@ -125,18 +135,21 @@ namespace UnityEditor.Rendering.HighDefinition
                         PropertyField(m_SeaLevel);
                 }
 
-                PropertyField(m_PlanetRotation);
-                PropertyField(m_GroundColorTexture);
+                if (!hasMaterial)
+                {
+                    PropertyField(m_PlanetRotation);
+                    PropertyField(m_GroundColorTexture);
+                }
             }
 
             PropertyField(m_GroundTint);
-            if (type != PhysicallyBasedSkyModel.EarthSimple)
+            if (type != PhysicallyBasedSkyModel.EarthSimple && !hasMaterial)
             {
                 PropertyField(m_GroundEmissionTexture);
                 PropertyField(m_GroundEmissionMultiplier);
             }
 
-            if (type != PhysicallyBasedSkyModel.EarthSimple)
+            if (type != PhysicallyBasedSkyModel.EarthSimple && !hasMaterial)
             {
                 DrawHeader("Space");
                 PropertyField(m_SpaceRotation);

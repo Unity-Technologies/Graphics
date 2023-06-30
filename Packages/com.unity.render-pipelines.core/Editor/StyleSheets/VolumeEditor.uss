@@ -1,0 +1,76 @@
+.volume-profile-header__container {
+    margin: 4px -6px 2px -16px;
+    border-top-width: 1px;
+    border-bottom-width: 1px;
+    border-color: #1f1f1f;
+    padding-left: 12px;
+    padding-top: 4px;
+    padding-bottom: 4px;
+    flex-direction: row;
+}
+
+#volume-profile-header__asset-icon {
+    flex-grow: 1;
+    background-color: rgba(0, 0, 0, 0);
+    width: 44px;
+    height: 44px;
+    background-image: none;
+}
+
+.volume-profile-objectfield__container {
+    flex-grow: 1;
+}
+
+.volume-profile-objectfield__container--column {
+    flex-direction: column;
+}
+
+.volume-profile-objectfield__container--row {
+    flex-direction: row;
+}
+
+.volume-profile-objectfield__container > ObjectField {
+    height: 17px;
+    flex-shrink: 1;
+}
+
+.volume-profile-objectfield__contextmenu {
+    background-color: var(--unity-colors-window-background);
+    border-width: 0 0 0 0;
+    border-radius: 0 0 0 0;
+    padding: 0 0 0 0;
+    width: 16px;
+    height: 16px;
+    margin-left: 2px;
+    margin-top: 1px;
+}
+
+.volume-profile-objectfield__contextmenu:hover {
+    background-color: var(--unity-colors-button-background-hover);
+}
+
+.volume-profile-objectfield__contextmenu:active {
+    background-color: var(--unity-colors-button-background-hover_pressed);
+}
+
+.volume-profile-objectfield {
+    flex-grow: 1;
+}
+
+#volume-profile-new-button {
+    width: 50px;
+}
+
+#volume-profile-instance-profile-label {
+    -unity-font-style: italic;
+    margin-left: 4px;
+}
+
+#volume-profile-component-container {
+    margin-left: -16px;
+    margin-top: 1px;
+}
+
+#volume-profile-blend-distance {
+    margin-left: 15px;
+}

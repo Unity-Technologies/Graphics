@@ -80,20 +80,24 @@ public class NormalReconstructionTestFeature : ScriptableRendererFeature
         internal class PassData
         {
             internal CameraData cameraData;
+            internal TextureHandle color;
         }
         public override void RecordRenderGraph(RenderGraph renderGraph, FrameResources frameResources, ref RenderingData renderingData)
         {
-            using (var builder = renderGraph.AddRenderPass<PassData>("Normal Reconstruction Test Pass", out var passData, m_ProfilingSampler))
+            using (var builder = renderGraph.AddLowLevelPass<PassData>("Normal Reconstruction Test Pass", out var passData, m_ProfilingSampler))
             {
                 UniversalRenderer renderer = (UniversalRenderer) renderingData.cameraData.renderer;
 
                 TextureHandle color = renderer.activeColorTexture;
-                builder.UseColorBuffer(color, 0);
+                builder.UseTexture(color, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
                 passData.cameraData = renderingData.cameraData;
+                passData.color = renderer.activeColorTexture;
 
-                builder.SetRenderFunc((PassData data, RenderGraphContext rgContext) =>
+                builder.SetRenderFunc((PassData data, LowLevelGraphContext rgContext) =>
                 {
-                    ExecutePass(rgContext.cmd, data.cameraData);
+                    // TODO: currently have to set the RT manually in low level passes. Do we want this done through UseTextureFragment though?
+                    rgContext.legacyCmd.SetRenderTarget(data.color);
+                    ExecutePass(rgContext.legacyCmd, data.cameraData);
                 });
             }
         }

@@ -5,6 +5,8 @@ using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Analytics;
+using System;
 
 namespace UnityEditor.Rendering.Analytics
 {
@@ -14,16 +16,36 @@ namespace UnityEditor.Rendering.Analytics
     {
         public int callbackOrder => int.MaxValue;
 
-        [System.Diagnostics.DebuggerDisplay("{volume_profile_asset_guid} - {component_type} - {overrided_parameters.Length}")]
-        struct Data
-        {
-            internal const string k_EventName = "uVolumeProfileOverridesAnalytic";
-            internal const int k_Version = 2;
 
-            // Naming convention for analytics data
-            public string volume_profile_asset_guid;
-            public string component_type;
-            public string[] overrided_parameters;
+        [AnalyticInfo(eventName: "uVolumeProfileOverridesAnalytic", version: 2, maxEventsPerHour:1000)]
+        public class Analytic : IAnalytic
+        {
+            public Analytic(string asset_guid, string type, string[] p)
+            {
+                m_Data = new Data
+                {
+                    volume_profile_asset_guid = asset_guid,
+                    component_type = type,
+                    overrided_parameters = p
+                };
+            }
+
+            [System.Diagnostics.DebuggerDisplay("{volume_profile_asset_guid} - {component_type} - {overrided_parameters.Length}")]
+            [Serializable]
+            struct Data : IAnalytic.IData
+            {
+                // Naming convention for analytics data
+                public string volume_profile_asset_guid;
+                public string component_type;
+                public string[] overrided_parameters;
+            }
+            public bool TryGatherData(out IAnalytic.IData data, out Exception error)
+            {
+                data = m_Data;
+                error = null;
+                return true;
+            }
+            Data m_Data;
         }
 
         void IPostprocessBuildWithReport.OnPostprocessBuild(BuildReport _)
@@ -34,11 +56,11 @@ namespace UnityEditor.Rendering.Analytics
         private static readonly string[] k_SearchFolders = new[] { "Assets" };
 
         [MustUseReturnValue]
-        static bool TryGatherData([NotNullWhen(true)] out List<Data> datas, [NotNullWhen(false)] out string warning)
+        static bool TryGatherData([NotNullWhen(true)] out List<IAnalytic> datas, [NotNullWhen(false)] out string warning)
         {
             warning = string.Empty;
 
-            datas = new List<Data>();
+            datas = new List<IAnalytic>();
 
             var volumeProfileGUIDs = AssetDatabase.FindAssets($"t:{nameof(VolumeProfile)} glob:\"**/*.asset\"", k_SearchFolders);
             foreach (var guid in volumeProfileGUIDs)
@@ -54,28 +76,19 @@ namespace UnityEditor.Rendering.Analytics
                     var overrideParameters = volumeComponent.ToNestedColumnWithDefault(defaultVolumeComponent, true);
                     if (overrideParameters.Length == 0)
                         continue;
-                    datas.Add(new Data()
-                    {
-                        volume_profile_asset_guid = guid,
-                        component_type = volumeComponent.GetType().Name,
-                        overrided_parameters = overrideParameters
-                    });
+                    datas.Add(new Analytic(guid, volumeComponent.GetType().Name, overrideParameters));
                 }
             }
-
             return true;
         }
 
         [MenuItem("internal:Edit/Rendering/Analytics/Send VolumeProfileOverridesAnalytic ", priority = 1)]
         static void SendAnalytic()
         {
-            if(!AnalyticsUtils.TryRegisterEvent(Data.k_EventName, Data.k_Version, maxEventPerHour: 1000))
-                return;
-
             if (!TryGatherData(out var data, out var warning))
                 Debug.Log(warning);
 
-            data.ForEach(d => AnalyticsUtils.SendData(d, Data.k_EventName, Data.k_Version));
+            data.ForEach(d => AnalyticsUtils.SendData(d));
         }
     }
 

@@ -27,7 +27,7 @@ public class UniversalProjectEditorTests
                 Assert.IsTrue(lightingSettings.lightmapper == LightingSettings.Lightmapper.ProgressiveCPU || lightingSettings.lightmapper == LightingSettings.Lightmapper.ProgressiveGPU,
                     $"Lighting settings ({path}) uses deprecated lightmapper {lightingSettings.lightmapper}.");
                 Assert.IsTrue(lightingSettings.filteringMode == LightingSettings.FilterMode.None,
-                    $"Lighting settings ({path}) have baked GI with filter mode enabled. It is recommended to turn of filter mode to reduce halo effect (If you still want to use it please contact URP team first).");
+                    $"Lighting settings ({path}) have baked GI with filter mode enabled. It is recommended to turn off filter mode to reduce halo effect (If you still want to use it please contact URP team first).");
             }
         }
     }

@@ -216,6 +216,11 @@ namespace UnityEngine.Rendering
             return result;
         }
 
+        public static Vector2Int CalculateDimensions(Vector2 scaleFactor)
+        {
+            return s_DefaultInstance.CalculateDimensions(scaleFactor);
+        }
+
         /// <summary>
         /// Allocate a new automatically sized RTHandle for the default RTHandle System.
         /// </summary>
@@ -328,6 +333,11 @@ namespace UnityEngine.Rendering
                 descriptor.vrUsage,
                 name
             );
+        }
+
+        public static Vector2Int CalculateDimensions(ScaleFunc scaleFunc)
+        {
+            return s_DefaultInstance.CalculateDimensions(scaleFunc);
         }
 
         /// <summary>

@@ -446,70 +446,74 @@ namespace UnityEngine.Rendering.HighDefinition
             Vector3 planetCenter = pbrSky.GetPlanetCenterPosition(cameraPos);
             float R = pbrSky.GetPlanetaryRadius();
 
-            Vector3 cameraToPlanetCenter = planetCenter - cameraPos;
-            float r = cameraToPlanetCenter.magnitude;
-            cameraPos = planetCenter - Mathf.Max(R, r) * cameraToPlanetCenter.normalized;
+            Vector3 cameraPosPS = cameraPos - planetCenter;
+            float r = cameraPosPS.magnitude;
+            cameraPosPS = Mathf.Max(R / r, 1.0f) * cameraPosPS;
 
             bool simpleEarthMode = pbrSky.type.value == PhysicallyBasedSkyModel.EarthSimple;
+            bool customMaterial = pbrSky.renderingMode.value == PhysicallyBasedSky.RenderingMode.Material && pbrSky.material.value != null;
+            var material = customMaterial ? pbrSky.material.value : m_PbrSkyMaterial;
 
             CommandBuffer cmd = builtinParams.commandBuffer;
 
-            // Precomputation is done, shading is next.
-            Quaternion planetRotation = Quaternion.Euler(pbrSky.planetRotation.value.x,
-                pbrSky.planetRotation.value.y,
-                pbrSky.planetRotation.value.z);
-
-            Quaternion spaceRotation = Quaternion.Euler(pbrSky.spaceRotation.value.x,
-                pbrSky.spaceRotation.value.y,
-                pbrSky.spaceRotation.value.z);
-
-            var planetRotationMatrix = Matrix4x4.Rotate(planetRotation);
-            planetRotationMatrix[0] *= -1;
-            planetRotationMatrix[1] *= -1;
-            planetRotationMatrix[2] *= -1;
-
+            // Common material properties
             s_PbrSkyMaterialProperties.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, builtinParams.pixelCoordToViewDirMatrix);
-            s_PbrSkyMaterialProperties.SetVector(HDShaderIDs._WorldSpaceCameraPos1, cameraPos);
-            s_PbrSkyMaterialProperties.SetMatrix(HDShaderIDs._ViewMatrix1, builtinParams.viewMatrix);
-            s_PbrSkyMaterialProperties.SetMatrix(HDShaderIDs._PlanetRotation, planetRotationMatrix);
-            s_PbrSkyMaterialProperties.SetMatrix(HDShaderIDs._SpaceRotation, Matrix4x4.Rotate(spaceRotation));
+            s_PbrSkyMaterialProperties.SetVector(HDShaderIDs._PBRSkyCameraPosPS, cameraPosPS);
+            s_PbrSkyMaterialProperties.SetInt(HDShaderIDs._RenderSunDisk, renderSunDisk ? 1 : 0);
 
             m_PrecomputedData.BindBuffers(cmd, s_PbrSkyMaterialProperties);
 
-            int hasGroundAlbedoTexture = 0;
-
-            if (pbrSky.groundColorTexture.value != null && !simpleEarthMode)
+            if (!customMaterial)
             {
-                hasGroundAlbedoTexture = 1;
-                s_PbrSkyMaterialProperties.SetTexture(HDShaderIDs._GroundAlbedoTexture, pbrSky.groundColorTexture.value);
+                // Precomputation is done, shading is next.
+                Quaternion planetRotation = Quaternion.Euler(pbrSky.planetRotation.value.x,
+                    pbrSky.planetRotation.value.y,
+                    pbrSky.planetRotation.value.z);
+
+                Quaternion spaceRotation = Quaternion.Euler(pbrSky.spaceRotation.value.x,
+                    pbrSky.spaceRotation.value.y,
+                    pbrSky.spaceRotation.value.z);
+
+                var planetRotationMatrix = Matrix4x4.Rotate(planetRotation);
+                planetRotationMatrix[0] *= -1;
+                planetRotationMatrix[1] *= -1;
+                planetRotationMatrix[2] *= -1;
+
+                s_PbrSkyMaterialProperties.SetMatrix(HDShaderIDs._PlanetRotation, planetRotationMatrix);
+                s_PbrSkyMaterialProperties.SetMatrix(HDShaderIDs._SpaceRotation, Matrix4x4.Rotate(spaceRotation));
+
+                int hasGroundAlbedoTexture = 0;
+
+                if (pbrSky.groundColorTexture.value != null && !simpleEarthMode)
+                {
+                    hasGroundAlbedoTexture = 1;
+                    s_PbrSkyMaterialProperties.SetTexture(HDShaderIDs._GroundAlbedoTexture, pbrSky.groundColorTexture.value);
+                }
+                s_PbrSkyMaterialProperties.SetInt(HDShaderIDs._HasGroundAlbedoTexture, hasGroundAlbedoTexture);
+
+                int hasGroundEmissionTexture = 0;
+
+                if (pbrSky.groundEmissionTexture.value != null && !simpleEarthMode)
+                {
+                    hasGroundEmissionTexture = 1;
+                    s_PbrSkyMaterialProperties.SetTexture(HDShaderIDs._GroundEmissionTexture, pbrSky.groundEmissionTexture.value);
+                    s_PbrSkyMaterialProperties.SetFloat(HDShaderIDs._GroundEmissionMultiplier, pbrSky.groundEmissionMultiplier.value);
+                }
+                s_PbrSkyMaterialProperties.SetInt(HDShaderIDs._HasGroundEmissionTexture, hasGroundEmissionTexture);
+
+                int hasSpaceEmissionTexture = 0;
+
+                if (pbrSky.spaceEmissionTexture.value != null && !simpleEarthMode)
+                {
+                    hasSpaceEmissionTexture = 1;
+                    s_PbrSkyMaterialProperties.SetTexture(HDShaderIDs._SpaceEmissionTexture, pbrSky.spaceEmissionTexture.value);
+                    s_PbrSkyMaterialProperties.SetFloat(HDShaderIDs._SpaceEmissionMultiplier, pbrSky.spaceEmissionMultiplier.value);
+                }
+                s_PbrSkyMaterialProperties.SetInt(HDShaderIDs._HasSpaceEmissionTexture, hasSpaceEmissionTexture);
             }
-            s_PbrSkyMaterialProperties.SetInt(HDShaderIDs._HasGroundAlbedoTexture, hasGroundAlbedoTexture);
 
-            int hasGroundEmissionTexture = 0;
-
-            if (pbrSky.groundEmissionTexture.value != null && !simpleEarthMode)
-            {
-                hasGroundEmissionTexture = 1;
-                s_PbrSkyMaterialProperties.SetTexture(HDShaderIDs._GroundEmissionTexture, pbrSky.groundEmissionTexture.value);
-                s_PbrSkyMaterialProperties.SetFloat(HDShaderIDs._GroundEmissionMultiplier, pbrSky.groundEmissionMultiplier.value);
-            }
-            s_PbrSkyMaterialProperties.SetInt(HDShaderIDs._HasGroundEmissionTexture, hasGroundEmissionTexture);
-
-            int hasSpaceEmissionTexture = 0;
-
-            if (pbrSky.spaceEmissionTexture.value != null && !simpleEarthMode)
-            {
-                hasSpaceEmissionTexture = 1;
-                s_PbrSkyMaterialProperties.SetTexture(HDShaderIDs._SpaceEmissionTexture, pbrSky.spaceEmissionTexture.value);
-                s_PbrSkyMaterialProperties.SetFloat(HDShaderIDs._SpaceEmissionMultiplier, pbrSky.spaceEmissionMultiplier.value);
-            }
-            s_PbrSkyMaterialProperties.SetInt(HDShaderIDs._HasSpaceEmissionTexture, hasSpaceEmissionTexture);
-
-            s_PbrSkyMaterialProperties.SetInt(HDShaderIDs._RenderSunDisk, renderSunDisk ? 1 : 0);
-
-            int pass = (renderForCubemap ? 0 : 2);
-
-            CoreUtils.DrawFullScreen(builtinParams.commandBuffer, m_PbrSkyMaterial, s_PbrSkyMaterialProperties, pass);
+            int pass = (renderForCubemap ? 0 : 1);
+            CoreUtils.DrawFullScreen(builtinParams.commandBuffer, material, s_PbrSkyMaterialProperties, pass);
         }
     }
 }

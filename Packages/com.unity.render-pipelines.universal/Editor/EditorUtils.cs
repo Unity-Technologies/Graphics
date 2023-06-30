@@ -39,6 +39,17 @@ namespace UnityEditor.Rendering.Universal
             });
         }
 
+        internal static void QualitySettingsHelpBox(string message, MessageType type, string propertyPath)
+        {
+            CoreEditorUtils.DrawFixMeBox(message, type, "Open", () =>
+            {
+                Selection.activeObject = UniversalRenderPipeline.asset;
+
+                CoreEditorUtils.Highlight("Inspector", propertyPath, HighlightSearchMode.Identifier);
+                GUIUtility.ExitGUI();
+            });
+        }
+
         internal static void DrawRenderingLayerMask(SerializedProperty property, GUIContent style)
         {
             Rect controlRect = EditorGUILayout.GetControlRect(true);

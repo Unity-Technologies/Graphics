@@ -17,16 +17,9 @@ namespace UnityEditor.Rendering
     {
         const string k_VendorKey = "unity.srp";
 
-        internal static bool TryRegisterEvent(string eventName, int version = 1, int maxEventPerHour = 100, int maxNumberOfElements = 1000)
+        internal static void SendData(IAnalytic analytic)
         {
-             if (!EditorAnalytics.enabled) return false;
-             if (EditorAnalytics.RegisterEventWithLimit(eventName, maxEventPerHour, maxNumberOfElements, k_VendorKey, version) != AnalyticsResult.Ok) return false;
-             return true;
-        }
-
-        internal static void SendData<T>(T data, string eventName, int version)
-        {
-             EditorAnalytics.SendEventWithLimit(eventName, data, version);
+             EditorAnalytics.SendAnalytic(analytic);
         }
 
         internal static IEnumerable<FieldInfo> GetSerializableFields(this Type type, bool removeObsolete = false)

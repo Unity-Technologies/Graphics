@@ -205,7 +205,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 shadingAtlas   = LineRendering.Instance.GetShadingAtlas(renderGraph, hdCamera.camera),
                 viewport       = new Vector2(hdCamera.actualWidth, hdCamera.actualHeight),
                 matrixIVP      = hdCamera.mainViewConstants.nonJitteredViewProjMatrix.inverse,
-                targets        = targets
+                targets        = targets,
+                viewCount = hdCamera.viewCount
             });
 
             PushFullScreenDebugTexture(renderGraph, m_LineColorBuffer, FullScreenDebugMode.HighQualityLines);

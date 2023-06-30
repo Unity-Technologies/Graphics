@@ -189,6 +189,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// Note that except for special cases where you want to refer to a specific version return value is generally discarded.</returns>
         TextureHandle UseTextureFragment(TextureHandle tex, int index, AccessFlags flags = AccessFlags.Write);
 
+        TextureHandle UseTextureFragmentInput(TextureHandle tex, int index, AccessFlags flags = AccessFlags.Read);
+
         /// <summary>
         /// Use the texture as a depth buffer for the Z-Buffer hardware.  Note you can only test-against and write-to a single depth texture in a pass.
         /// If you want to write depth to more than one texture you will need to register the second texture as WriteTextureFragment and manually calculate

@@ -328,6 +328,7 @@ MonoBehaviour:
       type: 3}
     waterExclusionMaterial: {fileID: 2100000, guid: 1e520c84f7fd17c46af5586f6632155c,
       type: 2}
+    pbrSkyMaterial: {fileID: -876546973899608171, guid: 02532cbb810fb404db49da84f1efe41e, type: 3}
     areaLightMaterial: {fileID: 2100000, guid: ef5f65c980e25304098a95e28f3bd20b, type: 2}
     areaLightCookieMaterial: {fileID: 2100000, guid: 78c6825c5d9c3664f9879ae8609618c7,
       type: 2}

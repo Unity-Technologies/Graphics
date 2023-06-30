@@ -217,6 +217,7 @@ namespace UnityEditor.Rendering
         {
             ClearEditors();
             Undo.undoRedoPerformed -= OnUndoRedoPerformed;
+            asset = null;
         }
 
         bool MatchesSearchString(string title)
@@ -548,6 +549,14 @@ namespace UnityEditor.Rendering
         void SetComponentEditorsExpanded(bool expanded)
         {
             VolumeProfileUtils.SetComponentEditorsExpanded(m_Editors, expanded);
+        }
+
+        internal void ResetAllComponents()
+        {
+            var components = new List<VolumeComponent>();
+            foreach (var editor in m_Editors)
+                components.Add(editor.volumeComponent);
+            ResetComponents(components.ToArray());
         }
 
         void ResetComponents(VolumeComponent[] components)

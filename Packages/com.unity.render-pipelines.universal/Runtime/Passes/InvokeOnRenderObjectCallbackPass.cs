@@ -31,13 +31,13 @@ namespace UnityEngine.Rendering.Universal
 
         internal void Render(RenderGraph renderGraph, TextureHandle colorTarget, TextureHandle depthTarget, ref RenderingData renderingData)
         {
-            using (var builder = renderGraph.AddRasterRenderPass<PassData>("OnRenderObject Callback Pass", out var passData,
+            using (var builder = renderGraph.AddLowLevelPass<PassData>("OnRenderObject Callback Pass", out var passData,
                 base.profilingSampler))
             {
-                passData.colorTarget = builder.UseTextureFragment(colorTarget, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
-                passData.depthTarget = builder.UseTextureFragmentDepth(depthTarget, IBaseRenderGraphBuilder.AccessFlags.Write);
+                passData.colorTarget = builder.UseTexture(colorTarget, IBaseRenderGraphBuilder.AccessFlags.Write);
+                passData.depthTarget = builder.UseTexture(depthTarget, IBaseRenderGraphBuilder.AccessFlags.Write);
                 builder.AllowPassCulling(false);
-                builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
+                builder.SetRenderFunc((PassData data, LowLevelGraphContext context) =>
                 {
                     context.cmd.InvokeOnRenderObjectCallbacks();
                 });

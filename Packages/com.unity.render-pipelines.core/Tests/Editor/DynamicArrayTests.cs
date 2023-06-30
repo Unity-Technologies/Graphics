@@ -290,6 +290,64 @@ namespace UnityEngine.Rendering.Tests
         }
 
         [Test]
+        public void TestResizeAndClear()
+        {
+            // Uses the capacity only allocator
+            m_DynamicArray = new DynamicArray<int>(64, false);
+
+            Assert.AreEqual(0, m_DynamicArray.size);
+            Assert.AreEqual(64, m_DynamicArray.capacity);
+
+            // First resize it to 32 elements
+            m_DynamicArray.Resize(32, false);
+            Assert.AreEqual(32, m_DynamicArray.size);
+            m_DynamicArray[31] = 0xFFFF;
+
+            // Resize it back to 0 elements
+            m_DynamicArray.Resize(0);
+            Assert.AreEqual(0, m_DynamicArray.size);
+
+            // Resize it back to 32 elements, the memory should not have been reallocated
+            // it also shouln't have been cleared (for peformance reasons)
+            m_DynamicArray.Resize(32);
+            Assert.AreEqual(32, m_DynamicArray.size);
+            Assert.AreEqual(0xFFFF, m_DynamicArray[31]);
+
+            // Resize it back to 0 elements
+            m_DynamicArray.Resize(0);
+            Assert.AreEqual(0, m_DynamicArray.size);
+
+            // Resize it back to 32 elements, the memory should not have been reallocated
+            // the memory should have been cleared, resize and clear was used
+            m_DynamicArray.ResizeAndClear(32);
+            Assert.AreEqual(32, m_DynamicArray.size);
+            Assert.AreEqual(0, m_DynamicArray[31]);
+        }
+
+        [Test]
+        public void TestDynamicString()
+        {
+            var ds = new DynamicString("Foo");
+
+            ds.Append("Bar");
+            ds.Append(new DynamicString("Baz"));
+
+            var s = ds.ToString();
+            Assert.AreEqual("FooBarBaz", s);
+        }
+
+        [Test]
+        public void TestAppendSelf()
+        {
+            var ds = new DynamicString("Foo");
+
+            ds.Append(ds);
+
+            var s = ds.ToString();
+            Assert.AreEqual("FooFoo", s);
+        }
+
+        [Test]
         public void TestQuickSort()
         {
             m_DynamicArray.Add(8);

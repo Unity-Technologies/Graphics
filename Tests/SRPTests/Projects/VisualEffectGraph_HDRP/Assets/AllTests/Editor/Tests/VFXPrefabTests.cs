@@ -14,57 +14,45 @@ using UnityEngine.TestTools;
 namespace UnityEditor.VFX.Test
 {
     [TestFixture]
-    public class VisualEffectPrefabTest : VFXPlayModeTest
+    public class VisualEffectPrefabTest
     {
-        GameObject m_mainCamera;
-        List<string> m_assetToDelete = new List<string>();
-        List<GameObject> m_gameObjectToDelete = new List<GameObject>();
+        List<GameObject> m_gameObjectToDelete = new ();
+        private bool m_OriginalPlayModeOptionEnabled;
+        private EnterPlayModeOptions m_OriginalPlayModeOption;
 
         [OneTimeSetUp]
         public void Init()
         {
-            m_mainCamera = new GameObject();
-            var camera = m_mainCamera.AddComponent<Camera>();
+            var mainCamera = new GameObject();
+            mainCamera.tag = "MainCamera";
+            var camera = mainCamera.AddComponent<Camera>();
             camera.transform.localPosition = Vector3.one;
-            camera.transform.LookAt(m_mainCamera.transform);
+            camera.transform.LookAt(mainCamera.transform);
+
+            m_OriginalPlayModeOptionEnabled = EditorSettings.enterPlayModeOptionsEnabled;
+            m_OriginalPlayModeOption = EditorSettings.enterPlayModeOptions;
+            EditorSettings.enterPlayModeOptions = EnterPlayModeOptions.DisableDomainReload;
+            EditorSettings.enterPlayModeOptionsEnabled = true;
         }
 
         [OneTimeTearDown]
         public void CleanUp()
         {
+            VFXTestCommon.DeleteAllTemporaryGraph();
+            EditorSettings.enterPlayModeOptions = m_OriginalPlayModeOption;
+            EditorSettings.enterPlayModeOptionsEnabled = m_OriginalPlayModeOptionEnabled;
+
             foreach (var gameObject in m_gameObjectToDelete)
             {
-                try
-                {
-                    UnityEngine.Object.DestroyImmediate(gameObject, true);
-                }
-                catch (System.Exception)
-                {
-                }
+                UnityEngine.Object.DestroyImmediate(gameObject, true);
             }
-
-            foreach (var assetPath in m_assetToDelete)
-            {
-                try
-                {
-                    AssetDatabase.DeleteAsset(assetPath);
-                }
-                catch (System.Exception)
-                {
-                }
-            }
-
-            VFXTestCommon.DeleteAllTemporaryGraph();
         }
 
         static readonly string k_tempFileFormat = VFXTestCommon.tempBasePath + "vfx_prefab_{0}.{1}";
-        static int m_TempFileCounter = 0;
 
         string MakeTempFilePath(string extension)
         {
-            m_TempFileCounter++;
-            var tempFilePath = string.Format(k_tempFileFormat, m_TempFileCounter, extension);
-            m_assetToDelete.Add(tempFilePath);
+            var tempFilePath = string.Format(k_tempFileFormat, Guid.NewGuid(), extension);
             return tempFilePath;
         }
 
@@ -476,7 +464,7 @@ namespace UnityEditor.VFX.Test
 
             m_Prefab_CreatePrefab_And_Disable_Root_Then_Modify_Exposed_Finally_Renable = prefabInstanceObject;
 
-            yield return new EnterPlayMode();
+            yield return new EnterPlayMode(false);
 
             var exposedExpectedValue = 43000u;
             var exposedName = m_Exposed_name_CreatePrefab_And_Disable_Root_Then_Modify_Exposed_Finally_Renable;

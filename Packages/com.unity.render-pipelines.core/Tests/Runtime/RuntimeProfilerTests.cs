@@ -55,7 +55,7 @@ namespace UnityEngine.Rendering.Tests
         }
     }
 
-    [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.LinuxPlayer, RuntimePlatform.LinuxEditor })] // Disabled on Linux (case 1370861)
+    [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.LinuxPlayer, RuntimePlatform.LinuxEditor, RuntimePlatform.PS5 })] // Disabled on Linux (case 1370861), disabled on PS5 (for NGGC only, UUM-40909) 
     class RuntimeProfilerTests : RuntimeProfilerTestBase
     {
         [UnityTest]
@@ -68,7 +68,15 @@ namespace UnityEngine.Rendering.Tests
             for (int i = 0; i < k_NumFramesToRender; i++)
             {
                 m_DebugFrameTiming.UpdateFrameTiming();
-                camera.Render();
+
+                var rr = new UnityEngine.Rendering.RenderPipeline.StandardRequest();
+                rr.destination = RenderTexture.GetTemporary(128, 128, 24, UnityEngine.Experimental.Rendering.GraphicsFormat.R8G8B8A8_SRGB);
+                rr.mipLevel = 0;
+                rr.slice = 0;
+                rr.face = CubemapFace.Unknown;
+                UnityEngine.Rendering.RenderPipeline.SubmitRenderRequest(camera, rr);
+                RenderTexture.ReleaseTemporary(rr.destination);
+
                 yield return null;
             }
 

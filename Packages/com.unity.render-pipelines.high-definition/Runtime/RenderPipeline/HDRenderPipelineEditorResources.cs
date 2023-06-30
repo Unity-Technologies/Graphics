@@ -47,6 +47,8 @@ namespace UnityEngine.Rendering.HighDefinition
         [Serializable, ReloadGroup]
         public sealed class TextureResources
         {
+            [Reload("Runtime/RenderPipelineResources/Texture/MoonAlbedo.png")]
+            public Texture moonAlbedo;
         }
 
         [Serializable, ReloadGroup]

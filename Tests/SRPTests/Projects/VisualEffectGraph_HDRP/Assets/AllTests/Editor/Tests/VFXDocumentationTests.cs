@@ -1,13 +1,10 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Net;
 using System.Text;
 using NUnit.Framework;
 
-using UnityEditor;
-using UnityEditor.VFX;
-
-namespace AllTests.Editor.Tests
+namespace UnityEditor.VFX.Test
 {
     [TestFixture]
     public class VFXDocumentationTests

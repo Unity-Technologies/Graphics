@@ -19,7 +19,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             return structs;
         }
 
-        public static PragmaCollection GeneratePragmas(PragmaCollection input, bool useVFX, bool useTessellation, bool useDebugSymbols = false)
+        public static PragmaCollection GeneratePragmas(PragmaCollection input, bool useVFX, bool useTessellation, bool useDebugSymbols = false, bool useInstancing = true)
         {
             PragmaCollection pragmas = input == null ? new PragmaCollection() : new PragmaCollection { input };
 
@@ -30,6 +30,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             if (useDebugSymbols && Unsupported.IsDeveloperMode())
                 pragmas.Add(Pragma.DebugSymbols);
+            
+            if (useInstancing)
+                pragmas.Add(Pragma.MultiCompileInstancing);
 
             return pragmas;
         }
@@ -112,7 +115,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         #region Scene Picking Pass
 
-        public static PassDescriptor GenerateScenePicking(bool useVFX, bool useTessellation)
+        public static PassDescriptor GenerateScenePicking(bool supportLighting, bool useVFX, bool useTessellation)
         {
             return new PassDescriptor
             {
@@ -128,7 +131,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 renderStates = CoreRenderStates.ScenePicking,
                 pragmas = GeneratePragmas(CorePragmas.DotsInstancedEditorSync, useVFX, useTessellation),
                 defines = GenerateDefines(CoreDefines.ScenePicking, useVFX, useTessellation),
-                includes = GenerateIncludes(),
+                includes = GenerateIncludes(supportLighting),
                 customInterpolators = CoreCustomInterpolators.Common,
             };
 
@@ -142,14 +145,18 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 return fieldCollection;
             }
 
-            IncludeCollection GenerateIncludes()
+            IncludeCollection GenerateIncludes(bool supportLighting)
             {
                 var includes = new IncludeCollection();
 
                 includes.Add(CoreIncludes.kPickingSpaceTransforms, IncludeLocation.Pregraph);
                 includes.Add(CoreIncludes.CorePregraph);
+                if (supportLighting)
+                    includes.Add(CoreIncludes.kNormalSurfaceGradient, IncludeLocation.Pregraph);
                 includes.Add(CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph);
                 includes.Add(CoreIncludes.CoreUtility);
+                if (supportLighting)
+                    includes.Add(CoreIncludes.kDecalUtilities, IncludeLocation.Pregraph);
                 includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
                 includes.Add(CoreIncludes.kPassDepthOnly, IncludeLocation.Postgraph);
 
@@ -1259,6 +1266,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     includes.Add(CoreIncludes.kLightLoopDef, IncludeLocation.Pregraph);
                     // Ensure to include ray tracing light cluster
                     includes.Add(CoreIncludes.kRaytracingLightCluster, IncludeLocation.Pregraph);
+                    includes.Add(CoreIncludes.kNormalSurfaceGradient, IncludeLocation.Pregraph);
                 }
 
 
@@ -1404,7 +1412,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             public static DefineCollection raytracingDefault = new DefineCollection { { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 } };
             public static DefineCollection raytracingRaytraced = new DefineCollection { { RayTracingQualityNode.GetRayTracingQualityKeyword(), 1 } };
 
-            // Path tracing specific defines 
+            // Path tracing specific defines
             public static DefineCollection pathtracingDisableLightCluster = new DefineCollection { { CoreKeywordDescriptors.DisableLightloopTileAndCluster, 1 }, { CoreKeywordDescriptors.PathTracingclusteredDecals, 1 } };
         }
 

@@ -26,7 +26,7 @@ namespace UnityEngine.Rendering
 
         /// <summary>
         /// Sets the constant values required by the FSR EASU shader on the provided command buffer
-        ///
+        /// 
         /// Logic ported from "FsrEasuCon()" in Runtime/PostProcessing/Shaders/ffx/ffx_fsr1.hlsl
         /// </summary>
         /// <param name="cmd">Command buffer to modify</param>
@@ -87,6 +87,15 @@ namespace UnityEngine.Rendering
             cmd.SetGlobalVector(ShaderConstants._FsrEasuConstants3, constants3);
         }
 
+        /// <summary>
+        /// Sets the constant values required by the FSR EASU shader on the provided command buffer
+        /// 
+        /// Logic ported from "FsrEasuCon()" in Runtime/PostProcessing/Shaders/ffx/ffx_fsr1.hlsl
+        /// </summary>
+        /// <param name="cmd">RasterCommandBuffer/ComputeCommandBuffer/LowlevelCommandBuffer to modify</param>
+        /// <param name="inputViewportSizeInPixels">This the rendered image resolution being upscaled</param>
+        /// <param name="inputImageSizeInPixels">This is the resolution of the resource containing the input image (useful for dynamic resolution)</param>
+        /// <param name="outputImageSizeInPixels">This is the display resolution which the input image gets upscaled to</param>
         public static void SetEasuConstants(BaseCommandBuffer cmd, Vector2 inputViewportSizeInPixels,
             Vector2 inputImageSizeInPixels, Vector2 outputImageSizeInPixels)
         {
@@ -156,6 +165,14 @@ namespace UnityEngine.Rendering
             SetRcasConstants(cmd, sharpnessStops);
         }
 
+        /// <summary>
+        /// Sets the constant values required by the FSR RCAS shader on the provided command buffer
+        ///
+        /// Equivalent to SetRcasConstants(), but handles the sharpness parameter as a linear value instead of one specified in stops.
+        /// This is intended to simplify code that allows users to configure the sharpening behavior from a GUI.
+        /// </summary>
+        /// <param name="cmd">RasterCommandBuffer to modify</param>
+        /// <param name="sharpnessLinear">The level of intensity of the sharpening filter where 0.0 is the least sharp and 1.0 is the most sharp</param>
         public static void SetRcasConstantsLinear(RasterCommandBuffer cmd, float sharpnessLinear = kDefaultSharpnessLinear)
         {
             SetRcasConstantsLinear(cmd.m_WrappedCommandBuffer, sharpnessLinear);

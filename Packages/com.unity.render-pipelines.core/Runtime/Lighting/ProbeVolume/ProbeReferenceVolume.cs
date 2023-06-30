@@ -667,10 +667,12 @@ namespace UnityEngine.Rendering
         bool m_NeedLoadAsset = false;
         bool m_ProbeReferenceVolumeInit = false;
         bool m_EnabledBySRP = false;
+        bool m_VertexSampling = false;
 
         /// <summary>Is Probe Volume initialized.</summary>
         public bool isInitialized => m_ProbeReferenceVolumeInit;
         internal bool enabledBySRP => m_EnabledBySRP;
+        internal bool vertexSampling => m_VertexSampling;
 
         internal bool hasUnloadedCells => m_ToBeLoadedCells.size != 0;
 
@@ -904,6 +906,15 @@ namespace UnityEngine.Rendering
         public void SetEnableStateFromSRP(bool srpEnablesPV)
         {
             m_EnabledBySRP = srpEnablesPV;
+        }
+
+        /// <summary>
+        /// Communicate to the Probe Volume system whether the SRP uses per vertex sampling
+        /// </summary>
+        /// <param name="value">True for vertex sampling, false for pixel sampling</param>
+        public void SetVertexSamplingEnabled(bool value)
+        {
+            m_VertexSampling = value;
         }
 
         // This is used for steps such as dilation that require the maximum order allowed to be loaded at all times. Should really never be used as a general purpose function.

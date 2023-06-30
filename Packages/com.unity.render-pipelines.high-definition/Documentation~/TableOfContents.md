@@ -6,6 +6,7 @@
   * [12 / Unity 2021.2](whats-new-12.md)
   * [13 / Unity 2022.1](whats-new-13.md)
   * [14 / Unity 2022.2](whats-new-14.md)
+  * [15 / Unity 2023.1](whats-new-15.md)
 * Features
   * [Features List](HDRP-Features.md)
   * [Comparison with the Built-in Render Pipeline](Feature-Comparison.md)

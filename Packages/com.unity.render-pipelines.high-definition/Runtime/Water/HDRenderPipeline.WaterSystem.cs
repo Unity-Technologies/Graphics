@@ -266,7 +266,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._SurfaceIndex = surfaceIndex & 0xF;
 
             cb._ScatteringColorTips = currentWater.scatteringColor; /*alpha is unsused*/
-            cb._DeltaTime = currentWater.simulation.deltaTime;
+            cb._DeltaTime = currentWater.timeMultiplier == 0.0f ? 1.0f : currentWater.simulation.deltaTime; // This is set to 1 when time is disabled to see the foam generators
 
             cb._MaxRefractionDistance = Mathf.Min(currentWater.absorptionDistance, currentWater.maxRefractionDistance);
 

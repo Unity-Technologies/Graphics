@@ -184,7 +184,7 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
-        protected VolumeParameter(T value, bool overrideState)
+        protected VolumeParameter(T value, bool overrideState = false)
         {
             m_Value = value;
             this.overrideState = overrideState;
@@ -323,15 +323,21 @@ namespace UnityEngine.Rendering
         public static explicit operator T(VolumeParameter<T> prop) => prop.m_Value;
     }
 
-    //
-    // The serialization system in Unity can't serialize generic types, the workaround is to extend
-    // and flatten pre-defined generic types.
-    // For enums it's recommended to make your own types on the spot, like so:
-    //
-    //  [Serializable]
-    //  public sealed class MyEnumParameter : VolumeParameter<MyEnum> { }
-    //  public enum MyEnum { One, Two }
-    //
+    /// <summary>
+    /// Generic Enum volume parameter.
+    /// </summary>
+    /// <typeparam name="T">The type of value to hold in this parameter.</typeparam>
+    [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
+    public sealed class EnumParameter<T> : VolumeParameter<T>
+    {
+        /// <summary>
+        /// Creates a new <see cref="EnumParameter"/> instance.
+        /// </summary>
+        /// <param name="value">The initial value to store in the parameter.</param>
+        /// <param name="overrideState">The initial override state for the parameter.</param>
+        public EnumParameter(T value, bool overrideState = false)
+            : base(value, overrideState) { }
+    }
 
     /// <summary>
     /// A <see cref="VolumeParameter"/> that holds a <c>bool</c> value.
@@ -1879,7 +1885,7 @@ namespace UnityEngine.Rendering
     }
 
     /// <summary>
-    /// A <see cref="VolumeParameter"/> that holds a <c>bool</c> value.
+    /// A <see cref="VolumeParameter"/> that holds a  <see cref="Material"/> value.
     /// </summary>
     [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
     public class MaterialParameter : VolumeParameter<Material>

@@ -258,11 +258,7 @@
     #ifdef UNITY_FORCE_MAX_INSTANCE_COUNT
         #define UNITY_INSTANCED_ARRAY_SIZE  UNITY_FORCE_MAX_INSTANCE_COUNT
     #elif defined(UNITY_INSTANCING_SUPPORT_FLEXIBLE_ARRAY_SIZE)
-        #ifdef UNITY_DOTS_INSTANCING_ENABLED
-            #define UNITY_INSTANCED_ARRAY_SIZE  4 // in BRG, minimal indexed size is 4 ( because of encoding some data in the first 4 elements )
-        #else
-            #define UNITY_INSTANCED_ARRAY_SIZE  2 // minimum array size that ensures dynamic indexing
-        #endif
+        #define UNITY_INSTANCED_ARRAY_SIZE  2 // minimum array size that ensures dynamic indexing
     #elif defined(UNITY_MAX_INSTANCE_COUNT)
         #define UNITY_INSTANCED_ARRAY_SIZE  UNITY_MAX_INSTANCE_COUNT
     #else

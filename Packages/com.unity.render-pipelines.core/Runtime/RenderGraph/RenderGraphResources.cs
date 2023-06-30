@@ -33,7 +33,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public int index { get { return (int)(m_Value & kIndexMask); } }
         public RenderGraphResourceType type { get; private set; }
         public int iType { get { return (int)type; } }
-        public int version { get { return m_Version; } }
+        public int version { get { return m_Version; } set { m_Version = value; } }
 
         internal ResourceHandle(int value, RenderGraphResourceType type, bool shared)
         {

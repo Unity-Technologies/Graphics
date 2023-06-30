@@ -59,6 +59,7 @@ Material:
     m_Floats:
     - _AlphaDstBlend: 10
     - _DstBlend: 10
+    - _DstBlend2: 10
     - _StencilRefDepth: 0
     - _StencilRefGBuffer: 2
     - _StencilRefMV: 32

@@ -40,6 +40,7 @@ MonoBehaviour:
     - {fileID: 102900000, guid: 80273b12646e091409e2665bd76196ff, type: 3}
     - {fileID: 102900000, guid: 02397f4078a0d654d8441ef84f750cc5, type: 3}
     - {fileID: 102900000, guid: 4ebed9008822d1949be7a2e7aeaf6a5f, type: 3}
+    - {fileID: 102900000, guid: 2d49cf94a5ddb124e8a71bf71a029192, type: 3}
     ColorSpace: -1
     BuildPlatform: 44
     GraphicsDevice: 4
@@ -74,6 +75,7 @@ MonoBehaviour:
     - {fileID: 102900000, guid: 9a47aa07fa8a82341a976363fec6b1d2, type: 3}
     - {fileID: 102900000, guid: 0aa69ee950a3fa049b5220e96247f794, type: 3}
     - {fileID: 102900000, guid: 4ebed9008822d1949be7a2e7aeaf6a5f, type: 3}
+    - {fileID: 102900000, guid: 2d49cf94a5ddb124e8a71bf71a029192, type: 3}
     ColorSpace: -1
     BuildPlatform: 42
     GraphicsDevice: 4

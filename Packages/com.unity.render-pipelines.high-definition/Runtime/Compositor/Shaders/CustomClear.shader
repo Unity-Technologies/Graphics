@@ -71,6 +71,7 @@ Shader "Hidden/HDRP/CustomClear"
         Pass
         {
             ZWrite Off ZTest Always Blend Off Cull Off
+            Name "ClearColorAndStencil"
             Stencil
             {
                 WriteMask 255
@@ -89,6 +90,7 @@ Shader "Hidden/HDRP/CustomClear"
         Pass
         {
             ZWrite Off ZTest Always Blend Off Cull Off
+            Name "DrawTextureAndClearStencil"
             Stencil
             {
                 WriteMask 255

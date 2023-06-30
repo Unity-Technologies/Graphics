@@ -333,9 +333,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _TaauParameters = Shader.PropertyToID("_TaauParameters");
         public static readonly int _TaaScales = Shader.PropertyToID("_TaaScales");
 
-        public static readonly int _WorldSpaceCameraPos1 = Shader.PropertyToID("_WorldSpaceCameraPos1");
-        public static readonly int _ViewMatrix1 = Shader.PropertyToID("_ViewMatrix1");
-
+        public static readonly int _PBRSkyCameraPosPS = Shader.PropertyToID("_PBRSkyCameraPosPS");
         public static readonly int _ColorTexture = Shader.PropertyToID("_ColorTexture");
         public static readonly int _DepthTexture = Shader.PropertyToID("_DepthTexture");
         public static readonly int _DepthValuesTexture = Shader.PropertyToID("_DepthValuesTexture");
@@ -494,6 +492,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _BlitTextureSize = Shader.PropertyToID("_BlitTextureSize");
         public static readonly int _BlitPaddingSize = Shader.PropertyToID("_BlitPaddingSize");
         public static readonly int _BlitTexArraySlice = Shader.PropertyToID("_BlitTexArraySlice");
+        public static readonly int _FlipY = Shader.PropertyToID("_FlipY");
 
         public static readonly int _CameraDepthTexture = Shader.PropertyToID("_CameraDepthTexture");
         public static readonly int _CameraMotionVectorsTexture = Shader.PropertyToID("_CameraMotionVectorsTexture");

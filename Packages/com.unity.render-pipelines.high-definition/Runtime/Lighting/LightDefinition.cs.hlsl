@@ -91,13 +91,18 @@ struct DirectionalLightData
     float isRayTracedContactShadow;
     float distanceFromCamera;
     float angularDiameter;
+    float skyAngularDiameter;
     float flareFalloff;
     float flareCosInner;
     float flareCosOuter;
-    float __unused__;
     float3 flareTint;
     float flareSize;
     float3 surfaceTint;
+    int bodyType;
+    float2 phaseSinCos;
+    float2 phaseAngleSinCos;
+    float3 padding;
+    float earthshine;
     float4 surfaceTextureScaleOffset;
 };
 

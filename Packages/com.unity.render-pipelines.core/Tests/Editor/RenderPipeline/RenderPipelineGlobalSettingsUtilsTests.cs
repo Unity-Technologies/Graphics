@@ -4,6 +4,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering
 {
+    [TestFixture]
     public class RenderPipelineGlobalSettingsTests
     {
         [TearDown]
@@ -15,35 +16,6 @@ namespace UnityEditor.Rendering
             }
 
             EditorGraphicsSettings.SetRenderPipelineGlobalSettingsAsset<DummyRenderPipeline>(null);
-        }
-
-        public class DummyRenderPipelineAsset : RenderPipelineAsset<DummyRenderPipeline>
-        {
-            protected override RenderPipeline CreatePipeline()
-            {
-                throw new System.NotImplementedException();
-            }
-        }
-
-        public class DummyRenderPipeline : RenderPipeline
-        {
-            protected override void Render(ScriptableRenderContext context, Camera[] cameras)
-            {
-                throw new System.NotImplementedException();
-            }
-        }
-
-        [SupportedOnRenderPipeline(typeof(DummyRenderPipelineAsset))]
-        public class DummyRenderPipelineGlobalSettings : RenderPipelineGlobalSettings<DummyRenderPipelineGlobalSettings, DummyRenderPipeline>
-        {
-            internal static string defaultPath => "Assets/Tests/DummyRenderPipelineGlobalSettings.asset";
-
-            public bool initializedCalled = false;
-
-            public override void Initialize(RenderPipelineGlobalSettings source = null)
-            {
-                initializedCalled = true;
-            }
         }
 
         static TestCaseData[] s_TestsCaseDatas =
@@ -82,8 +54,8 @@ namespace UnityEditor.Rendering
             }
 
             DummyRenderPipelineGlobalSettings instanceEnsured = null;
-            bool ensureResult = RenderPipelineGlobalSettingsUtils.
-                TryEnsure<DummyRenderPipelineGlobalSettings, DummyRenderPipeline>(ref instanceEnsured, path, canCreateNewAsset, out var _);
+            var ensureResult = RenderPipelineGlobalSettingsUtils.
+                TryEnsure<DummyRenderPipelineGlobalSettings, DummyRenderPipeline>(ref instanceEnsured, path, canCreateNewAsset, out _);
 
             switch (assetState)
             {
@@ -98,27 +70,25 @@ namespace UnityEditor.Rendering
                     break;
             }
 
-            if (instanceEnsured != null)
-            {
-                var instanceInGraphics = GraphicsSettings.GetSettingsForRenderPipeline<DummyRenderPipeline>();
-                Assert.AreEqual(instanceInGraphics.GetInstanceID(), instanceEnsured.GetInstanceID());
-                return AssetDatabase.GetAssetPath(instanceEnsured);
-            }
+            if (instanceEnsured == null) return string.Empty;
 
-            return string.Empty;
+            var instanceInGraphics = GraphicsSettings.GetSettingsForRenderPipeline<DummyRenderPipeline>();
+            Assert.AreEqual(instanceInGraphics.GetInstanceID(), instanceEnsured.GetInstanceID());
+            return AssetDatabase.GetAssetPath(instanceEnsured);
+
         }
 
         [Test]
         public void EnsureWithAValidInstanceReturnsTheCurrentInstance()
         {
-            string path = "Assets/Tests/DummyRenderPipelineGlobalSettings.asset";
+            var path = "Assets/Tests/DummyRenderPipelineGlobalSettings.asset";
             var instanceEnsured = RenderPipelineGlobalSettingsUtils.Create<DummyRenderPipelineGlobalSettings>(path);
             Assert.IsNotNull(instanceEnsured);
             Assert.AreEqual(path, AssetDatabase.GetAssetPath(instanceEnsured));
 
-            int instanceIDExpected = instanceEnsured.GetInstanceID();
-            bool ensureResult = RenderPipelineGlobalSettingsUtils.
-                TryEnsure<DummyRenderPipelineGlobalSettings, DummyRenderPipeline>(ref instanceEnsured, DummyRenderPipelineGlobalSettings.defaultPath, true, out var _);
+            var instanceIDExpected = instanceEnsured.GetInstanceID();
+            var ensureResult = RenderPipelineGlobalSettingsUtils.
+                TryEnsure<DummyRenderPipelineGlobalSettings, DummyRenderPipeline>(ref instanceEnsured, DummyRenderPipelineGlobalSettings.defaultPath, true, out _);
 
             Assert.IsTrue(ensureResult);
             Assert.IsNotNull(instanceEnsured);

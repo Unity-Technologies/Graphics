@@ -295,9 +295,10 @@ namespace UnityEngine.Rendering
         /// <param name="component">VolumeComponent that has changed.</param>
         public void OnVolumeComponentChanged(VolumeComponent component)
         {
-            var defaultProfiles = customDefaultProfiles.ToList()
-                .Prepend(qualityDefaultProfile)
-                .Prepend(globalDefaultProfile);
+            var defaultProfiles = new List<VolumeProfile> { globalDefaultProfile, globalDefaultProfile };
+            if (customDefaultProfiles != null)
+                defaultProfiles.AddRange(customDefaultProfiles);
+
             foreach (var defaultProfile in defaultProfiles)
             {
                 if (defaultProfile.components.Contains(component))
@@ -390,6 +391,9 @@ namespace UnityEngine.Rendering
         // Evaluate static default values for VolumeComponents, which is the baseline to reset the values to at the start of Update.
         internal void EvaluateVolumeDefaultState()
         {
+            if (!isInitialized)
+                return;
+
             using var profilerScope = k_ProfilerMarkerEvaluateVolumeDefaultState.Auto();
 
             // TODO consider if the "component default values" array should be kept in memory separately. Creating the

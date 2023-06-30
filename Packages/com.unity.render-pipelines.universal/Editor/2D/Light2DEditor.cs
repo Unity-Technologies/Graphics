@@ -299,11 +299,8 @@ namespace UnityEditor.Rendering.Universal
 
         internal void SendModifiedAnalytics(Analytics.Renderer2DAnalytics analytics, Light2D light)
         {
-            Analytics.Light2DData lightData = new Analytics.Light2DData();
-            lightData.was_create_event = false;
-            lightData.instance_id = light.GetInstanceID();
-            lightData.light_type = light.lightType;
-            Analytics.Renderer2DAnalytics.instance.SendData(Analytics.AnalyticsDataTypes.k_LightDataString, lightData);
+            Analytics.LightDataAnalytic lightData = new Analytics.LightDataAnalytic(light.GetInstanceID(), false, light.lightType);
+            Analytics.Renderer2DAnalytics.instance.SendData(lightData);
         }
 
         void OnDestroy()

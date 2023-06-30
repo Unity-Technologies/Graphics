@@ -58,7 +58,7 @@ MonoBehaviour:
     path: 
     tooltip: 
     space: 0
-    spaceable: 0
+    spaceable: 1
     sheetType: 
     realType: TSphere
     defaultValue:
@@ -72,7 +72,7 @@ MonoBehaviour:
   - name: transform
     path: Sphere_Outer_transform
     tooltip: Sets the transform of the sphere.
-    space: 0
+    space: -1
     spaceable: 0
     sheetType: 
     realType: Transform
@@ -87,7 +87,7 @@ MonoBehaviour:
   - name: position
     path: Sphere_Outer_transform_position
     tooltip: Sets the transform position.
-    space: 0
+    space: -1
     spaceable: 0
     sheetType: m_Vector3f
     realType: Vector3
@@ -103,7 +103,7 @@ MonoBehaviour:
   - name: angles
     path: Sphere_Outer_transform_angles
     tooltip: Sets the euler angles of the transform.
-    space: 0
+    space: -1
     spaceable: 0
     sheetType: m_Vector3f
     realType: Vector3
@@ -119,7 +119,7 @@ MonoBehaviour:
   - name: scale
     path: Sphere_Outer_transform_scale
     tooltip: Sets the scale of the transform along each axis.
-    space: 0
+    space: -1
     spaceable: 0
     sheetType: m_Vector3f
     realType: Vector3
@@ -135,7 +135,7 @@ MonoBehaviour:
   - name: radius
     path: Sphere_Outer_radius
     tooltip: Sets the radius of the sphere.
-    space: 0
+    space: -1
     spaceable: 0
     sheetType: m_Float
     realType: Single
@@ -152,7 +152,7 @@ MonoBehaviour:
     path: 
     tooltip: 
     space: 0
-    spaceable: 0
+    spaceable: 1
     sheetType: 
     realType: TSphere
     defaultValue:
@@ -166,7 +166,7 @@ MonoBehaviour:
   - name: transform
     path: Sphere_Inner_transform
     tooltip: Sets the transform of the sphere.
-    space: 0
+    space: -1
     spaceable: 0
     sheetType: 
     realType: Transform
@@ -181,7 +181,7 @@ MonoBehaviour:
   - name: position
     path: Sphere_Inner_transform_position
     tooltip: Sets the transform position.
-    space: 0
+    space: -1
     spaceable: 0
     sheetType: m_Vector3f
     realType: Vector3
@@ -197,7 +197,7 @@ MonoBehaviour:
   - name: angles
     path: Sphere_Inner_transform_angles
     tooltip: Sets the euler angles of the transform.
-    space: 0
+    space: -1
     spaceable: 0
     sheetType: m_Vector3f
     realType: Vector3
@@ -213,7 +213,7 @@ MonoBehaviour:
   - name: scale
     path: Sphere_Inner_transform_scale
     tooltip: Sets the scale of the transform along each axis.
-    space: 0
+    space: -1
     spaceable: 0
     sheetType: m_Vector3f
     realType: Vector3
@@ -229,7 +229,7 @@ MonoBehaviour:
   - name: radius
     path: Sphere_Inner_radius
     tooltip: Sets the radius of the sphere.
-    space: 0
+    space: -1
     spaceable: 0
     sheetType: m_Float
     realType: Single
@@ -245,7 +245,7 @@ MonoBehaviour:
   - name: Size
     path: Size
     tooltip: 
-    space: 0
+    space: -1
     spaceable: 0
     sheetType: m_Float
     realType: Single
@@ -261,7 +261,7 @@ MonoBehaviour:
   - name: Size 1
     path: Size 1
     tooltip: 
-    space: 0
+    space: -1
     spaceable: 0
     sheetType: m_Float
     realType: Single
@@ -275,7 +275,7 @@ MonoBehaviour:
     enumValues: []
     descendantCount: 0
   m_ImportDependencies: []
-  m_GraphVersion: 13
+  m_GraphVersion: 14
   m_ResourceVersion: 1
   m_SubgraphDependencies: []
   m_CategoryPath: 
@@ -347,7 +347,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UIIgnoredErrors: []
-  m_Parent: {fileID: 114350483966674976}
+  m_Parent: {fileID: 0}
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
@@ -803,7 +803,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UIIgnoredErrors: []
-  m_Parent: {fileID: 114350483966674976}
+  m_Parent: {fileID: 0}
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1

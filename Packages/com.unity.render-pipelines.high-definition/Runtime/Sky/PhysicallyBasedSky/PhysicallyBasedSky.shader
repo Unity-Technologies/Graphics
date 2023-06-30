@@ -9,31 +9,14 @@ Shader "Hidden/HDRP/Sky/PbrSky"
     #pragma target 4.5
     #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
-    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightDefinition.cs.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/PhysicallyBasedSky/PhysicallyBasedSkyCommon.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/SkyUtils.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/AtmosphericScattering/AtmosphericScattering.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/CookieSampling.hlsl"
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/PhysicallyBasedSky/PhysicallyBasedSkyRendering.hlsl"
 
     int _HasGroundAlbedoTexture;    // bool...
     int _HasGroundEmissionTexture;  // bool...
     int _HasSpaceEmissionTexture;   // bool...
-    int _RenderSunDisk;             // bool...
 
     float _GroundEmissionMultiplier;
     float _SpaceEmissionMultiplier;
-
-    // Sky framework does not set up global shader variables (even per-view ones),
-    // so they can contain garbage. It's very difficult to not include them, however,
-    // since the sky framework includes them internally in many header files.
-    // Just don't use them. Ever.
-    float3   _WorldSpaceCameraPos1;
-    float4x4 _ViewMatrix1;
-    #undef UNITY_MATRIX_V
-    #define UNITY_MATRIX_V _ViewMatrix1
 
     // 3x3, but Unity can only set 4x4...
     float4x4 _PlanetRotation;
@@ -68,9 +51,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
     {
         const float R = _PlanetaryRadius;
 
-        // TODO: Not sure it's possible to precompute cam rel pos since variables
-        // in the two constant buffers may be set at a different frequency?
-        const float3 O = _WorldSpaceCameraPos1 - _PlanetCenterPosition.xyz;
+        const float3 O = _PBRSkyCameraPosPS;
         const float3 V = GetSkyViewDirWS(input.positionCS.xy);
 
         bool renderSunDisk = _RenderSunDisk != 0;
@@ -90,68 +71,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
         float3 radiance = 0;
 
         if (renderSunDisk)
-        {
-            // Intersect and shade emissive celestial bodies.
-            // Unfortunately, they don't write depth.
-            for (uint i = 0; i < _DirectionalLightCount; i++)
-            {
-                DirectionalLightData light = _DirectionalLightDatas[i];
-
-                // Use scalar or integer cores (more efficient).
-                bool interactsWithSky = asint(light.distanceFromCamera) >= 0;
-
-                // Celestial body must be outside the atmosphere (request from Pierre D).
-                float lightDist = max(light.distanceFromCamera, tExit);
-
-                if (interactsWithSky && asint(light.angularDiameter) != 0 && lightDist < tFrag)
-                {
-                    // We may be able to see the celestial body.
-                    float3 L = -light.forward.xyz;
-
-                    float LdotV    = -dot(L, V);
-                    float rad      = acos(LdotV);
-                    float radInner = 0.5 * light.angularDiameter;
-
-                    float solidAngle = TWO_PI * (1 - light.flareCosInner);
-
-                    if (LdotV >= light.flareCosOuter)
-                    {
-                        // Sun flare is visible. Sun disk may or may not be visible.
-                        // Assume uniform emission.
-                        float3 color = light.color.rgb;
-                        float  scale = rcp(solidAngle);
-
-                        if (LdotV >= light.flareCosInner) // Sun disk.
-                        {
-                            tFrag = lightDist;
-
-                            if (light.surfaceTextureScaleOffset.x > 0)
-                            {
-                                // The cookie code de-normalizes the axes.
-                                float2 proj   = float2(dot(-V, normalize(light.right)), dot(-V, normalize(light.up)));
-                                float2 angles = HALF_PI - acos(proj);
-                                float2 uv     = angles * rcp(radInner) * float2(-0.5, 0.5) + 0.5;
-
-                                color *= SampleCookie2D(uv, light.surfaceTextureScaleOffset);
-                                // color *= SAMPLE_TEXTURE2D_ARRAY(_CookieTextures, s_linear_clamp_sampler, uv, light.surfaceTextureIndex).rgb;
-                            }
-
-                            color *= light.surfaceTint;
-                        }
-                        else // Flare region.
-                        {
-                            float r = max(0, rad - radInner);
-                            float w = saturate(1 - r * rcp(light.flareSize));
-
-                            color *= light.flareTint;
-                            scale *= SafePositivePow(w, light.flareFalloff);
-                        }
-
-                        radiance += color * scale;
-                    }
-                }
-            }
-        }
+            radiance = RenderSunDisk(tFrag, tExit, V);
 
         if (rayIntersectsAtmosphere && !lookAboveHorizon) // See the ground?
         {
@@ -214,7 +134,8 @@ Shader "Hidden/HDRP/Sky/PbrSky"
         if (rayIntersectsAtmosphere)
         {
             float distAlongRay = tFrag;
-            EvaluatePbrAtmosphere(_WorldSpaceCameraPos1, V, distAlongRay, renderSunDisk, skyColor, skyOpacity);
+            float3 cameraPosWS = _PBRSkyCameraPosPS + _PlanetCenterPosition.xyz;
+            EvaluatePbrAtmosphere(cameraPosWS, V, distAlongRay, renderSunDisk, skyColor, skyOpacity);
         }
 
         skyColor += radiance * (1 - skyOpacity);
@@ -236,11 +157,6 @@ Shader "Hidden/HDRP/Sky/PbrSky"
         return value;
     }
 
-    float4 FragBlack(Varyings input) : SV_Target
-    {
-        return 0;
-    }
-
     ENDHLSL
 
     SubShader
@@ -248,6 +164,8 @@ Shader "Hidden/HDRP/Sky/PbrSky"
         Tags{ "RenderPipeline" = "HDRenderPipeline" }
         Pass
         {
+            Name "PBRSky Cubemap"
+
             ZWrite Off
             ZTest Always
             Blend Off
@@ -260,18 +178,8 @@ Shader "Hidden/HDRP/Sky/PbrSky"
 
         Pass
         {
-            ZWrite Off
-            ZTest Always
-            Blend Off
-            Cull Off
+            Name "PBRSky"
 
-            HLSLPROGRAM
-                #pragma fragment FragBlack
-            ENDHLSL
-        }
-
-        Pass
-        {
             ZWrite Off
             ZTest LEqual
             Blend Off
@@ -281,19 +189,6 @@ Shader "Hidden/HDRP/Sky/PbrSky"
                 #pragma fragment FragRender
             ENDHLSL
         }
-
-        Pass
-        {
-            ZWrite Off
-            ZTest LEqual
-            Blend Off
-            Cull Off
-
-            HLSLPROGRAM
-                #pragma fragment FragBlack
-            ENDHLSL
-        }
-
     }
     Fallback Off
 }

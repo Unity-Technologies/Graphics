@@ -67,7 +67,18 @@ float3 shadergraph_LWBakedGI(float3 positionWS, float3 normalWS, float2 uvStatic
     return SampleLightmap(uvStaticLightmap, normalWS);
 #endif
 #else
+    #if (defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2))
+    if (_EnableProbeVolumes)
+    {
+        float3 bakeDiffuseLighting;
+        EvaluateAdaptiveProbeVolume(positionWS, normalWS, GetWorldSpaceNormalizeViewDir(positionWS), 0.0, bakeDiffuseLighting);
+        return bakeDiffuseLighting;
+    }
+    else
+        return SampleSH(normalWS);
+    #else
     return SampleSH(normalWS);
+    #endif
 #endif
 }
 

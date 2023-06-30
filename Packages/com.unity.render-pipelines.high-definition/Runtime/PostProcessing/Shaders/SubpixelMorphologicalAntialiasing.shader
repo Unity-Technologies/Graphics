@@ -23,6 +23,7 @@ Shader "Hidden/PostProcessing/SubpixelMorphologicalAntialiasing"
         // Edge detection
         Pass
         {
+            Name "Edge detection"
             Stencil
             {
                 WriteMask [_StencilMask]
@@ -43,6 +44,7 @@ Shader "Hidden/PostProcessing/SubpixelMorphologicalAntialiasing"
         // Blend Weights Calculation
         Pass
         {
+            Name "Blend Weights Calculation"
             Stencil
             {
                 WriteMask[_StencilMask]
@@ -64,6 +66,7 @@ Shader "Hidden/PostProcessing/SubpixelMorphologicalAntialiasing"
         // Neighborhood Blending
         Pass
         {
+            Name "Neighborhood Blending"
             HLSLPROGRAM
 
                 #pragma vertex VertNeighbor

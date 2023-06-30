@@ -1275,7 +1275,7 @@ Shader "HDRP/LayeredLit"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl"
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RayTracingCommon.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingDebug.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRayTracingDebug.hlsl"
 
             ENDHLSL
         }
@@ -1302,7 +1302,7 @@ Shader "HDRP/LayeredLit"
             #define SHADERPASS SHADERPASS_PATH_TRACING
 
             #pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT
-            #pragma multi_compile _ PATH_TRACING_ADDITIVE_NORMAL_BLENDING
+            #pragma multi_compile _ DECAL_SURFACE_GRADIENT
 
             // We use the low shadow maps for raytracing
             #define SHADOW_LOW

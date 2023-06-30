@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.Rendering;
 using System.IO;
+using UnityEngine.Analytics;
 
 
 namespace UnityEditor.Rendering.Universal
@@ -111,11 +112,8 @@ namespace UnityEditor.Rendering.Universal
             var parent = menuCommand.context as GameObject;
             Place(go, parent);
 
-            Analytics.Light2DData lightData = new Analytics.Light2DData();
-            lightData.was_create_event = true;
-            lightData.instance_id = light2D.GetInstanceID();
-            lightData.light_type = light2D.lightType;
-            Analytics.Renderer2DAnalytics.instance.SendData(Analytics.AnalyticsDataTypes.k_LightDataString, lightData);
+            Analytics.LightDataAnalytic lightData = new Analytics.LightDataAnalytic(light2D.GetInstanceID(), true, light2D.lightType);
+            Analytics.Renderer2DAnalytics.instance.SendData(lightData);
 
             return light2D;
         }
@@ -209,12 +207,8 @@ namespace UnityEditor.Rendering.Universal
         {
             Renderer2DMenus.Create2DRendererData((instance) =>
             {
-                Analytics.RendererAssetData modifiedData = new Analytics.RendererAssetData();
-                modifiedData.instance_id = instance.GetInstanceID();
-                modifiedData.was_create_event = true;
-                modifiedData.blending_layers_count = 1;
-                modifiedData.blending_modes_used = 2;
-                Analytics.Renderer2DAnalytics.instance.SendData(Analytics.AnalyticsDataTypes.k_Renderer2DDataString, modifiedData);
+                Analytics.RenderAssetAnalytic modifiedData = new Analytics.RenderAssetAnalytic(instance.GetInstanceID(), true, 1, 2);
+                Analytics.Renderer2DAnalytics.instance.SendData(modifiedData);
             });
         }
     }

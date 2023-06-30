@@ -53,6 +53,8 @@ namespace UnityEngine.Rendering
             }
 
             parameters = parametersList.ToArray();
+
+            isValid = true;
         }
 
         /// <summary>
@@ -83,12 +85,19 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Cleans up the content of this stack. Once a <c>VolumeStack</c> is disposed, it souldn't
+        /// Cleans up the content of this stack. Once a <c>VolumeStack</c> is disposed, it shouldn't
         /// be used anymore.
         /// </summary>
         public void Dispose()
         {
             Clear();
+
+            isValid = false;
         }
+
+        /// <summary>
+        /// Check if the stack is in valid state and can be used.
+        /// </summary>
+        public bool isValid { get; private set; }
     }
 }

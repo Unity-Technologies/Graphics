@@ -32,7 +32,7 @@ namespace UnityEngine.Rendering.Universal
                        ProfilingSampler.Get(URPProfileId.RG_StopNaNs)))
             {
                 passData.stopNaNTarget = builder.UseTextureFragment(stopNaNTarget, 0, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
-                passData.sourceTexture = builder.UseTexture(activeCameraColor, IBaseRenderGraphBuilder.AccessFlags.Write);
+                passData.sourceTexture = builder.UseTexture(activeCameraColor, IBaseRenderGraphBuilder.AccessFlags.Read);
                 passData.stopNaN = m_Materials.stopNaN;
                 builder.SetRenderFunc((StopNaNsPassData data, RasterGraphContext context) =>
                 {
@@ -572,8 +572,10 @@ namespace UnityEngine.Rendering.Universal
             {
                 builder.UseTextureFragment(halfCoCTexture, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
                 builder.UseTextureFragment(pingTexture, 1, IBaseRenderGraphBuilder.AccessFlags.Write);
-                // TODO RENDERGRAPH: investigate - Setting MRTs without a depth buffer is not supported, could we add the support and remove the depth?
-                builder.UseTextureFragmentDepth(renderGraph.CreateTexture(halfCoCTexture), IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
+                // TODO RENDERGRAPH: Setting MRTs without a depth buffer is not supported in the old path, could we add the support and remove the depth?
+                // Should go away if the old path goes away
+                if (!renderGraph.NativeRenderPassesEnabled)
+                    builder.UseTextureFragmentDepth(renderGraph.CreateTexture(halfCoCTexture), IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
                 builder.AllowGlobalStateModification(true);
                 passData.sourceTexture = builder.UseTexture(source, IBaseRenderGraphBuilder.AccessFlags.Read);
                 passData.cocTexture = builder.UseTexture(fullCoCTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
@@ -1014,11 +1016,11 @@ namespace UnityEngine.Rendering.Universal
             if (!LensFlareCommonSRP.IsOcclusionRTCompatible())
                 return;
 
-            using (var builder = renderGraph.AddRenderPass<LensFlarePassData>("Lens Flare Compute Occlusion", out var passData, ProfilingSampler.Get(URPProfileId.LensFlareDataDrivenComputeOcclusion)))
+            using (var builder = renderGraph.AddLowLevelPass<LensFlarePassData>("Lens Flare Compute Occlusion", out var passData, ProfilingSampler.Get(URPProfileId.LensFlareDataDrivenComputeOcclusion)))
             {
                 RTHandle occH = LensFlareCommonSRP.occlusionRT;
                 TextureHandle occlusionHandle = renderGraph.ImportTexture(LensFlareCommonSRP.occlusionRT);
-                passData.destinationTexture = builder.WriteTexture(occlusionHandle);
+                passData.destinationTexture = builder.UseTexture(occlusionHandle, IBaseRenderGraphBuilder.AccessFlags.Write);
                 passData.camera = renderingData.cameraData.camera;
                 passData.material = m_Materials.lensFlareDataDriven;
                 if (m_PaniniProjection.IsActive())
@@ -1035,10 +1037,10 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 UniversalRenderer renderer = (UniversalRenderer)renderingData.cameraData.renderer;
-                builder.ReadTexture(renderer.resources.GetTexture(UniversalResource.CameraDepthTexture));
+                builder.UseTexture(renderer.resources.GetTexture(UniversalResource.CameraDepthTexture), IBaseRenderGraphBuilder.AccessFlags.Read);
 
                 builder.SetRenderFunc(
-                    (LensFlarePassData data, RenderGraphContext ctx) =>
+                    (LensFlarePassData data, LowLevelGraphContext ctx) =>
                     {
                         var gpuView = data.camera.worldToCameraMatrix;
                         var gpuNonJitteredProj = GL.GetGPUProjectionMatrix(data.camera.projectionMatrix, true);
@@ -1062,11 +1064,11 @@ namespace UnityEngine.Rendering.Universal
 
         public void RenderLensFlareDataDriven(RenderGraph renderGraph, in TextureHandle destination, ref RenderingData renderingData)
         {
-            using (var builder = renderGraph.AddRenderPass<LensFlarePassData>("Lens Flare Data Driven Pass", out var passData, ProfilingSampler.Get(URPProfileId.LensFlareDataDriven)))
+            using (var builder = renderGraph.AddLowLevelPass<LensFlarePassData>("Lens Flare Data Driven Pass", out var passData, ProfilingSampler.Get(URPProfileId.LensFlareDataDriven)))
             {
                 // Use WriteTexture here because DoLensFlareDataDrivenCommon will call SetRenderTarget internally.
                 // TODO RENDERGRAPH: convert SRP core lensflare to be rendergraph friendly
-                passData.destinationTexture = builder.WriteTexture(destination);
+                passData.destinationTexture = builder.UseTexture(destination, IBaseRenderGraphBuilder.AccessFlags.Write);
                 passData.sourceDescriptor = m_Descriptor;
                 passData.camera = renderingData.cameraData.camera;
                 passData.material = m_Materials.lensFlareDataDriven;
@@ -1085,10 +1087,10 @@ namespace UnityEngine.Rendering.Universal
                 if (LensFlareCommonSRP.IsOcclusionRTCompatible())
                 {
                     TextureHandle occlusionHandle = renderGraph.ImportTexture(LensFlareCommonSRP.occlusionRT);
-                    builder.ReadTexture(occlusionHandle);
+                    builder.UseTexture(occlusionHandle, IBaseRenderGraphBuilder.AccessFlags.Read);
                 }
 
-                builder.SetRenderFunc((LensFlarePassData data, RenderGraphContext context) =>
+                builder.SetRenderFunc((LensFlarePassData data, LowLevelGraphContext context) =>
                 {
                     var cmd = context.cmd;
                     var camera = data.camera;
@@ -1143,23 +1145,23 @@ namespace UnityEngine.Rendering.Universal
             var streakTmpTexture2 = UniversalRenderer.CreateRenderGraphTexture(renderGraph, streakTextureDesc, "_StreakTmpTexture2", true, FilterMode.Bilinear);
             TextureHandle result = renderGraph.defaultResources.blackTextureXR;
 
-            using (var builder = renderGraph.AddRenderPass<LensFlareScreenSpacePassData>("Lens Flare Screen Space Pass", out var passData, ProfilingSampler.Get(URPProfileId.LensFlareScreenSpace)))
+            using (var builder = renderGraph.AddLowLevelPass<LensFlareScreenSpacePassData>("Lens Flare Screen Space Pass", out var passData, ProfilingSampler.Get(URPProfileId.LensFlareScreenSpace)))
             {
                 // Use WriteTexture here because DoLensFlareScreenSpaceCommon will call SetRenderTarget internally.
                 // TODO RENDERGRAPH: convert SRP core lensflare to be rendergraph friendly
-                passData.destinationTexture = builder.WriteTexture(destination);
-                passData.streakTmpTexture = builder.ReadWriteTexture(streakTmpTexture);
-                passData.streakTmpTexture2 = builder.ReadWriteTexture(streakTmpTexture2);
-                passData.bloomTexture = builder.ReadWriteTexture(bloomTexture);
+                passData.destinationTexture = builder.UseTexture(destination, IBaseRenderGraphBuilder.AccessFlags.Write);
+                passData.streakTmpTexture = builder.UseTexture(streakTmpTexture, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
+                passData.streakTmpTexture2 = builder.UseTexture(streakTmpTexture2, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
+                passData.bloomTexture = builder.UseTexture(bloomTexture, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
                 passData.sourceDescriptor = m_Descriptor;
                 passData.camera = renderingData.cameraData.camera;
                 passData.material = m_Materials.lensFlareScreenSpace;
                 passData.downsample = downsample;
 
-                passData.result = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(width, height, true)
-                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, useMipMap = false, name = "Lens Flare Screen Space Result" }));
+                passData.result = builder.UseTexture(renderGraph.CreateTexture(new TextureDesc(width, height, true)
+                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, useMipMap = false, name = "Lens Flare Screen Space Result" }), IBaseRenderGraphBuilder.AccessFlags.Write);
 
-                builder.SetRenderFunc((LensFlareScreenSpacePassData data, RenderGraphContext context) =>
+                builder.SetRenderFunc((LensFlareScreenSpacePassData data, LowLevelGraphContext context) =>
                 {
                     var cmd = context.cmd;
                     var camera = data.camera;
@@ -1344,8 +1346,6 @@ namespace UnityEngine.Rendering.Universal
 
         public void RenderFinalBlit(RenderGraph renderGraph, in TextureHandle source, in TextureHandle overlayUITexture, in TextureHandle postProcessingTarget, ref RenderingData renderingData, bool performFXAA, bool performFsr, bool requireHDROutput, bool resolveToDebugScreen)
         {
-            UniversalRenderer renderer = (UniversalRenderer)renderingData.cameraData.renderer;
-
             using (var builder = renderGraph.AddRasterRenderPass<PostProcessingFinalBlitPassData>("Postprocessing Final Blit Pass", out var passData, ProfilingSampler.Get(URPProfileId.RG_FinalBlit)))
             {
                 builder.AllowGlobalStateModification(true);

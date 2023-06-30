@@ -77,7 +77,7 @@ namespace UnityEditor.Rendering
         public static void CopySettings(List<VolumeComponent> targetComponents)
         {
             using var writer = new StringWriter();
-            var targetComponentsInOrder = targetComponents;
+            var targetComponentsInOrder = new List<VolumeComponent>(targetComponents);
             targetComponentsInOrder.Sort(
                 (l, r) => string.CompareOrdinal(GetTypeName(l), GetTypeName(r)));
             foreach (var targetComponent in targetComponentsInOrder)

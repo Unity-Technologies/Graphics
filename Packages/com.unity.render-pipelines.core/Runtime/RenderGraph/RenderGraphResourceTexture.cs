@@ -172,6 +172,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         ///<summary>Clear color.</summary>
         public Color clearColor;
 
+        ///<summary>Texture needs to be discarded on last use.</summary>
+        public bool discardBuffer;
+
         void InitDefaultValues(bool dynamicResolution, bool xrReady)
         {
             useDynamicScale = dynamicResolution;
@@ -187,6 +190,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 slices = 1;
                 dimension = TextureDimension.Tex2D;
             }
+
+            discardBuffer = false;
         }
 
         /// <summary>
@@ -302,6 +307,18 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
 
             return hashCode;
+        }
+
+        public Vector2Int CalculateFinalDimensions()
+        {
+            return sizeMode switch
+            {
+                TextureSizeMode.Explicit => new Vector2Int(width, height),
+                TextureSizeMode.Scale => RTHandles.CalculateDimensions(scale),
+                TextureSizeMode.Functor => RTHandles.CalculateDimensions(func),
+                _ => throw new ArgumentOutOfRangeException()
+            };
+
         }
     }
 

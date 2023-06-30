@@ -14,14 +14,24 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         public string name { get; protected set; }
         public int index { get; protected set; }
+        public RenderGraphPassType type { get; internal set; }
         public ProfilingSampler customSampler { get; protected set; }
         public bool enableAsyncCompute { get; protected set; }
         public bool allowPassCulling { get; protected set; }
         public bool allowGlobalState { get; protected set; }
 
         public TextureHandle depthBuffer { get; protected set; }
+        public IBaseRenderGraphBuilder.AccessFlags depthBufferAccessFlags { get; protected set; }
+
         public TextureHandle[] colorBuffers { get; protected set; } = new TextureHandle[RenderGraph.kMaxMRTCount];
+        public IBaseRenderGraphBuilder.AccessFlags[] colorBufferAccessFlags { get; protected set; } = new IBaseRenderGraphBuilder.AccessFlags[RenderGraph.kMaxMRTCount];
         public int colorBufferMaxIndex { get; protected set; } = -1;
+
+        // Used by native pass compiler only
+        public TextureHandle[] fragmentInputs { get; protected set; } = new TextureHandle[RenderGraph.kMaxMRTCount];
+        public IBaseRenderGraphBuilder.AccessFlags[] fragmentInputAccessFlags { get; protected set; } = new IBaseRenderGraphBuilder.AccessFlags[RenderGraph.kMaxMRTCount];
+        public int fragmentInputMaxIndex { get; protected set; } = -1;
+
         public int refCount { get; protected set; }
         public bool generateDebugData { get; protected set; }
 
@@ -69,6 +79,13 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             for (int i = 0; i < RenderGraph.kMaxMRTCount; ++i)
             {
                 colorBuffers[i] = TextureHandle.nullHandle;
+                colorBufferAccessFlags[i] = IBaseRenderGraphBuilder.AccessFlags.None;
+            }
+            fragmentInputMaxIndex = -1;
+            for (int i = 0; i < RenderGraph.kMaxMRTCount; ++i)
+            {
+                fragmentInputs[i] = TextureHandle.nullHandle;
+                fragmentInputAccessFlags[i] = IBaseRenderGraphBuilder.AccessFlags.None;
             }
         }
 
@@ -182,17 +199,36 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         }
 
         // Sets up the color buffer for this pass but not any resource Read/Writes for it
-        public void SetColorBufferRaw(TextureHandle resource, int index)
+        public void SetColorBufferRaw(TextureHandle resource, int index, IBaseRenderGraphBuilder.AccessFlags accessFlags)
         {
             Debug.Assert(index < RenderGraph.kMaxMRTCount && index >= 0);
             if (colorBuffers[index].handle.Equals(resource.handle) || colorBuffers[index].handle.IsNull())
             {
                 colorBufferMaxIndex = Math.Max(colorBufferMaxIndex, index);
                 colorBuffers[index] = resource;
+                colorBufferAccessFlags[index] = accessFlags;
             }
             else
             {
+                // You tried to do UseTextureFragment(tex1, 1, ..); UseTextureFragment(tex2, 1, ..); that is not valid for different textures on the same index
                 throw new InvalidOperationException("You can only bind a single texture to an MRT index. Verify your indexes are correct.");
+            }
+        }
+
+        // Sets up the color buffer for this pass but not any resource Read/Writes for it
+        public void SetFragmentInputRaw(TextureHandle resource, int index, IBaseRenderGraphBuilder.AccessFlags accessFlags)
+        {
+            Debug.Assert(index < RenderGraph.kMaxMRTCount && index >= 0);
+            if (fragmentInputs[index].handle.Equals(resource.handle) || fragmentInputs[index].handle.IsNull())
+            {
+                fragmentInputMaxIndex = Math.Max(fragmentInputMaxIndex, index);
+                fragmentInputs[index] = resource;
+                fragmentInputAccessFlags[index] = accessFlags;
+            }
+            else
+            {
+                // You tried to do UseTextureFragment(tex1, 1, ..); UseTextureFragment(tex2, 1, ..); that is not valid for different textures on the same index
+                throw new InvalidOperationException("You can only bind a single texture to an fragment input index. Verify your indexes are correct.");
             }
         }
 
@@ -206,12 +242,13 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         }
 
         // Sets up the depth buffer for this pass but not any resource Read/Writes for it
-        public void SetDepthBufferRaw(TextureHandle resource)
+        public void SetDepthBufferRaw(TextureHandle resource, IBaseRenderGraphBuilder.AccessFlags accessFlags)
         {
             // If no depth buffer yet or it's the same one as previous allow the call otherwise log an error.
             if (depthBuffer.handle.Equals(resource.handle) || depthBuffer.handle.IsNull())
             {
                 depthBuffer = resource;
+                depthBufferAccessFlags = accessFlags;
             }
             else
             {
@@ -229,12 +266,13 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     {
         internal PassData data;
 
-        public void Initialize(int passIndex, PassData passData, string passName, ProfilingSampler sampler)
+        public void Initialize(int passIndex, PassData passData, string passName, RenderGraphPassType passType, ProfilingSampler sampler)
         {
             Clear();
             index = passIndex;
             data = passData;
             name = passName;
+            type = passType;
             customSampler = sampler;
         }
     }

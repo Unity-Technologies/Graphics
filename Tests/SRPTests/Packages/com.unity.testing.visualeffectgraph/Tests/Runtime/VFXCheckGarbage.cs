@@ -53,8 +53,7 @@ Recorder m_gcAllocRecorder;
             m_previousFixedTimeStep = UnityEngine.VFX.VFXManager.fixedTimeStep;
             m_previousMaxDeltaTime = UnityEngine.VFX.VFXManager.maxDeltaTime;
 #if UNITY_EDITOR
-            //During VisualEffect.PrepareMaterial, we can have this stack GetWritableProperties => EnsurePropertiesExist => BuildProperties => SetupKeywordsAndPasses => ApplyMaterialPropertyDrawersFromNative
-            //Disabling asyncShaderCompilation is avoiding this unexpected capture
+            //Disabling asyncShaderCompilation to avoid unexpected late shader loading
             m_previousAsyncShaderCompilation = EditorSettings.asyncShaderCompilation;
             EditorSettings.asyncShaderCompilation = false;
 #endif
@@ -109,12 +108,11 @@ Recorder m_gcAllocRecorder;
             while (vfxComponents[^1].culled && maxFrame-- > 0)
                 yield return kWaitForEndOfFrame;
 
+            //Allows first frame to compile & prepare track with timeline test
+            //... Or during first frame VisualEffect.PrepareMaterial, we can have this stack GetWritableProperties => EnsurePropertiesExist => BuildProperties => SetupKeywordsAndPasses => ApplyMaterialPropertyDrawersFromNative
+            yield return kWaitForEndOfFrame;
+
             bool isTimelineTest = scenario.EndsWith("Timeline", StringComparison.InvariantCultureIgnoreCase);
-            if (isTimelineTest)
-            {
-                //Allows first frame to compile & prepare track with timeline test
-                yield return kWaitForEndOfFrame;
-            }
 
 #if UNITY_EDITOR
             UnityEditorInternal.ProfilerDriver.ClearAllFrames();

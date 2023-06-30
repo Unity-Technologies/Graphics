@@ -273,7 +273,7 @@ Varyings SplatmapVert(Attributes v)
         o.bitangent = half4(normalInput.bitangentWS, viewDirWS.z);
     #else
         o.normal = TransformObjectToWorldNormal(v.normalOS);
-        OUTPUT_SH(Attributes.positionWS, o.normal.xyz, GetWorldSpaceNormalizeViewDir(Attributes.positionWS), o.vertexSH);
+        OUTPUT_SH4(Attributes.positionWS, o.normal.xyz, GetWorldSpaceNormalizeViewDir(Attributes.positionWS), o.vertexSH);
     #endif
 
     half fogFactor = 0;

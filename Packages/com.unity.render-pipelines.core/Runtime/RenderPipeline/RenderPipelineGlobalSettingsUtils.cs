@@ -72,7 +72,7 @@ namespace UnityEngine.Rendering
         /// 1. Loads the asset at the default path.
         /// 2. Finds any asset in the project with the same type.
         /// 3. If `canCreateNewAsset` is true, creates a new asset in the default path.
-        /// If Unity finds or creates a valid asset, Unity updates the <see cref="GraphicsSettings"/> with it. Otherwise Unity will unregister the settings for the given pipeline. 
+        /// If Unity finds or creates a valid asset, Unity updates the <see cref="GraphicsSettings"/> with it. Otherwise Unity will unregister the settings for the given pipeline.
         /// </summary>
         /// <param name="instance">The current instance of the asset.</param>
         /// <param name="defaultPath">The default path.</param>

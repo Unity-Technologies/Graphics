@@ -93,7 +93,7 @@ float EvaluateSimulationCaustics(float3 refractedWaterPosRWS, float refractedWat
 
         // Convert the position to absolute world space and move the position to the water local space
         float3 causticPosAWS = GetAbsolutePositionWS(refractedWaterPosRWS) * _CausticsTilingFactor;
-        float3 causticPosOS = mul(_WaterSurfaceTransform_Inverse, float4(causticPosAWS, 1.0f));
+        float3 causticPosOS = mul(_WaterSurfaceTransform_Inverse, float4(causticPosAWS, 1.0f)).xyz;
 
         // Evaluate the triplanar coodinates
         float3 sampleCoord = causticPosOS / (_CausticsRegionSize * 0.5) + 0.5;
@@ -132,15 +132,12 @@ bool EvaluateUnderwaterAbsorption(PositionInputs posInput, out float3 color, out
 
     bool underWater = IsUnderWater(posInput.positionSS.xy);
     bool hasWater = (GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, posInput.positionSS.xy)) & STENCILUSAGE_WATER_SURFACE) != 0;
-
     float waterDepth = LOAD_TEXTURE2D_X(_RefractiveDepthBuffer, posInput.positionSS.xy).r;
-    PositionInputs waterPosInput = GetPositionInput(posInput.positionSS.xy, _ScreenSize.zw, waterDepth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
-    waterDepth = waterPosInput.linearDepth;
 
-    float cameraToWater = underWater ? 0.0f : (hasWater ? waterDepth : FLT_MAX);
-    float cameraToSurface = underWater && (hasWater && waterDepth < posInput.linearDepth) ? 0.0f : posInput.linearDepth;
+    float cameraToWater = underWater ? FLT_MAX : (hasWater ? waterDepth : 0.0f);
+    float cameraToSurface = (underWater && hasWater && waterDepth >= posInput.deviceDepth) ? FLT_MAX : posInput.deviceDepth;
     float absorptionDistance = cameraToSurface - cameraToWater;
-    uint surfaceIndex = absorptionDistance > 0.0f ? GetWaterSurfaceIndex(posInput.positionSS.xy) : -1;
+    uint surfaceIndex = cameraToSurface < cameraToWater ? GetWaterSurfaceIndex(posInput.positionSS.xy) : -1;
 
     if (surfaceIndex != -1)
     {
@@ -184,6 +181,7 @@ bool EvaluateUnderwaterAbsorption(PositionInputs posInput, out float3 color, out
         else
         {
             // Approximate the pixel depth using distance from camera to object (light travels back and forth)
+            PositionInputs waterPosInput = GetPositionInput(posInput.positionSS.xy, _ScreenSize.zw, waterDepth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
             absorptionDistance = 2 * length(posInput.positionWS - waterPosInput.positionWS);
         }
 

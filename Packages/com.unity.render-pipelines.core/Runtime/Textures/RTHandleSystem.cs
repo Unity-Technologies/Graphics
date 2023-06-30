@@ -590,6 +590,14 @@ namespace UnityEngine.Rendering
         // The idea is that internally the system will scale up the size of all render texture so that it amortizes with time and not reallocate when a smaller size is required (which is what happens with TemporaryRTs).
         // Since MSAA cannot be changed on the fly for a given RenderTexture, a separate instance will be created if the user requires it. This instance will be the one used after the next call of SetReferenceSize if MSAA is required.
 
+        public Vector2Int CalculateDimensions(Vector2 scaleFactor)
+        {
+            return new Vector2Int(
+                Mathf.Max(Mathf.RoundToInt(scaleFactor.x * GetMaxWidth()), 1),
+                Mathf.Max(Mathf.RoundToInt(scaleFactor.y * GetMaxHeight()), 1)
+            );
+        }
+
         /// <summary>
         /// Allocate a new automatically sized RTHandle.
         /// </summary>
@@ -635,11 +643,10 @@ namespace UnityEngine.Rendering
             string name = ""
         )
         {
-            int width = Mathf.Max(Mathf.RoundToInt(scaleFactor.x * GetMaxWidth()), 1);
-            int height = Mathf.Max(Mathf.RoundToInt(scaleFactor.y * GetMaxHeight()), 1);
+            var actualDimensions = CalculateDimensions(scaleFactor);
 
-            var rth = AllocAutoSizedRenderTexture(width,
-                height,
+            var rth = AllocAutoSizedRenderTexture(actualDimensions.x,
+                actualDimensions.y,
                 slices,
                 depthBufferBits,
                 colorFormat,
@@ -660,7 +667,7 @@ namespace UnityEngine.Rendering
                 name
             );
 
-            rth.referenceSize = new Vector2Int(width, height);
+            rth.referenceSize = actualDimensions;
 
             rth.scaleFactor = scaleFactor;
             return rth;
@@ -676,6 +683,15 @@ namespace UnityEngine.Rendering
         //     [...]
         // );
         //
+
+        public Vector2Int CalculateDimensions(ScaleFunc scaleFunc)
+        {
+            var scaleFactor = scaleFunc(new Vector2Int(GetMaxWidth(), GetMaxHeight()));
+            return new Vector2Int(
+                Mathf.Max(scaleFactor.x, 1),
+                Mathf.Max(scaleFactor.y, 1)
+            );
+        }
 
         /// <summary>
         /// Allocate a new automatically sized RTHandle.
@@ -722,12 +738,10 @@ namespace UnityEngine.Rendering
             string name = ""
         )
         {
-            var scaleFactor = scaleFunc(new Vector2Int(GetMaxWidth(), GetMaxHeight()));
-            int width = Mathf.Max(scaleFactor.x, 1);
-            int height = Mathf.Max(scaleFactor.y, 1);
+            var actualDimensions = CalculateDimensions(scaleFunc);
 
-            var rth = AllocAutoSizedRenderTexture(width,
-                height,
+            var rth = AllocAutoSizedRenderTexture(actualDimensions.x,
+                actualDimensions.y,
                 slices,
                 depthBufferBits,
                 colorFormat,
@@ -748,7 +762,7 @@ namespace UnityEngine.Rendering
                 name
             );
 
-            rth.referenceSize = new Vector2Int(width, height);
+            rth.referenceSize = actualDimensions;
 
             rth.scaleFunc = scaleFunc;
             return rth;

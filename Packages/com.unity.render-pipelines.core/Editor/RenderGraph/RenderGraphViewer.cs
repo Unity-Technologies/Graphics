@@ -42,9 +42,17 @@ public class RenderGraphViewer : EditorWindow
     [MenuItem("Window/Analysis/Render Graph Viewer", false, 10006)]
     static void Init()
     {
-        // Get existing open window or if none, make a new one:
-        var window = GetWindow<RenderGraphViewer>();
-        window.titleContent = new GUIContent("Render Graph Viewer");
+        // If we got native pass data open the native pass debugger, otherwise open the old debugger.
+        if (UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassCompiler.NativePassCompiler.hasNativePassData)
+        {
+            RenderGraphDebugger.ShowRenderGraphDebugger();
+        }
+        else
+        {
+            // Get existing open window or if none, make a new one:
+            var window = GetWindow<RenderGraphViewer>();
+            window.titleContent = new GUIContent("Render Graph Viewer");
+        }
     }
 
     [System.Flags]

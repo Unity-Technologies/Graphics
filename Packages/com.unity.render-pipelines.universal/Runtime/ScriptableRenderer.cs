@@ -874,7 +874,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal void ProcessVFXCameraCommand(RenderGraph renderGraph, ref RenderingData renderingData)
         {
-            using (var builder = renderGraph.AddRenderPass<VFXProcessCameraPassData>("ProcessVFXCameraCommand", out var passData,
+            using (var builder = renderGraph.AddLowLevelPass<VFXProcessCameraPassData>("ProcessVFXCameraCommand", out var passData,
                        Profiling.vfxProcessCamera))
             {
                 passData.camera = renderingData.cameraData.camera;
@@ -887,13 +887,13 @@ namespace UnityEngine.Rendering.Universal
 
                 builder.AllowPassCulling(false);
 
-                builder.SetRenderFunc((VFXProcessCameraPassData data, RenderGraphContext context) =>
+                builder.SetRenderFunc((VFXProcessCameraPassData data, LowLevelGraphContext context) =>
                 {
                     if (data.xrPass != null)
                         data.xrPass.StartSinglePass(context.cmd);
 
                     //Triggers dispatch per camera, all global parameters should have been setup at this stage.
-                    VFX.VFXManager.ProcessCameraCommand(data.camera, context.cmd, data.cameraXRSettings, data.cullResults);
+                    CommandBufferHelpers.VFXManager_ProcessCameraCommand(data.camera, context.cmd, data.cameraXRSettings, data.cullResults);
 
                     if (data.xrPass != null)
                         data.xrPass.StopSinglePass(context.cmd);
@@ -1542,18 +1542,19 @@ namespace UnityEngine.Rendering.Universal
 
             var cmd = renderingData.commandBuffer;
 
-            // Track CPU only as GPU markers for this scope were "too noisy".
-            using (new ProfilingScope(Profiling.RenderPass.setRenderPassAttachments))
-                SetRenderPassAttachments(cmd, renderPass, ref cameraData);
-
             // Selectively enable foveated rendering
             if (cameraData.xr.supportsFoveatedRendering)
             {
-                if (renderPass.renderPassEvent >= RenderPassEvent.BeforeRenderingPrePasses && renderPass.renderPassEvent < RenderPassEvent.BeforeRenderingPostProcessing)
+                if ((renderPass.renderPassEvent >= RenderPassEvent.BeforeRenderingPrePasses && renderPass.renderPassEvent < RenderPassEvent.BeforeRenderingPostProcessing) 
+                    || (renderPass.renderPassEvent > RenderPassEvent.AfterRendering && XRSystem.foveatedRenderingCaps.HasFlag(FoveatedRenderingCaps.FoveationImage)))
                 {
                     cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Enabled);
                 }
             }
+
+            // Track CPU only as GPU markers for this scope were "too noisy".
+            using (new ProfilingScope(Profiling.RenderPass.setRenderPassAttachments))
+                SetRenderPassAttachments(cmd, renderPass, ref cameraData);
 
             // Also, we execute the commands recorded at this point to ensure SetRenderTarget is called before RenderPass.Execute
             context.ExecuteCommandBuffer(cmd);
@@ -1655,8 +1656,9 @@ namespace UnityEngine.Rendering.Universal
                         int writeIndex = 0;
                         for (int readIndex = 0; readIndex < renderPass.colorAttachmentHandles.Length; ++readIndex)
                         {
-                            if (renderPass.colorAttachmentHandles[readIndex].nameID != m_CameraColorTarget.nameID
-                                && renderPass.colorAttachmentHandles[readIndex].nameID != 0)
+                            if (renderPass.colorAttachmentHandles[readIndex] != null &&
+                                renderPass.colorAttachmentHandles[readIndex].nameID != 0 &&
+                                renderPass.colorAttachmentHandles[readIndex].nameID != m_CameraColorTarget.nameID)
                             {
                                 nonCameraAttachments[writeIndex] = renderPass.colorAttachmentHandles[readIndex];
                                 ++writeIndex;
@@ -2165,5 +2167,7 @@ namespace UnityEngine.Rendering.Universal
                 return new BlockRange(m_BlockRanges[index], m_BlockRanges[index + 1]);
             }
         }
+
+        internal virtual bool supportsNativeRenderPassRendergraphCompiler { get => false; }
     }
 }

@@ -61,19 +61,20 @@ namespace UnityEngine.Rendering.Universal
 
         public override void RecordRenderGraph(RenderGraph renderGraph, FrameResources frameResources, ref RenderingData renderingData)
         {
-            using (var builder = renderGraph.AddRenderPass<PassData>("Capture Motion Vector Pass", out var passData, s_ProfilingSampler))
+            // TODO: Make this use a raster pass it likely doesn't need LowLevel. On the other hand probably ok as-is for the tests.
+            using (var builder = renderGraph.AddLowLevelPass<PassData>("Capture Motion Vector Pass", out var passData, s_ProfilingSampler))
             {
                 UniversalRenderer renderer = (UniversalRenderer) renderingData.cameraData.renderer;
 
                 TextureHandle color = renderer.activeColorTexture;
-                passData.target = builder.UseColorBuffer(color, 0);
+                passData.target = builder.UseTexture(color, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
                 passData.cameraData = renderingData.cameraData;
                 passData.material = m_Material;
                 passData.intensity = m_intensity;
 
-                builder.SetRenderFunc((PassData data, RenderGraphContext rgContext) =>
+                builder.SetRenderFunc((PassData data,  LowLevelGraphContext rgContext) =>
                 {
-                    ExecutePass(data.target, rgContext.cmd, data.cameraData, data.material, data.intensity);
+                    ExecutePass(data.target, rgContext.legacyCmd, data.cameraData, data.material, data.intensity);
                 });
             }
         }

@@ -62,23 +62,6 @@ namespace UnityEngine.Rendering.HighDefinition
         High = 512,
     }
 
-
-    /// <summary>
-    /// Enum volume parameter.
-    /// </summary>
-    /// <typeparam name="T">The type of value to hold in this parameter.</typeparam>
-    [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
-    public sealed class CloudLayerEnumParameter<T> : VolumeParameter<T>
-    {
-        /// <summary>
-        /// Enum volume parameter constructor.
-        /// </summary>
-        /// <param name="value">Enum parameter.</param>
-        /// <param name="overrideState">Initial override state.</param>
-        public CloudLayerEnumParameter(T value, bool overrideState = false)
-            : base(value, overrideState) { }
-    }
-
     /// <summary>
     /// Cloud Layer Volume Component.
     /// This component setups the Cloud Layer for rendering.
@@ -101,7 +84,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Choose the resolution of the baked cloud texture.</summary>
         [AdditionalProperty]
         [Tooltip("Specifies the resolution of the texture HDRP uses to represent the clouds.")]
-        public CloudLayerEnumParameter<CloudResolution> resolution = new CloudLayerEnumParameter<CloudResolution>(CloudResolution.CloudResolution1024);
+        public EnumParameter<CloudResolution> resolution = new EnumParameter<CloudResolution>(CloudResolution.CloudResolution1024);
 
 
         /// <summary>Controls the opacity of the cloud shadows.</summary>
@@ -114,7 +97,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Choose the resolution of the texture for the cloud shadows.</summary>
         [AdditionalProperty]
         [Tooltip("Specifies the resolution of the texture HDRP uses to represent the cloud shadows.")]
-        public CloudLayerEnumParameter<CloudShadowsResolution> shadowResolution = new CloudLayerEnumParameter<CloudShadowsResolution>(CloudShadowsResolution.Medium);
+        public EnumParameter<CloudShadowsResolution> shadowResolution = new EnumParameter<CloudShadowsResolution>(CloudShadowsResolution.Medium);
         /// <summary>Specifies the size of the projected shadows.</summary>
         [Tooltip("Specifies the size of the projected shadows.")]
         public MinFloatParameter shadowSize = new MinFloatParameter(500f, 0.0f);

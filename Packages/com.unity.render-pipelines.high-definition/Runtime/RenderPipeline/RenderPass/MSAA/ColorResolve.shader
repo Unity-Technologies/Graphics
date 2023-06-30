@@ -100,6 +100,7 @@ Shader "Hidden/HDRP/ColorResolve"
         Pass
         {
             ZWrite Off ZTest Always Blend Off Cull Off
+            Name "MSAA1X"
 
             HLSLPROGRAM
                 #pragma vertex Vert
@@ -111,6 +112,7 @@ Shader "Hidden/HDRP/ColorResolve"
         Pass
         {
             ZWrite Off ZTest Always Blend Off Cull Off
+            Name "MSAA2X"
 
             HLSLPROGRAM
                 #pragma vertex Vert
@@ -122,6 +124,7 @@ Shader "Hidden/HDRP/ColorResolve"
         Pass
         {
             ZWrite Off ZTest Always Blend Off Cull Off
+            Name "MSAA4X"
 
             HLSLPROGRAM
                 #pragma vertex Vert
@@ -133,6 +136,7 @@ Shader "Hidden/HDRP/ColorResolve"
         Pass
         {
             ZWrite Off ZTest Always Blend Off Cull Off
+            Name "MSAA8X"
 
             HLSLPROGRAM
                 #pragma vertex Vert

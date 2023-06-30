@@ -66,6 +66,7 @@ namespace UnityEditor.ShaderAnalysis
             if (args.asset != null && args.asset.Equals(null))
                 throw new ArgumentNullException(nameof(args.asset));
             compute = args.asset;
+            profile = args.common.targetProfile;
             m_Name = $"Build Compute Shader Report ({compute})";
         }
 
@@ -79,6 +80,7 @@ namespace UnityEditor.ShaderAnalysis
             if (args.asset != null && args.asset.Equals(null))
                 throw new ArgumentNullException(nameof(args.asset));
             material = args.asset;
+            profile = args.common.targetProfile;
             m_Name = $"Build Material Report ({material})";
         }
 

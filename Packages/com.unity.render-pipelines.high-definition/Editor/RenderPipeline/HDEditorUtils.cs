@@ -277,10 +277,15 @@ namespace UnityEditor.Rendering.HighDefinition
         internal static void QualitySettingsHelpBox<TEnum>(string message, MessageType type, HDRenderPipelineUI.ExpandableGroup uiGroupSection, TEnum uiSection, string propertyPath)
             where TEnum : struct, IConvertible
         {
+            QualitySettingsHelpBoxForReflection(message, type, uiGroupSection, uiSection.ToInt32(System.Globalization.CultureInfo.InvariantCulture), propertyPath);
+        }
+
+        internal static void QualitySettingsHelpBoxForReflection(string message, MessageType type, HDRenderPipelineUI.ExpandableGroup uiGroupSection, int uiSection, string propertyPath)
+        {
             CoreEditorUtils.DrawFixMeBox(message, type, "Open", () =>
             {
                 SettingsService.OpenProjectSettings("Project/Quality/HDRP");
-                HDRenderPipelineUI.SubInspectors[uiGroupSection].Expand(uiSection.ToInt32(System.Globalization.CultureInfo.InvariantCulture));
+                HDRenderPipelineUI.SubInspectors[uiGroupSection].Expand(uiSection);
 
                 CoreEditorUtils.Highlight("Project Settings", propertyPath, HighlightSearchMode.Identifier);
                 GUIUtility.ExitGUI();

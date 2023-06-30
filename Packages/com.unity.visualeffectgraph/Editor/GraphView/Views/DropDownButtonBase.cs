@@ -50,6 +50,7 @@ namespace UnityEditor.VFX.UI
             }
 
             m_MainButton = new Button(OnMainButton) { name = mainButtonName };
+            m_MainButton.focusable = false;
             m_MainButton.AddToClassList("dropdown-button");
             m_MainButton.AddToClassList("unity-toolbar-toggle");
             if (!string.IsNullOrEmpty(iconPath))
@@ -69,6 +70,7 @@ namespace UnityEditor.VFX.UI
             Add(separator);
 
             var dropDownButton = new Button(OnTogglePopup);
+            dropDownButton.focusable = false;
             dropDownButton.AddToClassList("dropdown-arrow");
             dropDownButton.AddToClassList("unity-toolbar-toggle");
             dropDownButton.Add(new VisualElement());

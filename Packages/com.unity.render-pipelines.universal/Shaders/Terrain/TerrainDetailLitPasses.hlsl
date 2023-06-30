@@ -140,7 +140,7 @@ Varyings TerrainLitVertex(Attributes input)
 
     // Vertex Lighting
     half3 NormalWS = input.NormalOS;
-    OUTPUT_SH(vertexInput.positionWS, NormalWS.xyz, GetWorldSpaceNormalizeViewDir(vertexInput.positionWS), output.vertexSH);
+    OUTPUT_SH4(vertexInput.positionWS, NormalWS.xyz, GetWorldSpaceNormalizeViewDir(vertexInput.positionWS), output.vertexSH);
     Light mainLight = GetMainLight();
     half3 attenuatedLightColor = mainLight.color * mainLight.distanceAttenuation;
     half3 diffuseColor = half3(0, 0, 0);

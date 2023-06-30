@@ -371,6 +371,10 @@ namespace UnityEngine.Rendering.HighDefinition
         // MSAA resolve materials
         Material m_ColorResolveMaterial = null;
         Material m_MotionVectorResolve = null;
+        static int s_ColorResolve1XPassIndex;
+        static int s_ColorResolve2XPassIndex;
+        static int s_ColorResolve4XPassIndex;
+        static int s_ColorResolve8XPassIndex;
 
         internal Material GetMSAAColorResolveMaterial()
         {
@@ -667,6 +671,10 @@ namespace UnityEngine.Rendering.HighDefinition
             InitializePrepass(m_Asset);
             m_ColorResolveMaterial = CoreUtils.CreateEngineMaterial(m_GlobalSettings.renderPipelineResources.shaders.colorResolvePS);
             m_MotionVectorResolve = CoreUtils.CreateEngineMaterial(m_GlobalSettings.renderPipelineResources.shaders.resolveMotionVecPS);
+            s_ColorResolve1XPassIndex = m_ColorResolveMaterial.FindPass("MSAA1X");
+            s_ColorResolve2XPassIndex = m_ColorResolveMaterial.FindPass("MSAA2X");
+            s_ColorResolve4XPassIndex = m_ColorResolveMaterial.FindPass("MSAA4X");
+            s_ColorResolve8XPassIndex = m_ColorResolveMaterial.FindPass("MSAA8X");
 
             CustomPassUtils.Initialize();
 

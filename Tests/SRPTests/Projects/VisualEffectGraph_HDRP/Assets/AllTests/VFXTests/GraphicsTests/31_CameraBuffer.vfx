@@ -59,7 +59,7 @@ MonoBehaviour:
     path: 
     tooltip: 
     space: 0
-    spaceable: 0
+    spaceable: 1
     sheetType: 
     realType: CameraType
     defaultValue:
@@ -73,7 +73,7 @@ MonoBehaviour:
   - name: transform
     path: ExposedCamera_transform
     tooltip: The camera's Transform in the world.
-    space: 0
+    space: -1
     spaceable: 0
     sheetType: 
     realType: Transform
@@ -88,7 +88,7 @@ MonoBehaviour:
   - name: position
     path: ExposedCamera_transform_position
     tooltip: Sets the transform position.
-    space: 0
+    space: -1
     spaceable: 0
     sheetType: m_Vector3f
     realType: Vector3
@@ -104,7 +104,7 @@ MonoBehaviour:
   - name: angles
     path: ExposedCamera_transform_angles
     tooltip: Sets the euler angles of the transform.
-    space: 0
+    space: -1
     spaceable: 0
     sheetType: m_Vector3f
     realType: Vector3
@@ -120,7 +120,7 @@ MonoBehaviour:
   - name: scale
     path: ExposedCamera_transform_scale
     tooltip: Sets the scale of the transform along each axis.
-    space: 0
+    space: -1
     spaceable: 0
     sheetType: m_Vector3f
     realType: Vector3
@@ -136,7 +136,7 @@ MonoBehaviour:
   - name: orthographic
     path: ExposedCamera_orthographic
     tooltip: Uses Orthographic projection.
-    space: 0
+    space: -1
     spaceable: 0
     sheetType: m_Bool
     realType: Boolean
@@ -153,7 +153,7 @@ MonoBehaviour:
     path: ExposedCamera_fieldOfView
     tooltip: "The field of view is the height of the camera\u2019s view angle, measured
       in degrees along the local Y axis."
-    space: 0
+    space: -1
     spaceable: 0
     sheetType: m_Float
     realType: Single
@@ -170,7 +170,7 @@ MonoBehaviour:
     path: ExposedCamera_nearPlane
     tooltip: The near plane is the closest plane relative to the camera where drawing
       occurs.
-    space: 0
+    space: -1
     spaceable: 0
     sheetType: m_Float
     realType: Single
@@ -187,7 +187,7 @@ MonoBehaviour:
     path: ExposedCamera_farPlane
     tooltip: The far plane is the furthest plane relative to the camera where drawing
       occurs.
-    space: 0
+    space: -1
     spaceable: 0
     sheetType: m_Float
     realType: Single
@@ -203,7 +203,7 @@ MonoBehaviour:
   - name: orthographicSize
     path: ExposedCamera_orthographicSize
     tooltip: The orthographic size is half the size of the vertical viewing volume.
-    space: 0
+    space: -1
     spaceable: 0
     sheetType: m_Float
     realType: Single
@@ -220,7 +220,7 @@ MonoBehaviour:
     path: ExposedCamera_aspectRatio
     tooltip: "The aspect ratio is the proportional relationship between the camera\u2019s
       width and height."
-    space: 0
+    space: -1
     spaceable: 0
     sheetType: m_Float
     realType: Single
@@ -236,7 +236,7 @@ MonoBehaviour:
   - name: pixelDimensions
     path: ExposedCamera_pixelDimensions
     tooltip: The width and height of the camera in pixels.
-    space: 0
+    space: -1
     spaceable: 0
     sheetType: m_Vector2f
     realType: Vector2
@@ -252,7 +252,7 @@ MonoBehaviour:
   - name: lensShift
     path: ExposedCamera_lensShift
     tooltip: The lens shift along the x and y directions.
-    space: 0
+    space: -1
     spaceable: 0
     sheetType: m_Vector2f
     realType: Vector2
@@ -268,7 +268,7 @@ MonoBehaviour:
   - name: depthBuffer
     path: ExposedCamera_depthBuffer
     tooltip: The depth buffer of the camera, containing the rendered depth information.
-    space: 0
+    space: -1
     spaceable: 0
     sheetType: 
     realType: CameraBuffer
@@ -283,7 +283,7 @@ MonoBehaviour:
   - name: colorBuffer
     path: ExposedCamera_colorBuffer
     tooltip: The color buffer of the camera, containing the rendered color information.
-    space: 0
+    space: -1
     spaceable: 0
     sheetType: 
     realType: CameraBuffer
@@ -296,7 +296,7 @@ MonoBehaviour:
     enumValues: []
     descendantCount: 0
   m_ImportDependencies: []
-  m_GraphVersion: 13
+  m_GraphVersion: 14
   m_ResourceVersion: 1
   m_SubgraphDependencies: []
   m_CategoryPath: 
@@ -767,7 +767,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UIIgnoredErrors: []
-  m_Parent: {fileID: 114350483966674976}
+  m_Parent: {fileID: 0}
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
@@ -976,7 +976,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UIIgnoredErrors: []
-  m_Parent: {fileID: 114350483966674976}
+  m_Parent: {fileID: 0}
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1

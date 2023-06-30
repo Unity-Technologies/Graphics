@@ -34,12 +34,12 @@ namespace UnityEngine.Rendering
             }
         }
 
-        [GenerateHLSL(PackingRules.Exact, false, false)]
-        internal struct LevelOffsets
+        [GenerateHLSL]
+        public struct LevelOffsets
         {
-            internal uint count;
-            internal uint offset;
-            internal uint parentOffset;
+            public uint count;
+            public uint offset;
+            public uint parentOffset;
         }
 
         /// <summary>

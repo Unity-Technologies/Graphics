@@ -26,6 +26,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float fadeDistance;
         public float distance;
         public float angularDiameter;
+        public float skyAngularDiameter;
         public float volumetricFadeDistance;
         public bool includeForRayTracing;
         public bool useScreenSpaceShadows;
@@ -53,6 +54,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool penumbraTint;
         public bool interactsWithSky;
         public Color surfaceTint;
+        public int bodyType;
+        public float moonPhase;
+        public float moonPhaseRotation;
+        public float earthshine;
         public Color shadowTint;
         public Color flareTint;
     }

@@ -1,0 +1,33 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" uib="Unity.UI.Builder" editor-extension-mode="True">
+    <Style src="project://database/Packages/com.unity.render-pipelines.core/Editor/StyleSheets/VolumeEditor.uss?fileID=7433441132597879392&amp;guid=cd410e8cdc0119a46a753f48e79c8d07&amp;type=3#VolumeEditor" />
+    <ui:VisualElement name="collider-fixme-box__container"/>
+    <uie:PropertyField
+            binding-path="blendDistance"
+            name="volume-profile-blend-distance"
+            label="Blend Distance"
+            tooltip="Sets the outer distance to start blending from. A value of 0 means no blending and Unity applies the Volume overrides immediately upon entry." />
+    <uie:PropertyField
+            binding-path="weight"
+            label="Weight"
+            tooltip="Sets the total weight of this Volume in the Scene. 0 means no effect and 1 means full effect." />
+    <uie:PropertyField
+            binding-path="priority"
+            name="volume-profile-priority"
+            label="Priority"
+            tooltip="A value which determines which Volume is being used when Volumes have an equal amount of influence on the Scene. Volumes with a higher priority will override lower ones." />
+    <ui:VisualElement class="volume-profile-header__container">
+        <ui:Image name="volume-profile-header__asset-icon" style="flex-grow: 0;" />
+        <ui:VisualElement class="volume-profile-objectfield__container volume-profile-objectfield__container--column">
+            <ui:VisualElement class="volume-profile-objectfield__container volume-profile-objectfield__container--row">
+                <uie:ObjectField binding-path="sharedProfile" class="volume-profile-objectfield" />
+                <ui:Button class="volume-profile-objectfield__contextmenu iconButton unity-icon-button">
+                    <ui:Image name="volume-profile-objectfield__contextmenu-image" class="unity-icon-button help-button__image" />
+                </ui:Button>
+            </ui:VisualElement>
+            <ui:Button text="New" tooltip="Create a new profile." name="volume-profile-new-button" />
+            <ui:Label text="Instance Profile" name="volume-profile-instance-profile-label" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+    <ui:VisualElement name="volume-profile-component-container" />
+    <ui:HelpBox name="volume-profile-empty-helpbox" text="Please select or create a new Volume Profile to begin applying overrides to the scene." message-type="Info"/>
+</ui:UXML>

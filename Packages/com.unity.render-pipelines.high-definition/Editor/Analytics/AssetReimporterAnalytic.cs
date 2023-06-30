@@ -1,5 +1,7 @@
+using System;
 using UnityEngine.Analytics;
 using UnityEngine.Rendering;
+using static UnityEditor.VFX.VFXAnalytics;
 
 namespace UnityEditor.Rendering.HighDefinition.Analytics
 {
@@ -11,8 +13,10 @@ namespace UnityEditor.Rendering.HighDefinition.Analytics
         const int k_MaxNumberOfElements = 1000;
         const string k_VendorKey = "unity.srp";
 
+
         [System.Diagnostics.DebuggerDisplay("{duration} - {asset_type} - {num_assets}")]
-        class Data
+        [Serializable]
+        internal class Data : IAnalytic.IData
         {
             internal const string k_EventName = "uAssetReimporterAnalytic";
             internal const int k_Version = 2;
@@ -23,9 +27,23 @@ namespace UnityEditor.Rendering.HighDefinition.Analytics
             public string asset_type;
         }
 
+        [AnalyticInfo(eventName: "uAssetReimporterAnalytic", vendorKey: "unity.srp", maxEventsPerHour: 100, maxNumberOfElements: 1000, version:2)]
+        internal class Analytic : IAnalytic
+        {
+            public Analytic(Data data) { m_Data = data; }
+
+            public bool TryGatherData(out IAnalytic.IData data, out Exception error)
+            {
+                data = m_Data;
+                error = null;
+                return true;
+            }
+
+            Data m_Data;
+        };
         public static void Send<T>(double duration, uint numberOfAssets)
         {
-            if (!EditorAnalytics.enabled || EditorAnalytics.RegisterEventWithLimit(Data.k_EventName, k_MaxEventsPerHour, k_MaxNumberOfElements, k_VendorKey, Data.k_Version) != AnalyticsResult.Ok)
+            if (!EditorAnalytics.enabled)
                 return;
 
             using (GenericPool<Data>.Get(out var data))
@@ -33,7 +51,8 @@ namespace UnityEditor.Rendering.HighDefinition.Analytics
                 data.duration = duration;
                 data.num_assets = numberOfAssets;
                 data.asset_type = typeof(T).ToString();
-                EditorAnalytics.SendEventWithLimit(Data.k_EventName, data, Data.k_Version);
+                Analytic analytic = new Analytic(data);
+                EditorAnalytics.SendAnalytic(analytic);
             }
         }
     }

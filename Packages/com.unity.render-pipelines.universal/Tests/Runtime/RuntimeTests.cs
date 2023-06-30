@@ -36,7 +36,12 @@ class RuntimeTests
     {
         AssetCheck();
 
-        camera.Render();
+        var rr = new UnityEngine.Rendering.RenderPipeline.StandardRequest();
+        rr.destination = new RenderTexture(128, 128, UnityEngine.Experimental.Rendering.GraphicsFormat.R8G8B8A8_SRGB, UnityEngine.Experimental.Rendering.GraphicsFormat.D32_SFloat);
+        rr.mipLevel = 0;
+        rr.slice = 0;
+        rr.face = CubemapFace.Unknown;
+        UnityEngine.Rendering.RenderPipeline.SubmitRenderRequest(camera, rr);
         yield return null;
 
         Assert.AreEqual(QualitySettings.activeColorSpace == ColorSpace.Linear, GraphicsSettings.lightsUseLinearIntensity,
@@ -51,7 +56,12 @@ class RuntimeTests
     {
         AssetCheck();
 
-        camera.Render();
+        var rr = new UnityEngine.Rendering.RenderPipeline.StandardRequest();
+        rr.destination = new RenderTexture(128, 128, UnityEngine.Experimental.Rendering.GraphicsFormat.R8G8B8A8_SRGB, UnityEngine.Experimental.Rendering.GraphicsFormat.D32_SFloat);
+        rr.mipLevel = 0;
+        rr.slice = 0;
+        rr.face = CubemapFace.Unknown;
+        UnityEngine.Rendering.RenderPipeline.SubmitRenderRequest(camera, rr);
         yield return null;
 
         Assert.AreEqual("UniversalPipeline", Shader.globalRenderPipeline, "Wrong render pipeline shader tag.");

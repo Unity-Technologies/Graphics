@@ -30,12 +30,12 @@
         </ui:VisualElement>
     </ui:TwoPaneSplitView>
     <ui:VisualElement name="FooterPanel">
-        <ui:Button name="CreateButton"
-                   text="Create"
-                   display-tooltip-when-elided="true"
-                   />
         <ui:Button name="CancelButton"
                    text="Cancel"
+                   display-tooltip-when-elided="true"
+                   />
+        <ui:Button name="CreateButton"
+                   text="Create"
                    display-tooltip-when-elided="true"
                    />
     </ui:VisualElement>

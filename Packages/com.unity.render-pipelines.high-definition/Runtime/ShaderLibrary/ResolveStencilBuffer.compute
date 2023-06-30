@@ -1,18 +1,24 @@
 #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
-#pragma kernel MAIN         KERNEL_NAME=MAIN         NUM_SAMPLES=1      COARSE_STENCIL
-#pragma kernel MAIN_MSAA_2  KERNEL_NAME=MAIN_MSAA_2  NUM_SAMPLES=2 MSAA COARSE_STENCIL
-#pragma kernel MAIN_MSAA_4  KERNEL_NAME=MAIN_MSAA_4  NUM_SAMPLES=4 MSAA COARSE_STENCIL
-#pragma kernel MAIN_MSAA_8  KERNEL_NAME=MAIN_MSAA_8  NUM_SAMPLES=8 MSAA COARSE_STENCIL
+#pragma kernel Main
 
-#pragma kernel MAIN_MSAA_2_RESOLVE  KERNEL_NAME=MAIN_MSAA_2_RESOLVE  NUM_SAMPLES=2 MSAA RESOLVE COARSE_STENCIL
-#pragma kernel MAIN_MSAA_4_RESOLVE  KERNEL_NAME=MAIN_MSAA_4_RESOLVE  NUM_SAMPLES=4 MSAA RESOLVE COARSE_STENCIL
-#pragma kernel MAIN_MSAA_8_RESOLVE  KERNEL_NAME=MAIN_MSAA_8_RESOLVE  NUM_SAMPLES=8 MSAA RESOLVE COARSE_STENCIL
+#pragma multi_compile _ MSAA2X MSAA4X MSAA8X
+#pragma multi_compile _ COARSE_STENCIL
+#pragma multi_compile _ RESOLVE
 
-#pragma kernel MAIN_MSAA_2_RESOLVE_ONLY  KERNEL_NAME=MAIN_MSAA_2_RESOLVE_ONLY  NUM_SAMPLES=2 MSAA RESOLVE
-#pragma kernel MAIN_MSAA_4_RESOLVE_ONLY  KERNEL_NAME=MAIN_MSAA_4_RESOLVE_ONLY  NUM_SAMPLES=4 MSAA RESOLVE
-#pragma kernel MAIN_MSAA_8_RESOLVE_ONLY  KERNEL_NAME=MAIN_MSAA_8_RESOLVE_ONLY  NUM_SAMPLES=8 MSAA RESOLVE
+#if defined(MSAA2X)
+# define NUM_SAMPLES 2
+#elif defined(MSAA4X)
+# define NUM_SAMPLES 4
+#elif defined(MSAA8X)
+# define NUM_SAMPLES 8
+#else
+# define NUM_SAMPLES 1
+#endif
 
+#if (NUM_SAMPLES > 1)
+# define MSAA
+#endif
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
@@ -41,7 +47,7 @@ groupshared uint coarseStencilValue;
 #endif
 
 [numthreads(8, 8, 1)]
-void KERNEL_NAME(uint3 groupId          : SV_GroupID,
+void Main(uint3 groupId          : SV_GroupID,
                  uint3 groupThreadId    : SV_GroupThreadID,
                  uint3 dispatchThreadID : SV_DispatchThreadID)
 {
@@ -64,7 +70,7 @@ void KERNEL_NAME(uint3 groupId          : SV_GroupID,
             resolvedStencil |= GetStencilValue(sampledStencil); // In not MSAA cases the | is the same as assigning given that NUM_SAMPLES is 1
         }
     }
-#ifdef RESOLVE
+#if defined(RESOLVE) && defined(MSAA)
     _OutputStencilBuffer[COORD_TEXTURE2D_X(dispatchThreadID.xy)] = uint2(resolvedStencil, resolvedStencil);
 #endif
 

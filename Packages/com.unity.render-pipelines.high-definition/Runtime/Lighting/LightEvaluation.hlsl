@@ -604,8 +604,8 @@ bool OccluderInRendererBounds(HDShadowData shadowData, Texture2D atlas, Position
     float3 rendererExtentWS = (maxBounds - minBounds) * 0.5;
 
     // Comparison between bounding sphere radius and occluder distance.
-    const float occlusionDirection = rendererCenterWS - occluderPositionWS;
-    return Sq(occlusionDirection) < Sq(Max3(rendererExtentWS.x, rendererExtentWS.y, rendererExtentWS.z));
+    const float occlusionDirectionSq = Length2(rendererCenterWS - occluderPositionWS);
+    return occlusionDirectionSq < Sq(Max3(rendererExtentWS.x, rendererExtentWS.y, rendererExtentWS.z));
 }
 
 bool DirectionalOccluderInRendererBounds(LightLoopContext lightLoopContext, DirectionalLightData lightData, PositionInputs posInput)

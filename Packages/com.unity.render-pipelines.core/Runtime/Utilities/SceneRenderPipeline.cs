@@ -2,6 +2,9 @@
 using UnityEditor;
 #endif
 
+using System;
+using UnityEngine.Analytics;
+
 namespace UnityEngine.Rendering
 {
     /// <summary>
@@ -15,7 +18,7 @@ namespace UnityEngine.Rendering
     {
 #if UNITY_EDITOR
         [SerializeField] bool firstTimeCreated = true;
-    
+
         /// <summary>
         /// Scriptable Render Pipeline Asset to setup on scene load.
         /// </summary>
@@ -30,7 +33,7 @@ namespace UnityEngine.Rendering
             }
 
             //Send analytics each time to find usage in content dl on the asset store too
-            SceneRenderPipelineAnalytic.Send(this);
+            SceneRenderPipelineAnalytic.SendAnalytic(this);
         }
 
         void OnEnable()
@@ -38,30 +41,44 @@ namespace UnityEngine.Rendering
             GraphicsSettings.renderPipelineAsset = renderPipelineAsset;
         }
 
-        static class SceneRenderPipelineAnalytic
+
+        [AnalyticInfo(eventName: "sceneRenderPipelineAssignment", vendorKey: "unity.srp", maxEventsPerHour: 10, maxNumberOfElements: 1000)]
+        class SceneRenderPipelineAnalytic : IAnalytic
         {
-            const int k_MaxEventsPerHour = 100;
-            const int k_MaxNumberOfElements = 1000;
-            const string k_VendorKey = "unity.srp";
+
+            public SceneRenderPipelineAnalytic(string guid)
+            {
+                m_Data = new Data
+                {
+                    scene_guid = guid
+                };
+            }
 
             [System.Diagnostics.DebuggerDisplay("{scene_guid}")]
-            internal struct Data
+            [Serializable]
+            internal struct Data : IAnalytic.IData
             {
-                internal const string k_EventName = "sceneRenderPipelineAssignment";
-
                 // Naming convention for analytics data
                 public string scene_guid;
             };
 
-            internal static void Send(SceneRenderPipeline sender)
+            public bool TryGatherData(out IAnalytic.IData data, out Exception error)
             {
-                if (!EditorAnalytics.enabled || EditorAnalytics.RegisterEventWithLimit(Data.k_EventName, k_MaxEventsPerHour, k_MaxNumberOfElements, k_VendorKey) != UnityEngine.Analytics.AnalyticsResult.Ok)
-                    return;
-
-                var data = new Data() { scene_guid = sender.gameObject.scene.GetGUID() };
-                EditorAnalytics.SendEventWithLimit(Data.k_EventName, data);
+                data = m_Data;
+                error = null;
+                return true;
             }
+
+            static public void SendAnalytic(SceneRenderPipeline sender)
+            {
+                SceneRenderPipelineAnalytic analytic = new SceneRenderPipelineAnalytic(sender.gameObject.scene.GetGUID());
+                EditorAnalytics.SendAnalytic(analytic);
+            }
+
+            Data m_Data;
         }
+
+      
 #endif
     }
 }

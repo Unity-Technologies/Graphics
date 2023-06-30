@@ -1,4 +1,6 @@
+using System;
 using UnityEngine.Rendering;
+using UnityEngine.VFX;
 
 namespace UnityEngine.Experimental.Rendering
 {
@@ -42,6 +44,31 @@ namespace UnityEngine.Experimental.Rendering
         {
             lowlevelCmd.m_WrappedCommandBuffer = baseBuffer;
             return lowlevelCmd;
+        }
+
+        /// <summary>
+        /// Wrapper for VFXManager.ProcessCameraCommand that works with LowLevelCommandBuffer.
+        /// </summary>
+        /// <param name="cam">The Camera to process the VFX commands for.</param>
+        /// <param name="cmd">The CommandBuffer to push commands to (can be null).</param>
+        [Obsolete("Use ProcessCameraCommand with CullingResults to allow culling of VFX per camera")]
+        public static void VFXManager_ProcessCameraCommand(Camera cam, LowLevelCommandBuffer cmd)
+        {
+#pragma warning disable 0618
+            UnityEngine.VFX.VFXManager.ProcessCameraCommand(cam, cmd.m_WrappedCommandBuffer);
+#pragma warning restore 0618
+        }
+
+        /// <summary>
+        /// Wrapper for VFXManager.ProcessCameraCommand that works with LowLevelCommandBuffer.
+        /// </summary>
+        /// <param name="cam">	The Camera to process the VFX commands for.</param>
+        /// <param name="cmd">The CommandBuffer to push commands to (can be null).</param>
+        /// <param name="camXRSettings">The XR settings that the Visual Effect Graph uses to process the Camera commands.</param>
+        /// <param name="results">The culling results to use.</param>
+        public static void VFXManager_ProcessCameraCommand(Camera cam, LowLevelCommandBuffer cmd, VFXCameraXRSettings camXRSettings, CullingResults results)
+        {
+            UnityEngine.VFX.VFXManager.ProcessCameraCommand(cam, cmd.m_WrappedCommandBuffer, camXRSettings, results);
         }
     }
 }

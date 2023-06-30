@@ -1664,6 +1664,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Calcualte frustum corners at specified camera depth given projection matrix and depth z.
         /// </summary>
+        /// <param name="proj"> Projection matrix used by the view frustrum. </param>
         /// <param name="z"> Z-depth from the camera origin at which the corners will be calculated. </param>
         /// <returns> Return conner vectors for left-bottom, right-bottm, right-top, left-top in view space. </returns>
         public static Vector3[] CalculateViewSpaceCorners(Matrix4x4 proj, float z)

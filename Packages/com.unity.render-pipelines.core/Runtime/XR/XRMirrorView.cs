@@ -121,8 +121,14 @@ namespace UnityEngine.Experimental.Rendering
                                 cmd.EnableShaderKeyword("_FOVEATED_RENDERING_NON_UNIFORM_RASTER");
                             }
 
-                            int shaderPass = (blitParam.srcTex.dimension == TextureDimension.Tex2DArray) ? 1 : 0;
-                            cmd.DrawProcedural(Matrix4x4.identity, mat, shaderPass, MeshTopology.Quads, 4, 1, s_MirrorViewMaterialProperty);
+                            if (blitParam.srcTex.dimension != TextureDimension.Tex2DArray)
+                                cmd.EnableShaderKeyword("DISABLE_TEXTURE2D_X_ARRAY");
+
+                            cmd.DrawProcedural(Matrix4x4.identity, mat, 0, MeshTopology.Quads, 4, 1, s_MirrorViewMaterialProperty);
+
+                            // Set back the XR texture for regular XR calls
+                            if (blitParam.srcTex.dimension != TextureDimension.Tex2DArray && TextureXR.useTexArray)
+                                cmd.DisableShaderKeyword("DISABLE_TEXTURE2D_X_ARRAY");
                         }
                     }
                 }

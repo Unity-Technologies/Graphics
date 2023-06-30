@@ -381,6 +381,7 @@ Shader "Hidden/HDRP/TemporalAA"
         // TAA
         Pass
         {
+            Name "TAA"
             Stencil
             {
                 ReadMask [_StencilMask]       // ExcludeFromTAA
@@ -401,6 +402,7 @@ Shader "Hidden/HDRP/TemporalAA"
         // Note: This is a straightup passthrough now, but it would be interesting instead to try to reduce history influence instead.
         Pass
         {
+            Name "Excluded From TAA"
             Stencil
             {
                 ReadMask [_StencilMask]
@@ -419,6 +421,7 @@ Shader "Hidden/HDRP/TemporalAA"
 
         Pass // TAAU
         {
+            Name "TAAU"
             // We cannot stencil with TAAU, we will need to manually sample the texture.
 
             ZWrite Off ZTest Always Blend Off Cull Off
@@ -431,6 +434,7 @@ Shader "Hidden/HDRP/TemporalAA"
 
         Pass // Copy history
         {
+            Name "Copy History"
             ZWrite Off ZTest Always Blend Off Cull Off
 
             HLSLPROGRAM

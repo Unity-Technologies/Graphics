@@ -16,6 +16,8 @@ using UnityEngine.Playables;
 using UnityEngine.Timeline;
 #endif
 
+[assembly: InternalsVisibleTo("Unity.Testing.VisualEffectGraph.Tests")]
+[assembly: InternalsVisibleTo("Unity.Testing.VisualEffectGraph.Tests-testable")]
 [assembly: InternalsVisibleTo("Unity.VisualEffectGraph.EditorTests")]
 [assembly: InternalsVisibleTo("Unity.VisualEffectGraph.EditorTests-testable")]
 [assembly: InternalsVisibleTo("Unity.VisualEffectGraph.RuntimeTests")]
@@ -29,6 +31,26 @@ namespace UnityEditor.VFX.Test
         public static readonly string tempBasePath = "Assets/TmpTests/";
         static readonly string tempFileFormat = tempBasePath + "vfx_{0}.vfx";
         static readonly string tempFileFormatPlayable = tempBasePath + "vfx_{0}.playable";
+
+        public static readonly VFXValueType[] s_supportedValueType =
+        {
+            VFXValueType.Float,
+            VFXValueType.Float2,
+            VFXValueType.Float3,
+            VFXValueType.Float4,
+            VFXValueType.Int32,
+            VFXValueType.Uint32,
+            VFXValueType.Curve,
+            VFXValueType.ColorGradient,
+            VFXValueType.Mesh,
+            VFXValueType.Texture2D,
+            VFXValueType.Texture2DArray,
+            VFXValueType.Texture3D,
+            VFXValueType.TextureCube,
+            VFXValueType.TextureCubeArray,
+            VFXValueType.Boolean,
+            VFXValueType.Matrix4x4
+        };
 
         public static void CloseAllUnecessaryWindows()
         {
@@ -114,6 +136,32 @@ namespace UnityEditor.VFX.Test
             return graph;
         }
 
+        public static VFXGraph CreateGraph_And_System()
+        {
+            var graph = VFXTestCommon.MakeTemporaryGraph();
+
+            var output = ScriptableObject.CreateInstance<VFXPointOutput>();
+            output.SetSettingValue("castShadows", true);
+            graph.AddChild(output);
+
+            var contextInitialize = ScriptableObject.CreateInstance<VFXBasicInitialize>();
+
+            var blockAttributeDesc = VFXLibrary.GetBlocks().FirstOrDefault(o => o.modelType == typeof(Block.SetAttribute));
+            var blockAttribute = blockAttributeDesc.CreateInstance();
+            blockAttribute.SetSettingValue("attribute", "position");
+            contextInitialize.AddChild(blockAttribute);
+
+            contextInitialize.LinkTo(output);
+            graph.AddChild(contextInitialize);
+
+            var spawner = ScriptableObject.CreateInstance<VFXBasicSpawner>();
+            spawner.LinkTo(contextInitialize);
+            graph.AddChild(spawner);
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph)); ;
+
+            return graph;
+        }
+
         public static void DeleteAllTemporaryGraph()
         {
             if (Directory.Exists(tempBasePath))
@@ -127,6 +175,31 @@ namespace UnityEditor.VFX.Test
                 File.Delete(meta);
             }
             AssetDatabase.Refresh();
+        }
+
+        public static IEnumerable<VFXExpression> CollectParentExpression(VFXExpression expression, HashSet<VFXExpression> hashSet = null)
+        {
+            if (expression != null)
+            {
+                if (hashSet == null)
+                {
+                    hashSet = new HashSet<VFXExpression>();
+                }
+
+                if (!hashSet.Contains(expression))
+                {
+                    hashSet.Add(expression);
+                    yield return expression;
+                    foreach (var parent in expression.parents)
+                    {
+                        var parents = CollectParentExpression(parent, hashSet);
+                        foreach (var exp in parents)
+                        {
+                            yield return exp;
+                        }
+                    }
+                }
+            }
         }
 
         public static U GetFieldValue<T, U>(T obj, string fieldName)

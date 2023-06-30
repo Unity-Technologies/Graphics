@@ -20,6 +20,8 @@ namespace UnityEngine.Rendering
             public Vector2        viewport;
             public Matrix4x4      matrixIVP;
             public RenderTargets  targets;
+            public int            viewCount;
+            public int            viewIndex;
         }
 
         internal struct SystemSettings
@@ -185,6 +187,9 @@ namespace UnityEngine.Rendering
             public Vector2Int _ShadingAtlasDimensions;
             public int _ClusterCount;
             public float _TileOpacityThreshold;
+
+            public int _ViewIndex;
+            public Vector3 _padding;
         }
 
         [GenerateHLSL(PackingRules.Exact, false)]

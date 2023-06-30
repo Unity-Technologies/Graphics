@@ -95,6 +95,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             typeof(HDFullscreenSubTarget),
             typeof(WaterSubTarget),
             typeof(FogVolumeSubTarget),
+            typeof(PBRSkySubTarget),
         };
 
         private static readonly List<Type> m_IncompatibleHQLineRenderingSubTargets = new()
@@ -104,6 +105,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             typeof(HDFullscreenSubTarget),
             typeof(WaterSubTarget),
             typeof(FogVolumeSubTarget),
+            typeof(PBRSkySubTarget),
         };
 
         internal override bool ignoreCustomInterpolators => m_ActiveSubTarget.value is HDCanvasSubTarget;
@@ -233,9 +235,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddProperty("Custom Editor GUI", m_CustomGUIField, (evt) => { });
 
             // VFX Support
-            if (m_IncompatibleVFXSubTargets.Contains(m_ActiveSubTarget.value.GetType()))
-                context.AddHelpBox(MessageType.Info, $"The {m_ActiveSubTarget.value.displayName} target does not support VFX Graph.");
-            else
+            if (!m_IncompatibleVFXSubTargets.Contains(m_ActiveSubTarget.value.GetType()))
             {
                 m_SupportVFXToggle = new Toggle("") { value = m_SupportVFX };
                 const string k_VFXToggleTooltip = "When enabled, this shader can be assigned to a compatible Visual Effect Graph output.";
@@ -246,9 +246,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 });
             }
 
-            if (m_IncompatibleHQLineRenderingSubTargets.Contains(m_ActiveSubTarget.value.GetType()))
-                context.AddHelpBox(MessageType.Info, $"The {m_ActiveSubTarget.value.displayName} target does not support High Quality Line Rendering.");
-            else
+            if (!m_IncompatibleHQLineRenderingSubTargets.Contains(m_ActiveSubTarget.value.GetType()))
             {
                 m_SupportLineRenderingToggle = new Toggle("") { value = m_SupportLineRendering };
                 context.AddProperty("Support High Quality Line Rendering", "", 0, m_SupportLineRenderingToggle, (evt) =>
@@ -1002,7 +1000,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { Pragma.Vertex("Vert") },
             { Pragma.Fragment("Frag") },
             { Pragma.OnlyRenderers(PragmaRenderers.GetHighEndPlatformArray()) },
-            { Pragma.MultiCompileInstancing },
         };
 
         public static PragmaCollection BasicVFX = new PragmaCollection
@@ -1011,7 +1008,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { Pragma.Vertex("VertVFX") },
             { Pragma.Fragment("Frag") },
             { Pragma.OnlyRenderers(PragmaRenderers.GetHighEndPlatformArray()) },
-            { Pragma.MultiCompileInstancing },
         };
 
         public static PragmaCollection BasicTessellation = new PragmaCollection
@@ -1022,7 +1018,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { Pragma.Hull("Hull") },
             { Pragma.Domain("Domain") },
             { Pragma.OnlyRenderers(PragmaRenderers.GetHighEndPlatformArray()) },
-            { Pragma.MultiCompileInstancing },
         };
 
         public static PragmaCollection BasicRaytracing = new PragmaCollection
@@ -1713,6 +1708,16 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
             stages = KeywordShaderStage.Fragment,
+        };
+
+        public static KeywordDescriptor DecalSurfaceGradientRayTracing = new KeywordDescriptor
+        {
+            displayName = "Additive normal blending",
+            referenceName = "DECAL_SURFACE_GRADIENT",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+            stages = KeywordShaderStage.RayTracing,
         };
 
         public static KeywordDescriptor DisableSSR = new KeywordDescriptor

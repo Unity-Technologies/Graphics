@@ -217,25 +217,15 @@ namespace UnityEditor.Rendering
 
         public override void OnInspectorGUI()
         {
-            var renderPipelineAssetType = GraphicsSettings.currentRenderPipelineAssetType;
-            if (renderPipelineAssetType != null && (renderPipelineAssetType.Name == "HDRenderPipelineAsset" || renderPipelineAssetType.Name == "UniversalRenderPipelineAsset"))
+            if (!ProbeReferenceVolume.instance.isInitialized || !ProbeReferenceVolume.instance.enabledBySRP)
             {
-                serializedObject.Update();
-
-                if (!ProbeReferenceVolume.instance.isInitialized || !ProbeReferenceVolume.instance.enabledBySRP)
-                {
-                    EditorGUILayout.HelpBox("The probe volumes feature is disabled. The feature needs to be enabled on the used HDRP or URP asset.", MessageType.Warning, wide: true);
-                    return;
-                }
-
-                ProbeTouchupVolumeUI.Inspector.Draw(m_SerializedTouchupVolume, this);
-            }
-            else
-            {
-                EditorGUILayout.HelpBox("Probe Volumes is not a supported feature by this SRP.", MessageType.Error, wide: true);
+                ProbeVolumeEditor.APVDisabledHelpBox();
+                return;
             }
 
-            m_SerializedTouchupVolume.Apply();
+            serializedObject.Update();
+            ProbeTouchupVolumeUI.Inspector.Draw(m_SerializedTouchupVolume, this);
+            serializedObject.ApplyModifiedProperties();
         }
 
         [DrawGizmo(GizmoType.InSelectionHierarchy)]
