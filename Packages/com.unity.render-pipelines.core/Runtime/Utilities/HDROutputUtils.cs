@@ -19,8 +19,18 @@ namespace UnityEngine.Rendering
             ColorEncoding = 1 << 1
         }
 
+        /// <summary>
+        /// This struct Provides access to HDR display settings and information.
+        /// </summary>
         public struct HDRDisplayInformation
         {
+            /// <summary>
+            /// Constructs HDR Display settings.
+            /// </summary>
+            /// <param name="maxFullFrameToneMapLuminance"></param>
+            /// <param name="maxToneMapLuminance"></param>
+            /// <param name="minToneMapLuminance"></param>
+            /// <param name="hdrPaperWhiteNits"></param>
             public HDRDisplayInformation(int maxFullFrameToneMapLuminance, int maxToneMapLuminance, int minToneMapLuminance, float hdrPaperWhiteNits)
             {
                 this.maxFullFrameToneMapLuminance = maxFullFrameToneMapLuminance;
@@ -28,9 +38,17 @@ namespace UnityEngine.Rendering
                 this.minToneMapLuminance = minToneMapLuminance;
                 this.paperWhiteNits = hdrPaperWhiteNits;
             }
+
+            /// <summary>Maximum input luminance at which gradation is preserved even when the entire screen is bright. </summary>
             public int maxFullFrameToneMapLuminance;
+
+            /// <summary>Maximum input luminance at which gradation is preserved when 10% of the screen is bright. </summary>
             public int maxToneMapLuminance;
+
+            /// <summary>Minimum input luminance at which gradation is identifiable. </summary>
             public int minToneMapLuminance;
+
+            /// <summary>The base luminance of a white paper surface in nits or candela per square meter. </summary>
             public float paperWhiteNits;
         }
 
@@ -185,7 +203,6 @@ namespace UnityEngine.Rendering
         /// Configures the Material keywords to use HDR output parameters.
         /// </summary>
         /// <param name="material">The Material used with HDR output.</param>
-        /// <param name="gamut">Color gamut (a combination of color space and encoding) queried from the device.</param>
         /// <param name="operations">HDR color operations the shader applies.</param>
         public static void ConfigureHDROutput(Material material, Operation operations)
         {

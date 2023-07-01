@@ -134,6 +134,9 @@ namespace UnityEngine.Experimental.Rendering
         /// </summary>
         public IntPtr foveatedRenderingInfo { get; private set; }
 
+        /// <summary>
+        /// Returns true when the active display has HDR enabled.
+        /// </summary>
         public bool isHDRDisplayOutputActive
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -143,6 +146,9 @@ namespace UnityEngine.Experimental.Rendering
 #endif
         }
 
+        /// <summary>
+        /// Returns color gamut of the active HDR display.
+        /// </summary>
         public ColorGamut hdrDisplayOutputColorGamut
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -152,6 +158,9 @@ namespace UnityEngine.Experimental.Rendering
 #endif
         }
 
+        /// <summary>
+        /// Returns HDR display information of the active HDR display.
+        /// </summary>
         public HDROutputUtils.HDRDisplayInformation hdrDisplayOutputInformation
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
