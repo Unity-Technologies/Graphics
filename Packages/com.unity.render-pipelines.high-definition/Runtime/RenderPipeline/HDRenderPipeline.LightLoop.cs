@@ -603,7 +603,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // note that nrTiles include the viewCount in allocation below
                 // Tile buffers
                 passData.output.lightList = builder.WriteBuffer(
-                    renderGraph.CreateBuffer(new BufferDesc((int)LightCategory.Count * LightDefinitions.s_LightDwordPerFptlTile * nrTiles, sizeof(uint)) { name = "LightList" }));
+                    renderGraph.CreateBuffer(new BufferDesc((int)LightCategory.Count * InternalLightCullingDefs.s_LightDwordPerFptlTile * nrTiles, sizeof(uint)) { name = "LightList" }));
                 passData.output.tileList = builder.WriteBuffer(
                     renderGraph.CreateBuffer(new BufferDesc(LightDefinitions.s_NumFeatureVariants * nrTiles, sizeof(uint)) { name = "TileList" }));
                 passData.output.tileFeatureFlags = builder.WriteBuffer(
@@ -622,7 +622,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 var nrBigTilesY = (m_MaxCameraHeight + 63) / 64;
                 var nrBigTiles = nrBigTilesX * nrBigTilesY * m_MaxViewCount;
                 passData.output.bigTileLightList = builder.WriteBuffer(
-                    renderGraph.CreateBuffer(new BufferDesc(LightDefinitions.s_MaxNrBigTileLightsPlusOne * nrBigTiles, sizeof(uint)) { name = "BigTiles" }));
+                    renderGraph.CreateBuffer(new BufferDesc(InternalLightCullingDefs.s_MaxNrBigTileLightsPlusOne * nrBigTiles, sizeof(uint)) { name = "BigTiles" }));
             }
 
             // Cluster buffers

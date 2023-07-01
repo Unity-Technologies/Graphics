@@ -88,7 +88,6 @@ namespace UnityEngine.Rendering.HighDefinition
     [GenerateHLSL]
     class LightDefinitions
     {
-        public static int s_MaxNrBigTileLightsPlusOne = 512;      // may be overkill but the footprint is 2 bits per pixel using uint16.
         public static float s_ViewportScaleZ = 1.0f;
         public static int s_UseLeftHandCameraSpace = 1;
 
@@ -104,18 +103,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // feature variants
         public static int s_NumFeatureVariants = 29;
-
-        // light list limits
-        public static int s_LightListMaxCoarseEntries = 64;
-        public static int s_LightClusterMaxCoarseEntries = 128;
-
-        // We have room for ShaderConfig.FPTLMaxLightCount lights, plus 1 implicit value for length.
-        // We allocate only 16 bits per light index & length, thus we divide by 2, and store in a word buffer.
-        public static int s_LightDwordPerFptlTile = ((ShaderConfig.FPTLMaxLightCount + 1)) / 2;
-        public static int s_LightClusterPackingCountBits = (int)Mathf.Ceil(Mathf.Log(Mathf.NextPowerOfTwo(ShaderConfig.FPTLMaxLightCount), 2));
-        public static int s_LightClusterPackingCountMask = (1 << s_LightClusterPackingCountBits) - 1;
-        public static int s_LightClusterPackingOffsetBits = 32 - s_LightClusterPackingCountBits;
-        public static int s_LightClusterPackingOffsetMask = (1 << s_LightClusterPackingOffsetBits) - 1;
 
         // Following define the maximum number of bits use in each feature category.
         public static uint s_LightFeatureMaskFlags = 0xFFF000;
@@ -954,7 +941,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static int NumLightIndicesPerClusteredTile()
         {
-            return 32 * (1 << k_Log2NumClusters);       // total footprint for all layers of the tile (measured in light index entries)
+            return ShaderConfig.FPTLMaxLightCount * (1 << k_Log2NumClusters);       // total footprint for all layers of the tile (measured in light index entries)
         }
 
         void LightLoopAllocResolutionDependentBuffers(HDCamera hdCamera, int width, int height)
