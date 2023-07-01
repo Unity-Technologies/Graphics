@@ -111,6 +111,8 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     bsdfData.caustics = surfaceData.caustics;
     bsdfData.tipThickness = surfaceData.tipThickness;
 
+    bsdfData.surfaceIndex = _SurfaceIndex;
+
     return bsdfData;
 }
 
@@ -240,7 +242,7 @@ void EncodeIntoGBuffer(BSDFData bsdfData, BuiltinData builtinData
     outGBuffer2 = CompressGBuffer2(bsdfData.lowFrequencyNormalWS, bsdfData.foam);
 
     // Output to the Gbuffer3
-    outGBuffer3 = CompressGBuffer3(bsdfData.tipThickness, bsdfData.caustics, _SurfaceIndex, bsdfData.frontFace);
+    outGBuffer3 = CompressGBuffer3(bsdfData.tipThickness, bsdfData.caustics, bsdfData.surfaceIndex, bsdfData.frontFace);
 }
 
 uint EvaluateLightLayers(uint surfaceIndex)
