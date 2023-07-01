@@ -4,6 +4,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.EnhancedTouch;
 #endif
 
+using System;
 using System.Collections.Generic;
 
 namespace UnityEngine.Rendering
@@ -183,11 +184,19 @@ namespace UnityEngine.Rendering
                     var buttons = desc.buttonTriggerList[buttonListIndex];
                     bool allButtonPressed = true;
 
-                    foreach (var button in buttons)
+                    try
                     {
-                        allButtonPressed = Input.GetButton(button);
-                        if (!allButtonPressed)
-                            break;
+                        foreach (var button in buttons)
+                        {
+                            allButtonPressed = Input.GetButton(button);
+                            if (!allButtonPressed)
+                                break;
+                        }
+                    }
+                    catch (ArgumentException)
+                    {
+                        // Exception thrown if the input mapping gets removed while in play mode (UUM-37148)
+                        allButtonPressed = false;
                     }
 
                     if (allButtonPressed)
@@ -200,10 +209,17 @@ namespace UnityEngine.Rendering
                 // Check axis triggers
                 if (desc.axisTrigger != "")
                 {
-                    float axisValue = Input.GetAxis(desc.axisTrigger);
+                    try
+                    {
+                        float axisValue = Input.GetAxis(desc.axisTrigger);
 
-                    if (axisValue != 0f)
-                        state.TriggerWithAxis(desc.axisTrigger, axisValue);
+                        if (axisValue != 0f)
+                            state.TriggerWithAxis(desc.axisTrigger, axisValue);
+                    }
+                    catch (ArgumentException)
+                    {
+                        // Exception thrown if the input mapping gets removed while in play mode (UUM-37148)
+                    }
                 }
 
                 // Check key triggers
@@ -212,11 +228,20 @@ namespace UnityEngine.Rendering
                     bool allKeyPressed = true;
 
                     var keys = desc.keyTriggerList[keyListIndex];
-                    foreach (var key in keys)
+
+                    try
                     {
-                        allKeyPressed = Input.GetKey(key);
-                        if (!allKeyPressed)
-                            break;
+                        foreach (var key in keys)
+                        {
+                            allKeyPressed = Input.GetKey(key);
+                            if (!allKeyPressed)
+                                break;
+                        }
+                    }
+                    catch (ArgumentException)
+                    {
+                        // Exception thrown if the input mapping gets removed while in play mode (UUM-37148)
+                        allKeyPressed = false;
                     }
 
                     if (allKeyPressed)
