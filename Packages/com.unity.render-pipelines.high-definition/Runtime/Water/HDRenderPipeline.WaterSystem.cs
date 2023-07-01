@@ -1255,14 +1255,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Grab the current water surface
                 WaterSurface currentWater = waterSurfaces[surfaceIdx];
 
-                // Fill the water surface profile
-                FillWaterSurfaceProfile(hdCamera, currentWater, surfaceIdx);
-
                 // Render the water surface
-                RenderWaterSurfaceGBuffer(renderGraph, hdCamera, currentWater, settings, surfaceIdx, false,
-                    depthBuffer, renderGraph.defaultResources.blackTextureXR, renderGraph.defaultResources.blackTextureXR,
-                    lightLists.perVoxelOffset, lightLists.perTileLogBaseTweak,
-                    WaterGbuffer0, colorBuffer, WaterGbuffer2, WaterGbuffer3, cameraHeight);
+                RenderWaterSurfaceMask(renderGraph, hdCamera, currentWater, settings, surfaceIdx, colorBuffer, depthBuffer);
             }
         }
 

@@ -10,27 +10,24 @@ namespace UnityEngine.Rendering.HighDefinition
         void RenderWaterMaskDebug(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthBuffer, WaterGBuffer waterGBuffer)
         {
             WaterRendering settings = hdCamera.volumeStack.GetComponent<WaterRendering>();
-            if (!ShouldRenderWater(hdCamera))
+            if (!waterGBuffer.debugRequired || !ShouldRenderWater(hdCamera))
                 return;
 
-            if (waterGBuffer.debugRequired)
+            // Grab all the water surfaces in the scene
+            var waterSurfaces = WaterSurface.instancesAsArray;
+            int numWaterSurfaces = WaterSurface.instanceCount;
+
+            for (int surfaceIdx = 0; surfaceIdx < numWaterSurfaces; ++surfaceIdx)
             {
-                // Grab all the water surfaces in the scene
-                var waterSurfaces = WaterSurface.instancesAsArray;
-                int numWaterSurfaces = WaterSurface.instanceCount;
+                // Grab the current water surface
+                WaterSurface currentWater = waterSurfaces[surfaceIdx];
 
-                for (int surfaceIdx = 0; surfaceIdx < numWaterSurfaces; ++surfaceIdx)
-                {
-                    // Grab the current water surface
-                    WaterSurface currentWater = waterSurfaces[surfaceIdx];
+                // If the resources are invalid, we cannot render this surface
+                if (currentWater.debugMode == WaterDebugMode.None)
+                    continue;
 
-                    // If the resources are invalid, we cannot render this surface
-                    if (currentWater.debugMode == WaterDebugMode.None)
-                        continue;
-
-                    // Render the water surface
-                    RenderWaterSurfaceMask(renderGraph, hdCamera, currentWater, settings, surfaceIdx, colorBuffer, depthBuffer);
-                }
+                // Render the water surface
+                RenderWaterSurfaceMask(renderGraph, hdCamera, currentWater, settings, surfaceIdx, colorBuffer, depthBuffer);
             }
         }
 
