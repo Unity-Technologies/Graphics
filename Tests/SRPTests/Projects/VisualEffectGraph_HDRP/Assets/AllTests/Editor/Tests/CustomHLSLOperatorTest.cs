@@ -60,9 +60,9 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(VFXValueType.Float3, hlslExpression.valueType);
 
             var function = CustomHLSLBlockTest.GetFunction(hlslOperator);
-            var expectedCode = $"float3 {function.GetNameWithHashCode()}(in float4x4 mat, in float3 vec)" + "\r\n" +
-                                     "{" + "\r\n" +
-                                     "    return mat * vec;" + "\n" +
+            var expectedCode = $"float3 {function.GetNameWithHashCode()}(in float4x4 mat, in float3 vec)\r\n" +
+                                     "{\n" +
+                                     "    return mat * vec;\n" +
                                      "}\r\n";
             Assert.AreEqual(expectedCode, hlslExpression.customCode);
         }

@@ -18,10 +18,10 @@ namespace UnityEditor.VFX.Test
     class CustomHLSLBlockTest
     {
         const string defaultHlslCode =
-            "void TestFunction(inout VFXAttributes attributes, in float3 offset, in float speed)" + "\n" +
-            "{" + "\n" +
-            "  attributes.position += offset;" + "\n" +
-            "  attributes.velocity = float3(0, 0, speed);" + "\n" +
+            "void TestFunction(inout VFXAttributes attributes, in float3 offset, in float speed)\n" +
+            "{\n" +
+            "  attributes.position += offset;\n" +
+            "  attributes.velocity = float3(0, 0, speed);\n" +
             "}";
 
         [SetUp]
@@ -52,20 +52,20 @@ namespace UnityEditor.VFX.Test
             // Assert
             var function = GetFunction(hlslBlock);
 
-            var expectedSource = "VFXAttributes att = (VFXAttributes)0;" + "\r\n" +
-                                      "att.position = position;" + "\r\n" +
-                                      "att.velocity = velocity;" + "\r\n" +
-                                     $"{function.GetNameWithHashCode()}(att, offset, speed);" + "\r\n" +
-                                      "position = att.position;" + "\r\n" +
+            var expectedSource = "VFXAttributes att = (VFXAttributes)0;\r\n" +
+                                      "att.position = position;\r\n" +
+                                      "att.velocity = velocity;\r\n" +
+                                     $"{function.GetNameWithHashCode()}(att, offset, speed);\r\n" +
+                                      "position = att.position;\r\n" +
                                       "velocity = att.velocity;";
             Assert.AreEqual(expectedSource, hlslBlock.source);
             Assert.IsEmpty(hlslBlock.includes);
             Assert.AreEqual(blockName, hlslBlock.name);
 
-            var expectedCustomCode = $"void {function.GetNameWithHashCode()}(inout VFXAttributes attributes, in float3 offset, in float speed)" + "\r\n" +
-                                           "{" + "\r\n" +
-                                           "  attributes.position += offset;" + "\n" +
-                                           "  attributes.velocity = float3(0, 0, speed);" + "\n" +
+            var expectedCustomCode = $"void {function.GetNameWithHashCode()}(inout VFXAttributes attributes, in float3 offset, in float speed)\r\n" +
+                                           "{\n" +
+                                           "  attributes.position += offset;\n" +
+                                           "  attributes.velocity = float3(0, 0, speed);\n" +
                                            "}\r\n";
             Assert.AreEqual(expectedCustomCode, hlslBlock.customCode);
 
@@ -87,11 +87,11 @@ namespace UnityEditor.VFX.Test
             hlslBlock.Invalidate(VFXModel.InvalidationCause.kSettingChanged);
 
             // Assert
-            var expectedSource = "VFXAttributes att = (VFXAttributes)0;" + "\r\n" +
-                                 "att.position = position;" + "\r\n" +
-                                 "att.velocity = velocity;" + "\r\n" +
-                                 "TestFunction(att, offset, speed);" + "\r\n" +
-                                 "position = att.position;" + "\r\n" +
+            var expectedSource = "VFXAttributes att = (VFXAttributes)0;\r\n" +
+                                 "att.position = position;\r\n" +
+                                 "att.velocity = velocity;\r\n" +
+                                 "TestFunction(att, offset, speed);\r\n" +
+                                 "position = att.position;\r\n" +
                                  "velocity = att.velocity;";
             Assert.AreEqual(expectedSource, hlslBlock.source);
             var includes = hlslBlock.includes.ToArray();
@@ -125,20 +125,20 @@ namespace UnityEditor.VFX.Test
         {
             // Arrange
             var hlslCode =
-                "void TestFunction(inout VFXAttributes attributes, in float3 offset, in float speedFactor)" + "\n" +
-                "{" + "\n" +
-                    "/* 01 */ float f = attributes.lifetime;" + "\n" +
-                    "/* 02 */ float g = Function(attributes.scaleX);" + "\n" +
-                    "/* 03 */ float v = Function(attributes.position.x);" + "\n" +
-                    "/* 04 */ float i = Function2(attributes.velocity.x, attributes.scaleY);" + "\n" +
-                    "/* 05 */ if (attributes.scaleZ > 0);" + "\n" +
-                    "/* 06 */ if (attributes.seed < 0);" + "\n" +
-                    "/* 07 */ if (attributes.age == 0);" + "\n" +
-                    "/* 08 */ if (attributes.texIndex == 0 && attributes.direction.z > 0);" + "\n" +
-                    "/* 09 */ if (4 < attributes.particleId);" + "\n" +
-                    "/* 10 */ if (attributes.alive);" + "\n" +
-                    "/* 11 */ if (4 <= attributes.pivotX);" + "\n" +
-                    "/* 12 */ if (4 >= attributes.pivotY);" + "\n" +
+                "void TestFunction(inout VFXAttributes attributes, in float3 offset, in float speedFactor)\n" +
+                "{\n" +
+                    "/* 01 */ float f = attributes.lifetime;\n" +
+                    "/* 02 */ float g = Function(attributes.scaleX);\n" +
+                    "/* 03 */ float v = Function(attributes.position.x);\n" +
+                    "/* 04 */ float i = Function2(attributes.velocity.x, attributes.scaleY);\n" +
+                    "/* 05 */ if (attributes.scaleZ > 0);\n" +
+                    "/* 06 */ if (attributes.seed < 0);\n" +
+                    "/* 07 */ if (attributes.age == 0);\n" +
+                    "/* 08 */ if (attributes.texIndex == 0 && attributes.direction.z > 0);\n" +
+                    "/* 09 */ if (4 < attributes.particleId);\n" +
+                    "/* 10 */ if (attributes.alive);\n" +
+                    "/* 11 */ if (4 <= attributes.pivotX);\n" +
+                    "/* 12 */ if (4 >= attributes.pivotY);\n" +
                 "}";
 
             var hlslBlock = ScriptableObject.CreateInstance<CustomHLSL>();
@@ -159,11 +159,11 @@ namespace UnityEditor.VFX.Test
         {
             // Arrange
             var hlslCode =
-                "void TestFunction(inout VFXAttributes attributes, in float3 offset, in float speedFactor)" + "\n" +
-                "{" + "\n" +
-                    "/* 01 */ attributes.position = float3(1, 2, 3);" + "\n" +
-                    "/* 02 */ attributes.direction.x = 4;" + "\n" +
-                    "/* 03 */ attributes.velocity = attributes.targetPosition = float3(0, 0, 0);" + "\n" +
+                "void TestFunction(inout VFXAttributes attributes, in float3 offset, in float speedFactor)\n" +
+                "{\n" +
+                    "/* 01 */ attributes.position = float3(1, 2, 3);\n" +
+                    "/* 02 */ attributes.direction.x = 4;\n" +
+                    "/* 03 */ attributes.velocity = attributes.targetPosition = float3(0, 0, 0);\n" +
                 "}";
 
             var hlslBlock = ScriptableObject.CreateInstance<CustomHLSL>();
@@ -184,20 +184,20 @@ namespace UnityEditor.VFX.Test
         {
             // Arrange
             var hlslCode =
-                "void TestFunction(inout VFXAttributes attributes, in float3 offset, in float speedFactor)" + "\n" +
-                "{" + "\n" +
-                    "/* 01 */ attributes.lifetime += 4;" + "\n" +
-                    "/* 02 */ attributes.scaleX -= 4;" + "\n" +
-                    "/* 03 */ attributes.scaleY *= 4;" + "\n" +
-                    "/* 04 */ attributes.scaleZ /= 4;" + "\n" +
-                    "/* 05 */ attributes.angleX %= 4;" + "\n" +
-                    "/* 06 */ attributes.angleY++;" + "\n" +
-                    "/* 07 */ attributes.angleZ--;" + "\n" +
-                    "/* 08 */ attributes.pivotX <<= 1;" + "\n" +
-                    "/* 09 */ attributes.pivotY >>= 1;" + "\n" +
+                "void TestFunction(inout VFXAttributes attributes, in float3 offset, in float speedFactor)\n" +
+                "{\n" +
+                    "/* 01 */ attributes.lifetime += 4;\n" +
+                    "/* 02 */ attributes.scaleX -= 4;\n" +
+                    "/* 03 */ attributes.scaleY *= 4;\n" +
+                    "/* 04 */ attributes.scaleZ /= 4;\n" +
+                    "/* 05 */ attributes.angleX %= 4;\n" +
+                    "/* 06 */ attributes.angleY++;\n" +
+                    "/* 07 */ attributes.angleZ--;\n" +
+                    "/* 08 */ attributes.pivotX <<= 1;\n" +
+                    "/* 09 */ attributes.pivotY >>= 1;\n" +
                     // Todo: Not detected ??
-                    //"/* 10 */ ++attributes.AngularVelocityX;" + "\n" +
-                    //"/* 11 */ --attributes.AngularVelocityY;" + "\n" +
+                    //"/* 10 */ ++attributes.AngularVelocityX;\n" +
+                    //"/* 11 */ --attributes.AngularVelocityY;\n" +
                 "}";
 
             var hlslBlock = ScriptableObject.CreateInstance<CustomHLSL>();
@@ -218,8 +218,8 @@ namespace UnityEditor.VFX.Test
         {
             // Arrange
             var hlslCode =
-                "float TestFunction(inout VFXAttributes attributes, in float3 offset, in float speedFactor)" + "\n" +
-                "{" + "\n" +
+                "float TestFunction(inout VFXAttributes attributes, in float3 offset, in float speedFactor)\n" +
+                "{\n" +
                 "}";
 
             var hlslBlock = ScriptableObject.CreateInstance<CustomHLSL>();
@@ -278,13 +278,13 @@ namespace UnityEditor.VFX.Test
             // Arrange
             var functionName = "TestFunction";
             var hlslCode =
-                $"void {functionName}(inout VFXAttributes attributes, in float3 offset, in float speedFactor)" + "\n" +
-                "{" + "\n" +
-                "attributes.size = 1;" + "\n" +
-                "}" + "\n" +
-                $"void {functionName}(inout VFXAttributes attributes, in float param)" + "\n" +
-                "{" + "\n" +
-                "attributes.alive = false;" + "\n" +
+                $"void {functionName}(inout VFXAttributes attributes, in float3 offset, in float speedFactor)\n" +
+                "{\n" +
+                "attributes.size = 1;\n" +
+                "}\n" +
+                $"void {functionName}(inout VFXAttributes attributes, in float param)\n" +
+                "{\n" +
+                "attributes.alive = false;\n" +
                 "}";
             var hlslBlock = ScriptableObject.CreateInstance<CustomHLSL>();
             hlslBlock.SetSettingValue("m_HLSLCode", hlslCode);
@@ -315,8 +315,8 @@ namespace UnityEditor.VFX.Test
             // Arrange
             var parameterType = "xxxx";
             var hlslCode =
-                $"void TestFunction(inout VFXAttributes attributes, in {parameterType} offset)" + "\n" +
-                "{" + "\n" +
+                $"void TestFunction(inout VFXAttributes attributes, in {parameterType} offset)\n" +
+                "{\n" +
                 "}";
             var hlslBlock = ScriptableObject.CreateInstance<CustomHLSL>();
             hlslBlock.SetSettingValue("m_HLSLCode", hlslCode);
@@ -347,8 +347,8 @@ namespace UnityEditor.VFX.Test
             // Arrange
             var paramName = "texture";
             var hlslCode =
-                $"void TestFunction(inout VFXAttributes attributes, in Texture2D {paramName})" + "\n" +
-                "{" + "\n" +
+                $"void TestFunction(inout VFXAttributes attributes, in Texture2D {paramName})\n" +
+                "{\n" +
                 "}";
             var hlslBlock = ScriptableObject.CreateInstance<CustomHLSL>();
             hlslBlock.SetSettingValue("m_HLSLCode", hlslCode);
@@ -378,9 +378,9 @@ namespace UnityEditor.VFX.Test
         {
             // Arrange
             var hlslCode =
-                "void TestFunction(in float param)" + "\n" +
-                "{" + "\n" +
-                "    attributes.position = float3(param, param, param);" + "\n" +
+                "void TestFunction(in float param)\n" +
+                "{\n" +
+                "    attributes.position = float3(param, param, param);\n" +
                 "}";
             var hlslBlock = ScriptableObject.CreateInstance<CustomHLSL>();
             hlslBlock.SetSettingValue("m_HLSLCode", hlslCode);
@@ -410,9 +410,9 @@ namespace UnityEditor.VFX.Test
         {
             // Arrange
             var hlslCode =
-                "void TestFunction(in VFXAttributes attributes, in float param)" + "\n" +
-                "{" + "\n" +
-                "    attributes.position = float3(param, param, param);" + "\n" +
+                "void TestFunction(in VFXAttributes attributes, in float param)\n" +
+                "{\n" +
+                "    attributes.position = float3(param, param, param);\n" +
                 "}";
             var hlslBlock = ScriptableObject.CreateInstance<CustomHLSL>();
             hlslBlock.SetSettingValue("m_HLSLCode", hlslCode);
@@ -443,10 +443,10 @@ namespace UnityEditor.VFX.Test
             // Arrange
             var includeFilePath = "path/to/include/file.hlsl";
             var hlslCode =
-                $"#include \"{includeFilePath}\"" + "\n" +
-                "void TestFunction(in VFXAttributes attributes, in float param)" + "\n" +
-                "{" + "\n" +
-                "    attributes.position = float3(param, param, param);" + "\n" +
+                $"#include \"{includeFilePath}\"\n" +
+                "void TestFunction(in VFXAttributes attributes, in float param)\n" +
+                "{\n" +
+                "    attributes.position = float3(param, param, param);\n" +
                 "}";
             var hlslBlock = ScriptableObject.CreateInstance<CustomHLSL>();
             hlslBlock.SetSettingValue("m_HLSLCode", hlslCode);
