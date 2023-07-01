@@ -1,5 +1,6 @@
 using System;
 using System.ComponentModel;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine.Serialization;
 
@@ -16,6 +17,9 @@ namespace UnityEngine.Rendering.Universal
     [DisplayName("URP")]
     partial class UniversalRenderPipelineGlobalSettings : RenderPipelineGlobalSettings<UniversalRenderPipelineGlobalSettings, UniversalRenderPipeline>
     {
+        [SerializeField] RenderPipelineGraphicsSettingsContainer m_Settings = new();
+        protected override List<IRenderPipelineGraphicsSettings> settingsList => m_Settings.settingsList;
+
         #region Version system
 
         private const int k_LastVersion = 5;
