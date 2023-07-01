@@ -66,76 +66,65 @@ The following illustration shows the Rendering Debugger window in the Scene view
 
 ### Display Stats
 
-The **Display Stats** panel is only visible in play mode. You can use it to debug performance issues in your project.
+The **Display Stats** panel shows statistics relevant to debugging performance issues in your project. You can only view this section of the Rendering Debugger in Play mode.
 
-<table>
-  <thead>
-    <tr>
-      <th colspan="1"><strong>Debug&#160;Option</strong></th>
-      <th colspan="2"><strong>Description</strong></th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td rowspan="1"><strong>Frame Rate</strong></td>
-      <td colspan="2">Displays the frame rate in frames per second for the current camera view.</td>
-    </tr>
-    <tr>
-      <td rowspan="1"><strong>Frame Time</strong></td>
-      <td colspan="2">Displays the total frame time for the current camera view.</td>
-    </tr>
-    <tr>
-      <td rowspan="1"><strong>RT Mode</strong></td>
-      <td colspan="2">If you enable ray tracing, it displays the ray tracing Tier used during rendering.</td>
-    </tr>
-    <tr>
-      <td rowspan="11"><strong>Count Rays</strong></td>
-      <td colspan="2">If you enable ray tracing, enable the checkbox to count the number of traced rays per effect (in MRays / frame).</td>
-    </tr>
-    <tr>
-      <td><strong>Ambient Occlusion</strong></td>
-      <td>The number of rays that were traced for Ambient Occlusion (AO) computations, when you enable RT AO.</td>
-    </tr>
-    <tr>
-      <td><strong>Shadows Directional</strong></td>
-      <td>The number of rays that were traced for directional lights, when you enable RT shadows.</td>
-    </tr>
-    <tr>
-      <td><strong>Shadows Area</strong></td>
-      <td>The number of rays that were traced towards area lights, when you enable RT shadows.</td>
-    <tr>
-      <td><strong>Shadows Point/Spot</strong></td>
-      <td>The number of rays that were traced towards punctual (point/spot) lights, when you enable RT shadows.</td>
-    </tr>
-    <tr>
-      <td><strong>Reflection Forward</strong></td>
-      <td>The number of rays that were traced for reflection computations using forward shading.</td>
-    </tr>
-    <tr>
-      <td><strong>Reflection Deferred</strong></td>
-      <td>TThe number of rays that were traced for reflection computations using deferred shading.</td>
-    <tr>
-      <td><strong>Diffuse GI Forward</strong></td>
-      <td>The number of rays that were traced for diffuse Global Illumination (GI) computations using forward shading.</td>
-    </tr>
-    <tr>
-      <td><strong>Diffuse GI Deferred</strong></td>
-      <td>The number of rays that were traced for diffuse Global Illumination (GI) computations using deferred shading.</td>
-    </tr>
-    <tr>
-      <td><strong>Recursive</strong></td>
-      <td>The number of rays that were traced for diffuse Global Illumination (GI) computations when you enable recursive RT.</td>
-    </tr>
-    <tr>
-      <td><strong>Total</strong></td>
-      <td>The total number of rays that were traced.</td>
-    </tr>
-        <tr>
-      <td rowspan="1"><strong>Debug&#160;XR&#160;Layout</strong></td>
-      <td colspan="2">Enable to display XR passes debug informations.<br/><br/>This mode is only available in the editor and development builds.</td>
-    </tr>
-  </tbody>
-</table>
+Use the [runtime shortcuts](#Navigation at runtime) to open the Display stats window in the scene view at runtime. 
+
+### <a name="frame-stats"></a>Frame Stats
+
+The Frame Stats section displays the average, minimum, and maximum value of each property. HDRP calculates each Frame Stat value over the 30 most recent frames.
+
+| **Property**                 | **Description**                                              |
+| ---------------------------- | ------------------------------------------------------------ |
+| **Frame Rate**               | The frame rate (in frames per second) for the current camera view. |
+| **Frame Time**               | The total frame time for the current camera view.            |
+| **CPU Main Thread Frame**    | The total time (in milliseconds) between the start of the frame and the time when the Main Thread finished the job. |
+| **CPU  Render Thread Frame** | The time (in milliseconds) between the start of the work on the Render Thread and the time Unity waits to render the present frame ([Gfx.PresentFrame](https://docs.unity3d.com/2022.1/Documentation/Manual/profiler-markers.html)). |
+| **CPU Present Wait**         | The time (in milliseconds) that the CPU spent waiting for Unity to render the present frame ([Gfx.PresentFrame](https://docs.unity3d.com/2022.1/Documentation/Manual/profiler-markers.html)) during the last frame. |
+| **GPU Frame**                | The amount of time (in milliseconds) the GPU takes to render a given frame. |
+| **Debug XR Layout**          | Display debug information for XR passes. <br>This mode is only available in editor and development builds. |
+
+<a name="bottlenecks"></a>
+
+### Bottlenecks
+
+A bottleneck is a condition that occurs when one process performs significantly slower than other components, and other components depend on it. 
+
+The **Bottlenecks** section describes the distribution of the last 60 frames across the CPU and GPU. You can only see the Bottleneck information when you build your player on a device. 
+
+**Note**: Vsync limits the **Frame Rate** based on the refresh rate of your device’s screen. This means when you enable Vsync, the **Present Limited** category is 100% in most cases. To turn Vsync off, go to **Edit** > **Project settings** > **Quality** > **Current Active Quality Level** and set the **Vsync Count** set to **Don't Sync**.
+
+#### Bottleneck categories
+
+| **Category**        | **Description**                                              |
+| ------------------- | ------------------------------------------------------------ |
+| **CPU**             | The percentage of the last 60 frames in which the CPU limited the frame time. |
+| **GPU**             | The percentage of the last 60 frames in which the GPU limited the frame time. |
+| **Present limited** | The percentage of the last 60 frames in which the frame time was limited by the following presentation constraints:<br>&bull; Vertical Sync (Vsync): Vsync synchronizes rendering to the refresh rate of your display.<br>&bull;[Target framerate]([Application.targetFrameRate](https://docs.unity3d.com/ScriptReference/Application-targetFrameRate.html)): A function that you can use to manually limit the frame rate of an application. If a frame is ready before the time you specify in targetFrameRate, Unity waits before presenting the frame. |
+| **Balanced**        | This percentage of the last 60 frames in which the frame time was not limited by any of the above categories. A frame that is 100% balanced indicates the processing time for both CPU and GPU is approximately equal. |
+
+#### Bottleneck example
+
+If Vsync limited 20 of the 60 most recent frames, the Bottleneck section might appear as follows: 
+
+- **CPU** 0.0%: This indicates that HDRP did not render any of the last 60 frames on the CPU.
+- **GPU** 66.6%: This indicates that the GPU limited 66.6% of the 60 most recent frames rendered by HDRP.
+- **Present Limited** 33.3%: This indicates that presentation constraints (Vsync or the [target framerate](https://docs.unity3d.com/ScriptReference/Application-targetFrameRate.html)) limited 33.3% of the last 60 frames.
+- **Balanced** 0.0%: This indicates that in the last 60 frames, there were 0 frames where the CPU processing time and GPU processing time were the same.
+
+In this example, the bottleneck is the GPU.
+
+<a name="detailed-stats"></a>
+
+### Detailed Stats
+
+The Detailed Stats section displays the amount of time in milliseconds that each rendering step takes on the CPU and GPU. HDRP updates these values once every frame based on the previous frame. 
+
+| **Property**                     | **Description**                                              |
+| -------------------------------- | ------------------------------------------------------------ |
+| Update every second with average | Calculate average values over one second and update every second. |
+| Hide empty scopes                | Hide profiling scopes that use 0.00ms of processing time on the CPU and GPU. |
+| Debug XR Layout                  | Enable to display debug information for [XR](https://docs.unity3d.com/Manual/XR.html) passes. This mode only appears in the editor and development builds. |
 
 ### Frequently Used
 

@@ -6,7 +6,7 @@ A Sample is a set of Assets that you can import into your Project and use as a b
 
 To find these Samples:
 
-1. Go to **Windows** > **Package Manager**, and select **High Definition RP** from the package list.
+1. Go to **Window** > **Package Manager**, and select **High Definition RP** from the package list.
 2. In the main window that shows the package's details, find the **Samples** section.
 3. To import a Sample into your Project, click the **Import into Project** button. This creates a **Samples** folder in your Project and imports the Sample you selected into it. This is also where Unity imports any future Samples into.
 
@@ -22,11 +22,11 @@ Additional Post-Processing Data gives you access to Textures you can use with po
 
 The [Procedural Sky](Override-Procedural-Sky.md) is a deprecated sky type from older versions of HDRP which you can use for compatibility. This Sample also includes an example of how to create a custom sky in your Project that is compatible with HDRP's [Volume framework](Volumes.md). HDRP will remove the Procedural Sky in a future version because it behaves incorrectly with HDRP's physically based light units.
 
-## Particle System Shader Samples
+## Particle System shader samples
 
 This Sample includes various examples of lit and unlit particle effects.
 
-## Material Samples
+## Material samples
 
 ![Material Samples](Images/MaterialSamples.png)
 
@@ -39,31 +39,39 @@ In the **Eye** Scene, the eye examples use a carefully designed mesh with a part
 In the Transparency scenes, the examples contain information on how to setup properly transparents in your projects using different rendering methods (Rasterization, Ray Tracing, Path Tracing).
 To take advantage of all the content of this section, a GPU that supports [Ray Tracing](Ray-Tracing-Getting-Started.md) is needed.
 
-## Lens Flare Samples
+## Lens Flare samples
 
 ![Lens Flare Samples](Images/LensFlareSamples.png)
 
-This Sample includes the following Lens Flare examples that you can use in your project:
-- Lens Flare Assets
-- Lens Flare Textures
-- A scene you can use to preview Lens Flare Assets
-- A scene to showcases the use of Lens Flares with interior lighting
-- A scene to showcases the use of Lens Flares with a directional light
+The [Lens Flare](shared/lens-flare/lens-flare-component.md) samples include the following examples that you can use in your project:
+- Lens Flare Assets.
+- Lens Flare Textures.
+- A scene you can use to preview Lens Flare Assets.
+- A scene to showcases the use of Lens Flares with interior lighting.
+- A scene to showcases the use of Lens Flares with a directional light.
 
-## Volumetric Samples
+## Volumetric samples
 
 ![Volumetric Samples](Images/VolumetricSamples.png)
-This Sample includes content that will help you for volumetrics :
-- 3D textures  
-- Procedural 3D noise subgraphs
-- Fog Volume Shadergraph examples
-It includes a collection of Prefab showcasing how to use them with the Local Volumetric Fog.
+The volumetric samples include a scene that contains multiple examples of [volumetric fog](Local-Volumetric-Fog.md). This scene includes the following:
 
-## Fullscreen Samples
+- 3D textures.
+- Procedural 3D noise subgraphs.
+- Fog Volume Shader Graph examples.
+
+## Fullscreen samples
 ![Fullscreen Samples](Images/FullscreenSamples.png)
 
-This Sample includes examples on how to create Fullscreen Shadergraph and use them with Custom Pass, Custom Post Process and Custom Render Target.
-It includes ready to use prefab for :
+This sample includes examples on how to create a [Fullscreen Shader](fullscreen-shader.md) and use it with a Custom Pass, Custom Post Process and Custom Render Target. The sample scene includes prefabs for the following effects:
+
 - Custom Pass : Edge Detection, Sobel Filter, Object Highlight, Night Vision, Speed Lines.
 - Custom Render Targets : Dynamic Custom HDRi for Night Sky, Animated Water Droplets.
 - Custom Post Process : Colorblindness Filter.
+
+## Environment samples
+
+![](Images/Water_samples.png)The Environment samples contain the following scenes you can use to test HDRP's [Water](WaterSystem.md) features: 
+
+- Pool: Demonstrates ripples and buoyancy. 
+- River: Demonstrates current, water deformers, floating objects, and a water mask.
+- Ocean: Demonstrates waves, foam, and the water excluder.
