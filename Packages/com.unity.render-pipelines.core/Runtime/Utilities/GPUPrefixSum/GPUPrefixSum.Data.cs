@@ -34,11 +34,19 @@ namespace UnityEngine.Rendering
             }
         }
 
+        /// <summary>
+        /// Structure defining level offsets.
+        /// </summary>
         [GenerateHLSL]
         public struct LevelOffsets
         {
+            /// <summary> Number of levels. </summary>
             public uint count;
+
+            /// <summary> Level offset. </summary>
             public uint offset;
+
+            /// <summary> Parent level offset. </summary>
             public uint parentOffset;
         }
 
