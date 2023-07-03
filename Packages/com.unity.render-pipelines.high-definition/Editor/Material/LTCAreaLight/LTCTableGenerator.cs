@@ -329,6 +329,7 @@ namespace UnityEngine.Rendering.HighDefinition.LTC
                 + "    {\n"
                 + "        // [GENERATED CONTENT " + DateTime.Now.ToString("dd MMM yyyy HH:mm:ss") + "]\n"
                 + "        // Table contains 3x3 matrix coefficients of M^-1 for the fitting of the " + brdfName + " BRDF using the LTC technique\n"
+                + "        // Only the 0,2,4,6 of the 3x3 coefficients are emitted, and they are encoded into FP16\n"
                 + "        // From \"Real-Time Polygonal-Light Shading with Linearly Transformed Cosines\" 2016 (https://eheitzresearch.wordpress.com/415-2/)\n"
                 + "        //\n"
                 + "        // The table is accessed via LTCAreaLight." + tableName + "[<roughnessIndex> + 64 * <thetaIndex>]    // Theta values are along the Y axis, Roughness values are along the X axis\n"
@@ -338,8 +339,7 @@ namespace UnityEngine.Rendering.HighDefinition.LTC
             else
                 sourceCode += "        //    • theta = ( <thetaIndex> / " + (tableResolution - 1) + " )\n";
             sourceCode += "        //\n"
-                //                        + "        public static double[,]    " + tableName + " = new double[k_LtcLUTResolution * k_LtcLUTResolution, k_LtcLUTMatrixDim * k_LtcLUTMatrixDim] {";
-                + "        public static double[,]    " + tableName + " = new double[" + tableResolution + " * " + tableResolution + ", 3 * 3]\n"
+                + "        internal static ushort[] " + tableName + " = new ushort[" + tableResolution + " * " + tableResolution + " * 4]\n"
                 + "        {";
 
             string lotsOfSpaces = "                                                                                                                            ";
@@ -361,16 +361,22 @@ namespace UnityEngine.Rendering.HighDefinition.LTC
 
                     GetRoughnessAndAngle(roughnessIndex, thetaIndex, tableResolution, parametrization, out alpha, out cosTheta);
 
-                    // Export the matrix as a list of 3x3 doubles, columns first
+                    // Export the matrix as a list of 3x3 doubles, columns first. Only emit 0,2,4,6 elements of the list
+                    // since others are zeroes or ones.
                     double factor = 1.0 / ltcData.invM.m22;
 
-                    string matrixString = (factor * ltcData.invM.m00) + ", " + (factor * ltcData.invM.m10) + ", " + (factor * ltcData.invM.m20) + ", ";
-                    matrixString += (factor * ltcData.invM.m01) + ", " + (factor * ltcData.invM.m11) + ", " + (factor * ltcData.invM.m21) + ", ";
-                    matrixString += (factor * ltcData.invM.m02) + ", " + (factor * ltcData.invM.m12) + ", " + "1.0";
-
-                    string line = "            { " + matrixString + " },";
-                    if (line.Length < 132)
-                        line += lotsOfSpaces.Substring(lotsOfSpaces.Length - (132 - line.Length));    // Pad with spaces
+                    float val0 = (float) (factor * ltcData.invM.m00);
+                    float val2 = (float) (factor * ltcData.invM.m20);
+                    float val4 = (float) (factor * ltcData.invM.m11);
+                    float val6 = (float) (factor * ltcData.invM.m02);
+                    float valClamp = 65504.0f;
+                    val0 = Mathf.Min(val0, valClamp);
+                    val2 = Mathf.Min(val2, valClamp);
+                    val4 = Mathf.Min(val4, valClamp);
+                    val6 = Mathf.Min(val6, valClamp);
+                    string line = $"            {Mathf.FloatToHalf(val0)}, {Mathf.FloatToHalf(val2)}, {Mathf.FloatToHalf(val4)}, {Mathf.FloatToHalf(val6)},";
+                    if (line.Length < 45)
+                        line += lotsOfSpaces.Substring(lotsOfSpaces.Length - (45 - line.Length));    // Pad with spaces
                     sourceCode += line;
                     sourceCode += "// alpha = " + alpha + "\n";
                 }

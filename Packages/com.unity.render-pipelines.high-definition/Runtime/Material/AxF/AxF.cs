@@ -244,7 +244,17 @@ namespace UnityEngine.Rendering.HighDefinition
             m_preIntegratedFGD_CookTorrance.Create();
 
             // LTC data
-
+            // TODO BugFix:
+            // currently AxF shaders seem to use original LTC LUTs set up by LTCAreaLight.instance.Build.
+            // The code below does create a 64x64x3 array, only fills in one array element of it with GGX, and
+            // then seemingly never uses this texture array anywhere, besides setting it up as a global property
+            // that is not used by any shaders.
+            //
+            // Also the original "9 doubles for each entry" GGX data for this was not normalized (i.e. last element
+            // was not 1.0), but the LoadLUT was ignoring that anyway. Code had comments saying
+            // "5 columns are needed, the entries are NOT normalized" and "For now, we patch for this in LoadLUT"
+            // (incorrect, nothing was patched in LoadLUT). The other comment said
+            // "We still bind the original data for now, see AxFLTCAreaLight.hlsl: when using a local table, results differ".
             m_LtcData = new Texture2DArray(LTCAreaLight.k_LtcLUTResolution, LTCAreaLight.k_LtcLUTResolution, 3, GraphicsFormat.R16G16B16A16_SFloat, TextureCreationFlags.None)
             {
                 hideFlags = HideFlags.HideAndDontSave,
@@ -252,18 +262,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 filterMode = FilterMode.Bilinear,
                 name = CoreUtils.GetTextureAutoName(LTCAreaLight.k_LtcLUTResolution, LTCAreaLight.k_LtcLUTResolution, GraphicsFormat.R16G16B16A16_SFloat, depth: 2, dim: TextureDimension.Tex2DArray, name: "LTC_LUT")
             };
-
-            // Caution: This need to match order define in AxFLTCAreaLight
-            LTCAreaLight.LoadLUT(m_LtcData, 0, GraphicsFormat.R16G16B16A16_SFloat, LTCAreaLight.s_LtcMatrixData_GGX);
-            // Warning: check /Material/AxF/AxFLTCAreaLight/LtcData.GGX2.cs: 5 columns are needed, the entries are NOT normalized!
-            // For now, we patch for this in LoadLUT, which should affect the loading of s_LtcGGXMatrixData for the rest of the materials
-            // (Lit, etc.)
-
+            m_LtcData.SetPixelData(LTCAreaLight.s_LtcMatrixData_GGX, 0, 0);
             m_LtcData.Apply();
 
-            // TODO BugFix:
-            // We still bind the original data for now, see AxFLTCAreaLight.hlsl: when using a local table, results differ,
-            // even if we patch the non-normalization error in the 8th column when calling the LTCInvMatrix loading routine (LoadLUT).
             LTCAreaLight.instance.Build();
         }
 
