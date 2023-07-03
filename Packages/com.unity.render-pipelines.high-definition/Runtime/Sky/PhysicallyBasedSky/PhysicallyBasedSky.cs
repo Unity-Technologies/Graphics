@@ -4,6 +4,26 @@ using System.Diagnostics;
 namespace UnityEngine.Rendering.HighDefinition
 {
     /// <summary>
+    /// The quality of sky simulation.
+    /// Higher quality provides more accurate results but uses more memory and takes longer to initialize.
+    /// </summary>
+    public enum PhysicallyBasedSkyQuality
+    {
+        /// <summary>Low quality (about 10MB memory).</summary>
+        Low,
+        /// <summary>Medium quality (about 40MB memory).</summary>
+        Medium,
+        /// <summary>High quality (about 160MB memory).</summary>
+        High
+    };
+    [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
+    public sealed class PhysicallyBasedSkyQualityParameter : VolumeParameter<PhysicallyBasedSkyQuality>
+    {
+        public PhysicallyBasedSkyQualityParameter(PhysicallyBasedSkyQuality value, bool overrideState = false)
+            : base(value, overrideState) { }
+    }
+
+    /// <summary>
     /// The model used to control the complexity of the simulation.
     /// </summary>
     public enum PhysicallyBasedSkyModel
@@ -111,6 +131,10 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary> Positive values for forward scattering, 0 for isotropic scattering. negative values for backward scattering. </summary>
         [Tooltip("Controls the direction of anisotropy. Set this to a positive value for forward scattering, a negative value for backward scattering, or 0 for isotropic scattering.")]
         public ClampedFloatParameter aerosolAnisotropy = new ClampedFloatParameter(0, -1, 1);
+
+        [Tooltip("Sets the simulation detail level. Higher quality is more accurate but uses more memory and has longer the pre-computation time.")]
+        public PhysicallyBasedSkyQualityParameter quality =
+            new PhysicallyBasedSkyQualityParameter(PhysicallyBasedSkyQuality.Medium);
 
         /// <summary> Number of scattering events. </summary>
         [Tooltip("Sets the number of scattering events. This increases the quality of the sky visuals but also increases the pre-computation time.")]
@@ -299,6 +323,23 @@ namespace UnityEngine.Rendering.HighDefinition
                 airExt.z * airAlb.z);
         }
 
+        internal Vector4 GetInScatteredRadianceTableSize()
+        {
+            // Table sizes are:
+            // x: <N, V>
+            // y: height
+            // z: AzimuthAngle(L) w.r.t. the view vector
+            // w: <N, L>
+            // We need 5 tables in total (2 of them temporary), format is RGBA FP16
+            switch (quality.value)
+            {
+                case PhysicallyBasedSkyQuality.High: return new Vector4(128, 32, 16, 64); // 32MB x 5 = 160MB
+                case PhysicallyBasedSkyQuality.Medium: return new Vector4(128, 16, 16, 32); // 8MB x 5 = 40MB
+                case PhysicallyBasedSkyQuality.Low: return new Vector4(64, 16, 8, 32); // 2MB x 5 = 10MB
+                default: return new Vector4(32, 8, 8, 16);
+            }
+        }
+
         internal float GetAerosolScaleHeight()
         {
             if (type.value == PhysicallyBasedSkyModel.EarthSimple)
@@ -350,6 +391,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
 #if UNITY_2019_3 // In 2019.3, when we call GetHashCode on a VolumeParameter it generate garbage (due to the boxing of the generic parameter)
                 // These parameters affect precomputation.
+                hash = hash * 23 + quality.overrideState.GetHashCode();
                 hash = hash * 23 + type.overrideState.GetHashCode();
                 hash = hash * 23 + planetaryRadius.overrideState.GetHashCode();
                 hash = hash * 23 + groundTint.overrideState.GetHashCode();
@@ -368,6 +410,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 hash = hash * 23 + numberOfBounces.overrideState.GetHashCode();
 #else
                 // These parameters affect precomputation.
+                hash = hash * 23 + quality.GetHashCode();
                 hash = hash * 23 + type.GetHashCode();
                 hash = hash * 23 + planetaryRadius.GetHashCode();
                 hash = hash * 23 + groundTint.GetHashCode();

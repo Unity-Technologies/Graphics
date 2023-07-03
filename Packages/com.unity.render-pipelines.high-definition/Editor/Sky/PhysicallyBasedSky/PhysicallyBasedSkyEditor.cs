@@ -8,6 +8,7 @@ namespace UnityEditor.Rendering.HighDefinition
     [CustomEditor(typeof(PhysicallyBasedSky))]
     class PhysicallyBasedSkyEditor : SkySettingsEditor
     {
+        SerializedDataParameter m_Quality;
         SerializedDataParameter m_Type;
         SerializedDataParameter m_SphericalMode;
         SerializedDataParameter m_SeaLevel;
@@ -91,6 +92,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_ZenithTint = Unpack(o.Find(x => x.zenithTint));
             m_HorizonZenithShift = Unpack(o.Find(x => x.horizonZenithShift));
 
+            m_Quality = Unpack(o.Find(x => x.quality));
             m_NumberOfBounces = Unpack(o.Find(x => x.numberOfBounces));
         }
 
@@ -174,6 +176,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             EditorGUILayout.Space();
             DrawHeader("Miscellaneous");
+            PropertyField(m_Quality);
             PropertyField(m_NumberOfBounces);
 
             base.CommonSkySettingsGUI();

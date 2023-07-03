@@ -325,13 +325,15 @@ struct TexCoord4D
 
 TexCoord4D ConvertPositionAndOrientationToTexCoords(float height, float NdotV, float NdotL, float phiL)
 {
-    const uint zTexSize = PBRSKYCONFIG_IN_SCATTERED_RADIANCE_TABLE_SIZE_Z;
-    const uint zTexCnt  = PBRSKYCONFIG_IN_SCATTERED_RADIANCE_TABLE_SIZE_W;
+    const uint zTexSize = _InScatteredRadianceTableSize.z;
+    const uint zTexCnt  = _InScatteredRadianceTableSize.w;
 
     float cosChi = -NdotV;
 
-    float u = MapAerialPerspective(cosChi, height, rcp(PBRSKYCONFIG_IN_SCATTERED_RADIANCE_TABLE_SIZE_X)).x;
-    float v = MapAerialPerspective(cosChi, height, rcp(PBRSKYCONFIG_IN_SCATTERED_RADIANCE_TABLE_SIZE_X)).y;
+    float invTableSizeX = rcp(_InScatteredRadianceTableSize.x);
+    float2 aerial = MapAerialPerspective(cosChi, height, invTableSizeX);
+    float u = aerial.x;
+    float v = aerial.y;
     float w = (0.5 + (INV_PI * phiL) * (zTexSize - 1)) * rcp(zTexSize); // [0.5 / zts, 1 - 0.5 / zts]
     float k = MapCosineOfZenithAngle(NdotL) * (zTexCnt - 1);            // [0, ztc - 1]
 

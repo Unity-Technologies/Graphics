@@ -8,10 +8,6 @@
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/PhysicallyBasedSky/PhysicallyBasedSkyCommon.hlsl"
 
-#define TABLE_SIZE uint3(PBRSKYCONFIG_IN_SCATTERED_RADIANCE_TABLE_SIZE_X, \
-                         PBRSKYCONFIG_IN_SCATTERED_RADIANCE_TABLE_SIZE_Y, \
-                         PBRSKYCONFIG_IN_SCATTERED_RADIANCE_TABLE_SIZE_Z)
-
 // Emulate a 4D texture with a "deep" 3D texture.
 RW_TEXTURE3D(float4, _AirSingleScatteringTable);
 RW_TEXTURE3D(float4, _AerosolSingleScatteringTable);
@@ -24,11 +20,11 @@ void main(uint3 dispatchThreadId : SV_DispatchThreadID)
     const float A = _AtmosphericRadius;
     const float R = _PlanetaryRadius;
 
-    const uint zTexSize = PBRSKYCONFIG_IN_SCATTERED_RADIANCE_TABLE_SIZE_Z;
-    const uint zTexCnt  = PBRSKYCONFIG_IN_SCATTERED_RADIANCE_TABLE_SIZE_W;
+    const uint zTexSize = _InScatteredRadianceTableSize.z;
+    const uint zTexCnt  = _InScatteredRadianceTableSize.w;
 
     // We don't care about the extremal points for XY, but need the full range of Z values.
-    const float3 scale = rcp(float3(TABLE_SIZE.xy, 1));
+    const float3 scale = rcp(float3(_InScatteredRadianceTableSize.xy, 1));
     const float3 bias  = float3(0.5 * scale.xy, 0);
 
     // Let the hardware and the driver handle the ordering of the computation.

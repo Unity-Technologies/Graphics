@@ -8,10 +8,6 @@
 // UnityEngine.Rendering.HighDefinition.PbrSkyConfig:  static fields
 //
 #define PBRSKYCONFIG_GROUND_IRRADIANCE_TABLE_SIZE (256)
-#define PBRSKYCONFIG_IN_SCATTERED_RADIANCE_TABLE_SIZE_X (128)
-#define PBRSKYCONFIG_IN_SCATTERED_RADIANCE_TABLE_SIZE_Y (32)
-#define PBRSKYCONFIG_IN_SCATTERED_RADIANCE_TABLE_SIZE_Z (16)
-#define PBRSKYCONFIG_IN_SCATTERED_RADIANCE_TABLE_SIZE_W (64)
 
 // Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesPhysicallyBasedSky
 // PackingRules = Exact
@@ -35,6 +31,7 @@ GLOBAL_CBUFFER_START(ShaderVariablesPhysicallyBasedSky, b2)
     float4 _PlanetCenterPosition;
     float4 _HorizonTint;
     float4 _ZenithTint;
+    float4 _InScatteredRadianceTableSize;
     float _AerosolSeaLevelExtinction;
     float _IntensityMultiplier;
     float _ColorSaturation;

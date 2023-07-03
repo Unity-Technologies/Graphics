@@ -5,12 +5,6 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         // Tiny
         GroundIrradianceTableSize = 256, // <N, L>
-
-        // 32 MiB
-        InScatteredRadianceTableSizeX = 128, // <N, V>
-        InScatteredRadianceTableSizeY = 32,  // height
-        InScatteredRadianceTableSizeZ = 16,  // AzimuthAngle(L) w.r.t. the view vector
-        InScatteredRadianceTableSizeW = 64,  // <N, L>,
     }
 
     [GenerateHLSL(needAccessors = false, generateCBuffer = true, constantRegister = (int)ConstantRegister.PBRSky)]
@@ -39,6 +33,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4 _PlanetCenterPosition; // Not used during the precomputation, but needed to apply the atmospheric effect
         public Vector4 _HorizonTint;
         public Vector4 _ZenithTint;
+        public Vector4 _InScatteredRadianceTableSize;
 
         public float _AerosolSeaLevelExtinction;
         public float _IntensityMultiplier;

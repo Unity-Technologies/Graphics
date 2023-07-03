@@ -17,7 +17,7 @@ namespace UnityEngine.Rendering.HighDefinition
             ObjectPool<RefCountedData> m_DataPool = new ObjectPool<RefCountedData>(null, null);
             Dictionary<int, RefCountedData> m_CachedData = new Dictionary<int, RefCountedData>();
 
-            public PrecomputationData Get(int hash)
+            public PrecomputationData Get(int hash, Vector4 tableSize)
             {
                 RefCountedData result;
                 if (m_CachedData.TryGetValue(hash, out result))
@@ -29,7 +29,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     result = m_DataPool.Get();
                     result.refCount = 1;
-                    result.data.Allocate();
+                    result.data.Allocate(tableSize);
                     m_CachedData.Add(hash, result);
                     return result.data;
                 }
@@ -60,6 +60,8 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandle[] m_GroundIrradianceTables;    // All orders, one order
             RTHandle[] m_InScatteredRadianceTables; // Air SS, Aerosol SS, Atmosphere MS, Atmosphere one order, Temp
 
+            Vector4 m_TableSize;
+
             RTHandle AllocateGroundIrradianceTable(int index)
             {
                 var table = RTHandles.Alloc((int)PbrSkyConfig.GroundIrradianceTableSize, 1,
@@ -75,10 +77,10 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandle AllocateInScatteredRadianceTable(int index)
             {
                 // Emulate a 4D texture with a "deep" 3D texture.
-                var table = RTHandles.Alloc((int)PbrSkyConfig.InScatteredRadianceTableSizeX,
-                    (int)PbrSkyConfig.InScatteredRadianceTableSizeY,
-                    (int)PbrSkyConfig.InScatteredRadianceTableSizeZ *
-                    (int)PbrSkyConfig.InScatteredRadianceTableSizeW,
+                var table = RTHandles.Alloc((int)m_TableSize.x,
+                    (int)m_TableSize.y,
+                    (int)m_TableSize.z *
+                    (int)m_TableSize.w,
                     dimension: TextureDimension.Tex3D,
                     colorFormat: s_ColorFormat,
                     enableRandomWrite: true,
@@ -89,10 +91,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 return table;
             }
 
-            public void Allocate()
+            public void Allocate(Vector4 tableSize)
             {
                 m_LastFrameComputation = -1;
                 m_LastPrecomputedBounce = 0;
+                m_TableSize = tableSize;
 
                 // No temp tables.
                 m_GroundIrradianceTables = new RTHandle[2];
@@ -130,6 +133,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         int accumPass = 3;
                         int numPasses = Math.Min(order, 2);
 
+                        cmd.SetComputeVectorParam(s_InScatteredRadiancePrecomputationCS, "_InScatteredRadianceTableSize", m_TableSize);
                         for (int i = 0; i < numPasses; i++)
                         {
                             int pass = (i == 0) ? firstPass : accumPass;
@@ -165,10 +169,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
                             // Re-illuminate the sky with each bounce.
                             // Emulate a 4D dispatch with a "deep" 3D dispatch.
-                            cmd.DispatchCompute(s_InScatteredRadiancePrecomputationCS, pass, (int)PbrSkyConfig.InScatteredRadianceTableSizeX / 4,
-                                (int)PbrSkyConfig.InScatteredRadianceTableSizeY / 4,
-                                (int)PbrSkyConfig.InScatteredRadianceTableSizeZ / 4 *
-                                (int)PbrSkyConfig.InScatteredRadianceTableSizeW);
+                            cmd.DispatchCompute(s_InScatteredRadiancePrecomputationCS, pass, (int)m_TableSize.x / 4,
+                                (int)m_TableSize.y / 4,
+                                (int)m_TableSize.z / 4 *
+                                (int)m_TableSize.w);
                         }
 
                         {
@@ -414,6 +418,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ConstantBuffer._ZenithTint = zenithTint;
             m_ConstantBuffer._HorizonZenithShiftScale = expParams.y;
 
+            m_ConstantBuffer._InScatteredRadianceTableSize = pbrSky.GetInScatteredRadianceTableSize();
+
             ConstantBuffer.PushGlobal(cmd, m_ConstantBuffer, m_ShaderVariablesPhysicallyBasedSkyID);
         }
 
@@ -427,7 +433,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (m_LastPrecomputationParamHash != 0)
                     s_PrecomputaionCache.Release(m_LastPrecomputationParamHash);
-                m_PrecomputedData = s_PrecomputaionCache.Get(currPrecomputationParamHash);
+                m_PrecomputedData = s_PrecomputaionCache.Get(currPrecomputationParamHash, pbrSky.GetInScatteredRadianceTableSize());
                 m_LastPrecomputationParamHash = currPrecomputationParamHash;
             }
 
