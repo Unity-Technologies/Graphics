@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ff771ccdf4150419d9ff4d342b069aae, type: 3}
-  m_Name: LightProbes_05
+  m_Name: ProbeVolumes_02
   m_EditorClassIdentifier: 
   Title:
-    m_Untranslated: 'Highlight: Local Probe Volumes'
+    m_Untranslated: Visualization and Debugging
   m_Paragraphs:
     m_Items:
     - m_Type: 6
@@ -22,7 +22,7 @@ MonoBehaviour:
       Text:
         m_Untranslated: 
       m_Tutorial: {fileID: 0}
-      m_Image: {fileID: 2800000, guid: 60e822da8f263e843bba169100d97123, type: 3}
+      m_Image: {fileID: 2800000, guid: 760bba328d6642a4db16fc74f5651703, type: 3}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
       m_Criteria:
@@ -39,19 +39,34 @@ MonoBehaviour:
       Title:
         m_Untranslated: 
       Text:
-        m_Untranslated: "The problem here is actually the same as in the previous
-          step. However, adjusting <b>Sampling Noise</b> for indoor environments
-          could cause leaking artifacts, thus we can't really apply the same fix.
-          \n\nWith the help of <b>Local Probe Volumes,</b> we can override the <b>probe
-          spacing</b> to be <b>0.6 m</b> and make sure there are no gaps<b>(Fill
-          empty spaces).</b> This way we essentially force a single Subdivision Level
-          and fill the room with probes evenly. This results in slightly more probes
-          placed, but will get rid of the seams without having to use additional
-          noise.\n\nTo undo the fix:\n\n1. Move the cube to <b>X:25.3 Y:2 Z:1.5</b>\n\n2.
-          In the <i>Hierarchy</i> window select the local volume under <b>Lighting</b>
-          > <b>Probe Volumes</b> > <b>Probe Volume Local.</b>\n\n3. Disable it and
-          save the scene.\n\n4. Rebake the lighting using <b>Generate Lighting</b>
-          button."
+        m_Untranslated: 'To better understand the effect they have on the Scene,
+          you can temporarily turn the Probe Volumes off:
+
+
+          1. Disable
+          them via <b>Edit</b> > <b>Project Settings</b> > <b>HDRP Global Settings</b>
+          > <b>Frame Settings</b> > <b>Camera</b> > <b>Lighting</b> > <b>Probe Volumes.</b>
+
+
+          Note
+          that the dynamic objects in the third room will appear very bright, because
+          they are not lit anymore by the local probes, but rather by the global
+          probe derived from the Sky, which is very bright in this Scene.
+
+
+          2.
+          Re-enable the Probe Volumes by undoing the previous step.
+
+
+          3.
+          Enable the Probe Volumes debug visualization in <b>Window</b> > <b>Analysis</b>
+          > <b>Rendering Debugger</b> > <b>Probe Volume</b> > <b>Probe Visualization</b>
+          > <b>Display Probes.</b>
+
+
+          As you explore the Scene, you will
+          notice how probes outside the rooms are darker, and probes far from the
+          visible areas have a sparser distribution.'
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
@@ -71,8 +86,8 @@ MonoBehaviour:
     m_FocusMode: 0
     m_Orthographic: 0
     m_Size: 10
-    m_Pivot: {x: 15.663096, y: 0.61878896, z: -13.118892}
-    m_Rotation: {x: 0.010864795, y: -0.9570991, z: 0.03620843, w: 0.2872846}
+    m_Pivot: {x: 58.169, y: 3.0333738, z: 19.70951}
+    m_Rotation: {x: 0.003490679, y: -0, z: -0, w: 0.9999939}
     m_FrameObject:
       m_SceneGuid: 
       m_GameObjectGuid: 
