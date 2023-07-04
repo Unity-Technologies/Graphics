@@ -17,6 +17,7 @@ namespace UnityEditor.Rendering
         SerializedProperty m_RenderersLayerMask;
         SerializedProperty m_FreezePlacement;
         SerializedProperty m_ProbeVolumeBakingSettings;
+        SerializedProperty m_ProbeVolumeDenoisingSettings;
         SerializedProperty m_LightingScenarios;
         ProbeVolumeBakingSet bakingSet => target as ProbeVolumeBakingSet;
 
@@ -25,6 +26,7 @@ namespace UnityEditor.Rendering
             public static readonly GUIContent scenariosTitle = new GUIContent("Lighting Scenarios");
             public static readonly GUIContent placementTitle = new GUIContent("Probe Placement");
             public static readonly GUIContent settingsTitle = new GUIContent("Probe Invalidity Settings");
+            public static readonly GUIContent denoisingTitle = new GUIContent("Probe Denoising Settings");
 
             public static readonly GUIContent keepSamePlacement = new GUIContent("Probe Positions", "If set to Don't Recalculate, probe positions are not recalculated when baking. Allows baking multiple Scenarios that include small differences in Scene geometry.");
             public static readonly string[] placementOptions = new string[] { "Recalculate", "Don't Recalculate" };
@@ -60,6 +62,8 @@ namespace UnityEditor.Rendering
             m_RenderersLayerMask = serializedObject.FindProperty(nameof(ProbeVolumeBakingSet.renderersLayerMask));
             m_FreezePlacement = serializedObject.FindProperty(nameof(ProbeVolumeBakingSet.freezePlacement));
             m_ProbeVolumeBakingSettings = serializedObject.FindProperty(nameof(ProbeVolumeBakingSet.settings));
+            m_ProbeVolumeDenoisingSettings = serializedObject.FindProperty(nameof(ProbeVolumeBakingSet.denoiserSettings));
+
             m_LightingScenarios = serializedObject.FindProperty(nameof(ProbeVolumeBakingSet.m_LightingScenarios));
 
             if (ProbeReferenceVolume.instance.enableScenarioBlending)
@@ -194,6 +198,18 @@ namespace UnityEditor.Rendering
             EditorGUILayout.Space();
         }
 
+        void ProbeDenoisingGUI()
+        {
+            // TODO: How should we reset this?
+            if (!ProbeVolumeLightingTab.Foldout(Styles.denoisingTitle, ProbeVolumeLightingTab.Expandable.Settings, true))
+                return;
+
+            using (new EditorGUI.IndentLevelScope())
+                EditorGUILayout.PropertyField(m_ProbeVolumeDenoisingSettings);
+
+            EditorGUILayout.Space();
+        }
+
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
@@ -201,6 +217,7 @@ namespace UnityEditor.Rendering
             ProbePlacementGUI();
             LightingScenariosGUI();
             ProbeSettingsGUI();
+            ProbeDenoisingGUI();
 
             serializedObject.ApplyModifiedProperties();
         }

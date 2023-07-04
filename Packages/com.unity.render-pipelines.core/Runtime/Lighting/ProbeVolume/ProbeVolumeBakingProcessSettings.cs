@@ -96,4 +96,17 @@ namespace UnityEngine.Rendering
         public ProbeDilationSettings dilationSettings;
         public VirtualOffsetSettings virtualOffsetSettings;
     }
+
+    [System.Serializable]
+    internal struct ProbeVolumeDenoiserSettings
+    {
+        public bool enableDenoising;    
+
+        internal void SetDefaults()
+        {
+            enableDenoising = true;
+        }
+
+        internal void UpgradeFromTo(ProbeVolumeBakingProcessSettings.SettingsVersion from, ProbeVolumeBakingProcessSettings.SettingsVersion to) { }
+    }
 }

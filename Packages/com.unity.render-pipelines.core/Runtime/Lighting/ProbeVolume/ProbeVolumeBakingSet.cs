@@ -74,6 +74,7 @@ namespace UnityEngine.Rendering
         // Baking Set Data
         [SerializeField] internal bool singleSceneMode = true;
         [SerializeField] internal ProbeVolumeBakingProcessSettings settings;
+        [SerializeField] internal ProbeVolumeDenoiserSettings denoiserSettings;
 
         [SerializeField] private List<string> m_SceneGUIDs = new List<string>();
         [SerializeField] internal List<string> scenesToNotBake = new List<string>();
