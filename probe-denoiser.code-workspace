@@ -1,0 +1,11 @@
+{
+	"folders": [
+		{
+			"path": "Packages/com.unity.render-pipelines.high-definition"
+		},
+		{
+			"path": "Packages/com.unity.render-pipelines.core"
+		}
+	],
+	"settings": {}
+}

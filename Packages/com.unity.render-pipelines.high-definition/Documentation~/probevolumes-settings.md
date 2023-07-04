@@ -106,7 +106,7 @@ This section appears only if you enable **Lighting Scenarios** under **Light Pro
     </thead>
     <tbody>
         <tr>
-            <td rowspan="6"><strong>Probe Dilation Settings</strong></td>
+            <td rowspan="6"><strong>Probe Dilation Settings!!!!!!!!!!!!!!</strong></td>
         </tr>
         <tr>
             <td><strong>Enable Dilation</strong><a name="dilationsettings"></a></td>
