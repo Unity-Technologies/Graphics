@@ -435,10 +435,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
             SetRenderingFeatures();
 
+            var cameraFrameSettings = m_GlobalSettings.GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
+
             // Initialize lod settings with the default frame settings. This will pull LoD values from the current quality level HDRP asset if necessary.
             // This will make the LoD Group UI consistent with the scene view camera like it is for builtin pipeline.
-            QualitySettings.lodBias = m_GlobalSettings.GetDefaultFrameSettings(FrameSettingsRenderType.Camera).GetResolvedLODBias(m_Asset);
-            QualitySettings.maximumLODLevel = m_GlobalSettings.GetDefaultFrameSettings(FrameSettingsRenderType.Camera).GetResolvedMaximumLODLevel(m_Asset);
+            QualitySettings.lodBias = cameraFrameSettings.GetResolvedLODBias(m_Asset);
+            QualitySettings.maximumLODLevel = cameraFrameSettings.GetResolvedMaximumLODLevel(m_Asset);
 
 #if UNITY_EDITOR
             UpgradeResourcesIfNeeded();
