@@ -64,6 +64,9 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField, Reload("Shaders/Utils/CoreBlit.shader")]
         Shader m_CoreBlitShader = null;
 
+        [SerializeField, Reload("Shaders/Utils/CoreBlitColorAndDepth.shader")]
+        Shader m_CoreBlitColorAndDepthPS = null;
+
         [SerializeField, Reload("Shaders/Utils/BlitHDROverlay.shader")]
         Shader m_BlitHDROverlay;
 
@@ -109,6 +112,7 @@ namespace UnityEngine.Rendering.Universal
         internal Texture2D fallOffLookup => m_FallOffLookup;
         internal Shader lightShader => m_LightShader;
         internal Shader coreBlitPS => m_CoreBlitShader;
+        internal Shader coreBlitAdndDepthPS => m_CoreBlitColorAndDepthPS;
         internal Shader blitHDROverlay => m_BlitHDROverlay;
         internal Shader samplingShader => m_SamplingShader;
         internal PostProcessData postProcessData { get => m_PostProcessData; set { m_PostProcessData = value; } }
@@ -145,6 +149,18 @@ namespace UnityEngine.Rendering.Universal
         {
             for (var i = 0; i < m_LightBlendStyles.Length; ++i)
                 m_LightBlendStyles[i].renderTargetHandle?.Release();
+
+            foreach(var mat in lightMaterials)
+                CoreUtils.Destroy(mat.Value);
+
+            lightMaterials.Clear();
+
+            CoreUtils.Destroy(spriteSelfShadowMaterial);
+            CoreUtils.Destroy(spriteUnshadowMaterial);
+            CoreUtils.Destroy(geometrySelfShadowMaterial);
+            CoreUtils.Destroy(geometryUnshadowMaterial);
+            CoreUtils.Destroy(projectedShadowMaterial);
+            CoreUtils.Destroy(projectedUnshadowMaterial);
         }
 
         /// <summary>

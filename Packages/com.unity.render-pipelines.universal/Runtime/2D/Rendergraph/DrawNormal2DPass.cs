@@ -29,7 +29,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        public void Render(RenderGraph graph, ref RenderingData renderingData, ref LayerBatch layerBatch, in TextureHandle normalTexture, in TextureHandle depthTexture)
+        public void Render(RenderGraph graph, ref RenderingData renderingData, Renderer2DData rendererData, ref LayerBatch layerBatch, in TextureHandle normalTexture, in TextureHandle depthTexture)
         {
             if (!layerBatch.lightStats.useNormalMap)
                 return;
@@ -41,7 +41,11 @@ namespace UnityEngine.Rendering.Universal
                 filterSettings.layerMask = -1;
                 filterSettings.renderingLayerMask = 0xFFFFFFFF;
                 filterSettings.sortingLayerRange = new SortingLayerRange(layerBatch.layerRange.lowerBound, layerBatch.layerRange.upperBound);
+
                 var drawSettings = CreateDrawingSettings(k_NormalsRenderingPassName, ref renderingData, SortingCriteria.CommonTransparent);
+                var sortSettings = drawSettings.sortingSettings;
+                RendererLighting.GetTransparencySortingMode(rendererData, renderingData.cameraData.camera, ref sortSettings);
+                drawSettings.sortingSettings = sortSettings;
 
                 builder.AllowPassCulling(false);
                 builder.UseTextureFragment(normalTexture, 0);
