@@ -763,14 +763,10 @@ namespace UnityEngine.Rendering.Universal
                 m_RendererDataList = new ScriptableRendererData[1];
 
             // If no default data we can't create pipeline instance
-            if (m_RendererDataList[m_DefaultRendererIndex] == null)
+            if (m_DefaultRendererIndex >= m_RendererDataList.Length || m_RendererDataList[m_DefaultRendererIndex] == null)
             {
                 // If previous version and current version are miss-matched then we are waiting for the upgrader to kick in
                 if (k_AssetPreviousVersion != k_AssetVersion)
-                    return null;
-
-                if (m_RendererDataList[m_DefaultRendererIndex].GetType().ToString()
-                    .Contains("Universal.ForwardRendererData"))
                     return null;
 
                 Debug.LogError(
@@ -1573,7 +1569,7 @@ namespace UnityEngine.Rendering.Universal
         {
             get { return m_UseFastSRGBLinearConversion; }
         }
-        
+
         /// <summary>
         /// Returns true if Screen Space Lens Flare are supported by this asset, false otherwise.
         /// </summary>
@@ -1581,7 +1577,7 @@ namespace UnityEngine.Rendering.Universal
         {
             get { return m_SupportScreenSpaceLensFlare; }
         }
-        
+
         /// <summary>
         /// Returns true if Data Driven Lens Flare are supported by this asset, false otherwise.
         /// </summary>
