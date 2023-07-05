@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 Removed Global Volume from scene (Default Volume Profile is now configured only through HDRP Global Settings)
+Updated Tutorial for Probe Volumes
 
 ## [16.0.2] - 2023-06-12
 
