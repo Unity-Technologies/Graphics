@@ -8,6 +8,8 @@
             "name": "UI/Default",
             "pipelines": [
                 {
+                    "inputVariants": 100,
+                    "outputVariants": 50,
                     "pipeline": "",
                     "variants": [
                         {
@@ -50,6 +52,8 @@
             "name": "Sprites/Default",
             "pipelines": [
                 {
+                    "inputVariants": 100,
+                    "outputVariants": 50,
                     "pipeline": "",
                     "variants": [
                         {

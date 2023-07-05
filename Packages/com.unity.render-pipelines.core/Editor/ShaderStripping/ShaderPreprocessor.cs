@@ -20,13 +20,42 @@ namespace UnityEditor.Rendering
             private set => m_Strippers = value;
         }
 
+        Lazy<string> m_GlobalRenderPipeline = new (FetchGlobalRenderPipelineShaderTag);
+        string globalRenderPipeline => m_GlobalRenderPipeline.Value;
+
         IVariantStripperScope<TShader, TShaderVariant>[] m_Scopes = null;
         protected virtual IVariantStripperScope<TShader, TShaderVariant>[] scopes => m_Scopes ??= strippers.OfType<IVariantStripperScope<TShader, TShaderVariant>>().ToArray();
 
         protected ShaderPreprocessor() { }
         protected ShaderPreprocessor(IVariantStripper<TShader, TShaderVariant>[] strippers)
         {
-            this.strippers = strippers;
+            this.strippers = strippers ?? throw new ArgumentNullException(nameof(strippers));
+        }
+
+        private static string FetchGlobalRenderPipelineShaderTag()
+        {
+            // We can not rely on Shader.globalRenderPipeline as if there wasn't a Camera.Render the variable won't be initialized.
+            // Therefore, we fetch the RenderPipeline assets that are included by the Quality Settings and or Graphics Settings
+            string globalRenderPipelineTag = string.Empty;
+            using (ListPool<RenderPipelineAsset>.Get(out List<RenderPipelineAsset> rpAssets))
+            {
+                if (EditorUserBuildSettings.activeBuildTarget.TryGetRenderPipelineAssets<RenderPipelineAsset>(rpAssets))
+                {
+                    // As all the RP assets must be from the same pipeline we can simply obtain the shader tag from the first one
+                    var asset = rpAssets.FirstOrDefault();
+                    if (asset != null)
+                        globalRenderPipelineTag = asset.renderPipelineShaderTag;
+                }
+            }
+
+            return globalRenderPipelineTag;
+        }
+
+        bool TryGetShaderVariantRenderPipelineTag([DisallowNull] TShader shader, TShaderVariant shaderVariant, out string renderPipelineTag)
+        {
+            var inputShader = (Shader)Convert.ChangeType(shader, typeof(Shader));
+            var snippetData = (ShaderSnippetData)Convert.ChangeType(shaderVariant, typeof(ShaderSnippetData));
+            return inputShader.TryGetRenderPipelineTag(snippetData, out renderPipelineTag);
         }
 
         private static IVariantStripper<TShader, TShaderVariant>[] FetchShaderStrippers()
@@ -56,21 +85,6 @@ namespace UnityEditor.Rendering
                 .All(s => s.CanRemoveVariant(shader, shaderVariant, shaderCompilerData));
         }
 
-        protected bool TryGetRenderPipeline([DisallowNull] TShader shader, TShaderVariant shaderVariant, [NotNullWhen(true)] out string renderPipeline)
-        {
-            renderPipeline = String.Empty;
-
-            // TODO: Once Compute Shaders have render pipeline tag include them here
-            if (typeof(TShader) == typeof(Shader) && typeof(TShaderVariant) == typeof(ShaderSnippetData))
-            {
-                var inputShader = (Shader)Convert.ChangeType(shader, typeof(Shader));
-                var snippetData = (ShaderSnippetData)Convert.ChangeType(shaderVariant, typeof(ShaderSnippetData));
-                return inputShader.TryGetRenderPipelineTag(snippetData, out renderPipeline);
-            }
-
-            return false;
-        }
-
         /// <summary>
         /// Strips the given <see cref="TShader"/>
         /// </summary>
@@ -81,12 +95,6 @@ namespace UnityEditor.Rendering
         [MustUseReturnValue]
         protected bool TryStripShaderVariants([DisallowNull] TShader shader, TShaderVariant shaderVariant, IList<ShaderCompilerData> compilerDataList, [NotNullWhen(false)] out Exception error)
         {
-            if (strippers.Length == 0)
-            {
-                error = null;
-                return true;
-            }
-
             if (shader == null)
             {
                 error = new ArgumentNullException(nameof(shader));
@@ -102,38 +110,49 @@ namespace UnityEditor.Rendering
             var beforeStrippingInputShaderVariantCount = compilerDataList.Count;
             var afterStrippingShaderVariantCount = beforeStrippingInputShaderVariantCount;
 
-            if (TryGetRenderPipeline(shader, shaderVariant, out string renderPipelineTag))
+            string renderPipelineTag = string.Empty;
+            if (typeof(TShader) == typeof(Shader) && typeof(TShaderVariant) == typeof(ShaderSnippetData))
             {
-                // TODO: Once we have a better support of the SerializedShader recover the stripping for cross pipeline
-                //if (!renderPipelineTag.Equals(Shader.globalRenderPipeline))
-                    //afterStrippingShaderVariantCount = 0;
+                if (TryGetShaderVariantRenderPipelineTag(shader, shaderVariant, out renderPipelineTag))
+                {
+                    if (!renderPipelineTag.Equals(globalRenderPipeline, StringComparison.OrdinalIgnoreCase))
+                        afterStrippingShaderVariantCount = 0;
+                }
             }
+
+            bool strippersAvailable = strippers.Any();
 
             double stripTimeMs = 0.0;
             using (TimedScope.FromRef(ref stripTimeMs))
             {
-                for (int i = 0; i < scopes.Length; ++i)
-                    scopes[i].BeforeShaderStripping(shader);
-
-                // Go through all the shader variants
-                for (var i = 0; i < afterStrippingShaderVariantCount;)
+                if (strippersAvailable)
                 {
-                    // Remove at swap back
-                    if (CanRemoveVariant(shader, shaderVariant, compilerDataList[i]))
-                        compilerDataList[i] = compilerDataList[--afterStrippingShaderVariantCount];
-                    else
-                        ++i;
+                    for (int i = 0; i < scopes.Length; ++i)
+                        scopes[i].BeforeShaderStripping(shader);
+
+                    // Go through all the shader variants
+                    for (var i = 0; i < afterStrippingShaderVariantCount;)
+                    {
+                        // Remove at swap back
+                        if (CanRemoveVariant(shader, shaderVariant, compilerDataList[i]))
+                            compilerDataList[i] = compilerDataList[--afterStrippingShaderVariantCount];
+                        else
+                            ++i;
+                    }
                 }
 
                 // Remove the shader variants that will be at the back
                 if (!compilerDataList.TryRemoveElementsInRange(afterStrippingShaderVariantCount, compilerDataList.Count - afterStrippingShaderVariantCount, out error))
                     return false;
 
-                for (int i = 0; i < scopes.Length; ++i)
-                    scopes[i].AfterShaderStripping(shader);
+                if (strippersAvailable)
+                {
+                    for (int i = 0; i < scopes.Length; ++i)
+                        scopes[i].AfterShaderStripping(shader);
+                }
             }
 
-            ShaderStripping.reporter.OnShaderProcessed(shader, shaderVariant, renderPipelineTag,(uint)beforeStrippingInputShaderVariantCount, (uint)compilerDataList.Count, stripTimeMs);
+            ShaderStripping.reporter.OnShaderProcessed(shader, shaderVariant, renderPipelineTag, (uint)beforeStrippingInputShaderVariantCount, (uint)compilerDataList.Count, stripTimeMs);
             ShaderStrippingWatcher.OnShaderProcessed(shader, shaderVariant, (uint)compilerDataList.Count, stripTimeMs);
 
             error = null;
