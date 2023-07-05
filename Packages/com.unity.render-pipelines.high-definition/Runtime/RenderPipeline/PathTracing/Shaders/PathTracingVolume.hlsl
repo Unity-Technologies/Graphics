@@ -2,6 +2,7 @@
 #define UNITY_PATH_TRACING_VOLUME_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingLight.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/VolumeRendering.hlsl"
 
 float ComputeHeightFogMultiplier(float height)
 {
@@ -92,6 +93,7 @@ void ComputeVolumeScattering(inout PathPayload payload : SV_RayPayload, float3 i
 
     // Compute the scattering position
     float3 scatteringPosition = WorldRayOrigin() + payload.rayTHit * WorldRayDirection();
+    float3 incomingDirection = WorldRayDirection();
 
     // Create the list of active lights (a local light can be forced by providing its position)
     LightList lightList = CreateLightList(scatteringPosition, sampleLocalLights, lightPosition);
@@ -105,13 +107,14 @@ void ComputeVolumeScattering(inout PathPayload payload : SV_RayPayload, float3 i
 
     PathPayload shadowPayload;
 
-    // Light sampling
     if (computeDirect)
     {
+        // Light sampling
         if (SampleLights(lightList, inputSample, scatteringPosition, 0.0, true, ray.Direction, value, pdf, ray.TMax, shadowOpacity))
         {
             // Apply phase function and divide by PDF
-            value *= _HeightFogBaseScattering.xyz * ComputeHeightFogMultiplier(scatteringPosition.y) * INV_FOUR_PI / pdf;
+            float phasePdf = HenyeyGreensteinPhaseFunction(_GlobalFogAnisotropy, dot(incomingDirection, ray.Direction));
+            value *= _HeightFogBaseScattering.xyz * ComputeHeightFogMultiplier(scatteringPosition.y) * phasePdf / pdf;
 
             if (Luminance(value) > 0.001)
             {
@@ -124,7 +127,39 @@ void ComputeVolumeScattering(inout PathPayload payload : SV_RayPayload, float3 i
                 TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_FORCE_NON_OPAQUE | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER,
                          RAYTRACINGRENDERERFLAG_CAST_SHADOW, 0, 1, 1, ray, shadowPayload);
 
-                payload.value += value * GetLightTransmission(shadowPayload.value, shadowOpacity);
+                float misWeight = PowerHeuristic(pdf, phasePdf);
+                payload.value += value * GetLightTransmission(shadowPayload.value, shadowOpacity) * misWeight;
+            }
+        }
+
+        // Phase function sampling
+        if (SampleHenyeyGreenstein(incomingDirection, _GlobalFogAnisotropy, inputSample, ray.Direction, pdf))
+        {
+            // Applying phase function and dividing by PDF cancels out
+            value = _HeightFogBaseScattering.xyz * ComputeHeightFogMultiplier(scatteringPosition.y);
+
+            if (Luminance(value) > 0.001)
+            {
+                payload.throughput *= value;
+
+                // Shoot a ray returning nearest tHit
+                ray.TMax = FLT_INF;
+                shadowPayload.rayTHit = FLT_INF;
+                shadowPayload.segmentID = SEGMENT_ID_NEAREST_HIT;
+
+                TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_FORCE_NON_OPAQUE | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER | RAY_FLAG_CULL_BACK_FACING_TRIANGLES,
+                    RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 1, ray, shadowPayload);
+
+                // Evaluate lights closer than nearest hit
+                ray.TMax = shadowPayload.rayTHit;
+                ray.TMax += _RayTracingRayBias;
+
+                float3 lightValue;
+                float lightPdf;
+                EvaluateLights(lightList, ray, lightValue, lightPdf);
+
+                float misWeight = PowerHeuristic(pdf, lightPdf);
+                payload.value += value * lightValue * misWeight;
             }
         }
     }
