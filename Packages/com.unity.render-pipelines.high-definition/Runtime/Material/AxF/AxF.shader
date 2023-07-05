@@ -186,10 +186,9 @@ Shader "HDRP/AxF"
     #pragma shader_feature_local _ALPHATEST_ON
     #pragma shader_feature_local _DOUBLESIDED_ON
 
-    #pragma shader_feature_local_fragment _DISABLE_DECALS
+    #pragma shader_feature_local _DISABLE_DECALS
     #pragma shader_feature_local_fragment _DISABLE_SSR
     #pragma shader_feature_local_fragment _DISABLE_SSR_TRANSPARENT
-    #pragma shader_feature_local_raytracing _DISABLE_DECALS
     #pragma shader_feature_local_raytracing _DISABLE_SSR
     #pragma shader_feature_local_raytracing _DISABLE_SSR_TRANSPARENT
 
