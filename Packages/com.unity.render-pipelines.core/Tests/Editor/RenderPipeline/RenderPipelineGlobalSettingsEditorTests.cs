@@ -2,6 +2,7 @@ using System;
 using NUnit.Framework;
 using System.Collections.Generic;
 using UnityEditor;
+using UnityEditor.Inspector.GraphicsSettingsInspectors;
 using UnityEditor.Rendering;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -38,6 +39,8 @@ public class RenderPipelineGlobalSettingsEditorTests
 
     [Serializable] class G : Base { }
     [Serializable] class H : Base { }
+
+    [Serializable] [HideInInspector] class I : Base { }
 
     #endregion
 
@@ -172,5 +175,27 @@ public class RenderPipelineGlobalSettingsEditorTests
                 actualResult.Add((kvp.Key, kvp2.Key, kvp2.Value.bindingPath));
 
         return actualResult;
+    }
+
+    [Test]
+    public void SettingsWithHideInInspectorIsDisable()
+    {
+        //Arrange
+        m_Container.graphicsSettingsContainer.settingsList.Add(new I());
+        m_SerializedProperty.serializedObject.Update();
+
+        //Act
+        var res = RenderPipelineGraphicsSettingsContainerPropertyDrawer.Categorize(m_SerializedProperty);
+
+        //Assert
+        if (Unsupported.IsDeveloperMode())
+        {
+            var propertyField = res["I"]["I"];
+            Assert.That(propertyField.enabledInHierarchy, Is.False);
+        }
+        else
+        {
+            Assert.That(res.ContainsKey("I"), Is.False);
+        }
     }
 }

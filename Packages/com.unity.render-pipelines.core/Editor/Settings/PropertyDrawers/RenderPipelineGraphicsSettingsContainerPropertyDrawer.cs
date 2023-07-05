@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Reflection;
 using UnityEditor.UIElements;
+using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.UIElements;
 
@@ -13,35 +14,53 @@ namespace UnityEditor.Rendering
         //internal is for tests
         internal static SortedDictionary<string, SortedDictionary<string, PropertyField>> Categorize(SerializedProperty property)
         {
+            var showAllHiddenProperties = Unsupported.IsDeveloperMode();
             SortedDictionary<string, SortedDictionary<string, PropertyField>> categories = new();
-            foreach(SerializedProperty prop in property.Copy())
+            foreach (SerializedProperty prop in property.Copy())
             {
                 var type = prop.boxedValue.GetType();
 
                 //remove array length property
                 if (!typeof(IRenderPipelineGraphicsSettings).IsAssignableFrom(type))
                     continue;
-                
+
+                var hideInInspector = type.GetCustomAttribute<HideInInspector>();
+                if (!showAllHiddenProperties && hideInInspector != null)
+                    continue;
+
                 var typeName = ObjectNames.NicifyVariableName(type.Name);
-                string name = type.GetCustomAttribute<CategoryAttribute>()?.Category ?? typeName;
+                var name = type.GetCustomAttribute<CategoryAttribute>()?.Category ?? typeName;
 
                 //sort per type in category
                 if (categories.TryGetValue(name, out var categoryElement))
                 {
                     if (categoryElement.ContainsKey(typeName))
-                        UnityEngine.Debug.LogWarning($"{nameof(IRenderPipelineGraphicsSettings)} {typeName} is duplicated. Only showing first one.");
+                        Debug.LogWarning($"{nameof(IRenderPipelineGraphicsSettings)} {typeName} is duplicated. Only showing first one.");
                     else
-                        categoryElement.Add(typeName, new PropertyField(prop));
-                    continue;
+                    {
+                        var field = CreatePropertyField(prop, hideInInspector == null);
+                        categoryElement.Add(typeName, field);
+                    }
                 }
-                
-                //sort per category
-                categories.Add(name, new SortedDictionary<string, PropertyField>()
+                else
                 {
-                    { typeName, new PropertyField(prop) }
-                });
+                    //sort per category
+                    var field = CreatePropertyField(prop, hideInInspector == null);
+                    categories.Add(name, new SortedDictionary<string, PropertyField>()
+                    {
+                        { typeName, field }
+                    });
+                }
             }
+
             return categories;
+        }
+
+        private static PropertyField CreatePropertyField(SerializedProperty prop, bool isEnable)
+        {
+            var propertyField = new PropertyField(prop);
+            propertyField.SetEnabled(isEnable);
+            return propertyField;
         }
 
 
@@ -49,12 +68,12 @@ namespace UnityEditor.Rendering
         {
             var root = new VisualElement { name = "GlobalSettingsList" };
             var graphicsSettings = property.FindPropertyRelative("m_SettingsList");
-            UnityEngine.Debug.Assert(graphicsSettings != null);
+            Debug.Assert(graphicsSettings != null);
 
             foreach (var category in Categorize(graphicsSettings))
             {
                 var foldout = new Foldout() { text = category.Key };
-                foreach(var element in category.Value)
+                foreach (var element in category.Value)
                     foldout.Add(element.Value);
                 root.Add(foldout);
             }
@@ -73,7 +92,7 @@ namespace UnityEditor.Rendering
             VisualElement root = new();
 
             bool atLeastOneChild = false;
-            foreach(SerializedProperty prop in property.Copy())
+            foreach (SerializedProperty prop in property.Copy())
             {
                 atLeastOneChild = true;
                 root.Add(new PropertyField(prop));
