@@ -44,6 +44,11 @@ bool RussianRouletteTest(float threshold, float value, float rand, out float fac
     return true;
 }
 
+float PowerHeuristic(float f, float b)
+{
+    return Sq(f) / (Sq(f) + Sq(b));
+}
+
 float RescaleSampleUnder(float inputSample, float threshold)
 {
     return inputSample / threshold;
