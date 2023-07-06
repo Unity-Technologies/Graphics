@@ -328,6 +328,22 @@ namespace UnityEngine.Rendering.Universal
 
             bool clearColor = renderingData.cameraData.renderType == CameraRenderType.Base;
             bool clearDepth = renderingData.cameraData.renderType == CameraRenderType.Base || renderingData.cameraData.clearDepth;
+            // if the camera background type is "uninitialized" clear using a yellow color, so users can clearly understand the underlying behaviour
+            Color cameraBackgroundColor = (cameraData.camera.clearFlags == CameraClearFlags.Nothing) ? Color.yellow : renderingData.cameraData.backgroundColor;
+
+            // If scene filtering is enabled (prefab edit mode), the filtering is implemented compositing some builtin ImageEffect passes.
+            // For the composition to work, we need to clear the color buffer alpha to 0
+            // How filtering works:
+            // - SRP frame is fully rendered as background
+            // - builtin ImageEffect pass grey-out of the full scene previously rendered
+            // - SRP frame rendering only the objects belonging to the prefab being edited (with clearColor.a = 0)
+            // - builtin ImageEffect pass compositing the two previous passes
+            // TODO: We should implement filtering fully in SRP to remove builtin dependencies
+            if (IsSceneFilteringEnabled(cameraData.camera))
+            {
+                cameraBackgroundColor.a = 0;
+                clearDepth = false;
+            }
 
             // Certain debug modes (e.g. wireframe/overdraw modes) require that we override clear flags and clear everything.
             var debugHandler = cameraData.renderer.DebugHandler;
@@ -339,13 +355,12 @@ namespace UnityEngine.Rendering.Universal
 
             ImportResourceParams importColorParams = new ImportResourceParams();
             importColorParams.clearOnFirstUse = clearColor; // && cameraData.camera.clearFlags != CameraClearFlags.Nothing;
-            // if the camera background type is "uninitialized" clear using a magenta color, so users can clearly understand the underlying behaviour
-            importColorParams.clearColor = (cameraData.camera.clearFlags == CameraClearFlags.Nothing) ? Color.yellow : renderingData.cameraData.backgroundColor;
+            importColorParams.clearColor = cameraBackgroundColor;
             importColorParams.discardOnLastUse = false;
 
             ImportResourceParams importDepthParams = new ImportResourceParams();
             importDepthParams.clearOnFirstUse = clearDepth;
-            importDepthParams.clearColor = renderingData.cameraData.backgroundColor;
+            importDepthParams.clearColor = cameraBackgroundColor;
             importDepthParams.discardOnLastUse = false;
 
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -391,12 +406,12 @@ namespace UnityEngine.Rendering.Universal
 
             ImportResourceParams importBackbufferColorParams = new ImportResourceParams();
             importBackbufferColorParams.clearOnFirstUse = clearBackbufferOnFirstUse;
-            importBackbufferColorParams.clearColor = renderingData.cameraData.backgroundColor;
+            importBackbufferColorParams.clearColor = cameraBackgroundColor;
             importBackbufferColorParams.discardOnLastUse = false;
 
             ImportResourceParams importBackbufferDepthParams = new ImportResourceParams();
             importBackbufferDepthParams.clearOnFirstUse = clearBackbufferOnFirstUse;
-            importBackbufferDepthParams.clearColor = renderingData.cameraData.backgroundColor;
+            importBackbufferDepthParams.clearColor = cameraBackgroundColor;
             importBackbufferDepthParams.discardOnLastUse = false;
 
             // For BuiltinRenderTextureType wrapping RTHandles RenderGraph can't know what they are so we have to pass it in.
