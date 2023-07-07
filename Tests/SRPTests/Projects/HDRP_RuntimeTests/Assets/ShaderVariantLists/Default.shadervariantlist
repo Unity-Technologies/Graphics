@@ -825,8 +825,8 @@ Compiled compute shader: GTAOBlurAndUpsample, kernel: BilateralUpsampling, keywo
 Compiled compute shader: GTAOCopyHistory, kernel: GTAODenoise_CopyHistory, keywords <no keywords>
 Compiled compute shader: GTAOSpatialDenoise, kernel: SpatialDenoise, keywords TO_TEMPORAL
 Compiled compute shader: GTAOTemporalDenoise, kernel: TemporalDenoise, keywords HALF_RES
-Compiled compute shader: HairMultipleScatteringPreIntegration, kernel: ComputeAttenuationForward, keywords <no keywords>
 Compiled compute shader: HairMultipleScatteringPreIntegration, kernel: ComputeAttenuationBackward, keywords <no keywords>
+Compiled compute shader: HairMultipleScatteringPreIntegration, kernel: ComputeAttenuationForward, keywords <no keywords>
 Compiled compute shader: HairMultipleScatteringPreIntegration, kernel: ComputeAzimuthalScattering, keywords <no keywords>
 Compiled compute shader: HairMultipleScatteringPreIntegration, kernel: ComputeLongitudinalScattering, keywords <no keywords>
 Compiled compute shader: HistogramExposure, kernel: KHistogramGen, keywords <no keywords>
@@ -1738,6 +1738,8 @@ Compiled shader: Hidden/HDRP/Sky/HDRISky, pass: FragRender, stage: vertex, keywo
 Compiled shader: Hidden/HDRP/Sky/HDRISky, pass: FragRender, stage: vertex, keywords STEREO_INSTANCING_ON
 Compiled shader: Hidden/HDRP/Sky/PbrSky, pass: PBRSky Cubemap, stage: all, keywords <no keywords>
 Compiled shader: Hidden/HDRP/Sky/PbrSky, pass: PBRSky, stage: all, keywords <no keywords>
+Compiled shader: Hidden/HDRP/Sky/PbrSky, pass: PBRSky, stage: pixel, keywords STEREO_INSTANCING_ON
+Compiled shader: Hidden/HDRP/Sky/PbrSky, pass: PBRSky, stage: vertex, keywords STEREO_INSTANCING_ON
 Compiled shader: Hidden/HDRP/TemporalAA, pass: Copy History, stage: all, keywords HIGH_QUALITY
 Compiled shader: Hidden/HDRP/TemporalAA, pass: Copy History, stage: all, keywords MEDIUM_QUALITY
 Compiled shader: Hidden/HDRP/TemporalAA, pass: Copy History, stage: pixel, keywords HIGH_QUALITY STEREO_INSTANCING_ON
