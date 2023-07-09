@@ -7,7 +7,6 @@ namespace UnityEngine.Rendering
     /// <summary>
     /// A mutable string with a size and capacity so you can do string manipulations wile avoiding GC allocs.
     /// </summary>
-    /// <typeparam name="T">Type of the array.</typeparam>
     [DebuggerDisplay("Size = {size} Capacity = {capacity}")]
     public class DynamicString : DynamicArray<char>
     {
@@ -36,7 +35,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Append a string to the DynamicString. This will not allocate memory if the capacity is still sufficient.
         /// </summary>
-        /// <param name="s"></param>
+        /// <param name="s">The string to append.</param>
         public void Append(string s)
         {
             int offset = size;
@@ -47,8 +46,16 @@ namespace UnityEngine.Rendering
             BumpVersion();
         }
 
+        /// <summary>
+        /// Append a DynamicString to this DynamicString.
+        /// </summary>
+        /// <param name="s">The string to append.</param>
         public void Append(DynamicString s) => AddRange(s);
 
+        /// <summary>
+        /// Convert the DyanamicString back to a regular c# string.
+        /// </summary>
+        /// <returns>A new string with the same contents at the dynamic string.</returns>
         public override string ToString()
         {
             return new string(m_Array, 0, size);

@@ -563,6 +563,34 @@ namespace UnityEngine.Rendering
         }
 #endif
 
+        /// <summary>
+        /// Effective Job of drawing the set of Lens Flare registered
+        /// </summary>
+        /// <param name="lensFlareShader">Lens Flare material (HDRP or URP shader)</param>
+        /// <param name="cam">Camera</param>
+        /// <param name="actualWidth">Width actually used for rendering after dynamic resolution and XR is applied.</param>
+        /// <param name="actualHeight">Height actually used for rendering after dynamic resolution and XR is applied.</param>
+        /// <param name="usePanini">Set if use Panani Projection</param>
+        /// <param name="paniniDistance">Distance used for Panini projection</param>
+        /// <param name="paniniCropToFit">CropToFit parameter used for Panini projection</param>
+        /// <param name="isCameraRelative">Set if camera is relative</param>
+        /// <param name="cameraPositionWS">Camera World Space position</param>
+        /// <param name="viewProjMatrix">View Projection Matrix of the current camera</param>
+        /// <param name="cmd">Command Buffer</param>
+        /// <param name="taaEnabled">Set if TAA is enabled</param>
+        /// <param name="hasCloudLayer">Set if cloudLayerTexture is used</param>
+        /// <param name="cloudOpacityTexture">cloudOpacityTexture used for sky visibility fullscreen</param>
+        /// <param name="sunOcclusionTexture">Sun Occlusion Texture from VolumetricCloud on HDRP or null</param>
+        /// <param name="_FlareOcclusionTex">ShaderID for the FlareOcclusionTex</param>
+        /// <param name="_FlareCloudOpacity">ShaderID for the FlareCloudOpacity</param>
+        /// <param name="_FlareOcclusionIndex">ShaderID for the FlareOcclusionIndex</param>
+        /// <param name="_FlareTex">ShaderID for the FlareTex</param>
+        /// <param name="_FlareColorValue">ShaderID for the FlareColor</param>
+        /// <param name="_FlareSunOcclusionTex">ShaderID for the _FlareSunOcclusionTex</param>
+        /// <param name="_FlareData0">ShaderID for the FlareData0</param>
+        /// <param name="_FlareData1">ShaderID for the FlareData1</param>
+        /// <param name="_FlareData2">ShaderID for the FlareData2</param>
+        /// <param name="_FlareData3">ShaderID for the FlareData3</param>
         /// <param name="_FlareData4">ShaderID for the FlareData4</param>
         static public void ComputeOcclusion(Material lensFlareShader, Camera cam,
             float actualWidth, float actualHeight,
@@ -813,6 +841,40 @@ namespace UnityEngine.Rendering
             ++frameIdx;
             frameIdx %= maxLensFlareWithOcclusionTemporalSample;
         }
+
+        /// <summary>
+        /// Effective Job of drawing the set of Lens Flare registered
+        /// </summary>
+        /// <param name="lensFlareShader">Lens Flare material (HDRP or URP shader)</param>
+        /// <param name="cam">Camera</param>
+        /// <param name="actualWidth">Width actually used for rendering after dynamic resolution and XR is applied.</param>
+        /// <param name="actualHeight">Height actually used for rendering after dynamic resolution and XR is applied.</param>
+        /// <param name="usePanini">Set if use Panani Projection</param>
+        /// <param name="paniniDistance">Distance used for Panini projection</param>
+        /// <param name="paniniCropToFit">CropToFit parameter used for Panini projection</param>
+        /// <param name="isCameraRelative">Set if camera is relative</param>
+        /// <param name="cameraPositionWS">Camera World Space position</param>
+        /// <param name="viewProjMatrix">View Projection Matrix of the current camera</param>
+        /// <param name="cmd">Command Buffer</param>
+        /// <param name="taaEnabled">Set if TAA is enabled</param>
+        /// <param name="hasCloudLayer">Set if cloudLayerTexture is used</param>
+        /// <param name="cloudOpacityTexture">cloudOpacityTexture used for sky visibility fullscreen</param>
+        /// <param name="sunOcclusionTexture">Sun Occlusion Texture from VolumetricCloud on HDRP or null</param>
+        /// <param name="colorBuffer">Source Render Target which contains the Color Buffer</param>
+        /// <param name="GetLensFlareLightAttenuation">Delegate to which return return the Attenuation of the light based on their shape which uses the functions ShapeAttenuation...(...), must reimplemented per SRP</param>
+        /// <param name="_FlareOcclusionTex">ShaderID for the FlareOcclusionTex</param>
+        /// <param name="_FlareOcclusionIndex">ShaderID for the FlareOcclusionIndex</param>
+        /// <param name="_FlareOcclusionRemapTex">ShaderID for the OcclusionRemap</param>
+        /// <param name="_FlareCloudOpacity">ShaderID for the FlareCloudOpacity</param>
+        /// <param name="_FlareSunOcclusionTex">ShaderID for the _FlareSunOcclusionTex</param>
+        /// <param name="_FlareTex">ShaderID for the FlareTex</param>
+        /// <param name="_FlareColorValue">ShaderID for the FlareColor</param>
+        /// <param name="_FlareData0">ShaderID for the FlareData0</param>
+        /// <param name="_FlareData1">ShaderID for the FlareData1</param>
+        /// <param name="_FlareData2">ShaderID for the FlareData2</param>
+        /// <param name="_FlareData3">ShaderID for the FlareData3</param>
+        /// <param name="_FlareData4">ShaderID for the FlareData4</param>
+        /// <param name="debugView">Debug View which setup black background to see only Lens Flare</param>
         static public void DoLensFlareDataDrivenCommon(Material lensFlareShader, Camera cam, float actualWidth, float actualHeight,
             bool usePanini, float paniniDistance, float paniniCropToFit,
             bool isCameraRelative,
@@ -1461,8 +1523,9 @@ namespace UnityEngine.Rendering
         /// <param name="parameters4">streaksIntensity, streaksLength, streaksOrientation, streaksThreshold</param>
         /// <param name="parameters5">downsampleStreak, warpedFlareScaleX, warpedFlareScaleY, freeSlot</param>
         /// <param name="cmd">Command Buffer</param>
-        /// <param name="colorBuffer">Command Buffer</param>
+        /// <param name="result">Result RT for the Lens Flare Screen Space</param>
         /// <param name="_BloomTexture">ShaderID for the BloomTexture</param>
+        /// <param name="_LensFlareScreenSpaceResultTexture">ShaderID for the LensFlareScreenSpaceResultTexture texture</param>
         /// <param name="_LensFlareScreenSpaceSpectralLut">ShaderID for the LensFlareScreenSpaceSpectralLut texture</param>
         /// <param name="_LensFlareScreenSpaceStreakTex">ShaderID for the LensFlareScreenSpaceStreakTex streak temp texture</param>
         /// <param name="_LensFlareScreenSpaceMipLevel">ShaderID for the LensFlareScreenSpaceMipLevel parameter</param>

@@ -216,6 +216,11 @@ namespace UnityEngine.Rendering
             return result;
         }
 
+        /// <summary>
+        /// Calculate the dimensions (in pixels) of the RTHandles given the scale factor.
+        /// </summary>
+        /// <param name="scaleFactor">The scale factor to use when calculating the dimensions. The base unscaled size used, is the sizes passed to the last ResetReferenceSize call.</param>
+        /// <returns>The calculated dimensions.</returns>
         public static Vector2Int CalculateDimensions(Vector2 scaleFactor)
         {
             return s_DefaultInstance.CalculateDimensions(scaleFactor);
@@ -335,6 +340,11 @@ namespace UnityEngine.Rendering
             );
         }
 
+        /// <summary>
+        /// Calculate the dimensions (in pixels) of the RTHandles given the scale function. The base unscaled size used, is the sizes passed to the last ResetReferenceSize call.
+        /// </summary>
+        /// <param name="scaleFunc">The scale function to use when calculating the dimensions.</param>
+        /// <returns>The calculated dimensions.</returns>
         public static Vector2Int CalculateDimensions(ScaleFunc scaleFunc)
         {
             return s_DefaultInstance.CalculateDimensions(scaleFunc);
