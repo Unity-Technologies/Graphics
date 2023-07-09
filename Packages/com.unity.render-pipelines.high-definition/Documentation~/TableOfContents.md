@@ -146,6 +146,8 @@
       * [Contexts and Blocks](ss-contexts-and-blocks.md)
         * [Vertex](ss-context-vertex.md)
         * [Fragment](ss-context-fragment.md)
+      * 
+      * [Canvas Master Stack](master-stack-canvas.md)  
       * [Decal Master Stack](master-stack-decal.md)
       * [Eye Master Stack](master-stack-eye.md)
       * [Fabric Master Stack](master-stack-fabric.md)
@@ -155,7 +157,7 @@
       * [Lit Master Stack](master-stack-lit.md)
       * [StackLit Master Stack](master-stack-stacklit.md)
       * [Unlit Master Stack](master-stack-unlit.md)
-      * [Canvas Master Stack](master-stack-canvas.md)      
+      * [Water Master Stack](master-stack-water.md)    
   * [Shader Graph Nodes](Shader-Graph-Nodes.md)
 * Lighting
   * [Reflection in HDRP](Reflection-in-HDRP.md)
