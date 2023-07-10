@@ -72,8 +72,8 @@ The **Decals** panel has tools that you can use to debug [decals](Decal-Shader.m
 
 The **display stats** panel is only visible in play mode. You can use it to debug performance issues in your project.
 
-<table>
-  <thead>
+Use the [runtime shortcuts](#Navigation at runtime) to open the Display stats window in the scene view at runtime.
+
     <tr>
       <th colspan="1"><strong>Debug Option</strong></th>
       <th colspan="2"><strong>Description</strong></th>

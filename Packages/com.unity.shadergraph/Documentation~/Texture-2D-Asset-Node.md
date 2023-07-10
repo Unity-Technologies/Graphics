@@ -14,7 +14,7 @@ Defines a constant **Texture 2D Asset** for use in the shader. To sample the **T
 
 | Name        | Type           | Options  | Description |
 |:------------ |:-------------|:-----|:---|
-|      | Object Field (Texture) |  | Defines the texture 3D asset from the project. |
+|      | Object Field (Texture) |  | Select which texture 2D asset to use from the project. |
 
 ## Generated Code Example
 
