@@ -935,10 +935,7 @@ namespace UnityEngine.Rendering.Universal
             if (!LensFlareCommonSRP.IsOcclusionRTCompatible())
                 return;
 
-            var gpuView = camera.worldToCameraMatrix;
             var gpuNonJitteredProj = GL.GetGPUProjectionMatrix(camera.projectionMatrix, true);
-            // Zero out the translation component.
-            gpuView.SetColumn(3, new Vector4(0, 0, 0, 1));
             var gpuVP = gpuNonJitteredProj * camera.worldToCameraMatrix;
 
             cmd.SetGlobalTexture(m_Depth.name, m_Depth.nameID);
@@ -957,10 +954,7 @@ namespace UnityEngine.Rendering.Universal
 
         void LensFlareDataDriven(Camera camera, CommandBuffer cmd, RenderTargetIdentifier source, bool usePanini, float paniniDistance, float paniniCropToFit)
         {
-            var gpuView = camera.worldToCameraMatrix;
             var gpuNonJitteredProj = GL.GetGPUProjectionMatrix(camera.projectionMatrix, true);
-            // Zero out the translation component.
-            gpuView.SetColumn(3, new Vector4(0, 0, 0, 1));
             var gpuVP = gpuNonJitteredProj * camera.worldToCameraMatrix;
 
             LensFlareCommonSRP.DoLensFlareDataDrivenCommon(m_Materials.lensFlareDataDriven, camera, (float)m_Descriptor.width, (float)m_Descriptor.height,
