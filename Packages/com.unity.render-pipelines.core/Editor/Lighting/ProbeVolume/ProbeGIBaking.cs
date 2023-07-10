@@ -466,6 +466,7 @@ namespace UnityEngine.Rendering
 
         static void OnBakeStarted()
         {
+            if (ProbeVolumeLightingTab.instance?.PrepareAPVBake() == false) return;
             if (!ProbeReferenceVolume.instance.isInitialized || !ProbeReferenceVolume.instance.enabledBySRP) return;
 
             using var scope = new BakingSetupProfiling(BakingSetupProfiling.Stages.PrepareWorldSubdivision);
