@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 877e1507ae8d81c40bf1b94c1a86036f, type: 3}
-  m_Name: Lens Flare Data Sanity (SRP)
+  m_Name: 200 Lens Flare Data Driven (SRP)
   m_EditorClassIdentifier: 
   elements:
   - visible: 1
@@ -18,12 +18,12 @@ MonoBehaviour:
     positionOffset: {x: 0, y: 0}
     angularOffset: 0
     translationScale: {x: 1, y: 1}
-    m_LocalIntensity: 1
+    m_LocalIntensity: 0.5
     lensFlareTexture: {fileID: 0}
     uniformScale: 1
     sizeXY: {x: 0.5, y: 0.5}
-    allowMultipleElement: 0
-    m_Count: 5
+    allowMultipleElement: 1
+    m_Count: 15
     preserveAspectRatio: 0
     rotation: 0
     tint: {r: 1, g: 0, b: 0, a: 0.5}
@@ -32,8 +32,8 @@ MonoBehaviour:
     flareType: 1
     modulateByLightColor: 0
     isFoldOpened: 1
-    distribution: 0
-    lengthSpread: 1
+    distribution: 2
+    lengthSpread: 3
     positionCurve:
       serializedVersion: 2
       m_Curve:
@@ -82,7 +82,7 @@ MonoBehaviour:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    seed: 0
+    seed: -5
     colorGradient:
       serializedVersion: 2
       key0: {r: 1, g: 1, b: 1, a: 1}
@@ -110,14 +110,15 @@ MonoBehaviour:
       atime6: 0
       atime7: 0
       m_Mode: 0
+      m_ColorSpace: -1
       m_NumColorKeys: 2
       m_NumAlphaKeys: 2
     m_IntensityVariation: 0.75
-    positionVariation: {x: 1, y: 0}
-    scaleVariation: 1
+    positionVariation: {x: 1, y: 0.1}
+    scaleVariation: 1.2
     rotationVariation: 180
-    enableRadialDistortion: 0
-    targetSizeDistortion: {x: 1, y: 1}
+    enableRadialDistortion: 1
+    targetSizeDistortion: {x: 2, y: 0.5}
     distortionCurve:
       serializedVersion: 2
       m_Curve:
@@ -142,7 +143,7 @@ MonoBehaviour:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    distortionRelativeToCenter: 0
+    distortionRelativeToCenter: 1
     m_FallOff: 1
     m_EdgeOffset: 0
     m_SideCount: 6
@@ -176,14 +177,14 @@ MonoBehaviour:
   - visible: 1
     position: 1
     positionOffset: {x: 0, y: 0}
-    angularOffset: 15
+    angularOffset: 70
     translationScale: {x: 1, y: 1}
     m_LocalIntensity: 3.3
     lensFlareTexture: {fileID: 0}
     uniformScale: 1
-    sizeXY: {x: 1, y: 2}
+    sizeXY: {x: 2, y: 4}
     allowMultipleElement: 1
-    m_Count: 5
+    m_Count: 8
     preserveAspectRatio: 0
     rotation: -45
     tint: {r: 1, g: 0.8562707, b: 0, a: 0.5}
@@ -193,7 +194,7 @@ MonoBehaviour:
     modulateByLightColor: 0
     isFoldOpened: 1
     distribution: 0
-    lengthSpread: 1
+    lengthSpread: 1.5
     positionCurve:
       serializedVersion: 2
       m_Curve:
@@ -270,6 +271,7 @@ MonoBehaviour:
       atime6: 0
       atime7: 0
       m_Mode: 0
+      m_ColorSpace: -1
       m_NumColorKeys: 2
       m_NumAlphaKeys: 2
     m_IntensityVariation: 0.75
@@ -336,13 +338,13 @@ MonoBehaviour:
   - visible: 1
     position: 2
     positionOffset: {x: 0.5, y: 1.25}
-    angularOffset: -27
+    angularOffset: -95
     translationScale: {x: 1, y: 1}
     m_LocalIntensity: 1
     lensFlareTexture: {fileID: 0}
     uniformScale: 1
     sizeXY: {x: 2, y: 2}
-    allowMultipleElement: 0
+    allowMultipleElement: 1
     m_Count: 5
     preserveAspectRatio: 0
     rotation: 12
@@ -353,7 +355,7 @@ MonoBehaviour:
     modulateByLightColor: 0
     isFoldOpened: 1
     distribution: 0
-    lengthSpread: 1
+    lengthSpread: 2
     positionCurve:
       serializedVersion: 2
       m_Curve:
@@ -430,6 +432,7 @@ MonoBehaviour:
       atime6: 0
       atime7: 0
       m_Mode: 0
+      m_ColorSpace: -1
       m_NumColorKeys: 2
       m_NumAlphaKeys: 2
     m_IntensityVariation: 0.75
@@ -463,11 +466,11 @@ MonoBehaviour:
       m_PostInfinity: 2
       m_RotationOrder: 4
     distortionRelativeToCenter: 0
-    m_FallOff: 1
-    m_EdgeOffset: 1
+    m_FallOff: 0.75
+    m_EdgeOffset: 0.9
     m_SideCount: 6
-    m_SdfRoundness: 0
-    inverseSDF: 0
+    m_SdfRoundness: 0.2
+    inverseSDF: 1
     uniformAngle: 0
     uniformAngleCurve:
       serializedVersion: 2
@@ -502,10 +505,10 @@ MonoBehaviour:
     lensFlareTexture: {fileID: 2800000, guid: 5f951043386624d62a1d57cf247df28f, type: 3}
     uniformScale: 1
     sizeXY: {x: 2, y: 1}
-    allowMultipleElement: 0
+    allowMultipleElement: 1
     m_Count: 5
     preserveAspectRatio: 0
-    rotation: 0
+    rotation: -39.6
     tint: {r: 0.5581056, g: 1, b: 0.504717, a: 0.5}
     blendMode: 3
     autoRotate: 1
@@ -590,13 +593,14 @@ MonoBehaviour:
       atime6: 0
       atime7: 0
       m_Mode: 0
+      m_ColorSpace: -1
       m_NumColorKeys: 2
       m_NumAlphaKeys: 2
     m_IntensityVariation: 0.75
     positionVariation: {x: 1, y: 0}
     scaleVariation: 1
     rotationVariation: 180
-    enableRadialDistortion: 0
+    enableRadialDistortion: 1
     targetSizeDistortion: {x: 7.05, y: 1}
     distortionCurve:
       serializedVersion: 2

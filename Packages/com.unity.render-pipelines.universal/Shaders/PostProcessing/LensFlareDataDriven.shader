@@ -26,6 +26,8 @@ Shader "Hidden/Universal Render Pipeline/LensFlareDataDriven"
             #pragma multi_compile_fragment _ FLARE_CIRCLE FLARE_POLYGON
             #pragma multi_compile_fragment _ FLARE_INVERSE_SDF
 
+            #pragma multi_compile_vertex _ FLARE_OPENGL3_OR_OPENGLCORE
+
             #pragma multi_compile _ FLARE_HAS_OCCLUSION
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -61,6 +63,8 @@ Shader "Hidden/Universal Render Pipeline/LensFlareDataDriven"
 
             #pragma multi_compile_fragment _ FLARE_CIRCLE FLARE_POLYGON
             #pragma multi_compile_fragment _ FLARE_INVERSE_SDF
+
+            #pragma multi_compile_vertex _ FLARE_OPENGL3_OR_OPENGLCORE
 
             #pragma multi_compile _ FLARE_HAS_OCCLUSION
 
@@ -98,6 +102,8 @@ Shader "Hidden/Universal Render Pipeline/LensFlareDataDriven"
             #pragma multi_compile_fragment _ FLARE_CIRCLE FLARE_POLYGON
             #pragma multi_compile_fragment _ FLARE_INVERSE_SDF
 
+            #pragma multi_compile_vertex _ FLARE_OPENGL3_OR_OPENGLCORE
+
             #pragma multi_compile _ FLARE_HAS_OCCLUSION
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -133,6 +139,8 @@ Shader "Hidden/Universal Render Pipeline/LensFlareDataDriven"
 
             #pragma multi_compile_fragment _ FLARE_CIRCLE FLARE_POLYGON
             #pragma multi_compile_fragment _ FLARE_INVERSE_SDF
+
+            #pragma multi_compile_vertex _ FLARE_OPENGL3_OR_OPENGLCORE
 
             #pragma multi_compile _ FLARE_HAS_OCCLUSION
 
