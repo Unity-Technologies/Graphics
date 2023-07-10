@@ -155,7 +155,6 @@
       * [Fragment](ss-context-fragment.md)
     * [Decal Master Stack](master-stack-decal.md)
     * [Eye Master Stack](master-stack-eye.md)
-    * [Water Master Stack](master-stack-water.md)
     * [Fabric Master Stack](master-stack-fabric.md)
     * [Fog Volume Master Stack](master-stack-fog-volume.md)
     * [Fullscreen Master Stack](master-stack-fullscreen.md)
@@ -163,6 +162,7 @@
     * [Lit Master Stack](master-stack-lit.md)
     * [StackLit Master Stack](master-stack-stacklit.md)
     * [Unlit Master Stack](master-stack-unlit.md)
+    * [Water Master Stack](master-stack-water.md)
   * [Shader Graph Nodes](Shader-Graph-Nodes.md)
 * Lighting
   * [Reflection in HDRP](Reflection-in-HDRP.md)

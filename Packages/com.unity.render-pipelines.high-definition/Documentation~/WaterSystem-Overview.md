@@ -22,7 +22,7 @@ You can adjust caustic resolution for all surface types, and specify which **Sim
 It is possible to adjust the **Smoothness**, **Refraction**, and light **Scattering** qualities of a water surface.
 
 ## ShaderGraph
-For more in-depth water Material customizations, you can use [the water ShaderGraph](WaterSystem-ShaderGraph.md).
+For more in-depth water Material customizations, you can use [the water ShaderGraph](master-stack-water.md).
 
 ## Masking
 You can assign custom masks to attenuate or supress ripples, swells, and foam on specific portions of a water surface. You can also use them to adjust decal and light layers.
