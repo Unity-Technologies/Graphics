@@ -154,6 +154,7 @@
       * [Lit Master Stack](master-stack-lit.md)
       * [StackLit Master Stack](master-stack-stacklit.md)
       * [Unlit Master Stack](master-stack-unlit.md)
+      * [Water Master Stack](master-stack-water.md)    
   * [Shader Graph Nodes](Shader-Graph-Nodes.md)
 * Lighting
   * [Reflection in HDRP](Reflection-in-HDRP.md)
