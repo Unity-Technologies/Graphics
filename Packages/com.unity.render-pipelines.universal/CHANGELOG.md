@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [16.0.3] - 2023-07-04
+
+This version is compatible with Unity 2023.3.0a1.
+
+### Changed
+- Stripping or IRenderPipelineGraphicsSettings.
+
+### Fixed
+- Fixed an issue where rendering layers keywords were not enabled correctly when using Decals & SSAO in Deferred.
+- Fixed an issue where incorrect Shader Keyword Prefiltering was used with SSAO when AfterOpaque was used.
+
 ## [16.0.2] - 2023-06-28
 
 This version is compatible with Unity 2023.2.0a22.

@@ -9,6 +9,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [16.0.3] - 2023-07-04
+
+This version is compatible with Unity 2023.3.0a1.
+
+### Changed
+- Stripping or IRenderPipelineGraphicsSettings.
+
+### Fixed
+- Fix leak with Compute Buffer from APV Resources.
+- Fix mutations to default profile on project open
+- Mixed runtime lights were not considering the intensity multiplier during bakes. These changes fix this behaviour and make bakes more intuitive.
+- Fix rendering debugger for water surfaces
+- Fixing FTLP (Fine Tiled Light Pruning) Shader Options max light count. Previous support only supported up to 63 These changes allow to go up to 255 with higher instability as numbers per tile approach 255.
+For support greater than 255, do it at your own risk! (and expect some flickering)
+
 ## [16.0.2] - 2023-06-28
 
 This version is compatible with Unity 2023.2.0a22.

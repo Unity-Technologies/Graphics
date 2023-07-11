@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [16.0.3] - 2023-07-04
+
+This version is compatible with Unity 2023.3.0a1.
+
+### Fixed
+- Initialize VFX material indices to make all materials valid if used on Awake
+- Fix HDRP Decal Output when system is in world space
+- Fixed nested curly braces not supported in custom hlsl code
+- Fix  VFX camera command culling failling when all effects are out of frustum
+
 ## [16.0.2] - 2023-06-28
 
 This version is compatible with Unity 2023.2.0a22.
