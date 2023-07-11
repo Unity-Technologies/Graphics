@@ -410,31 +410,28 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #region Custom Post Processes Injections
 
+        [SerializeField] private CustomPostProcessOrdersSettings m_CustomPostProcessOrdersSettings = new();
+
+        public CustomPostProcessOrdersSettings customPostProcessOrdersSettings => m_CustomPostProcessOrdersSettings;
+
         // List of custom post process Types that will be executed in the project, in the order of the list (top to back)
-        [SerializeField]
+        [SerializeField, Obsolete("Keep for migration. #from(23.2)")]
         internal List<string> beforeTransparentCustomPostProcesses = new List<string>();
-        [SerializeField]
+        [SerializeField, Obsolete("Keep for migration. #from(23.2)")]
         internal List<string> beforePostProcessCustomPostProcesses = new List<string>();
-        [SerializeField]
+        [SerializeField, Obsolete("Keep for migration. #from(23.2)")]
         internal List<string> afterPostProcessBlursCustomPostProcesses = new List<string>();
-        [SerializeField]
+        [SerializeField, Obsolete("Keep for migration. #from(23.2)")]
         internal List<string> afterPostProcessCustomPostProcesses = new List<string>();
-        [SerializeField]
+        [SerializeField, Obsolete("Keep for migration. #from(23.2)")]
         internal List<string> beforeTAACustomPostProcesses = new List<string>();
 
         /// <summary>
         /// Returns true if the custom post process type in parameter has been registered
         /// </summary>
         /// <param name="customPostProcessType"></param>
-        public bool IsCustomPostProcessRegistered(Type customPostProcessType)
-        {
-            string type = customPostProcessType.AssemblyQualifiedName;
-            return beforeTransparentCustomPostProcesses.Contains(type)
-                || beforePostProcessCustomPostProcesses.Contains(type)
-                || afterPostProcessBlursCustomPostProcesses.Contains(type)
-                || afterPostProcessCustomPostProcesses.Contains(type)
-                || beforeTAACustomPostProcesses.Contains(type);
-        }
+        public bool IsCustomPostProcessRegistered(Type customPostProcessType) =>
+            customPostProcessOrdersSettings.IsCustomPostProcessRegistered(customPostProcessType);
 
         #endregion
 
