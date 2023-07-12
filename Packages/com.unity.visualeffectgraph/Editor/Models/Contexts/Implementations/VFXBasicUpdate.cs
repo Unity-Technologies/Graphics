@@ -297,5 +297,13 @@ namespace UnityEditor.VFX
                     yield return "VFX_COMPUTE_BOUNDS";
             }
         }
+
+        public void DisableAllImplicitBlockSettings()
+        {
+            ageParticles = false;
+            reapParticles = false;
+            integration = VFXIntegrationMode.None;
+            angularIntegration = VFXIntegrationMode.None;
+        }
     }
 }

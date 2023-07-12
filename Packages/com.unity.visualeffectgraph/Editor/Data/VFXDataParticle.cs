@@ -516,8 +516,12 @@ namespace UnityEditor.VFX
         {
             var contexts = compilableOwners.ToList();
 
-            if (!NeedsGlobalSort() &&
-                !contexts.OfType<VFXAbstractParticleOutput>().Any(o => o.NeedsOutputUpdate()))
+            bool needsGlobalSort = NeedsGlobalSort();
+            bool hasMainUpdate = contexts.OfType<VFXBasicUpdate>().Any();
+            bool hasAnyIndirectDraw = contexts.OfType<VFXAbstractParticleOutput>().Any(o => o.HasIndirectDraw());
+            bool hasAnyOutputUpdate = contexts.OfType<VFXAbstractParticleOutput>().Any(o => o.NeedsOutputUpdate());
+
+            if (!needsGlobalSort && !hasAnyOutputUpdate && (hasMainUpdate || !hasAnyIndirectDraw))
             {
                 //Early out with the most common case
                 m_Contexts = contexts;
@@ -536,7 +540,7 @@ namespace UnityEditor.VFX
             }
 
             var implicitContext = new List<VFXContext>();
-            if (NeedsGlobalSort())
+            if (needsGlobalSort)
             {
                 // Then the camera sort
                 var cameraSort = VFXContext.CreateImplicitContext<VFXCameraSort>(this);
@@ -556,6 +560,13 @@ namespace UnityEditor.VFX
                 {
                     var update = VFXContext.CreateImplicitContext<VFXOutputUpdate>(this);
                     update.SetOutput(abstractParticleOutput);
+                    implicitContext.Add(update);
+                    m_Contexts.Add(update);
+                }
+                else if (!hasMainUpdate && abstractParticleOutput.HasIndirectDraw())
+                {
+                    var update = VFXContext.CreateImplicitContext<VFXBasicUpdate>(this);
+                    update.DisableAllImplicitBlockSettings();
                     implicitContext.Add(update);
                     m_Contexts.Add(update);
                 }
