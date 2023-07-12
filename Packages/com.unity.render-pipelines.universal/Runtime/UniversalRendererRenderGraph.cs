@@ -300,9 +300,6 @@ namespace UnityEngine.Rendering.Universal
             var requireColorTexture = HasActiveRenderFeatures() && m_IntermediateTextureMode == IntermediateTextureMode.Always;
             requireColorTexture |= Application.isEditor && m_Clustering;
             requireColorTexture |= RequiresIntermediateColorTexture(ref renderingData.cameraData);
-            // TODO RENDERGRAPH NRP: remove this line once the MSAA backbuffer RP API issues are fixed on Metal
-            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal)
-                requireColorTexture |= renderGraph.NativeRenderPassesEnabled;
             requireColorTexture &= !isPreviewCamera;
 
             var requireDepthTexture = RequireDepthTexture(ref renderingData, renderPassInputs, requiresDepthPrepass);
@@ -412,7 +409,7 @@ namespace UnityEngine.Rendering.Universal
             ImportResourceParams importBackbufferDepthParams = new ImportResourceParams();
             importBackbufferDepthParams.clearOnFirstUse = clearBackbufferOnFirstUse;
             importBackbufferDepthParams.clearColor = cameraBackgroundColor;
-            importBackbufferDepthParams.discardOnLastUse = false;
+            importBackbufferDepthParams.discardOnLastUse = true;
 
             // For BuiltinRenderTextureType wrapping RTHandles RenderGraph can't know what they are so we have to pass it in.
             RenderTargetInfo importInfo = new RenderTargetInfo();
@@ -431,7 +428,7 @@ namespace UnityEngine.Rendering.Universal
 #if !UNITY_EDITOR
             // for safety do this only for the NRP path, even though works also on non NRP, but would need extensive testing
             // TODO: this is temporarily disabled on Vulkan because on Screen API issues. Re-enable the optimization when it is fixed
-            if (m_CreateColorTexture && renderGraph.NativeRenderPassesEnabled && SystemInfo.graphicsDeviceType != GraphicsDeviceType.Vulkan)
+            if (m_CreateColorTexture && renderGraph.NativeRenderPassesEnabled && Screen.msaaSamples > 1)
                 Screen.SetMSAASamples(1);
 #endif
 
@@ -442,7 +439,7 @@ namespace UnityEngine.Rendering.Universal
                 importInfo.width = Screen.width;
                 importInfo.height = Screen.height;
                 importInfo.volumeDepth = 1;
-                importInfo.msaaSamples = Screen.msaaSamples; // cameraData.cameraTargetDescriptor.msaaSamples;
+                importInfo.msaaSamples = Mathf.Max(Screen.msaaSamples, 1);
                 // The editor always allocates the system rendertarget with a single msaa sample
                 // See: ConfigureTargetTexture in PlayModeView.cs
                 if (Application.isEditor)
