@@ -647,6 +647,14 @@ namespace UnityEngine.Rendering.Universal
         {
             Camera camera = cameraData.camera;
             var renderer = cameraData.renderer;
+
+            if (camera.cameraType == CameraType.SceneView && Camera.main != null)
+            {
+                Camera.main.TryGetComponent<UniversalAdditionalCameraData>(out var baseCameraData);
+                if (baseCameraData != null && baseCameraData.scriptableRenderer != null)
+                    renderer = baseCameraData.scriptableRenderer;
+            }
+
             if (renderer == null)
             {
                 Debug.LogWarning(string.Format("Trying to render {0} with an invalid renderer. Camera rendering will be skipped.", camera.name));

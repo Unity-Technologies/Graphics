@@ -1,6 +1,7 @@
 
 using System;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
@@ -105,6 +106,7 @@ public class KeepFrameFeature : ScriptableRendererFeature
         var descriptor = renderingData.cameraData.cameraTargetDescriptor;
         descriptor.msaaSamples = 1;
         descriptor.depthBufferBits = 0;
+        descriptor.graphicsFormat = GraphicsFormat.R8G8B8A8_SRGB;
         var textureName = String.IsNullOrEmpty(settings.textureName) ? "_FrameCopyTex" : settings.textureName;
         RenderingUtils.ReAllocateIfNeeded(ref m_OldFrameHandle, descriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: textureName);
         
