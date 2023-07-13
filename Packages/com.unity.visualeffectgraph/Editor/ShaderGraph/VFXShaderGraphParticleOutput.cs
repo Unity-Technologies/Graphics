@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-
+using UnityEditor.Rendering;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.VFX.UI;
 
@@ -22,6 +22,12 @@ namespace UnityEditor.VFX
         private MaterialEditor m_MaterialEditor = null;
 
         private bool m_RequireUpdateMaterialEditor = false;
+        private bool m_ShowParticleOptions = true;
+
+        internal class Content
+        {
+            public static GUIContent particlesOptionHeader { get; } = EditorGUIUtility.TrTextContent("Particles Options");
+        }
 
         private void RequireUpdateMaterialEditor() => m_RequireUpdateMaterialEditor = true;
 
@@ -90,6 +96,11 @@ namespace UnityEditor.VFX
                 {
                     EditorGUILayout.HelpBox("Transparent Motion Vectors pass is disabled. Consider disabling Generate Motion Vector to improve performance.", MessageType.Warning);
                 }
+
+                if (!VFXLibrary.currentSRPBinder.AllowMaterialOverride(shaderGraph))
+                {
+                    EditorGUILayout.HelpBox("Surface Option overriding is disabled. For shaders that allow this behavior, go to the ShaderGraph Graph Settings and select Allow Material Override.", MessageType.Warning);
+                }
             }
         }
 
@@ -142,7 +153,7 @@ namespace UnityEditor.VFX
                 return;
             }
 
-            serializedObject.Update();
+            PrepareContextEditorGUI();
 
             if (m_RequireUpdateMaterialEditor)
             {
@@ -150,8 +161,9 @@ namespace UnityEditor.VFX
                 m_RequireUpdateMaterialEditor = false;
             }
 
-            var materialChanged = false;
+            DisplayName();
 
+            var materialChanged = false;
             var previousBlendMode = ((VFXShaderGraphParticleOutput)target).GetMaterialBlendMode();
 
             if (m_MaterialEditor != null)
@@ -162,12 +174,6 @@ namespace UnityEditor.VFX
                 }
                 else
                 {
-                    using (new EditorGUI.DisabledScope(true))
-                    {
-                        // Required to draw the header to draw OnInspectorGUI.
-                        m_MaterialEditor.DrawHeader();
-                    }
-
                     bool isVariant = (m_MaterialEditor.target as Material).isVariant;
                     if (!isVariant)
                     {
@@ -200,15 +206,12 @@ namespace UnityEditor.VFX
                 }
             }
 
-            base.OnInspectorGUI();
+            m_ShowParticleOptions = CoreEditorUtils.DrawHeaderFoldout(Content.particlesOptionHeader, m_ShowParticleOptions);
+            if (m_ShowParticleOptions)
+                DoDefaultContextEditorGUI();
 
-            if (serializedObject.ApplyModifiedProperties())
-            {
-                foreach (var context in targets.OfType<VFXShaderGraphParticleOutput>())
-                    context.Invalidate(VFXModel.InvalidationCause.kSettingChanged);
-            }
-
-            if (materialChanged)
+            var invalidated = ApplyAndInvalidate();
+            if (!invalidated && materialChanged)
             {
                 foreach (var context in targets.OfType<VFXShaderGraphParticleOutput>())
                 {
@@ -223,6 +226,9 @@ namespace UnityEditor.VFX
                         context.Invalidate(VFXModel.InvalidationCause.kMaterialChanged);
                 }
             }
+
+            DisplayWarnings();
+            DisplaySummary();
         }
     }
 

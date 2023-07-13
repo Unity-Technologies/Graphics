@@ -35,6 +35,8 @@ namespace UnityEditor.VFX
         public abstract bool IsShaderVFXCompatible(Shader shader);
         public virtual void SetupMaterial(Material mat, bool hasMotionVector = false, bool hasShadowCasting = false, ShaderGraphVfxAsset shaderGraph = null) { }
 
+        public virtual bool AllowMaterialOverride(ShaderGraphVfxAsset shaderGraph) => true;
+
         public virtual bool TryGetQueueOffset(ShaderGraphVfxAsset shaderGraph, VFXMaterialSerializedSettings materialSettings, out int queueOffset)
         {
             queueOffset = 0;

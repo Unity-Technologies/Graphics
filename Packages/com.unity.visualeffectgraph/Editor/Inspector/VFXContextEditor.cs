@@ -292,7 +292,7 @@ class VFXContextEditor : VFXSlotContainerEditor
     {
     }
 
-    protected void ApplyAndInvalidate()
+    protected bool ApplyAndInvalidate()
     {
         bool invalidate = false;
 
@@ -313,20 +313,29 @@ class VFXContextEditor : VFXSlotContainerEditor
                 ctx.GetData().Invalidate(VFXModel.InvalidationCause.kSettingChanged);
             }
         }
+
+        return invalidate;
+    }
+
+    protected void PrepareContextEditorGUI()
+    {
+        if (dataObject != null)
+            dataObject.Update();
+        if (srpSubOutputObject != null)
+            srpSubOutputObject.Update();
+    }
+
+    protected void DoDefaultContextEditorGUI()
+    {
+        base.OnInspectorGUI();
     }
 
     public override void OnInspectorGUI()
     {
-        if (dataObject != null)
-            dataObject.Update();
-
-        if (srpSubOutputObject != null)
-            srpSubOutputObject.Update();
+        PrepareContextEditorGUI();
 
         DisplayName();
-
-        base.OnInspectorGUI();
-
+        DoDefaultContextEditorGUI();
         ApplyAndInvalidate();
 
         DisplayWarnings();
