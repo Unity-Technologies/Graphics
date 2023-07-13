@@ -299,31 +299,27 @@ uint GetIndexData(APVResources apvRes, float3 posWS)
     int stepSize = 0;
     int3 minRelativeIdx, maxRelativeIdx;
     int chunkIdx = -1;
-    bool isValidBrick = true;
+    bool isValidBrick = false;
     int locationInPhysicalBuffer = 0;
 
-    if (isALoadedCell && LoadCellIndexMetaData(flatIdx, chunkIdx, stepSize, minRelativeIdx, maxRelativeIdx))
+    // Dynamic branch must be enforced to avoid GPU crash on some platforms using HLSLcc.
+    UNITY_BRANCH if (isALoadedCell)
     {
-        float3 residualPosWS = posWS - topLeftEntryWS;
-        int3 localBrickIndex = floor(residualPosWS / (_MinBrickSize * stepSize));
-
-        // Out of bounds.
-        if(!all(localBrickIndex >= minRelativeIdx && localBrickIndex < maxRelativeIdx))
+        if (LoadCellIndexMetaData(flatIdx, chunkIdx, stepSize, minRelativeIdx, maxRelativeIdx))
         {
-            isValidBrick = false;
+            float3 residualPosWS = posWS - topLeftEntryWS;
+            int3 localBrickIndex = floor(residualPosWS / (_MinBrickSize * stepSize));
+
+            // Out of bounds.
+            isValidBrick = all(localBrickIndex >= minRelativeIdx && localBrickIndex < maxRelativeIdx);
+
+            int3 sizeOfValid = maxRelativeIdx - minRelativeIdx;
+            // Relative to valid region
+            int3 localRelativeIndexLoc = (localBrickIndex - minRelativeIdx);
+            int flattenedLocationInCell = dot(localRelativeIndexLoc, int3(sizeOfValid.y, 1, sizeOfValid.x * sizeOfValid.y));
+
+            locationInPhysicalBuffer = chunkIdx * (int)_IndexChunkSize + flattenedLocationInCell;
         }
-
-        int3 sizeOfValid = maxRelativeIdx - minRelativeIdx;
-        // Relative to valid region
-        int3 localRelativeIndexLoc = (localBrickIndex - minRelativeIdx);
-        int flattenedLocationInCell = dot(localRelativeIndexLoc, int3(sizeOfValid.y, 1, sizeOfValid.x * sizeOfValid.y));
-
-        locationInPhysicalBuffer = chunkIdx * (int)_IndexChunkSize + flattenedLocationInCell;
-
-    }
-    else
-    {
-        isValidBrick = false;
     }
 
     return isValidBrick ? apvRes.index[locationInPhysicalBuffer] : 0xffffffff;
