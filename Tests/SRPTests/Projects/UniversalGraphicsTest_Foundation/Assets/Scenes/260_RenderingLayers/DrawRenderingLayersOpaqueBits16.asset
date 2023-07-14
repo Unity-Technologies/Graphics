@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Active: 1
   m_Material: {fileID: 2100000, guid: 8edb9dabac8afe248a1fcf796d1325d0, type: 2}
-  m_Event: 200
-  m_MaskSize: 3
+  m_Event: 300
+  m_MaskSize: 1
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -26,7 +26,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: de640fe3d0db1804a85f9fc8f5cadab6, type: 3}
-  m_Name: DrawRenderingLayersPrePass Bits32
+  m_Name: DrawRenderingLayersOpaqueBits16
   m_EditorClassIdentifier: 
   debugShaders:
     debugReplacementPS: {fileID: 4800000, guid: cf852408f2e174538bcd9b7fda1c5ae7,
