@@ -81,9 +81,11 @@ namespace UnityEngine.Rendering.Universal
         {
             if (!s_HasSetupRenderTextureFormatToUse)
             {
-                if (SystemInfo.IsFormatSupported(GraphicsFormat.B10G11R11_UFloatPack32, GraphicsFormatUsage.Linear | GraphicsFormatUsage.Render))
+                // UUM-41070: We require `Linear | Render` but with the deprecated FormatUsage this was checking `Blend`
+                // For now, we keep checking for `Blend` until the performance hit of doing the correct checks is evaluated
+                if (SystemInfo.IsFormatSupported(GraphicsFormat.B10G11R11_UFloatPack32, GraphicsFormatUsage.Blend))
                     s_RenderTextureFormatToUse = GraphicsFormat.B10G11R11_UFloatPack32;
-                else if (SystemInfo.IsFormatSupported(GraphicsFormat.R16G16B16A16_SFloat, GraphicsFormatUsage.Linear | GraphicsFormatUsage.Render))
+                else if (SystemInfo.IsFormatSupported(GraphicsFormat.R16G16B16A16_SFloat, GraphicsFormatUsage.Blend))
                     s_RenderTextureFormatToUse = GraphicsFormat.R16G16B16A16_SFloat;
 
                 s_HasSetupRenderTextureFormatToUse = true;
