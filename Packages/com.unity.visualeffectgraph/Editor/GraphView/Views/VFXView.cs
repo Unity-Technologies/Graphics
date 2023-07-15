@@ -1059,7 +1059,7 @@ namespace UnityEditor.VFX.UI
                 if (e.controller is VFXContextController && e.target is VFXContextUI)
                 {
                     m_ComponentBoard.UpdateEventList();
-                    UpdateSystemNames();
+                    UpdateSystems();
                 }
             }
         }
@@ -2812,15 +2812,6 @@ namespace UnityEditor.VFX.UI
             get { return m_Systems.AsReadOnly(); }
         }
 
-        public void UpdateSystemNames()
-        {
-            if (m_Systems != null)
-                foreach (var system in m_Systems)
-                {
-                    system.Update();
-                }
-        }
-
         public void UpdateSystems()
         {
             while (m_Systems.Count() > controller.systems.Count())
@@ -2830,14 +2821,17 @@ namespace UnityEditor.VFX.UI
                 border.RemoveFromHierarchy();
             }
 
-            UpdateSystemNames();
+            foreach (var system in m_Systems)
+            {
+                system.Update();
+            }
 
-            while (m_Systems.Count() < controller.systems.Count())
+            while (m_Systems.Count < controller.systems.Count)
             {
                 VFXSystemBorder border = new VFXSystemBorder();
                 m_Systems.Add(border);
                 AddElement(border);
-                border.controller = controller.systems[m_Systems.Count() - 1];
+                border.controller = controller.systems[m_Systems.Count - 1];
             }
 
             foreach (var context in GetAllContexts())

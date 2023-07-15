@@ -1,12 +1,14 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-
+using System.Reflection;
 using NUnit.Framework;
 
 using UnityEditor.VFX.UI;
 using UnityEngine;
+using UnityEngine.TestTools;
 using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Test
@@ -143,6 +145,33 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual("System (2)", systemNames.GetUniqueSystemName(initializeContext.GetData()));
             Assert.AreEqual("System (2)", systemNames.GetUniqueSystemName(updateContext.GetData()));
             Assert.AreEqual("System (2)", systemNames.GetUniqueSystemName(outputContext.GetData()));
+        }
+
+        [UnityTest]
+        public IEnumerator Overwrite_Opened_VFX()
+        {
+            VFXViewWindow.ShowWindow();
+            yield return null;
+            Assert.True(EditorWindow.HasOpenInstances<VFXViewWindow>());
+            var vfxViewWindow = EditorWindow.GetWindowDontShow<VFXViewWindow>();
+
+            // Create first VFX using template item number 5
+            var onCreateAssetMethod = vfxViewWindow.graphView.GetType().GetMethod("OnCreateAsset", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.NotNull(onCreateAssetMethod);
+            onCreateAssetMethod.Invoke(vfxViewWindow.graphView, null);
+            yield return null;
+            var enumerator = VFXTemplateWindowTest.CheckNewVFXIsCreated(5);
+            while (enumerator.MoveNext())
+                yield return enumerator.Current;
+            vfxViewWindow.graphView.OnSave();
+
+            // Create a new VFX using the template item number 2
+            onCreateAssetMethod.Invoke(vfxViewWindow.graphView, null);
+            yield return null;
+
+            enumerator = VFXTemplateWindowTest.CheckNewVFXIsCreated(2);
+            while (enumerator.MoveNext())
+                yield return enumerator.Current;
         }
     }
 }

@@ -8,7 +8,6 @@ using NUnit.Framework;
 
 using UnityEditor.VFX.UI;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using UnityEngine.UIElements;
 using UnityEngine.VFX;
@@ -416,7 +415,7 @@ namespace UnityEditor.VFX.Test
             yield return null;
         }
 
-        private IEnumerator CheckNewVFXIsCreated()
+        internal static IEnumerator CheckNewVFXIsCreated(int templateIndex = 3)
         {
             // Make sure the project browser is opened
             var projectBrowser = EditorWindow.GetWindow<ProjectBrowser>();
@@ -431,7 +430,7 @@ namespace UnityEditor.VFX.Test
             var treeView = GetTreeView(templateWindow);
 
             // Select Simple Loop item
-            treeView.selectedIndex = 3;
+            treeView.selectedIndex = templateIndex;
 
             // Simulate click on create button
             CallMethod(templateWindow, "OnCreate");
@@ -447,14 +446,14 @@ namespace UnityEditor.VFX.Test
             yield break;
         }
 
-        private void SetSaveFileDialogHelper(VFXTemplateWindow window, VFXTemplateWindow.ISaveFileDialogHelper saveFileDialogHelper)
+        private static void SetSaveFileDialogHelper(VFXTemplateWindow window, VFXTemplateWindow.ISaveFileDialogHelper saveFileDialogHelper)
         {
             var saveFileDialogHelperField = window.GetType().GetField("m_SaveFileDialogHelper", BindingFlags.Instance | BindingFlags.NonPublic);
             Assert.NotNull(saveFileDialogHelperField);
             saveFileDialogHelperField.SetValue(window, saveFileDialogHelper);
         }
 
-        private List<TreeViewItemData<IVFXTemplateDescriptor>> GetTemplateTree(VFXTemplateWindow window)
+        internal static List<TreeViewItemData<IVFXTemplateDescriptor>> GetTemplateTree(VFXTemplateWindow window)
         {
             var templateTreeField = window.GetType().GetField("m_TemplatesTree", BindingFlags.Instance | BindingFlags.NonPublic);
             Assert.NotNull(templateTreeField);
@@ -464,7 +463,7 @@ namespace UnityEditor.VFX.Test
             return templateTree;
         }
 
-        private TreeView GetTreeView(VFXTemplateWindow window)
+        private static TreeView GetTreeView(VFXTemplateWindow window)
         {
             var treeViewField = window.GetType().GetField("m_ListOfTemplates", BindingFlags.Instance | BindingFlags.NonPublic);
             Assert.NotNull(treeViewField);
@@ -474,7 +473,7 @@ namespace UnityEditor.VFX.Test
             return treeView;
         }
 
-        private void CallMethod(VFXTemplateWindow window, string methodName, params object[] paramMethod)
+        private static void CallMethod(VFXTemplateWindow window, string methodName, params object[] paramMethod)
         {
             var method = window.GetType().GetMethod(methodName, BindingFlags.Instance | BindingFlags.NonPublic);
             Assert.NotNull(method);
