@@ -74,7 +74,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (materials[0].IsShaderGraph())
                 {
                     var shader = materials[0].shader;
-                    var defaultRefractionModel = shader.GetPropertyDefaultFloatValue(shader.FindPropertyIndex(kRefractionModel));
+
+                    var propertyIndex = shader.FindPropertyIndex(kRefractionModel);
+                    if (propertyIndex == -1)
+                        return false;
+
+                    var defaultRefractionModel = shader.GetPropertyDefaultFloatValue(propertyIndex);
                     if (defaultRefractionModel == 0)
                         return false;
                 }
