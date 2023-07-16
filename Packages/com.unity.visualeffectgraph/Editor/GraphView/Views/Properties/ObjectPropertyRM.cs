@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.ShaderGraph;
+
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -44,6 +44,19 @@ namespace UnityEditor.VFX.UI
             RegisterCallback<DragEnterEvent>(OnDragEnter);
             RegisterCallback<DragPerformEvent>(OnDragPerformed);
 
+            // This allow to detect when a resource is deleted or restored
+            RegisterCallback<AttachToPanelEvent>((evt) =>
+            {
+                EditorApplication.projectChanged += OnProjectOrHierarchyChanged;
+                EditorApplication.hierarchyChanged += OnProjectOrHierarchyChanged;
+            });
+            RegisterCallback<DetachFromPanelEvent>((evt) =>
+            {
+                EditorApplication.projectChanged -= OnProjectOrHierarchyChanged;
+                EditorApplication.hierarchyChanged -= OnProjectOrHierarchyChanged;
+            });
+
+
             if (!s_TypeToDimensionMap.TryGetValue(m_Provider.portType, out m_textureDimension))
             {
                 m_textureDimension = TextureDimension.Unknown;
@@ -70,7 +83,8 @@ namespace UnityEditor.VFX.UI
                         ? AssetPreview.GetMiniTypeThumbnail(m_Value)
                         : AssetPreview.GetMiniTypeThumbnail(m_Provider.portType);
                 }
-                m_TextField.value = m_Value?.name ?? $"None ({m_Provider.portType.Name})";
+
+                CheckForMissingReference();
             }
             catch (Exception)
             {
@@ -137,6 +151,25 @@ namespace UnityEditor.VFX.UI
         {
             var dragObject = DragAndDrop.objectReferences.First();
             SelectHandler(dragObject, false);
+        }
+
+        void OnProjectOrHierarchyChanged()
+        {
+            CheckForMissingReference();
+        }
+
+        void CheckForMissingReference()
+        {
+            if (m_Value == null)
+            {
+                m_TextField.value = !object.ReferenceEquals(m_Value, null) && m_Value.GetInstanceID() != 0
+                    ? $"Missing ({m_Provider.portType.Name})"
+                    : $"None ({m_Provider.portType.Name})";
+            }
+            else
+            {
+                m_TextField.value = m_Value.name;
+            }
         }
     }
 }

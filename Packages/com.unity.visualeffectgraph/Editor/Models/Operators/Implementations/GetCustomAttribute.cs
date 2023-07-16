@@ -33,7 +33,7 @@ namespace UnityEditor.VFX
 
         public override string name => $"Get '{attribute}' ({AttributeType})";
 
-        protected sealed override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        internal sealed override void GenerateErrors(VFXInvalidateErrorReporter manager)
         {
             base.GenerateErrors(manager);
 

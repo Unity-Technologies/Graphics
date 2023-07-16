@@ -224,7 +224,7 @@ namespace UnityEditor.VFX.Test
             var window = VFXViewWindow.GetWindow(graph, true);
             window.LoadResource(graph.visualEffectResource);
             VFXModel modelWithError = null;
-            window.graphView.controller.graph.errorManager.onRegisterError += (model, origin, error, errorType, description) =>
+            window.graphView.errorManager.onRegisterError += (model, origin, error, errorType, description) =>
             {
                 Assert.IsNull(modelWithError, "The error seems to have been raise more than once");
                 if (errorType == VFXErrorType.Error)
@@ -247,7 +247,7 @@ namespace UnityEditor.VFX.Test
                 graph.AddChild(updateContext);
             }
 
-            customAttributeNode.RefreshErrors(window.graphView.controller.graph);
+            customAttributeNode.RefreshErrors();
 
             Assert.AreEqual(shouldRaiseError, customAttributeNode == modelWithError);
             if (shouldRaiseError)

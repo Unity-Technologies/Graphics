@@ -641,7 +641,7 @@ namespace UnityEditor.VFX
             return vertsCount != 0;
         }
 
-        protected override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        internal override void GenerateErrors(VFXInvalidateErrorReporter manager)
         {
             base.GenerateErrors(manager);
             var dataParticle = GetData() as VFXDataParticle;

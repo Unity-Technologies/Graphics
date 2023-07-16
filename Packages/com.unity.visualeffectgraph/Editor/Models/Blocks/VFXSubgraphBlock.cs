@@ -35,7 +35,9 @@ namespace UnityEditor.VFX
         {
             base.GetImportDependentAssets(dependencies);
             if (!object.ReferenceEquals(m_Subgraph, null))
+            {
                 dependencies.Add(m_Subgraph.GetInstanceID());
+            }
         }
 
         public override void CheckGraphBeforeImport()

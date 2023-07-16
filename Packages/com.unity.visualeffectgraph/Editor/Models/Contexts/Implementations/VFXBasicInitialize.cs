@@ -75,13 +75,13 @@ namespace UnityEditor.VFX
             {
                 if (model == this)
                     ResyncSlots(false); // To add/remove stripIndex
-                RefreshErrors(GetGraph());
+                RefreshErrors();
             }
 
             base.OnInvalidate(model, cause);
         }
 
-        protected override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        internal override void GenerateErrors(VFXInvalidateErrorReporter manager)
         {
             VFXSetting capacitySetting = GetSetting("capacity");
             if (capacitySetting.valid && (uint)capacitySetting.value > 1000000)

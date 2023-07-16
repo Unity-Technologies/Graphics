@@ -145,7 +145,7 @@ namespace UnityEditor.VFX.Block
             }
         }
 
-        protected override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        internal override void GenerateErrors(VFXInvalidateErrorReporter manager)
         {
             base.GenerateErrors(manager);
 
