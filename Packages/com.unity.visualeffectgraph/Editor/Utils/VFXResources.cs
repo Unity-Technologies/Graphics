@@ -189,7 +189,7 @@ namespace UnityEditor.VFX
         {
             s_Values = new Values();
 
-            defaultShader = Shader.Find("Hidden/Default StaticMeshOutput");
+            defaultShader = Shader.Find("Shader Graphs/DefaultVFXSG");
 
             defaultAnimationCurve = new AnimationCurve(new Keyframe[]
             {
