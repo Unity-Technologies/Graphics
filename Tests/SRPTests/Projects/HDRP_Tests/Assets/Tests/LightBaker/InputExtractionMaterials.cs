@@ -52,7 +52,9 @@ namespace UnityEditor.LightBaking.Tests
             new() { SceneName = "Metapass_BasicMaterials", ObjectName = "emissiveTexTiling23", MetaPassType = MetaPassType.Emission , TextureCount = 13 },
             new() { SceneName = "Metapass_BasicMaterials", ObjectName = "albedoTexTiling23", MetaPassType = MetaPassType.Albedo , TextureCount = 13 },
             new() { SceneName = "Metapass_BasicMaterials", ObjectName = "emissiveTexOffset_p5p3", MetaPassType = MetaPassType.Emission , TextureCount = 13 },
-            new() { SceneName = "Metapass_BasicMaterials", ObjectName = "albedoTexOffset_p5p3", MetaPassType = MetaPassType.Albedo , TextureCount = 13 }
+            new() { SceneName = "Metapass_BasicMaterials", ObjectName = "albedoTexOffset_p5p3", MetaPassType = MetaPassType.Albedo , TextureCount = 13 },
+            new() { SceneName = "BakedLightingTerrainAlbedo-editor", ObjectName = "Terrain", MetaPassType = MetaPassType.Albedo , TextureCount = 3 },
+            new() { SceneName = "BakedLightingTerrainAlbedo-editor", ObjectName = "TerrainOffset", MetaPassType = MetaPassType.Albedo , TextureCount = 3 }
         };
 
         [Test, Category("Graphics")]
