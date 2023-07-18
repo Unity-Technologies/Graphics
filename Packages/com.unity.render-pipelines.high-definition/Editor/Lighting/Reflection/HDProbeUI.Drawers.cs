@@ -289,6 +289,15 @@ namespace UnityEditor.Rendering.HighDefinition
                     return;
                 }
 
+
+                //Display a warning for the user if we are not in the quality setting with the highest resolution setting for reflection probes
+                if (!IsHighestSettingForCubeResolution())
+                {
+                    EditorGUILayout.HelpBox(
+                        "You are currently not in the highest quality setting, if you bake now the reflection probe resolution will be lower than it should be for higher quality levels.",
+                        MessageType.Warning);
+                }
+
                 // Check if current mode support baking
                 var mode = (ProbeSettings.Mode)serialized.probeSettings.mode.intValue;
                 var doesModeSupportBaking = mode == ProbeSettings.Mode.Custom || mode == ProbeSettings.Mode.Baked;
@@ -466,6 +475,56 @@ namespace UnityEditor.Rendering.HighDefinition
                     true
                 );
             }
+        }
+
+        static internal bool IsHighestSettingForCubeResolution()
+        {
+            HDRenderPipelineAsset currentAsset = (QualitySettings.renderPipeline as HDRenderPipelineAsset);
+
+            if(currentAsset == null)
+            {
+                return true;
+            }
+
+            CubeReflectionResolution highestTierInCurrent = GetHighestCubemapResolutionSetting(currentAsset.currentPlatformRenderPipelineSettings);
+            CubeReflectionResolution highestResolution = highestTierInCurrent;
+
+            //Iterate over every quality setting to check their settings for the cubemap resolution
+            QualitySettings.ForEach(() =>
+            {
+                HDRenderPipelineAsset asset = QualitySettings.renderPipeline as HDRenderPipelineAsset;
+                if(asset != null)
+                {
+                    //Iterate through reflection cube map quality tiers
+                    CubeReflectionResolution highestInTier = GetHighestCubemapResolutionSetting(asset.currentPlatformRenderPipelineSettings);
+
+                    if(highestInTier > highestResolution)
+                    {
+                        highestResolution = highestInTier;
+                    }
+                }
+            });
+
+            return highestResolution == highestTierInCurrent;
+        }
+
+        //Iterating over every CubeReflectionResolutionTier for a certain RenderPipelineSetting and return the highest value found
+        static internal CubeReflectionResolution GetHighestCubemapResolutionSetting(RenderPipelineSettings settings)
+        {
+            CubeReflectionResolution highestTierInCurrent = CubeReflectionResolution.CubeReflectionResolution128;
+
+            //Iterate through reflection cube map quality tiers, hardcoded to 3 tiers as they are always low, medium and high and there
+            //doesnt seem to be a better way to iterate over ScalableSettings
+            for (int i = 0; i < 3; i++)
+            {
+                var res = settings.cubeReflectionResolution[i];
+                if(res > highestTierInCurrent)
+                {
+                    highestTierInCurrent = res;
+                }
+            }
+
+            return highestTierInCurrent;
         }
 
         static internal void Drawer_ToolBarButton(
