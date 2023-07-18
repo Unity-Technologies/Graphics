@@ -31,6 +31,9 @@ namespace UnityEditor.ShaderGraph
 
         public GraphObject owner { get; set; }
 
+        [NonSerialized]
+        internal bool graphIsConcretizing = false;
+
         #region Input data
 
         [SerializeField]
