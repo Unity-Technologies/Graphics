@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.Universal.Internal;
@@ -510,7 +511,7 @@ namespace UnityEngine.Rendering.Universal
                         RenderTextureDescriptor colorDesc = cameraData.cameraTargetDescriptor;
                         DebugHandler.ConfigureColorDescriptorForDebugScreen(ref colorDesc, cameraData.pixelWidth, cameraData.pixelHeight);
                         RenderingUtils.ReAllocateIfNeeded(ref DebugHandler.DebugScreenColorHandle, colorDesc, name: "_DebugScreenColor");
-                        
+
                         RenderTextureDescriptor depthDesc = cameraData.cameraTargetDescriptor;
                         DebugHandler.ConfigureDepthDescriptorForDebugScreen(ref depthDesc, k_DepthBufferBits, cameraData.pixelWidth, cameraData.pixelHeight);
                         RenderingUtils.ReAllocateIfNeeded(ref DebugHandler.DebugScreenDepthHandle, depthDesc, name: "_DebugScreenDepth");
@@ -563,11 +564,22 @@ namespace UnityEngine.Rendering.Universal
             if (IsGLDevice())
                 requiresRenderingLayer = false;
 
-            bool renderingLayerProvidesByDepthNormalPass = requiresRenderingLayer && renderingLayersEvent == RenderingLayerUtils.Event.DepthNormalPrePass;
-            bool renderingLayerProvidesRenderObjectPass = requiresRenderingLayer &&
-                this.renderingModeActual != RenderingMode.Deferred && renderingLayersEvent == RenderingLayerUtils.Event.Opaque;
-            bool renderingLayerProvidesGBufferPass = requiresRenderingLayer &&
-                this.renderingModeActual == RenderingMode.Deferred && renderingLayersEvent == RenderingLayerUtils.Event.Opaque;
+            bool renderingLayerProvidesByDepthNormalPass = false;
+            bool renderingLayerProvidesRenderObjectPass = false;
+            if (requiresRenderingLayer && renderingModeActual != RenderingMode.Deferred)
+            {
+                switch (renderingLayersEvent)
+                {
+                    case RenderingLayerUtils.Event.DepthNormalPrePass:
+                        renderingLayerProvidesByDepthNormalPass = true;
+                        break;
+                    case RenderingLayerUtils.Event.Opaque:
+                        renderingLayerProvidesRenderObjectPass = true;
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }
 
             // Enable depth normal prepass
             if (renderingLayerProvidesByDepthNormalPass)
@@ -833,7 +845,7 @@ namespace UnityEngine.Rendering.Universal
                 cmd.Clear();
             }
 
-            if (requiresRenderingLayer)
+            if (requiresRenderingLayer || (renderingModeActual == RenderingMode.Deferred && m_DeferredLights.UseRenderingLayers))
             {
                 ref var renderingLayersTexture = ref m_DecalLayersTexture;
                 string renderingLayersTextureName = "_CameraRenderingLayersTexture";

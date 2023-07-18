@@ -751,7 +751,7 @@ namespace ShaderStrippingAndPrefiltering
             rendererRequirements.renderingMode = RenderingMode.Deferred;
             rendererRequirements.needsUnusedVariants = false;
             actual = helper.GetSupportedShaderFeaturesFromRendererFeatures(rendererRequirements);
-            expected = ShaderFeatures.DecalLayers | ShaderFeatures.DepthNormalPassRenderingLayers | ShaderFeatures.DBufferMRT3;
+            expected = ShaderFeatures.DecalLayers | ShaderFeatures.DepthNormalPassRenderingLayers | ShaderFeatures.GBufferWriteRenderingLayers | ShaderFeatures.DBufferMRT3;
             helper.AssertShaderFeaturesAndReset(expected, actual);
 
             // Screenspace
@@ -777,7 +777,7 @@ namespace ShaderStrippingAndPrefiltering
             rendererRequirements.renderingMode = RenderingMode.Deferred;
             rendererRequirements.needsUnusedVariants = false;
             actual = helper.GetSupportedShaderFeaturesFromRendererFeatures(rendererRequirements);
-            expected = ShaderFeatures.DecalGBuffer | ShaderFeatures.DecalNormalBlendLow | ShaderFeatures.DecalLayers | ShaderFeatures.GBufferWriteRenderingLayers;
+            expected = ShaderFeatures.DecalGBuffer | ShaderFeatures.DecalNormalBlendLow | ShaderFeatures.DecalLayers | ShaderFeatures.DepthNormalPassRenderingLayers | ShaderFeatures.GBufferWriteRenderingLayers;
             helper.AssertShaderFeaturesAndReset(expected, actual);
 
             // Clean up

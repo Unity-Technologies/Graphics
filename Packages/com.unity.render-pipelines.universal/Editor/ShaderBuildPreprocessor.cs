@@ -403,7 +403,7 @@ namespace UnityEditor.Rendering.Universal
 
             if (urpAsset.shEvalMode == ShEvalMode.Auto)
                 urpAssetShaderFeatures |= ShaderFeatures.AutoSHMode;
-            
+
             if (urpAsset.supportDataDrivenLensFlare)
                 urpAssetShaderFeatures |= ShaderFeatures.DataDrivenLensFlare;
 
@@ -703,6 +703,13 @@ namespace UnityEditor.Rendering.Universal
                     shaderFeatures |= ShaderFeatures.OpaqueWriteRenderingLayers;
                     shaderFeatures |= ShaderFeatures.DepthNormalPassRenderingLayers;
                 }
+                else if (isDeferredRenderer)
+                {
+                    // Rendering layers in both Depth Normal and GBuffer passes are needed
+                    // as some object might be rendered in forward and others in deferred.
+                    shaderFeatures |= ShaderFeatures.DepthNormalPassRenderingLayers;
+                    shaderFeatures |= ShaderFeatures.GBufferWriteRenderingLayers;
+                }
                 else
                 {
                     // Check if other passes need the keyword
@@ -713,10 +720,7 @@ namespace UnityEditor.Rendering.Universal
                             break;
 
                         case RenderingLayerUtils.Event.Opaque:
-                            if (isDeferredRenderer)
-                                shaderFeatures |= ShaderFeatures.GBufferWriteRenderingLayers;
-                            else
-                                shaderFeatures |= ShaderFeatures.OpaqueWriteRenderingLayers;
+                            shaderFeatures |= ShaderFeatures.OpaqueWriteRenderingLayers;
                             break;
 
                         default:
@@ -875,6 +879,17 @@ namespace UnityEditor.Rendering.Universal
 
             // Screen Space Ambient Occlusion
             spd.screenSpaceOcclusionPrefilteringMode = PrefilteringMode.Remove;
+            if (IsFeatureEnabled(shaderFeatures, ShaderFeatures.ScreenSpaceOcclusion))
+            {
+                // Remove the SSAO's OFF variant if Global Settings allow it and every renderer uses it.
+                if (stripUnusedVariants && everyRendererHasSSAO)
+                    spd.screenSpaceOcclusionPrefilteringMode = PrefilteringMode.SelectOnly;
+                // Otherwise we keep both
+                else
+                    spd.screenSpaceOcclusionPrefilteringMode = PrefilteringMode.Select;
+            }
+
+            // SSAO shader keywords
             spd.stripSSAODepthNormals      = true;
             spd.stripSSAOSourceDepthLow    = true;
             spd.stripSSAOSourceDepthMedium = true;
@@ -884,29 +899,19 @@ namespace UnityEditor.Rendering.Universal
             spd.stripSSAOSampleCountLow    = true;
             spd.stripSSAOSampleCountMedium = true;
             spd.stripSSAOSampleCountHigh   = true;
-            if (IsFeatureEnabled(shaderFeatures, ShaderFeatures.ScreenSpaceOcclusion))
+            for (int i = 0; i < ssaoRendererFeatures.Count; i++)
             {
-                // Remove the SSAO's OFF variant if Global Settings allow it and every renderer uses it.
-                if (stripUnusedVariants && everyRendererHasSSAO)
-                    spd.screenSpaceOcclusionPrefilteringMode = PrefilteringMode.SelectOnly;
-                // Otherwise we keep both
-                else
-                    spd.screenSpaceOcclusionPrefilteringMode = PrefilteringMode.Select;
-
-                for (int i = 0; i < ssaoRendererFeatures.Count; i++)
-                {
-                    ScreenSpaceAmbientOcclusionSettings ssaoSettings = ssaoRendererFeatures[i];
-                    bool isUsingDepthNormals = ssaoSettings.Source == ScreenSpaceAmbientOcclusionSettings.DepthSource.DepthNormals;
-                    spd.stripSSAODepthNormals      &= !isUsingDepthNormals;
-                    spd.stripSSAOSourceDepthLow    &= isUsingDepthNormals || ssaoSettings.NormalSamples != ScreenSpaceAmbientOcclusionSettings.NormalQuality.Low;
-                    spd.stripSSAOSourceDepthMedium &= isUsingDepthNormals || ssaoSettings.NormalSamples != ScreenSpaceAmbientOcclusionSettings.NormalQuality.Medium;
-                    spd.stripSSAOSourceDepthHigh   &= isUsingDepthNormals || ssaoSettings.NormalSamples != ScreenSpaceAmbientOcclusionSettings.NormalQuality.High;
-                    spd.stripSSAOBlueNoise         &= ssaoSettings.AOMethod != ScreenSpaceAmbientOcclusionSettings.AOMethodOptions.BlueNoise;
-                    spd.stripSSAOInterleaved       &= ssaoSettings.AOMethod != ScreenSpaceAmbientOcclusionSettings.AOMethodOptions.InterleavedGradient;
-                    spd.stripSSAOSampleCountLow    &= ssaoSettings.Samples != ScreenSpaceAmbientOcclusionSettings.AOSampleOption.Low;
-                    spd.stripSSAOSampleCountMedium &= ssaoSettings.Samples != ScreenSpaceAmbientOcclusionSettings.AOSampleOption.Medium;
-                    spd.stripSSAOSampleCountHigh   &= ssaoSettings.Samples != ScreenSpaceAmbientOcclusionSettings.AOSampleOption.High;
-                }
+                ScreenSpaceAmbientOcclusionSettings ssaoSettings = ssaoRendererFeatures[i];
+                bool isUsingDepthNormals = ssaoSettings.Source == ScreenSpaceAmbientOcclusionSettings.DepthSource.DepthNormals;
+                spd.stripSSAODepthNormals      &= !isUsingDepthNormals;
+                spd.stripSSAOSourceDepthLow    &= isUsingDepthNormals || ssaoSettings.NormalSamples != ScreenSpaceAmbientOcclusionSettings.NormalQuality.Low;
+                spd.stripSSAOSourceDepthMedium &= isUsingDepthNormals || ssaoSettings.NormalSamples != ScreenSpaceAmbientOcclusionSettings.NormalQuality.Medium;
+                spd.stripSSAOSourceDepthHigh   &= isUsingDepthNormals || ssaoSettings.NormalSamples != ScreenSpaceAmbientOcclusionSettings.NormalQuality.High;
+                spd.stripSSAOBlueNoise         &= ssaoSettings.AOMethod != ScreenSpaceAmbientOcclusionSettings.AOMethodOptions.BlueNoise;
+                spd.stripSSAOInterleaved       &= ssaoSettings.AOMethod != ScreenSpaceAmbientOcclusionSettings.AOMethodOptions.InterleavedGradient;
+                spd.stripSSAOSampleCountLow    &= ssaoSettings.Samples != ScreenSpaceAmbientOcclusionSettings.AOSampleOption.Low;
+                spd.stripSSAOSampleCountMedium &= ssaoSettings.Samples != ScreenSpaceAmbientOcclusionSettings.AOSampleOption.Medium;
+                spd.stripSSAOSampleCountHigh   &= ssaoSettings.Samples != ScreenSpaceAmbientOcclusionSettings.AOSampleOption.High;
             }
 
             return spd;
