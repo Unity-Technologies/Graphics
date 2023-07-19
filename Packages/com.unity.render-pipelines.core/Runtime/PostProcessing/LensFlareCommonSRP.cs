@@ -691,6 +691,7 @@ namespace UnityEngine.Rendering
                 if (!comp.enabled ||
                     !comp.gameObject.activeSelf ||
                     !comp.gameObject.activeInHierarchy ||
+                    (cam.cullingMask & (1 << comp.gameObject.layer)) == 0 ||
                     data == null ||
                     data.elements == null ||
                     data.elements.Length == 0 ||
