@@ -18,7 +18,6 @@ namespace UnityEngine.Rendering.Universal
         PassDataDebugView m_PassDataDebugView;
         RTHandle m_CIExyTarget;     // xyBuffer;
         RTHandle m_PassthroughRT;
-        RTHandle m_CameraTargetHandle;
         Material m_material;
 
         /// <summary>
@@ -143,7 +142,6 @@ namespace UnityEngine.Rendering.Universal
         {
             m_CIExyTarget?.Release();
             m_PassthroughRT?.Release();
-            m_CameraTargetHandle?.Release();
         }
 
         /// <summary>
@@ -174,19 +172,16 @@ namespace UnityEngine.Rendering.Universal
             var sourceTexture = renderingData.cameraData.renderer.cameraColorTargetHandle;
 
             var cameraTarget = RenderingUtils.GetCameraTargetIdentifier(ref renderingData);
-            // Create RTHandle alias to use RTHandle apis
-            if (m_CameraTargetHandle != cameraTarget)
-            {
-                m_CameraTargetHandle?.Release();
-                m_CameraTargetHandle = RTHandles.Alloc(cameraTarget);
-            }
+            // Get RTHandle alias to use RTHandle apis
+            RTHandleStaticHelpers.SetRTHandleStaticWrapper(cameraTarget);
+            var cameraTargetHandle = RTHandleStaticHelpers.s_RTHandleWrapper;
 
             m_material.enabledKeywords = null;
             GetActiveDebugHandler(ref renderingData)?.UpdateShaderGlobalPropertiesForFinalValidationPass(cmd, ref renderingData.cameraData, true);
 
             CoreUtils.SetRenderTarget(cmd, m_CIExyTarget, ClearFlag.Color, Color.clear);
 
-            ExecutePass(m_PassDataCIExy, m_PassDataDebugView, sourceTexture, m_CIExyTarget, m_CameraTargetHandle);
+            ExecutePass(m_PassDataCIExy, m_PassDataDebugView, sourceTexture, m_CIExyTarget, cameraTargetHandle);
         }
 
         //RenderGraph path

@@ -773,16 +773,22 @@ namespace UnityEngine.Rendering.Universal
                     targetId = cameraData.xr.renderTarget;
 #endif
 
-                if (m_TargetColorHandle == null || m_TargetColorHandle.nameID != targetId)
+                if (m_TargetColorHandle == null)
                 {
-                    m_TargetColorHandle?.Release();
                     m_TargetColorHandle = RTHandles.Alloc(targetId);
                 }
-
-                if (m_TargetDepthHandle == null || m_TargetDepthHandle.nameID != targetId)
+                else if (m_TargetColorHandle.nameID != targetId)
                 {
-                    m_TargetDepthHandle?.Release();
+                    RTHandleStaticHelpers.SetRTHandleUserManagedWrapper(ref m_TargetColorHandle, targetId);
+                }
+
+                if (m_TargetDepthHandle == null)
+                {
                     m_TargetDepthHandle = RTHandles.Alloc(targetId);
+                }
+                else if (m_TargetDepthHandle.nameID != targetId)
+                {
+                    RTHandleStaticHelpers.SetRTHandleUserManagedWrapper(ref m_TargetDepthHandle, targetId);
                 }
 
                 // Doesn't create texture for Overlay cameras as they are already overlaying on top of created textures.

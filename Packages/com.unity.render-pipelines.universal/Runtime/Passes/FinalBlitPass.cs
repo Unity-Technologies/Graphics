@@ -14,7 +14,6 @@ namespace UnityEngine.Rendering.Universal.Internal
     public class FinalBlitPass : ScriptableRenderPass
     {
         RTHandle m_Source;
-        RTHandle m_CameraTargetHandle;
         private PassData m_PassData;
         
         // Use specialed URP fragment shader pass for debug draw support and color space conversion/encoding support.
@@ -71,7 +70,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// </summary>
         public void Dispose()
         {
-            m_CameraTargetHandle?.Release();
+
         }
 
         /// <summary>
@@ -120,15 +119,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             DebugHandler debugHandler = GetActiveDebugHandler(ref renderingData);
             bool resolveToDebugScreen = debugHandler != null && debugHandler.WriteToDebugScreenTexture(ref cameraData);
 
-            if (!resolveToDebugScreen)
-            {
-                // Create RTHandle alias to use RTHandle apis
-                if (m_CameraTargetHandle != cameraTarget)
-                {
-                    m_CameraTargetHandle?.Release();
-                    m_CameraTargetHandle = RTHandles.Alloc(cameraTarget);
-                }
-            }
+            // Get RTHandle alias to use RTHandle apis
+            RTHandleStaticHelpers.SetRTHandleStaticWrapper(cameraTarget);
+            var cameraTargetHandle = RTHandleStaticHelpers.s_RTHandleWrapper;
 
             var cmd = renderingData.commandBuffer;
 
@@ -179,7 +172,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget,
                         RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, // color
                         RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare); // depth
-                    cmd.Blit(m_Source.nameID, m_CameraTargetHandle.nameID);
+                    cmd.Blit(m_Source.nameID, cameraTargetHandle.nameID);
                 }
                 else
                 {
@@ -194,9 +187,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                         loadAction = RenderBufferLoadAction.Load;
 #endif
 
-                    CoreUtils.SetRenderTarget(renderingData.commandBuffer, m_CameraTargetHandle, loadAction, RenderBufferStoreAction.Store, ClearFlag.None, Color.clear);
-                    FinalBlitPass.ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), m_PassData, m_Source, m_CameraTargetHandle, ref renderingData);
-                    cameraData.renderer.ConfigureCameraTarget(m_CameraTargetHandle, m_CameraTargetHandle);
+                    CoreUtils.SetRenderTarget(renderingData.commandBuffer, cameraTargetHandle, loadAction, RenderBufferStoreAction.Store, ClearFlag.None, Color.clear);
+                    FinalBlitPass.ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), m_PassData, m_Source, cameraTargetHandle, ref renderingData);
+                    cameraData.renderer.ConfigureCameraTarget(cameraTargetHandle, cameraTargetHandle);
                 }
             }
         }

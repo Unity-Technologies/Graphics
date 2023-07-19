@@ -369,16 +369,22 @@ namespace UnityEngine.Rendering.Universal
             }
 #endif
 
-            if (m_TargetColorHandle == null || m_TargetColorHandle.nameID != targetColorId)
+            if (m_TargetColorHandle == null)
             {
-                m_TargetColorHandle?.Release();
                 m_TargetColorHandle = RTHandles.Alloc(targetColorId, "Backbuffer color");
             }
-
-            if (m_TargetDepthHandle == null || m_TargetDepthHandle.nameID != targetDepthId)
+            else if(m_TargetColorHandle.nameID != targetColorId)
             {
-                m_TargetDepthHandle?.Release();
+                RTHandleStaticHelpers.SetRTHandleUserManagedWrapper(ref m_TargetColorHandle, targetColorId);
+            }
+
+            if (m_TargetDepthHandle == null)
+            {
                 m_TargetDepthHandle = RTHandles.Alloc(targetDepthId, "Backbuffer depth");
+            }
+            else if (m_TargetDepthHandle.nameID != targetDepthId)
+            {
+                RTHandleStaticHelpers.SetRTHandleUserManagedWrapper(ref m_TargetDepthHandle, targetDepthId);
             }
 
             RenderPassInputSummary renderPassInputs = GetRenderPassInputs(ref renderingData);
