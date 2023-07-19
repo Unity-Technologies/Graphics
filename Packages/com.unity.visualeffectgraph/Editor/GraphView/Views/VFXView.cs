@@ -867,13 +867,15 @@ namespace UnityEditor.VFX.UI
 
         public bool TryAttachTo(VisualEffect visualEffect, bool showNotification)
         {
-            if (m_Controller == null || visualEffect == null)
+            if (m_Controller == null || m_Controller.graph == null || visualEffect == null)
             {
                 return false;
             }
 
             bool attached = false;
-            if (visualEffect != null && controller?.graph.visualEffectResource.asset == visualEffect.visualEffectAsset)
+
+            VisualEffectAsset controllerAsset = controller.graph.visualEffectResource.asset;
+            if (controllerAsset != null && controllerAsset == visualEffect.visualEffectAsset)
             {
                 attached = m_ComponentBoard.Attach(visualEffect);
             }
@@ -1090,6 +1092,7 @@ namespace UnityEditor.VFX.UI
             if (change == VFXViewController.Change.destroy)
             {
                 m_Blackboard.controller = null;
+                m_ComponentBoard.controller = null;
                 controller = null;
                 return;
             }

@@ -156,6 +156,7 @@ namespace UnityEditor.VFX.Operator
             Block.CameraMatricesExpressions camMatrices = Block.CameraHelper.GetMatricesExpressions(expressions, VFXSpace.World, VFXSpace.World);
 
             var Camera_depthBuffer = expressions.First(e => e.name == "Camera_depthBuffer").exp;
+            var ScaledCamPixDim = expressions.First(e => e.name == "Camera_scaledPixelDimensions").exp;
             var CamPixDim = expressions.First(e => e.name == "Camera_pixelDimensions").exp;
 
             // Set uvs
@@ -197,7 +198,7 @@ namespace UnityEditor.VFX.Operator
             }
 
             VFXExpression projpos = uv * VFXValue.Constant<Vector2>(new Vector2(2f, 2f)) - VFXValue.Constant<Vector2>(Vector2.one);
-            VFXExpression uvs = new VFXExpressionCombine(uv.x * CamPixDim.x, uv.y * CamPixDim.y);
+            VFXExpression uvs = new VFXExpressionCombine(uv.x * ScaledCamPixDim.x, uv.y * ScaledCamPixDim.y);
 
             // Get depth
             VFXExpression depth = new VFXExpressionExtractComponent(new VFXExpressionLoadCameraBuffer(Camera_depthBuffer, uvs), 0);

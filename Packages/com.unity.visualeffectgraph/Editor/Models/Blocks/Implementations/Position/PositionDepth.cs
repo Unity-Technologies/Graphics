@@ -192,7 +192,7 @@ float2 uvs = UVSpawn;
 
                 source += @"
 float2 projpos = uvs * 2.0f - 1.0f;
-float depth = LOAD_TEXTURE2D_X(Camera_depthBuffer.t, uvs*Camera_pixelDimensions).r;
+float depth = LOAD_TEXTURE2D_X(Camera_depthBuffer.t, uvs*Camera_scaledPixelDimensions).r;
 #if UNITY_REVERSED_Z
 depth = 1.0f - depth; // reversed z
 #endif";
@@ -226,7 +226,7 @@ float4 vfxPos = mul(ClipToVFX,clipPos);
                 if (inheritSceneColor)
                 {
                     source += "\n";
-                    source += VFXBlockUtility.GetComposeString(compositionColor, "color", " LOAD_TEXTURE2D_X(Camera_colorBuffer.t, uvs*Camera_pixelDimensions).rgb", "blendColor");
+                    source += VFXBlockUtility.GetComposeString(compositionColor, "color", " LOAD_TEXTURE2D_X(Camera_colorBuffer.t, uvs*Camera_scaledPixelDimensions).rgb", "blendColor");
                 }
 
                 return source;
