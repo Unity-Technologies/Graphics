@@ -735,11 +735,13 @@ namespace UnityEngine.Rendering
                 }
             }
         }
+ 
+        internal delegate void CellConvolutionDelegate(ProbeReferenceVolume.Cell cell);
 
         // Can definitively be optimized later on.
         // Also note that all the bookkeeping of all the reference volumes will likely need to change when we move to
         // proper UX.
-        internal static void PerformDilation()
+        internal static void PerformPerCellConvolution(CellConvolutionDelegate ConvolveCell, int numIterations)
         {
             var perSceneDataList = ProbeReferenceVolume.instance.perSceneDataList;
             if (perSceneDataList.Count == 0) return;
@@ -750,95 +752,102 @@ namespace UnityEngine.Rendering
 
             SetBakingContext(perSceneDataList);
 
-            var dilationSettings = m_BakingSet.settings.dilationSettings;
+            // Make sure all assets are loaded.
+            prv.PerformPendingOperations();
 
-            if (dilationSettings.enableDilation && dilationSettings.dilationDistance > 0.0f)
+            // TODO: This loop is very naive, can be optimized, but let's first verify if we indeed want this or not.
+            for (int iterations = 0; iterations < numIterations; ++iterations)
             {
-                // Make sure all assets are loaded.
-                prv.PerformPendingOperations();
+                // Try to load all available cells to the GPU. Might not succeed depending on the memory budget.
+                prv.LoadAllCells();
 
-                // TODO: This loop is very naive, can be optimized, but let's first verify if we indeed want this or not.
-                for (int iterations = 0; iterations < dilationSettings.dilationIterations; ++iterations)
+                // Dilate all cells
+                List<ProbeReferenceVolume.Cell> convolvedCells = new List<ProbeReferenceVolume.Cell>(prv.cells.Values.Count);
+                bool everythingLoaded = !prv.hasUnloadedCells;
+
+                if (everythingLoaded)
                 {
-                    // Try to load all available cells to the GPU. Might not succeed depending on the memory budget.
-                    prv.LoadAllCells();
-
-                    // Dilate all cells
-                    List<ProbeReferenceVolume.Cell> dilatedCells = new List<ProbeReferenceVolume.Cell>(prv.cells.Values.Count);
-                    bool everythingLoaded = !prv.hasUnloadedCells;
-
-                    if (everythingLoaded)
+                    foreach (var cell in prv.cells.Values)
                     {
-                        foreach (var cell in prv.cells.Values)
+                        if (m_CellsToDilate.ContainsKey(cell.desc.index))
                         {
-                            if (m_CellsToDilate.ContainsKey(cell.desc.index))
-                            {
-                                PerformDilation(cell, dilationSettings);
-                                dilatedCells.Add(cell);
-                            }
+                            ConvolveCell(cell);
+                            convolvedCells.Add(cell);
                         }
                     }
-                    else
+                }
+                else
+                {
+                    // When everything does not fit in memory, we are going to dilate one cell at a time.
+                    // To do so, we load the cell and all its neighbours and then dilate.
+                    // This is an inefficient use of memory but for now most of the time is spent in reading back the result anyway so it does not introduce any performance regression.
+
+                    // Free All memory to make room for each cell and its neighbors for dilation.
+                    prv.UnloadAllCells();
+
+                    foreach (var cell in prv.cells.Values)
                     {
-                        // When everything does not fit in memory, we are going to dilate one cell at a time.
-                        // To do so, we load the cell and all its neighbours and then dilate.
-                        // This is an inefficient use of memory but for now most of the time is spent in reading back the result anyway so it does not introduce any performance regression.
+                        tempLoadedCells.Clear();
 
-                        // Free All memory to make room for each cell and its neighbors for dilation.
-                        prv.UnloadAllCells();
-
-                        foreach (var cell in prv.cells.Values)
-                        {
-                            tempLoadedCells.Clear();
-
-                            var cellPos = cell.desc.position;
-                            // Load the cell and all its neighbors before doing dilation.
-                            for (int x = -1; x <= 1; ++x)
-                                for (int y = -1; y <= 1; ++y)
-                                    for (int z = -1; z <= 1; ++z)
+                        var cellPos = cell.desc.position;
+                        // Load the cell and all its neighbors before doing dilation.
+                        for (int x = -1; x <= 1; ++x)
+                            for (int y = -1; y <= 1; ++y)
+                                for (int z = -1; z <= 1; ++z)
+                                {
+                                    Vector3Int pos = cellPos + new Vector3Int(x, y, z);
+                                    if (m_CellPosToIndex.TryGetValue(pos, out var cellToLoadIndex))
                                     {
-                                        Vector3Int pos = cellPos + new Vector3Int(x, y, z);
-                                        if (m_CellPosToIndex.TryGetValue(pos, out var cellToLoadIndex))
+                                        if (prv.cells.TryGetValue(cellToLoadIndex, out var cellToLoad))
                                         {
-                                            if (prv.cells.TryGetValue(cellToLoadIndex, out var cellToLoad))
+                                            if (prv.LoadCell(cellToLoad))
                                             {
-                                                if (prv.LoadCell(cellToLoad))
-                                                {
-                                                    tempLoadedCells.Add(cellToLoad);
-                                                }
-                                                else
-                                                    Debug.LogError($"Not enough memory to perform dilation for cell {cell.desc.index}");
+                                                tempLoadedCells.Add(cellToLoad);
                                             }
+                                            else
+                                                Debug.LogError($"Not enough memory to perform convolution for cell {cell.desc.index}");
                                         }
                                     }
+                                }
 
-                            if (m_CellsToDilate.ContainsKey(cell.desc.index))
-                            {
-                                PerformDilation(cell, dilationSettings);
-                                dilatedCells.Add(cell);
-                            }
-
-                            // Free memory again.
-                            foreach (var cellToUnload in tempLoadedCells)
-                                prv.UnloadCell(cellToUnload);
+                        if (m_CellsToDilate.ContainsKey(cell.desc.index))
+                        {
+                            ConvolveCell(cell);
+                            convolvedCells.Add(cell);
                         }
+
+                        // Free memory again.
+                        foreach (var cellToUnload in tempLoadedCells)
+                            prv.UnloadCell(cellToUnload);
                     }
-
-
-                    // Now write back the assets.
-                    WriteDilatedCells(dilatedCells);
-
-                    AssetDatabase.SaveAssets();
-                    AssetDatabase.Refresh();
-
-                    // Reload data
-                    foreach (var sceneData in perSceneDataList)
-                    {
-                        sceneData.QueueSceneRemoval();
-                        sceneData.QueueSceneLoading();
-                    }
-                    prv.PerformPendingOperations();
                 }
+
+                // Now write back the assets.
+                WriteDilatedCells(convolvedCells);
+
+                AssetDatabase.SaveAssets();
+                AssetDatabase.Refresh();
+
+                // Reload data
+                foreach (var sceneData in perSceneDataList)
+                {
+                    sceneData.QueueSceneRemoval();
+                    sceneData.QueueSceneLoading();
+                }
+                prv.PerformPendingOperations();
+            }
+        }
+
+        internal static void PerformDilation()
+        {
+            var dilationSettings = m_BakingSet.settings.dilationSettings;
+            if (dilationSettings.enableDilation && dilationSettings.dilationDistance > 0.0f)
+            {
+                CellConvolutionDelegate dilateLambda = cell => 
+                {
+                    PerformDilation(cell, dilationSettings);
+                };
+                PerformPerCellConvolution(dilateLambda, dilationSettings.dilationIterations);
             }
         }
 
