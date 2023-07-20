@@ -52,9 +52,7 @@ void CSMain(uint3 groupId          : SV_GroupID,
 {
 	uint id = GetThreadId(groupId, groupThreadId, dispatchWidth);
 
-	uint index = GetThreadId(groupId, 0, dispatchWidth);
-	${VFXInitInstancing}
-	index += groupThreadId.x;
+	${VFXInitInstancingCompute}
 
 	ContextData contextData = instancingContextData[instanceActiveIndex];
 	uint systemSeed = contextData.systemSeed;

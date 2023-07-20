@@ -955,10 +955,14 @@ namespace UnityEditor.VFX
             var bufferMappings = new List<VFXMapping>();
             var uniformMappings = new List<VFXMapping>();
             var additionalParameters = new List<VFXMapping>();
+            var instanceSplitDescs = new List<VFXInstanceSplitDesc>();
+
+            AddInstanceSplitDesc(instanceSplitDescs, new List<uint>());
 
             for (int i = 0; i < m_Contexts.Count; ++i)
             {
                 var temporaryBufferMappings = new List<VFXMappingTemporary>();
+                var instanceSplitDescValues = new List<uint>();
 
                 var context = m_Contexts[i];
                 if (!contextToCompiledData.TryGetValue(context, out var contextData))
@@ -1034,7 +1038,9 @@ namespace UnityEditor.VFX
 
                 if (hasInstancing)
                 {
-                    if (instancesPrefixSumBufferIndex != -1 && (context.contextType == VFXContextType.Init || context.contextType == VFXContextType.Output))
+                    bool needsInstancePrefixSum = context.contextType == VFXContextType.Init;
+                    needsInstancePrefixSum |= !hasKill && (context.contextType == VFXContextType.Update || context.contextType == VFXContextType.Filter);
+                    if (instancesPrefixSumBufferIndex != -1 && needsInstancePrefixSum)
                         bufferMappings.Add(new VFXMapping("instancingPrefixSum", instancesPrefixSumBufferIndex));
 
                     switch (context.contextType)
@@ -1110,12 +1116,25 @@ namespace UnityEditor.VFX
                 uniformMappings.Clear();
 
                 foreach (var buffer in contextData.uniformMapper.buffers)
-                    uniformMappings.Add(new VFXMapping(contextData.uniformMapper.GetName(buffer), expressionGraph.GetFlattenedIndex(buffer)));
+                {
+                    int index = expressionGraph.GetFlattenedIndex(buffer);
+                    if (!buffer.IsAny(VFXExpression.Flags.Constant | VFXExpression.Flags.Foldable))
+                    {
+                        instanceSplitDescValues.Add((uint)index);
+                    }
+                    var name = contextData.uniformMapper.GetName(buffer);
+                    uniformMappings.Add(new VFXMapping(name, index));
+                }
                 foreach (var texture in contextData.uniformMapper.textures)
                 {
+                    int index = expressionGraph.GetFlattenedIndex(texture);
+                    if (!texture.IsAny(VFXExpression.Flags.Constant | VFXExpression.Flags.Foldable))
+                    {
+                        instanceSplitDescValues.Add((uint)index);
+                    }
                     // TODO At the moment issue all names sharing the same texture as different texture slots. This is not optimized as it required more texture binding than necessary
                     foreach (var name in contextData.uniformMapper.GetNames(texture))
-                        uniformMappings.Add(new VFXMapping(name, expressionGraph.GetFlattenedIndex(texture)));
+                        uniformMappings.Add(new VFXMapping(name, index));
                 }
 
                 // Retrieve all cpu mappings at context level (-1)
@@ -1133,9 +1152,10 @@ namespace UnityEditor.VFX
 
                 taskDesc.buffers = bufferMappings.ToArray();
                 taskDesc.temporaryBuffers = temporaryBufferMappings.ToArray();
-                taskDesc.values = uniformMappings.ToArray();
+                taskDesc.values = uniformMappings.OrderBy(mapping => mapping.index).ToArray();
                 taskDesc.parameters = cpuMappings.Concat(contextData.parameters).Concat(additionalParameters).ToArray();
                 taskDesc.shaderSourceIndex = contextToCompiledData[context].indexInShaderSource;
+                taskDesc.instanceSplitIndex = AddInstanceSplitDesc(instanceSplitDescs, instanceSplitDescValues);
                 taskDesc.model = context;
 
                 if (context is IVFXMultiMeshOutput) // If the context is a multi mesh output, split and patch task desc into several tasks
@@ -1201,6 +1221,7 @@ namespace UnityEditor.VFX
                 name = nativeName,
                 buffers = systemBufferMappings.ToArray(),
                 values = systemValueMappings.ToArray(),
+                instanceSplitDescs = instanceSplitDescs.ToArray(),
                 type = VFXSystemType.Particle,
                 layer = m_Layer
             });
@@ -1249,6 +1270,30 @@ namespace UnityEditor.VFX
             systemBufferMappings.Add(new VFXMapping("spawnCountPrefixSum", spawnCountPrefixSumBufferIndex));
         }
 
+
+        private static uint AddInstanceSplitDesc(List<VFXInstanceSplitDesc> instanceSplitDescs, List<uint> instanceSplitDescValues)
+        {
+            int index = -1;
+
+            instanceSplitDescValues.Sort();
+
+            for (int i = 0; i < instanceSplitDescs.Count; ++i)
+            {
+                if (instanceSplitDescValues.SequenceEqual(instanceSplitDescs[i].values))
+                {
+                    index = i;
+                    break;
+                }
+            }
+            if (index < 0)
+            {
+                index = instanceSplitDescs.Count;
+                var newEntry = new VFXInstanceSplitDesc();
+                newEntry.values = instanceSplitDescValues.ToArray();
+                instanceSplitDescs.Add(newEntry);
+            }
+            return (uint)index;
+        }
 
         public override void Sanitize(int version)
         {
