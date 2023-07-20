@@ -145,6 +145,24 @@ namespace UnityEngine.Rendering.Universal
             return new Renderer2D(this);
         }
 
+        internal void Dispose()
+        {
+            for (var i = 0; i < m_LightBlendStyles.Length; ++i)
+                m_LightBlendStyles[i].renderTargetHandle?.Release();
+
+            foreach(var mat in lightMaterials)
+                CoreUtils.Destroy(mat.Value);
+
+            lightMaterials.Clear();
+
+            CoreUtils.Destroy(spriteSelfShadowMaterial);
+            CoreUtils.Destroy(spriteUnshadowMaterial);
+            CoreUtils.Destroy(geometrySelfShadowMaterial);
+            CoreUtils.Destroy(geometryUnshadowMaterial);
+            CoreUtils.Destroy(projectedShadowMaterial);
+            CoreUtils.Destroy(projectedUnshadowMaterial);
+        }
+
         /// <summary>
         /// OnEnable implementation.
         /// </summary>

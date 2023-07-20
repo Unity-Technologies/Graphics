@@ -130,20 +130,17 @@ namespace UnityEngine.Rendering.Universal
             // now create the attachments
             if (cameraData.renderType == CameraRenderType.Base) // require intermediate textures
             {
-                m_CreateColorTexture = forceCreateColorTexture
-                  || cameraData.postProcessEnabled
-                  || cameraData.isHdrEnabled
-                  || cameraData.isSceneViewCamera
-                  || !cameraData.isDefaultViewport
-                  || cameraData.requireSrgbConversion
-                  || !cameraData.resolveFinalTarget
-                  || m_Renderer2DData.useCameraSortingLayerTexture
-                  || !Mathf.Approximately(cameraData.renderScale, 1.0f);
+                RenderPassInputSummary renderPassInputs = GetRenderPassInputs(ref renderingData, ref cameraData);
+                m_CreateColorTexture = renderPassInputs.requiresColorTexture;
+                m_CreateDepthTexture = renderPassInputs.requiresDepthTexture;
 
-                m_CreateDepthTexture = (!cameraData.resolveFinalTarget && m_UseDepthStencilBuffer) || createColorTexture;
+                m_CreateColorTexture |= forceCreateColorTexture;
+
+                // RTHandles do not support combining color and depth in the same texture so we create them separately
+                m_CreateDepthTexture |= createColorTexture;
 
                 // Camera Target Color
-                if (m_CreateColorTexture)
+                if (createColorTexture)
                 {
                     cameraTargetDescriptor.useMipMap = false;
                     cameraTargetDescriptor.autoGenerateMips = false;
@@ -153,7 +150,7 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 // Camera Target Depth
-                if (m_CreateDepthTexture)
+                if (createDepthTexture)
                 {
                     var depthDescriptor = cameraData.cameraTargetDescriptor;
                     depthDescriptor.useMipMap = false;
@@ -228,23 +225,23 @@ namespace UnityEngine.Rendering.Universal
                 ref var layerBatch = ref layerBatches[i];
 
                 // Normal Pass
-                m_NormalPass.Render(renderGraph, ref renderingData, ref layerBatch, m_Attachments.normalTexture, m_Attachments.intermediateDepth);
+                m_NormalPass.Render(renderGraph, ref renderingData, m_Renderer2DData, ref layerBatch, m_Attachments.normalTexture, m_Attachments.intermediateDepth);
 
                 // TODO: replace with clear mrt in light pass
                 // Clear Light Textures
-                ClearLightTextures(renderGraph, ref m_Renderer2DData, ref layerBatch);
+                ClearLightTextures(renderGraph, m_Renderer2DData, ref layerBatch);
 
                 // Light Pass
-                m_LightPass.Render(renderGraph, ref renderingData, ref m_Renderer2DData, ref layerBatch, m_Attachments.lightTextures, m_Attachments.normalTexture, m_Attachments.intermediateDepth);
+                m_LightPass.Render(renderGraph, ref renderingData, m_Renderer2DData, ref layerBatch, m_Attachments.lightTextures, m_Attachments.normalTexture, m_Attachments.intermediateDepth);
 
                 // Clear camera targets
                 if (i == 0 && clearFlags != RTClearFlags.None)
                     ClearTargets2DPass.Render(renderGraph, m_Attachments.colorAttachment, m_Attachments.depthAttachment, clearFlags, renderingData.cameraData.backgroundColor);
 
-                LayerUtility.GetFilterSettings(ref m_Renderer2DData, ref layerBatch, cameraSortingLayerBoundsIndex, out var filterSettings);
+                LayerUtility.GetFilterSettings(m_Renderer2DData, ref layerBatch, cameraSortingLayerBoundsIndex, out var filterSettings);
 
                 // Default Render Pass
-                m_RendererPass.Render(renderGraph, ref renderingData, ref m_Renderer2DData, ref layerBatch, ref filterSettings, m_Attachments.colorAttachment, m_Attachments.depthAttachment, m_Attachments.lightTextures);
+                m_RendererPass.Render(renderGraph, ref renderingData, m_Renderer2DData, ref layerBatch, ref filterSettings, m_Attachments.colorAttachment, m_Attachments.depthAttachment, m_Attachments.lightTextures);
 
                 // Camera Sorting Layer Pass
                 if (m_Renderer2DData.useCameraSortingLayerTexture)
@@ -255,7 +252,7 @@ namespace UnityEngine.Rendering.Universal
                         m_CopyCameraSortingLayerPass.Render(renderGraph, ref renderingData, m_Attachments.colorAttachment, m_Attachments.cameraSortingLayerTexture);
 
                         filterSettings.sortingLayerRange = new SortingLayerRange((short)(cameraSortingLayerBoundsIndex + 1), layerBatch.layerRange.upperBound);
-                        m_RendererPass.Render(renderGraph, ref renderingData, ref m_Renderer2DData, ref layerBatch, ref filterSettings, m_Attachments.colorAttachment, m_Attachments.depthAttachment, m_Attachments.lightTextures);
+                        m_RendererPass.Render(renderGraph, ref renderingData, m_Renderer2DData, ref layerBatch, ref filterSettings, m_Attachments.colorAttachment, m_Attachments.depthAttachment, m_Attachments.lightTextures);
                     }
                     else if (cameraSortingLayerBoundsIndex == layerBatch.layerRange.upperBound)
                     {
@@ -264,7 +261,7 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 // Light Volume Pass
-                m_LightPass.Render(renderGraph, ref renderingData, ref m_Renderer2DData, ref layerBatch, m_Attachments.colorAttachment, m_Attachments.normalTexture, m_Attachments.depthAttachment, true);
+                m_LightPass.Render(renderGraph, ref renderingData, m_Renderer2DData, ref layerBatch, m_Attachments.colorAttachment, m_Attachments.normalTexture, m_Attachments.depthAttachment, true);
             }
         }
 
@@ -320,7 +317,7 @@ namespace UnityEngine.Rendering.Universal
         {
         }
 
-        private void ClearLightTextures(RenderGraph graph, ref Renderer2DData rendererData, ref LayerBatch layerBatch)
+        private void ClearLightTextures(RenderGraph graph, Renderer2DData rendererData, ref LayerBatch layerBatch)
         {
             var blendStylesCount = rendererData.lightBlendStyles.Length;
             for (var blendStyleIndex = 0; blendStyleIndex < blendStylesCount; blendStyleIndex++)
