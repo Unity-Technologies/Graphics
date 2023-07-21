@@ -91,13 +91,13 @@ TEXTURE2D_X_HALF(_GBuffer2);
 #define GBUFFER2 2
 #define GBUFFER3 3
 
-FRAMEBUFFER_INPUT_HALF(GBUFFER0);
-FRAMEBUFFER_INPUT_HALF(GBUFFER1);
-FRAMEBUFFER_INPUT_HALF(GBUFFER2);
-FRAMEBUFFER_INPUT_FLOAT(GBUFFER3);
+FRAMEBUFFER_INPUT_X_HALF(GBUFFER0);
+FRAMEBUFFER_INPUT_X_HALF(GBUFFER1);
+FRAMEBUFFER_INPUT_X_HALF(GBUFFER2);
+FRAMEBUFFER_INPUT_X_FLOAT(GBUFFER3);
 #if OUTPUT_SHADOWMASK
 #define GBUFFER4 4
-FRAMEBUFFER_INPUT_HALF(GBUFFER4);
+FRAMEBUFFER_INPUT_X_HALF(GBUFFER4);
 #endif
 #else
 #ifdef GBUFFER_OPTIONAL_SLOT_1
@@ -247,12 +247,12 @@ half4 DeferredShading(Varyings input) : SV_Target
     half4 shadowMask = 1.0;
 
     #if _RENDER_PASS_ENABLED
-    float d        = LOAD_FRAMEBUFFER_INPUT(GBUFFER3, input.positionCS.xy).x;
-    half4 gbuffer0 = LOAD_FRAMEBUFFER_INPUT(GBUFFER0, input.positionCS.xy);
-    half4 gbuffer1 = LOAD_FRAMEBUFFER_INPUT(GBUFFER1, input.positionCS.xy);
-    half4 gbuffer2 = LOAD_FRAMEBUFFER_INPUT(GBUFFER2, input.positionCS.xy);
+    float d        = LOAD_FRAMEBUFFER_X_INPUT(GBUFFER3, input.positionCS.xy).x;
+    half4 gbuffer0 = LOAD_FRAMEBUFFER_X_INPUT(GBUFFER0, input.positionCS.xy);
+    half4 gbuffer1 = LOAD_FRAMEBUFFER_X_INPUT(GBUFFER1, input.positionCS.xy);
+    half4 gbuffer2 = LOAD_FRAMEBUFFER_X_INPUT(GBUFFER2, input.positionCS.xy);
     #if defined(_DEFERRED_MIXED_LIGHTING)
-    shadowMask = LOAD_FRAMEBUFFER_INPUT(GBUFFER4, input.positionCS.xy);
+    shadowMask = LOAD_FRAMEBUFFER_X_INPUT(GBUFFER4, input.positionCS.xy);
     #endif
     #else
     // Using SAMPLE_TEXTURE2D is faster than using LOAD_TEXTURE2D on iOS platforms (5% faster shader).
@@ -341,7 +341,7 @@ half4 FragFog(Varyings input) : SV_Target
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
     #if _RENDER_PASS_ENABLED
-        float d = LOAD_FRAMEBUFFER_INPUT(GBUFFER3, input.positionCS.xy).x;
+        float d = LOAD_FRAMEBUFFER_X_INPUT(GBUFFER3, input.positionCS.xy).x;
     #else
         float d = LOAD_TEXTURE2D_X(_CameraDepthTexture, input.positionCS.xy).x;
     #endif

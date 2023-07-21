@@ -795,7 +795,8 @@ namespace UnityEngine.Rendering.Universal
 
             using (new ProfilingScope(Profiling.Pipeline.Context.submit))
             {
-                if (renderer.useRenderPassEnabled && !context.SubmitForRenderPassValidation())
+                // Render Graph will do the validation by itself, so this is redundant in that case
+                if (!useRenderGraph && renderer.useRenderPassEnabled && !context.SubmitForRenderPassValidation())
                 {
                     renderer.useRenderPassEnabled = false;
                     CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.RenderPassEnabled, false);

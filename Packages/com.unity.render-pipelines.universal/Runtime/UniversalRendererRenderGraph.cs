@@ -605,15 +605,17 @@ namespace UnityEngine.Rendering.Universal
         internal void SetupRenderGraphLights(RenderGraph renderGraph, ref RenderingData renderingData)
         {
             m_ForwardLights.SetupRenderGraphLights(renderGraph, ref renderingData);
-
             if (this.renderingModeActual == RenderingMode.Deferred)
+            {
+                m_DeferredLights.UseRenderPass = renderGraph.NativeRenderPassesEnabled;
                 m_DeferredLights.SetupRenderGraphLights(renderGraph, ref renderingData);
+            }
         }
 
         internal override void OnRecordRenderGraph(RenderGraph renderGraph, ScriptableRenderContext context, ref RenderingData renderingData)
         {
             ref CameraData cameraData = ref renderingData.cameraData;
-            useRenderPassEnabled = false;
+            useRenderPassEnabled = renderGraph.NativeRenderPassesEnabled;
 
             SetupMotionVectorGlobalMatrix(renderingData.commandBuffer, ref cameraData);
 
@@ -784,8 +786,7 @@ namespace UnityEngine.Rendering.Universal
                 m_DeferredLights.Setup(m_AdditionalLightsShadowCasterPass);
                 if (m_DeferredLights != null)
                 {
-                    // TODO RENDERGRAPH: enable this when we implement fbfetch
-                    m_DeferredLights.UseRenderPass = false; //renderGraph.NativeRenderPassesEnabled;
+                    m_DeferredLights.UseRenderPass = renderGraph.NativeRenderPassesEnabled;
                     m_DeferredLights.HasNormalPrepass = renderPassInputs.requiresNormalsTexture;
                     m_DeferredLights.HasDepthPrepass = requiresDepthPrepass;
                     m_DeferredLights.ResolveMixedLightingMode(ref renderingData);
@@ -795,13 +796,17 @@ namespace UnityEngine.Rendering.Universal
                 RecordCustomRenderGraphPasses(renderGraph, ref renderingData, RenderPassEvent.BeforeRenderingGbuffer);
 
                 m_GBufferPass.Render(renderGraph, activeColorTexture, activeDepthTexture, ref renderingData, resources);
-                TextureHandle cameraDepthTexture = resources.GetTexture(UniversalResource.CameraDepthTexture);
-                m_GBufferCopyDepthPass.Render(renderGraph, cameraDepthTexture, activeDepthTexture, ref renderingData, true, "GBuffer Depth Copy");
+
+                if (!renderGraph.NativeRenderPassesEnabled)
+                {
+                    TextureHandle cameraDepthTexture = resources.GetTexture(UniversalResource.CameraDepthTexture);
+                    m_GBufferCopyDepthPass.Render(renderGraph, cameraDepthTexture, activeDepthTexture, ref renderingData, true, "GBuffer Depth Copy");
+                }
 
                 RecordCustomRenderGraphPasses(renderGraph, ref renderingData, RenderPassEvent.AfterRenderingGbuffer, RenderPassEvent.BeforeRenderingDeferredLights);
 
-                TextureHandle[] gbuffer = m_GBufferPass.GetFrameResourcesGBufferArray(resources);
-                m_DeferredPass.Render(renderGraph, activeColorTexture, activeDepthTexture, gbuffer, ref renderingData);
+                TextureHandle[] gbuffer = GBufferPass.GetFrameResourcesGBufferArray(resources, ref m_DeferredLights);
+                m_DeferredPass.Render(renderGraph, activeColorTexture, activeDepthTexture, gbuffer, ref renderingData, resources);
 
                 RecordCustomRenderGraphPasses(renderGraph, ref renderingData, RenderPassEvent.AfterRenderingDeferredLights, RenderPassEvent.BeforeRenderingOpaques);
 

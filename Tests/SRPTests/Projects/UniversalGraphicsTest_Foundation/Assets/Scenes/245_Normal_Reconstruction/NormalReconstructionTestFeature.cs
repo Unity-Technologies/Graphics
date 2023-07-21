@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.Assertions;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -40,7 +41,7 @@ public class NormalReconstructionTestFeature : ScriptableRendererFeature
         {
             CommandBuffer cmd = CommandBufferPool.Get();
 
-            ExecutePass(cmd, renderingData.cameraData);
+            ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(cmd), renderingData.cameraData);
 
             context.ExecuteCommandBuffer(cmd);
             cmd.Clear();
@@ -48,7 +49,7 @@ public class NormalReconstructionTestFeature : ScriptableRendererFeature
             CommandBufferPool.Release(cmd);
         }
 
-        static void ExecutePass(CommandBuffer cmd, CameraData cameraData)
+        static void ExecutePass(RasterCommandBuffer cmd, CameraData cameraData)
         {
             using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
@@ -64,7 +65,7 @@ public class NormalReconstructionTestFeature : ScriptableRendererFeature
             }
         }
 
-        static void Render(CommandBuffer cmd, in CameraData cameraData, TapMode tapMode, Rect viewport, int width, int height)
+        static void Render(RasterCommandBuffer cmd, in CameraData cameraData, TapMode tapMode, Rect viewport, int width, int height)
         {
             CoreUtils.SetKeyword(cmd, "_DRAW_NORMALS_TAP1", tapMode == TapMode.Tap1);
             CoreUtils.SetKeyword(cmd, "_DRAW_NORMALS_TAP3", tapMode == TapMode.Tap3);
@@ -84,20 +85,18 @@ public class NormalReconstructionTestFeature : ScriptableRendererFeature
         }
         public override void RecordRenderGraph(RenderGraph renderGraph, FrameResources frameResources, ref RenderingData renderingData)
         {
-            using (var builder = renderGraph.AddLowLevelPass<PassData>("Normal Reconstruction Test Pass", out var passData, m_ProfilingSampler))
+            using (var builder = renderGraph.AddRasterRenderPass<PassData>("Normal Reconstruction Test Pass", out var passData, m_ProfilingSampler))
             {
                 UniversalRenderer renderer = (UniversalRenderer) renderingData.cameraData.renderer;
 
                 TextureHandle color = renderer.activeColorTexture;
-                builder.UseTexture(color, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
+                passData.color = builder.UseTextureFragment(color, 0, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
                 passData.cameraData = renderingData.cameraData;
-                passData.color = renderer.activeColorTexture;
+                builder.AllowGlobalStateModification(true);
 
-                builder.SetRenderFunc((PassData data, LowLevelGraphContext rgContext) =>
+                builder.SetRenderFunc((PassData data, RasterGraphContext rgContext) =>
                 {
-                    // TODO: currently have to set the RT manually in low level passes. Do we want this done through UseTextureFragment though?
-                    rgContext.legacyCmd.SetRenderTarget(data.color);
-                    ExecutePass(rgContext.legacyCmd, data.cameraData);
+                    ExecutePass(rgContext.cmd, data.cameraData);
                 });
             }
         }

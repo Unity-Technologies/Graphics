@@ -41,7 +41,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Active: 1
   m_Material: {fileID: 2100000, guid: 8edb9dabac8afe248a1fcf796d1325d0, type: 2}
-  m_Event: 220
+  m_Event: 240
   m_MaskSize: 0
 --- !u!114 &11400000
 MonoBehaviour:
