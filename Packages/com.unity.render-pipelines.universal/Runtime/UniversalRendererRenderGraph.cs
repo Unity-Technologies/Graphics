@@ -421,7 +421,7 @@ namespace UnityEngine.Rendering.Universal
             RenderTargetInfo importInfo = new RenderTargetInfo();
             RenderTargetInfo importInfoDepth = new RenderTargetInfo();
 
-            // So the rendertarget we pass into rendergraph is
+            // So the render target we pass into render graph is
             // RTHandles(RenderTargetIdentifier(BuiltinRenderTextureType.CameraTarget))
             // or
             // RTHandles(RenderTargetIdentifier(RenderTexture(cameraData.targetTexture)))
@@ -431,25 +431,36 @@ namespace UnityEngine.Rendering.Universal
             // The amount of texture handle wrappers and their subtleties is probably something to be investigated.
             if (isBuiltInTexture)
             {
+                bool msaaSamplesChangedThisFrame = false;
 #if !UNITY_EDITOR
-            // for safety do this only for the NRP path, even though works also on non NRP, but would need extensive testing
-            // TODO: this is temporarily disabled on Vulkan because on Screen API issues. Re-enable the optimization when it is fixed
-            if (m_CreateColorTexture && renderGraph.NativeRenderPassesEnabled && Screen.msaaSamples > 1)
-                Screen.SetMSAASamples(1);
+                // for safety do this only for the NRP path, even though works also on non NRP, but would need extensive testing
+                if (m_CreateColorTexture && renderGraph.NativeRenderPassesEnabled && Screen.msaaSamples > 1)
+                {
+                    msaaSamplesChangedThisFrame = true;
+                    Screen.SetMSAASamples(1);
+                }
 #endif
+                int numSamples = Mathf.Max(Screen.msaaSamples, 1);
+
+                // Handle edge cases regarding numSamples setup
+                // On OSX player, the Screen API MSAA samples change request is only applied in the following frame,
+                // as a workaround we keep the old MSAA sample count for the previous frame
+                // this workaround can be removed once the Screen API issue (UUM-42825) is fixed
+                // The editor always allocates the system rendertarget with a single msaa sample
+                // See: ConfigureTargetTexture in PlayModeView.cs
+                if (msaaSamplesChangedThisFrame && Application.platform == RuntimePlatform.OSXPlayer)
+                    numSamples = cameraData.cameraTargetDescriptor.msaaSamples;
+                else if (Application.isEditor)
+                    numSamples = 1;
 
                 //BuiltinRenderTextureType.CameraTarget so this is either system render target or camera.targetTexture if non null
-                //NOTE: Carefull what you use here as many of the properties bake-in the camera rect so for example
-                //cameraData.cameraTargetDescriptor.width is the width of the recangle but not the actual rendertarget
+                //NOTE: Careful what you use here as many of the properties bake-in the camera rect so for example
+                //cameraData.cameraTargetDescriptor.width is the width of the rectangle but not the actual render target
                 //same with cameraData.camera.pixelWidth
                 importInfo.width = Screen.width;
                 importInfo.height = Screen.height;
                 importInfo.volumeDepth = 1;
-                importInfo.msaaSamples = Mathf.Max(Screen.msaaSamples, 1);
-                // The editor always allocates the system rendertarget with a single msaa sample
-                // See: ConfigureTargetTexture in PlayModeView.cs
-                if (Application.isEditor)
-                    importInfo.msaaSamples = 1;
+                importInfo.msaaSamples = numSamples;
 
                 importInfo.format = UniversalRenderPipeline.MakeRenderTextureGraphicsFormat(cameraData.isHdrEnabled, cameraData.hdrColorBufferPrecision, Graphics.preserveFramebufferAlpha);
 
@@ -945,7 +956,7 @@ namespace UnityEngine.Rendering.Universal
                 DebugHandler.ConfigureColorDescriptorForDebugScreen(ref colorDesc, renderingData.cameraData.pixelWidth, renderingData.cameraData.pixelHeight);
                 var debugScreenColor = UniversalRenderer.CreateRenderGraphTexture(renderGraph, colorDesc, "_DebugScreenColor", false);
                 resources.SetTexture(UniversalResource.DebugScreenColor, debugScreenColor);
-                
+
                 RenderTextureDescriptor depthDesc = renderingData.cameraData.cameraTargetDescriptor;
                 DebugHandler.ConfigureDepthDescriptorForDebugScreen(ref depthDesc, k_DepthStencilFormat, renderingData.cameraData.pixelWidth, renderingData.cameraData.pixelHeight);
                 var debugScreenDepth = UniversalRenderer.CreateRenderGraphTexture(renderGraph, depthDesc, "_DebugScreenDepth", false);
@@ -999,7 +1010,7 @@ namespace UnityEngine.Rendering.Universal
                     m_ActiveDepthID = UniversalResource.BackBufferDepth;
                 }
             }
-            
+
             RecordCustomRenderGraphPasses(renderGraph, ref renderingData, RenderPassEvent.AfterRenderingPostProcessing);
 
             if (applyFinalPostProcessing)
@@ -1027,7 +1038,7 @@ namespace UnityEngine.Rendering.Universal
                 applyFinalPostProcessing ||
                 // no final PP but we have PP stack. In that case it blit unless there are render pass after PP
                 (applyPostProcessing && !hasPassesAfterPostProcessing && !hasCaptureActions);
-            
+
             // TODO RENDERGRAPH: we need to discuss and decide if RenderPassEvent.AfterRendering injected passes should only be called after the last camera in the stack
             RecordCustomRenderGraphPasses(renderGraph, ref renderingData, RenderPassEvent.AfterRendering);
 
