@@ -7,10 +7,6 @@ using UnityEditor.Rendering;
 using UnityEditor.SceneManagement;
 using UnityEditorInternal;
 using UnityEditor.Overlays;
-using UnityEditor.LightBaking;
-using UnityEngine.LightBaking;
-using UnityEngine.LightTransport;
-using UnityEngine.LightTransport.PostProcessing;
 using UnityEngine.UIElements;
 using UnityEngine.SceneManagement;
 using UnityEngine.Assertions;
@@ -1010,128 +1006,6 @@ namespace UnityEngine.Rendering
                 activeSet.SetActiveScenario(activeSet.m_LightingScenarios[0], false);
 
             return true;
-        }
-
-        static void BakeProbeVolumeOnly()
-        {
-            if (!ProbeGIBaking.InitializeBake())
-                return;
-
-            Vector3[] probePositions = ProbeGIBaking.RunPlacement();
-
-            using LightBaker.BakeInput input = new LightBaker.BakeInput();
-            using InputExtraction.SourceMap map = new InputExtraction.SourceMap();
-            LightingSettings lightingSettings = Lightmapping.GetLightingSettingsOrDefaultsFallback();
-
-            // Input extraction is done on the set of open scenes and does not include APV positions.
-            string LightBakerTempOutputPath = "DeleteThisArgumentFromExtractFromScene";
-            bool result = InputExtraction.ExtractFromScene(LightBakerTempOutputPath, input, map);
-            Assert.IsTrue(result, "InputExtraction.ExtractFromScene failed.");
-
-            input.SetProbePositions(probePositions);
-
-            // TODO don't block the UI, spin up a C# thread for the bake.
-
-            IDeviceContext ctx = null;
-            IProbeIntegrator integrator = null;
-            IWorld world = null;
-            IProbePostProcessor postProcessor = null;
-            switch (lightingSettings.lightmapper)
-            {
-                case LightingSettings.Lightmapper.ProgressiveCPU:
-                    {
-                        ctx = new WintermuteContext();
-                        integrator = new WintermuteProbeIntegrator();
-                        world = new WintermuteWorld();
-                        postProcessor = new WintermuteProbePostProcessor();
-                    }
-                    break;
-                default:
-                    {
-                        ctx = new RadeonRaysContext();
-                        integrator = new RadeonRaysProbeIntegrator();
-                        world = new RadeonRaysWorld();
-                        postProcessor = new RadeonRaysProbePostProcessor();
-                    }
-                    break;
-            }
-
-            var contextInitialized = ctx.Initialize();
-            Assert.AreEqual(true, contextInitialized);
-
-            var progress = new BakeProgressState();
-            var worldResult = LightBaker.PopulateWorld(input, progress, ctx, world);
-            Assert.AreEqual(LightBaker.ResultType.Success, worldResult.type, "PopulateWorld failed.");
-
-            // TODO: Calculate validity data using the unified ray intersector API here
-            // TODO: Offset probe positions based on validity data.
-
-            // Get settings from the LightingSettings asset
-            int lightprobeSampleCountMultiplier = (int)lightingSettings.lightProbeSampleCountMultiplier;
-            var bounceCount = lightingSettings.maxBounces;
-            int sampleCountDirect = lightingSettings.directSampleCount * lightprobeSampleCountMultiplier;
-            int sampleCountIndirect = lightingSettings.indirectSampleCount * lightprobeSampleCountMultiplier;
-            int sampleCountValidity = 4096;
-            float pushoff = 0.001f;
-
-            // Calculate L2 SH and validity based on offset probe positions.
-            const int sizeOfFloat = 4;
-            var positionsLength = probePositions.Length;
-            ulong positionsBytes = (ulong)(sizeOfFloat * 3 * positionsLength);
-            var positionsBufferID = ctx.CreateBuffer(positionsBytes);
-            using var positionsNative = new NativeArray<Vector3>(probePositions, Allocator.TempJob);
-            ctx.WriteBuffer(positionsBufferID, positionsNative.Reinterpret<byte>(sizeOfFloat * 3));
-            var positionsSlice = new BufferSlice(positionsBufferID, 0);
-            integrator.Prepare(world, positionsSlice, pushoff, bounceCount);
-            integrator.SetProgressReporter(progress);
-
-            const int SHL2RGBElements = 3 * 9;
-            const int sizeSHL2RGB = sizeOfFloat * SHL2RGBElements;
-            var positionOffset = 0; // can be used to bake portions/tiles of the full set of positions.
-            var shBytes = (ulong)(sizeSHL2RGB * positionsLength);
-            var directRadianceBufferId = ctx.CreateBuffer(shBytes);
-            var indirectRadianceBufferId = ctx.CreateBuffer(shBytes);
-            var directRadianceSlice = new BufferSlice(directRadianceBufferId, 0);
-            var indirectRadianceSlice = new BufferSlice(indirectRadianceBufferId, 0);
-
-            // Bake direct radiance.
-            var integrationResult = integrator.IntegrateDirectRadiance(ctx, positionOffset, positionsLength,
-                sampleCountDirect, directRadianceSlice);
-            Assert.AreEqual(IProbeIntegrator.ResultType.Success, integrationResult.type, "IntegrateDirectRadiance failed.");
-
-            // Bake indirect radiance.
-            integrationResult = integrator.IntegrateIndirectRadiance(ctx, positionOffset, positionsLength,
-                sampleCountIndirect, indirectRadianceSlice);
-            Assert.AreEqual(IProbeIntegrator.ResultType.Success, integrationResult.type, "IntegrateIndirectRadiance failed.");
-
-            // Bake validity.
-            var validityBytes = (ulong)(sizeOfFloat * positionsLength);
-            var validityBufferId = ctx.CreateBuffer(validityBytes);
-            var validitySlice = new BufferSlice(validityBufferId, 0);
-            var validityResult = integrator.IntegrateValidity(ctx, positionOffset, positionsLength,
-                sampleCountValidity, validitySlice);
-            Assert.AreEqual(IProbeIntegrator.ResultType.Success, validityResult.type, "IntegrateLightProbeValidity failed.");
-
-            // Composit direct and indirect radiance.
-            var postProcessInit = postProcessor.Initialize(ctx);
-            Assert.AreEqual(true, postProcessInit);
-            postProcessor.AddSphericalHarmonicsL2(ctx, directRadianceSlice, indirectRadianceSlice, directRadianceSlice, positionsLength);
-
-            // Post process (convert radiance to irradiance and transform to the format expected by Unity).
-            var irradianceBufferId = ctx.CreateBuffer(shBytes);
-            var irradianceSlice = new BufferSlice(irradianceBufferId, 0);
-            postProcessor.ConvolveRadianceToIrradiance(ctx, directRadianceSlice, irradianceSlice, positionsLength);
-            postProcessor.ConvertToUnityFormat(ctx, irradianceSlice, irradianceSlice, positionsLength);
-
-            // Blocking read back to get results back from GPU memory.
-            using var irradianceResults = new NativeArray<SphericalHarmonicsL2>(positionsLength, Allocator.Temp);
-            ctx.ReadBuffer(irradianceBufferId, irradianceResults.Reinterpret<byte>(sizeSHL2RGB));
-            using var validityResults = new NativeArray<float>(positionsLength, Allocator.Temp);
-            ctx.ReadBuffer(validityBufferId, validityResults.Reinterpret<byte>(sizeOfFloat));
-
-            // Output data in result buffers is now ready, in CPU side memory.
-
-            ProbeGIBaking.ApplyPostBakeOperations(irradianceResults, validityResults);
         }
 
         static T ObjectFieldWithNew<T>(GUIContent label, T obj, Func<T> onClick) where T : Object
