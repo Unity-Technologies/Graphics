@@ -33,8 +33,8 @@ namespace UnityEngine.Rendering
             Initial = 0,
         }
 
-        [SerializeField][HideInInspector]
-        private Version m_Version;
+        [SerializeField] [HideInInspector]
+        private Version m_Version = Version.Initial;
 
         /// <summary>Current version.</summary>
         public int version => (int)m_Version;
