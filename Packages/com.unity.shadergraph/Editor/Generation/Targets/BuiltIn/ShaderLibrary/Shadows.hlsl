@@ -21,15 +21,9 @@
     #endif
 #endif
 
-#if defined(UNITY_DOTS_INSTANCING_ENABLED)
-#define SHADOWMASK_NAME unity_ShadowMasks
-#define SHADOWMASK_SAMPLER_NAME samplerunity_ShadowMasks
-#define SHADOWMASK_SAMPLE_EXTRA_ARGS , unity_LightmapIndex.x
-#else
 #define SHADOWMASK_NAME unity_ShadowMask
 #define SHADOWMASK_SAMPLER_NAME samplerunity_ShadowMask
 #define SHADOWMASK_SAMPLE_EXTRA_ARGS
-#endif
 
 #if defined(SHADOWS_SHADOWMASK) && defined(LIGHTMAP_ON)
     #define SAMPLE_SHADOWMASK(uv) SAMPLE_TEXTURE2D_LIGHTMAP(SHADOWMASK_NAME, SHADOWMASK_SAMPLER_NAME, uv SHADOWMASK_SAMPLE_EXTRA_ARGS);

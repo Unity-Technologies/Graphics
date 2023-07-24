@@ -58,7 +58,6 @@ $features.graphVertex: #define FEATURES_GRAPH_VERTEX
 $BuiltIn.UseLegacySpriteBlocks: #define BUILTIN_USELEGACYSPRITEBLOCKS
 $splice(PassInstancing)
 $splice(GraphDefines)
-$splice(DotsInstancingVars)
 #ifdef _BUILTIN_SURFACE_TYPE_TRANSPARENT
 #define _SURFACE_TYPE_TRANSPARENT _BUILTIN_SURFACE_TYPE_TRANSPARENT
 #endif

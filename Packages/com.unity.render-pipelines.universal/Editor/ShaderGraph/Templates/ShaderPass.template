@@ -58,7 +58,6 @@ $features.graphVertex: #define FEATURES_GRAPH_VERTEX
 $Universal.UseLegacySpriteBlocks: #define UNIVERSAL_USELEGACYSPRITEBLOCKS
 $splice(PassInstancing)
 $splice(GraphDefines)
-$splice(DotsInstancingVars)
 
 
 // custom interpolator pre-include
