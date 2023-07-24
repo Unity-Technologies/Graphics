@@ -119,6 +119,8 @@
   * [Create a custom post-processing effect](containers/post-processing-custom-effect-low-code.md)
   * [Change Quality settings with code](quality/quality-settings-through-code.md)
 * [Customizing URP](customizing-urp.md)
+  * [Injection points](customize/custom-pass-injection-points.md)
+  * [Inject a custom pass via scripting](customize/inject-render-pass-via-script.md)
   * [Blit overview](customize/blit-overview.md)
   * [beginCameraRendering event](using-begincamerarendering.md)
   * [Create custom Renderer Feature](renderer-features/create-custom-renderer-feature.md)
