@@ -753,6 +753,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle normalBuffer;
             public TextureHandle depthAndStencil;
 
+            public bool preRefractionPass;
+            public ShaderVariablesGlobal globalCB;
             public BufferHandle waterLine;
             public BufferHandle cameraHeightBuffer;
             public BufferHandle waterSurfaceProfiles;
@@ -1143,6 +1145,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.cameraHeightBuffer = builder.ReadBuffer(transparentPrepass.waterGBuffer.cameraHeight);
                 passData.depthAndStencil = builder.ReadTexture(prepassOutput.resolvedDepthBuffer);
                 passData.waterLine = builder.ReadBuffer(transparentPrepass.waterLine);
+                passData.globalCB = m_ShaderVariablesGlobalCB;
+                passData.preRefractionPass = preRefractionPass;
 
                 builder.UseDepthBuffer(preRefractionPass ? transparentPrepass.depthBufferPreRefraction : prepassOutput.depthBuffer, DepthAccess.ReadWrite);
 
@@ -1197,6 +1201,9 @@ namespace UnityEngine.Rendering.HighDefinition
                         context.cmd.SetGlobalInt(data.colorMaskTransparentVel, data.renderMotionVecForTransparent ? (int)ColorWriteMask.All : 0);
                         if (data.decalsEnabled)
                             DecalSystem.instance.SetAtlas(context.cmd); // for clustered decals
+
+                        data.globalCB._PreRefractionPass = data.preRefractionPass ? 1 : 0;
+                        ConstantBuffer.UpdateData(context.cmd, data.globalCB);
 
                         BindGlobalLightListBuffers(data, context);
                         BindGlobalThicknessBuffers(data.thicknessTextureArray, data.thicknessReindexMap, context.cmd);

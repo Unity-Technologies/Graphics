@@ -5,7 +5,10 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/WaterSystemDef.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
 
+// Buffers used for refraction sorting
 TEXTURE2D_X_UINT2(_StencilTexture);
+TEXTURE2D_X(_RefractiveDepthBuffer);
+
 StructuredBuffer<float> _WaterCameraHeightBuffer;
 
 float GetWaterCameraHeight()
@@ -122,28 +125,49 @@ float EvaluateSimulationCaustics(float3 refractedWaterPosRWS, float refractedWat
     return 1.0 + caustics;
 }
 
-#if defined(_TRANSPARENT_REFRACTIVE_SORT) || defined(SUPPORT_WATER_ABSORPTION) || defined(_ENABLE_FOG_ON_TRANSPARENT)
-
-TEXTURE2D_X(_RefractiveDepthBuffer);
-
-bool EvaluateUnderwaterAbsorption(PositionInputs posInput, out float3 color, out float3 opacity)
+#if defined(_ENABLE_FOG_ON_TRANSPARENT) || defined(SUPPORT_WATER_ABSORPTION)
+// This is used by OpaqueAtmosphericScattering pass, and Forward pass of transparents that receive fog
+bool EvaluateUnderwaterAbsorption(PositionInputs posInput, inout float4 outColor, out float3 color, out float3 opacity)
 {
     color = opacity = 0;
 
+    uint surfaceIndex = -1;
+    bool hasWater = false, hasExcluder = false;
+    float waterDepth = UNITY_RAW_FAR_CLIP_VALUE;
     bool underWater = IsUnderWater(posInput.positionSS.xy);
-    bool hasWater = (GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, posInput.positionSS.xy)) & STENCILUSAGE_WATER_SURFACE) != 0;
-    float waterDepth = LOAD_TEXTURE2D_X(_RefractiveDepthBuffer, posInput.positionSS.xy).r;
 
-    float cameraToWater = underWater ? FLT_MAX : (hasWater ? waterDepth : 0.0f);
-    float cameraToSurface = (underWater && hasWater && waterDepth >= posInput.deviceDepth) ? FLT_MAX : posInput.deviceDepth;
-    float absorptionDistance = cameraToSurface - cameraToWater;
-    uint surfaceIndex = cameraToSurface < cameraToWater ? GetWaterSurfaceIndex(posInput.positionSS.xy) : -1;
+#ifdef _ENABLE_FOG_ON_TRANSPARENT
+    [branch]
+    if (_PreRefractionPass != 0)
+#else
+    if (true)
+#endif
+    {
+        waterDepth = LOAD_TEXTURE2D_X(_RefractiveDepthBuffer, posInput.positionSS.xy).r;
+        uint stencil = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, posInput.positionSS.xy));
+        hasExcluder = (stencil & STENCILUSAGE_WATER_EXCLUSION) != 0;
+        hasWater = (stencil & STENCILUSAGE_WATER_SURFACE) != 0;
+
+        float cameraToWater = underWater ? FLT_MAX : (hasWater ? waterDepth : 0.0f);
+        float cameraToSurface = (underWater && hasWater && waterDepth >= posInput.deviceDepth) ? FLT_MAX : posInput.deviceDepth;
+        surfaceIndex = cameraToSurface < cameraToWater ? GetWaterSurfaceIndex(posInput.positionSS.xy) : -1;
+
+        #ifdef SUPPORT_WATER_ABSORPTION
+        // Don't apply underwater fog on excluders
+        // Still apply on transparents even if an excluder is behind though
+        if (hasExcluder)
+            surfaceIndex = -1;
+        #endif
+    }
+    else if (underWater)
+        surfaceIndex = _UnderWaterSurfaceIndex;
 
     if (surfaceIndex != -1)
     {
+        WaterSurfaceProfile prof = _WaterSurfaceProfiles[surfaceIndex];
+        float absorptionDistance;
         float caustics = 1.0f;
         float3 farColor = 0.0f;
-        WaterSurfaceProfile prof = _WaterSurfaceProfiles[surfaceIndex];
 
         if (underWater)
         {
@@ -189,9 +213,25 @@ bool EvaluateUnderwaterAbsorption(PositionInputs posInput, out float3 color, out
 
         color = farColor * (1 - absorptionTint);
         opacity = 1 - caustics * absorptionTint;
+
+        #ifdef _ENABLE_FOG_ON_TRANSPARENT
+        if (_PreRefractionPass == 0 || hasExcluder)
+        {
+            // If we are here, this means we are seing a transparent that is in front of an opaque with an excluder
+            // Use case is a looking through a boat window from the exterior. We need to opacify the object to make underwater
+            // visible between the glass and the camera
+            // We use only the x channel as we can't do chromatic alpha blend
+            outColor.a = lerp(outColor.a, 1, opacity.x);
+        }
+        #endif
     }
 
     return surfaceIndex != -1;
+}
+bool EvaluateUnderwaterAbsorption(PositionInputs posInput, out float3 color, out float3 opacity)
+{
+    float4 dummy = 0;
+    return EvaluateUnderwaterAbsorption(posInput, dummy, color, opacity);
 }
 #endif
 
@@ -201,25 +241,21 @@ float4 ComputeFog(PositionInputs posInput, float3 V, float4 outColor)
     // Evaluate water absorption or atmospheric scattering
     // Check _OffScreenRendering to disable underwater on low res transparents
     float3 volColor, volOpacity;
-    if (_EnableWater == 0 || _OffScreenRendering == 1 || !EvaluateUnderwaterAbsorption(posInput, volColor, volOpacity))
+    if (_EnableWater == 0 || _OffScreenRendering == 1 || !EvaluateUnderwaterAbsorption(posInput, outColor, volColor, volOpacity))
         EvaluateAtmosphericScattering(posInput, V, volColor, volOpacity);
     return ApplyFogOnTransparent(outColor, volColor, volOpacity);
 }
 #endif
 
 #ifdef _TRANSPARENT_REFRACTIVE_SORT
-// This function is used only by pre refraction transparent objects
+// This function is used only by pre refraction transparent objects (which includes volumetric clouds)
 // It checks wether it's in front or behind a refractive object to output to the correct buffer for sorting
-void ComputeRefractionSplitColor(PositionInputs posInput, float3 V, inout float4 outColor, inout float4 outBeforeRefractionColor, inout float4 outBeforeRefractionAlpha)
+void ComputeRefractionSplitColor(PositionInputs posInput, inout float4 outColor, inout float4 outBeforeRefractionColor, inout float4 outBeforeRefractionAlpha)
 {
     const uint refractiveMask = STENCILUSAGE_REFRACTIVE | STENCILUSAGE_WATER_SURFACE;
     bool hasRefractive = (GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, posInput.positionSS.xy)) & refractiveMask) != 0;
     float refractiveDepth = LOAD_TEXTURE2D_X(_RefractiveDepthBuffer, posInput.positionSS.xy).r;
     bool beforeRefraction = hasRefractive && posInput.deviceDepth >= refractiveDepth; // pixels between refractive object and camera
-
-    #ifdef _ENABLE_FOG_ON_TRANSPARENT
-    outColor = ComputeFog(posInput, V, outColor);
-    #endif
 
     // Perform per pixel sorting
     if (beforeRefraction)

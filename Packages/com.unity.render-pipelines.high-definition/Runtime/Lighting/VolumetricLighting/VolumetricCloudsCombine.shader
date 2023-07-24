@@ -237,8 +237,11 @@ Shader "Hidden/HDRP/VolumetricCloudsCombine"
                 PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, cloudDepth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
                 float3 V = -normalize(posInput.positionWS);
 
+                // Apply atmospheric fog or water absorption
+                outColor = ComputeFog(posInput, V, outColor);
+
                 // Sort clouds with refractive objects
-                ComputeRefractionSplitColor(posInput, V, outColor, outBeforeRefractionColor, outBeforeRefractionAlpha);
+                ComputeRefractionSplitColor(posInput, outColor, outBeforeRefractionColor, outBeforeRefractionAlpha);
             }
             ENDHLSL
         }
