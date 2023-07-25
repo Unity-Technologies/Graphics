@@ -29,7 +29,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        public void Render(RenderGraph graph, ref RenderingData renderingData, Renderer2DData rendererData, ref LayerBatch layerBatch, in TextureHandle normalTexture, in TextureHandle depthTexture)
+        public void Render(RenderGraph graph, ref RenderingData renderingData, Renderer2DData rendererData, ref LayerBatch layerBatch, FrameResources resources)
         {
             if (!layerBatch.lightStats.useNormalMap)
                 return;
@@ -48,8 +48,8 @@ namespace UnityEngine.Rendering.Universal
                 drawSettings.sortingSettings = sortSettings;
 
                 builder.AllowPassCulling(false);
-                builder.UseTextureFragment(normalTexture, 0);
-                builder.UseTextureFragmentDepth(depthTexture, IBaseRenderGraphBuilder.AccessFlags.Write);
+                builder.UseTextureFragment(resources.GetTexture(Renderer2DResource.NormalsTexture), 0);
+                builder.UseTextureFragmentDepth(resources.GetTexture(Renderer2DResource.IntermediateDepth), IBaseRenderGraphBuilder.AccessFlags.Write);
 
                 var param = new RendererListParams(renderingData.cullResults, drawSettings, filterSettings);
                 passData.rendererList = graph.CreateRendererList(param);
