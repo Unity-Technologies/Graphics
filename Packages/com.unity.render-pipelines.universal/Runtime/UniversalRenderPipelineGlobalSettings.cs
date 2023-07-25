@@ -281,5 +281,21 @@ namespace UnityEngine.Rendering.Universal
         }
 
         #endregion
+
+        #region APV
+        // This is temporarily here until we have a core place to put it shared between pipelines.
+        [SerializeField]
+        internal ProbeVolumeSceneData apvScenesData;
+
+        internal ProbeVolumeSceneData GetOrCreateAPVSceneData()
+        {
+            if (apvScenesData == null)
+                apvScenesData = new ProbeVolumeSceneData(this);
+
+            apvScenesData.SetParentObject(this);
+            return apvScenesData;
+        }
+
+        #endregion
     }
 }

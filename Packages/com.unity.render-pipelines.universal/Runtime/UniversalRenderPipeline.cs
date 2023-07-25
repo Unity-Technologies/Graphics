@@ -253,7 +253,6 @@ namespace UnityEngine.Rendering.Universal
             if (apvIsEnabled)
             {
                 var pvr = ProbeReferenceVolume.instance;
-                var globalSettings = UniversalRenderPipelineGlobalSettings.instance;
                 ProbeReferenceVolume.instance.Initialize(new ProbeVolumeSystemParameters
                 {
                     memoryBudget = asset.probeVolumeMemoryBudget,
@@ -265,9 +264,9 @@ namespace UnityEngine.Rendering.Universal
                     probeSamplingDebugTexture = asset.scriptableRendererData.probeVolumeResources.probeSamplingDebugTexture,
                     offsetDebugShader = asset.scriptableRendererData.probeVolumeResources.probeVolumeOffsetDebugShader,
                     scenarioBlendingShader = null, // Disable this since it requires compute 'data.probeVolumeResources.probeVolumeBlendStatesCS,'
-                    sceneData = asset.GetOrCreateAPVSceneData(),
+                    sceneData = m_GlobalSettings.GetOrCreateAPVSceneData(),
                     shBands = asset.probeVolumeSHBands,
-                    supportsRuntimeDebug = Application.isEditor || !globalSettings.stripDebugVariants,
+                    supportsRuntimeDebug = Application.isEditor || !m_GlobalSettings.stripDebugVariants,
                     supportGPUStreaming = asset.supportProbeVolumeStreaming,
                     supportDiskStreaming = false,
                     supportScenarios = false

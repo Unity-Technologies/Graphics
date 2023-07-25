@@ -428,7 +428,7 @@ namespace UnityEngine.Rendering.Universal
         ScriptableRenderer[] m_Renderers = new ScriptableRenderer[1];
 
         // Default values set when a new UniversalRenderPipeline asset is created
-        [SerializeField] int k_AssetVersion = 11;
+        [SerializeField] int k_AssetVersion = 12;
         [SerializeField] int k_AssetPreviousVersion = 11;
 
         // Deprecated settings for upgrading sakes
@@ -1951,6 +1951,12 @@ namespace UnityEngine.Rendering.Universal
                 k_AssetVersion = 11;
             }
 
+            if (k_AssetVersion < 12)
+            {
+                k_AssetPreviousVersion = k_AssetVersion;
+                k_AssetVersion = 12;
+            }
+
 #if UNITY_EDITOR
             if (k_AssetPreviousVersion != k_AssetVersion)
             {
@@ -2003,6 +2009,16 @@ namespace UnityEngine.Rendering.Universal
                 asset.k_AssetPreviousVersion = 11;
             }
 
+            if (asset.k_AssetPreviousVersion < 12)
+            {
+                var globalSettings = UniversalRenderPipelineGlobalSettings.Ensure();
+#pragma warning disable CS0618 // Type or member is obsolete
+                if (asset.apvScenesData != null)
+                    globalSettings.apvScenesData = asset.apvScenesData;
+#pragma warning restore CS0618 // Type or member is obsolete
+                asset.k_AssetPreviousVersion = 12;
+            }
+
             EditorUtility.SetDirty(asset);
         }
 
@@ -2045,19 +2061,8 @@ namespace UnityEngine.Rendering.Universal
         }
 
         #region APV
-        // This is temporarily here until we have a core place to put it shared between pipelines.
-        [SerializeField]
+        [SerializeField, Obsolete("Kept for migration. #from(2023.3")]
         internal ProbeVolumeSceneData apvScenesData;
-
-        internal ProbeVolumeSceneData GetOrCreateAPVSceneData()
-        {
-            if (apvScenesData == null)
-                apvScenesData = new ProbeVolumeSceneData((Object)this);
-
-            apvScenesData.SetParentObject((Object)this);
-            return apvScenesData;
-        }
-
         #endregion
 
         /// <summary>
@@ -2109,7 +2114,7 @@ namespace UnityEngine.Rendering.Universal
         {
             get
             {
-                return GetOrCreateAPVSceneData();
+                return UniversalRenderPipelineGlobalSettings.instance?.apvScenesData;
             }
         }
     }
