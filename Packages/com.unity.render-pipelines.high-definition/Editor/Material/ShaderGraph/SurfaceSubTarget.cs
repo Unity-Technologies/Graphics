@@ -96,7 +96,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     // Common "surface" passes
                     HDShaderPasses.GenerateShadowCaster(supportLighting, TargetsVFX(), systemData.tessellation),
                     HDShaderPasses.GenerateMETA(supportLighting, TargetsVFX()),
-                    HDShaderPasses.GenerateScenePicking(TargetsVFX(), systemData.tessellation),
+                    HDShaderPasses.GenerateScenePicking(supportLighting, TargetsVFX(), systemData.tessellation),
                     HDShaderPasses.GenerateSceneSelection(supportLighting, TargetsVFX(), systemData.tessellation),
                     HDShaderPasses.GenerateMotionVectors(supportLighting, supportForward, TargetsVFX(), systemData.tessellation),
                     { HDShaderPasses.GenerateBackThenFront(supportLighting, TargetsVFX(), systemData.tessellation), new FieldCondition(HDFields.TransparentBackFace, true)},

@@ -167,6 +167,8 @@ void EvalDecalMask( PositionInputs posInput, float3 vtxNormal, float3 positionRW
 
             #ifndef DECAL_SURFACE_GRADIENT
             src.xyz = mul((float3x3)decalData.normalToWorld, normalTS);
+            #else
+            src.xyz *= -1; // see EncodeIntoDBuffer for why we flip
             #endif
 
             src.xyz = src.xyz * 0.5 + 0.5; // Mimic what is happening when calling EncodeIntoDBuffer()
@@ -273,14 +275,6 @@ DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, float3 vtxNormal, 
     DecalSurfaceData decalSurfaceData;
     DECODE_FROM_DBUFFER(DBuffer, decalSurfaceData);
 
-#if defined(DECAL_SURFACE_GRADIENT) && !defined(SURFACE_GRADIENT)
-    // The caller doesn't expect a surface gradient but our dbuffer has volume gradients accumulated in it.
-    // Make sure we return some sensible normal by first removing any colinear component (to the vertex normal)
-    // of the volume gradient before resolving it: ie convert the volume gradient to a proper surface gradient wrt vtxNormal:
-    float3 surfGrad = SurfaceGradientFromVolumeGradient(vtxNormal, decalSurfaceData.normalWS.xyz);
-    decalSurfaceData.normalWS.xyz = SurfaceGradientResolveNormal(vtxNormal, surfGrad);
-#endif
-
     return decalSurfaceData;
 }
 
@@ -289,7 +283,7 @@ DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, FragInputs input, 
     float3 vtxNormal = input.tangentToWorld[2];
     DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, vtxNormal, decalLayer, alpha);
 
-#if (!defined(DECAL_SURFACE_GRADIENT) || !defined(SURFACE_GRADIENT)) && defined(_DOUBLESIDED_ON)
+#if !defined(DECAL_SURFACE_GRADIENT) && defined(_DOUBLESIDED_ON)
     // 'doubleSidedConstants' is float3(-1, -1, -1) in flip mode and float3(1, 1, -1) in mirror mode.
     // It's float3(1, 1, 1) in the none mode.
     float flipSign = input.isFrontFace ? 1.0 : _DoubleSidedConstants.x;
@@ -302,4 +296,19 @@ DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, FragInputs input, 
 DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, FragInputs input, inout float alpha)
 {
     return GetDecalSurfaceData(posInput, input, GetMeshRenderingDecalLayer(), alpha);
+}
+
+// There are two variants of this function depending on if we are using surface gradients or not
+void ApplyDecalToSurfaceNormal(DecalSurfaceData decalSurfaceData, inout float3 normalWS)
+{
+    // Always test the normal as we can have decompression artifact
+    if (decalSurfaceData.normalWS.w < 1.0)
+        normalWS.xyz = SafeNormalize(normalWS.xyz * decalSurfaceData.normalWS.w + decalSurfaceData.normalWS.xyz);
+}
+
+void ApplyDecalToSurfaceNormal(DecalSurfaceData decalSurfaceData, float3 vtxNormal, inout float3 normalTS)
+{
+    // Always test the normal as we can have decompression artifact
+    if (decalSurfaceData.normalWS.w < 1.0)
+        normalTS += SurfaceGradientFromVolumeGradient(vtxNormal, decalSurfaceData.normalWS.xyz);
 }

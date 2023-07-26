@@ -45,6 +45,7 @@ Material:
     - _AlphaDstBlend: 10
     - _DetailNormalScale: 2
     - _DstBlend: 10
+    - _DstBlend2: 10
     - _StencilRefDepth: 0
     - _StencilRefGBuffer: 2
     - _StencilRefMV: 32

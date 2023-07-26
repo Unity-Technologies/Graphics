@@ -56,5 +56,8 @@ Material:
     m_Ints: []
     m_Floats:
     - _DetailNormalScale: 2
+    - _StencilWriteMaskDepth: 9
+    - _StencilWriteMaskGBuffer: 15
+    - _StencilWriteMaskMV: 41
     m_Colors: []
   m_BuildTextureStacks: []

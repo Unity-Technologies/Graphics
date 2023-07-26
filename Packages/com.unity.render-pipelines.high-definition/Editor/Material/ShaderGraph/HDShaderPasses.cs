@@ -112,7 +112,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         #region Scene Picking Pass
 
-        public static PassDescriptor GenerateScenePicking(bool useVFX, bool useTessellation)
+        public static PassDescriptor GenerateScenePicking(bool supportLighting, bool useVFX, bool useTessellation)
         {
             return new PassDescriptor
             {
@@ -128,7 +128,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 renderStates = CoreRenderStates.ScenePicking,
                 pragmas = GeneratePragmas(CorePragmas.DotsInstancedEditorSync, useVFX, useTessellation),
                 defines = GenerateDefines(CoreDefines.ScenePicking, useVFX, useTessellation),
-                includes = GenerateIncludes(),
+                includes = GenerateIncludes(supportLighting),
                 customInterpolators = CoreCustomInterpolators.Common,
             };
 
@@ -142,14 +142,18 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 return fieldCollection;
             }
 
-            IncludeCollection GenerateIncludes()
+            IncludeCollection GenerateIncludes(bool supportLighting)
             {
                 var includes = new IncludeCollection();
 
                 includes.Add(CoreIncludes.kPickingSpaceTransforms, IncludeLocation.Pregraph);
                 includes.Add(CoreIncludes.CorePregraph);
+                if (supportLighting)
+                    includes.Add(CoreIncludes.kNormalSurfaceGradient, IncludeLocation.Pregraph);
                 includes.Add(CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph);
                 includes.Add(CoreIncludes.CoreUtility);
+                if (supportLighting)
+                    includes.Add(CoreIncludes.kDecalUtilities, IncludeLocation.Pregraph);
                 includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
                 includes.Add(CoreIncludes.kPassDepthOnly, IncludeLocation.Postgraph);
 

@@ -39,11 +39,9 @@ void ApplyDoubleSidedFlipOrMirror(inout FragInputs input, float3 doubleSidedCons
 #endif
 }
 
-// This function convert the tangent space normal/tangent to world space and orthonormalize it + apply a correction of the normal if it is not pointing towards the near plane
-void GetNormalWS(FragInputs input, float3 normalTS, out float3 normalWS, float3 doubleSidedConstants)
+#if defined(SURFACE_GRADIENT) || defined(DECAL_NORMAL_BLENDING)
+void GetNormalWS_SG(FragInputs input, float3 normalTS, out float3 normalWS, float3 doubleSidedConstants)
 {
-#ifdef SURFACE_GRADIENT
-
 #ifdef _DOUBLESIDED_ON
     // Flip the displacements (the entire surface gradient) in the 'flip normal' mode.
     float flipSign = input.isFrontFace ? 1.0 : doubleSidedConstants.x;
@@ -51,18 +49,24 @@ void GetNormalWS(FragInputs input, float3 normalTS, out float3 normalWS, float3 
 #endif
 
     normalWS = SurfaceGradientResolveNormal(input.tangentToWorld[2], normalTS);
+}
+#endif
 
-#else // SURFACE_GRADIENT
+// This function convert the tangent space normal/tangent to world space and orthonormalize it + apply a correction of the normal if it is not pointing towards the near plane
+void GetNormalWS(FragInputs input, float3 normalTS, out float3 normalWS, float3 doubleSidedConstants)
+{
+#if defined(SURFACE_GRADIENT)
+    GetNormalWS_SG(input, normalTS, normalWS, doubleSidedConstants);
+#else
 
-#ifdef _DOUBLESIDED_ON
+    #ifdef _DOUBLESIDED_ON
     float flipSign = input.isFrontFace ? 1.0 : doubleSidedConstants.x;
     normalTS.xy *= flipSign;
-#endif // _DOUBLESIDED_ON
+    #endif // _DOUBLESIDED_ON
 
     // We need to normalize as we use mikkt tangent space and this is expected (tangent space is not normalized)
     normalWS = SafeNormalize(TransformTangentToWorld(normalTS, input.tangentToWorld));
-
-#endif // SURFACE_GRADIENT
+#endif
 }
 
 // This function takes a world space src normal + applies a correction to the normal if it is not pointing towards the near plane.
