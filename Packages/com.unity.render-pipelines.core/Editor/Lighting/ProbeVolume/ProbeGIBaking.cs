@@ -5,6 +5,7 @@ using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine.SceneManagement;
 using UnityEditor;
+using ProbeVolumeDenoiser = UnityEngine.Rendering.ProbeVolumeDenoiser;
 
 using Brick = UnityEngine.Rendering.ProbeBrickIndex.Brick;
 using Cell = UnityEngine.Rendering.ProbeReferenceVolume.Cell;
@@ -213,6 +214,7 @@ namespace UnityEngine.Rendering
                 FetchResults,
                 WriteBakedData,
                 PerformDilation,
+                PerformDenoising,
                 None
             }
 
@@ -851,6 +853,16 @@ namespace UnityEngine.Rendering
             }
         }
 
+        internal static void PerformDenoising()
+        {
+            CellConvolutionDelegate denoiseLambda = cell => 
+            {
+                var denoiser = new ProbeVolumeDenoiser(cell);
+                //denoiser.Apply();
+            };
+            PerformPerCellConvolution(denoiseLambda, 1);
+        }
+
         static Dictionary<int, int> RemapBakedCells(bool isBakingSubset)
         {
             // When baking a baking set. It is possible that cells layout has changed (min and max position of cells in the set).
@@ -1247,6 +1259,10 @@ namespace UnityEngine.Rendering
 
             foreach (var data in fullSceneDataList)
                 data.QueueSceneLoading();
+
+            // ---- Perform denoising ---
+            using (new BakingCompleteProfiling(BakingCompleteProfiling.Stages.PerformDenoising))
+                PerformDenoising();
 
             // ---- Perform dilation ---
             using (new BakingCompleteProfiling(BakingCompleteProfiling.Stages.PerformDilation))

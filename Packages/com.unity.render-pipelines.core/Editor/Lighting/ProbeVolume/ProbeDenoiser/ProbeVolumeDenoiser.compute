@@ -1,0 +1,76 @@
+#pragma kernel DilateCell
+
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
+
+#include "Packages/com.unity.render-pipelines.core/Editor/Lighting/ProbeVolume/ProbeDenoiser/ProbeVolumeDenoiser.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/RawSphericalHarmonicsL2.hlsl"
+
+CBUFFER_START(APVDilation)
+    float4                          _CacheLowerBound;
+    float4                          _CacheDims;
+    float                           _ProbeDelta;
+    int                             _NumCachedProbes;
+    int                             _NumOutputProbes;
+CBUFFER_END
+
+StructuredBuffer<float3>            _ProbePositionsBuffer;
+RWStructuredBuffer<RawSphericalHarmonicsL2> _CachedCoeffs;
+RWStructuredBuffer<RawSphericalHarmonicsL2> _OutputCoeffs;
+
+void SampleProbeVolume(APVResources ctx, float3 uvw, out RawSphericalHarmonicsL2 coeffs)
+{
+    float4 L0_L1Rx = SAMPLE_TEXTURE3D_LOD(ctx.L0_L1Rx, s_point_clamp_sampler, uvw, 0).rgba;
+    float4 L1G_L1Ry = SAMPLE_TEXTURE3D_LOD(ctx.L1G_L1Ry, s_point_clamp_sampler, uvw, 0).rgba;
+    float4 L1B_L1Rz = SAMPLE_TEXTURE3D_LOD(ctx.L1B_L1Rz, s_point_clamp_sampler, uvw, 0).rgba;
+
+    float4 l2_R = SAMPLE_TEXTURE3D_LOD(ctx.L2_0, s_point_clamp_sampler, uvw, 0).rgba;
+    float4 l2_G = SAMPLE_TEXTURE3D_LOD(ctx.L2_1, s_point_clamp_sampler, uvw, 0).rgba;
+    float4 l2_B = SAMPLE_TEXTURE3D_LOD(ctx.L2_2, s_point_clamp_sampler, uvw, 0).rgba;
+    float4 l2_C = SAMPLE_TEXTURE3D_LOD(ctx.L2_3, s_point_clamp_sampler, uvw, 0).rgba;
+
+    coeffs.L0 = L0_L1Rx.xyz;
+    coeffs.L1_0 = float3(L0_L1Rx.w, L1G_L1Ry.x, L1B_L1Rz.x);
+    coeffs.L1_1 = float3(L1G_L1Ry.w, L1G_L1Ry.y, L1B_L1Rz.y);
+    coeffs.L1_2 = float3(L1B_L1Rz.w, L1G_L1Ry.z, L1B_L1Rz.z);
+
+    coeffs.L2_0 = float3(l2_R.x, l2_G.x, l2_B.x);
+    coeffs.L2_1 = float3(l2_R.y, l2_G.y, l2_B.y);
+    coeffs.L2_2 = float3(l2_R.z, l2_G.z, l2_B.z);
+    coeffs.L2_3 = float3(l2_R.w, l2_G.w, l2_B.w);
+    coeffs.L2_4 = float3(l2_C.x, l2_C.y, l2_C.z);
+}
+
+[numthreads(64, 1, 1)]
+void PopulateCache(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x < _NumCachedProbes)
+    {
+        int3 cacheDims = int3(_CacheDims.xyz);
+        int3 probeIdx = int3(id.x % cacheDims.x,
+                            (id.x / cacheDims.x) % cacheDims.y,
+                            id.x / (cacheDims.x * cacheDims.y));
+
+        float3 samplePos = _CacheLowerBound + float3(probeIdx) * _ProbeDelta;
+
+        float3 centralPosition = _ProbePositionsBuffer[probeIdx];
+        RawSphericalHarmonicsL2 coeffs = (RawSphericalHarmonicsL2)0;
+
+        float3 sampleUVW;
+        APVResources ctx = FillAPVResources();
+        if (TryToGetPoolUVW(ctx, samplePos, 0, 0, sampleUVW))
+        {
+            SampleProbeVolume(ctx, sampleUVW, coeffs);
+        }
+    }
+}
+
+[numthreads(64, 1, 1)]
+void DilateCell(uint3 id : SV_DispatchThreadID)
+{
+
+}
