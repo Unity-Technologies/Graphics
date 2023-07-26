@@ -94,6 +94,16 @@ namespace RenderPipelineGraphicsSettings
 
         #region SettingsDefinitions
 
+        class StripperTestsAsset : RenderPipelineAsset
+        {
+            protected override RenderPipeline CreatePipeline()
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        [Serializable]
+        [SupportedOnRenderPipeline(typeof(StripperTestsAsset))]
         public abstract class Base : IRenderPipelineGraphicsSettings
         {
             int IRenderPipelineGraphicsSettings.version => 0;
@@ -104,16 +114,19 @@ namespace RenderPipelineGraphicsSettings
             public virtual bool isAvailableInPlayerBuild => false;
         }
 
+        [Serializable]
         class A : Base
         {
             public override bool isAvailableInPlayerBuild => true;
         }
 
+        [Serializable]
         class B : Base
         {
             public override bool isAvailableInPlayerBuild => true;
         }
 
+        [Serializable]
         class C : Base
         {
         }

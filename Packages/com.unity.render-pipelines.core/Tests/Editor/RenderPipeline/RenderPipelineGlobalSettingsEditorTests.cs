@@ -17,7 +17,16 @@ public class RenderPipelineGlobalSettingsEditorTests
         public RenderPipelineGraphicsSettingsContainer graphicsSettingsContainer;
     }
 
+    class RenderPipelineEditorTestsAsset : RenderPipelineAsset
+    {
+        protected override RenderPipeline CreatePipeline()
+        {
+            throw new NotImplementedException();
+        }
+    }
+
     [Serializable]
+    [SupportedOnRenderPipeline(typeof(RenderPipelineEditorTestsAsset))]
     public class Base : IRenderPipelineGraphicsSettings
     {
         int IRenderPipelineGraphicsSettings.version => 0;
