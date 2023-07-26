@@ -174,10 +174,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public float _UnderWaterCausticsShadowIntensity;
         public float _UnderWaterCausticsRegionSize;
 
+        public int _PreRefractionPass;
         public int _SpecularFade;
         public uint _EnableRenderingLayers;
         public int _ReflectionsMode;
-        public int _Padding;
 
         public uint _DirectionalLightCount;
         public uint _PunctualLightCount;
