@@ -64,3 +64,8 @@ For the box projection to work:
 * Select the **Box Projection** check box on the [URP asset](#configuring-reflection-probe-settings).
 
 * Select the **Box Projection** property on the reflection probe.
+
+## Limitations
+
+When performing indirect draw calls, Unity does not support reflection probes in the **Deferred** and the **Forward** rendering paths. Unity supports them in the **Forward+** rendering path.
+
