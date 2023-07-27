@@ -12,6 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ff771ccdf4150419d9ff4d342b069aae, type: 3}
   m_Name: BeforeStart_01
   m_EditorClassIdentifier: 
+  Title:
+    m_Untranslated: Quality and Performance
   m_Paragraphs:
     m_Items:
     - m_Type: 6
@@ -35,7 +37,7 @@ MonoBehaviour:
       m_TutorialButtonText: 
     - m_Type: 0
       Title:
-        m_Untranslated: Quality and Performance
+        m_Untranslated: 
       Text:
         m_Untranslated: 'Take a moment to adjust your Quality Settings for a smooth
           tutorial experience,  under <b>Edit</b> > <b>Project Settings</b> > <b>Quality.</b>
@@ -49,10 +51,10 @@ MonoBehaviour:
 
 
           Finally, for the best image
-          quality without noticeable aliasing, enable <b>Temporal Anti-aliasing</b>
-          and <b>Always Refresh</b> in the <a href="https://docs.unity3d.com/2021.2/Documentation/Manual/ViewModes.html">Scene
-          view View Options toolbar</a> located by default at the top right corner
-          of the Scene view Window.'
+          quality without noticeable aliasing, enable <b>Temporal Anti-aliasing</b>(camera
+          icon) and <b>Always Refresh</b>(layers icon) in the <a href="https://docs.unity3d.com/2021.2/Documentation/Manual/ViewModes.html">Scene
+          View Options toolbar</a> by default located at the top right corner of
+          the Scene view Window.'
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
