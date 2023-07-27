@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Reflection;
+using System.Text;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -18,6 +19,9 @@ namespace UnityEditor.Rendering
             SortedDictionary<string, SortedDictionary<string, PropertyField>> categories = new();
             foreach (SerializedProperty prop in property.Copy())
             {
+                if (prop == null || prop.boxedValue == null)
+                    continue;
+
                 var type = prop.boxedValue.GetType();
 
                 //remove array length property
@@ -77,29 +81,6 @@ namespace UnityEditor.Rendering
                     foldout.Add(element.Value);
                 root.Add(foldout);
             }
-
-            return root;
-        }
-    }
-
-    //The purpose is to remove the foldout drown from the ISRPGraphicsSetting itself,
-    //only if there is no dedicated CustomPropertyDrawer.
-    [CustomPropertyDrawer(typeof(IRenderPipelineGraphicsSettings), useForChildren: true)]
-    class ISRPGraphicsSettingPropertyDrawer : PropertyDrawer
-    {
-        public override VisualElement CreatePropertyGUI(SerializedProperty property)
-        {
-            VisualElement root = new();
-
-            bool atLeastOneChild = false;
-            foreach (SerializedProperty prop in property.Copy())
-            {
-                atLeastOneChild = true;
-                root.Add(new PropertyField(prop));
-            }
-
-            if (!atLeastOneChild)
-                root.Add(new Label($"This {nameof(IRenderPipelineGraphicsSettings)} is empty."));
 
             return root;
         }
