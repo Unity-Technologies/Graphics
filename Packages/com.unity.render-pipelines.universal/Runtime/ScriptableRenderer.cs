@@ -5,16 +5,17 @@ using Unity.Collections;
 using UnityEditor;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
-using UnityEngine.Profiling;
 
 namespace UnityEngine.Rendering.Universal
 {
     /// <summary>
     /// Utility class to store handles of frame resources for communication between passes.
     /// </summary>
-    public class FrameResources
+    public sealed class FrameResources
     {
         Dictionary<Hash128, TextureHandle> m_TextureHandles = new();
+
+        internal FrameData frameData = new();
 
         static uint s_TypeCount;
 
@@ -743,7 +744,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Called by Dispose().
         /// Override this function to clean up resources in your renderer.
-        /// Be sure to call this base dispose in your overridden function to free resources allocated by the base. 
+        /// Be sure to call this base dispose in your overridden function to free resources allocated by the base.
         /// </summary>
         /// <param name="disposing"></param>
         protected virtual void Dispose(bool disposing)
@@ -1576,7 +1577,7 @@ namespace UnityEngine.Rendering.Universal
             // Selectively enable foveated rendering
             if (cameraData.xr.supportsFoveatedRendering)
             {
-                if ((renderPass.renderPassEvent >= RenderPassEvent.BeforeRenderingPrePasses && renderPass.renderPassEvent < RenderPassEvent.BeforeRenderingPostProcessing) 
+                if ((renderPass.renderPassEvent >= RenderPassEvent.BeforeRenderingPrePasses && renderPass.renderPassEvent < RenderPassEvent.BeforeRenderingPostProcessing)
                     || (renderPass.renderPassEvent > RenderPassEvent.AfterRendering && XRSystem.foveatedRenderingCaps.HasFlag(FoveatedRenderingCaps.FoveationImage)))
                 {
                     cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Enabled);

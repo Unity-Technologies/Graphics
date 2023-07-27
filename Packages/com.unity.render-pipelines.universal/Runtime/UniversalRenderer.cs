@@ -521,7 +521,7 @@ namespace UnityEngine.Rendering.Universal
             if (DebugHandler != null)
             {
                 DebugHandler.Setup(ref renderingData);
-                
+
                 if (DebugHandler.IsActiveForCamera(ref cameraData))
                 {
                     if (DebugHandler.WriteToDebugScreenTexture(ref cameraData))
@@ -529,7 +529,7 @@ namespace UnityEngine.Rendering.Universal
                         RenderTextureDescriptor colorDesc = cameraData.cameraTargetDescriptor;
                         DebugHandler.ConfigureColorDescriptorForDebugScreen(ref colorDesc, cameraData.pixelWidth, cameraData.pixelHeight);
                         RenderingUtils.ReAllocateIfNeeded(ref DebugHandler.DebugScreenColorHandle, colorDesc, name: "_DebugScreenColor");
-                        
+
                         RenderTextureDescriptor depthDesc = cameraData.cameraTargetDescriptor;
                         DebugHandler.ConfigureDepthDescriptorForDebugScreen(ref depthDesc, k_DepthStencilFormat, cameraData.pixelWidth, cameraData.pixelHeight);
                         RenderingUtils.ReAllocateIfNeeded(ref DebugHandler.DebugScreenDepthHandle, depthDesc, name: "_DebugScreenDepth");
