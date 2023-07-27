@@ -853,7 +853,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_CurrentScreenSpaceShadowData = new ScreenSpaceShadowData[numMaxShadows];
 
             // Surface gradient decal blending
-            if (asset.currentPlatformRenderPipelineSettings.supportSurfaceGradient)
+            if (asset.currentPlatformRenderPipelineSettings.supportDecals && asset.currentPlatformRenderPipelineSettings.supportSurfaceGradient)
                 Shader.EnableKeyword("DECAL_SURFACE_GRADIENT");
             else
                 Shader.DisableKeyword("DECAL_SURFACE_GRADIENT");

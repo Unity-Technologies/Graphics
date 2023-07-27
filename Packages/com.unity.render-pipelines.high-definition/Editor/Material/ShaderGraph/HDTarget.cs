@@ -1561,6 +1561,16 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             stages = KeywordShaderStage.Fragment,
         };
 
+        public static KeywordDescriptor DecalSurfaceGradientRayTracing = new KeywordDescriptor
+        {
+            displayName = "Additive normal blending",
+            referenceName = "DECAL_SURFACE_GRADIENT",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+            stages = KeywordShaderStage.RayTracing,
+        };
+
         public static KeywordDescriptor DisableSSR = new KeywordDescriptor
         {
             displayName = "Disable SSR",
