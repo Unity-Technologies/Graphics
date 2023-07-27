@@ -1233,6 +1233,23 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _VolumetricTiling = Shader.PropertyToID("_Tiling");
         public static readonly int _VolumetricViewCount = Shader.PropertyToID("_ViewCount");
         public static readonly int _VolumetricMaterialDataCBuffer = Shader.PropertyToID("VolumetricMaterialDataCBuffer");
+
+        // Inline Debugger
+        public static readonly int _GPUInlineDebugDrawerLinesWSProduce = Shader.PropertyToID("_GPUInlineDebugDrawerLinesWSProduce");
+        public static readonly int _GPUInlineDebugDrawerLinesWSConsume = Shader.PropertyToID("_GPUInlineDebugDrawerLinesWSConsume");
+
+        public static readonly int _GPUInlineDebugDrawerLinesCSProduce = Shader.PropertyToID("_GPUInlineDebugDrawerLinesCSProduce");
+        public static readonly int _GPUInlineDebugDrawerLinesCSConsume = Shader.PropertyToID("_GPUInlineDebugDrawerLinesCSConsume");
+
+        public static readonly int _GPUInlineDebugDrawer_PlotRingBuffer = Shader.PropertyToID("_GPUInlineDebugDrawer_PlotRingBuffer");
+        public static readonly int _GPUInlineDebugDrawer_PlotRingBufferStart = Shader.PropertyToID("_GPUInlineDebugDrawer_PlotRingBufferStart");
+        public static readonly int _GPUInlineDebugDrawer_PlotRingBufferEnd = Shader.PropertyToID("_GPUInlineDebugDrawer_PlotRingBufferEnd");
+
+        public static readonly int _GPUInlineDebugDrawer_PlotRingBufferRead = Shader.PropertyToID("_GPUInlineDebugDrawer_PlotRingBufferRead");
+        public static readonly int _GPUInlineDebugDrawer_PlotRingBufferStartRead = Shader.PropertyToID("_GPUInlineDebugDrawer_PlotRingBufferStartRead");
+        public static readonly int _GPUInlineDebugDrawer_PlotRingBufferEndRead = Shader.PropertyToID("_GPUInlineDebugDrawer_PlotRingBufferEndRead");
+
+        public static readonly int _GPUInlineDebugDrawerMousePos = Shader.PropertyToID("_GPUInlineDebugDrawerMousePos");
     }
 
     /// <summary>

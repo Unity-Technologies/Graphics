@@ -55,6 +55,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 commandBuffer.SetGlobalBuffer(HDShaderIDs._DepthPyramidMipLevelOffsets, hdCamera.depthBufferMipChainInfo.GetOffsetBufferData(m_DepthPyramidMipLevelOffsetsBuffer));
 
 #if UNITY_EDITOR
+                GPUInlineDebugDrawer.BindProducers(hdCamera, m_RenderGraph);
+#endif
+
+#if UNITY_EDITOR
                 var showGizmos = camera.cameraType == CameraType.Game
                     || camera.cameraType == CameraType.SceneView;
 #endif
@@ -333,6 +337,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 PushFullScreenExposureDebugTexture(m_RenderGraph, postProcessDest, fullScreenDebugFormat);
                 PushFullScreenHDRDebugTexture(m_RenderGraph, postProcessDest, fullScreenDebugFormat);
                 PushFullScreenDebugTexture(m_RenderGraph, colorBuffer, FullScreenDebugMode.VolumetricFog);
+
+#if UNITY_EDITOR
+                GPUInlineDebugDrawer.Draw(m_RenderGraph);
+#endif
 
                 if (aovRequest.isValid)
                 {

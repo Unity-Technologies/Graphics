@@ -685,6 +685,10 @@ namespace UnityEngine.Rendering.HighDefinition
             Hammersley.Initialize();
 
             LocalVolumetricFogManager.manager.InitializeGraphicsBuffers(asset.currentPlatformRenderPipelineSettings.lightLoopSettings.maxLocalVolumetricFogOnScreen);
+
+#if UNITY_EDITOR
+            GPUInlineDebugDrawer.Initialize(m_GlobalSettings.renderPipelineEditorResources);
+#endif
         }
 
 #if UNITY_EDITOR
@@ -1062,6 +1066,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 HDUtils.ReleaseComponentSingletons();
 
             LocalVolumetricFogManager.manager.CleanupGraphicsBuffers();
+
+#if UNITY_EDITOR
+            GPUInlineDebugDrawer.Dispose();
+#endif
         }
 
         void Resize(HDCamera hdCamera)
