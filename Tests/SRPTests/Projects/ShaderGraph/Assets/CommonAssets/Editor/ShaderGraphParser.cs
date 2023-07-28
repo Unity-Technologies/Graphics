@@ -165,7 +165,7 @@ public class ShaderGraphParser
         }
     }
 
-    // For testing if nodes are connected to the master node but currenlty I'm unsure how to convert
+    // For testing if nodes are connected to the master node but currently I'm unsure how to convert
     // the the string path into the shader graph master node that DepthFirstCollectNodesFromNode needs.
     // Likely unnecessary, as we can just be sure that all nodes are being used by looking at the shader
     // graphs, and that still won't make sure that every shader graph is being used in the test scenes anyhow.
@@ -176,7 +176,7 @@ public class ShaderGraphParser
     //    IShaderGraph isg;
     //
     //    IMasterNode imn = null;
-    //    var theNodes = ListPool<INode>.Get();
+    //    var theNodes = HashSetPool<INode>.Get();
     //    NodeUtils.DepthFirstCollectNodesFromNode(theNodes, imn);
     //}
 

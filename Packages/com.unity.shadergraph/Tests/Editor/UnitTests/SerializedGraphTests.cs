@@ -399,7 +399,7 @@ namespace UnityEditor.Graphing.UnitTests
             outputNode.SetOverrideActiveState(AbstractMaterialNode.ActiveState.ExplicitActive);
             middleNode.SetOverrideActiveState(AbstractMaterialNode.ActiveState.ExplicitActive);
             inputNode.SetOverrideActiveState(AbstractMaterialNode.ActiveState.ExplicitActive);
-            List<AbstractMaterialNode> result = new List<AbstractMaterialNode>();
+            var result = new HashSet<AbstractMaterialNode>();
             NodeUtils.DepthFirstCollectNodesFromNode(result, inputNode);
             Assert.AreEqual(3, result.Count);
 

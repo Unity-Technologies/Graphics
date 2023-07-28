@@ -103,7 +103,7 @@ namespace UnityEditor.Graphing
             return node.GetSlotReference(RedirectNodeData.kInputSlotID);
         }
 
-        public static void DepthFirstCollectNodesFromNode(List<AbstractMaterialNode> nodeList, AbstractMaterialNode node,
+        public static void DepthFirstCollectNodesFromNode(ICollection<AbstractMaterialNode> nodeList, AbstractMaterialNode node,
             IncludeSelf includeSelf = IncludeSelf.Include, List<KeyValuePair<ShaderKeyword, int>> keywordPermutation = null, bool ignoreActiveState = false)
         {
             // no where to start

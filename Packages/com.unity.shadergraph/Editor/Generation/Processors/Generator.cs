@@ -215,7 +215,7 @@ namespace UnityEditor.ShaderGraph
                     m_PrimaryShaderFullName :
                     additionalShaderID.Replace("{Name}", m_PrimaryShaderFullName, StringComparison.Ordinal);
 
-            var activeNodeList = Pool.ListPool<AbstractMaterialNode>.Get();
+            var activeNodeList = Pool.HashSetPool<AbstractMaterialNode>.Get();
             bool ignoreActiveState = (m_Mode == GenerationMode.Preview);  // for previews, we ignore node active state
             if (m_OutputNode == null)
             {
@@ -263,7 +263,7 @@ namespace UnityEditor.ShaderGraph
                 return ErrorShader(shaderName, $"Error in Shader Graph {path}: {ShaderKeyword.kVariantLimitWarning}");
             }
 
-            foreach (var activeNode in activeNodeList.OfType<AbstractMaterialNode>())
+            foreach (var activeNode in activeNodeList)
             {
                 activeNode.SetUsedByGenerator();
                 activeNode.CollectShaderProperties(shaderProperties, m_Mode);

@@ -502,8 +502,11 @@ namespace UnityEditor.ShaderGraph
                 for (int i = 0; i < keywordCollector.permutations.Count; i++)
                 {
                     // Get active nodes for this permutation
-                    var localVertexNodes = Pool.ListPool<AbstractMaterialNode>.Get();
-                    var localPixelNodes = Pool.ListPool<AbstractMaterialNode>.Get();
+                    var localVertexNodes = Pool.HashSetPool<AbstractMaterialNode>.Get();
+                    var localPixelNodes = Pool.HashSetPool<AbstractMaterialNode>.Get();
+
+                    localVertexNodes.EnsureCapacity(vertexNodes.Count);
+                    localPixelNodes.EnsureCapacity(pixelNodes.Count);
 
                     foreach (var vertexNode in vertexNodes)
                     {
