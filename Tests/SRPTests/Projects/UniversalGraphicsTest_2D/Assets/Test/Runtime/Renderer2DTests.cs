@@ -1,5 +1,6 @@
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering.Universal;
 using UnityEngine.Rendering.Universal;
 
 [TestFixture]
@@ -107,5 +108,20 @@ class Renderer2DTests
 
         Assert.IsTrue(overlayRenderer.createColorTexture);
         Assert.IsTrue(overlayRenderer.createDepthTexture);
+    }
+
+    [Test]
+    public void PixelPerfectCameraZeroScale()
+    {
+        m_BaseObj.AddComponent<PixelPerfectCamera>();
+
+        // Check for errors if scale is set to zero
+        m_BaseCamera.transform.localScale = Vector3.zero;
+
+        m_BaseCamera.Render();
+
+        bool valid = m_BaseCamera.worldToCameraMatrix.ValidTRS();
+
+        Assert.IsTrue(valid);
     }
 }
