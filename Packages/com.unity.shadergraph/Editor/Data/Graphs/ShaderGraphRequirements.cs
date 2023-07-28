@@ -199,83 +199,105 @@ namespace UnityEditor.ShaderGraph.Internal
             return newReqs;
         }
 
-        internal static ShaderGraphRequirements FromNodes<T>(List<T> nodes, ShaderStageCapability stageCapability = ShaderStageCapability.All, bool includeIntermediateSpaces = true, bool[] texCoordNeedsDerivs = null)
+        internal static ShaderGraphRequirements FromNodes<T>(IEnumerable<T> nodes, ShaderStageCapability stageCapability = ShaderStageCapability.All, bool includeIntermediateSpaces = true, bool[] texCoordNeedsDerivs = null)
             where T : AbstractMaterialNode
         {
-            var requiresTransforms = nodes.OfType<IMayRequireTransform>().SelectMany(o => o.RequiresTransform()).Distinct().ToList();
-            NeededCoordinateSpace requiresNormal = nodes.OfType<IMayRequireNormal>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresNormal(stageCapability));
-            NeededCoordinateSpace requiresBitangent = nodes.OfType<IMayRequireBitangent>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresBitangent(stageCapability));
-            NeededCoordinateSpace requiresTangent = nodes.OfType<IMayRequireTangent>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresTangent(stageCapability));
-            NeededCoordinateSpace requiresViewDir = nodes.OfType<IMayRequireViewDirection>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresViewDirection(stageCapability));
-            NeededCoordinateSpace requiresPosition = nodes.OfType<IMayRequirePosition>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresPosition(stageCapability));
-            NeededCoordinateSpace requiresPredisplacement = nodes.OfType<IMayRequirePositionPredisplacement>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresPositionPredisplacement(stageCapability));
-            bool requiresScreenPosition = nodes.OfType<IMayRequireScreenPosition>().Any(x => x.RequiresScreenPosition(stageCapability));
-            bool requiresNDCPosition = nodes.OfType<IMayRequireNDCPosition>().Any(x => x.RequiresNDCPosition(stageCapability));
-            bool requiresPixelPosition = nodes.OfType<IMayRequirePixelPosition>().Any(x => x.RequiresPixelPosition(stageCapability));
-            bool requiresVertexColor = nodes.OfType<IMayRequireVertexColor>().Any(x => x.RequiresVertexColor(stageCapability));
-            bool requiresFaceSign = nodes.OfType<IMayRequireFaceSign>().Any(x => x.RequiresFaceSign());
-            bool requiresDepthTexture = nodes.OfType<IMayRequireDepthTexture>().Any(x => x.RequiresDepthTexture());
-            bool requiresCameraOpaqueTexture = nodes.OfType<IMayRequireCameraOpaqueTexture>().Any(x => x.RequiresCameraOpaqueTexture());
-            bool requiresTime = nodes.Any(x => x.RequiresTime());
-            bool requiresVertexSkinning = nodes.OfType<IMayRequireVertexSkinning>().Any(x => x.RequiresVertexSkinning(stageCapability));
-            bool requiresVertexID = nodes.OfType<IMayRequireVertexID>().Any(x => x.RequiresVertexID(stageCapability));
+            var reqs = new ShaderGraphRequirements();
 
-            var meshUV = new List<UVChannel>();
-            var meshUVDerivatives = new List<UVChannel>();
-            for (int uvIndex = 0; uvIndex < ShaderGeneratorNames.UVCount; ++uvIndex)
+            reqs.m_RequiresTransforms = new List<NeededTransform>();
+            reqs.m_RequiresMeshUVs = new List<UVChannel>();
+            reqs.m_RequiresMeshUVDerivatives = new List<UVChannel>();
+
+            foreach (var node in nodes)
             {
-                var channel = (UVChannel)uvIndex;
-                if (nodes.OfType<IMayRequireMeshUV>().Any(x => x.RequiresMeshUV(channel)))
+                if (node is IMayRequireTransform a)
+                    reqs.m_RequiresTransforms.AddRange(a.RequiresTransform());
+
+                if (node is IMayRequireNormal b)
+                    reqs.m_RequiresNormal |= b.RequiresNormal(stageCapability);
+
+                if (node is IMayRequireBitangent c)
+                    reqs.m_RequiresBitangent |= c.RequiresBitangent(stageCapability);
+
+                if (node is IMayRequireTangent d)
+                    reqs.m_RequiresTangent |= d.RequiresTangent(stageCapability);
+
+                if (node is IMayRequireViewDirection e)
+                    reqs.m_RequiresViewDir |= e.RequiresViewDirection(stageCapability);
+
+                if (node is IMayRequirePosition f)
+                    reqs.m_RequiresPosition |= f.RequiresPosition(stageCapability);
+
+                if (node is IMayRequirePositionPredisplacement g)
+                    reqs.m_RequiresPositionPredisplacement |= g.RequiresPositionPredisplacement(stageCapability);
+
+                if (!reqs.m_RequiresScreenPosition && node is IMayRequireScreenPosition h)
+                    reqs.m_RequiresScreenPosition = h.RequiresScreenPosition(stageCapability);
+
+                if (!reqs.m_RequiresNDCPosition && node is IMayRequireNDCPosition i)
+                    reqs.m_RequiresNDCPosition = i.RequiresNDCPosition(stageCapability);
+
+                if (!reqs.m_RequiresPixelPosition && node is IMayRequirePixelPosition j)
+                    reqs.m_RequiresPixelPosition = j.RequiresPixelPosition(stageCapability);
+
+                if (!reqs.m_RequiresVertexColor && node is IMayRequireVertexColor k)
+                    reqs.m_RequiresVertexColor = k.RequiresVertexColor(stageCapability);
+
+                if (!reqs.m_RequiresFaceSign && node is IMayRequireFaceSign l)
+                    reqs.m_RequiresFaceSign = l.RequiresFaceSign(stageCapability);
+
+                if (!reqs.m_RequiresDepthTexture && node is IMayRequireDepthTexture m)
+                    reqs.m_RequiresDepthTexture = m.RequiresDepthTexture(stageCapability);
+
+                if (!reqs.m_RequiresCameraOpaqueTexture && node is IMayRequireCameraOpaqueTexture n)
+                    reqs.m_RequiresCameraOpaqueTexture = n.RequiresCameraOpaqueTexture(stageCapability);
+
+                if (!reqs.m_RequiresTime)
+                    reqs.m_RequiresTime = node.RequiresTime();
+
+                if (!reqs.m_RequiresVertexSkinning && node is IMayRequireVertexSkinning o)
+                    reqs.m_RequiresVertexSkinning = o.RequiresVertexSkinning(stageCapability);
+
+                if (!reqs.m_RequiresVertexID && node is IMayRequireVertexID p)
+                    reqs.m_RequiresVertexID = p.RequiresVertexID(stageCapability);
+
+                if (node is IMayRequireMeshUV q)
                 {
-                    meshUV.Add(channel);
-                    if (texCoordNeedsDerivs is not null &&
-                        uvIndex < texCoordNeedsDerivs.Length &&
-                        texCoordNeedsDerivs[uvIndex])
+                    for (int uvIndex = 0; uvIndex < ShaderGeneratorNames.UVCount; ++uvIndex)
                     {
-                        meshUVDerivatives.Add(channel);
+                        var channel = (UVChannel)uvIndex;
+                        if (q.RequiresMeshUV(channel))
+                        {
+                            reqs.m_RequiresMeshUVs.Add(channel);
+                            if (texCoordNeedsDerivs is not null &&
+                                uvIndex < texCoordNeedsDerivs.Length &&
+                                texCoordNeedsDerivs[uvIndex])
+                            {
+                                reqs.m_RequiresMeshUVDerivatives.Add(channel);
+                            }
+                        }
                     }
                 }
             }
+
+            reqs.m_RequiresTransforms = reqs.m_RequiresTransforms.Distinct().ToList();
 
             // if anything needs tangentspace we have make
             // sure to have our othonormal basis!
             if (includeIntermediateSpaces)
             {
-                var compoundSpaces = requiresBitangent | requiresNormal | requiresPosition
-                    | requiresTangent | requiresViewDir | requiresPosition
-                    | requiresNormal;
+                var compoundSpaces = reqs.m_RequiresBitangent | reqs.m_RequiresNormal | reqs.m_RequiresPosition
+                    | reqs.m_RequiresTangent | reqs.m_RequiresViewDir | reqs.m_RequiresPosition
+                    | reqs.m_RequiresNormal;
 
                 var needsTangentSpace = (compoundSpaces & NeededCoordinateSpace.Tangent) > 0;
                 if (needsTangentSpace)
                 {
-                    requiresBitangent |= NeededCoordinateSpace.World;
-                    requiresNormal |= NeededCoordinateSpace.World;
-                    requiresTangent |= NeededCoordinateSpace.World;
+                    reqs.m_RequiresBitangent |= NeededCoordinateSpace.World;
+                    reqs.m_RequiresNormal |= NeededCoordinateSpace.World;
+                    reqs.m_RequiresTangent |= NeededCoordinateSpace.World;
                 }
             }
-
-            var reqs = new ShaderGraphRequirements()
-            {
-                m_RequiresTransforms = requiresTransforms,
-                m_RequiresNormal = requiresNormal,
-                m_RequiresBitangent = requiresBitangent,
-                m_RequiresTangent = requiresTangent,
-                m_RequiresViewDir = requiresViewDir,
-                m_RequiresPosition = requiresPosition,
-                m_RequiresPositionPredisplacement = requiresPredisplacement,
-                m_RequiresScreenPosition = requiresScreenPosition,
-                m_RequiresNDCPosition = requiresNDCPosition,
-                m_RequiresPixelPosition = requiresPixelPosition,
-                m_RequiresVertexColor = requiresVertexColor,
-                m_RequiresFaceSign = requiresFaceSign,
-                m_RequiresMeshUVs = meshUV,
-                m_RequiresMeshUVDerivatives = meshUVDerivatives,
-                m_RequiresDepthTexture = requiresDepthTexture,
-                m_RequiresCameraOpaqueTexture = requiresCameraOpaqueTexture,
-                m_RequiresTime = requiresTime,
-                m_RequiresVertexSkinning = requiresVertexSkinning,
-                m_RequiresVertexID = requiresVertexID,
-            };
 
             return reqs;
         }
