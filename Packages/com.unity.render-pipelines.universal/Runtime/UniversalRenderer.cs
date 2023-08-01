@@ -734,11 +734,13 @@ namespace UnityEngine.Rendering.Universal
                 if (cameraData.xr.enabled)
                     targetId = cameraData.xr.renderTarget;
 #endif
-
-                if (m_XRTargetHandleAlias == null || m_XRTargetHandleAlias.nameID != targetId)
+                if (m_XRTargetHandleAlias == null)
                 {
-                    m_XRTargetHandleAlias?.Release();
                     m_XRTargetHandleAlias = RTHandles.Alloc(targetId);
+                }
+                else if (m_XRTargetHandleAlias.nameID != targetId)
+                {
+                    RTHandleStaticHelpers.SetRTHandleUserManagedWrapper(ref m_XRTargetHandleAlias, targetId);
                 }
 
                 // Doesn't create texture for Overlay cameras as they are already overlaying on top of created textures.

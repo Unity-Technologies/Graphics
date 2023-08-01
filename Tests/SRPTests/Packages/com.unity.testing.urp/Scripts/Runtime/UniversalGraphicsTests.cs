@@ -59,22 +59,11 @@ public class UniversalGraphicsTests
         ImageAssert.AreEqual(testCase.ReferenceImage, cameras.Where(x => x != null), settings.ImageComparisonSettings);
 
         // Does it allocate memory when it renders what's on the main camera?
-        bool allocatesMemory = false;
         var mainCamera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
 
         if (settings == null || settings.CheckMemoryAllocation)
         {
-            try
-            {
-                ImageAssert.AllocatesMemory(mainCamera, settings?.ImageComparisonSettings);
-            }
-            catch (AssertionException)
-            {
-                allocatesMemory = true;
-            }
-
-            if (allocatesMemory)
-                Assert.Fail("Allocated memory when rendering what is on main camera");
+			yield return ImageAssert.CheckGCAllocWithCallstack(mainCamera, settings?.ImageComparisonSettings);
         }
     }
 

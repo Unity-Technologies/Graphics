@@ -172,6 +172,8 @@ namespace UnityEngine.Rendering.Universal
         internal static bool cameraStackRequiresDepthForPostprocessing = false;
 
         internal static RenderGraph s_RenderGraph;
+        internal static RTHandleResourcePool s_RTHandlePool;
+
         private static bool useRenderGraph;
 
         // Reference to the asset associated with the pipeline.
@@ -235,6 +237,8 @@ namespace UnityEngine.Rendering.Universal
             s_RenderGraph = new RenderGraph("URPRenderGraph");
             useRenderGraph = false;
 
+            s_RTHandlePool = new RTHandleResourcePool();
+
             DebugManager.instance.RefreshEditor();
             m_DebugDisplaySettingsUI.RegisterDebug(UniversalRenderPipelineDebugDisplaySettings.Instance);
 
@@ -261,6 +265,8 @@ namespace UnityEngine.Rendering.Universal
             s_RenderGraph.Cleanup();
             s_RenderGraph = null;
 
+            s_RTHandlePool.Cleanup();
+            s_RTHandlePool = null;
 #if UNITY_EDITOR
             SceneViewDrawMode.ResetDrawMode();
 #endif
@@ -383,6 +389,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             s_RenderGraph.EndFrame();
+            s_RTHandlePool.PurgeUnusedResources(Time.frameCount);
 
 #if UNITY_2021_1_OR_NEWER
             using (new ProfilingScope(null, Profiling.Pipeline.endContextRendering))
