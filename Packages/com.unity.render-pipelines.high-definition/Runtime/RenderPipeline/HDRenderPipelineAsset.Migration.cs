@@ -380,7 +380,7 @@ namespace UnityEngine.Rendering.HighDefinition
             => Migrate();
 
         bool IMigratableAsset.IsAtLastVersion()
-            => m_Version == MigrationDescription.LastVersion<Version>();
+            => m_Version >= MigrationDescription.LastVersion<Version>();
 
         internal bool IsVersionBelowAddedHDRenderPipelineGlobalSettings()
             => m_Version < Version.AddedHDRenderPipelineGlobalSettings;
