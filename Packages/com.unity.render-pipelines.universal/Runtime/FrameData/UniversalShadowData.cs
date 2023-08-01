@@ -7,7 +7,7 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// Container class for various data used for shadows in URP.
     /// </summary>
-    class UniversalShadowData : FrameDataItem
+    class UniversalShadowData : ContextItem
     {
         /// <summary>
         /// True if main light shadows are enabled.

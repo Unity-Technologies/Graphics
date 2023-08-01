@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// Class that holds settings related to lights.
     /// </summary>
-    class UniversalLightData : FrameDataItem
+    class UniversalLightData : ContextItem
     {
         /// <summary>
         /// Holds the main light index from the <c>VisibleLight</c> list returned by culling. If there's no main light in the scene, <c>mainLightIndex</c> is set to -1.

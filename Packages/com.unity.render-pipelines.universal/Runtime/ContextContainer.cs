@@ -1,22 +1,18 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using Unity.Collections.LowLevel.Unsafe;
 using Unity.Mathematics;
-using UnityEngine;
-using UnityEngine.Assertions;
 
 namespace UnityEngine.Rendering.Universal
 {
-    internal class FrameData : IDisposable
+    internal class ContextContainer : IDisposable
     {
         Item[] m_Items = new Item[64];
         List<uint> m_ActiveItemIndices = new();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T Get<T>()
-            where T : FrameDataItem, new()
+            where T : ContextItem, new()
         {
             var typeId = TypeId<T>.value;
             if (!Contains(typeId))
@@ -30,7 +26,7 @@ namespace UnityEngine.Rendering.Universal
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T Create<T>([CallerLineNumber] int lineNumber = 0, [CallerMemberName] string memberName = "", [CallerFilePath] string filePath = "")
-            where T : FrameDataItem, new()
+            where T : ContextItem, new()
         {
             var typeId = TypeId<T>.value;
             if (Contains(typeId))
@@ -43,7 +39,7 @@ namespace UnityEngine.Rendering.Universal
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T GetOrCreate<T>([CallerLineNumber] int lineNumber = 0, [CallerMemberName] string memberName = "", [CallerFilePath] string filePath = "")
-            where T : FrameDataItem, new()
+            where T : ContextItem, new()
         {
             var typeId = TypeId<T>.value;
             if (Contains(typeId))
@@ -56,7 +52,7 @@ namespace UnityEngine.Rendering.Universal
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Contains<T>()
-            where T : FrameDataItem, new()
+            where T : ContextItem, new()
         {
             var typeId = TypeId<T>.value;
             return Contains(typeId);
@@ -66,7 +62,7 @@ namespace UnityEngine.Rendering.Universal
         bool Contains(uint typeId) => typeId < m_Items.Length && m_Items[typeId].isSet;
 
         T CreateAndGetData<T>(uint typeId, int lineNumber, string memberName, string filePath)
-            where T : FrameDataItem, new()
+            where T : ContextItem, new()
         {
             if (m_Items.Length <= typeId)
             {
@@ -110,7 +106,7 @@ namespace UnityEngine.Rendering.Universal
 
         struct Item
         {
-            public FrameDataItem storage;
+            public ContextItem storage;
             public bool isSet;
             public int lineNumber;
             public string memberName;
@@ -119,7 +115,7 @@ namespace UnityEngine.Rendering.Universal
 
     }
 
-    abstract class FrameDataItem
+    abstract class ContextItem
     {
         public abstract void Reset();
     }

@@ -15,7 +15,7 @@ namespace UnityEngine.Rendering.Universal
     {
         Dictionary<Hash128, TextureHandle> m_TextureHandles = new();
 
-        internal FrameData frameData = new();
+        internal ContextContainer frameData = new();
 
         static uint s_TypeCount;
 

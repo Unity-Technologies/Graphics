@@ -1184,7 +1184,7 @@ namespace UnityEngine.Rendering.Universal
             return renderer;
         }
 
-        static UniversalCameraData CreateCameraData(FrameData frameData, Camera camera, UniversalAdditionalCameraData additionalCameraData, bool resolveFinalTarget)
+        static UniversalCameraData CreateCameraData(ContextContainer frameData, Camera camera, UniversalAdditionalCameraData additionalCameraData, bool resolveFinalTarget)
         {
             using var profScope = new ProfilingScope(Profiling.Pipeline.initializeCameraData);
 
@@ -1437,7 +1437,7 @@ namespace UnityEngine.Rendering.Universal
             cameraData.backgroundColor = CoreUtils.ConvertSRGBToActiveColorSpace(backgroundColorSRGB);
         }
 
-        static void CreateRenderingData(FrameData frameData, UniversalRenderPipelineAsset settings,
+        static void CreateRenderingData(ContextContainer frameData, UniversalRenderPipelineAsset settings,
             CullingResults cullResults, CommandBuffer cmd, bool isForwardPlus)
         {
             var universalLightData = frameData.Get<UniversalLightData>();
@@ -1449,7 +1449,7 @@ namespace UnityEngine.Rendering.Universal
             data.commandBuffer = cmd;
         }
 
-        static void CreateShadowData(FrameData frameData, UniversalRenderPipelineAsset settings, bool isForwardPlus)
+        static void CreateShadowData(ContextContainer frameData, UniversalRenderPipelineAsset settings, bool isForwardPlus)
         {
             using var profScope = new ProfilingScope(Profiling.Pipeline.initializeShadowData);
 
@@ -1590,7 +1590,7 @@ namespace UnityEngine.Rendering.Universal
             shadowData.mainLightRenderTargetHeight = (shadowData.mainLightShadowCascadesCount == 2) ? shadowData.mainLightShadowmapHeight >> 1 : shadowData.mainLightShadowmapHeight;
         }
 
-        static void CreatePostProcessingData(FrameData frameData, UniversalRenderPipelineAsset settings, bool anyPostProcessingEnabled)
+        static void CreatePostProcessingData(ContextContainer frameData, UniversalRenderPipelineAsset settings, bool anyPostProcessingEnabled)
         {
             var postProcessingData = frameData.Create<UniversalPostProcessingData>();
             var isHDROutputActive = frameData.Get<UniversalCameraData>().isHDROutputActive;
@@ -1610,7 +1610,7 @@ namespace UnityEngine.Rendering.Universal
             postProcessingData.supportDataDrivenLensFlare = settings.supportDataDrivenLensFlare;
         }
 
-        static void CreateLightData(FrameData frameData, UniversalRenderPipelineAsset settings, NativeArray<VisibleLight> visibleLights)
+        static void CreateLightData(ContextContainer frameData, UniversalRenderPipelineAsset settings, NativeArray<VisibleLight> visibleLights)
         {
             using var profScope = new ProfilingScope(Profiling.Pipeline.initializeLightData);
 

@@ -1,6 +1,6 @@
 namespace UnityEngine.Rendering.Universal
 {
-    class UniversalRenderingData : FrameDataItem
+    class UniversalRenderingData : ContextItem
     {
         internal CommandBuffer commandBuffer;
 

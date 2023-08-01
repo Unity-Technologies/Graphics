@@ -83,9 +83,9 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     public struct RenderingData
     {
-        internal FrameData frameData;
+        internal ContextContainer frameData;
 
-        internal RenderingData(FrameData frameData)
+        internal RenderingData(ContextContainer frameData)
         {
             this.frameData = frameData;
             cameraData = new CameraData(frameData);
@@ -151,9 +151,9 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     public struct LightData
     {
-        internal FrameData frameData;
+        internal ContextContainer frameData;
 
-        internal LightData(FrameData frameData)
+        internal LightData(ContextContainer frameData)
         {
             this.frameData = frameData;
         }
@@ -217,9 +217,9 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     public struct CameraData
     {
-        internal FrameData frameData;
+        internal ContextContainer frameData;
 
-        internal CameraData(FrameData frameData)
+        internal CameraData(ContextContainer frameData)
         {
             this.frameData = frameData;
         }
@@ -582,9 +582,9 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     public struct ShadowData
     {
-        internal FrameData frameData;
+        internal ContextContainer frameData;
 
-        internal ShadowData(FrameData frameData)
+        internal ShadowData(ContextContainer frameData)
         {
             this.frameData = frameData;
         }
@@ -862,9 +862,9 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     public struct PostProcessingData
     {
-        internal FrameData frameData;
+        internal ContextContainer frameData;
 
-        internal PostProcessingData(FrameData frameData)
+        internal PostProcessingData(ContextContainer frameData)
         {
             this.frameData = frameData;
         }
