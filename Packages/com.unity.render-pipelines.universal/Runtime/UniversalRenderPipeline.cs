@@ -172,6 +172,8 @@ namespace UnityEngine.Rendering.Universal
         internal static bool cameraStackRequiresDepthForPostprocessing = false;
 
         internal static RenderGraph s_RenderGraph;
+        internal static RTHandleResourcePool s_RTHandlePool;
+
         private static bool useRenderGraph;
 
         internal bool apvIsEnabled = false;
@@ -236,6 +238,8 @@ namespace UnityEngine.Rendering.Universal
             s_RenderGraph = new RenderGraph("URPRenderGraph");
             useRenderGraph = false;
 
+            s_RTHandlePool = new RTHandleResourcePool();
+
             DebugManager.instance.RefreshEditor();
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
@@ -299,6 +303,8 @@ namespace UnityEngine.Rendering.Universal
             s_RenderGraph.Cleanup();
             s_RenderGraph = null;
 
+            s_RTHandlePool.Cleanup();
+            s_RTHandlePool = null;
 #if UNITY_EDITOR
             SceneViewDrawMode.ResetDrawMode();
 #endif
@@ -427,6 +433,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             s_RenderGraph.EndFrame();
+            s_RTHandlePool.PurgeUnusedResources(Time.frameCount);
 
 #if UNITY_2021_1_OR_NEWER
             using (new ProfilingScope(Profiling.Pipeline.endContextRendering))

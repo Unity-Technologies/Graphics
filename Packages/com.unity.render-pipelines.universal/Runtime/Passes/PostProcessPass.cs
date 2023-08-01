@@ -17,7 +17,6 @@ namespace UnityEngine.Rendering.Universal
         RTHandle m_Depth;
         RTHandle m_InternalLut;
         RTHandle m_MotionVectors;
-        RTHandle m_CameraTargetHandle;
         RTHandle m_FullCoCTexture;
         RTHandle m_HalfCoCTexture;
         RTHandle m_PingTexture;
@@ -205,7 +204,6 @@ namespace UnityEngine.Rendering.Universal
                 handle?.Release();
             m_ScalingSetupTarget?.Release();
             m_UpscaledTarget?.Release();
-            m_CameraTargetHandle?.Release();
             m_FullCoCTexture?.Release();
             m_HalfCoCTexture?.Release();
             m_PingTexture?.Release();
@@ -655,15 +653,13 @@ namespace UnityEngine.Rendering.Universal
                     }
                     else
                     {
-                        // Create RTHandle alias to use RTHandle apis
+                        // Get RTHandle alias to use RTHandle apis
                         RenderTargetIdentifier cameraTarget = cameraData.targetTexture != null ? new RenderTargetIdentifier(cameraData.targetTexture) : cameraTargetID;
-                        if (m_CameraTargetHandle != cameraTarget)
-                        {
-                            m_CameraTargetHandle?.Release();
-                            m_CameraTargetHandle = RTHandles.Alloc(cameraTarget);
-                        }
-                        RenderingUtils.FinalBlit(cmd, ref cameraData, GetSource(), m_CameraTargetHandle, colorLoadAction, RenderBufferStoreAction.Store, m_Materials.uber, 0);
-                        renderer.ConfigureCameraColorTarget(m_CameraTargetHandle);
+                        RTHandleStaticHelpers.SetRTHandleStaticWrapper(cameraTarget);
+                        var cameraTargetHandle = RTHandleStaticHelpers.s_RTHandleWrapper;
+
+                        RenderingUtils.FinalBlit(cmd, ref cameraData, GetSource(), cameraTargetHandle, colorLoadAction, RenderBufferStoreAction.Store, m_Materials.uber, 0);
+                        renderer.ConfigureCameraColorTarget(cameraTargetHandle);
                     }
                 }
             }
@@ -1666,13 +1662,10 @@ namespace UnityEngine.Rendering.Universal
             }
             else
             {
-                // Create RTHandle alias to use RTHandle apis
-                if (m_CameraTargetHandle != cameraTarget)
-                {
-                    m_CameraTargetHandle?.Release();
-                    m_CameraTargetHandle = RTHandles.Alloc(cameraTarget);
-                }
-                RenderingUtils.FinalBlit(cmd, ref cameraData, sourceTex, m_CameraTargetHandle, colorLoadAction, RenderBufferStoreAction.Store, material, 0);
+                // Get RTHandle alias to use RTHandle apis
+                RTHandleStaticHelpers.SetRTHandleStaticWrapper(cameraTarget);
+                var cameraTargetHandle = RTHandleStaticHelpers.s_RTHandleWrapper;
+                RenderingUtils.FinalBlit(cmd, ref cameraData, sourceTex, cameraTargetHandle, colorLoadAction, RenderBufferStoreAction.Store, material, 0);
             }
         }
 
