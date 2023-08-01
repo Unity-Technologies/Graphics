@@ -232,9 +232,18 @@ namespace UnityEngine.Rendering.HighDefinition
                     ConstantBuffer.Set<ShaderVariablesWaterDeformation>(m_DeformerMaterial, HDShaderIDs._ShaderVariablesWaterDeformation);
                     ConstantBuffer.Set<ShaderVariablesWaterDeformation>(cmd, m_WaterDeformationCS, HDShaderIDs._ShaderVariablesWaterDeformation);
 
+                    // Disable wireframe for next drawcall
+                    bool wireframe = GL.wireframe;
+                    if (wireframe)
+                        cmd.SetWireframe(false);
+
                     // Clear the render target to black and draw all the deformers to the texture
                     CoreUtils.SetRenderTarget(cmd, currentWater.deformationSGBuffer, clearFlag: ClearFlag.Color, Color.black);
                     cmd.DrawProcedural(Matrix4x4.identity, m_DeformerMaterial, 0, MeshTopology.Triangles, 6, m_ActiveWaterDeformers);
+
+                    // Reenable wireframe if needed
+                    if (wireframe)
+                        cmd.SetWireframe(true);
 
                     // Evaluate the normals
                     int numTiles = (m_SVWaterDeformation._WaterDeformationResolution + 7) / 8;
