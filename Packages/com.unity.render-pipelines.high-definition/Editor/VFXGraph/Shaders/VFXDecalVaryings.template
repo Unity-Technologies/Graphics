@@ -180,6 +180,8 @@ float4x4 worldToDecal = GetVFXToElementMatrix(
 
 #if VFX_LOCAL_SPACE
 worldToDecal = mul(worldToDecal, VFXGetWorldToObjectMatrix());
+#else
+worldToDecal = ApplyCameraTranslationToInverseMatrix(worldToDecal);
 #endif
 o.worldToDecal0 = worldToDecal[0];
 o.worldToDecal1 = worldToDecal[1];

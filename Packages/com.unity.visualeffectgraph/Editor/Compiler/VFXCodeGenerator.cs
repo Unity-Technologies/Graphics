@@ -445,11 +445,11 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             if (contextData.SGInputs != null)
             {
                 var interpolantsGenerationWriter = new VFXShaderWriter();
-                var expressionToName = new Dictionary<VFXExpression, string>(contextData.uniformMapper.expressionToCode);           
+                var expressionToName = new Dictionary<VFXExpression, string>(contextData.uniformMapper.expressionToCode);
                 string varyingVariableName = "output.";
 
                 // Expression tree
-                foreach (var interp in contextData.SGInputs.interpolators)               
+                foreach (var interp in contextData.SGInputs.interpolators)
                     interpolantsGenerationWriter.WriteVariable(interp.Key, expressionToName);
 
                 interpolantsGenerationWriter.WriteLine();
@@ -566,7 +566,7 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             globalDeclaration.WriteLine();
             var particleData = (context.GetData() as VFXDataParticle);
             var systemUniformMapper = particleData.systemUniformMapper;
-            contextData.uniformMapper.OverrideNamesWithOther(systemUniformMapper);
+            contextData.uniformMapper.OverrideUniformsNamesWithOther(systemUniformMapper);
             var needsGraphValueStruct = globalDeclaration.WriteGraphValuesStruct(contextData.uniformMapper);
             globalDeclaration.WriteLine();
 
