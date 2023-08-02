@@ -512,10 +512,10 @@ namespace UnityEngine.Rendering
 
         ProbeVolumeBakingSet CreateBakingSet()
         {
-            string path = "Assets";
             var scene = SceneManager.GetActiveScene();
-            if (scene != null)
-                path = ProbeVolumeBakingSet.GetDirectory(scene.path, scene.name);
+            string path = string.IsNullOrEmpty(scene.path) ?
+                ProbeVolumeBakingSet.GetDirectory("Assets/", "Untitled") :
+                ProbeVolumeBakingSet.GetDirectory(scene.path, scene.name);
 
             var newSet = ScriptableObject.CreateInstance<ProbeVolumeBakingSet>();
             newSet.name = "New Baking Set";
