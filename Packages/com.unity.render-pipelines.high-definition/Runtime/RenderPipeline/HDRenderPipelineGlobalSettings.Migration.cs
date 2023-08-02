@@ -166,7 +166,7 @@ namespace UnityEngine.Rendering.HighDefinition
             => k_Migration.Migrate(this);
 
         bool IMigratableAsset.IsAtLastVersion()
-            => m_Version == MigrationDescription.LastVersion<Version>();
+            => m_Version >= MigrationDescription.LastVersion<Version>();
 
         internal static void MigrateFromHDRPAsset(HDRenderPipelineAsset oldAsset)
         {
