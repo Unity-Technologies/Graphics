@@ -71,19 +71,19 @@ namespace UnityEditor.Rendering.HighDefinition
                 sb.AppendLine("$precision2 distordedNDC;");
                 sb.AppendLine("$precision3 absorptionTint;");
 
-                string positionAWS = $"IN.{CoordinateSpace.World.ToVariableName(InterpolatorType.Position)}";
+                string positionWS = $"IN.{CoordinateSpace.World.ToVariableName(InterpolatorType.Position)}";
                 string normalWS = GetSlotValue(kNormalWSInputSlotId, generationMode);
                 string lfNormalWS = GetSlotValue(kLowFrequencyNormalWSInputSlotId, generationMode);
                 string screenPos = ScreenSpaceType.Default.ToValueAsVariable();
                 string viewWS = $"IN.{CoordinateSpace.World.ToVariableName(InterpolatorType.ViewDirection)}";
                 string faceSign = $"IN.{StructFields.SurfaceDescriptionInputs.FaceSign.name}";
 
-                sb.AppendLine("ComputeWaterRefractionParams({0}, {1}, {2}, {3}.xy, {4}, {5}, false, _WaterUpDirection.xyz, _MaxRefractionDistance, _TransparencyColor.xyz, _OutScatteringCoefficient, refractedPos, distordedNDC, absorptionTint);",
-                    positionAWS,
-                    normalWS,
-                    lfNormalWS,
+                sb.AppendLine("ComputeWaterRefractionParams({0}, {1}.xy, {2}, {3}, {4}, {5}, false, _WaterUpDirection.xyz, _MaxRefractionDistance, _TransparencyColor.xyz, _OutScatteringCoefficient, refractedPos, distordedNDC, absorptionTint);",
+                    positionWS,
                     screenPos,
                     viewWS,
+                    normalWS,
+                    lfNormalWS,
                     faceSign
                 );
 

@@ -92,7 +92,6 @@ namespace UnityEditor.Rendering.HighDefinition
         public static readonly GUIContent k_WaterNewLMaterialLabel = EditorGUIUtility.TrTextContent("New", "Create a new water material.");
 
         static public readonly GUIContent k_Amplitude = EditorGUIUtility.TrTextContent("Amplitude", "Sets the normalized (between 0.0 and 1.0) amplitude of each simulation band (from lower to higher frequencies).");
-        static public readonly GUIContent k_Choppiness = EditorGUIUtility.TrTextContent("Choppiness", "Sets the choppiness factor the waves. Higher values combined with high wind speed may introduce visual artifacts.");
 
         // Refraction
         static public readonly GUIContent k_RefractionColor = EditorGUIUtility.TrTextContent("Color", "Sets the color that is used to simulate the under-water refraction.");

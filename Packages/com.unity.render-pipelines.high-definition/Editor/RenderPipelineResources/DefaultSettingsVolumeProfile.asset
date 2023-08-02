@@ -414,8 +414,7 @@ MonoBehaviour:
     m_Value: 0
   material:
     m_OverrideState: 1
-    m_Value: {fileID: -876546973899608171, guid: 02532cbb810fb404db49da84f1efe41e,
-      type: 3}
+    m_Value: {fileID: -876546973899608171, guid: 02532cbb810fb404db49da84f1efe41e, type: 3}
   sphericalMode:
     m_OverrideState: 0
     m_Value: 1

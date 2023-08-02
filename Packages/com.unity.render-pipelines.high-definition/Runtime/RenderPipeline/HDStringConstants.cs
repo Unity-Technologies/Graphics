@@ -426,7 +426,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _ShaderVariablesWater = Shader.PropertyToID("ShaderVariablesWater");
         public static readonly int _ShaderVariablesUnderWater = Shader.PropertyToID("ShaderVariablesUnderWater");
         public static readonly int _ShaderVariablesWaterRendering = Shader.PropertyToID("ShaderVariablesWaterRendering");
-        public static readonly int _ShaderVariablesWaterDeformation = Shader.PropertyToID("ShaderVariablesWaterDeformation");
         public static readonly int _ShaderVariablesWaterDebug = Shader.PropertyToID("ShaderVariablesWaterDebug");
 
         public static readonly int _VolumetricMaterialObbRight = Shader.PropertyToID("_VolumetricMaterialObbRight");

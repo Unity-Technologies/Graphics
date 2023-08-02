@@ -77,7 +77,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         ConstantBuffer.UpdateData(ctx.cmd, data.parameters.waterCB);
                         ConstantBuffer.UpdateData(ctx.cmd, data.parameters.waterRenderingCB);
-                        ConstantBuffer.UpdateData(ctx.cmd, data.parameters.waterDeformationCB);
 
                         // We will be writing directly to the color and depth buffers
                         CoreUtils.SetRenderTarget(ctx.cmd, data.colorBuffer, data.depthBuffer);

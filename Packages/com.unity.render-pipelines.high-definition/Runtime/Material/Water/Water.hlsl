@@ -832,9 +832,10 @@ IndirectLighting EvaluateBSDF_ScreenspaceRefraction(LightLoopContext lightLoopCo
     float3 refractedWaterPosRWS;
     float2 distortedWaterNDC;
     float3 absorptionTint; // not used - applied during opaque atmospheric scattering
-    ComputeWaterRefractionParams(posInput.positionWS, bsdfData.normalWS, bsdfData.lowFrequencyNormalWS,
-        posInput.positionNDC, V, bsdfData.frontFace, preLightData.disableIOR, preLightData.upDirection,
-        preLightData.maxRefractionDistance, preLightData.transparencyColor, preLightData.outScatteringCoefficient,
+    ComputeWaterRefractionParams(posInput.positionWS, posInput.positionNDC, V,
+        bsdfData.normalWS, bsdfData.lowFrequencyNormalWS, bsdfData.frontFace,
+        preLightData.disableIOR, preLightData.upDirection, preLightData.maxRefractionDistance,
+        preLightData.transparencyColor, preLightData.outScatteringCoefficient,
         refractedWaterPosRWS, distortedWaterNDC, absorptionTint);
 
     // Apply a mip offset for the underwater data (if needed)

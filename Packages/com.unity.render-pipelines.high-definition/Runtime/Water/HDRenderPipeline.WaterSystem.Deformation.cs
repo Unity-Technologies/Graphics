@@ -28,7 +28,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // The material used to render the deformers
         Material m_DeformerMaterial = null;
-        ShaderVariablesWaterDeformation m_SVWaterDeformation;
 
         // Filtering and normal kernels
         ComputeShader m_WaterDeformationCS;
@@ -221,16 +220,9 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (m_ActiveWaterDeformers > 0)
                 {
-                    // Fill the deformation constant buffer
-                    m_SVWaterDeformation._WaterDeformationCenter = currentWater.deformationAreaOffset + new Vector2(currentWater.transform.position.x, currentWater.transform.position.z);
-                    m_SVWaterDeformation._WaterDeformationExtent = currentWater.deformationAreaSize;
-                    m_SVWaterDeformation._WaterDeformationResolution = (int)currentWater.deformationRes;
-                    ConstantBuffer.UpdateData(cmd, m_SVWaterDeformation);
-
                     // Bind the constant buffers
                     ConstantBuffer.Set<ShaderVariablesWater>(m_DeformerMaterial, HDShaderIDs._ShaderVariablesWater);
-                    ConstantBuffer.Set<ShaderVariablesWaterDeformation>(m_DeformerMaterial, HDShaderIDs._ShaderVariablesWaterDeformation);
-                    ConstantBuffer.Set<ShaderVariablesWaterDeformation>(cmd, m_WaterDeformationCS, HDShaderIDs._ShaderVariablesWaterDeformation);
+                    ConstantBuffer.Set<ShaderVariablesWater>(cmd, m_WaterDeformationCS, HDShaderIDs._ShaderVariablesWater);
 
                     // Disable wireframe for next drawcall
                     bool wireframe = GL.wireframe;
@@ -246,7 +238,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         cmd.SetWireframe(true);
 
                     // Evaluate the normals
-                    int numTiles = (m_SVWaterDeformation._WaterDeformationResolution + 7) / 8;
+                    int numTiles = (m_ShaderVariablesWater._WaterDeformationResolution + 7) / 8;
 
                     // First we need to clear the edge pixel and blur the deformation a bit
                     cmd.SetComputeTextureParam(m_WaterDeformationCS, m_FilterDeformationKernel, HDShaderIDs._WaterDeformationBuffer, currentWater.deformationSGBuffer);

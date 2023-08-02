@@ -30,8 +30,15 @@ RWTexture2DArray<float2> _H0BufferRW;
 [numthreads(8, 8, 1)]
 void InitializePhillipsSpectrum(uint3 thread : SV_DispatchThreadID)
 {
+    // See EvaluateWaterNoiseSampleOffset
+    int sampleOffset = 0;
+    if (_BandResolution == 128)
+        sampleOffset = 64;
+    if (_BandResolution == 64)
+        sampleOffset = 96;
+
     // This water offset ensures that when we switch the resolution the spectrum stays about the same
-    uint3 sampleCoordinate = uint3(thread.xy + _WaterSampleOffset, thread.z);
+    uint3 sampleCoordinate = uint3(thread.xy + sampleOffset, thread.z);
 
     // We need 4 random numbers from the sample coords
     float4 rn = WaterHashFunctionFloat4(sampleCoordinate + NOISE_FUNCTION_OFFSET);
@@ -40,9 +47,10 @@ void InitializePhillipsSpectrum(uint3 thread : SV_DispatchThreadID)
     float2 E = ONE_OVER_SQRT2 * float2(GaussianDis(rn.x, rn.y), GaussianDis(rn.z, rn.w));
 
     // Second part of the phillips spectrum term
-    float2 k = TWO_PI * (thread.xy - _BandResolution * 0.5) / _PatchSize[thread.z];
+    float invPatchSize = GetBandPatchData(thread.z).x;
+    float2 k = TWO_PI * (thread.xy - _BandResolution * 0.5) * invPatchSize;
     float2 windDirection = -OrientationToDirection(_PatchOrientation[thread.z]);
-    float P = Phillips(k, windDirection, _PatchWindSpeed[thread.z], _PatchDirectionDampener[thread.z], _PatchSize[thread.z]);
+    float P = Phillips(k, windDirection, _PatchWindSpeed[thread.z], _PatchDirectionDampener[thread.z], invPatchSize);
 
     // Combine and output
     _H0BufferRW[int3(thread.xyz)] = E * sqrt(P);
@@ -56,7 +64,8 @@ RWTexture2DArray<float4> _HtImaginaryBufferRW;
 [numthreads(8, 8, 1)]
 void EvaluateDispersion(uint3 currentThread : SV_DispatchThreadID)
 {
-    float2 k = TWO_PI * (currentThread.xy - _BandResolution * 0.5) / _PatchSize[currentThread.z];
+    float invPatchSize = GetBandPatchData(currentThread.z).x;
+    float2 k = TWO_PI * (currentThread.xy - _BandResolution * 0.5) * invPatchSize;
 
     float  kl = length(k);
     float  w = sqrt(EARTH_GRAVITY * kl);
@@ -104,11 +113,12 @@ void EVALUATE_ADDITIONAL_DATA(uint3 currentThread : SV_DispatchThreadID)
     float3 displacementUp = ShuffleDisplacement(LOAD_TEXTURE2D_ARRAY(_WaterDisplacementBuffer, uint2(coord + int2(0, 1)) & (_BandResolution - 1), bandIdx).xyz);
 
     // Evaluate the displacement normalization factor and pixel size
-    float pixelSize = _PatchSize[bandIdx] / _BandResolution;
+    float invPatchSize = GetBandPatchData(bandIdx).x;
+    float pixelSize = rcp(_BandResolution * invPatchSize);
 
     // We evaluate the displacement without the choppiness as it doesn't behave properly for distance surfaces
     float3 p0, p1, p2;
-    EvaluateDisplacedPoints(displacementCenter, displacementRight, displacementUp, _PatchAmplitudeMultiplier[bandIdx], pixelSize, p0, p1, p2);
+    EvaluateDisplacedPoints(displacementCenter, displacementRight, displacementUp, GetPatchAmplitudeMultiplier(bandIdx), pixelSize, p0, p1, p2);
 
     // Compute the surface gradients of this band
     float2 surfaceGradient = EvaluateSurfaceGradients(p0, p1, p2);
