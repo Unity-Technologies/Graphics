@@ -9,6 +9,11 @@ namespace UnityEngine.Rendering
         internal static class ShaderDefs
         {
             public const int GroupSize = 128;
+            
+            // Stride of the indirect arguement buffer in uints, the buffer is split into two sections dispatch options ( a lower or upper arguement set )
+            public const int ArgsBufferStride = 16;            
+            public const int ArgsBufferUpper  = 0;
+            public const int ArgsBufferLower  = 8;
 
             public static int DivUpGroup(int value)
             {
@@ -93,7 +98,7 @@ namespace UnityEngine.Rendering
                 prefixBuffer1 = builder.CreateTransientBuffer(new BufferDesc(newMaxElementCount, 4, GraphicsBuffer.Target.Raw) { name = "prefixBuffer1" });
                 totalLevelCountBuffer = builder.CreateTransientBuffer(new BufferDesc(1, 4, GraphicsBuffer.Target.Raw) { name = "totalLevelCountBuffer" });
                 levelOffsetBuffer = builder.CreateTransientBuffer(new BufferDesc(levelCounts, System.Runtime.InteropServices.Marshal.SizeOf<LevelOffsets>(), GraphicsBuffer.Target.Structured) { name = "levelOffsetBuffer" });
-                indirectDispatchArgsBuffer = builder.CreateTransientBuffer(new BufferDesc(6 * levelCounts, sizeof(uint), GraphicsBuffer.Target.Structured | GraphicsBuffer.Target.IndirectArguments) { name = "indirectDispatchArgsBuffer" });//3 arguments for upp dispatch, 3 arguments for lower dispatch
+                indirectDispatchArgsBuffer = builder.CreateTransientBuffer(new BufferDesc(ShaderDefs.ArgsBufferStride * levelCounts, sizeof(uint), GraphicsBuffer.Target.Structured | GraphicsBuffer.Target.IndirectArguments) { name = "indirectDispatchArgsBuffer" });//3 arguments for upp dispatch, 3 arguments for lower dispatch
                 alignedElementCount = ShaderDefs.AlignUpGroup(newMaxElementCount);
                 maxBufferCount = totalSize;
                 maxLevelCount = levelCounts;
@@ -163,7 +168,7 @@ namespace UnityEngine.Rendering
                 prefixBuffer1              = new GraphicsBuffer(GraphicsBuffer.Target.Raw, newMaxElementCount, 4);
                 totalLevelCountBuffer      = new GraphicsBuffer(GraphicsBuffer.Target.Raw, 1, 4);
                 levelOffsetBuffer          = new GraphicsBuffer(GraphicsBuffer.Target.Structured, levelCounts, System.Runtime.InteropServices.Marshal.SizeOf<LevelOffsets>());
-                indirectDispatchArgsBuffer = new GraphicsBuffer(GraphicsBuffer.Target.IndirectArguments, 6 * levelCounts, sizeof(uint));//3 arguments for upp dispatch, 3 arguments for lower dispatch
+                indirectDispatchArgsBuffer = new GraphicsBuffer(GraphicsBuffer.Target.IndirectArguments, ShaderDefs.ArgsBufferStride * levelCounts, sizeof(uint));//3 arguments for upp dispatch, 3 arguments for lower dispatch
             }
 
             void LoadFromShaderGraph(RenderGraphResources shaderGraphResources)

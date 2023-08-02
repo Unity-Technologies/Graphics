@@ -50,7 +50,7 @@ namespace UnityEngine.Rendering
                 cmdBuffer.SetComputeBufferParam(resources.computeAsset, sumOnGroupKernel, ShaderIDs._TotalLevelsBuffer, supportResources.totalLevelCountBuffer);
                 cmdBuffer.SetComputeBufferParam(resources.computeAsset, sumOnGroupKernel, ShaderIDs._LevelsOffsetsBuffer, supportResources.levelOffsetBuffer);
                 cmdBuffer.SetComputeBufferParam(resources.computeAsset, sumOnGroupKernel, ShaderIDs._OutputBuffer, supportResources.prefixBuffer0);
-                cmdBuffer.DispatchCompute(resources.computeAsset, sumOnGroupKernel, supportResources.indirectDispatchArgsBuffer, (uint)(levelId * 6 * 4));
+                cmdBuffer.DispatchCompute(resources.computeAsset, sumOnGroupKernel, supportResources.indirectDispatchArgsBuffer, (uint)(levelId * ShaderDefs.ArgsBufferStride * 4));
 
                 if (levelId == supportResources.maxLevelCount - 1)
                     continue;
@@ -58,7 +58,7 @@ namespace UnityEngine.Rendering
                 cmdBuffer.SetComputeBufferParam(resources.computeAsset, resources.kernelPrefixSumNextInput, ShaderIDs._InputBuffer, supportResources.prefixBuffer0);
                 cmdBuffer.SetComputeBufferParam(resources.computeAsset, resources.kernelPrefixSumNextInput, ShaderIDs._LevelsOffsetsBuffer, supportResources.levelOffsetBuffer);
                 cmdBuffer.SetComputeBufferParam(resources.computeAsset, resources.kernelPrefixSumNextInput, ShaderIDs._OutputBuffer, supportResources.prefixBuffer1);
-                cmdBuffer.DispatchCompute(resources.computeAsset, resources.kernelPrefixSumNextInput, supportResources.indirectDispatchArgsBuffer, (uint)((levelId + 1) * 6 * 4));
+                cmdBuffer.DispatchCompute(resources.computeAsset, resources.kernelPrefixSumNextInput, supportResources.indirectDispatchArgsBuffer, (uint)((levelId + 1) * ShaderDefs.ArgsBufferStride * 4));
             }
 
             //down the hierarchy
@@ -69,7 +69,7 @@ namespace UnityEngine.Rendering
                 cmdBuffer.SetComputeBufferParam(resources.computeAsset, sumResolveParentKernel, ShaderIDs._InputBuffer, inputBuffer);
                 cmdBuffer.SetComputeBufferParam(resources.computeAsset, sumResolveParentKernel, ShaderIDs._OutputBuffer, supportResources.prefixBuffer0);
                 cmdBuffer.SetComputeBufferParam(resources.computeAsset, sumResolveParentKernel, ShaderIDs._LevelsOffsetsBuffer, supportResources.levelOffsetBuffer);
-                cmdBuffer.DispatchCompute(resources.computeAsset, sumResolveParentKernel, supportResources.indirectDispatchArgsBuffer, (uint)(((levelId - 1) * 6 + 3) * 4));
+                cmdBuffer.DispatchCompute(resources.computeAsset, sumResolveParentKernel, supportResources.indirectDispatchArgsBuffer, (uint)(((levelId - 1) * ShaderDefs.ArgsBufferStride + ShaderDefs.ArgsBufferLower) * 4));
             }
         }
 
