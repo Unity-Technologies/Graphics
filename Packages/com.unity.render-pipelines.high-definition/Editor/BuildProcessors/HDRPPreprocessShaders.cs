@@ -15,35 +15,42 @@ namespace UnityEditor.Rendering.HighDefinition
     class CommonShaderPreprocessor : BaseShaderPreprocessor
     {
         public override int Priority => 100;
+        private HDRenderPipelineRuntimeResources m_Resources;
 
-        public CommonShaderPreprocessor() { }
+        public CommonShaderPreprocessor()
+        {
+            var globalSettings = HDRenderPipelineGlobalSettings.Ensure();
+            m_Resources = globalSettings.renderPipelineResources;
+        }
 
         protected override bool DoShadersStripper(HDRenderPipelineAsset hdrpAsset, Shader shader, ShaderSnippetData snippet, ShaderCompilerData inputData)
         {
             // CAUTION: Pass Name and Lightmode name must match in master node and .shader.
             // HDRP use LightMode to do drawRenderer and pass name is use here for stripping!
+            var settings = hdrpAsset.currentPlatformRenderPipelineSettings;
 
             // Remove water if disabled
-            if (!hdrpAsset.currentPlatformRenderPipelineSettings.supportWater)
+            if (!settings.supportWater)
             {
-                if (shader == hdrpAsset.renderPipelineResources.shaders.waterCausticsPS ||
-                    shader == hdrpAsset.renderPipelineResources.shaders.waterFoamPS ||
-                    shader == hdrpAsset.renderPipelineResources.shaders.waterPS ||
-                    shader == hdrpAsset.renderPipelineResources.materials.waterExclusionMaterial.shader)
+                
+                if (shader == m_Resources.shaders.waterCausticsPS ||
+                    shader == m_Resources.shaders.waterFoamPS ||
+                    shader == m_Resources.shaders.waterPS ||
+                    shader == m_Resources.materials.waterExclusionMaterial.shader)
                     return true;
             }
             
             // If Screen Space Lens Flare is disabled, strip all the shaders
-            if (!hdrpAsset.currentPlatformRenderPipelineSettings.supportScreenSpaceLensFlare)
+            if (!settings.supportScreenSpaceLensFlare)
             {
-                if (shader == hdrpAsset.renderPipelineResources.shaders.lensFlareScreenSpacePS)
+                if (shader == m_Resources.shaders.lensFlareScreenSpacePS)
                     return true;
             }
             
             // If Data Driven Lens Flare is disabled, strip all the shaders (the preview shader LensFlareDataDrivenPreview.shader in Core will not be stripped)
-            if (!hdrpAsset.currentPlatformRenderPipelineSettings.supportDataDrivenLensFlare)
+            if (!settings.supportDataDrivenLensFlare)
             {
-                if (shader == hdrpAsset.renderPipelineResources.shaders.lensFlareDataDrivenPS)
+                if (shader == m_Resources.shaders.lensFlareDataDrivenPS)
                     return true;
             }
 
@@ -63,27 +70,27 @@ namespace UnityEditor.Rendering.HighDefinition
             // Here we can't strip based on opaque or transparent but we will strip based on HDRP Asset configuration.
 
             bool isMotionPass = snippet.passName == "MotionVectors";
-            if (isMotionPass && !hdrpAsset.currentPlatformRenderPipelineSettings.supportMotionVectors)
+            if (isMotionPass && !settings.supportMotionVectors)
                 return true;
 
             bool isDistortionPass = snippet.passName == "DistortionVectors";
-            if (isDistortionPass && !hdrpAsset.currentPlatformRenderPipelineSettings.supportDistortion)
+            if (isDistortionPass && !settings.supportDistortion)
                 return true;
 
             bool isTransparentBackface = snippet.passName == "TransparentBackface";
-            if (isTransparentBackface && !hdrpAsset.currentPlatformRenderPipelineSettings.supportTransparentBackface)
+            if (isTransparentBackface && !settings.supportTransparentBackface)
                 return true;
 
             bool isTransparentPrepass = snippet.passName == "TransparentDepthPrepass";
-            if (isTransparentPrepass && !hdrpAsset.currentPlatformRenderPipelineSettings.supportTransparentDepthPrepass)
+            if (isTransparentPrepass && !settings.supportTransparentDepthPrepass)
                 return true;
 
             bool isTransparentPostpass = snippet.passName == "TransparentDepthPostpass";
-            if (isTransparentPostpass && !hdrpAsset.currentPlatformRenderPipelineSettings.supportTransparentDepthPostpass)
+            if (isTransparentPostpass && !settings.supportTransparentDepthPostpass)
                 return true;
 
             bool isRayTracingPrepass = snippet.passName == "RayTracingPrepass";
-            if (isRayTracingPrepass && !hdrpAsset.currentPlatformRenderPipelineSettings.supportRayTracing)
+            if (isRayTracingPrepass && !settings.supportRayTracing)
                 return true;
 
             // If requested by the render pipeline settings, or if we are in a release build,
@@ -96,21 +103,21 @@ namespace UnityEditor.Rendering.HighDefinition
             // We also don't want it in release build.
             // However our AOV API rely on several debug display shader. In case AOV API is requested at runtime (like for the Graphics Compositor)
             // we allow user to make explicit request for it and it bypass other request
-            if (m_StripDebugVariants && !hdrpAsset.currentPlatformRenderPipelineSettings.supportRuntimeAOVAPI)
+            if (m_StripDebugVariants && !settings.supportRuntimeAOVAPI)
             {
-                if (shader == hdrpAsset.renderPipelineResources.shaders.debugDisplayLatlongPS ||
-                    shader == hdrpAsset.renderPipelineResources.shaders.debugViewMaterialGBufferPS ||
-                    shader == hdrpAsset.renderPipelineResources.shaders.debugViewTilesPS ||
-                    shader == hdrpAsset.renderPipelineResources.shaders.debugFullScreenPS ||
-                    shader == hdrpAsset.renderPipelineResources.shaders.debugColorPickerPS ||
-                    shader == hdrpAsset.renderPipelineResources.shaders.debugExposurePS ||
-                    shader == hdrpAsset.renderPipelineResources.shaders.debugHDRPS ||
-                    shader == hdrpAsset.renderPipelineResources.shaders.debugLightVolumePS ||
-                    shader == hdrpAsset.renderPipelineResources.shaders.debugBlitQuad ||
-                    shader == hdrpAsset.renderPipelineResources.shaders.debugViewVirtualTexturingBlit ||
-                    shader == hdrpAsset.renderPipelineResources.shaders.debugWaveformPS ||
-                    shader == hdrpAsset.renderPipelineResources.shaders.debugVectorscopePS ||
-                    shader == hdrpAsset.renderPipelineResources.shaders.debugLocalVolumetricFogAtlasPS)
+                if (shader == m_Resources.shaders.debugDisplayLatlongPS ||
+                    shader == m_Resources.shaders.debugViewMaterialGBufferPS ||
+                    shader == m_Resources.shaders.debugViewTilesPS ||
+                    shader == m_Resources.shaders.debugFullScreenPS ||
+                    shader == m_Resources.shaders.debugColorPickerPS ||
+                    shader == m_Resources.shaders.debugExposurePS ||
+                    shader == m_Resources.shaders.debugHDRPS ||
+                    shader == m_Resources.shaders.debugLightVolumePS ||
+                    shader == m_Resources.shaders.debugBlitQuad ||
+                    shader == m_Resources.shaders.debugViewVirtualTexturingBlit ||
+                    shader == m_Resources.shaders.debugWaveformPS ||
+                    shader == m_Resources.shaders.debugVectorscopePS ||
+                    shader == m_Resources.shaders.debugLocalVolumetricFogAtlasPS)
                     return true;
 
                 if (inputData.shaderKeywordSet.IsEnabled(m_DebugDisplay))
@@ -118,38 +125,38 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             // Remove APV debug if disabled
-            if (m_StripDebugVariants || !hdrpAsset.currentPlatformRenderPipelineSettings.supportProbeVolume)
+            if (m_StripDebugVariants || !settings.supportProbeVolume)
             {
-                if (shader == hdrpAsset.renderPipelineResources.shaders.probeVolumeDebugShader ||
-                    shader == hdrpAsset.renderPipelineResources.shaders.probeVolumeFragmentationDebugShader ||
-                    shader == hdrpAsset.renderPipelineResources.shaders.probeVolumeSamplingDebugShader ||
-                    shader == hdrpAsset.renderPipelineResources.shaders.probeVolumeOffsetDebugShader)
+                if (shader == m_Resources.shaders.probeVolumeDebugShader ||
+                    shader == m_Resources.shaders.probeVolumeFragmentationDebugShader ||
+                    shader == m_Resources.shaders.probeVolumeSamplingDebugShader ||
+                    shader == m_Resources.shaders.probeVolumeOffsetDebugShader)
                     return true;
             }
 
 
-            if (hdrpAsset.currentPlatformRenderPipelineSettings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly)
+            if (settings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly)
             {
-                if (shader == hdrpAsset.renderPipelineResources.shaders.deferredPS ||
-                    shader == hdrpAsset.renderPipelineResources.shaders.deferredTilePS)
+                if (shader == m_Resources.shaders.deferredPS ||
+                    shader == m_Resources.shaders.deferredTilePS)
                     return true;
             }
 
-            if (inputData.shaderKeywordSet.IsEnabled(m_WriteMSAADepth) && (hdrpAsset.currentPlatformRenderPipelineSettings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly))
+            if (inputData.shaderKeywordSet.IsEnabled(m_WriteMSAADepth) && (settings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly))
                 return true;
 
-            if (!hdrpAsset.currentPlatformRenderPipelineSettings.supportSubsurfaceScattering)
+            if (!settings.supportSubsurfaceScattering)
             {
-                if (shader == hdrpAsset.renderPipelineResources.shaders.combineLightingPS)
+                if (shader == m_Resources.shaders.combineLightingPS)
                     return true;
                 // Note that this is only going to affect the deferred shader and for a debug case, so it won't save much.
                 if (inputData.shaderKeywordSet.IsEnabled(m_SubsurfaceScattering))
                     return true;
             }
 
-            if (!hdrpAsset.currentPlatformRenderPipelineSettings.lightLoopSettings.supportFabricConvolution)
+            if (!settings.lightLoopSettings.supportFabricConvolution)
             {
-                if (shader == hdrpAsset.renderPipelineResources.shaders.charlieConvolvePS)
+                if (shader == m_Resources.shaders.charlieConvolvePS)
                     return true;
             }
 
@@ -184,7 +191,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // SHADOW
 
             // Strip every useless shadow configs
-            var shadowInitParams = hdrpAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams;
+            var shadowInitParams = settings.hdShadowInitParams;
 
             foreach (var shadowVariant in m_ShadowKeywords.PunctualShadowVariants)
             {
@@ -207,7 +214,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         return true;
             }
 
-            if (!shadowInitParams.supportScreenSpaceShadows && shader == hdrpAsset.renderPipelineResources.shaders.screenSpaceShadowPS)
+            if (!shadowInitParams.supportScreenSpaceShadows && shader == m_Resources.shaders.screenSpaceShadowPS)
                 return true;
 
             // Screen space shadow variant is exclusive, either we have a variant with dynamic if that support screen space shadow or not
@@ -226,7 +233,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // - All off
             // - Output layers and normal for relevant materials
             // - Output layers and normals for everyone. (But if decal are disabled, buffer is only 16 bits so we don't write normals)
-            if (hdrpAsset.currentPlatformRenderPipelineSettings.renderingLayerMaskBuffer)
+            if (settings.renderingLayerMaskBuffer)
             {
                 if (inputData.shaderKeywordSet.IsEnabled(m_WriteDecalBuffer))
                     return true;
@@ -237,26 +244,26 @@ namespace UnityEditor.Rendering.HighDefinition
                     return true;
                 // If we don't require the rendering layers, strip the decal prepass variant when decals are disabled
                 if ((inputData.shaderKeywordSet.IsEnabled(m_WriteDecalBuffer) || inputData.shaderKeywordSet.IsEnabled(m_WriteDecalBufferAndRenderingLayer)) &&
-                    !(hdrpAsset.currentPlatformRenderPipelineSettings.supportDecals && hdrpAsset.currentPlatformRenderPipelineSettings.supportDecalLayers))
+                    !(settings.supportDecals && settings.supportDecalLayers))
                     return true;
             }
 
             // If decal support, remove unused variant
-            if (hdrpAsset.currentPlatformRenderPipelineSettings.supportDecals)
+            if (settings.supportDecals)
             {
                 // Remove the no decal case
                 if (inputData.shaderKeywordSet.IsEnabled(m_DecalsOFF))
                     return true;
 
                 // If decal but with 4RT remove 3RT variant and vice versa for both Material and Decal Material
-                if (inputData.shaderKeywordSet.IsEnabled(m_Decals3RT) && hdrpAsset.currentPlatformRenderPipelineSettings.decalSettings.perChannelMask)
+                if (inputData.shaderKeywordSet.IsEnabled(m_Decals3RT) && settings.decalSettings.perChannelMask)
                     return true;
 
-                if (inputData.shaderKeywordSet.IsEnabled(m_Decals4RT) && !hdrpAsset.currentPlatformRenderPipelineSettings.decalSettings.perChannelMask)
+                if (inputData.shaderKeywordSet.IsEnabled(m_Decals4RT) && !settings.decalSettings.perChannelMask)
                     return true;
 
                 // Remove the surface gradient blending if not enabled
-                if (inputData.shaderKeywordSet.IsEnabled(m_DecalSurfaceGradient) && !hdrpAsset.currentPlatformRenderPipelineSettings.supportSurfaceGradient)
+                if (inputData.shaderKeywordSet.IsEnabled(m_DecalSurfaceGradient) && !settings.supportSurfaceGradient)
                     return true;
             }
             else
@@ -281,11 +288,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Global Illumination
             if (inputData.shaderKeywordSet.IsEnabled(m_ProbeVolumesL1) &&
-                (!hdrpAsset.currentPlatformRenderPipelineSettings.supportProbeVolume || hdrpAsset.currentPlatformRenderPipelineSettings.probeVolumeSHBands != ProbeVolumeSHBands.SphericalHarmonicsL1))
+                (!settings.supportProbeVolume || settings.probeVolumeSHBands != ProbeVolumeSHBands.SphericalHarmonicsL1))
                 return true;
 
             if (inputData.shaderKeywordSet.IsEnabled(m_ProbeVolumesL2) &&
-                (!hdrpAsset.currentPlatformRenderPipelineSettings.supportProbeVolume || hdrpAsset.currentPlatformRenderPipelineSettings.probeVolumeSHBands != ProbeVolumeSHBands.SphericalHarmonicsL2))
+                (!settings.supportProbeVolume || settings.probeVolumeSHBands != ProbeVolumeSHBands.SphericalHarmonicsL2))
                 return true;
 
 #if !ENABLE_SENSOR_SDK
