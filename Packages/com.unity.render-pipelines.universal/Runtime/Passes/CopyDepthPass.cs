@@ -19,12 +19,15 @@ namespace UnityEngine.Rendering.Universal.Internal
         internal bool AllocateRT { get; set; }
         internal int MssaSamples { get; set; }
         Material m_CopyDepthMaterial;
-        public CopyDepthPass(RenderPassEvent evt, Material copyDepthMaterial)
+        internal bool m_ShouldClear;
+
+        public CopyDepthPass(RenderPassEvent evt, Material copyDepthMaterial, bool shouldClear = false)
         {
             base.profilingSampler = new ProfilingSampler(nameof(CopyDepthPass));
             AllocateRT = true;
             m_CopyDepthMaterial = copyDepthMaterial;
             renderPassEvent = evt;
+            m_ShouldClear = shouldClear;
         }
 
         /// <summary>
@@ -51,7 +54,9 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             // On Metal iOS, prevent camera attachments to be bound and cleared during this pass.
             ConfigureTarget(new RenderTargetIdentifier(destination.Identifier(), 0, CubemapFace.Unknown, -1), descriptor.depthStencilFormat, descriptor.width, descriptor.height, descriptor.msaaSamples, true);
-            ConfigureClear(ClearFlag.None, Color.black);
+
+            if (m_ShouldClear)
+                ConfigureClear(ClearFlag.All, Color.black);
         }
 
         /// <inheritdoc/>

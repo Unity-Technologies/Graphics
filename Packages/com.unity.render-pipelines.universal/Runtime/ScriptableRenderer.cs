@@ -1175,6 +1175,10 @@ namespace UnityEngine.Rendering.Universal
                     finalClearFlag |= (cameraClearFlag & ClearFlag.Color);
                     finalClearColor = CoreUtils.ConvertSRGBToActiveColorSpace(camera.backgroundColor);
 
+                    // on platforms that support Load and Store actions having the clear flag means that the action will be DontCare, which is something we want when the color target is bound the first time
+                    if (SystemInfo.usesLoadStoreActions)
+                        finalClearFlag |= renderPass.clearFlag;
+
                     if (m_FirstTimeCameraDepthTargetIsBound)
                     {
                         // m_CameraColorTarget can be an opaque pointer to a RenderTexture with depth-surface.
