@@ -703,7 +703,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.viewport = hdCamera.finalViewport;
                 passData.depthBuffer = builder.ReadTexture(depthBuffer);
                 passData.output = builder.WriteTexture(output);
-                passData.dynamicResolutionScale = DynamicResolutionHandler.instance.GetCurrentScale();
+                passData.dynamicResolutionScale = copyForXR ? DynamicResolutionHandler.instance.GetCurrentScale() : 1.0f / DynamicResolutionHandler.instance.GetCurrentScale();
                 passData.flipY = copyForXR;
 
                 builder.SetRenderFunc(
