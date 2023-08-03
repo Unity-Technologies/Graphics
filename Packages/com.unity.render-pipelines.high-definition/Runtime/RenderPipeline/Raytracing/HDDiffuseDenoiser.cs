@@ -135,7 +135,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     (DiffuseDenoiserPassData data, RenderGraphContext ctx) =>
                     {
                         // Generate the point distribution if needed (this is only ran once)
-                        if (passData.needInit)
+                        if (data.needInit)
                         {
                             int m_GeneratePointDistributionKernel = data.diffuseDenoiserCS.FindKernel("GeneratePointDistribution");
                             ctx.cmd.SetComputeTextureParam(data.diffuseDenoiserCS, m_GeneratePointDistributionKernel, HDShaderIDs._OwenScrambledRGTexture, data.owenScrambledTexture);

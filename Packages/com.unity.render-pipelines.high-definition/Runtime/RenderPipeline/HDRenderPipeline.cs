@@ -239,10 +239,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns>Return true if the main display and platform is HDR capable and has enabled HDR output</returns>
         internal static bool HDROutputForMainDisplayIsActive()
         {
-            // TODO: Until we can test it, disable on Mac.
-            return SystemInfo.graphicsDeviceType != GraphicsDeviceType.Metal &&
-                   SystemInfo.hdrDisplaySupportFlags.HasFlag(HDRDisplaySupportFlags.Supported) &&
-                   HDROutputSettings.main.active;
+            return SystemInfo.hdrDisplaySupportFlags.HasFlag(HDRDisplaySupportFlags.Supported) && HDROutputSettings.main.active;
         }
 
         /// <summary>
@@ -326,6 +323,10 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        // We only want to enable HDR for the game view once
+        // since the game itself might what to control this
+        internal bool m_enableHdrOnce = true;
+
         void SetHDRState(HDCamera camera)
         {
             if (camera.camera.cameraType == CameraType.Reflection) return; // Do nothing for reflection probes, they don't output to backbuffers.
@@ -337,11 +338,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (hdrInPlayerSettings && HDROutputSettings.main.available)
             {
-                // TODO: Until we can test it, disable on Mac.
-                if (camera.camera.cameraType != CameraType.Game || SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal)
+                if (camera.camera.cameraType != CameraType.Game)
+                {
                     HDROutputSettings.main.RequestHDRModeChange(false);
-                else
+                }
+                else if (m_enableHdrOnce)
+                {
                     HDROutputSettings.main.RequestHDRModeChange(true);
+                    m_enableHdrOnce = false;
+                }
             }
             // Make sure HDR auto tonemap is off
             if (HDROutputSettings.main.active)
@@ -2538,7 +2543,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             SetHDRState(hdCamera);
 
-
             using (ListPool<RTHandle>.Get(out var aovBuffers))
             using (ListPool<RTHandle>.Get(out var aovCustomPassBuffers))
             {
@@ -2633,9 +2637,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Frustum cull Local Volumetric Fog on the CPU. Can be performed as soon as the camera is set up.
                 PrepareVisibleLocalVolumetricFogList(hdCamera, cmd);
 
-                // do AdaptiveProbeVolume stuff
+                // Bind AdaptiveProbeVolume resources
                 if (IsAPVEnabled())
+                {
                     ProbeReferenceVolume.instance.BindAPVRuntimeResources(cmd, hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume));
+                }
 
                 // Note: Legacy Unity behave like this for ShadowMask
                 // When you select ShadowMask in Lighting panel it recompile shaders on the fly with the SHADOW_MASK keyword.
@@ -2932,7 +2938,10 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
 
             // Must be called before culling because it emits intermediate renderers via Graphics.DrawInstanced.
-            ProbeReferenceVolume.instance.RenderDebug(hdCamera.camera);
+            if (currentPipeline.IsAPVEnabled())
+            {
+                ProbeReferenceVolume.instance.RenderDebug(hdCamera.camera);
+            }
 
             // Set the LOD bias and store current value to be able to restore it.
             // Use a try/finalize pattern to be sure to restore properly the qualitySettings.lodBias
