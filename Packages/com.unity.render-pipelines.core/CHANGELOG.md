@@ -23,6 +23,7 @@ This version is compatible with Unity 2023.2.0a17.
 - Added optimizations to Static APV for Mobile Devices.
 
 ### Fixed
+- Render Graph - Native Renderpass API disallows reading from compute buffer.
 - Rendering Debugger - Foldouts - Right Click anywhere on the foldout opens the context menu.
 - Rendering Debugger - Foldouts - Left click on context menu collapsed/expand the foldout.
 - Rendering Debugger - HotKeys- Fixed regression to open the Rendering Debugger with Ctrl + Backspace on standalone/player modes.
