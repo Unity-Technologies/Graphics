@@ -25,12 +25,12 @@ public class GraphicsTestFix : MonoBehaviour
         if (count == settings.WaitFrames - 3)
         {
             Debug.Log(count + " GraphicsTestFix - start callback");
-            RenderPipelineManager.endFrameRendering += MyRenderFrame;
+            RenderPipelineManager.endContextRendering += MyRenderFrame;
         }
         count++;
     }
 
-    private void MyRenderFrame(ScriptableRenderContext context, Camera[] cameras)
+    private void MyRenderFrame(ScriptableRenderContext context, List<Camera> cameras)
     {
         //Make a capture when reached correct frame
         if (texture == null)
@@ -70,7 +70,7 @@ public class GraphicsTestFix : MonoBehaviour
 
     private void CleanUp()
     {
-        RenderPipelineManager.endFrameRendering -= MyRenderFrame;
+        RenderPipelineManager.endContextRendering -= MyRenderFrame;
     }
 
 #endif
