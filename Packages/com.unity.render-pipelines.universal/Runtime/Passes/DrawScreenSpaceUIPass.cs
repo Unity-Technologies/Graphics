@@ -153,6 +153,8 @@ namespace UnityEngine.Rendering.Universal
                     ExecutePass(context.cmd, data, data.rendererList);
                 });
             }
+
+            RenderGraphUtils.SetGlobalTexture(renderGraph, ShaderPropertyId.overlayUITexture, output);
         }
 
         internal void RenderOverlay(RenderGraph renderGraph, in TextureHandle colorBuffer, in TextureHandle depthBuffer, ref RenderingData renderingData)

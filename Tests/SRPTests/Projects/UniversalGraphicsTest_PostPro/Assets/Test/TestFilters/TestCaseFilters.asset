@@ -147,15 +147,6 @@ MonoBehaviour:
       TAA is broken)
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: 06d3d04c77b97ba40969b415bc9a25dd, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 44
-    GraphicsDevice: 4
-    XrSdk: 
-    StereoModes: 0
-    Reason: UUM-21181
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
     - {fileID: 102900000, guid: 9e498e31909a6427582110fd758d2f9d, type: 3}
     ColorSpace: 1
     BuildPlatform: 13
@@ -172,3 +163,33 @@ MonoBehaviour:
     XrSdk: OculusLoader
     StereoModes: 0
     Reason: Instability on Quest OpenGLES3
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: cef44dde9c315e54fa9e5cfe6a04edbb, type: 3}
+    - {fileID: 102900000, guid: 8bf4b7781b2a77a4987ae2a487e42414, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 4
+    XrSdk: 
+    StereoModes: 0
+    Reason: UUM-43923
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: cef44dde9c315e54fa9e5cfe6a04edbb, type: 3}
+    - {fileID: 102900000, guid: 8bf4b7781b2a77a4987ae2a487e42414, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 9
+    GraphicsDevice: 4
+    XrSdk: 
+    StereoModes: 0
+    Reason: ANT-1473
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: cef44dde9c315e54fa9e5cfe6a04edbb, type: 3}
+    - {fileID: 102900000, guid: 8bf4b7781b2a77a4987ae2a487e42414, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 24
+    GraphicsDevice: 4
+    XrSdk: 
+    StereoModes: 0
+    Reason: HDR output is not supported on Linux.
