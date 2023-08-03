@@ -184,9 +184,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         public BufferHandle UseBuffer(in BufferHandle input, IBaseRenderGraphBuilder.AccessFlags flags)
         {
-            if ((flags & IBaseRenderGraphBuilder.AccessFlags.GrabRead) != 0)
+            if ((flags & IBaseRenderGraphBuilder.AccessFlags.AllowGrab) != 0)
             {
-                throw new ArgumentException("GrabRead is only valid on UseTexture");
+                throw new ArgumentException("AllowGrab is only valid on UseTexture");
             }
             return new BufferHandle(UseResource(input.handle, flags).index);
         }
