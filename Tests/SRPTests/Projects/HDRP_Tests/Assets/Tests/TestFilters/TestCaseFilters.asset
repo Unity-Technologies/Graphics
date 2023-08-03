@@ -24,15 +24,6 @@ MonoBehaviour:
     Reason: Disable this test as we disable the feature for Yamto on Mac
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: fc784678bf952de4482e78aea61ccdc8, type: 3}
-    ColorSpace: -1
-    BuildPlatform: -2
-    GraphicsDevice: 16
-    XrSdk: 
-    StereoModes: 0
-    Reason: fail on yamato
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
     - {fileID: 102900000, guid: d4a7e5df537f6b0468c09ce661d8791d, type: 3}
     ColorSpace: -1
     BuildPlatform: -2
@@ -76,3 +67,39 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: corrupt on yamato
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 813bead26cd69ed4c9e9726f6670da5f, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: crash on yamato
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 4dee1c4da3598c24f9fdd58a675d6547, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: crash on yamato
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: d41e3091708565747bbadd792e5dd01b, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: crash on yamato
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: f5cb4917223ead34abb31c1dc1013fb2, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: crash on yamato
