@@ -446,6 +446,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Make sure the mip-maps are generated
                 currentWater.simulation.gpuBuffers.additionalDataBuffer.rt.Create();
                 cmd.GenerateMips(currentWater.simulation.gpuBuffers.additionalDataBuffer.rt);
+
+                // For the CPU Simulation
+                if (!currentWater.cpuLowLatency)
+                    cmd.IncrementUpdateCount(currentWater.simulation.gpuBuffers.displacementBuffer.rt);
             }
         }
 

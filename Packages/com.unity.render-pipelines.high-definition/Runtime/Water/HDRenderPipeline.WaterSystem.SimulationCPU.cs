@@ -397,6 +397,8 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!m_Asset.currentPlatformRenderPipelineSettings.waterCPUSimulation)
                 return;
 
+            WaterSurface.s_EmptyNativeArray = new NativeArray<float4>(0, Allocator.Persistent);
+
             // Flag required for freeing the resources at the end
             m_ActiveWaterSimulationCPU = true;
 
@@ -429,6 +431,8 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!m_ActiveWaterSimulationCPU)
                 return;
 
+            WaterSurface.s_EmptyNativeArray.Dispose();
+
             // Free the native buffers
             m_DefaultCurrentMap.Dispose();
             m_DefaultDeformationBuffer.Dispose();
@@ -445,7 +449,7 @@ namespace UnityEngine.Rendering.HighDefinition
         void UpdateCPUWaterSimulation(WaterSurface waterSurface, bool evaluateSpetrum)
         {
             // If the asset doesn't support the CPU simulation or the surface doesn't, we don't have to do anything
-            if (!m_ActiveWaterSimulationCPU || !waterSurface.cpuSimulation)
+            if (!m_ActiveWaterSimulationCPU || !waterSurface.cpuSimulation || !waterSurface.cpuLowLatency)
                 return;
 
             // Based on if the simulation has been flagged as half or full resolution
@@ -556,6 +560,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // If the asset doesn't support the CPU simulation or the surface doesn't, we don't have to do anything
             if (!m_ActiveWaterSimulationCPU || !currentWater.cpuSimulation)
                 return;
+
+            if (!currentWater.cpuLowLatency)
+                currentWater.displacementBufferSynchronizer.EnqueueRequest(cmd, currentWater.simulation.gpuBuffers.displacementBuffer, true);
 
             if (currentWater.waterMask != null)
                 currentWater.waterMaskSynchronizer.EnqueueRequest(cmd, currentWater.waterMask, true);

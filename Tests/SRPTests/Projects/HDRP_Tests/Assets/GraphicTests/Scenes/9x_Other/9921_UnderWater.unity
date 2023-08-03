@@ -528,6 +528,7 @@ MonoBehaviour:
   meshRenderers: []
   timeMultiplier: 0.1
   cpuSimulation: 0
+  cpuLowLatency: 0
   cpuFullResolution: 0
   cpuEvaluateRipples: 0
   customMaterial: {fileID: 0}
@@ -1392,7 +1393,8 @@ MonoBehaviour:
   geometryType: 0
   meshRenderers: []
   timeMultiplier: 0
-  cpuSimulation: 1
+  cpuSimulation: 0
+  cpuLowLatency: 0
   cpuFullResolution: 0
   cpuEvaluateRipples: 0
   customMaterial: {fileID: 0}
@@ -1588,6 +1590,7 @@ MonoBehaviour:
   - {fileID: 27557683}
   timeMultiplier: 0
   cpuSimulation: 0
+  cpuLowLatency: 0
   cpuFullResolution: 0
   cpuEvaluateRipples: 0
   customMaterial: {fileID: 0}
