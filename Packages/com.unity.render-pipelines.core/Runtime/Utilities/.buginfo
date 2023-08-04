@@ -11,7 +11,7 @@ rpw:
       - ^.*ResourceReloader?.*$
       - ^.*SceneRenderPipeline?.*$
       - ^.*TextureCurve?.*$ 
-  area: RP Workflows
+  area: RP Workflow
 
 xr:
   when:
