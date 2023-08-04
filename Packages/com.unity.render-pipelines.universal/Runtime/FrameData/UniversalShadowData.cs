@@ -109,8 +109,8 @@ namespace UnityEngine.Rendering.Universal
             additionalLightsShadowmapHeight = 0;
             supportsSoftShadows = false;
             shadowmapDepthBufferBits = 0;
-            bias.Clear();
-            resolution.Clear();
+            bias?.Clear();
+            resolution?.Clear();
 
             isKeywordAdditionalLightShadowsEnabled = false;
             isKeywordSoftShadowsEnabled = false;

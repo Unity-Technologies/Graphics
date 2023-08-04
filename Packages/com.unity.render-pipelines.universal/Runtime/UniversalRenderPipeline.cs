@@ -630,6 +630,7 @@ namespace UnityEngine.Rendering.Universal
             if (asset.useAdaptivePerformance)
                 ApplyAdaptivePerformance(ref cameraData);
 #endif
+
             RenderSingleCamera(context, cameraData, cameraData.postProcessEnabled);
         }
 
@@ -660,22 +661,14 @@ namespace UnityEngine.Rendering.Universal
         static void RenderSingleCamera(ScriptableRenderContext context, UniversalCameraData cameraData, bool anyPostProcessingEnabled)
         {
             Camera camera = cameraData.camera;
-            var renderer = cameraData.renderer;
-
-            if (camera.cameraType == CameraType.SceneView && Camera.main != null)
-            {
-                Camera.main.TryGetComponent<UniversalAdditionalCameraData>(out var baseCameraData);
-                if (baseCameraData != null && baseCameraData.scriptableRenderer != null)
-                    renderer = baseCameraData.scriptableRenderer;
-            }
-
+            ScriptableRenderer renderer = cameraData.renderer;
             if (renderer == null)
             {
                 Debug.LogWarning(string.Format("Trying to render {0} with an invalid renderer. Camera rendering will be skipped.", camera.name));
                 return;
             }
 
-            using var frameData = renderer.resources.frameData;
+            using ContextContainer frameData = renderer.resources.frameData;
 
             if (!TryGetCullingParameters(cameraData, out var cullingParameters))
                 return;
@@ -713,6 +706,7 @@ namespace UnityEngine.Rendering.Universal
                     {
                         frameData = frameData
                     };
+
                     renderer.OnPreCullRenderPasses(in legacyCameraData);
                     renderer.SetupCullingParameters(ref cullingParameters, ref legacyCameraData);
                 }
@@ -938,6 +932,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     BeginCameraRendering(context, baseCamera);
                 }
+
                 // Update volumeframework before initializing additional camera data
                 UpdateVolumeFramework(baseCamera, baseCameraAdditionalData);
 
@@ -1008,6 +1003,7 @@ namespace UnityEngine.Rendering.Universal
                                 UpdateCameraData(overlayCameraData, xrPass);
                             }
 #endif
+
                             InitializeAdditionalCameraData(overlayCamera, overlayAdditionalCameraData, false, overlayCameraData);
                             overlayCameraData.camera = overlayCamera;
                             overlayCameraData.baseCamera = baseCamera;
