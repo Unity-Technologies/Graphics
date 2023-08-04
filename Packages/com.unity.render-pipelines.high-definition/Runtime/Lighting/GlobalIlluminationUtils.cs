@@ -3,7 +3,7 @@ using Unity.Collections;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    class GlobalIlluminationUtils
+    internal static class GlobalIlluminationUtils
     {
         // Return true if the light must be added to the baking
         public static bool LightDataGIExtract(Light light, ref LightDataGI lightDataGI)
@@ -32,7 +32,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             float lightDimmer = 1;
 
-            if (lightMode == LightMode.Realtime && add.affectDiffuse)
+            if (lightMode == LightMode.Realtime || lightMode == LightMode.Mixed)
                 lightDimmer = add.lightDimmer;
 
             lightDataGI.instanceID = light.GetInstanceID();
