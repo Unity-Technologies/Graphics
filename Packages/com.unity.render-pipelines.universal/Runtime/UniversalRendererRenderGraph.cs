@@ -502,8 +502,12 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
-            resources.SetTexture(UniversalResource.BackBufferColor, renderGraph.ImportTexture(m_TargetColorHandle, importInfo, importBackbufferColorParams));
-            resources.SetTexture(UniversalResource.BackBufferDepth, renderGraph.ImportTexture(m_TargetDepthHandle, importInfoDepth, importBackbufferDepthParams));
+            // TODO: Don't think the backbuffer color and depth should be imported at all if !isBuiltinTexture, double check
+            if (!isCameraTargetOffscreenDepth)
+            {
+                resources.SetTexture(UniversalResource.BackBufferDepth, renderGraph.ImportTexture(m_TargetDepthHandle, importInfoDepth, importBackbufferDepthParams));
+                resources.SetTexture(UniversalResource.BackBufferColor, renderGraph.ImportTexture(m_TargetColorHandle, importInfo, importBackbufferColorParams));
+            }
 
             #region Intermediate Camera Target
 
@@ -667,7 +671,8 @@ namespace UnityEngine.Rendering.Universal
 
         private void OnOffscreenDepthTextureRendering(RenderGraph renderGraph, ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            ClearTargetsPass.Render(renderGraph, activeColorTexture, resources.GetTexture(UniversalResource.BackBufferDepth), RTClearFlags.Depth, renderingData.cameraData.backgroundColor);
+            if (!renderGraph.NativeRenderPassesEnabled)
+                ClearTargetsPass.Render(renderGraph, activeColorTexture, resources.GetTexture(UniversalResource.BackBufferDepth), RTClearFlags.Depth, renderingData.cameraData.backgroundColor);
 
             RecordCustomRenderGraphPasses(renderGraph, ref renderingData, RenderPassEvent.BeforeRenderingShadows, RenderPassEvent.BeforeRenderingOpaques);
             m_RenderOpaqueForwardPass.Render(renderGraph, TextureHandle.nullHandle, resources.GetTexture(UniversalResource.BackBufferDepth), TextureHandle.nullHandle, TextureHandle.nullHandle, ref renderingData);
@@ -1389,12 +1394,14 @@ namespace UnityEngine.Rendering.Universal
 
         internal static void Render(RenderGraph graph, TextureHandle colorHandle, TextureHandle depthHandle, RTClearFlags clearFlags, Color clearColor)
         {
-            Debug.Assert(colorHandle.IsValid() || depthHandle.IsValid(), "Trying to clear an invalid render target");
-
             using (var builder = graph.AddRasterRenderPass<PassData>("Clear Targets Pass", out var passData, s_ClearProfilingSampler))
             {
-                passData.color = builder.UseTextureFragment(colorHandle, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
-                passData.depth = builder.UseTextureFragmentDepth(depthHandle, IBaseRenderGraphBuilder.AccessFlags.Write);
+                if (colorHandle.IsValid())
+                    passData.color = builder.UseTextureFragment(colorHandle, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
+
+                if (depthHandle.IsValid())
+                    passData.depth = builder.UseTextureFragmentDepth(depthHandle, IBaseRenderGraphBuilder.AccessFlags.Write);
+                
                 passData.clearFlags = clearFlags;
                 passData.clearColor = clearColor;
 

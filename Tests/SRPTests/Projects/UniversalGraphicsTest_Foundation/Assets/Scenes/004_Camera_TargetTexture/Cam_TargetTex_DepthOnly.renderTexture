@@ -6,7 +6,7 @@ RenderTexture:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Cam_TargetTex
+  m_Name: Cam_TargetTex_DepthOnly
   m_ImageContentsHash:
     serializedVersion: 2
     Hash: 00000000000000000000000000000000
@@ -16,8 +16,8 @@ RenderTexture:
   m_Height: 256
   m_AntiAliasing: 1
   m_MipCount: -1
-  m_DepthStencilFormat: 92
-  m_ColorFormat: 8
+  m_DepthStencilFormat: 94
+  m_ColorFormat: 0
   m_MipMap: 0
   m_GenerateMips: 1
   m_SRGB: 0
