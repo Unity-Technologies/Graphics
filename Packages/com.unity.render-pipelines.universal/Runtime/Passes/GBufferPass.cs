@@ -257,6 +257,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                     builder.UseTextureFragment(gbuffer[i], i, IBaseRenderGraphBuilder.AccessFlags.Write);
                 }
 
+                RenderGraphUtils.UseDBufferIfValid(builder, frameResources);
+
                 SetFrameResourcesGBufferArray(frameResources, gbuffer);
                 passData.depth = builder.UseTextureFragmentDepth(cameraDepth, IBaseRenderGraphBuilder.AccessFlags.Write);
 
@@ -305,13 +307,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 {
                     if (i != deferredLights.GBufferLightingIndex)
                         passData.gbuffer[i] = builder.UseTexture(gbuffer[i], IBaseRenderGraphBuilder.AccessFlags.Read);
-                }
-
-                for (int i = 0; i < RenderGraphUtils.DBufferSize; ++i)
-                {
-                    var dbuffer = frameResources.GetTexture((UniversalResource) (UniversalResource.DBuffer0 + i));
-                    if (dbuffer.IsValid())
-                        builder.UseTexture(dbuffer);
                 }
 
                 builder.AllowPassCulling(false);

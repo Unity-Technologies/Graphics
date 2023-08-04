@@ -701,6 +701,14 @@ namespace UnityEngine.Rendering.Universal
                     copyDepthPassEvent = (RenderPassEvent)Mathf.Min((int)RenderPassEvent.AfterRenderingTransparents, ((int)renderPassInputs.requiresDepthTextureEarliestEvent) - 1);
                 }
                 m_CopyDepthPass.renderPassEvent = copyDepthPassEvent;
+
+                // In case we are making the copy depth pass earlier, we need to force set these variables to disable
+                // depth resolve as the render pass event itself has been moved earlier and it's not possible anymore
+                if (copyDepthPassEvent < RenderPassEvent.AfterRenderingTransparents)
+                {
+                    m_CopyDepthPass.m_CopyResolvedDepth = false;
+                    m_CopyDepthMode = CopyDepthMode.AfterOpaques;
+                }
             }
             else if (cameraHasPostProcessingWithDepth || isSceneViewOrPreviewCamera || isGizmosEnabled)
             {

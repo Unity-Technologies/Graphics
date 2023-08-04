@@ -543,6 +543,7 @@ namespace UnityEngine.Rendering.Universal
                 bool resolveDepth = RenderingUtils.MultisampleDepthResolveSupported() && renderGraph.NativeRenderPassesEnabled;
 
                 // TODO RENDERGRAPH: once all passes are ported to RasterCommandBuffers we need to reenable depth resolve
+                m_CopyDepthMode = renderPassInputs.requiresDepthTextureEarliestEvent < RenderPassEvent.AfterRenderingTransparents ? CopyDepthMode.AfterOpaques : m_CopyDepthMode;
                 m_CopyDepthPass.m_CopyResolvedDepth = resolveDepth && m_CopyDepthMode == CopyDepthMode.AfterTransparents;
 
                 if (hasMSAA)
@@ -843,7 +844,6 @@ namespace UnityEngine.Rendering.Universal
                     m_DrawSkyboxPass.Render(renderGraph, context, activeColorTexture, activeDepthTexture, ref renderingData);
             }
 
-            m_CopyDepthMode = renderPassInputs.requiresDepthTextureEarliestEvent < RenderPassEvent.AfterRenderingTransparents ? CopyDepthMode.AfterOpaques : m_CopyDepthMode;
             if (requiresDepthCopyPass && m_CopyDepthMode != CopyDepthMode.AfterTransparents)
             {
                 TextureHandle cameraDepthTexture = resources.GetTexture(UniversalResource.CameraDepthTexture);
@@ -1295,6 +1295,16 @@ namespace UnityEngine.Rendering.Universal
         static private ProfilingSampler s_SetGlobalTextureProfilingSampler = new ProfilingSampler("Set Global Texture");
 
         internal const int DBufferSize = 3;
+
+        internal static void UseDBufferIfValid(IRasterRenderGraphBuilder builder, FrameResources resources)
+        {
+            for (int i = 0; i < DBufferSize; ++i)
+            {
+                var dbuffer = resources.GetTexture((UniversalResource.DBuffer0 + i));
+                if (dbuffer.IsValid())
+                    builder.UseTexture(dbuffer);
+            }
+        }
         private class PassData
         {
             internal TextureHandle texture;
