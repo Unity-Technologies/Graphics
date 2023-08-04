@@ -566,7 +566,7 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             globalDeclaration.WriteLine();
             var particleData = (context.GetData() as VFXDataParticle);
             var systemUniformMapper = particleData.systemUniformMapper;
-            taskData.uniformMapper.OverrideNamesWithOther(systemUniformMapper);
+            taskData.uniformMapper.OverrideUniformsNamesWithOther(systemUniformMapper);
             var needsGraphValueStruct = globalDeclaration.WriteGraphValuesStruct(taskData.uniformMapper);
             globalDeclaration.WriteLine();
 
