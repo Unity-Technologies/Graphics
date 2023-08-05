@@ -31,7 +31,7 @@ namespace UnityEditor.Rendering.PostProcessing
 
         public override void OnInspectorGUI()
         {
-            if (!SystemInfo.supportsComputeShaders)
+            if (!SystemInfo.supportsComputeShaders || EditorUtilities.isTargetingAndroid || EditorUtilities.isTargetingWebGL)
                 EditorGUILayout.HelpBox("Auto exposure requires compute shader support.", MessageType.Warning);
 
             EditorUtilities.DrawHeaderLabel("Exposure");

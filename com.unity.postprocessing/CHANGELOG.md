@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed obsolete FormatUsage bug
+- Disabled compute based effects not supported on WebGL and Android OpenGL
 
 ## [3.3.0] - 2023-05-11
 

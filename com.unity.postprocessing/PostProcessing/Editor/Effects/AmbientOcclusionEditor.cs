@@ -49,7 +49,7 @@ namespace UnityEditor.Rendering.PostProcessing
             }
             else if (aoMode == (int)AmbientOcclusionMode.MultiScaleVolumetricObscurance)
             {
-                if (!SystemInfo.supportsComputeShaders)
+                if (!SystemInfo.supportsComputeShaders || EditorUtilities.isTargetingAndroid || EditorUtilities.isTargetingWebGL)
                     EditorGUILayout.HelpBox("Multi-scale volumetric obscurance requires compute shader support.", MessageType.Warning);
 
                 PropertyField(m_ThicknessModifier);
