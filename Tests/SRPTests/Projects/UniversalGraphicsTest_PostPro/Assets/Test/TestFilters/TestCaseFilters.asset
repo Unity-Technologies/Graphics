@@ -183,13 +183,3 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: ANT-1473
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: cef44dde9c315e54fa9e5cfe6a04edbb, type: 3}
-    - {fileID: 102900000, guid: 8bf4b7781b2a77a4987ae2a487e42414, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 24
-    GraphicsDevice: 4
-    XrSdk: 
-    StereoModes: 0
-    Reason: HDR output is not supported on Linux.
