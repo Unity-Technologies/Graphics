@@ -99,13 +99,13 @@ namespace UnityEngine.Rendering.Universal
             internal bool isVolumetric;
         }
 
-        public void Render(RenderGraph graph, ref RenderingData renderingData, ref Renderer2DData rendererData, ref LayerBatch layerBatch, in TextureHandle lightTexture, in TextureHandle normalTexture, in TextureHandle depthTexture, bool isVolumetric = false)
+        public void Render(RenderGraph graph, ref RenderingData renderingData, Renderer2DData rendererData, ref LayerBatch layerBatch, in TextureHandle lightTexture, in TextureHandle normalTexture, in TextureHandle depthTexture, bool isVolumetric = false)
         {
             intermediateTexture[0] = lightTexture;
-            Render(graph, ref renderingData, ref rendererData, ref layerBatch, intermediateTexture, normalTexture, depthTexture, isVolumetric);
+            Render(graph, ref renderingData, rendererData, ref layerBatch, intermediateTexture, normalTexture, depthTexture, isVolumetric);
         }
 
-        public void Render(RenderGraph graph, ref RenderingData renderingData, ref Renderer2DData rendererData, ref LayerBatch layerBatch, in TextureHandle[] lightTextures, in TextureHandle normalTexture, in TextureHandle depthTexture, bool isVolumetric = false)
+        public void Render(RenderGraph graph, ref RenderingData renderingData, Renderer2DData rendererData, ref LayerBatch layerBatch, in TextureHandle[] lightTextures, in TextureHandle normalTexture, in TextureHandle depthTexture, bool isVolumetric = false)
         {
             if (!layerBatch.lightStats.useLights ||
                 isVolumetric && !layerBatch.lightStats.useVolumetricLights)

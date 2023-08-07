@@ -827,13 +827,13 @@ namespace UnityEditor
                 material.doubleSidedGI = (RenderFace)material.GetFloat(Property.CullMode) != RenderFace.Front;
 
             // Temporary fix for lightmapping. TODO: to be replaced with attribute tag.
-            if (material.HasProperty("_MainTex"))
+            if (material.HasProperty("_MainTex") && material.HasProperty("_BaseMap"))
             {
                 material.SetTexture("_MainTex", material.GetTexture("_BaseMap"));
                 material.SetTextureScale("_MainTex", material.GetTextureScale("_BaseMap"));
                 material.SetTextureOffset("_MainTex", material.GetTextureOffset("_BaseMap"));
             }
-            if (material.HasProperty("_Color"))
+            if (material.HasProperty("_Color") && material.HasProperty("_BaseColor"))
                 material.SetColor("_Color", material.GetColor("_BaseColor"));
 
             // Emission

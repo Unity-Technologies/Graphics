@@ -67,7 +67,7 @@ void FindVerticalDisplacements(uint3 currentThread : SV_DispatchThreadID)
     uint coord = currentThread.z;
 
     // The point we will be looking for needs to be converted into the local space of the water simulation
-    float3 targetPosition = mul(_WaterSurfaceTransform_Inverse, float4(_WorldSpaceCameraPos.xyz, 1.0)).xyz;
+    float3 targetPosition = mul(_WaterCustomTransform_Inverse, float4(_WorldSpaceCameraPos.xyz, 1.0)).xyz;
 
     // Initialize the search data
     bool found = false;

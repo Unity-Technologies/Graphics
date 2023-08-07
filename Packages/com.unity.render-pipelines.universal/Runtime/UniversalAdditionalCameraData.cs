@@ -823,7 +823,8 @@ namespace UnityEngine.Rendering.Universal
         public void OnDestroy()
         {
             m_Camera.DestroyVolumeStack(this);
-            scriptableRenderer?.ReleaseRenderTargets();
+            if (camera.cameraType != CameraType.SceneView )
+                scriptableRenderer?.ReleaseRenderTargets();
             m_TaaPersistentData?.DeallocateTargets();
         }
     }

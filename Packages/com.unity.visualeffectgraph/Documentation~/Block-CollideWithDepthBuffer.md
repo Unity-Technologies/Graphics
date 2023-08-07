@@ -34,3 +34,6 @@ This Block is compatible with the following Contexts:
 | **Radius**            | Float    | The radius of the particle this Block uses for collision detection.<br/>This property only appears when **Radius Mode** is set to **Custom**. |
 | **Camera**            | Camera   | The Camera to use for generating the collision surface. This Block uses the depth buffer from this Camera to generate the collision surface.<br/>This property only appears when **Camera** is set to **Custom**. |
 | **Surface Thickness** | Float    | The thickness of the collision surface. <br/>This property only appears when **Surface Thickness** is set to **Custom**. |
+
+## Limitations
+When using the Opaque blend mode, particles write to the depth buffer. In this scenario, this block will make the particles collide with their own depth, leading to an unstable behavior.

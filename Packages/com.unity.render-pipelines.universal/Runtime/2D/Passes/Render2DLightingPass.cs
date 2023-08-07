@@ -53,30 +53,6 @@ namespace UnityEngine.Rendering.Universal
             m_NeedsDepth = useDepth;
         }
 
-        private void GetTransparencySortingMode(Camera camera, ref SortingSettings sortingSettings)
-        {
-            var mode = m_Renderer2DData.transparencySortMode;
-
-            if (mode == TransparencySortMode.Default)
-            {
-                mode = camera.orthographic ? TransparencySortMode.Orthographic : TransparencySortMode.Perspective;
-            }
-
-            switch (mode)
-            {
-                case TransparencySortMode.Perspective:
-                    sortingSettings.distanceMetric = DistanceMetric.Perspective;
-                    break;
-                case TransparencySortMode.Orthographic:
-                    sortingSettings.distanceMetric = DistanceMetric.Orthographic;
-                    break;
-                default:
-                    sortingSettings.distanceMetric = DistanceMetric.CustomAxis;
-                    sortingSettings.customAxis = m_Renderer2DData.transparencySortAxis;
-                    break;
-            }
-        }
-
         private void CopyCameraSortingLayerRenderTexture(ScriptableRenderContext context, RenderingData renderingData, RenderBufferStoreAction mainTargetStoreAction)
         {
             var cmd = renderingData.commandBuffer;
@@ -475,7 +451,7 @@ namespace UnityEngine.Rendering.Universal
                 var normalsDrawSettings = CreateDrawingSettings(k_NormalsRenderingPassName, ref renderingData, SortingCriteria.CommonTransparent);
 
                 var sortSettings = combinedDrawSettings.sortingSettings;
-                GetTransparencySortingMode(camera, ref sortSettings);
+                RendererLighting.GetTransparencySortingMode(m_Renderer2DData, camera, ref sortSettings);
                 combinedDrawSettings.sortingSettings = sortSettings;
                 normalsDrawSettings.sortingSettings = sortSettings;
 
@@ -507,7 +483,7 @@ namespace UnityEngine.Rendering.Universal
                 var storeAction = msaaEnabled ? RenderBufferStoreAction.Resolve : RenderBufferStoreAction.Store;
 
                 var sortSettings = unlitDrawSettings.sortingSettings;
-                GetTransparencySortingMode(camera, ref sortSettings);
+                RendererLighting.GetTransparencySortingMode(m_Renderer2DData, camera, ref sortSettings);
                 unlitDrawSettings.sortingSettings = sortSettings;
 
                 var cmd = renderingData.commandBuffer;
@@ -542,7 +518,7 @@ namespace UnityEngine.Rendering.Universal
 
                     CopyCameraSortingLayerRenderTexture(context, renderingData, storeAction);
 
-                    filterSettings.sortingLayerRange = new SortingLayerRange(m_CameraSortingLayerBoundsIndex, short.MaxValue);
+                    filterSettings.sortingLayerRange = new SortingLayerRange((short)(m_CameraSortingLayerBoundsIndex + 1), short.MaxValue);
                     Render(context, cmd, ref renderingData, ref filterSettings, unlitDrawSettings);
                 }
                 else

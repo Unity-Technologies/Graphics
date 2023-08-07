@@ -260,7 +260,7 @@ real SampleShadowmap(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap), float
     real attenuation;
     real shadowStrength = shadowParams.x;
 
-#if (_SHADOWS_SOFT)
+#if defined(_SHADOWS_SOFT)
     if(shadowParams.y > SOFT_SHADOW_QUALITY_OFF)
     {
         attenuation = SampleShadowmapFiltered(TEXTURE2D_SHADOW_ARGS(ShadowMap, sampler_ShadowMap), shadowCoord, samplingData);

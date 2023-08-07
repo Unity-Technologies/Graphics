@@ -115,12 +115,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 if (m_RayTracing.overrideState.boolValue && m_RayTracing.value.boolValue)
                 {
-                    using (new IndentLevelScope())
-                    {
-                        // If ray tracing is supported display the content of the volume component
-                        if (RenderPipelineManager.currentPipeline is not HDRenderPipeline { rayTracingSupported: true })
-                            HDRenderPipelineUI.DisplayRayTracingSupportBox();
-                    }
+                    // If ray tracing is supported display the content of the volume component
+                    if (RenderPipelineManager.currentPipeline is not HDRenderPipeline { rayTracingSupported: true })
+                        HDRenderPipelineUI.DisplayRayTracingSupportBox();
                 }
             }
 

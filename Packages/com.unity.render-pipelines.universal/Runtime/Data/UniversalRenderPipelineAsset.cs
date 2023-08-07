@@ -569,6 +569,8 @@ namespace UnityEngine.Rendering.Universal
         [ShaderKeywordFilter.SelectOrRemove(true, keywordNames: ShaderKeywordStrings.UseFastSRGBLinearConversion)]
 #endif
         [SerializeField] bool m_UseFastSRGBLinearConversion = false;
+        [SerializeField] bool m_SupportDataDrivenLensFlare = true;
+        [SerializeField] bool m_SupportScreenSpaceLensFlare = true;
 
         // Deprecated settings
         [SerializeField] ShadowQuality m_ShadowType = ShadowQuality.HardShadows;
@@ -1548,6 +1550,22 @@ namespace UnityEngine.Rendering.Universal
         public bool useFastSRGBLinearConversion
         {
             get { return m_UseFastSRGBLinearConversion; }
+        }
+        
+        /// <summary>
+        /// Returns true if Screen Space Lens Flare are supported by this asset, false otherwise.
+        /// </summary>
+        public bool supportScreenSpaceLensFlare
+        {
+            get { return m_SupportScreenSpaceLensFlare; }
+        }
+        
+        /// <summary>
+        /// Returns true if Data Driven Lens Flare are supported by this asset, false otherwise.
+        /// </summary>
+        public bool supportDataDrivenLensFlare
+        {
+            get { return m_SupportDataDrivenLensFlare; }
         }
 
         /// <summary>

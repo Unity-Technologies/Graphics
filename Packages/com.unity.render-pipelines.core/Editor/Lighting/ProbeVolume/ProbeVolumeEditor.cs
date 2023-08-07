@@ -1,9 +1,10 @@
-using System.Collections.Generic;
+using System;
+using System.Reflection;
 using UnityEngine;
-using UnityEditor;
-using UnityEditor.Rendering;
 using UnityEngine.Rendering;
 using UnityEditorInternal;
+
+using Object = UnityEngine.Object;
 
 namespace UnityEditor.Rendering
 {
@@ -28,6 +29,48 @@ namespace UnityEditor.Rendering
         protected void OnEnable()
         {
             m_SerializedProbeVolume = new SerializedProbeVolume(serializedObject);
+        }
+
+        internal static void APVDisabledHelpBox()
+        {
+            string apvDisabledErrorMsg = "Probe Volumes are not enabled.";
+            var renderPipelineAssetType = GraphicsSettings.currentRenderPipelineAssetType;
+
+            // HDRP
+            if (renderPipelineAssetType != null && renderPipelineAssetType.Name == "HDRenderPipelineAsset")
+            {
+                apvDisabledErrorMsg += "\nMake sure Light Probe System is set to Probe Volumes in the HDRP asset in use.";
+
+                static int IndexOf(string[] names, string name) { for (int i = 0; i < names.Length; i++) { if (name == names[i]) return i; } return -1; }
+
+                var k_ExpandableGroup = Type.GetType("UnityEditor.Rendering.HighDefinition.HDRenderPipelineUI+ExpandableGroup,Unity.RenderPipelines.HighDefinition.Editor");
+                var lightingGroup = k_ExpandableGroup.GetEnumValues().GetValue(IndexOf(k_ExpandableGroup.GetEnumNames(), "Lighting"));
+
+                var k_LightingSection = Type.GetType("UnityEditor.Rendering.HighDefinition.HDRenderPipelineUI+ExpandableLighting,Unity.RenderPipelines.HighDefinition.Editor");
+                var probeVolume = k_LightingSection.GetEnumValues().GetValue(IndexOf(k_LightingSection.GetEnumNames(), "ProbeVolume"));
+
+                var k_QualitySettingsHelpBox = Type.GetType("UnityEditor.Rendering.HighDefinition.HDEditorUtils,Unity.RenderPipelines.HighDefinition.Editor")
+                    .GetMethod("QualitySettingsHelpBoxForReflection", BindingFlags.Static | BindingFlags.NonPublic);
+
+                k_QualitySettingsHelpBox.Invoke(null, new object[] { apvDisabledErrorMsg, MessageType.Error, lightingGroup, probeVolume, "m_RenderPipelineSettings.lightProbeSystem" });
+            }
+
+            // URP
+            else if (renderPipelineAssetType != null && renderPipelineAssetType.Name == "UniversalRenderPipelineAsset")
+            {
+                apvDisabledErrorMsg += "\nMake sure Light Probe System is set to Probe Volumes in the URP asset in use.";
+
+                var k_QualitySettingsHelpBox = Type.GetType("UnityEditor.Rendering.Universal.EditorUtils,Unity.RenderPipelines.Universal.Editor")
+                    .GetMethod("QualitySettingsHelpBox", BindingFlags.Static | BindingFlags.NonPublic);
+
+                k_QualitySettingsHelpBox.Invoke(null, new object[] { apvDisabledErrorMsg, MessageType.Error, "m_LightProbeSystem" });
+            }
+
+            // Custom pipelines
+            else
+            {
+                EditorGUILayout.HelpBox(apvDisabledErrorMsg, MessageType.Error);
+            }
         }
 
         public override void OnInspectorGUI()
@@ -57,29 +100,16 @@ namespace UnityEditor.Rendering
 
             if (!ProbeReferenceVolume.instance.isInitialized || !ProbeReferenceVolume.instance.enabledBySRP)
             {
-                var renderPipelineAssetType = GraphicsSettings.currentRenderPipelineAssetType;
-                if (renderPipelineAssetType != null && (renderPipelineAssetType.Name == "HDRenderPipelineAsset" || renderPipelineAssetType.Name == "UniversalRenderPipelineAsset"))
-                {
-                    EditorGUILayout.HelpBox("Probe Volume is not a supported feature by this SRP.", MessageType.Error, wide: true);
-                }
-                else
-                {
-                    EditorGUILayout.HelpBox("The probe volumes feature is not enabled or not available on current SRP.", MessageType.Warning, wide: true);
-                }
-
+                APVDisabledHelpBox();
                 drawInspector = false;
-
             }
 
             if (drawInspector)
             {
                 serializedObject.Update();
-
                 ProbeVolumeUI.Inspector.Draw(m_SerializedProbeVolume, this);
+                m_SerializedProbeVolume.Apply();
             }
-
-
-            m_SerializedProbeVolume.Apply();
         }
 
         [DrawGizmo(GizmoType.InSelectionHierarchy)]

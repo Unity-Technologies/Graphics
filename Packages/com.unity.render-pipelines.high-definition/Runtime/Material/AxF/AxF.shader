@@ -186,10 +186,9 @@ Shader "HDRP/AxF"
     #pragma shader_feature_local _ALPHATEST_ON
     #pragma shader_feature_local _DOUBLESIDED_ON
 
-    #pragma shader_feature_local_fragment _DISABLE_DECALS
+    #pragma shader_feature_local _DISABLE_DECALS
     #pragma shader_feature_local_fragment _DISABLE_SSR
     #pragma shader_feature_local_fragment _DISABLE_SSR_TRANSPARENT
-    #pragma shader_feature_local_raytracing _DISABLE_DECALS
     #pragma shader_feature_local_raytracing _DISABLE_SSR
     #pragma shader_feature_local_raytracing _DISABLE_SSR_TRANSPARENT
 
@@ -323,6 +322,11 @@ Shader "HDRP/AxF"
 
             #define SHADERPASS SHADERPASS_LIGHT_TRANSPORT
             #pragma shader_feature EDITOR_VISUALIZATION
+
+            // Use Unity's built-in matrices for meta pass rendering
+            #define SCENEPICKINGPASS
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/PickingSpaceTransforms.hlsl"
+
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/AxF/AxF.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/AxF/ShaderPass/AxFSharePass.hlsl"

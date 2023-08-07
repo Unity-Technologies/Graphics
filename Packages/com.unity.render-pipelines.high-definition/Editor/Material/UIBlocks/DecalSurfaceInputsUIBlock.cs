@@ -15,6 +15,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             public static GUIContent header { get; } = EditorGUIUtility.TrTextContent("Surface Inputs");
             public static GUIContent baseColorText = new GUIContent("Base Map", "Specify the base color (RGB) and opacity (A) of the decal.");
+            public static GUIContent baseColorAlphaOnlyText = new GUIContent("Base Map", "Specify the base color (RGB) and opacity (A) of the decal. Since Affect BaseColor is disabled only the opacity (A) is being used.");
             public static GUIContent baseOpacityText = new GUIContent("Opacity", "Specify the opacity (A) of the decal.");
             public static GUIContent normalMapText = new GUIContent("Normal Map", "Specifies the normal map for this Material (BC7/BC5/DXT5(nm)).");
             public static GUIContent decalBlendText = new GUIContent("Global Opacity", "Controls the opacity of the entire decal.");
@@ -197,6 +198,10 @@ namespace UnityEditor.Rendering.HighDefinition
                     baseColor.colorValue = color;
 
                 MaterialEditor.EndProperty();
+
+                EditorGUI.indentLevel++;
+                materialEditor.TexturePropertySingleLine(Styles.baseColorAlphaOnlyText, baseColorMap);
+                EditorGUI.indentLevel--;
             }
 
             using (new EditorGUI.DisabledScope(!affectNormal))

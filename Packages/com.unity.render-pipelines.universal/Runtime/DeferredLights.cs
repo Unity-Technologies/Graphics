@@ -176,6 +176,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         internal bool HasDepthPrepass { get; set; }
         //
         internal bool HasNormalPrepass { get; set; }
+        internal bool HasRenderingLayerPrepass { get; set; }
 
         // This is an overlay camera being rendered.
         internal bool IsOverlay { get; set; }
@@ -438,6 +439,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             AdditionalLightsShadowCasterPass additionalLightsShadowCasterPass,
             bool hasDepthPrepass,
             bool hasNormalPrepass,
+            bool hasRenderingLayerPrepass,
             RTHandle depthCopyTexture,
             RTHandle depthAttachment,
             RTHandle colorAttachment)
@@ -445,6 +447,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_AdditionalLightsShadowCasterPass = additionalLightsShadowCasterPass;
             this.HasDepthPrepass = hasDepthPrepass;
             this.HasNormalPrepass = hasNormalPrepass;
+            this.HasRenderingLayerPrepass = hasRenderingLayerPrepass;
 
             this.DepthCopyTexture = depthCopyTexture;
 
@@ -755,10 +758,15 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         void SetAdditionalLightsShadowsKeyword(ref RasterCommandBuffer cmd, ref RenderingData renderingData, bool hasDeferredShadows)
         {
-            // The OFF variant is stripped out based on the stripShadowsOffVariants parameter in the renderer.
-            // This is done to improve build times. Instead a very small texture is sampled.
+            bool additionalLightShadowsEnabledInAsset = renderingData.shadowData.additionalLightShadowsEnabled;
             bool hasOffVariant = !renderingData.cameraData.renderer.stripShadowsOffVariants;
-            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightShadows, !hasOffVariant || hasDeferredShadows);
+
+            // AdditionalLightShadows Keyword is enabled when:
+            // Shadows are enabled in Asset and
+            // a) the OFF variant has been stripped
+            // b) light is casting a shadow
+            bool shouldEnable = additionalLightShadowsEnabledInAsset && (!hasOffVariant || hasDeferredShadows);
+            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightShadows, shouldEnable);
         }
 
         void RenderStencilDirectionalLights(RasterCommandBuffer cmd, ref RenderingData renderingData, NativeArray<VisibleLight> visibleLights, int mainLightIndex)

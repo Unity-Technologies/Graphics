@@ -90,7 +90,7 @@ namespace UnityEngine.Rendering.Universal
             internal TextureHandle[] lightTextures;
         }
 
-        public void Render(RenderGraph graph, ref RenderingData renderingData, ref Renderer2DData rendererData, ref LayerBatch layerBatch, ref FilteringSettings filterSettings, in TextureHandle cameraColorAttachment, in TextureHandle cameraDepthAttachment, in TextureHandle[] lightTextures)
+        public void Render(RenderGraph graph, ref RenderingData renderingData, Renderer2DData rendererData, ref LayerBatch layerBatch, ref FilteringSettings filterSettings, in TextureHandle cameraColorAttachment, in TextureHandle cameraDepthAttachment, in TextureHandle[] lightTextures)
         {
             using (var builder = graph.AddRenderPass<PassData>("Renderer 2D Pass", out var passData, m_ProfilingSampler))
             {

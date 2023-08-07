@@ -10,29 +10,28 @@ namespace UnityEditor.Rendering.Tests
     public class BuildTargetExtensionsTests
     {
         RenderPipelineAsset m_GraphicsSettingsRPAsset = null;
-        List<RenderPipelineAsset> m_RenderPipelineAssets = new List<RenderPipelineAsset>();
+        RenderPipelineAsset[] m_RenderPipelineAssets = null;
         int m_CurrentQualityLevel = -1;
         [SetUp]
         public void SetUp()
         {
             m_GraphicsSettingsRPAsset = GraphicsSettings.defaultRenderPipeline;
             m_CurrentQualityLevel = QualitySettings.GetQualityLevel();
-            for(int i = 0; i < QualitySettings.count; i++)
+            m_RenderPipelineAssets = new RenderPipelineAsset[QualitySettings.count];
+            QualitySettings.ForEach((tier, name) =>
             {
-                QualitySettings.SetQualityLevel(i);
-                m_RenderPipelineAssets.Add(QualitySettings.renderPipeline);
-            }
+                m_RenderPipelineAssets[tier] = QualitySettings.renderPipeline;
+            });
         }
 
         [TearDown]
         public void TearDown()
         {
             GraphicsSettings.defaultRenderPipeline = m_GraphicsSettingsRPAsset;
-            for (int i = 0; i < QualitySettings.count; i++)
+            QualitySettings.ForEach((tier, name) =>
             {
-                QualitySettings.SetQualityLevel(i);
-                QualitySettings.renderPipeline = m_RenderPipelineAssets[i];
-            }
+                QualitySettings.renderPipeline = m_RenderPipelineAssets[tier];
+            });
             QualitySettings.SetQualityLevel(m_CurrentQualityLevel);
         }
 

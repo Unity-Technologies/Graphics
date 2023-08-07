@@ -164,34 +164,29 @@ CBUFFER_END
 // Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesWaterRendering
 // PackingRules = Exact
 CBUFFER_START(ShaderVariablesWaterRendering)
+    float4x4 _WaterSurfaceTransform;
+    float4x4 _WaterSurfaceTransform_Inverse;
     float4 _PatchOffset;
     float2 _GridSize;
     uint _WaterLODCount;
     uint _NumWaterPatches;
-    float _CausticsShadowIntensity;
-    float _CausticsIntensity;
+    float2 _GridOffset;
+    float2 _RegionExtent;
     float2 _CurrentMapInfluence;
+    float _MaxWaterDeformation;
+    float _CausticsMaxLOD;
+    float _CausticsTilingFactor;
+    float _CausticsIntensity;
+    float _CausticsShadowIntensity;
+    float _CausticsPlaneBlendDistance;
     float4 _Group0CurrentRegionScaleOffset;
     float4 _Group1CurrentRegionScaleOffset;
-    float _CausticsPlaneBlendDistance;
-    int _WaterCausticsEnabled;
     uint _WaterRenderingLayer;
-    int _WaterProceduralGeometry;
     float _WaterMaxTessellationFactor;
     float _WaterTessellationFadeStart;
     float _WaterTessellationFadeRange;
-    int _CameraInUnderwaterRegion;
-    float2 _RegionCenter;
-    float2 _RegionExtent;
     float4 _WaterAmbientProbe;
-    float _CausticsMaxLOD;
-    float _MaxWaterDeformation;
-    float _CausticsTilingFactor;
-    float _PaddingWR2;
-    float4x4 _WaterSurfaceTransformRWS;
-    float4x4 _WaterSurfaceTransform_Inverse;
-    float4x4 _WaterCustomMeshTransform;
-    float4x4 _WaterCustomMeshTransform_Inverse;
+    float4x4 _WaterCustomTransform_Inverse;
 CBUFFER_END
 
 // Generated from UnityEngine.Rendering.HighDefinition.WaterSectorData

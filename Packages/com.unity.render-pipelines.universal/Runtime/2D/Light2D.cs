@@ -384,12 +384,12 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool NeedsColorIndexBaking()
         {
-            if (lightMesh)
+            if (lightMesh && LightBatch.isBatchingSupported)
             {
                 if (lightMesh.colors.Length != 0)
                     return lightMesh.colors[0].b == 0;
             }
-            return true;
+            return false;
         }
 
         internal void UpdateMesh(bool forceUpdate = false)

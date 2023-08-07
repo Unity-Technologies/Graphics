@@ -32,10 +32,5 @@ namespace UnityEditor.Rendering
             geometryBias = serializedObject.FindProperty("geometryBias");
             rayOriginBias = serializedObject.FindProperty("rayOriginBias");
         }
-
-        internal void Apply()
-        {
-            serializedObject.ApplyModifiedProperties();
-        }
     }
 }

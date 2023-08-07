@@ -45,9 +45,8 @@ float3 shadergraph_HDSampleSceneColor(float2 uv)
 float3 shadergraph_HDBakedGI(float3 positionWS, float3 normalWS, float2 uvStaticLightmap, float2 uvDynamicLightmap, bool applyScaling)
 {
 #if defined(__BUILTINGIUTILITIES_HLSL__)
-    float3 positionRWS = GetCameraRelativePositionWS(positionWS);
     bool needToIncludeAPV = true;
-    return SampleBakedGI(positionRWS, normalWS, uvStaticLightmap, uvDynamicLightmap, needToIncludeAPV);
+    return SampleBakedGI(positionWS, normalWS, uvStaticLightmap, uvDynamicLightmap, needToIncludeAPV);
 #else
     return 0;
 #endif

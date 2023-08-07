@@ -838,12 +838,11 @@ IndirectLighting EvaluateBSDF_ScreenspaceRefraction(LightLoopContext lightLoopCo
     // Re-evaluate the refraction
     float3 refractedWaterPosRWS;
     float2 distortedWaterNDC;
-    float refractedWaterDistance;
     float3 absorptionTint;
     ComputeWaterRefractionParams(posInput.positionWS, bsdfData.normalWS, bsdfData.lowFrequencyNormalWS,
-        posInput.positionSS * _ScreenSize.zw, V, bsdfData.frontFace, preLightData.disableIOR,
+        posInput.positionNDC, V, bsdfData.frontFace, preLightData.disableIOR, preLightData.upDirection,
         preLightData.maxRefractionDistance, preLightData.transparencyColor, preLightData.outScatteringCoefficient,
-        refractedWaterPosRWS, distortedWaterNDC, refractedWaterDistance, absorptionTint);
+        refractedWaterPosRWS, distortedWaterNDC, absorptionTint);
 
     // Apply a mip offset for the underwater data (if needed)
     float2 pixelCoordinates = distortedWaterNDC * _ScreenSize.xy;

@@ -2,7 +2,6 @@ using NUnit.Framework;
 using System;
 using System.IO;
 using System.Linq;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
 
@@ -10,20 +9,16 @@ namespace UnityEditor.Rendering.Tests.ShaderStripping
 {
     class BuildReportTestScope : IDisposable
     {
-        private ShaderStrippingReportScope m_Scope;
-
         public BuildReportTestScope()
         {
-            ShaderStrippingReportScope.s_DefaultExport = true;
-            m_Scope = new ShaderStrippingReportScope();
-            m_Scope.OnPreprocessBuild(default);
+            Rendering.ShaderStripping.s_DefaultExport = true;
+            Rendering.ShaderStripping.ReportBegin();
         }
 
         void IDisposable.Dispose()
         {
-            m_Scope.OnPostprocessBuild(default);
-            m_Scope = null;
-            ShaderStrippingReportScope.s_DefaultExport = false;
+            Rendering.ShaderStripping.ReportEnd();
+            Rendering.ShaderStripping.s_DefaultExport = false;
         }
     }
 

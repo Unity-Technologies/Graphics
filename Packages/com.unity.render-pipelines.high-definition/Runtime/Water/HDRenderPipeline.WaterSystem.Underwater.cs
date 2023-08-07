@@ -115,7 +115,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
             EvaluateUnderWaterSurface(hdCamera);
             if (m_UnderWaterSurfaceIndex == -1)
+            {
+                // Put some parameters that will fill waterline with constant value
+                cb._BoundsSS = new float4(0, 0, -1, 1);
+                cb._UpDirectionX = 0;
+                cb._UpDirectionY = 1;
+                cb._BufferStride = 0;
+
                 return;
+            }
 
             WaterSurface waterSurface = WaterSurface.instancesAsArray[m_UnderWaterSurfaceIndex];
 
@@ -311,19 +319,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.underWaterCB._UnderWaterAmbientProbeContribution = waterSurface.underWaterAmbientProbeContribution;
 
                 // Fill the water rendering CB
-                passData.waterRenderingCB._CausticsIntensity = waterSurface.causticsIntensity;
+                passData.waterRenderingCB._CausticsIntensity = waterSurface.caustics ? waterSurface.causticsIntensity : 0.0f;
                 passData.waterRenderingCB._CausticsShadowIntensity = waterSurface.causticsDirectionalShadow ? waterSurface.causticsDirectionalShadowDimmer : 1.0f;
                 passData.waterRenderingCB._CausticsPlaneBlendDistance = waterSurface.causticsPlaneBlendDistance;
                 passData.waterRenderingCB._CausticsMaxLOD = EvaluateCausticsMaxLOD(waterSurface.causticsResolution);
                 passData.waterRenderingCB._CausticsTilingFactor = 1.0f / waterSurface.causticsTilingFactor;
                 passData.waterRenderingCB._PatchOffset = waterSurface.transform.position;
-                passData.waterRenderingCB._WaterCausticsEnabled = waterSurface.caustics ? 1 : 0;
-                float4x4 waterToWorldAbs = waterSurface.simulation.rendering.waterToWorldMatrix;
-                if (ShaderConfig.s_CameraRelativeRendering != 0)
-                {
-                    waterToWorldAbs.c3 -= new float4(hdCamera.camera.transform.position, 0.0f);
-                }
-                passData.waterRenderingCB._WaterSurfaceTransformRWS = waterToWorldAbs;
+                passData.waterRenderingCB._WaterSurfaceTransform = waterSurface.simulation.rendering.waterToWorldMatrix;
                 passData.waterRenderingCB._WaterSurfaceTransform_Inverse = waterSurface.simulation.rendering.worldToWaterMatrix;
                 passData.waterRenderingCB._WaterAmbientProbe = m_WaterAmbientProbe;
 

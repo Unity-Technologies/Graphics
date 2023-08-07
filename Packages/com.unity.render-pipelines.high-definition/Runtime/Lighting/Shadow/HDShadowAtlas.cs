@@ -622,7 +622,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (m_ShadowRequests.Length == 0)
             {
-                return renderGraph.defaultResources.whiteTexture;
+                return renderGraph.defaultResources.defaultShadowTexture;
             }
 
             if (m_BlurAlgorithm == BlurAlgorithm.EVSM)

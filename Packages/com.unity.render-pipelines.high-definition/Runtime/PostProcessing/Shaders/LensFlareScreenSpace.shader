@@ -2,6 +2,8 @@ Shader "Hidden/HDRP/LensFlareScreenSpace"
 {
     SubShader
     {
+        Tags{ "RenderPipeline" = "HDRenderPipeline" }
+        
         Pass
         {
             Name "LensFlareScreenSpac Prefilter"

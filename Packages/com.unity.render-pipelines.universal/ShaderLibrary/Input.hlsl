@@ -115,6 +115,8 @@ float _RenderingLayerRcpMaxInt;
 float4 _ScreenCoordScaleBias;
 float4 _ScreenSizeOverride;
 
+uint _EnableProbeVolumes;
+
 #if USE_FORWARD_PLUS
 float4 _FPParams0;
 float4 _FPParams1;

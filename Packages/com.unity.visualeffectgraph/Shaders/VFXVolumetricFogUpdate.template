@@ -40,7 +40,6 @@ uint DistanceToSlice(float distance)
 }
 
 RWStructuredBuffer<uint> maxSliceCount;
-RWStructuredBuffer<uint> maxSliceTempBuffer;
 
 RWByteAddressBuffer attributeBuffer;
 
@@ -81,7 +80,6 @@ void CSMain(uint3 groupId          : SV_GroupID,
     uint threadIdInGroup = groupThreadId.x;
 
 #if defined(VFX_VOLUMETRIC_FOG_PASS_CLEAR)
-    maxSliceTempBuffer[index] = 0;
     if (index <= instanceActiveIndex)
         maxSliceCount[instanceActiveIndex] = 0;
     return;

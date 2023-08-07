@@ -84,18 +84,34 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ConvertTextureMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.blitCubeTextureFacePS);
         }
 
-        private static int GetTextureID(Texture texture)
+        private static int GetTextureID(HDProbe probe)
         {
-            return texture.GetInstanceID();
+            return GetTextureIDAndSize(probe, out int _);
         }
 
-        private static int GetTextureSizeInAtlas(Texture texture)
+        private static int GetTextureIDAndSize(HDProbe probe, out int textureSize)
         {
-            int textureSize = texture.width;
+            textureSize = GetTextureSizeInAtlas(probe);
 
-            if (texture.dimension == TextureDimension.Cube)
+            int textureID = probe.texture.GetInstanceID();
+
+            // Include texture size in ID using simple hash
+            const int kPrime = 31;
+            textureID = kPrime * textureID + textureSize;
+
+            return textureID;
+        }
+
+        private static int GetTextureSizeInAtlas(HDProbe probe)
+        {
+            int textureSize = probe.texture.width;
+
+            switch (probe.type)
             {
-                textureSize = GetReflectionProbeSizeInAtlas(textureSize);
+                case ProbeSettings.ProbeType.ReflectionProbe:
+                    textureSize = Mathf.Min(textureSize, (int)probe.cubeResolution);
+                    textureSize = GetReflectionProbeSizeInAtlas(textureSize);
+                    break;
             }
 
             return textureSize;
@@ -160,10 +176,8 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        private bool NeedsUpdate(Texture texture, uint textureHash, ref Vector4 scaleOffset)
+        private bool NeedsUpdate(int textureId, uint textureHash, ref Vector4 scaleOffset)
         {
-            int textureId = GetTextureID(texture);
-
             bool needsUpdate = false;
 
             if (!m_Atlas.IsCached(out scaleOffset, textureId))
@@ -176,7 +190,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return needsUpdate;
         }
 
-        private RenderTexture PrepareCubeReflectionProbeTexture(CommandBuffer cmd, Texture texture)
+        private RenderTexture PrepareCubeReflectionProbeTexture(CommandBuffer cmd, Texture texture, int textureSize)
         {
             RenderTexture renderTexture = texture as RenderTexture;
             Cubemap cubemap = texture as Cubemap;
@@ -185,12 +199,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ConvertReflectionProbe)))
             {
-                int cubeSize = Math.Max(texture.width, (int)Mathf.Pow(2, (int)EnvConstants.ConvolutionMipCount - 1));
+                int cubeSize = Math.Max(textureSize, (int)Mathf.Pow(2, (int)EnvConstants.ConvolutionMipCount - 1));
 
                 bool conversionRequired = texture.graphicsFormat != m_AtlasFormat;
                 conversionRequired |= (cubemap && cubemap.mipmapCount == 1);
                 conversionRequired |= (renderTexture && !renderTexture.useMipMap);
-                conversionRequired |= texture.width < cubeSize;
+                conversionRequired |= texture.width != cubeSize;
 
                 if (conversionRequired)
                 {
@@ -408,21 +422,21 @@ namespace UnityEngine.Rendering.HighDefinition
             return false;
         }
 
-        private bool UpdateTexture(CommandBuffer cmd, Texture texture, ref Vector4 scaleOffset)
+        private bool UpdateTexture(CommandBuffer cmd, HDProbe probe, ref Vector4 scaleOffset)
         {
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.UpdateReflectionProbeAtlas)))
             {
-                int textureId = GetTextureID(texture);
+                Texture texture = probe.texture;
+
+                int textureId = GetTextureIDAndSize(probe, out int textureSize);
 
                 if (!m_Atlas.IsCached(out scaleOffset, textureId))
                 {
-                    int textureSize = GetTextureSizeInAtlas(texture);
-
                     if (!TryAllocateTexture(textureId, textureSize, ref scaleOffset))
                         return false;
                 }
 
-                RenderTexture convertedTextureTemp = PrepareCubeReflectionProbeTexture(cmd, texture);
+                RenderTexture convertedTextureTemp = PrepareCubeReflectionProbeTexture(cmd, texture, textureSize);
 
                 for (int filterIndex = 0; filterIndex < m_IBLFiltersBSDF.Length; ++filterIndex)
                 {
@@ -437,16 +451,16 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        private bool UpdateTexture(CommandBuffer cmd, Texture texture, ref IBLFilterBSDF.PlanarTextureFilteringParameters planarTextureFilteringParameters, ref Vector4 scaleOffset)
+        private bool UpdateTexture(CommandBuffer cmd, HDProbe probe, ref IBLFilterBSDF.PlanarTextureFilteringParameters planarTextureFilteringParameters, ref Vector4 scaleOffset)
         {
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.UpdateReflectionProbeAtlas)))
             {
-                int textureId = GetTextureID(texture);
+                Texture texture = probe.texture;
+
+                int textureId = GetTextureIDAndSize(probe, out int textureSize);
 
                 if (!m_Atlas.IsCached(out scaleOffset, textureId))
                 {
-                    int textureSize = texture.width;
-
                     if (!TryAllocateTexture(textureId, textureSize, ref scaleOffset))
                         return false;
                 }
@@ -510,9 +524,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             Vector4 scaleOffset = Vector4.zero;
 
-            if (NeedsUpdate(texture, probe.GetTextureHash(), ref scaleOffset))
+            int textureId = GetTextureID(probe);
+
+            if (NeedsUpdate(textureId, probe.GetTextureHash(), ref scaleOffset))
             {
-                if(!UpdateTexture(cmd, texture, ref scaleOffset))
+                if(!UpdateTexture(cmd, probe, ref scaleOffset))
                     LogErrorNoMoreSpaceOnce();
             }
 
@@ -529,9 +545,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             Vector4 scaleOffset = Vector4.zero;
 
-            if (NeedsUpdate(texture, probe.GetTextureHash(), ref scaleOffset))
+            int textureId = GetTextureID(probe);
+
+            if (NeedsUpdate(textureId, probe.GetTextureHash(), ref scaleOffset))
             {
-                if (!UpdateTexture(cmd, texture, ref planarTextureFilteringParameters, ref scaleOffset))
+                if (!UpdateTexture(cmd, probe, ref planarTextureFilteringParameters, ref scaleOffset))
                     LogErrorNoMoreSpaceOnce();
             }
 
@@ -544,12 +562,10 @@ namespace UnityEngine.Rendering.HighDefinition
             Assert.IsTrue(texture.width == texture.height);
             Assert.IsTrue(texture.dimension == TextureDimension.Tex2D || texture.dimension == TextureDimension.Cube);
 
-            int textureId = GetTextureID(texture);
+            int textureId = GetTextureIDAndSize(probe, out int textureSize);
 
             if (!m_Atlas.IsCached(out _, textureId))
             {
-                int textureSize = GetTextureSizeInAtlas(texture);
-
                 Vector4 scaleOffset = Vector4.zero;
 
                 if (!TryAllocateTexture(textureId, textureSize, ref scaleOffset))

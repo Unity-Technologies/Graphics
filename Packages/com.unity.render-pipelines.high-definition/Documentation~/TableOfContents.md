@@ -21,6 +21,7 @@
   * [High Definition Render Pipeline Wizard](Render-Pipeline-Wizard.md)
   * [Upgrading to HDRP from the built-in render pipeline](Upgrading-To-HDRP.md)
   * [Material Upgrade](Material-Upgrade.md)
+  * [Upgrading from HDRP 14.x(2022.2) to 14.x(2022.3)](Upgrading-from-2022.2-to-2022.3.md)
   * [Upgrading from HDRP 13.x to 14.x](Upgrading-from-2022.1-to-2022.2.md)
   * [Upgrading from HDRP 12.x to 13.x](Upgrading-from-2021.2-to-2022.1.md)
   * [Upgrading from HDRP 11.x to 12.x](Upgrading-from-2021.1-to-2021.2.md)
@@ -154,6 +155,7 @@
       * [Lit Master Stack](master-stack-lit.md)
       * [StackLit Master Stack](master-stack-stacklit.md)
       * [Unlit Master Stack](master-stack-unlit.md)
+      * [Water Master Stack](master-stack-water.md)    
   * [Shader Graph Nodes](Shader-Graph-Nodes.md)
 * Lighting
   * [Reflection in HDRP](Reflection-in-HDRP.md)

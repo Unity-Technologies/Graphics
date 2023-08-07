@@ -1,4 +1,5 @@
 #pragma kernel ClearList
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
 RWStructuredBuffer<uint>  _LightListToClear;
 int2 _LightListEntriesAndOffset;

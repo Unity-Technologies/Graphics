@@ -1506,6 +1506,14 @@ namespace UnityEditor.VFX
             systemBufferMappings.Add(new VFXMapping("spawnCountPrefixSum", spawnCountPrefixSumBufferIndex));
         }
 
+        public override void OnEnable()
+        {
+            base.OnEnable();
+            if ((int)m_Space == int.MaxValue)
+            {
+                m_Space = VFXSpace.None;
+            }
+        }
 
         public override void Sanitize(int version)
         {

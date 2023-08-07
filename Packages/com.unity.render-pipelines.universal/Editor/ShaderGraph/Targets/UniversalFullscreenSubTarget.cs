@@ -17,6 +17,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
         }
 
+        protected override KeywordCollection GetPassKeywords(FullscreenCompatibility compatibility)
+        {
+            var modifiedKeywordCollection = base.GetPassKeywords(compatibility);
+            modifiedKeywordCollection.Add(CoreKeywordDescriptors.GBufferNormalsOct);
+            return modifiedKeywordCollection;
+        }
+
         // We don't need the save context / update materials for now
         public override object saveContext => null;
 

@@ -58,8 +58,17 @@ void EncodeIntoDBuffer( DecalSurfaceData surfaceData
 #endif
                         )
 {
+    float3 normalWS = surfaceData.normalWS.xyz;
+#ifdef DECAL_SURFACE_GRADIENT
+    // Negate the normal value when encoding to properly encode a neutral normal
+    // Since surface gradients are derivatives, the value from the normal texture is multiplied by -1
+    // So to have the 0 encoded perfectly when writting to an 8 bit buffer, we need the sign of the neutral normal
+    // to be consistent wit and without surface gradient mode. The value is unflipped when decoded
+    normalWS *= -1;
+#endif
+
     outDBuffer0 = surfaceData.baseColor;
-    outDBuffer1 = float4(surfaceData.normalWS.xyz * 0.5 + 0.5, surfaceData.normalWS.w);
+    outDBuffer1 = float4(normalWS * 0.5 + 0.5, surfaceData.normalWS.w);
     outDBuffer2 = surfaceData.mask;
 #ifdef DECALS_4RT
     outDBuffer3 = surfaceData.MAOSBlend;
@@ -81,6 +90,9 @@ void DecodeFromDBuffer(
     // Use (254.0 / 255.0) instead of 1.0 to allow to encode 0 perfectly (encode as 127)
     // Range goes from -0.99607 to 1.0039
     surfaceData.normalWS.xyz = inDBuffer1.xyz * 2.0 - (254.0 / 255.0);
+#ifdef DECAL_SURFACE_GRADIENT
+    surfaceData.normalWS.xyz *= -1; // see EncodeIntoDBuffer for why we flip
+#endif
     surfaceData.normalWS.w = inDBuffer1.w;
 
     surfaceData.mask = inDBuffer2;

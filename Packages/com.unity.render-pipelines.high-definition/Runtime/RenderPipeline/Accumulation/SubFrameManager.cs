@@ -9,7 +9,7 @@ using UnityEditor;
 #endif // UNITY_EDITOR
 
 // Enable the denoising code path only on windows
-#if ENABLE_UNITY_DENOISING_PLUGIN && (UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN)
+#if UNITY_64 && ENABLE_UNITY_DENOISING_PLUGIN && (UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN)
 using UnityEngine.Rendering.Denoising;
 #endif
 
@@ -39,7 +39,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             accumulatedWeight = 0.0f;
             currentIteration = 0;
-#if ENABLE_UNITY_DENOISING_PLUGIN && (UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN)
+#if UNITY_64 && ENABLE_UNITY_DENOISING_PLUGIN && (UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN)
             validDenoiseHistory = false;
             discardDenoiseRequest = true;
 #endif
@@ -53,7 +53,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public float accumulatedWeight;
         public uint currentIteration;
-#if ENABLE_UNITY_DENOISING_PLUGIN && (UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN)
+#if UNITY_64 && ENABLE_UNITY_DENOISING_PLUGIN && (UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN)
         public CommandBufferDenoiser denoiser;
         public bool validDenoiseHistory;
         public bool activeDenoiseRequest;
@@ -85,7 +85,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!m_CameraCache.TryGetValue(camID, out camData))
             {
                 camData.ResetIteration();
-#if ENABLE_UNITY_DENOISING_PLUGIN && (UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN)
+#if UNITY_64 && ENABLE_UNITY_DENOISING_PLUGIN && (UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN)
                 camData.denoiser = new CommandBufferDenoiser();
                 camData.activeDenoiseRequest = false;
                 camData.discardDenoiseRequest = false;
@@ -149,7 +149,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-#if ENABLE_UNITY_DENOISING_PLUGIN && (UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN)
+#if UNITY_64 && ENABLE_UNITY_DENOISING_PLUGIN && (UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN)
         internal void ResetDenoisingStatus()
         {
             foreach (int camID in m_CameraCache.Keys.ToList())
