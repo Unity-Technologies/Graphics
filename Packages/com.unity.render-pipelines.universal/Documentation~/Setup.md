@@ -14,7 +14,7 @@ Install the following Editor and package versions to begin working with the __2D
    ![](Images/2D/2d-urp12-create-renderer-asset.png)
    <br/>
 
-3. Enter the name for both the Pipeline and Renderer Assets. The name is automatically applied to both, wi th "_Renderer" appended to the name of the Renderer Asset.
+3. Enter the name for both the Pipeline and Renderer Assets. The name is automatically applied to both, with "_Renderer" appended to the name of the Renderer Asset.
    ![](Images/2D/2d-urp12-pipeline-renderer-assets.png)
    <br/>
 
