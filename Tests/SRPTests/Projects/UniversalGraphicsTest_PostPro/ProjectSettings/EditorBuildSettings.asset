@@ -165,7 +165,10 @@ EditorBuildSettings:
     path: Assets/Scenes/260_RenderScale_SMAA.unity
     guid: e6d774fccaa5ca149b739c894e55bfe5
   - enabled: 1
-    path: Assets/Scenes/373_HDRColorGamut.unity
-    guid: cef44dde9c315e54fa9e5cfe6a04edbb
+    path: Assets/Scenes/373_HDROutput_ColorGamut.unity
+    guid: 5157576751c2bde41b8be6dd0dab0a83
+  - enabled: 1
+    path: Assets/Scenes/374_HDROutput_PassOrder.unity
+    guid: c3e9a4c261fa8fb4abe798d185706903
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0
