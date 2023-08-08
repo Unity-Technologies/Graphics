@@ -20,6 +20,7 @@ MonoBehaviour:
     terrainDetailLitShader: {fileID: 0}
     terrainDetailGrassShader: {fileID: 0}
     terrainDetailGrassBillboardShader: {fileID: 0}
+    gpuInlineDebugDrawerLine: {fileID: 4800000, guid: 039c5248164c71b4aa6d780131c1bfaf, type: 3}
   materials:
     defaultDiffuseMat: {fileID: 2100000, guid: 73c176f402d2c2f4d929aa5da7585d17, type: 2}
     defaultMirrorMat: {fileID: 2100000, guid: 6b17274157b33bc45b6a40e7d4ff51fe, type: 2}

@@ -42,7 +42,7 @@ void VFXGetSurfaceDecalData(out DecalSurfaceData surfaceData, out PositionInputs
 //Check Rendering layer
 #ifdef _DECAL_LAYERS
     #ifdef _RENDER_PASS_ENABLED
-        uint surfaceRenderingLayer = DecodeMeshRenderingLayer(LOAD_FRAMEBUFFER_INPUT(GBUFFER4, positionCS.xy).r);
+        uint surfaceRenderingLayer = DecodeMeshRenderingLayer(LOAD_FRAMEBUFFER_X_INPUT(GBUFFER4, positionCS.xy).r);
     #else
         uint surfaceRenderingLayer = LoadSceneRenderingLayer(positionCS.xy);
     #endif
@@ -52,7 +52,7 @@ void VFXGetSurfaceDecalData(out DecalSurfaceData surfaceData, out PositionInputs
 
 
 #if _RENDER_PASS_ENABLED
-    float depth = LOAD_FRAMEBUFFER_INPUT(GBUFFER3, positionCS.xy);
+    float depth = LOAD_FRAMEBUFFER_X_INPUT(GBUFFER3, positionCS.xy);
 #else
     float depth = LoadSceneDepth(positionCS.xy);
 #endif

@@ -640,6 +640,11 @@ PrefabInstance:
       propertyPath: renderingPathCustomFrameSettingsOverrideMask.mask.data1
       value: 32
       objectReference: {fileID: 0}
+    - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
+        type: 3}
+      propertyPath: waitFrames
+      value: 10
+      objectReference: {fileID: 0}
     - target: {fileID: 131257220995741923, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
       propertyPath: m_Enabled
@@ -698,7 +703,7 @@ PrefabInstance:
     - target: {fileID: 6002938546587368868, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -795,7 +800,7 @@ PrefabInstance:
         type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
-      objectReference: {fileID: 2100000, guid: 693113150f9fdf64eaaf583974831954, type: 2}
+      objectReference: {fileID: 2100000, guid: 8ce7487d9da07c249a4974bfe67a6344, type: 2}
     - target: {fileID: 5379213848416296713, guid: 2ed4a6c25de68fd4e8d5705874a4bd29,
         type: 3}
       propertyPath: m_RootOrder
@@ -1715,9 +1720,8 @@ Light:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 705507993}
   m_Enabled: 1
-  serializedVersion: 10
+  serializedVersion: 11
   m_Type: 1
-  m_Shape: 0
   m_Color: {r: 1, g: 0.95686275, b: 0.8392157, a: 1}
   m_Intensity: 4
   m_Range: 10
@@ -1796,6 +1800,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_PointlightHDType: 0
+  m_SpotLightShape: 0
+  m_AreaLightShape: 0
   m_Intensity: 4
   m_EnableSpotReflector: 1
   m_LuxAtDistance: 1
@@ -1898,14 +1905,11 @@ MonoBehaviour:
   m_AreaLightEmissiveMeshShadowCastingMode: 0
   m_AreaLightEmissiveMeshMotionVectorGenerationMode: 0
   m_AreaLightEmissiveMeshLayer: -1
-  m_Version: 11
+  m_Version: 12
   m_ObsoleteShadowResolutionTier: 1
   m_ObsoleteUseShadowQualitySettings: 0
   m_ObsoleteCustomShadowResolution: 512
   m_ObsoleteContactShadows: 0
-  m_PointlightHDType: 0
-  m_SpotLightShape: 0
-  m_AreaLightShape: 0
 --- !u!1001 &712757318
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2757,6 +2761,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: PP
       objectReference: {fileID: 0}
+    - target: {fileID: 2082610040793103541, guid: 2ed4a6c25de68fd4e8d5705874a4bd29,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4433370757565554367, guid: 2ed4a6c25de68fd4e8d5705874a4bd29,
         type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
@@ -3300,7 +3309,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1317354923
 Transform:
   m_ObjectHideFlags: 0
@@ -3728,7 +3737,7 @@ PrefabInstance:
         type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
-      objectReference: {fileID: 2100000, guid: 8ce7487d9da07c249a4974bfe67a6344, type: 2}
+      objectReference: {fileID: 2100000, guid: 693113150f9fdf64eaaf583974831954, type: 2}
     - target: {fileID: 5379213848416296713, guid: 2ed4a6c25de68fd4e8d5705874a4bd29,
         type: 3}
       propertyPath: m_RootOrder
@@ -4448,7 +4457,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1745373516
 Transform:
   m_ObjectHideFlags: 0
@@ -5438,6 +5447,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: PP
+      objectReference: {fileID: 0}
+    - target: {fileID: 2082610040793103541, guid: 2ed4a6c25de68fd4e8d5705874a4bd29,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4433370757565554367, guid: 2ed4a6c25de68fd4e8d5705874a4bd29,
         type: 3}

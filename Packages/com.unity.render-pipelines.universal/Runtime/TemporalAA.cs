@@ -177,7 +177,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        static internal Matrix4x4 CalculateJitterMatrix(ref CameraData cameraData)
+        static internal Matrix4x4 CalculateJitterMatrix(UniversalCameraData cameraData)
         {
             Matrix4x4 jitterMat = Matrix4x4.identity;
 

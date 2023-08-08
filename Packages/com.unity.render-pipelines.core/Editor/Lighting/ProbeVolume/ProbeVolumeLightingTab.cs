@@ -8,7 +8,6 @@ using UnityEditor.SceneManagement;
 using UnityEditorInternal;
 using UnityEditor.Overlays;
 using UnityEditor.LightBaking;
-using UnityEngine.LightBaking;
 using UnityEngine.LightTransport;
 using UnityEngine.LightTransport.PostProcessing;
 using UnityEngine.UIElements;
@@ -516,10 +515,10 @@ namespace UnityEngine.Rendering
 
         ProbeVolumeBakingSet CreateBakingSet()
         {
-            string path = "Assets";
             var scene = SceneManager.GetActiveScene();
-            if (scene != null)
-                path = ProbeVolumeBakingSet.GetDirectory(scene.path, scene.name);
+            string path = string.IsNullOrEmpty(scene.path) ?
+                ProbeVolumeBakingSet.GetDirectory("Assets/", "Untitled") :
+                ProbeVolumeBakingSet.GetDirectory(scene.path, scene.name);
 
             var newSet = ScriptableObject.CreateInstance<ProbeVolumeBakingSet>();
             newSet.name = "New Baking Set";
@@ -1115,21 +1114,35 @@ namespace UnityEngine.Rendering
             // Composit direct and indirect radiance.
             var postProcessInit = postProcessor.Initialize(ctx);
             Assert.AreEqual(true, postProcessInit);
-            postProcessor.AddSphericalHarmonicsL2(ctx, directRadianceSlice, indirectRadianceSlice, directRadianceSlice, positionsLength);
+            var combinedSHBufferId = ctx.CreateBuffer(shBytes);
+            var combinedSHBufferSlice = new BufferSlice(combinedSHBufferId, 0);
+            postProcessor.AddSphericalHarmonicsL2(ctx, directRadianceSlice, indirectRadianceSlice, combinedSHBufferSlice, positionsLength);
 
             // Post process (convert radiance to irradiance and transform to the format expected by Unity).
             var irradianceBufferId = ctx.CreateBuffer(shBytes);
             var irradianceSlice = new BufferSlice(irradianceBufferId, 0);
-            postProcessor.ConvolveRadianceToIrradiance(ctx, directRadianceSlice, irradianceSlice, positionsLength);
-            postProcessor.ConvertToUnityFormat(ctx, irradianceSlice, irradianceSlice, positionsLength);
+            postProcessor.ConvolveRadianceToIrradiance(ctx, combinedSHBufferSlice, irradianceSlice, positionsLength);
+            postProcessor.ConvertToUnityFormat(ctx, irradianceSlice, combinedSHBufferSlice, positionsLength);
 
-            // Blocking read back to get results back from GPU memory.
+            // Schedule read backs to get results back from GPU memory.
             using var irradianceResults = new NativeArray<SphericalHarmonicsL2>(positionsLength, Allocator.Temp);
-            ctx.ReadBuffer(irradianceBufferId, irradianceResults.Reinterpret<byte>(sizeSHL2RGB));
+            var irradianceReadEvent = ctx.ReadBuffer(combinedSHBufferId, irradianceResults.Reinterpret<byte>(sizeSHL2RGB));
             using var validityResults = new NativeArray<float>(positionsLength, Allocator.Temp);
-            ctx.ReadBuffer(validityBufferId, validityResults.Reinterpret<byte>(sizeOfFloat));
+            var validityReadEvent = ctx.ReadBuffer(validityBufferId, validityResults.Reinterpret<byte>(sizeOfFloat));
 
-            // Output data in result buffers is now ready, in CPU side memory.
+            // Wait for read backs to complete.
+            bool waitResult = ctx.WaitForAsyncOperation(irradianceReadEvent);
+            Debug.Assert(waitResult, "Failed to read irradiance from context.");
+            waitResult = ctx.WaitForAsyncOperation(validityReadEvent);
+            Debug.Assert(waitResult, "Failed to read validity from context.");
+
+            // Output data in result buffers is now ready, in CPU side memory, release all buffers.
+            ctx.DestroyBuffer(positionsBufferID);
+            ctx.DestroyBuffer(directRadianceBufferId);
+            ctx.DestroyBuffer(indirectRadianceBufferId);
+            ctx.DestroyBuffer(validityBufferId);
+            ctx.DestroyBuffer(combinedSHBufferId);
+            ctx.DestroyBuffer(irradianceBufferId);
 
             ProbeGIBaking.ApplyPostBakeOperations(irradianceResults, validityResults);
         }

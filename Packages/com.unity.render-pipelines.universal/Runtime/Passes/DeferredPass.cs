@@ -47,12 +47,12 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             internal TextureHandle color;
             internal TextureHandle depth;
-
+            internal TextureHandle[] gbuffer;
             internal RenderingData renderingData;
             internal DeferredLights deferredLights;
         }
 
-        internal void Render(RenderGraph renderGraph, TextureHandle color, TextureHandle depth, TextureHandle[] gbuffer, ref RenderingData renderingData)
+        internal void Render(RenderGraph renderGraph, TextureHandle color, TextureHandle depth, TextureHandle[] gbuffer, ref RenderingData renderingData, FrameResources frameResources)
         {
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("Deferred Lighting Pass", out var passData,
                 base.profilingSampler))
@@ -72,10 +72,14 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
                 else
                 {
+                    var idx = 0;
                     for (int i = 0; i < gbuffer.Length; ++i)
                     {
                         if (i != m_DeferredLights.GBufferLightingIndex)
-                            builder.UseTextureFragmentInput(gbuffer[i], i, IBaseRenderGraphBuilder.AccessFlags.Read);
+                        {
+                            builder.UseTextureFragmentInput(gbuffer[i], idx, IBaseRenderGraphBuilder.AccessFlags.Read);
+                            idx++;
+                        }
                     }
                 }
 
@@ -87,6 +91,10 @@ namespace UnityEngine.Rendering.Universal.Internal
                     data.deferredLights.ExecuteDeferredPass(context.cmd, ref data.renderingData);
                 });
             }
+
+            // Without NRP GBuffer textures are set after GBuffer, we only do this here to avoid breaking the pass
+            if (renderGraph.NativeRenderPassesEnabled)
+                GBufferPass.SetGlobalGBufferTextures(renderGraph, gbuffer, frameResources, ref m_DeferredLights);
         }
 
         // ScriptableRenderPass

@@ -266,7 +266,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
             for(int i = 0; i < m_Collector.permutations.Count; i++)
             {
-                var localNodes = ListPool<AbstractMaterialNode>.Get();
+                var localNodes = HashSetPool<AbstractMaterialNode>.Get();
                 NodeUtils.DepthFirstCollectNodesFromNode(localNodes, previewNode, NodeUtils.IncludeSelf.Include, keywordPermutation: m_Collector.permutations[i]);
 
                 foreach(AbstractMaterialNode node in localNodes)

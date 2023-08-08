@@ -17,9 +17,10 @@ namespace UnityEditor.Rendering.HighDefinition
         public static readonly GUIContent k_ResetTransformPopup = EditorGUIUtility.TrTextContent("Reset Transform");
 
         // CPU Simulation
-        static public readonly GUIContent k_CPUSimulation = EditorGUIUtility.TrTextContent("Script Interactions", "When enabled, HDRP will evaluate the water simulation on the CPU for C# script height requests. Enabling this will significantly increase the CPU cost of the feature.");
-        static public readonly GUIContent k_CPUFullResolution = EditorGUIUtility.TrTextContent("Full Resolution", "Specifies if the CPU simulation should be evaluated at full or half resolution. When in full resolution, the visual fidelity will be higher but the cost of the simulation will increase.");
-        static public readonly GUIContent k_CPUEvaluateRipples = EditorGUIUtility.TrTextContent("Evaluate Ripples", "When enabled, HDRP replicates the ripples on the CPU side when evaluating the water simulation for script interaction. Including ripples will allow a higher visual fidelity but the cost of the simulation will increase.");
+        static public readonly GUIContent k_CPUSimulation = EditorGUIUtility.TrTextContent("Script Interactions", "When enabled, the Water System allows you to make height requests from a C# script.");
+        static public readonly GUIContent k_CPULowLatency = EditorGUIUtility.TrTextContent("Low Latency", "When enabled, the simulation is recomputed on CPU. This option returns more accurate results but significantly increases the CPU cost of the feature. When disabled, results comes from the GPU simulation with a few frames latency but at no extra cost.");
+        static public readonly GUIContent k_CPUFullResolution = EditorGUIUtility.TrTextContent("Full Resolution", "Specifies if the simulation is evaluated at full or half resolution in Low Latency mode. When in full resolution in Low Latency mode, the visual fidelity is higher but the cost of the simulation increases.");
+        static public readonly GUIContent k_CPUEvaluateRipples = EditorGUIUtility.TrTextContent("Evaluate Ripples", "When enabled, ripples are included when evaluating the water simulation for script interactions. Including ripples allows a higher visual fidelity but the cost of the simulation increases.");
 
         // Simulation
         static public readonly GUIContent k_TimeMultiplier = EditorGUIUtility.TrTextContent("Time Multiplier", "Sets the speed of the water simulation. This allows to slow down the wave's speed or to accelerate it.");
@@ -92,7 +93,6 @@ namespace UnityEditor.Rendering.HighDefinition
         public static readonly GUIContent k_WaterNewLMaterialLabel = EditorGUIUtility.TrTextContent("New", "Create a new water material.");
 
         static public readonly GUIContent k_Amplitude = EditorGUIUtility.TrTextContent("Amplitude", "Sets the normalized (between 0.0 and 1.0) amplitude of each simulation band (from lower to higher frequencies).");
-        static public readonly GUIContent k_Choppiness = EditorGUIUtility.TrTextContent("Choppiness", "Sets the choppiness factor the waves. Higher values combined with high wind speed may introduce visual artifacts.");
 
         // Refraction
         static public readonly GUIContent k_RefractionColor = EditorGUIUtility.TrTextContent("Color", "Sets the color that is used to simulate the under-water refraction.");

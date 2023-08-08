@@ -146,7 +146,7 @@ Shader ""Hidden/GraphErrorShader2""
                         primaryShader = shader;
 
                         // only the main shader gets a material created
-                        Material material = new Material(shader) { name = "Material/" + primaryShaderName };
+                        Material material = new Material(shader) { name = primaryShaderName };
                         importContext.AddObjectToAsset("Material", material);
 
                         first = false;
@@ -198,7 +198,7 @@ Shader ""Hidden/GraphErrorShader2""
             {
                 Debug.LogError($"{ctx.assetPath}: Import Error: Expected active subtarget not found, defaulting to first available.");
                 subtargetNotFoundError = false;
-            }                
+            }
             graph.OnEnable();
             graph.ValidateGraph();
 

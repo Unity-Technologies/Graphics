@@ -77,7 +77,7 @@ namespace UnityEngine.Rendering.Universal
             internal RendererListHandle rendererList;
         }
 
-        public void Render(RenderGraph graph, ref RenderingData renderingData, ref Renderer2DData rendererData, ref LayerBatch layerBatch, ref FilteringSettings filterSettings, in TextureHandle cameraColorAttachment, in TextureHandle cameraDepthAttachment, in TextureHandle[] lightTextures)
+        public void Render(RenderGraph graph, ref RenderingData renderingData, Renderer2DData rendererData, ref LayerBatch layerBatch, ref FilteringSettings filterSettings, in TextureHandle cameraColorAttachment, in TextureHandle cameraDepthAttachment, in TextureHandle[] lightTextures)
         {
             using (var builder = graph.AddRasterRenderPass<PassData>("Renderer 2D Pass", out var passData, m_ProfilingSampler))
             {
@@ -98,6 +98,10 @@ namespace UnityEngine.Rendering.Universal
                 passData.layerBlendStylesUsed = layerBatch.lightStats.blendStylesUsed;
 
                 var drawSettings = CreateDrawingSettings(k_ShaderTags, ref renderingData, SortingCriteria.CommonTransparent);
+                var sortSettings = drawSettings.sortingSettings;
+                RendererLighting.GetTransparencySortingMode(rendererData, renderingData.cameraData.camera, ref sortSettings);
+                drawSettings.sortingSettings = sortSettings;
+
                 var param = new RendererListParams(renderingData.cullResults, drawSettings, filterSettings);
                 passData.rendererList = graph.CreateRendererList(param);
                 builder.UseRendererList(passData.rendererList);

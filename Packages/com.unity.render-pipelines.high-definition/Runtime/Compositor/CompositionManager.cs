@@ -1045,36 +1045,32 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             if (m_globalSettings == null) // if the global settings are not ready let us early out for this frame
                 return;
 
-            if (m_globalSettings.beforePostProcessCustomPostProcesses == null) // global settings may not be ready yet
+            var beforePostProcessCustomPostProcesses =
+                m_globalSettings.customPostProcessOrdersSettings.beforePostProcessCustomPostProcesses;
+
+            if (beforePostProcessCustomPostProcesses == null) // global settings may not be ready yet
                 return;
 
             // If custom post processes are not registered in the HDRP asset, they are never executed so we have to add them manually
-            if (!m_globalSettings.beforePostProcessCustomPostProcesses.Contains(typeof(ChromaKeying).AssemblyQualifiedName))
-            {
-                m_globalSettings.beforePostProcessCustomPostProcesses.Add(typeof(ChromaKeying).AssemblyQualifiedName);
-            }
-
-            if (!m_globalSettings.beforePostProcessCustomPostProcesses.Contains(typeof(AlphaInjection).AssemblyQualifiedName))
-            {
-                m_globalSettings.beforePostProcessCustomPostProcesses.Add(typeof(AlphaInjection).AssemblyQualifiedName);
-            }
+            beforePostProcessCustomPostProcesses.Add<ChromaKeying>();
+            beforePostProcessCustomPostProcesses.Add<AlphaInjection>();
         }
 
         // Unregister the custom pp passes used by the compositor
         static internal void UnRegisterCustomPasses()
         {
-            if (m_globalSettings == null || m_globalSettings.beforePostProcessCustomPostProcesses == null) // global settings may not be ready yet
+            if (m_globalSettings == null ||
+                m_globalSettings.customPostProcessOrdersSettings.beforePostProcessCustomPostProcesses == null) // global settings may not be ready yet
                 return;
 
-            if (m_globalSettings.beforePostProcessCustomPostProcesses.Contains(typeof(ChromaKeying).AssemblyQualifiedName))
-            {
-                m_globalSettings.beforePostProcessCustomPostProcesses.Remove(typeof(ChromaKeying).AssemblyQualifiedName);
-            }
+            var beforePostProcessCustomPostProcesses =
+                m_globalSettings.customPostProcessOrdersSettings.beforePostProcessCustomPostProcesses;
 
-            if (m_globalSettings.beforePostProcessCustomPostProcesses.Contains(typeof(AlphaInjection).AssemblyQualifiedName))
-            {
-                m_globalSettings.beforePostProcessCustomPostProcesses.Remove(typeof(AlphaInjection).AssemblyQualifiedName);
-            }
+            if (beforePostProcessCustomPostProcesses == null) // global settings may not be ready yet
+                return;
+
+            beforePostProcessCustomPostProcesses.Remove<ChromaKeying>();
+            beforePostProcessCustomPostProcesses.Remove<AlphaInjection>();
         }
     }
 }

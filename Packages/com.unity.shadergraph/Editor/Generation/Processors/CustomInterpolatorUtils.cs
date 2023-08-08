@@ -302,13 +302,13 @@ namespace UnityEditor.ShaderGraph
                 builder.AppendLine($"#define {makeDefine}");
         }
 
-        private static List<AbstractMaterialNode> GetAntecedents(BlockNode blockNode)
+        private static HashSet<AbstractMaterialNode> GetAntecedents(BlockNode blockNode)
         {
             if (blockNode != null && blockNode.isCustomBlock && blockNode.isActive && blockNode.GetInputNodeFromSlot(0) != null)
             {
-                List<AbstractMaterialNode> results = new List<AbstractMaterialNode>();
+                var results = new HashSet<AbstractMaterialNode>();
                 NodeUtils.DepthFirstCollectNodesFromNode(results, blockNode, NodeUtils.IncludeSelf.Exclude);
-                return results != null && results.Count() == 0 ? null : results;
+                return results != null && results.Count == 0 ? null : results;
             }
             return null;
         }

@@ -24,6 +24,11 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader terrainDetailLitShader;
             public Shader terrainDetailGrassShader;
             public Shader terrainDetailGrassBillboardShader;
+
+#if UNITY_EDITOR
+            [Reload("Runtime/Debug/GPUInlineDebugDrawer.shader")]
+            public Shader gpuInlineDebugDrawerLine;
+#endif
         }
 
         [Serializable, ReloadGroup]

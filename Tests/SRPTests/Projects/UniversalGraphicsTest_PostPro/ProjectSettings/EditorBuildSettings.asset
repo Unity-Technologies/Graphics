@@ -141,11 +141,14 @@ EditorBuildSettings:
     path: Assets/Scenes/173_CustomPostPro_ZeroCodePath_BeforeTransparents.unity
     guid: ca52f4b14ee7245b1b8476490b059e84
   - enabled: 1
-    path: Assets/Scenes/200_Lens_Flare_Sanity.unity
+    path: Assets/Scenes/200_Lens_Flare_Data_Driven.unity
     guid: 4a2bbe1bdb894b34981cc07bc878c7c2
   - enabled: 1
     path: Assets/Scenes/201_Lens_Flare_Screen_Space.unity
     guid: b51c203a350144f97ba208c293ab8333
+  - enabled: 1
+    path: Assets/Scenes/202_Lens_Flare_Data_Driven_Occlusion.unity
+    guid: 4ef59c3ae21f842c5858909f4d07493f
   - enabled: 1
     path: Assets/Scenes/241_MultiCamMotionBlur.unity
     guid: 743d01f5817f118469f5095b0192f5ce
@@ -162,7 +165,10 @@ EditorBuildSettings:
     path: Assets/Scenes/260_RenderScale_SMAA.unity
     guid: e6d774fccaa5ca149b739c894e55bfe5
   - enabled: 1
-    path: Assets/Scenes/373_HDRColorGamut.unity
+    path: Assets/Scenes/373_HDROutput_ColorGamut.unity
     guid: cef44dde9c315e54fa9e5cfe6a04edbb
+  - enabled: 1
+    path: Assets/Scenes/374_HDROutput_PassOrder.unity
+    guid: 8bf4b7781b2a77a4987ae2a487e42414
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0

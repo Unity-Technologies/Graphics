@@ -15,7 +15,7 @@ namespace UnityEngine.Rendering
             static uint[] s_PackedValues = new uint[kUintPerEntry];
 
             internal Vector3Int minLocalIdx;
-            internal Vector3Int maxLocalIdx;
+            internal Vector3Int maxLocalIdxPlusOne;
             internal int firstChunkIndex;
             internal int minSubdiv;
 
@@ -31,16 +31,16 @@ namespace UnityEngine.Rendering
                 //  but this is encompassing all scenarios.
                 //
                 // UINT 0:
-                //  FirstChunkIndex 29 bit
-                //  MinSubdiv       3  bit
+                //  FirstChunkIndex        29 bit
+                //  MinSubdiv              3  bit
                 // UINT 1:
-                //  minLocalIdx.x   10 bit
-                //  minLocalIdx.y   10 bit
-                //  minLocalIdx.z   10 bit
+                //  minLocalIdx.x          10 bit
+                //  minLocalIdx.y          10 bit
+                //  minLocalIdx.z          10 bit
                 // UINT 2:
-                //  maxLocalIdx.x   10 bit
-                //  maxLocalIdx.y   10 bit
-                //  maxLocalIdx.z   10 bit
+                //  maxLocalIdxPlusOne.x   10 bit
+                //  maxLocalIdxPlusOne.y   10 bit
+                //  maxLocalIdxPlusOne.z   10 bit
 
                 vals[0] = (uint)firstChunkIndex & 0x1FFFFFFF;
                 vals[0] |= ((uint)minSubdiv & 0x7) << 29;
@@ -49,9 +49,9 @@ namespace UnityEngine.Rendering
                 vals[1] |= ((uint)minLocalIdx.y & 0x3FF) << 10;
                 vals[1] |= ((uint)minLocalIdx.z & 0x3FF) << 20;
 
-                vals[2] = (uint)maxLocalIdx.x & 0x3FF;
-                vals[2] |= ((uint)maxLocalIdx.y & 0x3FF) << 10;
-                vals[2] |= ((uint)maxLocalIdx.z & 0x3FF) << 20;
+                vals[2] = (uint)maxLocalIdxPlusOne.x & 0x3FF;
+                vals[2] |= ((uint)maxLocalIdxPlusOne.y & 0x3FF) << 10;
+                vals[2] |= ((uint)maxLocalIdxPlusOne.z & 0x3FF) << 20;
             }
         }
 
@@ -143,7 +143,7 @@ namespace UnityEngine.Rendering
                 IndexMetaData metaData = new IndexMetaData();
                 metaData.minSubdiv = entryUpdateInfo.minSubdivInCell;
                 metaData.minLocalIdx = entryUpdateInfo.hasOnlyBiggerBricks ? Vector3Int.zero : entryUpdateInfo.minValidBrickIndexForCellAtMaxRes / minSubdivCellSize;
-                metaData.maxLocalIdx = entryUpdateInfo.hasOnlyBiggerBricks ? Vector3Int.one : entryUpdateInfo.maxValidBrickIndexForCellAtMaxResPlusOne / minSubdivCellSize;
+                metaData.maxLocalIdxPlusOne = entryUpdateInfo.hasOnlyBiggerBricks ? Vector3Int.one : entryUpdateInfo.maxValidBrickIndexForCellAtMaxResPlusOne / minSubdivCellSize;
                 metaData.firstChunkIndex = entryUpdateInfo.firstChunkIndex;
 
                 metaData.Pack(out uint[] packedVals);

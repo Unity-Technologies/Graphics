@@ -30,6 +30,7 @@ namespace UnityEngine.Rendering.HighDefinition
             EnableAmethystFeaturesByDefault, 
             ShaderStrippingSettings,
             RenderingPathFrameSettings,
+            CustomPostProcessOrdersSettings
         }
 
         static Version[] skipedStepWhenCreatedFromHDRPAsset = new Version[] { };
@@ -161,12 +162,23 @@ namespace UnityEngine.Rendering.HighDefinition
                 data.m_RenderingPath.GetDefaultFrameSettings(FrameSettingsRenderType.RealtimeReflection)      = data.m_ObsoleteRenderingPathDefaultRealtimeReflectionFrameSettings;
 #pragma warning restore 618
             })
+            ,
+            MigrationStep.New(Version.CustomPostProcessOrdersSettings, (HDRenderPipelineGlobalSettings data) =>
+            {
+#pragma warning disable 618 // Type or member is obsolete
+                data.m_CustomPostProcessOrdersSettings.afterPostProcessBlursCustomPostProcesses.AddRange(data.afterPostProcessBlursCustomPostProcesses);
+                data.m_CustomPostProcessOrdersSettings.afterPostProcessCustomPostProcesses.AddRange(data.afterPostProcessCustomPostProcesses);
+                data.m_CustomPostProcessOrdersSettings.beforePostProcessCustomPostProcesses.AddRange(data.beforePostProcessCustomPostProcesses);
+                data.m_CustomPostProcessOrdersSettings.beforeTAACustomPostProcesses.AddRange(data.beforeTAACustomPostProcesses);
+                data.m_CustomPostProcessOrdersSettings.beforeTransparentCustomPostProcesses.AddRange(data.beforeTransparentCustomPostProcesses);
+#pragma warning restore 618
+            })
         );
         bool IMigratableAsset.Migrate()
             => k_Migration.Migrate(this);
 
         bool IMigratableAsset.IsAtLastVersion()
-            => m_Version == MigrationDescription.LastVersion<Version>();
+            => m_Version >= MigrationDescription.LastVersion<Version>();
 
         internal static void MigrateFromHDRPAsset(HDRenderPipelineAsset oldAsset)
         {

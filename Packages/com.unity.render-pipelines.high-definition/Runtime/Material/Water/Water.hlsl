@@ -111,6 +111,8 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     bsdfData.caustics = surfaceData.caustics;
     bsdfData.tipThickness = surfaceData.tipThickness;
 
+    bsdfData.surfaceIndex = _SurfaceIndex;
+
     return bsdfData;
 }
 
@@ -240,7 +242,7 @@ void EncodeIntoGBuffer(BSDFData bsdfData, BuiltinData builtinData
     outGBuffer2 = CompressGBuffer2(bsdfData.lowFrequencyNormalWS, bsdfData.foam);
 
     // Output to the Gbuffer3
-    outGBuffer3 = CompressGBuffer3(bsdfData.tipThickness, bsdfData.caustics, _SurfaceIndex, bsdfData.frontFace);
+    outGBuffer3 = CompressGBuffer3(bsdfData.tipThickness, bsdfData.caustics, bsdfData.surfaceIndex, bsdfData.frontFace);
 }
 
 uint EvaluateLightLayers(uint surfaceIndex)
@@ -526,7 +528,7 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
 
     float3 N = bsdfData.normalWS;
     float NdotL_LF = dot(bsdfData.lowFrequencyNormalWS, L);
-    float NdotLWrappedDiffuseLowFrequency = ComputeWrappedDiffuseLighting(NdotL_LF, 1.0f);
+    float NdotLWrappedDiffuseLowFrequency = ComputeWrappedDiffuseLighting(NdotL_LF, 1.2f);
     float clampedNdotL_LF = saturate(NdotL_LF);
     float NdotV = preLightData.NdotV;
     float clampedNdotV = ClampNdotV(NdotV);
@@ -830,9 +832,10 @@ IndirectLighting EvaluateBSDF_ScreenspaceRefraction(LightLoopContext lightLoopCo
     float3 refractedWaterPosRWS;
     float2 distortedWaterNDC;
     float3 absorptionTint; // not used - applied during opaque atmospheric scattering
-    ComputeWaterRefractionParams(posInput.positionWS, bsdfData.normalWS, bsdfData.lowFrequencyNormalWS,
-        posInput.positionNDC, V, bsdfData.frontFace, preLightData.disableIOR, preLightData.upDirection,
-        preLightData.maxRefractionDistance, preLightData.transparencyColor, preLightData.outScatteringCoefficient,
+    ComputeWaterRefractionParams(posInput.positionWS, posInput.positionNDC, V,
+        bsdfData.normalWS, bsdfData.lowFrequencyNormalWS, bsdfData.frontFace,
+        preLightData.disableIOR, preLightData.upDirection, preLightData.maxRefractionDistance,
+        preLightData.transparencyColor, preLightData.outScatteringCoefficient,
         refractedWaterPosRWS, distortedWaterNDC, absorptionTint);
 
     // Apply a mip offset for the underwater data (if needed)

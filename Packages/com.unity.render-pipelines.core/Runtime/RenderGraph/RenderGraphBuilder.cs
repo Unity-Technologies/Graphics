@@ -139,7 +139,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <summary>
         /// Specify a RayTracingAccelerationStructure resource to build during the pass.
         /// </summary>
-        /// <param name="accelStruct">The RayTracingAccelerationStructure resource to build during the pass.</param>
+        /// <param name="input">The RayTracingAccelerationStructure resource to build during the pass.</param>
         /// <returns>An updated resource handle to the input resource.</returns>
         public RayTracingAccelerationStructureHandle WriteRayTracingAccelerationStructure(in RayTracingAccelerationStructureHandle input)
         {

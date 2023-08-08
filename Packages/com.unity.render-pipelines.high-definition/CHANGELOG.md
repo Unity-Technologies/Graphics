@@ -9,6 +9,58 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [16.0.3] - 2023-07-04
+
+This version is compatible with Unity 2023.3.0a1.
+
+### Changed
+- Stripping or IRenderPipelineGraphicsSettings.
+
+### Fixed
+- Fix leak with Compute Buffer from APV Resources.
+- Fix mutations to default profile on project open
+- Mixed runtime lights were not considering the intensity multiplier during bakes. These changes fix this behaviour and make bakes more intuitive.
+- Fix rendering debugger for water surfaces
+- Fixing FTLP (Fine Tiled Light Pruning) Shader Options max light count. Previous support only supported up to 63 These changes allow to go up to 255 with higher instability as numbers per tile approach 255.
+For support greater than 255, do it at your own risk! (and expect some flickering)
+
+## [16.0.2] - 2023-06-28
+
+This version is compatible with Unity 2023.2.0a22.
+
+### Changed
+- Added a cinematic mode for the physically-based hair shader. This more closely matches path traced references.
+- Enabled Compute Shaders to be stripped when HDRP is disabled.
+- Improved CPU performances by disabling `QuantizedFrontToBack` sorting in opaque rendering.
+
+### Fixed
+- Fixed accidental logs being left in last changes.
+- Fixed overexposed Scene view after using Rendering Debugger.
+- Fixed Editor-only reflection probe rendering regression introduced by new off setting for reflection and planar probes.
+- Fixed incorrect bounds calculation for decals in the HDRP path tracer.
+- Fixed the incorrect base color of decals in forward rendering and in path-tracing.
+- Added Lens Flares properties to render pipeline assets to be able to strip shaders when not needed.
+- Added various space transform fixes.
+- Fixed a crash when using realtime reflection probe with water.
+- Fixed a local fog overdraw debug mode.
+- Fix scene template dependencies
+- Minor fix to HDRP UI when Raytraced AO is enabled.
+- Add a new custom pass injection after opaque and sky finished rendering.
+- Fix D3D validation error for area lights in HDShadowAtlas
+- Fixed baked light being wrongly put in the cached shadow atlas.
+- Improving DLSS ghosting artifacts a little bit, by using a better pre-exposure parameter. Fixing reset history issues on DLSS camera cuts.
+- Add an helpbox for local custom pass volumes that doesn't have a collider attached.
+- Respect the transparent reflections settings when using raytracing
+- Fix Virtual offset being computed if distance was 0
+- Show base color texture on decal materials if Affect BaseColor is disabled.
+- Fix inconsistent documentation about hardware supporting raytracing
+- Warning about implicit truncation in LightEvaluation during shader compilation
+- Fixed fireflies when underwater
+- Fix Decal additive normal blending on shadergraph materials
+- Fixed decal projector with neutral normal when using surface gradient
+- Fix High Quality Line Rendering Support for Single-Pass XR
+- Fix recovering the current Quality level when migrating a HDRP Asset
+
 ## [16.0.1] - 2023-05-23
 
 This version is compatible with Unity 2023.2.0a17.

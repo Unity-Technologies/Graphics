@@ -87,11 +87,16 @@ namespace UnityEditor.VFX
         private static void ShowInternal(VFXView vfxView, CreateMode mode, Action<string> callback = null)
         {
             var templateWindow = EditorWindow.GetWindow<VFXTemplateWindow>(true, s_ModeToTitle[mode], false);
-            templateWindow.minSize = new Vector2(800, 300);
-            templateWindow.m_VfxView = vfxView;
-            templateWindow.m_UserCallback = callback;
-            templateWindow.m_CurrentMode = mode;
-            templateWindow.SetCallBack();
+            templateWindow.Setup(vfxView, mode, callback);
+        }
+
+        private void Setup(VFXView vfxView, CreateMode mode, Action<string> callback)
+        {
+            minSize = new Vector2(800, 300);
+            m_VfxView = vfxView;
+            m_UserCallback = callback;
+            m_CurrentMode = mode;
+            SetCallBack();
         }
 
         private void CreateGUI()
@@ -192,9 +197,14 @@ namespace UnityEditor.VFX
             {
                 VisualEffectAssetEditorUtility.CreateTemplateAsset(assetPath, templatePath);
 
-                if (GetViewWindow() is {} window)
+                //Only null check on view is expected, it avoids GetViewWindow call
+                //The resource can be invalidated due to previous write on same asset from CreateTemplateAsset
+                if (m_VfxView != null)
                 {
                     var vfxAsset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(assetPath);
+                    //If m_VfxView displayed resource is null but asset isn't
+                    //GetWindow lambda already fallback to "No Asset" or already opened window
+                    var window = VFXViewWindow.GetWindow(vfxAsset, true);
                     window.LoadAsset(vfxAsset, null);
                 }
 

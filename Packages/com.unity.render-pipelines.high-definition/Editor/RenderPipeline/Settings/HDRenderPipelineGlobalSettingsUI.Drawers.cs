@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -101,35 +102,7 @@ namespace UnityEditor.Rendering.HighDefinition
         );
         static void DrawCustomPostProcess(SerializedHDRenderPipelineGlobalSettings serialized, Editor owner)
         {
-            using (new EditorGUILayout.HorizontalScope())
-            {
-                GUILayout.Space(5);
-                serialized.uiBeforeTransparentCustomPostProcesses.DoLayoutList();
-            }
-            GUILayout.Space(2);
-            using (new EditorGUILayout.HorizontalScope())
-            {
-                GUILayout.Space(5);
-                serialized.uiBeforeTAACustomPostProcesses.DoLayoutList();
-            }
-            GUILayout.Space(2);
-            using (new EditorGUILayout.HorizontalScope())
-            {
-                GUILayout.Space(5);
-                serialized.uiBeforePostProcessCustomPostProcesses.DoLayoutList();
-            }
-            GUILayout.Space(2);
-            using (new EditorGUILayout.HorizontalScope())
-            {
-                GUILayout.Space(5);
-                serialized.uiAfterPostProcessBlursCustomPostProcesses.DoLayoutList();
-            }
-            GUILayout.Space(2);
-            using (new EditorGUILayout.HorizontalScope())
-            {
-                GUILayout.Space(5);
-                serialized.uiAfterPostProcessCustomPostProcesses.DoLayoutList();
-            }
+            EditorGUILayout.PropertyField(serialized.serializedCustomPostProcessOrdersSettings);
         }
 
         #endregion // Custom Post Processes

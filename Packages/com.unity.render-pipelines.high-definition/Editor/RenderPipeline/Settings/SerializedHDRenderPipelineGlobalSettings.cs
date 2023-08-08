@@ -34,11 +34,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public SerializedProperty apvScenesData;
 
-        internal ReorderableList uiBeforeTransparentCustomPostProcesses;
-        internal ReorderableList uiBeforeTAACustomPostProcesses;
-        internal ReorderableList uiBeforePostProcessCustomPostProcesses;
-        internal ReorderableList uiAfterPostProcessBlursCustomPostProcesses;
-        internal ReorderableList uiAfterPostProcessCustomPostProcesses;
+        public SerializedProperty serializedCustomPostProcessOrdersSettings;
 
         //RenderPipelineResources not always exist and thus cannot be serialized normally.
         bool? m_HasEditorResourceHasMultipleDifferentValues;
@@ -87,7 +83,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (serializedRenderingPathProperty == null)
                 throw new Exception($"Unable to find m_RenderingPath property on object {typeof(HDRenderPipelineGlobalSettings)}");
 
-            InitializeCustomPostProcessesLists();
+            serializedCustomPostProcessOrdersSettings = serializedObject.FindProperty("m_CustomPostProcessOrdersSettings");
 
             defaultVolumeProfile = serializedObject.FindProperty("m_DefaultVolumeProfile");
             lookDevVolumeProfile = serializedObject.FindProperty("m_LookDevVolumeProfile");
@@ -130,73 +126,6 @@ namespace UnityEditor.Rendering.HighDefinition
             analyticDerivativeDebugOutput = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.analyticDerivativeDebugOutput);
 
             apvScenesData = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.apvScenesData);
-        }
-
-        void InitializeCustomPostProcessesLists()
-        {
-            var ppVolumeTypeInjectionPoints = new Dictionary<Type, CustomPostProcessInjectionPoint>();
-
-            var ppVolumeTypes = TypeCache.GetTypesDerivedFrom<CustomPostProcessVolumeComponent>();
-            foreach (var ppVolumeType in ppVolumeTypes.Where(t => !t.IsAbstract))
-            {
-                var comp = ScriptableObject.CreateInstance(ppVolumeType) as CustomPostProcessVolumeComponent;
-                ppVolumeTypeInjectionPoints[ppVolumeType] = comp.injectionPoint;
-                CoreUtils.Destroy(comp);
-            }
-
-            var globalSettings = serializedObject.targetObject as HDRenderPipelineGlobalSettings;
-            InitList(ref uiBeforeTransparentCustomPostProcesses, globalSettings.beforeTransparentCustomPostProcesses, "After Opaque And Sky", CustomPostProcessInjectionPoint.AfterOpaqueAndSky);
-            InitList(ref uiBeforePostProcessCustomPostProcesses, globalSettings.beforePostProcessCustomPostProcesses, "Before Post Process", CustomPostProcessInjectionPoint.BeforePostProcess);
-            InitList(ref uiAfterPostProcessBlursCustomPostProcesses, globalSettings.afterPostProcessBlursCustomPostProcesses, "After Post Process Blurs", CustomPostProcessInjectionPoint.AfterPostProcessBlurs);
-            InitList(ref uiAfterPostProcessCustomPostProcesses, globalSettings.afterPostProcessCustomPostProcesses, "After Post Process", CustomPostProcessInjectionPoint.AfterPostProcess);
-            InitList(ref uiBeforeTAACustomPostProcesses, globalSettings.beforeTAACustomPostProcesses, "Before TAA", CustomPostProcessInjectionPoint.BeforeTAA);
-
-            void InitList(ref ReorderableList reorderableList, List<string> customPostProcessTypes, string headerName, CustomPostProcessInjectionPoint injectionPoint)
-            {
-                // Sanitize the list
-                customPostProcessTypes.RemoveAll(s => Type.GetType(s) == null);
-
-                reorderableList = new ReorderableList(customPostProcessTypes, typeof(string));
-                reorderableList.drawHeaderCallback = (rect) =>
-                    EditorGUI.LabelField(rect, headerName, EditorStyles.label);
-                reorderableList.drawElementCallback = (rect, index, isActive, isFocused) =>
-                {
-                    rect.height = EditorGUIUtility.singleLineHeight;
-                    var elemType = Type.GetType(customPostProcessTypes[index]);
-                    EditorGUI.LabelField(rect, elemType.ToString(), EditorStyles.boldLabel);
-                };
-                reorderableList.onAddCallback = (list) =>
-                {
-                    var menu = new GenericMenu();
-
-                    foreach (var kp in ppVolumeTypeInjectionPoints)
-                    {
-                        if (kp.Value == injectionPoint && !customPostProcessTypes.Contains(kp.Key.AssemblyQualifiedName))
-                            menu.AddItem(new GUIContent(kp.Key.ToString()), false, () =>
-                            {
-                                Undo.RegisterCompleteObjectUndo(serializedObject.targetObject, $"Added {kp.Key.ToString()} Custom Post Process");
-                                customPostProcessTypes.Add(kp.Key.AssemblyQualifiedName);
-                            });
-                    }
-
-                    if (menu.GetItemCount() == 0)
-                        menu.AddDisabledItem(new GUIContent("No Custom Post Process Available"));
-
-                    menu.ShowAsContext();
-                    EditorUtility.SetDirty(serializedObject.targetObject);
-                };
-                reorderableList.onRemoveCallback = (list) =>
-                {
-                    Undo.RegisterCompleteObjectUndo(serializedObject.targetObject, $"Removed {list.list[list.index].ToString()} Custom Post Process");
-                    customPostProcessTypes.RemoveAt(list.index);
-                    EditorUtility.SetDirty(serializedObject.targetObject);
-                };
-                reorderableList.elementHeightCallback = _ => EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
-                reorderableList.onReorderCallback = (list) =>
-                {
-                    EditorUtility.SetDirty(serializedObject.targetObject);
-                };
-            }
         }
     }
 }

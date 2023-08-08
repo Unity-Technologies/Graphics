@@ -197,6 +197,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static DefineCollection WaterMaskDefines = new DefineCollection
         {
             { CoreKeywordDescriptors.SupportBlendModePreserveSpecularLighting, 1 },
+            { CoreKeywordDescriptors.HasLightloop, 1 },
+            { CoreKeywordDescriptors.PunctualShadow, 0 },
+            { CoreKeywordDescriptors.DirectionalShadow, 0 },
+            { CoreKeywordDescriptors.AreaShadow, 0 },
             { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },
         };
         #endregion
@@ -330,7 +334,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 includes.Add(CoreIncludes.CorePregraph);
                 includes.Add(CoreIncludes.kNormalSurfaceGradient, IncludeLocation.Pregraph);
+                includes.Add(CoreIncludes.kLighting, IncludeLocation.Pregraph);
+                includes.Add(CoreIncludes.kLightLoopDef, IncludeLocation.Pregraph);
                 includes.Add(CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph);
+                includes.Add(CoreIncludes.kLightLoop, IncludeLocation.Pregraph);
                 includes.Add(CoreIncludes.CoreUtility);
                 includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
                 includes.Add(WaterIncludes.kPassWaterMask, IncludeLocation.Postgraph);
@@ -440,7 +447,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 if (lightingData.receiveDecals)
                     pass.keywords.Add(CoreKeywordDescriptors.Decals);
-
+            }
+            else if (pass.displayName.StartsWith(k_MaskPassName))
+            {
                 pass.keywords.Add(CoreKeywordDescriptors.DebugDisplay);
             }
         }

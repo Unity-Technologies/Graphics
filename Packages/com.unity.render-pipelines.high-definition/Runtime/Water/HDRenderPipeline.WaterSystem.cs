@@ -220,29 +220,35 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Per patch data
             cb._PatchGroup = currentWater.simulation.spectrum.patchGroup;
-            cb._PatchSize = currentWater.simulation.spectrum.patchSizes;
             cb._PatchOrientation = currentWater.simulation.spectrum.patchOrientation * Mathf.Deg2Rad;
             cb._PatchWindSpeed = currentWater.simulation.spectrum.patchWindSpeed;
             cb._PatchDirectionDampener = currentWater.simulation.spectrum.patchWindDirDampener;
-            cb._PatchAmplitudeMultiplier = currentWater.simulation.rendering.patchAmplitudeMultiplier;
-            cb._PatchCurrentSpeed = currentWater.simulation.rendering.patchCurrentSpeed;
-            cb._PatchFadeA = currentWater.simulation.rendering.patchFadeA;
-            cb._PatchFadeB = currentWater.simulation.rendering.patchFadeB;
+
+            void PackBandData(WaterSimulationResources simulation, int bandIdx, out Vector4 scaleOffsetAmplitude, out float2 fade)
+            {
+                float invPatchSize = 1.0f / simulation.spectrum.patchSizes[bandIdx];
+                float orientation = simulation.spectrum.patchOrientation[bandIdx] * Mathf.Deg2Rad;
+                float bandScale = simulation.rendering.patchCurrentSpeed[bandIdx] * simulation.simulationTime * invPatchSize;
+                scaleOffsetAmplitude = new Vector4(invPatchSize, Mathf.Cos(orientation) * bandScale, Mathf.Sin(orientation) * bandScale, simulation.rendering.patchAmplitudeMultiplier[bandIdx]);
+                fade = new float2(simulation.rendering.patchFadeA[bandIdx], simulation.rendering.patchFadeB[bandIdx]);
+            }
+
+            PackBandData(currentWater.simulation, 0, out cb._Band0_ScaleOffset_AmplitudeMultiplier, out cb._Band0_Fade);
+            PackBandData(currentWater.simulation, 1, out cb._Band1_ScaleOffset_AmplitudeMultiplier, out cb._Band1_Fade);
+            PackBandData(currentWater.simulation, 2, out cb._Band2_ScaleOffset_AmplitudeMultiplier, out cb._Band2_Fade);
+
             cb._GroupOrientation = currentWater.simulation.spectrum.groupOrientation * Mathf.Deg2Rad;
 
             // Current simulation time
             cb._SimulationTime = currentWater.simulation.simulationTime;
 
-            // Choppiness factor
-            cb._Choppiness = WaterConsts.k_WaterMaxChoppinessValue;
-
             // Max wave height for the system
-            float patchAmplitude = EvaluateMaxAmplitude(cb._PatchSize.x, cb._PatchWindSpeed.x * WaterConsts.k_MeterPerSecondToKilometerPerHour);
+            float patchAmplitude = EvaluateMaxAmplitude(currentWater.simulation.spectrum.patchSizes.x, cb._PatchWindSpeed.x * WaterConsts.k_MeterPerSecondToKilometerPerHour);
             cb._MaxWaveHeight = patchAmplitude;
             cb._ScatteringWaveHeight = Mathf.Max(cb._MaxWaveHeight * WaterConsts.k_ScatteringRange, WaterConsts.k_MinScatteringAmplitude) + currentWater.maximumHeightOverride;
 
             // Horizontal displacement due to each band
-            cb._MaxWaveDisplacement = cb._MaxWaveHeight * cb._Choppiness;
+            cb._MaxWaveDisplacement = cb._MaxWaveHeight * WaterConsts.k_WaterMaxChoppinessValue;
 
             // Water smoothness
             cb._WaterSmoothness = currentWater.startSmoothness;
@@ -258,9 +264,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Smoothness of the foam
             cb._FoamPersistenceMultiplier = 1.0f / Mathf.Lerp(0.25f, 2.0f, currentWater.foamPersistenceMultiplier);
             cb._FoamSmoothness = currentWater.foamSmoothness;
-            cb._FoamTilling = currentWater.foamTextureTiling;
-            cb._FoamOffsets = Vector2.zero;
-            cb._SimulationFoamWindAttenuation = Mathf.Clamp(currentWater.simulationFoamWindCurve.Evaluate(currentWater.simulation.spectrum.patchWindSpeed.x / WaterConsts.k_SwellMaximumWindSpeedMpS), 0.0f, 1.0f);
+            cb._FoamTiling = currentWater.foamTextureTiling;
 
             // We currently only support properly up to 16 unique water surfaces
             cb._SurfaceIndex = surfaceIndex & 0xF;
@@ -271,36 +275,35 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._MaxRefractionDistance = Mathf.Min(currentWater.absorptionDistance, currentWater.maxRefractionDistance);
 
             cb._OutScatteringCoefficient = -Mathf.Log(0.02f) / currentWater.absorptionDistance;
-            cb._TransparencyColor = new Vector3(Mathf.Min(currentWater.refractionColor.r, 0.99f), Mathf.Min(currentWater.refractionColor.g, 0.99f), Mathf.Min(currentWater.refractionColor.b, 0.99f));
-            cb._WaterUpDirection = new float4(currentWater.UpVector(), 0.0f);
+            cb._TransparencyColor = new Vector4(Mathf.Min(currentWater.refractionColor.r, 0.99f), Mathf.Min(currentWater.refractionColor.g, 0.99f), Mathf.Min(currentWater.refractionColor.b, 0.99f));
+            cb._WaterUpDirection = new float4(currentWater.UpVector(), 1.0f);
 
             cb._AmbientScattering = currentWater.ambientScattering;
             cb._HeightBasedScattering = currentWater.heightScattering;
             cb._DisplacementScattering = currentWater.displacementScattering;
 
             // Foam
+            var simulationFoamWindAttenuation = Mathf.Clamp(currentWater.simulationFoamWindCurve.Evaluate(currentWater.simulation.spectrum.patchWindSpeed.x / WaterConsts.k_SwellMaximumWindSpeedMpS), 0.0f, 1.0f);
             cb._FoamRegionOffset = currentWater.foamAreaOffset + new Vector2(currentWater.transform.position.x, currentWater.transform.position.z);
             cb._FoamRegionScale.Set(1.0f / currentWater.foamAreaSize.x, 1.0f / currentWater.foamAreaSize.y);
-            cb._FoamJacobianLambda = new Vector4(cb._PatchSize.x, cb._PatchSize.y, cb._PatchSize.z, cb._PatchSize.w);
-            cb._SimulationFoamIntensity = m_ActiveWaterFoam && currentWater.HasSimulationFoam() ? 1.0f : 0.0f;
-            cb._SimulationFoamMaskOffset.Set(currentWater.simulationFoamMaskOffset.x, -currentWater.simulationFoamMaskOffset.y);
+            cb._SimulationFoamIntensity = m_ActiveWaterFoam && currentWater.HasSimulationFoam() ? simulationFoamWindAttenuation : 0.0f;
+            cb._SimulationFoamMaskOffset = currentWater.simulationFoamMaskOffset;
             cb._SimulationFoamMaskScale.Set(1.0f / currentWater.simulationFoamMaskExtent.x, 1.0f / currentWater.simulationFoamMaskExtent.y);
             cb._WaterFoamRegionResolution = currentWater.foam ? (int)currentWater.foamResolution : 0;
 
             // Water Mask
-            cb._WaterMaskOffset.Set(currentWater.waterMaskOffset.x, -currentWater.waterMaskOffset.y);
+            cb._WaterMaskOffset = currentWater.waterMaskOffset;
             cb._WaterMaskScale.Set(1.0f / currentWater.waterMaskExtent.x, 1.0f / currentWater.waterMaskExtent.y);
+            cb._WaterMaskRemap.Set(currentWater.waterMaskRemap.x, currentWater.waterMaskRemap.y - currentWater.waterMaskRemap.x);
 
             // Caustics
             cb._CausticsBandIndex = SanitizeCausticsBand(currentWater.causticsBand, currentWater.simulation.numActiveBands);
-            cb._CausticsRegionSize = cb._PatchSize[cb._CausticsBandIndex];
+            cb._CausticsRegionSize = currentWater.simulation.spectrum.patchSizes[cb._CausticsBandIndex];
 
-            // Values that guarantee the simulation coherence independently of the resolution
-            cb._WaterRefSimRes = (int)WaterSimulationResolution.High256;
-            cb._WaterSampleOffset = EvaluateWaterNoiseSampleOffset(m_WaterBandResolution);
-            cb._WaterSpectrumOffset = EvaluateFrequencyOffset(m_WaterBandResolution);
-            cb._WaterBandCount = currentWater.simulation.numActiveBands;
-            cb._WaterMaskRemap.Set(currentWater.waterMaskRemap.x, currentWater.waterMaskRemap.y - currentWater.waterMaskRemap.x);
+            // Deformation
+            cb._WaterDeformationCenter = currentWater.deformationAreaOffset + new Vector2(currentWater.transform.position.x, currentWater.transform.position.z);
+            cb._WaterDeformationExtent = currentWater.deformation ? currentWater.deformationAreaSize : new Vector2(-1, -1);
+            cb._WaterDeformationResolution = (int)currentWater.deformationRes;
         }
 
         static float EvaluateCausticsMaxLOD(WaterSurface.WaterCausticsResolution resolution)
@@ -443,13 +446,6 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._WaterSurfaceTransform = currentWater.simulation.rendering.waterToWorldMatrix;
             cb._WaterSurfaceTransform_Inverse = currentWater.simulation.rendering.worldToWaterMatrix;
             cb._WaterCustomTransform_Inverse = currentWater.simulation.rendering.worldToWaterMatrixCustom;
-        }
-
-        // Setup the deformation water constant buffer
-        void UpdateShaderVariablesWaterDeformation(WaterSurface currentWater, ref ShaderVariablesWaterDeformation waterDeformationCB)
-        {
-            waterDeformationCB._WaterDeformationCenter = currentWater.deformationAreaOffset + new Vector2(currentWater.transform.position.x, currentWater.transform.position.z);
-            waterDeformationCB._WaterDeformationExtent = currentWater.deformation ? currentWater.deformationAreaSize : new Vector2(-1, -1);
         }
 
         void UpdateWaterSurface(CommandBuffer cmd, WaterSurface currentWater, int surfaceIndex)
@@ -613,7 +609,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // Constant buffer
             public ShaderVariablesWater waterCB;
             public ShaderVariablesWaterRendering waterRenderingCB;
-            public ShaderVariablesWaterDeformation waterDeformationCB;
 
             // Water elevation
             public ComputeShader evaluationCS;
@@ -686,9 +681,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 parameters.instancedQuads, parameters.infinite, parameters.customMesh,
                 parameters.extent, parameters.waterCB._MaxWaveDisplacement, parameters.waterCB._MaxWaveHeight,
                 ref parameters.waterRenderingCB);
-
-            // Setup the deformation water constant buffer
-            UpdateShaderVariablesWaterDeformation(currentWater, ref parameters.waterDeformationCB);
 
             // Waterline & underwater
             parameters.evaluationCS = m_WaterEvaluationCS;
@@ -849,7 +841,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             ConstantBuffer.UpdateData(cmd, parameters.waterCB);
             ConstantBuffer.UpdateData(cmd, parameters.waterRenderingCB);
-            ConstantBuffer.UpdateData(cmd, parameters.waterDeformationCB);
 
             // Raise the keywords for band count
             SetupWaterShaderKeyword(cmd, parameters.numActiveBands, parameters.activeCurrent);
@@ -860,7 +851,6 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 ConstantBuffer.Set<ShaderVariablesWater>(cmd, parameters.evaluationCS, HDShaderIDs._ShaderVariablesWater);
                 ConstantBuffer.Set<ShaderVariablesWaterRendering>(cmd, parameters.evaluationCS, HDShaderIDs._ShaderVariablesWaterRendering);
-                ConstantBuffer.Set<ShaderVariablesWaterDeformation>(cmd, parameters.evaluationCS, HDShaderIDs._ShaderVariablesWaterDeformation);
 
                 // Evaluate the camera height, should be done on the CPU later
                 cmd.SetComputeBufferParam(parameters.evaluationCS, parameters.findVerticalDisplKernel, HDShaderIDs._WaterCameraHeightBufferRW, cameraHeightBuffer);
@@ -1255,14 +1245,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Grab the current water surface
                 WaterSurface currentWater = waterSurfaces[surfaceIdx];
 
-                // Fill the water surface profile
-                FillWaterSurfaceProfile(hdCamera, currentWater, surfaceIdx);
-
                 // Render the water surface
-                RenderWaterSurfaceGBuffer(renderGraph, hdCamera, currentWater, settings, surfaceIdx, false,
-                    depthBuffer, renderGraph.defaultResources.blackTextureXR, renderGraph.defaultResources.blackTextureXR,
-                    lightLists.perVoxelOffset, lightLists.perTileLogBaseTweak,
-                    WaterGbuffer0, colorBuffer, WaterGbuffer2, WaterGbuffer3, cameraHeight);
+                RenderWaterSurfaceMask(renderGraph, hdCamera, currentWater, settings, surfaceIdx, colorBuffer, depthBuffer);
             }
         }
 

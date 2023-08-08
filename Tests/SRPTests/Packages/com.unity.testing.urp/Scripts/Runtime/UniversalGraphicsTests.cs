@@ -46,7 +46,12 @@ public class UniversalGraphicsTests
 
         // for OCULUS_SDK, this ensures we wait for a reliable image rendering before screen capture and image comparison
 #if OCULUS_SDK
-         waitFrames = 4;
+        if(!settings.XRCompatible)
+        {
+            Assert.Ignore("Quest XR Automation: Test scene is not compatible with XR and will be skipped.");
+        }
+
+        waitFrames = 4;
 #else
         waitFrames = Unity.Testing.XR.Runtime.ConfigureMockHMD.SetupTest(settings.XRCompatible, settings.WaitFrames, settings.ImageComparisonSettings);
 #endif
@@ -103,22 +108,11 @@ public class UniversalGraphicsTests
         ImageAssert.AreEqual(testCase.ReferenceImage, cameras.Where(x => x != null), settings.ImageComparisonSettings, testCase.ReferenceImagePathLog);
 #endif
         // Does it allocate memory when it renders what's on the main camera?
-        bool allocatesMemory = false;
         var mainCamera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
 
         if (settings == null || settings.CheckMemoryAllocation)
         {
-            try
-            {
-                ImageAssert.AllocatesMemory(mainCamera, settings?.ImageComparisonSettings);
-            }
-            catch (AssertionException)
-            {
-                allocatesMemory = true;
-            }
-
-            if (allocatesMemory)
-                Assert.Fail("Allocated memory when rendering what is on main camera");
+			yield return ImageAssert.CheckGCAllocWithCallstack(mainCamera, settings?.ImageComparisonSettings);
         }
     }
 

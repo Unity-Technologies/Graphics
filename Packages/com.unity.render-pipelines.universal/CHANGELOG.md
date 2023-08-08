@@ -9,6 +9,36 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [16.0.3] - 2023-07-04
+
+This version is compatible with Unity 2023.3.0a1.
+
+### Changed
+- Stripping or IRenderPipelineGraphicsSettings.
+
+### Fixed
+- Fixed an issue where rendering layers keywords were not enabled correctly when using Decals & SSAO in Deferred.
+- Fixed an issue where incorrect Shader Keyword Prefiltering was used with SSAO when AfterOpaque was used.
+
+## [16.0.2] - 2023-06-28
+
+This version is compatible with Unity 2023.2.0a22.
+
+### Changed
+- Improved URP main thread usage in XR.
+
+### Fixed
+- Added workarounds for MSAA-specific visual artifacts on materials that use alpha clipping in unexpected ways.
+- Fixed an issue where changing RenderSettings before camera rendering would not always take effect.
+- Fixed null exceptions when ShadowCaster2D are included as part of a prefab.
+- Fixed an issue where assets were incorrectly being saved when making builds.
+- Added a missing G-buffer normal decoding for the **URP Sample Buffer** node in Fullscreen shadergraphs when using **Accurate G-buffer normals** in the deferred renderer. **Note:** The decoded normal values for background pixels are undefined.
+- Fixed the Color Grading LUT not updating when enabling or disabling Render Graph repeatedly.
+- Fixed Screen space Overlay UI rendered at the wrong size for scaling mode "Constant Pixel Size" or "Constant Physical Size", when HDR output is active.
+- Updated the documentation to mention that the Screen Space decal technique does not support blending of normals when using the Deferred rendering path with Accurate G-Buffer Normals enabled. The Automatic decal technique now prefers the D-Buffer technique if Accurate G-Buffer Normals are enabled.
+- changed the PostPro passes injection points to more correct locations.
+- 2D - Fix additional draw call when Foremost Sorting Layer is enabled during unlit
+
 ## [16.0.1] - 2023-05-23
 
 This version is compatible with Unity 2023.2.0a17.

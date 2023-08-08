@@ -86,18 +86,6 @@ class VFXExternalShaderProcessor : AssetPostprocessor
     }
 }
 
-// This custom editor is used to hide the VisualEffectImport header in the inspector
-[CustomEditor(typeof(VisualEffectImporter))]
-[CanEditMultipleObjects]
-class VisualEffectImporterEditor : Editor
-{
-    public override VisualElement CreateInspectorGUI()
-    {
-        hideInspector = true;
-        return null;
-    }
-}
-
 [CustomEditor(typeof(VisualEffectAsset))]
 [CanEditMultipleObjects]
 class VisualEffectAssetEditor : UnityEditor.Editor

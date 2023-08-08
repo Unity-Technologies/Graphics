@@ -128,7 +128,7 @@ float GetOcclusion(float ratio)
         if (all(pos >= 0) && all(pos <= 1))
         {
             float depth0 = GetLinearDepthValue(pos);
-            if (depth0 > _ScreenPosZ || NearlyEqual_Float(depth0, _ScreenPosZ))
+            if (depth0 > _ScreenPosZ)
             {
                 float occlusionValue = 1.0f;
 #ifdef HDRP_FLARE

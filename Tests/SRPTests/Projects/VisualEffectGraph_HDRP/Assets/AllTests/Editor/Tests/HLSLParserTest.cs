@@ -252,15 +252,42 @@ namespace UnityEditor.VFX.Test
         {
             // Arrange
             var hlslCode =
-                $"void Function(in float param)" + "\n" +
-                "{" + "\n" +
-                "  float3 pos = float3(param, param, param);" + "\n";
+                $"void Function(in float param)\n" +
+                "{\n" +
+                "  float3 pos = float3(param, param, param);\n";
 
             // Act
             var functions = HLSLFunction.Parse(hlslCode);
 
             // Assert
-            CollectionAssert.IsEmpty(functions);
+            // The function must be detected, but the compute shader would not compile
+            CollectionAssert.IsNotEmpty(functions);
+        }
+
+        [Test, Description("Covers issue UUM-40706")]
+        public void HLSL_Check_Nested_Curly_Bracket()
+        {
+            // Arrange
+            var hlslCode =
+                $"void Repro(inout VFXAttributes attributes, in float3 centerBox, in float3 sizeBox, in float deltaTime)" +
+                "{\n" +
+                "    bool alive = attributes.alive;\n" +
+                "    if (alive)\n" +
+                "    {\n" +
+                "        for (int i = -1; i <= 1; ++i)\n" +
+                "        {\n" +
+                "            for (int j = -1; j <= 1; ++j)\n" +
+                "            {\n" +
+                "            }\n" +
+                "        }\n" +
+                "    }\n" +
+                "}\n";
+
+            // Act
+            var functions = HLSLFunction.Parse(hlslCode);
+
+            // Assert
+            CollectionAssert.IsNotEmpty(functions);
         }
     }
 }

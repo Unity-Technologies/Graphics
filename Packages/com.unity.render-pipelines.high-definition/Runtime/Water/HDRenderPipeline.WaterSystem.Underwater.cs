@@ -128,6 +128,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cb._BoundsSS = new float4(0, 0, -1, 1);
                 cb._UpDirectionX = 0;
                 cb._UpDirectionY = 1;
+                cb._BufferStride = 0;
 
                 return;
             }

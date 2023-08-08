@@ -66,11 +66,11 @@ namespace UnityEditor.VFX
 
         public override void OnInspectorGUI()
         {
-            serializedObject.Update();
+            PrepareContextEditorGUI();
 
             var referenceContext = serializedObject.targetObject as VFXContext;
             var resource = referenceContext.GetResource();
-            GUI.enabled = resource != null ? resource.IsAssetEditable() : true;
+            GUI.enabled = resource == null || resource.IsAssetEditable();
 
             DisplayName();
             DisplaySpace();
@@ -111,6 +111,7 @@ namespace UnityEditor.VFX
 
             ApplyAndInvalidate();
 
+            DisplayWarnings();
             DisplaySummary();
         }
     }

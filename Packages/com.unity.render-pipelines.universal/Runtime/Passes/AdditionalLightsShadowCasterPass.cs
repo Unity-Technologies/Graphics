@@ -311,9 +311,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             renderTargetHeight = renderingData.shadowData.additionalLightsShadowmapHeight;
 
             var visibleLights = renderingData.lightData.visibleLights;
-            int additionalLightsCount = renderingData.lightData.additionalLightsCount;
-            ref ShadowData shadowData = ref renderingData.shadowData;
-            ref AdditionalLightsShadowAtlasLayout atlasLayout = ref renderingData.shadowAtlasLayout;
+            ref AdditionalLightsShadowAtlasLayout atlasLayout = ref renderingData.shadowData.shadowAtlasLayout;
 
             #if DEVELOPMENT_BUILD
             // Check changes in the shadow requests and shadow atlas configuration - compute shadow request/configuration hash
@@ -451,7 +449,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                             }
                             else if (lightType == LightType.Spot)
                             {
-                                ref readonly URPLightShadowCullingInfos shadowCullingInfos = ref renderingData.visibleLightsShadowCullingInfos.UnsafeElementAt(visibleLightIndex);
+                                ref readonly URPLightShadowCullingInfos shadowCullingInfos = ref renderingData.shadowData.visibleLightsShadowCullingInfos.UnsafeElementAt(visibleLightIndex);
                                 ref readonly ShadowSliceData sliceData = ref shadowCullingInfos.slices.UnsafeElementAt(0);
 
                                 m_AdditionalLightsShadowSlices[globalShadowSliceIndex].viewMatrix = sliceData.viewMatrix;
@@ -473,7 +471,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                             }
                             else if (lightType == LightType.Point)
                             {
-                                ref readonly URPLightShadowCullingInfos shadowCullingInfos = ref renderingData.visibleLightsShadowCullingInfos.UnsafeElementAt(visibleLightIndex);
+                                ref readonly URPLightShadowCullingInfos shadowCullingInfos = ref renderingData.shadowData.visibleLightsShadowCullingInfos.UnsafeElementAt(visibleLightIndex);
                                 ref readonly ShadowSliceData sliceData = ref shadowCullingInfos.slices.UnsafeElementAt(perLightShadowSlice);
 
                                 m_AdditionalLightsShadowSlices[globalShadowSliceIndex].viewMatrix = sliceData.viewMatrix;

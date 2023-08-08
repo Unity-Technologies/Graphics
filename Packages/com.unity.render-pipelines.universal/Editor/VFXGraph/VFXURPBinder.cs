@@ -42,6 +42,18 @@ namespace UnityEditor.VFX.URP
             material.SetShaderPassEnabled("ShadowCaster", hasShadowCasting);
         }
 
+        public override bool AllowMaterialOverride(ShaderGraphVfxAsset shaderGraph)
+        {
+            var path = AssetDatabase.GetAssetPath(shaderGraph);
+            var shader = AssetDatabase.LoadAssetAtPath<Shader>(path);
+            if (shader.TryGetMetadataOfType<UniversalMetadata>(out var metaData))
+            {
+                return metaData.allowMaterialOverride;
+            }
+
+            return base.AllowMaterialOverride(shaderGraph);
+        }
+
         public override bool TryGetQueueOffset(ShaderGraphVfxAsset shaderGraph, VFXMaterialSerializedSettings materialSettings, out int queueOffset)
         {
             //N.B.: Queue offset is always overridable in URP

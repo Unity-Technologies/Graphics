@@ -179,7 +179,7 @@ namespace UnityEngine.Rendering.Universal
             return s_LayerBatches;
         }
 
-        public static void GetFilterSettings(ref Renderer2DData rendererData, ref LayerBatch layerBatch, short cameraSortingLayerBoundsIndex, out FilteringSettings filterSettings)
+        public static void GetFilterSettings(Renderer2DData rendererData, ref LayerBatch layerBatch, short cameraSortingLayerBoundsIndex, out FilteringSettings filterSettings)
         {
             filterSettings = new FilteringSettings();
             filterSettings.renderQueueRange = RenderQueueRange.all;

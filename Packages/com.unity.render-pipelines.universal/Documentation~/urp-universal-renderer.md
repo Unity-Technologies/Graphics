@@ -6,7 +6,7 @@ For more information on rendering in URP, see also [Rendering in the Universal R
 
 ## Rendering Paths
 
-The URP Universal Renderer implements two Rendering Paths:
+The URP Universal Renderer implements the following Rendering Paths:
 
 * Forward Rendering Path.
 
@@ -20,11 +20,23 @@ The following table shows the differences between the Forward and the Deferred R
 
 | Feature | Forward | Forward+ | Deferred |
 |---------|---------|----------|----------|
-| Maximum number of real-time lights per object. | 9 | Unlimited. [The per-Camera limit applies](rendering/forward-plus-rendering-path.md). | Unlimited |
+| Maximum number of real-time lights per object. | 9 (1 Main Light, and 8 Additional Lights) | Unlimited. [The per-Camera limit applies](#real-time-lights-limitations). | Unlimited. [The per-Camera limit applies](#real-time-lights-limitations).<br/>Transparent objects are rendered using the Forward pass, where the maximum number of real-time lights is 9 (1 Main Light, and 8 Additional Lights). |
 | Per-pixel normal encoding | No encoding (accurate normal values). | No encoding (accurate normal values). | Two options:<ul><li>Quantization of normals in G-buffer (loss of accuracy, better performance).</li><li>Octahedron encoding (accurate normals, might have significant performance impact on mobile GPUs).</li></ul>For more information, see the section [Encoding of normals in G-buffer](rendering/deferred-rendering-path.md#accurate-g-buffer-normals). |
 | MSAA | Yes | Yes | No |
 | Vertex lighting | Yes | No | No |
 | Camera stacking | Yes | Yes | Supported with a limitation: Unity renders only the base Camera using the Deferred Rendering Path. Unity renders all overlay Cameras using the Forward Rendering Path. |
+
+#### Real-time lights limitations
+
+There is a per-Camera limit which applies to the number of real-time lights in all rendering paths.
+
+As for the Additional Lights, the limit applies only to the Lights visible to the Camera.
+
+The per-Camera limits for different platforms are:
+
+* Desktop and console platforms: 1 Main Light, and 256 Additional Lights.
+
+* Mobile platforms: 1 Main Light, and 32 Additional Lights.<br/>OpenGL ES 3.0 and earlier: 1 Main Light, and 16 Additional Lights.
 
 ## How to find the Universal Renderer asset
 

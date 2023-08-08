@@ -254,7 +254,7 @@ real GetNormalWeightReal(uint3 offset, float3 posWS, float3 sample0Pos, float3 n
 // Indexing functions
 // -------------------------------------------------------------
 
-bool LoadCellIndexMetaData(int cellFlatIdx, out int chunkIndex, out int stepSize, out int3 minRelativeIdx, out int3 maxRelativeIdx)
+bool LoadCellIndexMetaData(int cellFlatIdx, out int chunkIndex, out int stepSize, out int3 minRelativeIdx, out int3 maxRelativeIdxPlusOne)
 {
     bool cellIsLoaded = false;
     uint3 metaData = _APVResCellIndices[cellFlatIdx];
@@ -268,9 +268,9 @@ bool LoadCellIndexMetaData(int cellFlatIdx, out int chunkIndex, out int stepSize
         minRelativeIdx.y = (metaData.y >> 10) & 0x3FF;
         minRelativeIdx.z = (metaData.y >> 20) & 0x3FF;
 
-        maxRelativeIdx.x = metaData.z & 0x3FF;
-        maxRelativeIdx.y = (metaData.z >> 10) & 0x3FF;
-        maxRelativeIdx.z = (metaData.z >> 20) & 0x3FF;
+        maxRelativeIdxPlusOne.x = metaData.z & 0x3FF;
+        maxRelativeIdxPlusOne.y = (metaData.z >> 10) & 0x3FF;
+        maxRelativeIdxPlusOne.z = (metaData.z >> 20) & 0x3FF;
         cellIsLoaded = true;
     }
     else
@@ -278,7 +278,7 @@ bool LoadCellIndexMetaData(int cellFlatIdx, out int chunkIndex, out int stepSize
         chunkIndex = -1;
         stepSize = -1;
         minRelativeIdx = -1;
-        maxRelativeIdx = -1;
+        maxRelativeIdxPlusOne = -1;
     }
 
     return cellIsLoaded;
@@ -297,36 +297,40 @@ uint GetIndexData(APVResources apvRes, float3 posWS)
     int flatIdx = dot(entryPosInt, int3(1, (int)_GlobalIndirectionDimension.x, ((int)_GlobalIndirectionDimension.x * (int)_GlobalIndirectionDimension.y)));
 
     int stepSize = 0;
-    int3 minRelativeIdx, maxRelativeIdx;
+    int3 minRelativeIdx, maxRelativeIdxPlusOne;
     int chunkIdx = -1;
-    bool isValidBrick = true;
+    bool isValidBrick = false;
     int locationInPhysicalBuffer = 0;
 
-    if (isALoadedCell && LoadCellIndexMetaData(flatIdx, chunkIdx, stepSize, minRelativeIdx, maxRelativeIdx))
+    // Dynamic branch must be enforced to avoid out-of-bounds memory access in LoadCellIndexMetaData
+    UNITY_BRANCH if (isALoadedCell)
     {
-        float3 residualPosWS = posWS - topLeftEntryWS;
-        int3 localBrickIndex = floor(residualPosWS / (_MinBrickSize * stepSize));
-
-        // Out of bounds.
-        if(!all(localBrickIndex >= minRelativeIdx && localBrickIndex < maxRelativeIdx))
+        if (LoadCellIndexMetaData(flatIdx, chunkIdx, stepSize, minRelativeIdx, maxRelativeIdxPlusOne))
         {
-            isValidBrick = false;
+            float3 residualPosWS = posWS - topLeftEntryWS;
+            int3 localBrickIndex = floor(residualPosWS / (_MinBrickSize * stepSize));
+
+            // Out of bounds.
+            isValidBrick = all(localBrickIndex >= minRelativeIdx && localBrickIndex < maxRelativeIdxPlusOne);
+
+            int3 sizeOfValid = maxRelativeIdxPlusOne - minRelativeIdx;
+            // Relative to valid region
+            int3 localRelativeIndexLoc = (localBrickIndex - minRelativeIdx);
+            int flattenedLocationInCell = dot(localRelativeIndexLoc, int3(sizeOfValid.y, 1, sizeOfValid.x * sizeOfValid.y));
+
+            locationInPhysicalBuffer = chunkIdx * (int)_IndexChunkSize + flattenedLocationInCell;
         }
-
-        int3 sizeOfValid = maxRelativeIdx - minRelativeIdx;
-        // Relative to valid region
-        int3 localRelativeIndexLoc = (localBrickIndex - minRelativeIdx);
-        int flattenedLocationInCell = dot(localRelativeIndexLoc, int3(sizeOfValid.y, 1, sizeOfValid.x * sizeOfValid.y));
-
-        locationInPhysicalBuffer = chunkIdx * (int)_IndexChunkSize + flattenedLocationInCell;
-
     }
-    else
+
+    uint result = 0xffffffff;
+
+    // Dynamic branch must be enforced to avoid out-of-bounds memory access in the physical APV buffer
+    UNITY_BRANCH if (isValidBrick)
     {
-        isValidBrick = false;
+        result = apvRes.index[locationInPhysicalBuffer];
     }
 
-    return isValidBrick ? apvRes.index[locationInPhysicalBuffer] : 0xffffffff;
+    return result;
 }
 
 // -------------------------------------------------------------

@@ -35,8 +35,8 @@ MonoBehaviour:
     - {fileID: 102900000, guid: 2236d967c83ebec47b8616c71fb0be17, type: 3}
     - {fileID: 102900000, guid: 0bcaa565757b243bba6bd2c007b0977c, type: 3}
     - {fileID: 102900000, guid: a13b9207cccbd4cbb99cf2a72b761eef, type: 3}
-    - {fileID: 102900000, guid: 40c4ce99a7711204d978b31395d890b4, type: 3}
-    - {fileID: 102900000, guid: 74cb351d2fc32de4d812e3f2f08744e7, type: 3}
+    - {fileID: 102900000, guid: 79411c8112bdd64429adcd528baacf32, type: 3}
+    - {fileID: 102900000, guid: 6e1d9c84fb9f1004798f6be12f277f09, type: 3}
     - {fileID: 102900000, guid: 9fc0d4010bbf28b4594072e72b8655ab, type: 3}
     - {fileID: 102900000, guid: 70198edfee594a34986cdc8ee0c077ff, type: 3}
     - {fileID: 102900000, guid: 810b97dd4e5e5204b9e6ed3d05c42498, type: 3}
@@ -45,7 +45,7 @@ MonoBehaviour:
     - {fileID: 102900000, guid: e4bd4cb963e384819a1d8a13bc5127a8, type: 3}
     - {fileID: 102900000, guid: aa08e99a89c77574e9a00b9888fc75ce, type: 3}
     - {fileID: 102900000, guid: d84ff56928dab4734b69906d7e13638d, type: 3}
-    - {fileID: 102900000, guid: 443214b3f73466742a19acf21b430d0d, type: 3}
+    - {fileID: 0}
     - {fileID: 102900000, guid: 8a4a76dbf4743fc4bb21e40f08c759a0, type: 3}
     - {fileID: 102900000, guid: 99abb841000951945931ee709e2370a4, type: 3}
     - {fileID: 102900000, guid: 5a37821ccdba7204096a71421610f99a, type: 3}
@@ -339,15 +339,6 @@ MonoBehaviour:
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: 443214b3f73466742a19acf21b430d0d, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 9
-    GraphicsDevice: 16
-    XrSdk: 
-    StereoModes: 0
-    Reason: https://jira.unity3d.com/browse/URP-1313
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 443214b3f73466742a19acf21b430d0d, type: 3}
     - {fileID: 102900000, guid: 9d25fa9f3eb332f4dad8f36653f93a14, type: 3}
     ColorSpace: -1
     BuildPlatform: 24
@@ -360,6 +351,8 @@ MonoBehaviour:
     - {fileID: 102900000, guid: 87ee64df2c957224ab067a27a80ea7af, type: 3}
     - {fileID: 102900000, guid: 646226f38a4201047a6572d1cb8a620c, type: 3}
     - {fileID: 102900000, guid: f07beec5ff4e7744383242b8ed2eefff, type: 3}
+    - {fileID: 102900000, guid: 79411c8112bdd64429adcd528baacf32, type: 3}
+    - {fileID: 102900000, guid: 6e1d9c84fb9f1004798f6be12f277f09, type: 3}
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 11
@@ -371,6 +364,8 @@ MonoBehaviour:
     - {fileID: 102900000, guid: 87ee64df2c957224ab067a27a80ea7af, type: 3}
     - {fileID: 102900000, guid: 646226f38a4201047a6572d1cb8a620c, type: 3}
     - {fileID: 102900000, guid: f07beec5ff4e7744383242b8ed2eefff, type: 3}
+    - {fileID: 102900000, guid: 79411c8112bdd64429adcd528baacf32, type: 3}
+    - {fileID: 102900000, guid: 6e1d9c84fb9f1004798f6be12f277f09, type: 3}
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 17
@@ -382,6 +377,8 @@ MonoBehaviour:
     - {fileID: 102900000, guid: 87ee64df2c957224ab067a27a80ea7af, type: 3}
     - {fileID: 102900000, guid: 646226f38a4201047a6572d1cb8a620c, type: 3}
     - {fileID: 102900000, guid: f07beec5ff4e7744383242b8ed2eefff, type: 3}
+    - {fileID: 102900000, guid: 79411c8112bdd64429adcd528baacf32, type: 3}
+    - {fileID: 102900000, guid: 6e1d9c84fb9f1004798f6be12f277f09, type: 3}
     ColorSpace: -1
     BuildPlatform: 38
     GraphicsDevice: 4

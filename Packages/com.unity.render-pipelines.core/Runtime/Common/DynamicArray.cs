@@ -10,6 +10,9 @@ namespace UnityEngine.Rendering
     [DebuggerDisplay("Size = {size} Capacity = {capacity}")]
     public class DynamicArray<T> where T : new()
     {
+        /// <summary>
+        /// The C# array memory used to store the DynamicArray values in. This array's Length may be longer than the DynamicArrayLength. Objects beyond the length should not be referenced.
+        /// </summary>
         protected T[] m_Array = null;
 
         /// <summary>

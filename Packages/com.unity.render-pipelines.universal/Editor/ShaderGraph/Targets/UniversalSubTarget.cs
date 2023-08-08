@@ -58,11 +58,24 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             var urpMetadata = ScriptableObject.CreateInstance<UniversalMetadata>();
             urpMetadata.shaderID = shaderID;
-            urpMetadata.allowMaterialOverride = target.allowMaterialOverride;
-            urpMetadata.surfaceType = target.surfaceType;
             urpMetadata.alphaMode = target.alphaMode;
-            urpMetadata.castShadows = target.castShadows;
-            urpMetadata.hasVertexModificationInMotionVector = target.additionalMotionVectorMode != AdditionalMotionVectorMode.None || graphData.AnyVertexAnimationActive();
+
+            if (shaderID != ShaderID.SG_SpriteLit && shaderID != ShaderID.SG_SpriteUnlit)
+            {
+                urpMetadata.allowMaterialOverride = target.allowMaterialOverride;
+                urpMetadata.surfaceType = target.surfaceType;
+                urpMetadata.castShadows = target.castShadows;
+                urpMetadata.hasVertexModificationInMotionVector = target.additionalMotionVectorMode != AdditionalMotionVectorMode.None || graphData.AnyVertexAnimationActive();
+            }
+            else
+            {
+                //Ignore unsupported settings in SpriteUnlit/SpriteLit
+                urpMetadata.allowMaterialOverride = false;
+                urpMetadata.surfaceType = SurfaceType.Transparent; 
+                urpMetadata.castShadows = false;
+                urpMetadata.hasVertexModificationInMotionVector = false;
+            }
+            
             urpMetadata.isVFXCompatible = graphData.IsVFXCompatible();
             return urpMetadata;
         }

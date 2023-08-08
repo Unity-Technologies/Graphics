@@ -36,7 +36,7 @@ namespace UnityEngine.Rendering.HighDefinition
         bool IMigratableAsset.Migrate() => k_Migration.Migrate(this);
 
         bool IMigratableAsset.IsAtLastVersion()
-            => m_Version == MigrationDescription.LastVersion<Version>();
+            => m_Version >= MigrationDescription.LastVersion<Version>();
 #endif
     }
 }

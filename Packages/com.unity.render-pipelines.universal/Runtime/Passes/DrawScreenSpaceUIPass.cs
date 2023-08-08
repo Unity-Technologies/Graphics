@@ -110,14 +110,11 @@ namespace UnityEngine.Rendering.Universal
                 }
                 else
                 {
-                    // Create RTHandle alias to use RTHandle apis
-                    if (m_ColorTarget != cameraTarget)
-                    {
-                        m_ColorTarget?.Release();
-                        m_ColorTarget = RTHandles.Alloc(cameraTarget);
-                    }
+                    // Get RTHandle alias to use RTHandle apis
+                    RTHandleStaticHelpers.SetRTHandleStaticWrapper(cameraTarget);
+                    var colorTargetHandle = RTHandleStaticHelpers.s_RTHandleWrapper;
 
-                    CoreUtils.SetRenderTarget(renderingData.commandBuffer, m_ColorTarget);
+                    CoreUtils.SetRenderTarget(renderingData.commandBuffer, colorTargetHandle);
                 }
             }
 
@@ -156,6 +153,8 @@ namespace UnityEngine.Rendering.Universal
                     ExecutePass(context.cmd, data, data.rendererList);
                 });
             }
+
+            RenderGraphUtils.SetGlobalTexture(renderGraph, ShaderPropertyId.overlayUITexture, output);
         }
 
         internal void RenderOverlay(RenderGraph renderGraph, in TextureHandle colorBuffer, in TextureHandle depthBuffer, ref RenderingData renderingData)

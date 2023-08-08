@@ -19,6 +19,9 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
+        // Property-Types
+        public override string documentationURL => UnityEngine.Rendering.ShaderGraph.Documentation.GetPageLink("Property-Types");
+
         public override void UpdateNodeAfterDeserialization()
         {
             base.UpdateNodeAfterDeserialization();

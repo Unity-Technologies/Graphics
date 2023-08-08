@@ -127,7 +127,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             renderTargetWidth = shadowData.mainLightRenderTargetWidth;
             renderTargetHeight = shadowData.mainLightRenderTargetHeight;
 
-            ref readonly URPLightShadowCullingInfos shadowCullingInfos = ref renderingData.visibleLightsShadowCullingInfos.UnsafeElementAt(shadowLightIndex);
+            ref readonly URPLightShadowCullingInfos shadowCullingInfos = ref renderingData.shadowData.visibleLightsShadowCullingInfos.UnsafeElementAt(shadowLightIndex);
 
             for (int cascadeIndex = 0; cascadeIndex < m_ShadowCasterCascadesCount; ++cascadeIndex)
             {

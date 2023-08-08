@@ -206,7 +206,7 @@ void Frag(PackedVaryings packedInput,
 
 #ifdef _DECAL_LAYERS
 #ifdef _RENDER_PASS_ENABLED
-    uint surfaceRenderingLayer = DecodeMeshRenderingLayer(LOAD_FRAMEBUFFER_INPUT(GBUFFER4, positionCS.xy).r);
+    uint surfaceRenderingLayer = DecodeMeshRenderingLayer(LOAD_FRAMEBUFFER_X_INPUT(GBUFFER4, positionCS.xy).r);
 #else
     uint surfaceRenderingLayer = LoadSceneRenderingLayer(positionCS.xy);
 #endif
@@ -220,13 +220,13 @@ void Frag(PackedVaryings packedInput,
 #if defined(DECAL_PROJECTOR)
 #if UNITY_REVERSED_Z
 #if _RENDER_PASS_ENABLED
-    float depth = LOAD_FRAMEBUFFER_INPUT(GBUFFER3, positionCS.xy);
+    float depth = LOAD_FRAMEBUFFER_X_INPUT(GBUFFER3, positionCS.xy);
 #else
     float depth = LoadSceneDepth(positionCS.xy);
 #endif
 #else
 #if _RENDER_PASS_ENABLED
-    float depth = lerp(UNITY_NEAR_CLIP_VALUE, 1, LOAD_FRAMEBUFFER_INPUT(GBUFFER3, positionCS.xy));
+    float depth = lerp(UNITY_NEAR_CLIP_VALUE, 1, LOAD_FRAMEBUFFER_X_INPUT(GBUFFER3, positionCS.xy));
 #else
     // Adjust z to match NDC for OpenGL
     float depth = lerp(UNITY_NEAR_CLIP_VALUE, 1, LoadSceneDepth(positionCS.xy));

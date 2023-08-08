@@ -167,20 +167,21 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     public interface IRasterRenderGraphBuilder : IBaseRenderGraphBuilder
     {
         /// <summary>
-        /// Use the texture as an rendertarget/renderpass attachment.
+        /// Use the texture as an rendertarget attachment.
+        /// 
         /// Writing:
-        /// Indicate this pass will write a texture on the current fragment position and sample index through MRT writes.
+        /// Indicate this pass will write a texture through rendertarget rasterization writes.
         /// The graph will automatically bind the texture as an MRT output on the indicated index slot.
         /// Write in shader as  float4 out : SV_Target{index} = value; This texture always needs to be written as an
         /// render target (SV_Targetx) writing using other methods (like `operator[] =` ) may not work even if
         /// using the current fragment+sampleIdx pos. When using operator[] please use the UseTexture function instead.
         /// Reading:
-        /// Indicates this pass will read a texture on the current fragment position. If the texture is msaa then the sample index to read
-        /// may be chosen by the shader. This informs the graph that any shaders in pass will only read from this
-        /// texture at the current fragment position using the LOAD_FRAMEBUFFER_INPUT(idx)/LOAD_FRAMEBUFFER_INPUT_MS(idx,sampleIdx) macros.
-        /// I.e this texture is bound as an render pass attachment on compatible hardware (or as a regular texture
-        ///  as a fall back).
-        /// The index passed to LOAD_FRAMEBUFFER_INPUT needs to match the index passed to ReadTextureFragment for this texture.
+        /// Indicates this pass will read a texture on the current fragment position but not unnecessarily modify it. Although not explicitly visible in shader code
+        /// Reading may happen depending on the rasterization state, e.g. Blending (read and write) or Z-Testing (read only) may read the buffer.
+        /// 
+        /// Note: The rendergraph does not know what content will be rendered in the bound texture. By default it assumes only partial data
+        /// is written (e.g. a small rectangle is drawn on the screen) so it will preserve the existing rendertarget content (e.g. behind/around the triangle)
+        /// if you know you will write the full screen the AccessFlags.WriteAll should be used instead as it will give better performance.
         /// </summary>
         /// <param name="tex">Texture to use during this pass.</param>
         /// <param name="index">Index the shader will use to access this texture.</param>
@@ -189,11 +190,24 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// Note that except for special cases where you want to refer to a specific version return value is generally discarded.</returns>
         TextureHandle UseTextureFragment(TextureHandle tex, int index, AccessFlags flags = AccessFlags.Write);
 
+        /// <summary>
+        /// Use the texture as an input attachment.
+        ///
+        /// This informs the graph that any shaders in pass will only read from this texture at the current fragment position using the
+        /// LOAD_FRAMEBUFFER_INPUT(idx)/LOAD_FRAMEBUFFER_INPUT_MS(idx,sampleIdx) macros. The index passed to LOAD_FRAMEBUFFER_INPUT needs
+        /// to match the index passed to UseTextureFragmentInput for this texture.
+        /// 
+        /// </summary>
+        /// <param name="tex">Texture to use during this pass.</param>
+        /// <param name="index">Index the shader will use to access this texture.</param>
+        /// <param name="flags">How this pass will acess the texture. Default value is set to AccessFlag.Read. Writing is currently not supported on any platform. </param>
+        /// <returns>A explicitly versioned handle representing the latest version of the pased in texture.
+        /// Note that except for special cases where you want to refer to a specific version return value is generally discarded.</returns>
         TextureHandle UseTextureFragmentInput(TextureHandle tex, int index, AccessFlags flags = AccessFlags.Read);
 
         /// <summary>
         /// Use the texture as a depth buffer for the Z-Buffer hardware.  Note you can only test-against and write-to a single depth texture in a pass.
-        /// If you want to write depth to more than one texture you will need to register the second texture as WriteTextureFragment and manually calculate
+        /// If you want to write depth to more than one texture you will need to register the second texture as UseTextureFragment and manually calculate
         /// and write the depth value in the shader.
         /// Calling UseTextureFragmentDepth twice on the same builder is an error.
         /// Write:

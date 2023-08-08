@@ -1,7 +1,10 @@
 using System;
 using Unity.Mathematics;
 using UnityEngine.Rendering;
+
+#if ENABLE_VR && ENABLE_XR_MODULE
 using UnityEngine.XR;
+#endif
 
 namespace UnityEngine.Experimental.Rendering
 {

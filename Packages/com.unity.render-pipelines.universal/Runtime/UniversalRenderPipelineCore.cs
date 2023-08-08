@@ -83,9 +83,18 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     public struct RenderingData
     {
-        internal NativeArray<URPLightShadowCullingInfos> visibleLightsShadowCullingInfos;
-        internal AdditionalLightsShadowAtlasLayout shadowAtlasLayout;
-        internal CommandBuffer commandBuffer;
+        internal ContextContainer frameData;
+
+        internal RenderingData(ContextContainer frameData)
+        {
+            this.frameData = frameData;
+            cameraData = new CameraData(frameData);
+            lightData = new LightData(frameData);
+            shadowData = new ShadowData(frameData);
+            postProcessingData = new PostProcessingData(frameData);
+        }
+
+        internal ref CommandBuffer commandBuffer => ref frameData.Get<UniversalRenderingData>().commandBuffer;
 
         /// <summary>
         /// Returns culling results that exposes handles to visible objects, lights and probes.
@@ -93,7 +102,7 @@ namespace UnityEngine.Rendering.Universal
         /// <see cref="CullingResults"/>
         /// <seealso cref="ScriptableRenderContext"/>
         /// </summary>
-        public CullingResults cullResults;
+        public ref CullingResults cullResults => ref frameData.Get<UniversalRenderingData>().cullResults;
 
         /// <summary>
         /// Holds several rendering settings related to camera.
@@ -123,18 +132,18 @@ namespace UnityEngine.Rendering.Universal
         /// True if the pipeline supports dynamic batching.
         /// This settings doesn't apply when drawing shadow casters. Dynamic batching is always disabled when drawing shadow casters.
         /// </summary>
-        public bool supportsDynamicBatching;
+        public ref bool supportsDynamicBatching => ref frameData.Get<UniversalRenderingData>().supportsDynamicBatching;
 
         /// <summary>
         /// Holds per-object data that are requested when drawing
         /// <see cref="PerObjectData"/>
         /// </summary>
-        public PerObjectData perObjectData;
+        public ref PerObjectData perObjectData => ref frameData.Get<UniversalRenderingData>().perObjectData;
 
         /// <summary>
         /// True if post-processing effect is enabled while rendering the camera stack.
         /// </summary>
-        public bool postProcessingEnabled;
+        public ref bool postProcessingEnabled => ref frameData.Get<UniversalPostProcessingData>().isEnabled;
     }
 
     /// <summary>
@@ -142,57 +151,64 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     public struct LightData
     {
+        internal ContextContainer frameData;
+
+        internal LightData(ContextContainer frameData)
+        {
+            this.frameData = frameData;
+        }
+
         /// <summary>
         /// Holds the main light index from the <c>VisibleLight</c> list returned by culling. If there's no main light in the scene, <c>mainLightIndex</c> is set to -1.
         /// The main light is the directional light assigned as Sun source in light settings or the brightest directional light.
         /// <seealso cref="CullingResults"/>
         /// </summary>
-        public int mainLightIndex;
+        public ref int mainLightIndex => ref frameData.Get<UniversalLightData>().mainLightIndex;
 
         /// <summary>
         /// The number of additional lights visible by the camera.
         /// </summary>
-        public int additionalLightsCount;
+        public ref int additionalLightsCount => ref frameData.Get<UniversalLightData>().additionalLightsCount;
 
         /// <summary>
         /// Maximum amount of lights that can be shaded per-object. This value only affects forward rendering.
         /// </summary>
-        public int maxPerObjectAdditionalLightsCount;
+        public ref int maxPerObjectAdditionalLightsCount => ref frameData.Get<UniversalLightData>().maxPerObjectAdditionalLightsCount;
 
         /// <summary>
         /// List of visible lights returned by culling.
         /// </summary>
-        public NativeArray<VisibleLight> visibleLights;
+        public ref NativeArray<VisibleLight> visibleLights => ref frameData.Get<UniversalLightData>().visibleLights;
 
         /// <summary>
         /// True if additional lights should be shaded in vertex shader, otherwise additional lights will be shaded per pixel.
         /// </summary>
-        public bool shadeAdditionalLightsPerVertex;
+        public ref bool shadeAdditionalLightsPerVertex => ref frameData.Get<UniversalLightData>().shadeAdditionalLightsPerVertex;
 
         /// <summary>
         /// True if mixed lighting is supported.
         /// </summary>
-        public bool supportsMixedLighting;
+        public ref bool supportsMixedLighting => ref frameData.Get<UniversalLightData>().supportsMixedLighting;
 
         /// <summary>
         /// True if box projection is enabled for reflection probes.
         /// </summary>
-        public bool reflectionProbeBoxProjection;
+        public ref bool reflectionProbeBoxProjection => ref frameData.Get<UniversalLightData>().reflectionProbeBoxProjection;
 
         /// <summary>
         /// True if blending is enabled for reflection probes.
         /// </summary>
-        public bool reflectionProbeBlending;
+        public ref bool reflectionProbeBlending => ref frameData.Get<UniversalLightData>().reflectionProbeBlending;
 
         /// <summary>
         /// True if light layers are enabled.
         /// </summary>
-        public bool supportsLightLayers;
+        public ref bool supportsLightLayers => ref frameData.Get<UniversalLightData>().supportsLightLayers;
 
         /// <summary>
         /// True if additional lights enabled.
         /// </summary>
-        public bool supportsAdditionalLights;
+        public ref bool supportsAdditionalLights => ref frameData.Get<UniversalLightData>().supportsAdditionalLights;
     }
 
 
@@ -201,59 +217,26 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     public struct CameraData
     {
-        // Internal camera data as we are not yet sure how to expose View in stereo context.
-        // We might change this API soon.
-        Matrix4x4 m_ViewMatrix;
-        Matrix4x4 m_ProjectionMatrix;
-        Matrix4x4 m_JitterMatrix;
+        internal ContextContainer frameData;
+
+        internal CameraData(ContextContainer frameData)
+        {
+            this.frameData = frameData;
+        }
 
         internal void SetViewAndProjectionMatrix(Matrix4x4 viewMatrix, Matrix4x4 projectionMatrix)
         {
-            m_ViewMatrix = viewMatrix;
-            m_ProjectionMatrix = projectionMatrix;
-            m_JitterMatrix = Matrix4x4.identity;
+            frameData.Get<UniversalCameraData>().SetViewAndProjectionMatrix(viewMatrix, projectionMatrix);
         }
 
         internal void SetViewProjectionAndJitterMatrix(Matrix4x4 viewMatrix, Matrix4x4 projectionMatrix, Matrix4x4 jitterMatrix)
         {
-            m_ViewMatrix = viewMatrix;
-            m_ProjectionMatrix = projectionMatrix;
-            m_JitterMatrix = jitterMatrix;
+            frameData.Get<UniversalCameraData>().SetViewProjectionAndJitterMatrix(viewMatrix, projectionMatrix, jitterMatrix);
         }
-
-#if ENABLE_VR && ENABLE_XR_MODULE
-        private bool m_CachedRenderIntoTextureXR;
-        private bool m_InitBuiltinXRConstants;
-#endif
         // Helper function to populate builtin stereo matricies as well as URP stereo matricies
         internal void PushBuiltinShaderConstantsXR(RasterCommandBuffer cmd, bool renderIntoTexture)
         {
-#if ENABLE_VR && ENABLE_XR_MODULE
-            // Multipass always needs update to prevent wrong view projection matrix set by other passes
-            bool needsUpdate = !m_InitBuiltinXRConstants || m_CachedRenderIntoTextureXR != renderIntoTexture || !xr.singlePassEnabled;
-            if (needsUpdate && xr.enabled )
-            {
-                var projection0 = GetProjectionMatrix();
-                var view0 = GetViewMatrix();
-                cmd.SetViewProjectionMatrices(view0, projection0);
-                if (xr.singlePassEnabled)
-                {
-                    var projection1 = GetProjectionMatrix(1);
-                    var view1 = GetViewMatrix(1);
-                    XRBuiltinShaderConstants.UpdateBuiltinShaderConstants(view0, projection0, renderIntoTexture, 0);
-                    XRBuiltinShaderConstants.UpdateBuiltinShaderConstants(view1, projection1, renderIntoTexture, 1);
-                    XRBuiltinShaderConstants.SetBuiltinShaderConstants(cmd);
-                }
-                else
-                {
-                    // Update multipass worldSpace camera pos
-                    Vector3 worldSpaceCameraPos = Matrix4x4.Inverse(GetViewMatrix(0)).GetColumn(3);
-                    cmd.SetGlobalVector(ShaderPropertyId.worldSpaceCameraPos, worldSpaceCameraPos);
-                }
-                m_CachedRenderIntoTextureXR = renderIntoTexture;
-                m_InitBuiltinXRConstants = true;
-            }
-#endif
+            frameData.Get<UniversalCameraData>().PushBuiltinShaderConstantsXR(cmd, renderIntoTexture);
         }
 
         /// <summary>
@@ -263,11 +246,7 @@ namespace UnityEngine.Rendering.Universal
         /// <returns> The camera view matrix. </returns>
         public Matrix4x4 GetViewMatrix(int viewIndex = 0)
         {
-#if ENABLE_VR && ENABLE_XR_MODULE
-            if (xr.enabled)
-                return xr.GetViewMatrix(viewIndex);
-#endif
-            return m_ViewMatrix;
+            return frameData.Get<UniversalCameraData>().GetViewMatrix(viewIndex);
         }
 
         /// <summary>
@@ -277,20 +256,12 @@ namespace UnityEngine.Rendering.Universal
         /// <returns> The camera projection matrix. </returns>
         public Matrix4x4 GetProjectionMatrix(int viewIndex = 0)
         {
-#if ENABLE_VR && ENABLE_XR_MODULE
-            if (xr.enabled)
-                return m_JitterMatrix * xr.GetProjMatrix(viewIndex);
-#endif
-            return m_JitterMatrix * m_ProjectionMatrix;
+            return frameData.Get<UniversalCameraData>().GetProjectionMatrix(viewIndex);
         }
 
         internal Matrix4x4 GetProjectionMatrixNoJitter(int viewIndex = 0)
         {
-#if ENABLE_VR && ENABLE_XR_MODULE
-            if (xr.enabled)
-                return xr.GetProjMatrix(viewIndex);
-#endif
-            return m_ProjectionMatrix;
+            return frameData.Get<UniversalCameraData>().GetProjectionMatrixNoJitter(viewIndex);
         }
 
         /// <summary>
@@ -303,8 +274,7 @@ namespace UnityEngine.Rendering.Universal
         /// <returns></returns>
         public Matrix4x4 GetGPUProjectionMatrix(int viewIndex = 0)
         {
-            // GetGPUProjectionMatrix takes a projection matrix and returns a GfxAPI adjusted version, does not set or get any state.
-            return m_JitterMatrix * GL.GetGPUProjectionMatrix(GetProjectionMatrixNoJitter(viewIndex), IsCameraProjectionMatrixFlipped());
+            return frameData.Get<UniversalCameraData>().GetGPUProjectionMatrix(viewIndex);
         }
 
         /// <summary>
@@ -317,199 +287,134 @@ namespace UnityEngine.Rendering.Universal
         /// <returns></returns>
         public Matrix4x4 GetGPUProjectionMatrixNoJitter(int viewIndex = 0)
         {
-            // GetGPUProjectionMatrix takes a projection matrix and returns a GfxAPI adjusted version, does not set or get any state.
-            return GL.GetGPUProjectionMatrix(GetProjectionMatrixNoJitter(viewIndex), IsCameraProjectionMatrixFlipped());
+            return frameData.Get<UniversalCameraData>().GetGPUProjectionMatrixNoJitter(viewIndex);
         }
 
         internal Matrix4x4 GetGPUProjectionMatrix(bool renderIntoTexture, int viewIndex = 0)
         {
-            return m_JitterMatrix * GL.GetGPUProjectionMatrix(GetProjectionMatrix(viewIndex), renderIntoTexture);
+            return frameData.Get<UniversalCameraData>().GetGPUProjectionMatrix(renderIntoTexture, viewIndex);
         }
 
         /// <summary>
         /// The camera component.
         /// </summary>
-        public Camera camera;
+        public ref Camera camera => ref frameData.Get<UniversalCameraData>().camera;
 
         /// <summary>
         /// The camera render type used for camera stacking.
         /// <see cref="CameraRenderType"/>
         /// </summary>
-        public CameraRenderType renderType;
+        public ref CameraRenderType renderType => ref frameData.Get<UniversalCameraData>().renderType;
 
         /// <summary>
         /// Controls the final target texture for a camera. If null camera will resolve rendering to screen.
         /// </summary>
-        public RenderTexture targetTexture;
+        public ref RenderTexture targetTexture => ref frameData.Get<UniversalCameraData>().targetTexture;
 
         /// <summary>
         /// Render texture settings used to create intermediate camera textures for rendering.
         /// </summary>
-        public RenderTextureDescriptor cameraTargetDescriptor;
-        internal Rect pixelRect;
-        internal bool useScreenCoordOverride;
-        internal Vector4 screenSizeOverride;
-        internal Vector4 screenCoordScaleBias;
-        internal int pixelWidth;
-        internal int pixelHeight;
-        internal float aspectRatio;
+        public ref RenderTextureDescriptor cameraTargetDescriptor => ref frameData.Get<UniversalCameraData>().cameraTargetDescriptor;
+        internal ref Rect pixelRect => ref frameData.Get<UniversalCameraData>().pixelRect;
+        internal ref bool useScreenCoordOverride => ref frameData.Get<UniversalCameraData>().useScreenCoordOverride;
+        internal ref Vector4 screenSizeOverride => ref frameData.Get<UniversalCameraData>().screenSizeOverride;
+        internal ref Vector4 screenCoordScaleBias => ref frameData.Get<UniversalCameraData>().screenCoordScaleBias;
+        internal ref int pixelWidth => ref frameData.Get<UniversalCameraData>().pixelWidth;
+        internal ref int pixelHeight => ref frameData.Get<UniversalCameraData>().pixelHeight;
+        internal ref float aspectRatio => ref frameData.Get<UniversalCameraData>().aspectRatio;
 
         /// <summary>
         /// Render scale to apply when creating camera textures. Scaled extents are rounded down to integers.
         /// </summary>
-        public float renderScale;
-        internal ImageScalingMode imageScalingMode;
-        internal ImageUpscalingFilter upscalingFilter;
-        internal bool fsrOverrideSharpness;
-        internal float fsrSharpness;
-        internal HDRColorBufferPrecision hdrColorBufferPrecision;
+        public ref float renderScale => ref frameData.Get<UniversalCameraData>().renderScale;
+        internal ref ImageScalingMode imageScalingMode => ref frameData.Get<UniversalCameraData>().imageScalingMode;
+        internal ref ImageUpscalingFilter upscalingFilter => ref frameData.Get<UniversalCameraData>().upscalingFilter;
+        internal ref bool fsrOverrideSharpness => ref frameData.Get<UniversalCameraData>().fsrOverrideSharpness;
+        internal ref float fsrSharpness => ref frameData.Get<UniversalCameraData>().fsrSharpness;
+        internal ref HDRColorBufferPrecision hdrColorBufferPrecision => ref frameData.Get<UniversalCameraData>().hdrColorBufferPrecision;
 
         /// <summary>
         /// True if this camera should clear depth buffer. This setting only applies to cameras of type <c>CameraRenderType.Overlay</c>
         /// <seealso cref="CameraRenderType"/>
         /// </summary>
-        public bool clearDepth;
+        public ref bool clearDepth => ref frameData.Get<UniversalCameraData>().clearDepth;
 
         /// <summary>
         /// The camera type.
         /// <seealso cref="UnityEngine.CameraType"/>
         /// </summary>
-        public CameraType cameraType;
+        public ref CameraType cameraType => ref frameData.Get<UniversalCameraData>().cameraType;
 
         /// <summary>
         /// True if this camera is drawing to a viewport that maps to the entire screen.
         /// </summary>
-        public bool isDefaultViewport;
+        public ref bool isDefaultViewport => ref frameData.Get<UniversalCameraData>().isDefaultViewport;
 
         /// <summary>
         /// True if this camera should render to high dynamic range color targets.
         /// </summary>
-        public bool isHdrEnabled;
+        public ref bool isHdrEnabled => ref frameData.Get<UniversalCameraData>().isHdrEnabled;
 
         /// <summary>
         /// True if this camera allow color conversion and encoding for high dynamic range displays.
         /// </summary>
-        public bool allowHDROutput;
+        public ref bool allowHDROutput => ref frameData.Get<UniversalCameraData>().allowHDROutput;
 
         /// <summary>
         /// True if this camera requires to write _CameraDepthTexture.
         /// </summary>
-        public bool requiresDepthTexture;
+        public ref bool requiresDepthTexture => ref frameData.Get<UniversalCameraData>().requiresDepthTexture;
 
         /// <summary>
         /// True if this camera requires to copy camera color texture to _CameraOpaqueTexture.
         /// </summary>
-        public bool requiresOpaqueTexture;
+        public ref bool requiresOpaqueTexture => ref frameData.Get<UniversalCameraData>().requiresOpaqueTexture;
 
         /// <summary>
         /// Returns true if post processing passes require depth texture.
         /// </summary>
-        public bool postProcessingRequiresDepthTexture;
+        public ref bool postProcessingRequiresDepthTexture => ref frameData.Get<UniversalCameraData>().postProcessingRequiresDepthTexture;
 
         /// <summary>
         /// Returns true if XR rendering is enabled.
         /// </summary>
-        public bool xrRendering;
+        public ref bool xrRendering => ref frameData.Get<UniversalCameraData>().xrRendering;
 
-        internal bool requireSrgbConversion
-        {
-            get
-            {
-#if ENABLE_VR && ENABLE_XR_MODULE
-                // For some XR platforms we need to encode in SRGB but can't use a _SRGB format texture, only required for 8bit per channel 32 bit formats.
-                if (xr.enabled)
-                    return !xr.renderTargetDesc.sRGB && (xr.renderTargetDesc.graphicsFormat == GraphicsFormat.R8G8B8A8_UNorm || xr.renderTargetDesc.graphicsFormat == GraphicsFormat.B8G8R8A8_UNorm) && (QualitySettings.activeColorSpace == ColorSpace.Linear);
-#endif
-
-                return targetTexture == null && Display.main.requiresSrgbBlitToBackbuffer;
-            }
-        }
+        internal bool requireSrgbConversion => frameData.Get<UniversalCameraData>().requireSrgbConversion;
 
         /// <summary>
         /// True if the camera rendering is for the scene window in the editor.
         /// </summary>
-        public bool isSceneViewCamera => cameraType == CameraType.SceneView;
+        public bool isSceneViewCamera => frameData.Get<UniversalCameraData>().isSceneViewCamera;
 
         /// <summary>
         /// True if the camera rendering is for the preview window in the editor.
         /// </summary>
-        public bool isPreviewCamera => cameraType == CameraType.Preview;
+        public bool isPreviewCamera => frameData.Get<UniversalCameraData>().isPreviewCamera;
 
-        internal bool isRenderPassSupportedCamera => (cameraType == CameraType.Game || cameraType == CameraType.Reflection);
+        internal bool isRenderPassSupportedCamera => frameData.Get<UniversalCameraData>().isRenderPassSupportedCamera;
 
-        internal bool resolveToScreen => targetTexture == null && resolveFinalTarget && (cameraType == CameraType.Game || camera.cameraType == CameraType.VR);
+        internal bool resolveToScreen => frameData.Get<UniversalCameraData>().resolveToScreen;
 
         /// <summary>
         /// True if the Camera should output to an HDR display.
         /// </summary>
-        public bool isHDROutputActive
-        {
-            get
-            {
-                bool hdrDisplayOutputActive = UniversalRenderPipeline.HDROutputForMainDisplayIsActive();
-#if ENABLE_VR && ENABLE_XR_MODULE
-                // If we are rendering to xr then we need to look at the XR Display rather than the main non-xr display.
-                if (xr.enabled)
-                    hdrDisplayOutputActive = xr.isHDRDisplayOutputActive;
-#endif
-        		return hdrDisplayOutputActive && allowHDROutput && resolveToScreen;
-            }
-        }
+        public bool isHDROutputActive => frameData.Get<UniversalCameraData>().isHDROutputActive;
 
         /// <summary>
         /// HDR Display information about the current display this camera is rendering to.
         /// </summary>
-        public HDROutputUtils.HDRDisplayInformation hdrDisplayInformation
-        {
-            get
-            {
-                HDROutputUtils.HDRDisplayInformation displayInformation;
-#if ENABLE_VR && ENABLE_XR_MODULE
-                // If we are rendering to xr then we need to look at the XR Display rather than the main non-xr display.
-                if (xr.enabled)
-                {
-                    displayInformation = xr.hdrDisplayOutputInformation;
-                }
-                else
-#endif
-                {
-                    HDROutputSettings displaySettings = HDROutputSettings.main;
-                    displayInformation = new HDROutputUtils.HDRDisplayInformation(displaySettings.maxFullFrameToneMapLuminance,
-                        displaySettings.maxToneMapLuminance,
-                        displaySettings.minToneMapLuminance,
-                        displaySettings.paperWhiteNits);
-                }
-
-                return displayInformation;
-            }
-        }
+        public HDROutputUtils.HDRDisplayInformation hdrDisplayInformation => frameData.Get<UniversalCameraData>().hdrDisplayInformation;
 
         /// <summary>
         /// HDR Display Color Gamut
         /// </summary>
-        public ColorGamut hdrDisplayColorGamut
-        {
-            get
-            {
-#if ENABLE_VR && ENABLE_XR_MODULE
-                // If we are rendering to xr then we need to look at the XR Display rather than the main non-xr display.
-                if (xr.enabled)
-                {
-                    return xr.hdrDisplayOutputColorGamut;
-                }
-                else
-#endif
-                {
-                    HDROutputSettings displaySettings = HDROutputSettings.main;
-                    return displaySettings.displayColorGamut;
-                }
-            }
-        }
+        public ColorGamut hdrDisplayColorGamut => frameData.Get<UniversalCameraData>().hdrDisplayColorGamut;
 
         /// <summary>
         /// True if the Camera should render overlay UI.
         /// </summary>
-        public bool rendersOverlayUI => SupportedRenderingFeatures.active.rendersUIOverlay && resolveToScreen;
+        public bool rendersOverlayUI => frameData.Get<UniversalCameraData>().rendersOverlayUI;
 
         /// <summary>
         /// True is the handle has its content flipped on the y axis.
@@ -524,19 +429,7 @@ namespace UnityEngine.Rendering.Universal
         /// <returns>True is the content is flipped in y.</returns>
         public bool IsHandleYFlipped(RTHandle handle)
         {
-            if (!SystemInfo.graphicsUVStartsAtTop)
-                return false;
-
-            if (cameraType == CameraType.SceneView || cameraType == CameraType.Preview)
-                return true;
-
-            var handleID = new RenderTargetIdentifier(handle.nameID, 0, CubemapFace.Unknown, 0);
-            bool isBackbuffer = handleID == BuiltinRenderTextureType.CameraTarget;
-#if ENABLE_VR && ENABLE_XR_MODULE
-            if (xr.enabled)
-                isBackbuffer |= handleID == new RenderTargetIdentifier(xr.renderTarget, 0, CubemapFace.Unknown, 0);
-#endif
-            return !isBackbuffer;
+            return frameData.Get<UniversalCameraData>().IsHandleYFlipped(handle);
         }
 
         /// <summary>
@@ -548,17 +441,7 @@ namespace UnityEngine.Rendering.Universal
         /// <returns> True if the camera device projection matrix is flipped. </returns>
         public bool IsCameraProjectionMatrixFlipped()
         {
-            if (!SystemInfo.graphicsUVStartsAtTop)
-                return false;
-
-            // Users only have access to CameraData on URP rendering scope. The current renderer should never be null.
-            var renderer = ScriptableRenderer.current;
-            Debug.Assert(renderer != null, "IsCameraProjectionMatrixFlipped is being called outside camera rendering scope.");
-
-            if (renderer != null)
-                return IsHandleYFlipped(renderer.cameraColorTargetHandle) || targetTexture != null;
-
-            return true;
+            return frameData.Get<UniversalCameraData>().IsCameraProjectionMatrixFlipped();
         }
 
         /// <summary>
@@ -572,23 +455,12 @@ namespace UnityEngine.Rendering.Universal
         /// <returns> True if the render target's projection matrix is flipped. </returns>
         public bool IsRenderTargetProjectionMatrixFlipped(RTHandle color, RTHandle depth = null)
         {
-            if (!SystemInfo.graphicsUVStartsAtTop)
-                return false;
-
-            return targetTexture != null || IsHandleYFlipped(color ?? depth);
+            return frameData.Get<UniversalCameraData>().IsRenderTargetProjectionMatrixFlipped(color, depth);
         }
 
         internal bool IsTemporalAAEnabled()
         {
-            UniversalAdditionalCameraData additionalCameraData;
-            camera.TryGetComponent(out additionalCameraData);
-
-            return (antialiasing == AntialiasingMode.TemporalAntiAliasing)                                                            // Enabled
-                   && (taaPersistentData != null)                                                                                     // Initialized
-                   && (cameraTargetDescriptor.msaaSamples == 1)                                                                       // No MSAA
-                   && !(additionalCameraData?.renderType == CameraRenderType.Overlay || additionalCameraData?.cameraStack.Count > 0)  // No Camera stack
-                   && !camera.allowDynamicResolution                                                                                  // No Dynamic Resolution
-                   && postProcessEnabled;                                                                                             // No Postprocessing
+            return frameData.Get<UniversalCameraData>().IsTemporalAAEnabled();
         }
 
         /// <summary>
@@ -597,53 +469,57 @@ namespace UnityEngine.Rendering.Universal
         /// benefit for more optimal static batching.
         /// </summary>
         /// <seealso cref="SortingCriteria"/>
-        public SortingCriteria defaultOpaqueSortFlags;
+        public ref SortingCriteria defaultOpaqueSortFlags => ref frameData.Get<UniversalCameraData>().defaultOpaqueSortFlags;
 
         /// <summary>
         /// XRPass holds the render target information and a list of XRView.
         /// XRView contains the parameters required to render (projection and view matrices, viewport, etc)
         /// </summary>
-        public XRPass xr { get; internal set; }
+        public XRPass xr
+        {
+            get => frameData.Get<UniversalCameraData>().xr;
+            internal set => frameData.Get<UniversalCameraData>().xr = value;
+        }
 
-        internal XRPassUniversal xrUniversal => xr as XRPassUniversal;
+        internal XRPassUniversal xrUniversal => frameData.Get<UniversalCameraData>().xrUniversal;
 
         /// <summary>
         /// Maximum shadow distance visible to the camera. When set to zero shadows will be disable for that camera.
         /// </summary>
-        public float maxShadowDistance;
+        public ref float maxShadowDistance => ref frameData.Get<UniversalCameraData>().maxShadowDistance;
 
         /// <summary>
         /// True if post-processing is enabled for this camera.
         /// </summary>
-        public bool postProcessEnabled;
+        public ref bool postProcessEnabled => ref frameData.Get<UniversalCameraData>().postProcessEnabled;
 
         /// <summary>
         /// Provides set actions to the renderer to be triggered at the end of the render loop for camera capture.
         /// </summary>
-        public IEnumerator<Action<RenderTargetIdentifier, CommandBuffer>> captureActions;
+        public ref IEnumerator<Action<RenderTargetIdentifier, CommandBuffer>> captureActions => ref frameData.Get<UniversalCameraData>().captureActions;
 
         /// <summary>
         /// The camera volume layer mask.
         /// </summary>
-        public LayerMask volumeLayerMask;
+        public ref LayerMask volumeLayerMask => ref frameData.Get<UniversalCameraData>().volumeLayerMask;
 
         /// <summary>
         /// The camera volume trigger.
         /// </summary>
-        public Transform volumeTrigger;
+        public ref Transform volumeTrigger => ref frameData.Get<UniversalCameraData>().volumeTrigger;
 
         /// <summary>
         /// If set to true, the integrated post-processing stack will replace any NaNs generated by render passes prior to post-processing with black/zero.
         /// Enabling this option will cause a noticeable performance impact. It should be used while in development mode to identify NaN issues.
         /// </summary>
-        public bool isStopNaNEnabled;
+        public ref bool isStopNaNEnabled => ref frameData.Get<UniversalCameraData>().isStopNaNEnabled;
 
         /// <summary>
         /// If set to true a final post-processing pass will be applied to apply dithering.
         /// This can be combined with post-processing antialiasing.
         /// <seealso cref="antialiasing"/>
         /// </summary>
-        public bool isDitheringEnabled;
+        public ref bool isDitheringEnabled => ref frameData.Get<UniversalCameraData>().isDitheringEnabled;
 
         /// <summary>
         /// Controls the anti-alising mode used by the integrated post-processing stack.
@@ -652,56 +528,53 @@ namespace UnityEngine.Rendering.Universal
         /// <see cref="AntialiasingMode"/>
         /// <seealso cref="isDitheringEnabled"/>
         /// </summary>
-        public AntialiasingMode antialiasing;
+        public ref AntialiasingMode antialiasing => ref frameData.Get<UniversalCameraData>().antialiasing;
 
         /// <summary>
         /// Controls the anti-alising quality of the anti-aliasing mode.
         /// <see cref="antialiasingQuality"/>
         /// <seealso cref="AntialiasingMode"/>
         /// </summary>
-        public AntialiasingQuality antialiasingQuality;
+        public ref AntialiasingQuality antialiasingQuality => ref frameData.Get<UniversalCameraData>().antialiasingQuality;
 
         /// <summary>
         /// Returns the current renderer used by this camera.
         /// <see cref="ScriptableRenderer"/>
         /// </summary>
-        public ScriptableRenderer renderer;
+        public ref ScriptableRenderer renderer => ref frameData.Get<UniversalCameraData>().renderer;
 
         /// <summary>
         /// True if this camera is resolving rendering to the final camera render target.
         /// When rendering a stack of cameras only the last camera in the stack will resolve to camera target.
         /// </summary>
-        public bool resolveFinalTarget;
+        public ref bool resolveFinalTarget => ref frameData.Get<UniversalCameraData>().resolveFinalTarget;
 
         /// <summary>
         /// Camera position in world space.
         /// </summary>
-        public Vector3 worldSpaceCameraPos;
+        public ref Vector3 worldSpaceCameraPos => ref frameData.Get<UniversalCameraData>().worldSpaceCameraPos;
 
         /// <summary>
         /// Final background color in the active color space.
         /// </summary>
-        public Color backgroundColor;
+        public ref Color backgroundColor => ref frameData.Get<UniversalCameraData>().backgroundColor;
 
         /// <summary>
         /// Persistent TAA data, primarily for the accumulation texture.
         /// </summary>
-        internal TaaPersistentData taaPersistentData;
+        internal ref TaaPersistentData taaPersistentData => ref frameData.Get<UniversalCameraData>().taaPersistentData;
 
         // TAA settings.
-        internal TemporalAA.Settings taaSettings;
+        internal ref TemporalAA.Settings taaSettings => ref frameData.Get<UniversalCameraData>().taaSettings;
 
         // Post-process history reset has been triggered for this camera.
-        internal bool resetHistory
-        {
-            get => taaSettings.resetHistoryFrames != 0;
-        }
+        internal bool resetHistory => frameData.Get<UniversalCameraData>().resetHistory;
 
 
         /// <summary>
         /// Camera at the top of the overlay camera stack
         /// </summary>
-        public Camera baseCamera;
+        public ref Camera baseCamera => ref frameData.Get<UniversalCameraData>().baseCamera;
     }
 
     /// <summary>
@@ -709,88 +582,98 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     public struct ShadowData
     {
+        internal ContextContainer frameData;
+
+        internal ShadowData(ContextContainer frameData)
+        {
+            this.frameData = frameData;
+        }
+
         /// <summary>
         /// True if main light shadows are enabled.
         /// </summary>
-        public bool supportsMainLightShadows;
+        public ref bool supportsMainLightShadows => ref frameData.Get<UniversalShadowData>().supportsMainLightShadows;
 
         /// <summary>
         /// True if additional lights shadows are enabled in the URP Asset
         /// </summary>
-        internal bool mainLightShadowsEnabled;
+        internal ref bool mainLightShadowsEnabled => ref frameData.Get<UniversalShadowData>().mainLightShadowsEnabled;
 
         /// <summary>
         /// The width of the main light shadow map.
         /// </summary>
-        public int mainLightShadowmapWidth;
+        public ref int mainLightShadowmapWidth => ref frameData.Get<UniversalShadowData>().mainLightShadowmapWidth;
 
         /// <summary>
         /// The height of the main light shadow map.
         /// </summary>
-        public int mainLightShadowmapHeight;
+        public ref int mainLightShadowmapHeight => ref frameData.Get<UniversalShadowData>().mainLightShadowmapHeight;
 
         /// <summary>
         /// The number of shadow cascades.
         /// </summary>
-        public int mainLightShadowCascadesCount;
+        public ref int mainLightShadowCascadesCount => ref frameData.Get<UniversalShadowData>().mainLightShadowCascadesCount;
 
         /// <summary>
         /// The split between cascades.
         /// </summary>
-        public Vector3 mainLightShadowCascadesSplit;
+        public ref Vector3 mainLightShadowCascadesSplit => ref frameData.Get<UniversalShadowData>().mainLightShadowCascadesSplit;
 
         /// <summary>
         /// Main light last cascade shadow fade border.
         /// Value represents the width of shadow fade that ranges from 0 to 1.
         /// Where value 0 is used for no shadow fade.
         /// </summary>
-        public float mainLightShadowCascadeBorder;
+        public ref float mainLightShadowCascadeBorder => ref frameData.Get<UniversalShadowData>().mainLightShadowCascadeBorder;
 
         /// <summary>
         /// True if additional lights shadows are enabled.
         /// </summary>
-        public bool supportsAdditionalLightShadows;
+        public ref bool supportsAdditionalLightShadows => ref frameData.Get<UniversalShadowData>().supportsAdditionalLightShadows;
 
         /// <summary>
         /// True if additional lights shadows are enabled in the URP Asset
         /// </summary>
-        internal bool additionalLightShadowsEnabled;
+        internal ref bool additionalLightShadowsEnabled => ref frameData.Get<UniversalShadowData>().additionalLightShadowsEnabled;
 
         /// <summary>
         /// The width of the additional light shadow map.
         /// </summary>
-        public int additionalLightsShadowmapWidth;
+        public ref int additionalLightsShadowmapWidth => ref frameData.Get<UniversalShadowData>().additionalLightsShadowmapWidth;
 
         /// <summary>
         /// The height of the additional light shadow map.
         /// </summary>
-        public int additionalLightsShadowmapHeight;
+        public ref int additionalLightsShadowmapHeight => ref frameData.Get<UniversalShadowData>().additionalLightsShadowmapHeight;
 
         /// <summary>
         /// True if soft shadows are enabled.
         /// </summary>
-        public bool supportsSoftShadows;
+        public ref bool supportsSoftShadows => ref frameData.Get<UniversalShadowData>().supportsSoftShadows;
 
         /// <summary>
         /// The number of bits used.
         /// </summary>
-        public int shadowmapDepthBufferBits;
+        public ref int shadowmapDepthBufferBits => ref frameData.Get<UniversalShadowData>().shadowmapDepthBufferBits;
 
         /// <summary>
         /// A list of shadow bias.
         /// </summary>
-        public List<Vector4> bias;
+        public ref List<Vector4> bias => ref frameData.Get<UniversalShadowData>().bias;
 
         /// <summary>
         /// A list of resolution for the shadow maps.
         /// </summary>
-        public List<int> resolution;
+        public ref List<int> resolution => ref frameData.Get<UniversalShadowData>().resolution;
 
-        internal bool isKeywordAdditionalLightShadowsEnabled;
-        internal bool isKeywordSoftShadowsEnabled;
-        internal int mainLightShadowResolution;
-        internal int mainLightRenderTargetWidth;
-        internal int mainLightRenderTargetHeight;
+        internal ref bool isKeywordAdditionalLightShadowsEnabled => ref frameData.Get<UniversalShadowData>().isKeywordAdditionalLightShadowsEnabled;
+        internal ref bool isKeywordSoftShadowsEnabled => ref frameData.Get<UniversalShadowData>().isKeywordSoftShadowsEnabled;
+        internal ref int mainLightShadowResolution => ref frameData.Get<UniversalShadowData>().mainLightShadowResolution;
+        internal ref int mainLightRenderTargetWidth => ref frameData.Get<UniversalShadowData>().mainLightRenderTargetWidth;
+        internal ref int mainLightRenderTargetHeight => ref frameData.Get<UniversalShadowData>().mainLightRenderTargetHeight;
+
+        internal ref NativeArray<URPLightShadowCullingInfos> visibleLightsShadowCullingInfos => ref frameData.Get<UniversalShadowData>().visibleLightsShadowCullingInfos;
+        internal ref AdditionalLightsShadowAtlasLayout shadowAtlasLayout => ref frameData.Get<UniversalShadowData>().shadowAtlasLayout;
     }
 
     /// <summary>
@@ -979,31 +862,38 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     public struct PostProcessingData
     {
+        internal ContextContainer frameData;
+
+        internal PostProcessingData(ContextContainer frameData)
+        {
+            this.frameData = frameData;
+        }
+
         /// <summary>
         /// The <c>ColorGradingMode</c> to use.
         /// </summary>
         /// <seealso cref="ColorGradingMode"/>
-        public ColorGradingMode gradingMode;
+        public ref ColorGradingMode gradingMode => ref frameData.Get<UniversalPostProcessingData>().gradingMode;
 
         /// <summary>
         /// The size of the Look Up Table (LUT)
         /// </summary>
-        public int lutSize;
+        public ref int lutSize => ref frameData.Get<UniversalPostProcessingData>().lutSize;
 
         /// <summary>
         /// True if fast approximation functions are used when converting between the sRGB and Linear color spaces, false otherwise.
         /// </summary>
-        public bool useFastSRGBLinearConversion;
-        
+        public ref bool useFastSRGBLinearConversion => ref frameData.Get<UniversalPostProcessingData>().useFastSRGBLinearConversion;
+
         /// <summary>
         /// Returns true if Screen Space Lens Flare are supported by this asset, false otherwise.
         /// </summary>
-        public bool supportScreenSpaceLensFlare;
-        
+        public ref bool supportScreenSpaceLensFlare => ref frameData.Get<UniversalPostProcessingData>().supportScreenSpaceLensFlare;
+
         /// <summary>
         /// Returns true if Data Driven Lens Flare are supported by this asset, false otherwise.
         /// </summary>
-        public bool supportDataDrivenLensFlare;
+        public ref bool supportDataDrivenLensFlare => ref frameData.Get<UniversalPostProcessingData>().supportDataDrivenLensFlare;
     }
 
     /// <summary>
@@ -1363,9 +1253,11 @@ namespace UnityEngine.Rendering.Universal
             if (isHdrEnabled)
             {
                 // TODO: we need a proper format scoring system. Score formats, sort, pick first or pick first supported (if not in score).
-                if (!needsAlpha && requestHDRColorBufferPrecision != HDRColorBufferPrecision._64Bits && SystemInfo.IsFormatSupported(GraphicsFormat.B10G11R11_UFloatPack32, GraphicsFormatUsage.Linear | GraphicsFormatUsage.Render))
+                // UUM-41070: We require `Linear | Render` but with the deprecated FormatUsage this was checking `Blend`
+                // For now, we keep checking for `Blend` until the performance hit of doing the correct checks is evaluated
+                if (!needsAlpha && requestHDRColorBufferPrecision != HDRColorBufferPrecision._64Bits && SystemInfo.IsFormatSupported(GraphicsFormat.B10G11R11_UFloatPack32, GraphicsFormatUsage.Blend))
                     return GraphicsFormat.B10G11R11_UFloatPack32;
-                if (SystemInfo.IsFormatSupported(GraphicsFormat.R16G16B16A16_SFloat, GraphicsFormatUsage.Linear | GraphicsFormatUsage.Render))
+                if (SystemInfo.IsFormatSupported(GraphicsFormat.R16G16B16A16_SFloat, GraphicsFormatUsage.Blend))
                     return GraphicsFormat.R16G16B16A16_SFloat;
                 return SystemInfo.GetGraphicsFormat(DefaultFormat.HDR); // This might actually be a LDR format on old devices.
             }
@@ -1378,7 +1270,9 @@ namespace UnityEngine.Rendering.Universal
         // NOTE: This function does not guarantee that the returned format will contain an alpha channel.
         internal static GraphicsFormat MakeUnormRenderTextureGraphicsFormat()
         {
-            if (SystemInfo.IsFormatSupported(GraphicsFormat.A2B10G10R10_UNormPack32, GraphicsFormatUsage.Linear | GraphicsFormatUsage.Render))
+            // UUM-41070: We require `Linear | Render` but with the deprecated FormatUsage this was checking `Blend`
+            // For now, we keep checking for `Blend` until the performance hit of doing the correct checks is evaluated
+            if (SystemInfo.IsFormatSupported(GraphicsFormat.A2B10G10R10_UNormPack32, GraphicsFormatUsage.Blend))
                 return GraphicsFormat.A2B10G10R10_UNormPack32;
             else
                 return GraphicsFormat.R8G8B8A8_UNorm;
@@ -1427,19 +1321,6 @@ namespace UnityEngine.Rendering.Universal
             desc.enableRandomWrite = false;
             desc.bindMS = false;
             desc.useDynamicScale = camera.allowDynamicResolution;
-
-            // The way RenderTextures handle MSAA fallback when an unsupported sample count of 2 is requested (falling back to numSamples = 1), differs fom the way
-            // the fallback is handled when setting up the Vulkan swapchain (rounding up numSamples to 4, if supported). This caused an issue on Mali GPUs which don't support
-            // 2x MSAA.
-            // The following code makes sure that on Vulkan the MSAA unsupported fallback behaviour is consistent between RenderTextures and Swapchain.
-            // TODO: we should review how all backends handle MSAA fallbacks and move these implementation details in engine code.
-            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Vulkan)
-            {
-                // if the requested number of samples is 2, and the supported value is 1x, it means that 2x is unsupported on this GPU.
-                // Then we bump up the requested value to 4.
-                if (desc.msaaSamples == 2 && SystemInfo.GetRenderTextureSupportedMSAASampleCount(desc) == 1)
-                    desc.msaaSamples = 4;
-            }
 
             // check that the requested MSAA samples count is supported by the current platform. If it's not supported,
             // replace the requested desc.msaaSamples value with the actual value the engine falls back to

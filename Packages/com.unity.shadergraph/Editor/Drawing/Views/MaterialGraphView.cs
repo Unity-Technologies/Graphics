@@ -466,7 +466,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
             }
 
-            var nodesConnectedToAMasterNode = new List<AbstractMaterialNode>();
+            var nodesConnectedToAMasterNode = new HashSet<AbstractMaterialNode>();
 
             // Get the list of nodes from Master nodes or SubGraphOutputNode
             foreach (var abs in endNodes)
@@ -476,11 +476,10 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             selection.Clear();
             // Get all nodes and then compare with the master nodes list
-            var nodesConnectedHash = new HashSet<AbstractMaterialNode>(nodesConnectedToAMasterNode);
             var allNodes = nodes.ToList().OfType<IShaderNodeView>();
             foreach (IShaderNodeView materialNodeView in allNodes)
             {
-                if (!nodesConnectedHash.Contains(materialNodeView.node))
+                if (!nodesConnectedToAMasterNode.Contains(materialNodeView.node))
                 {
                     var nd = materialNodeView as GraphElement;
                     AddToSelection(nd);

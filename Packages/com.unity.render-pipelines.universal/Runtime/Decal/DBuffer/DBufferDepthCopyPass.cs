@@ -19,18 +19,30 @@ namespace UnityEngine.Rendering.Universal
         {
             UniversalRenderer renderer = (UniversalRenderer)renderingData.cameraData.renderer;
 
-            var depthDesc = renderingData.cameraData.cameraTargetDescriptor;
-            depthDesc.graphicsFormat = GraphicsFormat.None; //Depth only rendering
-            depthDesc.depthStencilFormat = renderingData.cameraData.cameraTargetDescriptor.depthStencilFormat;
-            depthDesc.msaaSamples = 1;
-            var depthTarget = UniversalRenderer.CreateRenderGraphTexture(renderGraph, depthDesc, DBufferRenderPass.s_DBufferDepthName, true);
             TextureHandle cameraDepthTexture = frameResources.GetTexture(UniversalResource.CameraDepthTexture);
 
-            TextureHandle depthTexture = (renderer.renderingModeActual == RenderingMode.Deferred) ? renderer.activeDepthTexture : cameraDepthTexture;
-            frameResources.SetTexture(UniversalResource.DBufferDepth, depthTarget);
 
-            // TODO: Render should be called with bindAsCameraDepth = false, but it breaks RenderGraph NRP. So needs to be investigated
-            Render(renderGraph, depthTarget, depthTexture, ref renderingData, true);
+            TextureHandle src, dest;
+            if (renderer.renderingModeActual == RenderingMode.Deferred)
+            {
+                src = renderer.activeDepthTexture;
+                dest = cameraDepthTexture;
+            }
+            else
+            {
+                var depthDesc = renderingData.cameraData.cameraTargetDescriptor;
+                depthDesc.graphicsFormat = GraphicsFormat.None; //Depth only rendering
+                depthDesc.depthStencilFormat = renderingData.cameraData.cameraTargetDescriptor.depthStencilFormat;
+                depthDesc.msaaSamples = 1;
+                var depthTarget = UniversalRenderer.CreateRenderGraphTexture(renderGraph, depthDesc, DBufferRenderPass.s_DBufferDepthName, true);
+                frameResources.SetTexture(UniversalResource.DBufferDepth, depthTarget);
+
+                src = cameraDepthTexture;
+                dest = renderingData.cameraData.cameraTargetDescriptor.msaaSamples > 1 ? depthTarget : renderer.activeDepthTexture;
+            }
+
+            //TODO: bindAsCameraDepth should be investigated as without it DBufferDepth will not be bound correctly, though it should
+            Render(renderGraph, dest, src, ref renderingData, renderingData.cameraData.cameraTargetDescriptor.msaaSamples > 1);
         }
     }
 }

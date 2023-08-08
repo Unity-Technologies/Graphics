@@ -3,6 +3,7 @@
 #endif
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/Shaders/ShaderPassWaterCommon.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplayMaterial.hlsl"
 
 void Frag(PackedVaryingsToPS packedInput,
     out float4 outGBuffer0 : SV_Target0)
@@ -10,6 +11,38 @@ void Frag(PackedVaryingsToPS packedInput,
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(packedInput);
     FragInputs input = UnpackVaryingsToFragInputs(packedInput);
 
+#ifdef DEBUG_DISPLAY
+    PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, input.positionSS.z, input.positionSS.w, input.positionRWS.xyz);
+    float3 V = GetWorldSpaceNormalizeViewDir(input.positionRWS);
+
+    // Get the surface and built in data
+    SurfaceData surfaceData;
+    BuiltinData builtinData;
+    GetSurfaceAndBuiltinData(input, V, posInput, surfaceData, builtinData);
+
+    BSDFData bsdfData = ConvertSurfaceDataToBSDFData(input.positionSS.xy, surfaceData);
+
+    #ifdef SHADER_STAGE_FRAGMENT
+    bsdfData.frontFace = packedInput.cullFace;
+    #endif
+
+    PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
+    // Smoothness is modified based on camera distance
+    surfaceData.perceptualSmoothness = 1.0 - bsdfData.perceptualRoughness;
+
+    outGBuffer0 = float4(0.0, 0.0, 0.0, 0.0);
+    bool viewMaterial = GetMaterialDebugColor(outGBuffer0, input, builtinData, posInput, surfaceData, bsdfData);
+
+    if (!viewMaterial)
+    {
+        uint featureFlags = LIGHT_FEATURE_MASK_FLAGS; // we support everything for debug mode
+
+        LightLoopOutput lightLoopOutput;
+        LightLoop(V, posInput, preLightData, bsdfData, builtinData, featureFlags, lightLoopOutput);
+
+        outGBuffer0.xyz = (lightLoopOutput.diffuseLighting + lightLoopOutput.specularLighting) * GetCurrentExposureMultiplier();
+    }
+#else
     // World space position of the fragment
     float3 transformedPosAWS = GetAbsolutePositionWS(input.positionRWS);
 
@@ -86,4 +119,5 @@ void Frag(PackedVaryingsToPS packedInput,
         // Never suppsoed to run this code, display a magenta color to notify
         outGBuffer0 = float4(1.0, 0.0, 1.0, 1.0);
     }
+#endif
 }

@@ -5,7 +5,25 @@ using UnityEngine.Rendering;
 namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 {
     /// <summary>
-    /// Texture resource handle.
+    /// An abstract handle representing a texture resource as known by one particular record + execute of the render graph.
+    /// TextureHandles should not be used outside of the context of a render graph execution.
+    ///
+    /// A render graph needs to do additional state tracking on texture resources (lifetime, how is it used,...) to enable
+    /// this all textures relevant to the render graph need to be make known to it. A texture handle specifies such a texture as
+    /// known to the render graph.
+    ///
+    /// It is important to understand that a render graph texture handle does not necessarily represent an actual texture. For example 
+    /// textures could be created the render graph that are only referenced by passes that are later culled when executing the graph.
+    /// Such textures would never be allocated as actual RenderTextures.
+    ///
+    /// Texture handles are only relevant to one particular record+execute phase of the render graph. After execution all texture
+    /// handles are invalidated. The system will catch texture handles from a different execution of RenderGraph.RecordAndExecute but still
+    /// users should be careful to avoid keeping texture handles around from other render graph executions.
+    ///
+    /// Texture handles do not need to be disposed/freed (they are auto-invalidated at the end of graph execution). The RenderTextures they represent
+    /// are either freed by the render graph internally (when the handle was acquired through RenderGraph.CreateTexture) or explicitly managed by
+    /// some external system (when acquired through RenderGraph.ImportTexture).
+    /// 
     /// </summary>
     [DebuggerDisplay("Texture ({handle.index})")]
     public struct TextureHandle
@@ -309,6 +327,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return hashCode;
         }
 
+        /// <summary>
+        /// Calculate the final size of the texture descriptor in pixels. This takes into account the sizeMode set for this descriptor.
+        /// For the automatically scaled sizes the size will be relative to the RTHandle reference size <see cref="RTHandles.SetReferenceSize">SetReferenceSize</see>. 
+        /// </summary>
+        /// <returns>The calculated size.</returns>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
         public Vector2Int CalculateFinalDimensions()
         {
             return sizeMode switch

@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering
 {
@@ -8,14 +9,9 @@ namespace UnityEditor.Rendering
     /// </summary>
     /// <typeparam name="TShader">The shader <see cref="Shader"/> or <see cref="ComputeShader"/></typeparam>
     /// <typeparam name="TShaderVariant">The type of variant for the given type of shader can either be <see cref="ShaderSnippetData"/> or <see cref="string"/></typeparam>
-    public interface IVariantStripper<TShader, TShaderVariant>
+    public interface IVariantStripper<TShader, TShaderVariant> : IStripper
         where TShader : UnityEngine.Object
     {
-        /// <summary>
-        /// Returns if the stripper is active
-        /// </summary>
-        bool active { get; }
-
         /// <summary>
         /// Specifies if a <see cref="TShader"/> variant can be stripped
         /// </summary>

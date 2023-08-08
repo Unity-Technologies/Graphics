@@ -94,7 +94,8 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="width">Initial reference rendering width.</param>
         /// <param name="height">Initial reference rendering height.</param>
-        public void Initialize(int width, int height)
+        /// <param name="useLegacyDynamicResControl">Use legacy hardware DynamicResolution control in RTHandle system.</param>
+        public void Initialize(int width, int height, bool useLegacyDynamicResControl = false)
         {
             if (m_AutoSizedRTs.Count != 0)
             {
@@ -109,7 +110,10 @@ namespace UnityEngine.Rendering
             m_MaxWidths = width;
             m_MaxHeights = height;
 
-            m_HardwareDynamicResRequested = DynamicResolutionHandler.instance.RequestsHardwareDynamicResolution();
+            if (useLegacyDynamicResControl)
+                m_HardwareDynamicResRequested = true;
+            else
+                m_HardwareDynamicResRequested = DynamicResolutionHandler.instance.RequestsHardwareDynamicResolution();
         }
 
         /// <summary>
@@ -590,6 +594,11 @@ namespace UnityEngine.Rendering
         // The idea is that internally the system will scale up the size of all render texture so that it amortizes with time and not reallocate when a smaller size is required (which is what happens with TemporaryRTs).
         // Since MSAA cannot be changed on the fly for a given RenderTexture, a separate instance will be created if the user requires it. This instance will be the one used after the next call of SetReferenceSize if MSAA is required.
 
+        /// <summary>
+        /// Calculate the dimensions (in pixels) of the RTHandles given the scale factor.
+        /// </summary>
+        /// <param name="scaleFactor">The scale factor to use when calculating the dimensions. The base unscaled size used, is the sizes passed to the last ResetReferenceSize call.</param>
+        /// <returns>The calculated dimensions.</returns>
         public Vector2Int CalculateDimensions(Vector2 scaleFactor)
         {
             return new Vector2Int(
@@ -684,6 +693,11 @@ namespace UnityEngine.Rendering
         // );
         //
 
+        /// <summary>
+        /// Calculate the dimensions (in pixels) of the RTHandles given the scale function. The base unscaled size used, is the sizes passed to the last ResetReferenceSize call.
+        /// </summary>
+        /// <param name="scaleFunc">The scale function to use when calculating the dimensions.</param>
+        /// <returns>The calculated dimensions.</returns>
         public Vector2Int CalculateDimensions(ScaleFunc scaleFunc)
         {
             var scaleFactor = scaleFunc(new Vector2Int(GetMaxWidth(), GetMaxHeight()));

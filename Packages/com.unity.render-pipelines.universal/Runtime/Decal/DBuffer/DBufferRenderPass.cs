@@ -220,9 +220,10 @@ namespace UnityEngine.Rendering.Universal
             TextureHandle cameraDepthTexture = frameResources.GetTexture(UniversalResource.CameraDepthTexture);
             TextureHandle cameraNormalsTexture = frameResources.GetTexture(UniversalResource.CameraNormalsTexture);
 
-            TextureHandle depthSrc = (renderer.renderingModeActual == RenderingMode.Deferred)? renderer.activeDepthTexture : cameraDepthTexture;
-            TextureHandle depthTarget = frameResources.GetTexture(UniversalResource.DBufferDepth);
-            RenderGraphUtils.SetGlobalTexture(renderGraph, Shader.PropertyToID("_CameraDepthTexture"), depthSrc);
+            TextureHandle depthTarget = renderer.renderingModeActual == RenderingMode.Deferred ? renderer.activeDepthTexture :
+                (renderingData.cameraData.cameraTargetDescriptor.msaaSamples > 1 ? frameResources.GetTexture(UniversalResource.DBufferDepth) : renderer.activeDepthTexture);
+
+            RenderGraphUtils.SetGlobalTexture(renderGraph, Shader.PropertyToID("_CameraDepthTexture"), cameraDepthTexture);
             RenderGraphUtils.SetGlobalTexture(renderGraph, Shader.PropertyToID("_CameraNormalsTexture"), cameraNormalsTexture);
 
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("DBuffer Pass", out var passData, m_ProfilingSampler))
@@ -263,10 +264,10 @@ namespace UnityEngine.Rendering.Universal
                     builder.UseTextureFragment(dbufferHandles[2], 2, IBaseRenderGraphBuilder.AccessFlags.Write);
                 }
 
-                builder.UseTextureFragmentDepth(depthTarget, IBaseRenderGraphBuilder.AccessFlags.Read);
+                builder.UseTextureFragmentDepth(depthTarget, IBaseRenderGraphBuilder.AccessFlags.Write);
 
                 if (cameraDepthTexture.IsValid())
-                    builder.UseTexture(depthSrc, IBaseRenderGraphBuilder.AccessFlags.Read);
+                    builder.UseTexture(cameraDepthTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
                 if (cameraNormalsTexture.IsValid())
                     builder.UseTexture(cameraNormalsTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
 
@@ -279,7 +280,6 @@ namespace UnityEngine.Rendering.Universal
 
                 builder.SetRenderFunc((PassData data, RasterGraphContext rgContext) =>
                 {
-                    var cmd = rgContext.cmd;
                     SetKeywords(rgContext.cmd, data);
                     ExecutePass(rgContext.cmd, data, data.rendererList, ref data.renderingData, true);
                 });

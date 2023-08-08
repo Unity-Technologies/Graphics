@@ -7,8 +7,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     /// </summary>
     public class RenderGraphDefaultResources
     {
-        bool m_IsValid;
-
         // We need to keep around a RTHandle version of default regular 2D textures since RenderGraph API is all RTHandle.
         RTHandle m_BlackTexture2D;
         RTHandle m_WhiteTexture2D;

@@ -5,16 +5,17 @@ using Unity.Collections;
 using UnityEditor;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
-using UnityEngine.Profiling;
 
 namespace UnityEngine.Rendering.Universal
 {
     /// <summary>
     /// Utility class to store handles of frame resources for communication between passes.
     /// </summary>
-    public class FrameResources
+    public sealed class FrameResources
     {
         Dictionary<Hash128, TextureHandle> m_TextureHandles = new();
+
+        internal ContextContainer frameData = new();
 
         static uint s_TypeCount;
 
@@ -119,6 +120,7 @@ namespace UnityEngine.Rendering.Universal
             internal static readonly ProfilingSampler beginXRRendering = new ProfilingSampler($"Begin XR Rendering");
             internal static readonly ProfilingSampler endXRRendering = new ProfilingSampler($"End XR Rendering");
             internal static readonly ProfilingSampler initRenderGraphFrame = new ProfilingSampler($"Initialize Render Graph frame settings");
+            internal static readonly ProfilingSampler setEditorTarget = new ProfilingSampler($"Set Editor Target");
 
             public static class RenderBlock
             {
@@ -742,7 +744,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Called by Dispose().
         /// Override this function to clean up resources in your renderer.
-        /// Be sure to call this base dispose in your overridden function to free resources allocated by the base. 
+        /// Be sure to call this base dispose in your overridden function to free resources allocated by the base.
         /// </summary>
         /// <param name="disposing"></param>
         protected virtual void Dispose(bool disposing)
@@ -1062,6 +1064,26 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
+        private class DummyData
+        {
+        };
+
+        private void SetEditorTarget(RenderGraph renderGraph, ref RenderingData renderingData)
+        {
+            using (var builder = renderGraph.AddLowLevelPass<DummyData>("SetEditorTarget", out var passData,
+                Profiling.setEditorTarget))
+            {
+                builder.AllowPassCulling(false);
+
+                builder.SetRenderFunc((DummyData data, LowLevelGraphContext context) =>
+                {
+                    context.legacyCmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget,
+                        RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, // color
+                        RenderBufferLoadAction.Load, RenderBufferStoreAction.DontCare); // depth
+                });
+            }
+        }
+
         private class PassData
         {
             internal RenderingData renderingData;
@@ -1090,6 +1112,16 @@ namespace UnityEngine.Rendering.Universal
 
             OnRecordRenderGraph(renderGraph, context, ref renderingData);
             m_Resources.EndFrame();
+
+            // The editor scene view still relies on some builtin passes (i.e. drawing the scene grid). The builtin
+            // passes are not explicitly setting RTs and rely on the last active render target being set. Unfortunately
+            // this does not play nice with the NRP RG path, since we don't use the SetRenderTarget API anymore.
+            // For this reason, as a workaround, in editor scene view we set explicitly set the RT to SceneViewRT.
+            // TODO: this will go away once we remove the builtin dependencies and implement the grid in SRP.
+#if UNITY_EDITOR
+            if (renderingData.cameraData.isSceneViewCamera)
+                SetEditorTarget(renderGraph, ref renderingData);
+#endif
         }
 
         /// <summary>
@@ -1545,7 +1577,7 @@ namespace UnityEngine.Rendering.Universal
             // Selectively enable foveated rendering
             if (cameraData.xr.supportsFoveatedRendering)
             {
-                if ((renderPass.renderPassEvent >= RenderPassEvent.BeforeRenderingPrePasses && renderPass.renderPassEvent < RenderPassEvent.BeforeRenderingPostProcessing) 
+                if ((renderPass.renderPassEvent >= RenderPassEvent.BeforeRenderingPrePasses && renderPass.renderPassEvent < RenderPassEvent.BeforeRenderingPostProcessing)
                     || (renderPass.renderPassEvent > RenderPassEvent.AfterRendering && XRSystem.foveatedRenderingCaps.HasFlag(FoveatedRenderingCaps.FoveationImage)))
                 {
                     cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Enabled);
@@ -1580,6 +1612,16 @@ namespace UnityEngine.Rendering.Universal
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
             }
+        }
+
+        // Scene filtering is enabled when in prefab editing mode
+        internal bool IsSceneFilteringEnabled(Camera camera)
+        {
+#if UNITY_EDITOR
+            if (CoreUtils.IsSceneFilteringEnabled() && camera.sceneViewFilterMode == Camera.SceneViewFilterMode.ShowFiltered)
+                return true;
+#endif
+            return false;
         }
 
         void SetRenderPassAttachments(CommandBuffer cmd, ScriptableRenderPass renderPass, ref CameraData cameraData)
@@ -1790,13 +1832,19 @@ namespace UnityEngine.Rendering.Universal
                 else
                     finalClearFlag |= (renderPass.clearFlag & ClearFlag.DepthStencil);
 
-#if UNITY_EDITOR
-                if (CoreUtils.IsSceneFilteringEnabled() && camera.sceneViewFilterMode == Camera.SceneViewFilterMode.ShowFiltered)
+                // If scene filtering is enabled (prefab edit mode), the filtering is implemented compositing some builtin ImageEffect passes.
+                // For the composition to work, we need to clear the color buffer alpha to 0
+                // How filtering works:
+                // - SRP frame is fully rendered as background
+                // - builtin ImageEffect pass grey-out of the full scene previously rendered
+                // - SRP frame rendering only the objects belonging to the prefab being edited (with clearColor.a = 0)
+                // - builtin ImageEffect pass compositing the two previous passes
+                // TODO: We should implement filtering fully in SRP to remove builtin dependencies
+                if (IsSceneFilteringEnabled(camera))
                 {
                     finalClearColor.a = 0;
                     finalClearFlag &= ~ClearFlag.Depth;
                 }
-#endif
 
                 // If the debug-handler needs to clear the screen, update "finalClearColor" accordingly...
                 if ((DebugHandler != null) && DebugHandler.IsActiveForCamera(ref cameraData))

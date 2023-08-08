@@ -1417,21 +1417,6 @@ namespace UnityEngine.Rendering
             return enabled;
         }
 
-#if UNITY_EDITOR
-        static Func<List<UnityEditor.MaterialEditor>> materialEditors;
-
-        static CoreUtils()
-        {
-            //quicker than standard reflection as it is compiled
-            System.Reflection.FieldInfo field = typeof(UnityEditor.MaterialEditor).GetField("s_MaterialEditors", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
-            var fieldExpression = System.Linq.Expressions.Expression.Field(null, field);
-            var lambda = System.Linq.Expressions.Expression.Lambda<Func<List<UnityEditor.MaterialEditor>>>(fieldExpression);
-            materialEditors = lambda.Compile();
-            LoadSceneViewMethods();
-        }
-
-#endif
-
         /// <summary>
         /// Returns true if "Fog" is enabled for the view associated with the given camera.
         /// </summary>
@@ -1446,11 +1431,11 @@ namespace UnityEngine.Rendering
             {
                 fogEnable = false;
 
+                var sceneViews = UnityEditor.SceneView.sceneViews;
                 // Determine whether the "Animated Materials" checkbox is checked for the current view.
-                for (int i = 0; i < UnityEditor.SceneView.sceneViews.Count; i++)
+                for (int i = 0; i < sceneViews.Count; i++)
                 {
-                    var sv = UnityEditor.SceneView.sceneViews[i] as UnityEditor.SceneView;
-                    if (sv.camera == camera && sv.sceneViewState.fogEnabled)
+                    if (sceneViews[i] is UnityEditor.SceneView sv && sv.camera == camera && sv.sceneViewState.fogEnabled)
                     {
                         fogEnable = true;
                         break;
@@ -1469,19 +1454,20 @@ namespace UnityEngine.Rendering
         public static bool IsSceneFilteringEnabled()
         {
 #if UNITY_EDITOR && UNITY_2021_2_OR_NEWER
-            for (int i = 0; i < UnityEditor.SceneView.sceneViews.Count; i++)
+            var sceneViews = UnityEditor.SceneView.sceneViews;
+            for (int i = 0; i < sceneViews.Count; i++)
             {
-                var sv = UnityEditor.SceneView.sceneViews[i] as UnityEditor.SceneView;
-                if (sv.isUsingSceneFiltering) return true;
+                if (sceneViews[i] is UnityEditor.SceneView sv && sv.isUsingSceneFiltering)
+                    return true;
             }
 #endif
             return false;
         }
 
 #if UNITY_EDITOR
-        static Func<int> GetSceneViewPrefabStageContext;
+        static Func<int> s_GetSceneViewPrefabStageContextFunc = null;
 
-        static void LoadSceneViewMethods()
+        static Func<int> LoadSceneViewMethods()
         {
             var stageNavigatorManager = typeof(UnityEditor.SceneManagement.PrefabStage).Assembly.GetType("UnityEditor.SceneManagement.StageNavigationManager");
             var instance = stageNavigatorManager.GetProperty("instance", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.FlattenHierarchy);
@@ -1489,9 +1475,8 @@ namespace UnityEngine.Rendering
 
             var renderModeAccessor = System.Linq.Expressions.Expression.Property(System.Linq.Expressions.Expression.Property(null, instance), renderMode);
             var internalRenderModeLambda = System.Linq.Expressions.Expression.Lambda<Func<int>>(System.Linq.Expressions.Expression.Convert(renderModeAccessor, typeof(int)));
-            GetSceneViewPrefabStageContext = internalRenderModeLambda.Compile();
+            return internalRenderModeLambda.Compile();
         }
-#endif
 
         /// <summary>
         /// Returns true if the currently opened prefab stage context is set to Hidden.
@@ -1499,12 +1484,16 @@ namespace UnityEngine.Rendering
         /// <returns>True if the currently opened prefab stage context is set to Hidden.</returns>
         public static bool IsSceneViewPrefabStageContextHidden()
         {
-#if UNITY_EDITOR
-            return GetSceneViewPrefabStageContext() == 2; // 2 is hidden, see ContextRenderMode enum
-#else
-            return false;
-#endif
+            s_GetSceneViewPrefabStageContextFunc ??= LoadSceneViewMethods();
+            return s_GetSceneViewPrefabStageContextFunc() == 2; // 2 is hidden, see ContextRenderMode enum
         }
+#else
+        /// <summary>
+        /// Returns true if the currently opened prefab stage context is set to Hidden.
+        /// </summary>
+        /// <returns>True if the currently opened prefab stage context is set to Hidden.</returns>
+        public static bool IsSceneViewPrefabStageContextHidden() => false;
+#endif
 
         /// <summary>
         /// Draw a renderer list.

@@ -553,8 +553,17 @@ namespace UnityEngine.Rendering
         /// <returns>State of the bit at the provided index.</returns>
         public bool this[uint index]
         {
-            get => BitArrayUtilities.Get128(index, data1, data2);
-            set => BitArrayUtilities.Set128(index, ref data1, ref data2, value);
+            get => index < 64u
+                ? (data1 & (1uL << (int)index)) != 0uL
+                : (data2 & (1uL << (int)(index - 64u))) != 0uL;
+
+            set
+            {
+                if (index < 64u)
+                    data1 = (value ? (data1 | (1uL << (int)index)) : (data1 & ~(1uL << (int)index)));
+                else
+                    data2 = (value ? (data2 | (1uL << (int)(index - 64u))) : (data2 & ~(1uL << (int)(index - 64u))));
+            }
         }
 
         /// <summary>

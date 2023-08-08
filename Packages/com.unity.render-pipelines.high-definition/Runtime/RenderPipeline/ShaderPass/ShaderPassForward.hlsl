@@ -236,11 +236,13 @@ void Frag(PackedVaryingsToPS packedInput
 #else
             outColor = ApplyBlendMode(diffuseLighting, specularLighting, builtinData.opacity);
 
-        #ifdef _TRANSPARENT_REFRACTIVE_SORT
-            ComputeRefractionSplitColor(posInput, V, outColor, outBeforeRefractionColor, outBeforeRefractionAlpha);
-        #elif defined(_ENABLE_FOG_ON_TRANSPARENT)
+            #ifdef _ENABLE_FOG_ON_TRANSPARENT
             outColor = ComputeFog(posInput, V, outColor);
-        #endif
+            #endif
+
+            #ifdef _TRANSPARENT_REFRACTIVE_SORT
+            ComputeRefractionSplitColor(posInput, outColor, outBeforeRefractionColor, outBeforeRefractionAlpha);
+            #endif
 #endif
 
 #ifdef _WRITE_TRANSPARENT_MOTION_VECTOR

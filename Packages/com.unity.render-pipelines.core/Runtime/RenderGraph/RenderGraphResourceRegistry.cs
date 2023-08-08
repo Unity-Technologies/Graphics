@@ -10,13 +10,39 @@ using CoreRendererListDesc = UnityEngine.Rendering.RendererUtils.RendererListDes
 
 namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 {
+    /// <summary>
+    /// Basic properties of a RTHandle needed by the render graph compiler. It is not always possible to derive these
+    /// given an RTHandle to the user needs to pass these in.
+    /// 
+    /// We don't use a full RenderTargetDescriptor here as filling out a full descriptor may not be trivial and not all
+    /// members of the descriptor are actually used by the render graph. This struct is the minimum set of info needed by the render graph.
+    /// If you want to develop some utility framework to work with render textures, etc. it's probably better to use RenderTargetDescriptor.
+    /// </summary>
     public struct RenderTargetInfo
     {
+        /// <summary>
+        /// The width in pixels of the render texture.
+        /// </summary>
         public int width;
+        /// <summary>
+        /// The height in pixels of the render texture.
+        /// </summary>
         public int height;
+        /// <summary>
+        /// The number of volume/array slices of the render texture.
+        /// </summary>
         public int volumeDepth;
+        /// <summary>
+        /// The number of msaa samples in the render texture.
+        /// </summary>
         public int msaaSamples;
+        /// <summary>
+        /// The Graphics format of the render texture.
+        /// </summary>
         public GraphicsFormat format;
+        /// <summary>
+        /// Set to true if the render texture needs to be bound as a multisampled texture in a shader.
+        /// </summary>
         public bool bindMS;
     }
 

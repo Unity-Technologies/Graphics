@@ -72,11 +72,6 @@ namespace UnityEditor.VFX
     [CustomPropertyDrawer(typeof(UnityEngine.VFX.EventAttributes))]
     class EventAttributesDrawer : PropertyDrawer
     {
-        public override bool CanCacheInspectorGUI(SerializedProperty property)
-        {
-            return false;
-        }
-
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
             var reordableList = VisualEffectControlClipInspector.GetOrBuildEventAttributeList(property.serializedObject.targetObject as VisualEffectControlClip, property);

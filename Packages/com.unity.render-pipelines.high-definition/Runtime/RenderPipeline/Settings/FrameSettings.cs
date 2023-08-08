@@ -666,7 +666,7 @@ namespace UnityEngine.Rendering.HighDefinition
             bool reflectionPlanar = GeometryUtils.IsProjectionMatrixOblique(camera.projectionMatrix);
             bool preview = HDUtils.IsRegularPreviewCamera(camera);
             bool sceneViewFog = CoreUtils.IsSceneViewFogEnabled(camera);
-            bool temporalAccumulationAllowed = (!reflection || (reflection && reflectionPlanar));
+            bool temporalAccumulationAllowed = !reflection || (reflection && reflectionPlanar);
 
             switch (renderPipelineSettings.supportedLitShaderMode)
             {
@@ -681,13 +681,17 @@ namespace UnityEngine.Rendering.HighDefinition
                     break;
             }
 
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ShadowMaps] &= !preview;
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Shadowmask] &= renderPipelineSettings.supportShadowMask && !preview;
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ContactShadows] &= !preview;
+            bool notPreview = !preview;
+            bool transparentObjects = sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.TransparentObjects];
+            bool opaqueObjects = sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.OpaqueObjects];
+
+            sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.ShadowMaps] &= notPreview;
+            sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.Shadowmask] &= renderPipelineSettings.supportShadowMask && notPreview;
+            sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.ContactShadows] &= notPreview;
             bool pipelineSupportsRayTracing = HDRenderPipeline.PipelineSupportsRayTracing(renderPipelineSettings);
             // Ray tracing effects are not allowed on reflection probes due to the accumulation process.
-            bool rayTracingActive = sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.RayTracing] &= pipelineSupportsRayTracing && !preview && temporalAccumulationAllowed;
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.RaytracingVFX] &= rayTracingActive;
+            bool rayTracingActive = sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.RayTracing] &= pipelineSupportsRayTracing && notPreview && temporalAccumulationAllowed;
+            sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.RaytracingVFX] &= rayTracingActive;
 
             //MSAA only supported in forward and when not using ray tracing or water.
             if (sanitizedFrameSettings.litShaderMode != LitShaderMode.Forward || pipelineSupportsRayTracing || renderPipelineSettings.supportWater)
@@ -695,89 +699,91 @@ namespace UnityEngine.Rendering.HighDefinition
             bool msaa = sanitizedFrameSettings.msaaMode == MSAAMode.FromHDRPAsset ? renderPipelineSettings.msaaSampleCount != MSAASamples.None : sanitizedFrameSettings.msaaMode != MSAAMode.None;
 
             // Screen space shadows are not compatible with MSAA
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ScreenSpaceShadows] &= renderPipelineSettings.hdShadowInitParams.supportScreenSpaceShadows && sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.OpaqueObjects] & !msaa;
+            sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.ScreenSpaceShadows] &= renderPipelineSettings.hdShadowInitParams.supportScreenSpaceShadows && opaqueObjects & !msaa;
 
             // No recursive reflections
-            bool ssr = sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SSR] &= renderPipelineSettings.supportSSR && !msaa && !preview && temporalAccumulationAllowed;
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.TransparentSSR] &= ssr && renderPipelineSettings.supportSSRTransparent && sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.TransparentObjects] && renderPipelineSettings.supportTransparentDepthPrepass;
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Refraction] &= sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.TransparentObjects] && !preview;
+            bool ssr = sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.SSR] &= renderPipelineSettings.supportSSR && !msaa && notPreview && temporalAccumulationAllowed;
+            sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.TransparentSSR] &= ssr && renderPipelineSettings.supportSSRTransparent && transparentObjects && renderPipelineSettings.supportTransparentDepthPrepass;
+            sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.Refraction] &= transparentObjects && notPreview;
             // Because the camera is shared between the faces of the reflection probes, we cannot allow effects that rely on the accumulation process
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SSAO] &= renderPipelineSettings.supportSSAO && !preview && sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.OpaqueObjects] && temporalAccumulationAllowed;
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SSGI] &= renderPipelineSettings.supportSSGI && !preview && sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.OpaqueObjects] && temporalAccumulationAllowed;
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SubsurfaceScattering] &= renderPipelineSettings.supportSubsurfaceScattering;
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.VolumetricClouds] &= renderPipelineSettings.supportVolumetricClouds && !preview;
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.FullResolutionCloudsForSky] &= sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.VolumetricClouds];
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Water] &= sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Refraction] && renderPipelineSettings.supportWater && !preview;
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.WaterDeformation] &= sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Water] && renderPipelineSettings.supportWaterDeformation;
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.WaterExclusion] &= sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Water] && renderPipelineSettings.supportWaterExclusion;
+            sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.SSAO] &= renderPipelineSettings.supportSSAO && notPreview && opaqueObjects && temporalAccumulationAllowed;
+            sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.SSGI] &= renderPipelineSettings.supportSSGI && notPreview && opaqueObjects && temporalAccumulationAllowed;
+            sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.SubsurfaceScattering] &= renderPipelineSettings.supportSubsurfaceScattering;
+            sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.VolumetricClouds] &= renderPipelineSettings.supportVolumetricClouds && notPreview;
+            sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.FullResolutionCloudsForSky] &= sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.VolumetricClouds];
+
+            bool water = sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.Water] &= sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.Refraction] && renderPipelineSettings.supportWater && notPreview;
+            sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.WaterDeformation] &= water && renderPipelineSettings.supportWaterDeformation;
+            sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.WaterExclusion] &= water && renderPipelineSettings.supportWaterExclusion;
             
             // Disable Lens Flares if they are unchecked in the HDRP Assets
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.LensFlareScreenSpace] &= sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.LensFlareScreenSpace] && renderPipelineSettings.supportScreenSpaceLensFlare;
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.LensFlareDataDriven] &= sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.LensFlareDataDriven] && renderPipelineSettings.supportDataDrivenLensFlare;
+            sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.LensFlareScreenSpace] &= sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.LensFlareScreenSpace] && renderPipelineSettings.supportScreenSpaceLensFlare;
+            sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.LensFlareDataDriven] &= sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.LensFlareDataDriven] && renderPipelineSettings.supportDataDrivenLensFlare;
 
             // We must take care of the scene view fog flags in the editor
-            bool atmosphericScattering = sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.AtmosphericScattering] &= sceneViewFog && !preview;
+            bool atmosphericScattering = sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.AtmosphericScattering] &= sceneViewFog && notPreview;
 
             // Volumetric are disabled if there is no atmospheric scattering
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Volumetrics] &= renderPipelineSettings.supportVolumetrics && atmosphericScattering; //&& !preview induced by atmospheric scattering
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ReprojectionForVolumetrics] &= !preview && temporalAccumulationAllowed;
+            sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.Volumetrics] &= renderPipelineSettings.supportVolumetrics && atmosphericScattering; //&& notPreview induced by atmospheric scattering
+            sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.ReprojectionForVolumetrics] &= notPreview && temporalAccumulationAllowed;
 
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.RenderingLayerMaskBuffer] &= renderPipelineSettings.renderingLayerMaskBuffer && !preview;
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.LightLayers] &= renderPipelineSettings.supportLightLayers && !preview;
+            sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.RenderingLayerMaskBuffer] &= renderPipelineSettings.renderingLayerMaskBuffer && notPreview;
+            sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.LightLayers] &= renderPipelineSettings.supportLightLayers && notPreview;
             // We allow the user to enable exposure control on planar reflections, but not on reflection probes.
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ExposureControl] &= (!reflection || (reflectionPlanar && reflection)) && !preview;
+            sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.ExposureControl] &= (!reflection || (reflectionPlanar && reflection)) && notPreview;
 
             // Planar and real time cubemap doesn't need post process and render in FP16
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Postprocess] &= !reflection && !preview;
+            sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.Postprocess] &= !reflection && notPreview;
 
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.TransparentPrepass] &= renderPipelineSettings.supportTransparentDepthPrepass && !preview && sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.TransparentObjects];
+            sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.TransparentPrepass] &= renderPipelineSettings.supportTransparentDepthPrepass && notPreview && transparentObjects;
 
-            bool motionVector = sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.MotionVectors] &= renderPipelineSettings.supportMotionVectors && !preview;
+            bool motionVector = sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.MotionVectors] &= renderPipelineSettings.supportMotionVectors && notPreview;
 
             // Object motion vector are disabled if motion vector are disabled
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ObjectMotionVectors] &= motionVector && !preview;
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.TransparentsWriteMotionVector] &= motionVector && !preview;
+            sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.ObjectMotionVectors] &= motionVector && notPreview;
+            sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.TransparentsWriteMotionVector] &= motionVector && notPreview;
 
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Decals] &= renderPipelineSettings.supportDecals && !preview;
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.DecalLayers] &= renderPipelineSettings.supportDecalLayers && sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Decals];
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.TransparentPostpass] &= renderPipelineSettings.supportTransparentDepthPostpass && !preview && sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.TransparentObjects];
-            bool distortion = sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Distortion] &= renderPipelineSettings.supportDistortion && !preview;
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.RoughDistortion] &= distortion && !preview;
+            sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.Decals] &= renderPipelineSettings.supportDecals && notPreview;
+            sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.DecalLayers] &= renderPipelineSettings.supportDecalLayers && sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.Decals];
+            sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.TransparentPostpass] &= renderPipelineSettings.supportTransparentDepthPostpass && notPreview && transparentObjects;
+            bool distortion = sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.Distortion] &= renderPipelineSettings.supportDistortion && notPreview;
+            sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.RoughDistortion] &= distortion && notPreview;
 
 
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.LowResTransparent] &= renderPipelineSettings.lowresTransparentSettings.enabled && sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.TransparentObjects];
+            sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.LowResTransparent] &= renderPipelineSettings.lowresTransparentSettings.enabled && transparentObjects;
 
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.LightListAsync] &= sanitizedFrameSettings.asyncEnabled;
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SSRAsync] &= sanitizedFrameSettings.asyncEnabled;
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SSAOAsync] &= sanitizedFrameSettings.asyncEnabled;
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ContactShadowsAsync] &= (sanitizedFrameSettings.asyncEnabled && !rayTracingActive);
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.VolumeVoxelizationsAsync] &= sanitizedFrameSettings.asyncEnabled;
-			sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.HighQualityLinesAsync] &= sanitizedFrameSettings.asyncEnabled;
+            bool isAsyncEnabled = sanitizedFrameSettings.asyncEnabled;
+            sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.LightListAsync] &= isAsyncEnabled;
+            sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.SSRAsync] &= isAsyncEnabled;
+            sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.SSAOAsync] &= isAsyncEnabled;
+            sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.ContactShadowsAsync] &= (isAsyncEnabled && !rayTracingActive);
+            sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.VolumeVoxelizationsAsync] &= isAsyncEnabled;
+			sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.HighQualityLinesAsync] &= isAsyncEnabled;
 
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.CustomPass] &= renderPipelineSettings.supportCustomPass;
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.CustomPass] &= camera.cameraType != CameraType.Preview;
+            sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.CustomPass] &= renderPipelineSettings.supportCustomPass;
+            sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.CustomPass] &= camera.cameraType != CameraType.Preview;
 
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.CustomPostProcess] &= camera.cameraType != CameraType.Preview;
+            sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.CustomPostProcess] &= camera.cameraType != CameraType.Preview;
 
             // Deferred opaque are always using Fptl. Forward opaque can use Fptl or Cluster, transparent use cluster.
             // When MSAA is enabled we disable Fptl as it become expensive compare to cluster
             // In HD, MSAA is only supported for forward only rendering, no MSAA in deferred mode (for code complexity reasons)
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.FPTLForForwardOpaque] &= !msaa;
+            sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.FPTLForForwardOpaque] &= !msaa;
 
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ProbeVolume] &= renderPipelineSettings.supportProbeVolume && !preview;
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.NormalizeReflectionProbeWithProbeVolume] &= renderPipelineSettings.supportProbeVolume;
+            sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.ProbeVolume] &= renderPipelineSettings.supportProbeVolume && notPreview;
+            sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.NormalizeReflectionProbeWithProbeVolume] &= renderPipelineSettings.supportProbeVolume;
 
             // We disable reflection probes and planar reflections in regular preview rendering for two reasons.
             // - Performance: Realtime reflection are 99% not necessary in previews
             // - Static lighting consistency: When rendering a planar probe from a preview camera it may induce a recomputing of the static lighting
             //   but with the preview lights which are different from the ones in the scene and will change the result inducing flickering.
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ReflectionProbe] &= !preview;
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.PlanarProbe] &= !preview;
+            sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.ReflectionProbe] &= notPreview;
+            sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.PlanarProbe] &= notPreview;
 
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SubsurfaceScattering] &= sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.OpaqueObjects];
+            sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.SubsurfaceScattering] &= opaqueObjects;
 
 #if !ENABLE_VIRTUALTEXTURES
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.VirtualTexturing] = false;
+            sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.VirtualTexturing] = false;
 #endif
         }
 

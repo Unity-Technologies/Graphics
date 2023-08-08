@@ -249,13 +249,14 @@ namespace UnityEngine.Rendering.Universal.Internal
                     builder.UseTexture(mainShadowsTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
                 if (additionalShadowsTexture.IsValid())
                     builder.UseTexture(additionalShadowsTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
-                
+
                 UniversalRenderer renderer = renderingData.cameraData.renderer as UniversalRenderer;
                 if (renderer != null)
                 {
                     TextureHandle ssaoTexture = renderer.resources.GetTexture(UniversalResource.SSAOTexture);
                     if (ssaoTexture.IsValid())
                         builder.UseTexture(ssaoTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+                    RenderGraphUtils.UseDBufferIfValid(builder, renderer.resources);
                 }
 
                 InitRendererLists(ref renderingData, ref passData, default(ScriptableRenderContext), renderGraph, true);
@@ -391,6 +392,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     TextureHandle ssaoTexture = renderer.resources.GetTexture(UniversalResource.SSAOTexture);
                     if (ssaoTexture.IsValid())
                         builder.UseTexture(ssaoTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+                    RenderGraphUtils.UseDBufferIfValid(builder, renderer.resources);
                 }
 
                 builder.AllowPassCulling(false);
