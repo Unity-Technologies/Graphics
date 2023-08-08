@@ -1,11 +1,7 @@
 ﻿using System;
-using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Rendering;
 using Object = UnityEngine.Object;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 
 namespace Common
 {
@@ -60,13 +56,9 @@ namespace Common
                 else
                 {
 #if UNITY_EDITOR
-                    var assets = AssetDatabase.FindAssets($"t: {renderPipelineType.Name}");
-                    Assert.IsNotEmpty(assets, $"There is no {renderPipelineType.Name} in the project. It required to run SRP Graphics Settings tests.");
-
-                    var path = AssetDatabase.GUIDToAssetPath(assets[0]);
-                    var asset = AssetDatabase.LoadAssetAtPath(path, renderPipelineType) as RenderPipelineAsset;
-                    Assert.IsNotNull(asset, $"{renderPipelineType.Name} is not inherit from {nameof(RenderPipelineAsset)}");
+                    var asset = RenderPipelineUtils.LoadAsset(renderPipelineType);
                     GraphicsSettings.defaultRenderPipeline = asset;
+                    QualitySettings.renderPipeline = asset;
 #else
                     throw new NotImplementedException("There is no implementation for Runtime RenderPipeline switch.");
 #endif
