@@ -1061,16 +1061,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _DistortionParams1 = Shader.PropertyToID("_DistortionParams1");
         public static readonly int _DistortionParams2 = Shader.PropertyToID("_DistortionParams2");
 
-        public static readonly int _LensFlareScreenSpaceResultTexture = Shader.PropertyToID("_LensFlareScreenSpaceResultTexture");
-        public static readonly int _LensFlareScreenSpaceSpectralLut = Shader.PropertyToID("_LensFlareScreenSpaceSpectralLut");
-        public static readonly int _LensFlareScreenSpaceStreakTex = Shader.PropertyToID("_LensFlareScreenSpaceStreakTex");
-        public static readonly int _LensFlareScreenSpaceMipLevel = Shader.PropertyToID("_LensFlareScreenSpaceMipLevel");
-        public static readonly int _LensFlareScreenSpaceTintColor = Shader.PropertyToID("_LensFlareScreenSpaceTintColor");
-        public static readonly int _LensFlareScreenSpaceParams1 = Shader.PropertyToID("_LensFlareScreenSpaceParams1");
-        public static readonly int _LensFlareScreenSpaceParams2 = Shader.PropertyToID("_LensFlareScreenSpaceParams2");
-        public static readonly int _LensFlareScreenSpaceParams3 = Shader.PropertyToID("_LensFlareScreenSpaceParams3");
-        public static readonly int _LensFlareScreenSpaceParams4 = Shader.PropertyToID("_LensFlareScreenSpaceParams4");
-        public static readonly int _LensFlareScreenSpaceParams5 = Shader.PropertyToID("_LensFlareScreenSpaceParams5");
         public static readonly int _LogLut3D = Shader.PropertyToID("_LogLut3D");
         public static readonly int _LogLut3D_Params = Shader.PropertyToID("_LogLut3D_Params");
         public static readonly int _ColorBalance = Shader.PropertyToID("_ColorBalance");
