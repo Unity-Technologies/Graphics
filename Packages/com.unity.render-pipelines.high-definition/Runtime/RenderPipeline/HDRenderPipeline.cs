@@ -617,7 +617,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     supportGPUStreaming = m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolumeGPUStreaming
                 });
                 RegisterRetrieveOfProbeVolumeExtraDataAction();
-                SupportedRenderingFeatures.active.overridesLightProbeSystemWarningMessage = "This Light Probe system is not active because the pipeline uses Probe Volumes and the systems cannot co-exist.\nTo disable Probe Volumes make sure the feature is disabled in the lighting section of the active HDRP Asset.";
+                SupportedRenderingFeatures.active.overridesLightProbeSystemWarningMessage = "This Light Probe system is not active because the pipeline uses Probe Volumes and the systems cannot co-exist. To disable Probe Volumes make sure the feature is disabled in the lighting section of the active HDRP Asset.";
             }
 
             m_SkyManager.Build(asset, defaultResources, m_IBLFilterArray);
