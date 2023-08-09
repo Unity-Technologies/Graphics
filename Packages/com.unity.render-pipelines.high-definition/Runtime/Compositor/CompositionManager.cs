@@ -160,8 +160,6 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
         int m_RecorderTempRT = Shader.PropertyToID("TempRecorder");
 
-        static private CompositionManager s_CompositorInstance;
-
         // Built-in Color.black has an alpha of 1, so defien here a fully transparent black
         static Color s_TransparentBlack = new Color(0, 0, 0, 0);
 
@@ -499,7 +497,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             SetupLayerPriorities();
         }
 
-        static HDRenderPipelineGlobalSettings m_globalSettings;
+        static HDRenderPipelineAsset m_CurrentAsset;
 
         // LateUpdate is called once per frame
         void LateUpdate()
@@ -971,8 +969,8 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             return newCamera;
         }
 
-        static public CompositionManager GetInstance() =>
-            s_CompositorInstance ?? (s_CompositorInstance = FindFirstObjectByType<CompositionManager>(FindObjectsInactive.Include));
+        private static CompositionManager s_CompositorInstance;
+        public static CompositionManager GetInstance() => s_CompositorInstance ??= FindAnyObjectByType<CompositionManager>(FindObjectsInactive.Include);
 
         static public Vector4 GetAlphaScaleAndBiasForCamera(HDCamera hdCamera)
         {
@@ -1004,10 +1002,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         /// <returns> The color buffer that will be used to draw on top, or null if not a stacked camera </returns>
         static internal Texture GetClearTextureForStackedCamera(HDCamera hdCamera)
         {
-            AdditionalCompositorData compositorData = null;
-            hdCamera.camera.TryGetComponent<AdditionalCompositorData>(out compositorData);
-
-            if (compositorData)
+            if (hdCamera.camera.TryGetComponent<AdditionalCompositorData>(out var compositorData))
             {
                 return compositorData.clearColorTexture;
             }
@@ -1021,10 +1016,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         /// <returns> The depth buffer that will be used to draw on top, or null if not a stacked camera </returns>
         static internal RenderTexture GetClearDepthForStackedCamera(HDCamera hdCamera)
         {
-            AdditionalCompositorData compositorData = null;
-            hdCamera.camera.TryGetComponent<AdditionalCompositorData>(out compositorData);
-
-            if (compositorData)
+            if (hdCamera.camera.TryGetComponent<AdditionalCompositorData>(out var compositorData))
             {
                 return compositorData.clearDepthTexture;
             }
@@ -1032,45 +1024,35 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         }
 
         // Register the custom pp passes used by the compositor
-        static internal void RegisterCustomPasses()
+        void RegisterCustomPasses()
         {
-            if (m_globalSettings != HDRenderPipelineGlobalSettings.instance)
+            if (GraphicsSettings.currentRenderPipeline is not HDRenderPipelineAsset hdrpAsset)
             {
                 UnRegisterCustomPasses();
-                m_globalSettings = null;
+                m_CurrentAsset = null;
+            }
+            else if (m_CurrentAsset != hdrpAsset)
+            {
+                UnRegisterCustomPasses();
+                m_CurrentAsset = hdrpAsset;
             }
 
-            if (m_globalSettings == null)
-                m_globalSettings = HDRenderPipelineGlobalSettings.instance;
-            if (m_globalSettings == null) // if the global settings are not ready let us early out for this frame
-                return;
-
-            var beforePostProcessCustomPostProcesses =
-                m_globalSettings.customPostProcessOrdersSettings.beforePostProcessCustomPostProcesses;
-
-            if (beforePostProcessCustomPostProcesses == null) // global settings may not be ready yet
+            if (m_CurrentAsset == null)
                 return;
 
             // If custom post processes are not registered in the HDRP asset, they are never executed so we have to add them manually
-            beforePostProcessCustomPostProcesses.Add<ChromaKeying>();
-            beforePostProcessCustomPostProcesses.Add<AlphaInjection>();
+            m_CurrentAsset.compositorCustomVolumeComponentsList.Add<ChromaKeying>();
+            m_CurrentAsset.compositorCustomVolumeComponentsList.Add<AlphaInjection>();
         }
 
         // Unregister the custom pp passes used by the compositor
-        static internal void UnRegisterCustomPasses()
+        void UnRegisterCustomPasses()
         {
-            if (m_globalSettings == null ||
-                m_globalSettings.customPostProcessOrdersSettings.beforePostProcessCustomPostProcesses == null) // global settings may not be ready yet
-                return;
-
-            var beforePostProcessCustomPostProcesses =
-                m_globalSettings.customPostProcessOrdersSettings.beforePostProcessCustomPostProcesses;
-
-            if (beforePostProcessCustomPostProcesses == null) // global settings may not be ready yet
-                return;
-
-            beforePostProcessCustomPostProcesses.Remove<ChromaKeying>();
-            beforePostProcessCustomPostProcesses.Remove<AlphaInjection>();
+            if (m_CurrentAsset != null)
+            {
+                m_CurrentAsset.compositorCustomVolumeComponentsList.Remove<ChromaKeying>();
+                m_CurrentAsset.compositorCustomVolumeComponentsList.Remove<AlphaInjection>();
+            }
         }
     }
 }

@@ -277,6 +277,11 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 #endif
+        [SerializeField] private CustomPostProcessVolumeComponentList m_CompositorCustomVolumeComponentsList = new(CustomPostProcessInjectionPoint.BeforePostProcess);
+
+        internal CustomPostProcessVolumeComponentList compositorCustomVolumeComponentsList =>
+            m_CompositorCustomVolumeComponentsList;
+
         /// <summary>
         /// Indicates if virtual texturing is currently enabled for this render pipeline instance.
         /// </summary>

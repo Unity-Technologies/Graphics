@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using UnityEngine.Assertions;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.HighDefinition.Compositor;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -557,7 +558,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 ComposeLines(renderGraph, hdCamera, source, prepassOutput.depthBuffer, motionVectors, (int)LineRendering.CompositionMode.AfterTemporalAntialiasing);
 
-                source = CustomPostProcessPass(renderGraph, hdCamera, source, depthBuffer, normalBuffer, motionVectors, customPostProcessingOrders.beforePostProcessCustomPostProcesses, HDProfileId.CustomPostProcessBeforePP);
+                source = BeforeCustomPostProcessPass(renderGraph, hdCamera, source, depthBuffer, normalBuffer, motionVectors, customPostProcessingOrders.beforePostProcessCustomPostProcesses, HDProfileId.CustomPostProcessBeforePP);
 
                 source = DepthOfFieldPass(renderGraph, hdCamera, depthBuffer, motionVectors, depthBufferMipChain, source, depthMinMaxAvgMSAA, prepassOutput.stencilBuffer);
 
@@ -1440,78 +1441,97 @@ namespace UnityEngine.Rendering.HighDefinition
 
         bool DoCustomPostProcess(RenderGraph renderGraph, HDCamera hdCamera, ref TextureHandle source, TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVectors, CustomPostProcessVolumeComponentList postProcessList)
         {
+            var stack = hdCamera.volumeStack;
+
             bool customPostProcessExecuted = false;
             for (int i = 0; i < postProcessList.Count; ++i)
             {
-                var stack = hdCamera.volumeStack;
+                if (stack.GetComponent(postProcessList[i]) is not CustomPostProcessVolumeComponent customPP)
+                    continue;
 
-                if (stack.GetComponent(postProcessList[i]) is CustomPostProcessVolumeComponent customPP)
+                customPP.SetupIfNeeded();
+                bool isActive = customPP is Rendering.IPostProcessComponent pp && pp.IsActive();
+                if (!isActive)
+                    continue;
+
+                bool isActiveIfFilter = customPP is not Compositor.ICompositionFilterComponent filter || filter.IsActiveForCamera(hdCamera);
+                if (!isActiveIfFilter)
+                    continue;
+
+                if (hdCamera.camera.cameraType != CameraType.SceneView || customPP.visibleInSceneView)
                 {
-                    customPP.SetupIfNeeded();
-                    bool isActive = customPP is Rendering.IPostProcessComponent pp && pp.IsActive();
-                    bool isActiveIfFilter = customPP is not Compositor.ICompositionFilterComponent filter || filter.IsActiveForCamera(hdCamera);
-                    if (isActive && isActiveIfFilter)
+                    using (var builder = renderGraph.AddRenderPass<CustomPostProcessData>(customPP.passName, out var passData))
                     {
-                        if (hdCamera.camera.cameraType != CameraType.SceneView || customPP.visibleInSceneView)
-                        {
-                            // By default custom post process volume name is empty, so we take the type name instead for debug markers.
-                            string passName = String.IsNullOrEmpty(customPP.name) ? customPP.typeName : customPP.name;
-                            using (var builder = renderGraph.AddRenderPass<CustomPostProcessData>(passName, out var passData))
+                        // TODO RENDERGRAPH
+                        // These buffer are always bound in custom post process for now.
+                        // We don't have the information that they are being used or not.
+                        // Until we can upgrade CustomPP to be full render graph, we'll always read and bind them globally.
+                        passData.depthBuffer = builder.ReadTexture(depthBuffer);
+                        passData.normalBuffer = builder.ReadTexture(normalBuffer);
+                        passData.motionVecTexture = builder.ReadTexture(motionVectors);
+
+                        passData.source = builder.ReadTexture(source);
+                        passData.destination = builder.UseColorBuffer(renderGraph.CreateTexture(new TextureDesc(Vector2.one, IsDynamicResUpscaleTargetEnabled(), true)
+                        { colorFormat = GetPostprocessTextureFormat(hdCamera), enableRandomWrite = true, name = "CustomPostProcesDestination" }), 0);
+                        passData.hdCamera = hdCamera;
+                        passData.customPostProcess = customPP;
+                        passData.postProcessScales = new Vector4(hdCamera.postProcessRTScales.x, hdCamera.postProcessRTScales.y, hdCamera.postProcessRTScalesHistory.z, hdCamera.postProcessRTScalesHistory.w);
+                        passData.postProcessViewportSize = postProcessViewportSize;
+                        builder.SetRenderFunc(
+                            (CustomPostProcessData data, RenderGraphContext ctx) =>
                             {
-                                // TODO RENDERGRAPH
-                                // These buffer are always bound in custom post process for now.
-                                // We don't have the information that they are being used or not.
-                                // Until we can upgrade CustomPP to be full render graph, we'll always read and bind them globally.
-                                passData.depthBuffer = builder.ReadTexture(depthBuffer);
-                                passData.normalBuffer = builder.ReadTexture(normalBuffer);
-                                passData.motionVecTexture = builder.ReadTexture(motionVectors);
+                                var srcRt = (RTHandle)data.source;
+                                var dstRt = (RTHandle)data.destination;
 
-                                passData.source = builder.ReadTexture(source);
-                                passData.destination = builder.UseColorBuffer(renderGraph.CreateTexture(new TextureDesc(Vector2.one, IsDynamicResUpscaleTargetEnabled(), true)
-                                { colorFormat = GetPostprocessTextureFormat(hdCamera), enableRandomWrite = true, name = "CustomPostProcesDestination" }), 0);
-                                passData.hdCamera = hdCamera;
-                                passData.customPostProcess = customPP;
-                                passData.postProcessScales = new Vector4(hdCamera.postProcessRTScales.x, hdCamera.postProcessRTScales.y, hdCamera.postProcessRTScalesHistory.z, hdCamera.postProcessRTScalesHistory.w);
-                                passData.postProcessViewportSize = postProcessViewportSize;
-                                builder.SetRenderFunc(
-                                    (CustomPostProcessData data, RenderGraphContext ctx) =>
-                                    {
-                                        var srcRt = (RTHandle)data.source;
-                                        var dstRt = (RTHandle)data.destination;
+                                    // HACK FIX: for custom post process, we want the user to transparently be able to use color target regardless of the scaling occured. For example, if the user uses any of the HDUtil blit methods
+                                    // which require the rtHandleProperties to set the viewport and sample scales.
+                                    // In the case of DLSS and TAAU, the post process viewport and size for the color target have changed, thus we override them here.
+                                    // When these upscalers arent set, behaviour is still the same (since the post process scale is the same as the global rt handle scale). So for simplicity, we always take this code path for custom post process color.
+                                    var newProps = srcRt.rtHandleProperties;
+                                newProps.rtHandleScale = data.postProcessScales;
+                                newProps.currentRenderTargetSize = data.postProcessViewportSize;
+                                newProps.previousRenderTargetSize = data.postProcessViewportSize;
+                                newProps.currentViewportSize = data.postProcessViewportSize;
+                                srcRt.SetCustomHandleProperties(newProps);
+                                dstRt.SetCustomHandleProperties(newProps);
 
-                                        // HACK FIX: for custom post process, we want the user to transparently be able to use color target regardless of the scaling occured. For example, if the user uses any of the HDUtil blit methods
-                                        // which require the rtHandleProperties to set the viewport and sample scales.
-                                        // In the case of DLSS and TAAU, the post process viewport and size for the color target have changed, thus we override them here.
-                                        // When these upscalers arent set, behaviour is still the same (since the post process scale is the same as the global rt handle scale). So for simplicity, we always take this code path for custom post process color.
-                                        var newProps = srcRt.rtHandleProperties;
-                                        newProps.rtHandleScale = data.postProcessScales;
-                                        newProps.currentRenderTargetSize = data.postProcessViewportSize;
-                                        newProps.previousRenderTargetSize = data.postProcessViewportSize;
-                                        newProps.currentViewportSize = data.postProcessViewportSize;
-                                        srcRt.SetCustomHandleProperties(newProps);
-                                        dstRt.SetCustomHandleProperties(newProps);
+                                    // Temporary: see comment above
+                                    ctx.cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, data.depthBuffer);
+                                ctx.cmd.SetGlobalTexture(HDShaderIDs._NormalBufferTexture, data.normalBuffer);
+                                ctx.cmd.SetGlobalTexture(HDShaderIDs._CameraMotionVectorsTexture, data.motionVecTexture);
+                                ctx.cmd.SetGlobalTexture(HDShaderIDs._CustomPostProcessInput, data.source);
 
-                                        // Temporary: see comment above
-                                        ctx.cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, data.depthBuffer);
-                                        ctx.cmd.SetGlobalTexture(HDShaderIDs._NormalBufferTexture, data.normalBuffer);
-                                        ctx.cmd.SetGlobalTexture(HDShaderIDs._CameraMotionVectorsTexture, data.motionVecTexture);
-                                        ctx.cmd.SetGlobalTexture(HDShaderIDs._CustomPostProcessInput, data.source);
+                                data.customPostProcess.Render(ctx.cmd, data.hdCamera, data.source, data.destination);
 
-                                        data.customPostProcess.Render(ctx.cmd, data.hdCamera, data.source, data.destination);
+                                srcRt.ClearCustomHandleProperties();
+                                dstRt.ClearCustomHandleProperties();
+                            });
 
-                                        srcRt.ClearCustomHandleProperties();
-                                        dstRt.ClearCustomHandleProperties();
-                                    });
-
-                                customPostProcessExecuted = true;
-                                source = passData.destination;
-                            }
-                        }
+                        customPostProcessExecuted = true;
+                        source = passData.destination;
                     }
                 }
             }
 
             return customPostProcessExecuted;
+        }
+
+        TextureHandle BeforeCustomPostProcessPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source, TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVectors, CustomPostProcessVolumeComponentList postProcessList, HDProfileId profileId)
+        {
+            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.CustomPostProcess))
+                return source;
+
+            using (new RenderGraphProfilingScope(renderGraph, ProfilingSampler.Get(profileId)))
+            {
+                DoCustomPostProcess(renderGraph, hdCamera, ref source, depthBuffer, normalBuffer, motionVectors, postProcessList);
+
+                if (m_Asset.compositorCustomVolumeComponentsList.Count > 0)
+                {
+                    DoCustomPostProcess(renderGraph, hdCamera, ref source, depthBuffer, normalBuffer, motionVectors, m_Asset.compositorCustomVolumeComponentsList);
+                }
+            }
+
+            return source;
         }
 
         TextureHandle CustomPostProcessPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source, TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVectors, CustomPostProcessVolumeComponentList postProcessList, HDProfileId profileId)
