@@ -65,6 +65,30 @@ namespace UnityEditor.Rendering.PostProcessing
         }
 
         /// <summary>
+        /// Returns <c>true</c> if the current target is Android, <c>false</c> otherwise.
+        /// </summary>
+        public static bool isTargetingAndroid
+        {
+            get
+            {
+                var t = EditorUserBuildSettings.activeBuildTarget;
+                return t == BuildTarget.Android;
+            }
+        }
+
+        /// <summary>
+        /// Returns <c>true</c> if the current target is WebGL, <c>false</c> otherwise.
+        /// </summary>
+        public static bool isTargetingWebGL
+        {
+            get
+            {
+                var t = EditorUserBuildSettings.activeBuildTarget;
+                return t == BuildTarget.WebGL;
+            }
+        }
+
+        /// <summary>
         /// Returns <c>true</c> if the current target is a console or a mobile, <c>false</c>
         /// otherwise.
         /// </summary>
