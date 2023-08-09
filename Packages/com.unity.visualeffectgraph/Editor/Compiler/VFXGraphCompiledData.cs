@@ -555,7 +555,7 @@ namespace UnityEditor.VFX
                 {
                     type = (UnityEngine.VFX.VFXTaskType)spawnerBlock.spawnerType,
                     buffers = new VFXMapping[0],
-                    values = mappingList.ToArray(),
+                    values = GetSortedUniformValues(mappingList),
                     parameters = contextData.parameters,
                     externalProcessor = processor
                 });
@@ -563,6 +563,12 @@ namespace UnityEditor.VFX
             }
 
             return taskDescList.ToArray();
+        }
+
+        private static VFXMapping[] GetSortedUniformValues(List<VFXMapping> mappingList)
+        {
+            // Order by index, except activation slot, that should be first
+            return mappingList.OrderBy(o => o.name == VFXBlock.activationSlotName ? -1 : o.index).ToArray();
         }
 
         private static void FillSpawner(Dictionary<VFXContext, SpawnInfo> outContextSpawnToSpawnInfo,
