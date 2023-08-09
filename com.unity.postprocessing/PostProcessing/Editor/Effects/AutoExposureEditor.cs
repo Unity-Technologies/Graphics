@@ -33,7 +33,7 @@ namespace UnityEditor.Rendering.PostProcessing
         {
             if (!SystemInfo.supportsComputeShaders || EditorUtilities.isTargetingWebGL)
             {
-                EditorGUILayout.HelpBox("Auto exposure requires compute shader support which is not avaialable on this platform.", MessageType.Error);
+                EditorGUILayout.HelpBox("Auto exposure requires compute shader support which is not available on this platform.", MessageType.Error);
             }
             else if (EditorUtilities.isTargetingAndroid)
             {
