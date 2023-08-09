@@ -1,7 +1,7 @@
 #pragma kernel KMain
 
 #pragma multi_compile _ ENABLE_ALPHA
-#pragma multi_compile _ FUTURE_HDR_OUTPUT
+#pragma multi_compile _ HDR_INPUT
 #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -12,9 +12,13 @@ TEXTURE2D_X(_InputTexture);
 RW_TEXTURE2D_X(float4, _OutputTexture);
 
 float4 _EASUOutputSize;
+float4 _HDROutputParams;
+#define _PaperWhite            _HDROutputParams.z
+#define _OneOverPaperWhite     _HDROutputParams.w
 
 #define FSR_INPUT_TEXTURE _InputTexture
 #define FSR_INPUT_SAMPLER s_linear_clamp_sampler
+#define FSR_EASU_ONE_OVER_PAPER_WHITE _OneOverPaperWhite
 #include "Packages/com.unity.render-pipelines.core/Runtime/PostProcessing/Shaders/FSRCommon.hlsl"
 
 [numthreads(64, 1, 1)]
@@ -34,8 +38,8 @@ void KMain(uint3 LocalThreadId : SV_GroupThreadID, uint3 WorkGroupId : SV_GroupI
 
     float3 c = ApplyEASU(gxy);
 
-#ifdef FUTURE_HDR_OUTPUT
-	c = InvertibleTonemapInverse(c);
+#ifdef HDR_INPUT
+    c = FastTonemapInvert(c) * _PaperWhite;
 #endif
 
     // Input always stored in gamma 2.0

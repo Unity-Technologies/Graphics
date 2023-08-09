@@ -32,8 +32,12 @@ namespace UnityEngine.VFX.Utility
         ExposedProperty m_FarPlane;
         ExposedProperty m_AspectRatio;
         ExposedProperty m_Dimensions;
+        ExposedProperty m_ScaledDimensions;
         ExposedProperty m_DepthBuffer;
         ExposedProperty m_ColorBuffer;
+        ExposedProperty m_Orthographic;
+        ExposedProperty m_OrthographicSize;
+        ExposedProperty m_LensShift;
 
         /// <summary>
         /// Set a camera property.
@@ -57,13 +61,17 @@ namespace UnityEngine.VFX.Utility
             m_Position = CameraProperty + "_transform_position";
             m_Angles = CameraProperty + "_transform_angles";
             m_Scale = CameraProperty + "_transform_scale";
+            m_Orthographic = CameraProperty + "_orthographic";
             m_FieldOfView = CameraProperty + "_fieldOfView";
             m_NearPlane = CameraProperty + "_nearPlane";
             m_FarPlane = CameraProperty + "_farPlane";
+            m_OrthographicSize = CameraProperty + "_orthographicSize";
             m_AspectRatio = CameraProperty + "_aspectRatio";
             m_Dimensions = CameraProperty + "_pixelDimensions";
+            m_LensShift = CameraProperty + "_lensShift";
             m_DepthBuffer = CameraProperty + "_depthBuffer";
             m_ColorBuffer = CameraProperty + "_colorBuffer";
+            m_ScaledDimensions = CameraProperty + "_scaledPixelDimensions";
         }
 
         void RequestHDRPBuffersAccess(ref HDAdditionalCameraData.BufferAccess access)
@@ -116,13 +124,17 @@ namespace UnityEngine.VFX.Utility
                 && component.HasVector3(m_Position)
                 && component.HasVector3(m_Angles)
                 && component.HasVector3(m_Scale)
+                && component.HasBool(m_Orthographic)
                 && component.HasFloat(m_FieldOfView)
                 && component.HasFloat(m_NearPlane)
                 && component.HasFloat(m_FarPlane)
+                && component.HasFloat(m_OrthographicSize)
                 && component.HasFloat(m_AspectRatio)
                 && component.HasVector2(m_Dimensions)
+                && component.HasVector2(m_LensShift)
                 && component.HasTexture(m_DepthBuffer)
-                && component.HasTexture(m_ColorBuffer);
+                && component.HasTexture(m_ColorBuffer)
+                && component.HasVector2(m_ScaledDimensions);
         }
 
         /// <summary>
@@ -141,13 +153,20 @@ namespace UnityEngine.VFX.Utility
             component.SetVector3(m_Angles, AdditionalData.transform.eulerAngles);
             component.SetVector3(m_Scale, AdditionalData.transform.lossyScale);
 
+            component.SetBool(m_Orthographic, m_Camera.orthographic);
+            component.SetFloat(m_OrthographicSize, m_Camera.orthographicSize);
             // While field of View is set in degrees for the camera, it is expected in radians in VFX
             component.SetFloat(m_FieldOfView, Mathf.Deg2Rad * m_Camera.fieldOfView);
             component.SetFloat(m_NearPlane, m_Camera.nearClipPlane);
             component.SetFloat(m_FarPlane, m_Camera.farClipPlane);
-
+            component.SetVector2(m_LensShift, m_Camera.lensShift);
             component.SetFloat(m_AspectRatio, m_Camera.aspect);
+
             component.SetVector2(m_Dimensions, new Vector2(m_Camera.pixelWidth, m_Camera.pixelHeight));
+            DynamicResolutionHandler.UpdateAndUseCamera(m_Camera);
+            Vector2 scaledSize = DynamicResolutionHandler.instance.GetScaledSize(new Vector2Int(m_Camera.pixelWidth, m_Camera.pixelHeight));
+            DynamicResolutionHandler.ClearSelectedCamera();
+            component.SetVector2(m_ScaledDimensions, scaledSize);
 
             if (depth != null)
                 component.SetTexture(m_DepthBuffer, depth.rt);

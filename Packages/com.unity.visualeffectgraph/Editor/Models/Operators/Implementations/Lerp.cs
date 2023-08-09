@@ -4,6 +4,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-Lerp")]
     [VFXInfo(category = "Math/Arithmetic")]
     class Lerp : VFXOperatorNumericUnified, IVFXOperatorNumericUnifiedConstrained
     {

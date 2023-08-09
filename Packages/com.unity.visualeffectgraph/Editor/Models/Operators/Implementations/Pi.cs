@@ -4,6 +4,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-Pi")]
     [VFXInfo(category = "Math/Constants")]
     class Pi : VFXOperator
     {

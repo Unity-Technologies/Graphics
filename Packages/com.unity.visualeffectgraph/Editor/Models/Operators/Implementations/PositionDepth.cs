@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using UnityEngine;
 using System.Collections.Generic;
@@ -7,6 +6,7 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-Position(Depth)")]
     [VFXInfo(category = "Sampling")]
     class PositionDepth : VFXOperator
     {
@@ -88,7 +88,7 @@ namespace UnityEditor.VFX.Operator
             }
         }
 
-        protected override sealed void GenerateErrors(VFXInvalidateErrorReporter manager)
+        internal sealed override void GenerateErrors(VFXInvalidateErrorReporter manager)
         {
             if (camera == CameraMode.Main && (UnityEngine.Rendering.RenderPipelineManager.currentPipeline == null || !UnityEngine.Rendering.RenderPipelineManager.currentPipeline.ToString().Contains("HDRenderPipeline")))
                 manager.RegisterError("PositionDepthOperatorUnavailableWithoutHDRP", VFXErrorType.Warning, "Position (Depth) is currently only supported in the High Definition Render Pipeline (HDRP).");
@@ -156,6 +156,7 @@ namespace UnityEditor.VFX.Operator
             Block.CameraMatricesExpressions camMatrices = Block.CameraHelper.GetMatricesExpressions(expressions, VFXCoordinateSpace.World, VFXCoordinateSpace.World);
 
             var Camera_depthBuffer = expressions.First(e => e.name == "Camera_depthBuffer").exp;
+            var ScaledCamPixDim = expressions.First(e => e.name == "Camera_scaledPixelDimensions").exp;
             var CamPixDim = expressions.First(e => e.name == "Camera_pixelDimensions").exp;
 
             // Set uvs
@@ -197,7 +198,7 @@ namespace UnityEditor.VFX.Operator
             }
 
             VFXExpression projpos = uv * VFXValue.Constant<Vector2>(new Vector2(2f, 2f)) - VFXValue.Constant<Vector2>(Vector2.one);
-            VFXExpression uvs = new VFXExpressionCombine(uv.x * CamPixDim.x, uv.y * CamPixDim.y);
+            VFXExpression uvs = new VFXExpressionCombine(uv.x * ScaledCamPixDim.x, uv.y * ScaledCamPixDim.y);
 
             // Get depth
             VFXExpression depth = new VFXExpressionExtractComponent(new VFXExpressionLoadCameraBuffer(Camera_depthBuffer, uvs), 0);

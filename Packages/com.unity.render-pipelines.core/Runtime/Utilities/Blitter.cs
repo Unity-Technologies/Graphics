@@ -46,6 +46,15 @@ namespace UnityEngine.Rendering
         /// <param name="blitColorAndDepthPS"></param> Blit shader
         public static void Initialize(Shader blitPS, Shader blitColorAndDepthPS)
         {
+            if (s_Blit != null)
+            {
+                throw new Exception("Blitter is already initialized. Please only initialize the blitter once or you will leak engine resources. If you need to re-initialize the blitter with different shaders destroy & recreate it.");
+            }
+
+            // NOTE NOTE NOTE NOTE NOTE NOTE
+            // If you create something here you must also destroy it in Cleanup()
+            // or it will leak during enter/leave play mode cycles
+            // NOTE NOTE NOTE NOTE NOTE NOTE
             s_Blit = CoreUtils.CreateEngineMaterial(blitPS);
             s_BlitColorAndDepth = CoreUtils.CreateEngineMaterial(blitColorAndDepthPS);
 
@@ -150,8 +159,17 @@ namespace UnityEngine.Rendering
         public static void Cleanup()
         {
             CoreUtils.Destroy(s_Blit);
+            s_Blit = null;
+            CoreUtils.Destroy(s_BlitColorAndDepth);
+            s_BlitColorAndDepth = null;
             CoreUtils.Destroy(s_BlitTexArray);
+            s_BlitTexArray = null;
             CoreUtils.Destroy(s_BlitTexArraySingleSlice);
+            s_BlitTexArraySingleSlice = null;
+            CoreUtils.Destroy(s_TriangleMesh);
+            s_TriangleMesh = null;
+            CoreUtils.Destroy(s_QuadMesh);
+            s_QuadMesh = null;
         }
 
         /// <summary>
@@ -555,6 +573,7 @@ namespace UnityEngine.Rendering
         /// <param name="scaleBiasRT">Scale and bias for the output texture.</param>
         /// <param name="bilinear">Enable bilinear filtering.</param>
         /// <param name="paddingInPixels">Padding in pixels.</param>
+        /// <param name="decodeInstructions">Decode instruction.</param>
         public static void BlitCubeToOctahedral2DQuadWithPadding(CommandBuffer cmd, Texture source, Vector2 textureSize, Vector4 scaleBiasRT, int mipLevelTex, bool bilinear, int paddingInPixels, Vector4? decodeInstructions = null)
         {
             var material = GetBlitMaterial(source.dimension);

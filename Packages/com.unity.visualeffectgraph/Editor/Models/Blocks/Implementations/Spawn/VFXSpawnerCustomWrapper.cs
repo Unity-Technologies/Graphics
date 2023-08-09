@@ -80,8 +80,10 @@ namespace UnityEditor.VFX
         public override void GetImportDependentAssets(HashSet<int> dependencies)
         {
             base.GetImportDependentAssets(dependencies);
-            if (customBehavior != null && customBehavior != null)
+            if (customBehavior != null)
+            {
                 dependencies.Add(customBehavior.GetInstanceID());
+            }
         }
 
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
@@ -94,7 +96,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        protected sealed override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        internal sealed override void GenerateErrors(VFXInvalidateErrorReporter manager)
         {
             base.GenerateErrors(manager);
 

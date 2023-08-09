@@ -955,6 +955,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { CoreKeywordDescriptors.ScenePickingPass, 1 },
         };
 
+        public static DefineCollection Meta = new DefineCollection
+        {
+            { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },
+            // Use Unity's built-in matrices for meta pass rendering
+            { CoreKeywordDescriptors.ScenePickingPass, 1 },
+        };
+
         public static DefineCollection SceneSelection = new DefineCollection
         {
             { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },
@@ -1510,6 +1517,16 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
             stages = KeywordShaderStage.Fragment,
+        };
+
+        public static KeywordDescriptor DecalSurfaceGradientRayTracing = new KeywordDescriptor
+        {
+            displayName = "Additive normal blending",
+            referenceName = "DECAL_SURFACE_GRADIENT",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+            stages = KeywordShaderStage.RayTracing,
         };
 
         public static KeywordDescriptor DisableSSR = new KeywordDescriptor

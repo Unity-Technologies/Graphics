@@ -41,7 +41,7 @@ namespace UnityEngine.Rendering.Universal
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            SortingCriteria sortingCriteria = SortingCriteria.CommonTransparent;
+            SortingCriteria sortingCriteria = SortingCriteria.None;
             DrawingSettings drawingSettings = CreateDrawingSettings(m_ShaderTagIdList, ref renderingData, sortingCriteria);
 
             var cmd = renderingData.commandBuffer;

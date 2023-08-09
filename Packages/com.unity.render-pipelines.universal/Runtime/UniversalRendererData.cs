@@ -127,6 +127,12 @@ namespace UnityEngine.Rendering.Universal
             /// </summary>
             [Reload("Shaders/ObjectMotionVectors.shader")]
             public Shader objectMotionVector;
+            
+            /// <summary>
+            /// Data Driven Lens Flare shader.
+            /// </summary>
+            [Reload("Shaders/PostProcessing/LensFlareDataDriven.shader")]
+            public Shader dataDrivenLensFlare;
         }
 
         /// <summary>

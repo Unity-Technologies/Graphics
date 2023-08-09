@@ -1,8 +1,55 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
 
 namespace UnityEngine.Rendering
 {
+    /// <summary>
+    /// This struct contains some static helpers that can be used when converting RTid to RThandle
+    /// The common use case is to convert rtId to rtHandle and use the handle with other handle compatible core APIs
+    /// </summary>
+    public struct RTHandleStaticHelpers
+    {
+        /// <summary>
+        /// Static RTHandle wrapper around RenderTargetIdentifier to avoid gc.alloc
+        /// Set this wrapper through `RTHandleStaticHelpers.SetRTHandleStaticWrapper`
+        /// </summary>
+        public static RTHandle s_RTHandleWrapper;
+
+        /// <summary>
+        /// Set static RTHandle wrapper given a RTid. The static RTHandle wrapper is treated as external handle in RTHandleSystem
+        /// Get the static wrapper through `RTHandleStaticHelpers.s_RTHandleWrapper`. 
+        /// </summary>
+        /// <param name="rtId">Input render target identifier to be converted.</param>
+        public static void SetRTHandleStaticWrapper(RenderTargetIdentifier rtId)
+        {
+            if (s_RTHandleWrapper == null)
+                s_RTHandleWrapper = RTHandles.Alloc(rtId);
+            else
+                s_RTHandleWrapper.SetTexture(rtId);
+        }
+
+        /// <summary>
+        /// Set user managed RTHandle wrapper given a RTid. The wrapper is treated as external handle in RTHandleSystem 
+        /// </summary>
+        /// <param name="rtWrapper">User managed RTHandle wrapper.</param>
+        /// <param name="rtId">Input render target identifier to be set.</param>
+        public static void SetRTHandleUserManagedWrapper(ref RTHandle rtWrapper, RenderTargetIdentifier rtId)
+        {
+            // User managed wrapper is null, just return here.
+            if (rtWrapper == null)
+                return;
+            
+            // Check user managed RTHandle wrapper is actually a warpper around RTid
+            if (rtWrapper.m_RT != null)
+                throw new ArgumentException($"Input wrapper must be a wrapper around RenderTargetIdentifier. Passed in warpper contains valid RenderTexture {rtWrapper.m_RT.name} and cannot be used as warpper.");
+            if (rtWrapper.m_ExternalTexture != null)
+                throw new ArgumentException($"Input wrapper must be a wrapper around RenderTargetIdentifier. Passed in warpper contains valid Texture {rtWrapper.m_ExternalTexture.name} and cannot be used as warpper.");
+
+            rtWrapper.SetTexture(rtId);
+        }
+    }
+
     /// <summary>
     /// A RTHandle is a RenderTexture that scales automatically with the camera size.
     /// This allows proper reutilization of RenderTexture memory when different cameras with various sizes are used during rendering.
@@ -200,6 +247,9 @@ namespace UnityEngine.Rendering
         /// <returns>The scaled size of the RTHandle.</returns>
         public Vector2Int GetScaledSize()
         {
+            if (!useScaling)
+                return referenceSize;
+
             if (scaleFunc != null)
             {
                 return scaleFunc(referenceSize);

@@ -1,9 +1,8 @@
-using System;
-using System.Linq;
 using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-CrossProduct")]
     [VFXInfo(category = "Math/Vector")]
     class CrossProduct : VFXOperatorNumericUniform
     {

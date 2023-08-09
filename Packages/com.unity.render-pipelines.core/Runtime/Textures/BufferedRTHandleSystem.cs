@@ -93,6 +93,10 @@ namespace UnityEngine.Rendering
             int bufferCount
         )
         {
+            // This function should only be used when there is a non-zero number of buffers to allocate.
+            // If the caller provides a value of zero, they're likely doing something unintentional in the calling code.
+            Debug.Assert(bufferCount > 0);
+
             var buffer = new RTHandle[bufferCount];
             m_RTHandles.Add(bufferId, buffer);
 

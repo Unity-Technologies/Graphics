@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using UnityEngine;
-using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Operator
 {
@@ -13,7 +13,7 @@ namespace UnityEditor.VFX.Operator
             get
             {
                 var exclude = new[] { typeof(GPUEvent) };
-                return VFXLibrary.GetSlotsType().Except(exclude).Where(o => !o.IsSubclassOf(typeof(Texture)));
+                return VFXLibrary.GetSlotsType().Except(exclude);
             }
         }
 
@@ -64,6 +64,7 @@ namespace UnityEditor.VFX.Operator
         }
     }
 
+    [VFXHelpURL("Operator-Branch")]
     [VFXInfo(category = "Logic")]
     class Branch : VFXOperatorDynamicBranch
     {

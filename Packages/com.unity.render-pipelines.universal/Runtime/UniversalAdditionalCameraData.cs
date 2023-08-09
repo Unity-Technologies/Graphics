@@ -293,6 +293,7 @@ namespace UnityEngine.Rendering.Universal
     [DisallowMultipleComponent]
     [RequireComponent(typeof(Camera))]
     [ImageEffectAllowedInSceneView]
+    [ExecuteAlways] // NOTE: This is required to get calls to OnDestroy() always. Graphics resources are released in OnDestroy().
     [URPHelpURL("universal-additional-camera-data")]
     public class UniversalAdditionalCameraData : MonoBehaviour, ISerializationCallbackReceiver, IAdditionalData
     {
@@ -604,7 +605,6 @@ namespace UnityEngine.Rendering.Universal
                     if (s_CachedVolumeStacks == null)
                         s_CachedVolumeStacks = new List<VolumeStack>(4);
 
-                    m_VolumeStack.Dispose();
                     s_CachedVolumeStacks.Add(m_VolumeStack);
                 }
 
@@ -686,6 +686,10 @@ namespace UnityEngine.Rendering.Universal
             {
                 m_TaaSettings.resetHistoryFrames += value ? 1 : 0;
                 m_MotionVectorsPersistentData.Reset();
+
+                // Reset the jitter period for consistent test results.
+                // Not technically history, but this is here to avoid adding testing only public API.
+                m_TaaSettings.jitterFrameCountOffset = -Time.frameCount;
             }
         }
 
@@ -811,8 +815,10 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc/>
         public void OnDestroy()
         {
-            scriptableRenderer?.ReleaseRenderTargets();
+            if (camera.cameraType != CameraType.SceneView )
+                scriptableRenderer?.ReleaseRenderTargets();
             m_Camera.DestroyVolumeStack(this);
+            m_TaaPersistentData?.DeallocateTargets();
         }
     }
 }

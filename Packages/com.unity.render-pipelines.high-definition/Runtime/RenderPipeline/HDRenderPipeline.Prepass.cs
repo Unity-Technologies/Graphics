@@ -964,7 +964,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 passData.meshDecalsRendererList = builder.UseRendererList(renderGraph.CreateRendererList(new RendererUtils.RendererListDesc(m_MeshDecalsPassNames, cullingResults, hdCamera.camera)
                 {
-                    sortingCriteria = SortingCriteria.CommonOpaque | SortingCriteria.RendererPriority,
+                    sortingCriteria = HDUtils.k_OpaqueSortingCriteria | SortingCriteria.RendererPriority,
                     rendererConfiguration = PerObjectData.None,
                     renderQueueRange = HDRenderQueue.k_RenderQueue_AllOpaque
                 }));
@@ -972,7 +972,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.vfxDecalsRendererList = builder.UseRendererList(renderGraph.CreateRendererList(
                     new RendererUtils.RendererListDesc(m_VfxDecalsPassNames, cullingResults, hdCamera.camera)
                     {
-                        sortingCriteria = SortingCriteria.CommonOpaque & ~SortingCriteria.OptimizeStateChanges,
+                        sortingCriteria = HDUtils.k_OpaqueSortingCriteria & ~SortingCriteria.OptimizeStateChanges,
                         rendererConfiguration = PerObjectData.None,
                         renderQueueRange = HDRenderQueue.k_RenderQueue_AllOpaque,
                     }));

@@ -94,7 +94,7 @@ namespace UnityEditor.VFX
     {
         protected VFXModelDescriptor(VFXModel template, Variant variants = null)
         {
-            m_Variants = variants?.settings ?? new KeyValuePair<string, object>[0];
+            m_Variants = variants?.settings ?? Array.Empty<KeyValuePair<string, object>>();
             //Don't notify model here for performance reason, we are assuming the name shouldn't relies on something in Invalidate of VFXModel
             ApplyVariant(template, false);
 
@@ -582,7 +582,7 @@ namespace UnityEditor.VFX
                 LoadSRPBindersIfNeeded();
 
                 VFXSRPBinder binder = null;
-                var currentSRP = QualitySettings.renderPipeline ?? GraphicsSettings.currentRenderPipeline;
+                var currentSRP = GraphicsSettings.currentRenderPipeline;
                 if (currentSRP != null)
                     srpBinders.TryGetValue(currentSRP.GetType().Name, out binder);
 
@@ -598,14 +598,22 @@ namespace UnityEditor.VFX
             RenderPipelineManager.activeRenderPipelineTypeChanged += SRPChanged;
         }
 
-        public delegate void OnSRPChangedEvent();
-        public static event OnSRPChangedEvent OnSRPChanged;
-
-        private static void SRPChanged()
+        public static void SRPChanged()
         {
-            unsupportedSRPWarningIssued = false;
-            OnSRPChanged?.Invoke();
-            VFXAssetManager.Build();
+            Profiler.BeginSample("VFX.SRPChanged");
+            try
+            {
+                unsupportedSRPWarningIssued = false;
+                var allModels = Resources.FindObjectsOfTypeAll<VFXModel>();
+                foreach (var model in allModels)
+                    model.OnSRPChanged();
+
+                VFXAssetManager.Build();
+            }
+            finally
+            {
+                Profiler.EndSample();
+            }
         }
 
         private static LibrarySentinel m_Sentinel = null;

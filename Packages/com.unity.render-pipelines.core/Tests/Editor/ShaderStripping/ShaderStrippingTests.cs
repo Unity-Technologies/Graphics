@@ -134,7 +134,6 @@ namespace UnityEditor.Rendering.Tests.ShaderStripping
                 .Returns(3),
              new TestCaseData(typeof(StripNothing), Shader.Find("DummyPipeline/VariantStrippingTestsShader"), new List<Rendering.ShaderCompilerData> { default, default })
                 .SetName("Given a shader that is not from the current pipeline, all the variants are stripped")
-                .Ignore("Disabled for now, until shader tags are fixed")
                 .Returns(0),
         };
 

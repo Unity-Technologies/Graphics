@@ -419,6 +419,24 @@ namespace ShaderStrippingAndPrefiltering
             expected.stripSSAOSampleCountHigh = false;
             actual = helper.CreatePrefilteringSettings(ShaderFeatures.ScreenSpaceOcclusion);
             helper.AssertPrefilteringData(expected, actual);
+
+
+            // Two SSAO features - Both set to After Opaque with Interleaved
+            helper.ssaoRendererFeatures[0].AfterOpaque = true;
+            helper.ssaoRendererFeatures[0].AOMethod = ScreenSpaceAmbientOcclusionSettings.AOMethodOptions.InterleavedGradient;
+            helper.ssaoRendererFeatures[1].AfterOpaque = true;
+            helper.ssaoRendererFeatures[1].AOMethod = ScreenSpaceAmbientOcclusionSettings.AOMethodOptions.InterleavedGradient;
+
+            expected = helper.defaultPrefilteringData;
+            expected.screenSpaceOcclusionPrefilteringMode = PrefilteringMode.Remove;
+            expected.stripSSAOBlueNoise = true;
+            expected.stripSSAOInterleaved = false;
+            expected.stripSSAODepthNormals = false;
+            expected.stripSSAOSourceDepthMedium = false;
+            expected.stripSSAOSampleCountMedium = false;
+            expected.stripSSAOSampleCountHigh = false;
+            actual = helper.CreatePrefilteringSettings(ShaderFeatures.None);
+            helper.AssertPrefilteringData(expected, actual);
         }
     }
 }

@@ -3,6 +3,7 @@
 //-------------------------------------------------------------------------------------
 
 // Use surface gradient normal mapping as it handle correctly triplanar normal mapping and multiple UVSet
+// Not used in rtx as it requires derivatives
 #ifndef SHADER_STAGE_RAY_TRACING
 #define SURFACE_GRADIENT
 #endif
@@ -254,23 +255,30 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.geomNormalWS = input.tangentToWorld[2];
     surfaceData.specularOcclusion = 1.0;
 
-#if HAVE_DECALS && (defined(DECAL_SURFACE_GRADIENT) && defined(SURFACE_GRADIENT))
+#ifdef DECAL_NORMAL_BLENDING
     if (_EnableDecals)
     {
+        #ifndef SURFACE_GRADIENT
+        normalTS = SurfaceGradientFromTangentSpaceNormalAndFromTBN(normalTS,
+                input.tangentToWorld[0], input.tangentToWorld[1]);
+        #endif
+
         DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, input, alpha);
         ApplyDecalToSurfaceData(decalSurfaceData, input.tangentToWorld[2], surfaceData, normalTS);
     }
-#endif
 
+    GetNormalWS_SG(input, normalTS, surfaceData.normalWS, doubleSidedConstants);
+#else
     GetNormalWS(input, normalTS, surfaceData.normalWS, doubleSidedConstants);
 
-#if HAVE_DECALS && (!defined(DECAL_SURFACE_GRADIENT) || !defined(SURFACE_GRADIENT))
+    #if HAVE_DECALS
     if (_EnableDecals)
     {
         // Both uses and modifies 'surfaceData.normalWS'.
         DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, input, alpha);
         ApplyDecalToSurfaceData(decalSurfaceData, input.tangentToWorld[2], surfaceData);
     }
+    #endif
 #endif
 
     // Use bent normal to sample GI if available

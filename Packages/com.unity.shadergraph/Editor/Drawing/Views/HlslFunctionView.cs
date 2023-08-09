@@ -37,6 +37,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     node.owner.owner.RegisterCompleteObjectUndo("Change Function Type");
                     node.sourceType = (HlslSourceType)s.newValue;
                     Draw(node);
+                    node.owner.ClearErrorsForNode(node);
                     node.ValidateNode();
                     node.Dirty(ModificationScope.Graph);
                 }

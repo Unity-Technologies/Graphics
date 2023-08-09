@@ -1,9 +1,8 @@
-using System;
 using UnityEngine;
-using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
+    [VFXHelpURL("Block-ConstantRate")]
     [VFXInfo(category = "Spawn")]
     class VFXSpawnerConstantRate : VFXAbstractSpawner
     {

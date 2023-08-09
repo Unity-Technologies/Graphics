@@ -6,6 +6,7 @@ namespace UnityEngine.Rendering.Universal
     /// A volume component that holds settings for the Chromatic Aberration effect.
     /// </summary>
     [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/Chromatic Aberration", typeof(UniversalRenderPipeline))]
+    [URPHelpURL("post-processing-chromatic-aberration")]
     public sealed class ChromaticAberration : VolumeComponent, IPostProcessComponent
     {
         /// <summary>

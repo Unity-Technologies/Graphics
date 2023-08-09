@@ -42,7 +42,9 @@ namespace UnityEditor.VFX
         {
             base.GetImportDependentAssets(dependencies);
             if (!object.ReferenceEquals(m_Subgraph, null))
+            {
                 dependencies.Add(m_Subgraph.GetInstanceID());
+            }
         }
 
         void GraphParameterChanged(VFXGraph graph)
@@ -70,7 +72,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        protected override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        internal override void GenerateErrors(VFXInvalidateErrorReporter manager)
         {
             base.GenerateErrors(manager);
             if (inputFlowCount > VFXContext.kMaxFlowCount)

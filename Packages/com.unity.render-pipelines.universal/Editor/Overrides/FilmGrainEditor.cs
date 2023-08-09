@@ -54,9 +54,6 @@ namespace UnityEditor.Rendering.Universal
 
             PropertyField(m_Intensity);
             PropertyField(m_Response);
-
-            if (PlayerSettings.useHDRDisplay)
-                EditorGUILayout.HelpBox(Styles.unsupportedWithHDROutputWarning, MessageType.Warning);
         }
 
         static void SetTextureImportSettings(TextureImporter importer)
@@ -68,11 +65,6 @@ namespace UnityEditor.Rendering.Universal
             importer.textureCompression = TextureImporterCompression.Uncompressed;
             importer.SaveAndReimport();
             AssetDatabase.Refresh();
-        }
-
-        class Styles
-        {
-            public static string unsupportedWithHDROutputWarning = "Unity does not support Film Grain with HDR display output.";
         }
     }
 }

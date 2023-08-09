@@ -6,6 +6,7 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-ProbabilitySampling")]
     [VFXInfo(category = "Logic")]
     class ProbabilitySampling : VFXOperatorDynamicBranch
     {

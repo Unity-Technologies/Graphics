@@ -15,6 +15,8 @@ namespace UnityEngine.Rendering.HighDefinition
     /// </summary>
     public class HDUtils
     {
+        internal const SortingCriteria k_OpaqueSortingCriteria = SortingCriteria.CommonOpaque & (~SortingCriteria.QuantizedFrontToBack);
+
         /// <summary>Returns the render configuration for baked static lighting, this value can be used in a RendererListDesc call to render Lit objects.</summary>
         /// <returns></returns>
         [Obsolete("Use GetRendererConfiguration() instead. #from(23.2).")]

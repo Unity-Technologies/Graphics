@@ -1,8 +1,8 @@
-using System;
 using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-Rotate2D")]
     [VFXInfo(category = "Math/Vector")]
     class Rotate2D : VFXOperator
     {

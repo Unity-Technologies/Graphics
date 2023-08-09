@@ -146,7 +146,7 @@ namespace UnityEditor.Rendering
 
                 if (!ProbeReferenceVolume.instance.isInitialized || !ProbeReferenceVolume.instance.enabledBySRP)
                 {
-                    EditorGUILayout.HelpBox("The probe volumes feature is disabled. The feature needs to be enabled on the used HDRP asset.", MessageType.Warning, wide: true);
+                    ProbeVolumeEditor.APVDisabledHelpBox();
                     return;
                 }
 

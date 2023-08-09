@@ -7,7 +7,7 @@
 #pragma multi_compile _ USE_FEATURE_FLAGS
 #pragma multi_compile _ USE_OBLIQUE_MODE
 
-//#pragma #pragma enable_d3d11_debug_symbols
+//#pragma enable_d3d11_debug_symbols
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition-config/Runtime/ShaderConfig.cs.hlsl"
@@ -27,7 +27,7 @@
 #define FINE_PRUNING_ENABLED
 #define PERFORM_SPHERICAL_INTERSECTION_TESTS
 
-
+#define LIGHT_FPTL_VISIBILITY_DWORD_COUNTS (((SHADEROPTIONS_FPTLMAX_LIGHT_COUNT+1) + 31)/32)
 
 StructuredBuffer<float4> g_vBoundsBuffer : register( t1 );
 StructuredBuffer<LightVolumeData> _LightVolumeData : register(t2);
@@ -61,7 +61,7 @@ groupshared uint ldsZMin;
 groupshared uint ldsZMax;
 groupshared uint lightOffs;
 #ifdef FINE_PRUNING_ENABLED
-groupshared uint ldsDoesLightIntersect[2];
+groupshared uint ldsDoesLightIntersect[LIGHT_FPTL_VISIBILITY_DWORD_COUNTS];
 #endif
 groupshared int ldsNrLightsFinal;
 
@@ -237,7 +237,7 @@ void TileLightListGen(uint3 dispatchThreadId : SV_DispatchThreadID, uint threadI
     }
 
 #ifdef FINE_PRUNING_ENABLED
-    if(t<2) ldsDoesLightIntersect[t] = 0;
+    if(t<LIGHT_FPTL_VISIBILITY_DWORD_COUNTS) ldsDoesLightIntersect[t] = 0;
 #endif
 
 #if NR_THREADS > PLATFORM_LANE_COUNT
@@ -422,17 +422,30 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float vL
     uint t = threadID;
     uint iWidth = g_viDimensions.x;
     uint iHeight = g_viDimensions.y;
+    uint uLightsFlags[LIGHT_FPTL_VISIBILITY_DWORD_COUNTS];
+    {
+        [unroll(LIGHT_FPTL_VISIBILITY_DWORD_COUNTS)]
+        for (uint ii = 0; ii < LIGHT_FPTL_VISIBILITY_DWORD_COUNTS; ++ii)
+            uLightsFlags[ii] = 0u;
+    }
 
-    uint uLightsFlags[2] = {0,0};
     int l=0;
     // need this outer loop even on xb1 and ps4 since direct lights and
     // reflection lights are kept in separate regions.
 
-    if (threadID < (uint)iNrCoarseLights)
     {
-        int idxCoarse = GetCoarseLightIndex((int)threadID, iNrCoarseLights);
-        int uLightVolume = (int)_LightVolumeData[idxCoarse].lightVolume;
-        StoreLightVolumeCache(threadID, idxCoarse, uLightVolume);
+        #define MAX_FINE_PRUNE_LOOP_CNT (((SHADEROPTIONS_FPTLMAX_LIGHT_COUNT+1) + NR_THREADS - 1)/NR_THREADS)
+        [unroll(MAX_FINE_PRUNE_LOOP_CNT)]
+        for (uint it = 0; it < MAX_FINE_PRUNE_LOOP_CNT; ++it)
+        {
+            uint i = t + it * NR_THREADS;
+            if (i < (uint)iNrCoarseLights)
+            {
+                int idxCoarse = GetCoarseLightIndex((int)i, iNrCoarseLights);
+                int uLightVolume = (int)_LightVolumeData[idxCoarse].lightVolume;
+                StoreLightVolumeCache(i, idxCoarse, uLightVolume);
+            }
+        }
     }
 
 #if NR_THREADS > PLATFORM_LANE_COUNT
@@ -535,23 +548,46 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float vL
         else
             break;
 
-        uLightsFlags[l<32 ? 0 : 1] |= lightValid << (l&31);
+        uLightsFlags[l >> 5] |= lightValid << (l&31);
     }
 
-    InterlockedOr(ldsDoesLightIntersect[0], uLightsFlags[0]);
-    InterlockedOr(ldsDoesLightIntersect[1], uLightsFlags[1]);
-    if(t==0) ldsNrLightsFinal = 0;
+    {
+        [unroll(LIGHT_FPTL_VISIBILITY_DWORD_COUNTS)]
+        for (uint ii = 0; ii < LIGHT_FPTL_VISIBILITY_DWORD_COUNTS; ++ii)
+            InterlockedOr(ldsDoesLightIntersect[ii], uLightsFlags[ii]);
+    }
 
 #if NR_THREADS > PLATFORM_LANE_COUNT
     GroupMemoryBarrierWithGroupSync();
 #endif
 
-    if(t<(uint) iNrCoarseLights && (ldsDoesLightIntersect[t<32 ? 0 : 1]&(1<<(t&31)))!=0 )
     {
-        unsigned int uInc = 1;
-        unsigned int uIndex;
-        InterlockedAdd(ldsNrLightsFinal, uInc, uIndex);
-        if(uIndex<LIGHT_LIST_MAX_COARSE_ENTRIES) prunedList[uIndex] = coarseList[t];        // we allow up to 64 pruned lights while stored in LDS.
+        uint localCount = 0;
+        [unroll(LIGHT_FPTL_VISIBILITY_DWORD_COUNTS)]
+        for (uint ii = 0; ii < LIGHT_FPTL_VISIBILITY_DWORD_COUNTS; ++ii)
+            localCount += countbits(ldsDoesLightIntersect[ii]);
+
+        if (t == 0) ldsNrLightsFinal = localCount;
+    
+        #define MAX_LIGHT_WRITE_LOOP_CNT (((SHADEROPTIONS_FPTLMAX_LIGHT_COUNT+1) + NR_THREADS - 1)/NR_THREADS)
+        [unroll(MAX_LIGHT_WRITE_LOOP_CNT)]
+        for (uint it = 0; it < MAX_LIGHT_WRITE_LOOP_CNT; ++it)
+        {
+            uint i = t + it * NR_THREADS;
+            uint lightsMask = ldsDoesLightIntersect[i >> 5];
+            uint localMask = (1u << (i & 31));
+            if(i<(uint) iNrCoarseLights && (localMask & lightsMask) != 0u)
+            {
+                uint backOffset = 0;
+                [unroll(LIGHT_FPTL_VISIBILITY_DWORD_COUNTS)]
+                for (uint k = 0u; k < LIGHT_FPTL_VISIBILITY_DWORD_COUNTS; ++k)
+                    if (k < (i >> 5))
+                        backOffset += countbits(ldsDoesLightIntersect[k]);
+
+                uint uIndex = backOffset + countbits((localMask - 1u) & lightsMask);
+                if(uIndex<LIGHT_LIST_MAX_COARSE_ENTRIES) prunedList[uIndex] = coarseList[i];
+            }
+        }
     }
 }
 #endif

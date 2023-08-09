@@ -54,7 +54,7 @@ void ParticleInstancingMatrices(out float4x4 objectToWorld, out float4x4 worldTo
 
 void ParticleInstancingSetup()
 {
-    ParticleInstancingMatrices(unity_ObjectToWorld, unity_WorldToObject);
+    ParticleInstancingMatrices(UNITY_MATRIX_M, unity_WorldToObject);
 }
 
 #else

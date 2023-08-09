@@ -109,6 +109,9 @@ namespace UnityEditor.Rendering.Universal
         Shader m_TerrainLit = Shader.Find("Universal Render Pipeline/Terrain/Lit");
         Shader m_StencilDeferred = Shader.Find("Hidden/Universal Render Pipeline/StencilDeferred");
         Shader m_UberPostShader = Shader.Find("Hidden/Universal Render Pipeline/UberPost");
+        Shader m_HDROutputBlitShader = Shader.Find("Hidden/Universal/BlitHDROverlay");
+        Shader m_DataDrivenLensFlareShader = Shader.Find("Hidden/Universal Render Pipeline/LensFlareDataDriven");
+
 
         // Pass names
         public static readonly string kPassNameUniversal2D = "Universal2D";
@@ -169,8 +172,8 @@ namespace UnityEditor.Rendering.Universal
         LocalKeyword m_ToneMapNeutral;
         LocalKeyword m_FilmGrain;
         LocalKeyword m_ScreenCoordOverride;
-        LocalKeyword m_ProbeVolumesL1;
-        LocalKeyword m_ProbeVolumesL2;
+        LocalKeyword m_EasuRcasAndHDRInput;
+        LocalKeyword m_Gamma20AndHDRInput;
         LocalKeyword m_SHPerVertex;
         LocalKeyword m_SHMixed;
 
@@ -224,6 +227,8 @@ namespace UnityEditor.Rendering.Universal
             m_LocalDetailScaled = TryGetLocalKeyword(shader, ShaderKeywordStrings._DETAIL_SCALED);
             m_LocalClearCoat = TryGetLocalKeyword(shader, ShaderKeywordStrings._CLEARCOAT);
             m_LocalClearCoatMap = TryGetLocalKeyword(shader, ShaderKeywordStrings._CLEARCOATMAP);
+            m_EasuRcasAndHDRInput = TryGetLocalKeyword(shader, ShaderKeywordStrings.EasuRcasAndHDRInput);
+            m_Gamma20AndHDRInput = TryGetLocalKeyword(shader, ShaderKeywordStrings.Gamma20AndHDRInput);
 
             // Post processing
             m_LensDistortion = TryGetLocalKeyword(shader, ShaderKeywordStrings.Distortion);
@@ -381,10 +386,10 @@ namespace UnityEditor.Rendering.Universal
 
         internal bool StripUnusedFeatures_FoveatedRendering(ref IShaderScriptableStrippingData strippingData)
         {
-            // Strip Foveated Rendering variants on all platforms (except PS5)
+            // Strip Foveated Rendering variants on all platforms (except PS5 and Metal)
             // TODO: add a way to communicate this requirement from the xr plugin directly
             #if ENABLE_VR && ENABLE_XR_MODULE
-            if (strippingData.shaderCompilerPlatform != ShaderCompilerPlatform.PS5NGGC)
+            if (strippingData.shaderCompilerPlatform != ShaderCompilerPlatform.PS5NGGC && strippingData.shaderCompilerPlatform != ShaderCompilerPlatform.Metal)
             #endif
             {
                 if (strippingData.IsKeywordEnabled(m_FoveatedRenderingNonUniformRaster))
@@ -672,6 +677,15 @@ namespace UnityEditor.Rendering.Universal
         {
             return stripTool.StripMultiCompileKeepOffVariant(m_LightCookies, ShaderFeatures.LightCookies);
         }
+        
+        internal bool StripUnusedFeatures_DataDrivenLensFlare(ref IShaderScriptableStrippingData strippingData)
+        {
+            // If this is not the right shader, then skip
+            if (strippingData.shader != m_DataDrivenLensFlareShader)
+                return false;
+
+            return !strippingData.IsShaderFeatureEnabled(ShaderFeatures.DataDrivenLensFlare);
+        }
 
         internal bool StripUnusedFeatures(ref IShaderScriptableStrippingData strippingData)
         {
@@ -691,6 +705,9 @@ namespace UnityEditor.Rendering.Universal
                 return true;
 
             if (StripUnusedFeatures_DeferredRendering(ref strippingData))
+                return true;
+            
+            if (StripUnusedFeatures_DataDrivenLensFlare(ref strippingData))
                 return true;
 
             ShaderStripTool<ShaderFeatures> stripTool = new ShaderStripTool<ShaderFeatures>(strippingData.shaderFeatures, ref strippingData);
@@ -830,7 +847,19 @@ namespace UnityEditor.Rendering.Universal
 
         internal bool StripInvalidVariants_HDR(ref IShaderScriptableStrippingData strippingData)
         {
-            return !strippingData.IsHDRShaderVariantValid;
+            // We do not need to strip out HDR output variants if HDR display is enabled.
+            if (PlayerSettings.useHDRDisplay)
+                return false;
+
+            // Shared keywords between URP and HDRP.
+            if (!strippingData.IsHDRShaderVariantValid)
+                return true;
+
+            // HDR output shader variants specific to URP.
+            if (strippingData.IsKeywordEnabled(m_EasuRcasAndHDRInput) || strippingData.IsKeywordEnabled(m_Gamma20AndHDRInput))
+                return true;
+
+            return false;
         }
 
         internal bool StripInvalidVariants_TerrainHoles(ref IShaderScriptableStrippingData strippingData)
@@ -977,6 +1006,19 @@ namespace UnityEditor.Rendering.Universal
             return false;
         }
 
+        internal bool StripUnusedShaders_HDROutput(ref IShaderScriptableStrippingData strippingData)
+        {
+            if (!strippingData.stripUnusedVariants)
+                return false;
+
+            // Remove BlitHDROverlay if HDR output is not used
+            if (strippingData.shader == m_HDROutputBlitShader)
+                if (!PlayerSettings.useHDRDisplay)
+                    return true;
+
+            return false;
+        }
+
         internal bool StripUnusedShaders(ref IShaderScriptableStrippingData strippingData)
         {
             if (!strippingData.stripUnusedVariants)
@@ -984,6 +1026,10 @@ namespace UnityEditor.Rendering.Universal
 
             // Remove DeferredStencil if Deferred Rendering is not used
             if (StripUnusedShaders_Deferred(ref strippingData))
+                return true;
+
+            // Remove BlitHDROverlay if HDR output is not used
+            if (StripUnusedShaders_HDROutput(ref strippingData))
                 return true;
 
             return false;

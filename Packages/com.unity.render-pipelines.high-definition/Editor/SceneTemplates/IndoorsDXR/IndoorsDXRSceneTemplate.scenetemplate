@@ -21,19 +21,18 @@ MonoBehaviour:
     basic settings, a camera, and a spot light.'
   preview: {fileID: 4659759030708547069}
   dependencies:
-  - dependency: {fileID: 2800000, guid: f20112bdeec2e8d4d9f80e8390e37263, type: 3}
-    instantiationMode: 0
-  - dependency: {fileID: 2800000, guid: 188dfe7e559f13248ba2c41eb5a59328, type: 3}
-    instantiationMode: 0
+  - dependency: {fileID: 2800000, guid: 32b23d5d74f3aee4f9364e34e2f59379, type: 3}
+    instantiationMode: 1
   - dependency: {fileID: 11400000, guid: 94bebb84b0cc4e5488ebd84b0548f912, type: 2}
     instantiationMode: 0
   - dependency: {fileID: 2100000, guid: 73c176f402d2c2f4d929aa5da7585d17, type: 2}
-    instantiationMode: 0
+    instantiationMode: 1
   - dependency: {fileID: 2800000, guid: 31f47d3807109374ab564767abda71ab, type: 3}
-    instantiationMode: 0
+    instantiationMode: 1
   - dependency: {fileID: 11400000, guid: ccdaf44d23fad9b4e864f8ed9cc711f9, type: 2}
     instantiationMode: 0
   templatePipeline: {fileID: 11500000, guid: 90991a6a2aded9347932cefc99cd07db, type: 3}
+  badge: {fileID: 0}
   addToDefaults: 0
 --- !u!28 &4659759030708547069
 Texture2D:
@@ -45,8 +44,6 @@ Texture2D:
   m_ImageContentsHash:
     serializedVersion: 2
     Hash: ca8e44de0c0e17d7d2317039aa952b13
-  m_ForcedFallbackFormat: 4
-  m_DownscaleFallback: 0
   m_IsAlphaChannelOptional: 1
   serializedVersion: 2
   m_Width: 1024
@@ -57,7 +54,8 @@ Texture2D:
   m_MipCount: 11
   m_IsReadable: 1
   m_IsPreProcessed: 0
-  m_IgnoreMasterTextureLimit: 0
+  m_IgnoreMipmapLimit: 0
+  m_MipmapLimitGroupName: 
   m_StreamingMipmaps: 0
   m_StreamingMipmapsPriority: 0
   m_VTOnly: 0

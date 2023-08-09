@@ -437,7 +437,7 @@ namespace UnityEngine.Rendering.Universal
 
                     CopyCameraSortingLayerRenderTexture(context, renderingData, storeAction);
 
-                    filterSettings.sortingLayerRange = new SortingLayerRange(m_CameraSortingLayerBoundsIndex, short.MaxValue);
+                    filterSettings.sortingLayerRange = new SortingLayerRange((short)(m_CameraSortingLayerBoundsIndex + 1), short.MaxValue);
                     Render(context, cmd, ref renderingData, ref filterSettings, unlitDrawSettings);
                 }
                 else

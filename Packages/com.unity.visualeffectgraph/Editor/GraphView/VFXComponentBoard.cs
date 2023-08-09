@@ -255,12 +255,10 @@ namespace UnityEditor.VFX.UI
         {
             if (e.button == (int)MouseButton.LeftMouse)
             {
-                bool needClearSelection = false;
                 foreach (var elem in m_SystemBoundsContainer.Children())
                 {
-                    var systemBound = elem as VFXComponentBoardBoundsSystemUI;
-                    if (systemBound != null)
-                        needClearSelection |= systemBound.Unselect();
+                    if (elem is VFXComponentBoardBoundsSystemUI systemBound)
+                        systemBound.Unselect();
                 }
             }
         }
@@ -387,9 +385,9 @@ namespace UnityEditor.VFX.UI
                 {
                     foreach (var elem in m_SystemBoundsContainer.Children())
                     {
-                        if (elem is VFXComponentBoardBoundsSystemUI)
+                        if (elem is VFXComponentBoardBoundsSystemUI ui)
                         {
-                            (elem as VFXComponentBoardBoundsSystemUI).ReleaseBoundsRecorder();
+                            ui.ReleaseBoundsRecorder();
                         }
                     }
                     m_SystemBoundsContainer.Clear();
@@ -399,8 +397,7 @@ namespace UnityEditor.VFX.UI
                 {
                     var tpl = VFXView.LoadUXML("VFXComponentBoard-bounds-list");
                     tpl.CloneTree(m_SystemBoundsContainer);
-                    VFXComponentBoardBoundsSystemUI newUI = m_SystemBoundsContainer.Children().Last() as VFXComponentBoardBoundsSystemUI;
-                    if (newUI != null)
+                    if (m_SystemBoundsContainer.Children().Last() is VFXComponentBoardBoundsSystemUI newUI)
                     {
                         newUI.Setup(m_View, system, m_BoundsRecorder);
                     }
@@ -531,7 +528,7 @@ namespace UnityEditor.VFX.UI
 
             foreach (var context in contextsToRefresh)
             {
-                context.controller.model.RefreshErrors(m_View.controller.graph);
+                context.controller.model.RefreshErrors();
             }
         }
 
@@ -663,26 +660,6 @@ namespace UnityEditor.VFX.UI
             m_PlayRateSlider.value = Mathf.Pow(playRateValue, 1 / VisualEffectControl.sliderPower);
             if (m_PlayRateField != null && !m_PlayRateField.HasFocus())
                 m_PlayRateField.value = Mathf.RoundToInt(playRateValue);
-        }
-
-        void ToggleAttach()
-        {
-            if (!object.ReferenceEquals(m_AttachedComponent, null))
-            {
-                Detach();
-            }
-            else
-            {
-                Attach();
-            }
-        }
-
-        void Select()
-        {
-            if (m_AttachedComponent != null)
-            {
-                Selection.activeObject = m_AttachedComponent;
-            }
         }
 
         VisualElement m_EventsContainer;
@@ -831,8 +808,7 @@ namespace UnityEditor.VFX.UI
             bool systemNamesChanged = false;
             foreach (var elem in m_SystemBoundsContainer.Children())
             {
-                VFXComponentBoardBoundsSystemUI boundsModeElem = elem as VFXComponentBoardBoundsSystemUI;
-                if (boundsModeElem != null)
+                if (elem is VFXComponentBoardBoundsSystemUI boundsModeElem)
                 {
                     if (boundsModeElem.HasSystemBeenRenamed())
                     {
@@ -932,18 +908,6 @@ namespace UnityEditor.VFX.UI
 
     class VFXComponentBoardBoundsSystemUI : VisualElement
     {
-        public VFXComponentBoardBoundsSystemUI()
-        {
-        }
-
-        ~VFXComponentBoardBoundsSystemUI()
-        {
-            if (m_BoundsRecorder != null)
-            {
-                m_BoundsRecorder = null;
-            }
-        }
-
         public void Setup(VFXView vfxView, string systemName, VFXBoundsRecorder boundsRecorder)
         {
             m_BoundsRecorder = boundsRecorder;
@@ -979,8 +943,6 @@ namespace UnityEditor.VFX.UI
             Add(m_BoundsMode);
         }
 
-        private List<string> m_BoundsModes = new List<string> { "Manual", "Recorded", "Automatic" };
-
         public void UpdateLabel()
         {
             m_CurrentMode = m_BoundsRecorder.GetSystemBoundsSettingMode(m_SystemName);
@@ -1006,13 +968,6 @@ namespace UnityEditor.VFX.UI
         public bool HasSystemBeenRenamed()
         {
             return !m_BoundsRecorder.systemNames.Contains(m_SystemName);
-        }
-
-        void SetSystemBoundMode(object mode)
-        {
-            m_CurrentMode = (BoundsSettingMode)mode;
-            m_BoundsMode.SetValue((int)mode);
-            m_BoundsRecorder.ModifyMode(m_SystemName, (BoundsSettingMode)mode);
         }
 
         void OnValueChanged()
@@ -1043,27 +998,5 @@ namespace UnityEditor.VFX.UI
         Dictionary<string, StyleColor> m_Colors;
         private static Label s_EmptyEnumLabel = new Label();
 
-        static class BoundsSystemContents
-        {
-            public static Dictionary<BoundsSettingMode, GUIContent> modesContent =
-                new Dictionary<BoundsSettingMode, GUIContent>()
-            {
-                {
-                    BoundsSettingMode.Automatic,
-                    new GUIContent(BoundsSettingMode.Automatic.ToString(),
-                        "Systems with the Automatic bounds setting will not be affected by the recording.")
-                },
-                {
-                    BoundsSettingMode.Manual,
-                    new GUIContent(BoundsSettingMode.Manual.ToString(),
-                        "Systems with the Manual bounds setting will not be affected by the recording.")
-                },
-                {
-                    BoundsSettingMode.Recorded,
-                    new GUIContent(BoundsSettingMode.Recorded.ToString(),
-                        "")
-                },
-            };
-        }
     }
 }

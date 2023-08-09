@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph
         private static int kMaxChannelThreshold = 32;
         private static int kMinChannelThreshold = 8;
         private static string kCustomInterpolatorHelpBox = "Unity uses these options to help ShaderGraph users maintain known compatibilities with target platform(s) when using Custom Interpolators.";
-        private static string kCustomInterpolatorDocumentationURL = "https://docs.unity3d.com/Packages/com.unity.shadergraph@latest/manual/custom-interpolators.html#thresholds";
+        private static string kCustomInterpolatorDocumentationURL = UnityEngine.Rendering.ShaderGraph.Documentation.GetPageLink("Custom-Interpolators");
 
         private class Styles
         {

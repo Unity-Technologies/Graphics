@@ -1,5 +1,6 @@
 using System;
 using System.Text;
+using UnityEditor.Rendering.Analytics;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -184,6 +185,8 @@ namespace UnityEditor.Rendering
                 var w = Cast<TField>(widget);
                 var s = Cast<TState>(state);
                 Apply(w, s, value);
+
+                DebugManagerWidgetUsedAnalytic.Send(widget.queryPath, value);
             }
         }
     }

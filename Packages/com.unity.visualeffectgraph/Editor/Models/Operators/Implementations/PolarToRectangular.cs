@@ -1,9 +1,8 @@
-using System;
-using System.Linq;
 using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-PolarToRectangular")]
     [VFXInfo(category = "Math/Coordinates")]
     class PolarToRectangular : VFXOperator
     {

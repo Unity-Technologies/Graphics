@@ -1,9 +1,9 @@
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
+    [VFXHelpURL("Block-Kill(AABox)")]
     [VFXInfo(category = "Kill")]
     class KillAABox : VFXBlock
     {

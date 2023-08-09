@@ -29,7 +29,6 @@ TEXTURE2D_X(_InputNearTexture);
 // Here we write the final output
 RW_TEXTURE2D_X(CTYPE, _OutputTexture);
 
-#define FORCE_POINT_SAMPLING
 #define ResScale        1.0f
 #define OneOverResScale 1.0f
 #define MaxColorMip     0.0f

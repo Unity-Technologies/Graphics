@@ -124,6 +124,33 @@ bool SampleDebugFontNumber2Digits(int2 pixCoord, uint number)
 }
 
 /*
+ * Sample up to 3 digits of a number. (Excluding leading zeroes)
+ *
+ * Note: Digit have a size of 5x8 pixels and spaced by 1 pixel
+ * See SampleDebugFontNumberAllDigits to sample all digits.
+ *
+ * @param pixCoord: pixel coordinate of the number sample
+ * @param number: number to sample
+ * @return true when the pixel is a pixel of a digit.
+ */
+bool SampleDebugFontNumber3Digits(int2 pixCoord, uint number)
+{
+    pixCoord.y -= 4;
+    if (number <= 9)
+    {
+        return SampleDebugFont(pixCoord - int2(6, 0), number);
+    }
+    else if (number <= 99)
+    {
+        return (SampleDebugFont(pixCoord, (number / 10) % 10) | SampleDebugFont(pixCoord - int2(6, 0), number % 10));
+    }
+    else
+    {
+        return (SampleDebugFont(pixCoord, (number / 100)) | SampleDebugFont(pixCoord - int2(4, 0),(number / 10) % 10) | SampleDebugFont(pixCoord - int2(8, 0),(number / 10) % 10) );
+    }
+}
+
+/*
  * Sample all digits of a number. (Excluding leading zeroes)
  *
  * Note: Digit have a size of 5x8 pixels and spaced by 1 pixel
@@ -164,9 +191,9 @@ float4 OverlayHeatMap(uint2 pixCoord, uint2 tileSize, uint n, uint maxN, float o
     float4 color = float4(PositivePow(col.rgb, 2.2), opacity * col.a);
     if (n >= 0)
     {
-        if (SampleDebugFontNumber2Digits(coord, n))        // Shadow
+        if (SampleDebugFontNumber3Digits(coord, n))        // Shadow
             color = float4(0, 0, 0, 1);
-        if (SampleDebugFontNumber2Digits(coord + 1, n))    // Text
+        if (SampleDebugFontNumber3Digits(coord + 1, n))    // Text
             color = float4(1, 1, 1, 1);
     }
     return color;

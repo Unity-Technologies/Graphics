@@ -169,7 +169,7 @@ namespace UnityEditor.VFX
         }
 
 
-        protected override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        internal override void GenerateErrors(VFXInvalidateErrorReporter manager)
         {
             base.GenerateErrors(manager);
             if (GetParent() is VFXBlockSubgraphContext)

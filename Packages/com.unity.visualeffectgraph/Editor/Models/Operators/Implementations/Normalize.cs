@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -18,7 +17,7 @@ namespace UnityEditor.VFX.Operator
         }
     }
 
-
+    [VFXHelpURL("Operator-Normalize")]
     [VFXInfo(category = "Math/Vector", variantProvider = typeof(SafeNormalizationVariantProvider))]
     class Normalize : VFXOperatorNumericUniform
     {

@@ -5,6 +5,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX
 {
+    [VFXHelpURL("Operator-GetCustomAttribute")]
     [VFXInfo(category = "Attribute", experimental = true)]
     class GetCustomAttribute : VFXOperator
     {
@@ -32,7 +33,7 @@ namespace UnityEditor.VFX
 
         public override string name => $"Get '{attribute}' ({AttributeType})";
 
-        protected sealed override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        internal sealed override void GenerateErrors(VFXInvalidateErrorReporter manager)
         {
             base.GenerateErrors(manager);
 

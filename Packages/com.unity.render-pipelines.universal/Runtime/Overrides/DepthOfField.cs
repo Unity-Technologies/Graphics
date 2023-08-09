@@ -27,6 +27,7 @@ namespace UnityEngine.Rendering.Universal
     /// A volume component that holds settings for the Depth Of Field effect.
     /// </summary>
     [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/Depth Of Field", typeof(UniversalRenderPipeline))]
+    [URPHelpURL("post-processing-depth-of-field")]
     public sealed class DepthOfField : VolumeComponent, IPostProcessComponent
     {
         /// <summary>

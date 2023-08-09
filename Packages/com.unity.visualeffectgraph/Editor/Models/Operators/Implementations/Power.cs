@@ -1,5 +1,6 @@
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-Power")]
     [VFXInfo(category = "Math/Arithmetic")]
     class Power : VFXOperatorNumericCascadedUnified
     {

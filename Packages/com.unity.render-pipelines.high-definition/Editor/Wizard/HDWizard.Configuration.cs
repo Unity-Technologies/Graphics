@@ -415,13 +415,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void FixShadow(bool fromAsyncUnised)
         {
-            int currentQuality = QualitySettings.GetQualityLevel();
-            for (int i = 0; i < QualitySettings.names.Length; ++i)
-            {
-                QualitySettings.SetQualityLevel(i, applyExpensiveChanges: false);
-                QualitySettings.shadows = ShadowQuality.All;
-            }
-            QualitySettings.SetQualityLevel(currentQuality, applyExpensiveChanges: false);
+            QualitySettings.ForEach(() => QualitySettings.shadows = ShadowQuality.All);
         }
 
         bool IsShadowmaskCorrect()
@@ -429,13 +423,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void FixShadowmask(bool fromAsyncUnused)
         {
-            int currentQuality = QualitySettings.GetQualityLevel();
-            for (int i = 0; i < QualitySettings.names.Length; ++i)
-            {
-                QualitySettings.SetQualityLevel(i, applyExpensiveChanges: false);
-                QualitySettings.shadowmaskMode = ShadowmaskMode.DistanceShadowmask;
-            }
-            QualitySettings.SetQualityLevel(currentQuality, applyExpensiveChanges: false);
+            QualitySettings.ForEach(() => QualitySettings.shadowmaskMode = ShadowmaskMode.DistanceShadowmask);
         }
 
         // To be removed as soon as GraphicsSettings.renderPipelineAsset is removed

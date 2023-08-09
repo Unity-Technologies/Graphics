@@ -293,4 +293,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/39_InstancedStrips.unity
     guid: 9336ee42eb6ff9d4087409aac173d761
+  - enabled: 1
+    path: Assets/AllTests/VFXTests/GraphicsTests/40_InstancingSplitCompute.unity
+    guid: 31f5736c7604f934882999545e49831c
   m_configObjects: {}

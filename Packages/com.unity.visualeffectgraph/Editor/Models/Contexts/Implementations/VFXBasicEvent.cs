@@ -17,6 +17,7 @@ namespace UnityEditor.VFX
         }
     }
 
+    [VFXHelpURL("Context-Event")]
     [VFXInfo]
     class VFXBasicEvent : VFXContext
     {

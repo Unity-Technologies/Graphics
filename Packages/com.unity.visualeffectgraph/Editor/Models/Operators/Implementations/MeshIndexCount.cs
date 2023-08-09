@@ -6,6 +6,7 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-MeshIndexCount")]
     [VFXInfo(category = "Sampling", variantProvider = typeof(SampleMeshProvider))]
     class MeshIndexCount : VFXOperator
     {

@@ -1,8 +1,8 @@
-using System;
 using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-SampleTexture2DArray")]
     [VFXInfo(category = "Sampling")]
     class SampleTexture2DArray : VFXOperator
     {

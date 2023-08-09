@@ -5,6 +5,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
+    [VFXHelpURL("Block-ScreenSpaceSize")]
     [VFXInfo(category = "Size")]
     class ScreenSpaceSize : VFXBlock
     {
@@ -119,7 +120,7 @@ namespace UnityEditor.VFX.Block
 
                 string Source = string.Format(@"
 float clipPosW = TransformPositionVFXToClip(position).w;
-float2 newScale = ({0} * clipPosW) / (size * 0.5f * min(UNITY_MATRIX_P[0][0] * _ScreenParams.x,-UNITY_MATRIX_P[1][1] * _ScreenParams.y));
+float2 newScale = ({0} * clipPosW) / (size * 0.5f * min(abs(UNITY_MATRIX_P[0][0] * _ScreenParams.x), abs(UNITY_MATRIX_P[1][1] * _ScreenParams.y)));
 scaleX = newScale.x;
 scaleY = newScale.y;
 ",

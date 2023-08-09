@@ -1,6 +1,8 @@
 #ifndef UNITY_VOLUME_RENDERING_INCLUDED
 #define UNITY_VOLUME_RENDERING_INCLUDED
 
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl"
+
 // Reminder:
 // OpticalDepth(x, y) = Integral{x, y}{Extinction(t) dt}
 // Transmittance(x, y) = Exp(-OpticalDepth(x, y))
@@ -226,6 +228,44 @@ real HenyeyGreensteinPhaseFunction(real anisotropy, real cosTheta)
 {
     return HenyeyGreensteinPhasePartConstant(anisotropy) *
            HenyeyGreensteinPhasePartVarying(anisotropy, cosTheta);
+}
+
+// "Physically Based Rendering, 15.2.3 Sampling Phase Functions"
+bool SampleHenyeyGreenstein(real3 incomingDir,
+    real anisotropy,
+    real3 inputSample,
+    out real3 outgoingDir,
+    out real pdf)
+{
+    real g = anisotropy;
+
+    // Compute costheta
+    real cosTheta;
+    if (abs(g) < 0.001)
+    {
+        cosTheta = 1.0 - 2.0 * inputSample.x;
+    }
+    else
+    {
+        real sqrTerm = (1.0 - g * g) / (1.0 - g + 2.0 * g * inputSample.x);
+        cosTheta = (1.0 + g * g - sqrTerm * sqrTerm) / (2 * g);
+    }
+
+    // Compute direction
+    real sinTheta = sqrt(max(0.0, 1.0 - cosTheta * cosTheta));
+    real phi = 2.0 * PI * inputSample.y;
+
+    real3 wc = normalize(incomingDir);
+    real3x3 coordsys = GetLocalFrame(wc);
+
+    real sinPhi, cosPhi;
+    sincos(phi, sinPhi, cosPhi);
+    outgoingDir = sinTheta * cosPhi * coordsys[0] +
+        sinTheta * sinPhi * coordsys[1] +
+        cosTheta * coordsys[2];
+    pdf = HenyeyGreensteinPhaseFunction(g, cosTheta);
+
+    return any(pdf);
 }
 
 real CornetteShanksPhasePartConstant(real anisotropy)

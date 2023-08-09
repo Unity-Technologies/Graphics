@@ -208,34 +208,45 @@ namespace UnityEditor.VFX.UI
                 SendEvent(newE);
             }
 
+            // Force range to apply so that text field value is properly clamped
+            using (ChangeEvent<float> changeEv = ChangeEvent<float>.GetPooled(0f, ValueToFloat(m_Field.value)))
+            {
+                OnSliderValueChanged(changeEv, true);
+            }
+
             e.StopPropagation();
         }
 
         private void OnSliderValueChanged(ChangeEvent<float> evt)
         {
-            var scaledValue = m_Scale.ToScaled(evt.newValue);
-            SetValueAndNotify(Mathf.Clamp(evt.newValue, range.x, range.y), FloatToValue(scaledValue));
+            OnSliderValueChanged(evt, false);
         }
 
-        private void SetValueAndNotify(float sliderValue, T typedNewValue)
+        private void OnSliderValueChanged(ChangeEvent<float> evt, bool force)
         {
-            if (!value.Equals(typedNewValue))
+            var scaledValue = Mathf.Clamp(m_Scale.ToScaled(evt.newValue), range.x, range.y);
+            SetValueAndNotify(Mathf.Clamp(evt.newValue, range.x, range.y), FloatToValue(scaledValue), force);
+        }
+
+        private void SetValueAndNotify(float sliderValue, T typedNewValue, bool force = false)
+        {
+            if (force || !value.Equals(typedNewValue))
             {
                 using (var evt = ChangeEvent<T>.GetPooled(value, typedNewValue))
                 {
                     evt.target = this;
-                    SetValueWithoutNotify(sliderValue, typedNewValue);
+                    SetValueWithoutNotify(sliderValue, typedNewValue, force);
                     SendEvent(evt);
                 }
             }
         }
 
-        private void SetValueWithoutNotify(float sliderValue, T newTypedValue)
+        private void SetValueWithoutNotify(float sliderValue, T newTypedValue, bool force = false)
         {
             m_IgnoreNotification = true;
             m_Value = newTypedValue;
             tooltip = newTypedValue.ToString();
-            if (!hasFocus)
+            if (force || !hasFocus)
                 m_Field.value = newTypedValue;
             m_Slider.value = sliderValue;
             m_IgnoreNotification = false;

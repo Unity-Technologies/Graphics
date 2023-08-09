@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using UnityEngine;
 using UnityEditor.VFX;
+using UnityEditor.VFX.UI;
 using UnityEngine.VFX;
 using UnityEngine.Profiling;
 
@@ -85,9 +86,9 @@ namespace UnityEditor.VFX
 
         public virtual void CheckGraphBeforeImport() { }
 
-        public virtual void OnUnknownChange()
-        {
-        }
+        public virtual void OnUnknownChange() { }
+
+        public virtual void OnSRPChanged() { }
 
         public virtual void GetSourceDependentAssets(HashSet<string> dependencies)
         {
@@ -97,11 +98,10 @@ namespace UnityEditor.VFX
 
         public virtual void GetImportDependentAssets(HashSet<int> dependencies)
         {
-            //var monoScript = MonoScript.FromScriptableObject(this);
-            //dependencies.Add(AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(monoScript)));
-
             foreach (var child in children)
+            {
                 child.GetImportDependentAssets(dependencies);
+            }
         }
 
         public virtual void CollectDependencies(HashSet<ScriptableObject> objs, bool ownedOnly = true)
@@ -129,23 +129,9 @@ namespace UnityEditor.VFX
             }
         }
 
-        public void RefreshErrors(VFXGraph graph)
+        public void RefreshErrors()
         {
-            if (graph != null)
-            {
-                graph.errorManager.ClearAllErrors(this, VFXErrorOrigin.Invalidate);
-                using (var reporter = new VFXInvalidateErrorReporter(graph.errorManager, this))
-                {
-                    try
-                    {
-                        GenerateErrors(reporter);
-                    }
-                    catch (Exception e)
-                    {
-                        Debug.LogException(e);
-                    }
-                }
-            }
+            VFXViewWindow.RefreshErrors(this);
         }
 
         protected virtual void OnAdded() { }
@@ -329,7 +315,10 @@ namespace UnityEditor.VFX
             }
 
             var currentValue = setting.value;
-            if (!currentValue?.Equals(value) ?? value != null)
+            var isUnityObject = setting.field.FieldType.IsSubclassOf(typeof(UnityEngine.Object));
+            // Unity object Equals implementation consider null as equal which is not what we expect
+            // Because then we cannot assign "None" (or null) anymore
+            if ((isUnityObject && currentValue != value) || (!currentValue?.Equals(value) ?? value != null))
             {
                 setting.field.SetValue(setting.instance, value);
                 OnSettingModified(setting);
@@ -341,7 +330,7 @@ namespace UnityEditor.VFX
         }
 
         // Override this method to update other settings based on a setting modification
-        // Use OnIvalidate with KSettingChanged and not this method to handle other side effects
+        // Use OnInvalidate with KSettingChanged and not this method to handle other side effects
         public virtual void OnSettingModified(VFXSetting setting) { }
         public virtual IEnumerable<int> GetFilteredOutEnumerators(string name) { return null; }
 
@@ -369,34 +358,32 @@ namespace UnityEditor.VFX
         }
 
         [SerializeField]
-        List<string> m_UIIgnoredErrors = new List<string>();
+        List<string> m_UIIgnoredErrors = new();
 
 
         public void IgnoreError(string error)
         {
-            if (m_UIIgnoredErrors == null)
-                m_UIIgnoredErrors = new List<string>();
             if (!m_UIIgnoredErrors.Contains(error))
                 m_UIIgnoredErrors.Add(error);
         }
 
         public bool IsErrorIgnored(string error)
         {
-            return m_UIIgnoredErrors != null && m_UIIgnoredErrors.Contains(error);
+            return m_UIIgnoredErrors.Contains(error);
         }
 
         public void ClearIgnoredErrors()
         {
-            m_UIIgnoredErrors = null;
-            RefreshErrors(GetGraph());
+            m_UIIgnoredErrors.Clear();
+            RefreshErrors();
         }
 
         public bool HasIgnoredErrors()
         {
-            return m_UIIgnoredErrors != null && m_UIIgnoredErrors.Count > 0;
+            return m_UIIgnoredErrors.Any();
         }
 
-        protected virtual void GenerateErrors(VFXInvalidateErrorReporter manager)
+        internal virtual void GenerateErrors(VFXInvalidateErrorReporter manager)
         {
         }
 
@@ -510,20 +497,25 @@ namespace UnityEditor.VFX
 
         public VFXGraph GetGraph()
         {
-            var graph = this as VFXGraph;
-            if (graph != null)
-                return graph;
-            var parent = GetParent();
-            if (parent != null)
-                return parent.GetGraph();
+            switch (this)
+            {
+                case VFXGraph graph:
+                    return graph;
+                case VFXSlot { owner: VFXModel m }:
+                   return m.GetGraph();
+                case VFXData data:
+                    return data.owners.FirstOrDefault()?.GetGraph();
+                case { } m when m.GetParent() is { } parent:
+                    return parent.GetGraph();
+            }
+
             return null;
         }
 
         public static void UnlinkModel(VFXModel model, bool notify = true)
         {
-            if (model is IVFXSlotContainer)
+            if (model is IVFXSlotContainer slotContainer)
             {
-                var slotContainer = (IVFXSlotContainer)model;
                 VFXSlot slotToClean = null;
                 do
                 {

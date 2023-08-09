@@ -57,6 +57,7 @@ namespace UnityEngine.Rendering
         /// Texture width is the max number of lens flares that have occlusion (x axis the lens flare index).
         /// y axis is the number of samples (maxLensFlareWithOcclusionTemporalSample) plus the number of merge results.
         /// Merge results must be done by the SRP and stored in the [(lens flareIndex), (maxLensFlareWithOcclusionTemporalSample + 1)] coordinate.
+        /// Note: It's not supported on OpenGL3 and OpenGLCore
         /// </summary>
         public static RTHandle occlusionRT = null;
 
@@ -66,13 +67,21 @@ namespace UnityEngine.Rendering
         {
         }
 
-        static bool IsOcclusionRTCompatible()
+        private static readonly bool s_SupportsLensFlareTexFormat = SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.RFloat);
+
+        /// <summary>
+        /// Check if we can use an OcclusionRT
+        /// </summary>
+        /// <returns>return true if we can have the OcclusionRT</returns>
+        static public bool IsOcclusionRTCompatible()
         {
 #if UNITY_SERVER
             return false;
 #else
             return SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES3 &&
-                SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLCore;
+                    SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLCore &&
+                    SystemInfo.graphicsDeviceType != GraphicsDeviceType.Null &&
+                    s_SupportsLensFlareTexFormat; //Caching this, because SupportsRenderTextureFormat allocates memory. Go figure.
 #endif
         }
 
@@ -950,9 +959,11 @@ namespace UnityEngine.Rendering
                         globalColorModulation *= GetLensFlareLightAttenuation(light, cam, -diffToObject.normalized);
                 }
 
-                Vector2 screenPos = new Vector2(2.0f * viewportPos.x - 1.0f, 2.0f * viewportPos.y - 1.0f);
-                if (SystemInfo.graphicsUVStartsAtTop)
+                Vector2 screenPos = new Vector2(2.0f * viewportPos.x - 1.0f, -(2.0f * viewportPos.y - 1.0f));
+
+                if(!SystemInfo.graphicsUVStartsAtTop && isDirLight) // Y-flip for OpenGL & directional light
                     screenPos.y = -screenPos.y;
+                
                 Vector2 radPos = new Vector2(Mathf.Abs(screenPos.x), Mathf.Abs(screenPos.y));
                 float radius = Mathf.Max(radPos.x, radPos.y); // l1 norm (instead of l2 norm)
                 float radialsScaleRadius = comp.radialScreenAttenuationCurve.length > 0 ? comp.radialScreenAttenuationCurve.Evaluate(radius) : 1.0f;

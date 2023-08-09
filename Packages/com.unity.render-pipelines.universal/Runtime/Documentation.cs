@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering.Universal
     internal class URPHelpURLAttribute : CoreRPHelpURLAttribute
     {
         public URPHelpURLAttribute(string pageName, string pageHash = "")
-            : base(pageName, Documentation.packageName, pageHash)
+            : base(pageName, pageHash, Documentation.packageName)
         {
         }
     }

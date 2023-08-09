@@ -33,20 +33,24 @@ namespace UnityEditor.Rendering
     {
         public string name;
 
-        private Dictionary<string, List<ShaderVariantInfo>> m_VariantsByPipeline = new();
+        private Dictionary<string, (VariantCounter count, List<ShaderVariantInfo> variantInfos)> m_VariantsByPipeline = new();
 
         public void AddVariant(string pipeline, ShaderVariantInfo variant)
         {
             if (!m_VariantsByPipeline.TryGetValue(pipeline, out var list))
             {
-                list = new List<ShaderVariantInfo>();
+                list.count = new VariantCounter();
+                list.variantInfos = new List<ShaderVariantInfo>();
                 m_VariantsByPipeline.Add(pipeline, list);
             }
+
+            list.count.inputVariants += variant.inputVariants;
+            list.count.outputVariants += variant.outputVariants;
 
             inputVariants += variant.inputVariants;
             outputVariants += variant.outputVariants;
 
-            list.Add(variant);
+            list.variantInfos.Add(variant);
         }
 
         public override string ToString() => $"{name} - {base.ToString()}";
@@ -58,14 +62,14 @@ namespace UnityEditor.Rendering
             {
                 case ShaderVariantLogLevel.AllShaders:
                 {
-                    variantsToLog = m_VariantsByPipeline.SelectMany(i => i.Value);
+                    variantsToLog = m_VariantsByPipeline.SelectMany(i => i.Value.variantInfos);
                     break;
                 }
                 case ShaderVariantLogLevel.OnlySRPShaders:
                 {
                     variantsToLog = m_VariantsByPipeline
                         .Where(i => !string.IsNullOrEmpty(i.Key))
-                        .SelectMany(i => i.Value);
+                        .SelectMany(i => i.Value.variantInfos);
                     break;
                 }
             }
@@ -84,7 +88,7 @@ namespace UnityEditor.Rendering
         }
 
         [Serializable]
-        class PipelineVariants
+        class PipelineVariants : VariantCounter
         {
             public string pipeline;
             public ShaderVariantInfo[] variants;
@@ -94,7 +98,13 @@ namespace UnityEditor.Rendering
         public void OnBeforeSerialize()
         {
             pipelines = m_VariantsByPipeline
-                .Select(pipeline => new PipelineVariants() { pipeline = pipeline.Key, variants = pipeline.Value.ToArray() })
+                .Select(pipeline => new PipelineVariants()
+                {
+                    pipeline = pipeline.Key,
+                    variants = pipeline.Value.variantInfos.ToArray(),
+                    inputVariants = pipeline.Value.count.inputVariants,
+                    outputVariants = pipeline.Value.count.outputVariants,
+                })
                 .ToArray();
         }
 

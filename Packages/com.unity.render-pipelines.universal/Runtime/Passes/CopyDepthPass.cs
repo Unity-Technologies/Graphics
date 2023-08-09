@@ -98,7 +98,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_PassData.copyDepthMaterial = m_CopyDepthMaterial;
             m_PassData.msaaSamples = MssaSamples;
             m_PassData.copyResolvedDepth = m_CopyResolvedDepth;
-            m_PassData.copyToDepth = CopyToDepth;
+            m_PassData.copyToDepth = CopyToDepth || !RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.R32_SFloat, FormatUsage.Render);
             renderingData.commandBuffer.SetGlobalTexture("_CameraDepthAttachment", source.nameID);
             ExecutePass(context, m_PassData, ref renderingData.commandBuffer, ref renderingData.cameraData, source, destination);
         }

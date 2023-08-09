@@ -216,7 +216,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     levelRect,
                     GUIContent.none,
                     schema,
-                    self.level.intValue,
+                    EditorGUI.showMixedValue ? -1 : self.level.intValue, // Force the GUI to update even if we select the same level as the first item
                     self.useOverride.boolValue
                 );
                 if (EditorGUI.EndChangeCheck())
@@ -384,7 +384,14 @@ namespace UnityEditor.Rendering.HighDefinition
                 string sourceName
             )
             {
-                EditorGUI.LabelField(fieldRect, $"{(sourceValue != null ? sourceValue[self.level.intValue] : 0)} ({sourceName})");
+                if (sourceValue != null && sourceValue[self.level.intValue] >= 0)
+                {
+                    EditorGUI.LabelField(fieldRect, $"{sourceValue[self.level.intValue]} ({sourceName})");
+                }
+                else
+                {
+                    EditorGUI.LabelField(fieldRect, $"--- ({sourceName})");
+                }
             }
 
             public void MixedValueDescriptionGUI(

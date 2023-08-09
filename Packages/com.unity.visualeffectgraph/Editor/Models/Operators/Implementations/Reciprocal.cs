@@ -1,6 +1,6 @@
-using System;
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-Reciprocal")]
     [VFXInfo(category = "Math/Arithmetic")]
     class Reciprocal : VFXOperatorNumericUniform
     {

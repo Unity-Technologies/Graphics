@@ -333,14 +333,20 @@ float3 GetStripTangent(float3 currentPos, uint instanceIndex, uint relativeIndex
 	if (relativeIndex > 0)
 	{
 		uint prevIndex = GetParticleIndex(relativeIndex - 1,stripData);
-		prevTangent = normalize(currentPos - GetParticlePosition(prevIndex,instanceIndex));
+		float3 tangent = currentPos - GetParticlePosition(prevIndex,instanceIndex);
+		float sqrLength = dot(tangent, tangent);
+		if (sqrLength > VFX_EPSILON)
+			prevTangent = tangent * rsqrt(sqrLength);
 	}
 
 	float3 nextTangent = (float3)0.0f;
 	if (relativeIndex < stripData.nextIndex - 1)
 	{
 		uint nextIndex = GetParticleIndex(relativeIndex + 1,stripData);
-		nextTangent = normalize(GetParticlePosition(nextIndex, instanceIndex) - currentPos);
+		float3 tangent = GetParticlePosition(nextIndex, instanceIndex) - currentPos;
+		float sqrLength = dot(tangent, tangent);
+		if (sqrLength > VFX_EPSILON)
+			nextTangent = tangent * rsqrt(sqrLength);
 	}
 
 	return normalize(prevTangent + nextTangent);
@@ -348,11 +354,21 @@ float3 GetStripTangent(float3 currentPos, uint instanceIndex, uint relativeIndex
 ${VFXEnd}
 
 ${VFXBegin:VFXInitInstancing}
-uint instanceIndex, instanceActiveIndex;
-index = VFXInitInstancing(index, instanceIndex, instanceActiveIndex);
+uint instanceIndex, instanceActiveIndex, instanceCurrentIndex;
+index = VFXInitInstancing(index, instanceIndex, instanceActiveIndex, instanceCurrentIndex);
 ${VFXEnd}
 
+${VFXBegin:VFXInitInstancingCompute}
+uint instanceIndex, instanceActiveIndex, instanceCurrentIndex;
+#if defined(VFX_INSTANCING_FIXED_SIZE)
+	uint index = GetThreadId(groupId, 0, dispatchWidth);
+	index = VFXInitInstancing(index, instanceIndex, instanceActiveIndex, instanceCurrentIndex);
+	index += groupThreadId.x;
+#else
+	uint index = VFXInitInstancing(id, instanceIndex, instanceActiveIndex, instanceCurrentIndex);
+#endif
 
+${VFXEnd}
 
 ${VFXBegin:VFXInstancingConstants}
 float4 instancingConstants;

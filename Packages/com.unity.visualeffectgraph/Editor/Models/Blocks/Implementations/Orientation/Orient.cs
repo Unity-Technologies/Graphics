@@ -14,6 +14,7 @@ namespace UnityEditor.VFX.Block
         };
     }
 
+    [VFXHelpURL("Block-Orient")]
     [VFXInfo(category = "Attribute/orientation", variantProvider = typeof(OrientationModeProvider))]
     class Orient : VFXBlock
     {
@@ -324,7 +325,7 @@ axisY = cross(axisZ, axisX);
             base.Sanitize(version);
         }
 
-        protected sealed override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        internal sealed override void GenerateErrors(VFXInvalidateErrorReporter manager)
         {
             base.GenerateErrors(manager);
 

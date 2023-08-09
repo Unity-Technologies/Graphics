@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 
 using UnityEngine;
@@ -62,6 +63,7 @@ namespace UnityEditor.VFX.UI
 
         protected abstract VisualElement CreateSimpleField(string controlName);
         protected abstract (VisualElement, VFXBaseSliderField<U>) CreateSliderField();
+        protected abstract T FilterValue(Vector2 range, T value);
 
         public override INotifyValueChanged<U> CreateField()
         {
@@ -179,6 +181,17 @@ namespace UnityEditor.VFX.UI
 
             base.UpdateGUI(force);
         }
+
+        public override object FilterValue(object value)
+        {
+            var range = m_Provider.attributes.FindRange();
+
+            if (range != Vector2.zero)
+            {
+                value = FilterValue(range, (T)value);
+            }
+            return value;
+        }
     }
 
     class UintPropertyRM : NumericPropertyRM<uint, long>
@@ -194,6 +207,8 @@ namespace UnityEditor.VFX.UI
         {
             return m_Provider.attributes.Is(VFXPropertyAttributes.Type.Enum) ? 120 : base.GetPreferredControlWidth();
         }
+
+        protected override uint FilterValue(Vector2 range, uint value) => (uint)Math.Max(Math.Min(range.y, value), range.x);
 
         public override INotifyValueChanged<long> CreateField()
         {
@@ -267,6 +282,8 @@ namespace UnityEditor.VFX.UI
             var labelField = new VFXLabeledField<VFXIntSliderField, int>(m_Label);
             return (labelField, labelField.control);
         }
+
+        protected override int FilterValue(Vector2 range, int value) => (int)Math.Max(Math.Min(range.y, value), range.x);
     }
 
     class FloatPropertyRM : NumericPropertyRM<float, float>
@@ -285,5 +302,7 @@ namespace UnityEditor.VFX.UI
             var labelField = new VFXLabeledField<VFXFloatSliderField, float>(m_Label);
             return (labelField, labelField.control);
         }
+
+        protected override float FilterValue(Vector2 range, float value) => Math.Max(Math.Min(range.y, value), range.x);
     }
 }

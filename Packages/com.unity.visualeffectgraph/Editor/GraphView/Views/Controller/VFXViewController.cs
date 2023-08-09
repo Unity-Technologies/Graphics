@@ -220,7 +220,7 @@ namespace UnityEditor.VFX.UI
                     Profiler.EndSample();
                     if (!kv.Value && obj is VFXModel model && errorRefresh) // we refresh errors only if it wasn't a ui change
                     {
-                        model.RefreshErrors(m_Graph);
+                        model.RefreshErrors();
                     }
                 }
                 m_CurrentlyNotified = null;
@@ -241,11 +241,17 @@ namespace UnityEditor.VFX.UI
 
                 if (model != null && model.name != m_Name)
                 {
+                    bool prevDirty = EditorUtility.IsDirty(model);
                     model.name = m_Name;
+                    if (!prevDirty)
+                        EditorUtility.ClearDirty(model);
                 }
                 if (graph != null && (graph as UnityObject).name != m_Name)
                 {
+                    bool prevDirty = EditorUtility.IsDirty(graph);
                     (graph as UnityObject).name = m_Name;
+                    if (!prevDirty)
+                        EditorUtility.ClearDirty(graph);
                 }
 
                 NotifyChange(Change.assetName);

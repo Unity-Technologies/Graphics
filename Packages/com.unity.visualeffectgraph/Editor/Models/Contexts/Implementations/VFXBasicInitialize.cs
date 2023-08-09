@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+
 using UnityEditor.VFX.UI;
 using UnityEngine;
 using UnityEngine.VFX;
@@ -15,6 +16,7 @@ namespace UnityEditor.VFX
         };
     }
 
+    [VFXHelpURL("Context-Initialize")]
     [VFXInfo(variantProvider = typeof(InitializeVariantProvider))]
     class VFXBasicInitialize : VFXContext
     {
@@ -73,13 +75,13 @@ namespace UnityEditor.VFX
             {
                 if (model == this)
                     ResyncSlots(false); // To add/remove stripIndex
-                RefreshErrors(GetGraph());
+                RefreshErrors();
             }
 
             base.OnInvalidate(model, cause);
         }
 
-        protected override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        internal override void GenerateErrors(VFXInvalidateErrorReporter manager)
         {
             VFXSetting capacitySetting = GetSetting("capacity");
             if (capacitySetting.valid && (uint)capacitySetting.value > 1000000)

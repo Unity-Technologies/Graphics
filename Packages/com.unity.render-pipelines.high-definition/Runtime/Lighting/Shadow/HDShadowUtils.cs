@@ -58,6 +58,21 @@ namespace UnityEngine.Rendering.HighDefinition
             if (shape == SpotLightShape.Box)
             {
                 projection = ExtractBoxLightProjectionMatrix(visibleLight.range, shapeWidth, shapeHeight, nearPlane);
+
+                // update the culling planes to match the box shape
+                InvertView(ref view, out var lightToWorld);
+                Vector3 xDir = lightToWorld.GetColumn(0);
+                Vector3 yDir = lightToWorld.GetColumn(1);
+                Vector3 zDir = -lightToWorld.GetColumn(2); // flip z so that it points in the same direction as the near plane and range
+                Vector3 center = lightToWorld.GetColumn(3);
+                splitData.cullingPlaneCount = 6;
+                splitData.SetCullingPlane(0, new Plane(xDir, center - xDir * (0.5f * shapeWidth)));
+                splitData.SetCullingPlane(1, new Plane(-xDir, center + xDir * (0.5f * shapeWidth)));
+                splitData.SetCullingPlane(2, new Plane(yDir, center - yDir * (0.5f * shapeHeight)));
+                splitData.SetCullingPlane(3, new Plane(-yDir, center + yDir * (0.5f * shapeHeight)));
+                splitData.SetCullingPlane(4, new Plane(zDir, center + zDir * nearPlane));
+                splitData.SetCullingPlane(5, new Plane(-zDir, center + zDir * visibleLight.range));
+
                 deviceProjection = GL.GetGPUProjectionMatrix(projection, false);
                 deviceProjectionYFlip = GL.GetGPUProjectionMatrix(projection, true);
                 InvertOrthographic(ref deviceProjectionYFlip, ref view, out invViewProjection);

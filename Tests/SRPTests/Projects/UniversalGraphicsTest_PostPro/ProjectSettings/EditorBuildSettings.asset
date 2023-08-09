@@ -129,8 +129,11 @@ EditorBuildSettings:
     path: Assets/Scenes/173_CustomPostPro_ZeroCodePath_BeforeTransparents.unity
     guid: ca52f4b14ee7245b1b8476490b059e84
   - enabled: 1
-    path: Assets/Scenes/200_Lens_Flare_Sanity.unity
-    guid: b51c203a350144f97ba208c293ab8333
+    path: Assets/Scenes/200_Lens_Flare_Data_Driven.unity
+    guid: 4a2bbe1bdb894b34981cc07bc878c7c2
+  - enabled: 1
+    path: Assets/Scenes/202_Lens_Flare_Data_Driven_Occlusion.unity
+    guid: 4ef59c3ae21f842c5858909f4d07493f
   - enabled: 1
     path: Assets/Scenes/241_MultiCamMotionBlur.unity
     guid: 743d01f5817f118469f5095b0192f5ce

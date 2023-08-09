@@ -1,10 +1,8 @@
-using System;
-using System.Linq;
-using UnityEngine;
 using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-MainCamera")]
     [VFXInfo(category = "BuiltIn")]
     class MainCamera : VFXOperator
     {
@@ -36,8 +34,9 @@ namespace UnityEditor.VFX.Operator
             VFXExpression lensShift = new VFXExpressionExtractLensShiftFromMainCamera();
             VFXExpression depthBuffer = new VFXExpressionGetBufferFromMainCamera(VFXCameraBufferTypes.Depth);
             VFXExpression colorBuffer = new VFXExpressionGetBufferFromMainCamera(VFXCameraBufferTypes.Color);
+            VFXExpression scaledPixelDimensions = new VFXExpressionExtractScaledPixelDimensionsFromMainCamera();
 
-            return new[] { matrix, orthographic, fov, nearPlane, farPlane, orthographicSize, aspectRatio, pixelDimensions, lensShift, depthBuffer, colorBuffer };
+            return new[] { matrix, orthographic, fov, nearPlane, farPlane, orthographicSize, aspectRatio, pixelDimensions, scaledPixelDimensions, lensShift, depthBuffer, colorBuffer };
         }
     }
 }

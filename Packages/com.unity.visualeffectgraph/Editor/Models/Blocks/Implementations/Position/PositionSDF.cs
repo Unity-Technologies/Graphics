@@ -4,6 +4,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
+    [VFXHelpURL("Block-SetPosition(SignedDistanceField)")]
     [VFXInfo(category = "Attribute/position/Composition/Set")]
     class PositionSDF : PositionBase
     {

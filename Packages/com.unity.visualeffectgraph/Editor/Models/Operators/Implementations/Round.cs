@@ -1,7 +1,6 @@
-using System;
-using UnityEditor.VFX;
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-Round")]
     [VFXInfo(category = "Math/Clamp")]
     class Round : VFXOperatorNumericUniform
     {

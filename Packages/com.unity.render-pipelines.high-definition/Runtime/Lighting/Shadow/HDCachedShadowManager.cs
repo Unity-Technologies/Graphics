@@ -293,6 +293,10 @@ namespace UnityEngine.Rendering.HighDefinition
         }
         internal void RegisterLight(HDAdditionalLightData lightData)
         {
+            if (lightData.legacyLight.bakingOutput.lightmapBakeType == LightmapBakeType.Baked)
+            {
+                return;
+            }
             HDLightType lightType = lightData.type;
 
             if (lightType == HDLightType.Directional)

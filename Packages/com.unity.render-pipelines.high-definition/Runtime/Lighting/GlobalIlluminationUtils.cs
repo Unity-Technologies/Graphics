@@ -3,7 +3,7 @@ using Unity.Collections;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    class GlobalIlluminationUtils
+    internal static class GlobalIlluminationUtils
     {
         // Return true if the light must be added to the baking
         public static bool LightDataGIExtract(Light light, ref LightDataGI lightDataGI)
@@ -32,7 +32,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             float lightDimmer = 1;
 
-            if (lightMode == LightMode.Realtime && add.affectDiffuse)
+            if (lightMode == LightMode.Realtime || lightMode == LightMode.Mixed)
                 lightDimmer = add.lightDimmer;
 
             lightDataGI.instanceID = light.GetInstanceID();
@@ -50,6 +50,22 @@ namespace UnityEngine.Rendering.HighDefinition
 
             lightDataGI.color = directColor;
             lightDataGI.indirectColor = indirectColor;
+
+            if (add.interactsWithSky)
+            {
+                var staticSkySettings = SkyManager.GetStaticLightingSky()?.skySettings;
+                if (staticSkySettings != null)
+                {
+                    Vector3 atmosphericAttenuation = staticSkySettings.EvaluateAtmosphericAttenuation(-light.transform.forward, Vector3.zero);
+                    lightDataGI.color.red = lightDataGI.color.red * atmosphericAttenuation.x;
+                    lightDataGI.color.green = lightDataGI.color.green * atmosphericAttenuation.y;
+                    lightDataGI.color.blue = lightDataGI.color.blue * atmosphericAttenuation.z;
+
+                    lightDataGI.indirectColor.red = lightDataGI.indirectColor.red * atmosphericAttenuation.x;
+                    lightDataGI.indirectColor.green = lightDataGI.indirectColor.green * atmosphericAttenuation.y;
+                    lightDataGI.indirectColor.blue = lightDataGI.indirectColor.blue * atmosphericAttenuation.z;
+                }
+            }
 
             // Note that the HDRI is correctly integrated in the GlobalIllumination system, we don't need to do anything regarding it.
 

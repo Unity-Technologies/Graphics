@@ -70,9 +70,9 @@ namespace UnityEditor.VFX
                     {
                         m_NameCounts.TryGetValue(data.name, out uint count);
                         m_NameCounts[data.name] = count + 1u;
-                        previousNames.Add(data.id == -1 &&
-                                           (!VFXExpression.IsUniform(exp.valueType)
-                                            || !m_NeedsNameSuffixes ) ? data.name : $"{data.name}_{VFXCodeGeneratorHelper.GeneratePrefix(count)}");
+                        string name = data.id == -1 && (!VFXExpression.IsUniform(exp.valueType) || !m_NeedsNameSuffixes) ? data.name : $"{data.name}_{VFXCodeGeneratorHelper.GeneratePrefix(count)}";
+                        if (!previousNames.Contains(name))
+                            previousNames.Add(name);
                     }
                 }
             }
@@ -161,22 +161,12 @@ namespace UnityEditor.VFX
             }
         }
 
-        public void OverrideNamesWithOther(VFXUniformMapper otherMapper)
+        public void OverrideUniformsNamesWithOther(VFXUniformMapper otherMapper)
         {
             var prevUniforms = uniforms.ToArray();
-            var prevTextures = textures.ToArray();
-            var prevBuffers = buffers.ToArray();
             foreach (var exp in prevUniforms)
             {
                 m_UniformToName[exp] = otherMapper.GetNames(exp);
-            }
-            foreach (var exp in prevTextures)
-            {
-                m_TextureToName[exp] = otherMapper.GetNames(exp);
-            }
-            foreach (var exp in prevBuffers)
-            {
-                m_BufferToName[exp] = otherMapper.GetNames(exp);
             }
         }
 

@@ -26,6 +26,14 @@ MonoBehaviour:
   - {fileID: 11400000, guid: b755e6b35c1aa3f4c9cc1a47159392bf, type: 2}
   - {fileID: 11400000, guid: 784ccd3af7210ab46a0f242f55a1b82a, type: 2}
   - {fileID: 11400000, guid: f59607d3476b54858a594ea904187fb5, type: 2}
+  - {fileID: 11400000, guid: 5d8eef77acaa03f48a2121817f335d30, type: 2}
+  - {fileID: 11400000, guid: c0be2cca1b53ec44e84d0171f588483a, type: 2}
+  - {fileID: 11400000, guid: 5d7b72f18e99a384e81d401dfb77bad6, type: 2}
+  - {fileID: 11400000, guid: 5dbfbb377ec70e9449cc099d3ca3e4d9, type: 2}
+  - {fileID: 11400000, guid: 749855a0ddae2844db4749df41e6df89, type: 2}
+  - {fileID: 11400000, guid: f1af9908b700eb0498504d4dcdf9281d, type: 2}
+  - {fileID: 11400000, guid: c729f9124b6d7db4fa04b4a016602956, type: 2}
+  - {fileID: 11400000, guid: 81032729e44ae744497ecd90c075fa3a, type: 2}
   m_DefaultRendererIndex: 0
   m_RequireDepthTexture: 0
   m_RequireOpaqueTexture: 0
@@ -80,6 +88,8 @@ MonoBehaviour:
   m_ColorGradingMode: 0
   m_ColorGradingLutSize: 32
   m_UseFastSRGBLinearConversion: 0
+  m_SupportDataDrivenLensFlare: 0
+  m_SupportScreenSpaceLensFlare: 0
   m_ShadowType: 0
   m_LocalShadowsSupported: 1
   m_LocalShadowsAtlasResolution: 512

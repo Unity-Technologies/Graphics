@@ -352,9 +352,14 @@ namespace UnityEngine.Experimental.Rendering.Universal
             Vector3 roundedCameraPosition = RoundToPixel(cameraPosition);
             Vector3 offset = roundedCameraPosition - cameraPosition;
             offset.z = -offset.z;
-            Matrix4x4 offsetMatrix = Matrix4x4.TRS(-offset, Quaternion.identity, new Vector3(1.0f, 1.0f, -1.0f));
 
-            m_Camera.worldToCameraMatrix = offsetMatrix * m_Camera.transform.worldToLocalMatrix;
+            // Get world to local camera matrix without scale
+            var invPos = Matrix4x4.TRS(cameraPosition + offset, Quaternion.identity, Vector3.one).inverse;
+            var invRot = Matrix4x4.Rotate(m_Camera.transform.rotation).inverse;
+            var scaleMatrix = Matrix4x4.Scale(new Vector3(1.0f, 1.0f, -1.0f));
+
+            // Calculate inverse TRS
+            m_Camera.worldToCameraMatrix = scaleMatrix * invRot * invPos;
         }
 
         void Awake()

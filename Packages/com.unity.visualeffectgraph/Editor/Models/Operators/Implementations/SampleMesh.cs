@@ -22,6 +22,7 @@ namespace UnityEditor.VFX.Operator
         }
     }
 
+    [VFXHelpURL("Operator-SampleMesh")]
     [VFXInfo(category = "Sampling", variantProvider = typeof(SampleMeshProvider))]
     class SampleMesh : VFXOperator
     {
@@ -191,7 +192,7 @@ namespace UnityEditor.VFX.Operator
         public static readonly string kMixingSMRWorldAndLocalPostTransformMsg = @"Mixing World Root Bone transform with an input transform in Local space can yield unexpected results.
 To avoid this, change the input Transform space from Local to World or None.";
 
-        protected override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        internal override void GenerateErrors(VFXInvalidateErrorReporter manager)
         {
             base.GenerateErrors(manager);
 
@@ -221,7 +222,7 @@ To avoid this, change the input Transform space from Local to World or None.";
             //Called from VFXSlot.InvalidateExpressionTree, can be triggered from a space change, need to refresh block warning
             if (cause == InvalidationCause.kExpressionInvalidated)
             {
-                model.RefreshErrors(GetGraph());
+                model.RefreshErrors();
             }
         }
 

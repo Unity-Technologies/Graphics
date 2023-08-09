@@ -80,9 +80,7 @@ void CSMain(uint3 groupId          : SV_GroupID,
 #if !VFX_USE_SPAWNER_FROM_GPU
     id += groupId.y * dispatchWidth * NB_THREADS_PER_GROUP;
 #endif
-    uint index = id;
-
-    ${VFXInitInstancing}
+    ${VFXInitInstancingCompute}
 
 	ContextData contextData = instancingContextData[instanceActiveIndex];
 	uint systemSeed = contextData.systemSeed;
@@ -96,14 +94,19 @@ void CSMain(uint3 groupId          : SV_GroupID,
     uint currentSpawnIndex = totalAccumulatedElementCount - elementCount;
 #else
     InitParams initParams = batchedInitParams[instanceActiveIndex];
-    uint maxThreadId = instancingPrefixSum[instanceActiveIndex];
-    uint nbEvents = eventCountPrefixSum[instanceActiveIndex];
 
+    uint nbEvents = eventCountPrefixSum[instanceActiveIndex];
     [branch]
     if (instanceActiveIndex > 0u)
     {
-        maxThreadId -= instancingPrefixSum[instanceActiveIndex - 1];
         nbEvents -= eventCountPrefixSum[instanceActiveIndex - 1];
+    }
+
+    uint maxThreadId = instancingPrefixSum[instanceCurrentIndex];
+    [branch]
+    if (instanceCurrentIndex > instancingCurrentOffset)
+    {
+        maxThreadId -= instancingPrefixSum[instanceCurrentIndex - 1];
     }
 
     uint currentSpawnIndex = initParams.spawnIndex;
@@ -130,7 +133,7 @@ void CSMain(uint3 groupId          : SV_GroupID,
             startEventIndex = eventCountPrefixSum[instanceActiveIndex - 1];
         }
         #if USE_PREFIX_SUM_SPAWNCOUNT
-            sourceIndex = BinarySearchPrefixSum(id, spawnCountPrefixSum, startEventIndex, startEventIndex + nbEvents) - startEventIndex;
+            sourceIndex = BinarySearchPrefixSum(index, spawnCountPrefixSum, startEventIndex, startEventIndex + nbEvents) - startEventIndex;
         #endif
 
 #endif

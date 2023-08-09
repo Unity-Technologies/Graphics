@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor.VFX;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -19,6 +20,8 @@ namespace UnityEditor.VFX
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, the mesh output will cast shadows.")]
         protected bool castShadows = false;
+
+        private bool m_IsShaderGraphMissing;
 
         // IVFXSubRenderer interface
         // TODO Could we derive this directly by looking at the shader to know if a shadow pass is present?
@@ -51,22 +54,43 @@ namespace UnityEditor.VFX
 
         protected VFXStaticMeshOutput() : base(VFXContextType.Output, VFXDataType.Mesh, VFXDataType.None) { }
 
-        public override void OnEnable()
-        {
-            base.OnEnable();
-            shader = ((VFXDataMesh)GetData()).shader;
-        }
-
         public override VFXCoordinateSpace GetOutputSpaceFromSlot(VFXSlot slot)
         {
             return VFXCoordinateSpace.Local;
         }
 
-        public override bool SetupCompilation()
+        private Shader GetOrRefreshShaderGraphObject(bool refreshErrors = true)
         {
-            shader = ((VFXDataMesh)GetData()).shader;
+            var wasShaderGraphMissing = m_IsShaderGraphMissing;
+            var meshShader = ((VFXDataMesh)GetData()).shader;
+            //This is the only place where shader property is updated or read
+            if (meshShader == null && !object.ReferenceEquals(meshShader, null) && meshShader.GetInstanceID() != 0)
+            {
+                var assetPath = AssetDatabase.GetAssetPath(meshShader.GetInstanceID());
 
-            return true;
+                var newShader = AssetDatabase.LoadAssetAtPath<Shader>(assetPath);
+                m_IsShaderGraphMissing = newShader == null;
+
+                shader = !m_IsShaderGraphMissing ? newShader : meshShader;
+            }
+            else
+            {
+                m_IsShaderGraphMissing = false;
+                shader = meshShader;
+            }
+
+            if (refreshErrors && wasShaderGraphMissing != m_IsShaderGraphMissing)
+            {
+                RefreshErrors();
+            }
+
+            return shader;
+        }
+
+        public override bool CanBeCompiled()
+        {
+            GetOrRefreshShaderGraphObject();
+            return !m_IsShaderGraphMissing && base.CanBeCompiled();
         }
 
         protected override void OnInvalidate(VFXModel model, VFXModel.InvalidationCause cause)
@@ -83,11 +107,8 @@ namespace UnityEditor.VFX
         public override void GetImportDependentAssets(HashSet<int> dependencies)
         {
             base.GetImportDependentAssets(dependencies);
-
             if (!object.ReferenceEquals(shader, null))
             {
-                Shader shader = ((VFXDataMesh)GetData()).shader;
-
                 dependencies.Add(shader.GetInstanceID());
             }
         }
@@ -102,7 +123,7 @@ namespace UnityEditor.VFX
 
                 if (GetData() != null)
                 {
-                    Shader copyShader = ((VFXDataMesh)GetData()).shader;
+                    Shader copyShader = GetOrRefreshShaderGraphObject();
 
                     if (copyShader != null)
                     {
@@ -239,14 +260,28 @@ namespace UnityEditor.VFX
             }
         }
 
+        // Do not resync slots when shader graph is missing to keep potential links to the shader properties
+        public override bool ResyncSlots(bool notify) => !m_IsShaderGraphMissing && base.ResyncSlots(notify);
+
         public override void CheckGraphBeforeImport()
         {
             base.CheckGraphBeforeImport();
-            // If the graph is reimported it can be because one of its depedency such as the shadergraphs, has been changed.
+            // If the graph is reimported it can be because one of its dependency such as the shadergraphs, has been changed.
             if (!VFXGraph.explicitCompile)
                 ResyncSlots(true);
 
             Invalidate(InvalidationCause.kUIChangedTransient);
+        }
+
+        internal override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        {
+            base.GenerateErrors(manager);
+
+            GetOrRefreshShaderGraphObject(false);
+            if (m_IsShaderGraphMissing)
+            {
+                manager.RegisterError("ErrorMissingShaderGraph", VFXErrorType.Error, "The VFX Graph cannot be compiled because the Shader Graph asset is missing.");
+            }
         }
     }
 }

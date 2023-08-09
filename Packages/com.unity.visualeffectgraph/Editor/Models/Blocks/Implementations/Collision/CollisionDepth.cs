@@ -5,6 +5,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
+    [VFXHelpURL("Block-CollideWithDepthBuffer")]
     [VFXInfo(category = "Collision")]
     class CollisionDepth : CollisionBase
     {
@@ -30,7 +31,7 @@ namespace UnityEditor.VFX.Block
 
         protected override bool allowInvertedCollision { get { return false; } }
 
-        protected override sealed void GenerateErrors(VFXInvalidateErrorReporter manager)
+        internal sealed override void GenerateErrors(VFXInvalidateErrorReporter manager)
         {
             base.GenerateErrors(manager);
             if (camera == CameraMode.Main && (UnityEngine.Rendering.RenderPipelineManager.currentPipeline == null || !UnityEngine.Rendering.RenderPipelineManager.currentPipeline.ToString().Contains("HDRenderPipeline")))
@@ -102,7 +103,7 @@ float2 aProjPos = abs(projPos.xy);
 if (aProjPos.x < 1.0f && aProjPos.y < 1.0f) // visible on screen
 {
     float2 uv = projPos.xy * 0.5f + 0.5f;
-    float depth = LOAD_TEXTURE2D_X(Camera_depthBuffer.t, uv*Camera_pixelDimensions).r;
+    float depth = LOAD_TEXTURE2D_X(Camera_depthBuffer.t, uv*Camera_scaledPixelDimensions).r;
     #if UNITY_REVERSED_Z
     depth = 1.0f - depth; // reversed z
     #endif
@@ -130,13 +131,13 @@ if (aProjPos.x < 1.0f && aProjPos.y < 1.0f) // visible on screen
 
                 Source += @"
     {
-        const float2 pixelOffset = offset / Camera_pixelDimensions;
+        const float2 pixelOffset = offset / Camera_scaledPixelDimensions;
 
         float2 projPos10 = projPos.xy + float2(pixelOffset.x,0.0f);
         float2 projPos01 = projPos.xy + float2(0.0f,pixelOffset.y);
 
-        int2 depthPos10 = clamp(int2((projPos10 * 0.5f + 0.5f) * Camera_pixelDimensions), 0, Camera_pixelDimensions - 1);
-        int2 depthPos01 = clamp(int2((projPos01 * 0.5f + 0.5f) * Camera_pixelDimensions), 0, Camera_pixelDimensions - 1);
+        int2 depthPos10 = clamp(int2((projPos10 * 0.5f + 0.5f) * Camera_scaledPixelDimensions), 0, Camera_scaledPixelDimensions - 1);
+        int2 depthPos01 = clamp(int2((projPos01 * 0.5f + 0.5f) * Camera_scaledPixelDimensions), 0, Camera_scaledPixelDimensions - 1);
 
         float depth10 = LOAD_TEXTURE2D_X(Camera_depthBuffer.t, depthPos10).r;
         float depth01 = LOAD_TEXTURE2D_X(Camera_depthBuffer.t, depthPos01).r;

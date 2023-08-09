@@ -1,6 +1,7 @@
 Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 {
-    Properties {
+    Properties
+    {
         _StencilRef ("StencilRef", Int) = 0
         _StencilReadMask ("StencilReadMask", Int) = 0
         _StencilWriteMask ("StencilWriteMask", Int) = 0
@@ -374,7 +375,10 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
     SubShader
     {
-        Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline"}
+        Tags
+        {
+            "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline"
+        }
 
         // 0 - Stencil pass
         Pass
@@ -387,7 +391,8 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             Cull Off
             ColorMask 0
 
-            Stencil {
+            Stencil
+            {
                 Ref [_StencilRef]
                 ReadMask [_StencilReadMask]
                 WriteMask [_StencilWriteMask]
@@ -424,7 +429,8 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             Blend One One, Zero One
             BlendOp Add, Add
 
-            Stencil {
+            Stencil
+            {
                 Ref [_LitPunctualStencilRef]
                 ReadMask [_LitPunctualStencilReadMask]
                 WriteMask [_LitPunctualStencilWriteMask]
@@ -451,6 +457,8 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
             #pragma multi_compile_fragment _ _LIGHT_COOKIES
             #pragma multi_compile_fragment _ _FOVEATED_RENDERING_NON_UNIFORM_RASTER
+            // Foveated rendering currently not supported in dxc on metal
+            #pragma never_use_dxc metal
 
             #pragma vertex Vertex
             #pragma fragment DeferredShading
@@ -471,7 +479,8 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             Blend One One, Zero One
             BlendOp Add, Add
 
-            Stencil {
+            Stencil
+            {
                 Ref [_SimpleLitPunctualStencilRef]
                 ReadMask [_SimpleLitPunctualStencilReadMask]
                 WriteMask [_SimpleLitPunctualStencilWriteMask]
@@ -498,6 +507,8 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
             #pragma multi_compile_fragment _ _LIGHT_COOKIES
             #pragma multi_compile_fragment _ _FOVEATED_RENDERING_NON_UNIFORM_RASTER
+            // Foveated rendering currently not supported in dxc on metal
+            #pragma never_use_dxc metal
 
             #pragma vertex Vertex
             #pragma fragment DeferredShading
@@ -517,7 +528,8 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             Blend One SrcAlpha, Zero One
             BlendOp Add, Add
 
-            Stencil {
+            Stencil
+            {
                 Ref [_LitDirStencilRef]
                 ReadMask [_LitDirStencilReadMask]
                 WriteMask [_LitDirStencilWriteMask]
@@ -547,6 +559,8 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
             #pragma multi_compile_fragment _ _LIGHT_COOKIES
             #pragma multi_compile_fragment _ _FOVEATED_RENDERING_NON_UNIFORM_RASTER
+            // Foveated rendering currently not supported in dxc on metal
+            #pragma never_use_dxc metal
 
             #pragma vertex Vertex
             #pragma fragment DeferredShading
@@ -566,7 +580,8 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             Blend One SrcAlpha, Zero One
             BlendOp Add, Add
 
-            Stencil {
+            Stencil
+            {
                 Ref [_SimpleLitDirStencilRef]
                 ReadMask [_SimpleLitDirStencilReadMask]
                 WriteMask [_SimpleLitDirStencilWriteMask]
@@ -596,6 +611,8 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
             #pragma multi_compile_fragment _ _LIGHT_COOKIES
             #pragma multi_compile_fragment _ _FOVEATED_RENDERING_NON_UNIFORM_RASTER
+            // Foveated rendering currently not supported in dxc on metal
+            #pragma never_use_dxc metal
 
             #pragma vertex Vertex
             #pragma fragment DeferredShading
@@ -643,7 +660,8 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             ZWrite Off
             Cull Off
 
-            Stencil {
+            Stencil
+            {
                 Ref [_ClearStencilRef]
                 ReadMask [_ClearStencilReadMask]
                 WriteMask [_ClearStencilWriteMask]

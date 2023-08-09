@@ -503,8 +503,9 @@ namespace UnityEngine.Rendering.HighDefinition
             public RendererListHandle rendererList;
             public ComputeShader clearBufferCS;
             public int clearBufferCSKernel;
-            public int numPixels;
-            public int numViews;
+            public int width;
+            public int height;
+            public int viewCount;
         }
 
         void RenderFullScreenDebug(RenderGraph renderGraph, TextureHandle colorBuffer, TextureHandle depthBuffer, CullingResults cull, HDCamera hdCamera)
@@ -521,18 +522,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.rendererList = builder.UseRendererList(renderGraph.CreateRendererList(CreateOpaqueRendererListDesc(cull, hdCamera.camera, m_FullScreenDebugPassNames, renderQueueRange: RenderQueueRange.all)));
                 passData.clearBufferCS = m_ClearFullScreenBufferCS;
                 passData.clearBufferCSKernel = m_ClearFullScreenBufferKernel;
-                passData.numPixels = (int)hdCamera.screenSize.x * (int)hdCamera.screenSize.y;
-                passData.numViews = hdCamera.viewCount;
+                passData.width = hdCamera.actualWidth;
+                passData.height = hdCamera.actualHeight;
+                passData.viewCount = hdCamera.viewCount;
 
                 builder.SetRenderFunc(
                     (FullScreenDebugPassData data, RenderGraphContext ctx) =>
                     {
-                        for (int v = 0; v < data.numViews; ++v)
-                        {
-                            ctx.cmd.SetComputeVectorParam(data.clearBufferCS, HDShaderIDs._QuadOverdrawClearBuffParams, new Vector4(v * data.numPixels, 0.0f, 0.0f, 0.0f));
-                            ctx.cmd.SetComputeBufferParam(data.clearBufferCS, data.clearBufferCSKernel, HDShaderIDs._FullScreenDebugBuffer, data.debugBuffer);
-                            ctx.cmd.DispatchCompute(data.clearBufferCS, data.clearBufferCSKernel, (data.numPixels + 63) / 64, 1, 1);
-                        }
+                        ctx.cmd.SetComputeVectorParam(data.clearBufferCS, HDShaderIDs._QuadOverdrawClearBuffParams, new Vector4(data.width, data.height, 0.0f, 0.0f));
+                        ctx.cmd.SetComputeBufferParam(data.clearBufferCS, data.clearBufferCSKernel, HDShaderIDs._FullScreenDebugBuffer, data.debugBuffer);
+                        ctx.cmd.DispatchCompute(data.clearBufferCS, data.clearBufferCSKernel, HDUtils.DivRoundUp(data.width, 16), HDUtils.DivRoundUp(data.height, 16), data.viewCount);
 
                         ctx.cmd.SetRandomWriteTarget(1, data.debugBuffer);
                         CoreUtils.DrawRendererList(ctx.renderContext, ctx.cmd, data.rendererList);
@@ -881,6 +880,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 passData.debugOverlay = m_DebugOverlay;
                 passData.colorBuffer = builder.UseColorBuffer(colorBuffer, 0);
+                passData.depthBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.Write);
                 passData.lightingDebugSettings = m_CurrentDebugDisplaySettings.data.lightingDebugSettings;
                 passData.shadowTextures = HDShadowManager.ReadShadowResult(shadowResult, builder);
                 passData.shadowManager = m_ShadowManager;

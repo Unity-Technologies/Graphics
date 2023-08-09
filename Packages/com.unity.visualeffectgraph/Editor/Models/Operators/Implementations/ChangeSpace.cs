@@ -1,10 +1,10 @@
-using System;
-using System.Collections.Generic;
 using System.Linq;
+
 using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-ChangeSpace")]
     [VFXInfo(category = "Math/Geometry")]
     class ChangeSpace : VFXOperatorNumericUniform
     {
@@ -47,7 +47,7 @@ namespace UnityEditor.VFX.Operator
             return m_targetSpace;
         }
 
-        protected override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        internal override void GenerateErrors(VFXInvalidateErrorReporter manager)
         {
             if (m_targetSpace == inputSlots[0].space)
             {
@@ -64,7 +64,7 @@ namespace UnityEditor.VFX.Operator
             //Called from VFXSlot.InvalidateExpressionTree, can be triggered from a space change, need to refresh block warning
             if (cause == InvalidationCause.kExpressionInvalidated)
             {
-                model.RefreshErrors(GetGraph());
+                model.RefreshErrors();
             }
         }
 

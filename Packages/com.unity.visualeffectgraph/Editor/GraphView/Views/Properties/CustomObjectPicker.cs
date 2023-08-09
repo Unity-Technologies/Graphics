@@ -142,12 +142,23 @@ namespace UnityEditor.VFX.UI
                 {
                     foreach (var r in request)
                     {
-                        if (r == null) continue;
-                        var rt = r.ToObject<RenderTexture>();
-                        if (rt.dimension == textureDimension)
+                        if (r == null)
                         {
-                            r.provider = Search.SearchUtils.CreateGroupProvider(r.provider, "Render Texture", 0, true);
-                            yield return r;
+                            yield return null;
+                        }
+                        else
+                        {
+                            var rt = r.ToObject<RenderTexture>();
+                            if (rt != null && rt.dimension == textureDimension)
+                            {
+                                r.provider =
+                                    Search.SearchUtils.CreateGroupProvider(r.provider, "Render Texture", 0, true);
+                                yield return r;
+                            }
+                            else
+                            {
+                                yield return null;
+                            }
                         }
                     }
                 }

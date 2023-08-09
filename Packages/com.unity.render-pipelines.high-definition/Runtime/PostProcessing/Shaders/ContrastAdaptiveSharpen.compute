@@ -1,7 +1,7 @@
 #pragma kernel KMain
 #pragma kernel KInitialize
 
-#pragma multi_compile _ FUTURE_HDR_OUTPUT
+#pragma multi_compile _ HDR_INPUT
 #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -22,6 +22,9 @@ AF2 InputTextureDimensions;
 AF2 OutputTextureDimensions;
 
 float Sharpness;
+float4 _HDROutputParams;
+#define _PaperWhite               _HDROutputParams.z
+#define _OneOverPaperWhite        _HDROutputParams.w
 
 
 TEXTURE2D_X(_InputTexture);
@@ -34,18 +37,18 @@ AF3 CasLoad(ASU2 p)
 
 void CasInput(inout AF1 r, inout AF1 g, inout AF1 b)
 {
-#ifdef FUTURE_HDR_OUTPUT
-	float3 s0 = InvertibleTonemap(float3(r,g,b));
-	r = s0.r;
-	g = s0.g;
-	b = s0.b;
+#ifdef HDR_INPUT
+    float3 s0 = FastTonemap(float3(r,g,b) * _OneOverPaperWhite);
+    r = s0.r;
+    g = s0.g;
+    b = s0.b;
 #endif
 }
 
 AF4 CasOutput(AF4 pix)
 {
-#ifdef FUTURE_HDR_OUTPUT
-	pix.xyz = InvertibleTonemapInverse(pix.xyz);
+#ifdef HDR_INPUT
+    pix.xyz = FastTonemapInvert(pix.xyz) * _PaperWhite;
 #endif
     return pix;
 }

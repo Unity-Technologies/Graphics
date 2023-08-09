@@ -2,6 +2,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-Asin")]
     [VFXInfo(category = "Math/Trigonometry")]
     class Asin : VFXOperatorNumericUniform
     {

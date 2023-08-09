@@ -16,6 +16,7 @@ namespace UnityEditor.VFX.Block
         };
     }
 
+    [VFXHelpURL("Block-SetPosition(Mesh)")]
     [VFXInfo(category = "Attribute/position/Composition/Set", variantProvider = typeof(PositionMeshProvider))]
     class PositionMesh : PositionBase
     {
@@ -144,7 +145,7 @@ namespace UnityEditor.VFX.Block
             }
         }
 
-        protected override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        internal override void GenerateErrors(VFXInvalidateErrorReporter manager)
         {
             base.GenerateErrors(manager);
 

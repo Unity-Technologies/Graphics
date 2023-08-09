@@ -165,6 +165,7 @@ namespace UnityEditor.VFX
         }
     }
 
+    [VFXHelpURL("Context-Spawn")]
     [VFXInfo]
     class VFXBasicSpawner : VFXContext
     {

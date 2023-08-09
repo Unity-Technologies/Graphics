@@ -1,9 +1,10 @@
-using System.Collections.Generic;
+using System;
+using System.Reflection;
 using UnityEngine;
-using UnityEditor;
-using UnityEditor.Rendering;
 using UnityEngine.Rendering;
 using UnityEditorInternal;
+
+using Object = UnityEngine.Object;
 
 namespace UnityEditor.Rendering
 {
@@ -28,6 +29,34 @@ namespace UnityEditor.Rendering
         protected void OnEnable()
         {
             m_SerializedProbeVolume = new SerializedProbeVolume(serializedObject);
+        }
+
+        internal static void APVDisabledHelpBox()
+        {
+            var renderPipelineAsset = GraphicsSettings.renderPipelineAsset;
+
+            // HDRP
+            if (renderPipelineAsset != null && renderPipelineAsset.GetType().Name == "HDRenderPipelineAsset")
+            {
+                var apvDisabledErrorMsg = "Probe Volumes are not enabled.\nMake sure Light Probe System is set to Probe Volumes in the HDRP asset in use.";
+
+                static int IndexOf(string[] names, string name) { for (int i = 0; i < names.Length; i++) { if (name == names[i]) return i; } return -1; }
+
+                var k_Expandables = Type.GetType("UnityEditor.Rendering.HighDefinition.HDRenderPipelineUI+Expandable,Unity.RenderPipelines.HighDefinition.Editor");
+                var probeVolume = k_Expandables.GetEnumValues().GetValue(IndexOf(k_Expandables.GetEnumNames(), "ProbeVolume"));
+
+                var k_QualitySettingsHelpBox = Type.GetType("UnityEditor.Rendering.HighDefinition.HDEditorUtils,Unity.RenderPipelines.HighDefinition.Editor")
+                    .GetMethod("QualitySettingsHelpBox", BindingFlags.Static | BindingFlags.NonPublic);
+
+                k_QualitySettingsHelpBox.Invoke(null, new object[] { apvDisabledErrorMsg, MessageType.Error, probeVolume, "m_RenderPipelineSettings.lightProbeSystem" });
+            }
+
+            // Custom pipelines
+            else
+            {
+                string apvDisabledErrorMsg = "Probe Volumes are not enabled by this render pipeline.";
+                EditorGUILayout.HelpBox(apvDisabledErrorMsg, MessageType.Error);
+            }
         }
 
         public override void OnInspectorGUI()
@@ -55,20 +84,10 @@ namespace UnityEditor.Rendering
                 drawInspector = false;
             }
 
-            var renderPipelineAsset = GraphicsSettings.renderPipelineAsset;
             if (!ProbeReferenceVolume.instance.isInitialized || !ProbeReferenceVolume.instance.enabledBySRP)
             {
-                if (renderPipelineAsset == null || renderPipelineAsset.GetType().Name != "HDRenderPipelineAsset")
-                {
-                    EditorGUILayout.HelpBox("Probe Volume is not a supported feature by this SRP.", MessageType.Error, wide: true);
-                }
-                else
-                {
-                    EditorGUILayout.HelpBox("The probe volumes feature is not enabled or not available on current SRP.", MessageType.Warning, wide: true);
-                }
-
+                APVDisabledHelpBox();
                 drawInspector = false;
-
             }
 
             if (drawInspector)

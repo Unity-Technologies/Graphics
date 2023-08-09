@@ -186,8 +186,8 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             var r = new VFXShaderWriter();
 
             // Hardcoded, duplicated from VFXParticleCommon.template
-            r.WriteLine("uint instanceIndex, instanceActiveIndex;");
-            r.WriteLine("index = VFXInitInstancing(index, instanceIndex, instanceActiveIndex);");
+            r.WriteLine("uint instanceIndex, instanceActiveIndex, instanceCurrentIndex;");
+            r.WriteLine("index = VFXInitInstancing(index, instanceIndex, instanceActiveIndex, instanceCurrentIndex);");
 
             return r;
         }
@@ -445,11 +445,11 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             if (contextData.SGInputs != null)
             {
                 var interpolantsGenerationWriter = new VFXShaderWriter();
-                var expressionToName = new Dictionary<VFXExpression, string>(contextData.uniformMapper.expressionToCode);           
+                var expressionToName = new Dictionary<VFXExpression, string>(contextData.uniformMapper.expressionToCode);
                 string varyingVariableName = "output.";
 
                 // Expression tree
-                foreach (var interp in contextData.SGInputs.interpolators)               
+                foreach (var interp in contextData.SGInputs.interpolators)
                     interpolantsGenerationWriter.WriteVariable(interp.Key, expressionToName);
 
                 interpolantsGenerationWriter.WriteLine();
@@ -566,7 +566,7 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             globalDeclaration.WriteLine();
             var particleData = (context.GetData() as VFXDataParticle);
             var systemUniformMapper = particleData.systemUniformMapper;
-            contextData.uniformMapper.OverrideNamesWithOther(systemUniformMapper);
+            contextData.uniformMapper.OverrideUniformsNamesWithOther(systemUniformMapper);
             var needsGraphValueStruct = globalDeclaration.WriteGraphValuesStruct(contextData.uniformMapper);
             globalDeclaration.WriteLine();
 
@@ -931,20 +931,24 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
                 yield return "#define VFX_INSTANCING_FIXED_SIZE " + fixedSize;
                 yield return "#pragma multi_compile_instancing";
             }
+            else if (context is VFXBasicInitialize)
+            {
+                yield return "#define VFX_INSTANCING_VARIABLE_SIZE 1";
+            }
             else
             {
-                Debug.Assert(context.codeGeneratorCompute);
-                if (context is VFXBasicInitialize)
+                if (particleData.IsAttributeStored(VFXAttribute.Alive))
                 {
-                    yield return "#define VFX_INSTANCING_VARIABLE_SIZE 1";
+                    yield return "#define VFX_INSTANCING_FIXED_SIZE " + Math.Max(particleData.alignedCapacity, nbThreadsPerGroup);
                 }
                 else
                 {
-                    yield return "#define VFX_INSTANCING_FIXED_SIZE " + Math.Max(particleData.alignedCapacity, nbThreadsPerGroup);
+                    yield return "#define VFX_INSTANCING_VARIABLE_SIZE 1";
                 }
             }
 
             bool hasActiveIndirection = context.contextType == VFXContextType.Filter || context.contextType == VFXContextType.Output;
+            hasActiveIndirection = true; // TODO: how can we know if there are variable expressions with textures/buffers?
             if (hasActiveIndirection)
                 yield return "#define VFX_INSTANCING_ACTIVE_INDIRECTION 1";
 

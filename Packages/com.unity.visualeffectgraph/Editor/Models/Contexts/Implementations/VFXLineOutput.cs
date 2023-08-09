@@ -5,6 +5,7 @@ using UnityEngine.Serialization;
 
 namespace UnityEditor.VFX
 {
+    [VFXHelpURL("Context-OutputLine")]
     [VFXInfo]
     class VFXLineOutput : VFXAbstractParticleOutput
     {

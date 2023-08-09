@@ -9,6 +9,23 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [14.0.7] - 2023-05-23
+
+This version is compatible with Unity 2022.2.22f1.
+
+### Changed
+- The two subshaders in main URP shaders (Lit, SimpleLit, BakedLit, ComplexLit, Particles) have now been combined in to one.
+- The Forward+ rendering path now supports XR rendering, and cameras using orthographic projection.
+
+### Fixed
+- Fixed Render Targets being released when using multiple cameras.
+- Fixed the Screen flicker in Scene view.
+- Increased lighting BRDF specular max for half float math (mobile) to match the visual look of full float math (desktop) better.
+- Disabled MSAA on devices without MSAA store support (Apple GPUs A8 and lower).
+- Fixed an issue where using the Reflection Probe Node with the Forward+ rendering path would result in flickering on the object.
+- Fixed TAA resource leak on entering/exiting the playmode.
+- Fixed rare iOS shader building failure due to URP Lit Forward Pass shader varyings struct variable mismatch
+
 ## [14.0.6] - 2023-03-24
 
 This version is compatible with Unity 2022.2.13f1.

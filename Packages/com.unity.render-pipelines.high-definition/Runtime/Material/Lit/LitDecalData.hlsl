@@ -1,23 +1,9 @@
-void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, float3 vtxNormal, inout SurfaceData surfaceData
-#if defined(DECAL_SURFACE_GRADIENT) && defined(SURFACE_GRADIENT)
-    , inout float3 normalTS
-#endif
-)
+void ApplyDecalToSurfaceDataNoNormal(DecalSurfaceData decalSurfaceData, inout SurfaceData surfaceData)
 {
     // using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html, mean weight of 1 is neutral
 
     // Note: We only test weight (i.e decalSurfaceData.xxx.w is < 1.0) if it can save something
     surfaceData.baseColor.xyz = surfaceData.baseColor.xyz * decalSurfaceData.baseColor.w + decalSurfaceData.baseColor.xyz;
-
-    // Always test the normal as we can have decompression artifact
-    if (decalSurfaceData.normalWS.w < 1.0)
-    {
-#if defined(DECAL_SURFACE_GRADIENT) && defined(SURFACE_GRADIENT)
-        normalTS += SurfaceGradientFromVolumeGradient(vtxNormal, decalSurfaceData.normalWS.xyz);
-#else
-        surfaceData.normalWS.xyz = SafeNormalize(surfaceData.normalWS.xyz * decalSurfaceData.normalWS.w + decalSurfaceData.normalWS.xyz);
-#endif
-    }
 
 #ifdef DECALS_4RT // only smoothness in 3RT mode
 #ifdef _MATERIAL_FEATURE_SPECULAR_COLOR
@@ -34,4 +20,19 @@ void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, float3 vtxNormal
 #endif
 
     surfaceData.perceptualSmoothness = surfaceData.perceptualSmoothness * decalSurfaceData.mask.w + decalSurfaceData.mask.z;
+}
+
+void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, float3 vtxNormal, inout SurfaceData surfaceData
+#ifdef DECAL_SURFACE_GRADIENT
+    , inout float3 normalTS
+#endif
+)
+{
+#ifdef DECAL_SURFACE_GRADIENT
+    ApplyDecalToSurfaceNormal(decalSurfaceData, vtxNormal, normalTS);
+#else
+    ApplyDecalToSurfaceNormal(decalSurfaceData, surfaceData.normalWS.xyz);
+#endif
+
+    ApplyDecalToSurfaceDataNoNormal(decalSurfaceData, surfaceData);
 }

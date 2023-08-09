@@ -662,6 +662,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     lightData.nonLightMappedOnly = 0;
                 }
 
+                // TODO: This won't work with anything but the PBR sky.
+                // A new virtual API was added to SkySetting to compute Atmospheric Attenuation but it's not accessible from within a burst job.
+                // Need to figure out how to compute that properly.
                 bool interactsWithSkyVal = isPbrSkyActive && lightRenderData.interactsWithSky;
                 lightData.distanceFromCamera = -1; // Encode 'interactsWithSky'
 
@@ -671,7 +674,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     if (precomputedAtmosphericAttenuation != 0)
                     {
-                        Vector3 transm = HDRenderPipeline.EvaluateAtmosphericAttenuation(
+                        Vector3 transm = PhysicallyBasedSky.EvaluateAtmosphericAttenuation(
                             airScaleHeight, aerosolScaleHeight, airExtinctionCoefficient, aerosolExtinctionCoefficient,
                             planetCenterPosition, planetaryRadius, -lightData.forward, cameraPos);
                         lightData.color.x *= transm.x;

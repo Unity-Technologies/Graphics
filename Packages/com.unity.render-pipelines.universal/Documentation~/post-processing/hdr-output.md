@@ -40,7 +40,7 @@ However, in HDR mode, URP uses Paper White values to determine the brightness of
 
 As a result, Paper White values determine the brightness of UI elements in HDR mode, especially white elements, whose brightness matches Paper White values.
 
-## Configure HDR Tone Mapping settings in the Volume component
+## Configure HDR Tone Mapping settings
 
 You can select and adjust Tonemapping modes in the [Volume](./../Volumes.md) component settings. You can also adjust some aspects of your HDR Tonemapping configuration with a script (see the [HDROutputSettings API](#the-hdroutputsettings-api)).
 
@@ -85,6 +85,29 @@ This mode has fixed presets to target 1000, 2000, and 4000 nit displays. It is b
 
 The [HDROutputSettings](https://docs.unity3d.com/ScriptReference/HDROutputSettings.html) API makes it possible to enable and disable HDR mode, as well as query certain values (such as Paper White).
 
+## Offscreen Rendering
+
+When using offscreen rendering techniques, not all cameras in a scene output directly to the display. For example, when Unity is rendering the output to a Render Texture. In these situations, you use the output of the camera before rendering post-processing.
+
+Unity does not apply HDR Output processing to the output of cameras which use offscreen rendering techniques. This prevents HDR Output processing being applied twice to the camera's output.
+
+## SDR Rendering
+
+HDR Output relies on HDR Rendering to provide pixel values in the correct format for tone mapping and color encoding. The values after HDR tone mapping are in nits and exceed 1. This differs from SDR Rendering where the pixel values are between 0 and 1. As a result of this, the use of SDR Rendering with HDR Output can cause the rendered image to look underexposed or oversaturated.
+
+You can use SDR Rendering on a per-camera basis when you have HDR Output enabled, this can be useful for cameras that only render unlit materials, for example, for mini-map rendering. However, the use of SDR Rendering with HDR Output imposes some limitations.
+
+To ensure correct rendering when you use SDR Rendering with HDR Output, you must avoid any render passes that occur after post-processing. This includes URP's built-in effects which insert render passes after post-processing. As a result, SDR Rendering with HDR Output is incompatible with the following features:
+
+* [Upscaling](../universalrp-asset.md#quality)
+* [FXAA](../anti-aliasing.md#fast-approximate-anti-aliasing-fxaa)
+* [HDR Debug Views](#hdr-debug-views)
+* Custom passes which occur after post-processing
+
+### 2D Renderer
+
+To use SDR Rendering with HDR Output on the 2D Renderer, you must ensure post-processing is turned off.
+
 ## HDR Debug Views
 
 URP offers three debug views for HDR rendering. To access them, navigate to **Window** > **Analysis** > **Render Pipeline Debugger** > **Lighting** > **HDR Debug Mode**.
@@ -107,26 +130,12 @@ This debug view indicates the relationship between scene values and specific col
 
 This debug view uses a color coded gradient to indicate parts of the Scene that exceed the Paper White value. The gradient ranges from yellow to red. Yellow corresponds to **Paper White** +1, and red corresponds to **Max Nits**.
 
-## Known Limitations
+## Platform Compatibility
 
-HDR Output is not compatible with all platforms and features:
+URP only supports HDR Output on the following platforms:
 
-- [Platform Compatibility](#platform-compatibility)
-- [Feature Compatibility](#feature-compatibility)
-
-### Platform Compatibility
-
-URP supports HDR Output on the following platforms:
-
-- Windows with DirectX 12 or Vulkan
+- Windows with DirectX 11, DirectX 12 or Vulkan
 - MacOS with Metal
 - Consoles
 
-### Feature Compatibility
-
-HDR Output in URP is not compatible with the following effects:
-
-- [Fast Approximate Anti-aliasing](./../camera-component-reference.md#rendering)
-- [FidelityFX Super Resolution 1.0 Upscaling](./../universalrp-asset.md#quality)
-- [Film Grain](./../Post-Processing-Film-Grain.md)
-- [Dithering](./../camera-component-reference.md)
+> **Note**: DirectX 11 only supports HDR Output in the Player, it does not support HDR Output in the Editor.

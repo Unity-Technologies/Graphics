@@ -40,6 +40,7 @@ namespace UnityEditor.VFX.Block
                 expressions = expressions.Append(new VFXNamedExpression(new VFXExpressionGetBufferFromMainCamera(VFXCameraBufferTypes.Color), "Camera_colorBuffer"));
                 expressions = expressions.Append(new VFXNamedExpression(new VFXExpressionIsMainCameraOrthographic(), "Camera_orthographic"));
                 expressions = expressions.Append(new VFXNamedExpression(new VFXExpressionGetOrthographicSizeFromMainCamera(), "Camera_orthographicSize"));
+                expressions = expressions.Append(new VFXNamedExpression(new VFXExpressionExtractScaledPixelDimensionsFromMainCamera(), "Camera_scaledPixelDimensions"));
             }
 
             return expressions;

@@ -115,6 +115,7 @@ namespace UnityEditor.VFX
         }
     }
 
+    [VFXHelpURL("Context-Update")]
     [VFXInfo]
     class VFXBasicUpdate : VFXContext
     {

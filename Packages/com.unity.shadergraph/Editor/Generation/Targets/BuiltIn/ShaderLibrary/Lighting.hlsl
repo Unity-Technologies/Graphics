@@ -591,17 +591,10 @@ half3 SampleSHPixel(half3 L2Term, half3 normalWS)
     return SampleSH(normalWS);
 }
 
-#if defined(UNITY_DOTS_INSTANCING_ENABLED)
-#define LIGHTMAP_NAME unity_Lightmaps
-#define LIGHTMAP_INDIRECTION_NAME unity_LightmapsInd
-#define LIGHTMAP_SAMPLER_NAME samplerunity_Lightmaps
-#define LIGHTMAP_SAMPLE_EXTRA_ARGS lightmapUV, unity_LightmapIndex.x
-#else
 #define LIGHTMAP_NAME unity_Lightmap
 #define LIGHTMAP_INDIRECTION_NAME unity_LightmapInd
 #define LIGHTMAP_SAMPLER_NAME samplerunity_Lightmap
 #define LIGHTMAP_SAMPLE_EXTRA_ARGS lightmapUV
-#endif
 
 // Sample baked lightmap. Non-Direction and Directional if available.
 // Realtime GI is not supported.
@@ -645,9 +638,7 @@ half3 GlossyEnvironmentReflection(half3 reflectVector, half perceptualRoughness,
 #if !defined(_ENVIRONMENTREFLECTIONS_OFF)
     half mip = PerceptualRoughnessToMipmapLevel(perceptualRoughness);
     half4 encodedIrradiance = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, reflectVector, mip);
-
     half3 irradiance = DecodeHDREnvironment(encodedIrradiance, unity_SpecCube0_HDR);
-
     return irradiance * occlusion;
 #endif // GLOSSY_REFLECTIONS
 

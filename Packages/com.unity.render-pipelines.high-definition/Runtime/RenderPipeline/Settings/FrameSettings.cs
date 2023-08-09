@@ -859,6 +859,9 @@ namespace UnityEngine.Rendering.HighDefinition
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.FullResolutionCloudsForSky] &= sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.VolumetricClouds];
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Water] &= renderPipelineSettings.supportWater && !preview;
 
+            // Disable Lens Flares if they are unchecked in the HDRP Assets
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.LensFlareDataDriven] &= sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.LensFlareDataDriven] && renderPipelineSettings.supportDataDrivenLensFlare;
+            
             // We must take care of the scene view fog flags in the editor
             bool atmosphericScattering = sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.AtmosphericScattering] &= sceneViewFog && !preview;
 
@@ -891,8 +894,8 @@ namespace UnityEngine.Rendering.HighDefinition
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.LowResTransparent] &= renderPipelineSettings.lowresTransparentSettings.enabled && sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.TransparentObjects];
 
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.LightListAsync] &= sanitizedFrameSettings.asyncEnabled;
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SSRAsync] &= (sanitizedFrameSettings.asyncEnabled && !rayTracingActive);
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SSAOAsync] &= (sanitizedFrameSettings.asyncEnabled && !rayTracingActive);
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SSRAsync] &= sanitizedFrameSettings.asyncEnabled;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SSAOAsync] &= sanitizedFrameSettings.asyncEnabled;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ContactShadowsAsync] &= (sanitizedFrameSettings.asyncEnabled && !rayTracingActive);
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.VolumeVoxelizationsAsync] &= sanitizedFrameSettings.asyncEnabled;
 

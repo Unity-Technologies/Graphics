@@ -2,6 +2,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-LookAT")]
     [VFXInfo(category = "Math/Vector")]
     class LookAt : VFXOperator
     {

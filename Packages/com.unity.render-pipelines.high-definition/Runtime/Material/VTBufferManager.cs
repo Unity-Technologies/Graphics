@@ -38,15 +38,13 @@ namespace  UnityEngine.Rendering.HighDefinition
         VirtualTexturing.Resolver   m_Resolver = new VirtualTexturing.Resolver();
         VirtualTexturing.Resolver   m_ResolverMsaa = new VirtualTexturing.Resolver();
         Vector2                     m_ResolverScale = new Vector2(1.0f / (float)kResolveScaleFactor, 1.0f / (float)kResolveScaleFactor);
-        RTHandle                    m_LowresResolver;
+        RTHandle                    m_LowresResolver; // This texture needs to be persistent because we do async gpu readback on it.
         ComputeShader               m_DownSampleCS = null;
         int                         m_DownsampleKernel;
         int                         m_DownsampleKernelMSAA;
 
         public VTBufferManager()
         {
-            // This texture needs to be persistent because we do async gpu readback on it.
-            m_LowresResolver = RTHandles.Alloc(m_ResolverScale, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, enableRandomWrite: true, autoGenerateMips: false, name: "VTFeedback lowres");
         }
 
         public void Cleanup()
@@ -60,6 +58,11 @@ namespace  UnityEngine.Rendering.HighDefinition
 
         public void BeginRender(HDCamera hdCamera)
         {
+            // Lazy creation because creating this texture in the constructor can happen outside of proper RTHandleSystem initialization
+            // This can happen for example when cinemachine gets the HDCamera and ends up constructing VTBufferManager before HDRP is even initialized.
+            if (m_LowresResolver == null)
+                m_LowresResolver = RTHandles.Alloc(m_ResolverScale, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, enableRandomWrite: true, autoGenerateMips: false, name: "VTFeedback lowres");
+
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.VirtualTexturing))
             {
                 int width = hdCamera.actualWidth;

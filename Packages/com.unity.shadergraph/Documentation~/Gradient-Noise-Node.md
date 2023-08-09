@@ -2,23 +2,23 @@
 
 ## Description
 
-Generates a gradient, or [Perlin](https://en.wikipedia.org/wiki/Perlin_noise), noise based on input **UV**. The scale of the generated noise is controlled by input **Scale**.
+Generates a gradient, or [Perlin](https://en.wikipedia.org/wiki/Perlin_noise), noise based on input **UV**. The scale of the generated noise is controlled by input **Scale**. In terms of performance cost, Gradient Noise node can be slightly more computationally intensive than sampling a texture map.
 
-You can also choose to use two different hashing methods for calculating the noise. As of Unity version 2021.2, the Gradient Noise node defaults to the **Deterministic** hash, to ensure consistent results for noise generation across platforms.
+You can also choose to use two different hashing methods for calculating the noise. As of Unity version 2021.2, the Gradient Noise node defaults to the **Deterministic** hash, to ensure consistent results for noise generation across platforms. Because the **UV** value is used as the seed for the noise generation, you can offset, scale, or distort the **UV** value to generate different noise patterns.
 
 ## Ports
 
-| Name        | Direction           | Type  | Binding | Description |
-|:------------ |:-------------|:-----|:---|:---|
-| UV      | Input | Vector 2 | UV | Input UV value |
-| Scale      | Input | Float    | None | Noise scale |
-| Out | Output      |    Float    | None | Output value |
+| Name  | Direction | Type     | Binding | Description    |
+|:------|:----------|:---------|:--------|:---------------|
+| UV    | Input     | Vector 2 | UV      | Input UV value |
+| Scale | Input     | Float    | None    | Noise scale    |
+| Out   | Output    | Float    | None    | Output value in the range 0.0 to 1.0  |
 
 ## Controls
 
-| Name        | Type           | Options  | Description |
-|:------------ |:-------------|:-----|:---|
-| Hash Type      | Dropdown | Deterministic, LegacyMod | Selects the hash function used to generate random numbers for noise generation. |
+| Name      | Type     | Options                  | Description |
+|:----------|:---------|:-------------------------|:------------|
+| Hash Type | Dropdown | Deterministic, LegacyMod | Selects the hash function used to generate random numbers for noise generation. |
 
 
 ## Generated Code Example

@@ -1,8 +1,6 @@
-using System;
-using UnityEngine;
-
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-SquareRoot")]
     [VFXInfo(category = "Math/Arithmetic")]
     class SquareRoot : VFXOperatorNumericUniform
     {

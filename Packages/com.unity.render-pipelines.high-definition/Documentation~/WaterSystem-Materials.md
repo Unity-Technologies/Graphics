@@ -20,7 +20,7 @@ As you increase the values of the first three properties in this section of the 
 ![](Images/watersystem-directlighttip.JPG)
 
 ## Custom Materials
-To create a custom water Material, copy the default water Material and adjust that copy. The [water ShaderGraph](WaterSystem-ShaderGraph.md) documentation provides more information about which properties you can adjust.
+To create a custom water Material, copy the default water Material and adjust that copy. The [water ShaderGraph](master-stack-water.md) documentation provides more information about which properties you can adjust.
 
 ## Additional resources
 * [Foam in the water system](WaterSystem-foam.md)

@@ -120,6 +120,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 supportWater = false,
                 waterSimulationResolution = WaterSimulationResolution.Medium128,
                 waterCPUSimulation = false,
+                supportDataDrivenLensFlare = true,
                 planarReflectionResolution = new PlanarReflectionAtlasResolutionScalableSetting(new[] { PlanarReflectionAtlasResolution.Resolution256,
                                                                                                         PlanarReflectionAtlasResolution.Resolution1024,
                                                                                                         PlanarReflectionAtlasResolution.Resolution2048 }, ScalableSettingSchemaId.With3Levels),
@@ -368,6 +369,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>Support motion vectors.</summary>
         public bool supportMotionVectors;
+        
+        // Post Processing
+        /// <summary>Support Data Driven Lens Flare.</summary>
+        public bool supportDataDrivenLensFlare;
 
         /// <summary>Support runtime debug display.</summary>
         public bool supportRuntimeDebugDisplay

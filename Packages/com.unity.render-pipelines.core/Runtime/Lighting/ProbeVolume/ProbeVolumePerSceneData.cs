@@ -161,7 +161,7 @@ namespace UnityEngine.Rendering
 
         internal void QueueAssetLoading()
         {
-            if (asset == null || !ResolvePerScenarioCellData())
+            if (asset == null || asset.IsInvalid() || !ResolvePerScenarioCellData())
                 return;
 
             var refVol = ProbeReferenceVolume.instance;
