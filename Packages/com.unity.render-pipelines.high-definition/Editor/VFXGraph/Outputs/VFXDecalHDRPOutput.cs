@@ -29,7 +29,6 @@ namespace UnityEditor.VFX.HDRP
         {
             base.OnEnable();
             blendMode = BlendMode.Opaque;
-            sort = SortMode.Off;
         }
 
         public override IEnumerable<VFXAttributeInfo> attributes
@@ -107,11 +106,13 @@ namespace UnityEditor.VFX.HDRP
 
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField,
-         Tooltip("Specifies the layer mask of the decal.")]
+         Tooltip("Specify the layer mask for the decals. Unity renders decals on all meshes where at least one Rendering Layer value matches.")]
         private DecalLayerEnum decalLayer = DecalLayerEnum.DecalLayerDefault;
 
+        private bool affectsAOAndHasMaskMap => affectAmbientOcclusion && useMaskMap;
+        public override bool HasSorting() => (sort == SortMode.On) || (sort == SortMode.Auto);
         public override bool supportsUV { get { return GetOrRefreshShaderGraphObject() == null; } }
-
+        protected override bool useNormalScale => false;
 
         public class FadeFactorProperty
         {
@@ -126,6 +127,12 @@ namespace UnityEditor.VFX.HDRP
             public Vector2 angleFade = new Vector2(0.0f, 180.0f);
         }
 
+        public class NormalAlphaProperty
+        {
+            [Tooltip("Controls the blending factor of the normal map."), Range(0, 1)]
+            public float normalAlpha = 1.0f;
+        }
+
         protected IEnumerable<VFXPropertyWithValue> materialProperties
         {
             get
@@ -138,12 +145,10 @@ namespace UnityEditor.VFX.HDRP
                             : "Controls the metallic of the decal."),
                         new RangeAttribute(0, 1)), 0.0f);
 
-                if (affectAmbientOcclusion)
+                if (affectsAOAndHasMaskMap)
                     yield return new VFXPropertyWithValue(new VFXProperty(typeof(float),
                         "ambientOcclusion",
-                        new TooltipAttribute(useMaskMap
-                            ? "Controls the scale factor for the particle’s ambient occlusion."
-                            : "Controls the ambient occlusion of the decal."),
+                        new TooltipAttribute("Controls the scale factor for the particle’s ambient occlusion."),
                         new RangeAttribute(0, 1)), 1.0f);
 
                 if (affectSmoothness)
@@ -162,12 +167,16 @@ namespace UnityEditor.VFX.HDRP
             {
                 var properties = Enumerable.Empty<VFXPropertyWithValue>();
 
-                properties = properties.Concat(PropertiesFromType("FadeFactorProperty"));
-                properties = properties.Concat(PropertiesFromType("AngleFadeProperty"));
+                properties = properties.Concat(PropertiesFromType(nameof(FadeFactorProperty)));
+                properties = properties.Concat(PropertiesFromType(nameof(AngleFadeProperty)));
 
-                properties = properties.Concat(base.inputProperties);
-                properties =
-                    properties.Concat(materialProperties);
+                foreach (var prop in base.inputProperties)
+                {
+                    properties = properties.Append(prop);
+                    if(prop.property.name ==  "normalMap")
+                        properties = properties.Concat(PropertiesFromType(nameof(NormalAlphaProperty)));
+                }
+                properties = properties.Concat(materialProperties);
                 return properties;
             }
         }
@@ -180,17 +189,19 @@ namespace UnityEditor.VFX.HDRP
 
             if (GetOrRefreshShaderGraphObject() == null)
             {
-                yield return slotExpressions.First(o => o.name == "fadeFactor");
+                yield return slotExpressions.First(o => o.name == nameof(FadeFactorProperty.fadeFactor));
                 if (affectMetal)
                     yield return slotExpressions.First(o => o.name == "metallic");
-                if (affectAmbientOcclusion)
+                if (affectsAOAndHasMaskMap)
                     yield return slotExpressions.First(o => o.name == "ambientOcclusion");
                 if (affectSmoothness)
                     yield return slotExpressions.First(o => o.name == "smoothness");
 
 
-                var angleFadeExp = slotExpressions.First(o => o.name == "angleFade");
-                yield return new VFXNamedExpression(AngleFadeSimplification(angleFadeExp.exp), "angleFade");
+                var angleFadeExp = slotExpressions.First(o => o.name == nameof(AngleFadeProperty.angleFade));
+                yield return new VFXNamedExpression(AngleFadeSimplification(angleFadeExp.exp), nameof(AngleFadeProperty.angleFade));
+                if (useNormalMap)
+                    yield return slotExpressions.First(o => o.name == nameof(NormalAlphaProperty.normalAlpha));
                 yield return new VFXNamedExpression(VFXValue.Constant((uint)decalLayer), "decalLayerMask");
             }
         }
@@ -265,7 +276,7 @@ namespace UnityEditor.VFX.HDRP
 
                 if (affectMetal)
                     yield return "AFFECT_METALLIC";
-                if (affectAmbientOcclusion)
+                if (affectsAOAndHasMaskMap)
                     yield return "AFFECT_AMBIENT_OCCLUSION";
                 if (affectSmoothness)
                     yield return "AFFECT_SMOOTHNESS";
@@ -293,7 +304,7 @@ namespace UnityEditor.VFX.HDRP
                         maskString += "R";
                     }
 
-                    if (affectAmbientOcclusion)
+                    if (affectsAOAndHasMaskMap)
                     {
                         maskString += "G";
                     }
@@ -314,7 +325,7 @@ namespace UnityEditor.VFX.HDRP
                         maskString += "R";
                     }
 
-                    if (affectAmbientOcclusion)
+                    if (affectsAOAndHasMaskMap)
                     {
                         maskString += "G";
                     }
@@ -340,6 +351,29 @@ namespace UnityEditor.VFX.HDRP
                     yield return new KeyValuePair<string, VFXShaderWriter>("${VFXDecalColorMask" + i + "}",
                         GetDecalMaskColor(i));
                 }
+            }
+        }
+
+        public override void Sanitize(int version)
+        {
+            base.Sanitize(version);
+            VFXSlot oldNormalScaleSlot = null;
+            VFXSlot newNormalAlphaSlot = null;
+            foreach (var slot in inputSlots)
+            {
+                if (slot.name == "normalScale")
+                {
+                    oldNormalScaleSlot = slot;
+                }
+
+                if (slot.name == "normalAlpha")
+                    newNormalAlphaSlot = slot;
+            }
+
+            if (oldNormalScaleSlot != null && newNormalAlphaSlot != null)
+            {
+                VFXSlot.CopyLinksAndValue(newNormalAlphaSlot, oldNormalScaleSlot, true);
+                oldNormalScaleSlot.UnlinkAll(true, true);
             }
         }
 

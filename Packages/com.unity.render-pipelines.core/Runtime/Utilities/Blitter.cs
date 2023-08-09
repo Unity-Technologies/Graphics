@@ -155,8 +155,6 @@ namespace UnityEngine.Rendering
         /// </summary>
         public static void Cleanup()
         {
-            Debug.Log("Cleanup Blit");
-
             CoreUtils.Destroy(s_Blit);
             s_Blit = null;
             CoreUtils.Destroy(s_BlitColorAndDepth);

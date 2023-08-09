@@ -21,8 +21,18 @@ namespace UnityEditor.ShaderGraph
 
             public static void ConcretizeGraph(GraphData graph)
             {
-                ConcretizeProperties(graph);
-                GraphDataUtils.ApplyActionLeafFirst(graph, ConcretizeNode);
+                graph.graphIsConcretizing = true;
+                try
+                {
+                    ConcretizeProperties(graph);
+                    GraphDataUtils.ApplyActionLeafFirst(graph, ConcretizeNode);
+                }
+                catch (System.Exception e)
+                {
+                    graph.graphIsConcretizing = false;
+                    throw e;
+                }
+                graph.graphIsConcretizing = false;
             }
         }
     }

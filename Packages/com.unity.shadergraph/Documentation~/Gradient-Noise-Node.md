@@ -2,15 +2,16 @@
 
 ## Description
 
-Generates a gradient, or [Perlin](https://en.wikipedia.org/wiki/Perlin_noise), noise based on input **UV**. The scale of the generated noise is controlled by input **Scale**.
+Generates a gradient, or [Perlin](https://en.wikipedia.org/wiki/Perlin_noise), noise based on input **UV**. The scale of the generated noise is controlled by input **Scale**. In terms of performance cost, Gradient Noise node can be slightly more computationally intensive than sampling a texture map. Because the **UV** value is used as the seed for the noise generation, you can offset, scale, or distort the **UV** value to generate different noise patterns.
 
 ## Ports
 
-| Name        | Direction           | Type  | Binding | Description |
-|:------------ |:-------------|:-----|:---|:---|
-| UV      | Input | Vector 2 | UV | Input UV value |
-| Scale      | Input | Float    | None | Noise scale |
-| Out | Output      |    Float    | None | Output value |
+| Name  | Direction | Type     | Binding | Description    |
+|:------|:----------|:---------|:--------|:---------------|
+| UV    | Input     | Vector 2 | UV      | Input UV value |
+| Scale | Input     | Float    | None    | Noise scale    |
+| Out   | Output    | Float    | None    | Output value in the range 0.0 to 1.0  |
+
 
 ## Generated Code Example
 

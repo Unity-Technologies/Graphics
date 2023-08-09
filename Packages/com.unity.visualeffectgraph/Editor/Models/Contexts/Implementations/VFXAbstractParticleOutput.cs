@@ -140,10 +140,11 @@ namespace UnityEditor.VFX
                     features |= VFXOutputUpdate.Features.MotionVector;
                 if (HasComputeCulling())
                     features |= VFXOutputUpdate.Features.Culling;
-                if (HasSorting() && VFXOutputUpdate.HasFeature(features, VFXOutputUpdate.Features.IndirectDraw))
-                    features |= VFXOutputUpdate.Features.Sort;
                 if (HasFrustumCulling())
                     features |= VFXOutputUpdate.Features.FrustumCulling;
+                if (HasSorting() && VFXOutputUpdate.HasFeature(features, VFXOutputUpdate.Features.IndirectDraw))
+                    features |= VFXOutputUpdate.Features.Sort;
+
                 return features;
             }
         }
