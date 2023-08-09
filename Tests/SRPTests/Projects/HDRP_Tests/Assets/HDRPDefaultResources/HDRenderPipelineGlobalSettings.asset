@@ -12,14 +12,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 781cc897cf8675041a751163b51f97dd, type: 3}
   m_Name: HDRenderPipelineGlobalSettings
   m_EditorClassIdentifier: 
+  m_Settings:
+    m_SettingsList:
+    - rid: 1126231320590548992
+    - rid: 1126231320590548993
+    - rid: 1126231320590548994
+    - rid: 1126231320590548995
+    - rid: 1126231320590548996
+    - rid: 1126231320590548997
+    - rid: 1126231320590548998
+    - rid: 1126231320590548999
+    - rid: 1126231320590549000
+    - rid: 1126231320590549001
+    m_RuntimeSettings: []
   m_DefaultVolumeProfile: {fileID: 11400000, guid: aea7ff43876258748be47d8751e0e9d5,
     type: 2}
   m_LookDevVolumeProfile: {fileID: 11400000, guid: 254c4fe87beb7be4fa72e1681edbed02,
     type: 2}
-  m_RenderingPathDefaultCameraFrameSettings:
+  m_ObsoleteRenderingPathDefaultCameraFrameSettings:
     bitDatas:
       data1: 1265449290956637
-      data2: 4575658777260261400
+      data2: 4575659395735552024
     lodBias: 1
     lodBiasMode: 0
     lodBiasQualityLevel: 0
@@ -32,7 +45,7 @@ MonoBehaviour:
     sssCustomDownsampleSteps: 0
     msaaMode: 1
     materialQuality: 0
-  m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings:
+  m_ObsoleteRenderingPathDefaultBakedOrCustomReflectionFrameSettings:
     bitDatas:
       data1: 139713129348893
       data2: 4539628424389459992
@@ -48,7 +61,7 @@ MonoBehaviour:
     sssCustomDownsampleSteps: 0
     msaaMode: 1
     materialQuality: 0
-  m_RenderingPathDefaultRealtimeReflectionFrameSettings:
+  m_ObsoleteRenderingPathDefaultRealtimeReflectionFrameSettings:
     bitDatas:
       data1: 140065316601629
       data2: 4539628424389459992
@@ -64,9 +77,87 @@ MonoBehaviour:
     sssCustomDownsampleSteps: 0
     msaaMode: 1
     materialQuality: 0
+  m_RenderingPath:
+    m_Version: 0
+    m_Camera:
+      bitDatas:
+        data1: 1265449290956637
+        data2: 4575659395735552024
+      lodBias: 1
+      lodBiasMode: 0
+      lodBiasQualityLevel: 0
+      maximumLODLevel: 0
+      maximumLODLevelMode: 0
+      maximumLODLevelQualityLevel: 0
+      sssQualityMode: 0
+      sssQualityLevel: 0
+      sssCustomSampleBudget: 20
+      sssCustomDownsampleSteps: 0
+      msaaMode: 1
+      materialQuality: 0
+    m_CustomOrBakedReflection:
+      bitDatas:
+        data1: 139713129348893
+        data2: 4539628424389459992
+      lodBias: 1
+      lodBiasMode: 0
+      lodBiasQualityLevel: 0
+      maximumLODLevel: 0
+      maximumLODLevelMode: 0
+      maximumLODLevelQualityLevel: 0
+      sssQualityMode: 0
+      sssQualityLevel: 0
+      sssCustomSampleBudget: 20
+      sssCustomDownsampleSteps: 0
+      msaaMode: 1
+      materialQuality: 0
+    m_RealtimeReflection:
+      bitDatas:
+        data1: 140065316601629
+        data2: 4539628424389459992
+      lodBias: 1
+      lodBiasMode: 0
+      lodBiasQualityLevel: 0
+      maximumLODLevel: 0
+      maximumLODLevelMode: 0
+      maximumLODLevelQualityLevel: 0
+      sssQualityMode: 0
+      sssQualityLevel: 0
+      sssCustomSampleBudget: 20
+      sssCustomDownsampleSteps: 0
+      msaaMode: 1
+      materialQuality: 0
   m_RenderPipelineResources: {fileID: 11400000, guid: 3ce144cff5783da45aa5d4fdc2da14b7,
     type: 2}
   m_RenderPipelineRayTracingResources: {fileID: 0}
+  m_CustomPostProcessOrdersSettings:
+    m_Version: 0
+    m_BeforeTransparentCustomPostProcesses:
+      m_InjectionPoint: 0
+      m_CustomPostProcessTypesAsString:
+      - GreenPP, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+    m_BeforeTAACustomPostProcesses:
+      m_InjectionPoint: 3
+      m_CustomPostProcessTypesAsString:
+      - DepthTAA, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+    m_BeforePostProcessCustomPostProcesses:
+      m_InjectionPoint: 1
+      m_CustomPostProcessTypesAsString:
+      - RedPP, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      - CustomPP1_8210, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+    m_AfterPostProcessBlursCustomPostProcesses:
+      m_InjectionPoint: 4
+      m_CustomPostProcessTypesAsString:
+      - AfterPPBlurs, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+    m_AfterPostProcessCustomPostProcesses:
+      m_InjectionPoint: 2
+      m_CustomPostProcessTypesAsString:
+      - BluePP, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      - CustomPostProcessMotionVector, Assembly-CSharp, Version=0.0.0.0, Culture=neutral,
+        PublicKeyToken=null
+      - CustomPP2_8210, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      - ScreenCoordPostProcess, Assembly-CSharp, Version=0.0.0.0, Culture=neutral,
+        PublicKeyToken=null
   beforeTransparentCustomPostProcesses:
   - GreenPP, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
   beforePostProcessCustomPostProcesses:
@@ -125,21 +216,77 @@ MonoBehaviour:
   useDLSSCustomProjectId: 0
   supportProbeVolumes: 1
   autoRegisterDiffusionProfiles: 0
+  analyticDerivativeEmulation: 0
+  analyticDerivativeDebugOutput: 0
   apvScenesData:
     m_ObsoleteSerializedBakingSets: []
-    serializedBounds:
-    - sceneGUID: fc784678bf952de4482e78aea61ccdc8
-      bounds:
-        m_Center: {x: 0, y: 0, z: 0}
-        m_Extent: {x: 81, y: 81, z: 81}
-    serializedHasVolumes:
-    - sceneGUID: fc784678bf952de4482e78aea61ccdc8
-      hasProbeVolumes: 1
+    sceneToBakingSet:
+      m_Keys:
+      - fc784678bf952de4482e78aea61ccdc8
+      m_Values:
+      - {fileID: 11400000, guid: 503bf6d995e8a4043ba60c02a674d0d3, type: 2}
     bakingSets:
     - {fileID: 11400000, guid: 503bf6d995e8a4043ba60c02a674d0d3, type: 2}
-    m_LightingScenario: Default
-  m_Version: 7
+    sceneBounds:
+      m_Keys:
+      - fc784678bf952de4482e78aea61ccdc8
+      m_Values:
+      - m_Center: {x: 0, y: 0, z: 0}
+        m_Extent: {x: 81, y: 81, z: 81}
+    hasProbeVolumes:
+      m_Keys:
+      - fc784678bf952de4482e78aea61ccdc8
+      m_Values: 01
+  m_Version: 11
+  m_ShaderStrippingSetting:
+    m_Version: 0
+    m_ExportShaderVariants: 1
+    m_ShaderVariantLogLevel: 0
+    m_StripRuntimeDebugShaders: 1
   m_ShaderVariantLogLevel: 0
   m_SupportRuntimeDebugDisplay: 0
   m_ExportShaderVariants: 1
   m_StripDebugVariants: 1
+  references:
+    version: 2
+    RefIds:
+    - rid: 1126231320590548992
+      type: {class: RenderPipelineGlobalSettingsEditorTests/B, ns: , asm: Unity.RenderPipelines.Core.Editor.Tests}
+      data:
+        name: B
+    - rid: 1126231320590548993
+      type: {class: RenderPipelineGlobalSettingsEditorTests/I, ns: , asm: Unity.RenderPipelines.Core.Editor.Tests}
+      data:
+        name: I
+    - rid: 1126231320590548994
+      type: {class: RenderPipelineGlobalSettingsEditorTests/C, ns: , asm: Unity.RenderPipelines.Core.Editor.Tests}
+      data:
+        name: C
+    - rid: 1126231320590548995
+      type: {class: RenderPipelineGlobalSettingsEditorTests/A, ns: , asm: Unity.RenderPipelines.Core.Editor.Tests}
+      data:
+        name: A
+    - rid: 1126231320590548996
+      type: {class: RenderPipelineGlobalSettingsEditorTests/F, ns: , asm: Unity.RenderPipelines.Core.Editor.Tests}
+      data:
+        name: F
+    - rid: 1126231320590548997
+      type: {class: RenderPipelineGlobalSettingsEditorTests/G, ns: , asm: Unity.RenderPipelines.Core.Editor.Tests}
+      data:
+        name: G
+    - rid: 1126231320590548998
+      type: {class: RenderPipelineGlobalSettingsEditorTests/Base, ns: , asm: Unity.RenderPipelines.Core.Editor.Tests}
+      data:
+        name: Base
+    - rid: 1126231320590548999
+      type: {class: RenderPipelineGlobalSettingsEditorTests/H, ns: , asm: Unity.RenderPipelines.Core.Editor.Tests}
+      data:
+        name: H
+    - rid: 1126231320590549000
+      type: {class: RenderPipelineGlobalSettingsEditorTests/D, ns: , asm: Unity.RenderPipelines.Core.Editor.Tests}
+      data:
+        name: D
+    - rid: 1126231320590549001
+      type: {class: RenderPipelineGlobalSettingsEditorTests/E, ns: , asm: Unity.RenderPipelines.Core.Editor.Tests}
+      data:
+        name: E

@@ -10,14 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0cf1dab834d4ec34195b920ea7bbf9ec, type: 3}
-  m_Name: HDRPAsset_Fullscreen
+  m_Name: HDRPAssetWithAPV
   m_EditorClassIdentifier: 
   m_RenderPipelineSettings:
     supportShadowMask: 1
     supportSSR: 1
     supportSSRTransparent: 0
     supportSSAO: 1
-    supportSSGI: 0
+    supportSSGI: 1
     supportSubsurfaceScattering: 1
     sssSampleBudget:
       m_Values: 140000002800000050000000
@@ -28,16 +28,16 @@ MonoBehaviour:
       m_SchemaId:
         m_Id: With3Levels
     supportVolumetrics: 1
-    supportVolumetricClouds: 0
+    supportVolumetricClouds: 1
     supportLightLayers: 0
     renderingLayerMaskBuffer: 0
     supportWater: 0
     waterSimulationResolution: 128
-    supportWaterExclusion: 0
-    supportWaterDeformation: 0
+    supportWaterExclusion: 1
+    supportWaterDeformation: 1
     deformationAtlasSize: 512
     maximumDeformerCount: 64
-    supportWaterFoam: 0
+    supportWaterFoam: 1
     foamAtlasSize: 512
     waterCPUSimulation: 0
     supportComputeThickness: 0
@@ -49,12 +49,12 @@ MonoBehaviour:
     supportTransparentBackface: 1
     supportTransparentDepthPrepass: 1
     supportTransparentDepthPostpass: 1
-    colorBufferFormat: 48
+    colorBufferFormat: 74
     supportCustomPass: 1
     customBufferFormat: 12
     supportedLitShaderMode: 3
     planarReflectionResolution:
-      m_Values: 000100000004000000040000
+      m_Values: 000100000002000000040000
       m_SchemaId:
         m_Id: With3Levels
     cubeReflectionResolution:
@@ -62,23 +62,25 @@ MonoBehaviour:
       m_SchemaId:
         m_Id: With3Levels
     supportDecals: 1
-    supportDecalLayers: 0
+    supportDecalLayers: 1
     supportSurfaceGradient: 0
     decalNormalBufferHP: 0
-    supportHighQualityLineRendering: 0
+    supportHighQualityLineRendering: 1
     highQualityLineRenderingMemoryBudget: 128
     msaaSampleCount: 1
     supportMotionVectors: 1
-    supportRuntimeAOVAPI: 0
+    supportScreenSpaceLensFlare: 1
+    supportDataDrivenLensFlare: 1
     supportDitheringCrossFade: 0
+    supportRuntimeAOVAPI: 0
     supportTerrainHole: 0
-    lightProbeSystem: 0
+    lightProbeSystem: 1
     oldLightProbeSystem: 0
     probeVolumeMemoryBudget: 1024
     supportProbeVolumeGPUStreaming: 0
     supportProbeVolumeDiskStreaming: 0
     probeVolumeSHBands: 1
-    supportProbeVolumeScenarios: 0
+    supportProbeVolumeScenarios: 1
     supportProbeVolumeScenarioBlending: 1
     probeVolumeBlendingMemoryBudget: 128
     supportRayTracing: 0
@@ -107,7 +109,7 @@ MonoBehaviour:
       maxDirectionalLightsOnScreen: 16
       maxPunctualLightsOnScreen: 512
       maxAreaLightsOnScreen: 64
-      maxCubeReflectionOnScreen: 62
+      maxCubeReflectionOnScreen: 64
       maxPlanarReflectionOnScreen: 2
       maxDecalsOnScreen: 512
       maxLightsPerClusterCell: 8
@@ -116,7 +118,8 @@ MonoBehaviour:
     hdShadowInitParams:
       maxShadowRequests: 16
       directionalShadowsDepthBits: 32
-      shadowFilteringQuality: 2
+      punctualShadowFilteringQuality: 2
+      directionalShadowFilteringQuality: 2
       areaShadowFilteringQuality: 0
       punctualLightShadowAtlas:
         shadowAtlasResolution: 4096
@@ -151,13 +154,17 @@ MonoBehaviour:
       drawDistance: 1000
       atlasWidth: 1024
       atlasHeight: 1024
+      transparentTextureResolution:
+        m_Values: 000100000002000000040000
+        m_SchemaId:
+          m_Id: With3Levels
       perChannelMask: 1
     postProcessSettings:
       m_LutSize: 32
       lutFormat: 48
       bufferFormat: 74
     dynamicResolutionSettings:
-      enabled: 0
+      enabled: 1
       useMipBias: 0
       enableDLSS: 0
       DLSSPerfQualitySetting: 0
@@ -169,9 +176,9 @@ MonoBehaviour:
       maxPercentage: 100
       minPercentage: 100
       dynResType: 1
-      upsampleFilter: 1
-      forceResolution: 0
-      forcedPercentage: 100
+      upsampleFilter: 4
+      forceResolution: 1
+      forcedPercentage: 70
       lowResTransparencyMinimumThreshold: 0
       rayTracingHalfResThreshold: 50
     lowresTransparentSettings:
@@ -281,8 +288,14 @@ MonoBehaviour:
       RTRFullResolution: 000001
       RTRRayMaxIterations: 200000003000000040000000
       RTRDenoise: 010101
-      RTRDenoiserRadius: 080000000c00000010000000
-      RTRSmoothDenoising: 010000
+      RTRDenoiserRadiusDimmer:
+      - 0.75
+      - 0.75
+      - 1
+      RTRDenoiserAntiFlicker:
+      - 1
+      - 1
+      - 1
       Fog_ControlMode: 000000000000000000000000
       Fog_Budget:
       - 0.166
@@ -316,12 +329,14 @@ MonoBehaviour:
   diffusionProfileSettings: {fileID: 0}
   m_VolumeProfile: {fileID: 0}
   virtualTexturingSettings:
-    streamingCpuCacheSizeInMegaBytes: 256
+    streamingCpuCacheSizeInMegaBytes: 80
+    streamingMipPreloadTexturesPerFrame: 0
+    streamingPreloadMipCount: 1
     streamingGpuCacheSettings:
     - format: 0
       sizeInMegaBytes: 128
   m_UseRenderGraph: 1
-  m_Version: 23
+  m_Version: 24
   m_ObsoleteFrameSettings:
     overrides: 0
     enableShadow: 0

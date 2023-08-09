@@ -10,12 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0cf1dab834d4ec34195b920ea7bbf9ec, type: 3}
-  m_Name: HDRP_Test_LineRendering
+  m_Name: HDRPAsset_Fwd
   m_EditorClassIdentifier: 
   m_RenderPipelineSettings:
     supportShadowMask: 1
     supportSSR: 1
-    supportSSRTransparent: 1
+    supportSSRTransparent: 0
     supportSSAO: 1
     supportSSGI: 0
     supportSubsurfaceScattering: 1
@@ -28,14 +28,15 @@ MonoBehaviour:
       m_SchemaId:
         m_Id: With3Levels
     supportVolumetrics: 1
-    supportVolumetricClouds: 0
-    supportLightLayers: 1
-    renderingLayerMaskBuffer: 1
+    supportVolumetricClouds: 1
+    supportLightLayers: 0
+    renderingLayerMaskBuffer: 0
     supportWater: 0
     waterSimulationResolution: 128
     supportWaterExclusion: 0
     supportWaterDeformation: 0
     deformationAtlasSize: 512
+    maximumDeformerCount: 64
     supportWaterFoam: 0
     foamAtlasSize: 512
     waterCPUSimulation: 0
@@ -51,13 +52,13 @@ MonoBehaviour:
     colorBufferFormat: 74
     supportCustomPass: 1
     customBufferFormat: 12
-    supportedLitShaderMode: 3
+    supportedLitShaderMode: 1
     planarReflectionResolution:
-      m_Values: 000100000004000000080000
+      m_Values: 000100000002000000040000
       m_SchemaId:
         m_Id: With3Levels
     cubeReflectionResolution:
-      m_Values: 800000000001000000020000
+      m_Values: 000100000002000000040000
       m_SchemaId:
         m_Id: With3Levels
     supportDecals: 1
@@ -65,14 +66,19 @@ MonoBehaviour:
     supportSurfaceGradient: 0
     decalNormalBufferHP: 0
     supportHighQualityLineRendering: 1
+    highQualityLineRenderingMemoryBudget: 128
     msaaSampleCount: 1
     supportMotionVectors: 1
-    supportRuntimeAOVAPI: 0
+    supportScreenSpaceLensFlare: 1
+    supportDataDrivenLensFlare: 1
     supportDitheringCrossFade: 0
-    supportTerrainHole: 1
+    supportRuntimeAOVAPI: 0
+    supportTerrainHole: 0
     lightProbeSystem: 0
+    oldLightProbeSystem: 0
     probeVolumeMemoryBudget: 1024
-    supportProbeVolumeStreaming: 0
+    supportProbeVolumeGPUStreaming: 0
+    supportProbeVolumeDiskStreaming: 0
     probeVolumeSHBands: 1
     supportProbeVolumeScenarios: 0
     supportProbeVolumeScenarioBlending: 1
@@ -81,13 +87,13 @@ MonoBehaviour:
     supportVFXRayTracing: 0
     supportedRayTracingMode: 3
     lightLoopSettings:
-      cookieAtlasSize: 8192
+      cookieAtlasSize: 1024
       cookieFormat: 74
       cookieAtlasLastValidMip: 0
-      cookieTexArraySize: 1
-      planarReflectionAtlasSize: 2048
-      reflectionProbeCacheSize: 128
-      reflectionCubemapSize: 128
+      cookieTexArraySize: 16
+      planarReflectionAtlasSize: 1024
+      reflectionProbeCacheSize: 16
+      reflectionCubemapSize: 256
       maxEnvLightsOnScreen: 64
       reflectionCacheCompressed: 0
       reflectionProbeFormat: 74
@@ -103,41 +109,42 @@ MonoBehaviour:
       maxDirectionalLightsOnScreen: 16
       maxPunctualLightsOnScreen: 512
       maxAreaLightsOnScreen: 64
-      maxCubeReflectionOnScreen: 48
-      maxPlanarReflectionOnScreen: 16
+      maxCubeReflectionOnScreen: 64
+      maxPlanarReflectionOnScreen: 2
       maxDecalsOnScreen: 512
       maxLightsPerClusterCell: 8
       maxLocalVolumetricFogSize: 32
       maxLocalVolumetricFogOnScreen: 64
     hdShadowInitParams:
-      maxShadowRequests: 128
+      maxShadowRequests: 16
       directionalShadowsDepthBits: 32
-      shadowFilteringQuality: 1
+      punctualShadowFilteringQuality: 2
+      directionalShadowFilteringQuality: 2
       areaShadowFilteringQuality: 0
       punctualLightShadowAtlas:
         shadowAtlasResolution: 4096
         shadowAtlasDepthBits: 32
-        useDynamicViewportRescale: 0
+        useDynamicViewportRescale: 1
       areaLightShadowAtlas:
         shadowAtlasResolution: 4096
         shadowAtlasDepthBits: 32
-        useDynamicViewportRescale: 0
+        useDynamicViewportRescale: 1
       cachedPunctualLightShadowAtlas: 2048
       cachedAreaLightShadowAtlas: 1024
       allowDirectionalMixedCachedShadows: 0
       shadowResolutionDirectional:
-        m_Values: 00010000000200000004000000000000
+        m_Values: 00010000000200000004000000080000
         m_SchemaId:
           m_Id: With4Levels
       shadowResolutionPunctual:
-        m_Values: 00010000000200000004000000000000
+        m_Values: 00010000000200000004000000080000
         m_SchemaId:
           m_Id: With4Levels
       shadowResolutionArea:
-        m_Values: 00010000000200000004000000000000
+        m_Values: 00010000000200000004000000080000
         m_SchemaId:
           m_Id: With4Levels
-      maxDirectionalShadowMapResolution: 2048
+      maxDirectionalShadowMapResolution: 4096
       maxPunctualShadowMapResolution: 2048
       maxAreaShadowMapResolution: 2048
       supportScreenSpaceShadows: 0
@@ -145,15 +152,19 @@ MonoBehaviour:
       screenSpaceShadowBufferFormat: 48
     decalSettings:
       drawDistance: 1000
-      atlasWidth: 2048
+      atlasWidth: 1024
       atlasHeight: 1024
+      transparentTextureResolution:
+        m_Values: 000100000002000000040000
+        m_SchemaId:
+          m_Id: With3Levels
       perChannelMask: 1
     postProcessSettings:
       m_LutSize: 32
       lutFormat: 48
       bufferFormat: 74
     dynamicResolutionSettings:
-      enabled: 0
+      enabled: 1
       useMipBias: 0
       enableDLSS: 0
       DLSSPerfQualitySetting: 0
@@ -164,10 +175,10 @@ MonoBehaviour:
       fsrSharpness: 0.92
       maxPercentage: 100
       minPercentage: 100
-      dynResType: 0
-      upsampleFilter: 1
-      forceResolution: 0
-      forcedPercentage: 100
+      dynResType: 1
+      upsampleFilter: 4
+      forceResolution: 1
+      forcedPercentage: 70
       lowResTransparencyMinimumThreshold: 0
       rayTracingHalfResThreshold: 50
     lowresTransparentSettings:
@@ -177,7 +188,7 @@ MonoBehaviour:
     xrSettings:
       singlePass: 1
       occlusionMesh: 1
-      cameraJitter: 1
+      cameraJitter: 0
       allowMotionBlur: 0
     postProcessQualitySettings:
       NearBlurSampleCount: 030000000500000008000000
@@ -201,7 +212,7 @@ MonoBehaviour:
       ChromaticAberrationMaxSamples: 03000000060000000c000000
     lightSettings:
       useContactShadow:
-        m_Values: 000000
+        m_Values: 000001
         m_SchemaId:
           m_Id: 
     maximumLODLevel:
@@ -254,9 +265,9 @@ MonoBehaviour:
       RTGIDenoise: 010101
       RTGIHalfResDenoise: 010000
       RTGIDenoiserRadius:
-      - 0.66
-      - 0.66
-      - 1
+      - 0.75
+      - 0.5
+      - 0.25
       RTGISecondDenoise: 010101
       RTRMinSmoothness:
       - 0.6
@@ -277,8 +288,14 @@ MonoBehaviour:
       RTRFullResolution: 000001
       RTRRayMaxIterations: 200000003000000040000000
       RTRDenoise: 010101
-      RTRDenoiserRadius: 080000000c00000010000000
-      RTRSmoothDenoising: 010000
+      RTRDenoiserRadiusDimmer:
+      - 0.75
+      - 0.75
+      - 1
+      RTRDenoiserAntiFlicker:
+      - 1
+      - 1
+      - 1
       Fog_ControlMode: 000000000000000000000000
       Fog_Budget:
       - 0.166
@@ -296,28 +313,30 @@ MonoBehaviour:
     m_ObsoleteLightLayerName5: Light Layer 5
     m_ObsoleteLightLayerName6: Light Layer 6
     m_ObsoleteLightLayerName7: Light Layer 7
-    m_ObsoleteDecalLayerName0: Decal Layer default
-    m_ObsoleteDecalLayerName1: Decal Layer 1
-    m_ObsoleteDecalLayerName2: Decal Layer 2
-    m_ObsoleteDecalLayerName3: Decal Layer 3
-    m_ObsoleteDecalLayerName4: Decal Layer 4
-    m_ObsoleteDecalLayerName5: Decal Layer 5
-    m_ObsoleteDecalLayerName6: Decal Layer 6
-    m_ObsoleteDecalLayerName7: Decal Layer 7
+    m_ObsoleteDecalLayerName0: 
+    m_ObsoleteDecalLayerName1: 
+    m_ObsoleteDecalLayerName2: 
+    m_ObsoleteDecalLayerName3: 
+    m_ObsoleteDecalLayerName4: 
+    m_ObsoleteDecalLayerName5: 
+    m_ObsoleteDecalLayerName6: 
+    m_ObsoleteDecalLayerName7: 
     m_ObsoleteSupportRuntimeDebugDisplay: 0
   allowShaderVariantStripping: 1
   enableSRPBatcher: 1
   availableMaterialQualityLevels: -1
   m_DefaultMaterialQualityLevel: 4
-  diffusionProfileSettings: {fileID: 11400000, guid: 802c802428a2d9640a87e821dfcdd9e8,
-    type: 2}
+  diffusionProfileSettings: {fileID: 0}
+  m_VolumeProfile: {fileID: 0}
   virtualTexturingSettings:
     streamingCpuCacheSizeInMegaBytes: 80
+    streamingMipPreloadTexturesPerFrame: 0
+    streamingPreloadMipCount: 1
     streamingGpuCacheSettings:
     - format: 0
-      sizeInMegaBytes: 32
+      sizeInMegaBytes: 128
   m_UseRenderGraph: 1
-  m_Version: 22
+  m_Version: 24
   m_ObsoleteFrameSettings:
     overrides: 0
     enableShadow: 0
@@ -453,12 +472,12 @@ MonoBehaviour:
       enableFptlForForwardOpaque: 0
       enableBigTilePrepass: 0
       isFptlEnabled: 0
-  m_ObsoleteDefaultVolumeProfile: {fileID: 0}
-  m_ObsoleteDefaultLookDevProfile: {fileID: 11400000, guid: 254c4fe87beb7be4fa72e1681edbed02,
+  m_ObsoleteDefaultVolumeProfile: {fileID: 11400000, guid: dc4052ec38b9ac147a469135b69baa9a,
     type: 2}
+  m_ObsoleteDefaultLookDevProfile: {fileID: 0}
   m_ObsoleteFrameSettingsMovedToDefaultSettings:
     bitDatas:
-      data1: 139549384114013
+      data1: 140651589009244
       data2: 4539628425463136280
     lodBias: 1
     lodBiasMode: 0
@@ -474,7 +493,7 @@ MonoBehaviour:
     materialQuality: 0
   m_ObsoleteBakedOrCustomReflectionFrameSettingsMovedToDefaultSettings:
     bitDatas:
-      data1: 139713129348893
+      data1: 135310787769117
       data2: 4539628424389459992
     lodBias: 1
     lodBiasMode: 0
@@ -490,8 +509,8 @@ MonoBehaviour:
     materialQuality: 0
   m_ObsoleteRealtimeReflectionFrameSettingsMovedToDefaultSettings:
     bitDatas:
-      data1: 140065316601629
-      data2: 4539628424389459992
+      data1: 140060864290589
+      data2: 4539628424657895448
     lodBias: 1
     lodBiasMode: 0
     lodBiasQualityLevel: 0
@@ -507,29 +526,11 @@ MonoBehaviour:
   m_ObsoleteRenderPipelineResources: {fileID: 11400000, guid: 3ce144cff5783da45aa5d4fdc2da14b7,
     type: 2}
   m_ObsoleteRenderPipelineRayTracingResources: {fileID: 0}
-  m_ObsoleteBeforeTransparentCustomPostProcesses:
-  - GreenPP, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-  m_ObsoleteBeforePostProcessCustomPostProcesses:
-  - RedPP, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-  m_ObsoleteAfterPostProcessCustomPostProcesses:
-  - BluePP, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-  m_ObsoleteBeforeTAACustomPostProcesses:
-  - DepthTAA, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-  m_ObsoleteShaderVariantLogLevel: 1
+  m_ObsoleteBeforeTransparentCustomPostProcesses: []
+  m_ObsoleteBeforePostProcessCustomPostProcesses: []
+  m_ObsoleteAfterPostProcessCustomPostProcesses: []
+  m_ObsoleteBeforeTAACustomPostProcesses: []
+  m_ObsoleteShaderVariantLogLevel: 0
   m_ObsoleteLensAttenuation: 0
   m_ObsoleteDiffusionProfileSettingsList:
-  - {fileID: 11400000, guid: 802c802428a2d9640a87e821dfcdd9e8, type: 2}
-  - {fileID: 11400000, guid: 09c63d8f96a14884e8efd2f01004f491, type: 2}
-  - {fileID: 11400000, guid: 8471a5bfcdb8fff4f9406cd8079b8554, type: 2}
-  - {fileID: 11400000, guid: 968a3176000311d42af174756ece7f4d, type: 2}
-  - {fileID: 11400000, guid: 768484f758b6f7b4daf53a7d9949f5af, type: 2}
-  - {fileID: 11400000, guid: fcb8f92518ca5d14bbd7e6751b28cd24, type: 2}
-  - {fileID: 11400000, guid: 64ca25f51b132ea4093511f7456ea220, type: 2}
-  - {fileID: 11400000, guid: fd29a6d903d5eae4d94833c2048bfd9d, type: 2}
-  - {fileID: 11400000, guid: 76f34276e6d50dc4bb0762b87af8931e, type: 2}
-  - {fileID: 11400000, guid: cd1cd5a7c0527844dbca2b7d562b9049, type: 2}
-  - {fileID: 11400000, guid: 385fff18b5c61754188b49a485ecb84a, type: 2}
-  - {fileID: 11400000, guid: d3dd41407c183554ca54bded902d4b7b, type: 2}
-  - {fileID: 11400000, guid: 86c1c808ebce1cc4992b9b0fd197a0b3, type: 2}
-  - {fileID: 11400000, guid: 3506ae472b257f042af66a183fbaac6a, type: 2}
-  - {fileID: 11400000, guid: 6be2047feaba36945b8fd12f29e3a7b5, type: 2}
+  - {fileID: 11400000, guid: 2384dbf2c1c420f45a792fbc315fbfb1, type: 2}

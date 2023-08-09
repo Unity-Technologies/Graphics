@@ -12,11 +12,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 781cc897cf8675041a751163b51f97dd, type: 3}
   m_Name: HDRenderPipelineGlobalSettings
   m_EditorClassIdentifier: 
+  m_Settings:
+    m_SettingsList:
+    - rid: 1126231320986910720
+    - rid: 1126231320986910721
+    - rid: 1126231320986910722
+    - rid: 1126231320986910723
+    - rid: 1126231320986910724
+    - rid: 1126231320986910725
+    - rid: 1126231320986910726
+    - rid: 1126231320986910727
+    - rid: 1126231320986910728
+    - rid: 1126231320986910729
+    m_RuntimeSettings: []
   m_DefaultVolumeProfile: {fileID: 11400000, guid: dc4052ec38b9ac147a469135b69baa9a,
     type: 2}
   m_LookDevVolumeProfile: {fileID: 11400000, guid: 254c4fe87beb7be4fa72e1681edbed02,
     type: 2}
-  m_RenderingPathDefaultCameraFrameSettings:
+  m_ObsoleteRenderingPathDefaultCameraFrameSettings:
     bitDatas:
       data1: 1266551495851868
       data2: 13799031439032811544
@@ -32,7 +45,7 @@ MonoBehaviour:
     sssCustomDownsampleSteps: 0
     msaaMode: 9
     materialQuality: 0
-  m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings:
+  m_ObsoleteRenderingPathDefaultBakedOrCustomReflectionFrameSettings:
     bitDatas:
       data1: 135310787769117
       data2: 4539628424389459992
@@ -48,7 +61,7 @@ MonoBehaviour:
     sssCustomDownsampleSteps: 0
     msaaMode: 1
     materialQuality: 0
-  m_RenderingPathDefaultRealtimeReflectionFrameSettings:
+  m_ObsoleteRenderingPathDefaultRealtimeReflectionFrameSettings:
     bitDatas:
       data1: 140060864290589
       data2: 4539628426805411864
@@ -64,9 +77,77 @@ MonoBehaviour:
     sssCustomDownsampleSteps: 0
     msaaMode: 1
     materialQuality: 0
+  m_RenderingPath:
+    m_Version: 0
+    m_Camera:
+      bitDatas:
+        data1: 1266551495851868
+        data2: 13799031439032811544
+      lodBias: 1
+      lodBiasMode: 0
+      lodBiasQualityLevel: 0
+      maximumLODLevel: 0
+      maximumLODLevelMode: 0
+      maximumLODLevelQualityLevel: 0
+      sssQualityMode: 0
+      sssQualityLevel: 0
+      sssCustomSampleBudget: 20
+      sssCustomDownsampleSteps: 0
+      msaaMode: 9
+      materialQuality: 0
+    m_CustomOrBakedReflection:
+      bitDatas:
+        data1: 135310787769117
+        data2: 4539628424389459992
+      lodBias: 1
+      lodBiasMode: 0
+      lodBiasQualityLevel: 0
+      maximumLODLevel: 0
+      maximumLODLevelMode: 0
+      maximumLODLevelQualityLevel: 0
+      sssQualityMode: 0
+      sssQualityLevel: 0
+      sssCustomSampleBudget: 20
+      sssCustomDownsampleSteps: 0
+      msaaMode: 1
+      materialQuality: 0
+    m_RealtimeReflection:
+      bitDatas:
+        data1: 140060864290589
+        data2: 4539628426805411864
+      lodBias: 1
+      lodBiasMode: 0
+      lodBiasQualityLevel: 0
+      maximumLODLevel: 0
+      maximumLODLevelMode: 0
+      maximumLODLevelQualityLevel: 0
+      sssQualityMode: 0
+      sssQualityLevel: 0
+      sssCustomSampleBudget: 20
+      sssCustomDownsampleSteps: 0
+      msaaMode: 1
+      materialQuality: 0
   m_RenderPipelineResources: {fileID: 11400000, guid: 3ce144cff5783da45aa5d4fdc2da14b7,
     type: 2}
   m_RenderPipelineRayTracingResources: {fileID: 0}
+  m_CustomPostProcessOrdersSettings:
+    m_Version: 0
+    m_BeforeTransparentCustomPostProcesses:
+      m_InjectionPoint: 0
+      m_CustomPostProcessTypesAsString: []
+    m_BeforeTAACustomPostProcesses:
+      m_InjectionPoint: 3
+      m_CustomPostProcessTypesAsString: []
+    m_BeforePostProcessCustomPostProcesses:
+      m_InjectionPoint: 1
+      m_CustomPostProcessTypesAsString: []
+    m_AfterPostProcessBlursCustomPostProcesses:
+      m_InjectionPoint: 4
+      m_CustomPostProcessTypesAsString: []
+    m_AfterPostProcessCustomPostProcesses:
+      m_InjectionPoint: 2
+      m_CustomPostProcessTypesAsString:
+      - TvMonochrome, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
   beforeTransparentCustomPostProcesses: []
   beforePostProcessCustomPostProcesses: []
   afterPostProcessBlursCustomPostProcesses: []
@@ -137,7 +218,7 @@ MonoBehaviour:
       m_Keys:
       - 5028fc98db6fe304c90852113dca5b00
       m_Values: 01
-  m_Version: 9
+  m_Version: 11
   m_ShaderStrippingSetting:
     m_Version: 0
     m_ExportShaderVariants: 1
@@ -147,3 +228,46 @@ MonoBehaviour:
   m_SupportRuntimeDebugDisplay: 0
   m_ExportShaderVariants: 1
   m_StripDebugVariants: 1
+  references:
+    version: 2
+    RefIds:
+    - rid: 1126231320986910720
+      type: {class: RenderPipelineGlobalSettingsEditorTests/B, ns: , asm: Unity.RenderPipelines.Core.Editor.Tests}
+      data:
+        name: B
+    - rid: 1126231320986910721
+      type: {class: RenderPipelineGlobalSettingsEditorTests/I, ns: , asm: Unity.RenderPipelines.Core.Editor.Tests}
+      data:
+        name: I
+    - rid: 1126231320986910722
+      type: {class: RenderPipelineGlobalSettingsEditorTests/C, ns: , asm: Unity.RenderPipelines.Core.Editor.Tests}
+      data:
+        name: C
+    - rid: 1126231320986910723
+      type: {class: RenderPipelineGlobalSettingsEditorTests/A, ns: , asm: Unity.RenderPipelines.Core.Editor.Tests}
+      data:
+        name: A
+    - rid: 1126231320986910724
+      type: {class: RenderPipelineGlobalSettingsEditorTests/F, ns: , asm: Unity.RenderPipelines.Core.Editor.Tests}
+      data:
+        name: F
+    - rid: 1126231320986910725
+      type: {class: RenderPipelineGlobalSettingsEditorTests/G, ns: , asm: Unity.RenderPipelines.Core.Editor.Tests}
+      data:
+        name: G
+    - rid: 1126231320986910726
+      type: {class: RenderPipelineGlobalSettingsEditorTests/Base, ns: , asm: Unity.RenderPipelines.Core.Editor.Tests}
+      data:
+        name: Base
+    - rid: 1126231320986910727
+      type: {class: RenderPipelineGlobalSettingsEditorTests/H, ns: , asm: Unity.RenderPipelines.Core.Editor.Tests}
+      data:
+        name: H
+    - rid: 1126231320986910728
+      type: {class: RenderPipelineGlobalSettingsEditorTests/D, ns: , asm: Unity.RenderPipelines.Core.Editor.Tests}
+      data:
+        name: D
+    - rid: 1126231320986910729
+      type: {class: RenderPipelineGlobalSettingsEditorTests/E, ns: , asm: Unity.RenderPipelines.Core.Editor.Tests}
+      data:
+        name: E
