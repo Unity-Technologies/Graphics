@@ -58,10 +58,22 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             var urpMetadata = ScriptableObject.CreateInstance<UniversalMetadata>();
             urpMetadata.shaderID = shaderID;
-            urpMetadata.allowMaterialOverride = target.allowMaterialOverride;
-            urpMetadata.surfaceType = target.surfaceType;
             urpMetadata.alphaMode = target.alphaMode;
-            urpMetadata.castShadows = target.castShadows;
+
+            if (shaderID != ShaderID.SG_SpriteLit && shaderID != ShaderID.SG_SpriteUnlit)
+            {
+                urpMetadata.allowMaterialOverride = target.allowMaterialOverride;
+                urpMetadata.surfaceType = target.surfaceType;
+                urpMetadata.castShadows = target.castShadows;
+            }
+            else
+            {
+                //Ignore unsupported settings in SpriteUnlit/SpriteLit
+                urpMetadata.allowMaterialOverride = false;
+                urpMetadata.surfaceType = SurfaceType.Transparent; 
+                urpMetadata.castShadows = false;
+            }
+            
             return urpMetadata;
         }
 

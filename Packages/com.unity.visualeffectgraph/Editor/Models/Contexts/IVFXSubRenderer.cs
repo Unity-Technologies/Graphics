@@ -34,13 +34,20 @@ namespace UnityEditor.VFX
         public void SyncFromMaterial(Material material)
         {
             m_PropertyMap.Clear();
+            AddPropertiesFromMaterial(material);
+        }
 
+        public void AddPropertiesFromMaterial(Material material)
+        {
             var matProperties = ShaderUtil.GetMaterialProperties(new UnityEngine.Object[] { material });
 
             foreach (var p in matProperties)
             {
                 if (p.type != MaterialProperty.PropType.Float || // Only float properties
                     (p.flags & (MaterialProperty.PropFlags.HideInInspector | MaterialProperty.PropFlags.PerRendererData)) != MaterialProperty.PropFlags.HideInInspector) // Only properties hidden in inspector that are not per renderer
+                    continue;
+
+                if (m_PropertyMap.ContainsKey(p.name))
                     continue;
 
                 m_PropertyMap.Add(p.name, p.floatValue);
