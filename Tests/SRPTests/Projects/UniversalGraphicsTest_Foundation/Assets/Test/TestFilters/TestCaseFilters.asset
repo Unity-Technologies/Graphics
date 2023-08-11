@@ -574,3 +574,65 @@ MonoBehaviour:
     XrSdk: OculusLoader
     StereoModes: 0
     Reason: Unstable for OpenGLES3 on Quest
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 0bcaa565757b243bba6bd2c007b0977c, type: 3}
+    - {fileID: 102900000, guid: e277e63daf9584a9291edc2c56bcd258, type: 3}
+    - {fileID: 102900000, guid: ecb4f57b7a1788b4b85f618d4cbc6677, type: 3}
+    - {fileID: 102900000, guid: 810b97dd4e5e5204b9e6ed3d05c42498, type: 3}
+    - {fileID: 102900000, guid: 2242f9ac270754ebea6016ff9370de29, type: 3}
+    - {fileID: 102900000, guid: 8f1d00629fb57a8448b38a8822925713, type: 3}
+    - {fileID: 102900000, guid: 716466bc92f8e4eeeb3c138524b04021, type: 3}
+    - {fileID: 102900000, guid: ac4701d765fa26b4f83d2fb9ed6b3c08, type: 3}
+    - {fileID: 102900000, guid: 0ad4d46f32f2cc942b4592c2f4368b83, type: 3}
+    - {fileID: 102900000, guid: e76f972eeb79e4c008c8af2c3dbaaff3, type: 3}
+    - {fileID: 102900000, guid: d5a9cad5edb214f38834fdc8df380e32, type: 3}
+    - {fileID: 102900000, guid: 8beaaae61c07f499d9836d40ae20b049, type: 3}
+    - {fileID: 102900000, guid: 0633851b164474a508a6f3347d8aae43, type: 3}
+    - {fileID: 102900000, guid: 53e722c824b0b4137a680ea65ce839bf, type: 3}
+    - {fileID: 102900000, guid: 66d9465bb28c441c7ba39334a5ad8e68, type: 3}
+    - {fileID: 102900000, guid: d6893e7692f584018918254147096235, type: 3}
+    - {fileID: 102900000, guid: 1c5a87b2312f249a991c0a87173f71e3, type: 3}
+    - {fileID: 102900000, guid: e4bd4cb963e384819a1d8a13bc5127a8, type: 3}
+    - {fileID: 102900000, guid: d66b74ae4e7264d62bdb2c4f56261030, type: 3}
+    - {fileID: 102900000, guid: 3340af13204ec234b9db1f26da2c1cb3, type: 3}
+    - {fileID: 102900000, guid: 3bbe19bef8dcc4e65b7aaa710c4114c6, type: 3}
+    - {fileID: 102900000, guid: 95be3ed4f14c543b389e8e5a2e3d5187, type: 3}
+    - {fileID: 102900000, guid: dafa2658c5a644673a2697d24ad96ffe, type: 3}
+    - {fileID: 102900000, guid: 50a55af44edbd47579041b1556ed9a58, type: 3}
+    - {fileID: 102900000, guid: 2696010bf40d644cc8abc0b1304c59db, type: 3}
+    - {fileID: 102900000, guid: c207f769f3e194ebc8cbd51e788ac65d, type: 3}
+    - {fileID: 102900000, guid: 9033695b731a14fe79156b3c4c827aa0, type: 3}
+    - {fileID: 102900000, guid: 0f9d67b5613ce4515969b745f7c08c5f, type: 3}
+    - {fileID: 102900000, guid: 72491ed40bf654eec9fef43f455e3916, type: 3}
+    - {fileID: 102900000, guid: f1e2273404277234a8497f4bc0f9f229, type: 3}
+    - {fileID: 102900000, guid: aa08e99a89c77574e9a00b9888fc75ce, type: 3}
+    - {fileID: 102900000, guid: 273840277f52540639fbb7d0903d4c7b, type: 3}
+    - {fileID: 102900000, guid: a0968f13c5aeb489799df4c8d6d0a41a, type: 3}
+    - {fileID: 102900000, guid: d5f9aa5daaf784392888cbd857f3d3bf, type: 3}
+    - {fileID: 102900000, guid: d84ff56928dab4734b69906d7e13638d, type: 3}
+    - {fileID: 102900000, guid: aca920b1cf9c39c4cb9a4ccfe056b6cb, type: 3}
+    - {fileID: 102900000, guid: 461358db1ebae7041bda815e6fdc66d0, type: 3}
+    - {fileID: 102900000, guid: 38043c1358e12da40a057c3f5836a0c7, type: 3}
+    - {fileID: 102900000, guid: 577b7f10e868a3a4ca2ffc9d46622e41, type: 3}
+    - {fileID: 102900000, guid: f7cdec6567a2ca34580a5d222405f0bd, type: 3}
+    - {fileID: 102900000, guid: 9393d7ec15067b544b982320d21a114a, type: 3}
+    - {fileID: 102900000, guid: 0ed880bcaac387e4eaef5f365a545090, type: 3}
+    - {fileID: 102900000, guid: 06d3d04c77b97ba40969b415bc9a25dd, type: 3}
+    - {fileID: 102900000, guid: 443214b3f73466742a19acf21b430d0d, type: 3}
+    - {fileID: 102900000, guid: 9d25fa9f3eb332f4dad8f36653f93a14, type: 3}
+    - {fileID: 102900000, guid: 8a4a76dbf4743fc4bb21e40f08c759a0, type: 3}
+    - {fileID: 102900000, guid: 99abb841000951945931ee709e2370a4, type: 3}
+    - {fileID: 102900000, guid: 3b4bfea1d564d9541bb3a139484410ef, type: 3}
+    - {fileID: 102900000, guid: 5a37821ccdba7204096a71421610f99a, type: 3}
+    - {fileID: 102900000, guid: 55b848c185ee4cb43b24ae0449be53ed, type: 3}
+    - {fileID: 102900000, guid: 5998559ab00db184ba4ce2490fa35a72, type: 3}
+    - {fileID: 102900000, guid: 81446d3c9a10ff94a873a19e2d8804e9, type: 3}
+    - {fileID: 102900000, guid: 6fbea5cb60d394329b2ac2b4a3788d12, type: 3}
+    - {fileID: 102900000, guid: f542939af2a7f44d2bcbca8cd5ec5875, type: 3}
+    ColorSpace: 1
+    BuildPlatform: 20
+    GraphicsDevice: 11
+    XrSdk: None
+    StereoModes: 0
+    Reason: MSAA requires support for multisampled textures
