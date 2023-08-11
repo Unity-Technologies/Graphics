@@ -71,6 +71,7 @@ namespace UnityEditor.Rendering
                     for (int i = 0; i < sourceComponent.parameters.Count; i++)
                         profileComponent.parameters[i].overrideState = sourceComponent.parameters[i].overrideState;
                     VolumeProfileUtils.CopyValuesToComponent(sourceComponent, profileComponent, true);
+                    AssetDatabase.AddObjectToAsset(profileComponent, profile);
                 }
             }
 
