@@ -34,6 +34,16 @@ namespace UnityEngine.Rendering
                 SphericalHarmonicsL2Utils.SetCoefficient(ref sh, 6, L2_2);
                 SphericalHarmonicsL2Utils.SetCoefficient(ref sh, 7, L2_3);
                 SphericalHarmonicsL2Utils.SetCoefficient(ref sh, 8, L2_4);
+
+                /*SphericalHarmonicsL2Utils.SetCoefficient(ref sh, 0, new Vector3(1.0f, 0.0f, 0.0f));
+                SphericalHarmonicsL2Utils.SetCoefficient(ref sh, 1, new Vector3(0.0f, 0.0f, 0.0f));
+                SphericalHarmonicsL2Utils.SetCoefficient(ref sh, 2, new Vector3(0.0f, 0.0f, 0.0f));
+                SphericalHarmonicsL2Utils.SetCoefficient(ref sh, 3, new Vector3(0.0f, 0.0f, 0.0f));
+                SphericalHarmonicsL2Utils.SetCoefficient(ref sh, 4, new Vector3(0.0f, 0.0f, 0.0f));
+                SphericalHarmonicsL2Utils.SetCoefficient(ref sh, 5, new Vector3(0.0f, 0.0f, 0.0f));
+                SphericalHarmonicsL2Utils.SetCoefficient(ref sh, 6, new Vector3(0.0f, 0.0f, 0.0f));
+                SphericalHarmonicsL2Utils.SetCoefficient(ref sh, 7, new Vector3(0.0f, 0.0f, 0.0f));
+                SphericalHarmonicsL2Utils.SetCoefficient(ref sh, 8, new Vector3(0.0f, 0.0f, 0.0f));*/
             }
 
             void FromSphericalHarmonicsL2(ref SphericalHarmonicsL2 sh)

@@ -1,4 +1,5 @@
-#pragma kernel DilateCell
+#pragma kernel PopulateCache
+#pragma kernel StaticFilter
 
 #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
@@ -7,8 +8,8 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
 
-#include "Packages/com.unity.render-pipelines.core/Editor/Lighting/ProbeVolume/ProbeDenoiser/ProbeVolumeDenoiser.cs.hlsl"
-#include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/RawSphericalHarmonicsL2.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/ProbeVolume.hlsl" 
+#include "Packages/com.unity.render-pipelines.core/Editor/Lighting/ProbeVolume/RawSphericalHarmonicsL2.cs.hlsl"
 
 CBUFFER_START(APVDilation)
     float4                          _CacheLowerBound;
@@ -16,13 +17,17 @@ CBUFFER_START(APVDilation)
     float                           _ProbeDelta;
     int                             _NumCachedProbes;
     int                             _NumOutputProbes;
+    int                             _N;
+    int                             _M;
 CBUFFER_END
 
 StructuredBuffer<float3>            _ProbePositionsBuffer;
-RWStructuredBuffer<RawSphericalHarmonicsL2> _CachedCoeffs;
+RWStructuredBuffer<float3>          _CachedCoeffs;
 RWStructuredBuffer<RawSphericalHarmonicsL2> _OutputCoeffs;
 
-void SampleProbeVolume(APVResources ctx, float3 uvw, out RawSphericalHarmonicsL2 coeffs)
+#define kCoeffsPerProbe 9
+
+void SampleProbeVolume(APVResources ctx, float3 uvw, int idx)
 {
     float4 L0_L1Rx = SAMPLE_TEXTURE3D_LOD(ctx.L0_L1Rx, s_point_clamp_sampler, uvw, 0).rgba;
     float4 L1G_L1Ry = SAMPLE_TEXTURE3D_LOD(ctx.L1G_L1Ry, s_point_clamp_sampler, uvw, 0).rgba;
@@ -33,44 +38,101 @@ void SampleProbeVolume(APVResources ctx, float3 uvw, out RawSphericalHarmonicsL2
     float4 l2_B = SAMPLE_TEXTURE3D_LOD(ctx.L2_2, s_point_clamp_sampler, uvw, 0).rgba;
     float4 l2_C = SAMPLE_TEXTURE3D_LOD(ctx.L2_3, s_point_clamp_sampler, uvw, 0).rgba;
 
-    coeffs.L0 = L0_L1Rx.xyz;
-    coeffs.L1_0 = float3(L0_L1Rx.w, L1G_L1Ry.x, L1B_L1Rz.x);
-    coeffs.L1_1 = float3(L1G_L1Ry.w, L1G_L1Ry.y, L1B_L1Rz.y);
-    coeffs.L1_2 = float3(L1B_L1Rz.w, L1G_L1Ry.z, L1B_L1Rz.z);
+    _CachedCoeffs[idx] = L0_L1Rx.xyz;
 
-    coeffs.L2_0 = float3(l2_R.x, l2_G.x, l2_B.x);
-    coeffs.L2_1 = float3(l2_R.y, l2_G.y, l2_B.y);
-    coeffs.L2_2 = float3(l2_R.z, l2_G.z, l2_B.z);
-    coeffs.L2_3 = float3(l2_R.w, l2_G.w, l2_B.w);
-    coeffs.L2_4 = float3(l2_C.x, l2_C.y, l2_C.z);
+    _CachedCoeffs[idx + 1] = float3(L0_L1Rx.w, L1G_L1Ry.x, L1B_L1Rz.x);
+    _CachedCoeffs[idx + 2] = float3(L1G_L1Ry.w, L1G_L1Ry.y, L1B_L1Rz.y);
+    _CachedCoeffs[idx + 3] = float3(L1B_L1Rz.w, L1G_L1Ry.z, L1B_L1Rz.z);
+
+    _CachedCoeffs[idx + 4] = float3(l2_R.x, l2_G.x, l2_B.x);
+    _CachedCoeffs[idx + 5] = float3(l2_R.y, l2_G.y, l2_B.y);
+    _CachedCoeffs[idx + 6] = float3(l2_R.z, l2_G.z, l2_B.z);
+    _CachedCoeffs[idx + 7] = float3(l2_R.w, l2_G.w, l2_B.w);
+    _CachedCoeffs[idx + 8] = float3(l2_C.x, l2_C.y, l2_C.z);
+
+    /*for (int i = 0; i < 9; ++i)
+        _CachedCoeffs[idx + i] = float3(0.f, 0.f, 0.f); 
+    _CachedCoeffs[idx] = float3(1.f, 0.5f, 0.f);*/
 }
 
 [numthreads(64, 1, 1)]
 void PopulateCache(uint3 id : SV_DispatchThreadID)
 {
-    if (id.x < _NumCachedProbes)
+    if (id.x < uint(_NumCachedProbes))
     {
         int3 cacheDims = int3(_CacheDims.xyz);
         int3 probeIdx = int3(id.x % cacheDims.x,
                             (id.x / cacheDims.x) % cacheDims.y,
                             id.x / (cacheDims.x * cacheDims.y));
-
-        float3 samplePos = _CacheLowerBound + float3(probeIdx) * _ProbeDelta;
-
-        float3 centralPosition = _ProbePositionsBuffer[probeIdx];
-        RawSphericalHarmonicsL2 coeffs = (RawSphericalHarmonicsL2)0;
+        float3 samplePos = _CacheLowerBound.xyz + float3(probeIdx) * _ProbeDelta;
 
         float3 sampleUVW;
         APVResources ctx = FillAPVResources();
         if (TryToGetPoolUVW(ctx, samplePos, 0, 0, sampleUVW))
         {
-            SampleProbeVolume(ctx, sampleUVW, coeffs);
+            SampleProbeVolume(ctx, sampleUVW, id.x * kCoeffsPerProbe);
         }
     }
 }
 
 [numthreads(64, 1, 1)]
-void DilateCell(uint3 id : SV_DispatchThreadID)
+void StaticFilter(uint3 id : SV_DispatchThreadID)
 {
+    if (id.x < uint(_NumOutputProbes))
+    {
+        float3 probePos = _ProbePositionsBuffer[id.x];
+        int3 cacheDims = int3(_CacheDims.xyz);
+        #define kEpsilon _ProbeDelta * 1e-3f
+        int3 originIdx = int3((probePos - _CacheLowerBound.xyz + float3(kEpsilon, kEpsilon, kEpsilon)) / _ProbeDelta);
+        float sumWeights = 0.;
+        float3 accum[kCoeffsPerProbe];
+        int coeffIdx;
 
+        // Clear the coefficient accumulator
+        for (coeffIdx = 0; coeffIdx < kCoeffsPerProbe; ++coeffIdx)
+        {
+            accum[coeffIdx] = float3(0.f, 0.f, 0.f);
+        }
+
+        // Accumulate weighted neighbours
+        for (int w = -_N; w <= _N; ++w)
+        {
+            for (int v = -_N; v <= _N; ++v)
+            {
+                for (int u = -_N; u <= _N; ++u)
+                {
+                    int3 kIdx = originIdx + int3(u, v, w);
+                    if (all(kIdx >= 0) && all(kIdx < cacheDims))
+                    {
+                        int offset = kCoeffsPerProbe * (kIdx.z * cacheDims.x * cacheDims.y + kIdx.y * cacheDims.x + kIdx.x);
+                        for (coeffIdx = 0; coeffIdx < kCoeffsPerProbe; ++coeffIdx)
+                        {
+                            accum[coeffIdx] += _CachedCoeffs[offset + coeffIdx];
+                        }
+                        sumWeights += 1.;
+                    }
+                }
+            }
+        }
+
+        // Normalise the accumulated coefficients
+        for (coeffIdx = 0; coeffIdx < kCoeffsPerProbe;++coeffIdx)
+        {
+            accum[coeffIdx] /= max(1.f, sumWeights);
+        }
+
+        //int offset = kCoeffsPerProbe * (originIdx.z * cacheDims.x * cacheDims.y + originIdx.y * cacheDims.x + originIdx.x)
+
+        RawSphericalHarmonicsL2 sh = { accum[0], accum[1], accum[2], accum[3], accum[4], accum[5], accum[6], accum[7], accum[8] };
+        /*sh.L0 = float3(1., 1., 0.);
+        sh.L1_0 = accum[1];
+        sh.L1_1 = accum[2];
+        sh.L1_2 = accum[3];
+        sh.L2_0 = accum[4];
+        sh.L2_1 = accum[5];
+        sh.L2_2 = accum[6];
+        sh.L2_3 = accum[7];
+        sh.L2_4 = accum[8];*/
+        _OutputCoeffs[id.x] = sh;
+    } 
 }

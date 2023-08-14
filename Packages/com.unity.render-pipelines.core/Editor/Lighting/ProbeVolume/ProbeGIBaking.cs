@@ -13,9 +13,22 @@ using CellDesc = UnityEngine.Rendering.ProbeReferenceVolume.CellDesc;
 using CellData = UnityEngine.Rendering.ProbeReferenceVolume.CellData;
 using IndirectionEntryInfo = UnityEngine.Rendering.ProbeReferenceVolume.IndirectionEntryInfo;
 using StreamableCellDesc = UnityEngine.Rendering.ProbeVolumeStreamableAsset.StreamableCellDesc;
+using UnityEngine.Rendering;
 
 namespace UnityEngine.Rendering
 {
+    // FIXME: Remove this once we're done debugging the denoiser.
+    public class Diag
+    {
+        static public void Assert(bool condition, string message)
+        {
+            if (!condition)
+            {
+                throw new ProbeVolumeDenoiserException(message);
+            }
+        }
+    }
+
     struct BakingCell
     {
         public Vector3Int position;
@@ -773,7 +786,8 @@ namespace UnityEngine.Rendering
                     {
                         if (m_CellsToDilate.ContainsKey(cell.desc.index))
                         {
-                            ConvolveCell(cell);
+                            //Debug.Log(string.Format("cell.desc.probeCount: {0}, cell.data.probePositions.Length: {1}", cell.desc.probeCount, cell.data.probePositions.Length));
+                            ConvolveCell(cell);                            
                             convolvedCells.Add(cell);
                         }
                     }
@@ -857,10 +871,53 @@ namespace UnityEngine.Rendering
         {
             CellConvolutionDelegate denoiseLambda = cell => 
             {
-                var denoiser = new ProbeVolumeDenoiser(cell);
-                //denoiser.Apply();
+                try
+                {
+                    using (ProbeVolumeDenoiser denoiser = new ProbeVolumeDenoiser(cell))
+                    {
+                        denoiser.Apply();
+                    }
+                }
+                catch (ProbeVolumeDenoiserException ex)
+                {
+                    Debug.LogError(string.Format("Probe volume denoiser failed: {0}", ex.what));
+                }                
             };
             PerformPerCellConvolution(denoiseLambda, 1);
+        }
+
+        static public int[] GetRemappedProbeIndices(CellDesc cellDesc, CellData cellData)
+        {
+            int probeCount = cellDesc.probeCount;
+            int[] probeIndices = new int[probeCount];
+      
+            int brickCount = probeCount / ProbeBrickPool.kBrickProbeCountTotal;
+            int probeIndex = 0;
+            var chunkSizeInProbes = ProbeBrickPool.GetChunkSizeInProbeCount();
+            Vector3Int locSize = ProbeBrickPool.ProbeCountToDataLocSize(chunkSizeInProbes);
+
+            for (int brickIndex = 0; brickIndex < brickCount; ++brickIndex)
+            {
+                int chunkIndex = brickIndex / ProbeBrickPool.GetChunkSizeInBrickCount();
+                var cellChunkData = GetCellChunkData(cellData, chunkIndex);
+
+                for (int z = 0; z < ProbeBrickPool.kBrickProbeCountPerDim; z++)
+                {
+                    for (int y = 0; y < ProbeBrickPool.kBrickProbeCountPerDim; y++)
+                    {
+                        for (int x = 0; x < ProbeBrickPool.kBrickProbeCountPerDim; x++)
+                        {
+                            Diag.Assert(probeIndex < probeCount, "Probe index out of bounds");
+
+                            probeIndices[probeIndex++] = GetProbeGPUIndex(brickIndex, x, y, z, locSize);
+                        }
+                    } 
+                }
+            }
+
+            Diag.Assert(probeIndex == probeCount, "Probe index does not match number of probes");
+
+            return probeIndices;
         }
 
         static Dictionary<int, int> RemapBakedCells(bool isBakingSubset)
