@@ -32,8 +32,11 @@ namespace UnityEngine.Rendering.Universal
 
         public void Render(RenderGraph graph, Renderer2DData rendererData, ref LayerBatch layerBatch, FrameResources resources, int shadowIndex)
         {
-            var shadowTexture = resources.GetTexture(Renderer2DResource.ShadowsTexture);
-            var depthTexture = resources.GetTexture(Renderer2DResource.IntermediateDepth);
+            ContextContainer frameData = resources.frameData;
+            Universal2DResourcesData resourcesData = frameData.Get<Universal2DResourcesData>();
+
+            var shadowTexture = resourcesData.shadowsTexture;
+            var depthTexture = resourcesData.intermediateDepth;
 
             ClearTargets2DPass.Render(graph, shadowTexture, depthTexture, RTClearFlags.All, Color.black);
 

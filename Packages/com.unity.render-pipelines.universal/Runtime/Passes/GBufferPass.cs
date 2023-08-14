@@ -215,18 +215,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
-        internal void SetFrameResourcesGBufferArray(FrameResources frameResources, TextureHandle[] gbuffer)
+        internal void Render(RenderGraph renderGraph, TextureHandle cameraColor, TextureHandle cameraDepth, ref RenderingData renderingData, FrameResources frameResources)
         {
-            Debug.Assert(gbuffer.Length <= 7, "GBufferPass.SetFrameResourcesGBufferArray: the gbuffer frame resources are limited to 7!");
-
-            for (int i = 0; i < gbuffer.Length; ++i)
-                frameResources.SetTexture((UniversalResource)(UniversalResource.GBuffer0 + i), gbuffer[i]);
-        }
-
-
-        internal void Render(RenderGraph renderGraph, TextureHandle cameraColor, TextureHandle cameraDepth,
-            ref RenderingData renderingData, FrameResources frameResources)
-        {
+            ContextContainer frameData = renderingData.frameData;
+            UniversalResourcesData resourcesData = frameData.Get<UniversalResourcesData>();
             TextureHandle[] gbuffer;
 
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("GBuffer Pass", out var passData, s_ProfilingSampler))
@@ -240,9 +232,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                     gbufferSlice.stencilFormat = GraphicsFormat.None;
 
                     if (i == m_DeferredLights.GBufferNormalSmoothnessIndex && m_DeferredLights.HasNormalPrepass)
-                        gbuffer[i] = frameResources.GetTexture(UniversalResource.CameraNormalsTexture);
+                        gbuffer[i] = resourcesData.cameraNormalsTexture;
                     else if (m_DeferredLights.UseRenderingLayers && i == m_DeferredLights.GBufferRenderingLayers && !m_DeferredLights.UseLightLayers)
-                        gbuffer[i] = frameResources.GetTexture(UniversalResource.RenderingLayersTexture);
+                        gbuffer[i] = resourcesData.renderingLayersTexture;
                     else if (i != m_DeferredLights.GBufferLightingIndex)
                     {
                         gbufferSlice.graphicsFormat = m_DeferredLights.GetGBufferFormat(i);
@@ -258,8 +250,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
 
                 RenderGraphUtils.UseDBufferIfValid(builder, frameResources);
-
-                SetFrameResourcesGBufferArray(frameResources, gbuffer);
+                resourcesData.gBuffer = gbuffer;
                 passData.depth = builder.UseTextureFragmentDepth(cameraDepth, IBaseRenderGraphBuilder.AccessFlags.Write);
 
                 InitPassData(ref renderingData, ref passData);
@@ -279,34 +270,31 @@ namespace UnityEngine.Rendering.Universal.Internal
             // With NRP GBuffer textures are set after Deferred, we do this to avoid breaking the pass
             if (!renderGraph.NativeRenderPassesEnabled)
                 GBufferPass.SetGlobalGBufferTextures(renderGraph, gbuffer, frameResources, ref m_DeferredLights);
-
-        }
-
-        internal static TextureHandle[] GetFrameResourcesGBufferArray(FrameResources frameResources, ref DeferredLights deferredLights)
-        {
-            TextureHandle[] gbuffer = deferredLights.GbufferTextureHandles;
-
-            Debug.Assert(gbuffer.Length <= 7, "GBufferPass.GetFrameResourcesGBufferArray: the gbuffer frame resources are limited to 7!");
-
-            for (int i = 0; i < gbuffer.Length; ++i)
-            {
-                gbuffer[i] = frameResources.GetTexture((UniversalResource)(UniversalResource.GBuffer0 + i));
-            }
-
-            return gbuffer;
         }
 
         internal static void SetGlobalGBufferTextures(RenderGraph renderGraph, TextureHandle[] gbuffer, FrameResources frameResources, ref DeferredLights deferredLights)
         {
+            ContextContainer frameData = frameResources.frameData;
+            UniversalResourcesData resourcesData = frameData.Get<UniversalResourcesData>();
+
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("Set Global GBuffer Textures", out var passData, s_ProfilingSampler))
             {
-                passData.gbuffer = gbuffer = GetFrameResourcesGBufferArray(frameResources, ref deferredLights);
                 passData.deferredLights = deferredLights;
+                gbuffer = resourcesData.gBuffer;
+                passData.gbuffer = deferredLights.GbufferTextureHandles;
 
                 for (int i = 0; i < deferredLights.GBufferSliceCount; i++)
                 {
                     if (i != deferredLights.GBufferLightingIndex)
                         passData.gbuffer[i] = builder.UseTexture(gbuffer[i], IBaseRenderGraphBuilder.AccessFlags.Read);
+                }
+
+                TextureHandle[] dBufferHandles = resourcesData.dBuffer;
+                for (int i = 0; i < dBufferHandles.Length; ++i)
+                {
+                    var dbuffer = dBufferHandles[i];
+                    if (dbuffer.IsValid())
+                        builder.UseTexture(dbuffer);
                 }
 
                 builder.AllowPassCulling(false);

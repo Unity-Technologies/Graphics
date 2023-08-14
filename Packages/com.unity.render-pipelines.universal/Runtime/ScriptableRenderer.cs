@@ -13,39 +13,7 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     public sealed class FrameResources
     {
-        Dictionary<Hash128, TextureHandle> m_TextureHandles = new();
-
         internal ContextContainer frameData = new();
-
-        static uint s_TypeCount;
-
-        internal bool isAccessible { get; set; }
-
-        static class TypeId<T>
-        {
-            public static uint value = s_TypeCount++;
-        }
-
-        internal void InitFrame()
-        {
-            m_TextureHandles.Clear();
-            isAccessible = true;
-        }
-
-        internal void EndFrame()
-        {
-            isAccessible = false;
-        }
-
-        Hash128 GetKey<T>(T id) where T : unmanaged, Enum
-        {
-            Hash128 hash = new Hash128();
-            var typeId = TypeId<T>.value;
-            hash.Append(typeId);
-            hash.Append(ref id);
-
-            return hash;
-        }
 
         /// <summary>
         /// Get the TextureHandle for a specific identifier.
@@ -55,16 +23,7 @@ namespace UnityEngine.Rendering.Universal
         /// <returns></returns>
         public TextureHandle GetTexture<T>(T id) where T : unmanaged, Enum
         {
-            if (!isAccessible)
-            {
-                Debug.LogError("Trying to access FrameResources outside of the current frame setup.");
-
-                return TextureHandle.nullHandle;
-            }
-
-            if (m_TextureHandles.TryGetValue(GetKey(id), out TextureHandle handle))
-                return handle;
-
+            Debug.LogError("FrameResources.GetTexture is no longer supported. Use UniversalResourceData/Universal2DResourcesData instead.");
             return TextureHandle.nullHandle;
         }
 
@@ -76,14 +35,7 @@ namespace UnityEngine.Rendering.Universal
         /// <typeparam name="T"></typeparam>
         public void SetTexture<T>(T id, TextureHandle handle) where T : unmanaged, Enum
         {
-            if (!isAccessible)
-            {
-                Debug.LogError("Trying to access FrameResources outside of the current frame setup.");
-
-                return;
-            }
-
-            m_TextureHandles[GetKey(id)] = handle;
+            Debug.LogError("FrameResources.SetTexture is no longer supported. Use UniversalResourceData/Universal2DResourcesData instead.");
         }
     }
 
@@ -831,11 +783,27 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
+        /// Override this method to initialize before recording the render graph, such as resources.
+        /// </summary>
+        /// <param name="frameData">Current render state information.</param>
+        internal virtual void OnBeginRenderGraphFrame(ContextContainer frameData)
+        {
+        }
+
+        /// <summary>
         /// Override this method to record the RenderGraph passes to be used by the RenderGraph render path.
         /// </summary>
         /// <param name="context">Use this render context to issue any draw commands during execution.</param>
         /// <param name="renderingData">Current render state information.</param>
         internal virtual void OnRecordRenderGraph(RenderGraph renderGraph, ScriptableRenderContext context, ref RenderingData renderingData)
+        {
+        }
+
+        /// <summary>
+        /// Override this method to cleanup things after recording the render graph, such as resources.
+        /// </summary>
+        /// <param name="frameData">Current render state information.</param>
+        internal virtual void OnEndRenderGraphFrame(ContextContainer frameData)
         {
         }
 
@@ -1100,7 +1068,9 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="renderingData"></param>
         internal void RecordRenderGraph(RenderGraph renderGraph, ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            m_Resources.InitFrame();
+            ContextContainer frameData = renderingData.frameData;
+
+            OnBeginRenderGraphFrame(frameData);
 
             using (new ProfilingScope(Profiling.sortRenderPasses))
             {
@@ -1111,7 +1081,8 @@ namespace UnityEngine.Rendering.Universal
             InitRenderGraphFrame(renderGraph, ref renderingData);
 
             OnRecordRenderGraph(renderGraph, context, ref renderingData);
-            m_Resources.EndFrame();
+
+            OnEndRenderGraphFrame(frameData);
 
             // The editor scene view still relies on some builtin passes (i.e. drawing the scene grid). The builtin
             // passes are not explicitly setting RTs and rely on the last active render target being set. Unfortunately

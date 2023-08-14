@@ -379,13 +379,15 @@ namespace UnityEngine.Rendering.Universal
 
         private void ExecuteSetupPass(RenderGraph renderGraph, FrameResources frameResources, ref RenderingData renderingData)
         {
+            ContextContainer frameData = frameResources.frameData;
+            UniversalResourcesData resourcesData = frameData.Get<UniversalResourcesData>();
+
             using (IRasterRenderGraphBuilder builder = renderGraph.AddRasterRenderPass<SetupPassData>("SSAO_Setup", out var passData, m_ProfilingSampler))
             {
                 // Initialize the pass data
                 InitSetupPassData(ref passData);
                 passData.renderingData = renderingData;
-                UniversalRenderer renderer = (UniversalRenderer)renderingData.cameraData.renderer;
-                passData.cameraColor = frameResources.GetTexture(UniversalResource.CameraColor);
+                passData.cameraColor = resourcesData.cameraColor;
 
                 // Shader keyword changes are considered as global state modifications
                 builder.AllowGlobalStateModification(true);
@@ -408,6 +410,9 @@ namespace UnityEngine.Rendering.Universal
 
         private void CreateRenderTextureHandles(RenderGraph renderGraph, ref UniversalRenderer renderer, ref RenderingData renderingData, out TextureHandle aoTexture, out TextureHandle blurTexture, out TextureHandle finalTexture)
         {
+            ContextContainer frameData = renderingData.frameData;
+            UniversalResourcesData resourceData = frameData.Get<UniversalResourcesData>();
+
             // Descriptor for the final blur pass
             RenderTextureDescriptor finalTextureDescriptor = renderingData.cameraData.cameraTargetDescriptor;
             finalTextureDescriptor.colorFormat = m_SupportsR8RenderTextureFormat ? RenderTextureFormat.R8 : RenderTextureFormat.ARGB32;
@@ -429,11 +434,14 @@ namespace UnityEngine.Rendering.Universal
             finalTexture = m_CurrentSettings.AfterOpaque ? renderer.activeColorTexture : UniversalRenderer.CreateRenderGraphTexture(renderGraph, finalTextureDescriptor, k_SSAOTextureName, false, FilterMode.Bilinear);
 
             if (!m_CurrentSettings.AfterOpaque)
-                renderer.resources.SetTexture(UniversalResource.SSAOTexture, finalTexture);
+                resourceData.ssaoTexture = finalTexture;
         }
 
         private void ExecuteOcclusionPass(RenderGraph renderGraph, FrameResources frameResources, in TextureHandle aoTexture)
         {
+            ContextContainer frameData = frameResources.frameData;
+            UniversalResourcesData resourceData = frameData.Get<UniversalResourcesData>();
+
             using (IRasterRenderGraphBuilder builder = renderGraph.AddRasterRenderPass<PassData>("SSAO_Occlusion", out PassData passData, m_ProfilingSampler))
             {
                 // Initialize the pass data
@@ -444,8 +452,9 @@ namespace UnityEngine.Rendering.Universal
                 // Set up the builder
                 builder.UseTextureFragment(aoTexture, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
 
-                TextureHandle cameraDepthTexture = frameResources.GetTexture(UniversalResource.CameraDepthTexture);
-                TextureHandle cameraNormalsTexture = frameResources.GetTexture(UniversalResource.CameraNormalsTexture);
+                // Get the resources
+                TextureHandle cameraDepthTexture = resourceData.cameraDepthTexture;
+                TextureHandle cameraNormalsTexture = resourceData.cameraNormalsTexture;
 
                 if (cameraDepthTexture.IsValid())
                     builder.UseTexture(cameraDepthTexture, IBaseRenderGraphBuilder.AccessFlags.Read);

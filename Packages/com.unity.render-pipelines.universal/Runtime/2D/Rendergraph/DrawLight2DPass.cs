@@ -148,15 +148,18 @@ namespace UnityEngine.Rendering.Universal
 
         public void Render(RenderGraph graph, Renderer2DData rendererData, ref LayerBatch layerBatch, FrameResources resources, TextureHandle[] lightTextures, TextureHandle depthTexture, int shadowlightIndex = -1, bool isVolumetric = false)
         {
+            ContextContainer frameData = resources.frameData;
+            Universal2DResourcesData resourcesData = frameData.Get<Universal2DResourcesData>();
+
             if (!layerBatch.lightStats.useLights ||
                 isVolumetric && !layerBatch.lightStats.useVolumetricLights)
                 return;
 
             if (layerBatch.lightStats.useNormalMap)
-                RenderGraphUtils.SetGlobalTexture(graph, k_NormalMapID, resources.GetTexture(Renderer2DResource.NormalsTexture), "Set Normal");
+                RenderGraphUtils.SetGlobalTexture(graph, k_NormalMapID, resourcesData.normalsTexture, "Set Normal");
 
             if (layerBatch.lightStats.useShadows)
-                RenderGraphUtils.SetGlobalTexture(graph, k_ShadowMapID, resources.GetTexture(Renderer2DResource.ShadowsTexture), "Set Shadows");
+                RenderGraphUtils.SetGlobalTexture(graph, k_ShadowMapID, resourcesData.shadowsTexture, "Set Shadows");
 
             RenderGraphUtils.SetGlobalTexture(graph, k_FalloffLookupID, graph.ImportTexture(m_FallOffRTHandle), "Set Global FalloffLookup");
             RenderGraphUtils.SetGlobalTexture(graph, k_LightLookupID, graph.ImportTexture(m_LightLookupRTHandle), "Set Global LightLookup");
@@ -169,10 +172,10 @@ namespace UnityEngine.Rendering.Universal
                 builder.UseTextureFragmentDepth(depthTexture, IBaseRenderGraphBuilder.AccessFlags.Write);
 
                 if (layerBatch.lightStats.useNormalMap)
-                    builder.UseTexture(resources.GetTexture(Renderer2DResource.NormalsTexture));
+                    builder.UseTexture(resourcesData.normalsTexture);
 
                 if (layerBatch.lightStats.useShadows)
-                    builder.UseTexture(resources.GetTexture(Renderer2DResource.ShadowsTexture));
+                    builder.UseTexture(resourcesData.shadowsTexture);
 
                 var lights = shadowlightIndex != -1 ? layerBatch.shadowLights : layerBatch.lights;
                 foreach (var light in lights)

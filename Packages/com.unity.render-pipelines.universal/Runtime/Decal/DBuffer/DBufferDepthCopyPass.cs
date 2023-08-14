@@ -17,9 +17,12 @@ namespace UnityEngine.Rendering.Universal
 
         public override void RecordRenderGraph(RenderGraph renderGraph, FrameResources frameResources, ref RenderingData renderingData)
         {
+            ContextContainer frameData = renderingData.frameData;
+            UniversalResourcesData resourcesData = frameData.Get<UniversalResourcesData>();
+
             UniversalRenderer renderer = (UniversalRenderer)renderingData.cameraData.renderer;
 
-            TextureHandle cameraDepthTexture = frameResources.GetTexture(UniversalResource.CameraDepthTexture);
+            TextureHandle cameraDepthTexture = resourcesData.cameraDepthTexture;
 
 
             TextureHandle src, dest;
@@ -35,7 +38,7 @@ namespace UnityEngine.Rendering.Universal
                 depthDesc.depthStencilFormat = renderingData.cameraData.cameraTargetDescriptor.depthStencilFormat;
                 depthDesc.msaaSamples = 1;
                 var depthTarget = UniversalRenderer.CreateRenderGraphTexture(renderGraph, depthDesc, DBufferRenderPass.s_DBufferDepthName, true);
-                frameResources.SetTexture(UniversalResource.DBufferDepth, depthTarget);
+                resourcesData.dBufferDepth = depthTarget;
 
                 src = cameraDepthTexture;
                 dest = renderingData.cameraData.cameraTargetDescriptor.msaaSamples > 1 ? depthTarget : renderer.activeDepthTexture;

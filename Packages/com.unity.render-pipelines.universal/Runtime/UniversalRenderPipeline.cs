@@ -769,6 +769,7 @@ namespace UnityEngine.Rendering.Universal
                 // Initialize all the data types required for rendering.
                 using (new ProfilingScope(Profiling.Pipeline.initializeRenderingData))
                 {
+                    CreateUniversalResourcesData(frameData);
                     CreateLightData(frameData, asset, cullResults.visibleLights);
                     CreateShadowData(frameData, asset, isForwardPlus);
                     CreatePostProcessingData(frameData, asset, anyPostProcessingEnabled);
@@ -936,8 +937,8 @@ namespace UnityEngine.Rendering.Universal
                 // Update volumeframework before initializing additional camera data
                 UpdateVolumeFramework(baseCamera, baseCameraAdditionalData);
 
-                var frameData = renderer.resources.frameData;
-                var baseCameraData = CreateCameraData(frameData, baseCamera, baseCameraAdditionalData, !isStackedRendering);
+                ContextContainer frameData = renderer.resources.frameData;
+                UniversalCameraData baseCameraData = CreateCameraData(frameData, baseCamera, baseCameraAdditionalData, !isStackedRendering);
 
 #if ENABLE_VR && ENABLE_XR_MODULE
                 if (xrPass.enabled)
@@ -994,7 +995,7 @@ namespace UnityEngine.Rendering.Universal
                         // Camera is overlay and enabled
                         if (overlayAdditionalCameraData != null)
                         {
-                            var overlayFrameData = GetRenderer(overlayCamera, overlayAdditionalCameraData).resources.frameData;
+                            ContextContainer overlayFrameData = GetRenderer(overlayCamera, overlayAdditionalCameraData).resources.frameData;
                             UniversalCameraData overlayCameraData = CreateCameraData(overlayFrameData, baseCamera, baseCameraAdditionalData, false);
 #if ENABLE_VR && ENABLE_XR_MODULE
                             if (xrPass.enabled)
@@ -1605,6 +1606,11 @@ namespace UnityEngine.Rendering.Universal
             postProcessingData.useFastSRGBLinearConversion = settings.useFastSRGBLinearConversion;
             postProcessingData.supportScreenSpaceLensFlare = settings.supportScreenSpaceLensFlare;
             postProcessingData.supportDataDrivenLensFlare = settings.supportDataDrivenLensFlare;
+        }
+
+        static void CreateUniversalResourcesData(ContextContainer frameData)
+        {
+            frameData.Create<UniversalResourcesData>();
         }
 
         static void CreateLightData(ContextContainer frameData, UniversalRenderPipelineAsset settings, NativeArray<VisibleLight> visibleLights)

@@ -76,6 +76,9 @@ namespace UnityEngine.Rendering.Universal
         {
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("Decal Forward Emissive Pass", out var passData, m_ProfilingSampler))
             {
+                ContextContainer frameData = renderingData.frameData;
+                UniversalResourcesData resourcesData = frameData.Get<UniversalResourcesData>();
+
                 InitPassData(ref passData);
                 var param = InitRendererListParams(ref renderingData);
                 passData.renderingData = renderingData;
@@ -83,8 +86,8 @@ namespace UnityEngine.Rendering.Universal
                 builder.UseRendererList(passData.rendererList);
 
                 UniversalRenderer renderer = (UniversalRenderer)renderingData.cameraData.renderer;
-                builder.UseTextureFragment(renderer.activeColorTexture, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
-                builder.UseTextureFragmentDepth(renderer.activeDepthTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+                builder.UseTextureFragment(resourcesData.activeColorTexture, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
+                builder.UseTextureFragmentDepth(resourcesData.activeDepthTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
 
                 builder.SetRenderFunc((PassData data, RasterGraphContext rgContext) =>
                 {

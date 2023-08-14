@@ -170,6 +170,8 @@ public class FullScreenPassRendererFeature : ScriptableRendererFeature
 
         public override void RecordRenderGraph(RenderGraph renderGraph, FrameResources frameResources, ref RenderingData renderingData)
         {
+            ContextContainer frameData = renderingData.frameData;
+            UniversalResourcesData resourcesData = frameData.Get<UniversalResourcesData>();
 
             UniversalRenderer renderer = (UniversalRenderer) renderingData.cameraData.renderer;
             var colorCopyDescriptor = renderingData.cameraData.cameraTargetDescriptor;
@@ -180,7 +182,7 @@ public class FullScreenPassRendererFeature : ScriptableRendererFeature
             {
                 using (var builder = renderGraph.AddRasterRenderPass<PassData>("CustomPostPro_ColorPass", out var passData, m_ProfilingSampler))
                 {
-                     passData.source = builder.UseTexture(renderer.activeColorTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+                     passData.source = builder.UseTexture(resourcesData.activeColorTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
                      passData.copiedColor = builder.UseTextureFragment(copiedColor, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
                      builder.SetRenderFunc((PassData data, RasterGraphContext rgContext) =>
                      {
@@ -196,7 +198,7 @@ public class FullScreenPassRendererFeature : ScriptableRendererFeature
                 if (m_RequiresColor)
                     passData.copiedColor = builder.UseTexture(copiedColor, IBaseRenderGraphBuilder.AccessFlags.Read);
 
-                passData.source = builder.UseTextureFragment(renderer.activeColorTexture, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
+                passData.source = builder.UseTextureFragment(resourcesData.activeColorTexture, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
 
                 builder.SetRenderFunc((PassData data, RasterGraphContext rgContext) =>
                 {

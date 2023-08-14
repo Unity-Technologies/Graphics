@@ -68,6 +68,9 @@ namespace UnityEngine.Rendering.Universal
 
         public void RenderSMAA(RenderGraph renderGraph, in TextureHandle source, out TextureHandle SMAATarget, ref RenderingData renderingData)
         {
+            ContextContainer frameData = renderingData.frameData;
+            UniversalResourcesData resourcesData = frameData.Get<UniversalResourcesData>();
+
             ref var cameraData = ref renderingData.cameraData;
 
             var desc = PostProcessPass.GetCompatibleDescriptor(m_Descriptor,
@@ -148,7 +151,7 @@ namespace UnityEngine.Rendering.Universal
                 passData.depthStencilTexture = builder.UseTextureFragmentDepth(edgeTextureStencil, IBaseRenderGraphBuilder.AccessFlags.Write);
                 passData.sourceTexture = builder.UseTexture(source, IBaseRenderGraphBuilder.AccessFlags.Read);
                 UniversalRenderer renderer = (UniversalRenderer)renderingData.cameraData.renderer;
-                builder.UseTexture( renderer.resources.GetTexture(UniversalResource.CameraDepth) ,IBaseRenderGraphBuilder.AccessFlags.Read);
+                builder.UseTexture(resourcesData.cameraDepth ,IBaseRenderGraphBuilder.AccessFlags.Read);
                 passData.material = material;
 
                 builder.SetRenderFunc((SMAAPassData data, RasterGraphContext context) =>
@@ -500,6 +503,9 @@ namespace UnityEngine.Rendering.Universal
 
         public void RenderDoFGaussian(RenderGraph renderGraph, in TextureHandle source, in TextureHandle destination, ref Material dofMaterial, ref RenderingData renderingData)
         {
+            ContextContainer frameData = renderingData.frameData;
+            UniversalResourcesData resourcesData = frameData.Get<UniversalResourcesData>();
+
             int downSample = 2;
             var material = dofMaterial;
             int wh = m_Descriptor.width / downSample;
@@ -554,7 +560,7 @@ namespace UnityEngine.Rendering.Universal
                 passData.sourceTexture = builder.UseTexture(source, IBaseRenderGraphBuilder.AccessFlags.Read);
 
                 UniversalRenderer renderer = (UniversalRenderer)renderingData.cameraData.renderer;
-                builder.UseTexture(renderer.resources.GetTexture(UniversalResource.CameraDepthTexture), IBaseRenderGraphBuilder.AccessFlags.Read);
+                builder.UseTexture(resourcesData.cameraDepthTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
 
                 passData.material = material;
                 builder.SetRenderFunc((DoFGaussianPassData data, RasterGraphContext context) =>
@@ -683,6 +689,9 @@ namespace UnityEngine.Rendering.Universal
 
         public void RenderDoFBokeh(RenderGraph renderGraph, in TextureHandle source, in TextureHandle destination, ref Material dofMaterial, ref RenderingData renderingData)
         {
+            ContextContainer frameData = renderingData.frameData;
+            UniversalResourcesData resourcesData = frameData.Get<UniversalResourcesData>();
+
             int downSample = 2;
             var material = dofMaterial;
             int wh = m_Descriptor.width / downSample;
@@ -751,7 +760,7 @@ namespace UnityEngine.Rendering.Universal
                 passData.material = material;
 
                 UniversalRenderer renderer = (UniversalRenderer)renderingData.cameraData.renderer;
-                builder.UseTexture(renderer.resources.GetTexture(UniversalResource.CameraDepthTexture), IBaseRenderGraphBuilder.AccessFlags.Read);
+                builder.UseTexture(resourcesData.cameraDepthTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
 
                 builder.SetRenderFunc((DoFBokehPassData data, RasterGraphContext context) =>
                 {
@@ -916,6 +925,9 @@ namespace UnityEngine.Rendering.Universal
         private const string _TemporalAATargetName = "_TemporalAATarget";
         private void RenderTemporalAA(RenderGraph renderGraph, ref TextureHandle source, out TextureHandle destination, ref CameraData cameraData)
         {
+            ContextContainer frameData = cameraData.frameData;
+            UniversalResourcesData resourcesData = frameData.Get<UniversalResourcesData>();
+
             var desc = PostProcessPass.GetCompatibleDescriptor(m_Descriptor,
                 m_Descriptor.width,
                 m_Descriptor.height,
@@ -923,11 +935,8 @@ namespace UnityEngine.Rendering.Universal
                 DepthBits.None);
             destination = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, _TemporalAATargetName, false, FilterMode.Bilinear);    // TODO: use a constant for the name
 
-            UniversalRenderer renderer = (UniversalRenderer)cameraData.renderer;
-            TextureHandle cameraDepth = renderer.resources.GetTexture(UniversalResource.CameraDepth);
-            //TextureHandle motionVectors = renderGraph.ImportBackbuffer(m_MotionVectors.rt);
-            TextureHandle motionVectors = renderer.resources.GetTexture(UniversalResource.MotionVectorColor);
-
+            TextureHandle cameraDepth = resourcesData.cameraDepth;
+            TextureHandle motionVectors = resourcesData.motionVectorColor;
             TemporalAA.Render(renderGraph, m_Materials.temporalAntialiasing, ref cameraData, ref source, ref cameraDepth, ref motionVectors, ref destination);
         }
         #endregion
@@ -948,8 +957,10 @@ namespace UnityEngine.Rendering.Universal
 
         public void RenderMotionBlur(RenderGraph renderGraph, in TextureHandle source, out TextureHandle destination, ref CameraData cameraData)
         {
-            var material = m_Materials.cameraMotionBlur;
+            ContextContainer frameData = cameraData.frameData;
+            UniversalResourcesData resourcesData = frameData.Get<UniversalResourcesData>();
 
+            var material = m_Materials.cameraMotionBlur;
             var desc = PostProcessPass.GetCompatibleDescriptor(m_Descriptor,
                 m_Descriptor.width,
                 m_Descriptor.height,
@@ -963,8 +974,8 @@ namespace UnityEngine.Rendering.Universal
             passIndex += (mode == MotionBlurMode.CameraAndObjects) ? 3 : 0;
 
             UniversalRenderer renderer = (UniversalRenderer)cameraData.renderer;
-            TextureHandle motionVectorColor = renderer.resources.GetTexture(UniversalResource.MotionVectorColor);
-            TextureHandle cameraDepthTexture = renderer.resources.GetTexture(UniversalResource.CameraDepthTexture);
+            TextureHandle motionVectorColor = resourcesData.motionVectorColor;
+            TextureHandle cameraDepthTexture = resourcesData.cameraDepthTexture;
 
             using (var builder = renderGraph.AddRasterRenderPass<MotionBlurPassData>("Motion Blur", out var passData, ProfilingSampler.Get(URPProfileId.RG_MotionBlur)))
             {
@@ -1016,6 +1027,9 @@ namespace UnityEngine.Rendering.Universal
             if (!LensFlareCommonSRP.IsOcclusionRTCompatible())
                 return;
 
+            ContextContainer frameData = renderingData.frameData;
+            UniversalResourcesData resourcesData = frameData.Get<UniversalResourcesData>();
+
             using (var builder = renderGraph.AddLowLevelPass<LensFlarePassData>("Lens Flare Compute Occlusion", out var passData, ProfilingSampler.Get(URPProfileId.LensFlareDataDrivenComputeOcclusion)))
             {
                 RTHandle occH = LensFlareCommonSRP.occlusionRT;
@@ -1037,7 +1051,7 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 UniversalRenderer renderer = (UniversalRenderer)renderingData.cameraData.renderer;
-                builder.UseTexture(renderer.resources.GetTexture(UniversalResource.CameraDepthTexture), IBaseRenderGraphBuilder.AccessFlags.Read);
+                builder.UseTexture(resourcesData.cameraDepthTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
 
                 builder.SetRenderFunc(
                     (LensFlarePassData data, LowLevelGraphContext ctx) =>

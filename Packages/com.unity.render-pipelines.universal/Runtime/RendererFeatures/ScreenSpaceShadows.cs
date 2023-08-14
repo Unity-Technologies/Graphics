@@ -280,8 +280,10 @@ namespace UnityEngine.Rendering.Universal
             {
                 using (var builder = renderGraph.AddRasterRenderPass<PassData>("Screen Space Shadow Post Pass", out var passData, m_ProfilingSampler))
                 {
-                    UniversalRenderer renderer = (UniversalRenderer) renderingData.cameraData.renderer;
-                    TextureHandle color = renderer.activeColorTexture;
+                    ContextContainer frameData = renderingData.frameData;
+                    UniversalResourcesData resourcesData = frameData.Get<UniversalResourcesData>();
+
+                    TextureHandle color = resourcesData.activeColorTexture;
                     builder.UseTextureFragment(color, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
                     passData.renderingData = renderingData;
                     passData.pass = this;
