@@ -382,6 +382,15 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        void Start()
+        {
+            // Need to ensure correct behavoiur for overlay cameras settings their clear flag to nothing.
+            // This can't be done in the upgrade since the camera component can't be retrieved in the deserialization phase.
+            // OnValidate ensure future cameras won't have this issue.
+            if (m_CameraType == CameraRenderType.Overlay)
+                camera.clearFlags = CameraClearFlags.Nothing;
+        }
+
 
         /// <summary>
         /// Controls if this camera should render shadows.
