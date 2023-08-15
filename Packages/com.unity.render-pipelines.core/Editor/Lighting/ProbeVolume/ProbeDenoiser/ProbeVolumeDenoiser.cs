@@ -7,6 +7,7 @@ using UnityEditor;
 using UnityEngine;
 using static Unity.Burst.Intrinsics.X86.Avx;
 using static UnityEngine.Rendering.ProbeReferenceVolume;
+using static UnityEngine.Rendering.ProbeVolumeDenoiserSettings;
 using Chunk = UnityEngine.Rendering.ProbeBrickPool.BrickChunkAlloc;
 using RawSphericalHaramonicsL2 = UnityEngine.Rendering.ProbeGIBaking.RawSphericalHarmonicsL2;
 
@@ -30,6 +31,7 @@ namespace UnityEngine.Rendering
         private static int m_staticFilterKernelID;
 
         private ProbeReferenceVolume.Cell m_cell;
+        private ProbeVolumeDenoiserSettings m_settings;
         private int[] m_remappedProbeIndices;
 
         private RawSphericalHaramonicsL2[] m_outputCoeffsHostBuffer;
@@ -48,10 +50,12 @@ namespace UnityEngine.Rendering
 
         private ComputeBuffer m_probePositionDeviceBuffer { get; }
         private ComputeBuffer m_cachedCoeffsDeviceBuffer { get; }
+        private ComputeBuffer m_cachedValiditiesDeviceBuffer { get; }
         private ComputeBuffer m_outputCoeffsDeviceBuffer { get; }
 
         static readonly int _ProbePositionsBuffer = Shader.PropertyToID("_ProbePositionsBuffer");
         static readonly int _CachedCoeffs = Shader.PropertyToID("_CachedCoeffs");
+        static readonly int _CachedValidities = Shader.PropertyToID("_CachedValidities");
         static readonly int _OutputCoeffs = Shader.PropertyToID("_OutputCoeffs");
         static readonly int _CacheLowerBound = Shader.PropertyToID("_CacheLowerBound");
         static readonly int _CacheDims = Shader.PropertyToID("_CacheDims");
@@ -70,16 +74,21 @@ namespace UnityEngine.Rendering
         static readonly int _APVResL2_1 = Shader.PropertyToID("_APVResL2_1");
         static readonly int _APVResL2_2 = Shader.PropertyToID("_APVResL2_2");
         static readonly int _APVResL2_3 = Shader.PropertyToID("_APVResL2_3");
+        static readonly int _APVResValidity = Shader.PropertyToID("_APVResValidity");
 
         private bool IsValidBBox(Vector3 lower, Vector3 upper)
         {
             return lower.x <= upper.x && lower.y <= upper.y && lower.z <= upper.z;
         }
 
-        public ProbeVolumeDenoiser(ProbeReferenceVolume.Cell cell)
+        public ProbeVolumeDenoiser(ProbeReferenceVolume.Cell cell, ProbeVolumeDenoiserSettings settings)
         {
             m_cell = cell;
+            m_settings = settings;
             Debug.Log($"Denoising {m_cell.desc.index}");
+
+            Diag.Assert(m_settings.kernelSize >= 0 && m_settings.kernelSize <= 5, $"Kernel size {m_settings.kernelSize} is out of bounds [0, 5].");
+            Diag.Assert(m_settings.patchSize >= 0 && m_settings.patchSize <= 2, $"Patch size {m_settings.patchSize} is out of bounds [0, 2].");
 
             m_mutex.WaitOne();
             if (m_shaderHandle == null)
@@ -154,6 +163,7 @@ namespace UnityEngine.Rendering
             // Create the compute buffers
             m_probePositionDeviceBuffer = new ComputeBuffer(m_probePositionsHostBuffer.Length, System.Runtime.InteropServices.Marshal.SizeOf<Vector3>());
             m_cachedCoeffsDeviceBuffer = new ComputeBuffer(m_numCachedProbes * 9, System.Runtime.InteropServices.Marshal.SizeOf<Vector3>());
+            m_cachedValiditiesDeviceBuffer = new ComputeBuffer(m_numCachedProbes, System.Runtime.InteropServices.Marshal.SizeOf<int>());
             m_outputCoeffsDeviceBuffer = new ComputeBuffer(m_numOutputProbes, System.Runtime.InteropServices.Marshal.SizeOf<RawSphericalHaramonicsL2>());
 
             // Upload the probe position data to the device
@@ -167,6 +177,7 @@ namespace UnityEngine.Rendering
             // Clean up device objects
             m_probePositionDeviceBuffer.Dispose();
             m_cachedCoeffsDeviceBuffer.Dispose();
+            m_cachedValiditiesDeviceBuffer.Dispose();
             m_outputCoeffsDeviceBuffer.Dispose();
 
             Debug.Log("Cleaned up!");
@@ -194,6 +205,8 @@ namespace UnityEngine.Rendering
                 cmd.SetGlobalTexture(_APVResL2_1, rr.L2_1);
                 cmd.SetGlobalTexture(_APVResL2_2, rr.L2_2);
                 cmd.SetGlobalTexture(_APVResL2_3, rr.L2_3);
+
+                cmd.SetGlobalTexture(_APVResValidity, rr.Validity);
             }
 
             ProbeVolumeShadingParameters parameters;
@@ -215,19 +228,23 @@ namespace UnityEngine.Rendering
         {
             var cmd = CommandBufferPool.Get("Probe Denoising");
 
+            // Params for cache
             cmd.SetComputeBufferParam(m_shaderHandle, m_populateKernelID, _CachedCoeffs, m_cachedCoeffsDeviceBuffer);
+            cmd.SetComputeBufferParam(m_shaderHandle, m_populateKernelID, _CachedValidities, m_cachedValiditiesDeviceBuffer);
 
+            // Params for static filter kernel
             cmd.SetComputeBufferParam(m_shaderHandle, m_staticFilterKernelID, _ProbePositionsBuffer, m_probePositionDeviceBuffer);
             cmd.SetComputeBufferParam(m_shaderHandle, m_staticFilterKernelID, _OutputCoeffs, m_outputCoeffsDeviceBuffer);
             cmd.SetComputeBufferParam(m_shaderHandle, m_staticFilterKernelID, _CachedCoeffs, m_cachedCoeffsDeviceBuffer);
+            cmd.SetComputeBufferParam(m_shaderHandle, m_staticFilterKernelID, _CachedValidities, m_cachedValiditiesDeviceBuffer);
 
             cmd.SetComputeVectorParam(m_shaderHandle, _CacheLowerBound, new Vector4(m_cacheLowerBound.x, m_cacheLowerBound.y, m_cacheLowerBound.z));
             cmd.SetComputeVectorParam(m_shaderHandle, _CacheDims, new Vector4(m_cacheDims.x, m_cacheDims.y, m_cacheDims.z));
             cmd.SetComputeFloatParam(m_shaderHandle, _ProbeDelta, m_probeDelta);
             cmd.SetComputeIntParam(m_shaderHandle, _NumCachedProbes, m_numCachedProbes);
             cmd.SetComputeIntParam(m_shaderHandle, _NumOutputProbes, m_numOutputProbes);
-            cmd.SetComputeIntParam(m_shaderHandle, _N, 1);
-            cmd.SetComputeIntParam(m_shaderHandle, _M, 0); 
+            cmd.SetComputeIntParam(m_shaderHandle, _N, m_settings.kernelSize);
+            cmd.SetComputeIntParam(m_shaderHandle, _M, m_settings.patchSize); 
 
             PrepareProbeVolume(cmd);
 

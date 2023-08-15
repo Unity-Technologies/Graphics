@@ -100,7 +100,17 @@ namespace UnityEngine.Rendering
     [System.Serializable]
     internal struct ProbeVolumeDenoiserSettings
     {
-        public bool enableDenoising;    
+        enum DenoisingModel
+        {
+            kDenoisingModelStatic,
+            kDenoisingModelNLM
+        }
+
+        public bool enableDenoising;
+        public int denoisingModel;
+
+        public int kernelSize;
+        public int patchSize;
 
         internal void SetDefaults()
         {

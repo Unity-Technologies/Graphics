@@ -856,7 +856,7 @@ namespace UnityEngine.Rendering
 
         internal static void PerformDilation()
         {
-            var dilationSettings = m_BakingSet.settings.dilationSettings;
+            var dilationSettings = m_BakingSet.settings.dilationSettings; 
             if (dilationSettings.enableDilation && dilationSettings.dilationDistance > 0.0f)
             {
                 CellConvolutionDelegate dilateLambda = cell => 
@@ -869,21 +869,25 @@ namespace UnityEngine.Rendering
 
         internal static void PerformDenoising()
         {
-            CellConvolutionDelegate denoiseLambda = cell => 
+            var settings = m_BakingSet.denoiserSettings;
+            if (settings.enableDenoising)
             {
-                try
+                CellConvolutionDelegate denoiseLambda = cell =>
                 {
-                    using (ProbeVolumeDenoiser denoiser = new ProbeVolumeDenoiser(cell))
+                    try
                     {
-                        denoiser.Apply();
+                        using (ProbeVolumeDenoiser denoiser = new ProbeVolumeDenoiser(cell, settings))
+                        {
+                            denoiser.Apply();
+                        }
                     }
-                }
-                catch (ProbeVolumeDenoiserException ex)
-                {
-                    Debug.LogError(string.Format("Probe volume denoiser failed: {0}", ex.what));
-                }                
-            };
-            PerformPerCellConvolution(denoiseLambda, 1);
+                    catch (ProbeVolumeDenoiserException ex)
+                    {
+                        Debug.LogError(string.Format("Probe volume denoiser failed: {0}", ex.what));
+                    }
+                };
+                PerformPerCellConvolution(denoiseLambda, 1);
+            }
         }
 
         static public int[] GetRemappedProbeIndices(CellDesc cellDesc, CellData cellData)
@@ -1317,13 +1321,13 @@ namespace UnityEngine.Rendering
             foreach (var data in fullSceneDataList)
                 data.QueueSceneLoading();
 
-            // ---- Perform denoising ---
-            using (new BakingCompleteProfiling(BakingCompleteProfiling.Stages.PerformDenoising))
-                PerformDenoising();
-
             // ---- Perform dilation ---
             using (new BakingCompleteProfiling(BakingCompleteProfiling.Stages.PerformDilation))
                 PerformDilation();
+
+            // ---- Perform denoising ---
+            using (new BakingCompleteProfiling(BakingCompleteProfiling.Stages.PerformDenoising))
+                PerformDenoising();
 
             // Need to restore the original sh bands
             ProbeReferenceVolume.instance.ForceSHBand(prevSHBands);
