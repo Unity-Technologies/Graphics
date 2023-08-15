@@ -563,6 +563,58 @@ namespace UnityEngine.Rendering.Universal
             return softShadows;
         }
 
+        internal static bool SupportsPerLightSoftShadowQuality()
+        {
+            #if ENABLE_VR && ENABLE_VR_MODULE
+            #if PLATFORM_WINRT || PLATFORM_ANDROID
+                // We are using static branches on Quest2 + HL for performance reasons
+                return !PlatformAutoDetect.isXRMobile;
+            #endif
+            #endif
+            return true;
+        }
+
+        internal static void SetPerLightSoftShadowKeyword(RasterCommandBuffer cmd, bool hasSoftShadows)
+        {
+            if (SupportsPerLightSoftShadowQuality())
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadows, hasSoftShadows);
+        }
+
+        internal static void SetSoftShadowQualityShaderKeywords(RasterCommandBuffer cmd, ref ShadowData shadowData)
+        {
+            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadows, shadowData.isKeywordSoftShadowsEnabled);
+            if (SupportsPerLightSoftShadowQuality())
+            {
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadowsLow, false);
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadowsMedium, false);
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadowsHigh, false);
+            }
+            else
+            {
+                if (shadowData.isKeywordSoftShadowsEnabled && UniversalRenderPipeline.asset?.softShadowQuality == SoftShadowQuality.Low)
+                {
+                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadowsLow, true);
+                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadowsMedium, false);
+                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadowsHigh, false);
+                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadows, false);
+                }
+                else if (shadowData.isKeywordSoftShadowsEnabled && UniversalRenderPipeline.asset?.softShadowQuality == SoftShadowQuality.Medium)
+                {
+                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadowsLow, false);
+                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadowsMedium, true);
+                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadowsHigh, false);
+                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadows, false);
+                }
+                else if (shadowData.isKeywordSoftShadowsEnabled && UniversalRenderPipeline.asset?.softShadowQuality == SoftShadowQuality.High)
+                {
+                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadowsLow, false);
+                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadowsMedium, false);
+                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadowsHigh, true);
+                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadows, false);
+                }
+            }
+        }
+
         internal static bool IsValidShadowCastingLight(ref LightData lightData, int i)
         {
             if (i == lightData.mainLightIndex)
