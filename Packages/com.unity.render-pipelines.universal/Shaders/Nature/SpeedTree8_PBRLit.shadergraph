@@ -1224,20 +1224,6 @@
         {
             "m_OutputSlot": {
                 "m_Node": {
-                    "m_Id": "c09c03ac23961d85b7a462e3fb87b3c5"
-                },
-                "m_SlotId": 2
-            },
-            "m_InputSlot": {
-                "m_Node": {
-                    "m_Id": "638ceae238f14da591f4e9f4158337da"
-                },
-                "m_SlotId": 1313628562
-            }
-        },
-        {
-            "m_OutputSlot": {
-                "m_Node": {
                     "m_Id": "c17b65a47344429dbfdd50f1a9d807cd"
                 },
                 "m_SlotId": 2
@@ -2202,7 +2188,7 @@
     "m_AlphaClip": true,
     "m_CastShadows": true,
     "m_ReceiveShadows": true,
-    "m_SupportsLODCrossFade": false,
+    "m_SupportsLODCrossFade": true,
     "m_CustomEditorGUI": "",
     "m_SupportVFX": false
 }
@@ -8178,7 +8164,7 @@
     "m_CustomSlotLabel": "",
     "m_DismissedVersion": 0,
     "m_KeywordType": 0,
-    "m_KeywordDefinition": 1,
+    "m_KeywordDefinition": 2,
     "m_KeywordScope": 1,
     "m_KeywordStages": 63,
     "m_Entries": [],
