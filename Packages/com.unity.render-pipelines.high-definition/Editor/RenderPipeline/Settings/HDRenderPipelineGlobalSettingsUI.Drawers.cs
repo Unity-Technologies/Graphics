@@ -191,9 +191,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
             var editor = hdGlobalSettingsEditor.GetLookDevDefaultVolumeProfileEditor(
                 serialized.lookDevVolumeProfile.objectReferenceValue as VolumeProfile) as VolumeProfileEditor;
+            var componentEditors = editor != null ? editor.componentList.editors : null;
             var globalSettings = serialized.serializedObject.targetObject as HDRenderPipelineGlobalSettings;
 
-            VolumeProfileUtils.OnVolumeProfileContextClick(pos, globalSettings.lookDevVolumeProfile, editor.componentList.editors,
+            VolumeProfileUtils.OnVolumeProfileContextClick(pos, globalSettings.lookDevVolumeProfile, componentEditors,
                 overrideStateOnReset: false,
                 defaultVolumeProfilePath: $"Assets/{HDProjectSettings.projectSettingsFolderPath}/LookDevProfile_Default.asset",
                 onNewVolumeProfileCreated: volumeProfile =>

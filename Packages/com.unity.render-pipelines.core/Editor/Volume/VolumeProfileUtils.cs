@@ -271,36 +271,40 @@ namespace UnityEditor.Rendering
                 VolumeProfileFactory.CreateVolumeProfileWithCallback(defaultVolumeProfilePath,
                     onNewVolumeProfileCreated);
             });
-            menu.AddItem(Styles.clone, false, () =>
+
+            if (volumeProfile != null)
             {
-                var pathName = AssetDatabase.GenerateUniqueAssetPath(AssetDatabase.GetAssetPath(volumeProfile));
-                var clone = VolumeProfileFactory.CreateVolumeProfileAtPath(pathName, volumeProfile);
-                onNewVolumeProfileCreated(clone);
-            });
+                menu.AddItem(Styles.clone, false, () =>
+                {
+                    var pathName = AssetDatabase.GenerateUniqueAssetPath(AssetDatabase.GetAssetPath(volumeProfile));
+                    var clone = VolumeProfileFactory.CreateVolumeProfileAtPath(pathName, volumeProfile);
+                    onNewVolumeProfileCreated(clone);
+                });
 
-            menu.AddSeparator(string.Empty);
+                menu.AddSeparator(string.Empty);
 
-            menu.AddItem(Styles.collapseAll, false, () =>
-            {
-                SetComponentEditorsExpanded(componentEditors, false);
-                onComponentEditorsExpandedCollapsed?.Invoke();
-            });
-            menu.AddItem(Styles.expandAll, false, () =>
-            {
-                SetComponentEditorsExpanded(componentEditors, true);
-                onComponentEditorsExpandedCollapsed?.Invoke();
-            });
+                menu.AddItem(Styles.collapseAll, false, () =>
+                {
+                    SetComponentEditorsExpanded(componentEditors, false);
+                    onComponentEditorsExpandedCollapsed?.Invoke();
+                });
+                menu.AddItem(Styles.expandAll, false, () =>
+                {
+                    SetComponentEditorsExpanded(componentEditors, true);
+                    onComponentEditorsExpandedCollapsed?.Invoke();
+                });
 
-            menu.AddSeparator(string.Empty);
+                menu.AddSeparator(string.Empty);
 
-            menu.AddItem(Styles.resetAll, false, () =>
-            {
-                VolumeComponent[] components = new VolumeComponent[componentEditors.Count];
-                for (int i = 0; i < componentEditors.Count; i++)
-                    components[i] = componentEditors[i].volumeComponent;
+                menu.AddItem(Styles.resetAll, false, () =>
+                {
+                    VolumeComponent[] components = new VolumeComponent[componentEditors.Count];
+                    for (int i = 0; i < componentEditors.Count; i++)
+                        components[i] = componentEditors[i].volumeComponent;
 
-                ResetComponentsInternal(new SerializedObject(volumeProfile), volumeProfile, components, overrideStateOnReset);
-            });
+                    ResetComponentsInternal(new SerializedObject(volumeProfile), volumeProfile, components, overrideStateOnReset);
+                });
+            }
 
             menu.AddSeparator(string.Empty);
 
@@ -311,19 +315,22 @@ namespace UnityEditor.Rendering
 
             menu.AddItem(Styles.openInRenderingDebugger, false, DebugDisplaySettingsVolume.OpenInRenderingDebugger);
 
-            menu.AddSeparator(string.Empty);
+            if (volumeProfile != null)
+            {
+                menu.AddSeparator(string.Empty);
 
-            menu.AddItem(Styles.copyAllSettings, false,
-                () => VolumeComponentCopyPaste.CopySettings(volumeProfile.components));
+                menu.AddItem(Styles.copyAllSettings, false,
+                    () => VolumeComponentCopyPaste.CopySettings(volumeProfile.components));
 
-            if (VolumeComponentCopyPaste.CanPaste(volumeProfile.components))
-                menu.AddItem(Styles.pasteSettings, false, () =>
-                {
-                    VolumeComponentCopyPaste.PasteSettings(volumeProfile.components);
-                    VolumeManager.instance.OnVolumeProfileChanged(volumeProfile);
-                });
-            else
-                menu.AddDisabledItem(Styles.pasteSettings);
+                if (VolumeComponentCopyPaste.CanPaste(volumeProfile.components))
+                    menu.AddItem(Styles.pasteSettings, false, () =>
+                    {
+                        VolumeComponentCopyPaste.PasteSettings(volumeProfile.components);
+                        VolumeManager.instance.OnVolumeProfileChanged(volumeProfile);
+                    });
+                else
+                    menu.AddDisabledItem(Styles.pasteSettings);
+            }
 
             menu.DropDown(new Rect(new Vector2(position.x, position.y), Vector2.zero));
         }
