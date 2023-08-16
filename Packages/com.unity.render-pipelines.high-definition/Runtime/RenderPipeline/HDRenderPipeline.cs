@@ -590,7 +590,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             InitializeLightLoop(m_IBLFilterArray);
 
-            bool apvIsEnabled = IsAPVEnabled();
+            apvIsEnabled = m_Asset != null && m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolume;
+
             SupportedRenderingFeatures.active.overridesLightProbeSystem = apvIsEnabled;
             SupportedRenderingFeatures.active.rendererProbes = !apvIsEnabled;
             if (apvIsEnabled)
@@ -611,7 +612,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     scenarioBlendingShader = supportBlending ? defaultResources.shaders.probeVolumeBlendStatesCS : null,
                     sceneData = m_GlobalSettings.GetOrCreateAPVSceneData(),
                     shBands = m_Asset.currentPlatformRenderPipelineSettings.probeVolumeSHBands,
-                    supportsRuntimeDebug = Application.isEditor || !m_GlobalSettings.stripDebugVariants,
                     supportScenarios = m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolumeScenarios,
                     supportDiskStreaming = m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolumeDiskStreaming,
                     supportGPUStreaming = m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolumeGPUStreaming
@@ -621,7 +621,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             m_SkyManager.Build(asset, defaultResources, m_IBLFilterArray);
-
             InitializeVolumetricLighting();
             InitializeVolumetricClouds();
             InitializeSubsurfaceScattering();
@@ -1050,7 +1049,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Not always in that order.
 #endif
 
-            if (IsAPVEnabled())
+            if (apvIsEnabled)
             {
                 ProbeReferenceVolume.instance.Cleanup();
             }
@@ -1221,12 +1220,10 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ConfigureKeywords)))
             {
-                bool enableAPV = IsAPVEnabled();
-
                 // Globally enable (for GBuffer shader and forward lit (opaque and transparent) the keyword SHADOWS_SHADOWMASK
                 CoreUtils.SetKeyword(cmd, "SHADOWS_SHADOWMASK", enableBakeShadowMask);
                 // Configure material to use depends on shadow mask option
-                m_CurrentRendererConfigurationBakedLighting = HDUtils.GetRendererConfiguration(enableAPV, enableBakeShadowMask);
+                m_CurrentRendererConfigurationBakedLighting = HDUtils.GetRendererConfiguration(apvIsEnabled, enableBakeShadowMask);
                 m_currentDebugViewMaterialGBuffer = enableBakeShadowMask ? m_DebugViewMaterialGBufferShadowMask : m_DebugViewMaterialGBuffer;
 
                 bool outputRenderingLayers = hdCamera.frameSettings.IsEnabled(FrameSettingsField.LightLayers) || hdCamera.frameSettings.IsEnabled(FrameSettingsField.RenderingLayerMaskBuffer);
@@ -1246,8 +1243,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     CoreUtils.SetKeyword(cmd, "DECALS_4RT", false);
                 }
 
-                CoreUtils.SetKeyword(cmd, "PROBE_VOLUMES_L1", enableAPV && m_Asset.currentPlatformRenderPipelineSettings.probeVolumeSHBands == ProbeVolumeSHBands.SphericalHarmonicsL1);
-                CoreUtils.SetKeyword(cmd, "PROBE_VOLUMES_L2", enableAPV && m_Asset.currentPlatformRenderPipelineSettings.probeVolumeSHBands == ProbeVolumeSHBands.SphericalHarmonicsL2);
+                CoreUtils.SetKeyword(cmd, "PROBE_VOLUMES_L1", apvIsEnabled && m_Asset.currentPlatformRenderPipelineSettings.probeVolumeSHBands == ProbeVolumeSHBands.SphericalHarmonicsL1);
+                CoreUtils.SetKeyword(cmd, "PROBE_VOLUMES_L2", apvIsEnabled && m_Asset.currentPlatformRenderPipelineSettings.probeVolumeSHBands == ProbeVolumeSHBands.SphericalHarmonicsL2);
 
                 // Raise the normal buffer flag only if we are in forward rendering
                 CoreUtils.SetKeyword(cmd, "WRITE_NORMAL_BUFFER", hdCamera.frameSettings.litShaderMode == LitShaderMode.Forward);
@@ -2638,7 +2635,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 PrepareVisibleLocalVolumetricFogList(hdCamera, cmd);
 
                 // Bind AdaptiveProbeVolume resources
-                if (IsAPVEnabled())
+                if (apvIsEnabled)
                 {
                     ProbeReferenceVolume.instance.BindAPVRuntimeResources(cmd, hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume));
                 }
@@ -2938,7 +2935,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
 
             // Must be called before culling because it emits intermediate renderers via Graphics.DrawInstanced.
-            if (currentPipeline.IsAPVEnabled())
+            if (currentPipeline.apvIsEnabled)
             {
                 ProbeReferenceVolume.instance.RenderDebug(hdCamera.camera);
             }

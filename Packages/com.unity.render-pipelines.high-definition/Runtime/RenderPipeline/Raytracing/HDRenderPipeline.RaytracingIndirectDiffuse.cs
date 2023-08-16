@@ -350,7 +350,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.ambientProbeDimmer = settings.ambientProbeDimmer.value;
 
                 // Grab the additional parameters
-                if (IsAPVEnabled())
+                if (apvIsEnabled)
                 {
                     if(m_Asset.currentPlatformRenderPipelineSettings.probeVolumeSHBands == ProbeVolumeSHBands.SphericalHarmonicsL1)
                     {

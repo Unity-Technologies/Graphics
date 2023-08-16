@@ -176,6 +176,7 @@ namespace UnityEngine.Rendering.Universal
 
         private static bool useRenderGraph;
 
+        // Store locally the value on the instance due as the Render Pipeline Asset data might change before the disposal of the asset, making some APV Resources leak.
         internal bool apvIsEnabled = false;
 
         // Reference to the asset associated with the pipeline.
@@ -267,7 +268,6 @@ namespace UnityEngine.Rendering.Universal
                     scenarioBlendingShader = null, // Disable this since it requires compute 'data.probeVolumeResources.probeVolumeBlendStatesCS,'
                     sceneData = m_GlobalSettings.GetOrCreateAPVSceneData(),
                     shBands = asset.probeVolumeSHBands,
-                    supportsRuntimeDebug = Application.isEditor || !m_GlobalSettings.stripDebugVariants,
                     supportGPUStreaming = asset.supportProbeVolumeStreaming,
                     supportDiskStreaming = false,
                     supportScenarios = false
@@ -716,11 +716,11 @@ namespace UnityEngine.Rendering.Universal
 
                 SetupPerCameraShaderConstants(cmd);
 
-                bool apvIsEnabled = asset != null && asset.lightProbeSystem == LightProbeSystem.ProbeVolumes;
-                ProbeReferenceVolume.instance.SetEnableStateFromSRP(apvIsEnabled);
+                bool supportProbeVolume = asset != null && asset.lightProbeSystem == LightProbeSystem.ProbeVolumes;
+                ProbeReferenceVolume.instance.SetEnableStateFromSRP(supportProbeVolume);
                 ProbeReferenceVolume.instance.SetVertexSamplingEnabled(asset.shEvalMode  == ShEvalMode.PerVertex || asset.shEvalMode  == ShEvalMode.Mixed);
                 // We need to verify and flush any pending asset loading for probe volume.
-                if (apvIsEnabled && ProbeReferenceVolume.instance.isInitialized)
+                if (supportProbeVolume && ProbeReferenceVolume.instance.isInitialized)
                 {
                     ProbeReferenceVolume.instance.PerformPendingOperations();
                     if (camera.cameraType != CameraType.Reflection &&
@@ -740,7 +740,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
                 // do AdaptiveProbeVolume stuff
-                if (apvIsEnabled)
+                if (supportProbeVolume)
                     ProbeReferenceVolume.instance.BindAPVRuntimeResources(cmd, true);
 
                 // Must be called before culling because it emits intermediate renderers via Graphics.DrawInstanced.

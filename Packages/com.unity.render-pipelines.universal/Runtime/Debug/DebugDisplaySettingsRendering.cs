@@ -360,7 +360,7 @@ namespace UnityEngine.Rendering.Universal
             public SettingsPanel(DebugDisplaySettingsRendering data)
                 : base(data)
             {
-                AddWidget(DebugDisplaySettingsCommon.WidgetFactory.CreateMissingDebugShadersWarning());
+                AddWidget(new DebugUI.RuntimeDebugShadersMessageBox());
 
                 AddWidget(new DebugUI.Foldout
                 {

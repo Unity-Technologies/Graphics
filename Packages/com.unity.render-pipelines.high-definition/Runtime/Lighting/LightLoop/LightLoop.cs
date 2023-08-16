@@ -921,10 +921,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_TextureCaches.reflectionProbeTextureCache.Clear(cmd);
             }
 
-            bool apvIsEnabled = IsAPVEnabled();
-            ProbeReferenceVolume.instance.SetEnableStateFromSRP(apvIsEnabled);
+            bool supportProbeVolume = m_Asset != null && m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolume;
+            ProbeReferenceVolume.instance.SetEnableStateFromSRP(supportProbeVolume);
             // We need to verify and flush any pending asset loading for probe volume.
-            if (apvIsEnabled && ProbeReferenceVolume.instance.isInitialized)
+            if (supportProbeVolume && ProbeReferenceVolume.instance.isInitialized)
             {
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume))
                 {

@@ -193,7 +193,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         cb._DebugRenderingLayersColors[i * 4 + j] = m_CurrentDebugDisplaySettings.data.lightingDebugSettings.debugRenderingLayersColors[i][j];
                 }
 
-                if (IsAPVEnabled())
+                if (apvIsEnabled)
                 {
                     var subdivColors = ProbeReferenceVolume.instance.subdivisionDebugColors;
                     for (int i = 0; i < 7; ++i)
@@ -1374,7 +1374,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void RenderProbeVolumeDebug(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthPyramidBuffer, TextureHandle normalBuffer)
         {
-            if (IsAPVEnabled() && ProbeReferenceVolume.instance.GetProbeSamplingDebugResources(hdCamera.camera, out var resultBuffer, out Vector2 coords))
+            if (apvIsEnabled && ProbeReferenceVolume.instance.GetProbeSamplingDebugResources(hdCamera.camera, out var resultBuffer, out Vector2 coords))
                 WriteApvPositionNormalDebugBuffer(renderGraph, resultBuffer, coords, depthPyramidBuffer, normalBuffer);
         }
 

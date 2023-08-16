@@ -69,8 +69,11 @@ namespace UnityEngine.Rendering
         /// The <see cref="ProbeVolumeSHBands"/>
         /// </summary>
         public ProbeVolumeSHBands shBands;
+
         /// <summary>True if APV is able to show runtime debug information.</summary>
+        [Obsolete("This field is not used anymore. Used with the current Shader Stripping Settings. #from(2023.3)")]
         public bool supportsRuntimeDebug;
+
         /// <summary>True if APV should support lighting scenarios.</summary>
         public bool supportScenarios;
         /// <summary>True if APV should support streaming of cell data to the GPU.</summary>
@@ -837,13 +840,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Get the instance of the probe reference volume (singleton).
         /// </summary>
-        public static ProbeReferenceVolume instance
-        {
-            get
-            {
-                return _instance;
-            }
-        }
+        public static ProbeReferenceVolume instance => _instance;
 
         /// <summary>
         /// Initialize the Probe Volume system
