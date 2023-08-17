@@ -91,8 +91,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 splitVisibleLightsAndIndicesBuffer.Clear();
-                UnsafeUtility.MemClear(visibleLightsAndIndicesBuffer.GetUnsafePtr(), visibleLightsAndIndicesBuffer.Length * UnsafeUtility.SizeOf<ShadowIndicesAndVisibleLightData>());
-                UnsafeUtility.MemClear(shadowCullingSplitBuffer.GetUnsafePtr(), shadowCullingSplitBuffer.Length * UnsafeUtility.SizeOf<HDShadowCullingSplit>());
+                shadowRequestValidityArray.SetBits(0, false, m_Size);
 
                 dynamicPointVisibleLightsAndIndices = default;
                 cachedPointVisibleLightsAndIndices = default;

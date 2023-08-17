@@ -131,12 +131,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_CachedDirectionalAnglesArray.Dispose();
             }
 
-            if (m_IsValidIndexScratchpadArray.IsCreated)
-            {
-                m_IsValidIndexScratchpadArray.Dispose();
-                m_IsValidIndexScratchpadArray = default;
-            }
-
             if (m_ShadowIndicesScratchpadArray.IsCreated)
             {
                 m_ShadowIndicesScratchpadArray.Dispose();
@@ -199,7 +193,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private int m_BoundsEyeDataOffset = 0;
 
-        private NativeBitArray m_IsValidIndexScratchpadArray = new NativeBitArray(256, Allocator.Persistent);
         private NativeArray<int> m_ShadowIndicesScratchpadArray;
 #if UNITY_EDITOR
         NativeArray<int> m_ShadowRequestCountsScratchpad;
@@ -258,28 +251,6 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!m_ShadowIndicesScratchpadArray.IsCreated)
             {
                 m_ShadowIndicesScratchpadArray = new NativeArray<int>(lightCount, Allocator.Persistent);
-            }
-
-            if (m_ShadowIndicesScratchpadArray.IsCreated && m_ShadowIndicesScratchpadArray.Length < lightCount)
-            {
-                m_ShadowIndicesScratchpadArray.Dispose();
-                m_ShadowIndicesScratchpadArray = default;
-            }
-
-            if (!m_ShadowIndicesScratchpadArray.IsCreated)
-            {
-                m_ShadowIndicesScratchpadArray = new NativeArray<int>(lightCount, Allocator.Persistent);
-            }
-
-            if (m_IsValidIndexScratchpadArray.IsCreated && m_IsValidIndexScratchpadArray.Length < lightCount)
-            {
-                m_IsValidIndexScratchpadArray.Dispose();
-                m_IsValidIndexScratchpadArray = default;
-            }
-
-            if (!m_IsValidIndexScratchpadArray.IsCreated)
-            {
-                m_IsValidIndexScratchpadArray = new NativeBitArray(lightCount, Allocator.Persistent);
             }
 
             if (!m_CachedPointUpdateInfos.IsCreated)
