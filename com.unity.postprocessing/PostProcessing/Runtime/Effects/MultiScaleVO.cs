@@ -71,19 +71,18 @@ namespace UnityEngine.Rendering.PostProcessing
             // R8 is not supported on all platforms as a storage texture format
             m_R8Format  = RenderTextureFormat.R8;
             m_R16Format = RenderTextureFormat.RHalf;
-
-            if (!SystemInfo.IsFormatSupported(GraphicsFormatUtility.GetGraphicsFormat(m_R8Format, false), FormatUsage.LoadStore))
+            if (!SystemInfo.IsFormatSupported(GraphicsFormatUtility.GetGraphicsFormat(m_R8Format, false), GraphicsFormatUsage.LoadStore))
             {
-                if (SystemInfo.IsFormatSupported(GraphicsFormatUtility.GetGraphicsFormat(RenderTextureFormat.ARGB32, false), FormatUsage.LoadStore))
+                if (SystemInfo.IsFormatSupported(GraphicsFormatUtility.GetGraphicsFormat(RenderTextureFormat.ARGB32, false), GraphicsFormatUsage.LoadStore))
                 {
                     m_R8Format = RenderTextureFormat.ARGB32;
                     float4Texture = true;
                 }
             }
 
-            if (!SystemInfo.IsFormatSupported(GraphicsFormatUtility.GetGraphicsFormat(m_R16Format, false), FormatUsage.LoadStore))
+            if (!SystemInfo.IsFormatSupported(GraphicsFormatUtility.GetGraphicsFormat(m_R16Format, false), GraphicsFormatUsage.LoadStore))
             {
-                if (SystemInfo.IsFormatSupported(GraphicsFormatUtility.GetGraphicsFormat(RenderTextureFormat.RFloat, false), FormatUsage.LoadStore))
+                if (SystemInfo.IsFormatSupported(GraphicsFormatUtility.GetGraphicsFormat(RenderTextureFormat.RFloat, false), GraphicsFormatUsage.LoadStore))
                 {
                     m_R16Format = RenderTextureFormat.RFloat;
                 }
