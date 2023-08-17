@@ -139,6 +139,30 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7 Billboard"
 
             ENDHLSL
         }
+
+        Pass
+        {
+            Name "DepthNormals"
+            Tags{"LightMode" = "DepthNormals"}
+
+            ColorMask R
+
+            HLSLPROGRAM
+
+            #pragma vertex SpeedTree7VertDepthNormalBillboard
+            #pragma fragment SpeedTree7FragDepthNormalBillboard
+
+            #pragma shader_feature_local EFFECT_BUMP
+            #pragma multi_compile __ BILLBOARD_FACE_CAMERA_POS
+            #pragma multi_compile __ LOD_FADE_CROSSFADE
+
+            #define ENABLE_WIND
+
+            #include "SpeedTree7BillboardInput.hlsl"
+            #include "SpeedTree7BillboardPasses.hlsl"
+
+            ENDHLSL
+        }
     }
 
     FallBack "Hidden/Universal Render Pipeline/FallbackError"
