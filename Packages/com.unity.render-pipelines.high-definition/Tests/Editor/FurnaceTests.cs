@@ -26,7 +26,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         public void FurnaceTestHairReference()
         {
             var hdrp = RenderPipelineManager.currentPipeline as HDRenderPipeline;
-            var furnaceTestCS = hdrp.defaultResources.shaders.furnaceTestCS;
+            var furnaceTestCS = hdrp.runtimeResources.shaders.furnaceTestCS;
 
             var cmd = CommandBufferPool.Get();
             var buffer = new ComputeBuffer(NUM_GROUPS, sizeof(float));

@@ -539,7 +539,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     //TODO: move the entire vbuffer to hardware DRS mode. When Hardware DRS is enabled we will save performance
                     // on these buffers, however the final vbuffer will be wasting resolution. This requires a bit of more work to optimize.
-                    passData.generateMaxZCS = defaultResources.shaders.maxZCS;
+                    passData.generateMaxZCS = runtimeResources.shaders.maxZCS;
                     passData.generateMaxZCS.shaderKeywords = null;
                     bool planarReflection = hdCamera.camera.cameraType == CameraType.Reflection && hdCamera.parentCamera != null;
                     CoreUtils.SetKeyword(passData.generateMaxZCS, "PLANAR_OBLIQUE_DEPTH", planarReflection);
@@ -758,9 +758,9 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!m_SupportVolumetrics)
                 return;
 
-            m_VolumeVoxelizationCS = defaultResources.shaders.volumeVoxelizationCS;
-            m_VolumetricLightingCS = defaultResources.shaders.volumetricLightingCS;
-            m_VolumetricLightingFilteringCS = defaultResources.shaders.volumetricLightingFilteringCS;
+            m_VolumeVoxelizationCS = runtimeResources.shaders.volumeVoxelizationCS;
+            m_VolumetricLightingCS = runtimeResources.shaders.volumetricLightingCS;
+            m_VolumetricLightingFilteringCS = runtimeResources.shaders.volumetricLightingFilteringCS;
 
             m_PackedCoeffs = new Vector4[7];
             m_PhaseZH = new ZonalHarmonicsL2();
@@ -1150,7 +1150,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         passData.vfxDebugRendererList = builder.UseRendererList(renderGraph.CreateRendererList(vfxDebugFogRenderListDesc));
                     }
-                    passData.volumetricMaterialCS = defaultResources.shaders.volumetricMaterialCS;
+                    passData.volumetricMaterialCS = runtimeResources.shaders.volumetricMaterialCS;
                     passData.computeRenderingParametersKernel = passData.volumetricMaterialCS.FindKernel("ComputeVolumetricMaterialRenderingParameters");
                     passData.visibleVolumeBoundsBuffer = visibleVolumeBoundsBuffer;
                     passData.globalIndirectBuffer = LocalVolumetricFogManager.manager.globalIndirectBuffer;
@@ -1399,7 +1399,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         internal Shader GetDefaultFogVolumeShader()
-            => defaultResources.shaderGraphs.defaultFogVolumeShader;
+            => runtimeResources.shaderGraphs.defaultFogVolumeShader;
 
         void PrepareAndPushVolumetricCBufferForVFXUpdate(CommandBuffer cmd, HDCamera hdCamera)
         {

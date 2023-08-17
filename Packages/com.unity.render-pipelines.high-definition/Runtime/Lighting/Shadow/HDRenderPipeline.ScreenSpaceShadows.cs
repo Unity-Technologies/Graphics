@@ -189,9 +189,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // Fetch the shaders
             if (m_RayTracingSupported)
             {
-                m_ScreenSpaceShadowsCS = m_GlobalSettings.renderPipelineRayTracingResources.shadowRaytracingCS;
-                m_ScreenSpaceShadowsFilterCS = m_GlobalSettings.renderPipelineRayTracingResources.shadowFilterCS;
-                m_ScreenSpaceShadowsRT = m_GlobalSettings.renderPipelineRayTracingResources.shadowRaytracingRT;
+                m_ScreenSpaceShadowsCS = rayTracingResources.shadowRaytracingCS;
+                m_ScreenSpaceShadowsFilterCS = rayTracingResources.shadowFilterCS;
+                m_ScreenSpaceShadowsRT = rayTracingResources.shadowRaytracingRT;
 
                 // Directional shadow kernels
                 m_ClearShadowTexture = m_ScreenSpaceShadowsCS.FindKernel("ClearShadowTexture");
@@ -329,7 +329,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.debugKernel = m_WriteShadowTextureDebugKernel;
 
                 // TODO: move the debug kernel outside of the ray tracing resources
-                passData.shadowFilter = m_GlobalSettings.renderPipelineRayTracingResources.shadowFilterCS;
+                passData.shadowFilter = rayTracingResources.shadowFilterCS;
 
                 passData.screenSpaceShadowArray = builder.ReadTexture(screenSpaceShadowArray);
                 passData.outputBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)

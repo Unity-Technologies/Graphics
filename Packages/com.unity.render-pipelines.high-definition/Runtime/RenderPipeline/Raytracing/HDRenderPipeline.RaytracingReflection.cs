@@ -22,8 +22,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void InitRayTracedReflections()
         {
-            ComputeShader reflectionShaderCS = m_GlobalSettings.renderPipelineRayTracingResources.reflectionRaytracingCS;
-            ComputeShader reflectionBilateralFilterCS = m_GlobalSettings.renderPipelineRayTracingResources.reflectionBilateralFilterCS;
+            ComputeShader reflectionShaderCS = rayTracingResources.reflectionRaytracingCS;
+            ComputeShader reflectionBilateralFilterCS = rayTracingResources.reflectionBilateralFilterCS;
 
             // Grab all the kernels we shall be using
             m_RaytracingReflectionsFullResKernel = reflectionShaderCS.FindKernel("RaytracingReflectionsFullRes");
@@ -147,7 +147,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.frameIndex = RayTracingFrameIndex(hdCamera, 32);
 
                 // Grab the right kernel
-                passData.directionGenCS = m_GlobalSettings.renderPipelineRayTracingResources.reflectionRaytracingCS;
+                passData.directionGenCS = rayTracingResources.reflectionRaytracingCS;
                 if (fullResolution)
                     passData.dirGenKernel = transparent ? m_RaytracingReflectionsTransparentFullResKernel : m_RaytracingReflectionsFullResKernel;
                 else
@@ -247,7 +247,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.smoothnessFadeStart = settings.smoothnessFadeStart;
 
                 // Other parameters
-                passData.reflectionFilterCS = m_GlobalSettings.renderPipelineRayTracingResources.reflectionBilateralFilterCS;
+                passData.reflectionFilterCS = rayTracingResources.reflectionBilateralFilterCS;
                 passData.adjustWeightKernel = m_ReflectionAdjustWeightKernel;
                 passData.shaderVariablesRayTracingCB = m_ShaderVariablesRayTracingCB;
 
@@ -317,7 +317,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.texWidth = hdCamera.actualWidth;
                 passData.texHeight = hdCamera.actualHeight;
                 passData.viewCount = hdCamera.viewCount;
-                passData.reflectionFilterCS = m_GlobalSettings.renderPipelineRayTracingResources.reflectionBilateralFilterCS;
+                passData.reflectionFilterCS = rayTracingResources.reflectionBilateralFilterCS;
                 passData.upscaleKernel = m_ReflectionUpscaleKernel;
 
                 passData.depthStencilBuffer = builder.ReadTexture(depthBuffer);
@@ -421,10 +421,10 @@ namespace UnityEngine.Rendering.HighDefinition
             deferredParameters.mipChainBuffer = hdCamera.depthBufferMipChainInfo.GetOffsetBufferData(m_DepthPyramidMipLevelOffsetsBuffer);
 
             // Shaders
-            deferredParameters.rayMarchingCS = m_GlobalSettings.renderPipelineRayTracingResources.rayMarchingCS;
-            deferredParameters.gBufferRaytracingRT = m_GlobalSettings.renderPipelineRayTracingResources.gBufferRaytracingRT;
-            deferredParameters.deferredRaytracingCS = m_GlobalSettings.renderPipelineRayTracingResources.deferredRaytracingCS;
-            deferredParameters.rayBinningCS = m_GlobalSettings.renderPipelineRayTracingResources.rayBinningCS;
+            deferredParameters.rayMarchingCS = rayTracingResources.rayMarchingCS;
+            deferredParameters.gBufferRaytracingRT = rayTracingResources.gBufferRaytracingRT;
+            deferredParameters.deferredRaytracingCS = rayTracingResources.deferredRaytracingCS;
+            deferredParameters.rayBinningCS = rayTracingResources.rayBinningCS;
 
             // Make a copy of the previous values that were defined in the CB
             deferredParameters.raytracingCB = m_ShaderVariablesRayTracingCB;
@@ -557,7 +557,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.ditheredTextureSet = GetBlueNoiseManager().DitheredTextureSet8SPP();
                 passData.shaderVariablesRayTracingCB = m_ShaderVariablesRayTracingCB;
                 passData.skyTexture = m_SkyManager.GetSkyReflection(hdCamera);
-                passData.reflectionShader = m_GlobalSettings.renderPipelineRayTracingResources.reflectionRaytracingRT;
+                passData.reflectionShader = rayTracingResources.reflectionRaytracingRT;
 
                 passData.depthBuffer = builder.ReadTexture(depthPyramid);
                 passData.stencilBuffer = builder.ReadTexture(stencilBuffer);

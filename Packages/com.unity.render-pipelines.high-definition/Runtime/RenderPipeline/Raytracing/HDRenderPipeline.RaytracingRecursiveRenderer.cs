@@ -120,7 +120,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Other data
                 passData.accelerationStructure = RequestAccelerationStructure(hdCamera);
                 passData.lightCluster = RequestLightCluster();
-                passData.recursiveRenderingRT = m_GlobalSettings.renderPipelineRayTracingResources.forwardRaytracing;
+                passData.recursiveRenderingRT = rayTracingResources.forwardRaytracing;
                 passData.skyTexture = m_SkyManager.GetSkyReflection(hdCamera);
                 passData.shaderVariablesRayTracingCB = m_ShaderVariablesRayTracingCB;
                 passData.ditheredTextureSet = GetBlueNoiseManager().DitheredTextureSet8SPP();

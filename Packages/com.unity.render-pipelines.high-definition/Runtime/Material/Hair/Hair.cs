@@ -209,7 +209,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public Hair() { }
 
-        public override void Build(HDRenderPipelineAsset hdAsset, HDRenderPipelineRuntimeResources defaultResources)
+        public override void Build(HDRenderPipelineAsset hdAsset, HDRenderPipelineRuntimeResources runtimeResources)
         {
             PreIntegratedFGD.instance.Build(PreIntegratedFGD.FGDIndex.FGD_GGXAndDisneyDiffuse);
             LTCAreaLight.instance.Build();
@@ -253,7 +253,7 @@ namespace UnityEngine.Rendering.HighDefinition
             };
             m_LongitudinalScatteringLUT.Create();
 
-            m_PreIntegrationKernels = defaultResources.shaders.preIntegratedFiberScatteringCS;
+            m_PreIntegrationKernels = runtimeResources.shaders.preIntegratedFiberScatteringCS;
             {
                 m_ComputeForwardAttenuationKernel     = m_PreIntegrationKernels.FindKernel("ComputeAttenuationForward");
                 m_ComputeBackwardAttenuationKernel    = m_PreIntegrationKernels.FindKernel("ComputeAttenuationBackward");

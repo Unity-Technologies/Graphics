@@ -59,8 +59,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public const string k_ShaderTagName = "HDRenderPipeline";
 
         readonly HDRenderPipelineAsset m_Asset;
-        internal HDRenderPipelineAsset asset { get { return m_Asset; } }
-        internal HDRenderPipelineRuntimeResources defaultResources { get { return m_GlobalSettings.renderPipelineResources; } }
+        internal HDRenderPipelineAsset asset => m_Asset;
+
+        internal HDRenderPipelineRuntimeResources runtimeResources { get; private set; }
 
         internal RenderPipelineSettings currentPlatformRenderPipelineSettings { get { return m_Asset.currentPlatformRenderPipelineSettings; } }
 
@@ -100,7 +101,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         IBLFilterBSDF[] m_IBLFilterArray = null;
 
-        ComputeShader m_ScreenSpaceReflectionsCS { get { return defaultResources.shaders.screenSpaceReflectionsCS; } }
+        ComputeShader m_ScreenSpaceReflectionsCS { get { return runtimeResources.shaders.screenSpaceReflectionsCS; } }
         int m_SsrTracingKernel = -1;
         int m_SsrReprojectionKernel = -1;
         int m_SsrAccumulateNoWorldSpeedRejectionBothKernel = -1;
@@ -123,7 +124,7 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_SsrAccumulateSmoothSpeedRejectionSurfaceDebugKernel = -1;
         int m_SsrAccumulateSmoothSpeedRejectionHitDebugKernel = -1;
 
-        ComputeShader m_ClearBuffer2DCS { get { return defaultResources.shaders.clearBuffer2D; } }
+        ComputeShader m_ClearBuffer2DCS { get { return runtimeResources.shaders.clearBuffer2D; } }
         int m_ClearBuffer2DKernel = -1;
 
         Material m_ApplyDistortionMaterial;
@@ -401,6 +402,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public bool rayTracingSupported { get { return m_RayTracingSupported; } }
 
+        internal HDRenderPipelineRayTracingResources rayTracingResources { get; private set; }
+
 #if UNITY_EDITOR
         bool m_ResourcesInitialized = false;
 #endif
@@ -463,10 +466,14 @@ namespace UnityEngine.Rendering.HighDefinition
             m_GlobalSettings.EnsureShadersCompiled();
 #endif
 
+            runtimeResources = m_GlobalSettings.renderPipelineResources;
+
             // The first thing we need to do is to set the defines that depend on the render pipeline settings
             bool pipelineSupportsRayTracing = PipelineSupportsRayTracing(m_Asset.currentPlatformRenderPipelineSettings);
 
-            m_RayTracingSupported = pipelineSupportsRayTracing && m_GlobalSettings.renderPipelineRayTracingResources != null;
+            rayTracingResources = m_GlobalSettings.renderPipelineRayTracingResources;
+
+            m_RayTracingSupported = pipelineSupportsRayTracing && rayTracingResources != null;
 
             // In Editor we need to be freely available to select raytracing to create the resources, otherwise we get stuck in a situation in which we cannot create the resources,
             // hence why the following is done only in player
@@ -514,12 +521,12 @@ namespace UnityEngine.Rendering.HighDefinition
             // We initialize to screen width/height to avoid multiple realloc that can lead to inflated memory usage (as releasing of memory is delayed).
             RTHandles.Initialize(Screen.width, Screen.height);
 
-            XRSystem.Initialize(XRPass.CreateDefault, asset.renderPipelineResources.shaders.xrOcclusionMeshPS, asset.renderPipelineResources.shaders.xrMirrorViewPS);
+            XRSystem.Initialize(XRPass.CreateDefault, runtimeResources.shaders.xrOcclusionMeshPS, runtimeResources.shaders.xrMirrorViewPS);
 
-            m_MipGenerator = new MipGenerator(defaultResources);
-            m_BlueNoise = new BlueNoise(defaultResources);
+            m_MipGenerator = new MipGenerator(runtimeResources);
+            m_BlueNoise = new BlueNoise(runtimeResources);
 
-            EncodeBC6H.DefaultInstance = EncodeBC6H.DefaultInstance ?? new EncodeBC6H(defaultResources.shaders.encodeBC6HCS);
+            EncodeBC6H.DefaultInstance = EncodeBC6H.DefaultInstance ?? new EncodeBC6H(runtimeResources.shaders.encodeBC6HCS);
 
             // Scan material list and assign it
             m_MaterialList = HDUtils.GetRenderPipelineMaterialList();
@@ -551,41 +558,41 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_ClearBuffer2DKernel = m_ClearBuffer2DCS.FindKernel("ClearBuffer2DMain");
 
-            m_CopyDepth = CoreUtils.CreateEngineMaterial(defaultResources.shaders.copyDepthBufferPS);
-            m_UpsampleTransparency = CoreUtils.CreateEngineMaterial(defaultResources.shaders.upsampleTransparentPS);
+            m_CopyDepth = CoreUtils.CreateEngineMaterial(runtimeResources.shaders.copyDepthBufferPS);
+            m_UpsampleTransparency = CoreUtils.CreateEngineMaterial(runtimeResources.shaders.upsampleTransparentPS);
 
-            m_ApplyDistortionMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.applyDistortionPS);
+            m_ApplyDistortionMaterial = CoreUtils.CreateEngineMaterial(runtimeResources.shaders.applyDistortionPS);
 
-            m_FinalBlitWithOETF = CoreUtils.CreateEngineMaterial(defaultResources.shaders.compositeUIAndOETFApplyPS);
+            m_FinalBlitWithOETF = CoreUtils.CreateEngineMaterial(runtimeResources.shaders.compositeUIAndOETFApplyPS);
 
             if (TextureXR.useTexArray)
             {
-                m_FinalBlitWithOETFTexArraySingleSlice = CoreUtils.CreateEngineMaterial(defaultResources.shaders.compositeUIAndOETFApplyPS);
+                m_FinalBlitWithOETFTexArraySingleSlice = CoreUtils.CreateEngineMaterial(runtimeResources.shaders.compositeUIAndOETFApplyPS);
                 m_FinalBlitWithOETFTexArraySingleSlice.EnableKeyword("BLIT_SINGLE_SLICE");
             }
 
-            m_ClearStencilBufferMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.clearStencilBufferPS);
+            m_ClearStencilBufferMaterial = CoreUtils.CreateEngineMaterial(runtimeResources.shaders.clearStencilBufferPS);
 
             VolumeManager.instance.Initialize(m_GlobalSettings.volumeProfile, m_Asset.volumeProfile);
 
             InitializeDebug();
 
-            Blitter.Initialize(defaultResources.shaders.blitPS, defaultResources.shaders.blitColorAndDepthPS);
+            Blitter.Initialize(runtimeResources.shaders.blitPS, runtimeResources.shaders.blitColorAndDepthPS);
 
             m_ErrorMaterial = CoreUtils.CreateEngineMaterial("Hidden/InternalErrorShader");
 
-            m_MaterialList.ForEach(material => material.Build(asset, defaultResources));
+            m_MaterialList.ForEach(material => material.Build(asset, runtimeResources));
 
             if (m_Asset.currentPlatformRenderPipelineSettings.lightLoopSettings.supportFabricConvolution)
             {
                 m_IBLFilterArray = new IBLFilterBSDF[2];
-                m_IBLFilterArray[0] = new IBLFilterGGX(defaultResources, m_MipGenerator);
-                m_IBLFilterArray[1] = new IBLFilterCharlie(defaultResources, m_MipGenerator);
+                m_IBLFilterArray[0] = new IBLFilterGGX(runtimeResources, m_MipGenerator);
+                m_IBLFilterArray[1] = new IBLFilterCharlie(runtimeResources, m_MipGenerator);
             }
             else
             {
                 m_IBLFilterArray = new IBLFilterBSDF[1];
-                m_IBLFilterArray[0] = new IBLFilterGGX(defaultResources, m_MipGenerator);
+                m_IBLFilterArray[0] = new IBLFilterGGX(runtimeResources, m_MipGenerator);
             }
 
             InitializeLightLoop(m_IBLFilterArray);
@@ -602,14 +609,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     memoryBudget = m_Asset.currentPlatformRenderPipelineSettings.probeVolumeMemoryBudget,
                     blendingMemoryBudget = m_Asset.currentPlatformRenderPipelineSettings.probeVolumeBlendingMemoryBudget,
-                    probeDebugShader = defaultResources.shaders.probeVolumeDebugShader,
-                    fragmentationDebugShader = defaultResources.shaders.probeVolumeFragmentationDebugShader,
-                    probeSamplingDebugShader = defaultResources.shaders.probeVolumeSamplingDebugShader,
-                    probeSamplingDebugMesh = defaultResources.assets.probeSamplingDebugMesh,
-                    probeSamplingDebugTexture = defaultResources.textures.numbersDisplayTex,
-                    offsetDebugShader = defaultResources.shaders.probeVolumeOffsetDebugShader,
-                    streamingUploadShader = defaultResources.shaders.probeVolumeUploadDataCS,
-                    scenarioBlendingShader = supportBlending ? defaultResources.shaders.probeVolumeBlendStatesCS : null,
+                    probeDebugShader = runtimeResources.shaders.probeVolumeDebugShader,
+                    fragmentationDebugShader = runtimeResources.shaders.probeVolumeFragmentationDebugShader,
+                    probeSamplingDebugShader = runtimeResources.shaders.probeVolumeSamplingDebugShader,
+                    probeSamplingDebugMesh = runtimeResources.assets.probeSamplingDebugMesh,
+                    probeSamplingDebugTexture = runtimeResources.textures.numbersDisplayTex,
+                    offsetDebugShader = runtimeResources.shaders.probeVolumeOffsetDebugShader,
+                    streamingUploadShader = runtimeResources.shaders.probeVolumeUploadDataCS,
+                    scenarioBlendingShader = supportBlending ? runtimeResources.shaders.probeVolumeBlendStatesCS : null,
                     sceneData = m_GlobalSettings.GetOrCreateAPVSceneData(),
                     shBands = m_Asset.currentPlatformRenderPipelineSettings.probeVolumeSHBands,
                     supportScenarios = m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolumeScenarios,
@@ -620,7 +627,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 SupportedRenderingFeatures.active.overridesLightProbeSystemWarningMessage = "This Light Probe system is not active because the pipeline uses Probe Volumes and the systems cannot co-exist. To disable Probe Volumes make sure the feature is disabled in the lighting section of the active HDRP Asset.";
             }
 
-            m_SkyManager.Build(asset, defaultResources, m_IBLFilterArray);
+            m_SkyManager.Build(asset, runtimeResources, m_IBLFilterArray);
+
             InitializeVolumetricLighting();
             InitializeVolumetricClouds();
             InitializeSubsurfaceScattering();
@@ -675,8 +683,8 @@ namespace UnityEngine.Rendering.HighDefinition
             CameraCaptureBridge.enabled = true;
 
             InitializePrepass(m_Asset);
-            m_ColorResolveMaterial = CoreUtils.CreateEngineMaterial(m_GlobalSettings.renderPipelineResources.shaders.colorResolvePS);
-            m_MotionVectorResolve = CoreUtils.CreateEngineMaterial(m_GlobalSettings.renderPipelineResources.shaders.resolveMotionVecPS);
+            m_ColorResolveMaterial = CoreUtils.CreateEngineMaterial(runtimeResources.shaders.colorResolvePS);
+            m_MotionVectorResolve = CoreUtils.CreateEngineMaterial(runtimeResources.shaders.resolveMotionVecPS);
             s_ColorResolve1XPassIndex = m_ColorResolveMaterial.FindPass("MSAA1X");
             s_ColorResolve2XPassIndex = m_ColorResolveMaterial.FindPass("MSAA2X");
             s_ColorResolve4XPassIndex = m_ColorResolveMaterial.FindPass("MSAA4X");
@@ -838,7 +846,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         bool CheckResourcesValidity()
         {
-            if (!(defaultResources?.shaders.defaultPS?.isSupported ?? true))
+            if (!(runtimeResources?.shaders.defaultPS?.isSupported ?? true))
             {
                 HDUtils.DisplayMessageNotification("Unable to compile Default Material based on Lit.shader. Either there is a compile error in Lit.shader or the current platform / API isn't compatible.");
                 return false;
@@ -2028,6 +2036,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_GlobalSettings.EnsureShadersCompiled();
                 return;
             }
+
+            // Potentially the asset might have been deleted by the user
+            // Obtain the asset again at least one per frame to make sure we are pointing to a valid resources.
+            runtimeResources = m_GlobalSettings.renderPipelineResources;
+            rayTracingResources = m_GlobalSettings.renderPipelineRayTracingResources;
 #endif
 
             if (m_GlobalSettings.lensAttenuationMode == LensAttenuationMode.ImperfectLens)
@@ -2720,7 +2733,7 @@ namespace UnityEngine.Rendering.HighDefinition
             foreach (var material in m_MaterialList)
                 material.RenderInit(cmd);
 
-            TextureXR.Initialize(cmd, defaultResources.shaders.clearUIntTextureCS);
+            TextureXR.Initialize(cmd, runtimeResources.shaders.clearUIntTextureCS);
 
             renderContext.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);

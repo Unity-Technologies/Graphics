@@ -35,20 +35,20 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // Disney SSS (compute + combine)
             string kernelName = "SubsurfaceScattering";
-            m_SubsurfaceScatteringCS = defaultResources.shaders.subsurfaceScatteringCS;
+            m_SubsurfaceScatteringCS = runtimeResources.shaders.subsurfaceScatteringCS;
             m_SubsurfaceScatteringKernel = m_SubsurfaceScatteringCS.FindKernel(kernelName);
 
-            m_SubsurfaceScatteringDownsampleCS = defaultResources.shaders.subsurfaceScatteringDownsampleCS;
+            m_SubsurfaceScatteringDownsampleCS = runtimeResources.shaders.subsurfaceScatteringDownsampleCS;
             m_SubsurfaceScatteringDownsampleKernel = m_SubsurfaceScatteringDownsampleCS.FindKernel("Downsample");
-            m_CombineLightingPass = CoreUtils.CreateEngineMaterial(defaultResources.shaders.combineLightingPS);
+            m_CombineLightingPass = CoreUtils.CreateEngineMaterial(runtimeResources.shaders.combineLightingPS);
             m_CombineLightingPass.SetInt(HDShaderIDs._StencilRef, (int)StencilUsage.SubsurfaceScattering);
             m_CombineLightingPass.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.SubsurfaceScattering);
 
-            m_SSSCopyStencilForSplitLighting = CoreUtils.CreateEngineMaterial(defaultResources.shaders.copyStencilBufferPS);
+            m_SSSCopyStencilForSplitLighting = CoreUtils.CreateEngineMaterial(runtimeResources.shaders.copyStencilBufferPS);
             m_SSSCopyStencilForSplitLighting.SetInt(HDShaderIDs._StencilRef, (int)StencilUsage.SubsurfaceScattering);
             m_SSSCopyStencilForSplitLighting.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.SubsurfaceScattering);
 
-            m_SSSDefaultDiffusionProfile = defaultResources.assets.defaultDiffusionProfile;
+            m_SSSDefaultDiffusionProfile = runtimeResources.assets.defaultDiffusionProfile;
 
             // fill the list with the max number of diffusion profile so we dont have
             // the error: exceeds previous array size (5 vs 3). Cap to previous size.

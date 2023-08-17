@@ -514,10 +514,10 @@ namespace UnityEngine.Rendering.HighDefinition
             using (var builder = renderGraph.AddRenderPass<RenderPathTracingData>("Render Path Tracing Frame", out var passData))
             {
 #if ENABLE_SENSOR_SDK
-                passData.shader = hdCamera.pathTracingShaderOverride ? hdCamera.pathTracingShaderOverride : m_GlobalSettings.renderPipelineRayTracingResources.pathTracingRT;
+                passData.shader = hdCamera.pathTracingShaderOverride ? hdCamera.pathTracingShaderOverride : rayTracingResources.pathTracingRT;
                 passData.prepareDispatchRays = hdCamera.prepareDispatchRays;
 #else
-                passData.shader = m_GlobalSettings.renderPipelineRayTracingResources.pathTracingRT;
+                passData.shader = rayTracingResources.pathTracingRT;
 #endif
                 passData.cameraData = cameraData;
                 passData.ditheredTextureSet = GetBlueNoiseManager().DitheredTextureSet256SPP();
@@ -648,12 +648,12 @@ namespace UnityEngine.Rendering.HighDefinition
         // Prepares data (CDF) to be able to importance sample the sky afterwards
         void RenderSkySamplingData(RenderGraph renderGraph, HDCamera hdCamera)
         {
-            if (!m_GlobalSettings.renderPipelineRayTracingResources.pathTracingSkySamplingDataCS)
+            if (!rayTracingResources.pathTracingSkySamplingDataCS)
                 return;
 
             using (var builder = renderGraph.AddRenderPass<RenderSkySamplingPassData>("Render Sky Sampling Data for Path Tracing", out var passData))
             {
-                passData.shader = m_GlobalSettings.renderPipelineRayTracingResources.pathTracingSkySamplingDataCS;
+                passData.shader = rayTracingResources.pathTracingSkySamplingDataCS;
                 passData.k0 = passData.shader.FindKernel("ComputeCDF");
                 passData.k1 = passData.shader.FindKernel("ComputeMarginal");
                 passData.size = m_skySamplingSize;
@@ -690,7 +690,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_PathTracingSettings = hdCamera.volumeStack.GetComponent<PathTracing>();
 
             // Check the validity of the state before moving on with the computation
-            if (!m_GlobalSettings.renderPipelineRayTracingResources.pathTracingRT || !m_PathTracingSettings.enable.value)
+            if (!rayTracingResources.pathTracingRT || !m_PathTracingSettings.enable.value)
                 return TextureHandle.nullHandle;
 
             var motionVector = TextureHandle.nullHandle;

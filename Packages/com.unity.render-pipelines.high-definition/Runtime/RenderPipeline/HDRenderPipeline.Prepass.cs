@@ -32,18 +32,18 @@ namespace UnityEngine.Rendering.HighDefinition
             m_MSAAResolveMaterial = CoreUtils.CreateEngineMaterial(asset.renderPipelineResources.shaders.depthValuesPS);
             m_MSAAResolveMaterialDepthOnly = CoreUtils.CreateEngineMaterial(asset.renderPipelineResources.shaders.depthValuesPS);
             m_MSAAResolveMaterialDepthOnly.EnableKeyword("_DEPTH_ONLY");
-            m_CameraMotionVectorsMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.cameraMotionVectorsPS);
-            m_DecalNormalBufferMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.decalNormalBufferPS);
-            m_DownsampleDepthMaterialHalfresCheckerboard = CoreUtils.CreateEngineMaterial(defaultResources.shaders.downsampleDepthPS);
-            m_DownsampleDepthMaterialGather = CoreUtils.CreateEngineMaterial(defaultResources.shaders.downsampleDepthPS);
+            m_CameraMotionVectorsMaterial = CoreUtils.CreateEngineMaterial(runtimeResources.shaders.cameraMotionVectorsPS);
+            m_DecalNormalBufferMaterial = CoreUtils.CreateEngineMaterial(runtimeResources.shaders.decalNormalBufferPS);
+            m_DownsampleDepthMaterialHalfresCheckerboard = CoreUtils.CreateEngineMaterial(runtimeResources.shaders.downsampleDepthPS);
+            m_DownsampleDepthMaterialGather = CoreUtils.CreateEngineMaterial(runtimeResources.shaders.downsampleDepthPS);
             m_DownsampleDepthMaterialGather.EnableKeyword("GATHER_DOWNSAMPLE");
             m_ComputeThicknessOpaqueMaterial = new Material[m_MaxXRViewsCount];
             m_ComputeThicknessTransparentMaterial = new Material[m_MaxXRViewsCount];
             for (int viewId = 0; viewId < m_MaxXRViewsCount; ++viewId)
             {
-                m_ComputeThicknessOpaqueMaterial[viewId] = CoreUtils.CreateEngineMaterial(defaultResources.shaders.ComputeThicknessPS);
+                m_ComputeThicknessOpaqueMaterial[viewId] = CoreUtils.CreateEngineMaterial(runtimeResources.shaders.ComputeThicknessPS);
                 m_ComputeThicknessOpaqueMaterial[viewId].SetInt(HDShaderIDs._ViewId, viewId);
-                m_ComputeThicknessTransparentMaterial[viewId] = CoreUtils.CreateEngineMaterial(defaultResources.shaders.ComputeThicknessPS);
+                m_ComputeThicknessTransparentMaterial[viewId] = CoreUtils.CreateEngineMaterial(runtimeResources.shaders.ComputeThicknessPS);
                 m_ComputeThicknessTransparentMaterial[viewId].SetInt(HDShaderIDs._ViewId, viewId);
             }
             m_ComputeThicknessReindexMap = new GraphicsBuffer(GraphicsBuffer.Target.Structured, (int)HDComputeThickness.computeThicknessMaxLayer, sizeof(uint));
@@ -54,7 +54,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DBufferOutput = new DBufferOutput();
             m_DBufferOutput.mrt = new TextureHandle[(int)Decal.DBufferMaterial.Count];
 
-            m_GPUCopy = new GPUCopy(defaultResources.shaders.copyChannelCS);
+            m_GPUCopy = new GPUCopy(runtimeResources.shaders.copyChannelCS);
         }
 
         void CleanupPrepass()
@@ -1089,7 +1089,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.resolveOnly = resolveOnly;
                 // With MSAA, the following features require a copy of the stencil, if none are active, no need to do the resolve.
                 passData.resolveIsNecessary = (GetFeatureVariantsEnabled(hdCamera.frameSettings) || hdCamera.IsSSREnabled() || hdCamera.IsSSREnabled(transparent: true)) && MSAAEnabled;
-                passData.resolveStencilCS = defaultResources.shaders.resolveStencilCS;
+                passData.resolveStencilCS = runtimeResources.shaders.resolveStencilCS;
                 passData.inputDepth = builder.ReadTexture(output.depthBuffer);
                 passData.coarseStencilBuffer = builder.WriteBuffer(
                     renderGraph.CreateBuffer(new BufferDesc(HDUtils.DivRoundUp(m_MaxCameraWidth, 8) * HDUtils.DivRoundUp(m_MaxCameraHeight, 8) * m_MaxViewCount, sizeof(uint)) { name = "CoarseStencilBuffer" }));

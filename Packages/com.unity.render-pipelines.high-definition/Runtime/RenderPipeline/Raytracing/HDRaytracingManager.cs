@@ -144,7 +144,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // Init the ray count manager
             m_RayCountManager = new RayCountManager();
-            m_RayCountManager.Init(m_GlobalSettings.renderPipelineRayTracingResources);
+            m_RayCountManager.Init(rayTracingResources);
 
             // Initialize the light cluster
             m_RayTracingLightCluster = new HDRaytracingLightCluster();
@@ -788,7 +788,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.pixelCoordToViewDirWS = hdCamera.mainViewConstants.pixelCoordToViewDirWS;
 
                 // Other parameters
-                passData.debugRTASRT = m_GlobalSettings.renderPipelineRayTracingResources.rtasDebug;
+                passData.debugRTASRT = rayTracingResources.rtasDebug;
                 passData.rayTracingAccelerationStructure = RequestAccelerationStructure(hdCamera);
 
                 // Depending of if we will have to denoise (or not), we need to allocate the final format, or a bigger texture
@@ -984,7 +984,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_ReBlurDenoiser == null)
             {
                 m_ReBlurDenoiser = new ReBlurDenoiser();
-                m_ReBlurDenoiser.Init(m_GlobalSettings.renderPipelineRayTracingResources);
+                m_ReBlurDenoiser.Init(rayTracingResources);
             }
             return m_ReBlurDenoiser;
         }
@@ -994,7 +994,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_DiffuseShadowDenoiser == null)
             {
                 m_DiffuseShadowDenoiser = new HDDiffuseShadowDenoiser();
-                m_DiffuseShadowDenoiser.Init(m_GlobalSettings.renderPipelineRayTracingResources);
+                m_DiffuseShadowDenoiser.Init(rayTracingResources);
             }
             return m_DiffuseShadowDenoiser;
         }

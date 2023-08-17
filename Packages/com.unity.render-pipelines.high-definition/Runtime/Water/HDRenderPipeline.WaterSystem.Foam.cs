@@ -42,11 +42,11 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!m_ActiveWaterFoam)
                 return;
 
-            m_FoamMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.waterFoamPS);
+            m_FoamMaterial = CoreUtils.CreateEngineMaterial(runtimeResources.shaders.waterFoamPS);
             m_WaterFoamGeneratorDataCPU = new NativeArray<WaterGeneratorData>(k_MaxNumWaterFoamGenerators, Allocator.Persistent);
             m_WaterFoamGeneratorData = new ComputeBuffer(k_MaxNumWaterFoamGenerators, System.Runtime.InteropServices.Marshal.SizeOf<WaterGeneratorData>());
             m_FoamTextureAtlas = new PowerOfTwoTextureAtlas((int)m_Asset.currentPlatformRenderPipelineSettings.foamAtlasSize, 0, GraphicsFormat.R16G16_UNorm, name: "Water Foam Atlas", useMipMap: false);
-            m_WaterFoamCS = defaultResources.shaders.waterFoamCS;
+            m_WaterFoamCS = runtimeResources.shaders.waterFoamCS;
             m_ReprojectFoamKernel = m_WaterFoamCS.FindKernel("ReprojectFoam");
             m_PostProcessFoamKernel = m_WaterFoamCS.FindKernel("PostProcessFoam");
         }
