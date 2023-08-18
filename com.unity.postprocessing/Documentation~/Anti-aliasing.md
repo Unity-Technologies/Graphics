@@ -1,5 +1,7 @@
 # Anti-aliasing
 
+Test
+
 The **Anti-aliasing** effect softens the appearance of edges in your scene. To do this, it surrounds the edge with similar points of color. This reduces the jagged effect caused by [aliasing](https://en.wikipedia.org/wiki/Aliasing).
 
 ![Example of anti-aliasing smoothing the edges of shapes](images/screenshot-antialiasing.png)
