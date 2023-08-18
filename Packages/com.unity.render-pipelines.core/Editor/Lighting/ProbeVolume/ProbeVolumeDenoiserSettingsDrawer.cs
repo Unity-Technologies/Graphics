@@ -10,10 +10,11 @@ namespace UnityEngine.Rendering
         static class Styles
         {
             public static readonly GUIContent enableDenoising = new GUIContent("Enable Denoising", "Runs the denoiser after the bake has completed.");
-            public static readonly GUIContent denoisingModel = new GUIContent("Denoising Model", "");
-            public static readonly GUIContent kernelFilter = new GUIContent("Kernel Filter", "");
+            public static readonly GUIContent kernelFilterType = new GUIContent("Kernel Filter", "");
             public static readonly GUIContent kernelSize = new GUIContent("Kernel Size", "");
-            public static readonly GUIContent patchSize = new GUIContent("Patch Size", "");
+            public static readonly GUIContent nlmM = new GUIContent("NLM Patch Size", "");
+            public static readonly GUIContent nlmAlpha = new GUIContent("Alpha", "");
+            public static readonly GUIContent nlmK = new GUIContent("K", "");
 
             public static readonly GUIContent fineTuningTitle = new GUIContent("Fine Tuning", "");
             public static readonly GUIContent samplerBias = new GUIContent("Sampler Bias", "");
@@ -23,8 +24,7 @@ namespace UnityEngine.Rendering
             public static readonly GUIContent isolateCellIdx = new GUIContent("Cell index", "");
             public static readonly GUIContent showInvalidProbes = new GUIContent("Show Invalid Probes", "");
 
-            public static readonly string[] denoisingModelOptions = new string[] { "Static", "NLM" };
-            public static readonly string[] kernelFilterOptions = new string[] { "Box", "Disc", "Epanechnikov" };
+            public static readonly string[] kernelFilterTypeOptions = new string[] { "Box", "Epanechnikov", "NLM" };
 
         }
 
@@ -46,14 +46,20 @@ namespace UnityEngine.Rendering
             {
                 using (new EditorGUI.DisabledScope(!enableDenoising.boolValue))
                 {
-                    var denoisingModel = property.FindPropertyRelative("denoisingModel");
-                    denoisingModel.intValue = EditorGUILayout.Popup(Styles.denoisingModel, denoisingModel.intValue, Styles.denoisingModelOptions);
+                    var kernelFilterType = property.FindPropertyRelative("kernelFilterType");
+                    kernelFilterType.intValue = EditorGUILayout.Popup(Styles.kernelFilterType, kernelFilterType.intValue, Styles.kernelFilterTypeOptions);
 
                     var kernelSize = property.FindPropertyRelative("kernelSize");
                     kernelSize.intValue = EditorGUILayout.IntSlider(Styles.kernelSize, kernelSize.intValue, 0, 5);
 
-                    var patchSize = property.FindPropertyRelative("patchSize");
-                    patchSize.intValue = EditorGUILayout.IntSlider(Styles.patchSize, patchSize.intValue, 0, 2);
+                    var nlmM = property.FindPropertyRelative("nlmM");
+                    nlmM.intValue = EditorGUILayout.IntSlider(Styles.nlmM, nlmM.intValue, 0, 2);
+
+                    var nlmAlpha = property.FindPropertyRelative("nlmAlpha");
+                    nlmAlpha.floatValue = EditorGUILayout.Slider(Styles.nlmAlpha, nlmAlpha.floatValue, 0.0f, 3.0f);
+
+                    var nlmK = property.FindPropertyRelative("nlmK");
+                    nlmK.floatValue = EditorGUILayout.Slider(Styles.nlmK, nlmK.floatValue, 0.0f, 3.0f);
                 }                
             }
 

@@ -100,16 +100,18 @@ namespace UnityEngine.Rendering
     [System.Serializable]
     internal struct ProbeVolumeDenoiserSettings
     {
-        enum DenoisingModel
+        public enum KernelFilterType
         {
-            kStatic,
+            kBox,
             kNLM
         }
 
         public bool enableDenoising;
-        public int denoisingModel;
+        public int kernelFilterType;
         public int kernelSize;
-        public int patchSize;
+        public int nlmM;
+        public float nlmAlpha;
+        public float nlmK;
 
         public float samplerBias;
 
@@ -121,9 +123,11 @@ namespace UnityEngine.Rendering
         internal void SetDefaults()
         {
             enableDenoising = true;
-            denoisingModel = (int)ProbeVolumeDenoiserSettings.DenoisingModel.kStatic;
+            kernelFilterType = (int)KernelFilterType.kBox;
             kernelSize = 0;
-            patchSize = 0;
+            nlmM = 0;
+            nlmAlpha = 0.5f;
+            nlmK = 0.5f;
 
             samplerBias = 1e-4f;
 

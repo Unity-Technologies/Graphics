@@ -27,8 +27,9 @@ namespace UnityEngine.Rendering
         private static ComputeShader m_shaderHandle;
 
         private static int m_populateKernelID;
-        private static int m_nullFilterKernelID;
-        private static int m_staticFilterKernelID;
+        private static int m_estimateVarianceKernelID;
+        private static int m_kernelFilterKernelID;
+        private static int m_nlmFilterKernelID;
 
         private ProbeReferenceVolume.Cell m_cell;
         private ProbeVolumeDenoiserSettings m_settings;
@@ -51,11 +52,13 @@ namespace UnityEngine.Rendering
 
         private ComputeBuffer m_probePositionDeviceBuffer { get; }
         private ComputeBuffer m_cachedCoeffsDeviceBuffer { get; }
+        private ComputeBuffer m_cachedCoeffsVarDeviceBuffer { get; }
         private ComputeBuffer m_cachedValiditiesDeviceBuffer { get; }
         private ComputeBuffer m_outputCoeffsDeviceBuffer { get; }
 
         static readonly int _ProbePositionsBuffer = Shader.PropertyToID("_ProbePositionsBuffer");
         static readonly int _CachedCoeffs = Shader.PropertyToID("_CachedCoeffs");
+        static readonly int _CachedCoeffsVar = Shader.PropertyToID("_CachedCoeffsVar");
         static readonly int _CachedValidities = Shader.PropertyToID("_CachedValidities");
         static readonly int _OutputCoeffs = Shader.PropertyToID("_OutputCoeffs");
         static readonly int _CacheLowerBound = Shader.PropertyToID("_CacheLowerBound");
@@ -63,8 +66,10 @@ namespace UnityEngine.Rendering
         static readonly int _ProbeDelta = Shader.PropertyToID("_ProbeDelta");
         static readonly int _NumCachedProbes = Shader.PropertyToID("_NumCachedProbes");
         static readonly int _NumOutputProbes = Shader.PropertyToID("_NumOutputProbes");
+        static readonly int _KernelFilterType = Shader.PropertyToID("_KernelFilterType");
         static readonly int _N = Shader.PropertyToID("_N");
         static readonly int _M = Shader.PropertyToID("_M");
+        static readonly int _NLMParams = Shader.PropertyToID("_NLMParams");
         static readonly int _DebugFlags = Shader.PropertyToID("_DebugFlags");
         static readonly int _FineTuneParams = Shader.PropertyToID("_FineTuneParams");
 
@@ -95,7 +100,7 @@ namespace UnityEngine.Rendering
             if (m_settings.showInvalidProbes) { m_debugFlags |= 4; }
 
             Diag.Assert(m_settings.kernelSize >= 0 && m_settings.kernelSize <= 5, $"Kernel size {m_settings.kernelSize} is out of bounds [0, 5].");
-            Diag.Assert(m_settings.patchSize >= 0 && m_settings.patchSize <= 2, $"Patch size {m_settings.patchSize} is out of bounds [0, 2].");
+            Diag.Assert(m_settings.nlmM >= 0 && m_settings.nlmM <= 2, $"Patch size {m_settings.nlmM} is out of bounds [0, 2].");
 
             m_mutex.WaitOne();
             if (m_shaderHandle == null)
@@ -103,8 +108,9 @@ namespace UnityEngine.Rendering
                 m_shaderHandle = AssetDatabase.LoadAssetAtPath<ComputeShader>("Packages/com.unity.render-pipelines.core/Editor/Lighting/ProbeVolume/ProbeDenoiser/ProbeVolumeDenoiser.compute");
 
                 m_populateKernelID = m_shaderHandle.FindKernel("PopulateCache");
-                m_staticFilterKernelID = m_shaderHandle.FindKernel("StaticFilter");
-                 
+                m_estimateVarianceKernelID = m_shaderHandle.FindKernel("EstimateVariance");
+                m_kernelFilterKernelID = m_shaderHandle.FindKernel("KernelFilter");
+
             }
             m_mutex.ReleaseMutex();
 
@@ -112,13 +118,13 @@ namespace UnityEngine.Rendering
             var cellData = m_cell.data;
             var cellDesc = m_cell.desc;
 
-            if (false)
+            /*if (false)
             {
                 // Get a list of indices for all probes in this cell
                 m_numOutputProbes = cellDesc.probeCount;                
                 m_remappedProbeIndices = ProbeGIBaking.GetRemappedProbeIndices(cellDesc, cellData);
             }
-            else
+            else*/
             {
                 m_numOutputProbes = cellData.probePositions.Length;
                 m_remappedProbeIndices = new int[m_numOutputProbes];
@@ -154,7 +160,11 @@ namespace UnityEngine.Rendering
             // Calculate the dimensions of a constant grid with resolution equal to the smallest probe distance.
             // Expand it so that it includes the margin required by the filter kernel
             m_probeDelta = volume.MinDistanceBetweenProbes();
-            int marginSize = m_settings.kernelSize + m_settings.patchSize;
+            int marginSize = m_settings.kernelSize;
+            if (m_settings.kernelFilterType == (int)ProbeVolumeDenoiserSettings.KernelFilterType.kNLM)
+            {
+                marginSize += m_settings.nlmM;
+            }
             Vector3 cellDims = new Vector3(1, 1, 1) + (m_outputUpperBound - m_outputLowerBound) / m_probeDelta;
             m_cacheDims = new Vector3Int(Mathf.RoundToInt(cellDims.x) + 2 * marginSize,
                                          Mathf.RoundToInt(cellDims.y) + 2 * marginSize,
@@ -180,6 +190,7 @@ namespace UnityEngine.Rendering
             // Create the compute buffers
             m_probePositionDeviceBuffer = new ComputeBuffer(m_probePositionsHostBuffer.Length, System.Runtime.InteropServices.Marshal.SizeOf<Vector3>());
             m_cachedCoeffsDeviceBuffer = new ComputeBuffer(m_numCachedProbes * 9, System.Runtime.InteropServices.Marshal.SizeOf<Vector3>());
+            m_cachedCoeffsVarDeviceBuffer = new ComputeBuffer(m_numCachedProbes * 9, System.Runtime.InteropServices.Marshal.SizeOf<Vector3>());
             m_cachedValiditiesDeviceBuffer = new ComputeBuffer(m_numCachedProbes, System.Runtime.InteropServices.Marshal.SizeOf<int>());
             m_outputCoeffsDeviceBuffer = new ComputeBuffer(m_numOutputProbes, System.Runtime.InteropServices.Marshal.SizeOf<RawSphericalHaramonicsL2>());
 
@@ -192,6 +203,7 @@ namespace UnityEngine.Rendering
             // Clean up device objects
             m_probePositionDeviceBuffer.Dispose();
             m_cachedCoeffsDeviceBuffer.Dispose();
+            m_cachedCoeffsVarDeviceBuffer.Dispose();
             m_cachedValiditiesDeviceBuffer.Dispose();
             m_outputCoeffsDeviceBuffer.Dispose();
         }
@@ -241,23 +253,30 @@ namespace UnityEngine.Rendering
         {
             var cmd = CommandBufferPool.Get("Probe Denoising");
 
-            // Params for cache
+            // Params for caching kernel
             cmd.SetComputeBufferParam(m_shaderHandle, m_populateKernelID, _CachedCoeffs, m_cachedCoeffsDeviceBuffer);
             cmd.SetComputeBufferParam(m_shaderHandle, m_populateKernelID, _CachedValidities, m_cachedValiditiesDeviceBuffer);
 
+            // Params for variance estimation kernel
+            cmd.SetComputeBufferParam(m_shaderHandle, m_estimateVarianceKernelID, _CachedCoeffs, m_cachedCoeffsDeviceBuffer);
+            cmd.SetComputeBufferParam(m_shaderHandle, m_estimateVarianceKernelID, _CachedCoeffsVar, m_cachedCoeffsVarDeviceBuffer);
+            cmd.SetComputeBufferParam(m_shaderHandle, m_estimateVarianceKernelID, _CachedValidities, m_cachedValiditiesDeviceBuffer);
+
             // Params for static filter kernel
-            cmd.SetComputeBufferParam(m_shaderHandle, m_staticFilterKernelID, _ProbePositionsBuffer, m_probePositionDeviceBuffer);
-            cmd.SetComputeBufferParam(m_shaderHandle, m_staticFilterKernelID, _OutputCoeffs, m_outputCoeffsDeviceBuffer);
-            cmd.SetComputeBufferParam(m_shaderHandle, m_staticFilterKernelID, _CachedCoeffs, m_cachedCoeffsDeviceBuffer);
-            cmd.SetComputeBufferParam(m_shaderHandle, m_staticFilterKernelID, _CachedValidities, m_cachedValiditiesDeviceBuffer);
+            cmd.SetComputeBufferParam(m_shaderHandle, m_kernelFilterKernelID, _ProbePositionsBuffer, m_probePositionDeviceBuffer);
+            cmd.SetComputeBufferParam(m_shaderHandle, m_kernelFilterKernelID, _OutputCoeffs, m_outputCoeffsDeviceBuffer);
+            cmd.SetComputeBufferParam(m_shaderHandle, m_kernelFilterKernelID, _CachedCoeffs, m_cachedCoeffsDeviceBuffer);
+            cmd.SetComputeBufferParam(m_shaderHandle, m_kernelFilterKernelID, _CachedCoeffsVar, m_cachedCoeffsVarDeviceBuffer);
+            cmd.SetComputeBufferParam(m_shaderHandle, m_kernelFilterKernelID, _CachedValidities, m_cachedValiditiesDeviceBuffer);
 
             cmd.SetComputeVectorParam(m_shaderHandle, _CacheLowerBound, new Vector4(m_cacheLowerBound.x, m_cacheLowerBound.y, m_cacheLowerBound.z));
             cmd.SetComputeVectorParam(m_shaderHandle, _CacheDims, new Vector4(m_cacheDims.x, m_cacheDims.y, m_cacheDims.z));
             cmd.SetComputeFloatParam(m_shaderHandle, _ProbeDelta, m_probeDelta);
             cmd.SetComputeIntParam(m_shaderHandle, _NumCachedProbes, m_numCachedProbes);
             cmd.SetComputeIntParam(m_shaderHandle, _NumOutputProbes, m_numOutputProbes);
+            cmd.SetComputeIntParam(m_shaderHandle, _KernelFilterType, m_settings.kernelFilterType);
             cmd.SetComputeIntParam(m_shaderHandle, _N, m_settings.kernelSize);
-            cmd.SetComputeIntParam(m_shaderHandle, _M, m_settings.patchSize);
+            cmd.SetComputeVectorParam(m_shaderHandle, _NLMParams, new Vector4(m_settings.nlmM, m_settings.nlmAlpha, m_settings.nlmK, 0.0f));
             cmd.SetComputeIntParam(m_shaderHandle, _DebugFlags, m_debugFlags);
             cmd.SetComputeVectorParam(m_shaderHandle, _FineTuneParams, new Vector4(m_settings.samplerBias, 0.0f, 0.0f, 0.0f));
 
@@ -268,9 +287,12 @@ namespace UnityEngine.Rendering
             int numBlocks = (m_numCachedProbes + kDefaultBlockSize - 1) / kDefaultBlockSize;
             cmd.DispatchCompute(m_shaderHandle, m_populateKernelID, numBlocks, 1, 1);
 
+            // Estimate the variance
+            cmd.DispatchCompute(m_shaderHandle, m_estimateVarianceKernelID, numBlocks, 1, 1);
+
             // Filter the cached values
             numBlocks = (m_numOutputProbes + kDefaultBlockSize - 1) / kDefaultBlockSize;
-            cmd.DispatchCompute(m_shaderHandle, m_staticFilterKernelID, numBlocks, 1, 1);
+            cmd.DispatchCompute(m_shaderHandle, m_kernelFilterKernelID, numBlocks, 1, 1);
 
             // Execute the command queue
             cmd.WaitAllAsyncReadbackRequests();
