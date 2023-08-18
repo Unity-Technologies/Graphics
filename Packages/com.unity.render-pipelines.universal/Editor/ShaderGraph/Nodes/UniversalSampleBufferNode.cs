@@ -104,7 +104,7 @@ namespace UnityEditor.Rendering.Universal
                 registry.ProvideFunction(GetFunctionName(), s =>
                 {
                     if (bufferType == BufferType.MotionVectors)
-                        s.AppendLine("TEXTURE2D(_MotionVectorTexture);");
+                        s.AppendLine("TEXTURE2D_X(_MotionVectorTexture);");
 
                     if (bufferType == BufferType.BlitSource)
                     {
