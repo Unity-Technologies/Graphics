@@ -9,7 +9,7 @@ namespace UnityEditor.Rendering.Universal
         const string k_GraphicsSettingsPath = "ProjectSettings/GraphicsSettings.asset";
         static void OnPostprocessAllAssets(string[] importedAssets , string[] __, string[] ___, string[] ____, bool didDomainReload)
         {
-            if (GraphicsSettings.currentRenderPipeline == null)
+            if (GraphicsSettings.currentRenderPipeline is not UniversalRenderPipelineAsset)
                 return;
 
             if(didDomainReload || importedAssets.Contains(k_GraphicsSettingsPath))
