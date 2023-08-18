@@ -1809,6 +1809,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             m_ProcessedLightsBuilder.Reset();
+            m_TextureCaches?.reflectionProbeTextureCache?.GarbageCollectTmpResources();
 
             m_EnableBakeShadowMask = m_EnableBakeShadowMask && hdCamera.frameSettings.IsEnabled(FrameSettingsField.Shadowmask);
             return m_EnableBakeShadowMask;
