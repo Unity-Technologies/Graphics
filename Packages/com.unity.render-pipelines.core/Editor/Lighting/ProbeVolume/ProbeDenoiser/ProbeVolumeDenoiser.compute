@@ -19,40 +19,165 @@ CBUFFER_START(APVDilation)
     int                             _NumOutputProbes;
     int                             _N;
     int                             _M;
+    float4                          _FineTuneParams;
+    int                             _DebugFlags;
 CBUFFER_END
 
 StructuredBuffer<float3>            _ProbePositionsBuffer;
 RWStructuredBuffer<float3>          _CachedCoeffs;
+RWStructuredBuffer<int>             _CachedValidities;
 RWStructuredBuffer<RawSphericalHarmonicsL2> _OutputCoeffs;
 
 #define kCoeffsPerProbe 9
+#define kOne float3(1.0f, 1.0f, 1.0f)
 
-void SampleProbeVolume(APVResources ctx, float3 uvw, int idx)
+#define kIsDebugMode        ((_DebugFlags & 1) != 0)
+#define kIsIsolatedCell     ((_DebugFlags & 2) != 0)
+#define kShowInvalidProbes  ((_DebugFlags & 4) != 0)
+
+//#define kSHTexture3DSampler s_linear_clamp_sampler
+#define kSHTexture3DSampler s_point_clamp_sampler
+
+#define kSamplerBias _FineTuneParams.x
+
+uint __GetIndexData(APVResources apvRes, float3 posWS, out int diag)
 {
-    float4 L0_L1Rx = SAMPLE_TEXTURE3D_LOD(ctx.L0_L1Rx, s_point_clamp_sampler, uvw, 0).rgba;
-    float4 L1G_L1Ry = SAMPLE_TEXTURE3D_LOD(ctx.L1G_L1Ry, s_point_clamp_sampler, uvw, 0).rgba;
-    float4 L1B_L1Rz = SAMPLE_TEXTURE3D_LOD(ctx.L1B_L1Rz, s_point_clamp_sampler, uvw, 0).rgba;
+    diag = 0;
 
-    float4 l2_R = SAMPLE_TEXTURE3D_LOD(ctx.L2_0, s_point_clamp_sampler, uvw, 0).rgba;
-    float4 l2_G = SAMPLE_TEXTURE3D_LOD(ctx.L2_1, s_point_clamp_sampler, uvw, 0).rgba;
-    float4 l2_B = SAMPLE_TEXTURE3D_LOD(ctx.L2_2, s_point_clamp_sampler, uvw, 0).rgba;
-    float4 l2_C = SAMPLE_TEXTURE3D_LOD(ctx.L2_3, s_point_clamp_sampler, uvw, 0).rgba;
+    float3 entryPos = floor(posWS / _GlobalIndirectionEntryDim);
+    float3 topLeftEntryWS = entryPos * _GlobalIndirectionEntryDim;
 
-    _CachedCoeffs[idx] = L0_L1Rx.xyz;
+    bool isALoadedCell = all(entryPos >= _MinLoadedCellInEntries && entryPos <= _MaxLoadedCellInEntries);
 
-    _CachedCoeffs[idx + 1] = float3(L0_L1Rx.w, L1G_L1Ry.x, L1B_L1Rz.x);
-    _CachedCoeffs[idx + 2] = float3(L1G_L1Ry.w, L1G_L1Ry.y, L1B_L1Rz.y);
-    _CachedCoeffs[idx + 3] = float3(L1B_L1Rz.w, L1G_L1Ry.z, L1B_L1Rz.z);
+    // Make sure we start from 0
+    int3 entryPosInt = (int3)(entryPos - _MinEntryPosition);
 
-    _CachedCoeffs[idx + 4] = float3(l2_R.x, l2_G.x, l2_B.x);
-    _CachedCoeffs[idx + 5] = float3(l2_R.y, l2_G.y, l2_B.y);
-    _CachedCoeffs[idx + 6] = float3(l2_R.z, l2_G.z, l2_B.z);
-    _CachedCoeffs[idx + 7] = float3(l2_R.w, l2_G.w, l2_B.w);
-    _CachedCoeffs[idx + 8] = float3(l2_C.x, l2_C.y, l2_C.z);
+    int flatIdx = dot(entryPosInt, int3(1, (int)_GlobalIndirectionDimension.x, ((int)_GlobalIndirectionDimension.x * (int)_GlobalIndirectionDimension.y)));
 
-    /*for (int i = 0; i < 9; ++i)
-        _CachedCoeffs[idx + i] = float3(0.f, 0.f, 0.f); 
-    _CachedCoeffs[idx] = float3(1.f, 0.5f, 0.f);*/
+    int stepSize = 0;
+    int3 minRelativeIdx, maxRelativeIdx;
+    int chunkIdx = -1;
+    bool isValidBrick = true;
+    int locationInPhysicalBuffer = 0;
+
+    if (isALoadedCell && LoadCellIndexMetaData(flatIdx, chunkIdx, stepSize, minRelativeIdx, maxRelativeIdx))
+    {
+        float3 residualPosWS = posWS - topLeftEntryWS;
+        int3 localBrickIndex = floor(residualPosWS / (_MinBrickSize * stepSize));
+
+        // Out of bounds.
+        if (!all(localBrickIndex >= minRelativeIdx && localBrickIndex < maxRelativeIdx))
+        {
+            isValidBrick = false;
+        }
+
+        int3 sizeOfValid = maxRelativeIdx - minRelativeIdx;
+        // Relative to valid region
+        int3 localRelativeIndexLoc = (localBrickIndex - minRelativeIdx);
+        int flattenedLocationInCell = dot(localRelativeIndexLoc, int3(sizeOfValid.y, 1, sizeOfValid.x * sizeOfValid.y));
+
+        locationInPhysicalBuffer = chunkIdx * (int)_IndexChunkSize + flattenedLocationInCell;
+
+    }
+    else
+    {
+        isValidBrick = false;
+    }
+
+    if (isValidBrick && apvRes.index[locationInPhysicalBuffer] == -1) diag = 1;
+
+    return isValidBrick ? apvRes.index[locationInPhysicalBuffer] : 0xffffffff;
+}
+
+bool __TryToGetPoolUVWAndSubdiv(APVResources apvRes, float3 posWSForSample, out float3 uvw, out uint subdiv, out int diag)
+{
+    // resolve the index
+    uint packed_pool_idx = __GetIndexData(apvRes, posWSForSample.xyz, diag);
+
+    //if (packed_pool_idx == 0xffffffff) diag = 1;
+
+    // unpack pool idx
+    // size is encoded in the upper 4 bits
+    subdiv = (packed_pool_idx >> 28) & 15;
+    float  cellSize = pow(3.0, subdiv);
+
+    float   flattened_pool_idx = packed_pool_idx & ((1 << 28) - 1);
+    float3 pool_idx;
+    pool_idx.z = floor(flattened_pool_idx * _RcpPoolDimXY);
+    flattened_pool_idx -= (pool_idx.z * (_PoolDim.x * _PoolDim.y));
+    pool_idx.y = floor(flattened_pool_idx * _RcpPoolDim.x);
+    pool_idx.x = floor(flattened_pool_idx - (pool_idx.y * _PoolDim.x));
+
+    // calculate uv offset and scale
+    float3 posRS = posWSForSample.xyz / _MinBrickSize;
+    float3 offset = frac(posRS / (float)cellSize);  // [0;1] in brick space
+    //offset    = clamp( offset, 0.25, 0.75 );      // [0.25;0.75] in brick space (is this actually necessary?)
+
+    uvw = (pool_idx + 0.5 + (3.0 * offset)) * _RcpPoolDim; // add offset with brick footprint converted to text footprint in pool texel space
+
+    // no valid brick loaded for this index, fallback to ambient probe
+    // Note: we could instead early return when we know we'll have invalid UVs, but some bade code gen on Vulkan generates shader warnings if we do.
+    return packed_pool_idx != 0xffffffffu;
+}
+
+bool __TryToGetPoolUVWAndSubdiv(APVResources apvRes, float3 posWS, float3 normalWS, float3 viewDirWS, out float3 uvw, out uint subdiv, out float3 biasedPosWS, out int diag)
+{
+    biasedPosWS = (posWS + normalWS * _NormalBias) + viewDirWS * _ViewBias;
+    return __TryToGetPoolUVWAndSubdiv(apvRes, biasedPosWS, uvw, subdiv, diag);
+}
+
+bool __TryToGetPoolUVW(APVResources apvRes, float3 posWS, float3 normalWS, float3 viewDir, out float3 uvw, out int diag)
+{
+    uint unusedSubdiv;
+    float3 unusedPos;
+    return __TryToGetPoolUVWAndSubdiv(apvRes, posWS, normalWS, viewDir, uvw, unusedSubdiv, unusedPos, diag);
+}
+
+
+void SampleProbeVolume(APVResources ctx, float3 uvw, int idx, float3 cacheAlpha)
+{
+    float4 L0_L1Rx = SAMPLE_TEXTURE3D_LOD(ctx.L0_L1Rx, kSHTexture3DSampler, uvw, 0).rgba;
+    float4 L1G_L1Ry = SAMPLE_TEXTURE3D_LOD(ctx.L1G_L1Ry, kSHTexture3DSampler, uvw, 0).rgba;
+    float4 L1B_L1Rz = SAMPLE_TEXTURE3D_LOD(ctx.L1B_L1Rz, kSHTexture3DSampler, uvw, 0).rgba;
+
+    float4 l2_R = SAMPLE_TEXTURE3D_LOD(ctx.L2_0, kSHTexture3DSampler, uvw, 0).rgba;
+    float4 l2_G = SAMPLE_TEXTURE3D_LOD(ctx.L2_1, kSHTexture3DSampler, uvw, 0).rgba;
+    float4 l2_B = SAMPLE_TEXTURE3D_LOD(ctx.L2_2, kSHTexture3DSampler, uvw, 0).rgba;
+    float4 l2_C = SAMPLE_TEXTURE3D_LOD(ctx.L2_3, kSHTexture3DSampler, uvw, 0).rgba;
+
+    float validity = SAMPLE_TEXTURE3D_LOD(ctx.Validity, s_point_clamp_sampler, uvw, 0).r;
+    //V = l2_c.w;
+
+    int coeffIdx = idx * kCoeffsPerProbe;
+    _CachedCoeffs[coeffIdx] = L0_L1Rx.xyz;
+
+    _CachedCoeffs[coeffIdx + 1] = float3(L0_L1Rx.w, L1G_L1Ry.x, L1B_L1Rz.x);
+    _CachedCoeffs[coeffIdx + 2] = float3(L1G_L1Ry.w, L1G_L1Ry.y, L1B_L1Rz.y);
+    _CachedCoeffs[coeffIdx + 3] = float3(L1B_L1Rz.w, L1G_L1Ry.z, L1B_L1Rz.z);
+
+    _CachedCoeffs[coeffIdx + 4] = float3(l2_R.x, l2_G.x, l2_B.x);
+    _CachedCoeffs[coeffIdx + 5] = float3(l2_R.y, l2_G.y, l2_B.y);
+    _CachedCoeffs[coeffIdx + 6] = float3(l2_R.z, l2_G.z, l2_B.z);
+    _CachedCoeffs[coeffIdx + 7] = float3(l2_R.w, l2_G.w, l2_B.w);
+    _CachedCoeffs[coeffIdx + 8] = float3(l2_C.x, l2_C.y, l2_C.z);
+
+    /*_CachedCoeffs[coeffIdx] = float3(0.f, 0.f, 0.f);
+    _CachedCoeffs[coeffIdx+1] = float3(0.f, 0.f, 0.f);
+    _CachedCoeffs[coeffIdx+2] = float3(0.f, 0.f, 0.f);
+    _CachedCoeffs[coeffIdx+3] = float3(0.f, 0.f, 0.f);
+    _CachedCoeffs[coeffIdx+4] = float3(0.f, 0.f, 0.f);
+    _CachedCoeffs[coeffIdx+5] = float3(0.f, 0.f, 0.f);
+    _CachedCoeffs[coeffIdx+6] = float3(0.f, 0.f, 0.f);
+    _CachedCoeffs[coeffIdx+7] = float3(0.f, 0.f, 0.f);
+    _CachedCoeffs[coeffIdx+8] = float3(0.f, 0.f, 0.f);*/
+
+    _CachedValidities[idx] = int(validity * 255.f) & 0xff;
+  
+     /*for (int i = 0; i < kCoeffsPerProbe; ++i)
+     {
+         _CachedCoeffs[coeffIdx + i] *= 0.;// = cacheAlpha * 5.;
+     }
+     _CachedCoeffs[coeffIdx] = cacheAlpha * 5.;*/
 }
 
 [numthreads(64, 1, 1)]
@@ -64,13 +189,21 @@ void PopulateCache(uint3 id : SV_DispatchThreadID)
         int3 probeIdx = int3(id.x % cacheDims.x,
                             (id.x / cacheDims.x) % cacheDims.y,
                             id.x / (cacheDims.x * cacheDims.y));
-        float3 samplePos = _CacheLowerBound.xyz + float3(probeIdx) * _ProbeDelta;
+        float3 samplePos = _CacheLowerBound.xyz + (float3(probeIdx) - kOne * kSamplerBias) * _ProbeDelta;
 
         float3 sampleUVW;
         APVResources ctx = FillAPVResources();
-        if (TryToGetPoolUVW(ctx, samplePos, 0, 0, sampleUVW))
+        int diag = 0;
+        if (__TryToGetPoolUVW(ctx, samplePos, 0, 0, sampleUVW, diag))
         {
-            SampleProbeVolume(ctx, sampleUVW, id.x * kCoeffsPerProbe);
+            //float3 cacheAlpha = 1.f * (samplePos * 0.5f + float3(0.5f, 0.5f, 0.5f));
+            float3 cacheAlpha = float3(probeIdx) * _ProbeDelta / _CacheDims.xyz;
+            SampleProbeVolume(ctx, sampleUVW, id.x, cacheAlpha);
+        }
+
+        if(diag == 1 && kShowInvalidProbes)
+        {
+            _CachedCoeffs[id.x * kCoeffsPerProbe] = float3(1.f, 0.f, 0.f) * 100.;
         }
     }
 }
@@ -93,7 +226,7 @@ void StaticFilter(uint3 id : SV_DispatchThreadID)
         {
             accum[coeffIdx] = float3(0.f, 0.f, 0.f);
         }
-
+        
         // Accumulate weighted neighbours
         for (int w = -_N; w <= _N; ++w)
         {
@@ -104,11 +237,23 @@ void StaticFilter(uint3 id : SV_DispatchThreadID)
                     int3 kIdx = originIdx + int3(u, v, w);
                     if (all(kIdx >= 0) && all(kIdx < cacheDims))
                     {
-                        int offset = kCoeffsPerProbe * (kIdx.z * cacheDims.x * cacheDims.y + kIdx.y * cacheDims.x + kIdx.x);
-                        for (coeffIdx = 0; coeffIdx < kCoeffsPerProbe; ++coeffIdx)
+                        int offset = kIdx.z * cacheDims.x * cacheDims.y + kIdx.y * cacheDims.x + kIdx.x;
+                        //accum[0] = ((_CachedValidities[offset] & 1) != 0) ? float3(1.f, 0.0f, 0.0f) : float3(0.0f, 1.f, 0.f)) * 5.;
+                        if((_CachedValidities[offset] & 1) != 0)
+                        //if((_CachedValidities[offset] & 255) == 255)
                         {
-                            accum[coeffIdx] += _CachedCoeffs[offset + coeffIdx];
+                            int coeffOffset = kCoeffsPerProbe * offset;
+                            for (coeffIdx = 0; coeffIdx < kCoeffsPerProbe; ++coeffIdx)
+                            {
+                                accum[coeffIdx] += _CachedCoeffs[coeffOffset + coeffIdx];
+                            }
+                            //accum[0] += float3(1.f, 0.f, 0.f) * 10.;
+                            sumWeights += 1.;
                         }
+                    }
+                    else
+                    {
+                        accum[0] += float3(0.f, 1.f, 0.f) * 100.;
                         sumWeights += 1.;
                     }
                 }
@@ -116,23 +261,25 @@ void StaticFilter(uint3 id : SV_DispatchThreadID)
         }
 
         // Normalise the accumulated coefficients
+        //float3 cacheAlpha = float3(originIdx) / _CacheDims.xyz;
         for (coeffIdx = 0; coeffIdx < kCoeffsPerProbe;++coeffIdx)
         {
             accum[coeffIdx] /= max(1.f, sumWeights);
+            //accum[coeffIdx] *= cacheAlpha;
         }
 
         //int offset = kCoeffsPerProbe * (originIdx.z * cacheDims.x * cacheDims.y + originIdx.y * cacheDims.x + originIdx.x)
 
         RawSphericalHarmonicsL2 sh = { accum[0], accum[1], accum[2], accum[3], accum[4], accum[5], accum[6], accum[7], accum[8] };
-        /*sh.L0 = float3(1., 1., 0.);
-        sh.L1_0 = accum[1];
-        sh.L1_1 = accum[2];
-        sh.L1_2 = accum[3];
-        sh.L2_0 = accum[4];
-        sh.L2_1 = accum[5];
-        sh.L2_2 = accum[6];
-        sh.L2_3 = accum[7];
-        sh.L2_4 = accum[8];*/
+        /*sh.L0 *= float3(1., 1., 1.);
+        sh.L1_0 *= float3(1., 1., 1.);
+        sh.L1_1 *= float3(1., 1., 1.);
+        sh.L1_2 *= float3(1., 1., 1.);
+        sh.L2_0 *= float3(1., 1., 1.);
+        sh.L2_1 *= float3(1., 1., 1.);
+        sh.L2_2 *= float3(1., 1., 1.);
+        sh.L2_3 *= float3(1., 1., 1.);
+        sh.L2_4 *= float3(1., 1., 1.);*/
         _OutputCoeffs[id.x] = sh;
     } 
 }

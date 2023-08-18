@@ -32,8 +32,9 @@ namespace UnityEngine.Rendering
 
         private ProbeReferenceVolume.Cell m_cell;
         private ProbeVolumeDenoiserSettings m_settings;
-        private int[] m_remappedProbeIndices;
+        private int m_debugFlags;
 
+        private int[] m_remappedProbeIndices;
         private RawSphericalHaramonicsL2[] m_outputCoeffsHostBuffer;
         private Vector3[] m_probePositionsHostBuffer;
         private float[] m_probeValiditiesHostBuffer;
@@ -64,6 +65,8 @@ namespace UnityEngine.Rendering
         static readonly int _NumOutputProbes = Shader.PropertyToID("_NumOutputProbes");
         static readonly int _N = Shader.PropertyToID("_N");
         static readonly int _M = Shader.PropertyToID("_M");
+        static readonly int _DebugFlags = Shader.PropertyToID("_DebugFlags");
+        static readonly int _FineTuneParams = Shader.PropertyToID("_FineTuneParams");
 
         static readonly int _APVResIndex = Shader.PropertyToID("_APVResIndex");
         static readonly int _APVResCellIndices = Shader.PropertyToID("_APVResCellIndices");
@@ -85,7 +88,11 @@ namespace UnityEngine.Rendering
         {
             m_cell = cell;
             m_settings = settings;
-            Debug.Log($"Denoising {m_cell.desc.index}");
+
+            m_debugFlags = 0;
+            if (m_settings.debugMode) { m_debugFlags |= 1; }
+            if (m_settings.isolateCell && m_cell.desc.index == m_settings.isolateCellIdx) { m_debugFlags |= 2; }
+            if (m_settings.showInvalidProbes) { m_debugFlags |= 4; }
 
             Diag.Assert(m_settings.kernelSize >= 0 && m_settings.kernelSize <= 5, $"Kernel size {m_settings.kernelSize} is out of bounds [0, 5].");
             Diag.Assert(m_settings.patchSize >= 0 && m_settings.patchSize <= 2, $"Patch size {m_settings.patchSize} is out of bounds [0, 2].");
@@ -97,8 +104,6 @@ namespace UnityEngine.Rendering
 
                 m_populateKernelID = m_shaderHandle.FindKernel("PopulateCache");
                 m_staticFilterKernelID = m_shaderHandle.FindKernel("StaticFilter");
-
-                Debug.Log("Denoising shaders loaded!");
                  
             }
             m_mutex.ReleaseMutex();
@@ -107,11 +112,23 @@ namespace UnityEngine.Rendering
             var cellData = m_cell.data;
             var cellDesc = m_cell.desc;
 
-            m_numOutputProbes = cellDesc.probeCount;
-            Diag.Assert(m_numOutputProbes > 0, "Call contains no probes");
+            if (false)
+            {
+                // Get a list of indices for all probes in this cell
+                m_numOutputProbes = cellDesc.probeCount;                
+                m_remappedProbeIndices = ProbeGIBaking.GetRemappedProbeIndices(cellDesc, cellData);
+            }
+            else
+            {
+                m_numOutputProbes = cellData.probePositions.Length;
+                m_remappedProbeIndices = new int[m_numOutputProbes];
+                for(int idx = 0; idx < m_numOutputProbes; ++idx)
+                {
+                    m_remappedProbeIndices[idx] = idx;
+                }
+            }
 
-            // Get a list of indices for all probes in this cell
-            m_remappedProbeIndices = ProbeGIBaking.GetRemappedProbeIndices(cellDesc, cellData);
+            Diag.Assert(m_numOutputProbes > 0, "Call contains no probes");
             Diag.Assert(m_remappedProbeIndices.Length == m_numOutputProbes, "Remap returned a list with zero entries.");
 
             // Allocate some memory for the input and output data
@@ -137,21 +154,21 @@ namespace UnityEngine.Rendering
             // Calculate the dimensions of a constant grid with resolution equal to the smallest probe distance.
             // Expand it so that it includes the margin required by the filter kernel
             m_probeDelta = volume.MinDistanceBetweenProbes();
-            const int kKernelSize = 3;
+            int marginSize = m_settings.kernelSize + m_settings.patchSize;
             Vector3 cellDims = new Vector3(1, 1, 1) + (m_outputUpperBound - m_outputLowerBound) / m_probeDelta;
-            m_cacheDims = new Vector3Int(Mathf.RoundToInt(cellDims.x) + 2 * kKernelSize,
-                                         Mathf.RoundToInt(cellDims.y) + 2 * kKernelSize,
-                                         Mathf.RoundToInt(cellDims.z) + 2 * kKernelSize);
+            m_cacheDims = new Vector3Int(Mathf.RoundToInt(cellDims.x) + 2 * marginSize,
+                                         Mathf.RoundToInt(cellDims.y) + 2 * marginSize,
+                                         Mathf.RoundToInt(cellDims.z) + 2 * marginSize);
 
             // Allocate some memory to receive the 
             m_numCachedProbes = m_cacheDims.x * m_cacheDims.y * m_cacheDims.z;
 
             // Calculate the bounds of the cache
-            Vector3 cacheMargin = new Vector3(m_probeDelta, m_probeDelta, m_probeDelta) * kKernelSize;
+            Vector3 cacheMargin = new Vector3(m_probeDelta, m_probeDelta, m_probeDelta) * marginSize;
             m_cacheLowerBound = m_outputLowerBound - cacheMargin;
             m_cacheUpperBound = m_outputUpperBound + cacheMargin;
 
-            if (m_cell.desc.index == 0)
+            if ((m_debugFlags & 1) != 0)
             {
                 Debug.Log(string.Format("Output bounds: {0} -> {1}", m_outputLowerBound, m_outputUpperBound));
                 Debug.Log(string.Format("Cache bounds: {0} -> {1}", m_cacheLowerBound, m_cacheUpperBound));
@@ -168,8 +185,6 @@ namespace UnityEngine.Rendering
 
             // Upload the probe position data to the device
             m_probePositionDeviceBuffer.SetData(m_probePositionsHostBuffer);
-
-            Debug.Log("Created device buffers");
         }
 
         public void Dispose()
@@ -179,8 +194,6 @@ namespace UnityEngine.Rendering
             m_cachedCoeffsDeviceBuffer.Dispose();
             m_cachedValiditiesDeviceBuffer.Dispose();
             m_outputCoeffsDeviceBuffer.Dispose();
-
-            Debug.Log("Cleaned up!");
         }
 
         private void PrepareProbeVolume(CommandBuffer cmd)
@@ -244,7 +257,9 @@ namespace UnityEngine.Rendering
             cmd.SetComputeIntParam(m_shaderHandle, _NumCachedProbes, m_numCachedProbes);
             cmd.SetComputeIntParam(m_shaderHandle, _NumOutputProbes, m_numOutputProbes);
             cmd.SetComputeIntParam(m_shaderHandle, _N, m_settings.kernelSize);
-            cmd.SetComputeIntParam(m_shaderHandle, _M, m_settings.patchSize); 
+            cmd.SetComputeIntParam(m_shaderHandle, _M, m_settings.patchSize);
+            cmd.SetComputeIntParam(m_shaderHandle, _DebugFlags, m_debugFlags);
+            cmd.SetComputeVectorParam(m_shaderHandle, _FineTuneParams, new Vector4(m_settings.samplerBias, 0.0f, 0.0f, 0.0f));
 
             PrepareProbeVolume(cmd);
 

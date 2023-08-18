@@ -14,6 +14,7 @@ using CellData = UnityEngine.Rendering.ProbeReferenceVolume.CellData;
 using IndirectionEntryInfo = UnityEngine.Rendering.ProbeReferenceVolume.IndirectionEntryInfo;
 using StreamableCellDesc = UnityEngine.Rendering.ProbeVolumeStreamableAsset.StreamableCellDesc;
 using UnityEngine.Rendering;
+using static UnityEngine.Rendering.ProbeReferenceVolume;
 
 namespace UnityEngine.Rendering
 {
@@ -874,16 +875,19 @@ namespace UnityEngine.Rendering
             {
                 CellConvolutionDelegate denoiseLambda = cell =>
                 {
-                    try
+                    if (!settings.isolateCell || settings.isolateCellIdx == cell.desc.index)
                     {
-                        using (ProbeVolumeDenoiser denoiser = new ProbeVolumeDenoiser(cell, settings))
+                        try
                         {
-                            denoiser.Apply();
+                            using (ProbeVolumeDenoiser denoiser = new ProbeVolumeDenoiser(cell, settings))
+                            {
+                                denoiser.Apply();
+                            }
                         }
-                    }
-                    catch (ProbeVolumeDenoiserException ex)
-                    {
-                        Debug.LogError(string.Format("Probe volume denoiser failed: {0}", ex.what));
+                        catch (ProbeVolumeDenoiserException ex)
+                        {
+                            Debug.LogError(string.Format("Probe volume denoiser failed: {0}", ex.what));
+                        }
                     }
                 };
                 PerformPerCellConvolution(denoiseLambda, 1);

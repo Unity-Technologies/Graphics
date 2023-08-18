@@ -102,19 +102,35 @@ namespace UnityEngine.Rendering
     {
         enum DenoisingModel
         {
-            kDenoisingModelStatic,
-            kDenoisingModelNLM
+            kStatic,
+            kNLM
         }
 
         public bool enableDenoising;
         public int denoisingModel;
-
         public int kernelSize;
         public int patchSize;
+
+        public float samplerBias;
+
+        public bool debugMode;
+        public bool isolateCell;
+        public int isolateCellIdx;
+        public bool showInvalidProbes;
 
         internal void SetDefaults()
         {
             enableDenoising = true;
+            denoisingModel = (int)ProbeVolumeDenoiserSettings.DenoisingModel.kStatic;
+            kernelSize = 0;
+            patchSize = 0;
+
+            samplerBias = 1e-4f;
+
+            debugMode = false;
+            isolateCell = false;
+            isolateCellIdx = 0;
+            showInvalidProbes = false;
         }
 
         internal void UpgradeFromTo(ProbeVolumeBakingProcessSettings.SettingsVersion from, ProbeVolumeBakingProcessSettings.SettingsVersion to) { }
