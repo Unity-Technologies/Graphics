@@ -14,6 +14,8 @@ The **Output Particle HDRP Lit Decal** Context can affect the following properti
 - Smoothness
 - Normal
 
+The particles project their properties along their positive Z-axis.
+
 Below is a list of settings and properties specific to the Output Particle HDRP Lit Decal Context. For information about the generic output settings this Context shares with all other Contexts, see [Output Lit Settings and Properties](Context-OutputLitSettings.md).
 
 # Context Settings

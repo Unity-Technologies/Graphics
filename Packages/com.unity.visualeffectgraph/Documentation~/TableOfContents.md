@@ -59,6 +59,7 @@
     * [Output Line](Context-OutputLine.md)
     * [Output Particle Mesh](Context-OutputParticleMesh.md)
     * [Output Particle HDRP Lit Decal](Context-OutputParticleHDRPLitDecal.md)
+    * [Output Particle URP Lit Decal](Context-OutputParticleURPLitDecal.md)
     * [Output Point](Context-OutputPoint.md)
     * [Output Primitive](Context-OutputPrimitive.md)
     * Shared Output Settings
