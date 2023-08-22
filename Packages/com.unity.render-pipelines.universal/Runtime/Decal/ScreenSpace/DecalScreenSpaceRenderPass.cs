@@ -100,22 +100,20 @@ namespace UnityEngine.Rendering.Universal
 
         public override void RecordRenderGraph(RenderGraph renderGraph, FrameResources frameResources, ref RenderingData renderingData)
         {
-            UniversalRenderer renderer = (UniversalRenderer)renderingData.cameraData.renderer;
+            ContextContainer frameData = renderingData.frameData;
+            UniversalResourcesData resourcesData = frameData.Get<UniversalResourcesData>();
 
-            TextureHandle cameraDepthTexture = frameResources.GetTexture(UniversalResource.CameraDepthTexture);
-
+            TextureHandle cameraDepthTexture = resourcesData.cameraDepthTexture;
             RenderGraphUtils.SetGlobalTexture(renderGraph, Shader.PropertyToID("_CameraDepthTexture"), cameraDepthTexture);
 
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("Decal Screen Space Pass", out var passData, m_ProfilingSampler))
             {
-                TextureHandle cameraColor = frameResources.GetTexture(UniversalResource.CameraColor);
-
                 InitPassData(ref renderingData, ref passData);
-                passData.colorTarget = cameraColor;
+                passData.colorTarget = resourcesData.cameraColor;
                 passData.renderingData = renderingData;
 
-                builder.UseTextureFragment(renderer.activeColorTexture, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
-                builder.UseTextureFragmentDepth(renderer.activeDepthTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+                builder.UseTextureFragment(resourcesData.activeColorTexture, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
+                builder.UseTextureFragmentDepth(resourcesData.activeDepthTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
 
                 var param = CreateRenderListParams(ref renderingData);
                 passData.rendererList = renderGraph.CreateRendererList(param);

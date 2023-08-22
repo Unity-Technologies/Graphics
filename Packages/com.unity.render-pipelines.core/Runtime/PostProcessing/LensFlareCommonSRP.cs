@@ -1,4 +1,5 @@
 using UnityEngine.Experimental.Rendering;
+using System;
 
 namespace UnityEngine.Rendering
 {
@@ -65,6 +66,18 @@ namespace UnityEngine.Rendering
         public static RTHandle occlusionRT = null;
 
         private static int frameIdx = 0;
+
+        internal static readonly int _LensFlareScreenSpaceBloomMipTexture = Shader.PropertyToID("_LensFlareScreenSpaceBloomMipTexture");
+        internal static readonly int _LensFlareScreenSpaceResultTexture = Shader.PropertyToID("_LensFlareScreenSpaceResultTexture");
+        internal static readonly int _LensFlareScreenSpaceSpectralLut = Shader.PropertyToID("_LensFlareScreenSpaceSpectralLut");
+        internal static readonly int _LensFlareScreenSpaceStreakTex = Shader.PropertyToID("_LensFlareScreenSpaceStreakTex");
+        internal static readonly int _LensFlareScreenSpaceMipLevel = Shader.PropertyToID("_LensFlareScreenSpaceMipLevel");
+        internal static readonly int _LensFlareScreenSpaceTintColor = Shader.PropertyToID("_LensFlareScreenSpaceTintColor");
+        internal static readonly int _LensFlareScreenSpaceParams1 = Shader.PropertyToID("_LensFlareScreenSpaceParams1");
+        internal static readonly int _LensFlareScreenSpaceParams2 = Shader.PropertyToID("_LensFlareScreenSpaceParams2");
+        internal static readonly int _LensFlareScreenSpaceParams3 = Shader.PropertyToID("_LensFlareScreenSpaceParams3");
+        internal static readonly int _LensFlareScreenSpaceParams4 = Shader.PropertyToID("_LensFlareScreenSpaceParams4");
+        internal static readonly int _LensFlareScreenSpaceParams5 = Shader.PropertyToID("_LensFlareScreenSpaceParams5");
 
         private LensFlareCommonSRP()
         {
@@ -1425,7 +1438,70 @@ namespace UnityEngine.Rendering
         /// <param name="actualWidth">Width actually used for rendering after dynamic resolution and XR is applied.</param>
         /// <param name="actualHeight">Height actually used for rendering after dynamic resolution and XR is applied.</param>
         /// <param name="tintColor">tintColor to multiply all the flare by</param>
-        /// <param name="bloomTexture">bloom texture used as data for the effect</param>
+        /// <param name="originalBloomTexture">original Bloom texture used to write on at the end of compositing</param>
+        /// <param name="bloomMipTexture">Bloom mip texture used as data for the effect</param>
+        /// <param name="spectralLut">spectralLut used for chromatic aberration effect</param>
+        /// <param name="streakTextureTmp">Texture used for the multiple pass streaks effect</param>
+        /// <param name="streakTextureTmp2">Texture used for the multiple pass streaks effect</param>
+        /// <param name="parameters1">globalIntensity, regularIntensity, reverseIntensity, warpedIntensity</param>
+        /// <param name="parameters2">vignetteEffect, startingPosition, scale, freeSlot</param>
+        /// <param name="parameters3">samples, sampleDimmer, chromaticAbberationIntensity, chromaticAbberationSamples</param>
+        /// <param name="parameters4">streaksIntensity, streaksLength, streaksOrientation, streaksThreshold</param>
+        /// <param name="parameters5">downsampleStreak, warpedFlareScaleX, warpedFlareScaleY, freeSlot</param>
+        /// <param name="cmd">LowLevelCommandBuffer</param>
+        /// <param name="result">Result RT for the Lens Flare Screen Space</param>
+        /// <param name="debugView">Information if we are in debug mode or not</param>
+        static public void DoLensFlareScreenSpaceCommon(
+            Material lensFlareShader,
+            Camera cam,
+            float actualWidth,
+            float actualHeight,
+            Color tintColor,
+            Texture originalBloomTexture,
+            Texture bloomMipTexture,
+            Texture spectralLut,
+            Texture streakTextureTmp,
+            Texture streakTextureTmp2,
+            Vector4 parameters1,
+            Vector4 parameters2,
+            Vector4 parameters3,
+            Vector4 parameters4,
+            Vector4 parameters5,
+            LowLevelCommandBuffer cmd,
+            RTHandle result,
+            bool debugView)
+        {
+            DoLensFlareScreenSpaceCommon(
+            lensFlareShader,
+            cam,
+            actualWidth,
+            actualHeight,
+            tintColor,
+            originalBloomTexture,
+            bloomMipTexture,
+            spectralLut,
+            streakTextureTmp,
+            streakTextureTmp2,
+            parameters1,
+            parameters2,
+            parameters3,
+            parameters4,
+            parameters5,
+            cmd.m_WrappedCommandBuffer,
+            result,
+            debugView);
+        }
+
+        /// <summary>
+        /// Effective Job of drawing Lens Flare Screen Space.
+        /// </summary>
+        /// <param name="lensFlareShader">Lens Flare material (HDRP or URP shader)</param>
+        /// <param name="cam">Camera</param>
+        /// <param name="actualWidth">Width actually used for rendering after dynamic resolution and XR is applied.</param>
+        /// <param name="actualHeight">Height actually used for rendering after dynamic resolution and XR is applied.</param>
+        /// <param name="tintColor">tintColor to multiply all the flare by</param>
+        /// <param name="originalBloomTexture">original Bloom texture used to write on at the end of compositing</param>
+        /// <param name="bloomMipTexture">Bloom mip texture used as data for the effect</param>
         /// <param name="spectralLut">spectralLut used for chromatic aberration effect</param>
         /// <param name="streakTextureTmp">Texture used for the multiple pass streaks effect</param>
         /// <param name="streakTextureTmp2">Texture used for the multiple pass streaks effect</param>
@@ -1436,7 +1512,7 @@ namespace UnityEngine.Rendering
         /// <param name="parameters5">downsampleStreak, warpedFlareScaleX, warpedFlareScaleY, freeSlot</param>
         /// <param name="cmd">Command Buffer</param>
         /// <param name="result">Result RT for the Lens Flare Screen Space</param>
-        /// <param name="_BloomTexture">ShaderID for the BloomTexture</param>
+        /// <param name="_LensFlareScreenSpaceBloomMipTexture">ShaderID for the original bloom texture</param>
         /// <param name="_LensFlareScreenSpaceResultTexture">ShaderID for the LensFlareScreenSpaceResultTexture texture</param>
         /// <param name="_LensFlareScreenSpaceSpectralLut">ShaderID for the LensFlareScreenSpaceSpectralLut texture</param>
         /// <param name="_LensFlareScreenSpaceStreakTex">ShaderID for the LensFlareScreenSpaceStreakTex streak temp texture</param>
@@ -1448,13 +1524,15 @@ namespace UnityEngine.Rendering
         /// <param name="_LensFlareScreenSpaceParams4">ShaderID for the LensFlareScreenSpaceParams4</param>
         /// <param name="_LensFlareScreenSpaceParams5">ShaderID for the LensFlareScreenSpaceParams5</param>
         /// <param name="debugView">Information if we are in debug mode or not</param>
+        [Obsolete("Use DoLensFlareScreenSpaceCommon without _Shader IDs parameters.")]
         static public void DoLensFlareScreenSpaceCommon(
             Material lensFlareShader,
             Camera cam,
             float actualWidth,
             float actualHeight,
             Color tintColor,
-            Texture bloomTexture,
+            Texture originalBloomTexture,
+            Texture bloomMipTexture,
             Texture spectralLut,
             Texture streakTextureTmp,
             Texture streakTextureTmp2,
@@ -1463,9 +1541,9 @@ namespace UnityEngine.Rendering
             Vector4 parameters3,
             Vector4 parameters4,
             Vector4 parameters5,
-            LowLevelCommandBuffer cmd,
+            Rendering.CommandBuffer cmd,
             RTHandle result,
-            int _BloomTexture,
+            int _LensFlareScreenSpaceBloomMipTexture,
             int _LensFlareScreenSpaceResultTexture,
             int _LensFlareScreenSpaceSpectralLut,
             int _LensFlareScreenSpaceStreakTex,
@@ -1484,7 +1562,8 @@ namespace UnityEngine.Rendering
             actualWidth,
             actualHeight,
             tintColor,
-            bloomTexture,
+            originalBloomTexture,
+            bloomMipTexture,
             spectralLut,
             streakTextureTmp,
             streakTextureTmp2,
@@ -1493,19 +1572,8 @@ namespace UnityEngine.Rendering
             parameters3,
             parameters4,
             parameters5,
-            cmd.m_WrappedCommandBuffer,
+            cmd,
             result,
-            _BloomTexture,
-            _LensFlareScreenSpaceResultTexture,
-            _LensFlareScreenSpaceSpectralLut,
-            _LensFlareScreenSpaceStreakTex,
-            _LensFlareScreenSpaceMipLevel,
-            _LensFlareScreenSpaceTintColor,
-            _LensFlareScreenSpaceParams1,
-            _LensFlareScreenSpaceParams2,
-            _LensFlareScreenSpaceParams3,
-            _LensFlareScreenSpaceParams4,
-            _LensFlareScreenSpaceParams5,
             debugView);
         }
 
@@ -1517,7 +1585,8 @@ namespace UnityEngine.Rendering
         /// <param name="actualWidth">Width actually used for rendering after dynamic resolution and XR is applied.</param>
         /// <param name="actualHeight">Height actually used for rendering after dynamic resolution and XR is applied.</param>
         /// <param name="tintColor">tintColor to multiply all the flare by</param>
-        /// <param name="bloomTexture">bloom texture used as data for the effect</param>
+        /// <param name="originalBloomTexture">original Bloom texture used to write on at the end of compositing</param>
+        /// <param name="bloomMipTexture">Bloom mip texture used as data for the effect</param>
         /// <param name="spectralLut">spectralLut used for chromatic aberration effect</param>
         /// <param name="streakTextureTmp">Texture used for the multiple pass streaks effect</param>
         /// <param name="streakTextureTmp2">Texture used for the multiple pass streaks effect</param>
@@ -1528,17 +1597,6 @@ namespace UnityEngine.Rendering
         /// <param name="parameters5">downsampleStreak, warpedFlareScaleX, warpedFlareScaleY, freeSlot</param>
         /// <param name="cmd">Command Buffer</param>
         /// <param name="result">Result RT for the Lens Flare Screen Space</param>
-        /// <param name="_BloomTexture">ShaderID for the BloomTexture</param>
-        /// <param name="_LensFlareScreenSpaceResultTexture">ShaderID for the LensFlareScreenSpaceResultTexture texture</param>
-        /// <param name="_LensFlareScreenSpaceSpectralLut">ShaderID for the LensFlareScreenSpaceSpectralLut texture</param>
-        /// <param name="_LensFlareScreenSpaceStreakTex">ShaderID for the LensFlareScreenSpaceStreakTex streak temp texture</param>
-        /// <param name="_LensFlareScreenSpaceMipLevel">ShaderID for the LensFlareScreenSpaceMipLevel parameter</param>
-        /// <param name="_LensFlareScreenSpaceTintColor">ShaderID for the LensFlareScreenSpaceTintColor color</param>
-        /// <param name="_LensFlareScreenSpaceParams1">ShaderID for the LensFlareScreenSpaceParams1</param>
-        /// <param name="_LensFlareScreenSpaceParams2">ShaderID for the LensFlareScreenSpaceParams2</param>
-        /// <param name="_LensFlareScreenSpaceParams3">ShaderID for the LensFlareScreenSpaceParams3</param>
-        /// <param name="_LensFlareScreenSpaceParams4">ShaderID for the LensFlareScreenSpaceParams4</param>
-        /// <param name="_LensFlareScreenSpaceParams5">ShaderID for the LensFlareScreenSpaceParams5</param>
         /// <param name="debugView">Information if we are in debug mode or not</param>
         static public void DoLensFlareScreenSpaceCommon(
             Material lensFlareShader,
@@ -1546,7 +1604,8 @@ namespace UnityEngine.Rendering
             float actualWidth,
             float actualHeight,
             Color tintColor,
-            Texture bloomTexture,
+            Texture originalBloomTexture,
+            Texture bloomMipTexture,
             Texture spectralLut,
             Texture streakTextureTmp,
             Texture streakTextureTmp2,
@@ -1557,19 +1616,17 @@ namespace UnityEngine.Rendering
             Vector4 parameters5,
             Rendering.CommandBuffer cmd,
             RTHandle result,
-            int _BloomTexture,
-            int _LensFlareScreenSpaceResultTexture,
-            int _LensFlareScreenSpaceSpectralLut,
-            int _LensFlareScreenSpaceStreakTex,
-            int _LensFlareScreenSpaceMipLevel,
-            int _LensFlareScreenSpaceTintColor,
-            int _LensFlareScreenSpaceParams1,
-            int _LensFlareScreenSpaceParams2,
-            int _LensFlareScreenSpaceParams3,
-            int _LensFlareScreenSpaceParams4,
-            int _LensFlareScreenSpaceParams5,
             bool debugView)
         {
+            
+            //Multiplying parameters value here for easier maintenance since they are the same numbers between SRPs 
+            parameters2.x = Mathf.Pow(parameters2.x, 0.25f);        // Vignette effect
+            parameters3.z = parameters3.z / 20f;                    // chromaticAbberationIntensity
+            parameters4.y = parameters4.y * 10f;                    // Streak Length                  
+            parameters4.z = parameters4.z / 90f;                    // Streak Orientation
+            parameters5.y = 1.0f / parameters5.y;                   // WarpedFlareScale X
+            parameters5.z = 1.0f / parameters5.z;                   // WarpedFlareScale Y
+            
             cmd.SetViewport(new Rect() { width = actualWidth, height = actualHeight });
             if (debugView)
             {
@@ -1610,7 +1667,7 @@ namespace UnityEngine.Rendering
             int writeToBloomPass = lensFlareShader.FindPass("LensFlareScreenSpace Write to BloomTexture");
 
             // Setting the input textures
-            cmd.SetGlobalTexture(_BloomTexture, bloomTexture);
+            cmd.SetGlobalTexture(_LensFlareScreenSpaceBloomMipTexture, bloomMipTexture);
             cmd.SetGlobalTexture(_LensFlareScreenSpaceSpectralLut, spectralLut);
 
             // Setting parameters of the effects
@@ -1667,9 +1724,9 @@ namespace UnityEngine.Rendering
             Rendering.CoreUtils.SetRenderTarget(cmd, result);
             UnityEngine.Rendering.Blitter.DrawQuad(cmd, lensFlareShader, compositionPass);
 
-            // Final pass, we add the result of the previous pass to the Bloom Texture.
+            // Final pass, we add the result of the previous pass to the Original Bloom Texture.
             cmd.SetGlobalTexture(_LensFlareScreenSpaceResultTexture, result);
-            Rendering.CoreUtils.SetRenderTarget(cmd, bloomTexture);
+            Rendering.CoreUtils.SetRenderTarget(cmd, originalBloomTexture);
             UnityEngine.Rendering.Blitter.DrawQuad(cmd, lensFlareShader, writeToBloomPass);
         }
 

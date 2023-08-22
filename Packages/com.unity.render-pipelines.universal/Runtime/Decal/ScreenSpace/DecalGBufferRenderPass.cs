@@ -145,9 +145,9 @@ namespace UnityEngine.Rendering.Universal
 
         public override void RecordRenderGraph(RenderGraph renderGraph, FrameResources frameResources, ref RenderingData renderingData)
         {
-            UniversalRenderer renderer = (UniversalRenderer)renderingData.cameraData.renderer;
-
-            TextureHandle cameraDepthTexture = frameResources.GetTexture(UniversalResource.CameraDepthTexture);
+            ContextContainer frameData = renderingData.frameData;
+            UniversalResourcesData resourcesData = frameData.Get<UniversalResourcesData>();
+            TextureHandle cameraDepthTexture = resourcesData.cameraDepthTexture;
 
             // By calling SetGlobalTexture we would break active render pass and using framebuffer fetch would be impossible
             if (!renderGraph.NativeRenderPassesEnabled)
@@ -158,17 +158,18 @@ namespace UnityEngine.Rendering.Universal
                 InitPassData(ref passData);
                 passData.renderingData = renderingData;
 
-                builder.UseTextureFragment(frameResources.GetTexture(UniversalResource.GBuffer0), 0, IBaseRenderGraphBuilder.AccessFlags.Write);
-                builder.UseTextureFragment(frameResources.GetTexture(UniversalResource.GBuffer1), 1, IBaseRenderGraphBuilder.AccessFlags.Write);
-                builder.UseTextureFragment(frameResources.GetTexture(UniversalResource.GBuffer2), 2, IBaseRenderGraphBuilder.AccessFlags.Write);
-                builder.UseTextureFragment(frameResources.GetTexture(UniversalResource.GBuffer3), 3, IBaseRenderGraphBuilder.AccessFlags.Write);
-                builder.UseTextureFragmentDepth(renderer.activeDepthTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+                TextureHandle[] gBufferHandles = resourcesData.gBuffer;
+                builder.UseTextureFragment(gBufferHandles[0], 0, IBaseRenderGraphBuilder.AccessFlags.Write);
+                builder.UseTextureFragment(gBufferHandles[1], 1, IBaseRenderGraphBuilder.AccessFlags.Write);
+                builder.UseTextureFragment(gBufferHandles[2], 2, IBaseRenderGraphBuilder.AccessFlags.Write);
+                builder.UseTextureFragment(gBufferHandles[3], 3, IBaseRenderGraphBuilder.AccessFlags.Write);
+                builder.UseTextureFragmentDepth(resourcesData.activeDepthTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
 
                 if (renderGraph.NativeRenderPassesEnabled)
                 {
-                    builder.UseTextureFragmentInput(frameResources.GetTexture(UniversalResource.GBuffer4), 0, IBaseRenderGraphBuilder.AccessFlags.Read);
+                    builder.UseTextureFragmentInput(gBufferHandles[4], 0, IBaseRenderGraphBuilder.AccessFlags.Read);
                     if (m_DecalLayers)
-                        builder.UseTextureFragmentInput(frameResources.GetTexture(UniversalResource.GBuffer5), 1, IBaseRenderGraphBuilder.AccessFlags.Read);
+                        builder.UseTextureFragmentInput(gBufferHandles[5], 1, IBaseRenderGraphBuilder.AccessFlags.Read);
                 }
                 else if (cameraDepthTexture.IsValid())
                     builder.UseTexture(cameraDepthTexture, IBaseRenderGraphBuilder.AccessFlags.Read);

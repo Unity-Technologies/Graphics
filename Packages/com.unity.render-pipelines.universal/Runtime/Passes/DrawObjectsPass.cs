@@ -236,6 +236,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("Draw Objects Pass", out var passData,
                 m_ProfilingSampler))
             {
+                ContextContainer frameData = renderingData.frameData;
+                UniversalResourcesData resourcesData = frameData.Get<UniversalResourcesData>();
+
                 InitPassData(ref renderingData, ref passData);
                 passData.renderingData = renderingData;
 
@@ -253,7 +256,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 UniversalRenderer renderer = renderingData.cameraData.renderer as UniversalRenderer;
                 if (renderer != null)
                 {
-                    TextureHandle ssaoTexture = renderer.resources.GetTexture(UniversalResource.SSAOTexture);
+                    TextureHandle ssaoTexture = resourcesData.ssaoTexture;
                     if (ssaoTexture.IsValid())
                         builder.UseTexture(ssaoTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
                     RenderGraphUtils.UseDBufferIfValid(builder, renderer.resources);
@@ -374,6 +377,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             using (var builder = renderGraph.AddRasterRenderPass<RenderingLayersPassData>("Draw Objects With Rendering Layers Pass", out var passData,
                 m_ProfilingSampler))
             {
+                ContextContainer frameData = renderingData.frameData;
+                UniversalResourcesData resourcesData = frameData.Get<UniversalResourcesData>();
+
                 InitPassData(ref renderingData, ref passData.basePassData);
                 passData.basePassData.renderingData = renderingData;
                 passData.maskSize = maskSize;
@@ -389,7 +395,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 UniversalRenderer renderer = renderingData.cameraData.renderer as UniversalRenderer;
                 if (renderer != null)
                 {
-                    TextureHandle ssaoTexture = renderer.resources.GetTexture(UniversalResource.SSAOTexture);
+                    TextureHandle ssaoTexture = resourcesData.ssaoTexture;
                     if (ssaoTexture.IsValid())
                         builder.UseTexture(ssaoTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
                     RenderGraphUtils.UseDBufferIfValid(builder, renderer.resources);

@@ -95,7 +95,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Allocate the additional rendering data
             m_WaterMaterialPropertyBlock = new MaterialPropertyBlock();
-            m_InternalWaterMaterial = defaultResources.materials.waterMaterial;
+            m_InternalWaterMaterial = runtimeResources.materials.waterMaterial;
             InitializeInstancingData();
 
             // Water profile management
@@ -104,7 +104,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Create the caustics water geometry
             m_CausticsGeometry = new GraphicsBuffer(GraphicsBuffer.Target.Raw, WaterConsts.k_WaterCausticsMeshNumQuads * 6, sizeof(int));
             m_CausticsBufferGeometryInitialized = false;
-            m_CausticsMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.waterCausticsPS);
+            m_CausticsMaterial = CoreUtils.CreateEngineMaterial(runtimeResources.shaders.waterCausticsPS);
 
             // Waterline / Underwater
             // TODO: This should be entirely dynamic and depend on M_MaxViewCount

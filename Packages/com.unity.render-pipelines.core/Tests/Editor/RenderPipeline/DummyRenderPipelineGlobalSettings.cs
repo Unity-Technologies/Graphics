@@ -1,4 +1,5 @@
-﻿using UnityEngine.Rendering;
+using System.Collections.Generic;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering
 {
@@ -8,6 +9,8 @@ namespace UnityEditor.Rendering
         internal static string defaultPath => "Assets/Tests/DummyRenderPipelineGlobalSettings.asset";
 
         public bool initializedCalled = false;
+
+        protected override List<IRenderPipelineGraphicsSettings> settingsList { get; } = new();
 
         public override void Initialize(RenderPipelineGlobalSettings source = null)
         {

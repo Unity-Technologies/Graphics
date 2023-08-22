@@ -68,6 +68,9 @@ namespace UnityEngine.Rendering.Universal
 
         public void RenderSMAA(RenderGraph renderGraph, in TextureHandle source, out TextureHandle SMAATarget, ref RenderingData renderingData)
         {
+            ContextContainer frameData = renderingData.frameData;
+            UniversalResourcesData resourcesData = frameData.Get<UniversalResourcesData>();
+
             ref var cameraData = ref renderingData.cameraData;
 
             var desc = PostProcessPass.GetCompatibleDescriptor(m_Descriptor,
@@ -148,7 +151,7 @@ namespace UnityEngine.Rendering.Universal
                 passData.depthStencilTexture = builder.UseTextureFragmentDepth(edgeTextureStencil, IBaseRenderGraphBuilder.AccessFlags.Write);
                 passData.sourceTexture = builder.UseTexture(source, IBaseRenderGraphBuilder.AccessFlags.Read);
                 UniversalRenderer renderer = (UniversalRenderer)renderingData.cameraData.renderer;
-                builder.UseTexture( renderer.resources.GetTexture(UniversalResource.CameraDepth) ,IBaseRenderGraphBuilder.AccessFlags.Read);
+                builder.UseTexture(resourcesData.cameraDepth ,IBaseRenderGraphBuilder.AccessFlags.Read);
                 passData.material = material;
 
                 builder.SetRenderFunc((SMAAPassData data, RasterGraphContext context) =>
@@ -500,6 +503,9 @@ namespace UnityEngine.Rendering.Universal
 
         public void RenderDoFGaussian(RenderGraph renderGraph, in TextureHandle source, in TextureHandle destination, ref Material dofMaterial, ref RenderingData renderingData)
         {
+            ContextContainer frameData = renderingData.frameData;
+            UniversalResourcesData resourcesData = frameData.Get<UniversalResourcesData>();
+
             int downSample = 2;
             var material = dofMaterial;
             int wh = m_Descriptor.width / downSample;
@@ -554,7 +560,7 @@ namespace UnityEngine.Rendering.Universal
                 passData.sourceTexture = builder.UseTexture(source, IBaseRenderGraphBuilder.AccessFlags.Read);
 
                 UniversalRenderer renderer = (UniversalRenderer)renderingData.cameraData.renderer;
-                builder.UseTexture(renderer.resources.GetTexture(UniversalResource.CameraDepthTexture), IBaseRenderGraphBuilder.AccessFlags.Read);
+                builder.UseTexture(resourcesData.cameraDepthTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
 
                 passData.material = material;
                 builder.SetRenderFunc((DoFGaussianPassData data, RasterGraphContext context) =>
@@ -683,6 +689,9 @@ namespace UnityEngine.Rendering.Universal
 
         public void RenderDoFBokeh(RenderGraph renderGraph, in TextureHandle source, in TextureHandle destination, ref Material dofMaterial, ref RenderingData renderingData)
         {
+            ContextContainer frameData = renderingData.frameData;
+            UniversalResourcesData resourcesData = frameData.Get<UniversalResourcesData>();
+
             int downSample = 2;
             var material = dofMaterial;
             int wh = m_Descriptor.width / downSample;
@@ -751,7 +760,7 @@ namespace UnityEngine.Rendering.Universal
                 passData.material = material;
 
                 UniversalRenderer renderer = (UniversalRenderer)renderingData.cameraData.renderer;
-                builder.UseTexture(renderer.resources.GetTexture(UniversalResource.CameraDepthTexture), IBaseRenderGraphBuilder.AccessFlags.Read);
+                builder.UseTexture(resourcesData.cameraDepthTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
 
                 builder.SetRenderFunc((DoFBokehPassData data, RasterGraphContext context) =>
                 {
@@ -916,6 +925,9 @@ namespace UnityEngine.Rendering.Universal
         private const string _TemporalAATargetName = "_TemporalAATarget";
         private void RenderTemporalAA(RenderGraph renderGraph, ref TextureHandle source, out TextureHandle destination, ref CameraData cameraData)
         {
+            ContextContainer frameData = cameraData.frameData;
+            UniversalResourcesData resourcesData = frameData.Get<UniversalResourcesData>();
+
             var desc = PostProcessPass.GetCompatibleDescriptor(m_Descriptor,
                 m_Descriptor.width,
                 m_Descriptor.height,
@@ -923,11 +935,8 @@ namespace UnityEngine.Rendering.Universal
                 DepthBits.None);
             destination = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, _TemporalAATargetName, false, FilterMode.Bilinear);    // TODO: use a constant for the name
 
-            UniversalRenderer renderer = (UniversalRenderer)cameraData.renderer;
-            TextureHandle cameraDepth = renderer.resources.GetTexture(UniversalResource.CameraDepth);
-            //TextureHandle motionVectors = renderGraph.ImportBackbuffer(m_MotionVectors.rt);
-            TextureHandle motionVectors = renderer.resources.GetTexture(UniversalResource.MotionVectorColor);
-
+            TextureHandle cameraDepth = resourcesData.cameraDepth;
+            TextureHandle motionVectors = resourcesData.motionVectorColor;
             TemporalAA.Render(renderGraph, m_Materials.temporalAntialiasing, ref cameraData, ref source, ref cameraDepth, ref motionVectors, ref destination);
         }
         #endregion
@@ -948,8 +957,10 @@ namespace UnityEngine.Rendering.Universal
 
         public void RenderMotionBlur(RenderGraph renderGraph, in TextureHandle source, out TextureHandle destination, ref CameraData cameraData)
         {
-            var material = m_Materials.cameraMotionBlur;
+            ContextContainer frameData = cameraData.frameData;
+            UniversalResourcesData resourcesData = frameData.Get<UniversalResourcesData>();
 
+            var material = m_Materials.cameraMotionBlur;
             var desc = PostProcessPass.GetCompatibleDescriptor(m_Descriptor,
                 m_Descriptor.width,
                 m_Descriptor.height,
@@ -963,8 +974,8 @@ namespace UnityEngine.Rendering.Universal
             passIndex += (mode == MotionBlurMode.CameraAndObjects) ? 3 : 0;
 
             UniversalRenderer renderer = (UniversalRenderer)cameraData.renderer;
-            TextureHandle motionVectorColor = renderer.resources.GetTexture(UniversalResource.MotionVectorColor);
-            TextureHandle cameraDepthTexture = renderer.resources.GetTexture(UniversalResource.CameraDepthTexture);
+            TextureHandle motionVectorColor = resourcesData.motionVectorColor;
+            TextureHandle cameraDepthTexture = resourcesData.cameraDepthTexture;
 
             using (var builder = renderGraph.AddRasterRenderPass<MotionBlurPassData>("Motion Blur", out var passData, ProfilingSampler.Get(URPProfileId.RG_MotionBlur)))
             {
@@ -1016,6 +1027,9 @@ namespace UnityEngine.Rendering.Universal
             if (!LensFlareCommonSRP.IsOcclusionRTCompatible())
                 return;
 
+            ContextContainer frameData = renderingData.frameData;
+            UniversalResourcesData resourcesData = frameData.Get<UniversalResourcesData>();
+
             using (var builder = renderGraph.AddLowLevelPass<LensFlarePassData>("Lens Flare Compute Occlusion", out var passData, ProfilingSampler.Get(URPProfileId.LensFlareDataDrivenComputeOcclusion)))
             {
                 RTHandle occH = LensFlareCommonSRP.occlusionRT;
@@ -1037,7 +1051,7 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 UniversalRenderer renderer = (UniversalRenderer)renderingData.cameraData.renderer;
-                builder.UseTexture(renderer.resources.GetTexture(UniversalResource.CameraDepthTexture), IBaseRenderGraphBuilder.AccessFlags.Read);
+                builder.UseTexture(resourcesData.cameraDepthTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
 
                 builder.SetRenderFunc(
                     (LensFlarePassData data, LowLevelGraphContext ctx) =>
@@ -1126,7 +1140,8 @@ namespace UnityEngine.Rendering.Universal
             internal TextureHandle destinationTexture;
             internal TextureHandle streakTmpTexture;
             internal TextureHandle streakTmpTexture2;
-            internal TextureHandle bloomTexture;
+            internal TextureHandle originalBloomTexture;
+            internal TextureHandle screenSpaceLensFlareBloomMipTexture;
             internal TextureHandle result;
             internal RenderTextureDescriptor sourceDescriptor;
             internal Camera camera;
@@ -1134,7 +1149,7 @@ namespace UnityEngine.Rendering.Universal
             internal int downsample;
         }
 
-        public TextureHandle RenderLensFlareScreenSpace(RenderGraph renderGraph, in TextureHandle destination, ref RenderingData renderingData, TextureHandle bloomTexture)
+        public TextureHandle RenderLensFlareScreenSpace(RenderGraph renderGraph, in TextureHandle destination, ref RenderingData renderingData, TextureHandle originalBloomTexture, TextureHandle screenSpaceLensFlareBloomMipTexture)
         {
             var downsample = (int) m_LensFlareScreenSpace.resolution.value;
             int width = m_Descriptor.width / downsample;
@@ -1152,7 +1167,8 @@ namespace UnityEngine.Rendering.Universal
                 passData.destinationTexture = builder.UseTexture(destination, IBaseRenderGraphBuilder.AccessFlags.Write);
                 passData.streakTmpTexture = builder.UseTexture(streakTmpTexture, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
                 passData.streakTmpTexture2 = builder.UseTexture(streakTmpTexture2, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
-                passData.bloomTexture = builder.UseTexture(bloomTexture, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
+                passData.screenSpaceLensFlareBloomMipTexture = builder.UseTexture(screenSpaceLensFlareBloomMipTexture, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
+                passData.originalBloomTexture = builder.UseTexture(originalBloomTexture, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
                 passData.sourceDescriptor = m_Descriptor;
                 passData.camera = renderingData.cameraData.camera;
                 passData.material = m_Materials.lensFlareScreenSpace;
@@ -1173,7 +1189,8 @@ namespace UnityEngine.Rendering.Universal
                         (float)data.sourceDescriptor.width,
                         (float)data.sourceDescriptor.height,
                         m_LensFlareScreenSpace.tintColor.value,
-                        data.bloomTexture,
+                        data.originalBloomTexture,
+                        data.screenSpaceLensFlareBloomMipTexture,
                         null, // We don't have any spectral LUT in URP
                         data.streakTmpTexture,
                         data.streakTmpTexture2,
@@ -1183,41 +1200,30 @@ namespace UnityEngine.Rendering.Universal
                             m_LensFlareScreenSpace.secondaryFlareIntensity.value,
                             m_LensFlareScreenSpace.warpedFlareIntensity.value),
                         new Vector4(
-                            Mathf.Pow(m_LensFlareScreenSpace.vignetteEffect.value, 0.25f),
+                            m_LensFlareScreenSpace.vignetteEffect.value,
                             m_LensFlareScreenSpace.startingPosition.value,
                             m_LensFlareScreenSpace.scale.value,
                             0), // Free slot, not used
                         new Vector4(
                             m_LensFlareScreenSpace.samples.value,
                             m_LensFlareScreenSpace.sampleDimmer.value,
-                            m_LensFlareScreenSpace.chromaticAbberationIntensity.value / 20f,
+                            m_LensFlareScreenSpace.chromaticAbberationIntensity.value,
                             0), // No need to pass a chromatic aberration sample count, hardcoded at 3 in shader
                         new Vector4(
                             m_LensFlareScreenSpace.streaksIntensity.value,
-                            m_LensFlareScreenSpace.streaksLength.value * 10,
-                            m_LensFlareScreenSpace.streaksOrientation.value / 90f,
+                            m_LensFlareScreenSpace.streaksLength.value,
+                            m_LensFlareScreenSpace.streaksOrientation.value,
                             m_LensFlareScreenSpace.streaksThreshold.value),
                         new Vector4(
                             data.downsample,
-                            1.0f / m_LensFlareScreenSpace.warpedFlareScale.value.x,
-                            1.0f / m_LensFlareScreenSpace.warpedFlareScale.value.y,
+                            m_LensFlareScreenSpace.warpedFlareScale.value.x,
+                            m_LensFlareScreenSpace.warpedFlareScale.value.y,
                             0), // Free slot, not used
                         cmd,
                         data.result,
-                        ShaderConstants._LensFlareScreenSpaceBloomTexture,
-                        ShaderConstants._LensFlareScreenSpaceResultTexture,
-                        0, // No identifiers for SpectralLut Texture
-                        ShaderConstants._LensFlareScreenSpaceStreakTex,
-                        ShaderConstants._LensFlareScreenSpaceMipLevel,
-                        ShaderConstants._LensFlareScreenSpaceTintColor,
-                        ShaderConstants._LensFlareScreenSpaceParams1,
-                        ShaderConstants._LensFlareScreenSpaceParams2,
-                        ShaderConstants._LensFlareScreenSpaceParams3,
-                        ShaderConstants._LensFlareScreenSpaceParams4,
-                        ShaderConstants._LensFlareScreenSpaceParams5,
                         false);
                 });
-                return passData.bloomTexture;
+                return passData.originalBloomTexture;
             }
         }
 
@@ -1793,7 +1799,7 @@ namespace UnityEngine.Rendering.Universal
                     if (useLensFlareScreenSpace)
                     {
                         int maxBloomMip = Mathf.Clamp(m_LensFlareScreenSpace.bloomMip.value, 0, m_Bloom.maxIterations.value/2);
-                        BloomTexture = RenderLensFlareScreenSpace(renderGraph, in currentSource, ref renderingData, _BloomMipUp[maxBloomMip]);
+                        BloomTexture = RenderLensFlareScreenSpace(renderGraph, in currentSource, ref renderingData, _BloomMipUp[0], _BloomMipUp[maxBloomMip]);
                     }
 
                     UberPostSetupBloomPass(renderGraph, in BloomTexture, m_Materials.uber);

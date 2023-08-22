@@ -258,6 +258,18 @@ public class HDRP_GraphicTestRunner
             else if (biFail) Assert.Fail("Non-Shader Graph Objects failed to match Shader Graph objects.");
         }
 
+
+        //// In Standalone, we need to reset the RTHandleSystem because on some devices with low memory we can easily run out
+        //// For example when going from MSAA4x to regular 1080p we'd have both sets of full sized buffer in memory.
+        //if (!Application.isEditor)
+        //{
+        //    HDRenderPipeline.currentPipeline?.ResetRTHandleReferenceSize(1, 1);
+
+        //    // Wait for RT dealloc to happen.
+        //    for (int i = 0; i < frameSkip; ++i)
+        //        yield return new WaitForEndOfFrame();
+        //}
+
 #if UNITY_EDITOR
         UnityEditor.ShaderUtil.allowAsyncCompilation = oldValueShaderUtil;
         UnityEditor.EditorSettings.asyncShaderCompilation = oldValueEditorSettings;

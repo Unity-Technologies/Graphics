@@ -215,13 +215,16 @@ namespace UnityEngine.Rendering.Universal
 
         public override void RecordRenderGraph(RenderGraph renderGraph, FrameResources frameResources, ref RenderingData renderingData)
         {
+            ContextContainer frameData = renderingData.frameData;
+            UniversalResourcesData resourcesData = frameData.Get<UniversalResourcesData>();
+
             UniversalRenderer renderer = (UniversalRenderer)renderingData.cameraData.renderer;
 
-            TextureHandle cameraDepthTexture = frameResources.GetTexture(UniversalResource.CameraDepthTexture);
-            TextureHandle cameraNormalsTexture = frameResources.GetTexture(UniversalResource.CameraNormalsTexture);
+            TextureHandle cameraDepthTexture = resourcesData.cameraDepthTexture;
+            TextureHandle cameraNormalsTexture = resourcesData.cameraNormalsTexture;
 
-            TextureHandle depthTarget = renderer.renderingModeActual == RenderingMode.Deferred ? renderer.activeDepthTexture :
-                (renderingData.cameraData.cameraTargetDescriptor.msaaSamples > 1 ? frameResources.GetTexture(UniversalResource.DBufferDepth) : renderer.activeDepthTexture);
+            TextureHandle depthTarget = renderer.renderingModeActual == RenderingMode.Deferred ? resourcesData.activeDepthTexture :
+                (renderingData.cameraData.cameraTargetDescriptor.msaaSamples > 1 ? resourcesData.dBufferDepth : resourcesData.activeDepthTexture);
 
             RenderGraphUtils.SetGlobalTexture(renderGraph, Shader.PropertyToID("_CameraDepthTexture"), cameraDepthTexture);
             RenderGraphUtils.SetGlobalTexture(renderGraph, Shader.PropertyToID("_CameraNormalsTexture"), cameraNormalsTexture);
@@ -289,8 +292,8 @@ namespace UnityEngine.Rendering.Universal
             {
                 if (dbufferHandles[i].IsValid())
                     RenderGraphUtils.SetGlobalTexture(renderGraph, Shader.PropertyToID(s_DBufferNames[i]), dbufferHandles[i]);
-                frameResources.SetTexture((UniversalResource) (UniversalResource.DBuffer0 + i), dbufferHandles[i]);
             }
+            resourcesData.dBuffer = dbufferHandles;
         }
 
         public override void OnCameraCleanup(CommandBuffer cmd)

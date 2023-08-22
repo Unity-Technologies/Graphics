@@ -60,7 +60,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// </summary>
         /// <param name="input">The compute buffer resource to use during the pass.</param>
         /// <param name="flags">A combination of flags indicating how the resource will be used during the pass. Default value is set to AccessFlag.Read </param>
-        /// <returns>A explicitly versioned handle representing the latest version of the pased in texture.
+        /// <returns>A explicitly versioned handle representing the latest version of the passed in texture.
         /// Note that except for special cases where you want to refer to a specific version return value is generally discarded.</returns>
         public BufferHandle UseBuffer(in BufferHandle input, AccessFlags flags = AccessFlags.Read);
 

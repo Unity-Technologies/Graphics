@@ -207,7 +207,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public void Dispose() => renderGraph.Execute();
     }
 
-    class RenderGraphDebugParams
+    class RenderGraphDebugParams : IDebugDisplaySettingsQuery
     {
         DebugUI.Widget[] m_DebugItems;
         DebugUI.Panel m_DebugPanel;
@@ -232,7 +232,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             public static readonly NameAndTooltip EnableNativeCompiler = new() { name = "Enable Native Pass Compiler", tooltip = "Enable the new native pass compiler." };
         }
 
-        public void RegisterDebug(string name, DebugUI.Panel debugPanel = null)
+        internal List<DebugUI.Widget> GetWidgetList(string name)
         {
             var list = new List<DebugUI.Widget>();
             list.Add(new DebugUI.Container
@@ -276,7 +276,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                     }
                 }
             });
+            return list;
+        }
 
+        public void RegisterDebug(string name, DebugUI.Panel debugPanel = null)
+        {
+            var list = GetWidgetList(name);
             m_DebugItems = list.ToArray();
             m_DebugPanel = debugPanel != null ? debugPanel : DebugManager.instance.GetPanel(name.Length == 0 ? "Render Graph" : name, true);
             m_DebugPanel.children.Add(m_DebugItems);
@@ -290,7 +295,17 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             m_DebugItems = null;
         }
 
-
+        public bool AreAnySettingsActive
+        {
+            get
+            {
+                return clearRenderTargetsAtCreation ||
+                       clearRenderTargetsAtRelease ||
+                       disablePassCulling ||
+                       immediateMode ||
+                       enableLogging;
+            }
+        }
     }
 
     /// <summary>
@@ -564,6 +579,13 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             s_RegisteredGraphs.Remove(this);
             onGraphUnregistered?.Invoke(this);
         }
+
+        internal List<DebugUI.Widget> GetWidgetList()
+        {
+            return m_DebugParameters.GetWidgetList(name);
+        }
+
+        internal bool areAnySettingsActive => m_DebugParameters.AreAnySettingsActive;
 
         /// <summary>
         /// Register the render graph to the debug window.

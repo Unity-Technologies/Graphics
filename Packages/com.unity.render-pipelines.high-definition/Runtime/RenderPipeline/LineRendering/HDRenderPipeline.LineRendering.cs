@@ -27,27 +27,27 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!s_SupportLineRendering)
                 return;
 
-            m_LineCompositePass = CoreUtils.CreateEngineMaterial(defaultResources.shaders.lineCompositePS);
+            m_LineCompositePass = CoreUtils.CreateEngineMaterial(runtimeResources.shaders.lineCompositePS);
 
             m_PrefixSum = new GPUPrefixSum(new GPUPrefixSum.SystemResources
             {
-                computeAsset = defaultResources.shaders.gpuPrefixSumCS
+                computeAsset = runtimeResources.shaders.gpuPrefixSumCS
             });
 
             m_Sorter = new GPUSort(new GPUSort.SystemResources
             {
-                computeAsset = defaultResources.shaders.gpuSortCS
+                computeAsset = runtimeResources.shaders.gpuSortCS
             });
 
             LineRendering.Instance.Initialize(new LineRendering.SystemResources
             {
                 // Due to a lack of a "Core Resource" concept, we pass along the kernel assets as initialization parameters.
-                stagePrepareCS      = defaultResources.shaders.lineStagePrepareCS,
-                stageSetupSegmentCS = defaultResources.shaders.lineStageSetupSegmentCS,
-                stageShadingSetupCS = defaultResources.shaders.lineStageShadingSetupCS,
-                stageRasterBinCS    = defaultResources.shaders.lineStageRasterBinCS,
-                stageWorkQueue      = defaultResources.shaders.lineStageWorkQueueCS,
-                stageRasterFineCS   = defaultResources.shaders.lineStageRasterFineCS,
+                stagePrepareCS      = runtimeResources.shaders.lineStagePrepareCS,
+                stageSetupSegmentCS = runtimeResources.shaders.lineStageSetupSegmentCS,
+                stageShadingSetupCS = runtimeResources.shaders.lineStageShadingSetupCS,
+                stageRasterBinCS    = runtimeResources.shaders.lineStageRasterBinCS,
+                stageWorkQueue      = runtimeResources.shaders.lineStageWorkQueueCS,
+                stageRasterFineCS   = runtimeResources.shaders.lineStageRasterFineCS,
 
                 // Misc. Compute Utility
                 gpuSort      = m_Sorter,

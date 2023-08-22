@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 1.1111292, g: 1.2289892, b: 1.5036325, a: 1}
+  m_IndirectSpecularColor: {r: 1.10914, g: 1.2277766, b: 1.5043992, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -2327,7 +2327,7 @@ MonoBehaviour:
   xrCompatible: 1
   xrThresholdMultiplier: 5
   checkMemoryAllocation: 0
-  renderPipelineAsset: {fileID: 11400000, guid: bf08b3ceba5e80046afeaa3a6f108557,
+  renderPipelineAsset: {fileID: 11400000, guid: fc1b0ce5369e1984b9beb0e140a41a8d,
     type: 2}
   forceCameraRenderDuringSetup: 0
   containsVFX: 0

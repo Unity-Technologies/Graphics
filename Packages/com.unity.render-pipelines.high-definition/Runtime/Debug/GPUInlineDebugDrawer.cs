@@ -86,11 +86,11 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Manually initialize resources needed to render the debug draw.
         /// </summary>
-        /// <param name="defaultResources">Editor resources which contains the gpuInlineDebugDrawerLine shader.</param>
-        static public void Initialize(HDRenderPipelineEditorResources defaultResources)
+        /// <param name="editorResources">Editor resources which contains the gpuInlineDebugDrawerLine shader.</param>
+        static public void Initialize(HDRenderPipelineEditorResources editorResources)
         {
 #if ENABLE_GPU_INLINE_DEBUG_DRAWER
-            m_LineMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.gpuInlineDebugDrawerLine);
+            m_LineMaterial = CoreUtils.CreateEngineMaterial(editorResources.shaders.gpuInlineDebugDrawerLine);
             m_LineMaterial.SetOverrideTag("RenderType", "Transparent");
             m_LineWSNoDepthTestPassID = m_LineMaterial.FindPass("LineWSNoDepthTest");
             m_LineCSNoDepthTestPassID = m_LineMaterial.FindPass("LineCSNoDepthTest");

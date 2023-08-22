@@ -1,5 +1,6 @@
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using static UnityEngine.Rendering.Universal.UniversalResourcesDataBase;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -34,17 +35,12 @@ namespace UnityEngine.Rendering.Universal
 
     internal sealed partial class Renderer2D
     {
-        Renderer2DResource m_ActiveColorID;
-        Renderer2DResource m_ActiveDepthID;
-        TextureHandle activeColorTexture => (resources.GetTexture(m_ActiveColorID));
-        TextureHandle activeDepthTexture => (resources.GetTexture(m_ActiveDepthID));
-
         TextureHandle[] m_LightTextureHandles = new TextureHandle[RendererLighting.k_ShapeLightTextureIDs.Length];
         RTHandle m_RenderGraphCameraColorHandle;
         RTHandle m_RenderGraphCameraDepthHandle;
         RTHandle m_RenderGraphBackbufferDepthHandle;
         RTHandle m_CameraSortingLayerHandle;
-        
+
         DrawNormal2DPass m_NormalPass = new DrawNormal2DPass();
         DrawLight2DPass m_LightPass = new DrawLight2DPass();
         DrawShadow2DPass m_ShadowPass = new DrawShadow2DPass();
@@ -54,6 +50,9 @@ namespace UnityEngine.Rendering.Universal
 
         void CreateResources(RenderGraph renderGraph, ref RenderingData renderingData)
         {
+            ContextContainer frameData = renderingData.frameData;
+            Universal2DResourcesData resourcesData = frameData.Get<Universal2DResourcesData>();
+
             ref var cameraData = ref renderingData.cameraData;
             ref var cameraTargetDescriptor = ref cameraData.cameraTargetDescriptor;
             var cameraTargetFilterMode = FilterMode.Bilinear;
@@ -94,7 +93,7 @@ namespace UnityEngine.Rendering.Universal
                         upscaleDescriptor.height = ppc.refResolutionY * ppc.pixelRatio;
                         upscaleDescriptor.depthBufferBits = 0;
 
-                        resources.SetTexture(Renderer2DResource.UpscaleTexture, UniversalRenderer.CreateRenderGraphTexture(renderGraph, upscaleDescriptor, "_UpscaleTexture", true, ppc.finalBlitFilterMode));
+                        resourcesData.upscaleTexture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, upscaleDescriptor, "_UpscaleTexture", true, ppc.finalBlitFilterMode);
                     }
                 }
             }
@@ -113,7 +112,7 @@ namespace UnityEngine.Rendering.Universal
                 if (!cameraData.resolveFinalTarget && m_UseDepthStencilBuffer)
                     depthDescriptor.bindMS = depthDescriptor.msaaSamples > 1 && !SystemInfo.supportsMultisampleAutoResolve && (SystemInfo.supportsMultisampledTextures != 0);
 
-                resources.SetTexture(Renderer2DResource.IntermediateDepth,  UniversalRenderer.CreateRenderGraphTexture(renderGraph, depthDescriptor, "DepthTexture", true));
+                resourcesData.intermediateDepth = UniversalRenderer.CreateRenderGraphTexture(renderGraph, depthDescriptor, "DepthTexture", true);
             }
 
             // Normal and Light desc
@@ -126,13 +125,12 @@ namespace UnityEngine.Rendering.Universal
                 desc.msaaSamples = renderingData.cameraData.cameraTargetDescriptor.msaaSamples;
                 desc.dimension = TextureDimension.Tex2D;
 
-                resources.SetTexture(Renderer2DResource.NormalsTexture, UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, "_NormalMap", true));
+                resourcesData.normalsTexture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, "_NormalMap", true);
 
                 for (var i = 0; i < RendererLighting.k_ShapeLightTextureIDs.Length; i++)
-                {
                     m_LightTextureHandles[i] = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, RendererLighting.k_ShapeLightTextureIDs[i], false, FilterMode.Bilinear);
-                    resources.SetTexture(Renderer2DResource.LightTexture0 + i, m_LightTextureHandles[i]);
-                }
+
+                resourcesData.lightTextures = m_LightTextureHandles;
             }
 
             // Shadow desc
@@ -145,7 +143,7 @@ namespace UnityEngine.Rendering.Universal
                 desc.msaaSamples = renderingData.cameraData.cameraTargetDescriptor.msaaSamples;
                 desc.dimension = TextureDimension.Tex2D;
 
-                resources.SetTexture(Renderer2DResource.ShadowsTexture, UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, "_ShadowTex", false, FilterMode.Bilinear));
+                resourcesData.shadowsTexture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, "_ShadowTex", false, FilterMode.Bilinear);
             }
 
             // Camera Sorting Layer desc
@@ -154,7 +152,7 @@ namespace UnityEngine.Rendering.Universal
                 var descriptor = cameraTargetDescriptor;
                 CopyCameraSortingLayerPass.ConfigureDescriptor(m_Renderer2DData.cameraSortingLayerDownsamplingMethod, ref descriptor, out var filterMode);
                 RenderingUtils.ReAllocateIfNeeded(ref m_CameraSortingLayerHandle, descriptor, filterMode, TextureWrapMode.Clamp, name: CopyCameraSortingLayerPass.k_CameraSortingLayerTexture);
-                resources.SetTexture(Renderer2DResource.CameraSortingLayerTexture, renderGraph.ImportTexture(m_CameraSortingLayerHandle));
+                resourcesData.cameraSortingLayerTexture = renderGraph.ImportTexture(m_CameraSortingLayerHandle);
             }
 
             // now create the attachments
@@ -177,11 +175,10 @@ namespace UnityEngine.Rendering.Universal
                     cameraTargetDescriptor.depthBufferBits = (int)DepthBits.None;
 
                     RenderingUtils.ReAllocateIfNeeded(ref m_RenderGraphCameraColorHandle, cameraTargetDescriptor, cameraTargetFilterMode, TextureWrapMode.Clamp, name: "_CameraTargetAttachment");
-
-                    m_ActiveColorID = Renderer2DResource.CameraColor;
+                    resourcesData.activeColorID = ActiveID.Camera;
                 }
                 else
-                    m_ActiveColorID = Renderer2DResource.BackBufferColor;
+                    resourcesData.activeColorID = ActiveID.BackBuffer;
 
                 // Camera Target Depth
                 if (createDepthTexture)
@@ -196,11 +193,10 @@ namespace UnityEngine.Rendering.Universal
                     depthDescriptor.depthStencilFormat = k_DepthStencilFormat;
 
                     RenderingUtils.ReAllocateIfNeeded(ref m_RenderGraphCameraDepthHandle, depthDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: "_CameraDepthAttachment");
-
-                    m_ActiveDepthID = Renderer2DResource.CameraDepth;
+                    resourcesData.activeDepthID = ActiveID.Camera;
                 }
                 else
-                    m_ActiveDepthID = Renderer2DResource.BackBufferDepth;
+                    resourcesData.activeDepthID = ActiveID.BackBuffer;
             }
             else // Overlay camera
             {
@@ -216,8 +212,8 @@ namespace UnityEngine.Rendering.Universal
 
             if (m_CreateColorTexture)
             {
-                resources.SetTexture(Renderer2DResource.CameraColor, renderGraph.ImportTexture(m_RenderGraphCameraColorHandle));
-                resources.SetTexture(Renderer2DResource.CameraDepth, renderGraph.ImportTexture(m_RenderGraphCameraDepthHandle));
+                resourcesData.cameraColor = renderGraph.ImportTexture(m_RenderGraphCameraColorHandle);
+                resourcesData.cameraDepth = renderGraph.ImportTexture(m_RenderGraphCameraDepthHandle);
             }
 
             RenderTargetIdentifier targetId;
@@ -254,7 +250,7 @@ namespace UnityEngine.Rendering.Universal
             importParams.clearColor = renderingData.cameraData.backgroundColor;
             importParams.discardOnLastUse = false;
 
-            resources.SetTexture(Renderer2DResource.BackBufferColor, renderGraph.ImportBackbuffer(targetId, importInfo, importParams));
+            resourcesData.backBufferColor = renderGraph.ImportBackbuffer(targetId, importInfo, importParams);
 
             if (renderingData.cameraData.rendersOverlayUI)
             {
@@ -265,18 +261,25 @@ namespace UnityEngine.Rendering.Universal
                     m_RenderGraphBackbufferDepthHandle?.Release();
                     m_RenderGraphBackbufferDepthHandle = RTHandles.Alloc(targetDepthId);
                 }
-                resources.SetTexture(Renderer2DResource.BackBufferDepth, renderGraph.ImportTexture(m_RenderGraphBackbufferDepthHandle));
+                resourcesData.backBufferDepth = renderGraph.ImportTexture(m_RenderGraphBackbufferDepthHandle);
             }
             else if (!m_CreateDepthTexture)
-                resources.SetTexture(Renderer2DResource.BackBufferDepth, renderGraph.ImportBackbuffer(targetId, importInfo, importParams));
+                resourcesData.backBufferDepth = renderGraph.ImportBackbuffer(targetId, importInfo, importParams);
 
             var postProcessDesc = PostProcessPass.GetCompatibleDescriptor(cameraTargetDescriptor, cameraTargetDescriptor.width, cameraTargetDescriptor.height, cameraTargetDescriptor.graphicsFormat, DepthBits.None);
-            resources.SetTexture(Renderer2DResource.AfterPostProcessColor, UniversalRenderer.CreateRenderGraphTexture(renderGraph, postProcessDesc, "_AfterPostProcessTexture", true));
+            resourcesData.afterPostProcessColor = UniversalRenderer.CreateRenderGraphTexture(renderGraph, postProcessDesc, "_AfterPostProcessTexture", true);
         }
 
-        internal override void OnRecordRenderGraph(RenderGraph renderGraph, ScriptableRenderContext context,  ref RenderingData renderingData)
+        internal override void OnBeginRenderGraphFrame(ContextContainer frameData)
+        {
+            Universal2DResourcesData resourcesData = frameData.Create<Universal2DResourcesData>();
+            resourcesData.InitFrame();
+        }
+
+        internal override void OnRecordRenderGraph(RenderGraph renderGraph, ScriptableRenderContext context, ref RenderingData renderingData)
         {
             CreateResources(renderGraph, ref renderingData);
+
             SetupRenderGraphCameraProperties(renderGraph, ref renderingData, false);
 
             OnBeforeRendering(renderGraph, ref renderingData);
@@ -284,6 +287,12 @@ namespace UnityEngine.Rendering.Universal
             OnMainRendering(renderGraph, ref renderingData);
 
             OnAfterRendering(renderGraph, ref renderingData);
+        }
+
+        internal override void OnEndRenderGraphFrame(ContextContainer frameData)
+        {
+            Universal2DResourcesData resourcesData = frameData.Get<Universal2DResourcesData>();
+            resourcesData.EndFrame();
         }
 
         private void OnBeforeRendering(RenderGraph renderGraph, ref RenderingData renderingData)
@@ -304,6 +313,9 @@ namespace UnityEngine.Rendering.Universal
 
         private void OnMainRendering(RenderGraph renderGraph, ref RenderingData renderingData)
         {
+            ContextContainer frameData = renderingData.frameData;
+            Universal2DResourcesData resourcesData = frameData.Get<Universal2DResourcesData>();
+
             ref var cameraData = ref renderingData.cameraData;
             RTClearFlags clearFlags = RTClearFlags.None;
 
@@ -319,7 +331,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 TextureHandle internalColorLut;
                 m_PostProcessPasses.colorGradingLutPass.Render(renderGraph, out internalColorLut, ref renderingData);
-                resources.SetTexture(Renderer2DResource.InternalColorLut, internalColorLut);
+                resourcesData.internalColorLut = internalColorLut;
             }
 
             var cameraSortingLayerBoundsIndex = Render2DLightingPass.GetCameraSortingLayerBoundsIndex(m_Renderer2DData);
@@ -349,7 +361,7 @@ namespace UnityEngine.Rendering.Universal
                     }
 
                     // Shadow Light Pass
-                    m_LightPass.Render(renderGraph, m_Renderer2DData, ref layerBatch, resources, m_LightTextureHandles, resources.GetTexture(Renderer2DResource.IntermediateDepth), shadowlightIndex: j);
+                    m_LightPass.Render(renderGraph, m_Renderer2DData, ref layerBatch, resources, m_LightTextureHandles, resourcesData.intermediateDepth, shadowlightIndex: j);
                 }
 
                 // TODO: replace with clear mrt in light pass
@@ -358,16 +370,16 @@ namespace UnityEngine.Rendering.Universal
                     ClearLightTextures(renderGraph, m_Renderer2DData, ref layerBatch);
 
                 // Light Pass
-                m_LightPass.Render(renderGraph, m_Renderer2DData, ref layerBatch, resources, m_LightTextureHandles, resources.GetTexture(Renderer2DResource.IntermediateDepth));
+                m_LightPass.Render(renderGraph, m_Renderer2DData, ref layerBatch, resources, m_LightTextureHandles, resourcesData.intermediateDepth);
 
                 // Clear camera targets
                 if (i == 0 && clearFlags != RTClearFlags.None)
-                    ClearTargets2DPass.Render(renderGraph, activeColorTexture, activeDepthTexture, clearFlags, renderingData.cameraData.backgroundColor);
+                    ClearTargets2DPass.Render(renderGraph, resourcesData.activeColorTexture, resourcesData.activeDepthTexture, clearFlags, renderingData.cameraData.backgroundColor);
 
                 LayerUtility.GetFilterSettings(m_Renderer2DData, ref layerBatch, cameraSortingLayerBoundsIndex, out var filterSettings);
 
                 // Default Render Pass
-                m_RendererPass.Render(renderGraph, ref renderingData, m_Renderer2DData, ref layerBatch, ref filterSettings, activeColorTexture, activeDepthTexture, m_LightTextureHandles);
+                m_RendererPass.Render(renderGraph, ref renderingData, m_Renderer2DData, ref layerBatch, ref filterSettings, resourcesData.activeColorTexture, resourcesData.activeDepthTexture, m_LightTextureHandles);
 
                 // Camera Sorting Layer Pass
                 if (m_Renderer2DData.useCameraSortingLayerTexture)
@@ -375,14 +387,14 @@ namespace UnityEngine.Rendering.Universal
                     // Split Render Pass if CameraSortingLayer is in the middle of a batch
                     if (cameraSortingLayerBoundsIndex >= layerBatch.layerRange.lowerBound && cameraSortingLayerBoundsIndex < layerBatch.layerRange.upperBound)
                     {
-                        m_CopyCameraSortingLayerPass.Render(renderGraph, ref renderingData, activeColorTexture, resources.GetTexture(Renderer2DResource.CameraSortingLayerTexture));
+                        m_CopyCameraSortingLayerPass.Render(renderGraph, ref renderingData,resourcesData.activeColorTexture, resourcesData.cameraSortingLayerTexture);
 
-                        filterSettings.sortingLayerRange = new SortingLayerRange((short)(cameraSortingLayerBoundsIndex + 1), layerBatch.layerRange.upperBound);                        
-                        m_RendererPass.Render(renderGraph, ref renderingData, m_Renderer2DData, ref layerBatch, ref filterSettings, activeColorTexture, activeDepthTexture, m_LightTextureHandles);
+                        filterSettings.sortingLayerRange = new SortingLayerRange((short)(cameraSortingLayerBoundsIndex + 1), layerBatch.layerRange.upperBound);
+                        m_RendererPass.Render(renderGraph, ref renderingData, m_Renderer2DData, ref layerBatch, ref filterSettings, resourcesData.activeColorTexture, resourcesData.activeDepthTexture, m_LightTextureHandles);
                     }
                     else if (cameraSortingLayerBoundsIndex == layerBatch.layerRange.upperBound)
                     {
-                        m_CopyCameraSortingLayerPass.Render(renderGraph, ref renderingData, activeColorTexture, resources.GetTexture(Renderer2DResource.CameraSortingLayerTexture));
+                        m_CopyCameraSortingLayerPass.Render(renderGraph, ref renderingData, resourcesData.activeColorTexture, resourcesData.cameraSortingLayerTexture);
                     }
                 }
 
@@ -395,11 +407,11 @@ namespace UnityEngine.Rendering.Universal
                     m_ShadowPass.Render(renderGraph, m_Renderer2DData, ref layerBatch, resources, j);
 
                     // Shadow Light Volume Pass
-                    m_LightPass.Render(renderGraph, m_Renderer2DData, ref layerBatch, resources, activeColorTexture, activeDepthTexture, j, true);
+                    m_LightPass.Render(renderGraph, m_Renderer2DData, ref layerBatch, resources, resourcesData.activeColorTexture, resourcesData.activeDepthTexture, j, true);
                 }
 
                 // Light Volume Pass
-                m_LightPass.Render(renderGraph, m_Renderer2DData, ref layerBatch, resources, activeColorTexture, activeDepthTexture, isVolumetric: true);
+                m_LightPass.Render(renderGraph, m_Renderer2DData, ref layerBatch, resources, resourcesData.activeColorTexture, resourcesData.activeDepthTexture, isVolumetric: true);
             }
 
             bool shouldRenderUI = cameraData.rendersOverlayUI;
@@ -408,17 +420,20 @@ namespace UnityEngine.Rendering.Universal
             {
                 TextureHandle overlayUI;
                 m_DrawOffscreenUIPass.RenderOffscreen(renderGraph, k_DepthStencilFormat, out overlayUI, ref renderingData);
-                resources.SetTexture(Renderer2DResource.OverlayUITexture, overlayUI);
+                resourcesData.overlayUITexture = overlayUI;
             }
         }
 
         private void OnAfterRendering(RenderGraph renderGraph, ref RenderingData renderingData)
         {
+            ContextContainer frameData = renderingData.frameData;
+            Universal2DResourcesData resourcesData = frameData.Get<Universal2DResourcesData>();
+
             ref CameraData cameraData = ref renderingData.cameraData;
             bool drawGizmos = UniversalRenderPipelineDebugDisplaySettings.Instance.renderingSettings.sceneOverrideMode == DebugSceneOverrideMode.None;
 
             if (drawGizmos)
-                DrawRenderGraphGizmos(renderGraph, activeColorTexture, activeDepthTexture, GizmoSubset.PreImageEffects, ref renderingData);
+                DrawRenderGraphGizmos(renderGraph, resourcesData.activeColorTexture, resourcesData.activeDepthTexture, GizmoSubset.PreImageEffects, ref renderingData);
 
             DebugHandler debugHandler = ScriptableRenderPass.GetActiveDebugHandler(ref renderingData);
             bool resolveToDebugScreen = debugHandler != null && debugHandler.WriteToDebugScreenTexture(ref renderingData.cameraData);
@@ -427,11 +442,11 @@ namespace UnityEngine.Rendering.Universal
             {
                 RenderTextureDescriptor colorDesc = renderingData.cameraData.cameraTargetDescriptor;
                 DebugHandler.ConfigureColorDescriptorForDebugScreen(ref colorDesc, renderingData.cameraData.pixelWidth, renderingData.cameraData.pixelHeight);
-                resources.SetTexture(Renderer2DResource.DebugScreenColor, UniversalRenderer.CreateRenderGraphTexture(renderGraph, colorDesc, "_DebugScreenColor", false));
-                
+                resourcesData.debugScreenColor = UniversalRenderer.CreateRenderGraphTexture(renderGraph, colorDesc, "_DebugScreenColor", false);
+
                 RenderTextureDescriptor depthDesc = renderingData.cameraData.cameraTargetDescriptor;
                 DebugHandler.ConfigureDepthDescriptorForDebugScreen(ref depthDesc, k_DepthStencilFormat, renderingData.cameraData.pixelWidth, renderingData.cameraData.pixelHeight);
-                resources.SetTexture(Renderer2DResource.DebugScreenDepth, UniversalRenderer.CreateRenderGraphTexture(renderGraph, depthDesc, "_DebugScreenDepth", false));
+                resourcesData.debugScreenDepth = UniversalRenderer.CreateRenderGraphTexture(renderGraph, depthDesc, "_DebugScreenDepth", false);
             }
 
             bool applyPostProcessing = renderingData.postProcessingEnabled && m_PostProcessPasses.isCreated;
@@ -448,12 +463,21 @@ namespace UnityEngine.Rendering.Universal
             bool hasPassesAfterPostProcessing = activeRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRenderingPostProcessing) != null;
             bool needsColorEncoding = DebugHandler == null || !DebugHandler.HDRDebugViewIsActive(ref cameraData);
 
-            var finalColorHandle = activeColorTexture;
+            var finalColorHandle = resourcesData.activeColorTexture;
 
             if (applyPostProcessing)
             {
-                postProcessPass.RenderPostProcessingRenderGraph(renderGraph, activeColorTexture, resources.GetTexture(Renderer2DResource.InternalColorLut), resources.GetTexture(Renderer2DResource.OverlayUITexture), resources.GetTexture(Renderer2DResource.AfterPostProcessColor), ref renderingData, true, resolveToDebugScreen, needsColorEncoding);
-                finalColorHandle = resources.GetTexture(Renderer2DResource.AfterPostProcessColor);
+                postProcessPass.RenderPostProcessingRenderGraph(
+                    renderGraph,
+                    resourcesData.activeColorTexture,
+                    resourcesData.internalColorLut,
+                    resourcesData.overlayUITexture,
+                    resourcesData.afterPostProcessColor,
+                    ref renderingData,
+                    true,
+                    resolveToDebugScreen,
+                    needsColorEncoding);
+                finalColorHandle = resourcesData.afterPostProcessColor;
             }
 
             if (isPixelPerfectCameraEnabled)
@@ -461,23 +485,23 @@ namespace UnityEngine.Rendering.Universal
                 // Do PixelPerfect upscaling when using the Stretch Fill option
                 if (requirePixelPerfectUpscale)
                 {
-                    m_UpscalePass.Render(renderGraph, ref cameraData, ref renderingData, in finalColorHandle, resources.GetTexture(Renderer2DResource.UpscaleTexture));
-                    finalColorHandle = resources.GetTexture(Renderer2DResource.UpscaleTexture);
+                    m_UpscalePass.Render(renderGraph, ref cameraData, ref renderingData, in finalColorHandle, resourcesData.upscaleTexture);
+                    finalColorHandle = resourcesData.upscaleTexture;
                 }
 
-                ClearTargets2DPass.Render(renderGraph, resources.GetTexture(Renderer2DResource.BackBufferColor), TextureHandle.nullHandle, RTClearFlags.Color, Color.black);
+                ClearTargets2DPass.Render(renderGraph, resourcesData.backBufferColor, TextureHandle.nullHandle, RTClearFlags.Color, Color.black);
             }
 
             // We need to switch the "final" blit target to debugScreenColor if HDR debug views are enabled.
-            var finalBlitTarget = resolveToDebugScreen ? resources.GetTexture(Renderer2DResource.DebugScreenColor) : resources.GetTexture(Renderer2DResource.BackBufferColor);
-            var finalDepthHandle = resolveToDebugScreen ? resources.GetTexture(Renderer2DResource.DebugScreenDepth) : resources.GetTexture(Renderer2DResource.BackBufferDepth);
+            var finalBlitTarget = resolveToDebugScreen ? resourcesData.debugScreenColor : resourcesData.backBufferColor;
+            var finalDepthHandle = resolveToDebugScreen ? resourcesData.debugScreenDepth : resourcesData.backBufferDepth;
 
             if (createColorTexture)
             {
                 if (requireFinalPostProcessPass)
-                    postProcessPass.RenderFinalPassRenderGraph(renderGraph, in finalColorHandle, resources.GetTexture(Renderer2DResource.OverlayUITexture), in finalBlitTarget, ref renderingData, needsColorEncoding);
+                    postProcessPass.RenderFinalPassRenderGraph(renderGraph, in finalColorHandle, resourcesData.overlayUITexture, in finalBlitTarget, ref renderingData, needsColorEncoding);
                 else
-                    m_FinalBlitPass.Render(renderGraph, ref renderingData, finalColorHandle, finalBlitTarget, resources.GetTexture(Renderer2DResource.OverlayUITexture));
+                    m_FinalBlitPass.Render(renderGraph, ref renderingData, finalColorHandle, finalBlitTarget, resourcesData.overlayUITexture);
 
                 finalColorHandle = finalBlitTarget;
             }
@@ -491,10 +515,10 @@ namespace UnityEngine.Rendering.Universal
 
             // If HDR debug views are enabled, DebugHandler will perform the blit from debugScreenColor (== finalColorHandle) to backBufferColor.
             DebugHandler?.Setup(ref renderingData);
-            DebugHandler?.Render(renderGraph, ref renderingData, finalColorHandle, resources.GetTexture(Renderer2DResource.OverlayUITexture), resources.GetTexture(Renderer2DResource.BackBufferColor));
+            DebugHandler?.Render(renderGraph, ref renderingData, finalColorHandle, resourcesData.overlayUITexture, resourcesData.backBufferColor);
 
             if (drawGizmos)
-                DrawRenderGraphGizmos(renderGraph, resources.GetTexture(Renderer2DResource.BackBufferColor), activeDepthTexture, GizmoSubset.PostImageEffects, ref renderingData);
+                DrawRenderGraphGizmos(renderGraph, resourcesData.backBufferColor, resourcesData.activeDepthTexture, GizmoSubset.PostImageEffects, ref renderingData);
         }
 
         internal override void OnFinishRenderGraphRendering(ref RenderingData renderingData)
@@ -503,14 +527,18 @@ namespace UnityEngine.Rendering.Universal
 
         private void ClearLightTextures(RenderGraph graph, Renderer2DData rendererData, ref LayerBatch layerBatch)
         {
+            ContextContainer frameData = resources.frameData;
+            Universal2DResourcesData resourceData = frameData.Get<Universal2DResourcesData>();
+
             var blendStylesCount = rendererData.lightBlendStyles.Length;
+            TextureHandle[] lightTextureHandles = resourceData.lightTextures;
             for (var blendStyleIndex = 0; blendStyleIndex < blendStylesCount; blendStyleIndex++)
             {
                 if ((layerBatch.lightStats.blendStylesUsed & (uint)(1 << blendStyleIndex)) == 0)
                     continue;
 
                 Light2DManager.GetGlobalColor(layerBatch.startLayerID, blendStyleIndex, out var color);
-                ClearTargets2DPass.Render(graph, resources.GetTexture(Renderer2DResource.LightTexture0 + blendStyleIndex), TextureHandle.nullHandle, RTClearFlags.Color, color);
+                ClearTargets2DPass.Render(graph, lightTextureHandles[blendStyleIndex], TextureHandle.nullHandle, RTClearFlags.Color, color);
             }
         }
 

@@ -1,3 +1,4 @@
+using System;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -20,22 +21,18 @@ namespace UnityEditor.Rendering
 
         static TestCaseData[] s_TestsCaseDatas =
         {
-            new TestCaseData(string.Empty, false, AssetState.Null)
+            new TestCaseData(string.Empty, false, AssetState.Null, string.Empty)
                 .SetName(
-                    "Given an empty project, when ensuring a global settings without canCreateNewAsset, the asset is not created")
-                .Returns(string.Empty),
-            new TestCaseData(string.Empty, true, AssetState.NotNull)
+                    "Given an empty project, when ensuring a global settings without canCreateNewAsset, the asset is not created"),
+            new TestCaseData(string.Empty, true, AssetState.NotNull, "Assets/DummyRenderPipelineGlobalSettings.asset")
                 .SetName(
-                    "Given an empty project, when ensuring a global settings, the asset is created with the type name")
-                .Returns("Assets/DummyRenderPipelineGlobalSettings.asset"),
-            new TestCaseData(DummyRenderPipelineGlobalSettings.defaultPath, false, AssetState.NotNull)
+                    "Given an empty project, when ensuring a global settings, the asset is created with the type name"),
+            new TestCaseData(DummyRenderPipelineGlobalSettings.defaultPath, false, AssetState.NotNull, DummyRenderPipelineGlobalSettings.defaultPath)
                 .SetName(
-                    "Given a project with an asset already created in the default path, when ensuring a global settings, the asset returned is the one at default path")
-                .Returns(DummyRenderPipelineGlobalSettings.defaultPath),
-            new TestCaseData("Assets/Tests/AnotherDummyRenderPipelineGlobalSettings.asset", false, AssetState.NotNull)
+                    "Given a project with an asset already created in the default path, when ensuring a global settings, the asset returned is the one at default path"),
+            new TestCaseData("Assets/Tests/AnotherDummyRenderPipelineGlobalSettings.asset", false, AssetState.NotNull, "Assets/Tests/AnotherDummyRenderPipelineGlobalSettings.asset")
                 .SetName(
                     "Given a project with an asset already created somewhere, when ensuring a global settings, the asset returned is that one")
-                .Returns("Assets/Tests/AnotherDummyRenderPipelineGlobalSettings.asset"),
         };
 
         public enum AssetState
@@ -45,7 +42,7 @@ namespace UnityEditor.Rendering
         }
 
         [Test, TestCaseSource(nameof(s_TestsCaseDatas))]
-        public string Ensure(string path, bool canCreateNewAsset, AssetState assetState)
+        public void Ensure(string path, bool canCreateNewAsset, AssetState assetState, string expectedPath)
         {
             if (!string.IsNullOrEmpty(path))
             {
@@ -70,12 +67,16 @@ namespace UnityEditor.Rendering
                     break;
             }
 
-            if (instanceEnsured == null) return string.Empty;
-
-            var instanceInGraphics = GraphicsSettings.GetSettingsForRenderPipeline<DummyRenderPipeline>();
-            Assert.AreEqual(instanceInGraphics.GetInstanceID(), instanceEnsured.GetInstanceID());
-            return AssetDatabase.GetAssetPath(instanceEnsured);
-
+            if (instanceEnsured == null)
+            {
+                Assert.IsEmpty(expectedPath);
+            }
+            else
+            {
+                var instanceInGraphics = GraphicsSettings.GetSettingsForRenderPipeline<DummyRenderPipeline>();
+                Assert.AreEqual(instanceInGraphics.GetInstanceID(), instanceEnsured.GetInstanceID());
+                Assert.IsTrue(expectedPath.Equals(AssetDatabase.GetAssetPath(instanceEnsured), StringComparison.InvariantCultureIgnoreCase));
+            }
         }
 
         [Test]
@@ -84,8 +85,8 @@ namespace UnityEditor.Rendering
             var path = "Assets/Tests/DummyRenderPipelineGlobalSettings.asset";
             var instanceEnsured = RenderPipelineGlobalSettingsUtils.Create<DummyRenderPipelineGlobalSettings>(path);
             Assert.IsNotNull(instanceEnsured);
-            Assert.AreEqual(path, AssetDatabase.GetAssetPath(instanceEnsured));
-
+            Assert.IsTrue(path.Equals(AssetDatabase.GetAssetPath(instanceEnsured), StringComparison.InvariantCultureIgnoreCase));
+            
             var instanceIDExpected = instanceEnsured.GetInstanceID();
             var ensureResult = RenderPipelineGlobalSettingsUtils.
                 TryEnsure<DummyRenderPipelineGlobalSettings, DummyRenderPipeline>(ref instanceEnsured, DummyRenderPipelineGlobalSettings.defaultPath, true, out _);

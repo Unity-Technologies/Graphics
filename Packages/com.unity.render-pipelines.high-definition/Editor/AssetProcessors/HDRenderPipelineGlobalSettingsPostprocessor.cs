@@ -9,7 +9,7 @@ namespace UnityEditor.Rendering.HighDefinition
         const string k_GraphicsSettingsPath = "ProjectSettings/GraphicsSettings.asset";
         static void OnPostprocessAllAssets(string[] importedAssets , string[] __, string[] ___, string[] ____, bool didDomainReload)
         {
-            if (GraphicsSettings.currentRenderPipeline == null)
+            if (GraphicsSettings.currentRenderPipeline is not HDRenderPipelineAsset)
                 return;
 
             if(didDomainReload || importedAssets.Contains(k_GraphicsSettingsPath))

@@ -147,7 +147,7 @@ namespace UnityEngine.Rendering
                 sceneToBakingSet[guid] = set;
         }
 
-        internal ProbeVolumeBakingSet GetBakingSetForScene(string sceneGUID) => sceneToBakingSet.GetValueOrDefault(sceneGUID, null);
+        internal ProbeVolumeBakingSet GetBakingSetForScene(string sceneGUID) => sceneToBakingSet?.GetValueOrDefault(sceneGUID, null);
 
         bool TryGetPerSceneData(string sceneGUID, out ProbeVolumePerSceneData perSceneData)
         {

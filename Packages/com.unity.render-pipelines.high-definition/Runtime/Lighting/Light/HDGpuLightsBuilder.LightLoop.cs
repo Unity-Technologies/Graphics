@@ -479,17 +479,8 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 var punctualShadowFilteringQuality = renderPipelineAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.punctualShadowFilteringQuality;
                 var directionalShadowFilteringQuality = renderPipelineAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.directionalShadowFilteringQuality;
-
                 int lightCounts = visibleLights.sortedLightCounts;
-
-                if (m_IsValidIndexScratchpadArray.Length < lightCounts)
-                {
-                    m_IsValidIndexScratchpadArray.Dispose();
-                    m_IsValidIndexScratchpadArray = new NativeBitArray(lightCounts, Allocator.Persistent);
-                }
-
-                NativeBitArray isValidIndex = m_IsValidIndexScratchpadArray;
-                int invalidIndex = HDLightRenderDatabase.InvalidDataIndex;
+                NativeBitArray shadowRequestValidityArray = visibleLights.shadowRequestValidityArray;
 
                 HDShadowManagerDataForShadowRequestUpateJob shadowManagerData = default;
                 shadowManagerData.cachedShadowManager.cachedDirectionalAngles = m_CachedDirectionalAnglesArray;
@@ -514,7 +505,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     shadowManager = shadowManagerData,
 
-                    isValidIndex = isValidIndex,
+                    shadowRequestValidityArray = shadowRequestValidityArray,
                     sortKeys = visibleLights.sortKeys,
                     visibleLightEntityDataIndices = visibleLights.visibleLightEntityDataIndices,
                     processedEntities = visibleLights.processedEntities,
@@ -560,7 +551,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     lightCounts = lightCounts,
                     shadowSettingsCascadeShadowSplitCount = shadowSettingsCascadeShadowSplitCount,
-                    invalidIndex = invalidIndex,
                     worldSpaceCameraPos = worldSpaceCameraPos,
                     shaderConfigCameraRelativeRendering = ShaderConfig.s_CameraRelativeRendering,
                     shadowRequestCount = shadowManager.GetShadowRequestCount(),
@@ -568,7 +558,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     directionalShadowFilteringQuality = directionalShadowFilteringQuality,
                     usesReversedZBuffer = usesReversedZBuffer,
 
-                    validIndexCalculationsMarker = ShadowRequestUpdateProfiling.validIndexCalculationsMarker,
                     cachedDirectionalRequestsMarker =  ShadowRequestUpdateProfiling.cachedDirectionalRequestsMarker,
                     cachedSpotRequestsMarker =  ShadowRequestUpdateProfiling.cachedSpotRequestsMarker,
                     cachedPointRequestsMarker =  ShadowRequestUpdateProfiling.cachedPointRequestsMarker,
@@ -686,33 +675,27 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     for (int sortKeyIndex = 0; sortKeyIndex < lightCounts; sortKeyIndex++)
                     {
-                        if (!isValidIndex.IsSet(sortKeyIndex))
+                        if (!shadowRequestValidityArray.IsSet(sortKeyIndex))
                             continue;
 
                         int shadowIndex = shadowIndices[sortKeyIndex];
                         if (shadowIndex < 0)
                             continue;
 
-                        int shadowRequestCount = shadowRequestCounts[sortKeyIndex];
-
                         uint sortKey = visibleLights.sortKeys[sortKeyIndex];
                         int lightIndex = (int)(sortKey & 0xFFFF);
                         int dataIndex = visibleLights.visibleLightEntityDataIndices[lightIndex];
-                        HDAdditionalLightData additionalLightData = lightEntities.hdAdditionalLightData[dataIndex];
-                        //We utilize a raw light data pointer to avoid copying the entire structure
-                        HDProcessedVisibleLight* processedEntityPtr = processedLightArrayPtr + lightIndex;
-                        ref HDProcessedVisibleLight processedEntity = ref UnsafeUtility.AsRef<HDProcessedVisibleLight>(processedEntityPtr);
+                        Light lightComponent = lightEntities.hdAdditionalLightData[dataIndex].legacyLight;
 
-                        Light lightComponent = additionalLightData.legacyLight;
-
-                        if (lightComponent != null && (processedEntity.shadowMapFlags & HDProcessedVisibleLightsBuilder.ShadowMapFlags.WillRenderShadowMap) != 0)
+                        if (lightComponent != null)
                         {
-                            if ((debugDisplaySettings.data.lightingDebugSettings.shadowDebugUseSelection
-                                 || debugDisplaySettings.data.lightingDebugSettings.shadowDebugMode == ShadowMapDebugMode.SingleShadow)
+                            LightingDebugSettings debugSettings = debugDisplaySettings.data.lightingDebugSettings;
+
+                            if ((debugSettings.shadowDebugUseSelection || debugSettings.shadowDebugMode == ShadowMapDebugMode.SingleShadow)
                                 && UnityEditor.Selection.activeGameObject == lightComponent.gameObject)
                             {
                                 debugSelectedLightShadowIndex = shadowIndex;
-                                debugSelectedLightShadowCount = shadowRequestCount;
+                                debugSelectedLightShadowCount = shadowRequestCounts[sortKeyIndex];
                             }
                         }
                     }

@@ -55,12 +55,15 @@ namespace UnityEngine.Rendering.Universal
         {
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("Decal Preview Pass", out var passData, m_ProfilingSampler))
             {
+                ContextContainer frameData = renderingData.frameData;
+                UniversalResourcesData resourcesData = frameData.Get<UniversalResourcesData>();
+
                 passData.renderingData = renderingData;
 
                 UniversalRenderer renderer = (UniversalRenderer)renderingData.cameraData.renderer;
 
-                builder.UseTextureFragment(renderer.activeColorTexture, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
-                builder.UseTextureFragmentDepth(renderer.activeDepthTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+                builder.UseTextureFragment(resourcesData.activeColorTexture, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
+                builder.UseTextureFragmentDepth(resourcesData.activeDepthTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
 
                 SortingCriteria sortingCriteria = renderingData.cameraData.defaultOpaqueSortFlags;
                 DrawingSettings drawingSettings = RenderingUtils.CreateDrawingSettings(m_ShaderTagIdList, ref renderingData, sortingCriteria);

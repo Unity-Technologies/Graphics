@@ -55,8 +55,22 @@ UNITY_DOTS_INSTANCING_START(MaterialPropertyMetadata)
     UNITY_DOTS_INSTANCED_PROP(float , _AlphaCutoff);
 UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)
 
-#define _UnlitColor     UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _UnlitColor)
-#define _EmissiveColor  UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float3, _EmissiveColor)
-#define _AlphaCutoff    UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float , _AlphaCutoff)
+static float4 unity_DOTS_Sampled_UnlitColor;
+static float3 unity_DOTS_Sampled_EmissiveColor;
+static float  unity_DOTS_Sampled_AlphaCutoff;
+
+void SetupDOTSUnlitPropertyCaches()
+{
+    unity_DOTS_Sampled_UnlitColor    = UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _UnlitColor);
+    unity_DOTS_Sampled_EmissiveColor = UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float3, _EmissiveColor);
+    unity_DOTS_Sampled_AlphaCutoff   = UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float , _AlphaCutoff);
+}
+
+#undef UNITY_SETUP_DOTS_MATERIAL_PROPERTY_CACHES
+#define UNITY_SETUP_DOTS_MATERIAL_PROPERTY_CACHES() SetupDOTSUnlitPropertyCaches()
+
+#define _UnlitColor     unity_DOTS_Sampled_UnlitColor
+#define _EmissiveColor  unity_DOTS_Sampled_EmissiveColor
+#define _AlphaCutoff    unity_DOTS_Sampled_AlphaCutoff
 
 #endif

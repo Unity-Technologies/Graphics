@@ -107,7 +107,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_CombineCloudsSkyKernel = m_VolumetricCloudsCS.FindKernel("CombineCloudsSky");
 
             // Create the material needed for the combination
-            m_CloudCombinePass = CoreUtils.CreateEngineMaterial(defaultResources.shaders.volumetricCloudsCombinePS);
+            m_CloudCombinePass = CoreUtils.CreateEngineMaterial(runtimeResources.shaders.volumetricCloudsCombinePS);
 
             m_VolumetricCloudsTraceCS = m_Asset.renderPipelineResources.shaders.volumetricCloudsTraceCS;
             m_CloudRenderKernel = m_VolumetricCloudsTraceCS.FindKernel("RenderClouds");

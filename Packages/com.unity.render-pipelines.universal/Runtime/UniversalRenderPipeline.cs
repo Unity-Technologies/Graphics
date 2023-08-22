@@ -176,6 +176,7 @@ namespace UnityEngine.Rendering.Universal
 
         private static bool useRenderGraph;
 
+        // Store locally the value on the instance due as the Render Pipeline Asset data might change before the disposal of the asset, making some APV Resources leak.
         internal bool apvIsEnabled = false;
 
         // Reference to the asset associated with the pipeline.
@@ -267,7 +268,6 @@ namespace UnityEngine.Rendering.Universal
                     scenarioBlendingShader = null, // Disable this since it requires compute 'data.probeVolumeResources.probeVolumeBlendStatesCS,'
                     sceneData = m_GlobalSettings.GetOrCreateAPVSceneData(),
                     shBands = asset.probeVolumeSHBands,
-                    supportsRuntimeDebug = Application.isEditor || !m_GlobalSettings.stripDebugVariants,
                     supportGPUStreaming = asset.supportProbeVolumeStreaming,
                     supportDiskStreaming = false,
                     supportScenarios = false
@@ -716,11 +716,11 @@ namespace UnityEngine.Rendering.Universal
 
                 SetupPerCameraShaderConstants(cmd);
 
-                bool apvIsEnabled = asset != null && asset.lightProbeSystem == LightProbeSystem.ProbeVolumes;
-                ProbeReferenceVolume.instance.SetEnableStateFromSRP(apvIsEnabled);
+                bool supportProbeVolume = asset != null && asset.lightProbeSystem == LightProbeSystem.ProbeVolumes;
+                ProbeReferenceVolume.instance.SetEnableStateFromSRP(supportProbeVolume);
                 ProbeReferenceVolume.instance.SetVertexSamplingEnabled(asset.shEvalMode  == ShEvalMode.PerVertex || asset.shEvalMode  == ShEvalMode.Mixed);
                 // We need to verify and flush any pending asset loading for probe volume.
-                if (apvIsEnabled && ProbeReferenceVolume.instance.isInitialized)
+                if (supportProbeVolume && ProbeReferenceVolume.instance.isInitialized)
                 {
                     ProbeReferenceVolume.instance.PerformPendingOperations();
                     if (camera.cameraType != CameraType.Reflection &&
@@ -740,7 +740,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
                 // do AdaptiveProbeVolume stuff
-                if (apvIsEnabled)
+                if (supportProbeVolume)
                     ProbeReferenceVolume.instance.BindAPVRuntimeResources(cmd, true);
 
                 // Must be called before culling because it emits intermediate renderers via Graphics.DrawInstanced.
@@ -769,6 +769,7 @@ namespace UnityEngine.Rendering.Universal
                 // Initialize all the data types required for rendering.
                 using (new ProfilingScope(Profiling.Pipeline.initializeRenderingData))
                 {
+                    CreateUniversalResourcesData(frameData);
                     CreateLightData(frameData, asset, cullResults.visibleLights);
                     CreateShadowData(frameData, asset, isForwardPlus);
                     CreatePostProcessingData(frameData, asset, anyPostProcessingEnabled);
@@ -936,8 +937,8 @@ namespace UnityEngine.Rendering.Universal
                 // Update volumeframework before initializing additional camera data
                 UpdateVolumeFramework(baseCamera, baseCameraAdditionalData);
 
-                var frameData = renderer.resources.frameData;
-                var baseCameraData = CreateCameraData(frameData, baseCamera, baseCameraAdditionalData, !isStackedRendering);
+                ContextContainer frameData = renderer.resources.frameData;
+                UniversalCameraData baseCameraData = CreateCameraData(frameData, baseCamera, baseCameraAdditionalData, !isStackedRendering);
 
 #if ENABLE_VR && ENABLE_XR_MODULE
                 if (xrPass.enabled)
@@ -994,7 +995,7 @@ namespace UnityEngine.Rendering.Universal
                         // Camera is overlay and enabled
                         if (overlayAdditionalCameraData != null)
                         {
-                            var overlayFrameData = GetRenderer(overlayCamera, overlayAdditionalCameraData).resources.frameData;
+                            ContextContainer overlayFrameData = GetRenderer(overlayCamera, overlayAdditionalCameraData).resources.frameData;
                             UniversalCameraData overlayCameraData = CreateCameraData(overlayFrameData, baseCamera, baseCameraAdditionalData, false);
 #if ENABLE_VR && ENABLE_XR_MODULE
                             if (xrPass.enabled)
@@ -1605,6 +1606,11 @@ namespace UnityEngine.Rendering.Universal
             postProcessingData.useFastSRGBLinearConversion = settings.useFastSRGBLinearConversion;
             postProcessingData.supportScreenSpaceLensFlare = settings.supportScreenSpaceLensFlare;
             postProcessingData.supportDataDrivenLensFlare = settings.supportDataDrivenLensFlare;
+        }
+
+        static void CreateUniversalResourcesData(ContextContainer frameData)
+        {
+            frameData.Create<UniversalResourcesData>();
         }
 
         static void CreateLightData(ContextContainer frameData, UniversalRenderPipelineAsset settings, NativeArray<VisibleLight> visibleLights)

@@ -29,6 +29,9 @@ namespace UnityEditor.Rendering.HighDefinition
                     if (type.IsAbstract || tmp.Contains(type.AssemblyQualifiedName))
                         continue;
 
+                    if (type.GetCustomAttribute<HideInInspector>() != null)
+                        continue;
+
                     var comp = ScriptableObject.CreateInstance(type) as CustomPostProcessVolumeComponent;
 
                     if (comp != null && comp.injectionPoint == injectionPoint)
@@ -108,7 +111,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
             reorderableList.onRemoveCallback = (list) =>
             {
-                UnityEditorInternal.ReorderableList.defaultBehaviours.DoRemoveButton(list);
+                currentPostProcessTypes.DeleteArrayElementAtIndex(list.index);
+                property.serializedObject.ApplyModifiedProperties();
             };
 
             reorderableList.elementHeightCallback = _ => EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;

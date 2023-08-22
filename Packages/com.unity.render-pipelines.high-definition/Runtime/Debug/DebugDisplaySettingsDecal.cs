@@ -37,22 +37,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public override string PanelName => "Decals";
             public SettingsPanel(DebugDisplaySettingsDecal data)
             {
-                AddWidget(new DebugUI.MessageBox
-                {
-                    displayName = "Warning: the debug shader variants are missing. Ensure that the \"Runtime Debug Shaders\" option is enabled in HDRP Global Settings.",
-                    style = DebugUI.MessageBox.Style.Warning,
-                    isHiddenCallback = () =>
-                    {
-#if UNITY_EDITOR
-                        return true;
-#else
-                            if (HDRenderPipelineGlobalSettings.instance != null)
-                                return !HDRenderPipelineGlobalSettings.instance.stripDebugVariants;
-                            return true;
-#endif
-                    }
-                }
-                    );
+                AddWidget(new DebugUI.RuntimeDebugShadersMessageBox());
                 AddWidget(new DebugUI.Container()
                 {
                     displayName = Strings.containerName,

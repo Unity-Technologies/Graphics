@@ -16,7 +16,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void InitRayTracedIndirectDiffuse()
         {
-            ComputeShader indirectDiffuseShaderCS = m_GlobalSettings.renderPipelineRayTracingResources.indirectDiffuseRaytracingCS;
+            ComputeShader indirectDiffuseShaderCS = rayTracingResources.indirectDiffuseRaytracingCS;
 
             // Grab all the kernels we shall be using
             m_RaytracingIndirectDiffuseFullResKernel = indirectDiffuseShaderCS.FindKernel("RaytracingIndirectDiffuseFullRes");
@@ -76,10 +76,10 @@ namespace UnityEngine.Rendering.HighDefinition
             deferredParameters.mipChainBuffer = hdCamera.depthBufferMipChainInfo.GetOffsetBufferData(m_DepthPyramidMipLevelOffsetsBuffer);
 
             // Shaders
-            deferredParameters.rayMarchingCS = m_GlobalSettings.renderPipelineRayTracingResources.rayMarchingCS;
-            deferredParameters.gBufferRaytracingRT = m_GlobalSettings.renderPipelineRayTracingResources.gBufferRaytracingRT;
-            deferredParameters.deferredRaytracingCS = m_GlobalSettings.renderPipelineRayTracingResources.deferredRaytracingCS;
-            deferredParameters.rayBinningCS = m_GlobalSettings.renderPipelineRayTracingResources.rayBinningCS;
+            deferredParameters.rayMarchingCS = rayTracingResources.rayMarchingCS;
+            deferredParameters.gBufferRaytracingRT = rayTracingResources.gBufferRaytracingRT;
+            deferredParameters.deferredRaytracingCS = rayTracingResources.deferredRaytracingCS;
+            deferredParameters.rayBinningCS = rayTracingResources.rayBinningCS;
 
             // Make a copy of the previous values that were defined in the CB
             deferredParameters.raytracingCB = m_ShaderVariablesRayTracingCB;
@@ -133,7 +133,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.fullResolution = fullResolution;
 
                 // Grab the right kernel
-                passData.directionGenCS = m_GlobalSettings.renderPipelineRayTracingResources.indirectDiffuseRaytracingCS;
+                passData.directionGenCS = rayTracingResources.indirectDiffuseRaytracingCS;
                 passData.dirGenKernel = fullResolution ? m_RaytracingIndirectDiffuseFullResKernel : m_RaytracingIndirectDiffuseHalfResKernel;
 
                 // Grab the additional parameters
@@ -214,7 +214,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.viewCount = hdCamera.viewCount;
 
                 // Grab the right kernel
-                passData.upscaleCS = m_GlobalSettings.renderPipelineRayTracingResources.indirectDiffuseRaytracingCS;
+                passData.upscaleCS = rayTracingResources.indirectDiffuseRaytracingCS;
                 passData.upscaleKernel = fullResolution ? m_IndirectDiffuseUpscaleFullResKernel : m_IndirectDiffuseUpscaleHalfResKernel;
 
                 // Grab the additional parameters
@@ -350,20 +350,20 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.ambientProbeDimmer = settings.ambientProbeDimmer.value;
 
                 // Grab the additional parameters
-                if (IsAPVEnabled())
+                if (apvIsEnabled)
                 {
                     if(m_Asset.currentPlatformRenderPipelineSettings.probeVolumeSHBands == ProbeVolumeSHBands.SphericalHarmonicsL1)
                     {
-                        passData.indirectDiffuseRT = m_GlobalSettings.renderPipelineRayTracingResources.indirectDiffuseRaytracingL1RT;
+                        passData.indirectDiffuseRT = rayTracingResources.indirectDiffuseRaytracingL1RT;
                     }
                     else
                     {
-                        passData.indirectDiffuseRT = m_GlobalSettings.renderPipelineRayTracingResources.indirectDiffuseRaytracingL2RT;
+                        passData.indirectDiffuseRT = rayTracingResources.indirectDiffuseRaytracingL2RT;
                     }
                 }
                 else
                 {
-                    passData.indirectDiffuseRT = m_GlobalSettings.renderPipelineRayTracingResources.indirectDiffuseRaytracingOffRT;
+                    passData.indirectDiffuseRT = rayTracingResources.indirectDiffuseRaytracingOffRT;
                 }
 
                 passData.accelerationStructure = RequestAccelerationStructure(hdCamera);

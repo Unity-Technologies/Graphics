@@ -77,5 +77,11 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/302_Motion_Vectors_Terrain_DetailMesh.unity
     guid: 6586b4b69c8ab7d479a06f5fb3653066
+  - enabled: 1
+    path: Assets/Scenes/198_DepthPrimingDepthPrepass.unity
+    guid: 544f4eb2d29560146b7625a3acb0e76e
+  - enabled: 1
+    path: Assets/Scenes/199_DepthPrimingDepthNormalPrepass.unity
+    guid: cbda6333127961642bd444e8344550fe
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0

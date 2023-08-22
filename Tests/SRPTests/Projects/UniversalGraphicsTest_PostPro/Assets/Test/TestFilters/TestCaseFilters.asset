@@ -183,3 +183,33 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: ANT-1473
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 8bf4b7781b2a77a4987ae2a487e42414, type: 3}
+    - {fileID: 102900000, guid: cef44dde9c315e54fa9e5cfe6a04edbb, type: 3}
+    ColorSpace: 1
+    BuildPlatform: 20
+    GraphicsDevice: 11
+    XrSdk: None
+    StereoModes: 0
+    Reason: HDR not supported on WebGL OpenGLES3
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 809a83a0529a18940a9676977eea69c4, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 38
+    GraphicsDevice: 22
+    XrSdk: 
+    StereoModes: 0
+    Reason: depth write appears to be missing in the test output on switch for unknown
+      reasons
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 1a7776e5343210f439cfe2e361eba611, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 4
+    XrSdk: OculusLoader
+    StereoModes: 0
+    Reason: Instability on Quest - frame captured appears to not always have a consistent
+      index

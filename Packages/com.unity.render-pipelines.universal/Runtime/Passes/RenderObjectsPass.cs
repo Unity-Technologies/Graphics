@@ -261,28 +261,32 @@ namespace UnityEngine.Experimental.Rendering.Universal
             UniversalRenderer renderer = (UniversalRenderer)renderingData.cameraData.renderer;
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("Render Objects Pass", out var passData, s_ProfilingSampler))
             {
+                ContextContainer frameData = renderingData.frameData;
+                UniversalResourcesData resourcesData = frameData.Get<UniversalResourcesData>();
+
                 InitPassData(ref renderingData, ref passData);
 
-                TextureHandle color = renderer.activeColorTexture;
-                passData.color = builder.UseTextureFragment(color, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
-                builder.UseTextureFragmentDepth(renderer.activeDepthTexture, IBaseRenderGraphBuilder.AccessFlags.Write);
+                passData.color = builder.UseTextureFragment(resourcesData.activeColorTexture, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
+                builder.UseTextureFragmentDepth(resourcesData.activeDepthTexture, IBaseRenderGraphBuilder.AccessFlags.Write);
 
-                TextureHandle mainShadowsTexture = frameResources.GetTexture(UniversalResource.MainShadowsTexture);
-                TextureHandle additionalShadowsTexture = frameResources.GetTexture(UniversalResource.AdditionalShadowsTexture);
+                TextureHandle mainShadowsTexture = resourcesData.mainShadowsTexture;
+                TextureHandle additionalShadowsTexture = resourcesData.additionalShadowsTexture;
 
                 if (mainShadowsTexture.IsValid())
                     builder.UseTexture(mainShadowsTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+
                 if (additionalShadowsTexture.IsValid())
                     builder.UseTexture(additionalShadowsTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
 
-                for (int i = 0; i < RenderGraphUtils.DBufferSize; ++i)
+                TextureHandle[] dBufferHandles = resourcesData.dBuffer;
+                for (int i = 0; i < dBufferHandles.Length; ++i)
                 {
-                    var dbuffer = frameResources.GetTexture((UniversalResource) (UniversalResource.DBuffer0 + i));
-                    if (dbuffer.IsValid())
-                        builder.UseTexture(dbuffer, IBaseRenderGraphBuilder.AccessFlags.Read);
+                    TextureHandle dBuffer = dBufferHandles[i];
+                    if (dBuffer.IsValid())
+                        builder.UseTexture(dBuffer, IBaseRenderGraphBuilder.AccessFlags.Read);
                 }
 
-                TextureHandle ssaoTexture = frameResources.GetTexture(UniversalResource.SSAOTexture);
+                TextureHandle ssaoTexture = resourcesData.ssaoTexture;
                 if (ssaoTexture.IsValid())
                     builder.UseTexture(ssaoTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
 

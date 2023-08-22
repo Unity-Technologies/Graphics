@@ -34,6 +34,9 @@ namespace UnityEngine.Rendering.Universal
             if (!layerBatch.lightStats.useNormalMap)
                 return;
 
+            ContextContainer frameData = resources.frameData;
+            Universal2DResourcesData resourcesData = frameData.Get<Universal2DResourcesData>();
+
             using (var builder = graph.AddRasterRenderPass<PassData>("Normals 2D Pass", out var passData, m_ProfilingSampler))
             {
                 var filterSettings = new FilteringSettings();
@@ -48,8 +51,8 @@ namespace UnityEngine.Rendering.Universal
                 drawSettings.sortingSettings = sortSettings;
 
                 builder.AllowPassCulling(false);
-                builder.UseTextureFragment(resources.GetTexture(Renderer2DResource.NormalsTexture), 0);
-                builder.UseTextureFragmentDepth(resources.GetTexture(Renderer2DResource.IntermediateDepth), IBaseRenderGraphBuilder.AccessFlags.Write);
+                builder.UseTextureFragment(resourcesData.normalsTexture, 0);
+                builder.UseTextureFragmentDepth(resourcesData.intermediateDepth, IBaseRenderGraphBuilder.AccessFlags.Write);
 
                 var param = new RendererListParams(renderingData.cullResults, drawSettings, filterSettings);
                 passData.rendererList = graph.CreateRendererList(param);

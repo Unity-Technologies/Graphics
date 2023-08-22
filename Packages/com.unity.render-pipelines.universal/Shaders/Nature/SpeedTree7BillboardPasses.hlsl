@@ -138,4 +138,65 @@ SpeedTreeVertexDepthOutput SpeedTree7VertDepth(SpeedTreeVertexInput input)
     return output;
 }
 
+SpeedTreeVertexDepthNormalOutput SpeedTree7VertDepthNormalBillboard(SpeedTreeVertexInput input)
+{
+    SpeedTreeVertexDepthNormalOutput output = (SpeedTreeVertexDepthNormalOutput)0;
+    UNITY_SETUP_INSTANCE_ID(input);
+    UNITY_TRANSFER_INSTANCE_ID(input, output);
+    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+
+    // handle speedtree wind and lod
+    InitializeData(input, output.uvHueVariation.xy, output.uvHueVariation.z);
+    VertexPositionInputs vertexInput = GetVertexPositionInputs(input.vertex.xyz);
+
+    half3 normalWS = TransformObjectToWorldNormal(input.normal);
+    half3 viewDirWS = GetWorldSpaceNormalizeViewDir(vertexInput.positionWS);
+
+    #ifdef EFFECT_BUMP
+        real sign = input.tangent.w * GetOddNegativeScale();
+        output.normalWS.xyz = normalWS;
+        output.tangentWS.xyz = TransformObjectToWorldDir(input.tangent.xyz);
+        output.bitangentWS.xyz = cross(output.normalWS.xyz, output.tangentWS.xyz) * sign;
+
+        // View dir packed in w.
+        output.normalWS.w = viewDirWS.x;
+        output.tangentWS.w = viewDirWS.y;
+        output.bitangentWS.w = viewDirWS.z;
+    #else
+        output.normalWS = normalWS;
+        output.viewDirWS = viewDirWS;
+    #endif
+
+    output.clipPos = vertexInput.positionCS;
+    return output;
+}
+
+half4 SpeedTree7FragDepthNormalBillboard(SpeedTreeVertexDepthNormalOutput input) : SV_Target
+{
+    UNITY_SETUP_INSTANCE_ID(input);
+    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
+    half2 uv = input.uvHueVariation.xy;
+    half4 diffuse = SampleAlbedoAlpha(uv, TEXTURE2D_ARGS(_MainTex, sampler_MainTex));
+    diffuse.a *= _Color.a;
+
+    #ifdef SPEEDTREE_ALPHATEST
+        AlphaDiscard(diffuse.a, _Cutoff);
+    #endif
+
+    #ifdef LOD_FADE_CROSSFADE
+        LODFadeCrossFade(input.clipPos);
+    #endif
+
+    #if defined(EFFECT_BUMP)
+        half3 normalTS = SampleNormal(uv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap));
+        half3 normalWS = TransformTangentToWorld(normalTS, half3x3(input.tangentWS.xyz, input.bitangentWS.xyz, input.normalWS.xyz)).xyz;
+    #else
+        half3 normalWS = input.normalWS.xyz;
+    #endif
+
+    return half4(NormalizeNormalPerPixel(normalWS), 0.0);
+}
+
+
 #endif
