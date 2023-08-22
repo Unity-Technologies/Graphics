@@ -471,6 +471,7 @@ namespace UnityEngine.Rendering.Universal
                 m_DeferredPass.OnCameraCleanup(renderingData.commandBuffer);
 
             m_CopyDepthPass.OnCameraCleanup(renderingData.commandBuffer);
+            m_DepthNormalPrepass.OnCameraCleanup(renderingData.commandBuffer);
         }
 
         private static bool m_CreateColorTexture;
