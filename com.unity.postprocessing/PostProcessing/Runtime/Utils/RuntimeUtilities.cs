@@ -862,15 +862,9 @@ namespace UnityEngine.Rendering.PostProcessing
         /// Returns <c>true</c> if the target platform is WebGL,
         /// <c>false</c> otherwise.
         /// </summary>
-        public static bool isWebGL
+        public static bool isWebNonWebGPU
         {
-            get {
-#if UNITY_WEBGL
-                return true;
-#else
-                return false;
-#endif
-            }
+            get { return Application.platform == RuntimePlatform.WebGLPlayer && SystemInfo.graphicsDeviceType != GraphicsDeviceType.WebGPU; }
         }
 
         /// <summary>
