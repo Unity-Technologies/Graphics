@@ -55,7 +55,7 @@ namespace UnityEditor.Rendering.PostProcessing
                 }
                 else if (EditorUtilities.isTargetingWebGL)
                 {
-                    EditorGUILayout.HelpBox("Multi-scale volumetric obscurance requires compute shader support (WebGPU) when running on WebGL.", MessageType.Warning);
+                    EditorGUILayout.HelpBox("Multi-scale volumetric obscurance requires compute shader support (WebGPU) when running on Web.", MessageType.Warning);
                 }
                 else if(EditorUtilities.isTargetingAndroid)
                 {
