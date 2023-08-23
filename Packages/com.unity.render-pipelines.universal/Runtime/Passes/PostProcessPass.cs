@@ -541,7 +541,7 @@ namespace UnityEngine.Rendering.Universal
                     {
                         // We clamp the bloomMip value to avoid picking a mip that doesn't exist, since in URP you can set the number of maxIteration of the bloomPass.
                         int maxBloomMip = Mathf.Clamp(m_LensFlareScreenSpace.bloomMip.value, 0, m_Bloom.maxIterations.value/2);
-                        DoLensFlareScreenSpace(cameraData.camera, cmd, GetSource(), m_BloomMipUp[maxBloomMip]);
+                        DoLensFlareScreenSpace(cameraData.camera, cmd, GetSource(), m_BloomMipUp[0], m_BloomMipUp[maxBloomMip]);
                     }
                 }
 
@@ -976,10 +976,8 @@ namespace UnityEngine.Rendering.Universal
 
         #region LensFlareScreenSpace
 
-        void DoLensFlareScreenSpace(Camera camera, CommandBuffer cmd, RenderTargetIdentifier source, RTHandle bloomTexture)
+        void DoLensFlareScreenSpace(Camera camera, CommandBuffer cmd, RenderTargetIdentifier source, RTHandle originalBloomTexture, RTHandle screenSpaceLensFlareBloomMipTexture)
         {
-            cmd.SetGlobalTexture(ShaderConstants._LensFlareScreenSpaceBloomTexture, bloomTexture);
-
             int ratio = (int)m_LensFlareScreenSpace.resolution.value;
 
             int width = Mathf.Max(1, (int)m_Descriptor.width / ratio);
@@ -1000,7 +998,8 @@ namespace UnityEngine.Rendering.Universal
                 (float)m_Descriptor.width,
                 (float)m_Descriptor.height,
                 m_LensFlareScreenSpace.tintColor.value,
-                bloomTexture,
+                originalBloomTexture,
+                screenSpaceLensFlareBloomMipTexture,
                 null, // We don't have any spectral LUT in URP
                 m_StreakTmpTexture,
                 m_StreakTmpTexture2,
@@ -1010,41 +1009,30 @@ namespace UnityEngine.Rendering.Universal
                     m_LensFlareScreenSpace.secondaryFlareIntensity.value,
                     m_LensFlareScreenSpace.warpedFlareIntensity.value),
                 new Vector4(
-                    Mathf.Pow(m_LensFlareScreenSpace.vignetteEffect.value, 0.25f),
+                    m_LensFlareScreenSpace.vignetteEffect.value,
                     m_LensFlareScreenSpace.startingPosition.value,
                     m_LensFlareScreenSpace.scale.value,
                     0), // Free slot, not used
                 new Vector4(
                     m_LensFlareScreenSpace.samples.value,
                     m_LensFlareScreenSpace.sampleDimmer.value,
-                    m_LensFlareScreenSpace.chromaticAbberationIntensity.value / 20f,
+                    m_LensFlareScreenSpace.chromaticAbberationIntensity.value,
                     0), // No need to pass a chromatic aberration sample count, hardcoded at 3 in shader
                 new Vector4(
                     m_LensFlareScreenSpace.streaksIntensity.value,
-                    m_LensFlareScreenSpace.streaksLength.value * 10,
-                    m_LensFlareScreenSpace.streaksOrientation.value / 90f,
+                    m_LensFlareScreenSpace.streaksLength.value,
+                    m_LensFlareScreenSpace.streaksOrientation.value,
                     m_LensFlareScreenSpace.streaksThreshold.value),
                 new Vector4(
                     ratio,
-                    1.0f / m_LensFlareScreenSpace.warpedFlareScale.value.x,
-                    1.0f / m_LensFlareScreenSpace.warpedFlareScale.value.y,
+                    m_LensFlareScreenSpace.warpedFlareScale.value.x,
+                    m_LensFlareScreenSpace.warpedFlareScale.value.y,
                     0), // Free slot, not used
                 cmd,
                 m_ScreenSpaceLensFlareResult,
-                ShaderConstants._LensFlareScreenSpaceBloomTexture,
-                ShaderConstants._LensFlareScreenSpaceResultTexture,
-                0, // No identifiers for SpectralLut Texture
-                ShaderConstants._LensFlareScreenSpaceStreakTex,
-                ShaderConstants._LensFlareScreenSpaceMipLevel,
-                ShaderConstants._LensFlareScreenSpaceTintColor,
-                ShaderConstants._LensFlareScreenSpaceParams1,
-                ShaderConstants._LensFlareScreenSpaceParams2,
-                ShaderConstants._LensFlareScreenSpaceParams3,
-                ShaderConstants._LensFlareScreenSpaceParams4,
-                ShaderConstants._LensFlareScreenSpaceParams5,
                 false);
 
-            cmd.SetGlobalTexture(ShaderConstants._Bloom_Texture, bloomTexture);
+            cmd.SetGlobalTexture(ShaderConstants._Bloom_Texture, originalBloomTexture);
         }
 
         #endregion
@@ -1802,17 +1790,6 @@ namespace UnityEngine.Rendering.Universal
             public static readonly int _FlareData3 = Shader.PropertyToID("_FlareData3");
             public static readonly int _FlareData4 = Shader.PropertyToID("_FlareData4");
             public static readonly int _FlareData5 = Shader.PropertyToID("_FlareData5");
-
-            public static readonly int _LensFlareScreenSpaceBloomTexture = Shader.PropertyToID("_BloomTexture");
-            public static readonly int _LensFlareScreenSpaceResultTexture = Shader.PropertyToID("_LensFlareScreenSpaceResultTexture");
-            public static readonly int _LensFlareScreenSpaceStreakTex = Shader.PropertyToID("_LensFlareScreenSpaceStreakTex");
-            public static readonly int _LensFlareScreenSpaceMipLevel = Shader.PropertyToID("_LensFlareScreenSpaceMipLevel");
-            public static readonly int _LensFlareScreenSpaceTintColor = Shader.PropertyToID("_LensFlareScreenSpaceTintColor");
-            public static readonly int _LensFlareScreenSpaceParams1 = Shader.PropertyToID("_LensFlareScreenSpaceParams1");
-            public static readonly int _LensFlareScreenSpaceParams2 = Shader.PropertyToID("_LensFlareScreenSpaceParams2");
-            public static readonly int _LensFlareScreenSpaceParams3 = Shader.PropertyToID("_LensFlareScreenSpaceParams3");
-            public static readonly int _LensFlareScreenSpaceParams4 = Shader.PropertyToID("_LensFlareScreenSpaceParams4");
-            public static readonly int _LensFlareScreenSpaceParams5 = Shader.PropertyToID("_LensFlareScreenSpaceParams5");
 
             public static readonly int _FullscreenProjMat = Shader.PropertyToID("_FullscreenProjMat");
 
