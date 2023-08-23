@@ -2,26 +2,41 @@
 
 ## Description
 
-Returns the result of transforming the input value (**In**) from one coordinate space to another. Select drop-down options on the node to define which spaces to transform from and to.
+Returns the result of transforming the input value (**In**) from one coordinate space to another. Select dropdown options on the node to define which spaces to transform from and to.
 
 ## Ports
 
-| Name        | Direction           | Type  | Description |
-|:------------ |:-------------|:-----|:---|
-| In      | Input | Vector 3 | Input value |
-| Out | Output      |   Vector 3 | Output value |
+| Name | Direction | Type     | Description  |
+|:-----|:----------|:---------|:-------------|
+| In   | Input     | Vector 3 | Input value  |
+| Out  | Output    | Vector 3 | Output value |
 
 ## Controls
 
-| Name        | Type           | Options  | Description |
-|:------------ |:-------------|:-----|:---|
-| From      | Dropdown | Object, View, World, Tangent, Absolute World, Screen | Selects the space to convert from |
-| To      | Dropdown | Object, View, World, Tangent, Absolute World, Screen | Selects the space to convert to |
+| Name | Type     | Options                                              | Description |
+|:-----|:---------|:-----------------------------------------------------|:------------|
+| From | Dropdown | Object, View, World, Tangent, Absolute World, Screen | Select the space to convert from.  |
+| To   | Dropdown | Object, View, World, Tangent, Absolute World, Screen | Select the space to convert to.    |
+| Type | Dropdown | Position, Direction, Normal                          | Select how you want to handle the conversion. |
+
+## Node Settings Controls
+
+The following control appears on the Node Settings tab of the Graph Inspector when you select the **Direction** or **Normal** conversion types for the Transform Node. The Normalize Output setting helps to improve performance as you can disable it if the output is already normalized, or if you don't need the output to remain normalized.
+
+| Name             | Type     | Description |
+|:-----------------|:---------|:------------|
+| Normalize Output | Checkbox | Reduces the length of the output vector to 1. |
 
 ## World and Absolute World
+
 Use the **World** and **Absolute World** space options to transform the coordinate space of [position](Position-Node.md) values. The **World** space option uses the Scriptable Render Pipeline default world space to convert position values. The **Absolute World** space option uses absolute world space to convert position values in all Scriptable Render Pipelines.
 
-If you use the **Transform Node** to convert coordinate spaces that are not for position values, Unity recommends that you use the **World** space option. Using **Absolute World** on values that do not represent position might result in unexpected behavior.
+If you use the **Transform Node** to convert coordinate spaces that aren't for position values, Unity recommends that you use the **World** space option. Using **Absolute World** on values that don't represent position might result in unexpected behavior.
+
+## Conversion type
+
+Select the **Position** type to apply translation to the transformation. Select **Direction** if the input doesn't describe a surface normal (the direction a surface faces). Select **Normal** if the input describes a surface normal (the direction the surface faces). 
+
 
 ## Generated Code Example
 
@@ -191,6 +206,12 @@ float3 _Transform_Out = GetCameraRelativePositionWS(In);
 
 ```
 float3 _Transform_Out = TransformWorldToObject(In);
+```
+
+**Absolute World > Object (in the High Definition Render Pipeline)**  
+
+```
+float3 _Transform_Out = TransformWorldToObject(GetCameraRelativePositionWS(In));
 ```
 
 **Absolute World > Tangent**

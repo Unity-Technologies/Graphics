@@ -263,14 +263,6 @@ namespace UnityEditor.VFX
             var shaderGraph = GetOrRefreshShaderGraphObject();
             if (shaderGraph != null && shaderGraph.generatesWithShaderGraph)
             {
-                if (materialSettings.NeedsSync())
-                {
-                    var sgAssetPath = AssetDatabase.GetAssetPath(shaderGraph.GetInstanceID());
-                    var vfxAssetPath = AssetDatabase.GetAssetPath(this);
-
-                    Debug.LogErrorFormat("Unexpected missing material settings on VFX '{0}' using ShaderGraph '{1}'.\nThis invalid state can lead to an incorrect sort mode.", vfxAssetPath, sgAssetPath);
-                }
-
                 materialSettings.ApplyToMaterial(material);
                 VFXLibrary.currentSRPBinder.SetupMaterial(material, hasMotionVector, hasShadowCasting, shaderGraph);
 
@@ -563,7 +555,15 @@ namespace UnityEditor.VFX
 
                 // Ensure that the output context name is in sync with the shader graph shader enum name.
                 if (currentShaderGraph != null && currentShaderGraph.generatesWithShaderGraph)
+                {
+
+                    var assetPath = AssetDatabase.GetAssetPath(currentShaderGraph.GetInstanceID());
+                    var materialReference = AssetDatabase.LoadAssetAtPath<Material>(assetPath);
+                    if (materialReference != null)
+                        materialSettings.AddPropertiesFromMaterial(materialReference);
+
                     Invalidate(InvalidationCause.kUIChangedTransient);
+                }
                 else if (isShaderGraphMissing)
                 {
                     var vfxName = GetGraph().visualEffectResource.name;

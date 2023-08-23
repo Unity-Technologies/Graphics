@@ -33,12 +33,26 @@ namespace UnityEngine.Rendering.HighDefinition
         List<(int, uint)> m_TextureLRUSorted = new List<(int, uint)>();
 
         Material m_ConvertTextureMaterial;
+        MaterialPropertyBlock m_ConvertTexturePropertyBlock = new MaterialPropertyBlock();
 
         uint m_CurrentRender;
 
         bool m_NoMoreSpaceErrorLogged;
 
         RenderTexture m_ConvolvedPlanarReflectionTexture;
+
+        const int k_MaxFramesTmpUsage = 60;
+        int m_TempCubeTexturesLastFrameUsed;
+        int m_TmpTextureConvertedSize;
+        int m_TmpTextureConvolvedWidth;
+        int m_TmpTextureConvolvedHeight;
+        FilterMode m_TmpConvolvedFilterMode;
+        GraphicsFormat m_TmpTextureConvertedFormat;
+        GraphicsFormat m_TmpTextureConvolvedFormat;
+        FilterMode m_TmpTextureConvertedFilterMode;
+        FilterMode m_TmpTextureConvolvedFilterMode;
+        RenderTexture m_TempConvertedReflectionProbeTexture;
+        RenderTexture m_TempConvolvedReflectionProbeTexture;
 
         public ReflectionProbeTextureCache(HDRenderPipelineRuntimeResources defaultResources, IBLFilterBSDF[] iblFiltersBSDF, int width, int height, GraphicsFormat format,
             bool decreaseResToFit, int lastValidCubeMip, int lastValidPlanarMip)
@@ -190,6 +204,33 @@ namespace UnityEngine.Rendering.HighDefinition
             return needsUpdate;
         }
 
+        private RenderTexture GetTempConvertedReflectionProbeTexture(Texture texture, int cubeSize)
+        {
+            if (  m_TempConvertedReflectionProbeTexture == null
+               || m_TmpTextureConvertedSize != cubeSize
+               || m_TmpTextureConvertedFormat != m_AtlasFormat
+               || m_TmpTextureConvertedFilterMode != texture.filterMode)
+            {
+                if (m_TempConvertedReflectionProbeTexture != null)
+                    RenderTexture.ReleaseTemporary(m_TempConvertedReflectionProbeTexture);
+
+                RenderTexture convertedTextureTemp = RenderTexture.GetTemporary(cubeSize, cubeSize, 0, m_AtlasFormat);
+                convertedTextureTemp.dimension = TextureDimension.Cube;
+                convertedTextureTemp.filterMode = texture.filterMode;
+                convertedTextureTemp.useMipMap = true;
+                convertedTextureTemp.autoGenerateMips = false;
+                convertedTextureTemp.name = CoreUtils.GetRenderTargetAutoName(cubeSize, cubeSize, 0, m_AtlasFormat, "ConvertedReflectionProbeTemp", mips: true);
+                convertedTextureTemp.Create();
+                m_TempConvertedReflectionProbeTexture = convertedTextureTemp;
+                m_TmpTextureConvertedSize = cubeSize;
+                m_TmpTextureConvertedFormat = m_AtlasFormat;
+                m_TmpTextureConvertedFilterMode = texture.filterMode;
+            }
+
+            m_TempCubeTexturesLastFrameUsed = (int)m_CurrentRender;
+            return m_TempConvertedReflectionProbeTexture;
+        }
+
         private RenderTexture PrepareCubeReflectionProbeTexture(CommandBuffer cmd, Texture texture, int textureSize)
         {
             RenderTexture renderTexture = texture as RenderTexture;
@@ -208,23 +249,17 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (conversionRequired)
                 {
-                    RenderTexture convertedTextureTemp = RenderTexture.GetTemporary(cubeSize, cubeSize, 0, m_AtlasFormat);
-                    convertedTextureTemp.dimension = TextureDimension.Cube;
-                    convertedTextureTemp.filterMode = texture.filterMode;
-                    convertedTextureTemp.useMipMap = true;
-                    convertedTextureTemp.autoGenerateMips = false;
-                    convertedTextureTemp.name = CoreUtils.GetRenderTargetAutoName(cubeSize, cubeSize, 0, m_AtlasFormat, "ConvertedReflectionProbeTemp", mips: true);
-                    convertedTextureTemp.Create();
+                    RenderTexture convertedTextureTemp = GetTempConvertedReflectionProbeTexture(texture, cubeSize);
 
-                    MaterialPropertyBlock convertTextureProps = new MaterialPropertyBlock();
-                    convertTextureProps.SetTexture(HDShaderIDs._InputTex, texture);
-                    convertTextureProps.SetFloat(HDShaderIDs._LoD, 0.0f);
+
+                    m_ConvertTexturePropertyBlock.SetTexture(HDShaderIDs._InputTex, texture);
+                    m_ConvertTexturePropertyBlock.SetFloat(HDShaderIDs._LoD, 0.0f);
 
                     for (int f = 0; f < 6; ++f)
                     {
-                        convertTextureProps.SetFloat(HDShaderIDs._FaceIndex, f);
+                        m_ConvertTexturePropertyBlock.SetFloat(HDShaderIDs._FaceIndex, f);
                         CoreUtils.SetRenderTarget(cmd, convertedTextureTemp, ClearFlag.None, Color.black, 0, (CubemapFace)f);
-                        CoreUtils.DrawFullScreen(cmd, m_ConvertTextureMaterial, convertTextureProps);
+                        CoreUtils.DrawFullScreen(cmd, m_ConvertTextureMaterial, m_ConvertTexturePropertyBlock);
                     }
 
                     cmd.GenerateMips(convertedTextureTemp);
@@ -240,20 +275,44 @@ namespace UnityEngine.Rendering.HighDefinition
             return null;
         }
 
+        private RenderTexture GetTempConvolveReflectionProbeTexture(Texture texture)
+        {
+            if (  m_TempConvolvedReflectionProbeTexture == null
+               || m_TmpTextureConvolvedWidth != texture.width
+               || m_TmpTextureConvolvedHeight != texture.height
+               || m_TmpTextureConvolvedFormat != m_AtlasFormat
+               || m_TmpTextureConvolvedFilterMode != texture.filterMode)
+            {
+                if (m_TempConvolvedReflectionProbeTexture != null)
+                    RenderTexture.ReleaseTemporary(m_TempConvolvedReflectionProbeTexture);
+
+                RenderTexture convolvedTextureTemp = RenderTexture.GetTemporary(texture.width, texture.height, 0, m_AtlasFormat);
+                convolvedTextureTemp.dimension = TextureDimension.Cube;
+                convolvedTextureTemp.filterMode = texture.filterMode;
+                convolvedTextureTemp.useMipMap = true;
+                convolvedTextureTemp.autoGenerateMips = false;
+                convolvedTextureTemp.anisoLevel = 0;
+                convolvedTextureTemp.name = "ConvolvedReflectionProbeTemp";
+                convolvedTextureTemp.Create();
+                m_TempConvolvedReflectionProbeTexture = convolvedTextureTemp;
+                m_TmpTextureConvolvedWidth = texture.width;
+                m_TmpTextureConvolvedHeight = texture.height;
+                m_TmpConvolvedFilterMode = texture.filterMode;
+                m_TmpTextureConvolvedFormat = m_AtlasFormat;
+                m_TmpTextureConvolvedFilterMode = texture.filterMode;
+            }
+
+            m_TempCubeTexturesLastFrameUsed = (int)m_CurrentRender;
+            return m_TempConvolvedReflectionProbeTexture;
+        }
+
         private RenderTexture ConvolveCubeReflectionProbeTexture(CommandBuffer cmd, Texture texture, IBLFilterBSDF filter)
         {
             RenderTexture renderTexture = texture as RenderTexture;
 
             Assert.IsTrue((renderTexture && renderTexture.dimension == TextureDimension.Cube), "Cube Reflection Probe should always be a Cubemap Texture.");
 
-            RenderTexture convolvedTextureTemp = RenderTexture.GetTemporary(texture.width, texture.height, 0, m_AtlasFormat);
-            convolvedTextureTemp.dimension = TextureDimension.Cube;
-            convolvedTextureTemp.filterMode = texture.filterMode;
-            convolvedTextureTemp.useMipMap = true;
-            convolvedTextureTemp.autoGenerateMips = false;
-            convolvedTextureTemp.anisoLevel = 0;
-            convolvedTextureTemp.name = "ConvolvedReflectionProbeTemp";
-            convolvedTextureTemp.Create();
+            RenderTexture convolvedTextureTemp = GetTempConvolveReflectionProbeTexture(texture);
 
             filter.FilterCubemap(cmd, texture, convolvedTextureTemp);
 
@@ -329,50 +388,52 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private bool RelayoutTextureAtlas()
         {
-            var atlasEntries = new List<(int textureId, Vector4 scaleOffset)>();
-            atlasEntries.Capacity = m_TextureLRUAndHash.Count;
-
-            foreach (var pair in m_TextureLRUAndHash)
+            using (ListPool<(int textureId, Vector4 scaleOffset)>.Get(out var atlasEntries))
             {
-                if (m_Atlas.IsCached(out Vector4 scaleOffset, pair.Key))
-                    atlasEntries.Add((pair.Key, scaleOffset));
-            }
+                atlasEntries.Capacity = m_TextureLRUAndHash.Count;
 
-            atlasEntries.Sort((a, b) => { return b.scaleOffset.x.CompareTo(a.scaleOffset.x); });
-
-            m_Atlas.ResetAllocator();
-
-            bool success = true;
-
-            foreach (var entry in atlasEntries)
-            {
-                int textureWidth = Mathf.CeilToInt(entry.scaleOffset.x * m_AtlasWidth);
-                int textureHeight = Mathf.CeilToInt(entry.scaleOffset.y * m_AtlasHeight);
-
-                if (m_Atlas.EnsureTextureSlot(out _, out Vector4 scaleOffset, entry.textureId, textureWidth, textureHeight))
+                foreach (var pair in m_TextureLRUAndHash)
                 {
-                    var texturePos = new Vector2Int(Mathf.FloorToInt(entry.scaleOffset.z * m_AtlasWidth), Mathf.FloorToInt(entry.scaleOffset.w * m_AtlasHeight));
-                    var newTexturePos = new Vector2Int(Mathf.FloorToInt(scaleOffset.z * m_AtlasWidth), Mathf.FloorToInt(scaleOffset.w * m_AtlasHeight));
+                    if (m_Atlas.IsCached(out Vector4 scaleOffset, pair.Key))
+                        atlasEntries.Add((pair.Key, scaleOffset));
+                }
 
-                    // Invalidate texture only if its position actually changed after re-layout.
-                    bool invalidateTexture = texturePos != newTexturePos;
+                atlasEntries.Sort((a, b) => { return b.scaleOffset.x.CompareTo(a.scaleOffset.x); });
 
-                    if (invalidateTexture)
+                m_Atlas.ResetAllocator();
+
+                bool success = true;
+
+                foreach (var entry in atlasEntries)
+                {
+                    int textureWidth = Mathf.CeilToInt(entry.scaleOffset.x * m_AtlasWidth);
+                    int textureHeight = Mathf.CeilToInt(entry.scaleOffset.y * m_AtlasHeight);
+
+                    if (m_Atlas.EnsureTextureSlot(out _, out Vector4 scaleOffset, entry.textureId, textureWidth, textureHeight))
                     {
-                        var LRUAndHash = m_TextureLRUAndHash[entry.textureId];
-                        LRUAndHash.Item2 = 0;
-                        m_TextureLRUAndHash[entry.textureId] = LRUAndHash;
+                        var texturePos = new Vector2Int(Mathf.FloorToInt(entry.scaleOffset.z * m_AtlasWidth), Mathf.FloorToInt(entry.scaleOffset.w * m_AtlasHeight));
+                        var newTexturePos = new Vector2Int(Mathf.FloorToInt(scaleOffset.z * m_AtlasWidth), Mathf.FloorToInt(scaleOffset.w * m_AtlasHeight));
+
+                        // Invalidate texture only if its position actually changed after re-layout.
+                        bool invalidateTexture = texturePos != newTexturePos;
+
+                        if (invalidateTexture)
+                        {
+                            var LRUAndHash = m_TextureLRUAndHash[entry.textureId];
+                            LRUAndHash.Item2 = 0;
+                            m_TextureLRUAndHash[entry.textureId] = LRUAndHash;
+                        }
+                    }
+                    else
+                    {
+                        m_TextureLRUAndHash.Remove(entry.textureId);
+
+                        success = false;
                     }
                 }
-                else
-                {
-                    m_TextureLRUAndHash.Remove(entry.textureId);
 
-                    success = false;
-                }
+                return success;
             }
-
-            return success;
         }
 
         private bool TryAllocateTexture(int textureId, int textureSize, ref Vector4 scaleOffset)
@@ -442,10 +503,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     RenderTexture convolvedTextureTemp = ConvolveCubeReflectionProbeTexture(cmd, convertedTextureTemp ? convertedTextureTemp : texture, m_IBLFiltersBSDF[filterIndex]);
                     BlitTextureCube(cmd, scaleOffset, convolvedTextureTemp, filterIndex);
-                    RenderTexture.ReleaseTemporary(convolvedTextureTemp);
                 }
 
-                RenderTexture.ReleaseTemporary(convertedTextureTemp);
 
                 return true;
             }
@@ -512,6 +571,17 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ConvertTextureMaterial = null;
 
             m_ConvolvedPlanarReflectionTexture?.Release();
+            if (m_TempConvertedReflectionProbeTexture != null)
+            {
+                RenderTexture.ReleaseTemporary(m_TempConvertedReflectionProbeTexture);
+                m_TempConvertedReflectionProbeTexture = null;
+            }
+
+            if (m_TempConvolvedReflectionProbeTexture != null)
+            {
+                RenderTexture.ReleaseTemporary(m_TempConvolvedReflectionProbeTexture);
+                m_TempConvolvedReflectionProbeTexture = null;
+            }
         }
 
         public Vector4 FetchCubeReflectionProbe(CommandBuffer cmd, HDProbe probe, out int fetchIndex)
@@ -594,6 +664,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_TextureLRUSorted.Add((pair.Key, pair.Value.Item1));
 
             m_TextureLRUSorted.Sort((a, b) => { return b.Item2.CompareTo(a.Item2); });
+        }
+
+        public void GarbageCollectTmpResources()
+        {
+            if (Math.Max((int)m_CurrentRender - m_TempCubeTexturesLastFrameUsed, 0) <= k_MaxFramesTmpUsage)
+                return;
+
+            m_TempConvertedReflectionProbeTexture?.Release();
+            m_TempConvolvedReflectionProbeTexture?.Release();
+            m_TempConvertedReflectionProbeTexture = null;
+            m_TempConvolvedReflectionProbeTexture = null;
         }
 
         public void ClearAtlasAllocator()

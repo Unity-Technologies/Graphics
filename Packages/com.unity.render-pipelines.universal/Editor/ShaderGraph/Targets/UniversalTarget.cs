@@ -2032,8 +2032,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             referenceName = ShaderKeywordStrings.LOD_FADE_CROSSFADE,
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
-            scope = KeywordScope.Global,
-            stages = KeywordShaderStage.Fragment,
+            
+            // Note: SpeedTree shaders used to have their own PS-based Crossfade,
+            //       as well as a VS-based smooth LOD transition effect.
+            //       These shaders need the LOD_FADE_CROSSFADE keyword in the VS
+            //       to skip the VS-based effect. 
+            scope = KeywordScope.Global
         };
 
         public static readonly KeywordDescriptor UseUnityCrossFade = new KeywordDescriptor()
