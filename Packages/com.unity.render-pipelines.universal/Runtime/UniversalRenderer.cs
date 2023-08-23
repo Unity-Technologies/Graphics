@@ -596,6 +596,19 @@ namespace UnityEngine.Rendering.Universal
 
                 m_DeferredLights.ResolveMixedLightingMode(ref renderingData);
                 m_DeferredLights.IsOverlay = cameraData.renderType == CameraRenderType.Overlay;
+                if (m_DeferredLights.UseRenderPass)
+                {
+                    // At this point we only have injected renderer features in the queue and can do assumptions on whether we'll need Framebuffer Fetch
+                    foreach (var pass in activeRenderPassQueue)
+                    {
+                        if (pass.renderPassEvent >= RenderPassEvent.AfterRenderingGbuffer &&
+                            pass.renderPassEvent <= RenderPassEvent.BeforeRenderingDeferredLights)
+                        {
+                            m_DeferredLights.DisableFramebufferFetchInput();
+                            break;
+                        }
+                    }
+                }
             }
 
             // Should apply post-processing after rendering this camera?
