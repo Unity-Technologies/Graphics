@@ -4,6 +4,8 @@
 #define ToFloat(x) x
 #define Deg2Rad(x) (x * 3.14159265359f / 180)
 
+#define MIN_SHADOW_Y 0.000001f
+
 struct Attributes
 {
     float3 vertex  : POSITION;
