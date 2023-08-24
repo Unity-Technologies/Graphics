@@ -259,6 +259,10 @@ float3 NeutralColorGrade(float3 colorLutSpace)
 #ifdef HDR_COLORSPACE_CONVERSION
     // For LUT purposes, we assume 1.0 == 100 nits (max PQ value is 10k nits)
     float3 colorLinear = PQToLinear(colorLutSpace, 100.0f);
+#ifdef GRADE_IN_ACESCG
+    // In ACESCG grading mode color grading space is ACEScg so RotateToColorGradeOutputSpace will move out of this space. Here that means we need to move into that space to balance it.
+    colorLinear = unity_to_ACEScg(colorLinear);
+#endif
 #else
     float3 colorLinear = LogCToLinear(colorLutSpace);
 #endif
@@ -300,7 +304,7 @@ float3 ProcessColorForHDR(float3 gradedColor)
 
 #ifdef TONEMAPPING_ACES
     gradedColor = ACEScg_to_ACES(gradedColor);
-    return HDRMappingACES(gradedColor.rgb, _PaperWhite, _RangeReductionMode, true);
+    return HDRMappingACES(gradedColor.rgb, _PaperWhite, _MinNits, _MaxNits, _RangeReductionMode, true);
 #else
     return HDRMappingFromRec2020(gradedColor.rgb, _PaperWhite, _MinNits, _MaxNits, _RangeReductionMode, _HueShift, true);
 #endif

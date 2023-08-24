@@ -359,7 +359,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
                     {
-                        BlitFinalCameraTexture(m_RenderGraph, hdCamera, postProcessDest, backBuffer, uiBuffer, afterPostProcessBuffer, viewIndex, HDROutputActiveForCameraType(hdCamera.camera.cameraType), target.face);
+                        BlitFinalCameraTexture(m_RenderGraph, hdCamera, postProcessDest, backBuffer, uiBuffer, afterPostProcessBuffer, viewIndex, HDROutputActiveForCameraType(hdCamera), target.face);
                     }
 
                     if (aovRequest.isValid)
@@ -435,6 +435,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle afterPostProcessTexture;
             public TextureHandle source;
             public TextureHandle destination;
+            public ColorGamut colorGamut;
         }
 
         void BlitFinalCameraTexture(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source, TextureHandle destination, TextureHandle uiTexture, TextureHandle afterPostProcessTexture, int viewIndex, bool outputsToHDR, CubemapFace cubemapFace)
@@ -460,11 +461,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.destination = builder.WriteTexture(destination);
                 passData.applyAfterPP = false;
                 passData.cubemapFace = cubemapFace;
+                passData.colorGamut = outputsToHDR ? HDRDisplayColorGamutForCamera(hdCamera) : ColorGamut.sRGB;
 
                 if (outputsToHDR)
                 {
-                    passData.blitMaterial = m_FinalBlitWithOETF;
-                    GetHDROutputParameters(m_Tonemapping, out passData.hdrOutputParmeters, out var unused);
+                    // Pick the right material based off XR rendering using texture arrays and if we are dealing with a single slice at the moment or processing all slices automatically.
+                    passData.blitMaterial = (TextureXR.useTexArray && passData.srcTexArraySlice >= 0) ? m_FinalBlitWithOETFTexArraySingleSlice : m_FinalBlitWithOETF;
+                    GetHDROutputParameters(HDRDisplayInformationForCamera(hdCamera), HDRDisplayColorGamutForCamera(hdCamera), m_Tonemapping, out passData.hdrOutputParmeters, out var unused);
                     passData.uiTexture = builder.ReadTexture(uiTexture);
                     passData.applyAfterPP = hdCamera.frameSettings.IsEnabled(FrameSettingsField.AfterPostprocess) && !NeedHDRDebugMode(m_CurrentDebugDisplaySettings);
                 }
@@ -487,10 +490,9 @@ namespace UnityEngine.Rendering.HighDefinition
                             propertyBlock.SetTexture(HDShaderIDs._InputTexture, sourceTexture);
 
                             propertyBlock.SetVector(HDShaderIDs._HDROutputParams, data.hdrOutputParmeters);
+                            propertyBlock.SetInt(HDShaderIDs._BlitTexArraySlice, data.srcTexArraySlice);
 
-                            data.blitMaterial.shaderKeywords = null;
-
-                            HDROutputUtils.ConfigureHDROutput(data.blitMaterial, HDROutputSettings.main.displayColorGamut, HDROutputUtils.Operation.ColorEncoding);
+                            HDROutputUtils.ConfigureHDROutput(data.blitMaterial, data.colorGamut, HDROutputUtils.Operation.ColorEncoding);
 
                             if (data.applyAfterPP)
                             {
@@ -499,6 +501,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             }
                             else
                             {
+                                data.blitMaterial.DisableKeyword("APPLY_AFTER_POST");
                                 data.blitMaterial.SetTexture(HDShaderIDs._AfterPostProcessTexture, TextureXR.GetBlackTexture());
                             }
                         }
@@ -965,7 +968,7 @@ namespace UnityEngine.Rendering.HighDefinition
             TextureHandle depthBuffer)
         {
             var output = renderGraph.defaultResources.blackTextureXR;
-            if (HDROutputActiveForCameraType(hdCamera.camera.cameraType) && SupportedRenderingFeatures.active.rendersUIOverlay && !NeedHDRDebugMode(m_CurrentDebugDisplaySettings))
+            if (HDROutputActiveForCameraType(hdCamera) && SupportedRenderingFeatures.active.rendersUIOverlay && !NeedHDRDebugMode(m_CurrentDebugDisplaySettings))
             {
                 using (var builder = renderGraph.AddRenderPass<RenderOffscreenUIData>("UI Rendering", out var passData, ProfilingSampler.Get(HDProfileId.OffscreenUIRendering)))
                 {
@@ -2106,7 +2109,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void RenderScreenSpaceOverlayUI(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer)
         {
-            if (!HDROutputActiveForCameraType(hdCamera.camera.cameraType) && SupportedRenderingFeatures.active.rendersUIOverlay && hdCamera.camera.cameraType != CameraType.SceneView)
+            if (!HDROutputActiveForCameraType(hdCamera) && SupportedRenderingFeatures.active.rendersUIOverlay && hdCamera.camera.cameraType != CameraType.SceneView)
             {
                 using (var builder = renderGraph.AddRenderPass<RenderScreenSpaceOverlayData>("Screen Space Overlay UI", out var passData))
                 {
