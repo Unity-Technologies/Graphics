@@ -26,7 +26,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // This function does a "repeat" load
-        static float4 LoadTexture2DArray(NativeArray<float4> textureRawBuffer, int2 coord, int sliceIndex, int resolution)
+        static T LoadTexture2DArray<T>(NativeArray<T> textureRawBuffer, int2 coord, int sliceIndex, int resolution) where T : struct
         {
             int2 repeatCoord = coord;
             repeatCoord.x = SignedMod(repeatCoord.x, resolution);
@@ -72,6 +72,23 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         static float4 SampleTexture2DArrayBilinear(NativeArray<float4> textureBuffer, float2 uvCoord, int sliceIndex, int resolution)
+        {
+            // Convert the position from uv to floating pixel coordinates (for the bilinear interpolation)
+            PrepareCoordinates(uvCoord, resolution, out int2 currentTapCoord, out float2 fract);
+
+            // Read the four samples we want
+            float4 p0 = LoadTexture2DArray(textureBuffer, currentTapCoord, sliceIndex, resolution);
+            float4 p1 = LoadTexture2DArray(textureBuffer, currentTapCoord + new int2(1, 0), sliceIndex, resolution);
+            float4 p2 = LoadTexture2DArray(textureBuffer, currentTapCoord + new int2(0, 1), sliceIndex, resolution);
+            float4 p3 = LoadTexture2DArray(textureBuffer, currentTapCoord + new int2(1, 1), sliceIndex, resolution);
+
+            // Do the bilinear interpolation
+            float4 i0 = lerp(p0, p1, fract.x);
+            float4 i1 = lerp(p2, p3, fract.x);
+            return lerp(i0, i1, fract.y);
+        }
+
+        static float4 SampleTexture2DArrayBilinear(NativeArray<half4> textureBuffer, float2 uvCoord, int sliceIndex, int resolution)
         {
             // Convert the position from uv to floating pixel coordinates (for the bilinear interpolation)
             PrepareCoordinates(uvCoord, resolution, out int2 currentTapCoord, out float2 fract);
@@ -280,7 +297,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static void AddBandContribution(in WaterSimSearchData wsd, in PatchSimData data, int bandIdx, float3 waterMask, ref float3 totalDisplacement)
         {
-            float3 rawDisplacement = SampleTexture2DArrayBilinear(wsd.displacementData, data.uv, bandIdx, wsd.simulationRes).xyz;
+            float3 rawDisplacement = wsd.lowLatency ? SampleTexture2DArrayBilinear(wsd.displacementDataCPU, data.uv, bandIdx, wsd.simulationRes).xyz :
+                SampleTexture2DArrayBilinear(wsd.displacementDataGPU, data.uv, bandIdx, wsd.simulationRes).xyz;
             rawDisplacement *= wsd.rendering.patchAmplitudeMultiplier[bandIdx] * waterMask[bandIdx] * data.blend;
             totalDisplacement += float3(rawDisplacement.x, dot(rawDisplacement.yz, data.swizzle.xy), dot(rawDisplacement.yz, data.swizzle.zw));
         }

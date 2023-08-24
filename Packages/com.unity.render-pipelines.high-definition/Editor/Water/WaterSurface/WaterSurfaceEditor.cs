@@ -124,6 +124,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         // CPU Simulation
         SerializedProperty m_CPUSimulation;
+        SerializedProperty m_CPULowLatency;
         SerializedProperty m_CPUFullResolution;
         SerializedProperty m_CPUEvaluateRipples;
 
@@ -145,6 +146,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // CPU Simulation
             m_CPUSimulation = o.Find(x => x.cpuSimulation);
+            m_CPULowLatency = o.Find(x => x.cpuLowLatency);
             m_CPUFullResolution = o.Find(x => x.cpuFullResolution);
             m_CPUEvaluateRipples = o.Find(x => x.cpuEvaluateRipples);
 
@@ -241,18 +243,24 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     if (serialized.m_CPUSimulation.boolValue)
                     {
-                        if (currentAsset.currentPlatformRenderPipelineSettings.waterSimulationResolution == WaterSimulationResolution.Low64)
+                        EditorGUILayout.PropertyField(serialized.m_CPULowLatency, k_CPULowLatency);
+                        if (serialized.m_CPULowLatency.boolValue)
                         {
-                            using (new EditorGUI.DisabledScope(true))
+                            EditorGUI.indentLevel++;
+                            if (currentAsset.currentPlatformRenderPipelineSettings.waterSimulationResolution == WaterSimulationResolution.Low64)
                             {
-                                // When in 64, we always show that we are running the CPU simulation at full res.
-                                bool fakeToggle = true;
-                                EditorGUILayout.Toggle(k_CPUFullResolution, fakeToggle);
+                                using (new EditorGUI.DisabledScope(true))
+                                {
+                                    // When in 64, we always show that we are running the CPU simulation at full res.
+                                    bool fakeToggle = true;
+                                    EditorGUILayout.Toggle(k_CPUFullResolution, fakeToggle);
+                                }
                             }
-                        }
-                        else
-                        {
-                            EditorGUILayout.PropertyField(serialized.m_CPUFullResolution, k_CPUFullResolution);
+                            else
+                            {
+                                EditorGUILayout.PropertyField(serialized.m_CPUFullResolution, k_CPUFullResolution);
+                            }
+                            EditorGUI.indentLevel--;
                         }
 
                         WaterSurfaceType surfaceType = (WaterSurfaceType)(serialized.m_SurfaceType.enumValueIndex);

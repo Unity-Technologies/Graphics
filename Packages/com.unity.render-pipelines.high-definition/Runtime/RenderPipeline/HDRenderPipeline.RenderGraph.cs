@@ -1519,6 +1519,7 @@ namespace UnityEngine.Rendering.HighDefinition
             TextureHandle currentColorPyramid, in BuildGPULightListOutput lightLists, ref PrepassOutput prepassOutput)
         {
             var defaultBuffer = renderGraph.ImportBuffer(m_DefaultWaterLineBuffer);
+            var waterSurfaceProfiles = renderGraph.ImportBuffer(m_WaterProfileArrayGPU);
 
             TransparentPrepassOutput output = new TransparentPrepassOutput()
             {
@@ -1537,7 +1538,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 },
 
                 waterLine = defaultBuffer,
-                waterSurfaceProfiles = defaultBuffer,
+                waterSurfaceProfiles = waterSurfaceProfiles,
 
                 beforeRefraction = renderGraph.defaultResources.blackTextureXR,
                 beforeRefractionAlpha = renderGraph.defaultResources.whiteTextureXR,
@@ -1576,8 +1577,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (hasWater)
             {
-                output.waterSurfaceProfiles = renderGraph.ImportBuffer(m_WaterProfileArrayGPU);
-
                 // Render the water gbuffer (and prepare for the transparent SSR pass)
                 output.waterGBuffer = RenderWaterGBuffer(renderGraph, cullingResults, hdCamera, prepassOutput.depthBuffer, prepassOutput.normalBuffer, currentColorPyramid, prepassOutput.depthPyramidTexture, output.waterSurfaceProfiles, lightLists);
 

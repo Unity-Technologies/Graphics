@@ -507,7 +507,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // Bind the constant buffers
             ConstantBuffer.Set<ShaderVariablesWater>(parameters.waterMaterial, HDShaderIDs._ShaderVariablesWater);
             ConstantBuffer.Set<ShaderVariablesWaterRendering>(parameters.waterMaterial, HDShaderIDs._ShaderVariablesWaterRendering);
-            ConstantBuffer.Set<ShaderVariablesWaterDeformation>(parameters.waterMaterial, HDShaderIDs._ShaderVariablesWaterDeformation);
 
             if (parameters.instancedQuads)
             {

@@ -18,6 +18,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // The pair of buffers that allows us to keep doing the async readback "permanently"
         NativeArray<T>[] m_InternalBuffers = new NativeArray<T>[2];
         int2 m_CurrentResolution = new int2(0, 0);
+        int m_CurrentSlices = 0;
 
         // Tracker of the current "valid" buffer
         int m_CurrentBuffer = 1;
@@ -63,6 +64,11 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_CurrentResolution;
         }
 
+        public int CurrentSlices()
+        {
+            return m_CurrentSlices;
+        }
+
         void SwapCurrentBuffer()
         {
             m_CurrentBuffer = (m_CurrentBuffer + 1) % 2;
@@ -83,20 +89,26 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void ValidateResources(int width, int height)
+        void ValidateResources(int width, int height, int slices, TextureDimension dimension)
         {
-            int textureSize = width * height;
+            int textureSize = width * height * slices;
             ValidateNativeBuffer(ref m_InternalBuffers[0], textureSize);
             ValidateNativeBuffer(ref m_InternalBuffers[1], textureSize);
 
             // Make sure the GPU buffer is the right size
-            if (m_InternalRT == null || m_InternalRT.width != width || m_InternalRT.height != height)
+            if (m_InternalRT == null || m_InternalRT.width != width || m_InternalRT.height != height || m_InternalRT.volumeDepth != slices)
             {
                 if (m_InternalRT != null)
                     m_InternalRT.Release();
-                m_InternalRT = new RenderTexture(width, height, 1, m_InternalGraphicsFormat);
+                m_InternalRT = new RenderTexture(width, height, 0, m_InternalGraphicsFormat)
+                {
+                    volumeDepth = slices,
+                    dimension = dimension,
+                    useMipMap = false,
+                };
             }
             m_CurrentResolution = int2(width, height);
+            m_CurrentSlices = slices;
         }
 
         public ReadbackCode EnqueueRequest(CommandBuffer cmd, Texture targetTexture, bool intermediateBlit)
@@ -114,19 +126,22 @@ namespace UnityEngine.Rendering.HighDefinition
             m_CurrentlyOnGoingJob = true;
             m_TargetTextureHash = currentHash;
 
+            int slices = 1;
+            if (targetTexture.dimension == TextureDimension.Tex2DArray)
+                slices = ((RenderTexture)targetTexture).volumeDepth;
+
             // No job is going on, so we can free the resources if needed
-            ValidateResources(targetTexture.width, targetTexture.height);
+            ValidateResources(targetTexture.width, targetTexture.height, slices, targetTexture.dimension);
 
             // Decompress and pick a single channel
-            Texture targetRT = null;
+            Texture targetRT = targetTexture;
             if (intermediateBlit)
             {
-                cmd.Blit(targetTexture, m_InternalRT);
+                if (targetTexture.dimension == TextureDimension.Tex2DArray)
+                    cmd.CopyTexture(targetTexture, m_InternalRT);
+                else
+                    cmd.Blit(targetTexture, m_InternalRT);
                 targetRT = m_InternalRT;
-            }
-            else
-            {
-                targetRT = targetTexture;
             }
 
             // Grab the next buffer

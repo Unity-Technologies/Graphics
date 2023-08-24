@@ -126,7 +126,8 @@ float EvaluateSimulationCaustics(float3 refractedWaterPosRWS, float refractedWat
 }
 
 #if defined(_ENABLE_FOG_ON_TRANSPARENT) || defined(SUPPORT_WATER_ABSORPTION)
-// This is used by OpaqueAtmosphericScattering pass, and Forward pass of transparents that receive fog
+// This is used by OpaqueAtmosphericScattering pass, and Forward pass of transparents that receive fog (which
+// includes volumetric clouds combine pass)
 bool EvaluateUnderwaterAbsorption(PositionInputs posInput, inout float4 outColor, out float3 color, out float3 opacity)
 {
     color = opacity = 0;
@@ -136,7 +137,7 @@ bool EvaluateUnderwaterAbsorption(PositionInputs posInput, inout float4 outColor
     float waterDepth = UNITY_RAW_FAR_CLIP_VALUE;
     bool underWater = IsUnderWater(posInput.positionSS.xy);
 
-#ifdef _ENABLE_FOG_ON_TRANSPARENT
+#if defined(_SURFACE_TYPE_TRANSPARENT) && defined(_ENABLE_FOG_ON_TRANSPARENT)
     [branch]
     if (_PreRefractionPass != 0)
 #else

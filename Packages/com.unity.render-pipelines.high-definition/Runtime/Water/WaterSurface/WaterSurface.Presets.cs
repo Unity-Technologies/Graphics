@@ -8,6 +8,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             waterSurface.timeMultiplier = 1.0f;
             waterSurface.cpuSimulation = false;
+            waterSurface.cpuLowLatency = false;
             waterSurface.cpuFullResolution = false;
             waterSurface.cpuEvaluateRipples = false;
 

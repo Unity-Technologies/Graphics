@@ -157,6 +157,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal int numActiveBands => HDRenderPipeline.EvaluateBandCount(surfaceType, ripples);
 
+        // Optional CPU simulation data
+        internal AsyncTextureSynchronizer<half4> displacementBufferSynchronizer = new AsyncTextureSynchronizer<half4>(GraphicsFormat.R16G16B16A16_SFloat);
+
         // Internal simulation data
         internal WaterSimulationResources simulation = null;
 
@@ -177,7 +180,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Will we need to enable the CPU simulation?
-            bool cpuSimulationActive = cpuSimActive && cpuSimulation;
+            bool cpuSimulationActive = cpuSimActive && cpuSimulation && cpuLowLatency;
 
             // If the resources have not been allocated for this water surface, allocate them
             if (simulation == null)
@@ -201,7 +204,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     simulation.AllocateSimulationBuffersCPU();
             }
 
-            // One more case that we need check here is that if the CPU became required
+            // If the resources are no longer used, release them
             if (!cpuSimulationActive && simulation.cpuBuffers != null)
             {
                 simulation.ReleaseSimulationBuffersCPU();
@@ -432,7 +435,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     rendering.patchCurrentSpeed.x = ripplesCurrentSpeedValue * WaterConsts.k_KilometerPerHourToMeterPerSecond;
 
                     // Fade parameters
-                    if (ripples) ComputeDistanceFade(ref rendering, 0, ripplesFadeMode, ripplesFadeStart, ripplesFadeDistance);
+                    ComputeDistanceFade(ref rendering, 0, ripplesFadeMode, ripplesFadeStart, ripplesFadeDistance);
                 }
                 break;
             }
@@ -444,6 +447,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void ReleaseSimulationResources()
         {
+            displacementBufferSynchronizer.ReleaseATSResources();
+
             // Make sure to release the resources if they have been created (before HDRP destroys them)
             if (simulation != null && simulation.AllocatedTextures())
                 simulation.ReleaseSimulationResources();

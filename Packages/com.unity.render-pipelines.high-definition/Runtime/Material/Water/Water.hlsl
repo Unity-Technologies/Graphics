@@ -528,7 +528,7 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
 
     float3 N = bsdfData.normalWS;
     float NdotL_LF = dot(bsdfData.lowFrequencyNormalWS, L);
-    float NdotLWrappedDiffuseLowFrequency = ComputeWrappedDiffuseLighting(NdotL_LF, 1.0f);
+    float NdotLWrappedDiffuseLowFrequency = ComputeWrappedDiffuseLighting(NdotL_LF, 1.2f);
     float clampedNdotL_LF = saturate(NdotL_LF);
     float NdotV = preLightData.NdotV;
     float clampedNdotV = ClampNdotV(NdotV);
@@ -832,9 +832,10 @@ IndirectLighting EvaluateBSDF_ScreenspaceRefraction(LightLoopContext lightLoopCo
     float3 refractedWaterPosRWS;
     float2 distortedWaterNDC;
     float3 absorptionTint; // not used - applied during opaque atmospheric scattering
-    ComputeWaterRefractionParams(posInput.positionWS, bsdfData.normalWS, bsdfData.lowFrequencyNormalWS,
-        posInput.positionNDC, V, bsdfData.frontFace, preLightData.disableIOR, preLightData.upDirection,
-        preLightData.maxRefractionDistance, preLightData.transparencyColor, preLightData.outScatteringCoefficient,
+    ComputeWaterRefractionParams(posInput.positionWS, posInput.positionNDC, V,
+        bsdfData.normalWS, bsdfData.lowFrequencyNormalWS, bsdfData.frontFace,
+        preLightData.disableIOR, preLightData.upDirection, preLightData.maxRefractionDistance,
+        preLightData.transparencyColor, preLightData.outScatteringCoefficient,
         refractedWaterPosRWS, distortedWaterNDC, absorptionTint);
 
     // Apply a mip offset for the underwater data (if needed)
