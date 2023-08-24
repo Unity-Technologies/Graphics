@@ -65,9 +65,11 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             m_ActiveWaterSystem = m_Asset.currentPlatformRenderPipelineSettings.supportWater;
 
-            // This buffer is needed when water is disabled
+            // These buffers are needed even when water is disabled
             m_DefaultWaterLineBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, 3, sizeof(uint));
             m_DefaultWaterLineBuffer.SetData(new uint[] { 0xFFFFFFFF, 0, 2 });
+
+            m_WaterProfileArrayGPU = new GraphicsBuffer(GraphicsBuffer.Target.Structured, k_MaxNumWaterSurfaceProfiles, System.Runtime.InteropServices.Marshal.SizeOf<WaterSurfaceProfile>());
 
             // If the asset doesn't support water surfaces, nothing to do here
             if (!m_ActiveWaterSystem)
@@ -98,11 +100,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_InternalWaterMaterial = runtimeResources.materials.waterMaterial;
             InitializeInstancingData();
 
-            // Water profile management
-            m_WaterProfileArrayGPU = new GraphicsBuffer(GraphicsBuffer.Target.Structured, k_MaxNumWaterSurfaceProfiles, System.Runtime.InteropServices.Marshal.SizeOf<WaterSurfaceProfile>());
-
             // Create the caustics water geometry
-            m_CausticsGeometry = new GraphicsBuffer(GraphicsBuffer.Target.Raw, WaterConsts.k_WaterCausticsMeshNumQuads * 6, sizeof(int));
+            m_CausticsGeometry = new GraphicsBuffer(GraphicsBuffer.Target.Raw | GraphicsBuffer.Target.Index, WaterConsts.k_WaterCausticsMeshNumQuads * 6, sizeof(int));
             m_CausticsBufferGeometryInitialized = false;
             m_CausticsMaterial = CoreUtils.CreateEngineMaterial(runtimeResources.shaders.waterCausticsPS);
 
@@ -145,6 +144,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // Release the default water line array
             CoreUtils.SafeRelease(m_DefaultWaterLineBuffer);
 
+            // Release the water profile array
+            CoreUtils.SafeRelease(m_WaterProfileArrayGPU);
+
             // If the asset doesn't support water surfaces, nothing to do here
             if (!m_ActiveWaterSystem)
                 return;
@@ -169,9 +171,6 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.SafeRelease(m_WaterCameraFrustrumBuffer);
             CoreUtils.SafeRelease(m_WaterPatchDataBuffer);
             CoreUtils.SafeRelease(m_WaterIndirectDispatchBuffer);
-
-            // Release the water profile array
-            CoreUtils.SafeRelease(m_WaterProfileArrayGPU);
 
             // Simulation resources
             ReleaseWaterSimulation();
