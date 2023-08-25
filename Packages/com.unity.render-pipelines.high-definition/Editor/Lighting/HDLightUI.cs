@@ -156,7 +156,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         DrawLightIntensityGUILayout,
                         DrawEmissionContent),
                     DrawEmissionAdditionalContent),
-                CED.Conditional((serialized, owner) => !isArea(serialized) && !serialized.settings.isCompletelyBaked,
+                CED.Conditional((serialized, owner) => !serialized.settings.isCompletelyBaked,
                     CED.FoldoutGroup(s_Styles.volumetricHeader, Expandable.Volumetric, k_ExpandedState, DrawVolumetric)),
                 CED.Conditional((serialized, owner) =>
                 {
@@ -1215,16 +1215,26 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void DrawVolumetric(SerializedHDLight serialized, Editor owner)
         {
-            EditorGUILayout.PropertyField(serialized.useVolumetric, s_Styles.volumetricEnable);
-            using (new EditorGUI.DisabledScope(!serialized.useVolumetric.boolValue))
-            using (new EditorGUI.IndentLevelScope())
+            LightType lightType = serialized.settings.lightType.GetEnumValue<LightType>();
+
+            // Right now the only supported area light type in path tracing is rectangle lights.
+            // Modify this if this changes to add new area light shapees.
+            if (lightType == LightType.Rectangle)
             {
-                EditorGUILayout.PropertyField(serialized.volumetricDimmer, s_Styles.volumetricDimmer);
-                EditorGUILayout.Slider(serialized.volumetricShadowDimmer, 0.0f, 1.0f, s_Styles.volumetricShadowDimmer);
-                LightType lightType = serialized.settings.lightType.GetEnumValue<LightType>();
-                if (lightType != LightType.Directional)
+                EditorGUILayout.HelpBox(s_Styles.areaLightVolumetricsWarning.text, MessageType.Warning);
+            }
+
+            EditorGUILayout.PropertyField(serialized.useVolumetric, s_Styles.volumetricEnable);
+            {
+                using (new EditorGUI.DisabledScope(!serialized.useVolumetric.boolValue))
+                using (new EditorGUI.IndentLevelScope())
                 {
-                    EditorGUILayout.PropertyField(serialized.volumetricFadeDistance, s_Styles.volumetricFadeDistance);
+                    EditorGUILayout.PropertyField(serialized.volumetricDimmer, s_Styles.volumetricDimmer);
+                    EditorGUILayout.Slider(serialized.volumetricShadowDimmer, 0.0f, 1.0f, s_Styles.volumetricShadowDimmer);
+                    if (lightType != LightType.Directional)
+                    {
+                        EditorGUILayout.PropertyField(serialized.volumetricFadeDistance, s_Styles.volumetricFadeDistance);
+                    }
                 }
             }
         }

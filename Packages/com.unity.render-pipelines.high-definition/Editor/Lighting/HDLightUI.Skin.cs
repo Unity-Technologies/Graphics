@@ -150,7 +150,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent maxDepthBias = EditorGUIUtility.TrTextContent("Max Depth Bias");
 
             // Layers
-            public readonly GUIContent unlinkLightAndShadowLayersText = EditorGUIUtility.TrTextContent("Custom Shadow Layers", "When enabled, you can use the Layer property below to specify the layers for shadows seperately to lighting. When disabled, the Rendering Layer Mask property in the General section specifies the layers for both lighting and shadows.");
+            public readonly GUIContent unlinkLightAndShadowLayersText = EditorGUIUtility.TrTextContent("Custom Shadow Layers", "When enabled, you can use the Layer property below to specify the layers for shadows separately to lighting. When disabled, the Rendering Layer Mask property in the General section specifies the layers for both lighting and shadows.");
             public readonly GUIContent shadowLayerMaskText = EditorGUIUtility.TrTextContent("Shadow Layers", "Specifies the rendering layer mask to use for shadows.");
 
             // Settings
@@ -158,6 +158,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Warnings
             public readonly string unsupportedLightShapeWarning = L10n.Tr("This light shape is not supported by Realtime Global Illumination.");
+            public readonly GUIContent areaLightVolumetricsWarning = EditorGUIUtility.TrTextContent("Area Light Volumetrics settings are only taken into account with Path Tracing.");
         }
 
         static Styles s_Styles = new Styles();
