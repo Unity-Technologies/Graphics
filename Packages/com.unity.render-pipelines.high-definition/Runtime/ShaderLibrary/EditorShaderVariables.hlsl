@@ -1,5 +1,5 @@
 #ifndef EDITOR_SHADER_VARAIBLES
-#define E DITOR_SHADER_VARAIBLES
+#define EDITOR_SHADER_VARAIBLES
 
 // ================================
 //     PER FRAME CONSTANTS
