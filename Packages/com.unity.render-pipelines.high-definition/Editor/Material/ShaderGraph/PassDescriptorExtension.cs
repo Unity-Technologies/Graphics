@@ -56,7 +56,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public static bool IsPathTracing(this PassDescriptor pass)
         {
-            return (pass.displayName == "PathTracingDXR");
+            return (pass.displayName == HDShaderPassNames.s_PathTracingDXRStr);
+        }
+        public static bool IsRayTracing(this PassDescriptor pass)
+        {
+            return (pass.displayName == HDShaderPassNames.s_RayTracingIndirectStr) || (pass.displayName == HDShaderPassNames.s_RayTracingGBufferStr);
         }
 
         // This function allow to know if a pass is used in context of raytracing rendering even if the pass is not a rayrtacing pass itself (like with RaytracingPrepass)

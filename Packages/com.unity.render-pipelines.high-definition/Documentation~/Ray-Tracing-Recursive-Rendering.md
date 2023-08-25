@@ -2,7 +2,7 @@
 
 This feature is a replacement pipeline for rendering Meshes in the High Definition Render Pipeline (HDRP). GameObjects that use this rendering mode cast refraction and reflection rays recursively. This means that when a ray hits a surface, it reflects or refracts and carries on to hit other surfaces. You can increase the maximum number of times that a ray bounces. However, a higher number of rays is more resource-intensive.
 
-Rays will ignore the smoothness of a Material when being reflected or refracted, which makes this rendering mode useful for rendering multi-layered transparent GameObjects. This forces the objects to have smooth reflections as long as their smoothness is above the minimum smoothness specified in the volume override. In the case the smoothness of the surface is below the minimum smoothness it will fallback on the following indirect specular approach.
+Rays will ignore the smoothness of a Material when being reflected or refracted, which makes this rendering mode useful for rendering multi-layered transparent GameObjects. This forces the objects to have smooth reflections as long as their smoothness is above the minimum smoothness specified in the volume override. In the case the smoothness of the surface is below the minimum smoothness it will fall back on the following indirect specular approach.
 
 HDRP might display the sky color instead of a GameObject that has ray tracing applied. This happens when the GameObject is further away from the Camera than the Max Ray Length value set in the volume component. To make the GameObject appear correctly, increase the value of the Max Ray Length property.
 
@@ -40,7 +40,7 @@ Since recursive rendering uses an independent render pass, HDRP cannot render an
 | Property       | Description                                                  |
 | -------------- | ------------------------------------------------------------ |
 | **State**      | Controls whether Recursive Rendering is enabled. |
-| **LayerMask**  | Defines the layers that HDRP processes this ray-traced effect for. |
+| **Layer Mask** | Defines the layers that HDRP processes this ray-traced effect for. |
 | **Max Depth**  | Controls the maximum number of times a ray can reflect or refract before it stops and returns the final color. Increasing this value increases execution time exponentially. |
 | **Max Ray Length** | Controls the length of the rays in meters that HDRP uses for ray tracing after the initial intersection. For the primary ray, HDRP uses the camera's near and far planes.|
 | **Min Smoothness** | Defines the threshold at which reflection rays are not cast if the smoothness value of the target surface is inferior to the one defined by the parameter. |

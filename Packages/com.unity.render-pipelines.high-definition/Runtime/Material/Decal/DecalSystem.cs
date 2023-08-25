@@ -285,14 +285,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static public Mesh m_DecalMesh = null;
 
-        // These flags allow one to have the *clustered* decals be culled differently.
+        // These bit flags allow one to have cluster(s) of decals with different culling algorithm.
+        // Both types of clusters are created if raytracing is enabled for SSR/SSGI.
         // The ViewspaceBasedCulling mode uploads only those clustered decals that are in the view frustrum
         // The WorldspaceBasedCulling uploads clustered decals more generously. This is useful for algorithms such as path tracing that require decals to be available outside of the view frustrum.
         // Again, it only impacts the behaviour for the clustered decals; the DBuffer rendering stays the same regardless of the mode.
+        [Flags]
         public enum DecalCullingMode
         {
-            ViewspaceBasedCulling = 0,
-            WorldspaceBasedCulling = 1
+            ViewspaceBasedCulling = 1 << 0,
+            WorldspaceBasedCulling = 1 << 1
         }
 
         static public DecalCullingMode m_CullingMode = DecalCullingMode.ViewspaceBasedCulling;
@@ -880,10 +882,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public void CreateDrawData(IntScalableSetting transparentTextureResolution)
             {
-
-                // Check the culling mode 
-                bool viewspaceBasedCulling = (DecalSystem.m_CullingMode == DecalCullingMode.ViewspaceBasedCulling);
-
                 int maxTextureSize = 0;
 
                 NativeArray<Matrix4x4> cachedDecalToWorld = m_DecalToWorlds.Reinterpret<Matrix4x4>();
@@ -892,12 +890,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 Vector3 cameraPos = instance.CurrentCamera.transform.position;
                 var camera = instance.CurrentCamera;
                 Matrix4x4 worldToView = HDRenderPipeline.WorldToCamera(camera);
-                int cullingMask = camera.cullingMask;
-                ulong sceneCullingMask = HDUtils.GetSceneCullingMaskFromCamera(camera);
 
                 /* Prepare data for the DBuffer drawing */ 
-                if(viewspaceBasedCulling)
+                if ((DecalSystem.m_CullingMode & DecalCullingMode.ViewspaceBasedCulling) != 0)
                 {
+                    int cullingMask = camera.cullingMask;
+                    ulong sceneCullingMask = HDUtils.GetSceneCullingMaskFromCamera(camera);
+
                     int instanceCount = 0;
                     int batchCount = 0;
                     m_InstanceCount = 0;
@@ -943,17 +942,17 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
 
-                /* Prepare data for clustered decals */ 
+                /* Prepare data for clustered decals */
                 // Depending on the culling mode, we consider the decals that survived culling or all of them.
-                int decalsToConsider = viewspaceBasedCulling ? m_NumResults : m_DecalsCount;
+                bool useWorldspaceCluster = (DecalSystem.m_CullingMode & DecalCullingMode.WorldspaceBasedCulling) != 0;
+                int decalsToConsider = useWorldspaceCluster ? m_DecalsCount : m_NumResults;
 
                 bool anyClusteredDecalsPresent = false;
                 for (int resultIndex = 0; resultIndex < decalsToConsider; resultIndex++)
                 {
-
-                    int decalIndex = viewspaceBasedCulling ? m_ResultIndices[resultIndex] : resultIndex;
+                    int decalIndex = useWorldspaceCluster ? resultIndex : m_ResultIndices[resultIndex];
                     // Determine data to upload for clustered decal
-                    if (m_CachedAffectsTransparency[decalIndex] || !viewspaceBasedCulling) // in viewspace based mode, only cluster decals that affect transparent. In worldspace mode, upload all
+                    if (m_CachedAffectsTransparency[decalIndex] || useWorldspaceCluster) // in viewspace based mode, only cluster decals that affect transparent. In worldspace mode, upload all
                     {
                         float distanceToDecal = (cameraPos - m_CachedBoundingSpheres[decalIndex].position).magnitude;
                         float cullDistance = m_CachedDrawDistances[decalIndex].x + m_CachedBoundingSpheres[decalIndex].radius;
@@ -1559,7 +1558,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DecalDatasCount = 0;
             // Count the current maximum number of decals to cluster, to allow reallocation if needed
             int maxDecalsToCluster = m_DecalsVisibleThisFrame;
-            if(m_CullingMode == DecalCullingMode.WorldspaceBasedCulling)
+            if ((m_CullingMode & DecalCullingMode.WorldspaceBasedCulling) != 0)
             {
                 maxDecalsToCluster = 0;
                 foreach (var pair in m_DecalSets)
@@ -1589,7 +1588,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 pair.Value.UpdateCachedDrawOrder();
 
-                if (pair.Value.IsDrawn() || (m_CullingMode == DecalCullingMode.WorldspaceBasedCulling))
+                if (pair.Value.IsDrawn() || (m_CullingMode & DecalCullingMode.WorldspaceBasedCulling) != 0)
                 {
                     int insertIndex = 0;
                     while ((insertIndex < m_DecalSetsRenderList.Count) && (pair.Value.DrawOrder > m_DecalSetsRenderList[insertIndex].DrawOrder))

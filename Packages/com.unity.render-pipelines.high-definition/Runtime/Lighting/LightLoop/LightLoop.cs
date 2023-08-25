@@ -230,6 +230,23 @@ namespace UnityEngine.Rendering.HighDefinition
         DensityVolumes = LocalVolumetricFog
     };
 
+    /// <summary>
+    /// Light category for cluster debug view.
+    /// </summary>
+    public enum ClusterLightCategoryDebug : int
+    {
+        /// <summary>Punctual lights.</summary>
+        Punctual = LightCategory.Punctual,
+        /// <summary>Area lights.</summary>
+        Area = LightCategory.Area,
+        /// <summary>Environment lights.</summary>
+        Environment = LightCategory.Env,
+        /// <summary>Decals.</summary>
+        Decal = LightCategory.Decal,
+        /// <summary>All.</summary>
+        All = LightCategory.Count,
+    };
+
     [GenerateHLSL(needAccessors = false, generateCBuffer = true)]
     unsafe struct ShaderVariablesLightList
     {

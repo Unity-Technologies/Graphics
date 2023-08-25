@@ -59,7 +59,7 @@ To display the current active item independently of the debug window:
 
 ## Decals panel
 
-The **Decals** panel has tools that you can use to debug [decals](Decal-Shader.md) affecting transparent objects in your project.
+The **Decals** panel has tools that you can use to visualize the atlas texture, which is used to render [decals](Decal-Shader.md) on transparent objects and raytraced objects.
 
 | **Debug Option**  | **Description**                                              |
 | ----------------- | ------------------------------------------------------------ |
@@ -452,7 +452,7 @@ The **Lighting** panel has tools that you can use to visualize various component
 <td>Use this slider to set the distance from the camera at which to display the cluster slice. This property only appears when you select <strong>VisualizeSlice</strong> from the <strong>Cluster Debug Mode</strong> drop-down.</td>
 </tr>
 <tr>
-<td rowspan=2><strong>Display Sky Reflection</strong></td>
+<td rowspan="2"><strong>Display Sky Reflection</strong></td>
 <td colspan="2">Enable the checkbox to display an overlay of the cube map that the current sky generates and HDRP uses for lighting.</td>
 </tr>
 <tr>

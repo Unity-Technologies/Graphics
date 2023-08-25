@@ -230,7 +230,6 @@ When you enable ray tracing, HDRP automatically creates a ray tracing accelerati
 As a result, ray tracing can change how some Meshes appear in your scene in the following ways:
 
 - If your Mesh has a Material assigned that doesn't have the HDRenderPipeline tag, HDRP doesn't add it to the acceleration structure and doesn't apply any ray traced effects to the mesh as a result.
-- If your Mesh has a Decal Material assigned, HDRP doesn't add it to the acceleration structure and the Mesh doesn't appear in your scene.
 - If a Mesh has a combination of Materials that are single and double-sided, HDRP flags all Materials you have assigned to this mesh as double-sided.
 
 To include a GameObject in ray tracing effects, adjust the Ray Tracing settings in the GameObject's [Mesh Renderer component](https://docs.unity3d.com/Manual/class-MeshRenderer.html#ray-tracing).
@@ -272,7 +271,7 @@ HDRP supports ray tracing for DirectX 12 and specific console platforms. Consult
 HDRP ray tracing in Unity isn't compatible with the following features:
 
 - Vertex animation, for example wind deformation of vegetation.
-- [Decals](Decal.md).
+- Emission of [decals](Decal.md).
 - Ray tracing is not compatible with the detail meshes and trees in the [Terrain system](https://docs.unity3d.com/Manual/script-Terrain.html). It is compatible with terrain geometry. To include detailed meshes and trees in ray traced reflections, use [mixed tracing](Override-Screen-Space-Reflection.md#mixed-tracing).
 - Volumetric [fog](Override-Fog.md).
 - [Tessellation](Tessellation.md).

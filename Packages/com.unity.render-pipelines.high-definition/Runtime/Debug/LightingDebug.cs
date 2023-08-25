@@ -356,6 +356,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Distance at which clusters will be visualized.</summary>
         public float clusterDebugDistance = 1.0f;
 
+        /// <summary>Light category for cluster debug view.</summary>
+        public ClusterLightCategoryDebug clusterLightCategory = ClusterLightCategoryDebug.All;
+
         // Internal APIs
         internal bool IsDebugDisplayRemovePostprocess()
         {

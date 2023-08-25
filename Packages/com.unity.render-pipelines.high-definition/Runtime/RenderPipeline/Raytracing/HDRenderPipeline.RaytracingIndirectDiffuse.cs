@@ -285,7 +285,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Trace the rays and evaluate the lighting
             DeferredLightingRTParameters deferredParamters = PrepareIndirectDiffuseDeferredLightingRTParameters(hdCamera, fullResolution);
-            RayTracingDefferedLightLoopOutput lightloopOutput = DeferredLightingRT(renderGraph, in deferredParamters, directionBuffer, prepassOutput, skyTexture, rayCountTexture);
+            RayTracingDefferedLightLoopOutput lightloopOutput = DeferredLightingRT(renderGraph, hdCamera, in deferredParamters, directionBuffer, prepassOutput, skyTexture, rayCountTexture);
 
             rtgiResult = UpscaleRTGI(renderGraph, hdCamera, settings, prepassOutput.depthBuffer, prepassOutput.normalBuffer, lightloopOutput.lightingBuffer, directionBuffer, fullResolution);
 
@@ -307,7 +307,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int sampleCount;
             public float clampValue;
             public int bounceCount;
-            public int lodBias;
+            public float lodBias;
             public int rayMiss;
             public int lastBounceFallbackHierarchy;
             public float ambientProbeDimmer;
@@ -324,6 +324,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle normalBuffer;
             public TextureHandle rayCountTexture;
             public TextureHandle outputBuffer;
+
+            public bool enableDecals;
         }
 
         TextureHandle QualityRTGI(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthStencilBuffer, TextureHandle normalBuffer, TextureHandle rayCountTexture)
@@ -381,6 +383,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.outputBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
                 { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Ray Traced Indirect Diffuse" }));
 
+                passData.enableDecals = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals);
+
                 builder.SetRenderFunc(
                     (TraceQualityRTGIPassData data, RenderGraphContext ctx) =>
                     {
@@ -427,6 +431,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         // Only use the shader variant that has multi bounce if the bounce count > 1
                         CoreUtils.SetKeyword(ctx.cmd, "MULTI_BOUNCE_INDIRECT", data.bounceCount > 1);
+
+                        if (data.enableDecals)
+                            DecalSystem.instance.SetAtlas(ctx.cmd);
 
                         // Run the computation
                         ctx.cmd.DispatchRays(data.indirectDiffuseRT, m_RayGenIndirectDiffuseIntegrationName, (uint)data.texWidth, (uint)data.texHeight, (uint)data.viewCount);

@@ -879,6 +879,29 @@ namespace UnityEngine.Rendering.HighDefinition
             return pathTracing ? pathTracing.enable.value : false;
         }
 
+        internal bool IsRayTracingEnabled()
+        {
+            if (!frameSettings.IsEnabled(FrameSettingsField.RayTracing))
+                return false;
+
+            var ssr = volumeStack.GetComponent<ScreenSpaceReflection>();
+            if (( frameSettings.IsEnabled(FrameSettingsField.SSR) && ssr.enabled.value && frameSettings.IsEnabled(FrameSettingsField.OpaqueObjects))
+                || (frameSettings.IsEnabled(FrameSettingsField.TransparentSSR) && ssr.enabledTransparent.value))
+                if (ssr.tracing.value != RayCastingMode.RayMarching)
+                    return true;
+
+            var ssgi = volumeStack.GetComponent<GlobalIllumination>();
+            if (frameSettings.IsEnabled(FrameSettingsField.SSGI) && ssgi.enable.value)
+                if (ssgi.tracing.value != RayCastingMode.RayMarching)
+                    return true;
+
+            var recursiveSettings = volumeStack.GetComponent<RecursiveRendering>();
+            if (recursiveSettings.enable.value)
+                return true;
+
+            return false;
+        }
+
         internal DynamicResolutionHandler.UpsamplerScheduleType UpsampleSyncPoint()
         {
             if (IsDLSSEnabled())

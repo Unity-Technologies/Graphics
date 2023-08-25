@@ -9,12 +9,16 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracingLightLoop.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RayTracingLightCluster.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Debug.hlsl"
 
 // Color gradient texture used for the lightcount heatmap
 TEXTURE2D(_DebugColorGradientTexture);
 
 // The output texture for the cluster debug
 RW_TEXTURE2D_X(float4, _DebutLightClusterTexture);
+
+int _ClusterLightCategoryDebug = 0;
 
 [numthreads(DEBUG_LIGHT_CLUSTER_TILE_SIZE, DEBUG_LIGHT_CLUSTER_TILE_SIZE, 1)]
 void DebugLightCluster(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
@@ -35,24 +39,27 @@ void DebugLightCluster(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : S
     // Compute the real world space position of this pixel
     PositionInputs posInput = GetPositionInput(currentPixelCoordinate, 1.0 / _ScreenSize.xy, depth, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
 
-    // If this position is outisde of the cluster, color is gray
+    // If this position is outside of the cluster, color is gray
     if(!PointInsideCluster(posInput.positionWS))
     {
         _DebutLightClusterTexture[COORD_TEXTURE2D_X(currentPixelCoordinate)] = float4(0.1, 0.1, 0.1, 1.0f);
         return;
     }
 
-    // Compute the grid position
-    float3 floatingGridPosition = (posInput.positionWS - _MinClusterPos) / (_MaxClusterPos - _MinClusterPos) * float3(64.0, 64.0, 32.0);
-
-    // Convert it to an int3
-    uint3 gridPosition = (uint3)floatingGridPosition;
-
-    // Deduce the cell index
     uint cellIndex = GetClusterCellIndex(posInput.positionWS);
 
-    // Fetch the light count
-    uint numLights = GetTotalLightClusterCellCount(cellIndex);
+    // Fetch the light count for the specified light category
+    uint numLights;
+    if (_ClusterLightCategoryDebug < LIGHTCATEGORY_COUNT)
+    {
+        uint lightStart, lightEnd;
+        GetLightCountAndStartCluster(posInput.positionWS, _ClusterLightCategoryDebug, lightStart, lightEnd, cellIndex);
+        numLights = lightEnd - lightStart;
+    }
+    else
+    {
+        numLights = GetTotalLightClusterCellCount(cellIndex);
+    }
 
     // If this pixel has no lights, let the color to gray
     if(numLights == 0)
@@ -61,11 +68,9 @@ void DebugLightCluster(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : S
         return;
     }
 
-    // Compute the color of this pixel
-    float linearDepth = Linear01Depth(depth, _ZBufferParams);
-    float lightFillPercentage = (float)numLights / (float)_LightPerCellCount;
-    float3 cellColor = lerp(float3(0.0, 1.0, 0.0), float3(1.0, 1.0, 0.0), clamp(lightFillPercentage, 0.0, 1.0)) * linearDepth;
-    cellColor.xyz = numLights >= _LightPerCellCount ?  float3(0.7, 0.0, 0.0) : cellColor.xyz;
+    // Get the heatmap color from numLights.
+    float3 cellColor = numLights >= _LightPerCellCount || numLights >= DEBUG_COLORS_COUNT ? float3(0.7, 0.0, 0.0) // red
+        : kDebugColorGradient[numLights].xyz;
 
     // Return the color
     _DebutLightClusterTexture[COORD_TEXTURE2D_X(currentPixelCoordinate)] = float4(cellColor, 1.0);

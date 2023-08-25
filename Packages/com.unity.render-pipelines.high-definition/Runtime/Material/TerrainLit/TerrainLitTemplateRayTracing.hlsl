@@ -7,7 +7,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
 
-#if (SHADERPASS == SHADERPASS_RAYTRACING_INDIRECT) || (SHADERPASS == SHADERPASS_RAYTRACING_FORWARD) || (SHADERPASS == SHADERPASS_PATH_TRACING)
+#if defined(PATH_TRACING_CLUSTERED_DECALS) || (SHADERPASS == SHADERPASS_RAYTRACING_FORWARD)
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracingLightLoop.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
 #endif
@@ -22,12 +22,12 @@
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl"
 #endif
 
-#if (SHADERPASS == SHADERPASS_RAYTRACING_INDIRECT) || (SHADERPASS == SHADERPASS_RAYTRACING_FORWARD) || (SHADERPASS == SHADERPASS_PATH_TRACING)
+#if defined(PATH_TRACING_CLUSTERED_DECALS) || (SHADERPASS == SHADERPASS_RAYTRACING_FORWARD)
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
     #define HAS_LIGHTLOOP
 #endif
 
-#if (SHADERPASS == SHADERPASS_PATH_TRACING)
+#if defined(PATH_TRACING_CLUSTERED_DECALS)
 // Force include ray tracing light cluster for decals in path tracing
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RayTracingLightCluster.hlsl"
 #endif

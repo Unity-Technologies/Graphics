@@ -32,7 +32,7 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/SampleUVMapping.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl"
-#if !defined(SHADER_STAGE_RAY_TRACING) || (SHADERPASS == SHADERPASS_PATH_TRACING)
+#if !defined(SHADER_STAGE_RAY_TRACING) || defined (PATH_TRACING_CLUSTERED_DECALS)
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalUtilities.hlsl"
 #endif
 
@@ -172,7 +172,7 @@ float AxFCalculateLODFromCone(float2 dUVdx, float2 dUVdy,float2 scales /* textur
 #define AXF_DDY(uv, scales, rayCone, geomNormalWS, V) AxFDDXFromCone(scales, rayCone, geomNormalWS, V) // isotropic, one function used only
 
 #endif //#if !defined(AXF_RAYTRACING_USE_CONE_TO_GRAD)
-#endif //#if !defined(SHADER_STAGE_RAY_TRACING) || (SHADERPASS == SHADERPASS_PATH_TRACING)
+#endif //#if !defined(SHADER_STAGE_RAY_TRACING)
 //-----------------------------------------------------------------------------
 
 
@@ -535,7 +535,7 @@ void SetFlakesSurfaceData(TextureUVMapping uvMapping, inout SurfaceData surfaceD
 #endif
 }
 
-#if !defined(SHADER_STAGE_RAY_TRACING) || (SHADERPASS == SHADERPASS_PATH_TRACING)
+#if !defined(SHADER_STAGE_RAY_TRACING) || defined (PATH_TRACING_CLUSTERED_DECALS)
 
 void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, float3 vtxNormal, inout SurfaceData surfaceData
 #ifdef DECAL_SURFACE_GRADIENT
@@ -589,7 +589,7 @@ void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, float3 vtxNormal
 #endif
 }
 
-#endif //...#if !defined(SHADER_STAGE_RAY_TRACING) || (SHADERPASS == SHADERPASS_PATH_TRACING)
+#endif //...#if !defined(SHADER_STAGE_RAY_TRACING) || defined (PATH_TRACING_CLUSTERED_DECALS)
 
 
 void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData RAY_TRACING_OPTIONAL_PARAMETERS)

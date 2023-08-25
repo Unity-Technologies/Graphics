@@ -2583,6 +2583,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         DecalSystem.instance.CurrentCamera = hdCamera.camera; // Singletons are extremely dangerous...
                         if (hdCamera.IsPathTracingEnabled())
                             DecalSystem.m_CullingMode = DecalSystem.DecalCullingMode.WorldspaceBasedCulling;
+                        else if (hdCamera.IsRayTracingEnabled())
+                            DecalSystem.m_CullingMode = DecalSystem.DecalCullingMode.WorldspaceBasedCulling | DecalSystem.DecalCullingMode.ViewspaceBasedCulling;
                         else
                             DecalSystem.m_CullingMode = DecalSystem.DecalCullingMode.ViewspaceBasedCulling;
                         DecalSystem.instance.LoadCullResults(decalCullingResults);

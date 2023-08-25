@@ -1,3 +1,7 @@
+#if defined(SURFACE_GRADIENT) || defined(DECAL_NORMAL_BLENDING)
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl"
+#endif
+
 // Using this function instead of accessing the constant directly allows for overrides, in particular
 // in Path Tracing where we want to change the sidedness behaviour based on the transparency mode.
 float3 GetDoubleSidedConstants()

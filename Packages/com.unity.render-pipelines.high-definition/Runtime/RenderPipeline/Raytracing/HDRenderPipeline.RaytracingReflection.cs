@@ -457,7 +457,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Run the deferred lighting pass
             DeferredLightingRTParameters deferredParamters = PrepareReflectionDeferredLightingRTParameters(hdCamera, fullResolution, transparent);
-            RayTracingDefferedLightLoopOutput lightloopOutput = DeferredLightingRT(renderGraph, in deferredParamters, directionBuffer, prepassOutput, skyTexture, rayCountTexture);
+            RayTracingDefferedLightLoopOutput lightloopOutput = DeferredLightingRT(renderGraph, hdCamera, in deferredParamters, directionBuffer, prepassOutput, skyTexture, rayCountTexture);
            
             // Denoise if required
             if (settings.denoise && !transparent)
@@ -517,6 +517,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // Output textures
             public TextureHandle lightingTexture;
             public TextureHandle distanceTexture;
+
+            public bool enableDecals;
         }
         struct RayTracingReflectionsQualityOutput
         {
@@ -570,6 +572,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Ray Traced Reflections" }));
                 passData.distanceTexture = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
                 { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Ray Traced Reflections" }));
+
+                passData.enableDecals = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals);
 
                 builder.SetRenderFunc(
                     (TraceQualityRTRPassData data, RenderGraphContext ctx) =>
@@ -630,6 +634,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         // Only use the shader variant that has multi bounce if the bounce count > 1
                         CoreUtils.SetKeyword(ctx.cmd, "MULTI_BOUNCE_INDIRECT", data.bounceCount > 1);
+
+                        if (data.enableDecals)
+                            DecalSystem.instance.SetAtlas(ctx.cmd); // for clustered decals
 
                         // Run the computation
                         ctx.cmd.DispatchRays(data.reflectionShader, data.transparent ? m_RayGenIntegrationTransparentName : m_RayGenIntegrationName, (uint)data.texWidth, (uint)data.texHeight, (uint)data.viewCount);

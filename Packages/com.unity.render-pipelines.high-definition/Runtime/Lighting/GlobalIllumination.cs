@@ -169,10 +169,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public LayerMaskParameter layerMask = new LayerMaskParameter(-1);
 
         /// <summary>
-        /// The LOD Bias HDRP applies to textures in the global illumination.
+        /// The LOD Bias that HDRP adds to texture sampling in the global illumination.
         /// </summary>
-        [Tooltip("The LOD Bias HDRP applies to textures in the global illumination. A higher value increases performance and makes denoising easier, but it might reduce visual fidelity.")]
-        public ClampedIntParameter textureLodBias = new ClampedIntParameter(7, 0, 7);
+        [Tooltip("The LOD Bias that HDRP adds to texture sampling in the global illumination. A higher value increases performance and makes denoising easier, but it might reduce visual fidelity.")]
+        public ClampedFloatParameter textureLodBias = new ClampedFloatParameter(7.0f, 0.0f, 7.0f);
 
         /// <summary>
         /// Controls the length of GI rays in meters.

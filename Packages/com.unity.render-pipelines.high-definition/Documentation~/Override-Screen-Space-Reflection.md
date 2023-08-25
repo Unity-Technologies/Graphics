@@ -81,85 +81,101 @@ This example image uses **Speed From Reflected Surface** to accumulate the sampl
 <thead>
   <tr>
     <th><strong>Property</strong></th>
-    <th></th>
-    <th><strong>Description</strong></th>
+    <th colspan="2"><strong>Description</strong></th>
   </tr>
 </thead>
 <tbody>
   <tr>
     <td><strong>Tracing</strong></td>
-    <td></td>
-    <td>Specifies the method HDRP uses to calculate reflections. Depending on the option you select, the properties visible in the Inspector change. For more information on what the options do, see <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Override-Screen-Space-Reflection.html#tracing-modes">Tracing Modes</a>. The options are:<br>• <strong>Ray Marching</strong>: Uses a screen-space ray marching solution to calculate reflections. For the list of properties this option exposes, see <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Override-Screen-Space-Reflection.html#screen-space">Screen Space</a>.<br>• <strong>Ray Tracing</strong>: Uses ray tracing to calculate reflections. For information on ray-traced reflections, see <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Ray-Traced-Reflections.html">Ray-Traced Reflections</a>. For the list of properties this option exposes, see <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Override-Screen-Space-Reflection.html#ray-traced">Ray-traced</a>.<br>• <strong>Mixed</strong>: Uses a combination of ray tracing and ray marching to calculate reflections. For the list of properties this option exposes, see <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Override-Screen-Space-Reflection.html#ray-traced">Ray-traced</a>.</td>
+    <td colspan="2">Specifies the method HDRP uses to calculate reflections. Depending on the option you select, the properties visible in the Inspector change. For more information on what the options do, see <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Override-Screen-Space-Reflection.html#tracing-modes">Tracing Modes</a>. The options are:
+	<ul>
+	<li><strong>Ray Marching</strong>: Uses a screen-space ray marching solution to calculate reflections. For the list of properties this option exposes, see <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Override-Screen-Space-Reflection.html#screen-space">Screen Space</a>.</li>
+	<li><strong>Ray Tracing</strong>: Uses ray tracing to calculate reflections. For information on ray-traced reflections, see <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Ray-Traced-Reflections.html">Ray-Traced Reflections</a>. For the list of properties this option exposes, see <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Override-Screen-Space-Reflection.html#ray-traced">Ray-traced</a>.</li>
+	<li><strong>Mixed</strong>: Uses a combination of ray tracing and ray marching to calculate reflections. For the list of properties this option exposes, see <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Override-Screen-Space-Reflection.html#ray-traced">Ray-traced</a>.</li>
+	</ul></td>
   </tr>
   <tr>
     <td><strong>Ray Miss</strong></td>
-    <td></td>
-    <td>Determines what HDRP does when ray-traced reflections (RTR) doesn't find an intersection. Choose from one of the following options: <br>•<strong>Reflection probes</strong>: HDRP uses reflection probes in your scene to calculate the last RTR bounce.<br>•<strong>Sky</strong>: HDRP uses the sky defined by the current <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Volumes.html">Volume</a> settings to calculate the last RTR bounce.<br>•<strong>Both</strong> : HDRP uses both reflection probes and the sky defined by the current <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Volumes.html">Volume</a> settings to calculate the last RTR bounce.<br>•<strong>Nothing</strong>: HDRP doesn't calculate indirect lighting when RTR doesn't find an intersection.<br><br>This property is set to <strong>Both</strong> by default</td>
+    <td colspan="2">Determines what HDRP does when ray-traced reflections (RTR) doesn't find an intersection. Choose from one of the following options: 
+    <ul>
+    <li><strong>Reflection probes</strong>: HDRP uses reflection probes in your scene to calculate the last RTR bounce.</li>
+    <li><strong>Sky</strong>: HDRP uses the sky defined by the current <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Volumes.html">Volume</a> settings to calculate the last RTR bounce.</li>
+    <li><strong>Both</strong>: HDRP uses both reflection probes and the sky defined by the current <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Volumes.html">Volume</a> settings to calculate the last RTR bounce.</li>
+    <li><strong>Nothing</strong>: HDRP doesn't calculate indirect lighting when RTR doesn't find an intersection.</li>
+    </ul>
+    This property is set to <strong>Both</strong> by default</td>
   </tr>
   <tr>
     <td><strong>Last Bounce</strong></td>
-    <td></td>
-    <td>Determines what HDRP does when ray-traced reflections (RTR) lights the last bounce. Choose from one of the following options: <br>•<strong>Reflection probes</strong>: HDRP uses reflection probes in your scene to calculate the last RTR bounce.<br>•<strong>Sky</strong>: HDRP uses the sky defined by the current <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Volumes.html">Volume</a> settings to calculate the last RTR bounce.<br>•<strong>Both</strong>:&nbsp;&nbsp;HDRP uses both reflection probes and the sky defined by the current [<a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Volumes.html">Volume</a> settings to calculate the last RTR bounce.<br>•<strong>Nothing</strong>: HDRP doesn't calculate indirect lighting when it evaluates the last bounce.<br><br>This property is set to <strong>Both</strong> by default.</td>
+    <td colspan="2">Determines what HDRP does when ray-traced reflections (RTR) lights the last bounce. Choose from one of the following options: 
+    <ul>
+    <li><strong>Reflection probes</strong>: HDRP uses reflection probes in your scene to calculate the last RTR bounce.</li>
+    <li><strong>Sky</strong>: HDRP uses the sky defined by the current <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Volumes.html">Volume</a> settings to calculate the last RTR bounce.</li>
+    <li><strong>Both</strong>: HDRP uses both reflection probes and the sky defined by the current [<a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Volumes.html">Volume</a> settings to calculate the last RTR bounce.</li>
+    <li><strong>Nothing</strong>: HDRP doesn't calculate indirect lighting when it evaluates the last bounce.</li>
+    </ul>
+    This property is set to <strong>Both</strong> by default.
+    </td>
   </tr>
   <tr>
-    <td><strong>LayerMask</strong></td>
-    <td></td>
-    <td>Defines the layers that HDRP processes this ray-traced effect for.</td>
+    <td><strong>Layer Mask</strong></td>
+    <td colspan="2">Defines the layers that HDRP processes this ray-traced effect for.</td>
+  </tr>
+  <tr>
+    <td><strong>Texture Lod Bias</strong></td>
+    <td colspan="2">The LOD Bias that HDRP adds to texture sampling in the reflection. A higher value increases performance and makes denoising easier, but it might reduce visual fidelity.</td>
   </tr>
   <tr>
     <td><strong>Mode</strong></td>
-    <td></td>
-    <td>Defines if HDRP should evaluate the effect in <strong>Performance</strong> or <strong>Quality</strong> mode.<br>This property only appears if you select set <strong>Supported Ray Tracing Mode</strong> in your HDRP Asset to <strong>Both</strong>.</td>
+    <td colspan="2">Defines if HDRP should evaluate the effect in <strong>Performance</strong> or <strong>Quality</strong> mode.<br>This property only appears if you select set <strong>Supported Ray Tracing Mode</strong> in your HDRP Asset to <strong>Both</strong>.</td>
   </tr>
   <tr>
     <td><strong>Quality</strong></td>
-    <td></td>
-    <td>Specifies the preset HDRP uses to populate the values of the following nested properties. The options are:<br>• <strong>Low</strong>: A preset that emphasizes performance over quality.<br>• <strong>Medium</strong>: A preset that balances performance and quality.<br>• <strong>High</strong>: A preset that emphasizes quality over performance.<br>• <strong>Custom</strong>: Allows you to override each property individually.<br>This property only appears if you set <strong>Mode</strong> to <strong>Performance</strong>.</td>
+    <td colspan="2">Specifies the preset HDRP uses to populate the values of the following nested properties. The options are:
+    <ul>
+    <li><strong>Low</strong>: A preset that emphasizes performance over quality.</li>
+    <li><strong>Medium</strong>: A preset that balances performance and quality.</li>
+    <li><strong>High</strong>: A preset that emphasizes quality over performance.</li>
+    <li><strong>Custom</strong>: Allows you to override each property individually.</li>
+    </ul>
+    This property only appears if you set <strong>Mode</strong> to <strong>Performance</strong>.
+    </td>
   </tr>
   <tr>
     <td><strong>Minimum Smoothness</strong></td>
-    <td></td>
-    <td>See <strong>Minimum Smoothness</strong> in <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Override-Screen-Space-Reflection.html#screen-space">Screen Space</a>.</td>
+    <td colspan="2">See <strong>Minimum Smoothness</strong> in <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Override-Screen-Space-Reflection.html#screen-space">Screen Space</a>.</td>
   </tr>
   <tr>
     <td><strong>Smoothness Fade Start</strong></td>
-    <td></td>
-    <td>See <strong>Smoothness Fade Start</strong> in <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Override-Screen-Space-Reflection.html#screen-space">Screen Space</a>.</td>
+    <td colspan="2">See <strong>Smoothness Fade Start</strong> in <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Override-Screen-Space-Reflection.html#screen-space">Screen Space</a>.</td>
   </tr>
   <tr>
     <td><strong>Max Ray Length</strong></td>
-    <td></td>
-    <td>Controls the maximum length of reflection rays. The higher this value is, the more resource-intensive ray-traced reflection is if a ray doesn't find an intersection.</td>
+    <td colspan="2">Controls the maximum length of reflection rays. The higher this value is, the more resource-intensive ray-traced reflection is if a ray doesn't find an intersection.</td>
   </tr>
   <tr>
     <td><strong>Clamp Value</strong></td>
-    <td></td>
-    <td>Controls the threshold that HDRP uses to clamp the pre-exposed value. This reduces the range of values and makes the reflections more stable to denoise, but reduces quality.</td>
+    <td colspan="2">Controls the threshold that HDRP uses to clamp the pre-exposed value. This reduces the range of values and makes the reflections more stable to denoise, but reduces quality.</td>
   </tr>
   <tr>
     <td><strong>Full Resolution</strong></td>
-    <td></td>
-    <td>Enable this feature to increase the ray budget to one ray per pixel, per frame. Disable this feature to decrease the ray budget to one ray per four pixels, per frame.<br>This property only appears if you set <strong>Mode</strong> to <strong>Performance</strong>.</td>
+    <td colspan="2">Enable this feature to increase the ray budget to one ray per pixel, per frame. Disable this feature to decrease the ray budget to one ray per four pixels, per frame.<br>This property only appears if you set <strong>Mode</strong> to <strong>Performance</strong>.</td>
   </tr>
   <tr>
     <td><strong>Sample Count</strong></td>
-    <td></td>
-    <td>Controls the number of rays per pixel per frame. Increasing this value increases execution time linearly.<br>This property only appears if you set <strong>Mode</strong> to <strong>Quality</strong>.</td>
+    <td colspan="2">Controls the number of rays per pixel per frame. Increasing this value increases execution time linearly.<br>This property only appears if you set <strong>Mode</strong> to <strong>Quality</strong>.</td>
   </tr>
   <tr>
     <td><strong>Bounce Count</strong></td>
-    <td></td>
-    <td>Controls the number of bounces that reflection rays can do. Increasing this value increases execution time exponentially.<br>This property only appears if you set <strong>Mode</strong> to <strong>Quality</strong>.</td>
+    <td colspan="2">Controls the number of bounces that reflection rays can do. Increasing this value increases execution time exponentially.<br>This property only appears if you set <strong>Mode</strong> to <strong>Quality</strong>.</td>
   </tr>
   <tr>
     <td><strong>Max Mixed Ray Steps</strong></td>
-    <td></td>
-    <td>Sets the maximum number of iterations that the algorithm can execute before it stops trying to find an intersection with a Mesh. For example, if you set the number of iterations to 1000 and the algorithm only needs 10 to find an intersection, the algorithm terminates after 10 iterations. If you set this value too low, the algorithm may terminate too early and abruptly stop reflections. This property only appears if you set <strong>Tracing</strong> to <strong>Mixed</strong>.</td>
+    <td colspan="2">Sets the maximum number of iterations that the algorithm can execute before it stops trying to find an intersection with a Mesh. For example, if you set the number of iterations to 1000 and the algorithm only needs 10 to find an intersection, the algorithm terminates after 10 iterations. If you set this value too low, the algorithm may terminate too early and abruptly stop reflections. This property only appears if you set <strong>Tracing</strong> to <strong>Mixed</strong>.</td>
   </tr>
   <tr>
     <td><strong>Denoise</strong></td>
-    <td></td>
-    <td>Enables the spatio-temporal filter that HDRP uses to remove noise from the reflections.</td>
+    <td colspan="2">Enables the spatio-temporal filter that HDRP uses to remove noise from the reflections.</td>
   </tr>
   <tr>
     <td></td>
@@ -190,7 +206,5 @@ If a transparent material has **Receive SSR Transparent** enabled, HDRP always u
 When a transparent material has rendering pass set to **Low Resolution**, then **Receive SSR Transparent** can't be selected.
 
 ### Ray-traced reflection
-
-Currently, ray tracing in HDRP doesn't support [decals](decal.md). This means that, when you use ray-traced reflection, decals don't appear in reflective surfaces.
 
 If a transparent material has **Receive SSR Transparent** enabled, HDRP will evaluate the reflections as smooth.
