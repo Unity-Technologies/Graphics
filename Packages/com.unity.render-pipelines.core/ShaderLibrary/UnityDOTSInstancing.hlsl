@@ -151,19 +151,19 @@ static const int UNITY_DOTS_INSTANCED_PROP_OVERRIDE_MODE_NAME(name) = kDotsInsta
 #define UNITY_DOTS_INSTANCED_PROP_IS_OVERRIDE_ENABLED(name) (UNITY_DOTS_INSTANCED_PROP_OVERRIDE_MODE_NAME(name) == kDotsInstancedPropOverrideSupported)
 #define UNITY_DOTS_INSTANCED_PROP_IS_OVERRIDE_REQUIRED(name) (UNITY_DOTS_INSTANCED_PROP_OVERRIDE_MODE_NAME(name) == kDotsInstancedPropOverrideRequired)
 
-#define UNITY_ACCESS_DOTS_INSTANCED_PROP(type, var) ( \ // Compile-time branches
+#define UNITY_ACCESS_DOTS_INSTANCED_PROP(type, var) ( /* Compile-time branches */ \
 UNITY_DOTS_INSTANCED_PROP_IS_OVERRIDE_ENABLED(var) ? LoadDOTSInstancedData_##type(UNITY_DOTS_INSTANCED_METADATA_NAME(type, var)) \
 : UNITY_DOTS_INSTANCED_PROP_IS_OVERRIDE_REQUIRED(var) ? LoadDOTSInstancedDataOverridden_##type(UNITY_DOTS_INSTANCED_METADATA_NAME(type, var)) \
 : ((type)0) \
 )
 
-#define UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(type, var) ( \ // Compile-time branches
+#define UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(type, var) ( /* Compile-time branches */ \
 UNITY_DOTS_INSTANCED_PROP_IS_OVERRIDE_ENABLED(var) ? LoadDOTSInstancedData_##type(var, UNITY_DOTS_INSTANCED_METADATA_NAME(type, var)) \
 : UNITY_DOTS_INSTANCED_PROP_IS_OVERRIDE_REQUIRED(var) ? LoadDOTSInstancedDataOverridden_##type(UNITY_DOTS_INSTANCED_METADATA_NAME(type, var)) \
 : (var) \
 )
 
-#define UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_CUSTOM_DEFAULT(type, var, default_value) ( \ // Compile-time branches
+#define UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_CUSTOM_DEFAULT(type, var, default_value) ( /* Compile-time branches */ \
 UNITY_DOTS_INSTANCED_PROP_IS_OVERRIDE_ENABLED(var) ? LoadDOTSInstancedData_##type(default_value, UNITY_DOTS_INSTANCED_METADATA_NAME(type, var)) \
 : UNITY_DOTS_INSTANCED_PROP_IS_OVERRIDE_REQUIRED(var) ? LoadDOTSInstancedDataOverridden_##type(UNITY_DOTS_INSTANCED_METADATA_NAME(type, var)) \
 : (default_value) \
