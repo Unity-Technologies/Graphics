@@ -474,7 +474,7 @@ namespace UnityEngine.Rendering.Universal
                     resourcesData.overlayUITexture,
                     resourcesData.afterPostProcessColor,
                     ref renderingData,
-                    true,
+                    requireFinalPostProcessPass,
                     resolveToDebugScreen,
                     needsColorEncoding);
                 finalColorHandle = resourcesData.afterPostProcessColor;
@@ -485,7 +485,7 @@ namespace UnityEngine.Rendering.Universal
                 // Do PixelPerfect upscaling when using the Stretch Fill option
                 if (requirePixelPerfectUpscale)
                 {
-                    m_UpscalePass.Render(renderGraph, ref cameraData, ref renderingData, in finalColorHandle, resourcesData.upscaleTexture);
+                    m_UpscalePass.Render(renderGraph, ref cameraData, in finalColorHandle, resourcesData.upscaleTexture);
                     finalColorHandle = resourcesData.upscaleTexture;
                 }
 

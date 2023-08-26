@@ -59,7 +59,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        public void Render(RenderGraph graph, ref CameraData cameraData, ref RenderingData renderingData, in TextureHandle cameraColorAttachment, in TextureHandle upscaleHandle)
+        public void Render(RenderGraph graph, ref CameraData cameraData, in TextureHandle cameraColorAttachment, in TextureHandle upscaleHandle)
         {
             cameraData.camera.TryGetComponent<PixelPerfectCamera>(out var ppc);
             if (ppc == null || !ppc.enabled || !ppc.requiresUpscalePass)
