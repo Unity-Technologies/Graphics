@@ -43,7 +43,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             {
                 nativeRenderPasses.Execute(m_RenderGraphContext, m_Resources, m_RenderPasses);
             }
-            m_RenderGraphContext.renderContext.ExecuteCommandBuffer(m_RenderGraphContext.cmd);
+            if (m_RenderGraphContext.contextlessTesting == false)
+                m_RenderGraphContext.renderContext.ExecuteCommandBuffer(m_RenderGraphContext.cmd);
+
             m_RenderGraphContext.cmd.Clear();
         }
     }
