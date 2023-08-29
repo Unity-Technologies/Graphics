@@ -113,7 +113,6 @@ CBUFFER_END
 CBUFFER_START(ShaderVariablesWaterRendering)
     float4x4 _WaterSurfaceTransform;
     float4x4 _WaterSurfaceTransform_Inverse;
-    float4 _PatchRotation;
     float4 _PatchOffset;
     float2 _GridSize;
     float2 _GridOffset;
