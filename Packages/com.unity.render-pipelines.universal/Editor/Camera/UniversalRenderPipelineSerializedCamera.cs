@@ -110,7 +110,8 @@ namespace UnityEditor.Rendering.Universal
 
             for (int i = 0; i < numCameras; ++i)
             {
-                cameraSerializedObjects[i].Update();
+                if (cameraSerializedObjects[i] != null)
+                    cameraSerializedObjects[i].Update();
             }
         }
 
@@ -125,7 +126,8 @@ namespace UnityEditor.Rendering.Universal
 
             for (int i = 0; i < numCameras; ++i)
             {
-                cameraSerializedObjects[i].Apply();
+                if (cameraSerializedObjects[i] != null)
+                    cameraSerializedObjects[i].Apply();
             }
         }
 
@@ -141,7 +143,10 @@ namespace UnityEditor.Rendering.Universal
             for (int i = 0; i < numCameras; ++i)
             {
                 Camera cam = cameras.GetArrayElementAtIndex(i).objectReferenceValue as Camera;
-                cameraSerializedObjects[i] = new UniversalRenderPipelineSerializedCamera(new SerializedObject(cam));
+                if (cam != null)
+                    cameraSerializedObjects[i] = new UniversalRenderPipelineSerializedCamera(new SerializedObject(cam));
+                else
+                    cameraSerializedObjects[i] = null;
             }
         }
     }
