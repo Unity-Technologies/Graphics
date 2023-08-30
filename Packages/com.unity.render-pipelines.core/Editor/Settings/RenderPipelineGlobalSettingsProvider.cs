@@ -56,11 +56,18 @@ namespace UnityEditor.Rendering
             m_Editor = null;
         }
 
-        VisualElement CreateEditor()
+        bool TryCreateEditor(out VisualElement editorElement)
         {
+            editorElement = null;
+
             m_Editor = Editor.CreateEditor(renderPipelineSettings);
-            var editorRoot = m_Editor != null ? m_Editor.CreateInspectorGUI() : null;
-            return editorRoot;
+            if (m_Editor != null)
+            {
+                editorElement = m_Editor.CreateInspectorGUI();
+                editorElement.name = $"{renderPipelineSettings.name}_EditorElement";
+            }
+
+            return editorElement != null;
         }
 
         /// <summary>
@@ -73,9 +80,11 @@ namespace UnityEditor.Rendering
             DestroyEditor();
             base.OnActivate(searchContext, rootElement);
 
-            var srpSettingsEditor = CreateEditor();
-            if (srpSettingsEditor != null)
+            if (TryCreateEditor(out var editorElement))
             {
+                var srpSettingsEditor = new VisualElement();
+                srpSettingsEditor.Add(editorElement);
+
                 // CreateEditor returned a VisualElement, we are using UITK and not IMGUI.
                 var template = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(k_TemplatePath);
                 var settingsRoot = template.Instantiate();
@@ -87,10 +96,21 @@ namespace UnityEditor.Rendering
                 var contentContainer = settingsRoot.Q("srp-global-settings__content-container");
                 contentContainer.Add(new IMGUIContainer(() =>
                 {
+                    bool assetChanged = false;
                     using (new SettingsProviderGUIScope())
                     {
-                        bool shouldDrawEditor = DrawImguiContent();
+                        bool shouldDrawEditor = DrawImguiContent(out assetChanged);
                         srpSettingsEditor.style.display = shouldDrawEditor ? DisplayStyle.Flex : DisplayStyle.None;
+                    }
+
+                    if (assetChanged)
+                    {
+                        var child = srpSettingsEditor
+                            .Q<VisualElement>(name: editorElement.name);
+                        srpSettingsEditor.Remove(child);
+
+                        if (TryCreateEditor(out editorElement))
+                            srpSettingsEditor.Add(editorElement);
                     }
                 }));
                 contentContainer.Add(srpSettingsEditor);
@@ -133,8 +153,10 @@ namespace UnityEditor.Rendering
             RenderPipelineGlobalSettingsEndNameEditAction.CloneFrom<TRenderPipeline, TGlobalSettings>(source, activateAsset);
         }
 
-        bool DrawImguiContent()
+        bool DrawImguiContent(out bool assetChanged)
         {
+            assetChanged = false;
+
             if (m_SupportedOnRenderPipeline is { isSupportedOnCurrentPipeline: false })
             {
                 EditorGUILayout.HelpBox("These settings are currently not available due to the active Render Pipeline.", MessageType.Warning);
@@ -147,7 +169,7 @@ namespace UnityEditor.Rendering
                 return false;
             }
 
-            DrawAssetSelection();
+            DrawAssetSelection(out assetChanged);
 
             if (RenderPipelineManager.currentPipeline != null && !(RenderPipelineManager.currentPipeline is TRenderPipeline))
             {
@@ -165,13 +187,13 @@ namespace UnityEditor.Rendering
         {
             using (new SettingsProviderGUIScope())
             {
-                if (DrawImguiContent())
+                if (DrawImguiContent(out var assetChanged))
                 {
-                    if (m_Editor != null && (m_Editor.target == null || m_Editor.target != renderPipelineSettings))
+                    if (assetChanged || m_Editor != null && (m_Editor.target == null || m_Editor.target != renderPipelineSettings))
                         DestroyEditor();
 
                     if (m_Editor == null)
-                        CreateEditor();
+                        m_Editor = Editor.CreateEditor(renderPipelineSettings);
 
                     if (m_Editor != null)
                         m_Editor.OnInspectorGUI();
@@ -181,7 +203,7 @@ namespace UnityEditor.Rendering
             base.OnGUI(searchContext);
         }
 
-        void DrawAssetSelection()
+        void DrawAssetSelection(out bool assetChanged)
         {
             var oldRenderPipelineSettings = renderPipelineSettings;
 
@@ -216,7 +238,8 @@ namespace UnityEditor.Rendering
                 GUI.enabled = guiEnabled;
             }
 
-            if (oldRenderPipelineSettings != renderPipelineSettings)
+            assetChanged = oldRenderPipelineSettings != renderPipelineSettings;
+            if (assetChanged)
             {
                 DestroyEditor();
             }

@@ -14,6 +14,12 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_SkyType;
         SerializedDataParameter m_CloudType;
         SerializedDataParameter m_SkyAmbientMode;
+
+        SerializedDataParameter m_ShapeType;
+        SerializedDataParameter m_SeaLevel;
+        SerializedDataParameter m_PlanetRadius;
+        SerializedDataParameter m_PlanetCenter;
+
         SerializedDataParameter m_WindOrientation;
         SerializedDataParameter m_WindSpeed;
 
@@ -68,6 +74,11 @@ namespace UnityEditor.Rendering.HighDefinition
             m_CloudType = Unpack(o.Find(x => x.cloudType));
             m_SkyAmbientMode = Unpack(o.Find(x => x.skyAmbientMode));
 
+            m_ShapeType = Unpack(o.Find(x => x.planetType));
+            m_SeaLevel = Unpack(o.Find(x => x.seaLevel));
+            m_PlanetRadius = Unpack(o.Find(x => x.planetRadius));
+            m_PlanetCenter = Unpack(o.Find(x => x.planetCenter));
+
             m_WindOrientation = Unpack(o.Find(x => x.windOrientation));
             m_WindSpeed = Unpack(o.Find(x => x.windSpeed));
         }
@@ -116,6 +127,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnInspectorGUI()
         {
+            // Sky
             UpdateSkyAndFogIntPopupData();
 
             using (var scope = new OverridablePropertyScope(m_SkyType, EditorGUIUtility.TrTextContent("Sky type", "Specifies the type of sky this Volume uses."), this))
@@ -146,6 +158,24 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
+            // Planet
+            PropertyField(m_ShapeType);
+
+            var shapeType = (VisualEnvironment.ShapeType)m_ShapeType.value.intValue;
+            if (shapeType != VisualEnvironment.ShapeType.Earth)
+            {
+                using (new IndentLevelScope())
+                {
+                    if (shapeType == VisualEnvironment.ShapeType.Spherical)
+                        PropertyField(m_PlanetCenter, EditorGUIUtility.TrTextContent("Center", "Sets the world-space position of the planet's center in meters."));
+                    else if (shapeType == VisualEnvironment.ShapeType.Flat)
+                        PropertyField(m_SeaLevel);
+
+                    PropertyField(m_PlanetRadius, EditorGUIUtility.TrTextContent("Radius", "Sets the radius of the planet in meters. This is distance from the center of the planet to the sea level."));
+                }
+            }
+
+            // Wind
             PropertyField(m_WindOrientation, EditorGUIUtility.TrTextContent("Global Orientation", "Controls the orientation of the wind relative to the X world vector."));
             PropertyField(m_WindSpeed, EditorGUIUtility.TrTextContent("Global Speed", "Controls the global wind speed in kilometers per hour."));
 

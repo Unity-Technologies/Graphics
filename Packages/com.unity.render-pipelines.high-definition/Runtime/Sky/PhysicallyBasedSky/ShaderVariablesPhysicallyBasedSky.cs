@@ -17,15 +17,10 @@ namespace UnityEngine.Rendering.HighDefinition
     unsafe struct ShaderVariablesPhysicallyBasedSky
     {
         // All the distance-related entries use SI units (meter, 1/meter, etc).
-        public float _PlanetaryRadius;
-        public float _RcpPlanetaryRadius;
-        public float _AtmosphericDepth;
-        public float _RcpAtmosphericDepth;
-
         public float _AtmosphericRadius;
         public float _AerosolAnisotropy;
         public float _AerosolPhasePartConstant;
-        public float _Unused;
+        public float _AerosolSeaLevelExtinction;
 
         public float _AirDensityFalloff;
         public float _AirScaleHeight;
@@ -35,19 +30,18 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4 _AirSeaLevelExtinction;
         public Vector4 _AirSeaLevelScattering;
         public Vector4 _AerosolSeaLevelScattering;
-        public Vector4 _GroundAlbedo;
-        public Vector4 _PlanetCenterPosition; // Not used during the precomputation, but needed to apply the atmospheric effect
+        public Vector4 _GroundAlbedo_PlanetRadius;
         public Vector4 _HorizonTint;
         public Vector4 _ZenithTint;
 
-        public float _AerosolSeaLevelExtinction;
         public float _IntensityMultiplier;
         public float _ColorSaturation;
         public float _AlphaSaturation;
-
         public float _AlphaMultiplier;
+
         public float _HorizonZenithShiftPower;
         public float _HorizonZenithShiftScale;
-        public float _Unused2;
+        public float _AtmosphericDepth;
+        public float _RcpAtmosphericDepth;
     }
 }

@@ -137,6 +137,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Data textures
             public Texture skyTexture;
+
+            public bool enableDecals;
         }
 
         static void BinRays(CommandBuffer cmd, in DeferredLightingRTParameters config, RTHandle directionBuffer, int texWidth, int texHeight)
@@ -213,7 +215,9 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle distanceBuffer;
         }
 
-        RayTracingDefferedLightLoopOutput DeferredLightingRT(RenderGraph renderGraph, in DeferredLightingRTParameters parameters,
+        RayTracingDefferedLightLoopOutput DeferredLightingRT(RenderGraph renderGraph,
+            HDCamera hdCamera,
+            in DeferredLightingRTParameters parameters,
             TextureHandle directionBuffer,
             in PrepassOutput prepassOutput,
             Texture skyTexture,
@@ -266,6 +270,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Deferred Lighting Result" }));
                 passData.distanceBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
                 { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "Distance Buffer" }));
+
+                passData.enableDecals = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals);
 
                 builder.SetRenderFunc(
                     (DeferredLightingRTRPassData data, RenderGraphContext ctx) =>
@@ -341,6 +347,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         // Only compute diffuse lighting if required
                         CoreUtils.SetKeyword(ctx.cmd, "MINIMAL_GBUFFER", data.parameters.diffuseLightingOnly);
+
+                        if (data.enableDecals)
+                        {
+                            DecalSystem.instance.SetAtlas(ctx.cmd);
+                            data.parameters.lightCluster.BindLightClusterData(ctx.cmd);
+                        }
 
                         if (data.parameters.rayBinning)
                         {

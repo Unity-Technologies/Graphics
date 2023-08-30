@@ -265,10 +265,7 @@ float3 WaterSimulationPosition(float3 objectPosition)
     #endif
 
     // Scale and offset the position to where it should be
-    simulationPos.x = objectPosition.x * _PatchRotation.x - objectPosition.z * _PatchRotation.y;
-    simulationPos.z = objectPosition.x * _PatchRotation.y + objectPosition.z * _PatchRotation.x;
-
-    simulationPos.xz = simulationPos.xz * gridSize + _PatchOffset.xz - _GridOffset;
+    simulationPos.xz = objectPosition.xz * gridSize + _PatchOffset.xz - _GridOffset;
 
     #ifndef WATER_DISPLACEMENT
     // Clamp the mesh inside the region so that it's never empty
@@ -788,7 +785,8 @@ void ComputeWaterRefractionParams(float3 waterPosRWS, float2 positionNDC, float3
     }
 
     // Project the point on screen
-    distortedWaterNDC = ComputeNormalizedDeviceCoordinates(distortedWaterWS, UNITY_MATRIX_VP);
+    distortedWaterNDC = saturate(ComputeNormalizedDeviceCoordinates(distortedWaterWS, UNITY_MATRIX_VP));
+    distortedWaterNDC = min(distortedWaterNDC, 1.0f - _ScreenSize.zw);
 
     // Compute the position of the surface behind the water surface
     float refractedWaterDepth = SampleCameraDepth(distortedWaterNDC);

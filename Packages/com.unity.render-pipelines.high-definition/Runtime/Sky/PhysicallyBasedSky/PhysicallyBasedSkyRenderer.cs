@@ -365,7 +365,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             var pbrSky = builtinParams.skySettings as PhysicallyBasedSky;
 
-            float R = pbrSky.GetPlanetaryRadius();
+            float R = builtinParams.hdCamera.planet.radius;
             float D = pbrSky.GetMaximumAltitude();
             float airH = pbrSky.GetAirScaleHeight();
             float aerH = pbrSky.GetAerosolScaleHeight();
@@ -374,16 +374,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             Vector2 expParams = ComputeExponentialInterpolationParams(pbrSky.horizonZenithShift.value);
 
-            m_ConstantBuffer._PlanetaryRadius = R;
-            m_ConstantBuffer._RcpPlanetaryRadius = 1.0f / R;
             m_ConstantBuffer._AtmosphericDepth = D;
             m_ConstantBuffer._RcpAtmosphericDepth = 1.0f / D;
-
             m_ConstantBuffer._AtmosphericRadius = R + D;
             m_ConstantBuffer._AerosolAnisotropy = aerA;
             m_ConstantBuffer._AerosolPhasePartConstant = CornetteShanksPhasePartConstant(aerA);
-            m_ConstantBuffer._Unused = 0.0f; // Warning fix
-            m_ConstantBuffer._Unused2 = 0.0f; // Warning fix
 
             m_ConstantBuffer._AirDensityFalloff = 1.0f / airH;
             m_ConstantBuffer._AirScaleHeight = airH;
@@ -400,10 +395,10 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ConstantBuffer._ColorSaturation = pbrSky.colorSaturation.value;
 
             Vector3 groundAlbedo = new Vector3(pbrSky.groundTint.value.r, pbrSky.groundTint.value.g, pbrSky.groundTint.value.b);
-            m_ConstantBuffer._GroundAlbedo = groundAlbedo;
+            m_ConstantBuffer._GroundAlbedo_PlanetRadius = groundAlbedo;
+            m_ConstantBuffer._GroundAlbedo_PlanetRadius.w = R;
             m_ConstantBuffer._AlphaSaturation = pbrSky.alphaSaturation.value;
 
-            m_ConstantBuffer._PlanetCenterPosition = pbrSky.GetPlanetCenterPosition(builtinParams.worldSpaceCameraPos);
             m_ConstantBuffer._AlphaMultiplier = pbrSky.alphaMultiplier.value;
 
             Vector3 horizonTint = new Vector3(pbrSky.horizonTint.value.r, pbrSky.horizonTint.value.g, pbrSky.horizonTint.value.b);
@@ -422,7 +417,7 @@ namespace UnityEngine.Rendering.HighDefinition
             UpdateGlobalConstantBuffer(builtinParams.commandBuffer, builtinParams);
             var pbrSky = builtinParams.skySettings as PhysicallyBasedSky;
 
-            int currPrecomputationParamHash = pbrSky.GetPrecomputationHashCode();
+            int currPrecomputationParamHash = pbrSky.GetPrecomputationHashCode(builtinParams.hdCamera);
             if (currPrecomputationParamHash != m_LastPrecomputationParamHash)
             {
                 if (m_LastPrecomputationParamHash != 0)
@@ -441,14 +436,10 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             var pbrSky = builtinParams.skySettings as PhysicallyBasedSky;
 
-            // TODO: the following expression is somewhat inefficient, but good enough for now.
-            Vector3 cameraPos = builtinParams.worldSpaceCameraPos;
-            Vector3 planetCenter = pbrSky.GetPlanetCenterPosition(cameraPos);
-            float R = pbrSky.GetPlanetaryRadius();
-
-            Vector3 cameraPosPS = cameraPos - planetCenter;
-            float r = cameraPosPS.magnitude;
-            cameraPosPS = Mathf.Max(R / r, 1.0f) * cameraPosPS;
+            Unity.Mathematics.float4 upAltitude = HDRenderPipeline.currentPipeline.GetShaderVariablesGlobalCB()._PlanetUpAltitude;
+            Vector3 cameraPosPS = builtinParams.worldSpaceCameraPos - builtinParams.hdCamera.planet.center;
+            if (upAltitude.w < 0.0f) // Ensure camera is not below the ground
+                cameraPosPS -= upAltitude.w * (Vector3)upAltitude.xyz;
 
             bool simpleEarthMode = pbrSky.type.value == PhysicallyBasedSkyModel.EarthSimple;
             bool customMaterial = pbrSky.renderingMode.value == PhysicallyBasedSky.RenderingMode.Material && pbrSky.material.value != null;

@@ -1,3 +1,7 @@
+#if defined(_NORMALMAP) && defined(SURFACE_GRADIENT)
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl"
+#endif
+
 TEXTURE2D(_Control0);
 
 #define DECLARE_TERRAIN_LAYER_TEXS(n)   \
@@ -37,6 +41,7 @@ float GetSumHeight(float4 heights0, float4 heights1)
     return sumHeight;
 }
 
+#ifdef _NORMALMAP
 float3 SampleNormalGrad(TEXTURE2D_PARAM(textureName, samplerName), float2 uv, float2 dxuv, float2 dyuv, float scale)
 {
     float4 nrm = SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, uv, dxuv, dyuv);
@@ -54,6 +59,7 @@ float3 SampleNormalGrad(TEXTURE2D_PARAM(textureName, samplerName), float2 uv, fl
     #endif
 #endif
 }
+#endif
 
 float4 RemapMasks(float4 masks, float blendMask, float4 remapOffset, float4 remapScale)
 {

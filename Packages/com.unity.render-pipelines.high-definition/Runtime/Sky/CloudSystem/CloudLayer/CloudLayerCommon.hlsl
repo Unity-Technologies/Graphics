@@ -86,29 +86,11 @@ CloudLayerData GetCloudLayer(int index)
     return layer;
 }
 
-void EvaluateSunColorAttenuation(float3 evaluationPointWS, float3 sunDirection, inout float3 sunColor)
-{
-#ifdef PHYSICALLY_BASED_SUN
-    float3 X = evaluationPointWS;
-    float3 C = _PlanetCenterPosition.xyz;
-
-    float r        = distance(X, C);
-    float cosHoriz = ComputeCosineOfHorizonAngle(r);
-    float cosTheta = dot(X - C, sunDirection) * rcp(r); // Normalize
-
-    float3 oDepth = ComputeAtmosphericOpticalDepth(r, cosTheta, true);
-    float3 opacity = 1 - TransmittanceFromOpticalDepth(oDepth);
-    sunColor *= 1 - (Desaturate(opacity, _AlphaSaturation) * _AlphaMultiplier);
-#endif
-}
-
 float4 GetCloudLayerColor(float3 dir, int index)
 {
     float2 cloud;
 
     float3 position = GetCloudVolumeIntersection(index, dir);
-    float3 lightColor = _SunLightColor(index);
-    EvaluateSunColorAttenuation(position, _SunDirection, lightColor);
 
     CloudLayerData layer = GetCloudLayer(index);
     if (layer.distort)
@@ -138,7 +120,13 @@ float4 GetCloudLayerColor(float3 dir, int index)
     else
         cloud = SampleCloudMap(dir, index);
 
+    float3 lightColor = _SunLightColor(index);
     float3 ambient = SampleSH9(_AmbientProbeBuffer, float3(0, -1, 0)) * _AmbientDimmer(index);
+
+    #ifdef PHYSICALLY_BASED_SUN
+    lightColor *= EvaluateSunColorAttenuation(position + float3(0,_PlanetaryRadius,0), _SunDirection);
+    #endif
+
     return float4(cloud.x * lightColor + ambient * cloud.y, cloud.y) * _Opacity;
 }
 

@@ -383,7 +383,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     // Low res gbuffer
                     GenerateWaterGBufferPass(true, false, systemData.debugSymbols),
                     // Debug pass, this one never use tessellation for simplicity
-                    GenerateWaterMaskPass(true, systemData.debugSymbols),
+                    GenerateWaterMaskPass(false, systemData.debugSymbols),
                 };
                 return passes;
             }

@@ -147,10 +147,9 @@ float3 RenderSky(Varyings varyings)
     if (input.intersectAtmosphere != 0)
     {
         float3 V = -input.WorldSpaceViewDirection;
-        float3 O = _PBRSkyCameraPosPS + _PlanetCenterPosition.xyz;
         float distAlongRay = input.tFrag;
         bool renderSunDisk = input.renderSunDisk != 0;
-        EvaluatePbrAtmosphere(O, V, distAlongRay, renderSunDisk, skyColor, skyOpacity);
+        EvaluatePbrAtmosphere(_PBRSkyCameraPosPS, V, distAlongRay, renderSunDisk, skyColor, skyOpacity);
     }
 
     skyColor += input.radiance * (1 - skyOpacity);

@@ -1,10 +1,15 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Text;
 using System.Linq;
 using NUnit.Framework;
 using Unity.Testing.VisualEffectGraph;
 using UnityEngine.TestTools;
 
+#if VFX_HAS_TIMELINE
+using UnityEngine.Playables;
+#endif
 
 namespace UnityEngine.VFX.Test
 {
@@ -171,6 +176,327 @@ namespace UnityEngine.VFX.Test
             yield return null;
             AssetBundleHelper.Unload(cross_vfx_asset);
         }
+
+#if VFX_HAS_TIMELINE
+        private static readonly string kTimeline_Off = "Timeline_Off";
+        private static readonly string kIn = "In";
+        private static readonly string kMiddle = "Middle";
+        private static readonly string kOut = "Out";
+
+        private static readonly int kTimeline_OffID = Shader.PropertyToID(kTimeline_Off);
+        private static readonly int kInID = Shader.PropertyToID(kIn);
+        private static readonly int kMiddleID = Shader.PropertyToID(kMiddle);
+        private static readonly int kOutID = Shader.PropertyToID(kOut);
+
+        private static int m_FrameOffset;
+        private static Queue<(char source, int frame, string evt)> m_ReceivedEvents = new();
+        private static void OnOutputEventReceived(char source, VFXOutputEventArgs args)
+        {
+            var frameIndex = Time.frameCount - m_FrameOffset;
+
+            var evtName = string.Empty;
+            if (args.nameId == kTimeline_OffID)
+                evtName = kTimeline_Off;
+            else if (args.nameId == kInID)
+                evtName = kIn;
+            else if (args.nameId == kMiddleID)
+                evtName = kMiddle;
+            else if (args.nameId == kOutID)
+                evtName = kOut;
+            else throw new NotImplementedException();
+            m_ReceivedEvents.Enqueue((source, frameIndex, evtName));
+        }
+
+
+        string PrintTimelineStack(Queue<(char source, int frame, string evt)> queue)
+        {
+            var stringBuilders = new SortedDictionary<char, StringBuilder>();
+            while (queue.Count > 0)
+            {
+                var entry = queue.Dequeue();
+                if (!stringBuilders.TryGetValue(entry.source, out var stringBuilder))
+                {
+                    stringBuilder = new StringBuilder();
+                    stringBuilders.Add(entry.source, stringBuilder);
+                }
+                stringBuilder.AppendFormat("({0}, {1});", entry.frame, entry.evt);
+            }
+
+            var final = new StringBuilder();
+            foreach (var stringBuilder in stringBuilders)
+            {
+                final.AppendFormat(stringBuilder.ToString());
+                final.AppendLine();
+            }
+
+            return final.ToString();
+
+        }
+
+        public struct Timeline_Exact_Frame_Case
+        {
+            public int startFrame;
+            public bool pause;
+            public Queue<(char source, int frame, string evt)> expectedQueue;
+            public override string ToString()
+            {
+                return "Case_" + startFrame + (pause ? "_Paused" : String.Empty);
+            }
+        }
+
+        private static Timeline_Exact_Frame_Case[] kTimeline_Exact_Frame_Matching_Cases = new[]
+        {
+            //N.B: A/B/C are equivalent with D/E/F, first are with scrubbing, second is disabled
+            new Timeline_Exact_Frame_Case()
+            {
+                startFrame = 0,
+                pause = false,
+                expectedQueue = new Queue<(char source, int frame, string evt)>(new[]
+                {
+                    ('A', 0, kIn),
+                    ('A', 60, kMiddle),
+                    ('A', 120, kOut),
+                    ('B', 60, kIn),
+                    ('B', 120, kMiddle),
+                    ('B', 180, kOut),
+                    ('C', 1, kIn),
+                    ('C', 61, kMiddle),
+                    ('C', 121, kOut),
+
+                    ('D', 0, kIn),
+                    ('D', 60, kMiddle),
+                    ('D', 120, kOut),
+                    ('E', 60, kIn),
+                    ('E', 120, kMiddle),
+                    ('E', 180, kOut),
+                    ('F', 1, kIn),
+                    ('F', 61, kMiddle),
+                    ('F', 121, kOut),
+                })
+            },
+
+            new Timeline_Exact_Frame_Case()
+            {
+                startFrame = 1,
+                pause = false,
+                expectedQueue = new Queue<(char source, int frame, string evt)>(new[]
+                {
+                    ('A', 0, kIn),
+                    ('A', 59, kMiddle),
+                    ('A', 119, kOut),
+                    ('B', 59, kIn),
+                    ('B', 119, kMiddle),
+                    ('B', 179, kOut),
+                    ('C', 0, kIn),
+                    ('C', 60, kMiddle),
+                    ('C', 120, kOut),
+
+                    ('D', 0, kIn),
+                    ('D', 59, kMiddle),
+                    ('D', 119, kOut),
+                    ('E', 59, kIn),
+                    ('E', 119, kMiddle),
+                    ('E', 179, kOut),
+                    ('F', 0, kIn),
+                    ('F', 60, kMiddle),
+                    ('F', 120, kOut),
+                })
+            },
+
+            new Timeline_Exact_Frame_Case()
+            {
+                startFrame = 59,
+                expectedQueue = new Queue<(char source, int frame, string evt)>(new[]
+                {
+                    ('A', 0, kIn),
+                    ('A', 1, kMiddle),
+                    ('A', 61, kOut),
+                    ('B', 1, kIn),
+                    ('B', 61, kMiddle),
+                    ('B', 121, kOut),
+                    ('C', 0, kIn),
+                    ('C', 2, kMiddle),
+                    ('C', 62, kOut),
+
+                    ('D', 0, kIn),
+                    ('D', 1, kMiddle),
+                    ('D', 61, kOut),
+                    ('E', 1, kIn),
+                    ('E', 61, kMiddle),
+                    ('E', 121, kOut),
+                    ('F', 0, kIn),
+                    ('F', 2, kMiddle),
+                    ('F', 62, kOut),
+                })
+            },
+
+            new Timeline_Exact_Frame_Case()
+            {
+                startFrame = 60,
+                expectedQueue = new Queue<(char source, int frame, string evt)>(new[]
+                {
+                    ('A', 0, kIn),
+                    ('A', 0, kMiddle),
+                    ('A', 60, kOut),
+                    ('B', 0, kIn),
+                    ('B', 60, kMiddle),
+                    ('B', 120, kOut),
+                    ('C', 0, kIn),
+                    ('C', 1, kMiddle),
+                    ('C', 61, kOut),
+
+                    ('D', 0, kIn),
+                    ('D', 0, kMiddle),
+                    ('D', 60, kOut),
+                    ('E', 0, kIn),
+                    ('E', 60, kMiddle),
+                    ('E', 120, kOut),
+                    ('F', 0, kIn),
+                    ('F', 1, kMiddle),
+                    ('F', 61, kOut),
+                })
+            },
+
+            //The paused cases simulates the holding status in timeline
+            new Timeline_Exact_Frame_Case()
+            {
+                pause = true,
+                startFrame = 0,
+                expectedQueue = new Queue<(char source, int frame, string evt)>(new[]
+                {
+                    ('A', 0, kIn),
+                    ('D', 0, kIn),
+                })
+            },
+
+            new Timeline_Exact_Frame_Case()
+            {
+                pause = true,
+                startFrame = 1,
+                expectedQueue = new Queue<(char source, int frame, string evt)>(new[]
+                {
+                    ('A', 0, kIn),
+                    ('C', 0, kIn),
+                    ('D', 0, kIn),
+                    ('F', 0, kIn),
+                })
+            },
+
+            new Timeline_Exact_Frame_Case()
+            {
+                pause = true,
+                startFrame = 59,
+                expectedQueue = new Queue<(char source, int frame, string evt)>(new[]
+                {
+                    ('A', 0, kIn),
+                    ('C', 0, kIn),
+                    ('D', 0, kIn),
+                    ('F', 0, kIn),
+                })
+            },
+
+            new Timeline_Exact_Frame_Case()
+            {
+                pause = true,
+                startFrame = 60,
+                expectedQueue = new Queue<(char source, int frame, string evt)>(new[]
+                {
+                    ('A', 0, kIn),
+                    ('B', 0, kIn),
+                    ('A', 0, kMiddle),
+                    ('C', 0, kIn),
+                    ('D', 0, kIn),
+                    ('D', 0, kMiddle),
+                    ('E', 0, kIn),
+                    ('F', 0, kIn),
+                })
+            },
+
+            new Timeline_Exact_Frame_Case()
+            {
+                pause = true,
+                startFrame = 61,
+                expectedQueue = new Queue<(char source, int frame, string evt)>(new[]
+                {
+                    ('A', 0, kIn),
+                    ('B', 0, kIn),
+                    ('A', 0, kMiddle),
+                    ('C', 0, kIn),
+                    ('C', 0, kMiddle),
+                    ('D', 0, kIn),
+                    ('D', 0, kMiddle),
+                    ('E', 0, kIn),
+                    ('F', 0, kIn),
+                    ('F', 0, kMiddle),
+                })
+            },
+
+        };
+
+        [UnityTest, Description("Cover unexpected behavior UUM-42283")]
+        public IEnumerator Timeline_Exact_Frame_Matching([ValueSource("kTimeline_Exact_Frame_Matching_Cases")] Timeline_Exact_Frame_Case timelineCase)
+        {
+            var kScenePath = "Packages/com.unity.testing.visualeffectgraph/Scenes/Timeline_FirstFrame.unity";
+            UnityEngine.SceneManagement.SceneManager.LoadScene(kScenePath);
+            yield return null;
+
+            var vfxComponents = Resources.FindObjectsOfTypeAll<VisualEffect>();
+            var directors = Resources.FindObjectsOfTypeAll<PlayableDirector>();
+            Assert.AreEqual(6, vfxComponents.Length);
+            Assert.AreEqual(1, directors.Length);
+
+            var director = directors[0];
+            director.initialTime = timelineCase.startFrame * 1.0 / 60.0;
+            Assert.AreEqual(false, director.enabled);
+
+            foreach (var vfx in vfxComponents)
+                vfx.outputEventReceived += (args) => OnOutputEventReceived(vfx.name[^1], args);
+            m_FrameOffset = Time.frameCount;
+            m_ReceivedEvents.Clear();
+
+            var previousCaptureFrameRate = Time.captureFramerate;
+            var previousFixedTimeStep = UnityEngine.VFX.VFXManager.fixedTimeStep;
+            var previousMaxDeltaTime = UnityEngine.VFX.VFXManager.maxDeltaTime;
+
+            Time.captureFramerate = 60;
+            VFXManager.fixedTimeStep = 1.0f / 60.0f;
+            VFXManager.maxDeltaTime = 1.0f / 60.0f;
+
+            //Check VFX is alive
+            int maxFrame = 64;
+            while (maxFrame-- > 0 && m_ReceivedEvents.Count == 0)
+                yield return new WaitForEndOfFrame();
+            Assert.Greater(maxFrame, 0);
+
+            m_FrameOffset = Time.frameCount + 1;
+            m_ReceivedEvents.Clear();
+
+            director.enabled = true;
+
+            if (timelineCase.pause)
+            {
+                director.timeUpdateMode = DirectorUpdateMode.Manual;
+                director.time = director.initialTime;
+                director.Play();
+                director.Evaluate();
+                director.Pause();
+            }
+
+            for (int frame = timelineCase.startFrame; frame < 250; ++frame)
+            {
+                yield return new WaitForEndOfFrame();
+            }
+
+            Time.captureFramerate = previousCaptureFrameRate;
+            VFXManager.fixedTimeStep = previousFixedTimeStep;
+            VFXManager.maxDeltaTime = previousMaxDeltaTime;
+            yield return new WaitForEndOfFrame();
+
+            var currentStack = PrintTimelineStack(m_ReceivedEvents);
+            var expectedStack = PrintTimelineStack(timelineCase.expectedQueue);
+            Assert.AreEqual(expectedStack, currentStack, $"Expected:\n{expectedStack}\nActual:\n{currentStack}\n");
+        }
+#endif
 
         [OneTimeTearDown]
         public void TearDown()

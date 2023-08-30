@@ -379,6 +379,33 @@ namespace UnityEngine.Rendering.HighDefinition
             public float verticalErosionOffset;
         }
 
+        internal struct PlanetData
+        {
+            internal float radius;
+            internal Vector3 center;
+
+            internal void Set(VisualEnvironment visualEnv, Vector3 camPosWS)
+            {
+                switch (visualEnv.planetType.value)
+                {
+                    case VisualEnvironment.ShapeType.Flat:
+                        radius = visualEnv.planetRadius.value;
+                        center = new Vector3(camPosWS.x, -radius + visualEnv.seaLevel.value, camPosWS.z);
+                        break;
+
+                    case VisualEnvironment.ShapeType.Earth:
+                        radius = VisualEnvironment.k_DefaultEarthRadius;
+                        center = new Vector3(0, -radius, 0);
+                        break;
+
+                    case VisualEnvironment.ShapeType.Spherical:
+                        radius = visualEnv.planetRadius.value;
+                        center = visualEnv.planetCenter.value;
+                        break;
+                }
+            }
+        }
+
 #if ENABLE_SENSOR_SDK
         internal RayTracingShader pathTracingShaderOverride = null;
         internal Action<UnityEngine.Rendering.CommandBuffer> prepareDispatchRays = null;
@@ -463,6 +490,9 @@ namespace UnityEngine.Rendering.HighDefinition
         internal ShadowHistoryUsage[] shadowHistoryUsage = null;
         // This property allows us to track for the various history accumulation based effects, the last registered validity frame ubdex of each effect as well as the resolution at which it was built.
         internal HistoryEffectValidity[] historyEffectUsage = null;
+
+        // This property allows to share planet data across various effects (clouds, sky, fog, ...)
+        internal PlanetData planet;
 
         // Boolean that allows us to track if the current camera maps to a real time reflection probe.
         internal bool realtimeReflectionProbe = false;
@@ -877,6 +907,29 @@ namespace UnityEngine.Rendering.HighDefinition
 
             var pathTracing = volumeStack.GetComponent<PathTracing>();
             return pathTracing ? pathTracing.enable.value : false;
+        }
+
+        internal bool IsRayTracingEnabled()
+        {
+            if (!frameSettings.IsEnabled(FrameSettingsField.RayTracing))
+                return false;
+
+            var ssr = volumeStack.GetComponent<ScreenSpaceReflection>();
+            if (( frameSettings.IsEnabled(FrameSettingsField.SSR) && ssr.enabled.value && frameSettings.IsEnabled(FrameSettingsField.OpaqueObjects))
+                || (frameSettings.IsEnabled(FrameSettingsField.TransparentSSR) && ssr.enabledTransparent.value))
+                if (ssr.tracing.value != RayCastingMode.RayMarching)
+                    return true;
+
+            var ssgi = volumeStack.GetComponent<GlobalIllumination>();
+            if (frameSettings.IsEnabled(FrameSettingsField.SSGI) && ssgi.enable.value)
+                if (ssgi.tracing.value != RayCastingMode.RayMarching)
+                    return true;
+
+            var recursiveSettings = volumeStack.GetComponent<RecursiveRendering>();
+            if (recursiveSettings.enable.value)
+                return true;
+
+            return false;
         }
 
         internal DynamicResolutionHandler.UpsamplerScheduleType UpsampleSyncPoint()
@@ -1380,6 +1433,17 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._LastTimeParameters = new Vector4(pt, Mathf.Sin(pt), Mathf.Cos(pt), 0.0f);
             cb._FrameCount = frameCount;
             cb._XRViewCount = (uint)viewCount;
+
+            var cameraPos = camera.transform.position;
+            var planetPosRWS = planet.center - cameraPos;
+            cb._PlanetCenterRadius = ShaderConfig.s_CameraRelativeRendering != 0 ? planetPosRWS : planet.center;
+            cb._PlanetCenterRadius.w = planet.radius;
+
+            // This is not very efficient but necessary for precision
+            var planetUp = -planetPosRWS.normalized;
+            var cameraHeight = Vector3.Dot(cameraPos - (planetUp * planet.radius + planet.center), planetUp);
+            cb._PlanetUpAltitude = planetUp;
+            cb._PlanetUpAltitude.w = cameraHeight;
 
             float exposureMultiplierForProbes = 1.0f / Mathf.Max(probeRangeCompressionFactor, 1e-6f);
             cb._ProbeExposureScale = exposureMultiplierForProbes;
@@ -1948,6 +2012,10 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 VolumeManager.instance.Update(volumeStack, volumeAnchor, volumeLayerMask);
             }
+
+            // Update planet data
+            var visualEnv = volumeStack.GetComponent<VisualEnvironment>();
+            planet.Set(visualEnv, camera.transform.position);
 
             // Update info about current target mid gray
             TargetMidGray requestedMidGray = volumeStack.GetComponent<Exposure>().targetMidGray.value;

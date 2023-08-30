@@ -1,6 +1,5 @@
 #if VFX_HAS_TIMELINE
 using UnityEngine.Playables;
-using System.Linq;
 using System.Collections.Generic;
 using System;
 
@@ -20,11 +19,31 @@ namespace UnityEngine.VFX
         {
             //Detect potential issue with multiple track controlling the same vfx with some scrubbing
             m_ConflictingControlTrack.Clear();
-            foreach (var group in m_RegisteredControlTrack.GroupBy(o => o.GetTarget()))
+
+            var controlTrackByTarget = new Dictionary<VisualEffect, List<VisualEffectControlTrackController>>();
+            foreach (var controlTrack in m_RegisteredControlTrack)
             {
-                if (group.Count() > 1 && group.Any(o => o.GetScrubbing()))
+                var target = controlTrack.GetTarget();
+                if (!controlTrackByTarget.TryGetValue(controlTrack.GetTarget(), out var listOfTrack))
                 {
-                    m_ConflictingControlTrack.Add(group.ToArray());
+                    listOfTrack = new List<VisualEffectControlTrackController>();
+                    controlTrackByTarget.Add(target, listOfTrack);
+                }
+                listOfTrack.Add(controlTrack);
+            } 
+
+            foreach (var group in controlTrackByTarget)
+            {
+                if (group.Value.Count > 1)
+                {
+                    foreach (var track in group.Value)
+                    {
+                        if (track.GetScrubbing())
+                        {
+                            m_ConflictingControlTrack.Add(group.Value.ToArray());
+                            break;
+                        }
+                    }
                 }
             }
         }
@@ -70,7 +89,7 @@ namespace UnityEngine.VFX
 
         public bool AnyError()
         {
-            return m_ScrubbingWarnings.Any() || m_ConflictingControlTrack.Any();
+            return m_ScrubbingWarnings.Count > 0 || m_ConflictingControlTrack.Count > 0;
         }
 
         private static VisualEffectControlErrorHelper m_Instance = new VisualEffectControlErrorHelper();
@@ -213,6 +232,8 @@ namespace UnityEngine.VFX
             return chunk.begin <= time && time < chunk.end;
         }
 
+        private static readonly double kEpsilonEvent = 1e-12;
+
         public void Update(double playableTime, float deltaTime)
         {
 #if UNITY_EDITOR
@@ -222,6 +243,8 @@ namespace UnityEngine.VFX
                 m_HasScrubbingWarnings = false;
             }
 #endif
+            var playableTimeForEvent = playableTime + kEpsilonEvent;
+
             var paused = deltaTime == 0.0;
             var currentChunkIndex = kErrorIndex;
             if (m_LastChunk != currentChunkIndex)
@@ -311,7 +334,7 @@ namespace UnityEngine.VFX
 
                     if (actualCurrentTime < expectedCurrentTime)
                     {
-                        //Process adjustment if actualCurrentTime < expectedCurrentTime
+                        //Process adjustment if actualCurrentTime < expectedCurrentTime (heavy loop with potential Simulate)
                         var eventList = m_EventListIndexCache;
                         GetEventsIndex(chunk, actualCurrentTime, expectedCurrentTime, m_LastEvent, eventList);
                         var eventCount = eventList.Count;
@@ -335,7 +358,7 @@ namespace UnityEngine.VFX
                             uint currentStepCount;
                             if (nextEvent < eventCount)
                             {
-                                currentEventIndex = eventList.ElementAt(nextEvent++);
+                                currentEventIndex = eventList[nextEvent++];
                                 var currentEvent = chunk.events[currentEventIndex];
                                 currentStepCount = (uint)((currentEvent.time - actualCurrentTime) / fixedStep);
                             }
@@ -358,11 +381,11 @@ namespace UnityEngine.VFX
                         }
                     }
 
-                    //Sending incoming event
-                    if (actualCurrentTime < playableTime)
+                    //Sending incoming event (considering an epsilon for current frame events)
+                    if (actualCurrentTime < playableTimeForEvent)
                     {
                         var eventList = m_EventListIndexCache;
-                        GetEventsIndex(chunk, actualCurrentTime, playableTime, m_LastEvent, eventList);
+                        GetEventsIndex(chunk, actualCurrentTime, playableTimeForEvent, m_LastEvent, eventList);
                         foreach (var itEvent in eventList)
                             ProcessEvent(itEvent, chunk);
                     }
@@ -370,7 +393,7 @@ namespace UnityEngine.VFX
                 else //No scrubbing, only update events
                 {
                     m_Target.pause = false;
-                    ProcessNoScrubbingEvents(chunk, m_LastPlayableTime, playableTime);
+                    ProcessNoScrubbingEvents(chunk, m_LastPlayableTime, playableTimeForEvent);
                 }
             }
             m_LastPlayableTime = playableTime;
@@ -452,7 +475,7 @@ namespace UnityEngine.VFX
             {
                 var currentEvent = chunk.events[i];
                 //We are retrieving events between [minTime, maxTime[
-                //If currentEvent.time == maxTime, skip, it prevents the multiple sending of the same event.
+                //N.B.: maxTime could be offset by an epsilon to cover matching event frame (e.g: event sent at frame 0)
                 if (currentEvent.time >= maxTime)
                     break;
 
@@ -463,17 +486,20 @@ namespace UnityEngine.VFX
 
         static VFXEventAttribute ComputeAttribute(VisualEffect vfx, EventAttributes attributes)
         {
-            if (attributes.content == null || attributes.content.Length == 0)
+
+            if (attributes.content == null)
                 return null;
 
             var vfxAttribute = vfx.CreateVFXEventAttribute();
-            if (attributes.content.Count(x => x?.ApplyToVFX(vfxAttribute) == true) == 0)
+            bool hasApply = false;
+            foreach (var content in attributes.content)
             {
-                //We didn't setup any vfxEventAttribute, ignoring the event payload
-                return null;
+                if (content?.ApplyToVFX(vfxAttribute) == true)
+                    hasApply = true;
             }
 
-            return vfxAttribute;
+            //We didn't setup any vfxEventAttribute, ignoring the event payload
+            return hasApply ? vfxAttribute : null;
         }
 
         static IEnumerable<Event> ComputeRuntimeEvent(VisualEffectControlPlayableBehaviour behavior, VisualEffect vfx)
@@ -529,7 +555,7 @@ namespace UnityEngine.VFX
             m_BackupStartSeed = m_Target.startSeed;
             m_BackupReseedOnPlay = m_Target.resetSeedOnPlay;
 
-            var chunks = new Stack<Chunk>();
+            var chunks = new Stack<(Chunk actual, List<Event> tempEvents, List<Clip> tempClips)>();
             int inputCount = playable.GetInputCount();
 
             var playableBehaviors = new List<VisualEffectControlPlayableBehaviour>();
@@ -548,45 +574,46 @@ namespace UnityEngine.VFX
             playableBehaviors.Sort(new VisualEffectControlPlayableBehaviourComparer());
             foreach (var inputBehavior in playableBehaviors)
             {
-                if (!chunks.Any()
-                    || inputBehavior.clipStart > chunks.Peek().end
-                    || inputBehavior.scrubbing != chunks.Peek().scrubbing
-                    || (!inputBehavior.scrubbing && (inputBehavior.reinitEnter || chunks.Peek().reinitExit))
-                    || inputBehavior.startSeed != chunks.Peek().startSeed
+                if (chunks.Count == 0
+                    || inputBehavior.clipStart > chunks.Peek().actual.end
+                    || inputBehavior.scrubbing != chunks.Peek().actual.scrubbing
+                    || (!inputBehavior.scrubbing && (inputBehavior.reinitEnter || chunks.Peek().actual.reinitExit))
+                    || inputBehavior.startSeed != chunks.Peek().actual.startSeed
                     || inputBehavior.prewarmStepCount != 0u)
                 {
-                    chunks.Push(new Chunk()
+                    chunks.Push(new ()
                     {
-                        begin = inputBehavior.clipStart,
-                        events = new Event[0],
-                        clips = new Clip[0],
-                        scrubbing = inputBehavior.scrubbing,
-                        startSeed = inputBehavior.startSeed,
-                        reinitEnter = inputBehavior.reinitEnter,
-                        reinitExit = inputBehavior.reinitExit,
+                        actual = new Chunk()
+                        {
+                            begin = inputBehavior.clipStart,
+                            scrubbing = inputBehavior.scrubbing,
+                            startSeed = inputBehavior.startSeed,
+                            reinitEnter = inputBehavior.reinitEnter,
+                            reinitExit = inputBehavior.reinitExit,
 
-                        prewarmCount = inputBehavior.prewarmStepCount,
-                        prewarmDeltaTime = inputBehavior.prewarmDeltaTime,
-                        prewarmEvent = inputBehavior.prewarmEvent != null ? inputBehavior.prewarmEvent : 0,
-                        prewarmOffset = (double)inputBehavior.prewarmStepCount * inputBehavior.prewarmDeltaTime
+                            prewarmCount = inputBehavior.prewarmStepCount,
+                            prewarmDeltaTime = inputBehavior.prewarmDeltaTime,
+                            prewarmEvent = inputBehavior.prewarmEvent ?? 0,
+                            prewarmOffset = (double)inputBehavior.prewarmStepCount * inputBehavior.prewarmDeltaTime
+
+                            //Event & Clip are null at this stage, using temporary list during initialization
+                        },
+
+                        tempEvents = new List<Event>(),
+                        tempClips = new List<Clip>(),
                     });
                 }
 
-                var currentChunk = chunks.Peek();
-                currentChunk.end = inputBehavior.clipEnd;
-                var currentsEvents = ComputeRuntimeEvent(inputBehavior, vfx);
+                var currentChunk = chunks.Pop();
+                currentChunk.actual.end = inputBehavior.clipEnd;
+                var currentsEvents = new List<Event>(ComputeRuntimeEvent(inputBehavior, vfx));
 
-                if (!currentChunk.scrubbing)
+                if (!currentChunk.actual.scrubbing)
                 {
-                    var sortedEventWithSourceIndex = currentsEvents.Select((e, i) =>
-                    {
-                        return new
-                        {
-                            evt = e,
-                            sourceIndex = i
-                        };
-                    }).OrderBy(o => o.evt.time)
-                    .ToList();
+                    var sortedEventWithSourceIndex = new List<(Event evt, int sourceIndex)>();
+                    for (var sourceIndex = 0; sourceIndex < currentsEvents.Count; sourceIndex++)
+                        sortedEventWithSourceIndex.Add((currentsEvents[sourceIndex], sourceIndex));
+                    sortedEventWithSourceIndex.Sort((x, y) => x.evt.time.CompareTo(y.evt.time));
 
                     var newClips = new Clip[inputBehavior.clipEventsCount];
                     var newEvents = new List<Event>();
@@ -596,9 +623,9 @@ namespace UnityEngine.VFX
                         var sourceIndex = sortedEventWithSourceIndex[actualIndex].sourceIndex;
                         if (sourceIndex < inputBehavior.clipEventsCount * 2)
                         {
-                            var actualSortedClipIndex = currentChunk.events.Length + actualIndex;
+                            var actualSortedClipIndex = currentChunk.tempEvents.Count + actualIndex;
                             var localClipIndex = sourceIndex / 2;
-                            newEvent.clipIndex = localClipIndex + currentChunk.clips.Length;
+                            newEvent.clipIndex = localClipIndex + currentChunk.tempClips.Count;
                             if (sourceIndex % 2 == 0)
                             {
                                 newEvent.clipType = Event.ClipType.Enter;
@@ -616,25 +643,32 @@ namespace UnityEngine.VFX
                             newEvents.Add(newEvent);
                         }
                     }
-                    currentChunk.clips = currentChunk.clips.Concat(newClips).ToArray();
-                    currentChunk.events = currentChunk.events.Concat(newEvents).ToArray();
+
+                    currentChunk.tempClips.AddRange(newClips);
+                    currentChunk.tempEvents.AddRange(newEvents);
                 }
                 else
                 {
 #if UNITY_EDITOR
                     m_Scrubbing = true;
 #endif
-
                     //No need to compute clip information
-                    currentsEvents = currentsEvents.OrderBy(o => o.time);
-                    currentChunk.events = currentChunk.events.Concat(currentsEvents).ToArray();
+                    currentsEvents.Sort((x, y) => x.time.CompareTo(y.time));
+                    currentChunk.tempEvents.AddRange(currentsEvents);
                 }
 
-
-                chunks.Pop();
                 chunks.Push(currentChunk);
             }
-            m_Chunks = chunks.Reverse().ToArray();
+
+            m_Chunks = new Chunk[chunks.Count];
+            for (int i = 0; i < m_Chunks.Length; ++i)
+            {
+                var tempChunk = chunks.Pop();
+                m_Chunks[i] = tempChunk.actual;
+                m_Chunks[i].clips = tempChunk.tempClips.ToArray();
+                m_Chunks[i].events = tempChunk.tempEvents.ToArray();
+            }
+
 #if UNITY_EDITOR
             VisualEffectControlErrorHelper.instance.RegisterControlTrack(this);
 #endif
@@ -668,7 +702,7 @@ namespace UnityEngine.VFX
             m_ReinitWithUnbinding = reinitWithUnbinding;
         }
 
-        public override void PrepareFrame(Playable playable, FrameData data)
+        private void ApplyFrame(Playable playable, FrameData data)
         {
             if (m_Target == null)
                 return;
@@ -711,30 +745,31 @@ namespace UnityEngine.VFX
             m_Target = null;
         }
 
-        public override void ProcessFrame(Playable playable, FrameData data, object playerData)
+        public override void PrepareFrame(Playable playable, FrameData data)
         {
-            var vfx = playerData as VisualEffect;
-            if (m_Target == vfx)
-                return;
-
-            UnbindVFX();
-
-            if (vfx != null)
+            var vfx = data.output.GetUserData() as VisualEffect;
+            if (m_Target != vfx)
             {
-                if (vfx.visualEffectAsset == null)
-                    vfx = null;
-                else if (!vfx.isActiveAndEnabled)
-                    vfx = null;
-            }
+                UnbindVFX();
 
-            BindVFX(vfx);
-            InvalidateScrubbingHelper();
+                if (vfx != null)
+                {
+                    if (vfx.visualEffectAsset == null)
+                        vfx = null;
+                    else if (!vfx.isActiveAndEnabled)
+                        vfx = null;
+                }
+
+                BindVFX(vfx);
+                InvalidateScrubbingHelper();
+            }
+            ApplyFrame(playable, data);
         }
 
         public override void OnBehaviourPause(Playable playable, FrameData data)
         {
             base.OnBehaviourPause(playable, data);
-            PrepareFrame(playable, data);
+            ApplyFrame(playable, data);
         }
 
         void InvalidateScrubbingHelper()

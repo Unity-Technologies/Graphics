@@ -121,6 +121,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4 _LastTimeParameters;         // { t, sin(t), cos(t) }
 
         // Volumetric lighting / Fog.
+        public Vector4 _PlanetCenterRadius;
+        public Vector4 _PlanetUpAltitude;
         public int _FogEnabled;
         public int _PBRFogEnabled;
         public int _EnableVolumetricFog;

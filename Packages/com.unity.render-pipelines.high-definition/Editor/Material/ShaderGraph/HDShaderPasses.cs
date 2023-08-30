@@ -970,6 +970,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 includes.Add(CoreIncludes.kRaytracingCommon, IncludeLocation.Pregraph);
                 includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
 
+                // Decal
+                if (supportLighting)
+                {
+                    includes.Add(CoreIncludes.kDecalUtilities, IncludeLocation.Pregraph);
+                    includes.Add(CoreIncludes.kPostDecalsPlaceholder, IncludeLocation.Pregraph);
+                }
+
                 // post graph includes
                 includes.Add(CoreIncludes.kPassRaytracingIndirect, IncludeLocation.Postgraph);
 
@@ -987,6 +994,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             { Defines.shadowLow },
             { Defines.raytracingRaytraced },
+            { Defines.pathtracingDisableLightCluster },
             { CoreKeywordDescriptors.HasLightloop, 1 },
         };
 
@@ -1083,6 +1091,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 {
                     includes.Add(CoreIncludes.kLighting, IncludeLocation.Pregraph);
                     includes.Add(CoreIncludes.kLightLoopDef, IncludeLocation.Pregraph);
+                    includes.Add(CoreIncludes.kDecalUtilities, IncludeLocation.Pregraph);
                 }
 
                 // Each material has a specific hlsl file that should be included pre-graph and holds the lighting model
@@ -1168,6 +1177,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 includes.Add(CoreIncludes.kRaytracingCommon, IncludeLocation.Pregraph);
                 includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
 
+                if (supportLighting)
+                {
+                    includes.Add(CoreIncludes.kDecalUtilities, IncludeLocation.Pregraph);
+                    includes.Add(CoreIncludes.kPostDecalsPlaceholder, IncludeLocation.Pregraph);
+                }
+
                 // post graph includes
                 includes.Add(CoreIncludes.kPassRaytracingGBuffer, IncludeLocation.Postgraph);
 
@@ -1179,6 +1194,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             { Defines.shadowLow },
             { Defines.raytracingRaytraced },
+            { Defines.pathtracingDisableLightCluster },
         };
 
         #endregion

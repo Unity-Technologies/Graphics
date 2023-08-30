@@ -2,6 +2,7 @@
 #define UNITY_PHYSICALLY_BASED_SKY_COMMON_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/VolumeRendering.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Sampling.hlsl"
@@ -17,6 +18,15 @@ TEXTURE3D(_MultipleScatteringTexture);
 
 #ifndef UNITY_SHADER_VARIABLES_INCLUDED
     SAMPLER(s_linear_clamp_sampler);
+#endif
+
+#define _PlanetCenterPosition _PlanetCenterRadius.xyz // camera relative
+#define _GroundAlbedo _GroundAlbedo_PlanetRadius.xyz
+#define _PlanetUp _PlanetUpAltitude.xyz
+#define _CameraAltitude _PlanetUpAltitude.w
+
+#ifndef _PlanetaryRadius
+#define _PlanetaryRadius _PlanetCenterRadius.w
 #endif
 
 // Computes (a^2 - b^2) in a numerically stable way.
@@ -293,6 +303,25 @@ float3 ComputeAtmosphericOpticalDepth1(float r, float cosTheta)
     float cosHor = ComputeCosineOfHorizonAngle(r);
 
     return ComputeAtmosphericOpticalDepth(r, cosTheta, cosTheta >= cosHor);
+}
+
+// This function evaluates the sun color attenuation from the physically based sky
+float3 EvaluateSunColorAttenuation(float3 positionPS, float3 sunDirection)
+{
+    float r        = length(positionPS);
+    float cosHoriz = ComputeCosineOfHorizonAngle(r);
+    float cosTheta = dot(positionPS, sunDirection) * rcp(r); // Normalize
+
+    if (cosTheta >= cosHoriz) // Above horizon
+    {
+        float3 oDepth = ComputeAtmosphericOpticalDepth(r, cosTheta, true);
+        float3 opacity = 1 - TransmittanceFromOpticalDepth(oDepth);
+        return 1 - (Desaturate(opacity, _AlphaSaturation) * _AlphaMultiplier);
+    }
+    else
+    {
+       return 0;
+    }
 }
 
 // Map: [cos(120 deg), 1] -> [0, 1].

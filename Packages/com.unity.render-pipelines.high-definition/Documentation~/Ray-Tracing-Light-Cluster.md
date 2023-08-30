@@ -5,7 +5,7 @@ For ray tracing, HDRP builds an axis-aligned grid which, in each cell, stores th
 
 ![](Images/RayTracingLightCluster1.png)
 
-**Light Cluster [Debug Mode](Ray-Tracing-Debug.md)**: The red regions show where the number of lights per cell is equal to the maximum number of lights per cell.
+**Light Cluster [Debug Mode](Ray-Tracing-Debug.md#debug-modes)**
 
 ## Using a Light Cluster
 

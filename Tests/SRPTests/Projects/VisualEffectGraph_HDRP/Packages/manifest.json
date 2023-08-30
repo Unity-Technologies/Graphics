@@ -14,7 +14,7 @@
     "com.unity.testing.graphics-performance": "file:../../../Packages/com.unity.testing.graphics-performance",
     "com.unity.testing.visualeffectgraph": "file:../../../Packages/com.unity.testing.visualeffectgraph",
     "com.unity.testing.xr": "file:../../../Packages/com.unity.testing.xr",
-    "com.unity.timeline": "1.8.3",
+    "com.unity.timeline": "1.8.4",
     "com.unity.ugui": "2.0.0",
     "com.unity.visualeffectgraph": "file:../../../../../Packages/com.unity.visualeffectgraph",
     "local.code.coverage.references": "file:../../../Packages/local.code.coverage.references",

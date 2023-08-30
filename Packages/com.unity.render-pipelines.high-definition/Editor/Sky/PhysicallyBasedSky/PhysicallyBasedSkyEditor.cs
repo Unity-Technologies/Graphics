@@ -11,10 +11,6 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_Type;
         SerializedDataParameter m_Mode;
         SerializedDataParameter m_Material;
-        SerializedDataParameter m_SphericalMode;
-        SerializedDataParameter m_SeaLevel;
-        SerializedDataParameter m_PlanetaryRadius;
-        SerializedDataParameter m_PlanetCenterPosition;
         SerializedDataParameter m_PlanetRotation;
         SerializedDataParameter m_GroundColorTexture;
         SerializedDataParameter m_GroundTint;
@@ -63,10 +59,6 @@ namespace UnityEditor.Rendering.HighDefinition
             m_Type = Unpack(o.Find(x => x.type));
             m_Mode = Unpack(o.Find(x => x.renderingMode));
             m_Material = Unpack(o.Find(x => x.material));
-            m_SphericalMode = Unpack(o.Find(x => x.sphericalMode));
-            m_SeaLevel = Unpack(o.Find(x => x.seaLevel));
-            m_PlanetaryRadius = Unpack(o.Find(x => x.planetaryRadius));
-            m_PlanetCenterPosition = Unpack(o.Find(x => x.planetCenterPosition));
             m_PlanetRotation = Unpack(o.Find(x => x.planetRotation));
             m_GroundColorTexture = Unpack(o.Find(x => x.groundColorTexture));
             m_GroundTint = Unpack(o.Find(x => x.groundTint));
@@ -116,33 +108,14 @@ namespace UnityEditor.Rendering.HighDefinition
 
             DrawHeader("Planet");
 
-            if (type == PhysicallyBasedSkyModel.EarthSimple)
-                PropertyField(m_SeaLevel);
-            else
+            if (type != PhysicallyBasedSkyModel.EarthSimple && !hasMaterial)
             {
-                PropertyField(m_SphericalMode);
-
-                using (new IndentLevelScope())
-                {
-                    bool isSpherical = !m_SphericalMode.overrideState.boolValue || m_SphericalMode.value.boolValue;
-                    if (isSpherical)
-                    {
-                        PropertyField(m_PlanetCenterPosition);
-                        if (type == PhysicallyBasedSkyModel.Custom)
-                            PropertyField(m_PlanetaryRadius);
-                    }
-                    else
-                        PropertyField(m_SeaLevel);
-                }
-
-                if (!hasMaterial)
-                {
-                    PropertyField(m_PlanetRotation);
-                    PropertyField(m_GroundColorTexture);
-                }
+                PropertyField(m_PlanetRotation);
+                PropertyField(m_GroundColorTexture);
             }
 
             PropertyField(m_GroundTint);
+
             if (type != PhysicallyBasedSkyModel.EarthSimple && !hasMaterial)
             {
                 PropertyField(m_GroundEmissionTexture);

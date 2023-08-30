@@ -773,7 +773,7 @@ namespace UnityEngine.Rendering.Universal
                     CreateLightData(frameData, asset, cullResults.visibleLights);
                     CreateShadowData(frameData, asset, isForwardPlus);
                     CreatePostProcessingData(frameData, asset, anyPostProcessingEnabled);
-                    CreateRenderingData(frameData, asset, cullResults, cmd, isForwardPlus);
+                    CreateRenderingData(frameData, asset, cullResults, cmd, isForwardPlus, cameraData.renderer);
                 }
 
                 var renderingData = new RenderingData(frameData);
@@ -1435,8 +1435,7 @@ namespace UnityEngine.Rendering.Universal
             cameraData.backgroundColor = CoreUtils.ConvertSRGBToActiveColorSpace(backgroundColorSRGB);
         }
 
-        static void CreateRenderingData(ContextContainer frameData, UniversalRenderPipelineAsset settings,
-            CullingResults cullResults, CommandBuffer cmd, bool isForwardPlus)
+        static void CreateRenderingData(ContextContainer frameData, UniversalRenderPipelineAsset settings, CullingResults cullResults, CommandBuffer cmd, bool isForwardPlus, ScriptableRenderer renderer)
         {
             var universalLightData = frameData.Get<UniversalLightData>();
 
@@ -1445,6 +1444,9 @@ namespace UnityEngine.Rendering.Universal
             data.cullResults = cullResults;
             data.perObjectData = GetPerObjectLightFlags(universalLightData.additionalLightsCount, isForwardPlus);
             data.commandBuffer = cmd;
+
+            UniversalRenderer universalRenderer = renderer as UniversalRenderer;
+            data.renderingMode = universalRenderer?.renderingModeActual ?? RenderingMode.Forward;
         }
 
         static void CreateShadowData(ContextContainer frameData, UniversalRenderPipelineAsset settings, bool isForwardPlus)

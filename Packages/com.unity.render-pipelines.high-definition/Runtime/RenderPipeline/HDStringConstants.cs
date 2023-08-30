@@ -694,31 +694,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _MultipleScatteringTable = Shader.PropertyToID("_MultipleScatteringTable");
         public static readonly int _MultipleScatteringTableOrder = Shader.PropertyToID("_MultipleScatteringTableOrder");
 
-        public static readonly int _PlanetaryRadius = Shader.PropertyToID("_PlanetaryRadius");
-        public static readonly int _RcpPlanetaryRadius = Shader.PropertyToID("_RcpPlanetaryRadius");
-        public static readonly int _AtmosphericDepth = Shader.PropertyToID("_AtmosphericDepth");
-        public static readonly int _RcpAtmosphericDepth = Shader.PropertyToID("_RcpAtmosphericDepth");
-
-        public static readonly int _AtmosphericRadius = Shader.PropertyToID("_AtmosphericRadius");
-        public static readonly int _AerosolAnisotropy = Shader.PropertyToID("_AerosolAnisotropy");
-        public static readonly int _AerosolPhasePartConstant = Shader.PropertyToID("_AerosolPhasePartConstant");
-
-        public static readonly int _AirDensityFalloff = Shader.PropertyToID("_AirDensityFalloff");
-        public static readonly int _AirScaleHeight = Shader.PropertyToID("_AirScaleHeight");
-        public static readonly int _AerosolDensityFalloff = Shader.PropertyToID("_AerosolDensityFalloff");
-        public static readonly int _AerosolScaleHeight = Shader.PropertyToID("_AerosolScaleHeight");
-
-        public static readonly int _AirSeaLevelExtinction = Shader.PropertyToID("_AirSeaLevelExtinction");
-        public static readonly int _AerosolSeaLevelExtinction = Shader.PropertyToID("_AerosolSeaLevelExtinction");
-
-        public static readonly int _AirSeaLevelScattering = Shader.PropertyToID("_AirSeaLevelScattering");
-        public static readonly int _AerosolSeaLevelScattering = Shader.PropertyToID("_AerosolSeaLevelScattering");
-
-        public static readonly int _GroundAlbedo = Shader.PropertyToID("_GroundAlbedo");
-        public static readonly int _IntensityMultiplier = Shader.PropertyToID("_IntensityMultiplier");
-
-        public static readonly int _PlanetCenterPosition = Shader.PropertyToID("_PlanetCenterPosition");
-
         public static readonly int _PlanetRotation = Shader.PropertyToID("_PlanetRotation");
         public static readonly int _SpaceRotation = Shader.PropertyToID("_SpaceRotation");
 
@@ -734,14 +709,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _SpaceEmissionMultiplier = Shader.PropertyToID("_SpaceEmissionMultiplier");
 
         public static readonly int _RenderSunDisk = Shader.PropertyToID("_RenderSunDisk");
-
-        public static readonly int _ColorSaturation = Shader.PropertyToID("_ColorSaturation");
-        public static readonly int _AlphaSaturation = Shader.PropertyToID("_AlphaSaturation");
-        public static readonly int _AlphaMultiplier = Shader.PropertyToID("_AlphaMultiplier");
-        public static readonly int _HorizonTint = Shader.PropertyToID("_HorizonTint");
-        public static readonly int _ZenithTint = Shader.PropertyToID("_ZenithTint");
-        public static readonly int _HorizonZenithShiftPower = Shader.PropertyToID("_HorizonZenithShiftPower");
-        public static readonly int _HorizonZenithShiftScale = Shader.PropertyToID("_HorizonZenithShiftScale");
 
         // Lines
         public static readonly int _LineColorTexture  = Shader.PropertyToID("_LineColorTexture");

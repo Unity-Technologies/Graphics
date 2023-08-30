@@ -112,7 +112,7 @@ AttributesMesh ApplyMeshModification(AttributesMesh input, float3 timeParameters
 #undef _AlbedoAffectEmissive
 #undef _EmissiveExposureWeight
 
-#if !defined(SHADER_STAGE_RAY_TRACING) || (SHADERPASS == SHADERPASS_PATH_TRACING)
+#if !defined(SHADER_STAGE_RAY_TRACING) || defined(PATH_TRACING_CLUSTERED_DECALS)
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalUtilities.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitDecalData.hlsl"
 #endif

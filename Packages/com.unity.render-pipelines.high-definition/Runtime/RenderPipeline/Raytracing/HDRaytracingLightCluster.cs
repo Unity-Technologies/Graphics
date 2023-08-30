@@ -55,6 +55,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _RaytracingLightCullResult = Shader.PropertyToID("_RaytracingLightCullResult");
         public static readonly int _ClusterCenterPosition = Shader.PropertyToID("_ClusterCenterPosition");
         public static readonly int _ClusterDimension = Shader.PropertyToID("_ClusterDimension");
+        public static readonly int _ClusterLightCategoryDebug = Shader.PropertyToID("_ClusterLightCategoryDebug");
 
         // Temporary variables
         // This value is now fixed for every HDRP asset
@@ -698,6 +699,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int texWidth;
             public int texHeight;
             public int lightClusterDebugKernel;
+            public int clusterLightCategory;
             public Vector3 clusterCellSize;
             public Material debugMaterial;
             public BufferHandle lightCluster;
@@ -731,6 +733,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.outputBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
                 { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Light Cluster Debug Texture" }));
 
+                passData.clusterLightCategory = m_RenderPipeline.m_CurrentDebugDisplaySettings.data.lightClusterCategoryDebug;
+
                 builder.SetRenderFunc(
                     (LightClusterDebugPassData data, RenderGraphContext ctx) =>
                     {
@@ -742,6 +746,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Inject all the parameters to the debug compute
                         ctx.cmd.SetComputeBufferParam(data.lightClusterDebugCS, data.lightClusterDebugKernel, HDShaderIDs._RaytracingLightCluster, data.lightCluster);
                         ctx.cmd.SetComputeVectorParam(data.lightClusterDebugCS, _ClusterCellSize, data.clusterCellSize);
+                        ctx.cmd.SetComputeIntParam(data.lightClusterDebugCS, _ClusterLightCategoryDebug, data.clusterLightCategory);
                         ctx.cmd.SetComputeTextureParam(data.lightClusterDebugCS, data.lightClusterDebugKernel, HDShaderIDs._CameraDepthTexture, data.depthStencilBuffer);
 
                         // Target output texture
@@ -822,7 +827,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public int GetDecalCount(HDCamera hdCamera)
         {
-            if(hdCamera.IsPathTracingEnabled() && hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals))
+            if((hdCamera.IsPathTracingEnabled() || hdCamera.IsRayTracingEnabled()) && hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals))
                 return DecalSystem.m_DecalDatasCount;
             return 0;
         }

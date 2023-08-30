@@ -1721,7 +1721,7 @@ namespace UnityEngine.Rendering.Universal
             if (platform == RuntimePlatform.WSAPlayerX86 || platform == RuntimePlatform.WSAPlayerARM || platform == RuntimePlatform.WSAPlayerX64 || platform == RuntimePlatform.Android)
             {
                 XR.XRDisplaySubsystem display = null;
-                SubsystemManager.GetInstances(displaySubsystemList);
+                SubsystemManager.GetSubsystems(displaySubsystemList);
 
                 if (displaySubsystemList.Count > 0)
                     display = displaySubsystemList[0];

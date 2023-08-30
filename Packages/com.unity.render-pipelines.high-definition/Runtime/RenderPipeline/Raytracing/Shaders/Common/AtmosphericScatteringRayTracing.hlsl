@@ -5,7 +5,10 @@
 
 float GetHeightFogTransmittance(float3 origin, float3 direction, float t)
 {
-    return TransmittanceHeightFog(_HeightFogBaseExtinction, _HeightFogBaseHeight, _HeightFogExponents, direction.y, origin.y, min(t, _MaxFogDistance));
+    float cosZenith = dot(direction, _PlanetUp);
+    float startHeight = dot(origin, _PlanetUp);
+
+    return TransmittanceHeightFog(_HeightFogBaseExtinction, _HeightFogBaseHeight, _HeightFogExponents, cosZenith, startHeight, min(t, _MaxFogDistance));
 }
 
 float3 GetHeightFogColor(float3 direction, float t)

@@ -1,3 +1,5 @@
+#ifndef NORMAL_SURFACE_GRADIENT_HLSL
+#define NORMAL_SURFACE_GRADIENT_HLSL
 // this produces an orthonormal basis of the tangent and bitangent WITHOUT vertex level tangent/bitangent for any UV including procedurally generated
 // method released with the demo for publication of "bump mapping unparametrized surfaces on the GPU"
 // http://mmikkelsen3d.blogspot.com/2011/07/derivative-maps.html
@@ -98,3 +100,4 @@ real2 UnpackDerivativeNormalRGorAG(real4 packedNormal, real scale = 1.0)
     packedNormal.a *= packedNormal.r;
     return UnpackDerivativeNormalAG(packedNormal, scale);
 }
+#endif // NORMAL_SURFACE_GRADIENT_HLSL

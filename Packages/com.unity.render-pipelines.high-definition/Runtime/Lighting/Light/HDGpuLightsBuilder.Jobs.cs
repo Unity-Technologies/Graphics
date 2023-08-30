@@ -766,8 +766,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 viewCounts = hdCamera.viewCount,
                 useCameraRelativePosition = ShaderConfig.s_CameraRelativeRendering != 0,
 
-                planetCenterPosition = skySettings.GetPlanetCenterPosition(hdCamera.camera.transform.position),
-                planetaryRadius = skySettings.GetPlanetaryRadius(),
+                planetCenterPosition = hdCamera.planet.center,
+                planetaryRadius = hdCamera.planet.radius,
                 airScaleHeight = skySettings.GetAirScaleHeight(),
                 aerosolScaleHeight = skySettings.GetAerosolScaleHeight(),
                 airExtinctionCoefficient = skySettings.GetAirExtinctionCoefficient(),

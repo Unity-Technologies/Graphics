@@ -356,6 +356,7 @@ namespace UnityEngine.Rendering.HighDefinition
             internal int rtasDebugModeEnumIndex;
             internal int volumetricCloudsDebugModeEnumIndex;
             internal int lineRenderingDebugModeEnumIndex;
+            internal int lightClusterCategoryDebug;
 
             private float m_DebugGlobalMipBiasOverride = 0.0f;
 
@@ -1071,6 +1072,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public static readonly NameAndTooltip RTASDebugView = new() { name = "Ray Tracing Acceleration Structure View", tooltip = "Use the drop-down to select a rendering view to display the ray tracing acceleration structure." };
             public static readonly NameAndTooltip RTASDebugMode = new() { name = "Ray Tracing Acceleration Structure Mode", tooltip = "Use the drop-down to select a rendering mode to display the ray tracing acceleration structure." };
             public static readonly NameAndTooltip VolumetricCloudsTooltip = new() { name = "Volumetric Clouds Debug Mode", tooltip = "Use the drop-down to select a rendering mode to display the volumemtric clouds." };
+            public static readonly NameAndTooltip ClusterCategoryDebug = new() { name = "Light Category", tooltip = "Use the drop-down to select the light type in the cluster." };
 
             // Tile/Cluster debug
             public static readonly NameAndTooltip TileClusterDebug = new() { name = "Tile/Cluster Debug", tooltip = "Use the drop-down to select the Light type that you want to show the Tile/Cluster debug information for." };
@@ -1414,6 +1416,16 @@ namespace UnityEngine.Rendering.HighDefinition
                     },
                 }
             });
+
+            list.Add(new DebugUI.Container
+            {
+                isHiddenCallback = () => data.fullScreenDebugMode != FullScreenDebugMode.LightCluster,
+                children =
+                {
+                    new DebugUI.EnumField { nameAndTooltip = LightingStrings.ClusterCategoryDebug, getter = () => (int)data.lightingDebugSettings.clusterLightCategory, setter = value => data.lightingDebugSettings.clusterLightCategory = (ClusterLightCategoryDebug)value, autoEnum = typeof(ClusterLightCategoryDebug), getIndex = () => data.lightClusterCategoryDebug, setIndex = value => data.lightClusterCategoryDebug = value },
+                }
+            });
+
 
             list.Add(new DebugUI.EnumField { nameAndTooltip = LightingStrings.TileClusterDebug, getter = () => (int)data.lightingDebugSettings.tileClusterDebug, setter = value => data.lightingDebugSettings.tileClusterDebug = (TileClusterDebug)value, autoEnum = typeof(TileClusterDebug), getIndex = () => data.tileClusterDebugEnumIndex, setIndex = value => data.tileClusterDebugEnumIndex = value });
             {

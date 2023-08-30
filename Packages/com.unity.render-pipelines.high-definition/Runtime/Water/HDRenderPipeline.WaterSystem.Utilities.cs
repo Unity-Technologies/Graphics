@@ -331,80 +331,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return 1;
         }
 
-        // Function that evaluates the bounds of a given patch based on it's index while accounting for deformation
-        static void ComputePatchBounds(WaterRenderingParameters parameters, int id, int lod, out float2 center, out float2 size, out float2 rotation)
-        {
-            float2 _GridSize = new Vector2(parameters.waterRenderingCB._GridSize.x, parameters.waterRenderingCB._GridSize.y);
-            float _MaxWaveDisplacement = parameters.waterCB._MaxWaveDisplacement;
-            float4 _PatchOffset = parameters.waterRenderingCB._PatchOffset;
-
-            //uint id = (uint)patch % 4;
-            //float scale = 1 << (patch >> 2);
-            float scale = 1 << lod;
-
-            center = new float2(-0.25f, -0.75f);
-            size = new float2(1.5f, 0.5f) * 0.5f;
-
-            rotation = new float2(scale, 0);
-            if (id == 1) rotation = new float2(0, -scale);
-            if (id == 2) rotation = new float2(-scale, 0);
-            if (id == 3) rotation = new float2(0, scale);
-
-            center = center.x * rotation.xy + center.y * new float2(-rotation.y, rotation.x);
-            size = size.x * abs(rotation.xy) + size.y * abs(rotation.yx);
-
-            center = center * _GridSize + _PatchOffset.xz;
-            size = size * _GridSize + _MaxWaveDisplacement;
-
-            var bounds = new Bounds()
-            {
-                center = new float3(center.x, 0.0f, center.y),
-                extents = new float3(size.x, 1.0f, size.y)
-            };
-        }
-
-        static void DrawInstancedIndirectCPU(CommandBuffer cmd, WaterRenderingParameters parameters, int passIndex)
-        {
-            float maxWaveHeight = parameters.waterCB._MaxWaveHeight + parameters.waterRenderingCB._MaxWaterDeformation;
-            uint maxLOD = parameters.waterRenderingCB._MaxLOD;
-            Vector4 patchOffset = parameters.waterRenderingCB._PatchOffset;
-            float2 regionCenter = parameters.waterRenderingCB._GridOffset;
-            float2 regionExtent = parameters.waterRenderingCB._RegionExtent;
-
-            for (int lod = 0; lod < maxLOD; lod++)
-            {
-                for (int id = 0; id < 4; id++)
-                {
-                    ComputePatchBounds(parameters, id, lod, out var center, out var size, out var rotation);
-
-                    if (!parameters.infinite && !all(abs(regionCenter - center) < regionExtent + size))
-                        continue;
-
-                    // Frustum cull the patch
-                    OrientedBBox obb;
-                    obb.center = float3(center.x, patchOffset.y, center.y);
-                    obb.right = new float3(1, 0, 0);
-                    obb.up = new float3(0, 1, 0);
-                    obb.extentX = size.x;
-                    obb.extentY = maxWaveHeight;
-                    obb.extentZ = size.y;
-
-                    if (ShaderConfig.s_CameraRelativeRendering != 0)
-                        obb.center -= parameters.cameraPosition;
-
-                    if (!GeometryUtils.Overlap(obb, parameters.cameraFrustum, 6, 8))
-                        continue;
-
-                    // Propagate the data to the constant buffer
-                    parameters.waterRenderingCB._PatchRotation.Set(rotation.x, rotation.y, 0.0f, 0.0f);
-                    ConstantBuffer.Push(cmd, parameters.waterRenderingCB, parameters.waterMaterial, HDShaderIDs._ShaderVariablesWaterRendering);
-
-                    // Draw the target patch
-                    cmd.DrawMesh(parameters.ringMesh, Matrix4x4.identity, parameters.waterMaterial, 0, passIndex, parameters.mbp);
-                }
-            }
-        }
-
         static bool FindPassIndex(Material material, string passName, out int passIndex)
         {
             passIndex = material.FindPass(passName);
@@ -418,7 +344,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return true;
         }
 
-        static void DrawInstancedQuads(CommandBuffer cmd, WaterRenderingParameters parameters, int passIndex, int lowResPassIndex, bool supportIndirectGPU,
+        static void DrawInstancedQuads(CommandBuffer cmd, WaterRenderingParameters parameters, int passIndex, int lowResPassIndex,
             GraphicsBuffer patchDataBuffer, GraphicsBuffer indirectBuffer, GraphicsBuffer cameraFrustumBuffer)
         {
             var cb = parameters.waterRenderingCB;
@@ -447,28 +373,21 @@ namespace UnityEngine.Rendering.HighDefinition
             if (drawCentralPatch)
                 cmd.DrawMesh(parameters.tessellableMesh, Matrix4x4.identity, parameters.waterMaterial, 0, passIndex, parameters.mbp);
 
+            // Draw the remaining patches
             if (cb._MaxLOD > 0)
             {
-                // Draw the remaining patches
-                if (supportIndirectGPU)
-                {
-                    // Makes both constant buffers are properly injected
-                    ConstantBuffer.Set<ShaderVariablesWater>(cmd, parameters.waterSimulation, HDShaderIDs._ShaderVariablesWater);
-                    ConstantBuffer.Set<ShaderVariablesWaterRendering>(cmd, parameters.waterSimulation, HDShaderIDs._ShaderVariablesWaterRendering);
+                // Makes both constant buffers are properly injected
+                ConstantBuffer.Set<ShaderVariablesWater>(cmd, parameters.waterSimulation, HDShaderIDs._ShaderVariablesWater);
+                ConstantBuffer.Set<ShaderVariablesWaterRendering>(cmd, parameters.waterSimulation, HDShaderIDs._ShaderVariablesWaterRendering);
 
-                    // Prepare the indirect parameters
-                    cmd.SetComputeBufferParam(parameters.waterSimulation, parameters.patchEvaluation, HDShaderIDs._WaterPatchDataRW, patchDataBuffer);
-                    cmd.SetComputeBufferParam(parameters.waterSimulation, parameters.patchEvaluation, HDShaderIDs._WaterInstanceDataRW, indirectBuffer);
-                    cmd.SetComputeBufferParam(parameters.waterSimulation, parameters.patchEvaluation, HDShaderIDs._FrustumGPUBuffer, cameraFrustumBuffer);
-                    cmd.DispatchCompute(parameters.waterSimulation, parameters.patchEvaluation, 1, 1, 1);
+                // Prepare the indirect parameters
+                cmd.SetComputeBufferParam(parameters.waterSimulation, parameters.patchEvaluation, HDShaderIDs._WaterPatchDataRW, patchDataBuffer);
+                cmd.SetComputeBufferParam(parameters.waterSimulation, parameters.patchEvaluation, HDShaderIDs._WaterInstanceDataRW, indirectBuffer);
+                cmd.SetComputeBufferParam(parameters.waterSimulation, parameters.patchEvaluation, HDShaderIDs._FrustumGPUBuffer, cameraFrustumBuffer);
+                cmd.DispatchCompute(parameters.waterSimulation, parameters.patchEvaluation, 1, 1, 1);
 
-                    // Draw all the patches
-                    cmd.DrawMeshInstancedIndirect(parameters.ringMesh, 0, parameters.waterMaterial, passIndex, indirectBuffer, 0, parameters.mbp);
-                }
-                else
-                {
-                    DrawInstancedIndirectCPU(cmd, parameters, passIndex);
-                }
+                // Draw all the patches
+                cmd.DrawMeshInstancedIndirect(parameters.ringMesh, 0, parameters.waterMaterial, passIndex, indirectBuffer, 0, parameters.mbp);
             }
         }
 
@@ -493,7 +412,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        static void DrawWaterSurface(CommandBuffer cmd, WaterRenderingParameters parameters, string passName, bool supportIndirectGPU,
+        static void DrawWaterSurface(CommandBuffer cmd, WaterRenderingParameters parameters, string passName,
             GraphicsBuffer patchDataBuffer, GraphicsBuffer indirectBuffer, GraphicsBuffer cameraFrustumBuffer)
         {
             int lowResPassIndex = 0;
@@ -510,7 +429,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (parameters.instancedQuads)
             {
-                DrawInstancedQuads(cmd, parameters, passIndex, lowResPassIndex, supportIndirectGPU, patchDataBuffer, indirectBuffer, cameraFrustumBuffer);
+                DrawInstancedQuads(cmd, parameters, passIndex, lowResPassIndex, patchDataBuffer, indirectBuffer, cameraFrustumBuffer);
             }
             else
             {
