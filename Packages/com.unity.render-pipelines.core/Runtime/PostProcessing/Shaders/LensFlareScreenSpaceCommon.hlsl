@@ -62,7 +62,7 @@ struct VaryingsSSLF
 
 float2 GetAnamorphism()
 {
-    float f = frac(LensFlareScreenSpaceStreakOrientation);;
+    float f = frac(LensFlareScreenSpaceStreakOrientation);
     bool even = ((floor(LensFlareScreenSpaceStreakOrientation) % 2) == 0);
 
     float x = even ? -(1.0 - f) : -(1.0 - (1.0 - f));
@@ -339,7 +339,7 @@ float4 FragmentUpsample(VaryingsSSLF input) : SV_Target
 
     float2 u0 = saturate(float2(uv.x - dx, uv.y - dy));
     float2 u1 = saturate(float2(uv.x, uv.y));
-    float2 u2 = saturate(float2(uv.x + dx, uv.y + dx));
+    float2 u2 = saturate(float2(uv.x + dx, uv.y + dy));
 
     float3 c0 = 1.0 * SampleScaled(_LensFlareScreenSpaceStreakTex, u0) / 4.0;
     float3 c1 = 2.0 * SampleScaled(_LensFlareScreenSpaceStreakTex, u1) / 4.0;
