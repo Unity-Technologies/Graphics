@@ -12,6 +12,27 @@ namespace UnityEngine.Rendering.HighDefinition
     [HDRPHelpURL("Override-Visual-Environment")]
     public sealed class VisualEnvironment : VolumeComponent
     {
+        internal const float k_DefaultEarthRadius = 6.3781f * 1000000;
+
+        /// <summary>
+        /// Planet shape type
+        /// </summary>
+        public enum ShapeType
+        {
+            /// <summary>
+            /// Simulate a planet with the same dimesions as the earth
+            /// </summary>
+            Earth,
+            /// <summary>
+            /// Simulates a generic spherical planet
+            /// </summary>
+            Spherical,
+            /// <summary>
+            /// Simulates a flat planet
+            /// </summary>
+            Flat
+        };
+
         /// <summary>Type of sky that should be used for rendering.</summary>
         [Header("Sky")]
         public NoInterpIntParameter skyType = new NoInterpIntParameter(0);
@@ -19,6 +40,18 @@ namespace UnityEngine.Rendering.HighDefinition
         public NoInterpIntParameter cloudType = new NoInterpIntParameter(0);
         /// <summary>Defines the way the ambient probe should be computed.</summary>
         public SkyAmbientModeParameter skyAmbientMode = new SkyAmbientModeParameter(SkyAmbientMode.Dynamic);
+
+        /// <summary> Allows to specify the location of the planet. If disabled, the planet is always below the camera in the world-space X-Z plane. </summary>
+        [Header("Planet")]
+        [Tooltip("Controls the planet settings which will impact environment effects like clouds, fog and sky.\nChoose whether to simulate a flat planet, a spherical planet, or use a preset with Earth values.")]
+        public EnumParameter<ShapeType> planetType = new (ShapeType.Earth);
+        /// <summary> World-space Y coordinate of the sea level of the planet. Units: meters. </summary>
+        [Tooltip("Sets the world-space y coordinate of the planet's sea level in meters.")]
+        public FloatParameter seaLevel = new FloatParameter(0);
+        /// <summary> Radius of the planet (distance from the center of the planet to the sea level). Units: meters. </summary>
+        public MinFloatParameter planetRadius = new MinFloatParameter(k_DefaultEarthRadius, 0);
+        /// <summary> Position of the center of the planet in the world space. Units: meters. Does not affect the precomputation. </summary>
+        public Vector3Parameter planetCenter = new Vector3Parameter(new Vector3(0, -k_DefaultEarthRadius, 0));
 
         /// <summary>Controls the global orientation of the wind relative to the X world vector.</summary>
         [Header("Wind")]

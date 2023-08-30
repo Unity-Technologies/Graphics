@@ -170,37 +170,6 @@ struct EnvironmentLighting
     PHASE_FUNCTION_STRUCTURE phaseFunction;
 };
 
-// This functions evaluates the sun color attenuation at a given point (if the physicaly based sky is active)
-void EvaluateSunColorAttenuation(float3 evaluationPointWS, float3 sunDirection, inout float3 sunColor)
-{
-#ifdef PHYSICALLY_BASED_SUN
-    if(_PhysicallyBasedSun == 1)
-    // TODO: move this into a shared function
-    {
-        float3 X = evaluationPointWS;
-        float3 C = _PlanetCenterPosition.xyz;
-
-        float r        = distance(X, C);
-        float cosHoriz = ComputeCosineOfHorizonAngle(r);
-        float cosTheta = dot(X - C, sunDirection) * rcp(r); // Normalize
-
-        if (cosTheta >= cosHoriz) // Above horizon
-        {
-            float3 oDepth = ComputeAtmosphericOpticalDepth(r, cosTheta, true);
-            // Cannot do this once for both the sky and the fog because the sky may be desaturated. :-(
-            float3 transm  = TransmittanceFromOpticalDepth(oDepth);
-            float3 opacity = 1 - transm;
-            sunColor *= 1 - (Desaturate(opacity, _AlphaSaturation) * _AlphaMultiplier);
-        }
-        else
-        {
-            // return 0; // Kill the light. This generates a warning, so can't early out. :-(
-           sunColor = 0;
-        }
-    }
-#endif
-}
-
 // Structure that holds all the data required for the cloud ray marching
 struct CloudRay
 {
@@ -241,9 +210,11 @@ EnvironmentLighting EvaluateEnvironmentLighting(CloudRay ray, float3 entryEvalua
     lighting.ambientTermTop = SampleSH9(_VolumetricCloudsAmbientProbeBuffer, float3(0, 1, 0)) * GetCurrentExposureMultiplier();
     lighting.ambientTermBottom = SampleSH9(_VolumetricCloudsAmbientProbeBuffer, float3(0, -1, 0)) * GetCurrentExposureMultiplier();
 
+    #ifdef PHYSICALLY_BASED_SUN
     // evaluate the attenuation at both points (entrance and exit of the cloud layer)
-    EvaluateSunColorAttenuation(entryEvaluationPointWS, lighting.sunDirection, lighting.sunColor0);
-    EvaluateSunColorAttenuation(exitEvaluationPointWS, lighting.sunDirection, lighting.sunColor1);
+    lighting.sunColor0 *= EvaluateSunColorAttenuation(entryEvaluationPointWS - _PlanetCenterPosition, lighting.sunDirection);
+    lighting.sunColor1 *= EvaluateSunColorAttenuation(exitEvaluationPointWS - _PlanetCenterPosition, lighting.sunDirection);
+    #endif
 
     // Evaluate cos of the theta angle between the view and light vectors
     lighting.cosAngle = dot(ray.direction, lighting.sunDirection);

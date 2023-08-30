@@ -311,7 +311,7 @@ float3 GetPunctualEmission(LightData lightData, float3 outgoingDir, float dist)
     return emission;
 }
 
-float3 GetDirectionalEmission(DirectionalLightData lightData, float3 position)
+float3 GetDirectionalEmission(DirectionalLightData lightData, float3 positionRWS)
 {
     float3 emission = lightData.color;
 
@@ -320,27 +320,14 @@ float3 GetDirectionalEmission(DirectionalLightData lightData, float3 position)
 #else
     // Physical sky emission color code, adapted from EvaluateLight_Directional()
     if (asint(lightData.distanceFromCamera) >= 0)
-    {
-        float r        = distance(position, _PlanetCenterPosition.xyz);
-        float cosHoriz = ComputeCosineOfHorizonAngle(r);
-        float cosTheta = dot(_PlanetCenterPosition.xyz - position, lightData.forward) * rcp(r); // Normalize
-
-        if (cosTheta < cosHoriz) // Below horizon
-            return 0.0;
-
-        float3 oDepth = ComputeAtmosphericOpticalDepth(r, cosTheta, true);
-        float3 transm  = TransmittanceFromOpticalDepth(oDepth);
-        float3 opacity = 1.0 - transm;
-
-        emission.rgb *= 1.0 - (Desaturate(opacity, _AlphaSaturation) * _AlphaMultiplier);
-    }
+        emission *= EvaluateSunColorAttenuation(positionRWS - _PlanetCenterPosition, -lightData.forward);
 #endif
 
 #ifndef LIGHT_EVALUATION_NO_COOKIE
     if (lightData.cookieMode != COOKIEMODE_NONE)
     {
         LightLoopContext context;
-        float3 lightToSample = position - lightData.positionRWS;
+        float3 lightToSample = positionRWS - lightData.positionRWS;
         emission *= EvaluateCookie_Directional(context, lightData, lightToSample);
     }
 #endif

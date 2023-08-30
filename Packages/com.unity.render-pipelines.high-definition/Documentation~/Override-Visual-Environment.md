@@ -29,6 +29,17 @@ You can use the **Visual Environment** override to control the sky and fog for t
 | **Background Clouds**   | Use the drop-down to select the type of clouds that HDRP renders when this Volume affects a Camera. The options are:<br/>&#8226; **None**: Doesn't render any clouds.<br/>&#8226; **Cloud Layer**: Renders clouds using the [Cloud Layer system](Override-Cloud-Layer.md).<br/>This list automatically updates when you [create custom clouds](Creating-Custom-Clouds.md).<br/>For more information, refer to the [clouds in HDRP documentation](Clouds-In-HDRP.md). |
 | **Ambient Mode** | Use the drop-down to select the mode this Volume uses to process ambient light.<br />&#8226; **Static**: Ambient light comes from the baked sky assigned to the **Static Lighting Sky** property in the Lighting window. This light affects both real-time and baked global illumination. For information on how to set up environment lighting, see the [Environment Lighting documentation](Environment-Lighting.md#lighting-environment).<br />&#8226; **Dynamic**: Ambient light comes from the sky that you set in the **Sky** > **Type** property of this override. This means that ambient light can change in real time depending on the current Volume affecting the Camera. If you use baked global illumination, changes to the environment lighting only affect GameObjects exclusively lit using Ambient Probes. If you use real-time global illumination, changes to the environment lighting affect both lightmaps and Ambient Probes. |
 
+### Planet
+
+The planet settings will impact various environment effects like Volumetric Clouds, Fog and Physically Based Sky.
+
+| **Property**                   | **Description**                                              |
+| ------------------------------ | ------------------------------------------------------------ |
+| **Planet Type**                | When in Spherical Mode, you can specify the location and radius of the planet. Earth Mode is spherical mode using Earth dimensions. Otherwise in Flat Mode, the planet is always below the Camera in the world-space x-z plane. |
+| **Planet Center**              | The world-space position of the planet's center in meters. Only available in **Spherical Mode**. |
+| **Sea Level**                  | The world-space y coordinate of the planet's sea level in meters. Only available in **Flat Mode**. |
+| **Planetary Radius**           | The radius of the planet in meters. The radius is the distance from the center of the planet to the sea level. |
+
 ### Wind
 
 | **Property**     | **Description**                                              |

@@ -233,11 +233,8 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._HeightFogBaseExtinction = extinction;
 
             float crBaseHeight = baseHeight.value;
-
             if (ShaderConfig.s_CameraRelativeRendering != 0)
-            {
-                crBaseHeight -= hdCamera.camera.transform.position.y;
-            }
+                crBaseHeight -= cb._PlanetUpAltitude.w;
 
             float layerDepth = Mathf.Max(0.01f, maximumHeight.value - baseHeight.value);
             float H = ScaleHeightFromLayerDepth(layerDepth);

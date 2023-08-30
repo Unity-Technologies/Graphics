@@ -45,7 +45,7 @@ float3 GetFogColor(float3 V, float fragDist)
 // We evaluate atmospheric scattering for the sky and other celestial bodies
 // during the sky pass. The opaque atmospheric scattering pass applies atmospheric
 // scattering to all other opaque geometry.
-void EvaluatePbrAtmosphere(float3 worldSpaceCameraPos, float3 V, float distAlongRay, bool renderSunDisk,
+void EvaluatePbrAtmosphere(float3 positionPS, float3 V, float distAlongRay, bool renderSunDisk,
                            out float3 skyColor, out float3 skyOpacity)
 {
     skyColor = skyOpacity = 0;
@@ -53,10 +53,8 @@ void EvaluatePbrAtmosphere(float3 worldSpaceCameraPos, float3 V, float distAlong
     const float  R = _PlanetaryRadius;
     const float2 n = float2(_AirDensityFalloff, _AerosolDensityFalloff);
     const float2 H = float2(_AirScaleHeight,    _AerosolScaleHeight);
+    const float3 O = positionPS;
 
-    // TODO: Not sure it's possible to precompute cam rel pos since variables
-    // in the two constant buffers may be set at a different frequency?
-    const float3 O     = worldSpaceCameraPos - _PlanetCenterPosition.xyz;
     const float  tFrag = abs(distAlongRay); // Clear the "hit ground" flag
 
     float3 N; float r; // These params correspond to the entry point
@@ -299,12 +297,16 @@ void EvaluateAtmosphericScattering(PositionInputs posInput, float3 V, out float3
         // and the latter resides on the far plane, the computation will be numerically unstable.
         float distDelta = fogFragDist - expFogStart;
 
-        if ((distDelta > 0))
+        if (distDelta > 0)
         {
             // Apply the distant (fallback) fog.
-            float3 positionWS = GetCurrentViewPosition() - V * expFogStart;
-            float  startHeight = positionWS.y;
-            float  cosZenith = -V.y;
+            float cosZenith = -dot(V, _PlanetUp);
+
+            //float startHeight = dot(GetPrimaryCameraPosition() - V * expFogStart, _PlanetUp);
+            float startHeight = expFogStart * cosZenith;
+            #if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING == 0)
+            startHeight += _CameraAltitude;
+            #endif
 
             // For both homogeneous and exponential media,
             // Integrate[Transmittance[x] * Scattering[x], {x, 0, t}] = Albedo * Opacity[t].
@@ -336,7 +338,8 @@ void EvaluateAtmosphericScattering(PositionInputs posInput, float3 V, out float3
         // Convert it to distance along the ray. Doesn't work with tilt shift, etc.
         float tFrag = posInput.linearDepth * rcp(dot(-V, GetViewForwardDir1(UNITY_MATRIX_V)));
 
-        EvaluatePbrAtmosphere(_WorldSpaceCameraPos.xyz, V, tFrag, false, skyColor, skyOpacity);
+        float3 positionPS = _WorldSpaceCameraPos.xyz - _PlanetCenterPosition;
+        EvaluatePbrAtmosphere(positionPS, V, tFrag, false, skyColor, skyOpacity);
         skyColor *= _IntensityMultiplier * GetCurrentExposureMultiplier();
 
         // Rendering of fog and atmospheric scattering cannot really be decoupled.

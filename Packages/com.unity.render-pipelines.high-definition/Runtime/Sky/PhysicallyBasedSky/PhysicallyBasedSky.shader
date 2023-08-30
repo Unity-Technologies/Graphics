@@ -132,11 +132,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
         float3 skyColor = 0, skyOpacity = 0;
 
         if (rayIntersectsAtmosphere)
-        {
-            float distAlongRay = tFrag;
-            float3 cameraPosWS = _PBRSkyCameraPosPS + _PlanetCenterPosition.xyz;
-            EvaluatePbrAtmosphere(cameraPosWS, V, distAlongRay, renderSunDisk, skyColor, skyOpacity);
-        }
+            EvaluatePbrAtmosphere(_PBRSkyCameraPosPS, V, tFrag, renderSunDisk, skyColor, skyOpacity);
 
         skyColor += radiance * (1 - skyOpacity);
         skyColor *= _IntensityMultiplier;

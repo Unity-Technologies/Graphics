@@ -125,8 +125,11 @@ float4 EvaluateAtmosphericScattering(PositionInputs posInput, float3 V, float4 i
 // Apply height fog between pixel position and skybox, ignores volumetric fog for performance.
 float4 EvaluateFogForSkyReflections(float3 positionWS, float3 R)
 {
-    float  startHeight = positionWS.y;
-    float  cosZenith = R.y;
+    float cosZenith = dot(R, _PlanetUp);
+    float startHeight = dot(positionWS, _PlanetUp);
+    #if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING == 0)
+    startHeight += _CameraAltitude;
+    #endif
 
     float3 volAlbedo = _HeightFogBaseScattering.xyz / _HeightFogBaseExtinction;
     float  odFallback = OpticalDepthHeightFog(_HeightFogBaseExtinction, _HeightFogBaseHeight,

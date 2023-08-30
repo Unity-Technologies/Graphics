@@ -62,22 +62,6 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("The material used to render the sky. It is recommended to use the **Physically Based Sky** Material type of ShaderGraph.")]
         public MaterialParameter material = new MaterialParameter(s_DefaultMaterial);
 
-        /// <summary> Allows to specify the location of the planet. If disabled, the planet is always below the camera in the world-space X-Z plane. </summary>
-        [Tooltip("When enabled, you can define the planet in terms of a world-space position and radius. Otherwise, the planet is always below the Camera in the world-space x-z plane.")]
-        public BoolParameter sphericalMode = new BoolParameter(true);
-
-        /// <summary> World-space Y coordinate of the sea level of the planet. Units: meters. </summary>
-        [Tooltip("Sets the world-space y coordinate of the planet's sea level in meters.")]
-        public FloatParameter seaLevel = new FloatParameter(0);
-
-        /// <summary> Radius of the planet (distance from the center of the planet to the sea level). Units: meters. </summary>
-        [Tooltip("Sets the radius of the planet in meters. This is distance from the center of the planet to the sea level.")]
-        public MinFloatParameter planetaryRadius = new MinFloatParameter(k_DefaultEarthRadius, 0);
-
-        /// <summary> Position of the center of the planet in the world space. Units: meters. Does not affect the precomputation. </summary>
-        [Tooltip("Sets the world-space position of the planet's center in meters.")]
-        public Vector3Parameter planetCenterPosition = new Vector3Parameter(new Vector3(0, -k_DefaultEarthRadius, 0));
-
         /// <summary> Opacity (per color channel) of air as measured by an observer on the ground looking towards the zenith. </summary>
         [Tooltip("Controls the red color channel opacity of air at the point in the sky directly above the observer (zenith).")]
         public ClampedFloatParameter airDensityR = new ClampedFloatParameter(ZenithOpacityFromExtinctionAndScaleHeight(k_DefaultAirScatteringR, k_DefaultAirScaleHeight), 0, 1);
@@ -228,33 +212,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return Mathf.Max(LayerDepthFromScaleHeight(k_DefaultAirScaleHeight), aerosolMaxAltitude);
         }
 
-        internal float GetPlanetaryRadius()
-        {
-            if (type.value != PhysicallyBasedSkyModel.Custom)
-            {
-                return k_DefaultEarthRadius;
-            }
-            else
-            {
-                return planetaryRadius.value;
-            }
-        }
-
-        internal Vector3 GetPlanetCenterPosition(Vector3 camPosWS)
-        {
-            if (sphericalMode.value && (type.value != PhysicallyBasedSkyModel.EarthSimple))
-            {
-                return planetCenterPosition.value;
-            }
-            else // Planar mode
-            {
-                float R = GetPlanetaryRadius();
-                float h = seaLevel.value;
-
-                return new Vector3(camPosWS.x, -R + h, camPosWS.z);
-            }
-        }
-
         internal Vector3 GetAirExtinctionCoefficient()
         {
             Vector3 airExt = new Vector3();
@@ -349,6 +306,12 @@ namespace UnityEngine.Rendering.HighDefinition
             displayName = "Physically Based Sky";
         }
 
+
+        internal int GetPrecomputationHashCode(HDCamera hdCamera)
+        {
+            return GetPrecomputationHashCode() * 23 + hdCamera.planet.radius.GetHashCode();
+        }
+
         internal int GetPrecomputationHashCode()
         {
             int hash = base.GetHashCode();
@@ -376,7 +339,6 @@ namespace UnityEngine.Rendering.HighDefinition
 #else
                 // These parameters affect precomputation.
                 hash = hash * 23 + type.GetHashCode();
-                hash = hash * 23 + planetaryRadius.GetHashCode();
                 hash = hash * 23 + groundTint.GetHashCode();
 
                 hash = hash * 23 + airMaximumAltitude.GetHashCode();
@@ -404,15 +366,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns>The hash code of the sky parameters.</returns>
         public override int GetHashCode(Camera camera)
         {
+            ref var planet = ref HDCamera.GetOrCreate(camera).planet;
+
             int hash = GetHashCode();
-            Vector3 cameraLocation = camera.transform.position;
-            float r = Vector3.Distance(cameraLocation, GetPlanetCenterPosition(cameraLocation));
-            float R = GetPlanetaryRadius();
-
-            bool isPbrSkyActive = r > R; // Disable sky rendering below the ground
-
-            hash = hash * 23 + isPbrSkyActive.GetHashCode();
-            return hash;
+            hash = hash * 23 + planet.radius.GetHashCode();
+            hash = hash * 23 + planet.center.GetHashCode();
+            return GetHashCode();
         }
 
         /// <summary> Returns the hash code of the parameters of the sky. </summary>
@@ -425,9 +384,6 @@ namespace UnityEngine.Rendering.HighDefinition
             {
 #if UNITY_2019_3 // In 2019.3, when we call GetHashCode on a VolumeParameter it generate garbage (due to the boxing of the generic parameter)
                 // These parameters do NOT affect precomputation.
-                hash = hash * 23 + sphericalMode.overrideState.GetHashCode();
-                hash = hash * 23 + seaLevel.overrideState.GetHashCode();
-                hash = hash * 23 + planetCenterPosition.overrideState.GetHashCode();
                 hash = hash * 23 + planetRotation.overrideState.GetHashCode();
 
                 if (groundColorTexture.value != null)
@@ -454,9 +410,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 // These parameters do NOT affect precomputation.
                 hash = hash * 23 + renderingMode.GetHashCode();
                 hash = hash * 23 + material.GetHashCode();
-                hash = hash * 23 + sphericalMode.GetHashCode();
-                hash = hash * 23 + seaLevel.GetHashCode();
-                hash = hash * 23 + planetCenterPosition.GetHashCode();
                 hash = hash * 23 + planetRotation.GetHashCode();
 
                 if (groundColorTexture.value != null)
@@ -606,9 +559,19 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal override Vector3 EvaluateAtmosphericAttenuation(Vector3 sunDirection, Vector3 cameraPosition)
         {
+            #if UNITY_EDITOR
+            HDRenderPipelineGlobalSettings.Ensure();
+            #endif
+
+            float radius = VisualEnvironment.k_DefaultEarthRadius;
+            HDRenderPipelineGlobalSettings settings = GraphicsSettings.GetSettingsForRenderPipeline<HDRenderPipeline>() as HDRenderPipelineGlobalSettings;
+            if (settings != null && settings.GetOrCreateDefaultVolumeProfile().TryGet<VisualEnvironment>(out var env) && env.planetType.value != VisualEnvironment.ShapeType.Earth)
+                radius = env.planetRadius.value;
+            Vector3 center = new Vector3(0.0f, -radius, 0.0f); // Assume objects are on the ground
+
             return EvaluateAtmosphericAttenuation(
                 GetAirScaleHeight(), GetAerosolScaleHeight(), GetAirExtinctionCoefficient(), GetAerosolExtinctionCoefficient(),
-                GetPlanetCenterPosition(cameraPosition), GetPlanetaryRadius(), sunDirection, cameraPosition);
+                center, radius, sunDirection, cameraPosition);
         }
 
         /// <summary> Returns the type of the sky renderer. </summary>

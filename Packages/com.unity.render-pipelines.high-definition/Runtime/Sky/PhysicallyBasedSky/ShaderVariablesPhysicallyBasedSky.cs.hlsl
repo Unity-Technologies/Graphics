@@ -16,14 +16,10 @@
 // Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesPhysicallyBasedSky
 // PackingRules = Exact
 GLOBAL_CBUFFER_START(ShaderVariablesPhysicallyBasedSky, b2)
-    float _PlanetaryRadius;
-    float _RcpPlanetaryRadius;
-    float _AtmosphericDepth;
-    float _RcpAtmosphericDepth;
     float _AtmosphericRadius;
     float _AerosolAnisotropy;
     float _AerosolPhasePartConstant;
-    float _Unused;
+    float _AerosolSeaLevelExtinction;
     float _AirDensityFalloff;
     float _AirScaleHeight;
     float _AerosolDensityFalloff;
@@ -31,18 +27,17 @@ GLOBAL_CBUFFER_START(ShaderVariablesPhysicallyBasedSky, b2)
     float4 _AirSeaLevelExtinction;
     float4 _AirSeaLevelScattering;
     float4 _AerosolSeaLevelScattering;
-    float4 _GroundAlbedo;
-    float4 _PlanetCenterPosition;
+    float4 _GroundAlbedo_PlanetRadius;
     float4 _HorizonTint;
     float4 _ZenithTint;
-    float _AerosolSeaLevelExtinction;
     float _IntensityMultiplier;
     float _ColorSaturation;
     float _AlphaSaturation;
     float _AlphaMultiplier;
     float _HorizonZenithShiftPower;
     float _HorizonZenithShiftScale;
-    float _Unused2;
+    float _AtmosphericDepth;
+    float _RcpAtmosphericDepth;
 CBUFFER_END
 
 

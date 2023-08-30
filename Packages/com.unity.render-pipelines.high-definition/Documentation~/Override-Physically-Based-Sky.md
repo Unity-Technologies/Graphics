@@ -56,10 +56,6 @@ To change how much the atmosphere attenuates light, you can change the density o
 
 | **Property**                   | **Description**                                              |
 | ------------------------------ | ------------------------------------------------------------ |
-| **Spherical Mode**             | Enables **Spherical Mode**. When in Spherical Mode, you can specify the location of the planet. Otherwise, the planet is always below the Camera in the world-space x-z plane. |
-| **Planetary Radius**           | The radius of the planet in meters. The radius is the distance from the center of the planet to the sea level. Only available in **Spherical Mode**. |
-| **Planet Center Position**     | The world-space position of the planet's center in meters. This doesn't affect the precomputation. Only available in **Spherical Mode**. |
-| **Sea Level**                  | The world-space y coordinate of the planet's sea level in meters. Not available in **Spherical Mode**. |
 | **Planet Rotation**            | The orientation of the planet. Not available in Custom **Rendering Mode**. |
 | **Ground Color Texture**       | Specifies a Texture that represents the planet's surface. Not available in Custom **Rendering Mode**. |
 | **Ground Tint**                | Specifies a color that HDRP uses to tint the **Ground Color Texture**. |
