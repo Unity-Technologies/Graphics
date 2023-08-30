@@ -4462,8 +4462,8 @@ namespace UnityEngine.Rendering.HighDefinition
         static void GetHDROutputParameters(HDROutputUtils.HDRDisplayInformation hdrDisplayInformation, ColorGamut hdrDisplayColorGamut, Tonemapping tonemappingComponent, out Vector4 hdrOutputParameters1, out Vector4 hdrOutputParameters2)
         {
             ColorGamut gamut = hdrDisplayColorGamut;
-            var minNits = hdrDisplayInformation.minToneMapLuminance;
-            var maxNits = hdrDisplayInformation.maxToneMapLuminance;
+            var minNits = (float)hdrDisplayInformation.minToneMapLuminance;
+            var maxNits = (float)hdrDisplayInformation.maxToneMapLuminance;
             var paperWhite = hdrDisplayInformation.paperWhiteNits;
             int eetfMode = 0;
             float hueShift = 0.0f;
@@ -4509,8 +4509,8 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             if (!tonemappingComponent.detectBrightnessLimits.value)
             {
-                minNits = (int)tonemappingComponent.minNits.value;
-                maxNits = (int)tonemappingComponent.maxNits.value;
+                minNits = tonemappingComponent.minNits.value;
+                maxNits = tonemappingComponent.maxNits.value;
             }
 
             hdrOutputParameters1 = new Vector4(minNits, maxNits, paperWhite, 1f / paperWhite);

@@ -223,7 +223,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     DoUserAfterOpaqueAndSky(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.resolvedDepthBuffer, prepassOutput.resolvedNormalBuffer, prepassOutput.resolvedMotionVectorsBuffer);
 
-                    DecalSystem.instance.UpdateShaderGraphAtlasTextures(m_RenderGraph);
+                    if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals))
+                        DecalSystem.instance.UpdateShaderGraphAtlasTextures(m_RenderGraph);
 
                     // No need for old stencil values here since from transparent on different features are tagged
                     ClearStencilBuffer(m_RenderGraph, hdCamera, prepassOutput.depthBuffer);
@@ -747,6 +748,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool decalsEnabled;
             public bool renderMotionVecForTransparent;
             public int colorMaskTransparentVel;
+            public TextureHandle colorPyramid;
             public TextureHandle transparentSSRLighting;
             public TextureHandle volumetricLighting;
             public TextureHandle depthPyramidTexture;
@@ -1205,9 +1207,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 if (colorPyramid != null && hdCamera.frameSettings.IsEnabled(FrameSettingsField.Refraction) && !preRefractionPass)
-                {
-                    builder.ReadTexture(colorPyramid.Value);
-                }
+                    passData.colorPyramid = builder.ReadTexture(colorPyramid.Value);
+                else
+                    passData.colorPyramid = renderGraph.defaultResources.blackTextureXR;            
 
                 // TODO RENDERGRAPH
                 // Since in the old code path we bound this as global, it was available here so we need to bind it as well in order not to break existing projects...
@@ -1229,6 +1231,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         BindGlobalLightListBuffers(data, context);
                         BindGlobalThicknessBuffers(data.thicknessTextureArray, data.thicknessReindexMap, context.cmd);
 
+                        context.cmd.SetGlobalTexture(HDShaderIDs._ColorPyramidTexture, data.colorPyramid);
                         context.cmd.SetGlobalTexture(HDShaderIDs._SsrLightingTexture, data.transparentSSRLighting);
                         context.cmd.SetGlobalTexture(HDShaderIDs._VBufferLighting, data.volumetricLighting);
                         context.cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, data.depthPyramidTexture);
