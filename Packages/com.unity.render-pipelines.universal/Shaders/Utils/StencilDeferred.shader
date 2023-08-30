@@ -108,7 +108,6 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
             HLSLPROGRAM
             #pragma target 4.5
-            #pragma never_use_dxc metal // Foveated rendering currently not supported in dxc on metal
 
             // Deferred Rendering Path does not support the OpenGL-based graphics API:
             // Desktop OpenGL, OpenGL ES 3.0, WebGL 2.0.
@@ -135,7 +134,6 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
             #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
             #pragma multi_compile_fragment _ _LIGHT_COOKIES
-            #pragma multi_compile_fragment _ _FOVEATED_RENDERING_NON_UNIFORM_RASTER
             #pragma multi_compile _ _LIGHT_LAYERS
 
             // -------------------------------------
@@ -173,7 +171,6 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
             HLSLPROGRAM
             #pragma target 4.5
-            #pragma never_use_dxc metal // Foveated rendering currently not supported in dxc on metal
 
             // Deferred Rendering Path does not support the OpenGL-based graphics API:
             // Desktop OpenGL, OpenGL ES 3.0, WebGL 2.0.
@@ -200,7 +197,6 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
             #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
             #pragma multi_compile_fragment _ _LIGHT_COOKIES
-            #pragma multi_compile_fragment _ _FOVEATED_RENDERING_NON_UNIFORM_RASTER
             #pragma multi_compile _ _LIGHT_LAYERS
 
             // -------------------------------------
@@ -237,7 +233,6 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
             HLSLPROGRAM
             #pragma target 4.5
-            #pragma never_use_dxc metal // Foveated rendering currently not supported in dxc on metal
 
             // Deferred Rendering Path does not support the OpenGL-based graphics API:
             // Desktop OpenGL, OpenGL ES 3.0, WebGL 2.0.
@@ -267,7 +262,6 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
             #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
             #pragma multi_compile_fragment _ _LIGHT_COOKIES
-            #pragma multi_compile_fragment _ _FOVEATED_RENDERING_NON_UNIFORM_RASTER
             #pragma multi_compile _ _LIGHT_LAYERS
 
             // -------------------------------------
@@ -304,7 +298,6 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
             HLSLPROGRAM
             #pragma target 4.5
-            #pragma never_use_dxc metal // Foveated rendering currently not supported in dxc on metal
 
             // Deferred Rendering Path does not support the OpenGL-based graphics API:
             // Desktop OpenGL, OpenGL ES 3.0, WebGL 2.0.
@@ -335,7 +328,6 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
             #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
             #pragma multi_compile_fragment _ _LIGHT_COOKIES
-            #pragma multi_compile_fragment _ _FOVEATED_RENDERING_NON_UNIFORM_RASTER
 
             // -------------------------------------
             // Includes

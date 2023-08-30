@@ -27,13 +27,14 @@
 
     // Keywords
     #pragma multi_compile_fragment _ _DBUFFER_MRT1 _DBUFFER_MRT2 _DBUFFER_MRT3
-    #pragma multi_compile_fragment _ _FOVEATED_RENDERING_NON_UNIFORM_RASTER
+    #include_with_pragmas "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl"
     #pragma multi_compile _ _DECAL_LAYERS
 
     ${VFXIncludeRP("VFXDecalVaryings.template")}
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl"
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DecalInput.hlsl"
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DBuffer.hlsl"
+    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRendering.hlsl"
 
     struct ps_input
     {
