@@ -28,7 +28,7 @@ namespace UnityEngine.Rendering
         {
             public static readonly GUIContent helpIcon = EditorGUIUtility.IconContent("_Help");
             public static readonly GUIContent settingsIcon = EditorGUIUtility.IconContent("_Popup");
-            public static readonly GUIContent debugIcon = EditorGUIUtility.IconContent("DebuggerEnabled");
+            public static readonly GUIContent debugIcon = EditorGUIUtility.IconContent("d_debug");
 
             public static readonly GUIContent lightingSettings = new GUIContent("Lighting Settings Asset");
             public static readonly GUIContent bakingTitle = new GUIContent("Baking");
@@ -209,6 +209,8 @@ namespace UnityEngine.Rendering
 
             Undo.undoRedoEvent -= OnUndoRedo;
             EditorSceneManager.sceneOpened -= OnSceneOpened;
+
+            ProbeGIBaking.Dispose();
         }
 
         void OnUndoRedo(in UndoRedoInfo info)
@@ -272,6 +274,11 @@ namespace UnityEngine.Rendering
             var rect = GUILayoutUtility.GetRect(iconSize.x, iconSize.y);
             if (EditorGUI.DropdownButton(rect, Styles.settingsIcon, FocusType.Passive, EditorStyles.iconButton))
                 EditorUtility.DisplayCustomMenu(rect, new[] { EditorGUIUtility.TrTextContent("Open Debug Window") }, -1, OpenProbeVolumeDebugPanel, null);
+
+            //var style = new GUIStyle(EditorStyles.iconButton);
+            //style.padding = new RectOffset(1, 1, 1, 1);
+            //if (GUI.Button(rect, Styles.debugIcon, style))
+            //    OpenProbeVolumeDebugPanel(null, null, 0);
         }
 
         void OpenProbeVolumeDebugPanel(object userData, string[] options, int selected)

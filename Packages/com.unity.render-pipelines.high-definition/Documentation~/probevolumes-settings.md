@@ -148,10 +148,6 @@ This section appears only if you enable **Lighting Scenarios** under **Light Pro
             <td>Set the distance between a probe's center and the point HDRP uses to determine the origin of that probe's sampling ray. High values may cause unwanted results, such as sampling from an area of the scene with dissimilar lighting.</td>
         </tr>
         <tr>
-            <td><strong>Max Ray Hits</strong></td>
-            <td>Set how many times a sampling ray hits geometry before HDRP determines the position of the probe where that ray originated.</td>
-        </tr>
-        <tr>
             <td><strong>Layer Mask</strong></td>
             <td>Specify which layers HDRP includes in collision calculations for [Virtual Offset](probevolumes-fixissues.html).</td>
         </tr>

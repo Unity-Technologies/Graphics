@@ -24,50 +24,46 @@ MonoBehaviour:
     virtualOffsetSettings:
       useVirtualOffset: 1
       outOfGeoOffset: 0.01
-      searchMultiplier: 0.2
+      searchMultiplier: 0.3
       rayOriginBias: -0.001
-      maxHitsPerRay: 10
       collisionMask:
         serializedVersion: 2
         m_Bits: 4294967291
   m_SceneGUIDs:
   - fc784678bf952de4482e78aea61ccdc8
   scenesToNotBake: []
-  lightingScenarios:
+  m_LightingScenarios:
   - Default
   cellDescs:
-    m_Keys: 
-    m_Values: []
-  cellCounts:
     m_Keys: 
     m_Values: []
   m_SerializedPerSceneCellList:
   - sceneGUID: fc784678bf952de4482e78aea61ccdc8
     cellList: 
   cellSharedDataAsset:
-    assetGUID: 
-    streamableAssetPath: 
-    streamableCellDescs:
+    m_AssetGUID: 
+    m_StreamableAssetPath: 
+    m_ElementSize: 0
+    m_StreamableCellDescs:
       m_Keys: 
       m_Values: []
-    elementSize: 0
   scenarios:
     m_Keys: []
     m_Values: []
   cellBricksDataAsset:
-    assetGUID: 
-    streamableAssetPath: 
-    streamableCellDescs:
+    m_AssetGUID: 
+    m_StreamableAssetPath: 
+    m_ElementSize: 0
+    m_StreamableCellDescs:
       m_Keys: 
       m_Values: []
-    elementSize: 0
   cellSupportDataAsset:
-    assetGUID: 
-    streamableAssetPath: 
-    streamableCellDescs:
+    m_AssetGUID: 
+    m_StreamableAssetPath: 
+    m_ElementSize: 0
+    m_StreamableCellDescs:
       m_Keys: 
       m_Values: []
-    elementSize: 0
   chunkSizeInBricks: 128
   maxCellPosition: {x: 0, y: 0, z: 0}
   minCellPosition: {x: -1, y: -1, z: -1}
@@ -76,6 +72,7 @@ MonoBehaviour:
     m_Extent: {x: 81, y: 81, z: 81}
   bakedSimplificationLevels: 3
   bakedMinDistanceBetweenProbes: 1
+  maxSHChunkCount: 1
   L0ChunkSize: 65536
   L1ChunkSize: 32768
   L2TextureChunkSize: 32768
@@ -85,9 +82,6 @@ MonoBehaviour:
   supportTouchupChunkSize: 32768
   supportOffsetsChunkSize: 98304
   supportDataChunkSize: 262144
-  totalCellCounts:
-    bricksCount: 64
-    chunksCount: 8
   lightingScenario: Default
   version: 0
   freezePlacement: 0
