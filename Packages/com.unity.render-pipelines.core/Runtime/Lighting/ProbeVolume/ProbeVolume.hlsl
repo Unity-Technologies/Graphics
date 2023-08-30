@@ -184,7 +184,7 @@ float GetNormalWeight(int3 offset, float3 posWS, float3 sample0Pos, float3 norma
 // Indexing functions
 // -------------------------------------------------------------
 
-bool LoadCellIndexMetaData(int cellFlatIdx, out int chunkIndex, out int stepSize, out int3 minRelativeIdx, out int3 maxRelativeIdx)
+bool LoadCellIndexMetaData(int cellFlatIdx, out int chunkIndex, out int stepSize, out int3 minRelativeIdx, out int3 maxRelativeIdxPlusOne)
 {
     bool cellIsLoaded = false;
     uint3 metaData = _APVResCellIndices[cellFlatIdx];
@@ -198,9 +198,9 @@ bool LoadCellIndexMetaData(int cellFlatIdx, out int chunkIndex, out int stepSize
         minRelativeIdx.y = (metaData.y >> 10) & 0x3FF;
         minRelativeIdx.z = (metaData.y >> 20) & 0x3FF;
 
-        maxRelativeIdx.x = metaData.z & 0x3FF;
-        maxRelativeIdx.y = (metaData.z >> 10) & 0x3FF;
-        maxRelativeIdx.z = (metaData.z >> 20) & 0x3FF;
+        maxRelativeIdxPlusOne.x = metaData.z & 0x3FF;
+        maxRelativeIdxPlusOne.y = (metaData.z >> 10) & 0x3FF;
+        maxRelativeIdxPlusOne.z = (metaData.z >> 20) & 0x3FF;
         cellIsLoaded = true;
     }
     else
@@ -208,7 +208,7 @@ bool LoadCellIndexMetaData(int cellFlatIdx, out int chunkIndex, out int stepSize
         chunkIndex = -1;
         stepSize = -1;
         minRelativeIdx = -1;
-        maxRelativeIdx = -1;
+        maxRelativeIdxPlusOne = -1;
     }
 
     return cellIsLoaded;
@@ -227,23 +227,23 @@ uint GetIndexData(APVResources apvRes, float3 posWS)
     int flatIdx = entryPos.z * (_GlobalIndirectionDimension.x * _GlobalIndirectionDimension.y) + entryPos.y * _GlobalIndirectionDimension.x + entryPos.x;
 
     int stepSize = 0;
-    int3 minRelativeIdx, maxRelativeIdx;
+    int3 minRelativeIdx, maxRelativeIdxPlusOne;
     int chunkIdx = -1;
     bool isValidBrick = false;
     int locationInPhysicalBuffer = 0;
 
-    // Dynamic branch must be enforced to avoid GPU crash on some platforms using HLSLcc.
+    // Dynamic branch must be enforced to avoid out-of-bounds memory access in LoadCellIndexMetaData
     [branch] if (isALoadedCell)
     {
-        if (LoadCellIndexMetaData(flatIdx, chunkIdx, stepSize, minRelativeIdx, maxRelativeIdx))
+        if (LoadCellIndexMetaData(flatIdx, chunkIdx, stepSize, minRelativeIdx, maxRelativeIdxPlusOne))
         {
             float3 residualPosWS = posWS - topLeftEntryWS;
             int3 localBrickIndex = floor(residualPosWS / (_MinBrickSize * stepSize));
 
             // Out of bounds.
-            isValidBrick = all(localBrickIndex >= minRelativeIdx && localBrickIndex < maxRelativeIdx);
+            isValidBrick = all(localBrickIndex >= minRelativeIdx && localBrickIndex < maxRelativeIdxPlusOne);
 
-            int3 sizeOfValid = maxRelativeIdx - minRelativeIdx;
+            int3 sizeOfValid = maxRelativeIdxPlusOne - minRelativeIdx;
             // Relative to valid region
             int3 localRelativeIndexLoc = (localBrickIndex - minRelativeIdx);
             int flattenedLocationInCell = localRelativeIndexLoc.z * (sizeOfValid.x * sizeOfValid.y) + localRelativeIndexLoc.x * sizeOfValid.y + localRelativeIndexLoc.y;
@@ -252,7 +252,15 @@ uint GetIndexData(APVResources apvRes, float3 posWS)
         }
     }
 
-    return isValidBrick ? apvRes.index[locationInPhysicalBuffer] : 0xffffffff;
+    uint result = 0xffffffff;
+
+    // Dynamic branch must be enforced to avoid out-of-bounds memory access in the physical APV buffer
+    [branch] if (isValidBrick)
+    {
+        result = apvRes.index[locationInPhysicalBuffer];
+    }
+
+    return result;
 }
 
 // -------------------------------------------------------------

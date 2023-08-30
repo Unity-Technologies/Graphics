@@ -152,9 +152,9 @@ Pass
 
         #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_DECAL_SCREEN_SPACE_PROJECTOR) || (SHADERPASS == SHADERPASS_DECAL_GBUFFER_PROJECTOR)
             #if defined(_MATERIAL_AFFECTS_NORMAL)
-                $SurfaceDescription.NormalTS:   surfaceData.normalWS.xyz = mul((half3x3)normalToWorld, surfaceDescription.NormalTS.xyz);
+                $SurfaceDescription.NormalTS:   surfaceData.normalWS.xyz = normalize(mul((half3x3)normalToWorld, surfaceDescription.NormalTS.xyz));
             #else
-                surfaceData.normalWS.xyz = normalToWorld[2].xyz;
+                surfaceData.normalWS.xyz = normalize(normalToWorld[2].xyz);
             #endif
         #elif (SHADERPASS == SHADERPASS_DBUFFER_MESH) || (SHADERPASS == SHADERPASS_DECAL_SCREEN_SPACE_MESH) || (SHADERPASS == SHADERPASS_DECAL_GBUFFER_MESH)
             #if defined(_MATERIAL_AFFECTS_NORMAL)
@@ -165,7 +165,7 @@ Pass
                 // We need to normalize as we use mikkt tangent space and this is expected (tangent space is not normalize)
                 $SurfaceDescription.NormalTS:   surfaceData.normalWS.xyz = normalize(TransformTangentToWorld(surfaceDescription.NormalTS, tangentToWorld));
             #else
-                surfaceData.normalWS.xyz = half3(input.normalWS); // Default to vertex normal
+                surfaceData.normalWS.xyz = normalize(half3(input.normalWS)); // Default to vertex normal
             #endif
         #endif
 

@@ -68,7 +68,7 @@ namespace UnityEditor.Rendering.Universal
             public PassType passType { get => passData.passType; set {} }
             public PassIdentifier passIdentifier { get => passData.pass; set {} }
 
-            public bool IsHDRShaderVariantValid { get => HDROutputUtils.IsShaderVariantValid(variantData.shaderKeywordSet, PlayerSettings.useHDRDisplay); set{ } }
+            public bool IsHDRShaderVariantValid { get => HDROutputUtils.IsShaderVariantValid(variantData.shaderKeywordSet, PlayerSettings.allowHDRDisplaySupport); set { } }
 
 
             public bool IsKeywordEnabled(LocalKeyword keyword)
@@ -786,16 +786,6 @@ namespace UnityEditor.Rendering.Universal
             return false;
         }
 
-        internal bool StripUnsupportedVariants_LightmapProbes(ref IShaderScriptableStrippingData strippingData)
-        {
-            // We can strip shaders where both lightmaps and probe volumes are enabled
-            if ((strippingData.IsKeywordEnabled(m_Lightmap) || strippingData.IsKeywordEnabled(m_DynamicLightmap))
-                && (strippingData.IsKeywordEnabled(m_ProbeVolumesL1) || strippingData.IsKeywordEnabled(m_ProbeVolumesL2)))
-                return true;
-
-            return false;
-        }
-
         internal bool StripUnsupportedVariants_EditorVisualization(ref IShaderScriptableStrippingData strippingData)
         {
             // Editor visualization is only used in scene view debug modes.
@@ -811,10 +801,6 @@ namespace UnityEditor.Rendering.Universal
             if (StripUnsupportedVariants_DirectionalLightmap(ref strippingData))
                 return true;
 
-            // We can strip shaders where both lightmaps and probe volumes are enabled
-            if (StripUnsupportedVariants_LightmapProbes(ref strippingData))
-                return true;
-
             if (StripUnsupportedVariants_EditorVisualization(ref strippingData))
                 return true;
 
@@ -828,7 +814,7 @@ namespace UnityEditor.Rendering.Universal
         internal bool StripInvalidVariants_HDR(ref IShaderScriptableStrippingData strippingData)
         {
             // We do not need to strip out HDR output variants if HDR display is enabled.
-            if (PlayerSettings.useHDRDisplay)
+            if (PlayerSettings.allowHDRDisplaySupport)
                 return false;
 
             // Shared keywords between URP and HDRP.
@@ -993,7 +979,7 @@ namespace UnityEditor.Rendering.Universal
 
             // Remove BlitHDROverlay if HDR output is not used
             if (strippingData.shader == m_HDROutputBlitShader)
-                if (!PlayerSettings.useHDRDisplay)
+                if (!PlayerSettings.allowHDRDisplaySupport)
                     return true;
 
             return false;
