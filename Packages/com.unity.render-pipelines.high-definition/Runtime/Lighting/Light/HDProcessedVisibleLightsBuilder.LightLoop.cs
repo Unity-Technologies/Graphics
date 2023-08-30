@@ -53,7 +53,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_Size = cullResults.visibleLights.Length;
 
                     //TODO: this should be accelerated by a c++ API
-                    var defaultEntity = HDLightRenderDatabase.instance.GetDefaultLightEntity();
                     for (int i = 0; i < cullResults.visibleLights.Length; ++i)
                     {
                         Light light = cullResults.visibleLights[i].light;
@@ -69,7 +68,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             }
                             // This can happen if a scene is created via new asset creation vs proper scene creation dialog. In this situation we create a default additional light data.
                             // This is bad, but should happen *extremely* rarely and all the entities will 99.9% of the time end up in the branch above.
-                            else if (light != null && light.type == LightType.Directional)
+                            else
                             {
                                 var hdLightData = light.gameObject.AddComponent<HDAdditionalLightData>();
                                 if (hdLightData)
@@ -78,9 +77,10 @@ namespace UnityEngine.Rendering.HighDefinition
                                 }
                                 if (!hdLightData.lightEntity.valid)
                                     hdLightData.CreateHDLightRenderEntity(autoDestroy: true);
+
+                                // Make sure we have a valid data index
+                                dataIndex = HDLightRenderDatabase.instance.GetEntityDataIndex(hdLightData.lightEntity);
                             }
-                            else
-                                dataIndex = HDLightRenderDatabase.instance.GetEntityDataIndex(defaultEntity);
                         }
 
                         m_VisibleLightEntityDataIndices[i] = dataIndex;
