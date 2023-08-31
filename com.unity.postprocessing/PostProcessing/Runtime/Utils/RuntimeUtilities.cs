@@ -864,7 +864,23 @@ namespace UnityEngine.Rendering.PostProcessing
         /// </summary>
         public static bool isWebNonWebGPU
         {
-            get { return Application.platform == RuntimePlatform.WebGLPlayer && SystemInfo.graphicsDeviceType != GraphicsDeviceType.WebGPU; }
+            get
+            {
+#if UNITY_EDITOR
+    #if UNITY_WEBGL
+                return PlayerSettings.GetGraphicsAPIs(BuildTarget.WebGL)[0] != GraphicsDeviceType.WebGPU;
+    #else
+                                                            return false;
+    #endif
+#else
+                return Application.platform == RuntimePlatform.WebGLPlayer
+    #if UNITY_2023_2_OR_NEWER
+                    && SystemInfo.graphicsDeviceType != GraphicsDeviceType.WebGPU
+    #endif
+                    ;
+#endif
+
+            }
         }
 
         /// <summary>

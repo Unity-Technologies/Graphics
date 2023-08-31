@@ -71,6 +71,7 @@ namespace UnityEngine.Rendering.PostProcessing
             // R8 is not supported on all platforms as a storage texture format
             m_R8Format  = RenderTextureFormat.R8;
             m_R16Format = RenderTextureFormat.RHalf;
+#if UNITY_2023_2_OR_NEWER
             if (!SystemInfo.IsFormatSupported(GraphicsFormatUtility.GetGraphicsFormat(m_R8Format, false), GraphicsFormatUsage.LoadStore))
             {
                 if (SystemInfo.IsFormatSupported(GraphicsFormatUtility.GetGraphicsFormat(RenderTextureFormat.ARGB32, false), GraphicsFormatUsage.LoadStore))
@@ -87,6 +88,24 @@ namespace UnityEngine.Rendering.PostProcessing
                     m_R16Format = RenderTextureFormat.RFloat;
                 }
             }
+#else
+            if (!SystemInfo.IsFormatSupported(GraphicsFormatUtility.GetGraphicsFormat(m_R8Format, false), FormatUsage.LoadStore))
+            {
+                if (SystemInfo.IsFormatSupported(GraphicsFormatUtility.GetGraphicsFormat(RenderTextureFormat.ARGB32, false), FormatUsage.LoadStore))
+                {
+                    m_R8Format = RenderTextureFormat.ARGB32;
+                    float4Texture = true;
+                }
+            }
+
+            if (!SystemInfo.IsFormatSupported(GraphicsFormatUtility.GetGraphicsFormat(m_R16Format, false), FormatUsage.LoadStore))
+            {
+                if (SystemInfo.IsFormatSupported(GraphicsFormatUtility.GetGraphicsFormat(RenderTextureFormat.RFloat, false), FormatUsage.LoadStore))
+                {
+                    m_R16Format = RenderTextureFormat.RFloat;
+                }
+            }
+#endif
         }
 
         public DepthTextureMode GetCameraFlags()
