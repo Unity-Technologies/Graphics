@@ -69,9 +69,63 @@ MonoBehaviour:
     - {fileID: 102900000, guid: 507fe0226a0388c4898d134f829a4b28, type: 3}
     - {fileID: 102900000, guid: bb1de3ccb0b7a7a439e79e00f33a78f8, type: 3}
     - {fileID: 102900000, guid: 25cb76fbf82e5924f817e3466acb803a, type: 3}
+    - {fileID: 102900000, guid: 4a3d5fa0000f96048b95bf35caa3c44c, type: 3}
+    - {fileID: 102900000, guid: 7b2479971db0f4b1b87c121244585fe5, type: 3}
+    - {fileID: 102900000, guid: c8a69ff74f0029f4a9778c11637b3bf4, type: 3}
     ColorSpace: -1
     BuildPlatform: 13
     GraphicsDevice: 11
     XrSdk: 
     StereoModes: 7
     Reason: 'XR : development build text issue'
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 4a3d5fa0000f96048b95bf35caa3c44c, type: 3}
+    - {fileID: 102900000, guid: 7b2479971db0f4b1b87c121244585fe5, type: 3}
+    - {fileID: 102900000, guid: c8a69ff74f0029f4a9778c11637b3bf4, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 21
+    XrSdk: 
+    StereoModes: 0
+    Reason: Test Issues
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 4a3d5fa0000f96048b95bf35caa3c44c, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 9
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: Test Issues
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 7b2479971db0f4b1b87c121244585fe5, type: 3}
+    - {fileID: 102900000, guid: c8a69ff74f0029f4a9778c11637b3bf4, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 24
+    GraphicsDevice: 21
+    XrSdk: 
+    StereoModes: 0
+    Reason: Test Issues
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 7b2479971db0f4b1b87c121244585fe5, type: 3}
+    - {fileID: 102900000, guid: c8a69ff74f0029f4a9778c11637b3bf4, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 19
+    GraphicsDevice: 21
+    XrSdk: 
+    StereoModes: 0
+    Reason: Test Issues
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 4a3d5fa0000f96048b95bf35caa3c44c, type: 3}
+    - {fileID: 102900000, guid: 7b2479971db0f4b1b87c121244585fe5, type: 3}
+    - {fileID: 102900000, guid: c8a69ff74f0029f4a9778c11637b3bf4, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 11
+    XrSdk: 
+    StereoModes: 0
+    Reason: Test Issues
