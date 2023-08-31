@@ -144,6 +144,13 @@ namespace UnityEngine.Rendering.Universal
 
             public static readonly int _TaaFrameInfluence     = Shader.PropertyToID("_TaaFrameInfluence");
             public static readonly int _TaaVarianceClampScale = Shader.PropertyToID("_TaaVarianceClampScale");
+
+            public static readonly int _CameraDepthTexture = Shader.PropertyToID("_CameraDepthTexture");
+        }
+
+        static internal class ShaderKeywords
+        {
+            public static readonly string TAA_LOW_PRECISION_SOURCE = "TAA_LOW_PRECISION_SOURCE";
         }
 
         [Serializable]
@@ -326,8 +333,21 @@ namespace UnityEngine.Rendering.Universal
                 taaMaterial.SetFloat(ShaderConstants._TaaFrameInfluence, taaInfluence);
                 taaMaterial.SetFloat(ShaderConstants._TaaVarianceClampScale, taa.varianceClampScale);
 
-                if(taa.quality == TemporalAAQuality.VeryHigh)
+                if (taa.quality == TemporalAAQuality.VeryHigh)
                     taaMaterial.SetFloatArray(ShaderConstants._TaaFilterWeights, CalculateFilterWeights(taa.jitterScale));
+
+                switch (taaHistoryAccumulationTex.rt.graphicsFormat)
+                {
+                    // Avoid precision issues with YCoCg and low bit color formats.
+                    case GraphicsFormat.B10G11R11_UFloatPack32:
+                    case GraphicsFormat.R8G8B8A8_UNorm:
+                    case GraphicsFormat.B8G8R8A8_UNorm:
+                        taaMaterial.EnableKeyword(ShaderKeywords.TAA_LOW_PRECISION_SOURCE);
+                        break;
+                    default:
+                        taaMaterial.DisableKeyword(ShaderKeywords.TAA_LOW_PRECISION_SOURCE);
+                        break;
+                }
 
                 Blitter.BlitCameraTexture(cmd, source, destination, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, taaMaterial, (int)taa.quality);
 
@@ -354,6 +374,8 @@ namespace UnityEngine.Rendering.Universal
             internal float taaFrameInfluence;
             internal float taaVarianceClampScale;
             internal float[] taaFilterWeights;
+
+            internal bool taaLowPrecisionSource;
         }
 
         internal static void Render(RenderGraph renderGraph, Material taaMaterial, ref CameraData cameraData, ref TextureHandle srcColor, ref TextureHandle srcDepth, ref TextureHandle srcMotionVectors, ref TextureHandle dstColor)
@@ -368,7 +390,8 @@ namespace UnityEngine.Rendering.Universal
             bool isNewFrame = cameraData.taaPersistentData.GetLastAccumFrameIndex(multipassId) != Time.frameCount;
             float taaInfluence = taa.resetHistoryFrames == 0 ? taa.frameInfluence : 1.0f;
 
-            TextureHandle srcAccumulation = renderGraph.ImportTexture(cameraData.taaPersistentData.accumulationTexture(multipassId));
+            RTHandle accumulationTexture = cameraData.taaPersistentData.accumulationTexture(multipassId);
+            TextureHandle srcAccumulation = renderGraph.ImportTexture(accumulationTexture);
 
             // On frame rerender or pause, stop all motion using a black motion texture.
             // This is done to avoid blurring the Taa resolve due to motion and Taa history mismatch.
@@ -391,18 +414,32 @@ namespace UnityEngine.Rendering.Universal
                 passData.taaFrameInfluence = taaInfluence;
                 passData.taaVarianceClampScale = taa.varianceClampScale;
 
-                if(taa.quality == TemporalAAQuality.VeryHigh)
+                if (taa.quality == TemporalAAQuality.VeryHigh)
                     passData.taaFilterWeights = CalculateFilterWeights(taa.jitterScale);
                 else
                     passData.taaFilterWeights = null;
 
-                builder.SetRenderFunc((TaaPassData data, RasterGraphContext context) =>
+                switch (accumulationTexture.rt.graphicsFormat)
+                {
+                    // Avoid precision issues with YCoCg and low bit color formats.
+                    case GraphicsFormat.B10G11R11_UFloatPack32:
+                    case GraphicsFormat.R8G8B8A8_UNorm:
+                    case GraphicsFormat.B8G8R8A8_UNorm:
+                        passData.taaLowPrecisionSource = true;
+                        break;
+                    default:
+                        passData.taaLowPrecisionSource = false;
+                        break;
+                }
+
+                builder.SetRenderFunc(static (TaaPassData data, RasterGraphContext context) =>
                 {
                     data.material.SetFloat(ShaderConstants._TaaFrameInfluence, data.taaFrameInfluence);
                     data.material.SetFloat(ShaderConstants._TaaVarianceClampScale, data.taaVarianceClampScale);
                     data.material.SetTexture(ShaderConstants._TaaAccumulationTex, data.srcTaaAccumTex);
                     data.material.SetTexture(ShaderConstants._TaaMotionVectorTex, data.srcMotionVectorTex);
-                    data.material.SetTexture("_CameraDepthTexture", data.srcDepthTex); // TODO: Use a constant for the name.
+                    data.material.SetTexture(ShaderConstants._CameraDepthTexture, data.srcDepthTex);
+                    CoreUtils.SetKeyword(data.material, ShaderKeywords.TAA_LOW_PRECISION_SOURCE, data.taaLowPrecisionSource);
 
                     if(data.taaFilterWeights != null)
                         data.material.SetFloatArray(ShaderConstants._TaaFilterWeights, data.taaFilterWeights);
