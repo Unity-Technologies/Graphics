@@ -37,7 +37,7 @@ namespace UnityEditor.Rendering.PostProcessing
             }
             else if (EditorUtilities.isTargetingWebGL)
             {
-                EditorGUILayout.HelpBox("Auto exposure requires compute shader support (WebGPU) when running on WebGL.", MessageType.Warning);
+                EditorGUILayout.HelpBox("Auto exposure requires compute shader support (WebGPU) when running on Web.", MessageType.Warning);
             }
             else if (EditorUtilities.isTargetingAndroid)
             {
