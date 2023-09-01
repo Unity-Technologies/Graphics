@@ -4,6 +4,17 @@ All notable changes to this project template will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [16.0.4] - 2023-09-01
+
+### Changed
+
+- Updated Environment Volume to fix an issue where no sky was attached
+- Updated Tutorial start section
+
+### Added
+
+- Added subtle SSLF effect by default
+
 ## [16.0.3] - 2023-06-22
 
 ### Changed
