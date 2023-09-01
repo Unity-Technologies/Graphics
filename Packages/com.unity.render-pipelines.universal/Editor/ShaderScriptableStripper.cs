@@ -784,16 +784,6 @@ namespace UnityEditor.Rendering.Universal
             return false;
         }
 
-        internal bool StripUnsupportedVariants_LightmapProbes(ref IShaderScriptableStrippingData strippingData)
-        {
-            // We can strip shaders where both lightmaps and probe volumes are enabled
-            if ((strippingData.IsKeywordEnabled(m_Lightmap) || strippingData.IsKeywordEnabled(m_DynamicLightmap))
-                && (strippingData.IsKeywordEnabled(m_ProbeVolumesL1) || strippingData.IsKeywordEnabled(m_ProbeVolumesL2)))
-                return true;
-
-            return false;
-        }
-
         internal bool StripUnsupportedVariants_EditorVisualization(ref IShaderScriptableStrippingData strippingData)
         {
             // Editor visualization is only used in scene view debug modes.
@@ -807,10 +797,6 @@ namespace UnityEditor.Rendering.Universal
         {
             // We can strip variants that have directional lightmap enabled but not static nor dynamic lightmap.
             if (StripUnsupportedVariants_DirectionalLightmap(ref strippingData))
-                return true;
-
-            // We can strip shaders where both lightmaps and probe volumes are enabled
-            if (StripUnsupportedVariants_LightmapProbes(ref strippingData))
                 return true;
 
             if (StripUnsupportedVariants_EditorVisualization(ref strippingData))

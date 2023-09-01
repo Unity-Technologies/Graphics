@@ -585,7 +585,6 @@ namespace ShaderStrippingAndPrefiltering
             Shader shader = Shader.Find(shaderName);
 
             StripUnsupportedVariants_DirectionalLightmap(shader, expectedDirLightmap);
-            StripUnsupportedVariants_LightmapProbes(shader, expectedLightmapProbes);
             StripUnsupportedVariants_EditorVisualization(shader, expectedEditorVizualization);
         }
 
@@ -611,47 +610,6 @@ namespace ShaderStrippingAndPrefiltering
             TestHelper.s_EnabledKeywords = new List<string>{ShaderKeywordStrings.DIRLIGHTMAP_COMBINED, ShaderKeywordStrings.DYNAMICLIGHTMAP_ON};
             helper.IsFalse(helper.stripper.StripUnsupportedVariants_DirectionalLightmap(ref helper.data));
             helper.IsFalse(helper.stripper.StripUnsupportedVariants(ref helper.data));
-        }
-
-        public void StripUnsupportedVariants_LightmapProbes(Shader shader, bool expectedLightmapProbes)
-        {
-            TestHelper helper;
-
-            helper = new TestHelper(shader, ShaderFeatures.None);
-            helper.IsFalse(helper.stripper.StripUnsupportedVariants_LightmapProbes(ref helper.data));
-            helper.IsFalse(helper.stripper.StripUnsupportedVariants(ref helper.data));
-
-            // Lightmap
-            helper = new TestHelper(shader, ShaderFeatures.None);
-            TestHelper.s_EnabledKeywords = new List<string>{ShaderKeywordStrings.LIGHTMAP_ON};
-            helper.IsFalse(helper.stripper.StripUnsupportedVariants_LightmapProbes(ref helper.data));
-            helper.IsFalse(helper.stripper.StripUnsupportedVariants(ref helper.data));
-
-            helper = new TestHelper(shader, ShaderFeatures.None);
-            TestHelper.s_EnabledKeywords = new List<string>{ShaderKeywordStrings.LIGHTMAP_ON, ShaderKeywordStrings.ProbeVolumeL1};
-            helper.AreEqual(expectedLightmapProbes, helper.stripper.StripUnsupportedVariants_LightmapProbes(ref helper.data));
-            helper.AreEqual(expectedLightmapProbes, helper.stripper.StripUnsupportedVariants(ref helper.data));
-
-            helper = new TestHelper(shader, ShaderFeatures.None);
-            TestHelper.s_EnabledKeywords = new List<string>{ShaderKeywordStrings.LIGHTMAP_ON, ShaderKeywordStrings.ProbeVolumeL2};
-            helper.AreEqual(expectedLightmapProbes, helper.stripper.StripUnsupportedVariants_LightmapProbes(ref helper.data));
-            helper.AreEqual(expectedLightmapProbes, helper.stripper.StripUnsupportedVariants(ref helper.data));
-
-            // Dynamic Lightmap
-            helper = new TestHelper(shader, ShaderFeatures.None);
-            TestHelper.s_EnabledKeywords = new List<string>{ShaderKeywordStrings.DYNAMICLIGHTMAP_ON};
-            helper.IsFalse(helper.stripper.StripUnsupportedVariants_LightmapProbes(ref helper.data));
-            helper.IsFalse(helper.stripper.StripUnsupportedVariants(ref helper.data));
-
-            helper = new TestHelper(shader, ShaderFeatures.None);
-            TestHelper.s_EnabledKeywords = new List<string>{ShaderKeywordStrings.DYNAMICLIGHTMAP_ON, ShaderKeywordStrings.ProbeVolumeL1};
-            helper.AreEqual(expectedLightmapProbes, helper.stripper.StripUnsupportedVariants_LightmapProbes(ref helper.data));
-            helper.AreEqual(expectedLightmapProbes, helper.stripper.StripUnsupportedVariants(ref helper.data));
-
-            helper = new TestHelper(shader, ShaderFeatures.None);
-            TestHelper.s_EnabledKeywords = new List<string>{ShaderKeywordStrings.DYNAMICLIGHTMAP_ON, ShaderKeywordStrings.ProbeVolumeL2};
-            helper.AreEqual(expectedLightmapProbes, helper.stripper.StripUnsupportedVariants_LightmapProbes(ref helper.data));
-            helper.AreEqual(expectedLightmapProbes, helper.stripper.StripUnsupportedVariants(ref helper.data));
         }
 
         public void StripUnsupportedVariants_EditorVisualization(Shader shader, bool expectedEditorVizualization)
