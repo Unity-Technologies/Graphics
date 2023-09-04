@@ -109,6 +109,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         // Constants
         static readonly GUID kSourceCodeGuid = new GUID("8c72f47fdde33b14a9340e325ce56f4d"); // UniversalTarget.cs
         public const string kPipelineTag = "UniversalPipeline";
+        public const string kComplexLitMaterialTypeTag = "\"UniversalMaterialType\" = \"ComplexLit\"";
         public const string kLitMaterialTypeTag = "\"UniversalMaterialType\" = \"Lit\"";
         public const string kUnlitMaterialTypeTag = "\"UniversalMaterialType\" = \"Unlit\"";
         public static readonly string[] kSharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories().Union(new string[]
