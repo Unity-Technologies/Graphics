@@ -75,6 +75,10 @@ namespace UnityEditor.ShaderGraph
 
         public void Dirty(ModificationScope scope)
         {
+            // Calling m_OnModified immediately upon dirtying the node can result in a lot of churn. For example,
+            // nodes can cause cascading view updates *multiple times* per operation.
+            // If this call causes future performance issues, we should investigate some kind of deferral or early out
+            // until all of the dirty nodes have been identified.            
             if (m_OnModified != null)
                 m_OnModified(this, scope);
             NodeValidation.HandleValidationExtensions(this);
@@ -731,7 +735,6 @@ namespace UnityEditor.ShaderGraph
 
                 UpdatePrecision(inputSlots);
                 EvaluateDynamicMaterialSlots(inputSlots, outputSlots);
-                Dirty(ModificationScope.Topological);
             }
         }
 
