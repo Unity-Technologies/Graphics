@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel; //needed for list of Custom Post Processes injections
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using UnityEngine.Serialization;
 #if UNITY_EDITOR
 using UnityEditorInternal;
@@ -306,10 +307,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void EnsureShadersCompiled()
         {
-            // We iterate over all compute shader to verify if they are all compiled, if it's not the case
-            // then we throw an exception to avoid allocating resources and crashing later on by using a null
-            // compute kernel.
-            foreach (var computeShader in m_RenderPipelineResources.shaders.GetAllComputeShaders())
+            void CheckComputeShaderMessages(ComputeShader computeShader)
             {
                 foreach (var message in UnityEditor.ShaderUtil.GetComputeShaderMessages(computeShader))
                 {
@@ -324,6 +322,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
             }
+
+            // We iterate over all compute shader to verify if they are all compiled, if it's not the case then
+            // we throw an exception to avoid allocating resources and crashing later on by using a null compute kernel.
+            m_RenderPipelineResources.shaders.ForEachFieldOfType<ComputeShader>(CheckComputeShaderMessages, BindingFlags.Public | BindingFlags.Instance);
         }
 
 #endif //UNITY_EDITOR

@@ -24,6 +24,19 @@ namespace UnityEditor.Rendering.HighDefinition
             @"Packages/com.unity.render-pipelines.high-definition/Editor/USS/Wizard";
         internal const string HDRPAssetBuildLabel = "HDRP:IncludeInBuild";
 
+        internal static bool NeedsToBeIncludedInBuild(HDRenderPipelineAsset hdRenderPipelineAsset)
+        {
+            var labelList = AssetDatabase.GetLabels(hdRenderPipelineAsset);
+            foreach (string item in labelList)
+            {
+                if (item == HDEditorUtils.HDRPAssetBuildLabel)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         private static (StyleSheet baseSkin, StyleSheet professionalSkin, StyleSheet personalSkin) LoadStyleSheets(string basePath)
             => (
             AssetDatabase.LoadAssetAtPath<StyleSheet>($"{basePath}.uss"),
