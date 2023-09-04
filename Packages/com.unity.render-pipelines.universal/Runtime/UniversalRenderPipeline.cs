@@ -1953,14 +1953,18 @@ namespace UnityEngine.Rendering.Universal
 
             return hdrDisplayOutputActive;
         }
+        
+        // We only want to enable HDR Output for the game view once
+        // since the game itself might want to control this
+        internal bool enableHDROnce = true;
 
         /// <summary>
         /// Configures the render pipeline to render to HDR output or disables HDR output.
         /// </summary>
 #if UNITY_2021_1_OR_NEWER
-        static void SetHDRState(List<Camera> cameras)
+        void SetHDRState(List<Camera> cameras)
 #else
-        static void SetHDRState(Camera[] cameras)
+        void SetHDRState(Camera[] cameras)
 #endif
         {
             bool hdrOutputActive = HDROutputSettings.main.available && HDROutputSettings.main.active;
@@ -1989,10 +1993,11 @@ namespace UnityEngine.Rendering.Universal
                     requestedHDRModeChange = hdrOutputActive;
                     HDROutputSettings.main.RequestHDRModeChange(false);
                 }
-                else
+                else if (enableHDROnce)
                 {
                     requestedHDRModeChange = !hdrOutputActive;
                     HDROutputSettings.main.RequestHDRModeChange(true);
+                    enableHDROnce = false;
                 }
             }
 
