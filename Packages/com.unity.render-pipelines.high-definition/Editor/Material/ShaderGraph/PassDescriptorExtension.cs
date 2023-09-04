@@ -23,8 +23,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             return pass.IsForward()
                 || pass.lightMode == HDShaderPassNames.s_GBufferStr
-                // DXR passes without visibility, prepass or path tracing
-                || (pass.lightMode.Contains("DXR") && pass.lightMode != HDShaderPassNames.s_RayTracingVisibilityStr && pass.lightMode != HDShaderPassNames.s_PathTracingDXRStr);
+                // DXR passes without visibility, prepass or ray tracing
+                || (pass.lightMode.Contains("DXR") && pass.lightMode != HDShaderPassNames.s_RayTracingVisibilityStr);
         }
 
         public static bool IsForward(this PassDescriptor pass)

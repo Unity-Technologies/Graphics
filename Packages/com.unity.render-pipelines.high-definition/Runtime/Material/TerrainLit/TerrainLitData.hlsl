@@ -253,13 +253,17 @@ void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionIn
 
     float3 bentNormalWS = surfaceData.normalWS;
 
-#if defined(DEBUG_DISPLAY) && !defined(SHADER_STAGE_RAY_TRACING)
+#if defined(DEBUG_DISPLAY)
+#if !defined(SHADER_STAGE_RAY_TRACING)
+    // Mipmap mode debugging isn't supported with ray tracing as it relies on derivatives
     if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
     {
         TerrainLitDebug(input.texCoord0.xy, surfaceData.baseColor);
         surfaceData.metallic = 0;
     }
-    // We need to call ApplyDebugToSurfaceData after filling the surfarcedata and before filling builtinData
+#endif
+
+    // We need to call ApplyDebugToSurfaceData after filling the surfaceData and before filling builtinData
     // as it can modify attribute use for static lighting
     ApplyDebugToSurfaceData(input.tangentToWorld, surfaceData);
 #endif

@@ -786,6 +786,7 @@ Compiled shader: HDRP/Lit, pass: DepthOnly, stage: pixel, keywords _DISABLE_SSR_
 Compiled shader: HDRP/Lit, pass: DepthOnly, stage: pixel, keywords WRITE_DECAL_BUFFER _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON _NORMALMAP _NORMALMAP_TANGENT_SPACE
 Compiled shader: HDRP/Lit, pass: DepthOnly, stage: pixel, keywords WRITE_DECAL_BUFFER _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON _NORMALMAP_TANGENT_SPACE
 Compiled shader: HDRP/Lit, pass: DepthOnly, stage: pixel, keywords WRITE_DECAL_BUFFER _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT _NORMALMAP_TANGENT_SPACE
+Compiled shader: HDRP/Lit, pass: DepthOnly, stage: pixel, keywords WRITE_DECAL_BUFFER _DEPTHOFFSET_ON _DISABLE_SSR_TRANSPARENT _DISPLACEMENT_LOCK_TILING_SCALE _HEIGHTMAP _MASKMAP _NORMALMAP _NORMALMAP_TANGENT_SPACE _PIXEL_DISPLACEMENT _PIXEL_DISPLACEMENT_LOCK_OBJECT_SCALE
 Compiled shader: HDRP/Lit, pass: DepthOnly, stage: pixel, keywords WRITE_DECAL_BUFFER _DISABLE_SSR _DISABLE_SSR_TRANSPARENT _NORMALMAP_TANGENT_SPACE
 Compiled shader: HDRP/Lit, pass: DepthOnly, stage: pixel, keywords WRITE_DECAL_BUFFER _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON _MATERIAL_FEATURE_SUBSURFACE_SCATTERING _MATERIAL_FEATURE_TRANSMISSION _NORMALMAP_TANGENT_SPACE
 Compiled shader: HDRP/Lit, pass: DepthOnly, stage: pixel, keywords WRITE_DECAL_BUFFER _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON _MATERIAL_FEATURE_SUBSURFACE_SCATTERING _NORMALMAP_TANGENT_SPACE
@@ -809,6 +810,7 @@ Compiled shader: HDRP/Lit, pass: DepthOnly, stage: vertex, keywords _DISABLE_SSR
 Compiled shader: HDRP/Lit, pass: DepthOnly, stage: vertex, keywords WRITE_DECAL_BUFFER _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT
 Compiled shader: HDRP/Lit, pass: DepthOnly, stage: vertex, keywords WRITE_DECAL_BUFFER _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON
 Compiled shader: HDRP/Lit, pass: DepthOnly, stage: vertex, keywords WRITE_DECAL_BUFFER _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON _NORMALMAP
+Compiled shader: HDRP/Lit, pass: DepthOnly, stage: vertex, keywords WRITE_DECAL_BUFFER _DEPTHOFFSET_ON _DISABLE_SSR_TRANSPARENT _DISPLACEMENT_LOCK_TILING_SCALE _HEIGHTMAP _NORMALMAP _PIXEL_DISPLACEMENT
 Compiled shader: HDRP/Lit, pass: DepthOnly, stage: vertex, keywords WRITE_DECAL_BUFFER _DISABLE_SSR_TRANSPARENT
 Compiled shader: HDRP/Lit, pass: DepthOnly, stage: vertex, keywords WRITE_DECAL_BUFFER _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON
 Compiled shader: HDRP/Lit, pass: DepthOnly, stage: vertex, keywords WRITE_DECAL_BUFFER _DISABLE_SSR_TRANSPARENT _HEIGHTMAP
@@ -920,6 +922,7 @@ Compiled shader: HDRP/Lit, pass: GBuffer, stage: all, keywords DECALS_4RT DECAL_
 Compiled shader: HDRP/Lit, pass: GBuffer, stage: all, keywords DIRLIGHTMAP_COMBINED LIGHTMAP_ON _DISABLE_SSR_TRANSPARENT
 Compiled shader: HDRP/Lit, pass: GBuffer, stage: pixel, keywords DEBUG_DISPLAY DECALS_3RT _DISABLE_SSR_TRANSPARENT _MATERIAL_FEATURE_SUBSURFACE_SCATTERING _MATERIAL_FEATURE_TRANSMISSION _NORMALMAP_TANGENT_SPACE
 Compiled shader: HDRP/Lit, pass: GBuffer, stage: pixel, keywords DEBUG_DISPLAY DECALS_3RT _DISABLE_SSR_TRANSPARENT _NORMALMAP_TANGENT_SPACE
+Compiled shader: HDRP/Lit, pass: GBuffer, stage: pixel, keywords DEBUG_DISPLAY DECALS_4RT DECAL_SURFACE_GRADIENT _DEPTHOFFSET_ON _DISABLE_SSR_TRANSPARENT _DISPLACEMENT_LOCK_TILING_SCALE _HEIGHTMAP _MASKMAP _NORMALMAP _NORMALMAP_TANGENT_SPACE _PIXEL_DISPLACEMENT _PIXEL_DISPLACEMENT_LOCK_OBJECT_SCALE
 Compiled shader: HDRP/Lit, pass: GBuffer, stage: pixel, keywords DEBUG_DISPLAY DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR _DISABLE_SSR_TRANSPARENT _NORMALMAP_TANGENT_SPACE
 Compiled shader: HDRP/Lit, pass: GBuffer, stage: pixel, keywords DEBUG_DISPLAY DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT _MATERIAL_FEATURE_SUBSURFACE_SCATTERING _MATERIAL_FEATURE_TRANSMISSION _NORMALMAP _NORMALMAP_TANGENT_SPACE _THICKNESSMAP
 Compiled shader: HDRP/Lit, pass: GBuffer, stage: pixel, keywords DEBUG_DISPLAY DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT _NORMALMAP _NORMALMAP_TANGENT_SPACE
@@ -931,6 +934,7 @@ Compiled shader: HDRP/Lit, pass: GBuffer, stage: pixel, keywords DECALS_3RT _DIS
 Compiled shader: HDRP/Lit, pass: GBuffer, stage: pixel, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON _NORMALMAP _NORMALMAP_TANGENT_SPACE
 Compiled shader: HDRP/Lit, pass: GBuffer, stage: pixel, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON _NORMALMAP_TANGENT_SPACE
 Compiled shader: HDRP/Lit, pass: GBuffer, stage: pixel, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT _NORMALMAP_TANGENT_SPACE
+Compiled shader: HDRP/Lit, pass: GBuffer, stage: pixel, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DEPTHOFFSET_ON _DISABLE_SSR_TRANSPARENT _DISPLACEMENT_LOCK_TILING_SCALE _HEIGHTMAP _MASKMAP _NORMALMAP _NORMALMAP_TANGENT_SPACE _PIXEL_DISPLACEMENT _PIXEL_DISPLACEMENT_LOCK_OBJECT_SCALE
 Compiled shader: HDRP/Lit, pass: GBuffer, stage: pixel, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR _DISABLE_SSR_TRANSPARENT _NORMALMAP_TANGENT_SPACE
 Compiled shader: HDRP/Lit, pass: GBuffer, stage: pixel, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON _MATERIAL_FEATURE_SUBSURFACE_SCATTERING _MATERIAL_FEATURE_TRANSMISSION _NORMALMAP_TANGENT_SPACE
 Compiled shader: HDRP/Lit, pass: GBuffer, stage: pixel, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON _MATERIAL_FEATURE_SUBSURFACE_SCATTERING _NORMALMAP_TANGENT_SPACE
@@ -951,10 +955,12 @@ Compiled shader: HDRP/Lit, pass: GBuffer, stage: pixel, keywords DECALS_4RT DECA
 Compiled shader: HDRP/Lit, pass: GBuffer, stage: vertex, keywords _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT
 Compiled shader: HDRP/Lit, pass: GBuffer, stage: vertex, keywords _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON
 Compiled shader: HDRP/Lit, pass: GBuffer, stage: vertex, keywords _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON _NORMALMAP
+Compiled shader: HDRP/Lit, pass: GBuffer, stage: vertex, keywords _DEPTHOFFSET_ON _DISABLE_SSR_TRANSPARENT _DISPLACEMENT_LOCK_TILING_SCALE _HEIGHTMAP _NORMALMAP _PIXEL_DISPLACEMENT
 Compiled shader: HDRP/Lit, pass: GBuffer, stage: vertex, keywords _DISABLE_SSR_TRANSPARENT
 Compiled shader: HDRP/Lit, pass: GBuffer, stage: vertex, keywords _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON
 Compiled shader: HDRP/Lit, pass: GBuffer, stage: vertex, keywords _DISABLE_SSR_TRANSPARENT _HEIGHTMAP
 Compiled shader: HDRP/Lit, pass: GBuffer, stage: vertex, keywords _DISABLE_SSR_TRANSPARENT _NORMALMAP
+Compiled shader: HDRP/Lit, pass: GBuffer, stage: vertex, keywords DEBUG_DISPLAY _DEPTHOFFSET_ON _DISABLE_SSR_TRANSPARENT _DISPLACEMENT_LOCK_TILING_SCALE _HEIGHTMAP _NORMALMAP _PIXEL_DISPLACEMENT
 Compiled shader: HDRP/Lit, pass: GBuffer, stage: vertex, keywords DEBUG_DISPLAY _DISABLE_SSR_TRANSPARENT
 Compiled shader: HDRP/Lit, pass: GBuffer, stage: vertex, keywords DEBUG_DISPLAY _DISABLE_SSR_TRANSPARENT _NORMALMAP
 Compiled shader: HDRP/Lit, pass: GBuffer, stage: vertex, keywords DIRLIGHTMAP_COMBINED LIGHTMAP_ON _DISABLE_SSR_TRANSPARENT
@@ -1011,6 +1017,9 @@ Compiled shader: HDRP/Lit, pass: MotionVectors, stage: all, keywords WRITE_DECAL
 Compiled shader: HDRP/Lit, pass: MotionVectors, stage: all, keywords WRITE_DECAL_BUFFER_AND_RENDERING_LAYER _DISABLE_SSR_TRANSPARENT _NORMALMAP_TANGENT_SPACE
 Compiled shader: HDRP/Lit, pass: MotionVectors, stage: pixel, keywords WRITE_DECAL_BUFFER_AND_RENDERING_LAYER _DISABLE_SSR_TRANSPARENT _NORMALMAP_TANGENT_SPACE
 Compiled shader: HDRP/Lit, pass: MotionVectors, stage: vertex, keywords WRITE_DECAL_BUFFER_AND_RENDERING_LAYER _DISABLE_SSR_TRANSPARENT
+Compiled shader: HDRP/Lit, pass: PathTracingDXR, stage: raytracing, keywords DEBUG_DISPLAY DECALS_4RT DECAL_SURFACE_GRADIENT _DEPTHOFFSET_ON _DISABLE_SSR_TRANSPARENT _DISPLACEMENT_LOCK_TILING_SCALE _HEIGHTMAP _MASKMAP _NORMALMAP _NORMALMAP_TANGENT_SPACE _PIXEL_DISPLACEMENT
+Compiled shader: HDRP/Lit, pass: PathTracingDXR, stage: raytracing, keywords DEBUG_DISPLAY DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON _NORMALMAP_TANGENT_SPACE _REFRACTION_SPHERE _SURFACE_TYPE_TRANSPARENT
+Compiled shader: HDRP/Lit, pass: PathTracingDXR, stage: raytracing, keywords DEBUG_DISPLAY DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT _NORMALMAP_TANGENT_SPACE
 Compiled shader: HDRP/Lit, pass: PathTracingDXR, stage: raytracing, keywords DECALS_3RT _DISABLE_SSR_TRANSPARENT _MATERIAL_FEATURE_CLEAR_COAT _NORMALMAP_TANGENT_SPACE
 Compiled shader: HDRP/Lit, pass: PathTracingDXR, stage: raytracing, keywords DECALS_3RT _DISABLE_SSR_TRANSPARENT _MATERIAL_FEATURE_IRIDESCENCE _NORMALMAP_TANGENT_SPACE _REFRACTION_THIN _SURFACE_TYPE_TRANSPARENT
 Compiled shader: HDRP/Lit, pass: PathTracingDXR, stage: raytracing, keywords DECALS_3RT _DISABLE_SSR_TRANSPARENT _NORMALMAP_TANGENT_SPACE
@@ -1019,11 +1028,13 @@ Compiled shader: HDRP/Lit, pass: PathTracingDXR, stage: raytracing, keywords DEC
 Compiled shader: HDRP/Lit, pass: PathTracingDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON _NORMALMAP _NORMALMAP_TANGENT_SPACE
 Compiled shader: HDRP/Lit, pass: PathTracingDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON _NORMALMAP_TANGENT_SPACE
 Compiled shader: HDRP/Lit, pass: PathTracingDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT _NORMALMAP_TANGENT_SPACE
+Compiled shader: HDRP/Lit, pass: PathTracingDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DEPTHOFFSET_ON _DISABLE_SSR_TRANSPARENT _DISPLACEMENT_LOCK_TILING_SCALE _HEIGHTMAP _MASKMAP _NORMALMAP _NORMALMAP_TANGENT_SPACE _PIXEL_DISPLACEMENT
 Compiled shader: HDRP/Lit, pass: PathTracingDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR _DISABLE_SSR_TRANSPARENT _NORMALMAP_TANGENT_SPACE
 Compiled shader: HDRP/Lit, pass: PathTracingDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON _MATERIAL_FEATURE_SUBSURFACE_SCATTERING _MATERIAL_FEATURE_TRANSMISSION _NORMALMAP_TANGENT_SPACE
 Compiled shader: HDRP/Lit, pass: PathTracingDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON _MATERIAL_FEATURE_SUBSURFACE_SCATTERING _NORMALMAP_TANGENT_SPACE
 Compiled shader: HDRP/Lit, pass: PathTracingDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON _NORMALMAP_TANGENT_SPACE
 Compiled shader: HDRP/Lit, pass: PathTracingDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON _NORMALMAP_TANGENT_SPACE _REFRACTION_PLANE _SURFACE_TYPE_TRANSPARENT
+Compiled shader: HDRP/Lit, pass: PathTracingDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON _NORMALMAP_TANGENT_SPACE _REFRACTION_SPHERE _SURFACE_TYPE_TRANSPARENT
 Compiled shader: HDRP/Lit, pass: PathTracingDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT _MATERIAL_FEATURE_CLEAR_COAT _NORMALMAP_TANGENT_SPACE
 Compiled shader: HDRP/Lit, pass: PathTracingDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT _MATERIAL_FEATURE_IRIDESCENCE _NORMALMAP_TANGENT_SPACE _REFRACTION_THIN _SURFACE_TYPE_TRANSPARENT
 Compiled shader: HDRP/Lit, pass: PathTracingDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT _MATERIAL_FEATURE_SUBSURFACE_SCATTERING _MATERIAL_FEATURE_TRANSMISSION _NORMALMAP_TANGENT_SPACE
@@ -1084,10 +1095,12 @@ Compiled shader: HDRP/Lit, pass: ShadowCaster, stage: pixel, keywords _ALPHATEST
 Compiled shader: HDRP/Lit, pass: ShadowCaster, stage: pixel, keywords _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON _NORMALMAP _NORMALMAP_TANGENT_SPACE
 Compiled shader: HDRP/Lit, pass: ShadowCaster, stage: pixel, keywords _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON _NORMALMAP_TANGENT_SPACE
 Compiled shader: HDRP/Lit, pass: ShadowCaster, stage: pixel, keywords _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT _NORMALMAP_TANGENT_SPACE
+Compiled shader: HDRP/Lit, pass: ShadowCaster, stage: pixel, keywords _DEPTHOFFSET_ON _DISABLE_SSR_TRANSPARENT _DISPLACEMENT_LOCK_TILING_SCALE _HEIGHTMAP _MASKMAP _NORMALMAP _NORMALMAP_TANGENT_SPACE _PIXEL_DISPLACEMENT _PIXEL_DISPLACEMENT_LOCK_OBJECT_SCALE
 Compiled shader: HDRP/Lit, pass: ShadowCaster, stage: pixel, keywords _DISABLE_SSR _DISABLE_SSR_TRANSPARENT _EMISSIVE_COLOR_MAP _NORMALMAP_TANGENT_SPACE
 Compiled shader: HDRP/Lit, pass: ShadowCaster, stage: pixel, keywords _DISABLE_SSR _DISABLE_SSR_TRANSPARENT _NORMALMAP_TANGENT_SPACE
 Compiled shader: HDRP/Lit, pass: ShadowCaster, stage: pixel, keywords _DISABLE_SSR _ENABLE_FOG_ON_TRANSPARENT _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
 Compiled shader: HDRP/Lit, pass: ShadowCaster, stage: pixel, keywords _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON _ENABLE_FOG_ON_TRANSPARENT _NORMALMAP_TANGENT_SPACE _REFRACTION_PLANE _SURFACE_TYPE_TRANSPARENT
+Compiled shader: HDRP/Lit, pass: ShadowCaster, stage: pixel, keywords _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON _ENABLE_FOG_ON_TRANSPARENT _NORMALMAP_TANGENT_SPACE _REFRACTION_SPHERE _SURFACE_TYPE_TRANSPARENT
 Compiled shader: HDRP/Lit, pass: ShadowCaster, stage: pixel, keywords _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON _ENABLE_FOG_ON_TRANSPARENT _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
 Compiled shader: HDRP/Lit, pass: ShadowCaster, stage: pixel, keywords _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON _MATERIAL_FEATURE_SUBSURFACE_SCATTERING _MATERIAL_FEATURE_TRANSMISSION _NORMALMAP_TANGENT_SPACE
 Compiled shader: HDRP/Lit, pass: ShadowCaster, stage: pixel, keywords _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON _MATERIAL_FEATURE_SUBSURFACE_SCATTERING _NORMALMAP_TANGENT_SPACE
@@ -1118,6 +1131,7 @@ Compiled shader: HDRP/Lit, pass: ShadowCaster, stage: vertex, keywords _ALPHATES
 Compiled shader: HDRP/Lit, pass: ShadowCaster, stage: vertex, keywords _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON
 Compiled shader: HDRP/Lit, pass: ShadowCaster, stage: vertex, keywords _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON _NORMALMAP
 Compiled shader: HDRP/Lit, pass: ShadowCaster, stage: vertex, keywords _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON _SURFACE_TYPE_TRANSPARENT
+Compiled shader: HDRP/Lit, pass: ShadowCaster, stage: vertex, keywords _DEPTHOFFSET_ON _DISABLE_SSR_TRANSPARENT _DISPLACEMENT_LOCK_TILING_SCALE _HEIGHTMAP _NORMALMAP _PIXEL_DISPLACEMENT
 Compiled shader: HDRP/Lit, pass: ShadowCaster, stage: vertex, keywords _DISABLE_SSR_TRANSPARENT
 Compiled shader: HDRP/Lit, pass: ShadowCaster, stage: vertex, keywords _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON
 Compiled shader: HDRP/Lit, pass: ShadowCaster, stage: vertex, keywords _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON _SURFACE_TYPE_TRANSPARENT
@@ -1414,6 +1428,7 @@ Compiled shader: Hidden/HDRP/Sky/HDRISky, pass: FragBaking, stage: pixel, keywor
 Compiled shader: Hidden/HDRP/Sky/HDRISky, pass: FragBaking, stage: vertex, keywords <no keywords>
 Compiled shader: Hidden/HDRP/Sky/HDRISky, pass: FragRender, stage: all, keywords <no keywords>
 Compiled shader: Hidden/HDRP/Sky/HDRISky, pass: FragRender, stage: all, keywords AREA_SHADOW_MEDIUM DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM USE_FPTL_LIGHTLIST
+Compiled shader: Hidden/HDRP/Sky/HDRISky, pass: FragRender, stage: pixel, keywords AREA_SHADOW_MEDIUM DEBUG_DISPLAY DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM USE_FPTL_LIGHTLIST
 Compiled shader: Hidden/HDRP/Sky/HDRISky, pass: FragRender, stage: pixel, keywords AREA_SHADOW_MEDIUM DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM USE_FPTL_LIGHTLIST
 Compiled shader: Hidden/HDRP/Sky/HDRISky, pass: FragRender, stage: vertex, keywords <no keywords>
 Compiled shader: Hidden/HDRP/Sky/PbrSky, pass: PBRSky Cubemap, stage: all, keywords <no keywords>
@@ -2236,6 +2251,16 @@ Compiled shader: Shader Graphs/RoundedRectangleSG, pass: MotionVectors, stage: v
 Compiled shader: Shader Graphs/RoundedRectangleSG, pass: ShadowCaster, stage: all, keywords <no keywords>
 Compiled shader: Shader Graphs/RoundedRectangleSG, pass: ShadowCaster, stage: pixel, keywords <no keywords>
 Compiled shader: Shader Graphs/RoundedRectangleSG, pass: ShadowCaster, stage: vertex, keywords <no keywords>
+Compiled shader: Shader Graphs/SG_5018_Lit, pass: DepthOnly, stage: pixel, keywords WRITE_DECAL_BUFFER _DISABLE_SSR_TRANSPARENT
+Compiled shader: Shader Graphs/SG_5018_Lit, pass: DepthOnly, stage: vertex, keywords <no keywords>
+Compiled shader: Shader Graphs/SG_5018_Lit, pass: GBuffer, stage: pixel, keywords DEBUG_DISPLAY DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT
+Compiled shader: Shader Graphs/SG_5018_Lit, pass: GBuffer, stage: pixel, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT
+Compiled shader: Shader Graphs/SG_5018_Lit, pass: GBuffer, stage: vertex, keywords <no keywords>
+Compiled shader: Shader Graphs/SG_5018_Lit, pass: GBuffer, stage: vertex, keywords DEBUG_DISPLAY
+Compiled shader: Shader Graphs/SG_5018_Lit, pass: PathTracingDXR, stage: raytracing, keywords DEBUG_DISPLAY DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT
+Compiled shader: Shader Graphs/SG_5018_Lit, pass: PathTracingDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT
+Compiled shader: Shader Graphs/SG_5018_Lit, pass: ShadowCaster, stage: pixel, keywords _DISABLE_SSR_TRANSPARENT
+Compiled shader: Shader Graphs/SG_5018_Lit, pass: ShadowCaster, stage: vertex, keywords <no keywords>
 Compiled shader: Shader Graphs/SG_Fabric_RTRT_OpaqueSSROff, pass: ForwardDXR, stage: raytracing, keywords _DISABLE_SSR _SURFACE_TYPE_TRANSPARENT
 Compiled shader: Shader Graphs/SG_Fabric_RTRT_OpaqueSSROff, pass: ForwardOnly, stage: all, keywords _SURFACE_TYPE_TRANSPARENT
 Compiled shader: Shader Graphs/SG_Fabric_RTRT_OpaqueSSROff, pass: ForwardOnly, stage: all, keywords AREA_SHADOW_MEDIUM DECALS_4RT DECAL_SURFACE_GRADIENT DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM SCREEN_SPACE_SHADOWS_ON USE_CLUSTERED_LIGHTLIST _DISABLE_SSR _ENABLE_FOG_ON_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
