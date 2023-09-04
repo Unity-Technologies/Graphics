@@ -567,6 +567,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void UpdateVolumetricClouds(HDCamera hdCamera, in VolumetricClouds settings)
         {
+            // don't update cloud animation for anything but the main camera
+            if (GetCameraType(hdCamera) != TVolumetricCloudsCameraType.Default)
+                return;
+
             // The system needs to be reset if this is the first frame or the history is not from the previous frame
             if (volumetricCloudsAnimationData.lastTime == -1.0f || !EvaluateVolumetricCloudsHistoryValidity(hdCamera, settings.localClouds.value))
             {
