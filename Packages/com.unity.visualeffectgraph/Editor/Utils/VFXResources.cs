@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using UnityEditor.PackageManager;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.Rendering;
 
 namespace UnityEditor.VFX
@@ -169,7 +170,7 @@ namespace UnityEditor.VFX
         {
             s_Values = new Values();
 
-            defaultShader = Shader.Find("Shader Graphs/DefaultVFXSG");
+            defaultShader = Shader.Find("Shader Graphs/VFXDefault");
 
             defaultAnimationCurve = new AnimationCurve(new Keyframe[]
             {
@@ -308,6 +309,17 @@ namespace UnityEditor.VFX
             }
         }
 
+        private static ShaderGraphVfxAsset m_ErrorFallbackShaderGraph;
+        public static ShaderGraphVfxAsset errorFallbackShaderGraph
+        {
+            get
+            {
+                if (m_ErrorFallbackShaderGraph == null)
+                    m_ErrorFallbackShaderGraph = SafeLoadAssetAtPath<ShaderGraphVfxAsset>(defaultPath + "ShaderGraph/VFXErrorFallback.shadergraph");
+                return m_ErrorFallbackShaderGraph;
+            }
+        }
+
         [SerializeField]
         AnimationCurve animationCurve = null;
 
@@ -339,6 +351,7 @@ namespace UnityEditor.VFX
         static Gradient defaultGradient;
         static Gradient defaultGradientMapRamp;
         static Shader defaultShader;
+        static ShaderGraphVfxAsset errorShaderFallback;
 
         public void SetDefaults()
         {

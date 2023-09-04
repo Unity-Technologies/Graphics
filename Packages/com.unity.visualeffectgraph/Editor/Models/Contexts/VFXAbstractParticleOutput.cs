@@ -63,7 +63,7 @@ namespace UnityEditor.VFX
             On
         }
 
-        protected enum StripTilingMode
+        public enum StripTilingMode
         {
             Stretch,
             RepeatPerSegment,
@@ -732,7 +732,7 @@ namespace UnityEditor.VFX
             return fixedSize != 0;
         }
 
-        public virtual bool SupportsMotionVectorPerVertex(out uint vertsCount)
+        public static bool SupportsMotionVectorPerVertex(VFXTaskType taskType, bool hasStrip, bool isRayTraced, out uint vertsCount)
         {
             switch (taskType)
             {
@@ -752,11 +752,16 @@ namespace UnityEditor.VFX
                     vertsCount = 0;
                     break;
             }
-            if (HasStrips(false))
+            if (hasStrip)
             {
                 vertsCount /= 2;
             }
             return vertsCount != 0 && !isRayTraced;
+        }
+
+        public virtual bool SupportsMotionVectorPerVertex(out uint vertsCount)
+        {
+            return SupportsMotionVectorPerVertex(taskType, HasStrips(false), isRayTraced, out vertsCount);
         }
 
         internal override void GenerateErrors(VFXInvalidateErrorReporter manager)

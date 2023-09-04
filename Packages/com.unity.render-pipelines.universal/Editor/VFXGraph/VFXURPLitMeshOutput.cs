@@ -13,9 +13,7 @@ namespace UnityEditor.VFX.URP
         {
             get
             {
-                return !string.IsNullOrEmpty(shaderName)
-                    ? $"Output Particle {shaderName} Mesh"
-                    : "Output Particle URP Lit Mesh";
+                return "Output Particle URP Lit Mesh";
             }
         }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleLitMesh"); } }

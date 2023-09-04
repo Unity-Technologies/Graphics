@@ -13,8 +13,6 @@ namespace UnityEditor.VFX
         {
             get
             {
-                if (shaderName != string.Empty)
-                    return $"Output Particle {shaderName} Mesh";
                 return "Output Particle Mesh";
             }
         }

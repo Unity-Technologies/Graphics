@@ -20,6 +20,7 @@ namespace UnityEditor.VFX.UI
 
         Image m_HeaderIcon;
         Image m_HeaderSpace;
+        Label m_Subtitle;
 
         VisualElement m_Footer;
         Image m_FooterIcon;
@@ -113,6 +114,16 @@ namespace UnityEditor.VFX.UI
             m_HeaderIcon.image = GetIconForVFXType(controller.model.inputType);
             m_HeaderIcon.visible = m_HeaderIcon.image != null;
 
+            var subTitle = controller.subtitle;
+            m_Subtitle.text = controller.subtitle;
+            if (string.IsNullOrEmpty(subTitle))
+            {
+                m_Subtitle.AddToClassList("empty");
+            }
+            else
+            {
+                m_Subtitle.RemoveFromClassList("empty");
+            }
 
             Profiler.BeginSample("VFXContextUI.SetAllStyleClasses");
 
@@ -275,6 +286,7 @@ namespace UnityEditor.VFX.UI
             m_HeaderIcon = titleContainer.Q<Image>("icon");
             m_HeaderSpace = titleContainer.Q<Image>("header-space");
             m_HeaderSpace.AddManipulator(new Clickable(OnSpace));
+            m_Subtitle = this.Q<Label>("subtitle");
 
             m_BlockContainer = this.Q("block-container");
             m_NoBlock = m_BlockContainer.Q("no-blocks");
@@ -826,7 +838,7 @@ namespace UnityEditor.VFX.UI
 
 
             //transfer settings
-            var contextType = controller.model.GetType();
+            List<KeyValuePair<string, object>> settings = new();
             foreach (var setting in newContextController.model.GetSettings(true))
             {
                 if (!newContextController.model.CanTransferSetting(setting))
@@ -841,8 +853,9 @@ namespace UnityEditor.VFX.UI
 
                 object value;
                 if (VFXConverter.TryConvertTo(sourceSetting.value, setting.field.FieldType, out value))
-                    newContextController.model.SetSettingValue(setting.field.Name, value);
+                    settings.Add(new(setting.field.Name, value));
             }
+            newContextController.model.SetSettingValues(settings);
 
             //transfer flow edges
             if (controller.flowInputAnchors.Count == 1)

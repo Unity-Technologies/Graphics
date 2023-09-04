@@ -104,14 +104,11 @@ namespace UnityEditor.VFX
     {
         private VFXSerializableObject() { }
 
-        public VFXSerializableObject(Type type, object obj) : this(type)
+        public VFXSerializableObject(Type type, object obj)
         {
+            //In case of SerializedReference, the obj.GetType can be more specialized than storage type
+            m_Type = obj != null ? obj.GetType() : type;
             Set(obj);
-        }
-
-        public VFXSerializableObject(Type type)
-        {
-            m_Type = type;
         }
 
         public object Get()

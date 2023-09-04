@@ -46,7 +46,7 @@ namespace UnityEditor.VFX.HDRP
             get
             {
                 var properties = base.inputProperties;
-                if (normalBending && !GeneratesWithShaderGraph())
+                if (normalBending)
                     properties = properties.Concat(PropertiesFromType("NormalBendingProperties"));
                 if (tilingMode == StripTilingMode.Custom)
                     properties = properties.Concat(PropertiesFromType("CustomUVInputProperties"));
@@ -83,7 +83,7 @@ namespace UnityEditor.VFX.HDRP
             foreach (var exp in base.CollectGPUExpressions(slotExpressions))
                 yield return exp;
 
-            if (normalBending && !GeneratesWithShaderGraph())
+            if (normalBending)
                 yield return slotExpressions.First(o => o.name == "normalBendingFactor");
             if (tilingMode == StripTilingMode.Custom)
                 yield return slotExpressions.First(o => o.name == "texCoord");
@@ -96,7 +96,7 @@ namespace UnityEditor.VFX.HDRP
                 foreach (var d in base.additionalDefines)
                     yield return d;
 
-                if (normalBending && !GeneratesWithShaderGraph())
+                if (normalBending)
                     yield return "USE_NORMAL_BENDING";
 
                 if (tilingMode == StripTilingMode.Stretch)

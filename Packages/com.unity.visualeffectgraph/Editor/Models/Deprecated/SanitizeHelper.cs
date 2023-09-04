@@ -8,6 +8,87 @@ namespace UnityEditor.VFX
 {
     static class SanitizeHelper
     {
+        public static void MigrateSGOutputToComposed(VFXShaderGraphParticleOutput shaderGraphOutput)
+        {
+            var shaderGraph = shaderGraphOutput.GetOrRefreshShaderGraphObject(false);
+            if (shaderGraph == null)
+                return;
+
+            if (!shaderGraph.generatesWithShaderGraph)
+                return;
+
+            Type topologyType = null;
+            Type composedType = null;
+            if (shaderGraphOutput.HasStrips())
+            {
+                topologyType = typeof(ParticleTopologyQuadStrip);
+                composedType = typeof(VFXComposedParticleStripOutput);
+            }
+            else
+            {
+                switch (shaderGraphOutput.taskType)
+                {
+                    case VFXTaskType.ParticleMeshOutput:
+                        topologyType = typeof(ParticleTopologyMesh);
+                        break;
+                    case VFXTaskType.ParticleQuadOutput:
+                    case VFXTaskType.ParticleTriangleOutput:
+                    case VFXTaskType.ParticleOctagonOutput:
+                        topologyType = typeof(ParticleTopologyPlanarPrimitive);
+                        break;
+                }
+
+                composedType = typeof(VFXComposedParticleOutput);
+            }
+
+            if (topologyType == null)
+            {
+                Debug.LogError("Unexpected output primitive: " + shaderGraphOutput);
+                return;
+            }
+
+            var composed = (VFXAbstractComposedParticleOutput)ScriptableObject.CreateInstance(composedType);
+            composed.SetSettingValue("m_Topology", Activator.CreateInstance(topologyType));
+            composed.label = shaderGraphOutput.label;
+
+            //Transfer blocks
+            var sourceBlocks = new List<VFXBlock>(shaderGraphOutput.children);
+            foreach (var block in sourceBlocks)
+                composed.AddChild(block, -1, false);
+
+            //Transfer settings (it should include materialSettings)
+            var sourceSettings = new List<KeyValuePair<string, object>>();
+            var destSettings = new List<VFXSetting>(composed.GetSettings(true, VFXSettingAttribute.VisibleFlags.Default));
+            foreach (var setting in destSettings)
+            {
+                var sourceSetting = shaderGraphOutput.GetSetting(setting.name);
+                if (!sourceSetting.valid)
+                    continue;
+
+                if (VFXConverter.TryConvertTo(sourceSetting.value, setting.field.FieldType, out var value))
+                    sourceSettings.Add(new KeyValuePair<string, object>(setting.field.Name, value));
+            }
+            composed.SetSettingValues(sourceSettings);
+
+            //Transfer slots
+            foreach (var slot in composed.inputSlots)
+            {
+                var refSlot = shaderGraphOutput.inputSlots.FirstOrDefault(o => o.name == slot.name);
+                VFXSlot.CopyLinksAndValue(slot, refSlot, false);
+            }
+
+            //Transfer flow edges
+            foreach (var link in shaderGraphOutput.inputFlowSlot[0].link)
+            {
+                composed.LinkFrom(link.context, link.slotIndex);
+            }
+
+            //Unlink previous flow before replacing model to avoid being kept in data owners
+            shaderGraphOutput.UnlinkAll();
+
+            VFXModel.ReplaceModel(composed, shaderGraphOutput);
+        }
+
         public static void MigrateVector3OutputToSpaceableKeepingLegacyBehavior(VFXOperator op, string newTypeInfo)
         {
             Debug.LogFormat("Sanitizing Graph: Automatically replace Vector3 to {0} for {1}. An inline Vector3 operator has been added.", newTypeInfo, op.name);

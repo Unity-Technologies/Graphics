@@ -307,7 +307,7 @@ namespace UnityEditor.VFX.URP
 
         protected override bool bypassExposure { get { return false; } }
 
-        protected override RPInfo currentRP => urpLitInfo;
+        protected override VFXOldShaderGraphHelpers.RPInfo currentRP => VFXOldShaderGraphHelpers.urpLitInfo;
 
         public override bool isLitShader => true;
 

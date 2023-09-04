@@ -31,14 +31,9 @@ namespace UnityEditor.VFX
                 if (!owner.isBlendModeOpaque)
                     return false;
 
-                if (owner is VFXShaderGraphParticleOutput sgOutput)
-                {
-                    //ShaderGraph & VFX doesn't support motion vector out of the box
-                    //A specific handling is required in SRP target output
-                    var sg = sgOutput.GetOrRefreshShaderGraphObject();
-                    if (sg != null && sg.generatesWithShaderGraph)
-                        return false;
-                }
+                var shaderGraph = VFXShaderGraphHelpers.GetShaderGraph(owner);
+                if (shaderGraph != null && shaderGraph.generatesWithShaderGraph)
+                    return false;
 
                 return true;
             }

@@ -24,8 +24,6 @@ namespace UnityEditor.VFX
         {
             get
             {
-                if (shaderName != string.Empty)
-                    return $"Output ParticleStrip {shaderName} Quad";
                 return "Output ParticleStrip Quad";
             }
         }

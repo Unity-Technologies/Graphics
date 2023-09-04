@@ -34,7 +34,7 @@ namespace UnityEditor.VFX
         }
 
         //This function insure to keep padding while replacing a specific string
-        private static void ReplaceMultiline(StringBuilder target, string targetQuery, StringBuilder value)
+        public static void ReplaceMultiline(StringBuilder target, string targetQuery, StringBuilder value)
         {
             Profiler.BeginSample("ReplaceMultiline");
 
@@ -230,9 +230,13 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
         static public StringBuilder Build(VFXContext context, VFXTask task, VFXCompilationMode compilationMode,
             VFXTaskCompiledData taskData, HashSet<string> dependencies, bool forceShadeDebugSymbols)
         {
-            var templatePath = string.Format("{0}.template", task.templatePath);
+            string templatePath = null;
+            if (!string.IsNullOrEmpty(task.templatePath))
+            {
+                templatePath = $"{task.templatePath}.template";
+                dependencies.Add(AssetDatabase.AssetPathToGUID(templatePath));
+            }
 
-            dependencies.Add(AssetDatabase.AssetPathToGUID(templatePath));
             return Build(context, task, templatePath, compilationMode, taskData, dependencies, forceShadeDebugSymbols);
         }
 
@@ -582,15 +586,12 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             if (!context.SetupCompilation())
                 return null;
 
-            if (context is VFXShaderGraphParticleOutput shaderGraphContext &&
-                shaderGraphContext.GetOrRefreshShaderGraphObject() is { } shaderGraph &&
-                shaderGraph.generatesWithShaderGraph)
+            if (context is IVFXShaderGraphOutput shaderGraphOutput)
             {
-                var result = TryBuildFromShaderGraph(shaderGraphContext, taskData);
-
-                // If the ShaderGraph generation path was successful, use the result, otherwise fall back to the VFX generation path.
-                if (result != null)
+                var shaderGraph = shaderGraphOutput.GetShaderGraph();
+                if (shaderGraph != null && shaderGraph.generatesWithShaderGraph)
                 {
+                    var result = TryBuildFromShaderGraph(context, taskData);
                     context.EndCompilation();
                     return result;
                 }
@@ -752,7 +753,7 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             }
 
             // Old SG integration
-            ReplaceShaderGraphTagDeprecated(stringBuilder, context, mainParameters, expressionToName);
+            VFXOldShaderGraphHelpers.ReplaceShaderGraphTag(stringBuilder, context, mainParameters, expressionToName);
 
             //< Load Attribute
             if (stringBuilder.ToString().Contains("${VFXLoadAttributes}"))
@@ -826,14 +827,13 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             _ => throw new Exception($"Graphics Device Type '{deviceType}' not supported in shader string."),
         };
 
-        private static StringBuilder TryBuildFromShaderGraph(VFXShaderGraphParticleOutput context, VFXTaskCompiledData taskData)
+        private static StringBuilder TryBuildFromShaderGraph(VFXContext context, VFXTaskCompiledData taskData)
         {
             var stringBuilder = new StringBuilder();
 
             // Reconstruct the ShaderGraph.
-            var path = AssetDatabase.GetAssetPath(context.GetOrRefreshShaderGraphObject());
+            var path = AssetDatabase.GetAssetPath(VFXShaderGraphHelpers.GetShaderGraph(context));
 
-            List<PropertyCollector.TextureInfo> configuredTextures;
             AssetCollection assetCollection = new AssetCollection();
             MinimalGraphData.GatherMinimalDependenciesFromFile(path, assetCollection);
 
@@ -849,7 +849,7 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
 
             // Check the validity of the shader graph (unsupported keywords or shader property usage).
             if (VFXLibrary.currentSRPBinder == null || !VFXLibrary.currentSRPBinder.IsGraphDataValid(graph))
-                return null;
+                return stringBuilder;
 
             var target = graph.activeTargets.Where(o =>
             {
@@ -865,10 +865,10 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             }).FirstOrDefault();
 
             if (target == null || !target.TryConfigureContextData(context, taskData))
-                return null;
+                return stringBuilder; //If TryConfigureContextData failed, it would be nice to fallback to the error feedback (done with https://github.cds.internal.unity3d.com/unity/unity/pull/8564)
 
             // Use ShaderGraph to generate the VFX shader.
-            var text = ShaderGraphImporter.GetShaderText(path, out configuredTextures, assetCollection, graph, GenerationMode.VFX, new[] { target });
+            var text = ShaderGraphImporter.GetShaderText(path, out var configuredTextures, assetCollection, graph, GenerationMode.VFX, new[] { target });
 
             // Append the shader + strip the name header (VFX stamps one in later on).
             stringBuilder.Append(text);
@@ -1021,50 +1021,6 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             bool hasBatchIndirection = true;
             if (hasBatchIndirection)
                 yield return "#define VFX_INSTANCING_BATCH_INDIRECTION 1";
-        }
-
-        // Old SG integration. Remove one day
-        private static void ReplaceShaderGraphTagDeprecated(StringBuilder stringBuilder, VFXContext context, VFXNamedExpression[] namedExpressions, Dictionary<VFXExpression, string> expressionToName)
-        {
-            int normSemantic = 0;
-
-            var additionalInterpolantsGeneration = new VFXShaderWriter();
-            var additionalInterpolantsDeclaration = new VFXShaderWriter();
-            var additionalInterpolantsPreparation = new VFXShaderWriter();
-
-            foreach (string fragmentParameter in context.fragmentParameters)
-            {
-                var filteredNamedExpression = namedExpressions.FirstOrDefault(o => fragmentParameter == o.name &&
-                    !(expressionToName.ContainsKey(o.exp) && expressionToName[o.exp] == o.name)); // if parameter already in the global scope, there's nothing to do
-
-                if (filteredNamedExpression.exp != null)
-                {
-                    if (!filteredNamedExpression.exp.Is(VFXExpression.Flags.Constant))
-                    {
-                        additionalInterpolantsDeclaration.WriteDeclaration(filteredNamedExpression.exp.valueType, filteredNamedExpression.name, $"NORMAL{normSemantic++}");
-                        additionalInterpolantsGeneration.WriteVariable(filteredNamedExpression.exp.valueType, filteredNamedExpression.name + "__", "0");
-                        var expressionToNameLocal = new Dictionary<VFXExpression, string>(expressionToName);
-                        additionalInterpolantsGeneration.EnterScope();
-                        {
-                            if (!expressionToNameLocal.ContainsKey(filteredNamedExpression.exp))
-                            {
-                                additionalInterpolantsGeneration.WriteVariable(filteredNamedExpression.exp, expressionToNameLocal);
-                                additionalInterpolantsGeneration.WriteLine();
-                            }
-                            additionalInterpolantsGeneration.WriteAssignement(filteredNamedExpression.exp.valueType, filteredNamedExpression.name + "__", expressionToNameLocal[filteredNamedExpression.exp]);
-                            additionalInterpolantsGeneration.WriteLine();
-                        }
-                        additionalInterpolantsGeneration.ExitScope();
-                        additionalInterpolantsGeneration.WriteAssignement(filteredNamedExpression.exp.valueType, "o." + filteredNamedExpression.name, filteredNamedExpression.name + "__");
-                        additionalInterpolantsPreparation.WriteVariable(filteredNamedExpression.exp.valueType, filteredNamedExpression.name, "i." + filteredNamedExpression.name);
-                    }
-                    else
-                        additionalInterpolantsPreparation.WriteVariable(filteredNamedExpression.exp.valueType, filteredNamedExpression.name, filteredNamedExpression.exp.GetCodeString(null));
-                }
-            }
-            ReplaceMultiline(stringBuilder, "${VFXAdditionalInterpolantsGeneration}", additionalInterpolantsGeneration.builder);
-            ReplaceMultiline(stringBuilder, "${VFXAdditionalInterpolantsDeclaration}", additionalInterpolantsDeclaration.builder);
-            ReplaceMultiline(stringBuilder, "${VFXAdditionalInterpolantsPreparation}", additionalInterpolantsPreparation.builder);
         }
     }
 }

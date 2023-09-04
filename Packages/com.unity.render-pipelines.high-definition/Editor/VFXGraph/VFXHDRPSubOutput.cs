@@ -34,9 +34,8 @@ namespace UnityEditor.VFX.HDRP
 
         bool GeneratesWithShaderGraph()
         {
-            return owner is VFXShaderGraphParticleOutput shaderGraphOutput &&
-                shaderGraphOutput.GetOrRefreshShaderGraphObject() != null &&
-                shaderGraphOutput.GetOrRefreshShaderGraphObject().generatesWithShaderGraph;
+            var sg = VFXShaderGraphHelpers.GetShaderGraph(owner);
+            return sg != null && sg.generatesWithShaderGraph;
         }
 
         public override bool supportsSortingPriority

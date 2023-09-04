@@ -17,7 +17,7 @@ class VFXContextEditor : VFXSlotContainerEditor
 
     float m_Width;
 
-    protected void OnEnable()
+    protected virtual void OnEnable()
     {
         UnityEngine.Object[] allData = targets.Cast<VFXContext>().Select(t => t.GetData()).Distinct().Where(t => t != null).Cast<UnityEngine.Object>().ToArray();
         if (allData.Length > 0)
@@ -42,6 +42,12 @@ class VFXContextEditor : VFXSlotContainerEditor
             return srpSubOutputObject.FindProperty(setting.name);
         if (setting.instance is VFXData)
             return dataObject.FindProperty(setting.name);
+
+        if (setting.instance is ParticleTopology)
+            return serializedObject.FindProperty("m_Topology").FindPropertyRelative(setting.name);
+        if (setting.instance is ParticleShading)
+            return serializedObject.FindProperty("m_Shading").FindPropertyRelative(setting.name);
+
         throw new ArgumentException("VFXSetting is from an unexpected instance: " + setting.instance);
     }
 

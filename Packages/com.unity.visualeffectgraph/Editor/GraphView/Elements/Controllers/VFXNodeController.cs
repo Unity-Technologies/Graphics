@@ -133,9 +133,29 @@ namespace UnityEditor.VFX.UI
                 }
             }
         }
+
         public virtual string title
         {
-            get { return model.name; }
+            get
+            {
+                var name = model.name;
+                var eof = name.IndexOf('\n');
+                if (eof == -1)
+                    return name;
+                return name.Substring(0, eof);
+            }
+        }
+
+        public string subtitle
+        {
+            get
+            {
+                var name = model.name;
+                var eof = name.IndexOf('\n');
+                if (eof == -1)
+                    return string.Empty;
+                return name.Substring(eof + 1);
+            }
         }
 
         public override IEnumerable<Controller> allChildren
