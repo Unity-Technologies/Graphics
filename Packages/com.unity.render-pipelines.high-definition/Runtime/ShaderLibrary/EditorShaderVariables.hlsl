@@ -1,5 +1,5 @@
-#ifndef EDITOR_SHADER_VARAIBLES
-#define EDITOR_SHADER_VARAIBLES
+#ifndef EDITOR_SHADER_VARIABLES
+#define EDITOR_SHADER_VARIABLES
 
 // ================================
 //     PER FRAME CONSTANTS
@@ -32,4 +32,4 @@
     float4 unity_StereoScaleOffset;
 #endif
 
-#endif // EDITOR_SHADER_VARAIBLES
+#endif // EDITOR_SHADER_VARIABLES
