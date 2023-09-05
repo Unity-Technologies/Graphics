@@ -66,3 +66,36 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 7
     Reason: 'XR : development build text issue'
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 99da9ba2c3d1f4b1d92f851028bb7d0a, type: 3}
+    - {fileID: 102900000, guid: 2390977fa927ed74cadd2a62016007cb, type: 3}
+    - {fileID: 102900000, guid: a27d5eebd041b42dab7ad89ce8249e81, type: 3}
+    - {fileID: 102900000, guid: 149f6ec36de310842bf26e54caf9240b, type: 3}
+    - {fileID: 102900000, guid: ffaad23a2c7fc41b48e4e7ab7e9273e4, type: 3}
+    - {fileID: 102900000, guid: 637e9541c01cb864b859cec63d622ef9, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 11
+    XrSdk: 
+    StereoModes: 0
+    Reason: Test issues
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 245a2b08a4f72437193b06846a5c8e33, type: 3}
+    - {fileID: 102900000, guid: 4cd2c01cabdfb47d5a3ac05309090490, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 9
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: Test issues
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 2696010bf40d644cc8abc0b1304c59db, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 5
+    GraphicsDevice: 21
+    XrSdk: 
+    StereoModes: 0
+    Reason: Test issues

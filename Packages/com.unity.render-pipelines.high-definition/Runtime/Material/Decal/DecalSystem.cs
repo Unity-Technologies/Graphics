@@ -309,7 +309,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (m_Atlas == null)
                 {
-                    m_Atlas = new Texture2DAtlas(HDUtils.hdrpSettings.decalSettings.atlasWidth, HDUtils.hdrpSettings.decalSettings.atlasHeight, GraphicsFormat.R8G8B8A8_UNorm);
+                    m_Atlas = new Texture2DAtlas(HDUtils.hdrpSettings.decalSettings.atlasWidth, HDUtils.hdrpSettings.decalSettings.atlasHeight, GraphicsFormat.R8G8B8A8_UNorm, name: "DecalSystemAtlas");
                 }
                 return m_Atlas;
             }

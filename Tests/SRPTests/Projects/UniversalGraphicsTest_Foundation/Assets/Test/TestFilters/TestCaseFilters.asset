@@ -221,3 +221,21 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: Decals not supported
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 332a75631f7a3420ab1e02475d98a1fc, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 11
+    XrSdk: 
+    StereoModes: 0
+    Reason: Test issues
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 6d72a4ab29e211149914e8a46ba9d1cf, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 11
+    XrSdk: 
+    StereoModes: 0
+    Reason: Test issues

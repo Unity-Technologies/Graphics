@@ -90,13 +90,13 @@ To remove this angle constraint on the normal at the cost of a higher memory usa
 
 ## Limitations
 
-- A Decal Projector can only affect transparent Materials when you use the [Decal Shader](Decal-Shader.md).
-
 - The Decal Shader does not support emissive on Transparent Materials and does support Decal Layers.
 
 - Decal Meshes can only affect opaque Materials with either a [Decal Shader](Decal-Shader.md) or a [Decal Master Stack](master-stack-decal.md).
 
 - Decal Meshes do not support Decal Layers.
+
+- A Decal Projector can only affect transparent Materials when you enable the **Affect Transparent** checkbox.
 
 ### Migration of data previous to Unity 2020.2
 

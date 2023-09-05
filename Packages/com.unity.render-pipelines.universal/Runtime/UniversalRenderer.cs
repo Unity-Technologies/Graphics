@@ -721,8 +721,9 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
-            // Depth priming requires a manual resolve of MSAA depth right after the depth prepass. If autoresolve is supported but MSAA is 1x then a copy is still required.
-            if (useDepthPriming && (SystemInfo.graphicsDeviceType != GraphicsDeviceType.Vulkan || cameraTargetDescriptor.msaaSamples == 1))
+            // depth priming still needs to copy depth because the prepass doesn't target anymore CameraDepthTexture
+            // TODO: this is unoptimal, investigate optimizations
+            if (useDepthPriming)
             {
                 m_PrimedDepthCopyPass.Setup(m_ActiveCameraDepthAttachment, m_DepthTexture);
                 m_PrimedDepthCopyPass.AllocateRT = false;
