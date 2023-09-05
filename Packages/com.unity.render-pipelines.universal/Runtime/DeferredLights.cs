@@ -624,7 +624,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             // Restore shader keywords
             CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightShadows, renderingData.shadowData.isKeywordAdditionalLightShadowsEnabled);
-            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadows, renderingData.shadowData.isKeywordSoftShadowsEnabled);
+            ShadowUtils.SetSoftShadowQualityShaderKeywords(cmd, ref renderingData.shadowData);
             CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.LightCookies, m_LightCookieManager != null && m_LightCookieManager.IsKeywordLightCookieEnabled);
         }
 
@@ -861,7 +861,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 SetAdditionalLightsShadowsKeyword(ref cmd, ref renderingData, hasDeferredShadows);
 
                 bool hasSoftShadow = hasDeferredShadows && renderingData.shadowData.supportsSoftShadows && light.shadows == LightShadows.Soft;
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadows, hasSoftShadow);
+
+                ShadowUtils.SetPerLightSoftShadowKeyword(cmd, hasSoftShadow);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._DEFERRED_FIRST_LIGHT, isFirstLight); // First directional light applies SSAO
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._DEFERRED_MAIN_LIGHT, visLightIndex == mainLightIndex); // main directional light use different uniform constants from additional directional lights
 
@@ -920,7 +921,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 SetAdditionalLightsShadowsKeyword(ref cmd, ref renderingData, hasDeferredLightShadows);
 
                 bool hasSoftShadow = hasDeferredLightShadows && renderingData.shadowData.supportsSoftShadows && light.shadows == LightShadows.Soft;
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadows, hasSoftShadow);
+                ShadowUtils.SetPerLightSoftShadowKeyword(cmd, hasSoftShadow);
 
                 if (m_LightCookieManager != null)
                 {
@@ -987,7 +988,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 SetAdditionalLightsShadowsKeyword(ref cmd, ref renderingData, hasDeferredLightShadows);
 
                 bool hasSoftShadow = hasDeferredLightShadows && renderingData.shadowData.supportsSoftShadows && light.shadows == LightShadows.Soft;
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadows, hasSoftShadow);
+                ShadowUtils.SetPerLightSoftShadowKeyword(cmd, hasSoftShadow);
 
                 if (m_LightCookieManager != null)
                 {
