@@ -511,7 +511,7 @@ namespace UnityEditor.Rendering.HighDefinition
             serializedObject.Update();
 
             HDRenderPipelineAsset currentAsset = HDRenderPipeline.currentAsset;
-            if (!currentAsset?.currentPlatformRenderPipelineSettings.supportWater ?? false)
+            if (currentAsset == null || !currentAsset.currentPlatformRenderPipelineSettings.supportWater)
             {
                 EditorGUILayout.Space();
                 HDEditorUtils.QualitySettingsHelpBox("Enable the 'Water' system in your HDRP Asset to simulate and render water surfaces in your HDRP project.",

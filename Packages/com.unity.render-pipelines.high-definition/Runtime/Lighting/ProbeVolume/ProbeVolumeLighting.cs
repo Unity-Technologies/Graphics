@@ -66,12 +66,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (needToBindNeutral)
             {
-                // Lazy init the empty buffer
+                // Lazy init the empty buffer. We use sizeof(uint3) so that this buffer can be
+                // used with uint and uint3 bindings without triggering validation errors.
                 if (m_EmptyIndexBuffer == null)
-                {
-                    // Size doesn't really matter here, anything can be bound as long is a valid compute buffer.
-                    m_EmptyIndexBuffer = new ComputeBuffer(1, sizeof(uint), ComputeBufferType.Structured);
-                }
+                    m_EmptyIndexBuffer = new ComputeBuffer(1, sizeof(uint) * 3, ComputeBufferType.Structured);
 
                 cmdBuffer.SetGlobalBuffer(HDShaderIDs._APVResIndex, m_EmptyIndexBuffer);
                 cmdBuffer.SetGlobalBuffer(HDShaderIDs._APVResCellIndices, m_EmptyIndexBuffer);

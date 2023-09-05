@@ -161,6 +161,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             normalHandle = null;
             depthHandle = null;
             renderingLayersHandle = null;
+
+            // This needs to be reset as the renderer might change this in runtime (UUM-36069)
+            shaderTagIds = k_DepthNormals;
         }
 
         private class PassData

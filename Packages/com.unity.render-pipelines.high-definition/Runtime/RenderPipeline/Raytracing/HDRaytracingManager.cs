@@ -662,8 +662,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (var builder = renderGraph.AddRenderPass<RTASDebugPassData>("Debug view of the RTAS", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingBuildAccelerationStructureDebug)))
             {
-                RTASDebugPassData debugPass = new RTASDebugPassData();
-
                 builder.EnableAsyncCompute(false);
 
                 // Camera data

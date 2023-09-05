@@ -597,7 +597,7 @@ namespace UnityEngine.Rendering.Universal
                 if (handle != null && handle.rt != null)
                 {
                     TextureDesc currentRTDesc = RTHandleResourcePool.CreateTextureDesc(handle.rt.descriptor, TextureSizeMode.Explicit, handle.rt.anisoLevel, handle.rt.mipMapBias, handle.rt.filterMode, handle.rt.wrapMode, handle.name);
-                    UniversalRenderPipeline.s_RTHandlePool.AddResourceToPool(currentRTDesc, handle, Time.frameCount);
+                    AddStaleResourceToPoolOrRelease(currentRTDesc, handle);
                 }
 
                 if (UniversalRenderPipeline.s_RTHandlePool.TryGetResource(requestRTDesc, out handle))
@@ -644,7 +644,7 @@ namespace UnityEngine.Rendering.Universal
                 if (handle != null && handle.rt != null)
                 {
                     TextureDesc currentRTDesc = RTHandleResourcePool.CreateTextureDesc(handle.rt.descriptor, TextureSizeMode.Scale, handle.rt.anisoLevel, handle.rt.mipMapBias, handle.rt.filterMode, handle.rt.wrapMode);
-                    UniversalRenderPipeline.s_RTHandlePool.AddResourceToPool(currentRTDesc, handle, Time.frameCount);
+                    AddStaleResourceToPoolOrRelease(currentRTDesc, handle);
                 }
 
                 if (UniversalRenderPipeline.s_RTHandlePool.TryGetResource(requestRTDesc, out handle))
@@ -691,7 +691,7 @@ namespace UnityEngine.Rendering.Universal
                 if (handle != null && handle.rt != null)
                 {
                     TextureDesc currentRTDesc = RTHandleResourcePool.CreateTextureDesc(handle.rt.descriptor, TextureSizeMode.Functor, handle.rt.anisoLevel, handle.rt.mipMapBias, handle.rt.filterMode, handle.rt.wrapMode);
-                    UniversalRenderPipeline.s_RTHandlePool.AddResourceToPool(currentRTDesc, handle, Time.frameCount);
+                    AddStaleResourceToPoolOrRelease(currentRTDesc, handle);
                 }
 
                 if (UniversalRenderPipeline.s_RTHandlePool.TryGetResource(requestRTDesc, out handle))
@@ -722,6 +722,16 @@ namespace UnityEngine.Rendering.Universal
 
             UniversalRenderPipeline.s_RTHandlePool.staleResourceCapacity = capacity;
             return true;
+        }
+
+        /// <summary>
+        /// Add stale rtHandle to pool so that it could be reused in the future. 
+        /// For stale rtHandle failed to add to pool(could happen when pool is reaching its max stale resource capacity), the stale resource will be released.
+        /// </summary>
+        internal static void AddStaleResourceToPoolOrRelease(TextureDesc desc, RTHandle handle)
+        {
+            if (!UniversalRenderPipeline.s_RTHandlePool.AddResourceToPool(desc, handle, Time.frameCount))
+                RTHandles.Release(handle);
         }
 
         /// <summary>

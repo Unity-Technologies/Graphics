@@ -123,6 +123,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cullingConfig.materialTest.requiredShaderTags[0].tagId = new ShaderTagId("RenderPipeline");
             cullingConfig.materialTest.requiredShaderTags[0].tagValueId = new ShaderTagId("HDRenderPipeline");
             cullingConfig.materialTest.deniedShaderPasses = DecalSystem.s_MaterialDecalPassNames;
+            cullingConfig.instanceTests = new RayTracingInstanceCullingTest[9];
 
             // Setup the culling data for transparent shadows
             ShT_CT.allowOpaqueMaterials = true;
@@ -331,7 +332,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 instanceTestArray.Add(PT_CT);
             }
 
-            cullingConfig.instanceTests = instanceTestArray.ToArray();
+            // avoid reallocation uf previous instanceTests array is the same size as the current one
+            if (cullingConfig.instanceTests.Length != instanceTestArray.Count)
+                cullingConfig.instanceTests = instanceTestArray.ToArray();
+            else
+                instanceTestArray.CopyTo(0, cullingConfig.instanceTests, 0, instanceTestArray.Count);
 
             return rtas.CullInstances(ref cullingConfig);
         }

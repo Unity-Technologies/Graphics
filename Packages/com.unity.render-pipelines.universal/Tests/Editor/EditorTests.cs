@@ -2,8 +2,10 @@ using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Profiling;
 using UnityEngine.Rendering.Universal;
 using UnityEditor.Rendering.Universal.Internal;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.Universal;
 using UnityEngine.TestTools;
 
@@ -198,5 +200,31 @@ class EditorTests
         //  UnityEditor.Rendering.SpeedTree8MaterialUpgrader.SpeedTree8MaterialFinalizer
         //  UnityEditor.Rendering.Universal.UniversalSpeedTree8Upgrader.UniversalSpeedTree8MaterialFinalizer 
         Assert.DoesNotThrow(() => AssetDatabase.ImportAsset(STv7AssetPath));
+    }
+
+    [Test]
+    public void UseReAllocateIfNeededWithoutTextureLeak()
+    {
+        Object[] pretestTextures = Resources.FindObjectsOfTypeAll(typeof(Texture));
+        RTHandle myHandle = default(RTHandle);
+
+        // URP is not initlized in test framework, init RTHandlePool here which is required for this test.
+        if (UniversalRenderPipeline.s_RTHandlePool == null)
+        {
+            UniversalRenderPipeline.s_RTHandlePool = new RTHandleResourcePool();
+        }
+
+        // Realloc RTHandle 100 times with different resolution.
+        for (int i = 0; i < 100; i++)
+        {
+            RenderTextureDescriptor rtd = new RenderTextureDescriptor(1,  1 + i, GraphicsFormat.R8G8B8A8_UNorm, GraphicsFormat.None);
+            RenderingUtils.ReAllocateIfNeeded(ref myHandle, rtd, FilterMode.Point, TextureWrapMode.Clamp);
+        }
+        UniversalRenderPipeline.s_RTHandlePool.Cleanup();
+        RTHandles.Release(myHandle);
+
+        Object[] posttestTextures = Resources.FindObjectsOfTypeAll(typeof(Texture));
+
+        Assert.AreEqual(pretestTextures.Length, posttestTextures.Length, "A texture leak is detected when using RenderingUtils.ReAllocateIfNeeded.");
     }
 }
