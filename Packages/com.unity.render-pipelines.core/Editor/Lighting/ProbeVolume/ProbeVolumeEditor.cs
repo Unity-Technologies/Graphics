@@ -35,6 +35,7 @@ namespace UnityEditor.Rendering
         {
             string apvDisabledErrorMsg = "Probe Volumes are not enabled.";
             var renderPipelineAssetType = GraphicsSettings.currentRenderPipelineAssetType;
+            var messageType = MessageType.Warning;
 
             // HDRP
             if (renderPipelineAssetType != null && renderPipelineAssetType.Name == "HDRenderPipelineAsset")
@@ -52,7 +53,7 @@ namespace UnityEditor.Rendering
                 var k_QualitySettingsHelpBox = Type.GetType("UnityEditor.Rendering.HighDefinition.HDEditorUtils,Unity.RenderPipelines.HighDefinition.Editor")
                     .GetMethod("QualitySettingsHelpBoxForReflection", BindingFlags.Static | BindingFlags.NonPublic);
 
-                k_QualitySettingsHelpBox.Invoke(null, new object[] { apvDisabledErrorMsg, MessageType.Error, lightingGroup, probeVolume, "m_RenderPipelineSettings.lightProbeSystem" });
+                k_QualitySettingsHelpBox.Invoke(null, new object[] { apvDisabledErrorMsg, messageType, lightingGroup, probeVolume, "m_RenderPipelineSettings.lightProbeSystem" });
             }
 
             // URP
@@ -63,13 +64,13 @@ namespace UnityEditor.Rendering
                 var k_QualitySettingsHelpBox = Type.GetType("UnityEditor.Rendering.Universal.EditorUtils,Unity.RenderPipelines.Universal.Editor")
                     .GetMethod("QualitySettingsHelpBox", BindingFlags.Static | BindingFlags.NonPublic);
 
-                k_QualitySettingsHelpBox.Invoke(null, new object[] { apvDisabledErrorMsg, MessageType.Error, "m_LightProbeSystem" });
+                k_QualitySettingsHelpBox.Invoke(null, new object[] { apvDisabledErrorMsg, messageType, "m_LightProbeSystem" });
             }
 
             // Custom pipelines
             else
             {
-                EditorGUILayout.HelpBox(apvDisabledErrorMsg, MessageType.Error);
+                EditorGUILayout.HelpBox(apvDisabledErrorMsg, messageType);
             }
         }
 

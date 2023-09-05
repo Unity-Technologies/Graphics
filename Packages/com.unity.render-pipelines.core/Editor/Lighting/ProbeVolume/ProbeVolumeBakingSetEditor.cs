@@ -39,7 +39,7 @@ namespace UnityEditor.Rendering
             public static readonly string msgProbeFreeze = "Some scene(s) in this Baking Set are not currently loaded in the Hierarchy. Set Probe Positions to Don't Recalculate to not break compatibility with already baked scenarios.";
             public static readonly GUIContent maxDistanceBetweenProbes = new GUIContent("Max Probe Spacing", "Maximum distance between probes, in meters. Determines the number of bricks in a streamable unit.");
             public static readonly GUIContent minDistanceBetweenProbes = new GUIContent("Min Probe Spacing", "Minimum distance between probes, in meters.");
-            public static readonly string simplificationLevelsHighWarning = "High simplification levels have a big memory overhead, they are not recommended except for testing purposes.";
+            public static readonly string simplificationLevelsHighWarning = "A high number of brick size causes a big memory overhead, this is not recommended except for testing purposes.";
             public static readonly GUIContent indexDimensions = new GUIContent("Index Dimensions", "The dimensions of the index buffer.");
             public static readonly GUIContent minRendererVolumeSize = new GUIContent("Min Renderer Size", "The smallest Renderer size to consider when placing probes.");
             public static readonly GUIContent renderersLayerMask = new GUIContent("Layer Mask", "Specify Layers to use when generating probe positions.");
@@ -157,10 +157,10 @@ namespace UnityEditor.Rendering
 
                 SimplificationLevelsSlider();
 
-                int levels = m_SimplificationLevels.intValue + 1;
+                int levels = ProbeVolumeBakingSet.GetMaxSubdivision(m_SimplificationLevels.intValue);
                 MessageType helpBoxType = MessageType.Info;
-                string helpBoxText = $"Probe Volumes can use a maximum of {levels} subdivision levels.";
-                if (levels == 5)
+                string helpBoxText = $"Baked data will contain up to {levels} different size of bricks.";
+                if (levels == 6)
                 {
                     helpBoxType = MessageType.Warning;
                     helpBoxText += "\n" + Styles.simplificationLevelsHighWarning;

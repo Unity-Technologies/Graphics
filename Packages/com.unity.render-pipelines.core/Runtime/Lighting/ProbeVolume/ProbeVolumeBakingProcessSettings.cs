@@ -28,7 +28,6 @@ namespace UnityEngine.Rendering
         [Range(0f, 1f)] public float outOfGeoOffset;
         [Range(0f, 2f)] public float searchMultiplier;
         [Range(-0.05f, 0f)] public float rayOriginBias;
-        [Range(4, 24)] public int maxHitsPerRay;
         public LayerMask collisionMask;
 
         internal void SetDefaults()
@@ -44,7 +43,6 @@ namespace UnityEngine.Rendering
             if (from < ProbeVolumeBakingProcessSettings.SettingsVersion.ThreadedVirtualOffset && to >= ProbeVolumeBakingProcessSettings.SettingsVersion.ThreadedVirtualOffset)
             {
                 rayOriginBias = -0.001f;
-                maxHitsPerRay = 10;
                 collisionMask = Physics.DefaultRaycastLayers;
             }
         }

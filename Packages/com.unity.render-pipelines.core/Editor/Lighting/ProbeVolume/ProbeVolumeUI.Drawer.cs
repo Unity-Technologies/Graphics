@@ -146,15 +146,6 @@ namespace UnityEditor.Rendering
                 EditorGUILayout.LabelField("Subdivision Override", EditorStyles.boldLabel);
                 SubdivisionRange(serialized, maxSubdiv, minDistance);
 
-                if (hasProfile)
-                {
-                    int minSubdivInVolume = serialized.overridesSubdivision.boolValue ? serialized.lowestSubdivisionLevelOverride.intValue : 0;
-                    int maxSubdivInVolume = serialized.overridesSubdivision.boolValue ? serialized.highestSubdivisionLevelOverride.intValue : maxSubdiv;
-
-                    EditorGUILayout.HelpBox($"Number of simplification levels will vary between {maxSubdiv - maxSubdivInVolume} and {maxSubdiv - minSubdivInVolume}", MessageType.Info);
-                }
-
-                EditorGUILayout.Space();
             }
 
             EditorGUI.EndDisabledGroup();

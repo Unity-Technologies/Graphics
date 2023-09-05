@@ -974,7 +974,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static KeywordCollection DBufferProjector = new KeywordCollection
             {
                 { CoreKeywordDescriptors.DBuffer },
-                { CoreKeywordDescriptors.FoveatedRendering },
                 { Descriptors.DecalLayers },
             };
 
@@ -1020,7 +1019,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.ShadowsSoftMedium },
                 { CoreKeywordDescriptors.ShadowsSoftHigh },
                 { CoreKeywordDescriptors.ForwardPlus },
-                { CoreKeywordDescriptors.FoveatedRendering },
                 { CoreKeywordDescriptors.DebugDisplay },
                 { Descriptors.DecalsNormalBlend },
                 { Descriptors.DecalLayers },

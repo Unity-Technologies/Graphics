@@ -15,6 +15,7 @@ This version is compatible with Unity 2023.3.0a1.
 
 ### Changed
 - Stripping or IRenderPipelineGraphicsSettings.
+- Removed Static Batching (disabled) requirement from HDRP Wizard. Static Batching is now supported with ray tracing.
 
 ### Fixed
 - Fix leak with Compute Buffer from APV Resources.
