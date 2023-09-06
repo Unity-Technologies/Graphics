@@ -152,6 +152,7 @@ struct WaterSurfaceProfile
     float smoothnessFadeDistance;
     float roughnessEndValue;
     float colorPyramidScale;
+    float4 foamColor;
     float3 upDirection;
     int colorPyramidMipOffset;
     int disableIOR;

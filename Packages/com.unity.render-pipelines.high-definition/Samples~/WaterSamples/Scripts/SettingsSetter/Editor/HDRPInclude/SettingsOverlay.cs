@@ -5,36 +5,34 @@ using System.Collections.Generic;
 namespace UnityEditor.Rendering.HighDefinition
 {
     [Overlay(typeof(SceneView), "HDRP Asset Settings Helper", true)]
-    public class SettingsOverlay : Overlay
+    public class SettingsOverlay : Overlay, ITransientOverlay
     {
-        public static SettingsOverlay instance;
+        public static SettingHelperSO settingsSO;
 
         private VisualElement rootElement;
         private List<SettingMessagePair> settingMessagePairs;
 
         public override VisualElement CreatePanelContent()
         {
-            rootElement = new VisualElement() { name = "My Toolbar Root" };
-            rootElement.Add(GetHeaderMessage());
+            rootElement = new VisualElement() { name = "Settings Helper" };
             return rootElement;
         }
 
-        public override void OnCreated()
-        {
-            base.OnCreated();
-            instance = this;
+        public bool visible => IsVisible();
 
-            EditorApplication.update += EditorUpdate;
-        }
-
-        private void EditorUpdate()
+        private bool IsVisible()
         {
-            if (settingHelperSO == null || settingMessagePairs == null)
-                return;
+            if (settingsSO == null)
+            {
+                settingMessagePairs = null;
+                return false;
+            }
+            if (settingMessagePairs == null)
+                InitializeMessages();
 
             var needDisplay = false;
             
-            foreach( var settingMessagePair in settingMessagePairs)
+            foreach (var settingMessagePair in settingMessagePairs)
             {
                 var need = settingMessagePair.requiredSetting.needsToBeEnabled;
                 needDisplay |= need;
@@ -46,68 +44,34 @@ namespace UnityEditor.Rendering.HighDefinition
                     rootElement.Remove(settingMessagePair.visualElement);
             }
 
-            displayed = needDisplay;
+            return needDisplay;
         }
 
         VisualElement GetHeaderMessage()
         {
-            var label = new Label() { text = headerMessage };
+            var label = new Label() { text = settingsSO.header };
             label.style.maxWidth = new StyleLength(250);
             label.style.paddingBottom = new StyleLength(5);
             label.style.whiteSpace = WhiteSpace.Normal;
             return label;
         }
-           
-        private string headerMessage = "";
-        private SettingHelperSO m_settingHelperSO;
-        public SettingHelperSO settingHelperSO
+
+        void InitializeMessages()
         {
-            get { return m_settingHelperSO; }
-            set
+            if (rootElement == null)
+                CreatePanelContent();
+            rootElement.Clear();
+            rootElement.Add(GetHeaderMessage());
+
+            settingMessagePairs = new List<SettingMessagePair>();
+
+            foreach (var requiredSetting in settingsSO.requiredSettings)
             {
-                if (m_settingHelperSO != value)
-                {
-                    headerMessage = value.header;
-                    
-                    if (rootElement != null)
-                        rootElement.Clear();
-                    if (settingMessagePairs != null)
-                        settingMessagePairs.Clear();
-                    else
-                        settingMessagePairs = new List<SettingMessagePair>();
+                var newPair = new SettingMessagePair(requiredSetting);
 
-                        
-                    if (value != null)
-                    {
-                        if (rootElement == null)
-                            CreatePanelContent();
-                        rootElement.Add(GetHeaderMessage());
-
-                        foreach( var requiredSetting in value.requiredSettings)
-                        {
-                            var newPair = new SettingMessagePair(requiredSetting);
-
-                            settingMessagePairs.Add(newPair);
-                            rootElement.Add(newPair.visualElement);
-                        }
-                    }
-                }
-
-                m_settingHelperSO = value;
+                settingMessagePairs.Add(newPair);
+                rootElement.Add(newPair.visualElement);
             }
-        }
-
-        public SettingMessagePair AddSettingMessagePair(RequiredSetting _requiredSetting)
-        {
-            if (settingMessagePairs == null)
-                settingMessagePairs = new List<SettingMessagePair>();
-
-            var newSettingsMessagePair = new SettingMessagePair(_requiredSetting);
-            settingMessagePairs.Add(newSettingsMessagePair);
-
-            rootElement.Add(newSettingsMessagePair.visualElement);
-
-            return newSettingsMessagePair;
         }
 
         public class SettingMessagePair
