@@ -309,11 +309,11 @@ namespace UnityEngine.Rendering.HighDefinition
                         ctx.cmd.SetRayTracingTextureParam(data.parameters.gBufferRaytracingRT, HDShaderIDs._RayCountTexture, data.rayCountTexture);
 
                         // Bind all input parameter
-                        ctx.cmd.SetRayTracingIntParams(data.parameters.gBufferRaytracingRT, HDShaderIDs._RayTracingLayerMask, data.parameters.layerMask);
+                        ctx.cmd.SetRayTracingIntParam(data.parameters.gBufferRaytracingRT, HDShaderIDs._RayTracingLayerMask, data.parameters.layerMask);
                         ctx.cmd.SetRayTracingTextureParam(data.parameters.gBufferRaytracingRT, HDShaderIDs._DepthTexture, data.depthStencilBuffer);
                         ctx.cmd.SetRayTracingTextureParam(data.parameters.gBufferRaytracingRT, HDShaderIDs._NormalBufferTexture, data.normalBuffer);
                         ctx.cmd.SetRayTracingTextureParam(data.parameters.gBufferRaytracingRT, HDShaderIDs._RaytracingDirectionBuffer, data.directionBuffer);
-                        ctx.cmd.SetRayTracingIntParams(data.parameters.gBufferRaytracingRT, HDShaderIDs._RaytracingHalfResolution, data.parameters.halfResolution ? 1 : 0);
+                        ctx.cmd.SetRayTracingIntParam(data.parameters.gBufferRaytracingRT, HDShaderIDs._RaytracingHalfResolution, data.parameters.halfResolution ? 1 : 0);
 
                         // Bind the output textures
                         ctx.cmd.SetRayTracingTextureParam(data.parameters.gBufferRaytracingRT, HDShaderIDs._GBufferTextureRW[0], data.gbuffer0);
@@ -342,8 +342,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             ctx.cmd.SetRayTracingIntParam(data.parameters.gBufferRaytracingRT, HDShaderIDs._BufferSizeX, bufferSizeX);
 
                             // Inject the data for the additional views
-                            ctx.cmd.SetRayTracingIntParams(data.parameters.gBufferRaytracingRT, HDShaderIDs._RayBinViewOffset, bufferSizeX * bufferSizeY);
-                            ctx.cmd.SetRayTracingIntParams(data.parameters.gBufferRaytracingRT, HDShaderIDs._RayBinTileViewOffset, numTilesRayBinX * numTilesRayBinY);
+                            ctx.cmd.SetRayTracingIntParam(data.parameters.gBufferRaytracingRT, HDShaderIDs._RayBinViewOffset, bufferSizeX * bufferSizeY);
+                            ctx.cmd.SetRayTracingIntParam(data.parameters.gBufferRaytracingRT, HDShaderIDs._RayBinTileViewOffset, numTilesRayBinX * numTilesRayBinY);
 
                             // A really nice tip is to dispatch the rays as a 1D array instead of 2D, the performance difference has been measured.
                             uint dispatchSize = (uint)(bufferSizeX * bufferSizeY);
