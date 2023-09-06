@@ -49,7 +49,7 @@ public class NormalReconstructionTestFeature : ScriptableRendererFeature
             CommandBufferPool.Release(cmd);
         }
 
-        static void ExecutePass(RasterCommandBuffer cmd, CameraData cameraData)
+        static void ExecutePass(RasterCommandBuffer cmd, in CameraData cameraData)
         {
             using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
@@ -57,15 +57,34 @@ public class NormalReconstructionTestFeature : ScriptableRendererFeature
 
                 int width = cameraData.cameraTargetDescriptor.width;
                 int height = cameraData.cameraTargetDescriptor.height;
-
-                Render(cmd, cameraData, TapMode.Tap1, new Rect(0, 0, 0.5f, 0.5f), width, height);
-                Render(cmd, cameraData, TapMode.Tap3, new Rect(0.5f, 0, 0.5f, 0.5f), width, height);
-                Render(cmd, cameraData, TapMode.Tap5, new Rect(0, 0.5f, 0.5f, 0.5f), width, height);
-                Render(cmd, cameraData, TapMode.Tap9, new Rect(0.5f, 0.5f, 0.5f, 0.5f), width, height);
+                var world = cameraData.camera.worldToCameraMatrix;
+                var proj = cameraData.camera.projectionMatrix;
+                ExecutePass(cmd, world, proj, width, height);
             }
         }
 
-        static void Render(RasterCommandBuffer cmd, in CameraData cameraData, TapMode tapMode, Rect viewport, int width, int height)
+        static void ExecutePass(RasterCommandBuffer cmd, UniversalCameraData cameraData)
+        {
+            using (new ProfilingScope(cmd, m_ProfilingSampler))
+            {
+                NormalReconstruction.SetupProperties(cmd, cameraData);
+
+                int width = cameraData.cameraTargetDescriptor.width;
+                int height = cameraData.cameraTargetDescriptor.height;
+                var world = cameraData.camera.worldToCameraMatrix;
+                var proj = cameraData.camera.projectionMatrix;
+                ExecutePass(cmd, world, proj, width, height);
+            }
+        }
+        static void ExecutePass(RasterCommandBuffer cmd, Matrix4x4 world, Matrix4x4 proj, int width, int height)
+        {
+            Render(cmd, world, proj, TapMode.Tap1, new Rect(0, 0, 0.5f, 0.5f), width, height);
+            Render(cmd, world, proj, TapMode.Tap3, new Rect(0.5f, 0, 0.5f, 0.5f), width, height);
+            Render(cmd, world, proj, TapMode.Tap5, new Rect(0, 0.5f, 0.5f, 0.5f), width, height);
+            Render(cmd, world, proj, TapMode.Tap9, new Rect(0.5f, 0.5f, 0.5f, 0.5f), width, height);
+        }
+
+        static void Render(RasterCommandBuffer cmd, Matrix4x4 world, Matrix4x4 proj, TapMode tapMode, Rect viewport, int width, int height)
         {
             CoreUtils.SetKeyword(cmd, "_DRAW_NORMALS_TAP1", tapMode == TapMode.Tap1);
             CoreUtils.SetKeyword(cmd, "_DRAW_NORMALS_TAP3", tapMode == TapMode.Tap3);
@@ -75,23 +94,25 @@ public class NormalReconstructionTestFeature : ScriptableRendererFeature
             cmd.SetGlobalVector(ShaderPropertyId.scaleBias, new Vector4(1f / viewport.width, 1f / viewport.height, width * -viewport.x * 2, height * -viewport.y * 2));
             cmd.SetViewport(new Rect(width * viewport.x, height * viewport.y, width * viewport.width, height * viewport.height));
             Blitter.BlitTexture(cmd,  Vector2.one, m_Material, 0);
-            cmd.SetViewProjectionMatrices(cameraData.camera.worldToCameraMatrix, cameraData.camera.projectionMatrix);
+            cmd.SetViewProjectionMatrices(world, proj);
         }
 
         internal class PassData
         {
-            internal CameraData cameraData;
+            internal UniversalCameraData cameraData;
             internal TextureHandle color;
         }
-        public override void RecordRenderGraph(RenderGraph renderGraph, FrameResources frameResources, ref RenderingData renderingData)
+        public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("Normal Reconstruction Test Pass", out var passData, m_ProfilingSampler))
             {
-                UniversalRenderer renderer = (UniversalRenderer) renderingData.cameraData.renderer;
+                UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+
+                UniversalRenderer renderer = (UniversalRenderer) cameraData.renderer;
 
                 TextureHandle color = renderer.activeColorTexture;
                 passData.color = builder.UseTextureFragment(color, 0, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
-                passData.cameraData = renderingData.cameraData;
+                passData.cameraData = cameraData;
                 builder.AllowGlobalStateModification(true);
 
                 builder.SetRenderFunc((PassData data, RasterGraphContext rgContext) =>

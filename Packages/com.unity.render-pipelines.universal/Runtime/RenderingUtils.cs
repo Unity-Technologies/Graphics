@@ -143,10 +143,10 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        internal static void SetScaleBiasRt(RasterCommandBuffer cmd, in RenderingData renderingData, RTHandle rTHandle)
+        //TODO FrameData: Merge these two SetScaleBiasRt() functions
+        internal static void SetScaleBiasRt(RasterCommandBuffer cmd, in UniversalCameraData cameraData, RTHandle rTHandle)
         {
             // SetRenderTarget has logic to flip projection matrix when rendering to render texture. Flip the uv to account for that case.
-            CameraData cameraData = renderingData.cameraData;
             bool isCameraColorFinalTarget = (cameraData.cameraType == CameraType.Game && rTHandle.nameID == BuiltinRenderTextureType.CameraTarget && cameraData.camera.targetTexture == null);
             bool yflip = !isCameraColorFinalTarget;
             float flipSign = yflip ? -1.0f : 1.0f;
@@ -313,7 +313,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         // Create a RendererList using a RenderStateBlock override is quite common so we have this optimized utility function for it
-        internal static void CreateRendererListWithRenderStateBlock(ScriptableRenderContext context, RenderingData data, DrawingSettings ds, FilteringSettings fs, RenderStateBlock rsb, ref RendererList rl)
+        internal static void CreateRendererListWithRenderStateBlock(ScriptableRenderContext context, UniversalRenderingData data, DrawingSettings ds, FilteringSettings fs, RenderStateBlock rsb, ref RendererList rl)
         {
             RendererListParams param = new RendererListParams();
             unsafe
@@ -357,7 +357,7 @@ namespace UnityEngine.Rendering.Universal
         static ShaderTagId[] s_ShaderTagValues = new ShaderTagId[1];
         static RenderStateBlock[] s_RenderStateBlocks = new RenderStateBlock[1];
         // Create a RendererList using a RenderStateBlock override is quite common so we have this optimized utility function for it
-        internal static void CreateRendererListWithRenderStateBlock(RenderGraph renderGraph, RenderingData data, DrawingSettings ds, FilteringSettings fs, RenderStateBlock rsb, ref RendererListHandle rl)
+        internal static void CreateRendererListWithRenderStateBlock(RenderGraph renderGraph, UniversalRenderingData data, DrawingSettings ds, FilteringSettings fs, RenderStateBlock rsb, ref RendererListHandle rl)
         {
             s_ShaderTagValues[0] = ShaderTagId.none;
             s_RenderStateBlocks[0] = rsb;
@@ -814,12 +814,32 @@ namespace UnityEngine.Rendering.Universal
         /// <seealso cref="DrawingSettings"/>
         static public DrawingSettings CreateDrawingSettings(ShaderTagId shaderTagId, ref RenderingData renderingData, SortingCriteria sortingCriteria)
         {
-            Camera camera = renderingData.cameraData.camera;
+            UniversalRenderingData universalRenderingData = renderingData.frameData.Get<UniversalRenderingData>();
+            UniversalCameraData cameraData = renderingData.frameData.Get<UniversalCameraData>();
+            UniversalLightData lightData = renderingData.frameData.Get<UniversalLightData>();
+
+            return CreateDrawingSettings(shaderTagId, universalRenderingData, cameraData, lightData, sortingCriteria);
+        }
+
+        /// <summary>
+        /// Creates <c>DrawingSettings</c> based on current the rendering state.
+        /// </summary>
+        /// <param name="shaderTagId">Shader pass tag to render.</param>
+        /// <param name="renderingData">Current rendering state.</param>
+        /// <param name="cameraData">Current camera state.</param>
+        /// <param name="lightData">Current light state.</param>
+        /// <param name="sortingCriteria">Criteria to sort objects being rendered.</param>
+        /// <returns></returns>
+        /// <seealso cref="DrawingSettings"/>
+        static public DrawingSettings CreateDrawingSettings(ShaderTagId shaderTagId, UniversalRenderingData renderingData,
+            UniversalCameraData cameraData, UniversalLightData lightData, SortingCriteria sortingCriteria)
+        {
+            Camera camera = cameraData.camera;
             SortingSettings sortingSettings = new SortingSettings(camera) { criteria = sortingCriteria };
             DrawingSettings settings = new DrawingSettings(shaderTagId, sortingSettings)
             {
                 perObjectData = renderingData.perObjectData,
-                mainLightIndex = renderingData.lightData.mainLightIndex,
+                mainLightIndex = lightData.mainLightIndex,
                 enableDynamicBatching = renderingData.supportsDynamicBatching,
 
                 // Disable instancing for preview cameras. This is consistent with the built-in forward renderer. Also fixes case 1127324.
@@ -831,7 +851,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Creates <c>DrawingSettings</c> based on current rendering state.
         /// </summary>
-        /// /// <param name="shaderTagIdList">List of shader pass tag to render.</param>
+        /// <param name="shaderTagIdList">List of shader pass tag to render.</param>
         /// <param name="renderingData">Current rendering state.</param>
         /// <param name="sortingCriteria">Criteria to sort objects being rendered.</param>
         /// <returns></returns>
@@ -839,13 +859,33 @@ namespace UnityEngine.Rendering.Universal
         static public DrawingSettings CreateDrawingSettings(List<ShaderTagId> shaderTagIdList,
             ref RenderingData renderingData, SortingCriteria sortingCriteria)
         {
+            UniversalRenderingData universalRenderingData = renderingData.frameData.Get<UniversalRenderingData>();
+            UniversalCameraData cameraData = renderingData.frameData.Get<UniversalCameraData>();
+            UniversalLightData lightData = renderingData.frameData.Get<UniversalLightData>();
+            return CreateDrawingSettings(shaderTagIdList, universalRenderingData, cameraData, lightData, sortingCriteria);
+        }
+
+        /// <summary>
+        /// Creates <c>DrawingSettings</c> based on current rendering state.
+        /// </summary>
+        /// <param name="shaderTagIdList">List of shader pass tag to render.</param>
+        /// <param name="renderingData">Current rendering state.</param>
+        /// <param name="cameraData">Current camera state.</param>
+        /// <param name="lightData">Current light state.</param>
+        /// <param name="sortingCriteria">Criteria to sort objects being rendered.</param>
+        /// <returns></returns>
+        /// <seealso cref="DrawingSettings"/>
+        static public DrawingSettings CreateDrawingSettings(List<ShaderTagId> shaderTagIdList,
+            UniversalRenderingData renderingData, UniversalCameraData cameraData,
+            UniversalLightData lightData, SortingCriteria sortingCriteria)
+        {
             if (shaderTagIdList == null || shaderTagIdList.Count == 0)
             {
                 Debug.LogWarning("ShaderTagId list is invalid. DrawingSettings is created with default pipeline ShaderTagId");
-                return CreateDrawingSettings(new ShaderTagId("UniversalPipeline"), ref renderingData, sortingCriteria);
+                return CreateDrawingSettings(new ShaderTagId("UniversalPipeline"), renderingData, cameraData, lightData, sortingCriteria);
             }
 
-            DrawingSettings settings = CreateDrawingSettings(shaderTagIdList[0], ref renderingData, sortingCriteria);
+            DrawingSettings settings = CreateDrawingSettings(shaderTagIdList[0], renderingData, cameraData, lightData, sortingCriteria);
             for (int i = 1; i < shaderTagIdList.Count; ++i)
                 settings.SetShaderPassName(i, shaderTagIdList[i]);
             return settings;

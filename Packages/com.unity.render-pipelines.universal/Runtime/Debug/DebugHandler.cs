@@ -104,15 +104,15 @@ namespace UnityEngine.Rendering.Universal
         internal ref RTHandle DebugScreenDepthHandle => ref m_DebugScreenDepthHandle;
         internal HDRDebugViewPass hdrDebugViewPass => m_HDRDebugViewPass;
 
-        internal bool HDRDebugViewIsActive(ref CameraData cameraData)
+        internal bool HDRDebugViewIsActive(bool resolveFinalTarget)
         {
             // HDR debug views should only apply to the last camera in the stack
-            return DebugDisplaySettings.lightingSettings.hdrDebugMode != HDRDebugMode.None && cameraData.resolveFinalTarget;
+            return DebugDisplaySettings.lightingSettings.hdrDebugMode != HDRDebugMode.None && resolveFinalTarget;
         }
 
-        internal bool WriteToDebugScreenTexture(ref CameraData cameraData)
+        internal bool WriteToDebugScreenTexture(bool resolveFinalTarget)
         {
-            return HDRDebugViewIsActive(ref cameraData);
+            return HDRDebugViewIsActive(resolveFinalTarget);
         }
 
         internal bool IsScreenClearNeeded
@@ -155,9 +155,9 @@ namespace UnityEngine.Rendering.Universal
             CoreUtils.Destroy(m_ReplacementMaterial);
         }
 
-        internal bool IsActiveForCamera(ref CameraData cameraData)
+        internal bool IsActiveForCamera(bool isPreviewCamera)
         {
-            return !cameraData.isPreviewCamera && AreAnySettingsActive;
+            return !isPreviewCamera && AreAnySettingsActive;
         }
 
         internal bool TryGetFullscreenDebugMode(out DebugFullScreenMode debugFullScreenMode)
@@ -284,7 +284,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
-        internal void UpdateShaderGlobalPropertiesForFinalValidationPass(CommandBuffer cmd, ref CameraData cameraData, bool isFinalPass)
+        internal void UpdateShaderGlobalPropertiesForFinalValidationPass(CommandBuffer cmd, UniversalCameraData cameraData, bool isFinalPass)
         {
             // Ensure final validation & fullscreen debug modes are only done once in the very final pass, for the last camera on the stack.
             bool isFinal = isFinalPass && cameraData.resolveFinalTarget;
@@ -294,7 +294,7 @@ namespace UnityEngine.Rendering.Universal
                 return;
             }
 
-            if (IsActiveForCamera(ref cameraData))
+            if (IsActiveForCamera(cameraData.isPreviewCamera))
             {
                 cmd.EnableShaderKeyword(ShaderKeywordStrings.DEBUG_DISPLAY);
             }
@@ -325,7 +325,7 @@ namespace UnityEngine.Rendering.Universal
             var cmd = renderingData.commandBuffer;
             ref var cameraData = ref renderingData.cameraData;
 
-            if (IsActiveForCamera(ref cameraData))
+            if (IsActiveForCamera(cameraData.isPreviewCamera))
             {
                 cmd.EnableShaderKeyword(ShaderKeywordStrings.DEBUG_DISPLAY);
 
@@ -360,8 +360,8 @@ namespace UnityEngine.Rendering.Universal
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
         internal void Render(RenderGraph renderGraph, ref RenderingData renderingData, TextureHandle srcColor, TextureHandle overlayTexture, TextureHandle dstColor)
         {
-            ref var cameraData = ref renderingData.cameraData;
-            if (IsActiveForCamera(ref cameraData) && HDRDebugViewIsActive(ref cameraData))
+            UniversalCameraData cameraData = renderingData.frameData.Get<UniversalCameraData>();
+            if (IsActiveForCamera(cameraData.isPreviewCamera) && HDRDebugViewIsActive(cameraData.resolveFinalTarget))
             {
                 m_HDRDebugViewPass.RenderHDRDebug(renderGraph, ref renderingData, srcColor, overlayTexture, dstColor, LightingSettings.hdrDebugMode);
             }
@@ -371,25 +371,25 @@ namespace UnityEngine.Rendering.Universal
 
         internal DebugRendererLists CreateRendererListsWithDebugRenderState(
              ScriptableRenderContext context,
-             ref RenderingData renderingData,
+             UniversalRenderingData renderingData,
              ref DrawingSettings drawingSettings,
              ref FilteringSettings filteringSettings,
              ref RenderStateBlock renderStateBlock)
         {
             DebugRendererLists debug = new DebugRendererLists(this, filteringSettings);
-            debug.CreateRendererListsWithDebugRenderState(context, ref renderingData, ref drawingSettings, ref filteringSettings, ref renderStateBlock);
+            debug.CreateRendererListsWithDebugRenderState(context, renderingData, ref drawingSettings, ref filteringSettings, ref renderStateBlock);
             return debug;
         }
 
         internal DebugRendererLists CreateRendererListsWithDebugRenderState(
             RenderGraph renderGraph,
-            ref RenderingData renderingData,
+            UniversalRenderingData renderingData,
             ref DrawingSettings drawingSettings,
             ref FilteringSettings filteringSettings,
             ref RenderStateBlock renderStateBlock)
         {
             DebugRendererLists debug = new DebugRendererLists(this, filteringSettings);
-            debug.CreateRendererListsWithDebugRenderState(renderGraph, ref renderingData, ref drawingSettings, ref filteringSettings, ref renderStateBlock);
+            debug.CreateRendererListsWithDebugRenderState(renderGraph, renderingData, ref drawingSettings, ref filteringSettings, ref renderStateBlock);
             return debug;
         }
         #endregion
@@ -431,7 +431,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal void CreateRendererListsWithDebugRenderState(
              ScriptableRenderContext context,
-             ref RenderingData renderingData,
+             UniversalRenderingData renderingData,
              ref DrawingSettings drawingSettings,
              ref FilteringSettings filteringSettings,
              ref RenderStateBlock renderStateBlock)
@@ -449,7 +449,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal void CreateRendererListsWithDebugRenderState(
             RenderGraph renderGraph,
-            ref RenderingData renderingData,
+            UniversalRenderingData renderingData,
             ref DrawingSettings drawingSettings,
             ref FilteringSettings filteringSettings,
             ref RenderStateBlock renderStateBlock)

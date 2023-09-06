@@ -5,7 +5,7 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// Settings used for Post Processing.
     /// </summary>
-    class UniversalPostProcessingData : ContextItem
+    public class UniversalPostProcessingData : ContextItem
     {
         /// <summary>
         /// True if post-processing effect is enabled while rendering the camera stack.

@@ -29,7 +29,8 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            var activeDebugHandler = GetActiveDebugHandler(ref renderingData);
+            UniversalCameraData cameraData = renderingData.frameData.Get<UniversalCameraData>();
+            var activeDebugHandler = GetActiveDebugHandler(cameraData);
             if (activeDebugHandler != null)
             {
                 // TODO: The skybox needs to work the same as the other shaders, but until it does we'll not render it
@@ -100,7 +101,9 @@ namespace UnityEngine.Rendering.Universal
 
         internal void Render(RenderGraph renderGraph, ScriptableRenderContext context, TextureHandle colorTarget, TextureHandle depthTarget, ref RenderingData renderingData)
         {
-            var activeDebugHandler = GetActiveDebugHandler(ref renderingData);
+            UniversalCameraData cameraData = renderingData.frameData.Get<UniversalCameraData>();
+
+            var activeDebugHandler = GetActiveDebugHandler(cameraData);
             if (activeDebugHandler != null)
             {
                 // TODO: The skybox needs to work the same as the other shaders, but until it does we'll not render it

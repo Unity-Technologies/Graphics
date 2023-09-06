@@ -374,7 +374,7 @@ namespace UnityEngine.Rendering.Universal
 
         void Render(CommandBuffer cmd, ref RenderingData renderingData)
         {
-            ref CameraData cameraData = ref renderingData.cameraData;
+            UniversalCameraData cameraData = renderingData.frameData.Get<UniversalCameraData>();
             ref ScriptableRenderer renderer = ref cameraData.renderer;
             bool isSceneViewCamera = cameraData.isSceneViewCamera;
 
@@ -394,7 +394,7 @@ namespace UnityEngine.Rendering.Universal
             // to tweaking the value here.
             bool useTemporalAA = cameraData.IsTemporalAAEnabled();
             if (cameraData.antialiasing == AntialiasingMode.TemporalAntiAliasing && !useTemporalAA)
-                TemporalAA.ValidateAndWarn(ref cameraData);
+                TemporalAA.ValidateAndWarn(cameraData);
 
             int amountOfPassesRemaining = (useStopNan ? 1 : 0) + (useSubPixeMorpAA ? 1 : 0) + (useDepthOfField ? 1 : 0) + (useLensFlare ? 1 : 0) + (useTemporalAA ? 1 : 0) + (useMotionBlur ? 1 : 0) + (usePaniniProjection ? 1 : 0);
 
@@ -463,7 +463,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.SMAA)))
                 {
-                    DoSubpixelMorphologicalAntialiasing(ref cameraData, cmd, GetSource(), GetDestination());
+                    DoSubpixelMorphologicalAntialiasing(ref renderingData.cameraData, cmd, GetSource(), GetDestination());
                     Swap(ref renderer);
                 }
             }
@@ -490,7 +490,7 @@ namespace UnityEngine.Rendering.Universal
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.TemporalAA)))
                 {
 
-                    TemporalAA.ExecutePass(cmd, m_Materials.temporalAntialiasing, ref cameraData, source, destination, m_MotionVectors.rt);
+                    TemporalAA.ExecutePass(cmd, m_Materials.temporalAntialiasing, ref renderingData.cameraData, source, destination, m_MotionVectors.rt);
                     Swap(ref renderer);
                 }
             }
@@ -501,7 +501,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.MotionBlur)))
                 {
-                    DoMotionBlur(cmd, GetSource(), GetDestination(), m_MotionVectors, ref cameraData);
+                    DoMotionBlur(cmd, GetSource(), GetDestination(), m_MotionVectors, ref renderingData.cameraData);
                     Swap(ref renderer);
                 }
             }
@@ -581,13 +581,13 @@ namespace UnityEngine.Rendering.Universal
                 SetupColorGrading(cmd, ref renderingData, m_Materials.uber);
 
                 // Only apply dithering & grain if there isn't a final pass.
-                SetupGrain(ref cameraData, m_Materials.uber);
-                SetupDithering(ref cameraData, m_Materials.uber);
+                SetupGrain(ref renderingData.cameraData, m_Materials.uber);
+                SetupDithering(ref renderingData.cameraData, m_Materials.uber);
 
-                if (RequireSRGBConversionBlitToBackBuffer(ref cameraData))
+                if (RequireSRGBConversionBlitToBackBuffer(ref renderingData.cameraData))
                     m_Materials.uber.EnableKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
 
-                bool requireHDROutput = RequireHDROutput(ref cameraData);
+                bool requireHDROutput = RequireHDROutput(ref renderingData.cameraData);
                 if (requireHDROutput)
                 {
                     // Color space conversion is already applied through color grading, do encoding if uber post is the last pass
@@ -601,9 +601,9 @@ namespace UnityEngine.Rendering.Universal
                     m_Materials.uber.EnableKeyword(ShaderKeywordStrings.UseFastSRGBLinearConversion);
                 }
 
-                DebugHandler debugHandler = GetActiveDebugHandler(ref renderingData);
-                bool resolveToDebugScreen = debugHandler != null && debugHandler.WriteToDebugScreenTexture(ref cameraData);
-                debugHandler?.UpdateShaderGlobalPropertiesForFinalValidationPass(cmd, ref cameraData, !m_HasFinalPass && !resolveToDebugScreen);
+                DebugHandler debugHandler = GetActiveDebugHandler(cameraData);
+                bool resolveToDebugScreen = debugHandler != null && debugHandler.WriteToDebugScreenTexture(cameraData.resolveFinalTarget);
+                debugHandler?.UpdateShaderGlobalPropertiesForFinalValidationPass(cmd, cameraData, !m_HasFinalPass && !resolveToDebugScreen);
 
                 // Done with Uber, blit it
                 var colorLoadAction = RenderBufferLoadAction.DontCare;
@@ -658,7 +658,7 @@ namespace UnityEngine.Rendering.Universal
                         RTHandleStaticHelpers.SetRTHandleStaticWrapper(cameraTarget);
                         var cameraTargetHandle = RTHandleStaticHelpers.s_RTHandleWrapper;
 
-                        RenderingUtils.FinalBlit(cmd, ref cameraData, GetSource(), cameraTargetHandle, colorLoadAction, RenderBufferStoreAction.Store, m_Materials.uber, 0);
+                        RenderingUtils.FinalBlit(cmd, ref renderingData.cameraData, GetSource(), cameraTargetHandle, colorLoadAction, RenderBufferStoreAction.Store, m_Materials.uber, 0);
                         renderer.ConfigureCameraColorTarget(cameraTargetHandle);
                     }
                 }
@@ -1460,20 +1460,20 @@ namespace UnityEngine.Rendering.Universal
 
         void RenderFinalPass(CommandBuffer cmd, ref RenderingData renderingData)
         {
-            ref var cameraData = ref renderingData.cameraData;
+            UniversalCameraData cameraData = renderingData.frameData.Get<UniversalCameraData>();
             var material = m_Materials.finalPass;
             material.shaderKeywords = null;
 
             PostProcessUtils.SetSourceSize(cmd, cameraData.renderer.cameraColorTargetHandle);
 
-            SetupGrain(ref cameraData, material);
-            SetupDithering(ref cameraData, material);
+            SetupGrain(ref renderingData.cameraData, material);
+            SetupDithering(ref renderingData.cameraData, material);
 
-            if (RequireSRGBConversionBlitToBackBuffer(ref cameraData))
+            if (RequireSRGBConversionBlitToBackBuffer(ref renderingData.cameraData))
                 material.EnableKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
 
             HDROutputUtils.Operation hdrOperations = HDROutputUtils.Operation.None;
-            bool requireHDROutput = RequireHDROutput(ref cameraData);
+            bool requireHDROutput = RequireHDROutput(ref renderingData.cameraData);
             if (requireHDROutput)
             {
                 // If there is a final post process pass, it's always the final pass so do color encoding
@@ -1485,9 +1485,9 @@ namespace UnityEngine.Rendering.Universal
                 SetupHDROutput(cameraData.hdrDisplayInformation, cameraData.hdrDisplayColorGamut, material, hdrOperations);
             }
 
-            DebugHandler debugHandler = GetActiveDebugHandler(ref renderingData);
-            bool resolveToDebugScreen = debugHandler != null && debugHandler.WriteToDebugScreenTexture(ref cameraData);
-            debugHandler?.UpdateShaderGlobalPropertiesForFinalValidationPass(cmd, ref cameraData, m_IsFinalPass && !resolveToDebugScreen);
+            DebugHandler debugHandler = GetActiveDebugHandler(cameraData);
+            bool resolveToDebugScreen = debugHandler != null && debugHandler.WriteToDebugScreenTexture(cameraData.resolveFinalTarget);
+            debugHandler?.UpdateShaderGlobalPropertiesForFinalValidationPass(cmd, cameraData, m_IsFinalPass && !resolveToDebugScreen);
 
             if (m_UseSwapBuffer)
                 m_Source = cameraData.renderer.GetCameraColorBackBuffer(cmd);
@@ -1653,7 +1653,7 @@ namespace UnityEngine.Rendering.Universal
                 // Get RTHandle alias to use RTHandle apis
                 RTHandleStaticHelpers.SetRTHandleStaticWrapper(cameraTarget);
                 var cameraTargetHandle = RTHandleStaticHelpers.s_RTHandleWrapper;
-                RenderingUtils.FinalBlit(cmd, ref cameraData, sourceTex, cameraTargetHandle, colorLoadAction, RenderBufferStoreAction.Store, material, 0);
+                RenderingUtils.FinalBlit(cmd, ref renderingData.cameraData, sourceTex, cameraTargetHandle, colorLoadAction, RenderBufferStoreAction.Store, material, 0);
             }
         }
 

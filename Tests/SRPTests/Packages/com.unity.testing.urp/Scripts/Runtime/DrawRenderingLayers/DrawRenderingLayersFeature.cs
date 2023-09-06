@@ -15,7 +15,7 @@ public class DrawRenderingLayersFeature : ScriptableRendererFeature
         public DrawRenderingLayersPass()
         {
             m_ProfilingSampler = new ProfilingSampler("Draw Rendering Layers");
-            this.renderPassEvent = RenderPassEvent.AfterRenderingSkybox;
+            renderPassEvent = RenderPassEvent.AfterRenderingSkybox;
             m_PassData = new PassData();
         }
 
@@ -46,11 +46,12 @@ public class DrawRenderingLayersFeature : ScriptableRendererFeature
             internal Vector2 viewportScale;
         }
 
-        public override void RecordRenderGraph(RenderGraph renderGraph, FrameResources frameResources, ref RenderingData renderingData)
+        public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("Draw Rendering Layers", out var passData, m_ProfilingSampler))
             {
-                UniversalRenderer renderer = (UniversalRenderer) renderingData.cameraData.renderer;
+                UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+                UniversalRenderer renderer = (UniversalRenderer) cameraData.renderer;
 
                 passData.color = renderer.activeColorTexture;
                 builder.UseTextureFragment(passData.color, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
@@ -88,9 +89,8 @@ public class DrawRenderingLayersFeature : ScriptableRendererFeature
 
         public void Setup(RTHandle renderingLayerTestTextureHandle, Material material)
         {
-            m_ColoredRenderingLayersTextureHandle = renderingLayerTestTextureHandle;
-
             m_Material = material;
+            m_ColoredRenderingLayersTextureHandle = renderingLayerTestTextureHandle;
 
             for (int i = 0; i < 32; i++)
                 m_RenderingLayerColors[i] = Color.HSVToRGB(i / 32f, 1, 1);
@@ -104,19 +104,19 @@ public class DrawRenderingLayersFeature : ScriptableRendererFeature
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            ExecutePass(ref renderingData);
+            RasterCommandBuffer cmd = CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer);
+            ExecutePass(cmd);
         }
 
-        internal void ExecutePass(ref RenderingData renderingData)
+        private void ExecutePass(RasterCommandBuffer cmd)
         {
-            var cmd = CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer);
             using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
-                Render(cmd, renderingData.cameraData);
+                Render(cmd);
             }
         }
 
-        private void Render(RasterCommandBuffer cmd, in CameraData cameraData)
+        private void Render(RasterCommandBuffer cmd)
         {
             cmd.SetGlobalVectorArray("_RenderingLayersColors", m_RenderingLayerColors);
             cmd.SetGlobalVector(ShaderPropertyId.scaleBias, new Vector4(1, 1, 0, 0));
@@ -126,27 +126,22 @@ public class DrawRenderingLayersFeature : ScriptableRendererFeature
         private class PassData
         {
             internal DrawRenderingLayersPrePass pass;
-            internal RenderingData renderingData;
-            internal TextureHandle color;
         }
 
-        public override void RecordRenderGraph(RenderGraph renderGraph, FrameResources frameResources, ref RenderingData renderingData)
+        public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
-            UniversalRenderer renderer = (UniversalRenderer)renderingData.cameraData.renderer;
-
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("Draw Rendering PrePass", out var passData, m_ProfilingSampler))
             {
                 renderingLayerTexture = renderGraph.ImportTexture(m_ColoredRenderingLayersTextureHandle);
                 builder.UseTextureFragment(renderingLayerTexture, 0, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
                 builder.AllowPassCulling(false);
+                builder.AllowGlobalStateModification(true);
 
                 passData.pass = this;
-                passData.renderingData = renderingData;
-                passData.color = renderingLayerTexture;
 
                 builder.SetRenderFunc((PassData data, RasterGraphContext rgContext) =>
                 {
-                    data.pass.ExecutePass(ref data.renderingData);
+                    data.pass.ExecutePass(rgContext.cmd);
                 });
             }
         }

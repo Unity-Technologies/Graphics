@@ -100,7 +100,7 @@ public class OutputTextureFeature : ScriptableRendererFeature
             internal Material material;
 
             // used only by RG
-            internal CameraData cameraData;
+            internal UniversalCameraData cameraData;
             internal bool isTargetBackbuffer;
             internal TextureHandle colorTarget;
             internal TextureHandle depthTarget;
@@ -123,9 +123,10 @@ public class OutputTextureFeature : ScriptableRendererFeature
             }
         }
 
-        public override void RecordRenderGraph(RenderGraph renderGraph, FrameResources frameResources, ref RenderingData renderingData)
+        public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
-            UniversalRenderer renderer = (UniversalRenderer)renderingData.cameraData.renderer;
+            var cameraData = frameData.Get<UniversalCameraData>();
+            UniversalRenderer renderer = (UniversalRenderer)cameraData.renderer;
 
             using (var builder = renderGraph.AddRenderPass<PassData>("Output Texture Pass", out var passData, m_ProfilingSampler))
             {
@@ -135,7 +136,7 @@ public class OutputTextureFeature : ScriptableRendererFeature
 
                 passData.profilingSampler = m_ProfilingSampler;
                 passData.material = m_Material;
-                passData.cameraData = renderingData.cameraData;
+                passData.cameraData = cameraData;
 
                 passData.isTargetBackbuffer = renderer.isActiveTargetBackBuffer;
                 passData.colorTarget = renderer.activeColorTexture;
@@ -143,7 +144,7 @@ public class OutputTextureFeature : ScriptableRendererFeature
 
                 builder.SetRenderFunc((PassData data, RenderGraphContext rgContext) =>
                 {
-                    CameraData cameraData = data.cameraData;
+                    UniversalCameraData cameraData = data.cameraData;
                     bool isGameViewFinalTarget = (cameraData.cameraType == CameraType.Game && data.isTargetBackbuffer);
                     bool yFlip = cameraData.IsRenderTargetProjectionMatrixFlipped(data.colorTarget, data.depthTarget) && !isGameViewFinalTarget;
 

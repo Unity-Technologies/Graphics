@@ -181,14 +181,15 @@ namespace UnityEngine.Rendering.Universal
 
         private void InitRendererLists(ref RenderingData renderingData, ref PassData passData, ScriptableRenderContext context, RenderGraph renderGraph, bool useRenderGraph)
         {
+            UniversalRenderingData universalRenderingData = renderingData.frameData.Get<UniversalRenderingData>();
             var camera = renderingData.cameraData.camera;
             var drawingSettings = GetDrawingSettings(ref renderingData);
             var filteringSettings = new FilteringSettings(RenderQueueRange.opaque, camera.cullingMask);
             var renderStateBlock = new RenderStateBlock(RenderStateMask.Nothing);
             if(useRenderGraph)
-                RenderingUtils.CreateRendererListWithRenderStateBlock(renderGraph, renderingData, drawingSettings, filteringSettings, renderStateBlock, ref passData.rendererListHdl);
+                RenderingUtils.CreateRendererListWithRenderStateBlock(renderGraph, universalRenderingData, drawingSettings, filteringSettings, renderStateBlock, ref passData.rendererListHdl);
             else
-                RenderingUtils.CreateRendererListWithRenderStateBlock(context, renderingData, drawingSettings, filteringSettings, renderStateBlock, ref passData.rendererList);
+                RenderingUtils.CreateRendererListWithRenderStateBlock(context, universalRenderingData, drawingSettings, filteringSettings, renderStateBlock, ref passData.rendererList);
         }
 
         internal void Render(RenderGraph renderGraph, TextureHandle cameraDepthTexture, TextureHandle motionVectorColor, TextureHandle motionVectorDepth, ref RenderingData renderingData)

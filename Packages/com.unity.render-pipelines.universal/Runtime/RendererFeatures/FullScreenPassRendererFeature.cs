@@ -131,7 +131,7 @@ public partial class FullScreenPassRendererFeature : ScriptableRendererFeature
 
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
-			// FullScreenPass manages its own RenderTarget.
+            // FullScreenPass manages its own RenderTarget.
             // ResetTarget here so that ScriptableRenderer's active attachement can be invalidated when processing this ScriptableRenderPass.
             ResetTarget();
 
@@ -159,7 +159,7 @@ public partial class FullScreenPassRendererFeature : ScriptableRendererFeature
         private static void ExecuteMainPass(RasterCommandBuffer cmd, RTHandle sourceTexture, Material material, int passIndex)
         {
             s_SharedPropertyBlock.Clear();
-            if(sourceTexture != null)
+            if (sourceTexture != null)
                 s_SharedPropertyBlock.SetTexture(ShaderPropertyId.blitTexture, sourceTexture);
 
             // We need to set the "_BlitScaleBias" uniform for user materials with shaders relying on core Blit.hlsl to work
@@ -182,7 +182,7 @@ public partial class FullScreenPassRendererFeature : ScriptableRendererFeature
                     ExecuteCopyColorPass(rasterCmd, cameraData.renderer.cameraColorTargetHandle);
                 }
 
-                if(m_BindDepthStencilAttachment)
+                if (m_BindDepthStencilAttachment)
                     CoreUtils.SetRenderTarget(cmd, cameraData.renderer.cameraColorTargetHandle, cameraData.renderer.cameraDepthTargetHandle);
                 else
                     CoreUtils.SetRenderTarget(cmd, cameraData.renderer.cameraColorTargetHandle);
@@ -191,15 +191,15 @@ public partial class FullScreenPassRendererFeature : ScriptableRendererFeature
             }
         }
 
-        public override void RecordRenderGraph(RenderGraph renderGraph, FrameResources frameResources, ref RenderingData renderingData)
+        public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
-            ContextContainer frameData = renderingData.frameData;
-            UniversalResourcesData resourcesData = frameData.Get<UniversalResourcesData>();
+            UniversalResourceData resourcesData = frameData.Get<UniversalResourceData>();
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
 
-            UniversalRenderer renderer = (UniversalRenderer) renderingData.cameraData.renderer;
-            var colorCopyDescriptor = renderingData.cameraData.cameraTargetDescriptor;
+            UniversalRenderer renderer = (UniversalRenderer)cameraData.renderer;
+            var colorCopyDescriptor = cameraData.cameraTargetDescriptor;
             colorCopyDescriptor.msaaSamples = 1;
-            colorCopyDescriptor.depthBufferBits = (int) DepthBits.None;
+            colorCopyDescriptor.depthBufferBits = (int)DepthBits.None;
             TextureHandle copiedColor = TextureHandle.nullHandle;
 
             if (m_CopyActiveColor)
@@ -208,14 +208,14 @@ public partial class FullScreenPassRendererFeature : ScriptableRendererFeature
 
                 using (var builder = renderGraph.AddRasterRenderPass<CopyPassData>("FullScreenPass_CopyColor", out var passData, profilingSampler))
                 {
-                     passData.inputTexture = builder.UseTexture(resourcesData.activeColorTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+                    passData.inputTexture = builder.UseTexture(resourcesData.activeColorTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
 
-                     builder.UseTextureFragment(copiedColor, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
+                    builder.UseTextureFragment(copiedColor, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
 
-                     builder.SetRenderFunc((CopyPassData data, RasterGraphContext rgContext) =>
-                     {
-                         ExecuteCopyColorPass(rgContext.cmd, data.inputTexture);
-                     });
+                    builder.SetRenderFunc((CopyPassData data, RasterGraphContext rgContext) =>
+                    {
+                        ExecuteCopyColorPass(rgContext.cmd, data.inputTexture);
+                    });
                 }
             }
 
@@ -223,11 +223,11 @@ public partial class FullScreenPassRendererFeature : ScriptableRendererFeature
             {
                 passData.material = m_Material;
                 passData.passIndex = m_PassIndex;
-                if(m_CopyActiveColor)
+                if (m_CopyActiveColor)
                     passData.inputTexture = builder.UseTexture(copiedColor, IBaseRenderGraphBuilder.AccessFlags.Read);
 
                 builder.UseTextureFragment(resourcesData.activeColorTexture, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
-                if(m_BindDepthStencilAttachment)
+                if (m_BindDepthStencilAttachment)
                     builder.UseTextureFragmentDepth(resourcesData.activeDepthTexture, IBaseRenderGraphBuilder.AccessFlags.Write);
 
                 builder.SetRenderFunc((MainPassData data, RasterGraphContext rgContext) =>

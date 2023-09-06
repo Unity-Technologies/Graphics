@@ -48,14 +48,16 @@ public class KeepFrameFeature : ScriptableRendererFeature
         // Because RenderGraph has to calculate internally how resources are used we must be aware of 2
         // distinct timelines inside this method: one for recording resource usage and one for recording draw commands.
         // It is important to scope resources correctly as global state may change between the execution times of each.
-        public override void RecordRenderGraph(RenderGraph renderGraph, FrameResources frameResources, ref RenderingData renderingData)
+        public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
-            if (renderingData.cameraData.camera.cameraType != CameraType.Game)
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+
+            if (cameraData.camera.cameraType != CameraType.Game)
                 return;
 
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("Copy Frame Pass", out var passData))
             {
-                TextureHandle source = ((UniversalRenderer)renderingData.cameraData.renderer).activeColorTexture;
+                TextureHandle source = ((UniversalRenderer)cameraData.renderer).activeColorTexture;
 
                 // When using the RenderGraph API the lifetime and ownership of resources is managed by the render graph system itself.
                 // This allows for optimal resource usage and other optimizations to be done automatically for the user.
@@ -122,13 +124,15 @@ public class KeepFrameFeature : ScriptableRendererFeature
             CommandBufferPool.Release(cmd);
         }
 
-        public override void RecordRenderGraph(RenderGraph renderGraph, FrameResources frameResources, ref RenderingData renderingData)
+        public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+
             TextureHandle oldFrameTextureHandle = renderGraph.ImportTexture(m_Handle);
 
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("Draw Old Frame Pass", out var passData))
             {
-                TextureHandle destination = ((UniversalRenderer)renderingData.cameraData.renderer).activeColorTexture;
+                TextureHandle destination = ((UniversalRenderer)cameraData.renderer).activeColorTexture;
 
                 if (!oldFrameTextureHandle.IsValid() || !destination.IsValid())
                     return;

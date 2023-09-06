@@ -102,16 +102,18 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            InitPassData(ref renderingData, ref m_PassData);
+            UniversalCameraData cameraData = renderingData.frameData.Get<UniversalCameraData>();
+
+            InitPassData(cameraData, ref m_PassData);
             InitRendererLists(ref renderingData, ref m_PassData, context, default(RenderGraph), false);
 
             using (new ProfilingScope(renderingData.commandBuffer, m_ProfilingSampler))
             {
-                ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), m_PassData, m_PassData.rendererList, m_PassData.objectsWithErrorRendererList, ref renderingData, renderingData.cameraData.IsCameraProjectionMatrixFlipped());
+                ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), m_PassData, m_PassData.rendererList, m_PassData.objectsWithErrorRendererList, m_PassData.cameraData.IsCameraProjectionMatrixFlipped());
             }
         }
 
-        internal static void ExecutePass(RasterCommandBuffer cmd, PassData data, RendererList rendererList, RendererList objectsWithErrorRendererList, ref RenderingData renderingData, bool yFlip)
+        internal static void ExecutePass(RasterCommandBuffer cmd, PassData data, RendererList rendererList, RendererList objectsWithErrorRendererList, bool yFlip)
         {
             // Global render pass data containing various settings.
             // x,y,z are currently unused
@@ -131,10 +133,10 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             // Set a value that can be used by shaders to identify when AlphaToMask functionality may be active
             // The material shader alpha clipping logic requires this value in order to function correctly in all cases.
-            float alphaToMaskAvailable = ((renderingData.cameraData.cameraTargetDescriptor.msaaSamples > 1) && data.isOpaque) ? 1.0f : 0.0f;
+            float alphaToMaskAvailable = ((data.cameraData.cameraTargetDescriptor.msaaSamples > 1) && data.isOpaque) ? 1.0f : 0.0f;
             cmd.SetGlobalFloat(ShaderPropertyId.alphaToMaskAvailable, alphaToMaskAvailable);
 
-            var activeDebugHandler = GetActiveDebugHandler(ref renderingData);
+            var activeDebugHandler = GetActiveDebugHandler(data.cameraData);
             if (activeDebugHandler != null)
             {
                 data.debugRendererLists.DrawWithRendererList(cmd);
@@ -155,7 +157,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             internal TextureHandle albedoHdl;
             internal TextureHandle depthHdl;
 
-            internal RenderingData renderingData;
+            internal UniversalCameraData cameraData;
             internal bool isOpaque;
             internal bool shouldTransparentsReceiveShadows;
             internal RendererListHandle rendererListHdl;
@@ -171,15 +173,18 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// Initialize the shared pass data.
         /// </summary>
         /// <param name="passData"></param>
-        internal void InitPassData(ref RenderingData renderingData, ref PassData passData)
+        internal void InitPassData(UniversalCameraData cameraData, ref PassData passData)
         {
+            passData.cameraData = cameraData;
             passData.isOpaque = m_IsOpaque;
             passData.shouldTransparentsReceiveShadows = m_ShouldTransparentsReceiveShadows;
         }
 
         private void InitRendererLists(ref RenderingData renderingData, ref PassData passData, ScriptableRenderContext context, RenderGraph renderGraph, bool useRenderGraph)
         {
-            ref Camera camera = ref renderingData.cameraData.camera;
+            UniversalRenderingData universalRenderingData = renderingData.frameData.Get<UniversalRenderingData>();
+            UniversalCameraData cameraData = renderingData.frameData.Get<UniversalCameraData>();
+            ref Camera camera = ref cameraData.camera;
             var sortFlags = (m_IsOpaque) ? renderingData.cameraData.defaultOpaqueSortFlags : SortingCriteria.CommonTransparent;
             if (renderingData.cameraData.renderer.useDepthPriming && m_IsOpaque && (renderingData.cameraData.renderType == CameraRenderType.Base || renderingData.cameraData.clearDepth))
                 sortFlags = SortingCriteria.SortingLayer | SortingCriteria.RenderQueue | SortingCriteria.OptimizeStateChanges | SortingCriteria.CanvasOrder;
@@ -204,29 +209,29 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_RenderStateBlock.mask |= RenderStateMask.Depth;
             }
 
-            var activeDebugHandler = GetActiveDebugHandler(ref renderingData);
+            var activeDebugHandler = GetActiveDebugHandler(cameraData);
             if (useRenderGraph)
             {
                 if (activeDebugHandler != null)
                 {
-                    passData.debugRendererLists = activeDebugHandler.CreateRendererListsWithDebugRenderState(renderGraph, ref renderingData, ref drawSettings, ref filterSettings, ref m_RenderStateBlock);
+                    passData.debugRendererLists = activeDebugHandler.CreateRendererListsWithDebugRenderState(renderGraph, universalRenderingData, ref drawSettings, ref filterSettings, ref m_RenderStateBlock);
                 }
                 else
                 {
-                    RenderingUtils.CreateRendererListWithRenderStateBlock(renderGraph, renderingData, drawSettings, filterSettings, m_RenderStateBlock, ref passData.rendererListHdl);
-                    RenderingUtils.CreateRendererListObjectsWithError(renderGraph, ref renderingData.cullResults, camera, filterSettings, sortFlags, ref passData.objectsWithErrorRendererListHdl);
+                    RenderingUtils.CreateRendererListWithRenderStateBlock(renderGraph, universalRenderingData, drawSettings, filterSettings, m_RenderStateBlock, ref passData.rendererListHdl);
+                    RenderingUtils.CreateRendererListObjectsWithError(renderGraph, ref universalRenderingData.cullResults, camera, filterSettings, sortFlags, ref passData.objectsWithErrorRendererListHdl);
                 }
             }
             else
             {
                 if (activeDebugHandler != null)
                 {
-                    passData.debugRendererLists = activeDebugHandler.CreateRendererListsWithDebugRenderState(context, ref renderingData, ref drawSettings, ref filterSettings, ref m_RenderStateBlock);
+                    passData.debugRendererLists = activeDebugHandler.CreateRendererListsWithDebugRenderState(context, universalRenderingData, ref drawSettings, ref filterSettings, ref m_RenderStateBlock);
                 }
                 else
                 {
-                    RenderingUtils.CreateRendererListWithRenderStateBlock(context, renderingData, drawSettings, filterSettings, m_RenderStateBlock, ref passData.rendererList);
-                    RenderingUtils.CreateRendererListObjectsWithError(context, ref renderingData.cullResults, camera, filterSettings, sortFlags, ref passData.objectsWithErrorRendererList);
+                    RenderingUtils.CreateRendererListWithRenderStateBlock(context, universalRenderingData, drawSettings, filterSettings, m_RenderStateBlock, ref passData.rendererList);
+                    RenderingUtils.CreateRendererListObjectsWithError(context, ref universalRenderingData.cullResults, camera, filterSettings, sortFlags, ref passData.objectsWithErrorRendererList);
                 }
             }
         }
@@ -236,11 +241,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("Draw Objects Pass", out var passData,
                 m_ProfilingSampler))
             {
-                ContextContainer frameData = renderingData.frameData;
-                UniversalResourcesData resourcesData = frameData.Get<UniversalResourcesData>();
+                UniversalResourceData resourceData = renderingData.frameData.Get<UniversalResourceData>();
+                UniversalCameraData cameraData = renderingData.frameData.Get<UniversalCameraData>();
 
-                InitPassData(ref renderingData, ref passData);
-                passData.renderingData = renderingData;
+                InitPassData(cameraData, ref passData);
 
                 if (colorTarget.IsValid())
                     passData.albedoHdl = builder.UseTextureFragment(colorTarget, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
@@ -256,14 +260,14 @@ namespace UnityEngine.Rendering.Universal.Internal
                 UniversalRenderer renderer = renderingData.cameraData.renderer as UniversalRenderer;
                 if (renderer != null)
                 {
-                    TextureHandle ssaoTexture = resourcesData.ssaoTexture;
+                    TextureHandle ssaoTexture = resourceData.ssaoTexture;
                     if (ssaoTexture.IsValid())
                         builder.UseTexture(ssaoTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
-                    RenderGraphUtils.UseDBufferIfValid(builder, renderer.resources);
+                    RenderGraphUtils.UseDBufferIfValid(builder, resourceData);
                 }
 
                 InitRendererLists(ref renderingData, ref passData, default(ScriptableRenderContext), renderGraph, true);
-                var activeDebugHandler = GetActiveDebugHandler(ref renderingData);
+                var activeDebugHandler = GetActiveDebugHandler(cameraData);
                 if (activeDebugHandler != null)
                 {
                     passData.debugRendererLists.PrepareRendererListForRasterPass(builder);
@@ -279,16 +283,14 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
                 {
-                    ref var renderingData = ref data.renderingData;
-
                     // Currently we only need to call this additional pass when the user
                     // doesn't want transparent objects to receive shadows
                     if (!data.isOpaque && !data.shouldTransparentsReceiveShadows)
                         TransparentSettingsPass.ExecutePass(context.cmd, data.shouldTransparentsReceiveShadows);
 
-                    bool yFlip = renderingData.cameraData.IsRenderTargetProjectionMatrixFlipped(data.albedoHdl, data.depthHdl);
+                    bool yFlip = data.cameraData.IsRenderTargetProjectionMatrixFlipped(data.albedoHdl, data.depthHdl);
 
-                    ExecutePass(context.cmd, data, data.rendererListHdl, data.objectsWithErrorRendererListHdl, ref renderingData, yFlip);
+                    ExecutePass(context.cmd, data, data.rendererListHdl, data.objectsWithErrorRendererListHdl, yFlip);
                 });
 
             }
@@ -378,10 +380,10 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_ProfilingSampler))
             {
                 ContextContainer frameData = renderingData.frameData;
-                UniversalResourcesData resourcesData = frameData.Get<UniversalResourcesData>();
+                UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
+                UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
 
-                InitPassData(ref renderingData, ref passData.basePassData);
-                passData.basePassData.renderingData = renderingData;
+                InitPassData(cameraData, ref passData.basePassData);
                 passData.maskSize = maskSize;
 
                 passData.basePassData.albedoHdl = builder.UseTextureFragment(colorTarget, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
@@ -395,10 +397,10 @@ namespace UnityEngine.Rendering.Universal.Internal
                 UniversalRenderer renderer = renderingData.cameraData.renderer as UniversalRenderer;
                 if (renderer != null)
                 {
-                    TextureHandle ssaoTexture = resourcesData.ssaoTexture;
+                    TextureHandle ssaoTexture = resourceData.ssaoTexture;
                     if (ssaoTexture.IsValid())
                         builder.UseTexture(ssaoTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
-                    RenderGraphUtils.UseDBufferIfValid(builder, renderer.resources);
+                    RenderGraphUtils.UseDBufferIfValid(builder, resourceData);
                 }
 
                 builder.AllowPassCulling(false);
@@ -417,11 +419,10 @@ namespace UnityEngine.Rendering.Universal.Internal
                     if (!data.basePassData.isOpaque && !data.basePassData.shouldTransparentsReceiveShadows)
                         TransparentSettingsPass.ExecutePass(context.cmd, data.basePassData.shouldTransparentsReceiveShadows);
 
-                    ref var renderingData = ref data.basePassData.renderingData;
-                    bool yFlip = renderingData.cameraData.IsRenderTargetProjectionMatrixFlipped(data.basePassData.albedoHdl, data.basePassData.depthHdl);
+                    bool yFlip = data.basePassData.cameraData.IsRenderTargetProjectionMatrixFlipped(data.basePassData.albedoHdl, data.basePassData.depthHdl);
 
                     // Execute
-                    ExecutePass(context.cmd, data.basePassData, data.basePassData.rendererListHdl, data.basePassData.objectsWithErrorRendererListHdl, ref renderingData, yFlip);
+                    ExecutePass(context.cmd, data.basePassData, data.basePassData.rendererListHdl, data.basePassData.objectsWithErrorRendererListHdl, yFlip);
 
                     // Clean up
                     CoreUtils.SetKeyword(context.cmd, ShaderKeywordStrings.WriteRenderingLayers, false);

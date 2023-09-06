@@ -76,7 +76,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="cameraData">Camera rendering data containing all relevant render target information.</param>
         /// <param name="depthStencilFormat">Depth stencil format required for depth/stencil effects.</param>
-        public void Setup(ref CameraData cameraData, GraphicsFormat depthStencilFormat)
+        public void Setup(UniversalCameraData cameraData, GraphicsFormat depthStencilFormat)
         {
             if (m_RenderOffscreen)
             {
@@ -100,9 +100,10 @@ namespace UnityEngine.Rendering.Universal
             }
             else
             {
-                DebugHandler debugHandler = GetActiveDebugHandler(ref renderingData);
+                UniversalCameraData cameraData = renderingData.frameData.Get<UniversalCameraData>();
+                DebugHandler debugHandler = GetActiveDebugHandler(cameraData);
                 var cameraTarget = RenderingUtils.GetCameraTargetIdentifier(ref renderingData);
-                bool resolveToDebugScreen = debugHandler != null && debugHandler.WriteToDebugScreenTexture(ref renderingData.cameraData);
+                bool resolveToDebugScreen = debugHandler != null && debugHandler.WriteToDebugScreenTexture(cameraData.resolveFinalTarget);
 
                 if (resolveToDebugScreen)
                 {

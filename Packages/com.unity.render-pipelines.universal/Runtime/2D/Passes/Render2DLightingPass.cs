@@ -140,11 +140,13 @@ namespace UnityEngine.Rendering.Universal
 
         private void Render(ScriptableRenderContext context, CommandBuffer cmd, ref RenderingData renderingData, ref FilteringSettings filterSettings, DrawingSettings drawSettings)
         {
-            var activeDebugHandler = GetActiveDebugHandler(ref renderingData);
+            UniversalCameraData cameraData = renderingData.frameData.Get<UniversalCameraData>();
+            var activeDebugHandler = GetActiveDebugHandler(cameraData);
             if (activeDebugHandler != null)
             {
+                UniversalRenderingData universalRenderingData = renderingData.universalRenderingData;
                 RenderStateBlock renderStateBlock = new RenderStateBlock();
-                var debugRendererLists = activeDebugHandler.CreateRendererListsWithDebugRenderState(context, ref renderingData, ref drawSettings, ref filterSettings, ref renderStateBlock);
+                var debugRendererLists = activeDebugHandler.CreateRendererListsWithDebugRenderState(context, universalRenderingData, ref drawSettings, ref filterSettings, ref renderStateBlock);
                 debugRendererLists.DrawWithRendererList(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer));
             }
             else
@@ -167,7 +169,9 @@ namespace UnityEngine.Rendering.Universal
             ref DrawingSettings drawSettings,
             ref RenderTextureDescriptor desc)
         {
-            var debugHandler = GetActiveDebugHandler(ref renderingData);
+            UniversalCameraData cameraData = renderingData.frameData.Get<UniversalCameraData>();
+
+            var debugHandler = GetActiveDebugHandler(cameraData);
             bool drawLights = debugHandler?.IsLightingActive ?? true;
             var batchesDrawn = 0;
             var rtCount = 0U;

@@ -265,7 +265,7 @@ namespace UnityEngine.Rendering.Universal
             return taaFilterWeights;
         }
 
-        static internal string ValidateAndWarn(ref CameraData cameraData)
+        static internal string ValidateAndWarn(UniversalCameraData cameraData)
         {
             string warning = null;
 

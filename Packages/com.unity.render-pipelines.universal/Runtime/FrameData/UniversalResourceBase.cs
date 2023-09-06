@@ -1,16 +1,21 @@
-﻿using System;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal
 {
-    abstract class UniversalResourcesDataBase : ContextItem
+    /// <summary>
+    /// Base class for URP texture data.
+    /// </summary>
+    public abstract class UniversalResourceDataBase : ContextItem
     {
         /// <summary>
-        /// Options for the active color & depth target texture.
+        /// Options for the active color &amp; depth target texture.
         /// </summary>
-        internal enum ActiveID
+        public enum ActiveID
         {
+            /// <summary>The camera buffer.</summary>
             Camera,
+
+            /// <summary>The backbuffer.</summary>
             BackBuffer
         }
 
@@ -26,6 +31,11 @@ namespace UnityEngine.Rendering.Universal
             isAccessible = false;
         }
 
+        /// <summary>
+        /// Updates the texture handle if the texture is accessible.
+        /// </summary>
+        /// <param name="handle">Handle to update.</param>
+        /// <param name="newHandle">Handle of the new data.</param>
         protected void CheckAndSetTextureHandle(ref TextureHandle handle, TextureHandle newHandle)
         {
             if (!CheckAndWarnAboutAccessibility())
@@ -34,6 +44,11 @@ namespace UnityEngine.Rendering.Universal
             handle = newHandle;
         }
 
+        /// <summary>
+        /// Fetches the texture handle if the texture is accessible.
+        /// </summary>
+        /// <param name="handle">Handle to the texture you want to retrieve</param>
+        /// <returns>Returns the handle if the texture is accessible and a null handle otherwise.</returns>
         protected TextureHandle CheckAndGetTextureHandle(ref TextureHandle handle)
         {
             if (!CheckAndWarnAboutAccessibility())
@@ -42,6 +57,11 @@ namespace UnityEngine.Rendering.Universal
             return handle;
         }
 
+        /// <summary>
+        /// Updates the texture handles if the texture is accessible. The current and new handles needs to be of the same size.
+        /// </summary>
+        /// <param name="handle">Handles to update.</param>
+        /// <param name="newHandle">Handles of the new data.</param>
         protected void CheckAndSetTextureHandle(ref TextureHandle[] handle, TextureHandle[] newHandle)
         {
             if (!CheckAndWarnAboutAccessibility())
@@ -54,6 +74,11 @@ namespace UnityEngine.Rendering.Universal
                 handle[i] = newHandle[i];
         }
 
+        /// <summary>
+        /// Fetches the texture handles if the texture is accessible.
+        /// </summary>
+        /// <param name="handle">Handles to the texture you want to retrieve</param>
+        /// <returns>Returns the handles if the texture is accessible and a null handle otherwise.</returns>
         protected TextureHandle[] CheckAndGetTextureHandle(ref TextureHandle[] handle)
         {
             if (!CheckAndWarnAboutAccessibility())
@@ -62,6 +87,10 @@ namespace UnityEngine.Rendering.Universal
             return handle;
         }
 
+        /// <summary>
+        /// Check if the texture is accessible.
+        /// </summary>
+        /// <returns>Returns true if the texture is accessible and false otherwise.</returns>
         protected bool CheckAndWarnAboutAccessibility()
         {
             if (!isAccessible)

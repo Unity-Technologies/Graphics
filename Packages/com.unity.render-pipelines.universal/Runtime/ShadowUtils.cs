@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
@@ -292,7 +293,26 @@ namespace UnityEngine.Rendering.Universal
         /// <returns>The depth and normal bias from a visible light.</returns>
         public static Vector4 GetShadowBias(ref VisibleLight shadowLight, int shadowLightIndex, ref ShadowData shadowData, Matrix4x4 lightProjectionMatrix, float shadowResolution)
         {
-            if (shadowLightIndex < 0 || shadowLightIndex >= shadowData.bias.Count)
+            return GetShadowBias(ref shadowLight, shadowLightIndex, shadowData.bias, shadowData.supportsSoftShadows, lightProjectionMatrix, shadowResolution);
+        }
+
+        /// <summary>
+        /// Calculates the depth and normal bias from a light.
+        /// </summary>
+        /// <param name="shadowLight"></param>
+        /// <param name="shadowLightIndex"></param>
+        /// <param name="shadowData"></param>
+        /// <param name="lightProjectionMatrix"></param>
+        /// <param name="shadowResolution"></param>
+        /// <returns>The depth and normal bias from a visible light.</returns>
+        public static Vector4 GetShadowBias(ref VisibleLight shadowLight, int shadowLightIndex, UniversalShadowData shadowData, Matrix4x4 lightProjectionMatrix, float shadowResolution)
+        {
+            return GetShadowBias(ref shadowLight, shadowLightIndex, shadowData.bias, shadowData.supportsSoftShadows, lightProjectionMatrix, shadowResolution);
+        }
+
+        static Vector4 GetShadowBias(ref VisibleLight shadowLight, int shadowLightIndex, List<Vector4> bias, bool supportsSoftShadows, Matrix4x4 lightProjectionMatrix, float shadowResolution)
+        {
+            if (shadowLightIndex < 0 || shadowLightIndex >= bias.Count)
             {
                 Debug.LogWarning(string.Format("{0} is not a valid light index.", shadowLightIndex));
                 return Vector4.zero;
@@ -337,8 +357,8 @@ namespace UnityEngine.Rendering.Universal
 
             // depth and normal bias scale is in shadowmap texel size in world space
             float texelSize = frustumSize / shadowResolution;
-            float depthBias = -shadowData.bias[shadowLightIndex].x * texelSize;
-            float normalBias = -shadowData.bias[shadowLightIndex].y * texelSize;
+            float depthBias = -bias[shadowLightIndex].x * texelSize;
+            float normalBias = -bias[shadowLightIndex].y * texelSize;
 
             // The current implementation of NormalBias in Universal RP is the same as in Unity Built-In RP (i.e moving shadow caster vertices along normals when projecting them to the shadow map).
             // This does not work well with Point Lights, which is why NormalBias value is hard-coded to 0.0 in Built-In RP (see value of unity_LightShadowBias.z in FrameDebugger, and native code that sets it: https://github.cds.internal.unity3d.com/unity/unity/blob/a9c916ba27984da43724ba18e70f51469e0c34f5/Runtime/Camera/Shadows.cpp#L1686 )
@@ -346,7 +366,7 @@ namespace UnityEngine.Rendering.Universal
             if (shadowLight.lightType == LightType.Point)
                 normalBias = 0.0f;
 
-            if (shadowData.supportsSoftShadows && shadowLight.light.shadows == LightShadows.Soft)
+            if (supportsSoftShadows && shadowLight.light.shadows == LightShadows.Soft)
             {
                 SoftShadowQuality softShadowQuality = SoftShadowQuality.Medium;
                 if (shadowLight.light.TryGetComponent(out UniversalAdditionalLightData additionalLightData))
@@ -373,6 +393,7 @@ namespace UnityEngine.Rendering.Universal
 
             return new Vector4(depthBias, normalBias, 0.0f, 0.0f);
         }
+
 
         /// <summary>
         /// Extract scale and bias from a fade distance to achieve a linear fading of the fade distance.

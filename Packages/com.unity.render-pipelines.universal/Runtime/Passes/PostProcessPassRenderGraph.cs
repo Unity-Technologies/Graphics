@@ -69,7 +69,7 @@ namespace UnityEngine.Rendering.Universal
         public void RenderSMAA(RenderGraph renderGraph, in TextureHandle source, out TextureHandle SMAATarget, ref RenderingData renderingData)
         {
             ContextContainer frameData = renderingData.frameData;
-            UniversalResourcesData resourcesData = frameData.Get<UniversalResourcesData>();
+            UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
 
             ref var cameraData = ref renderingData.cameraData;
 
@@ -151,7 +151,7 @@ namespace UnityEngine.Rendering.Universal
                 passData.depthStencilTexture = builder.UseTextureFragmentDepth(edgeTextureStencil, IBaseRenderGraphBuilder.AccessFlags.Write);
                 passData.sourceTexture = builder.UseTexture(source, IBaseRenderGraphBuilder.AccessFlags.Read);
                 UniversalRenderer renderer = (UniversalRenderer)renderingData.cameraData.renderer;
-                builder.UseTexture(resourcesData.cameraDepth ,IBaseRenderGraphBuilder.AccessFlags.Read);
+                builder.UseTexture(resourceData.cameraDepth ,IBaseRenderGraphBuilder.AccessFlags.Read);
                 passData.material = material;
 
                 builder.SetRenderFunc((SMAAPassData data, RasterGraphContext context) =>
@@ -504,7 +504,7 @@ namespace UnityEngine.Rendering.Universal
         public void RenderDoFGaussian(RenderGraph renderGraph, in TextureHandle source, in TextureHandle destination, ref Material dofMaterial, ref RenderingData renderingData)
         {
             ContextContainer frameData = renderingData.frameData;
-            UniversalResourcesData resourcesData = frameData.Get<UniversalResourcesData>();
+            UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
 
             int downSample = 2;
             var material = dofMaterial;
@@ -560,7 +560,7 @@ namespace UnityEngine.Rendering.Universal
                 passData.sourceTexture = builder.UseTexture(source, IBaseRenderGraphBuilder.AccessFlags.Read);
 
                 UniversalRenderer renderer = (UniversalRenderer)renderingData.cameraData.renderer;
-                builder.UseTexture(resourcesData.cameraDepthTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+                builder.UseTexture(resourceData.cameraDepthTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
 
                 passData.material = material;
                 builder.SetRenderFunc((DoFGaussianPassData data, RasterGraphContext context) =>
@@ -690,7 +690,7 @@ namespace UnityEngine.Rendering.Universal
         public void RenderDoFBokeh(RenderGraph renderGraph, in TextureHandle source, in TextureHandle destination, ref Material dofMaterial, ref RenderingData renderingData)
         {
             ContextContainer frameData = renderingData.frameData;
-            UniversalResourcesData resourcesData = frameData.Get<UniversalResourcesData>();
+            UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
 
             int downSample = 2;
             var material = dofMaterial;
@@ -760,7 +760,7 @@ namespace UnityEngine.Rendering.Universal
                 passData.material = material;
 
                 UniversalRenderer renderer = (UniversalRenderer)renderingData.cameraData.renderer;
-                builder.UseTexture(resourcesData.cameraDepthTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+                builder.UseTexture(resourceData.cameraDepthTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
 
                 builder.SetRenderFunc((DoFBokehPassData data, RasterGraphContext context) =>
                 {
@@ -923,11 +923,8 @@ namespace UnityEngine.Rendering.Universal
         #region TemporalAA
 
         private const string _TemporalAATargetName = "_TemporalAATarget";
-        private void RenderTemporalAA(RenderGraph renderGraph, ref TextureHandle source, out TextureHandle destination, ref CameraData cameraData)
+        private void RenderTemporalAA(RenderGraph renderGraph, ref TextureHandle source, out TextureHandle destination, UniversalResourceData resourceData, ref CameraData cameraData)
         {
-            ContextContainer frameData = cameraData.frameData;
-            UniversalResourcesData resourcesData = frameData.Get<UniversalResourcesData>();
-
             var desc = PostProcessPass.GetCompatibleDescriptor(m_Descriptor,
                 m_Descriptor.width,
                 m_Descriptor.height,
@@ -935,8 +932,8 @@ namespace UnityEngine.Rendering.Universal
                 DepthBits.None);
             destination = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, _TemporalAATargetName, false, FilterMode.Bilinear);    // TODO: use a constant for the name
 
-            TextureHandle cameraDepth = resourcesData.cameraDepth;
-            TextureHandle motionVectors = resourcesData.motionVectorColor;
+            TextureHandle cameraDepth = resourceData.cameraDepth;
+            TextureHandle motionVectors = resourceData.motionVectorColor;
             TemporalAA.Render(renderGraph, m_Materials.temporalAntialiasing, ref cameraData, ref source, ref cameraDepth, ref motionVectors, ref destination);
         }
         #endregion
@@ -955,11 +952,8 @@ namespace UnityEngine.Rendering.Universal
             internal float clamp;
         }
 
-        public void RenderMotionBlur(RenderGraph renderGraph, in TextureHandle source, out TextureHandle destination, ref CameraData cameraData)
+        public void RenderMotionBlur(RenderGraph renderGraph, in TextureHandle source, out TextureHandle destination, UniversalResourceData resourceData, UniversalCameraData cameraData)
         {
-            ContextContainer frameData = cameraData.frameData;
-            UniversalResourcesData resourcesData = frameData.Get<UniversalResourcesData>();
-
             var material = m_Materials.cameraMotionBlur;
             var desc = PostProcessPass.GetCompatibleDescriptor(m_Descriptor,
                 m_Descriptor.width,
@@ -974,8 +968,8 @@ namespace UnityEngine.Rendering.Universal
             passIndex += (mode == MotionBlurMode.CameraAndObjects) ? 3 : 0;
 
             UniversalRenderer renderer = (UniversalRenderer)cameraData.renderer;
-            TextureHandle motionVectorColor = resourcesData.motionVectorColor;
-            TextureHandle cameraDepthTexture = resourcesData.cameraDepthTexture;
+            TextureHandle motionVectorColor = resourceData.motionVectorColor;
+            TextureHandle cameraDepthTexture = resourceData.cameraDepthTexture;
 
             using (var builder = renderGraph.AddRasterRenderPass<MotionBlurPassData>("Motion Blur", out var passData, ProfilingSampler.Get(URPProfileId.RG_MotionBlur)))
             {
@@ -1028,7 +1022,7 @@ namespace UnityEngine.Rendering.Universal
                 return;
 
             ContextContainer frameData = renderingData.frameData;
-            UniversalResourcesData resourcesData = frameData.Get<UniversalResourcesData>();
+            UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
 
             using (var builder = renderGraph.AddLowLevelPass<LensFlarePassData>("Lens Flare Compute Occlusion", out var passData, ProfilingSampler.Get(URPProfileId.LensFlareDataDrivenComputeOcclusion)))
             {
@@ -1051,7 +1045,7 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 UniversalRenderer renderer = (UniversalRenderer)renderingData.cameraData.renderer;
-                builder.UseTexture(resourcesData.cameraDepthTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+                builder.UseTexture(resourceData.cameraDepthTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
 
                 builder.SetRenderFunc(
                     (LensFlarePassData data, LowLevelGraphContext ctx) =>
@@ -1431,7 +1425,7 @@ namespace UnityEngine.Rendering.Universal
             m_FilmGrain = stack.GetComponent<FilmGrain>();
             m_Tonemapping = stack.GetComponent<Tonemapping>();
 
-            ref var cameraData = ref renderingData.cameraData;
+            UniversalCameraData cameraData = renderingData.frameData.Get<UniversalCameraData>();
             var material = m_Materials.finalPass;
             var cmd = renderingData.commandBuffer;
 
@@ -1466,11 +1460,11 @@ namespace UnityEngine.Rendering.Universal
                 );
             }
 
-            if (RequireSRGBConversionBlitToBackBuffer(ref cameraData))
+            if (RequireSRGBConversionBlitToBackBuffer(ref renderingData.cameraData))
                 material.EnableKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
 
             HDROutputUtils.Operation hdrOperations = HDROutputUtils.Operation.None;
-            bool requireHDROutput = RequireHDROutput(ref cameraData);
+            bool requireHDROutput = RequireHDROutput(ref renderingData.cameraData);
             if (requireHDROutput)
             {
                 // If there is a final post process pass, it's always the final pass so do color encoding
@@ -1481,9 +1475,9 @@ namespace UnityEngine.Rendering.Universal
 
                 SetupHDROutput(cameraData.hdrDisplayInformation, cameraData.hdrDisplayColorGamut, material, hdrOperations);
             }
-            DebugHandler debugHandler = GetActiveDebugHandler(ref renderingData);
-            bool resolveToDebugScreen = debugHandler != null && debugHandler.WriteToDebugScreenTexture(ref cameraData);
-            debugHandler?.UpdateShaderGlobalPropertiesForFinalValidationPass(cmd, ref cameraData, !m_HasFinalPass && !resolveToDebugScreen);
+            DebugHandler debugHandler = GetActiveDebugHandler(cameraData);
+            bool resolveToDebugScreen = debugHandler != null && debugHandler.WriteToDebugScreenTexture(cameraData.resolveFinalTarget);
+            debugHandler?.UpdateShaderGlobalPropertiesForFinalValidationPass(cmd, cameraData, !m_HasFinalPass && !resolveToDebugScreen);
 
             bool outputToHDR = cameraData.isHDROutputActive;
             bool isFxaaEnabled = (cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing);
@@ -1682,6 +1676,9 @@ namespace UnityEngine.Rendering.Universal
 
         public void RenderPostProcessingRenderGraph(RenderGraph renderGraph, in TextureHandle activeCameraColorTexture, in TextureHandle lutTexture, in TextureHandle overlayUITexture, in TextureHandle postProcessingTarget, ref RenderingData renderingData, bool hasFinalPass, bool resolveToDebugScreen, bool enableColorEndingIfNeeded)
         {
+            UniversalResourceData resourceData = renderingData.frameData.Get<UniversalResourceData>();
+            UniversalCameraData cameraData = renderingData.frameData.Get<UniversalCameraData>();
+
             var stack = VolumeManager.instance.stack;
             m_DepthOfField = stack.GetComponent<DepthOfField>();
             m_MotionBlur = stack.GetComponent<MotionBlur>();
@@ -1705,7 +1702,7 @@ namespace UnityEngine.Rendering.Universal
             m_HasFinalPass = hasFinalPass;
             m_EnableColorEncodingIfNeeded = enableColorEndingIfNeeded;
 
-            ref CameraData cameraData = ref renderingData.cameraData;
+
             ref ScriptableRenderer renderer = ref cameraData.renderer;
             bool isSceneViewCamera = cameraData.isSceneViewCamera;
 
@@ -1725,7 +1722,7 @@ namespace UnityEngine.Rendering.Universal
             // to tweaking the value here.
             bool useTemporalAA = cameraData.IsTemporalAAEnabled();
             if (cameraData.antialiasing == AntialiasingMode.TemporalAntiAliasing && !useTemporalAA)
-                TemporalAA.ValidateAndWarn(ref cameraData);
+                TemporalAA.ValidateAndWarn(cameraData);
 
             using (var builder = renderGraph.AddRasterRenderPass<PostFXSetupPassData>("Setup PostFX passes", out var passData,
                 ProfilingSampler.Get(URPProfileId.RG_SetupPostFX)))
@@ -1768,13 +1765,13 @@ namespace UnityEngine.Rendering.Universal
             // Temporal Anti Aliasing
             if (useTemporalAA)
             {
-                RenderTemporalAA(renderGraph, ref currentSource, out var TemporalAATarget, ref renderingData.cameraData);
+                RenderTemporalAA(renderGraph, ref currentSource, out var TemporalAATarget, resourceData, ref renderingData.cameraData);
                 currentSource = TemporalAATarget;
             }
 
             if(useMotionBlur)
             {
-                RenderMotionBlur(renderGraph, in currentSource, out var MotionBlurTarget, ref renderingData.cameraData);
+                RenderMotionBlur(renderGraph, in currentSource, out var MotionBlurTarget, resourceData, cameraData);
                 currentSource = MotionBlurTarget;
             }
 
@@ -1816,10 +1813,10 @@ namespace UnityEngine.Rendering.Universal
                 SetupLensDistortion(m_Materials.uber, isSceneViewCamera);
                 SetupChromaticAberration(m_Materials.uber);
                 SetupVignette(m_Materials.uber, cameraData.xr);
-                SetupGrain(ref cameraData, m_Materials.uber);
-                SetupDithering(ref cameraData, m_Materials.uber);
+                SetupGrain(ref renderingData.cameraData, m_Materials.uber);
+                SetupDithering(ref renderingData.cameraData, m_Materials.uber);
 
-                if (RequireSRGBConversionBlitToBackBuffer(ref cameraData))
+                if (RequireSRGBConversionBlitToBackBuffer(ref renderingData.cameraData))
                     m_Materials.uber.EnableKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
 
                 if (m_UseFastSRGBLinearConversion)
@@ -1827,7 +1824,7 @@ namespace UnityEngine.Rendering.Universal
                     m_Materials.uber.EnableKeyword(ShaderKeywordStrings.UseFastSRGBLinearConversion);
                 }
 
-                bool requireHDROutput = RequireHDROutput(ref cameraData);
+                bool requireHDROutput = RequireHDROutput(ref renderingData.cameraData);
                 if (requireHDROutput)
                 {
                     // Color space conversion is already applied through color grading, do encoding if uber post is the last pass
@@ -1837,8 +1834,8 @@ namespace UnityEngine.Rendering.Universal
                     SetupHDROutput(cameraData.hdrDisplayInformation, cameraData.hdrDisplayColorGamut, m_Materials.uber, hdrOperations);
                 }
 
-                DebugHandler debugHandler = GetActiveDebugHandler(ref renderingData);
-                debugHandler?.UpdateShaderGlobalPropertiesForFinalValidationPass(renderingData.commandBuffer, ref cameraData, !m_HasFinalPass && !resolveToDebugScreen);
+                DebugHandler debugHandler = GetActiveDebugHandler(cameraData);
+                debugHandler?.UpdateShaderGlobalPropertiesForFinalValidationPass(renderingData.commandBuffer, cameraData, !m_HasFinalPass && !resolveToDebugScreen);
 
                 RenderUberPost(renderGraph, in currentSource, in postProcessingTarget, in lutTexture, in overlayUITexture, ref renderingData, requireHDROutput, resolveToDebugScreen);
             }

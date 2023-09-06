@@ -29,13 +29,12 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        public void Render(RenderGraph graph, ref RenderingData renderingData, Renderer2DData rendererData, ref LayerBatch layerBatch, FrameResources resources)
+        public void Render(RenderGraph graph, ref RenderingData renderingData, Renderer2DData rendererData, ref LayerBatch layerBatch, ContextContainer frameData)
         {
             if (!layerBatch.lightStats.useNormalMap)
                 return;
 
-            ContextContainer frameData = resources.frameData;
-            Universal2DResourcesData resourcesData = frameData.Get<Universal2DResourcesData>();
+            Universal2DResourceData resourceData = frameData.Get<Universal2DResourceData>();
 
             using (var builder = graph.AddRasterRenderPass<PassData>("Normals 2D Pass", out var passData, m_ProfilingSampler))
             {
@@ -51,8 +50,8 @@ namespace UnityEngine.Rendering.Universal
                 drawSettings.sortingSettings = sortSettings;
 
                 builder.AllowPassCulling(false);
-                builder.UseTextureFragment(resourcesData.normalsTexture, 0);
-                builder.UseTextureFragmentDepth(resourcesData.intermediateDepth, IBaseRenderGraphBuilder.AccessFlags.Write);
+                builder.UseTextureFragment(resourceData.normalsTexture, 0);
+                builder.UseTextureFragmentDepth(resourceData.intermediateDepth, IBaseRenderGraphBuilder.AccessFlags.Write);
 
                 var param = new RendererListParams(renderingData.cullResults, drawSettings, filterSettings);
                 passData.rendererList = graph.CreateRendererList(param);

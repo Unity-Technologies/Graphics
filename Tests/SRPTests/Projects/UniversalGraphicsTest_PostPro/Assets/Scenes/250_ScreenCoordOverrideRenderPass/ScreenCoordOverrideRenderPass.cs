@@ -45,11 +45,12 @@ public class ScreenCoordOverrideRenderPass : ScriptableRenderPass
         internal TextureHandle targetTex;
     }
 
-    public override void RecordRenderGraph(RenderGraph renderGraph, FrameResources frameResources, ref RenderingData renderingData)
+    public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
     {
-        UniversalRenderer renderer = (UniversalRenderer) renderingData.cameraData.renderer;
+        var cameraData = frameData.Get<UniversalCameraData>();
+        UniversalRenderer renderer = (UniversalRenderer) cameraData.renderer;
 
-        var camDesc = renderingData.cameraData.cameraTargetDescriptor;
+        var camDesc = cameraData.cameraTargetDescriptor;
         TextureDesc desc = new TextureDesc(camDesc.width, camDesc.height);//renderingData.cameraData.cameraTargetDescriptor;
 
         desc.dimension = camDesc.dimension;

@@ -15,7 +15,10 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// </summary>
         /// <param name="cmd">Command Buffer used for properties setup.</param>
         /// <param name="cameraData">CameraData containing camera matrices information.</param>
-        public static void SetupProperties(CommandBuffer cmd, in CameraData cameraData) { SetupProperties(CommandBufferHelpers.GetRasterCommandBuffer(cmd), cameraData); }
+        public static void SetupProperties(CommandBuffer cmd, in CameraData cameraData)
+        {
+            SetupProperties(CommandBufferHelpers.GetRasterCommandBuffer(cmd), cameraData);
+        }
 
         /// <summary>
         /// Setup properties needed for normal reconstruction from depth using shader functions in NormalReconstruction.hlsl
@@ -23,6 +26,27 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <param name="cmd">Raster Command Buffer used for properties setup.</param>
         /// <param name="cameraData">CameraData containing camera matrices information.</param>
         public static void SetupProperties(RasterCommandBuffer cmd, in CameraData cameraData)
+        {
+            var universalCameraData = cameraData.universalCameraData;
+            SetupProperties((RasterCommandBuffer)cmd, in universalCameraData);
+        }
+
+        /// <summary>
+        /// Setup properties needed for normal reconstruction from depth using shader functions in NormalReconstruction.hlsl
+        /// </summary>
+        /// <param name="cmd">Command Buffer used for properties setup.</param>
+        /// <param name="cameraData">CameraData containing camera matrices information.</param>
+        public static void SetupProperties(CommandBuffer cmd, UniversalCameraData cameraData)
+        {
+            SetupProperties(CommandBufferHelpers.GetRasterCommandBuffer(cmd), cameraData);
+        }
+
+        /// <summary>
+        /// Setup properties needed for normal reconstruction from depth using shader functions in NormalReconstruction.hlsl
+        /// </summary>
+        /// <param name="cmd">Raster Command Buffer used for properties setup.</param>
+        /// <param name="cameraData">CameraData containing camera matrices information.</param>
+        public static void SetupProperties(RasterCommandBuffer cmd, in UniversalCameraData cameraData)
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
             int eyeCount = cameraData.xr.enabled && cameraData.xr.singlePassEnabled ? 2 : 1;

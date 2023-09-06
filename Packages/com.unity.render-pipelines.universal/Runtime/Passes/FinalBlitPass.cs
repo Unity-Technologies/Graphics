@@ -15,7 +15,7 @@ namespace UnityEngine.Rendering.Universal.Internal
     {
         RTHandle m_Source;
         private PassData m_PassData;
-        
+
         // Use specialed URP fragment shader pass for debug draw support and color space conversion/encoding support.
         // See CoreBlit.shader and BlitHDROverlay.shader
         static class BlitPassNames
@@ -26,7 +26,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         enum BlitType
         {
-            Core = 0, // Core blit 
+            Core = 0, // Core blit
             HDR = 1, // Blit with HDR encoding and overlay UI compositing
             Count = 2
         }
@@ -37,7 +37,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             public int nearestSamplerPass;
             public int bilinearSamplerPass;
         }
-        
+
         BlitMaterialData[] m_BlitMaterialData;
 
         /// <summary>
@@ -59,7 +59,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_BlitMaterialData = new BlitMaterialData[blitTypeCount];
             for (int i = 0; i < blitTypeCount; ++i)
             {
-                m_BlitMaterialData[i].material = i == (int)BlitType.Core ? blitMaterial : blitHDRMaterial; 
+                m_BlitMaterialData[i].material = i == (int)BlitType.Core ? blitMaterial : blitHDRMaterial;
                 m_BlitMaterialData[i].nearestSamplerPass = m_BlitMaterialData[i].material?.FindPass(BlitPassNames.NearestSampler) ?? -1;
                 m_BlitMaterialData[i].bilinearSamplerPass = m_BlitMaterialData[i].material?.FindPass(BlitPassNames.BilinearSampler) ?? -1;
             }
@@ -103,8 +103,11 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
+            ContextContainer frameData = renderingData.frameData;
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+
             bool outputsToHDR = renderingData.cameraData.isHDROutputActive;
-            InitPassData(ref renderingData, ref m_PassData, outputsToHDR ? BlitType.HDR : BlitType.Core);
+            InitPassData(cameraData, ref m_PassData, outputsToHDR ? BlitType.HDR : BlitType.Core);
 
             if (m_PassData.blitMaterialData.material == null)
             {
@@ -112,12 +115,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 return;
             }
 
-
-            ref CameraData cameraData = ref renderingData.cameraData;
-
             var cameraTarget = RenderingUtils.GetCameraTargetIdentifier(ref renderingData);
-            DebugHandler debugHandler = GetActiveDebugHandler(ref renderingData);
-            bool resolveToDebugScreen = debugHandler != null && debugHandler.WriteToDebugScreenTexture(ref cameraData);
+            DebugHandler debugHandler = GetActiveDebugHandler(cameraData);
+            bool resolveToDebugScreen = debugHandler != null && debugHandler.WriteToDebugScreenTexture(cameraData.isPreviewCamera);
 
             // Get RTHandle alias to use RTHandle apis
             RTHandleStaticHelpers.SetRTHandleStaticWrapper(cameraTarget);
@@ -134,7 +134,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 m_PassData.blitMaterialData.material.enabledKeywords = null;
 
-                debugHandler?.UpdateShaderGlobalPropertiesForFinalValidationPass(cmd, ref cameraData, !resolveToDebugScreen);
+                debugHandler?.UpdateShaderGlobalPropertiesForFinalValidationPass(cmd, cameraData, !resolveToDebugScreen);
 
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.LinearToSRGBConversion,
                     cameraData.requireSrgbConversion);
@@ -149,7 +149,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                     HDROutputUtils.Operation hdrOperation = HDROutputUtils.Operation.None;
                     // If the HDRDebugView is on, we don't want the encoding
-                    if (debugHandler == null || !debugHandler.HDRDebugViewIsActive(ref cameraData))
+                    if (debugHandler == null || !debugHandler.HDRDebugViewIsActive(cameraData.resolveFinalTarget))
                         hdrOperation |= HDROutputUtils.Operation.ColorEncoding;
                     // Color conversion may have happened in the Uber post process through color grading, so we don't want to reapply it
                     if (!cameraData.postProcessEnabled)
@@ -188,15 +188,14 @@ namespace UnityEngine.Rendering.Universal.Internal
 #endif
 
                     CoreUtils.SetRenderTarget(renderingData.commandBuffer, cameraTargetHandle, loadAction, RenderBufferStoreAction.Store, ClearFlag.None, Color.clear);
-                    FinalBlitPass.ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), m_PassData, m_Source, cameraTargetHandle, ref renderingData);
+                    ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), m_PassData, m_Source, cameraTargetHandle, cameraData);
                     cameraData.renderer.ConfigureCameraTarget(cameraTargetHandle, cameraTargetHandle);
                 }
             }
         }
 
-        private static void ExecutePass(RasterCommandBuffer cmd, PassData data, RTHandle source, RTHandle destination, ref RenderingData renderingData)
+        private static void ExecutePass(RasterCommandBuffer cmd, PassData data, RTHandle source, RTHandle destination, UniversalCameraData cameraData)
         {
-            ref var cameraData = ref renderingData.cameraData;
             bool isRenderToBackBufferTarget = !cameraData.isSceneViewCamera;
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (cameraData.xr.enabled)
@@ -224,17 +223,17 @@ namespace UnityEngine.Rendering.Universal.Internal
             internal Vector4 hdrOutputLuminanceParams;
             internal bool requireSrgbConversion;
             internal BlitMaterialData blitMaterialData;
-            internal RenderingData renderingData;
+            internal UniversalCameraData cameraData;
         }
 
         /// <summary>
         /// Initialize the shared pass data.
         /// </summary>
         /// <param name="passData"></param>
-        private void InitPassData(ref RenderingData renderingData, ref PassData passData, BlitType blitType)
+        private void InitPassData(UniversalCameraData cameraData, ref PassData passData, BlitType blitType)
         {
-            passData.renderingData = renderingData;
-            passData.requireSrgbConversion = renderingData.cameraData.requireSrgbConversion;
+            passData.cameraData = cameraData;
+            passData.requireSrgbConversion = cameraData.requireSrgbConversion;
 
             passData.blitMaterialData = m_BlitMaterialData[(int)blitType];
         }
@@ -243,11 +242,12 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("Final Blit", out var passData, base.profilingSampler))
             {
-                bool outputsToHDR = renderingData.cameraData.isHDROutputActive;
-                InitPassData(ref renderingData, ref passData, outputsToHDR ? BlitType.HDR : BlitType.Core);
-                passData.renderingData = renderingData;
-                passData.sourceID = ShaderPropertyId.sourceTex;
+                UniversalCameraData cameraData = renderingData.frameData.Get<UniversalCameraData>();
 
+                bool outputsToHDR = renderingData.cameraData.isHDROutputActive;
+                InitPassData(cameraData, ref passData, outputsToHDR ? BlitType.HDR : BlitType.Core);
+
+                passData.sourceID = ShaderPropertyId.sourceTex;
                 passData.source = builder.UseTexture(src, IBaseRenderGraphBuilder.AccessFlags.Read);
                 passData.destination = builder.UseTextureFragment(dest, 0, IBaseRenderGraphBuilder.AccessFlags.Write); ;
 
@@ -255,8 +255,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 {
                     VolumeStack stack = VolumeManager.instance.stack;
                     Tonemapping tonemapping = stack.GetComponent<Tonemapping>();
-                    ref CameraData cameraData = ref renderingData.cameraData;
-                    UniversalRenderPipeline.GetHDROutputLuminanceParameters(cameraData.hdrDisplayInformation, cameraData.hdrDisplayColorGamut, tonemapping, out passData.hdrOutputLuminanceParams);
+                    UniversalRenderPipeline.GetHDROutputLuminanceParameters(passData.cameraData.hdrDisplayInformation, passData.cameraData.hdrDisplayColorGamut, tonemapping, out passData.hdrOutputLuminanceParams);
 
                     builder.UseTexture(overlayUITexture, IBaseRenderGraphBuilder.AccessFlags.Read);
                 }
@@ -273,35 +272,35 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                     CoreUtils.SetKeyword(context.cmd, ShaderKeywordStrings.LinearToSRGBConversion, data.requireSrgbConversion);
                     data.blitMaterialData.material.SetTexture(data.sourceID, data.source);
-                    
-                    DebugHandler debugHandler = GetActiveDebugHandler(ref data.renderingData);
-                    bool resolveToDebugScreen = debugHandler != null && debugHandler.WriteToDebugScreenTexture(ref data.renderingData.cameraData);
+
+                    DebugHandler debugHandler = GetActiveDebugHandler(data.cameraData);
+                    bool resolveToDebugScreen = debugHandler != null && debugHandler.WriteToDebugScreenTexture(data.cameraData.resolveFinalTarget);
 
                     // TODO RENDERGRAPH: this should ideally be shared in ExecutePass to avoid code duplication
                     if (data.hdrOutputLuminanceParams.w >= 0)
                     {
                         HDROutputUtils.Operation hdrOperation = HDROutputUtils.Operation.None;
                         // If the HDRDebugView is on, we don't want the encoding
-                        if (debugHandler == null || !debugHandler.HDRDebugViewIsActive(ref data.renderingData.cameraData))
+                        if (debugHandler == null || !debugHandler.HDRDebugViewIsActive(data.cameraData.resolveFinalTarget))
                             hdrOperation |= HDROutputUtils.Operation.ColorEncoding;
 
                         // Color conversion may have happened in the Uber post process through color grading, so we don't want to reapply it
-                        if (!data.renderingData.cameraData.postProcessEnabled)
+                        if (!data.cameraData.postProcessEnabled)
                             hdrOperation |= HDROutputUtils.Operation.ColorConversion;
 
-                        SetupHDROutput(data.renderingData.cameraData.hdrDisplayColorGamut, data.blitMaterialData.material, hdrOperation, data.hdrOutputLuminanceParams);
+                        SetupHDROutput(data.cameraData.hdrDisplayColorGamut, data.blitMaterialData.material, hdrOperation, data.hdrOutputLuminanceParams);
                     }
 
                     if (resolveToDebugScreen)
                     {
                         RTHandle sourceTex = data.source;
                         Vector2 viewportScale = sourceTex.useScaling ? new Vector2(sourceTex.rtHandleProperties.rtHandleScale.x, sourceTex.rtHandleProperties.rtHandleScale.y) : Vector2.one;
-                        
+
                         int shaderPassIndex = sourceTex.rt?.filterMode == FilterMode.Bilinear ? data.blitMaterialData.bilinearSamplerPass : data.blitMaterialData.nearestSamplerPass;
                         Blitter.BlitTexture(context.cmd, sourceTex, viewportScale, data.blitMaterialData.material, shaderPassIndex);
                     }
                     else
-                        ExecutePass(context.cmd, data, data.source, data.destination, ref data.renderingData);
+                        ExecutePass(context.cmd, data, data.source, data.destination, data.cameraData);
                 });
             }
         }

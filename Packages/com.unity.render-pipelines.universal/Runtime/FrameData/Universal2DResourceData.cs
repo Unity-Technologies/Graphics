@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal
@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// Class that holds settings related to texture resources.
     /// </summary>
-    class Universal2DResourcesData : UniversalResourcesDataBase
+    public class Universal2DResourceData : UniversalResourceDataBase
     {
         /// <summary>
         /// The active color target ID.

@@ -52,10 +52,12 @@ namespace UnityEngine.Rendering.Universal.Internal
             internal DeferredLights deferredLights;
         }
 
-        internal void Render(RenderGraph renderGraph, TextureHandle color, TextureHandle depth, TextureHandle[] gbuffer, ref RenderingData renderingData, FrameResources frameResources)
+        internal void Render(RenderGraph renderGraph, TextureHandle color, TextureHandle depth, TextureHandle[] gbuffer, ref RenderingData renderingData, ContextContainer frameData)
         {
+            UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("Deferred Lighting Pass", out var passData, base.profilingSampler))
             {
+
                 passData.color = builder.UseTextureFragment(color, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
                 passData.depth = builder.UseTextureFragmentDepth(depth, IBaseRenderGraphBuilder.AccessFlags.Write);
                 passData.deferredLights = m_DeferredLights;
@@ -93,7 +95,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             // Without NRP GBuffer textures are set after GBuffer, we only do this here to avoid breaking the pass
             if (renderGraph.NativeRenderPassesEnabled)
-                GBufferPass.SetGlobalGBufferTextures(renderGraph, gbuffer, frameResources, ref m_DeferredLights);
+                GBufferPass.SetGlobalGBufferTextures(renderGraph, gbuffer, resourceData, ref m_DeferredLights);
         }
 
         // ScriptableRenderPass

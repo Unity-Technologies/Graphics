@@ -622,7 +622,7 @@ namespace UnityEngine.Rendering.Universal
                 return;
             }
 
-            var frameData = GetRenderer(camera, additionalCameraData).resources.frameData;
+            var frameData = GetRenderer(camera, additionalCameraData).frameData;
             var cameraData = CreateCameraData(frameData, camera, additionalCameraData, true);
             InitializeAdditionalCameraData(camera, additionalCameraData, true, cameraData);
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
@@ -667,7 +667,8 @@ namespace UnityEngine.Rendering.Universal
                 return;
             }
 
-            using ContextContainer frameData = renderer.resources.frameData;
+            // Note: We are disposing frameData once this variable goes out of scope.
+            using ContextContainer frameData = renderer.frameData;
 
             if (!TryGetCullingParameters(cameraData, out var cullingParameters))
                 return;
@@ -701,10 +702,7 @@ namespace UnityEngine.Rendering.Universal
 
                 using (new ProfilingScope(Profiling.Pipeline.Renderer.setupCullingParameters))
                 {
-                    var legacyCameraData = new CameraData
-                    {
-                        frameData = frameData
-                    };
+                    var legacyCameraData = new CameraData(frameData);
 
                     renderer.OnPreCullRenderPasses(in legacyCameraData);
                     renderer.SetupCullingParameters(ref cullingParameters, ref legacyCameraData);
@@ -768,7 +766,7 @@ namespace UnityEngine.Rendering.Universal
                 // Initialize all the data types required for rendering.
                 using (new ProfilingScope(Profiling.Pipeline.initializeRenderingData))
                 {
-                    CreateUniversalResourcesData(frameData);
+                    CreateUniversalResourceData(frameData);
                     CreateLightData(frameData, asset, cullResults.visibleLights);
                     CreateShadowData(frameData, asset, isForwardPlus);
                     CreatePostProcessingData(frameData, asset, anyPostProcessingEnabled);
@@ -936,7 +934,7 @@ namespace UnityEngine.Rendering.Universal
                 // Update volumeframework before initializing additional camera data
                 UpdateVolumeFramework(baseCamera, baseCameraAdditionalData);
 
-                ContextContainer frameData = renderer.resources.frameData;
+                ContextContainer frameData = renderer.frameData;
                 UniversalCameraData baseCameraData = CreateCameraData(frameData, baseCamera, baseCameraAdditionalData, !isStackedRendering);
 
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -994,7 +992,7 @@ namespace UnityEngine.Rendering.Universal
                         // Camera is overlay and enabled
                         if (overlayAdditionalCameraData != null)
                         {
-                            ContextContainer overlayFrameData = GetRenderer(overlayCamera, overlayAdditionalCameraData).resources.frameData;
+                            ContextContainer overlayFrameData = GetRenderer(overlayCamera, overlayAdditionalCameraData).frameData;
                             UniversalCameraData overlayCameraData = CreateCameraData(overlayFrameData, baseCamera, baseCameraAdditionalData, false);
 #if ENABLE_VR && ENABLE_XR_MODULE
                             if (xrPass.enabled)
@@ -1186,7 +1184,7 @@ namespace UnityEngine.Rendering.Universal
             using var profScope = new ProfilingScope(Profiling.Pipeline.initializeCameraData);
 
             var renderer = GetRenderer(camera, additionalCameraData);
-            var cameraData = frameData.Create<UniversalCameraData>();
+            UniversalCameraData cameraData = frameData.Create<UniversalCameraData>();
             InitializeStackedCameraData(camera, additionalCameraData, cameraData);
 
             cameraData.camera = camera;
@@ -1452,11 +1450,11 @@ namespace UnityEngine.Rendering.Universal
         {
             using var profScope = new ProfilingScope(Profiling.Pipeline.initializeShadowData);
 
-            var shadowData = frameData.Create<UniversalShadowData>();
+            UniversalShadowData shadowData = frameData.Create<UniversalShadowData>();
 
-            var cameraData = frameData.Get<UniversalCameraData>();
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
 
-            var lightData = frameData.Get<UniversalLightData>();
+            UniversalLightData lightData = frameData.Get<UniversalLightData>();
             var mainLightIndex = lightData.mainLightIndex;
             var visibleLights = lightData.visibleLights;
 
@@ -1591,7 +1589,7 @@ namespace UnityEngine.Rendering.Universal
 
         static void CreatePostProcessingData(ContextContainer frameData, UniversalRenderPipelineAsset settings, bool anyPostProcessingEnabled)
         {
-            var postProcessingData = frameData.Create<UniversalPostProcessingData>();
+            UniversalPostProcessingData postProcessingData = frameData.Create<UniversalPostProcessingData>();
             var isHDROutputActive = frameData.Get<UniversalCameraData>().isHDROutputActive;
 
             postProcessingData.isEnabled = anyPostProcessingEnabled;
@@ -1609,16 +1607,16 @@ namespace UnityEngine.Rendering.Universal
             postProcessingData.supportDataDrivenLensFlare = settings.supportDataDrivenLensFlare;
         }
 
-        static void CreateUniversalResourcesData(ContextContainer frameData)
+        static void CreateUniversalResourceData(ContextContainer frameData)
         {
-            frameData.Create<UniversalResourcesData>();
+            frameData.Create<UniversalResourceData>();
         }
 
         static void CreateLightData(ContextContainer frameData, UniversalRenderPipelineAsset settings, NativeArray<VisibleLight> visibleLights)
         {
             using var profScope = new ProfilingScope(Profiling.Pipeline.initializeLightData);
 
-            var lightData = frameData.Create<UniversalLightData>();
+            UniversalLightData lightData = frameData.Create<UniversalLightData>();
 
             int maxPerObjectAdditionalLights = UniversalRenderPipeline.maxPerObjectLights;
             int maxVisibleAdditionalLights = UniversalRenderPipeline.maxVisibleAdditionalLights;
