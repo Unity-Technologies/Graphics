@@ -16,8 +16,8 @@ The Reflection Probes section contains the following properties:
 
 | __Property__ | __Description__ |
 | --- | --- |
-| **Probe Blending** | Select this property to enable [reflection probe blending](#reflection-probe-blending). |
-| **Box Projection** | Select this property to enable reflection probe box projection. |
+| **Probe Blending** | Select this property to enable [reflection probe blending](#reflection-probe-blending). On lower-end mobile platforms, disable this property to decrease processing time on the CPU. |
+| **Box Projection** | Select this property to enable reflection probe box projection. On lower-end mobile platforms, disable this property to decrease processing time on the CPU. |
 
 ## Reflection probe blending
 

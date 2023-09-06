@@ -4,6 +4,8 @@ The Complex Lit Shader contains all the functionality of the Lit shader and adds
 
 In the Deferred Rendering Path, URP renders objects that have the Complex Lit shader using the Forward Rendering Path. If the hardware of the target platform does not support features in the Complex Lit shader, URP uses the Lit shader instead.
 
+If you need to reduce processing time on the GPU (for example, on lower-end platforms), avoid use of the Complex Lit shader. Instead, use the [Baked Lit shader](baked-lit-shader.md) for static objects and the [Simple Lit shader](simple-lit-shader.md) for dynamic objects. If you use the Complex Lit shader, disable **Clear Coat**.
+
 ## Using the Complex Lit Shader in the Editor
 
 To select and use this Shader:

@@ -14,6 +14,8 @@ To activate HDR output, follow these steps.
 
 However, if you switch to a URP Asset that does not have HDR enabled, URP disables HDR Output until you change to a URP Asset with HDR enabled.
 
+If you enable HDR Output, URP uses more memory. 
+
 **Note**: If HDR Output is active, the grading mode falls back to HDR, even if there is a different Color Grading Mode active in the URP Asset.
 
 ## HDR tone mapping in URP
