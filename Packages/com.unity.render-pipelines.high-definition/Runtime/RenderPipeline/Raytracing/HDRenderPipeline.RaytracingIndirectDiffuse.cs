@@ -62,6 +62,7 @@ namespace UnityEngine.Rendering.HighDefinition
             deferredParameters.raySteps = settings.maxMixedRaySteps;
             deferredParameters.nearClipPlane = hdCamera.camera.nearClipPlane;
             deferredParameters.farClipPlane = hdCamera.camera.farClipPlane;
+            deferredParameters.transparent = false;
 
             // Camera data
             deferredParameters.width = hdCamera.actualWidth;

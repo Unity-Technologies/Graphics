@@ -5135,8 +5135,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.destination = builder.WriteTexture(dstTex);
 
                 passData.sharpenCS.shaderKeywords = null;
-                if (hdCamera.taaRingingReduction > 0)
-                    passData.sharpenCS.EnableKeyword("CLAMP_RINGING");
+                CoreUtils.SetKeyword(passData.sharpenCS, "ENABLE_ALPHA", PostProcessEnableAlpha(hdCamera));
+                CoreUtils.SetKeyword(passData.sharpenCS, "CLAMP_RINGING", hdCamera.taaRingingReduction > 0);
 
                 builder.SetRenderFunc(
                         (SharpenData data, RenderGraphContext ctx) =>

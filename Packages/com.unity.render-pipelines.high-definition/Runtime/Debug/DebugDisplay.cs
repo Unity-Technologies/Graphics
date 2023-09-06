@@ -1764,10 +1764,6 @@ namespace UnityEngine.Rendering.HighDefinition
         void UnregisterRenderingDebug()
         {
             UnregisterDebugItems(k_PanelRendering, m_DebugRenderingItems);
-
-            var renderGraphs = RenderGraph.GetRegisteredRenderGraphs();
-            foreach (var graph in renderGraphs)
-                graph.UnRegisterDebug();
         }
 
         internal void RegisterDebug()

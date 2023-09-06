@@ -11,6 +11,7 @@
 TEXTURE2D_X(_InputTexture);
 RW_TEXTURE2D_X(CTYPE, _OutputTexture);
 
+#pragma multi_compile _ ENABLE_ALPHA
 #pragma multi_compile _ CLAMP_RINGING
 
 float4 _SharpenParams;

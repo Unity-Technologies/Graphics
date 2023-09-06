@@ -403,10 +403,11 @@ namespace UnityEngine.Rendering.HighDefinition
             deferredParameters.lastBounceFallbackHierarchy = (int)(settings.lastBounceFallbackHierarchy.value);
 
             // Ray Marching parameters
-            deferredParameters.mixedTracing = (settings.tracing.value == RayCastingMode.Mixed && hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred) && !transparent;
+            deferredParameters.mixedTracing = (settings.tracing.value == RayCastingMode.Mixed && hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred);
             deferredParameters.raySteps = settings.rayMaxIterationsRT;
             deferredParameters.nearClipPlane = hdCamera.camera.nearClipPlane;
             deferredParameters.farClipPlane = hdCamera.camera.farClipPlane;
+            deferredParameters.transparent = transparent;
 
             // Camera data
             deferredParameters.width = hdCamera.actualWidth;
