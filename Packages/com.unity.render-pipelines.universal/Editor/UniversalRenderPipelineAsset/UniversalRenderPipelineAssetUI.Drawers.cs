@@ -231,6 +231,7 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUILayout.PropertyField(serialized.probeVolumeBlendingTextureSize, Styles.probeVolumeBlendingMemoryBudget);
                 EditorGUILayout.PropertyField(serialized.probeVolumeSHBands, Styles.probeVolumeSHBands);
                 EditorGUILayout.PropertyField(serialized.supportProbeVolumeStreaming, Styles.supportProbeVolumeStreaming);
+                EditorGUILayout.PropertyField(serialized.supportProbeVolumeScenarios, Styles.supportProbeVolumeScenarios);
 
                 int estimatedVMemCost = ProbeReferenceVolume.instance.GetVideoMemoryCost();
                 if (estimatedVMemCost == 0)

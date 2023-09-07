@@ -270,7 +270,7 @@ namespace UnityEngine.Rendering.Universal
                     shBands = asset.probeVolumeSHBands,
                     supportGPUStreaming = asset.supportProbeVolumeStreaming,
                     supportDiskStreaming = false,
-                    supportScenarios = false
+                    supportScenarios = asset.supportProbeVolumeScenarios,
                 });
             }
         }

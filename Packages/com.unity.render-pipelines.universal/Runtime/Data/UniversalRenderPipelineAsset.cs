@@ -484,6 +484,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] ProbeVolumeTextureMemoryBudget m_ProbeVolumeMemoryBudget = ProbeVolumeTextureMemoryBudget.MemoryBudgetMedium;
         [SerializeField] ProbeVolumeBlendingTextureMemoryBudget m_ProbeVolumeBlendingMemoryBudget = ProbeVolumeBlendingTextureMemoryBudget.MemoryBudgetLow;
         [SerializeField] bool m_SupportProbeVolumeStreaming = false;
+        [SerializeField] bool m_SupportProbeVolumeScenarios = false;
 #if UNITY_EDITOR
         [ShaderKeywordFilter.RemoveIf(ProbeVolumeSHBands.SphericalHarmonicsL1, keywordNames: ShaderKeywordStrings.ProbeVolumeL2)]
         [ShaderKeywordFilter.RemoveIf(ProbeVolumeSHBands.SphericalHarmonicsL2, keywordNames: ShaderKeywordStrings.ProbeVolumeL1)]
@@ -1204,6 +1205,15 @@ namespace UnityEngine.Rendering.Universal
         {
             get => m_SupportProbeVolumeStreaming;
             internal set => m_SupportProbeVolumeStreaming = value;
+        }
+
+        /// <summary>
+        /// Support Lighting Scenario Baking for Probe Volumes.
+        /// </summary>
+        public bool supportProbeVolumeScenarios
+        {
+            get { return m_SupportProbeVolumeScenarios; }
+            internal set { m_SupportProbeVolumeScenarios = value; }
         }
 
         /// <summary>

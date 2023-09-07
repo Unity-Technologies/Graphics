@@ -34,6 +34,7 @@ namespace UnityEditor.Rendering.Universal
         internal SerializedProperty probeVolumeTextureSize;
         internal SerializedProperty probeVolumeBlendingTextureSize;
         internal SerializedProperty supportProbeVolumeStreaming;
+        internal SerializedProperty supportProbeVolumeScenarios;
         internal SerializedProperty probeVolumeSHBands;
 
         public SerializedProperty additionalLightsRenderingModeProp { get; }
@@ -114,6 +115,7 @@ namespace UnityEditor.Rendering.Universal
             probeVolumeTextureSize = serializedObject.FindProperty("m_ProbeVolumeMemoryBudget");
             probeVolumeBlendingTextureSize = serializedObject.FindProperty("m_ProbeVolumeBlendingMemoryBudget");
             supportProbeVolumeStreaming = serializedObject.FindProperty("m_SupportProbeVolumeStreaming");
+            supportProbeVolumeScenarios = serializedObject.FindProperty("m_SupportProbeVolumeScenarios");
             probeVolumeSHBands = serializedObject.FindProperty("m_ProbeVolumeSHBands");
 
             mainLightRenderingModeProp = serializedObject.FindProperty("m_MainLightRenderingMode");
