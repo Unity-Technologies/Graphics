@@ -89,9 +89,24 @@ float3 SampleAreaLightCookie(float4 cookieScaleOffset, float4x3 L, float3 F, flo
     return SampleCookie2D(saturate(hitUV), cookieScaleOffset, mipLevel);
 }
 
-float3 SampleAreaLightCookie(float4 cookieScaleOffset, float4x3 L, float3 F)
+// Helper function for rectangular area lights.
+// Input: 'ltcVerts' must be inversely transformed in such a way that the transformed BRDF becomes uniform (diffuse).
+// Output: RGB is the color, and A is the irradiance of the light (not pre-multiplied).
+float4 EvaluateLTC_Rect(float4x3 ltcVerts, float perceptualRoughness, int cookieMode, float4 cookieScaleOffset)
 {
-    return SampleAreaLightCookie(cookieScaleOffset, L, F, 1.0f);
+    float4 ltcValue;
+    float3 formFactor;
+
+    // Polygon irradiance in the transformed configuration.
+    ltcValue.a   = PolygonIrradiance(ltcVerts, formFactor);
+    ltcValue.rgb = float3(1,1,1);
+
+    if (cookieMode != COOKIEMODE_NONE)
+    {
+        ltcValue.rgb = SampleAreaLightCookie(cookieScaleOffset, ltcVerts, formFactor, perceptualRoughness);
+    }
+
+    return ltcValue;
 }
 
 // This function transforms a rectangular area light according the the barn door inputs defined by the user.
