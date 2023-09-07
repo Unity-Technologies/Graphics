@@ -309,6 +309,7 @@ void EvaluateMaterial(MaterialData mtlData, float3 sampleDir, out MaterialResult
     if (mtlData.isSubsurface)
     {
         BRDF::EvaluateLambert(mtlData, GetDiffuseNormal(mtlData), sampleDir, result.diffValue, result.diffPdf);
+        result.diffValue *= mtlData.bsdfData.ambientOcclusion; // Take into account AO the same way as in SampleMaterial
         return;
     }
 #endif
@@ -330,7 +331,8 @@ void EvaluateMaterial(MaterialData mtlData, float3 sampleDir, out MaterialResult
         if (mtlData.bsdfWeight[0] > BSDF_WEIGHT_EPSILON)
         {
             BRDF::EvaluateLambert(mtlData, GetDiffuseNormal(mtlData), sampleDir, result.diffValue, result.diffPdf);
-            result.diffValue *= coatingTransmission; // AO purposedly ignored here
+            result.diffValue *= coatingTransmission;
+            result.diffValue *= mtlData.bsdfData.ambientOcclusion; // Take into account AO the same way as in SampleMaterial
             result.diffPdf *= mtlData.bsdfWeight[0];
         }
 

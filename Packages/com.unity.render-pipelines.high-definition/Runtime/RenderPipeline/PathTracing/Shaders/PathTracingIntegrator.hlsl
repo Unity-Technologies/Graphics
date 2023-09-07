@@ -1,6 +1,8 @@
 #ifndef UNITY_PATH_TRACING_INTEGRATOR_INCLUDED
 #define UNITY_PATH_TRACING_INTEGRATOR_INCLUDED
 
+#define ENABLE_MATERIAL_AMBIENT_OCCLUSION
+
 // Ray tracing includes
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingFragInputs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Common/AtmosphericScatteringRayTracing.hlsl"
@@ -122,6 +124,17 @@ void ComputeSurfaceScattering(inout PathPayload payload : SV_RayPayload, Attribu
 
     // Compute the bsdf data
     BSDFData bsdfData = ConvertSurfaceDataToBSDFData(posInput.positionSS, surfaceData);
+
+#ifdef ENABLE_MATERIAL_AMBIENT_OCCLUSION
+    // If this is the first segment, then there hasn't been any bounces yet
+    if (payload.segmentID == 0)
+    {
+        // Disable AO for direct lighting
+        bsdfData.ambientOcclusion = 1.0;
+    }
+#else
+    bsdfData.ambientOcclusion = 1.0;
+#endif
 
     // Take care of AOV data right away
     GetAOVData(bsdfData, aovData);

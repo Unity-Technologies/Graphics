@@ -52,6 +52,7 @@ MonoBehaviour:
     - {fileID: 102900000, guid: 59b393015a21d114d908a93adc455494, type: 3}
     - {fileID: 102900000, guid: 80273b12646e091409e2665bd76196ff, type: 3}
     - {fileID: 102900000, guid: f1fed14747b504a47970a47d6ad4f64f, type: 3}
+    - {fileID: 102900000, guid: 6d94b324982b10f4386673838de4498c, type: 3}
     - {fileID: 102900000, guid: a469a947680f48644967493aba255270, type: 3}
     ColorSpace: -1
     BuildPlatform: 42
@@ -88,6 +89,7 @@ MonoBehaviour:
     - {fileID: 102900000, guid: 59b393015a21d114d908a93adc455494, type: 3}
     - {fileID: 102900000, guid: 80273b12646e091409e2665bd76196ff, type: 3}
     - {fileID: 102900000, guid: f1fed14747b504a47970a47d6ad4f64f, type: 3}
+    - {fileID: 102900000, guid: 6d94b324982b10f4386673838de4498c, type: 3}
     - {fileID: 102900000, guid: a469a947680f48644967493aba255270, type: 3}
     ColorSpace: -1
     BuildPlatform: 44
