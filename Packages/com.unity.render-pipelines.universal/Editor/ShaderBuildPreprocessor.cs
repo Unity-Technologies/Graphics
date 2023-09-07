@@ -224,15 +224,12 @@ namespace UnityEditor.Rendering.Universal
             s_SupportedFeaturesList.Clear();
             using (ListPool<UniversalRenderPipelineAsset>.Get(out List<UniversalRenderPipelineAsset> urpAssets))
             {
-                bool success = EditorUserBuildSettings.activeBuildTarget.TryGetRenderPipelineAssets(urpAssets);
-                if (!success)
+                bool buildingForURP = EditorUserBuildSettings.activeBuildTarget.TryGetRenderPipelineAssets(urpAssets);
+                if (buildingForURP)
                 {
-                    Debug.LogError("Unable to get UniversalRenderPipelineAssets from EditorUserBuildSettings.activeBuildTarget.");
-                    return;
+                    // Get Supported features & update data used for Shader Prefiltering and Scriptable Stripping
+                    GetSupportedShaderFeaturesFromAssets(ref urpAssets, ref s_SupportedFeaturesList, s_StripUnusedVariants);
                 }
-
-                // Get Supported features & update data used for Shader Prefiltering and Scriptable Stripping
-                GetSupportedShaderFeaturesFromAssets(ref urpAssets, ref s_SupportedFeaturesList, s_StripUnusedVariants);
             }
         }
 

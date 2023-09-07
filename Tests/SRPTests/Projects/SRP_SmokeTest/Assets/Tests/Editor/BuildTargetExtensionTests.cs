@@ -100,7 +100,9 @@ namespace UnityEditor.Rendering.Tests
 
             using (ListPool<RenderPipelineAsset>.Get(out var rpAssets))
             {
-                Assert.IsTrue(EditorUserBuildSettings.activeBuildTarget.TryGetRenderPipelineAssets<RenderPipelineAsset>(rpAssets));
+                var result =
+                    EditorUserBuildSettings.activeBuildTarget.TryGetRenderPipelineAssets<RenderPipelineAsset>(rpAssets);
+                Assert.AreEqual(rpAssets.Count != 0, result);
                 return rpAssets.Count;
             }
         }
@@ -135,6 +137,22 @@ namespace UnityEditor.Rendering.Tests
             {
                 QualitySettings.TryIncludePlatformAt(activeBuildTargetGroupName,level, out var _);
             }
+        }
+
+        [Test]
+        public void GetRenderPipelineAssets_ReturnsFalseWhenNullListIsGiven()
+        {
+            var buildTarget = EditorUserBuildSettings.activeBuildTarget;
+            Assert.IsFalse(buildTarget.TryGetRenderPipelineAssets<RenderPipelineAsset>(null));
+        }
+
+        [Test]
+        public void GetRenderPipelineAssets_ReturnsFalseWhenThereAreNoAssetsDefined()
+        {
+            var buildTarget = EditorUserBuildSettings.activeBuildTarget;
+            var assetsList = new List<RenderPipelineAsset>();
+            Assert.IsFalse(buildTarget.TryGetRenderPipelineAssets<RenderPipelineAsset>(assetsList));
+            Assert.AreEqual(0, assetsList.Count);
         }
     }
 }

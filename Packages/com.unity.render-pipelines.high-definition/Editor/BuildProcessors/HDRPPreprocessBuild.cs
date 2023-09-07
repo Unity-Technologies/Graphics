@@ -54,12 +54,16 @@ namespace UnityEditor.Rendering.HighDefinition
             int GetMinimumMaxLoDValue(HDRenderPipelineAsset asset)
             {
                 int minimumMaxLoD = int.MaxValue;
-                var maxLoDs = asset.currentPlatformRenderPipelineSettings.maximumLODLevel;
-                var schema = ScalableSettingSchema.GetSchemaOrNull(maxLoDs.schemaId);
-                for (int lod = 0; lod < schema.levelCount; ++lod)
+
+                if (asset != null)
                 {
-                    if (maxLoDs.TryGet(lod, out int maxLoD))
-                        minimumMaxLoD = Mathf.Min(minimumMaxLoD, maxLoD);
+                    var maxLoDs = asset.currentPlatformRenderPipelineSettings.maximumLODLevel;
+                    var schema = ScalableSettingSchema.GetSchemaOrNull(maxLoDs.schemaId);
+                    for (int lod = 0; lod < schema.levelCount; ++lod)
+                    {
+                        if (maxLoDs.TryGet(lod, out int maxLoD))
+                            minimumMaxLoD = Mathf.Min(minimumMaxLoD, maxLoD);
+                    }
                 }
 
                 return minimumMaxLoD != int.MaxValue ? minimumMaxLoD : 0;
