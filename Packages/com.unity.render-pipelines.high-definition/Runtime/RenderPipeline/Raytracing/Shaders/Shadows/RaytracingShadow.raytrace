@@ -36,7 +36,7 @@
 // Raytracing includes
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingSampling.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Common/RaytracingHelpers.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Common/RayTracingHelpers.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Shadows/SphericalQuad.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Shadows/RaytracingMIS.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/RayCountManager.cs.hlsl"
@@ -119,7 +119,7 @@ void RayGenAreaShadows()
     {
         return;
     }
-    
+
     // Compute the local frame that matches the normal
     misInput.localToWorld = GetLocalFrame(normalData.normalWS);
 
@@ -179,7 +179,7 @@ void RayGenAreaShadows()
         // Generate the new sample (follwing values of the sequence)
         misInput.noiseValue.x = GetBNDSequenceSample(currentPixelCoord, globalSampleIndex, 0);
         misInput.noiseValue.y = GetBNDSequenceSample(currentPixelCoord, globalSampleIndex, 1);
-        
+
         // Pick the sampling technique
         EvaluateMISTechnique(misInput);
 
@@ -297,7 +297,7 @@ void RayGenAreaShadowSingle()
     // Read the depth value
     float depthValue = LOAD_TEXTURE2D_X(_DepthTexture, currentPixelCoord).x;
 
-    // If this is the background, or UnL is null or this pixel has been flagged as invalid, no 
+    // If this is the background, or UnL is null or this pixel has been flagged as invalid, no
     if (depthValue == UNITY_RAW_FAR_CLIP_VALUE || currentSample.y == 0.0 || _AnalyticProbBuffer[COORD_TEXTURE2D_X(currentPixelCoord)].y < 0.0)
     {
         _RaytracedAreaShadowIntegration[COORD_TEXTURE2D_X(currentPixelCoord)] = float2(previousValue.x, previousValue.y);
@@ -497,7 +497,7 @@ void RayGenDirectionalColorShadowSingle()
 
     // Evaluate the ray visibility term
     TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_FRONT_FACING_TRIANGLES | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH, RAYTRACINGRENDERERFLAG_CAST_SHADOW_OPAQUE, 0, 1, 0, rayDescriptor, rayIntersection);
-    
+
     // If we did not hit an opaque object
     if (rayIntersection.color.x != 0.0)
     {
@@ -591,7 +591,7 @@ void RayGenShadowSegmentSingle()
     float rayDistance = LOAD_TEXTURE2D_X(_RayTracingLengthBuffer, currentPixelCoord).x;
 
     // Recompute the ray parameters
-    float3 rayOrigin = posInput.positionWS + normalData.normalWS * rayBias; 
+    float3 rayOrigin = posInput.positionWS + normalData.normalWS * rayBias;
     float3 rayDestination = rayOrigin + rayDirection.xyz * (rayDistance - rayBias);
 
     // Re-normalize using t
@@ -620,7 +620,7 @@ void RayGenShadowSegmentSingle()
     // Add the contribution of this sample
     float previousVelocityValue = _VelocityBuffer[COORD_TEXTURE2D_X(currentPixelCoord)].x;
     float previousDistanceValue = _RaytracingDistanceBufferRW[COORD_TEXTURE2D_X(currentPixelCoord)].x;
-    
+
     _RaytracedShadowIntegration[COORD_TEXTURE2D_X(currentPixelCoord)] = previousValue + rayIntersection.color.x / (float)_RaytracingNumSamples;
     _VelocityBuffer[COORD_TEXTURE2D_X(currentPixelCoord)] = max(rayIntersection.velocity, previousVelocityValue);
     _RaytracingDistanceBufferRW[COORD_TEXTURE2D_X(currentPixelCoord)] = previousDistanceValue + rayIntersection.t / (float)_RaytracingNumSamples;
@@ -700,7 +700,7 @@ void RayGenSemiTransparentShadowSegmentSingle()
     float rayDistance = LOAD_TEXTURE2D_X(_RayTracingLengthBuffer, currentPixelCoord).x;
 
     // Recompute the ray parameters
-    float3 rayOrigin = posInput.positionWS + normalData.normalWS * rayBias; 
+    float3 rayOrigin = posInput.positionWS + normalData.normalWS * rayBias;
     float3 rayDestination = rayOrigin + rayDirection.xyz * (rayDistance - rayBias);
 
     // Re-normalize using t
