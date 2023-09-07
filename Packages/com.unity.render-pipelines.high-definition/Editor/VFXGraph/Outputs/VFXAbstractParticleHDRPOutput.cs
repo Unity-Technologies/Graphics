@@ -244,7 +244,7 @@ namespace UnityEditor.VFX.HDRP
                 {
                     yield return "onlyAmbientLighting";
                     yield return "preserveSpecularLighting";
-                    yield return "excludeFromTAA";
+                    yield return "excludeFromTUAndAA";
                 }
             }
         }

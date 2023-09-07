@@ -19,7 +19,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // All the bits exclusively related to lit are ignored inside the BaseLitGUI function.
             bool receivesLighting = (material.HasProperty(kShadowMatteFilter) && material.GetFloat(kShadowMatteFilter) != 0);
-            BaseLitAPI.SetupStencil(material, receivesLighting: receivesLighting, receivesSSR: false, useSplitLighting: false);
+            bool excludeFromTUAndAA = BaseLitAPI.CompatibleWithExcludeFromTUAndAA(material) && material.GetInt(kExcludeFromTUAndAA) != 0;
+            BaseLitAPI.SetupStencil(material, receivesLighting: receivesLighting, receivesSSR: false, useSplitLighting: false, excludeFromTUAndAA: excludeFromTUAndAA);
         }
     }
 }
