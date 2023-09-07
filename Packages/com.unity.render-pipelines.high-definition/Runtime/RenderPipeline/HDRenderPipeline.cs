@@ -324,7 +324,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // We only want to enable HDR for the game view once
-        // since the game itself might what to control this
+        // since the game itself might want to control this
         internal bool m_enableHdrOnce = true;
 
         void SetHDRState(HDCamera camera)
