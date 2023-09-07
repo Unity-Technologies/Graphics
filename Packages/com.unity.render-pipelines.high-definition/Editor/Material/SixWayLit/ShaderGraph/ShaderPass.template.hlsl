@@ -5,9 +5,9 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
     $SurfaceDescription.BaseColor:          surfaceData.baseColor.rgb =             surfaceDescription.BaseColor;
     $SurfaceDescription.Alpha:              surfaceData.baseColor.a =               surfaceDescription.Alpha;
 
-    $SurfaceDescription.rightTopBack:       surfaceData.rightTopBack =              surfaceDescription.rightTopBack * INV_PI;
-    $SurfaceDescription.leftBottomFront:    surfaceData.leftBottomFront =           surfaceDescription.leftBottomFront * INV_PI;
-    $SurfaceDescription.absorptionStrength: surfaceData.absorptionRange =           INV_PI + saturate(surfaceDescription.absorptionStrength) * (1 - INV_PI);
+    $SurfaceDescription.RightTopBack:       surfaceData.rightTopBack =              surfaceDescription.RightTopBack * INV_PI;
+    $SurfaceDescription.LeftBottomFront:    surfaceData.leftBottomFront =           surfaceDescription.LeftBottomFront * INV_PI;
+    $SurfaceDescription.AbsorptionStrength: surfaceData.absorptionRange =           INV_PI + saturate(surfaceDescription.AbsorptionStrength) * (1 - INV_PI);
     $SurfaceDescription.Occlusion:          surfaceData.ambientOcclusion =          surfaceDescription.Occlusion;
 
     $FragInputs.diffuseGIData0:             surfaceData.bakeDiffuseLighting0 =      fragInputs.diffuseGIData[0];
