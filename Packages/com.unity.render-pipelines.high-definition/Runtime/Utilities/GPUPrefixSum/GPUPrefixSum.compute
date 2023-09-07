@@ -68,14 +68,14 @@ void MainCalculateLevelOffsetsCommon(uint currentCount)
         _OutputLevelsOffsetsBuffer[levelCounts] = offsets;
 
         //upper dispatch arguments
-        _OutputDispatchLevelArgsBuffer[(6 * levelCounts) + 0] = groupCount;
-        _OutputDispatchLevelArgsBuffer[(6 * levelCounts) + 1] = 1;
-        _OutputDispatchLevelArgsBuffer[(6 * levelCounts) + 2] = 1;
+        _OutputDispatchLevelArgsBuffer[(ARGS_BUFFER_STRIDE * levelCounts) + ARGS_BUFFER_UPPER +0] = groupCount;
+        _OutputDispatchLevelArgsBuffer[(ARGS_BUFFER_STRIDE * levelCounts) + ARGS_BUFFER_UPPER +1] = 1;
+        _OutputDispatchLevelArgsBuffer[(ARGS_BUFFER_STRIDE * levelCounts) + ARGS_BUFFER_UPPER +2] = 1;
 
         //lower dispatch arguments, cancel it if we have no first group.
-        _OutputDispatchLevelArgsBuffer[(6 * levelCounts) + 3] = groupCount == 1 && levelCounts == 0 ? 0 : groupCount;
-        _OutputDispatchLevelArgsBuffer[(6 * levelCounts) + 4] = 1;
-        _OutputDispatchLevelArgsBuffer[(6 * levelCounts) + 5] = 1;
+        _OutputDispatchLevelArgsBuffer[(ARGS_BUFFER_STRIDE * levelCounts) + ARGS_BUFFER_LOWER +0] = groupCount == 1 && levelCounts == 0 ? 0 : groupCount;
+        _OutputDispatchLevelArgsBuffer[(ARGS_BUFFER_STRIDE * levelCounts) + ARGS_BUFFER_LOWER +1] = 1;
+        _OutputDispatchLevelArgsBuffer[(ARGS_BUFFER_STRIDE * levelCounts) + ARGS_BUFFER_LOWER +2] = 1;
 
         prevSize = totalSize;
 
@@ -92,13 +92,13 @@ void MainCalculateLevelOffsetsCommon(uint currentCount)
     [loop]
     for (int i = levelCounts; i < _MaxLevels; ++i)
     {
-        _OutputDispatchLevelArgsBuffer[(6 * i) + 0] = 0;
-        _OutputDispatchLevelArgsBuffer[(6 * i) + 1] = 0;
-        _OutputDispatchLevelArgsBuffer[(6 * i) + 2] = 0;
+        _OutputDispatchLevelArgsBuffer[(ARGS_BUFFER_STRIDE * i) + ARGS_BUFFER_UPPER +0] = 0;
+        _OutputDispatchLevelArgsBuffer[(ARGS_BUFFER_STRIDE * i) + ARGS_BUFFER_UPPER +1] = 0;
+        _OutputDispatchLevelArgsBuffer[(ARGS_BUFFER_STRIDE * i) + ARGS_BUFFER_UPPER +2] = 0;
 
-        _OutputDispatchLevelArgsBuffer[(6 * i) + 3] = 0;
-        _OutputDispatchLevelArgsBuffer[(6 * i) + 4] = 0;
-        _OutputDispatchLevelArgsBuffer[(6 * i) + 5] = 0;
+        _OutputDispatchLevelArgsBuffer[(ARGS_BUFFER_STRIDE * i) + ARGS_BUFFER_LOWER +0] = 0;
+        _OutputDispatchLevelArgsBuffer[(ARGS_BUFFER_STRIDE * i) + ARGS_BUFFER_LOWER +1] = 0;
+        _OutputDispatchLevelArgsBuffer[(ARGS_BUFFER_STRIDE * i) + ARGS_BUFFER_LOWER +2] = 0;
     }
 
     _OutputTotalLevelsBuffer.Store(0, levelCounts);

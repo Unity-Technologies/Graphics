@@ -8,6 +8,9 @@
 // UnityEngine.Rendering.GPUPrefixSum+ShaderDefs:  static fields
 //
 #define GROUP_SIZE (128)
+#define ARGS_BUFFER_STRIDE (16)
+#define ARGS_BUFFER_UPPER (0)
+#define ARGS_BUFFER_LOWER (8)
 
 // Generated from UnityEngine.Rendering.GPUPrefixSum+LevelOffsets
 // PackingRules = Exact
