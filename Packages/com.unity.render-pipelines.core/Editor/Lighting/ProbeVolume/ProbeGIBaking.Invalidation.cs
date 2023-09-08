@@ -207,6 +207,16 @@ namespace UnityEngine.Rendering
             // We need to start from scratch, so reset this.
             s_ForceInvalidatedProbesAndTouchupVols.Clear();
 
+            if (m_BakingSet == null)
+            {
+                if (ProbeReferenceVolume.instance.perSceneDataList.Count == 0) return;
+                SetBakingContext(ProbeReferenceVolume.instance.perSceneDataList);
+            }
+            if (m_ProfileInfo == null)
+            {
+                m_ProfileInfo = GetProfileInfoFromBakingSet(m_BakingSet);
+            }
+
             var touchupVolumes = GameObject.FindObjectsByType<ProbeTouchupVolume>(FindObjectsSortMode.InstanceID);
             var touchupVolumesAndBounds = new List<(ProbeReferenceVolume.Volume obb, Bounds aabb, ProbeTouchupVolume touchupVolume)>(touchupVolumes.Length);
             foreach (var touchup in touchupVolumes)
