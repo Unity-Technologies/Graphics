@@ -18,6 +18,8 @@ namespace UnityEngine.Rendering.Universal
         {
             using (new ProfilingScope(cmd, m_ExecuteProfilingSampler))
             {
+                cmd.ClearRenderTarget(RTClearFlags.All, Color.black, 1, 0);
+
                 var light = passData.layerBatch.shadowLights[passData.shadowIndex];
                 ShadowRendering.PrerenderShadows(cmd, passData.rendererData, ref passData.layerBatch, light, 0, light.shadowIntensity);
             }
@@ -35,9 +37,7 @@ namespace UnityEngine.Rendering.Universal
             Universal2DResourceData resourceData = frameData.Get<Universal2DResourceData>();
 
             var shadowTexture = resourceData.shadowsTexture;
-            var depthTexture = resourceData.intermediateDepth;
-
-            ClearTargets2DPass.Render(graph, shadowTexture, depthTexture, RTClearFlags.All, Color.black);
+            var depthTexture = resourceData.shadowsDepth;
 
             using (var builder = graph.AddRasterRenderPass<PassData>("Shadow 2D Pass", out var passData, m_ProfilingSampler))
             {

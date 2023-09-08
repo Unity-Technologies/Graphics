@@ -351,7 +351,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 var shadowCaster = shadowCasters[i];
 
-                if (ShadowCasterIsVisible(shadowCaster) && shadowCaster.castsShadows  && shadowCaster.IsLit(light))
+                if (ShadowCasterIsVisible(shadowCaster) && shadowCaster.castsShadows && shadowCaster.IsLit(light))
                 {
                     if (shadowCaster != null && projectedShadowsMaterial != null && shadowCaster.IsShadowedLayer(layerToRender))
                     {
@@ -371,6 +371,9 @@ namespace UnityEngine.Rendering.Universal
             for (var i = 0; i < shadowCasters.Count; i++)
             {
                 ShadowCaster2D shadowCaster = shadowCasters[i];
+                if (!shadowCaster.IsLit(light))
+                    continue;
+
                 Renderer renderer = GetRendererFromCaster(shadowCaster, light, layerToRender);
 
                 cmdBuffer.SetGlobalFloat(k_ShadowAlphaCutoffID, shadowCaster.alphaCutoff);
@@ -409,9 +412,8 @@ namespace UnityEngine.Rendering.Universal
             for (var i = 0; i < shadowCasters.Count; i++)
             {
                 ShadowCaster2D shadowCaster = shadowCasters[i];
-                if (ShadowCasterIsVisible(shadowCaster) && shadowCaster.castingOption == ShadowCaster2D.ShadowCastingOptions.CastShadow && shadowCaster.mesh != null)
+                if (ShadowCasterIsVisible(shadowCaster) && shadowCaster.IsLit(light) && shadowCaster.castingOption == ShadowCaster2D.ShadowCastingOptions.CastShadow && shadowCaster.mesh != null)
                 {
-                    Renderer renderer = GetRendererFromCaster(shadowCaster, light, layerToRender);
                     SetShadowProjectionGlobals(cmdBuffer, shadowCaster, light);
                     cmdBuffer.DrawMesh(shadowCaster.mesh, shadowCaster.transform.localToWorldMatrix, projectedUnshadowMaterial, 0, 1);
                 }
@@ -421,7 +423,7 @@ namespace UnityEngine.Rendering.Universal
             for (var i = 0; i < shadowCasters.Count; i++)
             {
                 ShadowCaster2D shadowCaster = shadowCasters[i];
-                if (ShadowCasterIsVisible(shadowCaster) && !shadowCaster.selfShadows)
+                if (ShadowCasterIsVisible(shadowCaster) && !shadowCaster.selfShadows && shadowCaster.IsLit(light))
                 {
                     Renderer renderer = GetRendererFromCaster(shadowCaster, light, layerToRender);
                     if (renderer != null)

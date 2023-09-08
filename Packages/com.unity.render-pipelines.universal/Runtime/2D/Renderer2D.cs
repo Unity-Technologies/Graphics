@@ -478,6 +478,6 @@ namespace UnityEngine.Rendering.Universal
             m_ColorBufferSystem.EnableMSAA(enable);
         }
 
-        internal override bool supportsNativeRenderPassRendergraphCompiler { get => false; }
+        internal override bool supportsNativeRenderPassRendergraphCompiler { get => SystemInfo.graphicsDeviceType != GraphicsDeviceType.Vulkan; }
     }
 }

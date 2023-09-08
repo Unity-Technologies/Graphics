@@ -74,7 +74,6 @@ namespace UnityEngine.Rendering.Universal
         }
         private TextureHandle _backBufferColor;
 
-
         /// <summary>
         /// The backbuffer depth used to render directly to screen. All passes can write to it depending on frame setup.
         /// </summary>
@@ -113,7 +112,6 @@ namespace UnityEngine.Rendering.Universal
         }
         private TextureHandle[] _lightTextures = new TextureHandle[RenderGraphUtils.LightTextureSize];
 
-
         internal TextureHandle normalsTexture
         {
             get => CheckAndGetTextureHandle(ref _cameraNormalsTexture);
@@ -127,6 +125,13 @@ namespace UnityEngine.Rendering.Universal
             set => CheckAndSetTextureHandle(ref _shadowsTexture, value);
         }
         private TextureHandle _shadowsTexture;
+
+        internal TextureHandle shadowsDepth
+        {
+            get => CheckAndGetTextureHandle(ref _shadowsDepth);
+            set => CheckAndSetTextureHandle(ref _shadowsDepth, value);
+        }
+        private TextureHandle _shadowsDepth;
 
         internal TextureHandle upscaleTexture
         {
@@ -190,6 +195,7 @@ namespace UnityEngine.Rendering.Universal
             _cameraDepth = TextureHandle.nullHandle;
             _cameraNormalsTexture = TextureHandle.nullHandle;
             _shadowsTexture = TextureHandle.nullHandle;
+            _shadowsDepth = TextureHandle.nullHandle;
             _upscaleTexture = TextureHandle.nullHandle;
             _cameraSortingLayerTexture = TextureHandle.nullHandle;
             _internalColorLut = TextureHandle.nullHandle;

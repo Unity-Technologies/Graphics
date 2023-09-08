@@ -694,10 +694,10 @@ Camera:
   m_LensShift: {x: 0, y: 0}
   m_NormalizedViewPortRect:
     serializedVersion: 2
-    x: -0.1
-    y: -0.075
-    width: 0.2
-    height: 0.15
+    x: 0
+    y: 0
+    width: 1
+    height: 1
   near clip plane: 0.3
   far clip plane: 1000
   field of view: 60
@@ -814,7 +814,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 599516822}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 49a25e7a25a9052438ba13b209dfb35c, type: 3}
+  m_Script: {fileID: 11500000, guid: 63ecf16f7b8e5464bb8ae1b5bd2352a5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &599672331
