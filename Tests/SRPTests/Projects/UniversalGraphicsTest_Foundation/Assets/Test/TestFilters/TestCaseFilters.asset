@@ -380,3 +380,23 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: Unstable
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: f42c387ccdc6840159743027165e1b7c, type: 3}
+    - {fileID: 102900000, guid: e90c743b5f0d84d30bc98e6d5be68eca, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 17
+    XrSdk: 
+    StereoModes: 0
+    Reason: No GL on Deferred.
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: f42c387ccdc6840159743027165e1b7c, type: 3}
+    - {fileID: 102900000, guid: e90c743b5f0d84d30bc98e6d5be68eca, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 11
+    XrSdk: 
+    StereoModes: 0
+    Reason: No GLES on Deferred.

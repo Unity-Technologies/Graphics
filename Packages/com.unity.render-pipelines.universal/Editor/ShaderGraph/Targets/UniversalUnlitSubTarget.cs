@@ -179,6 +179,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 if (target.castShadows || target.allowMaterialOverride)
                     result.passes.Add(PassVariant(CorePasses.ShadowCaster(target), CorePragmas.Instanced));
 
+                // Fill GBuffer with color and normal for custom GBuffer use cases.
+                result.passes.Add(UnlitPasses.GBuffer(target));
+
                 // Currently neither of these passes (selection/picking) can be last for the game view for
                 // UI shaders to render correctly. Verify [1352225] before changing this order.
                 result.passes.Add(PassVariant(CorePasses.SceneSelection(target), CorePragmas.Default));
@@ -272,6 +275,48 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 return result;
             }
 
+            // Deferred only in SM4.5
+            // GBuffer fill for consistency.
+            public static PassDescriptor GBuffer(UniversalTarget target)
+            {
+                var result = new PassDescriptor
+                {
+                    // Definition
+                    displayName = "GBuffer",
+                    referenceName = "SHADERPASS_GBUFFER",
+                    lightMode = "UniversalGBuffer",
+                    useInPreview = true,
+
+                    // Template
+                    passTemplatePath = UniversalTarget.kUberTemplatePath,
+                    sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
+
+                    // Port Mask
+                    validVertexBlocks = CoreBlockMasks.Vertex,
+                    validPixelBlocks = CoreBlockMasks.FragmentColorAlpha,
+
+                    // Fields
+                    structs = CoreStructCollections.Default,
+                    requiredFields = UnlitRequiredFields.GBuffer,
+                    fieldDependencies = CoreFieldDependencies.Default,
+
+                    // Conditional State
+                    renderStates = CoreRenderStates.UberSwitchedRenderState(target),
+                    pragmas = CorePragmas.GBuffer,
+                    defines = new DefineCollection(),
+                    keywords = new KeywordCollection { UnlitKeywords.GBuffer },
+                    includes = new IncludeCollection { UnlitIncludes.GBuffer },
+
+                    // Custom Interpolator Support
+                    customInterpolators = CoreCustomInterpDescriptors.Common
+                };
+
+                CorePasses.AddTargetSurfaceControlsToPass(ref result, target);
+                CorePasses.AddLODCrossFadeControlToPass(ref result, target);
+
+                return result;
+            }
+
             #region PortMasks
             static class UnlitBlockMasks
             {
@@ -297,6 +342,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 {
                     StructFields.Varyings.normalWS,
                 };
+
+                public static readonly FieldCollection GBuffer = new FieldCollection()
+                {
+                    StructFields.Varyings.positionWS,
+                    StructFields.Varyings.normalWS,
+                    UniversalStructFields.Varyings.sh   // Satisfy !LIGHTMAP_ON requirements.
+                };
             }
             #endregion
         }
@@ -317,6 +369,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 CoreKeywordDescriptors.DebugDisplay,
                 CoreKeywordDescriptors.ScreenSpaceAmbientOcclusion,
             };
+
+            public static readonly KeywordCollection GBuffer = new KeywordCollection
+            {
+                { CoreKeywordDescriptors.DBuffer },
+                { CoreKeywordDescriptors.LODFadeCrossFade },
+                { CoreKeywordDescriptors.ScreenSpaceAmbientOcclusion },
+            };
         }
         #endregion
 
@@ -324,6 +383,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         static class UnlitIncludes
         {
             const string kUnlitPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/UnlitPass.hlsl";
+            const string kUnlitGBufferPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/UnlitGBufferPass.hlsl";
 
             public static IncludeCollection Unlit = new IncludeCollection
             {
@@ -337,6 +397,19 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // Post-graph
                 { CoreIncludes.CorePostgraph },
                 { kUnlitPass, IncludeLocation.Postgraph },
+            };
+
+            public static IncludeCollection GBuffer = new IncludeCollection
+            {
+                // Pre-graph
+                { CoreIncludes.DOTSPregraph },
+                { CoreIncludes.CorePregraph },
+                { CoreIncludes.ShaderGraphPregraph },
+                { CoreIncludes.DBufferPregraph },
+
+                // Post-graph
+                { CoreIncludes.CorePostgraph },
+                { kUnlitGBufferPass, IncludeLocation.Postgraph },
             };
         }
         #endregion
