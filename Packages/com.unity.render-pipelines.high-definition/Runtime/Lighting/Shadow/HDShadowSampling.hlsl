@@ -21,7 +21,7 @@ real SampleShadow_Gather_PCF(float4 shadowAtlasSize, float3 coord, Texture2D tex
     float2 f = frac(coord.xy * shadowAtlasSize.zw - 0.5f);
 
     float4 shadowMapTaps = GATHER_TEXTURE2D(tex, s_point_clamp_sampler, coord.xy);
-    float4 shadowResults = (coord.z > shadowMapTaps.x);
+    float4 shadowResults = (coord.zzzz > shadowMapTaps.xyzw);
 
     return lerp(lerp(shadowResults.w, shadowResults.z, f.x),
                 lerp(shadowResults.x, shadowResults.y, f.x), f.y);
