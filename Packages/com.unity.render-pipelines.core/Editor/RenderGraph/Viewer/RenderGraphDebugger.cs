@@ -47,10 +47,10 @@ internal class RenderGraphDebugger : IRenderGraphDebugger
                 releases = new List<string>(),
                 lastWrites = new List<string>(),
                 tag = pass.tag,
-                width = pass.FragmentInfoWidth,
-                height = pass.FragmentInfoHeight,
-                samples = pass.FragmentInfoSamples,
-                hasDepth = pass.FragmentInfoHasDepth,
+                width = pass.fragmentInfoWidth,
+                height = pass.fragmentInfoHeight,
+                samples = pass.fragmentInfoSamples,
+                hasDepth = pass.fragmentInfoHasDepth,
                 asyncCompute = pass.asyncCompute,
                 syncList = "",
                 isCulled = pass.culled
@@ -102,9 +102,9 @@ internal class RenderGraphDebugger : IRenderGraphDebugger
 
                     RenderGraphWindow.ResourceDebugData data = new RenderGraphWindow.ResourceDebugData
                     {
-                        height = pass.FragmentInfoHeight,
-                        width = pass.FragmentInfoWidth,
-                        samples = pass.FragmentInfoSamples,
+                        height = pass.fragmentInfoHeight,
+                        width = pass.fragmentInfoWidth,
+                        samples = pass.fragmentInfoSamples,
                         clearBuffer = resourceDesc.clearBuffer,
                         isImported = pointTo.isImported,
                         format = info.format,
@@ -115,9 +115,9 @@ internal class RenderGraphDebugger : IRenderGraphDebugger
                 }
             }
 
-            if (pass.numFragments > 0 && pass.NativePassIndex >= 0)
+            if (pass.numFragments > 0 && pass.nativePassIndex >= 0)
             {
-                ref var nativePass = ref ctx.nativePassData[pass.NativePassIndex];
+                ref var nativePass = ref ctx.nativePassData[pass.nativePassIndex];
 
                 passDebug.nativeRPInfo = $"Attachment Dimensions: {nativePass.width}x{nativePass.height}x{nativePass.samples}\n";
 
@@ -232,9 +232,9 @@ internal class RenderGraphDebugger : IRenderGraphDebugger
 
                 var prevPass = ctx.passData[pointToVer.writePass];
                 PassBreakAudit mergeResult;
-                if (prevPass.NativePassIndex >= 0)
+                if (prevPass.nativePassIndex >= 0)
                 {
-                    mergeResult = NativePassData.TryMerge(ctx, prevPass.NativePassIndex, pass.passId, true);
+                    mergeResult = NativePassData.TryMerge(ctx, prevPass.nativePassIndex, pass.passId, true);
                 }
                 else
                 {
@@ -246,8 +246,8 @@ internal class RenderGraphDebugger : IRenderGraphDebugger
                 switch (mergeResult.reason)
                 {
                     case (PassBreakReason.Merged):
-                        if (pass.NativePassIndex == prevPass.NativePassIndex &&
-                            pass.MergeState != PassMergeState.None)
+                        if (pass.nativePassIndex == prevPass.nativePassIndex &&
+                            pass.mergeState != PassMergeState.None)
                         {
                             mergeMessage = "Passes are merged";
                         }
@@ -260,14 +260,14 @@ internal class RenderGraphDebugger : IRenderGraphDebugger
                     case PassBreakReason.TargetSizeMismatch:
                         mergeMessage = "Passes have different sizes/samples.\n"
                                        + prevPass.name + ": " +
-                                       prevPass.FragmentInfoWidth + "x" + prevPass.FragmentInfoHeight + "x" + prevPass.FragmentInfoSamples + ". \n"
+                                       prevPass.fragmentInfoWidth + "x" + prevPass.fragmentInfoHeight + "x" + prevPass.fragmentInfoSamples + ". \n"
                                        + pass.name + ": " +
-                                       pass.FragmentInfoWidth + "x" + pass.FragmentInfoHeight + "x" + pass.FragmentInfoSamples + ".";
+                                       pass.fragmentInfoWidth + "x" + pass.fragmentInfoHeight + "x" + pass.fragmentInfoSamples + ".";
                         break;
 
                     case PassBreakReason.DepthBufferUseMismatch:
                         mergeMessage = "Some passes use a depth buffer and some not. " + prevPass.name + ": " +
-                                       prevPass.FragmentInfoHasDepth + ". \n" + pass.name + ": " + pass.FragmentInfoHasDepth + '.';
+                                       prevPass.fragmentInfoHasDepth + ". \n" + pass.name + ": " + pass.fragmentInfoHasDepth + '.';
                         break;
 
                     case PassBreakReason.NextPassReadsTexture:

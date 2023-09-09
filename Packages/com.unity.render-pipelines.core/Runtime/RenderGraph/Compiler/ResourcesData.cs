@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.CompilerServices;
 using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassCompiler
@@ -7,43 +8,74 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
     internal struct ResourceReaderData
     {
         public int passId; // Pass using this
-        public int inputSlot; // Nth input of the pass is using this
+        public int inputSlot; // Nth input of the pass using this resource
     }
 
-    // Data per resource that is the same for all versions
+    // Part of the data that remains the same for all versions of the resource
     // We cache a lot of data here as the compiler accesses this in many places and going through
     // RenderGraphResourceRegistry was identified as slow in the profiler
     internal struct ResourceUnversionedData
     {
-        public string name; // For debugging
-        public bool isImported; // Imported graph resource
+        public readonly string name; // For debugging
+        public readonly bool isImported; // Imported graph resource
         public bool isShared; // Shared graph resource
-        public int tag { get; set; }
+        public int tag;
         public int lastUsePassID; // Index of last used pass. The resource (if not imported) is destroyed after this pass.
         public int lastWritePassID; // The last pass writing it. After this other passes may still read the resource
         public int firstUsePassID; //First pas using the resource this may be reading or writing. If not imported the resource is allocated just before this pass.
         public bool memoryLess;// Never create the texture it is allocated/freed within a renderpass
 
-        public int width;
-        public int height;
-        public int volumeDepth;
-        public int msaaSamples;
+        public readonly int width;
+        public readonly int height;
+        public readonly int volumeDepth;
+        public readonly int msaaSamples;
 
-        public int latestVersionNumber;
+        public readonly int latestVersionNumber;
 
-        public bool clear; // graph.m_Resources.GetTextureResourceDesc(fragment.resource).clearBuffer;
-        public bool discard; // graph.m_Resources.GetTextureResourceDesc(fragment.resource).discardBuffer;
-        public bool bindMS;
+        public readonly bool clear; // graph.m_Resources.GetTextureResourceDesc(fragment.resource).clearBuffer;
+        public readonly bool discard; // graph.m_Resources.GetTextureResourceDesc(fragment.resource).discardBuffer;
+        public readonly bool bindMS;
+        
+        public ResourceUnversionedData(RenderGraphResourceType t, int resIndex, RenderGraphResourceRegistry resources)
+        {
+            // We cache these values here
+            // as getting them over and over from other
+            // graph data structures external to NRP RG is costly 
+            var h = new ResourceHandle(resIndex, t, false);
+            var rll = resources.GetResourceLowLevel(h);
+            resources.GetRenderTargetInfo(h, out var info);
+            ref var desc = ref (rll as TextureResource).desc;
+
+            name = rll.GetName();
+            isImported = rll.imported;
+            isShared = resources.IsRenderGraphResourceShared(h);
+            tag = 0;
+            firstUsePassID = -1;
+            lastUsePassID = -1;
+            lastWritePassID = -1;
+            memoryLess = false;
+
+            width = info.width;
+            height = info.height;
+            volumeDepth = info.volumeDepth;
+            msaaSamples = info.msaaSamples;
+
+            latestVersionNumber = rll.version;
+
+            clear = desc.clearBuffer;
+            discard = desc.discardBuffer;
+            bindMS = info.bindMS;
+        }
     }
 
     // Data per resource(version)
-    internal struct ResourceVersionData
+    internal struct ResourceVersionedData
     {
         public bool written; // This version of the resource is written by a pass (external resources may never be written by the graph for example)
         public int writePass; // Index in the pass array of the pass writing this specific version. This is always one as the version is different if a resource is written several times.
-        public int writeSlot; // Nth output of the pass is writing this
+        public int writeSlot; // Nth output of the pass writing this version
         public int numReaders; // Number of other passes reading this version
-        public int tag { get; set; }
+        public int tag;
 
         public int numFragmentUse;
 
@@ -104,12 +136,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
     }
 
     // This class allows quick lookups from ResourceHandle -> ResourceUnversionedData/ResourceVersionData/ResourceReaderData
-    // This is implemented a fully allocated array we assume there aren't too many resources & versions. This lookup is fast and doesn't
+    // This is implementing a fully allocated array, we assume there aren't too many resources & versions. This lookup is fast and doesn't
     // require GC allocs to fill.
     internal class ResourcesData
     {
         public DynamicArray<ResourceUnversionedData>[] unversionedData; // Flattened fixed size array storing info per resource id shared between all versions.
-        public DynamicArray<ResourceVersionData>[] versionedData; // Flattened fixed size array storing up to MaxVersions versions per resource id.
+        public DynamicArray<ResourceVersionedData>[] versionedData; // Flattened fixed size array storing up to MaxVersions versions per resource id.
         public DynamicArray<ResourceReaderData>[] readerData; // Flattened fixed size array storing up to MaxReaders per resource id per version.
         public const int MaxVersions = 20; // A quite arbitrary limit should be enough for most graphs. Increasing it shouldn't be a problem but will use more memory as these lists use a fixed size upfront allocation.
         public const int MaxReaders = 10; // A quite arbitrary limit should be enough for most graphs. Increasing it shouldn't be a problem but will use more memory as these lists use a fixed size upfront allocation.
@@ -117,12 +149,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
         public ResourcesData(int estimatedNumResourcesPerType)
         {
             unversionedData = new DynamicArray<ResourceUnversionedData>[(int)RenderGraphResourceType.Count];
-            versionedData = new DynamicArray<ResourceVersionData>[(int)RenderGraphResourceType.Count];
+            versionedData = new DynamicArray<ResourceVersionedData>[(int)RenderGraphResourceType.Count];
             readerData = new DynamicArray<ResourceReaderData>[(int)RenderGraphResourceType.Count];
 
             for (int t = 0; t < (int)RenderGraphResourceType.Count; t++)
             {
-                versionedData[t] = new DynamicArray<ResourceVersionData>(MaxVersions * estimatedNumResourcesPerType, false);
+                versionedData[t] = new DynamicArray<ResourceVersionedData>(MaxVersions * estimatedNumResourcesPerType, false);
                 unversionedData[t] = new DynamicArray<ResourceUnversionedData>(estimatedNumResourcesPerType, false);
                 readerData[t] = new DynamicArray<ResourceReaderData>(MaxVersions * estimatedNumResourcesPerType * MaxReaders, false);
             }
@@ -142,43 +174,29 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
         {
             for (int t = 0; t < (int)RenderGraphResourceType.Count; t++)
             {
-                versionedData[t].ResizeAndClear(MaxVersions * resources.GetResourceCount((RenderGraphResourceType)t));
-                unversionedData[t].ResizeAndClear(resources.GetResourceCount((RenderGraphResourceType)t));
-                readerData[t].ResizeAndClear(MaxVersions * resources.GetResourceCount((RenderGraphResourceType)t) * MaxReaders);
-
-                // Copy the names to the all the resource versions in the array
-                for (int r = 1; r < resources.GetResourceCount((RenderGraphResourceType)t); r++)
+                var numResources = resources.GetResourceCount((RenderGraphResourceType)t);
+                
+                // For each resource type, resize the buffer (only allocate if bigger)
+                // We don't clear the buffer as we reinitialize it right after
+                unversionedData[t].Resize(numResources, true);
+                if(numResources > 0)
                 {
-                    var h = new ResourceHandle(r, (RenderGraphResourceType)t, false);
-                    ref var toInitialize = ref unversionedData[t][r];
-
-                    // We cache these values locally in the NRP compiler data structures as getting them over and over from other
-                    // graph data structures was showing up as costly in the profiler. 
-                    // TODO: Can we optimize this further?
-                    var rll = resources.GetResourceLowLevel(h);
-                    resources.GetRenderTargetInfo(h, out var info);
-                    ref var desc = ref (rll as TextureResource).desc;
-
-                    toInitialize.name = rll.GetName();
-                    toInitialize.isImported = rll.imported;
-                    toInitialize.isShared = resources.IsRenderGraphResourceShared(h);
-                    toInitialize.firstUsePassID = unversionedData[t][r].lastUsePassID = unversionedData[t][r].lastWritePassID = -1;
-
-                    toInitialize.width = info.width;
-                    toInitialize.height = info.height;
-                    toInitialize.volumeDepth = info.volumeDepth;
-                    toInitialize.msaaSamples = info.msaaSamples;
-
-                    toInitialize.latestVersionNumber = rll.version;
-
-                    toInitialize.clear = desc.clearBuffer;
-                    toInitialize.discard = desc.discardBuffer;
-                    toInitialize.bindMS = info.bindMS;
+                    unversionedData[t][0] = new ResourceUnversionedData(); // Null Resource
                 }
+                // Fill the buffer with any existing external info requested for NRP RG process
+                for (int r = 1; r < numResources; r++)
+                {
+                    unversionedData[t][r] = new ResourceUnversionedData((RenderGraphResourceType)t, r, resources);
+                }
+
+                // Clear the other caching structures, they will be filled later
+                versionedData[t].ResizeAndClear(MaxVersions * numResources);
+                readerData[t].ResizeAndClear(MaxVersions * MaxReaders * numResources);  
             }
         }
 
         // Flatten array index
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int Index(ResourceHandle h)
         {
             if (h.version < 0 || h.version >= MaxVersions)
@@ -187,6 +205,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
         }
 
         // Flatten array index
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int IndexReader(ResourceHandle h, int readerID)
         {
             if (h.version < 0 || h.version >= MaxVersions)
@@ -197,7 +216,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
         }
 
         // Lookup data for a given handle
-        public ref ResourceVersionData this[ResourceHandle h]
+        public ref ResourceVersionedData this[ResourceHandle h]
         {
             get { return ref versionedData[h.iType][Index(h)]; }
         }

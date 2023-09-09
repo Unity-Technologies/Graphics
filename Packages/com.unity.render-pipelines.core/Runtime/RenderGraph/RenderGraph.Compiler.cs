@@ -18,7 +18,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 {
                     nativeCompiler = new NativeRenderPassCompiler.NativePassCompiler();
                 }
-                nativeCompiler.Clear();
+                else
+                {
+                    nativeCompiler.Clear();
+                }
+
                 nativeCompiler.Initialize(this.m_Resources, this.m_RenderPasses, this.m_DebugParameters.disablePassCulling, this.name);
 
                 nativeCompiler.GeneratePassCommandBuffer(ref nativeRenderPasses);

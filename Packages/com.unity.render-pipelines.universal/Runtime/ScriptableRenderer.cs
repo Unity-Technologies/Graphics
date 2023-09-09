@@ -29,6 +29,7 @@ namespace UnityEngine.Rendering.Universal
             private const string k_Name = nameof(ScriptableRenderer);
             public static readonly ProfilingSampler setPerCameraShaderVariables = new ProfilingSampler($"{k_Name}.{nameof(SetPerCameraShaderVariables)}");
             public static readonly ProfilingSampler sortRenderPasses = new ProfilingSampler($"Sort Render Passes");
+            public static readonly ProfilingSampler recordRenderGraph = new ProfilingSampler($"Record Render Graph");
             public static readonly ProfilingSampler setupLights = new ProfilingSampler($"{k_Name}.{nameof(SetupLights)}");
             public static readonly ProfilingSampler setupCamera = new ProfilingSampler($"Setup Camera Parameters");
             public static readonly ProfilingSampler vfxProcessCamera = new ProfilingSampler($"VFX Process Camera");
@@ -1053,7 +1054,10 @@ namespace UnityEngine.Rendering.Universal
 
             InitRenderGraphFrame(renderGraph, ref renderingData);
 
-            OnRecordRenderGraph(renderGraph, context, ref renderingData);
+            using (new ProfilingScope(Profiling.recordRenderGraph))
+            {
+                OnRecordRenderGraph(renderGraph, context, ref renderingData);
+            }
 
             OnEndRenderGraphFrame();
 
