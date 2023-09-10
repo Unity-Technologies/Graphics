@@ -227,11 +227,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.mainTargetColor = builder.UseColorBuffer(colorBuffer, 0);
                 passData.mainTargetDepth = builder.UseDepthBuffer(depthBuffer, DepthAccess.ReadWrite);
 
-                if (motionVectorBuffer.IsValid())
+                if (motionVectorBuffer.IsValid() && hdCamera.frameSettings.IsEnabled(FrameSettingsField.MotionVectors))
                 {
                     // The motion vectors may be invalid in case of material debug view. So don't bind it in that case.
                     passData.mainTargetMV = builder.UseColorBuffer(motionVectorBuffer, 1);
                 }
+                else
+                    passData.mainTargetMV = TextureHandle.nullHandle;
 
                 passData.lineTargetColor = builder.ReadTexture(m_LineColorBuffer);
                 passData.lineTargetDepth = builder.ReadTexture(m_LineDepthBuffer);

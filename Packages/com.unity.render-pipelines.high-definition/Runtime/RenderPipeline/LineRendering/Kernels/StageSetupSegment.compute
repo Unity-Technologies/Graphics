@@ -32,19 +32,21 @@ RWByteAddressBuffer _CounterBuffer;
 RWByteAddressBuffer _ShadingSampleVisibilityBuffer;
 
 // Utility
-void UpdateDepthRange(Wave wave, SegmentRecord segment)
+void UpdateDepthRange(Wave wave, SegmentRecord segment, bool shouldUpdate)
 {
     const float depthVS  = (segment.depthVS0 + segment.depthVS1) * 0.5;
 
-    const uint waveNear = wave.Min(asuint(depthVS));
+    uint minOut = shouldUpdate ? asuint(depthVS) : UINT_MAX;
+    uint maxOut = shouldUpdate ? asuint(depthVS) : 0;
 
-    // We mysteriously need to clamp here for it to work...
-    const uint waveFar  = wave.Max(asuint(max(depthVS, 0)));
+    const uint waveNear = wave.Min(minOut);
+    const uint waveFar  = wave.Max(maxOut);
 
     if (wave.IsFirstLane())
     {
+        // Pad the depth range a bit to avoid precision issues.
         _ViewSpaceDepthRangeBuffer.InterlockedMin(0 << 2, waveNear);
-        _ViewSpaceDepthRangeBuffer.InterlockedMax(1 << 2, waveFar);
+        _ViewSpaceDepthRangeBuffer.InterlockedMax(1 << 2, waveFar );
     }
 }
 
@@ -113,59 +115,37 @@ void Main(Group group)
     }
 
     // Fast rejection for segments behind the near clipping plane.
-    if (positionCS0.w < 0 || positionCS1.w < 0)
+    if (positionCS0.w <= 0 || positionCS1.w <= 0)
     {
         culled = true;
     }
 
     // Perspective divide. Homogenous -> NDC.
-    float3 positionSS0 = positionCS0.xyz * rcp(positionCS0.w);
-    float3 positionSS1 = positionCS1.xyz * rcp(positionCS1.w);
+    float3 positionNDC0 = positionCS0.xyz * rcp(positionCS0.w);
+    float3 positionNDC1 = positionCS1.xyz * rcp(positionCS1.w);
 
-    // Cohen-Sutherland algorithm to perform line segment clipping in NDC space. TODO: Do it in clip space.
-    if(!ClipSegmentCohenSutherland(positionSS0.x, positionSS0.y, positionSS1.x, positionSS1.y))
+    // Cohen-Sutherland algorithm to perform line segment clipping in NDC space.
+    if(!ClipSegmentCohenSutherland(positionNDC0.x, positionNDC0.y, positionNDC1.x, positionNDC1.y))
     {
         culled = true;
     }
 
-    // Naive temporary depth test.
+    // NDC -> Screen Space.
+    const float2 positionSS0 = _ScreenSize.xy * (0.5 + 0.5 * positionNDC0.xy);
+    const float2 positionSS1 = _ScreenSize.xy * (0.5 + 0.5 * positionNDC1.xy);
+
+    // Depth test against each segment vertex.
+    if(positionNDC1.z < LoadCameraDepth(float2(positionSS1.x, _ScreenSize.y - positionSS1.y)))
     {
-        int numberOfPointsBehind = 0;
-        {
-            uint2 viewportPos = _SizeScreen.xy * (positionSS1.xy * 0.5 + 0.5);
-            viewportPos.y = _SizeScreen.y - viewportPos.y;
-            float cameraDepth = LoadCameraDepth(viewportPos);
-
-            if (positionSS1.z < cameraDepth)
-            {
-                ++numberOfPointsBehind;
-            }
-        }
-
-        {
-            uint2 viewportPos = _SizeScreen.xy * (positionSS0.xy * 0.5 + 0.5);
-            viewportPos.y = _SizeScreen.y - viewportPos.y;
-            float cameraDepth = LoadCameraDepth(viewportPos);
-
-            if (positionSS0.z < cameraDepth)
-            {
-                ++numberOfPointsBehind;
-            }
-        }
-
-        if(numberOfPointsBehind > 1)
-        {
-            culled = true;
-        }
-
+        culled = true;
     }
 
     SegmentRecord record;
     {
         record.positionSS0  = positionSS0.xy;
         record.positionSS1  = positionSS1.xy;
-        record.depthVS0     = LinearEyeDepth(positionSS0.z, _ZBufferParams);
-        record.depthVS1     = LinearEyeDepth(positionSS1.z, _ZBufferParams);
+        record.depthVS0     = LinearEyeDepth(positionNDC0.z, _ZBufferParams);
+        record.depthVS1     = LinearEyeDepth(positionNDC1.z, _ZBufferParams);
         record.vertexIndex0 = segmentIndices.x;
         record.vertexIndex1 = segmentIndices.y;
     }
@@ -173,12 +153,13 @@ void Main(Group group)
     Wave wave = group.GetWave();
 
     // Compute the minimum and maximum view space depths (needed for clustering).
-    UpdateDepthRange(wave, record);
+    UpdateDepthRange(wave, record, !culled);
 
     const uint segmentOutputIndex = ComputeOutputIndex(wave, !culled);
 
     if (!culled)
     {
+
         // Don't let culled segments interfere with the write.
         StoreSegmentRecord(_SegmentRecordBuffer, record, gs_SegmentOffset + segmentOutputIndex);
 

@@ -42,36 +42,40 @@
 // Absorption Parameterization Mappings
 //-----------------------------------------------------------------------------
 
-// Ref: A Practical and Controllable Hair and Fur Model for Production Path Tracing Eq. 9
-float3 AbsorptionFromReflectance(float3 diffuseColor, float azimuthalRoughness)
+float GetAbsorptionDenominator(float azimuthalRoughness)
 {
-    float beta  = azimuthalRoughness;
+    const float beta = azimuthalRoughness;
+
+#if 0
     float beta2 = beta  * beta;
     float beta3 = beta2 * beta;
     float beta4 = beta3 * beta;
     float beta5 = beta4 * beta;
 
     // Least squares fit of an inverse mapping between scattering parameters and scattering albedo.
-    float denom = 5.969 - (0.215 * beta) + (2.532 * beta2) - (10.73 * beta3) + (5.574 * beta4) + (0.245 * beta5);
+    return 5.969 - (0.215 * beta) + (2.532 * beta2) - (10.73 * beta3) + (5.574 * beta4) + (0.245 * beta5);
+#else
+    // Simplified version of the above.
+    return (((((0.245f * beta) + 5.574f) * beta - 10.73f) * beta + 2.532f) * beta - 0.215f) * beta + 5.969f;
+#endif
+}
 
-    float3 t = log(diffuseColor) / denom;
-    return t * t;
+// Ref: A Practical and Controllable Hair and Fur Model for Production Path Tracing Eq. 9
+float3 AbsorptionFromReflectance(float3 diffuseColor, float azimuthalRoughness)
+{
+    // Enforce a minimum value to prevent NaNs.
+    diffuseColor = max(diffuseColor, 1e-3);
+
+    return Sq(log(diffuseColor) / GetAbsorptionDenominator(azimuthalRoughness));
 }
 
 // Require an inverse mapping, as we parameterize the LUTs by reflectance wavelength (or for approximation that rely on diffuse).
 float3 ReflectanceFromAbsorption(float3 absorption, float azimuthalRoughness)
 {
-    float beta  = azimuthalRoughness;
-    float beta2 = beta  * beta;
-    float beta3 = beta2 * beta;
-    float beta4 = beta3 * beta;
-    float beta5 = beta4 * beta;
+    // Enforce a minimum value to prevent NaNs.
+    absorption = max(absorption, 0.0);
 
-    // Least squares fit of an inverse mapping between scattering parameters and scattering albedo.
-    float denom = 5.969 - (0.215 * beta) + (2.532 * beta2) - (10.73 * beta3) + (5.574 * beta4) + (0.245 * beta5);
-
-    float3 t = -sqrt(absorption) * denom;
-    return exp(t);
+    return exp(-sqrt(absorption) * GetAbsorptionDenominator(azimuthalRoughness));
 }
 
 // Ref: An Energy-Conserving Hair Reflectance Model Sec. 6.1
@@ -250,7 +254,9 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
 
     bsdfData.normalWS = surfaceData.normalWS;
     bsdfData.geomNormalWS = surfaceData.geomNormalWS;
-    bsdfData.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness);
+
+    // Enforce a maximum smoothness to prevent NaNs.
+    bsdfData.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(min(1.0 - 1e-2, surfaceData.perceptualSmoothness));
 
     // This value will be override by the value in diffusion profile
     bsdfData.fresnel0                 = DEFAULT_HAIR_SPECULAR_VALUE;
@@ -296,7 +302,7 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
         bsdfData.roughnessTRT  = PerceptualRoughnessToRoughness(roughnessL * 2.0);
 
         // Azimuthal Roughness
-        bsdfData.perceptualRoughnessRadial = PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualRadialSmoothness);
+        bsdfData.perceptualRoughnessRadial = PerceptualSmoothnessToPerceptualRoughness(min(1.0 - 1e-2, surfaceData.perceptualRadialSmoothness));
 
         // Absorption. Note: We require diffuse color to parameterize LUTs and for approximation purposes.
     #if _ABSORPTION_FROM_COLOR

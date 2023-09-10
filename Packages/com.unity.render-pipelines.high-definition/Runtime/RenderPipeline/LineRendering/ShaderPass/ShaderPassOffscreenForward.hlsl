@@ -111,6 +111,4 @@ void Frag(PackedVaryingsToPS packedInput, out float4 outColor : SV_Target0)
 #ifdef DEBUG_DISPLAY
     }
 #endif
-
-    outColor.a = EncodeLineWidth(outColor.a, builtinData.lineWidth);
 }

@@ -42,52 +42,43 @@ namespace UnityEngine.Rendering
 
                 renderer.mesh.vertexBufferTarget |= GraphicsBuffer.Target.Raw;
 
-                // Disable all keywords first.
-                foreach (var keyword in renderer.vertexSetupCompute.keywordSpace.keywords)
-                {
-                    cmd.SetKeyword(renderer.vertexSetupCompute, keyword, false);
-                }
-
                 cmd.SetComputeIntParam(renderer.vertexSetupCompute, "_VertexCount", renderer.mesh.vertexCount);
 
-                var keywords = new LocalKeyword[1]
+                // Bind the existing attribute buffers, bind a dummy one if it doesn't exist (prevents compiler warning).
                 {
-                    // TODO: Better coverage of vertex stream force disable (VertexAttribute).
-                    new(renderer.vertexSetupCompute, "_FORCE_DISABLE_TANGENT_STREAM"),
-                };
-
-                void TryBindVertexBuffer(VertexAttribute attribute, ref List<GraphicsBuffer> buffers)
-                {
-                    var streamIndex = renderer.mesh.GetVertexAttributeStream(attribute);
-
-                    if (streamIndex != -1)
+                    void TryBindVertexBuffer(VertexAttribute attribute, ref List<GraphicsBuffer> buffers)
                     {
-                        var streamBuffer = renderer.mesh.GetVertexBuffer(streamIndex);
+                        var streamIndex = renderer.mesh.GetVertexAttributeStream(attribute);
+
+                        GraphicsBuffer streamBuffer;
+                        int streamOffset, streamStride;
+
+                        if (streamIndex < 0)
+                        {
+                            streamBuffer = CoreUtils.emptyBuffer;
+                            streamOffset = 0;
+                            streamStride = 4;
+                        }
+                        else
+                        {
+                            streamBuffer = renderer.mesh.GetVertexBuffer(streamIndex);
+                            streamOffset = renderer.mesh.GetVertexAttributeOffset(attribute);
+                            streamStride = renderer.mesh.GetVertexBufferStride(streamIndex);
+                            buffers.Add(streamBuffer);
+                        }
 
                         GetAttributeBufferNames(attribute, out var bufferName, out var strideName, out var offsetName);
 
                         cmd.SetComputeBufferParam(renderer.vertexSetupCompute, 0, bufferName, streamBuffer);
-                        cmd.SetComputeIntParam(renderer.vertexSetupCompute, offsetName, renderer.mesh.GetVertexAttributeOffset(attribute));
-                        cmd.SetComputeIntParam(renderer.vertexSetupCompute, strideName, renderer.mesh.GetVertexBufferStride(streamIndex));
-
-                        var a = renderer.mesh.GetVertexAttributeOffset(attribute);
-                        var b = renderer.mesh.GetVertexBufferStride(streamIndex);
-
-                        cmd.SetKeyword(renderer.vertexSetupCompute, keywords[0], false);
-
-                        buffers.Add(streamBuffer);
+                        cmd.SetComputeIntParam(renderer.vertexSetupCompute, offsetName, streamOffset);
+                        cmd.SetComputeIntParam(renderer.vertexSetupCompute, strideName, streamStride);
                     }
-                    else
+
+                    // Try to bind all existing mesh vertex buffer streams to the kernel.
+                    foreach (var attribute in Enum.GetValues(typeof(VertexAttribute)).Cast<VertexAttribute>())
                     {
-                        // Force disable attribute loading for streams that don't exist in the mesh.
-                        cmd.SetKeyword(renderer.vertexSetupCompute, keywords[0], true);
+                        TryBindVertexBuffer(attribute, ref boundBuffers);
                     }
-                }
-
-                // Try to bind all existing mesh vertex buffer streams to the kernel.
-                foreach (var attribute in Enum.GetValues(typeof(VertexAttribute)).Cast<VertexAttribute>())
-                {
-                    TryBindVertexBuffer(attribute, ref boundBuffers);
                 }
 
                 // Also need to bind these matrices manually. (TODO: Is it cross-SRP safe?)
@@ -96,17 +87,6 @@ namespace UnityEngine.Rendering
                 cmd.SetComputeMatrixParam(renderer.vertexSetupCompute, "unity_MatrixPreviousM",     renderer.matrixWP);
                 cmd.SetComputeMatrixParam(renderer.vertexSetupCompute, "unity_MatrixPreviousMI",    renderer.matrixWP.inverse);
                 cmd.SetComputeVectorParam(renderer.vertexSetupCompute, "unity_MotionVectorsParams", renderer.motionVectorParams);
-
-                // Not the greatest way to do this, but not really possible to do any better unless it is done on the native side.
-                foreach (var keywordName in renderer.material.shaderKeywords)
-                {
-                    var keyword = renderer.vertexSetupCompute.keywordSpace.FindKeyword(keywordName);
-
-                    if (keyword.isValid)
-                    {
-                        cmd.SetKeyword(renderer.vertexSetupCompute, keyword, true);
-                    }
-                }
 
                 cmd.SetComputeParamsFromMaterial(renderer.vertexSetupCompute, 0, renderer.material);
             }

@@ -8,7 +8,7 @@
 // UnityEngine.Rendering.LineRendering+ShaderVariables:  static fields
 //
 #define NUM_LANE_SEGMENT_SETUP (1024)
-#define NUM_LANE_RASTER_BIN (1024)
+#define NUM_LANE_RASTER_BIN (512)
 
 //
 // UnityEngine.Rendering.LineRendering+DebugMode:  static fields
@@ -16,27 +16,6 @@
 #define DEBUGMODE_SEGMENTS_PER_TILE (0)
 #define DEBUGMODE_TILE_PROCESSOR_UV (1)
 #define DEBUGMODE_CLUSTER_DEPTH (2)
-
-// Generated from UnityEngine.Rendering.LineRendering+ClusterRecord
-// PackingRules = Exact
-struct ClusterRecord
-{
-    uint segmentIndex;
-    uint clusterIndex;
-    uint clusterOffset;
-};
-
-// Generated from UnityEngine.Rendering.LineRendering+SegmentRecord
-// PackingRules = Exact
-struct SegmentRecord
-{
-    float2 positionSS0;
-    float2 positionSS1;
-    float depthVS0;
-    float depthVS1;
-    uint vertexIndex0;
-    uint vertexIndex1;
-};
 
 // Generated from UnityEngine.Rendering.LineRendering+VertexRecord
 // PackingRules = Exact
@@ -69,6 +48,27 @@ CBUFFER_START(ShaderVariables)
     int _ViewIndex;
     float3 _padding;
 CBUFFER_END
+
+// Generated from UnityEngine.Rendering.LineRendering+ClusterRecord
+// PackingRules = Exact
+struct ClusterRecord
+{
+    uint segmentIndex;
+    uint clusterIndex;
+    uint clusterOffset;
+};
+
+// Generated from UnityEngine.Rendering.LineRendering+SegmentRecord
+// PackingRules = Exact
+struct SegmentRecord
+{
+    float2 positionSS0;
+    float2 positionSS1;
+    float depthVS0;
+    float depthVS1;
+    uint vertexIndex0;
+    uint vertexIndex1;
+};
 
 
 #endif

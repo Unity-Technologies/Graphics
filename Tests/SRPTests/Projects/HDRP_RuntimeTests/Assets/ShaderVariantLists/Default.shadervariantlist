@@ -498,7 +498,7 @@ Compiled compute shader: ClearLightLists, kernel: ClearList, keywords <no keywor
 Compiled compute shader: ClearUIntTextureArray, kernel: ClearUIntTexture, keywords <no keywords>
 Compiled compute shader: ClearUIntTextureArray, kernel: ClearUIntTextureArray, keywords <no keywords>
 Compiled compute shader: ComputeGgxIblSampleData, kernel: ComputeGgxIblSampleData, keywords <no keywords>
-Compiled compute shader: ComputeShader-VertexSetup, kernel: VertexSetup, keywords _FORCE_DISABLE_TANGENT_STREAM
+Compiled compute shader: ComputeShader-VertexSetup, kernel: VertexSetup, keywords <no keywords>
 Compiled compute shader: Deferred, kernel: Deferred_Indirect_Fptl_Variant0, keywords AREA_SHADOW_MEDIUM DIRECTIONAL_SHADOW_HIGH PROBE_VOLUMES_L1 PUNCTUAL_SHADOW_HIGH SCREEN_SPACE_SHADOWS_OFF
 Compiled compute shader: Deferred, kernel: Deferred_Indirect_Fptl_Variant0, keywords AREA_SHADOW_MEDIUM DIRECTIONAL_SHADOW_HIGH PUNCTUAL_SHADOW_HIGH SCREEN_SPACE_SHADOWS_OFF
 Compiled compute shader: Deferred, kernel: Deferred_Indirect_Fptl_Variant1, keywords AREA_SHADOW_MEDIUM DIRECTIONAL_SHADOW_HIGH PROBE_VOLUMES_L1 PUNCTUAL_SHADOW_HIGH SCREEN_SPACE_SHADOWS_OFF
@@ -668,6 +668,7 @@ Compiled compute shader: StageWorkQueue, kernel: WorkQueueActiveBins, keywords <
 Compiled compute shader: StageWorkQueue, kernel: WorkQueueActiveClusters, keywords <no keywords>
 Compiled compute shader: StageWorkQueue, kernel: WorkQueueBuild, keywords <no keywords>
 Compiled compute shader: StageWorkQueue, kernel: WorkQueueBuildArgs, keywords <no keywords>
+Compiled compute shader: StageWorkQueue, kernel: BuildFineRasterArgs, keywords <no keywords>
 Compiled compute shader: SubsurfaceScattering, kernel: SubsurfaceScattering, keywords <no keywords>
 Compiled compute shader: SubsurfaceScattering, kernel: SubsurfaceScattering, keywords ENABLE_MSAA
 Compiled compute shader: TemporalFilter, kernel: CopyHistory, keywords FULL_RESOLUTION_FILTER

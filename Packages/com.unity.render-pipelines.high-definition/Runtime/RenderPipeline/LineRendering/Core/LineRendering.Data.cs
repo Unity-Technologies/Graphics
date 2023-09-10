@@ -133,7 +133,8 @@ namespace UnityEngine.Rendering
             None,
             /// <summary>Define level of detail with a fixed value.</summary>
             Fixed,
-            // ScreenCoverage,
+            /// <summary>Compute level of detail based on bounding box screen coverage.</summary>
+            ScreenCoverage,
             /// <summary>Compute level of detail based on camera distance.</summary>
             CameraDistance
         }
@@ -169,7 +170,7 @@ namespace UnityEngine.Rendering
         {
             // Stage group sizes.
             public const int NumLaneSegmentSetup = 1024;
-            public const int NumLaneRasterBin = 1024;
+            public const int NumLaneRasterBin = 512;
 
             // Parameters.
             public Vector2 _DimBin;
@@ -227,6 +228,7 @@ namespace UnityEngine.Rendering
 
         internal class SharedPassData
         {
+            public TextureHandle   depthRT;
             public SystemResources systemResources;
             public ShaderVariables shaderVariables;
             public Buffers         sharedBuffers;
@@ -236,6 +238,8 @@ namespace UnityEngine.Rendering
                 public BufferHandle  constantBuffer;
                 public BufferHandle  vertexStream0;          // Vertex Stream 0: Position CS
                 public BufferHandle  vertexStream1;          // Vertex Stream 1: Previous Position CS
+                public BufferHandle  vertexStream2;          // Vertex Stream 2: XY Tangent ZW Normal
+                public BufferHandle  vertexStream3;          // Vertex Stream 3: Texcoord
                 public BufferHandle  viewSpaceDepthRange;
                 public BufferHandle  counterBuffer;
                 public BufferHandle  recordBufferSegment;
@@ -269,6 +273,8 @@ namespace UnityEngine.Rendering
                     {
                         vertexStream0           = CreateBuffer(16 * parameters.countVertex, sizeof(uint), GraphicsBuffer.Target.Raw, "Record Buffer [Vertex Stream 0]"),
                         vertexStream1           = CreateBuffer(16 * parameters.countVertex, sizeof(uint), GraphicsBuffer.Target.Raw, "Record Buffer [Vertex Stream 1]"),
+                        vertexStream2           = CreateBuffer(16 * parameters.countVertex, sizeof(uint), GraphicsBuffer.Target.Raw, "Record Buffer [Vertex Stream 2]"),
+                        vertexStream3           = CreateBuffer(8  * parameters.countVertex, sizeof(uint), GraphicsBuffer.Target.Raw, "Record Buffer [Vertex Stream 3]"),
                         counterBuffer           = CreateBuffer(8, sizeof(uint), GraphicsBuffer.Target.Raw, "Counters"),
                         recordBufferSegment     = CreateBuffer(4 * 2 * parameters.countSegment, sizeof(uint), GraphicsBuffer.Target.Raw, "Record Buffer [Segment]"),
                         viewSpaceDepthRange     = CreateBuffer(2, sizeof(float), GraphicsBuffer.Target.Raw, "View Space Depth Range"),
@@ -291,7 +297,6 @@ namespace UnityEngine.Rendering
             public Buffers        transientBuffers;
             public RendererData[] rendererData;
             public ShadingAtlas   shadingAtlas;
-            public TextureHandle  depthRT;
             public Matrix4x4      matrixIVP;
 
             // TODO: Move into RendererData?
@@ -303,8 +308,6 @@ namespace UnityEngine.Rendering
                 public const int SHADING_SAMPLE_HISTOGRAM_SIZE = 512; //needs to match the shader
                 public TextureHandle shadingScratchTexture;
                 public Vector2Int shadingScratchTextureDimensions;
-                public BufferHandle  vertexStream2;          // Vertex Stream 2: XY Tangent ZW Normal
-                public BufferHandle  vertexStream3;          // Vertex Stream 3: Texcoord
                 public GPUPrefixSum.RenderGraphResources prefixResources;
                 public BufferHandle  shadingScratchBuffer;
                 public BufferHandle  shadingSampleHistogram;
@@ -330,8 +333,6 @@ namespace UnityEngine.Rendering
 
                     var resource = new Buffers
                     {
-                        vertexStream2           = CreateBuffer(16 * parameters.countVertex, sizeof(uint), GraphicsBuffer.Target.Raw, "Record Buffer [Vertex Stream 2]"),
-                        vertexStream3           = CreateBuffer(8  * parameters.countVertex, sizeof(uint), GraphicsBuffer.Target.Raw, "Record Buffer [Vertex Stream 3]"),
                         shadingScratchBuffer    = CreateBuffer(shadingScratchSize, sizeof(uint), GraphicsBuffer.Target.Raw, "Shading Scratch"),
                         shadingSampleHistogram  = CreateBuffer(SHADING_SAMPLE_HISTOGRAM_SIZE + 1, sizeof(uint), GraphicsBuffer.Target.Raw, "Shading Sample Histogram"),
                         prefixResources = GPUPrefixSum.RenderGraphResources.Create(prefixMaxItems, renderGraph, builder),
@@ -365,6 +366,7 @@ namespace UnityEngine.Rendering
                 public BufferHandle  binCounters;
                 public BufferHandle  binIndices;
                 public BufferHandle  workQueueArgs;
+                public BufferHandle  fineRasterArgs;
                 public BufferHandle  workQueue;
                 public BufferHandle  clusterCounters;
                 public BufferHandle  clusterRanges;
@@ -400,6 +402,7 @@ namespace UnityEngine.Rendering
                         clusterRanges           = CreateBuffer(2 * parameters.depthCluster, sizeof(float), GraphicsBuffer.Target.Raw, "Cluster Ranges"),
                         activeClusterIndices    = CreateBuffer(parameters.countCluster, sizeof(uint), GraphicsBuffer.Target.Raw, "Active Cluster Indices"),
                         workQueueArgs           = CreateBuffer(4, sizeof(uint), GraphicsBuffer.Target.IndirectArguments, "Work Queue Args"),
+                        fineRasterArgs          = CreateBuffer(4, sizeof(uint), GraphicsBuffer.Target.IndirectArguments, "Fine Raster Args"),
                         workQueue               = CreateBuffer(parameters.countWorkQUeue, sizeof(uint), GraphicsBuffer.Target.Raw, "Segment Queue"),
                         binningIndirectArgs     = CreateBuffer(4, sizeof(uint), GraphicsBuffer.Target.IndirectArguments, "Binning Args"),
                         prefixResources    = GPUPrefixSum.RenderGraphResources.Create(parameters.countCluster, renderGraph, builder),

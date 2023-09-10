@@ -16,8 +16,8 @@ int _SoftwareLineOffscreenAtlasHeight;
 int _ShadingSampleVisibilityCount;
 float4x4 _InverseCamMatNoJitter;
 
-#define OffscreenAtlasWidth _SoftwareLineOffscreenAtlasWidth
-#define OffscreenAtlasHeight _SoftwareLineOffscreenAtlasHeight
+#define OffscreenAtlasWidth  (uint)_SoftwareLineOffscreenAtlasWidth
+#define OffscreenAtlasHeight (uint)_SoftwareLineOffscreenAtlasHeight
 
 uint SampleIndexFromViewportPosition(uint2 positionViewport)
 {
@@ -43,7 +43,7 @@ float4 ClipSpaceToRasterSpacePosition(float4 positionCS)
 
 uint UnpackCompactedSampleIndex(uint id)
 {
-    if(id >= _ShadingSampleVisibilityCount) return INVALID_SHADING_SAMPLE;
+    if(id >= (uint)_ShadingSampleVisibilityCount) return INVALID_SHADING_SAMPLE;
 
     return _ShadingCompactionBuffer.Load(id << 2);
 }
@@ -52,6 +52,7 @@ void OffscreenShadingFillFragInputs(
     uint2 positionViewport,
     inout FragInputs output)
 {
+#if defined(LINE_RENDERING_OFFSCREEN_SHADING)
     uint sampleIndex = SampleIndexFromViewportPosition(positionViewport);
     sampleIndex = UnpackCompactedSampleIndex(sampleIndex);
 
@@ -81,7 +82,7 @@ void OffscreenShadingFillFragInputs(
         output.tangentToWorld = BuildTangentToWorld(float4(T, 1), N);
         output.positionRWS    = ComputeWorldSpacePosition(positionCS, UNITY_MATRIX_I_VP);
         output.positionSS     = ClipSpaceToRasterSpacePosition(positionCS);
-        output.positionPixel  = output.positionSS;
+        output.positionPixel  = output.positionSS.xy;
         output.isFrontFace    = true;
 #ifdef FRAG_INPUTS_USE_TEXCOORD0
         output.texCoord0      = texcoord.x;
@@ -90,4 +91,5 @@ void OffscreenShadingFillFragInputs(
         output.texCoord1      = texcoord.y;
 #endif
     }
+#endif
 }

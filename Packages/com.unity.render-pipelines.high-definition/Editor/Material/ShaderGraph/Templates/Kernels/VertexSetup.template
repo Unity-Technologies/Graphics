@@ -1,7 +1,5 @@
 ﻿$splice(PassPragmas)
 
-#pragma multi_compile _FORCE_DISABLE_TANGENT_STREAM
-
 // TODO: Keywords (shader_feature) incompatible with compute
 $splice(GraphKeywords)
 
@@ -151,18 +149,98 @@ RWByteAddressBuffer _CounterBuffer;
 
 void BuildStrandBasis(uint i, float3 positionOS, out float3 normalOS, out float4 tangentOS)
 {
-#if !defined(_FORCE_DISABLE_TANGENT_STREAM)
-    // TODO: Handle tangent flip
 	float3 vertexBitangentOS = normalize(LOAD_ATTRIBUTE_FLOAT4(Tangent, i).xyz);
 	tangentOS = float4(normalize(cross(vertexBitangentOS, GetWorldSpaceNormalizeViewDir(positionOS))), 0);
 	normalOS = cross(tangentOS.xyz, vertexBitangentOS);
-#else
-    // Force disable attribute loading for streams that do not exist in the mesh.
-    // We need to do it like this instead of #undef ATTRIBUTE_TANGENT etc. because the user shader graph might later override
-    // the tangent or normal.
-    tangentOS = float4(1, 0, 0, 0);
-    normalOS  = float3(0, 0, 1);
+}
+
+float2 ClipSpaceToScreenSpace(float4 positionCS)
+{
+    return _ScreenParams.xy * (0.5 + 0.5 * (positionCS.xy / positionCS.w));
+}
+
+// Bound by the rasterizer.
+float _LOD;
+
+// Light-weight VertMesh since we need to process a dilated world space position to compute screen-space width.
+VaryingsMeshType SimpleVertMesh(AttributesMesh input, out float screenSpaceWidth)
+{
+    VaryingsMeshType output;
+
+    // Deduce the actual instance ID of the current instance (it is then stored in unity_InstanceID)
+    UNITY_SETUP_INSTANCE_ID(input);
+
+    // Transfer the unprocessed instance ID to the next stage
+    UNITY_TRANSFER_INSTANCE_ID(input, output);
+
+#ifdef HAVE_MESH_MODIFICATION
+    input = ApplyMeshModification(input, _TimeParameters.xyz);
 #endif
+
+    float3 positionRWS = TransformObjectToWorld(input.positionOS);
+#ifdef ATTRIBUTES_NEED_NORMAL
+    float3 normalWS = TransformObjectToWorldNormal(input.normalOS);
+#else
+    float3 normalWS = float3(0.0, 0.0, 0.0);
+#endif
+
+#ifdef ATTRIBUTES_NEED_TANGENT
+    float4 tangentWS = float4(TransformObjectToWorldDir(input.tangentOS.xyz), input.tangentOS.w);
+#endif
+
+#ifdef VARYINGS_NEED_POSITION_WS
+    output.positionRWS = positionRWS;
+#endif
+#ifdef VARYINGS_NEED_POSITIONPREDISPLACEMENT_WS
+    output.positionPredisplacementRWS = positionRWS;
+#endif
+
+    output.positionCS = TransformWorldToHClip(positionRWS);
+#ifdef VARYINGS_NEED_TANGENT_TO_WORLD
+    output.normalWS = normalWS;
+    output.tangentWS = tangentWS;
+#endif
+#if !defined(SHADER_API_METAL) && defined(SHADERPASS) && (SHADERPASS == SHADERPASS_FULL_SCREEN_DEBUG)
+    if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_VERTEX_DENSITY)
+        IncrementVertexDensityCounter(output.positionCS);
+#endif
+
+#if defined(VARYINGS_NEED_TEXCOORD0) || defined(VARYINGS_DS_NEED_TEXCOORD0)
+    output.texCoord0 = input.uv0;
+#endif
+#if defined(VARYINGS_NEED_TEXCOORD1) || defined(VARYINGS_DS_NEED_TEXCOORD1)
+    output.texCoord1 = input.uv1;
+#endif
+#if defined(VARYINGS_NEED_TEXCOORD2) || defined(VARYINGS_DS_NEED_TEXCOORD2)
+    output.texCoord2 = input.uv2;
+#endif
+#if defined(VARYINGS_NEED_TEXCOORD3) || defined(VARYINGS_DS_NEED_TEXCOORD3)
+    output.texCoord3 = input.uv3;
+#endif
+#if defined(VARYINGS_NEED_COLOR) || defined(VARYINGS_DS_NEED_COLOR)
+    output.color = input.color;
+#endif
+
+    // Compute screen-space width.
+    {
+        // Lazily re-evaluate the graph. Will the compiler optimize this?
+        VertexDescription vertexDescription = GetVertexDescription(input, _TimeParameters.xyz);
+
+        // Extract the world space up direction from the view matrix.
+        const float3 cameraUpWS = UNITY_MATRIX_V._21_22_23;
+
+        // Produce a dilated world space position using the vertice's specified width (in cm).
+        float3 dilatedPositionWS = positionRWS + (METERS_PER_CENTIMETER * vertexDescription.Width) * cameraUpWS;
+
+        // Clip -> Screen Space
+        const float2 positionSS0 = ClipSpaceToScreenSpace(output.positionCS);
+        const float2 positionSS1 = ClipSpaceToScreenSpace(TransformWorldToHClip(dilatedPositionWS));
+
+        // Compute the length of the derivative between position SS and postion + width SS
+        screenSpaceWidth = distance(positionSS0, positionSS1);
+    }
+
+    return output;
 }
 
 int _VertexOffset;
@@ -184,20 +262,18 @@ void VertexSetup (uint3 dispatchThreadID : SV_DispatchThreadID)
         BuildStrandBasis(i, inputMesh.positionOS, inputMesh.normalOS, inputMesh.tangentOS);
 #endif
 #ifdef ATTRIBUTES_NEED_TEXCOORD0
-        inputMesh.uv0 = LOAD_ATTRIBUTE_FLOAT(TexCoord0, i);
+        const uint unnormalizedPackedID = LOAD_ATTRIBUTE_UINT(TexCoord0, i);
+
+        inputMesh.uv0 = float4
+        (
+            ((unnormalizedPackedID >>  0) & 0xFF) / 255.0,
+            ((unnormalizedPackedID >>  8) & 0xFF) / 255.0,
+            ((unnormalizedPackedID >> 16) & 0xFF) / 255.0,
+            ((unnormalizedPackedID >> 24) & 0xFF) / 255.0
+        );
 #endif
 #ifdef ATTRIBUTES_NEED_TEXCOORD1
-        // Demo team hair package stores the UV in the upper 16 bits.
-        const uint mask = 0xFFFF << 16;
-
-        // Manually decode the UNORM value back into a float.
-        uint texCoord1 = LOAD_ATTRIBUTE_UINT(TexCoord1, i);
-
-        // Mask out the lower bits.
-        texCoord1 &= mask;
-
-        // Retrieve a decimal value.
-        inputMesh.uv1 = texCoord1 / float(mask);
+    // TODO
 #endif
 #ifdef ATTRIBUTES_NEED_TEXCOORD2
     // TODO
@@ -212,7 +288,7 @@ void VertexSetup (uint3 dispatchThreadID : SV_DispatchThreadID)
 
 #if UNITY_ANY_INSTANCING_ENABLED
     // See: [NOTE-HQ-LINES-SINGLE-PASS-STEREO]
-    inputMesh.instanceID = _ViewIndex; // TODO: View index.
+    inputMesh.instanceID = _ViewIndex;
 #endif
 
     AttributesPass inputPass;
@@ -221,10 +297,11 @@ void VertexSetup (uint3 dispatchThreadID : SV_DispatchThreadID)
     VaryingsType output;
     ZERO_INITIALIZE(VaryingsType, output);
 
-    output.vmesh = VertMesh(inputMesh);
+    float screenSpaceWidth;
+    output.vmesh = SimpleVertMesh(inputMesh, screenSpaceWidth);
+
     output = MotionVectorVS_Internal(output, inputMesh, inputPass);
 
-    // Store the clip space position for now (should be every interpolator).
     VertexRecord vertexRecord;
     ZERO_INITIALIZE(VertexRecord, vertexRecord);
     {
@@ -250,7 +327,10 @@ void VertexSetup (uint3 dispatchThreadID : SV_DispatchThreadID)
 
     const uint offset = _VertexOffset + i;
     _Vertex0RecordBuffer.Store4(offset << 4, asuint(vertexRecord.positionCS));
-    _Vertex1RecordBuffer.Store4(offset << 4, asuint(vertexRecord.previousPositionCS));
+
+    // Perspective divide the previous position here since we dont need it for clipping and it frees up space for the line width attribute.
+    const float3 previousPosition = vertexRecord.previousPositionCS.xyz * rcp(vertexRecord.previousPositionCS.w);
+    _Vertex1RecordBuffer.Store4(offset << 4, asuint(float4(previousPosition, screenSpaceWidth)));
 
 #ifdef VARYINGS_NEED_TANGENT_TO_WORLD
     const uint2 encodedN = asuint(PackNormalOctQuadEncode(vertexRecord.normalWS));

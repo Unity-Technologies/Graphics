@@ -147,6 +147,8 @@ namespace UnityEngine.Rendering
                 builder.WriteBuffer(buff.counterBuffer);
                 builder.WriteBuffer(buff.vertexStream0);
                 builder.WriteBuffer(buff.vertexStream1);
+                builder.WriteBuffer(buff.vertexStream2);
+                builder.WriteBuffer(buff.vertexStream3);
                 builder.WriteBuffer(buff.recordBufferSegment);
                 builder.WriteBuffer(buff.viewSpaceDepthRange);
                 builder.ReadWriteTexture(buff.groupShadingSampleAtlas);
@@ -171,7 +173,6 @@ namespace UnityEngine.Rendering
                 }
 
                 // Set up other various dependent data.
-                passData.depthRT          = builder.ReadTexture(args.depthTexture);
                 passData.systemResources  = m_SystemResources;
                 passData.rendererData     = ImportRenderDatas();
                 passData.offsetsVertex    = PrefixSum(renderDatas.Select(o => o.mesh.vertexCount).ToArray());
@@ -182,6 +183,7 @@ namespace UnityEngine.Rendering
 
                 // Set up the shared resources.
                 passData.sharedBuffers = sharedBuffers;
+                passData.depthRT       = builder.ReadTexture(args.depthTexture);
                 UseSharedBuffers(builder, sharedBuffers);
 
                 // Then set up the resources specific to this pass.
@@ -229,6 +231,7 @@ namespace UnityEngine.Rendering
 
                 // Set up the shared resources.
                 passData.sharedBuffers = sharedBuffers;
+                passData.depthRT       = builder.ReadTexture(args.depthTexture);
                 UseSharedBuffers(builder, sharedBuffers);
 
                 // Then set up the resources specific to this pass.

@@ -210,6 +210,23 @@ namespace UnityEngine.Rendering
             }
         }
 
+        static GraphicsBuffer m_EmptyBuffer;
+        /// <summary>
+        /// Empty 4-Byte buffer resource usable as a dummy.
+        /// </summary>
+        public static GraphicsBuffer emptyBuffer
+        {
+            get
+            {
+                if (m_EmptyBuffer == null || !m_EmptyBuffer.IsValid())
+                {
+                    m_EmptyBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Raw, 1, sizeof(uint));
+                }
+
+                return m_EmptyBuffer;
+            }
+        }
+
         static Texture3D m_BlackVolumeTexture;
         /// <summary>
         /// Black 3D texture.

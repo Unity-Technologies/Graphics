@@ -59,6 +59,7 @@ namespace UnityEngine.Rendering
                 cmd.SetComputeBufferParam(resources.systemResources.stageRasterBinCS, 1, ShaderIDs._BinningArgsBuffer, transientBuffers.binningIndirectArgs);
                 cmd.DispatchCompute(resources.systemResources.stageRasterBinCS, 1, 1, 1, 1);
 
+                cmd.SetComputeBufferParam(resources.systemResources.stageRasterBinCS, 0, ShaderIDs._Vertex1RecordBuffer, buffers.vertexStream1);
                 cmd.SetComputeBufferParam(resources.systemResources.stageRasterBinCS,  0, ShaderIDs._ViewSpaceDepthRangeBuffer, buffers.viewSpaceDepthRange);
                 cmd.SetComputeBufferParam(resources.systemResources.stageRasterBinCS, 0, ShaderIDs._SegmentRecordBuffer,   buffers.recordBufferSegment);
                 cmd.SetComputeBufferParam(resources.systemResources.stageRasterBinCS, 0, ShaderIDs._ClusterRecordBuffer,   transientBuffers.recordBufferCluster);
@@ -130,6 +131,10 @@ namespace UnityEngine.Rendering
                         resources = resourceSortTiles
                     });
                 }
+
+                cmd.SetComputeBufferParam(resources.systemResources.stageWorkQueue, 4, ShaderIDs._CounterBuffer, buffers.counterBuffer);
+                cmd.SetComputeBufferParam(resources.systemResources.stageWorkQueue, 4, "_FineRasterDispatchArgs", transientBuffers.fineRasterArgs);
+                cmd.DispatchCompute(resources.systemResources.stageWorkQueue, 4, 1, 1, 1);
             }
 #endregion
 
@@ -155,16 +160,20 @@ namespace UnityEngine.Rendering
                 }
                 #endif
 
-                cmd.SetComputeBufferParam(resources.systemResources.stageRasterFineCS, fineStageKernel, ShaderIDs._Vertex0RecordBuffer, buffers.vertexStream0);
-                cmd.SetComputeBufferParam(resources.systemResources.stageRasterFineCS, fineStageKernel, ShaderIDs._Vertex1RecordBuffer, buffers.vertexStream1);
-                cmd.SetComputeBufferParam(resources.systemResources.stageRasterFineCS, fineStageKernel, ShaderIDs._BinOffsetsBuffer, prefixResources.output);
-                cmd.SetComputeBufferParam(resources.systemResources.stageRasterFineCS, fineStageKernel, ShaderIDs._BinCountersBuffer, transientBuffers.binCounters);
-                cmd.SetComputeBufferParam(resources.systemResources.stageRasterFineCS, fineStageKernel, ShaderIDs._WorkQueueBuffer, transientBuffers.workQueue);
-                cmd.SetComputeBufferParam(resources.systemResources.stageRasterFineCS, fineStageKernel, ShaderIDs._SegmentRecordBuffer, buffers.recordBufferSegment);
-                cmd.SetComputeBufferParam(resources.systemResources.stageRasterFineCS, fineStageKernel, ShaderIDs._WorkQueueBinListBuffer, resourceSortTiles.sortBufferValues);
-                cmd.SetComputeBufferParam(resources.systemResources.stageRasterFineCS, fineStageKernel, ShaderIDs._CounterBuffer, buffers.counterBuffer);
-                cmd.SetComputeBufferParam(resources.systemResources.stageRasterFineCS, fineStageKernel, ShaderIDs._ClusterCountersBuffer, transientBuffers.clusterCounters);
-                cmd.SetComputeBufferParam(resources.systemResources.stageRasterFineCS, fineStageKernel, ShaderIDs._ClusterRangesBuffer, transientBuffers.clusterRanges);
+                // We must manually bind this to avoid certain scenarios where it doesn't get bound earlier in the pipeline for a frame.
+                cmd.SetComputeTextureParam(resources.systemResources.stageRasterFineCS, fineStageKernel, "_CameraDepthTexture", resources.depthRT);
+
+                cmd.SetComputeBufferParam(resources.systemResources.stageRasterFineCS,  fineStageKernel, ShaderIDs._Vertex0RecordBuffer, buffers.vertexStream0);
+                cmd.SetComputeBufferParam(resources.systemResources.stageRasterFineCS,  fineStageKernel, ShaderIDs._Vertex1RecordBuffer, buffers.vertexStream1);
+                cmd.SetComputeBufferParam(resources.systemResources.stageRasterFineCS,  fineStageKernel, ShaderIDs._Vertex3RecordBuffer, buffers.vertexStream3);
+                cmd.SetComputeBufferParam(resources.systemResources.stageRasterFineCS,  fineStageKernel, ShaderIDs._BinOffsetsBuffer, prefixResources.output);
+                cmd.SetComputeBufferParam(resources.systemResources.stageRasterFineCS,  fineStageKernel, ShaderIDs._BinCountersBuffer, transientBuffers.binCounters);
+                cmd.SetComputeBufferParam(resources.systemResources.stageRasterFineCS,  fineStageKernel, ShaderIDs._WorkQueueBuffer, transientBuffers.workQueue);
+                cmd.SetComputeBufferParam(resources.systemResources.stageRasterFineCS,  fineStageKernel, ShaderIDs._SegmentRecordBuffer, buffers.recordBufferSegment);
+                cmd.SetComputeBufferParam(resources.systemResources.stageRasterFineCS,  fineStageKernel, ShaderIDs._WorkQueueBinListBuffer, resourceSortTiles.sortBufferValues);
+                cmd.SetComputeBufferParam(resources.systemResources.stageRasterFineCS,  fineStageKernel, ShaderIDs._CounterBuffer, buffers.counterBuffer);
+                cmd.SetComputeBufferParam(resources.systemResources.stageRasterFineCS,  fineStageKernel, ShaderIDs._ClusterCountersBuffer, transientBuffers.clusterCounters);
+                cmd.SetComputeBufferParam(resources.systemResources.stageRasterFineCS,  fineStageKernel, ShaderIDs._ClusterRangesBuffer, transientBuffers.clusterRanges);
 
                 cmd.SetComputeTextureParam(resources.systemResources.stageRasterFineCS, fineStageKernel, ShaderIDs._ShadingSamplesTexture, shadingSampleAtlas);
 
@@ -172,9 +181,7 @@ namespace UnityEngine.Rendering
                 cmd.SetComputeTextureParam(resources.systemResources.stageRasterFineCS, fineStageKernel, ShaderIDs._OutputTargetDepth, resources.renderTargets.depth);
                 cmd.SetComputeTextureParam(resources.systemResources.stageRasterFineCS, fineStageKernel, ShaderIDs._OutputTargetMV, resources.renderTargets.motion);
 
-                // Launch for every wave on the device.
-                // TODO: Querying the correct number of thread groups to launch for device saturation.
-                cmd.DispatchCompute(resources.systemResources.stageRasterFineCS, fineStageKernel, 4 * 360, 1, 1);
+                cmd.DispatchCompute(resources.systemResources.stageRasterFineCS, fineStageKernel, transientBuffers.fineRasterArgs, 0);
             }
 #endregion
         }
