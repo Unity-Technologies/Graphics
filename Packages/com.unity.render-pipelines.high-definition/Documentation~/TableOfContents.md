@@ -181,6 +181,7 @@
     * [Streaming](probevolumes-streaming.md)
     * [Probe Volume settings and properties](probevolumes-settings.md)
   * [Light Anchor](light-anchor.md)
+  * [View and control a light from its perspective](lights-placement-tool.md)
   * [Environment Lighting](Environment-Lighting.md)
   * [Clouds in HDRP](clouds-in-hdrp.md)
   * [Atmospheric Scattering](Atmospheric-Scattering.md)
