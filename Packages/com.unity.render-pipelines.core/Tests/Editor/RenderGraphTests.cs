@@ -440,9 +440,17 @@ namespace UnityEngine.Rendering.Tests
                 builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
             }
 
+            // This pass should sync with the "Async_TestPass0"
             using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
             {
-                builder.WriteTexture(texture0);
+                texture0 = builder.WriteTexture(texture0);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
+            }
+
+            // Read result and output to backbuffer to avoid culling passes.
+            using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass2", out var passData))
+            {
+                builder.ReadTexture(texture0);
                 builder.WriteTexture(m_RenderGraph.ImportBackbuffer(0)); // Needed for the passes to not be culled
                 builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
             }
@@ -450,7 +458,7 @@ namespace UnityEngine.Rendering.Tests
             m_RenderGraph.CompileRenderGraph();
 
             var compiledPasses = m_RenderGraph.GetCompiledPassInfos();
-            Assert.AreEqual(2, compiledPasses.size);
+            Assert.AreEqual(3, compiledPasses.size);
             Assert.AreEqual(0, compiledPasses[1].syncToPassIndex);
         }
 
