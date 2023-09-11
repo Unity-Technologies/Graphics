@@ -64,7 +64,7 @@ HDRP 15 adds the following properties to diffusion profiles for Subsurface Scatt
 
 The mixture of two specular lobes replicates the thin, oily layer that covers the skin.
 
-![](/Images/profile_dual_lobe_labelled.png)
+![](Images/profile_dual_lobe_labelled.png)
 
 The effect of two specular lobes on a subsurface scattering material.
 
@@ -90,7 +90,7 @@ HDRP 15 makes the following changes to APV properties:
 
 ### Water System
 
-![](/Images/Water2023-1.png)
+![](Images/Water2023-1.png)
 
 HDRP 15 makes the following improvements and additions to the water system:
 
