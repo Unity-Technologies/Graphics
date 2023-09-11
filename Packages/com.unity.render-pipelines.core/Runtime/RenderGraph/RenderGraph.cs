@@ -1031,8 +1031,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             int result = -1;
             foreach (var producer in info.producers)
             {
+                var producerPassInfo = m_CompiledPassInfos[producer];
                 // producers are by construction in increasing order.
-                if (producer < passIndex)
+                // We also need to make sure we don't return a pass that was culled (can happen at this point because of renderer list culling).
+                if (producer < passIndex && !(producerPassInfo.culled || producerPassInfo.culledByRendererList))
                     result = producer;
                 else
                     return result;

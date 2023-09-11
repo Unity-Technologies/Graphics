@@ -27,6 +27,8 @@
 // The dispatch tile resolution
 #define RAY_MARCHING_TILE_SIZE 8
 
+// Source depth texture for ray start position
+TEXTURE2D_X(_InputDepthTexture);
 // Input depth pyramid texture
 TEXTURE2D_X(_DepthTexture);
 // Stencil texture
@@ -67,7 +69,7 @@ void RAY_MARCH_KERNEL(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupT
     #endif
 
     // Read the depth value as early as possible
-    float depthValue = LOAD_TEXTURE2D_X(_DepthTexture, currentCoord).x;
+    float depthValue = LOAD_TEXTURE2D_X(_InputDepthTexture, currentCoord).x;
 
     // Read the direction
     float4 direction = _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(currentCoord)];
@@ -108,8 +110,13 @@ void RAY_MARCH_KERNEL(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupT
     if (hit)
     {
         int2 resultCoords = rayPos.xy;
-        uint stencilValue = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, resultCoords));
-        if ((stencilValue & _DeferredStencilBit) != 0)
+        bool stencilCheckPassed = true;
+        if (_DeferredStencilBit != 0)
+        {
+            uint stencilValue = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, resultCoords));
+            stencilCheckPassed = ((stencilValue & _DeferredStencilBit) != 0);
+        }
+        if (stencilCheckPassed)
         {
             // Compute the depth of the result hit point
             float resultDepth = LOAD_TEXTURE2D_X(_DepthTexture, resultCoords).x;

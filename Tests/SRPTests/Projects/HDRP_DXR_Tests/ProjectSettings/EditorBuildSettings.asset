@@ -42,6 +42,9 @@ EditorBuildSettings:
     path: Assets/Scenes/107_ReflectionsHybridFullRes.unity
     guid: c1f9cf56879c30640b5cd30f5b500b52
   - enabled: 1
+    path: Assets/Scenes/107_ReflectionsHybridFullRes_OnTransparent.unity
+    guid: 5f8fc2857640b5b4d8c65f482258e807
+  - enabled: 1
     path: Assets/Scenes/108_ReflectionsHybridHalfRes.unity
     guid: 4a71d9b31d3fb4e40a56b5be93a15b8d
   - enabled: 1

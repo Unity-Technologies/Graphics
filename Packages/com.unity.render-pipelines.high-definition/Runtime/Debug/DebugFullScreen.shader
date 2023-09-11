@@ -371,8 +371,9 @@ Shader "Hidden/HDRP/DebugFullScreen"
 
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_WORLD_SPACE_POSITION)
                 {
-                    float depth = LoadCameraDepth(input.positionCS.xy);
-                    PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
+                    uint2 samplePosition = (uint2)((input.texcoord / _RTHandleScale.xy) * _DebugViewportSize.xy);
+                    float depth = LoadCameraDepth(samplePosition);
+                    PositionInputs posInput = GetPositionInput(samplePosition, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
                     float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
 
                     if (depth != 0)
