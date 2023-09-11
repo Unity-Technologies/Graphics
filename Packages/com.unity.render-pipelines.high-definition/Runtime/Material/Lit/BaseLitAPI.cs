@@ -42,30 +42,69 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
-            if (material.HasProperty(kDisplacementMode))
+            // Displacement Mapping
             {
-                var displacementMode = GetFilteredDisplacementMode(material);
+                bool enableVertexDisplacement = false;
+                bool enablePixelDisplacement = false;
+                bool enableTessellationDisplacement = false;
+                bool displacementLockObjectScale = false;
+                bool displacementLockTilingScale = false;
+                bool enableDepthOffset = false;
+                bool conservativeDepthOffset = false;
 
-                bool enableDisplacement = displacementMode != DisplacementMode.None;
-                bool enableVertexDisplacement = displacementMode == DisplacementMode.Vertex;
-                bool enablePixelDisplacement = displacementMode == DisplacementMode.Pixel;
-                bool enableTessellationDisplacement = displacementMode == DisplacementMode.Tessellation;
+                bool enableDisplacement = material.HasProperty(kDisplacementMode) && (GetFilteredDisplacementMode(material) != DisplacementMode.None);
+
+                // Displacement mapping requires a height map.
+                if (enableDisplacement)
+                {
+                    int layerCount = material.HasProperty(kLayerCount) ? material.GetInt(kLayerCount) : 1;
+
+                    // If the layerCount is 1, then it means that the property we're fetching is not from a layered material
+                    // thus it doesn't have a postfix
+                    string[] postfixes = (layerCount > 1) ? new[] { "0", "1", "2", "3" } : new[] { "" };
+
+                    for (int i = 0; i < layerCount; i++)
+                    {
+                        string kHeightMapN = string.Format("{0}{1}", kHeightMap, postfixes[i]);
+
+                        enableDisplacement = enableDisplacement && material.HasProperty(kHeightMapN) && (material.GetTexture(kHeightMapN) != null);
+                    }
+                }
+
+                if (enableDisplacement)
+                {
+                    var displacementMode = GetFilteredDisplacementMode(material);
+
+                    enableVertexDisplacement = displacementMode == DisplacementMode.Vertex;
+                    enablePixelDisplacement = displacementMode == DisplacementMode.Pixel;
+                    enableTessellationDisplacement = displacementMode == DisplacementMode.Tessellation;
+
+                    displacementLockObjectScale = material.GetFloat(kDisplacementLockObjectScale) > 0.0f;
+                    displacementLockTilingScale = material.GetFloat(kDisplacementLockTilingScale) > 0.0f;
+                }
+
+                // Depth Offset may be used without Displacement Mapping as well (a Shader Graph feature).
+                if (enablePixelDisplacement || (!material.HasProperty(kDisplacementMode) && material.HasProperty(kDepthOffsetEnable)))
+                {
+                    enableDepthOffset = material.GetFloat(kDepthOffsetEnable) > 0.0f;
+                }
+
+                if (enableDepthOffset && material.HasProperty(kConservativeDepthOffsetEnable))
+                {
+                    conservativeDepthOffset = material.GetFloat(kConservativeDepthOffsetEnable) > 0.0f;
+                }
 
                 CoreUtils.SetKeyword(material, "_VERTEX_DISPLACEMENT", enableVertexDisplacement);
                 CoreUtils.SetKeyword(material, "_PIXEL_DISPLACEMENT", enablePixelDisplacement);
-                // Only set if tessellation exist
                 CoreUtils.SetKeyword(material, "_TESSELLATION_DISPLACEMENT", enableTessellationDisplacement);
 
-                bool displacementLockObjectScale = material.GetFloat(kDisplacementLockObjectScale) > 0.0f;
-                bool displacementLockTilingScale = material.GetFloat(kDisplacementLockTilingScale) > 0.0f;
                 // Tessellation reuse vertex flag.
                 CoreUtils.SetKeyword(material, "_VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE", displacementLockObjectScale && (enableVertexDisplacement || enableTessellationDisplacement));
                 CoreUtils.SetKeyword(material, "_PIXEL_DISPLACEMENT_LOCK_OBJECT_SCALE", displacementLockObjectScale && enablePixelDisplacement);
                 CoreUtils.SetKeyword(material, "_DISPLACEMENT_LOCK_TILING_SCALE", displacementLockTilingScale && enableDisplacement);
 
-                // Depth offset is only enabled if per pixel displacement is
-                bool depthOffsetEnable = (material.GetFloat(kDepthOffsetEnable) > 0.0f) && enablePixelDisplacement;
-                CoreUtils.SetKeyword(material, "_DEPTHOFFSET_ON", depthOffsetEnable);
+                CoreUtils.SetKeyword(material, "_DEPTHOFFSET_ON", enableDepthOffset);
+                CoreUtils.SetKeyword(material, "_CONSERVATIVE_DEPTH_OFFSET", conservativeDepthOffset);
             }
 
             CoreUtils.SetKeyword(material, "_VERTEX_WIND", false);
