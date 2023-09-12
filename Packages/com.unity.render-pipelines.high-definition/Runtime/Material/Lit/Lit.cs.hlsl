@@ -5,34 +5,6 @@
 #ifndef LIT_CS_HLSL
 #define LIT_CS_HLSL
 //
-// UnityEngine.Rendering.HighDefinition.Lit+SurfaceData:  static fields
-//
-#define DEBUGVIEW_LIT_SURFACEDATA_MATERIAL_FEATURES (1000)
-#define DEBUGVIEW_LIT_SURFACEDATA_BASE_COLOR (1001)
-#define DEBUGVIEW_LIT_SURFACEDATA_SPECULAR_OCCLUSION (1002)
-#define DEBUGVIEW_LIT_SURFACEDATA_NORMAL (1003)
-#define DEBUGVIEW_LIT_SURFACEDATA_NORMAL_VIEW_SPACE (1004)
-#define DEBUGVIEW_LIT_SURFACEDATA_SMOOTHNESS (1005)
-#define DEBUGVIEW_LIT_SURFACEDATA_AMBIENT_OCCLUSION (1006)
-#define DEBUGVIEW_LIT_SURFACEDATA_METALLIC (1007)
-#define DEBUGVIEW_LIT_SURFACEDATA_COAT_MASK (1008)
-#define DEBUGVIEW_LIT_SURFACEDATA_SPECULAR_COLOR (1009)
-#define DEBUGVIEW_LIT_SURFACEDATA_DIFFUSION_PROFILE_HASH (1010)
-#define DEBUGVIEW_LIT_SURFACEDATA_SUBSURFACE_MASK (1011)
-#define DEBUGVIEW_LIT_SURFACEDATA_THICKNESS (1012)
-#define DEBUGVIEW_LIT_SURFACEDATA_TRANSMISSION_MASK (1013)
-#define DEBUGVIEW_LIT_SURFACEDATA_TANGENT (1014)
-#define DEBUGVIEW_LIT_SURFACEDATA_ANISOTROPY (1015)
-#define DEBUGVIEW_LIT_SURFACEDATA_IRIDESCENCE_LAYER_THICKNESS (1016)
-#define DEBUGVIEW_LIT_SURFACEDATA_IRIDESCENCE_MASK (1017)
-#define DEBUGVIEW_LIT_SURFACEDATA_GEOMETRIC_NORMAL (1018)
-#define DEBUGVIEW_LIT_SURFACEDATA_GEOMETRIC_NORMAL_VIEW_SPACE (1019)
-#define DEBUGVIEW_LIT_SURFACEDATA_INDEX_OF_REFRACTION (1020)
-#define DEBUGVIEW_LIT_SURFACEDATA_TRANSMITTANCE_COLOR (1021)
-#define DEBUGVIEW_LIT_SURFACEDATA_TRANSMITTANCE_ABSORPTION_DISTANCE (1022)
-#define DEBUGVIEW_LIT_SURFACEDATA_TRANSMITTANCE_MASK (1023)
-
-//
 // UnityEngine.Rendering.HighDefinition.Lit+BSDFData:  static fields
 //
 #define DEBUGVIEW_LIT_BSDFDATA_MATERIAL_FEATURES (1050)
@@ -65,6 +37,34 @@
 #define DEBUGVIEW_LIT_BSDFDATA_TRANSMITTANCE_MASK (1077)
 
 //
+// UnityEngine.Rendering.HighDefinition.Lit+SurfaceData:  static fields
+//
+#define DEBUGVIEW_LIT_SURFACEDATA_MATERIAL_FEATURES (1000)
+#define DEBUGVIEW_LIT_SURFACEDATA_BASE_COLOR (1001)
+#define DEBUGVIEW_LIT_SURFACEDATA_SPECULAR_OCCLUSION (1002)
+#define DEBUGVIEW_LIT_SURFACEDATA_NORMAL (1003)
+#define DEBUGVIEW_LIT_SURFACEDATA_NORMAL_VIEW_SPACE (1004)
+#define DEBUGVIEW_LIT_SURFACEDATA_SMOOTHNESS (1005)
+#define DEBUGVIEW_LIT_SURFACEDATA_AMBIENT_OCCLUSION (1006)
+#define DEBUGVIEW_LIT_SURFACEDATA_METALLIC (1007)
+#define DEBUGVIEW_LIT_SURFACEDATA_COAT_MASK (1008)
+#define DEBUGVIEW_LIT_SURFACEDATA_SPECULAR_COLOR (1009)
+#define DEBUGVIEW_LIT_SURFACEDATA_DIFFUSION_PROFILE_HASH (1010)
+#define DEBUGVIEW_LIT_SURFACEDATA_SUBSURFACE_MASK (1011)
+#define DEBUGVIEW_LIT_SURFACEDATA_THICKNESS (1012)
+#define DEBUGVIEW_LIT_SURFACEDATA_TRANSMISSION_MASK (1013)
+#define DEBUGVIEW_LIT_SURFACEDATA_TANGENT (1014)
+#define DEBUGVIEW_LIT_SURFACEDATA_ANISOTROPY (1015)
+#define DEBUGVIEW_LIT_SURFACEDATA_IRIDESCENCE_LAYER_THICKNESS (1016)
+#define DEBUGVIEW_LIT_SURFACEDATA_IRIDESCENCE_MASK (1017)
+#define DEBUGVIEW_LIT_SURFACEDATA_GEOMETRIC_NORMAL (1018)
+#define DEBUGVIEW_LIT_SURFACEDATA_GEOMETRIC_NORMAL_VIEW_SPACE (1019)
+#define DEBUGVIEW_LIT_SURFACEDATA_INDEX_OF_REFRACTION (1020)
+#define DEBUGVIEW_LIT_SURFACEDATA_TRANSMITTANCE_COLOR (1021)
+#define DEBUGVIEW_LIT_SURFACEDATA_TRANSMITTANCE_ABSORPTION_DISTANCE (1022)
+#define DEBUGVIEW_LIT_SURFACEDATA_TRANSMITTANCE_MASK (1023)
+
+//
 // UnityEngine.Rendering.HighDefinition.Lit+MaterialFeatureFlags:  static fields
 //
 #define MATERIALFEATUREFLAGS_LIT_STANDARD (1)
@@ -75,34 +75,6 @@
 #define MATERIALFEATUREFLAGS_LIT_IRIDESCENCE (32)
 #define MATERIALFEATUREFLAGS_LIT_CLEAR_COAT (64)
 #define MATERIALFEATUREFLAGS_LIT_COLORED_TRANSMISSION (128)
-
-// Generated from UnityEngine.Rendering.HighDefinition.Lit+SurfaceData
-// PackingRules = Exact
-struct SurfaceData
-{
-    uint materialFeatures;
-    real3 baseColor;
-    real specularOcclusion;
-    float3 normalWS;
-    real perceptualSmoothness;
-    real ambientOcclusion;
-    real metallic;
-    real coatMask;
-    real3 specularColor;
-    uint diffusionProfileHash;
-    real subsurfaceMask;
-    real thickness;
-    real3 transmissionMask;
-    float3 tangentWS;
-    real anisotropy;
-    real iridescenceThickness;
-    real iridescenceMask;
-    real3 geomNormalWS;
-    real ior;
-    real3 transmittanceColor;
-    real atDistance;
-    real transmittanceMask;
-};
 
 // Generated from UnityEngine.Rendering.HighDefinition.Lit+BSDFData
 // PackingRules = Exact
@@ -136,89 +108,33 @@ struct BSDFData
     real transmittanceMask;
 };
 
-//
-// Debug functions
-//
-void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout float3 result, inout bool needLinearToSRGB)
+// Generated from UnityEngine.Rendering.HighDefinition.Lit+SurfaceData
+// PackingRules = Exact
+struct SurfaceData
 {
-    switch (paramId)
-    {
-        case DEBUGVIEW_LIT_SURFACEDATA_MATERIAL_FEATURES:
-            result = GetIndexColor(surfacedata.materialFeatures);
-            break;
-        case DEBUGVIEW_LIT_SURFACEDATA_BASE_COLOR:
-            result = surfacedata.baseColor;
-            needLinearToSRGB = true;
-            break;
-        case DEBUGVIEW_LIT_SURFACEDATA_SPECULAR_OCCLUSION:
-            result = surfacedata.specularOcclusion.xxx;
-            break;
-        case DEBUGVIEW_LIT_SURFACEDATA_NORMAL:
-            result = IsNormalized(surfacedata.normalWS)? surfacedata.normalWS * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
-            break;
-        case DEBUGVIEW_LIT_SURFACEDATA_NORMAL_VIEW_SPACE:
-            result = IsNormalized(surfacedata.normalWS)? surfacedata.normalWS * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
-            break;
-        case DEBUGVIEW_LIT_SURFACEDATA_SMOOTHNESS:
-            result = surfacedata.perceptualSmoothness.xxx;
-            break;
-        case DEBUGVIEW_LIT_SURFACEDATA_AMBIENT_OCCLUSION:
-            result = surfacedata.ambientOcclusion.xxx;
-            break;
-        case DEBUGVIEW_LIT_SURFACEDATA_METALLIC:
-            result = surfacedata.metallic.xxx;
-            break;
-        case DEBUGVIEW_LIT_SURFACEDATA_COAT_MASK:
-            result = surfacedata.coatMask.xxx;
-            break;
-        case DEBUGVIEW_LIT_SURFACEDATA_SPECULAR_COLOR:
-            result = surfacedata.specularColor;
-            needLinearToSRGB = true;
-            break;
-        case DEBUGVIEW_LIT_SURFACEDATA_DIFFUSION_PROFILE_HASH:
-            result = GetIndexColor(surfacedata.diffusionProfileHash);
-            break;
-        case DEBUGVIEW_LIT_SURFACEDATA_SUBSURFACE_MASK:
-            result = surfacedata.subsurfaceMask.xxx;
-            break;
-        case DEBUGVIEW_LIT_SURFACEDATA_THICKNESS:
-            result = surfacedata.thickness.xxx;
-            break;
-        case DEBUGVIEW_LIT_SURFACEDATA_TRANSMISSION_MASK:
-            result = surfacedata.transmissionMask;
-            break;
-        case DEBUGVIEW_LIT_SURFACEDATA_TANGENT:
-            result = surfacedata.tangentWS * 0.5 + 0.5;
-            break;
-        case DEBUGVIEW_LIT_SURFACEDATA_ANISOTROPY:
-            result = surfacedata.anisotropy.xxx;
-            break;
-        case DEBUGVIEW_LIT_SURFACEDATA_IRIDESCENCE_LAYER_THICKNESS:
-            result = surfacedata.iridescenceThickness.xxx;
-            break;
-        case DEBUGVIEW_LIT_SURFACEDATA_IRIDESCENCE_MASK:
-            result = surfacedata.iridescenceMask.xxx;
-            break;
-        case DEBUGVIEW_LIT_SURFACEDATA_GEOMETRIC_NORMAL:
-            result = IsNormalized(surfacedata.geomNormalWS)? surfacedata.geomNormalWS * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
-            break;
-        case DEBUGVIEW_LIT_SURFACEDATA_GEOMETRIC_NORMAL_VIEW_SPACE:
-            result = IsNormalized(surfacedata.geomNormalWS)? surfacedata.geomNormalWS * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
-            break;
-        case DEBUGVIEW_LIT_SURFACEDATA_INDEX_OF_REFRACTION:
-            result = surfacedata.ior.xxx;
-            break;
-        case DEBUGVIEW_LIT_SURFACEDATA_TRANSMITTANCE_COLOR:
-            result = surfacedata.transmittanceColor;
-            break;
-        case DEBUGVIEW_LIT_SURFACEDATA_TRANSMITTANCE_ABSORPTION_DISTANCE:
-            result = surfacedata.atDistance.xxx;
-            break;
-        case DEBUGVIEW_LIT_SURFACEDATA_TRANSMITTANCE_MASK:
-            result = surfacedata.transmittanceMask.xxx;
-            break;
-    }
-}
+    uint materialFeatures;
+    real3 baseColor;
+    real specularOcclusion;
+    float3 normalWS;
+    real perceptualSmoothness;
+    real ambientOcclusion;
+    real metallic;
+    real coatMask;
+    real3 specularColor;
+    uint diffusionProfileHash;
+    real subsurfaceMask;
+    real thickness;
+    real3 transmissionMask;
+    float3 tangentWS;
+    real anisotropy;
+    real iridescenceThickness;
+    real iridescenceMask;
+    real3 geomNormalWS;
+    real ior;
+    real3 transmittanceColor;
+    real atDistance;
+    real transmittanceMask;
+};
 
 //
 // Debug functions
@@ -311,6 +227,90 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
             break;
         case DEBUGVIEW_LIT_BSDFDATA_TRANSMITTANCE_MASK:
             result = bsdfdata.transmittanceMask.xxx;
+            break;
+    }
+}
+
+//
+// Debug functions
+//
+void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout float3 result, inout bool needLinearToSRGB)
+{
+    switch (paramId)
+    {
+        case DEBUGVIEW_LIT_SURFACEDATA_MATERIAL_FEATURES:
+            result = GetIndexColor(surfacedata.materialFeatures);
+            break;
+        case DEBUGVIEW_LIT_SURFACEDATA_BASE_COLOR:
+            result = surfacedata.baseColor;
+            needLinearToSRGB = true;
+            break;
+        case DEBUGVIEW_LIT_SURFACEDATA_SPECULAR_OCCLUSION:
+            result = surfacedata.specularOcclusion.xxx;
+            break;
+        case DEBUGVIEW_LIT_SURFACEDATA_NORMAL:
+            result = IsNormalized(surfacedata.normalWS)? surfacedata.normalWS * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
+            break;
+        case DEBUGVIEW_LIT_SURFACEDATA_NORMAL_VIEW_SPACE:
+            result = IsNormalized(surfacedata.normalWS)? surfacedata.normalWS * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
+            break;
+        case DEBUGVIEW_LIT_SURFACEDATA_SMOOTHNESS:
+            result = surfacedata.perceptualSmoothness.xxx;
+            break;
+        case DEBUGVIEW_LIT_SURFACEDATA_AMBIENT_OCCLUSION:
+            result = surfacedata.ambientOcclusion.xxx;
+            break;
+        case DEBUGVIEW_LIT_SURFACEDATA_METALLIC:
+            result = surfacedata.metallic.xxx;
+            break;
+        case DEBUGVIEW_LIT_SURFACEDATA_COAT_MASK:
+            result = surfacedata.coatMask.xxx;
+            break;
+        case DEBUGVIEW_LIT_SURFACEDATA_SPECULAR_COLOR:
+            result = surfacedata.specularColor;
+            needLinearToSRGB = true;
+            break;
+        case DEBUGVIEW_LIT_SURFACEDATA_DIFFUSION_PROFILE_HASH:
+            result = GetIndexColor(surfacedata.diffusionProfileHash);
+            break;
+        case DEBUGVIEW_LIT_SURFACEDATA_SUBSURFACE_MASK:
+            result = surfacedata.subsurfaceMask.xxx;
+            break;
+        case DEBUGVIEW_LIT_SURFACEDATA_THICKNESS:
+            result = surfacedata.thickness.xxx;
+            break;
+        case DEBUGVIEW_LIT_SURFACEDATA_TRANSMISSION_MASK:
+            result = surfacedata.transmissionMask;
+            break;
+        case DEBUGVIEW_LIT_SURFACEDATA_TANGENT:
+            result = surfacedata.tangentWS * 0.5 + 0.5;
+            break;
+        case DEBUGVIEW_LIT_SURFACEDATA_ANISOTROPY:
+            result = surfacedata.anisotropy.xxx;
+            break;
+        case DEBUGVIEW_LIT_SURFACEDATA_IRIDESCENCE_LAYER_THICKNESS:
+            result = surfacedata.iridescenceThickness.xxx;
+            break;
+        case DEBUGVIEW_LIT_SURFACEDATA_IRIDESCENCE_MASK:
+            result = surfacedata.iridescenceMask.xxx;
+            break;
+        case DEBUGVIEW_LIT_SURFACEDATA_GEOMETRIC_NORMAL:
+            result = IsNormalized(surfacedata.geomNormalWS)? surfacedata.geomNormalWS * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
+            break;
+        case DEBUGVIEW_LIT_SURFACEDATA_GEOMETRIC_NORMAL_VIEW_SPACE:
+            result = IsNormalized(surfacedata.geomNormalWS)? surfacedata.geomNormalWS * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
+            break;
+        case DEBUGVIEW_LIT_SURFACEDATA_INDEX_OF_REFRACTION:
+            result = surfacedata.ior.xxx;
+            break;
+        case DEBUGVIEW_LIT_SURFACEDATA_TRANSMITTANCE_COLOR:
+            result = surfacedata.transmittanceColor;
+            break;
+        case DEBUGVIEW_LIT_SURFACEDATA_TRANSMITTANCE_ABSORPTION_DISTANCE:
+            result = surfacedata.atDistance.xxx;
+            break;
+        case DEBUGVIEW_LIT_SURFACEDATA_TRANSMITTANCE_MASK:
+            result = surfacedata.transmittanceMask.xxx;
             break;
     }
 }

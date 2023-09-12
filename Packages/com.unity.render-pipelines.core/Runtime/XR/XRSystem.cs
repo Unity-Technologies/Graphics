@@ -153,7 +153,6 @@ namespace UnityEngine.Experimental.Rendering
         internal static void SetOcclusionMeshScale(float occlusionMeshScale)
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
-            Debug.Assert(occlusionMeshScale <= 1.0f);
             s_OcclusionMeshScaling = occlusionMeshScale;
 #endif
         }

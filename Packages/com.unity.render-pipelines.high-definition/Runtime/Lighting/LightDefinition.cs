@@ -95,8 +95,6 @@ namespace UnityEngine.Rendering.HighDefinition
         [SurfaceDataAttributes(precision = FieldPrecision.Real)]
         public Vector4 shadowMaskSelector;      // Used with ShadowMask feature
 
-        public Vector2 cascadesBorderFadeScaleBias;
-
         public float diffuseDimmer;
         public float specularDimmer;
 
@@ -111,6 +109,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public float flareCosInner;
         public float flareCosOuter;
 
+        public float padding;
+        public float earthshine;
+
         public Vector3 flareTint;
         public float flareSize;               // Units: radians
 
@@ -119,9 +120,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public Vector2 phaseSinCos;
         public Vector2 phaseAngleSinCos;
-
-        public Vector3 padding;
-        public float earthshine;
 
         public Vector4 surfaceTextureScaleOffset;     // -1 if unused (TODO: 16 bit)
     };
