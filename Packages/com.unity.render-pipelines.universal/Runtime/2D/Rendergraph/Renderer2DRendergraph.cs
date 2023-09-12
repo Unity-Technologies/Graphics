@@ -275,9 +275,15 @@ namespace UnityEngine.Rendering.Universal
 
             var finalTextureHandle = m_Attachments.colorAttachment;
             bool applyPostProcessing = renderingData.postProcessingEnabled && m_PostProcessPasses.isCreated;
+
+            // When using Upscale Render Texture on a Pixel Perfect Camera, we want all post-processing effects done with a low-res RT,
+            // and only upscale the low-res RT to fullscreen when blitting it to camera target. Also, final post processing pass is not run in this case,
+            // so FXAA is not supported (you don't want to apply FXAA when everything is intentionally pixelated).
+            bool requireFinalPostProcessPass = renderingData.cameraData.resolveFinalTarget && !ppcUpscaleRT && applyPostProcessing && cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing;
+
             if (applyPostProcessing)
             {
-                postProcessPass.RenderPostProcessingRenderGraph(renderGraph, in m_Attachments.colorAttachment, in m_Attachments.internalColorLut, in m_Attachments.afterPostProcessColor, ref renderingData, true);
+                postProcessPass.RenderPostProcessingRenderGraph(renderGraph, in m_Attachments.colorAttachment, in m_Attachments.internalColorLut, in m_Attachments.afterPostProcessColor, ref renderingData, requireFinalPostProcessPass);
                 finalTextureHandle = m_Attachments.afterPostProcessColor;
             }
 
@@ -293,13 +299,7 @@ namespace UnityEngine.Rendering.Universal
 
                 ClearTargets2DPass.Render(renderGraph, m_Attachments.backBufferColor, TextureHandle.nullHandle, RTClearFlags.Color, Color.black);
             }
-
-            // When using Upscale Render Texture on a Pixel Perfect Camera, we want all post-processing effects done with a low-res RT,
-            // and only upscale the low-res RT to fullscreen when blitting it to camera target. Also, final post processing pass is not run in this case,
-            // so FXAA is not supported (you don't want to apply FXAA when everything is intentionally pixelated).
-            bool requireFinalPostProcessPass =
-                renderingData.cameraData.resolveFinalTarget && !ppcUpscaleRT && applyPostProcessing && cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing;
-
+         
             if (requireFinalPostProcessPass)
             {
                 postProcessPass.RenderFinalPassRenderGraph(renderGraph, in finalTextureHandle, ref renderingData);
