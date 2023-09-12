@@ -181,11 +181,11 @@ bool EvaluateUnderwaterAbsorption(PositionInputs posInput, inout float4 outColor
 
             if (!hasWater) // caustics on pixels with water are applied during gbuffer pass
             {
-                #ifdef SUPPORT_WATER_CAUSTICS 
+                #ifdef SUPPORT_WATER_CAUSTICS
                 caustics = EvaluateSimulationCaustics(posInput.positionWS, distanceToSurface, posInput.positionNDC.xy);
                 #endif
 
-                #ifdef SUPPORT_WATER_CAUSTICS_SHADOW 
+                #ifdef SUPPORT_WATER_CAUSTICS_SHADOW
                 if (_DirectionalShadowIndex >= 0) // In case the user asked for shadow to explicitly be affected by shadows
                 {
                     DirectionalLightData light = _DirectionalLightDatas[_DirectionalShadowIndex];
@@ -216,7 +216,7 @@ bool EvaluateUnderwaterAbsorption(PositionInputs posInput, inout float4 outColor
         opacity = 1 - caustics * absorptionTint;
 
         #ifdef _ENABLE_FOG_ON_TRANSPARENT
-        if (_PreRefractionPass == 0 || hasExcluder)
+        if (_PreRefractionPass == 0 && hasExcluder)
         {
             // If we are here, this means we are seing a transparent that is in front of an opaque with an excluder
             // Use case is a looking through a boat window from the exterior. We need to opacify the object to make underwater

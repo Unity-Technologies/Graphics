@@ -28,7 +28,7 @@ MonoBehaviour:
       m_SchemaId:
         m_Id: With3Levels
     supportVolumetrics: 1
-    supportVolumetricClouds: 0
+    supportVolumetricClouds: 1
     supportLightLayers: 1
     renderingLayerMaskBuffer: 0
     supportWater: 1
@@ -337,6 +337,9 @@ MonoBehaviour:
     - format: 0
       sizeInMegaBytes: 32
   m_UseRenderGraph: 1
+  m_CompositorCustomVolumeComponentsList:
+    m_InjectionPoint: 1
+    m_CustomPostProcessTypesAsString: []
   m_Version: 24
   m_ObsoleteFrameSettings:
     overrides: 0

@@ -482,7 +482,6 @@ namespace UnityEngine.Rendering.Universal
 #endif
         [SerializeField] LightProbeSystem m_LightProbeSystem = LightProbeSystem.LegacyLightProbes;
         [SerializeField] ProbeVolumeTextureMemoryBudget m_ProbeVolumeMemoryBudget = ProbeVolumeTextureMemoryBudget.MemoryBudgetMedium;
-        [SerializeField] ProbeVolumeBlendingTextureMemoryBudget m_ProbeVolumeBlendingMemoryBudget = ProbeVolumeBlendingTextureMemoryBudget.MemoryBudgetLow;
         [SerializeField] bool m_SupportProbeVolumeStreaming = false;
         [SerializeField] bool m_SupportProbeVolumeScenarios = false;
 #if UNITY_EDITOR
@@ -1187,15 +1186,6 @@ namespace UnityEngine.Rendering.Universal
         {
             get => m_ProbeVolumeMemoryBudget;
             internal set => m_ProbeVolumeMemoryBudget = value;
-        }
-
-        /// <summary>
-        /// Probe Volume Memory Budget for scenario blending.
-        /// </summary>
-        public ProbeVolumeBlendingTextureMemoryBudget probeVolumeBlendingMemoryBudget
-        {
-            get => m_ProbeVolumeBlendingMemoryBudget;
-            internal set => m_ProbeVolumeBlendingMemoryBudget = value;
         }
 
         /// <summary>
