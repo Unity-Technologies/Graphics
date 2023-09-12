@@ -25,6 +25,33 @@ namespace UnityEngine.Rendering
             return canRemoveSettings;
         }
 
+        private static bool CanTransferSettingsToPlayer(
+            Dictionary<Type, List<IStripper>> strippersMap,
+            IRenderPipelineGraphicsSettings settings,
+            out bool isAvailableOnPlayerBuild,
+            out bool strippersDefined)
+        {
+            isAvailableOnPlayerBuild = false;
+            strippersDefined = false;
+
+            var settingsType = settings.GetType();
+
+            if (strippersMap.TryGetValue(settingsType, out var strippers))
+            {
+                if (!strippers.CanRemoveSettings(settingsType, settings))
+                    isAvailableOnPlayerBuild = true;
+
+                strippersDefined = true;
+            }
+            else
+            {
+                if (settings.isAvailableInPlayerBuild)
+                    isAvailableOnPlayerBuild = true;
+            }
+
+            return isAvailableOnPlayerBuild;
+        }
+
         public static void PerformStripping(
             List<IRenderPipelineGraphicsSettings> settingsList,
             List<IRenderPipelineGraphicsSettings> runtimeSettingsList)
@@ -35,24 +62,21 @@ namespace UnityEngine.Rendering
             if (runtimeSettingsList == null)
                 throw new ArgumentNullException(nameof(runtimeSettingsList));
 
-            runtimeSettingsList.Clear();
-
-            var strippersMap = Fetcher.ComputeStrippersMap();
-            foreach (var settings in settingsList)
+            using (var report = new Report())
             {
-                var settingsType = settings.GetType();
+                runtimeSettingsList.Clear();
 
-                if (strippersMap.TryGetValue(settingsType, out var strippers))
+                var strippersMap = Fetcher.ComputeStrippersMap();
+                for (int i = 0; i < settingsList.Count; ++i)
                 {
-                    if (!strippers.CanRemoveSettings(settingsType, settings))
+                    var settings = settingsList[i];
+                    if (CanTransferSettingsToPlayer(strippersMap, settings, out var isAvailableOnPlayerBuild, out var strippersDefined))
                         runtimeSettingsList.Add(settings);
-                }
-                else
-                {
-                    if (settings.isAvailableInPlayerBuild)
-                        runtimeSettingsList.Add(settings);
+
+                    report.AddStrippedSetting(settings.GetType(), isAvailableOnPlayerBuild, strippersDefined);
                 }
             }
+            
         }
     }
 }
