@@ -45,7 +45,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             //TODO: bindAsCameraDepth should be investigated as without it DBufferDepth will not be bound correctly, though it should
-            Render(renderGraph, dest, src, cameraData, cameraData.cameraTargetDescriptor.msaaSamples > 1);
+            Render(renderGraph, dest, src, cameraData, resourceData, cameraData.cameraTargetDescriptor.msaaSamples > 1);
         }
     }
 }

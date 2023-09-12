@@ -210,7 +210,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         public void Render(RenderGraph renderGraph, TextureHandle destination, TextureHandle source, ref RenderingData renderingData, bool bindAsCameraDepth = false, string passName = "Copy Depth")
         {
             UniversalCameraData cameraData = renderingData.frameData.Get<UniversalCameraData>();
-            Render(renderGraph, destination, source, cameraData, bindAsCameraDepth);
+            Render(renderGraph, destination, source, cameraData, renderingData.frameData.Get<UniversalResourceData>(), bindAsCameraDepth);
         }
 
         /// <summary>
@@ -220,9 +220,10 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <param name="destination"></param>
         /// <param name="source"></param>
         /// <param name="cameraData"></param>
+        /// <param name="resourceData"></param>
         /// <param name="bindAsCameraDepth">If this is true, the destination texture is bound as _CameraDepthTexture after the copy pass</param>
         /// <param name="passName"></param>
-        public void Render(RenderGraph renderGraph, TextureHandle destination, TextureHandle source, UniversalCameraData cameraData, bool bindAsCameraDepth = false, string passName = "Copy Depth")
+        public void Render(RenderGraph renderGraph, TextureHandle destination, TextureHandle source, UniversalCameraData cameraData, UniversalResourceData resourceData, bool bindAsCameraDepth = false, string passName = "Copy Depth")
         {
             // TODO RENDERGRAPH: should call the equivalent of Setup() to initialise everything correctly
             MssaSamples = -1;
@@ -237,8 +238,14 @@ namespace UnityEngine.Rendering.Universal.Internal
                 passData.copyToDepth = CopyToDepth;
                 if (CopyToDepth)
                 {
-                    // Wites depth using custom depth output
+                    // Writes depth using custom depth output
                     passData.destination = builder.UseTextureFragmentDepth(destination, IBaseRenderGraphBuilder.AccessFlags.Write);
+
+#if UNITY_EDITOR
+                    // binding a dummy color target as a workaround to an OSX issue in Editor scene view (UUM-47698).
+                    if (cameraData.isSceneViewCamera)
+                        builder.UseTextureFragment(resourceData.activeColorTexture, 0);
+#endif
                 }
                 else
                 {
