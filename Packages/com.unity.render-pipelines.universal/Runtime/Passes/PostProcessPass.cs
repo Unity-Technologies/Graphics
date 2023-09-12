@@ -267,7 +267,7 @@ namespace UnityEngine.Rendering.Universal
             m_IsFinalPass = false;
             m_HasFinalPass = hasFinalPass;
             m_EnableColorEncodingIfNeeded = enableColorEncoding;
-            m_UseSwapBuffer = false;
+            m_UseSwapBuffer = true;
         }
 
         /// <summary>

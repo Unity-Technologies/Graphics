@@ -452,7 +452,7 @@ namespace UnityEngine.Rendering.Universal
 
             if (applyPostProcessing)
             {
-                postProcessPass.RenderPostProcessingRenderGraph(renderGraph, activeColorTexture, resources.GetTexture(Renderer2DResource.InternalColorLut), resources.GetTexture(Renderer2DResource.OverlayUITexture), resources.GetTexture(Renderer2DResource.AfterPostProcessColor), ref renderingData, true, resolveToDebugScreen, needsColorEncoding);
+                postProcessPass.RenderPostProcessingRenderGraph(renderGraph, activeColorTexture, resources.GetTexture(Renderer2DResource.InternalColorLut), resources.GetTexture(Renderer2DResource.OverlayUITexture), resources.GetTexture(Renderer2DResource.AfterPostProcessColor), ref renderingData, requireFinalPostProcessPass, resolveToDebugScreen, needsColorEncoding);
                 finalColorHandle = resources.GetTexture(Renderer2DResource.AfterPostProcessColor);
             }
 
@@ -461,7 +461,7 @@ namespace UnityEngine.Rendering.Universal
                 // Do PixelPerfect upscaling when using the Stretch Fill option
                 if (requirePixelPerfectUpscale)
                 {
-                    m_UpscalePass.Render(renderGraph, ref cameraData, ref renderingData, in finalColorHandle, resources.GetTexture(Renderer2DResource.UpscaleTexture));
+                    m_UpscalePass.Render(renderGraph, ref cameraData, in finalColorHandle, resources.GetTexture(Renderer2DResource.UpscaleTexture));
                     finalColorHandle = resources.GetTexture(Renderer2DResource.UpscaleTexture);
                 }
 
