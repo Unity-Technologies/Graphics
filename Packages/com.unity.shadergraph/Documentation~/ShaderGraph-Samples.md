@@ -22,3 +22,9 @@ The following samples are currently available for Shader Graph.
 |:--------------------|
 |![](images/Patterns_Page.png) |
 | This collection of Assets showcases various procedural techniques possible with Shader Graph. Use them directly in your Project, or edit them to create other procedural patterns. The patterns in this collection are: Bacteria, Brick, Dots, Grid, Herringbone, Hex Lattice, Houndstooth, Smooth Wave, Spiral, Stripes, Truchet, Whirl, Zig Zag. |
+
+
+| Node Reference |
+|:--------------------|
+|![](images/NodeReferenceSamples.png) |
+| This set of Shader Graph assets provides reference material for the nodes available in the Shader Graph node library. Each graph contains a description for a specific node, examples of how it can be used, and useful tips. Some example assets also show a break-down of the math that the node is doing. You can use these samples along with the documentation to learn more about the behavior of individual nodes. |
