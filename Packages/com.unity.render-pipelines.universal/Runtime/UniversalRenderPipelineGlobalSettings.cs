@@ -22,15 +22,15 @@ namespace UnityEngine.Rendering.Universal
 
         #region Version system
 
-        private const int k_LastVersion = 5;
+        internal const int k_LastVersion = 5;
 
 #pragma warning disable CS0414
         [SerializeField][FormerlySerializedAs("k_AssetVersion")]
-        int m_AssetVersion = k_LastVersion;
+        internal int m_AssetVersion = k_LastVersion;
 #pragma warning restore CS0414
 
 #if UNITY_EDITOR
-        static void UpgradeAsset(int assetInstanceID)
+        internal static void UpgradeAsset(int assetInstanceID)
         {
             if (EditorUtility.InstanceIDToObject(assetInstanceID) is not UniversalRenderPipelineGlobalSettings asset)
                     return;

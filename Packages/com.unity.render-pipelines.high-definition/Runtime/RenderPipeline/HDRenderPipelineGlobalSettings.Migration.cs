@@ -174,7 +174,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #pragma warning restore 618
             })
         );
-        bool IMigratableAsset.Migrate()
+        public bool Migrate()
             => k_Migration.Migrate(this);
 
         bool IMigratableAsset.IsAtLastVersion()
