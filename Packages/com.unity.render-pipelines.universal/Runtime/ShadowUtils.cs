@@ -544,5 +544,93 @@ namespace UnityEngine.Rendering.Universal
 
             return softShadows;
         }
+
+        internal static bool SupportsPerLightSoftShadowQuality()
+        {
+            #if ENABLE_VR && ENABLE_VR_MODULE
+            #if PLATFORM_WINRT || PLATFORM_ANDROID
+                // We are using static branches on Quest2 + HL for performance reasons
+                return !PlatformAutoDetect.isXRMobile;
+            #endif
+            #endif
+            return true;
+        }
+
+        internal static void SetPerLightSoftShadowKeyword(CommandBuffer cmd, bool hasSoftShadows)
+        {
+            if (SupportsPerLightSoftShadowQuality())
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadows, hasSoftShadows);
+        }
+
+        internal static void SetSoftShadowQualityShaderKeywords(CommandBuffer cmd, ref ShadowData shadowData)
+        {
+            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadows, shadowData.isKeywordSoftShadowsEnabled);
+            if (SupportsPerLightSoftShadowQuality())
+            {
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadowsLow, false);
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadowsMedium, false);
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadowsHigh, false);
+            }
+            else
+            {
+                if (shadowData.isKeywordSoftShadowsEnabled && UniversalRenderPipeline.asset?.softShadowQuality == SoftShadowQuality.Low)
+                {
+                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadowsLow, true);
+                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadowsMedium, false);
+                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadowsHigh, false);
+                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadows, false);
+                }
+                else if (shadowData.isKeywordSoftShadowsEnabled && UniversalRenderPipeline.asset?.softShadowQuality == SoftShadowQuality.Medium)
+                {
+                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadowsLow, false);
+                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadowsMedium, true);
+                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadowsHigh, false);
+                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadows, false);
+                }
+                else if (shadowData.isKeywordSoftShadowsEnabled && UniversalRenderPipeline.asset?.softShadowQuality == SoftShadowQuality.High)
+                {
+                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadowsLow, false);
+                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadowsMedium, false);
+                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadowsHigh, true);
+                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadows, false);
+                }
+            }
+        }
+
+        internal static bool IsValidShadowCastingLight(ref LightData lightData, int i)
+        {
+            if (i == lightData.mainLightIndex)
+                return false;
+
+            ref VisibleLight shadowLight = ref lightData.visibleLights.UnsafeElementAt(i);
+
+            // Directional and light shadows are not supported in the shadow map atlas
+            if (shadowLight.lightType == LightType.Directional)
+                return false;
+
+            Light light = shadowLight.light;
+            return light != null && light.shadows != LightShadows.None && !Mathf.Approximately(light.shadowStrength, 0.0f);
+        }
+
+        internal static int GetPunctualLightShadowSlicesCount(in LightType lightType)
+        {
+            switch (lightType)
+            {
+                case LightType.Spot:
+                    return 1;
+                case LightType.Point:
+                    return 6;
+                default:
+                    return 0;
+            }
+        }
+
+        internal const int kMinimumPunctualLightHardShadowResolution = 8;
+        internal const int kMinimumPunctualLightSoftShadowResolution = 16;
+        // Minimal shadow map resolution required to have meaningful shadows visible during lighting
+        internal static int MinimalPunctualLightShadowResolution(bool softShadow)
+        {
+            return softShadow ? kMinimumPunctualLightSoftShadowResolution : kMinimumPunctualLightHardShadowResolution;
+        }
     }
 }

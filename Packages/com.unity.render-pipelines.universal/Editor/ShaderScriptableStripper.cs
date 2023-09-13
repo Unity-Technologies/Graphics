@@ -23,6 +23,7 @@ namespace UnityEditor.Rendering.Universal
 
             public bool isGLDevice { get; set; }
             public bool strip2DPasses { get; set; }
+            public bool stripSoftShadowQualityLevels { get; set; }
             public bool stripDebugDisplayShaders { get; set; }
             public bool stripScreenCoordOverrideVariants { get; set; }
             public bool stripUnusedVariants { get; set; }
@@ -59,6 +60,7 @@ namespace UnityEditor.Rendering.Universal
                        || variantData.shaderCompilerPlatform == ShaderCompilerPlatform.OpenGLCore;
                 set{}
             }
+            public bool stripSoftShadowQualityLevels { get; set; }
             public bool strip2DPasses { get; set; }
             public bool stripDebugDisplayShaders { get; set; }
             public bool stripScreenCoordOverrideVariants { get; set; }
@@ -130,6 +132,9 @@ namespace UnityEditor.Rendering.Universal
         LocalKeyword m_ReflectionProbeBoxProjection;
         LocalKeyword m_CastingPunctualLightShadow;
         LocalKeyword m_SoftShadows;
+        LocalKeyword m_SoftShadowsLow;
+        LocalKeyword m_SoftShadowsMedium;
+        LocalKeyword m_SoftShadowsHigh;
         LocalKeyword m_MixedLightingSubtractive;
         LocalKeyword m_LightmapShadowMixing;
         LocalKeyword m_ShadowsShadowMask;
@@ -194,6 +199,9 @@ namespace UnityEditor.Rendering.Universal
             m_ReflectionProbeBoxProjection = TryGetLocalKeyword(shader, ShaderKeywordStrings.ReflectionProbeBoxProjection);
             m_CastingPunctualLightShadow = TryGetLocalKeyword(shader, ShaderKeywordStrings.CastingPunctualLightShadow);
             m_SoftShadows = TryGetLocalKeyword(shader, ShaderKeywordStrings.SoftShadows);
+            m_SoftShadowsLow = TryGetLocalKeyword(shader, ShaderKeywordStrings.SoftShadowsLow);
+            m_SoftShadowsMedium = TryGetLocalKeyword(shader, ShaderKeywordStrings.SoftShadowsMedium);
+            m_SoftShadowsHigh = TryGetLocalKeyword(shader, ShaderKeywordStrings.SoftShadowsHigh);
             m_MixedLightingSubtractive = TryGetLocalKeyword(shader, ShaderKeywordStrings.MixedLightingSubtractive);
             m_LightmapShadowMixing = TryGetLocalKeyword(shader, ShaderKeywordStrings.LightmapShadowMixing);
             m_ShadowsShadowMask = TryGetLocalKeyword(shader, ShaderKeywordStrings.ShadowsShadowMask);
@@ -470,6 +478,19 @@ namespace UnityEditor.Rendering.Universal
             return stripTool.StripMultiCompileKeepOffVariant(m_SoftShadows, ShaderFeatures.SoftShadows);
         }
 
+        internal bool StripUnusedFeatures_SoftShadowsQualityLevels(ref IShaderScriptableStrippingData strippingData, ref ShaderStripTool<ShaderFeatures> stripTool)
+        {
+            var forcedStrip = strippingData.stripSoftShadowQualityLevels &&
+                              (strippingData.IsShaderFeatureEnabled(ShaderFeatures.SoftShadowsLow) ||
+                               strippingData.IsShaderFeatureEnabled(ShaderFeatures.SoftShadowsMedium) ||
+                               strippingData.IsShaderFeatureEnabled(ShaderFeatures.SoftShadowsHigh));
+
+            return forcedStrip || (stripTool.StripMultiCompileKeepOffVariant(
+                        m_SoftShadowsLow, ShaderFeatures.SoftShadowsLow,
+                        m_SoftShadowsMedium, ShaderFeatures.SoftShadowsMedium,
+                        m_SoftShadowsHigh, ShaderFeatures.SoftShadowsHigh));
+        }
+
         internal bool StripUnusedFeatures_HDRGrading(ref ShaderStripTool<ShaderFeatures> stripTool)
         {
             return stripTool.StripMultiCompileKeepOffVariant(m_HdrGrading, ShaderFeatures.HdrGrading);
@@ -721,6 +742,9 @@ namespace UnityEditor.Rendering.Universal
             if (StripUnusedFeatures_SoftShadows(ref stripTool))
                 return true;
 
+            if (StripUnusedFeatures_SoftShadowsQualityLevels(ref strippingData, ref stripTool))
+                return true;
+
             if (StripUnusedFeatures_HDRGrading(ref stripTool))
                 return true;
 
@@ -890,7 +914,10 @@ namespace UnityEditor.Rendering.Universal
             bool isMainShadowScreen = strippingData.IsKeywordEnabled(m_MainLightShadowsScreen);
             bool isMainShadow = isMainShadowNoCascades || isMainShadowCascades || isMainShadowScreen;
             bool isShadowVariant = isMainShadow || areAdditionalShadowsEnabled;
-            if (!isShadowVariant && strippingData.IsKeywordEnabled(m_SoftShadows))
+            if (!isShadowVariant && (strippingData.IsKeywordEnabled(m_SoftShadows) ||
+                                     strippingData.IsKeywordEnabled(m_SoftShadowsLow) ||
+                                     strippingData.IsKeywordEnabled(m_SoftShadowsMedium)
+                                     || strippingData.IsKeywordEnabled(m_SoftShadowsHigh)))
                 return true;
 
             return false;
@@ -1045,6 +1072,7 @@ namespace UnityEditor.Rendering.Universal
             IShaderScriptableStrippingData strippingData = new StrippingData()
             {
                 volumeFeatures = ShaderBuildPreprocessor.volumeFeatures,
+                stripSoftShadowQualityLevels = !ShaderBuildPreprocessor.s_UseSoftShadowQualityLevelKeywords,
                 strip2DPasses = ShaderBuildPreprocessor.s_Strip2DPasses,
                 stripDebugDisplayShaders = ShaderBuildPreprocessor.s_StripDebugDisplayShaders,
                 stripScreenCoordOverrideVariants = ShaderBuildPreprocessor.s_StripScreenCoordOverrideVariants,

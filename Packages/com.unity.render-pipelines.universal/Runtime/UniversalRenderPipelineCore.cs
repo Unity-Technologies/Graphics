@@ -985,6 +985,15 @@ namespace UnityEngine.Rendering.Universal
         /// <summary> Keyword used for soft shadows. </summary>
         public const string SoftShadows = "_SHADOWS_SOFT";
 
+        /// <summary> Keyword used for low quality soft shadows. </summary>
+        public const string SoftShadowsLow = "_SHADOWS_SOFT_LOW";
+
+        /// <summary> Keyword used for medium quality soft shadows. </summary>
+        public const string SoftShadowsMedium = "_SHADOWS_SOFT_MEDIUM";
+
+        /// <summary> Keyword used for high quality soft shadows. </summary>
+        public const string SoftShadowsHigh = "_SHADOWS_SOFT_HIGH";
+
         /// <summary> Keyword used for Mixed Lights in Subtractive lighting mode. </summary>
         public const string MixedLightingSubtractive = "_MIXED_LIGHTING_SUBTRACTIVE"; // Backward compatibility
 
