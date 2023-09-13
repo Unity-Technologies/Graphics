@@ -722,7 +722,7 @@ half3 LightingSpecular(half3 lightColor, half3 lightDir, half3 normal, half3 vie
 {
     float3 halfVec = SafeNormalize(float3(lightDir) + float3(viewDir));
     half NdotH = saturate(dot(normal, halfVec));
-    half modifier = pow(NdotH, smoothness);
+    half modifier = pow(float(NdotH), float(smoothness)); // Half produces banding, need full precision
     half3 specularReflection = specular.rgb * modifier;
     return lightColor * specularReflection;
 }
