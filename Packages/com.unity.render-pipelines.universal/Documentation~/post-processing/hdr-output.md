@@ -90,6 +90,8 @@ This mode has fixed presets to target 1000, 2000, and 4000 nit displays. It is b
 
 The [HDROutputSettings](https://docs.unity3d.com/ScriptReference/HDROutputSettings.html) API makes it possible to enable and disable HDR mode, as well as query certain values (such as Paper White).
 
+These values are also listed on the HDR output display table on the Rendering Debugger. To access the table, navigate to **Window** > **Analysis** > **Render Pipeline Debugger** > **Rendering** > **HDR Output**.
+
 ## Offscreen Rendering
 
 When using offscreen rendering techniques, not all cameras in a scene output directly to the display. For example, when Unity is rendering the output to a Render Texture. In these situations, you use the output of the camera before rendering post-processing.
@@ -133,7 +135,7 @@ This debug view indicates the relationship between scene values and specific col
 
 ![Values Exceeding Paper White Debug View](./../Images/post-proc/hdr/HDR-Output-OverPaperWhite.png)
 
-This debug view uses a color coded gradient to indicate parts of the scene that exceed the Paper White value. The gradient ranges from yellow to red. Yellow corresponds to **Paper White** +1, and red corresponds to **Max Nits**.
+This debug view uses a color coded gradient to indicate parts of the Scene that exceed the Paper White value and Max Nits. The gradient ranges from yellow to red and blue. Yellow corresponds to **Paper White** +1, red corresponds to **Max Nits**, and blue corresponds to **Max Nits**+1.
 
 ## Platform Compatibility
 

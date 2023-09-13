@@ -1752,6 +1752,20 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             });
 
+            widgetList.Add(new DebugUI.Container
+            {
+                displayName = "HDR Output",
+                children =
+                {
+                    new DebugUI.MessageBox
+                    {
+                        displayName = "The values on the Rendering Debugger editor window might not be accurate. Please use the playmode debug UI (Ctrl+Backspace).",
+                        style = DebugUI.MessageBox.Style.Warning,
+                    },
+                    DebugDisplaySettingsHDROutput.CreateHDROuputDisplayTable()
+                }
+            });
+
 #if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
             widgetList.Add(nvidiaDebugView.CreateWidget());
 #endif

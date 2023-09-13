@@ -404,6 +404,22 @@ namespace UnityEngine.Rendering.Universal
                         }
                     }
                 });
+
+                AddWidget(new DebugUI.Foldout
+                {
+                    displayName = "HDR Output",
+                    isHeader = true,
+                    opened = true,
+                    children =
+                    {
+                        new DebugUI.MessageBox
+                        {
+                            displayName = "The values on the Rendering Debugger editor window might not be accurate. Please use the playmode debug UI (Ctrl+Backspace).",
+                            style = DebugUI.MessageBox.Style.Warning,
+                        },
+                        DebugDisplaySettingsHDROutput.CreateHDROuputDisplayTable()
+                    }
+                });
             }
         }
 
