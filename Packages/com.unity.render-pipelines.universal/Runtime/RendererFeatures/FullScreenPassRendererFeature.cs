@@ -95,7 +95,7 @@ public class FullScreenPassRendererFeature : ScriptableRendererFeature
         fullScreenPass.Dispose();
     }
 
-    class FullScreenRenderPass : ScriptableRenderPass
+    internal class FullScreenRenderPass : ScriptableRenderPass
     {
         private Material m_PassMaterial;
         private int m_PassIndex;
@@ -114,11 +114,15 @@ public class FullScreenPassRendererFeature : ScriptableRendererFeature
             m_IsBeforeTransparents = isBeforeTransparents;
             m_ProfilingSampler ??= new ProfilingSampler(featureName);
 
-            var colorCopyDescriptor = renderingData.cameraData.cameraTargetDescriptor;
-            colorCopyDescriptor.depthBufferBits = (int) DepthBits.None;
-            RenderingUtils.ReAllocateIfNeeded(ref m_CopiedColor, colorCopyDescriptor, name: "_FullscreenPassColorCopy");
+            ReAllocate(renderingData.cameraData.cameraTargetDescriptor);
 
             m_PassData ??= new PassData();
+        }
+
+        internal void ReAllocate(RenderTextureDescriptor desc)
+        {
+            desc.depthBufferBits = (int)DepthBits.None;
+            RenderingUtils.ReAllocateIfNeeded(ref m_CopiedColor, desc, name: "_FullscreenPassColorCopy");
         }
 
         public void Dispose()
