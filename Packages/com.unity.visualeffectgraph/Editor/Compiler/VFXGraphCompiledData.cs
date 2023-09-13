@@ -839,7 +839,7 @@ namespace UnityEditor.VFX
                         if (task.doesGenerateShader)
                         {
                             var generatedContent = VFXCodeGenerator.Build(context, task, compilationMode, contextData, dependencies, enableShaderDebugSymbols);
-                            if (generatedContent != null)
+                            if (generatedContent != null && generatedContent.Length > 0)
                             {
                                 contextData.indexInShaderSource = outGeneratedCodeData.Count;
                                 outGeneratedCodeData.Add(new GeneratedCodeData()
