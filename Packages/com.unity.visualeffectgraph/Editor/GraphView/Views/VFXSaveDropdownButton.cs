@@ -1,7 +1,6 @@
 using System.IO;
 
 using UnityEditor.Experimental;
-using UnityEditor.VersionControl;
 
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -10,8 +9,10 @@ namespace UnityEditor.VFX.UI
 {
     class VFXSaveDropdownButton : DropDownButtonBase
     {
+
         public VFXSaveDropdownButton(VFXView vfxView)
             : base(
+                nameof(VFXSaveDropdownButton),
                 vfxView,
                 "VFXSaveDropDownPanel",
                 "Save",

@@ -63,7 +63,7 @@
     align-self: Flex-Start;
     color: var(--unity-colors-link-text);
     border-width: 0;
-    background-color: transparent;
+    background-color: rgba(0, 0, 0, 0);
     cursor: Link;
     padding-right: 0;
 }
@@ -72,7 +72,7 @@
 {
     -unity-font-style: bold;
     border-bottom-width: 1px;
-    border-radius: 0px;
+    border-radius: 0;
     border-color: var(--unity-colors-link-text);
 }
 
@@ -90,7 +90,7 @@ Button
 {
     border-width: 0;
     border-radius: 0;
-    background-color: transparent;
+    background-color: rgba(0, 0, 0, 0);
     -unity-text-align: middle-left;
 }
 
@@ -112,4 +112,16 @@ Toggle Label
 #resyncMaterial
 {
     display: none;
+}
+
+#BackButton
+{
+    justify-content: center;
+    padding: 0 4px;
+    border-left-width: 0;
+}
+
+#BackButton:hover
+{
+    background-color: var(--unity-colors-app_toolbar_button-background-hover);
 }

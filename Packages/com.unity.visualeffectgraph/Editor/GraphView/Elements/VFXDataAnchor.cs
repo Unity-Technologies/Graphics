@@ -307,6 +307,16 @@ namespace UnityEditor.VFX.UI
                     view.UpdateSelectionWithNewNode();
                     VFXParameter parameter = viewController.AddVFXParameter(pos, parameterDesc, false);
                     parameter.SetSettingValue("m_Exposed", true);
+                    var window = VFXViewWindow.GetWindow(view);
+                    var category = window.graphView.blackboard.selection.OfType<VFXBlackboardCategory>().FirstOrDefault()?.category.title;
+                    if (string.IsNullOrEmpty(category))
+                    {
+                        category = window.graphView.blackboard.selection.OfType<VFXBlackboardField>().FirstOrDefault()?.controller.model.category;
+                    }
+                    if (!string.IsNullOrEmpty(category))
+                    {
+                        parameter.SetSettingValue("m_Category", category);
+                    }
                     startSlot.Link(parameter.outputSlots[0]);
 
                     CopyValueToParameter(parameter);

@@ -538,6 +538,16 @@ namespace UnityEditor.VFX
             return null;
         }
 
+        public IEnumerable<VFXModel> GetRecursiveChildren()
+        {
+            yield return this;
+
+            foreach (var model in children.SelectMany(x => x.GetRecursiveChildren()))
+            {
+                yield return model;
+            }
+        }
+
         public static void UnlinkModel(VFXModel model, bool notify = true)
         {
             if (model is IVFXSlotContainer slotContainer)

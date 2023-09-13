@@ -1,11 +1,9 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
-using UnityEngine;
-using UnityEditor.VFX;
-using UnityEngine.UIElements;
-using System.Reflection;
 
+using UnityEngine;
+using UnityEngine.VFX;
 using NodeID = System.UInt32;
 
 namespace UnityEditor.VFX.UI
@@ -16,7 +14,10 @@ namespace UnityEditor.VFX.UI
         int[] contextsIndices;
         VFXOperatorController[] operators;
         int[] operatorIndices;
-        VFXParameterNodeController[] parameters;
+        string[] categories;
+        VFXParameter[] parameters;
+        VFXParameterNodeController[] parameterNodeControllers;
+        VFXParameterController[] parameterControllers;
         int[] parameterIndices;
         VFXData[] datas;
         Dictionary<VFXNodeController, uint> modelIndices = new Dictionary<VFXNodeController, NodeID>();
@@ -27,14 +28,14 @@ namespace UnityEditor.VFX.UI
         {
             if (s_Instance == null)
                 s_Instance = new VFXCopy();
-            return s_Instance.CreateCopy(elements, bounds);
+            return s_Instance.CreateCopy(elements, bounds, null, null, null);
         }
 
-        public static string SerializeElements(IEnumerable<Controller> elements, Rect bounds)
+        public static string SerializeElements(IEnumerable<Controller> elements, Rect bounds, IEnumerable<VFXAttribute> attributes, IEnumerable<VFXParameter> parameters, string[] categories)
         {
             if (s_Instance == null)
                 s_Instance = new VFXCopy();
-            var serializableGraph = s_Instance.CreateCopy(elements, bounds) as SerializableGraph;
+            var serializableGraph = s_Instance.CreateCopy(elements, bounds, attributes, parameters, categories) as SerializableGraph;
 
             return JsonUtility.ToJson(serializableGraph);
         }
@@ -52,14 +53,17 @@ namespace UnityEditor.VFX.UI
             return serializableGraph;
         }
 
-        object CreateCopy(IEnumerable<Controller> elements, Rect bounds)
+        object CreateCopy(IEnumerable<Controller> elements, Rect bounds, IEnumerable<VFXAttribute> vfxAttributes, IEnumerable<VFXParameter> vfxParameters, string[] categoriesToCopy)
         {
             IEnumerable<VFXContextController> contexts = elements.OfType<VFXContextController>();
             IEnumerable<VFXNodeController> nodes = elements.Where(t => t is VFXOperatorController || t is VFXParameterNodeController).Cast<VFXNodeController>();
             IEnumerable<VFXBlockController> blocks = elements.OfType<VFXBlockController>();
+            parameters = vfxParameters?.ToArray() ?? Array.Empty<VFXParameter>();
+            categories = categoriesToCopy ?? Array.Empty<string>();
 
             SerializableGraph serializableGraph = new SerializableGraph();
 
+            serializableGraph.attributes = vfxAttributes?.Select(x => new Attribute { name = x.name, type = x.type, description = x.description }).ToArray();
             serializableGraph.controllerCount = elements.Count();
 
             if (contexts.Count() == 0 && nodes.Count() == 0 && blocks.Count() > 0)
@@ -98,17 +102,19 @@ namespace UnityEditor.VFX.UI
             modelIndices.Clear();
             contexts = copiedContexts.ToArray();
             operators = nodes.OfType<VFXOperatorController>().ToArray();
-            parameters = nodes.OfType<VFXParameterNodeController>().ToArray();
+            parameterNodeControllers = nodes.OfType<VFXParameterNodeController>().ToArray();
+            parameterControllers = elements.OfType<VFXParameterController>().ToArray();
 
             contextsIndices = contexts.Select(t => Array.IndexOf(copiedElements, t)).ToArray();
             operatorIndices = operators.Select(t => Array.IndexOf(copiedElements, t)).ToArray();
-            parameterIndices = parameters.Select(t => Array.IndexOf(copiedElements, t)).ToArray();
+            parameterIndices = parameterNodeControllers.Select(t => Array.IndexOf(copiedElements, t)).ToArray();
 
             datas = contexts.Select(t => t.model.GetData()).Where(t => t != null).ToArray();
 
             CopyOperatorsAndContexts(ref serializableGraph);
 
-            CopyParameters(ref serializableGraph);
+            CopyParameterNodeControllers(ref serializableGraph);
+            CopyParameterControllers(ref serializableGraph);
 
             CopyGroupNodesAndStickyNotes(ref serializableGraph, elements);
 
@@ -154,7 +160,7 @@ namespace UnityEditor.VFX.UI
                         // only keep nodes and sticky notes that are copied because a element can not be in two groups at the same time.
                         if (info.contents != null)
                         {
-                            var nodeIndices = groupNode.nodes.OfType<VFXNodeController>().Where(t => contexts.Contains(t) || operators.Contains(t) || parameters.Contains(t)).Select(t => modelIndices[t]);
+                            var nodeIndices = groupNode.nodes.OfType<VFXNodeController>().Where(t => contexts.Contains(t) || operators.Contains(t) || parameterNodeControllers.Contains(t)).Select(t => modelIndices[t]);
                             var stickNoteIndices = info.contents.Where(t => t.isStickyNote && stickyNodeIndexToCopiedIndex.ContainsKey(t.id)).Select(t => (uint)stickyNodeIndexToCopiedIndex[t.id]);
 
                             serializableGraph.groupNodes[i].contents = nodeIndices.Concat(stickNoteIndices).ToArray();
@@ -245,30 +251,44 @@ namespace UnityEditor.VFX.UI
             return n;
         }
 
-        void CopyParameters(ref SerializableGraph serializableGraph)
+        void CopyParameterNodeControllers(ref SerializableGraph serializableGraph)
         {
             int cpt = 0;
-            serializableGraph.parameters = parameters.GroupBy(t => t.parentController, t => t, (p, c) =>
+            serializableGraph.parameterNodes = parameterNodeControllers.GroupBy(t => t.parentController, t => t, (p, c) =>
             {
-                ++cpt;
+                return CreateParameter(p.model, c.Select((u, i) => CopyParameterNode(++cpt - 1, i, u, parameterIndices[Array.IndexOf(parameterNodeControllers, u)])).ToArray());
+            }).ToArray();
+        }
 
-                return new Parameter()
-                {
-                    originalInstanceID = p.model.GetInstanceID(),
-                    name = p.model.exposedName,
-                    value = new VFXSerializableObject(p.model.type, p.model.value),
-                    exposed = p.model.exposed,
-                    isOutput = p.model.isOutput,
-                    valueFilter = p.valueFilter,
-                    min = p.valueFilter == VFXValueFilter.Range ? new VFXSerializableObject(p.model.type, p.model.min) : null,
-                    max = p.valueFilter == VFXValueFilter.Range ? new VFXSerializableObject(p.model.type, p.model.max) : null,
-                    enumValue = p.valueFilter == VFXValueFilter.Enum ? p.model.enumValues.ToArray() : null,
-                    tooltip = p.model.tooltip,
-                    space = p.space,
-                    nodes = c.Select((u, i) => CopyParameterNode(cpt - 1, i, u, parameterIndices[Array.IndexOf(parameters, u)])).ToArray()
-                };
-            }
-                ).ToArray();
+        void CopyParameterControllers(ref SerializableGraph serializableGraph)
+        {
+            serializableGraph.categories = categories;
+            serializableGraph.parameters = parameterNodeControllers
+                .Select(x => (VFXParameter)x.model)
+                .Union(parameters)
+                .Select(x => CreateParameter(x, Array.Empty<ParameterNode>()))
+                .ToArray();
+        }
+
+        Parameter CreateParameter(VFXParameter parameter, ParameterNode[] nodes)
+        {
+            return new Parameter
+            {
+                originalInstanceID = parameter.GetInstanceID(),
+                name = parameter.exposedName,
+                category = parameter.category,
+                value = new VFXSerializableObject(parameter.type, parameter.value),
+                exposed = parameter.exposed,
+                isOutput = parameter.isOutput,
+                valueFilter = parameter.valueFilter,
+                min = parameter.valueFilter == VFXValueFilter.Range ? new VFXSerializableObject(parameter.type, parameter.min) : null,
+                max = parameter.valueFilter == VFXValueFilter.Range ? new VFXSerializableObject(parameter.type, parameter.max) : null,
+                enumValue = parameter.valueFilter == VFXValueFilter.Enum ? parameter.enumValues.ToArray() : null,
+                tooltip = parameter.tooltip,
+                collapsed = parameter.collapsed,
+                space = parameter.GetNbOutputSlots() > 0 && parameter.GetOutputSlot(0).spaceable ? parameter.GetOutputSlot(0).space : VFXSpace.None,
+                nodes = nodes
+            };
         }
 
         void CopyOperatorsAndContexts(ref SerializableGraph serializableGraph)

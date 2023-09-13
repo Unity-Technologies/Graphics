@@ -166,7 +166,7 @@ namespace UnityEditor.VFX
             if (!isRayTraced)
                 return false;
             var writtenAttributes = GetAttributesInfos().Where(o => (VFXAttributeMode.Write & o.mode) != 0).Select(o => o.attrib);
-            bool modifiesAttributes = writtenAttributes.Intersect(VFXAttribute.AllAttributeAffectingAABB).Any();
+            bool modifiesAttributes = writtenAttributes.Intersect(VFXAttributesManager.AffectingAABBAttributes).Count() > 0;
             return modifiesAttributes || raytracedScaleMode == RayTracedScaleMode.Custom;
         }
 

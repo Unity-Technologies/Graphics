@@ -1,8 +1,6 @@
-using System.Collections.Generic;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.UIElements;
-using System.Reflection;
 using System.Linq;
 using UnityEngine.Profiling;
 
@@ -14,8 +12,8 @@ namespace UnityEditor.VFX.UI
     {
         public new VFXBlockController controller
         {
-            get { return base.controller as VFXBlockController; }
-            set { base.controller = value; }
+            get => base.controller as VFXBlockController;
+            set => base.controller = value;
         }
 
         protected override bool HasPosition()
@@ -23,10 +21,7 @@ namespace UnityEditor.VFX.UI
             return false;
         }
 
-        public VFXContextUI context
-        {
-            get { return this.GetFirstAncestorOfType<VFXContextUI>(); }
-        }
+        public VFXContextUI context => this.GetFirstAncestorOfType<VFXContextUI>();
 
         public VFXBlockUI()
         {
@@ -37,6 +32,10 @@ namespace UnityEditor.VFX.UI
             capabilities &= ~Capabilities.Ascendable;
             capabilities |= Capabilities.Selectable | Capabilities.Droppable;
             this.AddManipulator(new SelectionDropper());
+
+            RegisterCallback<MouseEnterEvent>(OnMouseHover);
+            RegisterCallback<MouseLeaveEvent>(OnMouseHover);
+            RegisterCallback<DetachFromPanelEvent>(OnDetachFromPanel);
 
             Profiler.EndSample();
             style.position = PositionType.Relative;
@@ -63,9 +62,51 @@ namespace UnityEditor.VFX.UI
                 RemoveFromClassList("invalid");
         }
 
-        public override bool superCollapsed
+        public override bool superCollapsed => false;
+
+        private void OnDetachFromPanel(DetachFromPanelEvent evt)
         {
-            get { return false; }
+            var view = evt.originPanel.visualTree.Q<VFXView>();
+            if (view != null)
+            {
+                UpdateHover(view, false);
+            }
+        }
+
+        private void OnMouseHover(EventBase evt)
+        {
+            Profiler.BeginSample("VFXNodeUI.OnMouseOver");
+            try
+            {
+                var view = GetFirstAncestorOfType<VFXView>();
+                if (view != null)
+                {
+                    UpdateHover(view, evt.eventTypeId == MouseEnterEvent.TypeId());
+                }
+            }
+            finally
+            {
+                Profiler.EndSample();
+            }
+        }
+
+        private void UpdateHover(VFXView view, bool isHovered)
+        {
+            var blackboard = view.blackboard;
+            if (blackboard == null)
+                return;
+
+            var attributes = controller.model is IVFXAttributeUsage attributeUsage
+                ? attributeUsage.usedAttributes.Select(x => x.name)
+                : controller.model.attributes.Select(x => x.attrib.name);
+
+            foreach (var row in blackboard.GetAttributeRowsFromNames(attributes.ToArray()))
+            {
+                if (isHovered)
+                    row.AddToClassList("hovered");
+                else
+                    row.RemoveFromClassList("hovered");
+            }
         }
     }
 }

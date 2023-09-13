@@ -264,6 +264,13 @@ namespace UnityEditor.VFX.Block
                 ResyncSlots(true);
         }
 
+        protected override void OnAdded()
+        {
+            base.OnAdded();
+            // Parse again now that the parent graph is accessible
+            Invalidate(InvalidationCause.kSettingChanged);
+        }
+
         internal override void GenerateErrors(VFXInvalidateErrorReporter manager)
         {
             base.GenerateErrors(manager);
@@ -296,10 +303,16 @@ namespace UnityEditor.VFX.Block
 
         private void ParseCodeIfNeeded()
         {
+            var graph = GetGraph();
+            if (graph == null)
+            {
+                return;
+            }
+
             var strippedHLSL = HLSLParser.StripCommentedCode(GetHLSLCode());
             if (strippedHLSL != cachedHLSLCode || m_SelectedFunction != m_AvailableFunction.GetSelection() || m_AvailableFunction.values == null)
             {
-                var functions = new List<HLSLFunction>(HLSLFunction.Parse(strippedHLSL));
+                var functions = new List<HLSLFunction>(HLSLFunction.Parse(graph.attributesManager, strippedHLSL));
 
                 if (functions.Count > 0)
                 {
@@ -448,6 +461,14 @@ namespace UnityEditor.VFX.Block
             }
 
             return ReferenceEquals(this, other) || HasShaderFile() && other.HasShaderFile() && m_ShaderFile == other.shaderFile;
+        }
+
+        public override void Rename(string oldName, string newName)
+        {
+            cachedHLSLCode = string.Empty;
+            Invalidate(InvalidationCause.kSettingChanged);
+            /*var hlslCode = GetHLSLCode();
+            sourceCode = hlslCode.Replace(oldName, newName);*/
         }
     }
 }

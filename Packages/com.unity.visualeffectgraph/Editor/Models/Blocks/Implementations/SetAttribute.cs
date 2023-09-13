@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Globalization;
 
 using UnityEngine;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Block
 {
@@ -12,14 +13,15 @@ namespace UnityEditor.VFX.Block
     {
         public sealed override IEnumerable<Variant> ComputeVariants()
         {
-            var attributes = VFXAttribute.AllIncludingVariadicReadWritable;
+            // Todo: should also list custom attributes here?
+            var attributes = VFXAttributesManager.GetBuiltInNamesOrCombination(true, false, false, false);
             var randoms = new[] { RandomMode.Off, RandomMode.Uniform, RandomMode.PerComponent };
             var sources = new[] { SetAttribute.ValueSource.Slot, SetAttribute.ValueSource.Source };
             var compositions = new[] { AttributeCompositionMode.Overwrite, AttributeCompositionMode.Add, AttributeCompositionMode.Multiply, AttributeCompositionMode.Blend };
 
             foreach (var attribute in attributes)
             {
-                var attributeRefSize = VFXExpressionHelper.GetSizeOfType(VFXAttribute.Find(attribute).type);
+                var attributeRefSize = VFXExpressionHelper.GetSizeOfType(VFXAttributesManager.FindBuiltInOnly(attribute).type);
                 foreach (var random in randoms)
                 {
                     foreach (var source in sources)
@@ -52,12 +54,17 @@ namespace UnityEditor.VFX.Block
                     }
                 }
             }
+            yield return new Variant(new []
+            {
+                new KeyValuePair<string, object>("attribute", "CustomAttribute"),
+            },
+            new[] { "Custom Attribute", VFXBlockUtility.GetNameString(AttributeCompositionMode.Overwrite) });
         }
     }
 
     [VFXHelpURL("Block-SetAttribute")]
     [VFXInfo(category = "Attribute/{0}/Composition/{1}", variantProvider = typeof(SetAttributeVariantReadWritable))]
-    class SetAttribute : VFXBlock
+    class SetAttribute : VFXBlock, IVFXAttributeUsage
     {
         public enum ValueSource
         {
@@ -81,34 +88,23 @@ namespace UnityEditor.VFX.Block
         public VariadicChannelOptions channels = VariadicChannelOptions.XYZ;
         private static readonly char[] channelNames = new char[] { 'x', 'y', 'z' };
 
-        public override string libraryName
+        public override string libraryName => ComputeName(true);
+
+        public override string name => ComputeName(false);
+
+        private bool TryGetAttribute(out VFXAttribute vfxAttribute)
         {
-            get
-            {
-                return ComputeName(true);
-            }
+            vfxAttribute = currentAttribute;
+            return !string.IsNullOrEmpty(vfxAttribute.name);
         }
 
-        public override string name
+        private string ComputeName(bool isLibraryName)
         {
-            get
+            if (!TryGetAttribute(out var vfxAttribute))
             {
-                return ComputeName(false);
-            }
-        }
-
-        private bool attributeIsValid
-        {
-            get
-            {
-                return !string.IsNullOrEmpty(attribute);
-            }
-        }
-
-        private string ComputeName(bool libraryName)
-        {
-            if (!attributeIsValid)
                 return string.Empty;
+            }
+
             if (Source != ValueSource.Slot && Source != ValueSource.Source)
                 throw new NotImplementedException(Source.ToString());
 
@@ -119,7 +115,7 @@ namespace UnityEditor.VFX.Block
                 builder.Append("Inherit Source ");
 
             builder.Append(ObjectNames.NicifyVariableName(attribute));
-            if (!libraryName && currentAttribute.variadic == VFXVariadic.True)
+            if (!isLibraryName && vfxAttribute.variadic == VFXVariadic.True)
                 builder.AppendFormat(".{0}", channels.ToString());
 
             if (Source == ValueSource.Slot)
@@ -133,12 +129,12 @@ namespace UnityEditor.VFX.Block
             return builder.ToString();
         }
 
-        public override VFXContextType compatibleContexts { get { return VFXContextType.InitAndUpdateAndOutput; } }
-        public override VFXDataType compatibleData { get { return VFXDataType.Particle; } }
+        public override VFXContextType compatibleContexts => VFXContextType.InitAndUpdateAndOutput;
+        public override VFXDataType compatibleData => VFXDataType.Particle;
 
         public override void Sanitize(int version)
         {
-            if (VFXBlockUtility.SanitizeAttribute(ref attribute, ref channels, version))
+            if (VFXBlockUtility.SanitizeAttribute(GetGraph(), ref attribute, ref channels, version))
                 Invalidate(InvalidationCause.kSettingChanged);
 
             base.Sanitize(version);
@@ -150,8 +146,14 @@ namespace UnityEditor.VFX.Block
                 {
                     slot.space = contextSpace;
                 }
-                Debug.Log(string.Format("Sanitizing attribute {0} : settings space to {1} (retrieved from context)", attribute, contextSpace));
+                Debug.Log($"Sanitizing attribute {attribute} : settings space to {contextSpace} (retrieved from context)");
             }
+        }
+
+        public override void CheckGraphBeforeImport()
+        {
+            base.CheckGraphBeforeImport();
+            SyncCustomAttributeIfNeeded();
         }
 
         protected override IEnumerable<string> filteredOutSettings
@@ -161,7 +163,7 @@ namespace UnityEditor.VFX.Block
                 if (Source != ValueSource.Slot)
                     yield return "Random";
 
-                if (!attributeIsValid || currentAttribute.variadic == VFXVariadic.False)
+                if (!TryGetAttribute(out var vfxAttribute) || vfxAttribute.variadic == VFXVariadic.False)
                     yield return "channels";
 
                 foreach (var setting in base.filteredOutSettings)
@@ -173,15 +175,14 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                if (attributeIsValid)
+                if (TryGetAttribute(out var attrib))
                 {
-                    var attrib = currentAttribute;
-                    VFXAttributeMode attributeMode = (Composition == AttributeCompositionMode.Overwrite) ? VFXAttributeMode.Write : VFXAttributeMode.ReadWrite;
+                    var attributeMode = Composition == AttributeCompositionMode.Overwrite ? VFXAttributeMode.Write : VFXAttributeMode.ReadWrite;
                     if (attrib.variadic == VFXVariadic.True)
                     {
-                        string channelsString = channels.ToString();
-                        for (int i = 0; i < channelsString.Length; i++)
-                            yield return new VFXAttributeInfo(VFXAttribute.Find(attrib.name + channelsString[i]), attributeMode);
+                        var channelsString = channels.ToString();
+                        foreach (var channel in channelsString)
+                            yield return new VFXAttributeInfo(VFXAttributesManager.FindBuiltInOnly(attrib.name + channel), attributeMode);
                     }
                     else
                     {
@@ -193,7 +194,7 @@ namespace UnityEditor.VFX.Block
             }
         }
 
-        static private string GenerateLocalAttributeName(string name)
+        private static string GenerateLocalAttributeName(string name)
         {
             return name[0].ToString().ToUpper(CultureInfo.InvariantCulture) + name.Substring(1);
         }
@@ -202,10 +203,9 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                if (!attributeIsValid)
+                if (!TryGetAttribute(out var attrib))
                     return string.Empty;
 
-                var attrib = currentAttribute;
                 string source = "";
 
                 int attributeSize = VFXExpression.TypeToSize(attrib.type);
@@ -253,11 +253,11 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                if (attributeIsValid)
+                if (TryGetAttribute(out var attrib))
                 {
                     foreach (var param in base.parameters)
                     {
-                        if ((param.name == "Value" || param.name == "A" || param.name == "B") && Source == ValueSource.Source)
+                        if (param.name is "Value" or "A" or "B" && Source == ValueSource.Source)
                             continue;
                         yield return param;
                     }
@@ -265,13 +265,12 @@ namespace UnityEditor.VFX.Block
                     if (Source == ValueSource.Source)
                     {
                         VFXExpression sourceExpression = null;
-                        var attrib = currentAttribute;
                         if (attrib.variadic == VFXVariadic.True)
                         {
                             var currentChannels = channels.ToString().Select(c => char.ToUpper(c));
                             var currentChannelsExpression = currentChannels.Select(o =>
                             {
-                                var subAttrib = VFXAttribute.Find(attribute + o);
+                                var subAttrib = VFXAttributesManager.FindBuiltInOnly(attribute + o);
                                 return new VFXAttributeExpression(subAttrib, VFXAttributeLocation.Source);
                             }).ToArray();
 
@@ -306,32 +305,14 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                if (attributeIsValid)
+                if (TryGetAttribute(out var attrib))
                 {
                     if (Source != ValueSource.Source)
                     {
-                        var attrib = currentAttribute;
-
-                        VFXPropertyAttributes attr = new VFXPropertyAttributes();
-                        var field = typeof(VFXAttribute).GetField(attrib.name.Substring(0, 1).ToUpper(CultureInfo.InvariantCulture) + attrib.name.Substring(1), System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public);
-
-                        TooltipAttribute tooltip = null;
-
-                        if (field != null)
-                            tooltip = field.GetCustomAttributes(typeof(TooltipAttribute), false).Cast<TooltipAttribute>().FirstOrDefault();
-
-                        if (attrib.Equals(VFXAttribute.Color))
-                        {
-                            if (tooltip != null)
-                                attr = new VFXPropertyAttributes(new ShowAsColorAttribute(), tooltip);
-                            else
-                                attr = new VFXPropertyAttributes(new ShowAsColorAttribute());
-                        }
-                        else
-                        {
-                            if (tooltip != null)
-                                attr = new VFXPropertyAttributes(tooltip);
-                        }
+                        TooltipAttribute tooltip = new TooltipAttribute(attrib.description);
+                        var attr = attrib.Equals(VFXAttribute.Color)
+                            ? new VFXPropertyAttributes(new ShowAsColorAttribute(), tooltip)
+                            : new VFXPropertyAttributes(tooltip);
 
 
                         Type slotType = VFXExpression.TypeToType(attrib.type);
@@ -393,11 +374,72 @@ namespace UnityEditor.VFX.Block
             }
         }
 
-        private VFXAttribute currentAttribute
+        public VFXAttribute currentAttribute
         {
             get
             {
-                return VFXAttribute.Find(attribute);
+                if (GetGraph() is { } graph)
+                {
+                    if (graph.attributesManager.TryFind(attribute, out var vfxAttribute))
+                    {
+                        return vfxAttribute;
+                    }
+                }
+                else // Happens when the node is not yet added to the graph, but should be ok as soon as it's added (see OnAdded)
+                {
+                    var attr = VFXAttributesManager.FindBuiltInOnly(attribute);
+                    if (string.Compare(attribute, attr.name, StringComparison.OrdinalIgnoreCase) == 0)
+                    {
+                        return attr;
+                    }
+                }
+
+                // Temporary attribute
+                return new VFXAttribute(attribute, VFXValueType.Float, null);
+            }
+        }
+
+        public override void Rename(string oldName, string newName)
+        {
+            if (GetGraph() is {} graph && graph.attributesManager.IsCustom(newName))
+            {
+                attribute = newName;
+                SyncSlots(VFXSlot.Direction.kInput, true);
+            }
+        }
+
+        internal sealed override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        {
+            base.GenerateErrors(manager);
+
+            if (!CustomAttributeUtility.IsShaderCompilableName(attribute))
+            {
+                manager.RegisterError("InvalidCustomAttributeName", VFXErrorType.Error, $"Custom attribute name '{attribute}' is not valid.\n -The name must not contain spaces or any special character\n -The name must not start with a digit character");
+            }
+        }
+
+        protected override void OnAdded()
+        {
+            base.OnAdded();
+            SyncCustomAttributeIfNeeded();
+        }
+
+        private void SyncCustomAttributeIfNeeded()
+        {
+            var graph = GetGraph();
+            if (graph != null)
+            {
+                if (graph.attributesManager.IsCustom(attribute))
+                {
+                    Invalidate(InvalidationCause.kUIChangedTransient);
+                    SyncSlots(VFXSlot.Direction.kInput, true);
+                }
+                else if (!string.IsNullOrEmpty(attribute) && !graph.attributesManager.TryFind(attribute, out _))
+                {
+                    graph.TryAddCustomAttribute(attribute, VFXValueType.Float, string.Empty, false, out _);
+                    graph.SetCustomAttributeDirty();
+                    Invalidate(InvalidationCause.kUIChangedTransient);
+                }
             }
         }
     }

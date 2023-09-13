@@ -27,6 +27,7 @@ namespace UnityEditor.VFX.UI
 
         public VFXHelpDropdownButton(VFXView vfxView)
             : base(
+                nameof(VFXHelpDropdownButton),
                 vfxView,
                 "VFXHelpDropdownPanel",
                 "Open the user manual of Visual Effect Graph",

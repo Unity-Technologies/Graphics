@@ -126,9 +126,9 @@ namespace UnityEditor.VFX
 
         private static IEnumerable<EventAttribute> GetAvailableAttributes()
         {
-            foreach (var attributeName in VFXAttribute.AllIncludingVariadicReadWritable)
+            foreach (var attributeName in VFXAttributesManager.GetBuiltInNamesOrCombination(false, true, false, false))
             {
-                var attribute = VFXAttribute.Find(attributeName);
+                var attribute = VFXAttributesManager.FindBuiltInOnly(attributeName);
                 var type = VFXExpression.TypeToType(attribute.type);
 
                 EventAttribute eventAttribute = null;

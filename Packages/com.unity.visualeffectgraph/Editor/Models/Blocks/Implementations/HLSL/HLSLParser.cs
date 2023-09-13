@@ -233,7 +233,7 @@ namespace UnityEditor.VFX.Block
             s_FunctionParser = new Regex(pattern, RegexOptions.Compiled | RegexOptions.Multiline);
         }
 
-        public static IEnumerable<HLSLFunction> Parse(string hlsl)
+        public static IEnumerable<HLSLFunction> Parse(IVFXAttributesManager attributesManager, string hlsl)
         {
             var matches = s_FunctionParser.Matches(hlsl.Trim());
             for (var i = 0; i < matches.Count; i++)
@@ -246,7 +246,7 @@ namespace UnityEditor.VFX.Block
                     var bodyEndIndex = (i + 1) < matches.Count ? matches[i + 1].Index - 1 : hlsl.Length - 1;
                     var body = hlsl.Substring(bodyStartIndex, bodyEndIndex - bodyStartIndex + 1).TrimEnd();
 
-                    yield return new HLSLFunction(
+                    yield return new HLSLFunction(attributesManager,
                         match.Index,
                         match.Groups["doc"].Value,
                         match.Groups["name"].Value,
@@ -257,7 +257,7 @@ namespace UnityEditor.VFX.Block
             }
         }
 
-        HLSLFunction(int matchIndex, string rawDoc, string name, string returnType, string parameters, string body)
+        HLSLFunction(IVFXAttributesManager attributesManager, int matchIndex, string rawDoc, string name, string returnType, string parameters, string body)
         {
             var errors = new List<IHLSMessage>();
             this.index = matchIndex;
@@ -267,7 +267,7 @@ namespace UnityEditor.VFX.Block
             var doc = this.GetDoc(rawDoc);
             this.m_Inputs = new List<HLSLFunctionParameter>(HLSLFunctionParameter.Parse(parameters, doc));
             this.body = body.Trim('\n');
-            this.attributes = new List<VFXAttributeInfo>(GetAttributes(this.body, errors));
+            this.attributes = new List<VFXAttributeInfo>(GetAttributes(attributesManager, this.body, errors));
             this.errorList = errors;
         }
 
@@ -308,7 +308,7 @@ namespace UnityEditor.VFX.Block
             return doc;
         }
 
-        private IEnumerable<VFXAttributeInfo> GetAttributes(string hlsl, List<IHLSMessage> errorList)
+        private IEnumerable<VFXAttributeInfo> GetAttributes(IVFXAttributesManager attributesManager, string hlsl, List<IHLSMessage> errorList)
         {
             var attributeVariable = m_Inputs.Find(x => x.type == typeof(VFXAttribute))?.name;
             if (string.IsNullOrEmpty(attributeVariable))
@@ -367,6 +367,7 @@ namespace UnityEditor.VFX.Block
                 }
             }
 
+            var allAttributes = new List<string>(attributesManager.GetAllNamesOrCombination(true, true, true, true));
             // Read and Write attributes
             foreach (var readWriteAttribute in writeAttributes)
             {
@@ -375,14 +376,13 @@ namespace UnityEditor.VFX.Block
                     continue;
                 }
 
-                var attribute = VFXAttribute.FindWithMode(readWriteAttribute, VFXAttributeMode.ReadWrite);
-                if (!string.IsNullOrEmpty(attribute.name))
+                if (attributesManager.TryFindWithMode(readWriteAttribute, VFXAttributeMode.ReadWrite, out var attribute))
                 {
                     yield return new VFXAttributeInfo(attribute, VFXAttributeMode.ReadWrite);
                 }
                 else
                 {
-                    errorList.Add(new HLSLAttributeError(readWriteAttribute, Array.FindIndex(VFXAttribute.All, x => x == readWriteAttribute) != -1 ? VFXAttributeMode.ReadWrite : VFXAttributeMode.None));
+                    errorList.Add(new HLSLAttributeError(readWriteAttribute, allAttributes.FindIndex(x => x == readWriteAttribute) != -1 ? VFXAttributeMode.ReadWrite : VFXAttributeMode.None));
                 }
             }
 
@@ -394,14 +394,13 @@ namespace UnityEditor.VFX.Block
                     continue;
                 }
 
-                var attribute = VFXAttribute.FindWithMode(writeAttribute, VFXAttributeMode.Write);
-                if (!string.IsNullOrEmpty(attribute.name))
+                if (attributesManager.TryFindWithMode(writeAttribute, VFXAttributeMode.Write, out var attribute))
                 {
                     yield return new VFXAttributeInfo(attribute, VFXAttributeMode.Write);
                 }
                 else
                 {
-                    errorList.Add(new HLSLAttributeError(writeAttribute, Array.FindIndex(VFXAttribute.All, x => x == writeAttribute) != -1 ? VFXAttributeMode.Write : VFXAttributeMode.None));
+                    errorList.Add(new HLSLAttributeError(writeAttribute, allAttributes.FindIndex(x => x == writeAttribute) != -1 ? VFXAttributeMode.Write : VFXAttributeMode.None));
                 }
             }
 
@@ -413,14 +412,13 @@ namespace UnityEditor.VFX.Block
                     continue;
                 }
 
-                var attribute = VFXAttribute.FindWithMode(readAttribute, VFXAttributeMode.Read);
-                if (!string.IsNullOrEmpty(attribute.name))
+                if (attributesManager.TryFindWithMode(readAttribute, VFXAttributeMode.Read, out var attribute))
                 {
                     yield return new VFXAttributeInfo(attribute, VFXAttributeMode.Read);
                 }
                 else
                 {
-                    errorList.Add(new HLSLAttributeError(readAttribute, Array.FindIndex(VFXAttribute.All, x => x == readAttribute) != -1 ? VFXAttributeMode.Read : VFXAttributeMode.None));
+                    errorList.Add(new HLSLAttributeError(readAttribute, allAttributes.FindIndex(x => x == readAttribute) != -1 ? VFXAttributeMode.Read : VFXAttributeMode.None));
                 }
             }
         }

@@ -52,11 +52,11 @@ class VFXSlotContainerEditor : Editor
             var fieldInfo = prop.Key.field;
             var disabledScope = new EditorGUI.DisabledScope(prop.Key.visibility.HasFlag(VFXSettingAttribute.VisibleFlags.ReadOnly));
             EditorGUI.BeginChangeCheck();
-            var stringAttribute = fieldInfo.GetCustomAttributes<StringProviderAttribute>(true);
+            var stringAttribute = fieldInfo.GetCustomAttributes<StringProviderAttribute>(true).ToArray();
             var rangeAttribute = fieldInfo.GetCustomAttributes<RangeAttribute>(false).FirstOrDefault();
-            if (stringAttribute.Any())
+            if (stringAttribute.Length > 0)
             {
-                var strings = StringPropertyRM.FindStringProvider(stringAttribute.ToArray())();
+                var strings = StringPropertyRM.FindStringProvider(slotContainer, stringAttribute)();
 
                 int selected = prop.Value.hasMultipleDifferentValues ? -1 : System.Array.IndexOf(strings, prop.Value.stringValue);
                 int result = EditorGUILayout.Popup(ObjectNames.NicifyVariableName(prop.Value.name), selected, strings);

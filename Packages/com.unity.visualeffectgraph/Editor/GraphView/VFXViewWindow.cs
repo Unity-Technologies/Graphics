@@ -301,7 +301,6 @@ namespace UnityEditor.VFX.UI
             VFXManagerEditor.CheckVFXManager();
 
             graphView = new VFXView();
-            graphView.StretchToParentSize();
             SetupFramingShortcutHandler(graphView);
 
             rootVisualElement.Add(graphView);
@@ -446,6 +445,12 @@ namespace UnityEditor.VFX.UI
                         }
                         else
                             graph.RecompileIfNeeded(true, true);
+
+                        if (graph.IsCustomAttributeDirty())
+                        {
+                            graphView.blackboard.Update(true);
+                            graph.SetCustomAttributeDirty(false);
+                        }
 
                         bool wasDirty = graph.IsExpressionGraphDirty();
 

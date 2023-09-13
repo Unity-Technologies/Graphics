@@ -133,7 +133,7 @@ namespace UnityEditor.VFX
                 {
                     if (attributesCurrent.Any(o => o.attrib.name == attribute.name))
                     {
-                        var reference = new VFXAttributeExpression(new VFXAttribute(attribute.name, attribute.value), VFXAttributeLocation.Current);
+                        var reference = new VFXAttributeExpression(new VFXAttribute(attribute.name, attribute.value, string.Empty), VFXAttributeLocation.Current);
                         r.WriteAssignement(reference.valueType, name, reference.GetCodeString(null));
                     }
                     else

@@ -1,68 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Text.RegularExpressions;
 
 using UnityEngine;
-using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Block
 {
-    static class CustomAttributeUtility
-    {
-        private static readonly Regex s_NameValidationRegex = new Regex("^[A-Za-z_][A-Za-z0-9_]*$", RegexOptions.Compiled);
-
-        public enum Signature
-        {
-            Float,
-            Vector2,
-            Vector3,
-            Vector4,
-            Bool,
-            Uint,
-            Int
-        }
-
-        internal static VFXValueType GetValueType(Signature signature)
-        {
-            switch (signature)
-            {
-                default:
-                case Signature.Float: return VFXValueType.Float;
-                case Signature.Vector2: return VFXValueType.Float2;
-                case Signature.Vector3: return VFXValueType.Float3;
-                case Signature.Vector4: return VFXValueType.Float4;
-                case Signature.Int: return VFXValueType.Int32;
-                case Signature.Uint: return VFXValueType.Uint32;
-                case Signature.Bool: return VFXValueType.Boolean;
-            }
-        }
-
-        internal static bool IsShaderCompilableName(string name)
-        {
-            return s_NameValidationRegex.IsMatch(name);
-        }
-    }
-
-    class AttributeCustomProvider : VariantProvider
-    {
-        public override IEnumerable<Variant> ComputeVariants()
-        {
-            var compositions = new[] { AttributeCompositionMode.Add, AttributeCompositionMode.Overwrite, AttributeCompositionMode.Multiply, AttributeCompositionMode.Blend };
-            foreach (var composition in compositions)
-            {
-                yield return new Variant(
-                    new[]
-                    {
-                        new KeyValuePair<string, object>("attribute", "CustomAttribute"),
-                        new KeyValuePair<string, object>("Composition", composition),
-                    },
-                    new[] { "custom" });
-            }
-        }
-    }
-
-    [VFXInfo(category = "Attribute/{0}", variantProvider = typeof(AttributeCustomProvider), experimental = true)]
+    [Obsolete]
     class SetCustomAttribute : VFXBlock
     {
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Delayed]
@@ -78,10 +22,9 @@ namespace UnityEditor.VFX.Block
         public CustomAttributeUtility.Signature AttributeType = CustomAttributeUtility.Signature.Float;
 
         public override string libraryName => $"{VFXBlockUtility.GetNameString(Composition)} {ObjectNames.NicifyVariableName(attribute)}";
-
         public override string name => VFXBlockUtility.GetNameString(Composition) + " '" + attribute + "' " + VFXBlockUtility.GetNameString(Random) + " (" + AttributeType + ")";
-        public override VFXContextType compatibleContexts { get { return VFXContextType.InitAndUpdateAndOutput; } }
-        public override VFXDataType compatibleData { get { return VFXDataType.Particle; } }
+        public override VFXContextType compatibleContexts => VFXContextType.InitAndUpdateAndOutput;
+        public override VFXDataType compatibleData => VFXDataType.Particle;
 
         public override IEnumerable<VFXAttributeInfo> attributes
         {
@@ -148,6 +91,22 @@ namespace UnityEditor.VFX.Block
             }
         }
 
+        protected override void OnAdded()
+        {
+            Sanitize(0);
+        }
+
+        public override void Sanitize(int version)
+        {
+            GetGraph().TryAddCustomAttribute(attribute, CustomAttributeUtility.GetValueType(AttributeType), string.Empty, false, out var vfxAttribute);
+            var setAttribute = ScriptableObject.CreateInstance<SetAttribute>();
+            setAttribute.attribute = vfxAttribute.name;
+            setAttribute.Composition = Composition;
+            setAttribute.ResyncSlots(true);
+            VFXBlock.CopyInputLinks(setAttribute, this);
+            ReplaceModel(setAttribute, this);
+        }
+
         internal sealed override void GenerateErrors(VFXInvalidateErrorReporter manager)
         {
             base.GenerateErrors(manager);
@@ -159,6 +118,6 @@ namespace UnityEditor.VFX.Block
             }
         }
 
-        private VFXAttribute currentAttribute => new VFXAttribute(attribute, CustomAttributeUtility.GetValueType(AttributeType));
+        private VFXAttribute currentAttribute => new (attribute, CustomAttributeUtility.GetValueType(AttributeType), string.Empty);
     }
 }

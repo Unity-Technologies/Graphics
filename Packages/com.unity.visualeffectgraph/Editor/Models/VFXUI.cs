@@ -101,12 +101,14 @@ namespace UnityEditor.VFX
             public bool collapsed;
         }
 
-        public List<CategoryInfo> categories;
+        public List<CategoryInfo> categories =  new ();
 
         public Rect uiBounds;
 
         public void Sanitize(VFXGraph graph)
         {
+            categories ??= new ();
+
             if (groupInfos != null)
                 foreach (var groupInfo in groupInfos)
                 {

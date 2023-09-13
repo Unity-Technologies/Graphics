@@ -178,20 +178,24 @@ namespace UnityEditor.VFX.UI
 
         void OnMouseHover(EventBase evt)
         {
-            VFXView view = GetFirstAncestorOfType<VFXView>();
-            if (view == null)
-                return;
-            VFXBlackboard blackboard = view.blackboard;
-            if (blackboard == null)
-                return;
-            VFXBlackboardRow row = blackboard.GetRowFromController(controller.parentController);
-            if (row == null)
-                return;
+            Profiler.BeginSample("VFXParameterUI.OnMouseOver");
+            try
+            {
+                var view = GetFirstAncestorOfType<VFXView>();
+                var blackboard = view?.blackboard;
+                var row = blackboard?.GetRowFromController(controller.parentController);
+                if (row == null)
+                    return;
 
-            if (evt.eventTypeId == MouseEnterEvent.TypeId())
-                row.AddToClassList("hovered");
-            else
-                row.RemoveFromClassList("hovered");
+                if (evt.eventTypeId == MouseEnterEvent.TypeId())
+                    row.AddToClassList("hovered");
+                else
+                    row.RemoveFromClassList("hovered");
+            }
+            finally
+            {
+                Profiler.EndSample();
+            }
         }
     }
 }

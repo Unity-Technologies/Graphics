@@ -802,7 +802,7 @@ namespace UnityEditor.VFX
 
                 attributeSourceBufferIndex = dependentBuffers.attributeBuffers[dependency];
                 eventGPUFrom = dependentBuffers.eventBuffers[this];
-               
+
                 systemValueMappings.Add(new VFXMapping("parentSystemIndex", (int)dataToSystemIndex[dependency]));
             }
             var systemFlag = VFXSystemFlag.SystemDefault;

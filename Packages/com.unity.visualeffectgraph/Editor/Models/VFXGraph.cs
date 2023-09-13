@@ -4,12 +4,14 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
+
 using Unity.Profiling;
+using UnityEditor.ShaderGraph.Internal;
+using UnityEditor.VFX.Block;
 using UnityEditor.VFX.UI;
 using UnityEngine;
 using UnityEngine.VFX;
 using UnityEngine.Profiling;
-using UnityEditor.ShaderGraph.Internal;
 
 using UnityObject = UnityEngine.Object;
 
@@ -30,6 +32,8 @@ namespace UnityEditor.VFX
             {
                 VFXViewWindow.GetAllWindows().ToList().ForEach(x => x.UpdateHistory());
             }
+
+            var isAnySubgraphImported = importedAssets.Any(VisualEffectAssetModificationProcessor.IsVFXSubgraphExtension);
 
             foreach (var assetPath in importedAssets)
             {
@@ -62,6 +66,11 @@ namespace UnityEditor.VFX
                         if (window != null)
                         {
                             window.UpdateTitle(assetPath);
+                            // Force blackboard update only when a subgraph gets re-imported
+                            if (isAnySubgraphImported)
+                            {
+                                window.graphView?.blackboard.Update(true);
+                            }
                         }
                     }
                     else
@@ -303,7 +312,7 @@ namespace UnityEditor.VFX
             {
                 AssetDatabase.StopAssetEditing();
             }
-            
+
             EditorUtility.UnloadUnusedAssetsImmediate();
             GC.Collect();
         }
@@ -335,6 +344,12 @@ namespace UnityEditor.VFX
             }
 
             return false;
+        }
+
+        public static bool IsVFXSubgraphExtension(string filePath)
+        {
+            return filePath.EndsWith(VisualEffectSubgraphBlock.Extension, StringComparison.OrdinalIgnoreCase)
+                   || filePath.EndsWith(VisualEffectSubgraphOperator.Extension, StringComparison.OrdinalIgnoreCase);
         }
 
         static string[] OnWillSaveAssets(string[] paths)
@@ -459,7 +474,8 @@ namespace UnityEditor.VFX
         // 13: Unexpected incorrect synchronization of output with ShaderGraph
         // 14: ShaderGraph integration uses the material variant workflow
         // 15: New ShaderGraph integration uses independent output
-        public static readonly int CurrentVersion = 15;
+        // 16: Add a collection of custom attributes (to be listed in blackboard)
+        public static readonly int CurrentVersion = 16;
 
         [NonSerialized]
         internal static bool compilingInEditMode = false;
@@ -507,11 +523,20 @@ namespace UnityEditor.VFX
             }
         }
 
+        [SerializeField]
+        List<VFXCustomAttributeDescriptor> m_CustomAttributes;
+        // Do not serialize custom attributes imported from sub-graphs
+        readonly List<VFXCustomAttributeDescriptor> m_DependenciesCustomAttributes = new();
+
+        public IEnumerable<VFXCustomAttributeDescriptor> customAttributes => (m_CustomAttributes ??= new List<VFXCustomAttributeDescriptor>()).Concat(m_DependenciesCustomAttributes);
+
         public VFXParameterInfo[] m_ParameterInfo;
 
-        private VFXSystemNames m_SystemNames = new VFXSystemNames();
+        private readonly VFXSystemNames m_SystemNames = new();
+        private readonly VFXAttributesManager m_AttributesManager = new();
 
-        public VFXSystemNames systemNames { get { return m_SystemNames; } }
+        public VFXSystemNames systemNames => m_SystemNames;
+        public VFXAttributesManager attributesManager => m_AttributesManager;
 
         public void BuildParameterInfo()
         {
@@ -522,6 +547,237 @@ namespace UnityEditor.VFX
         public override bool AcceptChild(VFXModel model, int index = -1)
         {
             return !(model is VFXGraph); // Can hold any model except other VFXGraph
+        }
+
+        public void SyncCustomAttributes()
+        {
+            m_CustomAttributes.RemoveAll(x => x == null);
+            m_AttributesManager.ClearCustomAttributes();
+            foreach (var attributeDescriptor in customAttributes.ToArray())
+            {
+                var usages = GetCustomAttributeUsage(attributeDescriptor.attributeName).ToArray();
+
+                attributeDescriptor.ClearSubgraphUse();
+                foreach (var usage in usages.Where(VFXSubgraphUtility.IsSubgraphModel))
+                {
+                    attributeDescriptor.AddSubgraphUse(usage.name);
+                }
+
+                // Remove custom attributes from sub-graphs that are not used by sub-graph anymore
+                if (attributeDescriptor.usedInSubgraphs == null && m_DependenciesCustomAttributes.Contains(attributeDescriptor))
+                {
+                    m_DependenciesCustomAttributes.Remove(attributeDescriptor);
+                    SetCustomAttributeDirty();
+                }
+
+                // Check if custom attribute is used, but not in sub-graph and not yet in the serialized collection
+                if (attributeDescriptor.usedInSubgraphs == null && usages.Length > 0 && !m_CustomAttributes.Contains(attributeDescriptor))
+                {
+                    m_CustomAttributes.Add(attributeDescriptor);
+                    attributeDescriptor.isReadOnly = false;
+                    SetCustomAttributeDirty();
+                }
+                // Move custom attributes used in subgraph into the transiant collection
+                else if (attributeDescriptor.usedInSubgraphs != null && m_CustomAttributes.Contains(attributeDescriptor))
+                {
+                    m_CustomAttributes.Remove(attributeDescriptor);
+                    if (!m_DependenciesCustomAttributes.Contains(attributeDescriptor))
+                    {
+                        m_DependenciesCustomAttributes.Add(attributeDescriptor);
+                    }
+                    attributeDescriptor.isReadOnly = true;
+                    SetCustomAttributeDirty();
+                }
+            }
+
+            foreach (var customAttribute in customAttributes)
+            {
+                customAttribute.graph = this;
+                m_AttributesManager.TryRegisterCustomAttribute(customAttribute.attributeName, customAttribute.type, customAttribute.description, out _);
+            }
+        }
+
+        public bool TryAddCustomAttribute(string attributeName, VFXValueType type, string description, bool isReadOnly, out VFXAttribute newAttribute)
+        {
+            var signature = CustomAttributeUtility.GetSignature(type);
+
+            if (m_AttributesManager.TryRegisterCustomAttribute(attributeName, signature, description, out newAttribute))
+            {
+                var customAttribute = ScriptableObject.CreateInstance<VFXCustomAttributeDescriptor>();
+                customAttribute.attributeName = newAttribute.name;
+                customAttribute.type = CustomAttributeUtility.GetSignature(type);
+                customAttribute.description = description;
+                customAttribute.graph = this;
+                customAttribute.isReadOnly = isReadOnly;
+
+                if (!isReadOnly)
+                {
+                    m_CustomAttributes.Add(customAttribute);
+                }
+                else
+                {
+                    m_DependenciesCustomAttributes.Add(customAttribute);
+                }
+
+                Invalidate(InvalidationCause.kStructureChanged);
+                return true;
+            }
+
+            return false;
+        }
+
+        public bool IsCustomAttributeUsed(string attributeName)
+        {
+            // First look at operators
+            if (children
+                .OfType<IVFXAttributeUsage>()
+                .SelectMany(x => x.usedAttributes)
+                .Any(x => string.Compare(x.name, attributeName, StringComparison.OrdinalIgnoreCase) == 0))
+                return true;
+
+            // Look in context blocks
+            if (children
+                .OfType<VFXContext>()
+                .SelectMany(x => x.children)
+                .OfType<IVFXAttributeUsage>()
+                .SelectMany(x => x.usedAttributes)
+                .Distinct()
+                .Any(x => string.Compare(x.name, attributeName, StringComparison.OrdinalIgnoreCase) == 0))
+                return true;
+
+            return false;
+        }
+
+        public bool TryFindCustomAttributeDescriptor(string name, out VFXCustomAttributeDescriptor attributeDescriptor)
+        {
+            attributeDescriptor = customAttributes.SingleOrDefault(x => string.Compare(name, x.attributeName, StringComparison.OrdinalIgnoreCase) == 0);
+            return attributeDescriptor != null;
+        }
+
+        public IEnumerable<string> GetUnusedCustomAttributes()
+        {
+            var objs = new HashSet<ScriptableObject>();
+            CollectDependencies(objs, true);
+
+            var nodesUsingCustomAttribute = objs
+                .OfType<IVFXAttributeUsage>()
+                .SelectMany(x => x.usedAttributes)
+                .Where(x => this.attributesManager.IsCustom(x.name))
+                .Select(x => x.name)
+                .ToArray();
+
+            return this.attributesManager.GetCustomAttributeNames().Except(nodesUsingCustomAttribute);
+        }
+
+        public VFXAttribute DuplicateCustomAttribute(string attributeName)
+        {
+            var newAttribute = m_AttributesManager.Duplicate(attributeName);
+            this.TryAddCustomAttribute(newAttribute.name, newAttribute.type, newAttribute.description, false, out var attribute);
+
+            return attribute;
+        }
+
+        public void RemoveCustomAttribute(string attributeName)
+        {
+            var existingAttribute = this.FindCustomAttribute(attributeName);
+            if (existingAttribute != null)
+            {
+                foreach (var usage in GetCustomAttributeUsage(attributeName).ToArray())
+                {
+                    if (Selection.Contains(usage))
+                        Selection.Remove(usage);
+                    RemoveModel(usage);
+                }
+
+                m_AttributesManager.UnregisterCustomAttribute(attributeName);
+                m_CustomAttributes.Remove(existingAttribute);
+
+                Invalidate(this, InvalidationCause.kStructureChanged);
+            }
+        }
+
+        public bool TryRenameCustomAttribute(string oldName, string newName)
+        {
+            var customAttributeDescriptor = FindCustomAttribute(oldName);
+
+            var result = this.m_AttributesManager.TryRename(oldName, newName);
+            if (result == RenameStatus.Success)
+            {
+                customAttributeDescriptor.attributeName = newName;
+
+                var usingNodes = GetRecursiveChildren()
+                    .OfType<IVFXAttributeUsage>()
+                    .Where(x => x.usedAttributes.Any(x => string.Compare(x.name, oldName, StringComparison.OrdinalIgnoreCase) == 0));
+
+                foreach (var customAttributeNode in usingNodes)
+                {
+                    customAttributeNode.Rename(oldName, newName);
+                }
+
+                return true;
+            }
+
+            // Already renamed
+            if (result == RenameStatus.NotFound && FindCustomAttribute(newName) != null)
+            {
+                return true;
+            }
+
+            if (result == RenameStatus.NameUsed)
+            {
+                Debug.LogWarning("You are trying to rename a custom attribute with a name that is already used by another custom attribute");
+            }
+            return false;
+        }
+
+        public bool TryUpdateCustomAttribute(string attributeName, CustomAttributeUtility.Signature type, string description, bool? isReadOnly = null)
+        {
+            var customAttributeDescriptor = this.FindCustomAttribute(attributeName);
+            if (this.attributesManager.TryUpdate(attributeName, type, description))
+            {
+                customAttributeDescriptor.type = type;
+                customAttributeDescriptor.description = description;
+
+                var usingNodes = GetRecursiveChildren()
+                    .OfType<IVFXAttributeUsage>()
+                    .Where(x => x.usedAttributes.Any(x => string.Compare(x.name, attributeName, StringComparison.OrdinalIgnoreCase) == 0));
+
+                foreach (var node in usingNodes)
+                {
+                    ((VFXModel)node).Invalidate(InvalidationCause.kSettingChanged);
+                }
+
+                return true;
+            }
+
+            if (customAttributeDescriptor != null && isReadOnly.HasValue && isReadOnly.Value != customAttributeDescriptor.isReadOnly)
+            {
+                customAttributeDescriptor.isReadOnly = isReadOnly.Value;
+                if (isReadOnly.Value)
+                {
+                    m_CustomAttributes.Remove(customAttributeDescriptor);
+                    if (!m_DependenciesCustomAttributes.Contains(customAttributeDescriptor))
+                    {
+                        m_DependenciesCustomAttributes.Add(customAttributeDescriptor);
+                    }
+                }
+                else
+                {
+                    if (!m_CustomAttributes.Contains(customAttributeDescriptor))
+                    {
+                        m_CustomAttributes.Add(customAttributeDescriptor);
+                    }
+                    m_DependenciesCustomAttributes.Remove(customAttributeDescriptor);
+                }
+            }
+
+            return false;
+        }
+
+        public void SetCustomAttributeExpanded(string attributeName, bool isExpanded)
+        {
+            var customAttributeDescriptor = this.FindCustomAttribute(attributeName);
+            customAttributeDescriptor.isExpanded = isExpanded;
         }
 
         public object Backup()
@@ -543,6 +799,8 @@ namespace UnityEditor.VFX
         {
             Profiler.BeginSample("VFXGraph.Restore");
             var scriptableObject = VFXMemorySerializer.ExtractObjects(str as byte[], false);
+            var graph = scriptableObject.OfType<VFXGraph>().Single();
+            graph.SyncCustomAttributes();
 
             Profiler.BeginSample("VFXGraph.Restore SendUnknownChange");
             foreach (var model in scriptableObject.OfType<VFXModel>())
@@ -555,6 +813,7 @@ namespace UnityEditor.VFX
             m_ExpressionGraphDirty = true;
             m_ExpressionValuesDirty = true;
             m_DependentDirty = true;
+            SetCustomAttributeDirty();
         }
 
         public override void CollectDependencies(HashSet<ScriptableObject> objs, bool ownedOnly = true)
@@ -564,6 +823,8 @@ namespace UnityEditor.VFX
             {
                 if (m_UIInfos != null)
                     objs.Add(m_UIInfos);
+                m_CustomAttributes?.ForEach(x => { if (x != null) objs.Add(x); });
+
                 base.CollectDependencies(objs, ownedOnly);
             }
             finally
@@ -588,7 +849,9 @@ namespace UnityEditor.VFX
                 SanitizeCameraBuffers(objs);
             }
 
+            SyncCustomAttributes();
             foreach (var model in objs.OfType<VFXModel>())
+            {
                 try
                 {
                     model.Sanitize(m_GraphVersion); // This can modify dependencies but newly created model are supposed safe so we dont care about retrieving new dependencies
@@ -597,7 +860,7 @@ namespace UnityEditor.VFX
                 {
                     Debug.LogError(string.Format("Exception while sanitizing model: {0} of type {1}: {2} {3}", model.name, model.GetType(), e, e.StackTrace));
                 }
-
+            }
             if (m_UIInfos != null)
                 try
                 {
@@ -613,6 +876,19 @@ namespace UnityEditor.VFX
             if (version < 11)
             {
                 visualEffectResource.instancingMode = VFXInstancingMode.Disabled;
+            }
+
+            if (version < 14)
+            {
+                objs
+                    .OfType<IVFXAttributeUsage>()
+                    .SelectMany(x => x.usedAttributes)
+                    .Where(x => m_AttributesManager.IsCustom(x.name))
+                    .GroupBy(x => x.name)
+                    .Select(x => x.First())
+                    .Where(x => customAttributes.All(y => y.attributeName != x.name))
+                    .ToList()
+                    .ForEach(x => TryAddCustomAttribute(x.name, x.type, string.Empty, false, out _));
             }
 
             int resourceCurrentVersion = 0;
@@ -647,6 +923,34 @@ namespace UnityEditor.VFX
             m_GraphVersion = CurrentVersion;
 
             UpdateSubAssets(); //Force remove no more referenced object from the asset & *important* register as persistent new dependencies
+        }
+
+        private IEnumerable<VFXModel> GetCustomAttributeUsage(string attributeName)
+        {
+            bool IsAttributeUsed(IVFXAttributeUsage attributeUsage, string attrName)
+            {
+                return attributeUsage.usedAttributes.Any(x => string.Compare(x.name, attrName, StringComparison.OrdinalIgnoreCase) == 0);
+            }
+
+            foreach (var child in children.Where(x => x is IVFXAttributeUsage))
+            {
+                if (IsAttributeUsed((IVFXAttributeUsage)child, attributeName))
+                    yield return child;
+            }
+
+            foreach (var context in children.OfType<VFXContext>())
+            {
+                foreach (var block in context.children)
+                {
+                    if (IsAttributeUsed(block, attributeName))
+                        yield return block;
+                }
+            }
+        }
+
+        private VFXCustomAttributeDescriptor FindCustomAttribute(string attributeName)
+        {
+            return customAttributes.FirstOrDefault(x => string.Compare(attributeName, x.attributeName, StringComparison.OrdinalIgnoreCase) == 0);
         }
 
         private void SanitizeCameraBuffers(HashSet<ScriptableObject> objs)
@@ -744,7 +1048,6 @@ namespace UnityEditor.VFX
             {
                 BuildParameterInfo();
             }
-
 
             if (cause == VFXModel.InvalidationCause.kStructureChanged)
             {
@@ -856,11 +1159,15 @@ namespace UnityEditor.VFX
             m_DependentDirty = true;
         }
 
+        public bool IsCustomAttributeDirty() => m_CustomAttributesDirty;
+        public void SetCustomAttributeDirty(bool isDirty = true) => m_CustomAttributesDirty = isDirty;
+
         public void BuildSubgraphDependencies()
         {
             if (m_SubgraphDependencies == null)
                 m_SubgraphDependencies = new List<VisualEffectObject>();
-            m_SubgraphDependencies.Clear();
+            else
+                m_SubgraphDependencies.Clear();
 
             HashSet<VisualEffectObject> explored = new HashSet<VisualEffectObject>();
             RecurseBuildDependencies(explored, children);
@@ -1043,7 +1350,7 @@ namespace UnityEditor.VFX
         public void SanitizeForImport()
         {
             // We arrive from AssetPostProcess so dependencies are already loaded no need to worry about them (FB #1364156)
-
+            SyncCustomAttributes();
             foreach (var child in children)
                 child.CheckGraphBeforeImport();
 
@@ -1055,6 +1362,7 @@ namespace UnityEditor.VFX
             if (VFXGraph.compilingInEditMode)
                 m_CompilationMode = VFXCompilationMode.Edition;
 
+            SyncCustomAttributes();
             if (!GetResource().isSubgraph)
             {
                 // Check Graph Before Import can be needed to synchronize modified shaderGraph
@@ -1148,6 +1456,8 @@ namespace UnityEditor.VFX
         private bool m_DependentDirty = true;
         [NonSerialized]
         private bool m_MaterialsDirty = false;
+        [NonSerialized]
+        private bool m_CustomAttributesDirty = false;
 
         [NonSerialized]
         private VFXGraphCompiledData m_CompiledData;

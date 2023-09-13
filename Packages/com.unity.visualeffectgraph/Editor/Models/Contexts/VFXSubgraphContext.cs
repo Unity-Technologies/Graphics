@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.VFX;
 using UnityEditor.VFX;
+using UnityEditor.VFX.Block;
 using UnityEditor.VFX.UI;
 
 namespace UnityEditor.VFX
@@ -300,6 +301,7 @@ namespace UnityEditor.VFX
                 }
             }
             SyncSlots(VFXSlot.Direction.kInput, true);
+            m_UsedSubgraph.SyncCustomAttributes();
         }
 
         public VFXContext GetEventContext(string eventName)
@@ -385,6 +387,8 @@ namespace UnityEditor.VFX
                     var otherGraph = m_Subgraph.GetResource().GetOrCreateGraph();
                     if (otherGraph == graph || otherGraph.subgraphDependencies.Contains(graph.GetResource().visualEffectObject))
                         m_Subgraph = null; // prevent cyclic dependencies.
+
+                    ResyncCustomAttributes();
                 }
             }
         }
@@ -420,7 +424,7 @@ namespace UnityEditor.VFX
         {
             base.CheckGraphBeforeImport();
 
-            // If the graph is reimported it can be because one of its depedency such as the subgraphs, has been changed.
+            // If the graph is reimported it can be because one of its dependency such as the subgraphs, has been changed.
             if (!VFXGraph.explicitCompile)
                 ResyncSlots(true);
         }
@@ -446,6 +450,22 @@ namespace UnityEditor.VFX
                         if (child is VFXModel)
                             (child as VFXModel).CollectDependencies(objs, false);
                     }
+                }
+            }
+        }
+
+        private void ResyncCustomAttributes()
+        {
+            var graph = GetGraph();
+            foreach (var customAttribute in m_UsedSubgraph.customAttributes)
+            {
+                if (!graph.attributesManager.Exist(customAttribute.attributeName))
+                {
+                    graph.TryAddCustomAttribute(customAttribute.attributeName, CustomAttributeUtility.GetValueType(customAttribute.type), customAttribute.description, true, out _);
+                }
+                else
+                {
+                    graph.TryUpdateCustomAttribute(customAttribute.attributeName, customAttribute.type, customAttribute.description, true);
                 }
             }
         }

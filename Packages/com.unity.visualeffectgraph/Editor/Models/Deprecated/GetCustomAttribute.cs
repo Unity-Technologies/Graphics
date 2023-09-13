@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 using UnityEditor.VFX.Block;
@@ -5,8 +6,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX
 {
-    [VFXHelpURL("Operator-GetCustomAttribute")]
-    [VFXInfo(category = "Attribute", experimental = true)]
+    [Obsolete]
     class GetCustomAttribute : VFXOperator
     {
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Delayed, Tooltip("Specifies the name of the custom attribute to use.")]
@@ -27,11 +27,19 @@ namespace UnityEditor.VFX
             }
         }
 
-        private VFXAttribute currentAttribute => new(attribute, CustomAttributeUtility.GetValueType(AttributeType));
-
-        public override string libraryName { get; } = "Get Attribute: custom";
-
+        public override string libraryName => "Get Attribute: custom";
         public override string name => $"Get '{attribute}' ({AttributeType})";
+
+        public override void Sanitize(int version)
+        {
+            GetGraph().TryAddCustomAttribute(attribute, CustomAttributeUtility.GetValueType(AttributeType), string.Empty, false, out var vfxAttribute);
+            var vfxAttributeParameter = ScriptableObject.CreateInstance<VFXAttributeParameter>();
+            vfxAttributeParameter.attribute = vfxAttribute.name;
+            vfxAttributeParameter.location = location;
+            vfxAttributeParameter.ResyncSlots(true);
+            VFXSlot.CopyLinksAndValue(vfxAttributeParameter.outputSlots[0], outputSlots[0]);
+            ReplaceModel(vfxAttributeParameter, this);
+        }
 
         internal sealed override void GenerateErrors(VFXInvalidateErrorReporter manager)
         {
@@ -43,6 +51,11 @@ namespace UnityEditor.VFX
             }
         }
 
+        protected override void OnAdded()
+        {
+            Sanitize(0);
+        }
+
         protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             var vfxAttribute = currentAttribute;
@@ -50,5 +63,7 @@ namespace UnityEditor.VFX
             var expression = new VFXAttributeExpression(vfxAttribute, location);
             return new VFXExpression[] { expression };
         }
+
+        private VFXAttribute currentAttribute => new VFXAttribute(attribute, CustomAttributeUtility.GetValueType(AttributeType), string.Empty);
     }
 }

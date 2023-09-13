@@ -136,6 +136,34 @@ namespace UnityEditor.VFX.Test
             return graph;
         }
 
+        public static VisualEffectSubgraphBlock MakeTemporarySubGraphBlock()
+        {
+            var guid = System.Guid.NewGuid().ToString();
+            string tempFilePath = string.Format(tempFileFormat, guid).Replace("vfx", "vfxblock");
+            System.IO.Directory.CreateDirectory(tempBasePath);
+
+            VisualEffectAssetEditorUtility.CreateVisualEffectSubgraph<VisualEffectSubgraphBlock, VisualEffectAssetEditorUtility.DoCreateNewSubgraphBlock>(tempFilePath, VisualEffectAssetEditorUtility.templateBlockSubgraphAssetName);
+            var projectBrowser = EditorWindow.GetWindow<ProjectBrowser>();
+            projectBrowser.EndRenaming();
+
+            AssetDatabase.ImportAsset(tempFilePath);
+            return AssetDatabase.LoadAssetAtPath<VisualEffectSubgraphBlock>(tempFilePath);
+        }
+
+        public static VisualEffectSubgraphOperator MakeTemporarySubGraphOperator()
+        {
+            var guid = System.Guid.NewGuid().ToString();
+            string tempFilePath = string.Format(tempFileFormat, guid).Replace("vfx", "vfxoperator");
+            System.IO.Directory.CreateDirectory(tempBasePath);
+
+            VisualEffectAssetEditorUtility.CreateVisualEffectSubgraph<VisualEffectSubgraphOperator, VisualEffectAssetEditorUtility.DoCreateNewSubgraphOperator>(tempFilePath, VisualEffectAssetEditorUtility.templateOperatorSubgraphAssetName);
+            var projectBrowser = EditorWindow.GetWindow<ProjectBrowser>();
+            projectBrowser.EndRenaming();
+
+            AssetDatabase.ImportAsset(tempFilePath);
+            return AssetDatabase.LoadAssetAtPath<VisualEffectSubgraphOperator>(tempFilePath);
+        }
+
         public static VFXGraph CreateGraph_And_System()
         {
             var graph = VFXTestCommon.MakeTemporaryGraph();

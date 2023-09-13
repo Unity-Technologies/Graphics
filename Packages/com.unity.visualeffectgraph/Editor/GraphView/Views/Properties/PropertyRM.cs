@@ -566,7 +566,7 @@ namespace UnityEditor.VFX.UI
             m_Field = CreateField();
             isDelayed = m_Provider.attributes.Is(VFXPropertyAttributes.Type.Delayed);
 
-            m_FieldParent = new VisualElement();
+            m_FieldParent = new VisualElement { name = "fieldContainerParent" };
 
             VisualElement fieldElement = m_Field as VisualElement;
             fieldElement.AddToClassList("fieldContainer");

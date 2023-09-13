@@ -36,6 +36,7 @@ namespace UnityEditor.VFX.UI
 
         public VFXVCSDropdownButton(VFXView vfxView)
             : base(
+                nameof(VFXVCSDropdownButton),
                 vfxView,
                 "VFXVCSDropDownPanel",
                 "Checkout",

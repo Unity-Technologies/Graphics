@@ -1,40 +1,47 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
+
+using UnityEditor.VFX.Block;
 using UnityEngine;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
-    class AttributeProvider : IStringProvider
+    class AttributeProvider : IVFXModelStringProvider
     {
-        public string[] GetAvailableString()
+        public string[] GetAvailableString(VFXModel model)
         {
-            return VFXAttribute.AllIncludingVariadicExceptWriteOnly.ToArray();
+            return model.GetGraph().attributesManager.GetAllNamesOrCombination(true, false, true, false).ToArray();
         }
     }
 
-    class ReadWritableAttributeProvider : IStringProvider
+    class ReadWritableAttributeProvider : IVFXModelStringProvider
     {
-        public string[] GetAvailableString()
+        public string[] GetAvailableString(VFXModel model)
         {
-            return VFXAttribute.AllIncludingVariadicReadWritable.ToArray();
+            return model.GetGraph().attributesManager.GetAllNamesOrCombination(true, false, false, false).ToArray();
         }
     }
 
     class AttributeVariant : VariantProvider
     {
-        protected sealed override Dictionary<string, object[]> variants { get; } = new Dictionary<string, object[]>
+        public sealed override IEnumerable<Variant> ComputeVariants()
         {
-            {"attribute", VFXAttribute.AllIncludingVariadicExceptWriteOnly.Cast<object>().ToArray()}
-        };
+            foreach (var attribute in VFXAttributesManager.GetBuiltInNamesOrCombination(true, false, true, false))
+            {
+                yield return new Variant(new[] { new KeyValuePair<string, object>("attribute", attribute) });
+            }
+
+            yield return new Variant(new [] { new KeyValuePair<string, object>("attribute", "CustomAttribute") });
+        }
     }
 
     [VFXInfo(category = "Attribute", variantProvider = typeof(AttributeVariant))]
-    class VFXAttributeParameter : VFXOperator
+    class VFXAttributeParameter : VFXOperator, IVFXAttributeUsage
     {
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), StringProvider(typeof(AttributeProvider)), Tooltip("Specifies which attribute to use.")]
-        public string attribute = VFXAttribute.AllIncludingVariadicExceptWriteOnly.First();
+        public string attribute = VFXAttributesManager.GetBuiltInNamesOrCombination(true, true, true, false).First();
 
         [VFXSetting, Tooltip("Specifies which version of the parameter to use. It can return the current value, or the source value derived from a GPU event or a spawn attribute.")]
         public VFXAttributeLocation location = VFXAttributeLocation.Current;
@@ -46,31 +53,36 @@ namespace UnityEditor.VFX
         {
             get
             {
-                foreach (string setting in base.filteredOutSettings) yield return setting;
-                var attribute = VFXAttribute.Find(this.attribute);
-                if (attribute.variadic == VFXVariadic.False) yield return "mask";
+                if (string.IsNullOrEmpty(attribute))
+                {
+                    yield break;
+                }
+                foreach (string setting in base.filteredOutSettings)
+                    yield return setting;
+                if (currentAttribute.variadic == VFXVariadic.False)
+                    yield return "mask";
             }
+        }
+
+        public IEnumerable<VFXAttribute> usedAttributes
+        {
+            get { yield return currentAttribute; }
         }
 
         protected override IEnumerable<VFXPropertyWithValue> outputProperties
         {
             get
             {
-                var attribute = VFXAttribute.Find(this.attribute);
+                if (string.IsNullOrEmpty(attribute))
+                {
+                    yield break;
+                }
 
-                var field = typeof(VFXAttribute).GetField(attribute.name.Substring(0, 1).ToUpper(CultureInfo.InvariantCulture) + attribute.name.Substring(1), System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public);
+                var vfxAttribute = currentAttribute;
 
-                TooltipAttribute tooltip = null;
-
-                if (field != null)
-                    tooltip = field.GetCustomAttributes(typeof(TooltipAttribute), false).Cast<TooltipAttribute>().FirstOrDefault();
-
-
-                VFXPropertyAttributes attr = new VFXPropertyAttributes();
-                if (tooltip != null)
-                    attr = new VFXPropertyAttributes(tooltip);
-
-                if (attribute.variadic == VFXVariadic.True)
+                var tooltip = !string.IsNullOrEmpty(vfxAttribute.description) ? new TooltipAttribute(vfxAttribute.description) : null;
+                var attr = tooltip != null ? new VFXPropertyAttributes(tooltip) : new VFXPropertyAttributes();
+                if (vfxAttribute.variadic == VFXVariadic.True)
                 {
                     Type slotType = null;
                     switch (mask.Length)
@@ -83,29 +95,28 @@ namespace UnityEditor.VFX
                     }
 
                     if (slotType != null)
-                        yield return new VFXPropertyWithValue(new VFXProperty(slotType, attribute.name, attr));
+                        yield return new VFXPropertyWithValue(new VFXProperty(slotType, vfxAttribute.name, attr));
                 }
                 else
                 {
-                    yield return new VFXPropertyWithValue(new VFXProperty(VFXExpression.TypeToType(attribute.type), attribute.name, attr));
+                    yield return new VFXPropertyWithValue(new VFXProperty(VFXExpression.TypeToType(vfxAttribute.type), vfxAttribute.name, attr));
                 }
             }
         }
 
-        override public string libraryName { get { return "Get Attribute: " + attribute; } }
-        override public string name
+        public override string libraryName => string.IsNullOrEmpty(attribute) ? "Get Custom Attribute" :$"Get {attribute}";
+
+        public override string name
         {
             get
             {
-                string result = string.Format("Get Attribute: {0} ({1})", attribute, location);
+                string result = $"Get Attribute: {attribute} ({location})";
 
-                try
+                if (GetGraph() is {} graph && graph.attributesManager.TryFind(attribute, out var attrib))
                 {
-                    var attrib = VFXAttribute.Find(this.attribute);
                     if (attrib.variadic == VFXVariadic.True)
                         result += "." + mask;
                 }
-                catch { } // Must not throw in name getter
 
                 return result;
             }
@@ -113,23 +124,33 @@ namespace UnityEditor.VFX
 
         public override void Sanitize(int version)
         {
-            if (!VFXAttribute.Exist(attribute))
+            var graph = GetGraph();
+            if (graph != null)
             {
-                Debug.LogWarningFormat("Attribute parameter was removed because attribute {0} does not exist", attribute);
-                RemoveModel(this, false);
-                return; // Dont sanitize further, model was removed
+                if (!graph.attributesManager.Exist(attribute))
+                {
+                    Debug.LogWarningFormat("Attribute parameter was removed because attribute {0} does not exist",
+                        attribute);
+                    RemoveModel(this, false);
+                    return; // Dont sanitize further, model was removed
+                }
+
+                VFXBlockUtility.SanitizeAttribute(graph, ref attribute, ref mask, version);
+            }
+            else
+            {
+                throw new InvalidOperationException("Graph is null during Sanitize");
             }
 
-            UnityEditor.VFX.Block.VFXBlockUtility.SanitizeAttribute(ref attribute, ref mask, version);
             base.Sanitize(version);
         }
 
         protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            var attribute = VFXAttribute.Find(this.attribute);
-            if (attribute.variadic == VFXVariadic.True)
+            var vfxAttribute = currentAttribute;
+            if (vfxAttribute.variadic == VFXVariadic.True)
             {
-                var attributes = new VFXAttribute[] { VFXAttribute.Find(attribute.name + "X"), VFXAttribute.Find(attribute.name + "Y"), VFXAttribute.Find(attribute.name + "Z") };
+                var attributes = new VFXAttribute[] { VFXAttributesManager.FindBuiltInOnly(vfxAttribute.name + "X"), VFXAttributesManager.FindBuiltInOnly(vfxAttribute.name + "Y"), VFXAttributesManager.FindBuiltInOnly(vfxAttribute.name + "Z") };
                 var expressions = attributes.Select(a => new VFXAttributeExpression(a, location)).ToArray();
 
                 var componentStack = new Stack<VFXExpression>();
@@ -154,8 +175,73 @@ namespace UnityEditor.VFX
             }
             else
             {
-                var expression = new VFXAttributeExpression(attribute, location);
+                var expression = new VFXAttributeExpression(vfxAttribute, location);
                 return new VFXExpression[] { expression };
+            }
+        }
+        public VFXAttribute currentAttribute
+        {
+            get
+            {
+                if (GetGraph() is { } graph)
+                {
+                    if (graph.attributesManager.TryFind(attribute, out var vfxAttribute))
+                    {
+                        return vfxAttribute;
+                    }
+                }
+                else // Happens when the node is not yet added to the graph, but should be ok as soon as it's added (see OnAdded)
+                {
+                    var attr = VFXAttributesManager.FindBuiltInOnly(attribute);
+                    if (string.Compare(attribute, attr.name, StringComparison.OrdinalIgnoreCase) == 0)
+                    {
+                        return attr;
+                    }
+                }
+
+                // Temporary attribute
+                return new VFXAttribute(attribute, VFXValueType.Float, null);
+            }
+        }
+
+        public void Rename(string oldName, string newName)
+        {
+            if (GetGraph() is {} graph && graph.attributesManager.IsCustom(newName))
+            {
+                attribute = newName;
+                SyncSlots(VFXSlot.Direction.kOutput, true);
+            }
+        }
+
+        internal sealed override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        {
+            base.GenerateErrors(manager);
+
+            if (!CustomAttributeUtility.IsShaderCompilableName(attribute))
+            {
+                manager.RegisterError("InvalidCustomAttributeName", VFXErrorType.Error, $"Custom attribute name '{attribute}' is not valid.\n\t- The name must not contain spaces or any special character\n\t- The name must not start with a digit character");
+            }
+        }
+
+        protected override void OnAdded()
+        {
+            base.OnAdded();
+            SyncCustomAttributeIfNeeded();
+        }
+
+        private void SyncCustomAttributeIfNeeded()
+        {
+            var graph = GetGraph();
+            if (graph != null && graph.attributesManager.IsCustom(attribute))
+            {
+                Invalidate(InvalidationCause.kUIChangedTransient);
+                SyncSlots(VFXSlot.Direction.kOutput, true);
+            }
+            else if (graph != null && !string.IsNullOrEmpty(attribute) && !graph.attributesManager.TryFind(attribute, out _))
+            {
+                graph.TryAddCustomAttribute(attribute, VFXValueType.Float, string.Empty, false, out _);
+                graph.SetCustomAttributeDirty();
+                Invalidate(InvalidationCause.kUIChangedTransient);
             }
         }
     }

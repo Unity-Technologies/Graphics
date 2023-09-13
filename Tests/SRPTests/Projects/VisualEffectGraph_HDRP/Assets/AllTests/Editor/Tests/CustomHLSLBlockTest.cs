@@ -24,13 +24,13 @@ namespace UnityEditor.VFX.Test
             "  attributes.velocity = float3(0, 0, speed);\n" +
             "}";
 
-        [SetUp]
+        [OneTimeSetUp]
         public void Setup()
         {
             VFXViewWindow.GetAllWindows().ToList().ForEach(x => x.Close());
         }
 
-        [TearDown]
+        [OneTimeTearDown]
         public void Cleanup()
         {
             VFXViewWindow.GetAllWindows().ToList().ForEach(x => x.Close());
@@ -42,7 +42,7 @@ namespace UnityEditor.VFX.Test
         {
             // Arrange
             var blockName = "AutoTest";
-            var hlslBlock = ScriptableObject.CreateInstance<CustomHLSL>();
+            var hlslBlock = CreateCustomHLSLBlock();
             hlslBlock.SetSettingValue("m_HLSLCode", defaultHlslCode);
             hlslBlock.SetSettingValue("m_BlockName", blockName);
 
@@ -79,7 +79,7 @@ namespace UnityEditor.VFX.Test
             // Arrange
             var blockName = "AutoTest";
             var shaderInclude = CreateShaderFile(defaultHlslCode, out var shaderIncludePath);
-            var hlslBlock = ScriptableObject.CreateInstance<CustomHLSL>();
+            var hlslBlock = CreateCustomHLSLBlock();
             hlslBlock.SetSettingValue("m_ShaderFile", shaderInclude);
             hlslBlock.SetSettingValue("m_BlockName", blockName);
 
@@ -109,7 +109,7 @@ namespace UnityEditor.VFX.Test
         public void Check_CustomHLSL_Block_Attribute_Access_Mode()
         {
             // Arrange
-            var hlslBlock = ScriptableObject.CreateInstance<CustomHLSL>();
+            var hlslBlock = CreateCustomHLSLBlock();
             hlslBlock.SetSettingValue("m_HLSLCode", defaultHlslCode);
 
             // Act
@@ -141,7 +141,7 @@ namespace UnityEditor.VFX.Test
                     "/* 12 */ if (4 >= attributes.pivotY);\n" +
                 "}";
 
-            var hlslBlock = ScriptableObject.CreateInstance<CustomHLSL>();
+            var hlslBlock = CreateCustomHLSLBlock();
             hlslBlock.SetSettingValue("m_HLSLCode", hlslCode);
 
             // Act
@@ -166,7 +166,7 @@ namespace UnityEditor.VFX.Test
                     "/* 03 */ attributes.velocity = attributes.targetPosition = float3(0, 0, 0);\n" +
                 "}";
 
-            var hlslBlock = ScriptableObject.CreateInstance<CustomHLSL>();
+            var hlslBlock = CreateCustomHLSLBlock();
             hlslBlock.SetSettingValue("m_HLSLCode", hlslCode);
 
             // Act
@@ -200,7 +200,7 @@ namespace UnityEditor.VFX.Test
                     //"/* 11 */ --attributes.AngularVelocityY;\n" +
                 "}";
 
-            var hlslBlock = ScriptableObject.CreateInstance<CustomHLSL>();
+            var hlslBlock = CreateCustomHLSLBlock();
             hlslBlock.SetSettingValue("m_HLSLCode", hlslCode);
 
             // Act
@@ -497,6 +497,17 @@ namespace UnityEditor.VFX.Test
             updateContext.AddChild(hlslBlock);
             graph.AddChild(updateContext);
             view.graphView.OnSave();
+        }
+
+        private CustomHLSL CreateCustomHLSLBlock()
+        {
+            var graph = ScriptableObject.CreateInstance<VFXGraph>();
+            var updateContext = ScriptableObject.CreateInstance<VFXBasicUpdate>();
+            var hlslBlock = ScriptableObject.CreateInstance<CustomHLSL>();
+            graph.AddChild(updateContext);
+            updateContext.AddChild(hlslBlock);
+
+            return hlslBlock;
         }
     }
 }

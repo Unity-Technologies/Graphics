@@ -267,6 +267,17 @@ namespace UnityEditor.VFX.UI
 
         private T FloatToValue(float v)
         {
+            if (typeof(T) == typeof(int))
+            {
+                if ((double)v > int.MaxValue)
+                    return (T)Convert.ChangeType(int.MaxValue, typeof(T));
+            }
+            else if (typeof(T) == typeof(long))
+            {
+                if ((double)v > uint.MaxValue)
+                    return (T)Convert.ChangeType(uint.MaxValue, typeof(T));
+            }
+
             return (T)Convert.ChangeType(v, typeof(T));
         }
     }
