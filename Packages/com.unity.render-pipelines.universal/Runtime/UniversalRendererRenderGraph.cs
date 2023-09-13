@@ -171,6 +171,8 @@ namespace UnityEngine.Rendering.Universal
         private static RTHandle m_RenderGraphCameraDepthHandle;
         private static int m_CurrentColorHandle = 0;
 
+        private static RTHandle m_RenderGraphDebugTextureHandle;
+
         private RTHandle currentRenderGraphCameraColorHandle => (m_RenderGraphCameraColorHandles[m_CurrentColorHandle]);
 
         // get the next m_RenderGraphCameraColorHandles and make it the new current for future accesses
@@ -227,6 +229,8 @@ namespace UnityEngine.Rendering.Universal
             m_RenderGraphCameraColorHandles[0]?.Release();
             m_RenderGraphCameraColorHandles[1]?.Release();
             m_RenderGraphCameraDepthHandle?.Release();
+
+            m_RenderGraphDebugTextureHandle?.Release();
         }
 
         /// <summary>
@@ -642,6 +646,9 @@ namespace UnityEngine.Rendering.Universal
 
             CreateRenderGraphCameraRenderTargets(renderGraph, ref renderingData, isCameraTargetOffscreenDepth);
 
+            if (DebugHandler != null)
+                DebugHandler.Setup(ref renderingData);
+
             RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.BeforeRendering);
 
             SetupRenderGraphCameraProperties(renderGraph, isActiveTargetBackBuffer);
@@ -767,6 +774,7 @@ namespace UnityEngine.Rendering.Universal
             bool requiresDepthCopyPass = !requiresDepthPrepass
                                          && (cameraData.requiresDepthTexture || cameraHasPostProcessingWithDepth || renderPassInputs.requiresDepthTexture)
                                          && m_CreateDepthTexture; // we create both intermediate textures if this is true, so instead of repeating the checks we reuse this
+            requiresDepthCopyPass |= !requiresDepthPrepass && DebugHandlerRequireDepthPass(frameData.Get<UniversalCameraData>());
             bool requiresColorCopyPass = renderingData.cameraData.requiresOpaqueTexture || renderPassInputs.requiresColorTexture;
             requiresColorCopyPass &= !cameraData.isPreviewCamera;
             bool requiredColorGradingLutPass = cameraData.postProcessEnabled && m_PostProcessPasses.isCreated;
@@ -954,6 +962,10 @@ namespace UnityEngine.Rendering.Universal
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
 
+            // if it's the last camera in the stack, setup the rendering debugger
+            if (cameraData.resolveFinalTarget)
+                SetupRenderGraphFinalPassDebug(renderGraph, ref renderingData);
+
 #if UNITY_EDITOR
             bool isGizmosEnabled = UnityEditor.Handles.ShouldRenderGizmos();
 #endif
@@ -1126,7 +1138,6 @@ namespace UnityEngine.Rendering.Universal
                 TextureHandle overlayUITexture = resourceData.overlayUITexture;
                 TextureHandle debugScreenTexture = resourceData.debugScreenColor;
 
-                debugHandler.Setup(ref renderingData);
                 debugHandler.Render(renderGraph, ref renderingData, debugScreenTexture, overlayUITexture, debugHandlerColorTarget);
             }
 
@@ -1189,6 +1200,8 @@ namespace UnityEngine.Rendering.Universal
             createDepthTexture |= depthPrimingEnabled;
             // TODO: seems like with mrt depth is not taken from first target. Investigate if this is needed
             createDepthTexture |= m_RenderingLayerProvidesRenderObjectPass;
+
+            createDepthTexture |= DebugHandlerRequireDepthPass(cameraData);
 
             return createDepthTexture;
         }
