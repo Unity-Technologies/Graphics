@@ -101,7 +101,8 @@ class NoLeaksOnEnterLeavePlaymode
         string[] materialBlackList = {
             "Hidden/Universal/HDRDebugView",
             "Hidden/Universal Render Pipeline/Debug/DebugReplacement",
-            "Inter - Regular Material" //https://jira.unity3d.com/browse/UUM-28555
+            "Roboto Mono - Regular Material", // Font leaks
+            "Inter - Regular Material"        // https://jira.unity3d.com/browse/UUM-28555
         };
 
         var oldMaterialNames = materialNames.Split(";");
@@ -120,7 +121,8 @@ class NoLeaksOnEnterLeavePlaymode
         CompareResourceLists(meshesPerNameOld, meshesPerNameNew, meshBlackList);
 
         string[] textureBlackList = {
-            "Inter - Regular Atlas" // more fonts leakage :-\
+            "Inter - Regular Atlas",       // more fonts leakage :-\
+            "Roboto Mono - Regular Atlas", // more fonts leakage :-\
         };
 
         var oldTextureNames = textureNames.Split(";");

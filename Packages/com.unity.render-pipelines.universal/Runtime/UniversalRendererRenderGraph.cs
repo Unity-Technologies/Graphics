@@ -437,10 +437,12 @@ namespace UnityEngine.Rendering.Universal
             if (isBuiltInTexture)
             {
                 bool msaaSamplesChangedThisFrame = false;
+                int oldSamples = cameraData.cameraTargetDescriptor.msaaSamples;
 #if !UNITY_EDITOR
                 // for safety do this only for the NRP path, even though works also on non NRP, but would need extensive testing
                 if (m_CreateColorTexture && renderGraph.NativeRenderPassesEnabled && Screen.msaaSamples > 1)
                 {
+                    oldSamples = Mathf.Max(Screen.msaaSamples, oldSamples);
                     msaaSamplesChangedThisFrame = true;
                     Screen.SetMSAASamples(1);
                 }
@@ -454,7 +456,7 @@ namespace UnityEngine.Rendering.Universal
                 // The editor always allocates the system rendertarget with a single msaa sample
                 // See: ConfigureTargetTexture in PlayModeView.cs
                 if (msaaSamplesChangedThisFrame && Application.platform == RuntimePlatform.OSXPlayer)
-                    numSamples = cameraData.cameraTargetDescriptor.msaaSamples;
+                    numSamples = oldSamples;
                 else if (Application.isEditor)
                     numSamples = 1;
 

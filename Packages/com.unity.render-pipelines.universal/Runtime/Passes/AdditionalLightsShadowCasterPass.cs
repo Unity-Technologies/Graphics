@@ -597,11 +597,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
             if (m_CreateEmptyShadowmap && !m_EmptyShadowmapNeedsClear)
-            {
-                // Reset pass RTs to null
-                ResetTarget();
                 return;
-            }
 
             if (m_CreateEmptyShadowmap)
             {

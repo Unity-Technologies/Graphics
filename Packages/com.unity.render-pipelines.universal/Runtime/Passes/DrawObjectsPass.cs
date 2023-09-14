@@ -180,7 +180,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             passData.shouldTransparentsReceiveShadows = m_ShouldTransparentsReceiveShadows;
         }
 
-        private void InitRendererLists(ref RenderingData renderingData, ref PassData passData, ScriptableRenderContext context, RenderGraph renderGraph, bool useRenderGraph)
+        internal void InitRendererLists(ref RenderingData renderingData, ref PassData passData, ScriptableRenderContext context, RenderGraph renderGraph, bool useRenderGraph)
         {
             UniversalRenderingData universalRenderingData = renderingData.frameData.Get<UniversalRenderingData>();
             UniversalCameraData cameraData = renderingData.frameData.Get<UniversalCameraData>();
@@ -401,6 +401,18 @@ namespace UnityEngine.Rendering.Universal.Internal
                     if (ssaoTexture.IsValid())
                         builder.UseTexture(ssaoTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
                     RenderGraphUtils.UseDBufferIfValid(builder, resourceData);
+                }
+
+                InitRendererLists(ref renderingData, ref passData.basePassData, default(ScriptableRenderContext), renderGraph, true);
+                var activeDebugHandler = GetActiveDebugHandler(cameraData);
+                if (activeDebugHandler != null)
+                {
+                    passData.basePassData.debugRendererLists.PrepareRendererListForRasterPass(builder);
+                }
+                else
+                {
+                    builder.UseRendererList(passData.basePassData.rendererListHdl);
+                    builder.UseRendererList(passData.basePassData.objectsWithErrorRendererListHdl);
                 }
 
                 builder.AllowPassCulling(false);
