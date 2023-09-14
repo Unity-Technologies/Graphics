@@ -2026,20 +2026,13 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
                 return;
 
-#if UNITY_EDITOR
-            // We do not want to start rendering if HDRP global settings are not ready (m_globalSettings is null)
-            // or been deleted/moved (m_globalSettings is not necessarily null)
-            if (m_GlobalSettings == null || HDRenderPipelineGlobalSettings.instance == null)
-            {
-                m_GlobalSettings = HDRenderPipelineGlobalSettings.Ensure();
-                m_GlobalSettings.EnsureShadersCompiled();
-                return;
-            }
+#if UNITY_EDITOR // TODO: Remove once IRenderPipelineResouces has been finished as we will no longer have assets referenced for resources.
 
             // Potentially the asset might have been deleted by the user
             // Obtain the asset again at least one per frame to make sure we are pointing to a valid resources.
             runtimeResources = m_GlobalSettings.renderPipelineResources;
             rayTracingResources = m_GlobalSettings.renderPipelineRayTracingResources;
+
 #endif
 
             if (m_GlobalSettings.lensAttenuationMode == LensAttenuationMode.ImperfectLens)

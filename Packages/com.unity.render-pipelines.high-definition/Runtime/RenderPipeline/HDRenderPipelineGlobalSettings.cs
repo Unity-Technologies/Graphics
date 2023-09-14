@@ -91,7 +91,15 @@ namespace UnityEngine.Rendering.HighDefinition
             EnsureEditorResources(forceReload: true);
             EnsureRuntimeResources(forceReload: true);
             EnsureRayTracingResources(forceReload: true);
-            GetOrCreateDefaultVolumeProfile();
+            var defaultVolumeProfile = GetOrCreateDefaultVolumeProfile();
+            var diffusionProfileList = GetOrCreateDiffusionProfileList(defaultVolumeProfile);
+
+            if (diffusionProfileList.diffusionProfiles.value.Length == 0)
+            {
+                diffusionProfileList.diffusionProfiles.value = CreateArrayWithDefaultDiffusionProfileSettingsList(m_RenderPipelineEditorResources);
+                EditorUtility.SetDirty(diffusionProfileList);
+            }
+
             GetOrAssignLookDevVolumeProfile();
         }
 
@@ -531,28 +539,43 @@ namespace UnityEngine.Rendering.HighDefinition
             set { GetOrCreateDiffusionProfileList().diffusionProfiles.value = value; }
         }
 
-        internal DiffusionProfileList GetOrCreateDiffusionProfileList()
+        internal DiffusionProfileList GetOrCreateDiffusionProfileList(VolumeProfile defaultVolumeProfile = null)
         {
-            var volumeProfile = instance.GetOrCreateDefaultVolumeProfile();
-            if (!volumeProfile.TryGet<DiffusionProfileList>(out var component))
+            if (defaultVolumeProfile == null)
+                defaultVolumeProfile = instance.GetOrCreateDefaultVolumeProfile();
+
+            if (!defaultVolumeProfile.TryGet<DiffusionProfileList>(out var component))
             {
                 component = volumeProfile.Add<DiffusionProfileList>(true);
 
 #if UNITY_EDITOR
-                if (EditorUtility.IsPersistent(volumeProfile))
+                if (EditorUtility.IsPersistent(defaultVolumeProfile))
                 {
-                    UnityEditor.AssetDatabase.AddObjectToAsset(component, volumeProfile);
-                    EditorUtility.SetDirty(volumeProfile);
+                    UnityEditor.AssetDatabase.AddObjectToAsset(component, defaultVolumeProfile);
+                    EditorUtility.SetDirty(defaultVolumeProfile);
                 }
 #endif
             }
 
-            if (component.diffusionProfiles.value == null)
-                component.diffusionProfiles.value = new DiffusionProfileSettings[0];
+            component.diffusionProfiles.value ??= Array.Empty<DiffusionProfileSettings>();
             return component;
         }
 
 #if UNITY_EDITOR
+        internal DiffusionProfileSettings[] CreateArrayWithDefaultDiffusionProfileSettingsList(HDRenderPipelineEditorResources resources)
+        {
+            if (resources == null)
+                return Array.Empty<DiffusionProfileSettings>();
+
+            var diffusionProfileSettingsArray = resources.defaultDiffusionProfileSettingsList;
+
+            var length = diffusionProfileSettingsArray.Length;
+            var diffusionProfileSettingsArrayCopy = new DiffusionProfileSettings[diffusionProfileSettingsArray.Length];
+            Array.Copy(diffusionProfileSettingsArray, diffusionProfileSettingsArrayCopy, length);
+
+            return diffusionProfileSettingsArrayCopy;
+        }
+
         internal void TryAutoRegisterDiffusionProfile(DiffusionProfileSettings profile)
         {
             if (!autoRegisterDiffusionProfiles || profile == null || diffusionProfileSettingsList == null || diffusionProfileSettingsList.Any(d => d == profile))

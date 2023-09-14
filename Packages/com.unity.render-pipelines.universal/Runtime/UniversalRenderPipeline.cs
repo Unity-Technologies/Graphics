@@ -381,16 +381,6 @@ namespace UnityEngine.Rendering.Universal
             SetupPerFrameShaderConstants();
             XRSystem.SetDisplayMSAASamples((MSAASamples)asset.msaaSampleCount);
 
-#if UNITY_EDITOR
-            // We do not want to start rendering if URP global settings are not ready (m_globalSettings is null)
-            // or been deleted/moved (m_globalSettings is not necessarily null)
-            if (m_GlobalSettings == null || UniversalRenderPipelineGlobalSettings.instance == null)
-            {
-                m_GlobalSettings = UniversalRenderPipelineGlobalSettings.Ensure();
-                if(m_GlobalSettings == null) return;
-            }
-#endif
-
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
             if (DebugManager.instance.isAnyDebugUIActive)
                 UniversalRenderPipelineDebugDisplaySettings.Instance.UpdateDisplayStats();

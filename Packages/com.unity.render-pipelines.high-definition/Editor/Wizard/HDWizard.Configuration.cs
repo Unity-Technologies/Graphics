@@ -509,15 +509,10 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!IsDefaultVolumeProfileCorrect())
                 FixDefaultVolumeProfile(fromAsyncUnused: false);
 
-            var defaultAssetList = HDRenderPipelineGlobalSettings.instance.renderPipelineEditorResources.defaultDiffusionProfileSettingsList;
-            HDRenderPipelineGlobalSettings.instance.diffusionProfileSettingsList = new DiffusionProfileSettings[0]; // clear the diffusion profile list
-
-            foreach (var diffusionProfileAsset in defaultAssetList)
-            {
-                HDRenderPipelineGlobalSettings.instance.AddDiffusionProfile((DiffusionProfileSettings)diffusionProfileAsset);
-            }
-
-            EditorUtility.SetDirty(HDRenderPipelineGlobalSettings.instance);
+            var instance = HDRenderPipelineGlobalSettings.instance;
+            instance.diffusionProfileSettingsList = HDRenderPipelineGlobalSettings
+                .instance.CreateArrayWithDefaultDiffusionProfileSettingsList(instance.renderPipelineEditorResources);
+            EditorUtility.SetDirty(instance.GetOrCreateDiffusionProfileList());
         }
 
         VolumeProfile CreateDefaultVolumeProfileIfNeeded(VolumeProfile defaultSettingsVolumeProfileInPackage)
