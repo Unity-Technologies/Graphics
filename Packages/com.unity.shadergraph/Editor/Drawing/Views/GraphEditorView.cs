@@ -127,6 +127,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_GraphViewGroupTitleChanged = OnGroupTitleChanged;
             m_GraphViewElementsAddedToGroup = OnElementsAddedToGroup;
             m_GraphViewElementsRemovedFromGroup = OnElementsRemovedFromGroup;
+            ShaderGraphPreferences.onZoomStepSizeChanged += ResetZoom;
 
             m_EditorWindow = editorWindow;
             m_Graph = graph;
@@ -206,12 +207,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 m_GraphView = new MaterialGraphView(graph, () => m_PreviewManager.UpdateMasterPreview(ModificationScope.Topological))
                 { name = "GraphView", viewDataKey = "MaterialGraphView" };
-                m_GraphView.SetupZoom(0.05f, 8);
+                ResetZoom();
                 m_GraphView.AddManipulator(new ContentDragger());
                 m_GraphView.AddManipulator(new SelectionDragger());
                 m_GraphView.AddManipulator(new RectangleSelector());
                 m_GraphView.AddManipulator(new ClickSelector());
-                m_GraphView.RegisterCallback<KeyDownEvent>(OnKeyDown);
+
                 // Bugfix 1312222. Running 'ResetSelectedBlockNodes' on all mouse up interactions will break selection
                 // after changing tabs. This was originally added to fix a bug with middle-mouse clicking while dragging a block node.
                 m_GraphView.RegisterCallback<MouseUpEvent>(evt => { if (evt.button == (int)MouseButton.MiddleMouse) m_GraphView.ResetSelectedBlockNodes(); });
@@ -422,36 +423,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             Undo.undoRedoPerformed += (() => { m_InspectorView?.TriggerInspectorUpdate(graphView?.selection); });
         }
 
-        void OnKeyDown(KeyDownEvent evt)
+        // a nice curve that scales well for various HID (touchpad and mice).
+        static float WeightStepSize(float x) => Mathf.Clamp(2 * Mathf.Pow(x, 7f / 2f), 0.001f, 2.0f);
+        void ResetZoom()
         {
-            if (evt.keyCode == KeyCode.F1)
-            {
-                var selection = m_GraphView.selection.OfType<IShaderNodeView>();
-                if (selection.Count() == 1)
-                {
-                    var nodeView = selection.First();
-                    if (nodeView.node.documentationURL != null)
-                    {
-                        System.Diagnostics.Process.Start(nodeView.node.documentationURL);
-                    }
-                }
-            }
-
-            if (evt.actionKey && evt.keyCode == KeyCode.G)
-            {
-                if (m_GraphView.selection.OfType<GraphElement>().Any())
-                {
-                    m_GraphView.GroupSelection();
-                }
-            }
-
-            if (evt.actionKey && evt.keyCode == KeyCode.U)
-            {
-                if (m_GraphView.selection.OfType<GraphElement>().Any())
-                {
-                    m_GraphView.RemoveFromGroupNode();
-                }
-            }
+            var weightedStepSize = WeightStepSize(ShaderGraphPreferences.zoomStepSize);
+            m_GraphView?.SetupZoom(0.05f, 8.0f, weightedStepSize, 1.0f);
         }
 
         GraphViewChange GraphViewChanged(GraphViewChange graphViewChange)
@@ -1398,6 +1375,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void Dispose()
         {
+            ShaderGraphPreferences.onZoomStepSizeChanged -= ResetZoom;
             if (m_GraphView != null)
             {
                 saveRequested = null;

@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
@@ -9,23 +10,22 @@ namespace UnityEditor.ShaderGraph
             internal const string variantLimit = "UnityEditor.ShaderGraph.VariantLimit";
             internal const string autoAddRemoveBlocks = "UnityEditor.ShaderGraph.AutoAddRemoveBlocks";
             internal const string allowDeprecatedBehaviors = "UnityEditor.ShaderGraph.AllowDeprecatedBehaviors";
+            internal const string zoomStepSize = "UnityEditor.ShaderGraph.ZoomStepSize";
         }
 
         static bool m_Loaded = false;
         internal delegate void PreferenceChangedDelegate();
 
         internal static PreferenceChangedDelegate onVariantLimitChanged;
-        static int m_VariantLimit = 128;
-
-        internal static PreferenceChangedDelegate onAllowDeprecatedChanged;
-        internal static int variantLimit
+        static int m_PreviewVariantLimit = 128;
+        internal static int previewVariantLimit
         {
-            get { return m_VariantLimit; }
+            get { return m_PreviewVariantLimit; }
             set
             {
                 if (onVariantLimitChanged != null)
                     onVariantLimitChanged();
-                TrySave(ref m_VariantLimit, value, Keys.variantLimit);
+                TrySave(ref m_PreviewVariantLimit, value, Keys.variantLimit);
             }
         }
 
@@ -36,6 +36,7 @@ namespace UnityEditor.ShaderGraph
             set => TrySave(ref m_AutoAddRemoveBlocks, value, Keys.autoAddRemoveBlocks);
         }
 
+        internal static PreferenceChangedDelegate onAllowDeprecatedChanged;
         static bool m_AllowDeprecatedBehaviors = false;
         internal static bool allowDeprecatedBehaviors
         {
@@ -49,6 +50,23 @@ namespace UnityEditor.ShaderGraph
                 }
             }
         }
+
+        internal static PreferenceChangedDelegate onZoomStepSizeChanged;
+        const float defaultZoomStepSize = 0.5f;
+        static float m_ZoomStepSize = defaultZoomStepSize;
+        internal static float zoomStepSize
+        {
+            get => m_ZoomStepSize;
+            set
+            {
+                TrySave(ref m_ZoomStepSize, value, Keys.zoomStepSize);
+                if (onZoomStepSizeChanged != null)
+                {
+                    onZoomStepSizeChanged();
+                }
+            }
+        }
+
 
         static ShaderGraphPreferences()
         {
@@ -75,10 +93,18 @@ namespace UnityEditor.ShaderGraph
             EditorGUILayout.Space();
 
             EditorGUI.BeginChangeCheck();
-            var variantLimitValue = EditorGUILayout.DelayedIntField("Shader Variant Limit", variantLimit);
+
+            var actualLimit = ShaderGraphProjectSettings.instance.shaderVariantLimit;
+            var willPreviewVariantBeIgnored = ShaderGraphPreferences.previewVariantLimit > actualLimit;
+
+            var variantLimitLabel = willPreviewVariantBeIgnored
+                ? new GUIContent("Preview Variant Limit", EditorGUIUtility.IconContent("console.infoicon").image, $"The Preview Variant Limit is higher than the Shader Variant Limit in Project Settings: {actualLimit}. The Preview Variant Limit will be ignored.")
+                : new GUIContent("Preview Variant Limit");
+
+            var variantLimitValue = EditorGUILayout.DelayedIntField(variantLimitLabel, previewVariantLimit);
             if (EditorGUI.EndChangeCheck())
             {
-                variantLimit = variantLimitValue;
+                previewVariantLimit = variantLimitValue;
             }
 
             EditorGUI.BeginChangeCheck();
@@ -95,15 +121,22 @@ namespace UnityEditor.ShaderGraph
                 allowDeprecatedBehaviors = allowDeprecatedBehaviorsValue;
             }
 
+            EditorGUI.BeginChangeCheck();
+            var zoomStepSizeValue = EditorGUILayout.Slider(new GUIContent("Zoom Step Size", $"Default is 0.5"), zoomStepSize, 0.0f, 1f);
+            if (EditorGUI.EndChangeCheck())
+            {
+                zoomStepSize = zoomStepSizeValue;
+            }
+
             EditorGUIUtility.labelWidth = previousLabelWidth;
         }
 
         static void Load()
         {
-            m_VariantLimit = EditorPrefs.GetInt(Keys.variantLimit, 128);
+            m_PreviewVariantLimit = EditorPrefs.GetInt(Keys.variantLimit, 128);
             m_AutoAddRemoveBlocks = EditorPrefs.GetBool(Keys.autoAddRemoveBlocks, true);
             m_AllowDeprecatedBehaviors = EditorPrefs.GetBool(Keys.allowDeprecatedBehaviors, false);
-
+            m_ZoomStepSize = EditorPrefs.GetFloat(Keys.zoomStepSize, defaultZoomStepSize);
             m_Loaded = true;
         }
 
