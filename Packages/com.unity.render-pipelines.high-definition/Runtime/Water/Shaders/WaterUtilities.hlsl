@@ -768,7 +768,8 @@ void ComputeWaterRefractionParams(float3 waterPosRWS, float3 waterNormal, float3
     }
 
     // Project the point on screen
-    distortedWaterNDC = ComputeNormalizedDeviceCoordinates(distortedWaterWS, UNITY_MATRIX_VP);
+    distortedWaterNDC = saturate(ComputeNormalizedDeviceCoordinates(distortedWaterWS, UNITY_MATRIX_VP));
+    distortedWaterNDC = min(distortedWaterNDC, 1.0f - _ScreenSize.zw);
 
     // Compute the position of the surface behind the water surface
     float refractedWaterDepth = SampleCameraDepth(distortedWaterNDC);

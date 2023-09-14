@@ -115,11 +115,11 @@ namespace UnityEditor.Rendering.HighDefinition
         static public readonly GUIContent k_CausticsBandAgitation = EditorGUIUtility.TrTextContent("Simulation Band", "Controls which simulation band is used for the caustics evaluation. The first band (index 0) comes from the agitation simulation and the second one (index 1) from the ripples.");
         static public readonly GUIContent k_CausticsDirectionalShadow = EditorGUIUtility.TrTextContent("Directional Shadow", "When enabled, the water caustics will take into account the directional light's shadow.");
         static public readonly GUIContent k_CausticsDirectionalShadowDimmer = EditorGUIUtility.TrTextContent("Directional Shadow Dimmer", "Sets the water caustics dimmer value for the directional shadow.");
-        
+
         static public readonly GUIContent k_FoamSmoothness = EditorGUIUtility.TrTextContent("Smoothness", "Controls the simulation foam smoothness.");
         static public readonly GUIContent k_FoamPersistenceMultiplier = EditorGUIUtility.TrTextContent("Persistence Multiplier", "Specifies the foam persistence multiplier. A higher value will lead to the foam remaining visible longer.");
-        static public readonly GUIContent k_FoamTexture = EditorGUIUtility.TrTextContent("Custom Texture", "Sets the texture used to define a visual appearance for the foam.");
         static public readonly GUIContent k_FoamTextureTiling = EditorGUIUtility.TrTextContent("Texture Tiling", "Sets the per meter tiling for the foam texture.");
+        static public readonly GUIContent k_FoamColor = EditorGUIUtility.TrTextContent("Color", "Sets the foam color.");
         static public readonly GUIContent k_SimulationFoam = EditorGUIUtility.TrTextContent("Simulation Foam", "When enabled, the water simulation will generate foam on the tip of the waves.");
         static public readonly GUIContent k_SimulationFoamAmount = EditorGUIUtility.TrTextContent("Amount", "Controls the simulation foam amount. Higher values generate larger foam patches. Foam presence is highly dependent on the Distant Wind Speed.");
         static public readonly GUIContent k_SimulationFoamMask = EditorGUIUtility.TrTextContent("Mask", "Sets the texture used to attenuate or suppress the simulation foam. The red channel of the texture is used for the masking.");

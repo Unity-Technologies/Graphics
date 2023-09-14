@@ -99,7 +99,7 @@ Shader "Hidden/HDRP/WaterFoam"
                     float foamHeightThreshold = EvaluateWaveBlendAttenuation(deform, input.normalizedPos);
 
                     // Define where the foam appears on the wave
-                    float surfacefoamWaveLocation = saturate((waveData.position - 0.2) / 0.1) * (1.0 - saturate((waveData.position - 0.5) / 0.02));
+                    float surfacefoamWaveLocation = saturate((waveData.position - 0.1) / 0.1) * (1.0 - saturate((waveData.position - 0.5) / 0.02));
                     float deepFoamWaveLocation = saturate((waveData.position - 0.1) / 0.1) * (1.0 - saturate((waveData.position - 0.3) / 0.1));
 
                     // Define what amount of foam appears

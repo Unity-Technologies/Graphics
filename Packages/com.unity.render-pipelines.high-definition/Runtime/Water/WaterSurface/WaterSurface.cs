@@ -184,6 +184,13 @@ namespace UnityEngine.Rendering.HighDefinition
         ///
         /// </summary>
         public float smoothnessFadeDistance = 500.0f;
+
+#if UNITY_EDITOR
+        static internal bool IsWaterMaterial(Material material)
+        {
+            return material.shader.FindSubshaderTagValue(0, (ShaderTagId)"ShaderGraphTargetId").name == "WaterSubTarget";
+        }
+#endif
         #endregion
 
         #region Water Refraction
