@@ -475,6 +475,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
                     if (pass.culled)
                         continue;
 
+                    pass.waitOnGraphicsFencePassId = -1;
+                    pass.insertGraphicsFence = false;
+
                     foreach (ref var inp in pass.Inputs(ctx))
                     {
                         ref var pointTo = ref ctx.UnversionedResourceData(inp.resource);
@@ -490,6 +493,17 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
 
                             pointTo.tag = refC;
                         }
+
+                        // Resolve if this pass needs to wait on a fence due to its inputs
+                        if (pass.waitOnGraphicsFencePassId == -1)
+                        {
+                            ref var pointToVer = ref ctx.VersionedResourceData(inp.resource);
+                            ref var wPass = ref ctx.passData[pointToVer.writePass];
+                            if (wPass.asyncCompute != pass.asyncCompute)
+                            {
+                                pass.waitOnGraphicsFencePassId = wPass.passId;
+                            }
+                        }
                     }
 
                     // We're outputting a resource that is never used.
@@ -504,6 +518,20 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
                         {
                             pointTo.lastUsePassID = pass.passId;
                             pass.AddLastUse(outp.resource, ctx);
+                        }
+
+                        // Resolve if this pass should insert a fence for its outputs
+                        var numReaders = pointToVer.numReaders;
+                        for (var i = 0; i < numReaders; ++i)
+                        {
+                            var depIdx = ResourcesData.IndexReader(outp.resource, i);
+                            ref var dep = ref ctx.resources.readerData[outp.resource.iType][depIdx];
+                            ref var depPass = ref ctx.passData[dep.passId];
+                            if (pass.asyncCompute != depPass.asyncCompute)
+                            {
+                                pass.insertGraphicsFence = true;
+                                break;
+                            }
                         }
                     }
                 }
@@ -1020,9 +1048,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
                     }
 
                     // also make sure to insert fence=waits for multiple queue syncs
-                    if (RenderGraphUtil.Synchronization.NeedsToWaitOfGraphicsFence(pass, contextData, out var passIDToWaiton))
+                    if (pass.waitOnGraphicsFencePassId != -1)
                     {
-                        passCmdBuffer.WaitOnGraphicsFence(passIDToWaiton);
+                        passCmdBuffer.WaitOnGraphicsFence(pass.waitOnGraphicsFencePassId);
                     }
 
                     var nrpBegan = false;
@@ -1051,7 +1079,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
                     passCmdBuffer.ExecuteGraphNode(pass.passId);
 
                     // should we insert a fence to sync between difference queues?
-                    if (RenderGraphUtil.Synchronization.NeedsGraphicsFence(pass, contextData))
+                    if (pass.insertGraphicsFence)
                     {
                         passCmdBuffer.InsertGraphicsFence(pass.passId);
                     }

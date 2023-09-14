@@ -77,6 +77,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
         public int fragmentInfoVolumeDepth;
         public int fragmentInfoSamples;
         public bool fragmentInfoHasDepth;
+        
+        public bool insertGraphicsFence; // Whether this pass should insert a fence into the command buffer
+        public int waitOnGraphicsFencePassId; // -1 if no fence wait is needed, otherwise the passId to wait on
 
         public PassMergeState mergeState;
         public int nativePassIndex; // Index of the native pass this pass belongs to
@@ -120,6 +123,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
             fragmentInfoVolumeDepth = 0;
             fragmentInfoSamples = 0;
             fragmentInfoHasDepth = false;
+            
+            insertGraphicsFence = false;
+            waitOnGraphicsFencePassId = -1;
         }
 
     public string identifier

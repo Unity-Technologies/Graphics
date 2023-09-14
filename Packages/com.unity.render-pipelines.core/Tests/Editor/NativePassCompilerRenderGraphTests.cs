@@ -476,7 +476,7 @@ namespace UnityEngine.Rendering.Tests
             Assert.AreEqual(buffers.extraBuffers[2].handle.index, nativePasses[0].attachments[3].handle.index);
             Assert.AreEqual(buffers.backBuffer.handle.index, nativePasses[0].attachments[4].handle.index);
 
-            // Sub Pass 0 
+            // Sub Pass 0
             ref var subPass = ref result.contextData.nativeSubPassData[nativePasses[0].firstNativeSubPass];
             Assert.AreEqual(0, subPass.inputs.Length);
 
@@ -567,5 +567,55 @@ namespace UnityEngine.Rendering.Tests
             Assert.AreEqual(RenderBufferStoreAction.Store, passes[1].attachments[2].storeAction);
         }
 
+        [Test]
+        public void FencesWork()
+        {
+            var g = AllocateRenderGraph();
+            var buffers = ImportAndCreateBuffers(g);
+
+            { // Pass #1: Render pass writing to backbuffer
+                using var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("#1 RenderPass", out _);
+                builder.UseTexture(buffers.backBuffer, IBaseRenderGraphBuilder.AccessFlags.Write);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+            }
+
+            { // Pass #2: Async compute pass writing to back buffer
+                using var builder = g.AddComputePass<RenderGraphTestPassData>("#2 AsyncComputePass", out _);
+                builder.EnableAsyncCompute(true);
+                builder.UseTexture(buffers.backBuffer, IBaseRenderGraphBuilder.AccessFlags.Write);
+                builder.SetRenderFunc((RenderGraphTestPassData data, ComputeGraphContext context) => { });
+            }
+
+            { // Pass #3: Render pass writing to backbuffer
+                using var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("#3 RenderPass", out _);
+                builder.UseTexture(buffers.backBuffer, IBaseRenderGraphBuilder.AccessFlags.Write);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+            }
+
+            { // Pass #4: Render pass writing to backbuffer
+                using var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("#4 RenderPass", out _);
+                builder.UseTexture(buffers.backBuffer, IBaseRenderGraphBuilder.AccessFlags.Write);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+            }
+
+            var result = g.CompileNativeRenderGraph();
+            var passData = result.contextData.passData;
+
+            // #1 waits for nothing, inserts a fence
+            Assert.AreEqual(-1, passData[0].waitOnGraphicsFencePassId);
+            Assert.True(passData[0].insertGraphicsFence);
+
+            // #2 (async compute) pass waits on #1, inserts a fence
+            Assert.AreEqual(0, passData[1].waitOnGraphicsFencePassId);
+            Assert.True(passData[1].insertGraphicsFence);
+
+            // #3 waits on #2 (async compute) pass, doesn't insert a fence
+            Assert.AreEqual(1, passData[2].waitOnGraphicsFencePassId);
+            Assert.False(passData[2].insertGraphicsFence);
+
+            // #4 waits for nothing, doesn't insert a fence
+            Assert.AreEqual(-1, passData[3].waitOnGraphicsFencePassId);
+            Assert.False(passData[3].insertGraphicsFence);
+        }
     }
 }
