@@ -361,6 +361,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // Color pyramid scale
         public float colorPyramidScale;
 
+        public Vector4 foamColor;
+
         // Vertical direction of the water surface (used for SSR, Env Lighting, etc)
         public Vector3 upDirection;
         public int colorPyramidMipOffset;
@@ -472,8 +474,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public Matrix4x4 _WaterSurfaceTransform;
         public Matrix4x4 _WaterSurfaceTransform_Inverse;
 
-        // Used to rotate patches on metal and for debug modes
-        public Vector4 _PatchRotation;
         // Offset of the patch w/r to the origin. w is used to scale the low res water mesh
         public Vector4 _PatchOffset;
 

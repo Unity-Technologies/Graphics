@@ -1098,12 +1098,10 @@ namespace UnityEngine.Rendering
                                 s_CustomDilationThresh[(cell.index, i)] = thresh;
                             }
 
-                            intensityScale = touchupVolume.intensityScale;
-
+                            if (touchupVolume.mode == ProbeTouchupVolume.Mode.IntensityScale)
+                                intensityScale = touchupVolume.intensityScale;
                             if (intensityScale != 1.0f)
-                            {
                                 cell.touchupVolumeInteraction[i] = 2.0f + intensityScale;
-                            }
                         }
                     }
 

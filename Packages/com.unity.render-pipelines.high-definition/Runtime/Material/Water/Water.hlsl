@@ -433,6 +433,8 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     // Evaluate the scattering color and take into account the under water ambient probe contribution as this value is only used for under-water scenarios
     preLightData.scatteringColor = profile.scatteringColor * lerp(1.0, _WaterAmbientProbe.w * GetCurrentExposureMultiplier(), profile.underWaterAmbientProbeContribution);
 
+    bsdfData.foamColor = bsdfData.foam * profile.foamColor.xyz;
+
     float3 N = bsdfData.normalWS;
     preLightData.NdotV = dot(N, V);
     preLightData.iblPerceptualRoughness = max(profile.envPerceptualRoughness, bsdfData.perceptualRoughness);
@@ -582,7 +584,7 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
     DirectLighting directLighting = ShadeSurface_Directional(lightLoopContext, posInput, builtinData, preLightData, lightData, bsdfData, V);
 
     // Add the foam and sub-surface scattering terms
-    directLighting.diffuse = ((1.0 + GetPhaseTerm(-lightData.forward, V, bsdfData, preLightData)) * bsdfData.diffuseColor + bsdfData.foam) * directLighting.diffuse;
+    directLighting.diffuse = ((1.0 + GetPhaseTerm(-lightData.forward, V, bsdfData, preLightData)) * bsdfData.diffuseColor + bsdfData.foamColor) * directLighting.diffuse;
 
     // return the result
     return directLighting;
@@ -602,7 +604,7 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
 
     // Add the foam and sub-surface scattering terms
     float3 L = GetPunctualLightVector(posInput.positionWS, lightData);
-    directLighting.diffuse = ((1.0 + GetPhaseTerm(L, V, bsdfData, preLightData)) * bsdfData.diffuseColor + bsdfData.foam) * directLighting.diffuse;
+    directLighting.diffuse = ((1.0 + GetPhaseTerm(L, V, bsdfData, preLightData)) * bsdfData.diffuseColor + bsdfData.foamColor) * directLighting.diffuse;
 
     // return the result
     return directLighting;
@@ -758,7 +760,7 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
     }
 
     // Add the foam and surface diffuse
-    lighting.diffuse = lighting.diffuse * (bsdfData.diffuseColor + bsdfData.foam);
+    lighting.diffuse = lighting.diffuse * (bsdfData.diffuseColor + bsdfData.foamColor);
 
      return lighting;
 }
@@ -944,7 +946,8 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
                         out LightLoopOutput lightLoopOutput)
 {
     // Compute the indirect diffuse term here, we do it here to save some VGPRs and increase the occupancy which is the main bottleneck here.
-    float3 indirectDiffuse = _WaterAmbientProbe.xyz * (bsdfData.diffuseColor + bsdfData.foam) * preLightData.diffuseFGD * GetIndirectDiffuseMultiplier(builtinData.renderingLayers);
+    float3 color = bsdfData.diffuseColor + bsdfData.foamColor;
+    float3 indirectDiffuse = _WaterAmbientProbe.xyz * color * preLightData.diffuseFGD * GetIndirectDiffuseMultiplier(builtinData.renderingLayers);
 
     // Evaluate the total diffuse and specular terms
     lightLoopOutput.diffuseLighting = lighting.direct.diffuse + indirectDiffuse;

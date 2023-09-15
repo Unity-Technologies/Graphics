@@ -103,6 +103,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static readonly ExpandedState<ExpandableShadows, HDRenderPipelineAsset> k_LightsExpandedState = new(0, "HDRP");
 
+        static internal void ExpandGroup(ExpandableGroup group)
+        {
+            k_ExpandedGroupState.SetExpandedAreas(group, true);
+        }
+
         static readonly Dictionary<GUIContent, ExpandedState<ExpandableQualities, HDRenderPipelineAsset>>
         k_QualityExpandedStates = new();
         private static CED.IDrawer QualityDrawer<TEnum>(GUIContent content, TEnum mask, ExpandedStateBase<TEnum> state, Action<SerializedHDRenderPipelineAsset, int> qualityActionForTier)

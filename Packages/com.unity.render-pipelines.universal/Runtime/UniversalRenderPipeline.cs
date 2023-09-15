@@ -257,7 +257,6 @@ namespace UnityEngine.Rendering.Universal
                 ProbeReferenceVolume.instance.Initialize(new ProbeVolumeSystemParameters
                 {
                     memoryBudget = asset.probeVolumeMemoryBudget,
-                    blendingMemoryBudget = asset.probeVolumeBlendingMemoryBudget,
                     probeDebugShader = asset.scriptableRendererData.probeVolumeResources.probeVolumeDebugShader,
                     fragmentationDebugShader = asset.scriptableRendererData.probeVolumeResources.probeVolumeFragmentationDebugShader,
                     probeSamplingDebugShader = asset.scriptableRendererData.probeVolumeResources.probeVolumeSamplingDebugShader,

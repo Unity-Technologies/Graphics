@@ -22,8 +22,6 @@ namespace UnityEngine.Rendering
 
             public static readonly GUIContent dilationSettingsTitle = EditorGUIUtility.TrTextContent("Probe Dilation Settings");
             public static readonly GUIContent virtualOffsetSettingsTitle = EditorGUIUtility.TrTextContent("Virtual Offset Settings");
-
-            public static GUIStyle voButtonStyle = new GUIStyle(EditorStyles.miniButton);
         }
 
         // PropertyDrawer are not made to use GUILayout, so it will try to reserve a rect before calling OnGUI
@@ -72,14 +70,11 @@ namespace UnityEngine.Rendering
 
                 if (Unsupported.IsDeveloperMode())
                 {
-                    GUILayout.BeginHorizontal();
-                    EditorGUILayout.Space(15 * EditorGUI.indentLevel, false);
-                    if (GUILayout.Button(EditorGUIUtility.TrTextContent("Refresh Dilation"), EditorStyles.miniButton))
+                    if (ProbeTouchupVolumeEditor.Button(EditorGUIUtility.TrTextContent("Refresh Dilation")))
                     {
                         ProbeGIBaking.RevertDilation();
                         ProbeGIBaking.PerformDilation();
                     }
-                    GUILayout.EndHorizontal();
                 }
             }
         }
@@ -103,13 +98,10 @@ namespace UnityEngine.Rendering
                 EditorGUILayout.PropertyField(virtualOffsetMaxHitsPerRay, Styles.virtualOffsetMaxHitsPerRay);
                 EditorGUILayout.PropertyField(virtualOffsetCollisionMask, Styles.virtualOffsetCollisionMask);
 
-                GUILayout.BeginHorizontal();
-                EditorGUILayout.Space(15 * EditorGUI.indentLevel, false);
-                if (GUILayout.Button(EditorGUIUtility.TrTextContent("Refresh Virtual Offset Debug", "Re-run the virtual offset simulation; it will be applied only for debug visualization sake and not affect baked data."), Styles.voButtonStyle))
+                if (ProbeTouchupVolumeEditor.Button(EditorGUIUtility.TrTextContent("Refresh Virtual Offset Debug", "Re-run the virtual offset simulation; it will be applied only for debug visualization sake and not affect baked data.")))
                 {
                     ProbeGIBaking.RecomputeVOForDebugOnly();
                 }
-                GUILayout.EndHorizontal();
             }
         }
     }

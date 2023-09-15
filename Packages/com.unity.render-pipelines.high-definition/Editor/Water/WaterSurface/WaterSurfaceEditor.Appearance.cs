@@ -177,6 +177,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (newMaterial != null)
                     serialized.m_CustomMaterial.objectReferenceValue = newMaterial;
             }
+
+            var material = serialized.m_CustomMaterial.objectReferenceValue as Material;
+            if (material != null && !WaterSurface.IsWaterMaterial(material))
+                EditorGUILayout.HelpBox("Water only work with a material using a shader created from the Water Master Node in ShaderGraph.", MessageType.Error);
+
             EditorGUILayout.Space();
         }
 

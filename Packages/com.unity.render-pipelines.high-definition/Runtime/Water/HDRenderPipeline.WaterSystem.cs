@@ -31,7 +31,7 @@ namespace UnityEngine.Rendering.HighDefinition
         const string k_WaterGBufferPass = "WaterGBuffer";
         const string k_WaterGBufferTessellationPass = "WaterGBufferTessellation";
         const string k_LowResGBufferPass = "LowRes";
-        const string k_WaterMaskPass = "WaterMaskTessellation";
+        const string k_WaterMaskPass = "WaterMask";
         Mesh m_GridMesh, m_RingMesh, m_RingMeshLow;
         GraphicsBuffer m_WaterIndirectDispatchBuffer;
         GraphicsBuffer m_WaterPatchDataBuffer;
@@ -342,7 +342,6 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._MaxWaterDeformation = m_MaxWaterDeformation;
 
             // Rotation, size and offsets (patch, water mask and foam mask)
-            cb._PatchRotation.Set(1.0f, 0.0f, 0.0f, 0.0f);
             if (instancedQuads)
             {
                 // Compute the grid size to maintain a constant triangle size in screen space
@@ -639,6 +638,10 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.ringMesh = m_RingMesh;
             parameters.ringMeshLow = m_RingMeshLow;
 
+            // At the moment indirect buffer for instanced mesh draw with tessellation does not work on metal
+            if (parameters.instancedQuads && SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal)
+                parameters.tessellation = false;
+
             // Under water data
             parameters.evaluateCameraPosition = insideUnderWaterVolume;
 
@@ -818,6 +821,8 @@ namespace UnityEngine.Rendering.HighDefinition
             profile.roughnessEndValue = 1.0f - waterSurface.endSmoothness;
             profile.upDirection = waterSurface.UpVector();
 
+            profile.foamColor = waterSurface.foamColor;
+
             // Color offset
             profile.colorPyramidMipOffset = waterSurface.colorPyramidOffset;
             profile.colorPyramidScale = 1.0f / (1 << waterSurface.colorPyramidOffset);
@@ -902,11 +907,8 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalFloat(HDShaderIDs._StencilWaterReadMaskGBuffer, parameters.exclusion ? (int)(StencilUsage.WaterExclusion) : 0);
             cmd.SetGlobalFloat(HDShaderIDs._CullWaterMask, parameters.evaluateCameraPosition ? (int)CullMode.Off : (int)CullMode.Back);
 
-            // At the moment indirect buffer for instanced mesh draw with tessellation does not work on metal
-            bool supportIndirectGPU = !parameters.tessellation || SystemInfo.graphicsDeviceType != GraphicsDeviceType.Metal;
-
             string passName = parameters.tessellation ? k_WaterGBufferTessellationPass : k_WaterGBufferPass;
-            DrawWaterSurface(cmd, parameters, passName, supportIndirectGPU, patchDataBuffer, indirectBuffer, cameraFrustumBuffer);
+            DrawWaterSurface(cmd, parameters, passName, patchDataBuffer, indirectBuffer, cameraFrustumBuffer);
 
             // Reset the keywords
             ResetWaterShaderKeyword(cmd);
@@ -1115,6 +1117,9 @@ namespace UnityEngine.Rendering.HighDefinition
                         continue;
                     }
                 }
+
+                if (currentWater.customMaterial != null && !WaterSurface.IsWaterMaterial(currentWater.customMaterial))
+                    continue;
 #endif
                 // One surface needs to pass the resource tests for the gbuffer to be valid
                 outputGBuffer.valid = true;
@@ -1206,6 +1211,11 @@ namespace UnityEngine.Rendering.HighDefinition
             // If the water is disabled, no need to render or simulate
             if (!ShouldRenderWater(hdCamera))
                 return;
+
+            // Make sure the current data is valid
+            CheckWaterCurrentData();
+            // Copy the frustum data to the GPU
+            PropagateFrustumDataToGPU(hdCamera);
 
             // Request all the gbuffer textures we will need
             TextureHandle WaterGbuffer0 = renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
