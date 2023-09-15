@@ -100,11 +100,9 @@ namespace UnityEditor.Rendering.HighDefinition.Tests
         [Test]
         public void CheckDisposeClearsAllData()
         {
-            HDRPBuildData buildData = new HDRPBuildData(EditorUserBuildSettings.activeBuildTarget);
-            Assert.IsNotNull(HDRPBuildData.instance);
-            buildData.Dispose();
-
-            Assert.IsTrue(CompareObjects<HDRPBuildData>(buildData, new HDRPBuildData()));
+            var instance = new HDRPBuildData(EditorUserBuildSettings.activeBuildTarget, Debug.isDebugBuild);
+            instance.Dispose();
+            Assert.IsTrue(CompareObjects<HDRPBuildData>(instance, new HDRPBuildData()));
         }
 
 

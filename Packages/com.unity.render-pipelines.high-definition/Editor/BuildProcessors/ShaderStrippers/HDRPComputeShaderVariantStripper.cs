@@ -18,7 +18,7 @@ namespace UnityEditor.Rendering.HighDefinition
         // Modify this function to add more stripping clauses
         internal bool StripShader(HDRenderPipelineAsset hdAsset, ComputeShader shader, string kernelName, ShaderCompilerData inputData)
         {
-            bool stripDebug = !Debug.isDebugBuild || HDRenderPipelineGlobalSettings.Ensure().stripDebugVariants;
+            bool stripDebug = HDRPBuildData.instance.stripDebugVariants;
 
             // Strip debug compute shaders
             if (stripDebug && !hdAsset.currentPlatformRenderPipelineSettings.supportRuntimeAOVAPI)

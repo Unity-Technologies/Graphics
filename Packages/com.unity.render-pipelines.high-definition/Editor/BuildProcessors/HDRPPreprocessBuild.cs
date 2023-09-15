@@ -18,7 +18,8 @@ namespace UnityEditor.Rendering.HighDefinition
         public void OnPreprocessBuild(BuildReport report)
         {
             m_BuildData?.Dispose();
-            m_BuildData = new HDRPBuildData(EditorUserBuildSettings.activeBuildTarget);
+            bool isDevelopmentBuild = (report.summary.options & BuildOptions.Development) != 0;
+            m_BuildData = new HDRPBuildData(EditorUserBuildSettings.activeBuildTarget, isDevelopmentBuild);
 
             if (m_BuildData.buildingPlayerForHDRenderPipeline)
             {

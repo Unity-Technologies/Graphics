@@ -9,21 +9,13 @@ namespace UnityEditor.Rendering.HighDefinition
     internal class HDRPBuildData : IDisposable
     {
         static HDRPBuildData m_Instance = null;
-        public static HDRPBuildData instance
-        {
-            get
-            {
-                if (m_Instance == null)
-                    m_Instance = new(EditorUserBuildSettings.activeBuildTarget);
-
-                return m_Instance;
-            }
-        }
+        public static HDRPBuildData instance => m_Instance ??= new(EditorUserBuildSettings.activeBuildTarget, Debug.isDebugBuild);
 
         public bool buildingPlayerForHDRenderPipeline { get; private set; }
 
         public List<HDRenderPipelineAsset> renderPipelineAssets { get; private set; } = new List<HDRenderPipelineAsset>();
         public bool playerNeedRaytracing { get; private set; }
+        public bool stripDebugVariants { get; private set; } = true;
         public Dictionary<int, ComputeShader> rayTracingComputeShaderCache { get; private set; } = new();
         public Dictionary<int, ComputeShader> computeShaderCache { get; private set; } = new();
 
@@ -32,12 +24,14 @@ namespace UnityEditor.Rendering.HighDefinition
 
         }
 
-        public HDRPBuildData(BuildTarget buildTarget)
+        public HDRPBuildData(BuildTarget buildTarget, bool isDevelopmentBuild)
         {
             buildingPlayerForHDRenderPipeline = false;
 
             if (TryGetAllValidHDRPAssets(buildTarget, renderPipelineAssets))
             {
+                buildingPlayerForHDRenderPipeline = true;
+
                 foreach (var hdrpAsset in renderPipelineAssets)
                 {
                     if (hdrpAsset.currentPlatformRenderPipelineSettings.supportRayTracing)
@@ -47,16 +41,18 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                 }
 
-                var hdrpGlobalSettingsInstance = HDRenderPipelineGlobalSettings.instance;
+                var hdrpGlobalSettingsInstance = HDRenderPipelineGlobalSettings.Ensure();
+                if (hdrpGlobalSettingsInstance != null)
+                {
+                    var rtxResources = hdrpGlobalSettingsInstance.renderPipelineRayTracingResources;
+                    if (rtxResources != null)
+                        rtxResources.ForEachFieldOfType<ComputeShader>(computeShader => rayTracingComputeShaderCache.Add(computeShader.GetInstanceID(), computeShader));
 
-                var rtxResources = hdrpGlobalSettingsInstance.renderPipelineRayTracingResources;
-                if (rtxResources != null)
-                    rtxResources.ForEachFieldOfType<ComputeShader>(computeShader => rayTracingComputeShaderCache.Add(computeShader.GetInstanceID(), computeShader));
+                    var runtimeShaderResources = hdrpGlobalSettingsInstance.renderPipelineResources.shaders;
+                    runtimeShaderResources?.ForEachFieldOfType<ComputeShader>(computeShader => computeShaderCache.Add(computeShader.GetInstanceID(), computeShader));
 
-                var runtimeShaderResources = hdrpGlobalSettingsInstance.renderPipelineResources.shaders;
-                runtimeShaderResources?.ForEachFieldOfType<ComputeShader>(computeShader => computeShaderCache.Add(computeShader.GetInstanceID(), computeShader));
-
-                buildingPlayerForHDRenderPipeline = true;
+                    stripDebugVariants = !isDevelopmentBuild || hdrpGlobalSettingsInstance.stripDebugVariants;
+                }
             }
 
             m_Instance = this;
@@ -68,6 +64,7 @@ namespace UnityEditor.Rendering.HighDefinition
             rayTracingComputeShaderCache?.Clear();
             computeShaderCache?.Clear();
             playerNeedRaytracing = false;
+            stripDebugVariants = true;
             buildingPlayerForHDRenderPipeline = false;
             m_Instance = null;
         }
