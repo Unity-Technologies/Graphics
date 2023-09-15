@@ -478,6 +478,7 @@ namespace UnityEngine.Rendering.Universal
             m_ColorBufferSystem.EnableMSAA(enable);
         }
 
-        internal override bool supportsNativeRenderPassRendergraphCompiler { get => SystemInfo.graphicsDeviceType != GraphicsDeviceType.Vulkan; }
+        internal override bool supportsNativeRenderPassRendergraphCompiler { get => SystemInfo.graphicsDeviceType != GraphicsDeviceType.Vulkan &&
+                                                                                    SystemInfo.graphicsDeviceType != GraphicsDeviceType.Direct3D12; } // Temporarily disable DX12, until it's fixed
     }
 }
