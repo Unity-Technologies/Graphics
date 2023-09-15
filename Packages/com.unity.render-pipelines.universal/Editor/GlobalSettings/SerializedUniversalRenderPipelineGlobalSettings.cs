@@ -16,6 +16,8 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty renderingLayerNames;
         public ReorderableList renderingLayerNameList;
 
+        public SerializedProperty enableRenderGraph;
+
         public SerializedUniversalRenderPipelineGlobalSettings(SerializedObject serializedObject)
         {
             this.serializedObject = serializedObject;
@@ -40,6 +42,8 @@ namespace UnityEditor.Rendering.Universal
                 onCanAddCallback = (ReorderableList list) => list.count < 32,
                 onAddCallback = OnAddElement,
             };
+
+            enableRenderGraph = serializedObject.FindProperty("m_EnableRenderGraph");
         }
 
         void OnAddElement(ReorderableList list)

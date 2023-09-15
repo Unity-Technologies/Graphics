@@ -346,12 +346,7 @@ namespace UnityEngine.Rendering.Universal
         protected override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
 #endif
         {
-#if RENDER_GRAPH_ENABLED
-            useRenderGraph = asset.enableRenderGraph || RenderGraphGraphicsAutomatedTests.enabled;
-#else
-            if (RenderGraphGraphicsAutomatedTests.enabled)
-                asset.enableRenderGraph = useRenderGraph = true;
-#endif
+            useRenderGraph = asset.enableRenderGraph;
 
             SetHDRState(cameras);
 

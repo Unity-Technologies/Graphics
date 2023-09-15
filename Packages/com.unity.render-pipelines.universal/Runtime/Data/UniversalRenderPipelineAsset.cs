@@ -562,7 +562,6 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_SupportsLightLayers = false;
         [SerializeField] [Obsolete("",true)] PipelineDebugLevel m_DebugLevel;
         [SerializeField] StoreActionsOptimization m_StoreActionsOptimization = StoreActionsOptimization.Auto;
-        [SerializeField] bool m_EnableRenderGraph = false;
 
         // Adaptive performance settings
         [SerializeField] bool m_UseAdaptivePerformance = true;
@@ -1519,8 +1518,14 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public bool enableRenderGraph
         {
-            get => m_EnableRenderGraph;
-            set => m_EnableRenderGraph = value;
+            get
+            {
+#if RENDER_GRAPH_ENABLED
+                if (UniversalRenderPipelineGlobalSettings.instance)
+                    return UniversalRenderPipelineGlobalSettings.instance.enableRenderGraph || RenderGraphGraphicsAutomatedTests.enabled;
+#endif
+                return RenderGraphGraphicsAutomatedTests.enabled;
+            }
         }
 
         /// <summary>

@@ -331,7 +331,8 @@ namespace UnityEngine.Rendering.Universal
             bool clearColor = renderingData.cameraData.renderType == CameraRenderType.Base;
             bool clearDepth = renderingData.cameraData.renderType == CameraRenderType.Base || renderingData.cameraData.clearDepth;
             // if the camera background type is "uninitialized" clear using a yellow color, so users can clearly understand the underlying behaviour
-            Color cameraBackgroundColor = (cameraData.camera.clearFlags == CameraClearFlags.Nothing) ? Color.yellow : renderingData.cameraData.backgroundColor;
+            // only exception being if we are rendering to an external texture
+            Color cameraBackgroundColor = (cameraData.camera.clearFlags == CameraClearFlags.Nothing && cameraData.targetTexture == null) ? Color.yellow : renderingData.cameraData.backgroundColor;
 
             // If scene filtering is enabled (prefab edit mode), the filtering is implemented compositing some builtin ImageEffect passes.
             // For the composition to work, we need to clear the color buffer alpha to 0

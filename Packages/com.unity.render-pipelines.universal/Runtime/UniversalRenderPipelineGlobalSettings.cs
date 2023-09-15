@@ -228,6 +228,13 @@ namespace UnityEngine.Rendering.Universal
             DecalProjector.UpdateAllDecalProperties();
         }
 
+        [SerializeField] private bool m_EnableRenderGraph;
+        public bool enableRenderGraph
+        {
+            get => m_EnableRenderGraph;
+            set => m_EnableRenderGraph = value;
+        }
+
         /// <summary>
         /// Names used for display of light layers with Layer's index as prefix.
         /// For example: "0: Light Layer Default"
