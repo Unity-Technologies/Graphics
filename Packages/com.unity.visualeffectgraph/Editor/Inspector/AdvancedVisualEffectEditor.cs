@@ -480,6 +480,7 @@ namespace UnityEditor.VFX
                                 var vector3Property = specialSpacableVector3CaseField.GetValue(o);
                                 SetObjectValue(property, vector3Property);
                             });
+                            return true;
                         }
                         else if (currentValue is T)
                         {
