@@ -455,9 +455,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             this.GbufferAttachments[this.GBufferLightingIndex] = colorAttachment;
             this.DepthAttachment = depthAttachment;
 
-            if (this.DeferredInputAttachments == null && this.UseRenderPass && this.GbufferAttachments.Length >= 3)
+            var inputCount = 4 + (UseShadowMask ?  1 : 0);
+            if (this.DeferredInputAttachments == null && this.UseRenderPass && this.GbufferAttachments.Length >= 3 ||
+                (this.DeferredInputAttachments != null && inputCount != this.DeferredInputAttachments.Length))
             {
-                var inputCount = 4 + (UseShadowMask ?  1 : 0);
                 this.DeferredInputAttachments = new RTHandle[inputCount];
                 this.DeferredInputIsTransient = new bool[inputCount];
                 int i, j = 0;
