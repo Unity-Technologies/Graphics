@@ -25,7 +25,7 @@ namespace UnityEngine.Rendering
         {
             public static readonly GUIContent helpIcon = EditorGUIUtility.IconContent("_Help");
             public static readonly GUIContent settingsIcon = EditorGUIUtility.IconContent("_Popup");
-            public static readonly GUIContent debugIcon = EditorGUIUtility.IconContent("DebuggerEnabled");
+            public static readonly GUIContent debugIcon = EditorGUIUtility.IconContent("d_debug");
 
             public static readonly GUIContent lightingSettings = new GUIContent("Lighting Settings Asset");
             public static readonly GUIContent bakingTitle = new GUIContent("Baking");
@@ -206,6 +206,8 @@ namespace UnityEngine.Rendering
 
             Undo.undoRedoEvent -= OnUndoRedo;
             EditorSceneManager.sceneOpened -= OnSceneOpened;
+
+            ProbeGIBaking.Dispose();
         }
 
         void OnUndoRedo(in UndoRedoInfo info)

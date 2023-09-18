@@ -1,0 +1,22 @@
+#define RAYTRACING_BACKEND_HARDWARE
+#include "TraceVirtualOffset.hlsl"
+
+#pragma max_recursion_depth 1
+
+[shader("raygeneration")]
+void MainRayGenShader()
+{
+    UnifiedRT::DispatchInfo dispatchInfo;
+    dispatchInfo.dispatchThreadID = DispatchRaysIndex();
+    dispatchInfo.dispatchDimensionsInThreads = DispatchRaysDimensions();
+    dispatchInfo.localThreadIndex = 0;
+    dispatchInfo.globalThreadIndex = DispatchRaysIndex().x + DispatchRaysIndex().y * DispatchRaysDimensions().x + DispatchRaysIndex().z * (DispatchRaysDimensions().x * DispatchRaysDimensions().y);
+
+    RayGenExecute(dispatchInfo);
+}
+
+[shader("miss")]
+void MainMissShader0(inout UnifiedRT::Hit hit : SV_RayPayload)
+{
+    hit.instanceIndex = -1;
+}

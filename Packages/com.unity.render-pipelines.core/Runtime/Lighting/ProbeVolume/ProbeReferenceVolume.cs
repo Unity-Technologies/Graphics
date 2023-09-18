@@ -1352,11 +1352,6 @@ namespace UnityEngine.Rendering
 
         void PerformPendingDeletion()
         {
-            if (!m_ProbeReferenceVolumeInit)
-            {
-                m_PendingScenesToBeUnloaded.Clear(); // If we are not init, we have not loaded yet.
-            }
-
             foreach (var unloadRequest in m_PendingScenesToBeUnloaded)
             {
                 RemovePendingScene(unloadRequest.Key, unloadRequest.Value);
@@ -1578,17 +1573,22 @@ namespace UnityEngine.Rendering
         {
             if (m_ProbeReferenceVolumeInit)
             {
-                // Need to do that first because some assets may be in the process of being removed.
-                PerformPendingOperations();
+                try
+                {
+                    // Need to do that first because some assets may be in the process of being removed.
+                    PerformPendingOperations();
+                }
+                finally
+                {
+                    UnloadAllCells();
+                    m_Pool.Clear();
+                    m_BlendingPool.Clear();
+                    m_Index.Clear();
+                    cells.Clear();
 
-                UnloadAllCells();
-                m_Pool.Clear();
-                m_BlendingPool.Clear();
-                m_Index.Clear();
-                cells.Clear();
-
-                Debug.Assert(m_ToBeLoadedCells.size == 0);
-                Debug.Assert(m_LoadedCells.size == 0);
+                    Debug.Assert(m_ToBeLoadedCells.size == 0);
+                    Debug.Assert(m_LoadedCells.size == 0);
+                }
             }
 
             if (clearAssetsOnVolumeClear)
@@ -1917,6 +1917,8 @@ namespace UnityEngine.Rendering
 
             ClearDebugData();
             m_ProbeReferenceVolumeInit = false;
+            m_PendingScenesToBeUnloaded.Clear();
+            m_ActiveScenes.Clear();
         }
 
         /// <summary>
