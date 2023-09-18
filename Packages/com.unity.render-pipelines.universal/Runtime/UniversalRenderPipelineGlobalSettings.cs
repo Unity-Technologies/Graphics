@@ -29,20 +29,6 @@ namespace UnityEngine.Rendering.Universal
         int m_AssetVersion = k_LastVersion;
 #pragma warning restore CS0414
 
-        public void OnBeforeSerialize()
-        {
-        }
-
-        public void OnAfterDeserialize()
-        {
-#if UNITY_EDITOR
-            if (m_AssetVersion != k_LastVersion)
-            {
-                EditorApplication.delayCall += () => UpgradeAsset(this.GetInstanceID());
-            }
-#endif
-        }
-
 #if UNITY_EDITOR
         static void UpgradeAsset(int assetInstanceID)
         {
