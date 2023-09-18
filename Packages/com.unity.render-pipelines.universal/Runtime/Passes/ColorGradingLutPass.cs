@@ -140,6 +140,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 ref var postProcessingData = ref renderingData.postProcessingData;
                 bool hdr = postProcessingData.gradingMode == ColorGradingMode.HighDynamicRange;
+                ref CameraData cameraData = ref renderingData.cameraData;
 
                 // Prepare texture & material
                 var material = hdr ? lutBuilderHdr : lutBuilderLdr;
@@ -224,30 +225,31 @@ namespace UnityEngine.Rendering.Universal.Internal
                     }
 
                     // HDR output is active
-                    if (renderingData.cameraData.isHDROutputActive)
+                    if (cameraData.isHDROutputActive)
                     {
                         Vector4 hdrOutputLuminanceParams;
                         Vector4 hdrOutputGradingParams;
-                        UniversalRenderPipeline.GetHDROutputLuminanceParameters(tonemapping, out hdrOutputLuminanceParams);
+
+                        UniversalRenderPipeline.GetHDROutputLuminanceParameters(cameraData.hdrDisplayInformation, cameraData.hdrDisplayColorGamut, tonemapping, out hdrOutputLuminanceParams);
                         UniversalRenderPipeline.GetHDROutputGradingParameters(tonemapping, out hdrOutputGradingParams);
 
                         material.SetVector(ShaderPropertyId.hdrOutputLuminanceParams, hdrOutputLuminanceParams);
                         material.SetVector(ShaderPropertyId.hdrOutputGradingParams, hdrOutputGradingParams);
 
-                        HDROutputUtils.ConfigureHDROutput(material, HDROutputSettings.main.displayColorGamut, HDROutputUtils.Operation.ColorConversion);
+                        HDROutputUtils.ConfigureHDROutput(material, cameraData.hdrDisplayColorGamut, HDROutputUtils.Operation.ColorConversion);
                     }
                 }
 
-                renderingData.cameraData.xr.StopSinglePass(cmd);
+                cameraData.xr.StopSinglePass(cmd);
 
 
-                if (renderingData.cameraData.xr.supportsFoveatedRendering)
+                if (cameraData.xr.supportsFoveatedRendering)
                     cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Disabled);
 
                 // Render the lut
                 Blitter.BlitCameraTexture(cmd, internalLutTarget, internalLutTarget, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, material, 0);
 
-                renderingData.cameraData.xr.StartSinglePass(cmd);
+                cameraData.xr.StartSinglePass(cmd);
             }
         }
 

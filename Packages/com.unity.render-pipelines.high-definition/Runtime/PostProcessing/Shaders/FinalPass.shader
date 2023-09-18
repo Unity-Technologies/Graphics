@@ -209,7 +209,7 @@ Shader "Hidden/HDRP/FinalPass"
                 float4 uiValue = SAMPLE_TEXTURE2D_X_LOD(_UITexture, s_point_clamp_sampler, positionNDC.xy * _RTHandleScale.xy, 0);
                 outColor.rgb = SceneUIComposition(uiValue, outColor.rgb, _PaperWhite, _MaxNits);
 
-                outColor.rgb = OETF(outColor.rgb);
+                outColor.rgb = OETF(outColor.rgb, _MaxNits);
             }
             #endif
 

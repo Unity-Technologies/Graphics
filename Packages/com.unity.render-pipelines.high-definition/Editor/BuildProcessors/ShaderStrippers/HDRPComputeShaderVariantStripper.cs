@@ -137,7 +137,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 return true;
 
             // HDR Output
-            if (!HDROutputUtils.IsShaderVariantValid(inputData.shaderKeywordSet, PlayerSettings.useHDRDisplay))
+            if (!HDROutputUtils.IsShaderVariantValid(inputData.shaderKeywordSet, PlayerSettings.allowHDRDisplaySupport))
                 return true;
 
             return false;

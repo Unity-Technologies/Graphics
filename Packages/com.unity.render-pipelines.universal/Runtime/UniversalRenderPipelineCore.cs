@@ -398,8 +398,9 @@ namespace UnityEngine.Rendering.Universal
             get
             {
 #if ENABLE_VR && ENABLE_XR_MODULE
+                // For some XR platforms we need to encode in SRGB but can't use a _SRGB format texture, only required for 8bit per channel 32 bit formats.
                 if (xr.enabled)
-                    return !xr.renderTargetDesc.sRGB && (QualitySettings.activeColorSpace == ColorSpace.Linear);
+                    return !xr.renderTargetDesc.sRGB && (xr.renderTargetDesc.graphicsFormat == GraphicsFormat.R8G8B8A8_UNorm || xr.renderTargetDesc.graphicsFormat == GraphicsFormat.B8G8R8A8_UNorm) && (QualitySettings.activeColorSpace == ColorSpace.Linear);
 #endif
 
                 return targetTexture == null && Display.main.requiresSrgbBlitToBackbuffer;
@@ -423,7 +424,69 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// True if the Camera should output to an HDR display.
         /// </summary>
-        public bool isHDROutputActive => UniversalRenderPipeline.HDROutputIsActive() && allowHDROutput && resolveToScreen;
+        public bool isHDROutputActive
+        {
+            get
+            {
+                bool hdrDisplayOutputActive = UniversalRenderPipeline.HDROutputForMainDisplayIsActive();
+#if ENABLE_VR && ENABLE_XR_MODULE
+                // If we are rendering to xr then we need to look at the XR Display rather than the main non-xr display.
+                if (xr.enabled)
+                    hdrDisplayOutputActive = xr.isHDRDisplayOutputActive;
+#endif
+        		return hdrDisplayOutputActive && allowHDROutput && resolveToScreen;
+            }
+        }
+
+        /// <summary>
+        /// HDR Display information about the current display this camera is rendering to.
+        /// </summary>
+        public HDROutputUtils.HDRDisplayInformation hdrDisplayInformation
+        {
+            get
+            {
+                HDROutputUtils.HDRDisplayInformation displayInformation;
+#if ENABLE_VR && ENABLE_XR_MODULE
+                // If we are rendering to xr then we need to look at the XR Display rather than the main non-xr display.
+                if (xr.enabled)
+                {
+                    displayInformation = xr.hdrDisplayOutputInformation;
+                }
+                else
+#endif
+                {
+                    HDROutputSettings displaySettings = HDROutputSettings.main;
+                    displayInformation = new HDROutputUtils.HDRDisplayInformation(displaySettings.maxFullFrameToneMapLuminance,
+                        displaySettings.maxToneMapLuminance,
+                        displaySettings.minToneMapLuminance,
+                        displaySettings.paperWhiteNits);
+                }
+
+                return displayInformation;
+            }
+        }
+
+        /// <summary>
+        /// HDR Display Color Gamut
+        /// </summary>
+        public ColorGamut hdrDisplayColorGamut
+        {
+            get
+            {
+#if ENABLE_VR && ENABLE_XR_MODULE
+                // If we are rendering to xr then we need to look at the XR Display rather than the main non-xr display.
+                if (xr.enabled)
+                {
+                    return xr.hdrDisplayOutputColorGamut;
+                }
+                else
+#endif
+                {
+                    HDROutputSettings displaySettings = HDROutputSettings.main;
+                    return displaySettings.displayColorGamut;
+                }
+            }
+        }
 
         /// <summary>
         /// True if the Camera should render overlay UI.

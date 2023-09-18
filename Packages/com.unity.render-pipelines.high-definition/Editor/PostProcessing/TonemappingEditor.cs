@@ -85,7 +85,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnInspectorGUI()
         {
-            bool hdrInPlayerSettings = UnityEditor.PlayerSettings.useHDRDisplay;
+            bool hdrInPlayerSettings = UnityEditor.PlayerSettings.allowHDRDisplaySupport;
 
             PropertyField(m_Mode);
 

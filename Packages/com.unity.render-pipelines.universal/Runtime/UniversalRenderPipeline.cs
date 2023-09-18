@@ -317,7 +317,7 @@ namespace UnityEngine.Rendering.Universal
 
             // When HDR is active we render UI overlay per camera as we want all UI to be calibrated to white paper inside a single pass
             // for performance reasons otherwise we render UI overlay after all camera
-            SupportedRenderingFeatures.active.rendersUIOverlay = HDROutputIsActive();
+            SupportedRenderingFeatures.active.rendersUIOverlay = HDROutputForAnyDisplayIsActive();
 
             // TODO: Would be better to add Profiling name hooks into RenderPipelineManager.
             // C#8 feature, only in >= 2020.2
@@ -1316,7 +1316,7 @@ namespace UnityEngine.Rendering.Universal
             renderingData.cameraData = cameraData;
             InitializeLightData(settings, visibleLights, mainLightIndex, out renderingData.lightData);
             InitializeShadowData(settings, visibleLights, mainLightCastShadows, additionalLightsCastShadows && !renderingData.lightData.shadeAdditionalLightsPerVertex, isForwardPlus, out renderingData.shadowData);
-            InitializePostProcessingData(settings, out renderingData.postProcessingData);
+            InitializePostProcessingData(settings, cameraData.isHDROutputActive, out renderingData.postProcessingData);
             renderingData.supportsDynamicBatching = settings.supportsDynamicBatching;
 
             renderingData.perObjectData = GetPerObjectLightFlags(renderingData.lightData.additionalLightsCount, isForwardPlus);
@@ -1411,13 +1411,13 @@ namespace UnityEngine.Rendering.Universal
             shadowData.isKeywordSoftShadowsEnabled = false;
         }
 
-        static void InitializePostProcessingData(UniversalRenderPipelineAsset settings, out PostProcessingData postProcessingData)
+        static void InitializePostProcessingData(UniversalRenderPipelineAsset settings, bool isHDROutputActive, out PostProcessingData postProcessingData)
         {
             postProcessingData.gradingMode = settings.supportsHDR
                 ? settings.colorGradingMode
                 : ColorGradingMode.LowDynamicRange;
 
-            if (HDROutputIsActive())
+            if (isHDROutputActive)
                 postProcessingData.gradingMode = ColorGradingMode.HighDynamicRange;
 
             postProcessingData.lutSize = settings.colorGradingLutSize;
@@ -1739,7 +1739,7 @@ namespace UnityEngine.Rendering.Universal
         /// Checks if the hardware (main display and platform) and the render pipeline support HDR.
         /// </summary>
         /// <returns>True if the main display and platform support HDR and HDR output is enabled on the platform.</returns>
-        internal static bool HDROutputIsActive()
+        internal static bool HDROutputForMainDisplayIsActive()
         {
             bool hdrOutputSupported = SystemInfo.hdrDisplaySupportFlags.HasFlag(HDRDisplaySupportFlags.Supported) && asset.supportsHDR;
             bool hdrOutputActive = HDROutputSettings.main.available && HDROutputSettings.main.active;
@@ -1750,6 +1750,24 @@ namespace UnityEngine.Rendering.Universal
         // We only want to enable HDR Output for the game view once
         // since the game itself might want to control this
         internal bool enableHDROnce = true;
+
+        /// <summary>
+        /// Checks if any of the display devices we can output to are HDR capable and enabled.
+        /// </summary>
+        /// <returns>Return true if any of the display devices we can output HDR to have enabled HDR output</returns>
+        internal static bool HDROutputForAnyDisplayIsActive()
+        {
+            bool hdrDisplayOutputActive = HDROutputForMainDisplayIsActive();
+#if ENABLE_VR && ENABLE_XR_MODULE
+            // If we are rendering to xr then we need to look at the XR Display rather than the main non-xr display.
+            if (XRSystem.displayActive)
+            {
+                hdrDisplayOutputActive |= XRSystem.isHDRDisplayOutputActive;
+            }
+#endif
+
+            return hdrDisplayOutputActive;
+        }
 
         /// <summary>
         /// Configures the render pipeline to render to HDR output or disables HDR output.
@@ -1808,12 +1826,12 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        internal static void GetHDROutputLuminanceParameters(Tonemapping tonemapping, out Vector4 hdrOutputParameters)
+        internal static void GetHDROutputLuminanceParameters(HDROutputUtils.HDRDisplayInformation hdrDisplayInformation, ColorGamut hdrDisplayColorGamut, Tonemapping tonemapping, out Vector4 hdrOutputParameters)
         {
-            float minNits = HDROutputSettings.main.minToneMapLuminance;
-            float maxNits = HDROutputSettings.main.maxToneMapLuminance;
-            float paperWhite = HDROutputSettings.main.paperWhiteNits;
-            //ColorPrimaries colorPrimaries = ColorGamutUtility.GetColorPrimaries(HDROutputSettings.main.displayColorGamut);
+            float minNits = hdrDisplayInformation.minToneMapLuminance;
+            float maxNits = hdrDisplayInformation.maxToneMapLuminance;
+            float paperWhite = hdrDisplayInformation.paperWhiteNits;
+            //ColorPrimaries colorPrimaries = ColorGamutUtility.GetColorPrimaries(hdrDisplayColorGamut);
 
             if (!tonemapping.detectPaperWhite.value)
             {

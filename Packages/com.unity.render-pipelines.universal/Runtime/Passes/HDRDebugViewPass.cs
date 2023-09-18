@@ -64,13 +64,13 @@ namespace UnityEngine.Rendering.Universal
             descriptor.vrUsage = VRTextureUsage.None; // We only need one for both eyes in VR
         }
 
-        internal static Vector4 GetLuminanceParameters(bool isHDROutputActive)
+        internal static Vector4 GetLuminanceParameters(ref CameraData cameraData)
         {
             var luminanceParams = Vector4.zero;
-            if (isHDROutputActive)
+            if (cameraData.isHDROutputActive)
             {
                 Tonemapping tonemapping = VolumeManager.instance.stack.GetComponent<Tonemapping>();
-                UniversalRenderPipeline.GetHDROutputLuminanceParameters(tonemapping, out luminanceParams);
+                UniversalRenderPipeline.GetHDROutputLuminanceParameters(cameraData.hdrDisplayInformation, cameraData.hdrDisplayColorGamut, tonemapping, out luminanceParams);
             }
             else
             {
@@ -86,7 +86,7 @@ namespace UnityEngine.Rendering.Universal
 
             //HDR DebugView - should always be the last stack of the camera
             ExecuteHDRDebugViewFinalPass(data, m_PassthroughRT, xyTarget);
-         
+
         }
 
         private void ExecuteCIExyPrepass(PassData data, RTHandle sourceTexture, RTHandle xyTarget)
@@ -113,7 +113,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 if (data.cameraData.isHDROutputActive)
                 {
-                    HDROutputUtils.ConfigureHDROutput(data.material, HDROutputSettings.main.displayColorGamut, HDROutputUtils.Operation.ColorEncoding);
+                    HDROutputUtils.ConfigureHDROutput(data.material, data.cameraData.hdrDisplayColorGamut, HDROutputUtils.Operation.ColorEncoding);
                 }
 
                 cmd.ClearRandomWriteTargets();
@@ -154,11 +154,11 @@ namespace UnityEngine.Rendering.Universal
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             var cmd = m_PassData.cmd = renderingData.commandBuffer;
-            m_PassData.luminanceParameters = GetLuminanceParameters(renderingData.cameraData.isHDROutputActive);
+            m_PassData.luminanceParameters = GetLuminanceParameters(ref renderingData.cameraData);
             m_PassData.cameraData = renderingData.cameraData;
 
             var sourceTexture = renderingData.cameraData.renderer.cameraColorTargetHandle;
-            
+
             var cameraTarget = RenderingUtils.GetCameraTargetIdentifier(ref renderingData);
             // Create RTHandle alias to use RTHandle apis
             if (m_CameraTargetHandle != cameraTarget)
@@ -166,7 +166,7 @@ namespace UnityEngine.Rendering.Universal
                 m_CameraTargetHandle?.Release();
                 m_CameraTargetHandle = RTHandles.Alloc(cameraTarget);
             }
-            
+
             m_PassData.material.enabledKeywords = null;
             GetActiveDebugHandler(ref renderingData)?.UpdateShaderGlobalPropertiesForFinalValidationPass(cmd, ref m_PassData.cameraData, true);
 
@@ -185,7 +185,7 @@ namespace UnityEngine.Rendering.Universal
             ConfigureDescriptorForCIEPrepass(ref descriptor);
             var xyBuffer = UniversalRenderer.CreateRenderGraphTexture(renderGraph, descriptor, "_xyBuffer", true);
 
-            var luminanceParameters = GetLuminanceParameters(renderingData.cameraData.isHDROutputActive);
+            var luminanceParameters = GetLuminanceParameters(ref renderingData.cameraData);
 
             using (var builder = renderGraph.AddRenderPass<PassData>("Generate HDR DebugView CIExy", out var passData, base.profilingSampler))
             {

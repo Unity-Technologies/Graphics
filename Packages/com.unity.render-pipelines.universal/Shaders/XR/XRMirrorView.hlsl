@@ -1,6 +1,7 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRendering.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/HDROutput.hlsl"
 
 #if SRC_TEXTURE2D_X_ARRAY
 TEXTURE2D_ARRAY(_SourceTex);
@@ -12,6 +13,11 @@ SamplerState sampler_LinearClamp;
 uniform uint _SourceTexArraySlice;
 uniform uint _SRGBRead;
 uniform uint _SRGBWrite;
+uniform float _MaxNits;
+uniform float _SourceMaxNits;
+uniform int _SourceHDREncoding;
+uniform float4x4 _ColorTransform;
+
 
 struct Attributes
 {
@@ -59,6 +65,19 @@ float4 FragBilinear(Varyings input) : SV_Target
     outColor = SAMPLE_TEXTURE2D(_SourceTex, sampler_LinearClamp, uv);
 #endif
 
+#if HDR_COLORSPACE_CONVERSION_AND_ENCODING
+    // Currently this will case any values in the source color space that go outside of the destination to most likley get clamped
+    // the same will be true for any luminance values in the source range outside the destination range. This will lead to hue shifts
+    // and over saturated display, e.g. a red value of (1000, 100, 100) if converted to SDR would get clamped at (80,80,80) generating white.
+    // TODO: The solution here is to add a hue preserving tonemap operator in as part of the conversion process but this will add quite a bit of extra expense.
+
+    // Convert the encoded output image into linear
+    outColor.rgb = InverseOETF(outColor.rgb, _SourceMaxNits, _SourceHDREncoding);
+    // Now we need to convert the color space from source to destination;
+    outColor.rgb = mul((float3x3)_ColorTransform, outColor.rgb);
+    // Convert the linear image into the correct encoded output for the display
+    outColor.rgb = OETF(outColor.rgb, _MaxNits);
+#else
     if (_SRGBRead && _SRGBWrite)
         return outColor;
 
@@ -67,6 +86,8 @@ float4 FragBilinear(Varyings input) : SV_Target
 
     if (_SRGBWrite)
         outColor = LinearToSRGB(outColor);
+#endif
+
 
     return outColor;
 }
