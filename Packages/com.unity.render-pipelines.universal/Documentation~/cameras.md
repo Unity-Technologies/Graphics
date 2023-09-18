@@ -10,4 +10,6 @@ Cameras in the Universal Render Pipeline (URP) are based on Unity's standard Cam
 * The [Volume](Volumes.md) system, which allows you to apply [post-processing effects](integration-with-post-processing.md) to a Camera based on a given Transform's position within your Scene
 * The [Camera component](camera-component-reference.md), which exposes URP-specific properties in the Inspector
 
+Each camera in the Scene requires resources for URP culling and rendering. To configure URP for better performance, minimize the number of cameras you use. This also reduces processing time on the GPU.
+
 For a general introduction to how Cameras work in Unity, and examples of common Camera workflows, see [the Unity Manual section on Cameras](https://docs.unity3d.com/Manual/CamerasOverview.html).

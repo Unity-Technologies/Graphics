@@ -74,6 +74,8 @@ Selecting this technique reveals the **Surface Data** property. The Surface Data
 
 Unity renders decals after the opaque objects using normals that Unity reconstructs from the depth texture. Unity renders decals as meshes on top of the opaque meshes. This technique supports only the normal blending.
 
+Screen space decals are recommended for mobile platforms that use tile-based rendering, because URP doesn't create a DepthNormal prepass unless you enable **Light Layers**. 
+
 Selecting this technique reveals the following properties.
 
 | __Property__    | __Description__ |
@@ -87,6 +89,12 @@ Selecting this technique reveals the following properties.
 ### Max Draw Distance
 
 The maximum distance from the Camera at which Unity renders decals.
+
+### Light Layers
+
+Select this check box to enable the [Light Layers](lighting/light-layers.md) functionality.
+
+If you enable **Light Layers**, URP creates a DepthNormal prepass. This makes decals less efficient on GPUs that implement tile-based rendering.
 
 ## Decal Projector component
 
