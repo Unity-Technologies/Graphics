@@ -4,7 +4,6 @@ using UnityEditor.Rendering.Universal.ShaderGraph;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEditor.ShaderGraph.Internal;
-using UnityEngine;
 
 namespace UnityEngine.Experimental.Rendering.Universal
 {
@@ -17,8 +16,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
     }
 
     [Title("Input", "2D", "Light Texture")]
-    [SubTargetFilterAttribute(new[] { typeof(UniversalSpriteCustomLitSubTarget) })]
-    class LightTextureNode : AbstractMaterialNode
+    [SubTargetFilterAttribute(new[] { typeof(UniversalSpriteCustomLitSubTarget), typeof(UniversalSpriteUnlitSubTarget)})]
+    class LightTextureNode : AbstractMaterialNode, IGeneratesFunction
     {
         private const int OutputSlotId = 0;
         private const string kOutputSlotName = "Out";
@@ -58,7 +57,27 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         public override string GetVariableNameForSlot(int slotId)
         {
-            return $"UnityBuildTexture2DStructNoScale({GetVariableName()})";
+            return $"Unity_GetLightTexture{(int)m_BlendStyle}()";
+        }
+
+
+        public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
+        {
+            registry.RequiresIncludePath("Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/ShapeLightShared.hlsl");
+            registry.RequiresIncludePath("Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/ShapeLightVariables.hlsl");
+
+            registry.ProvideFunction($"Unity_GetLightTexture{(int)m_BlendStyle}", s =>
+            {
+                s.AppendLine($"UnityTexture2D Unity_GetLightTexture{(int)m_BlendStyle}()");
+                using (s.BlockScope())
+                {
+                    s.AppendLine("#if USE_SHAPE_LIGHT_TYPE_0 || USE_SHAPE_LIGHT_TYPE_1 || USE_SHAPE_LIGHT_TYPE_2 || USE_SHAPE_LIGHT_TYPE_3");
+                    s.AppendLine("    return " + $"UnityBuildTexture2DStructNoScale(" + GetVariableName() + ");");
+                    s.AppendLine("#else");
+                    s.AppendLine("    return " + $"UnityBuildTexture2DStructNoScale(_DefaultWhiteTex);");
+                    s.AppendLine("#endif");
+                }
+            });
         }
 
         public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)

@@ -37,6 +37,10 @@ namespace UnityEngine.Rendering.Universal
         internal RTHandle m_ColorTextureHandle;
         internal RTHandle m_DepthTextureHandle;
 
+#if UNITY_EDITOR
+        internal RTHandle m_DefaultWhiteTextureHandle;
+#endif
+
         Material m_BlitMaterial;
         Material m_BlitHDRMaterial;
         Material m_SamplingMaterial;
@@ -343,6 +347,14 @@ namespace UnityEngine.Rendering.Universal
             RTHandle depthTargetHandle;
 
             var cmd = renderingData.commandBuffer;
+
+#if UNITY_EDITOR
+            if(m_DefaultWhiteTextureHandle == null)
+                m_DefaultWhiteTextureHandle = RTHandles.Alloc(Texture2D.whiteTexture, "_DefaultWhiteTex");
+
+            cmd.SetGlobalTexture(m_DefaultWhiteTextureHandle.name, m_DefaultWhiteTextureHandle.nameID);
+#endif
+
             using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
                 CreateRenderTextures(ref renderPassInputs, cmd, cameraData, ppcUsesOffscreenRT, colorTextureFilterMode,

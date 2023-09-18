@@ -8,7 +8,6 @@ namespace UnityEngine.Rendering.Universal
     {
         private static readonly int k_HDREmulationScaleID = Shader.PropertyToID("_HDREmulationScale");
         private static readonly int k_InverseHDREmulationScaleID = Shader.PropertyToID("_InverseHDREmulationScale");
-        private static readonly int k_UseSceneLightingID = Shader.PropertyToID("_UseSceneLighting");
         private static readonly int k_RendererColorID = Shader.PropertyToID("_RendererColor");
         private static readonly int k_LightLookupID = Shader.PropertyToID("_LightLookup");
         private static readonly int k_FalloffLookupID = Shader.PropertyToID("_FalloffLookup");
@@ -348,7 +347,7 @@ namespace UnityEngine.Rendering.Universal
             RendererLighting.lightBatch.Reset();
 
             var isSceneLit = m_Renderer2DData.lightCullResult.IsSceneLit();
-            if (isSceneLit)
+            if (isSceneLit && isLitView)
             {
                 var combinedDrawSettings = CreateDrawingSettings(k_ShaderTags, ref renderingData, SortingCriteria.CommonTransparent);
                 var normalsDrawSettings = CreateDrawingSettings(k_NormalsRenderingPassName, ref renderingData, SortingCriteria.CommonTransparent);
@@ -361,7 +360,6 @@ namespace UnityEngine.Rendering.Universal
                 var cmd = renderingData.commandBuffer;
                 cmd.SetGlobalFloat(k_HDREmulationScaleID, m_Renderer2DData.hdrEmulationScale);
                 cmd.SetGlobalFloat(k_InverseHDREmulationScaleID, 1.0f / m_Renderer2DData.hdrEmulationScale);
-                cmd.SetGlobalFloat(k_UseSceneLightingID, isLitView ? 1.0f : 0.0f);
                 cmd.SetGlobalColor(k_RendererColorID, Color.white);
                 cmd.SetGlobalTexture(k_FalloffLookupID, m_Renderer2DData.fallOffLookup);
                 cmd.SetGlobalTexture(k_LightLookupID, Light2DLookupTexture.GetLightLookupTexture());
@@ -399,7 +397,6 @@ namespace UnityEngine.Rendering.Universal
                         depthAttachmentHandle, RenderBufferLoadAction.Load, storeAction,
                         ClearFlag.None, Color.clear);
 
-                    cmd.SetGlobalFloat(k_UseSceneLightingID, isLitView ? 1.0f : 0.0f);
                     cmd.SetGlobalColor(k_RendererColorID, Color.white);
 
                     for (var blendStyleIndex = 0; blendStyleIndex < k_ShapeLightTextureIDs.Length; blendStyleIndex++)
