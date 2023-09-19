@@ -18,6 +18,8 @@ Shader "Hidden/ShadowProjected2D"
         // This pass draws the projected shadows
         Pass
         {
+            Name "Projected Shadow (R)"
+
             // Draw the shadow
             ColorMask R
 
@@ -61,6 +63,9 @@ Shader "Hidden/ShadowProjected2D"
                 Comp      Equal
                 Pass      Keep
             }
+
+
+            Name "Projected Unshadow (R) - Stencil: Ref 1, Comp Eq, Pass Keep"
 
             // Draw the shadow
             ColorMask G

@@ -17,6 +17,8 @@ Shader "Hidden/Shadow2DShadowGeometry"
         // Process the shadow
         Pass
         {
+            Name "Draw Geometry Shadow (R)"
+
             ColorMask R
 
             HLSLPROGRAM
