@@ -9,4 +9,4 @@ jobs:
     triggers:
         recurring:
           -  branch: 2022.3/staging
-             frequency: 1 * * ?
+             frequency: weekly

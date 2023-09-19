@@ -17,7 +17,7 @@ graphics_repo_nightly_2022.3:
     triggers:
         recurring:
           -  branch: 2022.3/staging
-             frequency: 1 * * ?
+             frequency: weekly
     dependencies:
       -  path: .yamato/_templates.yml#all_template_ci_2022.3
          rerun: on_new_revision
