@@ -10,10 +10,10 @@
 PR_Universal_Stereo_trunk:
     name: PR Universal_Stereo on trunk
     variables:
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/universal_stereo-win.yml#Universal_Stereo_Win_Standalone_mono_Linear_trunk
          rerun: on_new_revision
@@ -22,18 +22,18 @@ PR_Universal_Stereo_trunk:
 Extra_Universal_Stereo_trunk:
     name: Extra Universal_Stereo on trunk
     variables:
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies: []
 Universal_Stereo_trunk:
     name: Universal_Stereo on trunk
     variables:
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-universal_stereo.yml#PR_Universal_Stereo_trunk
          rerun: on_new_revision
@@ -42,10 +42,10 @@ Universal_Stereo_trunk:
 PR_Universal_Stereo_CUSTOM-REVISION:
     name: PR Universal_Stereo on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/universal_stereo-win.yml#Universal_Stereo_Win_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
@@ -54,18 +54,18 @@ PR_Universal_Stereo_CUSTOM-REVISION:
 Extra_Universal_Stereo_CUSTOM-REVISION:
     name: Extra Universal_Stereo on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies: []
 Universal_Stereo_CUSTOM-REVISION:
     name: Universal_Stereo on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-universal_stereo.yml#PR_Universal_Stereo_CUSTOM-REVISION
          rerun: on_new_revision

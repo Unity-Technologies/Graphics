@@ -14,13 +14,13 @@ URPUpdate_Win_DX11_playmode_mono_Linear_trunk:
         image: automation-tooling/win-10:v0.0.1-971269
         flavor: b1.large
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CACHE_ARGS: '{{cache.flags}}'
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         TEMPLATE_UPDATE_PROJECT_BRANCH: master
         TEMPLATE_UPDATE_PROJECT_REVISION: 8eac84d6206a902ebc4b731c4aef01ef3911392a
-        CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git -b %TEMPLATE_UPDATE_PROJECT_BRANCH% TestProjects/URP-Update-Testing
          retries: 3
@@ -55,13 +55,13 @@ URPUpdate_Win_DX11_editmode_mono_Linear_trunk:
         image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.large
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CACHE_ARGS: '{{cache.flags}}'
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         TEMPLATE_UPDATE_PROJECT_BRANCH: master
         TEMPLATE_UPDATE_PROJECT_REVISION: 8eac84d6206a902ebc4b731c4aef01ef3911392a
-        CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git -b %TEMPLATE_UPDATE_PROJECT_BRANCH% TestProjects/URP-Update-Testing
          retries: 3
@@ -96,13 +96,13 @@ URPUpdate_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION:
         image: automation-tooling/win-10:v0.0.1-971269
         flavor: b1.large
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CACHE_ARGS: '{{cache.flags}}'
         CUSTOM_REVISION: custom_revision_not_set
         TEMPLATE_UPDATE_PROJECT_BRANCH: master
         TEMPLATE_UPDATE_PROJECT_REVISION: 8eac84d6206a902ebc4b731c4aef01ef3911392a
-        CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git -b %TEMPLATE_UPDATE_PROJECT_BRANCH% TestProjects/URP-Update-Testing
          retries: 3
@@ -137,13 +137,13 @@ URPUpdate_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION:
         image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.large
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CACHE_ARGS: '{{cache.flags}}'
         CUSTOM_REVISION: custom_revision_not_set
         TEMPLATE_UPDATE_PROJECT_BRANCH: master
         TEMPLATE_UPDATE_PROJECT_REVISION: 8eac84d6206a902ebc4b731c4aef01ef3911392a
-        CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git -b %TEMPLATE_UPDATE_PROJECT_BRANCH% TestProjects/URP-Update-Testing
          retries: 3

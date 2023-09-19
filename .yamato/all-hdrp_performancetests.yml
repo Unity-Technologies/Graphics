@@ -10,11 +10,11 @@
 HDRP_PerformanceTests_trunk:
     name: HDRP_PerformanceTests on trunk
     variables:
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
-        GIT_BRANCH: master
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        GIT_BRANCH: master
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/hdrp_performancetests-win-dx11.yml#HDRP_PerformanceTests_Win_DX11_performance_memory_il2cpp_Linear_trunk
          rerun: on_new_revision
@@ -27,11 +27,11 @@ HDRP_PerformanceTests_trunk:
 HDRP_PerformanceTests_CUSTOM-REVISION:
     name: HDRP_PerformanceTests on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
-        GIT_BRANCH: master
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        GIT_BRANCH: master
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/hdrp_performancetests-win-dx11.yml#HDRP_PerformanceTests_Win_DX11_performance_memory_il2cpp_Linear_CUSTOM-REVISION
          rerun: on_new_revision

@@ -10,12 +10,12 @@
 URP_Performance_BoatAttack_trunk:
     name: URP_Performance_BoatAttack on trunk
     variables:
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         BOAT_ATTACK_BRANCH: master
         BOAT_ATTACK_REVISION: 1ebee168f3c649252ef0947bc482ffb3fc41fede
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/urp_performance_boatattack-win-dx11.yml#URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_mono_Linear_trunk
          rerun: on_new_revision
@@ -52,12 +52,12 @@ URP_Performance_BoatAttack_trunk:
 URP_Performance_BoatAttack_CUSTOM-REVISION:
     name: URP_Performance_BoatAttack on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         BOAT_ATTACK_BRANCH: master
         BOAT_ATTACK_REVISION: 1ebee168f3c649252ef0947bc482ffb3fc41fede
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/urp_performance_boatattack-win-dx11.yml#URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision

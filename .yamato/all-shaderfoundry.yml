@@ -10,10 +10,10 @@
 PR_ShaderFoundry_trunk:
     name: PR ShaderFoundry on trunk
     variables:
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/shaderfoundry-win-dx11.yml#ShaderFoundry_Win_DX11_editmode_mono_Linear_trunk
          rerun: on_new_revision
@@ -26,10 +26,10 @@ PR_ShaderFoundry_trunk:
 Extra_ShaderFoundry_trunk:
     name: Extra ShaderFoundry on trunk
     variables:
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/shaderfoundry-win-dx12.yml#ShaderFoundry_Win_DX12_editmode_mono_Linear_trunk
          rerun: on_new_revision
@@ -42,10 +42,10 @@ Extra_ShaderFoundry_trunk:
 ShaderFoundry_trunk:
     name: ShaderFoundry on trunk
     variables:
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-shaderfoundry.yml#PR_ShaderFoundry_trunk
          rerun: on_new_revision
@@ -54,20 +54,20 @@ ShaderFoundry_trunk:
 Nightly_ShaderFoundry_trunk:
     name: Nightly ShaderFoundry on trunk
     variables:
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-shaderfoundry.yml#ShaderFoundry_trunk
          rerun: on_new_revision
 PR_ShaderFoundry_CUSTOM-REVISION:
     name: PR ShaderFoundry on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/shaderfoundry-win-dx11.yml#ShaderFoundry_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
@@ -80,10 +80,10 @@ PR_ShaderFoundry_CUSTOM-REVISION:
 Extra_ShaderFoundry_CUSTOM-REVISION:
     name: Extra ShaderFoundry on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/shaderfoundry-win-dx12.yml#ShaderFoundry_Win_DX12_editmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
@@ -96,10 +96,10 @@ Extra_ShaderFoundry_CUSTOM-REVISION:
 ShaderFoundry_CUSTOM-REVISION:
     name: ShaderFoundry on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-shaderfoundry.yml#PR_ShaderFoundry_CUSTOM-REVISION
          rerun: on_new_revision
@@ -108,10 +108,10 @@ ShaderFoundry_CUSTOM-REVISION:
 Nightly_ShaderFoundry_CUSTOM-REVISION:
     name: Nightly ShaderFoundry on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-shaderfoundry.yml#ShaderFoundry_CUSTOM-REVISION
          rerun: on_new_revision

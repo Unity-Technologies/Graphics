@@ -14,13 +14,13 @@ VikingVillage_BuiltIn_OSX_Metal_performance_playmode_runtime_mono_Linear_trunk:
         image: slough-ops/macos-10.14-xcode:stable
         flavor: m1.mac
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CACHE_ARGS: '{{cache.flags}}'
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
         VV_BUILTIN_BRANCH: built-in
         VV_BUILTIN_REVISION: c61a43cd7ad4ef36f38a0219730d53e8f6e281de
-        CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
     commands:
       -  command: git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git -b $VV_BUILTIN_BRANCH TestProjects/Viking-Village-Perf
          retries: 3
@@ -80,13 +80,13 @@ VikingVillage_BuiltIn_OSX_Metal_performance_playmode_editor_mono_Linear_trunk:
         image: slough-ops/macos-10.14-xcode:stable
         flavor: m1.mac
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CACHE_ARGS: '{{cache.flags}}'
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
         VV_BUILTIN_BRANCH: built-in
         VV_BUILTIN_REVISION: c61a43cd7ad4ef36f38a0219730d53e8f6e281de
-        CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
     commands:
       -  command: git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git -b $VV_BUILTIN_BRANCH TestProjects/Viking-Village-Perf
          retries: 3
@@ -146,13 +146,13 @@ VikingVillage_BuiltIn_OSX_Metal_performance_build_editmode_mono_Linear_trunk:
         image: slough-ops/macos-10.14-xcode:stable
         flavor: m1.mac
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CACHE_ARGS: '{{cache.flags}}'
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
         VV_BUILTIN_BRANCH: built-in
         VV_BUILTIN_REVISION: c61a43cd7ad4ef36f38a0219730d53e8f6e281de
-        CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
     commands:
       -  command: git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git -b $VV_BUILTIN_BRANCH TestProjects/Viking-Village-Perf
          retries: 3
@@ -212,13 +212,13 @@ VikingVillage_BuiltIn_OSX_Metal_performance_playmode_runtime_mono_Linear_CUSTOM-
         image: slough-ops/macos-10.14-xcode:stable
         flavor: m1.mac
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CACHE_ARGS: '{{cache.flags}}'
         CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
         VV_BUILTIN_BRANCH: built-in
         VV_BUILTIN_REVISION: c61a43cd7ad4ef36f38a0219730d53e8f6e281de
-        CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
     commands:
       -  command: git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git -b $VV_BUILTIN_BRANCH TestProjects/Viking-Village-Perf
          retries: 3
@@ -278,13 +278,13 @@ VikingVillage_BuiltIn_OSX_Metal_performance_playmode_editor_mono_Linear_CUSTOM-R
         image: slough-ops/macos-10.14-xcode:stable
         flavor: m1.mac
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CACHE_ARGS: '{{cache.flags}}'
         CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
         VV_BUILTIN_BRANCH: built-in
         VV_BUILTIN_REVISION: c61a43cd7ad4ef36f38a0219730d53e8f6e281de
-        CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
     commands:
       -  command: git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git -b $VV_BUILTIN_BRANCH TestProjects/Viking-Village-Perf
          retries: 3
@@ -344,13 +344,13 @@ VikingVillage_BuiltIn_OSX_Metal_performance_build_editmode_mono_Linear_CUSTOM-RE
         image: slough-ops/macos-10.14-xcode:stable
         flavor: m1.mac
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CACHE_ARGS: '{{cache.flags}}'
         CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
         VV_BUILTIN_BRANCH: built-in
         VV_BUILTIN_REVISION: c61a43cd7ad4ef36f38a0219730d53e8f6e281de
-        CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
     commands:
       -  command: git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git -b $VV_BUILTIN_BRANCH TestProjects/Viking-Village-Perf
          retries: 3
