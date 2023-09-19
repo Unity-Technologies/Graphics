@@ -11,6 +11,6 @@ jobs:
     triggers:
         recurring:
           -  branch: master
-             frequency: 1 * * ?
+             frequency: weekly
         allow_on:
           - trunk
