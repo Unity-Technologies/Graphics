@@ -666,8 +666,7 @@ namespace UnityEngine.Rendering.Universal
             s_RenderGraph.NativeRenderPassesEnabled = false;
             Debug.LogWarning("The native render pass compiler is disabled. Use this for debugging only. Mobile performance may be sub-optimal.");
 #else
-            bool platformNativeRenderpassIsBroken = SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D12; 
-            s_RenderGraph.NativeRenderPassesEnabled = renderer.supportsNativeRenderPassRendergraphCompiler && !platformNativeRenderpassIsBroken;
+            s_RenderGraph.NativeRenderPassesEnabled = renderer.supportsNativeRenderPassRendergraphCompiler;
 #endif
             bool isSceneViewCamera = cameraData.isSceneViewCamera;
 
