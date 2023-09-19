@@ -19,6 +19,8 @@ Shader "Hidden/Shadow2DShadowSprite"
         // Process the shadow
         Pass
         {
+            Name "Draw Sprite Shadow (R)"
+
             ColorMask R
 
             HLSLPROGRAM
