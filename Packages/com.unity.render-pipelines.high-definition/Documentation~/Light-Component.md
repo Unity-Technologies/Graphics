@@ -257,6 +257,19 @@ In your [HDRP Asset](HDRP-Asset.md), select **High** from the **Filtering Qualit
 | **Filter Sample Count**        | The number of samples HDRP uses to blur shadows. Higher values give smoother results. |
 | **Minimum Size of the Filter** | The minimum size of the whole shadow’s blur effect, no matter the distance between the pixel and the shadow caster. Higher values give blurrier results. |
 
+This section is only available for directional lights.
+
+| **Property**                       | **Description**                                              |
+| ---------------------------------- | ------------------------------------------------------------ |
+| **Max Penumbra Size**              | The maximum penumbra size (in world space), limiting blur filter kernel size. This is measured against a receiving surface perpendicular to the light direction (penumbra may get wider for different angles). Very large kernels may affect GPU performance or produce undesirable artifacts close to the shadow caster. |
+| **Max Sampling Distance**          | The maximum distance (in world space) from the receiving surface where PCSS shadow sampling occurs. This is used to avoid light bleeding due to distant blockers hiding the cone apex and therefore leading to missing occlusion.  A lower value means less light bleeding but setting the value too low may cause self-shadowing. Note that the algorithm will also clamp the sampling distance in function of the blocker distance, to avoid light bleeding with very close blockers. |
+| **Min Filter**                     | The minimum PCSS filter size (in shadowmap texels) to avoid aliasing.  Overrides the generic **Minimum Size of the Filter** parameter above. |
+| **Min Filter Max Angular Diameter**| The maximum angular diameter to use to reach the minimum filter size. This makes a wider cone at the apex so that you can quickly reach the minimum filter size while avoiding self-shadowing. |
+| **Blocker Search Angular Diameter**| The angular diameter to use for the blocker search. This will include blockers outside of the light cone when they are greater than the light's Angular Diameter to reduce light bleeding.  Increasing this value too much may result in self-shadowing artifacts.  A value below the light's Angular Diameter will get clamped to the light's Angular Diameter. |
+| **Blocker Sampling Clump Exponent**| Affects how blocker search samples are distributed.  The samples distance to the center is raised to this power. A clump exponent of 1 means uniform distribution on the sampling disk. A clump exponent of 2 means the distance from the center of the uniform distribution are squared (clumped towards center). |
+
+The properties control the geometry of the blocker search and filter sampling cones.  Cone filters are used to avoid the self-shadowing versus contact tradeoffs of cylinder filters.
+
 #### Real-time light cookies
 
 HDRP allows you to use a RenderTexture as a light cookie. However, for the sake of performance, if you make any changes to the RenderTexture, HDRP doesn't automatically update the cookie atlas. To notify the system that the RenderTexture content has changed and so make the system upload the change to the cookie atlas, call `IncrementUpdateCount()` on the RenderTexture. If you don't do this, the system doesn't update the cookie.

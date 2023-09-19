@@ -1679,7 +1679,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             if (serialized.settings.lightType.GetEnumValue<LightType>() == LightType.Directional)
             {
-                EditorGUILayout.PropertyField(serialized.dirLightPCSSMaxBlockerDistance, s_Styles.dirLightPCSSMaxBlockerDistance);
+                EditorGUILayout.PropertyField(serialized.dirLightPCSSMaxPenumbraSize, s_Styles.dirLightPCSSMaxPenumbraSize);
                 EditorGUILayout.PropertyField(serialized.dirLightPCSSMaxSamplingDistance, s_Styles.dirLightPCSSMaxSamplingDistance);
                 EditorGUILayout.PropertyField(serialized.dirLightPCSSMinFilterSizeTexels, s_Styles.dirLightPCSSMinFilterSizeTexels);
                 EditorGUILayout.PropertyField(serialized.dirLightPCSSMinFilterMaxAngularDiameter, s_Styles.dirLightPCSSMinFilterMaxAngularDiameter);
@@ -1693,13 +1693,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.PropertyField(serialized.blockerSampleCount, s_Styles.blockerSampleCount);
                 EditorGUILayout.PropertyField(serialized.filterSampleCount, s_Styles.filterSampleCount);
                 EditorGUILayout.PropertyField(serialized.minFilterSize, s_Styles.minFilterSize);
-                EditorGUI.BeginChangeCheck();
-                EditorGUILayout.PropertyField(serialized.scaleForSoftness, s_Styles.radiusScaleForSoftness);
-                if (EditorGUI.EndChangeCheck())
-                {
-                    //Clamp the value and also affect baked shadows
-                    serialized.scaleForSoftness.floatValue = Mathf.Max(serialized.scaleForSoftness.floatValue, 0);
-                }
+            }
+            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.PropertyField(serialized.scaleForSoftness, s_Styles.radiusScaleForSoftness);
+            if (EditorGUI.EndChangeCheck())
+            {
+                //Clamp the value and also affect baked shadows
+                serialized.scaleForSoftness.floatValue = Mathf.Max(serialized.scaleForSoftness.floatValue, 0);
             }
         }
 

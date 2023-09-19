@@ -89,7 +89,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float customSpotLightShadowCone;
         public float cachedShadowTranslationUpdateThreshold;
         public float cachedShadowAngleUpdateThreshold;
-        public float dirLightPCSSMaxBlockerDistance;
+        public float dirLightPCSSMaxPenumbraSize;
         public float dirLightPCSSMaxSamplingDistance;
         public float dirLightPCSSMinFilterSizeTexels;
         public float dirLightPCSSMinFilterMaxAngularDiameter;
@@ -162,7 +162,7 @@ namespace UnityEngine.Rendering.HighDefinition
             customSpotLightShadowCone = additionalLightData.customSpotLightShadowCone;
             cachedShadowTranslationUpdateThreshold = additionalLightData.cachedShadowTranslationUpdateThreshold;
             cachedShadowAngleUpdateThreshold = additionalLightData.cachedShadowAngleUpdateThreshold;
-            dirLightPCSSMaxBlockerDistance = additionalLightData.dirLightPCSSMaxBlockerDistance;
+            dirLightPCSSMaxPenumbraSize = additionalLightData.dirLightPCSSMaxPenumbraSize;
             dirLightPCSSMaxSamplingDistance = additionalLightData.dirLightPCSSMaxSamplingDistance;
             dirLightPCSSMinFilterSizeTexels = additionalLightData.dirLightPCSSMinFilterSizeTexels;
             dirLightPCSSMinFilterMaxAngularDiameter = additionalLightData.dirLightPCSSMinFilterMaxAngularDiameter;
