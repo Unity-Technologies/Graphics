@@ -10,10 +10,10 @@
 PR_URPUpdate_BoatAttack_2021.1:
     name: PR URPUpdate_BoatAttack on 2021.1
     variables:
-        CUSTOM_REVISION: '{{2021_1.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{2021_1.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/urpupdate_boatattack-win-dx11.yml#URPUpdate_BoatAttack_Win_DX11_editmode_mono_Linear_2021.1
          rerun: on_new_revision
@@ -22,18 +22,18 @@ PR_URPUpdate_BoatAttack_2021.1:
 Extra_URPUpdate_BoatAttack_2021.1:
     name: Extra URPUpdate_BoatAttack on 2021.1
     variables:
-        CUSTOM_REVISION: '{{2021_1.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{2021_1.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies: []
 URPUpdate_BoatAttack_2021.1:
     name: URPUpdate_BoatAttack on 2021.1
     variables:
-        CUSTOM_REVISION: '{{2021_1.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{2021_1.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-urpupdate_boatattack.yml#PR_URPUpdate_BoatAttack_2021.1
          rerun: on_new_revision
@@ -42,10 +42,10 @@ URPUpdate_BoatAttack_2021.1:
 PR_URPUpdate_BoatAttack_CUSTOM-REVISION:
     name: PR URPUpdate_BoatAttack on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/urpupdate_boatattack-win-dx11.yml#URPUpdate_BoatAttack_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
@@ -54,18 +54,18 @@ PR_URPUpdate_BoatAttack_CUSTOM-REVISION:
 Extra_URPUpdate_BoatAttack_CUSTOM-REVISION:
     name: Extra URPUpdate_BoatAttack on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies: []
 URPUpdate_BoatAttack_CUSTOM-REVISION:
     name: URPUpdate_BoatAttack on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-urpupdate_boatattack.yml#PR_URPUpdate_BoatAttack_CUSTOM-REVISION
          rerun: on_new_revision
