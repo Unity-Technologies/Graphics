@@ -5,12 +5,6 @@
 #ifndef WATERSYSTEMDEF_CS_HLSL
 #define WATERSYSTEMDEF_CS_HLSL
 //
-// UnityEngine.Rendering.HighDefinition.WaterFoamDebugMode:  static fields
-//
-#define WATERFOAMDEBUGMODE_SURFACE_FOAM (0)
-#define WATERFOAMDEBUGMODE_DEEP_FOAM (1)
-
-//
 // UnityEngine.Rendering.HighDefinition.WaterMaskDebugMode:  static fields
 //
 #define WATERMASKDEBUGMODE_RED_CHANNEL (0)
@@ -28,6 +22,12 @@
 #define WATERDEBUGMODE_FOAM (5)
 
 //
+// UnityEngine.Rendering.HighDefinition.WaterFoamDebugMode:  static fields
+//
+#define WATERFOAMDEBUGMODE_SURFACE_FOAM (0)
+#define WATERFOAMDEBUGMODE_DEEP_FOAM (1)
+
+//
 // UnityEngine.Rendering.HighDefinition.WaterAtlasSize:  static fields
 //
 #define WATERATLASSIZE_ATLAS_SIZE64 (64)
@@ -42,6 +42,19 @@
 //
 #define WATERCURRENTDEBUGMODE_LARGE (0)
 #define WATERCURRENTDEBUGMODE_RIPPLES (1)
+
+// Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesWaterDebug
+// PackingRules = Exact
+CBUFFER_START(ShaderVariablesWaterDebug)
+    int _WaterDebugMode;
+    int _WaterMaskDebugMode;
+    int _WaterCurrentDebugMode;
+    float _CurrentDebugMultiplier;
+    int _WaterFoamDebugMode;
+    int _PaddingWDbg0;
+    int _PaddingWDbg1;
+    int _PaddingWDbg2;
+CBUFFER_END
 
 // Generated from UnityEngine.Rendering.HighDefinition.WaterGeneratorData
 // PackingRules = Exact
@@ -160,24 +173,6 @@ struct WaterSurfaceProfile
     float underWaterAmbientProbeContribution;
     float absorptionDistanceMultiplier;
 };
-
-// Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesWaterDeformation
-// PackingRules = Exact
-CBUFFER_START(ShaderVariablesWaterDeformation)
-CBUFFER_END
-
-// Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesWaterDebug
-// PackingRules = Exact
-CBUFFER_START(ShaderVariablesWaterDebug)
-    int _WaterDebugMode;
-    int _WaterMaskDebugMode;
-    int _WaterCurrentDebugMode;
-    float _CurrentDebugMultiplier;
-    int _WaterFoamDebugMode;
-    int _PaddingWDbg0;
-    int _PaddingWDbg1;
-    int _PaddingWDbg2;
-CBUFFER_END
 
 // Generated from UnityEngine.Rendering.HighDefinition.WaterDeformerData
 // PackingRules = Exact

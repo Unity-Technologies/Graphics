@@ -5,11 +5,6 @@
 #ifndef UNLIT_CS_HLSL
 #define UNLIT_CS_HLSL
 //
-// UnityEngine.Rendering.HighDefinition.Unlit+BSDFData:  static fields
-//
-#define DEBUGVIEW_UNLIT_BSDFDATA_COLOR (350)
-
-//
 // UnityEngine.Rendering.HighDefinition.Unlit+SurfaceData:  static fields
 //
 #define DEBUGVIEW_UNLIT_SURFACEDATA_COLOR (300)
@@ -17,12 +12,10 @@
 #define DEBUGVIEW_UNLIT_SURFACEDATA_NORMAL_VIEW_SPACE (302)
 #define DEBUGVIEW_UNLIT_SURFACEDATA_SHADOW_TINT (303)
 
-// Generated from UnityEngine.Rendering.HighDefinition.Unlit+BSDFData
-// PackingRules = Exact
-struct BSDFData
-{
-    float3 color;
-};
+//
+// UnityEngine.Rendering.HighDefinition.Unlit+BSDFData:  static fields
+//
+#define DEBUGVIEW_UNLIT_BSDFDATA_COLOR (350)
 
 // Generated from UnityEngine.Rendering.HighDefinition.Unlit+SurfaceData
 // PackingRules = Exact
@@ -35,19 +28,12 @@ struct SurfaceData
     #endif
 };
 
-//
-// Debug functions
-//
-void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 result, inout bool needLinearToSRGB)
+// Generated from UnityEngine.Rendering.HighDefinition.Unlit+BSDFData
+// PackingRules = Exact
+struct BSDFData
 {
-    switch (paramId)
-    {
-        case DEBUGVIEW_UNLIT_BSDFDATA_COLOR:
-            result = bsdfdata.color;
-            needLinearToSRGB = true;
-            break;
-    }
-}
+    float3 color;
+};
 
 //
 // Debug functions
@@ -76,6 +62,20 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
             result = 0;
             break;
 #endif
+    }
+}
+
+//
+// Debug functions
+//
+void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 result, inout bool needLinearToSRGB)
+{
+    switch (paramId)
+    {
+        case DEBUGVIEW_UNLIT_BSDFDATA_COLOR:
+            result = bsdfdata.color;
+            needLinearToSRGB = true;
+            break;
     }
 }
 

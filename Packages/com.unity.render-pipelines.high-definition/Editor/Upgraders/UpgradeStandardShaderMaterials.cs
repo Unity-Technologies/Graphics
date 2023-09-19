@@ -7,7 +7,7 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     class UpgradeStandardShaderMaterials
     {
-        static List<MaterialUpgrader> GetHDUpgraders()
+        public static List<MaterialUpgrader> GetHDUpgraders()
         {
             var upgraders = new List<MaterialUpgrader>();
             upgraders.Add(new StandardsToHDLitMaterialUpgrader("Standard", "HDRP/Lit"));
