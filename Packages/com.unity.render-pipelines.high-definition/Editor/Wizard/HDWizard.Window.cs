@@ -596,7 +596,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     entry.configStyle.messageType,
                     entry.configStyle.button,
                     () => entry.check(),
-                    entry.fix == null ? (Action)null : () => entry.fix(fromAsync: false),
+                    () => entry.fix?.Invoke(false),
                     entry.indent,
                     entry.configStyle.messageType == MessageType.Error || entry.forceDisplayCheck,
                     entry.skipErrorIcon));

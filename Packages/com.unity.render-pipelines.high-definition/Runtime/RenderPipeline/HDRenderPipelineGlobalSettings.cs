@@ -42,6 +42,8 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField] RenderPipelineGraphicsSettingsContainer m_Settings = new();
         protected override List<IRenderPipelineGraphicsSettings> settingsList => m_Settings.settingsList;
 
+        internal bool ContainsSetting(Type type) => Contains(type);
+
 #if UNITY_EDITOR
         internal static string defaultPath => $"Assets/{HDProjectSettingsReadOnlyBase.projectSettingsFolderPath}/HDRenderPipelineGlobalSettings.asset";
 

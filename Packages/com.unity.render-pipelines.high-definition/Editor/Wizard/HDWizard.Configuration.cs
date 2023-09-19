@@ -117,20 +117,18 @@ namespace UnityEditor.Rendering.HighDefinition
 
         struct Entry
         {
-            public delegate bool Checker();
-            public delegate void Fixer(bool fromAsync);
-
             public readonly QualityScope scope;
             public readonly InclusiveMode inclusiveScope;
             public readonly Style.ConfigStyle configStyle;
-            public readonly Checker check;
-            public readonly Fixer fix;
+            public readonly Func<bool> check;
+            public readonly Action<bool> fix;
             public readonly int indent;
             public readonly bool forceDisplayCheck;
             public readonly bool skipErrorIcon;
             public readonly bool displayAssetName;
 
-            public Entry(QualityScope scope, InclusiveMode mode, Style.ConfigStyle configStyle, Checker check, Fixer fix, bool forceDisplayCheck = false, bool skipErrorIcon = false, bool displayAssetName = false)
+            public Entry(QualityScope scope, InclusiveMode mode, Style.ConfigStyle configStyle, Func<bool> check,
+                Action<bool> fix, int indent = 0, bool forceDisplayCheck = false, bool skipErrorIcon = false, bool displayAssetName = false)
             {
                 this.scope = scope;
                 this.inclusiveScope = mode;
@@ -138,7 +136,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 this.check = check;
                 this.fix = fix;
                 this.forceDisplayCheck = forceDisplayCheck;
-                indent = mode == InclusiveMode.XRManagement ? 1 : 0;
+                this.indent = mode == InclusiveMode.XRManagement ? 1 : indent;
                 this.skipErrorIcon = skipErrorIcon;
                 this.displayAssetName = displayAssetName;
             }
@@ -165,26 +163,53 @@ namespace UnityEditor.Rendering.HighDefinition
 
         Entry[] BuildEntryList()
         {
-            List<Entry> entryList = new List<Entry>();
+            var entryList = new List<Entry>();
 
             // Add the general and XR entries
-            entryList.AddRange(new[]
+            entryList.AddRange(new []
+            {
+                new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpAssetGraphicsAssigned,
+                    IsHdrpAssetGraphicsUsedCorrect, FixHdrpAssetGraphicsUsed),
+                new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpGlobalSettingsAssigned,
+                    IsHdrpGlobalSettingsUsedCorrect, FixHdrpGlobalSettingsUsed),
+            });
+
+            foreach (var type in EditorGraphicsSettings.GetSupportedRenderPipelineGraphicsSettingsTypesForPipeline<HDRenderPipelineAsset>())
+            {
+                var configStyle = new Style.ConfigStyle($"{type.Name}",
+                    type.IsInstanceOfType(typeof(IRenderPipelineResources))
+                        ? $"Resource - {type.Name} is missing."
+                        : $"Setting - {type.Name} is missing.");
+
+                entryList.Add(
+                    new Entry(QualityScope.Global,
+                        InclusiveMode.HDRP,
+                        configStyle,
+                        () => HDRenderPipelineGlobalSettings.instance != null && HDRenderPipelineGlobalSettings.instance.ContainsSetting(type),
+                        (fromAsync) => HDRenderPipelineGlobalSettings.Ensure(true),
+                        indent: 1
+                        )
+                );
+            }
+
+            entryList.AddRange(new Entry[]
+            {
+                new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpRuntimeResources, IsRuntimeResourcesCorrect, FixRuntimeResources, indent: 1), 
+                new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpEditorResources, IsEditorResourcesCorrect, FixEditorResources, indent: 1),
+                new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpVolumeProfile, IsDefaultVolumeProfileCorrect, FixDefaultVolumeProfile, indent: 1),
+                new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpDiffusionProfile, IsDiffusionProfileCorrect, FixDiffusionProfile, indent: 1),
+                new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpLookDevVolumeProfile, IsDefaultLookDevVolumeProfileCorrect, FixDefaultLookDevVolumeProfile, indent: 1),
+            });
+
+            entryList.AddRange(new Entry[]
             {
                 new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpColorSpace, IsColorSpaceCorrect, FixColorSpace),
                 new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpLightmapEncoding, IsLightmapCorrect, FixLightmap),
                 new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpShadow, IsShadowCorrect, FixShadow),
                 new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpShadowmask, IsShadowmaskCorrect, FixShadowmask),
-                new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpGlobalSettingsAssigned, IsHdrpGlobalSettingsUsedCorrect, FixHdrpGlobalSettingsUsed),
-                new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpAssetGraphicsAssigned, IsHdrpAssetGraphicsUsedCorrect, FixHdrpAssetGraphicsUsed),
                 new Entry(QualityScope.CurrentQuality, InclusiveMode.HDRP, Style.hdrpAssetQualityAssigned, IsHdrpAssetQualityUsedCorrect, FixHdrpAssetQualityUsed),
-                new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpRuntimeResources, IsRuntimeResourcesCorrect, FixRuntimeResources),
-                new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpEditorResources, IsEditorResourcesCorrect, FixEditorResources),
                 new Entry(QualityScope.CurrentQuality, InclusiveMode.HDRP, Style.hdrpBatcher, IsSRPBatcherCorrect, FixSRPBatcher),
-                new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpVolumeProfile, IsDefaultVolumeProfileCorrect, FixDefaultVolumeProfile),
-                new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpLookDevVolumeProfile, IsDefaultLookDevVolumeProfileCorrect, FixDefaultLookDevVolumeProfile),
-                new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpDiffusionProfile, IsDiffusionProfileCorrect, FixDiffusionProfile),
                 new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpMigratableAssets, IsMigratableAssetsCorrect, FixMigratableAssets),
-
                 new Entry(QualityScope.Global, InclusiveMode.VR, Style.vrXRManagementPackage, IsVRXRManagementPackageInstalledCorrect, FixVRXRManagementPackageInstalled),
                 new Entry(QualityScope.Global, InclusiveMode.XRManagement, Style.vrOculusPlugin, () => false, null),
                 new Entry(QualityScope.Global, InclusiveMode.XRManagement, Style.vrSinglePassInstancing, () => false, null),
@@ -258,33 +283,31 @@ namespace UnityEditor.Rendering.HighDefinition
         // Utility that grab all check within the scope or in sub scope included and check if everything is correct
         bool IsAllEntryCorrectInScope(InclusiveMode scope)
         {
-            IEnumerable<Entry.Checker> checks = entries.Where(e => scope.Contains(e.inclusiveScope)).Select(e => e.check);
-            if (checks.Count() == 0)
-                return true;
+            foreach (var e in entries)
+            {
+                if (!scope.Contains(e.inclusiveScope) || e.check == null)
+                    continue;
+                if (!e.check())
+                    return false;
+            }
 
-            IEnumerator<Entry.Checker> enumerator = checks.GetEnumerator();
-            enumerator.MoveNext();
-            bool result = enumerator.Current();
-            if (enumerator.MoveNext())
-                for (; result && enumerator.MoveNext();)
-                    result &= enumerator.Current();
-            return result;
+            return true;
         }
 
         // Utility that grab all check and fix within the scope or in sub scope included and performe fix if check return incorrect
         void FixAllEntryInScope(InclusiveMode scope)
         {
-            IEnumerable<(Entry.Checker, Entry.Fixer)> pairs = entries.Where(e => scope.Contains(e.inclusiveScope)).Select(e => (e.check, e.fix));
-            if (pairs.Count() == 0)
-                return;
+            foreach (var e in entries)
+            {
+                if (!scope.Contains(e.inclusiveScope) || e.check == null || e.fix == null)
+                    continue;
 
-            foreach ((Entry.Checker check, Entry.Fixer fix) in pairs)
-                if (fix != null)
-                    m_Fixer.Add(() =>
-                    {
-                        if (!check())
-                            fix(fromAsync: true);
-                    });
+                m_Fixer.Add(() =>
+                {
+                    if (!e.check())
+                        e.fix(true);
+                });
+            }
         }
 
         #endregion
