@@ -1894,6 +1894,12 @@ namespace UnityEngine.Rendering
         {
             if (m_ProbeReferenceVolumeInit)
             {
+                // We have to store the indices before the loop has it modifes the dictionary
+                var cellIndices = new List<int>(cells.Keys);
+                foreach (int cellIdx in cellIndices)
+                    RemoveCell(cellIdx);
+                Debug.Assert(cells.Count == 0);
+
                 m_Index.Cleanup();
                 m_CellIndices.Cleanup();
 
@@ -1910,12 +1916,15 @@ namespace UnityEngine.Rendering
                 }
 
                 m_TemporaryDataLocation.Cleanup();
+                m_ProbeReferenceVolumeInit = false;
             }
 
             ClearDebugData();
-            m_ProbeReferenceVolumeInit = false;
             m_PendingScenesToBeUnloaded.Clear();
             m_ActiveScenes.Clear();
+
+            Debug.Assert(m_ToBeLoadedCells.size == 0);
+            Debug.Assert(m_LoadedCells.size == 0);
         }
 
         /// <summary>
