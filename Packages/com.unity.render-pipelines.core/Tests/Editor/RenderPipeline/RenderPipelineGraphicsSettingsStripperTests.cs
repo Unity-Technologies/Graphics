@@ -184,8 +184,8 @@ namespace RenderPipelineGraphicsSettings
             new TestCaseData(
                     new List<IRenderPipelineGraphicsSettings>() { k_A, k_B, k_C },
                     new List<Type>() { typeof(KeepAStripper), typeof(RemoveAStripper) })
-                .SetName("Given a settings keeper and a settings stripper, the setting is removed")
-                .Returns(new List<IRenderPipelineGraphicsSettings>() { k_B })
+                .SetName("Given a settings keeper and a settings stripper, the setting is kept")
+                .Returns(new List<IRenderPipelineGraphicsSettings>() { k_A, k_B })
         };
 
         [Test, TestCaseSource(nameof(s_TestCaseDatas))]

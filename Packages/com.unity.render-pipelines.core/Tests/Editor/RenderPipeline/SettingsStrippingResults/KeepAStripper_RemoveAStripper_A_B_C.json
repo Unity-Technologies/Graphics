@@ -1,10 +1,10 @@
 {
     "totalSettings": 3,
-    "totalSettingsOnPlayer": 1,
+    "totalSettingsOnPlayer": 2,
     "settings": [
         {
             "type": "RenderPipelineGraphicsSettings.StripperTests+A, Unity.RenderPipelines.Core.Editor.Tests, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null",
-            "isAvailableInPlayerBuild": false,
+            "isAvailableInPlayerBuild": true,
             "strippersDefined": true
         },
         {

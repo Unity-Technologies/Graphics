@@ -11,7 +11,7 @@ namespace UnityEngine.Rendering
         {
             const BindingFlags flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
 
-            var canRemoveSettings = !settings.isAvailableInPlayerBuild;
+            var canRemoveSettings = true;
 
             object[] methodArgs = { Convert.ChangeType(settings, settingsType) };
 
@@ -19,7 +19,7 @@ namespace UnityEngine.Rendering
             {
                 var methodInfo = stripperInstance.GetType().GetMethod($"{nameof(IRenderPipelineGraphicsSettingsStripper<IRenderPipelineGraphicsSettings>.CanRemoveSettings)}", flags);
                 if (methodInfo != null)
-                    canRemoveSettings |= (bool)methodInfo.Invoke(stripperInstance, methodArgs);
+                    canRemoveSettings &= (bool)methodInfo.Invoke(stripperInstance, methodArgs);
             }
 
             return canRemoveSettings;
