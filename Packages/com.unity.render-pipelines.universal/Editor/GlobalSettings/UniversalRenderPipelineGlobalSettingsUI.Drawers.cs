@@ -124,6 +124,7 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUILayout.Space();
                 EditorGUILayout.PropertyField(s.serializedObject.FindProperty("m_ShaderStrippingSetting"));
                 EditorGUILayout.PropertyField(s.serializedObject.FindProperty("m_URPShaderStrippingSetting"));
+                EditorGUILayout.Space();
             });
 
         #endregion
