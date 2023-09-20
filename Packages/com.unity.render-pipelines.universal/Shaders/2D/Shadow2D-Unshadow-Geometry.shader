@@ -25,6 +25,8 @@ Shader "Hidden/Shadow2DUnshadowGeometry"
 
             ColorMask 0
 
+            Name "Geometry Unshadow (0) - Stencil: Ref 1, Comp Always, Pass Replace"
+
             HLSLPROGRAM
             #pragma vertex vert
             #pragma fragment frag
@@ -76,6 +78,8 @@ Shader "Hidden/Shadow2DUnshadowGeometry"
             ZTest Always
 
             ColorMask B
+
+            Name "Geometry Unshadow (B) - Stencil: Ref 0, Comp Always, Pass Replace"
 
             HLSLPROGRAM
             #pragma vertex vert
