@@ -710,9 +710,11 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
 
         [SerializeField]
+        [Obsolete("This field is not used anymore. #from(2023.1)")]
         internal string DLSSProjectId = "000000";
 
         [SerializeField]
+        [Obsolete("This field is not used anymore. #from(2023.1)")]
         internal bool useDLSSCustomProjectId = false;
 
         [SerializeField]

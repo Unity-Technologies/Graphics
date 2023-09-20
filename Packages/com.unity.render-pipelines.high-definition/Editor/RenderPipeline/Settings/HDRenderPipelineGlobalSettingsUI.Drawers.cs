@@ -300,11 +300,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.PropertyField(serialized.rendererListCulling, Styles.rendererListCulling);
                 EditorGUILayout.PropertyField(serialized.specularFade, Styles.specularFade);
 
-#if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
-                EditorGUILayout.PropertyField(serialized.useDLSSCustomProjectId, Styles.useDLSSCustomProjectIdLabel);
-                if (serialized.useDLSSCustomProjectId.boolValue)
-                    EditorGUILayout.PropertyField(serialized.DLSSProjectId, Styles.DLSSProjectIdLabel);
-#endif
                 EditorGUILayout.PropertyField(serialized.autoRegisterDiffusionProfiles, Styles.autoRegisterDiffusionProfilesContentLabel);
             }
             EditorGUIUtility.labelWidth = oldWidth;
