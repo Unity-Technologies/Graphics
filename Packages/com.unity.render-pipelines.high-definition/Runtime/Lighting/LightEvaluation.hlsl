@@ -266,7 +266,7 @@ SHADOW_TYPE EvaluateShadow_Directional( LightLoopContext lightLoopContext, Posit
         float distanceCamToPixel2 = dot(camToPixel, camToPixel);
 
         int shadowSplitIndex = lightLoopContext.shadowContext.shadowSplitIndex;
-        if (shadowSplitIndex <= 0)
+        if (shadowSplitIndex < 0)
         {
             shadow = shadowMask;
         }
