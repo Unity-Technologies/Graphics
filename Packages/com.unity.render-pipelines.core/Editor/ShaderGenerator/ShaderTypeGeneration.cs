@@ -8,13 +8,24 @@ using Unity.Mathematics;
 
 namespace UnityEditor.Rendering
 {
-    internal class ShaderTypeGenerator
+    internal class ShaderTypeGenerator : IComparable<ShaderTypeGenerator>
     {
         public ShaderTypeGenerator(Type type, GenerateHLSL attr)
         {
             this.type = type;
             this.attr = attr;
             debugCounter = 0;
+        }
+
+        public int CompareTo(ShaderTypeGenerator other)
+        {
+            // Make sure enums are defined first
+            if (type.IsEnum && !other.type.IsEnum)
+                return -1;
+            if (!type.IsEnum && other.type.IsEnum)
+                return 1;
+            // Otherwise sort alphabetically
+            return type.FullName.CompareTo(other.type.FullName);
         }
 
         enum PrimitiveType

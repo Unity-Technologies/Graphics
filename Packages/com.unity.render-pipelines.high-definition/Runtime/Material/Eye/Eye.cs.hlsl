@@ -12,29 +12,6 @@
 #define MATERIALFEATUREFLAGS_EYE_CAUSTIC_FROM_LUT (4)
 
 //
-// UnityEngine.Rendering.HighDefinition.Eye+SurfaceData:  static fields
-//
-#define DEBUGVIEW_EYE_SURFACEDATA_MATERIAL_FEATURES (1500)
-#define DEBUGVIEW_EYE_SURFACEDATA_BASE_COLOR (1501)
-#define DEBUGVIEW_EYE_SURFACEDATA_NORMAL (1502)
-#define DEBUGVIEW_EYE_SURFACEDATA_NORMAL_VIEW_SPACE (1503)
-#define DEBUGVIEW_EYE_SURFACEDATA_IRIS_NORMAL (1504)
-#define DEBUGVIEW_EYE_SURFACEDATA_IRIS_NORMAL_VIEW_SPACE (1505)
-#define DEBUGVIEW_EYE_SURFACEDATA_GEOMETRIC_NORMAL (1506)
-#define DEBUGVIEW_EYE_SURFACEDATA_GEOMETRIC_NORMAL_VIEW_SPACE (1507)
-#define DEBUGVIEW_EYE_SURFACEDATA_SMOOTHNESS (1508)
-#define DEBUGVIEW_EYE_SURFACEDATA_AMBIENT_OCCLUSION (1509)
-#define DEBUGVIEW_EYE_SURFACEDATA_SPECULAR_OCCLUSION (1510)
-#define DEBUGVIEW_EYE_SURFACEDATA_IOR (1511)
-#define DEBUGVIEW_EYE_SURFACEDATA_MASK (1512)
-#define DEBUGVIEW_EYE_SURFACEDATA_DIFFUSION_PROFILE_HASH (1513)
-#define DEBUGVIEW_EYE_SURFACEDATA_SUBSURFACE_MASK (1514)
-#define DEBUGVIEW_EYE_SURFACEDATA_IRIS_PLANE_OFFSET (1515)
-#define DEBUGVIEW_EYE_SURFACEDATA_IRIS_RADIUS (1516)
-#define DEBUGVIEW_EYE_SURFACEDATA_CAUSTIC_INTENSITY_MULTIPLIER (1517)
-#define DEBUGVIEW_EYE_SURFACEDATA_BLENDING_FACTOR_BETWEEN_CAUSTIC_AND_CINEMATIC_DIFFUSE (1518)
-
-//
 // UnityEngine.Rendering.HighDefinition.Eye+BSDFData:  static fields
 //
 #define DEBUGVIEW_EYE_BSDFDATA_MATERIAL_FEATURES (1550)
@@ -59,27 +36,28 @@
 #define DEBUGVIEW_EYE_BSDFDATA_SUBSURFACE_MASK (1569)
 #define DEBUGVIEW_EYE_BSDFDATA_ROUGHNESS (1570)
 
-// Generated from UnityEngine.Rendering.HighDefinition.Eye+SurfaceData
-// PackingRules = Exact
-struct SurfaceData
-{
-    uint materialFeatures;
-    float3 baseColor;
-    float3 normalWS;
-    float3 irisNormalWS;
-    float3 geomNormalWS;
-    float perceptualSmoothness;
-    float ambientOcclusion;
-    float specularOcclusion;
-    float IOR;
-    float2 mask;
-    uint diffusionProfileHash;
-    float subsurfaceMask;
-    float irisPlaneOffset;
-    float irisRadius;
-    float causticIntensity;
-    float causticBlend;
-};
+//
+// UnityEngine.Rendering.HighDefinition.Eye+SurfaceData:  static fields
+//
+#define DEBUGVIEW_EYE_SURFACEDATA_MATERIAL_FEATURES (1500)
+#define DEBUGVIEW_EYE_SURFACEDATA_BASE_COLOR (1501)
+#define DEBUGVIEW_EYE_SURFACEDATA_NORMAL (1502)
+#define DEBUGVIEW_EYE_SURFACEDATA_NORMAL_VIEW_SPACE (1503)
+#define DEBUGVIEW_EYE_SURFACEDATA_IRIS_NORMAL (1504)
+#define DEBUGVIEW_EYE_SURFACEDATA_IRIS_NORMAL_VIEW_SPACE (1505)
+#define DEBUGVIEW_EYE_SURFACEDATA_GEOMETRIC_NORMAL (1506)
+#define DEBUGVIEW_EYE_SURFACEDATA_GEOMETRIC_NORMAL_VIEW_SPACE (1507)
+#define DEBUGVIEW_EYE_SURFACEDATA_SMOOTHNESS (1508)
+#define DEBUGVIEW_EYE_SURFACEDATA_AMBIENT_OCCLUSION (1509)
+#define DEBUGVIEW_EYE_SURFACEDATA_SPECULAR_OCCLUSION (1510)
+#define DEBUGVIEW_EYE_SURFACEDATA_IOR (1511)
+#define DEBUGVIEW_EYE_SURFACEDATA_MASK (1512)
+#define DEBUGVIEW_EYE_SURFACEDATA_DIFFUSION_PROFILE_HASH (1513)
+#define DEBUGVIEW_EYE_SURFACEDATA_SUBSURFACE_MASK (1514)
+#define DEBUGVIEW_EYE_SURFACEDATA_IRIS_PLANE_OFFSET (1515)
+#define DEBUGVIEW_EYE_SURFACEDATA_IRIS_RADIUS (1516)
+#define DEBUGVIEW_EYE_SURFACEDATA_CAUSTIC_INTENSITY_MULTIPLIER (1517)
+#define DEBUGVIEW_EYE_SURFACEDATA_BLENDING_FACTOR_BETWEEN_CAUSTIC_AND_CINEMATIC_DIFFUSE (1518)
 
 // Generated from UnityEngine.Rendering.HighDefinition.Eye+BSDFData
 // PackingRules = Exact
@@ -105,75 +83,27 @@ struct BSDFData
     float roughness;
 };
 
-//
-// Debug functions
-//
-void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout float3 result, inout bool needLinearToSRGB)
+// Generated from UnityEngine.Rendering.HighDefinition.Eye+SurfaceData
+// PackingRules = Exact
+struct SurfaceData
 {
-    switch (paramId)
-    {
-        case DEBUGVIEW_EYE_SURFACEDATA_MATERIAL_FEATURES:
-            result = GetIndexColor(surfacedata.materialFeatures);
-            break;
-        case DEBUGVIEW_EYE_SURFACEDATA_BASE_COLOR:
-            result = surfacedata.baseColor;
-            needLinearToSRGB = true;
-            break;
-        case DEBUGVIEW_EYE_SURFACEDATA_NORMAL:
-            result = IsNormalized(surfacedata.normalWS)? surfacedata.normalWS * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
-            break;
-        case DEBUGVIEW_EYE_SURFACEDATA_NORMAL_VIEW_SPACE:
-            result = IsNormalized(surfacedata.normalWS)? surfacedata.normalWS * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
-            break;
-        case DEBUGVIEW_EYE_SURFACEDATA_IRIS_NORMAL:
-            result = IsNormalized(surfacedata.irisNormalWS)? surfacedata.irisNormalWS * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
-            break;
-        case DEBUGVIEW_EYE_SURFACEDATA_IRIS_NORMAL_VIEW_SPACE:
-            result = IsNormalized(surfacedata.irisNormalWS)? surfacedata.irisNormalWS * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
-            break;
-        case DEBUGVIEW_EYE_SURFACEDATA_GEOMETRIC_NORMAL:
-            result = IsNormalized(surfacedata.geomNormalWS)? surfacedata.geomNormalWS * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
-            break;
-        case DEBUGVIEW_EYE_SURFACEDATA_GEOMETRIC_NORMAL_VIEW_SPACE:
-            result = IsNormalized(surfacedata.geomNormalWS)? surfacedata.geomNormalWS * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
-            break;
-        case DEBUGVIEW_EYE_SURFACEDATA_SMOOTHNESS:
-            result = surfacedata.perceptualSmoothness.xxx;
-            break;
-        case DEBUGVIEW_EYE_SURFACEDATA_AMBIENT_OCCLUSION:
-            result = surfacedata.ambientOcclusion.xxx;
-            break;
-        case DEBUGVIEW_EYE_SURFACEDATA_SPECULAR_OCCLUSION:
-            result = surfacedata.specularOcclusion.xxx;
-            break;
-        case DEBUGVIEW_EYE_SURFACEDATA_IOR:
-            result = surfacedata.IOR.xxx;
-            needLinearToSRGB = true;
-            break;
-        case DEBUGVIEW_EYE_SURFACEDATA_MASK:
-            result = float3(surfacedata.mask, 0.0);
-            needLinearToSRGB = true;
-            break;
-        case DEBUGVIEW_EYE_SURFACEDATA_DIFFUSION_PROFILE_HASH:
-            result = GetIndexColor(surfacedata.diffusionProfileHash);
-            break;
-        case DEBUGVIEW_EYE_SURFACEDATA_SUBSURFACE_MASK:
-            result = surfacedata.subsurfaceMask.xxx;
-            break;
-        case DEBUGVIEW_EYE_SURFACEDATA_IRIS_PLANE_OFFSET:
-            result = surfacedata.irisPlaneOffset.xxx;
-            break;
-        case DEBUGVIEW_EYE_SURFACEDATA_IRIS_RADIUS:
-            result = surfacedata.irisRadius.xxx;
-            break;
-        case DEBUGVIEW_EYE_SURFACEDATA_CAUSTIC_INTENSITY_MULTIPLIER:
-            result = surfacedata.causticIntensity.xxx;
-            break;
-        case DEBUGVIEW_EYE_SURFACEDATA_BLENDING_FACTOR_BETWEEN_CAUSTIC_AND_CINEMATIC_DIFFUSE:
-            result = surfacedata.causticBlend.xxx;
-            break;
-    }
-}
+    uint materialFeatures;
+    float3 baseColor;
+    float3 normalWS;
+    float3 irisNormalWS;
+    float3 geomNormalWS;
+    float perceptualSmoothness;
+    float ambientOcclusion;
+    float specularOcclusion;
+    float IOR;
+    float2 mask;
+    uint diffusionProfileHash;
+    float subsurfaceMask;
+    float irisPlaneOffset;
+    float irisRadius;
+    float causticIntensity;
+    float causticBlend;
+};
 
 //
 // Debug functions
@@ -245,6 +175,76 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
             break;
         case DEBUGVIEW_EYE_BSDFDATA_ROUGHNESS:
             result = bsdfdata.roughness.xxx;
+            break;
+    }
+}
+
+//
+// Debug functions
+//
+void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout float3 result, inout bool needLinearToSRGB)
+{
+    switch (paramId)
+    {
+        case DEBUGVIEW_EYE_SURFACEDATA_MATERIAL_FEATURES:
+            result = GetIndexColor(surfacedata.materialFeatures);
+            break;
+        case DEBUGVIEW_EYE_SURFACEDATA_BASE_COLOR:
+            result = surfacedata.baseColor;
+            needLinearToSRGB = true;
+            break;
+        case DEBUGVIEW_EYE_SURFACEDATA_NORMAL:
+            result = IsNormalized(surfacedata.normalWS)? surfacedata.normalWS * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
+            break;
+        case DEBUGVIEW_EYE_SURFACEDATA_NORMAL_VIEW_SPACE:
+            result = IsNormalized(surfacedata.normalWS)? surfacedata.normalWS * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
+            break;
+        case DEBUGVIEW_EYE_SURFACEDATA_IRIS_NORMAL:
+            result = IsNormalized(surfacedata.irisNormalWS)? surfacedata.irisNormalWS * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
+            break;
+        case DEBUGVIEW_EYE_SURFACEDATA_IRIS_NORMAL_VIEW_SPACE:
+            result = IsNormalized(surfacedata.irisNormalWS)? surfacedata.irisNormalWS * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
+            break;
+        case DEBUGVIEW_EYE_SURFACEDATA_GEOMETRIC_NORMAL:
+            result = IsNormalized(surfacedata.geomNormalWS)? surfacedata.geomNormalWS * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
+            break;
+        case DEBUGVIEW_EYE_SURFACEDATA_GEOMETRIC_NORMAL_VIEW_SPACE:
+            result = IsNormalized(surfacedata.geomNormalWS)? surfacedata.geomNormalWS * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
+            break;
+        case DEBUGVIEW_EYE_SURFACEDATA_SMOOTHNESS:
+            result = surfacedata.perceptualSmoothness.xxx;
+            break;
+        case DEBUGVIEW_EYE_SURFACEDATA_AMBIENT_OCCLUSION:
+            result = surfacedata.ambientOcclusion.xxx;
+            break;
+        case DEBUGVIEW_EYE_SURFACEDATA_SPECULAR_OCCLUSION:
+            result = surfacedata.specularOcclusion.xxx;
+            break;
+        case DEBUGVIEW_EYE_SURFACEDATA_IOR:
+            result = surfacedata.IOR.xxx;
+            needLinearToSRGB = true;
+            break;
+        case DEBUGVIEW_EYE_SURFACEDATA_MASK:
+            result = float3(surfacedata.mask, 0.0);
+            needLinearToSRGB = true;
+            break;
+        case DEBUGVIEW_EYE_SURFACEDATA_DIFFUSION_PROFILE_HASH:
+            result = GetIndexColor(surfacedata.diffusionProfileHash);
+            break;
+        case DEBUGVIEW_EYE_SURFACEDATA_SUBSURFACE_MASK:
+            result = surfacedata.subsurfaceMask.xxx;
+            break;
+        case DEBUGVIEW_EYE_SURFACEDATA_IRIS_PLANE_OFFSET:
+            result = surfacedata.irisPlaneOffset.xxx;
+            break;
+        case DEBUGVIEW_EYE_SURFACEDATA_IRIS_RADIUS:
+            result = surfacedata.irisRadius.xxx;
+            break;
+        case DEBUGVIEW_EYE_SURFACEDATA_CAUSTIC_INTENSITY_MULTIPLIER:
+            result = surfacedata.causticIntensity.xxx;
+            break;
+        case DEBUGVIEW_EYE_SURFACEDATA_BLENDING_FACTOR_BETWEEN_CAUSTIC_AND_CINEMATIC_DIFFUSE:
+            result = surfacedata.causticBlend.xxx;
             break;
     }
 }

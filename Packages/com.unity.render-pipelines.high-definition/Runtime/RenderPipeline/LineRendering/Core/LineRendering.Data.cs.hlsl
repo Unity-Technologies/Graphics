@@ -5,29 +5,37 @@
 #ifndef LINERENDERING_DATA_CS_HLSL
 #define LINERENDERING_DATA_CS_HLSL
 //
-// UnityEngine.Rendering.LineRendering+ShaderVariables:  static fields
-//
-#define NUM_LANE_SEGMENT_SETUP (1024)
-#define NUM_LANE_RASTER_BIN (512)
-
-//
 // UnityEngine.Rendering.LineRendering+DebugMode:  static fields
 //
 #define DEBUGMODE_SEGMENTS_PER_TILE (0)
 #define DEBUGMODE_TILE_PROCESSOR_UV (1)
 #define DEBUGMODE_CLUSTER_DEPTH (2)
 
-// Generated from UnityEngine.Rendering.LineRendering+VertexRecord
+//
+// UnityEngine.Rendering.LineRendering+ShaderVariables:  static fields
+//
+#define NUM_LANE_SEGMENT_SETUP (1024)
+#define NUM_LANE_RASTER_BIN (512)
+
+// Generated from UnityEngine.Rendering.LineRendering+ClusterRecord
 // PackingRules = Exact
-struct VertexRecord
+struct ClusterRecord
 {
-    float4 positionCS;
-    float4 previousPositionCS;
-    float3 positionRWS;
-    float3 tangentWS;
-    float3 normalWS;
-    float texCoord0;
-    float texCoord1;
+    uint segmentIndex;
+    uint clusterIndex;
+    uint clusterOffset;
+};
+
+// Generated from UnityEngine.Rendering.LineRendering+SegmentRecord
+// PackingRules = Exact
+struct SegmentRecord
+{
+    float2 positionSS0;
+    float2 positionSS1;
+    float depthVS0;
+    float depthVS1;
+    uint vertexIndex0;
+    uint vertexIndex1;
 };
 
 // Generated from UnityEngine.Rendering.LineRendering+ShaderVariables
@@ -49,25 +57,17 @@ CBUFFER_START(ShaderVariables)
     float3 _padding;
 CBUFFER_END
 
-// Generated from UnityEngine.Rendering.LineRendering+ClusterRecord
+// Generated from UnityEngine.Rendering.LineRendering+VertexRecord
 // PackingRules = Exact
-struct ClusterRecord
+struct VertexRecord
 {
-    uint segmentIndex;
-    uint clusterIndex;
-    uint clusterOffset;
-};
-
-// Generated from UnityEngine.Rendering.LineRendering+SegmentRecord
-// PackingRules = Exact
-struct SegmentRecord
-{
-    float2 positionSS0;
-    float2 positionSS1;
-    float depthVS0;
-    float depthVS1;
-    uint vertexIndex0;
-    uint vertexIndex1;
+    float4 positionCS;
+    float4 previousPositionCS;
+    float3 positionRWS;
+    float3 tangentWS;
+    float3 normalWS;
+    float texCoord0;
+    float texCoord1;
 };
 
 

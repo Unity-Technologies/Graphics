@@ -24,14 +24,6 @@
 #define DEBUGVIEW_BUILTIN_BUILTINDATA_DEPTH_OFFSET (114)
 #define DEBUGVIEW_BUILTIN_BUILTINDATA_VT_PACKED_FEEDBACK (115)
 
-// Generated from UnityEngine.Rendering.HighDefinition.Builtin+LightTransportData
-// PackingRules = Exact
-struct LightTransportData
-{
-    real3 diffuseColor;
-    real3 emissiveColor;
-};
-
 // Generated from UnityEngine.Rendering.HighDefinition.Builtin+BuiltinData
 // PackingRules = Exact
 struct BuiltinData
@@ -54,6 +46,14 @@ struct BuiltinData
     #if defined(UNITY_VIRTUAL_TEXTURING)
     real4 vtPackedFeedback;
     #endif
+};
+
+// Generated from UnityEngine.Rendering.HighDefinition.Builtin+LightTransportData
+// PackingRules = Exact
+struct LightTransportData
+{
+    real3 diffuseColor;
+    real3 emissiveColor;
 };
 
 //

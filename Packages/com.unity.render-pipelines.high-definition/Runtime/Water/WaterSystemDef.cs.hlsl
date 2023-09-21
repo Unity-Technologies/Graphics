@@ -5,11 +5,20 @@
 #ifndef WATERSYSTEMDEF_CS_HLSL
 #define WATERSYSTEMDEF_CS_HLSL
 //
-// UnityEngine.Rendering.HighDefinition.WaterMaskDebugMode:  static fields
+// UnityEngine.Rendering.HighDefinition.WaterAtlasSize:  static fields
 //
-#define WATERMASKDEBUGMODE_RED_CHANNEL (0)
-#define WATERMASKDEBUGMODE_GREEN_CHANNEL (1)
-#define WATERMASKDEBUGMODE_BLUE_CHANNEL (2)
+#define WATERATLASSIZE_ATLAS_SIZE64 (64)
+#define WATERATLASSIZE_ATLAS_SIZE128 (128)
+#define WATERATLASSIZE_ATLAS_SIZE256 (256)
+#define WATERATLASSIZE_ATLAS_SIZE512 (512)
+#define WATERATLASSIZE_ATLAS_SIZE1024 (1024)
+#define WATERATLASSIZE_ATLAS_SIZE2048 (2048)
+
+//
+// UnityEngine.Rendering.HighDefinition.WaterCurrentDebugMode:  static fields
+//
+#define WATERCURRENTDEBUGMODE_LARGE (0)
+#define WATERCURRENTDEBUGMODE_RIPPLES (1)
 
 //
 // UnityEngine.Rendering.HighDefinition.WaterDebugMode:  static fields
@@ -28,48 +37,11 @@
 #define WATERFOAMDEBUGMODE_DEEP_FOAM (1)
 
 //
-// UnityEngine.Rendering.HighDefinition.WaterAtlasSize:  static fields
+// UnityEngine.Rendering.HighDefinition.WaterMaskDebugMode:  static fields
 //
-#define WATERATLASSIZE_ATLAS_SIZE64 (64)
-#define WATERATLASSIZE_ATLAS_SIZE128 (128)
-#define WATERATLASSIZE_ATLAS_SIZE256 (256)
-#define WATERATLASSIZE_ATLAS_SIZE512 (512)
-#define WATERATLASSIZE_ATLAS_SIZE1024 (1024)
-#define WATERATLASSIZE_ATLAS_SIZE2048 (2048)
-
-//
-// UnityEngine.Rendering.HighDefinition.WaterCurrentDebugMode:  static fields
-//
-#define WATERCURRENTDEBUGMODE_LARGE (0)
-#define WATERCURRENTDEBUGMODE_RIPPLES (1)
-
-// Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesWaterDebug
-// PackingRules = Exact
-CBUFFER_START(ShaderVariablesWaterDebug)
-    int _WaterDebugMode;
-    int _WaterMaskDebugMode;
-    int _WaterCurrentDebugMode;
-    float _CurrentDebugMultiplier;
-    int _WaterFoamDebugMode;
-    int _PaddingWDbg0;
-    int _PaddingWDbg1;
-    int _PaddingWDbg2;
-CBUFFER_END
-
-// Generated from UnityEngine.Rendering.HighDefinition.WaterGeneratorData
-// PackingRules = Exact
-struct WaterGeneratorData
-{
-    float3 position;
-    float rotation;
-    float2 regionSize;
-    int type;
-    int padding0;
-    float2 padding1;
-    float deepFoamDimmer;
-    float surfaceFoamDimmer;
-    float4 scaleOffset;
-};
+#define WATERMASKDEBUGMODE_RED_CHANNEL (0)
+#define WATERMASKDEBUGMODE_GREEN_CHANNEL (1)
+#define WATERMASKDEBUGMODE_BLUE_CHANNEL (2)
 
 // Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesWater
 // PackingRules = Exact
@@ -121,6 +93,19 @@ CBUFFER_START(ShaderVariablesWater)
     float _DeltaTime;
 CBUFFER_END
 
+// Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesWaterDebug
+// PackingRules = Exact
+CBUFFER_START(ShaderVariablesWaterDebug)
+    int _WaterDebugMode;
+    int _WaterMaskDebugMode;
+    int _WaterCurrentDebugMode;
+    float _CurrentDebugMultiplier;
+    int _WaterFoamDebugMode;
+    int _PaddingWDbg0;
+    int _PaddingWDbg1;
+    int _PaddingWDbg2;
+CBUFFER_END
+
 // Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesWaterRendering
 // PackingRules = Exact
 CBUFFER_START(ShaderVariablesWaterRendering)
@@ -149,31 +134,6 @@ CBUFFER_START(ShaderVariablesWaterRendering)
     float4x4 _WaterCustomTransform_Inverse;
 CBUFFER_END
 
-// Generated from UnityEngine.Rendering.HighDefinition.WaterSurfaceProfile
-// PackingRules = Exact
-struct WaterSurfaceProfile
-{
-    float bodyScatteringHeight;
-    float maxRefractionDistance;
-    uint renderingLayers;
-    int cameraUnderWater;
-    float3 transparencyColor;
-    float outScatteringCoefficient;
-    float3 scatteringColor;
-    float envPerceptualRoughness;
-    float smoothnessFadeStart;
-    float smoothnessFadeDistance;
-    float roughnessEndValue;
-    float colorPyramidScale;
-    float4 foamColor;
-    float3 upDirection;
-    int colorPyramidMipOffset;
-    int disableIOR;
-    float tipScatteringHeight;
-    float underWaterAmbientProbeContribution;
-    float absorptionDistanceMultiplier;
-};
-
 // Generated from UnityEngine.Rendering.HighDefinition.WaterDeformerData
 // PackingRules = Exact
 struct WaterDeformerData
@@ -198,12 +158,52 @@ struct WaterDeformerData
     float4 scaleOffset;
 };
 
+// Generated from UnityEngine.Rendering.HighDefinition.WaterGeneratorData
+// PackingRules = Exact
+struct WaterGeneratorData
+{
+    float3 position;
+    float rotation;
+    float2 regionSize;
+    int type;
+    int padding0;
+    float2 padding1;
+    float deepFoamDimmer;
+    float surfaceFoamDimmer;
+    float4 scaleOffset;
+};
+
 // Generated from UnityEngine.Rendering.HighDefinition.WaterSectorData
 // PackingRules = Exact
 struct WaterSectorData
 {
     float4 dir0;
     float4 dir1;
+};
+
+// Generated from UnityEngine.Rendering.HighDefinition.WaterSurfaceProfile
+// PackingRules = Exact
+struct WaterSurfaceProfile
+{
+    float bodyScatteringHeight;
+    float maxRefractionDistance;
+    uint renderingLayers;
+    int cameraUnderWater;
+    float3 transparencyColor;
+    float outScatteringCoefficient;
+    float3 scatteringColor;
+    float envPerceptualRoughness;
+    float smoothnessFadeStart;
+    float smoothnessFadeDistance;
+    float roughnessEndValue;
+    float colorPyramidScale;
+    float4 foamColor;
+    float3 upDirection;
+    int colorPyramidMipOffset;
+    int disableIOR;
+    float tipScatteringHeight;
+    float underWaterAmbientProbeContribution;
+    float absorptionDistanceMultiplier;
 };
 
 

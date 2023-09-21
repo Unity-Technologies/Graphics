@@ -5,22 +5,6 @@
 #ifndef SIXWAYSMOKELIT_CS_HLSL
 #define SIXWAYSMOKELIT_CS_HLSL
 //
-// UnityEditor.VFX.HDRP.SixWaySmokeLit+SurfaceData:  static fields
-//
-#define DEBUGVIEW_SIXWAYSMOKELIT_SURFACEDATA_ABSORPTION_RANGE (1700)
-#define DEBUGVIEW_SIXWAYSMOKELIT_SURFACEDATA_BASE_COLOR (1701)
-#define DEBUGVIEW_SIXWAYSMOKELIT_SURFACEDATA_NORMAL (1702)
-#define DEBUGVIEW_SIXWAYSMOKELIT_SURFACEDATA_NORMAL_WORLD_SPACE (1703)
-#define DEBUGVIEW_SIXWAYSMOKELIT_SURFACEDATA_TANGENT (1704)
-#define DEBUGVIEW_SIXWAYSMOKELIT_SURFACEDATA_TANGENT_WORLD_SPACE (1705)
-#define DEBUGVIEW_SIXWAYSMOKELIT_SURFACEDATA_AMBIENT_OCCLUSION (1706)
-#define DEBUGVIEW_SIXWAYSMOKELIT_SURFACEDATA_RIG_RIGHT_TOP_BACK (1707)
-#define DEBUGVIEW_SIXWAYSMOKELIT_SURFACEDATA_RIG_LEFT_BOTTOM_FRONT (1708)
-#define DEBUGVIEW_SIXWAYSMOKELIT_SURFACEDATA_BAKE_DIFFUSE_LIGHTING0 (1709)
-#define DEBUGVIEW_SIXWAYSMOKELIT_SURFACEDATA_BAKE_DIFFUSE_LIGHTING1 (1710)
-#define DEBUGVIEW_SIXWAYSMOKELIT_SURFACEDATA_BAKE_DIFFUSE_LIGHTING2 (1711)
-
-//
 // UnityEditor.VFX.HDRP.SixWaySmokeLit+MaterialFeatureFlags:  static fields
 //
 #define MATERIALFEATUREFLAGS_LIT_SIX_WAY_SMOKE (1)
@@ -41,21 +25,21 @@
 #define DEBUGVIEW_SIXWAYSMOKELIT_BSDFDATA_BAKE_DIFFUSE_LIGHTING1 (1760)
 #define DEBUGVIEW_SIXWAYSMOKELIT_BSDFDATA_BAKE_DIFFUSE_LIGHTING2 (1761)
 
-// Generated from UnityEditor.VFX.HDRP.SixWaySmokeLit+SurfaceData
-// PackingRules = Exact
-struct SurfaceData
-{
-    float absorptionRange;
-    real4 baseColor;
-    float3 normalWS;
-    float4 tangentWS;
-    real ambientOcclusion;
-    real3 rightTopBack;
-    real3 leftBottomFront;
-    real4 bakeDiffuseLighting0;
-    real4 bakeDiffuseLighting1;
-    real4 bakeDiffuseLighting2;
-};
+//
+// UnityEditor.VFX.HDRP.SixWaySmokeLit+SurfaceData:  static fields
+//
+#define DEBUGVIEW_SIXWAYSMOKELIT_SURFACEDATA_ABSORPTION_RANGE (1700)
+#define DEBUGVIEW_SIXWAYSMOKELIT_SURFACEDATA_BASE_COLOR (1701)
+#define DEBUGVIEW_SIXWAYSMOKELIT_SURFACEDATA_NORMAL (1702)
+#define DEBUGVIEW_SIXWAYSMOKELIT_SURFACEDATA_NORMAL_WORLD_SPACE (1703)
+#define DEBUGVIEW_SIXWAYSMOKELIT_SURFACEDATA_TANGENT (1704)
+#define DEBUGVIEW_SIXWAYSMOKELIT_SURFACEDATA_TANGENT_WORLD_SPACE (1705)
+#define DEBUGVIEW_SIXWAYSMOKELIT_SURFACEDATA_AMBIENT_OCCLUSION (1706)
+#define DEBUGVIEW_SIXWAYSMOKELIT_SURFACEDATA_RIG_RIGHT_TOP_BACK (1707)
+#define DEBUGVIEW_SIXWAYSMOKELIT_SURFACEDATA_RIG_LEFT_BOTTOM_FRONT (1708)
+#define DEBUGVIEW_SIXWAYSMOKELIT_SURFACEDATA_BAKE_DIFFUSE_LIGHTING0 (1709)
+#define DEBUGVIEW_SIXWAYSMOKELIT_SURFACEDATA_BAKE_DIFFUSE_LIGHTING1 (1710)
+#define DEBUGVIEW_SIXWAYSMOKELIT_SURFACEDATA_BAKE_DIFFUSE_LIGHTING2 (1711)
 
 // Generated from UnityEditor.VFX.HDRP.SixWaySmokeLit+BSDFData
 // PackingRules = Exact
@@ -73,52 +57,21 @@ struct BSDFData
     real4 bakeDiffuseLighting2;
 };
 
-//
-// Debug functions
-//
-void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout float3 result, inout bool needLinearToSRGB)
+// Generated from UnityEditor.VFX.HDRP.SixWaySmokeLit+SurfaceData
+// PackingRules = Exact
+struct SurfaceData
 {
-    switch (paramId)
-    {
-        case DEBUGVIEW_SIXWAYSMOKELIT_SURFACEDATA_ABSORPTION_RANGE:
-            result = surfacedata.absorptionRange.xxx;
-            break;
-        case DEBUGVIEW_SIXWAYSMOKELIT_SURFACEDATA_BASE_COLOR:
-            result = surfacedata.baseColor.xyz;
-            needLinearToSRGB = true;
-            break;
-        case DEBUGVIEW_SIXWAYSMOKELIT_SURFACEDATA_NORMAL:
-            result = IsNormalized(surfacedata.normalWS)? surfacedata.normalWS * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
-            break;
-        case DEBUGVIEW_SIXWAYSMOKELIT_SURFACEDATA_NORMAL_WORLD_SPACE:
-            result = IsNormalized(surfacedata.normalWS)? surfacedata.normalWS * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
-            break;
-        case DEBUGVIEW_SIXWAYSMOKELIT_SURFACEDATA_TANGENT:
-            result = surfacedata.tangentWS.xyz;
-            break;
-        case DEBUGVIEW_SIXWAYSMOKELIT_SURFACEDATA_TANGENT_WORLD_SPACE:
-            result = surfacedata.tangentWS.xyz;
-            break;
-        case DEBUGVIEW_SIXWAYSMOKELIT_SURFACEDATA_AMBIENT_OCCLUSION:
-            result = surfacedata.ambientOcclusion.xxx;
-            break;
-        case DEBUGVIEW_SIXWAYSMOKELIT_SURFACEDATA_RIG_RIGHT_TOP_BACK:
-            result = surfacedata.rightTopBack;
-            break;
-        case DEBUGVIEW_SIXWAYSMOKELIT_SURFACEDATA_RIG_LEFT_BOTTOM_FRONT:
-            result = surfacedata.leftBottomFront;
-            break;
-        case DEBUGVIEW_SIXWAYSMOKELIT_SURFACEDATA_BAKE_DIFFUSE_LIGHTING0:
-            result = surfacedata.bakeDiffuseLighting0.xyz;
-            break;
-        case DEBUGVIEW_SIXWAYSMOKELIT_SURFACEDATA_BAKE_DIFFUSE_LIGHTING1:
-            result = surfacedata.bakeDiffuseLighting1.xyz;
-            break;
-        case DEBUGVIEW_SIXWAYSMOKELIT_SURFACEDATA_BAKE_DIFFUSE_LIGHTING2:
-            result = surfacedata.bakeDiffuseLighting2.xyz;
-            break;
-    }
-}
+    float absorptionRange;
+    real4 baseColor;
+    float3 normalWS;
+    float4 tangentWS;
+    real ambientOcclusion;
+    real3 rightTopBack;
+    real3 leftBottomFront;
+    real4 bakeDiffuseLighting0;
+    real4 bakeDiffuseLighting1;
+    real4 bakeDiffuseLighting2;
+};
 
 //
 // Debug functions
@@ -163,6 +116,53 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
             break;
         case DEBUGVIEW_SIXWAYSMOKELIT_BSDFDATA_BAKE_DIFFUSE_LIGHTING2:
             result = bsdfdata.bakeDiffuseLighting2.xyz;
+            break;
+    }
+}
+
+//
+// Debug functions
+//
+void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout float3 result, inout bool needLinearToSRGB)
+{
+    switch (paramId)
+    {
+        case DEBUGVIEW_SIXWAYSMOKELIT_SURFACEDATA_ABSORPTION_RANGE:
+            result = surfacedata.absorptionRange.xxx;
+            break;
+        case DEBUGVIEW_SIXWAYSMOKELIT_SURFACEDATA_BASE_COLOR:
+            result = surfacedata.baseColor.xyz;
+            needLinearToSRGB = true;
+            break;
+        case DEBUGVIEW_SIXWAYSMOKELIT_SURFACEDATA_NORMAL:
+            result = IsNormalized(surfacedata.normalWS)? surfacedata.normalWS * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
+            break;
+        case DEBUGVIEW_SIXWAYSMOKELIT_SURFACEDATA_NORMAL_WORLD_SPACE:
+            result = IsNormalized(surfacedata.normalWS)? surfacedata.normalWS * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
+            break;
+        case DEBUGVIEW_SIXWAYSMOKELIT_SURFACEDATA_TANGENT:
+            result = surfacedata.tangentWS.xyz;
+            break;
+        case DEBUGVIEW_SIXWAYSMOKELIT_SURFACEDATA_TANGENT_WORLD_SPACE:
+            result = surfacedata.tangentWS.xyz;
+            break;
+        case DEBUGVIEW_SIXWAYSMOKELIT_SURFACEDATA_AMBIENT_OCCLUSION:
+            result = surfacedata.ambientOcclusion.xxx;
+            break;
+        case DEBUGVIEW_SIXWAYSMOKELIT_SURFACEDATA_RIG_RIGHT_TOP_BACK:
+            result = surfacedata.rightTopBack;
+            break;
+        case DEBUGVIEW_SIXWAYSMOKELIT_SURFACEDATA_RIG_LEFT_BOTTOM_FRONT:
+            result = surfacedata.leftBottomFront;
+            break;
+        case DEBUGVIEW_SIXWAYSMOKELIT_SURFACEDATA_BAKE_DIFFUSE_LIGHTING0:
+            result = surfacedata.bakeDiffuseLighting0.xyz;
+            break;
+        case DEBUGVIEW_SIXWAYSMOKELIT_SURFACEDATA_BAKE_DIFFUSE_LIGHTING1:
+            result = surfacedata.bakeDiffuseLighting1.xyz;
+            break;
+        case DEBUGVIEW_SIXWAYSMOKELIT_SURFACEDATA_BAKE_DIFFUSE_LIGHTING2:
+            result = surfacedata.bakeDiffuseLighting2.xyz;
             break;
     }
 }
