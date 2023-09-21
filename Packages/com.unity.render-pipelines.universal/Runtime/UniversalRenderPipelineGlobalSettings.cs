@@ -112,7 +112,10 @@ namespace UnityEngine.Rendering.Universal
             if (RenderPipelineGlobalSettingsUtils.TryEnsure<UniversalRenderPipelineGlobalSettings, UniversalRenderPipeline>(ref currentInstance, defaultPath, canCreateNewAsset))
             {
                 if (currentInstance != null && currentInstance.m_AssetVersion != k_LastVersion)
+                {
                     UpgradeAsset(currentInstance.GetInstanceID());
+                    AssetDatabase.SaveAssetIfDirty(currentInstance);
+                }
 
                 return currentInstance;
             }

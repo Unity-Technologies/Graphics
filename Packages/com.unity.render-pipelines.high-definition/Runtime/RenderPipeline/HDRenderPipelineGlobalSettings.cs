@@ -74,7 +74,11 @@ namespace UnityEngine.Rendering.HighDefinition
             if (RenderPipelineGlobalSettingsUtils.TryEnsure<HDRenderPipelineGlobalSettings, HDRenderPipeline>(ref currentInstance, defaultPath, canCreateNewAsset))
             {
                 if (currentInstance is IMigratableAsset migratableAsset && !migratableAsset.IsAtLastVersion())
+                {
                     migratableAsset.Migrate();
+                    EditorUtility.SetDirty(currentInstance);
+                    AssetDatabase.SaveAssetIfDirty(currentInstance);
+                }
 
                 return currentInstance;
             }
