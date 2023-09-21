@@ -82,7 +82,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty evsmLightLeakBias;
         public SerializedProperty evsmVarianceBias;
         public SerializedProperty evsmBlurPasses;
-        public SerializedProperty dirLightPCSSMaxBlockerDistance;
+        public SerializedProperty dirLightPCSSMaxPenumbraSize;
         public SerializedProperty dirLightPCSSMaxSamplingDistance;
         public SerializedProperty dirLightPCSSMinFilterSizeTexels;
         public SerializedProperty dirLightPCSSMinFilterMaxAngularDiameter;
@@ -314,7 +314,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 evsmVarianceBias = o.Find("m_EvsmVarianceBias");
                 evsmLightLeakBias = o.Find("m_EvsmLightLeakBias");
                 evsmBlurPasses = o.Find("m_EvsmBlurPasses");
-                dirLightPCSSMaxBlockerDistance = o.Find("m_DirLightPCSSMaxBlockerDistance");
+                dirLightPCSSMaxPenumbraSize = o.Find("m_DirLightPCSSMaxPenumbraSize");
                 dirLightPCSSMaxSamplingDistance = o.Find("m_DirLightPCSSMaxSamplingDistance");
                 dirLightPCSSMinFilterSizeTexels = o.Find("m_DirLightPCSSMinFilterSizeTexels");
                 dirLightPCSSMinFilterMaxAngularDiameter = o.Find("m_DirLightPCSSMinFilterMaxAngularDiameter");

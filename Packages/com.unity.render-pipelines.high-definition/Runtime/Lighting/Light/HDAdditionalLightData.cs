@@ -1513,20 +1513,21 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        [SerializeField] float m_DirLightPCSSMaxBlockerDistance = 64.0f;
+        [SerializeField] float m_DirLightPCSSMaxPenumbraSize = 0.56f; // Default matching previous API max blocker distance at 64m for a light angular diameter of 0.5
         /// <summary>
-        /// Maximum distance of PCSS shadow blockers determining blur fliter kernel size, the higher it it the blurier distant object can be
-        /// However, cascades clamp the distance so higher values potentially cause more inter-cascade disrepancies
+        /// Maximum penumbra size (in world space), limiting blur filter kernel size
+        /// Measured against a receiving surface perpendicular to light direction (penumbra may get wider for different angles)
+        /// Very large kernels may affect GPU performance and/or produce undesirable artifacts close to caster
         /// </summary>
-        public float dirLightPCSSMaxBlockerDistance
+        public float dirLightPCSSMaxPenumbraSize
         {
-            get => m_DirLightPCSSMaxBlockerDistance;
+            get => m_DirLightPCSSMaxPenumbraSize;
             set
             {
-                m_DirLightPCSSMaxBlockerDistance = Math.Max(value, 0.0f);
+                m_DirLightPCSSMaxPenumbraSize = Math.Max(value, 0.0f);
                 if (lightEntity.valid)
                 {
-                    HDLightRenderDatabase.instance.EditAdditionalLightUpdateDataAsRef(lightEntity).dirLightPCSSMaxBlockerDistance = m_DirLightPCSSMaxBlockerDistance;
+                    HDLightRenderDatabase.instance.EditAdditionalLightUpdateDataAsRef(lightEntity).dirLightPCSSMaxPenumbraSize = m_DirLightPCSSMaxPenumbraSize;
                 }
             }
         }
@@ -3028,7 +3029,7 @@ namespace UnityEngine.Rendering.HighDefinition
             data.m_AreaLightEmissiveMeshShadowCastingMode = m_AreaLightEmissiveMeshShadowCastingMode;
             data.m_AreaLightEmissiveMeshMotionVectorGenerationMode = m_AreaLightEmissiveMeshMotionVectorGenerationMode;
             data.m_AreaLightEmissiveMeshLayer = m_AreaLightEmissiveMeshLayer;
-            data.dirLightPCSSMaxBlockerDistance = dirLightPCSSMaxBlockerDistance;
+            data.dirLightPCSSMaxPenumbraSize = dirLightPCSSMaxPenumbraSize;
             data.dirLightPCSSMaxSamplingDistance = dirLightPCSSMaxSamplingDistance;
             data.dirLightPCSSMinFilterSizeTexels = dirLightPCSSMinFilterSizeTexels;
             data.dirLightPCSSMinFilterMaxAngularDiameter = dirLightPCSSMinFilterMaxAngularDiameter;
