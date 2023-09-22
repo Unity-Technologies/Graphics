@@ -1,4 +1,4 @@
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary\CommonMaterial.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingFragInputs.hlsl"
 
 // Generic function that handles the reflection code
