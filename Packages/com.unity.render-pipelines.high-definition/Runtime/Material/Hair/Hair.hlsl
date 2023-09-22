@@ -483,28 +483,10 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     }
 
     // Area light
-    // UVs for sampling the LUTs
-    // We use V = sqrt( 1 - cos(theta) ) for parametrization which is kind of linear and only requires a single sqrt() instead of an expensive acos()
-    float cosThetaParam = sqrt(1 - clampedNdotV); // For Area light - UVs for sampling the LUTs
-    float2 uv = Remap01ToHalfTexelCoord(float2(bsdfData.perceptualRoughness, cosThetaParam), LTC_LUT_SIZE);
-
-    // Note we load the matrix transpose (avoid to have to transpose it in shader)
-#if _USE_LIGHT_FACING_NORMAL
-    // Get the inverse LTC matrix for Disney Diffuse
-    preLightData.ltcTransformDiffuse      = 0.0;
-    preLightData.ltcTransformDiffuse._m22 = 1.0;
-    preLightData.ltcTransformDiffuse._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, s_linear_clamp_sampler, uv, LTCLIGHTINGMODEL_KAJIYA_KAY_DIFFUSE, 0);
-#else
-    preLightData.ltcTransformDiffuse = k_identity3x3;
-#endif
-
-    // Get the inverse LTC matrix for GGX
-    // Note we load the matrix transpose (avoid to have to transpose it in shader)
-    preLightData.ltcTransformSpecular      = 0.0;
-    preLightData.ltcTransformSpecular._m22 = 1.0;
+    preLightData.ltcTransformDiffuse  = k_identity3x3;
     // IMPORTANT NOTE: For the time being, until we solve issues with Kajiya Kay anisotropy and LTC tables, hair will fall-back on GGX.
     // To be replaced with LTCLIGHTINGMODEL_KAJIYA_KAY_SPECULAR when that table is going to be valid.
-    preLightData.ltcTransformSpecular._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, s_linear_clamp_sampler, uv, LTCLIGHTINGMODEL_GGX, 0);
+    preLightData.ltcTransformSpecular = SampleLtcMatrix(bsdfData.perceptualRoughness, clampedNdotV, LTCLIGHTINGMODEL_GGX);
 
     // Construct a right-handed view-dependent orthogonal basis around the normal
     preLightData.orthoBasisViewNormal = GetOrthoBasisViewNormal(V, N, preLightData.NdotV);
