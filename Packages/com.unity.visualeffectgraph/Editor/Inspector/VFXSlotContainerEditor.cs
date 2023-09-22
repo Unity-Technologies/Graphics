@@ -190,25 +190,23 @@ class VFXSlotContainerEditor : Editor
             Profiler.BeginSample("SceneViewVFXSlotContainerOverlay.UpdateFromVFXView");
             try
             {
-                if (controllers == null)
-                {
-                    return;
-                }
-
                 for (int i = s_AllGizmosInfo.Count - 1; i >= 0; i--)
                 {
                     var gizmo = s_AllGizmosInfo[i];
-                    if (gizmo.view == vfxView && controllers.All(x => x != gizmo.controller))
+                    if (gizmo.view == vfxView && (controllers == null || controllers.All(x => x != gizmo.controller)))
                     {
                         s_AllGizmosInfo.RemoveAt(i);
                     }
                 }
 
-                foreach (var controller in controllers)
+                if (controllers != null)
                 {
-                    if (s_AllGizmosInfo.All(x => x.view != vfxView || x.controller != controller))
+                    foreach (var controller in controllers)
                     {
-                        s_AllGizmosInfo.AddRange(controller.gizmoables.Select(x => new GizmoInfo(vfxView, controller, x)));
+                        if (s_AllGizmosInfo.All(x => x.view != vfxView || x.controller != controller))
+                        {
+                            s_AllGizmosInfo.AddRange(controller.gizmoables.Select(x => new GizmoInfo(vfxView, controller, x)));
+                        }
                     }
                 }
 
@@ -260,7 +258,7 @@ class VFXSlotContainerEditor : Editor
                         currentIndex = Math.Clamp(currentIndex, 0, s_Entries.Length - 1);
 
                         GUI.enabled = true;
-                        currentIndex = EditorGUILayout.Popup(currentIndex, s_Entries);
+                        currentIndex = EditorGUILayout.Popup(currentIndex, s_Entries, GUILayout.Height(20));
                         var currentGizmo = s_AllGizmosInfo[currentIndex];
                         var component = currentGizmo.view.attachedComponent;
                         var gizmoError = currentGizmo.controller.GetGizmoError(component);
