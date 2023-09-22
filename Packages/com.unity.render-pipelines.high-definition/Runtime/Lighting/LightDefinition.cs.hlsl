@@ -60,14 +60,36 @@
 #define MAX_PLANAR_REFLECTIONS (16)
 #define MAX_CUBE_REFLECTIONS (64)
 
+// Generated from UnityEngine.Rendering.HighDefinition.CelestialBodyData
+// PackingRules = Exact
+struct CelestialBodyData
+{
+    float3 color;
+    float radius;
+    float3 forward;
+    float distanceFromCamera;
+    float3 right;
+    float angularRadius;
+    float3 up;
+    int type;
+    float3 surfaceColor;
+    float earthshine;
+    float4 surfaceTextureScaleOffset;
+    float3 sunDirection;
+    float flareCosInner;
+    float2 phaseAngleSinCos;
+    float flareCosOuter;
+    float flareSize;
+    float3 flareColor;
+    float flareFalloff;
+};
+
 // Generated from UnityEngine.Rendering.HighDefinition.DirectionalLightData
 // PackingRules = Exact
 struct DirectionalLightData
 {
     float3 positionRWS;
     uint lightLayers;
-    float lightDimmer;
-    float volumetricLightDimmer;
     float3 forward;
     int cookieMode;
     float4 cookieScaleOffset;
@@ -86,23 +108,12 @@ struct DirectionalLightData
     real4 shadowMaskSelector;
     float diffuseDimmer;
     float specularDimmer;
+    float lightDimmer;
+    float volumetricLightDimmer;
     float penumbraTint;
     float isRayTracedContactShadow;
-    float distanceFromCamera;
     float angularDiameter;
-    float skyAngularDiameter;
-    float flareFalloff;
-    float flareCosInner;
-    float flareCosOuter;
-    float padding;
-    float earthshine;
-    float3 flareTint;
-    float flareSize;
-    float3 surfaceTint;
-    int bodyType;
-    float2 phaseSinCos;
-    float2 phaseAngleSinCos;
-    float4 surfaceTextureScaleOffset;
+    float distanceFromCamera;
 };
 
 // Generated from UnityEngine.Rendering.HighDefinition.EnvLightData

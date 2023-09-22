@@ -41,7 +41,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public float _HorizonZenithShiftPower;
         public float _HorizonZenithShiftScale;
+        public uint _CelestialLightCount;
+        public uint _CelestialBodyCount;
+        
         public float _AtmosphericDepth;
         public float _RcpAtmosphericDepth;
+        public float _PaddingPBS1;
+        public float _PaddingPBS2;
     }
 }

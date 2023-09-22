@@ -121,17 +121,19 @@ These settings define the behavior of the light when you use it as a celestial b
 | -------------------- | ------------------------------------------------------------ |
 | **Affect Physically Based Sky** | When using a **Physically Based Sky**, this displays a sun disc in the sky in this Light's direction. The diameter, color, and intensity of the sun disc match the properties of this Directional Light.<br />This property only appears when you enable [additional properties](More-Options.md) for this section. |
 | **- Diameter Multiplier** | Controls the size of the sun disk by multiplying or overriding the value of the angular diameter. This allows artificially increasing the size of the celestial body on screen without impacting the specular highlights or softness of shadows. |
-| **- Body Type** | Controls wether the celestial body should be emitting light, or receiving lighting from the main directional light. |
-| **-- Automatic Moon Phase** | Controls if the moon phase should be computed from the position of the sun or using custom parameters. Only available on bodies of type Moon. |
-| **--- Moon Phase** | Set the stage of the moon phase. A phase value of 0.5 is a full moon. Only available when automatic moon phase is off. |
-| **--- Moon Phase Rotation** | Controls the rotation of the moon crescent. Only available when automatic moon phase is off. |
-| **-- Earthshine** | Controls the intensity of the sunlight reflected from the planet onto the moon. Only available on bodies of type Moon. |
-| **-- Flare Size** | Controls the size of the flare around the celestial body (in degrees). Only available on bodies of type Star. |
-| **-- Flare Falloff** | Controls the falloff rate of flare intensity as the angle from the light increases. Only available on bodies of type Star. |
-| **-- Flare Tint** | Controls the tint of the flare of the celestial body. Only available on bodies of type Star. |
-| **- Surface Texture** | Sets a 2D (disk) Texture for the surface of the celestial body. This acts like a multiplier. |
-| **- Surface Tint** | Tints the surface of the celestial body. |
-| **- Distance** | Controls the distance of the sun disc. This is useful if you have multiple sun discs in the sky and want to change their sort order. HDRP draws sun discs with smaller **Distance** values on top of those with larger **Distance** values.<br />This property only appears when you enable [additional properties](More-Options.md) for this section. |
+| **- Distance** | Controls the distance of the sun disc. This is useful if you have multiple sun discs in the sky and want to change their sort order. HDRP draws sun discs with smaller **Distance** values on top of those with larger **Distance** values. |
+| **- Surface Color** | Sets a 2D (disk) Texture and color multiplier for the surface of the celestial body. Rotate the light component on the Z axis to rotate this texture. |
+| **- Shading**             | Specify the light source used for shading of the Celestial Body.<br />&#8226; **Emission** : Used to simulate a Sun. The celestial body will emit light based on the intensity parameter set in the Emission section.<br />&#8226; **Reflect Sun Light** : Used to simulate moons or planets. The celestial body will be illuminated by a directionaly light.<br />&#8226; **Manual** : Used to simulate moons or planets with complete control over the phase angle and rotation, as well as the reflected light intensity. |
+| **-- Sun Light Override** | Specifiy the Directional Light that should illuminate this Celestial Body. If not specified, HDRP will use the directional light in the scene with the highest intensity. |
+| **-- Earthshine** | Controls the intensity of the light reflected from the planet onto the Celestial Body. |
+| **-- Sun Color** | Color of the artificial light source in **Manual** mode. |
+| **-- Sun Intensity** | Intensity of the artificial light source in **Manual** mode. |
+| **-- Phase** | Controls the area of the surface illuminated by the Sun in **Manual** mode. A phase value of 0.5 means the surface is fully illuminated. |
+| **-- Phase Rotation** | Rotates the Light Source relatively to the Celestial Body in **Manual** mode. |
+| **- Flare Size** | Controls the size of the flare around the celestial body (in degrees). |
+| **- Flare Falloff** | Controls the falloff rate of flare intensity as the angle from the light increases. |
+| **- Flare Tint** | Controls the tint of the flare of the celestial body. |
+| **- Flare Multiplier** | Multiplier applied on the flare intensity. |
 
 <a name="Emission"></a>
 

@@ -52,18 +52,6 @@ MonoBehaviour:
   material:
     m_OverrideState: 0
     m_Value: {fileID: -876546973899608171, guid: 02532cbb810fb404db49da84f1efe41e, type: 3}
-  sphericalMode:
-    m_OverrideState: 0
-    m_Value: 1
-  seaLevel:
-    m_OverrideState: 0
-    m_Value: 0
-  planetaryRadius:
-    m_OverrideState: 0
-    m_Value: 6378100
-  planetCenterPosition:
-    m_OverrideState: 0
-    m_Value: {x: 0, y: -6378100, z: 0}
   airDensityR:
     m_OverrideState: 0
     m_Value: 0.04534
@@ -140,6 +128,18 @@ MonoBehaviour:
   m_ObsoleteEarthPreset:
     m_OverrideState: 0
     m_Value: 1
+  sphericalMode:
+    m_OverrideState: 0
+    m_Value: 1
+  seaLevel:
+    m_OverrideState: 0
+    m_Value: 0
+  planetaryRadius:
+    m_OverrideState: 0
+    m_Value: 6378100
+  planetCenterPosition:
+    m_OverrideState: 0
+    m_Value: {x: 0, y: -6378100, z: 0}
 --- !u!114 &-4151792930034644520
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -267,6 +267,18 @@ MonoBehaviour:
   skyAmbientMode:
     m_OverrideState: 1
     m_Value: 0
+  planetType:
+    m_OverrideState: 0
+    m_Value: 0
+  seaLevel:
+    m_OverrideState: 0
+    m_Value: 0
+  planetRadius:
+    m_OverrideState: 0
+    m_Value: 6378100
+  planetCenter:
+    m_OverrideState: 0
+    m_Value: {x: 0, y: -6378100, z: 0}
   windOrientation:
     m_OverrideState: 0
     m_Value: 0

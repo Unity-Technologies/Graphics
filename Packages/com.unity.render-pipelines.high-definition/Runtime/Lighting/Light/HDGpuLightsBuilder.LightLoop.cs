@@ -322,13 +322,17 @@ namespace UnityEngine.Rendering.HighDefinition
             lightData.right = light.GetRight() * 2 / Mathf.Max(cookieParams.size.x, 0.001f);
             lightData.up = light.GetUp() * 2 / Mathf.Max(cookieParams.size.y, 0.001f);
 
-            if (additionalLightData.surfaceTexture == null)
+            // Apply precomputed atmospheric attenuation on light
+            if (ShaderConfig.s_PrecomputedAtmosphericAttenuation != 0 && additionalLightData.interactsWithSky)
             {
-                lightData.surfaceTextureScaleOffset = Vector4.zero;
-            }
-            else
-            {
-                lightData.surfaceTextureScaleOffset = m_TextureCaches.lightCookieManager.Fetch2DCookie(cmd, additionalLightData.surfaceTexture);
+                var skySettings = SkyManager.GetSkySetting(hdCamera.volumeStack);
+                if (skySettings)
+                {
+                    Vector3 transm = skySettings.EvaluateAtmosphericAttenuation(-lightData.forward, hdCamera.camera.transform.position);
+                    lightData.color.x *= transm.x;
+                    lightData.color.y *= transm.y;
+                    lightData.color.z *= transm.z;
+                }
             }
 
             GetContactShadowMask(additionalLightData, HDAdditionalLightData.ScalableSettings.UseContactShadow(m_Asset), hdCamera, ref lightData.contactShadowMask, ref lightData.isRayTracedContactShadow);

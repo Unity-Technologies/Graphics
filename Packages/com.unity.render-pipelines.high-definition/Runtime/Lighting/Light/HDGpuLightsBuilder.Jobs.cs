@@ -56,27 +56,11 @@ namespace UnityEngine.Rendering.HighDefinition
             [ReadOnly]
             public bool isPbrSkyActive;
             [ReadOnly]
-            public int precomputedAtmosphericAttenuation;
-            [ReadOnly]
             public int defaultDataIndex;
             [ReadOnly]
             public int viewCounts;
             [ReadOnly]
             public bool useCameraRelativePosition;
-
-            //sky settings
-            [ReadOnly]
-            public Vector3 planetCenterPosition;
-            [ReadOnly]
-            public float planetaryRadius;
-            [ReadOnly]
-            public float airScaleHeight;
-            [ReadOnly]
-            public float aerosolScaleHeight;
-            [ReadOnly]
-            public Vector3 airExtinctionCoefficient;
-            [ReadOnly]
-            public float aerosolExtinctionCoefficient;
             [ReadOnly]
             public float maxShadowDistance;
 
@@ -645,49 +629,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     lightData.nonLightMappedOnly = 0;
                 }
 
-                // TODO: This won't work with anything but the PBR sky.
-                // A new virtual API was added to SkySetting to compute Atmospheric Attenuation but it's not accessible from within a burst job.
-                // Need to figure out how to compute that properly.
-                bool interactsWithSkyVal = isPbrSkyActive && lightRenderData.interactsWithSky;
-                lightData.distanceFromCamera = -1; // Encode 'interactsWithSky'
-
-                if (interactsWithSkyVal)
-                {
-                    lightData.distanceFromCamera = lightRenderData.distance;
-
-                    if (precomputedAtmosphericAttenuation != 0)
-                    {
-                        Vector3 transm = PhysicallyBasedSky.EvaluateAtmosphericAttenuation(
-                            airScaleHeight, aerosolScaleHeight, airExtinctionCoefficient, aerosolExtinctionCoefficient,
-                            planetCenterPosition, planetaryRadius, -lightData.forward, cameraPos);
-                        lightData.color.x *= transm.x;
-                        lightData.color.y *= transm.y;
-                        lightData.color.z *= transm.z;
-                    }
-                }
-
                 lightData.angularDiameter = lightRenderData.angularDiameter * Mathf.Deg2Rad;
-                lightData.skyAngularDiameter = lightRenderData.skyAngularDiameter * Mathf.Deg2Rad;
-
-                lightData.flareSize = Mathf.Max(lightRenderData.flareSize * Mathf.Deg2Rad, 5.960464478e-8f);
-                lightData.flareFalloff = lightRenderData.flareFalloff;
-
-                // On some vendors trigonometry has very bad precision, so we precompute what we can on CPU to avoid precision issues (case 1369376).
-                float radInner = 0.5f * lightData.skyAngularDiameter;
-                lightData.flareCosInner = Mathf.Cos(radInner);
-                lightData.flareCosOuter = Mathf.Cos(radInner + lightData.flareSize);
-
-                lightData.flareTint = (Vector3)(Vector4)lightRenderData.flareTint;
-                lightData.surfaceTint = (Vector3)(Vector4)lightRenderData.surfaceTint;
-
-                lightData.bodyType = lightRenderData.bodyType;
-
-                float moonPhase = lightRenderData.moonPhase * 2.0f * Mathf.PI;
-                float moonRotation = lightRenderData.moonPhaseRotation * Mathf.Deg2Rad;
-                lightData.phaseSinCos = new Vector2(Mathf.Sin(moonPhase), Mathf.Cos(moonPhase));
-                lightData.phaseAngleSinCos = new Vector2(Mathf.Sin(moonRotation), Mathf.Cos(moonRotation));
-
-                lightData.earthshine = lightRenderData.earthshine * 0.01f; // earth reflects about 0.01% of sun light
+                lightData.distanceFromCamera = (isPbrSkyActive && lightRenderData.interactsWithSky) ? lightRenderData.distance : -1;
 
                 if (useCameraRelativePosition)
                     lightData.positionRWS -= cameraPos;
@@ -728,7 +671,6 @@ namespace UnityEngine.Rendering.HighDefinition
             HDLightRenderDatabase lightEntities)
         {
             var visualEnvironment = hdCamera.volumeStack.GetComponent<VisualEnvironment>();
-            var skySettings = hdCamera.volumeStack.GetComponent<PhysicallyBasedSky>();
             var shadowSettings = hdCamera.volumeStack.GetComponent<HDShadowSettings>();
             Debug.Assert(visualEnvironment != null);
             bool isPbrSkyActive = visualEnvironment.skyType.value == (int)SkyType.PhysicallyBased;
@@ -744,18 +686,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 cameraPos = hdCamera.mainViewConstants.worldSpaceCameraPos,
                 directionalSortedLightCounts = visibleLights.sortedDirectionalLightCounts,
                 isPbrSkyActive = isPbrSkyActive,
-                precomputedAtmosphericAttenuation = ShaderConfig.s_PrecomputedAtmosphericAttenuation,
                 defaultDataIndex = lightEntities.GetEntityDataIndex(lightEntities.GetDefaultLightEntity()),
                 viewCounts = hdCamera.viewCount,
                 useCameraRelativePosition = ShaderConfig.s_CameraRelativeRendering != 0,
-
-                planetCenterPosition = hdCamera.planet.center,
-                planetaryRadius = hdCamera.planet.radius,
-                airScaleHeight = skySettings.GetAirScaleHeight(),
-                aerosolScaleHeight = skySettings.GetAerosolScaleHeight(),
-                airExtinctionCoefficient = skySettings.GetAirExtinctionCoefficient(),
-                aerosolExtinctionCoefficient = skySettings.GetAerosolExtinctionCoefficient(),
-
                 maxShadowDistance = shadowSettings.maxShadowDistance.value,
 
                 // light entity data

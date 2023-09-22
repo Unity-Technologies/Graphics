@@ -1498,6 +1498,17 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         ReserveCookieAtlasTexture(additionalLightData, additionalLightData.legacyLight, processedLightEntity.lightType);
                     }
+
+                    if (hdCamera.visualSky.skyRenderer?.GetType() == typeof(PhysicallyBasedSkyRenderer))
+                    {
+                        // Lights with 0 intensity are culled by unity, but we still want to show them
+                        // in the PBR sky, so we need to allocate space for the cookie
+                        foreach (var directional in lightEntities.directionalLights)
+                        {
+                            if (directional.intensity == 0.0f && directional.interactsWithSky)
+                                m_TextureCaches.lightCookieManager.ReserveSpace(directional.surfaceTexture);
+                        }
+                    }
                 }
 
                 // Also we need to allocate space for the volumetric clouds texture if necessary
@@ -1874,7 +1885,8 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 case LightType.Directional:
                 {
-                    m_TextureCaches.lightCookieManager.ReserveSpace(hdLightData.surfaceTexture);
+                    if (hdLightData.interactsWithSky)
+                        m_TextureCaches.lightCookieManager.ReserveSpace(hdLightData.surfaceTexture);
                     m_TextureCaches.lightCookieManager.ReserveSpace(light?.cookie);
                     break;
                 }

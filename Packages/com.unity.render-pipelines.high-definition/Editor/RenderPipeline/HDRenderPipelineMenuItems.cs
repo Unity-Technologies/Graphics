@@ -85,15 +85,14 @@ namespace UnityEditor.Rendering.HighDefinition
             var hdLight = go.AddComponent<HDAdditionalLightData>();
             HDAdditionalLightData.InitDefaultHDAdditionalLightData(hdLight);
 
+            hdLight.celestialBodyShadingSource = HDAdditionalLightData.CelestialBodyShadingSource.ReflectSunLight;
+            hdLight.distance = 384400000;
+            hdLight.diameterMultiplerMode = false;
+            hdLight.diameterOverride = 3.0f;
+            hdLight.flareSize = 0.0f;
+
             light.colorTemperature = 4100;
             hdLight.intensity = 0.5f; // 0.5 lux is actually a bit more than max moon light intensity on a full moon
-            hdLight.distance = 384400000;
-            hdLight.emissiveLightSource = false;
-            hdLight.diameterMultiplier = 4.0f;
-            hdLight.flareSize = 25;
-            hdLight.flareFalloff = 15;
-            hdLight.flareTint = new Color(0.01909091f, 0.02418182f, 0.035f);
-            hdLight.surfaceTint = new Color(0.014f, 0.014f, 0.014f);
 
             var globalSettings = HDRenderPipelineGlobalSettings.instance;
             if (globalSettings != null)

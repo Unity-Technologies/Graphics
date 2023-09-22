@@ -251,6 +251,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     { Pragma.Target(ShaderModel.Target45) },
                     { Pragma.Vertex("Vert") },
                     { Pragma.Fragment(cubemap ? "FragBaking" : "Frag") },
+                    { Pragma.EditorSyncCompilation },
                 },
                 includes = new IncludeCollection
                 {

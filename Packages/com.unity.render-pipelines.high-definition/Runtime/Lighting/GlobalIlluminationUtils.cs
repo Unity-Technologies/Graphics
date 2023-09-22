@@ -56,13 +56,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (staticSkySettings != null)
                 {
                     Vector3 atmosphericAttenuation = staticSkySettings.EvaluateAtmosphericAttenuation(-light.transform.forward, Vector3.zero);
-                    lightDataGI.color.red = lightDataGI.color.red * atmosphericAttenuation.x;
-                    lightDataGI.color.green = lightDataGI.color.green * atmosphericAttenuation.y;
-                    lightDataGI.color.blue = lightDataGI.color.blue * atmosphericAttenuation.z;
+                    lightDataGI.color.red *= atmosphericAttenuation.x;
+                    lightDataGI.color.green *= atmosphericAttenuation.y;
+                    lightDataGI.color.blue *= atmosphericAttenuation.z;
 
-                    lightDataGI.indirectColor.red = lightDataGI.indirectColor.red * atmosphericAttenuation.x;
-                    lightDataGI.indirectColor.green = lightDataGI.indirectColor.green * atmosphericAttenuation.y;
-                    lightDataGI.indirectColor.blue = lightDataGI.indirectColor.blue * atmosphericAttenuation.z;
+                    lightDataGI.indirectColor.red *= atmosphericAttenuation.x;
+                    lightDataGI.indirectColor.green *= atmosphericAttenuation.y;
+                    lightDataGI.indirectColor.blue *= atmosphericAttenuation.z;
                 }
             }
 

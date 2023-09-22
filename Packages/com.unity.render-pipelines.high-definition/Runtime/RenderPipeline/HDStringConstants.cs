@@ -710,6 +710,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _SpaceEmissionMultiplier = Shader.PropertyToID("_SpaceEmissionMultiplier");
 
         public static readonly int _RenderSunDisk = Shader.PropertyToID("_RenderSunDisk");
+        public static readonly int _CelestialBodyDatas = Shader.PropertyToID("_CelestialBodyDatas");
 
         // Lines
         public static readonly int _LineColorTexture  = Shader.PropertyToID("_LineColorTexture");
@@ -757,7 +758,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _DenoiserFilterRadius = Shader.PropertyToID("_DenoiserFilterRadius");
         public static readonly int _NormalHistoryCriterion = Shader.PropertyToID("_NormalHistoryCriterion");
         public static readonly int _DenoiseInputTexture = Shader.PropertyToID("_DenoiseInputTexture");
-        public static readonly int _LightingInputTexture = Shader.PropertyToID("_LightingInputTexture"); 
+        public static readonly int _LightingInputTexture = Shader.PropertyToID("_LightingInputTexture");
         public static readonly int _DistanceInputTexture = Shader.PropertyToID("_DistanceInputTexture");
         public static readonly int _DenoiseOutputTextureRW = Shader.PropertyToID("_DenoiseOutputTextureRW");
         public static readonly int _DenoiseOutputArrayTextureRW = Shader.PropertyToID("_DenoiseOutputArrayTextureRW");

@@ -66,9 +66,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector3 positionRWS;
         public uint lightLayers;
 
-        public float lightDimmer;
-        public float volumetricLightDimmer;   // Replaces 'lightDimer'
-
         public Vector3 forward;
         public CookieMode cookieMode;
 
@@ -98,30 +95,44 @@ namespace UnityEngine.Rendering.HighDefinition
         public float diffuseDimmer;
         public float specularDimmer;
 
+        public float lightDimmer;
+        public float volumetricLightDimmer;   // Replaces 'lightDimer'
+
         public float penumbraTint;
         public float isRayTracedContactShadow;
 
-        public float distanceFromCamera;      // -1 -> no sky interaction
         public float angularDiameter;         // Units: radians
-        public float skyAngularDiameter;      // artisitic override to have bigger moon
+        public float distanceFromCamera;      // -1 -> no sky interaction
+    };
 
-        public float flareFalloff;
-        public float flareCosInner;
-        public float flareCosOuter;
+    // These structures share between C# and hlsl need to be align on float4, so we pad them.
+    [GenerateHLSL(PackingRules.Exact, false)]
+    struct CelestialBodyData
+    {
+        public Vector3 color;
+        public float radius;
 
-        public float padding;
+        public Vector3 forward;
+        public float distanceFromCamera;  // -1 -> no sky interaction
+        public Vector3 right;
+        public float angularRadius;       // Units: radians
+        public Vector3 up;
+        public int type;                  // 0: star, 1: moon
+
+        public Vector3 surfaceColor;
         public float earthshine;
 
-        public Vector3 flareTint;
-        public float flareSize;               // Units: radians
+        public Vector4 surfaceTextureScaleOffset; // -1 if unused (TODO: 16 bit)
 
-        public Vector3 surfaceTint;
-        public int bodyType;                  // 0: emissive, 1: moon phase auto, 2: moon phase manual
+        public Vector3 sunDirection;
+        public float flareCosInner;
 
-        public Vector2 phaseSinCos;
         public Vector2 phaseAngleSinCos;
+        public float flareCosOuter;
+        public float flareSize;           // Units: radians
 
-        public Vector4 surfaceTextureScaleOffset;     // -1 if unused (TODO: 16 bit)
+        public Vector3 flareColor;
+        public float flareFalloff;
     };
 
     [GenerateHLSL(PackingRules.Exact, false)]
