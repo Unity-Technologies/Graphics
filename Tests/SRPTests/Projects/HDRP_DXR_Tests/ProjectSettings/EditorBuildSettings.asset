@@ -456,6 +456,15 @@ EditorBuildSettings:
     path: Assets/Scenes/5019_PathTracing_AmbientOcclusion.unity
     guid: 6d94b324982b10f4386673838de4498c
   - enabled: 1
+    path: Assets/Scenes/5020_PathTracing_Depth_1.unity
+    guid: b8027b89c6fd3d5428a58472925a4f8b
+  - enabled: 1
+    path: Assets/Scenes/5021_PathTracing_Depth_2.unity
+    guid: 151529e60a002004f921ef6ebbc361ae
+  - enabled: 1
+    path: Assets/Scenes/5022_PathTracing_Depth_3.unity
+    guid: efb54c201f4649344a2b5369d723e9de
+  - enabled: 1
     path: Assets/Scenes/6000_VertexFormats.unity
     guid: 6788ab4459664394f96537c7ad864afb
   - enabled: 1
