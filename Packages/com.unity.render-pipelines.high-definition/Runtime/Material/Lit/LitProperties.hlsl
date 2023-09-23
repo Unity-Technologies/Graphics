@@ -284,8 +284,6 @@ float _TessellationFactorMaxDistance;
 float _TessellationFactorTriangleSize;
 float _TessellationShapeFactor;
 float _TessellationBackFaceCullEpsilon;
-float _TessellationObjectScale;
-float _TessellationTilingScale;
 #endif
 
 CBUFFER_END

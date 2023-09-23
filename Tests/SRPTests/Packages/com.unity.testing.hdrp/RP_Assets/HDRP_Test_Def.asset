@@ -71,7 +71,7 @@ MonoBehaviour:
     supportMotionVectors: 1
     supportScreenSpaceLensFlare: 1
     supportDataDrivenLensFlare: 1
-    supportDitheringCrossFade: 0
+    supportDitheringCrossFade: 1
     supportRuntimeAOVAPI: 0
     supportTerrainHole: 1
     lightProbeSystem: 0

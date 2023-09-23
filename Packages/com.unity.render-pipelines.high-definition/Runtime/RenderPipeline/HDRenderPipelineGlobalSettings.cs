@@ -97,6 +97,8 @@ namespace UnityEngine.Rendering.HighDefinition
             EnsureEditorResources(forceReload: true);
             EnsureRuntimeResources(forceReload: true);
             EnsureRayTracingResources(forceReload: true);
+            EnsureGPUResidentDrawerResources(forceReload: true);
+
             var defaultVolumeProfile = GetOrCreateDefaultVolumeProfile();
             var diffusionProfileList = GetOrCreateDiffusionProfileList(defaultVolumeProfile);
 
@@ -212,82 +214,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #endregion
 
-        #region Resource Common
-#if UNITY_EDITOR
-        // Yes it is stupid to retry right away but making it called in EditorApplication.delayCall
-        // from EnsureResources create GC
-        void DelayedNullReload<T>(string resourcePath)
-            where T : HDRenderPipelineResources
-        {
-            T resourcesDelayed = AssetDatabase.LoadAssetAtPath<T>(resourcePath);
-            if (resourcesDelayed == null)
-                EditorApplication.delayCall += () => DelayedNullReload<T>(resourcePath);
-            else
-                ResourceReloader.ReloadAllNullIn(resourcesDelayed, HDUtils.GetHDRenderPipelinePath());
-        }
-
-        void EnsureResources<T>(bool forceReload, ref T resources, string resourcePath, Func<HDRenderPipelineGlobalSettings, bool> checker)
-            where T : HDRenderPipelineResources
-        {
-            T resourceChecked = null;
-
-            if (checker(this))
-            {
-                if (!EditorUtility.IsPersistent(resources)) // if not loaded from the Asset database
-                {
-                    // try to load from AssetDatabase if it is ready
-                    resourceChecked = AssetDatabase.LoadAssetAtPath<T>(resourcePath);
-                    if (resourceChecked && !resourceChecked.Equals(null))
-                        resources = resourceChecked;
-                }
-                if (forceReload)
-                    ResourceReloader.ReloadAllNullIn(resources, HDUtils.GetHDRenderPipelinePath());
-                return;
-            }
-
-            resourceChecked = AssetDatabase.LoadAssetAtPath<T>(resourcePath);
-            if (resourceChecked != null && !resourceChecked.Equals(null))
-            {
-                resources = resourceChecked;
-                if (forceReload)
-                    ResourceReloader.ReloadAllNullIn(resources, HDUtils.GetHDRenderPipelinePath());
-            }
-            else
-            {
-                // Asset database may not be ready
-                var objs = InternalEditorUtility.LoadSerializedFileAndForget(resourcePath);
-                resources = (objs != null && objs.Length > 0) ? objs[0] as T : null;
-                if (forceReload)
-                {
-                    try
-                    {
-                        if (ResourceReloader.ReloadAllNullIn(resources, HDUtils.GetHDRenderPipelinePath()))
-                        {
-                            InternalEditorUtility.SaveToSerializedFileAndForget(
-                                new Object[] { resources },
-                                resourcePath,
-                                true);
-                        }
-                    }
-                    catch (InvalidImportException)
-                    {
-                        // This can be called at a time where AssetDatabase is not available for loading.
-                        // When this happens, the GUID can be get but the resource loaded will be null.
-                        // Using the ResourceReloader mechanism in CoreRP, it checks this and add InvalidImport data when this occurs.
-                        DelayedNullReload<T>(resourcePath);
-                    }
-                    catch (Exception e)
-                    {
-                        Debug.LogException(e);
-                    }
-                }
-            }
-            Debug.Assert(checker(this), $"Could not load {typeof(T).Name}.");
-        }
-
-#endif
-        #endregion //Resource Common
-
         #region Runtime Resources
         [SerializeField]
         HDRenderPipelineRuntimeResources m_RenderPipelineResources;
@@ -308,7 +234,7 @@ namespace UnityEngine.Rendering.HighDefinition
         static readonly string runtimeResourcesPath = HDUtils.GetHDRenderPipelinePath() + "Runtime/RenderPipelineResources/HDRenderPipelineRuntimeResources.asset";
 
         internal void EnsureRuntimeResources(bool forceReload)
-            => EnsureResources(forceReload, ref m_RenderPipelineResources, runtimeResourcesPath, AreRuntimeResourcesCreated_Internal);
+            => ResourceReloader.EnsureResources(forceReload, ref m_RenderPipelineResources, runtimeResourcesPath, AreRuntimeResourcesCreated_Internal, this);
 
         // Passing method in a Func argument create a functor that create GC
         // If it is static it is then only computed once but the Ensure is called after first frame which will make our GC check fail
@@ -366,7 +292,7 @@ namespace UnityEngine.Rendering.HighDefinition
         static readonly string editorResourcesPath = HDUtils.GetHDRenderPipelinePath() + "Editor/RenderPipelineResources/HDRenderPipelineEditorResources.asset";
 
         internal void EnsureEditorResources(bool forceReload)
-            => EnsureResources(forceReload, ref m_RenderPipelineEditorResources, editorResourcesPath, AreEditorResourcesCreated_Internal);
+            => ResourceReloader.EnsureResources(forceReload, ref m_RenderPipelineEditorResources, editorResourcesPath, AreEditorResourcesCreated_Internal, this);
 
         // Passing method in a Func argument create a functor that create GC
         // If it is static it is then only computed once but the Ensure is called after first frame which will make our GC check fail
@@ -407,7 +333,7 @@ namespace UnityEngine.Rendering.HighDefinition
         static readonly string raytracingResourcesPath = HDUtils.GetHDRenderPipelinePath() + "Runtime/RenderPipelineResources/HDRenderPipelineRayTracingResources.asset";
 
         internal void EnsureRayTracingResources(bool forceReload)
-            => EnsureResources(forceReload, ref m_RenderPipelineRayTracingResources, raytracingResourcesPath, AreRayTracingResourcesCreated_Internal);
+            => ResourceReloader.EnsureResources(forceReload, ref m_RenderPipelineRayTracingResources, raytracingResourcesPath, AreRayTracingResourcesCreated_Internal, this);
 
         internal void ClearRayTracingResources()
             => m_RenderPipelineRayTracingResources = null;
@@ -423,6 +349,43 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
 
         #endregion //Ray Tracing Resources
+
+        #region GPU Resident Drawer Resources
+        [FormerlySerializedAs("m_RenderPipelineMacroBatcherResources")]
+        [SerializeField]
+        GPUResidentDrawerResources m_RenderPipelineGPUResidentDrawerResources;
+        internal GPUResidentDrawerResources gpuResidentDrawerResources
+        {
+            get
+            {
+#if UNITY_EDITOR
+                EnsureGPUResidentDrawerResources(forceReload: false);
+#endif
+                return m_RenderPipelineGPUResidentDrawerResources;
+            }
+        }
+
+#if UNITY_EDITOR
+        // be sure to cache result for not using GC in a frame after first one.
+        static readonly string gpuResidentDrawerResourcesPath = HDUtils.GetCorePath() + "Runtime/RenderPipelineResources/GPUDriven/GPUResidentDrawerResources.asset";
+
+        internal void EnsureGPUResidentDrawerResources(bool forceReload)
+            => ResourceReloader.EnsureResources(forceReload, ref m_RenderPipelineGPUResidentDrawerResources, gpuResidentDrawerResourcesPath, AreGPUResidentDrawerResourcesCreated_Internal, this);
+
+        internal void ClearGPUResidentDrawerResources()
+            => m_RenderPipelineGPUResidentDrawerResources = null;
+
+        // Passing method in a Func argument create a functor that create GC
+        // If it is static it is then only computed once but the Ensure is called after first frame which will make our GC check fail
+        // So create it once and store it here.
+        // Expected usage: HDRenderPipelineGlobalSettings.AreGPUResidentDrawerResourcesCreated(anyHDRenderPipelineGlobalSettings) that will return a bool
+        static Func<HDRenderPipelineGlobalSettings, bool> AreGPUResidentDrawerResourcesCreated_Internal = global
+            => global.m_RenderPipelineGPUResidentDrawerResources != null && !global.m_RenderPipelineGPUResidentDrawerResources.Equals(null);
+
+        internal bool AreGPUResidentDrawerResourcesCreated() => AreGPUResidentDrawerResourcesCreated_Internal(this);
+#endif
+
+        #endregion // GPU Resident Drawer Resources
 
         #region Custom Post Processes Injections
 

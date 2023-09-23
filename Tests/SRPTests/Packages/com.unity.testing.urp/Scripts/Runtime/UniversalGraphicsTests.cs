@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.IO;
 using System.Linq;
@@ -7,6 +8,7 @@ using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Graphics;
+using Object = UnityEngine.Object;
 #if OCULUS_SDK
 using UnityEngine.XR;
 #endif
@@ -17,6 +19,25 @@ public class UniversalGraphicsTests
     static bool wasFirstSceneRan = false;
     const int firstSceneAdditionalFrames = 3;
 #endif
+
+    private bool GPUResidentDrawerRequested()
+    {
+        bool forcedOn = false;
+        foreach (var arg in Environment.GetCommandLineArgs())
+        {
+            if (arg.Equals("-force-gpuresidentdrawer", StringComparison.InvariantCultureIgnoreCase))
+            {
+                forcedOn = true;
+                break;
+            }
+        }
+
+        var renderPipelineAsset = GraphicsSettings.renderPipelineAsset;
+        if (renderPipelineAsset is IGPUResidentRenderPipeline mbAsset)
+            return forcedOn || mbAsset.gpuResidentDrawerMode != GPUResidentDrawerMode.Disabled;
+
+        return false;
+    }
 
     public const string universalPackagePath = "Assets/ReferenceImages";
 #if UNITY_WEBGL || UNITY_ANDROID
@@ -55,6 +76,9 @@ public class UniversalGraphicsTests
 #endif
         var settings = Object.FindAnyObjectByType<UniversalGraphicsTestSettings>();
         Assert.IsNotNull(settings, "Invalid test scene, couldn't find UniversalGraphicsTestSettings");
+
+        if (!settings.gpuDrivenCompatible && GPUResidentDrawerRequested())
+            Assert.Ignore("Test scene is not compatible with GPU Driven and and will be skipped.");
 
         int waitFrames = 1;
 

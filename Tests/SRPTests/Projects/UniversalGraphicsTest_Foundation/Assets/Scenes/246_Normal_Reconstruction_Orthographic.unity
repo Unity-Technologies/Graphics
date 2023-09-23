@@ -191,6 +191,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 442609907006369582, guid: c4f504f6bda43ba4293b81fd5c96dc2b,
         type: 3}
+      propertyPath: gpuDrivenCompatible
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 442609907006369582, guid: c4f504f6bda43ba4293b81fd5c96dc2b,
+        type: 3}
       propertyPath: ImageComparisonSettings.ActivePixelTests
       value: -1
       objectReference: {fileID: 0}

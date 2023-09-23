@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using NUnit;
@@ -15,6 +16,25 @@ using UnityEngine.VFX;
 
 public class HDRP_GraphicTestRunner
 {
+    private bool GPUResidentDrawerRequested()
+    {
+        bool forcedOn = false;
+        foreach (var arg in Environment.GetCommandLineArgs())
+        {
+            if (arg.Equals("-force-gpuresidentdrawer", StringComparison.InvariantCultureIgnoreCase))
+            {
+                forcedOn = true;
+                break;
+            }
+        }
+
+        var renderPipelineAsset = GraphicsSettings.renderPipelineAsset;
+        if (renderPipelineAsset is IGPUResidentRenderPipeline mbAsset)
+            return forcedOn || mbAsset.gpuResidentDrawerMode != GPUResidentDrawerMode.Disabled;
+
+        return false;
+    }
+
     [UnityTest]
     [PrebuildSetup("SetupGraphicsTestCases")]
     [UseGraphicsTestCases]
@@ -47,6 +67,9 @@ public class HDRP_GraphicTestRunner
         {
             Assert.Fail("Missing camera for graphic tests.");
         }
+
+        if (!settings.gpuDrivenCompatible && GPUResidentDrawerRequested())
+            Assert.Ignore("Test scene is not compatible with GPU Driven and and will be skipped.");
 
         // Purpose is to setup proper test aspect ratio for the camera to "see" all objects and trigger related shader compilation tasks.
         int warmupTime = 1;
@@ -122,6 +145,9 @@ public class HDRP_GraphicTestRunner
         }
 // #endif
 
+
+        if (!settings.gpuDrivenCompatible && GPUResidentDrawerRequested())
+            Assert.Ignore("Test scene is not compatible with GPU Driven and and will be skipped.");
 
         Time.captureFramerate = settings.captureFramerate;
 

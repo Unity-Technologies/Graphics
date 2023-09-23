@@ -198,8 +198,18 @@ namespace UnityEngine.Rendering.Universal
         public UniversalRenderPipeline(UniversalRenderPipelineAsset asset)
         {
             pipelineAsset = asset;
-
+#if UNITY_EDITOR
+            m_GlobalSettings = UniversalRenderPipelineGlobalSettings.Ensure();
+            if (asset is IGPUResidentRenderPipeline mbAsset)
+            {
+                if (mbAsset.gpuResidentDrawerSettings.mode != GPUResidentDrawerMode.Disabled)
+                    m_GlobalSettings.EnsureGPUResidentDrawerResources(forceReload: true);
+                else
+                    m_GlobalSettings.ClearGPUResidentDrawerResources();
+            }
+#else
             m_GlobalSettings = UniversalRenderPipelineGlobalSettings.instance;
+#endif
 
             SetSupportedRenderingFeatures(pipelineAsset);
 

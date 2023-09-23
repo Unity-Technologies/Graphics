@@ -176,6 +176,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 supportProbeVolumeDiskStreaming = false,
                 highQualityLineRenderingMemoryBudget = LineRendering.MemoryBudget.MemoryBudgetLow,
                 probeVolumeSHBands = ProbeVolumeSHBands.SphericalHarmonicsL1,
+                gpuResidentDrawerSettings = GlobalGPUResidentDrawerSettings.NewDefault()
             };
             return settings;
         }
@@ -454,6 +455,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>Global lighting quality settings.</summary>
         public GlobalLightingQualitySettings lightingQualitySettings;
+
+        /// <summary>Global macro batcher settings.</summary>
+        [FormerlySerializedAs("macroBatcherSettings")] public GlobalGPUResidentDrawerSettings gpuResidentDrawerSettings;
 
 #pragma warning disable 618 // Type or member is obsolete
         [Obsolete("For data migration")]

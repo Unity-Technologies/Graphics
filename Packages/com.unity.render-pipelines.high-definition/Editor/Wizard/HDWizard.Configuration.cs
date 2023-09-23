@@ -48,8 +48,6 @@ namespace UnityEditor.Rendering.HighDefinition
         static Func<BuildTarget, GraphicsDeviceType[]> GetSupportedGraphicsAPIs;
         static Func<BuildTarget, bool> WillEditorUseFirstGraphicsAPI;
         static Action RequestCloseAndRelaunchWithCurrentArguments;
-        static Func<BuildTarget, bool> GetStaticBatching;
-        static Action<BuildTarget, bool> SetStaticBatching;
 
         static void LoadReflectionMethods()
         {
@@ -83,30 +81,16 @@ namespace UnityEditor.Rendering.HighDefinition
                 Expression.Assign(qualityVariable, Expression.Convert(qualityParameter, lightEncodingQualityType)),
                 Expression.Call(setLightmapEncodingQualityForPlatformGroupInfo, buildTargetGroupParameter, qualityVariable)
             );
-            var getStaticBatchingBlock = Expression.Block(
-                new[] { staticBatchingVariable, dynamicBatchingVariable },
-                Expression.Call(getStaticBatchingInfo, buildTargetParameter, staticBatchingVariable, dynamicBatchingVariable),
-                Expression.Equal(staticBatchingVariable, Expression.Constant(1))
-            );
-            var setStaticBatchingBlock = Expression.Block(
-                new[] { staticBatchingVariable, dynamicBatchingVariable },
-                Expression.Call(getStaticBatchingInfo, buildTargetParameter, staticBatchingVariable, dynamicBatchingVariable),
-                Expression.Call(setStaticBatchingInfo, buildTargetParameter, Expression.Convert(staticBatchingParameter, typeof(int)), dynamicBatchingVariable)
-            );
             var getLightmapEncodingQualityForPlatformGroupLambda = Expression.Lambda<Func<BuildTargetGroup, LightmapEncodingQualityCopy>>(getLightmapEncodingQualityForPlatformGroupBlock, buildTargetGroupParameter);
             var setLightmapEncodingQualityForPlatformGroupLambda = Expression.Lambda<Action<BuildTargetGroup, LightmapEncodingQualityCopy>>(setLightmapEncodingQualityForPlatformGroupBlock, buildTargetGroupParameter, qualityParameter);
             var calculateSelectedBuildTargetLambda = Expression.Lambda<Func<BuildTarget>>(Expression.Call(null, calculateSelectedBuildTargetInfo));
             var getSupportedGraphicsAPIsLambda = Expression.Lambda<Func<BuildTarget, GraphicsDeviceType[]>>(Expression.Call(null, getSupportedGraphicsAPIsInfo, buildTargetParameter), buildTargetParameter);
-            var getStaticBatchingLambda = Expression.Lambda<Func<BuildTarget, bool>>(getStaticBatchingBlock, buildTargetParameter);
-            var setStaticBatchingLambda = Expression.Lambda<Action<BuildTarget, bool>>(setStaticBatchingBlock, buildTargetParameter, staticBatchingParameter);
             var willEditorUseFirstGraphicsAPILambda = Expression.Lambda<Func<BuildTarget, bool>>(Expression.Call(null, willEditorUseFirstGraphicsAPIInfo, buildTargetParameter), buildTargetParameter);
             var requestCloseAndRelaunchWithCurrentArgumentsLambda = Expression.Lambda<Action>(Expression.Call(null, requestCloseAndRelaunchWithCurrentArgumentsInfo));
             GetLightmapEncodingQualityForPlatformGroup = getLightmapEncodingQualityForPlatformGroupLambda.Compile();
             SetLightmapEncodingQualityForPlatformGroup = setLightmapEncodingQualityForPlatformGroupLambda.Compile();
             CalculateSelectedBuildTarget = calculateSelectedBuildTargetLambda.Compile();
             GetSupportedGraphicsAPIs = getSupportedGraphicsAPIsLambda.Compile();
-            GetStaticBatching = getStaticBatchingLambda.Compile();
-            SetStaticBatching = setStaticBatchingLambda.Compile();
             WillEditorUseFirstGraphicsAPI = willEditorUseFirstGraphicsAPILambda.Compile();
             RequestCloseAndRelaunchWithCurrentArguments = requestCloseAndRelaunchWithCurrentArgumentsLambda.Compile();
         }

@@ -427,7 +427,7 @@ namespace UnityEngine.Rendering.Universal
 #if UNITY_EDITOR
     [ShaderKeywordFilter.ApplyRulesIfTagsEqual("RenderPipeline", "UniversalPipeline")]
 #endif
-    public partial class UniversalRenderPipelineAsset : RenderPipelineAsset<UniversalRenderPipeline>, ISerializationCallbackReceiver, IProbeVolumeEnabledRenderPipeline
+    public partial class UniversalRenderPipelineAsset : RenderPipelineAsset<UniversalRenderPipeline>, ISerializationCallbackReceiver, IProbeVolumeEnabledRenderPipeline, IGPUResidentRenderPipeline
     {
         Shader m_DefaultShader;
         ScriptableRenderer[] m_Renderers = new ScriptableRenderer[1];
@@ -575,6 +575,26 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_UseFastSRGBLinearConversion = false;
         [SerializeField] bool m_SupportDataDrivenLensFlare = true;
         [SerializeField] bool m_SupportScreenSpaceLensFlare = true;
+
+        // GPU Resident Drawer
+        [FormerlySerializedAs("m_MacroBatcherMode"), SerializeField]
+        private GPUResidentDrawerMode m_GPUResidentDrawerMode = GPUResidentDrawerMode.Disabled;
+
+        [SerializeField] bool m_GPUResidentDrawerAllowInEditMode = false;
+
+        GPUResidentDrawerSettings IGPUResidentRenderPipeline.gpuResidentDrawerSettings => new()
+        {
+            mode = m_GPUResidentDrawerMode,
+            supportDitheringCrossFade = m_EnableLODCrossFade,
+            allowInEditMode = m_GPUResidentDrawerAllowInEditMode,
+#if UNITY_EDITOR
+            pickingShader = Shader.Find("Hidden/Universal Render Pipeline/BRGPicking"),
+#endif
+            errorShader = Shader.Find("Hidden/Universal Render Pipeline/FallbackError"),
+            loadingShader = Shader.Find("Hidden/Universal Render Pipeline/FallbackLoading"),
+        };
+
+        GPUResidentDrawerResources IGPUResidentRenderPipeline.gpuResidentDrawerResources => UniversalRenderPipelineGlobalSettings.instance.m_GPUResidentDrawerResources;
 
         // Deprecated settings
         [SerializeField] ShadowQuality m_ShadowType = ShadowQuality.HardShadows;
@@ -794,6 +814,7 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
+            IGPUResidentRenderPipeline.ReinitializeGPUResidentDrawer();
             return pipeline;
         }
 
@@ -1768,6 +1789,70 @@ namespace UnityEngine.Rendering.Universal
 
                 return m_Textures;
             }
+        }
+
+        /// <summary>
+        /// GPUResidentDrawerMode configured on this pipeline asset
+        /// </summary>
+        public GPUResidentDrawerMode gpuResidentDrawerMode
+        {
+            get => m_GPUResidentDrawerMode;
+            set
+            {
+                if (value == m_GPUResidentDrawerMode)
+                    return;
+
+                m_GPUResidentDrawerMode = value;
+                OnValidate();
+            }
+        }
+
+        /// <summary>
+        /// Determines if the GPU Resident Drawer is allowed to run in edit mode
+        /// </summary>
+        public bool gpuResidentDrawerAllowInEditMode
+        {
+            get => m_GPUResidentDrawerAllowInEditMode;
+            set
+            {
+                if (value == m_GPUResidentDrawerAllowInEditMode)
+                    return;
+
+                m_GPUResidentDrawerAllowInEditMode = value;
+                OnValidate();
+            }
+        }
+
+        /// <summary>
+        /// Is the GPU resident drawer supported on this render pipeline.
+        /// </summary>
+        /// <param name="logReason">Should the reason for non support be logged?</param>
+        /// <returns>true if supported</returns>
+        public bool IsGPUResidentDrawerSupportedBySRP(bool logReason = false)
+        {
+            // if any of the renderers are not set to Forward+ return false
+            bool supported = true;
+            foreach (var renderer in m_Renderers)
+            {
+                if (renderer is UniversalRenderer universalRenderer)
+                {
+                    if (universalRenderer.renderingModeRequested != RenderingMode.ForwardPlus)
+                    {
+                        supported = false;
+                        break;
+                    }
+                }
+                else
+                {
+                    supported = false;
+                    break;
+                }
+            }
+
+            if(!supported && logReason)
+                Debug.LogWarning("GPUResidentDrawer: Disabled due to some configured Universal Renderers not supporting Forward+ ");
+
+            return supported;
         }
 
         /// <summary>

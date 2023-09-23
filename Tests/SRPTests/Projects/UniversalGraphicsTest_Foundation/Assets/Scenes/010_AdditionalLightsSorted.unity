@@ -663,6 +663,7 @@ MonoBehaviour:
     ActivePixelTests: 7
   WaitFrames: 0
   XRCompatible: 0
+  gpuDrivenCompatible: 0
   CheckMemoryAllocation: 1
 --- !u!114 &1254923655
 MonoBehaviour:

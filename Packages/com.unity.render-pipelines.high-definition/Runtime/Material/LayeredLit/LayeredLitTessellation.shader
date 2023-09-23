@@ -277,25 +277,24 @@ Shader "HDRP/LayeredLitTessellation"
         _EmissiveIntensity("Emissive Intensity", Float) = 1
         _EmissiveExposureWeight("Emissive Pre Exposure", Range(0.0, 1.0)) = 1.0
 
-        [HiddenInInspector]  _UseShadowThreshold("_UseShadowThreshold", Float) = 0.0
+        _UseShadowThreshold("_UseShadowThreshold", Float) = 0.0
         [ToggleUI] _AlphaCutoffEnable("Alpha Cutoff Enable", Float) = 0.0
-
         _AlphaCutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
-        [HiddenInInspector] _AlphaCutoffShadow("_AlphaCutoffShadow", Range(0.0, 1.0)) = 0.5
-        [HiddenInInspector] _AlphaCutoffPrepass("_AlphaCutoffPrepass", Range(0.0, 1.0)) = 0.5
-        [HiddenInInspector] _AlphaCutoffPostpass("_AlphaCutoffPostpass", Range(0.0, 1.0)) = 0.5
-        [HiddenInInspector]  _TransparentDepthPrepassEnable("_TransparentDepthPrepassEnable", Float) = 0.0
-        [HiddenInInspector]  _TransparentBackfaceEnable("_TransparentBackfaceEnable", Float) = 0.0
-        [HiddenInInspector]  _TransparentDepthPostpassEnable("_TransparentDepthPostpassEnable", Float) = 0.0
+        _AlphaCutoffShadow("_AlphaCutoffShadow", Range(0.0, 1.0)) = 0.5
+        _AlphaCutoffPrepass("_AlphaCutoffPrepass", Range(0.0, 1.0)) = 0.5
+        _AlphaCutoffPostpass("_AlphaCutoffPostpass", Range(0.0, 1.0)) = 0.5
+        _TransparentDepthPrepassEnable("_TransparentDepthPrepassEnable", Float) = 0.0
+        _TransparentBackfaceEnable("_TransparentBackfaceEnable", Float) = 0.0
+        _TransparentDepthPostpassEnable("_TransparentDepthPostpassEnable", Float) = 0.0
         _TransparentSortPriority("_TransparentSortPriority", Float) = 0
 
         // Transparency
-        [HiddenInInspector] _RefractionModel("Refraction Model", Int) = 0
-        [HiddenInInspector] _Ior("Index Of Refraction", Range(1.0, 2.5)) = 1.5
-        [HiddenInInspector] _TransmittanceColor("Transmittance Color", Color) = (1.0, 1.0, 1.0)
-        [HiddenInInspector] _TransmittanceColorMap("TransmittanceColorMap", 2D) = "white" {}
-        [HiddenInInspector] _ATDistance("Transmittance Absorption Distance", Float) = 1.0
-        [HiddenInInspector] _TransparentWritingMotionVec("_TransparentWritingMotionVec", Float) = 0.0
+        _RefractionModel("Refraction Model", Int) = 0
+        _Ior("Index Of Refraction", Range(1.0, 2.5)) = 1.5
+        _TransmittanceColor("Transmittance Color", Color) = (1.0, 1.0, 1.0)
+        _TransmittanceColorMap("TransmittanceColorMap", 2D) = "white" {}
+        _ATDistance("Transmittance Absorption Distance", Float) = 1.0
+        _TransparentWritingMotionVec("_TransparentWritingMotionVec", Float) = 0.0
 
         // Stencil state
         // Forward
@@ -357,7 +356,7 @@ Shader "HDRP/LayeredLitTessellation"
 
         [Enum(Use Emissive Color, 0, Use Emissive Mask, 1)] _EmissiveColorMode("Emissive color mode", Float) = 1
         [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, Planar, 4, Triplanar, 5, Same as Main layer, 6)] _UVEmissive("UV Set for emissive", Float) = 0
-        [HideInInspector] _ObjectSpaceUVMappingEmissive("Mapping space", Float) = 0.0
+        _ObjectSpaceUVMappingEmissive("Mapping space", Float) = 0.0
         _TexWorldScaleEmissive("Scale to apply on world coordinate", Float) = 1.0
         [HideInInspector] _UVMappingMaskEmissive("_UVMappingMaskEmissive", Color) = (1, 0, 0, 0)
 

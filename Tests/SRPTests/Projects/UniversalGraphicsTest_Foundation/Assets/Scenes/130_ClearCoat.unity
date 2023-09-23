@@ -1741,6 +1741,7 @@ MonoBehaviour:
     ActivePixelTests: -1
   WaitFrames: 0
   XRCompatible: 0
+  gpuDrivenCompatible: 0
   CheckMemoryAllocation: 1
 --- !u!1 &1197103736
 GameObject:

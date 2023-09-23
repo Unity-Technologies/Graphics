@@ -1118,6 +1118,23 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
+            var gpuResidentDrawerSettings = serialized.renderPipelineSettings.gpuResidentDrawerSettings;
+            EditorGUILayout.PropertyField(gpuResidentDrawerSettings.mode, Styles.gpuResidentDrawerMode);
+
+            var brgStrippingError = EditorGraphicsSettings.batchRendererGroupShaderStrippingMode != BatchRendererGroupStrippingMode.KeepAll;
+            var staticBatchingInfo = PlayerSettings.GetStaticBatchingForPlatform(EditorUserBuildSettings.activeBuildTarget);
+            if ((GPUResidentDrawerMode)gpuResidentDrawerSettings.mode.intValue != GPUResidentDrawerMode.Disabled)
+            {
+                ++EditorGUI.indentLevel;
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.gpuResidentDrawerSettings.allowInEditMode, Styles.allowInEditMode);
+                --EditorGUI.indentLevel;
+
+                if(brgStrippingError)
+                    EditorGUILayout.HelpBox(Styles.brgShaderStrippingErrorMessage.text, MessageType.Warning, true);
+                if(staticBatchingInfo)
+                    EditorGUILayout.HelpBox(Styles.staticBatchingInfoMessage.text, MessageType.Info, true);
+            }
+
             EditorGUILayout.Space(); //to separate with following sub sections
         }
 

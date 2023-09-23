@@ -13,7 +13,8 @@
         "Unity.VisualEffectGraph.Editor",
         "Unity.PackageManagerDocTools.Editor",
         "Unity.Rendering.Denoising.Runtime",
-        "Unity.RenderPipelines.HighDefinition.Config.Runtime"
+        "Unity.RenderPipelines.HighDefinition.Config.Runtime",
+        "Unity.RenderPipelines.GPUDriven.Runtime"
     ],
     "includePlatforms": [
         "Editor"

@@ -7,7 +7,8 @@
       "Unity.RenderPipelines.Core.Runtime",
       "UnityEngine.UI",
       "UnityEditor.TestRunner",
-      "UnityEngine.TestRunner"
+      "UnityEngine.TestRunner",
+      "Unity.RenderPipelines.GPUDriven.Runtime"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

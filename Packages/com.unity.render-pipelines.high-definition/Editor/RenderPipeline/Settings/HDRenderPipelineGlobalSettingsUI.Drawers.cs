@@ -66,6 +66,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 EditorGUILayout.PropertyField(serialized.renderPipelineRayTracingResources, Styles.renderPipelineRayTracingResourcesContent);
 
+                EditorGUILayout.PropertyField(serialized.renderPipelineGPUResidentDrawerResources, Styles.renderPipelineGPUResidentDrawerResourcesContent);
+
                 // Not serialized as editor only datas... Retrieve them in data
                 EditorGUI.showMixedValue = serialized.editorResourceHasMultipleDifferentValues;
                 var editorResources = EditorGUILayout.ObjectField(Styles.renderPipelineEditorResourcesContent, serialized.firstEditorResources, typeof(HDRenderPipelineEditorResources), allowSceneObjects: false) as HDRenderPipelineEditorResources;

@@ -146,7 +146,7 @@ namespace UnityEngine.Rendering
             return !left.Equals(right);
         }
     }
-	
+
     /// <summary>
     /// Contains default values for built-in properties that the user is expected to manually
     /// provide for <c>DOTS_INSTANCING_ON</c> shaders. The struct layout matches the

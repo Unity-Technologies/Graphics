@@ -116,6 +116,10 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent volumeProfileLabel = EditorGUIUtility.TrTextContent("Volume Profile", "Settings that will override the values defined in the Default Volume Profile set in the Render Pipeline Global settings. Local Volumes inside scenes may override these settings further.");
             public static System.Lazy<GUIStyle> volumeProfileContextMenuStyle = new(() => new GUIStyle(CoreEditorStyles.contextMenuStyle) { margin = new RectOffset(0, 1, 3, 0) });
 
+            // GPU Resident Drawer
+            public static GUIContent gpuResidentDrawerMode = EditorGUIUtility.TrTextContent("GPU Resident Drawer", "Enables draw submission through the GPU Resident Drawer, which can improve CPU performance");
+            public static GUIContent gpuResidentDrawerAllowInEditMode = EditorGUIUtility.TrTextContent("Allow in Edit Mode", "Allows the GPU Resident Drawer to run in edit mode. This functionality is a work-in-progress and may produce incorrect results in some cases.");
+
             // Adaptive performance settings
             public static GUIContent useAdaptivePerformance = EditorGUIUtility.TrTextContent("Use adaptive performance", "Allows Adaptive Performance to adjust rendering quality during runtime");
 
@@ -132,6 +136,12 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUIUtility.TrTextContent("Some Graphics API(s) in the Player Graphics APIs list are incompatible with Light Layers.  Switching to these Graphics APIs at runtime can cause issues: ");
             public static GUIContent rendererUnsupportedAPIMessage =
                 EditorGUIUtility.TrTextContent("Some Renderer(s) in the Renderer List are incompatible with the Player Graphics APIs list.  Switching to these renderers at runtime can cause issues.\n\n");
+            public static GUIContent brgShaderStrippingErrorMessage =
+                EditorGUIUtility.TrTextContent("\"BatchRendererGroup Variants\" setting must be \"Keep All\". To fix, modify Graphics settings and set \"BatchRendererGroup Variants\" to \"Keep All\".");
+            public static GUIContent staticBatchingInfoMessage =
+                EditorGUIUtility.TrTextContent("Static Batching is not recommended when using GPU draw submission modes, performance may improve if Static Batching is disabled in Player Settings.");
+            public static GUIContent lightModeErrorMessage =
+                EditorGUIUtility.TrTextContent("Rendering Path must be set to Forward+ for correct lighting and reflections. One or more entries in the RendererList are not set to this mode.");
 
             // Dropdown menu options
             public static string[] mainLightOptions = { "Disabled", "Per Pixel" };
