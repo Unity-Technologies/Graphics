@@ -786,7 +786,7 @@ MonoBehaviour:
     ActivePixelTests: -1
   WaitFrames: 15
   XRCompatible: 0
-  CheckMemoryAllocation: 1
+  CheckMemoryAllocation: 0
   SetBackBufferResolution: 0
 --- !u!114 &599516828
 MonoBehaviour:

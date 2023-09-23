@@ -350,9 +350,8 @@ namespace UnityEngine.Rendering.Universal
 
             SetHDRState(cameras);
 
-            // When HDR is active we render UI overlay per camera as we want all UI to be calibrated to white paper inside a single pass
-            // for performance reasons otherwise we render UI overlay after all camera
-            SupportedRenderingFeatures.active.rendersUIOverlay = HDROutputForAnyDisplayIsActive();
+            // For XR and HDR, UI Overlay ownership must be enforced
+            AdjustUIOverlayOwnership();
 
             // TODO: Would be better to add Profiling name hooks into RenderPipelineManager.
             // C#8 feature, only in >= 2020.2
@@ -1152,6 +1151,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
             SupportedRenderingFeatures.active.supportsHDR = pipelineAsset.supportsHDR;
+            SupportedRenderingFeatures.active.rendersUIOverlay = true;
         }
 
         static ScriptableRenderer GetRenderer(Camera camera, UniversalAdditionalCameraData additionalCameraData)
@@ -2134,6 +2134,23 @@ namespace UnityEngine.Rendering.Universal
         {
             using var profScope = new ProfilingScope(Profiling.Pipeline.buildAdditionalLightsShadowAtlasLayout);
             return new AdditionalLightsShadowAtlasLayout(ref lightData, ref shadowData, ref cameraData);
+        }
+
+        /// <summary>
+        /// Enforce under specific circumstances whether URP or native engine triggers the UI Overlay rendering
+        /// </summary>
+        static void AdjustUIOverlayOwnership()
+        {
+            // If rendering to XR device, we don't render SS UI overlay within SRP as the overlay should not be visible in HMD eyes, only when mirroring (after SRP XR Mirror pass)
+            if (XRSystem.displayActive)
+            {
+                SupportedRenderingFeatures.active.rendersUIOverlay = false;
+            }
+            // When HDR is active and no XR we enforce UI overlay per camera as we want all UI to be calibrated to white paper inside a single pass
+            else if (HDROutputForAnyDisplayIsActive())
+            {
+                SupportedRenderingFeatures.active.rendersUIOverlay = true;
+            }
         }
     }
 }

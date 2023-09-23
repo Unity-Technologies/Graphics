@@ -1457,6 +1457,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 return false;
             }
 
+            // Last check regarding UI overlay
+            // For non-HDR cases using path tracing, we don't support UI overlay rendering within SRP
+            // as the denoiser forces it to be rendered multiple times per frame (perf loss and invalid rendererlist)
+            // We still render HDR UI within SRP for correctness
+            if (!HDROutputForAnyDisplayIsActive() && hdCamera.IsPathTracingEnabled())
+            {
+                SupportedRenderingFeatures.active.rendersUIOverlay = false;
+            }
+
             // Select render target
             RenderTargetIdentifier targetId = camera.targetTexture ?? new RenderTargetIdentifier(BuiltinRenderTextureType.CameraTarget);
             if (camera.targetTexture != null)
@@ -2015,10 +2024,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 #endif
 
-            // When HDR is active we render UI overlay per camera as we want all UI to be calibrated to white paper inside a single pass
-            // for performance reasons otherwise we render UI overlay after all camera
-            SupportedRenderingFeatures.active.rendersUIOverlay = HDROutputForAnyDisplayIsActive();
-
+            // If rendering to XR device, we don't render SS UI overlay within SRP as the overlay should not be visible in HMD eyes, only when mirroring (after SRP XR Mirror pass)
+            if (XRSystem.displayActive)
+            {
+                SupportedRenderingFeatures.active.rendersUIOverlay = false;
+            }
+            // When HDR is active we enforce UI overlay per camera as we want all UI to be calibrated to white paper inside a single pass
+            else if (HDROutputForAnyDisplayIsActive())
+            {
+                SupportedRenderingFeatures.active.rendersUIOverlay = true;
+            }
+            
 #if UNITY_2021_1_OR_NEWER
             if (!m_ValidAPI || cameras.Count == 0)
 #else
