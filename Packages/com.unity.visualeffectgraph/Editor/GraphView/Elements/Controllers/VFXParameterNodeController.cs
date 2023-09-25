@@ -273,12 +273,15 @@ namespace UnityEditor.VFX.UI
         {
             if (parentController.isOutput)
                 return;
+            m_GizmoableAnchors.Clear();
             if (VFXGizmoUtility.HasGizmo(m_ParentController.portType))
             {
                 m_ParentController.DrawGizmos(component);
 
                 m_GizmoableAnchors.Add(m_ParentController);
             }
+
+            currentGizmoable = m_GizmoableAnchors.LastOrDefault();
         }
 
         public override void OnEdgeFromInputGoingToBeRemoved(VFXDataAnchorController myInput)
