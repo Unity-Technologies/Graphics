@@ -21,11 +21,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
         #region Resources
 
-        static readonly CED.IDrawer ResourcesSection = CED.Group(
+        static readonly CED.IDrawer ResourcesSection = CED.Conditional(
+            (s,o) => Unsupported.IsDeveloperMode(),
+            CED.Group(
             CED.Group((serialized, owner) => CoreEditorUtils.DrawSectionHeader(Styles.resourceLabel)),
             CED.Group((serialized, owner) => EditorGUILayout.Space()),
             CED.Group(DrawResourcesSection),
-            CED.Group((serialized, owner) => EditorGUILayout.Space())
+            CED.Group((serialized, owner) => EditorGUILayout.Space()))
         );
         static void DrawResourcesSection(SerializedHDRenderPipelineGlobalSettings serialized, Editor owner)
         {
