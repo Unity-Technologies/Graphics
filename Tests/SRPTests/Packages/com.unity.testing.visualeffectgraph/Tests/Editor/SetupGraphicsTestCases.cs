@@ -16,7 +16,7 @@ public class SetupGraphicsTestCases : IPrebuildSetup
         UnityEditor.TestTools.Graphics.SetupGraphicsTestCases.Setup();
 
         // Configure project for XR tests
-        Unity.Testing.XR.Editor.InjectMockHMD.SetupLoader();
+        Unity.Testing.XR.Editor.SetupMockHMD.SetupLoader();
 
         var vfxAssetsGuid = AssetDatabase.FindAssets("t:VisualEffectAsset AssetBundle");
 
