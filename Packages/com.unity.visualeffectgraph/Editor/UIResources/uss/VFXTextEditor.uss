@@ -17,7 +17,6 @@ TextField {
 }
 
 TextField > TextInput {
-    color: #F1F1F1;
     padding-top: 8px;
     border-top-right-radius: 0px;
     border-top-left-radius: 0px;

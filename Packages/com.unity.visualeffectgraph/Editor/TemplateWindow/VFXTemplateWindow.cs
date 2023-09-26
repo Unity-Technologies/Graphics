@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Unity.UI.Builder;
 using UnityEditor.Experimental;
 using UnityEditor.VFX.UI;
 
@@ -52,7 +53,7 @@ namespace UnityEditor.VFX
         };
 
         private readonly List<TreeViewItemData<IVFXTemplateDescriptor>> m_TemplatesTree = new ();
-        private readonly ISaveFileDialogHelper m_SaveFileDialogHelper;
+        private readonly ISaveFileDialogHelper m_SaveFileDialogHelper = new SaveFileDialogHelper();
 
         private TreeView m_ListOfTemplates;
         private Texture2D m_CustomTemplateIcon;
@@ -67,17 +68,13 @@ namespace UnityEditor.VFX
         private Action<string> m_UserCallback;
         private string m_LastSelectedTemplateGuid;
         private VFXView m_VfxView;
+        private VFXTemplateDescriptor m_SelectedTemplate;
 
         private enum CreateMode
         {
             CreateNew,
             Insert,
             None,
-        }
-
-        public VFXTemplateWindow()
-        {
-            this.m_SaveFileDialogHelper = new SaveFileDialogHelper();
         }
 
         public static void ShowCreateFromTemplate(VFXView vfxView, Action<string> callback) => ShowInternal(vfxView, CreateMode.CreateNew, callback);
@@ -97,6 +94,7 @@ namespace UnityEditor.VFX
             m_UserCallback = callback;
             m_CurrentMode = mode;
             SetCallBack();
+            LoadTemplates();
         }
 
         private void CreateGUI()
@@ -128,9 +126,7 @@ namespace UnityEditor.VFX
             m_ListOfTemplates.makeItem = CreateTemplateItem;
             m_ListOfTemplates.bindItem = BindTemplateItem;
             m_ListOfTemplates.unbindItem = UnbindTemplateItem;
-
-
-            LoadTemplates();
+            m_ListOfTemplates.selectionChanged += OnSelectionChanged;
         }
 
         private void SetCallBack()
@@ -155,11 +151,9 @@ namespace UnityEditor.VFX
 
         private void LoadTemplates()
         {
-            CollectTemplates();
-
-            m_ListOfTemplates.ExpandAll();
-            m_ListOfTemplates.selectionChanged += OnSelectionChanged;
             m_LastSelectedTemplateGuid = EditorPrefs.GetString(LastSelectedGuidKey);
+            CollectTemplates();
+            m_ListOfTemplates.ExpandAll();
         }
 
         private void OnDestroy()
@@ -176,7 +170,7 @@ namespace UnityEditor.VFX
 
         private void OnCreate()
         {
-            var template = (VFXTemplateDescriptor)m_ListOfTemplates.selectedItem;
+            var template = m_ListOfTemplates.selectedIndex != -1 ? (VFXTemplateDescriptor)m_ListOfTemplates.selectedItem : m_SelectedTemplate;
             m_LastSelectedTemplatePath = AssetDatabase.GUIDToAssetPath(template.assetGuid);
             m_VFXAssetCreationCallback?.Invoke(m_LastSelectedTemplatePath);
             Close();
@@ -239,6 +233,7 @@ namespace UnityEditor.VFX
             {
                 if (list[0] is VFXTemplateDescriptor template)
                 {
+                    m_SelectedTemplate = template;
                     m_DetailsTitle.text = template.name;
                     m_DetailsDescription.text = template.description;
                     m_LastSelectedTemplateGuid = template.assetGuid;
@@ -263,14 +258,14 @@ namespace UnityEditor.VFX
             var label = item.Q<Label>("TemplateName");
             label.text = data.header;
 
+            string ussClass;
             if (data is VFXTemplateDescriptor template)
             {
                 item.Q<Image>("TemplateIcon").image = template.icon != null ? template.icon : m_CustomTemplateIcon;
                 if (template.assetGuid == m_LastSelectedTemplateGuid)
                     m_ListOfTemplates.SetSelection(index);
+                ussClass = "vfxtemplate-item";
 
-                item.AddToClassList("vfxtemplate-item");
-                item.RemoveFromClassList("vfxtemplate-section");
                 item.RegisterCallback<ClickEvent>(OnClickItem);
             }
             else
@@ -278,13 +273,22 @@ namespace UnityEditor.VFX
                 // This is a hack to put the expand/collapse button above the item so that we can interact with it
                 var toggle = item.parent.parent.Q<Toggle>();
                 toggle.BringToFront();
-                item.AddToClassList("vfxtemplate-section");
-                item.RemoveFromClassList("vfxtemplate-item");
+                ussClass = "vfxtemplate-section";
+            }
+
+            if (item.GetFirstAncestorWithClass("unity-tree-view__item") is { } parent)
+            {
+                parent.AddToClassList(ussClass);
             }
         }
 
         private void UnbindTemplateItem(VisualElement item, int index)
         {
+            if (item.GetFirstAncestorWithClass("unity-tree-view__item") is { } parent)
+            {
+                parent.RemoveFromClassList("vfxtemplate-item");
+                parent.RemoveFromClassList("vfxtemplate-section");
+            }
             item.UnregisterCallback<ClickEvent>(OnClickItem);
         }
 
@@ -327,7 +331,6 @@ namespace UnityEditor.VFX
                 allTemplates.Add(MakeEmptyTemplate());
             }
 
-            var id = 0;
             var templatesGroupedByCategory = new Dictionary<string, List<VFXTemplateDescriptor>>();
             foreach (var template in allTemplates)
             {
@@ -342,25 +345,41 @@ namespace UnityEditor.VFX
                 }
             }
 
+            // This is to prevent collapse/expand if there's only one category
+            if (templatesGroupedByCategory.Count == 1)
+            {
+                m_ListOfTemplates.AddToClassList("remove-toggle");
+            }
+            else
+            {
+                m_ListOfTemplates.RemoveFromClassList("remove-toggle");
+            }
+
             var templates = new List<List<VFXTemplateDescriptor>>(templatesGroupedByCategory.Values);
             templates.Sort((listA, listB) => listA[0].order.CompareTo(listB[0].order));
 
+            var id = 0;
+            var lastSelectedTemplateFound = false;
+            var fallBackTemplateAssetGuid = string.Empty;
             foreach (var group in templates)
             {
                 var groupId = id++;
                 var children = new List<TreeViewItemData<IVFXTemplateDescriptor>>(group.Count);
                 foreach (var child in group)
                 {
+                    if (id == 2)
+                        fallBackTemplateAssetGuid = child.assetGuid;
+                    if (child.assetGuid == m_LastSelectedTemplateGuid)
+                        lastSelectedTemplateFound = true;
                     children.Add(new TreeViewItemData<IVFXTemplateDescriptor>(id++, child));
                 }
                 var section = new TreeViewItemData<IVFXTemplateDescriptor>(groupId, new VFXTemplateSection(group[0].category), children);
                 m_TemplatesTree.Add(section);
             }
             m_ListOfTemplates.SetRootItems(m_TemplatesTree);
-
-            if (m_ListOfTemplates.selectedItem == null && m_TemplatesTree.Count > 0)
+            if (!lastSelectedTemplateFound)
             {
-                m_ListOfTemplates.SetSelection(0);
+                m_LastSelectedTemplateGuid = fallBackTemplateAssetGuid;
             }
         }
 
