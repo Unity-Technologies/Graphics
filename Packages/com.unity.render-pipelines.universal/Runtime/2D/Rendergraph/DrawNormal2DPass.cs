@@ -6,8 +6,9 @@ namespace UnityEngine.Rendering.Universal
 {
     internal class DrawNormal2DPass : ScriptableRenderPass
     {
-        private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler("Normals2DPass");
-        private static readonly ProfilingSampler m_ExecuteProfilingSampler = new ProfilingSampler("Draw Normals");
+        static readonly string k_NormalPass = "Normal2D Pass";
+
+        private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler(k_NormalPass);
         private static readonly ShaderTagId k_NormalsRenderingPassName = new ShaderTagId("NormalsRendering");
 
         private class PassData
@@ -22,11 +23,8 @@ namespace UnityEngine.Rendering.Universal
 
         private static void Execute(RasterCommandBuffer cmd, PassData passData)
         {
-            using (new ProfilingScope(cmd, m_ExecuteProfilingSampler))
-            {
-                cmd.ClearRenderTarget(RTClearFlags.Color, RendererLighting.k_NormalClearColor, 1, 0);
-                cmd.DrawRendererList(passData.rendererList);
-            }
+            cmd.ClearRenderTarget(RTClearFlags.Color, RendererLighting.k_NormalClearColor, 1, 0);
+            cmd.DrawRendererList(passData.rendererList);
         }
 
         public void Render(RenderGraph graph, ref RenderingData renderingData, Renderer2DData rendererData, ref LayerBatch layerBatch, ContextContainer frameData)
@@ -36,7 +34,7 @@ namespace UnityEngine.Rendering.Universal
 
             Universal2DResourceData resourceData = frameData.Get<Universal2DResourceData>();
 
-            using (var builder = graph.AddRasterRenderPass<PassData>("Normals 2D Pass", out var passData, m_ProfilingSampler))
+            using (var builder = graph.AddRasterRenderPass<PassData>(k_NormalPass, out var passData, m_ProfilingSampler))
             {
                 var filterSettings = new FilteringSettings();
                 filterSettings.renderQueueRange = RenderQueueRange.all;

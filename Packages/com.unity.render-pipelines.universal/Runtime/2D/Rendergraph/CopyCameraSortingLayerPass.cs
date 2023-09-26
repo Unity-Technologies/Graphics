@@ -6,7 +6,9 @@ namespace UnityEngine.Rendering.Universal
 {
     internal class CopyCameraSortingLayerPass : ScriptableRenderPass
     {
-        private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler("CopyCameraSortingLayerPass");
+        static readonly string k_CopyCameraSortingLayerPass = "CopyCameraSortingLayer Pass";
+
+        private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler(k_CopyCameraSortingLayerPass);
         private static readonly ProfilingSampler m_ExecuteProfilingSampler = new ProfilingSampler("Copy");
         public static readonly string k_CameraSortingLayerTexture = "_CameraSortingLayerTexture";
         static Material m_BlitMaterial;
@@ -55,7 +57,7 @@ namespace UnityEngine.Rendering.Universal
 
         public void Render(RenderGraph graph, ref RenderingData renderingData, in TextureHandle cameraColorAttachment, in TextureHandle destination)
         {
-            using (var builder = graph.AddRasterRenderPass<PassData>("Copy Camera Sorting Layer Pass", out var passData, m_ProfilingSampler))
+            using (var builder = graph.AddRasterRenderPass<PassData>(k_CopyCameraSortingLayerPass, out var passData, m_ProfilingSampler))
             {
                 passData.source = cameraColorAttachment;
 

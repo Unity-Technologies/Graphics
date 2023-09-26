@@ -218,13 +218,11 @@ namespace UnityEngine.Rendering.Universal
 
             // Intermediate depth desc (size of renderTextureScale)
             {
-                var depthDescriptor = cameraTargetDescriptor;
+                var depthDescriptor = new RenderTextureDescriptor(width, height);
                 depthDescriptor.colorFormat = RenderTextureFormat.Depth;
                 depthDescriptor.depthBufferBits = k_DepthBufferBits;
                 depthDescriptor.width = width;
                 depthDescriptor.height = height;
-                if (!lastCameraInTheStack && m_UseDepthStencilBuffer)
-                    depthDescriptor.bindMS = depthDescriptor.msaaSamples > 1 && !SystemInfo.supportsMultisampleAutoResolve && (SystemInfo.supportsMultisampledTextures != 0);
 
                 resourceData.intermediateDepth = UniversalRenderer.CreateRenderGraphTexture(renderGraph, depthDescriptor, "DepthTexture", true);
             }
@@ -232,10 +230,9 @@ namespace UnityEngine.Rendering.Universal
             // Normal and Light desc
             {
                 var desc = new RenderTextureDescriptor(width, height);
-                desc.graphicsFormat = cameraTargetDescriptor.graphicsFormat;
+                desc.graphicsFormat = RendererLighting.GetRenderTextureFormat();
                 desc.autoGenerateMips = false;
                 desc.depthBufferBits = 0;
-                desc.msaaSamples = renderingData.cameraData.cameraTargetDescriptor.msaaSamples;
 
                 resourceData.normalsTexture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, "_NormalMap", true);
 
@@ -251,7 +248,6 @@ namespace UnityEngine.Rendering.Universal
                 desc.graphicsFormat = GraphicsFormat.B10G11R11_UFloatPack32;
                 desc.autoGenerateMips = false;
                 desc.depthBufferBits = 0;
-                desc.msaaSamples = renderingData.cameraData.cameraTargetDescriptor.msaaSamples;
 
                 resourceData.shadowsTexture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, "_ShadowTex", false, FilterMode.Bilinear);
             }
@@ -262,7 +258,6 @@ namespace UnityEngine.Rendering.Universal
                 desc.graphicsFormat = GraphicsFormat.None;
                 desc.autoGenerateMips = false;
                 desc.depthBufferBits = k_DepthBufferBits;
-                desc.msaaSamples = renderingData.cameraData.cameraTargetDescriptor.msaaSamples;
 
                 resourceData.shadowsDepth = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, "_ShadowDepth", false, FilterMode.Bilinear);
             }
@@ -271,6 +266,7 @@ namespace UnityEngine.Rendering.Universal
             if (m_Renderer2DData.useCameraSortingLayerTexture)
             {
                 var descriptor = cameraTargetDescriptor;
+                descriptor.msaaSamples = 1;
                 CopyCameraSortingLayerPass.ConfigureDescriptor(m_Renderer2DData.cameraSortingLayerDownsamplingMethod, ref descriptor, out var filterMode);
                 RenderingUtils.ReAllocateIfNeeded(ref m_CameraSortingLayerHandle, descriptor, filterMode, TextureWrapMode.Clamp, name: CopyCameraSortingLayerPass.k_CameraSortingLayerTexture);
                 resourceData.cameraSortingLayerTexture = renderGraph.ImportTexture(m_CameraSortingLayerHandle);
@@ -384,6 +380,10 @@ namespace UnityEngine.Rendering.Universal
 
             SetupRenderGraphCameraProperties(renderGraph, false);
 
+#if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
+            ProcessVFXCameraCommand(renderGraph, ref renderingData);
+#endif  
+
             OnBeforeRendering(renderGraph, ref renderingData);
 
             OnMainRendering(renderGraph, ref renderingData);
@@ -449,26 +449,10 @@ namespace UnityEngine.Rendering.Universal
                 // Normal Pass
                 m_NormalPass.Render(renderGraph, ref renderingData, m_Renderer2DData, ref layerBatch, frameData);
 
-                bool clearLightTextures = true;
+                // Shadow Pass (TODO: Optimize RT swapping between shadow and light textures)
+                m_ShadowPass.Render(renderGraph, m_Renderer2DData, ref layerBatch, frameData);
 
-                for (int j = 0; j < layerBatch.shadowLights.Count; ++j)
-                {
-                    // Shadow Pass
-                    m_ShadowPass.Render(renderGraph, m_Renderer2DData, ref layerBatch, frameData, j);
-
-#if UNITY_ON_METAL
-                    // Metal doesn't support MRT clear, so we have to clear RTs individually
-                    if (clearLightTextures)
-                    {
-                        ClearLightTextures(renderGraph, m_Renderer2DData, ref layerBatch);
-                        clearLightTextures = false;
-                    }
-#endif
-
-                    // Shadow Light Pass
-                    m_LightPass.Render(renderGraph, m_Renderer2DData, ref layerBatch, frameData, m_LightTextureHandles, resourceData.intermediateDepth, shadowlightIndex: j, clear: clearLightTextures);
-                    clearLightTextures = false;
-                }
+                bool clearLightTextures = !layerBatch.lightStats.useShadows;
 
 #if UNITY_ON_METAL
                 // Metal doesn't support MRT clear, so we have to clear RTs individually
@@ -508,17 +492,7 @@ namespace UnityEngine.Rendering.Universal
                     }
                 }
 
-                for (int j = 0; j < layerBatch.shadowLights.Count; ++j)
-                {
-                    if (!layerBatch.shadowLights[j].volumetricEnabled)
-                        continue;
-
-                    // Shadow Pass
-                    m_ShadowPass.Render(renderGraph, m_Renderer2DData, ref layerBatch, frameData, j);
-
-                    // Shadow Light Volume Pass
-                    m_LightPass.Render(renderGraph, m_Renderer2DData, ref layerBatch, frameData, resourceData.activeColorTexture, resourceData.activeDepthTexture, j, true);
-                }
+                m_ShadowPass.Render(renderGraph, m_Renderer2DData, ref layerBatch, frameData, true);
 
                 // Light Volume Pass
                 m_LightPass.Render(renderGraph, m_Renderer2DData, ref layerBatch, frameData, resourceData.activeColorTexture, resourceData.activeDepthTexture, isVolumetric: true);
@@ -679,7 +653,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 builder.UseTextureFragment(colorHandle, 0);
                 if (depthHandle.IsValid())
-                    builder.UseTextureFragmentDepth(depthHandle, IBaseRenderGraphBuilder.AccessFlags.Write);
+                    builder.UseTextureFragmentDepth(depthHandle, IBaseRenderGraphBuilder.AccessFlags.Read);
                 passData.clearFlags = clearFlags;
                 passData.clearColor = clearColor;
 
