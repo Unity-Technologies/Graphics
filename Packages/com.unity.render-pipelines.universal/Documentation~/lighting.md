@@ -13,3 +13,7 @@ Areas where the Universal Render Pipeline (URP) differs from Unity's common ligh
 For a full comparison of lighting features between Unity's Built-in Render Pipeline and URP, and an up to date list of lighting features that are currently under research, see [this feature comparison chart](universalrp-builtin-feature-comparison.md).
 
 For a general introduction to lighting in Unity and examples of common lighting workflows, see [the Lighting section of the Unity Manual](https://docs.unity3d.com/Manual/LightingOverview.html).
+
+## Configure lighting for better performance
+
+Refer to [Configure for better performance](configure-for-better-performance.md) for more information about how to adjust lighting settings for better performance.
