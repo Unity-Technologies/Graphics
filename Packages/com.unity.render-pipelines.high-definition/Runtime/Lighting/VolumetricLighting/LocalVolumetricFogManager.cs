@@ -4,6 +4,7 @@ using UnityEngine.LowLevel;
 using UnityEngine.PlayerLoop;
 using System;
 using System.Runtime.InteropServices;
+using Unity.Collections;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -61,10 +62,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             int count = GetNeededBufferCount();
             if (count > 0)
-            {
-                globalIndirectBuffer = new GraphicsBuffer(GraphicsBuffer.Target.IndirectArguments, count, sizeof(GraphicsBuffer.IndirectDrawArgs));
-                globalIndirectionBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Raw, count, sizeof(uint));
-            }
+                AllocateIndirectBuffers(count);
 
             int maxVolumeCountTimesViewCount = maxLocalVolumetricFogs * 2;
             volumetricMaterialDataBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, maxVolumeCountTimesViewCount, Marshal.SizeOf(typeof(VolumetricMaterialRenderingData)));
@@ -101,9 +99,20 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 globalIndirectBuffer.Release();
                 globalIndirectionBuffer.Release();
-                globalIndirectBuffer = new GraphicsBuffer(GraphicsBuffer.Target.IndirectArguments, bufferCount, sizeof(GraphicsBuffer.IndirectDrawArgs));
-                globalIndirectionBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Raw, bufferCount, sizeof(uint));
+                AllocateIndirectBuffers(bufferCount);
             }
+        }
+
+        unsafe void AllocateIndirectBuffers(int count)
+        {
+            globalIndirectBuffer = new GraphicsBuffer(GraphicsBuffer.Target.IndirectArguments, count, sizeof(GraphicsBuffer.IndirectDrawArgs));
+            globalIndirectionBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Raw, count, sizeof(uint));
+
+            // Initialize with zeros to prevent weird behaviours
+            var zeros = new NativeArray<byte>(count * Mathf.Max(sizeof(GraphicsBuffer.IndirectDrawArgs), sizeof(uint)), Allocator.Temp, NativeArrayOptions.ClearMemory);
+            globalIndirectBuffer.SetData(zeros, 0, 0, count * sizeof(GraphicsBuffer.IndirectDrawArgs));
+            globalIndirectionBuffer.SetData(zeros, 0, 0, count * sizeof(uint));
+            zeros.Dispose();
         }
 
         internal void CleanupGraphicsBuffers()

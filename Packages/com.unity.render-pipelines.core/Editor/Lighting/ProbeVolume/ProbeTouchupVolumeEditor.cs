@@ -1,10 +1,11 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEditor;
 using UnityEditor.Rendering;
-using UnityEngine.Rendering;
 using UnityEditorInternal;
-using System;
+
 using RuntimeSRPPreferences = UnityEngine.Rendering.CoreRenderPipelinePreferences;
 
 namespace UnityEditor.Rendering
@@ -33,7 +34,11 @@ namespace UnityEditor.Rendering
             internal static readonly GUIContent s_VolumeHeader = EditorGUIUtility.TrTextContent("Influence Volume");
             internal static readonly GUIContent s_TouchupHeader = EditorGUIUtility.TrTextContent("Probe Volume Overrides");
 
+            internal static readonly GUIContent s_Mode = new GUIContent("Mode", "Choose which type of adjustment to apply to probes covered by this volume.");
             internal static readonly GUIContent s_DilationThreshold = new GUIContent("Dilation Validity Threshold", "Override the Dilation Validity Threshold for probes covered by this Probe Adjustment Volume. Higher values increase the chance of probes being considered invalid.");
+            internal static readonly GUIContent s_UpdateValidity = new GUIContent("Update Probe Validity", "Invalidate probes covered by this Probe Adjustment Volume.");
+            internal static readonly GUIContent s_VODirection = new GUIContent("Direction", "Rotate the axis along which probes will be pushed when applying Virtual Offset.");
+            internal static readonly GUIContent s_VODistance = new GUIContent("Distance", "Determines how far probes are pushed in the direction of the Virtual Offset.");
 
             internal static readonly EditMode.SceneViewEditMode VirtualOffsetEditMode = (EditMode.SceneViewEditMode)110;
 
@@ -48,6 +53,15 @@ namespace UnityEditor.Rendering
                 ProbeTouchupColorPreferences.s_ProbeTouchupVolumeGizmoColorDefault,
                 ProbeTouchupColorPreferences.s_ProbeTouchupVolumeGizmoColorDefault
             };
+        }
+
+        static internal bool Button(GUIContent content)
+        {
+            GUILayout.BeginHorizontal();
+            EditorGUILayout.Space(15 * EditorGUI.indentLevel, false);
+            bool value = GUILayout.Button(content, EditorStyles.miniButton);
+            GUILayout.EndHorizontal();
+            return value;
         }
 
         static class ProbeTouchupVolumeUI
@@ -93,6 +107,20 @@ namespace UnityEditor.Rendering
 
             }
 
+            static T[] RemoveAt<T>(T[] values, int index)
+            {
+                var list = new List<T>(values);
+                list.RemoveAt(index);
+                return list.ToArray();
+            }
+            static GUIContent[] CastArray(string[] values)
+            {
+                var result = new GUIContent[values.Length];
+                for (int i = 0; i < values.Length; i++)
+                    result[i] = new GUIContent(ObjectNames.NicifyVariableName(values[i]));
+                return result;
+            }
+
             public static void DrawTouchupContent(SerializedProbeTouchupVolume serialized, Editor owner)
             {
                 ProbeTouchupVolume ptv = (serialized.serializedObject.targetObject as ProbeTouchupVolume);
@@ -100,7 +128,20 @@ namespace UnityEditor.Rendering
                 var bakingSet = ProbeReferenceVolume.instance.sceneData.GetBakingSetForScene(ptv.gameObject.scene);
                 bool useVirtualOffset = bakingSet != null ? bakingSet.settings.virtualOffsetSettings.useVirtualOffset : false;
 
-                EditorGUILayout.PropertyField(serialized.mode);
+                var hiddenMode = (int)ProbeTouchupVolume.Mode.IntensityScale;
+                var availableValues = (int[])Enum.GetValues(typeof(ProbeTouchupVolume.Mode));
+                var availableModes = CastArray(Enum.GetNames(typeof(ProbeTouchupVolume.Mode)));
+                if (!k_AdditionalPropertiesState[AdditionalProperties.Touchup] && serialized.mode.intValue != hiddenMode)
+                {
+                    int idx = Array.IndexOf(availableValues, hiddenMode);
+                    availableValues = RemoveAt(availableValues, idx);
+                    availableModes = RemoveAt(availableModes, idx);
+                }
+
+                EditorGUI.BeginChangeCheck();
+                int newValue = EditorGUILayout.IntPopup(Styles.s_Mode, serialized.mode.intValue, availableModes, availableValues);
+                if (EditorGUI.EndChangeCheck())
+                    serialized.mode.intValue = newValue;
 
                 if (serialized.mode.intValue == (int)ProbeTouchupVolume.Mode.OverrideValidityThreshold)
                 {
@@ -111,7 +152,7 @@ namespace UnityEditor.Rendering
                     EditorGUI.BeginDisabledGroup(!useVirtualOffset);
                     EditorGUILayout.BeginHorizontal();
 
-                    EditorGUILayout.PropertyField(serialized.virtualOffsetRotation);
+                    EditorGUILayout.PropertyField(serialized.virtualOffsetRotation, Styles.s_VODirection);
 
                     var editMode = Styles.VirtualOffsetEditMode;
                     EditorGUI.BeginChangeCheck();
@@ -123,12 +164,15 @@ namespace UnityEditor.Rendering
                     }
                     EditorGUILayout.EndHorizontal();
 
-                    EditorGUILayout.PropertyField(serialized.virtualOffsetDistance);
+                    EditorGUILayout.PropertyField(serialized.virtualOffsetDistance, Styles.s_VODistance);
                     EditorGUI.EndDisabledGroup();
 
                     if (!useVirtualOffset)
                     {
-                        EditorGUILayout.HelpBox("Apply Virtual Offset can be used only if Virtual Offset is enabled for the Baking Set.", MessageType.Warning);
+                        CoreEditorUtils.DrawFixMeBox("Apply Virtual Offset can be used only if Virtual Offset is enabled for the Baking Set.", MessageType.Warning, "Open", () =>
+                        {
+                            ProbeVolumeLightingTab.OpenBakingSet(bakingSet);
+                        });
                     }
                 }
                 else if (serialized.mode.intValue == (int)ProbeTouchupVolume.Mode.OverrideVirtualOffsetSettings)
@@ -146,10 +190,15 @@ namespace UnityEditor.Rendering
                 }
                 else if (serialized.mode.intValue == (int)ProbeTouchupVolume.Mode.InvalidateProbes)
                 {
-                    if (GUILayout.Button(EditorGUIUtility.TrTextContent("Update Probe Validity", "Update the validity of probes falling within probe adjustment volumes."), EditorStyles.miniButton))
+                    if (Button(Styles.s_UpdateValidity))
                     {
                         ProbeGIBaking.RecomputeValidityAfterBake();
                     }
+                }
+                else if (serialized.mode.intValue == (int)ProbeTouchupVolume.Mode.IntensityScale)
+                {
+                    EditorGUILayout.HelpBox("Overriding the intensity of probes can break the physical plausibility of lighting. This may result in unwanted visual inconsistencies.", MessageType.Info, wide: true);
+                    EditorGUILayout.PropertyField(serialized.intensityScale);
                 }
             }
 
@@ -165,11 +214,6 @@ namespace UnityEditor.Rendering
 
             public static void DrawTouchupAdditionalContent(SerializedProbeTouchupVolume serialized, Editor owner)
             {
-                if (serialized.mode.intValue == (int)ProbeTouchupVolume.Mode.InvalidateProbes)
-                {
-                    EditorGUILayout.HelpBox("Changing the intensity of probe data is a delicate operation that can lead to inconsistencies in the lighting, hence the feature is to be used sparingly.", MessageType.Info, wide: true);
-                    EditorGUILayout.PropertyField(serialized.intensityScale);
-                }
             }
 
 

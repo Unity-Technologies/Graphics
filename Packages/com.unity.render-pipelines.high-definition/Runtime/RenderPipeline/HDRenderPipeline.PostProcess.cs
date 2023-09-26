@@ -259,7 +259,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             resGroup = ResolutionGroup.BeforeDynamicResUpscale;
 
-            m_DLSSPass = DLSSPass.Create(m_GlobalSettings);
+            m_DLSSPass = DLSSPass.Create();
         }
 
         GraphicsFormat GetPostprocessTextureFormat(HDCamera camera)
@@ -2239,7 +2239,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 parameters.dofCoCReprojectCS.EnableKeyword("ENABLE_MAX_BLENDING");
                 parameters.ditheredTextureSet = GetBlueNoiseManager().DitheredTextureSet256SPP();
-                
+
                 // PBR dof has special resolution requirements. Either half or full.
                 // The max here will constrain it to just quarter or half.
                 parameters.resolution = (DepthOfFieldResolution)Math.Max((int)parameters.resolution, (int)DepthOfFieldResolution.Half);
@@ -4486,8 +4486,8 @@ namespace UnityEngine.Rendering.HighDefinition
         static void GetHDROutputParameters(HDROutputUtils.HDRDisplayInformation hdrDisplayInformation, ColorGamut hdrDisplayColorGamut, Tonemapping tonemappingComponent, out Vector4 hdrOutputParameters1, out Vector4 hdrOutputParameters2)
         {
             ColorGamut gamut = hdrDisplayColorGamut;
-            var minNits = hdrDisplayInformation.minToneMapLuminance;
-            var maxNits = hdrDisplayInformation.maxToneMapLuminance;
+            var minNits = (float)hdrDisplayInformation.minToneMapLuminance;
+            var maxNits = (float)hdrDisplayInformation.maxToneMapLuminance;
             var paperWhite = hdrDisplayInformation.paperWhiteNits;
             int eetfMode = 0;
             float hueShift = 0.0f;
@@ -4533,8 +4533,8 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             if (!tonemappingComponent.detectBrightnessLimits.value)
             {
-                minNits = (int)tonemappingComponent.minNits.value;
-                maxNits = (int)tonemappingComponent.maxNits.value;
+                minNits = tonemappingComponent.minNits.value;
+                maxNits = tonemappingComponent.maxNits.value;
             }
 
             hdrOutputParameters1 = new Vector4(minNits, maxNits, paperWhite, 1f / paperWhite);
@@ -5141,8 +5141,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.destination = builder.WriteTexture(dstTex);
 
                 passData.sharpenCS.shaderKeywords = null;
-                if (hdCamera.taaRingingReduction > 0)
-                    passData.sharpenCS.EnableKeyword("CLAMP_RINGING");
+                CoreUtils.SetKeyword(passData.sharpenCS, "ENABLE_ALPHA", PostProcessEnableAlpha(hdCamera));
+                CoreUtils.SetKeyword(passData.sharpenCS, "CLAMP_RINGING", hdCamera.taaRingingReduction > 0);
 
                 builder.SetRenderFunc(
                         (SharpenData data, RenderGraphContext ctx) =>

@@ -171,7 +171,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                     //This method is called at opening and when HDRP package change (update of manifest.json)
                     int curMaterialVersion = HDProjectSettings.materialVersionForUpgrade;
-                    bool scanMaterialsForUpgradeNeeded = (curMaterialVersion < MaterialPostprocessor.k_Migrations.Length)
+                    bool scanMaterialsForUpgradeNeeded = (curMaterialVersion >= 0 && curMaterialVersion < MaterialPostprocessor.k_Migrations.Length)
                         || (HDProjectSettings.pluginSubTargetLastSeenMaterialVersionsSum < HDShaderUtils.GetHDPluginSubTargetMaterialVersionsSum());
 
                     var curHDSubTargetVersion = HDProjectSettings.hdShaderGraphLastSeenVersion;

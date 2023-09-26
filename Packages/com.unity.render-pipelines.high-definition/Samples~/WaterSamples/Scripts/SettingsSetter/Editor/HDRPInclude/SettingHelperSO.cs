@@ -18,37 +18,27 @@ namespace UnityEditor.Rendering.HighDefinition
         [SerializeField]
         internal HDRenderPipelineUI.ExpandableGroup uiSection;
         [SerializeField]
+        internal int uiSubSection;
+        [SerializeField]
         public string propertyPath;
         private string relativePath => propertyPath.Remove(0, 25);
         [SerializeField]
         public string message;
 
-        public int uiSectionInt => (int)uiSection;
-
         public void ShowSetting()
         {
-            ShowSettingUI(uiSectionInt, propertyPath);
-        }
-        static public void ShowSettingUI(int uiSection, string propertyPath)
-        {
             SettingsService.OpenProjectSettings("Project/Quality/HDRP");
-            HDRenderPipelineUI.Inspector.Expand((int)uiSection);
+            HDRenderPipelineUI.ExpandGroup(uiSection);
+            if (uiSubSection != -1)
+                HDRenderPipelineUI.SubInspectors[uiSection].Expand(uiSubSection);
             CoreEditorUtils.Highlight("Project Settings", propertyPath, HighlightSearchMode.Identifier);
-        }
-
-        static internal void ShowSettingUI(HDRenderPipelineUI.ExpandableRendering uiSection, string propertyPath)
-        {
-            ShowSettingUI((int)uiSection, propertyPath);
         }
 
         public bool needsToBeEnabled
         {
             get
             {
-                var rpAsset = QualitySettings.GetRenderPipelineAssetAt(QualitySettings.GetQualityLevel());
-                if (rpAsset == null) return false;
-
-                var hdrpAsset = (HDRenderPipelineAsset) rpAsset;
+                var hdrpAsset = HDRenderPipeline.currentAsset;
                 if (hdrpAsset == null) return false;
 
                 var serializedHDRPAsset = new SerializedObject(hdrpAsset);

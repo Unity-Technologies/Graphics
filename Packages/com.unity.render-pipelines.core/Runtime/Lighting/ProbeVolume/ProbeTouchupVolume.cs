@@ -20,6 +20,7 @@ namespace UnityEngine.Rendering
         };
 
         /// <summary>The shape of the adjustment volume</summary>
+        [Tooltip("Select the shape used for this Probe Adjustment Volume.")]
         public Shape shape = Shape.Box;
 
         /// <summary>
@@ -46,16 +47,17 @@ namespace UnityEngine.Rendering
             ApplyVirtualOffset,
             /// <summary>Override the virtual offset settings for the probes within the adjustment volume.</summary>
             OverrideVirtualOffsetSettings,
+            /// <summary>Scale probe intensity.</summary>
+            IntensityScale = 99, // make sure this appears last
         };
 
         /// <summary>Choose what to do with probes falling inside this volume</summary>
-        [Tooltip("Choose what to do with probes falling inside this volume.")]
         public Mode mode = Mode.InvalidateProbes;
 
         /// <summary>
         /// A scale to apply to probes falling within the invalidation volume. It is really important to use this with caution as it can lead to inconsistent lighting.
         /// </summary>
-        [Range(0.0001f, 2.0f), Tooltip("A scale to be applied to all probes that fall within this Probe Adjustment Volume.")]
+        [Range(0.0001f, 2.0f), Tooltip("A multiplier applied to the intensity of probes covered by this Probe Adjustment Volume.")]
         public float intensityScale = 1.0f;
 
         /// <summary>
@@ -65,11 +67,10 @@ namespace UnityEngine.Rendering
         public float overriddenDilationThreshold = 0.75f;
 
         /// <summary>The rotation angles for the virtual offset direction.</summary>
-        [Tooltip("The rotation angles for the virtual offset direction.")]
         public Vector3 virtualOffsetRotation = Vector3.zero;
 
         /// <summary>Determines how far probes are pushed along the specified virtual offset direction.</summary>
-        [Min(0.0f), Tooltip("Determines how far probes are pushed along the specified virtual offset direction.")]
+        [Min(0.0f)]
         public float virtualOffsetDistance = 1.0f;
 
         /// <summary>Determines how far Unity pushes a probe out of geometry after a ray hit.</summary>

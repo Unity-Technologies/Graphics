@@ -400,6 +400,13 @@ float4x4 RevertCameraTranslationFromInverseMatrix(float4x4 inverseModelMatrix)
     #endif
 }
 
+float4x4 RevertCameraTranslationFromMatrix(float4x4 modelMatrix)
+{
+#if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
+    modelMatrix._m03_m13_m23 += _WorldSpaceCameraPos.xyz;
+#endif
+    return modelMatrix;
+}
 
 void ApplyCameraRelativeXR(inout float3 positionWS)
 {

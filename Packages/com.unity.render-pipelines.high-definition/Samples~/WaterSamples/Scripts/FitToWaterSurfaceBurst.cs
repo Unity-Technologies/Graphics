@@ -34,7 +34,7 @@ public class FitToWaterSurfaceBurst : MonoBehaviour
 
     // Start is called before the first frame update
     void Start()
-    { 
+    {
         boxCollider = this.GetComponent<BoxCollider>();
         Reset();
     }
@@ -43,7 +43,7 @@ public class FitToWaterSurfaceBurst : MonoBehaviour
     {
         //Dispose buffer if already created
         OnDestroy();
-        
+
         // Allocate the buffers
         targetPositionBuffer = new NativeArray<float3>(count, Allocator.Persistent);
         errorBuffer = new NativeArray<float>(count, Allocator.Persistent);
@@ -53,11 +53,11 @@ public class FitToWaterSurfaceBurst : MonoBehaviour
         directionBuffer = new NativeArray<float3>(count, Allocator.Persistent);
         prefabList = new List<GameObject>();
         prefabList.Clear();
-        
+
         // Need to do it like this to be able to delete child in edit mode;
         for (int i = this.transform.childCount; i > 0; --i)
             SmartDestroy(this.transform.GetChild(0).gameObject);
-        
+
         for (int x = 0; x < count; ++x)
         {
             GameObject instance = GameObject.Instantiate(prefab);
@@ -74,6 +74,9 @@ public class FitToWaterSurfaceBurst : MonoBehaviour
     {
         if (waterSurface == null)
             return;
+        if (!targetPositionBuffer.IsCreated)
+            Reset();
+
         // Try to get the simulation data if available
         WaterSimSearchData simData = new WaterSimSearchData();
         if (!waterSurface.FillWaterSearchData(ref simData))
@@ -116,7 +119,7 @@ public class FitToWaterSurfaceBurst : MonoBehaviour
             prefabList[i].transform.position = projectedPosition + Time.deltaTime * directionBuffer[i] * currentSpeedMultiplier;
         }
     }
-    
+
     private Vector3 RandomPointInBounds(Bounds bounds) {
         return new Vector3(
             UnityEngine.Random.Range(bounds.min.x, bounds.max.x),
@@ -133,19 +136,19 @@ public class FitToWaterSurfaceBurst : MonoBehaviour
         if(candidatePositionBuffer.IsCreated)   candidatePositionBuffer.Dispose();
         if(stepCountBuffer.IsCreated)           stepCountBuffer.Dispose();
     }
-    
+
     void OnDisable()
     {
         OnDestroy();
     }
-    
+
     public static void SmartDestroy(UnityEngine.Object obj)
     {
         if (obj == null)
         {
         return;
         }
-     
+
 #if UNITY_EDITOR
         if (EditorApplication.isPlaying)
         {
@@ -159,5 +162,5 @@ public class FitToWaterSurfaceBurst : MonoBehaviour
         Destroy(obj);
 #endif
     }
-    
+
 }

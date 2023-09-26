@@ -236,10 +236,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns>Return true if the main display and platform is HDR capable and has enabled HDR output</returns>
         internal static bool HDROutputForMainDisplayIsActive()
         {
-            // TODO: Until we can test it, disable on Mac.
-            return SystemInfo.graphicsDeviceType != GraphicsDeviceType.Metal &&
-                   SystemInfo.hdrDisplaySupportFlags.HasFlag(HDRDisplaySupportFlags.Supported) &&
-                   HDROutputSettings.main.active;
+            return SystemInfo.hdrDisplaySupportFlags.HasFlag(HDRDisplaySupportFlags.Supported) && HDROutputSettings.main.active;
         }
 
         /// <summary>
@@ -323,6 +320,10 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        // We only want to enable HDR for the game view once
+        // since the game itself might what to control this
+        internal bool m_enableHdrOnce = true;
+
         void SetHDRState(HDCamera camera)
         {
             if (camera.camera.cameraType == CameraType.Reflection) return; // Do nothing for reflection probes, they don't output to backbuffers.
@@ -334,11 +335,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (hdrInPlayerSettings && HDROutputSettings.main.available)
             {
-                // TODO: Until we can test it, disable on Mac.
-                if (camera.camera.cameraType != CameraType.Game || SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal)
+                if (camera.camera.cameraType != CameraType.Game)
+                {
                     HDROutputSettings.main.RequestHDRModeChange(false);
-                else
+                }
+                else if (m_enableHdrOnce)
+                {
                     HDROutputSettings.main.RequestHDRModeChange(true);
+                    m_enableHdrOnce = false;
+                }
             }
             // Make sure HDR auto tonemap is off
             if (HDROutputSettings.main.active)
@@ -599,7 +604,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     supportScenarios = m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolumeScenarios,
                 });
                 RegisterRetrieveOfProbeVolumeExtraDataAction();
-                SupportedRenderingFeatures.active.overridesLightProbeSystemWarningMessage = "This Light Probe system is not active because the pipeline uses Probe Volumes and the systems cannot co-exist.\nTo disable Probe Volumes make sure the feature is disabled in the lighting section of the active HDRP Asset.";
             }
 
             m_SkyManager.Build(asset, defaultResources, m_IBLFilterArray);
@@ -784,22 +788,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
             m_DebugDisplaySettings.nvidiaDebugView.Reset();
+            SetupDLSSFeature();
 #endif
-            HDRenderPipeline.SetupDLSSFeature(m_GlobalSettings);
         }
 
-        internal static void SetupDLSSFeature(HDRenderPipelineGlobalSettings globalSettings)
+        internal static void SetupDLSSFeature()
         {
-            if (globalSettings == null)
-            {
-                Debug.LogError("Tried to setup DLSS with a null globalSettings object.");
-                return;
-            }
-
-            if (DLSSPass.SetupFeature(globalSettings))
-            {
+            if (DLSSPass.SetupFeature())
                 HDDynamicResolutionPlatformCapabilities.ActivateDLSS();
-            }
         }
 
         bool CheckAPIValidity()
@@ -2386,8 +2382,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Frustum cull Local Volumetric Fog on the CPU. Can be performed as soon as the camera is set up.
                 PrepareVisibleLocalVolumetricFogList(hdCamera, cmd);
 
-                // do AdaptiveProbeVolume stuff
-                ProbeVolumeLighting.instance.BindAPVRuntimeResources(cmd, hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume));
+                // Bind AdaptiveProbeVolume resources
+                if (IsAPVEnabled())
+                {
+                    ProbeVolumeLighting.instance.BindAPVRuntimeResources(cmd, hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume));
+                }
 
                 // Note: Legacy Unity behave like this for ShadowMask
                 // When you select ShadowMask in Lighting panel it recompile shaders on the fly with the SHADOW_MASK keyword.
@@ -2676,7 +2675,10 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
 
             // Must be called before culling because it emits intermediate renderers via Graphics.DrawInstanced.
-            ProbeReferenceVolume.instance.RenderDebug(hdCamera.camera);
+            if (currentPipeline.IsAPVEnabled())
+            {
+                ProbeReferenceVolume.instance.RenderDebug(hdCamera.camera);
+            }
 
             // Set the LOD bias and store current value to be able to restore it.
             // Use a try/finalize pattern to be sure to restore properly the qualitySettings.lodBias

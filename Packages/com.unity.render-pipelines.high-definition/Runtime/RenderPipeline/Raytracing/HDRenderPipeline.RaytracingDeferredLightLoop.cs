@@ -85,6 +85,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int raySteps;
             public float nearClipPlane;
             public float farClipPlane;
+            public bool transparent;
 
             // Camera data
             public int width;
@@ -174,10 +175,21 @@ namespace UnityEngine.Rendering.HighDefinition
             int numTilesRayBinY = (texHeight + (8 - 1)) / 8;
 
             // Prepass textures
+            if (data.parameters.transparent)
+            {
+                // Use the transparent pre-pass depth for ray start position, and do not filter using stencil
+                cmd.SetComputeTextureParam(data.parameters.rayMarchingCS, marchingKernel, HDShaderIDs._InputDepthTexture, data.depthStencilBuffer, 0, RenderTextureSubElement.Depth);
+                cmd.SetComputeIntParam(data.parameters.rayMarchingCS, HDShaderIDs._DeferredStencilBit, 0);
+            }
+            else
+            {
+                // Use the depth pyramid for ray start position (since it is already bound for hit testing), filter pixels using stencil
+                cmd.SetComputeTextureParam(data.parameters.rayMarchingCS, marchingKernel, HDShaderIDs._InputDepthTexture, data.depthPyramid);
+                cmd.SetComputeIntParam(data.parameters.rayMarchingCS, HDShaderIDs._DeferredStencilBit, (int)StencilUsage.RequiresDeferredLighting);
+            }
             cmd.SetComputeTextureParam(data.parameters.rayMarchingCS, marchingKernel, HDShaderIDs._DepthTexture, data.depthPyramid);
             cmd.SetComputeTextureParam(data.parameters.rayMarchingCS, marchingKernel, HDShaderIDs._NormalBufferTexture, data.normalBuffer);
             cmd.SetComputeTextureParam(data.parameters.rayMarchingCS, marchingKernel, HDShaderIDs._StencilTexture, data.depthStencilBuffer, 0, RenderTextureSubElement.Stencil);
-            cmd.SetComputeIntParam(data.parameters.rayMarchingCS, HDShaderIDs._DeferredStencilBit, (int)StencilUsage.RequiresDeferredLighting);
             cmd.SetComputeBufferParam(data.parameters.rayMarchingCS, marchingKernel, HDShaderIDs._DepthPyramidMipLevelOffsets, data.parameters.mipChainBuffer);
 
             // Bind the input parameters
@@ -309,11 +321,11 @@ namespace UnityEngine.Rendering.HighDefinition
                         ctx.cmd.SetRayTracingTextureParam(data.parameters.gBufferRaytracingRT, HDShaderIDs._RayCountTexture, data.rayCountTexture);
 
                         // Bind all input parameter
-                        ctx.cmd.SetRayTracingIntParams(data.parameters.gBufferRaytracingRT, HDShaderIDs._RayTracingLayerMask, data.parameters.layerMask);
+                        ctx.cmd.SetRayTracingIntParam(data.parameters.gBufferRaytracingRT, HDShaderIDs._RayTracingLayerMask, data.parameters.layerMask);
                         ctx.cmd.SetRayTracingTextureParam(data.parameters.gBufferRaytracingRT, HDShaderIDs._DepthTexture, data.depthStencilBuffer);
                         ctx.cmd.SetRayTracingTextureParam(data.parameters.gBufferRaytracingRT, HDShaderIDs._NormalBufferTexture, data.normalBuffer);
                         ctx.cmd.SetRayTracingTextureParam(data.parameters.gBufferRaytracingRT, HDShaderIDs._RaytracingDirectionBuffer, data.directionBuffer);
-                        ctx.cmd.SetRayTracingIntParams(data.parameters.gBufferRaytracingRT, HDShaderIDs._RaytracingHalfResolution, data.parameters.halfResolution ? 1 : 0);
+                        ctx.cmd.SetRayTracingIntParam(data.parameters.gBufferRaytracingRT, HDShaderIDs._RaytracingHalfResolution, data.parameters.halfResolution ? 1 : 0);
 
                         // Bind the output textures
                         ctx.cmd.SetRayTracingTextureParam(data.parameters.gBufferRaytracingRT, HDShaderIDs._GBufferTextureRW[0], data.gbuffer0);
@@ -342,8 +354,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             ctx.cmd.SetRayTracingIntParam(data.parameters.gBufferRaytracingRT, HDShaderIDs._BufferSizeX, bufferSizeX);
 
                             // Inject the data for the additional views
-                            ctx.cmd.SetRayTracingIntParams(data.parameters.gBufferRaytracingRT, HDShaderIDs._RayBinViewOffset, bufferSizeX * bufferSizeY);
-                            ctx.cmd.SetRayTracingIntParams(data.parameters.gBufferRaytracingRT, HDShaderIDs._RayBinTileViewOffset, numTilesRayBinX * numTilesRayBinY);
+                            ctx.cmd.SetRayTracingIntParam(data.parameters.gBufferRaytracingRT, HDShaderIDs._RayBinViewOffset, bufferSizeX * bufferSizeY);
+                            ctx.cmd.SetRayTracingIntParam(data.parameters.gBufferRaytracingRT, HDShaderIDs._RayBinTileViewOffset, numTilesRayBinX * numTilesRayBinY);
 
                             // A really nice tip is to dispatch the rays as a 1D array instead of 2D, the performance difference has been measured.
                             uint dispatchSize = (uint)(bufferSizeX * bufferSizeY);

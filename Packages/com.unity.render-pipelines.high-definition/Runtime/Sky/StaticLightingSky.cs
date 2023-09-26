@@ -316,11 +316,36 @@ namespace UnityEngine.Rendering.HighDefinition
             m_NeedUpdateStaticLightingSky = true;
         }
 
+        // Fix UUM-45262: There is a race condition between StaticLightingSky.OnEnable() and VolumeComponent.OnEnable().
+        // StaticLightingSky wants to use the VolumeComponents assuming that OnEnable() has been executed (and therefore
+        // VolumeComponent.parameters has been populated), but nothing guarantees this. In this case we need to defer
+        // StaticLightingSky update. This issue is fixed in 2023.2.
+        bool VerifyProfileComponentsInitialized()
+        {
+            if (m_Profile != null)
+            {
+                foreach (var c in m_Profile.components)
+                {
+                    if (c.parameters == null || c.parameters.Count == 0)
+                        return false;
+                }
+            }
+            return true;
+        }
+
         void OnEnable()
         {
-            UpdateCurrentStaticLightingSky();
-            UpdateCurrentStaticLightingClouds();
-            UpdateCurrentStaticLightingVolumetricClouds();
+            if (VerifyProfileComponentsInitialized())
+            {
+                UpdateCurrentStaticLightingSky();
+                UpdateCurrentStaticLightingClouds();
+                UpdateCurrentStaticLightingVolumetricClouds();
+            }
+            else
+            {
+                m_NeedUpdateStaticLightingSky = true;
+            }
+
             if (m_Profile != null)
                 SkyManager.RegisterStaticLightingSky(this);
         }

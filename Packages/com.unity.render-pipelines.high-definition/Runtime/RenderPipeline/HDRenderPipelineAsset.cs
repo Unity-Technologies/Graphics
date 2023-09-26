@@ -37,7 +37,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Migrate();
             ///////////////////////////
 
-            HDRenderPipeline.SetupDLSSFeature(HDRenderPipelineGlobalSettings.instance);
+            HDRenderPipeline.SetupDLSSFeature();
         }
 
         void Reset()

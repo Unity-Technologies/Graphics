@@ -20,12 +20,14 @@ Shader "Hidden/Shadow2DUnshadowSprite"
             }
 
             Cull Off
-            Blend   One Zero
+            Blend   One One
             BlendOp Add
             ZWrite  Off
             ZTest   Always
 
             ColorMask GB  // Clear the unshadow color (G), and set the sprite alpha (B)
+
+            Name "Sprite Unshadow (GB) - Stencil: Ref 1, Comp Always, Pass Replace"
 
             HLSLPROGRAM
             #pragma vertex vert
@@ -82,13 +84,15 @@ Shader "Hidden/Shadow2DUnshadowSprite"
                 Pass      Replace
             }
 
-            Blend   One Zero
+            Blend   One One
             BlendOp Add
             Cull Off
             ZWrite Off
             ZTest Always
 
             ColorMask B
+
+            Name "Sprite Unshadow (B) - Stencil: Ref 0, Comp Always, Pass Replace"
 
             HLSLPROGRAM
             #pragma vertex vert

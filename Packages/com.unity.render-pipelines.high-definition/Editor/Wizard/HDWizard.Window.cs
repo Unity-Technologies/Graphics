@@ -286,9 +286,13 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!HDProjectSettings.wizardIsStartPopup)
                 return;
 
-            //Application.isPlaying cannot be called in constructor. Do it here
+            // Application.isPlaying cannot be called in constructor. Do it here
             if (Application.isPlaying)
                 return;
+
+            // In some cases, the Wizard is popping but should not (e.g Standalone Profiler).
+            if (!HDRenderPipelineGlobalSettings.instance.AreEditorResourcesCreated())
+               return;
 
             EditorApplication.quitting += () => HDUserSettings.wizardPopupAlreadyShownOnce = false;
 

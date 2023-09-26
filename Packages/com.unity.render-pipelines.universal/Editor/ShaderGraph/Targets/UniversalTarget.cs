@@ -109,6 +109,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         // Constants
         static readonly GUID kSourceCodeGuid = new GUID("8c72f47fdde33b14a9340e325ce56f4d"); // UniversalTarget.cs
         public const string kPipelineTag = "UniversalPipeline";
+        public const string kComplexLitMaterialTypeTag = "\"UniversalMaterialType\" = \"ComplexLit\"";
         public const string kLitMaterialTypeTag = "\"UniversalMaterialType\" = \"Lit\"";
         public const string kUnlitMaterialTypeTag = "\"UniversalMaterialType\" = \"Unlit\"";
         public static readonly string[] kSharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories().Union(new string[]
@@ -1828,6 +1829,36 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             displayName = "Shadows Soft",
             referenceName = "_SHADOWS_SOFT",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Fragment,
+        };
+
+        public static readonly KeywordDescriptor ShadowsSoftLow = new KeywordDescriptor()
+        {
+            displayName = "Shadows Soft Low Quality",
+            referenceName = "_SHADOWS_SOFT_LOW",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Fragment,
+        };
+
+        public static readonly KeywordDescriptor ShadowsSoftMedium = new KeywordDescriptor()
+        {
+            displayName = "Shadows Soft Medium Quality",
+            referenceName = "_SHADOWS_SOFT_MEDIUM",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Fragment,
+        };
+
+        public static readonly KeywordDescriptor ShadowsSoftHigh = new KeywordDescriptor()
+        {
+            displayName = "Shadows Soft High Quality",
+            referenceName = "_SHADOWS_SOFT_HIGH",
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,

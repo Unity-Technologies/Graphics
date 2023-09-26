@@ -251,7 +251,6 @@ namespace UnityEngine.Rendering.Universal
                 ProbeReferenceVolume.instance.Initialize(new ProbeVolumeSystemParameters
                 {
                     memoryBudget = asset.probeVolumeMemoryBudget,
-                    blendingMemoryBudget = asset.probeVolumeBlendingMemoryBudget,
                     probeDebugShader = asset.scriptableRendererData.probeVolumeResources.probeVolumeDebugShader,
                     fragmentationDebugShader = asset.scriptableRendererData.probeVolumeResources.probeVolumeFragmentationDebugShader,
                     probeSamplingDebugShader = asset.scriptableRendererData.probeVolumeResources.probeVolumeSamplingDebugShader,
@@ -265,7 +264,6 @@ namespace UnityEngine.Rendering.Universal
                     supportStreaming = asset.supportProbeVolumeStreaming,
                     supportScenarios = false
                 });
-                SupportedRenderingFeatures.active.overridesLightProbeSystemWarningMessage = "This Light Probe system is not active because the pipeline uses Probe Volumes and the systems cannot co-exist.\nTo disable Probe Volumes make sure the feature is disabled in the lighting section of the active URP Asset.";
             }
         }
 
