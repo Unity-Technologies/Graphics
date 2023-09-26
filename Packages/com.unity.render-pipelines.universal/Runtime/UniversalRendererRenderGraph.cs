@@ -354,6 +354,10 @@ namespace UnityEngine.Rendering.Universal
             {
                 clearColor = true;
                 clearDepth = true;
+                if ((DebugHandler != null) && DebugHandler.IsActiveForCamera(cameraData.isPreviewCamera))
+                {
+                    DebugHandler.TryGetScreenClearColor(ref cameraBackgroundColor);
+                }
             }
 
             ImportResourceParams importColorParams = new ImportResourceParams();
