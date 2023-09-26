@@ -10,13 +10,16 @@ To activate HDR output, follow these steps.
 
 1. Locate the [URP Asset](./../universalrp-asset.md) in the Project window under **Assets** > **Settings**.
 2. Navigate to **Quality** > **HDR** and enable the checkbox to enable **HDR**.
-3. Next, navigate to **Edit** > **Project Settings** > **Player** > **Other Settings** and enable **Allow HDR Display Output**.
+3. Navigate to **Edit** > **Project Settings** > **Player** > **Other Settings** and enable the following settings:
 
-However, if you switch to a URP Asset that does not have HDR enabled, URP disables HDR Output until you change to a URP Asset with HDR enabled.
+    * **Allow HDR Display Output**
+    * **Use HDR Display Output**
 
-If you enable HDR Output, URP uses more memory. 
+  > **Note**: Only enable **Use HDR Display Output** if you need the main display to use HDR Output.
 
-**Note**: If HDR Output is active, the grading mode falls back to HDR, even if there is a different Color Grading Mode active in the URP Asset.
+If you switch to a URP Asset that does not have HDR enabled, URP disables HDR Output until you change to a URP Asset with HDR enabled.
+
+> **Note**: If HDR Output is active, the grading mode falls back to HDR, even if there is a different Color Grading Mode active in the URP Asset.
 
 ## HDR tone mapping in URP
 
@@ -118,13 +121,13 @@ URP offers three debug views for HDR rendering. To access them, navigate to **Wi
 
 ![Gamut Debug View](./../Images/post-proc/hdr/HDR-Output-GamutView.png)
 
-The triangles in this debug view indicate which parts of two specific color gamuts this Scene covers. The small triangle displays the [Rec709](https://en.wikipedia.org/wiki/Rec._709) gamut values, and the large triangle displays the [Rec2020](https://en.wikipedia.org/wiki/Rec._2020) gamut values. This enables you to check color plot changes while color grading. It can also help you ensure that you benefit from the wider color gamut available in HDR.
+The triangles in this debug view indicate which parts of three specific color gamuts this scene covers. The small triangle displays the [Rec709](https://en.wikipedia.org/wiki/Rec._709) gamut values, the medium triangle displays the [P3-D65](https://en.wikipedia.org/wiki/DCI-P3) gamut values, and the large triangle displays the [Rec2020](https://en.wikipedia.org/wiki/Rec._2020) gamut values. This enables you to check color plot changes while color grading. It can also help you ensure that you benefit from the wider color gamut available in HDR.
 
 ### Gamut Clip
 
 ![Gamut Clip Debug View](./../Images/post-proc/hdr/HDR-Output-GamutClip.png)
 
-This debug view indicates the relationship between scene values and specific color gamuts. Areas of the screen outside of the Rec709 color gamut are red, and areas with values within the Rec709 gamut are green.
+This debug view indicates the relationship between scene values and specific color gamuts. Areas of the screen with values within the Rec709 gamut are green, areas outside of the Rec709 gamut but inside the P3-D65 gamut are blue, and areas outside of both are red.
 
 ### Values exceeding Paper White
 
@@ -136,8 +139,9 @@ This debug view uses a color coded gradient to indicate parts of the Scene that 
 
 URP only supports HDR Output on the following platforms:
 
-- Windows with DirectX 11, DirectX 12 or Vulkan
-- MacOS with Metal
-- Consoles
+* Windows with DirectX 11, DirectX 12 or Vulkan
+* MacOS with Metal
+* Consoles
+* XR devices with HDR support
 
 > **Note**: DirectX 11 only supports HDR Output in the Player, it does not support HDR Output in the Editor.
