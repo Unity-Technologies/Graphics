@@ -248,10 +248,6 @@ void SetupVFXMatrices(AttributesElement element, inout VFX_SRP_VARYINGS output)
         float3(element.attributes.pivotX, element.attributes.pivotY, element.attributes.pivotZ),
         GetElementSize(element.attributes),
         element.attributes.position
-
-#if VFX_APPLY_CAMERA_POSITION_IN_ELEMENT_MATRIX
-        + _WorldSpaceCameraPos
-#endif
     );
 
 #if VFX_LOCAL_SPACE
@@ -269,17 +265,20 @@ void SetupVFXMatrices(AttributesElement element, inout VFX_SRP_VARYINGS output)
         float3(element.attributes.pivotX,element.attributes.pivotY,element.attributes.pivotZ),
         GetElementSize(element.attributes),
         element.attributes.position
-
-#if VFX_APPLY_CAMERA_POSITION_IN_ELEMENT_MATRIX
-        - _WorldSpaceCameraPos
-#endif
-
     );
 
 #if VFX_LOCAL_SPACE
     worldToElement = mul(worldToElement,GetSGVFXUnityWorldToObject());
 #else
     worldToElement = ApplyCameraTranslationToInverseMatrix(worldToElement);
+#endif
+
+#if VFX_APPLY_CAMERA_POSITION_IN_ELEMENT_MATRIX
+    //Specific to PickingSpaceTransforms.hlsl (in HDRP so far)
+    //SHADEROPTIONS_CAMERA_RELATIVE_RENDERING has been undef at this stage
+    //Avoid removing twice _WorldSpaceCameraPos
+    elementToWorld = RevertCameraTranslationFromMatrix(elementToWorld);
+    worldToElement = RevertCameraTranslationFromInverseMatrix(worldToElement);
 #endif
 
     // Pack matrices into interpolator if requested by any node.

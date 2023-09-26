@@ -20,6 +20,7 @@ Shader "Hidden/Universal Render Pipeline/XR/XRMirrorView"
                 #pragma vertex VertQuad
                 #pragma fragment FragBilinear
                 #pragma multi_compile_fragment _ _FOVEATED_RENDERING_NON_UNIFORM_RASTER
+                #pragma multi_compile_local_fragment _ HDR_COLORSPACE_CONVERSION_AND_ENCODING
                 // Foveated rendering currently not supported in dxc on metal
                 #pragma never_use_dxc metal
 
@@ -37,6 +38,7 @@ Shader "Hidden/Universal Render Pipeline/XR/XRMirrorView"
                 #pragma vertex VertQuad
                 #pragma fragment FragBilinear
                 #pragma multi_compile_fragment _ _FOVEATED_RENDERING_NON_UNIFORM_RASTER
+                #pragma multi_compile_local_fragment _ HDR_COLORSPACE_CONVERSION_AND_ENCODING
                 // Foveated rendering currently not supported in dxc on metal
                 #pragma never_use_dxc metal
 

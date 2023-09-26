@@ -14,6 +14,8 @@ To activate HDR output, follow these steps.
 
 However, if you switch to a URP Asset that does not have HDR enabled, URP disables HDR Output until you change to a URP Asset with HDR enabled.
 
+If you enable HDR Output, URP uses more memory. 
+
 **Note**: If HDR Output is active, the grading mode falls back to HDR, even if there is a different Color Grading Mode active in the URP Asset.
 
 ## HDR tone mapping in URP
@@ -57,7 +59,7 @@ URP provides two **Tonemapping** modes: **Neutral** and **ACES**. Each Tonemappi
 
 | Property | Description |
 | -------- | ----------- |
-| **Neutral HDR Range Reduction Mode** | The curve that the Player uses for tone mapping. The options are:<ul><li>BT2390: The default. Defined by the [BT.2390](https://www.itu.int/pub/R-REP-BT.2390) broadcasting recommendations.</li><li>Reinhard: A simple Tone Mapping operator.</li></ul>This option is only available when you enable **Show Additional Properties**. |
+| **Neutral HDR Range Reduction Mode** | The curve that the Player uses for tone mapping. The options are:<ul><li>**BT2390**: The default. Defined by the [BT.2390](https://www.itu.int/pub/R-REP-BT.2390) broadcasting recommendations.</li><li>**Reinhard**: A simple Tone Mapping operator.</li></ul>This option is only available when you enable **Show Additional Properties**. |
 | **Hue Shift Amount** | The value determines the extent to which your content retains its original hue after you apply HDR settings. When this value is 0, the tonemapper attempts to preserve the hue of your content as much as possible by only tonemapping luminance. |
 | **Detect Paper White** | Enable this property if you want URP to use the Paper White value that the display communicates to the Unity Engine. In some cases, the value the display communicates may not be accurate. Implement a calibration menu for your application so that users can display your content correctly on displays that communicate inaccurate values. |
 | **Paper White** | The Paper White value of the display. If you do not enable **Detect Paper White**, you must specify a value here. |

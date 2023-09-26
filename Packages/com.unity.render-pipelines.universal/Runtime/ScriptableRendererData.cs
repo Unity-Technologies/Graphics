@@ -200,8 +200,24 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool DuplicateFeatureCheck(Type type)
         {
-            var isSingleFeature = type.GetCustomAttribute(typeof(DisallowMultipleRendererFeature));
-            return isSingleFeature != null && m_RendererFeatures.Select(renderFeature => renderFeature.GetType()).Any(t => t == type);
+            Attribute isSingleFeature = type.GetCustomAttribute(typeof(DisallowMultipleRendererFeature));
+            if (isSingleFeature == null)
+                return false;
+
+            if (m_RendererFeatures == null)
+                return false;
+
+            for (int i = 0; i < m_RendererFeatures.Count; i++)
+            {
+                ScriptableRendererFeature feature = m_RendererFeatures[i];
+                if (feature == null)
+                    continue;
+
+                if (feature.GetType() == type)
+                    return true;
+            }
+
+            return false;
         }
 
         private static object GetUnusedAsset(ref List<long> usedIds, ref Dictionary<long, object> assets)

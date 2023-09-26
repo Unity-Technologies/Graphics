@@ -6,10 +6,13 @@ Shader "Hidden/HDRP/CompositeUI"
         #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
         #pragma editor_sync_compilation
         #pragma multi_compile_local_fragment _ APPLY_AFTER_POST
+        #pragma multi_compile_local _ DISABLE_TEXTURE2D_X_ARRAY
+        #pragma multi_compile_local_fragment _ BLIT_SINGLE_SLICE
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+        #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/HDROutput.hlsl"
 
         TEXTURE2D_X(_InputTexture);
@@ -19,6 +22,7 @@ Shader "Hidden/HDRP/CompositeUI"
         CBUFFER_START(cb)
             float4 _HDROutputParams;
             int _NeedsFlip;
+            int _BlitTexArraySlice;
         CBUFFER_END
 
         #define _MinNits    _HDROutputParams.x
@@ -60,18 +64,33 @@ Shader "Hidden/HDRP/CompositeUI"
                 samplePos.y = _ScreenSize.y - samplePos.y;
             }
 
+            #if defined(USE_TEXTURE2D_X_AS_ARRAY) && defined(BLIT_SINGLE_SLICE)
+            float4 outColor =  LOAD_TEXTURE2D_ARRAY(_InputTexture, samplePos.xy, _BlitTexArraySlice);
+            #else
             float4 outColor = LOAD_TEXTURE2D_X(_InputTexture, samplePos.xy);
+            #endif
+
             // Apply AfterPostProcess target
             #if APPLY_AFTER_POST
+            #if defined(USE_TEXTURE2D_X_AS_ARRAY) && defined(BLIT_SINGLE_SLICE)
+            float4 afterPostColor = SAMPLE_TEXTURE2D_ARRAY_LOD(_AfterPostProcessTexture, s_point_clamp_sampler, uv , _BlitTexArraySlice, 0);
+            #else
             float4 afterPostColor = SAMPLE_TEXTURE2D_X_LOD(_AfterPostProcessTexture, s_point_clamp_sampler, uv , 0);
+            #endif
             afterPostColor.rgb = ProcessUIForHDR(afterPostColor.rgb, _PaperWhite, _MaxNits);
             // After post objects are blended according to the method described here: https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
             outColor.xyz = afterPostColor.a * outColor.xyz + afterPostColor.xyz;
             #endif
 
+            #if defined(USE_TEXTURE2D_X_AS_ARRAY) && defined(BLIT_SINGLE_SLICE)
+            float4 uiValue =  LOAD_TEXTURE2D_ARRAY(_UITexture, samplePos.xy, _BlitTexArraySlice);
+            #else
             float4 uiValue = LOAD_TEXTURE2D_X(_UITexture, samplePos.xy);
+            #endif
+
+
             outColor.rgb = SceneUIComposition(uiValue, outColor.rgb, _PaperWhite, _MaxNits);
-            outColor.rgb = OETF(outColor.rgb);
+            outColor.rgb = OETF(outColor.rgb, _MaxNits);
 
             return outColor;
         }

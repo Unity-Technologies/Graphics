@@ -270,7 +270,7 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
             {
                 float4 uiSample = SAMPLE_TEXTURE2D_X(_OverlayUITexture, sampler_PointClamp, input.texcoord);
                 color.rgb = SceneUIComposition(uiSample, color.rgb, PaperWhite, MaxNits);
-                color.rgb = OETF(color.rgb);
+                color.rgb = OETF(color.rgb, MaxNits);
             }
             #endif
 

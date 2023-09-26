@@ -113,7 +113,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_WaterProfileArrayGPU = new ComputeBuffer(k_MaxNumWaterSurfaceProfiles, System.Runtime.InteropServices.Marshal.SizeOf<WaterSurfaceProfile>());
 
             // Create the caustics water geometry
-            m_CausticsGeometry = new GraphicsBuffer(GraphicsBuffer.Target.Raw, WaterConsts.k_WaterCausticsMeshNumQuads * 6, sizeof(int));
+            m_CausticsGeometry = new GraphicsBuffer(GraphicsBuffer.Target.Raw | GraphicsBuffer.Target.Index, WaterConsts.k_WaterCausticsMeshNumQuads * 6, sizeof(int));
             m_CausticsBufferGeometryInitialized = false;
             m_CausticsMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.waterCausticsPS);
 
@@ -1056,7 +1056,11 @@ namespace UnityEngine.Rendering.HighDefinition
                         continue;
                     }
                 }
+
+                if (currentWater.customMaterial != null && !WaterSurface.IsWaterMaterial(currentWater.customMaterial))
+                    continue;
                 #endif
+
                 // At least one surface will write to the gbuffer
                 outputGBuffer.valid = true;
 

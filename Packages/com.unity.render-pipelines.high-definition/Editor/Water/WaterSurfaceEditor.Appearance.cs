@@ -30,6 +30,11 @@ namespace UnityEditor.Rendering.HighDefinition
             WaterSurfaceType surfaceType = (WaterSurfaceType)(serialized.m_SurfaceType.enumValueIndex);
 
             EditorGUILayout.PropertyField(serialized.m_CustomMaterial, k_CustomMaterial);
+
+            var material = serialized.m_CustomMaterial.objectReferenceValue as Material;
+            if (material != null && !WaterSurface.IsWaterMaterial(material))
+                EditorGUILayout.HelpBox("Water only work with a material using a shader created from the Water Master Node in ShaderGraph.", MessageType.Error);
+
             EditorGUILayout.LabelField("Smoothness", EditorStyles.boldLabel);
             using (new IndentLevelScope())
             {

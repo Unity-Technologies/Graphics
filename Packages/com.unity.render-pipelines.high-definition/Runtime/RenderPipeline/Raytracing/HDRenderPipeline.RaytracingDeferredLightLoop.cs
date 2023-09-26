@@ -85,6 +85,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int raySteps;
             public float nearClipPlane;
             public float farClipPlane;
+            public bool transparent;
 
             // Camera data
             public int width;
@@ -174,10 +175,21 @@ namespace UnityEngine.Rendering.HighDefinition
             int numTilesRayBinY = (texHeight + (8 - 1)) / 8;
 
             // Prepass textures
+            if (data.parameters.transparent)
+            {
+                // Use the transparent pre-pass depth for ray start position, and do not filter using stencil
+                cmd.SetComputeTextureParam(data.parameters.rayMarchingCS, marchingKernel, HDShaderIDs._InputDepthTexture, data.depthStencilBuffer, 0, RenderTextureSubElement.Depth);
+                cmd.SetComputeIntParam(data.parameters.rayMarchingCS, HDShaderIDs._DeferredStencilBit, 0);
+            }
+            else
+            {
+                // Use the depth pyramid for ray start position (since it is already bound for hit testing), filter pixels using stencil
+                cmd.SetComputeTextureParam(data.parameters.rayMarchingCS, marchingKernel, HDShaderIDs._InputDepthTexture, data.depthPyramid);
+                cmd.SetComputeIntParam(data.parameters.rayMarchingCS, HDShaderIDs._DeferredStencilBit, (int)StencilUsage.RequiresDeferredLighting);
+            }
             cmd.SetComputeTextureParam(data.parameters.rayMarchingCS, marchingKernel, HDShaderIDs._DepthTexture, data.depthPyramid);
             cmd.SetComputeTextureParam(data.parameters.rayMarchingCS, marchingKernel, HDShaderIDs._NormalBufferTexture, data.normalBuffer);
             cmd.SetComputeTextureParam(data.parameters.rayMarchingCS, marchingKernel, HDShaderIDs._StencilTexture, data.depthStencilBuffer, 0, RenderTextureSubElement.Stencil);
-            cmd.SetComputeIntParam(data.parameters.rayMarchingCS, HDShaderIDs._DeferredStencilBit, (int)StencilUsage.RequiresDeferredLighting);
             cmd.SetComputeBufferParam(data.parameters.rayMarchingCS, marchingKernel, HDShaderIDs._DepthPyramidMipLevelOffsets, data.parameters.mipChainBuffer);
 
             // Bind the input parameters

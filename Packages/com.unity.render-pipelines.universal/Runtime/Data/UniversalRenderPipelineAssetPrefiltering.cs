@@ -162,6 +162,15 @@ namespace UnityEngine.Rendering.Universal
         // Decal Layers - Gets overridden in Decal renderer feature if enabled.
         [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings.DecalLayers)]
         private const bool k_DecalLayersDefault = true;
+        
+        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings.SoftShadowsLow)]
+        [SerializeField] private bool m_PrefilterSoftShadowsQualityLow = false;
+        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings.SoftShadowsMedium)]
+        [SerializeField] private bool m_PrefilterSoftShadowsQualityMedium = false;
+        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings.SoftShadowsHigh)]
+        [SerializeField] private bool m_PrefilterSoftShadowsQualityHigh = false;
+        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings.SoftShadows)]
+        [SerializeField] private bool m_PrefilterSoftShadows = false;
 
         // Screen Coord Override - Controlled by the Global Settings
         [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings.SCREEN_COORD_OVERRIDE)]
@@ -194,6 +203,9 @@ namespace UnityEngine.Rendering.Universal
             public bool stripDBufferMRT2;
             public bool stripDBufferMRT3;
             public bool stripNativeRenderPass;
+            public bool stripSoftShadowsQualityLow;
+            public bool stripSoftShadowsQualityMedium;
+            public bool stripSoftShadowsQualityHigh;
 
             public bool stripSSAOBlueNoise;
             public bool stripSSAOInterleaved;
@@ -228,6 +240,11 @@ namespace UnityEngine.Rendering.Universal
             m_PrefilterDBufferMRT2                   = prefilteringData.stripDBufferMRT2;
             m_PrefilterDBufferMRT3                   = prefilteringData.stripDBufferMRT3;
             m_PrefilterNativeRenderPass              = prefilteringData.stripNativeRenderPass;
+
+            m_PrefilterSoftShadowsQualityLow         = prefilteringData.stripSoftShadowsQualityLow;
+            m_PrefilterSoftShadowsQualityMedium      = prefilteringData.stripSoftShadowsQualityMedium;
+            m_PrefilterSoftShadowsQualityHigh        = prefilteringData.stripSoftShadowsQualityHigh;
+            m_PrefilterSoftShadows                   = !m_PrefilterSoftShadowsQualityLow || !m_PrefilterSoftShadowsQualityMedium || !m_PrefilterSoftShadowsQualityHigh;
 
             m_PrefilterSSAOBlueNoise                 = prefilteringData.stripSSAOBlueNoise;
             m_PrefilterSSAOInterleaved               = prefilteringData.stripSSAOInterleaved;

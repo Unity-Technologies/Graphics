@@ -29,7 +29,7 @@ Shader "Hidden/Universal/BlitHDROverlay"
 
 #if defined(HDR_ENCODING)
             color.rgb = SceneUIComposition(uiSample, color.rgb, PaperWhite, MaxNits);
-            color.rgb = OETF(color.rgb);
+            color.rgb = OETF(color.rgb, MaxNits);
 #endif
             return color;
         }

@@ -1091,12 +1091,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.xyBuffer = builder.ReadWriteTexture(renderGraph.CreateTexture(new TextureDesc(k_SizeOfHDRXYMapping, k_SizeOfHDRXYMapping, true, true)
                     { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, clearBuffer = true, name = "HDR_xyMapping" }));
 
-                ColorPrimaries colorPrimaries = ColorPrimaries.Rec709;
-                if (HDROutputActiveForCameraType(hdCamera.camera.cameraType))
-                {
-                    colorPrimaries = ColorGamutUtility.GetColorPrimaries(HDROutputSettings.main.displayColorGamut);
-                }
-                passData.debugParameters = new Vector4(k_SizeOfHDRXYMapping, k_SizeOfHDRXYMapping, 0, (int)colorPrimaries);
+                ColorGamut gamut = HDROutputActiveForCameraType(hdCamera) ? HDRDisplayColorGamutForCamera(hdCamera) : ColorGamut.Rec709;
+                HDROutputUtils.ConfigureHDROutput(passData.generateXYMappingCS, gamut, HDROutputUtils.Operation.ColorConversion);
+                passData.debugParameters = new Vector4(k_SizeOfHDRXYMapping, k_SizeOfHDRXYMapping, 0, 0);
 
                 builder.SetRenderFunc(
                     (GenerateHDRDebugData data, RenderGraphContext ctx) =>
@@ -1142,8 +1139,8 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 passData.debugHDRMaterial = m_DebugHDROutput;
                 passData.lightingDebugSettings = m_CurrentDebugDisplaySettings.data.lightingDebugSettings;
-                if (HDROutputActiveForCameraType(hdCamera.camera.cameraType))
-                    GetHDROutputParameters(hdCamera.volumeStack.GetComponent<Tonemapping>(), out passData.hdrOutputParams, out passData.hdrOutputParams2);
+                if (HDROutputActiveForCameraType(hdCamera))
+                    GetHDROutputParameters(HDRDisplayInformationForCamera(hdCamera), HDRDisplayColorGamutForCamera(hdCamera), hdCamera.volumeStack.GetComponent<Tonemapping>(), out passData.hdrOutputParams, out passData.hdrOutputParams2);
                 else
                     passData.hdrOutputParams.z = 1.0f;
 
@@ -1155,6 +1152,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 passData.hdrDebugParams = new Vector4(k_SizeOfHDRXYMapping, k_SizeOfHDRXYMapping, 0, 0);
                 passData.xyTexture = builder.ReadTexture(xyBuff);
+
+                passData.debugHDRMaterial.enabledKeywords = null;
+                if (HDROutputActiveForCameraType(hdCamera))
+                {
+                    HDROutputUtils.ConfigureHDROutput(passData.debugHDRMaterial, HDRDisplayColorGamutForCamera(hdCamera), HDROutputUtils.Operation.ColorConversion);
+                }
 
                 builder.SetRenderFunc(
                     (DebugHDRData data, RenderGraphContext ctx) =>

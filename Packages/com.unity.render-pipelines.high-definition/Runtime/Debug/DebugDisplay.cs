@@ -1417,13 +1417,13 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             displayName = "No HDR monitor detected.",
                             style = DebugUI.MessageBox.Style.Warning,
-                            isHiddenCallback = () => HDRenderPipeline.HDROutputIsActive()
+                            isHiddenCallback = () => HDRenderPipeline.HDROutputForMainDisplayIsActive()
                         },
                         new DebugUI.MessageBox
                         {
                             displayName = "To display the Gamut View, Gamut Clip, Paper White modes without affecting them, the overlay will be hidden.",
                             style = DebugUI.MessageBox.Style.Info,
-                            isHiddenCallback = () => !HDRenderPipeline.HDROutputIsActive()
+                            isHiddenCallback = () => !HDRenderPipeline.HDROutputForMainDisplayIsActive()
                         },
                         new DebugUI.EnumField
                         {
@@ -1948,10 +1948,6 @@ namespace UnityEngine.Rendering.HighDefinition
         void UnregisterRenderingDebug()
         {
             UnregisterDebugItems(k_PanelRendering, m_DebugRenderingItems);
-
-            var renderGraphs = RenderGraph.GetRegisteredRenderGraphs();
-            foreach (var graph in renderGraphs)
-                graph.UnRegisterDebug();
         }
 
         static class DecalStrings

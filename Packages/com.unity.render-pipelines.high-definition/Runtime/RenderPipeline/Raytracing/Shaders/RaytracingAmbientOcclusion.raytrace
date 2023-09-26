@@ -45,7 +45,7 @@ void RayGenAmbientOcclusion()
 
     // Reset the value of this pixel
     _AmbientOcclusionTextureRW[COORD_TEXTURE2D_X(currentPixelCoord)] = 0.0f;
-	
+
 	// Read the depth value
 	float depthValue  = LOAD_TEXTURE2D_X(_DepthTexture, currentPixelCoord).r;
     uint stencilValue = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, currentPixelCoord));
@@ -57,9 +57,9 @@ void RayGenAmbientOcclusion()
 	PositionInputs posInput = GetPositionInput(currentPixelCoord, 1.0/LaunchDim.xy, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
 
 	// Decode the world space normal
-    NormalData normalData;	
+    NormalData normalData;
     DecodeFromNormalBuffer(currentPixelCoord, normalData);
-	
+
 	// the number of samples based on the roughness
 	int numSamples = _RaytracingNumSamples;
 
@@ -92,7 +92,7 @@ void RayGenAmbientOcclusion()
 
     	// Importance sample the direction
 	    float3 sampleDir = SampleHemisphereCosine(noiseValue.x, noiseValue.y, normalData.normalWS);
-		
+
 		// Create the ray descriptor for this pixel
 		rayDescriptor.Origin = posInput.positionWS + normalData.normalWS * rayBias;
 		rayDescriptor.Direction = sampleDir;
@@ -110,7 +110,7 @@ void RayGenAmbientOcclusion()
 
 		// Evaluate the ray intersection
 		TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_AMBIENT_OCCLUSION, 0, 1, 0, rayDescriptor, rayIntersection);
-			
+
 		// Accumulate this value
 		velocity = max(velocity, rayIntersection.velocity);
 		finalColor += rayIntersection.color.x;
