@@ -947,7 +947,7 @@ namespace UnityEngine.Rendering.Universal
                 camera.transform.position,
                 gpuVP,
                 cmd,
-                false, false, null, null,
+                false, false, null, null, null,
                 ShaderConstants._FlareOcclusionTex, -1, ShaderConstants._FlareOcclusionIndex, ShaderConstants._FlareTex, ShaderConstants._FlareColorValue,
                 -1, ShaderConstants._FlareData0, ShaderConstants._FlareData1, ShaderConstants._FlareData2, ShaderConstants._FlareData3, ShaderConstants._FlareData4);
         }

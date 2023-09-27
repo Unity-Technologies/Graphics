@@ -67,6 +67,9 @@ namespace UnityEngine.Rendering
 
         private static int frameIdx = 0;
 
+        internal static readonly int _FlareWaterGBuffer3Thickness = Shader.PropertyToID("_FlareWaterGBuffer3Thickness");
+        internal static readonly int _FlareOcclusionPermutation = Shader.PropertyToID("_FlareOcclusionPermutation");
+
         internal static readonly int _LensFlareScreenSpaceBloomMipTexture = Shader.PropertyToID("_LensFlareScreenSpaceBloomMipTexture");
         internal static readonly int _LensFlareScreenSpaceResultTexture = Shader.PropertyToID("_LensFlareScreenSpaceResultTexture");
         internal static readonly int _LensFlareScreenSpaceSpectralLut = Shader.PropertyToID("_LensFlareScreenSpaceSpectralLut");
@@ -530,36 +533,31 @@ namespace UnityEngine.Rendering
         }
 
         static void SetOcclusionPermutation(Rendering.CommandBuffer cmd,
-            bool useBackgroundCloudOcclusion, bool volumetricCloudOcclusion, bool hasCloudLayer,
+            bool useBackgroundCloudOcclusion, bool volumetricCloudOcclusion, bool waterOcclusion,
             int _FlareCloudOpacity, int _FlareSunOcclusionTex,
-            Texture cloudOpacityTexture, Texture sunOcclusionTexture)
+            Texture cloudOpacityTexture, Texture sunOcclusionTexture, Texture waterGBuffer3Thickness)
         {
-            if (useBackgroundCloudOcclusion && hasCloudLayer)
+            uint occlusionPermutation = (uint)(LensFlareOcclusionPermutation.Depth);
+            if (useBackgroundCloudOcclusion && cloudOpacityTexture != null)
             {
-                cmd.EnableShaderKeyword("FLARE_CLOUD_BACKGROUND_OCCLUSION");
+                occlusionPermutation |= (uint)(LensFlareOcclusionPermutation.CloudLayer);
                 cmd.SetGlobalTexture(_FlareCloudOpacity, cloudOpacityTexture);
             }
-            else
+
+            if (volumetricCloudOcclusion && sunOcclusionTexture != null)
             {
-                cmd.DisableShaderKeyword("FLARE_CLOUD_BACKGROUND_OCCLUSION");
+                occlusionPermutation |= (uint)(LensFlareOcclusionPermutation.VolumetricCloud);
+                cmd.SetGlobalTexture(_FlareSunOcclusionTex, sunOcclusionTexture);
             }
 
-            if (sunOcclusionTexture != null)
+            if (waterOcclusion && waterGBuffer3Thickness != null)
             {
-                if (volumetricCloudOcclusion)
-                {
-                    cmd.EnableShaderKeyword("FLARE_VOLUMETRIC_CLOUD_OCCLUSION");
-                    cmd.SetGlobalTexture(_FlareSunOcclusionTex, sunOcclusionTexture);
-                }
-                else
-                {
-                    cmd.DisableShaderKeyword("FLARE_VOLUMETRIC_CLOUD_OCCLUSION");
-                }
+                occlusionPermutation |= (uint)(LensFlareOcclusionPermutation.Water);
+                cmd.SetGlobalTexture(_FlareWaterGBuffer3Thickness, waterGBuffer3Thickness);
             }
-            else
-            {
-                cmd.DisableShaderKeyword("FLARE_VOLUMETRIC_CLOUD_OCCLUSION");
-            }
+
+            int convInt = unchecked((int)occlusionPermutation);
+            cmd.SetGlobalInt(_FlareOcclusionPermutation, convInt);
         }
 
 #if UNITY_EDITOR
@@ -603,6 +601,7 @@ namespace UnityEngine.Rendering
         /// <param name="hasCloudLayer">Set if cloudLayerTexture is used</param>
         /// <param name="cloudOpacityTexture">cloudOpacityTexture used for sky visibility fullscreen</param>
         /// <param name="sunOcclusionTexture">Sun Occlusion Texture from VolumetricCloud on HDRP or null</param>
+        /// <param name="waterGBuffer3Thickness">Water Occlusion (using optical thickness) from WaterRenderer on HDRP or null</param>
         /// <param name="_FlareOcclusionTex">ShaderID for the FlareOcclusionTex</param>
         /// <param name="_FlareCloudOpacity">ShaderID for the FlareCloudOpacity</param>
         /// <param name="_FlareOcclusionIndex">ShaderID for the FlareOcclusionIndex</param>
@@ -620,7 +619,7 @@ namespace UnityEngine.Rendering
             Vector3 cameraPositionWS,
             Matrix4x4 viewProjMatrix,
             Experimental.Rendering.LowLevelCommandBuffer cmd,
-            bool taaEnabled, bool hasCloudLayer, Texture cloudOpacityTexture, Texture sunOcclusionTexture,
+            bool taaEnabled, bool hasCloudLayer, Texture cloudOpacityTexture, Texture sunOcclusionTexture, Texture waterGBuffer3Thickness,
             int _FlareOcclusionTex, int _FlareCloudOpacity, int _FlareOcclusionIndex, int _FlareTex, int _FlareColorValue, int _FlareSunOcclusionTex, int _FlareData0, int _FlareData1, int _FlareData2, int _FlareData3, int _FlareData4)
         {
             ComputeOcclusion(
@@ -630,7 +629,7 @@ namespace UnityEngine.Rendering
                 cameraPositionWS,
                 viewProjMatrix,
                 cmd.m_WrappedCommandBuffer,
-                taaEnabled, hasCloudLayer, cloudOpacityTexture, sunOcclusionTexture,
+                taaEnabled, hasCloudLayer, cloudOpacityTexture, sunOcclusionTexture, waterGBuffer3Thickness,
                 _FlareOcclusionTex, _FlareCloudOpacity, _FlareOcclusionIndex, _FlareTex, _FlareColorValue, _FlareSunOcclusionTex, _FlareData0, _FlareData1, _FlareData2, _FlareData3, _FlareData4);
         }
 
@@ -652,6 +651,7 @@ namespace UnityEngine.Rendering
         /// <param name="hasCloudLayer">Set if cloudLayerTexture is used</param>
         /// <param name="cloudOpacityTexture">cloudOpacityTexture used for sky visibility fullscreen</param>
         /// <param name="sunOcclusionTexture">Sun Occlusion Texture from VolumetricCloud on HDRP or null</param>
+        /// <param name="waterGBuffer3Thickness">Water Occlusion (using optical thickness) from WaterRenderer on HDRP or null</param>
         /// <param name="_FlareOcclusionTex">ShaderID for the FlareOcclusionTex</param>
         /// <param name="_FlareCloudOpacity">ShaderID for the FlareCloudOpacity</param>
         /// <param name="_FlareOcclusionIndex">ShaderID for the FlareOcclusionIndex</param>
@@ -669,7 +669,7 @@ namespace UnityEngine.Rendering
             Vector3 cameraPositionWS,
             Matrix4x4 viewProjMatrix,
             Rendering.CommandBuffer cmd,
-            bool taaEnabled, bool hasCloudLayer, Texture cloudOpacityTexture, Texture sunOcclusionTexture,
+            bool taaEnabled, bool hasCloudLayer, Texture cloudOpacityTexture, Texture sunOcclusionTexture, Texture waterGBuffer3Thickness,
             int _FlareOcclusionTex, int _FlareCloudOpacity, int _FlareOcclusionIndex, int _FlareTex, int _FlareColorValue, int _FlareSunOcclusionTex, int _FlareData0, int _FlareData1, int _FlareData2, int _FlareData3, int _FlareData4)
         {
             if (!IsOcclusionRTCompatible())
@@ -750,7 +750,9 @@ namespace UnityEngine.Rendering
                 }
 #endif
 
-                Light light = comp.GetComponent<Light>();
+                Light light = null;
+                if (!comp.TryGetComponent<Light>(out light))
+                    light = null;
 
                 Vector3 positionWS;
                 Vector3 viewportPos;
@@ -811,9 +813,9 @@ namespace UnityEngine.Rendering
                 cmd.SetGlobalVector(_FlareData1, new Vector4(occlusionRadius, comp.sampleCount, screenPosZ.z, actualHeight / actualWidth));
 
                 SetOcclusionPermutation(cmd,
-                    comp.useBackgroundCloudOcclusion, comp.volumetricCloudOcclusion, hasCloudLayer,
+                    comp.useBackgroundCloudOcclusion && hasCloudLayer, comp.volumetricCloudOcclusion, comp.useWaterOcclusion,
                     _FlareCloudOpacity, _FlareSunOcclusionTex,
-                    cloudOpacityTexture, sunOcclusionTexture);
+                    cloudOpacityTexture, sunOcclusionTexture, waterGBuffer3Thickness);
                 cmd.EnableShaderKeyword("FLARE_COMPUTE_OCCLUSION");
 
                 Vector2 screenPos = new Vector2(2.0f * viewportPos.x - 1.0f, 2.0f * viewportPos.y - 1.0f);
@@ -1039,7 +1041,9 @@ namespace UnityEngine.Rendering
                 }
 #endif
 
-                Light light = comp.GetComponent<Light>();
+                Light light = null;
+                if (!comp.TryGetComponent<Light>(out light))
+                    light = null;
 
                 Vector3 positionWS;
                 Vector3 viewportPos;

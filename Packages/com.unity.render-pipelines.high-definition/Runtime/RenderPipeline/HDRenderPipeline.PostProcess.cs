@@ -482,6 +482,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         TextureHandle RenderPostProcess(RenderGraph renderGraph,
             in PrepassOutput prepassOutput,
+            WaterGBuffer waterGBuffer,
             TextureHandle inputColor,
             TextureHandle backBuffer,
             TextureHandle uiBuffer,
@@ -505,6 +506,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             var source = inputColor;
             var depthBuffer = prepassOutput.resolvedDepthBuffer;
+            var stencilBuffer = prepassOutput.stencilBuffer;
             var depthBufferMipChain = prepassOutput.depthPyramidTexture;
             var normalBuffer = prepassOutput.resolvedNormalBuffer;
             var depthMinMaxAvgMSAA = hdCamera.msaaEnabled ? prepassOutput.depthValuesMSAA : TextureHandle.nullHandle;
@@ -584,7 +586,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 source = PaniniProjectionPass(renderGraph, hdCamera, source);
 
                 bool taaEnabled = m_AntialiasingFS && hdCamera.antialiasing == HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing;
-                LensFlareComputeOcclusionDataDrivenPass(renderGraph, hdCamera, depthBuffer, sunOcclusionTexture, taaEnabled);
+                LensFlareComputeOcclusionDataDrivenPass(renderGraph, hdCamera, depthBuffer, stencilBuffer, sunOcclusionTexture, waterGBuffer, taaEnabled);
                 if (taaEnabled)
                 {
                     LensFlareMergeOcclusionDataDrivenPass(renderGraph, hdCamera, taaEnabled);
@@ -3242,16 +3244,18 @@ namespace UnityEngine.Rendering.HighDefinition
             public LensFlareParameters parameters;
             public TextureHandle source;
             public TextureHandle depthBuffer;
+            public TextureHandle stencilBuffer;
             public TextureHandle occlusion;
             public TextureHandle cloudOpacityTexture;
             public TextureHandle sunOcclusion;
+            public TextureHandle waterGBuffer3Thickness;
             public HDCamera hdCamera;
             public Vector2Int viewport;
             public bool taaEnabled;
             public bool hasCloudLayer;
         }
 
-        void LensFlareComputeOcclusionDataDrivenPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle sunOcclusionTexture, bool taaEnabled)
+        void LensFlareComputeOcclusionDataDrivenPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle stencilBuffer, TextureHandle sunOcclusionTexture, WaterGBuffer waterGBuffer, bool taaEnabled)
         {
             if (!LensFlareCommonSRP.IsOcclusionRTCompatible())
                 return;
@@ -3266,10 +3270,15 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.viewport = postProcessViewportSize;
                     passData.hdCamera = hdCamera;
                     passData.depthBuffer = builder.ReadTexture(depthBuffer);
+                    passData.stencilBuffer = builder.ReadTexture(stencilBuffer);
                     if (RenderPipelineManager.currentPipeline is IVolumetricCloud volumetricCloud && volumetricCloud.IsVolumetricCloudUsable())
                         passData.sunOcclusion = builder.ReadTexture(sunOcclusionTexture);
                     else
                         passData.sunOcclusion = TextureHandle.nullHandle;
+                    if (waterGBuffer.valid && waterGBuffer.waterGBuffer3.IsValid())
+                        passData.waterGBuffer3Thickness = builder.ReadTexture(waterGBuffer.waterGBuffer3);
+                    else
+                        passData.waterGBuffer3Thickness = TextureHandle.nullHandle;
                     passData.taaEnabled = taaEnabled;
 
                     CloudSettings cloudSettings;
@@ -3292,6 +3301,9 @@ namespace UnityEngine.Rendering.HighDefinition
                             float width = (float)data.viewport.x;
                             float height = (float)data.viewport.y;
 
+                            ctx.cmd.SetGlobalTexture(HDShaderIDs._DepthWithWaterTexture, data.depthBuffer);
+                            ctx.cmd.SetGlobalTexture(HDShaderIDs._StencilTexture, data.stencilBuffer, RenderTextureSubElement.Stencil);
+
                             LensFlareCommonSRP.ComputeOcclusion(
                                 data.parameters.lensFlareShader, data.hdCamera.camera,
                                 width, height,
@@ -3299,7 +3311,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 data.hdCamera.mainViewConstants.worldSpaceCameraPos,
                                 data.hdCamera.mainViewConstants.nonJitteredViewProjMatrix,
                                 ctx.cmd,
-                                data.taaEnabled, data.hasCloudLayer, data.cloudOpacityTexture, data.sunOcclusion,
+                                data.taaEnabled, data.hasCloudLayer, data.cloudOpacityTexture, data.sunOcclusion, data.waterGBuffer3Thickness,
                                 HDShaderIDs._FlareOcclusionTex, HDShaderIDs._FlareCloudOpacity, HDShaderIDs._FlareOcclusionIndex, HDShaderIDs._FlareTex, HDShaderIDs._FlareColorValue,
                                 HDShaderIDs._FlareSunOcclusionTex, HDShaderIDs._FlareData0, HDShaderIDs._FlareData1, HDShaderIDs._FlareData2, HDShaderIDs._FlareData3, HDShaderIDs._FlareData4);
                         });

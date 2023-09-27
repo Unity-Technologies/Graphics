@@ -642,6 +642,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/4x_PostProcessing/4105_LensFlareScreenSpace.unity
     guid: d3f6736899b85bd47a2163d3af81ac0b
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/4x_PostProcessing/4106_LensFlareDataDriven_Water_Occlusion.unity
+    guid: e6d0c14426cac7d428a86998b3610c1c
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/5x_SkyAndFog/5001_Fog_FogFallback.unity
     guid: d04c39af67e5e18449a44f6a7778862f
   - enabled: 1

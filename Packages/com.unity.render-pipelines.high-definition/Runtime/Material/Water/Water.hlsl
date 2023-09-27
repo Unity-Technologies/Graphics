@@ -202,6 +202,9 @@ float4 CompressGBuffer3(float tipThickness, float caustics, uint surfaceIndex, b
     uint cmpSurfaceIndex = surfaceIndex & 0xf;
     uint lower16Bits = ((cmpCausticsFrontFace & 0xfff) << 4) | surfaceIndex & 0xf;
 
+    // Used on Core, to compute occlusion with LensFlareDataDriven Occlusion.
+    // If change the packing or unpacking change it on LensFlareCommon.hlsl
+    // 
     // We compress the tip thickness into the upper 16 bits
     uint upper16Bits = f32tof16(tipThickness);
 
@@ -216,6 +219,8 @@ void DecompressGBuffer3(float4 gbuffer3, inout BSDFData bsdfData)
     uint upper16Bits = ((uint)(gbuffer3.x * 255.0f)) << 8 | ((uint)(gbuffer3.y * 255.0f));
     uint lower16Bits = ((uint)(gbuffer3.z * 255.0f)) << 8 | ((uint)(gbuffer3.w * 255.0f));
 
+    // Used on Core, to compute occlusion with LensFlareDataDriven Occlusion.
+    // If change the packing or unpacking change it on LensFlareCommon.hlsl
     bsdfData.tipThickness = f16tof32(upper16Bits);
     bsdfData.frontFace = ((lower16Bits >> 4) & 0xfff) != 0xfff;
     bsdfData.caustics = bsdfData.frontFace ? ((lower16Bits >> 4) / 4096.0) : 0;
