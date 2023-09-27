@@ -91,7 +91,6 @@ namespace UnityEditor.VFX.UI
             m_AddButton = this.Q<Button>(name: "addButton");
             m_AddButton.style.width = 27;
             m_AddButton.style.height = 27;
-            m_AddButton.SetEnabled(false);
 
             m_DragIndicator = new VisualElement();
 

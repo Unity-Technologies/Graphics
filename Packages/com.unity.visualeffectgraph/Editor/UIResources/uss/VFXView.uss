@@ -19,24 +19,16 @@ VFXView .unity-toolbar
     height:auto;
 }
 
-#no-asset
+VFXView #no-asset
 {
     align-items:center;
     justify-content: center;
-    flex-grow: 1;
 }
 
-#no-asset Label
-{
-    -unity-text-align: middle-center;
-    font-size: 12px;
-    white-space: normal;
-    color: rgb(191, 191, 191);
-}
 
-#no-asset Button
+VFXView #no-asset *
 {
-    margin-top:3px;
+    margin-top:128px;
 }
 
 ToolbarToggle
