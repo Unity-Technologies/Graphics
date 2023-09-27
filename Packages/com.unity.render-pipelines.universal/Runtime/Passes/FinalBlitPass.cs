@@ -211,6 +211,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (isRenderToBackBufferTarget)
                 cmd.SetViewport(cameraData.pixelRect);
 
+            // turn off any global wireframe & "scene view wireframe shader hijack" settings for doing blits:
+            // we never want them to show up as wireframe
+            cmd.SetWireframe(false);
+
             int shaderPassIndex = source.rt?.filterMode == FilterMode.Bilinear ? data.blitMaterialData.bilinearSamplerPass : data.blitMaterialData.nearestSamplerPass;
             Blitter.BlitTexture(cmd, source, scaleBias, data.blitMaterialData.material, shaderPassIndex);
         }
