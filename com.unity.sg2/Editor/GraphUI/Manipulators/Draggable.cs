@@ -26,22 +26,29 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         protected override void RegisterCallbacksOnTarget()
         {
-            target.RegisterCallback(new EventCallback<MouseDownEvent>(OnMouseDown), TrickleDownEnum.NoTrickleDown);
-            target.RegisterCallback(new EventCallback<MouseMoveEvent>(OnMouseMove), TrickleDownEnum.NoTrickleDown);
-            target.RegisterCallback(new EventCallback<MouseUpEvent>(OnMouseUp), TrickleDownEnum.NoTrickleDown);
+            target.RegisterCallback<MouseDownEvent>(OnMouseDown);
+            target.RegisterCallback<MouseUpEvent>(OnMouseUp);
+            target.RegisterCallback<MouseCaptureOutEvent>(OnCaptureLost);
         }
 
         protected override void UnregisterCallbacksFromTarget()
         {
-            target.UnregisterCallback(new EventCallback<MouseDownEvent>(OnMouseDown), TrickleDownEnum.NoTrickleDown);
-            target.UnregisterCallback(new EventCallback<MouseMoveEvent>(OnMouseMove), TrickleDownEnum.NoTrickleDown);
-            target.UnregisterCallback(new EventCallback<MouseUpEvent>(OnMouseUp), TrickleDownEnum.NoTrickleDown);
+            target.UnregisterCallback<MouseCaptureOutEvent>(OnCaptureLost);
+            target.UnregisterCallback<MouseDownEvent>(OnMouseDown);
+            target.UnregisterCallback<MouseUpEvent>(OnMouseUp);
+        }
+
+        void OnCaptureLost(MouseCaptureOutEvent e)
+        {
+            m_Active = false;
+            target.UnregisterCallback<MouseMoveEvent>(OnMouseMove);
         }
 
         void OnMouseDown(MouseDownEvent evt)
         {
             target.CaptureMouse();
             m_Active = true;
+            target.RegisterCallback<MouseMoveEvent>(OnMouseMove);
             evt.StopPropagation();
         }
 
@@ -63,6 +70,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         void OnMouseUp(MouseUpEvent evt)
         {
             m_Active = false;
+            target.UnregisterCallback<MouseMoveEvent>(OnMouseMove);
 
             if (target.HasMouseCapture())
             {
