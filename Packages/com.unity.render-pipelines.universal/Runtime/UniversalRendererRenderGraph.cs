@@ -427,6 +427,12 @@ namespace UnityEngine.Rendering.Universal
             importBackbufferDepthParams.clearColor = cameraBackgroundColor;
             importBackbufferDepthParams.discardOnLastUse = true;
 
+#if UNITY_EDITOR
+            // on TBDR GPUs like Apple M1/M2, we need to preserve the backbuffer depth for overlay cameras in Editor for Gizmos
+            if (cameraData.isSceneViewCamera)
+                importBackbufferDepthParams.discardOnLastUse = false;
+#endif
+
             // For BuiltinRenderTextureType wrapping RTHandles RenderGraph can't know what they are so we have to pass it in.
             RenderTargetInfo importInfo = new RenderTargetInfo();
             RenderTargetInfo importInfoDepth = new RenderTargetInfo();
