@@ -9,6 +9,49 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [15.0.6] - 2023-09-27
+
+This version is compatible with Unity 2023.1.16f1.
+
+### Fixed
+- Updated the documentation to mention that the Screen Space decal technique does not support blending of normals when using the Deferred rendering path with Accurate G-Buffer Normals enabled. The Automatic decal technique now prefers the D-Buffer technique if Accurate G-Buffer Normals are enabled.
+- Fixed an issue where switching Volume Update modes between Every Frame and Via Scripting gave an error.
+- Fixed an issue where changing RenderSettings just before camera rendering would not always take effect.
+- 2D - Remove serialization and cache vertices and indices for sprite lights causing bloat in prefabs.
+- Fixed TAA resource leak on entering/exiting the playmode.
+- Fixed ShaderGraph preview window not showing anything when using DepthNormals pass.
+- Fixed incorrect MSAA sample count when using Deferred renderer but rendering to a target texture.
+- Fixed an issue where assets were incorrectly being saved when making builds.
+- Changed the ScreenSpace Decals sorting criteria to None to fix flickering issues.
+- Fixed redundant blit is used due to postFX, although it is disabled in rendererData.
+- Fixed Screen space Overlay UI rendered at the wrong size for scaling mode "Constant Pixel Size" or "Constant Physical Size", when HDR output is active.
+- Fixed Native RenderPass errors when using RendererFeature which is executed in between GBuffer and Deferred Lighting passes.
+- Added missing G-buffer normal decoding for the "URP Sample Buffer" node in Fullscreen shadergraphs when using "Accurate G-buffer normals" in the deferred renderer (not background pixels will not match).
+- 2D - Fix additional draw call when Foremost Sorting Layer is enabled during unlit.
+- Fixed an issue where rendering layers keywords were not enabled correctly when using Decals & SSAO in Deferred.
+- Fixed an issue where incorrect Shader Keyword Prefiltering was used with SSAO when AfterOpaque was used.
+- Fixed Native RenderPass errors when using RenderingLayers.
+- Fixed exception for missing _Color Shader Property.
+- Fixed data-driven lens-flare missing occlusion.
+- Fixed an issue where Shader ID's weren't reset properly in the DepthNormals pass.
+- Fixed shader stripping when using APV.
+- Fixed an issue where additional lights were not rendering correctly when using a mix of shadow settings in deferred.
+- Fixed an issue where IndexOutOfRangeException was thrown when creating a stacked camera from script.
+- Fixed an issue where NullReferenceException was thrown when camera prefab referenced a camera outside the prefab in the camera stack.
+- Fixed color and depth mismatch when scaling is on.
+- Fixed an issue with Screen Space Decals where dark artefacts appeared in the editor.
+- Fixed per-vertex light layers.
+- Fixed TAA Very High option flicker.
+- Fixed an issue where Rendering Layers didn't work properly when opening a project.
+- Fixed an issue causing 'implicit truncation of vector type' warning when using ShaderGraph shaders in the Forward+ Rendering Path.
+- Added Shader Keywords for Soft Shadow quality levels and disable per-light quality level on untethered XR platforms.
+- Fixed an issue where it wasn't possible to add a Renderer Feature on a renderer if another feature had a missing/broken script.
+- Added GBuffer (fill) passes to ComplexLit and Unlit shader to prevent GBuffer data holes.
+- Fixed an issue where reflection probes were not updating correctly when using Forward+.
+- Fixed visible outline when composited ShadowCaster2Ds with transparency overlap.
+- Fixed an issue where selecting a stacked camera caused the editor to freeze and sometimes crash.
+- Fix using RenderTextureSubElement.Stencil in URP not binding properly
+
 ## [15.0.5] - 2023-05-23
 
 This version is compatible with Unity 2023.1.0b19.
