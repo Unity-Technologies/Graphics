@@ -9,6 +9,46 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [14.0.8] - 2023-09-27
+
+This version is compatible with Unity 2022.3.11f1.
+
+### Changed
+- VFX systems receiving GPU events can now go into sleep state.
+
+### Fixed
+- Unexpected warning on Metal while rendering thumbnail preview for material
+- Fixed range was not applied in UI when setting up a value out of allowed range.
+- Fixed data serialization that could lead to corrupted state.
+- Fixed an editor only memory leak with VFX Graph objects.
+- Fixed VFX assets being considered modified after creation.
+- Fixed a potential crash with particle strips.
+- Fixed strips tangents and buffer type with Shader Graph.
+- Fixed broken documentation link for VFX Graph nodes (when documentation is available).
+- Fixed usage of Screen Space Size block which lead to flipped particles.
+- Fixed OutputUpdate warnings about spaces after end of line.
+- Improved shader input properties synchronization with VFX Graph output context when the shader is deleted or set to None.
+- Some VFX Graph were not compiled until the asset was opened.
+- Fixed undo not working with shader property in the Mesh Output context.
+- Changed are reverted in the Mesh Output shader property when saving.
+- Immortal particles don't work properly when instancing is enabled.
+- Fixed crash when changing to custom batch capacity in computers with large GPU memory.
+- Initialize VFX material indices to make all materials valid if used on Awake.
+- Fixed  VFX camera command culling failling when all effects are out of frustum.
+- Fixed a compilation error when using Cube outputs with a texture shared with another context.
+- Blocks and operators sampling Depth or Color now work with Dynamic Resolution Scaling.
+- Fixed console errors when deleting VFX asset in some configuration.
+- Fixed HDRP Decal Output when system is in world space.
+- Fixed undefined behavior of SpawnerSetAttribute when an expression is connected to activation slot.
+- Unexpected error while using SpriteLit/SpriteUnlit target.
+- Undefined sorting mode with SpriteLit/SpriteUnlit, now sorted when automatic sorting is on.
+- Incorrect Behavior while switching from old to new SG Integration.
+- Incorrect Material Settings status while changing Material Override in URP.
+- Picking Overlay when the rotation is applied on VisualEffect component.
+- Prevent unexpected border highlight after clicking on VFX toolbar button
+- Fixed an error in the console when clicking on the [+] button in the blackboard in the "No Asset" window
+- Take search window mode user's preference into account for object fields in VFX Graph (classic / advanced)
+
 ## [14.0.7] - 2023-05-23
 
 This version is compatible with Unity 2022.2.22f1.

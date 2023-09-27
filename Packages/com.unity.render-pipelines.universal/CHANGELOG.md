@@ -9,6 +9,59 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [14.0.8] - 2023-09-27
+
+This version is compatible with Unity 2022.3.11f1.
+
+### Fixed
+- Fixed TAA resource leak on entering/exiting the playmode.
+- Fixed rare iOS shader building failure due to URP Lit Forward Pass shader varyings struct variable mismatch
+- Fixed an issue with broken documentation links.
+- Stripped BlitHDROverlay from build if HDR output is not allowed and stripping unused shader is allowed.
+- Fixed an issue where switching Volume Update modes between Every Frame and Via Scripting gave an error.
+- Fixed, URP & core package leaking materials when entering/exiting Play Mode.
+- Fixed for the UI being drawn twice in some scenarios.
+- Fixed an issue where assets were incorrectly being saved when making builds.
+- Fixed incorrect MSAA sample count when using Deferred renderer but rendering to a target texture.
+- Fixed ShaderGraph preview window not showing anything when using DepthNormals pass.
+- 2D - Remove serialization and cache vertices and indices for sprite lights causing bloat in prefabs.
+- Changed the ScreenSpace Decals sorting criteria to None to fix flickering issues.
+- Fixed redundant blit is used due to postFX, although it is disabled in rendererData.
+- Support DOTS_INSTANCING in DebugReplacement shader.
+- Fixed a bug where color space conversion is applied twice in URP in specific conditions (HDR Output and Debug HDR Views enabled).
+- Fixed using RenderTextureSubElement.Stencil in URP not binding properly.
+- Fixed error message in filtered view when decals are enabled.
+- Fixed Screen space Overlay UI rendered at the wrong size for scaling mode "Constant Pixel Size" or "Constant Physical Size", when HDR output is active.
+- Fixed WebGL1 throwing errors when using depth copy texture.
+- Fixed typo in RenderSingleCamera obsolete message.
+- 2D - Fixed additional draw call when Foremost Sorting Layer is enabled during unlit.
+- Fixed removal of renderer features if a renderer feature is missing.
+- Fixed data-driven lens-flare occlusion and y-flip on opengl.
+- Fixed an issue where rendering layers keywords were not enabled correctly when using Decals & SSAO in Deferred.
+- Fixed an issue where incorrect Shader Keyword Prefiltering was used with SSAO when AfterOpaque was used.
+- Fixed Native RenderPass errors when using RenderingLayers.
+- Fixed exception for missing _Color Shader Property.
+- Fixed runtime performance drops when multiple views that uses incompatible RTHandle descriptors are rendered within a frame.
+- Fixed an issue where Shader ID's weren't reset properly in the DepthNormals pass.
+- Fixed black screen issue when using URP hardware Dynamic Resolution with DX12.
+- Fixed Native RenderPass errors when using RendererFeature which is executed in between GBuffer and Deferred Lighting passes.
+- Fixed color and depth mismatch when scaling is on.
+- Fixed an issue where IndexOutOfRangeException was thrown when creating a stacked camera from script.
+- Fixed an issue where NullReferenceException was thrown when camera prefab referenced a camera outside the prefab in the camera stack.
+- Fixed an issue where settings would disappear when deleting a child Camera of the Main Camera.
+- Fixed an issue where additional lights were not rendering correctly when using a mix of shadow settings in deferred.
+- Added GBuffer (fill) passes to ComplexLit and Unlit shader to prevent GBuffer data holes.
+- Fixed render texture memory leak when rtHandle realloc failed to be added to pool.
+- Fixed an issue where it wasn't possible to add a Renderer Feature on a renderer if another feature had a missing/broken script.
+- Fixed an issue with Screen Space Decals where dark artefacts appeared in the editor.
+- Fixed an issue where reflection probes were not updating correctly when using Forward+.
+- Fixed an issue causing 'implicit truncation of vector type' warning when using ShaderGraph shaders in the Forward+ Rendering Path.
+- Fixed HDR Output can't be turned off via the `HDROutputSettings` API in the editor.
+- Add Shader Keywords for Soft Shadow quality levels and disable per-light quality level on untethered XR platforms
+- Fix IndexOutOfRangeException error when using Native RenderPass on Deferred
+- Fixed an issue where selecting a stacked camera caused the editor to freeze and sometimes crash.
+- Fixed TAA Very High option flicker.
+
 ## [14.0.7] - 2023-05-23
 
 This version is compatible with Unity 2022.2.22f1.
