@@ -1,0 +1,106 @@
+{
+    "introduction":
+"""All the materials in this scene use the <b>HDRP/Lit</b> Shader.
+
+The Lit Shader is HDRP's general purpose shader. It is designed and optimized to represent most of the materials needed in real time production.
+     
+The <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Material-Type.html">HDRP Lit Material Types</a> are : Standard, Subsurface Scattering, Anisotropy, Translucent, Iridescence and Specular color. 
+
+This scene doesn't contain examples of the Specular color mode as it is intended for texturing workflow compatibility more than achieving a specific effect.""",
+    "samples": [
+        {
+            "title": "Standard Lit",
+            "prefabName": "Standard Lit",
+            "description": 
+	"""The Material Type Standard can be used for most non organic surfaces in a game.
+    """
+        },
+        {
+            "title": "Reference Values for non metals",
+            "prefabName": "References Values for Non Metal",
+            "description": 
+"""• Artificial Black, 13%, this material matches the measured albedo of manmade black materials. Values below this lightness should be avoided when crafting realistic materials.
+      
+• Natural Black, 20%, this material matches the measured albedo of coal which is one of the darkest natural materials.
+    
+• Middle Grey, 50%, this grey value matches the one used on grey cards in photography. It is the reference for camera exposure and white balance.
+    
+• Snow White, 95%, this white value matches the measured albedo of snow which is one of the brightest natural materials."""
+        },
+        {
+            "title": "Reference Values for Metal",
+            "prefabName": "Reference Values for Metal",
+            "description": 
+"""These metal materials are based on measured specular albedo for pure Gold, Copper and Silver. They are a good starting point when creating clean and pure metal materials."""
+        },
+        {
+            "title": "Detail Map",
+            "prefabName": "Details Map",
+            "description": 
+"""These materials only use one texture : <b>the Detail Map</b>. The Detail Map is a texture that combines Albedo variation (Red channel), Normal (Green and Alpha channels) and Smoothness variation (Blue channel) information. The detail map should repeat seamlessly so it can be tiled several times to add small details to a material. In comparison, the Base Color, Mask Map and Normal Map are used to represent unique details.
+
+Used alone, the Detail map can represent pretty well materials that don't need hue variation in the Base Color or in Metallic value. 
+
+Detail maps can also be used with the Layered Lit shader when blending several material is necessary.Detail maps can easily be shared across different materials and building a library of detail maps is very useful to add details to generic materials such as plaster, plastic, metal, rubber, concrete ...
+
+See the <link="Metal Foil.mat">Metal Foil</link> and <link="Aluminium Satin.mat">Aluminium Satin</link> materials."""
+        },
+        {
+            "title": "Anisotropy",
+            "prefabName": "Anisotropy",
+            "description": 
+"""• Anisotropy : Anisotropy allows you to stretch specular lighting in a certain direction. This is usually seen in materials that have many thin grooves or fibers. The stretch direction is relative to the UV direction : positive values stretch along U and negative values stretch along V. If the <link="Metal Anisotropy Circles.mat">material</link> uses a tangent map, the Red and Green channels describe the 2D direction. Positive anisotropy will stretch along this direction, negative anisotropy will stretch perpendicularly.
+
+• Anisotropy with coating : This <link="CarbonFiber.mat">Carbon Fiber</link> material uses a Tangent Map to specify the carbon fiber direction. Every other thread is oriented perpendicularly. This material also uses <b>coating</b> in order to get <b>two specular highlights</b>. The lit shader built-in coat is always smooth."""
+        },
+        {
+            "title": "Translucency",
+            "prefabName": "Translucency",
+            "description": 
+"""
+This <link="Leaf.mat">material</link> uses Translucency in order to let light go through the leaves. This effect is also controlled by a <link="LeafDiffusionProfile.asset">Diffusion profile</link> which allows you to tint the lighting. In the material, you can modulate how much light goes through with the Thickness value or the <b>Thickness Map</b>. Thin materials will let more light through whereas thick materials will tend to block the light."""
+        },
+        {
+            "title": "Subsurface Scattering",
+            "prefabName": "Subsurface Scattering",
+            "description": 
+"""Subsurface Scattering replicates how light spreads beneath the surface of certain material such as skin, wax or <link="LionJade.mat">jade</link> as showcased here. The material's <link="JadeDiffusionProfile.asset">Diffusion Profile</link> controls how the light scatters. You can use the same profile for different materials. Inside the material settings, you can tweak how strong the effect is with the Subsurface Mask and adjust how much light shines through using either the Thickness value or a Thickness Map."""
+        },
+        {
+            "title": "Displacement",
+            "prefabName": "Displacement",
+            "description": 
+"""• Pixel Displacement : This <link="WallTiles.mat">material</link> uses Pixel Displacement in conjunction with a <b>height map</b> in order to simulate the <b>depth</b> of the material. The Depth offset option is enabled so it also affects all depth based render features like shadows and ambient occlusion.
+
+• Tesselation : This <link="Bricks.mat">material</link> uses <b>Tessellation Displacement</b> to bring more details to the mesh. Tessellation displacement can modify an object's silhouette as it adds vertices and can displace them outwards. The Phong tessellation displaces the vertices created by tessellation along the normals of the surface in order to smooth the geometry. Then the tessellation vertices are displaced according to the <b>Height Map</b> and its settings. UV seams should use a neutral displacement value as they can easily produce cracks in the mesh."""
+        },
+        {
+            "title": "Iridescence",
+            "prefabName": "Iridescence",
+            "description": 
+"""Iridescence alters the <b>specular color depending on the view direction</b>. It simulates an iridescent film on top of the material.
+
+• <link="Anodized Metal.mat">Anodized Metal</link> : The iridescent film <b>thickness</b> is tweaked to control what tint appears in the reflection. A thick layer will tint iridescence with the visible color spectrum cycled several times, a thin layer will only tint it with a portion of the color spectrum.
+• <link="SoapBubble.mat">Soap Bubble</link>: This material uses an iridescence <b>thickness map</b> to shape the iridescence like a flowing liquid layer on the surface. The iridescence thickness remap is tuned to pick which colors of the visible spectrum are seen in the iridescence.
+• <link="OiledLeather.mat">Oiled Leather</link> : Leather is often treated with an oil film which generates subtle iridescence. This material uses the <b>red channel of the Iridescence Mask texture</b> to limit the effect to certain parts. In this case, it simulates the wear of the oil film in the folds."""
+        },
+        {
+            "title": "Transparency",
+            "prefabName": "Transparency",
+            "description": 
+"""Set a <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/refraction-models.html"><b>Refraction Model</b></a> on a <b>transparent material</b> to enable refraction and choose the <b>index of refraction</b> relative to the nature of the material. A low smoothness value will create rough refraction.
+
+• Thin Glass : This <link="PlanarGlass.mat">transparent material</link> uses the Refraction Model <b>Thin </b> in order to simulate a thin glass surface. This material's refraction transmittance color tints the refraction in blue. 
+
+• Solid Glass : This <link="LionSolidGlass.mat">material</link>'s Refraction Model is set to <b>Sphere</b>. When shading a pixel, the renderer doesn't know the size and shape of the object. The refraction settings allow you to specify them to get more realistic refraction using a <b>thickness map</b>. When the material uses the box or sphere refraction models, the material's thickness also affects the tint. The thicker the material is, the more tinted it gets.
+    
+More details in the Transparency specific samples."""
+        }
+        
+        
+        
+        
+
+    ]	
+}
+

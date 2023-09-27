@@ -36,7 +36,11 @@ The Fabric, Hair and Eye Master Nodes usually require various work from artists 
 
 In the **Eye** Scene, the eye examples use a carefully designed mesh with a particular UV setup at a specific import scale factor. If you want to produce eyes of similar quality, open the eye mesh in 3D modelling software to see how the mesh is constructed and the UVs are setup.
 
-In the Transparency scenes, the examples contain information on how to setup properly transparents in your projects using different rendering methods (Rasterization, Ray Tracing, Path Tracing).
+## Transparent samples
+
+![Transparent Samples](Images/TransparentSamples.png)
+
+In the Transparency scene, the examples contain information on how to setup properly transparents in your projects using different rendering methods (Rasterization, Ray Tracing, Path Tracing).
 To take advantage of all the content of this section, a GPU that supports [Ray Tracing](Ray-Tracing-Getting-Started.md) is needed.
 
 ## Lens Flare samples
@@ -64,15 +68,18 @@ The volumetric samples include a scene that contains multiple examples of [volum
 
 This sample includes examples on how to create a [Fullscreen Shader](fullscreen-shader.md) and use it with a Custom Pass, Custom Post Process and Custom Render Target. The sample scene includes prefabs for the following effects:
 
-- Custom Pass : Edge Detection, Sobel Filter, Object Highlight, Night Vision, Speed Lines.
-- Custom Render Targets : Dynamic Custom HDRi for Night Sky, Animated Water Droplets.
-- Custom Post Process : Colorblindness Filter.
+- Custom Pass: Edge Detection, Sobel Filter, Object Highlight, Night Vision, Speed Lines.
+- Custom Render Targets: Dynamic Custom HDRi for Night Sky, Animated Water Droplets.
+- Custom Post Process: Colorblindness Filter.
 
-## Environment samples
+## Water samples
 
-![](Images/Water_samples.png)The Environment samples contain the following scenes you can use to test HDRP's [Water](WaterSystem.md) features: 
+![](Images/Water_samples.png)
+
+The Water samples contain the following scenes you can use to learn about HDRP's [Water](WaterSystem.md) features: 
 
 - Pool: Demonstrates ripples and buoyancy. 
-
-- River: Demonstrates current, water deformers, floating objects, and a water mask.
-- Ocean: Demonstrates waves, foam, and the water excluder.
+- Glacier: Demonstrates current, water deformers, floating objects, and a water mask.
+- Island: Demonstrates waves, foam, and the water excluder.
+- Rain: Demonstrates how to add pertubations to the normals using shader graph. 
+- Waterline: Demonstrates how to override rendering of the waterline using a [Custom Pass](Custom-Pass.md). 

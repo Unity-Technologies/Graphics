@@ -8,8 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Shader Graphs_Caustics
-  m_Shader: {fileID: -6465566751694194690, guid: 1ab08a68548882942992ea5bc65ace0a,
-    type: 3}
+  m_Shader: {fileID: -6465566751694194690, guid: 1ab08a68548882942992ea5bc65ace0a, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
@@ -68,6 +67,7 @@ Material:
     m_Colors:
     - _Tiling: {r: 2, g: 1.5, b: 0, a: 0}
   m_BuildTextureStacks: []
+  m_AllowLocking: 1
 --- !u!114 &8128246584505412020
 MonoBehaviour:
   m_ObjectHideFlags: 11

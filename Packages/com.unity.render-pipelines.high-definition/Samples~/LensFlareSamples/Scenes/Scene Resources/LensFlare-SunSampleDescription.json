@@ -1,0 +1,11 @@
+{
+    "introduction":
+	"""Welcome to the Sun and Occlusion <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/shared/lens-flare/lens-flare-component.html">Lens Flare</a> Sample.
+	
+	Here you will find an example of a Directional Light Lens Flare being occluded by GameObjects, Cloud Layer and Volumetric Clouds.
+	
+		• To inspect how the Lens Flare component is setup, select the <link="Directional Light">Directional Light</link> in the hierarchy and scroll down to the Lens Flare (SRP) component.
+		• To see the occlusion directly, rotate the <link="Directional Light">Directional Light</link> object in the hierarchy.
+		• To learn more about Lens Flare Occlusion parameters, go to the <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/shared/lens-flare/lens-flare-component.html#occlusion">documentation</a>.""",
+    "samples": []	
+}

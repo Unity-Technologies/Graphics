@@ -1,0 +1,20 @@
+fileFormatVersion: 2
+guid: fdd4e278b167d3f41a9bfeabcdb3ff21
+VisualEffectImporter:
+  externalObjects: {}
+  serializedVersion: 1
+  template:
+    name: Collision Advanced
+    category: Learning Templates
+    description: "As VFX Graph is simulating particles on the GPU, they cannot collide
+      with regular Rigid Body Colliders. But you can still make them collide with
+      different geometry approximations like Boxes, Spheres, Cones, Planes or even
+      complex shapes with the use of SDF and/or Depth Buffer. Sometimes using simple
+      collision shapes isn\u2019t enough to get a precise enough collision with the
+      environment. In this case, using SDF can be a good solution to approximate
+      complex geometry like this sculpture of a hand."
+    icon: {fileID: 2800000, guid: 49836be3225b70342b4057f6bf94b554, type: 3}
+    thumbnail: {fileID: 2800000, guid: 009b7316c3ad821499a08d63c2b179e4, type: 3}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

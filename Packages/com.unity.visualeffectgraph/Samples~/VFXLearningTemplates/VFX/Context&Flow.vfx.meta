@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 4bac8f94c64bb6545880cdfd6b88a375
+VisualEffectImporter:
+  externalObjects: {}
+  serializedVersion: 1
+  template:
+    name: Contexts & Data Flow
+    category: Learning Templates
+    description: This VFX is intended to provide an overview and basic understanding
+      of how data flow is articulated in VFX Graph. It also presents an overview
+      of the most frequently used Context Blocks.
+    icon: {fileID: 2800000, guid: 49836be3225b70342b4057f6bf94b554, type: 3}
+    thumbnail: {fileID: 2800000, guid: 7fe3e7cbc6de1f9479895e82ad729e23, type: 3}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

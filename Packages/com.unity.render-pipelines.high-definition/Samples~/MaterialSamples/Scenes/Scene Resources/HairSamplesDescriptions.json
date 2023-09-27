@@ -1,0 +1,25 @@
+{
+    "introduction":
+
+	"""Welcome to the <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/master-stack-hair.html">Hair Shading</a> Samples scene.
+    
+<h1>Physical Hair Shader</h1>
+
+The Physical model is based on the Marschner algorithm. This example uses the before refraction and alpha clip modes. It writes to the motion vector to avoid jitters caused by Temporal anti-aliasing (TAA). It also uses transparent depth prepass with a threshold.
+
+For more details, see the <link="PhysicalHair_Cards.shadergraph">PhysicalHair_Cards shadergraph</link>.
+
+<h1>Approximate Hair Shader</h1>
+
+The Approximate model is based on the Kajiya-Kay algorithm. To use this model you have to manually balance the different components of the render, for example, basecolor, specular, and smoothness.
+
+For more details, see the <link="ApproximateHair_Cards.shadergraph">ApproximateHair_Cards shadergraph</link>.
+
+<h1>Strand Based Rendering</h1>
+
+This scene only contains examples of card-based hair. To create strand based hair, HDRP requires the addition of the <a href="https://github.com/Unity-Technologies/com.unity.demoteam.hair">Hair</a> and Alembic packages. This <a href="https://learn.unity.com/tutorial/set-up-character-hair?uv=2021.2&projectId=635a945cedbc2a39658709de#">tutorial</a> can help you through the step of implementing strand-based Hair to your HDRP project. Strand-based Hair also unlocks the possibility to use the <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Override-High-Quality-Lines.html">High Quality Line Rendering</a>, designed to render huge amount of hair with high quality aliasing and transparency sorting. 
+
+    """,
+    "samples": []	
+}
+

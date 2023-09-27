@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: c96faae58e47c41429753fb0da60adc0
+VisualEffectImporter:
+  externalObjects: {}
+  serializedVersion: 1
+  template:
+    name: Orient Fixed Axis
+    category: Learning Templates
+    description: Whether the Output is set to Quads, Meshes, or even Strips, we often
+      want to control how to instantiate the geometry on a particle. Should it be
+      facing the camera? What is the forward and/or Up-Axis ? The Orient Block helps
+      us to easily orient our particles as it comes with a number of different modes.
+      This example shows how to use the Fixed Axis mode.
+    icon: {fileID: 2800000, guid: 49836be3225b70342b4057f6bf94b554, type: 3}
+    thumbnail: {fileID: 2800000, guid: 04febbab5a711e04aa699f6fd56723c8, type: 3}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

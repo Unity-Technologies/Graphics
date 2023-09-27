@@ -8,12 +8,14 @@ public class ShoreDecalTrigger : MonoBehaviour
 {   
     public WaterSurface waterSurface;
     public GameObject decalGameObject = null;
-    
-    private bool decalIsInstantiated = false;
-    
+        
     WaterSearchParameters searchParameters = new WaterSearchParameters();
     WaterSearchResult searchResult = new WaterSearchResult();
 
+    void Start()
+    {
+        decalGameObject.SetActive(false);
+    }
     
     // Update is called once per frame
     void Update()
@@ -33,24 +35,17 @@ public class ShoreDecalTrigger : MonoBehaviour
             if (waterSurface.ProjectPointOnWaterSurface(searchParameters, out searchResult))
             {
                 // If the trigger is below the water surface, it means a wave hit it, so if there's not already a decal, we instantiate one. 
-                if(searchResult.projectedPositionWS.y > this.transform.position.y && !decalIsInstantiated)
+                if(searchResult.projectedPositionWS.y > this.transform.position.y && !decalGameObject.activeSelf)
                 {
-                    InstantiateDecal();
+                    ActivateDecal();
                 }
                 
             }
         }
     }
-    
-    public void setIsInstantiated(bool b)
-    {
-        decalIsInstantiated = b;
-    }
-    
-    void InstantiateDecal()
-    {
-        setIsInstantiated(true);
-        
+
+    void ActivateDecal()
+    {        
         if(decalGameObject != null)
         {
             decalGameObject.transform.parent = this.transform;

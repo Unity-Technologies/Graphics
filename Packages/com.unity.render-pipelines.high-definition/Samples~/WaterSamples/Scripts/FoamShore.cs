@@ -6,6 +6,8 @@ using UnityEngine.Rendering.HighDefinition;
 [ExecuteInEditMode]
 public class FoamShore : MonoBehaviour
 {
+	public Material deformerCustomMaterial = null;
+	public WaterDeformer waterDeformer = null;
     public float minAliveTime = 6f;
     public float maxAliveTime = 8f;
     public float maxPosition = 5f;
@@ -13,24 +15,24 @@ public class FoamShore : MonoBehaviour
     
     private float aliveTime = 0f;
     private float startTime = 0f;
-    private DecalProjector m_DecalProjectorComponent;
+    private DecalProjector m_DecalProjectorComponent = null;
 
+	void Awake()
+	{
+		m_DecalProjectorComponent = this.GetComponent<DecalProjector>();
+		
+		// Instantiate a new decal material to avoid sharing it between prefab instances.
+        m_DecalProjectorComponent.material = new Material(m_DecalProjectorComponent.material);
+	}
+	
     public void OnEnable()
     {
         startTime = Time.realtimeSinceStartup;
-        
         aliveTime = Random.Range(minAliveTime, maxAliveTime);
-        m_DecalProjectorComponent = this.GetComponent<DecalProjector>();
-        
-        // Instantiate a new decal material to avoid sharing it between prefab instances.
-        m_DecalProjectorComponent.material = new Material(m_DecalProjectorComponent.material);
-        Reset();
+		
+		Reset();
     }
-    
-    void Start()
-    {
-        this.gameObject.SetActive(false);
-    }
+
 
     // Update is called once per frame
     void Update()
@@ -42,22 +44,40 @@ public class FoamShore : MonoBehaviour
         float lerpFactorOpacity = normalizedAliveTime <= 0.5 ? lerpFactorSize : 1;
         float lerpFactorContrast = normalizedAliveTime <= 0.5 ? 0 : 1 - lerpFactorSize;
         
-        Vector3 size = m_DecalProjectorComponent.size;
-        size.y = Mathf.Lerp(0, maxSize, lerpFactorSize);
-        m_DecalProjectorComponent.size = size;
+        Vector3 decalProjectorSize = m_DecalProjectorComponent.size;
+        decalProjectorSize.y = Mathf.Lerp(0, maxSize, lerpFactorSize);
+        m_DecalProjectorComponent.size = decalProjectorSize;
 
         Vector3 p = this.transform.localPosition;
         p.x = Mathf.Lerp(0, maxPosition, lerpFactorSize);
         this.transform.localPosition = p;
         
+		// Setting decal material
         m_DecalProjectorComponent.material.SetFloat("_Opacity", lerpFactorOpacity);
         m_DecalProjectorComponent.material.SetFloat("_NormalizedAliveTime", normalizedAliveTime);
         m_DecalProjectorComponent.material.SetFloat("_ContrastNormalized", lerpFactorContrast);
-        
-        if(normalizedAliveTime > 0.99){
-            this.transform.parent.GetComponent<ShoreDecalTrigger>().setIsInstantiated(false);
+		
+		// Setting deformer material
+		deformerCustomMaterial.SetFloat("_NormalizedAliveTime", normalizedAliveTime);
+		
+		Vector2 regionSize = waterDeformer.regionSize;
+		regionSize.y = Mathf.Lerp(0, maxSize, lerpFactorSize);
+		waterDeformer.regionSize = regionSize;
+		
+		
+		waterDeformer.amplitude = lerpFactorSize * 0.7f;
+
+		// If we are at the end of the animation, disable the decal
+        if(normalizedAliveTime > 0.99)
+        {
+			m_DecalProjectorComponent.material.SetFloat("_Opacity", 0);
+			waterDeformer.regionSize = new Vector2(regionSize.x, 0);
+			m_DecalProjectorComponent.size = new Vector3(decalProjectorSize.x, 0, decalProjectorSize.z);
             this.gameObject.SetActive(false);
         }
+		
+        
+        
     }
     
     public void Reset()

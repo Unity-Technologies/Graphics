@@ -43,27 +43,56 @@
     {
       "displayName": "Material Samples",
       "description": "Adds Material Samples to your project. Open the MaterialSamples scene to see examples of materials based on the lit shader with effects such as subsurface scattering, displacement, anisotropy and more. This scene requires Text Mesh Pro to render text explanations.",
-      "path": "Samples~/MaterialSamples"
+      "path": "Samples~/MaterialSamples",
+      "dependencies":[
+	"com.unity.render-pipelines.high-definition/Samples~/Common",
+	"com.unity.render-pipelines.core/Samples~/Common"
+	]
+    },
+	{
+      "displayName": "Transparent Samples",
+      "description": "Adds Transparent Samples to your project. It contains information on how to setup properly transparents in your projects using different rendering methods (Rasterization, Ray Tracing, Path Tracing). To take advantage of all the content of this section, a GPU that supports Ray Tracing is needed.",
+      "path": "Samples~/TransparentSamples",
+      "dependencies":[
+	"com.unity.render-pipelines.high-definition/Samples~/Common",
+	"com.unity.render-pipelines.core/Samples~/Common"
+	]
     },
     {
       "displayName": "Lens Flare Samples",
       "description": "Adds Lens Flare Samples to your project. Open the LensFlareSamples scene to view and interact with the flares.",
-      "path": "Samples~/LensFlareSamples"
+      "path": "Samples~/LensFlareSamples",
+      "dependencies":[
+	"com.unity.render-pipelines.high-definition/Samples~/Common",
+	"com.unity.render-pipelines.core/Samples~/Common"
+	]
     },
     {
       "displayName": "Volumetric Samples",
       "description": "Adds a set of 3D texture, procedural noises and Fog Volume Shadergraph to your project. A collection of prefabs shows how to use them with the Local Volumetric Fog.",
-      "path": "Samples~/VolumetricSamples"
+      "path": "Samples~/VolumetricSamples",
+      "dependencies":[
+	"com.unity.render-pipelines.high-definition/Samples~/Common",
+	"com.unity.render-pipelines.core/Samples~/Common"
+	]
     },
     {
       "displayName": "Fullscreen Samples",
       "description": "Add a set of examples using the Fullscreen Shadergraph to create Custom Pass, Custom Post Process or Custom Render Target.",
-      "path": "Samples~/FullscreenSamples"
+      "path": "Samples~/FullscreenSamples",
+      "dependencies":[
+	"com.unity.render-pipelines.high-definition/Samples~/Common",
+	"com.unity.render-pipelines.core/Samples~/Common"
+	]
     },
     {
       "displayName": "Water Samples",
       "description": "Add a set of examples using the Environment features, such as Water System, Physically Based Sky or Clouds.",
-      "path": "Samples~/WaterSamples"
+      "path": "Samples~/WaterSamples",
+      "dependencies":[
+	"com.unity.render-pipelines.high-definition/Samples~/Common",
+	"com.unity.render-pipelines.core/Samples~/Common"
+	]
     }
   ]
 }

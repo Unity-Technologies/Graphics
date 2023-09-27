@@ -1,0 +1,164 @@
+{
+    "introduction": 
+	"""Welcome to the <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/shared/lens-flare/lens-flare-component.html">Lens Flare</a> Sample.
+
+<i>This scene works properly only in Play mode (in the Game view).</i>
+    
+• Left Click to place and move the lens flare with the mouse
+• Right Click to rotate the camera with the mouse
+• Use keys left and right arrow keys to cycle through the flares.
+• Use the number keys (1,2,3) to change the background environment""",
+    "samples": [
+        {
+            "title": "17-270mm",
+            "prefabName": "17-270mm",
+            "description": 
+	"""Click <link="17-270mm.asset">here</link> to inspect the elements composing this Lens Flare asset."""
+        },
+        {
+            "title": "50mm",
+            "prefabName": "50mm",
+            "description": 
+	"""Click <link="50mm.asset">here</link> to inspect the elements composing this Lens Flare asset."""
+        },
+        {
+            "title": "Anamorphic Digital Streak",
+            "prefabName": "Anamorphic_Digital_Streak",
+            "description": 
+	"""Click <link="Anamorphic_Digital_Streak.asset">here</link> to inspect the elements composing this Lens Flare asset.""" 
+        },
+        {
+            "title": "Anamorphic Sci-Fi",
+            "prefabName": "Anamorphic_Sci-Fi",
+            "description": 
+	"""Click <link="Anamorphic_Sci-Fi.asset">here</link> to inspect the elements composing this Lens Flare asset.""" 
+        },
+        {
+            "title": "Anamorphic Sci-Fi2",
+            "prefabName": "Anamorphic_Sci-Fi2",
+            "description": 
+	"""Click <link="Anamorphic_Sci-Fi2.asset">here</link> to inspect the elements composing this Lens Flare asset.""" 
+        },
+        {
+            "title": "Anamorphic Streak",
+            "prefabName": "Anamorphic_Streak",
+            "description": 
+	"""Click <link="Anamorphic_Streak.asset">here</link> to inspect the elements composing this Lens Flare asset.""" 
+        },
+        {
+            "title": "Anamorphic Streak Smudged",
+            "prefabName": "Anamorphic_Streak Smudged",
+            "description": 
+	"""Click <link="Anamorphic_Streak Smudged.asset">here</link> to inspect the elements composing this Lens Flare asset.""" 
+        },
+        {
+            "title": "Anamorphic Streak2",
+            "prefabName": "Anamorphic_Streak2",
+            "description": 
+	"""Click <link="Anamorphic_Streak2.asset">here</link> to inspect the elements composing this Lens Flare asset.""" 
+        },
+        {
+            "title": "Anamorphic Streak3",
+            "prefabName": "Anamorphic_Streak3",
+            "description": 
+	"""Click <link="Anamorphic_Streak3.asset">here</link> to inspect the elements composing this Lens Flare asset.""" 
+        },
+        {
+            "title": "Anamorphic Stylized",
+            "prefabName": "Anamorphic_Stylized",
+            "description": 
+	"""Click <link="Anamorphic_Stylized.asset">here</link> to inspect the elements composing this Lens Flare asset.""" 
+        },
+        {
+            "title": "Arena",
+            "prefabName": "Arena",
+            "description": 
+	"""Click <link="Arena.asset">here</link> to inspect the elements composing this Lens Flare asset.""" 
+        },
+        {
+            "title": "Arena 80s",
+            "prefabName": "Arena_80s",
+            "description": 
+	"""Click <link="Arena_80s.asset">here</link> to inspect the elements composing this Lens Flare asset.""" 
+        },
+        {
+            "title": "Caustic",
+            "prefabName": "Caustic",
+            "description": 
+	"""Click <link="Caustic.asset">here</link> to inspect the elements composing this Lens Flare asset.""" 
+        },
+        {
+            "title": "Caustic 2",
+            "prefabName": "Caustic2",
+            "description": 
+	"""Click <link="Caustic2.asset">here</link> to inspect the elements composing this Lens Flare asset.""" 
+        },
+        {
+            "title": "Morphing Spike",
+            "prefabName": "Morphing Spike",
+            "description": 
+	"""Click <link="Morphing Spike.asset">here</link> to inspect the elements composing this Lens Flare asset.""" 
+        },
+        {
+            "title": "Polycount",
+            "prefabName": "Polycount",
+            "description": 
+	"""Click <link="Polycount.asset">here</link> to inspect the elements composing this Lens Flare asset.""" 
+        },
+        {
+            "title": "Sci-Fi",
+            "prefabName": "Sci-Fi",
+            "description": 
+	"""Click <link="Sci-Fi.asset">here</link> to inspect the elements composing this Lens Flare asset.""" 
+        },
+        {
+            "title": "Scope Glint",
+            "prefabName": "Scope_Glint",
+            "description": 
+	"""Click <link="Scope_Glint.asset">here</link> to inspect the elements composing this Lens Flare asset.""" 
+        },
+        {
+            "title": "Shapes",
+            "prefabName": "Shapes",
+            "description": 
+	"""Click <link="Shapes.asset">here</link> to inspect the elements composing this Lens Flare asset.""" 
+        },
+        {
+            "title": "Shimmer",
+            "prefabName": "Shimmer",
+            "description": 
+	"""Click <link="Shimmer.asset">here</link> to inspect the elements composing this Lens Flare asset.""" 
+        },
+        {
+            "title": "Simple",
+            "prefabName": "Simple",
+            "description": 
+	"""Click <link="Simple.asset">here</link> to inspect the elements composing this Lens Flare asset.""" 
+        },
+        {
+            "title": "Simple Spike",
+            "prefabName": "Simple_Spike",
+            "description": 
+	"""Click <link="Simple_Spike.asset">here</link> to inspect the elements composing this Lens Flare asset.""" 
+        },
+        {
+            "title": "Smartphone Smudged",
+            "prefabName": "Smartphone_Smudged",
+            "description": 
+	"""Click <link="Smartphone_Smudged.asset">here</link> to inspect the elements composing this Lens Flare asset.""" 
+        },
+        {
+            "title": "Sun Flare with Ring",
+            "prefabName": "Sun_Flare_w_Ring",
+            "description": 
+	"""Click <link="Sun_Flare_w_Ring.asset">here</link> to inspect the elements composing this Lens Flare asset.""" 
+        },
+        {
+            "title": "Sun Glare",
+            "prefabName": "Sun_Glare",
+            "description": 
+	"""Click <link="Sun_Glare.asset">here</link> to inspect the elements composing this Lens Flare asset.""" 
+        }
+    ]
+
+}
