@@ -147,4 +147,3 @@ URP only supports HDR Output on the following platforms:
 * XR devices with HDR support
 
 > **Note**: DirectX 11 only supports HDR Output in the Player, it does not support HDR Output in the Editor.
-
