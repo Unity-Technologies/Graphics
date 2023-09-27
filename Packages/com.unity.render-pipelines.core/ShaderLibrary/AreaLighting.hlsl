@@ -4,7 +4,7 @@
 #define APPROXIMATE_POLY_LIGHT_AS_SPHERE_LIGHT
 #define APPROXIMATE_SPHERE_LIGHT_NUMERICALLY
 
-// Not normalized by the factor of 1/TWO_PI.
+// The output is *not* normalized by the factor of 1/TWO_PI (this is done by the PolygonFormFactor function).
 real3 ComputeEdgeFactor(real3 V1, real3 V2)
 {
     real  V1oV2 = dot(V1, V2);
@@ -29,17 +29,9 @@ real3 ComputeEdgeFactor(real3 V1, real3 V2)
 #endif
 }
 
-// Not normalized by the factor of 1/TWO_PI.
-// Ref: Improving radiosity solutions through the use of analytically determined form-factors.
-real IntegrateEdge(real3 V1, real3 V2)
-{
-    // 'V1' and 'V2' are represented in a coordinate system with N = (0, 0, 1).
-    return ComputeEdgeFactor(V1, V2).z;
-}
-
 // 'sinSqSigma' is the sine^2 of the half-angle subtended by the sphere (aperture) as seen from the shaded point.
 // 'cosOmega' is the cosine of the angle between the normal and the direction to the center of the light.
-// N.b.: this function accounts for horizon clipping.
+// This function performs horizon clipping.
 real DiffuseSphereLightIrradiance(real sinSqSigma, real cosOmega)
 {
 #ifdef APPROXIMATE_SPHERE_LIGHT_NUMERICALLY
@@ -124,20 +116,39 @@ real DiffuseSphereLightIrradiance(real sinSqSigma, real cosOmega)
 #endif
 }
 
-// This function does not check whether light's contribution is 0.
-real3 PolygonFormFactor(real4x3 L)
+// Input: 3-5 vertices in the coordinate frame centered at the shaded point.
+// Output: signed vector irradiance.
+// No horizon clipping is performed.
+real3 PolygonFormFactor(real4x3 L, real3 L4, uint n)
 {
     L[0] = SafeNormalize(L[0]);
     L[1] = SafeNormalize(L[1]);
     L[2] = SafeNormalize(L[2]);
-    L[3] = SafeNormalize(L[3]);
+
+    switch (n)
+    {
+        case 3:
+            L[3] = L[0];
+            break;
+        case 4:
+            L[3] = SafeNormalize(L[3]);
+            L4   = L[0];
+            break;
+        case 5:
+            L[3] = SafeNormalize(L[3]);
+            L4   = SafeNormalize(L4);
+            break;
+    }
 
     real3 F  = ComputeEdgeFactor(L[0], L[1]);
           F += ComputeEdgeFactor(L[1], L[2]);
           F += ComputeEdgeFactor(L[2], L[3]);
-          F += ComputeEdgeFactor(L[3], L[0]);
+    if (n >= 4)
+          F += ComputeEdgeFactor(L[3], L4);
+    if (n == 5)
+          F += ComputeEdgeFactor(L4, L[0]);
 
-    return INV_TWO_PI * F;
+    return INV_TWO_PI * F; // The output may be projected onto the tangent plane (F.z) to yield signed irradiance.
 }
 
 // See "Real-Time Area Lighting: a Journey from Research to Production", slide 102.
@@ -162,12 +173,13 @@ real PolygonIrradianceFromVectorFormFactor(float3 F)
 }
 
 // Expects non-normalized vertex positions.
-real PolygonIrradiance(real4x3 L)
+// Output: F is the signed vector irradiance.
+real PolygonIrradiance(real4x3 L, out real3 F)
 {
 #ifdef APPROXIMATE_POLY_LIGHT_AS_SPHERE_LIGHT
-    real3 F = PolygonFormFactor(L);
+    F = PolygonFormFactor(L, real3(0,0,0), 4); // Before horizon clipping.
 
-    return PolygonIrradianceFromVectorFormFactor(F);
+    return PolygonIrradianceFromVectorFormFactor(F); // Accounts for the horizon.
 #else
     // 1. ClipQuadToHorizon
 
@@ -281,41 +293,11 @@ real PolygonIrradiance(real4x3 L)
 
     if (n == 0) return 0;
 
-    // 2. Project onto sphere
-    L[0] = normalize(L[0]);
-    L[1] = normalize(L[1]);
-    L[2] = normalize(L[2]);
+    // 2. Integrate
+    F = PolygonFormFactor(L, L4, n); // After the horizon clipping.
 
-    switch (n)
-    {
-        case 3:
-            L[3] = L[0];
-            break;
-        case 4:
-            L[3] = normalize(L[3]);
-            L4   = L[0];
-            break;
-        case 5:
-            L[3] = normalize(L[3]);
-            L4   = normalize(L4);
-            break;
-    }
-
-    // 3. Integrate
-    real sum = 0;
-    sum += IntegrateEdge(L[0], L[1]);
-    sum += IntegrateEdge(L[1], L[2]);
-    sum += IntegrateEdge(L[2], L[3]);
-    if (n >= 4)
-        sum += IntegrateEdge(L[3], L4);
-    if (n == 5)
-        sum += IntegrateEdge(L4, L[0]);
-
-    sum *= INV_TWO_PI; // Normalization
-
-    sum = max(sum, 0.0);
-
-    return isfinite(sum) ? sum : 0.0;
+    // 3. Compute irradiance
+    return max(0, F.z);
 #endif
 }
 
