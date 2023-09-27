@@ -173,6 +173,9 @@ namespace UnityEditor.Rendering.HighDefinition
             foreach (var volume in volumes)
             {
                 var profile = volume.HasInstantiatedProfile() ? volume.profile : volume.sharedProfile;
+                if (profile == null)
+                    continue;
+
                 foreach (var component in profile.components)
                 {
                     HDRISky sky = component as HDRISky;

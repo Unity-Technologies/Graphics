@@ -23,7 +23,7 @@ GLOBAL_CBUFFER_START(ShaderVariablesPhysicallyBasedSky, b2)
     float _AtmosphericRadius;
     float _AerosolAnisotropy;
     float _AerosolPhasePartConstant;
-    float _Unused;
+    float _CelestialLightCount;
     float _AirDensityFalloff;
     float _AirScaleHeight;
     float _AerosolDensityFalloff;
@@ -42,7 +42,7 @@ GLOBAL_CBUFFER_START(ShaderVariablesPhysicallyBasedSky, b2)
     float _AlphaMultiplier;
     float _HorizonZenithShiftPower;
     float _HorizonZenithShiftScale;
-    float _Unused2;
+    uint _CelestialBodyCount;
 CBUFFER_END
 
 

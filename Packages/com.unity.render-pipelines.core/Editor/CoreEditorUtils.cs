@@ -382,7 +382,7 @@ namespace UnityEditor.Rendering
 
         /// <summary>Draw a splitter separator which is used after drawing a fouldout header.</summary>
         /// <param name="isBoxed">[Optional] add margin if the splitter is boxed</param>
-        internal static void DrawFoldoutEndSplitter(bool isBoxed = false)
+        public static void DrawFoldoutEndSplitter(bool isBoxed = false)
         {
             var rect = GUILayoutUtility.GetRect(1f, 1f);
 

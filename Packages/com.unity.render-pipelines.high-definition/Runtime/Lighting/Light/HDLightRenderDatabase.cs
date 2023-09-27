@@ -26,7 +26,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public float fadeDistance;
         public float distance;
         public float angularDiameter;
-        public float skyAngularDiameter;
         public float volumetricFadeDistance;
         public bool includeForRayTracing;
         public bool useScreenSpaceShadows;
@@ -45,21 +44,13 @@ namespace UnityEngine.Rendering.HighDefinition
         public float shapeRadius;
         public float barnDoorLength;
         public float barnDoorAngle;
-        public float flareSize;
-        public float flareFalloff;
         public bool affectVolumetric;
         public bool affectDiffuse;
         public bool affectSpecular;
         public bool applyRangeAttenuation;
         public bool penumbraTint;
         public bool interactsWithSky;
-        public Color surfaceTint;
-        public int bodyType;
-        public float moonPhase;
-        public float moonPhaseRotation;
-        public float earthshine;
         public Color shadowTint;
-        public Color flareTint;
     }
 
     internal struct HDAdditionalLightDataUpdateInfo
@@ -210,6 +201,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public DynamicArray<SpotLightCallbackData> customViewCallbackEvents => m_CustomViewCallbackEvents;
 
         public HDShadowRequestDatabase shadowRequests => HDShadowRequestDatabase.instance;
+
+        // This array tracks directional lights for the PBR sky
+        // We need this as VisibleLight result from culling ignores lights with intensity == 0
+        public List<HDAdditionalLightData> directionalLights = new();
 
         //Access of main instance
         static public HDLightRenderDatabase instance
@@ -397,6 +392,13 @@ namespace UnityEngine.Rendering.HighDefinition
             if (additionalLightData.CustomViewCallbackEvent != null)
                 ++m_ValidCustomViewCallbackEvents;
             ++m_AttachedGameObjects;
+
+            if (additionalLightData.legacyLight.type == LightType.Directional
+#if UNITY_EDITOR
+                 && !UnityEditor.SceneManagement.EditorSceneManager.IsPreviewScene(additionalLightData.gameObject.scene)
+#endif
+                )
+                directionalLights.Add(additionalLightData);
         }
 
         // Destroys a light render entity.
@@ -409,8 +411,14 @@ namespace UnityEngine.Rendering.HighDefinition
             LightEntityInfo entityData = m_LightEntities[lightEntity.entityIndex];
             m_LightsToEntityItem.Remove(entityData.lightInstanceID);
 
-            if (m_HDAdditionalLightData[entityData.dataIndex] != null)
+            var lightData = m_HDAdditionalLightData[entityData.dataIndex];
+            if (lightData != null)
+            {
+                int idx = directionalLights.FindIndex((x) => ReferenceEquals(x, lightData));
+                if (idx != -1) directionalLights.RemoveAt(idx);
+
                 --m_AttachedGameObjects;
+            }
 
             FreeHDShadowRequests(lightEntity);
 

@@ -55,20 +55,6 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty useScreenSpaceShadows;
         public SerializedProperty interactsWithSky;
         public SerializedProperty angularDiameter;
-        public SerializedProperty diameterMultiplerMode;
-        public SerializedProperty diameterMultiplier;
-        public SerializedProperty diameterOverride;
-        public SerializedProperty flareSize;
-        public SerializedProperty flareTint;
-        public SerializedProperty flareFalloff;
-        public SerializedProperty surfaceTexture;
-        public SerializedProperty surfaceTint;
-        public SerializedProperty distance;
-        public SerializedProperty emissiveLightSource;
-        public SerializedProperty automaticMoonPhase;
-        public SerializedProperty moonPhase;
-        public SerializedProperty moonPhaseRotation;
-        public SerializedProperty earthshine;
         public SerializedProperty useRayTracedShadows;
         public SerializedProperty numRayTracingSamples;
         public SerializedProperty filterTracedShadow;
@@ -90,6 +76,25 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty dirLightPCSSBlockerSamplingClumpExponent;
         public SerializedProperty dirLightPCSSBlockerSampleCount;
         public SerializedProperty dirLightPCSSFilterSampleCount;
+
+        // Celestial Body
+        public SerializedProperty diameterOverride;
+        public SerializedProperty diameterMultiplier;
+        public SerializedProperty diameterMultiplerMode;
+        public SerializedProperty distance;
+        public SerializedProperty surfaceTexture;
+        public SerializedProperty surfaceTint;
+        public SerializedProperty shadingSource;
+        public SerializedProperty sunLightOverride;
+        public SerializedProperty sunColor;
+        public SerializedProperty sunIntensity;
+        public SerializedProperty phase;
+        public SerializedProperty phaseRotation;
+        public SerializedProperty earthshine;
+        public SerializedProperty flareSize;
+        public SerializedProperty flareFalloff;
+        public SerializedProperty flareTint;
+        public SerializedProperty flareMultiplier;
 
         // Improved moment shadows data
         public SerializedProperty lightAngle;
@@ -287,20 +292,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 useScreenSpaceShadows = o.Find("m_UseScreenSpaceShadows");
                 interactsWithSky = o.Find("m_InteractsWithSky");
                 angularDiameter = o.Find("m_AngularDiameter");
-                diameterMultiplerMode = o.Find("m_DiameterMultiplerMode");
-                diameterMultiplier = o.Find("m_DiameterMultiplier");
-                diameterOverride = o.Find("m_DiameterOverride");
-                flareSize = o.Find("m_FlareSize");
-                flareFalloff = o.Find("m_FlareFalloff");
-                flareTint = o.Find("m_FlareTint");
-                surfaceTexture = o.Find("m_SurfaceTexture");
-                surfaceTint = o.Find("m_SurfaceTint");
-                distance = o.Find("m_Distance");
-                emissiveLightSource = o.Find("m_EmissiveLightSource");
-                automaticMoonPhase = o.Find("m_AutomaticMoonPhase");
-                moonPhase = o.Find("m_MoonPhase");
-                moonPhaseRotation = o.Find("m_MoonPhaseRotation");
-                earthshine = o.Find("m_Earthshine");
                 useRayTracedShadows = o.Find("m_UseRayTracedShadows");
                 numRayTracingSamples = o.Find("m_NumRayTracingSamples");
                 filterTracedShadow = o.Find("m_FilterTracedShadow");
@@ -322,6 +313,30 @@ namespace UnityEditor.Rendering.HighDefinition
                 dirLightPCSSBlockerSamplingClumpExponent = o.Find("m_DirLightPCSSBlockerSamplingClumpExponent");
                 dirLightPCSSBlockerSampleCount = o.Find("m_DirLightPCSSBlockerSampleCount");
                 dirLightPCSSFilterSampleCount = o.Find("m_DirLightPCSSFilterSampleCount");
+
+                // Celestial Body
+                diameterOverride = o.Find(x => x.diameterOverride);
+                diameterMultiplier = o.Find(x => x.diameterMultiplier);
+                diameterMultiplerMode = o.Find(x => x.diameterMultiplerMode);
+
+                distance = o.Find("m_Distance");
+
+                surfaceTexture = o.Find(x => x.surfaceTexture);
+                surfaceTint = o.Find(x => x.surfaceTint);
+
+                shadingSource = o.Find(x => x.celestialBodyShadingSource);
+                sunLightOverride = o.Find(x => x.sunLightOverride);
+
+                sunColor = o.Find(x => x.sunColor);
+                sunIntensity = o.Find(x => x.sunIntensity);
+                phase = o.Find(x => x.moonPhase);
+                phaseRotation = o.Find(x => x.moonPhaseRotation);
+                earthshine = o.Find(x => x.earthshine);
+
+                flareSize = o.Find(x => x.flareSize);
+                flareFalloff = o.Find(x => x.flareFalloff);
+                flareTint = o.Find(x => x.flareTint);
+                flareMultiplier = o.Find(x => x.flareMultiplier);
 
                 // Moment light
                 lightAngle = o.Find("m_LightAngle");
