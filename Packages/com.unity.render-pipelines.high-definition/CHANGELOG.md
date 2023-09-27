@@ -9,6 +9,71 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [16.0.3] - 2023-09-26
+
+This version is compatible with Unity 2023.2.0b12.
+
+### Changed
+- Stripping or IRenderPipelineGraphicsSettings.
+- Improved water system performances.
+- Optimized water surface scripting interactions.
+- Improvements to avoid clamping to integers for HDR manipulation.
+- Reduced *GC Allocation* when using raytracing and HDRP.
+- Update description of Decal Projector Draw Distance setting to mention HDRP asset setting
+- Adds a warning to the HDRP Wizard if a users project contains materials that cant be upgraded
+- Improved skyContext caching when the sky renderer changes
+
+### Fixed
+- Fixed memory leak of the Compute Buffer from Adaptive Probe Volume (APV) Resources.
+- Fixed unintended changes to default profile when a project is opened.
+- Fixed an issue where mixed runtime lights were not considering the intensity multiplier during bakes. These changes fix this behaviour and make bakes more intuitive.
+- Fixed rendering debugger for water surfaces.
+- Fixed FTLP (Fine Tiled Light Pruning) Shader Options max light count. Previous support only supported up to 63 These changes allow to go up to 255 with higher instability as numbers per tile approach 255.
+For support greater than 255, do it at your own risk! (and expect some flickering).
+- Fixed the appearance of water excluders when a camera is underwater.
+- Fixed recovering the current Quality level when migrating a HDRP Asset.
+- Added a warning to the reflection probe editor to prevent a user from baking in a low quality level.
+- Fixed out of bounds access when XR is enabled.
+- Fixed an issue where the material preview texture was the incorrect size.
+- Fixed the depthstencil buffer so that it binds the correct depthBuffer when refraction is enabled.
+- Fixed a performance reduction caused by MemClear calls on large frame buffers in HDRP PrepareLightsForGPU.
+- Fixed a black spot caused by a point light under a water surface.
+- Fixed GPU warnings cased by the HDRP water system.
+- Fixed an issue where the asset model material was not rendered properly in the Inspector preview until the model was moved.
+- Fixed an issue where material previews were rendered in black.
+- Fixed an issue with the real-time Reflection probe that caused the volumetrics clouds wind to stop.
+- Fixed HDRP's rendering logic to avoid accessing the decal system atlas when decals are not enabled.
+- Fixed an issue with the Water Surface component so it is now drawn correctly in the Inspector.
+- Fixed the preview for refractive materials in MSAA.
+- Fixed an issue that would prevent games from switching off HDR at runtime.
+- Fixed a GraphicsBuffer leak in the APV binding code.
+- Fixed an issue that disabled HDR output on Macs.
+- Fixed an issue so that water deformation is now visible in wireframe mode.
+- Fixed Helpbox UI for LightProbeGroup Inspector.
+- Fixed a potential GPU crash/hang when using local volumetric fogs.
+- Fixed the HDRP Global Settings window so it displays an error when Rendering Layer Names is empty.
+- Fixed an issue where an async pass would try to sync to a culled pass mistakenly.
+- Fixed the logic used to set up materials featuring displacement mapping that would sometimes result in artifacts or suboptimal performance.
+- Fixed mixed tracing mode for transparent screenspace reflections now mixes both tracing modes as expected, instead of only using ray traced reflections.
+- Fixed custom post process volume component example in doc.
+- Fixed ShaderGraph Decal material position issue by using world space position.
+- Fixed the sharpening pass in order to avoid washed-out colors when using a render target with an alpha channel.
+- Fixed an error that happened when a water component used a non-water material. 
+- Fixed UI that appeared incorrectly in the sample settings helper.
+- Fixed the appearance of foam on shore waves.
+- Added a color parameter to tint water foam.
+- Fixed missing current sector data in debug modes
+- Improve performance of infinite water surfaces with tessellation on metal
+- Fix virtual offset on complex geometries
+- Improved VolumetricSky caching and Reduced significantly memory allocation for scenes with multiple realtime reflection probes
+- Gray out the UI of light cluster override and show the same message as path tracing if raytracing is disabled.
+- Fixed an issue where non directional light could react to "interact with sky" flag.
+- Fix crash when cleaning up the reflection probe camera cache
+- Fixing a SetData error when using more lights in a scene than the configured max light count settings.
+- Fix blending between cascaded shadowmaps and shadowmask as well as cascades border ranges
+- Fixed XR occlusion mesh artifact with HDRP camera relative rendering.
+- Fixed Directional light PCSS API
+
 ## [16.0.2] - 2023-06-28
 
 This version is compatible with Unity 2023.2.0a22.

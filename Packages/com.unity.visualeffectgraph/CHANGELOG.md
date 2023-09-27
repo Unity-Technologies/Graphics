@@ -9,6 +9,29 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [16.0.3] - 2023-09-26
+
+This version is compatible with Unity 2023.2.0b12.
+
+### Changed
+- Allows texture types to be used in branch operators
+
+### Fixed
+- Fixed an issue where VFX material indices were not itialized an were invalid if used on Awake.
+- Fixed HDRP Decal Output when system is in world space.
+- VFX Graph
+- Fixed  VFX camera command culling failling when all effects are out of frustum.
+- Fixed undefined behavior of `SpawnerSetAttribute` when an expression is connected to activation slot.
+- Fixed an issue where creating a new Visual Effect Graph instance to overwrite another instance that's already open would open the same view twice and could corrupt related data.
+- Fixed Picking Overlay when the rotation was applied on VisualEffect component.
+- Fixed issue when overwriting an opened VFX asset with a VFX that contains different systems than original file
+- Fixed a performance issue with parameters gizmos
+- Fixed missing gizmo for Position exposed property
+- Keep the built-in templates category always visible when there's no user defined category
+- Template items could have uneven width when the left panel is too small
+- The template item hit box was slightly bigger than its visual representation, now it perfectly match.
+- The right panel (details panel) could be resize to as small as zero width, leading to messy layout. Now it has a minimum width of 200px (like the left panel).
+
 ## [16.0.2] - 2023-06-28
 
 This version is compatible with Unity 2023.2.0a22.
