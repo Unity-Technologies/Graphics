@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+
 using UnityEngine;
 using UnityEditor.Experimental.VFX.Utility;
 
@@ -21,7 +22,9 @@ namespace UnityEditor.VFX
         {
             base.GetImportDependentAssets(dependencies);
             if (!object.ReferenceEquals(Asset, null))
+            {
                 dependencies.Add(Asset.GetInstanceID());
+            }
         }
 
         protected override IEnumerable<VFXPropertyWithValue> outputProperties

@@ -155,6 +155,14 @@ class VisualEffectAssetEditor : Editor
         {
             m_OutputContexts[i].vfxSystemSortPriority = i;
         }
+
+        if (VFXViewWindow.currentWindow == null || VFXViewWindow.currentWindow.graphView?.controller?.graph.visualEffectResource.GetInstanceID() != m_CurrentGraph.visualEffectResource.GetInstanceID() || !VFXViewWindow.currentWindow.hasFocus)
+        {
+            using var reporter = new VFXCompileErrorReporter(new VFXErrorManager());
+            VFXGraph.compileReporter = reporter;
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(m_CurrentGraph.visualEffectResource));
+            VFXGraph.compileReporter = null;
+        }
     }
 
     private void DrawOutputContextItem(Rect rect, int index, bool isActive, bool isFocused)
@@ -654,7 +662,7 @@ class VisualEffectAssetEditor : Editor
         {
             EditorGUI.BeginChangeCheck();
             EditorGUI.showMixedValue = initialEventName.hasMultipleDifferentValues;
-            EditorGUILayout.PropertyField(initialEventName, new GUIContent("Initial Event Name", "Sets the name of the event which triggers once the system is activated. Default: ‘OnPlay’."));
+            EditorGUILayout.PropertyField(initialEventName, new GUIContent("Initial Event Name", "Sets the name of the event which triggers once the system is activated. Default: �OnPlay�."));
             if (EditorGUI.EndChangeCheck())
             {
                 resourceObject.ApplyModifiedProperties();

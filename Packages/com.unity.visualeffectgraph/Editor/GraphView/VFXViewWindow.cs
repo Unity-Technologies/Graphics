@@ -91,6 +91,18 @@ namespace UnityEditor.VFX.UI
             get { return m_ResourceHistory; }
         }
 
+        public static void RefreshErrors(VFXModel model)
+        {
+            if (currentWindow != null &&
+                currentWindow.graphView != null &&
+                currentWindow.graphView.controller != null &&
+                model != null &&
+                model.GetGraph() is { } graph)
+            {
+                currentWindow.graphView.RefreshErrors(model);
+            }
+        }
+
         public void PushResource(VisualEffectResource resource)
         {
             if (graphView.controller == null || graphView.controller.model != resource)
@@ -278,8 +290,8 @@ namespace UnityEditor.VFX.UI
                         if (autoCompile && graph.IsExpressionGraphDirty() && !graph.GetResource().isSubgraph)
                         {
                             VFXGraph.explicitCompile = true;
-                            graph.errorManager.ClearAllErrors(null, VFXErrorOrigin.Compilation);
-                            using (var reporter = new VFXCompileErrorReporter(controller.graph.errorManager))
+                            graphView.errorManager.ClearAllErrors(null, VFXErrorOrigin.Compilation);
+                            using (var reporter = new VFXCompileErrorReporter(graphView.errorManager))
                             {
                                 VFXGraph.compileReporter = reporter;
                                 AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graphView.controller.model));

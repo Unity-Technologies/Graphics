@@ -380,7 +380,7 @@ namespace UnityEditor.VFX
             return m_Nodes.FirstOrDefault(t => t.id == id);
         }
 
-        protected override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        internal override void GenerateErrors(VFXInvalidateErrorReporter manager)
         {
             base.GenerateErrors(manager);
 

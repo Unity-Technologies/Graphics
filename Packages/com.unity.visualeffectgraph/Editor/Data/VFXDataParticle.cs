@@ -247,7 +247,7 @@ namespace UnityEditor.VFX
                 var allSystemOutputContexts = owners.Where(ctx => ctx is VFXAbstractParticleOutput);
                 foreach (var ctx in allSystemOutputContexts)
                 {
-                    ctx.RefreshErrors(GetGraph());
+                    ctx.RefreshErrors();
                 }
 
                 if (boundsMode == BoundsSettingMode.Automatic)
