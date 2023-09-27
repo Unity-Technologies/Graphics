@@ -6,10 +6,7 @@ VFXComponentBoard.graphElement
     padding-right:0;
     padding-top:0;
     padding-bottom:0;
-
-
-
-
+    margin: 0;
     min-width: 286px;
     min-height: 100px;
 }
@@ -19,10 +16,6 @@ VFXComponentBoard.graphElement > .mainContainer
     flex: 1 1 auto;
     background-color: #2b2b2b;
     border-color: #191919;
-    margin-left:6px;
-    margin-right:6px;
-    margin-top:6px;
-    margin-bottom:6px;
 }
 
  *

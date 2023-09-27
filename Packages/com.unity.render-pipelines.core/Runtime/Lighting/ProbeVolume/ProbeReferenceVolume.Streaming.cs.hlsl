@@ -4,9 +4,9 @@
 
 #ifndef PROBEREFERENCEVOLUME_STREAMING_CS_HLSL
 #define PROBEREFERENCEVOLUME_STREAMING_CS_HLSL
-// Generated from UnityEngine.Rendering.ProbeReferenceVolume+CellStreamingScratchBuffer+BufferLayout
+// Generated from UnityEngine.Rendering.ProbeReferenceVolume+CellStreamingScratchBufferLayout
 // PackingRules = Exact
-CBUFFER_START(ProbeVolumeScratchBufferLayout)
+CBUFFER_START(CellStreamingScratchBufferLayout)
     int _SharedDestChunksOffset;
     int _L0L1rxOffset;
     int _L1GryOffset;

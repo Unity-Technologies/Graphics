@@ -163,6 +163,14 @@ If there is any noise that affects the exposure in the final converged frame, ad
 
 * **Limit Max**
 
+## Path tracing and Light sources 
+
+Due to the fundamentally different nature of Path Tracing, light sources are queried differently. To support this, the path tracer needs to build some additional data structures that contain light source information. These data structures limit the maximum number of lights that can be evaluated in local neighborhoods. In the current implementation, there are two such data structures. 
+
+The first one is the [Ray Tracing Light Cluster](Ray-Tracing-Light-Cluster.md). It is used to resolve the lights and Decals (see below) around a specific point. The maximum number of lights per cell in this cluster can be increased if necessary. 
+
+The second one is the Path Tracing light list and internal data structure used to capture all light sources relevant to a specific path segment. If too many light sources are close to each other, they might not all fit in the light list. This might result in artifacts. To remove these artifacts, you can change the `PathTracingMaxLightCount` setting through the [HDRP Config mechanism](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/HDRP-Config-Package.html).
+
 ## Path tracing and Decals 
 
 In order to efficiently support the path tracing of decals, Decal Projectors are added to the [Ray Tracing Light Cluster](Ray-Tracing-Light-Cluster.md). In the case of many decals in a small volume, it might be necessary to increase the maximum number of lights per cell.
@@ -199,7 +207,7 @@ HDRP path tracing in Unity currently has the following limitations:
 
 ### Unsupported shader graph nodes for path tracing
 
-When building your custom shaders using shader graph, some nodes are incompatible with ray/path tracing. You need either to avoid using them or provide an alternative behavior using the [ray tracing shader node](SGNode-Raytracing-Quality). Here is the list of the incompatible nodes:
+When building your custom shaders using shader graph, some nodes are incompatible with ray/path tracing. Here is the list of the incompatible nodes:
 - DDX, DDY, DDXY, NormalFromHeight and HDSceneColor nodes.
 - All the nodes under Inputs > Geometry (Position, View Direction, Normal, etc.) in View Space mode.
 Furthermore, Shader Graphs that use [Custom Interpolators](../../com.unity.shadergraph/Documentation~/Custom-Interpolators.md) aren't supported in ray/path tracing.

@@ -802,7 +802,7 @@ namespace UnityEditor.VFX
 
                 attributeSourceBufferIndex = dependentBuffers.attributeBuffers[dependency];
                 eventGPUFrom = dependentBuffers.eventBuffers[this];
-               
+
                 systemValueMappings.Add(new VFXMapping("parentSystemIndex", (int)dataToSystemIndex[dependency]));
             }
             var systemFlag = VFXSystemFlag.SystemDefault;
@@ -1417,7 +1417,7 @@ namespace UnityEditor.VFX
                 taskDesc.model = context;
                 taskDesc.usesMaterialVariant = compilationMode == VFXCompilationMode.Edition && context.usesMaterialVariantInEditMode;
 
-                if (context is IVFXMultiMeshOutput) // If the context is a multi mesh output, split and patch task desc into several tasks
+                if (context is IVFXMultiMeshOutput meshOutput && meshOutput.meshCount > 0) // If the context is a multi mesh output, split and patch task desc into several tasks
                 {
                     var multiMeshOutput = (IVFXMultiMeshOutput)context;
                     for (int j = (int)multiMeshOutput.meshCount - 1; j >= 0; --j) // Back to front to be consistent with LOD and alpha
@@ -1689,9 +1689,10 @@ namespace UnityEditor.VFX
                 var contextUniformMapper = new VFXUniformMapper(gpuMapper, context.doesGenerateShader, true);
 
                 // SG inputs if needed
-                var fragInputNames = context.fragmentParameters;
-                var vertInputNames = context.vertexParameters;
-                var contextSGInputs = fragInputNames.Any() || vertInputNames.Any() ? new VFXSGInputs(gpuMapper, contextUniformMapper, vertInputNames, fragInputNames) : null;
+                VFXShaderGraphHelpers.GetShaderGraphParameter(context, out var fragInputNames, out var vertInputNames);
+
+                var contextSGInputs = (fragInputNames?.Count > 0) || (vertInputNames?.Count > 0)
+                                      ? new VFXSGInputs(gpuMapper, contextUniformMapper, vertInputNames, fragInputNames) : null;
 
                 // Add gpu and uniform mapper
                 foreach (var task in compiledData.contextToCompiledData[context].tasks)

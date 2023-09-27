@@ -32,8 +32,8 @@ namespace UnityEditor.Rendering.Universal
 
         internal SerializedProperty lightProbeSystem;
         internal SerializedProperty probeVolumeTextureSize;
-        internal SerializedProperty probeVolumeBlendingTextureSize;
         internal SerializedProperty supportProbeVolumeStreaming;
+        internal SerializedProperty supportProbeVolumeScenarios;
         internal SerializedProperty probeVolumeSHBands;
 
         public SerializedProperty additionalLightsRenderingModeProp { get; }
@@ -69,7 +69,6 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty useRenderingLayers { get; }
         public SerializedProperty supportsLightCookies { get; }
         public SerializedProperty debugLevelProp { get; }
-        public SerializedProperty enableRenderGraph { get; }
 
         public SerializedProperty volumeFrameworkUpdateModeProp { get; }
         public SerializedProperty volumeProfileProp { get; }
@@ -79,6 +78,9 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty useFastSRGBLinearConversion { get; }
         public SerializedProperty supportDataDrivenLensFlare { get; }
         public SerializedProperty supportScreenSpaceLensFlare { get; }
+
+        public SerializedProperty gpuResidentDrawerMode { get; }
+        public SerializedProperty gpuResidentDrawerAllowInEditMode { get; }
 
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
         public SerializedProperty useAdaptivePerformance { get; }
@@ -112,8 +114,8 @@ namespace UnityEditor.Rendering.Universal
 
             lightProbeSystem = serializedObject.FindProperty("m_LightProbeSystem");
             probeVolumeTextureSize = serializedObject.FindProperty("m_ProbeVolumeMemoryBudget");
-            probeVolumeBlendingTextureSize = serializedObject.FindProperty("m_ProbeVolumeBlendingMemoryBudget");
             supportProbeVolumeStreaming = serializedObject.FindProperty("m_SupportProbeVolumeStreaming");
+            supportProbeVolumeScenarios = serializedObject.FindProperty("m_SupportProbeVolumeScenarios");
             probeVolumeSHBands = serializedObject.FindProperty("m_ProbeVolumeSHBands");
 
             mainLightRenderingModeProp = serializedObject.FindProperty("m_MainLightRenderingMode");
@@ -154,7 +156,6 @@ namespace UnityEditor.Rendering.Universal
             useRenderingLayers = serializedObject.FindProperty("m_SupportsLightLayers");
             supportsLightCookies = serializedObject.FindProperty("m_SupportsLightCookies");
             debugLevelProp = serializedObject.FindProperty("m_DebugLevel");
-            enableRenderGraph = serializedObject.FindProperty("m_EnableRenderGraph");
 
             volumeFrameworkUpdateModeProp = serializedObject.FindProperty("m_VolumeFrameworkUpdateMode");
             volumeProfileProp = serializedObject.FindProperty("m_VolumeProfile");
@@ -167,6 +168,9 @@ namespace UnityEditor.Rendering.Universal
             useFastSRGBLinearConversion = serializedObject.FindProperty("m_UseFastSRGBLinearConversion");
             supportDataDrivenLensFlare = serializedObject.FindProperty("m_SupportDataDrivenLensFlare");
             supportScreenSpaceLensFlare = serializedObject.FindProperty("m_SupportScreenSpaceLensFlare");
+
+            gpuResidentDrawerMode = serializedObject.FindProperty("m_GPUResidentDrawerMode");
+            gpuResidentDrawerAllowInEditMode = serializedObject.FindProperty("m_GPUResidentDrawerAllowInEditMode");
 
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
             useAdaptivePerformance = serializedObject.FindProperty("m_UseAdaptivePerformance");

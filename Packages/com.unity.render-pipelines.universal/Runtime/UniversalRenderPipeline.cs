@@ -23,7 +23,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public const string k_ShaderTagName = "UniversalPipeline";
 
-        private static class Profiling
+        internal static class Profiling
         {
             private static Dictionary<int, ProfilingSampler> s_HashSamplerCache = new Dictionary<int, ProfilingSampler>();
             public static readonly ProfilingSampler unknownSampler = new ProfilingSampler("Unknown");
@@ -198,8 +198,18 @@ namespace UnityEngine.Rendering.Universal
         public UniversalRenderPipeline(UniversalRenderPipelineAsset asset)
         {
             pipelineAsset = asset;
-
+#if UNITY_EDITOR
+            m_GlobalSettings = UniversalRenderPipelineGlobalSettings.Ensure();
+            if (asset is IGPUResidentRenderPipeline mbAsset)
+            {
+                if (mbAsset.gpuResidentDrawerSettings.mode != GPUResidentDrawerMode.Disabled)
+                    m_GlobalSettings.EnsureGPUResidentDrawerResources(forceReload: true);
+                else
+                    m_GlobalSettings.ClearGPUResidentDrawerResources();
+            }
+#else
             m_GlobalSettings = UniversalRenderPipelineGlobalSettings.instance;
+#endif
 
             SetSupportedRenderingFeatures(pipelineAsset);
 
@@ -258,7 +268,6 @@ namespace UnityEngine.Rendering.Universal
                 ProbeReferenceVolume.instance.Initialize(new ProbeVolumeSystemParameters
                 {
                     memoryBudget = asset.probeVolumeMemoryBudget,
-                    blendingMemoryBudget = asset.probeVolumeBlendingMemoryBudget,
                     probeDebugShader = asset.scriptableRendererData.probeVolumeResources.probeVolumeDebugShader,
                     fragmentationDebugShader = asset.scriptableRendererData.probeVolumeResources.probeVolumeFragmentationDebugShader,
                     probeSamplingDebugShader = asset.scriptableRendererData.probeVolumeResources.probeVolumeSamplingDebugShader,
@@ -270,7 +279,7 @@ namespace UnityEngine.Rendering.Universal
                     shBands = asset.probeVolumeSHBands,
                     supportGPUStreaming = asset.supportProbeVolumeStreaming,
                     supportDiskStreaming = false,
-                    supportScenarios = false
+                    supportScenarios = asset.supportProbeVolumeScenarios,
                 });
             }
         }
@@ -347,18 +356,12 @@ namespace UnityEngine.Rendering.Universal
         protected override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
 #endif
         {
-#if RENDER_GRAPH_ENABLED
-            useRenderGraph = asset.enableRenderGraph || RenderGraphGraphicsAutomatedTests.enabled;
-#else
-            if (RenderGraphGraphicsAutomatedTests.enabled)
-                asset.enableRenderGraph = useRenderGraph = true;
-#endif
+            useRenderGraph = asset.enableRenderGraph;
 
             SetHDRState(cameras);
 
-            // When HDR is active we render UI overlay per camera as we want all UI to be calibrated to white paper inside a single pass
-            // for performance reasons otherwise we render UI overlay after all camera
-            SupportedRenderingFeatures.active.rendersUIOverlay = HDROutputForAnyDisplayIsActive();
+            // For XR and HDR, UI Overlay ownership must be enforced
+            AdjustUIOverlayOwnership();
 
             // TODO: Would be better to add Profiling name hooks into RenderPipelineManager.
             // C#8 feature, only in >= 2020.2
@@ -381,16 +384,6 @@ namespace UnityEngine.Rendering.Universal
             GraphicsSettings.defaultRenderingLayerMask = k_DefaultRenderingLayerMask;
             SetupPerFrameShaderConstants();
             XRSystem.SetDisplayMSAASamples((MSAASamples)asset.msaaSampleCount);
-
-#if UNITY_EDITOR
-            // We do not want to start rendering if URP global settings are not ready (m_globalSettings is null)
-            // or been deleted/moved (m_globalSettings is not necessarily null)
-            if (m_GlobalSettings == null || UniversalRenderPipelineGlobalSettings.instance == null)
-            {
-                m_GlobalSettings = UniversalRenderPipelineGlobalSettings.Ensure();
-                if(m_GlobalSettings == null) return;
-            }
-#endif
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
             if (DebugManager.instance.isAnyDebugUIActive)
@@ -622,7 +615,7 @@ namespace UnityEngine.Rendering.Universal
                 return;
             }
 
-            var frameData = GetRenderer(camera, additionalCameraData).resources.frameData;
+            var frameData = GetRenderer(camera, additionalCameraData).frameData;
             var cameraData = CreateCameraData(frameData, camera, additionalCameraData, true);
             InitializeAdditionalCameraData(camera, additionalCameraData, true, cameraData);
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
@@ -667,7 +660,8 @@ namespace UnityEngine.Rendering.Universal
                 return;
             }
 
-            using ContextContainer frameData = renderer.resources.frameData;
+            // Note: We are disposing frameData once this variable goes out of scope.
+            using ContextContainer frameData = renderer.frameData;
 
             if (!TryGetCullingParameters(cameraData, out var cullingParameters))
                 return;
@@ -677,8 +671,7 @@ namespace UnityEngine.Rendering.Universal
             s_RenderGraph.NativeRenderPassesEnabled = false;
             Debug.LogWarning("The native render pass compiler is disabled. Use this for debugging only. Mobile performance may be sub-optimal.");
 #else
-            bool platformNativeRenderpassIsBroken = SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D12;
-            s_RenderGraph.NativeRenderPassesEnabled = renderer.supportsNativeRenderPassRendergraphCompiler && !platformNativeRenderpassIsBroken;
+            s_RenderGraph.NativeRenderPassesEnabled = renderer.supportsNativeRenderPassRendergraphCompiler;
 #endif
             bool isSceneViewCamera = cameraData.isSceneViewCamera;
 
@@ -701,10 +694,7 @@ namespace UnityEngine.Rendering.Universal
 
                 using (new ProfilingScope(Profiling.Pipeline.Renderer.setupCullingParameters))
                 {
-                    var legacyCameraData = new CameraData
-                    {
-                        frameData = frameData
-                    };
+                    var legacyCameraData = new CameraData(frameData);
 
                     renderer.OnPreCullRenderPasses(in legacyCameraData);
                     renderer.SetupCullingParameters(ref cullingParameters, ref legacyCameraData);
@@ -768,7 +758,7 @@ namespace UnityEngine.Rendering.Universal
                 // Initialize all the data types required for rendering.
                 using (new ProfilingScope(Profiling.Pipeline.initializeRenderingData))
                 {
-                    CreateUniversalResourcesData(frameData);
+                    CreateUniversalResourceData(frameData);
                     CreateLightData(frameData, asset, cullResults.visibleLights);
                     CreateShadowData(frameData, asset, isForwardPlus);
                     CreatePostProcessingData(frameData, asset, anyPostProcessingEnabled);
@@ -936,7 +926,7 @@ namespace UnityEngine.Rendering.Universal
                 // Update volumeframework before initializing additional camera data
                 UpdateVolumeFramework(baseCamera, baseCameraAdditionalData);
 
-                ContextContainer frameData = renderer.resources.frameData;
+                ContextContainer frameData = renderer.frameData;
                 UniversalCameraData baseCameraData = CreateCameraData(frameData, baseCamera, baseCameraAdditionalData, !isStackedRendering);
 
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -994,7 +984,7 @@ namespace UnityEngine.Rendering.Universal
                         // Camera is overlay and enabled
                         if (overlayAdditionalCameraData != null)
                         {
-                            ContextContainer overlayFrameData = GetRenderer(overlayCamera, overlayAdditionalCameraData).resources.frameData;
+                            ContextContainer overlayFrameData = GetRenderer(overlayCamera, overlayAdditionalCameraData).frameData;
                             UniversalCameraData overlayCameraData = CreateCameraData(overlayFrameData, baseCamera, baseCameraAdditionalData, false);
 #if ENABLE_VR && ENABLE_XR_MODULE
                             if (xrPass.enabled)
@@ -1171,6 +1161,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
             SupportedRenderingFeatures.active.supportsHDR = pipelineAsset.supportsHDR;
+            SupportedRenderingFeatures.active.rendersUIOverlay = true;
         }
 
         static ScriptableRenderer GetRenderer(Camera camera, UniversalAdditionalCameraData additionalCameraData)
@@ -1186,7 +1177,7 @@ namespace UnityEngine.Rendering.Universal
             using var profScope = new ProfilingScope(Profiling.Pipeline.initializeCameraData);
 
             var renderer = GetRenderer(camera, additionalCameraData);
-            var cameraData = frameData.Create<UniversalCameraData>();
+            UniversalCameraData cameraData = frameData.Create<UniversalCameraData>();
             InitializeStackedCameraData(camera, additionalCameraData, cameraData);
 
             cameraData.camera = camera;
@@ -1452,11 +1443,11 @@ namespace UnityEngine.Rendering.Universal
         {
             using var profScope = new ProfilingScope(Profiling.Pipeline.initializeShadowData);
 
-            var shadowData = frameData.Create<UniversalShadowData>();
+            UniversalShadowData shadowData = frameData.Create<UniversalShadowData>();
 
-            var cameraData = frameData.Get<UniversalCameraData>();
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
 
-            var lightData = frameData.Get<UniversalLightData>();
+            UniversalLightData lightData = frameData.Get<UniversalLightData>();
             var mainLightIndex = lightData.mainLightIndex;
             var visibleLights = lightData.visibleLights;
 
@@ -1591,7 +1582,7 @@ namespace UnityEngine.Rendering.Universal
 
         static void CreatePostProcessingData(ContextContainer frameData, UniversalRenderPipelineAsset settings, bool anyPostProcessingEnabled)
         {
-            var postProcessingData = frameData.Create<UniversalPostProcessingData>();
+            UniversalPostProcessingData postProcessingData = frameData.Create<UniversalPostProcessingData>();
             var isHDROutputActive = frameData.Get<UniversalCameraData>().isHDROutputActive;
 
             postProcessingData.isEnabled = anyPostProcessingEnabled;
@@ -1609,16 +1600,16 @@ namespace UnityEngine.Rendering.Universal
             postProcessingData.supportDataDrivenLensFlare = settings.supportDataDrivenLensFlare;
         }
 
-        static void CreateUniversalResourcesData(ContextContainer frameData)
+        static void CreateUniversalResourceData(ContextContainer frameData)
         {
-            frameData.Create<UniversalResourcesData>();
+            frameData.Create<UniversalResourceData>();
         }
 
         static void CreateLightData(ContextContainer frameData, UniversalRenderPipelineAsset settings, NativeArray<VisibleLight> visibleLights)
         {
             using var profScope = new ProfilingScope(Profiling.Pipeline.initializeLightData);
 
-            var lightData = frameData.Create<UniversalLightData>();
+            UniversalLightData lightData = frameData.Create<UniversalLightData>();
 
             int maxPerObjectAdditionalLights = UniversalRenderPipeline.maxPerObjectLights;
             int maxVisibleAdditionalLights = UniversalRenderPipeline.maxVisibleAdditionalLights;
@@ -1953,14 +1944,18 @@ namespace UnityEngine.Rendering.Universal
 
             return hdrDisplayOutputActive;
         }
+        
+        // We only want to enable HDR Output for the game view once
+        // since the game itself might want to control this
+        internal bool enableHDROnce = true;
 
         /// <summary>
         /// Configures the render pipeline to render to HDR output or disables HDR output.
         /// </summary>
 #if UNITY_2021_1_OR_NEWER
-        static void SetHDRState(List<Camera> cameras)
+        void SetHDRState(List<Camera> cameras)
 #else
-        static void SetHDRState(Camera[] cameras)
+        void SetHDRState(Camera[] cameras)
 #endif
         {
             bool hdrOutputActive = HDROutputSettings.main.available && HDROutputSettings.main.active;
@@ -1989,10 +1984,11 @@ namespace UnityEngine.Rendering.Universal
                     requestedHDRModeChange = hdrOutputActive;
                     HDROutputSettings.main.RequestHDRModeChange(false);
                 }
-                else
+                else if (enableHDROnce)
                 {
                     requestedHDRModeChange = !hdrOutputActive;
                     HDROutputSettings.main.RequestHDRModeChange(true);
+                    enableHDROnce = false;
                 }
             }
 
@@ -2148,6 +2144,23 @@ namespace UnityEngine.Rendering.Universal
         {
             using var profScope = new ProfilingScope(Profiling.Pipeline.buildAdditionalLightsShadowAtlasLayout);
             return new AdditionalLightsShadowAtlasLayout(ref lightData, ref shadowData, ref cameraData);
+        }
+
+        /// <summary>
+        /// Enforce under specific circumstances whether URP or native engine triggers the UI Overlay rendering
+        /// </summary>
+        static void AdjustUIOverlayOwnership()
+        {
+            // If rendering to XR device, we don't render SS UI overlay within SRP as the overlay should not be visible in HMD eyes, only when mirroring (after SRP XR Mirror pass)
+            if (XRSystem.displayActive)
+            {
+                SupportedRenderingFeatures.active.rendersUIOverlay = false;
+            }
+            // When HDR is active and no XR we enforce UI overlay per camera as we want all UI to be calibrated to white paper inside a single pass
+            else if (HDROutputForAnyDisplayIsActive())
+            {
+                SupportedRenderingFeatures.active.rendersUIOverlay = true;
+            }
         }
     }
 }

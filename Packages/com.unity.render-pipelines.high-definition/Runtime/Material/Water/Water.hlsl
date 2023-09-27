@@ -366,7 +366,6 @@ struct PreLightData
 
     // Area lights (17 VGPRs)
     // TODO: 'orthoBasisViewNormal' is just a rotation around the normal and should thus be just 1x VGPR.
-    float3x3 orthoBasisViewDiffuseNormal;
     float3x3 orthoBasisViewNormal;   // Right-handed view-dependent orthogonal basis around the normal (6x VGPRs)
     float3x3 ltcTransformDiffuse;    // Inverse transformation for Lambertian or Disney Diffuse        (4x VGPRs)
     float3x3 ltcTransformSpecular;   // Inverse transformation for GGX                                 (4x VGPRs)
@@ -433,6 +432,8 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     // Evaluate the scattering color and take into account the under water ambient probe contribution as this value is only used for under-water scenarios
     preLightData.scatteringColor = profile.scatteringColor * lerp(1.0, _WaterAmbientProbe.w * GetCurrentExposureMultiplier(), profile.underWaterAmbientProbeContribution);
 
+    bsdfData.foamColor = bsdfData.foam * profile.foamColor.xyz;
+
     float3 N = bsdfData.normalWS;
     preLightData.NdotV = dot(N, V);
     preLightData.iblPerceptualRoughness = max(profile.envPerceptualRoughness, bsdfData.perceptualRoughness);
@@ -455,25 +456,12 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     preLightData.iblR = reflect(-V, iblN);
 
     // Area light
-    // UVs for sampling the LUTs
-    float theta = FastACosPos(clampedNdotV); // For Area light - UVs for sampling the LUTs
-    float2 uv = Remap01ToHalfTexelCoord(float2(bsdfData.perceptualRoughness, theta * INV_HALF_PI), LTC_LUT_SIZE);
-
-    // Note we load the matrix transpose (avoid to have to transpose it in shader)
 #ifdef USE_DIFFUSE_LAMBERT_BRDF
-    preLightData.ltcTransformDiffuse = k_identity3x3;
+    preLightData.ltcTransformDiffuse  = k_identity3x3;
 #else
-    // Get the inverse LTC matrix for Disney Diffuse
-    preLightData.ltcTransformDiffuse      = 0.0;
-    preLightData.ltcTransformDiffuse._m22 = 1.0;
-    preLightData.ltcTransformDiffuse._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, s_linear_clamp_sampler, uv, LTCLIGHTINGMODEL_DISNEY_DIFFUSE, 0);
+    preLightData.ltcTransformDiffuse  = SampleLtcMatrix(bsdfData.perceptualRoughness, clampedNdotV, LTCLIGHTINGMODEL_DISNEY_DIFFUSE);
 #endif
-
-    // Get the inverse LTC matrix for GGX
-    // Note we load the matrix transpose (avoid to have to transpose it in shader)
-    preLightData.ltcTransformSpecular = 0.0;
-    preLightData.ltcTransformSpecular._m22 = 1.0;
-    preLightData.ltcTransformSpecular._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, s_linear_clamp_sampler, uv, LTCLIGHTINGMODEL_GGX, 0);
+    preLightData.ltcTransformSpecular = SampleLtcMatrix(bsdfData.perceptualRoughness, clampedNdotV, LTCLIGHTINGMODEL_GGX);
 
     preLightData.orthoBasisViewNormal = GetOrthoBasisViewNormal(V, N, preLightData.NdotV);
     return preLightData;
@@ -582,7 +570,7 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
     DirectLighting directLighting = ShadeSurface_Directional(lightLoopContext, posInput, builtinData, preLightData, lightData, bsdfData, V);
 
     // Add the foam and sub-surface scattering terms
-    directLighting.diffuse = ((1.0 + GetPhaseTerm(-lightData.forward, V, bsdfData, preLightData)) * bsdfData.diffuseColor + bsdfData.foam) * directLighting.diffuse;
+    directLighting.diffuse = ((1.0 + GetPhaseTerm(-lightData.forward, V, bsdfData, preLightData)) * bsdfData.diffuseColor + bsdfData.foamColor) * directLighting.diffuse;
 
     // return the result
     return directLighting;
@@ -602,7 +590,7 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
 
     // Add the foam and sub-surface scattering terms
     float3 L = GetPunctualLightVector(posInput.positionWS, lightData);
-    directLighting.diffuse = ((1.0 + GetPhaseTerm(L, V, bsdfData, preLightData)) * bsdfData.diffuseColor + bsdfData.foam) * directLighting.diffuse;
+    directLighting.diffuse = ((1.0 + GetPhaseTerm(L, V, bsdfData, preLightData)) * bsdfData.diffuseColor + bsdfData.foamColor) * directLighting.diffuse;
 
     // return the result
     return directLighting;
@@ -682,10 +670,10 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
             lightData.diffuseDimmer *= intensity;
             lightData.specularDimmer *= intensity;
 
-             // Translate the light s.t. the shaded point is at the origin of the coordinate system.
+            // Translate the light s.t. the shaded point is at the origin of the coordinate system.
             lightData.positionRWS -= positionWS;
 
-             float4x3 lightVerts;
+            float4x3 lightVerts;
 
              // TODO: some of this could be precomputed.
             lightVerts[0] = lightData.positionRWS + lightData.right * -halfWidth + lightData.up * -halfHeight; // LL
@@ -693,72 +681,53 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
             lightVerts[2] = lightData.positionRWS + lightData.right *  halfWidth + lightData.up *  halfHeight; // UR
             lightVerts[3] = lightData.positionRWS + lightData.right *  halfWidth + lightData.up * -halfHeight; // LR
 
-             // Note: We don't have the same normal for diffuse and specular
             // Rotate the endpoints into the local coordinate system.
-            float4x3 lightVertsDiff  = mul(lightVerts, transpose(preLightData.orthoBasisViewDiffuseNormal));
+            lightVerts = mul(lightVerts, transpose(preLightData.orthoBasisViewNormal));
 
-             float3 ltcValue;
+            float4 ltcValue;
 
-             // Evaluate the diffuse part
-            // Polygon irradiance in the transformed configuration.
-            float4x3 LD = mul(lightVertsDiff, preLightData.ltcTransformDiffuse);
-            ltcValue = PolygonIrradiance(LD);
-            ltcValue *= lightData.diffuseDimmer;
+            // ----- 1. Evaluate the diffuse part -----
 
-            // TODO: re-enable this when HDRP version supports it
-            // Only apply cookie if there is one
-            //if (lightData.cookieMode != COOKIEMODE_NONE)
-            //{
-            //    // Compute the cookie data for the diffuse term
-            //    float3 formFactorD = PolygonFormFactor(LD);
-            //    ltcValue *= SampleAreaLightCookie(lightData.cookieScaleOffset, LD, formFactorD);
-            //}
+            ltcValue = EvaluateLTC_Rect(mul(lightVerts, preLightData.ltcTransformDiffuse), 1.0f,
+                                        lightData.cookieMode, lightData.cookieScaleOffset);
 
             // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
             // See comment for specular magnitude, it apply to diffuse as well
-            lighting.diffuse = preLightData.diffuseFGD * ltcValue;
+            lighting.diffuse += preLightData.diffuseFGD * (ltcValue.rgb * (ltcValue.a * lightData.diffuseDimmer));
 
-            // Evaluate the specular part
-            float4x3 lightVertsSpec = mul(lightVerts, transpose(preLightData.orthoBasisViewNormal));
+            // ----- 2. Evaluate the specular part -----
 
-            // Polygon irradiance in the transformed configuration.
-            float4x3 LS = mul(lightVertsSpec, preLightData.ltcTransformSpecular);
-            ltcValue = PolygonIrradiance(LS);
-            ltcValue *= lightData.specularDimmer;
-
-            // TODO: re-enable this when HDRP version supports it
-            // Only apply cookie if there is one
-            //if (lightData.cookieMode != COOKIEMODE_NONE)
-            //{
-            //    // Compute the cookie data for the specular term
-            //    float3 formFactorS = PolygonFormFactor(LS);
-            //    ltcValue *= SampleAreaLightCookie(lightData.cookieScaleOffset, LS, formFactorS);
-            //}
+            ltcValue = EvaluateLTC_Rect(mul(lightVerts, preLightData.ltcTransformSpecular), bsdfData.perceptualRoughness,
+                                        lightData.cookieMode, lightData.cookieScaleOffset);
 
             // We need to multiply by the magnitude of the integral of the BRDF
             // ref: http://advances.realtimerendering.com/s2016/s2016_ltc_fresnel.pdf
             // This value is what we store in specularFGD, so reuse it
-            lighting.specular += preLightData.specularFGD * ltcValue;
+            lighting.specular += preLightData.specularFGD * (ltcValue.rgb * (ltcValue.a * lightData.specularDimmer));
 
-             // Save ALU by applying 'lightData.color' only once.
+            // Save ALU by applying 'lightData.color' only once.
             lighting.diffuse *= lightData.color;
             lighting.specular *= lightData.color;
 
- #ifdef DEBUG_DISPLAY
+            // ----- 3. Debug display -----
+
+        #ifdef DEBUG_DISPLAY
             if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
             {
-                // Only lighting, not BSDF
-                // Apply area light on lambert then multiply by PI to cancel Lambert
-                lighting.diffuse = PolygonIrradiance(mul(lightVerts, k_identity3x3));
-                lighting.diffuse *= PI * lightData.diffuseDimmer;
-            }
-#endif
-        }
+                ltcValue = EvaluateLTC_Rect(lightVerts, 1.0f,
+                                            lightData.cookieMode, lightData.cookieScaleOffset);
 
+                // Only lighting, not BSDF
+                lighting.diffuse  = ltcValue.rgb * (ltcValue.a * lightData.diffuseDimmer);
+                // Apply area light on Lambert then multiply by PI to cancel Lambert
+                lighting.diffuse *= PI;
+            }
+        #endif
+        }
     }
 
     // Add the foam and surface diffuse
-    lighting.diffuse = lighting.diffuse * (bsdfData.diffuseColor + bsdfData.foam);
+    lighting.diffuse = lighting.diffuse * (bsdfData.diffuseColor + bsdfData.foamColor);
 
      return lighting;
 }
@@ -944,7 +913,8 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
                         out LightLoopOutput lightLoopOutput)
 {
     // Compute the indirect diffuse term here, we do it here to save some VGPRs and increase the occupancy which is the main bottleneck here.
-    float3 indirectDiffuse = _WaterAmbientProbe.xyz * (bsdfData.diffuseColor + bsdfData.foam) * preLightData.diffuseFGD * GetIndirectDiffuseMultiplier(builtinData.renderingLayers);
+    float3 color = bsdfData.diffuseColor + bsdfData.foamColor;
+    float3 indirectDiffuse = _WaterAmbientProbe.xyz * color * preLightData.diffuseFGD * GetIndirectDiffuseMultiplier(builtinData.renderingLayers);
 
     // Evaluate the total diffuse and specular terms
     lightLoopOutput.diffuseLighting = lighting.direct.diffuse + indirectDiffuse;

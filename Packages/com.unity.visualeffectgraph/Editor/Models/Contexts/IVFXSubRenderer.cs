@@ -79,6 +79,8 @@ namespace UnityEditor.VFX
                 //Some not registered properties can be stored in material which correspond to another SRP (!= GetMaterialProperties)
                 m_PropertyMap.Add(name, floatValue);
             }
+
+            renderQueue = material.renderQueue;
         }
 
         public void ApplyToMaterial(Material material)
@@ -98,14 +100,17 @@ namespace UnityEditor.VFX
                 currentEntry.FindPropertyRelative("first").stringValue = kvp.Key;
                 currentEntry.FindPropertyRelative("second").floatValue = kvp.Value;
             }
+
             serializedMaterial.ApplyModifiedProperties();
+            //N.B.: We can't used serialized properties here because renderQueue changes aren't automatically mark this entry as override
+            material.renderQueue = renderQueue;
         }
 
         public bool TryGetFloat(string name, Material fallback, out float value)
         {
-            if (m_PropertyMap.ContainsKey(name))
+            if (m_PropertyMap.TryGetValue(name, out var readValue))
             {
-                value = m_PropertyMap[name];
+                value = readValue;
                 return true;
             }
 
@@ -129,6 +134,8 @@ namespace UnityEditor.VFX
 
         [SerializeField]
         private List<float> m_PropertyValues = new List<float>();
+
+        [SerializeField] private int renderQueue = -1;
 
         void StoreProperties()
         {

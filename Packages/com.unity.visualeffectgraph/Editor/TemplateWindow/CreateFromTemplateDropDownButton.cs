@@ -15,7 +15,8 @@ namespace UnityEditor.VFX
 
         public CreateFromTemplateDropDownButton(VFXView vfxView)
             : base(
-        vfxView,
+            nameof(CreateFromTemplateDropDownButton),
+            vfxView,
         "VFXCreateFromTemplateDropDownPanel",
         "Create or Insert from a template",
         "create-button",

@@ -44,33 +44,33 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Noise to be applied to the sampling position. It can hide seams issues between subdivision levels, but introduces noise.
         /// </summary>
-        [AdditionalProperty, Tooltip("Noise to be applied to the sampling position. It can hide seams issues between subdivision levels, but introduces noise.")]
+        [Tooltip("Noise to be applied to the sampling position. It can hide seams issues between subdivision levels, but introduces noise.")]
         public ClampedFloatParameter samplingNoise = new ClampedFloatParameter(0.1f, 0.0f, 0.5f);
 
 
         /// <summary>
         /// Whether to animate the noise when TAA is enabled, smoothing potentially out the noise pattern introduced.
         /// </summary>
-        [AdditionalProperty, Tooltip("Whether to animate the noise when TAA is enabled. It can potentially remove the visible noise patterns.")]
+        [Tooltip("Whether to animate the noise when TAA is enabled. It can potentially remove the visible noise patterns.")]
         public BoolParameter animateSamplingNoise = new BoolParameter(true);
 
         /// <summary>
         /// Method used to reduce leaks.
         /// </summary>
-        [AdditionalProperty, Tooltip("Method used to reduce leaks. Currently available modes are crude, but cheap methods.")]
+        [Tooltip("Method used to reduce leaks. Currently available modes are crude, but cheap methods.")]
         public APVLeakReductionModeParameter leakReductionMode = new APVLeakReductionModeParameter(APVLeakReductionMode.ValidityAndNormalBased);
 
         /// <summary>
         /// The minimum value that the dot product between the sample position normal and the vector to contributing probe need to have to have the probe considered.
         /// </summary>
-        [AdditionalProperty, Tooltip("The minimum value that the dot product between the sample position normal and the vector to contributing probe need to have to have the probe considered.")]
+        [Tooltip("The minimum value that the dot product between the sample position normal and the vector to contributing probe need to have to have the probe considered.")]
         public ClampedFloatParameter minValidDotProductValue = new ClampedFloatParameter(0.1f, -1.0f, 0.33f);
 
 
         /// <summary>
         /// When enabled, reflection probe normalization can only decrease the reflections intensity.
         /// </summary>
-        [AdditionalProperty, Tooltip("When enabled, reflection probe normalization can only decrease the reflection intensity.")]
+        [Tooltip("When enabled, reflection probe normalization can only decrease the reflection intensity.")]
         public BoolParameter occlusionOnlyReflectionNormalization = new BoolParameter(true);
 
     }

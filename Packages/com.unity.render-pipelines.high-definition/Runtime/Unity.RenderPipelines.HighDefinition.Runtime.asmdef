@@ -11,7 +11,8 @@
         "Unity.RenderPipelines.HighDefinition.Config.Runtime",
         "Unity.Rendering.Denoising.Runtime",
         "Unity.Timeline",
-        "Unity.VisualEffectGraph.Runtime"
+        "Unity.VisualEffectGraph.Runtime",
+        "Unity.RenderPipelines.GPUDriven.Runtime"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

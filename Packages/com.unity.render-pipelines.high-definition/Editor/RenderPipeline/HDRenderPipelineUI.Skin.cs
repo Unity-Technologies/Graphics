@@ -205,6 +205,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public const string cacheErrorFormat = "This configuration will lead to more than 2 GB reserved for this cache at runtime! ({0} requested) Only {1} element will be reserved instead.";
             public const string cacheInfoFormat = "Reserving {0} in memory at runtime.";
             public const string multipleDifferenteValueMessage = "Multiple different values";
+            public const string rayTracingUnsupportedMessage = "The current HDRP Asset does not support Ray Tracing.";
 
             public static readonly GUIContent cookieSizeContent = EditorGUIUtility.TrTextContent("Cookie Size", "Specifies the maximum size for the individual 2D cookies that HDRP uses for Directional and Spot Lights.");
             public static readonly GUIContent cookieTextureArraySizeContent = EditorGUIUtility.TrTextContent("Texture Array Size", "Sets the maximum Texture Array size for the 2D cookies HDRP uses for Directional and Spot Lights. Higher values allow HDRP to use more cookies concurrently on screen.");
@@ -326,6 +327,14 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public static readonly GUIContent[] shadowBitDepthNames = { new GUIContent("32 bit"), new GUIContent("16 bit") };
             public static readonly int[] shadowBitDepthValues = { (int)DepthBits.Depth32, (int)DepthBits.Depth16 };
+
+            public static GUIContent gpuResidentDrawerMode = EditorGUIUtility.TrTextContent("GPU Resident Drawer", "Enables draw submission through the GPU Resident Drawer, which can improve CPU performance");
+            public static readonly GUIContent allowInEditMode = EditorGUIUtility.TrTextContent("Allow in Edit Mode", "Allows the GPU Resident Drawer to run in edit mode. This functionality is a work-in-progress and may produce incorrect results in some cases.");
+
+            public static GUIContent brgShaderStrippingErrorMessage =
+                EditorGUIUtility.TrTextContent("\"BatchRendererGroup Variants\" setting must be \"Keep All\". To fix, modify Graphics settings and set \"BatchRendererGroup Variants\" to \"Keep All\".");
+            public static GUIContent staticBatchingInfoMessage =
+                EditorGUIUtility.TrTextContent("Static Batching is not recommended when using GPU draw submission modes, performance may improve if Static Batching is disabled in Player Settings.");
 
             public const string memoryDrawback = "Adds GPU memory";
             public const string shaderVariantDrawback = "Adds Shader Variants";

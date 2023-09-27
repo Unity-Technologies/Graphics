@@ -712,8 +712,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     (DLSSColorMaskPassData data, RenderGraphContext ctx) =>
                     {
                         Rect targetViewport = new Rect(0.0f, 0.0f, data.destWidth, data.destHeight);
-                        data.colorMaskMaterial.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.ExcludeFromTAA);
-                        data.colorMaskMaterial.SetInt(HDShaderIDs._StencilRef, (int)StencilUsage.ExcludeFromTAA);
+                        data.colorMaskMaterial.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.ExcludeFromTUAndAA);
+                        data.colorMaskMaterial.SetInt(HDShaderIDs._StencilRef, (int)StencilUsage.ExcludeFromTUAndAA);
                         ctx.cmd.SetViewport(targetViewport);
                         ctx.cmd.DrawProcedural(Matrix4x4.identity, data.colorMaskMaterial, 0, MeshTopology.Triangles, 3, 1, null);
                     });
@@ -1668,7 +1668,7 @@ namespace UnityEngine.Rendering.HighDefinition
             const float offset = postDofMin - TAABaseBlendFactorMin * scale;
             float taaBaseBlendFactor = postDoF ? camera.taaBaseBlendFactor * scale + offset : camera.taaBaseBlendFactor;
 
-            passData.taaParameters1 = new Vector4(camera.camera.cameraType == CameraType.SceneView ? 0.2f : 1.0f - taaBaseBlendFactor, taaSampleWeights[0], (int)StencilUsage.ExcludeFromTAA, historyContrastLerp);
+            passData.taaParameters1 = new Vector4(camera.camera.cameraType == CameraType.SceneView ? 0.2f : 1.0f - taaBaseBlendFactor, taaSampleWeights[0], (int)StencilUsage.ExcludeFromTUAndAA, historyContrastLerp);
 
             passData.taaFilterWeights = taaSampleWeights;
 
@@ -1843,8 +1843,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         }
 
                         var mpb = ctx.renderGraphPool.GetTempMaterialPropertyBlock();
-                        mpb.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.ExcludeFromTAA);
-                        mpb.SetInt(HDShaderIDs._StencilRef, (int)StencilUsage.ExcludeFromTAA);
+                        mpb.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.ExcludeFromTUAndAA);
+                        mpb.SetInt(HDShaderIDs._StencilRef, (int)StencilUsage.ExcludeFromTUAndAA);
                         mpb.SetTexture(HDShaderIDs._CameraMotionVectorsTexture, data.motionVecTexture);
                         mpb.SetTexture(HDShaderIDs._InputTexture, source);
                         mpb.SetTexture(HDShaderIDs._InputHistoryTexture, data.prevHistory);
@@ -5135,8 +5135,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.destination = builder.WriteTexture(dstTex);
 
                 passData.sharpenCS.shaderKeywords = null;
-                if (hdCamera.taaRingingReduction > 0)
-                    passData.sharpenCS.EnableKeyword("CLAMP_RINGING");
+                CoreUtils.SetKeyword(passData.sharpenCS, "ENABLE_ALPHA", PostProcessEnableAlpha(hdCamera));
+                CoreUtils.SetKeyword(passData.sharpenCS, "CLAMP_RINGING", hdCamera.taaRingingReduction > 0);
 
                 builder.SetRenderFunc(
                         (SharpenData data, RenderGraphContext ctx) =>

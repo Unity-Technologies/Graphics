@@ -4,7 +4,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.VFX;
-using Object = System.Object;
 
 namespace UnityEditor.VFX.Block
 {
@@ -13,7 +12,7 @@ namespace UnityEditor.VFX.Block
         public override IEnumerable<Variant> ComputeVariants()
         {
             var compositions = new[] { AttributeCompositionMode.Add, AttributeCompositionMode.Overwrite, AttributeCompositionMode.Multiply, AttributeCompositionMode.Blend };
-            var attributes = VFXAttribute.AllIncludingVariadicReadWritable.Except(new[] { VFXAttribute.Alive.name }).ToArray();
+            var attributes = VFXAttributesManager.GetBuiltInNamesOrCombination(true, false, false, false).Except(new[] { VFXAttribute.Alive.name }).ToArray();
             var sampleModes = Enum.GetValues(typeof(AttributeFromMap.AttributeMapSampleMode)).OfType<AttributeFromMap.AttributeMapSampleMode>().ToArray();
 
             foreach (var attribute in attributes)
@@ -38,7 +37,7 @@ namespace UnityEditor.VFX.Block
 
     [VFXHelpURL("Block-SetAttributeFromMap")]
     [VFXInfo(category = "Attribute/{0}/Map/{1}", variantProvider = typeof(AttributeFromMapProvider))]
-    class AttributeFromMap : VFXBlock
+    class AttributeFromMap : VFXBlock, IVFXAttributeUsage
     {
         // TODO: Let's factorize this this into a utility class
         public enum AttributeMapSampleMode
@@ -53,7 +52,7 @@ namespace UnityEditor.VFX.Block
         }
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), StringProvider(typeof(ReadWritableAttributeProvider)), Tooltip("Target Attribute")]
-        public string attribute = VFXAttribute.AllIncludingVariadicWritable.First();
+        public string attribute = VFXAttributesManager.GetBuiltInNamesOrCombination(true, false, false, false).First();
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("Specifies what operation to perform on the chosen attribute. The value derived from this block can overwrite, add to, multiply with, or blend with the existing attribute value.")]
         public AttributeCompositionMode Composition = AttributeCompositionMode.Overwrite;
@@ -95,7 +94,7 @@ namespace UnityEditor.VFX.Block
                 {
                     string channelsString = channels.ToString();
                     for (int i = 0; i < channelsString.Length; i++)
-                        yield return new VFXAttributeInfo(VFXAttribute.Find(attrib.name + channelsString[i]), attributeMode);
+                        yield return new VFXAttributeInfo(VFXAttributesManager.FindBuiltInOnly(attrib.name + channelsString[i]), attributeMode);
                 }
                 else
                 {
@@ -113,8 +112,17 @@ namespace UnityEditor.VFX.Block
 
         public override void Sanitize(int version)
         {
-            if (VFXBlockUtility.SanitizeAttribute(ref attribute, ref channels, version))
-                Invalidate(InvalidationCause.kSettingChanged);
+            if (GetGraph() is {} graph)
+            {
+                if (VFXBlockUtility.SanitizeAttribute(graph, ref attribute, ref channels, version))
+                {
+                    Invalidate(InvalidationCause.kSettingChanged);
+                }
+            }
+            else
+            {
+                Debug.LogError($"Trying to find attribute '{attribute}' when graph is not available");
+            }
 
             base.Sanitize(version);
         }
@@ -125,11 +133,9 @@ namespace UnityEditor.VFX.Block
             {
                 foreach (string setting in base.filteredOutSettings)
                     yield return setting;
-                var attrib = VFXAttribute.Find(attribute);
-                if (attrib.variadic == VFXVariadic.False)
+                if (currentAttribute.variadic == VFXVariadic.False)
                     yield return "channels";
-                if (SampleMode == AttributeMapSampleMode.Sample2DLOD ||
-                    SampleMode == AttributeMapSampleMode.Sample3DLOD)
+                if (SampleMode is AttributeMapSampleMode.Sample2DLOD or AttributeMapSampleMode.Sample3DLOD)
                     yield return "usePointCount";
             }
         }
@@ -415,7 +421,50 @@ namespace UnityEditor.VFX.Block
             public uint pointCount = 0u;
         }
 
-        private VFXAttribute currentAttribute { get { return VFXAttribute.Find(attribute); } }
+        protected override void OnAdded()
+        {
+            base.OnAdded();
+            // When using custom attribute we need to access to the graph to find the custom attribute
+            // and the graph is only available after the node being added to it.
+            if (GetGraph().attributesManager.IsCustom(attribute))
+            {
+                Invalidate(InvalidationCause.kSettingChanged);
+            }
+        }
+
+        public VFXAttribute currentAttribute
+        {
+            get
+            {
+                if (GetGraph() is { } graph)
+                {
+                    if (graph.attributesManager.TryFind(attribute, out var vfxAttribute))
+                    {
+                        return vfxAttribute;
+                    }
+                }
+                else // Happens when the node is not yet added to the graph, but should be ok as soon as it's added (see OnAdded)
+                {
+                    var attr = VFXAttributesManager.FindBuiltInOnly(attribute);
+                    if (string.Compare(attribute, attr.name, StringComparison.OrdinalIgnoreCase) == 0)
+                    {
+                        return attr;
+                    }
+                }
+
+                // Temporary attribute
+                return new VFXAttribute(attribute, VFXValueType.Float, null);
+            }
+        }
+
+        public override void Rename(string oldName, string newName)
+        {
+            if (GetGraph() is {} graph && graph.attributesManager.IsCustom(newName))
+            {
+                attribute = newName;
+                SyncSlots(VFXSlot.Direction.kInput, true);
+            }
+        }
 
         private static string GetCompatTypeString(VFXValueType valueType)
         {

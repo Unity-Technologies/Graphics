@@ -67,14 +67,10 @@ MonoBehaviour:
     max: 4096
   minimumDepth:
     m_OverrideState: 1
-    m_Value: 2
-    min: 1
-    max: 10
+    m_Value: 3
   maximumDepth:
     m_OverrideState: 1
-    m_Value: 2
-    min: 1
-    max: 10
+    m_Value: 3
   maximumIntensity:
     m_OverrideState: 1
     m_Value: 10

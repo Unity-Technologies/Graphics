@@ -277,10 +277,21 @@ Shader "HDRP/LayeredLit"
         _EmissiveIntensity("Emissive Intensity", Float) = 1
         _EmissiveExposureWeight("Emissive Pre Exposure", Range(0.0, 1.0)) = 1.0
 
+        [ToggleUI]  _UseShadowThreshold("_UseShadowThreshold", Float) = 0.0
         [ToggleUI] _AlphaCutoffEnable("Alpha Cutoff Enable", Float) = 0.0
-
         _AlphaCutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
+        _AlphaCutoffShadow("_AlphaCutoffShadow", Range(0.0, 1.0)) = 0.5
+        _AlphaCutoffPrepass("_AlphaCutoffPrepass", Range(0.0, 1.0)) = 0.5
+        _AlphaCutoffPostpass("_AlphaCutoffPostpass", Range(0.0, 1.0)) = 0.5
         _TransparentSortPriority("_TransparentSortPriority", Float) = 0
+        
+        // Transparency
+        [Enum(None, 0, Planar, 1, Sphere, 2, Thin, 3)]_RefractionModel("Refraction Model", Int) = 0
+        _Ior("Index Of Refraction", Range(1.0, 2.5)) = 1.5
+        _TransmittanceColor("Transmittance Color", Color) = (1.0, 1.0, 1.0)
+        _TransmittanceColorMap("TransmittanceColorMap", 2D) = "white" {}
+        _ATDistance("Transmittance Absorption Distance", Float) = 1.0
+        [ToggleUI] _TransparentWritingMotionVec("_TransparentWritingMotionVec", Float) = 0.0
 
         // Stencil state
         // Forward
@@ -342,6 +353,7 @@ Shader "HDRP/LayeredLit"
 
         [Enum(Use Emissive Color, 0, Use Emissive Mask, 1)] _EmissiveColorMode("Emissive color mode", Float) = 1
         [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, Planar, 4, Triplanar, 5, Same as Main layer, 6)] _UVEmissive("UV Set for emissive", Float) = 0
+        [Enum(WorldSpace, 0, ObjectSpace, 1)] _ObjectSpaceUVMappingEmissive("Mapping space", Float) = 0.0
         _TexWorldScaleEmissive("Scale to apply on world coordinate", Float) = 1.0
         [HideInInspector] _UVMappingMaskEmissive("_UVMappingMaskEmissive", Color) = (1, 0, 0, 0)
 

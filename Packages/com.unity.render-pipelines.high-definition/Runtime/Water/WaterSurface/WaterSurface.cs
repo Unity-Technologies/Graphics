@@ -214,6 +214,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Min(0.0f), Tooltip("Sets the range at which the tessellation factor reaches zero.")]
         public float tessellationFactorFadeRange = 1850.0f;
+
+#if UNITY_EDITOR
+        static internal bool IsWaterMaterial(Material material)
+        {
+            return material.shader.FindSubshaderTagValue(0, (ShaderTagId)"ShaderGraphTargetId").name == "WaterSubTarget";
+        }
+#endif
         #endregion
 
         #region Water Refraction

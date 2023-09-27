@@ -49,6 +49,7 @@
 * [Lighting](lighting.md)
   * [Light component reference](light-component.md)
   * [Lighting Mode](urp-lighting-mode.md)
+  * [View and control a light from its perspective](lights-placement-tool.md)
   * [The Universal Additional Light Data component](universal-additional-light-data.md)
   * [Shadows in the Universal Render Pipeline](Shadows-in-URP.md)
   * [Reflection probes](lighting/reflection-probes.md)

@@ -45,6 +45,9 @@ EditorBuildSettings:
     path: Assets/Scenes/107_ReflectionsHybridFullRes.unity
     guid: c1f9cf56879c30640b5cd30f5b500b52
   - enabled: 1
+    path: Assets/Scenes/107_ReflectionsHybridFullRes_OnTransparent.unity
+    guid: 5f8fc2857640b5b4d8c65f482258e807
+  - enabled: 1
     path: Assets/Scenes/108_ReflectionsHybridHalfRes.unity
     guid: 4a71d9b31d3fb4e40a56b5be93a15b8d
   - enabled: 1
@@ -447,6 +450,21 @@ EditorBuildSettings:
     path: Assets/Scenes/5017_PathTracing_Decals.unity
     guid: 4ebed9008822d1949be7a2e7aeaf6a5f
   - enabled: 1
+    path: Assets/Scenes/5018_PathTracing_MaterialOverrides.unity
+    guid: a469a947680f48644967493aba255270
+  - enabled: 1
+    path: Assets/Scenes/5019_PathTracing_AmbientOcclusion.unity
+    guid: 6d94b324982b10f4386673838de4498c
+  - enabled: 1
+    path: Assets/Scenes/5020_PathTracing_Depth_1.unity
+    guid: b8027b89c6fd3d5428a58472925a4f8b
+  - enabled: 1
+    path: Assets/Scenes/5021_PathTracing_Depth_2.unity
+    guid: 151529e60a002004f921ef6ebbc361ae
+  - enabled: 1
+    path: Assets/Scenes/5022_PathTracing_Depth_3.unity
+    guid: efb54c201f4649344a2b5369d723e9de
+  - enabled: 1
     path: Assets/Scenes/6000_VertexFormats.unity
     guid: 6788ab4459664394f96537c7ad864afb
   - enabled: 1
@@ -479,6 +497,12 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/TerrainTests/10004_TerrainPathTracing/10004_TerrainPathTracing_NoDecalSurfaceGradient.unity
     guid: 2d49cf94a5ddb124e8a71bf71a029192
+  - enabled: 1
+    path: Assets/Scenes/1000_RaytracingQualityKeyword_MaterialQuality_Indirect.unity
+    guid: f2a5323c1c8df664cb7dd65071c61ab0
+  - enabled: 1
+    path: Assets/Scenes/900_Materials_AlphaTest_SG.unity
+    guid: 4bc2576a0bbdfd74a86bfb57af91ccaa
   - enabled: 1
     path: Assets/Scenes/9000_VFX_RayTracing/9001_VFX_AmbientOcclusion.unity
     guid: ece85605ed9d9bc468419c09376c6a28

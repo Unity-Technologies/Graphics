@@ -103,6 +103,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static readonly ExpandedState<ExpandableShadows, HDRenderPipelineAsset> k_LightsExpandedState = new(0, "HDRP");
 
+        static internal void ExpandGroup(ExpandableGroup group)
+        {
+            k_ExpandedGroupState.SetExpandedAreas(group, true);
+        }
+
         static readonly Dictionary<GUIContent, ExpandedState<ExpandableQualities, HDRenderPipelineAsset>>
         k_QualityExpandedStates = new();
         private static CED.IDrawer QualityDrawer<TEnum>(GUIContent content, TEnum mask, ExpandedStateBase<TEnum> state, Action<SerializedHDRenderPipelineAsset, int> qualityActionForTier)
@@ -1111,6 +1116,23 @@ namespace UnityEditor.Rendering.HighDefinition
                     var prop = serialized.renderPipelineSettings.maximumLODLevel.values.GetArrayElementAtIndex(i);
                     prop.SetInline(Mathf.Clamp(prop.GetInline<int>(), 0, 7));
                 }
+            }
+
+            var gpuResidentDrawerSettings = serialized.renderPipelineSettings.gpuResidentDrawerSettings;
+            EditorGUILayout.PropertyField(gpuResidentDrawerSettings.mode, Styles.gpuResidentDrawerMode);
+
+            var brgStrippingError = EditorGraphicsSettings.batchRendererGroupShaderStrippingMode != BatchRendererGroupStrippingMode.KeepAll;
+            var staticBatchingInfo = PlayerSettings.GetStaticBatchingForPlatform(EditorUserBuildSettings.activeBuildTarget);
+            if ((GPUResidentDrawerMode)gpuResidentDrawerSettings.mode.intValue != GPUResidentDrawerMode.Disabled)
+            {
+                ++EditorGUI.indentLevel;
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.gpuResidentDrawerSettings.allowInEditMode, Styles.allowInEditMode);
+                --EditorGUI.indentLevel;
+
+                if(brgStrippingError)
+                    EditorGUILayout.HelpBox(Styles.brgShaderStrippingErrorMessage.text, MessageType.Warning, true);
+                if(staticBatchingInfo)
+                    EditorGUILayout.HelpBox(Styles.staticBatchingInfoMessage.text, MessageType.Info, true);
             }
 
             EditorGUILayout.Space(); //to separate with following sub sections

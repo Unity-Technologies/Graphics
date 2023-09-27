@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel; //needed for list of Custom Post Processes injections
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using UnityEngine.Serialization;
 #if UNITY_EDITOR
 using UnityEditorInternal;
@@ -41,6 +42,8 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField] RenderPipelineGraphicsSettingsContainer m_Settings = new();
         protected override List<IRenderPipelineGraphicsSettings> settingsList => m_Settings.settingsList;
 
+        internal bool ContainsSetting(Type type) => Contains(type);
+
 #if UNITY_EDITOR
         internal static string defaultPath => $"Assets/{HDProjectSettingsReadOnlyBase.projectSettingsFolderPath}/HDRenderPipelineGlobalSettings.asset";
 
@@ -71,7 +74,11 @@ namespace UnityEngine.Rendering.HighDefinition
             if (RenderPipelineGlobalSettingsUtils.TryEnsure<HDRenderPipelineGlobalSettings, HDRenderPipeline>(ref currentInstance, defaultPath, canCreateNewAsset))
             {
                 if (currentInstance is IMigratableAsset migratableAsset && !migratableAsset.IsAtLastVersion())
+                {
                     migratableAsset.Migrate();
+                    EditorUtility.SetDirty(currentInstance);
+                    AssetDatabase.SaveAssetIfDirty(currentInstance);
+                }
 
                 return currentInstance;
             }
@@ -90,7 +97,17 @@ namespace UnityEngine.Rendering.HighDefinition
             EnsureEditorResources(forceReload: true);
             EnsureRuntimeResources(forceReload: true);
             EnsureRayTracingResources(forceReload: true);
-            GetOrCreateDefaultVolumeProfile();
+            EnsureGPUResidentDrawerResources(forceReload: true);
+
+            var defaultVolumeProfile = GetOrCreateDefaultVolumeProfile();
+            var diffusionProfileList = GetOrCreateDiffusionProfileList(defaultVolumeProfile);
+
+            if (diffusionProfileList.diffusionProfiles.value.Length == 0)
+            {
+                diffusionProfileList.diffusionProfiles.value = CreateArrayWithDefaultDiffusionProfileSettingsList(m_RenderPipelineEditorResources);
+                EditorUtility.SetDirty(diffusionProfileList);
+            }
+
             GetOrAssignLookDevVolumeProfile();
         }
 
@@ -197,82 +214,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #endregion
 
-        #region Resource Common
-#if UNITY_EDITOR
-        // Yes it is stupid to retry right away but making it called in EditorApplication.delayCall
-        // from EnsureResources create GC
-        void DelayedNullReload<T>(string resourcePath)
-            where T : HDRenderPipelineResources
-        {
-            T resourcesDelayed = AssetDatabase.LoadAssetAtPath<T>(resourcePath);
-            if (resourcesDelayed == null)
-                EditorApplication.delayCall += () => DelayedNullReload<T>(resourcePath);
-            else
-                ResourceReloader.ReloadAllNullIn(resourcesDelayed, HDUtils.GetHDRenderPipelinePath());
-        }
-
-        void EnsureResources<T>(bool forceReload, ref T resources, string resourcePath, Func<HDRenderPipelineGlobalSettings, bool> checker)
-            where T : HDRenderPipelineResources
-        {
-            T resourceChecked = null;
-
-            if (checker(this))
-            {
-                if (!EditorUtility.IsPersistent(resources)) // if not loaded from the Asset database
-                {
-                    // try to load from AssetDatabase if it is ready
-                    resourceChecked = AssetDatabase.LoadAssetAtPath<T>(resourcePath);
-                    if (resourceChecked && !resourceChecked.Equals(null))
-                        resources = resourceChecked;
-                }
-                if (forceReload)
-                    ResourceReloader.ReloadAllNullIn(resources, HDUtils.GetHDRenderPipelinePath());
-                return;
-            }
-
-            resourceChecked = AssetDatabase.LoadAssetAtPath<T>(resourcePath);
-            if (resourceChecked != null && !resourceChecked.Equals(null))
-            {
-                resources = resourceChecked;
-                if (forceReload)
-                    ResourceReloader.ReloadAllNullIn(resources, HDUtils.GetHDRenderPipelinePath());
-            }
-            else
-            {
-                // Asset database may not be ready
-                var objs = InternalEditorUtility.LoadSerializedFileAndForget(resourcePath);
-                resources = (objs != null && objs.Length > 0) ? objs[0] as T : null;
-                if (forceReload)
-                {
-                    try
-                    {
-                        if (ResourceReloader.ReloadAllNullIn(resources, HDUtils.GetHDRenderPipelinePath()))
-                        {
-                            InternalEditorUtility.SaveToSerializedFileAndForget(
-                                new Object[] { resources },
-                                resourcePath,
-                                true);
-                        }
-                    }
-                    catch (InvalidImportException)
-                    {
-                        // This can be called at a time where AssetDatabase is not available for loading.
-                        // When this happens, the GUID can be get but the resource loaded will be null.
-                        // Using the ResourceReloader mechanism in CoreRP, it checks this and add InvalidImport data when this occurs.
-                        DelayedNullReload<T>(resourcePath);
-                    }
-                    catch (Exception e)
-                    {
-                        Debug.LogException(e);
-                    }
-                }
-            }
-            Debug.Assert(checker(this), $"Could not load {typeof(T).Name}.");
-        }
-
-#endif
-        #endregion //Resource Common
-
         #region Runtime Resources
         [SerializeField]
         HDRenderPipelineRuntimeResources m_RenderPipelineResources;
@@ -293,7 +234,7 @@ namespace UnityEngine.Rendering.HighDefinition
         static readonly string runtimeResourcesPath = HDUtils.GetHDRenderPipelinePath() + "Runtime/RenderPipelineResources/HDRenderPipelineRuntimeResources.asset";
 
         internal void EnsureRuntimeResources(bool forceReload)
-            => EnsureResources(forceReload, ref m_RenderPipelineResources, runtimeResourcesPath, AreRuntimeResourcesCreated_Internal);
+            => ResourceReloader.EnsureResources(forceReload, ref m_RenderPipelineResources, runtimeResourcesPath, AreRuntimeResourcesCreated_Internal, this);
 
         // Passing method in a Func argument create a functor that create GC
         // If it is static it is then only computed once but the Ensure is called after first frame which will make our GC check fail
@@ -306,10 +247,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void EnsureShadersCompiled()
         {
-            // We iterate over all compute shader to verify if they are all compiled, if it's not the case
-            // then we throw an exception to avoid allocating resources and crashing later on by using a null
-            // compute kernel.
-            foreach (var computeShader in m_RenderPipelineResources.shaders.GetAllComputeShaders())
+            void CheckComputeShaderMessages(ComputeShader computeShader)
             {
                 foreach (var message in UnityEditor.ShaderUtil.GetComputeShaderMessages(computeShader))
                 {
@@ -324,6 +262,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
             }
+
+            // We iterate over all compute shader to verify if they are all compiled, if it's not the case then
+            // we throw an exception to avoid allocating resources and crashing later on by using a null compute kernel.
+            m_RenderPipelineResources.shaders.ForEachFieldOfType<ComputeShader>(CheckComputeShaderMessages, BindingFlags.Public | BindingFlags.Instance);
         }
 
 #endif //UNITY_EDITOR
@@ -350,7 +292,7 @@ namespace UnityEngine.Rendering.HighDefinition
         static readonly string editorResourcesPath = HDUtils.GetHDRenderPipelinePath() + "Editor/RenderPipelineResources/HDRenderPipelineEditorResources.asset";
 
         internal void EnsureEditorResources(bool forceReload)
-            => EnsureResources(forceReload, ref m_RenderPipelineEditorResources, editorResourcesPath, AreEditorResourcesCreated_Internal);
+            => ResourceReloader.EnsureResources(forceReload, ref m_RenderPipelineEditorResources, editorResourcesPath, AreEditorResourcesCreated_Internal, this);
 
         // Passing method in a Func argument create a functor that create GC
         // If it is static it is then only computed once but the Ensure is called after first frame which will make our GC check fail
@@ -391,7 +333,7 @@ namespace UnityEngine.Rendering.HighDefinition
         static readonly string raytracingResourcesPath = HDUtils.GetHDRenderPipelinePath() + "Runtime/RenderPipelineResources/HDRenderPipelineRayTracingResources.asset";
 
         internal void EnsureRayTracingResources(bool forceReload)
-            => EnsureResources(forceReload, ref m_RenderPipelineRayTracingResources, raytracingResourcesPath, AreRayTracingResourcesCreated_Internal);
+            => ResourceReloader.EnsureResources(forceReload, ref m_RenderPipelineRayTracingResources, raytracingResourcesPath, AreRayTracingResourcesCreated_Internal, this);
 
         internal void ClearRayTracingResources()
             => m_RenderPipelineRayTracingResources = null;
@@ -407,6 +349,43 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
 
         #endregion //Ray Tracing Resources
+
+        #region GPU Resident Drawer Resources
+        [FormerlySerializedAs("m_RenderPipelineMacroBatcherResources")]
+        [SerializeField]
+        GPUResidentDrawerResources m_RenderPipelineGPUResidentDrawerResources;
+        internal GPUResidentDrawerResources gpuResidentDrawerResources
+        {
+            get
+            {
+#if UNITY_EDITOR
+                EnsureGPUResidentDrawerResources(forceReload: false);
+#endif
+                return m_RenderPipelineGPUResidentDrawerResources;
+            }
+        }
+
+#if UNITY_EDITOR
+        // be sure to cache result for not using GC in a frame after first one.
+        static readonly string gpuResidentDrawerResourcesPath = HDUtils.GetCorePath() + "Runtime/RenderPipelineResources/GPUDriven/GPUResidentDrawerResources.asset";
+
+        internal void EnsureGPUResidentDrawerResources(bool forceReload)
+            => ResourceReloader.EnsureResources(forceReload, ref m_RenderPipelineGPUResidentDrawerResources, gpuResidentDrawerResourcesPath, AreGPUResidentDrawerResourcesCreated_Internal, this);
+
+        internal void ClearGPUResidentDrawerResources()
+            => m_RenderPipelineGPUResidentDrawerResources = null;
+
+        // Passing method in a Func argument create a functor that create GC
+        // If it is static it is then only computed once but the Ensure is called after first frame which will make our GC check fail
+        // So create it once and store it here.
+        // Expected usage: HDRenderPipelineGlobalSettings.AreGPUResidentDrawerResourcesCreated(anyHDRenderPipelineGlobalSettings) that will return a bool
+        static Func<HDRenderPipelineGlobalSettings, bool> AreGPUResidentDrawerResourcesCreated_Internal = global
+            => global.m_RenderPipelineGPUResidentDrawerResources != null && !global.m_RenderPipelineGPUResidentDrawerResources.Equals(null);
+
+        internal bool AreGPUResidentDrawerResourcesCreated() => AreGPUResidentDrawerResourcesCreated_Internal(this);
+#endif
+
+        #endregion // GPU Resident Drawer Resources
 
         #region Custom Post Processes Injections
 
@@ -529,28 +508,43 @@ namespace UnityEngine.Rendering.HighDefinition
             set { GetOrCreateDiffusionProfileList().diffusionProfiles.value = value; }
         }
 
-        internal DiffusionProfileList GetOrCreateDiffusionProfileList()
+        internal DiffusionProfileList GetOrCreateDiffusionProfileList(VolumeProfile defaultVolumeProfile = null)
         {
-            var volumeProfile = instance.GetOrCreateDefaultVolumeProfile();
-            if (!volumeProfile.TryGet<DiffusionProfileList>(out var component))
+            if (defaultVolumeProfile == null)
+                defaultVolumeProfile = instance.GetOrCreateDefaultVolumeProfile();
+
+            if (!defaultVolumeProfile.TryGet<DiffusionProfileList>(out var component))
             {
                 component = volumeProfile.Add<DiffusionProfileList>(true);
 
 #if UNITY_EDITOR
-                if (EditorUtility.IsPersistent(volumeProfile))
+                if (EditorUtility.IsPersistent(defaultVolumeProfile))
                 {
-                    UnityEditor.AssetDatabase.AddObjectToAsset(component, volumeProfile);
-                    EditorUtility.SetDirty(volumeProfile);
+                    UnityEditor.AssetDatabase.AddObjectToAsset(component, defaultVolumeProfile);
+                    EditorUtility.SetDirty(defaultVolumeProfile);
                 }
 #endif
             }
 
-            if (component.diffusionProfiles.value == null)
-                component.diffusionProfiles.value = new DiffusionProfileSettings[0];
+            component.diffusionProfiles.value ??= Array.Empty<DiffusionProfileSettings>();
             return component;
         }
 
 #if UNITY_EDITOR
+        internal DiffusionProfileSettings[] CreateArrayWithDefaultDiffusionProfileSettingsList(HDRenderPipelineEditorResources resources)
+        {
+            if (resources == null)
+                return Array.Empty<DiffusionProfileSettings>();
+
+            var diffusionProfileSettingsArray = resources.defaultDiffusionProfileSettingsList;
+
+            var length = diffusionProfileSettingsArray.Length;
+            var diffusionProfileSettingsArrayCopy = new DiffusionProfileSettings[diffusionProfileSettingsArray.Length];
+            Array.Copy(diffusionProfileSettingsArray, diffusionProfileSettingsArrayCopy, length);
+
+            return diffusionProfileSettingsArrayCopy;
+        }
+
         internal void TryAutoRegisterDiffusionProfile(DiffusionProfileSettings profile)
         {
             if (!autoRegisterDiffusionProfiles || profile == null || diffusionProfileSettingsList == null || diffusionProfileSettingsList.Any(d => d == profile))

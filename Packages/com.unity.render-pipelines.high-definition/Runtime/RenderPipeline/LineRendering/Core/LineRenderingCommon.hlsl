@@ -161,12 +161,6 @@ struct AABB
 #define BOTTOM 4 // 0100
 #define TOP    8 // 1000
 
-// TODO: Currently we perform the clipping in NDC, figure out how to do it in homogenous coordinates instead.
-#define MIN_X -1
-#define MAX_X +1
-#define MIN_Y -1
-#define MAX_Y +1
-
 struct ClippingParams
 {
     float minX;
@@ -279,58 +273,30 @@ float DistanceToSegmentAndTValue(float2 P, float2 A, float2 B, out float T)
     return sqrt(DistanceToSegmentAndTValueSq(P, A, B, T));
 }
 
-void GetSegmentBoundingBox(SegmentRecord segment, out uint2 tilesB, out uint2 tilesE)
+void GetSegmentBoundingBox(SegmentRecord segment, float screenSpaceWidthPadding, out uint2 tilesB, out uint2 tilesE)
 {
-    // Determine the AABB of the segment.
-    AABB aabb;
-    aabb.min = min(segment.positionSS0, segment.positionSS1);
-    aabb.max = max(segment.positionSS0, segment.positionSS1);
-
-    // Transform AABB: NDC -> Tiled Raster Space.
-    tilesB = ((aabb.min.xy * 0.5 + 0.5) * _SizeScreen.xy) / _SizeBin.x;
-    tilesE = ((aabb.max.xy * 0.5 + 0.5) * _SizeScreen.xy) / _SizeBin.x;
+    // Determine the Tile-Space AABB of the segment.
+    tilesB = (min(segment.positionSS0, segment.positionSS1) - screenSpaceWidthPadding) / _SizeBin.x;
+    tilesE = (max(segment.positionSS0, segment.positionSS1) + screenSpaceWidthPadding) / _SizeBin.x;
 
     // Clamp AABB to tiled raster space.
     tilesB = clamp(tilesB, int2(0, 0), _DimBin - 1);
     tilesE = clamp(tilesE, int2(0, 0), _DimBin - 1);
 }
 
-bool SegmentsIntersectsBin(uint x, uint y, float2 p0, float2 p1, inout float z)
+bool SegmentsIntersectsBin(uint x, uint y, float2 p0, float2 p1, float screenSpaceWidthPadding)
 {
     float2 tileB = float2(x, y);
     float2 tileE = tileB + 1.0;
 
-    // Construct an AABB of this tile.
-    AABB aabbTile;
-    aabbTile.min = float2(tileB * _SizeBin.yz - 1.0);
-    aabbTile.max = float2(tileE * _SizeBin.yz - 1.0);
+    float2 tileMin = float2(tileB * 8.0);
+    float2 tileMax = float2(tileE * 8.0);
 
-    // Get the tile's center.
-    float2 center = aabbTile.Center();
+    ClippingParams clippingParams;
+    clippingParams.minX = tileMin.x - screenSpaceWidthPadding;
+    clippingParams.minY = tileMin.y - screenSpaceWidthPadding;
+    clippingParams.maxX = tileMax.x + screenSpaceWidthPadding;
+    clippingParams.maxY = tileMax.y + screenSpaceWidthPadding;
 
-    float d = DistanceToSegmentAndTValue(center.xy, p0.xy, p1.xy, z);
-
-    // Compute the segment coverage provided by the segment distance.
-    const uint pad = 2;
-    float coverage = 1 - step((_SizeBin.x + pad) / min(_SizeScreen.x, _SizeScreen.y), d);
-
-    return any(coverage);
-}
-
-float EncodeLineWidth(float alpha, float width)
-{
-    width /= 255.0;
-
-    const uint a = PackFloatToUInt(alpha, 0,  16);
-    const uint b = PackFloatToUInt(width,16,  16);
-    return asfloat(a | b);
-}
-
-void DecodeLineWidth(float data, inout float alpha, inout float width)
-{
-    alpha = UnpackUIntToFloat(asuint(data), 0,  16);
-    width = UnpackUIntToFloat(asuint(data), 16, 16);
-
-    width *= 255.0;
-    width  = clamp(width, 0.5f, 3.5f); // Soft clamp within tile size.
+    return ClipSegmentCohenSutherland(p0.x, p0.y, p1.x, p1.y, clippingParams);
 }

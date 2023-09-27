@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using UnityEngine;
-using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -18,23 +16,19 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             get
             {
-                if (HDRenderPipeline.currentAsset == null)
-                    return false;
+                if (HDRPBuildData.instance.buildingPlayerForHDRenderPipeline)
+                {
+                    // Test if striping is enabled in any of the found HDRP assets.
+                    foreach (var asset in HDRPBuildData.instance.renderPipelineAssets)
+                    {
+                        if (asset.allowShaderVariantStripping)
+                        {
+                            return true;
+                        }
+                    }
+                }
 
-                if (HDRenderPipelineGlobalSettings.Ensure(canCreateNewAsset: false) == null)
-                    return false;
-
-                // TODO: Grab correct configuration/quality asset.
-                var hdPipelineAssets = ShaderBuildPreprocessor.hdrpAssets;
-
-                if (hdPipelineAssets.Count == 0)
-                    return false;
-
-                // Test if striping is enabled in any of the found HDRP assets.
-                if (hdPipelineAssets.Count == 0 || !hdPipelineAssets.Any(a => a.allowShaderVariantStripping))
-                    return false;
-
-                return true;
+                return false;
             }
         }
 
@@ -43,7 +37,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // Remove the input by default, until we find a HDRP Asset in the list that needs it.
             bool removeInput = true;
 
-            foreach (var hdAsset in ShaderBuildPreprocessor.hdrpAssets)
+            foreach (var hdAsset in HDRPBuildData.instance.renderPipelineAssets)
             {
                 var strippedByPreprocessor = false;
 

@@ -1,32 +1,32 @@
-using System;
-using UnityEditor.UIElements;
 using UnityEditor.Experimental.GraphView;
-using UnityEngine;
-using UnityEngine.VFX;
 using UnityEngine.UIElements;
-using UnityEditor.VFX;
-using System.Collections.Generic;
-using UnityEditor;
-using System.Linq;
-using System.Text;
-using UnityEditor.Graphs;
-using UnityEditor.SceneManagement;
 
 namespace UnityEditor.VFX.UI
 {
     class VFXBlackboardRow : BlackboardRow, IControlledElement<VFXParameterController>
     {
-        VFXBlackboardField m_Field;
+        private readonly IParameterItem m_Property;
 
-        VFXBlackboardPropertyView m_Properties;
-        public VFXBlackboardRow() : this(new VFXBlackboardField() { name = "vfx-field" }, new VFXBlackboardPropertyView() { name = "vfx-properties" })
+        private readonly VFXBlackboardField m_Field;
+        private readonly VFXBlackboardPropertyView m_Properties;
+
+        private VFXParameterController m_Controller;
+        private int m_CurrentOrder;
+        private bool m_CurrentExposed;
+
+        public VFXBlackboardRow(PropertyItem property, VFXParameterController controller) : this(new VFXBlackboardField(property) { name = "vfx-field" }, new VFXBlackboardPropertyView { name = "vfx-properties" })
         {
-            Button button = this.Q<Button>("expandButton");
-
+            m_Property = property;
+            this.Q<TemplateContainer>().pickingMode = PickingMode.Ignore;
+            var button = this.Q<Button>("expandButton");
             if (button != null)
             {
                 button.clickable.clicked += OnExpand;
             }
+
+            this.AddManipulator(new ContextualMenuManipulator(BuildContextualMenu));
+
+            this.controller = controller;
         }
 
         void OnExpand()
@@ -34,13 +34,7 @@ namespace UnityEditor.VFX.UI
             controller.expanded = expanded;
         }
 
-        public VFXBlackboardField field
-        {
-            get
-            {
-                return m_Field;
-            }
-        }
+        public VFXBlackboardField field => m_Field;
 
         private VFXBlackboardRow(VFXBlackboardField field, VFXBlackboardPropertyView property) : base(field, property)
         {
@@ -51,14 +45,8 @@ namespace UnityEditor.VFX.UI
             m_Properties.owner = this;
         }
 
-        public int m_CurrentOrder;
-        public bool m_CurrentExposed;
-
         void IControlledElement.OnControllerChanged(ref ControllerChangedEvent e)
         {
-            m_Field.text = controller.exposedName;
-            m_Field.typeText = controller.portType != null ? controller.portType.UserFriendlyName() : "null";
-
             // if the order or exposed change, let the event be caught by the VFXBlackboard
             if (controller.order == m_CurrentOrder && controller.exposed == m_CurrentExposed)
             {
@@ -75,21 +63,19 @@ namespace UnityEditor.VFX.UI
             RemoveFromClassList("hovered");
         }
 
-        VFXParameterController m_Controller;
-        Controller IControlledElement.controller
-        {
-            get { return m_Controller; }
-        }
+        Controller IControlledElement.controller => m_Controller;
+
         public VFXParameterController controller
         {
-            get { return m_Controller; }
-            set
+            get => m_Controller;
+            private set
             {
                 if (m_Controller != value)
                 {
                     if (m_Controller != null)
                     {
                         m_Controller.UnregisterHandler(this);
+                        m_Controller.UnregisterHandler(m_Properties);
                     }
                     m_Controller = value;
                     m_Properties.Clear();
@@ -99,9 +85,37 @@ namespace UnityEditor.VFX.UI
                         m_CurrentOrder = m_Controller.order;
                         m_CurrentExposed = m_Controller.exposed;
                         m_Controller.RegisterHandler(this);
+                        m_Controller.RegisterHandler(m_Properties);
                     }
                 }
             }
+        }
+
+        private void BuildContextualMenu(ContextualMenuPopulateEvent evt)
+        {
+            if (evt.target == this)
+            {
+                evt.menu.AppendAction("Rename", (a) => Rename(), DropdownMenuAction.AlwaysEnabled);
+                evt.menu.AppendAction("Duplicate %d", (a) => Duplicate(), DropdownMenuAction.AlwaysEnabled);
+                evt.menu.AppendAction("Delete", (a) => Delete(), DropdownMenuAction.AlwaysEnabled);
+
+                evt.StopPropagation();
+            }
+        }
+
+        private void Delete()
+        {
+            this.GetFirstAncestorOfType<VFXView>().Delete();
+        }
+
+        private void Duplicate()
+        {
+            GetFirstAncestorOfType<VFXView>().DuplicateSelectionCallback();
+        }
+
+        private void Rename()
+        {
+            this.Q<VFXBlackboardField>().OpenTextEditor();
         }
     }
 }

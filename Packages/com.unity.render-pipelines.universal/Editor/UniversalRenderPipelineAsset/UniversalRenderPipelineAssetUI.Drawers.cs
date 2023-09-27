@@ -92,8 +92,8 @@ namespace UnityEditor.Rendering.Universal
 
                 for (int apiIndex = 0; apiIndex < unsupportedAPIs.Length; apiIndex++)
                 {
-                    if (System.Array.FindIndex(graphicsAPIs, element => element == unsupportedAPIs[apiIndex]) >= 0)
-                        unsupportedGraphicsApisMessage += System.String.Format("{0} at index {1} does not support {2}.\n", renderer, i, unsupportedAPIs[apiIndex]);
+                    if (Array.FindIndex(graphicsAPIs, element => element == unsupportedAPIs[apiIndex]) >= 0)
+                        unsupportedGraphicsApisMessage += $"{renderer} at index {i} does not support {unsupportedAPIs[apiIndex]}.\n";
                 }
             }
 
@@ -140,7 +140,37 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUILayout.PropertyField(serialized.opaqueDownsamplingProp, Styles.opaqueDownsamplingText);
                 EditorGUI.EndDisabledGroup();
                 EditorGUILayout.PropertyField(serialized.supportsTerrainHolesProp, Styles.supportsTerrainHolesText);
+
+                EditorGUILayout.PropertyField(serialized.gpuResidentDrawerMode, Styles.gpuResidentDrawerMode);
+
+                var brgStrippingError = EditorGraphicsSettings.batchRendererGroupShaderStrippingMode != BatchRendererGroupStrippingMode.KeepAll;
+                var lightingModeError = !HasCorrectLightingModes(serialized.asset);
+                var staticBatchingWarning = PlayerSettings.GetStaticBatchingForPlatform(EditorUserBuildSettings.activeBuildTarget);
+
+                if ((GPUResidentDrawerMode)serialized.gpuResidentDrawerMode.intValue != GPUResidentDrawerMode.Disabled)
+                {
+                    ++EditorGUI.indentLevel;
+                    EditorGUILayout.PropertyField(serialized.gpuResidentDrawerAllowInEditMode, Styles.gpuResidentDrawerAllowInEditMode);
+                    --EditorGUI.indentLevel;
+
+                    if (brgStrippingError)
+                        EditorGUILayout.HelpBox(Styles.brgShaderStrippingErrorMessage.text, MessageType.Warning, true);
+                    if (lightingModeError)
+                        EditorGUILayout.HelpBox(Styles.lightModeErrorMessage.text, MessageType.Warning, true);
+                    if (staticBatchingWarning)
+                        EditorGUILayout.HelpBox(Styles.staticBatchingInfoMessage.text, MessageType.Info, true);
+                }
             }
+        }
+
+        private static bool HasCorrectLightingModes(UniversalRenderPipelineAsset asset)
+        {
+            foreach (var rendererData in asset.m_RendererDataList)
+            {
+                if (rendererData is not UniversalRendererData { renderingMode: RenderingMode.ForwardPlus })
+                    return false;
+            }
+            return true;
         }
 
         static void DrawRenderingAdditional(SerializedUniversalRenderPipelineAsset serialized, Editor ownerEditor)
@@ -149,9 +179,6 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.PropertyField(serialized.supportsDynamicBatching, Styles.dynamicBatching);
             EditorGUILayout.PropertyField(serialized.debugLevelProp, Styles.debugLevel);
             EditorGUILayout.PropertyField(serialized.storeActionsOptimizationProperty, Styles.storeActionsOptimizationText);
-#if RENDER_GRAPH_ENABLED
-            EditorGUILayout.PropertyField(serialized.enableRenderGraph, Styles.enableRenderGraphText);
-#endif
         }
 
         static void DrawQuality(SerializedUniversalRenderPipelineAsset serialized, Editor ownerEditor)
@@ -228,9 +255,9 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUI.indentLevel++;
 
                 EditorGUILayout.PropertyField(serialized.probeVolumeTextureSize, Styles.probeVolumeMemoryBudget);
-                EditorGUILayout.PropertyField(serialized.probeVolumeBlendingTextureSize, Styles.probeVolumeBlendingMemoryBudget);
                 EditorGUILayout.PropertyField(serialized.probeVolumeSHBands, Styles.probeVolumeSHBands);
                 EditorGUILayout.PropertyField(serialized.supportProbeVolumeStreaming, Styles.supportProbeVolumeStreaming);
+                EditorGUILayout.PropertyField(serialized.supportProbeVolumeScenarios, Styles.supportProbeVolumeScenarios);
 
                 int estimatedVMemCost = ProbeReferenceVolume.instance.GetVideoMemoryCost();
                 if (estimatedVMemCost == 0)

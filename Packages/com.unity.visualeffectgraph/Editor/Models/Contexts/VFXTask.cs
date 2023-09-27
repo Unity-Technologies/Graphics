@@ -31,8 +31,7 @@ namespace UnityEditor.VFX
                 => new BufferMapping { bufferName = bufferName, mappingName = bufferName};
         }
 
-        public bool doesGenerateShader => templatePath != null;
-
+        public bool doesGenerateShader;
         public string templatePath;
         public VFXTaskShaderType shaderType;
         public VFXTaskType type;

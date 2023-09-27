@@ -17,5 +17,8 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/SampleScenes/BRGSorting/BRGSorting.unity
     guid: b19fd40c54fd393429e15254043ecd96
+  - enabled: 1
+    path: Assets/SampleScenes/BRGGameObjects/MacroBatcher.unity
+    guid: ef7f878067d9a41b8b396a7e68fb55d9
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0

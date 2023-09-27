@@ -322,13 +322,17 @@ namespace UnityEngine.Rendering.HighDefinition
             lightData.right = light.GetRight() * 2 / Mathf.Max(cookieParams.size.x, 0.001f);
             lightData.up = light.GetUp() * 2 / Mathf.Max(cookieParams.size.y, 0.001f);
 
-            if (additionalLightData.surfaceTexture == null)
+            // Apply precomputed atmospheric attenuation on light
+            if (ShaderConfig.s_PrecomputedAtmosphericAttenuation != 0 && additionalLightData.interactsWithSky)
             {
-                lightData.surfaceTextureScaleOffset = Vector4.zero;
-            }
-            else
-            {
-                lightData.surfaceTextureScaleOffset = m_TextureCaches.lightCookieManager.Fetch2DCookie(cmd, additionalLightData.surfaceTexture);
+                var skySettings = SkyManager.GetSkySetting(hdCamera.volumeStack);
+                if (skySettings)
+                {
+                    Vector3 transm = skySettings.EvaluateAtmosphericAttenuation(-lightData.forward, hdCamera.camera.transform.position);
+                    lightData.color.x *= transm.x;
+                    lightData.color.y *= transm.y;
+                    lightData.color.z *= transm.z;
+                }
             }
 
             GetContactShadowMask(additionalLightData, HDAdditionalLightData.ScalableSettings.UseContactShadow(m_Asset), hdCamera, ref lightData.contactShadowMask, ref lightData.isRayTracedContactShadow);
@@ -981,7 +985,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 float shadowMapDepth2RadialScale = Mathf.Abs(devProjMatrix.m00 / devProjMatrix.m22);
                 shadowRequest.dirLightPCSSDepth2RadialScale = halfAngularDiameterTangent * shadowMapDepth2RadialScale;
                 shadowRequest.dirLightPCSSRadial2DepthScale = 1.0f / shadowRequest.dirLightPCSSDepth2RadialScale;
-                shadowRequest.dirLightPCSSMaxBlockerDistance = additionalLightData.dirLightPCSSMaxBlockerDistance;
+                shadowRequest.dirLightPCSSMaxBlockerDistance = additionalLightData.dirLightPCSSMaxPenumbraSize / (2.0f * halfAngularDiameterTangent);
                 shadowRequest.dirLightPCSSMaxSamplingDistance = additionalLightData.dirLightPCSSMaxSamplingDistance;
                 shadowRequest.dirLightPCSSMinFilterSizeTexels = additionalLightData.dirLightPCSSMinFilterSizeTexels;
                 // Ensure min filter angular diameter covers blocker search angular diameter

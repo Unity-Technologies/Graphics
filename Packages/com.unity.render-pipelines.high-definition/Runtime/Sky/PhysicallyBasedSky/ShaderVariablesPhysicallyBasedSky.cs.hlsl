@@ -36,8 +36,12 @@ GLOBAL_CBUFFER_START(ShaderVariablesPhysicallyBasedSky, b2)
     float _AlphaMultiplier;
     float _HorizonZenithShiftPower;
     float _HorizonZenithShiftScale;
+    uint _CelestialLightCount;
+    uint _CelestialBodyCount;
     float _AtmosphericDepth;
     float _RcpAtmosphericDepth;
+    float _PaddingPBS1;
+    float _PaddingPBS2;
 CBUFFER_END
 
 

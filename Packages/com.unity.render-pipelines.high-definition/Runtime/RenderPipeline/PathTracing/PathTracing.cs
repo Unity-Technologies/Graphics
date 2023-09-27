@@ -183,6 +183,7 @@ namespace UnityEngine.Rendering.HighDefinition
         uint m_CacheLightCount = 0;
         int m_CameraID = 0;
         int m_SkyHash = -1;
+        int m_DebugMaterialOverrideHash = -1;
         bool m_RenderSky = true;
 
         TextureHandle m_FrameTexture;       // Stores the per-pixel results of path tracing for one frame
@@ -430,6 +431,14 @@ namespace UnityEngine.Rendering.HighDefinition
             if (GetTransformDirtiness(hdCamera))
             {
                 ResetTransformDirtiness(hdCamera);
+                isSceneDirty = true;
+            }
+
+            // Check debug material override dirtiness
+            int debugMaterialOverrideHash = m_CurrentDebugDisplaySettings.data.lightingDebugSettings.ComputeOverrideHash();
+            if (debugMaterialOverrideHash != m_DebugMaterialOverrideHash)
+            {
+                m_DebugMaterialOverrideHash = debugMaterialOverrideHash;
                 isSceneDirty = true;
             }
 

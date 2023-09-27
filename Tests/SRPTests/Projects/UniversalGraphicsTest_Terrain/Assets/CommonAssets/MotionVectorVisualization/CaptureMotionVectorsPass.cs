@@ -27,7 +27,8 @@ namespace UnityEngine.Rendering.Universal
             //Todo: test code is not working for XR
             CommandBuffer cmd = CommandBufferPool.Get();
 
-            ExecutePass(renderingData.cameraData.renderer.cameraColorTargetHandle, cmd, renderingData.cameraData, m_Material, m_intensity);
+            bool isGameCamera = renderingData.cameraData.camera.cameraType == CameraType.Game;
+            ExecutePass(renderingData.cameraData.renderer.cameraColorTargetHandle, cmd, isGameCamera, m_Material, m_intensity);
 
             context.ExecuteCommandBuffer(cmd);
             cmd.Clear();
@@ -36,10 +37,9 @@ namespace UnityEngine.Rendering.Universal
         }
 
 
-        static void ExecutePass(RTHandle targetHandle, CommandBuffer cmd, CameraData cameraData, Material material, float motionIntensity)
+        static void ExecutePass(RTHandle targetHandle, CommandBuffer cmd, bool isGameCamera, Material material, float motionIntensity)
         {
-            var camera = cameraData.camera;
-            if (camera.cameraType != CameraType.Game)
+            if (!isGameCamera)
                 return;
 
             if (material == null)
@@ -54,26 +54,27 @@ namespace UnityEngine.Rendering.Universal
         internal class PassData
         {
             internal TextureHandle target;
-            internal CameraData cameraData;
+            internal bool isGameCamera;
             internal Material material;
             internal float intensity;
         }
 
-        public override void RecordRenderGraph(RenderGraph renderGraph, FrameResources frameResources, ref RenderingData renderingData)
+        public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
+            UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+
             using (var builder = renderGraph.AddRenderPass<PassData>("Capture Motion Vector Pass", out var passData, s_ProfilingSampler))
             {
-                UniversalRenderer renderer = (UniversalRenderer) renderingData.cameraData.renderer;
-
-                TextureHandle color = renderer.activeColorTexture;
+                TextureHandle color = resourceData.activeColorTexture;
                 passData.target = builder.UseColorBuffer(color, 0);
-                passData.cameraData = renderingData.cameraData;
+                passData.isGameCamera = cameraData.camera.cameraType == CameraType.Game;
                 passData.material = m_Material;
                 passData.intensity = m_intensity;
 
                 builder.SetRenderFunc((PassData data, RenderGraphContext rgContext) =>
                 {
-                    ExecutePass(data.target, rgContext.cmd, data.cameraData, data.material, data.intensity);
+                    ExecutePass(data.target, rgContext.cmd, data.isGameCamera, data.material, data.intensity);
                 });
             }
         }

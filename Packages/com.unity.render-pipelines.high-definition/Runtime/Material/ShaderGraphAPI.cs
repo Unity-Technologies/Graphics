@@ -80,7 +80,8 @@ namespace UnityEngine.Rendering.HighDefinition
             if (material.HasProperty(kClearCoatEnabled))
                 CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_CLEAR_COAT", material.GetFloat(kClearCoatEnabled) > 0.0);
 
-            BaseLitAPI.SetupStencil(material, receivesLighting: true, receiveSSR, useSplitLighting);
+            bool excludeFromTUAndAA = BaseLitAPI.CompatibleWithExcludeFromTUAndAA(material) && material.GetInt(kExcludeFromTUAndAA) != 0;
+            BaseLitAPI.SetupStencil(material, receivesLighting: true, receiveSSR, useSplitLighting, excludeFromTUAndAA);
         }
 
         public static void ValidateDecalMaterial(Material material)

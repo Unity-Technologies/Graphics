@@ -307,7 +307,7 @@ namespace UnityEditor.VFX.URP
 
         protected override bool bypassExposure { get { return false; } }
 
-        protected override RPInfo currentRP => urpLitInfo;
+        protected override VFXOldShaderGraphHelpers.RPInfo currentRP => VFXOldShaderGraphHelpers.urpLitInfo;
 
         public override bool isLitShader => true;
 
@@ -688,7 +688,7 @@ namespace UnityEditor.VFX.URP
                 else if ((colorMode & ColorMode.Emissive) != 0)
                     yield return nameof(useEmissive);
 
-                yield return nameof(excludeFromTAA);
+                yield return nameof(excludeFromTUAndAA);
             }
         }
 

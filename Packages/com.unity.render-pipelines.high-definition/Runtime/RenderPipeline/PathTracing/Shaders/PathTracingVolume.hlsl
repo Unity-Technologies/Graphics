@@ -88,8 +88,10 @@ void ComputeVolumeScattering(inout PathPayload payload : SV_RayPayload, float3 i
     // Reset the payload color, which will store our final result
     payload.value = 0.0;
 
-    // Check if we want to compute direct and emissive lighting for current depth
-    bool computeDirect = payload.segmentID >= _RaytracingMinRecursion - 1;
+    // Check if we want to compute direct lighting for current depth
+    bool minDepthAllowsDirect = payload.segmentID + 1 >= _RaytracingMinRecursion - 1;
+    // Check if we want to send more rays after this segment
+    bool haveReachedMaxDepth = payload.segmentID + 1 > _RaytracingMaxRecursion - 1;
 
     // Compute the scattering position
     float3 scatteringPosition = WorldRayOrigin() + payload.rayTHit * WorldRayDirection();
@@ -107,7 +109,7 @@ void ComputeVolumeScattering(inout PathPayload payload : SV_RayPayload, float3 i
 
     PathPayload shadowPayload;
 
-    if (computeDirect)
+    if (minDepthAllowsDirect && !haveReachedMaxDepth)
     {
         // Light sampling
         if (SampleLights(lightList, inputSample, scatteringPosition, 0.0, true, ray.Direction, value, pdf, ray.TMax, shadowOpacity))

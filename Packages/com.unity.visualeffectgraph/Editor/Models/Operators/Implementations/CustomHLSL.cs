@@ -278,6 +278,13 @@ namespace UnityEditor.VFX.Operator
             return expressions.ToArray();
         }
 
+        protected override void OnAdded()
+        {
+            base.OnAdded();
+            // Parse again now that the parent graph is accessible
+            Invalidate(InvalidationCause.kSettingChanged);
+        }
+
         private VFXValueType GetValueType(Type type)
         {
             switch (type)
@@ -313,10 +320,16 @@ namespace UnityEditor.VFX.Operator
 
         private void ParseCodeIfNeeded()
         {
+            var graph = GetGraph();
+            if (graph == null)
+            {
+                return;
+            }
+
             var strippedHLSL = HLSLParser.StripCommentedCode(GetHLSLCode());
             if (strippedHLSL != cachedHLSLCode || m_SelectedFunction != m_AvailableFunctions.GetSelection() || m_AvailableFunctions.values == null)
             {
-                var functions = new List<HLSLFunction>(HLSLFunction.Parse(strippedHLSL));
+                var functions = new List<HLSLFunction>(HLSLFunction.Parse(graph.attributesManager, strippedHLSL));
 
                 if (functions.Count > 0)
                 {

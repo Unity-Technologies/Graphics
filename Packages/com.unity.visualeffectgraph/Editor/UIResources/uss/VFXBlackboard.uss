@@ -1,219 +1,428 @@
 VFXBlackboard.blackboard
 {
-    font-size: 11px;
+    background-color: #292929;
+}
+
+/* This margin is to leave some space around the blackboard for the resizer element to grab the mouse */
+VFXBlackboard.blackboard .mainContainer {
+    margin: 1px 3px;
+}
+
+VFXBlackboard.blackboard > .mainContainer > #content > #header {
+    flex-direction: column;
+    flex-grow: 1;
+    flex-shrink: 0;
+}
+
+VFXBlackboard.blackboard > .mainContainer > #content > #header > #addButton {
+    margin: 0 3px;
     background-color: rgba(0,0,0,0);
     border-color: rgba(0,0,0,0);
+    background-image: none;
+    font-size: 20px;
+    align-self: flex-start;
 }
 
-.blackboard > .mainContainer
-{
-    background-color: #2b2b2b;
-    border-color: #191919;
-    margin-left:6px;
-    margin-right:6px;
-    margin-top:6px;
-    margin-bottom:6px;
-    border-radius: 5px;
-}
-
-#vfx-properties
+VFXBlackboard #vfx-properties
 {
     margin-bottom: 7px;
 }
 
- #vfx-properties .propertyrm
+/* Fixing some propertyrm that span outside of the blackboard */
+VFXBlackboard .blackboardRow .unity-base-field
 {
-    flex:0 0 auto;
+    align-self: stretch;
 }
 
-.propertyrm VFXStringField.fieldContainer
+VFXBlackboard .blackboardRow Matrix4x4PropertyRM #fieldContainerParent
 {
-    flex-grow:1;
-    height: initial;
+    align-self: stretch;
 }
 
-Label
+
+/* Tabs styles */
+VFXBlackboard #tabsContainer
 {
-    overflow:hidden;
+    background-color: #3c3c3c;
+    flex-direction: row;
+    margin-bottom: 4px;
 }
 
-VFXStringField.fieldContainer > TextField
-{
-    white-space:normal;
-}
-
-VFXBlackboardRow.hovered #pill #selection-border
-{
-    background-color:rgba(68,192,255,0.4);
-    border-color: #44C0FF;
-    border-left-width: 2px;
-    border-top-width: 2px;
-    border-right-width: 2px;
-    border-bottom-width: 2px;
-    left: 1px;
-    right: 1px;
-    top: 1px;
-    bottom: 1px;
-}
-
-
-#vfx-field.unused #pill
-{
-    opacity:0.5;
-}
-
-
-.blackboard .output > .mainContainer > #sectionHeader
-{
-    background-color:#393939;
-}
-
-.blackboard .output > .mainContainer > #sectionHeader
-{
-    background-color:#393939;
-}
-
-.blackboard .output > .mainContainer > #sectionHeader > #sectionTitleLabel
-{
-    color:#C1C1C1;
-    align-items:stretch;
-    align-self:center;
-}
-
-
-.blackboard > #dragIndicator {
-    background-color: #44C0FF;
-    min-height: 4px;
-    left:0;
-    right:0;
-}
-
-
-VFXBlackboardCategory #name-field
-{
-    position:absolute;
-    left:16px;
-    right:0;
-    top:0;
-    bottom:0;
-}
-
-#expandButton {
-    align-self: center;
-    background-image: none;
-    background-color:rgba(0,0,0,0);
-    border-left-width: 0;
-    border-top-width: 0;
-    border-right-width: 0;
-    border-bottom-width: 0;
-    margin-left: 0;
-    margin-top: 0;
-    margin-right: 0;
-    margin-bottom: 0;
-    padding-left: 0;
-    padding-top: 0;
-    padding-right: 0;
-    padding-bottom: 0;
-}
-
-#expandButton > #buttonImage {
-    --unity-image : resource("GraphView/Nodes/NodeChevronRight.png");
-    width: 12px;
-    height: 12px;
-}
-
-VFXBlackboardCategory.expanded #expandButton > #buttonImage {
-    --unity-image : resource("GraphView/Nodes/NodeChevronDown.png");
-}
-
-VFXBlackboardCategory > .mainContainer > #rowsContainer
-{
-    display:none;
-    overflow:hidden
-}
-
-VFXBlackboardCategory > #dragIndicator
-{
-    position:absolute;
-    left:2px;
-    right:2px;
-    height:2px;
-}
-
-VFXBlackboardCategory.expanded > .mainContainer > #rowsContainer
-{
-    display: flex;
-}
-
-VFXBlackboardCategory > .mainContainer > #sectionHeader
-{
-    padding-left: 4px;
-}VFXBlackboardCategory > .mainContainer > #rowsContainer
-{
-    padding-left: 8px;
-}
-
-#expandButton:hover > #buttonImage {
-    background-color: #212121;
-    border-radius: 1px;
-}
-
-#divider {
-    background-color: rgba(60,60,60,0.8);
-    border-color: rgba(60,60,60,0.8);
-}
-
-#divider.horizontal {
-    height: 0.01px;
+VFXBlackboard #tabsContainer > #bottomBorder {
+    border-color: black;
     border-bottom-width: 1px;
+    position: absolute;
+    height: 100%;
+    width: 100%;
 }
 
-.blackboard > .mainContainer > #content > #header > #menuButton {
-    align-self:center;
-    font-size: 20px;
-    background-color: rgba(0,0,0,0);
-    border-color: rgba(0,0,0,0);
-    padding-left: 4px;
-    padding-top: 2px;
-    padding-right: 3px;
-    padding-bottom: 3px;
+VFXBlackboard #tabsContainer > Toggle #unity-checkmark
+{
+    display: none;
+}
+VFXBlackboard #tabsContainer > Toggle
+{
+    margin: 0;
+    width: 80px;
+    height: 28px;
+    margin-bottom: 0px;
+    border-radius: 0;
+    border-width: 0 0 1px 0;
+    border-color: rgba(0, 0, 0, 0);
 }
 
-.blackboard > .mainContainer > #content > #header > #menuButton {
+VFXBlackboard #tabsContainer > Toggle:hover
+{
+    border-color: #777777;
+}
+
+VFXBlackboard #tabsContainer > Toggle:checked
+{
+    border-color: #2C5D87;
+}
+/*-- End tabs styles --*/
+
+VFXBlackboard #labelContainer TextField.unity-base-field {
+    margin: 1px 4px 2px 4px;
+}
+
+VFXBlackboard .blackboardField #textField
+{
+    height: 28px;
+    margin: 4px 3px;
+    flex-grow: 1;
+}
+
+VFXBlackboard .blackboardRow
+{
+    margin: 0;
+    padding: 0 4px 0 30px;
+}
+
+VFXBlackboard .blackboardRowContainer:disabled
+{
+    opacity: 0.7;
+}
+
+VFXBlackboardCategory.graphElement
+{
+    margin: 0;
+    border-radius: 0;
+    border-top-width: 1px;
+    border-top-color: #1a1a1a;
+    padding: 0;
+}
+
+.sub-category VFXBlackboardCategory #icon {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    margin: 0 4px;
+    background-image:resource("Icons/PackageManager/Dark/Folder.png");
+}
+
+VFXBlackboardCategory #header
+{
+    align-items: center;
+    flex-direction: row;
+    height: 30px;
+    margin-left: 20px;
+}
+
+.sub-category VFXBlackboardCategory #header
+{
+    margin-left: 28px;
+}
+
+VFXBlackboardCategory #title
+{
+    height: 18px;
+    margin-top: 1px;
+    margin-bottom: 1px;
+    padding: 0;
+    flex-grow: 1;
+    -unity-text-align: middle-left;
+}
+
+VFXBlackboardCategory #titleEdit
+{
+    height: 24px;
+    margin-top: 1px;
+    margin-bottom: 1px;
+    padding: 0;
+    flex-grow: 1;
+    -unity-text-align: middle-left;
+}
+
+VFXBlackboard TreeView
+{
+    background-color: rgba(0, 0, 0, 0);
+}
+
+VFXBlackboard .no-category .blackboardRow
+{
+    /*margin: 1px 0 1px 0;*/
+    padding: 0 4px 0 10px;
+}
+
+/* Center row vertically */
+VFXBloackboard .blackboardRow, VFXBlackboard .blackboardRow .mainContainer, VFXBlackboard .blackboardRow #root, .blackboardRowContainer
+{
+    flex-grow: 1;
+}
+
+VFXBlackboard .blackboardRow #root
+{
+    justify-content: center;
+}
+/*-- End center vertically --*/
+
+VFXBlackboard #SpecialIcon {
+    position: absolute;
+    right: 4px;
+    top: 10px;
+    width: 16px;
+    height: 16px;
+}
+
+/*-- Put a lock icon on the right for built-in items --*/
+VFXBlackboard .built-in #SpecialIcon
+{
+    background-image: var(--unity-icons-lock-checked);
+}
+
+/*-- Put a link icon on the right for imported items --*/
+VFXBlackboard .sub-graph #SpecialIcon
+{
+    background-image: var(--unity-icons-link-checked);
+}
+
+VFXBlackboard #unity-tree-view__item-indent
+{
+    display: none;
+}
+
+VFXBlackboard #unity-tree-view__item-toggle
+{
+    left: 8px;
+    margin: 8px 0;
+    position: absolute;
+}
+
+VFXBlackboard .sub-category #unity-tree-view__item-toggle
+{
+    left: 16px;
+}
+
+VFXBlackboard .category .blackboardRowContainer
+{
+    background-color: #474747;
+}
+
+VFXBlackboard .collapsed.category .blackboardRowContainer
+{
+    /*margin-bottom: 4px;*/
+}
+
+VFXBlackboard .sub-category .blackboardRowContainer
+{
+    background-color: #323232;
+}
+
+VFXBlackboard .last.collapsed, .last.item
+{
+   /* margin-bottom: 8px;*/
+}
+
+/* Pill UI */
+VFXBlackboard .blackboardRow .pill
+{
+    margin: 2px 4px;
+}
+
+VFXBlackboard VFXBlackboardField .pill #contents > #top > #icon
+{
+    width: 6px;
+    height: 6px;
+    margin: 9px 4px;
+}
+
+VFXBlackboard .blackboardRow VFXBlackboardField .pill #node-border
+{
+    border-radius: 12px;
+}
+
+VFXBlackboard .blackboardRow .pill #selection-border
+{
+    display: none;
     background-image: none;
+    margin: 0;
+    border-width: 0;
 }
 
-.blackboard > .mainContainer > #content > #header > #menuButton:hover {
-    background-color: #676767;
-    /* theme-button-background-color */
-    border-color: #222222;
-    /* -theme-app-toolbar-button-border-color */
-}
-
-.blackboard > .mainContainer > #content > #header > #menuButton:hover:active {
-    background-color: #747474;
-    /* theme-button-background-color */
-    border-color: #222222;
-    /* -theme-app-toolbar-button-border-color */
-}
-
-#addOutputButton {
-    background-color: rgba(0,0,0,0);
-    border-color: rgba(0,0,0,0);
+VFXBlackboard .blackboardRow .pill #node-border
+{
+    background-color: #414141;
     background-image: none;
-    font-size: 20px;
+    border-width: 1px;
+    margin: 0;
+    padding: 1px 4px;
 }
 
-#addOutputButton:hover {
-    background-color: #676767;
-    /* theme-button-background-color */
-    border-color: #222222;
-    /* -theme-app-toolbar-button-border-color */
+VFXBlackboard .blackboardRow.hovered .pill #node-border
+{
+    background-color: #955E27;
+    border-color: #FF8000;
+}
+/*-- End of Pill UI --*/
+
+VFXBlackboard .unity-collection-view__item--selected .blackboardRow,
+VFXBlackboard .unity-collection-view__item--selected VFXBlackboardCategory
+{
+    border-radius: 0;
+    background-color: #2c5d87;
 }
 
-#addOutputButton:hover:active {
-    background-color: #747474;
-    /* theme-button-background-color */
-    border-color: #222222;
-    /* -theme-app-toolbar-button-border-color */
+/* BlackboardField UI */
+VFXBlackboard .blackboardField #typeLabel
+{
+    color: #C1C1C1;
+    flex-grow: 1;
+    -unity-text-align: middle-right;
 }
+
+VFXBlackboard VFXBlackboardField.unused .pill.has-icon #contents > #top > #icon
+{
+    opacity:0.2;
+}
+
+VFXBlackboard VFXBlackboardField .pill #node-border
+{
+    border-radius: 12px;
+    border-color: #242424;
+}
+
+VFXBlackboard .expanded VFXBlackboardField .pill #node-border
+{
+    border-radius: 12px 12px 0 0;
+}
+
+/*-- End of pill UI --*/
+
+VFXBlackboard VFXBlackboardPropertyView
+{
+    padding: 4px;
+    margin-top: -6px;
+    margin-left: 16px;
+    border-radius: 0 12px 12px 12px;
+    border-width: 1px;
+    border-color: #242424;
+    background-color: #414141;
+}
+
+VFXBlackboard VFXBlackboardPropertyView .propertyrm
+{
+    margin: 2px 4px 2px -4px;
+}
+/*-- End of BlackboardField UI --*/
+
+/* VFX Attribute UI */
+VFXBlackboard VFXBlackboardAttributeRow.blackboardRow.expanded .pill #node-border
+{
+    border-radius: 5px 5px 0 0;
+    border-width: 1px 1px 0 1px;
+}
+
+VFXBlackboardAttributeField .pill.has-icon #contents > #top > #icon {
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    margin: 1px 2px;
+}
+
+VFXBlackboard VFXBlackboardAttributeRow .pill #node-border
+{
+    border-radius: 5px;
+}
+
+VFXBlackboard VFXBlackboardAttributeRow.blackboardRow.expanded .pill #node-border
+{
+    border-radius: 5px 5px 0 0;
+    border-width: 1px 1px 0 1px;
+}
+
+VFXBlackboardAttributeView
+{
+    background-color: #414141;
+    border-color: #242424;
+    border-width: 1px;
+    border-radius: 0 5px 5px 5px;
+    padding-left: 16px;
+    padding-top: 4px;
+    padding-bottom: 4px;
+    margin-top: -5px;
+    margin-left: 16px;
+    margin-bottom: 4px;
+}
+
+/* Disabled type enum field  (for built-in attributes) */
+VFXBlackboardAttributeField #type:disabled > VisualElement
+{
+    border-width: 0;
+    background-color: rgba(0, 0, 0, 0);
+}
+
+VFXBlackboardAttributeField #type:disabled TextElement
+{
+    -unity-text-align: middle-right;
+}
+
+VFXBlackboardAttributeField #type:disabled .unity-enum-field__arrow
+{
+    display: none;
+}
+/*-- End of disable type enum field --*/
+
+VFXBlackboardAttributeRow #description,
+VFXBlackboardAttributeRow #UsedBySubgraph
+{
+    white-space: normal;
+    margin-top: 4px;
+    min-height: 32px;
+    flex-wrap: wrap;
+    flex-direction: column;
+}
+
+VFXBlackboardAttributeRow #description TextElement,
+VFXBlackboardAttributeRow #UsedBySubgraph TextElement {
+    flex-shrink: 1;
+}
+
+VFXBlackboardAttributeRow #readonly Label,
+VFXBlackboardAttributeRow #description Label,
+VFXBlackboardAttributeRow #UsedBySubgraph Label,
+VFXBlackboardAttributeRow #type Label,
+VFXBlackboardAttributeRow #typeLabel Label {
+    margin-left: 0;
+    -unity-font-style: bold;
+}
+
+VFXBlackboardAttributeRow #description TextInput,
+VFXBlackboardAttributeRow #UsedBySubgraph TextInput{
+    align-self: stretch;
+}
+
+VFXBlackboardAttributeRow #readonly TextInput,
+VFXBlackboardAttributeRow #typeLabel.read-only TextInput,
+VFXBlackboardAttributeRow #description.read-only TextInput,
+VFXBlackboardAttributeRow #UsedBySubgraph.read-only TextInput {
+    background-color: rgba(0, 0, 0, 0);
+    border-width: 0;
+    -unity-font-style: italic;
+}
+
+VFXBlackboardAttributeRow #readonly TextElement,
+VFXBlackboardAttributeRow #typeLabel.read-only TextElement {
+    -unity-text-align: middle-right;
+}
+/*-- End of VFX Attribute UI --*/

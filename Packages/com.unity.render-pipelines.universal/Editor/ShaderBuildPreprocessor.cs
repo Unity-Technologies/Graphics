@@ -224,15 +224,12 @@ namespace UnityEditor.Rendering.Universal
             s_SupportedFeaturesList.Clear();
             using (ListPool<UniversalRenderPipelineAsset>.Get(out List<UniversalRenderPipelineAsset> urpAssets))
             {
-                bool success = EditorUserBuildSettings.activeBuildTarget.TryGetRenderPipelineAssets(urpAssets);
-                if (!success)
+                bool buildingForURP = EditorUserBuildSettings.activeBuildTarget.TryGetRenderPipelineAssets(urpAssets);
+                if (buildingForURP)
                 {
-                    Debug.LogError("Unable to get UniversalRenderPipelineAssets from EditorUserBuildSettings.activeBuildTarget.");
-                    return;
+                    // Get Supported features & update data used for Shader Prefiltering and Scriptable Stripping
+                    GetSupportedShaderFeaturesFromAssets(ref urpAssets, ref s_SupportedFeaturesList, s_StripUnusedVariants);
                 }
-
-                // Get Supported features & update data used for Shader Prefiltering and Scriptable Stripping
-                GetSupportedShaderFeaturesFromAssets(ref urpAssets, ref s_SupportedFeaturesList, s_StripUnusedVariants);
             }
         }
 
@@ -506,7 +503,7 @@ namespace UnityEditor.Rendering.Universal
             rsd.needsAdditionalLightsOff          = s_KeepOffVariantForAdditionalLights || !renderer.stripAdditionalLightOffVariants;
             rsd.needsGBufferRenderingLayers       = (rsd.isUniversalRenderer && rsd.renderingMode == RenderingMode.Deferred && urpAsset.useRenderingLayers);
             rsd.needsGBufferAccurateNormals       = (rsd.isUniversalRenderer && rsd.renderingMode == RenderingMode.Deferred && universalRenderer.accurateGbufferNormals);
-            rsd.needsRenderPass                   = (rsd.isUniversalRenderer && rsd.renderingMode == RenderingMode.Deferred && universalRenderer.useRenderPassEnabled);
+            rsd.needsRenderPass                   = (rsd.isUniversalRenderer && rsd.renderingMode == RenderingMode.Deferred);
             rsd.needsReflectionProbeBlending      = urpAsset.reflectionProbeBlending;
             rsd.needsReflectionProbeBoxProjection = urpAsset.reflectionProbeBoxProjection;
 

@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
 namespace UnityEditor.VFX.Operator
 {
     [VFXHelpURL("Operator-AgeOverLifetime")]
@@ -18,7 +13,7 @@ namespace UnityEditor.VFX.Operator
         {
             get
             {
-                return "Age Over Lifetime [0..1]";
+                return "Get Age Over Lifetime [0..1]";
             }
         }
         protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)

@@ -63,6 +63,13 @@ namespace UnityEditor.VFX.Test
             VFXTestCommon.CloseAllUnecessaryWindows();
         }
 
+        [OneTimeTearDown]
+        public void OnTimeCleanup()
+        {
+            VFXViewWindow.GetAllWindows().ToList().ForEach(x => x.Close());
+            VFXTestCommon.DeleteAllTemporaryGraph();
+        }
+
         [TearDown]
         public void DestroyTestAsset()
         {

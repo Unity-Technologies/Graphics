@@ -62,7 +62,7 @@ public class SetInputRequirements : ScriptableRendererFeature
         {
         }
 
-        public override void RecordRenderGraph(RenderGraph renderGraph, FrameResources frameResources, ref RenderingData renderingData)
+        public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
         }
 

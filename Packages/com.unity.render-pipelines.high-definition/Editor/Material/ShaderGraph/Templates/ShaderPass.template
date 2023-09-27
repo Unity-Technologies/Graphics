@@ -48,7 +48,9 @@ Pass
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl" // Required to be include before we include properties as it define DECLARE_STACK_CB
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphHeader.hlsl" // Need to be here for Gradient struct definition
+    // Always include Shader Graph version
+    // Always include last to avoid double macros
+    #include "Packages/com.unity.shadergraph/ShaderGraphLibrary/Functions.hlsl" // Need to be here for Gradient struct definition
 
     // --------------------------------------------------
     // Defines
@@ -346,10 +348,6 @@ Pass
         // This is a limitation of the current MRT approach.
         #ifdef UNITY_VIRTUAL_TEXTURING
         $SurfaceDescription.VTPackedFeedback: builtinData.vtPackedFeedback = surfaceDescription.VTPackedFeedback;
-        #endif
-
-        #ifdef LINE_RENDERING_OFFSCREEN_SHADING
-        $SurfaceDescription.LineWidth: builtinData.lineWidth = surfaceDescription.LineWidth;
         #endif
 
         #if _DEPTHOFFSET_ON

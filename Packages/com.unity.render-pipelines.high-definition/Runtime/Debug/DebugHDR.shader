@@ -229,11 +229,17 @@ Shader "Hidden/HDRP/DebugHDR"
 
         float maxC = max(color.x, max(color.y, color.z));
 
-        float t = (maxC - _PaperWhite) / (_MaxNits - _PaperWhite);
-
         if (maxC > _PaperWhite)
         {
-            return lerp(float3(_PaperWhite, _PaperWhite, 0), float3(_PaperWhite, 0, 0), saturate(t));
+            if ( maxC > _MaxNits)
+            {
+                return float3(0, 0, _PaperWhite);
+            }
+            else
+            {
+                float t = (maxC - _PaperWhite) / (_MaxNits - _PaperWhite);
+                return lerp(float3(_PaperWhite, _PaperWhite, 0), float3(_PaperWhite, 0, 0), saturate(t));
+            }
         }
         else
         {

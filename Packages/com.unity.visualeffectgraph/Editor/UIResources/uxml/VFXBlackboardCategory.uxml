@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<UXML xmlns:ui="UnityEngine.UIElements">
+    <ui:VisualElement name="header" pickingMode="Ignore">
+        <ui:VisualElement name="icon" pickingMode="Ignore" />
+        <ui:Label name="title" pickingMode="Ignore" />
+        <ui:TextField name="titleEdit" style="display:none" pickingMode="Position" />
+    </ui:VisualElement>
+</UXML>

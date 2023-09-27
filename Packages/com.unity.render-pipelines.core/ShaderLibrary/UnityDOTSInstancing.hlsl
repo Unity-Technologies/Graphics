@@ -606,8 +606,10 @@ float3  LoadDOTSInstancedData_MeshLocalBoundExtent()
 
 float4 LoadDOTSInstancedData_MotionVectorsParams()
 {
+    // See MotionVectorRendererLoop.cpp
+    static const float s_bias = -0.001;
     uint flags = unity_DOTSVisibleInstances[0].VisibleData.w;
-    return float4(0, flags & kDOTSInstancingFlagForceZeroMotion ? 0.0f : 1.0f, -0.001f, flags & kDOTSInstancingFlagCameraMotion ? 0.0f : 1.0f);
+    return float4(0, flags & kDOTSInstancingFlagForceZeroMotion ? 0.0f : 1.0f, s_bias, flags & kDOTSInstancingFlagCameraMotion ? 0.0f : 1.0f);
 }
 
 float4 LoadDOTSInstancedData_WorldTransformParams()
@@ -634,7 +636,7 @@ float4 LoadDOTSInstancedData_LODFade()
 }
 
 
-void    SetupDOTSRendererBounds(float4x4 objectToWorld)
+void SetupDOTSRendererBounds(float4x4 objectToWorld)
 {
     float3 vCenter = mul(objectToWorld, float4(LoadDOTSInstancedData_MeshLocalBoundCenter(), 1.0f)).xyz;
     float3 vInputExt = LoadDOTSInstancedData_MeshLocalBoundExtent();

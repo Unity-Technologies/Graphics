@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -5,7 +6,7 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
-    abstract class VFXBlock : VFXSlotContainerModel<VFXContext, VFXModel>, IVFXDataGetter
+    abstract class VFXBlock : VFXSlotContainerModel<VFXContext, VFXModel>, IVFXDataGetter, IVFXAttributeUsage
     {
         public readonly static string activationSlotName = "_vfx_enabled";
 
@@ -65,6 +66,7 @@ namespace UnityEditor.VFX
 
         public abstract VFXContextType compatibleContexts { get; }
         public abstract VFXDataType compatibleData { get; }
+        public virtual IEnumerable<VFXAttribute> usedAttributes => attributes.Select(x => x.attrib);
         public virtual IEnumerable<VFXAttributeInfo> attributes { get { return Enumerable.Empty<VFXAttributeInfo>(); } }
         public virtual IEnumerable<VFXNamedExpression> parameters { get { return GetExpressionsFromSlots(this); } }
         public VFXExpression activationExpression => m_ActivationSlot.GetExpression();
@@ -83,6 +85,23 @@ namespace UnityEditor.VFX
             if (CreateActivationSlotIfNeeded())
                 Invalidate(InvalidationCause.kStructureChanged);
             base.Sanitize(version);
+        }
+
+        /// <summary>
+        /// Copy input links from source to destination. The input slots must be compatible and in same order between source and destination
+        /// </summary>
+        public static void CopyInputLinks(VFXBlock dst, VFXBlock src, bool notify = true)
+        {
+            for (var i = 0; i < src.GetNbInputSlots(); i++)
+            {
+                VFXSlot.CopyLinksAndValue(dst.inputSlots[i], src.inputSlots[i], notify);
+            }
+            VFXSlot.CopyLinksAndValue(dst.activationSlot, src.activationSlot, notify);
+        }
+
+        public virtual void Rename(string oldName, string newName)
+        {
+            throw new NotSupportedException($"Should not be called on this object type: {GetType()}");
         }
 
         private bool CreateActivationSlotIfNeeded()

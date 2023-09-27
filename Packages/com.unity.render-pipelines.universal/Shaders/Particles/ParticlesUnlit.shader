@@ -205,6 +205,7 @@ Shader "Universal Render Pipeline/Particles/Unlit"
             //--------------------------------------
             // GPU Instancing
             #pragma multi_compile_instancing
+            #pragma instancing_options procedural:ParticleInstancingSetup
             #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DOTS.hlsl"
 
             // -------------------------------------

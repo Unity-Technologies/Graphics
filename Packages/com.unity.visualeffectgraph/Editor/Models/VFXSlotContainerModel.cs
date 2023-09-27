@@ -73,7 +73,7 @@ namespace UnityEditor.VFX
         }
 
         // Get properties with value from type fields
-        protected static IEnumerable<VFXPropertyWithValue> PropertiesFromType(Type type)
+        public static IEnumerable<VFXPropertyWithValue> PropertiesFromType(Type type)
         {
             if (type == null)
                 return Enumerable.Empty<VFXPropertyWithValue>();

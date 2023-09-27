@@ -5,6 +5,11 @@
 #ifndef SIXWAYSMOKELIT_CS_HLSL
 #define SIXWAYSMOKELIT_CS_HLSL
 //
+// UnityEditor.VFX.HDRP.SixWaySmokeLit+MaterialFeatureFlags:  static fields
+//
+#define MATERIALFEATUREFLAGS_LIT_SIX_WAY_SMOKE (1)
+
+//
 // UnityEditor.VFX.HDRP.SixWaySmokeLit+BSDFData:  static fields
 //
 #define DEBUGVIEW_SIXWAYSMOKELIT_BSDFDATA_ABSORPTION_RANGE (1750)
@@ -19,11 +24,6 @@
 #define DEBUGVIEW_SIXWAYSMOKELIT_BSDFDATA_BAKE_DIFFUSE_LIGHTING0 (1759)
 #define DEBUGVIEW_SIXWAYSMOKELIT_BSDFDATA_BAKE_DIFFUSE_LIGHTING1 (1760)
 #define DEBUGVIEW_SIXWAYSMOKELIT_BSDFDATA_BAKE_DIFFUSE_LIGHTING2 (1761)
-
-//
-// UnityEditor.VFX.HDRP.SixWaySmokeLit+MaterialFeatureFlags:  static fields
-//
-#define MATERIALFEATUREFLAGS_LIT_SIX_WAY_SMOKE (1)
 
 //
 // UnityEditor.VFX.HDRP.SixWaySmokeLit+SurfaceData:  static fields

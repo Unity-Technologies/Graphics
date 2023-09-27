@@ -18,7 +18,7 @@ namespace UnityEditor.Rendering.HighDefinition
         // Modify this function to add more stripping clauses
         internal bool StripShader(HDRenderPipelineAsset hdAsset, ComputeShader shader, string kernelName, ShaderCompilerData inputData)
         {
-            bool stripDebug = !Debug.isDebugBuild || HDRenderPipelineGlobalSettings.Ensure().stripDebugVariants;
+            bool stripDebug = HDRPBuildData.instance.stripDebugVariants;
 
             // Strip debug compute shaders
             if (stripDebug && !hdAsset.currentPlatformRenderPipelineSettings.supportRuntimeAOVAPI)
@@ -171,27 +171,12 @@ namespace UnityEditor.Rendering.HighDefinition
             return false;
         }
 
-        public bool active
-        {
-            get
-            {
-                if (HDRenderPipeline.currentAsset == null)
-                    return false;
-
-                if (HDRenderPipelineGlobalSettings.Ensure(canCreateNewAsset: false) == null)
-                    return false;
-
-                if (ShaderBuildPreprocessor.hdrpAssets.Count == 0)
-                    return false;
-
-                return true;
-            }
-        }
+        public bool active => HDRPBuildData.instance.buildingPlayerForHDRenderPipeline;
 
         public bool CanRemoveVariant([DisallowNull] ComputeShader shader, string shaderVariant, ShaderCompilerData shaderCompilerData)
         {
             bool removeInput = true;
-            foreach (var hdAsset in ShaderBuildPreprocessor.hdrpAssets)
+            foreach (var hdAsset in HDRPBuildData.instance.renderPipelineAssets)
             {
                 if (!StripShader(hdAsset, shader, shaderVariant, shaderCompilerData))
                 {
@@ -206,7 +191,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public bool SkipShader([DisallowNull] ComputeShader shader, string shaderVariant)
         {
             // Discard any compute shader use for raytracing if none of the RP asset required it
-            if (!ShaderBuildPreprocessor.playerNeedRaytracing && ShaderBuildPreprocessor.computeShaderCache.TryGetValue(shader.GetInstanceID(), out ComputeShader _))
+            if (!HDRPBuildData.instance.playerNeedRaytracing && HDRPBuildData.instance.rayTracingComputeShaderCache.ContainsKey(shader.GetInstanceID()))
                 return true;
 
             return false;

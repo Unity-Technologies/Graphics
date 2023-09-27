@@ -121,15 +121,20 @@ namespace UnityEditor.Rendering.Universal
         /// </summary>
         public void Update()
         {
-            baseCameraSettings.Update();
-            serializedObject.Update();
-            serializedAdditionalDataObject.Update();
+            UpdateInternal();
 
             if (cameraSerializedObjects == null || cameraSerializedObjects.Length != numCameras)
                 Refresh();
 
             for (int i = 0; i < numCameras; ++i)
-                cameraSerializedObjects[i]?.Update();
+                cameraSerializedObjects[i]?.UpdateInternal();
+        }
+
+        private void UpdateInternal()
+        {
+            baseCameraSettings.Update();
+            serializedObject.Update();
+            serializedAdditionalDataObject.Update();
         }
 
         /// <summary>
@@ -137,15 +142,20 @@ namespace UnityEditor.Rendering.Universal
         /// </summary>
         public void Apply()
         {
-            baseCameraSettings.ApplyModifiedProperties();
-            serializedObject.ApplyModifiedProperties();
-            serializedAdditionalDataObject.ApplyModifiedProperties();
+            ApplyInternal();
 
             if (cameraSerializedObjects == null || cameraSerializedObjects.Length != numCameras)
                 Refresh();
 
             for (int i = 0; i < numCameras; ++i)
-                cameraSerializedObjects[i]?.Apply();
+                cameraSerializedObjects[i]?.ApplyInternal();
+        }
+
+        private void ApplyInternal()
+        {
+            baseCameraSettings.ApplyModifiedProperties();
+            serializedObject.ApplyModifiedProperties();
+            serializedAdditionalDataObject.ApplyModifiedProperties();
         }
 
         /// <summary>

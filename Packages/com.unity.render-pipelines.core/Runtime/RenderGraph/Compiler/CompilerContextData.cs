@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassCompiler
 {
     // Note pass=node in the graph, both are sometimes mixed up here
-    // Datastructure that contains passes and dependencies and allow yo to iterate and reason on them more like a graph
+    // Datastructure that contains passes and dependencies and allow you to iterate and reason on them more like a graph
     internal class CompilerContextData
     {
         public CompilerContextData(int estimatedNumPasses, int estimatedNumResourcesPerType)
@@ -41,17 +42,20 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
 
         public ResourcesData resources;
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ref ResourceUnversionedData UnversionedResourceData(ResourceHandle h)
         {
             return ref resources.unversionedData[h.iType][h.index];
         }
 
-        public ref ResourceVersionData VersionedResourceData(ResourceHandle h)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ref ResourceVersionedData VersionedResourceData(ResourceHandle h)
         {
             return ref resources[h];
         }
 
         // Iterate over all the readers of a particular resource
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public DynamicArray<ResourceReaderData>.RangeEnumerable Readers(ResourceHandle h)
         {
             int numReaders = resources[h].numReaders;
@@ -59,6 +63,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
         }
 
         // Get the i'th reader of a resource
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ResourceReaderData ResourceReader(ResourceHandle h, int i)
         {
             int numReaders = resources[h].numReaders;
@@ -114,7 +119,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
             return true;
         }
 
-        // Mark all passes as unvisited this is usefull for graph algorithms that do something with the tag
+        // Mark all passes as unvisited this is useful for graph algorithms that do something with the tag
         public void TagAll(int value)
         {
             for (int passId = 0; passId < passData.size; passId++)

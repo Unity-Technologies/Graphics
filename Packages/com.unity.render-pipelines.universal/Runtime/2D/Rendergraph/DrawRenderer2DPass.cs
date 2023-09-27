@@ -6,16 +6,20 @@ namespace UnityEngine.Rendering.Universal
 {
     internal class DrawRenderer2DPass : ScriptableRenderPass
     {
-        private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler("Renderer2DPass");
-        private static readonly ProfilingSampler m_ExecuteProfilingSampler = new ProfilingSampler("Draw Renderers");
+        static readonly string k_RenderPass = "Renderer2D Pass";
+
+        private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler(k_RenderPass);
         private static readonly ShaderTagId k_CombinedRenderingPassName = new ShaderTagId("Universal2D");
         private static readonly ShaderTagId k_LegacyPassName = new ShaderTagId("SRPDefaultUnlit");
+
+#if UNITY_EDITOR
+        private static readonly int k_DefaultWhiteTextureID = Shader.PropertyToID("_DefaultWhiteTex");
+#endif
 
         private static readonly List<ShaderTagId> k_ShaderTags =
             new List<ShaderTagId>() {k_LegacyPassName, k_CombinedRenderingPassName};
 
         private static readonly int k_HDREmulationScaleID = Shader.PropertyToID("_HDREmulationScale");
-        private static readonly int k_UseSceneLightingID = Shader.PropertyToID("_UseSceneLighting");
         private static readonly int k_RendererColorID = Shader.PropertyToID("_RendererColor");
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -26,15 +30,18 @@ namespace UnityEngine.Rendering.Universal
         private static void Execute(RasterGraphContext context, PassData passData)
         {
             var cmd = context.cmd;
-            using (new ProfilingScope(cmd, m_ExecuteProfilingSampler))
+            var blendStylesCount = passData.lightBlendStyles.Length;
+
+            cmd.SetGlobalFloat(k_HDREmulationScaleID, passData.hdrEmulationScale);
+            cmd.SetGlobalColor(k_RendererColorID, Color.white);
+            RendererLighting.SetLightShaderGlobals(ref passData.lightBlendStyles, cmd);
+
+#if UNITY_EDITOR
+            cmd.SetGlobalTexture(k_DefaultWhiteTextureID, context.defaultResources.whiteTexture);
+
+            if (passData.isLitView)
+#endif
             {
-                var blendStylesCount = passData.lightBlendStyles.Length;
-
-                cmd.SetGlobalFloat(k_HDREmulationScaleID, passData.hdrEmulationScale);
-                cmd.SetGlobalFloat(k_UseSceneLightingID, passData.useSceneLighting ? 1.0f : 0.0f);
-                cmd.SetGlobalColor(k_RendererColorID, Color.white);
-                RendererLighting.SetLightShaderGlobals(ref passData.lightBlendStyles, cmd);
-
                 if (passData.layerUseLights)
                 {
                     for (var blendStyleIndex = 0; blendStyleIndex < blendStylesCount; blendStyleIndex++)
@@ -57,17 +64,16 @@ namespace UnityEngine.Rendering.Universal
                         }
                     }
                 }
-
-                // Draw all renderers in layer batch
-                cmd.DrawRendererList(passData.rendererList);
-
-                RendererLighting.DisableAllKeywords(cmd);
             }
+
+            // Draw all renderers in layer batch
+            cmd.DrawRendererList(passData.rendererList);
+
+            RendererLighting.DisableAllKeywords(cmd);
         }
 
         class PassData
         {
-            internal bool useSceneLighting;
             internal Light2DBlendStyle[] lightBlendStyles;
             internal float hdrEmulationScale;
             internal bool isSceneLit;
@@ -75,27 +81,33 @@ namespace UnityEngine.Rendering.Universal
             internal uint layerBlendStylesUsed;
             internal TextureHandle[] lightTextures;
             internal RendererListHandle rendererList;
+
+#if UNITY_EDITOR
+            internal bool isLitView; // Required for prefab view and preview camera
+#endif
         }
 
         public void Render(RenderGraph graph, ref RenderingData renderingData, Renderer2DData rendererData, ref LayerBatch layerBatch, ref FilteringSettings filterSettings, in TextureHandle cameraColorAttachment, in TextureHandle cameraDepthAttachment, in TextureHandle[] lightTextures)
         {
-            using (var builder = graph.AddRasterRenderPass<PassData>("Renderer 2D Pass", out var passData, m_ProfilingSampler))
+            using (var builder = graph.AddRasterRenderPass<PassData>(k_RenderPass, out var passData, m_ProfilingSampler))
             {
-                passData.useSceneLighting = true;
-
-#if UNITY_EDITOR
-                if (renderingData.cameraData.isSceneViewCamera)
-                    passData.useSceneLighting = UnityEditor.SceneView.currentDrawingSceneView.sceneLighting;
-
-                if (renderingData.cameraData.camera.cameraType == CameraType.Preview)
-                    passData.useSceneLighting = false;
-#endif
-
                 passData.lightBlendStyles = rendererData.lightBlendStyles;
                 passData.hdrEmulationScale = rendererData.hdrEmulationScale;
                 passData.isSceneLit = rendererData.lightCullResult.IsSceneLit();
                 passData.layerUseLights = layerBatch.lightStats.useLights;
                 passData.layerBlendStylesUsed = layerBatch.lightStats.blendStylesUsed;
+
+#if UNITY_EDITOR
+                passData.isLitView = true;
+
+                // Early out for prefabs
+                if (renderingData.cameraData.isSceneViewCamera && !UnityEditor.SceneView.currentDrawingSceneView.sceneLighting)
+                    passData.isLitView = false;
+
+                // Early out for preview camera
+                if (renderingData.cameraData.cameraType == CameraType.Preview)
+                    passData.isLitView = false;
+#endif
 
                 var drawSettings = CreateDrawingSettings(k_ShaderTags, ref renderingData, SortingCriteria.CommonTransparent);
                 var sortSettings = drawSettings.sortingSettings;
@@ -116,7 +128,7 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 builder.UseTextureFragment(cameraColorAttachment, 0);
-                builder.UseTextureFragmentDepth(cameraDepthAttachment, IBaseRenderGraphBuilder.AccessFlags.Write);
+                builder.UseTextureFragmentDepth(cameraDepthAttachment, IBaseRenderGraphBuilder.AccessFlags.Read);
                 builder.AllowPassCulling(false);
                 builder.AllowGlobalStateModification(true);
 

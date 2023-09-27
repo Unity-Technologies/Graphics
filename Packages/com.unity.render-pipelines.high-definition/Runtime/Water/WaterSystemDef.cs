@@ -361,6 +361,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // Color pyramid scale
         public float colorPyramidScale;
 
+        public Vector4 foamColor;
+
         // Vertical direction of the water surface (used for SSR, Env Lighting, etc)
         public Vector3 upDirection;
         public int colorPyramidMipOffset;

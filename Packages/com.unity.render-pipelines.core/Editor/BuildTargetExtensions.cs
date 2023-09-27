@@ -40,7 +40,7 @@ namespace UnityEditor.Rendering
                     srpAssets.Add(srpAsset);
             }
 
-            return true;
+            return srpAssets.Count != 0;
         }
     }
 }

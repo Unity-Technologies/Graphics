@@ -17,6 +17,8 @@ using UnityEditor.Searcher;
 
 using Unity.Profiling;
 using UnityEditor.ShaderGraph.Internal;
+using UnityEditor.Experimental;
+using UnityEditor.PackageManager.UI;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -120,6 +122,30 @@ namespace UnityEditor.ShaderGraph.Drawing
             get => m_ColorManager;
         }
 
+        void InstallSample(string sampleName)
+        {
+            var sample = Sample.FindByPackage("com.unity.shadergraph", null).SingleOrDefault(x => x.displayName == sampleName);
+            if (!string.IsNullOrEmpty(sample.displayName))
+            {
+                if (!sample.isImported)
+                {
+                    sample.Import();
+                }
+                else
+                {
+                    var reinstall = EditorUtility.DisplayDialog("Warning", "This sample package is already installed.\nDo you want to reinstall it?", "Yes", "No");
+                    if (reinstall)
+                    {
+                        sample.Import(Sample.ImportOptions.OverridePreviousImports);
+                    }
+                }
+            }
+            else
+            {
+                Debug.LogWarning($"Could not find sample package {sampleName}");
+            }
+        }
+
         private static readonly ProfilerMarker AddGroupsMarker = new ProfilerMarker("AddGroups");
         private static readonly ProfilerMarker AddStickyNotesMarker = new ProfilerMarker("AddStickyNotes");
         public GraphEditorView(EditorWindow editorWindow, GraphData graph, MessageManager messageManager, string graphName)
@@ -127,6 +153,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_GraphViewGroupTitleChanged = OnGroupTitleChanged;
             m_GraphViewElementsAddedToGroup = OnElementsAddedToGroup;
             m_GraphViewElementsRemovedFromGroup = OnElementsRemovedFromGroup;
+            ShaderGraphPreferences.onZoomStepSizeChanged += ResetZoom;
 
             m_EditorWindow = editorWindow;
             m_Graph = graph;
@@ -144,39 +171,29 @@ namespace UnityEditor.ShaderGraph.Drawing
             var toolbar = new IMGUIContainer(() =>
             {
                 GUILayout.BeginHorizontal(EditorStyles.toolbar);
-                if (GUILayout.Button("Save Asset", EditorStyles.toolbarButton))
+                if (GUILayout.Button(new GUIContent(EditorGUIUtility.FindTexture("SaveActive"), "Save"), EditorStyles.toolbarButton))
                 {
                     if (saveRequested != null)
                         saveRequested();
                 }
-                GUILayout.Space(6);
-                if (GUILayout.Button("Save As...", EditorStyles.toolbarButton))
+                if (GUILayout.Button(EditorResources.Load<Texture>("d_dropdown"), EditorStyles.toolbarButton))
                 {
-                    saveAsRequested();
-                }
-                GUILayout.Space(6);
-                if (GUILayout.Button("Show In Project", EditorStyles.toolbarButton))
-                {
-                    if (showInProjectRequested != null)
-                        showInProjectRequested();
-                }
-
-                if (isCheckedOut != null)
-                {
+                    GenericMenu menu = new GenericMenu();
+                    menu.AddItem(new GUIContent("Save As..."), false, () => saveAsRequested());
+                    menu.AddItem(new GUIContent("Show In Project"), false, () => showInProjectRequested());
                     if (!isCheckedOut() && Provider.enabled && Provider.isActive)
                     {
-                        if (GUILayout.Button("Check Out", EditorStyles.toolbarButton))
+                        menu.AddItem(new GUIContent("Check Out"), false, () =>
                         {
                             if (checkOut != null)
                                 checkOut();
-                        }
+                        });
                     }
                     else
                     {
-                        EditorGUI.BeginDisabledGroup(true);
-                        GUILayout.Button("Check Out", EditorStyles.toolbarButton);
-                        EditorGUI.EndDisabledGroup();
+                        menu.AddDisabledItem(new GUIContent("Check Out"), false);
                     }
+                    menu.ShowAsContext();
                 }
 
                 GUILayout.FlexibleSpace();
@@ -185,15 +202,52 @@ namespace UnityEditor.ShaderGraph.Drawing
                 GUILayout.Label("Color Mode");
                 var newColorIndex = EditorGUILayout.Popup(m_ColorManager.activeIndex, colorProviders, GUILayout.Width(100f));
                 GUILayout.Space(4);
-                m_UserViewSettings.isBlackboardVisible = GUILayout.Toggle(m_UserViewSettings.isBlackboardVisible, "Blackboard", EditorStyles.toolbarButton);
+                m_UserViewSettings.isBlackboardVisible = GUILayout.Toggle(m_UserViewSettings.isBlackboardVisible, new GUIContent(Resources.Load<Texture2D>("Icons/blackboard"), "Blackboard"), EditorStyles.toolbarButton);
 
                 GUILayout.Space(6);
 
-                m_UserViewSettings.isInspectorVisible = GUILayout.Toggle(m_UserViewSettings.isInspectorVisible, "Graph Inspector", EditorStyles.toolbarButton);
+                m_UserViewSettings.isInspectorVisible = GUILayout.Toggle(m_UserViewSettings.isInspectorVisible, new GUIContent(EditorGUIUtility.FindTexture("d_UnityEditor.InspectorWindow"), "Graph Inspector"), EditorStyles.toolbarButton);
 
                 GUILayout.Space(6);
 
-                m_UserViewSettings.isPreviewVisible = GUILayout.Toggle(m_UserViewSettings.isPreviewVisible, "Main Preview", EditorStyles.toolbarButton);
+                m_UserViewSettings.isPreviewVisible = GUILayout.Toggle(m_UserViewSettings.isPreviewVisible, new GUIContent(EditorGUIUtility.FindTexture("PreMatSphere"), "Main Preview"), EditorStyles.toolbarButton);
+
+                if (GUILayout.Button(new GUIContent(EditorGUIUtility.FindTexture("_Help"), "Open Shader Graph User Manual"), EditorStyles.toolbarButton))
+                {
+                    Application.OpenURL(UnityEngine.Rendering.ShaderGraph.Documentation.GetPageLink("index"));
+                    //Application.OpenURL("https://docs.unity3d.com/Packages/com.unity.shadergraph@17.0/manual/index.html"); // TODO : point to latest?
+                }
+                if (GUILayout.Button(EditorResources.Load<Texture>("d_dropdown"), EditorStyles.toolbarButton))
+                {
+                    GenericMenu menu = new GenericMenu();
+                    menu.AddItem(new GUIContent("Shader Graph Samples"), false, () =>
+                    {
+                        PackageManager.UI.Window.Open("com.unity.shadergraph");
+                    });
+                    menu.AddItem(new GUIContent("Install Node Reference Sample"), false, () =>
+                    {
+                        InstallSample("Node Reference");
+                    });
+                    menu.AddItem(new GUIContent("Install Procedural Patterns Sample"), false, () =>
+                    {
+                        InstallSample("Procedural Patterns");
+                    });
+                    menu.AddSeparator("");
+                    menu.AddItem(new GUIContent("Shader Graph Feature Page"), false, () =>
+                    {
+                        Application.OpenURL("https://unity.com/features/shader-graph");
+                    });
+                    menu.AddItem(new GUIContent("Shader Graph Forums"), false, () =>
+                    {
+                        Application.OpenURL("https://forum.unity.com/forums/shader-graph.346/");
+                    });
+                    menu.AddItem(new GUIContent("Shader Graph Roadmap"), false, () =>
+                    {
+                        Application.OpenURL("https://portal.productboard.com/unity/1-unity-platform-rendering-visual-effects/tabs/7-shader-graph");
+                    });
+                    menu.ShowAsContext();
+                }
+
                 if (EditorGUI.EndChangeCheck())
                 {
                     UserViewSettingsChangeCheck(newColorIndex);
@@ -206,12 +260,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 m_GraphView = new MaterialGraphView(graph, () => m_PreviewManager.UpdateMasterPreview(ModificationScope.Topological))
                 { name = "GraphView", viewDataKey = "MaterialGraphView" };
-                m_GraphView.SetupZoom(0.05f, 8);
+                ResetZoom();
                 m_GraphView.AddManipulator(new ContentDragger());
                 m_GraphView.AddManipulator(new SelectionDragger());
                 m_GraphView.AddManipulator(new RectangleSelector());
                 m_GraphView.AddManipulator(new ClickSelector());
-                m_GraphView.RegisterCallback<KeyDownEvent>(OnKeyDown);
+
                 // Bugfix 1312222. Running 'ResetSelectedBlockNodes' on all mouse up interactions will break selection
                 // after changing tabs. This was originally added to fix a bug with middle-mouse clicking while dragging a block node.
                 m_GraphView.RegisterCallback<MouseUpEvent>(evt => { if (evt.button == (int)MouseButton.MiddleMouse) m_GraphView.ResetSelectedBlockNodes(); });
@@ -422,36 +476,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             Undo.undoRedoPerformed += (() => { m_InspectorView?.TriggerInspectorUpdate(graphView?.selection); });
         }
 
-        void OnKeyDown(KeyDownEvent evt)
+        // a nice curve that scales well for various HID (touchpad and mice).
+        static float WeightStepSize(float x) => Mathf.Clamp(2 * Mathf.Pow(x, 7f / 2f), 0.001f, 2.0f);
+        void ResetZoom()
         {
-            if (evt.keyCode == KeyCode.F1)
-            {
-                var selection = m_GraphView.selection.OfType<IShaderNodeView>();
-                if (selection.Count() == 1)
-                {
-                    var nodeView = selection.First();
-                    if (nodeView.node.documentationURL != null)
-                    {
-                        System.Diagnostics.Process.Start(nodeView.node.documentationURL);
-                    }
-                }
-            }
-
-            if (evt.actionKey && evt.keyCode == KeyCode.G)
-            {
-                if (m_GraphView.selection.OfType<GraphElement>().Any())
-                {
-                    m_GraphView.GroupSelection();
-                }
-            }
-
-            if (evt.actionKey && evt.keyCode == KeyCode.U)
-            {
-                if (m_GraphView.selection.OfType<GraphElement>().Any())
-                {
-                    m_GraphView.RemoveFromGroupNode();
-                }
-            }
+            var weightedStepSize = WeightStepSize(ShaderGraphPreferences.zoomStepSize);
+            m_GraphView?.SetupZoom(0.05f, 8.0f, weightedStepSize, 1.0f);
         }
 
         GraphViewChange GraphViewChanged(GraphViewChange graphViewChange)
@@ -1398,6 +1428,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void Dispose()
         {
+            ShaderGraphPreferences.onZoomStepSizeChanged -= ResetZoom;
             if (m_GraphView != null)
             {
                 saveRequested = null;

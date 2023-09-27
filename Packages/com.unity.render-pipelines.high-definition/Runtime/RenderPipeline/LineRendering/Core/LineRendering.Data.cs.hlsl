@@ -5,17 +5,17 @@
 #ifndef LINERENDERING_DATA_CS_HLSL
 #define LINERENDERING_DATA_CS_HLSL
 //
-// UnityEngine.Rendering.LineRendering+ShaderVariables:  static fields
-//
-#define NUM_LANE_SEGMENT_SETUP (1024)
-#define NUM_LANE_RASTER_BIN (1024)
-
-//
 // UnityEngine.Rendering.LineRendering+DebugMode:  static fields
 //
 #define DEBUGMODE_SEGMENTS_PER_TILE (0)
 #define DEBUGMODE_TILE_PROCESSOR_UV (1)
 #define DEBUGMODE_CLUSTER_DEPTH (2)
+
+//
+// UnityEngine.Rendering.LineRendering+ShaderVariables:  static fields
+//
+#define NUM_LANE_SEGMENT_SETUP (1024)
+#define NUM_LANE_RASTER_BIN (512)
 
 // Generated from UnityEngine.Rendering.LineRendering+ClusterRecord
 // PackingRules = Exact
@@ -38,19 +38,6 @@ struct SegmentRecord
     uint vertexIndex1;
 };
 
-// Generated from UnityEngine.Rendering.LineRendering+VertexRecord
-// PackingRules = Exact
-struct VertexRecord
-{
-    float4 positionCS;
-    float4 previousPositionCS;
-    float3 positionRWS;
-    float3 tangentWS;
-    float3 normalWS;
-    float texCoord0;
-    float texCoord1;
-};
-
 // Generated from UnityEngine.Rendering.LineRendering+ShaderVariables
 // PackingRules = Exact
 CBUFFER_START(ShaderVariables)
@@ -69,6 +56,19 @@ CBUFFER_START(ShaderVariables)
     int _ViewIndex;
     float3 _padding;
 CBUFFER_END
+
+// Generated from UnityEngine.Rendering.LineRendering+VertexRecord
+// PackingRules = Exact
+struct VertexRecord
+{
+    float4 positionCS;
+    float4 previousPositionCS;
+    float3 positionRWS;
+    float3 tangentWS;
+    float3 normalWS;
+    float texCoord0;
+    float texCoord1;
+};
 
 
 #endif

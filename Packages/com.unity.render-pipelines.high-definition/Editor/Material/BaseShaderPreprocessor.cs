@@ -137,8 +137,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_SensorOverrideReflectance = new ShaderKeyword("SENSORSDK_OVERRIDE_REFLECTANCE");
 #endif
 
-            var globalSettings = HDRenderPipelineGlobalSettings.Ensure();
-            m_StripDebugVariants = (!Debug.isDebugBuild || globalSettings.stripDebugVariants);
+            m_StripDebugVariants = HDRPBuildData.instance.stripDebugVariants;
         }
 
         public bool ShadersStripper(HDRenderPipelineAsset hdrpAsset, Shader shader, ShaderSnippetData snippet,

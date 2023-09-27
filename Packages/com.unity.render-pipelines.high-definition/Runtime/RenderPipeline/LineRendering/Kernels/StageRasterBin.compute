@@ -16,6 +16,7 @@ typedef Threading::Group Group;
 ByteAddressBuffer _SegmentRecordBuffer;
 ByteAddressBuffer _ViewSpaceDepthRangeBuffer;
 ByteAddressBuffer _ClusterRangesBuffer;
+ByteAddressBuffer _Vertex1RecordBuffer;
 
 // Outputs
 RWStructuredBuffer<ClusterRecord> _ClusterRecordBuffer;
@@ -102,13 +103,19 @@ void Main(Group group)
 
     const SegmentRecord s_segment = LoadSegmentRecord(_SegmentRecordBuffer, s_segmentIndex);
 
+    const float w0 = asfloat(_Vertex1RecordBuffer.Load((s_segment.vertexIndex0 << 4) + 12u));
+    const float w1 = asfloat(_Vertex1RecordBuffer.Load((s_segment.vertexIndex1 << 4) + 12u));
+
+    // Choose the larger of the two widths, enforce a minimum of one tile.
+    const float screenSpaceWidthPadding = ceil(max(w0, w1));
+
     uint2 v_segmentMin, v_segmentMax;
 
     if(s_segmentIndex < gs_ActiveSegmentCount)
-        GetSegmentBoundingBox(s_segment, v_segmentMin, v_segmentMax);
+        GetSegmentBoundingBox(s_segment, screenSpaceWidthPadding, v_segmentMin, v_segmentMax);
     else
     {
-        // Fall back to a zero-sized AABB to prevent uninitialized memory creating a huge one. 
+        // Fall back to a zero-sized AABB to prevent uninitialized memory creating a huge one.
         v_segmentMin = 0;
         v_segmentMax = 0;
     }
@@ -138,11 +145,8 @@ void Main(Group group)
     {
         const uint2 v_index = v_segmentMin + v_indexOffset;
 
-        // "Barycentric" line coordinate.
-        float t;
-
         const bool v_laneActive = i < v_tileCount && s_segmentIndex < gs_ActiveSegmentCount;
-        const bool v_intersects = SegmentsIntersectsBin(v_index.x, v_index.y, s_segment.positionSS0.xy, s_segment.positionSS1.xy, t);
+        const bool v_intersects = SegmentsIntersectsBin(v_index.x, v_index.y, s_segment.positionSS0.xy, s_segment.positionSS1.xy, screenSpaceWidthPadding);
 
         RecordIntersection(wave, v_laneActive && v_intersects, v_index, s_segment, s_segmentIndex, 0.5);
 

@@ -266,10 +266,11 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 foreach (AbstractMaterialNode node in graph.GetNodes<AbstractMaterialNode>())
                 {
+                    var keyHint = ShaderGraphShortcuts.GetKeycodeForContextMenu(ShaderGraphShortcuts.nodePreviewShortcutID);
                     if (node.hasPreview && node.previewExpanded == true)
-                        evt.menu.InsertAction(2, "Collapse All Previews", CollapsePreviews, (a) => DropdownMenuAction.Status.Normal);
+                        evt.menu.InsertAction(2, $"Collapse All Previews {keyHint}", CollapsePreviews, (a) => DropdownMenuAction.Status.Normal);
                     if (node.hasPreview && node.previewExpanded == false)
-                        evt.menu.InsertAction(2, "Expand All Previews", ExpandPreviews, (a) => DropdownMenuAction.Status.Normal);
+                        evt.menu.InsertAction(2, $"Expand All Previews {keyHint}", ExpandPreviews, (a) => DropdownMenuAction.Status.Normal);
                 }
                 evt.menu.AppendSeparator();
             }
@@ -319,7 +320,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (selection.OfType<IShaderNodeView>().Count() == 1)
                 {
                     evt.menu.AppendSeparator();
-                    evt.menu.AppendAction("Open Documentation _F1", SeeDocumentation, SeeDocumentationStatus);
+                    var sc = ShaderGraphShortcuts.GetKeycodeForContextMenu(ShaderGraphShortcuts.summonDocumentationShortcutID);
+                    evt.menu.AppendAction($"Open Documentation _{sc}", SeeDocumentation, SeeDocumentationStatus);
                 }
                 if (selection.OfType<IShaderNodeView>().Count() == 1 && selection.OfType<IShaderNodeView>().First().node is SubGraphNode)
                 {
@@ -337,7 +339,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             // This needs to work on nodes, groups and properties
             if ((evt.target is Node) || (evt.target is StickyNote))
             {
-                evt.menu.AppendAction("Group Selection %g", _ => GroupSelection(), (a) =>
+                var scg = ShaderGraphShortcuts.GetKeycodeForContextMenu(ShaderGraphShortcuts.nodeGroupShortcutID);
+                evt.menu.AppendAction($"Group Selection {scg}", _ => GroupSelection(), (a) =>
                 {
                     List<ISelectable> filteredSelection = new List<ISelectable>();
 
@@ -362,7 +365,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                     return DropdownMenuAction.Status.Disabled;
                 });
 
-                evt.menu.AppendAction("Ungroup Selection %u", _ => RemoveFromGroupNode(), (a) =>
+                var scu = ShaderGraphShortcuts.GetKeycodeForContextMenu(ShaderGraphShortcuts.nodeUnGroupShortcutID);
+                evt.menu.AppendAction($"Ungroup Selection {scu}", _ => RemoveFromGroupNode(), (a) =>
                 {
                     List<ISelectable> filteredSelection = new List<ISelectable>();
 
@@ -420,8 +424,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var target = evt.target as Edge;
                 var pos = evt.mousePosition;
 
+                var keyHint = ShaderGraphShortcuts.GetKeycodeForContextMenu(ShaderGraphShortcuts.createRedirectNodeShortcutID);
                 evt.menu.AppendSeparator();
-                evt.menu.AppendAction("Add Redirect Node", e => CreateRedirectNode(pos, target));
+                evt.menu.AppendAction($"Add Redirect Node {keyHint}", e => CreateRedirectNode(pos, target));
             }
         }
 
@@ -604,14 +609,17 @@ namespace UnityEditor.ShaderGraph.Drawing
             DropdownMenuAction.Status maximizeAction = DropdownMenuAction.Status.Disabled;
 
             // Initialize strings
-            string expandPreviewText = "View/Expand Previews";
-            string collapsePreviewText = "View/Collapse Previews";
-            string expandPortText = "View/Expand Ports";
-            string collapsePortText = "View/Collapse Ports";
+            var previewKeyHint = ShaderGraphShortcuts.GetKeycodeForContextMenu(ShaderGraphShortcuts.nodePreviewShortcutID);
+            var portKeyHint = ShaderGraphShortcuts.GetKeycodeForContextMenu(ShaderGraphShortcuts.nodeCollapsedShortcutID);
+
+            string expandPreviewText = $"View/Expand Previews {previewKeyHint}";
+            string collapsePreviewText = $"View/Collapse Previews {previewKeyHint}";
+            string expandPortText = $"View/Expand Ports {portKeyHint}";
+            string collapsePortText = $"View/Collapse Ports {portKeyHint}";
             if (selection.Count == 1)
             {
-                collapsePreviewText = "View/Collapse Preview";
-                expandPreviewText = "View/Expand Preview";
+                collapsePreviewText = $"View/Collapse Preview {previewKeyHint}";
+                expandPreviewText = $"View/Expand Preview {previewKeyHint}";
             }
 
             // Check if we can expand or collapse the ports/previews

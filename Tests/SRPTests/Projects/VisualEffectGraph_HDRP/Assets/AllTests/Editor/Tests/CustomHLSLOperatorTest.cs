@@ -1,13 +1,10 @@
 #if !UNITY_EDITOR_OSX || MAC_FORCE_TESTS
-using System;
 using System.Collections;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 
 using NUnit.Framework;
 
-using UnityEditor.VFX.Block;
 using UnityEditor.VFX.UI;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -25,13 +22,13 @@ namespace UnityEditor.VFX.Test
             "    return mat * vec;" + "\n" +
             "}";
 
-        [SetUp]
+        [OneTimeSetUp]
         public void Setup()
         {
             VFXViewWindow.GetAllWindows().ToList().ForEach(x => x.Close());
         }
 
-        [TearDown]
+        [OneTimeTearDown]
         public void Cleanup()
         {
             VFXViewWindow.GetAllWindows().ToList().ForEach(x => x.Close());
@@ -43,7 +40,7 @@ namespace UnityEditor.VFX.Test
         {
             // Arrange
             var operatorName = "AutoTest";
-            var hlslOperator = ScriptableObject.CreateInstance<CustomHLSL>();
+            var hlslOperator = CreateCustomHLSLOperator();
             hlslOperator.SetSettingValue("m_HLSLCode", defaultHlslCode);
             hlslOperator.SetSettingValue("m_OperatorName", operatorName);
 
@@ -73,7 +70,7 @@ namespace UnityEditor.VFX.Test
             // Arrange
             var operatorName = "AutoTest";
             var shaderInclude = CustomHLSLBlockTest.CreateShaderFile(defaultHlslCode, out var shaderIncludePath);
-            var hlslOperator = ScriptableObject.CreateInstance<CustomHLSL>();
+            var hlslOperator = CreateCustomHLSLOperator();
             hlslOperator.SetSettingValue("m_ShaderFile", shaderInclude);
             hlslOperator.SetSettingValue("m_OperatorName", operatorName);
 
@@ -295,6 +292,15 @@ namespace UnityEditor.VFX.Test
 
             graph.AddChild(hlslOperator);
             view.graphView.OnSave();
+        }
+
+        private CustomHLSL CreateCustomHLSLOperator()
+        {
+            var graph = ScriptableObject.CreateInstance<VFXGraph>();
+            var hlslOperator = ScriptableObject.CreateInstance<CustomHLSL>();
+            graph.AddChild(hlslOperator);
+
+            return hlslOperator;
         }
     }
 }

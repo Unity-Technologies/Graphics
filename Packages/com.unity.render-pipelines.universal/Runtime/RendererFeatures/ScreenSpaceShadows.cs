@@ -157,7 +157,6 @@ namespace UnityEngine.Rendering.Universal
             private class PassData
             {
                 internal TextureHandle target;
-                internal RenderingData renderingData;
                 internal Material material;
                 internal int shadowmapID;
             }
@@ -166,22 +165,21 @@ namespace UnityEngine.Rendering.Universal
             /// Initialize the shared pass data.
             /// </summary>
             /// <param name="passData"></param>
-            private void InitPassData(ref RenderingData renderingData, ref PassData passData)
+            private void InitPassData(ref PassData passData)
             {
-                passData.renderingData = renderingData;
                 passData.material = m_Material;
                 passData.shadowmapID = m_ScreenSpaceShadowmapTextureID;
             }
 
-            public override void RecordRenderGraph(RenderGraph renderGraph, FrameResources frameResources, ref RenderingData renderingData)
+            public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
             {
                 if (m_Material == null)
                 {
                     Debug.LogErrorFormat("{0}.Execute(): Missing material. ScreenSpaceShadows pass will not execute. Check for missing reference in the renderer resources.", GetType().Name);
                     return;
                 }
-
-                var desc = renderingData.cameraData.cameraTargetDescriptor;
+                UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+                var desc = cameraData.cameraTargetDescriptor;
                 desc.depthBufferBits = 0;
                 desc.msaaSamples = 1;
                 // UUM-41070: We require `Linear | Render` but with the deprecated FormatUsage this was checking `Blend`
@@ -195,19 +193,19 @@ namespace UnityEngine.Rendering.Universal
                 {
                     passData.target = builder.UseTextureFragment(color, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
 
-                    InitPassData(ref renderingData, ref passData);
+                    InitPassData(ref passData);
                     builder.AllowGlobalStateModification(true);
 
                     builder.SetRenderFunc((PassData data, RasterGraphContext rgContext) =>
                     {
-                        ExecutePass(rgContext.cmd, data, data.target, ref data.renderingData);
+                        ExecutePass(rgContext.cmd, data, data.target);
                     });
                 }
 
                 RenderGraphUtils.SetGlobalTexture(renderGraph, m_ScreenSpaceShadowmapTextureID, color);
             }
 
-            private static void ExecutePass(RasterCommandBuffer cmd, PassData data, RTHandle target, ref RenderingData renderingData)
+            private static void ExecutePass(RasterCommandBuffer cmd, PassData data, RTHandle target)
             {
                 Blitter.BlitTexture(cmd, target, Vector2.one, data.material, 0);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadows, false);
@@ -224,11 +222,11 @@ namespace UnityEngine.Rendering.Universal
                     return;
                 }
 
-                InitPassData(ref renderingData, ref m_PassData);
+                InitPassData(ref m_PassData);
                 var cmd = renderingData.commandBuffer;
                 using (new ProfilingScope(cmd, m_ProfilingSampler))
                 {
-                    ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), m_PassData, m_RenderTarget, ref renderingData);
+                    ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), m_PassData, m_RenderTarget);
                 }
             }
         }
@@ -246,11 +244,10 @@ namespace UnityEngine.Rendering.Universal
             }
 
 
-            private static void ExecutePass(RasterCommandBuffer cmd, ref RenderingData renderingData)
+            private static void ExecutePass(RasterCommandBuffer cmd, UniversalShadowData shadowData)
             {
-                ShadowData shadowData = renderingData.shadowData;
                 int cascadesCount = shadowData.mainLightShadowCascadesCount;
-                bool mainLightShadows = renderingData.shadowData.supportsMainLightShadows;
+                bool mainLightShadows = shadowData.supportsMainLightShadows;
                 bool receiveShadowsNoCascade = mainLightShadows && cascadesCount == 1;
                 bool receiveShadowsCascades = mainLightShadows && cascadesCount > 1;
 
@@ -265,34 +262,35 @@ namespace UnityEngine.Rendering.Universal
             public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
             {
                 var cmd = renderingData.commandBuffer;
+                UniversalShadowData shadowData = renderingData.frameData.Get<UniversalShadowData>();
+
                 using (new ProfilingScope(cmd, m_ProfilingSampler))
                 {
-                    ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), ref renderingData);
+                    ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), shadowData);
                 }
             }
 
             internal class PassData
             {
                 internal ScreenSpaceShadowsPostPass pass;
-                internal RenderingData renderingData;
+                internal UniversalShadowData shadowData;
             }
-            public override void RecordRenderGraph(RenderGraph renderGraph, FrameResources frameResources, ref RenderingData renderingData)
+            public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
             {
                 using (var builder = renderGraph.AddRasterRenderPass<PassData>("Screen Space Shadow Post Pass", out var passData, m_ProfilingSampler))
                 {
-                    ContextContainer frameData = renderingData.frameData;
-                    UniversalResourcesData resourcesData = frameData.Get<UniversalResourcesData>();
+                    UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
 
-                    TextureHandle color = resourcesData.activeColorTexture;
+                    TextureHandle color = resourceData.activeColorTexture;
                     builder.UseTextureFragment(color, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
-                    passData.renderingData = renderingData;
+                    passData.shadowData = frameData.Get<UniversalShadowData>();
                     passData.pass = this;
 
                     builder.AllowGlobalStateModification(true);
 
                     builder.SetRenderFunc((PassData data, RasterGraphContext rgContext) =>
                     {
-                        ExecutePass(rgContext.cmd, ref data.renderingData);
+                        ExecutePass(rgContext.cmd, data.shadowData);
                     });
                 }
             }

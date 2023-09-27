@@ -10,12 +10,14 @@ namespace UnityEngine.Rendering.Universal
         public int totalShadows;
         public int totalNormalMapUsage;
         public int totalVolumetricUsage;
+        public int totalVolumetricShadowUsage;
         public uint blendStylesUsed;
         public uint blendStylesWithLights;
 
         public bool useLights { get { return totalLights > 0; } }
         public bool useShadows { get { return totalShadows > 0; } }
         public bool useVolumetricLights { get { return totalVolumetricUsage > 0; } }
+        public bool useVolumetricShadowLights { get { return totalVolumetricShadowUsage > 0; } }
         public bool useNormalMap { get { return totalNormalMapUsage > 0; } }
     }
 
@@ -72,6 +74,8 @@ namespace UnityEngine.Rendering.Universal
                     returnStats.totalNormalMapUsage++;
                 if (light.volumeIntensity > 0 && light.volumetricEnabled)
                     returnStats.totalVolumetricUsage++;
+                if (light.volumeIntensity > 0 && light.volumetricEnabled && RendererLighting.CanCastShadows(light, layerID))
+                    returnStats.totalVolumetricShadowUsage++;
 
                 returnStats.blendStylesUsed |= (uint)(1 << light.blendStyleIndex);
                 if (light.lightType != Light2D.LightType.Global)
@@ -79,20 +83,23 @@ namespace UnityEngine.Rendering.Universal
 
                 // Check if layer has shadows
                 bool isLit = false;
-                foreach (var group in visibleShadows)
+                if (RendererLighting.CanCastShadows(light, layerID))
                 {
-                    var shadowCasters = group.GetShadowCasters();
-                    if (shadowCasters != null)
+                    foreach (var group in visibleShadows)
                     {
-                        foreach (var shadowCaster in shadowCasters)
+                        var shadowCasters = group.GetShadowCasters();
+                        if (shadowCasters != null)
                         {
-                            if (shadowCaster.IsLit(light) && shadowCaster.IsShadowedLayer(layerID))
+                            foreach (var shadowCaster in shadowCasters)
                             {
-                                isLit = true;
-                                returnStats.totalShadows++;
+                                if (shadowCaster.IsLit(light) && shadowCaster.IsShadowedLayer(layerID))
+                                {
+                                    isLit = true;
+                                    returnStats.totalShadows++;
 
-                                if (!layer.shadowCasters.Contains(group))
-                                    layer.shadowCasters.Add(group);
+                                    if (!layer.shadowCasters.Contains(group))
+                                        layer.shadowCasters.Add(group);
+                                }
                             }
                         }
                     }

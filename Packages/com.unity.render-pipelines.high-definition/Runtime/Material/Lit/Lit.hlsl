@@ -1270,50 +1270,33 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     preLightData.iblR = reflect(-V, iblN);
 
     // Area light
-    // UVs for sampling the LUTs
-    // We use V = sqrt( 1 - cos(theta) ) for parametrization which is kind of linear and only requires a single sqrt() instead of an expensive acos()
-    float cosThetaParam = sqrt(1 - clampedNdotV); // For Area light - UVs for sampling the LUTs
-    float2 uv = Remap01ToHalfTexelCoord(float2(bsdfData.perceptualRoughness, cosThetaParam), LTC_LUT_SIZE);
-
-    // Note we load the matrix transpose (avoid to have to transpose it in shader)
 #ifdef USE_DIFFUSE_LAMBERT_BRDF
     preLightData.ltcTransformDiffuse = k_identity3x3;
-#else
-    // Get the inverse LTC matrix for Disney Diffuse
-    preLightData.ltcTransformDiffuse      = 0.0;
-    preLightData.ltcTransformDiffuse._m22 = 1.0;
-    preLightData.ltcTransformDiffuse._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, s_linear_clamp_sampler, uv, LTCLIGHTINGMODEL_DISNEY_DIFFUSE, 0);
-#endif
 
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_SSS_DIFFUSE_POWER))
-        ModifyLTCTransformForDiffusePower(preLightData.ltcTransformDiffuse, GetDiffusePower(bsdfData.diffusionProfileIndex), uv);
+        ModifyLambertLTCTransformForDiffusePower(preLightData.ltcTransformDiffuse, GetDiffusePower(bsdfData.diffusionProfileIndex));
+#else
+    preLightData.ltcTransformDiffuse = SampleLtcMatrix(bsdfData.perceptualRoughness, clampedNdotV, LTCLIGHTINGMODEL_DISNEY_DIFFUSE);
 
-    // Get the inverse LTC matrix for GGX
-    // Note we load the matrix transpose (avoid to have to transpose it in shader)
+    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_SSS_DIFFUSE_POWER))
+        ModifyDisneyLTCTransformForDiffusePower(preLightData.ltcTransformDiffuse, GetDiffusePower(bsdfData.diffusionProfileIndex), bsdfData.perceptualRoughness, clampedNdotV);
+#endif
+
+    float perceptualRoughnessA = bsdfData.perceptualRoughness;
+
+    // This is a dynamic branch if the MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING flag is enabled.
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_SSS_DUAL_LOBE))
     {
-        float lobeA, lobeB;
+        float lobeA, lobeB, perceptualRoughnessB;
         GetDualLobeParameters(bsdfData.diffusionProfileIndex, lobeA, lobeB, preLightData.ltcLobeMix);
-        float perceptualRoughnessA = PerceptualSmoothnessToPerceptualRoughness(saturate((1.0f - bsdfData.perceptualRoughness) * lobeA));
-        float perceptualRoughnessB = PerceptualSmoothnessToPerceptualRoughness(saturate((1.0f - bsdfData.perceptualRoughness) * lobeB));
 
-        float2 uvA = Remap01ToHalfTexelCoord(float2(perceptualRoughnessA, cosThetaParam), LTC_LUT_SIZE);
-        float2 uvB = Remap01ToHalfTexelCoord(float2(perceptualRoughnessB, cosThetaParam), LTC_LUT_SIZE);
+        perceptualRoughnessA = PerceptualSmoothnessToPerceptualRoughness(saturate((1.0f - bsdfData.perceptualRoughness) * lobeA));
+        perceptualRoughnessB = PerceptualSmoothnessToPerceptualRoughness(saturate((1.0f - bsdfData.perceptualRoughness) * lobeB));
 
-        preLightData.ltcTransformSpecular[0]      = 0.0;
-        preLightData.ltcTransformSpecular[0]._m22 = 1.0;
-        preLightData.ltcTransformSpecular[0]._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, s_linear_clamp_sampler, uvA, LTCLIGHTINGMODEL_GGX, 0);
-
-        preLightData.ltcTransformSpecular[1]      = 0.0;
-        preLightData.ltcTransformSpecular[1]._m22 = 1.0;
-        preLightData.ltcTransformSpecular[1]._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, s_linear_clamp_sampler, uvB, LTCLIGHTINGMODEL_GGX, 0);
+        preLightData.ltcTransformSpecular[1] = SampleLtcMatrix(perceptualRoughnessB, clampedNdotV, LTCLIGHTINGMODEL_GGX);
     }
-    else
-    {
-        preLightData.ltcTransformSpecular[0]      = 0.0;
-        preLightData.ltcTransformSpecular[0]._m22 = 1.0;
-        preLightData.ltcTransformSpecular[0]._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, s_linear_clamp_sampler, uv, LTCLIGHTINGMODEL_GGX, 0);
-    }
+
+    preLightData.ltcTransformSpecular[0] = SampleLtcMatrix(perceptualRoughnessA, clampedNdotV, LTCLIGHTINGMODEL_GGX);
 
     // Construct a right-handed view-dependent orthogonal basis around the normal
     preLightData.orthoBasisViewNormal = GetOrthoBasisViewNormal(V, N, preLightData.NdotV);
@@ -1321,12 +1304,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     preLightData.ltcTransformCoat = 0.0;
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
     {
-        float2 uv = LTC_LUT_OFFSET + LTC_LUT_SCALE * float2(CLEAR_COAT_PERCEPTUAL_ROUGHNESS, cosThetaParam);
-
-        // Get the inverse LTC matrix for GGX
-        // Note we load the matrix transpose (avoid to have to transpose it in shader)
-        preLightData.ltcTransformCoat._m22 = 1.0;
-        preLightData.ltcTransformCoat._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, s_linear_clamp_sampler, uv, LTCLIGHTINGMODEL_GGX, 0);
+        preLightData.ltcTransformCoat = SampleLtcMatrix(CLEAR_COAT_PERCEPTUAL_ROUGHNESS, clampedNdotV, LTCLIGHTINGMODEL_GGX);
     }
 
     // refraction (forward only)
@@ -1774,7 +1752,7 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
 
             float4x3 lightVerts;
 
-            // TODO: some of this could be precomputed.
+            // TODO: precompute (to save VGPR by utilizing SGPR).
             lightVerts[0] = lightData.positionRWS + lightData.right * -halfWidth + lightData.up * -halfHeight; // LL
             lightVerts[1] = lightData.positionRWS + lightData.right * -halfWidth + lightData.up *  halfHeight; // UL
             lightVerts[2] = lightData.positionRWS + lightData.right *  halfWidth + lightData.up *  halfHeight; // UR
@@ -1783,32 +1761,15 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
             // Rotate the endpoints into the local coordinate system.
             lightVerts = mul(lightVerts, transpose(preLightData.orthoBasisViewNormal));
 
-            float3 ltcValue;
+            float4 ltcValue;
 
-            // Evaluate the diffuse part
-            // Polygon irradiance in the transformed configuration.
-            float4x3 LD = mul(lightVerts, preLightData.ltcTransformDiffuse);
-            float3 formFactorD;
-#ifdef APPROXIMATE_POLY_LIGHT_AS_SPHERE_LIGHT
-            formFactorD = PolygonFormFactor(LD);
-            ltcValue = PolygonIrradianceFromVectorFormFactor(formFactorD);
-#else
-            ltcValue = PolygonIrradiance(LD, formFactorD);
-#endif
-            ltcValue *= lightData.diffuseDimmer;
+            // ----- 1. Evaluate the diffuse part -----
 
-            // Only apply cookie if there is one
-            if ( lightData.cookieMode != COOKIEMODE_NONE )
-            {
-#ifndef APPROXIMATE_POLY_LIGHT_AS_SPHERE_LIGHT
-                formFactorD = PolygonFormFactor(LD);
-#endif
-                ltcValue *= SampleAreaLightCookie(lightData.cookieScaleOffset, LD, formFactorD);
-            }
+            ltcValue = EvaluateLTC_Rect(mul(lightVerts, preLightData.ltcTransformDiffuse), 1.0f,
+                                        lightData.cookieMode, lightData.cookieScaleOffset);
 
             // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
-            // See comment for specular magnitude, it apply to diffuse as well
-            lighting.diffuse = preLightData.diffuseFGD * ltcValue;
+            lighting.diffuse += ltcValue.rgb * (ltcValue.a * lightData.diffuseDimmer);
 
             UNITY_BRANCH if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
             {
@@ -1818,84 +1779,57 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
                                                 0,  0, -1);
 
                 // Use the Lambertian approximation for performance reasons.
-                // The matrix multiplication should not generate any extra ALU on GCN.
-                float3x3 ltcTransform = mul(flipMatrix, k_identity3x3);
-
-                // Polygon irradiance in the transformed configuration.
-                // TODO: double evaluation is very inefficient! This is a temporary solution.
-                float4x3 LTD = mul(lightVerts, ltcTransform);
-                ltcValue  = PolygonIrradiance(LTD);
-                ltcValue *= lightData.diffuseDimmer;
-
-                // Only apply cookie if there is one
-                if ( lightData.cookieMode != COOKIEMODE_NONE )
-                {
-                    // Compute the cookie data for the transmission diffuse term
-                    float3 formFactorTD = PolygonFormFactor(LTD);
-                    ltcValue *= SampleAreaLightCookie(lightData.cookieScaleOffset, LTD, formFactorTD);
-                }
+                // TODO: performing the evaluation twice is very inefficient!
+                ltcValue = EvaluateLTC_Rect(mul(lightVerts, flipMatrix), 1.0f,
+                                            lightData.cookieMode, lightData.cookieScaleOffset);
 
                 // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
                 // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
-                lighting.diffuse += bsdfData.transmittance * ltcValue;
+                lighting.diffuse += bsdfData.transmittance * (ltcValue.rgb * (ltcValue.a * lightData.diffuseDimmer));
             }
 
-            // Evaluate the specular part
-            // Polygon irradiance in the transformed configuration.
-            float4x3 LS = mul(lightVerts, preLightData.ltcTransformSpecular[0]);
-            float3 formFactorS;
-#ifdef APPROXIMATE_POLY_LIGHT_AS_SPHERE_LIGHT
-            formFactorS = PolygonFormFactor(LS);
-            ltcValue = PolygonIrradianceFromVectorFormFactor(formFactorS);
-#else
-            ltcValue = PolygonIrradiance(LS);
-#endif
+            // ----- 2. Evaluate the specular part -----
 
-            // Evaluate the second specular lobe
+            float perceptualRoughnessA = bsdfData.perceptualRoughness;
+            float perceptualRoughnessB = 0; // Set it to 0 just to avoid a warning from the compiler
+
+            // This is a dynamic branch if the MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING flag is enabled.
             if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_SSS_DUAL_LOBE))
             {
-                float4x3 LSB = mul(lightVerts, preLightData.ltcTransformSpecular[1]);
-#ifdef APPROXIMATE_POLY_LIGHT_AS_SPHERE_LIGHT
-                float3 formFactorB = PolygonFormFactor(LSB);
-                float ltcValueB = PolygonIrradianceFromVectorFormFactor(formFactorB);
-#else
-                float ltcValueB = PolygonIrradiance(LSB);
-#endif
-                ltcValue = lerp(ltcValue, ltcValueB, preLightData.ltcLobeMix);
+                float lobeA, lobeB;
+                GetDualLobeParameters(bsdfData.diffusionProfileIndex, lobeA, lobeB, preLightData.ltcLobeMix);
+
+                perceptualRoughnessA = PerceptualSmoothnessToPerceptualRoughness(saturate((1.0f - bsdfData.perceptualRoughness) * lobeA));
+                perceptualRoughnessB = PerceptualSmoothnessToPerceptualRoughness(saturate((1.0f - bsdfData.perceptualRoughness) * lobeB));
             }
 
-            // Only apply cookie if there is one
-            if (lightData.cookieMode != COOKIEMODE_NONE)
+            // First lobe
+            ltcValue = EvaluateLTC_Rect(mul(lightVerts, preLightData.ltcTransformSpecular[0]), perceptualRoughnessA,
+                                        lightData.cookieMode, lightData.cookieScaleOffset);
+
+            if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_SSS_DUAL_LOBE))
             {
-                // Compute the cookie data for the specular term
-#ifndef APPROXIMATE_POLY_LIGHT_AS_SPHERE_LIGHT
-                formFactorS =  PolygonFormFactor(LS);
-#endif
-                ltcValue *= SampleAreaLightCookie(lightData.cookieScaleOffset, LS, formFactorS, bsdfData.perceptualRoughness);
+                // Second lobe
+                float4 ltcValue1 = EvaluateLTC_Rect(mul(lightVerts, preLightData.ltcTransformSpecular[1]), perceptualRoughnessB,
+                                                    lightData.cookieMode, lightData.cookieScaleOffset);
+
+                ltcValue = lerp(ltcValue, ltcValue1, preLightData.ltcLobeMix);
             }
 
             // We need to multiply by the magnitude of the integral of the BRDF
             // ref: http://advances.realtimerendering.com/s2016/s2016_ltc_fresnel.pdf
-            // This value is what we store in specularFGD, so reuse it
-            lighting.specular += lightData.specularDimmer * preLightData.specularFGD * ltcValue;
+            lighting.specular += preLightData.specularFGD * (ltcValue.rgb * (ltcValue.a * lightData.specularDimmer));
 
-            // Evaluate the coat part
+            // ----- 3. Evaluate the clear coat part -----
+
             if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
             {
-                float4x3 LSCC = mul(lightVerts, preLightData.ltcTransformCoat);
-                ltcValue = PolygonIrradiance(LSCC);
-                ltcValue *= lightData.specularDimmer;
-                // Only apply cookie if there is one
-                if ( lightData.cookieMode != COOKIEMODE_NONE )
-                {
-                    // Compute the cookie data for the specular term
-                    float3 formFactorS =  PolygonFormFactor(LSCC);
-                    ltcValue *= SampleAreaLightCookie(lightData.cookieScaleOffset, LSCC, formFactorS);
-                }
+                ltcValue = EvaluateLTC_Rect(mul(lightVerts, preLightData.ltcTransformCoat), RoughnessToPerceptualRoughness(bsdfData.coatRoughness),
+                                            lightData.cookieMode, lightData.cookieScaleOffset);
+
                 // For clear coat we don't fetch specularFGD we can use directly the perfect fresnel coatIblF
-                lighting.diffuse *= (1.0 - preLightData.coatIblF);
-                lighting.specular *= (1.0 - preLightData.coatIblF);
-                lighting.specular += preLightData.coatIblF * ltcValue;
+                lighting.diffuse *= 1.0 - preLightData.coatIblF;
+                lighting.specular = lerp(lighting.specular, ltcValue.rgb * (ltcValue.a * lightData.specularDimmer), preLightData.coatIblF);
             }
 
             // Raytracing shadow algorithm require to evaluate lighting without shadow, so it defined SKIP_RASTERIZED_AREA_SHADOWS
@@ -1905,17 +1839,23 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
             lightData.color.rgb *= ComputeShadowColor(shadow, lightData.shadowTint, lightData.penumbraTint);
         #endif
 
-            // Save ALU by applying 'lightData.color' only once.
-            lighting.diffuse *= lightData.color;
+            // We need to multiply by the magnitude of the integral of the BRDF
+            // ref: http://advances.realtimerendering.com/s2016/s2016_ltc_fresnel.pdf
+            lighting.diffuse  *= preLightData.diffuseFGD * lightData.color;
             lighting.specular *= lightData.color;
+
+            // ----- 4. Debug display -----
 
         #ifdef DEBUG_DISPLAY
             if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
             {
+                ltcValue = EvaluateLTC_Rect(lightVerts, 1.0f,
+                                            lightData.cookieMode, lightData.cookieScaleOffset);
+
                 // Only lighting, not BSDF
-                // Apply area light on lambert then multiply by PI to cancel Lambert
-                lighting.diffuse = PolygonIrradiance(mul(lightVerts, k_identity3x3));
-                lighting.diffuse *= PI * lightData.diffuseDimmer;
+                lighting.diffuse  = ltcValue.rgb * (ltcValue.a * lightData.diffuseDimmer);
+                // Apply area light on Lambert then multiply by PI to cancel Lambert
+                lighting.diffuse *= PI;
             }
         #endif
         }

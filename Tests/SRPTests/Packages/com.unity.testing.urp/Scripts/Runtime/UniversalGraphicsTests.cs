@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.IO;
 using System.Linq;
@@ -7,6 +8,7 @@ using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Graphics;
+using Object = UnityEngine.Object;
 #if OCULUS_SDK
 using UnityEngine.XR;
 #endif
@@ -17,6 +19,25 @@ public class UniversalGraphicsTests
     static bool wasFirstSceneRan = false;
     const int firstSceneAdditionalFrames = 3;
 #endif
+
+    private bool GPUResidentDrawerRequested()
+    {
+        bool forcedOn = false;
+        foreach (var arg in Environment.GetCommandLineArgs())
+        {
+            if (arg.Equals("-force-gpuresidentdrawer", StringComparison.InvariantCultureIgnoreCase))
+            {
+                forcedOn = true;
+                break;
+            }
+        }
+
+        var renderPipelineAsset = GraphicsSettings.renderPipelineAsset;
+        if (renderPipelineAsset is IGPUResidentRenderPipeline mbAsset)
+            return forcedOn || mbAsset.gpuResidentDrawerMode != GPUResidentDrawerMode.Disabled;
+
+        return false;
+    }
 
     public const string universalPackagePath = "Assets/ReferenceImages";
 #if UNITY_WEBGL || UNITY_ANDROID
@@ -56,6 +77,9 @@ public class UniversalGraphicsTests
         var settings = Object.FindAnyObjectByType<UniversalGraphicsTestSettings>();
         Assert.IsNotNull(settings, "Invalid test scene, couldn't find UniversalGraphicsTestSettings");
 
+        if (!settings.gpuDrivenCompatible && GPUResidentDrawerRequested())
+            Assert.Ignore("Test scene is not compatible with GPU Driven and and will be skipped.");
+
         int waitFrames = 1;
 
         // for OCULUS_SDK, this ensures we wait for a reliable image rendering before screen capture and image comparison
@@ -73,17 +97,23 @@ public class UniversalGraphicsTests
 
         yield return null;
 
-        if (settings.ImageComparisonSettings.UseBackBuffer && waitFrames < 1)
-            waitFrames = 1;
-
-        if (settings.ImageComparisonSettings.UseBackBuffer && settings.SetBackBufferResolution)
+        if (settings.ImageComparisonSettings.UseBackBuffer)
         {
-            // Set screen/backbuffer resolution before doing the capture in ImageAssert.AreEqual. This will avoid doing
-            // any resizing/scaling of the rendered image when comparing with the reference image in ImageAssert.AreEqual.
-            // This has to be done before WaitForEndOfFrame, as the request will only be applied after the frame ends.
-            int targetWidth = settings.ImageComparisonSettings.TargetWidth;
-            int targetHeight = settings.ImageComparisonSettings.TargetHeight;
-            Screen.SetResolution(targetWidth, targetHeight, true);
+            waitFrames = Mathf.Max(waitFrames, 1);
+
+            if (settings.SetBackBufferResolution)
+            {
+                // Set screen/backbuffer resolution before doing the capture in ImageAssert.AreEqual. This will avoid doing
+                // any resizing/scaling of the rendered image when comparing with the reference image in ImageAssert.AreEqual.
+                // This has to be done before WaitForEndOfFrame, as the request will only be applied after the frame ends.
+                int targetWidth = settings.ImageComparisonSettings.TargetWidth;
+                int targetHeight = settings.ImageComparisonSettings.TargetHeight;
+                Screen.SetResolution(targetWidth, targetHeight, true);
+
+                // We need to wait at least 2 frames for the Screen.SetResolution to take effect.
+                // After that, Screen.width and Screen.height will have the target resolution.
+                waitFrames = Mathf.Max(waitFrames, 2);
+            }
         }
 
         for (int i = 0; i < waitFrames; i++)

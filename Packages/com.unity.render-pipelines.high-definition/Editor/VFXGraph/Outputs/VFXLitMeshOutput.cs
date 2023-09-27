@@ -12,9 +12,7 @@ namespace UnityEditor.VFX.HDRP
         {
             get
             {
-                return !string.IsNullOrEmpty(shaderName)
-                ? $"Output Particle {shaderName} Mesh"
-                : "Output Particle HDRP Lit Mesh";
+                return "Output Particle HDRP Lit Mesh";
             }
         }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleLitMesh"); } }

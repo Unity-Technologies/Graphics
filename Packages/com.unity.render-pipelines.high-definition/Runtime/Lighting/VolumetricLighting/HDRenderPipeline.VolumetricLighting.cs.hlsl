@@ -5,12 +5,6 @@
 #ifndef HDRENDERPIPELINE_VOLUMETRICLIGHTING_CS_HLSL
 #define HDRENDERPIPELINE_VOLUMETRICLIGHTING_CS_HLSL
 //
-// UnityEngine.Rendering.HighDefinition.LocalVolumetricFogFalloffMode:  static fields
-//
-#define LOCALVOLUMETRICFOGFALLOFFMODE_LINEAR (0)
-#define LOCALVOLUMETRICFOGFALLOFFMODE_EXPONENTIAL (1)
-
-//
 // UnityEngine.Rendering.HighDefinition.LocalVolumetricFogBlendingMode:  static fields
 //
 #define LOCALVOLUMETRICFOGBLENDINGMODE_OVERWRITE (0)
@@ -18,6 +12,12 @@
 #define LOCALVOLUMETRICFOGBLENDINGMODE_MULTIPLY (2)
 #define LOCALVOLUMETRICFOGBLENDINGMODE_MIN (3)
 #define LOCALVOLUMETRICFOGBLENDINGMODE_MAX (4)
+
+//
+// UnityEngine.Rendering.HighDefinition.LocalVolumetricFogFalloffMode:  static fields
+//
+#define LOCALVOLUMETRICFOGFALLOFFMODE_LINEAR (0)
+#define LOCALVOLUMETRICFOGFALLOFFMODE_EXPONENTIAL (1)
 
 // Generated from UnityEngine.Rendering.HighDefinition.LocalVolumetricFogEngineData
 // PackingRules = Exact
@@ -34,33 +34,6 @@ struct LocalVolumetricFogEngineData
     float3 rcpNegFaceFade;
     int blendingMode;
 };
-
-// Generated from UnityEngine.Rendering.HighDefinition.VolumetricMaterialRenderingData
-// PackingRules = Exact
-struct VolumetricMaterialRenderingData
-{
-    float4 viewSpaceBounds;
-    uint startSliceIndex;
-    uint sliceCount;
-    uint padding0;
-    uint padding1;
-    float4 obbVertexPositionWS[8];
-};
-
-// Generated from UnityEngine.Rendering.HighDefinition.VolumetricMaterialDataCBuffer
-// PackingRules = Exact
-CBUFFER_START(VolumetricMaterialDataCBuffer)
-    float4 _VolumetricMaterialObbRight;
-    float4 _VolumetricMaterialObbUp;
-    float4 _VolumetricMaterialObbExtents;
-    float4 _VolumetricMaterialObbCenter;
-    float4 _VolumetricMaterialRcpPosFaceFade;
-    float4 _VolumetricMaterialRcpNegFaceFade;
-    float _VolumetricMaterialInvertFade;
-    float _VolumetricMaterialRcpDistFadeLen;
-    float _VolumetricMaterialEndTimesRcpDistFadeLen;
-    float _VolumetricMaterialFalloffMode;
-CBUFFER_END
 
 // Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesVolumetric
 // PackingRules = Exact
@@ -91,6 +64,33 @@ CBUFFER_START(ShaderVariablesVolumetric)
     uint _Padding1;
     uint _Padding2;
 CBUFFER_END
+
+// Generated from UnityEngine.Rendering.HighDefinition.VolumetricMaterialDataCBuffer
+// PackingRules = Exact
+CBUFFER_START(VolumetricMaterialDataCBuffer)
+    float4 _VolumetricMaterialObbRight;
+    float4 _VolumetricMaterialObbUp;
+    float4 _VolumetricMaterialObbExtents;
+    float4 _VolumetricMaterialObbCenter;
+    float4 _VolumetricMaterialRcpPosFaceFade;
+    float4 _VolumetricMaterialRcpNegFaceFade;
+    float _VolumetricMaterialInvertFade;
+    float _VolumetricMaterialRcpDistFadeLen;
+    float _VolumetricMaterialEndTimesRcpDistFadeLen;
+    float _VolumetricMaterialFalloffMode;
+CBUFFER_END
+
+// Generated from UnityEngine.Rendering.HighDefinition.VolumetricMaterialRenderingData
+// PackingRules = Exact
+struct VolumetricMaterialRenderingData
+{
+    float4 viewSpaceBounds;
+    uint startSliceIndex;
+    uint sliceCount;
+    uint padding0;
+    uint padding1;
+    float4 obbVertexPositionWS[8];
+};
 
 //
 // Accessors for UnityEngine.Rendering.HighDefinition.LocalVolumetricFogEngineData

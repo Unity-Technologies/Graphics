@@ -74,7 +74,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal void CreateRendererList(
             ScriptableRenderContext context,
-            ref RenderingData renderingData,
+            UniversalRenderingData renderingData,
             ref DrawingSettings drawingSettings,
             ref FilteringSettings filteringSettings,
             ref RenderStateBlock renderStateBlock,
@@ -85,7 +85,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal void CreateRendererList(
             RenderGraph renderGraph,
-            ref RenderingData renderingData,
+            UniversalRenderingData renderingData,
             ref DrawingSettings drawingSettings,
             ref FilteringSettings filteringSettings,
             ref RenderStateBlock renderStateBlock,

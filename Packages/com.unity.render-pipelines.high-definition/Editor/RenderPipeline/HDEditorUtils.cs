@@ -24,6 +24,19 @@ namespace UnityEditor.Rendering.HighDefinition
             @"Packages/com.unity.render-pipelines.high-definition/Editor/USS/Wizard";
         internal const string HDRPAssetBuildLabel = "HDRP:IncludeInBuild";
 
+        internal static bool NeedsToBeIncludedInBuild(HDRenderPipelineAsset hdRenderPipelineAsset)
+        {
+            var labelList = AssetDatabase.GetLabels(hdRenderPipelineAsset);
+            foreach (string item in labelList)
+            {
+                if (item == HDEditorUtils.HDRPAssetBuildLabel)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         private static (StyleSheet baseSkin, StyleSheet professionalSkin, StyleSheet personalSkin) LoadStyleSheets(string basePath)
             => (
             AssetDatabase.LoadAssetAtPath<StyleSheet>($"{basePath}.uss"),
@@ -209,11 +222,20 @@ namespace UnityEditor.Rendering.HighDefinition
         internal static int DrawRenderingLayerMask(Rect rect, int renderingLayer, GUIContent label = null, bool allowHelpBox = true)
         {
             string[] renderingLayerMaskNames = HDRenderPipelineGlobalSettings.instance.renderingLayerNames;
-            int value = EditorGUI.MaskField(rect, label ?? GUIContent.none, renderingLayer, renderingLayerMaskNames);
+            int value = 0;
+            if (renderingLayerMaskNames.Length != 0)
+            {
+                value = EditorGUI.MaskField(rect, label ?? GUIContent.none, renderingLayer, renderingLayerMaskNames);
 
-            int maskCount = (int)Mathf.Log(renderingLayer, 2) + 1;
-            if (allowHelpBox && renderingLayerMaskNames.Length < maskCount && maskCount <= 16)
-                EditorGUILayout.HelpBox($"One or more of the Rendering Layers is not defined in the HDRP Global Settings asset.", MessageType.Warning);
+                int maskCount = (int)Mathf.Log(renderingLayer, 2) + 1;
+                if (allowHelpBox && renderingLayerMaskNames.Length < maskCount && maskCount <= 16)
+                    EditorGUILayout.HelpBox($"One or more of the Rendering Layers is not defined in the HDRP Global Settings asset.", MessageType.Warning);
+            }
+            else
+            {
+                if (allowHelpBox)
+                    EditorGUILayout.HelpBox("No rendering layers specified in the HDRenderPipelineGlobalSettings. Add at least one entry to the Rendering Layer Names list.", MessageType.Error);
+            }
 
             return value;
         }

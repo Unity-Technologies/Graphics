@@ -89,9 +89,24 @@ float3 SampleAreaLightCookie(float4 cookieScaleOffset, float4x3 L, float3 F, flo
     return SampleCookie2D(saturate(hitUV), cookieScaleOffset, mipLevel);
 }
 
-float3 SampleAreaLightCookie(float4 cookieScaleOffset, float4x3 L, float3 F)
+// Helper function for rectangular area lights.
+// Input: 'ltcVerts' must be inversely transformed in such a way that the transformed BRDF becomes uniform (diffuse).
+// Output: RGB is the color, and A is the irradiance of the light (not pre-multiplied).
+float4 EvaluateLTC_Rect(float4x3 ltcVerts, float perceptualRoughness, int cookieMode, float4 cookieScaleOffset)
 {
-    return SampleAreaLightCookie(cookieScaleOffset, L, F, 1.0f);
+    float4 ltcValue;
+    float3 formFactor;
+
+    // Polygon irradiance in the transformed configuration.
+    ltcValue.a   = PolygonIrradiance(ltcVerts, formFactor);
+    ltcValue.rgb = float3(1,1,1);
+
+    if (cookieMode != COOKIEMODE_NONE)
+    {
+        ltcValue.rgb = SampleAreaLightCookie(cookieScaleOffset, ltcVerts, formFactor, perceptualRoughness);
+    }
+
+    return ltcValue;
 }
 
 // This function transforms a rectangular area light according the the barn door inputs defined by the user.
@@ -249,12 +264,20 @@ SHADOW_TYPE EvaluateShadow_Directional( LightLoopContext lightLoopContext, Posit
     #ifdef SHADOWS_SHADOWMASK
         float3 camToPixel = posInput.positionWS - GetPrimaryCameraPosition();
         float distanceCamToPixel2 = dot(camToPixel, camToPixel);
-        float fade = saturate(distanceCamToPixel2 * light.cascadesBorderFadeScaleBias.x + light.cascadesBorderFadeScaleBias.y);
 
-        // In the transition code (both dithering and blend) we use shadow = lerp( shadow, 1.0, fade ) for last transition
-        // mean if we expend the code we have (shadow * (1 - fade) + fade). Here to make transition with shadow mask
-        // we will remove fade and add fade * shadowMask which mean we do a lerp with shadow mask
-        shadow = shadow - fade + fade * shadowMask;
+        int shadowSplitIndex = lightLoopContext.shadowContext.shadowSplitIndex;
+        if (shadowSplitIndex < 0)
+        {
+            shadow = shadowMask;
+        }
+        else if (shadowSplitIndex == int(_CascadeShadowCount) - 1)
+        {
+            float fade = lightLoopContext.shadowContext.fade;
+            // In the transition code (both dithering and blend) we use shadow = lerp( shadow, 1.0, fade ) for last transition
+            // mean if we expend the code we have (shadow * (1 - fade) + fade). Here to make transition with shadow mask
+            // we will remove fade and add fade * shadowMask which mean we do a lerp with shadow mask
+            shadow = shadow - fade + fade * shadowMask;
+        }
 
         // See comment in EvaluateBSDF_Punctual
         shadow = light.nonLightMappedOnly ? min(shadowMask, shadow) : shadow;

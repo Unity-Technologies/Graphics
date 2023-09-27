@@ -1,6 +1,8 @@
 #ifndef UNITY_PATH_TRACING_INTEGRATOR_INCLUDED
 #define UNITY_PATH_TRACING_INTEGRATOR_INCLUDED
 
+#define ENABLE_MATERIAL_AMBIENT_OCCLUSION
+
 // Ray tracing includes
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingFragInputs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Common/AtmosphericScatteringRayTracing.hlsl"
@@ -109,8 +111,11 @@ void ComputeSurfaceScattering(inout PathPayload payload : SV_RayPayload, Attribu
     bool isVisible;
     GetSurfaceAndBuiltinData(fragInput, -WorldRayDirection(), posInput, surfaceData, builtinData, currentVertex, payload.cone, isVisible);
 
-    // Check if we want to compute direct and emissive lighting for current depth
-    bool computeDirect = payload.segmentID >= _RaytracingMinRecursion - 1;
+    // Check if we want to add direct and emissive lighting for current depth (relative to min depth)
+    bool minDepthAllowsEmissive = payload.segmentID >= _RaytracingMinRecursion - 1;
+    bool minDepthAllowsDirect = payload.segmentID + 1 >= _RaytracingMinRecursion - 1;
+    // Check if we want to send more rays after the segment that was just traced
+    bool haveReachedMaxDepth = payload.segmentID + 1 > _RaytracingMaxRecursion - 1;
 
     // Get our world space shading position
     float3 shadingPosition = fragInput.positionRWS;
@@ -123,6 +128,17 @@ void ComputeSurfaceScattering(inout PathPayload payload : SV_RayPayload, Attribu
     // Compute the bsdf data
     BSDFData bsdfData = ConvertSurfaceDataToBSDFData(posInput.positionSS, surfaceData);
 
+#ifdef ENABLE_MATERIAL_AMBIENT_OCCLUSION
+    // If this is the first segment, then there hasn't been any bounces yet
+    if (payload.segmentID == 0)
+    {
+        // Disable AO for direct lighting
+        bsdfData.ambientOcclusion = 1.0;
+    }
+#else
+    bsdfData.ambientOcclusion = 1.0;
+#endif
+
     // Take care of AOV data right away
     GetAOVData(bsdfData, aovData);
     WriteAOVData(aovData, shadingPosition, payload);
@@ -131,8 +147,12 @@ void ComputeSurfaceScattering(inout PathPayload payload : SV_RayPayload, Attribu
     // Also make sure that it is in the same hemisphere as the shading normal (which may have been flipped)
     bsdfData.geomNormalWS = dot(bsdfData.normalWS, geomNormal) > 0.0 ? geomNormal : -geomNormal;
 
-    // And reset the payload value, which will store our final radiance result for this path depth
-    payload.value = computeDirect ? builtinData.emissiveColor : 0.0;
+    // Reset the payload value, which will store our final radiance result for this path depth
+    payload.value = minDepthAllowsEmissive ? builtinData.emissiveColor : 0.0;
+
+    // If we have reached the maximum recursion depth, we want to stop the path
+    if (haveReachedMaxDepth)
+        return;
 
     // Initialize our material data (this will alter the bsdfData to suit path tracing, and choose between BSDF or SSS evaluation)
     MaterialData mtlData;
@@ -157,7 +177,7 @@ void ComputeSurfaceScattering(inout PathPayload payload : SV_RayPayload, Attribu
         PathPayload shadowPayload;
 
         // Light sampling
-        if (computeDirect)
+        if (minDepthAllowsDirect)
         {
             if (SampleLights(lightList, inputSample.xyz, ray.Origin, lightNormal, false, ray.Direction, value, pdf, ray.TMax, shadowOpacity))
             {
@@ -222,7 +242,7 @@ void ComputeSurfaceScattering(inout PathPayload payload : SV_RayPayload, Attribu
                 // Compute material absorption (typically, tinted refraction), and throw in the Russian roulette compensation
                 float3 absorption = rrFactor * GetMaterialAbsorption(mtlData, surfaceData, shadowPayload.rayTHit, isSampleBelow);
 
-                if (computeDirect)
+                if (minDepthAllowsDirect)
                 {
                     // Use the hit distance to know which lights are visible
                     ray.TMax = shadowPayload.rayTHit + _RayTracingRayBias;
@@ -265,10 +285,10 @@ void ComputeSurfaceScattering(inout PathPayload payload : SV_RayPayload, Attribu
 
 #else // SHADER_UNLIT
 
-    payload.value = computeDirect ? surfaceData.color * GetInverseCurrentExposureMultiplier() + builtinData.emissiveColor : 0.0;
+    payload.value = minDepthAllowsEmissive ? surfaceData.color * GetInverseCurrentExposureMultiplier() + builtinData.emissiveColor : 0.0;
 
     #ifdef _ENABLE_SHADOW_MATTE
-    if (computeDirect)
+    if (minDepthAllowsDirect && !haveReachedMaxDepth)
     {
         float visibility = ComputeVisibility(fragInput.positionRWS, surfaceData.normalWS, inputSample.xyz);
 
@@ -293,7 +313,7 @@ void ComputeSurfaceScattering(inout PathPayload payload : SV_RayPayload, Attribu
     WriteAOVData(aovData, shadingPosition, payload);
 
     #ifdef _SURFACE_TYPE_TRANSPARENT
-    if (builtinData.opacity < 1.0)
+    if (builtinData.opacity < 1.0 && !haveReachedMaxDepth)
     {
         // Simulate opacity blending by simply continuing along the current ray
         PathPayload shadowPayload;
@@ -312,7 +332,7 @@ void ComputeSurfaceScattering(inout PathPayload payload : SV_RayPayload, Attribu
         TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_FORCE_NON_OPAQUE | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER | RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 1, ray, shadowPayload);
         bool hit = shadowPayload.rayTHit < FLT_INF;
 
-        if (computeDirect)
+        if (minDepthAllowsDirect)
         {
             payload.value *= builtinData.opacity;
             if (!hit)
@@ -348,7 +368,7 @@ void ClosestHit(inout PathPayload payload : SV_RayPayload, AttributeData attribu
     payload.rayTHit = RayTCurrent();
     payload.alpha = 1.0;
 
-    bool computeDirect = payload.segmentID >= _RaytracingMinRecursion - 1;
+    bool minDepthAllowsEmissive = payload.segmentID >= _RaytracingMinRecursion - 1;
     bool sampleVolume = false;
 
     float4 inputSample = 0.0;
@@ -363,7 +383,7 @@ void ClosestHit(inout PathPayload payload : SV_RayPayload, AttributeData attribu
     inputSample = GetSample4D(payload.pixelCoord, _RaytracingSampleIndex, 4 * payload.segmentID);
 
     // For the time being, we test for volumetric scattering only on camera rays
-    if (!payload.segmentID && computeDirect)
+    if (!payload.segmentID && minDepthAllowsEmissive)
         sampleVolume = SampleVolumeScatteringPosition(payload.pixelCoord, inputSample.w, payload.rayTHit, volSurfPdf, sampleLocalLights, lightPosition);
 
     if (sampleVolume)
@@ -371,7 +391,7 @@ void ClosestHit(inout PathPayload payload : SV_RayPayload, AttributeData attribu
     else
         ComputeSurfaceScattering(payload, attributeData, inputSample);
 
-    computeDirect &= !sampleVolume;
+    minDepthAllowsEmissive &= !sampleVolume;
 
 #else // HAS_LIGHTLOOP
 
@@ -381,7 +401,7 @@ void ClosestHit(inout PathPayload payload : SV_RayPayload, AttributeData attribu
 
     // Apply volumetric attenuation (beware of passing the right distance to the shading point)
     ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), sampleVolume ? payload.rayTHit : RayTCurrent(),
-                        payload.value, payload.alpha, payload.throughput, computeDirect);
+                        payload.value, payload.alpha, payload.throughput, minDepthAllowsEmissive);
 
     // Apply the volume/surface PDF
     payload.value /= volSurfPdf;

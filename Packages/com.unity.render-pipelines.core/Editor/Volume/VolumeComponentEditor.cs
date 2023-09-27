@@ -429,6 +429,9 @@ namespace UnityEditor.Rendering
 
         internal bool OnInternalInspectorGUI()
         {
+            if (serializedObject == null || serializedObject.targetObject == null)
+                return false;
+
             serializedObject.Update();
             using (new EditorGUILayout.VerticalScope())
             {

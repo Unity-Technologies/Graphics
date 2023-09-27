@@ -1,27 +1,27 @@
 
-VFXBlockUI.VFXNodeUI.node {
+#block-container .VFXNodeUI.node {
     flex:1 0 auto;
     align-items:stretch;
-    border-radius:0;
+    border-width:1px;
     border-color:rgba(0,0,0,0);
-    padding-top: 2px;
+    padding-top: 1px;
     padding-left:0;
     padding-right:0;
-    padding-bottom: 1px;
+    padding-bottom: 0px;
     margin-left:0;
     margin-right:0;
     overflow:hidden;
 }
-VFXBlockUI.VFXNodeUI.node.first
+#block-container .VFXNodeUI.node.first
 {
     padding-top:0;
 }
-VFXBlockUI.VFXNodeUI.node.first > #selection-border
+#block-container .VFXNodeUI.node.first > #selection-border
 {
     margin-top:0;
 }
 
-VFXBlockUI.VFXNodeUI.node > #selection-border
+#block-container .VFXNodeUI.node > #selection-border
 {
     margin-left:0;
     margin-right:0;
@@ -29,62 +29,56 @@ VFXBlockUI.VFXNodeUI.node > #selection-border
     margin-bottom: 1px;
 }
 
-VFXBlockUI.VFXNodeUI.node #contents > #top > #input
+#block-container .VFXNodeUI.node #contents > #top > #input
 {
     padding-bottom: 8px;
     flex: 1 1 auto;
 }
 
-VFXContextUI VFXBlockUI.node #node-border #title
+VFXContextUI .VFXNodeUI.node #node-border #title
 {
     flex-direction:row;
     align-items:center;
     justify-content:flex-start;
 }
 
-VFXBlockUI.VFXNodeUI.node #node-border
+#block-container .VFXNodeUI.node #node-border
 {
     border-radius:8px;
 }
 
-VFXBlockUI.VFXNodeUI.node.invalid #node-border
+#block-container .VFXNodeUI.node.invalid #node-border
 {
     border-color: #FF0000;
 }
 
-VFXContextUI VFXBlockUI.node #node-border #title #title-label
-{
-    margin-left: 4px;
-    flex: 1 0 auto;
-}
-
-VFXContextUI VFXBlockUI.node.block-disabled #node-border .port #label
+VFXContextUI #block-container .node.block-disabled #node-border .port #label
 {
     opacity: 0.5;
 }
 
-VFXContextUI VFXBlockUI.node.block-disabled #node-border #settings #label
+VFXContextUI .VFXNodeUI.node.block-disabled #node-border #settings #label
 {
     opacity: 0.5;
 }
 
-VFXContextUI VFXBlockUI.node.block-disabled #node-border #title #title-label
+VFXContextUI .VFXNodeUI.node.block-disabled #node-border #title #title-label
 {
     opacity: 0.5;
 }
 
-VFXContextUI VFXBlockUI.node.block-disabled #node-border #title, VFXContextUI VFXBlockUI.node.block-disabled #node-border #contents
+VFXContextUI .VFXNodeUI.node.block-disabled #node-border #title, VFXContextUI #block-container .node.block-disabled #node-border #contents
 {
     background-color: rgba(41,41,41,0.8);
 }
 
-VFXBlockUI.node #title #collapse-button
+.VFXNodeUI.node #title #collapse-button
 {
     flex-grow: 0;
     width: 20px;
     padding-right: 4px;
 }
-VFXBlockUI.node
+.VFXNodeUI.node
 {
     margin-left:0;
     margin-right:0;
@@ -93,7 +87,7 @@ VFXBlockUI.node
     flex-direction:row;
 }
 
-VFXBlockUI.node > #node-border
+.VFXNodeUI.node > #node-border
 {
     flex:1 1 auto;
     margin-left:0;
@@ -107,7 +101,7 @@ VFXEditableDataAnchor.activationslot > BoolPropertyRM > Label
     display: none;
 }
 
-VFXContextUI VFXBlockUI.node #node-border #title.activationslot > #title-label
+VFXContextUI .VFXNodeUI.node #node-border #title.activationslot > #title-label
 {
     margin-left: 44px;
 }
@@ -122,22 +116,22 @@ VFXContextUI VFXBlockUI.node #node-border #title.activationslot > #title-label
     align-self: flex-end;
 }
 
-VFXBlockUI.activationslot.collapsed.VFXNodeUI.node #contents > #top > #input
+#block-container .activationslot.collapsed.VFXNodeUI.node #contents > #top > #input
 {
     padding-top: 0px;
 }
 
-VFXBlockUI.activationslot.collapsed.VFXNodeUI.node #contents > #divider
+#block-container .activationslot.collapsed.VFXNodeUI.node #contents > #divider
 {
     display: none;
 }
 
-VFXBlockUI.nosettings.VFXNodeUI.node #contents > #settings-divider
+#block-container .nosettings.VFXNodeUI.node #contents > #settings-divider
 {
     display: none;
 }
 
-VFXBlockUI.collapsed.VFXNodeUI.node #contents > #top > #input > VFXEditableDataAnchor.activationslot
+#block-container .collapsed.VFXNodeUI.node #contents > #top > #input > VFXEditableDataAnchor.activationslot
 {
     margin-top: 1px;
 }

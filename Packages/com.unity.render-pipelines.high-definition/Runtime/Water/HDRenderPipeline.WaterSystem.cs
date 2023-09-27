@@ -821,6 +821,8 @@ namespace UnityEngine.Rendering.HighDefinition
             profile.roughnessEndValue = 1.0f - waterSurface.endSmoothness;
             profile.upDirection = waterSurface.UpVector();
 
+            profile.foamColor = waterSurface.foamColor;
+
             // Color offset
             profile.colorPyramidMipOffset = waterSurface.colorPyramidOffset;
             profile.colorPyramidScale = 1.0f / (1 << waterSurface.colorPyramidOffset);
@@ -1115,6 +1117,9 @@ namespace UnityEngine.Rendering.HighDefinition
                         continue;
                     }
                 }
+
+                if (currentWater.customMaterial != null && !WaterSurface.IsWaterMaterial(currentWater.customMaterial))
+                    continue;
 #endif
                 // One surface needs to pass the resource tests for the gbuffer to be valid
                 outputGBuffer.valid = true;
@@ -1206,6 +1211,11 @@ namespace UnityEngine.Rendering.HighDefinition
             // If the water is disabled, no need to render or simulate
             if (!ShouldRenderWater(hdCamera))
                 return;
+
+            // Make sure the current data is valid
+            CheckWaterCurrentData();
+            // Copy the frustum data to the GPU
+            PropagateFrustumDataToGPU(hdCamera);
 
             // Request all the gbuffer textures we will need
             TextureHandle WaterGbuffer0 = renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)

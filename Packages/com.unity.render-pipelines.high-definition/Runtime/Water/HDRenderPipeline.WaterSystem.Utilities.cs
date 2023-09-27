@@ -418,7 +418,7 @@ namespace UnityEngine.Rendering.HighDefinition
             int lowResPassIndex = 0;
             bool missingPass = !FindPassIndex(parameters.waterMaterial, passName, out var passIndex);
             if (parameters.instancedQuads)
-                missingPass |= !FindPassIndex(parameters.waterMaterial, indirectBuffer == null ? k_WaterMaskPass : k_LowResGBufferPass, out lowResPassIndex);
+                missingPass |= !FindPassIndex(parameters.waterMaterial, passName == k_WaterMaskPass ? k_WaterMaskPass : k_LowResGBufferPass, out lowResPassIndex);
             if (missingPass)
                 return;
 

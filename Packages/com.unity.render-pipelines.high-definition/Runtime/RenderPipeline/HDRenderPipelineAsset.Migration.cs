@@ -14,7 +14,7 @@ namespace UnityEngine.Rendering.HighDefinition
     public partial class HDRenderPipelineAsset : IVersionable<HDRenderPipelineAsset.Version>, IMigratableAsset
     {
         // /!\ For each new version, you must now upgrade asset in HDRP_Runtime, HDRP_Performance and SRP_SmokeTest test project.
-        enum Version
+        internal enum Version
         {
             None,
             First,
@@ -302,7 +302,7 @@ namespace UnityEngine.Rendering.HighDefinition
         #endregion
 
         [SerializeField]
-        Version m_Version = MigrationDescription.LastVersion<Version>();
+        internal Version m_Version = MigrationDescription.LastVersion<Version>();
         Version IVersionable<Version>.version { get => m_Version; set => m_Version = value; }
 
 #pragma warning disable 618 // Type or member is obsolete

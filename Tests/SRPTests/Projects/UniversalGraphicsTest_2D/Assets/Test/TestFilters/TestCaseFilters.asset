@@ -58,3 +58,21 @@ MonoBehaviour:
     XrSdk: None
     StereoModes: 0
     Reason: Post Process needs fixing
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 9f750aafa54d07a43b7601615bb2c7ea, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 2
+    GraphicsDevice: 16
+    XrSdk: None
+    StereoModes: 0
+    Reason: Post Process needs fixing
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 40e6c1647ae044647ad33454538fa98a, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 31
+    GraphicsDevice: 4
+    XrSdk: 
+    StereoModes: 0
+    Reason: PS4 Pro doesn't accept backbuffer target resolution

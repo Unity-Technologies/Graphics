@@ -6,11 +6,16 @@ public class SceneHDRPSettingsSetter : MonoBehaviour
 {
     #if UNITY_EDITOR
     [SerializeField]
-    SettingHelperSO settingsHelper;
+    internal SettingHelperSO settingsHelper;
 
-    void Start()
+    void OnEnable()
     {
-        SettingsOverlay.instance.settingHelperSO = settingsHelper;
+        SettingsOverlay.settingsSO = settingsHelper;
     }
-    #endif
+
+    void OnDisable()
+    {
+        SettingsOverlay.settingsSO = null;
+    }
+#endif
 }

@@ -84,7 +84,7 @@ namespace UnityEngine.Rendering.Universal
             if (m_AdditionalLightsShadowCasterPass.Setup(ref renderingData))
                 additionalShadowsTexture = m_AdditionalLightsShadowCasterPass.Render(renderGraph, ref renderingData);
 
-            SetupRenderGraphCameraProperties(renderGraph, ref renderingData, renderingData.cameraData.camera.targetTexture == null);
+            SetupRenderGraphCameraProperties(renderGraph, renderingData.cameraData.camera.targetTexture == null);
 
             RenderTargetIdentifier targetColorId = cameraData.targetTexture != null ? new RenderTargetIdentifier(cameraData.targetTexture) : BuiltinRenderTextureType.CameraTarget;
             RenderTargetIdentifier targetDepthId = cameraData.targetTexture != null ? new RenderTargetIdentifier(cameraData.targetTexture) : BuiltinRenderTextureType.Depth;

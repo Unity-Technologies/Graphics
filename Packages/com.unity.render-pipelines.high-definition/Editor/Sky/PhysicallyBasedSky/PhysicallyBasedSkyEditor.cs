@@ -104,7 +104,10 @@ namespace UnityEditor.Rendering.HighDefinition
             PropertyField(m_Mode);
             bool hasMaterial = m_Mode.value.intValue == 1;
             if (hasMaterial)
-                PropertyField(m_Material);
+            {
+                using (new IndentLevelScope())
+                    PropertyField(m_Material);
+            }
 
             DrawHeader("Planet");
 

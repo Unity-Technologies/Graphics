@@ -85,6 +85,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Colors
 
         public IEnumerable<string> providerNames => m_Providers.Select(p => p.GetTitle());
 
+        public int providersCount => m_Providers.Count;
+
         public string activeProviderName => activeProvider.GetTitle();
 
         public bool activeSupportsCustom => activeProvider.AllowCustom();

@@ -164,6 +164,7 @@ MonoBehaviour:
   m_Name: HDShadowSettings
   m_EditorClassIdentifier: 
   active: 1
+  interCascadeBorders: 1
   maxShadowDistance:
     m_OverrideState: 1
     m_Value: 25
@@ -175,7 +176,7 @@ MonoBehaviour:
     m_Value: 2
   cascadeShadowSplit0:
     m_OverrideState: 1
-    m_Value: 0.05
+    m_Value: 0.4548853
   cascadeShadowSplit1:
     m_OverrideState: 1
     m_Value: 0.15
@@ -184,10 +185,10 @@ MonoBehaviour:
     m_Value: 0.3
   cascadeShadowBorder0:
     m_OverrideState: 1
-    m_Value: 0.2968
+    m_Value: 0.29680002
   cascadeShadowBorder1:
     m_OverrideState: 1
-    m_Value: 0.3831579
+    m_Value: 0.78
   cascadeShadowBorder2:
     m_OverrideState: 1
     m_Value: 0

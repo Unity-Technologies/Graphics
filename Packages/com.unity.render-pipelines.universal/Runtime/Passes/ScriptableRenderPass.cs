@@ -285,10 +285,10 @@ namespace UnityEngine.Rendering.Universal
         ClearFlag m_ClearFlag = ClearFlag.None;
         Color m_ClearColor = Color.black;
 
-        static internal DebugHandler GetActiveDebugHandler(ref RenderingData renderingData)
+        static internal DebugHandler GetActiveDebugHandler(UniversalCameraData cameraData)
         {
-            var debugHandler = renderingData.cameraData.renderer.DebugHandler;
-            if ((debugHandler != null) && debugHandler.IsActiveForCamera(ref renderingData.cameraData))
+            var debugHandler = cameraData.renderer.DebugHandler;
+            if ((debugHandler != null) && debugHandler.IsActiveForCamera(cameraData.isPreviewCamera))
                 return debugHandler;
             return null;
         }
@@ -618,9 +618,8 @@ namespace UnityEngine.Rendering.Universal
         /// Record the render graph pass. This is where custom rendering occurs. Specific details are left to the implementation
         /// </summary>
         /// <param name="renderGraph"></param>
-        /// <param name="frameResources"></param>
-        /// <param name="renderingData"></param>
-        public virtual void RecordRenderGraph(RenderGraph renderGraph, FrameResources frameResources, ref RenderingData renderingData)
+        /// <param name="frameData"></param>
+        public virtual void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
             Debug.LogWarning("RecordRenderGraph is not implemented, the pass " + this.ToString() + " won't be recorded in the current RenderGraph.");
         }

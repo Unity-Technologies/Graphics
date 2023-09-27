@@ -13,17 +13,7 @@ MonoBehaviour:
   m_Name: HDRenderPipelineGlobalSettings
   m_EditorClassIdentifier: 
   m_Settings:
-    m_SettingsList:
-    - rid: 1126231320986910720
-    - rid: 1126231320986910721
-    - rid: 1126231320986910722
-    - rid: 1126231320986910723
-    - rid: 1126231320986910724
-    - rid: 1126231320986910725
-    - rid: 1126231320986910726
-    - rid: 1126231320986910727
-    - rid: 1126231320986910728
-    - rid: 1126231320986910729
+    m_SettingsList: []
     m_RuntimeSettings: []
   m_DefaultVolumeProfile: {fileID: 11400000, guid: dc4052ec38b9ac147a469135b69baa9a,
     type: 2}
@@ -230,44 +220,4 @@ MonoBehaviour:
   m_StripDebugVariants: 1
   references:
     version: 2
-    RefIds:
-    - rid: 1126231320986910720
-      type: {class: RenderPipelineGlobalSettingsEditorTests/B, ns: , asm: Unity.RenderPipelines.Core.Editor.Tests}
-      data:
-        name: B
-    - rid: 1126231320986910721
-      type: {class: RenderPipelineGlobalSettingsEditorTests/I, ns: , asm: Unity.RenderPipelines.Core.Editor.Tests}
-      data:
-        name: I
-    - rid: 1126231320986910722
-      type: {class: RenderPipelineGlobalSettingsEditorTests/C, ns: , asm: Unity.RenderPipelines.Core.Editor.Tests}
-      data:
-        name: C
-    - rid: 1126231320986910723
-      type: {class: RenderPipelineGlobalSettingsEditorTests/A, ns: , asm: Unity.RenderPipelines.Core.Editor.Tests}
-      data:
-        name: A
-    - rid: 1126231320986910724
-      type: {class: RenderPipelineGlobalSettingsEditorTests/F, ns: , asm: Unity.RenderPipelines.Core.Editor.Tests}
-      data:
-        name: F
-    - rid: 1126231320986910725
-      type: {class: RenderPipelineGlobalSettingsEditorTests/G, ns: , asm: Unity.RenderPipelines.Core.Editor.Tests}
-      data:
-        name: G
-    - rid: 1126231320986910726
-      type: {class: RenderPipelineGlobalSettingsEditorTests/Base, ns: , asm: Unity.RenderPipelines.Core.Editor.Tests}
-      data:
-        name: Base
-    - rid: 1126231320986910727
-      type: {class: RenderPipelineGlobalSettingsEditorTests/H, ns: , asm: Unity.RenderPipelines.Core.Editor.Tests}
-      data:
-        name: H
-    - rid: 1126231320986910728
-      type: {class: RenderPipelineGlobalSettingsEditorTests/D, ns: , asm: Unity.RenderPipelines.Core.Editor.Tests}
-      data:
-        name: D
-    - rid: 1126231320986910729
-      type: {class: RenderPipelineGlobalSettingsEditorTests/E, ns: , asm: Unity.RenderPipelines.Core.Editor.Tests}
-      data:
-        name: E
+    RefIds: []

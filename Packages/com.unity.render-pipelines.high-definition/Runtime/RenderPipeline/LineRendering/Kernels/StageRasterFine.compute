@@ -36,6 +36,7 @@ typedef Threading::Group Group;
 // Inputs
 ByteAddressBuffer _Vertex0RecordBuffer;
 ByteAddressBuffer _Vertex1RecordBuffer;
+ByteAddressBuffer _Vertex3RecordBuffer;
 ByteAddressBuffer _SegmentRecordBuffer;
 
 ByteAddressBuffer _WorkQueueBinListBuffer;
@@ -43,23 +44,18 @@ ByteAddressBuffer _BinOffsetsBuffer;
 ByteAddressBuffer _BinCountersBuffer;
 ByteAddressBuffer _WorkQueueBuffer;
 ByteAddressBuffer _ClusterCountersBuffer;
-ByteAddressBuffer _ClusterRangesBuffer;
-ByteAddressBuffer _TileSegmentIndices;
 
-Texture2D<float4> _ShadingSamplesTexture;
+Texture2D<half4> _ShadingSamplesTexture;
 
 // Outputs
-RW_TEXTURE2D_X(float4, _OutputTargetColor);
-RW_TEXTURE2D_X(float4, _OutputTargetMV);
-RW_TEXTURE2D_X(float,  _OutputTargetDepth);
-
-RWByteAddressBuffer _CounterBuffer;
+RW_TEXTURE2D_X(half4, _OutputTargetColor);
+RW_TEXTURE2D_X(half4, _OutputTargetMV);
+RW_TEXTURE2D_X(half,  _OutputTargetDepth);
 
 struct Bin
 {
     uint  index;
     uint2 coord;
-    ClippingParams clippingWindow;
 };
 
 struct Cluster
@@ -70,32 +66,29 @@ struct Cluster
 
 struct Segment
 {
-    uint2  coverageMask;
     float3 positionSS0;
     float3 positionSS1;
-    float2 coveragePositionSS0;
-    float2 coveragePositionSS1;
-    float  widthSamples[2];
-    float4 shadingSamples[2];
-    float2 motionSamples[2];
+    uint2  coverageMask;
+    half   widthSamples[2];
+    half4  shadingSamples[2];
+    half2  motionSamples[2];
 };
 
 struct Fragment
 {
-    float4 colorAndAlpha;
-    float  coverage;
-    float  depth;
-    float2 motionVector;
+    half4 colorAndAlpha;
+    half  coverage;
+    half  depth;
+    half2 motionVector;
 };
 
-// Local (TODO: Count up # KB we are taking in LDS).
+// Local
 groupshared bool    gs_OpaqueTile;
 groupshared uint    gs_QueuePosition;
 groupshared uint    gs_QueueEnd;
 groupshared Bin     gs_CurrentBin;
 groupshared Cluster gs_CurrentCluster;
-groupshared uint2   gs_CoverageMask[32];
-groupshared Segment gs_SegmentBatch[32];
+groupshared Segment gs_SegmentBatch[64];
 groupshared uint    gs_SegmentIndices[SEGMENTS_PER_CLUSTER];
 
 float3 ColorCycle(uint index, uint count)
@@ -120,18 +113,6 @@ uint2 GetCoordinateLane(uint groupIndex)
     return coord;
 }
 
-float2 GetCoordinateNDC(uint2 laneIndex)
-{
-    const float2 uv = ((float2)laneIndex + 0.5) * rcp(_SizeScreen.xy);
-    return -1 + 2 * uv;
-}
-
-float2 GetCoordinateSS(float2 positionNDC)
-{
-    const float2 test = 0.5 * positionNDC + 0.5;
-    return (test * _SizeScreen.xy);
-}
-
 Bin GetBin(uint binQueueIndex)
 {
     const uint index = _WorkQueueBinListBuffer.Load(binQueueIndex << 2);
@@ -140,18 +121,6 @@ Bin GetBin(uint binQueueIndex)
     {
         bin.index = index;
         bin.coord = _SizeBin.x * uint2(index % (uint)_DimBin.x, index / (uint)_DimBin.x);
-
-        const float2 tileMinNDC = GetCoordinateNDC(bin.coord + 0u);
-        const float2 tileMaxNDC = GetCoordinateNDC(bin.coord + 8u);
-
-        ClippingParams clippingWindow;
-        {
-            clippingWindow.minX = tileMinNDC.x;
-            clippingWindow.maxX = tileMaxNDC.x;
-            clippingWindow.minY = tileMinNDC.y;
-            clippingWindow.maxY = tileMaxNDC.y;
-        }
-        bin.clippingWindow = clippingWindow;
     }
     return bin;
 }
@@ -168,6 +137,7 @@ Cluster GetCluster(uint clusterDepth)
     return cluster;
 }
 
+// TODO: Preliminary compression stage for all segments? Would reduce bandwidth here.
 Segment GetSegment(uint workQueueIndex)
 {
     // Mask out the top 8 bits which contain the encoded depth
@@ -182,39 +152,43 @@ Segment GetSegment(uint workQueueIndex)
 
     Segment segment;
     {
-        // We want the barycentric between the original segment vertices, not the clipped vertices.
-        segment.positionSS0 = positionCS0.xyz * rcp(positionCS0.w);
-        segment.positionSS1 = positionCS1.xyz * rcp(positionCS1.w);
-
-        // Need to generate coverage positions in the coordinate system expected by Coverage.hlsl.
-        segment.coveragePositionSS0 = (GetCoordinateSS(segmentRecord.positionSS0) - (float2)gs_CurrentBin.coord) / 8.0f;
-        segment.coveragePositionSS1 = (GetCoordinateSS(segmentRecord.positionSS1) - (float2)gs_CurrentBin.coord) / 8.0f;
-
-        const float2 v0 = segment.coveragePositionSS0;
-        const float2 v1 = segment.coveragePositionSS1;
-        segment.coverageMask = Coverage::LineCoverageMask(v0, v1, 0.15, 0.0f);
-
-        // Collect the shading samples from the segment vertices.
+        // Shading samples..
         uint2 shadingOffset1 = VertexIndexToShadingAtlasCoord(segmentRecord.vertexIndex0);
         uint2 shadingOffset2 = VertexIndexToShadingAtlasCoord(segmentRecord.vertexIndex1);
         segment.shadingSamples[0] = _ShadingSamplesTexture[shadingOffset1];
         segment.shadingSamples[1] = _ShadingSamplesTexture[shadingOffset2];
 
-        // Decode the strand width from the shading sample alpha.
-        float a0, w0, a1, w1;
-        DecodeLineWidth(segment.shadingSamples[0].a, a0, w0);
-        DecodeLineWidth(segment.shadingSamples[1].a, a1, w1);
+        // Width samples.
+        segment.widthSamples[0] = ppositionCS0.w;
+        segment.widthSamples[1] = ppositionCS1.w;
 
+        // Motion samples
+        segment.motionSamples[0] = CalculateMotionVector(positionCS0, ppositionCS0.xy);
+        segment.motionSamples[1] = CalculateMotionVector(positionCS1, ppositionCS1.xy);
+
+        // We want the barycentric between the original segment vertices, not the clipped vertices.
+        segment.positionSS0 = positionCS0.xyz * rcp(positionCS0.w);
+        segment.positionSS1 = positionCS1.xyz * rcp(positionCS1.w);
+
+        segment.positionSS0.xy = _ScreenSize.xy * (0.5 + 0.5 * segment.positionSS0.xy);
+        segment.positionSS1.xy = _ScreenSize.xy * (0.5 + 0.5 * segment.positionSS1.xy);
+
+        // Need to generate coverage positions in the coordinate system expected by Coverage.hlsl.
+        const float2 v0 = (segmentRecord.positionSS0 - (float2)gs_CurrentBin.coord) / 8.0f;
+        const float2 v1 = (segmentRecord.positionSS1 - (float2)gs_CurrentBin.coord) / 8.0f;
+
+        float coverageThickness;
         {
-            segment.shadingSamples[0].a = a0;
-            segment.shadingSamples[1].a = a1;
-            segment.widthSamples[0]     = w0;
-            segment.widthSamples[1]     = w1;
+            // Use the largest of the two width samples to govern the thickness of coverage mask calculation.
+            coverageThickness = min(segment.widthSamples[0], segment.widthSamples[1]);
+
+            // Enforce a minimum thickness of 2.0 pixel.
+            coverageThickness = max(coverageThickness / 8.0f, 1.0f / 8.0f);
         }
 
-        // And the motion vector samples.
-        segment.motionSamples[0] = CalculateMotionVector(positionCS0, ppositionCS0);
-        segment.motionSamples[1] = CalculateMotionVector(positionCS1, ppositionCS1);
+        // NOTE: Alternatively, we could use 2x Coverage::TriangleCoverageMask to get a coverage mask that properly
+        // attenuates the width along the length of the segment.
+        segment.coverageMask = Coverage::LineCoverageMask(v0, v1, coverageThickness, 0.0f);
     }
     return segment;
 }
@@ -225,14 +199,21 @@ Fragment GetFragment(Segment segment, float2 coord)
     float t;
     float distance = DistanceToSegmentAndTValue(coord, segment.positionSS0.xy, segment.positionSS1.xy, t);
 
-    const float segmentWidth = lerp(segment.widthSamples[0], segment.widthSamples[1], t) / min(_SizeScreen.x, _SizeScreen.y);
+    const float segmentWidth = lerp(segment.widthSamples[0], segment.widthSamples[1], t);
 
     Fragment fragment;
     {
         fragment.depth         = lerp(segment.positionSS0.z,     segment.positionSS1.z,     t);
         fragment.colorAndAlpha = lerp(segment.shadingSamples[0], segment.shadingSamples[1], t);
         fragment.motionVector  = lerp(segment.motionSamples[0],  segment.motionSamples[1],  t);
-        fragment.coverage      = fragment.colorAndAlpha.a * (1 - smoothstep(0, segmentWidth, distance));
+        fragment.coverage      = (1 - smoothstep(0, max(1.0, segmentWidth), distance));
+
+        if (segmentWidth < 1.0)
+        {
+            // If the segment width is less than 1.0 pixel, then we need to attenuate the coverage.
+            // Enforce a minimum coverage of 1%, so that it never becomes fully invisible.
+            fragment.coverage *= max(0.01, segmentWidth);
+        }
 
         // Unfortunately need a NaN guard here.
         fragment.colorAndAlpha = max(fragment.colorAndAlpha, 0);
@@ -368,8 +349,11 @@ void OutputFragment(uint2 dispatchThreadID, Fragment fragment)
     {
         float4 mergedPixel = _OutputTargetColor[COORD_TEXTURE2D_X(dispatchThreadID)];
         {
+            mergedPixel.a = 1.0 - mergedPixel.a;
             mergedPixel.rgb += fragment.colorAndAlpha.rgb * mergedPixel.a;
             mergedPixel.a   *= fragment.colorAndAlpha.a;
+
+            mergedPixel.a = 1.0 - mergedPixel.a;
         }
         _OutputTargetColor[COORD_TEXTURE2D_X(dispatchThreadID)] = mergedPixel;
     }
@@ -386,30 +370,30 @@ groupshared uint gs_SegmentBatchSize;
 groupshared uint gs_HairDebugMode;
 #endif
 
-void RasterizeSegmentList(uint perLaneMask, float2 positionNDC, float laneMinDepth, uint clusterDepthIndex, inout Fragment resolvedFragment)
+void RasterizeSegmentList(uint2 perLaneMask, float2 positionSS, float laneMinDepth, uint clusterDepthIndex, inout Fragment resolvedFragment)
 {
-    while (perLaneMask != 0)
+    for (int subMask = 0; subMask < 2; subMask++)
     {
-        const uint segmentIndex = firstbitlow(perLaneMask);
+        while (perLaneMask[subMask] != 0)
+        {
+            const uint segmentIndex = firstbitlow(perLaneMask[subMask]);
 
-        // NOTE: The bottleneck here seems to be bank conflicts on the LDS access into the segment batch. Any way to improve it?
-        Fragment fragment = GetFragment(gs_SegmentBatch[segmentIndex], positionNDC);
+            Fragment fragment = GetFragment(gs_SegmentBatch[segmentIndex + (32u * subMask)], positionSS);
 
-        if (fragment.depth < laneMinDepth)
-            break;
+            if (fragment.depth < laneMinDepth)
+                break;
 
         #if DEBUG
-        if (gs_HairDebugMode == DEBUGMODE_CLUSTER_DEPTH)
-        {
-            fragment.colorAndAlpha.rgb = ColorCycle(clusterDepthIndex, _ClusterDepth);
-        }
+            if (gs_HairDebugMode == DEBUGMODE_CLUSTER_DEPTH)
+                fragment.colorAndAlpha.rgb = ColorCycle(clusterDepthIndex, _ClusterDepth);
         #endif
 
-        // Blend the new fragment with the pixel fragment.
-        ResolveFragment(fragment, resolvedFragment);
+            // Blend the new fragment with the pixel fragment.
+            ResolveFragment(fragment, resolvedFragment);
 
-        // Clear this bit to begin the next iteration.
-        perLaneMask ^= 1 << segmentIndex;
+            // Clear this bit to begin the next iteration.
+            perLaneMask[subMask] ^= 1 << segmentIndex;
+        }
     }
 }
 
@@ -443,70 +427,50 @@ void Main(Group group)
     Coverage::GenLUT(groupIndex);
     GroupMemoryBarrierWithGroupSync();
 
-    // Read the queue size into LDS.
     if (groupIndex == 0u)
     {
-        gs_QueueEnd = _CounterBuffer.Load(COUNTER_BIN_QUEUE_SIZE);
+        gs_CurrentBin = GetBin(group.groupID.x);
 
 #if DEBUG
         // We have to propogate the debug mode into LDS due to prevent compiler issues.
         gs_HairDebugMode = _HairDebugMode;
 #endif
+
+        // Flag for "solidifying" a tile that is considered "opaque".
+        gs_OpaqueTile = false;
     }
     GroupMemoryBarrierWithGroupSync();
 
-    // Persistent thread.
-    for (;;)
-    {
-        // Pop the next bin from the queue.
-        if (groupIndex == 0u)
-        {
-            _CounterBuffer.InterlockedAdd(COUNTER_BIN_QUEUE_INDEX, 1, gs_QueuePosition);
-        }
-        GroupMemoryBarrierWithGroupSync();
+    // Get the coordinates for this screen tile.
+    const uint2  dispatchThreadID = GetCoordinateLane(groupIndex);
+    const float2 positionSS       = ((float2)dispatchThreadID) + 0.5;
 
-        // There is no work left in the queue.
-        if (gs_QueuePosition >= gs_QueueEnd)
-            break;
+    Fragment resolvedFragment;
+    InitializeFragment(resolvedFragment);
 
-        if (groupIndex == 0u)
-        {
-            gs_CurrentBin = GetBin(gs_QueuePosition);
-
-            // Flag for "solidifying" a tile that is considered "opaque".
-            gs_OpaqueTile = false;
-        }
-        GroupMemoryBarrierWithGroupSync();
-
-        // Get the coordinates for this screen tile.
-        const uint2  dispatchThreadID = GetCoordinateLane(groupIndex);
-        const float2 positionNDC      = GetCoordinateNDC(dispatchThreadID);
-
-        Fragment resolvedFragment;
-        InitializeFragment(resolvedFragment);
-
-        // Load this lane's minimum opaque depth (some fragments may not be culled from segment setup).
-        // Need an epsilon to fight some artifacts.
+    // Load this lane's minimum opaque depth (some fragments may not be culled from segment setup).
+    // Need an epsilon to fight some artifacts.
 #if !UNITY_UV_STARTS_AT_TOP
-        const float laneMinDepth = -1e-4 + LoadCameraDepth(dispatchThreadID);
+    const float laneMinDepth = -1e-4 + LoadCameraDepth(dispatchThreadID);
 #else
-        const float laneMinDepth = -1e-4 + LoadCameraDepth(uint2(dispatchThreadID.x, _ScreenParams.y - dispatchThreadID.y - 0.5));
+    const float laneMinDepth = -1e-4 + LoadCameraDepth(uint2(dispatchThreadID.x, _ScreenParams.y - dispatchThreadID.y - 0.5));
 #endif
 
 #if DEBUG
-        if (gs_HairDebugMode == DEBUGMODE_SEGMENTS_PER_TILE)
-        {
-            resolvedFragment.depth = 1;
-            uint tileValue = _BinCountersBuffer.Load(gs_CurrentBin.index << 2);
-            resolvedFragment.colorAndAlpha = OverlayHeatMapNoNumber(dispatchThreadID, uint2(8, 8), tileValue, 2000, 1.0);
-        }
-        else if (gs_HairDebugMode == DEBUGMODE_TILE_PROCESSOR_UV)
-        {
-            resolvedFragment.depth = 1;
-            resolvedFragment.colorAndAlpha = float4(float2(groupIndex / 8, groupIndex % 8) / (float)8, 0, 1);
-        }
-        else
+    if (gs_HairDebugMode == DEBUGMODE_SEGMENTS_PER_TILE)
+    {
+        resolvedFragment.depth = 1;
+        uint tileValue = _BinCountersBuffer.Load(gs_CurrentBin.index << 2);
+        resolvedFragment.colorAndAlpha = OverlayHeatMapNoNumber(dispatchThreadID, uint2(8, 8), tileValue, 2000, 1.0);
+    }
+    else if (gs_HairDebugMode == DEBUGMODE_TILE_PROCESSOR_UV)
+    {
+        resolvedFragment.depth = 1;
+        resolvedFragment.colorAndAlpha = float4(float2(groupIndex / 8, groupIndex % 8) / (float)8, 0, 1);
+    }
+    else
 #endif
+    {
         UNITY_LOOP
         for (uint clusterDepthIndex = 0; clusterDepthIndex < (uint)_ClusterDepth; ++clusterDepthIndex)
         {
@@ -523,6 +487,7 @@ void Main(Group group)
                continue;
 
             // Sort the segments in this cluster.
+            // TODO: Investigate swapping in Timothy Lotte's "Balloted Radix Sort" here.
             {
                 // 1) Load the unsorted keys into LDS.
                 LoadSegmentIndices(groupIndex);
@@ -532,54 +497,53 @@ void Main(Group group)
                 SORTLIST(gs_SegmentIndices, gs_CurrentCluster.segmentCount, SEGMENTS_PER_CLUSTER, groupIndex, 64u);
             }
 
-            // Raster the cluster segments in batches of 64.
-            for (uint segmentBatchOffset = 0; segmentBatchOffset < gs_CurrentCluster.segmentCount; segmentBatchOffset += 32u)
+            // Raster the sorted cluster segments in batches of 64.
+            for (uint segmentBatchOffset = 0; segmentBatchOffset < gs_CurrentCluster.segmentCount; segmentBatchOffset += 64u)
             {
                 gs_OpaqueTile = IsTileOpaque(group, resolvedFragment.colorAndAlpha.a);
 
                 if (gs_OpaqueTile)
                     break;
 
-                // TODO: Should do this in batches of 64 segments so the whole block is busy.
-                if (groupIndex < 32u)
-                {
-                    // Note: Not all of these segments are guaranteed to exist in memory if greater than cluster segment count.
-                    gs_SegmentBatch[groupIndex] = GetSegment(segmentBatchOffset + groupIndex);
-                }
+                // Note: Not all of these segments are guaranteed to exist in memory if greater than cluster segment count.
+                gs_SegmentBatch[groupIndex] = GetSegment(segmentBatchOffset + groupIndex);
                 GroupMemoryBarrierWithGroupSync();
 
                 // Composite the masks. Is there a better way to do this?
-                uint laneCoverageMask = 0u;
+                uint2 laneCoverageMask = 0u;
 
-                for (uint segmentIndex = 0; segmentIndex < min(32u, gs_CurrentCluster.segmentCount - segmentBatchOffset); segmentIndex++)
+                for (uint segmentIndex = 0; segmentIndex < min(64u, gs_CurrentCluster.segmentCount - segmentBatchOffset); segmentIndex++)
                 {
                     uint laneMask, laneOffset;
                     GetLaneMaskOffset(groupIndex, segmentIndex, laneMask, laneOffset);
 
-                    laneCoverageMask |= IsBitSet(laneMask, laneOffset) << segmentIndex;
+                    if (segmentIndex < 32u)
+                        laneCoverageMask[0] |= IsBitSet(laneMask, laneOffset) << segmentIndex;
+                    else
+                        laneCoverageMask[1] |= IsBitSet(laneMask, laneOffset) << segmentIndex - 32u;
                 }
 
-                RasterizeSegmentList(laneCoverageMask, positionNDC, laneMinDepth, clusterDepthIndex, resolvedFragment);
+                RasterizeSegmentList(laneCoverageMask, positionSS, laneMinDepth, clusterDepthIndex, resolvedFragment);
             }
 
             if (gs_OpaqueTile)
                 break;
         }
+    }
 
-        if (_TileOpacityThreshold < 64.0 && gs_OpaqueTile)
+    if (_TileOpacityThreshold < 64.0 && gs_OpaqueTile)
+    {
+        Fragment tileFragment = resolvedFragment;
         {
-            Fragment tileFragment = resolvedFragment;
-            {
-                // [NOTE-HAIR-OPACITY]
-                // We are aggressive with what qualifies as an opaque tile. Technically it will be opaque if the tile opacity is around ~64.
-                // However, by reducing that threshold to something lower, we can save some performance by doing less work for
-                // almost opaque tiles. However, if we do that, we also have to force the pixel to be completely opaque here.
-                tileFragment.colorAndAlpha.a = 1;
-            }
-
-            ResolveFragment(tileFragment, resolvedFragment);
+            // [NOTE-HAIR-OPACITY]
+            // We are aggressive with what qualifies as an opaque tile. Technically it will be opaque if the tile opacity is around ~64.
+            // However, by reducing that threshold to something lower, we can save some performance by doing less work for
+            // almost opaque tiles. However, if we do that, we also have to force the pixel to be completely opaque here.
+            tileFragment.colorAndAlpha.a = 1;
         }
 
-        OutputFragment(dispatchThreadID, resolvedFragment);
+        ResolveFragment(tileFragment, resolvedFragment);
     }
+
+    OutputFragment(dispatchThreadID, resolvedFragment);
 }

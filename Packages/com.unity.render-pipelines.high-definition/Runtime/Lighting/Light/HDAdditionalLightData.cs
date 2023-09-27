@@ -1,22 +1,15 @@
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using JetBrains.Annotations;
-using Unity.Burst;
-using UnityEngine;
 using UnityEngine.LowLevel;
 using UnityEngine.PlayerLoop;
-using UnityEngine.Rendering;
 using UnityEngine.Assertions;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 using UnityEngine.Serialization;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
-using Unity.Jobs;
-using Unity.Mathematics;
-using Unity.Profiling;
+
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -58,6 +51,25 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public static BoolScalableSetting UseContactShadow(HDRenderPipelineAsset hdrp) =>
                 hdrp.currentPlatformRenderPipelineSettings.lightSettings.useContactShadow;
+        }
+
+        /// <summary>
+        /// Light source used to shade the celestial body.
+        /// </summary>
+        public enum CelestialBodyShadingSource
+        {
+            /// <summary>
+            /// The celestial body will emit light.
+            /// </summary>
+            Emission = 1,
+            /// <summary>
+            /// The celestial body will reflect light from a directional light in the scene.
+            /// </summary>
+            ReflectSunLight = 0,
+            /// <summary>
+            /// The celestial body will be illuminated by an artifical light source.
+            /// </summary>
+            Manual = 2,
         }
 
         /// <summary>
@@ -803,7 +815,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public bool interactsWithSky
         {
-            get => m_InteractsWithSky;
+            // m_InteractWithSky can be true if user changed from directional to point light, so we need to check current type
+            get => m_InteractsWithSky && legacyLight.type == LightType.Directional; 
             set
             {
                 if (m_InteractsWithSky == value)
@@ -834,222 +847,103 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        [SerializeField]
-        bool m_DiameterMultiplerMode = true;
+        /// <summary>
+        /// Angular diameter mode to use.
+        /// </summary>
+        [SerializeField, FormerlySerializedAs("m_DiameterMultiplerMode")]
+        public bool diameterMultiplerMode = false;
 
-        [SerializeField, Tooltip("Multiplier for the angular diameter of the celestial body used only when rendering the sun disk.")]
-        float m_DiameterMultiplier = 1.0f;
         /// <summary>
         /// Multiplier for the angular diameter of the celestial body used only when rendering the sun disk.
         /// </summary>
-        public float diameterMultiplier
-        {
-            get => m_DiameterMultiplier;
-            set
-            {
-                if (m_DiameterMultiplier == value)
-                    return;
+        [SerializeField, FormerlySerializedAs("m_DiameterMultiplier")]
+        public float diameterMultiplier = 1.0f;
 
-                m_DiameterMultiplier = value;
-                if (lightEntity.valid)
-                    HDLightRenderDatabase.instance.EditLightDataAsRef(lightEntity).skyAngularDiameter = m_DiameterMultiplerMode ? m_DiameterMultiplier * m_AngularDiameter : m_DiameterOverride;
-            }
-        }
-
-        [SerializeField, Tooltip("Override for the angular diameter of the celestial body used only when rendering the sun disk.")]
-        float m_DiameterOverride = 0.5f;
-
-        [SerializeField, Tooltip("Controls wether the celestial body should be considered as a star or a moon.\nA Star will emit lighting while a Moon will receive lighting from the main directional light in the scene.")]
-        bool m_EmissiveLightSource = true;
         /// <summary>
-        /// Sets if the celestial body is a star emitting light, or a moon receiving lighting.
-        /// </summary>
-        public bool emissiveLightSource
-        {
-            get => m_EmissiveLightSource;
-            set
-            {
-                if (m_EmissiveLightSource == value)
-                    return;
+        /// Override for the angular diameter of the celestial body used only when rendering the sun disk.
+        /// </summary>Mode
+        [SerializeField, FormerlySerializedAs("m_DiameterOverride")]
+        public float diameterOverride = 0.5f;
 
-                m_EmissiveLightSource = value;
-                if (lightEntity.valid)
-                {
-                    HDLightRenderDatabase.instance.EditLightDataAsRef(lightEntity).bodyType = m_EmissiveLightSource ? 0 : (m_AutomaticMoonPhase ? 1 : 2);
-                }
-            }
-        }
-
-        [SerializeField, FormerlySerializedAs("flareSize")]
-        float m_FlareSize = 2.0f;
         /// <summary>
-        /// Size the flare around the celestial body (in degrees).
+        /// Shading source of the celestial body.
         /// </summary>
-        public float flareSize
-        {
-            get => m_FlareSize;
-            set
-            {
-                if (m_FlareSize == value)
-                    return;
+        [SerializeField, FormerlySerializedAs("m_EmissiveLightSource")]
+        public CelestialBodyShadingSource celestialBodyShadingSource = CelestialBodyShadingSource.Emission;
 
-                m_FlareSize = value; // Serialization code clamps
-                if (lightEntity.valid)
-                    HDLightRenderDatabase.instance.EditLightDataAsRef(lightEntity).flareSize = m_FlareSize;
-            }
-        }
-
-        [SerializeField, FormerlySerializedAs("flareTint")]
-        Color m_FlareTint = Color.white;
         /// <summary>
-        /// Tints the flare of the celestial body.
+        /// The Directional light that should illuminate this celestial body.
         /// </summary>
-        public Color flareTint
-        {
-            get => m_FlareTint;
-            set
-            {
-                if (m_FlareTint == value)
-                    return;
+        [SerializeField]
+        public Light sunLightOverride;
 
-                m_FlareTint = value;
-                if (lightEntity.valid)
-                    HDLightRenderDatabase.instance.EditLightDataAsRef(lightEntity).flareTint = m_FlareTint;
-            }
-        }
-
-        [SerializeField, FormerlySerializedAs("flareFalloff")]
-        float m_FlareFalloff = 4.0f;
         /// <summary>
-        /// The falloff rate of flare intensity as the angle from the light increases.
+        /// Color of the light source.
         /// </summary>
-        public float flareFalloff
-        {
-            get => m_FlareFalloff;
-            set
-            {
-                if (m_FlareFalloff == value)
-                    return;
+        [SerializeField]
+        internal Color sunColor = Color.white;
 
-                m_FlareFalloff = value; // Serialization code clamps
-                if (lightEntity.valid)
-                    HDLightRenderDatabase.instance.EditLightDataAsRef(lightEntity).flareFalloff = m_FlareFalloff;
-            }
-        }
-
-        [SerializeField, Tooltip("Controls wether the sunlit portion of the moon is computed manually or from the position of the main directional light.")]
-        bool m_AutomaticMoonPhase = true;
         /// <summary>
-        /// Set to true if the phase should be computed from the position of the main directional light.
+        /// Intensity of the light source in Lux.
         /// </summary>
-        public bool automaticMoonPhase
-        {
-            get => m_AutomaticMoonPhase;
-            set
-            {
-                if (m_AutomaticMoonPhase == value)
-                    return;
+        [SerializeField, Min(0.0f)]
+        internal float sunIntensity = 130000.0f;
 
-                m_AutomaticMoonPhase = value;
-                if (lightEntity.valid)
-                    HDLightRenderDatabase.instance.EditLightDataAsRef(lightEntity).bodyType = m_EmissiveLightSource ? 0 : (m_AutomaticMoonPhase ? 1 : 2);
-            }
-        }
-
-        [SerializeField, Range(0, 1), Tooltip("Controls the percentage of the moon that receives sunlight.")]
-        float m_MoonPhase = 0.2f;
         /// <summary>
         /// The percentage of moon that receives sunlight.
         /// </summary>
-        public float moonPhase
-        {
-            get => m_MoonPhase;
-            set
-            {
-                if (m_MoonPhase == value)
-                    return;
+        [SerializeField, Range(0, 1), FormerlySerializedAs("m_MoonPhase")]
+        public float moonPhase = 0.2f;
 
-                m_MoonPhase = value;
-                if (lightEntity.valid)
-                    HDLightRenderDatabase.instance.EditLightDataAsRef(lightEntity).moonPhase = m_MoonPhase;
-            }
-        }
-
-        [SerializeField, Range(0, 180.0f), Tooltip("Controls the angle of the lit side of the moon.")]
-        float m_MoonPhaseRotation = 0.0f;
         /// <summary>
         /// The rotation of the moon phase.
         /// </summary>
-        public float moonPhaseRotation
-        {
-            get => m_MoonPhaseRotation;
-            set
-            {
-                if (m_MoonPhaseRotation == value)
-                    return;
+        [SerializeField, Range(0, 360.0f), FormerlySerializedAs("m_MoonPhaseRotation")]
+        public float moonPhaseRotation = 0.0f;
 
-                m_MoonPhaseRotation = value;
-                if (lightEntity.valid)
-                    HDLightRenderDatabase.instance.EditLightDataAsRef(lightEntity).moonPhaseRotation = m_MoonPhaseRotation;
-            }
-        }
-
-        [SerializeField, Min(0.0f), Tooltip("Intensity of the sunlight reflected from the planet onto the moon.")]
-        float m_Earthshine = 1.0f;
         /// <summary>
         /// The intensity of the sunlight reflected from the planet onto the moon.
         /// </summary>
-        public float earthshine
-        {
-            get => m_Earthshine;
-            set
-            {
-                if (m_Earthshine == value)
-                    return;
+        [SerializeField, Min(0.0f), FormerlySerializedAs("m_Earthshine")]
+        public float earthshine = 1.0f;
 
-                m_Earthshine = value;
-                if (lightEntity.valid)
-                    HDLightRenderDatabase.instance.EditLightDataAsRef(lightEntity).earthshine = m_Earthshine;
-            }
-        }
+        /// <summary>
+        /// Size the flare around the celestial body (in degrees).
+        /// </summary>
+        [SerializeField, Range(0, 90), FormerlySerializedAs("m_FlareSize")]
+        public float flareSize = 2.0f;
 
-        [SerializeField, FormerlySerializedAs("surfaceTexture")]
-        Texture m_SurfaceTexture = null;
+        /// <summary>
+        /// Tints the flare of the celestial body.
+        /// </summary>
+        [SerializeField, FormerlySerializedAs("m_FlareTint")]
+        public Color flareTint = Color.white;
+
+        /// <summary>
+        /// The falloff rate of flare intensity as the angle from the light increases.
+        /// </summary>
+        [SerializeField, Min(0.0f), FormerlySerializedAs("m_FlareFalloff")]
+        public float flareFalloff = 4.0f;
+
+        /// <summary>
+        /// Intensity of the flare.
+        /// </summary>
+        [SerializeField, Range(0, 1)]
+        public float flareMultiplier = 1.0f;
+
         /// <summary>
         /// Texture of the surface of the celestial body. Acts like a multiplier.
         /// </summary>
-        public Texture surfaceTexture
-        {
-            get => m_SurfaceTexture;
-            set
-            {
-                if (m_SurfaceTexture == value)
-                    return;
+        [SerializeField, FormerlySerializedAs("m_SurfaceTexture")]
+        public Texture surfaceTexture = null;
 
-                m_SurfaceTexture = value;
-            }
-        }
-
-        [SerializeField, FormerlySerializedAs("surfaceTint")]
-        Color m_SurfaceTint = Color.white;
         /// <summary>
         /// Tints the surface of the celestial body.
         /// </summary>
-        public Color surfaceTint
-        {
-            get => m_SurfaceTint;
-            set
-            {
-                if (m_SurfaceTint == value)
-                    return;
+        [SerializeField, FormerlySerializedAs("m_SurfaceTint")]
+        public Color surfaceTint = Color.white;
 
-                m_SurfaceTint = value;
-                if (lightEntity.valid)
-                    HDLightRenderDatabase.instance.EditLightDataAsRef(lightEntity).surfaceTint = m_SurfaceTint;
-            }
-        }
-
-        [SerializeField, FormerlySerializedAs("distance")]
+        [SerializeField, Min(0.0f), FormerlySerializedAs("distance")]
         float m_Distance = 150000000000; // Sun to Earth
         /// <summary>
         /// Distance from the camera to the emissive celestial body represented by the light.
@@ -1512,20 +1406,21 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        [SerializeField] float m_DirLightPCSSMaxBlockerDistance = 64.0f;
+        [SerializeField] float m_DirLightPCSSMaxPenumbraSize = 0.56f; // Default matching previous API max blocker distance at 64m for a light angular diameter of 0.5
         /// <summary>
-        /// Maximum distance of PCSS shadow blockers determining blur fliter kernel size, the higher it it the blurier distant object can be
-        /// However, cascades clamp the distance so higher values potentially cause more inter-cascade disrepancies
+        /// Maximum penumbra size (in world space), limiting blur filter kernel size
+        /// Measured against a receiving surface perpendicular to light direction (penumbra may get wider for different angles)
+        /// Very large kernels may affect GPU performance and/or produce undesirable artifacts close to caster
         /// </summary>
-        public float dirLightPCSSMaxBlockerDistance
+        public float dirLightPCSSMaxPenumbraSize
         {
-            get => m_DirLightPCSSMaxBlockerDistance;
+            get => m_DirLightPCSSMaxPenumbraSize;
             set
             {
-                m_DirLightPCSSMaxBlockerDistance = Math.Max(value, 0.0f);
+                m_DirLightPCSSMaxPenumbraSize = Math.Max(value, 0.0f);
                 if (lightEntity.valid)
                 {
-                    HDLightRenderDatabase.instance.EditAdditionalLightUpdateDataAsRef(lightEntity).dirLightPCSSMaxBlockerDistance = m_DirLightPCSSMaxBlockerDistance;
+                    HDLightRenderDatabase.instance.EditAdditionalLightUpdateDataAsRef(lightEntity).dirLightPCSSMaxPenumbraSize = m_DirLightPCSSMaxPenumbraSize;
                 }
             }
         }
@@ -2776,6 +2671,15 @@ namespace UnityEngine.Rendering.HighDefinition
                         HDShadowManager.cachedShadowManager.EvictLight(lightData, lightData.cachedLightType.Value);
                     }
 
+                    var directionalLights = HDLightRenderDatabase.instance.directionalLights;
+                    if (lightData.cachedLightType == LightType.Directional)
+                        directionalLights.Add(lightData);
+                    else if (lightData.legacyLight.type != LightType.Directional)
+                    {
+                        int idx = directionalLights.FindIndex((x) => ReferenceEquals(x, lightData));
+                        if (idx != -1) directionalLights.RemoveAt(idx);
+                    }
+
 #if UNITY_EDITOR
                     switch (lightData.legacyLight.type)
                     {
@@ -2797,7 +2701,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     // If the current light unit is not supported by the new light type, we change it
                     UInt64 supportedUnitsMask = GetSupportedLightUnitsBitMask(lightData.legacyLight.type);
-                    if ((supportedUnitsMask & (1UL << (int)lightData.lightUnit)) == 0) 
+                    if ((supportedUnitsMask & (1UL << (int)lightData.lightUnit)) == 0)
                         lightData.lightUnit = GetSupportedLightUnits(lightData.legacyLight.type)[0];
                 }
 
@@ -2958,19 +2862,22 @@ namespace UnityEngine.Rendering.HighDefinition
             data.m_UseScreenSpaceShadows = m_UseScreenSpaceShadows;
             data.m_InteractsWithSky = m_InteractsWithSky;
             data.m_AngularDiameter = m_AngularDiameter;
-            data.m_DiameterMultiplerMode = m_DiameterMultiplerMode;
-            data.m_DiameterMultiplier = m_DiameterMultiplier;
-            data.m_DiameterOverride = m_DiameterOverride;
-            data.m_EmissiveLightSource = m_EmissiveLightSource;
-            data.m_FlareSize = m_FlareSize;
-            data.m_FlareTint = m_FlareTint;
-            data.m_FlareFalloff = m_FlareFalloff;
-            data.m_AutomaticMoonPhase = m_AutomaticMoonPhase;
-            data.m_MoonPhase = m_MoonPhase;
-            data.m_MoonPhaseRotation = m_MoonPhaseRotation;
-            data.m_Earthshine = m_Earthshine;
-            data.m_SurfaceTexture = m_SurfaceTexture;
-            data.m_SurfaceTint = m_SurfaceTint;
+            data.diameterMultiplerMode = diameterMultiplerMode;
+            data.diameterMultiplier = diameterMultiplier;
+            data.diameterOverride = diameterOverride;
+            data.celestialBodyShadingSource = celestialBodyShadingSource;
+            data.sunLightOverride = sunLightOverride;
+            data.sunColor = sunColor;
+            data.sunIntensity = sunIntensity;
+            data.moonPhase = moonPhase;
+            data.moonPhaseRotation = moonPhaseRotation;
+            data.earthshine = earthshine;
+            data.flareSize = flareSize;
+            data.flareTint = flareTint;
+            data.flareFalloff = flareFalloff;
+            data.flareMultiplier = flareMultiplier;
+            data.surfaceTexture = surfaceTexture;
+            data.surfaceTint = surfaceTint;
             data.m_Distance = m_Distance;
             data.m_UseRayTracedShadows = m_UseRayTracedShadows;
             data.m_NumRayTracingSamples = m_NumRayTracingSamples;
@@ -3027,7 +2934,7 @@ namespace UnityEngine.Rendering.HighDefinition
             data.m_AreaLightEmissiveMeshShadowCastingMode = m_AreaLightEmissiveMeshShadowCastingMode;
             data.m_AreaLightEmissiveMeshMotionVectorGenerationMode = m_AreaLightEmissiveMeshMotionVectorGenerationMode;
             data.m_AreaLightEmissiveMeshLayer = m_AreaLightEmissiveMeshLayer;
-            data.dirLightPCSSMaxBlockerDistance = dirLightPCSSMaxBlockerDistance;
+            data.dirLightPCSSMaxPenumbraSize = dirLightPCSSMaxPenumbraSize;
             data.dirLightPCSSMaxSamplingDistance = dirLightPCSSMaxSamplingDistance;
             data.dirLightPCSSMinFilterSizeTexels = dirLightPCSSMinFilterSizeTexels;
             data.dirLightPCSSMinFilterMaxAngularDiameter = dirLightPCSSMinFilterMaxAngularDiameter;
@@ -3052,12 +2959,10 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="lightData"></param>
         public static void InitDefaultHDAdditionalLightData(HDAdditionalLightData lightData)
         {
-            // Special treatment for Unity built-in area light. Change it to our rectangle light
             var light = lightData.legacyLight;
 
             // Set light intensity and unit using its type
-            //note: requiring type convert Rectangle and Disc to Area and correctly set areaLight
-            switch (lightData.legacyLight.type)
+            switch (light.type)
             {
                 case LightType.Directional:
                     lightData.lightUnit = LightUnit.Lux;
@@ -3859,7 +3764,6 @@ namespace UnityEngine.Rendering.HighDefinition
             lightRenderData.fadeDistance = m_FadeDistance;
             lightRenderData.distance = m_Distance;
             lightRenderData.angularDiameter = m_AngularDiameter;
-            lightRenderData.skyAngularDiameter = m_DiameterMultiplerMode ? m_DiameterMultiplier * m_AngularDiameter : m_DiameterOverride;
             lightRenderData.volumetricFadeDistance = m_VolumetricFadeDistance;
             lightRenderData.includeForRayTracing = m_IncludeForRayTracing;
             lightRenderData.useScreenSpaceShadows = m_UseScreenSpaceShadows;
@@ -3882,8 +3786,6 @@ namespace UnityEngine.Rendering.HighDefinition
             lightRenderData.volumetricShadowDimmer = m_VolumetricShadowDimmer;
             lightRenderData.shapeWidth = m_ShapeWidth;
             lightRenderData.shapeHeight = m_ShapeHeight;
-            lightRenderData.flareSize = m_FlareSize;
-            lightRenderData.flareFalloff = m_FlareFalloff;
             lightRenderData.aspectRatio = m_AspectRatio;
             lightRenderData.innerSpotPercent = m_InnerSpotPercent;
             lightRenderData.spotIESCutoffPercent = m_SpotIESCutoffPercent;
@@ -3895,13 +3797,7 @@ namespace UnityEngine.Rendering.HighDefinition
             lightRenderData.applyRangeAttenuation = m_ApplyRangeAttenuation;
             lightRenderData.penumbraTint = m_PenumbraTint;
             lightRenderData.interactsWithSky = m_InteractsWithSky;
-            lightRenderData.surfaceTint = m_SurfaceTint;
-            lightRenderData.bodyType = m_EmissiveLightSource ? 0 : (m_AutomaticMoonPhase ? 1 : 2);
-            lightRenderData.moonPhase = m_MoonPhase;
-            lightRenderData.moonPhaseRotation = m_MoonPhaseRotation;
-            lightRenderData.earthshine = m_Earthshine;
             lightRenderData.shadowTint = m_ShadowTint;
-            lightRenderData.flareTint = m_FlareTint;
 
             lightEntities.EditAdditionalLightUpdateDataAsRef(lightEntity).Set(this);
         }

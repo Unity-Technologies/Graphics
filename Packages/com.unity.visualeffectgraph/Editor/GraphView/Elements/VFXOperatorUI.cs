@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.UIElements;
 
@@ -19,6 +20,9 @@ namespace UnityEditor.VFX.UI
             this.AddManipulator(new SuperCollapser());
 
             RegisterCallback<GeometryChangedEvent>(OnPostLayout);
+            RegisterCallback<MouseEnterEvent>(OnMouseHover);
+            RegisterCallback<MouseLeaveEvent>(OnMouseHover);
+            RegisterCallback<DetachFromPanelEvent>(OnDetachFromPanel);
         }
 
         void OnEdit()
@@ -210,6 +214,58 @@ namespace UnityEditor.VFX.UI
             }
 
             style.minWidth = 0f;
+        }
+
+        private void OnDetachFromPanel(DetachFromPanelEvent evt)
+        {
+            var view = evt.originPanel.visualTree.Q<VFXView>();
+            if (view != null)
+            {
+                UpdateHover(view, false);
+            }
+        }
+
+        private void OnMouseHover(EventBase evt)
+        {
+            var view = GetFirstAncestorOfType<VFXView>();
+            if (view != null)
+            {
+                UpdateHover(view, evt.eventTypeId == MouseEnterEvent.TypeId());
+            }
+        }
+
+        private void UpdateHover(VFXView view, bool isHovered)
+        {
+            var blackboard = view.blackboard;
+            if (blackboard == null)
+                return;
+
+            List<string> attributes = null;
+            if (controller.model is IVFXAttributeUsage attributeUsage)
+            {
+                attributes = attributeUsage.usedAttributes.Select(x => x.name).ToList();
+            }
+            else if (controller.model is VFXSubgraphOperator subgraphOperator && subgraphOperator.subgraph.GetResource() is {} resource)
+            {
+                var usedSubgraph = resource.GetOrCreateGraph();
+
+                attributes = usedSubgraph.customAttributes.Select(x => x.attributeName).ToList();
+            }
+
+            if (attributes != null)
+            {
+                foreach (var attribute in attributes)
+                {
+                    var row = blackboard.GetAttributeRowFromName(attribute);
+                    if (row == null)
+                        return;
+
+                    if (isHovered)
+                        row.AddToClassList("hovered");
+                    else
+                        row.RemoveFromClassList("hovered");
+                }
+            }
         }
     }
 }

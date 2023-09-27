@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [17.0.0] - 2023-08-0
+
+### Added
+ - Added the new Node Reference sample pack which adds 146 reference assets to help users learn more about available nodes
+
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 

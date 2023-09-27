@@ -773,14 +773,17 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #endif
 #endif
 
-#if defined(DEBUG_DISPLAY) && !defined(SHADER_STAGE_RAY_TRACING)
+#if defined(DEBUG_DISPLAY)
+#if !defined(SHADER_STAGE_RAY_TRACING)
+    // Mipmap mode debugging isn't supported with ray tracing as it relies on derivatives
     if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
     {
         // Not debug streaming information with AxF (this should never be stream)
         surfaceData.diffuseColor = float3(0.0, 0.0, 0.0);
     }
+#endif
 
-    // We need to call ApplyDebugToSurfaceData after filling the surfarcedata and before filling builtinData
+    // We need to call ApplyDebugToSurfaceData after filling the surfaceData and before filling builtinData
     // as it can modify attribute use for static lighting
     ApplyDebugToSurfaceData(input.tangentToWorld, surfaceData);
 #endif

@@ -325,7 +325,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // We only want to enable HDR for the game view once
-        // since the game itself might what to control this
+        // since the game itself might want to control this
         internal bool m_enableHdrOnce = true;
 
         void SetHDRState(HDCamera camera)
@@ -726,6 +726,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_GlobalSettings.EnsureRayTracingResources(forceReload: true);
             else
                 m_GlobalSettings.ClearRayTracingResources();
+
+            if(m_Asset.currentPlatformRenderPipelineSettings.gpuResidentDrawerSettings.mode != GPUResidentDrawerMode.Disabled)
+                m_GlobalSettings.EnsureGPUResidentDrawerResources(forceReload: true);
+            else
+                m_GlobalSettings.ClearGPUResidentDrawerResources();
         }
 
         public void UpdateDecalSystemShaderGraphs()
@@ -1457,6 +1462,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 return false;
             }
 
+            // Last check regarding UI overlay
+            // For non-HDR cases using path tracing, we don't support UI overlay rendering within SRP
+            // as the denoiser forces it to be rendered multiple times per frame (perf loss and invalid rendererlist)
+            // We still render HDR UI within SRP for correctness
+            if (!HDROutputForAnyDisplayIsActive() && hdCamera.IsPathTracingEnabled())
+            {
+                SupportedRenderingFeatures.active.rendersUIOverlay = false;
+            }
+
             // Select render target
             RenderTargetIdentifier targetId = camera.targetTexture ?? new RenderTargetIdentifier(BuiltinRenderTextureType.CameraTarget);
             if (camera.targetTexture != null)
@@ -2015,10 +2029,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 #endif
 
-            // When HDR is active we render UI overlay per camera as we want all UI to be calibrated to white paper inside a single pass
-            // for performance reasons otherwise we render UI overlay after all camera
-            SupportedRenderingFeatures.active.rendersUIOverlay = HDROutputForAnyDisplayIsActive();
-
+            // If rendering to XR device, we don't render SS UI overlay within SRP as the overlay should not be visible in HMD eyes, only when mirroring (after SRP XR Mirror pass)
+            if (XRSystem.displayActive)
+            {
+                SupportedRenderingFeatures.active.rendersUIOverlay = false;
+            }
+            // When HDR is active we enforce UI overlay per camera as we want all UI to be calibrated to white paper inside a single pass
+            else if (HDROutputForAnyDisplayIsActive())
+            {
+                SupportedRenderingFeatures.active.rendersUIOverlay = true;
+            }
+            
 #if UNITY_2021_1_OR_NEWER
             if (!m_ValidAPI || cameras.Count == 0)
 #else
@@ -2026,20 +2047,13 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
                 return;
 
-#if UNITY_EDITOR
-            // We do not want to start rendering if HDRP global settings are not ready (m_globalSettings is null)
-            // or been deleted/moved (m_globalSettings is not necessarily null)
-            if (m_GlobalSettings == null || HDRenderPipelineGlobalSettings.instance == null)
-            {
-                m_GlobalSettings = HDRenderPipelineGlobalSettings.Ensure();
-                m_GlobalSettings.EnsureShadersCompiled();
-                return;
-            }
+#if UNITY_EDITOR // TODO: Remove once IRenderPipelineResouces has been finished as we will no longer have assets referenced for resources.
 
             // Potentially the asset might have been deleted by the user
             // Obtain the asset again at least one per frame to make sure we are pointing to a valid resources.
             runtimeResources = m_GlobalSettings.renderPipelineResources;
             rayTracingResources = m_GlobalSettings.renderPipelineRayTracingResources;
+
 #endif
 
             if (m_GlobalSettings.lensAttenuationMode == LensAttenuationMode.ImperfectLens)
@@ -2267,6 +2281,12 @@ namespace UnityEngine.Rendering.HighDefinition
                             var renderRequest = renderRequests[renderRequestIndex];
 
                             var cmd = CommandBufferPool.Get("");
+                            var renderRequestContext = new RenderRequestBatcherContext
+                            {
+                                commandBuffer = cmd,
+                                ambientProbe = renderRequest.hdCamera.cameraFrameCount < 2 ? RenderSettings.ambientProbe : m_SkyManager.GetAmbientProbe(renderRequest.hdCamera)
+                            };
+                            BaseRendererBatcherPipeline.PostCullBeginCameraRendering(renderRequestContext);
 
                             // The HDProbe store only one RenderData per probe, however RenderData can be view dependent (e.g. planar probes).
                             // To avoid that the render data for the wrong view is used, we previously store a copy of the render data

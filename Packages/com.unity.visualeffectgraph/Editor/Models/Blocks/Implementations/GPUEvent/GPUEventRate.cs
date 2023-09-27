@@ -29,7 +29,10 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                yield return new VFXAttributeInfo(new VFXAttribute(GetRateCountAttribute(), VFXValueType.Float), VFXAttributeMode.ReadWrite);
+                if (GetRateCountAttribute() is { } rateCountAttributeName)
+                {
+                    yield return new VFXAttributeInfo(new VFXAttribute(rateCountAttributeName, VFXValueType.Float, string.Empty), VFXAttributeMode.ReadWrite);
+                }
                 yield return new VFXAttributeInfo(VFXAttribute.EventCount, VFXAttributeMode.Write);
 
                 if (mode == Mode.OverDistance)
@@ -64,7 +67,7 @@ namespace UnityEditor.VFX.Block
 
         private string GetRateCountAttribute()
         {
-            return "rateCount_" + VFXCodeGeneratorHelper.GeneratePrefix((uint)GetParent().GetIndex(this));
+            return GetParent() is { } parent ? "rateCount_" + VFXCodeGeneratorHelper.GeneratePrefix((uint)parent.GetIndex(this)) : null;
         }
 
         public override string source

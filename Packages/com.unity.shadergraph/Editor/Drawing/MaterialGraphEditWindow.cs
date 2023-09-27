@@ -1275,7 +1275,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         // returns true when the user is OK with closing the window or application (either they've saved dirty content, or are ok with losing it)
         // returns false when the user wants to cancel closing the window or application
-        private bool PromptSaveIfDirtyOnQuit()
+        internal bool PromptSaveIfDirtyOnQuit()
         {
             // only bother unless we've actually got data to preserve
             if (graphObject?.graph != null)

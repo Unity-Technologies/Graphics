@@ -208,7 +208,7 @@ namespace UnityEditor.VFX.UI
             return m_Provider.attributes.Is(VFXPropertyAttributes.Type.Enum) ? 120 : base.GetPreferredControlWidth();
         }
 
-        protected override uint FilterValue(Vector2 range, uint value) => (uint)Math.Max(Math.Min(range.y, value), range.x);
+        protected override uint FilterValue(Vector2 range, uint value) => (uint)Math.Clamp(value, range.x, (double)range.y);
 
         public override INotifyValueChanged<long> CreateField()
         {
@@ -283,7 +283,7 @@ namespace UnityEditor.VFX.UI
             return (labelField, labelField.control);
         }
 
-        protected override int FilterValue(Vector2 range, int value) => (int)Math.Max(Math.Min(range.y, value), range.x);
+        protected override int FilterValue(Vector2 range, int value) => (int)Math.Clamp(value, range.x, (double)range.y);
     }
 
     class FloatPropertyRM : NumericPropertyRM<float, float>

@@ -6,8 +6,9 @@ namespace UnityEngine.Rendering.Universal
 {
     internal class DrawNormal2DPass : ScriptableRenderPass
     {
-        private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler("Normals2DPass");
-        private static readonly ProfilingSampler m_ExecuteProfilingSampler = new ProfilingSampler("Draw Normals");
+        static readonly string k_NormalPass = "Normal2D Pass";
+
+        private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler(k_NormalPass);
         private static readonly ShaderTagId k_NormalsRenderingPassName = new ShaderTagId("NormalsRendering");
 
         private class PassData
@@ -22,22 +23,18 @@ namespace UnityEngine.Rendering.Universal
 
         private static void Execute(RasterCommandBuffer cmd, PassData passData)
         {
-            using (new ProfilingScope(cmd, m_ExecuteProfilingSampler))
-            {
-                cmd.ClearRenderTarget(RTClearFlags.Color, RendererLighting.k_NormalClearColor, 1, 0);
-                cmd.DrawRendererList(passData.rendererList);
-            }
+            cmd.ClearRenderTarget(RTClearFlags.Color, RendererLighting.k_NormalClearColor, 1, 0);
+            cmd.DrawRendererList(passData.rendererList);
         }
 
-        public void Render(RenderGraph graph, ref RenderingData renderingData, Renderer2DData rendererData, ref LayerBatch layerBatch, FrameResources resources)
+        public void Render(RenderGraph graph, ref RenderingData renderingData, Renderer2DData rendererData, ref LayerBatch layerBatch, ContextContainer frameData)
         {
             if (!layerBatch.lightStats.useNormalMap)
                 return;
 
-            ContextContainer frameData = resources.frameData;
-            Universal2DResourcesData resourcesData = frameData.Get<Universal2DResourcesData>();
+            Universal2DResourceData resourceData = frameData.Get<Universal2DResourceData>();
 
-            using (var builder = graph.AddRasterRenderPass<PassData>("Normals 2D Pass", out var passData, m_ProfilingSampler))
+            using (var builder = graph.AddRasterRenderPass<PassData>(k_NormalPass, out var passData, m_ProfilingSampler))
             {
                 var filterSettings = new FilteringSettings();
                 filterSettings.renderQueueRange = RenderQueueRange.all;
@@ -51,8 +48,8 @@ namespace UnityEngine.Rendering.Universal
                 drawSettings.sortingSettings = sortSettings;
 
                 builder.AllowPassCulling(false);
-                builder.UseTextureFragment(resourcesData.normalsTexture, 0);
-                builder.UseTextureFragmentDepth(resourcesData.intermediateDepth, IBaseRenderGraphBuilder.AccessFlags.Write);
+                builder.UseTextureFragment(resourceData.normalsTexture, 0);
+                builder.UseTextureFragmentDepth(resourceData.intermediateDepth, IBaseRenderGraphBuilder.AccessFlags.Write);
 
                 var param = new RendererListParams(renderingData.cullResults, drawSettings, filterSettings);
                 passData.rendererList = graph.CreateRendererList(param);

@@ -94,6 +94,8 @@ namespace UnityEngine.Rendering.Universal
             postProcessingData = new PostProcessingData(frameData);
         }
 
+        internal UniversalRenderingData universalRenderingData => frameData.Get<UniversalRenderingData>();
+
         internal ref CommandBuffer commandBuffer => ref frameData.Get<UniversalRenderingData>().commandBuffer;
 
         /// <summary>
@@ -151,12 +153,14 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     public struct LightData
     {
-        internal ContextContainer frameData;
+        ContextContainer frameData;
 
         internal LightData(ContextContainer frameData)
         {
             this.frameData = frameData;
         }
+
+        internal UniversalLightData universalLightData => frameData.Get<UniversalLightData>();
 
         /// <summary>
         /// Holds the main light index from the <c>VisibleLight</c> list returned by culling. If there's no main light in the scene, <c>mainLightIndex</c> is set to -1.
@@ -217,12 +221,14 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     public struct CameraData
     {
-        internal ContextContainer frameData;
+        ContextContainer frameData;
 
         internal CameraData(ContextContainer frameData)
         {
             this.frameData = frameData;
         }
+
+        internal UniversalCameraData universalCameraData => frameData.Get<UniversalCameraData>();
 
         internal void SetViewAndProjectionMatrix(Matrix4x4 viewMatrix, Matrix4x4 projectionMatrix)
         {
@@ -582,12 +588,14 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     public struct ShadowData
     {
-        internal ContextContainer frameData;
+        ContextContainer frameData;
 
         internal ShadowData(ContextContainer frameData)
         {
             this.frameData = frameData;
         }
+
+        internal UniversalShadowData universalShadowData => frameData.Get<UniversalShadowData>();
 
         /// <summary>
         /// True if main light shadows are enabled.
@@ -862,12 +870,14 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     public struct PostProcessingData
     {
-        internal ContextContainer frameData;
+        ContextContainer frameData;
 
         internal PostProcessingData(ContextContainer frameData)
         {
             this.frameData = frameData;
         }
+
+        internal UniversalPostProcessingData universalPostProcessingData => frameData.Get<UniversalPostProcessingData>();
 
         /// <summary>
         /// The <c>ColorGradingMode</c> to use.

@@ -19,7 +19,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
     // [ShaderKeywordFilter.ApplyRulesIfTagsEqual("RenderPipeline", "HDRenderPipeline")]
 #endif
-    public partial class HDRenderPipelineAsset : RenderPipelineAsset<HDRenderPipeline>, IVirtualTexturingEnabledRenderPipeline, IProbeVolumeEnabledRenderPipeline
+    public partial class HDRenderPipelineAsset : RenderPipelineAsset<HDRenderPipeline>, IVirtualTexturingEnabledRenderPipeline, IProbeVolumeEnabledRenderPipeline, IGPUResidentRenderPipeline
     {
         [System.NonSerialized]
         internal bool isInOnValidateCall = false;
@@ -66,7 +66,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <returns>A new HDRenderPipeline instance.</returns>
         protected override RenderPipeline CreatePipeline()
-            => new HDRenderPipeline(this);
+        {
+            var renderPipeline = new HDRenderPipeline(this);
+
+            IGPUResidentRenderPipeline.ReinitializeGPUResidentDrawer();
+
+            return renderPipeline;
+        }
 
         /// <summary>
         /// OnValidate implementation.
@@ -311,5 +317,39 @@ namespace UnityEngine.Rendering.HighDefinition
                 return HDRenderPipelineGlobalSettings.instance?.apvScenesData;
             }
         }
+
+        /// <summary>
+        /// Global settings struct for GPU Resident Drawer
+        /// </summary>
+        GPUResidentDrawerSettings IGPUResidentRenderPipeline.gpuResidentDrawerSettings => new()
+        {
+            mode = m_RenderPipelineSettings.gpuResidentDrawerSettings.mode,
+            supportDitheringCrossFade = QualitySettings.enableLODCrossFade,
+            allowInEditMode = m_RenderPipelineSettings.gpuResidentDrawerSettings.allowInEditMode,
+#if UNITY_EDITOR
+            pickingShader = Shader.Find("Hidden/HDRP/BRGPicking"),
+#endif
+            loadingShader = Shader.Find("Hidden/HDRP/MaterialLoading"),
+            errorShader = Shader.Find("Hidden/HDRP/MaterialError"),
+        };
+
+        GPUResidentDrawerResources IGPUResidentRenderPipeline.gpuResidentDrawerResources=> globalSettings.gpuResidentDrawerResources;
+
+        /// <summary>
+        /// GPUResidentDrawerMode configured on this pipeline asset
+        /// </summary>
+        public GPUResidentDrawerMode gpuResidentDrawerMode
+        {
+            get => m_RenderPipelineSettings.gpuResidentDrawerSettings.mode;
+            set
+            {
+                if (value == m_RenderPipelineSettings.gpuResidentDrawerSettings.mode)
+                    return;
+
+                m_RenderPipelineSettings.gpuResidentDrawerSettings.mode = value;
+                OnValidate();
+            }
+        }
+
     }
 }

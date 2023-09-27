@@ -2,6 +2,7 @@
 #error SHADERPASS_is_not_correctly_define
 #endif
 
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/VertMesh.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalPrepassBuffer.hlsl"
 #if (SHADERPASS == SHADERPASS_DBUFFER_MESH)
@@ -19,6 +20,10 @@ void MeshDecalsPositionZBias(inout VaryingsToPS input)
 
 PackedVaryingsType Vert(AttributesMesh inputMesh)
 {
+    // Usually the instance ID is set up in the call to VertMesh
+    // but as we are reading per instance data here we need to set it up early
+    UNITY_SETUP_INSTANCE_ID(inputMesh);
+
     VaryingsType varyingsType;
 #if (SHADERPASS == SHADERPASS_DBUFFER_MESH)
 

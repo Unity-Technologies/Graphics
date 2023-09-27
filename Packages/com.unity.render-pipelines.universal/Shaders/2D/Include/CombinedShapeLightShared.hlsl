@@ -4,8 +4,8 @@
 #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/SurfaceData2D.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Debug/Debugging2D.hlsl"
 
-half _HDREmulationScale;
-half _UseSceneLighting;
+#include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/ShapeLightVariables.hlsl"
+
 
 half4 CombinedShapeLightShared(in SurfaceData2D surfaceData, in InputData2D inputData)
 {
@@ -100,7 +100,6 @@ half4 CombinedShapeLightShared(in SurfaceData2D surfaceData, in InputData2D inpu
 #endif
 
     finalOutput.a = alpha;
-    finalOutput = lerp(color, finalOutput, _UseSceneLighting);
 
     return max(0, finalOutput);
 }

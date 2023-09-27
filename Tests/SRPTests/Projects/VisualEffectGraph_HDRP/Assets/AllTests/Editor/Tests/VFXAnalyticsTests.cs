@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Linq;
+using System.Reflection;
 
 using NUnit.Framework;
 using Moq;
@@ -41,8 +42,8 @@ namespace UnityEditor.VFX.Test
             m_EditorAnalyticsMock.SetupGet(x => x.enabled).Returns(true);
             m_EditorAnalyticsMock.Setup(x => x.CanBeSent(It.IsAny<VFXAnalytics.UsageEventData>())).Returns(true);
             m_EditorAnalyticsMock
-                .Setup(x => x.SendAnalytic(It.IsAny<UnityEngine.Analytics.IAnalytic>()))
-                .Callback<UnityEngine.Analytics.IAnalytic>((data) => m_SentData = CopyUsageEventData((UnityEditor.VFX.VFXAnalytics.Analytic)data))
+                .Setup(x => x.SendAnalytic(It.IsAny<IAnalytic>()))
+                .Callback<IAnalytic>((data) => m_SentData = CopyUsageEventData((UnityEditor.VFX.VFXAnalytics.Analytic)data))
                 .Returns(AnalyticsResult.Ok);
         }
 
@@ -64,7 +65,7 @@ namespace UnityEditor.VFX.Test
             vfxAnalytics.OnQuitApplication();
 
             // Assert
-            m_EditorAnalyticsMock.Verify(x => x.SendAnalytic(It.IsAny<UnityEngine.Analytics.IAnalytic>()), Times.Once);
+            m_EditorAnalyticsMock.Verify(x => x.SendAnalytic(It.IsAny<IAnalytic>()), Times.Once);
 
             Assert.AreEqual(new [] { 1 }, m_SentData.compilation_error_count);
             Assert.AreEqual(new [] { exception.Message }, m_SentData.compilation_error_names);
@@ -81,7 +82,7 @@ namespace UnityEditor.VFX.Test
             vfxAnalytics.OnSpecificSettingChanged(settingPath);
             vfxAnalytics.OnQuitApplication();
             // Assert
-            m_EditorAnalyticsMock.Verify(x => x.SendAnalytic(It.IsAny<UnityEngine.Analytics.IAnalytic>()), Times.Once);
+            m_EditorAnalyticsMock.Verify(x => x.SendAnalytic(It.IsAny<IAnalytic>()), Times.Once);
 
             Assert.AreEqual(new [] { 1 }, m_SentData.specific_setting_Count);
             Assert.AreEqual(new [] { settingPath }, m_SentData.specific_setting_names);
@@ -98,7 +99,7 @@ namespace UnityEditor.VFX.Test
             vfxAnalytics.OnSystemTemplateCreated(templateName);
             vfxAnalytics.OnQuitApplication();
             // Assert
-            m_EditorAnalyticsMock.Verify(x => x.SendAnalytic(It.IsAny<UnityEngine.Analytics.IAnalytic>()), Times.Once);
+            m_EditorAnalyticsMock.Verify(x => x.SendAnalytic(It.IsAny<IAnalytic>()), Times.Once);
 
             Assert.AreEqual(new [] { templateName }, m_SentData.system_template_used);
         }
@@ -119,10 +120,56 @@ namespace UnityEditor.VFX.Test
             vfxAnalytics.OnGraphClosed(view.graphView);
             vfxAnalytics.OnQuitApplication();
             // Assert
-            m_EditorAnalyticsMock.Verify(x => x.SendAnalytic(It.IsAny<UnityEngine.Analytics.IAnalytic>()), Times.Once);
+            m_EditorAnalyticsMock.Verify(x => x.SendAnalytic(It.IsAny<IAnalytic>()), Times.Once);
 
             Assert.AreEqual(1, m_SentData.nb_vfx_opened);
             Assert.AreEqual(VFXAnalytics.EventKind.Quit.ToString(), m_SentData.event_kind);
+        }
+
+        [Test]
+        public void OnBuildReport_Test_Invalid_Path()
+        {
+            // Arrange
+            IAnalytic sentData = null;
+            var vfxAnalytics = new VFXAnalytics(m_EditorAnalyticsMock.Object);
+            var buildReportMock = new Mock<IBuildReport>();
+            buildReportMock.SetupGet(x => x.packedAssetsInfoPath).Returns(new[] { "Built-in Texture2D: sactx-0-512x1024-DXT5|BC3-New Sprite Atlas-41152f59" });
+            m_EditorAnalyticsMock.Setup(x => x.SendAnalytic(It.IsAny<IAnalytic>())).Callback<IAnalytic>(x => sentData = x);
+
+            // Act
+            var buildReportMethodInfo = typeof(VFXAnalytics).GetMethod("OnPostprocessBuildInternal", BindingFlags.Instance | BindingFlags.NonPublic);
+            buildReportMethodInfo.Invoke(vfxAnalytics, new object[] { buildReportMock.Object });
+
+            // Assert
+            m_EditorAnalyticsMock.Verify(x => x.SendAnalytic(It.IsAny<IAnalytic>()), Times.Once);
+            Assert.NotNull(sentData);
+            Assert.IsTrue(sentData.TryGatherData(out var data, out var errors));
+            Assert.IsNull(errors);
+            var vfxData = (VFXAnalytics.UsageEventData)data;
+            Assert.AreEqual(0, vfxData.nb_vfx_assets);
+        }
+
+        [Test]
+        public void OnBuildReport_Test_Duplicated_Paths()
+        {
+            // Arrange
+            IAnalytic sentData = null;
+            var vfxAnalytics = new VFXAnalytics(m_EditorAnalyticsMock.Object);
+            var buildReportMock = new Mock<IBuildReport>();
+            buildReportMock.SetupGet(x => x.packedAssetsInfoPath).Returns(new[] { "Assets/effect.vfx", "Assets/effect.vfx" });
+            m_EditorAnalyticsMock.Setup(x => x.SendAnalytic(It.IsAny<IAnalytic>())).Callback<IAnalytic>(x => sentData = x);
+
+            // Act
+            var buildReportMethodInfo = typeof(VFXAnalytics).GetMethod("OnPostprocessBuildInternal", BindingFlags.Instance | BindingFlags.NonPublic);
+            buildReportMethodInfo.Invoke(vfxAnalytics, new object[] { buildReportMock.Object });
+
+            // Assert
+            m_EditorAnalyticsMock.Verify(x => x.SendAnalytic(It.IsAny<IAnalytic>()), Times.Once);
+            Assert.NotNull(sentData);
+            Assert.IsTrue(sentData.TryGatherData(out var data, out var errors));
+            Assert.IsNull(errors);
+            var vfxData = (VFXAnalytics.UsageEventData)data;
+            Assert.AreEqual(1, vfxData.nb_vfx_assets);
         }
 
         private VFXAnalytics.UsageEventData CopyUsageEventData(UnityEditor.VFX.VFXAnalytics.Analytic analytic)

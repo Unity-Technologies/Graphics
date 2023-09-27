@@ -255,7 +255,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             context.AddField(HDFields.TessellationFactor, systemData.tessellation);
             context.AddField(HDFields.TessellationDisplacement, systemData.tessellation);
-            context.AddField(HDFields.LineWidth, target.supportLineRendering);
         }
 
         protected void AddDistortionFields(ref TargetFieldContext context)
@@ -298,7 +297,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddBlock(HDBlockFields.VertexDescription.TessellationFactor, systemData.tessellation);
             context.AddBlock(HDBlockFields.VertexDescription.TessellationDisplacement, systemData.tessellation);
 
-            context.AddBlock(HDBlockFields.SurfaceDescription.LineWidth, target.supportLineRendering);
+            context.AddBlock(HDBlockFields.VertexDescription.Width, target.supportLineRendering);
         }
 
         protected void AddDistortionBlocks(ref TargetActiveBlockContext context)

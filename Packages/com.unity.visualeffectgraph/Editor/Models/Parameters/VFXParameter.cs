@@ -212,10 +212,11 @@ namespace UnityEditor.VFX
 
         public void ResetOutputValueExpression()
         {
-            Debug.Assert(!m_IsOutput);
-
-            m_ExprSlots = outputSlots[0].GetVFXValueTypeSlots().ToArray();
-            m_ValueExpr = m_ExprSlots.Select(t => t.DefaultExpression(valueMode)).ToArray();
+            if (!isOutput)
+            {
+                m_ExprSlots = outputSlots[0].GetVFXValueTypeSlots().ToArray();
+                m_ValueExpr = m_ExprSlots.Select(t => t.DefaultExpression(valueMode)).ToArray();
+            }
         }
 
         public bool canHaveValueFilter
@@ -463,9 +464,10 @@ namespace UnityEditor.VFX
 
         public void Init(Type _type)
         {
-            if (_type != null && outputSlots.Count == 0)
+            var slots = isOutput ? inputSlots : outputSlots;
+            if (_type != null && slots.Count == 0)
             {
-                VFXSlot slot = VFXSlot.Create(new VFXProperty(_type, "o"), VFXSlot.Direction.kOutput);
+                VFXSlot slot = VFXSlot.Create(new VFXProperty(_type, "o"), isOutput ? VFXSlot.Direction.kInput : VFXSlot.Direction.kOutput);
                 AddSlot(slot);
 
                 if (!typeof(UnityEngine.Object).IsAssignableFrom(_type) && _type != typeof(GraphicsBuffer))

@@ -1,6 +1,9 @@
 namespace UnityEngine.Rendering.Universal
 {
-    class UniversalRenderingData : ContextItem
+    /// <summary>
+    /// Contains the data for general renderer settings.
+    /// </summary>
+    public class UniversalRenderingData : ContextItem
     {
         internal CommandBuffer commandBuffer;
 
@@ -31,6 +34,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public RenderingMode renderingMode { get; internal set; }
 
+        /// <inheritdoc/>
         public override void Reset()
         {
             commandBuffer = default;

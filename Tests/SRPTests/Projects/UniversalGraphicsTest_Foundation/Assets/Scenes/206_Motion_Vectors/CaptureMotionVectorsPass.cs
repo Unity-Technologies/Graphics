@@ -27,7 +27,7 @@ namespace UnityEngine.Rendering.Universal
             //Todo: test code is not working for XR
             CommandBuffer cmd = CommandBufferPool.Get();
 
-            ExecutePass(renderingData.cameraData.renderer.cameraColorTargetHandle, cmd, renderingData.cameraData, m_Material, m_intensity);
+            ExecutePass(renderingData.cameraData.renderer.cameraColorTargetHandle, cmd, renderingData.cameraData.camera, m_Material, m_intensity);
 
             context.ExecuteCommandBuffer(cmd);
             cmd.Clear();
@@ -36,9 +36,8 @@ namespace UnityEngine.Rendering.Universal
         }
 
 
-        static void ExecutePass(RTHandle targetHandle, CommandBuffer cmd, CameraData cameraData, Material material, float motionIntensity)
+        static void ExecutePass(RTHandle targetHandle, CommandBuffer cmd, Camera camera, Material material, float motionIntensity)
         {
-            var camera = cameraData.camera;
             if (camera.cameraType != CameraType.Game)
                 return;
 
@@ -54,27 +53,28 @@ namespace UnityEngine.Rendering.Universal
         internal class PassData
         {
             internal TextureHandle target;
-            internal CameraData cameraData;
+            internal Camera camera;
             internal Material material;
             internal float intensity;
         }
 
-        public override void RecordRenderGraph(RenderGraph renderGraph, FrameResources frameResources, ref RenderingData renderingData)
+        public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
             // TODO: Make this use a raster pass it likely doesn't need LowLevel. On the other hand probably ok as-is for the tests.
             using (var builder = renderGraph.AddLowLevelPass<PassData>("Capture Motion Vector Pass", out var passData, s_ProfilingSampler))
             {
-                UniversalRenderer renderer = (UniversalRenderer) renderingData.cameraData.renderer;
+                UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+                UniversalRenderer renderer = (UniversalRenderer) cameraData.renderer;
 
                 TextureHandle color = renderer.activeColorTexture;
                 passData.target = builder.UseTexture(color, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
-                passData.cameraData = renderingData.cameraData;
+                passData.camera = cameraData.camera;
                 passData.material = m_Material;
                 passData.intensity = m_intensity;
 
                 builder.SetRenderFunc((PassData data,  LowLevelGraphContext rgContext) =>
                 {
-                    ExecutePass(data.target, rgContext.legacyCmd, data.cameraData, data.material, data.intensity);
+                    ExecutePass(data.target, rgContext.legacyCmd, data.camera, data.material, data.intensity);
                 });
             }
         }

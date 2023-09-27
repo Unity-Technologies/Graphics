@@ -11,8 +11,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             BaseLitAPI.SetupBaseLitKeywords(material);
             BaseLitAPI.SetupBaseLitMaterialPass(material);
-            BaseLitAPI.SetupStencil(material, receivesLighting: true, false, material.GetMaterialId() == MaterialId.LitSSS);
-            //BaseLitAPI.SetupDisplacement(material);
+            BaseLitAPI.SetupStencil(material, receivesLighting: true, false, false);
 
             if (material.HasProperty(kReceiveShadows))
             {

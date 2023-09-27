@@ -18,6 +18,7 @@ namespace UnityEditor.VFX.UI
 
         public VFXCompileDropdownButton(VFXView vfxView)
             : base(
+                nameof(VFXCompileDropdownButton),
                 vfxView,
                 "VFXCompileDropdownPanel",
                 "Compile",

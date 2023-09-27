@@ -1,6 +1,8 @@
 using System;
 using UnityEngine.Assertions;
 
+// Ref: https://poniesandlight.co.uk/reflect/bitonic_merge_sort/
+
 namespace UnityEngine.Rendering
 {
     /// <summary>
@@ -66,6 +68,7 @@ namespace UnityEngine.Rendering
 #endif
 
                 cmd.SetComputeIntParam(resources.computeAsset, "_H", (int) h);
+                cmd.SetComputeIntParam(resources.computeAsset, "_Total", (int) args.count);
                 cmd.SetComputeBufferParam(resources.computeAsset, 0, "_KeyBuffer", args.resources.sortBufferKeys);
                 cmd.SetComputeBufferParam(resources.computeAsset, 0, "_ValueBuffer", args.resources.sortBufferValues);
                 cmd.DispatchCompute(resources.computeAsset, 0, args.workGroupCount, 1, 1);

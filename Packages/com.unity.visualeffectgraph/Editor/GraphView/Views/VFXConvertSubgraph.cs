@@ -6,7 +6,7 @@ using UnityEngine;
 using UnityEngine.VFX;
 using UnityEditor.VFX;
 using UnityEditor.Experimental.GraphView;
-
+using UnityEditor.VFX.Block;
 using NodeID = System.UInt32;
 
 namespace UnityEditor.VFX.UI
@@ -267,6 +267,8 @@ namespace UnityEditor.VFX.UI
                     m_TargetControllers = new List<VFXNodeController>();
                 }
                 CopyPasteNodes();
+                CopyCustomAttributes(sourceView);
+
                 m_SourceNode = ScriptableObject.CreateInstance<VFXSubgraphOperator>();
                 PostSetupNode();
                 m_SourceControllersWithBlocks = m_SourceControllers.Concat(m_SourceControllers.OfType<VFXContextController>().SelectMany(t => t.blockControllers));
@@ -324,6 +326,7 @@ namespace UnityEditor.VFX.UI
 
                 VFXPaste.PasteBlocks(m_TargetController, copyData, targetContext, 0, m_TargetBlocks);
                 VFXPaste.PasteStickyNotes(m_TargetController, copyData);
+                CopyCustomAttributes(sourceView);
 
                 Dictionary<VFXNodeController, VFXNodeController> targetControllers = new Dictionary<VFXNodeController, VFXNodeController>();
                 CopyPasteOperators(targetControllers);
@@ -740,6 +743,14 @@ namespace UnityEditor.VFX.UI
                     {
                         CreateAndLinkEvent(m_SourceControllers, m_TargetController, m_TargetControllers, kv.Value, kv.Key);
                     }
+                }
+            }
+
+            private void CopyCustomAttributes(VFXView sourceView)
+            {
+                foreach (var customAttribute in sourceView.controller.graph.attributesManager.GetCustomAttributes())
+                {
+                    m_TargetController.graph.TryAddCustomAttribute(customAttribute.name, customAttribute.type, customAttribute.description, false, out _);
                 }
             }
         }

@@ -6,7 +6,9 @@ namespace UnityEngine.Rendering.Universal
 {
     internal class UpscalePass : ScriptableRenderPass
     {
-        private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler("Upscale Pass");
+        static readonly string k_UpscalePass = "Upscale2D Pass";
+
+        private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler(k_UpscalePass);
         private static readonly ProfilingSampler m_ExecuteProfilingSampler = new ProfilingSampler("Draw Upscale");
         static Material m_BlitMaterial;
 
@@ -65,7 +67,7 @@ namespace UnityEngine.Rendering.Universal
             if (ppc == null || !ppc.enabled || !ppc.requiresUpscalePass)
                 return;
 
-            using (var builder = graph.AddRasterRenderPass<PassData>("Upscale Pass", out var passData, m_ProfilingSampler))
+            using (var builder = graph.AddRasterRenderPass<PassData>(k_UpscalePass, out var passData, m_ProfilingSampler))
             {
                 passData.source = cameraColorAttachment;
                 builder.UseTextureFragment(upscaleHandle, 0);

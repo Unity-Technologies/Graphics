@@ -83,6 +83,33 @@ namespace UnityEditor.Rendering
 
             k_DoObjectField(r, r, id, null, null, type1, type2, property, validator, false, EditorStyles.objectField);
         }
+
+
+        internal const float kIndentPerLevel = 15;
+        internal static void GetRectsForMiniThumbnailField(Rect position, out Rect thumbRect, out Rect labelRect)
+        {
+            float x = EditorGUI.indentLevel * kIndentPerLevel;
+            thumbRect = new Rect(position.x + x, position.y, 32f, 18f);
+
+            float labelStartX = thumbRect.x + 2 * kIndentPerLevel; // label aligns with indent levels for being able to have the following labels align with this label
+            labelRect = new Rect(labelStartX, position.y, thumbRect.x + EditorGUIUtility.labelWidth - labelStartX, position.height);
+        }
+
+        internal static void MiniThumbnail(Rect r, SerializedProperty property, GUIContent label, Type type)
+        {
+            EditorGUI.BeginProperty(r, label, property);
+
+            GetRectsForMiniThumbnailField(r, out var thumbRect, out var labelRect);
+            EditorGUI.HandlePrefixLabel(r, labelRect, label, 0, EditorStyles.label);
+
+            EditorGUI.BeginChangeCheck();
+            int controlID = GUIUtility.GetControlID(12354, FocusType.Keyboard, r);
+            var value = k_DoObjectField(thumbRect, thumbRect, controlID, property.objectReferenceValue, null, type, typeof(RenderTexture), null, null, false, EditorStyles.objectField);
+            if (EditorGUI.EndChangeCheck())
+                property.objectReferenceValue = value;
+
+            EditorGUI.EndProperty();
+        }
     }
 
     [VolumeParameterDrawer(typeof(TextureParameter))]

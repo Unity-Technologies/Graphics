@@ -17,7 +17,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // don't forget to add your migration step into skipedStepWhenCreatedFromHDRPAsset.
         //
         // /!\ Also for each new version, you must now upgrade asset in HDRP_Runtime, HDRP_Performance and SRP_SmokeTest test project.
-        enum Version
+        internal enum Version
         {
             First,
             UpdateMSAA,
@@ -36,7 +36,7 @@ namespace UnityEngine.Rendering.HighDefinition
         static Version[] skipedStepWhenCreatedFromHDRPAsset = new Version[] { };
 
         [SerializeField]
-        Version m_Version = MigrationDescription.LastVersion<Version>();
+        internal Version m_Version = MigrationDescription.LastVersion<Version>();
         Version IVersionable<Version>.version { get => m_Version; set => m_Version = value; }
 
 #if UNITY_EDITOR
@@ -174,7 +174,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #pragma warning restore 618
             })
         );
-        bool IMigratableAsset.Migrate()
+        public bool Migrate()
             => k_Migration.Migrate(this);
 
         bool IMigratableAsset.IsAtLastVersion()

@@ -1007,6 +1007,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 using (var builder = renderGraph.AddRenderPass<RenderOffscreenUIData>("UI Rendering", out var passData, ProfilingSampler.Get(HDProfileId.OffscreenUIRendering)))
                 {
+                    // We cannot use rendererlist here because of the path tracing denoiser which will make it invalid due to multiple rendering per frame
                     output = builder.UseColorBuffer(CreateOffscreenUIBuffer(renderGraph, hdCamera.msaaSamples), 0);
                     builder.UseDepthBuffer(depthBuffer, DepthAccess.ReadWrite);
 
@@ -1650,7 +1651,7 @@ namespace UnityEngine.Rendering.HighDefinition
             RenderLines(m_RenderGraph, prepassOutput.depthPyramidTexture, hdCamera, lightLists);
 
             // Immediately compose the lines if the user wants lines in the color pyramid (refraction), but with poor TAA ghosting.
-            ComposeLines(renderGraph, hdCamera, colorBuffer, transparentPrepass.depthBufferPreRefraction, prepassOutput.motionVectorsBuffer, (int)LineRendering.CompositionMode.BeforeColorPyramid);
+            ComposeLines(renderGraph, hdCamera, colorBuffer, prepassOutput.resolvedDepthBuffer, prepassOutput.motionVectorsBuffer, (int)LineRendering.CompositionMode.BeforeColorPyramid);
 
             // Render the transparent SSR lighting
             var ssrLightingBuffer = RenderSSR(renderGraph, hdCamera, ref prepassOutput, in transparentPrepass, renderGraph.defaultResources.blackTextureXR, rayCountTexture, renderGraph.defaultResources.blackTextureXR, skyTexture, transparent: true);
@@ -2365,24 +2366,22 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class RenderScreenSpaceOverlayData
         {
-            public Camera camera;
+            public RendererListHandle rendererList;
         }
 
         void RenderScreenSpaceOverlayUI(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer)
         {
-            if (!HDROutputActiveForCameraType(hdCamera) && SupportedRenderingFeatures.active.rendersUIOverlay && hdCamera.camera.cameraType != CameraType.SceneView)
+            if (!HDROutputActiveForCameraType(hdCamera) && SupportedRenderingFeatures.active.rendersUIOverlay && hdCamera.isMainGameView)
             {
                 using (var builder = renderGraph.AddRenderPass<RenderScreenSpaceOverlayData>("Screen Space Overlay UI", out var passData))
                 {
-                    builder.WriteTexture(colorBuffer);
-                    passData.camera = hdCamera.camera;
+                    builder.UseColorBuffer(colorBuffer, 0);
+                    passData.rendererList = builder.UseRendererList(renderGraph.CreateUIOverlayRendererList(hdCamera.camera));
 
                     builder.SetRenderFunc(
                         (RenderScreenSpaceOverlayData data, RenderGraphContext ctx) =>
                         {
-                            ctx.renderContext.ExecuteCommandBuffer(ctx.cmd);
-                            ctx.cmd.Clear();
-                            ctx.renderContext.DrawUIOverlay(data.camera);
+                            CoreUtils.DrawRendererList(ctx.renderContext, ctx.cmd, data.rendererList);
                         });
                 }
             }

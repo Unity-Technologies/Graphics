@@ -3,7 +3,6 @@ using System.Collections.Generic;
 
 #if UNITY_EDITOR
 using UnityEditor;
-using UnityEditor.Rendering;
 #endif
 
 namespace UnityEngine.Rendering
@@ -16,10 +15,10 @@ namespace UnityEngine.Rendering
     public class RenderPipelineGraphicsSettingsContainer : ISerializationCallbackReceiver
     {
 #if UNITY_EDITOR
-        [SerializeReference] private List<IRenderPipelineGraphicsSettings> m_SettingsList = new();
+        [SerializeField] private RenderPipelineGraphicsSettingsCollection m_SettingsList = new();
 #endif
 
-        [SerializeReference] private List<IRenderPipelineGraphicsSettings> m_RuntimeSettings = new();
+        [SerializeField, HideInInspector] private RenderPipelineGraphicsSettingsCollection m_RuntimeSettings = new();
 
         /// <summary>
         /// Returns one list for editor and another for runtime
@@ -27,9 +26,9 @@ namespace UnityEngine.Rendering
         public List<IRenderPipelineGraphicsSettings> settingsList
         {
 #if UNITY_EDITOR
-            get => m_SettingsList;
+            get => m_SettingsList.settingsList;
 #else
-            get => m_RuntimeSettings;
+            get => m_RuntimeSettings.settingsList;
 #endif
         }
 
@@ -39,9 +38,9 @@ namespace UnityEngine.Rendering
         public void OnBeforeSerialize()
         {
 #if UNITY_EDITOR
-            m_RuntimeSettings.Clear();
+            m_RuntimeSettings.settingsList.Clear();
             if (BuildPipeline.isBuildingPlayer) // Same behaviour as transfer.IsSerializingForGameRelease
-                RenderPipelineGraphicsSettingsStripper.PerformStripping(m_SettingsList, m_RuntimeSettings);
+                RenderPipelineGraphicsSettingsStripper.PerformStripping(m_SettingsList.settingsList, m_RuntimeSettings.settingsList);
 #endif
         }
 
@@ -51,7 +50,7 @@ namespace UnityEngine.Rendering
         public void OnAfterDeserialize()
         {
 #if UNITY_EDITOR
-            m_RuntimeSettings.Clear();
+            m_RuntimeSettings.settingsList.Clear();
 #endif
         }
     }

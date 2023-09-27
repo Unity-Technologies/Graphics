@@ -77,18 +77,15 @@ public class Deferred_GBuffer_Visualization_RenderFeature : ScriptableRendererFe
             internal bool visualizeAlphaChannel;
         }
 
-        public override void RecordRenderGraph(RenderGraph renderGraph, FrameResources frameResources, ref RenderingData renderingData)
+        public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
             if (m_Material == null)
                 return;
 
-            UniversalRenderer renderer = renderingData.cameraData.renderer as UniversalRenderer;
-            if (renderer == null)
-                return;
-
+            UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("Test GBuffer visualization.", out var passData))
             {
-                builder.UseTextureFragment(renderer.activeColorTexture, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
+                builder.UseTextureFragment(resourceData.activeColorTexture, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
                 passData.material = m_Material;
                 passData.visualizeAlphaChannel = m_VisualizeAlphaChannel;
 

@@ -7,6 +7,8 @@ For example, you can use it to:
 * Disable Area Light.
 * Disable Pre-exposition.
 * Enable [camera-relative rendering](Camera-Relative-Rendering.md).
+* Increase the size of the tile and cluster light list for rasterization.
+* Increase the size of [the Path Tracing light list](Ray-Tracing-Path-Tracing.md).
 
 ## Using the HDRP Config package
 

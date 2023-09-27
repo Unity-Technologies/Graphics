@@ -216,6 +216,7 @@ MonoBehaviour:
     ActivePixelTests: -1
   WaitFrames: 10
   XRCompatible: 0
+  gpuDrivenCompatible: 0
   CheckMemoryAllocation: 1
 --- !u!81 &971756571
 AudioListener:

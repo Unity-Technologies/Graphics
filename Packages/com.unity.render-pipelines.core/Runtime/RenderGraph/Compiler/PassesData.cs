@@ -1,5 +1,6 @@
 using System;
 using UnityEngine.Rendering;
+using System.Collections.Generic;
 
 namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassCompiler
 {
@@ -47,9 +48,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
     // Data per pass
     internal struct PassData
     {
-        public bool hasSideEffects;
-        public RenderGraphPassType type;
-        public bool asyncCompute;
+        public readonly int passId; // Index of self in the passData list, can we calculate this somehow in c#? would use offsetof in c++
+        public readonly string name;
+        public readonly RenderGraphPassType type;
+        public readonly bool asyncCompute;
+        public bool hasSideEffects;        
         public bool culled;
         public int tag; // Arbitrary per node int used by various graph analysis tools
 
@@ -67,12 +70,65 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
         public int numCreated;
         public int firstDestroy; //base+offset in CompilerContextData.destroyData (use the InputNodes iterator to iterate this more easily)
         public int numDestroyed;
-        public int passId; // Index of self in the passData list, can we calculate this somehow in c#? would use offsetof in c++
-        public string name;
 
+        public bool fragmentInfoValid;
+        public int fragmentInfoWidth;
+        public int fragmentInfoHeight;
+        public int fragmentInfoVolumeDepth;
+        public int fragmentInfoSamples;
+        public bool fragmentInfoHasDepth;
+        
+        public bool insertGraphicsFence; // Whether this pass should insert a fence into the command buffer
+        public int waitOnGraphicsFencePassId; // -1 if no fence wait is needed, otherwise the passId to wait on
 
+        public PassMergeState mergeState;
+        public int nativePassIndex; // Index of the native pass this pass belongs to
+        public int nativeSubPassIndex; // Index of the native subpass this pass belongs to
+        public bool beginNativeSubpass; // If true this is the first graph pass of a merged native subpass
 
-        public string identifier
+        public PassData(ref List<RenderGraphPass> passes, int passIndex)
+        {
+            passId = passIndex;
+            name = passes[passIndex].name;
+            type = passes[passIndex].type;
+            asyncCompute = passes[passIndex].enableAsyncCompute;
+            hasSideEffects = !passes[passIndex].allowPassCulling;
+
+            mergeState = PassMergeState.None;
+            nativePassIndex = -1;
+            nativeSubPassIndex = -1;
+            beginNativeSubpass = false;
+
+            culled = false;
+            tag = 0;
+
+            isSource = false;
+            isSink = false;
+            firstInput = 0;
+            numInputs = 0;
+            firstOutput = 0;
+            numOutputs = 0;
+            firstFragment = 0;
+            numFragments = 0;
+            firstFragmentInput = 0;
+            numFragmentInputs = 0;
+            firstCreate = 0;
+            numCreated = 0;
+            firstDestroy = 0;
+            numDestroyed = 0;
+
+            fragmentInfoValid = false;
+            fragmentInfoWidth = 0;
+            fragmentInfoHeight = 0;
+            fragmentInfoVolumeDepth = 0;
+            fragmentInfoSamples = 0;
+            fragmentInfoHasDepth = false;
+            
+            insertGraphicsFence = false;
+            waitOnGraphicsFencePassId = -1;
+        }
+
+    public string identifier
         {
             get { return "pass_" + passId; }
         }
@@ -195,7 +251,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
                 outputUser++;
 
                 // Get number of users for the current output
-                ref ResourceVersionData outputResource = ref ctx.resources[ctx.outputData[pass.firstOutput + output].resource];
+                ref ResourceVersionedData outputResource = ref ctx.resources[ctx.outputData[pass.firstOutput + output].resource];
                 int numUsers = outputResource.numReaders;
 
                 //We are past the user list. Go to the beginning of the reader list of the next output.
@@ -212,7 +268,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
                     }
 
                     // Update numUsers for this new list
-                    ref ResourceVersionData tmpRes = ref ctx.resources[ctx.outputData[pass.firstOutput + output].resource];
+                    ref ResourceVersionedData tmpRes = ref ctx.resources[ctx.outputData[pass.firstOutput + output].resource];
                     numUsers = tmpRes.numReaders;
                 }
 
@@ -238,39 +294,27 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
             return new OutputNodeIterator(ctx, passId);
         }
 
-        public bool FragmentInfoValid;
-        public int FragmentInfoWidth;
-        public int FragmentInfoHeight;
-        public int FragmentInfoVolumeDepth;
-        public int FragmentInfoSamples;
-        public bool FragmentInfoHasDepth;
-
-        public PassMergeState MergeState;
-        public int NativePassIndex; // Index of the native pass this pass belongs to
-        public int NativeSubPassIndex; // Index of the native subpass this pass belongs to
-        public bool BeginsNativeSubpass; // If true this is the first graph pass of a merged native subpass
-
         private void SetupAndValidateFragmentInfo(ResourceHandle h, CompilerContextData ctx)
         {
             //resources.GetRenderTargetInfo(h, out var info);
             var resInfo = ctx.UnversionedResourceData(h);
             if (resInfo.width == 0 || resInfo.height == 0 || resInfo.msaaSamples == 0) throw new Exception("GetRenderTargetInfo returned invalid results.");
 
-            if (FragmentInfoValid)
+            if (fragmentInfoValid)
             {
-                if (FragmentInfoWidth != resInfo.width ||
-                    FragmentInfoHeight != resInfo.height ||
-                    FragmentInfoVolumeDepth != resInfo.volumeDepth ||
-                    FragmentInfoSamples != resInfo.msaaSamples)
+                if (fragmentInfoWidth != resInfo.width ||
+                    fragmentInfoHeight != resInfo.height ||
+                    fragmentInfoVolumeDepth != resInfo.volumeDepth ||
+                    fragmentInfoSamples != resInfo.msaaSamples)
                     throw new Exception("Mismatch in Fragment dimensions");
             }
             else
             {
-                FragmentInfoWidth = resInfo.width;
-                FragmentInfoHeight = resInfo.height;
-                FragmentInfoSamples = resInfo.msaaSamples;
-                FragmentInfoVolumeDepth = resInfo.volumeDepth;
-                FragmentInfoValid = true;
+                fragmentInfoWidth = resInfo.width;
+                fragmentInfoHeight = resInfo.height;
+                fragmentInfoSamples = resInfo.msaaSamples;
+                fragmentInfoVolumeDepth = resInfo.volumeDepth;
+                fragmentInfoValid = true;
             }
         }
 
@@ -514,10 +558,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
             attachments = new FixedAttachmentArray<NativePassAttachment>();
             loadAudit = new FixedAttachmentArray<LoadAudit>();
             storeAudit = new FixedAttachmentArray<StoreAudit>();
-            width = pass.FragmentInfoWidth;
-            height = pass.FragmentInfoHeight;
-            samples = pass.FragmentInfoSamples;
-            hasDepth = pass.FragmentInfoHasDepth;
+            width = pass.fragmentInfoWidth;
+            height = pass.fragmentInfoHeight;
+            samples = pass.fragmentInfoSamples;
+            hasDepth = pass.fragmentInfoHasDepth;
             breakAudit = new PassBreakAudit(PassBreakReason.NotOptimized, -1);
 
             foreach (var fragment in pass.Fragments(ctx))
@@ -598,15 +642,15 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
             if (hasFragments)
             {
                 // Easy early outs, sizes mismatch
-                if (nativePass.width != passToAdd.FragmentInfoWidth ||
-                    nativePass.height != passToAdd.FragmentInfoHeight ||
-                    nativePass.samples != passToAdd.FragmentInfoSamples)
+                if (nativePass.width != passToAdd.fragmentInfoWidth ||
+                    nativePass.height != passToAdd.fragmentInfoHeight ||
+                    nativePass.samples != passToAdd.fragmentInfoSamples)
                 {
                     return new PassBreakAudit(PassBreakReason.TargetSizeMismatch, passIdToAdd);
                 }
 
                 // Not same depth enabled state
-                if (nativePass.hasDepth != passToAdd.FragmentInfoHasDepth)
+                if (nativePass.hasDepth != passToAdd.fragmentInfoHasDepth)
                 {
                     return new PassBreakAudit(PassBreakReason.DepthBufferUseMismatch, passIdToAdd);
                 }
@@ -692,9 +736,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
             // All is good! Merge them
             if (!testOnly)
             {
-                passToAdd.MergeState = PassMergeState.SubPass;
-                if (passToAdd.NativePassIndex >= 0) contextData.nativePassData[passToAdd.NativePassIndex].Clear();
-                passToAdd.NativePassIndex = activeNativePassId;
+                passToAdd.mergeState = PassMergeState.SubPass;
+                if (passToAdd.nativePassIndex >= 0) contextData.nativePassData[passToAdd.nativePassIndex].Clear();
+                passToAdd.nativePassIndex = activeNativePassId;
                 nativePass.numGraphPasses++;
 
                 // Update versions and flags of existing attachments and
@@ -755,16 +799,16 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
             ref var nativePass = ref contextData.nativePassData[nativePassId];
             if (nativePass.numGraphPasses > 1)
             {
-                contextData.passData[nativePass.firstGraphPass].MergeState = PassMergeState.Begin;
+                contextData.passData[nativePass.firstGraphPass].mergeState = PassMergeState.Begin;
                 for (int i = 1; i < nativePass.numGraphPasses - 1; i++)
                 {
-                    contextData.passData[nativePass.firstGraphPass + i].MergeState = PassMergeState.SubPass;
+                    contextData.passData[nativePass.firstGraphPass + i].mergeState = PassMergeState.SubPass;
                 }
-                contextData.passData[nativePass.firstGraphPass + nativePass.numGraphPasses - 1].MergeState = PassMergeState.End;
+                contextData.passData[nativePass.firstGraphPass + nativePass.numGraphPasses - 1].mergeState = PassMergeState.End;
             }
             else
             {
-                contextData.passData[nativePass.firstGraphPass].MergeState = PassMergeState.None;
+                contextData.passData[nativePass.firstGraphPass].mergeState = PassMergeState.None;
             }
         }
     }

@@ -492,6 +492,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/3x_DebugView/3008_ShadowDebugMode.unity
     guid: 8c93fca0ef1024d9b9164ffe0ffd909e
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/3x_DebugView/3009_MaterialOverrides.unity
+    guid: a469a947680f48644967493aba255270
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/4x_PostProcessing/4001_Exposure.unity
     guid: f32cdac65dd17f847b4cdaaa85bb990a
   - enabled: 1
@@ -905,5 +908,8 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/9x_Other/9960-RPCRenderRequest.unity
     guid: 877ce1fd6af6ce444ad7df1b05f9b7e0
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/9x_Other/9970-ScreenSpaceUIOverlay.unity
+    guid: df8ad799e8a136e488cc1dc4c39a9c2c
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0

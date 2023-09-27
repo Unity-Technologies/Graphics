@@ -3,6 +3,7 @@ using System.IO;
 using UnityEngine.Assertions;
 #if UNITY_EDITOR
 using UnityEditor;
+using UnityEditorInternal;
 using System.Reflection;
 #endif
 
@@ -264,104 +265,86 @@ If {nameof(ResourceReloader)} create an instance of it, it will be not saved as 
             }
             return path;
         }
-    }
-#endif
 
-    /// <summary>
-    /// Attribute specifying information to reload with <see cref="ResourceReloader"/>. This is only
-    /// used in the editor and doesn't have any effect at runtime.
-    /// </summary>
-    /// <seealso cref="ResourceReloader"/>
-    /// <seealso cref="ReloadGroupAttribute"/>
-    [AttributeUsage(AttributeTargets.Field)]
-    public sealed class ReloadAttribute : Attribute
-    {
-        /// <summary>
-        /// Lookup method for a resource.
-        /// </summary>
-        public enum Package
+        // It's not perfect retrying right away but making it called in EditorApplication.delayCall
+        // from EnsureResources creates GC which we want to avoid
+        static void DelayedNullReload<T>(string resourcePath)
+            where T : RenderPipelineResources
         {
-            /// <summary>
-            /// Used for builtin resources when the resource isn't part of the package (i.e. builtin
-            /// shaders).
-            /// </summary>
-            Builtin,
-
-            /// <summary>
-            /// Used for resources inside the package.
-            /// </summary>
-            Root,
-
-            /// <summary>
-            /// Used for builtin extra resources when the resource isn't part of the package (i.e. builtin
-            /// extra Sprite).
-            /// </summary>
-            BuiltinExtra,
-        };
-
-#if UNITY_EDITOR
-        /// <summary>
-        /// The lookup method.
-        /// </summary>
-        public readonly Package package;
-
-        /// <summary>
-        /// Search paths.
-        /// </summary>
-        public readonly string[] paths;
-#endif
-
-        /// <summary>
-        /// Creates a new <see cref="ReloadAttribute"/> for an array by specifying each resource
-        /// path individually.
-        /// </summary>
-        /// <param name="paths">Search paths</param>
-        /// <param name="package">The lookup method</param>
-        public ReloadAttribute(string[] paths, Package package = Package.Root)
-        {
-#if UNITY_EDITOR
-            this.paths = paths;
-            this.package = package;
-#endif
+            T resourcesDelayed = AssetDatabase.LoadAssetAtPath<T>(resourcePath);
+            if (resourcesDelayed == null)
+                EditorApplication.delayCall += () => DelayedNullReload<T>(resourcePath);
+            else
+                ResourceReloader.ReloadAllNullIn(resourcesDelayed, resourcesDelayed.packagePath_Internal);
         }
 
         /// <summary>
-        /// Creates a new <see cref="ReloadAttribute"/> for a single resource.
+        /// Ensures that all resources in a container has been loaded
         /// </summary>
-        /// <param name="path">Search path</param>
-        /// <param name="package">The lookup method</param>
-        public ReloadAttribute(string path, Package package = Package.Root)
-            : this(new[] { path }, package)
-        { }
-
-        /// <summary>
-        /// Creates a new <see cref="ReloadAttribute"/> for an array using automatic path name
-        /// numbering.
-        /// </summary>
-        /// <param name="pathFormat">The format used for the path</param>
-        /// <param name="rangeMin">The array start index (inclusive)</param>
-        /// <param name="rangeMax">The array end index (exclusive)</param>
-        /// <param name="package">The lookup method</param>
-        public ReloadAttribute(string pathFormat, int rangeMin, int rangeMax,
-                               Package package = Package.Root)
+        /// <param name="forceReload">Set to true to force all resources to be reloaded even if they are loaded already</param>
+        /// <param name="resources">The resource container with the resulting loaded resources</param>
+        /// <param name="resourcePath">The asset path to load the resource container from</param>
+        /// <param name="checker">Function to test if the resource container is present in a RenderPipelineGlobalSettings</param>
+        /// <param name="settings">RenderPipelineGlobalSettings to be passed to checker to test of the resource container is already loaded</param>
+        public static void EnsureResources<T, S>(bool forceReload, ref T resources, string resourcePath, Func<S, bool> checker, S settings)
+            where T : RenderPipelineResources where S : RenderPipelineGlobalSettings
         {
-#if UNITY_EDITOR
-            this.package = package;
-            paths = new string[rangeMax - rangeMin];
-            for (int index = rangeMin, i = 0; index < rangeMax; ++index, ++i)
-                paths[i] = string.Format(pathFormat, index);
-#endif
+            T resourceChecked = null;
+
+            if (checker(settings))
+            {
+                if (!EditorUtility.IsPersistent(resources)) // if not loaded from the Asset database
+                {
+                    // try to load from AssetDatabase if it is ready
+                    resourceChecked = AssetDatabase.LoadAssetAtPath<T>(resourcePath);
+                    if (resourceChecked && !resourceChecked.Equals(null))
+                        resources = resourceChecked;
+                }
+
+                if (forceReload)
+                    ResourceReloader.ReloadAllNullIn(resources, resources.packagePath_Internal);
+
+                return;
+            }
+
+            resourceChecked = AssetDatabase.LoadAssetAtPath<T>(resourcePath);
+            if (resourceChecked != null && !resourceChecked.Equals(null))
+            {
+                resources = resourceChecked;
+                if (forceReload)
+                    ResourceReloader.ReloadAllNullIn(resources, resources.packagePath_Internal);
+            }
+            else
+            {
+                // Asset database may not be ready
+                var objs = InternalEditorUtility.LoadSerializedFileAndForget(resourcePath);
+                resources = (objs != null && objs.Length > 0) ? objs[0] as T : null;
+                if (forceReload)
+                {
+                    try
+                    {
+                        if (ResourceReloader.ReloadAllNullIn(resources, resources.packagePath_Internal))
+                        {
+                            InternalEditorUtility.SaveToSerializedFileAndForget(
+                                new Object[] { resources },
+                                resourcePath,
+                                true);
+                        }
+                    }
+                    catch (System.Exception e)
+                    {
+                        // This can be called at a time where AssetDatabase is not available for loading.
+                        // When this happens, the GUID can be get but the resource loaded will be null.
+                        // Using the ResourceReloader mechanism in CoreRP, it checks this and add InvalidImport data when this occurs.
+                        if (!(e.Data.Contains("InvalidImport") && e.Data["InvalidImport"] is int dii && dii == 1))
+                            Debug.LogException(e);
+                        else
+                            DelayedNullReload<T>(resourcePath);
+                    }
+                }
+            }
+            Debug.Assert(checker(settings), $"Could not load {typeof(T).Name}.");
         }
     }
-
-    /// <summary>
-    /// Attribute specifying that it contains element that should be reloaded.
-    /// If the instance of the class is null, the system will try to recreate
-    /// it with the default constructor.
-    /// Be sure classes using it have default constructor!
-    /// </summary>
-    /// <seealso cref="ReloadAttribute"/>
-    [AttributeUsage(AttributeTargets.Class)]
-    public sealed class ReloadGroupAttribute : Attribute
-    { }
+#endif
 }

@@ -64,6 +64,9 @@ namespace UnityEditor.Rendering
         {
             var skipFile = false;
 
+            // Sort elements to have consistent result
+            generators.Sort();
+
             // Emit atomic element for all generators
             foreach (var gen in generators.Where(gen => !gen.Generate()))
             {
@@ -105,7 +108,7 @@ namespace UnityEditor.Rendering
 
             // Generate content
             using var writer = File.CreateText(targetFilename);
-            writer.NewLine = Environment.NewLine;
+            writer.NewLine = "\n";
 
             // Include guard name
             var guard = Path.GetFileName(targetFilename).Replace(".", "_").ToUpper();

@@ -57,12 +57,13 @@ namespace UnityEngine.Rendering
                     using (new ProfilingScope(cmd, new ProfilingSampler("Vertex Setup")))
                     using (new BindRendererToComputeKernel(cmd, renderer))
                     {
+                        cmd.SetComputeFloatParam(renderer.vertexSetupCompute, ShaderIDs._LOD, renderer.lodMode != RendererLODMode.None ? renderer.lod : 1f);
                         cmd.SetComputeConstantBufferParam(renderer.vertexSetupCompute, ShaderIDs._ConstantBuffer, resources.sharedBuffers.constantBuffer, 0, constantBufferSize);
                         cmd.SetComputeIntParam(renderer.vertexSetupCompute, ShaderIDs._VertexOffset, resources.offsetsVertex[i]);
                         cmd.SetComputeBufferParam(renderer.vertexSetupCompute, 0, ShaderIDs._Vertex0RecordBuffer, buffers.vertexStream0);
                         cmd.SetComputeBufferParam(renderer.vertexSetupCompute, 0, ShaderIDs._Vertex1RecordBuffer, buffers.vertexStream1);
-                        cmd.SetComputeBufferParam(renderer.vertexSetupCompute, 0, ShaderIDs._Vertex2RecordBuffer, transientBuffers.vertexStream2);
-                        cmd.SetComputeBufferParam(renderer.vertexSetupCompute, 0, ShaderIDs._Vertex3RecordBuffer, transientBuffers.vertexStream3);
+                        cmd.SetComputeBufferParam(renderer.vertexSetupCompute, 0, ShaderIDs._Vertex2RecordBuffer, buffers.vertexStream2);
+                        cmd.SetComputeBufferParam(renderer.vertexSetupCompute, 0, ShaderIDs._Vertex3RecordBuffer, buffers.vertexStream3);
                         cmd.DispatchCompute(renderer.vertexSetupCompute, 0, DivRoundUp(renderer.mesh.vertexCount, 128), 1, 1);
                     }
 
@@ -198,8 +199,8 @@ namespace UnityEngine.Rendering
                         var mpb = new MaterialPropertyBlock();
                         {
                             mpb.SetBuffer(ShaderIDs._Vertex0RecordBuffer, buffers.vertexStream0);
-                            mpb.SetBuffer(ShaderIDs._Vertex2RecordBuffer, transientBuffers.vertexStream2);
-                            mpb.SetBuffer(ShaderIDs._Vertex3RecordBuffer, transientBuffers.vertexStream3);
+                            mpb.SetBuffer(ShaderIDs._Vertex2RecordBuffer, buffers.vertexStream2);
+                            mpb.SetBuffer(ShaderIDs._Vertex3RecordBuffer, buffers.vertexStream3);
                             mpb.SetConstantBuffer(ShaderIDs._ConstantBuffer, buffers.constantBuffer, 0, constantBufferSize);
 
                             // TODO: Might need to set the premultiply keyword as well for fog.

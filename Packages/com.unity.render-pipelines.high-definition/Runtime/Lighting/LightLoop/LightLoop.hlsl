@@ -190,18 +190,17 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     // Init LightLoop output structure
     ZERO_INITIALIZE(LightLoopOutput, lightLoopOutput);
 
-    LightLoopContext context;
+    // With XR single-pass and camera-relative: offset position to do lighting computations from the combined center view (original camera matrix).
+    // This is required because there is only one list of lights generated on the CPU. Shadows are also generated once and shared between the instanced views.
+    ApplyCameraRelativeXR(posInput.positionWS);
 
+    LightLoopContext context;
     context.shadowContext    = InitShadowContext();
     context.shadowValue      = 1;
     context.sampleReflection = 0;
 #ifdef APPLY_FOG_ON_SKY_REFLECTIONS
     context.positionWS       = posInput.positionWS;
 #endif
-
-    // With XR single-pass and camera-relative: offset position to do lighting computations from the combined center view (original camera matrix).
-    // This is required because there is only one list of lights generated on the CPU. Shadows are also generated once and shared between the instanced views.
-    ApplyCameraRelativeXR(posInput.positionWS);
 
     // Initialize the contactShadow and contactShadowFade fields
     InitContactShadow(posInput, context);

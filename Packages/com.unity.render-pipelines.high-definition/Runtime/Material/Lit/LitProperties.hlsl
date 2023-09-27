@@ -284,8 +284,6 @@ float _TessellationFactorMaxDistance;
 float _TessellationFactorTriangleSize;
 float _TessellationShapeFactor;
 float _TessellationBackFaceCullEpsilon;
-float _TessellationObjectScale;
-float _TessellationTilingScale;
 #endif
 
 CBUFFER_END
@@ -547,7 +545,7 @@ void SetupDOTSLayeredLitMaterialPropertyCaches()
 #define _MetallicRemapMax2       unity_DOTS_Sampled_MetallicRemapMax2
 #define _MetallicRemapMax3       unity_DOTS_Sampled_MetallicRemapMax3
 #define _EmissiveColor           unity_DOTS_Sampled_EmissiveColor
-#define _AlphaCutoff             unity_DOTS_Sampled_AlphaCutoff0
+#define _AlphaCutoff             unity_DOTS_Sampled_AlphaCutoff
 #define _Smoothness0             unity_DOTS_Sampled_Smoothness0
 #define _Smoothness1             unity_DOTS_Sampled_Smoothness1
 #define _Smoothness2             unity_DOTS_Sampled_Smoothness2

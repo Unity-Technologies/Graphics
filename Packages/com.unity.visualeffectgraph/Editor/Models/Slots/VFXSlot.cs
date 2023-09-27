@@ -405,7 +405,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        public static void CopyLinksAndValue(VFXSlot dst, VFXSlot src, bool notify)
+        public static void CopyLinksAndValue(VFXSlot dst, VFXSlot src, bool notify = true)
         {
             CopyValue(dst, src, notify);
             CopyLinks(dst, src, notify);

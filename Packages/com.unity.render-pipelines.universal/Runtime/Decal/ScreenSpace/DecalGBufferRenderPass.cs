@@ -100,7 +100,9 @@ namespace UnityEngine.Rendering.Universal
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            InitPassData(ref m_PassData);
+            UniversalCameraData cameraData = renderingData.frameData.Get<UniversalCameraData>();
+
+            InitPassData(cameraData, ref m_PassData);
 
             SortingCriteria sortingCriteria = renderingData.cameraData.defaultOpaqueSortFlags;
             DrawingSettings drawingSettings = RenderingUtils.CreateDrawingSettings(m_ShaderTagIdList, ref renderingData, sortingCriteria);
@@ -108,7 +110,7 @@ namespace UnityEngine.Rendering.Universal
             var rendererList = context.CreateRendererList(ref param);
             using (new ProfilingScope(renderingData.commandBuffer, m_ProfilingSampler))
             {
-                ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), m_PassData, rendererList, ref renderingData);
+                ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), m_PassData, rendererList);
             }
         }
 
@@ -118,20 +120,21 @@ namespace UnityEngine.Rendering.Universal
             internal DecalScreenSpaceSettings settings;
             internal bool decalLayers;
 
-            internal RenderingData renderingData;
+            internal UniversalCameraData cameraData;
             internal RendererListHandle rendererList;
         }
 
-        private void InitPassData(ref PassData passData)
+        private void InitPassData(UniversalCameraData cameraData, ref PassData passData)
         {
             passData.drawSystem = m_DrawSystem;
             passData.settings = m_Settings;
             passData.decalLayers = m_DecalLayers;
+            passData.cameraData = cameraData;
         }
 
-        private static void ExecutePass(RasterCommandBuffer cmd, PassData passData, RendererList rendererList, ref RenderingData renderingData)
+        private static void ExecutePass(RasterCommandBuffer cmd, PassData passData, RendererList rendererList)
         {
-            NormalReconstruction.SetupProperties(cmd, renderingData.cameraData);
+            NormalReconstruction.SetupProperties(cmd, passData.cameraData);
 
             CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DecalNormalBlendLow, passData.settings.normalBlend == DecalNormalBlend.Low);
             CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DecalNormalBlendMedium, passData.settings.normalBlend == DecalNormalBlend.Medium);
@@ -143,11 +146,10 @@ namespace UnityEngine.Rendering.Universal
             cmd.DrawRendererList(rendererList);
         }
 
-        public override void RecordRenderGraph(RenderGraph renderGraph, FrameResources frameResources, ref RenderingData renderingData)
+        public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
-            ContextContainer frameData = renderingData.frameData;
-            UniversalResourcesData resourcesData = frameData.Get<UniversalResourcesData>();
-            TextureHandle cameraDepthTexture = resourcesData.cameraDepthTexture;
+            UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
+            TextureHandle cameraDepthTexture = resourceData.cameraDepthTexture;
 
             // By calling SetGlobalTexture we would break active render pass and using framebuffer fetch would be impossible
             if (!renderGraph.NativeRenderPassesEnabled)
@@ -155,15 +157,18 @@ namespace UnityEngine.Rendering.Universal
 
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("Decal GBuffer Pass", out var passData, m_ProfilingSampler))
             {
-                InitPassData(ref passData);
-                passData.renderingData = renderingData;
+                UniversalRenderingData renderingData = frameData.Get<UniversalRenderingData>();
+                UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+                UniversalLightData lightData = frameData.Get<UniversalLightData>();
 
-                TextureHandle[] gBufferHandles = resourcesData.gBuffer;
+                InitPassData(cameraData, ref passData);
+
+                TextureHandle[] gBufferHandles = resourceData.gBuffer;
                 builder.UseTextureFragment(gBufferHandles[0], 0, IBaseRenderGraphBuilder.AccessFlags.Write);
                 builder.UseTextureFragment(gBufferHandles[1], 1, IBaseRenderGraphBuilder.AccessFlags.Write);
                 builder.UseTextureFragment(gBufferHandles[2], 2, IBaseRenderGraphBuilder.AccessFlags.Write);
                 builder.UseTextureFragment(gBufferHandles[3], 3, IBaseRenderGraphBuilder.AccessFlags.Write);
-                builder.UseTextureFragmentDepth(resourcesData.activeDepthTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+                builder.UseTextureFragmentDepth(resourceData.activeDepthTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
 
                 if (renderGraph.NativeRenderPassesEnabled)
                 {
@@ -174,8 +179,9 @@ namespace UnityEngine.Rendering.Universal
                 else if (cameraDepthTexture.IsValid())
                     builder.UseTexture(cameraDepthTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
 
-                SortingCriteria sortingCriteria = renderingData.cameraData.defaultOpaqueSortFlags;
-                DrawingSettings drawingSettings = RenderingUtils.CreateDrawingSettings(m_ShaderTagIdList, ref renderingData, sortingCriteria);
+                SortingCriteria sortingCriteria = passData.cameraData.defaultOpaqueSortFlags;
+                DrawingSettings drawingSettings = RenderingUtils.CreateDrawingSettings(m_ShaderTagIdList, renderingData,
+                    passData.cameraData, lightData, sortingCriteria);
                 var param = new RendererListParams(renderingData.cullResults, drawingSettings, m_FilteringSettings);
                 passData.rendererList = renderGraph.CreateRendererList(param);
                 builder.UseRendererList(passData.rendererList);
@@ -184,7 +190,7 @@ namespace UnityEngine.Rendering.Universal
 
                 builder.SetRenderFunc((PassData data, RasterGraphContext rgContext) =>
                 {
-                    ExecutePass(rgContext.cmd, data, data.rendererList, ref data.renderingData);
+                    ExecutePass(rgContext.cmd, data, data.rendererList);
                 });
             }
         }

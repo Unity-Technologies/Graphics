@@ -20,8 +20,6 @@ namespace UnityEditor.VFX
         {
             get
             {
-                if (shaderName != string.Empty)
-                    return $"Output Particle {shaderName} {primitiveType.ToString()}";
                 return $"Output Particle {primitiveType.ToString()}";
             }
         }

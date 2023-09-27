@@ -318,19 +318,8 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     preLightData.iblR = reflect(-V, iblN);
 
     // Area light
-    // UVs for sampling the LUTs
-    // We use V = sqrt( 1 - cos(theta) ) for parametrization which is kind of linear and only requires a single sqrt() instead of an expensive acos()
-    float cosThetaParam = sqrt( 1 - clampedNdotV ); // For Area light - UVs for sampling the LUTs
-    float2 uv = Remap01ToHalfTexelCoord(float2(bsdfData.perceptualRoughness, cosThetaParam), LTC_LUT_SIZE);
-
-    // Note we load the matrix transpose (avoid to have to transpose it in shader)
-    preLightData.ltcTransformDiffuse = k_identity3x3;
-
-    // Get the inverse LTC matrix for GGX
-    // Note we load the matrix transpose (avoid to have to transpose it in shader)
-    preLightData.ltcTransformSpecular = 0.0;
-    preLightData.ltcTransformSpecular._m22 = 1.0;
-    preLightData.ltcTransformSpecular._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, s_linear_clamp_sampler, uv, LTCLIGHTINGMODEL_GGX, 0);
+    preLightData.ltcTransformDiffuse  = k_identity3x3;
+    preLightData.ltcTransformSpecular = SampleLtcMatrix(bsdfData.perceptualRoughness, clampedNdotV, LTCLIGHTINGMODEL_GGX);
 
     // Construct a right-handed view-dependent orthogonal basis around the normal
     preLightData.orthoBasisViewDiffuseNormal = GetOrthoBasisViewNormal(V, bsdfData.diffuseNormalWS, dot(V, bsdfData.diffuseNormalWS));
@@ -646,61 +635,46 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
             lightData.diffuseDimmer *= intensity;
             lightData.specularDimmer *= intensity;
 
-             // Translate the light s.t. the shaded point is at the origin of the coordinate system.
+            // Translate the light s.t. the shaded point is at the origin of the coordinate system.
             lightData.positionRWS -= positionWS;
 
              float4x3 lightVerts;
 
-             // TODO: some of this could be precomputed.
+            // TODO: some of this could be precomputed.
             lightVerts[0] = lightData.positionRWS + lightData.right * -halfWidth + lightData.up * -halfHeight; // LL
             lightVerts[1] = lightData.positionRWS + lightData.right * -halfWidth + lightData.up *  halfHeight; // UL
             lightVerts[2] = lightData.positionRWS + lightData.right *  halfWidth + lightData.up *  halfHeight; // UR
             lightVerts[3] = lightData.positionRWS + lightData.right *  halfWidth + lightData.up * -halfHeight; // LR
 
-             // Note: We don't have the same normal for diffuse and specular
+            float4 ltcValue;
+
+            // ----- 1. Evaluate the diffuse part -----
+
             // Rotate the endpoints into the local coordinate system.
-            float4x3 lightVertsDiff  = mul(lightVerts, transpose(preLightData.orthoBasisViewDiffuseNormal));
+            // Note: We don't have the same normal for diffuse and specular
+            float4x3 lightVertsDiff = mul(lightVerts, transpose(preLightData.orthoBasisViewDiffuseNormal));
 
-             float3 ltcValue;
-
-             // Evaluate the diffuse part
-            // Polygon irradiance in the transformed configuration.
-            float4x3 LD = mul(lightVertsDiff, preLightData.ltcTransformDiffuse);
-            ltcValue = PolygonIrradiance(LD);
-            ltcValue *= lightData.diffuseDimmer;
-
-             // Only apply cookie if there is one
-            if (lightData.cookieMode != COOKIEMODE_NONE)
-            {
-                // Compute the cookie data for the diffuse term
-                float3 formFactorD = PolygonFormFactor(LD);
-                ltcValue *= SampleAreaLightCookie(lightData.cookieScaleOffset, LD, formFactorD);
-            }
+            ltcValue = EvaluateLTC_Rect(mul(lightVertsDiff, preLightData.ltcTransformDiffuse), 1.0f,
+                                        lightData.cookieMode, lightData.cookieScaleOffset);
 
             // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
             // See comment for specular magnitude, it apply to diffuse as well
-            lighting.diffuse = preLightData.diffuseFGD * ltcValue;
+            lighting.diffuse += preLightData.diffuseFGD * (ltcValue.rgb * (ltcValue.a * lightData.diffuseDimmer));
 
-            // Evaluate the specular part
+
+            // ----- 2. Evaluate the specular part -----
+
+            // Rotate the endpoints into the local coordinate system.
+            // Note: We don't have the same normal for diffuse and specular
             float4x3 lightVertsSpec = mul(lightVerts, transpose(preLightData.orthoBasisViewNormal));
 
-            // Polygon irradiance in the transformed configuration.
-            float4x3 LS = mul(lightVertsSpec, preLightData.ltcTransformSpecular);
-            ltcValue = PolygonIrradiance(LS);
-            ltcValue *= lightData.specularDimmer;
-
-            // Only apply cookie if there is one
-            if (lightData.cookieMode != COOKIEMODE_NONE)
-            {
-                // Compute the cookie data for the specular term
-                float3 formFactorS = PolygonFormFactor(LS);
-                ltcValue *= SampleAreaLightCookie(lightData.cookieScaleOffset, LS, formFactorS, bsdfData.perceptualRoughness);
-            }
+            ltcValue = EvaluateLTC_Rect(mul(lightVertsSpec, preLightData.ltcTransformSpecular), bsdfData.perceptualRoughness,
+                                        lightData.cookieMode, lightData.cookieScaleOffset);
 
             // We need to multiply by the magnitude of the integral of the BRDF
             // ref: http://advances.realtimerendering.com/s2016/s2016_ltc_fresnel.pdf
             // This value is what we store in specularFGD, so reuse it
-            lighting.specular += preLightData.specularFGD * ltcValue;
+            lighting.specular += preLightData.specularFGD * (ltcValue.rgb * (ltcValue.a * lightData.specularDimmer));
 
             SHADOW_TYPE shadow = EvaluateShadow_RectArea(lightLoopContext, posInput, lightData, builtinData, bsdfData.normalWS, normalize(lightData.positionRWS), length(lightData.positionRWS));
             lightData.color.rgb *= ComputeShadowColor(shadow, lightData.shadowTint, lightData.penumbraTint);
@@ -709,13 +683,18 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
             lighting.diffuse *= lightData.color;
             lighting.specular *= lightData.color;
 
+            // ----- 3. Debug display -----
+
  #ifdef DEBUG_DISPLAY
             if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
             {
+                ltcValue = EvaluateLTC_Rect(lightVerts, 1.0f,
+                                            lightData.cookieMode, lightData.cookieScaleOffset);
+
                 // Only lighting, not BSDF
-                // Apply area light on lambert then multiply by PI to cancel Lambert
-                lighting.diffuse = PolygonIrradiance(mul(lightVerts, k_identity3x3));
-                lighting.diffuse *= PI * lightData.diffuseDimmer;
+                lighting.diffuse  = ltcValue.rgb * (ltcValue.a * lightData.diffuseDimmer);
+                // Apply area light on Lambert then multiply by PI to cancel Lambert
+                lighting.diffuse *= PI;
             }
 #endif
         }

@@ -2,21 +2,19 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-
-using UnityEditor.Experimental.GraphView;
+using System.Collections.ObjectModel;
 
 using UnityEngine;
 using UnityEngine.Profiling;
 using UnityEngine.VFX;
-using UnityEngine.UIElements;
-using System.Collections.ObjectModel;
-
 
 namespace UnityEditor.VFX.UI
 {
     class VFXSubParameterController : Controller, IPropertyRMProvider
     {
-        public const int ExpandedChange = 1;
+        // Previously the value was 1 but it was conflicting with ValueChanged which is also 1
+        public static readonly int ExpandedChange = "VFXSubParameterController.ExpandedChange".GetHashCode();
+
         public override void ApplyChanges()
         {
         }
@@ -387,7 +385,7 @@ namespace UnityEditor.VFX.UI
             m_Slot = isOutput ? model.inputSlots[0] : model.outputSlots[0];
             viewController.RegisterNotification(m_Slot, OnSlotChanged);
 
-            exposedName = MakeNameUnique(exposedName);
+            exposedName = MakeNameUnique(viewController, exposedName);
 
             if (VFXGizmoUtility.HasGizmo(model.type))
                 m_Gizmoables = new IGizmoable[] { this };
@@ -455,11 +453,11 @@ namespace UnityEditor.VFX.UI
             { var infos = t.Value.infos; return infos != null && infos.linkedSlots != null && infos.linkedSlots.Any(u => u.inputSlot == slot); }).Value;
         }
 
-        public string MakeNameUnique(string name)
+        public static string MakeNameUnique(VFXViewController viewController, string candidateName)
         {
-            HashSet<string> allNames = new HashSet<string>(viewController.parameterControllers.Where((t, i) => t != this).Select(t => t.exposedName));
+            var allNames = new HashSet<string>(viewController.parameterControllers.Select(t => t.exposedName));
 
-            return MakeNameUnique(name, allNames);
+            return MakeNameUnique(candidateName, allNames);
         }
 
         public IPropertyRMProvider GetMemberController(string memberPath)
@@ -564,7 +562,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public static string MakeNameUnique(string name, HashSet<string> allNames)
+        public static string MakeNameUnique(string name, HashSet<string> allNames, bool allowSpace = true)
         {
             if (string.IsNullOrEmpty(name))
             {
@@ -600,7 +598,9 @@ namespace UnityEditor.VFX.UI
                 }
                 ++cpt;
 
-                candidateName = string.Format("{0} {1}", candidateMainPart, cpt);
+                candidateName = allowSpace
+                    ? $"{candidateMainPart} {cpt}"
+                    : $"{candidateMainPart}_{cpt}";
             }
 
             return candidateName;
@@ -621,7 +621,7 @@ namespace UnityEditor.VFX.UI
 
             set
             {
-                string candidateName = MakeNameUnique(value);
+                string candidateName = MakeNameUnique(viewController, value);
                 if (candidateName != null && candidateName != model.exposedName)
                 {
                     model.SetSettingValue("m_ExposedName", candidateName);
@@ -701,7 +701,7 @@ namespace UnityEditor.VFX.UI
                     {
                         this.value = value;
                     }
-                    model.Invalidate(VFXModel.InvalidationCause.kUIChanged);
+                    model.Invalidate(VFXModel.InvalidationCause.kParamChanged);
                 }
             }
         }
@@ -718,7 +718,7 @@ namespace UnityEditor.VFX.UI
                         this.value = value;
                     }
 
-                    model.Invalidate(VFXModel.InvalidationCause.kUIChanged);
+                    model.Invalidate(VFXModel.InvalidationCause.kParamChanged);
                 }
             }
         }
@@ -834,11 +834,7 @@ namespace UnityEditor.VFX.UI
         Dictionary<int, VFXParameterNodeController> m_Controllers = new Dictionary<int, VFXParameterNodeController>();
 
 
-        public int nodeCount
-        {
-            get { return m_Controllers.Count(); }
-        }
-
+        public bool hasNodes => m_Controllers.Count > 0;
 
         public IEnumerable<VFXParameterNodeController> nodes
         {

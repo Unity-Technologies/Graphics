@@ -1,35 +1,30 @@
 using System;
 using System.Linq;
-using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
+
 using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Block
 {
     class AttributeProviderSpawner : VariantProvider, IStringProvider
     {
-        private static readonly string[] kReadOnlyExceptFromSpawnContext = new[] { VFXAttribute.SpawnCount.name, VFXAttribute.SpawnTime.name };
+        public static readonly string[] kSupportedAttributesFromSpawnContext;
 
-        protected sealed override Dictionary<string, object[]> variants { get; } = new Dictionary<string, object[]>
+        static AttributeProviderSpawner()
         {
-            {
-                "attribute",
-                VFXAttribute.AllReadWritable.Concat(kReadOnlyExceptFromSpawnContext).Cast<object>().ToArray()
-            }
-        };
-
-        public string[] GetAvailableString()
-        {
-            var validAttributes = VFXAttribute.AllIncludingVariadicExceptWriteOnly;
-            validAttributes = validAttributes.Concat(kReadOnlyExceptFromSpawnContext).ToArray();
-            return validAttributes;
+            kSupportedAttributesFromSpawnContext = VFXAttributesManager
+                .GetBuiltInNamesOrCombination(false, true, false, false)
+                .Concat(new[] { VFXAttribute.SpawnCount.name, VFXAttribute.SpawnTime.name })
+                .ToArray();
         }
+
+        protected sealed override Dictionary<string, object[]> variants { get; } = new() { { "attribute", kSupportedAttributesFromSpawnContext } };
+        public string[] GetAvailableString() => kSupportedAttributesFromSpawnContext;
     }
 
     [VFXHelpURL("Block-SetSpawnEvent")]
     [VFXInfo(category = "Attribute", variantProvider = typeof(AttributeProviderSpawner))]
-    class VFXSpawnerSetAttribute : VFXAbstractSpawner
+    class VFXSpawnerSetAttribute : VFXAbstractSpawner, IVFXAttributeUsage
     {
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), StringProvider(typeof(AttributeProviderSpawner))]
         public string attribute;
@@ -37,19 +32,44 @@ namespace UnityEditor.VFX.Block
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector)]
         public RandomMode randomMode = RandomMode.Off;
 
-        private bool attributeIsValid
+        private bool attributeIsValid => !string.IsNullOrEmpty(attribute);
+
+        public override IEnumerable<VFXAttribute> usedAttributes
+        {
+            get { yield return currentAttribute; }
+        }
+
+        public VFXAttribute currentAttribute
         {
             get
             {
-                return !string.IsNullOrEmpty(attribute);
+                if (GetGraph() is { } graph)
+                {
+                    if (graph.attributesManager.TryFind(attribute, out var vfxAttribute))
+                    {
+                        return vfxAttribute;
+                    }
+                }
+                else // Happens when the node is not yet added to the graph, but should be ok as soon as it's added (see OnAdded)
+                {
+                    var attr = VFXAttributesManager.FindBuiltInOnly(attribute);
+                    if (string.Compare(attribute, attr.name, StringComparison.OrdinalIgnoreCase) == 0)
+                    {
+                        return attr;
+                    }
+                }
+
+                // Temporary attribute
+                return new VFXAttribute(attribute, VFXValueType.Float, null);
             }
         }
 
-        private VFXAttribute currentAttribute
+        public override void Rename(string oldName, string newName)
         {
-            get
+            if (GetGraph() is {} graph && graph.attributesManager.IsCustom(newName))
             {
-                return VFXAttribute.Find(attribute);
+                attribute = newName;
+                SyncSlots(VFXSlot.Direction.kInput, true);
             }
         }
 
@@ -127,6 +147,6 @@ namespace UnityEditor.VFX.Block
                 return $"Set SpawnEvent {ObjectNames.NicifyVariableName(attribute)} {VFXBlockUtility.GetNameString(randomMode)}";
             }
         }
-        public override VFXTaskType spawnerType { get { return VFXTaskType.SetAttributeSpawner; } }
+        public override VFXTaskType spawnerType => VFXTaskType.SetAttributeSpawner;
     }
 }

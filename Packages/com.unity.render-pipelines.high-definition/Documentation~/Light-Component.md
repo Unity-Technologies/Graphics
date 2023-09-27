@@ -121,17 +121,19 @@ These settings define the behavior of the light when you use it as a celestial b
 | -------------------- | ------------------------------------------------------------ |
 | **Affect Physically Based Sky** | When using a **Physically Based Sky**, this displays a sun disc in the sky in this Light's direction. The diameter, color, and intensity of the sun disc match the properties of this Directional Light.<br />This property only appears when you enable [additional properties](More-Options.md) for this section. |
 | **- Diameter Multiplier** | Controls the size of the sun disk by multiplying or overriding the value of the angular diameter. This allows artificially increasing the size of the celestial body on screen without impacting the specular highlights or softness of shadows. |
-| **- Body Type** | Controls wether the celestial body should be emitting light, or receiving lighting from the main directional light. |
-| **-- Automatic Moon Phase** | Controls if the moon phase should be computed from the position of the sun or using custom parameters. Only available on bodies of type Moon. |
-| **--- Moon Phase** | Set the stage of the moon phase. A phase value of 0.5 is a full moon. Only available when automatic moon phase is off. |
-| **--- Moon Phase Rotation** | Controls the rotation of the moon crescent. Only available when automatic moon phase is off. |
-| **-- Earthshine** | Controls the intensity of the sunlight reflected from the planet onto the moon. Only available on bodies of type Moon. |
-| **-- Flare Size** | Controls the size of the flare around the celestial body (in degrees). Only available on bodies of type Star. |
-| **-- Flare Falloff** | Controls the falloff rate of flare intensity as the angle from the light increases. Only available on bodies of type Star. |
-| **-- Flare Tint** | Controls the tint of the flare of the celestial body. Only available on bodies of type Star. |
-| **- Surface Texture** | Sets a 2D (disk) Texture for the surface of the celestial body. This acts like a multiplier. |
-| **- Surface Tint** | Tints the surface of the celestial body. |
-| **- Distance** | Controls the distance of the sun disc. This is useful if you have multiple sun discs in the sky and want to change their sort order. HDRP draws sun discs with smaller **Distance** values on top of those with larger **Distance** values.<br />This property only appears when you enable [additional properties](More-Options.md) for this section. |
+| **- Distance** | Controls the distance of the sun disc. This is useful if you have multiple sun discs in the sky and want to change their sort order. HDRP draws sun discs with smaller **Distance** values on top of those with larger **Distance** values. |
+| **- Surface Color** | Sets a 2D (disk) Texture and color multiplier for the surface of the celestial body. Rotate the light component on the Z axis to rotate this texture. |
+| **- Shading**             | Specify the light source used for shading of the Celestial Body.<br />&#8226; **Emission** : Used to simulate a Sun. The celestial body will emit light based on the intensity parameter set in the Emission section.<br />&#8226; **Reflect Sun Light** : Used to simulate moons or planets. The celestial body will be illuminated by a directionaly light.<br />&#8226; **Manual** : Used to simulate moons or planets with complete control over the phase angle and rotation, as well as the reflected light intensity. |
+| **-- Sun Light Override** | Specifiy the Directional Light that should illuminate this Celestial Body. If not specified, HDRP will use the directional light in the scene with the highest intensity. |
+| **-- Earthshine** | Controls the intensity of the light reflected from the planet onto the Celestial Body. |
+| **-- Sun Color** | Color of the artificial light source in **Manual** mode. |
+| **-- Sun Intensity** | Intensity of the artificial light source in **Manual** mode. |
+| **-- Phase** | Controls the area of the surface illuminated by the Sun in **Manual** mode. A phase value of 0.5 means the surface is fully illuminated. |
+| **-- Phase Rotation** | Rotates the Light Source relatively to the Celestial Body in **Manual** mode. |
+| **- Flare Size** | Controls the size of the flare around the celestial body (in degrees). |
+| **- Flare Falloff** | Controls the falloff rate of flare intensity as the angle from the light increases. |
+| **- Flare Tint** | Controls the tint of the flare of the celestial body. |
+| **- Flare Multiplier** | Multiplier applied on the flare intensity. |
 
 <a name="Emission"></a>
 
@@ -256,6 +258,19 @@ In your [HDRP Asset](HDRP-Asset.md), select **High** from the **Filtering Qualit
 | **Blocker Sample Count**       | The number of samples HDRP uses to evaluate the distance between the pixel receiving the shadow and the shadow caster. Higher values give better accuracy. |
 | **Filter Sample Count**        | The number of samples HDRP uses to blur shadows. Higher values give smoother results. |
 | **Minimum Size of the Filter** | The minimum size of the whole shadow’s blur effect, no matter the distance between the pixel and the shadow caster. Higher values give blurrier results. |
+
+This section is only available for directional lights.
+
+| **Property**                       | **Description**                                              |
+| ---------------------------------- | ------------------------------------------------------------ |
+| **Max Penumbra Size**              | The maximum penumbra size (in world space), limiting blur filter kernel size. This is measured against a receiving surface perpendicular to the light direction (penumbra may get wider for different angles). Very large kernels may affect GPU performance or produce undesirable artifacts close to the shadow caster. |
+| **Max Sampling Distance**          | The maximum distance (in world space) from the receiving surface where PCSS shadow sampling occurs. This is used to avoid light bleeding due to distant blockers hiding the cone apex and therefore leading to missing occlusion.  A lower value means less light bleeding but setting the value too low may cause self-shadowing. Note that the algorithm will also clamp the sampling distance in function of the blocker distance, to avoid light bleeding with very close blockers. |
+| **Min Filter**                     | The minimum PCSS filter size (in shadowmap texels) to avoid aliasing.  Overrides the generic **Minimum Size of the Filter** parameter above. |
+| **Min Filter Max Angular Diameter**| The maximum angular diameter to use to reach the minimum filter size. This makes a wider cone at the apex so that you can quickly reach the minimum filter size while avoiding self-shadowing. |
+| **Blocker Search Angular Diameter**| The angular diameter to use for the blocker search. This will include blockers outside of the light cone when they are greater than the light's Angular Diameter to reduce light bleeding.  Increasing this value too much may result in self-shadowing artifacts.  A value below the light's Angular Diameter will get clamped to the light's Angular Diameter. |
+| **Blocker Sampling Clump Exponent**| Affects how blocker search samples are distributed.  The samples distance to the center is raised to this power. A clump exponent of 1 means uniform distribution on the sampling disk. A clump exponent of 2 means the distance from the center of the uniform distribution are squared (clumped towards center). |
+
+The properties control the geometry of the blocker search and filter sampling cones.  Cone filters are used to avoid the self-shadowing versus contact tradeoffs of cylinder filters.
 
 #### Real-time light cookies
 

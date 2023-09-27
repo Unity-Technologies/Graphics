@@ -291,6 +291,8 @@ MonoBehaviour:
       - 0.666
       - 0.666
       - 0.5
+    macroBatcherSettings:
+      mode: 1
     m_ObsoleteLightLayerName0: 
     m_ObsoleteLightLayerName1: 
     m_ObsoleteLightLayerName2: 

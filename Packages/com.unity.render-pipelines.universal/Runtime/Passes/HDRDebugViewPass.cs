@@ -165,6 +165,7 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
+            UniversalCameraData cameraData = renderingData.frameData.Get<UniversalCameraData>();
             var cmd = m_PassDataCIExy.cmd = m_PassDataDebugView.cmd = renderingData.commandBuffer;
             m_PassDataCIExy.luminanceParameters = m_PassDataDebugView.luminanceParameters = GetLuminanceParameters(renderingData.cameraData);
             m_PassDataDebugView.cameraData = renderingData.cameraData;
@@ -177,7 +178,7 @@ namespace UnityEngine.Rendering.Universal
             var cameraTargetHandle = RTHandleStaticHelpers.s_RTHandleWrapper;
 
             m_material.enabledKeywords = null;
-            GetActiveDebugHandler(ref renderingData)?.UpdateShaderGlobalPropertiesForFinalValidationPass(cmd, ref renderingData.cameraData, true);
+            GetActiveDebugHandler(cameraData)?.UpdateShaderGlobalPropertiesForFinalValidationPass(cmd, cameraData, true);
 
             CoreUtils.SetRenderTarget(cmd, m_CIExyTarget, ClearFlag.Color, Color.clear);
 

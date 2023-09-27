@@ -22,15 +22,15 @@ namespace UnityEngine.Rendering.Universal
 
         #region Version system
 
-        private const int k_LastVersion = 5;
+        internal const int k_LastVersion = 5;
 
 #pragma warning disable CS0414
         [SerializeField][FormerlySerializedAs("k_AssetVersion")]
-        int m_AssetVersion = k_LastVersion;
+        internal int m_AssetVersion = k_LastVersion;
 #pragma warning restore CS0414
 
 #if UNITY_EDITOR
-        static void UpgradeAsset(int assetInstanceID)
+        internal static void UpgradeAsset(int assetInstanceID)
         {
             if (EditorUtility.InstanceIDToObject(assetInstanceID) is not UniversalRenderPipelineGlobalSettings asset)
                     return;
@@ -112,7 +112,10 @@ namespace UnityEngine.Rendering.Universal
             if (RenderPipelineGlobalSettingsUtils.TryEnsure<UniversalRenderPipelineGlobalSettings, UniversalRenderPipeline>(ref currentInstance, defaultPath, canCreateNewAsset))
             {
                 if (currentInstance != null && currentInstance.m_AssetVersion != k_LastVersion)
+                {
                     UpgradeAsset(currentInstance.GetInstanceID());
+                    AssetDatabase.SaveAssetIfDirty(currentInstance);
+                }
 
                 return currentInstance;
             }
@@ -228,6 +231,13 @@ namespace UnityEngine.Rendering.Universal
             DecalProjector.UpdateAllDecalProperties();
         }
 
+        [SerializeField] private bool m_EnableRenderGraph;
+        public bool enableRenderGraph
+        {
+            get => m_EnableRenderGraph;
+            set => m_EnableRenderGraph = value;
+        }
+
         /// <summary>
         /// Names used for display of light layers with Layer's index as prefix.
         /// For example: "0: Light Layer Default"
@@ -290,6 +300,31 @@ namespace UnityEngine.Rendering.Universal
             return apvScenesData;
         }
 
+        #endregion
+
+        #region GPUDriven
+        [FormerlySerializedAs("m_MacroBatcherResources"), SerializeField]
+        public GPUResidentDrawerResources m_GPUResidentDrawerResources;
+
+#if UNITY_EDITOR
+        // be sure to cache result for not using GC in a frame after first one.
+        static readonly string GPUResidentDrawerResourcesPath = "Packages/com.unity.render-pipelines.core/Runtime/RenderPipelineResources/GPUDriven/GPUResidentDrawerResources.asset";
+
+        internal void EnsureGPUResidentDrawerResources(bool forceReload)
+            => ResourceReloader.EnsureResources(forceReload, ref m_GPUResidentDrawerResources, GPUResidentDrawerResourcesPath, AreGPUResidentDrawerResourcesCreated_Internal, this);
+
+        internal void ClearGPUResidentDrawerResources()
+            => m_GPUResidentDrawerResources = null;
+
+        // Passing method in a Func argument create a functor that create GC
+        // If it is static it is then only computed once but the Ensure is called after first frame which will make our GC check fail
+        // So create it once and store it here.
+        // Expected usage: UniversalRenderPipelineGlobalSettings.AreMacroBathesResourcesCreated(anyUniversalRenderPipelineGlobalSettings) that will return a bool
+        static Func<UniversalRenderPipelineGlobalSettings, bool> AreGPUResidentDrawerResourcesCreated_Internal = global
+            => global.m_GPUResidentDrawerResources != null && !global.m_GPUResidentDrawerResources.Equals(null);
+
+        internal bool AreGPUResidentDrawerResourcesCreated() => AreGPUResidentDrawerResourcesCreated_Internal(this);
+#endif
         #endregion
     }
 }

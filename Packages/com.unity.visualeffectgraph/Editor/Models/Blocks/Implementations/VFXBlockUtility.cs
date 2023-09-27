@@ -1,8 +1,8 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
+
 using UnityEngine;
+using UnityEngine.Assertions;
 
 namespace UnityEditor.VFX.Block
 {
@@ -127,33 +127,44 @@ namespace UnityEditor.VFX.Block
             return res.TrimEnd(new[] { '\n' });
         }
 
-        public static bool ConvertToVariadicAttributeIfNeeded(ref string attribName, out VariadicChannelOptions outChannel)
+        private static bool ConvertToVariadicAttributeIfNeeded(VFXGraph vfxGraph, ref string attribName, out VariadicChannelOptions outChannel)
         {
-            var attrib = VFXAttribute.Find(attribName);
-
-            if (attrib.variadic == VFXVariadic.BelongsToVariadic)
+            try
             {
-                char component = attrib.name.ToLower().Last();
-                VariadicChannelOptions channel;
-                switch (component)
+                if (!vfxGraph.attributesManager.TryFind(attribName, out var attrib))
                 {
-                    case 'x':
-                        channel = VariadicChannelOptions.X;
-                        break;
-                    case 'y':
-                        channel = VariadicChannelOptions.Y;
-                        break;
-                    case 'z':
-                        channel = VariadicChannelOptions.Z;
-                        break;
-                    default:
-                        throw new InvalidOperationException(string.Format("Cannot convert {0} to variadic version", attrib.name));
+                    throw new InvalidOperationException($"Could not find attribute {attribName}");
                 }
 
-                attribName = VFXAttribute.Find(attrib.name.Substring(0, attrib.name.Length - 1)).name; // Just to ensure the attribute can be found
-                outChannel = channel;
+                if (attrib.variadic == VFXVariadic.BelongsToVariadic)
+                {
+                    char component = attrib.name.ToLower().Last();
+                    VariadicChannelOptions channel;
+                    switch (component)
+                    {
+                        case 'x':
+                            channel = VariadicChannelOptions.X;
+                            break;
+                        case 'y':
+                            channel = VariadicChannelOptions.Y;
+                            break;
+                        case 'z':
+                            channel = VariadicChannelOptions.Z;
+                            break;
+                        default:
+                            throw new InvalidOperationException(string.Format("Cannot convert {0} to variadic version",
+                                attrib.name));
+                    }
 
-                return true;
+                    // Just to ensure the attribute can be found
+                    Assert.IsTrue(vfxGraph.attributesManager.Exist(attrib.name.Substring(0, attrib.name.Length - 1)));
+                    outChannel = channel;
+
+                    return true;
+                }
+            }
+            catch (ArgumentException)
+            {
             }
 
             outChannel = VariadicChannelOptions.X;
@@ -234,7 +245,7 @@ namespace UnityEditor.VFX.Block
             return false;
         }
 
-        public static bool SanitizeAttribute(ref string attribName, ref VariadicChannelOptions channels, int version)
+        public static bool SanitizeAttribute(VFXGraph graph, ref string attribName, ref VariadicChannelOptions channels, int version)
         {
             bool settingsChanged = false;
             string oldName = attribName;
@@ -254,7 +265,7 @@ namespace UnityEditor.VFX.Block
 
             // Changes attribute to variadic version
             VariadicChannelOptions newChannels;
-            if (VFXBlockUtility.ConvertToVariadicAttributeIfNeeded(ref attribName, out newChannels))
+            if (VFXBlockUtility.ConvertToVariadicAttributeIfNeeded(graph, ref attribName, out newChannels))
             {
                 Debug.Log(string.Format("Sanitizing attribute: Convert {0} to variadic attribute {1} with channel {2}", oldName, attribName, newChannels));
                 channels = newChannels;
@@ -264,10 +275,10 @@ namespace UnityEditor.VFX.Block
             return settingsChanged;
         }
 
-        static public bool SanitizeAttribute(ref string attribName, ref string channelsMask, int version)
+        public static bool SanitizeAttribute(VFXGraph graph, ref string attribName, ref string channelsMask, int version)
         {
             var channels = ChannelFromMask(channelsMask);
-            var settingsChanged = SanitizeAttribute(ref attribName, ref channels, version);
+            var settingsChanged = SanitizeAttribute(graph, ref attribName, ref channels, version);
             channelsMask = MaskFromChannel(channels);
             return settingsChanged;
         }
