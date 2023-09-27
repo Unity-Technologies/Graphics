@@ -722,7 +722,11 @@ namespace UnityEngine.Rendering
                 float distanceAttenuation = !isDirLight && comp.distanceAttenuationCurve.length > 0 ? comp.distanceAttenuationCurve.Evaluate(coefDistSample) : 1.0f;
                 float scaleByDistance = !isDirLight && comp.scaleByDistanceCurve.length >= 1 ? comp.scaleByDistanceCurve.Evaluate(coefScaleSample) : 1.0f;
 
-                Vector3 dir = (cam.transform.position - comp.transform.position).normalized;
+                Vector3 dir;
+                if (isDirLight)
+                    dir = comp.transform.forward;
+                else
+                    dir = (cam.transform.position - comp.transform.position).normalized;
                 Vector3 screenPosZ = WorldToViewport(cam, !isDirLight, isCameraRelative, viewProjMatrix, positionWS + dir * comp.occlusionOffset);
 
                 float adjustedOcclusionRadius = isDirLight ? comp.celestialProjectedOcclusionRadius(cam) : comp.occlusionRadius;
