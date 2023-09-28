@@ -159,22 +159,12 @@ namespace UnityEditor.VFX
             }
         }
 
-        public void OverrideNamesWithOther(VFXUniformMapper otherMapper)
+        public void OverrideUniformsNamesWithOther(VFXUniformMapper otherMapper)
         {
             var prevUniforms = uniforms.ToArray();
-            var prevTextures = textures.ToArray();
-            var prevBuffers = buffers.ToArray();
             foreach (var exp in prevUniforms)
             {
                 m_UniformToName[exp] = otherMapper.GetNames(exp);
-            }
-            foreach (var exp in prevTextures)
-            {
-                m_TextureToName[exp] = otherMapper.GetNames(exp);
-            }
-            foreach (var exp in prevBuffers)
-            {
-                m_BufferToName[exp] = otherMapper.GetNames(exp);
             }
         }
 
