@@ -14,6 +14,7 @@
     "local.utf.references": "file:../../../Packages/local.utf.references",
     "local.gtf.references": "file:../../../Packages/local.gtf.references",
     "com.unity.testing.hdrp": "file:../../../Packages/com.unity.testing.hdrp",
+    "com.unity.testing.common-graphics": "file:../../../Packages/com.unity.testing.common-graphics",
     "com.unity.testing.xr": "file:../../../Packages/com.unity.testing.xr",
     "com.unity.ugui": "2.0.0",
     "com.unity.visualeffectgraph": "file:../../../../../Packages/com.unity.visualeffectgraph",
@@ -57,6 +58,7 @@
     "com.unity.testframework.graphics",
     "com.unity.testing.hdrp",
     "com.unity.testing.xr",
-    "com.unity.shadergraph"
+    "com.unity.shadergraph",
+    "com.unity.testing.common-graphics"
   ]
 }
