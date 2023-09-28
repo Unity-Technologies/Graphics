@@ -87,8 +87,8 @@ void frag(
     // TODO: Mip debug modes would require this, open question how to do this on ShaderGraph.
     //SETUP_DEBUG_TEXTURE_DATA(inputData, unpacked.texCoord1.xy, _MainTex);
     SixWaySurfaceData surfaceData;
-    surfaceData.rightTopBack = surfaceDescription.rightTopBack * INV_PI;
-    surfaceData.leftBottomFront = surfaceDescription.leftBottomFront * INV_PI;
+    surfaceData.rightTopBack = surfaceDescription.RightTopBack * INV_PI;
+    surfaceData.leftBottomFront = surfaceDescription.LeftBottomFront * INV_PI;
     surfaceData.emission = surfaceDescription.Emission;
     surfaceData.baseColor = surfaceDescription.BaseColor;
     surfaceData.occlusion = surfaceDescription.Occlusion;
@@ -97,7 +97,7 @@ void frag(
     surfaceData.diffuseGIData1 = unpacked.diffuseGIData1;
     surfaceData.diffuseGIData2 = unpacked.diffuseGIData2;
 #if defined(_SIX_WAY_COLOR_ABSORPTION)
-    surfaceData.absorptionRange = INV_PI + saturate(surfaceDescription.absorptionStrength) * (1 - INV_PI);
+    surfaceData.absorptionRange = INV_PI + saturate(surfaceDescription.AbsorptionStrength) * (1 - INV_PI);
 #endif
 
 

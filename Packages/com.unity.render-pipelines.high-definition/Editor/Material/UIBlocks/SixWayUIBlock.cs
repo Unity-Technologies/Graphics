@@ -28,7 +28,6 @@ namespace UnityEditor.Rendering.HighDefinition
         public SixWayUIBlock(ExpandableBit expandableBit)
             : base(expandableBit, Styles.header)
         {
-
         }
 
         /// <summary>

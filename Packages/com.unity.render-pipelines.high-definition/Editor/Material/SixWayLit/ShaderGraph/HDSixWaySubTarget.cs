@@ -10,7 +10,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
     class HDSixWaySubTarget : SurfaceSubTarget, IRequiresData<HDSixWayData>
     {
-        public HDSixWaySubTarget() => displayName = "Six-way Lit";
+        public HDSixWaySubTarget() => displayName = "Six-way Smoke Lit";
 
         static readonly GUID kSubTargetSourceCodeGuid = new GUID("b20b7afb3a1f43afafc0ac6ea3f2cb26");  // HDSixWaySubTarget.cs
 
@@ -67,7 +67,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 if (useColorAbsorption)
                 {
-                    requiredFields.Add(SurfaceDescriptionSixWay.AbsorptionStrength);
+                    requiredFields.Add(BlockFields.SurfaceDescription.AbsorptionStrength);
                 }
 
                 return new PassDescriptor
@@ -153,27 +153,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             public static FieldCollection RequiredFields = new FieldCollection()
             {
-                SurfaceDescriptionSixWay.MapRightTopBack,
-                SurfaceDescriptionSixWay.MapLeftBottomFront,
                 SixWayVaryings.diffuseGIData0,
                 SixWayVaryings.diffuseGIData1,
                 SixWayVaryings.diffuseGIData2,
             };
         }
 
-        [GenerateBlocks]
-        public struct SurfaceDescriptionSixWay
-        {
-            public static string name = "SurfaceDescription";
-
-            public static BlockFieldDescriptor MapRightTopBack = new BlockFieldDescriptor(SurfaceDescriptionSixWay.name, "rightTopBack", "Right Top Back", "SURFACEDESCRIPTION_MAP_RTBK",
-                new ColorControl(UnityEngine.Color.grey, false), ShaderStage.Fragment);
-
-            public static BlockFieldDescriptor MapLeftBottomFront = new BlockFieldDescriptor(SurfaceDescriptionSixWay.name, "leftBottomFront", "Left Bottom Front", "SURFACEDESCRIPTION_MAP_LBTF",
-                new ColorControl(UnityEngine.Color.grey, false), ShaderStage.Fragment);
-            public static BlockFieldDescriptor AbsorptionStrength = new BlockFieldDescriptor(SurfaceDescriptionSixWay.name, "absorptionStrength", "Color Absorption Strength", "SURFACEDESCRIPTION_COLOR_ABSORPTION_STRENGTH",
-                new FloatControl(0.5f), ShaderStage.Fragment);
-        }
         public struct SixWayVaryings
         {
             public static string name = "Varyings";
@@ -211,12 +196,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
             base.GetActiveBlocks(ref context);
-            context.AddBlock(SurfaceDescriptionSixWay.MapRightTopBack);
-            context.AddBlock(SurfaceDescriptionSixWay.MapLeftBottomFront);
+            context.AddBlock(BlockFields.SurfaceDescription.MapRightTopBack);
+            context.AddBlock(BlockFields.SurfaceDescription.MapLeftBottomFront);
             context.AddBlock(BlockFields.SurfaceDescription.Occlusion);
 
             if(sixWayData.useColorAbsorption)
-                context.AddBlock(SurfaceDescriptionSixWay.AbsorptionStrength);
+                context.AddBlock(BlockFields.SurfaceDescription.AbsorptionStrength);
         }
 
         protected override void AddInspectorPropertyBlocks(SubTargetPropertiesGUI blockList)
@@ -240,9 +225,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected override SubShaderDescriptor GetSubShaderDescriptor()
         {
             var descriptor = base.GetSubShaderDescriptor();
-
+            descriptor.passes.Add(HDShaderPasses.GenerateDepthForwardOnlyPass(supportLighting, TargetsVFX(), systemData.tessellation));
             descriptor.passes.Add(SixWayShaderPasses.GenerateForwardOnly(TargetsVFX(), systemData.tessellation, sixWayData.useColorAbsorption, systemData.debugSymbols));
-
             return descriptor;
         }
 

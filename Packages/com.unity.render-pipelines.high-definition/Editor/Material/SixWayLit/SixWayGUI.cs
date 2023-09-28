@@ -17,6 +17,7 @@ namespace UnityEditor.Rendering.HighDefinition
         MaterialUIBlockList m_UIBlocks = new()
         {
             new SurfaceOptionUIBlock(MaterialUIBlock.ExpandableBit.Base,1, SurfaceOptionUIBlock.Features.Lit),
+            new SixWayUIBlock(MaterialUIBlock.ExpandableBit.Base),
             new TessellationOptionsUIBlock(MaterialUIBlock.ExpandableBit.Tessellation),
             new ShaderGraphUIBlock(MaterialUIBlock.ExpandableBit.ShaderGraph, ShaderGraphUIBlock.Features.ExposedProperties),
             new AdvancedOptionsUIBlock(MaterialUIBlock.ExpandableBit.Advance, ~AdvancedOptionsUIBlock.Features.SpecularOcclusion)
