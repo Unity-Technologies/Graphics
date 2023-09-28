@@ -9,6 +9,31 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [12.1.12] - 2023-09-27
+
+This version is compatible with Unity 2021.3.31f1.
+
+### Changed
+- VFX systems receiving GPU events can now go into sleep state.
+- Allows texture types to be used in branch operators.
+
+### Fixed
+- Fixed an editor only memory leak with VFX Graph objects.
+- Fixed VFX assets being considered modified after creation.
+- Fixed a potential crash with particle strips.
+- Fixed particles not rendering when sorting is enabled and no update context is present.
+- Fixed sorting being disabled when Frustum Culling is On is some case.
+- Replace default mesh output shader to be SRP compatible.
+- Filter out  META passes from SG generated shaders.
+- Forces positive color values in graph.
+- Fixed mesh LOD flickering when using TAA.
+- Fixed mismatching LOD between eyes in multi-pass VR.
+- Restore some tooltips that were lost.
+- Prevent overflow on baked curve and gradient.
+- Fixed bounds reduction shader compilation on DXC.
+- Fixed HDRP Decal Output when system is in world space.
+- Picking Overlay when the rotation is applied on VisualEffect component
+
 ## [12.1.11] - 2023-05-23
 
 This version is compatible with Unity 2021.3.27f1.

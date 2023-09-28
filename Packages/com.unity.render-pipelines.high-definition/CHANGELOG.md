@@ -9,6 +9,39 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [12.1.12] - 2023-09-27
+
+This version is compatible with Unity 2021.3.31f1.
+
+### Changed
+- Reduced GC Alloc when using raytracing and HDRP
+- Update description of Decal Projector Draw Distance setting to mention HDRP asset setting
+
+### Fixed
+- Fixed TAA aliasing edge issues on alpha output for recorder / green screen. This fix does the following:
+* Removes history rejection when the current alpha value is 0. Instead it does blend with the history color when alpha value is 0 on the current plane.
+* The reasoning for blending again with the history when alpha is 0 is because we want the color to blend a bit with opacity, which is the main reason for the alpha values. sort of like a precomputed color
+* As a safety, we set the color to black if alpha is 0. This results in better image quality when alpha is enabled.
+- Added check to ensure gismos arent rendered when they shouldnt be.
+- Fixed GetScaledSize when not using scaling.
+- Fixed VT init to avoid RTHandle allocation outside of HDRP rendering loop.
+- [Backport] Fix the incorrect base color of decals for transparency.
+- Fixed color pyramid history buffer logic when history is reset and the color pyramid is not required.
+- Fixed wrong metapass when using planar/triplanar projection in HDRP.
+- Fixed scene template dependencies.
+- Minor fix to HDRP UI when Raytraced AO is enabled.
+- Fixed D3D validation error for area lights in HDShadowAtlas.
+- Fixed baked light being wrongly put in the cached shadow atlas.
+- Improving DLSS ghosting artifacts a little bit, by using a better pre-exposure parameter. Fixing reset history issues on DLSS camera cuts.
+- Added an helpbox for local custom pass volumes that doesn't have a collider attached.
+- Show base color texture on decal materials if Affect BaseColor is disabled.
+- Fixed inconsistent documentation about hardware supporting raytracing.
+- Fixed prefab preview rendering dark until moved
+- Fixed: realtime Reflection probe makes volumetrics clouds wind stop
+- Fix preview for refractive materials with MSAA
+- Fix the logic used to set up materials featuring displacement mapping that would sometimes result in artifacts or suboptimal performance.
+- Fixed ShaderGraph Decal material position issue by using world space position
+
 ## [12.1.11] - 2023-05-23
 
 This version is compatible with Unity 2021.3.27f1.
