@@ -68,13 +68,14 @@ The following properties control the method that the Reflection Probe uses to ca
 | **Resolution**             | Select a quality mode to determine the resolution of this Reflection Probe. If you select Custom, you must specify a resolution in the dropdown menu. Higher resolutions increase the fidelity of cube reflections but can reduce GPU performance and increase memory consumption. The resolution can be set to 0 to prevent the probe from being rendered for certain quality levels. |
 | **Range Compression Factor** | The factor which HDRP divides the result of the probe's rendering by. This is useful to deal with very bright or dark objects in the reflections that would otherwise be saturated.<br/>This property only appears when you enable [additional properties](More-Options.md) for this section. |
 
-### Custom Settings
+### Render Settings
 
 The following properties control extra behavior options for fine-tuning the behavior of your Reflection Probes.
 
 | **Property**    | **Description**                                              |
 | --------------- | ------------------------------------------------------------ |
 | **Rendering Layer Mask** | A mask that allows you to choose which Rendering Layers this Reflection Probe affects. This Reflection Probe only affects Mesh Renderers or Terrain with a matching **Rendering Layer Mask**.<br/>Navigate to your Project’s **HDRP Asset > Render Pipeline Supported Features** and enable **Light Layers** to use this property. |
+| **Importance**  | A value that indicates the relative priority of this Reflection Probe for sorting. Unity renders probes with a higher value on top of those with a lower value. |
 | **Multiplier**  | A multiplier for the RenderTexture the Reflection Probe captures. The Reflection Probe applies this multiplier when Reflective Materials query the RenderTexture. |
 | **Weight**      | The overall weight of this Reflection Probe’s contribution to the reflective effect of Materials. When Reflection Probe’s blend together, the weight of each Probe determines their contribution to a reflective Material in the blend area. |
 | **Fade Distance** | The distance, in meters, from the camera at which reflections begin to smoothly fade out before they disappear completely. |

@@ -13,7 +13,8 @@ namespace UnityEngine.Rendering.HighDefinition
             ProbeSettings,
             SeparatePassThrough,
             UpgradeFrameSettingsToStruct,
-            PlanarResolutionScalability
+            PlanarResolutionScalability,
+            AddProbeImportance,
         }
 
         [SerializeField, FormerlySerializedAs("version"), FormerlySerializedAs("m_Version")]
@@ -70,6 +71,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     p.m_ProbeSettings.resolutionScalable.@override = PlanarReflectionAtlasResolution.Resolution512;
                 }
+            }),
+            MigrationStep.New(PlanarProbeVersion.AddProbeImportance, (PlanarReflectionProbe p) =>
+            {
+                k_Migration.ExecuteStep(p, Version.AddProbeImportance);
+                p.m_ProbeSettings.lighting.importance = 64;
             })
         );
 

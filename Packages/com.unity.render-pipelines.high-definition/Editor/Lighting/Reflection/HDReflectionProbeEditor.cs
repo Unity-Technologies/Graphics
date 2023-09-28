@@ -95,6 +95,7 @@ namespace UnityEditor.Rendering.HighDefinition
         ProbeSettingsOverride HDProbeUI.IProbeUISettingsProvider.displayedCustomSettings => new ProbeSettingsOverride
         {
             probe = ProbeSettingsFields.lightingLightLayer
+                | ProbeSettingsFields.importance
                 | ProbeSettingsFields.lightingMultiplier
                 | ProbeSettingsFields.lightingWeight
                 | ProbeSettingsFields.lightingFadeDistance,

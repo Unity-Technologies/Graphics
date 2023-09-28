@@ -119,6 +119,8 @@ namespace UnityEngine.Rendering
         // Note: this is a workaround needed to circumvent some AOT issues when building for xbox
         internal struct UintKeyGetter : IKeyGetter<uint, uint>
         { public uint Get(ref uint v) { return v; } }
+        internal struct UlongKeyGetter : IKeyGetter<ulong, ulong>
+        { public ulong Get(ref ulong v) { return v; } }
 
 
         /// <summary>
@@ -386,6 +388,18 @@ namespace UnityEngine.Rendering
         {
             fixed (uint* ptr = arr)
                 CoreUnsafeUtils.QuickSort<uint, uint, UintKeyGetter>(ptr, left, right);
+        }
+
+        /// <summary>
+        /// Quick Sort
+        /// </summary>
+        /// <param name="arr">ulong array.</param>
+        /// <param name="left">Left boundary.</param>
+        /// <param name="right">Left boundary.</param>
+        public static unsafe void QuickSort(ulong[] arr, int left, int right)
+        {
+            fixed (ulong* ptr = arr)
+                CoreUnsafeUtils.QuickSort<ulong, ulong, UlongKeyGetter>(ptr, left, right);
         }
 
         /// <summary>

@@ -15,7 +15,8 @@ namespace UnityEngine.Rendering.HighDefinition
             ModeAndTextures,
             ProbeSettings,
             SeparatePassThrough,
-            UpgradeFrameSettingsToStruct
+            UpgradeFrameSettingsToStruct,
+            AddProbeImportance,
         }
 
         static readonly MigrationDescription<ReflectionProbeVersion, HDAdditionalReflectionData> k_ReflectionProbeMigration
@@ -98,7 +99,8 @@ namespace UnityEngine.Rendering.HighDefinition
 #pragma warning restore 618
             }),
             MigrationStep.New(ReflectionProbeVersion.SeparatePassThrough, (HDAdditionalReflectionData t) => k_Migration.ExecuteStep(t, Version.SeparatePassThrough)),
-            MigrationStep.New(ReflectionProbeVersion.UpgradeFrameSettingsToStruct, (HDAdditionalReflectionData t) => k_Migration.ExecuteStep(t, Version.UpgradeFrameSettingsToStruct))
+            MigrationStep.New(ReflectionProbeVersion.UpgradeFrameSettingsToStruct, (HDAdditionalReflectionData t) => k_Migration.ExecuteStep(t, Version.UpgradeFrameSettingsToStruct)),
+            MigrationStep.New(ReflectionProbeVersion.AddProbeImportance, (HDAdditionalReflectionData t) => k_Migration.ExecuteStep(t, Version.AddProbeImportance))
             );
 
         [SerializeField, FormerlySerializedAs("version"), FormerlySerializedAs("m_Version")]
