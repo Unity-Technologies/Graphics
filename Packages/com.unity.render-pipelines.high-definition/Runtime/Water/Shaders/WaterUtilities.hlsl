@@ -17,6 +17,8 @@
 #define UNDER_WATER_REFRACTION_DISTANCE 100.0
 #define WATER_SYSTEM_CHOPPINESS 2.25
 #define WATER_DEEP_FOAM_JACOBIAN_OVER_ESTIMATION 1.03
+#define MAX_MENISCUS_REFRACTION_MULTIPLIER 0.5
+#define MENISCUS_THRESHOLD 0.05
 
 #if !defined(IGNORE_WATER_DEFORMATION)
 #define SUPPORT_WATER_DEFORMATION
@@ -129,11 +131,11 @@ float4 GetBandPatchData(int bandIdx)
     switch (bandIdx)
     {
         case 0:
-            return _Band0_ScaleOffset_AmplitudeMultiplier; 
+            return _Band0_ScaleOffset_AmplitudeMultiplier;
         case 1:
-            return _Band1_ScaleOffset_AmplitudeMultiplier; 
+            return _Band1_ScaleOffset_AmplitudeMultiplier;
         default:
-            return _Band2_ScaleOffset_AmplitudeMultiplier; 
+            return _Band2_ScaleOffset_AmplitudeMultiplier;
     }
 }
 
@@ -767,22 +769,51 @@ void ComputeWaterRefractionParams(float3 waterPosRWS, float2 positionNDC, float3
 
     // We approach the refraction differently if we are under or above water for various reasons
     float3 refractedView;
+	
+	float N_dot_I = dot(waterNormal, -V);
+	float k = 1.f - WATER_IOR * WATER_IOR * (1.f - N_dot_I * N_dot_I);
+
     float3 distortedWaterWS;
     if (aboveWater || disableUnderWaterIOR)
     {
         refractedView = lerp(waterNormal, upVector, EdgeBlendingFactor(positionNDC, length(waterPosRWS))) * (1 - upVector);
-        distortedWaterWS = waterPosRWS + refractedView * min(underWaterDistance, maxRefractionDistance);
 
-        // When disable IOR is active, we are sure that refraction data is always avalaible on screen
-        // but we still compute a total internal refraction
-        if (disableUnderWaterIOR)
-            refractedView = refract(-V, waterNormal, WATER_IOR);
+        // If camera is below the water surface, we mulitply the maxRefractionDistance with (half) the distance between the water surface pixel and the camera water depth.
+        float refractionDistance;
+        if (!aboveWater)
+            refractionDistance = maxRefractionDistance * abs(waterPosRWS.y) * 0.5f;
+        else
+            refractionDistance = min(underWaterDistance, maxRefractionDistance);
+
+        distortedWaterWS = waterPosRWS + refractedView * refractionDistance;       
     }
-    else
-    {
-        refractedView = refract(-V, waterNormal, WATER_IOR);
-        distortedWaterWS = waterPosRWS + refractedView * UNDER_WATER_REFRACTION_DISTANCE;
-    }
+	
+	// If underwater
+	if (!aboveWater)
+	{
+		refractedView = refract(-V, waterNormal, WATER_IOR);
+		
+		bool totalInternalReflection = all(refractedView == 0.0f);
+		absorptionTint = totalInternalReflection ? 0.0f : 1.0f;
+		
+		if (disableUnderWaterIOR)
+		{		
+			// At the limit between refraction and internal reflection, we simulate a higher refraction to avoid having a harsh threshold between both ray directions.
+			float refractionValueMultiplier = 1;
+			if (k >= -MENISCUS_THRESHOLD && k <= MENISCUS_THRESHOLD)
+			{
+				float lerpFactor = saturate((k + MENISCUS_THRESHOLD) / (2 * MENISCUS_THRESHOLD));
+				refractionValueMultiplier *= lerp(MAX_MENISCUS_REFRACTION_MULTIPLIER, 0, lerpFactor);
+				distortedWaterWS += refractedView * refractionValueMultiplier;
+
+				absorptionTint = saturate(2 * lerpFactor - 1);
+			}
+		}
+		else
+		{
+			distortedWaterWS = waterPosRWS + refractedView * UNDER_WATER_REFRACTION_DISTANCE;
+		}
+	}
 
     // Project the point on screen
     distortedWaterNDC = saturate(ComputeNormalizedDeviceCoordinates(distortedWaterWS, UNITY_MATRIX_VP));
@@ -803,16 +834,10 @@ void ComputeWaterRefractionParams(float3 waterPosRWS, float2 positionNDC, float3
     }
 
     // Evaluate the absorption tint
-    if (!aboveWater)
+    if (aboveWater)
     {
-        // If we are underwater and we detect a total internal refraction, we need to adjust the parameters
-        bool totalInternalReflection = all(refractedView == 0.0f);
-        bool invalidSample = any(saturate(distortedWaterNDC) != distortedWaterNDC);
-
-        absorptionTint = (totalInternalReflection || invalidSample) ? 0.0f : 1.0f;
-    }
-    else
         absorptionTint = exp(-refractedWaterDistance * outScatteringCoeff * (1.f - transparencyColor));
+    }
 }
 
 float EvaluateTipThickness(float3 viewWS, float3 lowFrequencyNormals, float lowFrequencyHeight)

@@ -427,7 +427,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     // Profile data
     preLightData.tipScatteringHeight = profile.tipScatteringHeight;
     preLightData.bodyScatteringHeight = profile.bodyScatteringHeight;
-    preLightData.maxRefractionDistance = bsdfData.frontFace ? profile.maxRefractionDistance : 1.0f;
+    preLightData.maxRefractionDistance = profile.maxRefractionDistance;
     preLightData.transparencyColor = profile.transparencyColor;
     preLightData.outScatteringCoefficient = profile.outScatteringCoefficient;
     preLightData.upDirection = profile.upDirection;
@@ -833,7 +833,13 @@ IndirectLighting EvaluateBSDF_ScreenspaceRefraction(LightLoopContext lightLoopCo
             lighting.specularTransmitted *= absorptionTint * absorptionTint;
     }
     else
-        lighting.specularTransmitted = lerp(preLightData.scatteringColor, cameraColor, absorptionTint.x);
+    {
+        // Horizontal normal perturbation for total internal refraction to avoid having a flat scattering color.
+        float3 N_horiz = bsdfData.normalWS - dot(bsdfData.normalWS, preLightData.upDirection) * preLightData.upDirection;
+        float Nh = 1 + dot(N_horiz, 1.5f); // This 1.5 is arbitrary, controls the intensity of the effect
+
+        lighting.specularTransmitted = lerp(preLightData.scatteringColor * Nh, cameraColor, absorptionTint.x);
+    }
 
     // Apply the additional attenuation, the fresnel and the exposure
     lighting.specularTransmitted *= (1.f - preLightData.specularFGD) * GetInverseCurrentExposureMultiplier();
