@@ -87,6 +87,15 @@ MonoBehaviour:
     Reason: https://jira.unity3d.com/browse/PLATGRAPH-2249
   - FilteredScene: {fileID: 0}
     FilteredScenes:
+    - {fileID: 102900000, guid: 32f9dd5fabc57284bb43468761c84f36, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 42
+    GraphicsDevice: 4
+    XrSdk: 
+    StereoModes: 0
+    Reason: https://jira.unity3d.com/browse/UUM-51336
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
     - {fileID: 102900000, guid: d543283fd8f184240bc05dc13b5807a5, type: 3}
     ColorSpace: -1
     BuildPlatform: -2
