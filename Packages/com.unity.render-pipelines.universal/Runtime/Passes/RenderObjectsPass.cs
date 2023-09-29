@@ -241,11 +241,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 if (activeDebugHandler != null)
                 {
                     passData.debugRendererLists = activeDebugHandler.CreateRendererListsWithDebugRenderState(renderGraph,
-                        renderingData, ref drawingSettings, ref m_FilteringSettings, ref m_RenderStateBlock);
+                        ref renderingData.cullResults, ref drawingSettings, ref m_FilteringSettings, ref m_RenderStateBlock);
                 }
                 else
                 {
-                    RenderingUtils.CreateRendererListWithRenderStateBlock(renderGraph, renderingData, drawingSettings,
+                    RenderingUtils.CreateRendererListWithRenderStateBlock(renderGraph, ref renderingData.cullResults, drawingSettings,
                         m_FilteringSettings, m_RenderStateBlock, ref passData.rendererListHdl);
                 }
             }
@@ -253,11 +253,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
             {
                 if (activeDebugHandler != null)
                 {
-                    passData.debugRendererLists = activeDebugHandler.CreateRendererListsWithDebugRenderState(context, renderingData, ref drawingSettings, ref m_FilteringSettings, ref m_RenderStateBlock);
+                    passData.debugRendererLists = activeDebugHandler.CreateRendererListsWithDebugRenderState(context, ref renderingData.cullResults, ref drawingSettings, ref m_FilteringSettings, ref m_RenderStateBlock);
                 }
                 else
                 {
-                    RenderingUtils.CreateRendererListWithRenderStateBlock(context, renderingData, drawingSettings, m_FilteringSettings, m_RenderStateBlock, ref passData.rendererList);
+                    RenderingUtils.CreateRendererListWithRenderStateBlock(context, ref renderingData.cullResults, drawingSettings, m_FilteringSettings, m_RenderStateBlock, ref passData.rendererList);
                 }
             }
         }

@@ -242,13 +242,12 @@ namespace UnityEngine.Rendering.Universal.Internal
             passData.blitMaterialData = m_BlitMaterialData[(int)blitType];
         }
 
-        internal void Render(RenderGraph renderGraph, ref RenderingData renderingData, TextureHandle src, TextureHandle dest, TextureHandle overlayUITexture)
+        internal void Render(RenderGraph renderGraph, UniversalCameraData cameraData, TextureHandle src, TextureHandle dest, TextureHandle overlayUITexture)
         {
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("Final Blit", out var passData, base.profilingSampler))
             {
-                UniversalCameraData cameraData = renderingData.frameData.Get<UniversalCameraData>();
 
-                bool outputsToHDR = renderingData.cameraData.isHDROutputActive;
+                bool outputsToHDR = cameraData.isHDROutputActive;
                 InitPassData(cameraData, ref passData, outputsToHDR ? BlitType.HDR : BlitType.Core);
 
                 passData.sourceID = ShaderPropertyId.sourceTex;

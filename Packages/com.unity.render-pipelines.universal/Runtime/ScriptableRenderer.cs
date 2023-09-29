@@ -775,7 +775,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="context">Use this render context to issue any draw commands during execution.</param>
         /// <param name="renderingData">Current render state information.</param>
-        internal virtual void OnRecordRenderGraph(RenderGraph renderGraph, ScriptableRenderContext context, ref RenderingData renderingData)
+        internal virtual void OnRecordRenderGraph(RenderGraph renderGraph, ScriptableRenderContext context)
         {
         }
 
@@ -786,7 +786,7 @@ namespace UnityEngine.Rendering.Universal
         {
         }
 
-        private void InitRenderGraphFrame(RenderGraph renderGraph, ref RenderingData renderingData)
+        private void InitRenderGraphFrame(RenderGraph renderGraph)
         {
             using (var builder = renderGraph.AddLowLevelPass<PassData>("InitFrame", out var passData,
                 Profiling.initRenderGraphFrame))
@@ -814,24 +814,28 @@ namespace UnityEngine.Rendering.Universal
 
         private class VFXProcessCameraPassData
         {
-            internal CullingResults cullResults;
+            internal UniversalRenderingData renderingData;
             internal Camera camera;
             internal VFX.VFXCameraXRSettings cameraXRSettings;
             internal XRPass xrPass;
         };
 
-        internal void ProcessVFXCameraCommand(RenderGraph renderGraph, ref RenderingData renderingData)
+        internal void ProcessVFXCameraCommand(RenderGraph renderGraph)
         {
+            UniversalRenderingData renderingData = frameData.Get<UniversalRenderingData>();
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+            XRPass xr = cameraData.xr;
+
             using (var builder = renderGraph.AddLowLevelPass<VFXProcessCameraPassData>("ProcessVFXCameraCommand", out var passData,
                        Profiling.vfxProcessCamera))
             {
-                passData.camera = renderingData.cameraData.camera;
-                passData.cullResults = renderingData.cullResults;
+                passData.camera = cameraData.camera;
+                passData.renderingData = renderingData;
 
-                passData.cameraXRSettings.viewTotal = renderingData.cameraData.xr.enabled ? 2u : 1u;
-                passData.cameraXRSettings.viewCount = renderingData.cameraData.xr.enabled ? (uint)renderingData.cameraData.xr.viewCount : 1u;
-                passData.cameraXRSettings.viewOffset = (uint)renderingData.cameraData.xr.multipassId;
-                passData.xrPass = renderingData.cameraData.xr.enabled ? renderingData.cameraData.xr : null;
+                passData.cameraXRSettings.viewTotal = xr.enabled ? 2u : 1u;
+                passData.cameraXRSettings.viewCount = xr.enabled ? (uint)xr.viewCount : 1u;
+                passData.cameraXRSettings.viewOffset = (uint)xr.multipassId;
+                passData.xrPass = xr.enabled ? xr : null;
 
                 builder.AllowPassCulling(false);
 
@@ -841,7 +845,7 @@ namespace UnityEngine.Rendering.Universal
                         data.xrPass.StartSinglePass(context.cmd);
 
                     //Triggers dispatch per camera, all global parameters should have been setup at this stage.
-                    CommandBufferHelpers.VFXManager_ProcessCameraCommand(data.camera, context.cmd, data.cameraXRSettings, data.cullResults);
+                    CommandBufferHelpers.VFXManager_ProcessCameraCommand(data.camera, context.cmd, data.cameraXRSettings, data.renderingData.cullResults);
 
                     if (data.xrPass != null)
                         data.xrPass.StopSinglePass(context.cmd);
@@ -901,8 +905,6 @@ namespace UnityEngine.Rendering.Universal
 
         private class DrawGizmosPassData
         {
-            public RenderingData renderingData;
-            public ScriptableRenderer renderer;
             public RendererListHandle gizmoRenderList;
         };
 
@@ -913,10 +915,12 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="depth"></param>
         /// <param name="gizmoSubset"></param>
         /// <param name="renderingData"></param>
-        internal void DrawRenderGraphGizmos(RenderGraph renderGraph, TextureHandle color, TextureHandle depth, GizmoSubset gizmoSubset, ref RenderingData renderingData)
+        internal void DrawRenderGraphGizmos(RenderGraph renderGraph, ContextContainer frameData, TextureHandle color, TextureHandle depth, GizmoSubset gizmoSubset)
         {
 #if UNITY_EDITOR
-            if (!Handles.ShouldRenderGizmos() || renderingData.cameraData.camera.sceneViewFilterMode == Camera.SceneViewFilterMode.ShowFiltered)
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+
+            if (!Handles.ShouldRenderGizmos() || cameraData.camera.sceneViewFilterMode == Camera.SceneViewFilterMode.ShowFiltered)
                 return;
 
             using (var builder = renderGraph.AddRasterRenderPass<DrawGizmosPassData>("Draw Gizmos Pass", out var passData,
@@ -925,9 +929,7 @@ namespace UnityEngine.Rendering.Universal
                 builder.UseTextureFragment(color, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
                 builder.UseTextureFragmentDepth(depth, IBaseRenderGraphBuilder.AccessFlags.Read);
 
-                passData.renderingData = renderingData;
-                passData.renderer = this;
-                passData.gizmoRenderList = renderGraph.CreateGizmoRendererList(renderingData.cameraData.camera, gizmoSubset);
+                passData.gizmoRenderList = renderGraph.CreateGizmoRendererList(cameraData.camera, gizmoSubset);
                 builder.UseRendererList(passData.gizmoRenderList);
                 builder.AllowPassCulling(false);
 
@@ -944,33 +946,30 @@ namespace UnityEngine.Rendering.Universal
 
         private class BeginXRPassData
         {
-            public RenderingData renderingData;
-            public CameraData cameraData;
+            internal UniversalCameraData cameraData;
         };
 
-        internal void BeginRenderGraphXRRendering(RenderGraph renderGraph, ref RenderingData renderingData)
+        internal void BeginRenderGraphXRRendering(RenderGraph renderGraph, UniversalCameraData cameraData)
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
-            if (!renderingData.cameraData.xr.enabled)
+            if (!cameraData.xr.enabled)
                 return;
 
             using (var builder = renderGraph.AddRasterRenderPass<BeginXRPassData>("BeginXRRendering", out var passData,
                 Profiling.beginXRRendering))
             {
-                passData.renderingData = renderingData;
-                passData.cameraData = renderingData.cameraData;
+                passData.cameraData = cameraData;
 
                 builder.AllowPassCulling(false);
 
                 builder.SetRenderFunc((BeginXRPassData data, RasterGraphContext context) =>
                 {
-                    ref var cameraData = ref data.cameraData;
-                    if (cameraData.xr.enabled)
+                    if (data.cameraData.xr.enabled)
                     {
-                        if (cameraData.xrUniversal.isLateLatchEnabled)
-                            cameraData.xrUniversal.canMarkLateLatch = true;
+                        if (data.cameraData.xrUniversal.isLateLatchEnabled)
+                            data.cameraData.xrUniversal.canMarkLateLatch = true;
 
-                        cameraData.xr.StartSinglePass(context.cmd);
+                        data.cameraData.xr.StartSinglePass(context.cmd);
                     }
                 });
             }
@@ -979,30 +978,28 @@ namespace UnityEngine.Rendering.Universal
 
         private class EndXRPassData
         {
-            public RenderingData renderingData;
-            public CameraData cameraData;
+            public UniversalCameraData cameraData;
         };
 
-        internal void EndRenderGraphXRRendering(RenderGraph renderGraph, ref RenderingData renderingData)
+        internal void EndRenderGraphXRRendering(RenderGraph renderGraph)
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
-            if (!renderingData.cameraData.xr.enabled)
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+            if (!cameraData.xr.enabled)
                 return;
 
             using (var builder = renderGraph.AddRasterRenderPass<EndXRPassData>("EndXRRendering", out var passData,
                 Profiling.endXRRendering))
             {
-                passData.renderingData = renderingData;
-                passData.cameraData = renderingData.cameraData;
+                passData.cameraData = cameraData;
 
                 builder.AllowPassCulling(false);
 
                 builder.SetRenderFunc((EndXRPassData data, RasterGraphContext context) =>
                 {
-                    ref var cameraData = ref data.cameraData;
-                    if (cameraData.xr.enabled)
+                    if (data.cameraData.xr.enabled)
                     {
-                        cameraData.xr.StopSinglePass(context.cmd);
+                        data.cameraData.xr.StopSinglePass(context.cmd);
                     }
                 });
             }
@@ -1013,7 +1010,7 @@ namespace UnityEngine.Rendering.Universal
         {
         };
 
-        private void SetEditorTarget(RenderGraph renderGraph, ref RenderingData renderingData)
+        private void SetEditorTarget(RenderGraph renderGraph)
         {
             using (var builder = renderGraph.AddLowLevelPass<DummyData>("SetEditorTarget", out var passData,
                 Profiling.setEditorTarget))
@@ -1042,7 +1039,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="context"></param>
         /// <param name="renderingData"></param>
-        internal void RecordRenderGraph(RenderGraph renderGraph, ScriptableRenderContext context, ref RenderingData renderingData)
+        internal void RecordRenderGraph(RenderGraph renderGraph, ScriptableRenderContext context)
         {
             OnBeginRenderGraphFrame();
 
@@ -1052,11 +1049,11 @@ namespace UnityEngine.Rendering.Universal
                 SortStable(m_ActiveRenderPassQueue);
             }
 
-            InitRenderGraphFrame(renderGraph, ref renderingData);
+            InitRenderGraphFrame(renderGraph);
 
             using (new ProfilingScope(Profiling.recordRenderGraph))
             {
-                OnRecordRenderGraph(renderGraph, context, ref renderingData);
+                OnRecordRenderGraph(renderGraph, context);
             }
 
             OnEndRenderGraphFrame();
@@ -1067,8 +1064,9 @@ namespace UnityEngine.Rendering.Universal
             // For this reason, as a workaround, in editor scene view we set explicitly set the RT to SceneViewRT.
             // TODO: this will go away once we remove the builtin dependencies and implement the grid in SRP.
 #if UNITY_EDITOR
-            if (renderingData.cameraData.isSceneViewCamera)
-                SetEditorTarget(renderGraph, ref renderingData);
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+            if (cameraData.isSceneViewCamera)
+                SetEditorTarget(renderGraph);
 #endif
         }
 
@@ -1077,10 +1075,12 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="context"></param>
         /// <param name="renderingData"></param>
-        internal void FinishRenderGraphRendering(ref RenderingData renderingData)
+        internal void FinishRenderGraphRendering()
         {
-            OnFinishRenderGraphRendering(ref renderingData);
-            InternalFinishRendering(renderingData.cameraData.resolveFinalTarget, renderingData);
+            UniversalRenderingData renderingData = frameData.Get<UniversalRenderingData>();
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+            OnFinishRenderGraphRendering();
+            InternalFinishRendering(cameraData.resolveFinalTarget, renderingData);
         }
 
         /// <summary>
@@ -1088,7 +1088,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="context"></param>
         /// <param name="renderingData"></param>
-        internal virtual void OnFinishRenderGraphRendering(ref RenderingData renderingData)
+        internal virtual void OnFinishRenderGraphRendering()
         {
         }
 
@@ -1311,7 +1311,7 @@ namespace UnityEngine.Rendering.Universal
                     DrawGizmos(context, camera, GizmoSubset.PostImageEffects, ref renderingData);
                 }
 
-                InternalFinishRendering(context, cameraData.resolveFinalTarget, renderingData);
+                InternalFinishRendering(context, cameraData.resolveFinalTarget);
 
                 for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)
                 {
@@ -2045,7 +2045,7 @@ namespace UnityEngine.Rendering.Universal
             renderingData.commandBuffer.Clear();
         }
 
-        void InternalFinishRendering(bool resolveFinalTarget, RenderingData renderingData)
+        void InternalFinishRendering(bool resolveFinalTarget, UniversalRenderingData renderingData)
         {
             using (new ProfilingScope(Profiling.internalFinishRendering))
             {
@@ -2067,8 +2067,10 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        void InternalFinishRendering(ScriptableRenderContext context, bool resolveFinalTarget, RenderingData renderingData)
+        void InternalFinishRendering(ScriptableRenderContext context, bool resolveFinalTarget)
         {
+            UniversalRenderingData renderingData = frameData.Get<UniversalRenderingData>();
+
             InternalFinishRendering(resolveFinalTarget, renderingData);
 
             ResetNativeRenderPassFrameData();

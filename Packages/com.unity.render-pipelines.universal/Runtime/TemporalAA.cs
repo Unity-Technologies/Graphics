@@ -381,7 +381,7 @@ namespace UnityEngine.Rendering.Universal
             internal bool taaLowPrecisionSource;
         }
 
-        internal static void Render(RenderGraph renderGraph, Material taaMaterial, ref CameraData cameraData, ref TextureHandle srcColor, ref TextureHandle srcDepth, ref TextureHandle srcMotionVectors, ref TextureHandle dstColor)
+        internal static void Render(RenderGraph renderGraph, Material taaMaterial, UniversalCameraData cameraData, ref TextureHandle srcColor, ref TextureHandle srcDepth, ref TextureHandle srcMotionVectors, ref TextureHandle dstColor)
         {
             int multipassId = 0;
 #if ENABLE_VR && ENABLE_XR_MODULE

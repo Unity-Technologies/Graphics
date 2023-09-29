@@ -45,9 +45,9 @@ namespace UnityEngine.Rendering.Universal
             var param = InitRendererListParams(universalRenderingData, cameraData, lightData);
 
             var rendererList = context.CreateRendererList(ref param);
-            using (new ProfilingScope(renderingData.commandBuffer, m_ProfilingSampler))
+            using (new ProfilingScope(universalRenderingData.commandBuffer, m_ProfilingSampler))
             {
-                ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), m_PassData, rendererList);
+                ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(universalRenderingData.commandBuffer), m_PassData, rendererList);
             }
         }
 

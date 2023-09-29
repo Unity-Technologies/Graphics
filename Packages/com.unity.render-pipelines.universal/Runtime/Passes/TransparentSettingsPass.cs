@@ -20,7 +20,7 @@ namespace UnityEngine.Rendering.Universal
             m_shouldReceiveShadows = shadowReceiveSupported;
         }
 
-        public bool Setup(ref RenderingData renderingData)
+        public bool Setup()
         {
             // Currently we only need to enqueue this pass when the user
             // doesn't want transparent objects to receive shadows

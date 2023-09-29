@@ -50,10 +50,10 @@ public class DrawRenderingLayersFeature : ScriptableRendererFeature
         {
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("Draw Rendering Layers", out var passData, m_ProfilingSampler))
             {
+                UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
                 UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
-                UniversalRenderer renderer = (UniversalRenderer) cameraData.renderer;
 
-                passData.color = renderer.activeColorTexture;
+                passData.color = resourceData.activeColorTexture;
                 builder.UseTextureFragment(passData.color, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
                 builder.UseTexture(renderingLayerTexture);
                 passData.viewportScale = m_TestRenderingLayersTextureHandle.useScaling ? new Vector2(m_TestRenderingLayersTextureHandle.rtHandleProperties.rtHandleScale.x, m_TestRenderingLayersTextureHandle.rtHandleProperties.rtHandleScale.y) : Vector2.one;

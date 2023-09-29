@@ -145,7 +145,8 @@ namespace UnityEngine.Rendering.Universal
             {
                 UniversalRenderingData universalRenderingData = renderingData.universalRenderingData;
                 RenderStateBlock renderStateBlock = new RenderStateBlock();
-                var debugRendererLists = activeDebugHandler.CreateRendererListsWithDebugRenderState(context, universalRenderingData, ref drawSettings, ref filterSettings, ref renderStateBlock);
+                var debugRendererLists = activeDebugHandler.CreateRendererListsWithDebugRenderState(context,
+                    ref universalRenderingData.cullResults, ref drawSettings, ref filterSettings, ref renderStateBlock);
                 debugRendererLists.DrawWithRendererList(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer));
             }
             else

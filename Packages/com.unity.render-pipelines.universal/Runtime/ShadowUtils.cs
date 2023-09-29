@@ -602,7 +602,7 @@ namespace UnityEngine.Rendering.Universal
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadows, hasSoftShadows);
         }
 
-        internal static void SetSoftShadowQualityShaderKeywords(RasterCommandBuffer cmd, ref ShadowData shadowData)
+        internal static void SetSoftShadowQualityShaderKeywords(RasterCommandBuffer cmd, UniversalShadowData shadowData)
         {
             CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadows, shadowData.isKeywordSoftShadowsEnabled);
             if (SupportsPerLightSoftShadowQuality())
@@ -637,7 +637,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        internal static bool IsValidShadowCastingLight(ref LightData lightData, int i)
+        internal static bool IsValidShadowCastingLight(UniversalLightData lightData, int i)
         {
             if (i == lightData.mainLightIndex)
                 return false;

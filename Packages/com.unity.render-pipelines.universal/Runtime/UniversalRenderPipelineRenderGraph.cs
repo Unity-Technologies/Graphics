@@ -4,17 +4,13 @@ namespace UnityEngine.Rendering.Universal
 {
     public sealed partial class UniversalRenderPipeline
     {
-        static void RecordRenderGraph(RenderGraph renderGraph, ScriptableRenderContext context, ref RenderingData renderingData)
+        static void RecordRenderGraph(RenderGraph renderGraph, ScriptableRenderContext context, ScriptableRenderer renderer)
         {
-            var renderer = renderingData.cameraData.renderer;
-
-            renderer.RecordRenderGraph(renderGraph, context, ref renderingData);
+            renderer.RecordRenderGraph(renderGraph, context);
         }
 
-        static void RecordAndExecuteRenderGraph(RenderGraph renderGraph, ScriptableRenderContext context, ref RenderingData renderingData)
+        static void RecordAndExecuteRenderGraph(RenderGraph renderGraph, ScriptableRenderContext context, ScriptableRenderer renderer, CommandBuffer cmd, Camera camera)
         {
-            CommandBuffer cmd = renderingData.commandBuffer;
-            Camera camera = renderingData.cameraData.camera;
             RenderGraphParameters rgParams = new RenderGraphParameters()
             {
                 // TODO Rendergraph - we are reusing the sampler name, as camera.name does an alloc. we could probably cache this as the current string we get is a bit too informative
@@ -25,7 +21,7 @@ namespace UnityEngine.Rendering.Universal
             };
 
             var executor = renderGraph.RecordAndExecute(rgParams);
-            RecordRenderGraph(renderGraph, context, ref renderingData);
+            RecordRenderGraph(renderGraph, context, renderer);
             executor.Dispose();
         }
     }

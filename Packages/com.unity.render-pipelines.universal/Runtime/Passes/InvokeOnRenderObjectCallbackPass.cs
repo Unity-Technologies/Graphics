@@ -29,7 +29,7 @@ namespace UnityEngine.Rendering.Universal
             internal TextureHandle depthTarget;
         }
 
-        internal void Render(RenderGraph renderGraph, TextureHandle colorTarget, TextureHandle depthTarget, ref RenderingData renderingData)
+        internal void Render(RenderGraph renderGraph, TextureHandle colorTarget, TextureHandle depthTarget)
         {
             using (var builder = renderGraph.AddLowLevelPass<PassData>("OnRenderObject Callback Pass", out var passData,
                 base.profilingSampler))

@@ -271,61 +271,63 @@ namespace UnityEngine.Rendering.Universal.Internal
         static ProfilingSampler s_SetupDeferredLights = new ProfilingSampler("Setup Deferred lights.");
         private class SetupLightPassData
         {
-            internal RenderingData renderingData;
+            internal UniversalCameraData cameraData;
+            internal UniversalLightData lightData;
             internal DeferredLights deferredLights;
         };
         /// <summary>
         /// Sets up the ForwardLight data for RenderGraph execution
         /// </summary>
-        internal void SetupRenderGraphLights(RenderGraph renderGraph, ref RenderingData renderingData)
+        internal void SetupRenderGraphLights(RenderGraph renderGraph, UniversalCameraData cameraData, UniversalLightData lightData)
         {
             using (var builder = renderGraph.AddLowLevelPass<SetupLightPassData>("SetupDeferredLights", out var passData,
                 s_SetupDeferredLights))
             {
-                passData.renderingData = renderingData;
+                passData.cameraData = cameraData;
+                passData.lightData = lightData;
                 passData.deferredLights = this;
 
                 builder.AllowPassCulling(false);
 
                 builder.SetRenderFunc((SetupLightPassData data, LowLevelGraphContext rgContext) =>
                 {
-                    data.deferredLights.SetupLights(rgContext.legacyCmd, ref data.renderingData);
+                    data.deferredLights.SetupLights(rgContext.legacyCmd, data.cameraData, data.lightData);
                 });
             }
         }
 
-        internal void SetupLights(CommandBuffer cmd, ref RenderingData renderingData)
+        internal void SetupLights(CommandBuffer cmd, UniversalCameraData cameraData, UniversalLightData lightData)
         {
             Profiler.BeginSample(k_SetupLights);
 
-            Camera camera = renderingData.cameraData.camera;
+            Camera camera = cameraData.camera;
             // Support for dynamic resolution.
-            this.RenderWidth = camera.allowDynamicResolution ? Mathf.CeilToInt(ScalableBufferManager.widthScaleFactor * renderingData.cameraData.cameraTargetDescriptor.width) : renderingData.cameraData.cameraTargetDescriptor.width;
-            this.RenderHeight = camera.allowDynamicResolution ? Mathf.CeilToInt(ScalableBufferManager.heightScaleFactor * renderingData.cameraData.cameraTargetDescriptor.height) : renderingData.cameraData.cameraTargetDescriptor.height;
+            this.RenderWidth = camera.allowDynamicResolution ? Mathf.CeilToInt(ScalableBufferManager.widthScaleFactor * cameraData.cameraTargetDescriptor.width) : cameraData.cameraTargetDescriptor.width;
+            this.RenderHeight = camera.allowDynamicResolution ? Mathf.CeilToInt(ScalableBufferManager.heightScaleFactor * cameraData.cameraTargetDescriptor.height) : cameraData.cameraTargetDescriptor.height;
 
-            // inspect lights in renderingData.lightData.visibleLights and convert them to entries in m_stencilVisLights
+            // inspect lights in lightData.visibleLights and convert them to entries in m_stencilVisLights
             PrecomputeLights(
                 out m_stencilVisLights,
                 out m_stencilVisLightOffsets,
-                ref renderingData.lightData.visibleLights,
-                renderingData.lightData.additionalLightsCount != 0 || renderingData.lightData.mainLightIndex >= 0,
-                renderingData.cameraData.camera.worldToCameraMatrix,
-                renderingData.cameraData.camera.orthographic,
-                renderingData.cameraData.camera.nearClipPlane
+                ref lightData.visibleLights,
+                lightData.additionalLightsCount != 0 || lightData.mainLightIndex >= 0,
+                cameraData.camera.worldToCameraMatrix,
+                cameraData.camera.orthographic,
+                cameraData.camera.nearClipPlane
             );
 
             {
                 using (new ProfilingScope(cmd, m_ProfilingSetupLightConstants))
                 {
                     // Shared uniform constants for all lights.
-                    SetupShaderLightConstants(cmd, ref renderingData);
+                    SetupShaderLightConstants(cmd, lightData);
 
 #if UNITY_EDITOR
                     // This flag is used to strip mixed lighting shader variants when a player is built.
                     // All shader variants are available in the editor.
                     bool supportsMixedLighting = true;
 #else
-                    bool supportsMixedLighting = renderingData.lightData.supportsMixedLighting;
+                    bool supportsMixedLighting = lightData.supportsMixedLighting;
 #endif
 
                     // Setup global keywords.
@@ -337,7 +339,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ShadowsShadowMask, isShadowMask);
                     CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MixedLightingSubtractive, isSubtractive); // Backward compatibility
                     // This should be moved to a more global scope when framebuffer fetch is introduced to more passes
-                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.RenderPassEnabled, this.UseRenderPass && renderingData.cameraData.cameraType == CameraType.Game);
+                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.RenderPassEnabled, this.UseRenderPass && cameraData.cameraType == CameraType.Game);
                     CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.LightLayers, UseLightLayers);
 
                     RenderingLayerUtils.SetupProperties(CommandBufferHelpers.GetRasterCommandBuffer(cmd), RenderingLayerMaskSize);
@@ -347,7 +349,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             Profiler.EndSample();
         }
 
-        internal void ResolveMixedLightingMode(ref RenderingData renderingData)
+        internal void ResolveMixedLightingMode(UniversalLightData lightData)
         {
             // Find the mixed lighting mode. This is the same logic as ForwardLights.
             this.MixedLightingSetup = MixedLightingSetup.None;
@@ -355,11 +357,11 @@ namespace UnityEngine.Rendering.Universal.Internal
 #if !UNITY_EDITOR
             // This flag is used to strip mixed lighting shader variants when a player is built.
             // All shader variants are available in the editor.
-            if (renderingData.lightData.supportsMixedLighting)
+            if (lightData.supportsMixedLighting)
 #endif
             {
-                NativeArray<VisibleLight> visibleLights = renderingData.lightData.visibleLights;
-                for (int lightIndex = 0; lightIndex < renderingData.lightData.visibleLights.Length && this.MixedLightingSetup == MixedLightingSetup.None; ++lightIndex)
+                NativeArray<VisibleLight> visibleLights = lightData.visibleLights;
+                for (int lightIndex = 0; lightIndex < lightData.visibleLights.Length && this.MixedLightingSetup == MixedLightingSetup.None; ++lightIndex)
                 {
                     Light light = visibleLights.UnsafeElementAtMutable(lightIndex).light;
 
@@ -461,7 +463,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             return this.GBufferSliceCount <= SystemInfo.supportedRenderTargetCount && !DeferredConfig.IsOpenGL && !DeferredConfig.IsDX10;
         }
 
-        public void Setup(ref RenderingData renderingData,
+        public void Setup(
             AdditionalLightsShadowCasterPass additionalLightsShadowCasterPass,
             bool hasDepthPrepass,
             bool hasNormalPrepass,
@@ -592,7 +594,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
-        internal void ExecuteDeferredPass(RasterCommandBuffer cmd, ref RenderingData renderingData)
+        internal void ExecuteDeferredPass(RasterCommandBuffer cmd, UniversalCameraData cameraData, UniversalLightData lightData, UniversalShadowData shadowData)
         {
             // Workaround for bug.
             // When changing the URP asset settings (ex: shadow cascade resolution), all ScriptableRenderers are recreated but
@@ -609,36 +611,36 @@ namespace UnityEngine.Rendering.Universal.Internal
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._DEFERRED_MIXED_LIGHTING, this.UseShadowMask);
 
                 // This must be set for each eye in XR mode multipass.
-                SetupMatrixConstants(cmd, ref renderingData);
+                SetupMatrixConstants(cmd, cameraData);
 
                 // Firt directional light will apply SSAO if possible, unless there is none.
                 if (!HasStencilLightsOfType(LightType.Directional))
-                    RenderSSAOBeforeShading(cmd, ref renderingData);
+                    RenderSSAOBeforeShading(cmd);
 
-                RenderStencilLights(cmd, ref renderingData);
+                RenderStencilLights(cmd, lightData, shadowData, cameraData.renderer.stripShadowsOffVariants);
 
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._DEFERRED_MIXED_LIGHTING, false);
 
                 // Legacy fog (Windows -> Rendering -> Lighting Settings -> Fog)
-                RenderFog(cmd, ref renderingData);
+                RenderFog(cmd, cameraData.camera.orthographic);
             }
 
             // Restore shader keywords
-            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightShadows, renderingData.shadowData.isKeywordAdditionalLightShadowsEnabled);
-            ShadowUtils.SetSoftShadowQualityShaderKeywords(cmd, ref renderingData.shadowData);
+            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightShadows, shadowData.isKeywordAdditionalLightShadowsEnabled);
+            ShadowUtils.SetSoftShadowQualityShaderKeywords(cmd, shadowData);
             CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.LightCookies, m_LightCookieManager != null && m_LightCookieManager.IsKeywordLightCookieEnabled);
         }
 
         // adapted from ForwardLights.SetupShaderLightConstants
-        void SetupShaderLightConstants(CommandBuffer cmd, ref RenderingData renderingData)
+        void SetupShaderLightConstants(CommandBuffer cmd, UniversalLightData lightData)
         {
             // Main light has an optimized shader path for main light. This will benefit games that only care about a single light.
             // Universal Forward pipeline only supports a single shadow light, if available it will be the main light.
-            SetupMainLightConstants(cmd, ref renderingData.lightData);
+            SetupMainLightConstants(cmd, lightData);
         }
 
         // adapted from ForwardLights.SetupShaderLightConstants
-        void SetupMainLightConstants(CommandBuffer cmd, ref LightData lightData)
+        void SetupMainLightConstants(CommandBuffer cmd, UniversalLightData lightData)
         {
             if (lightData.mainLightIndex < 0)
                 return;
@@ -654,10 +656,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.SetGlobalInt(ShaderConstants._MainLightLayerMask, (int)lightLayerMask);
         }
 
-        void SetupMatrixConstants(RasterCommandBuffer cmd, ref RenderingData renderingData)
+        void SetupMatrixConstants(RasterCommandBuffer cmd, UniversalCameraData cameraData)
         {
-            ref CameraData cameraData = ref renderingData.cameraData;
-
 #if ENABLE_VR && ENABLE_XR_MODULE
             int eyeCount = cameraData.xr.enabled && cameraData.xr.singlePassEnabled ? 2 : 1;
 #else
@@ -765,7 +765,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             return m_stencilVisLightOffsets[(int)type] != k_InvalidLightOffset;
         }
 
-        void RenderStencilLights(RasterCommandBuffer cmd, ref RenderingData renderingData)
+        void RenderStencilLights(RasterCommandBuffer cmd, UniversalLightData lightData, UniversalShadowData shadowData, bool stripShadowsOffVariants)
         {
             if (m_stencilVisLights.Length == 0)
                 return;
@@ -780,23 +780,23 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             using (new ProfilingScope(cmd, m_ProfilingSamplerDeferredStencilPass))
             {
-                NativeArray<VisibleLight> visibleLights = renderingData.lightData.visibleLights;
+                NativeArray<VisibleLight> visibleLights = lightData.visibleLights;
 
                 if (HasStencilLightsOfType(LightType.Directional))
-                    RenderStencilDirectionalLights(cmd, ref renderingData, visibleLights, renderingData.lightData.mainLightIndex);
+                    RenderStencilDirectionalLights(cmd, stripShadowsOffVariants, shadowData, visibleLights, lightData.mainLightIndex);
                 if (HasStencilLightsOfType(LightType.Point))
-                    RenderStencilPointLights(cmd, ref renderingData, visibleLights);
+                    RenderStencilPointLights(cmd, stripShadowsOffVariants, shadowData, visibleLights);
                 if (HasStencilLightsOfType(LightType.Spot))
-                    RenderStencilSpotLights(cmd, ref renderingData, visibleLights);
+                    RenderStencilSpotLights(cmd, stripShadowsOffVariants, shadowData, visibleLights);
             }
 
             Profiler.EndSample();
         }
 
-        void SetAdditionalLightsShadowsKeyword(ref RasterCommandBuffer cmd, ref RenderingData renderingData, bool hasDeferredShadows)
+        void SetAdditionalLightsShadowsKeyword(ref RasterCommandBuffer cmd, bool stripShadowsOffVariants, bool additionalLightShadowsEnabled, bool hasDeferredShadows)
         {
-            bool additionalLightShadowsEnabledInAsset = renderingData.shadowData.additionalLightShadowsEnabled;
-            bool hasOffVariant = !renderingData.cameraData.renderer.stripShadowsOffVariants;
+            bool additionalLightShadowsEnabledInAsset = additionalLightShadowsEnabled;
+            bool hasOffVariant = !stripShadowsOffVariants;
 
             // AdditionalLightShadows Keyword is enabled when:
             // Shadows are enabled in Asset and
@@ -806,7 +806,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightShadows, shouldEnable);
         }
 
-        void RenderStencilDirectionalLights(RasterCommandBuffer cmd, ref RenderingData renderingData, NativeArray<VisibleLight> visibleLights, int mainLightIndex)
+        void RenderStencilDirectionalLights(RasterCommandBuffer cmd, bool stripShadowsOffVariants, UniversalShadowData shadowData, NativeArray<VisibleLight> visibleLights, int mainLightIndex)
         {
             if (m_FullscreenMesh == null)
                 m_FullscreenMesh = CreateFullscreenMesh();
@@ -859,9 +859,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                         cmd.SetGlobalInt(ShaderConstants._CookieLightIndex, cookieLightIndex);
                     }
                 }
-                SetAdditionalLightsShadowsKeyword(ref cmd, ref renderingData, hasDeferredShadows);
+                SetAdditionalLightsShadowsKeyword(ref cmd, stripShadowsOffVariants, shadowData.additionalLightShadowsEnabled, hasDeferredShadows);
 
-                bool hasSoftShadow = hasDeferredShadows && renderingData.shadowData.supportsSoftShadows && light.shadows == LightShadows.Soft;
+                bool hasSoftShadow = hasDeferredShadows && shadowData.supportsSoftShadows && light.shadows == LightShadows.Soft;
 
                 ShadowUtils.SetPerLightSoftShadowKeyword(cmd, hasSoftShadow);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._DEFERRED_FIRST_LIGHT, isFirstLight); // First directional light applies SSAO
@@ -882,7 +882,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.DisableShaderKeyword(ShaderKeywordStrings._DIRECTIONAL);
         }
 
-        void RenderStencilPointLights(RasterCommandBuffer cmd, ref RenderingData renderingData, NativeArray<VisibleLight> visibleLights)
+        void RenderStencilPointLights(RasterCommandBuffer cmd, bool stripShadowsOffVariants, UniversalShadowData shadowData, NativeArray<VisibleLight> visibleLights)
         {
             if (m_SphereMesh == null)
                 m_SphereMesh = CreateSphereMesh();
@@ -919,9 +919,9 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 int shadowLightIndex = m_AdditionalLightsShadowCasterPass != null ? m_AdditionalLightsShadowCasterPass.GetShadowLightIndexFromLightIndex(visLightIndex) : -1;
                 bool hasDeferredLightShadows = light && light.shadows != LightShadows.None && shadowLightIndex >= 0;
-                SetAdditionalLightsShadowsKeyword(ref cmd, ref renderingData, hasDeferredLightShadows);
+                SetAdditionalLightsShadowsKeyword(ref cmd, stripShadowsOffVariants, shadowData.additionalLightShadowsEnabled, hasDeferredLightShadows);
 
-                bool hasSoftShadow = hasDeferredLightShadows && renderingData.shadowData.supportsSoftShadows && light.shadows == LightShadows.Soft;
+                bool hasSoftShadow = hasDeferredLightShadows && shadowData.supportsSoftShadows && light.shadows == LightShadows.Soft;
                 ShadowUtils.SetPerLightSoftShadowKeyword(cmd, hasSoftShadow);
 
                 if (m_LightCookieManager != null)
@@ -951,7 +951,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.DisableShaderKeyword(ShaderKeywordStrings._POINT);
         }
 
-        void RenderStencilSpotLights(RasterCommandBuffer cmd, ref RenderingData renderingData, NativeArray<VisibleLight> visibleLights)
+        void RenderStencilSpotLights(RasterCommandBuffer cmd, bool stripShadowsOffVariants, UniversalShadowData shadowData, NativeArray<VisibleLight> visibleLights)
         {
             if (m_HemisphereMesh == null)
                 m_HemisphereMesh = CreateHemisphereMesh();
@@ -986,9 +986,9 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 int shadowLightIndex = m_AdditionalLightsShadowCasterPass != null ? m_AdditionalLightsShadowCasterPass.GetShadowLightIndexFromLightIndex(visLightIndex) : -1;
                 bool hasDeferredLightShadows = light && light.shadows != LightShadows.None && shadowLightIndex >= 0;
-                SetAdditionalLightsShadowsKeyword(ref cmd, ref renderingData, hasDeferredLightShadows);
+                SetAdditionalLightsShadowsKeyword(ref cmd, stripShadowsOffVariants, shadowData.additionalLightShadowsEnabled, hasDeferredLightShadows);
 
-                bool hasSoftShadow = hasDeferredLightShadows && renderingData.shadowData.supportsSoftShadows && light.shadows == LightShadows.Soft;
+                bool hasSoftShadow = hasDeferredLightShadows && shadowData.supportsSoftShadows && light.shadows == LightShadows.Soft;
                 ShadowUtils.SetPerLightSoftShadowKeyword(cmd, hasSoftShadow);
 
                 if (m_LightCookieManager != null)
@@ -1020,7 +1020,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.DisableShaderKeyword(ShaderKeywordStrings._SPOT);
         }
 
-        void RenderSSAOBeforeShading(RasterCommandBuffer cmd, ref RenderingData renderingData)
+        void RenderSSAOBeforeShading(RasterCommandBuffer cmd)
         {
             if (m_FullscreenMesh == null)
                 m_FullscreenMesh = CreateFullscreenMesh();
@@ -1028,10 +1028,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.DrawMesh(m_FullscreenMesh, Matrix4x4.identity, m_StencilDeferredMaterial, 0, m_StencilDeferredPasses[(int)StencilDeferredPasses.SSAOOnly]);
         }
 
-        void RenderFog(RasterCommandBuffer cmd, ref RenderingData renderingData)
+        void RenderFog(RasterCommandBuffer cmd, bool isOrthographic)
         {
             // Legacy fog does not work in orthographic mode.
-            if (!RenderSettings.fog || renderingData.cameraData.camera.orthographic)
+            if (!RenderSettings.fog || isOrthographic)
                 return;
 
             if (m_FullscreenMesh == null)

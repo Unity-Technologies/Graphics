@@ -47,8 +47,8 @@ public class ScreenCoordOverrideRenderPass : ScriptableRenderPass
 
     public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
     {
+        var resourceData = frameData.Get<UniversalResourceData>();
         var cameraData = frameData.Get<UniversalCameraData>();
-        UniversalRenderer renderer = (UniversalRenderer) cameraData.renderer;
 
         var camDesc = cameraData.cameraTargetDescriptor;
         TextureDesc desc = new TextureDesc(camDesc.width, camDesc.height);//renderingData.cameraData.cameraTargetDescriptor;
@@ -67,7 +67,7 @@ public class ScreenCoordOverrideRenderPass : ScriptableRenderPass
 
         using (var builder = renderGraph.AddRasterRenderPass<PassData>("Blit to TempTex", out var passData))
         {
-            var target = renderer.activeColorTexture;
+            var target = resourceData.activeColorTexture;
             passData.tempTex = builder.UseTextureFragment(tempTex, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
             passData.targetTex = builder.UseTexture(target, IBaseRenderGraphBuilder.AccessFlags.Read);
 
@@ -78,7 +78,7 @@ public class ScreenCoordOverrideRenderPass : ScriptableRenderPass
         }
         using (var builder = renderGraph.AddRasterRenderPass<PassData>("Blit to TargetTex", out var passData))
         {
-            var target = renderer.activeColorTexture;
+            var target = resourceData.activeColorTexture;
             passData.targetTex = builder.UseTextureFragment(target, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
             passData.tempTex = builder.UseTexture(tempTex, IBaseRenderGraphBuilder.AccessFlags.Read);
 

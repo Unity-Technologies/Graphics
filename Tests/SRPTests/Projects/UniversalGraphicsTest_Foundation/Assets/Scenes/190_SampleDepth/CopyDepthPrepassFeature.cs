@@ -139,22 +139,21 @@ internal class ThreeCopyDepths : ScriptableRenderPass
 
     public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
     {
-        UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
         UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
+        UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
 
-        UniversalRenderer renderer = (UniversalRenderer) cameraData.renderer;
         var depthDesc = cameraData.cameraTargetDescriptor;
         depthDesc.graphicsFormat = GraphicsFormat.None;
         depthDesc.depthStencilFormat =  cameraData.cameraTargetDescriptor.depthStencilFormat;
         depthDesc.msaaSamples = 1;
 
-        TextureHandle activeDepth = renderer.activeDepthTexture;
+        TextureHandle activeDepth = resourceData.activeDepthTexture;
         TextureHandle copiedDepth1 = UniversalRenderer.CreateRenderGraphTexture(renderGraph, depthDesc, "CopiedDepth1", false);
         TextureHandle copiedDepth2 = UniversalRenderer.CreateRenderGraphTexture(renderGraph, depthDesc, "CopiedDepth2", false);
 
-        m_CopyDepthPass1.Render(renderGraph, copiedDepth1, activeDepth, cameraData, resourceData, false, "First Copy");
-        m_CopyDepthPass1.Render(renderGraph, copiedDepth2, copiedDepth1, cameraData, resourceData,false, "Second Copy");
-        m_CopyDepthPass1.Render(renderGraph, activeDepth, copiedDepth2, cameraData, resourceData,false, "Third Copy");
+        m_CopyDepthPass1.Render(renderGraph, copiedDepth1, activeDepth, resourceData, cameraData, false, "First Copy");
+        m_CopyDepthPass1.Render(renderGraph, copiedDepth2, copiedDepth1, resourceData, cameraData, false, "Second Copy");
+        m_CopyDepthPass1.Render(renderGraph, activeDepth, copiedDepth2, resourceData, cameraData, false, "Third Copy");
     }
 
     public void Dispose()

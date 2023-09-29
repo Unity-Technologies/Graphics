@@ -64,27 +64,46 @@ namespace UnityEngine.Rendering.Universal
             internal RenderingData renderingData;
             internal ForwardLights forwardLights;
         };
-        private void SetupRenderGraphLights(RenderGraph renderGraph, ref RenderingData renderingData)
+        private void SetupRenderGraphLights(RenderGraph renderGraph)
         {
-            m_ForwardLights.SetupRenderGraphLights(renderGraph, ref renderingData);
+            UniversalRenderingData renderingData = frameData.Get<UniversalRenderingData>();
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+            UniversalLightData lightData = frameData.Get<UniversalLightData>();
+
+            m_ForwardLights.SetupRenderGraphLights(renderGraph, renderingData ,cameraData, lightData);
         }
 
-        internal override void OnRecordRenderGraph(RenderGraph renderGraph, ScriptableRenderContext context, ref RenderingData renderingData)
+        internal override void OnBeginRenderGraphFrame()
         {
-            CameraData cameraData = renderingData.cameraData;
+            UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
+            resourceData.InitFrame();
+        }
 
-            m_ForwardLights.PreSetup(ref renderingData);
-            SetupRenderGraphLights(renderGraph, ref renderingData);
+        internal override void OnEndRenderGraphFrame()
+        {
+            UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
+            resourceData.EndFrame();
+        }
+
+        internal override void OnRecordRenderGraph(RenderGraph renderGraph, ScriptableRenderContext context)
+        {
+            UniversalRenderingData renderingData = frameData.Get<UniversalRenderingData>();
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+            UniversalLightData lightData = frameData.Get<UniversalLightData>();
+            UniversalShadowData shadowData = frameData.Get<UniversalShadowData>();
+
+            m_ForwardLights.PreSetup(renderingData, cameraData, lightData);
+            SetupRenderGraphLights(renderGraph);
 
             TextureHandle mainShadowsTexture = TextureHandle.nullHandle;
             TextureHandle additionalShadowsTexture = TextureHandle.nullHandle;
 
-            if (m_MainLightShadowCasterPass.Setup(ref renderingData))
-                mainShadowsTexture = m_MainLightShadowCasterPass.Render(renderGraph, ref renderingData);
-            if (m_AdditionalLightsShadowCasterPass.Setup(ref renderingData))
-                additionalShadowsTexture = m_AdditionalLightsShadowCasterPass.Render(renderGraph, ref renderingData);
+            if (m_MainLightShadowCasterPass.Setup(renderingData, cameraData, lightData, shadowData))
+                mainShadowsTexture = m_MainLightShadowCasterPass.Render(renderGraph, frameData);
+            if (m_AdditionalLightsShadowCasterPass.Setup(renderingData, cameraData, lightData, shadowData))
+                additionalShadowsTexture = m_AdditionalLightsShadowCasterPass.Render(renderGraph, frameData);
 
-            SetupRenderGraphCameraProperties(renderGraph, renderingData.cameraData.camera.targetTexture == null);
+            SetupRenderGraphCameraProperties(renderGraph, cameraData.camera.targetTexture == null);
 
             RenderTargetIdentifier targetColorId = cameraData.targetTexture != null ? new RenderTargetIdentifier(cameraData.targetTexture) : BuiltinRenderTextureType.CameraTarget;
             RenderTargetIdentifier targetDepthId = cameraData.targetTexture != null ? new RenderTargetIdentifier(cameraData.targetTexture) : BuiltinRenderTextureType.Depth;
@@ -139,7 +158,7 @@ namespace UnityEngine.Rendering.Universal
 
             ImportResourceParams importBackbufferParams = new ImportResourceParams();
             importBackbufferParams.clearOnFirstUse = true;
-            importBackbufferParams.clearColor = renderingData.cameraData.backgroundColor;
+            importBackbufferParams.clearColor = cameraData.backgroundColor;
             importBackbufferParams.discardOnLastUse = false;
 
             var targetHandle = renderGraph.ImportTexture(m_TargetColorHandle, importInfo, importBackbufferParams);
@@ -148,15 +167,19 @@ namespace UnityEngine.Rendering.Universal
 
             if (!renderGraph.NativeRenderPassesEnabled)
             {
-                ClearTargetsPass.Render(renderGraph, targetHandle, depthHandle, renderingData.cameraData);
+                ClearTargetsPass.Render(renderGraph, targetHandle, depthHandle, cameraData);
             }
 
-            m_RenderOpaqueForwardPass.Render(renderGraph, targetHandle, depthHandle, mainShadowsTexture, additionalShadowsTexture, ref renderingData);
+            m_RenderOpaqueForwardPass.Render(renderGraph, frameData, targetHandle, depthHandle, mainShadowsTexture, additionalShadowsTexture);
         }
 
         public override void SetupLights(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            m_ForwardLights.SetupLights(renderingData.commandBuffer, ref renderingData);
+            UniversalRenderingData universalRenderingData = frameData.Get<UniversalRenderingData>();
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+            UniversalLightData lightData = frameData.Get<UniversalLightData>();
+
+            m_ForwardLights.SetupLights(universalRenderingData.commandBuffer, universalRenderingData, cameraData, lightData);
         }
 
         internal override bool supportsNativeRenderPassRendergraphCompiler { get => true; }

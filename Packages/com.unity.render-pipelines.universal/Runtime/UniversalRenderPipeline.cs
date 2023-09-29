@@ -620,7 +620,7 @@ namespace UnityEngine.Rendering.Universal
             InitializeAdditionalCameraData(camera, additionalCameraData, true, cameraData);
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
             if (asset.useAdaptivePerformance)
-                ApplyAdaptivePerformance(ref cameraData);
+                ApplyAdaptivePerformance(cameraData);
 #endif
 
             RenderSingleCamera(context, cameraData, cameraData.postProcessEnabled);
@@ -752,17 +752,19 @@ namespace UnityEngine.Rendering.Universal
 
                 // Do NOT use cameraData after 'InitializeRenderingData'. CameraData state may diverge otherwise.
                 // RenderingData takes a copy of the CameraData.
-                var cullResults = context.Cull(ref cullingParameters);
+                // UniversalRenderingData needs to be created here to avoid copying cullResults.
+                var data = frameData.Create<UniversalRenderingData>();
+                data.cullResults = context.Cull(ref cullingParameters);
                 var isForwardPlus = cameraData.renderer is UniversalRenderer { renderingModeActual: RenderingMode.ForwardPlus };
 
                 // Initialize all the data types required for rendering.
                 using (new ProfilingScope(Profiling.Pipeline.initializeRenderingData))
                 {
                     CreateUniversalResourceData(frameData);
-                    CreateLightData(frameData, asset, cullResults.visibleLights);
+                    CreateLightData(frameData, asset, data.cullResults.visibleLights);
                     CreateShadowData(frameData, asset, isForwardPlus);
                     CreatePostProcessingData(frameData, asset, anyPostProcessingEnabled);
-                    CreateRenderingData(frameData, asset, cullResults, cmd, isForwardPlus, cameraData.renderer);
+                    CreateRenderingData(frameData, asset, cmd, isForwardPlus, cameraData.renderer);
                 }
 
                 var renderingData = new RenderingData(frameData);
@@ -773,18 +775,18 @@ namespace UnityEngine.Rendering.Universal
                     ApplyAdaptivePerformance(ref renderingData);
 #endif
                 {
-                    ref var shadowData = ref renderingData.shadowData;
-                    InitializeMainLightShadowResolution(ref shadowData);
-                    shadowData.shadowAtlasLayout = BuildAdditionalLightsShadowAtlasLayout(ref renderingData.lightData, ref renderingData.shadowData, ref renderingData.cameraData);
-                    shadowData.visibleLightsShadowCullingInfos = ShadowCulling.CullShadowCasters(ref context, ref renderingData.shadowData, ref shadowData.shadowAtlasLayout, ref cullResults);
+                    var shadowData = renderer.frameData.Get<UniversalShadowData>();
+                    InitializeMainLightShadowResolution(shadowData);
+                    shadowData.shadowAtlasLayout = BuildAdditionalLightsShadowAtlasLayout(renderer.frameData.Get<UniversalLightData>(), shadowData, cameraData);
+                    shadowData.visibleLightsShadowCullingInfos = ShadowCulling.CullShadowCasters(ref context, ref renderingData.shadowData, ref shadowData.shadowAtlasLayout, ref data.cullResults);
                 }
 
                 renderer.AddRenderPasses(ref renderingData);
 
                 if (useRenderGraph)
                 {
-                    RecordAndExecuteRenderGraph(s_RenderGraph, context, ref renderingData);
-                    renderer.FinishRenderGraphRendering(ref renderingData);
+                    RecordAndExecuteRenderGraph(s_RenderGraph, context, renderer, cmd, cameraData.camera);
+                    renderer.FinishRenderGraphRendering();
                 }
                 else
                 {
@@ -957,7 +959,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
                 if (asset.useAdaptivePerformance)
-                    ApplyAdaptivePerformance(ref baseCameraData);
+                    ApplyAdaptivePerformance(baseCameraData);
 #endif
                 // update the base camera flag so that the scene depth is stored if needed by overlay cameras later in the frame
                 baseCameraData.postProcessingRequiresDepthTexture |= cameraStackRequiresDepthForPostprocessing;
@@ -1425,13 +1427,12 @@ namespace UnityEngine.Rendering.Universal
             cameraData.backgroundColor = CoreUtils.ConvertSRGBToActiveColorSpace(backgroundColorSRGB);
         }
 
-        static void CreateRenderingData(ContextContainer frameData, UniversalRenderPipelineAsset settings, CullingResults cullResults, CommandBuffer cmd, bool isForwardPlus, ScriptableRenderer renderer)
+        static void CreateRenderingData(ContextContainer frameData, UniversalRenderPipelineAsset settings, CommandBuffer cmd, bool isForwardPlus, ScriptableRenderer renderer)
         {
             var universalLightData = frameData.Get<UniversalLightData>();
 
-            var data = frameData.Create<UniversalRenderingData>();
+            var data = frameData.Get<UniversalRenderingData>();
             data.supportsDynamicBatching = settings.supportsDynamicBatching;
-            data.cullResults = cullResults;
             data.perObjectData = GetPerObjectLightFlags(universalLightData.additionalLightsCount, isForwardPlus);
             data.commandBuffer = cmd;
 
@@ -1573,7 +1574,7 @@ namespace UnityEngine.Rendering.Universal
             shadowData.visibleLightsShadowCullingInfos = default;
         }
 
-        static void InitializeMainLightShadowResolution(ref ShadowData shadowData)
+        static void InitializeMainLightShadowResolution(UniversalShadowData shadowData)
         {
             shadowData.mainLightShadowResolution = ShadowUtils.GetMaxTileResolutionInAtlas(shadowData.mainLightShadowmapWidth, shadowData.mainLightShadowmapHeight, shadowData.mainLightShadowCascadesCount);
             shadowData.mainLightRenderTargetWidth = shadowData.mainLightShadowmapWidth;
@@ -1745,6 +1746,7 @@ namespace UnityEngine.Rendering.Universal
 
             if (totalVisibleLights == 0 || settings.mainLightRenderingMode != LightRenderingMode.PerPixel)
                 return -1;
+
 
             Light sunLight = RenderSettings.sun;
             int brightestDirectionalLightIndex = -1;
@@ -2047,7 +2049,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
-        static void ApplyAdaptivePerformance(ref CameraData cameraData)
+        static void ApplyAdaptivePerformance(UniversalCameraData cameraData)
         {
             var noFrontToBackOpaqueFlags = SortingCriteria.SortingLayer | SortingCriteria.RenderQueue | SortingCriteria.OptimizeStateChanges | SortingCriteria.CanvasOrder;
             if (AdaptivePerformance.AdaptivePerformanceRenderSettings.SkipFrontToBackSorting)
@@ -2140,10 +2142,10 @@ namespace UnityEngine.Rendering.Universal
             public int slice = 0;
         }
 
-        static AdditionalLightsShadowAtlasLayout BuildAdditionalLightsShadowAtlasLayout(ref LightData lightData, ref ShadowData shadowData, ref CameraData cameraData)
+        static AdditionalLightsShadowAtlasLayout BuildAdditionalLightsShadowAtlasLayout(UniversalLightData lightData, UniversalShadowData shadowData, UniversalCameraData cameraData)
         {
             using var profScope = new ProfilingScope(Profiling.Pipeline.buildAdditionalLightsShadowAtlasLayout);
-            return new AdditionalLightsShadowAtlasLayout(ref lightData, ref shadowData, ref cameraData);
+            return new AdditionalLightsShadowAtlasLayout(lightData, shadowData, cameraData);
         }
 
         /// <summary>

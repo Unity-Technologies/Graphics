@@ -320,12 +320,9 @@ namespace UnityEngine.Rendering.Universal
         }
 
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
-        internal void Setup(ref RenderingData renderingData)
+        internal void Setup(CommandBuffer cmd, bool isPreviewCamera)
         {
-            var cmd = renderingData.commandBuffer;
-            ref var cameraData = ref renderingData.cameraData;
-
-            if (IsActiveForCamera(cameraData.isPreviewCamera))
+            if (IsActiveForCamera(isPreviewCamera))
             {
                 cmd.EnableShaderKeyword(ShaderKeywordStrings.DEBUG_DISPLAY);
 
@@ -358,12 +355,11 @@ namespace UnityEngine.Rendering.Universal
         }
 
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
-        internal void Render(RenderGraph renderGraph, ref RenderingData renderingData, TextureHandle srcColor, TextureHandle overlayTexture, TextureHandle dstColor)
+        internal void Render(RenderGraph renderGraph, CommandBuffer cmd, UniversalCameraData cameraData, TextureHandle srcColor, TextureHandle overlayTexture, TextureHandle dstColor)
         {
-            UniversalCameraData cameraData = renderingData.frameData.Get<UniversalCameraData>();
             if (IsActiveForCamera(cameraData.isPreviewCamera) && HDRDebugViewIsActive(cameraData.resolveFinalTarget))
             {
-                m_HDRDebugViewPass.RenderHDRDebug(renderGraph, ref renderingData, srcColor, overlayTexture, dstColor, LightingSettings.hdrDebugMode);
+                m_HDRDebugViewPass.RenderHDRDebug(renderGraph, cmd, cameraData, srcColor, overlayTexture, dstColor, LightingSettings.hdrDebugMode);
             }
         }
 
@@ -371,25 +367,25 @@ namespace UnityEngine.Rendering.Universal
 
         internal DebugRendererLists CreateRendererListsWithDebugRenderState(
              ScriptableRenderContext context,
-             UniversalRenderingData renderingData,
+             ref CullingResults cullResults,
              ref DrawingSettings drawingSettings,
              ref FilteringSettings filteringSettings,
              ref RenderStateBlock renderStateBlock)
         {
             DebugRendererLists debug = new DebugRendererLists(this, filteringSettings);
-            debug.CreateRendererListsWithDebugRenderState(context, renderingData, ref drawingSettings, ref filteringSettings, ref renderStateBlock);
+            debug.CreateRendererListsWithDebugRenderState(context, ref cullResults, ref drawingSettings, ref filteringSettings, ref renderStateBlock);
             return debug;
         }
 
         internal DebugRendererLists CreateRendererListsWithDebugRenderState(
             RenderGraph renderGraph,
-            UniversalRenderingData renderingData,
+            ref CullingResults cullResults,
             ref DrawingSettings drawingSettings,
             ref FilteringSettings filteringSettings,
             ref RenderStateBlock renderStateBlock)
         {
             DebugRendererLists debug = new DebugRendererLists(this, filteringSettings);
-            debug.CreateRendererListsWithDebugRenderState(renderGraph, renderingData, ref drawingSettings, ref filteringSettings, ref renderStateBlock);
+            debug.CreateRendererListsWithDebugRenderState(renderGraph, ref cullResults, ref drawingSettings, ref filteringSettings, ref renderStateBlock);
             return debug;
         }
         #endregion
@@ -431,7 +427,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal void CreateRendererListsWithDebugRenderState(
              ScriptableRenderContext context,
-             UniversalRenderingData renderingData,
+             ref CullingResults cullResults,
              ref DrawingSettings drawingSettings,
              ref FilteringSettings filteringSettings,
              ref RenderStateBlock renderStateBlock)
@@ -442,14 +438,14 @@ namespace UnityEngine.Rendering.Universal
                 DrawingSettings debugDrawingSettings = debugRenderSetup.CreateDrawingSettings(drawingSettings);
                 RenderStateBlock debugRenderStateBlock = debugRenderSetup.GetRenderStateBlock(renderStateBlock);
                 RendererList rendererList = new RendererList();
-                RenderingUtils.CreateRendererListWithRenderStateBlock(context, renderingData, debugDrawingSettings, filteringSettings, debugRenderStateBlock, ref rendererList);
+                RenderingUtils.CreateRendererListWithRenderStateBlock(context, ref cullResults, debugDrawingSettings, filteringSettings, debugRenderStateBlock, ref rendererList);
                 m_ActiveDebugRendererList.Add((rendererList));
             }
         }
 
         internal void CreateRendererListsWithDebugRenderState(
             RenderGraph renderGraph,
-            UniversalRenderingData renderingData,
+            ref CullingResults cullResults,
             ref DrawingSettings drawingSettings,
             ref FilteringSettings filteringSettings,
             ref RenderStateBlock renderStateBlock)
@@ -460,7 +456,7 @@ namespace UnityEngine.Rendering.Universal
                 DrawingSettings debugDrawingSettings = debugRenderSetup.CreateDrawingSettings(drawingSettings);
                 RenderStateBlock debugRenderStateBlock = debugRenderSetup.GetRenderStateBlock(renderStateBlock);
                 RendererListHandle rendererListHdl = new RendererListHandle();
-                RenderingUtils.CreateRendererListWithRenderStateBlock(renderGraph, renderingData, debugDrawingSettings, filteringSettings, debugRenderStateBlock, ref rendererListHdl);
+                RenderingUtils.CreateRendererListWithRenderStateBlock(renderGraph, ref cullResults, debugDrawingSettings, filteringSettings, debugRenderStateBlock, ref rendererListHdl);
                 m_ActiveDebugRendererListHdl.Add((rendererListHdl));
             }
         }

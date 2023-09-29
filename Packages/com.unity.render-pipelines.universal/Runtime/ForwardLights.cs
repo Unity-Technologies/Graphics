@@ -155,7 +155,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         static int AlignByteCount(int count, int align) => align * ((count + align - 1) / align);
 
-        internal void PreSetup(ref RenderingData renderingData)
+        internal void PreSetup(UniversalRenderingData renderingData, UniversalCameraData cameraData, UniversalLightData lightData)
         {
             if (m_UseForwardPlus)
             {
@@ -183,7 +183,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                     }
                 }
 
-                ref var cameraData = ref renderingData.cameraData;
                 var camera = cameraData.camera;
 
                 var screenResolution = math.int2(cameraData.pixelWidth, cameraData.pixelHeight);
@@ -193,18 +192,18 @@ namespace UnityEngine.Rendering.Universal.Internal
                 var viewCount = 1;
 #endif
 
-                m_LightCount = renderingData.lightData.visibleLights.Length;
+                m_LightCount = lightData.visibleLights.Length;
                 var lightOffset = 0;
-                while (lightOffset < m_LightCount && renderingData.lightData.visibleLights[lightOffset].lightType == LightType.Directional)
+                while (lightOffset < m_LightCount && lightData.visibleLights[lightOffset].lightType == LightType.Directional)
                 {
                     lightOffset++;
                 }
                 m_LightCount -= lightOffset;
 
                 m_DirectionalLightCount = lightOffset;
-                if (renderingData.lightData.mainLightIndex != -1 && m_DirectionalLightCount != 0) m_DirectionalLightCount -= 1;
+                if (lightData.mainLightIndex != -1 && m_DirectionalLightCount != 0) m_DirectionalLightCount -= 1;
 
-                var visibleLights = renderingData.lightData.visibleLights.GetSubArray(lightOffset, m_LightCount);
+                var visibleLights = lightData.visibleLights.GetSubArray(lightOffset, m_LightCount);
                 var reflectionProbes = renderingData.cullResults.visibleReflectionProbes;
                 var reflectionProbeCount = math.min(reflectionProbes.Length, UniversalRenderPipeline.maxVisibleReflectionProbes);
                 var itemsPerTile = visibleLights.Length + reflectionProbeCount;
@@ -345,44 +344,53 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <param name="renderingData"></param>
         public void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            SetupLights(renderingData.commandBuffer, ref renderingData);
+            ContextContainer frameData = renderingData.frameData;
+            UniversalRenderingData universalRenderingData = frameData.Get<UniversalRenderingData>();
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+            UniversalLightData lightData = frameData.Get<UniversalLightData>();
+
+            SetupLights(renderingData.commandBuffer, universalRenderingData, cameraData, lightData);
         }
 
         static ProfilingSampler s_SetupForwardLights = new ProfilingSampler("Setup Forward lights.");
         private class SetupLightPassData
         {
-            internal RenderingData renderingData;
+            internal UniversalRenderingData renderingData;
+            internal UniversalCameraData cameraData;
+            internal UniversalLightData lightData;
             internal ForwardLights forwardLights;
         };
         /// <summary>
         /// Sets up the ForwardLight data for RenderGraph execution
         /// </summary>
-        internal void SetupRenderGraphLights(RenderGraph renderGraph, ref RenderingData renderingData)
+        internal void SetupRenderGraphLights(RenderGraph renderGraph, UniversalRenderingData renderingData, UniversalCameraData cameraData, UniversalLightData lightData)
         {
             using (var builder = renderGraph.AddLowLevelPass<SetupLightPassData>("SetupForwardLights", out var passData,
                 s_SetupForwardLights))
             {
                 passData.renderingData = renderingData;
+                passData.cameraData = cameraData;
+                passData.lightData = lightData;
                 passData.forwardLights = this;
 
                 builder.AllowPassCulling(false);
 
                 builder.SetRenderFunc((SetupLightPassData data, LowLevelGraphContext rgContext) =>
                 {
-                    data.forwardLights.SetupLights(rgContext.legacyCmd, ref data.renderingData);
+                    data.forwardLights.SetupLights(rgContext.legacyCmd, data.renderingData, data.cameraData, data.lightData);
                 });
             }
         }
 
-        internal void SetupLights(CommandBuffer cmd, ref RenderingData renderingData)
+        internal void SetupLights(CommandBuffer cmd, UniversalRenderingData renderingData, UniversalCameraData cameraData, UniversalLightData lightData)
         {
-            int additionalLightsCount = renderingData.lightData.additionalLightsCount;
-            bool additionalLightsPerVertex = renderingData.lightData.shadeAdditionalLightsPerVertex;
+            int additionalLightsCount = lightData.additionalLightsCount;
+            bool additionalLightsPerVertex = lightData.shadeAdditionalLightsPerVertex;
             using (new ProfilingScope(m_ProfilingSampler))
             {
                 if (m_UseForwardPlus)
                 {
-                    m_ReflectionProbeManager.UpdateGpuData(cmd, ref renderingData);
+                    m_ReflectionProbeManager.UpdateGpuData(cmd, ref renderingData.cullResults);
 
                     using (new ProfilingScope(m_ProfilingSamplerFPComplete))
                     {
@@ -398,13 +406,13 @@ namespace UnityEngine.Rendering.Universal.Internal
                     }
 
                     cmd.SetGlobalVector("_FPParams0", math.float4(m_ZBinScale, m_ZBinOffset, m_LightCount, m_DirectionalLightCount));
-                    cmd.SetGlobalVector("_FPParams1", math.float4(renderingData.cameraData.pixelRect.size / m_ActualTileWidth, m_TileResolution.x, m_WordsPerTile));
+                    cmd.SetGlobalVector("_FPParams1", math.float4(cameraData.pixelRect.size / m_ActualTileWidth, m_TileResolution.x, m_WordsPerTile));
                     cmd.SetGlobalVector("_FPParams2", math.float4(m_BinCount, m_TileResolution.x * m_TileResolution.y, 0, 0));
                 }
 
-                SetupShaderLightConstants(cmd, ref renderingData);
+                SetupShaderLightConstants(cmd, ref renderingData.cullResults, lightData);
 
-                bool lightCountCheck = (renderingData.cameraData.renderer.stripAdditionalLightOffVariants && renderingData.lightData.supportsAdditionalLights) || additionalLightsCount > 0;
+                bool lightCountCheck = (cameraData.renderer.stripAdditionalLightOffVariants && lightData.supportsAdditionalLights) || additionalLightsCount > 0;
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightsVertex,
                     lightCountCheck && additionalLightsPerVertex && !m_UseForwardPlus);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightsPixel,
@@ -412,15 +420,15 @@ namespace UnityEngine.Rendering.Universal.Internal
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ForwardPlus,
                     m_UseForwardPlus);
 
-                bool isShadowMask = renderingData.lightData.supportsMixedLighting && m_MixedLightingSetup == MixedLightingSetup.ShadowMask;
+                bool isShadowMask = lightData.supportsMixedLighting && m_MixedLightingSetup == MixedLightingSetup.ShadowMask;
                 bool isShadowMaskAlways = isShadowMask && QualitySettings.shadowmaskMode == ShadowmaskMode.Shadowmask;
-                bool isSubtractive = renderingData.lightData.supportsMixedLighting && m_MixedLightingSetup == MixedLightingSetup.Subtractive;
+                bool isSubtractive = lightData.supportsMixedLighting && m_MixedLightingSetup == MixedLightingSetup.Subtractive;
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.LightmapShadowMixing, isSubtractive || isShadowMaskAlways);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ShadowsShadowMask, isShadowMask);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MixedLightingSubtractive, isSubtractive); // Backward compatibility
 
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ReflectionProbeBlending, renderingData.lightData.reflectionProbeBlending);
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ReflectionProbeBoxProjection, renderingData.lightData.reflectionProbeBoxProjection);
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ReflectionProbeBlending, lightData.reflectionProbeBlending);
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ReflectionProbeBoxProjection, lightData.reflectionProbeBoxProjection);
 
                 var asset = UniversalRenderPipeline.asset;
                 bool apvIsEnabled = asset != null && asset.lightProbeSystem == LightProbeSystem.ProbeVolumes;
@@ -454,16 +462,16 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 bool enableProbeVolumes = ProbeReferenceVolume.instance.UpdateShaderVariablesProbeVolumes(cmd,
                     stack.GetComponent<ProbeVolumesOptions>(),
-                    renderingData.cameraData.IsTemporalAAEnabled() ? Time.frameCount : 0);
+                    cameraData.IsTemporalAAEnabled() ? Time.frameCount : 0);
 
                 cmd.SetGlobalInt("_EnableProbeVolumes", enableProbeVolumes ? 1 : 0);
 
-                bool lightLayers = renderingData.lightData.supportsLightLayers;
+                bool lightLayers = lightData.supportsLightLayers;
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.LightLayers, lightLayers);
 
                 if (m_LightCookieManager != null)
                 {
-                    m_LightCookieManager.Setup(cmd, ref renderingData.lightData);
+                    m_LightCookieManager.Setup(cmd, lightData);
                 }
                 else
                 {
@@ -525,17 +533,17 @@ namespace UnityEngine.Rendering.Universal.Internal
             lightLayerMask = RenderingLayerUtils.ToValidRenderingLayers(additionalLightData.renderingLayers);
         }
 
-        void SetupShaderLightConstants(CommandBuffer cmd, ref RenderingData renderingData)
+        void SetupShaderLightConstants(CommandBuffer cmd, ref CullingResults cullResults, UniversalLightData lightData)
         {
             m_MixedLightingSetup = MixedLightingSetup.None;
 
             // Main light has an optimized shader path for main light. This will benefit games that only care about a single light.
             // Universal pipeline also supports only a single shadow light, if available it will be the main light.
-            SetupMainLightConstants(cmd, ref renderingData.lightData);
-            SetupAdditionalLightConstants(cmd, ref renderingData);
+            SetupMainLightConstants(cmd, lightData);
+            SetupAdditionalLightConstants(cmd, ref cullResults, lightData);
         }
 
-        void SetupMainLightConstants(CommandBuffer cmd, ref LightData lightData)
+        void SetupMainLightConstants(CommandBuffer cmd, UniversalLightData lightData)
         {
             Vector4 lightPos, lightColor, lightAttenuation, lightSpotDir, lightOcclusionChannel;
             uint lightLayerMask;
@@ -549,13 +557,11 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.SetGlobalInt(LightConstantBuffer._MainLightLayerMask, (int)lightLayerMask);
         }
 
-        void SetupAdditionalLightConstants(CommandBuffer cmd, ref RenderingData renderingData)
+        void SetupAdditionalLightConstants(CommandBuffer cmd, ref CullingResults cullResults, UniversalLightData lightData)
         {
-            ref LightData lightData = ref renderingData.lightData;
-            var cullResults = renderingData.cullResults;
             var lights = lightData.visibleLights;
             int maxAdditionalLightsCount = UniversalRenderPipeline.maxVisibleAdditionalLights;
-            int additionalLightsCount = SetupPerObjectLightIndices(cullResults, ref lightData);
+            int additionalLightsCount = SetupPerObjectLightIndices(cullResults, lightData);
             if (additionalLightsCount > 0)
             {
                 if (m_UseStructuredBuffer)
@@ -626,7 +632,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
-        int SetupPerObjectLightIndices(CullingResults cullResults, ref LightData lightData)
+        int SetupPerObjectLightIndices(CullingResults cullResults, UniversalLightData lightData)
         {
             if (lightData.additionalLightsCount == 0 || m_UseForwardPlus)
                 return lightData.additionalLightsCount;

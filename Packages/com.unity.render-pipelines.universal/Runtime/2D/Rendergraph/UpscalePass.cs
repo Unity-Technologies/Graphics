@@ -26,11 +26,11 @@ namespace UnityEngine.Rendering.Universal
             m_BlitMaterial = blitMaterial;
         }
 
-        public void Setup(RTHandle colorTargetHandle, int width, int height, FilterMode mode, ref RenderingData renderingData, out RTHandle upscaleHandle)
+        public void Setup(RTHandle colorTargetHandle, int width, int height, FilterMode mode, RenderTextureDescriptor cameraTargetDescriptor, out RTHandle upscaleHandle)
         {
             source = colorTargetHandle;
 
-            RenderTextureDescriptor desc = renderingData.cameraData.cameraTargetDescriptor;
+            RenderTextureDescriptor desc = cameraTargetDescriptor;
             desc.width = width;
             desc.height = height;
             desc.depthBufferBits = 0;
@@ -61,9 +61,9 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        public void Render(RenderGraph graph, ref CameraData cameraData, in TextureHandle cameraColorAttachment, in TextureHandle upscaleHandle)
+        public void Render(RenderGraph graph, Camera camera, in TextureHandle cameraColorAttachment, in TextureHandle upscaleHandle)
         {
-            cameraData.camera.TryGetComponent<PixelPerfectCamera>(out var ppc);
+            camera.TryGetComponent<PixelPerfectCamera>(out var ppc);
             if (ppc == null || !ppc.enabled || !ppc.requiresUpscalePass)
                 return;
 

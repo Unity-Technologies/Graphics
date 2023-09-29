@@ -40,28 +40,42 @@ namespace UnityEngine.Rendering.Universal.Internal
         // ScriptableRenderPass
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            m_DeferredLights.ExecuteDeferredPass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), ref renderingData);
+            ContextContainer frameData = renderingData.frameData;
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+            UniversalLightData lightData = frameData.Get<UniversalLightData>();
+            UniversalShadowData shadowData = frameData.Get<UniversalShadowData>();
+
+            m_DeferredLights.ExecuteDeferredPass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), cameraData, lightData, shadowData);
         }
 
         private class PassData
         {
+            internal UniversalCameraData cameraData;
+            internal UniversalLightData lightData;
+            internal UniversalShadowData shadowData;
+
             internal TextureHandle color;
             internal TextureHandle depth;
             internal TextureHandle[] gbuffer;
-            internal RenderingData renderingData;
             internal DeferredLights deferredLights;
         }
 
-        internal void Render(RenderGraph renderGraph, TextureHandle color, TextureHandle depth, TextureHandle[] gbuffer, ref RenderingData renderingData, ContextContainer frameData)
+        internal void Render(RenderGraph renderGraph, ContextContainer frameData, TextureHandle color, TextureHandle depth, TextureHandle[] gbuffer)
         {
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+            UniversalLightData lightData = frameData.Get<UniversalLightData>();
+            UniversalShadowData shadowData = frameData.Get<UniversalShadowData>();
+
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("Deferred Lighting Pass", out var passData, base.profilingSampler))
             {
+                passData.cameraData = cameraData;
+                passData.lightData = lightData;
+                passData.shadowData = shadowData;
 
                 passData.color = builder.UseTextureFragment(color, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
                 passData.depth = builder.UseTextureFragmentDepth(depth, IBaseRenderGraphBuilder.AccessFlags.Write);
                 passData.deferredLights = m_DeferredLights;
-                passData.renderingData = renderingData;
 
                 if (!m_DeferredLights.UseRenderPass)
                 {
@@ -89,7 +103,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
                 {
-                    data.deferredLights.ExecuteDeferredPass(context.cmd, ref data.renderingData);
+                    data.deferredLights.ExecuteDeferredPass(context.cmd, data.cameraData, data.lightData, data.shadowData);
                 });
             }
 

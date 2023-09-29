@@ -63,10 +63,10 @@ namespace UnityEngine.Rendering.Universal
             // TODO: Make this use a raster pass it likely doesn't need LowLevel. On the other hand probably ok as-is for the tests.
             using (var builder = renderGraph.AddLowLevelPass<PassData>("Capture Motion Vector Pass", out var passData, s_ProfilingSampler))
             {
+                UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
                 UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
-                UniversalRenderer renderer = (UniversalRenderer) cameraData.renderer;
 
-                TextureHandle color = renderer.activeColorTexture;
+                TextureHandle color = resourceData.activeColorTexture;
                 passData.target = builder.UseTexture(color, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
                 passData.camera = cameraData.camera;
                 passData.material = m_Material;

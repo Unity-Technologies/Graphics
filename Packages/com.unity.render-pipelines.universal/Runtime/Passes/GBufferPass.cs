@@ -117,13 +117,18 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            InitPassData(ref renderingData, ref m_PassData);
-            InitRendererLists(ref renderingData, ref m_PassData, context, default(RenderGraph), false);
+            ContextContainer frameData = renderingData.frameData;
+            UniversalRenderingData universalRenderingData = frameData.Get<UniversalRenderingData>();
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+            UniversalLightData lightData = frameData.Get<UniversalLightData>();
+
+            m_PassData.deferredLights = m_DeferredLights;
+            InitRendererLists(ref m_PassData, context, default(RenderGraph), universalRenderingData, cameraData, lightData, false);
 
             var cmd = renderingData.commandBuffer;
             using (new ProfilingScope(cmd, s_ProfilingSampler))
             {
-                ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(cmd), m_PassData, m_PassData.rendererList, m_PassData.objectsWithErrorRendererList, ref renderingData);
+                ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(cmd), m_PassData, m_PassData.rendererList, m_PassData.objectsWithErrorRendererList);
 
                 // If any sub-system needs camera normal texture, make it available.
                 // Input attachments will only be used when this is not needed so safe to skip in that case
@@ -132,7 +137,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
-        static void ExecutePass(RasterCommandBuffer cmd, PassData data, RendererList rendererList, RendererList errorRendererList, ref RenderingData renderingData)
+        static void ExecutePass(RasterCommandBuffer cmd, PassData data, RendererList rendererList, RendererList errorRendererList)
         {
             bool usesRenderingLayers = data.deferredLights.UseRenderingLayers && !data.deferredLights.HasRenderingLayerPrepass;
             if (usesRenderingLayers)
@@ -159,7 +164,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             internal TextureHandle[] gbuffer;
             internal TextureHandle depth;
 
-            internal RenderingData renderingData;
             internal DeferredLights deferredLights;
 
             internal RendererListHandle rendererListHdl;
@@ -170,23 +174,14 @@ namespace UnityEngine.Rendering.Universal.Internal
             internal RendererList objectsWithErrorRendererList;
         }
 
-        /// <summary>
-        /// Initialize the shared pass data.
-        /// </summary>
-        /// <param name="passData"></param>
-        private void InitPassData(ref RenderingData renderingData, ref PassData passData)
-        {
-            passData.deferredLights = m_DeferredLights;
-            passData.renderingData = renderingData;
-        }
 
-        private void InitRendererLists(ref RenderingData renderingData, ref PassData passData, ScriptableRenderContext context, RenderGraph renderGraph, bool useRenderGraph)
+        private void InitRendererLists( ref PassData passData, ScriptableRenderContext context, RenderGraph renderGraph, UniversalRenderingData renderingData, UniversalCameraData cameraData, UniversalLightData lightData, bool useRenderGraph)
         {
             // User can stack several scriptable renderers during rendering but deferred renderer should only lit pixels added by this gbuffer pass.
             // If we detect we are in such case (camera is in overlay mode), we clear the highest bits of stencil we have control of and use them to
             // mark what pixel to shade during deferred pass. Gbuffer will always mark pixels using their material types.
             ShaderTagId lightModeTag = s_ShaderTagUniversalGBuffer;
-            var drawingSettings = CreateDrawingSettings(lightModeTag, ref renderingData, renderingData.cameraData.defaultOpaqueSortFlags);
+            var drawingSettings = CreateDrawingSettings(lightModeTag, renderingData, cameraData, lightData, cameraData.defaultOpaqueSortFlags);
             var filterSettings = m_FilteringSettings;
             NativeArray<ShaderTagId> tagValues = new NativeArray<ShaderTagId>(s_ShaderTagValues, Allocator.Temp);
             NativeArray<RenderStateBlock> stateBlocks = new NativeArray<RenderStateBlock>(s_RenderStateBlocks, Allocator.Temp);
@@ -210,17 +205,20 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             if (useRenderGraph)
             {
-                RenderingUtils.CreateRendererListObjectsWithError(renderGraph, ref renderingData.cullResults, renderingData.cameraData.camera, filterSettings, SortingCriteria.None, ref passData.objectsWithErrorRendererListHdl);
+                RenderingUtils.CreateRendererListObjectsWithError(renderGraph, ref renderingData.cullResults, cameraData.camera, filterSettings, SortingCriteria.None, ref passData.objectsWithErrorRendererListHdl);
             }
             else
             {
-                RenderingUtils.CreateRendererListObjectsWithError(context, ref renderingData.cullResults, renderingData.cameraData.camera, filterSettings, SortingCriteria.None, ref passData.objectsWithErrorRendererList);
+                RenderingUtils.CreateRendererListObjectsWithError(context, ref renderingData.cullResults, cameraData.camera, filterSettings, SortingCriteria.None, ref passData.objectsWithErrorRendererList);
             }
         }
 
-        internal void Render(RenderGraph renderGraph, TextureHandle cameraColor, TextureHandle cameraDepth, ref RenderingData renderingData, ContextContainer frameData)
+        internal void Render(RenderGraph renderGraph, ContextContainer frameData, TextureHandle cameraColor, TextureHandle cameraDepth)
         {
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
+            UniversalRenderingData renderingData = frameData.Get<UniversalRenderingData>();
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+            UniversalLightData lightData = frameData.Get<UniversalLightData>();
 
             TextureHandle[] gbuffer;
 
@@ -230,7 +228,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 passData.gbuffer = gbuffer = m_DeferredLights.GbufferTextureHandles;
                 for (int i = 0; i < m_DeferredLights.GBufferSliceCount; i++)
                 {
-                    var gbufferSlice = renderingData.cameraData.cameraTargetDescriptor;
+                    var gbufferSlice = cameraData.cameraTargetDescriptor;
                     gbufferSlice.depthBufferBits = 0; // make sure no depth surface is actually created
                     gbufferSlice.stencilFormat = GraphicsFormat.None;
 
@@ -255,9 +253,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 RenderGraphUtils.UseDBufferIfValid(builder, resourceData);
                 resourceData.gBuffer = gbuffer;
                 passData.depth = builder.UseTextureFragmentDepth(cameraDepth, IBaseRenderGraphBuilder.AccessFlags.Write);
+                passData.deferredLights = m_DeferredLights;
 
-                InitPassData(ref renderingData, ref passData);
-                InitRendererLists(ref renderingData, ref passData, default(ScriptableRenderContext), renderGraph, true);
+                InitRendererLists(ref passData, default(ScriptableRenderContext), renderGraph, renderingData, cameraData, lightData, true);
                 builder.UseRendererList(passData.rendererListHdl);
                 builder.UseRendererList(passData.objectsWithErrorRendererListHdl);
 
@@ -266,7 +264,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
                 {
-                    ExecutePass(context.cmd, data, data.rendererListHdl, data.objectsWithErrorRendererListHdl, ref data.renderingData);
+                    ExecutePass(context.cmd, data, data.rendererListHdl, data.objectsWithErrorRendererListHdl);
                 });
             }
 

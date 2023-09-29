@@ -41,42 +41,39 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
-            InitSkyboxRendererList(context, ref renderingData);
-            InitPassData(ref renderingData, ref m_PassData);
-            ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), m_PassData.skyRendererList, ref renderingData);
+            InitSkyboxRendererList(context, cameraData);
+            InitPassData(ref m_PassData, cameraData.xr);
+            ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), m_PassData.xr, m_PassData.skyRendererList);
         }
 
-        private static void ExecutePass(RasterCommandBuffer cmd, RendererList rendererList, ref RenderingData renderingData)
+        private static void ExecutePass(RasterCommandBuffer cmd, XRPass xr, RendererList rendererList)
         {
-            ref CameraData cameraData = ref renderingData.cameraData;
-
 #if ENABLE_VR && ENABLE_XR_MODULE
-            if (cameraData.xr.enabled && cameraData.xr.singlePassEnabled)
+            if (xr.enabled && xr.singlePassEnabled)
                 cmd.SetSinglePassStereo(SystemInfo.supportsMultiview ? SinglePassStereoMode.Multiview : SinglePassStereoMode.Instancing);
 #endif
             cmd.DrawRendererList(rendererList);
 
 #if ENABLE_VR && ENABLE_XR_MODULE
-            if (cameraData.xr.enabled && cameraData.xr.singlePassEnabled)
+            if (xr.enabled && xr.singlePassEnabled)
                 cmd.SetSinglePassStereo(SinglePassStereoMode.None);
 #endif
         }
 
         private class PassData
         {
-            internal RenderingData renderingData;
+            internal XRPass xr;
             internal RendererList skyRendererList;
         }
 
-        private void InitPassData(ref RenderingData renderingData, ref PassData passData)
+        private void InitPassData(ref PassData passData, XRPass xr)
         {
-            passData.renderingData = renderingData;
+            passData.xr = xr;
             passData.skyRendererList = m_SkyRendererList;
         }
 
-        private void InitSkyboxRendererList(ScriptableRenderContext context, ref RenderingData renderingData)
+        private void InitSkyboxRendererList(ScriptableRenderContext context, UniversalCameraData cameraData)
         {
-            ref CameraData cameraData = ref renderingData.cameraData;
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (cameraData.xr.enabled)
             {
@@ -99,9 +96,9 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        internal void Render(RenderGraph renderGraph, ScriptableRenderContext context, TextureHandle colorTarget, TextureHandle depthTarget, ref RenderingData renderingData)
+        internal void Render(RenderGraph renderGraph, ContextContainer frameData, ScriptableRenderContext context, TextureHandle colorTarget, TextureHandle depthTarget)
         {
-            UniversalCameraData cameraData = renderingData.frameData.Get<UniversalCameraData>();
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
 
             var activeDebugHandler = GetActiveDebugHandler(cameraData);
             if (activeDebugHandler != null)
@@ -117,8 +114,8 @@ namespace UnityEngine.Rendering.Universal
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("Draw Skybox Pass", out var passData,
                 base.profilingSampler))
             {
-                InitSkyboxRendererList(context, ref renderingData);
-                InitPassData(ref renderingData, ref passData);
+                InitSkyboxRendererList(context, cameraData);
+                InitPassData(ref passData, cameraData.xr);
                 builder.UseTextureFragment(colorTarget, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
                 builder.UseTextureFragmentDepth(depthTarget, IBaseRenderGraphBuilder.AccessFlags.Write);
 
@@ -126,7 +123,7 @@ namespace UnityEngine.Rendering.Universal
 
                 builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
                 {
-                    ExecutePass(context.cmd, data.skyRendererList, ref data.renderingData);
+                    ExecutePass(context.cmd, data.xr, data.skyRendererList);
                 });
             }
         }

@@ -49,7 +49,7 @@ namespace UnityEngine.Rendering.Universal
         int m_ShadowSlicesScaleFactor;
         int m_AtlasSize;
 
-        public AdditionalLightsShadowAtlasLayout(ref LightData lightData, ref ShadowData shadowData, ref CameraData cameraData)
+        public AdditionalLightsShadowAtlasLayout(UniversalLightData lightData, UniversalShadowData shadowData, UniversalCameraData cameraData)
         {
             bool useStructuredBuffer = RenderingUtils.useStructuredBuffer;
             NativeArray<VisibleLight> visibleLights = lightData.visibleLights;
@@ -92,7 +92,7 @@ namespace UnityEngine.Rendering.Universal
                     // Skip main directional light as it is not packed into the shadow atlas
                     continue;
 
-                if (ShadowUtils.IsValidShadowCastingLight(ref lightData, visibleLightIndex))
+                if (ShadowUtils.IsValidShadowCastingLight(lightData, visibleLightIndex))
                 {
                     ref VisibleLight vl = ref visibleLights.UnsafeElementAt(visibleLightIndex);
 
