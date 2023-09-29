@@ -29,9 +29,13 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
                 nativeCompiler.OutputDebugGraph();
 
-                foreach (var pass in nativeCompiler.ActivePasses)
+                var passData = nativeCompiler.contextData.passData;
+                int numPasses = passData.Length;
+                for (int i = 0; i < numPasses; ++i)
                 {
-                    var rp = m_RenderPasses[pass];
+                    if (passData.ElementAt(i).culled)
+                        continue;
+                    var rp = m_RenderPasses[i];
                     m_RendererLists.AddRange(rp.usedRendererListList);
                 }
 

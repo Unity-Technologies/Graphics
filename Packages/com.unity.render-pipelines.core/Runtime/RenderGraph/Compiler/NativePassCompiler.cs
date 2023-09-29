@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Unity.Collections;
 using UnityEngine.Rendering;
 
 // Typedef for the in-engine RendererList API (to avoid conflicts with the experimental version)
@@ -54,28 +55,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
             toVisitPassIds.Clear();
         }
 
-        public CompilerContextData.ActivePassIterator ActivePasses
-        {
-            get => contextData.ActivePasses;
-        }
-
-        // Used to tag distances from the source nodes to the sink nodes
-        void TagDistance_R(CompilerContextData ctx, int node, int depth)
-        {
-            // We found a new longer path or the node was not visited yet
-            ref var pass = ref ctx.passData[node];
-            if (pass.tag < depth)
-            {
-                pass.tag = depth;
-
-                // Flood fill to children
-                foreach (var n in pass.OutputNodes(ctx))
-                {
-                    TagDistance_R(ctx, n, depth + 1);
-                }
-            }
-        }
-
         void SetPassStatesForNativePass(int nativePassId)
         {
             NativePassData.SetPassStatesForNativePass(contextData, nativePassId);
@@ -120,9 +99,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
                         throw new Exception("Pass '" + passes[passId].name + "' is using the legacy rendergraph API. You cannot use legacy passes with the native render pass compiler. Please do not use AddPass on the rendergrpah but use one of the more specific pas types such as AddRasterPass");
                     }
 
-                    int addIdx = ctx.passData.Add(new PassData(ref passes, passId));
+                    ctx.passData.Add(new PassData(ref passes, passId));
+                    int addIdx = ctx.passData.LastIndex();
                     Debug.Assert(addIdx == passId);
-                    ref var pass = ref ctx.passData[passId];
+                    ctx.passNames.Add(new Name(passes[passId].name));
+
+                    ref var pass = ref ctx.passData.ElementAt(passId);
 
                     if (pass.hasSideEffects)
                     {
@@ -135,7 +117,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
                     if (pass.type == RenderGraphPassType.Raster)
                     {
                         // Grab offset in context fragment list to begin building the fragment list
-                        pass.firstFragment = ctx.fragmentData.size;
+                        pass.firstFragment = ctx.fragmentData.Length;
 
                         // Depth attachment is always at index 0
                         if (passes[passId].depthBuffer.handle.IsValid())
@@ -162,7 +144,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
                         }
 
                         // Grab offset in context fragment list to begin building the fragment input list
-                        pass.firstFragmentInput = ctx.fragmentData.size;
+                        pass.firstFragmentInput = ctx.fragmentData.Length;
 
                         for (var ci = 0; ci < passes[passId].fragmentInputMaxIndex + 1; ++ci)
                         {
@@ -179,7 +161,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
                         // Allocate a stand-alone native renderpass for each rasterpass that actually renders something for now
                         if (pass.numFragments > 0)
                         {
-                            pass.nativePassIndex = ctx.nativePassData.Add(new NativePassData(ref pass, ctx));
+                            ctx.nativePassData.Add(new NativePassData(ref pass, ctx));
+                            pass.nativePassIndex = ctx.nativePassData.LastIndex();
                         }
                         else
                         {
@@ -192,8 +175,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
                     }
 
                     // Set up per resource type read/write lists for this pass
-                    pass.firstInput = ctx.inputData.size; // Grab offset in context input list
-                    pass.firstOutput = ctx.outputData.size; // Grab offset in context output list
+                    pass.firstInput = ctx.inputData.Length; // Grab offset in context input list
+                    pass.firstOutput = ctx.outputData.Length; // Grab offset in context output list
                     for (int type = 0; type < (int)RenderGraphResourceType.Count; ++type)
                     {
                         var resourceWrite = passes[passId].resourceWriteLists[type];
@@ -248,7 +231,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
         void CullUnusedRenderPasses()
         {
             var ctx = contextData;
-    
+
             // Source = input of the graph and starting point that takes no inputs itself : e.g. z-prepass
             // Sink = output of the graph and end point e.g. rendered frame
             // Usually sinks will have to be pinned or write to an external resource or the whole graph would get culled :-)
@@ -262,31 +245,37 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
                 {
                     int passId = toVisitPassIds.Pop();
 
+                    ref var passData = ref ctx.passData.ElementAt(passId);
+
                     // We already got to this node through another dependency chain
-                    if (ctx.passData[passId].tag != 0) continue;
+                    if (passData.tag != 0) continue;
 
                     // Flow upstream from this node
-                    foreach (var inputPassIdx in ctx.passData[passId].InputNodes(ctx))
+                    foreach (ref readonly var input in passData.Inputs(ctx))
                     {
-                        toVisitPassIds.Push(inputPassIdx);
+                        int inputPassIndex = ctx.resources[input.resource].writePass;
+                        toVisitPassIds.Push(inputPassIndex);
                     }
 
                     // Mark this node as visited
-                    ctx.passData[passId].tag = 1;
+                    passData.tag = 1;
                 }
 
                 // Update graph based on freshly culled nodes, remove any connections
-                foreach (ref var pass in ctx.passData)
+                var numPasses = ctx.passData.Length;
+                for (int passIndex = 0; passIndex < numPasses; passIndex++)
                 {
+                    ref var pass = ref ctx.passData.ElementAt(passIndex);
                     // mark any unvisited passes as culled
                     pass.culled = !graph.disableCulling && (pass.tag == 0);
 
                     // Remove the connections from the list so they won't be visited again
                     if (pass.culled)
                     {
-                        foreach (ref var inputResource in ctx.passData[pass.passId].Inputs(ctx))
+                        foreach (ref readonly var input in pass.Inputs(ctx))
                         {
-                            ctx.resources[inputResource.resource].RemoveReadingPass(ctx, inputResource.resource, pass.passId);
+                            var inputResource = input.resource;
+                            ctx.resources[inputResource].RemoveReadingPass(ctx, inputResource, pass.passId);
                         }
                     }
                 }
@@ -297,15 +286,17 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
                 while (atLeastOne)
                 {
                     atLeastOne = false;
-                    foreach (ref var pass in ctx.passData)
+                    for (int passIndex = 0; passIndex < numPasses; passIndex++)
                     {
+                        ref var pass = ref ctx.passData.ElementAt(passIndex);
                         if (pass.culled || pass.hasSideEffects)
                             continue;
 
                         var noReaders = true;
-                        foreach (ref var outputResource in ctx.passData[pass.passId].Outputs(ctx))
+                        foreach (ref readonly var output in pass.Outputs(ctx))
                         {
-                            if (ctx.resources[outputResource.resource].numReaders != 0)
+                            var outputResource = output.resource;
+                            if (ctx.resources[outputResource].numReaders != 0)
                             {
                                 noReaders = false;
                                 break;
@@ -316,9 +307,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
                         {
                             atLeastOne = true;
                             pass.culled = true;
-                            foreach (ref var inputResource in ctx.passData[pass.passId].Inputs(ctx))
+                            foreach (ref readonly var input in pass.Inputs(ctx))
                             {
-                                ctx.resources[inputResource.resource].RemoveReadingPass(ctx, inputResource.resource, pass.passId);
+                                var inputResource = input.resource;
+                                ctx.resources[inputResource].RemoveReadingPass(ctx, inputResource, pass.passId);
                             }
                         }
                     }
@@ -340,9 +332,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
 
                 int activeNativePassId = -1;
 
-                for (var passIdx = 0; passIdx < ctx.passData.size; ++passIdx)
+                for (var passIdx = 0; passIdx < ctx.passData.Length; ++passIdx)
                 {
-                    ref var passToAdd = ref ctx.passData[passIdx];
+                    ref var passToAdd = ref ctx.passData.ElementAt(passIdx);
 
                     // If we're culled just ignore it
                     if (passToAdd.culled)
@@ -371,7 +363,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
                     if (testResult.reason != PassBreakReason.Merged)
                     {
                         SetPassStatesForNativePass(activeNativePassId);
-                        contextData.nativePassData[activeNativePassId].breakAudit = testResult;
+                        ref var nativePassData = ref contextData.nativePassData.ElementAt(activeNativePassId);
+                        nativePassData.breakAudit = testResult;
 
                         if (testResult.reason == PassBreakReason.NonRasterPass)
                         {
@@ -391,7 +384,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
                 {
                     // "Close" the last native pass by marking the last graph pass as end
                     SetPassStatesForNativePass(activeNativePassId);
-                    contextData.nativePassData[activeNativePassId].breakAudit = new PassBreakAudit(PassBreakReason.EndOfGraph, -1);
+                    ref var nativePassData = ref contextData.nativePassData.ElementAt(activeNativePassId);
+                    nativePassData.breakAudit = new PassBreakAudit(PassBreakReason.EndOfGraph, -1);
                 }
             }
         }
@@ -409,15 +403,17 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
                 // TODO: I have a feeling this can be done more optimally by walking the graph instead of loping over all the pases twice
                 // to be investigated
                 // It also won't work if we start reordering passes.
-                foreach (ref var pass in ctx.passData)
+                for (int passIndex = 0; passIndex < ctx.passData.Length; passIndex++)
                 {
+                    ref var pass = ref ctx.passData.ElementAt(passIndex);
                     if (pass.culled)
                         continue;
 
                     // Loop over all the resources this pass needs (=inputs)
-                    foreach (ref var inp in pass.Inputs(ctx))
+                    foreach (ref readonly var input in pass.Inputs(ctx))
                     {
-                        ref var pointTo = ref ctx.UnversionedResourceData(inp.resource);
+                        var inputResource = input.resource;
+                        ref var pointTo = ref ctx.UnversionedResourceData(inputResource);
                         pointTo.lastUsePassID = -1;
 
                         // If we use version 0 and nobody else is using it yet mark this pass
@@ -425,18 +421,18 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
                         // E.g.
                         // pass1.UseTex(v0,Read) -> this will clear the pass but keep it at v0
                         // pass2.UseTex(v0,Read) -> "reads" v0
-                        if (inp.resource.version == 0)
+                        if (inputResource.version == 0)
                         {
                             if (pointTo.firstUsePassID < 0)
                             {
                                 pointTo.firstUsePassID = pass.passId;
-                                pass.AddFirstUse(inp.resource, ctx);
+                                pass.AddFirstUse(inputResource, ctx);
                             }
                         }
 
                         // This pass uses the last version of a resource increase the ref count of this resource
                         var last = pointTo.latestVersionNumber;
-                        if (last == inp.resource.version)
+                        if (last == inputResource.version)
                         {
                             pointTo.tag++; //Refcount of how many passes are using the last version of a resource
                         }
@@ -444,10 +440,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
 
                     //Also look at outputs (but with version 1) for edge case were we do a Write (but no read) to a texture and the pass is manually excluded from culling
                     //Because it isn't read it won't be in the inputs array with V0
-                    foreach (ref var outp in pass.Outputs(ctx))
+
+                    foreach (ref readonly var output in pass.Outputs(ctx))
                     {
-                        ref var pointTo = ref ctx.UnversionedResourceData(outp.resource);
-                        if (outp.resource.version == 1)
+                        var outputResource = output.resource;
+                        ref var pointTo = ref ctx.UnversionedResourceData(outputResource);
+                        if (outputResource.version == 1)
                         {
                             // If we use version 0 and nobody else is using it yet mark this pass
                             // as the first using the resource. It can happen that two passes use v0
@@ -457,38 +455,41 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
                             if (pointTo.firstUsePassID < 0)
                             {
                                 pointTo.firstUsePassID = pass.passId;
-                                pass.AddFirstUse(outp.resource, ctx);
+                                pass.AddFirstUse(outputResource, ctx);
                             }
                         }
 
                         // This pass outputs the last version of a resource track that
                         var last = pointTo.latestVersionNumber;
-                        if (last == outp.resource.version)
+                        if (last == outputResource.version)
                         {
                             Debug.Assert(pointTo.lastWritePassID == -1); // Only one can be the last writer
                             pointTo.lastWritePassID = pass.passId;
                         }
                     }
                 }
-                foreach (ref var pass in ctx.passData)
+
+                for (int passIndex = 0; passIndex < ctx.passData.Length; passIndex++)
                 {
+                    ref var pass = ref ctx.passData.ElementAt(passIndex);
                     if (pass.culled)
                         continue;
 
                     pass.waitOnGraphicsFencePassId = -1;
                     pass.insertGraphicsFence = false;
 
-                    foreach (ref var inp in pass.Inputs(ctx))
+                    foreach (ref readonly var input in pass.Inputs(ctx))
                     {
-                        ref var pointTo = ref ctx.UnversionedResourceData(inp.resource);
+                        var inputResource = input.resource;
+                        ref var pointTo = ref ctx.UnversionedResourceData(inputResource);
                         var last = pointTo.latestVersionNumber;
-                        if (last == inp.resource.version)
+                        if (last == inputResource.version)
                         {
                             var refC = pointTo.tag - 1;//Decrease refcount this pass is done using it
                             if (refC == 0)// We're the last pass done using it, this pass should destroy it.
                             {
                                 pointTo.lastUsePassID = pass.passId;
-                                pass.AddLastUse(inp.resource, ctx);
+                                pass.AddLastUse(inputResource, ctx);
                             }
 
                             pointTo.tag = refC;
@@ -497,8 +498,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
                         // Resolve if this pass needs to wait on a fence due to its inputs
                         if (pass.waitOnGraphicsFencePassId == -1)
                         {
-                            ref var pointToVer = ref ctx.VersionedResourceData(inp.resource);
-                            ref var wPass = ref ctx.passData[pointToVer.writePass];
+                            ref var pointToVer = ref ctx.VersionedResourceData(inputResource);
+                            ref var wPass = ref ctx.passData.ElementAt(pointToVer.writePass);
                             if (wPass.asyncCompute != pass.asyncCompute)
                             {
                                 pass.waitOnGraphicsFencePassId = wPass.passId;
@@ -509,24 +510,25 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
                     // We're outputting a resource that is never used.
                     // This can happen if this pass has multiple outputs and some of them are used and some not
                     // because some are used the whole pass it not culled but the unused output still should be freed
-                    foreach (ref var outp in pass.Outputs(ctx))
+                    foreach (ref readonly var output in pass.Outputs(ctx))
                     {
-                        ref var pointTo = ref ctx.UnversionedResourceData(outp.resource);
-                        ref var pointToVer = ref ctx.VersionedResourceData(outp.resource);
+                        var outputResource = output.resource;
+                        ref var pointTo = ref ctx.UnversionedResourceData(outputResource);
+                        ref var pointToVer = ref ctx.VersionedResourceData(outputResource);
                         var last = pointTo.latestVersionNumber;
-                        if (last == outp.resource.version && pointToVer.numReaders == 0)
+                        if (last == outputResource.version && pointToVer.numReaders == 0)
                         {
                             pointTo.lastUsePassID = pass.passId;
-                            pass.AddLastUse(outp.resource, ctx);
+                            pass.AddLastUse(outputResource, ctx);
                         }
 
                         // Resolve if this pass should insert a fence for its outputs
                         var numReaders = pointToVer.numReaders;
                         for (var i = 0; i < numReaders; ++i)
                         {
-                            var depIdx = ResourcesData.IndexReader(outp.resource, i);
-                            ref var dep = ref ctx.resources.readerData[outp.resource.iType][depIdx];
-                            ref var depPass = ref ctx.passData[dep.passId];
+                            var depIdx = ResourcesData.IndexReader(outputResource, i);
+                            ref var dep = ref ctx.resources.readerData[outputResource.iType].ElementAt(depIdx);
+                            ref var depPass = ref ctx.passData.ElementAt(dep.passId);
                             if (pass.asyncCompute != depPass.asyncCompute)
                             {
                                 pass.insertGraphicsFence = true;
@@ -544,14 +546,13 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
             {
                 // Native renderpasses and create/destroy lists have now been set-up. Detect memoryless resources, i.e resources that are created/destroyed
                 // within the scope of an nrp
-                foreach (var nativePassId in contextData.NativePasses)
+                foreach (ref readonly var nativePass in contextData.NativePasses)
                 {
-                    ref var nativePass = ref contextData.nativePassData[nativePassId];
-
                     // Loop over all created resources by this nrp
-                    foreach (ref var subPass in nativePass.GraphPasses(contextData))
+                    var graphPasses = nativePass.GraphPasses(contextData);
+                    foreach (ref readonly var subPass in graphPasses)
                     {
-                        foreach (ref var createdRes in subPass.FirstUsedResources(contextData))
+                        foreach (ref readonly var createdRes in subPass.FirstUsedResources(contextData))
                         {
                             ref var createInfo = ref contextData.UnversionedResourceData(createdRes);
                             if (createdRes.type == RenderGraphResourceType.Texture && createInfo.isImported == false)
@@ -562,9 +563,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
                                 // as regular textures halfway through a pass. If that were the case they would never have been merged in the first place.
 
                                 // Check if it is in the destroy list of any of the subpasses > if yes > memoryless
-                                foreach (ref var subPass2 in nativePass.GraphPasses(contextData))
+                                foreach (ref readonly var subPass2 in graphPasses)
                                 {
-                                    foreach (ref var destroyedRes in subPass2.LastUsedResources(contextData))
+                                    foreach (ref readonly var destroyedRes in subPass2.LastUsedResources(contextData))
                                     {
                                         ref var destInfo = ref contextData.UnversionedResourceData(destroyedRes);
                                         if (destroyedRes.type == RenderGraphResourceType.Texture && destInfo.isImported == false)
@@ -628,8 +629,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
             {
                 // Some passes don't do any rendering so just skip them
                 // E.g. the "SetShadowGlobals" pass
-                ref readonly var firstGraphPass = ref contextData.passData[nativePass.firstGraphPass];
-                ref readonly var lastGraphPass = ref contextData.passData[nativePass.firstGraphPass + nativePass.numGraphPasses - 1];
+                ref readonly var firstGraphPass = ref contextData.passData.ElementAt(nativePass.firstGraphPass);
+                ref readonly var lastGraphPass = ref contextData.passData.ElementAt(nativePass.firstGraphPass + nativePass.numGraphPasses - 1);
 
                 // This can happen when we merge a number of raster passes that all have no rendertargets
                 // e.g. a number of "set global" passes
@@ -652,16 +653,16 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
                 // - There could be passes that do only non-raster ops (like setglobal) and have no attachments. They don't get a native pass
                 // - Renderpasses that use exactly the same rendertargets at the previous pass use the same native pass. This is because
                 //   nextSubpass is expensive on some platforms (even if its' essentially a no-op as it's using the same attachments).
-                nativePass.firstNativeSubPass = contextData.nativeSubPassData.size;
+                nativePass.firstNativeSubPass = contextData.nativeSubPassData.Length;
                 for (var graphPassIndex = 0; graphPassIndex < nativePass.numGraphPasses; ++graphPassIndex)
                 {
                     SubPassDescriptor desc = new SubPassDescriptor();
-                    ref var graphPass = ref contextData.passData[nativePass.firstGraphPass + graphPassIndex];
+                    ref var graphPass = ref contextData.passData.ElementAt(nativePass.firstGraphPass + graphPassIndex);
 
                     // We have no output attachments this is an "empty" raster pass doing only non-rendering command so skip it.
                     if (graphPass.numFragments == 0)
                     {
-                        // We always merge it into the currently active 
+                        // We always merge it into the currently active
                         graphPass.nativeSubPassIndex = nativePass.numNativeSubPasses - 1;
                         graphPass.beginNativeSubpass = false;
                         continue;
@@ -674,7 +675,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
 
                         desc.colorOutputs = new AttachmentIndexArray(graphPass.numFragments + colorOffset);
 
-                        foreach (var fragment in graphPass.Fragments(contextData))
+                        foreach (ref readonly var fragment in graphPass.Fragments(contextData))
                         {
                             // Check if we're handling the depth atachment
                             if (graphPass.fragmentInfoHasDepth && fragmentIdx == 0)
@@ -708,13 +709,13 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
 
                         desc.inputs = new AttachmentIndexArray(graphPass.numFragmentInputs);
 
-                        foreach (var fragment in graphPass.FragmentInputs(contextData))
+                        foreach (ref readonly var fragmentInput in graphPass.FragmentInputs(contextData))
                         {
                             // Find the index of this subpass's attachment in the native renderpass attachment list
                             int inputAttachmentIdx = -1;
                             for (int fragmentId = 0; fragmentId < fragmentList.size; ++fragmentId)
                             {
-                                if (fragmentList[fragmentId].resource.index == fragment.resource.index)
+                                if (fragmentList[fragmentId].resource.index == fragmentInput.resource.index)
                                 {
                                     inputAttachmentIdx = fragmentId;
                                     break;
@@ -728,9 +729,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
                     }
 
                     // Check if we can merge the native sub pass with the previous one
-                    if (nativePass.numNativeSubPasses == 0 || !IsSameNativeSubPass(ref desc, ref contextData.nativeSubPassData[nativePass.firstNativeSubPass + nativePass.numNativeSubPasses - 1]))
+                    if (nativePass.numNativeSubPasses == 0 || !IsSameNativeSubPass(ref desc, ref contextData.nativeSubPassData.ElementAt(nativePass.firstNativeSubPass + nativePass.numNativeSubPasses - 1)))
                     {
-                        int idx = contextData.nativeSubPassData.Add(desc);
+                        contextData.nativeSubPassData.Add(desc);
+                        int idx = contextData.nativeSubPassData.LastIndex();
                         Debug.Assert(idx == nativePass.firstNativeSubPass + nativePass.numNativeSubPasses);
                         nativePass.numNativeSubPasses++;
 
@@ -872,9 +874,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
 
                                 // Check if we need msaa/resolved data by checking all the passes using this buffer
                                 // Partial writes will register themselves as readers so this should be adequate
-                                foreach (var reader in contextData.Readers(fragment.resource))
+                                foreach (ref readonly var reader in contextData.Readers(fragment.resource))
                                 {
-                                    bool isFragment = contextData.passData[reader.passId].IsUsedAsFragment(fragment.resource, contextData);
+                                    bool isFragment = contextData.passData.ElementAt(reader.passId).IsUsedAsFragment(fragment.resource, contextData);
                                     // A fragment attachment use we need the msaa samples
                                     if (isFragment)
                                     {
@@ -979,7 +981,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
                 nativePass.GetDebugName(contextData, debugName);
 
                 passCmdBuffer.BeginRenderPass(firstGraphPass.fragmentInfoWidth, firstGraphPass.fragmentInfoHeight, firstGraphPass.fragmentInfoVolumeDepth, firstGraphPass.fragmentInfoSamples,
-                ref nativePass.attachments, nativePass.attachments.size, hasDepth, contextData.nativeSubPassData, nativePass.firstNativeSubPass, nativePass.numNativeSubPasses, debugName);
+                ref nativePass.attachments, nativePass.attachments.size, hasDepth, ref contextData.nativeSubPassData, nativePass.firstNativeSubPass, nativePass.numNativeSubPasses, debugName);
             }
         }
 
@@ -991,8 +993,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
 
                 bool inRenderPass = false;
 
-                foreach (ref var pass in contextData.passData)
+                for (int passIndex = 0; passIndex < contextData.passData.Length; passIndex++)
                 {
+                    ref var pass = ref contextData.passData.ElementAt(passIndex);
+
                     //Fix low leve passes being merged into nrp giving errors
                     //because of the "isRaster" check below
 
@@ -1008,10 +1012,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
                         {
                             if (pass.mergeState == PassMergeState.Begin || pass.mergeState == PassMergeState.None)
                             {
-                                ref var nativePass = ref contextData.nativePassData[pass.nativePassIndex];
-                                foreach (ref var subPass in nativePass.GraphPasses(contextData))
+                                ref var nativePass = ref contextData.nativePassData.ElementAt(pass.nativePassIndex);
+                                foreach (ref readonly var subPass in nativePass.GraphPasses(contextData))
                                 {
-                                    foreach (var res in subPass.FirstUsedResources(contextData))
+                                    foreach (ref readonly var res in subPass.FirstUsedResources(contextData))
                                     {
                                         ref var resInfo = ref contextData.UnversionedResourceData(res);
                                         if (resInfo.isImported == false && resInfo.memoryLess == false)
@@ -1030,7 +1034,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
                         // Other passes just create them at the beginning of the individual pass
                         else
                         {
-                            foreach (var create in pass.FirstUsedResources(contextData))
+                            foreach (ref readonly var create in pass.FirstUsedResources(contextData))
                             {
                                 ref var pointTo = ref contextData.UnversionedResourceData(create);
                                 if (pointTo.isImported == false)
@@ -1058,7 +1062,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
                     {
                         if (pass.nativePassIndex >= 0)
                         {
-                            GenerateBeginRenderPassCommand(ref contextData.nativePassData[pass.nativePassIndex], ref passCmdBuffer);
+                            GenerateBeginRenderPassCommand(ref contextData.nativePassData.ElementAt(pass.nativePassIndex), ref passCmdBuffer);
                             nrpBegan = true;
                             inRenderPass = true;
                         }
@@ -1091,7 +1095,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
                         {
                             if (pass.nativePassIndex >= 0)
                             {
-                                ref var nativePass = ref contextData.nativePassData[pass.nativePassIndex];
+                                ref var nativePass = ref contextData.nativePassData.ElementAt(pass.nativePassIndex);
                                 if (nativePass.fragments.size > 0)
                                 {
                                     if (!inRenderPass)
@@ -1116,10 +1120,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
                             // For raster passes we need to destroy resources after all the subpasses at the end of the native renderpass
                             if (pass.mergeState == PassMergeState.End || pass.mergeState == PassMergeState.None)
                             {
-                                ref var nativePass = ref contextData.nativePassData[pass.nativePassIndex];
-                                foreach (ref var subPass in nativePass.GraphPasses(contextData))
+                                ref var nativePass = ref contextData.nativePassData.ElementAt(pass.nativePassIndex);
+                                foreach (ref readonly var subPass in nativePass.GraphPasses(contextData))
                                 {
-                                    foreach (var res in subPass.LastUsedResources(contextData))
+                                    foreach (ref readonly var res in subPass.LastUsedResources(contextData))
                                     {
                                         ref var resInfo = ref contextData.UnversionedResourceData(res);
                                         if (resInfo.isImported == false && resInfo.memoryLess == false)
@@ -1132,7 +1136,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
                         }
                         else
                         {
-                            foreach (var destroy in pass.LastUsedResources(contextData))
+                            foreach (ref readonly var destroy in pass.LastUsedResources(contextData))
                             {
                                 ref var pointTo = ref contextData.UnversionedResourceData(destroy);
                                 if (pointTo.isImported == false)

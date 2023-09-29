@@ -172,7 +172,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
         internal int numSubpasses;
         internal int debugNameLength;
 
-        internal static unsafe void AddCommand(int w, int h, int d, int s, ref FixedAttachmentArray<NativePassAttachment> attachments, int handleCount, bool hasDepth, DynamicArray<SubPassDescriptor> passes, int passOffset, int passCount, ref PassCommandBufferData data, DynamicString debugName)
+        internal static unsafe void AddCommand(int w, int h, int d, int s, ref FixedAttachmentArray<NativePassAttachment> attachments, int handleCount, bool hasDepth, ref NativeList<SubPassDescriptor> passes, int passOffset, int passCount, ref PassCommandBufferData data, DynamicString debugName)
         {
             if (w == 0 || h == 0 || d == 0 || s == 0 || passCount == 0 || handleCount == 0)
             {
@@ -700,8 +700,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
         internal void CreateResource(ResourceHandle h, bool clear) => ResourceLifetimeCommand.AddCreateCommand(h, clear, ref m_Data);
         internal void ReleaseResource(ResourceHandle h) => ResourceLifetimeCommand.AddReleaseCommand(h, ref m_Data);
         internal void BeginRenderPass(int w, int h, int d, int s,
-            ref FixedAttachmentArray<NativePassAttachment> attachments, int attachmentCount, bool hasDepth, DynamicArray<SubPassDescriptor> passes, int passOffset,  int passCount, DynamicString debugName)
-            => BeginRenderPassCommand.AddCommand(w, h, d, s, ref attachments, attachmentCount, hasDepth, passes, passOffset, passCount, ref m_Data, debugName);
+            ref FixedAttachmentArray<NativePassAttachment> attachments, int attachmentCount, bool hasDepth, ref NativeList<SubPassDescriptor> passes, int passOffset,  int passCount, DynamicString debugName)
+            => BeginRenderPassCommand.AddCommand(w, h, d, s, ref attachments, attachmentCount, hasDepth, ref passes, passOffset, passCount, ref m_Data, debugName);
         internal void EndRenderPass() => EndRenderPassCommand.AddCommand(ref m_Data);
         internal void NextSubPass() => NextSubpassCommand.AddCommand(ref m_Data);
         internal void ExecuteGraphNode(int passID) => ExecuteNodeCommand.AddCommand(passID, ref m_Data);

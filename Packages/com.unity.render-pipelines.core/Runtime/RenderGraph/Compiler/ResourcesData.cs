@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.CompilerServices;
+using Unity.Collections;
 using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassCompiler
@@ -16,7 +17,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
     // RenderGraphResourceRegistry was identified as slow in the profiler
     internal struct ResourceUnversionedData
     {
-        public readonly string name; // For debugging
         public readonly bool isImported; // Imported graph resource
         public bool isShared; // Shared graph resource
         public int tag;
@@ -35,20 +35,14 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
         public readonly bool clear; // graph.m_Resources.GetTextureResourceDesc(fragment.resource).clearBuffer;
         public readonly bool discard; // graph.m_Resources.GetTextureResourceDesc(fragment.resource).discardBuffer;
         public readonly bool bindMS;
-        
-        public ResourceUnversionedData(RenderGraphResourceType t, int resIndex, RenderGraphResourceRegistry resources)
-        {
-            // We cache these values here
-            // as getting them over and over from other
-            // graph data structures external to NRP RG is costly 
-            var h = new ResourceHandle(resIndex, t, false);
-            var rll = resources.GetResourceLowLevel(h);
-            resources.GetRenderTargetInfo(h, out var info);
-            ref var desc = ref (rll as TextureResource).desc;
 
-            name = rll.GetName();
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public string GetName(CompilerContextData ctx, ResourceHandle h) => ctx.GetResourceName(h);
+
+        public ResourceUnversionedData(IRenderGraphResource rll, ref RenderTargetInfo info, ref TextureDesc desc, bool isResourceShared)
+        {
             isImported = rll.imported;
-            isShared = resources.IsRenderGraphResourceShared(h);
+            isShared = isResourceShared;
             tag = 0;
             firstUsePassID = -1;
             lastUsePassID = -1;
@@ -80,13 +74,13 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
         public int numFragmentUse;
 
         // Register the pass writing this resource version. A version can only be written by a single pass as every write should introduce a new distinct version.
-        public void SetWritingPass(CompilerContextData ctx, ResourceHandle h,int passId, int slot)
+        public void SetWritingPass(CompilerContextData ctx, ResourceHandle h, int passId, int slot)
         {
             if (written)
             {
-                string passName = ctx.passData[passId].name;
-                string resourceName = ctx.UnversionedResourceData(h).name;
-                throw new Exception($"Only one pass can  write to the same resource. Pass '{passName}' is trying to write '{resourceName}' a second time.");
+                string passName = ctx.GetPassName(passId);
+                string resourceName = ctx.GetResourceName(h);
+                throw new Exception($"Only one pass can write to the same resource. Pass {passName} is trying to write {resourceName} a second time.");
             }
 
             writePass = passId;
@@ -100,9 +94,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
         {
             if (numReaders >= ResourcesData.MaxReaders)
             {
-                string passName = ctx.passData[passId].name;
-                string resourceName = ctx.UnversionedResourceData(h).name; 
-                throw new Exception($"Maximum 10 passes can use a single graph output as input. Pass '{passName}' is trying to read '{resourceName}'.");
+                string passName = ctx.GetPassName(passId);
+                string resourceName = ctx.GetResourceName(h);
+                throw new Exception($"Maximum 10 passes can use a single graph output as input. Pass {passName} is trying to read {resourceName}.");
             }
 
             ctx.resources.readerData[h.iType][ResourcesData.IndexReader(h, numReaders)] = new ResourceReaderData
@@ -118,12 +112,13 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
         {
             for (int r = 0; r < numReaders;)
             {
-                if (ctx.resources.readerData[h.iType][ResourcesData.IndexReader(h, r)].passId == passId)
+                ref var reader = ref ctx.resources.readerData[h.iType].ElementAt(ResourcesData.IndexReader(h, r));
+                if (reader.passId == passId)
                 {
                     // It should be removed, switch with the end of the list if we're not already at the end of it
                     if (r < numReaders - 1)
                     {
-                        ctx.resources.readerData[h.iType][ResourcesData.IndexReader(h, r)] = ctx.resources.readerData[h.iType][ResourcesData.IndexReader(h, numReaders - 1)];
+                        reader = ctx.resources.readerData[h.iType][ResourcesData.IndexReader(h, numReaders - 1)];
                     }
 
                     numReaders--;
@@ -140,23 +135,27 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
     // require GC allocs to fill.
     internal class ResourcesData
     {
-        public DynamicArray<ResourceUnversionedData>[] unversionedData; // Flattened fixed size array storing info per resource id shared between all versions.
-        public DynamicArray<ResourceVersionedData>[] versionedData; // Flattened fixed size array storing up to MaxVersions versions per resource id.
-        public DynamicArray<ResourceReaderData>[] readerData; // Flattened fixed size array storing up to MaxReaders per resource id per version.
+        public NativeList<ResourceUnversionedData>[] unversionedData; // Flattened fixed size array storing info per resource id shared between all versions.
+        public NativeList<ResourceVersionedData>[] versionedData; // Flattened fixed size array storing up to MaxVersions versions per resource id.
+        public NativeList<ResourceReaderData>[] readerData; // Flattened fixed size array storing up to MaxReaders per resource id per version.
         public const int MaxVersions = 20; // A quite arbitrary limit should be enough for most graphs. Increasing it shouldn't be a problem but will use more memory as these lists use a fixed size upfront allocation.
         public const int MaxReaders = 10; // A quite arbitrary limit should be enough for most graphs. Increasing it shouldn't be a problem but will use more memory as these lists use a fixed size upfront allocation.
 
+        public DynamicArray<Name>[] resourceNames;
+
         public ResourcesData(int estimatedNumResourcesPerType)
         {
-            unversionedData = new DynamicArray<ResourceUnversionedData>[(int)RenderGraphResourceType.Count];
-            versionedData = new DynamicArray<ResourceVersionedData>[(int)RenderGraphResourceType.Count];
-            readerData = new DynamicArray<ResourceReaderData>[(int)RenderGraphResourceType.Count];
+            unversionedData = new NativeList<ResourceUnversionedData>[(int)RenderGraphResourceType.Count];
+            versionedData = new NativeList<ResourceVersionedData>[(int)RenderGraphResourceType.Count];
+            readerData = new NativeList<ResourceReaderData>[(int)RenderGraphResourceType.Count];
+            resourceNames = new DynamicArray<Name>[(int)RenderGraphResourceType.Count];
 
             for (int t = 0; t < (int)RenderGraphResourceType.Count; t++)
             {
-                versionedData[t] = new DynamicArray<ResourceVersionedData>(MaxVersions * estimatedNumResourcesPerType, false);
-                unversionedData[t] = new DynamicArray<ResourceUnversionedData>(estimatedNumResourcesPerType, false);
-                readerData[t] = new DynamicArray<ResourceReaderData>(MaxVersions * estimatedNumResourcesPerType * MaxReaders, false);
+                versionedData[t] = new NativeList<ResourceVersionedData>(MaxVersions * estimatedNumResourcesPerType, AllocatorManager.Persistent);
+                unversionedData[t] = new NativeList<ResourceUnversionedData>(estimatedNumResourcesPerType, AllocatorManager.Persistent);
+                readerData[t] = new NativeList<ResourceReaderData>(MaxVersions * estimatedNumResourcesPerType * MaxReaders, AllocatorManager.Persistent);
+                resourceNames[t] = new DynamicArray<Name>(estimatedNumResourcesPerType); // T in NativeList<T> cannot contain managed types, so the names are stored separately
             }
         }
 
@@ -167,6 +166,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
                 unversionedData[t].Clear();
                 versionedData[t].Clear();
                 readerData[t].Clear();
+                resourceNames[t].Clear();
             }
         }
 
@@ -174,24 +174,39 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
         {
             for (int t = 0; t < (int)RenderGraphResourceType.Count; t++)
             {
-                var numResources = resources.GetResourceCount((RenderGraphResourceType)t);
-                
+                RenderGraphResourceType resourceType = (RenderGraphResourceType) t;
+                var numResources = resources.GetResourceCount(resourceType);
+
                 // For each resource type, resize the buffer (only allocate if bigger)
                 // We don't clear the buffer as we reinitialize it right after
-                unversionedData[t].Resize(numResources, true);
-                if(numResources > 0)
+                unversionedData[t].Resize(numResources, NativeArrayOptions.UninitializedMemory);
+                resourceNames[t].Resize(numResources, true);
+
+                if (numResources > 0) // Null Resource
                 {
-                    unversionedData[t][0] = new ResourceUnversionedData(); // Null Resource
+                    unversionedData[t][0] = new ResourceUnversionedData();
+                    resourceNames[t][0] = new Name("");
                 }
+
                 // Fill the buffer with any existing external info requested for NRP RG process
                 for (int r = 1; r < numResources; r++)
                 {
-                    unversionedData[t][r] = new ResourceUnversionedData((RenderGraphResourceType)t, r, resources);
+                    // We cache these values here
+                    // as getting them over and over from other
+                    // graph data structures external to NRP RG is costly
+                    var h = new ResourceHandle(r, resourceType, false);
+                    var rll = resources.GetResourceLowLevel(h);
+                    resources.GetRenderTargetInfo(h, out var info);
+                    ref var desc = ref (rll as TextureResource).desc;
+                    bool isResourceShared = resources.IsRenderGraphResourceShared(h);
+
+                    unversionedData[t][r] = new ResourceUnversionedData(rll, ref info, ref desc, isResourceShared);
+                    resourceNames[t][r] = new Name(rll.GetName());
                 }
 
                 // Clear the other caching structures, they will be filled later
-                versionedData[t].ResizeAndClear(MaxVersions * numResources);
-                readerData[t].ResizeAndClear(MaxVersions * MaxReaders * numResources);  
+                versionedData[t].Resize(MaxVersions * numResources, NativeArrayOptions.ClearMemory);
+                readerData[t].Resize(MaxVersions * MaxReaders * numResources, NativeArrayOptions.ClearMemory);
             }
         }
 
@@ -218,7 +233,17 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
         // Lookup data for a given handle
         public ref ResourceVersionedData this[ResourceHandle h]
         {
-            get { return ref versionedData[h.iType][Index(h)]; }
+            get { return ref versionedData[h.iType].ElementAt(Index(h)); }
+        }
+
+        public void Dispose()
+        {
+            for (int t = 0; t < (int)RenderGraphResourceType.Count; t++)
+            {
+                versionedData[t].Dispose();
+                unversionedData[t].Dispose();
+                readerData[t].Dispose();
+            }
         }
     }
 }

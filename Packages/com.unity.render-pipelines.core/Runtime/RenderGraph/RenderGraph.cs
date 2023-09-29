@@ -485,9 +485,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// - The ImportBackbuffer overload without a RenderTargetInfo argument.
         /// - Any AddRenderPass overloads. The more specific AddRasterPass/AddComputePass/AddLowLevelPass functions should be used to register passes.
         ///
-        /// In addition to this, additional validation will be done on the correctness of arguments of existing API that was not previously done. This could lead 
+        /// In addition to this, additional validation will be done on the correctness of arguments of existing API that was not previously done. This could lead
         /// to new errors when using existing render graph code with NativeRenderPassesEnabled.
-        /// 
+        ///
         /// Note: that CommandBuffer.BeginRenderPass/EndRenderPass calls are different by design from SetRenderTarget so this could also have
         /// effects outside of render graph (e.g. for code relying on the currently active render target as this will not be updated when using render passes).
         /// </summary>
@@ -578,6 +578,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
             s_RegisteredGraphs.Remove(this);
             onGraphUnregistered?.Invoke(this);
+
+            nativeCompiler?.contextData?.Dispose();
         }
 
         internal List<DebugUI.Widget> GetWidgetList()
@@ -675,7 +677,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <summary>
         /// Import an external texture to the Render Graph. This overload should be used for RTHandles  wrapping a RenderTargetIdentifier.
         /// If the RTHandle is wrapping a RenderTargetIdentifer, Rendergrpah can't derive the render texture's properties so the user has to provide this info to the graph through RenderTargetInfo.
-        /// 
+        ///
         /// Any pass writing to an imported texture will be considered having side effects and can't be automatically culled.
         ///
         /// Note: To avoid inconsistencies between the passed in RenderTargetInfo and render texture this overload can only be used when the RTHandle is wrapping a RenderTargetIdentifier.
@@ -704,7 +706,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// </summary>
         /// <param name="rt">Backbuffer render target identifier.</param>
         /// <param name="info">The properties of the passed in RTHandle.</param>
-        /// <param name="importParams">Info describing the clear behavior of imported textures. Clearing textures using importParams may be more efficient than manually clearing the texture using `cmd.Clear` on some hardware.</param>/// 
+        /// <param name="importParams">Info describing the clear behavior of imported textures. Clearing textures using importParams may be more efficient than manually clearing the texture using `cmd.Clear` on some hardware.</param>///
         /// <returns>A new TextureHandle that represents the imported texture in the context of this rendergraph.</returns>
         public TextureHandle ImportBackbuffer(RenderTargetIdentifier rt, RenderTargetInfo info, ImportResourceParams importParams = new ImportResourceParams())
         {
