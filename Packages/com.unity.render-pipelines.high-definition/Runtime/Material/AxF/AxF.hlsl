@@ -11,7 +11,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/AxF/AxFPreIntegratedFGD.hlsl"
 
 // Add support for LTC Area Lights
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/AxF/AxFLTCAreaLight/AxFLTCAreaLight.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/LTCAreaLight/LTCAreaLight.hlsl"
 
 //-----------------------------------------------------------------------------
 //
@@ -1573,9 +1573,7 @@ PreLightData    GetPreLightData(float3 viewWS_Clearcoat, PositionInputs posInput
 
         // And the area lights LTC inverse transform:
         // todo_modes todo_pseudorefract: commented, cant use undercoat like that.
-        //float2   UV = LTCGetSamplingUV(NdotV_UnderCoat, preLightData.iblPerceptualRoughness[lobeIndex]);
-        float2   UV = LTCGetSamplingUV(NdotV_Clearcoat, preLightData.iblPerceptualRoughness[lobeIndex]);
-        preLightData.ltcTransformSpecularCT[lobeIndex] = LTCSampleMatrix(UV, LTCLIGHTINGMODEL_COOK_TORRANCE);
+        preLightData.ltcTransformSpecularCT[lobeIndex] = SampleLtcMatrix(preLightData.iblPerceptualRoughness[lobeIndex], NdotV_Clearcoat, LTCLIGHTINGMODEL_COOK_TORRANCE);
 #endif
     }
 
@@ -1611,10 +1609,7 @@ PreLightData    GetPreLightData(float3 viewWS_Clearcoat, PositionInputs posInput
 
     // We will override this with the coat transform if we just want the BTF term in LTC lights
     // todo_modes todo_pseudorefract: cant use undercoat like that:
-    //float2 UV = LTCGetSamplingUV(NdotV_UnderCoat, FLAKES_PERCEPTUAL_ROUGHNESS);
-    float2 UV = LTCGetSamplingUV(NdotV_Clearcoat, FLAKES_PERCEPTUAL_ROUGHNESS);
-    IFNOT_FLAKES_JUST_BTF(preLightData.ltcTransformFlakes = LTCSampleMatrix(UV, LTCLIGHTINGMODEL_GGX));
-
+    IFNOT_FLAKES_JUST_BTF(preLightData.ltcTransformFlakes = SampleLtcMatrix(FLAKES_PERCEPTUAL_ROUGHNESS, NdotV_Clearcoat, LTCLIGHTINGMODEL_GGX));
 #endif//#ifdef _AXF_BRDF_TYPE_SVBRDF
 
 
@@ -1627,44 +1622,41 @@ PreLightData    GetPreLightData(float3 viewWS_Clearcoat, PositionInputs posInput
     preLightData.orthoBasisViewNormal[1] = cross(preLightData.orthoBasisViewNormal[2], preLightData.orthoBasisViewNormal[0]);
 
 #ifdef _AXF_BRDF_TYPE_SVBRDF
-    // UVs for sampling the LUTs
-    // todo_modes todo_pseudorefract: cant use undercoat like that
-    //float2  UV = LTCGetSamplingUV(NdotV_UnderCoat, preLightData.iblPerceptualRoughness);
-
-    float2  UV = LTCGetSamplingUV(NdotV_Clearcoat, preLightData.iblPerceptualRoughness);
 
     // Load diffuse LTC & FGD
     if (AXF_SVBRDF_BRDFTYPE_DIFFUSETYPE)
     {
-        preLightData.ltcTransformDiffuse = LTCSampleMatrix(UV, LTCLIGHTINGMODEL_OREN_NAYAR);
+        // todo_modes todo_pseudorefract: cant use undercoat like that
+        preLightData.ltcTransformDiffuse = SampleLtcMatrix(preLightData.iblPerceptualRoughness, NdotV_Clearcoat, LTCLIGHTINGMODEL_OREN_NAYAR);
     }
     else
     {
         preLightData.ltcTransformDiffuse = k_identity3x3;   // Lambert
     }
 
-    // Load specular LTC & FGD
+    uint bsdfIndex;
+
     switch (AXF_SVBRDF_BRDFTYPE_SPECULARTYPE)
     {
+    case 0:
+        bsdfIndex = LTCLIGHTINGMODEL_WARD;
+        break;
+    case 3:
+        bsdfIndex = LTCLIGHTINGMODEL_GGX;
+        break;
+    default: // COOK-TORRANCE, BLINN-PHONG, PHONG, or missing
+        bsdfIndex = LTCLIGHTINGMODEL_COOK_TORRANCE;
+        break;
+    }
+
+    // Load specular LTC & FGD
     // Warning: all these LTC_MATRIX_INDEX_ are the same for now, and fitted for GGX, hence the code
     // above that selected the UVs all used a preLightData.iblPerceptualRoughness value that used a
     // conversion formula for Beckmann NDF (exp) based BRDFs
     // (see switch (AXF_SVBRDF_BRDFTYPE_SPECULARTYPE) above and usage of PerceptualRoughnessBeckmannToGGX)
     //
-    case 0: preLightData.ltcTransformSpecular = LTCSampleMatrix(UV, LTCLIGHTINGMODEL_WARD); break;
-    case 2: preLightData.ltcTransformSpecular = LTCSampleMatrix(UV, LTCLIGHTINGMODEL_COOK_TORRANCE); break;
-    case 3: preLightData.ltcTransformSpecular = LTCSampleMatrix(UV, LTCLIGHTINGMODEL_GGX); break;
-    case 1: // BLINN-PHONG
-    case 4: // PHONG;
-    {
-        preLightData.ltcTransformSpecular = LTCSampleMatrix(UV, LTCLIGHTINGMODEL_COOK_TORRANCE);
-        break;
-    }
-
-    default:    // @TODO
-        preLightData.ltcTransformSpecular = 0;
-        break;
-    }
+    // todo_modes todo_pseudorefract: cant use undercoat like that
+    preLightData.ltcTransformSpecular = SampleLtcMatrix(preLightData.iblPerceptualRoughness, NdotV_Clearcoat, bsdfIndex);
 
 #elif defined(_AXF_BRDF_TYPE_CAR_PAINT)
 
@@ -1681,8 +1673,7 @@ PreLightData    GetPreLightData(float3 viewWS_Clearcoat, PositionInputs posInput
     preLightData.coatPartLambdaV = 0;
     if (HasClearcoat())
     {
-        float2  UV = LTCGetSamplingUV(NdotV_Clearcoat, CLEAR_COAT_PERCEPTUAL_ROUGHNESS);
-        preLightData.ltcTransformClearcoat = LTCSampleMatrix(UV, LTCLIGHTINGMODEL_GGX);
+        preLightData.ltcTransformClearcoat = SampleLtcMatrix(CLEAR_COAT_PERCEPTUAL_ROUGHNESS, NdotV_Clearcoat, LTCLIGHTINGMODEL_GGX);
 #if defined(_AXF_BRDF_TYPE_CAR_PAINT)
         IF_FLAKES_JUST_BTF(preLightData.ltcTransformFlakes = preLightData.ltcTransformClearcoat);
 #endif

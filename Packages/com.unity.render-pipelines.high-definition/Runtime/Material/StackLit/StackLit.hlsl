@@ -2317,26 +2317,8 @@ void PreLightData_SetupNormals(BSDFData bsdfData, inout PreLightData preLightDat
     }
 }
 
-void PreLightData_LoadLtcTransformSpecular(float2 uv, int lobeIdx, inout PreLightData preLightData)
-{
-    // Get the inverse LTC matrix for GGX
-    // Note we load the matrix transpose (avoid to have to transpose it in shader)
-    preLightData.ltcTransformSpecular[lobeIdx]      = 0.0;
-    preLightData.ltcTransformSpecular[lobeIdx]._m22 = 1.0;
-    preLightData.ltcTransformSpecular[lobeIdx]._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, s_linear_clamp_sampler, uv, LTCLIGHTINGMODEL_GGX, 0);
-}
-
 void PreLightData_SetupAreaLights(BSDFData bsdfData, float3 V, float3 N[NB_NORMALS], float NdotV[NB_NORMALS] /* clamped */, inout PreLightData preLightData)
 {
-    // For sampling the LUTs
-    float cosTheta[NB_NORMALS];
-    float2 uv[TOTAL_NB_LOBES];
-
-    // These 2 cases will generate the same code when no dual normal maps since COAT_NORMAL_IDX == BASE_NORMAL_IDX == 0,
-    // and one will be pruned out:
-    cosTheta[COAT_NORMAL_IDX] = sqrt(1 - NdotV[COAT_NORMAL_IDX]);
-    cosTheta[BASE_NORMAL_IDX] = sqrt(1 - NdotV[BASE_NORMAL_IDX]);
-
     // NB_NORMALS is always <= TOTAL_NB_LOBES, so we are safe to always be able to compile this even if preLightData.orthoBasisViewNormal[]
     // is sized with NB_ORTHOBASISVIEWNORMAL, and we use _NORMAL_IDX for clarity instead of ORTHOBASIS_VN_*_IDX aliases
     // (this function should never be called anyways when NB_ORTHOBASISVIEWNORMAL == TOTAL_NB_LOBES,
@@ -2344,31 +2326,28 @@ void PreLightData_SetupAreaLights(BSDFData bsdfData, float3 V, float3 N[NB_NORMA
     preLightData.orthoBasisViewNormal[COAT_NORMAL_IDX] = GetOrthoBasisViewNormal(V, N[COAT_NORMAL_IDX], preLightData.NdotV[COAT_NORMAL_IDX]);
     preLightData.orthoBasisViewNormal[BASE_NORMAL_IDX] = GetOrthoBasisViewNormal(V, N[BASE_NORMAL_IDX], preLightData.NdotV[BASE_NORMAL_IDX]);
 
+    // Note: 'NdotV' is clamped, while 'preLightData.NdotV' is not. See PreLightData_SetupNormals().
+    preLightData.ltcTransformSpecular[BASE_LOBEA_IDX] = SampleLtcMatrix(bsdfData.perceptualRoughnessA, NdotV[BASE_NORMAL_IDX], LTCLIGHTINGMODEL_GGX);
+    preLightData.ltcTransformSpecular[BASE_LOBEB_IDX] = SampleLtcMatrix(bsdfData.perceptualRoughnessB, NdotV[BASE_NORMAL_IDX], LTCLIGHTINGMODEL_GGX);
+
     if( IsVLayeredEnabled(bsdfData) )
     {
-        uv[COAT_LOBE_IDX] = LTC_LUT_OFFSET + LTC_LUT_SCALE * float2(bsdfData.coatPerceptualRoughness, cosTheta[COAT_NORMAL_IDX]);
-
-        PreLightData_LoadLtcTransformSpecular(uv[COAT_LOBE_IDX], COAT_LOBE_IDX, preLightData);
+        preLightData.ltcTransformSpecular[COAT_LOBE_IDX] = SampleLtcMatrix(bsdfData.coatPerceptualRoughness, NdotV[COAT_NORMAL_IDX], LTCLIGHTINGMODEL_GGX);
     }
-
-    uv[BASE_LOBEA_IDX] = LTC_LUT_OFFSET + LTC_LUT_SCALE * float2(bsdfData.perceptualRoughnessA, cosTheta[BASE_NORMAL_IDX]);
-    uv[BASE_LOBEB_IDX] = LTC_LUT_OFFSET + LTC_LUT_SCALE * float2(bsdfData.perceptualRoughnessB, cosTheta[BASE_NORMAL_IDX]);
-    PreLightData_LoadLtcTransformSpecular(uv[BASE_LOBEA_IDX], BASE_LOBEA_IDX, preLightData);
-    PreLightData_LoadLtcTransformSpecular(uv[BASE_LOBEB_IDX], BASE_LOBEB_IDX, preLightData);
-
 
 #ifdef USE_DIFFUSE_LAMBERT_BRDF
     preLightData.ltcTransformDiffuse = k_identity3x3;
-#else
-    // TODO
-    // Get the inverse LTC matrix for Disney Diffuse
-    //preLightData.ltcTransformDiffuse      = 0.0;
-    //preLightData.ltcTransformDiffuse._m22 = 1.0;
-    //preLightData.ltcTransformDiffuse._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, s_linear_clamp_sampler, uv, LTCLIGHTINGMODEL_DISNEY_DIFFUSE, 0);
-#endif
 
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_SSS_DIFFUSE_POWER))
-        ModifyLTCTransformForDiffusePower(preLightData.ltcTransformDiffuse, bsdfData.diffusePower);
+        ModifyLambertLTCTransformForDiffusePower(preLightData.ltcTransformDiffuse, bsdfData.diffusePower);
+#else
+    // TODO
+    // preLightData.ltcTransformDiffuse = SampleLtcMatrix(perceptualRoughness, clampedNdotV, LTCLIGHTINGMODEL_DISNEY_DIFFUSE);
+
+    // if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_SSS_DIFFUSE_POWER))
+    //     ModifyDisneyLTCTransformForDiffusePower(preLightData.ltcTransformDiffuse, bsdfData.diffusePower, perceptualRoughness, clampedNdotV);
+#endif
+
 } // PreLightData_SetupAreaLights
 
 // cf with PreLightData_SetupAreaLights: we don't use NB_NORMALS but TOTAL_NB_LOBES in arrays because of the ibl aniso hack which
@@ -2377,20 +2356,11 @@ void PreLightData_SetupAreaLights(BSDFData bsdfData, float3 V, float3 N[NB_NORMA
 //     preLightData.iblPerceptualRoughness[] (vs bsdfData.(coat)perceptualRoughness(A|B))
 void PreLightData_SetupAreaLightsAniso(BSDFData bsdfData, float3 V, float3 N[NB_NORMALS] /* for orthoBasisViewNormalDiffuse */, float3 iblN[TOTAL_NB_LOBES], inout PreLightData preLightData)
 {
-    // For sampling the LUTs
-    float cosTheta[TOTAL_NB_LOBES];
-    float2 uv[TOTAL_NB_LOBES];
     float iblNdotV[TOTAL_NB_LOBES];
 
     iblNdotV[COAT_LOBE_IDX] = dot(iblN[COAT_LOBE_IDX], V);
     iblNdotV[BASE_LOBEA_IDX] = dot(iblN[BASE_LOBEA_IDX], V);
     iblNdotV[BASE_LOBEB_IDX] = dot(iblN[BASE_LOBEB_IDX], V);
-
-    // The 2 first cases will generate the same code when no coat since COAT_LOBE_IDX == BASE_LOBEA_IDX == 0,
-    // and one will be pruned out:
-    cosTheta[COAT_LOBE_IDX] =  sqrt(1-ClampNdotV(iblNdotV[COAT_LOBE_IDX]));
-    cosTheta[BASE_LOBEA_IDX] =  sqrt(1-ClampNdotV(iblNdotV[BASE_LOBEA_IDX]));
-    cosTheta[BASE_LOBEB_IDX] =  sqrt(1-ClampNdotV(iblNdotV[BASE_LOBEB_IDX]));
 
     // Now we need 3 matrices + 1 for transmission
     // Note we need to use ORTHOBASIS_VN_*_IDX since we could have no anisotropy and one or two normals but 3 lobes:
@@ -2403,28 +2373,26 @@ void PreLightData_SetupAreaLightsAniso(BSDFData bsdfData, float3 V, float3 N[NB_
 
     if( IsVLayeredEnabled(bsdfData) )
     {
-        uv[COAT_LOBE_IDX] = LTC_LUT_OFFSET + LTC_LUT_SCALE * float2(preLightData.iblPerceptualRoughness[COAT_LOBE_IDX], cosTheta[COAT_LOBE_IDX]);
-        PreLightData_LoadLtcTransformSpecular(uv[COAT_LOBE_IDX], COAT_LOBE_IDX, preLightData);
+        preLightData.ltcTransformSpecular[COAT_LOBE_IDX] = SampleLtcMatrix(preLightData.iblPerceptualRoughness[COAT_LOBE_IDX], ClampNdotV(iblNdotV[COAT_LOBE_IDX]), LTCLIGHTINGMODEL_GGX);
     }
 
-    uv[BASE_LOBEA_IDX] = LTC_LUT_OFFSET + LTC_LUT_SCALE * float2(preLightData.iblPerceptualRoughness[BASE_LOBEA_IDX], cosTheta[BASE_LOBEA_IDX]);
-    uv[BASE_LOBEB_IDX] = LTC_LUT_OFFSET + LTC_LUT_SCALE * float2(preLightData.iblPerceptualRoughness[BASE_LOBEB_IDX], cosTheta[BASE_LOBEB_IDX]);
-    PreLightData_LoadLtcTransformSpecular(uv[BASE_LOBEA_IDX], BASE_LOBEA_IDX, preLightData);
-    PreLightData_LoadLtcTransformSpecular(uv[BASE_LOBEB_IDX], BASE_LOBEB_IDX, preLightData);
+    preLightData.ltcTransformSpecular[BASE_LOBEA_IDX] = SampleLtcMatrix(preLightData.iblPerceptualRoughness[BASE_LOBEA_IDX], ClampNdotV(iblNdotV[BASE_LOBEA_IDX]), LTCLIGHTINGMODEL_GGX);
+    preLightData.ltcTransformSpecular[BASE_LOBEB_IDX] = SampleLtcMatrix(preLightData.iblPerceptualRoughness[BASE_LOBEB_IDX], ClampNdotV(iblNdotV[BASE_LOBEB_IDX]), LTCLIGHTINGMODEL_GGX);
 
 
 #ifdef USE_DIFFUSE_LAMBERT_BRDF
     preLightData.ltcTransformDiffuse = k_identity3x3;
-#else
-    // TODO
-    // Get the inverse LTC matrix for Disney Diffuse
-    //preLightData.ltcTransformDiffuse      = 0.0;
-    //preLightData.ltcTransformDiffuse._m22 = 1.0;
-    //preLightData.ltcTransformDiffuse._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, s_linear_clamp_sampler, uv, LTCLIGHTINGMODEL_DISNEY_DIFFUSE, 0);
-#endif
 
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_SSS_DIFFUSE_POWER))
-        ModifyLTCTransformForDiffusePower(preLightData.ltcTransformDiffuse, bsdfData.diffusePower);
+        ModifyLambertLTCTransformForDiffusePower(preLightData.ltcTransformDiffuse, bsdfData.diffusePower);
+#else
+    // TODO
+    // preLightData.ltcTransformDiffuse = SampleLtcMatrix(perceptualRoughness, clampedNdotV, LTCLIGHTINGMODEL_DISNEY_DIFFUSE);
+
+    // if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_SSS_DIFFUSE_POWER))
+    //     ModifyDisneyLTCTransformForDiffusePower(preLightData.ltcTransformDiffuse, bsdfData.diffusePower, perceptualRoughness, clampedNdotV);
+#endif
+
 } // PreLightData_SetupAreaLightsAniso
 
 // See PreLightData_SetupOcclusion(): when we require something equivalent to a "diffuse color tint" but for the specular BSDF,
