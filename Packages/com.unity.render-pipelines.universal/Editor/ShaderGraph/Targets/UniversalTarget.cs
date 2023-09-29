@@ -177,6 +177,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         bool m_ReceiveShadows = true;
 
         [SerializeField]
+        bool m_DisableTint = false;
+
+        [SerializeField]
         AdditionalMotionVectorMode m_AdditionalMotionVectorMode = AdditionalMotionVectorMode.None;
 
         [SerializeField]
@@ -288,6 +291,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             get => m_AlphaClip;
             set => m_AlphaClip = value;
+        }
+
+        public bool disableTint
+        {
+            get => m_DisableTint;
+            set => m_DisableTint = value;
         }
 
         public bool castShadows

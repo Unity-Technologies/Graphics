@@ -89,7 +89,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                         // UI shaders to render correctly. Verify [1352225] before changing this order.
                         { CorePasses._2DSceneSelection(target) },
                         { CorePasses._2DScenePicking(target) },
-                        { SpriteLitPasses.Forward },
+                        { SpriteLitPasses.Forward(target) },
                     },
                 };
                 return result;
@@ -134,6 +134,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     customInterpolators = CoreCustomInterpDescriptors.Common
                 };
 
+                if (target.disableTint)
+                    result.defines.Add(Canvas.ShaderGraph.CanvasSubTarget<Target>.CanvasKeywords.DisableTint, 1);
+
                 SpriteSubTargetUtility.AddAlphaClipControlToPass(ref result, target);
 
                 return result;
@@ -172,41 +175,53 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     customInterpolators = CoreCustomInterpDescriptors.Common
                 };
 
+                if (target.disableTint)
+                    result.defines.Add(Canvas.ShaderGraph.CanvasSubTarget<Target>.CanvasKeywords.DisableTint, 1);
+
                 SpriteSubTargetUtility.AddAlphaClipControlToPass(ref result, target);
 
                 return result;
             }
 
-            public static PassDescriptor Forward = new PassDescriptor
+            public static PassDescriptor Forward(UniversalTarget target)
             {
-                // Definition
-                displayName = "Sprite Forward",
-                referenceName = "SHADERPASS_SPRITEFORWARD",
-                lightMode = "UniversalForward",
-                useInPreview = true,
+                var result = new PassDescriptor
+                {
+                    // Definition
+                    displayName = "Sprite Forward",
+                    referenceName = "SHADERPASS_SPRITEFORWARD",
+                    lightMode = "UniversalForward",
+                    useInPreview = true,
 
-                // Template
-                passTemplatePath = UniversalTarget.kUberTemplatePath,
-                sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
+                    // Template
+                    passTemplatePath = UniversalTarget.kUberTemplatePath,
+                    sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
 
-                // Port Mask
-                validVertexBlocks = CoreBlockMasks.Vertex,
-                validPixelBlocks = SpriteLitBlockMasks.FragmentForwardNormal,
+                    // Port Mask
+                    validVertexBlocks = CoreBlockMasks.Vertex,
+                    validPixelBlocks = SpriteLitBlockMasks.FragmentForwardNormal,
 
-                // Fields
-                structs = CoreStructCollections.Default,
-                requiredFields = SpriteLitRequiredFields.Forward,
-                keywords = SpriteLitKeywords.Forward,
-                fieldDependencies = CoreFieldDependencies.Default,
+                    // Fields
+                    structs = CoreStructCollections.Default,
+                    requiredFields = SpriteLitRequiredFields.Forward,
+                    keywords = SpriteLitKeywords.Forward,
+                    fieldDependencies = CoreFieldDependencies.Default,
 
-                // Conditional State
-                renderStates = CoreRenderStates.Default,
-                pragmas = CorePragmas._2DDefault,
-                includes = SpriteLitIncludes.Forward,
+                    // Conditional State
+                    renderStates = CoreRenderStates.Default,
+                    pragmas = CorePragmas._2DDefault,
+                    defines = new DefineCollection(),
+                    includes = SpriteLitIncludes.Forward,
 
-                // Custom Interpolator Support
-                customInterpolators = CoreCustomInterpDescriptors.Common
-            };
+                    // Custom Interpolator Support
+                    customInterpolators = CoreCustomInterpDescriptors.Common
+                };
+
+                if (target.disableTint)
+                    result.defines.Add(Canvas.ShaderGraph.CanvasSubTarget<Target>.CanvasKeywords.DisableTint, 1);
+
+                return result;
+            }
         }
         #endregion
 

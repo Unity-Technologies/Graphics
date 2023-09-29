@@ -67,6 +67,16 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 target.alphaClip = evt.newValue;
                 onChange();
             });
+
+            context.AddProperty("Disable Color Tint", new Toggle() { value = target.disableTint }, (evt) =>
+            {
+                if (Equals(target.disableTint, evt.newValue))
+                    return;
+
+                registerUndo("Change Disable Tint");
+                target.disableTint = evt.newValue;
+                onChange();
+            });
         }
 
         public static void AddAlphaClipControlToPass(ref PassDescriptor pass, UniversalTarget target)
