@@ -186,7 +186,7 @@ void ComputeSurfaceScattering(inout PathPayload payload : SV_RayPayload, Attribu
                 value *= (mtlResult.diffValue + mtlResult.specValue) / pdf;
                 if (Luminance(value) > 0.001)
                 {
-                    #ifndef _PATH_TRACED_DUAL_SCATTERING
+                #ifndef _PATH_TRACED_DUAL_SCATTERING
                     // Shoot a transmission ray
                     shadowPayload.segmentID = SEGMENT_ID_TRANSMISSION;
                 #else
@@ -201,7 +201,8 @@ void ComputeSurfaceScattering(inout PathPayload payload : SV_RayPayload, Attribu
                              RAYTRACINGRENDERERFLAG_CAST_SHADOW, 0, 1, 1, ray, shadowPayload);
 
                     // Add direct light sampling contribution
-                    float misWeight = PowerHeuristic(pdf, mtlResult.diffPdf + mtlResult.specPdf);
+                    float matPdf = mtlResult.diffPdf + mtlResult.specPdf;
+                    float misWeight = PowerHeuristic(pdf, matPdf);
                     payload.value += value * GetLightTransmission(shadowPayload.value, shadowOpacity) * misWeight;
                 }
             }

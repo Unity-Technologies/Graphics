@@ -1381,7 +1381,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 case LightType.Disc:
                     lightCategory = LightCategory.Area;
-                    //not used in real-time at the moment anyway
+                    //not used in real-time at the moment anyway, except for path tracing
                     gpuLightType = GPULightType.Disc;
                     lightVolumeType = LightVolumeType.Sphere;
                     break;
@@ -1912,6 +1912,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         m_TextureCaches.lightCookieManager.ReserveSpace(Texture2D.whiteTexture);
                     break;
                 case LightType.Rectangle:
+                case LightType.Disc:
                     // Only rectangle can have cookies
                     if (hdLightData.IESSpot != null && hdLightData.areaLightCookie != null && hdLightData.IESSpot != hdLightData.areaLightCookie)
                         m_TextureCaches.lightCookieManager.ReserveSpace(hdLightData.areaLightCookie, hdLightData.IESSpot);
@@ -1921,7 +1922,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         m_TextureCaches.lightCookieManager.ReserveSpace(hdLightData.areaLightCookie);
                     break;
                 case LightType.Tube:
-                case LightType.Disc:
                     // These light types can't have cookies
                     break;
             }

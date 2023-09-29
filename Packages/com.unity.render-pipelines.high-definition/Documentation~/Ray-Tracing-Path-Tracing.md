@@ -196,7 +196,6 @@ HDRP path tracing in Unity currently has the following limitations:
   - Shader Graphs that use [Custom Interpolators](../../com.unity.shadergraph/Documentation~/Custom-Interpolators.md).
   - Local Volumetric Fog.
   - Tessellation.
-  - Tube and Disc-shaped Area Lights.
   - Translucent Opaque Materials.
   - Several of HDRP's Materials. This includes Eye, Hair, and Decal.
   - Per-pixel displacement (parallax occlusion mapping, height map, depth offset).

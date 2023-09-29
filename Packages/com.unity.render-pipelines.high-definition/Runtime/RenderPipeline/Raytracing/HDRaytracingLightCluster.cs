@@ -243,7 +243,7 @@ namespace UnityEngine.Rendering.HighDefinition
         void BuildGPULightVolumes(HDCamera hdCamera, HDRayTracingLights rayTracingLights)
         {
             int totalNumLights = rayTracingLights.lightCount;
-            // Also count decals to be added to the cluster 
+            // Also count decals to be added to the cluster
             int decalCount = GetDecalCount(hdCamera);
             totalNumLights += decalCount;
 
@@ -309,7 +309,18 @@ namespace UnityEngine.Rendering.HighDefinition
                         // let's compute the oobb of the light influence volume first
                         Vector3 oobbDimensions = new Vector3(currentLight.shapeWidth + 2 * lightRange, currentLight.shapeHeight + 2 * lightRange, lightRange); // One-sided
                         Vector3 extents = 0.5f * oobbDimensions;
-                        Vector3 oobbCenter = lightPositionRWS + extents.z * currentLight.gameObject.transform.forward;
+                        Vector3 oobbCenter = lightPositionRWS;
+
+                        // Tube lights don't have forward / backward facing and have full extents on all directions as a consequence, since their OOBB is centered
+                        if (lightType == LightType.Tube)
+                        {
+                            oobbDimensions.z *= 2;
+                            extents.z *= 2;
+                        }
+                        else
+                        {
+                            oobbCenter += extents.z * currentLight.gameObject.transform.forward;
+                        }
 
                         // Let's now compute an AABB that matches the previously defined OOBB
                         OOBBToAABBBounds(oobbCenter, extents, currentLight.gameObject.transform.up, currentLight.gameObject.transform.right, currentLight.gameObject.transform.forward, ref bounds);
@@ -335,8 +346,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             int indexOffset = realIndex;
 
-            // Set Env Light volume data to the CPU buffer 
-            if(!hdCamera.IsPathTracingEnabled()) // We don't use these in path tracing 
+            // Set Env Light volume data to the CPU buffer
+            if(!hdCamera.IsPathTracingEnabled()) // We don't use these in path tracing
             {
                 for (int lightIdx = 0; lightIdx < rayTracingLights.reflectionProbeArray.Count; ++lightIdx)
                 {
@@ -388,7 +399,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Add Decal data to m_lightVolumesCPUArray
                 for (int decalIdx = 0; decalIdx < decalCount; ++decalIdx)
                 {
-                    // Decal projectors are box shaped 
+                    // Decal projectors are box shaped
                     m_LightVolumesCPUArray[decalIdx + indexOffset].shape = 1;
 
                     // Compute the camera relative position

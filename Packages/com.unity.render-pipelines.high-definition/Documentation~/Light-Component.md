@@ -101,6 +101,8 @@ These settings define the area this Light affects. Each Light **Type** has its o
 | ------------ | ------------------------------------------------------------ |
 | **Radius**   | Defines the radius of the light source. This has an impact on the size of specular highlights, diffuse lighting falloff and the smoothness of baked shadows and ray-traced shadows. |
 
+<a name="AreaLight"></a>
+
 #### Area Light
 
 | **Property** | **Description**                                              |

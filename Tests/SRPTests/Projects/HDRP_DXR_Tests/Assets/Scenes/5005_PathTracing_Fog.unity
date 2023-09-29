@@ -130,7 +130,6 @@ GameObject:
   m_Component:
   - component: {fileID: 15683080}
   - component: {fileID: 15683079}
-  - component: {fileID: 15683078}
   - component: {fileID: 15683077}
   m_Layer: 0
   m_Name: Camera_BottomLeft
@@ -271,14 +270,6 @@ MonoBehaviour:
       enableFptlForForwardOpaque: 0
       enableBigTilePrepass: 0
       isFptlEnabled: 0
---- !u!81 &15683078
-AudioListener:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 15683076}
-  m_Enabled: 1
 --- !u!20 &15683079
 Camera:
   m_ObjectHideFlags: 0
@@ -355,7 +346,6 @@ GameObject:
   m_Component:
   - component: {fileID: 120685000}
   - component: {fileID: 120684999}
-  - component: {fileID: 120684998}
   - component: {fileID: 120684997}
   m_Layer: 0
   m_Name: Camera_TopRight
@@ -496,14 +486,6 @@ MonoBehaviour:
       enableFptlForForwardOpaque: 0
       enableBigTilePrepass: 0
       isFptlEnabled: 0
---- !u!81 &120684998
-AudioListener:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 120684996}
-  m_Enabled: 1
 --- !u!20 &120684999
 Camera:
   m_ObjectHideFlags: 0
@@ -925,19 +907,22 @@ MonoBehaviour:
   m_UseScreenSpaceShadows: 1
   m_InteractsWithSky: 1
   m_AngularDiameter: 10
-  m_DiameterMultiplerMode: 1
-  m_DiameterMultiplier: 1
-  m_DiameterOverride: 0.5
-  m_EmissiveLightSource: 1
-  m_FlareSize: 2
-  m_FlareTint: {r: 1, g: 1, b: 1, a: 1}
-  m_FlareFalloff: 4
-  m_AutomaticMoonPhase: 1
-  m_MoonPhase: 0.2
-  m_MoonPhaseRotation: 0
-  m_Earthshine: 1
-  m_SurfaceTexture: {fileID: 0}
-  m_SurfaceTint: {r: 1, g: 1, b: 1, a: 1}
+  diameterMultiplerMode: 1
+  diameterMultiplier: 1
+  diameterOverride: 0.5
+  celestialBodyShadingSource: 1
+  sunLightOverride: {fileID: 0}
+  sunColor: {r: 1, g: 1, b: 1, a: 1}
+  sunIntensity: 130000
+  moonPhase: 0.2
+  moonPhaseRotation: 0
+  earthshine: 1
+  flareSize: 2
+  flareTint: {r: 1, g: 1, b: 1, a: 1}
+  flareFalloff: 4
+  flareMultiplier: 1
+  surfaceTexture: {fileID: 0}
+  surfaceTint: {r: 1, g: 1, b: 1, a: 1}
   m_Distance: 150000000
   m_UseRayTracedShadows: 0
   m_NumRayTracingSamples: 4
@@ -960,7 +945,7 @@ MonoBehaviour:
   m_MinFilterSize: 1
   m_DirLightPCSSBlockerSampleCount: 24
   m_DirLightPCSSFilterSampleCount: 16
-  m_DirLightPCSSMaxBlockerDistance: 64
+  m_DirLightPCSSMaxPenumbraSize: 0.56
   m_DirLightPCSSMaxSamplingDistance: 0.5
   m_DirLightPCSSMinFilterSizeTexels: 1.5
   m_DirLightPCSSMinFilterMaxAngularDiameter: 10
@@ -1419,7 +1404,6 @@ GameObject:
   m_Component:
   - component: {fileID: 593137057}
   - component: {fileID: 593137056}
-  - component: {fileID: 593137055}
   - component: {fileID: 593137054}
   m_Layer: 0
   m_Name: Camera_BottomRight
@@ -1560,14 +1544,6 @@ MonoBehaviour:
       enableFptlForForwardOpaque: 0
       enableBigTilePrepass: 0
       isFptlEnabled: 0
---- !u!81 &593137055
-AudioListener:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 593137053}
-  m_Enabled: 1
 --- !u!20 &593137056
 Camera:
   m_ObjectHideFlags: 0
@@ -1805,19 +1781,22 @@ MonoBehaviour:
   m_UseScreenSpaceShadows: 0
   m_InteractsWithSky: 1
   m_AngularDiameter: 0.5
-  m_DiameterMultiplerMode: 1
-  m_DiameterMultiplier: 1
-  m_DiameterOverride: 0.5
-  m_EmissiveLightSource: 1
-  m_FlareSize: 2
-  m_FlareTint: {r: 1, g: 1, b: 1, a: 1}
-  m_FlareFalloff: 4
-  m_AutomaticMoonPhase: 1
-  m_MoonPhase: 0.2
-  m_MoonPhaseRotation: 0
-  m_Earthshine: 1
-  m_SurfaceTexture: {fileID: 0}
-  m_SurfaceTint: {r: 1, g: 1, b: 1, a: 1}
+  diameterMultiplerMode: 1
+  diameterMultiplier: 1
+  diameterOverride: 0.5
+  celestialBodyShadingSource: 1
+  sunLightOverride: {fileID: 0}
+  sunColor: {r: 1, g: 1, b: 1, a: 1}
+  sunIntensity: 130000
+  moonPhase: 0.2
+  moonPhaseRotation: 0
+  earthshine: 1
+  flareSize: 2
+  flareTint: {r: 1, g: 1, b: 1, a: 1}
+  flareFalloff: 4
+  flareMultiplier: 1
+  surfaceTexture: {fileID: 0}
+  surfaceTint: {r: 1, g: 1, b: 1, a: 1}
   m_Distance: 1.5e+11
   m_UseRayTracedShadows: 0
   m_NumRayTracingSamples: 4
@@ -1840,7 +1819,7 @@ MonoBehaviour:
   m_MinFilterSize: 0.1
   m_DirLightPCSSBlockerSampleCount: 24
   m_DirLightPCSSFilterSampleCount: 16
-  m_DirLightPCSSMaxBlockerDistance: 64
+  m_DirLightPCSSMaxPenumbraSize: 0.56
   m_DirLightPCSSMaxSamplingDistance: 0.5
   m_DirLightPCSSMinFilterSizeTexels: 1.5
   m_DirLightPCSSMinFilterMaxAngularDiameter: 10
@@ -2716,7 +2695,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1737264263}
   - component: {fileID: 1737264262}
-  - component: {fileID: 1737264261}
   - component: {fileID: 1737264260}
   m_Layer: 0
   m_Name: Camera_TopLeft
@@ -2857,14 +2835,6 @@ MonoBehaviour:
       enableFptlForForwardOpaque: 0
       enableBigTilePrepass: 0
       isFptlEnabled: 0
---- !u!81 &1737264261
-AudioListener:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1737264259}
-  m_Enabled: 1
 --- !u!20 &1737264262
 Camera:
   m_ObjectHideFlags: 0
