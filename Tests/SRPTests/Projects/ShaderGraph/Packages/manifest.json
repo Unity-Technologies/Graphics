@@ -9,7 +9,7 @@
     "com.unity.visualeffectgraph": "file:../../../../../Packages/com.unity.visualeffectgraph",
     "local.code.coverage.references": "file:../../../Packages/local.code.coverage.references",
     "local.utf.references": "file:../../../Packages/local.utf.references",
-    "local.gtf.references": "file:../../../Packages/local.gtf.references",
+    "com.unity.testframework.graphics": "file:../../../Packages/com.unity.testframework.graphics",
     "com.unity.testtools.codecoverage": "1.1.0",
     "com.unity.ugui": "2.0.0",
     "com.unity.xr.interactionsubsystems": "1.0.1",
