@@ -31,7 +31,7 @@ namespace UnityEditor.Rendering
             }
         }
 
-        [MenuItem("Assets/Create/Lens Flare (SRP)", priority = UnityEngine.Rendering.CoreUtils.Priorities.srpLensFlareMenuPriority)]
+        [MenuItem("Assets/Create/Rendering/Lens Flare (SRP)", priority = UnityEngine.Rendering.CoreUtils.Priorities.srpLensFlareMenuPriority)]
         internal static void CreateLensFlareDataSRPAsset()
         {
             const string relativePath = "New Lens Flare (SRP).asset";
