@@ -95,11 +95,6 @@ namespace UnityEditor.VFX.UI
         protected virtual void OnMainButton() { }
         protected abstract Vector2 GetPopupSize();
 
-        protected void SetMainButtonTooltip(string newTooltip)
-        {
-            m_MainButton.tooltip = newTooltip;
-        }
-
         protected void ClosePopup()
         {
             m_CurrentPopup?.Close();
