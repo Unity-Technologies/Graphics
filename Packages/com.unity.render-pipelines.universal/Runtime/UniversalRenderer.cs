@@ -145,6 +145,7 @@ namespace UnityEngine.Rendering.Universal
         StencilState m_DefaultStencilState;
         LightCookieManager m_LightCookieManager;
         IntermediateTextureMode m_IntermediateTextureMode;
+        bool m_VulkanEnablePreTransform;
 
         // Materials used in URP Scriptable Render Passes
         Material m_BlitMaterial = null;
@@ -345,6 +346,8 @@ namespace UnityEngine.Rendering.Universal
             LensFlareCommonSRP.mergeNeeded = 0;
             LensFlareCommonSRP.maxLensFlareWithOcclusionTemporalSample = 1;
             LensFlareCommonSRP.Initialize();
+
+            m_VulkanEnablePreTransform = GraphicsSettings.HasShaderDefine(BuiltinShaderDefine.UNITY_PRETRANSFORM_TO_DISPLAY_ORIENTATION);
         }
 
         /// <inheritdoc />
@@ -760,7 +763,8 @@ namespace UnityEngine.Rendering.Universal
 #if UNITY_ANDROID || UNITY_WEBGL || UNITY_EMBEDDED_LINUX
             // GLES can not use render texture's depth buffer with the color buffer of the backbuffer
             // in such case we create a color texture for it too.
-            if (SystemInfo.graphicsDeviceType != GraphicsDeviceType.Vulkan)
+            // If Vulkan PreTransform is enabled we can't mix backbuffer and intermediate render target due to screen orientation mismatch
+            if (SystemInfo.graphicsDeviceType != GraphicsDeviceType.Vulkan || m_VulkanEnablePreTransform)
                 createColorTexture |= createDepthTexture;
 #endif
 
