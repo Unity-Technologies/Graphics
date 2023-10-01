@@ -709,6 +709,11 @@ namespace UnityEditor.VFX
             return new VFXExpressionVector4sToMatrix(m0, m1, m2, m3);
         }
 
+        static public VFXExpression InverseTransposeTRS(VFXExpression matrix)
+        {
+            return new VFXExpressionTransposeMatrix(new VFXExpressionInverseTRSMatrix(matrix));
+        }
+
         static public VFXExpression IsTRSMatrixZeroScaled(VFXExpression matrix)
         {
             var i = new VFXExpressionMatrixToVector3s(matrix, VFXValue.Constant(0));
