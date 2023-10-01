@@ -96,17 +96,18 @@ float4 Fetch4Array(Texture2DArray tex, uint slot, float2 coords, float2 offset, 
     return SAMPLE_TEXTURE2D_ARRAY_LOD(tex, s_linear_clamp_sampler, uv, slot, 0);
 }
 
+// Same offsets with TAASampleOffsets in /Runtime/RenderPipeline/HDRenderPipeline.PostProcess.cs
 static const float2 NeighbourOffsets[8] =
 {
-    float2(0.0f,  1.0f),
-    float2(1.0f,  0.0f),
+//  float2( 0.0f,  0.0f),  
+    float2( 0.0f,  1.0f),
+    float2( 1.0f,  0.0f),
     float2(-1.0f,  0.0f),
-    float2(0.0f, -1.0f),
-    float2(1.0f,  1.0f),
-    float2(1.0f, -1.0f),
+    float2( 0.0f, -1.0f),
     float2(-1.0f,  1.0f),
+    float2( 1.0f, -1.0f),
+    float2( 1.0f,  1.0f),
     float2(-1.0f, -1.0f),
-
 };
 
 
