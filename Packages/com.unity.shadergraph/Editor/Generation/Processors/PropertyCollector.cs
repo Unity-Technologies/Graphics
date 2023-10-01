@@ -200,7 +200,7 @@ namespace UnityEditor.ShaderGraph
                 {
                     var n = h.name;
                     string type = h.GetValueTypeString();
-                    builder.AppendLine($"    UNITY_DOTS_INSTANCED_PROP({type}, {n})");
+                    builder.AppendLine($"    UNITY_DOTS_INSTANCED_PROP_OVERRIDE_SUPPORTED({type}, {n})");
                 }
                 builder.AppendLine("UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)");
 

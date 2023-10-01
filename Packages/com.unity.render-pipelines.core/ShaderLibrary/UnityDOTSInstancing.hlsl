@@ -7,6 +7,14 @@
 #error DOTS Instancing requires the new shader preprocessor. Please enable Caching Preprocessor in the Editor settings!
 #endif
 
+// Config defines
+// ==========================================================================================
+// #define UNITY_DOTS_INSTANCED_PROP_OVERRIDE_DISABLED_BY_DEFAULT
+
+
+
+
+
 /*
 Here's a bit of python code to generate these repetitive typespecs without
 a lot of C macro magic
@@ -100,6 +108,10 @@ for t, c, sz in (
 #define UNITY_DOTS_INSTANCING_TYPESPEC_min16float4 H8
 #define UNITY_DOTS_INSTANCING_TYPESPEC_SH F128
 
+static const int kDotsInstancedPropOverrideDisabled = 0;
+static const int kDotsInstancedPropOverrideSupported = 1;
+static const int kDotsInstancedPropOverrideRequired = 2;
+
 #define UNITY_DOTS_INSTANCING_CONCAT2(a, b) a ## b
 #define UNITY_DOTS_INSTANCING_CONCAT4(a, b, c, d) a ## b ## c ## d
 #define UNITY_DOTS_INSTANCING_CONCAT_WITH_METADATA(metadata_prefix, typespec, name) UNITY_DOTS_INSTANCING_CONCAT4(metadata_prefix, typespec, _Metadata, name)
@@ -115,20 +127,53 @@ for t, c, sz in (
 //       underscore in the common case where the property name starts with an underscore.
 //       A prefix double underscore is illegal on some platforms like OpenGL.
 #define UNITY_DOTS_INSTANCED_METADATA_NAME(type, name) UNITY_DOTS_INSTANCING_CONCAT_WITH_METADATA(unity_DOTSInstancing, UNITY_DOTS_INSTANCING_CONCAT2(UNITY_DOTS_INSTANCING_TYPESPEC_, type), name)
+#define UNITY_DOTS_INSTANCED_PROP_OVERRIDE_MODE_NAME(name) UNITY_DOTS_INSTANCING_CONCAT2(name, _DOTSInstancingOverrideMode)
 
 #define UNITY_DOTS_INSTANCING_START(name) cbuffer UnityDOTSInstancing_##name {
 #define UNITY_DOTS_INSTANCING_END(name)   }
-#define UNITY_DOTS_INSTANCED_PROP(type, name) uint UNITY_DOTS_INSTANCED_METADATA_NAME(type, name);
 
-#define UNITY_ACCESS_DOTS_INSTANCED_PROP(type, var) LoadDOTSInstancedData_##type(UNITY_DOTS_INSTANCED_METADATA_NAME(type, var))
-#define UNITY_ACCESS_DOTS_AND_TRADITIONAL_INSTANCED_PROP(type, arr, var) LoadDOTSInstancedData_##type(UNITY_DOTS_INSTANCED_METADATA_NAME(type, var))
+#define UNITY_DOTS_INSTANCED_PROP_OVERRIDE_DISABLED(type, name) static const uint UNITY_DOTS_INSTANCED_METADATA_NAME(type, name) = 0; \
+static const int UNITY_DOTS_INSTANCED_PROP_OVERRIDE_MODE_NAME(name) = kDotsInstancedPropOverrideDisabled;
 
-#define UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(type, var) LoadDOTSInstancedData_##type(var, UNITY_DOTS_INSTANCED_METADATA_NAME(type, var))
-#define UNITY_ACCESS_DOTS_AND_TRADITIONAL_INSTANCED_PROP_WITH_DEFAULT(type, arr, var) LoadDOTSInstancedData_##type(var, UNITY_DOTS_INSTANCED_METADATA_NAME(type, var))
+#define UNITY_DOTS_INSTANCED_PROP_OVERRIDE_SUPPORTED(type, name) uint UNITY_DOTS_INSTANCED_METADATA_NAME(type, name); \
+static const int UNITY_DOTS_INSTANCED_PROP_OVERRIDE_MODE_NAME(name) = kDotsInstancedPropOverrideSupported;
 
-#define UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_CUSTOM_DEFAULT(type, var, default_value) LoadDOTSInstancedData_##type(default_value, UNITY_DOTS_INSTANCED_METADATA_NAME(type, var))
-#define UNITY_ACCESS_DOTS_AND_TRADITIONAL_INSTANCED_PROP_WITH_CUSTOM_DEFAULT(type, arr, var, default_value) LoadDOTSInstancedData_##type(default_value, UNITY_DOTS_INSTANCED_METADATA_NAME(type, var))
+#define UNITY_DOTS_INSTANCED_PROP_OVERRIDE_REQUIRED(type, name) uint UNITY_DOTS_INSTANCED_METADATA_NAME(type, name); \
+static const int UNITY_DOTS_INSTANCED_PROP_OVERRIDE_MODE_NAME(name) = kDotsInstancedPropOverrideRequired;
 
+#ifdef UNITY_DOTS_INSTANCED_PROP_OVERRIDE_DISABLED_BY_DEFAULT
+#define UNITY_DOTS_INSTANCED_PROP(type, name) UNITY_DOTS_INSTANCED_PROP_OVERRIDE_DISABLED(type, name)
+#else
+#define UNITY_DOTS_INSTANCED_PROP(type, name) UNITY_DOTS_INSTANCED_PROP_OVERRIDE_SUPPORTED(type, name)
+#endif
+
+#define UNITY_DOTS_INSTANCED_PROP_IS_OVERRIDE_DISABLED(name) (UNITY_DOTS_INSTANCED_PROP_OVERRIDE_MODE_NAME(name) == kDotsInstancedPropOverrideDisabled)
+#define UNITY_DOTS_INSTANCED_PROP_IS_OVERRIDE_ENABLED(name) (UNITY_DOTS_INSTANCED_PROP_OVERRIDE_MODE_NAME(name) == kDotsInstancedPropOverrideSupported)
+#define UNITY_DOTS_INSTANCED_PROP_IS_OVERRIDE_REQUIRED(name) (UNITY_DOTS_INSTANCED_PROP_OVERRIDE_MODE_NAME(name) == kDotsInstancedPropOverrideRequired)
+
+#define UNITY_ACCESS_DOTS_INSTANCED_PROP(type, var) ( /* Compile-time branches */ \
+UNITY_DOTS_INSTANCED_PROP_IS_OVERRIDE_ENABLED(var) ? LoadDOTSInstancedData_##type(UNITY_DOTS_INSTANCED_METADATA_NAME(type, var)) \
+: UNITY_DOTS_INSTANCED_PROP_IS_OVERRIDE_REQUIRED(var) ? LoadDOTSInstancedDataOverridden_##type(UNITY_DOTS_INSTANCED_METADATA_NAME(type, var)) \
+: ((type)0) \
+)
+
+#define UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(type, var) ( /* Compile-time branches */ \
+UNITY_DOTS_INSTANCED_PROP_IS_OVERRIDE_ENABLED(var) ? LoadDOTSInstancedData_##type(var, UNITY_DOTS_INSTANCED_METADATA_NAME(type, var)) \
+: UNITY_DOTS_INSTANCED_PROP_IS_OVERRIDE_REQUIRED(var) ? LoadDOTSInstancedDataOverridden_##type(UNITY_DOTS_INSTANCED_METADATA_NAME(type, var)) \
+: (var) \
+)
+
+#define UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_CUSTOM_DEFAULT(type, var, default_value) ( /* Compile-time branches */ \
+UNITY_DOTS_INSTANCED_PROP_IS_OVERRIDE_ENABLED(var) ? LoadDOTSInstancedData_##type(default_value, UNITY_DOTS_INSTANCED_METADATA_NAME(type, var)) \
+: UNITY_DOTS_INSTANCED_PROP_IS_OVERRIDE_REQUIRED(var) ? LoadDOTSInstancedDataOverridden_##type(UNITY_DOTS_INSTANCED_METADATA_NAME(type, var)) \
+: (default_value) \
+)
+
+#define UNITY_ACCESS_DOTS_AND_TRADITIONAL_INSTANCED_PROP(type, arr, var) UNITY_ACCESS_DOTS_INSTANCED_PROP(type, var)
+#define UNITY_ACCESS_DOTS_AND_TRADITIONAL_INSTANCED_PROP_WITH_DEFAULT(type, arr, var) UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(type, var)
+#define UNITY_ACCESS_DOTS_AND_TRADITIONAL_INSTANCED_PROP_WITH_CUSTOM_DEFAULT(type, arr, var, default_value) UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_CUSTOM_DEFAULT(type, var, default_value)
+
+#define UNITY_SETUP_DOTS_MATERIAL_PROPERTY_CACHES() // No-op by default
 
 #ifdef UNITY_DOTS_INSTANCING_UNIFORM_BUFFER
 CBUFFER_START(unity_DOTSInstanceData)
@@ -374,6 +419,11 @@ type LoadDOTSInstancedData_##type(uint metadata) \
     uint address = ComputeDOTSInstanceDataAddress(metadata, sizeof_type); \
     return conv(DOTSInstanceData_Load(address)); \
 } \
+type LoadDOTSInstancedDataOverridden_##type(uint metadata) \
+{ \
+    uint address = ComputeDOTSInstanceDataAddressOverridden(metadata, sizeof_type); \
+    return conv(DOTSInstanceData_Load(address)); \
+} \
 type LoadDOTSInstancedData_##type(type default_value, uint metadata) \
 { \
     uint address = ComputeDOTSInstanceDataAddressOverridden(metadata, sizeof_type); \
@@ -385,6 +435,11 @@ type LoadDOTSInstancedData_##type(type default_value, uint metadata) \
 type##width LoadDOTSInstancedData_##type##width(uint metadata) \
 { \
     uint address = ComputeDOTSInstanceDataAddress(metadata, sizeof_type * width); \
+    return conv(DOTSInstanceData_Load##width(address)); \
+} \
+type##width LoadDOTSInstancedDataOverridden_##type##width(uint metadata) \
+{ \
+    uint address = ComputeDOTSInstanceDataAddressOverridden(metadata, sizeof_type * width); \
     return conv(DOTSInstanceData_Load##width(address)); \
 } \
 type##width LoadDOTSInstancedData_##type##width(type##width default_value, uint metadata) \
