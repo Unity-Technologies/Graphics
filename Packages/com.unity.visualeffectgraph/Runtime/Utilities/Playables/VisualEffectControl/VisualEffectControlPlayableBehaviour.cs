@@ -1,6 +1,5 @@
 #if VFX_HAS_TIMELINE
 using System;
-using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Playables;
