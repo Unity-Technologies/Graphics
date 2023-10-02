@@ -136,7 +136,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 debugHandler?.UpdateShaderGlobalPropertiesForFinalValidationPass(cmd, cameraData, !resolveToDebugScreen);
 
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.LinearToSRGBConversion,
+                cmd.SetKeyword(ShaderGlobalKeywords.LinearToSRGBConversion,
                     cameraData.requireSrgbConversion);
 
                 if (outputsToHDR)
@@ -273,7 +273,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 {
                     data.blitMaterialData.material.enabledKeywords = null;
 
-                    CoreUtils.SetKeyword(context.cmd, ShaderKeywordStrings.LinearToSRGBConversion, data.requireSrgbConversion);
+                    context.cmd.SetKeyword(ref ShaderGlobalKeywords.LinearToSRGBConversion, data.requireSrgbConversion);
                     data.blitMaterialData.material.SetTexture(data.sourceID, data.source);
 
                     DebugHandler debugHandler = GetActiveDebugHandler(data.cameraData);

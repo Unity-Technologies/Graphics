@@ -141,7 +141,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             bool usesRenderingLayers = data.deferredLights.UseRenderingLayers && !data.deferredLights.HasRenderingLayerPrepass;
             if (usesRenderingLayers)
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.WriteRenderingLayers, true);
+                cmd.SetKeyword(ref ShaderGlobalKeywords.WriteRenderingLayers, true);
 
             if (data.deferredLights.IsOverlay)
                 data.deferredLights.ClearStencilPartial(cmd);
@@ -153,7 +153,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             // Clean up
             if (usesRenderingLayers)
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.WriteRenderingLayers, false);
+                cmd.SetKeyword(ref ShaderGlobalKeywords.WriteRenderingLayers, false);
         }
 
         /// <summary>

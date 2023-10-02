@@ -164,11 +164,11 @@ namespace UnityEngine.Rendering.Universal
 
         private static void SetKeywords(RasterCommandBuffer cmd, PassData passData)
         {
-            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DBufferMRT1, passData.settings.surfaceData == DecalSurfaceData.Albedo);
-            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DBufferMRT2, passData.settings.surfaceData == DecalSurfaceData.AlbedoNormal);
-            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DBufferMRT3, passData.settings.surfaceData == DecalSurfaceData.AlbedoNormalMAOS);
+            cmd.SetKeyword(ref ShaderGlobalKeywords.DBufferMRT1, passData.settings.surfaceData == DecalSurfaceData.Albedo);
+            cmd.SetKeyword(ref ShaderGlobalKeywords.DBufferMRT2, passData.settings.surfaceData == DecalSurfaceData.AlbedoNormal);
+            cmd.SetKeyword(ref ShaderGlobalKeywords.DBufferMRT3, passData.settings.surfaceData == DecalSurfaceData.AlbedoNormalMAOS);
 
-            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DecalLayers, passData.decalLayers);
+            cmd.SetKeyword(ref ShaderGlobalKeywords.DecalLayers, passData.decalLayers);
         }
 
         private static void Clear(CommandBuffer cmd, PassData passData)
@@ -307,10 +307,10 @@ namespace UnityEngine.Rendering.Universal
                 throw new System.ArgumentNullException("cmd");
             }
 
-            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DBufferMRT1, false);
-            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DBufferMRT2, false);
-            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DBufferMRT3, false);
-            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DecalLayers, false);
+            cmd.SetKeyword(ShaderGlobalKeywords.DBufferMRT1, false);
+            cmd.SetKeyword(ShaderGlobalKeywords.DBufferMRT2, false);
+            cmd.SetKeyword(ShaderGlobalKeywords.DBufferMRT3, false);
+            cmd.SetKeyword(ShaderGlobalKeywords.DecalLayers, false);
         }
     }
 }

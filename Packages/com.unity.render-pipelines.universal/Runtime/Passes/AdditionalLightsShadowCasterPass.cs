@@ -676,7 +676,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         void SetEmptyAdditionalShadowmapAtlas(RasterCommandBuffer cmd)
         {
-            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightShadows, true);
+            cmd.SetKeyword(ref ShaderGlobalKeywords.AdditionalLightShadows, true);
+
             if (RenderingUtils.useStructuredBuffer)
             {
                 var shadowParamsBuffer = ShaderData.instance.GetAdditionalLightShadowParamsStructuredBuffer(m_AdditionalLightIndexToShadowParams.Length);
@@ -715,7 +716,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     Vector4 shadowBias = ShadowUtils.GetShadowBias(ref shadowLight, visibleLightIndex,
                         data.shadowData, shadowSliceData.projectionMatrix, shadowSliceData.resolution);
                     ShadowUtils.SetupShadowCasterConstantBuffer(cmd, ref shadowLight, shadowBias);
-                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.CastingPunctualLightShadow, true);
+                    cmd.SetKeyword(ref ShaderGlobalKeywords.CastingPunctualLightShadow, true);
                     RendererList shadowRendererList = useRenderGraph? data.shadowRendererListsHdl[globalShadowSliceIndex] : data.shadowRendererLists[globalShadowSliceIndex];
                     ShadowUtils.RenderShadowSlice(cmd, ref shadowSliceData, ref shadowRendererList, shadowSliceData.projectionMatrix, shadowSliceData.viewMatrix);
                     additionalLightHasSoftShadows |= shadowLight.light.shadows == LightShadows.Soft;
@@ -734,7 +735,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // If the OFF variant has been stripped, the additional light shadows keyword must always be enabled
                 bool hasOffVariant = !data.stripShadowsOffVariants;
                 data.shadowData.isKeywordAdditionalLightShadowsEnabled = !hasOffVariant || anyShadowSliceRenderer;
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightShadows, data.shadowData.isKeywordAdditionalLightShadowsEnabled);
+                cmd.SetKeyword(ref ShaderGlobalKeywords.AdditionalLightShadows, data.shadowData.isKeywordAdditionalLightShadowsEnabled);
 
                 bool softShadows = data.shadowData.supportsSoftShadows && (mainLightHasSoftShadows || additionalLightHasSoftShadows);
                 data.shadowData.isKeywordSoftShadowsEnabled = softShadows;

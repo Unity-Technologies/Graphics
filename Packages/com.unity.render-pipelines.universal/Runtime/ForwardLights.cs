@@ -413,31 +413,31 @@ namespace UnityEngine.Rendering.Universal.Internal
                 SetupShaderLightConstants(cmd, ref renderingData.cullResults, lightData);
 
                 bool lightCountCheck = (cameraData.renderer.stripAdditionalLightOffVariants && lightData.supportsAdditionalLights) || additionalLightsCount > 0;
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightsVertex,
+                cmd.SetKeyword(ShaderGlobalKeywords.AdditionalLightsVertex,
                     lightCountCheck && additionalLightsPerVertex && !m_UseForwardPlus);
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightsPixel,
+                cmd.SetKeyword(ShaderGlobalKeywords.AdditionalLightsPixel,
                     lightCountCheck && !additionalLightsPerVertex && !m_UseForwardPlus);
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ForwardPlus,
+                cmd.SetKeyword(ShaderGlobalKeywords.ForwardPlus,
                     m_UseForwardPlus);
 
                 bool isShadowMask = lightData.supportsMixedLighting && m_MixedLightingSetup == MixedLightingSetup.ShadowMask;
                 bool isShadowMaskAlways = isShadowMask && QualitySettings.shadowmaskMode == ShadowmaskMode.Shadowmask;
                 bool isSubtractive = lightData.supportsMixedLighting && m_MixedLightingSetup == MixedLightingSetup.Subtractive;
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.LightmapShadowMixing, isSubtractive || isShadowMaskAlways);
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ShadowsShadowMask, isShadowMask);
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MixedLightingSubtractive, isSubtractive); // Backward compatibility
+                cmd.SetKeyword(ShaderGlobalKeywords.LightmapShadowMixing, isSubtractive || isShadowMaskAlways);
+                cmd.SetKeyword(ShaderGlobalKeywords.ShadowsShadowMask, isShadowMask);
+                cmd.SetKeyword(ShaderGlobalKeywords.MixedLightingSubtractive, isSubtractive); // Backward compatibility
 
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ReflectionProbeBlending, lightData.reflectionProbeBlending);
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ReflectionProbeBoxProjection, lightData.reflectionProbeBoxProjection);
+                cmd.SetKeyword(ShaderGlobalKeywords.ReflectionProbeBlending, lightData.reflectionProbeBlending);
+                cmd.SetKeyword(ShaderGlobalKeywords.ReflectionProbeBoxProjection, lightData.reflectionProbeBoxProjection);
 
                 var asset = UniversalRenderPipeline.asset;
                 bool apvIsEnabled = asset != null && asset.lightProbeSystem == LightProbeSystem.ProbeVolumes;
                 ProbeVolumeSHBands probeVolumeSHBands = asset.probeVolumeSHBands;
 
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ProbeVolumeL1, apvIsEnabled && probeVolumeSHBands == ProbeVolumeSHBands.SphericalHarmonicsL1);
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ProbeVolumeL2, apvIsEnabled && probeVolumeSHBands == ProbeVolumeSHBands.SphericalHarmonicsL2);
+                cmd.SetKeyword(ShaderGlobalKeywords.ProbeVolumeL1, apvIsEnabled && probeVolumeSHBands == ProbeVolumeSHBands.SphericalHarmonicsL1);
+                cmd.SetKeyword(ShaderGlobalKeywords.ProbeVolumeL2, apvIsEnabled && probeVolumeSHBands == ProbeVolumeSHBands.SphericalHarmonicsL2);
 
-                // TODO: If we can robustly detect LIGHTMAP_ON, we can skip SH logic.
+				// TODO: If we can robustly detect LIGHTMAP_ON, we can skip SH logic.
                 {
                     ShEvalMode ShAutoDetect(ShEvalMode mode)
                     {
@@ -454,10 +454,9 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                     var shMode = ShAutoDetect(asset.shEvalMode);
 
-                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.EVALUATE_SH_MIXED, shMode == ShEvalMode.Mixed);
-                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.EVALUATE_SH_VERTEX, shMode == ShEvalMode.PerVertex);
+                    cmd.SetKeyword(ShaderGlobalKeywords.EVALUATE_SH_MIXED, shMode == ShEvalMode.Mixed);
+                    cmd.SetKeyword(ShaderGlobalKeywords.EVALUATE_SH_VERTEX, shMode == ShEvalMode.PerVertex);
                 }
-
                 var stack = VolumeManager.instance.stack;
 
                 bool enableProbeVolumes = ProbeReferenceVolume.instance.UpdateShaderVariablesProbeVolumes(cmd,
@@ -467,7 +466,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetGlobalInt("_EnableProbeVolumes", enableProbeVolumes ? 1 : 0);
 
                 bool lightLayers = lightData.supportsLightLayers;
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.LightLayers, lightLayers);
+                cmd.SetKeyword(ShaderGlobalKeywords.LightLayers, lightLayers);
 
                 if (m_LightCookieManager != null)
                 {
@@ -475,7 +474,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
                 else
                 {
-                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.LightCookies, false);
+                    cmd.SetKeyword(ShaderGlobalKeywords.LightCookies, false);
                 }
             }
         }

@@ -282,7 +282,7 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetGlobalVector(ShaderPropertyId.orthoParams, orthoParams);
 
             cmd.SetGlobalVector(ShaderPropertyId.screenSize, new Vector4(scaledCameraWidth, scaledCameraHeight, 1.0f / scaledCameraWidth, 1.0f / scaledCameraHeight));
-            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SCREEN_COORD_OVERRIDE, cameraData.useScreenCoordOverride);
+            cmd.SetKeyword(ref ShaderGlobalKeywords.SCREEN_COORD_OVERRIDE, cameraData.useScreenCoordOverride);
             cmd.SetGlobalVector(ShaderPropertyId.screenSizeOverride, cameraData.screenSizeOverride);
             cmd.SetGlobalVector(ShaderPropertyId.screenCoordScaleBias, cameraData.screenCoordScaleBias);
 
@@ -312,7 +312,7 @@ namespace UnityEngine.Rendering.Universal
             Matrix4x4 worldToCameraMatrix = cameraData.GetViewMatrix();
             Vector3 cameraPos = cameraData.worldSpaceCameraPos;
 
-            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.BillboardFaceCameraPos, QualitySettings.billboardsFaceCameraPosition);
+            cmd.SetKeyword(ref ShaderGlobalKeywords.BillboardFaceCameraPos, QualitySettings.billboardsFaceCameraPosition);
 
             Vector3 billboardTangent;
             Vector3 billboardNormal;
@@ -1472,23 +1472,23 @@ namespace UnityEngine.Rendering.Universal
             using var profScope = new ProfilingScope(Profiling.clearRenderingState);
 
             // Reset per-camera shader keywords. They are enabled depending on which render passes are executed.
-            cmd.DisableShaderKeyword(ShaderKeywordStrings.MainLightShadows);
-            cmd.DisableShaderKeyword(ShaderKeywordStrings.MainLightShadowCascades);
-            cmd.DisableShaderKeyword(ShaderKeywordStrings.AdditionalLightsVertex);
-            cmd.DisableShaderKeyword(ShaderKeywordStrings.AdditionalLightsPixel);
-            cmd.DisableShaderKeyword(ShaderKeywordStrings.ForwardPlus);
-            cmd.DisableShaderKeyword(ShaderKeywordStrings.AdditionalLightShadows);
-            cmd.DisableShaderKeyword(ShaderKeywordStrings.ReflectionProbeBlending);
-            cmd.DisableShaderKeyword(ShaderKeywordStrings.ReflectionProbeBoxProjection);
-            cmd.DisableShaderKeyword(ShaderKeywordStrings.SoftShadows);
-            cmd.DisableShaderKeyword(ShaderKeywordStrings.SoftShadowsLow);
-            cmd.DisableShaderKeyword(ShaderKeywordStrings.SoftShadowsMedium);
-            cmd.DisableShaderKeyword(ShaderKeywordStrings.SoftShadowsHigh);
-            cmd.DisableShaderKeyword(ShaderKeywordStrings.MixedLightingSubtractive); // Backward compatibility
-            cmd.DisableShaderKeyword(ShaderKeywordStrings.LightmapShadowMixing);
-            cmd.DisableShaderKeyword(ShaderKeywordStrings.ShadowsShadowMask);
-            cmd.DisableShaderKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
-            cmd.DisableShaderKeyword(ShaderKeywordStrings.LightLayers);
+            cmd.SetKeyword(ref ShaderGlobalKeywords.MainLightShadows, false);
+            cmd.SetKeyword(ref ShaderGlobalKeywords.MainLightShadowCascades, false);
+            cmd.SetKeyword(ref ShaderGlobalKeywords.AdditionalLightsVertex, false);
+            cmd.SetKeyword(ref ShaderGlobalKeywords.AdditionalLightsPixel, false);
+            cmd.SetKeyword(ref ShaderGlobalKeywords.ForwardPlus, false);
+            cmd.SetKeyword(ref ShaderGlobalKeywords.AdditionalLightShadows, false);
+            cmd.SetKeyword(ref ShaderGlobalKeywords.ReflectionProbeBlending, false);
+            cmd.SetKeyword(ref ShaderGlobalKeywords.ReflectionProbeBoxProjection, false);
+            cmd.SetKeyword(ref ShaderGlobalKeywords.SoftShadows, false);
+            cmd.SetKeyword(ref ShaderGlobalKeywords.SoftShadowsLow, false);
+            cmd.SetKeyword(ref ShaderGlobalKeywords.SoftShadowsMedium, false);
+            cmd.SetKeyword(ref ShaderGlobalKeywords.SoftShadowsHigh, false);
+            cmd.SetKeyword(ref ShaderGlobalKeywords.MixedLightingSubtractive, false);
+            cmd.SetKeyword(ref ShaderGlobalKeywords.LightmapShadowMixing, false);
+            cmd.SetKeyword(ref ShaderGlobalKeywords.ShadowsShadowMask, false);
+            cmd.SetKeyword(ref ShaderGlobalKeywords.LinearToSRGBConversion, false);
+            cmd.SetKeyword(ref ShaderGlobalKeywords.LightLayers, false);
         }
 
         internal void Clear(CameraRenderType cameraType)
@@ -1878,7 +1878,7 @@ namespace UnityEngine.Rendering.Universal
                     cmd.ConfigureFoveatedRendering(cameraData.xr.foveatedRenderingInfo);
 
                     if (XRSystem.foveatedRenderingCaps.HasFlag(FoveatedRenderingCaps.NonUniformRaster))
-                        cmd.EnableShaderKeyword(ShaderKeywordStrings.FoveatedRenderingNonUniformRaster);
+                        cmd.SetKeyword(ShaderGlobalKeywords.FoveatedRenderingNonUniformRaster, true);
                 }
 
                 context.ExecuteCommandBuffer(cmd);
@@ -1898,7 +1898,7 @@ namespace UnityEngine.Rendering.Universal
                 if (XRSystem.foveatedRenderingCaps != FoveatedRenderingCaps.None)
                 {
                     if (XRSystem.foveatedRenderingCaps.HasFlag(FoveatedRenderingCaps.NonUniformRaster))
-                        cmd.DisableShaderKeyword(ShaderKeywordStrings.FoveatedRenderingNonUniformRaster);
+                        cmd.SetKeyword(ShaderGlobalKeywords.FoveatedRenderingNonUniformRaster, false);
 
                     cmd.ConfigureFoveatedRendering(IntPtr.Zero);
                 }

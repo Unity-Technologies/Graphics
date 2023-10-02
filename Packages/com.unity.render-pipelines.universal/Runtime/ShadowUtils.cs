@@ -599,40 +599,40 @@ namespace UnityEngine.Rendering.Universal
         internal static void SetPerLightSoftShadowKeyword(RasterCommandBuffer cmd, bool hasSoftShadows)
         {
             if (SupportsPerLightSoftShadowQuality())
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadows, hasSoftShadows);
+                cmd.SetKeyword(ref ShaderGlobalKeywords.SoftShadows, hasSoftShadows);
         }
 
         internal static void SetSoftShadowQualityShaderKeywords(RasterCommandBuffer cmd, UniversalShadowData shadowData)
         {
-            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadows, shadowData.isKeywordSoftShadowsEnabled);
+            cmd.SetKeyword(ref ShaderGlobalKeywords.SoftShadows, shadowData.isKeywordSoftShadowsEnabled);
             if (SupportsPerLightSoftShadowQuality())
             {
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadowsLow, false);
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadowsMedium, false);
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadowsHigh, false);
+                cmd.SetKeyword(ref ShaderGlobalKeywords.SoftShadowsLow, false);
+                cmd.SetKeyword(ref ShaderGlobalKeywords.SoftShadowsMedium, false);
+                cmd.SetKeyword(ref ShaderGlobalKeywords.SoftShadowsHigh, false);
             }
             else
             {
                 if (shadowData.isKeywordSoftShadowsEnabled && UniversalRenderPipeline.asset?.softShadowQuality == SoftShadowQuality.Low)
                 {
-                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadowsLow, true);
-                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadowsMedium, false);
-                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadowsHigh, false);
-                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadows, false);
+                    cmd.SetKeyword(ref ShaderGlobalKeywords.SoftShadowsLow, true);
+                    cmd.SetKeyword(ref ShaderGlobalKeywords.SoftShadowsMedium, false);
+                    cmd.SetKeyword(ref ShaderGlobalKeywords.SoftShadowsHigh, false);
+                    cmd.SetKeyword(ref ShaderGlobalKeywords.SoftShadows, false);
                 }
                 else if (shadowData.isKeywordSoftShadowsEnabled && UniversalRenderPipeline.asset?.softShadowQuality == SoftShadowQuality.Medium)
                 {
-                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadowsLow, false);
-                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadowsMedium, true);
-                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadowsHigh, false);
-                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadows, false);
+                    cmd.SetKeyword(ref ShaderGlobalKeywords.SoftShadowsLow, false);
+                    cmd.SetKeyword(ref ShaderGlobalKeywords.SoftShadowsMedium, true);
+                    cmd.SetKeyword(ref ShaderGlobalKeywords.SoftShadowsHigh, false);
+                    cmd.SetKeyword(ref ShaderGlobalKeywords.SoftShadows, false);
                 }
                 else if (shadowData.isKeywordSoftShadowsEnabled && UniversalRenderPipeline.asset?.softShadowQuality == SoftShadowQuality.High)
                 {
-                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadowsLow, false);
-                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadowsMedium, false);
-                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadowsHigh, true);
-                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadows, false);
+                    cmd.SetKeyword(ref ShaderGlobalKeywords.SoftShadowsLow, false);
+                    cmd.SetKeyword(ref ShaderGlobalKeywords.SoftShadowsMedium, false);
+                    cmd.SetKeyword(ref ShaderGlobalKeywords.SoftShadowsHigh, true);
+                    cmd.SetKeyword(ref ShaderGlobalKeywords.SoftShadows, false);
                 }
             }
         }

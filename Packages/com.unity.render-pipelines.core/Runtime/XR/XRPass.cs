@@ -245,11 +245,11 @@ namespace UnityEngine.Experimental.Rendering
                     {
                         if (SystemInfo.supportsMultiview)
                         {
-                            cmd.EnableShaderKeyword("STEREO_MULTIVIEW_ON");
+                            cmd.EnableKeyword(SinglepassKeywords.STEREO_MULTIVIEW_ON);
                         }
                         else
                         {
-                            cmd.EnableShaderKeyword("STEREO_INSTANCING_ON");
+                            cmd.EnableKeyword(SinglepassKeywords.STEREO_INSTANCING_ON);
                             cmd.SetInstanceMultiplier((uint)viewCount);
                         }
                     }
@@ -292,11 +292,11 @@ namespace UnityEngine.Experimental.Rendering
                 {
                     if (SystemInfo.supportsMultiview)
                     {
-                        cmd.DisableShaderKeyword("STEREO_MULTIVIEW_ON");
+                        cmd.DisableKeyword(SinglepassKeywords.STEREO_MULTIVIEW_ON);
                     }
                     else
                     {
-                        cmd.DisableShaderKeyword("STEREO_INSTANCING_ON");
+                        cmd.DisableKeyword(SinglepassKeywords.STEREO_INSTANCING_ON);
                         cmd.SetInstanceMultiplier(1);
                     }
                 }

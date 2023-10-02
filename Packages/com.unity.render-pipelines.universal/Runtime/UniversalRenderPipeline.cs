@@ -218,6 +218,9 @@ namespace UnityEngine.Rendering.Universal
             // Note: Use legacy DR control. Can be removed once URP integrates with core package DynamicResolutionHandler
             RTHandles.Initialize(Screen.width, Screen.height, useLegacyDynamicResControl: true);
 
+            // Init global shader keywords
+            ShaderGlobalKeywords.InitializeShaderGlobalKeywords();
+
             GraphicsSettings.useScriptableRenderPipelineBatching = asset.useSRPBatcher;
 
             // In QualitySettings.antiAliasing disabled state uses value 0, where in URP 1
@@ -807,7 +810,7 @@ namespace UnityEngine.Rendering.Universal
                 if (!useRenderGraph && renderer.useRenderPassEnabled && !context.SubmitForRenderPassValidation())
                 {
                     renderer.useRenderPassEnabled = false;
-                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.RenderPassEnabled, false);
+                    cmd.SetKeyword(ShaderGlobalKeywords.RenderPassEnabled, false);
                     Debug.LogWarning("Rendering command not supported inside a native RenderPass found. Falling back to non-RenderPass rendering path");
                 }
                 context.Submit(); // Actually execute the commands that we previously sent to the ScriptableRenderContext context

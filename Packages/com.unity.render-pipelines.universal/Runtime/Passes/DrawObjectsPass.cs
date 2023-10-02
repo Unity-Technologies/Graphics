@@ -353,13 +353,13 @@ namespace UnityEngine.Rendering.Universal.Internal
             CommandBuffer cmd = renderingData.commandBuffer;
 
             // Enable Rendering Layers
-            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.WriteRenderingLayers, true);
+            cmd.SetKeyword(ShaderGlobalKeywords.WriteRenderingLayers, true);
 
             // Execute
             base.Execute(context, ref renderingData);
 
             // Clean up
-            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.WriteRenderingLayers, false);
+            cmd.SetKeyword(ShaderGlobalKeywords.WriteRenderingLayers, false);
         }
 
         private class RenderingLayersPassData
@@ -422,7 +422,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 builder.SetRenderFunc((RenderingLayersPassData data, RasterGraphContext context) =>
                 {
                     // Enable Rendering Layers
-                    CoreUtils.SetKeyword(context.cmd, ShaderKeywordStrings.WriteRenderingLayers, true);
+                    context.cmd.SetKeyword(ref ShaderGlobalKeywords.WriteRenderingLayers, true);
 
                     RenderingLayerUtils.SetupProperties(context.cmd, data.maskSize);
 
@@ -437,7 +437,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     ExecutePass(context.cmd, data.basePassData, data.basePassData.rendererListHdl, data.basePassData.objectsWithErrorRendererListHdl, yFlip);
 
                     // Clean up
-                    CoreUtils.SetKeyword(context.cmd, ShaderKeywordStrings.WriteRenderingLayers, false);
+                    context.cmd.SetKeyword(ref ShaderGlobalKeywords.WriteRenderingLayers, false);
                 });
             }
         }

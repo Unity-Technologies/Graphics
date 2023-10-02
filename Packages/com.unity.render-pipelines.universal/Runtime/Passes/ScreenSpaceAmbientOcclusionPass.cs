@@ -401,7 +401,7 @@ namespace UnityEngine.Rendering.Universal
 
                     // We only want URP shaders to sample SSAO if After Opaque is disabled...
                     if (!data.settings.AfterOpaque)
-                        CoreUtils.SetKeyword(rgContext.cmd, ShaderKeywordStrings.ScreenSpaceOcclusion, true);
+                        rgContext.cmd.SetKeyword(ref ShaderGlobalKeywords.ScreenSpaceOcclusion, true);
                 });
             }
         }
@@ -612,7 +612,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 // We only want URP shaders to sample SSAO if After Opaque is off.
                 if (!m_CurrentSettings.AfterOpaque)
-                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ScreenSpaceOcclusion, true);
+                    cmd.SetKeyword(ShaderGlobalKeywords.ScreenSpaceOcclusion, true);
 
                 cmd.SetGlobalTexture(k_SSAOTextureName, m_SSAOTextures[3]);
 
@@ -708,7 +708,7 @@ namespace UnityEngine.Rendering.Universal
                 throw new ArgumentNullException("cmd");
 
             if (!m_CurrentSettings.AfterOpaque)
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ScreenSpaceOcclusion, false);
+                cmd.SetKeyword(ShaderGlobalKeywords.ScreenSpaceOcclusion, false);
         }
 
         public void Dispose()

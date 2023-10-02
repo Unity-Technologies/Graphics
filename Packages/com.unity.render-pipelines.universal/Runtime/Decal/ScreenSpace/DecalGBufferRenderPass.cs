@@ -136,11 +136,11 @@ namespace UnityEngine.Rendering.Universal
         {
             NormalReconstruction.SetupProperties(cmd, passData.cameraData);
 
-            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DecalNormalBlendLow, passData.settings.normalBlend == DecalNormalBlend.Low);
-            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DecalNormalBlendMedium, passData.settings.normalBlend == DecalNormalBlend.Medium);
-            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DecalNormalBlendHigh, passData.settings.normalBlend == DecalNormalBlend.High);
+            cmd.SetKeyword(ref ShaderGlobalKeywords.DecalNormalBlendLow, passData.settings.normalBlend == DecalNormalBlend.Low);
+            cmd.SetKeyword(ref ShaderGlobalKeywords.DecalNormalBlendMedium, passData.settings.normalBlend == DecalNormalBlend.Medium);
+            cmd.SetKeyword(ref ShaderGlobalKeywords.DecalNormalBlendHigh, passData.settings.normalBlend == DecalNormalBlend.High);
 
-            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DecalLayers, passData.decalLayers);
+            cmd.SetKeyword(ref ShaderGlobalKeywords.DecalLayers, passData.decalLayers);
 
             passData.drawSystem?.Execute(cmd);
             cmd.DrawRendererList(rendererList);
@@ -202,10 +202,10 @@ namespace UnityEngine.Rendering.Universal
                 throw new System.ArgumentNullException("cmd");
             }
 
-            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DecalNormalBlendLow, false);
-            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DecalNormalBlendMedium, false);
-            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DecalNormalBlendHigh, false);
-            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DecalLayers, false);
+            cmd.SetKeyword(ShaderGlobalKeywords.DecalNormalBlendLow, false);
+            cmd.SetKeyword(ShaderGlobalKeywords.DecalNormalBlendMedium, false);
+            cmd.SetKeyword(ShaderGlobalKeywords.DecalNormalBlendHigh, false);
+            cmd.SetKeyword(ShaderGlobalKeywords.DecalLayers, false);
         }
     }
 }

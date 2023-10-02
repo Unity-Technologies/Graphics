@@ -114,14 +114,14 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 // Enable Rendering Layers
                 if (passData.enableRenderingLayers)
-                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.WriteRenderingLayers, true);
+                    cmd.SetKeyword(ref ShaderGlobalKeywords.WriteRenderingLayers, true);
 
                 // Draw
                 cmd.DrawRendererList(rendererList);
 
                 // Clean up
                 if (passData.enableRenderingLayers)
-                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.WriteRenderingLayers, false);
+                    cmd.SetKeyword(ref ShaderGlobalKeywords.WriteRenderingLayers, false);
             }
         }
 

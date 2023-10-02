@@ -237,7 +237,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         void SetEmptyMainLightCascadeShadowmap(RasterCommandBuffer cmd)
         {
-            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadows, true);
+            cmd.SetKeyword(ref ShaderGlobalKeywords.MainLightShadows, true);
             cmd.SetGlobalVector(MainLightShadowConstantBuffer._ShadowParams,
                 new Vector4(1, 0, 1, 0));
             cmd.SetGlobalVector(MainLightShadowConstantBuffer._ShadowmapSize,
@@ -263,14 +263,14 @@ namespace UnityEngine.Rendering.Universal.Internal
                 {
                     Vector4 shadowBias = ShadowUtils.GetShadowBias(ref shadowLight, shadowLightIndex, data.shadowData, m_CascadeSlices[cascadeIndex].projectionMatrix, m_CascadeSlices[cascadeIndex].resolution);
                     ShadowUtils.SetupShadowCasterConstantBuffer(cmd, ref shadowLight, shadowBias);
-                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.CastingPunctualLightShadow, false);
+                    cmd.SetKeyword(ref ShaderGlobalKeywords.CastingPunctualLightShadow, false);
                     RendererList shadowRendererList = isRenderGraph? data.shadowRendererListsHandle[cascadeIndex] : data.shadowRendererLists[cascadeIndex];
                     ShadowUtils.RenderShadowSlice(cmd, ref m_CascadeSlices[cascadeIndex], ref shadowRendererList, m_CascadeSlices[cascadeIndex].projectionMatrix, m_CascadeSlices[cascadeIndex].viewMatrix);
                 }
 
                 data.shadowData.isKeywordSoftShadowsEnabled = shadowLight.light.shadows == LightShadows.Soft && data.shadowData.supportsSoftShadows;
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadows, data.shadowData.mainLightShadowCascadesCount == 1);
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadowCascades, data.shadowData.mainLightShadowCascadesCount > 1);
+                cmd.SetKeyword(ref ShaderGlobalKeywords.MainLightShadows, data.shadowData.mainLightShadowCascadesCount == 1);
+                cmd.SetKeyword(ref ShaderGlobalKeywords.MainLightShadowCascades, data.shadowData.mainLightShadowCascadesCount > 1);
                 ShadowUtils.SetSoftShadowQualityShaderKeywords(cmd, data.shadowData);
 
                 SetupMainLightShadowReceiverConstants(cmd, ref shadowLight, data.shadowData);

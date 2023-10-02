@@ -9,6 +9,17 @@ using UnityEngine.XR;
 namespace UnityEngine.Experimental.Rendering
 {
     /// <summary>
+    /// Used by render pipelines to control the active XR shader variant.
+    /// </summary>
+    public static class SinglepassKeywords
+    {
+        /// <summary> XR shader keyword used by multiview rendering </summary>
+        public static GlobalKeyword STEREO_MULTIVIEW_ON;
+        /// <summary> XR shader keywordused by single pass instanced rendering </summary>
+        public static GlobalKeyword STEREO_INSTANCING_ON;
+    }
+
+    /// <summary>
     /// Used by render pipelines to communicate with XR SDK.
     /// </summary>
     public static class XRSystem
@@ -116,6 +127,9 @@ namespace UnityEngine.Experimental.Rendering
 
             if (XRGraphicsAutomatedTests.enabled)
                 SetLayoutOverride(XRGraphicsAutomatedTests.OverrideLayout);
+
+            SinglepassKeywords.STEREO_MULTIVIEW_ON = GlobalKeyword.Create("STEREO_MULTIVIEW_ON");
+            SinglepassKeywords.STEREO_INSTANCING_ON = GlobalKeyword.Create("STEREO_INSTANCING_ON");
         }
 
         /// <summary>

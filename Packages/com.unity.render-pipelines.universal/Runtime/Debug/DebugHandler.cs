@@ -241,12 +241,12 @@ namespace UnityEngine.Rendering.Universal
                 {
                     if (passIndex == 0)
                     {
-                        cmd.DisableShaderKeyword(ShaderKeywordStrings.DEBUG_DISPLAY);
+                        cmd.SetKeyword(ref ShaderGlobalKeywords.DEBUG_DISPLAY, false);
                     }
                     else if (passIndex == 1)
                     {
                         cmd.SetGlobalColor(k_DebugColorPropertyId, Color.black);
-                        cmd.EnableShaderKeyword(ShaderKeywordStrings.DEBUG_DISPLAY);
+                        cmd.SetKeyword(ref ShaderGlobalKeywords.DEBUG_DISPLAY, true);
                     }
 
                     break;
@@ -290,17 +290,17 @@ namespace UnityEngine.Rendering.Universal
             bool isFinal = isFinalPass && cameraData.resolveFinalTarget;
             if (!isFinal)
             {
-                cmd.DisableShaderKeyword(ShaderKeywordStrings.DEBUG_DISPLAY);
+                cmd.SetKeyword(ShaderGlobalKeywords.DEBUG_DISPLAY, false);
                 return;
             }
 
             if (IsActiveForCamera(cameraData.isPreviewCamera))
             {
-                cmd.EnableShaderKeyword(ShaderKeywordStrings.DEBUG_DISPLAY);
+                cmd.SetKeyword(ShaderGlobalKeywords.DEBUG_DISPLAY, true);
             }
             else
             {
-                cmd.DisableShaderKeyword(ShaderKeywordStrings.DEBUG_DISPLAY);
+                cmd.SetKeyword(ShaderGlobalKeywords.DEBUG_DISPLAY, false);
             }
 
             if (m_HasDebugRenderTarget)
@@ -324,7 +324,7 @@ namespace UnityEngine.Rendering.Universal
         {
             if (IsActiveForCamera(isPreviewCamera))
             {
-                cmd.EnableShaderKeyword(ShaderKeywordStrings.DEBUG_DISPLAY);
+                cmd.SetKeyword(ShaderGlobalKeywords.DEBUG_DISPLAY, true);
 
                 // Material settings...
                 cmd.SetGlobalFloat(k_DebugMaterialModeId, (int)MaterialSettings.materialDebugMode);
@@ -350,7 +350,7 @@ namespace UnityEngine.Rendering.Universal
             }
             else
             {
-                cmd.DisableShaderKeyword(ShaderKeywordStrings.DEBUG_DISPLAY);
+                cmd.SetKeyword(ShaderGlobalKeywords.DEBUG_DISPLAY, false);
             }
         }
 
