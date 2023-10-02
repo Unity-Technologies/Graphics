@@ -60,7 +60,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent dofPhysicallyBased = EditorGUIUtility.TrTextContent("Physically Based");
             public static readonly GUIContent limitNearBlur = EditorGUIUtility.TrTextContent("Limit Manual Range Near Blur");
             public static readonly GUIContent maxSamplesQuality = EditorGUIUtility.TrTextContent("Max Samples");
-            
+
             // Lens Flares
             public static readonly GUIContent LensFlareTitle = EditorGUIUtility.TrTextContent("Lens Flares");
 
@@ -96,7 +96,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent RTRDenoise = EditorGUIUtility.TrTextContent("Denoise");
             public static readonly GUIContent RTRDenoiserRadius = EditorGUIUtility.TrTextContent("Denoiser Radius");
             public static readonly GUIContent RTRDenoiserAntiFlicker = EditorGUIUtility.TrTextContent("Anti Flickering Strength");
-            
+
             // RTGI
             public static readonly GUIContent RTGISettingsSubTitle = EditorGUIUtility.TrTextContent("Ray Traced Global Illumination (Performance)");
             public static readonly GUIContent RTGIRayLength = EditorGUIUtility.TrTextContent("Max Ray Length");
@@ -329,7 +329,6 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly int[] shadowBitDepthValues = { (int)DepthBits.Depth32, (int)DepthBits.Depth16 };
 
             public static GUIContent gpuResidentDrawerMode = EditorGUIUtility.TrTextContent("GPU Resident Drawer", "Enables draw submission through the GPU Resident Drawer, which can improve CPU performance");
-            public static readonly GUIContent allowInEditMode = EditorGUIUtility.TrTextContent("Allow in Edit Mode", "Allows the GPU Resident Drawer to run in edit mode. This functionality is a work-in-progress and may produce incorrect results in some cases.");
 
             public static GUIContent brgShaderStrippingErrorMessage =
                 EditorGUIUtility.TrTextContent("\"BatchRendererGroup Variants\" setting must be \"Keep All\". To fix, modify Graphics settings and set \"BatchRendererGroup Variants\" to \"Keep All\".");

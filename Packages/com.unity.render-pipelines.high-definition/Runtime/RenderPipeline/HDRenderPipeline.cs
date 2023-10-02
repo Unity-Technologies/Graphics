@@ -2658,6 +2658,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 ApplyDebugDisplaySettings(hdCamera, cmd, aovRequest.isValid);
 
+                // Now BRG ambient probe setup has moved to SetupCameraProperties we need to make sure ambient probe is up to date in RenderSettings
+                skyManager.UpdateCurrentSkySettings(hdCamera);
+                skyManager.SetupAmbientProbe(hdCamera);
+
                 SetupCameraProperties(hdCamera, renderContext, cmd);
 
                 // TODO: Find a correct place to bind these material textures

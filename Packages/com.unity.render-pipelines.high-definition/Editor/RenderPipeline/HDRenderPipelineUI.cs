@@ -65,7 +65,7 @@ namespace UnityEditor.Rendering.HighDefinition
             RTGIQuality = 1 << 6,
             SSGIQuality = 1 << 7
         }
-        
+
         internal enum ExpandablePostProcess
         {
             LensFlare = 1 << 0
@@ -1125,10 +1125,6 @@ namespace UnityEditor.Rendering.HighDefinition
             var staticBatchingInfo = PlayerSettings.GetStaticBatchingForPlatform(EditorUserBuildSettings.activeBuildTarget);
             if ((GPUResidentDrawerMode)gpuResidentDrawerSettings.mode.intValue != GPUResidentDrawerMode.Disabled)
             {
-                ++EditorGUI.indentLevel;
-                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.gpuResidentDrawerSettings.allowInEditMode, Styles.allowInEditMode);
-                --EditorGUI.indentLevel;
-
                 if(brgStrippingError)
                     EditorGUILayout.HelpBox(Styles.brgShaderStrippingErrorMessage.text, MessageType.Warning, true);
                 if(staticBatchingInfo)
@@ -1183,7 +1179,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightLoopSettings.supportFabricConvolution, Styles.supportFabricBSDFConvolutionContent);
         }
-        
+
         static void Drawer_LensFlare(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportDataDrivenLensFlare, Styles.supportDataDrivenLensFlare);
@@ -1259,7 +1255,7 @@ namespace UnityEditor.Rendering.HighDefinition
             AppendSupport(builder, serialized.renderPipelineSettings.supportRayTracing, Styles.supportRaytracing);
             AppendSupport(builder, serialized.renderPipelineSettings.lightProbeSystem, Styles.lightProbeSystemContent);
             AppendSupport(builder, serialized.renderPipelineSettings.supportedRayTracingMode, Styles.supportedRayTracingMode);
-            
+
             AppendSupport(builder, serialized.renderPipelineSettings.supportScreenSpaceLensFlare, Styles.supportScreenSpaceLensFlare);
             AppendSupport(builder, serialized.renderPipelineSettings.supportDataDrivenLensFlare, Styles.supportDataDrivenLensFlare);
 

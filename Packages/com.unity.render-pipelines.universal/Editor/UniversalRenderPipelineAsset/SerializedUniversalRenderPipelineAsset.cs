@@ -80,7 +80,6 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty supportScreenSpaceLensFlare { get; }
 
         public SerializedProperty gpuResidentDrawerMode { get; }
-        public SerializedProperty gpuResidentDrawerAllowInEditMode { get; }
 
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
         public SerializedProperty useAdaptivePerformance { get; }
@@ -170,7 +169,6 @@ namespace UnityEditor.Rendering.Universal
             supportScreenSpaceLensFlare = serializedObject.FindProperty("m_SupportScreenSpaceLensFlare");
 
             gpuResidentDrawerMode = serializedObject.FindProperty("m_GPUResidentDrawerMode");
-            gpuResidentDrawerAllowInEditMode = serializedObject.FindProperty("m_GPUResidentDrawerAllowInEditMode");
 
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
             useAdaptivePerformance = serializedObject.FindProperty("m_UseAdaptivePerformance");

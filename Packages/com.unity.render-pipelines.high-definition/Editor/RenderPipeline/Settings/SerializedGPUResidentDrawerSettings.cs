@@ -6,13 +6,11 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         public SerializedProperty root;
         public SerializedProperty mode;
-        public SerializedProperty allowInEditMode;
 
         public SerializedGPUResidentDrawerSettings(SerializedProperty root)
         {
             this.root = root;
             mode = root.Find((GlobalGPUResidentDrawerSettings s) => s.mode);
-            allowInEditMode = root.Find((GlobalGPUResidentDrawerSettings s) => s.allowInEditMode);
         }
     }
 }

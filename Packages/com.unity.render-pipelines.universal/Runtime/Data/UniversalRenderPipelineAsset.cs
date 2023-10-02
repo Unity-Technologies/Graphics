@@ -580,13 +580,11 @@ namespace UnityEngine.Rendering.Universal
         [FormerlySerializedAs("m_MacroBatcherMode"), SerializeField]
         private GPUResidentDrawerMode m_GPUResidentDrawerMode = GPUResidentDrawerMode.Disabled;
 
-        [SerializeField] bool m_GPUResidentDrawerAllowInEditMode = false;
-
         GPUResidentDrawerSettings IGPUResidentRenderPipeline.gpuResidentDrawerSettings => new()
         {
             mode = m_GPUResidentDrawerMode,
             supportDitheringCrossFade = m_EnableLODCrossFade,
-            allowInEditMode = m_GPUResidentDrawerAllowInEditMode,
+            allowInEditMode = true,
 #if UNITY_EDITOR
             pickingShader = Shader.Find("Hidden/Universal Render Pipeline/BRGPicking"),
 #endif
@@ -1803,22 +1801,6 @@ namespace UnityEngine.Rendering.Universal
                     return;
 
                 m_GPUResidentDrawerMode = value;
-                OnValidate();
-            }
-        }
-
-        /// <summary>
-        /// Determines if the GPU Resident Drawer is allowed to run in edit mode
-        /// </summary>
-        public bool gpuResidentDrawerAllowInEditMode
-        {
-            get => m_GPUResidentDrawerAllowInEditMode;
-            set
-            {
-                if (value == m_GPUResidentDrawerAllowInEditMode)
-                    return;
-
-                m_GPUResidentDrawerAllowInEditMode = value;
                 OnValidate();
             }
         }

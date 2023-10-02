@@ -149,10 +149,6 @@ namespace UnityEditor.Rendering.Universal
 
                 if ((GPUResidentDrawerMode)serialized.gpuResidentDrawerMode.intValue != GPUResidentDrawerMode.Disabled)
                 {
-                    ++EditorGUI.indentLevel;
-                    EditorGUILayout.PropertyField(serialized.gpuResidentDrawerAllowInEditMode, Styles.gpuResidentDrawerAllowInEditMode);
-                    --EditorGUI.indentLevel;
-
                     if (brgStrippingError)
                         EditorGUILayout.HelpBox(Styles.brgShaderStrippingErrorMessage.text, MessageType.Warning, true);
                     if (lightingModeError)
