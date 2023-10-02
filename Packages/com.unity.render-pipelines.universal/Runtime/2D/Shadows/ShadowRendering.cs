@@ -75,7 +75,7 @@ namespace UnityEngine.Rendering.Universal
             return material;
         }
 
-        private static Material GetProjectedShadowMaterial(this Renderer2DData rendererData)
+        internal static Material GetProjectedShadowMaterial(this Renderer2DData rendererData)
         {
             //rendererData.projectedShadowMaterial = null;
             if (rendererData.projectedShadowMaterial == null || rendererData.projectedShadowShader != rendererData.projectedShadowMaterial.shader)
@@ -86,7 +86,7 @@ namespace UnityEngine.Rendering.Universal
             return rendererData.projectedShadowMaterial;
         }
 
-        private static Material GetProjectedUnshadowMaterial(this Renderer2DData rendererData)
+        internal static Material GetProjectedUnshadowMaterial(this Renderer2DData rendererData)
         {
             //rendererData.projectedShadowMaterial = null;
             if (rendererData.projectedUnshadowMaterial == null  || rendererData.projectedShadowShader != rendererData.projectedUnshadowMaterial.shader)

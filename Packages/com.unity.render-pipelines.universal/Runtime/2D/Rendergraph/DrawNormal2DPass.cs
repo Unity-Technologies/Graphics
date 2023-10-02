@@ -23,7 +23,7 @@ namespace UnityEngine.Rendering.Universal
 
         private static void Execute(RasterCommandBuffer cmd, PassData passData)
         {
-            cmd.ClearRenderTarget(RTClearFlags.Color, RendererLighting.k_NormalClearColor, 1, 0);
+            CustomClear2D.Clear(cmd, RendererLighting.k_NormalClearColor);
             cmd.DrawRendererList(passData.rendererList);
         }
 

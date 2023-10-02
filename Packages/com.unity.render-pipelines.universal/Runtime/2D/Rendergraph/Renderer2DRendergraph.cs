@@ -1,7 +1,3 @@
-#if UNITY_IOS || UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
-    #define UNITY_ON_METAL
-#endif
-
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using static UnityEngine.Rendering.Universal.UniversalResourceDataBase;
@@ -453,23 +449,15 @@ namespace UnityEngine.Rendering.Universal
                 // Shadow Pass (TODO: Optimize RT swapping between shadow and light textures)
                 m_ShadowPass.Render(renderGraph, m_Renderer2DData, ref layerBatch, frameData);
 
+                // Shadow pass already clears textures
                 bool clearLightTextures = !layerBatch.lightStats.useShadows;
-
-#if UNITY_ON_METAL
-                // Metal doesn't support MRT clear, so we have to clear RTs individually
-                if (clearLightTextures)
-                {
-                    ClearLightTextures(renderGraph, m_Renderer2DData, ref layerBatch);
-                    clearLightTextures = false;
-                }
-#endif
 
                 // Light Pass
                 m_LightPass.Render(renderGraph, m_Renderer2DData, ref layerBatch, frameData, m_LightTextureHandles, resourceData.intermediateDepth, clear: clearLightTextures);
 
-                // Clear camera targets
-                if (i == 0 && clearFlags != RTClearFlags.None)
-                    ClearTargets2DPass.Render(renderGraph, resourceData.activeColorTexture, resourceData.activeDepthTexture, clearFlags, cameraData.backgroundColor);
+                // Clear camera targets for Metal Arm64 platform
+                if (CustomClear2D.isMetalArm64 && i == 0)
+                    CustomClear2D.RasterPassClear(renderGraph, resourceData.activeColorTexture, resourceData.activeDepthTexture, clearFlags, cameraData.backgroundColor);
 
                 LayerUtility.GetFilterSettings(m_Renderer2DData, ref layerBatch, cameraSortingLayerBoundsIndex, out var filterSettings);
 
@@ -493,9 +481,10 @@ namespace UnityEngine.Rendering.Universal
                     }
                 }
 
+                // Shadow Volumetric Pass
                 m_ShadowPass.Render(renderGraph, m_Renderer2DData, ref layerBatch, frameData, true);
 
-                // Light Volume Pass
+                // Light Volumetric Pass
                 m_LightPass.Render(renderGraph, m_Renderer2DData, ref layerBatch, frameData, resourceData.activeColorTexture, resourceData.activeDepthTexture, isVolumetric: true);
             }
 
@@ -574,8 +563,6 @@ namespace UnityEngine.Rendering.Universal
                     m_UpscalePass.Render(renderGraph, cameraData.camera, in finalColorHandle, resourceData.upscaleTexture);
                     finalColorHandle = resourceData.upscaleTexture;
                 }
-
-                ClearTargets2DPass.Render(renderGraph, resourceData.backBufferColor, TextureHandle.nullHandle, RTClearFlags.Color, Color.black);
             }
 
             // We need to switch the "final" blit target to debugScreenColor if HDR debug views are enabled.
@@ -607,24 +594,6 @@ namespace UnityEngine.Rendering.Universal
                 DrawRenderGraphGizmos(renderGraph, frameData, resourceData.backBufferColor, resourceData.activeDepthTexture, GizmoSubset.PostImageEffects);
         }
 
-#if UNITY_ON_METAL
-        private void ClearLightTextures(RenderGraph graph, Renderer2DData rendererData, ref LayerBatch layerBatch)
-        {
-            Universal2DResourceData resourceData = frameData.Get<Universal2DResourceData>();
-
-            var blendStylesCount = rendererData.lightBlendStyles.Length;
-            TextureHandle[] lightTextureHandles = resourceData.lightTextures;
-            for (var blendStyleIndex = 0; blendStyleIndex < blendStylesCount; blendStyleIndex++)
-            {
-                if ((layerBatch.lightStats.blendStylesUsed & (uint)(1 << blendStyleIndex)) == 0)
-                    continue;
-
-                Light2DManager.GetGlobalColor(layerBatch.startLayerID, blendStyleIndex, out var color);
-                ClearTargets2DPass.Render(graph, lightTextureHandles[blendStyleIndex], TextureHandle.nullHandle, RTClearFlags.Color, color);
-            }
-        }
-#endif
-
         private void CleanupRenderGraphResources()
         {
             m_RenderGraphCameraColorHandle?.Release();
@@ -633,40 +602,6 @@ namespace UnityEngine.Rendering.Universal
             m_RenderGraphBackbufferDepthHandle?.Release();
             m_CameraSortingLayerHandle?.Release();
             m_LightPass.Dispose();
-        }
-    }
-
-    class ClearTargets2DPass
-    {
-        static private ProfilingSampler s_ClearProfilingSampler = new ProfilingSampler("Clear Targets");
-        private class PassData
-        {
-            internal RTClearFlags clearFlags;
-            internal Color clearColor;
-        }
-
-        internal static void Render(RenderGraph graph, in TextureHandle colorHandle, in TextureHandle depthHandle, RTClearFlags clearFlags, Color clearColor)
-        {
-            Debug.Assert(colorHandle.IsValid(), "Trying to clear an invalid render color target");
-
-            if (clearFlags != RTClearFlags.Color)
-                Debug.Assert(depthHandle.IsValid(), "Trying to clear an invalid depth target");
-
-            using (var builder = graph.AddRasterRenderPass<PassData>("Clear Target", out var passData, s_ClearProfilingSampler))
-            {
-                builder.UseTextureFragment(colorHandle, 0);
-                if (depthHandle.IsValid())
-                    builder.UseTextureFragmentDepth(depthHandle, IBaseRenderGraphBuilder.AccessFlags.Read);
-                passData.clearFlags = clearFlags;
-                passData.clearColor = clearColor;
-
-                builder.AllowPassCulling(false);
-
-                builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
-                {
-                    context.cmd.ClearRenderTarget(data.clearFlags, data.clearColor, 1, 0);
-                });
-            }
         }
     }
 }

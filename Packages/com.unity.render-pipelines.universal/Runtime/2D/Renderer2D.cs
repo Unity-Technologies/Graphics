@@ -44,6 +44,7 @@ namespace UnityEngine.Rendering.Universal
         Material m_BlitMaterial;
         Material m_BlitHDRMaterial;
         Material m_SamplingMaterial;
+        Material m_ClearMaterial;
 
         Renderer2DData m_Renderer2DData;
 
@@ -68,6 +69,8 @@ namespace UnityEngine.Rendering.Universal
             m_BlitMaterial = CoreUtils.CreateEngineMaterial(data.coreBlitPS);
             m_BlitHDRMaterial = CoreUtils.CreateEngineMaterial(data.blitHDROverlay);
             m_SamplingMaterial = CoreUtils.CreateEngineMaterial(data.samplingShader);
+            m_ClearMaterial = CoreUtils.CreateEngineMaterial(data.customClearShader);
+            CustomClear2D.Initialize(m_ClearMaterial);
 
             m_Render2DLightingPass = new Render2DLightingPass(data, m_BlitMaterial, m_SamplingMaterial);
             // we should determine why clearing the camera target is set so late in the events... sounds like it could be earlier
@@ -135,7 +138,9 @@ namespace UnityEngine.Rendering.Universal
             CoreUtils.Destroy(m_BlitMaterial);
             CoreUtils.Destroy(m_BlitHDRMaterial);
             CoreUtils.Destroy(m_SamplingMaterial);
+            CoreUtils.Destroy(m_ClearMaterial);
 
+            CustomClear2D.Cleanup();
             Blitter.Cleanup();
             CleanupRenderGraphResources();
 
@@ -493,7 +498,6 @@ namespace UnityEngine.Rendering.Universal
             m_ColorBufferSystem.EnableMSAA(enable);
         }
 
-        internal override bool supportsNativeRenderPassRendergraphCompiler { get => SystemInfo.graphicsDeviceType != GraphicsDeviceType.Vulkan &&
-                                                                                    SystemInfo.graphicsDeviceType != GraphicsDeviceType.Direct3D12; } // Temporarily disable DX12, until it's fixed
+        internal override bool supportsNativeRenderPassRendergraphCompiler { get => true; }
     }
 }
