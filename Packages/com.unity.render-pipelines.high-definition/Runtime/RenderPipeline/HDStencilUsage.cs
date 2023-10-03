@@ -23,7 +23,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // --- Stencil  is cleared after opaque rendering has finished ---
 
         // --- Following bits are used exclusively for what happens after opaque ---
-        ExcludeFromTAA = (1 << 1),    // Disable Temporal Antialiasing for certain objects
+        ExcludeFromTUAndAA = (1 << 1),    // Disable Temporal Upscaling and Antialiasing for certain objects
         DistortionVectors = (1 << 2),    // Distortion pass - reset after distortion pass, shared with SMAA
         SMAA = (1 << 2),    // Subpixel Morphological Antialiasing
         // Reserved TraceReflectionRay = (1 << 3) for transparent SSR or RTR

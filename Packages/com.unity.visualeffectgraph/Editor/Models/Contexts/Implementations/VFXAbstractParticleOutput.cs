@@ -496,8 +496,8 @@ namespace UnityEditor.VFX
                 {
                     yield return "flipbookLayout";
                 }
-                if (!subOutput.supportsExcludeFromTAA)
-                    yield return "excludeFromTAA";
+                if (!subOutput.supportsExcludeFromTUAndAA)
+                    yield return "excludeFromTUAndAA";
                 if (!HasSorting())
                 {
                     yield return "sortMode";

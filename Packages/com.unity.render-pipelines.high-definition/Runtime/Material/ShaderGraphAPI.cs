@@ -62,7 +62,8 @@ namespace UnityEngine.Rendering.HighDefinition
             if (index != -1)
                 useSplitLighting = material.shader.GetPropertyDefaultFloatValue(index) != 0;
 
-            BaseLitAPI.SetupStencil(material, receivesLighting: true, receiveSSR, useSplitLighting);
+            bool excludeFromTUAndAA = BaseLitAPI.CompatibleWithExcludeFromTUAndAA(material) && material.GetInt(kExcludeFromTUAndAA) != 0;
+            BaseLitAPI.SetupStencil(material, receivesLighting: true, receiveSSR, useSplitLighting, excludeFromTUAndAA);
         }
 
         public static void ValidateDecalMaterial(Material material)

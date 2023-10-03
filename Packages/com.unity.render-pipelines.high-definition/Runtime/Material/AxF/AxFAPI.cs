@@ -159,7 +159,8 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.SetKeyword(material, "_ENABLE_GEOMETRIC_SPECULAR_AA", material.HasProperty(kEnableGeometricSpecularAA) && material.GetFloat(kEnableGeometricSpecularAA) > 0.0f);
             CoreUtils.SetKeyword(material, "_SPECULAR_OCCLUSION_NONE", material.HasProperty(kSpecularOcclusionMode) && material.GetFloat(kSpecularOcclusionMode) == 0.0f);
 
-            BaseLitAPI.SetupStencil(material, receivesLighting: true, receivesSSR: ssrEnabled, useSplitLighting: false);
+            bool excludeFromTUAndAA = BaseLitAPI.CompatibleWithExcludeFromTUAndAA(material) && material.GetInt(kExcludeFromTUAndAA) != 0;
+            BaseLitAPI.SetupStencil(material, receivesLighting: true, receivesSSR: ssrEnabled, useSplitLighting: false, excludeFromTUAndAA: excludeFromTUAndAA);
             //
             // Patch for raytracing for now: mirror int props as float explicitly
             //

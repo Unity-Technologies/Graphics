@@ -41,7 +41,7 @@ namespace UnityEditor.VFX.HDRP
                 yield return "castShadows";
                 yield return "sort";
                 yield return "useAlphaClipping";
-                yield return "excludeFromTAA";
+                yield return "excludeFromTUAndAA";
             }
         }
 

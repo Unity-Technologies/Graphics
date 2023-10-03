@@ -119,10 +119,24 @@ namespace UnityEditor.Rendering.HighDefinition
                 collector.AddToggleProperty(kEnableBlendModePreserveSpecularLighting, false, HLSLDeclaration.UnityPerMaterial);
             }
 
+            bool excludeFromTUAndAA = systemData?.excludeFromTUAndAA ?? false;
+            collector.AddToggleProperty(kExcludeFromTUAndAA, excludeFromTUAndAA); 
+
             // Configure render state
-            BaseLitAPI.ComputeStencilProperties(receivesLighting, forwardOnly, ssrStencil, splitLighting, out int stencilRef, out int stencilWriteMask,
-                out int stencilRefDepth, out int stencilWriteMaskDepth, out int stencilRefGBuffer, out int stencilWriteMaskGBuffer,
-                out int stencilRefMV, out int stencilWriteMaskMV
+            BaseLitAPI.ComputeStencilProperties(
+                    receivesLighting,
+                    forwardOnly,
+                    ssrStencil,
+                    splitLighting,
+                    excludeFromTUAndAA,
+                    out int stencilRef,
+                    out int stencilWriteMask,
+                    out int stencilRefDepth,
+                    out int stencilWriteMaskDepth,
+                    out int stencilRefGBuffer,
+                    out int stencilWriteMaskGBuffer,
+                    out int stencilRefMV,
+                    out int stencilWriteMaskMV
             );
 
             // All these properties values will be patched with the material keyword update

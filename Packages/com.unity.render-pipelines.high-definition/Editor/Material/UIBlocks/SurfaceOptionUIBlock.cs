@@ -135,6 +135,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent specularAAScreenSpaceVarianceText = new GUIContent("Screen space variance", "Controls the strength of the Specular AA reduction. Higher values give a more blurry result and less aliasing.");
             public static GUIContent specularAAThresholdText = new GUIContent("Threshold", "Controls the effect of Specular AA reduction. A values of 0 does not apply reduction, higher values allow higher reduction.");
 
+            public static GUIContent excludeFromTUAndAAText = new GUIContent("Exclude From Temporal Upscalers and Anti Aliasing", "When enabled, the current material wont be temporaly sampled during TAA and will have reduced ghosting on upscalers.");
+
             // SSR
             public static GUIContent receivesSSRText = new GUIContent("Receive SSR", "When enabled, this Material can receive screen space reflections.");
             public static GUIContent receivesSSRTransparentText = new GUIContent("Receive SSR Transparent", "When enabled, this Material can receive screen space reflections. This will force a transparent depth prepass on the object if HDRP supports it.");
@@ -182,6 +184,7 @@ namespace UnityEditor.Rendering.HighDefinition
         MaterialProperty specularAAThreshold = null;
         const string kSpecularAAThreshold = "_SpecularAAThreshold";
         MaterialProperty transmissionEnable = null;
+        MaterialProperty excludeFromTUAndAA = null;
 
         // Per pixel displacement params
         MaterialProperty ppdMinSamples = null;
@@ -314,6 +317,7 @@ namespace UnityEditor.Rendering.HighDefinition
             blendMode = FindProperty(kBlendMode);
 
             transmissionEnable = FindProperty(kTransmissionEnable);
+            excludeFromTUAndAA = FindProperty(kExcludeFromTUAndAA);
 
             if ((m_Features & Features.DoubleSidedNormalMode) != 0)
             {
@@ -773,6 +777,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 else
                     materialEditor.ShaderProperty(receivesSSR, Styles.receivesSSRText);
             }
+
+            if (excludeFromTUAndAA != null && BaseLitAPI.CompatibleWithExcludeFromTUAndAA(surfaceTypeValue, renderQueue))
+                materialEditor.ShaderProperty(excludeFromTUAndAA, Styles.excludeFromTUAndAAText);
 
             if (enableGeometricSpecularAA != null)
             {

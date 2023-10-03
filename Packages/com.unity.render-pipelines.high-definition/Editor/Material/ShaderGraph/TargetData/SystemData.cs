@@ -90,6 +90,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             set => m_AlphaTest = value;
         }
 
+        [SerializeField]
+        bool m_ExcludeFromTUAndAA = false;
+        public bool excludeFromTUAndAA 
+        {
+            get => m_ExcludeFromTUAndAA;
+            set => m_ExcludeFromTUAndAA = value;
+        }
+
         [SerializeField, Obsolete("Keep for migration")]
         internal bool m_TransparentDepthPrepass;
 
