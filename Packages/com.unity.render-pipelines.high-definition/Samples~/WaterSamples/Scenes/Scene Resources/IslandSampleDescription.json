@@ -20,7 +20,7 @@
 		• There are 3 different <link="Water Wave Deformer Middle">Shore Wave Water Deformers</link>. Each Water Deformer has a <link="DecalTriggerDummy">child gameobject</link>. It’s used to trigger a <link="ShoreFoam">Decal Projector</link> when submerged underwater. To prevent unwanted effects, the trigger script ignores the general water agitation and only calculates if the dummy gets submerged due to a wave deformation.
 		• The Decal Projector has a component 'FoamShore' controling the scale, opacity and position, effectively describing how far can the wave decals be seen after reaching the shore.
 		• In addition, the Decal Projector Material is animated using a flipbook texture.
-		• Moreover, each Decal has a child <link="Water Texture Deformer">Deformer</link> with the same animated texture for the foam to have "volume". This deformer is triggered at the same time.
+		• Moreover, each Decal has a child <link="Water Texture Deformer">Deformer</link> with the same animated texture for the foam to have "volume". This deformer is triggered at the same time and uses one shared <link="Shader Graphs_Custom Foam Flipbook">material</link> with a <a href="https://docs.unity3d.com/ScriptReference/MaterialPropertyBlock.html">Material Property Block</a> for all Water Deformers, eliminating the need for a Custom Render Texture.
 		• Finally, a very large <link="Decal Projector Wave Foam">Decal Projector</link> retrieves the foam texture of the Shore Wave Deformers using the <code>GetFoamBuffer()</code> function to further blend the foam on the shore.
 		
 	<h1>Third Person Sailor</h1>

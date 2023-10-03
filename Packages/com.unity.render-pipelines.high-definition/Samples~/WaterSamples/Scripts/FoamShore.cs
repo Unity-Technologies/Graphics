@@ -6,13 +6,16 @@ using UnityEngine.Rendering.HighDefinition;
 [ExecuteInEditMode]
 public class FoamShore : MonoBehaviour
 {
+	
 	public Material deformerCustomMaterial = null;
 	public WaterDeformer waterDeformer = null;
     public float minAliveTime = 6f;
     public float maxAliveTime = 8f;
     public float maxPosition = 5f;
     public float maxSize = 15f;
-    
+	
+	// Material property block to be able to override NormalizedAliveTime on the shared material.
+    private MaterialPropertyBlock mpb = null;
     private float aliveTime = 0f;
     private float startTime = 0f;
     private DecalProjector m_DecalProjectorComponent = null;
@@ -27,6 +30,10 @@ public class FoamShore : MonoBehaviour
 	
     public void OnEnable()
     {
+		// Create a new material property block and assign it to the water deformer to override some of its material property. 
+		mpb = new MaterialPropertyBlock();
+		waterDeformer.SetPropertyBlock(mpb);
+		
         startTime = Time.realtimeSinceStartup;
         aliveTime = Random.Range(minAliveTime, maxAliveTime);
 		
@@ -57,8 +64,8 @@ public class FoamShore : MonoBehaviour
         m_DecalProjectorComponent.material.SetFloat("_NormalizedAliveTime", normalizedAliveTime);
         m_DecalProjectorComponent.material.SetFloat("_ContrastNormalized", lerpFactorContrast);
 		
-		// Setting deformer material
-		deformerCustomMaterial.SetFloat("_NormalizedAliveTime", normalizedAliveTime);
+		// Setting _NormalizedAliveTime on the property block to be able to share materials between deformers.
+		mpb.SetFloat("_NormalizedAliveTime", normalizedAliveTime);
 		
 		Vector2 regionSize = waterDeformer.regionSize;
 		regionSize.y = Mathf.Lerp(0, maxSize, lerpFactorSize);

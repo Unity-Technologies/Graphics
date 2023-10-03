@@ -323,6 +323,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 pragmas = GeneratePragmas(useTessellation, useDebugSymbols),
                 defines = GenerateDefines(WaterMaskDefines, false, useTessellation, false),
                 includes = GenerateIncludes(),
+                fieldDependencies = CoreFieldDependencies.Default,
 
                 virtualTextureFeedback = false,
                 customInterpolators = CoreCustomInterpolators.Common

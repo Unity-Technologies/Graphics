@@ -87,6 +87,9 @@ namespace UnityEditor.Rendering.HighDefinition
         protected ShaderKeyword m_ProbeVolumesL2;
         protected ShaderKeyword m_DecalSurfaceGradient;
         protected ShaderKeyword m_EditorVisualization;
+        protected ShaderKeyword m_SupportWater;
+        protected ShaderKeyword m_SupportWaterCaustics;
+        protected ShaderKeyword m_SupportWaterCausticsShadow;
 
         protected ShadowKeywords m_ShadowKeywords;
 
@@ -130,6 +133,9 @@ namespace UnityEditor.Rendering.HighDefinition
             m_ProbeVolumesL2 = new ShaderKeyword("PROBE_VOLUMES_L2");
             m_DecalSurfaceGradient = new ShaderKeyword("DECAL_SURFACE_GRADIENT");
             m_EditorVisualization = new ShaderKeyword("EDITOR_VISUALIZATION");
+            m_SupportWater = new ShaderKeyword("SUPPORT_WATER");
+            m_SupportWaterCaustics = new ShaderKeyword("SUPPORT_WATER_CAUSTICS");
+            m_SupportWaterCausticsShadow = new ShaderKeyword("SUPPORT_WATER_CAUSTICS_SHADOW");
             m_ShadowKeywords = new ShadowKeywords();
 
 #if !ENABLE_SENSOR_SDK

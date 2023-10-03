@@ -25,15 +25,20 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         ShoreWave = 3,
         /// <summary>
-        /// Texture Wave deformer.
+        /// Texture deformer.
         /// </summary>
-        Texture = 4
+        Texture = 4,
+        /// <summary>
+        /// Material deformer.
+        /// </summary>
+        Material = 5,
     }
 
     /// <summary>
     /// Water deformer component.
     /// </summary>
     [DisallowMultipleComponent]
+    [HDRPHelpURL("WaterSystem-waterdeformer")]
     [ExecuteInEditMode]
     public partial class WaterDeformer : MonoBehaviour
     {
@@ -129,7 +134,76 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Specifies the texture used for the deformer.
         /// </summary>
+        [Tooltip("Specifies the texture used for the deformer.")]
         public Texture texture = null;
+        #endregion
+
+        #region Material Deformer
+        /// <summary>
+        /// Specifies the resolution when written inside the atlas.
+        /// </summary>
+        public Vector2Int resolution = new Vector2Int(256, 256);
+
+        /// <summary>
+        /// Frequency of update of the Material in the atlas.
+        /// </summary>
+        [Tooltip("Frequency of update of the Material in the atlas.")]
+        public CustomRenderTextureUpdateMode updateMode = CustomRenderTextureUpdateMode.OnLoad;
+
+        /// <summary>
+        /// Specifies the material used for the deformer.
+        /// </summary>
+        [Tooltip("Specifies the material used for the deformer.")]
+        public Material material = null;
+
+        internal bool shouldUpdate = true;
+
+        /// <summary>
+        /// Triggers a render of the material in the deformer atlas.
+        /// </summary>
+        public void Update()
+        {
+            if (updateMode == CustomRenderTextureUpdateMode.OnDemand)
+                shouldUpdate = true;
+        }
+
+        internal MaterialPropertyBlock mpb;
+
+        /// <summary>
+        /// Override per-deformer material parameters. This is more memory efficient than having one complete distinct Material per deformer but is recommended when only a few properties of a Material overriden.
+        /// </summary>
+        /// <param name="properties">Property block with values you want to override.</param>
+        public void SetPropertyBlock(MaterialPropertyBlock properties)
+        {
+            mpb = properties;
+        }
+
+        /// <summary>
+        /// Returns true if the Deformer has a material property block attached via SetPropertyBlock.
+        /// </summary>
+        /// <returns>Returns true if the Deformer has a material property block attached via SetPropertyBlock.</returns>
+        public bool HasPropertyBlock()
+        {
+            return mpb != null;
+        }
+
+        internal bool IsValidMaterial()
+        {
+            #if UNITY_EDITOR
+            return material != null && material.GetTag("ShaderGraphTargetId", false, null) == "HDFullscreenSubTarget";
+            #else
+            return true;
+            #endif
+        }
+
+        internal int GetMaterialAtlasingId()
+        {
+            // If material has a property block, we can't reuse the atlas slot
+            if (HasPropertyBlock())
+                return GetInstanceID();
+            else
+                return material.GetInstanceID();
+        }
         #endregion
 
         #region Foam
@@ -200,6 +274,9 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // Add this water surface to the internal surface management
             RegisterInstance(this);
+
+            if (updateMode == CustomRenderTextureUpdateMode.OnLoad)
+                shouldUpdate = true;
         }
 
         private void OnDisable()

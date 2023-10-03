@@ -267,7 +267,7 @@ namespace UnityEngine.Rendering
         /// <param name="width">The width</param>
         /// <param name="height">The height</param>
         /// <returns>True if the space is reserved</returns>
-        bool ReserveSpace(int id, int width, int height)
+        public bool ReserveSpace(int id, int width, int height)
         {
             m_RequestedTextures[id] = new Vector2Int(width, height);
 
