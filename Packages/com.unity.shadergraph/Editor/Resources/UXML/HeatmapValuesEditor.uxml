@@ -1,0 +1,61 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements">
+    <ui:VisualElement view-data-key="sg-heatmap-editor" class="sg-heatmap">
+        <ui:HelpBox
+                class="sg-heatmap__help-box"
+                message-type="Info"
+                text="To use a custom data source for the Heatmap color mode, assign the Heatmap Values Asset in Edit > Project Settings > ShaderGraph.">
+        </ui:HelpBox>
+
+        <ui:ListView
+                name="colors-list"
+                class="sg-heatmap__list"
+                view-data-key="colors-list"
+                header-title="Categories"
+                show-foldout-header="true"
+                fixed-item-height="20"
+                reorderable="true"
+                reorder-mode="Animated"
+                show-border="true"
+                show-add-remove-footer="true"/>
+
+        <ui:HelpBox
+                name="refresh-nodes-hint"
+                class="sg-heatmap__help-box"
+                message-type="Info"
+                text="This project contains nodes that are not listed in this Heatmap Values Asset. Refresh the node list to generate entries for them.">
+            <ui:Button name="refresh-nodes-button" text="Refresh Node List"/>
+        </ui:HelpBox>
+
+        <ui:MultiColumnListView
+                name="subgraph-list"
+                class="sg-heatmap__list"
+                view-data-key="subgraph-list"
+                header-title="Subgraphs"
+                fixed-item-height="20"
+                show-border="true"
+                show-foldout-header="true"
+                selection-type="Multiple"
+                show-add-remove-footer="true">
+            <ui:Columns primary-column-name="subgraph" reorderable="false">
+                <ui:Column name="subgraph" title="Subgraph" width="250" optional="false"/>
+                <ui:Column name="value" title="Category" width="80" optional="false"/>
+            </ui:Columns>
+        </ui:MultiColumnListView>
+
+        <ui:MultiColumnListView
+                name="nodes-list"
+                class="sg-heatmap__list"
+                view-data-key="nodes-list"
+                header-title="Nodes"
+                fixed-item-height="20"
+                show-border="true"
+                show-foldout-header="true"
+                selection-type="Multiple"
+                show-bound-collection-size="false">
+            <ui:Columns primary-column-name="node" reorderable="false">
+                <ui:Column name="node" title="Node" width="250" optional="false"/>
+                <ui:Column name="value" title="Category" width="80" optional="false"/>
+            </ui:Columns>
+        </ui:MultiColumnListView>
+    </ui:VisualElement>
+</ui:UXML>

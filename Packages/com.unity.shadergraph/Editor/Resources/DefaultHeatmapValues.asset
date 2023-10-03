@@ -1,0 +1,486 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 62dfc9136db64ec5a9b7749af077d376, type: 3}
+  m_Name: DefaultHeatmapValues
+  m_EditorClassIdentifier: 
+  m_Colors:
+  - {r: 0, g: 1, b: 1, a: 1}
+  - {r: 0, g: 0, b: 0.015686275, a: 1}
+  - {r: 0.1058824, g: 0.04705883, b: 0.254902, a: 1}
+  - {r: 0.2901961, g: 0.04705883, b: 0.4196079, a: 1}
+  - {r: 0.4705883, g: 0.1098039, b: 0.427451, a: 1}
+  - {r: 0.6470588, g: 0.172549, b: 0.3764706, a: 1}
+  - {r: 0.8117648, g: 0.2666667, b: 0.2745098, a: 1}
+  - {r: 0.9294118, g: 0.4117647, b: 0.145098, a: 1}
+  - {r: 0.9843138, g: 0.6078432, b: 0.02352941, a: 1}
+  - {r: 0.9686275, g: 0.8196079, b: 0.2392157, a: 1}
+  - {r: 0.9882354, g: 1, b: 0.6431373, a: 1}
+  m_Nodes:
+    m_Entries:
+    - m_NodeName: AbsoluteNode
+      m_Category: 1
+    - m_NodeName: AddNode
+      m_Category: 2
+    - m_NodeName: AllNode
+      m_Category: 3
+    - m_NodeName: AmbientNode
+      m_Category: 1
+    - m_NodeName: AndNode
+      m_Category: 3
+    - m_NodeName: AnyNode
+      m_Category: 3
+    - m_NodeName: ArccosineNode
+      m_Category: 6
+    - m_NodeName: ArcsineNode
+      m_Category: 6
+    - m_NodeName: Arctangent2Node
+      m_Category: 6
+    - m_NodeName: ArctangentNode
+      m_Category: 6
+    - m_NodeName: BakedGINode
+      m_Category: 0
+    - m_NodeName: BitangentVectorNode
+      m_Category: 1
+    - m_NodeName: BlackbodyNode
+      m_Category: 7
+    - m_NodeName: BlendNode
+      m_Category: 0
+    - m_NodeName: BlendNormal_Water
+      m_Category: 5
+    - m_NodeName: BooleanNode
+      m_Category: 1
+    - m_NodeName: BranchNode
+      m_Category: 0
+    - m_NodeName: BranchOnInputConnectionNode
+      m_Category: 1
+    - m_NodeName: BuiltinCorneaIOR
+      m_Category: 1
+    - m_NodeName: BuiltinIrisPlaneOffset
+      m_Category: 1
+    - m_NodeName: BuiltinIrisRadius
+      m_Category: 1
+    - m_NodeName: CalculateLevelOfDetailTexture2DNode
+      m_Category: 6
+    - m_NodeName: CameraNode
+      m_Category: 1
+    - m_NodeName: CeilingNode
+      m_Category: 2
+    - m_NodeName: ChannelMaskNode
+      m_Category: 1
+    - m_NodeName: ChannelMixerNode
+      m_Category: 5
+    - m_NodeName: CheckerboardNode
+      m_Category: 7
+    - m_NodeName: CirclePupilAnimation
+      m_Category: 7
+    - m_NodeName: ClampNode
+      m_Category: 3
+    - m_NodeName: ColorMaskNode
+      m_Category: 1
+    - m_NodeName: ColorNode
+      m_Category: 1
+    - m_NodeName: ColorspaceConversionNode
+      m_Category: 6
+    - m_NodeName: CombineNode
+      m_Category: 1
+    - m_NodeName: ComparisonNode
+      m_Category: 3
+    - m_NodeName: ComputeDeformNode
+      m_Category: 1
+    - m_NodeName: ComputeVertexData_Water
+      m_Category: 1
+    - m_NodeName: ConstantNode
+      m_Category: 1
+    - m_NodeName: ContrastNode
+      m_Category: 4
+    - m_NodeName: CorneaRefraction
+      m_Category: 7
+    - m_NodeName: CosineNode
+      m_Category: 4
+    - m_NodeName: CrossProductNode
+      m_Category: 4
+    - m_NodeName: CubemapAssetNode
+      m_Category: 1
+    - m_NodeName: CustomColorBufferNode
+      m_Category: 0
+    - m_NodeName: CustomDepthBufferNode
+      m_Category: 0
+    - m_NodeName: CustomFunctionNode
+      m_Category: 0
+    - m_NodeName: CustomTextureSelf
+      m_Category: 1
+    - m_NodeName: CustomTextureSize
+      m_Category: 1
+    - m_NodeName: CustomTextureSlice
+      m_Category: 1
+    - m_NodeName: DDXNode
+      m_Category: 4
+    - m_NodeName: DDXYNode
+      m_Category: 4
+    - m_NodeName: DDYNode
+      m_Category: 4
+    - m_NodeName: DegreesToRadiansNode
+      m_Category: 2
+    - m_NodeName: DielectricSpecularNode
+      m_Category: 1
+    - m_NodeName: DiffusionProfileNode
+      m_Category: 1
+    - m_NodeName: DistanceNode
+      m_Category: 3
+    - m_NodeName: DitherNode
+      m_Category: 7
+    - m_NodeName: DivideNode
+      m_Category: 2
+    - m_NodeName: DotProductNode
+      m_Category: 2
+    - m_NodeName: EllipseNode
+      m_Category: 6
+    - m_NodeName: EmissionNode
+      m_Category: 0
+    - m_NodeName: EvaluateDisplacement_Water
+      m_Category: 0
+    - m_NodeName: EvaluateFoamData_Water
+      m_Category: 0
+    - m_NodeName: EvaluateRefractionData_Water
+      m_Category: 0
+    - m_NodeName: EvaluateScatteringColor_Water
+      m_Category: 6
+    - m_NodeName: EvaluateSimulationAdditionalData_Water
+      m_Category: 0
+    - m_NodeName: EvaluateSimulationCaustics_Water
+      m_Category: 0
+    - m_NodeName: EvaluateTipThickness_Water
+      m_Category: 4
+    - m_NodeName: ExponentialNode
+      m_Category: 4
+    - m_NodeName: ExposureNode
+      m_Category: 0
+    - m_NodeName: EyeIndexNode
+      m_Category: 1
+    - m_NodeName: EyeSurfaceTypeDebug
+      m_Category: 6
+    - m_NodeName: FadeTransitionNode
+      m_Category: 4
+    - m_NodeName: FlipbookNode
+      m_Category: 6
+    - m_NodeName: FlipNode
+      m_Category: 3
+    - m_NodeName: FloorNode
+      m_Category: 2
+    - m_NodeName: FogNode
+      m_Category: 4
+    - m_NodeName: FractionNode
+      m_Category: 2
+    - m_NodeName: FresnelNode
+      m_Category: 6
+    - m_NodeName: GatherTexture2DNode
+      m_Category: 0
+    - m_NodeName: GradientNode
+      m_Category: 0
+    - m_NodeName: GradientNoiseNode
+      m_Category: 9
+    - m_NodeName: HDFresnelEquationNode
+      m_Category: 8
+    - m_NodeName: HDSampleBufferNode
+      m_Category: 0
+    - m_NodeName: HDSceneColorNode
+      m_Category: 0
+    - m_NodeName: HDSceneDepthNode
+      m_Category: 0
+    - m_NodeName: HueNode
+      m_Category: 7
+    - m_NodeName: HyperbolicCosineNode
+      m_Category: 5
+    - m_NodeName: HyperbolicSineNode
+      m_Category: 5
+    - m_NodeName: HyperbolicTangentNode
+      m_Category: 6
+    - m_NodeName: InstanceIDNode
+      m_Category: 1
+    - m_NodeName: IntegerNode
+      m_Category: 1
+    - m_NodeName: InverseLerpNode
+      m_Category: 2
+    - m_NodeName: InvertColorsNode
+      m_Category: 5
+    - m_NodeName: IrisLimbalRing
+      m_Category: 6
+    - m_NodeName: IrisOffset
+      m_Category: 2
+    - m_NodeName: IrisOutOfBoundColorClamp
+      m_Category: 2
+    - m_NodeName: IrisUVLocation
+      m_Category: 4
+    - m_NodeName: IsFrontFaceNode
+      m_Category: 1
+    - m_NodeName: IsInfiniteNode
+      m_Category: 3
+    - m_NodeName: IsNanNode
+      m_Category: 1
+    - m_NodeName: LengthNode
+      m_Category: 4
+    - m_NodeName: LerpNode
+      m_Category: 2
+    - m_NodeName: LightTextureNode
+      m_Category: 0
+    - m_NodeName: LinearBlendSkinningNode
+      m_Category: 0
+    - m_NodeName: LogNode
+      m_Category: 3
+    - m_NodeName: MainLightDirectionNode
+      m_Category: 1
+    - m_NodeName: Matrix2Node
+      m_Category: 1
+    - m_NodeName: Matrix3Node
+      m_Category: 1
+    - m_NodeName: Matrix4Node
+      m_Category: 1
+    - m_NodeName: MatrixConstructionNode
+      m_Category: 1
+    - m_NodeName: MatrixDeterminantNode
+      m_Category: 7
+    - m_NodeName: MatrixSplitNode
+      m_Category: 1
+    - m_NodeName: MatrixTransposeNode
+      m_Category: 7
+    - m_NodeName: MaximumNode
+      m_Category: 2
+    - m_NodeName: MetalReflectanceNode
+      m_Category: 1
+    - m_NodeName: MinimumNode
+      m_Category: 2
+    - m_NodeName: ModuloNode
+      m_Category: 4
+    - m_NodeName: MultiplyNode
+      m_Category: 2
+    - m_NodeName: NandNode
+      m_Category: 4
+    - m_NodeName: NegateNode
+      m_Category: 2
+    - m_NodeName: NoiseNode
+      m_Category: 8
+    - m_NodeName: NoiseSineWaveNode
+      m_Category: 6
+    - m_NodeName: NormalBlendNode
+      m_Category: 5
+    - m_NodeName: NormalFromHeightNode
+      m_Category: 7
+    - m_NodeName: NormalFromTextureNode
+      m_Category: 0
+    - m_NodeName: NormalizeNode
+      m_Category: 5
+    - m_NodeName: NormalReconstructZNode
+      m_Category: 6
+    - m_NodeName: NormalStrengthNode
+      m_Category: 3
+    - m_NodeName: NormalUnpackNode
+      m_Category: 5
+    - m_NodeName: NormalVectorNode
+      m_Category: 1
+    - m_NodeName: NotNode
+      m_Category: 3
+    - m_NodeName: ObjectNode
+      m_Category: 1
+    - m_NodeName: OneMinusNode
+      m_Category: 2
+    - m_NodeName: OrNode
+      m_Category: 4
+    - m_NodeName: PackVertexData_Water
+      m_Category: 1
+    - m_NodeName: ParallaxMappingNode
+      m_Category: 0
+    - m_NodeName: ParallaxOcclusionMappingNode
+      m_Category: 0
+    - m_NodeName: PolarCoordinatesNode
+      m_Category: 7
+    - m_NodeName: PolygonNode
+      m_Category: 8
+    - m_NodeName: PositionNode
+      m_Category: 1
+    - m_NodeName: PosterizeNode
+      m_Category: 5
+    - m_NodeName: PowerNode
+      m_Category: 4
+    - m_NodeName: PreviewNode
+      m_Category: 1
+    - m_NodeName: ProjectionNode
+      m_Category: 4
+    - m_NodeName: RadialShearNode
+      m_Category: 5
+    - m_NodeName: RadiansToDegreesNode
+      m_Category: 2
+    - m_NodeName: RandomRangeNode
+      m_Category: 5
+    - m_NodeName: ReciprocalNode
+      m_Category: 4
+    - m_NodeName: ReciprocalSquareRootNode
+      m_Category: 4
+    - m_NodeName: RectangleNode
+      m_Category: 6
+    - m_NodeName: ReflectionNode
+      m_Category: 2
+    - m_NodeName: ReflectionProbeNode
+      m_Category: 0
+    - m_NodeName: RefractNode
+      m_Category: 7
+    - m_NodeName: RejectionNode
+      m_Category: 5
+    - m_NodeName: RemapNode
+      m_Category: 5
+    - m_NodeName: ReplaceColorNode
+      m_Category: 6
+    - m_NodeName: RotateAboutAxisNode
+      m_Category: 7
+    - m_NodeName: RotateNode
+      m_Category: 6
+    - m_NodeName: RoundedPolygonNode
+      m_Category: 9
+    - m_NodeName: RoundedRectangleNode
+      m_Category: 7
+    - m_NodeName: RoundNode
+      m_Category: 2
+    - m_NodeName: SampleCubemapNode
+      m_Category: 0
+    - m_NodeName: SampleGradient
+      m_Category: 8
+    - m_NodeName: SampleRawCubemapNode
+      m_Category: 0
+    - m_NodeName: SamplerStateNode
+      m_Category: 1
+    - m_NodeName: SampleTexture2DArrayNode
+      m_Category: 0
+    - m_NodeName: SampleTexture2DLODNode
+      m_Category: 0
+    - m_NodeName: SampleTexture2DNode
+      m_Category: 0
+    - m_NodeName: SampleTexture3DNode
+      m_Category: 0
+    - m_NodeName: SampleVirtualTextureNode
+      m_Category: 0
+    - m_NodeName: SaturateNode
+      m_Category: 1
+    - m_NodeName: SaturationNode
+      m_Category: 5
+    - m_NodeName: SawtoothWaveNode
+      m_Category: 3
+    - m_NodeName: SceneColorNode
+      m_Category: 0
+    - m_NodeName: SceneDepthDifferenceNode
+      m_Category: 0
+    - m_NodeName: SceneDepthNode
+      m_Category: 0
+    - m_NodeName: ScleraIrisBlend
+      m_Category: 6
+    - m_NodeName: ScleraLimbalRing
+      m_Category: 6
+    - m_NodeName: ScleraUVLocation
+      m_Category: 2
+    - m_NodeName: ScreenNode
+      m_Category: 1
+    - m_NodeName: ScreenPositionNode
+      m_Category: 5
+    - m_NodeName: SignNode
+      m_Category: 3
+    - m_NodeName: SineNode
+      m_Category: 4
+    - m_NodeName: SliderNode
+      m_Category: 1
+    - m_NodeName: SmoothstepNode
+      m_Category: 4
+    - m_NodeName: SphereMaskNode
+      m_Category: 6
+    - m_NodeName: SpherizeNode
+      m_Category: 5
+    - m_NodeName: SplitNode
+      m_Category: 1
+    - m_NodeName: SplitTextureTransformNode
+      m_Category: 1
+    - m_NodeName: SquareRootNode
+      m_Category: 4
+    - m_NodeName: SquareWaveNode
+      m_Category: 3
+    - m_NodeName: StepNode
+      m_Category: 4
+    - m_NodeName: SubtractNode
+      m_Category: 2
+    - m_NodeName: SurfaceGradientResolveNormal
+      m_Category: 5
+    - m_NodeName: SwizzleNode
+      m_Category: 1
+    - m_NodeName: TangentNode
+      m_Category: 5
+    - m_NodeName: TangentVectorNode
+      m_Category: 1
+    - m_NodeName: Texture2DArrayAssetNode
+      m_Category: 1
+    - m_NodeName: Texture2DAssetNode
+      m_Category: 1
+    - m_NodeName: Texture2DPropertiesNode
+      m_Category: 1
+    - m_NodeName: Texture3DAssetNode
+      m_Category: 1
+    - m_NodeName: TilingAndOffsetNode
+      m_Category: 4
+    - m_NodeName: TimeNode
+      m_Category: 1
+    - m_NodeName: TransformationMatrixNode
+      m_Category: 1
+    - m_NodeName: TransformNode
+      m_Category: 7
+    - m_NodeName: TriangleWaveNode
+      m_Category: 4
+    - m_NodeName: TriplanarNode
+      m_Category: 0
+    - m_NodeName: TruncateNode
+      m_Category: 2
+    - m_NodeName: TwirlNode
+      m_Category: 6
+    - m_NodeName: UniversalSampleBufferNode
+      m_Category: 0
+    - m_NodeName: UnpackData_Water
+      m_Category: 2
+    - m_NodeName: UVNode
+      m_Category: 1
+    - m_NodeName: Vector1Node
+      m_Category: 1
+    - m_NodeName: Vector2Node
+      m_Category: 1
+    - m_NodeName: Vector3Node
+      m_Category: 1
+    - m_NodeName: Vector4Node
+      m_Category: 1
+    - m_NodeName: VertexColorNode
+      m_Category: 1
+    - m_NodeName: VertexIDNode
+      m_Category: 1
+    - m_NodeName: ViewDirectionNode
+      m_Category: 5
+    - m_NodeName: ViewVectorNode
+      m_Category: 2
+    - m_NodeName: VoronoiNode
+      m_Category: 10
+    - m_NodeName: WhiteBalanceNode
+      m_Category: 7
+  m_Subgraphs:
+    m_Entries:
+    - m_NodeName: 2ac0be37050cef84793ca00ca9fd93af
+      m_Category: 0
+    - m_NodeName: 89c32740b629abb41bf9b65e3a64c373
+      m_Category: 7
+    - m_NodeName: 1b4ecad27a9bc714e8d3af3ffb8a368c
+      m_Category: 0
+    - m_NodeName: b04441f4a83ad224d92d547d170c366b
+      m_Category: 0
+    - m_NodeName: e9398b7940890a74eafc240b5a593541
+      m_Category: 9
+    - m_NodeName: 17c24bec47e573e45944c5a4451ffcba
+      m_Category: 4
