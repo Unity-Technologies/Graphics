@@ -53,3 +53,9 @@
 
 //HDRP is forcing the USING_STEREO_MATRICES define in case of compute shader (See TextureXR.hlsl)
 #define USE_MULTI_COMPILE_XR_IN_OUTPUT_UPDATE 0
+
+#if USE_GEOMETRY_SHADER
+#define CULL_VERTEX(o) return;
+#else
+#define CULL_VERTEX(o) { o.VFX_VARYING_POSCS.x = VFX_NAN; return o; }
+#endif

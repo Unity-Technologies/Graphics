@@ -93,6 +93,12 @@ bool ShouldCullElement(uint index, uint vfxInstanceIndex, uint nbMax)
 #if USE_DEAD_LIST_COUNT
     deadCount = deadListCount[vfxInstanceIndex];
 #endif
+
+#if HAS_STRIPS && !VFX_HAS_INDIRECT_DRAW
+    // We render one particle less for each strip in this case
+    nbMax -= STRIP_COUNT;
+#endif
+
     return (index >= nbMax - deadCount);
 }
 
@@ -143,7 +149,6 @@ float3 GetElementSizeRT(InternalAttributesElement attributes
 }
 
 #if HAS_STRIPS
-#define PARTICLE_IN_EDGE (id & 1)
 float3 GetParticlePosition(uint index, uint instanceIndex)
 {
     InternalAttributesElement attributes;

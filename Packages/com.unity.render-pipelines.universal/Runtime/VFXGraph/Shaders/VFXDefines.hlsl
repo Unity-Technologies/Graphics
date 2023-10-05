@@ -32,3 +32,9 @@
 
 //Unlit can use the DepthNormal pass which creates a discrepancy while computing depth
 #define FORCE_NORMAL_OUTPUT_UNLIT_VERTEX_SHADER 1
+
+#if USE_GEOMETRY_SHADER
+#define CULL_VERTEX(o) return;
+#else
+#define CULL_VERTEX(o) { o.VFX_VARYING_POSCS.x = VFX_NAN; return o; }
+#endif

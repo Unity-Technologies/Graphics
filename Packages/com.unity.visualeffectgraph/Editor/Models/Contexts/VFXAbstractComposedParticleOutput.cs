@@ -445,8 +445,6 @@ namespace UnityEditor.VFX
         public sealed override bool HasSorting()
         {
             var desc = GetOrRefreshDecription();
-            if (HasStrips(true))
-                return false;
             if (sort == SortActivationMode.On)
                 return true;
             if (sort == SortActivationMode.Auto && (desc.blendMode == BlendMode.Alpha || desc.blendMode == BlendMode.AlphaPremultiplied))
@@ -461,18 +459,14 @@ namespace UnityEditor.VFX
         {
             get
             {
-                var features = base.outputUpdateFeatures;
-                if (!HasStrips(true))
+                var desc = GetOrRefreshDecription();
+                var features = base.outputUpdateFeatures | desc.features;
+                if (HasSorting() && VFXOutputUpdate.HasFeature(features, VFXOutputUpdate.Features.IndirectDraw) || needsOwnSort)
                 {
-                    var desc = GetOrRefreshDecription();
-                    features |= desc.features;
-                    if (HasSorting() && VFXOutputUpdate.HasFeature(features, VFXOutputUpdate.Features.IndirectDraw) || needsOwnSort)
-                    {
-                        if (VFXSortingUtility.IsPerCamera(sortMode))
-                            features |= VFXOutputUpdate.Features.CameraSort;
-                        else
-                            features |= VFXOutputUpdate.Features.Sort;
-                    }
+                    if (VFXSortingUtility.IsPerCamera(sortMode))
+                        features |= VFXOutputUpdate.Features.CameraSort;
+                    else
+                        features |= VFXOutputUpdate.Features.Sort;
                 }
 
                 return features;
