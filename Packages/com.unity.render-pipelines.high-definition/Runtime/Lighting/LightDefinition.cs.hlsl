@@ -5,10 +5,16 @@
 #ifndef LIGHTDEFINITION_CS_HLSL
 #define LIGHTDEFINITION_CS_HLSL
 //
-// UnityEngine.Rendering.HighDefinition.EnvCacheType:  static fields
+// UnityEngine.Rendering.HighDefinition.EnvLightReflectionDataRT:  static fields
 //
-#define ENVCACHETYPE_TEXTURE2D (0)
-#define ENVCACHETYPE_CUBEMAP (1)
+#define MAX_PLANAR_REFLECTIONS (16)
+#define MAX_CUBE_REFLECTIONS (64)
+
+//
+// UnityEngine.Rendering.HighDefinition.EnvLightReflectionData:  static fields
+//
+#define MAX_PLANAR_REFLECTIONS (16)
+#define MAX_CUBE_REFLECTIONS (64)
 
 //
 // UnityEngine.Rendering.HighDefinition.GPULightType:  static fields
@@ -23,29 +29,16 @@
 #define GPULIGHTTYPE_DISC (7)
 
 //
+// UnityEngine.Rendering.HighDefinition.EnvCacheType:  static fields
+//
+#define ENVCACHETYPE_TEXTURE2D (0)
+#define ENVCACHETYPE_CUBEMAP (1)
+
+//
 // UnityEngine.Rendering.HighDefinition.GPUImageBasedLightingType:  static fields
 //
 #define GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION (0)
 #define GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION (1)
-
-//
-// UnityEngine.Rendering.HighDefinition.CookieMode:  static fields
-//
-#define COOKIEMODE_NONE (0)
-#define COOKIEMODE_CLAMP (1)
-#define COOKIEMODE_REPEAT (2)
-
-//
-// UnityEngine.Rendering.HighDefinition.EnvLightReflectionDataRT:  static fields
-//
-#define MAX_PLANAR_REFLECTIONS (16)
-#define MAX_CUBE_REFLECTIONS (64)
-
-//
-// UnityEngine.Rendering.HighDefinition.EnvLightReflectionData:  static fields
-//
-#define MAX_PLANAR_REFLECTIONS (16)
-#define MAX_CUBE_REFLECTIONS (64)
 
 //
 // UnityEngine.Rendering.HighDefinition.EnvShapeType:  static fields
@@ -59,6 +52,13 @@
 // UnityEngine.Rendering.HighDefinition.EnvConstants:  static fields
 //
 #define ENVCONSTANTS_CONVOLUTION_MIP_COUNT (7)
+
+//
+// UnityEngine.Rendering.HighDefinition.CookieMode:  static fields
+//
+#define COOKIEMODE_NONE (0)
+#define COOKIEMODE_CLAMP (1)
+#define COOKIEMODE_REPEAT (2)
 
 // Generated from UnityEngine.Rendering.HighDefinition.DirectionalLightData
 // PackingRules = Exact
@@ -84,7 +84,6 @@ struct DirectionalLightData
     real minRoughness;
     int screenSpaceShadowIndex;
     real4 shadowMaskSelector;
-    float2 cascadesBorderFadeScaleBias;
     float diffuseDimmer;
     float specularDimmer;
     float penumbraTint;
