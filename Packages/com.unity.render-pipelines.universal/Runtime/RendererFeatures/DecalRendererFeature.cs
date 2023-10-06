@@ -148,7 +148,6 @@ namespace UnityEngine.Rendering.Universal
                 m_DecalEntityManager.UpdateDecalEntityData(decalProjector.decalEntity, decalProjector);
         }
 
-
         private void OnAllDecalPropertyChange()
         {
             m_DecalEntityManager.UpdateAllDecalEntitiesData();
@@ -165,6 +164,7 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// The class for the decal renderer feature.
     /// </summary>
+    [SupportedOnRenderer(typeof(UniversalRendererData))]
     [DisallowMultipleRendererFeature("Decal")]
     [Tooltip("With this Renderer Feature, Unity can project specific Materials (decals) onto other objects in the Scene.")]
     [URPHelpURL("renderer-feature-decal")]

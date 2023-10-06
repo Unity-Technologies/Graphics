@@ -9,6 +9,7 @@ namespace UnityEngine.Rendering.Universal
     {
     }
 
+    [SupportedOnRenderer(typeof(UniversalRendererData))]
     [DisallowMultipleRendererFeature("Screen Space Shadows")]
     [Tooltip("Screen Space Shadows")]
     [URPHelpURL("renderer-feature-screen-space-shadows")]
@@ -242,7 +243,6 @@ namespace UnityEngine.Rendering.Universal
             {
                 ConfigureTarget(k_CurrentActive);
             }
-
 
             private static void ExecutePass(RasterCommandBuffer cmd, UniversalShadowData shadowData)
             {

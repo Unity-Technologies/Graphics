@@ -23,6 +23,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
     /// <summary>
     /// The class for the render objects renderer feature.
     /// </summary>
+    [SupportedOnRenderer(typeof(UniversalRendererData))]
     [ExcludeFromPreset]
     [Tooltip("Render Objects simplifies the injection of additional render passes by exposing a selection of commonly used settings.")]
     [URPHelpURL("renderer-features/renderer-feature-render-objects")]
