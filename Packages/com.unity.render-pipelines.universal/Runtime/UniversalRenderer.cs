@@ -1265,7 +1265,8 @@ namespace UnityEngine.Rendering.Universal
             bool applyFinalPostProcessing = anyPostProcessing && lastCameraInTheStack &&
                 ((cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing) ||
                  ((cameraData.imageScalingMode == ImageScalingMode.Upscaling) && (cameraData.upscalingFilter != ImageUpscalingFilter.Linear)) ||
-                 (cameraData.IsTemporalAAEnabled() && cameraData.taaSettings.contrastAdaptiveSharpening > 0.0f));
+                 (cameraData.IsTemporalAAEnabled() && cameraData.taaSettings.contrastAdaptiveSharpening > 0.0f)) &&
+                 (DebugHandler == null || (DebugHandler != null && DebugHandler.IsPostProcessingAllowed));
 
             // When post-processing is enabled we can use the stack to resolve rendering to camera target (screen or RT).
             // However when there are render passes executing after post we avoid resolving to screen so rendering continues (before sRGBConversion etc)
