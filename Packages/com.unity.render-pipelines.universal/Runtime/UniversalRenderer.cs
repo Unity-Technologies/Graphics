@@ -589,7 +589,24 @@ namespace UnityEngine.Rendering.Universal
             var createColorTexture = ((HasActiveRenderFeatures() && m_IntermediateTextureMode == IntermediateTextureMode.Always) && !isPreviewCamera) ||
                 (Application.isEditor && m_Clustering);
 
-            // Gather render passe input requirements
+            // Gather render pass history requests
+            if (camera.TryGetComponent(out UniversalAdditionalCameraData additionalCameraData))
+            {
+                // Gather all external user requests by callback.
+                additionalCameraData.historyManager.GatherHistoryRequests();
+
+                // Typically we would also gather all the internal requests here before checking for unused textures.
+                // However the requests are versioned in the history manager, so we can defer the clean up for couple frames.
+
+                // Garbage collect all the unused persistent data instances. Free GPU resources if any.
+                // This will start a new "history frame".
+                additionalCameraData.historyManager.ReleaseUnusedHistory();
+
+                // Swap and cycle camera history RTHandles. Update the reference size for the camera history RTHandles.
+                additionalCameraData.historyManager.SwapAndSetReferenceSize(cameraTargetDescriptor.width, cameraTargetDescriptor.height);
+            }
+
+            // Gather render pass input requirements
             RenderPassInputSummary renderPassInputs = GetRenderPassInputs(cameraData.IsTemporalAAEnabled(), postProcessingData.isEnabled);
 
             // Gather render pass require rendering layers event and mask size

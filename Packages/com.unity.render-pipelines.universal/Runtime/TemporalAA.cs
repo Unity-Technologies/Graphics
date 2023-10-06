@@ -4,6 +4,8 @@ using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal
 {
+    // All of TAA here, work on TAA == work on this file.
+
     internal enum TemporalAAQuality
     {
         VeryLow = 0,
@@ -13,129 +15,115 @@ namespace UnityEngine.Rendering.Universal
         VeryHigh
     }
 
-    // Temporal AA data that persists over a frame. (per camera)
-    sealed internal class TaaPersistentData
+    internal static class TemporalAA
     {
-        private static GraphicsFormat[] formatList = new GraphicsFormat[]
+        public sealed class PersistentData : CameraHistoryItem
         {
-            GraphicsFormat.R16G16B16A16_SFloat,
-            GraphicsFormat.B10G11R11_UFloatPack32,
-            GraphicsFormat.R8G8B8A8_UNorm,
-            GraphicsFormat.B8G8R8A8_UNorm,
-        };
-
-        RenderTextureDescriptor m_RtDesc;
-        RTHandle m_AccumulationTexture;
-        RTHandle m_AccumulationTexture2;
-        int m_LastAccumUpdateFrameIndex;
-        int m_LastAccumUpdateFrameIndex2;
-
-        public RenderTextureDescriptor rtd => m_RtDesc;
-        public RTHandle accumulationTexture(int index) => index != 0 ? m_AccumulationTexture2 : m_AccumulationTexture;
-        public int GetLastAccumFrameIndex(int index) => index != 0 ? m_LastAccumUpdateFrameIndex2 : m_LastAccumUpdateFrameIndex;
-        public void SetLastAccumFrameIndex(int index, int value)
-        {
-            if (index != 0)
-                m_LastAccumUpdateFrameIndex2 = value;
-            else
-                m_LastAccumUpdateFrameIndex = value;
-        }
-
-        public TaaPersistentData()
-        {
-        }
-
-        public void Init(int sizeX, int sizeY, int volumeDepth, GraphicsFormat format, VRTextureUsage vrUsage, TextureDimension texDim)
-        {
-            if ((m_RtDesc.width != sizeX || m_RtDesc.height != sizeY || m_RtDesc.volumeDepth != volumeDepth || m_AccumulationTexture == null) &&
-                (sizeX > 0 && sizeY >0))
+            private int[] m_TaaAccumulationTextureIds = new int[2];
+            private int[] m_TaaAccumulationVersions = new int[2];
+            private static readonly string[] m_TaaAccumulationNames = new []
             {
-                RenderTextureDescriptor desc = new RenderTextureDescriptor();
+                "TaaAccumulationTex0",
+                "TaaAccumulationTex1"
+            };
 
-                const bool enableRandomWrite = false; // aka UAV, Load/Store
-                GraphicsFormatUsage usage = enableRandomWrite ? GraphicsFormatUsage.LoadStore : GraphicsFormatUsage.Render;
+            private RenderTextureDescriptor m_Descriptor;
+            private Hash128 m_DescKey;
 
-                desc.width = sizeX;
-                desc.height = sizeY;
-                desc.msaaSamples = 1;
-                desc.volumeDepth = volumeDepth;
-                desc.mipCount = 0;
-                desc.graphicsFormat = CheckFormat(format, usage);
-                desc.sRGB = false;
-                desc.depthBufferBits = 0;
-                desc.dimension = texDim;
-                desc.vrUsage = vrUsage;
-                desc.memoryless = RenderTextureMemoryless.None;
-                desc.useMipMap = false;
-                desc.autoGenerateMips = false;
-                desc.enableRandomWrite = enableRandomWrite;
-                desc.bindMS = false;
-                desc.useDynamicScale = false;
-
-                m_RtDesc = desc;
-
-                DeallocateTargets();
+            /// <summary>
+            /// Called internally on instance creation.
+            /// Sets up RTHandle ids.
+            /// </summary>
+            public override void OnCreate(BufferedRTHandleSystem owner, uint typeId)
+            {
+                base.OnCreate(owner, typeId);
+                m_TaaAccumulationTextureIds[0] = MakeId(0);
+                m_TaaAccumulationTextureIds[1] = MakeId(1);
             }
 
-            GraphicsFormat CheckFormat(GraphicsFormat format, GraphicsFormatUsage usage)
+            /// <summary>
+            /// Release TAA accumulation textures.
+            /// </summary>
+            public override void Reset()
             {
-                // Should do query per usage, but we rely on the fact that "LoadStore" implies "Render" in the code.
-                bool success = SystemInfo.IsFormatSupported(format, usage);
-                if (!success)
-                    return FindFormat(usage); // Fallback
-                return format;
+                for (int i = 0; i < m_TaaAccumulationTextureIds.Length; i++)
+                {
+                    ReleaseHistoryFrameRT(m_TaaAccumulationTextureIds[i]);
+                    m_TaaAccumulationVersions[i] = -1;
+                }
+
+                m_Descriptor.width = 0;
+                m_Descriptor.height = 0;
+                m_Descriptor.graphicsFormat = GraphicsFormat.None;
+                m_DescKey = Hash128.Compute(0);
             }
 
-            GraphicsFormat FindFormat( GraphicsFormatUsage usage )
+            /// <summary>
+            /// Get TAA accumulation texture.
+            /// </summary>
+            public RTHandle GetAccumulationTexture(int eyeIndex = 0)
             {
-                for (int i = 0; i < formatList.Length; i++)
-                    if (SystemInfo.IsFormatSupported(formatList[i], usage))
+                return GetCurrentFrameRT(m_TaaAccumulationTextureIds[eyeIndex]);
+            }
+
+            /// <summary>
+            /// Get TAA accumulation texture version.
+            /// </summary>
+            // Tracks which frame the accumulation was last updated.
+            public int GetAccumulationVersion(int eyeIndex = 0)
+            {
+                return m_TaaAccumulationVersions[eyeIndex];
+            }
+
+            internal void SetAccumulationVersion(int eyeIndex, int version)
+            {
+                m_TaaAccumulationVersions[eyeIndex] = version;
+            }
+
+            // Check if the TAA accumulation texture is valid.
+            private bool IsValid()
+            {
+                return GetAccumulationTexture(0) != null;
+            }
+
+            // True if the desc changed, graphicsFormat etc.
+            private bool IsDirty(ref RenderTextureDescriptor desc)
+            {
+                return m_DescKey != Hash128.Compute(ref desc);
+            }
+
+            private void Alloc(ref RenderTextureDescriptor desc, bool xrMultipassEnabled)
+            {
+                AllocHistoryFrameRT(m_TaaAccumulationTextureIds[0], 1, ref desc,  m_TaaAccumulationNames[0]);
+
+                if (xrMultipassEnabled)
+                    AllocHistoryFrameRT(m_TaaAccumulationTextureIds[1], 1, ref desc,  m_TaaAccumulationNames[1]);
+
+                m_Descriptor = desc;
+                m_DescKey = Hash128.Compute(ref desc);
+            }
+
+            // Return true if the RTHandles were reallocated.
+            internal bool Update(ref RenderTextureDescriptor cameraDesc, bool xrMultipassEnabled = false)
+            {
+                if (cameraDesc.width > 0 && cameraDesc.height > 0 && cameraDesc.graphicsFormat != GraphicsFormat.None)
+                {
+                    var taaDesc = TemporalAA.TemporalAADescFromCameraDesc(ref cameraDesc);
+
+                    if (IsDirty(ref taaDesc))
+                        Reset();
+
+                    if (!IsValid())
                     {
-                        return formatList[i];
+                        Alloc(ref taaDesc, xrMultipassEnabled);
+                        return true;
                     }
-
-                return GraphicsFormat.B8G8R8A8_UNorm;
+                }
+                return false;
             }
         }
 
-        public bool AllocateTargets(bool xrMultipassEnabled = false)
-        {
-            bool didAlloc = false;
-
-            // The rule is that if the target needs to be reallocated, the m_AccumulationTexture has already been set to null.
-            // So during allocation, the logic is as simple as allocate it if it's non-null.
-            if (m_AccumulationTexture == null)
-            {
-                m_AccumulationTexture = RTHandles.Alloc(m_RtDesc, FilterMode.Bilinear, TextureWrapMode.Clamp, name:"_TaaAccumulationTex");
-                didAlloc = true;
-            }
-
-            // Second eye for XR multipass (the persistent data is shared, for now)
-            if (xrMultipassEnabled && m_AccumulationTexture2 == null)
-            {
-                m_AccumulationTexture2 = RTHandles.Alloc(m_RtDesc, FilterMode.Bilinear, TextureWrapMode.Clamp, name:"_TaaAccumulationTex2");
-                didAlloc = true;
-            }
-
-            return didAlloc;
-        }
-
-        public void DeallocateTargets()
-        {
-            m_AccumulationTexture?.Release();
-            m_AccumulationTexture2?.Release();
-            m_AccumulationTexture = null;
-            m_AccumulationTexture2 = null;
-            m_LastAccumUpdateFrameIndex = -1;
-            m_LastAccumUpdateFrameIndex2 = -1;
-        }
-
-    };
-
-    // All of TAA here, work on TAA == work on this file.
-    static class TemporalAA
-    {
-        static internal class ShaderConstants
+        internal static class ShaderConstants
         {
             public static readonly int _TaaAccumulationTex = Shader.PropertyToID("_TaaAccumulationTex");
             public static readonly int _TaaMotionVectorTex = Shader.PropertyToID("_TaaMotionVectorTex");
@@ -148,7 +136,7 @@ namespace UnityEngine.Rendering.Universal
             public static readonly int _CameraDepthTexture = Shader.PropertyToID("_CameraDepthTexture");
         }
 
-        static internal class ShaderKeywords
+        internal static class ShaderKeywords
         {
             public static readonly string TAA_LOW_PRECISION_SOURCE = "TAA_LOW_PRECISION_SOURCE";
         }
@@ -236,7 +224,7 @@ namespace UnityEngine.Rendering.Universal
 
         private static readonly float[] taaFilterWeights = new float[taaFilterOffsets.Length + 1];
 
-        static internal float[] CalculateFilterWeights(float jitterScale)
+        internal static float[] CalculateFilterWeights(float jitterScale)
         {
             // Based on HDRP
             // Precompute weights used for the Blackman-Harris filter.
@@ -265,7 +253,51 @@ namespace UnityEngine.Rendering.Universal
             return taaFilterWeights;
         }
 
-        static internal string ValidateAndWarn(UniversalCameraData cameraData)
+        internal static GraphicsFormat[] AccumulationFormatList = new GraphicsFormat[]
+        {
+            GraphicsFormat.R16G16B16A16_SFloat,
+            GraphicsFormat.B10G11R11_UFloatPack32,
+            GraphicsFormat.R8G8B8A8_UNorm,
+            GraphicsFormat.B8G8R8A8_UNorm,
+        };
+
+        internal static RenderTextureDescriptor TemporalAADescFromCameraDesc(ref RenderTextureDescriptor cameraDesc)
+        {
+            RenderTextureDescriptor taaDesc = cameraDesc;
+
+            // Explicitly set from cameraDesc.* for clarity.
+            taaDesc.width = cameraDesc.width;
+            taaDesc.height = cameraDesc.height;
+            taaDesc.msaaSamples = 1;
+            taaDesc.volumeDepth = cameraDesc.volumeDepth;
+            taaDesc.mipCount = 0;
+            taaDesc.graphicsFormat = cameraDesc.graphicsFormat;
+            taaDesc.sRGB = false;
+            taaDesc.depthBufferBits = 0;
+            taaDesc.dimension = cameraDesc.dimension;
+            taaDesc.vrUsage = cameraDesc.vrUsage;
+            taaDesc.memoryless = RenderTextureMemoryless.None;
+            taaDesc.useMipMap = false;
+            taaDesc.autoGenerateMips = false;
+            taaDesc.enableRandomWrite = false;
+            taaDesc.bindMS = false;
+            taaDesc.useDynamicScale = false;
+
+            if (!SystemInfo.IsFormatSupported(taaDesc.graphicsFormat, GraphicsFormatUsage.Render))
+            {
+                taaDesc.graphicsFormat = GraphicsFormat.None;
+                for (int i = 0; i < AccumulationFormatList.Length; i++)
+                    if (SystemInfo.IsFormatSupported(AccumulationFormatList[i], GraphicsFormatUsage.Render))
+                    {
+                        taaDesc.graphicsFormat = AccumulationFormatList[i];
+                        break;
+                    }
+            }
+
+            return taaDesc;
+        }
+
+        internal static string ValidateAndWarn(UniversalCameraData cameraData)
         {
             string warning = null;
 
@@ -312,10 +344,9 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_VR && ENABLE_XR_MODULE
                 multipassId = cameraData.xr.multipassId;
 #endif
+                bool isNewFrame = cameraData.taaPersistentData.GetAccumulationVersion(multipassId) != Time.frameCount;
 
-                bool isNewFrame = cameraData.taaPersistentData.GetLastAccumFrameIndex(multipassId) != Time.frameCount;
-
-                RTHandle taaHistoryAccumulationTex = cameraData.taaPersistentData.accumulationTexture(multipassId);
+                RTHandle taaHistoryAccumulationTex = cameraData.taaPersistentData.GetAccumulationTexture(multipassId);
                 taaMaterial.SetTexture(ShaderConstants._TaaAccumulationTex, taaHistoryAccumulationTex);
 
                 // On frame rerender or pause, stop all motion using a black motion texture.
@@ -358,7 +389,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     int kHistoryCopyPass = taaMaterial.shader.passCount - 1;
                     Blitter.BlitCameraTexture(cmd, destination, taaHistoryAccumulationTex, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, taaMaterial, kHistoryCopyPass);
-                    cameraData.taaPersistentData.SetLastAccumFrameIndex(multipassId, Time.frameCount);
+                    cameraData.taaPersistentData.SetAccumulationVersion(multipassId, Time.frameCount);
                 }
             }
         }
@@ -390,10 +421,10 @@ namespace UnityEngine.Rendering.Universal
 
             ref var taa = ref cameraData.taaSettings;
 
-            bool isNewFrame = cameraData.taaPersistentData.GetLastAccumFrameIndex(multipassId) != Time.frameCount;
+            bool isNewFrame = cameraData.taaPersistentData.GetAccumulationVersion(multipassId) != Time.frameCount;
             float taaInfluence = taa.resetHistoryFrames == 0 ? taa.frameInfluence : 1.0f;
 
-            RTHandle accumulationTexture = cameraData.taaPersistentData.accumulationTexture(multipassId);
+            RTHandle accumulationTexture = cameraData.taaPersistentData.GetAccumulationTexture(multipassId);
             TextureHandle srcAccumulation = renderGraph.ImportTexture(accumulationTexture);
 
             // On frame rerender or pause, stop all motion using a black motion texture.
@@ -465,7 +496,7 @@ namespace UnityEngine.Rendering.Universal
                     builder.SetRenderFunc((TaaPassData data, RasterGraphContext context) => { Blitter.BlitTexture(context.cmd, data.srcColorTex, Vector2.one, data.material, data.passIndex); });
                 }
 
-                cameraData.taaPersistentData.SetLastAccumFrameIndex(multipassId, Time.frameCount);
+                cameraData.taaPersistentData.SetAccumulationVersion(multipassId, Time.frameCount);
             }
         }
     }

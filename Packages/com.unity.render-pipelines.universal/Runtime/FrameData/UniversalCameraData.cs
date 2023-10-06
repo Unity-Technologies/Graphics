@@ -504,7 +504,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Persistent TAA data, primarily for the accumulation texture.
         /// </summary>
-        internal TaaPersistentData taaPersistentData;
+        internal TemporalAA.PersistentData taaPersistentData;
 
         // TAA settings.
         internal TemporalAA.Settings taaSettings;

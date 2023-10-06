@@ -335,9 +335,9 @@ namespace UnityEngine.Rendering.Universal
         {
             foreach (var c in Camera.allCameras)
             {
-                if (c.TryGetComponent<UniversalAdditionalCameraData>(out var acd))
+                if (c.TryGetComponent<UniversalAdditionalCameraData>(out var additionalCameraData))
                 {
-                    acd.taaPersistentData?.DeallocateTargets();
+                    additionalCameraData.historyManager.Dispose();
                 };
             }
         }
@@ -744,6 +744,7 @@ namespace UnityEngine.Rendering.Universal
                 if (camera.TryGetComponent<UniversalAdditionalCameraData>(out var additionalCameraData))
                     additionalCameraData.motionVectorsPersistentData.Update(cameraData);
 
+                // TODO: Move into the renderer. Problem: It modifies the AdditionalCameraData which is copied into RenderingData which causes value divergence for value types.
                 // Update TAA persistent data based on cameraData. Most importantly resize the history render targets.
                 // NOTE: Persistent data is kept over multiple frames. Its life-time differs from typical resources.
                 // NOTE: Shared between both Execute and Render (RG) paths.
@@ -1687,10 +1688,9 @@ namespace UnityEngine.Rendering.Universal
 
         private static void UpdateTemporalAAData(UniversalCameraData cameraData, UniversalAdditionalCameraData additionalCameraData)
         {
-            // Initialize shared TAA target desc.
-            ref var desc = ref cameraData.cameraTargetDescriptor;
-            cameraData.taaPersistentData = additionalCameraData.taaPersistentData;
-            cameraData.taaPersistentData.Init(desc.width, desc.height, desc.volumeDepth, desc.graphicsFormat, desc.vrUsage, desc.dimension);
+            // Always request the TAA history data here in order to fit the existing URP structure.
+            additionalCameraData.historyManager.RequestAccess<TemporalAA.PersistentData>();
+            cameraData.taaPersistentData = additionalCameraData.historyManager.GetHistoryForWrite<TemporalAA.PersistentData>();
 
             // Update TAA settings
             ref var taaSettings = ref additionalCameraData.taaSettings;
@@ -1708,15 +1708,15 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_VR && ENABLE_XR_MODULE
                 xrMultipassEnabled = cameraData.xr.enabled && !cameraData.xr.singlePassEnabled;
 #endif
-                bool allocation = cameraData.taaPersistentData.AllocateTargets(xrMultipassEnabled);
+                bool allocation = cameraData.taaPersistentData.Update(ref cameraData.cameraTargetDescriptor, xrMultipassEnabled);
 
                 // Fill new history with current frame
                 // XR Multipass renders a "frame" per eye
-                if(allocation)
+                if (allocation)
                     cameraData.taaSettings.resetHistoryFrames += xrMultipassEnabled ? 2 : 1;
             }
             else
-                cameraData.taaPersistentData.DeallocateTargets();
+                cameraData.taaPersistentData.Reset();   // TAA GPUResources is explicitly released if the feature is turned off. We could refactor this to rely on the type request and the "gc" only.
         }
 
         static void UpdateCameraStereoMatrices(Camera camera, XRPass xr)
@@ -1971,7 +1971,7 @@ namespace UnityEngine.Rendering.Universal
 
             return hdrDisplayOutputActive;
         }
-        
+
         // We only want to enable HDR Output for the game view once
         // since the game itself might want to control this
         internal bool enableHDROnce = true;

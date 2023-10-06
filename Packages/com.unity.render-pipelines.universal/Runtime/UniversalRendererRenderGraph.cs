@@ -364,6 +364,23 @@ namespace UnityEngine.Rendering.Universal
                 RTHandleStaticHelpers.SetRTHandleUserManagedWrapper(ref m_TargetDepthHandle, targetDepthId);
             }
 
+            // Gather render pass history requests
+            if (cameraData.camera.TryGetComponent(out UniversalAdditionalCameraData additionalCameraData))
+            {
+                // Gather all external user requests by callback.
+                additionalCameraData.historyManager.GatherHistoryRequests();
+
+                // Typically we would also gather all the internal requests here before checking for unused textures.
+                // However the requests are versioned in the history manager, so we can defer the clean up for couple frames.
+
+                // Garbage collect all the unused persistent data instances. Free GPU resources if any.
+                // This will start a new "history frame".
+                additionalCameraData.historyManager.ReleaseUnusedHistory();
+
+                // Swap and cycle camera history RTHandles. Update the reference size for the camera history RTHandles.
+                additionalCameraData.historyManager.SwapAndSetReferenceSize(cameraData.cameraTargetDescriptor.width, cameraData.cameraTargetDescriptor.height);
+            }
+
             RenderPassInputSummary renderPassInputs = GetRenderPassInputs(cameraData.IsTemporalAAEnabled(), postProcessingData.isEnabled);
 
             // Enable depth normal prepass if it's needed by rendering layers
