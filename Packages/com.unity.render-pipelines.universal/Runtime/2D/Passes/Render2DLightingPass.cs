@@ -337,7 +337,7 @@ namespace UnityEngine.Rendering.Universal
                 isLitView = false;
 #endif
             var camera = renderingData.cameraData.camera;
-            var filterSettings = new FilteringSettings();
+            var filterSettings = FilteringSettings.defaultValue;
             filterSettings.renderQueueRange = RenderQueueRange.all;
             filterSettings.layerMask = -1;
             filterSettings.renderingLayerMask = 0xFFFFFFFF;

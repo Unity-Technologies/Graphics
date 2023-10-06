@@ -39,7 +39,7 @@ namespace UnityEngine.Rendering.Universal
 
             using (var builder = graph.AddRasterRenderPass<PassData>(k_NormalPass, out var passData, m_ProfilingSampler))
             {
-                var filterSettings = new FilteringSettings();
+                var filterSettings = FilteringSettings.defaultValue;
                 filterSettings.renderQueueRange = RenderQueueRange.all;
                 filterSettings.layerMask = -1;
                 filterSettings.renderingLayerMask = 0xFFFFFFFF;
