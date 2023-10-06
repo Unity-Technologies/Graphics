@@ -122,8 +122,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
             int hashCode = desc.GetHashCode();
 
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
             if (graphicsResource != null)
                 throw new InvalidOperationException(string.Format("GraphicsBufferResource: Trying to create an already created resource ({0}). Resource was probably declared for writing more than once in the same pass.", GetName()));
+#endif
 
             var pool = m_Pool as BufferPool;
             if (!pool.TryGetResource(hashCode, out graphicsResource))
@@ -138,8 +140,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         public override void ReleasePooledGraphicsResource(int frameIndex)
         {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
             if (graphicsResource == null)
                 throw new InvalidOperationException($"BufferResource: Tried to release a resource ({GetName()}) that was never created. Check that there is at least one pass writing to it first.");
+#endif
 
             // Shared resources don't use the pool
             var pool = m_Pool as BufferPool;

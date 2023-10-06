@@ -66,39 +66,38 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
     internal struct ResourceVersionedData
     {
         public bool written; // This version of the resource is written by a pass (external resources may never be written by the graph for example)
-        public int writePass; // Index in the pass array of the pass writing this specific version. This is always one as the version is different if a resource is written several times.
-        public int writeSlot; // Nth output of the pass writing this version
+        public int writePassId; // Index in the pass array of the pass writing this specific version. If any, there is always a single index as the version differs when a resource is written several times.
         public int numReaders; // Number of other passes reading this version
-        public int tag;
-
-        public int numFragmentUse;
 
         // Register the pass writing this resource version. A version can only be written by a single pass as every write should introduce a new distinct version.
-        public void SetWritingPass(CompilerContextData ctx, ResourceHandle h, int passId, int slot)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SetWritingPass(CompilerContextData ctx, ResourceHandle h, int passId)
         {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR 
             if (written)
             {
                 string passName = ctx.GetPassName(passId);
                 string resourceName = ctx.GetResourceName(h);
                 throw new Exception($"Only one pass can write to the same resource. Pass {passName} is trying to write {resourceName} a second time.");
             }
-
-            writePass = passId;
-            writeSlot = slot;
+#endif
+            writePassId = passId;
             written = true;
         }
 
         // Add an extra reader for this resource version. Resource versions can be read many times
         // The same pass can even read a resource twice (if it is passed to two separate input slots)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void RegisterReadingPass(CompilerContextData ctx, ResourceHandle h, int passId, int index)
         {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
             if (numReaders >= ResourcesData.MaxReaders)
             {
                 string passName = ctx.GetPassName(passId);
                 string resourceName = ctx.GetResourceName(h);
-                throw new Exception($"Maximum 10 passes can use a single graph output as input. Pass {passName} is trying to read {resourceName}.");
+                throw new Exception($"Maximum '{ResourcesData.MaxReaders}' passes can use a single graph output as input. Pass {passName} is trying to read {resourceName}.");
             }
-
+#endif
             ctx.resources.readerData[h.iType][ResourcesData.IndexReader(h, numReaders)] = new ResourceReaderData
             {
                 passId = passId,
@@ -108,6 +107,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
         }
 
         // Remove all the reads for the given pass of this resource version
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void RemoveReadingPass(CompilerContextData ctx, ResourceHandle h, int passId)
         {
             for (int r = 0; r < numReaders;)
@@ -214,8 +214,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int Index(ResourceHandle h)
         {
+#if UNITY_EDITOR // Hot path
             if (h.version < 0 || h.version >= MaxVersions)
                 throw new Exception("Invalid version: " + h.version);
+#endif
             return h.index * MaxVersions + h.version;
         }
 
@@ -223,10 +225,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int IndexReader(ResourceHandle h, int readerID)
         {
+#if UNITY_EDITOR // Hot path
             if (h.version < 0 || h.version >= MaxVersions)
                 throw new Exception("Invalid version");
             if (readerID < 0 || readerID >= MaxReaders)
                 throw new Exception("Invalid reader");
+#endif
             return (h.index * MaxVersions + h.version) * MaxReaders + readerID;
         }
 

@@ -170,16 +170,22 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
         internal bool hasDepth;
         internal int numAttachments;
         internal int numSubpasses;
+
         internal int debugNameLength;
 
-        internal static unsafe void AddCommand(int w, int h, int d, int s, ref FixedAttachmentArray<NativePassAttachment> attachments, int handleCount, bool hasDepth, ref NativeList<SubPassDescriptor> passes, int passOffset, int passCount, ref PassCommandBufferData data, DynamicString debugName)
+        internal static unsafe void AddCommand(int w, int h, int d, int s, ref FixedAttachmentArray<NativePassAttachment> attachments, int handleCount, bool hasDepth, ref NativeList<SubPassDescriptor> passes, int passOffset, int passCount, ref PassCommandBufferData data, DynamicArray<Name> passNamesForDebug)
         {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
             if (w == 0 || h == 0 || d == 0 || s == 0 || passCount == 0 || handleCount == 0)
             {
                 throw new Exception("Invalid render pass properties. One or more properties are zero.");
             }
-
-            var utf8CStrDebugNameLength = System.Text.Encoding.UTF8.GetByteCount((ReadOnlySpan<char>)debugName)+1;//including null terminator
+#endif
+            var utf8CStrDebugNameLength = 0;
+            foreach(ref readonly var passName in passNamesForDebug)
+            {
+                utf8CStrDebugNameLength += passName.utf8ByteCount + 1; // +1 to add '/' between passes or the null terminator at the end
+            }
 
             var payloadSize = sizeof(NativePassAttachment) * handleCount + sizeof(SubPassDescriptor) * passCount + sizeof(byte) * utf8CStrDebugNameLength;
             var totalSize = sizeof(BeginRenderPassCommand) + payloadSize;
@@ -213,19 +219,36 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
             }
             ptr += sizeof(SubPassDescriptor) * passCount;
 
-            var debugStrPtr = (byte*)(ptr);
-            System.Text.Encoding.UTF8.GetBytes(debugName, new Span<byte>(debugStrPtr, utf8CStrDebugNameLength));
-            debugStrPtr[utf8CStrDebugNameLength-1] = (byte)0;
-            ptr += sizeof(byte) * utf8CStrDebugNameLength;
+            if(utf8CStrDebugNameLength > 0)
+            {
+                var debugStrPtr = (byte*)(ptr);
+                foreach (ref readonly var passName in passNamesForDebug)
+                {
+                    System.Text.Encoding.UTF8.GetBytes(passName.name, new Span<byte>(debugStrPtr, passName.utf8ByteCount));
+                    debugStrPtr += passName.utf8ByteCount;
+                    // Adding '/' in UTF8
+                    *debugStrPtr = (byte)(0x2F); 
+                    ++debugStrPtr;
+                }
+                // Rewriting last '/' to be the null terminator
+                --debugStrPtr;
+                *debugStrPtr = (byte)0; 
+            }
         }
 
         internal static unsafe void Execute(in byte* ptr, ref PassCommandBufferState state)
         {
             var cmd = (BeginRenderPassCommand*)ptr;
             var attachmentsPtr = (NativePassAttachment*)(ptr + +sizeof(BeginRenderPassCommand));
-            var subpassPtr = (SubPassDescriptor*)(ptr + sizeof(BeginRenderPassCommand) + cmd->numAttachments * sizeof(NativePassAttachment) );
-            var debugNamePtr = (byte*)(ptr + sizeof(BeginRenderPassCommand) + cmd->numAttachments * sizeof(NativePassAttachment) + sizeof(SubPassDescriptor) * cmd->numSubpasses);
-            var debugName = new ReadOnlySpan<byte>(debugNamePtr, cmd->debugNameLength);
+            var subpassPtr = (SubPassDescriptor*)(ptr + sizeof(BeginRenderPassCommand) + cmd->numAttachments * sizeof(NativePassAttachment));
+
+            byte* debugNamePtr = null;
+            if(cmd->debugNameLength > 0)
+            {
+                debugNamePtr = (byte*)(ptr + sizeof(BeginRenderPassCommand) + cmd->numAttachments * sizeof(NativePassAttachment) + sizeof(SubPassDescriptor) * cmd->numSubpasses);
+            }
+            var debugName = (debugNamePtr != null) ? new ReadOnlySpan<byte>(debugNamePtr, cmd->debugNameLength) : null;
+
             var subpass = NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<SubPassDescriptor>(subpassPtr, cmd->numSubpasses, Allocator.None);
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             var safetyHandle = AtomicSafetyHandle.Create();
@@ -246,7 +269,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
                     var rthandle = state.resources.GetTexture(new TextureHandle(attachmentsPtr[i].handle));
 
                     //HACK: Always set the loadstore target even if StoreAction == DontCare or Resolve
-                    //and LoadSction == Clear or DontCare
+                    //and LoadAction == Clear or DontCare
                     //in these cases you could argue setting the loadStoreTarget to NULL and only set the resolveTarget
                     //but this confuses the backend (on vulkan) and in general is not how the lower level APIs tend to work.
                     //because of the RenderTexture duality where we always bundle store+resolve targets as one RTex
@@ -285,12 +308,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
                         ad.clearColor = desc.clearColor;
                     }
                 }
-
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
                 if (renderTargetInfo.width != cmd->w || renderTargetInfo.height != cmd->h || renderTargetInfo.msaaSamples != cmd->s)
                 {
                     throw new Exception("Low level rendergraph error: Attachments in renderpass do not match!");
                 }
-
+#endif
                 att[i] = ad;
             }
 
@@ -700,8 +723,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
         internal void CreateResource(ResourceHandle h, bool clear) => ResourceLifetimeCommand.AddCreateCommand(h, clear, ref m_Data);
         internal void ReleaseResource(ResourceHandle h) => ResourceLifetimeCommand.AddReleaseCommand(h, ref m_Data);
         internal void BeginRenderPass(int w, int h, int d, int s,
-            ref FixedAttachmentArray<NativePassAttachment> attachments, int attachmentCount, bool hasDepth, ref NativeList<SubPassDescriptor> passes, int passOffset,  int passCount, DynamicString debugName)
-            => BeginRenderPassCommand.AddCommand(w, h, d, s, ref attachments, attachmentCount, hasDepth, ref passes, passOffset, passCount, ref m_Data, debugName);
+            ref FixedAttachmentArray<NativePassAttachment> attachments, int attachmentCount, bool hasDepth, ref NativeList<SubPassDescriptor> passes, int passOffset, int passCount, DynamicArray<Name> passNamesForDebug = null)
+            => BeginRenderPassCommand.AddCommand(w, h, d, s, ref attachments, attachmentCount, hasDepth, ref passes, passOffset, passCount, ref m_Data, passNamesForDebug);
         internal void EndRenderPass() => EndRenderPassCommand.AddCommand(ref m_Data);
         internal void NextSubPass() => NextSubpassCommand.AddCommand(ref m_Data);
         internal void ExecuteGraphNode(int passID) => ExecuteNodeCommand.AddCommand(passID, ref m_Data);

@@ -11,7 +11,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
     internal struct Name
     {
         public readonly string name;
-        public Name(string name) { this.name = name; }
+        public readonly int utf8ByteCount;
+        public Name(string name, bool computeUTF8ByteCount = false)
+        {
+            this.name = name;
+            this.utf8ByteCount = ((name?.Length > 0) && computeUTF8ByteCount) ? System.Text.Encoding.UTF8.GetByteCount((ReadOnlySpan<char>)name) : 0;
+        }
     }
 
     // Helper extensions for NativeList
@@ -100,11 +105,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
         public ref ResourceReaderData ResourceReader(ResourceHandle h, int i)
         {
             int numReaders = resources[h].numReaders;
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
             if (i >= numReaders)
             {
                 throw new Exception("Invalid reader id");
             }
-
+#endif
             return ref resources.readerData[h.iType].ElementAt(ResourcesData.IndexReader(h, 0) + i);
         }
 
@@ -112,7 +118,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
         public NativeList<PassData> passData;
         public DynamicArray<Name> passNames;
 
-        // Tightly packed lists all passes add to these lists then index in it using offset+count
+        // Tightly packed lists all passes, add to these lists then index in it using offset+count
         public NativeList<PassInputData> inputData;
         public NativeList<PassOutputData> outputData;
         public NativeList<PassFragmentData> fragmentData;
@@ -132,12 +138,14 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
                 ref var fragment = ref fragmentData.ElementAt(i);
                 if (fragment.resource.index == h.index)
                 {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
                     if (fragment.resource.version != h.version)
                     {
                         //this would mean you're trying to attach say both v1 and v2 of a resource to the same pass as an attachment
                         //this is not allowed
                         throw new Exception("Trying to UseFragment two versions of the same resource");
                     }
+#endif
                     return false;
                 }
             }
@@ -155,6 +163,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Name GetFullPassName(int passId) => passNames[passId];
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public string GetPassName(int passId) => passNames[passId].name;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -164,11 +175,18 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
         public string GetResourceVersionedName(ResourceHandle h) => GetResourceName(h) + " V" + h.version;
 
         // Mark all passes as unvisited this is useful for graph algorithms that do something with the tag
-        public void TagAll(int value)
+        public void TagAllPasses(int value)
         {
             for (int passId = 0; passId < passData.Length; passId++)
             {
                 passData.ElementAt(passId).tag = value;
+            }
+        }
+        public void CullAllPasses(bool isCulled)
+        {
+            for (int passId = 0; passId < passData.Length; passId++)
+            {
+                passData.ElementAt(passId).culled = isCulled;
             }
         }
 

@@ -1274,10 +1274,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
             try
             {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
                 if (m_RenderGraphContext.cmd == null)
                     throw new InvalidOperationException("RenderGraph.RecordAndExecute was not called before executing the render graph.");
-
-
+#endif
                 if (!m_DebugParameters.immediateMode)
                 {
                     LogFrameInformation();
@@ -1979,7 +1979,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 InitializeCompilationData();
                 CountReferences();
 
-                // First cull all passes thet produce unused output
+                // First cull all passes that produce unused output
                 CullUnusedPasses();
 
                 // Create the renderer lists of the remaining passes

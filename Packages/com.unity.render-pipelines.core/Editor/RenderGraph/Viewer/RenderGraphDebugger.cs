@@ -80,7 +80,7 @@ internal class RenderGraphDebugger : IRenderGraphDebugger
                     passDebug.lastWrites.Add(unversionedName);
                 }
 
-                var wPass = ctx.passData[pointToVer.writePass];
+                var wPass = ctx.passData[pointToVer.writePassId];
                 if (wPass.asyncCompute != pass.asyncCompute)
                 {
                     passDebug.syncList += versionedName + "\\l";
@@ -227,15 +227,15 @@ internal class RenderGraphDebugger : IRenderGraphDebugger
                     }
                 }
 
-                ref var prevPass = ref ctx.passData.ElementAt(pointToVer.writePass);
+                ref var prevPass = ref ctx.passData.ElementAt(pointToVer.writePassId);
 
                 string passName = ctx.GetPassName(pass.passId);
-                string prevPassName = ctx.GetPassName(pointToVer.writePass);
+                string prevPassName = ctx.GetPassName(pointToVer.writePassId);
 
                 PassBreakAudit mergeResult;
                 if (prevPass.nativePassIndex >= 0)
                 {
-                    mergeResult = NativePassData.TryMerge(ctx, prevPass.nativePassIndex, pass.passId, true);
+                    mergeResult = NativePassData.CanMerge(ctx, prevPass.nativePassIndex, pass.passId);
                 }
                 else
                 {
