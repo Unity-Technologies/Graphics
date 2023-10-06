@@ -263,13 +263,18 @@ namespace UnityEngine.Rendering
             EditorGUILayout.Space();
         }
 
+        public override bool HasHelpGUI()
+        {
+            return true;
+        }
+
         public override void OnHeaderSettingsGUI()
         {
             var iconSize = EditorStyles.iconButton.CalcSize(Styles.helpIcon);
-
             if (GUI.Button(GUILayoutUtility.GetRect(iconSize.x, iconSize.y), Styles.helpIcon, EditorStyles.iconButton))
                 Help.BrowseURL(DocumentationInfo.GetPageLink("com.unity.render-pipelines.high-definition", documentationURL));
 
+            iconSize = EditorStyles.iconButton.CalcSize(Styles.settingsIcon);
             var rect = GUILayoutUtility.GetRect(iconSize.x, iconSize.y);
             if (EditorGUI.DropdownButton(rect, Styles.settingsIcon, FocusType.Passive, EditorStyles.iconButton))
                 EditorUtility.DisplayCustomMenu(rect, new[] { EditorGUIUtility.TrTextContent("Open Rendering Debugger") }, -1, OpenProbeVolumeDebugPanel, null);
