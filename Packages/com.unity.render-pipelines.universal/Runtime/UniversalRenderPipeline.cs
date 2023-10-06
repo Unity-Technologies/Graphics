@@ -626,7 +626,7 @@ namespace UnityEngine.Rendering.Universal
                 ApplyAdaptivePerformance(cameraData);
 #endif
 
-            RenderSingleCamera(context, cameraData, cameraData.postProcessEnabled);
+            RenderSingleCamera(context, cameraData);
         }
 
         static bool TryGetCullingParameters(UniversalCameraData cameraData, out ScriptableCullingParameters cullingParams)
@@ -652,8 +652,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="context">Render context used to record commands during execution.</param>
         /// <param name="cameraData">Camera rendering data. This might contain data inherited from a base camera.</param>
-        /// <param name="anyPostProcessingEnabled">True if at least one camera has post-processing enabled in the stack, false otherwise.</param>
-        static void RenderSingleCamera(ScriptableRenderContext context, UniversalCameraData cameraData, bool anyPostProcessingEnabled)
+        static void RenderSingleCamera(ScriptableRenderContext context, UniversalCameraData cameraData)
         {
             Camera camera = cameraData.camera;
             ScriptableRenderer renderer = cameraData.renderer;
@@ -766,7 +765,7 @@ namespace UnityEngine.Rendering.Universal
                     CreateUniversalResourceData(frameData);
                     CreateLightData(frameData, asset, data.cullResults.visibleLights);
                     CreateShadowData(frameData, asset, isForwardPlus);
-                    CreatePostProcessingData(frameData, asset, anyPostProcessingEnabled);
+                    CreatePostProcessingData(frameData, asset);
                     CreateRenderingData(frameData, asset, cmd, isForwardPlus, cameraData.renderer);
                 }
 
@@ -841,6 +840,7 @@ namespace UnityEngine.Rendering.Universal
             List<Camera> cameraStack = (supportsCameraStacking) ? baseCameraAdditionalData?.cameraStack : null;
 
             bool anyPostProcessingEnabled = baseCameraAdditionalData != null && baseCameraAdditionalData.renderPostProcessing;
+            bool mainHdrDisplayOutputActive = HDROutputForMainDisplayIsActive();
 
             int rendererCount = asset.m_RendererDataList.Length;
 
@@ -906,7 +906,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             bool isStackedRendering = lastActiveOverlayCameraIndex != -1;
-
+            
             // Prepare XR rendering
             var xrActive = false;
             var xrRendering = baseCameraAdditionalData?.allowXRRendering ?? true;
@@ -966,8 +966,24 @@ namespace UnityEngine.Rendering.Universal
 #endif
                 // update the base camera flag so that the scene depth is stored if needed by overlay cameras later in the frame
                 baseCameraData.postProcessingRequiresDepthTexture |= cameraStackRequiresDepthForPostprocessing;
+                
+                // Check whether the camera stack final output is HDR
+                // This is equivalent of UniversalCameraData.isHDROutputActive but without necessiting the base camera to be the last camera in the stack.
+                bool hdrDisplayOutputActive = mainHdrDisplayOutputActive;
+#if ENABLE_VR && ENABLE_XR_MODULE
+                // If we are rendering to xr then we need to look at the XR Display rather than the main non-xr display.
+                if (xrPass.enabled)
+                    hdrDisplayOutputActive = xrPass.isHDRDisplayOutputActive;
+#endif
+                bool finalOutputHDR = asset.supportsHDR && hdrDisplayOutputActive // Check whether any HDR display is active and the render pipeline asset allows HDR rendering
+                    && baseCamera.targetTexture == null && (baseCamera.cameraType == CameraType.Game || baseCamera.cameraType == CameraType.VR) // Check whether the stack outputs to a screen
+                    && baseCameraData.allowHDROutput; // Check whether the base camera allows HDR output
+                
+                // Update stack-related parameters
+                baseCameraData.stackAnyPostProcessingEnabled = anyPostProcessingEnabled;
+                baseCameraData.stackLastCameraOutputToHDR = finalOutputHDR;
 
-                RenderSingleCamera(context, baseCameraData, anyPostProcessingEnabled);
+                RenderSingleCamera(context, baseCameraData);
                 using (new ProfilingScope(Profiling.Pipeline.endCameraRendering))
                 {
                     EndCameraRendering(context, baseCamera);
@@ -1002,7 +1018,7 @@ namespace UnityEngine.Rendering.Universal
                             InitializeAdditionalCameraData(overlayCamera, overlayAdditionalCameraData, false, overlayCameraData);
                             overlayCameraData.camera = overlayCamera;
                             overlayCameraData.baseCamera = baseCamera;
-
+                            
                             UpdateCameraStereoMatrices(overlayAdditionalCameraData.camera, xrPass);
 
                             using (new ProfilingScope(Profiling.Pipeline.beginCameraRendering))
@@ -1017,10 +1033,13 @@ namespace UnityEngine.Rendering.Universal
 
                             bool lastCamera = i == lastActiveOverlayCameraIndex;
                             InitializeAdditionalCameraData(overlayCamera, overlayAdditionalCameraData, lastCamera, overlayCameraData);
+                            
+                            overlayCameraData.stackAnyPostProcessingEnabled = anyPostProcessingEnabled;
+                            overlayCameraData.stackLastCameraOutputToHDR = finalOutputHDR;
 
                             xrLayout.ReconfigurePass(overlayCameraData.xr, overlayCamera);
 
-                            RenderSingleCamera(context, overlayCameraData, anyPostProcessingEnabled);
+                            RenderSingleCamera(context, overlayCameraData);
 
                             using (new ProfilingScope(Profiling.Pipeline.endCameraRendering))
                             {
@@ -1428,6 +1447,9 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
             cameraData.backgroundColor = CoreUtils.ConvertSRGBToActiveColorSpace(backgroundColorSRGB);
+            
+            cameraData.stackAnyPostProcessingEnabled = cameraData.postProcessEnabled;
+            cameraData.stackLastCameraOutputToHDR = cameraData.isHDROutputActive;
         }
 
         static void CreateRenderingData(ContextContainer frameData, UniversalRenderPipelineAsset settings, CommandBuffer cmd, bool isForwardPlus, ScriptableRenderer renderer)
@@ -1584,18 +1606,18 @@ namespace UnityEngine.Rendering.Universal
             shadowData.mainLightRenderTargetHeight = (shadowData.mainLightShadowCascadesCount == 2) ? shadowData.mainLightShadowmapHeight >> 1 : shadowData.mainLightShadowmapHeight;
         }
 
-        static void CreatePostProcessingData(ContextContainer frameData, UniversalRenderPipelineAsset settings, bool anyPostProcessingEnabled)
+        static void CreatePostProcessingData(ContextContainer frameData, UniversalRenderPipelineAsset settings)
         {
             UniversalPostProcessingData postProcessingData = frameData.Create<UniversalPostProcessingData>();
-            var isHDROutputActive = frameData.Get<UniversalCameraData>().isHDROutputActive;
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
 
-            postProcessingData.isEnabled = anyPostProcessingEnabled;
+            postProcessingData.isEnabled = cameraData.stackAnyPostProcessingEnabled;
 
             postProcessingData.gradingMode = settings.supportsHDR
                 ? settings.colorGradingMode
                 : ColorGradingMode.LowDynamicRange;
 
-            if (isHDROutputActive)
+            if (cameraData.stackLastCameraOutputToHDR)
                 postProcessingData.gradingMode = ColorGradingMode.HighDynamicRange;
 
             postProcessingData.lutSize = settings.colorGradingLutSize;
