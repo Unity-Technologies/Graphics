@@ -23,6 +23,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             base.Setup(ref context);
             context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
+#if HAS_VFX_GRAPH
+            var universalRPType = typeof(UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset);
+            if (TargetsVFX() && !context.HasCustomEditorForRenderPipeline(universalRPType))
+            {
+                context.AddCustomEditorForRenderPipeline(typeof(VFXGenericShaderGraphMaterialGUI).FullName, universalRPType);
+            }
+#endif
             context.AddSubShader(PostProcessSubShader(SubShaders.SpriteLit(target)));
         }
 
