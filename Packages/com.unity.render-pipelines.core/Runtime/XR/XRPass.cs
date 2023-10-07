@@ -48,8 +48,8 @@ namespace UnityEngine.Experimental.Rendering
         /// <summary>
         /// Default allocator method for XRPass.
         /// </summary>
-        /// <param name="createInfo"></param>
-        /// <returns></returns>
+        /// <param name="createInfo"> A descriptor used to create and initialize the XRPass. </param>
+        /// <returns> Default XRPass created from createInfo descriptor. </returns>
         public static XRPass CreateDefault(XRPassCreateInfo createInfo)
         {
             XRPass pass = GenericPool<XRPass>.Get();
@@ -183,8 +183,8 @@ namespace UnityEngine.Experimental.Rendering
         /// <summary>
         /// Returns the projection matrix for a given view.
         /// </summary>
-        /// <param name="viewIndex"></param>
-        /// <returns></returns>
+        /// <param name="viewIndex"> Index of XRView to retrieve the data from. </param>
+        /// <returns> XR projection matrix for the specified XRView. </returns>
         public Matrix4x4 GetProjMatrix(int viewIndex = 0)
         {
             return m_Views[viewIndex].projMatrix;
@@ -193,8 +193,8 @@ namespace UnityEngine.Experimental.Rendering
         /// <summary>
         /// Returns the view matrix for a given view.
         /// </summary>
-        /// <param name="viewIndex"></param>
-        /// <returns></returns>
+        /// <param name="viewIndex"> Index of XRView to retrieve the data from. </param>
+        /// <returns> XR view matrix for the specified XRView. </returns>
         public Matrix4x4 GetViewMatrix(int viewIndex = 0)
         {
             return m_Views[viewIndex].viewMatrix;
@@ -203,8 +203,8 @@ namespace UnityEngine.Experimental.Rendering
         /// <summary>
         /// Returns the viewport for a given view.
         /// </summary>
-        /// <param name="viewIndex"></param>
-        /// <returns></returns>
+        /// <param name="viewIndex"> Index of XRView to retrieve the data from. </param>
+        /// <returns> XR viewport rect for the specified XRView. </returns>
         public Rect GetViewport(int viewIndex = 0)
         {
             return m_Views[viewIndex].viewport;
@@ -213,8 +213,8 @@ namespace UnityEngine.Experimental.Rendering
         /// <summary>
         /// Returns the occlusion mesh for a given view.
         /// </summary>
-        /// <param name="viewIndex"></param>
-        /// <returns></returns>
+        /// <param name="viewIndex"> Index of XRView to retrieve the data from. </param>
+        /// <returns> XR occlusion mesh for the specified XRView. </returns>
         public Mesh GetOcclusionMesh(int viewIndex = 0)
         {
             return m_Views[viewIndex].occlusionMesh;
@@ -223,8 +223,8 @@ namespace UnityEngine.Experimental.Rendering
         /// <summary>
         /// Returns the destination slice index (for texture array) for a given view.
         /// </summary>
-        /// <param name="viewIndex"></param>
-        /// <returns></returns>
+        /// <param name="viewIndex"> Index of XRView to retrieve the data from. </param>
+        /// <returns> XR target slice index for the specified XRView.  </returns>
         public int GetTextureArraySlice(int viewIndex = 0)
         {
             return m_Views[viewIndex].textureArraySlice;
@@ -374,8 +374,8 @@ namespace UnityEngine.Experimental.Rendering
         /// <summary>
         /// Take a point that is center-relative (0.5, 0.5) and modify it to be placed relative to the view's center instead, respecting the asymmetric FOV (if it is used)
         /// </summary>
-        /// <param name="center"></param>
-        /// <returns></returns>
+        /// <param name="center"> Center relative point for symmetric FOV. </param>
+        /// <returns> View center relative points. First view center is stored in x,y components and second view center is stored in z,w components. </returns>
         public Vector4 ApplyXRViewCenterOffset(Vector2 center)
         {
             Vector4 result = Vector4.zero;
@@ -419,7 +419,7 @@ namespace UnityEngine.Experimental.Rendering
         /// <summary>
         /// Initialize the base class fields.
         /// </summary>
-        /// <param name="createInfo"></param>
+        /// <param name="createInfo"> A descriptor used to create and initialize the XRPass. </param>
         public void InitBase(XRPassCreateInfo createInfo)
         {
             m_Views.Clear();

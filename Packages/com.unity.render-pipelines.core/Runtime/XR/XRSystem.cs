@@ -105,9 +105,9 @@ namespace UnityEngine.Experimental.Rendering
         /// <summary>
         /// Use this method to assign the shaders that will be used to render occlusion mesh for each XRPass and the final mirror view.
         /// </summary>
-        /// <param name="passAllocator"></param>
-        /// <param name="occlusionMeshPS"></param>
-        /// <param name="mirrorViewPS"></param>
+        /// <param name="passAllocator"> Delegate funcion used to allocate XRPasses. </param>
+        /// <param name="occlusionMeshPS"> Fragement shader used for rendering occlusion mesh. </param>
+        /// <param name="mirrorViewPS"> Fragement shader used for rendering mirror view. </param>
         public static void Initialize(Func<XRPassCreateInfo, XRPass> passAllocator, Shader occlusionMeshPS, Shader mirrorViewPS)
         {
             if (passAllocator == null)
@@ -135,7 +135,7 @@ namespace UnityEngine.Experimental.Rendering
         /// <summary>
         /// Used by the render pipeline to communicate to the XR device how many samples are used by MSAA.
         /// </summary>
-        /// <param name="msaaSamples"></param>
+        /// <param name="msaaSamples"> The active msaa samples the XRDisplay to set to. The eye texture surfaces are reallocated when necessary to work with the active msaa samples. </param>
         public static void SetDisplayMSAASamples(MSAASamples msaaSamples)
         {
             if (s_MSAASamples == msaaSamples)
@@ -154,7 +154,7 @@ namespace UnityEngine.Experimental.Rendering
         /// <summary>
         /// Returns the number of samples (MSAA) currently configured on the XR device.
         /// </summary>
-        /// <returns></returns>
+        /// <returns> Returns current active msaa samples. </returns>
         public static MSAASamples GetDisplayMSAASamples()
         {
             return s_MSAASamples;
@@ -229,7 +229,7 @@ namespace UnityEngine.Experimental.Rendering
         /// <summary>
         /// Used by the render pipeline to initiate a new rendering frame through a XR layout.
         /// </summary>
-        /// <returns></returns>
+        /// <returns> Returns a new default layout. </returns>
         public static XRLayout NewLayout()
         {
             RefreshDeviceInfo();
@@ -257,8 +257,8 @@ namespace UnityEngine.Experimental.Rendering
         /// <summary>
         /// Used by the render pipeline to render the mirror view to the gameview, as configured by the XR device.
         /// </summary>
-        /// <param name="cmd"></param>
-        /// <param name="camera"></param>
+        /// <param name="cmd"> CommandBuffer on which to perform the mirror view draw. </param>
+        /// <param name="camera"> Camera that has XR device connected to. The connected XR device determines how to perform the mirror view draw. </param>
         public static void RenderMirrorView(CommandBuffer cmd, Camera camera)
         {
 #if ENABLE_VR && ENABLE_XR_MODULE

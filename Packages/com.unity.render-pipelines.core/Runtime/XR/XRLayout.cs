@@ -14,8 +14,8 @@ namespace UnityEngine.Experimental.Rendering
         /// <summary>
         /// Configure the layout to render from the specified camera by generating passes from the the connected XR device.
         /// </summary>
-        /// <param name="camera"></param>
-        /// <param name="enableXR"></param>
+        /// <param name="camera"> Camera that has XR device connected to. </param>
+        /// <param name="enableXR"> Determines XR capability of the generated layout. Can be used to force generate non-XR layout. </param>
         public void AddCamera(Camera camera, bool enableXR)
         {
             if (camera == null)
@@ -39,8 +39,8 @@ namespace UnityEngine.Experimental.Rendering
         /// <summary>
         /// Used by render pipelines to reconfigure a pass from a camera.
         /// </summary>
-        /// <param name="xrPass"></param>
-        /// <param name="camera"></param>
+        /// <param name="xrPass"> XRPass that needs to be reconfigured. </param>
+        /// <param name="camera"> The camera that XRPass configures against. </param>
         public void ReconfigurePass(XRPass xrPass, Camera camera)
         {
             if (xrPass.enabled)
@@ -53,7 +53,7 @@ namespace UnityEngine.Experimental.Rendering
         /// <summary>
         /// Used by render pipelines to access all registered passes on this layout.
         /// </summary>
-        /// <returns></returns>
+        /// <returns> A list of registered camera/XRPass tuples. </returns>
         public List<(Camera, XRPass)> GetActivePasses()
         {
             return m_ActivePasses;
