@@ -461,7 +461,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_FsrOverrideSharpness = false;
         [SerializeField] float m_FsrSharpness = FSRUtils.kDefaultSharpnessLinear;
 
-#if UNITY_EDITOR // multi_compile_fragment _ LOD_FADE_CROSSFADE
+#if UNITY_EDITOR // multi_compile _ LOD_FADE_CROSSFADE
         [ShaderKeywordFilter.RemoveIf(false, keywordNames: ShaderKeywordStrings.LOD_FADE_CROSSFADE)]
 #endif
         [SerializeField] bool m_EnableLODCrossFade = true;

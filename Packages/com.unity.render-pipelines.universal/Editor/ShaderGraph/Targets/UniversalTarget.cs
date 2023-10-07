@@ -2232,6 +2232,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             //       as well as a VS-based smooth LOD transition effect.
             //       These shaders need the LOD_FADE_CROSSFADE keyword in the VS
             //       to skip the VS-based effect. 
+            // Note: DOTS instancing uses a different instance index encoding
+            //       when crossfade is active, so all stages are affected by the
+            //       LOD_FADE_CROSSFADE keyword.
             scope = KeywordScope.Global
         };
 

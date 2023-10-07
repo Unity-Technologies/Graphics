@@ -158,7 +158,7 @@ Shader "Universal Render Pipeline/Complex Lit"
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON
-            #pragma multi_compile_fragment _ LOD_FADE_CROSSFADE
+            #pragma multi_compile _ LOD_FADE_CROSSFADE
             #pragma multi_compile_fog
             #pragma multi_compile_fragment _ DEBUG_DISPLAY
 
@@ -210,7 +210,7 @@ Shader "Universal Render Pipeline/Complex Lit"
 
             // -------------------------------------
             // Unity defined keywords
-            #pragma multi_compile_fragment _ LOD_FADE_CROSSFADE
+            #pragma multi_compile _ LOD_FADE_CROSSFADE
 
             // This is used during shadow map generation to differentiate between directional and punctual light shadows, as they use different formulas to apply Normal Bias
             #pragma multi_compile_vertex _ _CASTING_PUNCTUAL_LIGHT_SHADOW
@@ -289,7 +289,7 @@ Shader "Universal Render Pipeline/Complex Lit"
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON
-            #pragma multi_compile_fragment _ LOD_FADE_CROSSFADE
+            #pragma multi_compile _ LOD_FADE_CROSSFADE
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
             #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ProbeVolumeVariants.hlsl"
 
@@ -335,7 +335,7 @@ Shader "Universal Render Pipeline/Complex Lit"
 
             // -------------------------------------
             // Unity defined keywords
-            #pragma multi_compile_fragment _ LOD_FADE_CROSSFADE
+            #pragma multi_compile _ LOD_FADE_CROSSFADE
 
             //--------------------------------------
             // GPU Instancing
@@ -386,7 +386,7 @@ Shader "Universal Render Pipeline/Complex Lit"
 
             // -------------------------------------
             // Unity defined keywords
-            #pragma multi_compile_fragment _ LOD_FADE_CROSSFADE
+            #pragma multi_compile _ LOD_FADE_CROSSFADE
 
             //--------------------------------------
             // GPU Instancing
@@ -482,7 +482,7 @@ Shader "Universal Render Pipeline/Complex Lit"
 
             HLSLPROGRAM
             #pragma shader_feature_local _ALPHATEST_ON
-            #pragma multi_compile_fragment _ LOD_FADE_CROSSFADE
+            #pragma multi_compile _ LOD_FADE_CROSSFADE
             #pragma shader_feature_local_vertex _ADD_PRECOMPUTED_VELOCITY
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
