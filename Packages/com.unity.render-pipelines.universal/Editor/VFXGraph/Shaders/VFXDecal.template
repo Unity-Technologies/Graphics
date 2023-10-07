@@ -72,10 +72,12 @@ void VFXGetSurfaceDecalData(out DecalSurfaceData surfaceData, out PositionInputs
 	worldToElement[3] = float4(0,0,0,1);
 
     float3 positionDS = mul(worldToElement, float4(positionWS,1.0f)).xyz;
-
 	clip(0.5f - abs(positionDS));
 
-    worldToElement[2].xyz = VFXSafeNormalize(worldToElement[2].xyz);
+    float3x3 normalToWorld = transpose(float3x3(
+                                    VFXSafeNormalize(worldToElement[0].xyz),
+                                    VFXSafeNormalize(worldToElement[1].xyz),
+                                    VFXSafeNormalize(worldToElement[2].xyz)));
 
 	float2 uv = positionDS.xy + float2(0.5, 0.5);
 	VFXUVData uvData = GetUVData(i,uv);
@@ -97,7 +99,7 @@ void VFXGetSurfaceDecalData(out DecalSurfaceData surfaceData, out PositionInputs
 	#ifdef DECAL_ANGLE_FADE
 	if (i.VFX_VARYING_ANGLEFADE.y < 0.0f) // if angle fade is enabled
 	{
-		float3 decalNormal = worldToElement[2].xyz;
+        float3 decalNormal = float3(normalToWorld[0].z, normalToWorld[1].z, normalToWorld[2].z);
 		float dotAngle = dot(receiverNormalWS, decalNormal);
         float2 angleFade = i.VFX_VARYING_ANGLEFADE;
 		angleFadeFactor = saturate(angleFade.x + angleFade.y * (dotAngle * (dotAngle - 2.0)));
@@ -183,13 +185,13 @@ void VFXGetSurfaceDecalData(out DecalSurfaceData surfaceData, out PositionInputs
 
         float normalAlpha = 1.0f;
 
-    //No Decal Surface Gradient found in URP implementation of Decals, to verify with Lukas
+        //No Decal Surface Gradient in URP implementation of Decals
         #if USE_NORMAL_MAP
             float3 normalTS = SampleNormalMap(VFX_SAMPLER(normalMap),uvData);
         #else //USE_NORMAL_MAP
 	        float3 normalTS = float3(0.0f,0.0f,1.0f);
 	    #endif //USE_NORMAL_MAP
-        float3 normalWS =  mul(normalTS, (float3x3)worldToElement);
+        float3 normalWS = mul(normalToWorld, normalTS);
 	    normalWS = normalize(normalWS);
 
 	    surfaceData.normalWS.xyz = normalWS;
