@@ -65,6 +65,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public float foamPersistenceMultiplier = 0.5f;
 
         /// <summary>
+        /// Specifies the influence of current on foam.
+        /// </summary>
+        [Range(0.0f, 1.0f)]
+        public float foamCurrentInfluence = 0.6f;
+
+        /// <summary>
         /// Set the foam color.
         /// </summary>
         public Color foamColor = Color.white;
@@ -72,6 +78,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Set the per meter tiling for the foam texture.
         /// </summary>
+        [Min(0.0f)]
         public float foamTextureTiling = 0.2f;
 
         /// <summary>

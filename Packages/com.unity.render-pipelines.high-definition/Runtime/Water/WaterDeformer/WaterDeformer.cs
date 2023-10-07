@@ -42,6 +42,12 @@ namespace UnityEngine.Rendering.HighDefinition
     [ExecuteInEditMode]
     public partial class WaterDeformer : MonoBehaviour
     {
+        internal enum PassType
+        {
+            Deformer = 0,
+            FoamGenerator = 1,
+        }
+
         #region General
         /// <summary>
         /// Specifies the type of the deformer. This parameter defines which parameters will be used to render it.
@@ -156,15 +162,14 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Specifies the material used for the deformer.")]
         public Material material = null;
 
-        internal bool shouldUpdate = true;
+        internal bool shouldUpdate = false;
 
         /// <summary>
         /// Triggers a render of the material in the deformer atlas.
         /// </summary>
-        public void Update()
+        public void RequestUpdate()
         {
-            if (updateMode == CustomRenderTextureUpdateMode.OnDemand)
-                shouldUpdate = true;
+            shouldUpdate = true;
         }
 
         internal MaterialPropertyBlock mpb;
@@ -190,7 +195,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal bool IsValidMaterial()
         {
             #if UNITY_EDITOR
-            return material != null && material.GetTag("ShaderGraphTargetId", false, null) == "HDFullscreenSubTarget";
+            return material != null && material.GetTag("ShaderGraphTargetId", false, null) == "WaterDecalSubTarget";
             #else
             return true;
             #endif

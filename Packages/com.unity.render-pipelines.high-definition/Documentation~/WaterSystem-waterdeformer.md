@@ -30,6 +30,8 @@ You must also make sure it is enabled in your Project’s HDRP Asset and in the 
 1. Select the HDRP Asset in the Project window and, in the Inspector, go to **Rendering** > **Water** and enable the **Deformation** checkbox.
 2. To enable Deformation for all Cameras, open the HDRP Global Settings, go to the **Frame Settings (Default Values)** > **Camera** section and, in the **Rendering** section, enable the **Water Deformation** checkbox.
 
+Lastly, make sure that your deformer is inside the deformation area. To see the area, you can select deformation in the debug dropdown in the Miscellaneous foldout at the bottom of the water surface inspector.
+
 <a name="deformer-type"></a>
 
 ## Configure a Deformer type
@@ -116,5 +118,5 @@ These properties are specific to the Material deformer type.
 | **Property** | **Description**                                              |
 | ------------ | ------------------------------------------------------------ |
 | Resolution   | The material specified by this deformer will be blit into the intermediate deformer atlas to be used later by the water system. This property specifies the size that it should occupy in the atlas. |
-| Update Mode  | The frequency at which the material should be rendered inside the atlas. When update mode is **On Demand**, you can use the **Update** function on the **Deformer** script to trigger an update.  |
-| Material      | The material used by the deformer. This should be a Material with a shader created from the ShaderGraph Fullscreen master node. Only the first channel of the **Base color** output should contain the amplitude of the deformation relative to the deformer’s amplitude. |
+| Update Mode  | The frequency at which the material should be rendered inside the atlas. When update mode is **On Demand**, you can use the **RequestUpdate** function on the **Deformer** script to trigger an update.  |
+| Material      | The material used by the deformer. This should be a Material with a shader created from the ShaderGraph Water Decal master node. Use the **Deformation** output with values between [0,1] that can be remapped using **Range Remap** property and multliplied by the **Amplitude**. |

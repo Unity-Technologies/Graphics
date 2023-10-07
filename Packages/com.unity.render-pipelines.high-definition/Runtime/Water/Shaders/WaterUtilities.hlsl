@@ -701,9 +701,26 @@ struct FoamData
 
 void EvaluateFoamData(float surfaceFoam, float customFoam, float3 positionAWS, out FoamData foamData)
 {
-    // Final foam value
     float foamLifeTime = saturate(1.0 - (surfaceFoam + customFoam));
-    foamData.foamValue = SurfaceFoam(positionAWS.xz, foamLifeTime);
+
+    float2 dir = OrientationToDirection(_PatchOrientation[0]);
+
+#if defined(WATER_LOCAL_CURRENT)
+    dir = SampleWaterGroup0CurrentMap(positionAWS.xz);
+
+    // Apply the current orientation
+    float sinC, cosC;
+    sincos(_GroupOrientation[_WaterCurrentDebugMode], sinC, cosC);
+    dir = float2(cosC * dir.x - sinC * dir.y, sinC * dir.x + cosC * dir.y);
+#endif
+
+    dir *= 3.0f;
+    float2 alpha = frac(_SimulationTime * 0.5f * _FoamFollowCurrent + float2(0.0, 0.5));
+    float foam1 = SurfaceFoam(positionAWS.xz - dir * alpha.x, foamLifeTime);
+    float foam2 = SurfaceFoam(positionAWS.xz - dir * alpha.y, foamLifeTime);
+
+    // Final foam value
+    foamData.foamValue = lerp(foam1, foam2, pow(cos(alpha.x * PI), 2));
 
     // Blend the smoothness of the water and the foam
     foamData.smoothness = lerp(_WaterSmoothness, _FoamSmoothness, saturate(foamData.foamValue));
@@ -768,15 +785,11 @@ void ComputeWaterRefractionParams(float3 waterPosRWS, float2 positionNDC, float3
     float underWaterDistance = directWaterDepth == UNITY_RAW_FAR_CLIP_VALUE ? WATER_BACKGROUND_ABSORPTION_DISTANCE : length(directWaterPosRWS - waterPosRWS);
 
     // We approach the refraction differently if we are under or above water for various reasons
-    float3 refractedView;
-	
-	float N_dot_I = dot(waterNormal, -V);
-	float k = 1.f - WATER_IOR * WATER_IOR * (1.f - N_dot_I * N_dot_I);
 
-    float3 distortedWaterWS;
+    float3 distortedWaterWS = 0.0f;
     if (aboveWater || disableUnderWaterIOR)
     {
-        refractedView = lerp(waterNormal, upVector, EdgeBlendingFactor(positionNDC, length(waterPosRWS))) * (1 - upVector);
+        float3 refractedView = lerp(waterNormal, upVector, EdgeBlendingFactor(positionNDC, length(waterPosRWS))) * (1 - upVector);
 
         // If camera is below the water surface, we mulitply the maxRefractionDistance with (half) the distance between the water surface pixel and the camera water depth.
         float refractionDistance;
@@ -785,20 +798,22 @@ void ComputeWaterRefractionParams(float3 waterPosRWS, float2 positionNDC, float3
         else
             refractionDistance = min(underWaterDistance, maxRefractionDistance);
 
-        distortedWaterWS = waterPosRWS + refractedView * refractionDistance;       
+        distortedWaterWS = waterPosRWS + refractedView * refractionDistance;
     }
-	
+
 	// If underwater
 	if (!aboveWater)
 	{
-		refractedView = refract(-V, waterNormal, WATER_IOR);
-		
+		float3 refractedView = refract(-V, waterNormal, WATER_IOR);
+
 		bool totalInternalReflection = all(refractedView == 0.0f);
 		absorptionTint = totalInternalReflection ? 0.0f : 1.0f;
-		
+
 		if (disableUnderWaterIOR)
-		{		
+		{
 			// At the limit between refraction and internal reflection, we simulate a higher refraction to avoid having a harsh threshold between both ray directions.
+            float NdotV = dot(waterNormal, V);
+            float k = 1.f - WATER_IOR * WATER_IOR * (1.f - NdotV * NdotV);
 			float refractionValueMultiplier = 1;
 			if (k >= -MENISCUS_THRESHOLD && k <= MENISCUS_THRESHOLD)
 			{
@@ -814,6 +829,8 @@ void ComputeWaterRefractionParams(float3 waterPosRWS, float2 positionNDC, float3
 			distortedWaterWS = waterPosRWS + refractedView * UNDER_WATER_REFRACTION_DISTANCE;
 		}
 	}
+    else
+        absorptionTint = outScatteringCoeff * (1.f - transparencyColor); // this is weird but compiler complains otherwise
 
     // Project the point on screen
     distortedWaterNDC = saturate(ComputeNormalizedDeviceCoordinates(distortedWaterWS, UNITY_MATRIX_VP));
@@ -836,7 +853,7 @@ void ComputeWaterRefractionParams(float3 waterPosRWS, float2 positionNDC, float3
     // Evaluate the absorption tint
     if (aboveWater)
     {
-        absorptionTint = exp(-refractedWaterDistance * outScatteringCoeff * (1.f - transparencyColor));
+        absorptionTint = exp(-refractedWaterDistance * absorptionTint);
     }
 }
 

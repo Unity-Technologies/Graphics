@@ -45,7 +45,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
         }
 
-        [MenuItem("Assets/Create/Shader Graph/HDRP/Water Shader Graph", priority = CoreUtils.Priorities.assetsCreateShaderMenuPriority + 7)]
+        [MenuItem("Assets/Create/Shader Graph/HDRP/Water Shader Graph", priority = CoreUtils.Priorities.assetsCreateShaderMenuPriority + 6)]
         static void CreateWaterGraphCopy()
         {
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewWaterShaderGraph>(), "Water Shader Graph.shadergraph", null, null);

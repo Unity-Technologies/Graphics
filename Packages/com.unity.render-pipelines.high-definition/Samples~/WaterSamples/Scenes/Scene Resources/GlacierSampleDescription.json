@@ -19,7 +19,6 @@
 	<h1>Foam</h1>
 	
 	• To add foam along the river bank, we subtract the depth of what’s below the water (usually the bottom of the river) from the depth of the water surface. If the difference is really small, foam is added.
-	• In addition, an extra foam texture is sampled and offset with time to make the waterfall foam move along with the current. For more details please open the River shadergraph.
 
 	<h1>Caustics</h1>
 

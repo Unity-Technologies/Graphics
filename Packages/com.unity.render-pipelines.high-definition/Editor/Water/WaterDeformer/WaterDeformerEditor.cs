@@ -238,60 +238,77 @@ namespace UnityEditor.Rendering.HighDefinition
                     break;
                     case WaterDeformerType.Texture:
                     {
-                        EditorGUILayout.PropertyField(m_Amplitude, k_AmplitudeText);
-
-                        // Range
-                        BeginChangeCheck();
-                        Vector2 range = m_Range.vector2Value;
-                        EditorGUILayout.MinMaxSlider(k_RangeText, ref range.x, ref range.y, -1.0f, 1.0f);
-                        if (EndChangeCheck())
-                            m_Range.vector2Value = range;
-
                         EditorGUILayout.PropertyField(m_Texture);
+                        EditorGUILayout.PropertyField(m_Amplitude, k_AmplitudeText);
+                        RangePropertyField();
                     }
                     break;
                     case WaterDeformerType.Material:
                         {
-                            EditorGUILayout.PropertyField(m_Amplitude, k_AmplitudeText);
+                            WaterSurfaceEditor.MaterialFieldWithButton(null, m_Material, () => {
+                                return CreateDefaultDecalMaterial(target as MonoBehaviour);
+                            });
 
-                            EditorGUILayout.PropertyField(m_Material);
+                            if (m_Material.objectReferenceValue == null)
+                                break;
 
-                            if (m_Material.objectReferenceValue != null)
+                            if ((target as WaterDeformer).IsValidMaterial())
                             {
-                                if ((target as WaterDeformer).IsValidMaterial())
-                                {
-                                    ResolutionField(m_Resolution, k_Resolution);
-                                    EditorGUILayout.PropertyField(m_UpdateMode);
+                                ResolutionField(m_Resolution, k_Resolution);
+                                EditorGUILayout.PropertyField(m_UpdateMode);
+                                EditorGUILayout.PropertyField(m_Amplitude, k_AmplitudeText);
+                                RangePropertyField();
 
-                                    if ((target as WaterDeformer).HasPropertyBlock())
-                                        EditorGUILayout.HelpBox("A MaterialPropertyBlock is used to modify Material values.", MessageType.Info);
+                                if ((target as WaterDeformer).HasPropertyBlock())
+                                    EditorGUILayout.HelpBox("A MaterialPropertyBlock is used to modify Material values.", MessageType.Info);
 
-                                    EditorGUILayout.Space();
-                                    EditorGUILayout.Space();
-                                    MaterialInspector();
-                                }
-                                else
-                                    EditorGUILayout.HelpBox("Deformers only work with Fullscreen Materials.", MessageType.Error);
+                                EditorGUILayout.Space();
+                                EditorGUILayout.Space();
+                                MaterialInspector(m_Material, ref m_MaterialEditor);
                             }
+                            else
+                                EditorGUILayout.HelpBox("Deformers only work with Water Decal Materials.", MessageType.Error);
                         }
                         break;
                 }
             }
         }
 
-        void MaterialInspector()
+        public static Material CreateDefaultDecalMaterial(MonoBehaviour obj)
         {
-            CreateCachedEditor(m_Material.objectReferenceValue, typeof(MaterialEditor), ref m_MaterialEditor);
+            string baseName = WaterSurfaceEditor.GetWaterResourcesPath(obj) + "/" + "New Water Decal Shader Graph";
+            var path = AssetDatabase.GenerateUniqueAssetPath(baseName + ".shadergraph");
+            var shader = ShaderGraph.WaterDecalSubTarget.CreateWaterDecalGraphAtPath(path);
+
+            Material material = new Material(shader);
+            material.parent = AssetDatabase.LoadAssetAtPath<Material>(path);
+            AssetDatabase.CreateAsset(material, AssetDatabase.GenerateUniqueAssetPath(baseName + ".mat"));
+            EditorGUIUtility.PingObject(material);
+            return material;
+        }
+
+        void RangePropertyField()
+        {
+            BeginChangeCheck();
+            Vector2 range = m_Range.vector2Value;
+            EditorGUILayout.MinMaxSlider(k_RangeText, ref range.x, ref range.y, -1.0f, 1.0f);
+            if (EndChangeCheck())
+                m_Range.vector2Value = range;
+        }
+
+        static internal void MaterialInspector(SerializedProperty material, ref Editor editor)
+        {
+            CreateCachedEditor(material.objectReferenceValue, typeof(MaterialEditor), ref editor);
 
             int indent = EditorGUI.indentLevel;
             EditorGUI.indentLevel = 0;
-            m_MaterialEditor.DrawHeader();
-            using (new EditorGUI.DisabledScope((m_MaterialEditor.target.hideFlags & HideFlags.NotEditable) != 0))
-                m_MaterialEditor.OnInspectorGUI();
+            editor.DrawHeader();
+            using (new EditorGUI.DisabledScope((editor.target.hideFlags & HideFlags.NotEditable) != 0))
+                editor.OnInspectorGUI();
             EditorGUI.indentLevel = indent;
         }
 
-        void ResolutionField(SerializedProperty resolution, GUIContent title)
+        static internal void ResolutionField(SerializedProperty resolution, GUIContent title)
         {
             int indent = EditorGUI.indentLevel;
             var rect = EditorGUILayout.GetControlRect();

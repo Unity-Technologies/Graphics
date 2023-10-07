@@ -189,7 +189,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 var size = (int)m_Asset.currentPlatformRenderPipelineSettings.deformationAtlasSize;
                                 cmd.SetRenderTarget(m_DeformerAtlas.AtlasTexture);
                                 cmd.SetViewport(new Rect(scaleBias.z * size, scaleBias.w * size, scaleBias.x * size, scaleBias.y * size));
-                                cmd.DrawProcedural(Matrix4x4.identity, mat, 0, MeshTopology.Triangles, 3, 1, currentDeformer.mpb);
+                                cmd.DrawProcedural(Matrix4x4.identity, mat, (int)WaterDeformer.PassType.Deformer, MeshTopology.Triangles, 3, 1, currentDeformer.mpb);
 
                                 currentDeformer.shouldUpdate = false;
                             }

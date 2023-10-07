@@ -84,6 +84,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (!m_FoamTextureAtlas.ReserveSpace(foamGenerator.texture))
                         needRelayout = true;
                 }
+                else if (foamGenerator.type == WaterFoamGeneratorType.Material && foamGenerator.IsValidMaterial())
+                {
+                    if (!m_FoamTextureAtlas.ReserveSpace(foamGenerator.GetMaterialAtlasingId(), foamGenerator.resolution.x, foamGenerator.resolution.y))
+                        needRelayout = true;
+                }
             }
 
             // Ask for a relayout
@@ -100,6 +105,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Grab the current generator to process
                 WaterFoamGenerator currentGenerator = foamGenerators[generatorIdx];
 
+                // If this is a texture deformer without a texture skip it
+                if (currentGenerator.type == WaterFoamGeneratorType.Texture && currentGenerator.texture == null)
+                    continue;
+                if (currentGenerator.type == WaterFoamGeneratorType.Material && !currentGenerator.IsValidMaterial())
+                    continue;
+
                 // Generator properties
                 data.position = currentGenerator.transform.position;
                 data.type = (int)currentGenerator.type;
@@ -108,7 +119,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 data.deepFoamDimmer = currentGenerator.deepFoamDimmer;
                 data.surfaceFoamDimmer = currentGenerator.surfaceFoamDimmer;
 
-                if (currentGenerator.type == WaterFoamGeneratorType.Texture && currentGenerator.texture != null)
+                if (currentGenerator.type == WaterFoamGeneratorType.Texture)
                 {
                     Texture tex = currentGenerator.texture;
                     if (!m_FoamTextureAtlas.IsCached(out var scaleBias, m_FoamTextureAtlas.GetTextureID(tex)) && outOfSpace)
@@ -116,6 +127,21 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     if (m_FoamTextureAtlas.NeedsUpdate(tex, false))
                         m_FoamTextureAtlas.BlitTexture(cmd, scaleBias, tex, new Vector4(1, 1, 0, 0), blitMips: false, overrideInstanceID: m_FoamTextureAtlas.GetTextureID(tex));
+                    data.scaleOffset = scaleBias;
+                }
+                else if (currentGenerator.type == WaterFoamGeneratorType.Material)
+                {
+                    Material mat = currentGenerator.material;
+                    if (!m_FoamTextureAtlas.IsCached(out var scaleBias, currentGenerator.GetMaterialAtlasingId()) && outOfSpace)
+                        Debug.LogError($"No more space in the 2D Water Generator Altas to store the material {mat}. To solve this issue, increase the resolution of the Generator Atlas Size in the current HDRP asset.");
+
+                    {
+                        var size = (int)m_Asset.currentPlatformRenderPipelineSettings.foamAtlasSize;
+                        cmd.SetRenderTarget(m_FoamTextureAtlas.AtlasTexture);
+                        cmd.SetViewport(new Rect(scaleBias.z * size, scaleBias.w * size, scaleBias.x * size, scaleBias.y * size));
+                        cmd.DrawProcedural(Matrix4x4.identity, mat, (int)WaterDeformer.PassType.FoamGenerator, MeshTopology.Triangles, 3, 1, currentGenerator.mpb);
+                    }
+
                     data.scaleOffset = scaleBias;
                 }
 
