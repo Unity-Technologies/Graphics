@@ -534,6 +534,14 @@ namespace UnityEngine.Rendering.HighDefinition
             [Reload("Runtime/RenderPipelineResources/Texture/EyeCausticLUT16R.exr")]
             public Texture3D eyeCausticLUT;
 
+            // Hair LUT
+            [Reload("Runtime/RenderPipelineResources/Texture/HairAttenuationLUT.asset")]
+            public Texture3D hairAttenuationLUT;
+            [Reload("Runtime/RenderPipelineResources/Texture/HairAzimuthalScatteringLUT.asset")]
+            public Texture3D hairAzimuthalScatteringLUT;
+            [Reload("Runtime/RenderPipelineResources/Texture/HairLongitudinalScatteringLUT.asset")]
+            public Texture3D hairLongitudinalScatteringLUT;
+
             // Clouds textures
             [Reload("Runtime/RenderPipelineResources/Texture/VolumetricClouds/CloudLutRainAO.png")]
             public Texture2D cloudLutRainAO;
