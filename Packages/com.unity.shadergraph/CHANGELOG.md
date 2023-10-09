@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [15.0.6] - 2023-09-27
+
+This version is compatible with Unity 2023.1.16f1.
+
+### Fixed
+- Fixed Texture Size node causing compilation error in the Fullscreen ShaderGraph target.
+
 ## [15.0.5] - 2023-05-23
 
 This version is compatible with Unity 2023.1.0b19.

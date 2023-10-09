@@ -16,6 +16,7 @@ namespace UnityEditor.VFX.UI
 
 
             m_ObjectField = new ObjectField { objectType = m_Provider.portType };
+            m_ObjectField.allowSceneObjects = false;
             m_ObjectField.RegisterCallback<ChangeEvent<UnityObject>>(OnValueChanged);
             Add(m_ObjectField);
         }

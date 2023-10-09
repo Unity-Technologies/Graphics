@@ -9,6 +9,39 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [15.0.6] - 2023-09-27
+
+This version is compatible with Unity 2023.1.16f1.
+
+### Changed
+- VFX systems receiving GPU events can now go into sleep state.
+- Allows texture types to be used in branch operators.
+
+### Fixed
+- Fixed panning and zooming a VFX Graph was synchronized between all opened tabs. Also when multiple VFX Graph tabs are opened they are now properly restored after Unity is restarted.
+- Fixed strips tangents and buffer type with Shader Graph.
+- Fixed an editor only memory leak with VFX Graph objects.
+- Fixed data serialization that could lead to corrupted state.
+- Fixed VFX assets being considered modified after creation.
+- Fixed a potential crash with particle strips.
+- Removed an error message when a point cache asset is missing, added an error feedback instead.
+- Fixed crash when loading a subscene with VFX in DOTS.
+- Fixed OutputUpdate warnings about spaces after end of line.
+- Fixed potential infinite loop when opening VFX Graph due to space issue.
+- Fixed crash when changing to custom batch capacity in computers with large GPU memory.
+- Initialize VFX material indices to make all materials valid if used on Awake.
+- Fixed a compilation error when using Cube outputs with a texture shared with another context.
+- Blocks and operators sampling Depth or Color now work with Dynamic Resolution Scaling.
+- Fixed console errors when deleting VFX asset in some configuration.
+- Fixed HDRP Decal Output when system is in world space.
+- Fixed  VFX camera command culling failling when all effects are out of frustum.
+- Fixed flickering and glitches when using Volumetric Fog Output on Metal devices.
+- Fixed undefined behavior of SpawnerSetAttribute when an expression is connected to activation slot.
+- Picking Overlay when the rotation is applied on VisualEffect component.
+- Take search window mode user's preference into account for object fields in VFX Graph (classic / advanced)
+- Fixed an error in the console when clicking on the [+] button in the blackboard in the "No Asset" window
+- Prevent unexpected border highlight after clicking on VFX toolbar button
+
 ## [15.0.5] - 2023-05-23
 
 This version is compatible with Unity 2023.1.0b19.

@@ -271,12 +271,20 @@ SHADOW_TYPE EvaluateShadow_Directional( LightLoopContext lightLoopContext, Posit
     #ifdef SHADOWS_SHADOWMASK
         float3 camToPixel = posInput.positionWS - GetPrimaryCameraPosition();
         float distanceCamToPixel2 = dot(camToPixel, camToPixel);
-        float fade = saturate(distanceCamToPixel2 * light.cascadesBorderFadeScaleBias.x + light.cascadesBorderFadeScaleBias.y);
 
-        // In the transition code (both dithering and blend) we use shadow = lerp( shadow, 1.0, fade ) for last transition
-        // mean if we expend the code we have (shadow * (1 - fade) + fade). Here to make transition with shadow mask
-        // we will remove fade and add fade * shadowMask which mean we do a lerp with shadow mask
-        shadow = shadow - fade + fade * shadowMask;
+        int shadowSplitIndex = lightLoopContext.shadowContext.shadowSplitIndex;
+        if (shadowSplitIndex < 0)
+        {
+            shadow = shadowMask;
+        }
+        else if (shadowSplitIndex == int(_CascadeShadowCount) - 1)
+        {
+            float fade = lightLoopContext.shadowContext.fade;
+            // In the transition code (both dithering and blend) we use shadow = lerp( shadow, 1.0, fade ) for last transition
+            // mean if we expend the code we have (shadow * (1 - fade) + fade). Here to make transition with shadow mask
+            // we will remove fade and add fade * shadowMask which mean we do a lerp with shadow mask
+            shadow = shadow - fade + fade * shadowMask;
+        }
 
         // See comment in EvaluateBSDF_Punctual
         shadow = light.nonLightMappedOnly ? min(shadowMask, shadow) : shadow;

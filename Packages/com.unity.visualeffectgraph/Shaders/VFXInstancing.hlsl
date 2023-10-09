@@ -12,7 +12,7 @@
 #define instancingBatchSize    asuint(instancingConstants.z)
 
 // Current instance offset for rendering
-#define instancingRenderOffset   asuint(instancingConstants.w)
+#define instancingCurrentOffset   asuint(instancingConstants.w)
 
 // Data shared for all contexts (init, update, output)
 // Contains one entry for each ACTIVE instance
@@ -42,8 +42,8 @@ StructuredBuffer<uint> instancingActiveIndirect;
 // Get instance index in current drawcall/dispatch, for variable size instances
 uint VFXGetVariableSizeInstanceIndex(inout uint index)
 {
-    uint startIndex = 0u;
-    uint endIndex = instancingCurrentCount;
+    uint startIndex = instancingCurrentOffset;
+    uint endIndex = instancingCurrentCount + instancingCurrentOffset;
     return BinarySearchPrefixSum(index, instancingPrefixSum, startIndex, endIndex, index);
 }
 #elif defined(VFX_INSTANCING_FIXED_SIZE)
@@ -53,7 +53,7 @@ uint VFXGetFixedSizeInstanceIndex(inout uint index)
     uint instanceIndex = index / VFX_INSTANCING_FIXED_SIZE;
     instanceIndex = min(instanceIndex, instancingCurrentCount - 1);
     index -= instanceIndex * VFX_INSTANCING_FIXED_SIZE;
-    return instanceIndex;
+    return instanceIndex + instancingCurrentOffset;
 }
 #endif
 
@@ -95,13 +95,14 @@ uint VFXGetInstanceBatchIndex(uint instanceActiveIndex)
     return instanceBatchIndex;
 }
 
-uint VFXInitInstancing(uint index, out uint instanceIndex, out uint instanceActiveIndex)
+uint VFXInitInstancing(uint index, out uint instanceIndex, out uint instanceActiveIndex, out uint instanceCurrentIndex)
 {
+    instanceIndex = instanceActiveIndex = instanceCurrentIndex = 0;
 #if VFX_USE_INSTANCING
 
 #if SHADER_STAGE_COMPUTE // In compute shaders
 
-    uint instanceCurrentIndex = VFXGetInstanceCurrentIndex(index);
+    instanceCurrentIndex = VFXGetInstanceCurrentIndex(index);
     instanceActiveIndex = VFXGetInstanceActiveIndex(instanceCurrentIndex);
     instanceIndex = VFXGetInstanceBatchIndex(instanceActiveIndex);
 
@@ -109,7 +110,7 @@ uint VFXInitInstancing(uint index, out uint instanceIndex, out uint instanceActi
 
 #ifdef UNITY_INSTANCING_ENABLED
     {
-        uint instanceCurrentIndex = VFXGetInstanceCurrentIndex(index) + instancingRenderOffset;
+        instanceCurrentIndex = VFXGetInstanceCurrentIndex(index);
         unity_InstanceID = instanceCurrentIndex;
     }
 #endif
@@ -117,9 +118,6 @@ uint VFXInitInstancing(uint index, out uint instanceIndex, out uint instanceActi
     instanceActiveIndex = asuint(UNITY_ACCESS_INSTANCED_PROP(PerInstance, _InstanceActiveIndex));
     instanceIndex = asuint(UNITY_ACCESS_INSTANCED_PROP(PerInstance, _InstanceIndex));
 #endif
-
-#else
-    instanceIndex = instanceActiveIndex = 0;
 #endif
 
     return index;

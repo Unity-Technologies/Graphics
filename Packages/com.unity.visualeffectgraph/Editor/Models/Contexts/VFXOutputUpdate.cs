@@ -356,7 +356,7 @@ namespace UnityEditor.VFX
                     isPerCamera = IsPerCamera(features),
                     stride = 4u,
                     bufferType = ComputeBufferType.Structured,
-                    bufferCount = bufferCount,
+                    bufferCount = bufferCount
                 });
             }
 
