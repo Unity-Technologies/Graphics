@@ -42,8 +42,8 @@ namespace UnityEditor.VFX.Block
                 yield return new VFXNamedExpression(r, "r"); // Saturate can be removed once degenerated torus are correctly handled
 
                 var transformMatrix = allSlots.FirstOrDefault(o => o.name == "arcTorus_torus_transform").exp;
-                var invFinalTransform = new VFXExpressionTransposeMatrix(new VFXExpressionInverseTRSMatrix(transformMatrix));
-                yield return new VFXNamedExpression(invFinalTransform, "arcTorus_torus_inverseTranspose");
+                var invTransposeTRS = VFXOperatorUtility.InverseTransposeTRS(transformMatrix);
+                yield return new VFXNamedExpression(invTransposeTRS, "arcTorus_torus_inverseTranspose");
             }
         }
 

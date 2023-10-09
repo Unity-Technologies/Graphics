@@ -129,6 +129,18 @@ EditorBuildSettings:
     path: Assets/Scenes/173_CustomPostPro_ZeroCodePath_BeforeTransparents.unity
     guid: ca52f4b14ee7245b1b8476490b059e84
   - enabled: 1
+    path: Assets/Scenes/174_FullScreenPass_InputRequirements_None.unity
+    guid: 16aa587ef9378cc408fd371fecd84f46
+  - enabled: 1
+    path: Assets/Scenes/175_FullScreenPass_InputRequirements_Everything.unity
+    guid: 1a7776e5343210f439cfe2e361eba611
+  - enabled: 1
+    path: Assets/Scenes/176_FullScreenPass_MultiPass_StencilTest.unity
+    guid: ad39c641597f2e64fad22d8b49eba637
+  - enabled: 1
+    path: Assets/Scenes/177_FullScreenPass_MultiPass_DepthTestAndWrite.unity
+    guid: 809a83a0529a18940a9676977eea69c4
+  - enabled: 1
     path: Assets/Scenes/200_Lens_Flare_Data_Driven.unity
     guid: 4a2bbe1bdb894b34981cc07bc878c7c2
   - enabled: 1
@@ -149,4 +161,10 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/260_RenderScale_SMAA.unity
     guid: e6d774fccaa5ca149b739c894e55bfe5
+  - enabled: 1
+    path: Assets/Scenes/373_HDROutput_ColorGamut.unity
+    guid: 5157576751c2bde41b8be6dd0dab0a83
+  - enabled: 1
+    path: Assets/Scenes/374_HDROutput_PassOrder.unity
+    guid: c3e9a4c261fa8fb4abe798d185706903
   m_configObjects: {}

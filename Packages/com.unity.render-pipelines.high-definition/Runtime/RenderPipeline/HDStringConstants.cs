@@ -1221,6 +1221,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public const string kAffectSmoothness = "_AffectSmoothness";
         /// <summary>Enable affect Emission (decal only.</summary>
         public const string kAffectEmission = "_AffectEmission";
+        /// <summary>Exclude from temporal upsamplers and anti aliasing.</summary>
+        public const string kExcludeFromTUAndAA = "_ExcludeFromTUAndAA";
 
         // Internal properties
 

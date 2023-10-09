@@ -812,12 +812,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             styleSheets.Clear();
-            inputContainer.Clear();
-            outputContainer.Clear();
+            inputContainer?.Clear();
+            outputContainer?.Clear();
             m_DropdownsDivider?.Clear();
-            m_ControlsDivider.Clear();
+            m_ControlsDivider?.Clear();
             m_PreviewContainer?.Clear();
-            m_ControlItems.Clear();
+            m_ControlItems?.Clear();
 
             m_ConnectorListener = null;
             m_GraphView = null;

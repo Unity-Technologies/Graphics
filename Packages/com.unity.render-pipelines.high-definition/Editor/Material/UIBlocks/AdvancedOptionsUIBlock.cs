@@ -116,43 +116,25 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void DrawMotionVectorToggle()
         {
-            // We have no way to setup motion vector pass to be false by default for a shader graph
-            // So here we workaround it with materialTag system by checking if a tag exist to know if it is
-            // the first time we display this information. And thus setup the MotionVector Pass to false.
-            const string materialTag = "MotionVector";
-
-            foreach (var material in materials)
-            {
-                string tag = material.GetTag(materialTag, false, "Nothing");
-                if (tag == "Nothing")
-                {
-                    material.SetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr, false);
-                    material.SetOverrideTag(materialTag, "User");
-                }
-            }
-
             //In the case of additional velocity data we will enable the motion vector pass.
             bool enabled = GetEnabledMotionVectorVertexAnim(materials[0]);
             bool mixedValue = materials.Length > 1 && materials.Any(m => GetEnabledMotionVectorVertexAnim(m) != enabled);
-            bool addPrecomputedVelocity = GetAddPrecomputeVelocity(materials[0]);
-            bool mixedPrecomputedVelocity = materials.Length > 1 && materials.Any(m => GetAddPrecomputeVelocity(m) != addPrecomputedVelocity);
+            bool addPrecomputedVelocity = materials[0].GetAddPrecomputedVelocity();
+            bool mixedPrecomputedVelocity = materials.Length > 1 && materials.Any(m => m.GetAddPrecomputedVelocity() != addPrecomputedVelocity);
 
-            EditorGUI.BeginChangeCheck();
+            using (new EditorGUI.DisabledScope(addPrecomputedVelocity || mixedPrecomputedVelocity))
             {
-                using (new EditorGUI.DisabledScope(addPrecomputedVelocity || mixedPrecomputedVelocity))
+                EditorGUI.showMixedValue = mixedValue;
+                EditorGUI.BeginChangeCheck();
+                enabled = EditorGUILayout.Toggle(Styles.motionVectorForVertexAnimationText, enabled);
+                if (EditorGUI.EndChangeCheck())
                 {
-                    EditorGUI.showMixedValue = mixedValue;
-                    enabled = EditorGUILayout.Toggle(Styles.motionVectorForVertexAnimationText, enabled);
-                    EditorGUI.showMixedValue = false;
+                    foreach (var mat in materials)
+                        mat.SetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr, enabled);
                 }
             }
-            if (EditorGUI.EndChangeCheck())
-            {
-                foreach (var mat in materials)
-                    mat.SetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr, enabled);
-            }
 
-            // Check for SpeedTree materials and disable custom velocity per-obj motion vector pass
+			// Check for SpeedTree materials and disable custom velocity per-obj motion vector pass
             // if the tree has no vertex shader based wind animation.
             foreach(Material mat in materials)
             {
@@ -164,20 +146,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
             bool GetEnabledMotionVectorVertexAnim(Material material)
             {
-                bool addPrecomputedVelocity = GetAddPrecomputeVelocity(material);
+                bool addPrecomputedVelocity = material.GetAddPrecomputedVelocity();
                 bool currentMotionVectorState = material.GetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr);
 
                 return currentMotionVectorState || addPrecomputedVelocity;
-            }
-
-            bool GetAddPrecomputeVelocity(Material material)
-            {
-                bool addPrecomputedVelocity = false;
-
-                if (materials[0].HasProperty(kAddPrecomputedVelocity))
-                    addPrecomputedVelocity = materials[0].GetInt(kAddPrecomputedVelocity) != 0;
-
-                return addPrecomputedVelocity;
             }
         }
     }

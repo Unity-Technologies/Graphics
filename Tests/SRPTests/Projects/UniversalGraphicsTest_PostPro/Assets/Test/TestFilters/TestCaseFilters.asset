@@ -147,20 +147,11 @@ MonoBehaviour:
       TAA is broken)
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: 06d3d04c77b97ba40969b415bc9a25dd, type: 3}
+    - {fileID: 102900000, guid: 809a83a0529a18940a9676977eea69c4, type: 3}
     ColorSpace: -1
-    BuildPlatform: 44
+    BuildPlatform: 38
     GraphicsDevice: 4
     XrSdk: 
     StereoModes: 0
-    Reason: UUM-21181
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 730b87866923e784fb8f8eb057d3ddcb, type: 3}
-    - {fileID: 102900000, guid: edebe9dafa8a5764185b64def86b98a7, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 44
-    GraphicsDevice: 4
-    XrSdk: 
-    StereoModes: 0
-    Reason: https://jira.unity3d.com/browse/UUM-15406
+    Reason: Depth write appears to be missing in the test output on switch for unknown
+      reasons

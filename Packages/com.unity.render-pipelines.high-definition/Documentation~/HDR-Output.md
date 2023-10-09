@@ -6,9 +6,14 @@ HDRP can output HDR content for displays which support that functionality.
 
 ## Enabling HDR Output
 
-To activate HDR output, navigate to **Project Settings > Player** > **Other Settings** and enable **Use display in HDR mode**.
+To activate HDR output, navigate to **Project Settings > Player** > **Other Settings** and enable the following settings:
 
-Note that HDR Output will be active only in Game View and in Player. Currently the feature is not working on DirectX 11 on PC, please use DirectX 12 to make use of it. 
+* **Allow HDR Display Output**
+* **Use HDR Display Output**
+
+> **Note**: Only enable **Use HDR Display Output** if you need the main display to use HDR Output.
+
+HDR Output will be active only in Game View and in Player. Currently the feature is not working on DirectX 11 on PC, please use DirectX 12 to make use of it.
 
 ## HDR tone mapping in HDRP
 
@@ -85,13 +90,13 @@ HDRP offers three debug views for HDR rendering. To access them, navigate to **W
 
 ![HDR-Output-GamutView](Images/HDR-Output-GamutView.png)
 
-The triangles in this debug view indicate which parts of two specific color gamuts this Scene covers. The small triangle displays the [Rec709](https://en.wikipedia.org/wiki/Rec._709) gamut values, and the large triangle displays the [Rec2020](https://en.wikipedia.org/wiki/Rec._2020) gamut values. This enables you to check color plot changes while color grading. It can also help you ensure that you benefit from the wider color gamut available in HDR.
+The triangles in this debug view indicate which parts of three specific color gamuts this scene covers. The small triangle displays the [Rec709](https://en.wikipedia.org/wiki/Rec._709) gamut values, the medium triangle displays the [P3-D65](https://en.wikipedia.org/wiki/DCI-P3) gamut values, and the large triangle displays the [Rec2020](https://en.wikipedia.org/wiki/Rec._2020) gamut values. This enables you to check color plot changes while color grading. It can also help you ensure that you benefit from the wider color gamut available in HDR.
 
 ### Gamut Clip
 
 ![HDR-Output-GamutClip](Images/HDR-Output-GamutClip.png)
 
-This debug view indicates the relationship between scene values and specific color gamuts. Areas of the screen outside of the Rec709 color gamut are red, and areas with values within the Rec709 gamut are green.
+This debug view indicates the relationship between scene values and specific color gamuts. Areas of the screen with values within the Rec709 gamut are green, areas outside of the Rec709 gamut but inside the P3-D65 gamut are blue, and areas outside of both are red.
 
 ### Values exceeding Paper White
 
@@ -106,5 +111,6 @@ HDRP only supports HDR Output on the following platforms:
 * Windows with DirectX 11, DirectX 12 or Vulkan
 * MacOS with Metal
 * Consoles
+* XR devices with HDR support
 
 > **Note**: DirectX 11 only supports HDR Output in the Player, it does not support HDR Output in the Editor.

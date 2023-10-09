@@ -549,7 +549,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 33512d4bb60a2455d84f7118a15b2c0c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rendererFeatureName: CustomPostProBeforeTransparents
+  rendererFeatureNames:
+  - 173CustomPostProBeforeTransparents
   rendererData: {fileID: 11400000, guid: f59607d3476b54858a594ea904187fb5, type: 2}
 --- !u!114 &961739755
 MonoBehaviour:

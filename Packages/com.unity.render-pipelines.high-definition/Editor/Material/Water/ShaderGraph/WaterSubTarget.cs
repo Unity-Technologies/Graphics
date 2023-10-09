@@ -280,7 +280,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             stencilRefWaterVar.displayName = "Stencil Water Ref GBuffer";
             stencilRefWaterVar.hidden = true;
             stencilRefWaterVar.floatType = FloatType.Default;
-            stencilRefWaterVar.value = (int)StencilUsage.WaterSurface;
+            stencilRefWaterVar.value = (int)(StencilUsage.WaterSurface | StencilUsage.ExcludeFromTUAndAA);
             stencilRefWaterVar.overrideHLSLDeclaration = true;
             stencilRefWaterVar.hlslDeclarationOverride = HLSLDeclaration.Global;
             stencilRefWaterVar.generatePropertyBlock = false;
@@ -291,7 +291,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             stencilWriteMaskWaterVar.displayName = "Stencil Water Write Mask GBuffer";
             stencilWriteMaskWaterVar.hidden = true;
             stencilWriteMaskWaterVar.floatType = FloatType.Default;
-            stencilWriteMaskWaterVar.value = (int)StencilUsage.WaterSurface;
+            stencilWriteMaskWaterVar.value = (int)(StencilUsage.WaterSurface | StencilUsage.ExcludeFromTUAndAA);
             stencilWriteMaskWaterVar.overrideHLSLDeclaration = true;
             stencilWriteMaskWaterVar.hlslDeclarationOverride = HLSLDeclaration.Global;
             stencilWriteMaskWaterVar.generatePropertyBlock = false;

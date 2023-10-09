@@ -1,6 +1,5 @@
 #if VFX_HAS_TIMELINE
 using System;
-using System.Linq;
 using System.Reflection;
 using System.Collections.Generic;
 using UnityEditorInternal;
@@ -118,7 +117,7 @@ namespace UnityEditor.VFX
         static private List<(VisualEffectControlClip asset, VisualEffectControlClipInspector inspector)> s_RegisteredInspector = new List<(VisualEffectControlClip asset, VisualEffectControlClipInspector inspector)>();
         Dictionary<string, ReorderableList> m_CacheEventAttributeReordableList = new Dictionary<string, ReorderableList>();
 
-        private static readonly (Type type, Type valueType)[] kEventAttributeSpecialization = GetEventAttributeSpecialization().ToArray();
+        private static readonly List<(Type type, Type valueType)> kEventAttributeSpecialization = new(GetEventAttributeSpecialization());
 
         private static IEnumerable<(Type type, Type valueType)> GetEventAttributeSpecialization()
         {
@@ -148,10 +147,10 @@ namespace UnityEditor.VFX
                 }
                 else
                 {
-                    var findType = kEventAttributeSpecialization.FirstOrDefault(o => o.valueType == type);
-                    if (findType.type == null)
+                    var findTypeIndex = kEventAttributeSpecialization.FindIndex(o => o.valueType == type);
+                    if (findTypeIndex == -1)
                         throw new InvalidOperationException("Unexpected type : " + type);
-                    eventAttribute = (EventAttribute)Activator.CreateInstance(findType.type);
+                    eventAttribute = (EventAttribute)Activator.CreateInstance(kEventAttributeSpecialization[findTypeIndex].type);
                 }
 
                 if (eventAttribute != null)
@@ -171,11 +170,15 @@ namespace UnityEditor.VFX
             }
         }
 
-        private static readonly EventAttribute[] kAvailableAttributes = GetAvailableAttributes().ToArray();
+        private static readonly List<EventAttribute> kAvailableAttributes = new(GetAvailableAttributes());
 
         public static ReorderableList GetOrBuildEventAttributeList(VisualEffectControlClip asset, SerializedProperty property)
         {
-            var inspector = s_RegisteredInspector.FirstOrDefault(o => o.asset == asset).inspector;
+            var inspectorIndex = s_RegisteredInspector.FindIndex(o => o.asset == asset);
+            if (inspectorIndex == -1)
+                return null;
+
+            var inspector = s_RegisteredInspector[inspectorIndex].inspector;
             if (inspector == null)
                 return null;
 
@@ -320,7 +323,7 @@ namespace UnityEditor.VFX
         private static EventAttribute[] DeepClone(EventAttribute[] source)
         {
             if (source == null)
-                return new EventAttribute[0];
+                return Array.Empty<EventAttribute>();
 
             var newEventAttributeArray = new EventAttribute[source.Length];
             for (int i = 0; i < newEventAttributeArray.Length; ++i)
@@ -347,15 +350,57 @@ namespace UnityEditor.VFX
 
         private static Color SmartPickingNewColor(VisualEffectControlClip controlClip)
         {
-            var allColor = controlClip.clipEvents.Select(o => o.editorColor);
-            allColor = allColor.Concat(controlClip.singleEvents.Select(o => o.editorColor));
+            var candidateColor = new List<Color>(kNiceColor);
 
-            var candidate = kNiceColor.Where(o => !allColor.Contains(o));
-            if (candidate.Any())
-                return candidate.First();
+            foreach (var clipEvent in controlClip.clipEvents)
+                candidateColor.Remove(clipEvent.editorColor);
+            foreach (var singleEvent in controlClip.singleEvents)
+                candidateColor.Remove(singleEvent.editorColor);
+
+            if (candidateColor.Count > 0)
+                return candidateColor[0];
 
             //Arbitrary picking (but not random) of color
-            return kNiceColor[allColor.Count() % kNiceColor.Length];
+            return kNiceColor[(controlClip.clipEvents.Count + controlClip.singleEvents.Count) % kNiceColor.Length];
+        }
+
+        private bool AnyDuplicatedReference(EventAttribute[] eventAttributes, HashSet<EventAttribute> alreadyFoundEventAttributes)
+        {
+            if (eventAttributes != null)
+            {
+                foreach (var eventAttribute in eventAttributes)
+                {
+                    if (alreadyFoundEventAttributes.Contains(eventAttribute))
+                        return true;
+                    alreadyFoundEventAttributes.Add(eventAttribute);
+                }
+            }
+
+            return false;
+        }
+
+        private bool AnyDuplicatedReference(List<VisualEffectControlClip.ClipEvent> clipEvents)
+        {
+            var alreadyFoundEventAttributes = new HashSet<EventAttribute>();
+            foreach (var clipEvent in clipEvents)
+            {
+                if (AnyDuplicatedReference(clipEvent.enter.eventAttributes.content, alreadyFoundEventAttributes))
+                    return true;
+                if (AnyDuplicatedReference(clipEvent.exit.eventAttributes.content, alreadyFoundEventAttributes))
+                    return true;
+            }
+            return false;
+        }
+
+        private bool AnyDuplicatedReference(List<VisualEffectPlayableSerializedEvent> singleEvents)
+        {
+            var alreadyFoundEventAttributes = new HashSet<EventAttribute>();
+            foreach (var singleEvent in singleEvents)
+            {
+                if (AnyDuplicatedReference(singleEvent.eventAttributes.content, alreadyFoundEventAttributes))
+                    return true;
+            }
+            return false;
         }
 
         private void OnEnable()
@@ -386,9 +431,9 @@ namespace UnityEditor.VFX
                 var newColor = SmartPickingNewColor(playable);
 
                 var newClipEvent = new VisualEffectControlClip.ClipEvent();
-                if (playable.clipEvents.Any())
+                if (playable.clipEvents.Count > 0)
                 {
-                    var last = playable.clipEvents.Last();
+                    var last = playable.clipEvents[^1];
                     newClipEvent.editorColor = newColor;
                     newClipEvent.enter = DeepClone(last.enter);
                     newClipEvent.exit = DeepClone(last.exit);
@@ -401,11 +446,13 @@ namespace UnityEditor.VFX
                     newClipEvent.enter.name = VisualEffectAsset.PlayEventName;
                     newClipEvent.enter.time = 0.0;
                     newClipEvent.enter.timeSpace = PlayableTimeSpace.AfterClipStart;
+                    newClipEvent.enter.eventAttributes.content = Array.Empty<EventAttribute>();
 
                     newClipEvent.exit.eventAttributes = new UnityEngine.VFX.EventAttributes();
                     newClipEvent.exit.name = VisualEffectAsset.StopEventName;
                     newClipEvent.exit.time = 0.0;
                     newClipEvent.exit.timeSpace = PlayableTimeSpace.BeforeClipEnd;
+                    newClipEvent.exit.eventAttributes.content = Array.Empty<EventAttribute>();
                 }
                 playable.clipEvents.Add(newClipEvent);
                 clipEventsProperty.serializedObject.Update();
@@ -420,9 +467,9 @@ namespace UnityEditor.VFX
                 singleEventsProperty.serializedObject.ApplyModifiedProperties();
 
                 var newSingleEvent = new VisualEffectPlayableSerializedEvent();
-                if (playable.singleEvents.Any())
+                if (playable.singleEvents.Count > 0)
                 {
-                    var last = playable.singleEvents.Last();
+                    var last = playable.singleEvents[^1];
                     newSingleEvent = DeepClone(last);
                 }
                 newSingleEvent.editorColor = SmartPickingNewColor(playable);
@@ -435,8 +482,7 @@ namespace UnityEditor.VFX
             m_ReoderableClipEvents.onChangedCallback += (ReorderableList list) =>
             {
                 var playable = (VisualEffectControlClip)singleEventsProperty.serializedObject.targetObject;
-                var allAttributes = playable.clipEvents.SelectMany(o => o.enter.eventAttributes.content.Concat(o.exit.eventAttributes.content));
-                if (allAttributes.Count() != allAttributes.Distinct().Count())
+                if (AnyDuplicatedReference(playable.clipEvents))
                 {
                     for (int i = 0; i < playable.clipEvents.Count; ++i)
                     {
@@ -453,8 +499,7 @@ namespace UnityEditor.VFX
             m_ReoderableSingleEvents.onChangedCallback += (ReorderableList list) =>
             {
                 var playable = (VisualEffectControlClip)singleEventsProperty.serializedObject.targetObject;
-                var allAttributes = playable.singleEvents.SelectMany(o => o.eventAttributes.content);
-                if (allAttributes.Count() != allAttributes.Distinct().Count())
+                if (AnyDuplicatedReference(playable.singleEvents))
                 {
                     for (int i = 0; i < playable.singleEvents.Count; ++i)
                     {

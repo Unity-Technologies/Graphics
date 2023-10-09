@@ -9,6 +9,23 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [14.0.8] - 2023-09-27
+
+This version is compatible with Unity 2022.3.11f1.
+
+### Added
+- Added callbacks when RenderPipeline is created or disposed.
+- ObjectID Render Request that provides a render texture with the ObjectId of each pixel.
+
+### Fixed
+- Fixed potentially broken rendering and errors after renaming a VolumeProfile asset.
+- Fixed popup showing multiple time when trying to remove additional data while in multi selection..
+- Removed some unexpected SRP changed callback invocations.
+- Fixed Rendering Debugger runtime UI getting occluded by user UI with sorting order larger than 0.
+- Fixed console errors when debug actions are removed from Input Manager during play mode.
+- When building for Built-in, shaders from any SRP are completely stripped.
+- Fixed occasional ArgumentOutOfRangeException in StaticLightingSky.
+
 ## [14.0.7] - 2023-05-23
 
 This version is compatible with Unity 2022.2.22f1.

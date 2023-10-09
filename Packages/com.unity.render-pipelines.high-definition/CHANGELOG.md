@@ -9,6 +9,77 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [14.0.8] - 2023-09-27
+
+This version is compatible with Unity 2022.3.11f1.
+
+### Changed
+- Improved CPU performances by disabling "QuantizedFrontToBack" sorting in opaque rendering.
+- Avoid clamping to integers for HDR manipulation.
+- Reduced GC Alloc when using raytracing and HDRP.
+- Updated description of Decal Projector Draw Distance setting to mention HDRP asset setting.
+
+### Fixed
+- Enabling raytracing no longer disable screen space lighting effect (SSAO, SSR) async compute
+- Made HDRP RenderPIpelineSettings public to enable customizing the HDRP asset.
+- Properly take into account sky attenuation for baking.
+- Updated HDRenderPipelineResources file.
+- Fixed HDProbes to support custom resolutions for all rendering modes.
+- Fixed TAA aliasing edge issues on alpha output for recorder / green screen. This fix does the following:
+* Removes history rejection when the current alpha value is 0. Instead it does blend with the history color when alpha value is 0 on the current plane.
+* The reasoning for blending again with the history when alpha is 0 is because we want the color to blend a bit with opacity, which is the main reason for the alpha values. sort of like a precomputed color
+* As a safety, we set the color to black if alpha is 0. This results in better image quality when alpha is enabled.
+- Added check to ensure gismos arent rendered when they shouldnt be.
+- Fixed quad overdraw debug at high resolution.
+- Fixed cloud layer rotation does not allow for smooth rotation.
+- Fixed GetScaledSize when not using scaling.
+- Fixed VT init to avoid RTHandle allocation outside of HDRP rendering loop.
+- Upgrading from DLSS 2.4 to DLSS 3.0 for upscaling part.
+- [Backport] Fix the incorrect base color of decals for transparency.
+- Fixed error when camera goes underwater.
+- Fixed shaders stripping for Lens Flares.
+- Fixed color pyramid history buffer logic when history is reset and the color pyramid is not required.
+- Fixed scene template dependencies.
+- Minor fix to HDRP UI when Raytraced AO is enabled.
+- Added a new custom pass injection after opaque and sky finished rendering.
+- Fixed D3D validation error for area lights in HDShadowAtlas.
+- Fixed baked light being wrongly put in the cached shadow atlas.
+- Improving DLSS ghosting artifacts a little bit, by using a better pre-exposure parameter. Fixing reset history issues on DLSS camera cuts.
+- Added an helpbox for local custom pass volumes that doesn't have a collider attached.
+- Respect the transparent reflections settings when using raytracing.
+- Show base color texture on decal materials if Affect BaseColor is disabled.
+- Fixed inconsistent documentation about hardware supporting raytracing.
+- Fixed wrong metapass when using planar/triplanar projection in HDRP.
+- Fixed fireflies in path traced volume scattering using MIS. Add support for anisotropic fog.
+- When HDRP is disabled, Compute Shaders are being stripped.
+- Fixed recovering the current Quality level when migrating a HDRP Asset.
+- Added warning to reflection probe editor to prevent user from baking in a low quality level.
+- Fixed Decal additive normal blending on shadergraph materials.
+- Fixed custom pass injection point "After Opaque And Sky" happening after cloud rendering.
+- Fixed FTLP (Fine Tiled Light Pruning) Shader Options max light count. Previous support only supported up to 63 These changes allow to go up to 255 with higher instability as numbers per tile approach 255.
+For support greater than 255, do it at your own risk! (and expect some flickering).
+- Mixed runtime lights were not considering the intensity multiplier during bakes. These changes fix this behaviour and make bakes more intuitive.
+- Fixed the incorrect size of the material preview texture.
+- Removing linq and complexity on light units validation
+Light units validation was using Linq, which is full of memory allocations and very expensive in the CPU.
+Instead, opting to use a simple bitmask to check wether light unit is valid or not for a certain light type.
+Caching also managed arrays to avoid in frame allocations.
+- Fixed prefab preview rendering dark until moved.
+- Fixed material previews being rendered black.
+- Fixed: realtime Reflection probe makes volumetrics clouds wind stop.
+- Fixed error on water inspector when no SRP is active.
+- Fixed preview for refractive materials with MSAA.
+- Allow the game to switch HDR on or off during run time.
+- Fixed GraphicsBuffer leak from APV binding code.
+- Re-enabled HDR output on Mac (Was disabled).
+- Fixed Volumetric Fog rendering before the injection point "AfterOpaqueAndSky".
+- Fixed an issue where an async pass would try to sync to a culled pass mistakenly.
+- Fixed the logic used to set up materials featuring displacement mapping that would sometimes result in artifacts or suboptimal performance.
+- Mixed tracing mode for transparent screenspace reflections now mixes both tracing modes as expected, instead of only using ray traced reflections.
+- Fixed custom post process volume component example in doc.
+- Fixed ShaderGraph Decal material position issue by using world space position.
+- Fixed error when assigning non water material to water
+
 ## [14.0.7] - 2023-05-23
 
 This version is compatible with Unity 2022.2.22f1.

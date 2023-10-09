@@ -471,13 +471,24 @@ namespace UnityEngine.Rendering.Universal
             if (!CanCopyDepth(ref cameraData))
                 return false;
 
+            // Depth Priming causes rendering errors with WebGL on Apple Arm64 GPUs.
+            bool isNotWebGL = !IsWebGL();
             bool depthPrimingRequested = (m_DepthPrimingRecommended && m_DepthPrimingMode == DepthPrimingMode.Auto) || m_DepthPrimingMode == DepthPrimingMode.Forced;
             bool isForwardRenderingMode = m_RenderingMode == RenderingMode.Forward || m_RenderingMode == RenderingMode.ForwardPlus;
             bool isFirstCameraToWriteDepth = cameraData.renderType == CameraRenderType.Base || cameraData.clearDepth;
             // Enabled Depth priming when baking Reflection Probes causes artefacts (UUM-12397)
             bool isNotReflectionCamera = cameraData.cameraType != CameraType.Reflection;
 
-            return  depthPrimingRequested && isForwardRenderingMode && isFirstCameraToWriteDepth && isNotReflectionCamera;
+            return  depthPrimingRequested && isForwardRenderingMode && isFirstCameraToWriteDepth && isNotReflectionCamera && isNotWebGL;
+        }
+
+        bool IsWebGL()
+        {
+#if PLATFORM_WEBGL
+            return IsGLESDevice();
+#else
+            return false;
+#endif
         }
 
         bool IsGLESDevice()

@@ -1,34 +1,43 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
-using UnityEngine.SceneManagement;
 
 // This script enables certain renderer features based on their name
 // In order to enable certain renderer feature, it's name must be perfect match
+[ExecuteInEditMode]
 public class RendererFeatureEnabler : MonoBehaviour
 {
-    public string rendererFeatureName;
+    public string[] rendererFeatureNames;
     public UniversalRendererData rendererData;
-    private ScriptableRendererFeature usedFeature;
+
+    private List<ScriptableRendererFeature> m_UsedFeatures;
 
     // Start is called before the first frame update
     void Awake()
     {
-        SceneManager.sceneUnloaded += OnSceneChanges;
+        m_UsedFeatures = new List<ScriptableRendererFeature>();
         foreach (var feature in rendererData.rendererFeatures)
         {
-            if (feature.name == rendererFeatureName)
+            foreach (var name in rendererFeatureNames)
             {
-                usedFeature = feature;
-                usedFeature.SetActive(true);
+                if (name != null && feature.name == name)
+                {
+                    feature.SetActive(true);
+                    m_UsedFeatures.Add(feature);
+                }
             }
         }
     }
 
-    void OnSceneChanges(Scene scene)
+    void OnDestroy()
     {
-        Debug.Log("Disabling renderer feature");
-        usedFeature.SetActive(false);
+        if (m_UsedFeatures != null)
+        {
+            foreach (var feature in m_UsedFeatures)
+            {
+                if(feature != null)
+                    feature.SetActive(false);
+            }
+        }
     }
 }

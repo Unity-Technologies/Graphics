@@ -654,7 +654,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 return;
 
             var dependentNodes = new List<AbstractMaterialNode>();
-            if (!inNode.owner.graphIsConcretizing)
+            if (!inNode.owner.graphIsConcretizing && !inNode.owner.replaceInProgress)
                 NodeUtils.CollectNodesNodeFeedsInto(dependentNodes, inNode);
             else dependentNodes.Add(inNode);
 
@@ -672,15 +672,27 @@ namespace UnityEditor.ShaderGraph.Drawing
         public void HandleGraphChanges(bool wasUndoRedoPerformed)
         {
             UnregisterGraphViewCallbacks();
+            // anything that gets a new view needs to be updated. throughout this call.
+            // while it's a little expensive to build this every graph change, it's a huge
+            // improvement in overall performance to do so.
+            Dictionary<object, GraphElement> lookupTable = new();
+            m_GraphView.graphElements.ForEach(e => {
+                if (e.userData != null)
+                    lookupTable.Add(e.userData, e);
+            });
 
             previewManager.HandleGraphChanges();
             m_InspectorView.HandleGraphChanges();
 
             if (m_Graph.addedEdges.Any() || m_Graph.removedEdges.Any())
             {
-                var nodeList = m_GraphView.Query<MaterialNodeView>().ToList();
-                m_ColorManager.SetNodesDirty(nodeList);
-                m_ColorManager.UpdateNodeViews(nodeList);
+                // Precision color provider is the only one that needs to update node colors on connection.
+                if (m_ColorManager.activeProviderName == "Precision")
+                {
+                    var nodeList = m_GraphView.Query<MaterialNodeView>().ToList();
+                    m_ColorManager.SetNodesDirty(nodeList);
+                    m_ColorManager.UpdateNodeViews(nodeList);
+                }
             }
 
             previewManager.RenderPreviews(m_EditorWindow);
@@ -696,45 +708,43 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             m_GroupHashSet.Clear();
 
-            HandleRemovedNodes();
+            HandleRemovedNodes(lookupTable);
 
             foreach (var noteData in m_Graph.removedNotes)
             {
-                var note = m_GraphView.graphElements.ToList().OfType<StickyNote>().First(n => n.userData == noteData);
-                m_GraphView.RemoveElement(note);
+                if (lookupTable.TryGetValue(noteData, out var note))
+                    m_GraphView.RemoveElement(note);
             }
 
             foreach (GroupData groupData in m_Graph.removedGroups)
             {
-                var group = m_GraphView.graphElements.ToList().OfType<ShaderGroup>().First(g => g.userData == groupData);
-                m_GraphView.RemoveElement(group);
+                if(lookupTable.TryGetValue(groupData, out var group))
+                    m_GraphView.RemoveElement(group);
             }
 
             foreach (var groupData in m_Graph.addedGroups)
             {
-                AddGroup(groupData);
+                AddGroup(groupData, lookupTable: lookupTable);
             }
 
             foreach (var stickyNote in m_Graph.addedStickyNotes)
             {
-                AddStickyNote(stickyNote);
+                AddStickyNote(stickyNote, lookupTable: lookupTable);
             }
-
             foreach (var node in m_Graph.addedNodes)
             {
-                AddNode(node);
+                AddNode(node, lookupTable: lookupTable);
             }
-
             foreach (var groupChange in m_Graph.parentGroupChanges)
             {
                 GraphElement graphElement = null;
                 if (groupChange.groupItem is AbstractMaterialNode node)
                 {
-                    graphElement = m_GraphView.GetNodeByGuid(node.objectId);
+                    lookupTable.TryGetValue(node, out graphElement);
                 }
                 else if (groupChange.groupItem is StickyNoteData stickyNote)
                 {
-                    graphElement = m_GraphView.GetElementByGuid(stickyNote.objectId);
+                    lookupTable.TryGetValue(stickyNote, out graphElement);
                 }
                 else
                 {
@@ -749,32 +759,28 @@ namespace UnityEditor.ShaderGraph.Drawing
                         groupView?.RemoveElement(graphElement);
                         if (groupChange.newGroup != null)
                         {
-                            var newGroupView = m_GraphView.graphElements.ToList()
-                                .OfType<ShaderGroup>()
-                                .First(x => x.userData == groupChange.newGroup);
-                            newGroupView.AddElement(graphElement);
+                            lookupTable.TryGetValue(groupChange.newGroup, out var newGroupView);
+                            ((ShaderGroup)newGroupView).AddElement(graphElement);
                         }
                     }
                 }
             }
-
             foreach (var groupData in m_Graph.pastedGroups)
             {
-                var group = m_GraphView.graphElements.ToList().OfType<ShaderGroup>().ToList().First(g => g.userData == groupData);
-                m_GraphView.AddToSelection(group);
+                if (lookupTable.TryGetValue(groupData, out var group))
+                    m_GraphView.AddToSelection(group);
             }
 
             foreach (var stickyNoteData in m_Graph.pastedStickyNotes)
             {
-                var stickyNote = m_GraphView.graphElements.ToList().OfType<StickyNote>().First(s => s.userData == stickyNoteData);
-                m_GraphView.AddToSelection(stickyNote);
+                if (lookupTable.TryGetValue(stickyNoteData, out var stickyNote))
+                    m_GraphView.AddToSelection(stickyNote);
             }
 
             foreach (var node in m_Graph.pastedNodes)
             {
-                var nodeView = m_GraphView.nodes.ToList().OfType<IShaderNodeView>()
-                    .FirstOrDefault(p => p.node != null && p.node == node);
-                m_GraphView.AddToSelection((Node)nodeView);
+                if (lookupTable.TryGetValue(node.objectId, out var nodeView) && nodeView is IShaderNodeView)
+                    m_GraphView.AddToSelection((Node)nodeView);
             }
 
             foreach (var shaderGroup in m_GroupHashSet)
@@ -787,9 +793,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             foreach (var edge in m_Graph.removedEdges)
             {
-                var edgeView = m_GraphView.graphElements.ToList().OfType<Edge>()
-                    .FirstOrDefault(p => p.userData is IEdge && Equals((IEdge)p.userData, edge));
-                if (edgeView != null)
+                if (lookupTable.TryGetValue(edge, out var obj) && obj is Edge edgeView)
                 {
                     var nodeView = (IShaderNodeView)edgeView.input.node;
                     if (nodeView?.node != null)
@@ -809,7 +813,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             foreach (var edge in m_Graph.addedEdges)
             {
-                var edgeView = AddEdge(edge);
+                var edgeView = AddEdge(edge, lookupTable : lookupTable);
                 if (edgeView != null)
                     nodesToUpdate.Add((IShaderNodeView)edgeView.input.node);
             }
@@ -850,7 +854,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_Graph.AddRemoveBlocksFromActiveList(activeBlocks);
                 m_Graph.checkAutoAddRemoveBlocks = false;
                 // We have to re-check any nodes views that need to be removed since we already handled this above. After leaving this function the states on m_Graph will be cleared so we'll lose track of removed blocks.
-                HandleRemovedNodes();
+                HandleRemovedNodes(lookupTable);
             }
 
             UpdateBadges();
@@ -858,14 +862,21 @@ namespace UnityEditor.ShaderGraph.Drawing
             RegisterGraphViewCallbacks();
         }
 
-        void HandleRemovedNodes()
+        void HandleRemovedNodes(Dictionary<object, GraphElement> lookupTable = null)
         {
             foreach (var node in m_Graph.removedNodes)
             {
                 node.UnregisterCallback(OnNodeChanged);
-                var nodeView = m_GraphView.nodes.ToList().OfType<IShaderNodeView>()
-                    .FirstOrDefault(p => p.node != null && p.node == node);
 
+                IShaderNodeView nodeView = null;
+                if (lookupTable != null && lookupTable.TryGetValue(node, out var nodeElement))
+                {
+                    nodeView = nodeElement as IShaderNodeView;
+                }
+                else
+                {
+                    nodeView = m_GraphView.nodes.ToList().OfType<IShaderNodeView>().FirstOrDefault(p => p.node != null && p.node == node);
+                }
                 // When deleting a node make sure to clear any input observers
                 switch (node)
                 {
@@ -905,8 +916,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                     if (node.group != null)
                     {
-                        var shaderGroup = m_GraphView.graphElements.ToList().OfType<ShaderGroup>().First(g => g.userData == node.group);
-                        m_GroupHashSet.Add(shaderGroup);
+                        if (lookupTable.TryGetValue(node.group, out var shaderGroup))
+                            m_GroupHashSet.Add((ShaderGroup)shaderGroup);
                     }
                 }
             }
@@ -943,7 +954,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         List<GraphElement> m_GraphElementsTemp = new List<GraphElement>();
 
-        void AddNode(AbstractMaterialNode node, bool usePrebuiltVisualGroupMap = false)
+        void AddNode(AbstractMaterialNode node, bool usePrebuiltVisualGroupMap = false, Dictionary<object, GraphElement> lookupTable = null)
         {
             var materialNode = node;
             Node nodeView;
@@ -1036,6 +1047,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                     }
                 }
             }
+
+            lookupTable?.Add(node, nodeView);
         }
 
         private static Dictionary<GroupData, ShaderGroup> visualGroupMap = new Dictionary<GroupData, ShaderGroup>();
@@ -1086,7 +1099,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        void AddGroup(GroupData groupData)
+        void AddGroup(GroupData groupData, Dictionary<object, GraphElement> lookupTable = null)
         {
             ShaderGroup graphGroup = new ShaderGroup();
 
@@ -1095,9 +1108,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             graphGroup.SetPosition(new Rect(graphGroup.userData.position, Vector2.zero));
 
             m_GraphView.AddElement(graphGroup);
+            lookupTable?.Add(groupData, graphGroup);
         }
 
-        void AddStickyNote(StickyNoteData stickyNoteData)
+        void AddStickyNote(StickyNoteData stickyNoteData, Dictionary<object, GraphElement> lookupTable = null)
         {
             var stickyNote = new StickyNote(stickyNoteData.position, m_Graph);
 
@@ -1111,6 +1125,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             stickyNote.SetPosition(new Rect(stickyNote.userData.position));
 
             m_GraphView.AddElement(stickyNote);
+            lookupTable?.Add(stickyNoteData, stickyNote);
 
             // Add Sticky Note to group
             m_GraphElementsTemp.Clear();
@@ -1187,7 +1202,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        Edge AddEdge(IEdge edge, bool useVisualNodeMap = false, bool updateNodePorts = true)
+        Edge AddEdge(IEdge edge, bool useVisualNodeMap = false, bool updateNodePorts = true, Dictionary<object, GraphElement> lookupTable = null)
         {
             var sourceNode = edge.outputSlot.node;
             if (sourceNode == null)
@@ -1206,7 +1221,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             var targetSlot = targetNode.FindInputSlot<MaterialSlot>(edge.inputSlot.slotId);
 
             IShaderNodeView sourceNodeView;
-            if (useVisualNodeMap)
+            if (lookupTable != null)
+            {
+                lookupTable.TryGetValue(sourceNode, out var graphElement);
+                sourceNodeView = (IShaderNodeView)graphElement;
+            }
+            else if (useVisualNodeMap)
                 visualNodeMap.TryGetValue(sourceNode, out sourceNodeView);
             else
                 sourceNodeView = m_GraphView.nodes.ToList().OfType<IShaderNodeView>().FirstOrDefault(x => x.node == sourceNode);
@@ -1216,7 +1236,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                 sourceNodeView.FindPort(sourceSlot.slotReference, out var sourceAnchor);
 
                 IShaderNodeView targetNodeView;
-                if (useVisualNodeMap)
+                if (lookupTable != null)
+                {
+                    lookupTable.TryGetValue(targetNode, out var graphElement);
+                    targetNodeView = (IShaderNodeView)graphElement;
+                }
+                else if (useVisualNodeMap)
                     visualNodeMap.TryGetValue(targetNode, out targetNodeView);
                 else
                     targetNodeView = m_GraphView.nodes.ToList().OfType<IShaderNodeView>().First(x => x.node == targetNode);

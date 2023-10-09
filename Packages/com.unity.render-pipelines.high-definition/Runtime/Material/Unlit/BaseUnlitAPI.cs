@@ -354,16 +354,28 @@ namespace UnityEditor.Rendering.HighDefinition
                 material.SetShaderPassEnabled(HDShaderPassNames.s_RayTracingPrepassStr, rayTracingEnable);
             }
 
-            // Shader graphs materials have their own management of motion vector pass in the material inspector
-            // (see DrawMotionVectorToggle())
-            if (!HDMaterial.IsShaderGraph(material))
+            bool allowMotionVectorPass = true;
+            if (HDMaterial.IsShaderGraph(material))
+            {
+                // We have no way to setup motion vector pass to be false by default for a shader graph
+                // So here we workaround it with materialTag system by checking if a tag exist to know if it is
+                // the first time we display this information. And thus setup the MotionVector Pass to false.
+                const string materialTag = "MotionVector";
+                const string defaultTag = "Nothing";
+
+                if (material.GetTag(materialTag, false, defaultTag) == defaultTag)
+                {
+                    material.SetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr, false);
+                    material.SetOverrideTag(materialTag, "User");
+                }
+
+                allowMotionVectorPass = !material.GetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr);
+            }
+
+            if (allowMotionVectorPass)
             {
                 //In the case of additional velocity data we will enable the motion vector pass.
-                bool addPrecomputedVelocity = false;
-                if (material.HasProperty(kAddPrecomputedVelocity))
-                {
-                    addPrecomputedVelocity = material.GetInt(kAddPrecomputedVelocity) != 0;
-                }
+                bool addPrecomputedVelocity = material.GetAddPrecomputedVelocity();
 
                 // We don't have any vertex animation for lit/unlit vector, so we
                 // setup motion vector pass to false. Remind that in HDRP this

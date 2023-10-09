@@ -426,7 +426,7 @@ namespace UnityEditor.VFX.URP
                 else if ((colorMode & ColorMode.Emissive) != 0)
                     yield return nameof(useEmissive);
 
-                yield return nameof(excludeFromTAA);
+                yield return nameof(excludeFromTUAndAA);
             }
         }
 
