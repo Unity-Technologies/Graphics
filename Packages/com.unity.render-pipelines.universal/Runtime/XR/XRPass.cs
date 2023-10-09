@@ -458,6 +458,12 @@ namespace UnityEngine.Rendering.Universal
                 if (cameraData.xr.canMarkLateLatch)
                     MarkLateLatchShaderProperties(cmd, ref cameraData);
             }
+            else
+            {
+                // Update multipass worldSpace camera pos
+                Vector3 worldSpaceCameraPos = Matrix4x4.Inverse(GetViewMatrix(0)).GetColumn(3);
+                cmd.SetGlobalVector(ShaderPropertyId.worldSpaceCameraPos, worldSpaceCameraPos);
+            }
         }
 
         internal static readonly int UNITY_STEREO_MATRIX_V = Shader.PropertyToID("unity_StereoMatrixV");

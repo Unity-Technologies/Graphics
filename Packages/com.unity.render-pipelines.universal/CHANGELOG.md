@@ -9,6 +9,25 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [12.1.12] - 2023-09-27
+
+This version is compatible with Unity 2021.3.31f1.
+
+### Fixed
+- 2D - Remove serialization and cache vertices and indices for sprite lights causing bloat in prefabs.
+- Fixed ShaderGraph preview window not showing anything when using DepthNormals pass.
+- Fixed redundant blit is used due to postFX, although it is disabled in rendererData.
+- Fixed lens-flare post-process effect on overlay camera causing a black screen.
+- Fixed rare iOS shader building failure due to URP Lit Forward Pass shader varyings struct variable mismatch.
+- Universal RP: Decals now do not enqueue passes when running on unsupported API's, such as OpenGL or GLES3, instead of displaying the magenta error.
+- Fixed an issue where keywords used with SSAO and Decals were not stripped correctly when the features were disabled.
+- 2D - Fix additional draw call when Foremost Sorting Layer is enabled during unlit.
+- Removed a Debug.Log line in Blitter.
+- Fixed depth priming issues on Vulkan
+- Fixed an issue with Screen Space Decals where dark artefacts appeared in the editor.
+- Fixed an issue where additional lights were not rendering correctly when using a mix of shadow settings in deferred.
+- Added check for overlay cameras' inspector
+
 ## [12.1.11] - 2023-05-23
 
 This version is compatible with Unity 2021.3.27f1.

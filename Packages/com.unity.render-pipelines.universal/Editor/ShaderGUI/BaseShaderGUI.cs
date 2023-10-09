@@ -594,14 +594,10 @@ namespace UnityEditor
                     SetMaterialSrcDstBlendProperties(material, UnityEngine.Rendering.BlendMode.One, UnityEngine.Rendering.BlendMode.Zero);
                     zwrite = true;
                     material.DisableKeyword(ShaderKeywordStrings._ALPHAPREMULTIPLY_ON);
-                    material.DisableKeyword(ShaderKeywordStrings._SURFACE_TYPE_TRANSPARENT);
                 }
                 else // SurfaceType Transparent
                 {
                     BlendMode blendMode = (BlendMode)material.GetFloat(Property.BlendMode);
-
-                    material.DisableKeyword(ShaderKeywordStrings._ALPHAPREMULTIPLY_ON);
-                    material.DisableKeyword(ShaderKeywordStrings._ALPHAMODULATE_ON);
 
                     // Specific Transparent Mode Settings
                     switch (blendMode)
@@ -615,7 +611,6 @@ namespace UnityEditor
                             SetMaterialSrcDstBlendProperties(material,
                                 UnityEngine.Rendering.BlendMode.One,
                                 UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-                            material.EnableKeyword(ShaderKeywordStrings._ALPHAPREMULTIPLY_ON);
                             break;
                         case BlendMode.Additive:
                             SetMaterialSrcDstBlendProperties(material,
@@ -626,14 +621,15 @@ namespace UnityEditor
                             SetMaterialSrcDstBlendProperties(material,
                                 UnityEngine.Rendering.BlendMode.DstColor,
                                 UnityEngine.Rendering.BlendMode.Zero);
-                            material.EnableKeyword(ShaderKeywordStrings._ALPHAMODULATE_ON);
                             break;
                     }
+
+                    CoreUtils.SetKeyword(material, ShaderKeywordStrings._ALPHAPREMULTIPLY_ON, blendMode == BlendMode.Premultiply);
+                    CoreUtils.SetKeyword(material, ShaderKeywordStrings._ALPHAMODULATE_ON, blendMode == BlendMode.Multiply);
 
                     // General Transparent Material Settings
                     material.SetOverrideTag("RenderType", "Transparent");
                     zwrite = false;
-                    material.EnableKeyword(ShaderKeywordStrings._SURFACE_TYPE_TRANSPARENT);
                     renderQueue = (int)RenderQueue.Transparent;
                 }
 

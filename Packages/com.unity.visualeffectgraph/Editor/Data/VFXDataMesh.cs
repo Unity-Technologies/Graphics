@@ -33,8 +33,7 @@ namespace UnityEditor.VFX
             {
                 m_Shader = value;
                 DestroyCachedMaterial();
-                if (m_Shader != null)
-                    m_ShaderName = m_Shader.name;
+                m_ShaderName = m_Shader != null ? m_Shader.name : null;
             }
         }
 

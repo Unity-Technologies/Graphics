@@ -637,7 +637,7 @@ namespace UnityEditor.VFX.UI
                                 view.AddToSelection(blockUI);
                             }
                             //Refresh error can only be called after the block has been instanciated
-                            blockController.model.RefreshErrors(controller.viewController.graph);
+                            blockController.model.RefreshErrors();
                         }
                         prevBlock = blockUI;
                     }

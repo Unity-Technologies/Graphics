@@ -330,7 +330,7 @@ axisY = cross(axisZ, axisX);
             base.Sanitize(version);
         }
 
-        protected override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        internal override void GenerateErrors(VFXInvalidateErrorReporter manager)
         {
             if (!canTestStrips)
                 return;

@@ -78,7 +78,7 @@ namespace UnityEditor.VFX
             return inputExpression;
         }
 
-        protected override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        internal override void GenerateErrors(VFXInvalidateErrorReporter manager)
         {
             base.GenerateErrors(manager);
 
