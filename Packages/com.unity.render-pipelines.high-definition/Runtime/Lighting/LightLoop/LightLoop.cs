@@ -88,7 +88,6 @@ namespace UnityEngine.Rendering.HighDefinition
     [GenerateHLSL]
     class LightDefinitions
     {
-        public static int s_MaxNrBigTileLightsPlusOne = 512;      // may be overkill but the footprint is 2 bits per pixel using uint16.
         public static float s_ViewportScaleZ = 1.0f;
         public static int s_UseLeftHandCameraSpace = 1;
 
@@ -104,18 +103,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // feature variants
         public static int s_NumFeatureVariants = 29;
-
-        // light list limits
-        public static int s_LightListMaxCoarseEntries = 64;
-        public static int s_LightClusterMaxCoarseEntries = 128;
-
-        // We have room for ShaderConfig.FPTLMaxLightCount lights, plus 1 implicit value for length.
-        // We allocate only 16 bits per light index & length, thus we divide by 2, and store in a word buffer.
-        public static int s_LightDwordPerFptlTile = ((ShaderConfig.FPTLMaxLightCount + 1)) / 2;
-        public static int s_LightClusterPackingCountBits = (int)Mathf.Ceil(Mathf.Log(Mathf.NextPowerOfTwo(ShaderConfig.FPTLMaxLightCount), 2));
-        public static int s_LightClusterPackingCountMask = (1 << s_LightClusterPackingCountBits) - 1;
-        public static int s_LightClusterPackingOffsetBits = 32 - s_LightClusterPackingCountBits;
-        public static int s_LightClusterPackingOffsetMask = (1 << s_LightClusterPackingOffsetBits) - 1;
 
         // Following define the maximum number of bits use in each feature category.
         public static uint s_LightFeatureMaskFlags = 0xFFF000;
@@ -954,7 +941,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static int NumLightIndicesPerClusteredTile()
         {
-            return 32 * (1 << k_Log2NumClusters);       // total footprint for all layers of the tile (measured in light index entries)
+            return ShaderConfig.FPTLMaxLightCount * (1 << k_Log2NumClusters);       // total footprint for all layers of the tile (measured in light index entries)
         }
 
         void LightLoopAllocResolutionDependentBuffers(HDCamera hdCamera, int width, int height)
@@ -1494,6 +1481,17 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         ReserveCookieAtlasTexture(additionalLightData, additionalLightData.legacyLight, processedLightEntity.lightType);
                     }
+
+                    if (hdCamera.visualSky.skyRenderer?.GetType() == typeof(PhysicallyBasedSkyRenderer))
+                    {
+                        // Lights with 0 intensity are culled by unity, but we still want to show them
+                        // in the PBR sky, so we need to allocate space for the cookie
+                        foreach (var directional in lightEntities.directionalLights)
+                        {
+                            if (directional.intensity == 0.0f && directional.interactsWithSky)
+                                m_TextureCaches.lightCookieManager.ReserveSpace(directional.surfaceTexture);
+                        }
+                    }
                 }
 
                 // Also we need to allocate space for the volumetric clouds texture if necessary
@@ -1870,7 +1868,8 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 case LightType.Directional:
                 {
-                    m_TextureCaches.lightCookieManager.ReserveSpace(hdLightData.surfaceTexture);
+                    if (hdLightData.interactsWithSky)
+                        m_TextureCaches.lightCookieManager.ReserveSpace(hdLightData.surfaceTexture);
                     m_TextureCaches.lightCookieManager.ReserveSpace(light?.cookie);
                     break;
                 }
@@ -2028,16 +2027,19 @@ namespace UnityEngine.Rendering.HighDefinition
             for (int viewId = 0; viewId < m_GpuLightsBuilder.lightsPerViewCount; ++viewId)
             {
                 HDGpuLightsBuilder.LightsPerView lightsPerView = m_GpuLightsBuilder.lightsPerView[viewId];
-                Debug.Assert(lightsPerView.boundsCount <= m_TotalLightCount, "Encountered bounds counts that are greater than the total light count.");
+
+                bool validLightCount = lightsPerView.boundsCount <= m_TileAndClusterData.maxLightCount;
+                Debug.Assert(validLightCount, "Encountered bounds counts that are greater than the total light count.");
 
                 /// In the CPU we have stored the left and right eye in one single array, offset by the LightsPerView.boundsOffset. This is before trivial rejection.
                 /// In the GPU we compact them, and access each eye by the actual m_TotalLightCount, which contains the post trivial rejection offset.
                 int inputStartIndex = lightsPerView.boundsOffset;
                 int outputStartIndex = viewId * m_TotalLightCount;
+                int maxLightCount = (validLightCount) ? lightsPerView.boundsCount : m_TileAndClusterData.maxLightCount;
 
                 // These two buffers have been set in Rebuild(). At this point, view 0 contains combined data from all views
-                m_TileAndClusterData.convexBoundsBuffer.SetData(m_GpuLightsBuilder.lightBounds, inputStartIndex, outputStartIndex, lightsPerView.boundsCount);
-                m_TileAndClusterData.lightVolumeDataBuffer.SetData(m_GpuLightsBuilder.lightVolumes, inputStartIndex, outputStartIndex, lightsPerView.boundsCount);
+                m_TileAndClusterData.convexBoundsBuffer.SetData(m_GpuLightsBuilder.lightBounds, inputStartIndex, outputStartIndex, maxLightCount);
+                m_TileAndClusterData.lightVolumeDataBuffer.SetData(m_GpuLightsBuilder.lightVolumes, inputStartIndex, outputStartIndex, maxLightCount);
             }
 
             ConstantBuffer.PushGlobal(cmd, m_EnvLightReflectionData, HDShaderIDs._EnvLightReflectionData);

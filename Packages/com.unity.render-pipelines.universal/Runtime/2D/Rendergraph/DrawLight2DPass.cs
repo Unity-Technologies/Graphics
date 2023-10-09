@@ -140,23 +140,23 @@ namespace UnityEngine.Rendering.Universal
             internal bool isVolumetric;
         }
 
-        public void Render(RenderGraph graph, ref Renderer2DData rendererData, ref LayerBatch layerBatch, in TextureHandle lightTexture, in TextureHandle normalTexture, in TextureHandle depthTexture, in TextureHandle shadowTexture, int shadowlightIndex = -1, bool isVolumetric = false)
+        public void Render(RenderGraph graph, Renderer2DData rendererData, ref LayerBatch layerBatch, FrameResources resources, TextureHandle lightTexture, TextureHandle depthTexture, int shadowlightIndex = -1, bool isVolumetric = false)
         {
             intermediateTexture[0] = lightTexture;
-            Render(graph, ref rendererData, ref layerBatch, intermediateTexture, normalTexture, depthTexture, shadowTexture, shadowlightIndex, isVolumetric);
+            Render(graph, rendererData, ref layerBatch, resources, intermediateTexture, depthTexture, shadowlightIndex, isVolumetric);
         }
 
-        public void Render(RenderGraph graph, ref Renderer2DData rendererData, ref LayerBatch layerBatch, in TextureHandle[] lightTextures, in TextureHandle normalTexture, in TextureHandle depthTexture, in TextureHandle shadowTexture, int shadowlightIndex = -1, bool isVolumetric = false)
+        public void Render(RenderGraph graph, Renderer2DData rendererData, ref LayerBatch layerBatch, FrameResources resources, TextureHandle[] lightTextures, TextureHandle depthTexture, int shadowlightIndex = -1, bool isVolumetric = false)
         {
             if (!layerBatch.lightStats.useLights ||
                 isVolumetric && !layerBatch.lightStats.useVolumetricLights)
                 return;
 
             if (layerBatch.lightStats.useNormalMap)
-                RenderGraphUtils.SetGlobalTexture(graph, k_NormalMapID, normalTexture, "Set Normal");
+                RenderGraphUtils.SetGlobalTexture(graph, k_NormalMapID, resources.GetTexture(Renderer2DResource.NormalsTexture), "Set Normal");
 
             if (layerBatch.lightStats.useShadows)
-                RenderGraphUtils.SetGlobalTexture(graph, k_ShadowMapID, shadowTexture, "Set Shadows");
+                RenderGraphUtils.SetGlobalTexture(graph, k_ShadowMapID, resources.GetTexture(Renderer2DResource.ShadowsTexture), "Set Shadows");
 
             RenderGraphUtils.SetGlobalTexture(graph, k_FalloffLookupID, graph.ImportTexture(m_FallOffRTHandle), "Set Global FalloffLookup");
             RenderGraphUtils.SetGlobalTexture(graph, k_LightLookupID, graph.ImportTexture(m_LightLookupRTHandle), "Set Global LightLookup");
@@ -169,10 +169,10 @@ namespace UnityEngine.Rendering.Universal
                 builder.UseTextureFragmentDepth(depthTexture, IBaseRenderGraphBuilder.AccessFlags.Write);
 
                 if (layerBatch.lightStats.useNormalMap)
-                    builder.UseTexture(normalTexture);
+                    builder.UseTexture(resources.GetTexture(Renderer2DResource.NormalsTexture));
 
                 if (layerBatch.lightStats.useShadows)
-                    builder.UseTexture(shadowTexture);
+                    builder.UseTexture(resources.GetTexture(Renderer2DResource.ShadowsTexture));
 
                 var lights = shadowlightIndex != -1 ? layerBatch.shadowLights : layerBatch.lights;
                 foreach (var light in lights)

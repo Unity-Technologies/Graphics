@@ -197,6 +197,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static DefineCollection WaterMaskDefines = new DefineCollection
         {
             { CoreKeywordDescriptors.SupportBlendModePreserveSpecularLighting, 1 },
+            { CoreKeywordDescriptors.HasLightloop, 1 },
+            { CoreKeywordDescriptors.PunctualShadow, 0 },
+            { CoreKeywordDescriptors.DirectionalShadow, 0 },
+            { CoreKeywordDescriptors.AreaShadow, 0 },
             { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },
         };
         #endregion
@@ -330,7 +334,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 includes.Add(CoreIncludes.CorePregraph);
                 includes.Add(CoreIncludes.kNormalSurfaceGradient, IncludeLocation.Pregraph);
+                includes.Add(CoreIncludes.kLighting, IncludeLocation.Pregraph);
+                includes.Add(CoreIncludes.kLightLoopDef, IncludeLocation.Pregraph);
                 includes.Add(CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph);
+                includes.Add(CoreIncludes.kLightLoop, IncludeLocation.Pregraph);
                 includes.Add(CoreIncludes.CoreUtility);
                 includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
                 includes.Add(WaterIncludes.kPassWaterMask, IncludeLocation.Postgraph);
@@ -376,7 +383,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     // Low res gbuffer
                     GenerateWaterGBufferPass(true, false, systemData.debugSymbols),
                     // Debug pass, this one never use tessellation for simplicity
-                    GenerateWaterMaskPass(true, systemData.debugSymbols),
+                    GenerateWaterMaskPass(false, systemData.debugSymbols),
                 };
                 return passes;
             }
@@ -440,7 +447,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 if (lightingData.receiveDecals)
                     pass.keywords.Add(CoreKeywordDescriptors.Decals);
-
+            }
+            else if (pass.displayName.StartsWith(k_MaskPassName))
+            {
                 pass.keywords.Add(CoreKeywordDescriptors.DebugDisplay);
             }
         }
@@ -457,7 +466,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             stencilRefWaterVar.displayName = "Stencil Water Ref GBuffer";
             stencilRefWaterVar.hidden = true;
             stencilRefWaterVar.floatType = FloatType.Default;
-            stencilRefWaterVar.value = (int)(StencilUsage.WaterSurface | StencilUsage.ExcludeFromTAA);
+            stencilRefWaterVar.value = (int)(StencilUsage.WaterSurface | StencilUsage.ExcludeFromTUAndAA);
             stencilRefWaterVar.overrideHLSLDeclaration = true;
             stencilRefWaterVar.hlslDeclarationOverride = HLSLDeclaration.Global;
             stencilRefWaterVar.generatePropertyBlock = false;
@@ -468,7 +477,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             stencilWriteMaskWaterVar.displayName = "Stencil Water Write Mask GBuffer";
             stencilWriteMaskWaterVar.hidden = true;
             stencilWriteMaskWaterVar.floatType = FloatType.Default;
-            stencilWriteMaskWaterVar.value = (int)(StencilUsage.WaterSurface | StencilUsage.ExcludeFromTAA);
+            stencilWriteMaskWaterVar.value = (int)(StencilUsage.WaterSurface | StencilUsage.ExcludeFromTUAndAA);
             stencilWriteMaskWaterVar.overrideHLSLDeclaration = true;
             stencilWriteMaskWaterVar.hlslDeclarationOverride = HLSLDeclaration.Global;
             stencilWriteMaskWaterVar.generatePropertyBlock = false;

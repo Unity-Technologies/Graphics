@@ -172,6 +172,8 @@ namespace UnityEngine.Rendering.Universal
         internal static bool cameraStackRequiresDepthForPostprocessing = false;
 
         internal static RenderGraph s_RenderGraph;
+        internal static RTHandleResourcePool s_RTHandlePool;
+
         private static bool useRenderGraph;
 
         internal bool apvIsEnabled = false;
@@ -202,7 +204,8 @@ namespace UnityEngine.Rendering.Universal
 
             // Initial state of the RTHandle system.
             // We initialize to screen width/height to avoid multiple realloc that can lead to inflated memory usage (as releasing of memory is delayed).
-            RTHandles.Initialize(Screen.width, Screen.height);
+            // Note: Use legacy DR control. Can be removed once URP integrates with core package DynamicResolutionHandler
+            RTHandles.Initialize(Screen.width, Screen.height, useLegacyDynamicResControl: true);
 
             GraphicsSettings.useScriptableRenderPipelineBatching = asset.useSRPBatcher;
 
@@ -236,6 +239,8 @@ namespace UnityEngine.Rendering.Universal
             s_RenderGraph = new RenderGraph("URPRenderGraph");
             useRenderGraph = false;
 
+            s_RTHandlePool = new RTHandleResourcePool();
+
             DebugManager.instance.RefreshEditor();
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
@@ -249,11 +254,9 @@ namespace UnityEngine.Rendering.Universal
             if (apvIsEnabled)
             {
                 var pvr = ProbeReferenceVolume.instance;
-                var globalSettings = UniversalRenderPipelineGlobalSettings.instance;
                 ProbeReferenceVolume.instance.Initialize(new ProbeVolumeSystemParameters
                 {
                     memoryBudget = asset.probeVolumeMemoryBudget,
-                    blendingMemoryBudget = asset.probeVolumeBlendingMemoryBudget,
                     probeDebugShader = asset.scriptableRendererData.probeVolumeResources.probeVolumeDebugShader,
                     fragmentationDebugShader = asset.scriptableRendererData.probeVolumeResources.probeVolumeFragmentationDebugShader,
                     probeSamplingDebugShader = asset.scriptableRendererData.probeVolumeResources.probeVolumeSamplingDebugShader,
@@ -261,14 +264,13 @@ namespace UnityEngine.Rendering.Universal
                     probeSamplingDebugTexture = asset.scriptableRendererData.probeVolumeResources.probeSamplingDebugTexture,
                     offsetDebugShader = asset.scriptableRendererData.probeVolumeResources.probeVolumeOffsetDebugShader,
                     scenarioBlendingShader = null, // Disable this since it requires compute 'data.probeVolumeResources.probeVolumeBlendStatesCS,'
-                    sceneData = asset.GetOrCreateAPVSceneData(),
+                    sceneData = m_GlobalSettings.GetOrCreateAPVSceneData(),
                     shBands = asset.probeVolumeSHBands,
-                    supportsRuntimeDebug = Application.isEditor || !globalSettings.stripDebugVariants,
+                    supportsRuntimeDebug = Application.isEditor || !m_GlobalSettings.stripDebugVariants,
                     supportGPUStreaming = asset.supportProbeVolumeStreaming,
                     supportDiskStreaming = false,
                     supportScenarios = false
                 });
-                SupportedRenderingFeatures.active.overridesLightProbeSystemWarningMessage = "This Light Probe system is not active because the pipeline uses Probe Volumes and the systems cannot co-exist.\nTo disable Probe Volumes make sure the feature is disabled in the lighting section of the active URP Asset.";
             }
         }
 
@@ -299,6 +301,8 @@ namespace UnityEngine.Rendering.Universal
             s_RenderGraph.Cleanup();
             s_RenderGraph = null;
 
+            s_RTHandlePool.Cleanup();
+            s_RTHandlePool = null;
 #if UNITY_EDITOR
             SceneViewDrawMode.ResetDrawMode();
 #endif
@@ -427,6 +431,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             s_RenderGraph.EndFrame();
+            s_RTHandlePool.PurgeUnusedResources(Time.frameCount);
 
 #if UNITY_2021_1_OR_NEWER
             using (new ProfilingScope(Profiling.Pipeline.endContextRendering))
@@ -661,8 +666,7 @@ namespace UnityEngine.Rendering.Universal
             s_RenderGraph.NativeRenderPassesEnabled = false;
             Debug.LogWarning("The native render pass compiler is disabled. Use this for debugging only. Mobile performance may be sub-optimal.");
 #else
-            bool platformNativeRenderpassIsBroken = SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D12; 
-            s_RenderGraph.NativeRenderPassesEnabled = renderer.supportsNativeRenderPassRendergraphCompiler && !platformNativeRenderpassIsBroken;
+            s_RenderGraph.NativeRenderPassesEnabled = renderer.supportsNativeRenderPassRendergraphCompiler;
 #endif
             bool isSceneViewCamera = cameraData.isSceneViewCamera;
 
@@ -1887,14 +1891,18 @@ namespace UnityEngine.Rendering.Universal
 
             return hdrDisplayOutputActive;
         }
+        
+        // We only want to enable HDR Output for the game view once
+        // since the game itself might want to control this
+        internal bool enableHDROnce = true;
 
         /// <summary>
         /// Configures the render pipeline to render to HDR output or disables HDR output.
         /// </summary>
 #if UNITY_2021_1_OR_NEWER
-        static void SetHDRState(List<Camera> cameras)
+        void SetHDRState(List<Camera> cameras)
 #else
-        static void SetHDRState(Camera[] cameras)
+        void SetHDRState(Camera[] cameras)
 #endif
         {
             bool hdrOutputActive = HDROutputSettings.main.available && HDROutputSettings.main.active;
@@ -1923,10 +1931,11 @@ namespace UnityEngine.Rendering.Universal
                     requestedHDRModeChange = hdrOutputActive;
                     HDROutputSettings.main.RequestHDRModeChange(false);
                 }
-                else
+                else if (enableHDROnce)
                 {
                     requestedHDRModeChange = !hdrOutputActive;
                     HDROutputSettings.main.RequestHDRModeChange(true);
+                    enableHDROnce = false;
                 }
             }
 

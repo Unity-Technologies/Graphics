@@ -166,7 +166,7 @@ namespace UnityEditor.VFX
             var particleData = context.GetData() as VFXDataParticle;
             var systemUniformMapper = particleData.systemUniformMapper;
             var graphValuesLayout = particleData.graphValuesLayout;
-            taskData.uniformMapper.OverrideNamesWithOther(systemUniformMapper);
+            taskData.uniformMapper.OverrideUniformsNamesWithOther(systemUniformMapper);
 
             // SRP Common Include
             srpCommonInclude = new AdditionalCommandDescriptor("VFXSRPCommonInclude", string.Format("#include \"{0}\"", srp.runtimePath + "/VFXCommon.hlsl"));

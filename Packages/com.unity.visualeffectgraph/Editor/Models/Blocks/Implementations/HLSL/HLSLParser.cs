@@ -176,9 +176,10 @@ namespace UnityEditor.VFX.Block
 
         public static IEnumerable<HLSLFunctionParameter> Parse(string hlsl, Dictionary<string, string> doc)
         {
-            foreach (var m in s_ParametersParser.Matches(hlsl.Trim()))
+            var matches = s_ParametersParser.Matches(hlsl.Trim());
+            for (var i = 0; i < matches.Count; i++)
             {
-                var match = (Match)m;
+                var match = matches[i];
                 yield return new HLSLFunctionParameter(
                     match.Groups["access"].Value,
                     match.Groups["type"].Value,
@@ -215,7 +216,7 @@ namespace UnityEditor.VFX.Block
         private static readonly string s_AttributeWritePattern = @"{0}.(?<name>\w+)(?:\.\w)?\s*(?<op>[\/\-+*%&\|\^]?=[^=]|(\+\+|\-\-|<<=|>>=))";
         // Simply match lines where a 'return' statement is used
         // Capture the function documentation, then return type then capture the function name then capture the function parameters and each body line
-        static readonly Regex s_FunctionParser = new Regex(@"(?<doc>(^/{3}.*\n)*)(?<returnType>\w+)\s+(?<name>\w+)[\s\r\n]*\((?<parameters>[^\)]+)\)[\s\r\n]*{(?<line>[^{}]*({[^{}]*}[^{}]*?)*)}", RegexOptions.Compiled | RegexOptions.Multiline);
+        static readonly Regex s_FunctionParser;
         // Capture VFXRAND and VFXFIXED_RAND patterns
         static readonly Regex s_RandMatcher = new Regex(@"VFX(?<fixed>FIXED_)?RAND\d?", RegexOptions.Compiled | RegexOptions.Multiline);
         // Look for all lines starting with /// then capture the parameter name and then the description (used as tooltip)
@@ -225,19 +226,25 @@ namespace UnityEditor.VFX.Block
 
         private List<HLSLFunctionParameter> m_Inputs;
 
+        static HLSLFunction()
+        {
+            var supportedReturnTypes = string.Join("|", HLSLParser.s_KnownTypes.Keys);
+            var pattern = @"^(?<doc>(^/{3}.*\n)*)(?<returnType>" + supportedReturnTypes + @")\s+(?<name>\w+)\((?<parameters>[^\)]+)\)\s*";
+            s_FunctionParser = new Regex(pattern, RegexOptions.Compiled | RegexOptions.Multiline);
+        }
+
         public static IEnumerable<HLSLFunction> Parse(string hlsl)
         {
-            foreach (var m in s_FunctionParser.Matches(hlsl))
+            var matches = s_FunctionParser.Matches(hlsl.Trim());
+            for (var i = 0; i < matches.Count; i++)
             {
-                var match = (Match)m;
+                var match = matches[i];
                 var isHidden = s_HiddenTagParser.IsMatch(match.Groups["doc"].Value);
                 if (!isHidden)
                 {
-                    var body = new StringBuilder();
-                    foreach (var line in match.Groups["line"].Captures)
-                    {
-                        body.Append(line);
-                    }
+                    var bodyStartIndex = match.Index + match.Length;
+                    var bodyEndIndex = (i + 1) < matches.Count ? matches[i + 1].Index - 1 : hlsl.Length - 1;
+                    var body = hlsl.Substring(bodyStartIndex, bodyEndIndex - bodyStartIndex + 1).TrimEnd();
 
                     yield return new HLSLFunction(
                         match.Index,
@@ -245,7 +252,7 @@ namespace UnityEditor.VFX.Block
                         match.Groups["name"].Value,
                         match.Groups["returnType"].Value,
                         match.Groups["parameters"].Value,
-                        body.ToString().TrimEnd());
+                        body);
                 }
             }
         }
@@ -282,10 +289,7 @@ namespace UnityEditor.VFX.Block
 
             transformedBody.AppendJoin(", ", inputs);
             transformedBody.AppendLine(")");
-            transformedBody.AppendLine("{");
-
-            transformedBody.AppendJoin("\n", body);
-            transformedBody.AppendLine("\n}");
+            transformedBody.AppendLine(body);
 
             return transformedBody.ToString();
         }
@@ -424,7 +428,7 @@ namespace UnityEditor.VFX.Block
 
     static class HLSLParser
     {
-        static readonly Dictionary<string, Type> s_KnownTypes = new()
+        public static readonly Dictionary<string, Type> s_KnownTypes = new()
         {
             { "void", typeof(void) },
             { "float", typeof(float) },

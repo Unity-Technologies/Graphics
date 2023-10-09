@@ -104,12 +104,9 @@ Shader "Hidden/HDRP/Sky/PbrSky"
                 float3 gBrdf = INV_PI * albedo;
 
                 // Shade the ground.
-                for (uint i = 0; i < _DirectionalLightCount; i++)
+                for (uint i = 0; i < _CelestialLightCount; i++)
                 {
-                    DirectionalLightData light = _DirectionalLightDatas[i];
-
-                    // Use scalar or integer cores (more efficient).
-                    bool interactsWithSky = asint(light.distanceFromCamera) >= 0;
+                    CelestialBodyData light = _CelestialBodyDatas[i];
 
                     float3 L          = -light.forward.xyz;
                     float3 intensity  = light.color.rgb;

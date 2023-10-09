@@ -595,7 +595,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (lensFlareScreenSpace)
                 {
-                    bloomTexture = LensFlareScreenSpacePass(renderGraph, hdCamera, source, screenSpaceLensFlareBloomMipTexture);
+                    bloomTexture = LensFlareScreenSpacePass(renderGraph, hdCamera, source, bloomTexture, screenSpaceLensFlareBloomMipTexture);
                 }
 
                 source = LensFlareDataDrivenPass(renderGraph, hdCamera, source, depthBufferMipChain, sunOcclusionTexture, taaEnabled);
@@ -709,8 +709,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     (DLSSColorMaskPassData data, RenderGraphContext ctx) =>
                     {
                         Rect targetViewport = new Rect(0.0f, 0.0f, data.destWidth, data.destHeight);
-                        data.colorMaskMaterial.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.ExcludeFromTAA);
-                        data.colorMaskMaterial.SetInt(HDShaderIDs._StencilRef, (int)StencilUsage.ExcludeFromTAA);
+                        data.colorMaskMaterial.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.ExcludeFromTUAndAA);
+                        data.colorMaskMaterial.SetInt(HDShaderIDs._StencilRef, (int)StencilUsage.ExcludeFromTUAndAA);
                         ctx.cmd.SetViewport(targetViewport);
                         ctx.cmd.DrawProcedural(Matrix4x4.identity, data.colorMaskMaterial, 0, MeshTopology.Triangles, 3, 1, null);
                     });
@@ -1650,7 +1650,7 @@ namespace UnityEngine.Rendering.HighDefinition
             const float offset = postDofMin - TAABaseBlendFactorMin * scale;
             float taaBaseBlendFactor = postDoF ? camera.taaBaseBlendFactor * scale + offset : camera.taaBaseBlendFactor;
 
-            passData.taaParameters1 = new Vector4(camera.camera.cameraType == CameraType.SceneView ? 0.2f : 1.0f - taaBaseBlendFactor, taaSampleWeights[0], (int)StencilUsage.ExcludeFromTAA, historyContrastLerp);
+            passData.taaParameters1 = new Vector4(camera.camera.cameraType == CameraType.SceneView ? 0.2f : 1.0f - taaBaseBlendFactor, taaSampleWeights[0], (int)StencilUsage.ExcludeFromTUAndAA, historyContrastLerp);
 
             passData.taaFilterWeights = taaSampleWeights;
 
@@ -1825,8 +1825,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         }
 
                         var mpb = ctx.renderGraphPool.GetTempMaterialPropertyBlock();
-                        mpb.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.ExcludeFromTAA);
-                        mpb.SetInt(HDShaderIDs._StencilRef, (int)StencilUsage.ExcludeFromTAA);
+                        mpb.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.ExcludeFromTUAndAA);
+                        mpb.SetInt(HDShaderIDs._StencilRef, (int)StencilUsage.ExcludeFromTUAndAA);
                         mpb.SetTexture(HDShaderIDs._CameraMotionVectorsTexture, data.motionVecTexture);
                         mpb.SetTexture(HDShaderIDs._InputTexture, source);
                         mpb.SetTexture(HDShaderIDs._InputHistoryTexture, data.prevHistory);
@@ -3446,7 +3446,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public LensFlareScreenSpaceParameters parameters;
             public TextureHandle source;
-            public TextureHandle bloomTexture;
+            public TextureHandle originalBloomTexture;
+            public TextureHandle screenSpaceLensFlareBloomMipTexture;
             public TextureHandle result;
             public TextureHandle streakTmpTexture;
             public TextureHandle streakTmpTexture2;
@@ -3474,24 +3475,24 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_LensFlareScreenSpace.secondaryFlareIntensity.value,
                 m_LensFlareScreenSpace.warpedFlareIntensity.value);
             parameters.lensFlareScreenSpaceParameters2 = new Vector4(
-                Mathf.Pow(m_LensFlareScreenSpace.vignetteEffect.value, 0.25f),
+                m_LensFlareScreenSpace.vignetteEffect.value,
                 m_LensFlareScreenSpace.startingPosition.value,
                 m_LensFlareScreenSpace.scale.value,
                 0); //Free slot, Not used
             parameters.lensFlareScreenSpaceParameters3 = new Vector4(
                 m_LensFlareScreenSpace.samples.value,
                 m_LensFlareScreenSpace.sampleDimmer.value,
-                m_LensFlareScreenSpace.chromaticAbberationIntensity.value / 20f,
+                m_LensFlareScreenSpace.chromaticAbberationIntensity.value,
                 m_LensFlareScreenSpace.chromaticAbberationSampleCount.value);
             parameters.lensFlareScreenSpaceParameters4 = new Vector4(
                 m_LensFlareScreenSpace.streaksIntensity.value,
-                m_LensFlareScreenSpace.streaksLength.value * 10,
-                m_LensFlareScreenSpace.streaksOrientation.value / 90f,
+                m_LensFlareScreenSpace.streaksLength.value,
+                m_LensFlareScreenSpace.streaksOrientation.value,
                 m_LensFlareScreenSpace.streaksThreshold.value);
             parameters.lensFlareScreenSpaceParameters5 = new Vector4(
                 ratio,
-                1.0f / m_LensFlareScreenSpace.warpedFlareScale.value.x,
-                1.0f / m_LensFlareScreenSpace.warpedFlareScale.value.y,
+                m_LensFlareScreenSpace.warpedFlareScale.value.x,
+                m_LensFlareScreenSpace.warpedFlareScale.value.y,
                 0); //Free slot, not used.
 
             return parameters;
@@ -3510,7 +3511,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool debugView;
         }
 
-        TextureHandle LensFlareScreenSpacePass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source, TextureHandle bloomTexture)
+        TextureHandle LensFlareScreenSpacePass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source, TextureHandle originalBloomTexture, TextureHandle screenSpaceLensFlareBloomMipTexture)
         {
             TextureHandle result = renderGraph.defaultResources.blackTextureXR;
 
@@ -3523,7 +3524,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.parameters = PrepareLensFlareScreenSpaceParameters(ratio, tintColor);
                 passData.viewport = postProcessViewportSize;
                 passData.hdCamera = hdCamera;
-                passData.bloomTexture = builder.ReadWriteTexture(bloomTexture);
+                passData.screenSpaceLensFlareBloomMipTexture = builder.ReadWriteTexture(screenSpaceLensFlareBloomMipTexture);
+                passData.originalBloomTexture = builder.ReadWriteTexture(originalBloomTexture);
 
                 int width = Mathf.Max(1, passData.viewport.x / ratio);
                 int height = Mathf.Max(1, passData.viewport.y / ratio);
@@ -3547,15 +3549,14 @@ namespace UnityEngine.Rendering.HighDefinition
                         float width = (float)data.viewport.x;
                         float height = (float)data.viewport.y;
 
-                        ctx.cmd.SetGlobalTexture(HDShaderIDs._BloomTexture, data.bloomTexture);
-
                         LensFlareCommonSRP.DoLensFlareScreenSpaceCommon(
                             data.parameters.lensFlareScreenSpaceShader,
                             data.hdCamera.camera,
                             width,
                             height,
                             data.parameters.tintColor,
-                            data.bloomTexture,
+                            data.originalBloomTexture,
+                            data.screenSpaceLensFlareBloomMipTexture,
                             data.parameters.lensFlareScreenSpaceSpectralLut,
                             data.streakTmpTexture,
                             data.streakTmpTexture2,
@@ -3566,22 +3567,11 @@ namespace UnityEngine.Rendering.HighDefinition
                             data.parameters.lensFlareScreenSpaceParameters5,
                             ctx.cmd,
                             data.result,
-                            HDShaderIDs._BloomTexture,
-                            HDShaderIDs._LensFlareScreenSpaceResultTexture,
-                            HDShaderIDs._LensFlareScreenSpaceSpectralLut,
-                            HDShaderIDs._LensFlareScreenSpaceStreakTex,
-                            HDShaderIDs._LensFlareScreenSpaceMipLevel,
-                            HDShaderIDs._LensFlareScreenSpaceTintColor,
-                            HDShaderIDs._LensFlareScreenSpaceParams1,
-                            HDShaderIDs._LensFlareScreenSpaceParams2,
-                            HDShaderIDs._LensFlareScreenSpaceParams3,
-                            HDShaderIDs._LensFlareScreenSpaceParams4,
-                            HDShaderIDs._LensFlareScreenSpaceParams5,
                             data.parameters.debugView);
                     });
 
                 PushFullScreenDebugTexture(renderGraph, passData.result, hdCamera.postProcessRTScales, FullScreenDebugMode.LensFlareScreenSpace);
-                result = passData.bloomTexture;
+                result = passData.originalBloomTexture;
             }
             return result;
         }
@@ -4472,8 +4462,8 @@ namespace UnityEngine.Rendering.HighDefinition
         static void GetHDROutputParameters(HDROutputUtils.HDRDisplayInformation hdrDisplayInformation, ColorGamut hdrDisplayColorGamut, Tonemapping tonemappingComponent, out Vector4 hdrOutputParameters1, out Vector4 hdrOutputParameters2)
         {
             ColorGamut gamut = hdrDisplayColorGamut;
-            var minNits = hdrDisplayInformation.minToneMapLuminance;
-            var maxNits = hdrDisplayInformation.maxToneMapLuminance;
+            var minNits = (float)hdrDisplayInformation.minToneMapLuminance;
+            var maxNits = (float)hdrDisplayInformation.maxToneMapLuminance;
             var paperWhite = hdrDisplayInformation.paperWhiteNits;
             int eetfMode = 0;
             float hueShift = 0.0f;
@@ -4519,8 +4509,8 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             if (!tonemappingComponent.detectBrightnessLimits.value)
             {
-                minNits = (int)tonemappingComponent.minNits.value;
-                maxNits = (int)tonemappingComponent.maxNits.value;
+                minNits = tonemappingComponent.minNits.value;
+                maxNits = tonemappingComponent.maxNits.value;
             }
 
             hdrOutputParameters1 = new Vector4(minNits, maxNits, paperWhite, 1f / paperWhite);
@@ -5127,8 +5117,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.destination = builder.WriteTexture(dstTex);
 
                 passData.sharpenCS.shaderKeywords = null;
-                if (hdCamera.taaRingingReduction > 0)
-                    passData.sharpenCS.EnableKeyword("CLAMP_RINGING");
+                CoreUtils.SetKeyword(passData.sharpenCS, "ENABLE_ALPHA", PostProcessEnableAlpha(hdCamera));
+                CoreUtils.SetKeyword(passData.sharpenCS, "CLAMP_RINGING", hdCamera.taaRingingReduction > 0);
 
                 builder.SetRenderFunc(
                         (SharpenData data, RenderGraphContext ctx) =>

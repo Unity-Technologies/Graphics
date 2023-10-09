@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.Universal.Internal;
@@ -474,13 +475,24 @@ namespace UnityEngine.Rendering.Universal
             if (!CanCopyDepth(ref cameraData))
                 return false;
 
+            // Depth Priming causes rendering errors with WebGL on Apple Arm64 GPUs.
+            bool isNotWebGL = !IsWebGL();
             bool depthPrimingRequested = (m_DepthPrimingRecommended && m_DepthPrimingMode == DepthPrimingMode.Auto) || m_DepthPrimingMode == DepthPrimingMode.Forced;
             bool isForwardRenderingMode = m_RenderingMode == RenderingMode.Forward || m_RenderingMode == RenderingMode.ForwardPlus;
             bool isFirstCameraToWriteDepth = cameraData.renderType == CameraRenderType.Base || cameraData.clearDepth;
             // Enabled Depth priming when baking Reflection Probes causes artefacts (UUM-12397)
             bool isNotReflectionCamera = cameraData.cameraType != CameraType.Reflection;
 
-            return  depthPrimingRequested && isForwardRenderingMode && isFirstCameraToWriteDepth && isNotReflectionCamera;
+            return  depthPrimingRequested && isForwardRenderingMode && isFirstCameraToWriteDepth && isNotReflectionCamera && isNotWebGL;
+        }
+
+        bool IsWebGL()
+        {
+#if PLATFORM_WEBGL
+            return IsGLESDevice();
+#else
+            return false;
+#endif
         }
 
         bool IsGLESDevice()
@@ -582,8 +594,22 @@ namespace UnityEngine.Rendering.Universal
             if (IsGLDevice())
                 requiresRenderingLayer = false;
 
-            bool renderingLayerProvidesByDepthNormalPass = requiresRenderingLayer && renderingLayersEvent == RenderingLayerUtils.Event.DepthNormalPrePass;
-            bool renderingLayerProvidesRenderObjectPass = requiresRenderingLayer && renderingModeActual != RenderingMode.Deferred && renderingLayersEvent == RenderingLayerUtils.Event.Opaque;
+            bool renderingLayerProvidesByDepthNormalPass = false;
+            bool renderingLayerProvidesRenderObjectPass = false;
+            if (requiresRenderingLayer && renderingModeActual != RenderingMode.Deferred)
+            {
+                switch (renderingLayersEvent)
+                {
+                    case RenderingLayerUtils.Event.DepthNormalPrePass:
+                        renderingLayerProvidesByDepthNormalPass = true;
+                        break;
+                    case RenderingLayerUtils.Event.Opaque:
+                        renderingLayerProvidesRenderObjectPass = true;
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }
 
             // Enable depth normal prepass
             if (renderingLayerProvidesByDepthNormalPass)
@@ -758,16 +784,22 @@ namespace UnityEngine.Rendering.Universal
                     targetId = cameraData.xr.renderTarget;
 #endif
 
-                if (m_TargetColorHandle == null || m_TargetColorHandle.nameID != targetId)
+                if (m_TargetColorHandle == null)
                 {
-                    m_TargetColorHandle?.Release();
                     m_TargetColorHandle = RTHandles.Alloc(targetId);
                 }
-
-                if (m_TargetDepthHandle == null || m_TargetDepthHandle.nameID != targetId)
+                else if (m_TargetColorHandle.nameID != targetId)
                 {
-                    m_TargetDepthHandle?.Release();
+                    RTHandleStaticHelpers.SetRTHandleUserManagedWrapper(ref m_TargetColorHandle, targetId);
+                }
+
+                if (m_TargetDepthHandle == null)
+                {
                     m_TargetDepthHandle = RTHandles.Alloc(targetId);
+                }
+                else if (m_TargetDepthHandle.nameID != targetId)
+                {
+                    RTHandleStaticHelpers.SetRTHandleUserManagedWrapper(ref m_TargetDepthHandle, targetId);
                 }
 
                 // Doesn't create texture for Overlay cameras as they are already overlaying on top of created textures.
@@ -875,7 +907,7 @@ namespace UnityEngine.Rendering.Universal
                 cmd.Clear();
             }
 
-            if (requiresRenderingLayer)
+            if (requiresRenderingLayer || (renderingModeActual == RenderingMode.Deferred && m_DeferredLights.UseRenderingLayers))
             {
                 ref var renderingLayersTexture = ref m_DecalLayersTexture;
                 string renderingLayersTextureName = "_CameraRenderingLayersTexture";
@@ -1386,6 +1418,7 @@ namespace UnityEngine.Rendering.Universal
                 applyAdditionalShadow ? m_AdditionalLightsShadowCasterPass : null,
                 hasDepthPrepass,
                 hasNormalPrepass,
+                hasRenderingLayerPrepass,
                 m_DepthTexture,
                 m_ActiveCameraDepthAttachment,
                 m_ActiveCameraColorAttachment

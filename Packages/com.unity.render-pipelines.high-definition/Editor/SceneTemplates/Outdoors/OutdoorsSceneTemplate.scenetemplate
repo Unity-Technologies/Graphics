@@ -23,6 +23,8 @@ MonoBehaviour:
   dependencies:
   - dependency: {fileID: 11400000, guid: 274ed3d2d52027d4a96b38fff65dd32e, type: 2}
     instantiationMode: 0
+  - dependency: {fileID: 2800000, guid: cce9f0cf7e606e547a7317aedb4ad6d9, type: 3}
+    instantiationMode: 1
   - dependency: {fileID: 2800000, guid: 32b23d5d74f3aee4f9364e34e2f59379, type: 3}
     instantiationMode: 1
   - dependency: {fileID: 2800000, guid: 31f47d3807109374ab564767abda71ab, type: 3}
@@ -41,7 +43,7 @@ Texture2D:
     serializedVersion: 2
     Hash: c4d0ded1438b4f464d4f366fe18924e6
   m_IsAlphaChannelOptional: 1
-  serializedVersion: 2
+  serializedVersion: 3
   m_Width: 1024
   m_Height: 512
   m_CompleteImageSize: 349544

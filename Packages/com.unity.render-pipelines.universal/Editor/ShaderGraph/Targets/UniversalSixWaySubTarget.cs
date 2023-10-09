@@ -107,20 +107,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         }
 
-        [GenerateBlocks]
-        public struct SurfaceDescriptionSixWay
-        {
-            public static string name = "SurfaceDescription";
-
-            public static BlockFieldDescriptor MapRightTopBack = new BlockFieldDescriptor(SurfaceDescriptionSixWay.name, "rightTopBack", "Right Top Back", "SURFACEDESCRIPTION_MAP_RTBK",
-            new ColorControl(UnityEngine.Color.grey, false), ShaderStage.Fragment);
-
-            public static BlockFieldDescriptor MapLeftBottomFront = new BlockFieldDescriptor(SurfaceDescriptionSixWay.name, "leftBottomFront", "Left Bottom Front", "SURFACEDESCRIPTION_MAP_LBTF",
-                new ColorControl(UnityEngine.Color.grey, false), ShaderStage.Fragment);
-
-            public static BlockFieldDescriptor AbsorptionStrength = new BlockFieldDescriptor(SurfaceDescriptionSixWay.name, "absorptionStrength", "Color Absorption Strength", "SURFACEDESCRIPTION_COLOR_ABSORPTION_STRENGTH",
-                new FloatControl(0.5f), ShaderStage.Fragment);
-        }
         public struct Varyings
         {
             public static string name = "Varyings";
@@ -140,9 +126,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             context.AddBlock(BlockFields.SurfaceDescription.Emission);
             context.AddBlock(BlockFields.SurfaceDescription.Occlusion);
-            context.AddBlock(SurfaceDescriptionSixWay.MapRightTopBack);
-            context.AddBlock(SurfaceDescriptionSixWay.MapLeftBottomFront);
-            context.AddBlock(SurfaceDescriptionSixWay.AbsorptionStrength, useColorAbsorption || target.allowMaterialOverride);
+            context.AddBlock(BlockFields.SurfaceDescription.MapRightTopBack);
+            context.AddBlock(BlockFields.SurfaceDescription.MapLeftBottomFront);
+            context.AddBlock(BlockFields.SurfaceDescription.AbsorptionStrength, useColorAbsorption || target.allowMaterialOverride);
 
             // when the surface options are material controlled, we must show all of these blocks
             // when target controlled, we can cull the unnecessary blocks
@@ -157,7 +143,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             if (target.allowMaterialOverride)
             {
                 collector.AddFloatProperty(Property.CastShadows, target.castShadows ? 1.0f : 0.0f);
-                collector.AddFloatProperty(Property.ReceiveShadows, target.receiveShadows ? 1.0f : 0.0f);
+                collector.AddToggleProperty(Property.ReceiveShadows, target.receiveShadows);
 
                 // setup properties using the defaults
                 collector.AddFloatProperty(Property.SurfaceType, (float)target.surfaceType);
@@ -392,9 +378,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static readonly BlockFieldDescriptor[] FragmentLit = new BlockFieldDescriptor[]
             {
                 BlockFields.SurfaceDescription.BaseColor,
-                SurfaceDescriptionSixWay.MapRightTopBack,
-                SurfaceDescriptionSixWay.MapLeftBottomFront,
-                SurfaceDescriptionSixWay.AbsorptionStrength,
+                BlockFields.SurfaceDescription.MapRightTopBack,
+                BlockFields.SurfaceDescription.MapLeftBottomFront,
+                BlockFields.SurfaceDescription.AbsorptionStrength,
                 BlockFields.SurfaceDescription.Emission,
                 BlockFields.SurfaceDescription.Occlusion,
                 BlockFields.SurfaceDescription.Alpha,
@@ -485,6 +471,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.AdditionalLights },
                 { CoreKeywordDescriptors.AdditionalLightShadows },
                 { CoreKeywordDescriptors.ShadowsSoft },
+                { CoreKeywordDescriptors.ShadowsSoftLow },
+                { CoreKeywordDescriptors.ShadowsSoftMedium },
+                { CoreKeywordDescriptors.ShadowsSoftHigh },
                 { CoreKeywordDescriptors.ShadowsShadowmask },
                 { CoreKeywordDescriptors.LightLayers },
                 { CoreKeywordDescriptors.DebugDisplay },

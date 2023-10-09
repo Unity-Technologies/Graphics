@@ -333,7 +333,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 SubShaderDescriptor result = new SubShaderDescriptor()
                 {
                     pipelineTag = UniversalTarget.kPipelineTag,
-                    customTags = UniversalTarget.kLitMaterialTypeTag,
+                    customTags = complexLit ? UniversalTarget.kComplexLitMaterialTypeTag : UniversalTarget.kLitMaterialTypeTag,
                     renderType = renderType,
                     renderQueue = renderQueue,
                     disableBatchingTag = disableBatchingTag,
@@ -346,8 +346,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 else
                     result.passes.Add(LitPasses.Forward(target, workflowMode, blendModePreserveSpecular, CorePragmas.Forward, LitKeywords.Forward));
 
-                if (!complexLit)
-                    result.passes.Add(LitPasses.GBuffer(target, workflowMode, blendModePreserveSpecular));
+                // ForwardOnly ComplexLit fills GBuffer too for potential custom usage of the GBuffer.
+                result.passes.Add(LitPasses.GBuffer(target, workflowMode, blendModePreserveSpecular));
 
                 // cull the shadowcaster pass if we know it will never be used
                 if (target.castShadows || target.allowMaterialOverride)
@@ -839,6 +839,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.ReflectionProbeBlending },
                 { CoreKeywordDescriptors.ReflectionProbeBoxProjection },
                 { CoreKeywordDescriptors.ShadowsSoft },
+                { CoreKeywordDescriptors.ShadowsSoftLow },
+                { CoreKeywordDescriptors.ShadowsSoftMedium },
+                { CoreKeywordDescriptors.ShadowsSoftHigh },
                 { CoreKeywordDescriptors.LightmapShadowMixing },
                 { CoreKeywordDescriptors.ShadowsShadowmask },
                 { CoreKeywordDescriptors.DBuffer },
@@ -857,6 +860,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.ReflectionProbeBlending },
                 { CoreKeywordDescriptors.ReflectionProbeBoxProjection },
                 { CoreKeywordDescriptors.ShadowsSoft },
+                { CoreKeywordDescriptors.ShadowsSoftLow },
+                { CoreKeywordDescriptors.ShadowsSoftMedium },
+                { CoreKeywordDescriptors.ShadowsSoftHigh },
                 { CoreKeywordDescriptors.LightmapShadowMixing },
                 { CoreKeywordDescriptors.ShadowsShadowmask },
                 { CoreKeywordDescriptors.MixedLightingSubtractive },

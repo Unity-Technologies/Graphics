@@ -144,6 +144,27 @@ namespace UnityEditor.VFX
         }
     }
 
+    class VFXExpressionExtractScaledPixelDimensionsFromMainCamera : VFXExpression
+    {
+        public VFXExpressionExtractScaledPixelDimensionsFromMainCamera() : base(Flags.InvalidOnGPU)
+        {
+        }
+
+        public override VFXExpressionOperation operation
+        {
+            get { return VFXExpressionOperation.ExtractScaledPixelDimensionsFromMainCamera; }
+        }
+
+        sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
+        {
+            if (Camera.main != null)
+                return VFXValue.Constant(new Vector2(Camera.main.scaledPixelWidth, Camera.main.scaledPixelHeight));
+            else
+                return VFXValue.Constant(CameraType.defaultValue.pixelDimensions);
+        }
+
+    }
+
     class VFXExpressionGetBufferFromMainCamera : VFXExpression
     {
         public VFXExpressionGetBufferFromMainCamera() : this(VFXCameraBufferTypes.None)

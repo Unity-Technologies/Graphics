@@ -30,8 +30,10 @@ namespace UnityEngine.Rendering
         [Serializable]
         struct ObsoleteSerializablePerScenarioDataItem
         {
+#pragma warning disable 649 // is never assigned to, and will always have its default value
             public string scenario;
             public ObsoletePerScenarioData data;
+#pragma warning restore 649
         }
 
         [FormerlySerializedAs("asset")]

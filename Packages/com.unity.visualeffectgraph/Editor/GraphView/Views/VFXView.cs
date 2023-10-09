@@ -867,13 +867,15 @@ namespace UnityEditor.VFX.UI
 
         public bool TryAttachTo(VisualEffect visualEffect, bool showNotification)
         {
-            if (m_Controller == null || visualEffect == null)
+            if (m_Controller == null || m_Controller.graph == null || visualEffect == null)
             {
                 return false;
             }
 
             bool attached = false;
-            if (visualEffect != null && controller?.graph.visualEffectResource.asset == visualEffect.visualEffectAsset)
+
+            VisualEffectAsset controllerAsset = controller.graph.visualEffectResource.asset;
+            if (controllerAsset != null && controllerAsset == visualEffect.visualEffectAsset)
             {
                 attached = m_ComponentBoard.Attach(visualEffect);
             }
@@ -1059,7 +1061,7 @@ namespace UnityEditor.VFX.UI
                 if (e.controller is VFXContextController && e.target is VFXContextUI)
                 {
                     m_ComponentBoard.UpdateEventList();
-                    UpdateSystemNames();
+                    UpdateSystems();
                 }
             }
         }
@@ -1090,6 +1092,7 @@ namespace UnityEditor.VFX.UI
             if (change == VFXViewController.Change.destroy)
             {
                 m_Blackboard.controller = null;
+                m_ComponentBoard.controller = null;
                 controller = null;
                 return;
             }
@@ -1157,7 +1160,7 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
-                VFXSlotContainerEditor.SceneViewVFXSlotContainerOverlay.UpdateFromVFXView(this, Enumerable.Empty<IGizmoController>());
+                VFXSlotContainerEditor.SceneViewVFXSlotContainerOverlay.UpdateFromVFXView(this, null);
                 if (m_NoAssetElement.parent == null)
                 {
                     Add(m_NoAssetElement);
@@ -2812,15 +2815,6 @@ namespace UnityEditor.VFX.UI
             get { return m_Systems.AsReadOnly(); }
         }
 
-        public void UpdateSystemNames()
-        {
-            if (m_Systems != null)
-                foreach (var system in m_Systems)
-                {
-                    system.Update();
-                }
-        }
-
         public void UpdateSystems()
         {
             while (m_Systems.Count() > controller.systems.Count())
@@ -2830,14 +2824,17 @@ namespace UnityEditor.VFX.UI
                 border.RemoveFromHierarchy();
             }
 
-            UpdateSystemNames();
+            foreach (var system in m_Systems)
+            {
+                system.Update();
+            }
 
-            while (m_Systems.Count() < controller.systems.Count())
+            while (m_Systems.Count < controller.systems.Count)
             {
                 VFXSystemBorder border = new VFXSystemBorder();
                 m_Systems.Add(border);
                 AddElement(border);
-                border.controller = controller.systems[m_Systems.Count() - 1];
+                border.controller = controller.systems[m_Systems.Count - 1];
             }
 
             foreach (var context in GetAllContexts())
@@ -3096,15 +3093,20 @@ namespace UnityEditor.VFX.UI
             {
                 if (controller != null && controller.model && attachedComponent != null)
                 {
-                    var controllers = selection
-                        .OfType<IControlledElement<VFXParameterController>>()
-                        .Select(x => x.controller)
-                        .OfType<IGizmoController>()
-                        .Union(selection.OfType<ISettableControlledElement<VFXNodeController>>()
-                            .Select(x => x.controller)
-                            .OfType<IGizmoController>()).ToList();
-
-                    controllers.ForEach(x => x.DrawGizmos(attachedComponent));
+                    var controllers = new List<IGizmoController>();
+                    foreach (var selectable in selection)
+                    {
+                        if (selectable is IControlledElement<VFXParameterController> { controller: IGizmoController gizmoController })
+                        {
+                            gizmoController.DrawGizmos(attachedComponent);
+                            controllers.Add(gizmoController);
+                        }
+                        else if (selectable is ISettableControlledElement<VFXNodeController> { controller: IGizmoController gizmoController2 })
+                        {
+                            gizmoController2.DrawGizmos(attachedComponent);
+                            controllers.Add(gizmoController2);
+                        }
+                    }
 
                     VFXSlotContainerEditor.SceneViewVFXSlotContainerOverlay.UpdateFromVFXView(this, controllers);
                 }

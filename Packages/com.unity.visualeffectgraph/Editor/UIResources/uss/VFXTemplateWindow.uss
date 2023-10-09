@@ -1,3 +1,7 @@
+TreeView.remove-toggle Toggle {
+    display: none;
+}
+
 #SplitPanel {
     flex-grow: 1;
     flex-direction: row;
@@ -13,13 +17,13 @@
 #ListOfTemplatesPanel {
     flex-grow: 1;
     flex-shrink: 0;
+    min-width: 200px;
     background-color: var(--theme-view-background-color);
 
 }
 
 #ListOfTemplates {
     flex-grow: 1;
-    margin-right: 0;
 }
 
 #ListOfTemplates .unity-scroll-view__content-viewport {
@@ -29,6 +33,7 @@
 #DetailsPanel {
     flex-grow: 1;
     flex-shrink: 1;
+    min-width: 200px;
     background-color: var(--unity-theme-view-background-color-lighter);
 }
 
@@ -69,13 +74,12 @@
 }
 
 .vfxtemplate-section {
-    height: 32px;
+    height: auto;
 }
 
 .vfxtemplate-item {
-    margin-left: 16px;
-    margin-right: 16px;
-    height: 64px;
+    margin: 0 16px;
+    height: auto;
 }
 
 .vfxtemplate-section Image {
@@ -91,12 +95,13 @@
 }
 
 .vfxtemplate-section #TemplateName {
-    margin-left: 36px;
+    margin: 3px 0 3px 36px;
 }
 
 #ItemRoot {
     flex-grow: 1;
     flex-direction: row;
+    flex-wrap: wrap;
     margin: 4px 0;
     margin-left: 0;
     border-width: 1px;
@@ -109,14 +114,15 @@
     background-color: rgba(0, 0, 0, 0);
 }
 
-.unity-collection-view__item {
-    height: auto;
+TreeView TemplateContainer {
+    flex-grow: 1;
 }
-.unity-collection-view__item:hover .vfxtemplate-item #ItemRoot {
+
+.vfxtemplate-item.unity-collection-view__item:hover #ItemRoot {
     border-color: var(--unity-colors-input_field-border-hover);
 }
 
-.unity-collection-view__item--selected .vfxtemplate-item  #ItemRoot {
+.vfxtemplate-item.unity-collection-view__item--selected #ItemRoot {
     border-color: var(--unity-colors-highlight-background);
 }
 
@@ -146,6 +152,7 @@
 
 #TemplateName {
     justify-content: flex-start;
+    white-space: normal;
     align-items: auto;
     margin-right: 16px;
     flex-grow: 1;

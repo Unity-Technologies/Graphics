@@ -15,32 +15,42 @@ MonoBehaviour:
   header: 'For this scene to work properly, make sure these settings are enabled:'
   requiredSettings:
   - uiSection: 16
+    uiSubSection: 8
     propertyPath: m_RenderPipelineSettings.supportWater
     message: Enable Water
   - uiSection: 16
+    uiSubSection: 8
     propertyPath: m_RenderPipelineSettings.supportWaterDeformation
     message: Enable Water Deformation
   - uiSection: 16
+    uiSubSection: 8
     propertyPath: m_RenderPipelineSettings.supportWaterFoam
     message: Enable Water Foam
   - uiSection: 16
+    uiSubSection: 8
     propertyPath: m_RenderPipelineSettings.waterCPUSimulation
     message: Enable Scripts Interactions
   - uiSection: 16
+    uiSubSection: 8
     propertyPath: m_RenderPipelineSettings.supportWaterExclusion
     message: Enable Water Exclusion
   - uiSection: 16
+    uiSubSection: 1
     propertyPath: m_RenderPipelineSettings.supportDecalLayers
     message: Enable Decal Layers
   - uiSection: 32
+    uiSubSection: 8
     propertyPath: m_RenderPipelineSettings.supportSSR
     message: Enable SSR
   - uiSection: 32
+    uiSubSection: 8
     propertyPath: m_RenderPipelineSettings.supportSSRTransparent
     message: Enable SSR on Transparent
   - uiSection: 128
+    uiSubSection: -1
     propertyPath: m_RenderPipelineSettings.supportDistortion
     message: Enable Distortion
   - uiSection: 128
+    uiSubSection: 1
     propertyPath: m_RenderPipelineSettings.supportVolumetricClouds
     message: Enable Volumetric Clouds

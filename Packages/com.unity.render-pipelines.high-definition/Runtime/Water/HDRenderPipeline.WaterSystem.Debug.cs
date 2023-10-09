@@ -10,27 +10,24 @@ namespace UnityEngine.Rendering.HighDefinition
         void RenderWaterMaskDebug(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthBuffer, WaterGBuffer waterGBuffer)
         {
             WaterRendering settings = hdCamera.volumeStack.GetComponent<WaterRendering>();
-            if (!ShouldRenderWater(hdCamera))
+            if (!waterGBuffer.debugRequired || !ShouldRenderWater(hdCamera))
                 return;
 
-            if (waterGBuffer.debugRequired)
+            // Grab all the water surfaces in the scene
+            var waterSurfaces = WaterSurface.instancesAsArray;
+            int numWaterSurfaces = WaterSurface.instanceCount;
+
+            for (int surfaceIdx = 0; surfaceIdx < numWaterSurfaces; ++surfaceIdx)
             {
-                // Grab all the water surfaces in the scene
-                var waterSurfaces = WaterSurface.instancesAsArray;
-                int numWaterSurfaces = WaterSurface.instanceCount;
+                // Grab the current water surface
+                WaterSurface currentWater = waterSurfaces[surfaceIdx];
 
-                for (int surfaceIdx = 0; surfaceIdx < numWaterSurfaces; ++surfaceIdx)
-                {
-                    // Grab the current water surface
-                    WaterSurface currentWater = waterSurfaces[surfaceIdx];
+                // If the resources are invalid, we cannot render this surface
+                if (currentWater.debugMode == WaterDebugMode.None)
+                    continue;
 
-                    // If the resources are invalid, we cannot render this surface
-                    if (currentWater.debugMode == WaterDebugMode.None)
-                        continue;
-
-                    // Render the water surface
-                    RenderWaterSurfaceMask(renderGraph, hdCamera, currentWater, settings, surfaceIdx, colorBuffer, depthBuffer);
-                }
+                // Render the water surface
+                RenderWaterSurfaceMask(renderGraph, hdCamera, currentWater, settings, surfaceIdx, colorBuffer, depthBuffer);
             }
         }
 
@@ -48,6 +45,11 @@ namespace UnityEngine.Rendering.HighDefinition
             // Output buffers
             public TextureHandle colorBuffer;
             public TextureHandle depthBuffer;
+
+            // Other resources
+            public BufferHandle indirectBuffer;
+            public BufferHandle patchDataBuffer;
+            public BufferHandle frustumBuffer;
         }
 
         void RenderWaterSurfaceMask(RenderGraph renderGraph, HDCamera hdCamera, WaterSurface currentWater, WaterRendering settings, int surfaceIdx, TextureHandle colorBuffer, TextureHandle depthBuffer)
@@ -74,13 +76,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.additionalDataBuffer = renderGraph.ImportTexture(currentWater.simulation.gpuBuffers.additionalDataBuffer);
                 passData.deformationBuffer = passData.parameters.deformation ? renderGraph.ImportTexture(currentWater.deformationBuffer) : renderGraph.defaultResources.blackTexture;
 
+                // For GPU culling
+                passData.indirectBuffer = renderGraph.ImportBuffer(m_WaterIndirectDispatchBuffer);
+                passData.patchDataBuffer = renderGraph.ImportBuffer(m_WaterPatchDataBuffer);
+                passData.frustumBuffer = renderGraph.ImportBuffer(m_WaterCameraFrustrumBuffer);
+
                 // Request the output textures
                 builder.SetRenderFunc(
                     (WaterRenderingMaskData data, RenderGraphContext ctx) =>
                     {
                         ConstantBuffer.UpdateData(ctx.cmd, data.parameters.waterCB);
                         ConstantBuffer.UpdateData(ctx.cmd, data.parameters.waterRenderingCB);
-                        ConstantBuffer.UpdateData(ctx.cmd, data.parameters.waterDeformationCB);
 
                         // We will be writing directly to the color and depth buffers
                         CoreUtils.SetRenderTarget(ctx.cmd, data.colorBuffer, data.depthBuffer);
@@ -110,7 +116,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         ConstantBuffer.Push(ctx.cmd, data.waterDebugCB, data.parameters.waterMaterial, HDShaderIDs._ShaderVariablesWaterDebug);
 
                         // For the debug mode, we don't bother using the indirect method as we do not care about perf.
-                        DrawWaterSurface(ctx.cmd, data.parameters, k_WaterMaskPass, false, null, null, null);
+                        DrawWaterSurface(ctx.cmd, data.parameters, k_WaterMaskPass, data.patchDataBuffer, data.indirectBuffer, data.frustumBuffer);
 
                         // Reset the keywords
                         ResetWaterShaderKeyword(ctx.cmd);

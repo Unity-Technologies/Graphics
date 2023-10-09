@@ -9,6 +9,32 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [16.0.3] - 2023-09-26
+
+This version is compatible with Unity 2023.2.0b12.
+
+### Added
+- RenderPipelineGraphicsSettings container. That allows stripping of IRenderPipelineGraphicsSettings.
+- Callbacks when RenderPipeline is created or disposed.
+
+### Changed
+- Improved VolumeEditor UI.
+
+### Fixed
+- Fixed console errors when debug actions are removed from Input Manager during play mode.
+- Fixed a crash caused by the Volume Profile context menu in the HDRP or URP Asset.
+- Fixed a stripping.meta corrupted metal file issue.
+
+## [16.0.2] - 2023-06-28
+
+This version is compatible with Unity 2023.2.0a22.
+
+### Fixed
+- Fixed Rendering Debugger runtime UI getting occluded by user UI with sorting order larger than 0.
+- Fixed potentially broken rendering and errors after renaming a VolumeProfile asset.
+- Removed some unexpected SRP changed callback invocations.
+- Fixed HDRP FrameSettings object changes getting lost during editing.
+
 ## [16.0.1] - 2023-05-23
 
 This version is compatible with Unity 2023.2.0a17.

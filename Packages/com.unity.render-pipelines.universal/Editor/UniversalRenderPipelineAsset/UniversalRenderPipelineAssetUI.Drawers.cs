@@ -228,7 +228,6 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUI.indentLevel++;
 
                 EditorGUILayout.PropertyField(serialized.probeVolumeTextureSize, Styles.probeVolumeMemoryBudget);
-                EditorGUILayout.PropertyField(serialized.probeVolumeBlendingTextureSize, Styles.probeVolumeBlendingMemoryBudget);
                 EditorGUILayout.PropertyField(serialized.probeVolumeSHBands, Styles.probeVolumeSHBands);
                 EditorGUILayout.PropertyField(serialized.supportProbeVolumeStreaming, Styles.supportProbeVolumeStreaming);
 
@@ -585,9 +584,10 @@ namespace UnityEditor.Rendering.Universal
                     Styles.volumeProfileContextMenuStyle.Value))
             {
                 var profileEditor = s_VolumeProfileEditor as VolumeProfileEditor;
+                var componentEditors = profileEditor != null ? profileEditor.componentList.editors : null;
                 var srpAsset = serialized.serializedObject.targetObject as UniversalRenderPipelineAsset;
                 var pos = new Vector2(contextMenuButtonRect.x, contextMenuButtonRect.yMax);
-                VolumeProfileUtils.OnVolumeProfileContextClick(pos, srpAsset.volumeProfile, profileEditor.componentList.editors,
+                VolumeProfileUtils.OnVolumeProfileContextClick(pos, srpAsset.volumeProfile, componentEditors,
                     overrideStateOnReset: false,
                     defaultVolumeProfilePath: $"Assets/{srpAsset.name}_VolumeProfile.asset",
                     onNewVolumeProfileCreated: volumeProfile =>

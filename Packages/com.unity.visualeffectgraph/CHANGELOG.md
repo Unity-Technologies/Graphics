@@ -9,6 +9,51 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [16.0.3] - 2023-09-26
+
+This version is compatible with Unity 2023.2.0b12.
+
+### Changed
+- Allows texture types to be used in branch operators
+
+### Fixed
+- Fixed an issue where VFX material indices were not itialized an were invalid if used on Awake.
+- Fixed HDRP Decal Output when system is in world space.
+- VFX Graph
+- Fixed  VFX camera command culling failling when all effects are out of frustum.
+- Fixed undefined behavior of `SpawnerSetAttribute` when an expression is connected to activation slot.
+- Fixed an issue where creating a new Visual Effect Graph instance to overwrite another instance that's already open would open the same view twice and could corrupt related data.
+- Fixed Picking Overlay when the rotation was applied on VisualEffect component.
+- Fixed issue when overwriting an opened VFX asset with a VFX that contains different systems than original file
+- Fixed a performance issue with parameters gizmos
+- Fixed missing gizmo for Position exposed property
+- Keep the built-in templates category always visible when there's no user defined category
+- Template items could have uneven width when the left panel is too small
+- The template item hit box was slightly bigger than its visual representation, now it perfectly match.
+- The right panel (details panel) could be resize to as small as zero width, leading to messy layout. Now it has a minimum width of 200px (like the left panel).
+
+## [16.0.2] - 2023-06-28
+
+This version is compatible with Unity 2023.2.0a22.
+
+### Fixed
+- Fixed a loss of Material Settings when switching between two SRP.
+- Fixed error when trying to open a VFX asset without using an SRP. Note that this does not make VFX Graph supported on BiRP.
+- Fixed a case where more than one **No Asset** window could be opened.
+- Fixed the unexpected listing of a Scene object in the object picker from VFX Graph.
+- Fixed immortal particles so they work properly when instancing is enabled.
+- Fixed an exception while removing a clip event in the Timeline Inspector window.
+- Fixed flickering and glitches when using Volumetric Fog Output on Metal devices.
+- Removed lock capabilities while editing material stored in VisualEffectAsset.
+- Fixes ray tracing shader passes when using Shader Graph and Ray Tracing
+- Fix crash when changing to custom batch capacity in computers with large GPU memory
+- Prevent unexpected border highlight after clicking on VFX toolbar button
+- Fixed several small issues related to the new VFX Template window
+- Crash when converting to subgraph block
+- Exception while convert to subgraph with Range of Parameter
+- Subgraph creation doesn't keep activation slots link
+- Crash while sampling combined or deleted mesh with SampleMesh
+
 ## [16.0.1] - 2023-05-23
 
 This version is compatible with Unity 2023.2.0a17.

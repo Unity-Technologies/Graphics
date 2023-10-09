@@ -6,6 +6,8 @@ using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 
+using ShadingSource = UnityEngine.Rendering.HighDefinition.HDAdditionalLightData.CelestialBodyShadingSource;
+
 namespace UnityEditor.Rendering.HighDefinition
 {
     using CED = CoreEditorDrawer<SerializedHDLight>;
@@ -625,7 +627,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static readonly int k_DiameterPopupWidth = 70;
         static readonly string[] k_DiameterModeNames = new string[] { "Multiply", "Override" };
-        static void AngularDiameterOverrideField(SerializedHDLight serialized)
+        static void AngularDiameterField(SerializedHDLight serialized)
         {
             var rect = EditorGUILayout.GetControlRect();
             rect.xMax -= k_DiameterPopupWidth + 2;
@@ -650,70 +652,84 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUI.EndProperty();
         }
 
-        static readonly GUIContent[] k_BodyTypeNames = new GUIContent[] { new GUIContent("Star"), new GUIContent("Moon") };
-        static void BodyTypeField(SerializedHDLight serialized)
+        static void TexturePropertySingleLine(GUIContent label, SerializedProperty textureProp, SerializedProperty colorProp)
         {
-            var rect = EditorGUILayout.GetControlRect();
-            EditorGUI.BeginProperty(rect, GUIContent.none, serialized.diameterMultiplerMode);
-            int mode = serialized.emissiveLightSource.boolValue ? 0 : 1;
-            mode = EditorGUI.Popup(rect, s_Styles.bodyType, mode, k_BodyTypeNames);
-            serialized.emissiveLightSource.boolValue = mode == 0 ? true : false;
-            EditorGUI.EndProperty();
+            // texture prop
 
-            EditorGUI.indentLevel++;
-            if (!serialized.emissiveLightSource.boolValue)
-            {
-                EditorGUILayout.PropertyField(serialized.automaticMoonPhase);
-                if (!serialized.automaticMoonPhase.boolValue)
-                {
-                    EditorGUI.indentLevel++;
-                    EditorGUILayout.PropertyField(serialized.moonPhase);
-                    EditorGUILayout.PropertyField(serialized.moonPhaseRotation);
-                    EditorGUI.indentLevel--;
-                }
-                EditorGUILayout.PropertyField(serialized.earthshine);
-            }
-            EditorGUI.indentLevel--;
+            var type = Type.GetType("UnityEditor.Rendering.TextureParameterHelper,Unity.RenderPipelines.Core.Editor");
+            var MiniThumbnail = type.GetMethod("MiniThumbnail", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic);
+
+            Rect r = EditorGUILayout.GetControlRect();
+            MiniThumbnail.Invoke(null, new object[] { r, textureProp, label, typeof(Texture2D) });
+
+            // color prop
+
+            int oldIndentLevel = EditorGUI.indentLevel;
+            EditorGUI.indentLevel = 0;
+
+            Rect rect = new Rect(r.x + EditorGUIUtility.labelWidth + 2, r.y, r.width - EditorGUIUtility.labelWidth - 2, r.height);
+            EditorGUI.BeginProperty(rect, label, colorProp);
+
+            EditorGUI.BeginChangeCheck();
+            var color = EditorGUI.ColorField(rect, colorProp.colorValue);
+            if (EditorGUI.EndChangeCheck())
+                colorProp.colorValue = color;
+
+            EditorGUI.EndProperty();
+            EditorGUI.indentLevel = oldIndentLevel;
         }
+
 
         static void DrawCelestialBodyContent(SerializedHDLight serialized, Editor owner)
         {
-            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.PropertyField(serialized.interactsWithSky, s_Styles.interactsWithSky);
+
+            using (new EditorGUI.DisabledScope(!serialized.interactsWithSky.boolValue))
             {
-                EditorGUILayout.PropertyField(serialized.interactsWithSky, s_Styles.interactsWithSky);
+                EditorGUI.indentLevel++;
+                AngularDiameterField(serialized);
 
-                using (new EditorGUI.DisabledScope(!serialized.interactsWithSky.boolValue))
+                EditorGUILayout.PropertyField(serialized.distance, s_Styles.distance);
+
+                TexturePropertySingleLine(s_Styles.surfaceColor, serialized.surfaceTexture, serialized.surfaceTint);
+
+                EditorGUILayout.PropertyField(serialized.shadingSource, s_Styles.shadingSource);
+
+                EditorGUI.indentLevel++;
+                switch ((ShadingSource)serialized.shadingSource.intValue)
                 {
-                    EditorGUI.indentLevel++;
-                    AngularDiameterOverrideField(serialized);
-                    BodyTypeField(serialized);
-                    EditorGUILayout.PropertyField(serialized.flareSize, s_Styles.flareSize);
-                    EditorGUILayout.PropertyField(serialized.flareFalloff, s_Styles.flareFalloff);
-                    EditorGUILayout.PropertyField(serialized.flareTint, s_Styles.flareTint);
-                    EditorGUILayout.PropertyField(serialized.surfaceTexture, s_Styles.surfaceTexture);
-                    EditorGUILayout.PropertyField(serialized.surfaceTint, s_Styles.surfaceTint);
-                    EditorGUILayout.PropertyField(serialized.distance, s_Styles.distance);
-                    EditorGUI.indentLevel--;
-                }
-            }
+                    case ShadingSource.ReflectSunLight:
+                        EditorGUILayout.PropertyField(serialized.sunLightOverride, s_Styles.sunLightOverride);
 
-            if (EditorGUI.EndChangeCheck())
-            {
-                // Clamp the value and also affect baked shadows.
-                serialized.flareSize.floatValue = Mathf.Clamp(serialized.flareSize.floatValue, 0, 90);
-                serialized.flareFalloff.floatValue = Mathf.Max(serialized.flareFalloff.floatValue, 0);
-                serialized.distance.floatValue = Mathf.Max(serialized.distance.floatValue, 0);
-                serialized.diameterMultiplier.floatValue = Mathf.Max(serialized.diameterMultiplier.floatValue, 0);
-                serialized.diameterOverride.floatValue = Mathf.Clamp(serialized.diameterOverride.floatValue, 0, 90);
+                        if (serialized.sunLightOverride.objectReferenceValue != null)
+                        {
+                            var referenced = serialized.sunLightOverride.objectReferenceValue as Light;
+                            Light light = (Light)owner.target;
+                            if (referenced == light)
+                                EditorGUILayout.HelpBox("The Celestial Body cannot receive lighting from itself.", MessageType.Warning);
+                            else if (referenced.type != LightType.Directional)
+                                EditorGUILayout.HelpBox("The Sun Light needs to be a directional light.", MessageType.Error);
+                        }
 
-                if (serialized.surfaceTexture.objectReferenceValue is Texture surfaceTexture && surfaceTexture != null)
-                {
-                    if (surfaceTexture.dimension != TextureDimension.Tex2D)
-                    {
-                        Debug.LogError($"The texture '{surfaceTexture.name}' isn't compatible with the Celestial Body Surface Texture property. Only 2D textures are supported.");
-                        serialized.surfaceTexture.objectReferenceValue = null;
-                    }
+                        EditorGUILayout.PropertyField(serialized.earthshine, s_Styles.earthshine);
+                        break;
+
+                    case ShadingSource.Manual:
+                        EditorGUILayout.PropertyField(serialized.sunColor, s_Styles.sunColor);
+                        EditorGUILayout.PropertyField(serialized.sunIntensity, s_Styles.sunIntensity);
+                        EditorGUILayout.PropertyField(serialized.phase, s_Styles.phase);
+                        EditorGUILayout.PropertyField(serialized.phaseRotation, s_Styles.phaseRotation);
+                        EditorGUILayout.PropertyField(serialized.earthshine, s_Styles.earthshine);
+                        break;
                 }
+                EditorGUI.indentLevel--;
+
+                // Flare
+                EditorGUILayout.PropertyField(serialized.flareSize, s_Styles.flareSize);
+                EditorGUILayout.PropertyField(serialized.flareFalloff, s_Styles.flareFalloff);
+                EditorGUILayout.PropertyField(serialized.flareTint, s_Styles.flareTint);
+                EditorGUILayout.PropertyField(serialized.flareMultiplier, s_Styles.flareMultiplier);
+                EditorGUI.indentLevel--;
             }
         }
 
@@ -1669,7 +1685,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             if (serialized.settings.lightType.GetEnumValue<LightType>() == LightType.Directional)
             {
-                EditorGUILayout.PropertyField(serialized.dirLightPCSSMaxBlockerDistance, s_Styles.dirLightPCSSMaxBlockerDistance);
+                EditorGUILayout.PropertyField(serialized.dirLightPCSSMaxPenumbraSize, s_Styles.dirLightPCSSMaxPenumbraSize);
                 EditorGUILayout.PropertyField(serialized.dirLightPCSSMaxSamplingDistance, s_Styles.dirLightPCSSMaxSamplingDistance);
                 EditorGUILayout.PropertyField(serialized.dirLightPCSSMinFilterSizeTexels, s_Styles.dirLightPCSSMinFilterSizeTexels);
                 EditorGUILayout.PropertyField(serialized.dirLightPCSSMinFilterMaxAngularDiameter, s_Styles.dirLightPCSSMinFilterMaxAngularDiameter);
@@ -1683,13 +1699,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.PropertyField(serialized.blockerSampleCount, s_Styles.blockerSampleCount);
                 EditorGUILayout.PropertyField(serialized.filterSampleCount, s_Styles.filterSampleCount);
                 EditorGUILayout.PropertyField(serialized.minFilterSize, s_Styles.minFilterSize);
-                EditorGUI.BeginChangeCheck();
-                EditorGUILayout.PropertyField(serialized.scaleForSoftness, s_Styles.radiusScaleForSoftness);
-                if (EditorGUI.EndChangeCheck())
-                {
-                    //Clamp the value and also affect baked shadows
-                    serialized.scaleForSoftness.floatValue = Mathf.Max(serialized.scaleForSoftness.floatValue, 0);
-                }
+            }
+            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.PropertyField(serialized.scaleForSoftness, s_Styles.radiusScaleForSoftness);
+            if (EditorGUI.EndChangeCheck())
+            {
+                //Clamp the value and also affect baked shadows
+                serialized.scaleForSoftness.floatValue = Mathf.Max(serialized.scaleForSoftness.floatValue, 0);
             }
         }
 

@@ -2317,26 +2317,8 @@ void PreLightData_SetupNormals(BSDFData bsdfData, inout PreLightData preLightDat
     }
 }
 
-void PreLightData_LoadLtcTransformSpecular(float2 uv, int lobeIdx, inout PreLightData preLightData)
-{
-    // Get the inverse LTC matrix for GGX
-    // Note we load the matrix transpose (avoid to have to transpose it in shader)
-    preLightData.ltcTransformSpecular[lobeIdx]      = 0.0;
-    preLightData.ltcTransformSpecular[lobeIdx]._m22 = 1.0;
-    preLightData.ltcTransformSpecular[lobeIdx]._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, s_linear_clamp_sampler, uv, LTCLIGHTINGMODEL_GGX, 0);
-}
-
 void PreLightData_SetupAreaLights(BSDFData bsdfData, float3 V, float3 N[NB_NORMALS], float NdotV[NB_NORMALS] /* clamped */, inout PreLightData preLightData)
 {
-    // For sampling the LUTs
-    float cosTheta[NB_NORMALS];
-    float2 uv[TOTAL_NB_LOBES];
-
-    // These 2 cases will generate the same code when no dual normal maps since COAT_NORMAL_IDX == BASE_NORMAL_IDX == 0,
-    // and one will be pruned out:
-    cosTheta[COAT_NORMAL_IDX] = sqrt(1 - NdotV[COAT_NORMAL_IDX]);
-    cosTheta[BASE_NORMAL_IDX] = sqrt(1 - NdotV[BASE_NORMAL_IDX]);
-
     // NB_NORMALS is always <= TOTAL_NB_LOBES, so we are safe to always be able to compile this even if preLightData.orthoBasisViewNormal[]
     // is sized with NB_ORTHOBASISVIEWNORMAL, and we use _NORMAL_IDX for clarity instead of ORTHOBASIS_VN_*_IDX aliases
     // (this function should never be called anyways when NB_ORTHOBASISVIEWNORMAL == TOTAL_NB_LOBES,
@@ -2344,31 +2326,28 @@ void PreLightData_SetupAreaLights(BSDFData bsdfData, float3 V, float3 N[NB_NORMA
     preLightData.orthoBasisViewNormal[COAT_NORMAL_IDX] = GetOrthoBasisViewNormal(V, N[COAT_NORMAL_IDX], preLightData.NdotV[COAT_NORMAL_IDX]);
     preLightData.orthoBasisViewNormal[BASE_NORMAL_IDX] = GetOrthoBasisViewNormal(V, N[BASE_NORMAL_IDX], preLightData.NdotV[BASE_NORMAL_IDX]);
 
+    // Note: 'NdotV' is clamped, while 'preLightData.NdotV' is not. See PreLightData_SetupNormals().
+    preLightData.ltcTransformSpecular[BASE_LOBEA_IDX] = SampleLtcMatrix(bsdfData.perceptualRoughnessA, NdotV[BASE_NORMAL_IDX], LTCLIGHTINGMODEL_GGX);
+    preLightData.ltcTransformSpecular[BASE_LOBEB_IDX] = SampleLtcMatrix(bsdfData.perceptualRoughnessB, NdotV[BASE_NORMAL_IDX], LTCLIGHTINGMODEL_GGX);
+
     if( IsVLayeredEnabled(bsdfData) )
     {
-        uv[COAT_LOBE_IDX] = LTC_LUT_OFFSET + LTC_LUT_SCALE * float2(bsdfData.coatPerceptualRoughness, cosTheta[COAT_NORMAL_IDX]);
-
-        PreLightData_LoadLtcTransformSpecular(uv[COAT_LOBE_IDX], COAT_LOBE_IDX, preLightData);
+        preLightData.ltcTransformSpecular[COAT_LOBE_IDX] = SampleLtcMatrix(bsdfData.coatPerceptualRoughness, NdotV[COAT_NORMAL_IDX], LTCLIGHTINGMODEL_GGX);
     }
-
-    uv[BASE_LOBEA_IDX] = LTC_LUT_OFFSET + LTC_LUT_SCALE * float2(bsdfData.perceptualRoughnessA, cosTheta[BASE_NORMAL_IDX]);
-    uv[BASE_LOBEB_IDX] = LTC_LUT_OFFSET + LTC_LUT_SCALE * float2(bsdfData.perceptualRoughnessB, cosTheta[BASE_NORMAL_IDX]);
-    PreLightData_LoadLtcTransformSpecular(uv[BASE_LOBEA_IDX], BASE_LOBEA_IDX, preLightData);
-    PreLightData_LoadLtcTransformSpecular(uv[BASE_LOBEB_IDX], BASE_LOBEB_IDX, preLightData);
-
 
 #ifdef USE_DIFFUSE_LAMBERT_BRDF
     preLightData.ltcTransformDiffuse = k_identity3x3;
-#else
-    // TODO
-    // Get the inverse LTC matrix for Disney Diffuse
-    //preLightData.ltcTransformDiffuse      = 0.0;
-    //preLightData.ltcTransformDiffuse._m22 = 1.0;
-    //preLightData.ltcTransformDiffuse._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, s_linear_clamp_sampler, uv, LTCLIGHTINGMODEL_DISNEY_DIFFUSE, 0);
-#endif
 
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_SSS_DIFFUSE_POWER))
-        ModifyLTCTransformForDiffusePower(preLightData.ltcTransformDiffuse, bsdfData.diffusePower);
+        ModifyLambertLTCTransformForDiffusePower(preLightData.ltcTransformDiffuse, bsdfData.diffusePower);
+#else
+    // TODO
+    // preLightData.ltcTransformDiffuse = SampleLtcMatrix(perceptualRoughness, clampedNdotV, LTCLIGHTINGMODEL_DISNEY_DIFFUSE);
+
+    // if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_SSS_DIFFUSE_POWER))
+    //     ModifyDisneyLTCTransformForDiffusePower(preLightData.ltcTransformDiffuse, bsdfData.diffusePower, perceptualRoughness, clampedNdotV);
+#endif
+
 } // PreLightData_SetupAreaLights
 
 // cf with PreLightData_SetupAreaLights: we don't use NB_NORMALS but TOTAL_NB_LOBES in arrays because of the ibl aniso hack which
@@ -2377,20 +2356,11 @@ void PreLightData_SetupAreaLights(BSDFData bsdfData, float3 V, float3 N[NB_NORMA
 //     preLightData.iblPerceptualRoughness[] (vs bsdfData.(coat)perceptualRoughness(A|B))
 void PreLightData_SetupAreaLightsAniso(BSDFData bsdfData, float3 V, float3 N[NB_NORMALS] /* for orthoBasisViewNormalDiffuse */, float3 iblN[TOTAL_NB_LOBES], inout PreLightData preLightData)
 {
-    // For sampling the LUTs
-    float cosTheta[TOTAL_NB_LOBES];
-    float2 uv[TOTAL_NB_LOBES];
     float iblNdotV[TOTAL_NB_LOBES];
 
     iblNdotV[COAT_LOBE_IDX] = dot(iblN[COAT_LOBE_IDX], V);
     iblNdotV[BASE_LOBEA_IDX] = dot(iblN[BASE_LOBEA_IDX], V);
     iblNdotV[BASE_LOBEB_IDX] = dot(iblN[BASE_LOBEB_IDX], V);
-
-    // The 2 first cases will generate the same code when no coat since COAT_LOBE_IDX == BASE_LOBEA_IDX == 0,
-    // and one will be pruned out:
-    cosTheta[COAT_LOBE_IDX] =  sqrt(1-ClampNdotV(iblNdotV[COAT_LOBE_IDX]));
-    cosTheta[BASE_LOBEA_IDX] =  sqrt(1-ClampNdotV(iblNdotV[BASE_LOBEA_IDX]));
-    cosTheta[BASE_LOBEB_IDX] =  sqrt(1-ClampNdotV(iblNdotV[BASE_LOBEB_IDX]));
 
     // Now we need 3 matrices + 1 for transmission
     // Note we need to use ORTHOBASIS_VN_*_IDX since we could have no anisotropy and one or two normals but 3 lobes:
@@ -2403,28 +2373,26 @@ void PreLightData_SetupAreaLightsAniso(BSDFData bsdfData, float3 V, float3 N[NB_
 
     if( IsVLayeredEnabled(bsdfData) )
     {
-        uv[COAT_LOBE_IDX] = LTC_LUT_OFFSET + LTC_LUT_SCALE * float2(preLightData.iblPerceptualRoughness[COAT_LOBE_IDX], cosTheta[COAT_LOBE_IDX]);
-        PreLightData_LoadLtcTransformSpecular(uv[COAT_LOBE_IDX], COAT_LOBE_IDX, preLightData);
+        preLightData.ltcTransformSpecular[COAT_LOBE_IDX] = SampleLtcMatrix(preLightData.iblPerceptualRoughness[COAT_LOBE_IDX], ClampNdotV(iblNdotV[COAT_LOBE_IDX]), LTCLIGHTINGMODEL_GGX);
     }
 
-    uv[BASE_LOBEA_IDX] = LTC_LUT_OFFSET + LTC_LUT_SCALE * float2(preLightData.iblPerceptualRoughness[BASE_LOBEA_IDX], cosTheta[BASE_LOBEA_IDX]);
-    uv[BASE_LOBEB_IDX] = LTC_LUT_OFFSET + LTC_LUT_SCALE * float2(preLightData.iblPerceptualRoughness[BASE_LOBEB_IDX], cosTheta[BASE_LOBEB_IDX]);
-    PreLightData_LoadLtcTransformSpecular(uv[BASE_LOBEA_IDX], BASE_LOBEA_IDX, preLightData);
-    PreLightData_LoadLtcTransformSpecular(uv[BASE_LOBEB_IDX], BASE_LOBEB_IDX, preLightData);
+    preLightData.ltcTransformSpecular[BASE_LOBEA_IDX] = SampleLtcMatrix(preLightData.iblPerceptualRoughness[BASE_LOBEA_IDX], ClampNdotV(iblNdotV[BASE_LOBEA_IDX]), LTCLIGHTINGMODEL_GGX);
+    preLightData.ltcTransformSpecular[BASE_LOBEB_IDX] = SampleLtcMatrix(preLightData.iblPerceptualRoughness[BASE_LOBEB_IDX], ClampNdotV(iblNdotV[BASE_LOBEB_IDX]), LTCLIGHTINGMODEL_GGX);
 
 
 #ifdef USE_DIFFUSE_LAMBERT_BRDF
     preLightData.ltcTransformDiffuse = k_identity3x3;
-#else
-    // TODO
-    // Get the inverse LTC matrix for Disney Diffuse
-    //preLightData.ltcTransformDiffuse      = 0.0;
-    //preLightData.ltcTransformDiffuse._m22 = 1.0;
-    //preLightData.ltcTransformDiffuse._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, s_linear_clamp_sampler, uv, LTCLIGHTINGMODEL_DISNEY_DIFFUSE, 0);
-#endif
 
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_SSS_DIFFUSE_POWER))
-        ModifyLTCTransformForDiffusePower(preLightData.ltcTransformDiffuse, bsdfData.diffusePower);
+        ModifyLambertLTCTransformForDiffusePower(preLightData.ltcTransformDiffuse, bsdfData.diffusePower);
+#else
+    // TODO
+    // preLightData.ltcTransformDiffuse = SampleLtcMatrix(perceptualRoughness, clampedNdotV, LTCLIGHTINGMODEL_DISNEY_DIFFUSE);
+
+    // if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_SSS_DIFFUSE_POWER))
+    //     ModifyDisneyLTCTransformForDiffusePower(preLightData.ltcTransformDiffuse, bsdfData.diffusePower, perceptualRoughness, clampedNdotV);
+#endif
+
 } // PreLightData_SetupAreaLightsAniso
 
 // See PreLightData_SetupOcclusion(): when we require something equivalent to a "diffuse color tint" but for the specular BSDF,
@@ -4106,22 +4074,15 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
 
             // Calculate the L irradiance (ltcValue) first for the diffuse part and transmission,
             // then for the specular base layer and finishing with the coat.
-            float3 ltcValue;
+            float4 ltcValue;
 
             // Evaluate the diffuse part
-            // Polygon irradiance in the transformed configuration.
-            float4x3 LD = mul(localLightVerts, preLightData.ltcTransformDiffuse);
-            ltcValue  = PolygonIrradiance(LD);
-            ltcValue *= lightData.diffuseDimmer;
-            // Only apply cookie if there is one
-            if ( lightData.cookieMode != COOKIEMODE_NONE )
-            {
-                // Compute the cookie data for the diffuse term
-                float3 formFactorD =  PolygonFormFactor(LD);
-                ltcValue *= SampleAreaLightCookie(lightData.cookieScaleOffset, LD, formFactorD);
-            }
+            ltcValue = EvaluateLTC_Rect(mul(localLightVerts, preLightData.ltcTransformDiffuse), 1.0f,
+                                        lightData.cookieMode, lightData.cookieScaleOffset);
+
             // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
-            lighting.diffuse = preLightData.diffuseFGD * preLightData.diffuseEnergy * ltcValue;
+            lighting.diffuse = ltcValue.rgb * (ltcValue.a * lightData.diffuseDimmer);
+
 
             UNITY_BRANCH if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_TRANSMISSION))
             {
@@ -4131,72 +4092,41 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
                                                 0,  0, -1);
 
                 // Use the Lambertian approximation for performance reasons.
-                // The matrix multiplication should not generate any extra ALU on GCN.
-                float3x3 ltcTransform = mul(flipMatrix, k_identity3x3);
+                // TODO: performing the evaluation twice is very inefficient!
+                ltcValue = EvaluateLTC_Rect(mul(localLightVerts, flipMatrix), 1.0f,
+                                            lightData.cookieMode, lightData.cookieScaleOffset);
 
-                // Polygon irradiance in the transformed configuration.
-                // TODO: double evaluation is very inefficient! This is a temporary solution.
-                float4x3 LTD = mul(localLightVerts, ltcTransform);
-                ltcValue  = PolygonIrradiance(LTD);
-                ltcValue *= lightData.diffuseDimmer;
-                // Only apply cookie if there is one
-                if ( lightData.cookieMode != COOKIEMODE_NONE )
-                {
-                    // Compute the cookie data for the transmission diffuse term
-                    float3 formFactorTD = PolygonFormFactor(LTD);
-                    ltcValue *= SampleAreaLightCookie(lightData.cookieScaleOffset, LTD, formFactorTD);
-                }
                 // VLAYERED_DIFFUSE_ENERGY_HACKED_TERM:
                 // In Lit with Lambert, there's no diffuseFGD, it is one. In our case, we also
                 // need a diffuse energy term when vlayered.
 
                 // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
                 // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
-                lighting.diffuse += bsdfData.transmittance * ltcValue * preLightData.diffuseEnergy;
+                lighting.diffuse += bsdfData.transmittance * (ltcValue.rgb * (ltcValue.a * lightData.diffuseDimmer));
             }
 
             // Evaluate the specular lobes for the stack
             IF_DEBUG( if ( _DebugLobeMask.y != 0.0) )
             {
-                if (AREA_LIGHTS_ANISOTROPY_ENABLED)
-                {
-                    // In that case, instead of only considering possibly dual normal maps and thus two
-                    // local canonical frames we have lobe specific frames because of the anisotropic hack:
-                    localLightVerts = mul(lightVerts, transpose(preLightData.orthoBasisViewNormal[ORTHOBASIS_VN_BASE_LOBEA_IDX]));
-                }
-                // Polygon irradiance in the transformed configuration.
-                float4x3 LAS = mul(localLightVerts, preLightData.ltcTransformSpecular[BASE_LOBEA_IDX]);
-                ltcValue  = PolygonIrradiance(LAS);
-                // Only apply cookie if there is one
-                if ( lightData.cookieMode != COOKIEMODE_NONE )
-                {
-                    // Compute the cookie data for the specular term
-                    float3 formFactorAS =  PolygonFormFactor(LAS);
-                    ltcValue *= SampleAreaLightCookie(lightData.cookieScaleOffset, LAS, formFactorAS, bsdfData.perceptualRoughnessA);
-                }
+                // assert(LOBEB_IDX == LOBEA_IDX + 1)
+                float perceptualRoughness[2] = {bsdfData.perceptualRoughnessA, bsdfData.perceptualRoughnessB};
 
-                // See EvaluateBSDF_Env TODOENERGY:
-                lighting.specular += preLightData.energyCompensationFactor[BASE_LOBEA_IDX] * preLightData.specularFGD[BASE_LOBEA_IDX] * ltcValue;
-            }
-            IF_DEBUG( if ( _DebugLobeMask.z != 0.0) )
-            {
-                if (AREA_LIGHTS_ANISOTROPY_ENABLED)
+                for (int i = 0; i < 2; i++)
                 {
-                    // In that case, instead of only considering possibly dual normal maps and thus two
-                    // local canonical frames we have lobe specific frames because of the anisotropic hack:
-                    localLightVerts = mul(lightVerts, transpose(preLightData.orthoBasisViewNormal[ORTHOBASIS_VN_BASE_LOBEB_IDX]));
-                }
-                float4x3 LBS = mul(localLightVerts, preLightData.ltcTransformSpecular[BASE_LOBEB_IDX]);
-                ltcValue  = PolygonIrradiance(LBS);
-                // Only apply cookie if there is one
-                if ( lightData.cookieMode != COOKIEMODE_NONE )
-                {
-                    // Compute the cookie data for the specular term
-                    float3 formFactorBS =  PolygonFormFactor(LBS);
-                    ltcValue *= SampleAreaLightCookie(lightData.cookieScaleOffset, LBS, formFactorBS, bsdfData.perceptualRoughnessB);
-                }
+                    if (AREA_LIGHTS_ANISOTROPY_ENABLED)
+                    {
+                        // In that case, instead of only considering possibly dual normal maps and thus two
+                        // local canonical frames we have lobe specific frames because of the anisotropic hack:
+                        localLightVerts = mul(lightVerts, transpose(preLightData.orthoBasisViewNormal[ORTHOBASIS_VN_BASE_LOBEA_IDX + i]));
+                    }
 
-                lighting.specular += preLightData.energyCompensationFactor[BASE_LOBEB_IDX] * preLightData.specularFGD[BASE_LOBEB_IDX] * ltcValue;
+                    ltcValue = EvaluateLTC_Rect(mul(localLightVerts, preLightData.ltcTransformSpecular[BASE_LOBEA_IDX + i]), perceptualRoughness[i],
+                                                lightData.cookieMode, lightData.cookieScaleOffset);
+
+                    // See EvaluateBSDF_Env TODOENERGY:
+                    lighting.specular += (preLightData.specularFGD[BASE_LOBEA_IDX + i] * preLightData.energyCompensationFactor[BASE_LOBEA_IDX + i])
+                                       * (ltcValue.rgb * (ltcValue.a * lightData.specularDimmer));
+                }
             }
 
             if (IsVLayeredEnabled(bsdfData))
@@ -4213,25 +4143,20 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
                 }
                 IF_DEBUG( if ( _DebugLobeMask.x != 0.0) )
                 {
-                    float4x3 LSCC = mul(localLightVerts, preLightData.ltcTransformSpecular[COAT_LOBE_IDX]);
-                    ltcValue  = PolygonIrradiance(LSCC);
-                    // Only apply cookie if there is one
-                    if ( lightData.cookieMode != COOKIEMODE_NONE )
-                    {
-                        // Compute the cookie data for the specular term
-                        float3 formFactorS =  PolygonFormFactor(LSCC);
-                        ltcValue *= SampleAreaLightCookie(lightData.cookieScaleOffset, LSCC, formFactorS, bsdfData.coatPerceptualRoughness);
-                    }
-                    lighting.specular += preLightData.energyCompensationFactor[COAT_LOBE_IDX] * preLightData.specularFGD[COAT_LOBE_IDX] * ltcValue;
+                    ltcValue = EvaluateLTC_Rect(mul(localLightVerts, preLightData.ltcTransformSpecular[COAT_LOBE_IDX]), bsdfData.coatPerceptualRoughness,
+                                                lightData.cookieMode, lightData.cookieScaleOffset);
+
+                    lighting.specular += (preLightData.specularFGD[COAT_LOBE_IDX] * preLightData.energyCompensationFactor[COAT_LOBE_IDX])
+                                       * (ltcValue.rgb * (ltcValue.a * lightData.specularDimmer));
                 }
             }
-            lighting.specular *= lightData.specularDimmer;
 
             SHADOW_TYPE shadow = EvaluateShadow_RectArea(lightLoopContext, posInput, lightData, builtinData, bsdfData.normalWS, normalize(lightData.positionRWS), length(lightData.positionRWS));
             lightData.color.rgb *= ComputeShadowColor(shadow, lightData.shadowTint, lightData.penumbraTint);
 
-            // Save ALU by applying 'lightData.color' only once.
-            lighting.diffuse *= lightData.color;
+            // We need to multiply by the magnitude of the integral of the BRDF
+            // ref: http://advances.realtimerendering.com/s2016/s2016_ltc_fresnel.pdf
+            lighting.diffuse *= (preLightData.diffuseFGD * preLightData.diffuseEnergy) * lightData.color;
             lighting.specular *= lightData.color;
 
         #ifdef DEBUG_DISPLAY
@@ -4246,10 +4171,13 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
                     localLightVerts = mul(lightVerts, transpose(preLightData.orthoBasisViewNormalDiffuse));
                 }
 
+                ltcValue = EvaluateLTC_Rect(localLightVerts, 1.0f,
+                                            lightData.cookieMode, lightData.cookieScaleOffset);
+
                 // Only lighting, not BSDF
-                // Apply area light on lambert then multiply by PI to cancel Lambert
-                lighting.diffuse = PolygonIrradiance(mul(localLightVerts, k_identity3x3));
-                lighting.diffuse *= PI * lightData.diffuseDimmer;
+                lighting.diffuse  = ltcValue.rgb * (ltcValue.a * lightData.diffuseDimmer);
+                // Apply area light on Lambert then multiply by PI to cancel Lambert
+                lighting.diffuse *= PI;
             }
         #endif
 

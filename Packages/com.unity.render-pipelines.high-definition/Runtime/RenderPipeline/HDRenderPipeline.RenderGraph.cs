@@ -223,7 +223,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     DoUserAfterOpaqueAndSky(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.resolvedDepthBuffer, prepassOutput.resolvedNormalBuffer, prepassOutput.resolvedMotionVectorsBuffer);
 
-                    DecalSystem.instance.UpdateShaderGraphAtlasTextures(m_RenderGraph);
+                    if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals))
+                        DecalSystem.instance.UpdateShaderGraphAtlasTextures(m_RenderGraph);
 
                     // No need for old stencil values here since from transparent on different features are tagged
                     ClearStencilBuffer(m_RenderGraph, hdCamera, prepassOutput.depthBuffer);
@@ -703,7 +704,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.viewport = hdCamera.finalViewport;
                 passData.depthBuffer = builder.ReadTexture(depthBuffer);
                 passData.output = builder.WriteTexture(output);
-                passData.dynamicResolutionScale = DynamicResolutionHandler.instance.GetCurrentScale();
+                passData.dynamicResolutionScale = copyForXR ? DynamicResolutionHandler.instance.GetCurrentScale() : 1.0f / DynamicResolutionHandler.instance.GetCurrentScale();
                 passData.flipY = copyForXR;
 
                 builder.SetRenderFunc(
@@ -747,12 +748,15 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool decalsEnabled;
             public bool renderMotionVecForTransparent;
             public int colorMaskTransparentVel;
+            public TextureHandle colorPyramid;
             public TextureHandle transparentSSRLighting;
             public TextureHandle volumetricLighting;
             public TextureHandle depthPyramidTexture;
             public TextureHandle normalBuffer;
             public TextureHandle depthAndStencil;
 
+            public bool preRefractionPass;
+            public ShaderVariablesGlobal globalCB;
             public BufferHandle waterLine;
             public BufferHandle cameraHeightBuffer;
             public BufferHandle waterSurfaceProfiles;
@@ -1107,8 +1111,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 
             // If rough refraction are turned off, we render all transparents in the Transparent pass and we skip the PreRefraction one.
-            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Refraction) && preRefractionPass)
-                return;
+            bool refractionEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Refraction);
+            if (!refractionEnabled && preRefractionPass)
+                    return;
+
 
             string passName;
             HDProfileId profilingId;
@@ -1128,6 +1134,26 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 PrepareCommonForwardPassData(renderGraph, builder, passData, false, hdCamera, rendererList, lightLists, shadowResult);
 
+                var usedDepthBuffer = prepassOutput.depthBuffer;
+
+                if (preRefractionPass)
+                {
+                    usedDepthBuffer = transparentPrepass.depthBufferPreRefraction;
+
+                    passData.depthAndStencil = builder.ReadTexture(prepassOutput.resolvedDepthBuffer);
+                }
+                else if (!refractionEnabled)
+                {
+                    // if refraction is disabled, we did not create a copy of the depth buffer, so we need to create a dummy one here.
+                    passData.depthAndStencil = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
+                    { depthBufferBits = DepthBits.Depth32, bindTextureMS = hdCamera.msaaSamples != MSAASamples.None, msaaSamples = hdCamera.msaaSamples, clearBuffer = false, name = "Dummy Depth", disableFallBackToImportedTexture = true, fallBackToBlackTexture = false});
+                }
+                else
+                {
+                    passData.depthAndStencil = builder.ReadTexture(transparentPrepass.resolvedDepthBufferPreRefraction);
+                }
+
+
                 // enable d-buffer flag value is being interpreted more like enable decals in general now that we have clustered
                 // decal datas count is 0 if no decals affect transparency
                 passData.decalsEnabled = (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals)) && (DecalSystem.m_DecalDatasCount > 0);
@@ -1141,10 +1167,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.waterSurfaceProfiles = builder.ReadBuffer(transparentPrepass.waterSurfaceProfiles);
                 passData.waterGBuffer3 = builder.ReadTexture(transparentPrepass.waterGBuffer.waterGBuffer3);
                 passData.cameraHeightBuffer = builder.ReadBuffer(transparentPrepass.waterGBuffer.cameraHeight);
-                passData.depthAndStencil = builder.ReadTexture(prepassOutput.resolvedDepthBuffer);
                 passData.waterLine = builder.ReadBuffer(transparentPrepass.waterLine);
+                passData.globalCB = m_ShaderVariablesGlobalCB;
+                passData.preRefractionPass = preRefractionPass;
 
-                builder.UseDepthBuffer(preRefractionPass ? transparentPrepass.depthBufferPreRefraction : prepassOutput.depthBuffer, DepthAccess.ReadWrite);
+                builder.UseDepthBuffer(usedDepthBuffer, DepthAccess.ReadWrite);
 
                 int index = 0;
                 bool msaa = hdCamera.msaaEnabled;
@@ -1180,9 +1207,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 if (colorPyramid != null && hdCamera.frameSettings.IsEnabled(FrameSettingsField.Refraction) && !preRefractionPass)
-                {
-                    builder.ReadTexture(colorPyramid.Value);
-                }
+                    passData.colorPyramid = builder.ReadTexture(colorPyramid.Value);
+                else
+                    passData.colorPyramid = renderGraph.defaultResources.blackTextureXR;            
 
                 // TODO RENDERGRAPH
                 // Since in the old code path we bound this as global, it was available here so we need to bind it as well in order not to break existing projects...
@@ -1198,9 +1225,13 @@ namespace UnityEngine.Rendering.HighDefinition
                         if (data.decalsEnabled)
                             DecalSystem.instance.SetAtlas(context.cmd); // for clustered decals
 
+                        data.globalCB._PreRefractionPass = data.preRefractionPass ? 1 : 0;
+                        ConstantBuffer.UpdateData(context.cmd, data.globalCB);
+
                         BindGlobalLightListBuffers(data, context);
                         BindGlobalThicknessBuffers(data.thicknessTextureArray, data.thicknessReindexMap, context.cmd);
 
+                        context.cmd.SetGlobalTexture(HDShaderIDs._ColorPyramidTexture, data.colorPyramid);
                         context.cmd.SetGlobalTexture(HDShaderIDs._SsrLightingTexture, data.transparentSSRLighting);
                         context.cmd.SetGlobalTexture(HDShaderIDs._VBufferLighting, data.volumetricLighting);
                         context.cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, data.depthPyramidTexture);
@@ -1491,6 +1522,7 @@ namespace UnityEngine.Rendering.HighDefinition
             TextureHandle currentColorPyramid, in BuildGPULightListOutput lightLists, ref PrepassOutput prepassOutput)
         {
             var defaultBuffer = renderGraph.ImportBuffer(m_DefaultWaterLineBuffer);
+            var waterSurfaceProfiles = renderGraph.ImportBuffer(m_WaterProfileArrayGPU);
 
             TransparentPrepassOutput output = new TransparentPrepassOutput()
             {
@@ -1509,7 +1541,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 },
 
                 waterLine = defaultBuffer,
-                waterSurfaceProfiles = defaultBuffer,
+                waterSurfaceProfiles = waterSurfaceProfiles,
 
                 beforeRefraction = renderGraph.defaultResources.blackTextureXR,
                 beforeRefractionAlpha = renderGraph.defaultResources.whiteTextureXR,
@@ -1548,8 +1580,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (hasWater)
             {
-                output.waterSurfaceProfiles = renderGraph.ImportBuffer(m_WaterProfileArrayGPU);
-
                 // Render the water gbuffer (and prepare for the transparent SSR pass)
                 output.waterGBuffer = RenderWaterGBuffer(renderGraph, cullingResults, hdCamera, prepassOutput.depthBuffer, prepassOutput.normalBuffer, currentColorPyramid, prepassOutput.depthPyramidTexture, output.waterSurfaceProfiles, lightLists);
 

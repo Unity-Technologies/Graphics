@@ -90,6 +90,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // Foam Value
             public float foam;
 
+            // Foam Value
+            public Vector3 foamColor;
+
             // Thickness of the waves
             public float tipThickness;
 

@@ -103,6 +103,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static readonly ExpandedState<ExpandableShadows, HDRenderPipelineAsset> k_LightsExpandedState = new(0, "HDRP");
 
+        static internal void ExpandGroup(ExpandableGroup group)
+        {
+            k_ExpandedGroupState.SetExpandedAreas(group, true);
+        }
+
         static readonly Dictionary<GUIContent, ExpandedState<ExpandableQualities, HDRenderPipelineAsset>>
         k_QualityExpandedStates = new();
         private static CED.IDrawer QualityDrawer<TEnum>(GUIContent content, TEnum mask, ExpandedStateBase<TEnum> state, Action<SerializedHDRenderPipelineAsset, int> qualityActionForTier)
@@ -836,9 +841,10 @@ namespace UnityEditor.Rendering.HighDefinition
                     Styles.volumeProfileContextMenuStyle.Value))
             {
                 var profileEditor = s_VolumeProfileEditor as VolumeProfileEditor;
+                var componentEditors = profileEditor != null ? profileEditor.componentList.editors : null;
                 var srpAsset = serialized.serializedObject.targetObject as HDRenderPipelineAsset;
                 var pos = new Vector2(contextMenuButtonRect.x, contextMenuButtonRect.yMax);
-                VolumeProfileUtils.OnVolumeProfileContextClick(pos, srpAsset.volumeProfile, profileEditor.componentList.editors,
+                VolumeProfileUtils.OnVolumeProfileContextClick(pos, srpAsset.volumeProfile, componentEditors,
                     overrideStateOnReset: false,
                     defaultVolumeProfilePath: $"Assets/{HDProjectSettings.projectSettingsFolderPath}/{srpAsset.name}_VolumeProfile.asset",
                     onNewVolumeProfileCreated: volumeProfile =>

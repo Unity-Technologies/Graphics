@@ -147,28 +147,34 @@ MonoBehaviour:
       TAA is broken)
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: 06d3d04c77b97ba40969b415bc9a25dd, type: 3}
+    - {fileID: 102900000, guid: 9e498e31909a6427582110fd758d2f9d, type: 3}
+    - {fileID: 102900000, guid: 743d01f5817f118469f5095b0192f5ce, type: 3}
+    - {fileID: 102900000, guid: dae18011523ae4713bfdd80c9845d81f, type: 3}
+    - {fileID: 102900000, guid: d0fe400c29908d94e9cd70045224370d, type: 3}
+    - {fileID: 102900000, guid: 46788dd77b1c63144b05ad4e2bbe58d5, type: 3}
+    ColorSpace: 1
+    BuildPlatform: 13
+    GraphicsDevice: 11
+    XrSdk: OculusLoader
+    StereoModes: 0
+    Reason: Instability on Quest OpenGLES3
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 5157576751c2bde41b8be6dd0dab0a83, type: 3}
+    - {fileID: 102900000, guid: c3e9a4c261fa8fb4abe798d185706903, type: 3}
     ColorSpace: -1
-    BuildPlatform: 44
+    BuildPlatform: 13
     GraphicsDevice: 4
     XrSdk: 
     StereoModes: 0
-    Reason: UUM-21181
+    Reason: UUM-43923
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: 9e498e31909a6427582110fd758d2f9d, type: 3}
-    ColorSpace: 1
-    BuildPlatform: 13
-    GraphicsDevice: 11
-    XrSdk: OculusLoader
+    - {fileID: 102900000, guid: 5157576751c2bde41b8be6dd0dab0a83, type: 3}
+    - {fileID: 102900000, guid: c3e9a4c261fa8fb4abe798d185706903, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 9
+    GraphicsDevice: 4
+    XrSdk: 
     StereoModes: 0
-    Reason: Instability on Quest OpenGLES3
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 743d01f5817f118469f5095b0192f5ce, type: 3}
-    ColorSpace: 1
-    BuildPlatform: 13
-    GraphicsDevice: 11
-    XrSdk: OculusLoader
-    StereoModes: 0
-    Reason: Instability on Quest OpenGLES3
+    Reason: ANT-1473

@@ -1044,6 +1044,15 @@ namespace UnityEngine.Rendering.Universal
         /// <summary> Keyword used for soft shadows. </summary>
         public const string SoftShadows = "_SHADOWS_SOFT";
 
+        /// <summary> Keyword used for low quality soft shadows. </summary>
+        public const string SoftShadowsLow = "_SHADOWS_SOFT_LOW";
+
+        /// <summary> Keyword used for medium quality soft shadows. </summary>
+        public const string SoftShadowsMedium = "_SHADOWS_SOFT_MEDIUM";
+
+        /// <summary> Keyword used for high quality soft shadows. </summary>
+        public const string SoftShadowsHigh = "_SHADOWS_SOFT_HIGH";
+
         /// <summary> Keyword used for Mixed Lights in Subtractive lighting mode. </summary>
         public const string MixedLightingSubtractive = "_MIXED_LIGHTING_SUBTRACTIVE"; // Backward compatibility
 
@@ -1363,9 +1372,11 @@ namespace UnityEngine.Rendering.Universal
             if (isHdrEnabled)
             {
                 // TODO: we need a proper format scoring system. Score formats, sort, pick first or pick first supported (if not in score).
-                if (!needsAlpha && requestHDRColorBufferPrecision != HDRColorBufferPrecision._64Bits && SystemInfo.IsFormatSupported(GraphicsFormat.B10G11R11_UFloatPack32, GraphicsFormatUsage.Linear | GraphicsFormatUsage.Render))
+                // UUM-41070: We require `Linear | Render` but with the deprecated FormatUsage this was checking `Blend`
+                // For now, we keep checking for `Blend` until the performance hit of doing the correct checks is evaluated
+                if (!needsAlpha && requestHDRColorBufferPrecision != HDRColorBufferPrecision._64Bits && SystemInfo.IsFormatSupported(GraphicsFormat.B10G11R11_UFloatPack32, GraphicsFormatUsage.Blend))
                     return GraphicsFormat.B10G11R11_UFloatPack32;
-                if (SystemInfo.IsFormatSupported(GraphicsFormat.R16G16B16A16_SFloat, GraphicsFormatUsage.Linear | GraphicsFormatUsage.Render))
+                if (SystemInfo.IsFormatSupported(GraphicsFormat.R16G16B16A16_SFloat, GraphicsFormatUsage.Blend))
                     return GraphicsFormat.R16G16B16A16_SFloat;
                 return SystemInfo.GetGraphicsFormat(DefaultFormat.HDR); // This might actually be a LDR format on old devices.
             }
@@ -1378,7 +1389,9 @@ namespace UnityEngine.Rendering.Universal
         // NOTE: This function does not guarantee that the returned format will contain an alpha channel.
         internal static GraphicsFormat MakeUnormRenderTextureGraphicsFormat()
         {
-            if (SystemInfo.IsFormatSupported(GraphicsFormat.A2B10G10R10_UNormPack32, GraphicsFormatUsage.Linear | GraphicsFormatUsage.Render))
+            // UUM-41070: We require `Linear | Render` but with the deprecated FormatUsage this was checking `Blend`
+            // For now, we keep checking for `Blend` until the performance hit of doing the correct checks is evaluated
+            if (SystemInfo.IsFormatSupported(GraphicsFormat.A2B10G10R10_UNormPack32, GraphicsFormatUsage.Blend))
                 return GraphicsFormat.A2B10G10R10_UNormPack32;
             else
                 return GraphicsFormat.R8G8B8A8_UNorm;
@@ -1427,19 +1440,6 @@ namespace UnityEngine.Rendering.Universal
             desc.enableRandomWrite = false;
             desc.bindMS = false;
             desc.useDynamicScale = camera.allowDynamicResolution;
-
-            // The way RenderTextures handle MSAA fallback when an unsupported sample count of 2 is requested (falling back to numSamples = 1), differs fom the way
-            // the fallback is handled when setting up the Vulkan swapchain (rounding up numSamples to 4, if supported). This caused an issue on Mali GPUs which don't support
-            // 2x MSAA.
-            // The following code makes sure that on Vulkan the MSAA unsupported fallback behaviour is consistent between RenderTextures and Swapchain.
-            // TODO: we should review how all backends handle MSAA fallbacks and move these implementation details in engine code.
-            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Vulkan)
-            {
-                // if the requested number of samples is 2, and the supported value is 1x, it means that 2x is unsupported on this GPU.
-                // Then we bump up the requested value to 4.
-                if (desc.msaaSamples == 2 && SystemInfo.GetRenderTextureSupportedMSAASampleCount(desc) == 1)
-                    desc.msaaSamples = 4;
-            }
 
             // check that the requested MSAA samples count is supported by the current platform. If it's not supported,
             // replace the requested desc.msaaSamples value with the actual value the engine falls back to
@@ -1831,7 +1831,7 @@ namespace UnityEngine.Rendering.Universal
             if (platform == RuntimePlatform.WSAPlayerX86 || platform == RuntimePlatform.WSAPlayerARM || platform == RuntimePlatform.WSAPlayerX64 || platform == RuntimePlatform.Android)
             {
                 XR.XRDisplaySubsystem display = null;
-                SubsystemManager.GetInstances(displaySubsystemList);
+                SubsystemManager.GetSubsystems(displaySubsystemList);
 
                 if (displaySubsystemList.Count > 0)
                     display = displaySubsystemList[0];

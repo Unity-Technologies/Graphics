@@ -30,8 +30,11 @@ namespace UnityEngine.Rendering.Universal
             internal int shadowIndex;
         }
 
-        public void Render(RenderGraph graph, ref RenderingData renderingData, ref Renderer2DData rendererData, ref LayerBatch layerBatch, in TextureHandle shadowTexture, in TextureHandle depthTexture, int shadowIndex)
+        public void Render(RenderGraph graph, Renderer2DData rendererData, ref LayerBatch layerBatch, FrameResources resources, int shadowIndex)
         {
+            var shadowTexture = resources.GetTexture(Renderer2DResource.ShadowsTexture);
+            var depthTexture = resources.GetTexture(Renderer2DResource.IntermediateDepth);
+
             ClearTargets2DPass.Render(graph, shadowTexture, depthTexture, RTClearFlags.All, Color.black);
 
             using (var builder = graph.AddRasterRenderPass<PassData>("Shadow 2D Pass", out var passData, m_ProfilingSampler))

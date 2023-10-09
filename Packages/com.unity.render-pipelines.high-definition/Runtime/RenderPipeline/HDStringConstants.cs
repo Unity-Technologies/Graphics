@@ -343,6 +343,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _CameraFilteringBuffer = Shader.PropertyToID("_CameraFilteringTexture");
         public static readonly int _IrradianceSource = Shader.PropertyToID("_IrradianceSource");
         public static readonly int _IrradianceSourceDownsampled = Shader.PropertyToID("_IrradianceSourceDownsampled");
+        public static readonly int _InputDepthTexture = Shader.PropertyToID("_InputDepthTexture");
 
         // Planar reflection filtering
         public static readonly int _ReflectionColorMipChain = Shader.PropertyToID("_ReflectionColorMipChain");
@@ -426,7 +427,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _ShaderVariablesWater = Shader.PropertyToID("ShaderVariablesWater");
         public static readonly int _ShaderVariablesUnderWater = Shader.PropertyToID("ShaderVariablesUnderWater");
         public static readonly int _ShaderVariablesWaterRendering = Shader.PropertyToID("ShaderVariablesWaterRendering");
-        public static readonly int _ShaderVariablesWaterDeformation = Shader.PropertyToID("ShaderVariablesWaterDeformation");
         public static readonly int _ShaderVariablesWaterDebug = Shader.PropertyToID("ShaderVariablesWaterDebug");
 
         public static readonly int _VolumetricMaterialObbRight = Shader.PropertyToID("_VolumetricMaterialObbRight");
@@ -735,6 +735,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _SpaceEmissionMultiplier = Shader.PropertyToID("_SpaceEmissionMultiplier");
 
         public static readonly int _RenderSunDisk = Shader.PropertyToID("_RenderSunDisk");
+        public static readonly int _CelestialBodyDatas = Shader.PropertyToID("_CelestialBodyDatas");
 
         public static readonly int _ColorSaturation = Shader.PropertyToID("_ColorSaturation");
         public static readonly int _AlphaSaturation = Shader.PropertyToID("_AlphaSaturation");
@@ -790,7 +791,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _DenoiserFilterRadius = Shader.PropertyToID("_DenoiserFilterRadius");
         public static readonly int _NormalHistoryCriterion = Shader.PropertyToID("_NormalHistoryCriterion");
         public static readonly int _DenoiseInputTexture = Shader.PropertyToID("_DenoiseInputTexture");
-        public static readonly int _LightingInputTexture = Shader.PropertyToID("_LightingInputTexture"); 
+        public static readonly int _LightingInputTexture = Shader.PropertyToID("_LightingInputTexture");
         public static readonly int _DistanceInputTexture = Shader.PropertyToID("_DistanceInputTexture");
         public static readonly int _DenoiseOutputTextureRW = Shader.PropertyToID("_DenoiseOutputTextureRW");
         public static readonly int _DenoiseOutputArrayTextureRW = Shader.PropertyToID("_DenoiseOutputArrayTextureRW");
@@ -1062,16 +1063,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _DistortionParams1 = Shader.PropertyToID("_DistortionParams1");
         public static readonly int _DistortionParams2 = Shader.PropertyToID("_DistortionParams2");
 
-        public static readonly int _LensFlareScreenSpaceResultTexture = Shader.PropertyToID("_LensFlareScreenSpaceResultTexture");
-        public static readonly int _LensFlareScreenSpaceSpectralLut = Shader.PropertyToID("_LensFlareScreenSpaceSpectralLut");
-        public static readonly int _LensFlareScreenSpaceStreakTex = Shader.PropertyToID("_LensFlareScreenSpaceStreakTex");
-        public static readonly int _LensFlareScreenSpaceMipLevel = Shader.PropertyToID("_LensFlareScreenSpaceMipLevel");
-        public static readonly int _LensFlareScreenSpaceTintColor = Shader.PropertyToID("_LensFlareScreenSpaceTintColor");
-        public static readonly int _LensFlareScreenSpaceParams1 = Shader.PropertyToID("_LensFlareScreenSpaceParams1");
-        public static readonly int _LensFlareScreenSpaceParams2 = Shader.PropertyToID("_LensFlareScreenSpaceParams2");
-        public static readonly int _LensFlareScreenSpaceParams3 = Shader.PropertyToID("_LensFlareScreenSpaceParams3");
-        public static readonly int _LensFlareScreenSpaceParams4 = Shader.PropertyToID("_LensFlareScreenSpaceParams4");
-        public static readonly int _LensFlareScreenSpaceParams5 = Shader.PropertyToID("_LensFlareScreenSpaceParams5");
         public static readonly int _LogLut3D = Shader.PropertyToID("_LogLut3D");
         public static readonly int _LogLut3D_Params = Shader.PropertyToID("_LogLut3D_Params");
         public static readonly int _ColorBalance = Shader.PropertyToID("_ColorBalance");
@@ -1317,6 +1308,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public const string kAffectSmoothness = "_AffectSmoothness";
         /// <summary>Enable affect Emission (decal only.</summary>
         public const string kAffectEmission = "_AffectEmission";
+        /// <summary>Exclude from temporal upsamplers and anti aliasing.</summary>
+        public const string kExcludeFromTUAndAA = "_ExcludeFromTUAndAA";
 
         /// <summary>Enable Receive Shadows Off (six-way only.) </summary>
         public const string kReceiveShadows = "_ReceiveShadows";
@@ -1338,6 +1331,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal const string kDecalStencilWriteMask = "_DecalStencilWriteMask";
         internal const string kDecalStencilRef = "_DecalStencilRef";
         internal const string kEnableGeometricSpecularAA = "_EnableGeometricSpecularAA";
+        internal const string kRenderQueueTypeShaderGraph = "_RenderQueueType";
 
         internal const string kUseSplitLighting = "_RequireSplitLighting";
         internal const string kMaterialTypeMask = "_MaterialTypeMask";

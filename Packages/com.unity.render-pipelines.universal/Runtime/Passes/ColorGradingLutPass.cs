@@ -47,7 +47,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_LutBuilderHdr = Load(data.shaders.lutBuilderHdrPS);
 
             // Warm up lut format as IsFormatSupported adds GC pressure...
-            const GraphicsFormatUsage kFlags = GraphicsFormatUsage.Linear | GraphicsFormatUsage.Render;
+            // UUM-41070: We require `Linear | Render` but with the deprecated FormatUsage this was checking `Blend`
+            // For now, we keep checking for `Blend` until the performance hit of doing the correct checks is evaluated
+            const GraphicsFormatUsage kFlags = GraphicsFormatUsage.Blend;
             if (SystemInfo.IsFormatSupported(GraphicsFormat.R16G16B16A16_SFloat, kFlags))
                 m_HdrLutFormat = GraphicsFormat.R16G16B16A16_SFloat;
             else if (SystemInfo.IsFormatSupported(GraphicsFormat.B10G11R11_UFloatPack32, kFlags))

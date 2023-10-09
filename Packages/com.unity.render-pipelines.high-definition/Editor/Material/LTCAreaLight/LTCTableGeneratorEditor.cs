@@ -123,7 +123,7 @@ namespace UnityEngine.Rendering.HighDefinition.LTC
             {
                 EditorGUILayout.Separator();
                 EditorGUILayout.Space();
-                if (GUILayout.Button(new GUIContent("Generate LTC Tables", ""), EditorStyles.toolbarButton))
+                if (GUILayout.Button(new GUIContent("Generate LTC Tables", "")))
                 {
                     // Make sure target directory exists before creating any file!
                     DirectoryInfo outputDir = new DirectoryInfo(k_OutputDirectory);
@@ -133,6 +133,7 @@ namespace UnityEngine.Rendering.HighDefinition.LTC
 
                     for (int i = 0; i < m_BRDFGeneratorArray.Length; ++i)
                     {
+                        EditorUtility.DisplayProgressBar("Generating LTC Tables", $"Generating {m_BRDFGeneratorArray[i].type.Name}", (float)i / m_BRDFGeneratorArray.Length);
                         if (m_BRDFGeneratorArray[i].shouldGenerate)
                         {
                             m_BRDFGeneratorArray[i].sampleCount = m_SampleCount;
@@ -140,6 +141,7 @@ namespace UnityEngine.Rendering.HighDefinition.LTC
                             LTCTableGenerator.ExecuteFittingJob(m_BRDFGeneratorArray[i], m_ParallelExecution);
                         }
                     }
+                    EditorUtility.ClearProgressBar();
 
                     AssetDatabase.Refresh();
                 }

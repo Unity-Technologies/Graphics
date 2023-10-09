@@ -9,6 +9,61 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [16.0.3] - 2023-09-26
+
+This version is compatible with Unity 2023.2.0b12.
+
+### Changed
+- Stripping or IRenderPipelineGraphicsSettings.
+
+### Fixed
+- Fixed an issue where rendering layers keywords were not enabled correctly when using Decals & SSAO in Deferred.
+- Fixed an issue where incorrect Shader Keyword Prefiltering was used with SSAO when AfterOpaque was used.
+- Fixed an issue where data-driven lens-flare was missing occlusion.
+- Added an `RTHandle` pool to fix the `RTHandle` reallocation at runtime.
+- Fixed the Overlay UI so it does not disappear when the Render Graph and HDR display support is used in the Editor.
+- Fixed the `missing _Color` exception for the *Shader* property.
+- Fixed a bug with Light Layers not working correctly when Additional Lights are set to Per Vertex.
+- Fixed a black screen issue caused by using URP hardware Dynamic Resolution with DX12.
+- Fixed an issue where additional lights were not rendering correctly when using a mix of shadow settings in deferred.
+- Fixed an issue where Shader IDs weren't reset properly in the `DepthNormals` pass.
+- Fixed an issue where `IndexOutOfRangeException` was thrown when creating a stacked camera from a script.
+- Fixed an issue where `NullReferenceException` was thrown when a camera prefab referenced a camera outside the prefab in the camera stack.
+- Fixed an issue where settings disappeared when deleting a child Camera of the Main Camera.
+- Fixed an issue with Screen Space Decals where dark artefacts appeared in the Editor.
+- Fixed a memory leak in the `RenderTexture` method that would occur when rtHandle realloc failed to add resources to the render texture resource pool.
+- Fixed noise and flicker caused by TAA when the *Very High* option is in use.
+- Fixed shader stripping when using APV.
+- Fixed an issue causing 'implicit truncation of vector type' warning when using ShaderGraph shaders in the Forward+ Rendering Path.
+- Added GBuffer (fill) passes to ComplexLit and Unlit shader to prevent GBuffer data holes.
+- Added Shader Keywords for Soft Shadow quality levels and disabled per-light quality level on untethered XR platforms.
+- Fixed an issue so it is now possible to add a Renderer Feature on a renderer even if another feature has a missing/broken script.
+- Fixed an issue where reflection probes were not updated correctly when using Forward+.
+- Fixed an issue where HDR Output could not be turned off via the `HDROutputSettings` API in the editor.
+- Fixed an issue where Rendering Layers didn't work properly when opening a project.
+- Fixed missing padding at the bottom of URP's Global Settings
+- Fixed visible outline when composited ShadowCaster2Ds with transparency overlap
+- Fixed an issue where selecting a stacked camera caused the editor to freeze and sometimes crash.
+
+## [16.0.2] - 2023-06-28
+
+This version is compatible with Unity 2023.2.0a22.
+
+### Changed
+- Improved URP main thread usage in XR.
+
+### Fixed
+- Added workarounds for MSAA-specific visual artifacts on materials that use alpha clipping in unexpected ways.
+- Fixed an issue where changing RenderSettings before camera rendering would not always take effect.
+- Fixed null exceptions when ShadowCaster2D are included as part of a prefab.
+- Fixed an issue where assets were incorrectly being saved when making builds.
+- Added a missing G-buffer normal decoding for the **URP Sample Buffer** node in Fullscreen shadergraphs when using **Accurate G-buffer normals** in the deferred renderer. **Note:** The decoded normal values for background pixels are undefined.
+- Fixed the Color Grading LUT not updating when enabling or disabling Render Graph repeatedly.
+- Fixed Screen space Overlay UI rendered at the wrong size for scaling mode "Constant Pixel Size" or "Constant Physical Size", when HDR output is active.
+- Updated the documentation to mention that the Screen Space decal technique does not support blending of normals when using the Deferred rendering path with Accurate G-Buffer Normals enabled. The Automatic decal technique now prefers the D-Buffer technique if Accurate G-Buffer Normals are enabled.
+- changed the PostPro passes injection points to more correct locations.
+- 2D - Fix additional draw call when Foremost Sorting Layer is enabled during unlit
+
 ## [16.0.1] - 2023-05-23
 
 This version is compatible with Unity 2023.2.0a17.

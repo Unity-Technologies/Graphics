@@ -82,7 +82,7 @@ float GaussianDis(float u, float v)
     return sqrt(-2.0 * log(max(u, 1e-6f))) * cos(PI * v);
 }
 
-float Phillips(float2 k, float2 w, float V, float directionDampener, float patchSize)
+float Phillips(float2 k, float2 w, float V, float directionDampener, float invPatchSize)
 {
     float kk = k.x * k.x + k.y * k.y;
     float result = 0.0;
@@ -94,7 +94,7 @@ float Phillips(float2 k, float2 w, float V, float directionDampener, float patch
         float phillips = (exp(-1.0f / (kk * L * L)) / (kk * kk)) * (wk * wk);
         result = phillips * (wk < 0.0f ? directionDampener : 1.0);
     }
-    return PHILLIPS_AMPLITUDE_SCALAR * result / (patchSize * patchSize);
+    return PHILLIPS_AMPLITUDE_SCALAR * result * invPatchSize * invPatchSize;
 }
 
 float2 ComplexExp(float arg)
@@ -124,11 +124,28 @@ struct PatchSimData
     float4 swizzle;
 };
 
-void FillPatchSimData(float2 uv, int bandIdx, out PatchSimData data)
+float4 GetBandPatchData(int bandIdx)
 {
-    data.uv = (uv - OrientationToDirection(_PatchOrientation[bandIdx]) * _PatchCurrentSpeed[bandIdx] * _SimulationTime) / _PatchSize[bandIdx];
-    data.blend = 1.0;
-    data.swizzle = float4(1, 0, 0, 1);
+    switch (bandIdx)
+    {
+        case 0:
+            return _Band0_ScaleOffset_AmplitudeMultiplier; 
+        case 1:
+            return _Band1_ScaleOffset_AmplitudeMultiplier; 
+        default:
+            return _Band2_ScaleOffset_AmplitudeMultiplier; 
+    }
+}
+
+float2 TransformWaterUV(float2 uv, int bandIdx)
+{
+    float3 scaleOffset = GetBandPatchData(bandIdx).xyz;
+    return uv * scaleOffset.x + scaleOffset.yz;
+}
+
+float GetPatchAmplitudeMultiplier(int bandIdx)
+{
+    return GetBandPatchData(bandIdx).w;
 }
 
 struct WaterSimCoord
@@ -140,7 +157,7 @@ void ComputeWaterUVs(float2 uv, out WaterSimCoord simC)
 {
     UNITY_UNROLL for (int bandIdx = 0; bandIdx < NUM_WATER_BANDS; ++bandIdx)
     {
-        simC.data[bandIdx].uv = (uv - OrientationToDirection(_PatchOrientation[bandIdx]) * _PatchCurrentSpeed[bandIdx] * _SimulationTime) / _PatchSize[bandIdx];
+        simC.data[bandIdx].uv = TransformWaterUV(uv, bandIdx);
         simC.data[bandIdx].blend = 1.0;
         simC.data[bandIdx].swizzle = float4(1, 0, 0, 1);
     }
@@ -173,11 +190,6 @@ void AggregateWaterSimCoords(in WaterSimCoord waterCoord[2],
         }
 
     }
-}
-
-float2 ComputeWaterUV(float3 positionWS, int bandIndex)
-{
-    return (positionWS.xz - OrientationToDirection(_PatchOrientation[bandIndex]) * _PatchCurrentSpeed[bandIndex] * _SimulationTime) / _PatchSize[bandIndex];
 }
 
 float3 ShuffleDisplacement(float3 displacement)
@@ -220,6 +232,10 @@ float EvaluateFoam(float jacobian, float foamAmount)
 #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
 float3 WaterSimulationPositionInstanced(float3 objectPosition, uint instanceID)
 {
+    // This branch is useless but it improves occupancy
+    if (_GridSize.x < 0)
+        return 0;
+
     // Grab the patch data for the current instance/patch
     float2 patchData = _WaterPatchData[instanceID];
 
@@ -237,6 +253,10 @@ float3 WaterSimulationPositionInstanced(float3 objectPosition, uint instanceID)
 #else
 float3 WaterSimulationPosition(float3 objectPosition)
 {
+    // This branch is useless but it improves occupancy
+    if (_GridSize.x < 0)
+        return 0;
+
     float3 simulationPos = objectPosition;
 
     float2 gridSize = _GridSize;
@@ -245,10 +265,7 @@ float3 WaterSimulationPosition(float3 objectPosition)
     #endif
 
     // Scale and offset the position to where it should be
-    simulationPos.x = objectPosition.x * _PatchRotation.x - objectPosition.z * _PatchRotation.y;
-    simulationPos.z = objectPosition.x * _PatchRotation.y + objectPosition.z * _PatchRotation.x;
-
-    simulationPos.xz = simulationPos.xz * gridSize + _PatchOffset.xz - _GridOffset;
+    simulationPos.xz = objectPosition.xz * gridSize + _PatchOffset.xz - _GridOffset;
 
     #ifndef WATER_DISPLACEMENT
     // Clamp the mesh inside the region so that it's never empty
@@ -267,10 +284,22 @@ struct WaterDisplacementData
     float lowFrequencyHeight;
 };
 
+// UV to sample the foam mask
+float2 EvaluateFoamMaskUV(float2 foamUV)
+{
+    return foamUV * _SimulationFoamMaskScale - _SimulationFoamMaskOffset * _SimulationFoamMaskScale + 0.5f;
+}
+
+// UV to sample the foam simulation
+float2 EvaluateFoamUV(float2 positionOS)
+{
+    return positionOS * _FoamRegionScale - _FoamRegionOffset * _FoamRegionScale + 0.5f;
+}
+
+// UV to sample the water mask
 float2 EvaluateWaterMaskUV(float2 maskUV)
 {
-    // Shift and scale
-    return float2(maskUV.x - _WaterMaskOffset.x, maskUV.y + _WaterMaskOffset.y) * _WaterMaskScale + 0.5f;
+    return maskUV * _WaterMaskScale - _WaterMaskOffset * _WaterMaskScale + 0.5f;
 }
 
 float3 RemapWaterMaskValue(float3 waterMask)
@@ -294,10 +323,25 @@ float UnpackLowFrequencyHeight(float normalizedDisplacement)
 // Attenuation is: lerp(data, 0, saturate((distance - fadeStart) / fadeDistance))
 // = data * saturate(1 - distance / fadeDistance + fadeStart / fadeDistance)
 // => FadeA = -1 / fadeDistance     FadeB = 1 + fadeStart / fadeDistance
-float DistanceFade(float distanceToCamera, int band)
+float DistanceFade(float distanceToCamera, int bandIdx)
 {
 #ifndef IGNORE_WATER_FADE
-    float fade = saturate(distanceToCamera * _PatchFadeA[band] + _PatchFadeB[band]);
+    float2 patchFade;
+    switch (bandIdx)
+    {
+        case 0:
+            patchFade = _Band0_Fade;
+            break;
+        case 1:
+            patchFade = _Band1_Fade;
+            break;
+        default:
+            patchFade = _Band2_Fade;
+            break;
+    }
+
+    float fade = saturate(distanceToCamera * patchFade.x + patchFade.y);
+
     // perform a remap from [0, 1] to [0, 1] on the fade value to make it smoother
     return Smoothstep01(fade * fade);
 #else
@@ -320,6 +364,9 @@ void SampleSimulation_VS(WaterSimCoord waterCoord, float3 waterMask, float dista
     // Loop through the bands
     UNITY_UNROLL for (int bandIdx = 0; bandIdx < NUM_WATER_BANDS; ++bandIdx)
     {
+        float distanceFade = DistanceFade(distanceToCamera, bandIdx);
+        if (distanceFade == 0.0f) continue;
+
         // Grab the data for the current band
         PatchSimData currentData = waterCoord.data[bandIdx];
 
@@ -327,10 +374,10 @@ void SampleSimulation_VS(WaterSimCoord waterCoord, float3 waterMask, float dista
         float3 rawDisplacement = SampleDisplacement_VS(currentData.uv, (float)bandIdx);
 
         // Apply the global attenuations
-        rawDisplacement *= _PatchAmplitudeMultiplier[bandIdx] * waterMask[bandIdx] * currentData.blend;
+        rawDisplacement *= GetPatchAmplitudeMultiplier(bandIdx) * waterMask[bandIdx] * currentData.blend;
 
         // Apply the camera distance attenuation
-        rawDisplacement *= DistanceFade(distanceToCamera, bandIdx);
+        rawDisplacement *= distanceFade;
 
         // Swizzle the displacement and add it
         totalDisplacement += float3(rawDisplacement.x, dot(rawDisplacement.yz, currentData.swizzle.xy), dot(rawDisplacement.yz, currentData.swizzle.zw));
@@ -424,18 +471,6 @@ void EvaluateWaterDisplacement(float3 positionOS, out WaterDisplacementData disp
 #endif
 }
 
-// UV to sample the foam mask
-float2 EvaluateFoamMaskUV(float2 foamUV)
-{
-    return float2(foamUV.x - _SimulationFoamMaskOffset.x, foamUV.y + _SimulationFoamMaskOffset.y) * _SimulationFoamMaskScale + 0.5f;
-}
-
-// UV to sample the foam simulation
-float2 EvaluateFoamUV(float2 positionOS)
-{
-    return float2(positionOS.x - _FoamRegionOffset.x, positionOS.y - _FoamRegionOffset.y) * _FoamRegionScale + 0.5f;
-}
-
 struct WaterAdditionalData
 {
     float3 normalWS;
@@ -443,11 +478,6 @@ struct WaterAdditionalData
     float surfaceFoam;
     float deepFoam;
 };
-
-float2 EvaluateFoamTextureUV(float3 positionAWS)
-{
-    return (positionAWS.xz - OrientationToDirection(_PatchOrientation[0]) * _PatchCurrentSpeed[0] * _SimulationTime) * _FoamTilling;
-}
 
 #if !defined(WATER_SIMULATION)
 float3 ComputeDebugNormal(float3 worldPos)
@@ -459,6 +489,10 @@ float3 ComputeDebugNormal(float3 worldPos)
 
 float4 SampleAdditionalData(float2 uv, float bandIdx, float4 texSize)
 {
+    //if (bandIdx < NUM_WATER_BANDS - 1)
+    //    return SAMPLE_TEXTURE2D_ARRAY(_WaterAdditionalDataBuffer, s_linear_repeat_sampler, uv, bandIdx);
+    //else
+    //    return SampleTexture2DArrayBicubic(TEXTURE2D_ARRAY_ARGS(_WaterAdditionalDataBuffer, s_linear_repeat_sampler), uv, bandIdx, texSize);
     return SampleTexture2DArrayBicubic(TEXTURE2D_ARRAY_ARGS(_WaterAdditionalDataBuffer, s_linear_repeat_sampler), uv, bandIdx, texSize);
     // return SAMPLE_TEXTURE2D_ARRAY(_WaterAdditionalDataBuffer, s_linear_repeat_sampler, uv, bandIdx);
 }
@@ -473,24 +507,26 @@ void SampleSimulation_PS(WaterSimCoord waterCoord,  float3 waterMask, float dist
     jcbDeep = 0.0;
 
     // Loop through the bands
-    UNITY_UNROLL for (int bandIdx = 0; bandIdx < NUM_WATER_BANDS; ++bandIdx)
+    UNITY_UNROLL for (int bandIdx = NUM_WATER_BANDS-1; bandIdx >= 0; --bandIdx)
     {
         // Grab the data for the current band
         PatchSimData currentData = waterCoord.data[bandIdx];
 
         // Read the raw additional data
         float4 additionalData = SampleAdditionalData(currentData.uv, bandIdx, texSize);
+        additionalData.w = additionalData.z; // currently they are the same (see kernel EvaluateNormalsJacobian)
 
+        // Compute the camera distance attenuation and water mask
         float fade = DistanceFade(distanceToCamera, bandIdx) * waterMask[bandIdx];
-
-        // Apply the camera distance attenuation and water mask
-        additionalData.xy *= currentData.blend * fade;
 
         // Add the jacobian contribution
         // This cannot be easily faded like displacement, but each band roughly has a maximum jacobian of 4
         // This is not accurate, empirically gives good enough results
         jcbSurface += currentData.blend * lerp(4.0f, additionalData.z, fade);
         jcbDeep    += currentData.blend * lerp(4.0f * WATER_DEEP_FOAM_JACOBIAN_OVER_ESTIMATION, additionalData.w, fade);
+
+        if (fade == 0.0f) continue;
+        additionalData.xy *= currentData.blend * fade;
 
         // Swizzle the displacement
         additionalData.xy = float2(dot(additionalData.xy, currentData.swizzle.xy), dot(additionalData.xy, currentData.swizzle.zw));
@@ -505,6 +541,10 @@ void SampleSimulation_PS(WaterSimCoord waterCoord,  float3 waterMask, float dist
 
 void EvaluateWaterAdditionalData(float3 positionOS, float3 transformedPosition, float3 meshNormalOS, out WaterAdditionalData waterAdditionalData)
 {
+    ZERO_INITIALIZE(WaterAdditionalData, waterAdditionalData);
+    if (_GridSize.x < 0)
+        return;
+
     // Evaluate the pre-displaced absolute position
     float3 positionRWS = TransformObjectToWorld(positionOS);
     // Evaluate the distance to the camera
@@ -598,20 +638,20 @@ void EvaluateWaterAdditionalData(float3 positionOS, float3 transformedPosition, 
 #ifdef WATER_DISPLACEMENT
     // Attenuate using the foam mask
     float2 foamMaskUV = EvaluateFoamMaskUV(positionOS.xz);
-    float foamMask = SAMPLE_TEXTURE2D(_SimulationFoamMask, sampler_SimulationFoamMask, foamMaskUV).x;
+    float foamMask = SAMPLE_TEXTURE2D(_SimulationFoamMask, sampler_SimulationFoamMask, foamMaskUV).x * _SimulationFoamIntensity;
 
     // Evaluate the foam from the jacobian
-    waterAdditionalData.surfaceFoam = EvaluateFoam(jacobianSurface, _SimulationFoamAmount) * SURFACE_FOAM_BRIGHTNESS * _SimulationFoamIntensity * foamMask * _SimulationFoamWindAttenuation;
-    waterAdditionalData.deepFoam = EvaluateFoam(jacobianDeep, _SimulationFoamAmount * WATER_DEEP_FOAM_JACOBIAN_OVER_ESTIMATION) * SCATTERING_FOAM_BRIGHTNESS * _SimulationFoamIntensity * foamMask * _SimulationFoamWindAttenuation;
+    waterAdditionalData.surfaceFoam = SURFACE_FOAM_BRIGHTNESS * foamMask * EvaluateFoam(jacobianSurface, _SimulationFoamAmount);
+    waterAdditionalData.deepFoam = SCATTERING_FOAM_BRIGHTNESS * foamMask * EvaluateFoam(jacobianDeep, _SimulationFoamAmount * WATER_DEEP_FOAM_JACOBIAN_OVER_ESTIMATION);
 #else
     waterAdditionalData.surfaceFoam = 0;
     waterAdditionalData.deepFoam = 0;
 #endif
 
-    float2 foamUV = EvaluateFoamUV(transformedAWS.xz);
 #if !defined(IGNORE_FOAM_REGION)
     // Evaluate the foam region coordinates
-    if (_WaterFoamRegionResolution > 0 && all(foamUV > 0.0) && all(foamUV < 1.0))
+    float2 foamUV = EvaluateFoamUV(transformedAWS.xz);
+    if (_WaterFoamRegionResolution > 0 && all(foamUV == saturate(foamUV)))
     {
         float2 foamRegion = SAMPLE_TEXTURE2D(_WaterFoamBuffer, s_linear_clamp_sampler, foamUV).xy;
         waterAdditionalData.surfaceFoam += foamRegion.x;
@@ -626,7 +666,7 @@ void EvaluateWaterAdditionalData(float3 positionOS, float3 transformedPosition, 
 float3 EvaluateWaterSurfaceGradient_VS(float3 positionAWS, int LOD, int bandIndex)
 {
     // Compute the simulation coordinates
-    float2 uvBand = ComputeWaterUV(positionAWS, bandIndex);
+    float2 uvBand = TransformWaterUV(positionAWS.xz, bandIndex);
 
     // Compute the texture size param for the filtering
     int2 res = _BandResolution >> LOD;
@@ -692,53 +732,6 @@ float GetWaveTipThickness(float normalizedDistanceToMaxWaveHeightPlane, float3 w
     return 1.f - saturate(1 + refractedRay.y - 0.2) * (H * H) / 0.4;
 }
 
-float2 Molulo2D(float2 divident, float2 divisor)
-{
-    float2 positiveDivident = divident % divisor + divisor;
-    return positiveDivident % divisor;
-}
-
-float2 MorphingNoise(float2 position)
-{
-    float n = sin(dot(position, float2(41, 289)));
-    position = frac(float2(262144, 32768)*n);
-    return sin(TWO_PI * position + _SimulationTime) * 0.45 + 0.5;
-}
-
-float VoronoiNoise(float2 coordinate)
-{
-    // The voronoi rotation is fixed
-    const float voronoiRotation = 20.0f;
-
-    float2 baseCell = floor(coordinate);
-
-    //first pass to find the closest cell
-    float minDistToCell = 10;
-    float2 toClosestCell;
-    float2 closestCell;
-    float smoothDistance = 0;
-    for(int x1 = -1; x1 <= 1; x1 ++)
-    {
-        for(int y1 = -1; y1 <= 1; y1++)
-        {
-            float2 cell = baseCell + float2(x1, y1);
-            float2 tiledCell = Molulo2D(cell, voronoiRotation);
-            float2 cellPosition = cell + MorphingNoise(tiledCell);
-            float2 toCell = cellPosition - coordinate;
-            float distToCell = length(toCell);
-
-            if(distToCell < minDistToCell)
-            {
-                minDistToCell = distToCell;
-                closestCell = cell;
-                toClosestCell = toCell;
-            }
-        }
-    }
-
-    return minDistToCell * minDistToCell;
-}
-
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
 
 float EdgeBlendingFactor(float2 screenPosition, float distanceToWaterSurface)
@@ -759,14 +752,15 @@ float EdgeBlendingFactor(float2 screenPosition, float distanceToWaterSurface)
     return lerp(saturate((distanceToEdge - 0.8) / (0.2)), saturate(distanceToEdge + 0.25), distAttenuation);
 }
 
-void ComputeWaterRefractionParams(float3 waterPosRWS, float3 waterNormal, float3 lowFrequencyNormals,
-    float2 screenUV, float3 viewWS, bool aboveWater, bool disableUnderWaterIOR, float3 upVector,
-    float maxRefractionDistance, float3 transparencyColor, float outScatteringCoeff,
+void ComputeWaterRefractionParams(float3 waterPosRWS, float2 positionNDC, float3 V,
+    float3 waterNormal, float3 lowFrequencyNormals, bool aboveWater,
+    bool disableUnderWaterIOR, float3 upVector, float maxRefractionDistance,
+    float3 transparencyColor, float outScatteringCoeff,
     out float3 refractedWaterPosRWS, out float2 distortedWaterNDC, out float3 absorptionTint)
 {
     // Compute the position of the surface behind the water surface
-    float  directWaterDepth = SampleCameraDepth(screenUV);
-    float3 directWaterPosRWS = ComputeWorldSpacePosition(screenUV, directWaterDepth, UNITY_MATRIX_I_VP);
+    float  directWaterDepth = SampleCameraDepth(positionNDC);
+    float3 directWaterPosRWS = ComputeWorldSpacePosition(positionNDC, directWaterDepth, UNITY_MATRIX_I_VP);
 
     // Compute the distance between the water surface and the object behind
     float underWaterDistance = directWaterDepth == UNITY_RAW_FAR_CLIP_VALUE ? WATER_BACKGROUND_ABSORPTION_DISTANCE : length(directWaterPosRWS - waterPosRWS);
@@ -776,22 +770,23 @@ void ComputeWaterRefractionParams(float3 waterPosRWS, float3 waterNormal, float3
     float3 distortedWaterWS;
     if (aboveWater || disableUnderWaterIOR)
     {
-        refractedView = lerp(waterNormal, upVector, EdgeBlendingFactor(screenUV, length(waterPosRWS))) * (1 - upVector);
+        refractedView = lerp(waterNormal, upVector, EdgeBlendingFactor(positionNDC, length(waterPosRWS))) * (1 - upVector);
         distortedWaterWS = waterPosRWS + refractedView * min(underWaterDistance, maxRefractionDistance);
 
         // When disable IOR is active, we are sure that refraction data is always avalaible on screen
         // but we still compute a total internal refraction
         if (disableUnderWaterIOR)
-            refractedView = refract(-viewWS, waterNormal, WATER_IOR);
+            refractedView = refract(-V, waterNormal, WATER_IOR);
     }
     else
     {
-        refractedView = refract(-viewWS, waterNormal, WATER_IOR);
+        refractedView = refract(-V, waterNormal, WATER_IOR);
         distortedWaterWS = waterPosRWS + refractedView * UNDER_WATER_REFRACTION_DISTANCE;
     }
 
     // Project the point on screen
-    distortedWaterNDC = ComputeNormalizedDeviceCoordinates(distortedWaterWS, UNITY_MATRIX_VP);
+    distortedWaterNDC = saturate(ComputeNormalizedDeviceCoordinates(distortedWaterWS, UNITY_MATRIX_VP));
+    distortedWaterNDC = min(distortedWaterNDC, 1.0f - _ScreenSize.zw);
 
     // Compute the position of the surface behind the water surface
     float refractedWaterDepth = SampleCameraDepth(distortedWaterNDC);
@@ -799,12 +794,12 @@ void ComputeWaterRefractionParams(float3 waterPosRWS, float3 waterNormal, float3
     float refractedWaterDistance = refractedWaterDepth == UNITY_RAW_FAR_CLIP_VALUE ? WATER_BACKGROUND_ABSORPTION_DISTANCE : length(refractedWaterPosRWS - waterPosRWS);
 
     // If the point that we are reading is closer than the water surface
-    if (dot(refractedWaterPosRWS - waterPosRWS, viewWS) > 0.0)
+    if (dot(refractedWaterPosRWS - waterPosRWS, V) > 0.0)
     {
         // We read the direct depth (no refraction)
         refractedWaterDistance = underWaterDistance;
         refractedWaterPosRWS = directWaterPosRWS;
-        distortedWaterNDC = screenUV;
+        distortedWaterNDC = positionNDC;
     }
 
     // Evaluate the absorption tint
@@ -812,7 +807,7 @@ void ComputeWaterRefractionParams(float3 waterPosRWS, float3 waterNormal, float3
     {
         // If we are underwater and we detect a total internal refraction, we need to adjust the parameters
         bool totalInternalReflection = all(refractedView == 0.0f);
-        bool invalidSample = !disableUnderWaterIOR && any(saturate(distortedWaterNDC) != distortedWaterNDC);
+        bool invalidSample = any(saturate(distortedWaterNDC) != distortedWaterNDC);
 
         absorptionTint = (totalInternalReflection || invalidSample) ? 0.0f : 1.0f;
     }

@@ -114,9 +114,11 @@ namespace UnityEngine.Rendering
 
         static GraphicsFormat GetTextureFormat()
         {
-            if (SystemInfo.IsFormatSupported(GraphicsFormat.R16_SFloat, GraphicsFormatUsage.Sample | GraphicsFormatUsage.SetPixels))
+            // UUM-41070: We require `Sample | SetPixels` but with the deprecated FormatUsage this was checking `SetPixels`
+            // For now, we keep checking for `SetPixels` until the performance hit of doing the correct checks is evaluated
+            if (SystemInfo.IsFormatSupported(GraphicsFormat.R16_SFloat, GraphicsFormatUsage.SetPixels))
                 return GraphicsFormat.R16_SFloat;
-            if (SystemInfo.IsFormatSupported(GraphicsFormat.R8_UNorm, GraphicsFormatUsage.Sample | GraphicsFormatUsage.SetPixels))
+            if (SystemInfo.IsFormatSupported(GraphicsFormat.R8_UNorm, GraphicsFormatUsage.SetPixels))
                 return GraphicsFormat.R8_UNorm;
 
             return GraphicsFormat.R8G8B8A8_UNorm;

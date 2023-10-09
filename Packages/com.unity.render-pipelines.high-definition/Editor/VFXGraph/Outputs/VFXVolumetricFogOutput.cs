@@ -208,7 +208,7 @@ namespace UnityEditor.VFX.HDRP
                 yield return nameof(sortMode);
                 yield return nameof(enableRayTracing);
                 yield return nameof(revertSorting);
-                yield return nameof(excludeFromTAA);
+                yield return nameof(excludeFromTUAndAA);
                 yield return nameof(computeCulling);
                 yield return nameof(vfxSystemSortPriority);
                 yield return nameof(sortingPriority);

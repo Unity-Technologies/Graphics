@@ -1,13 +1,14 @@
 using System;
-using Unity.Mathematics;
 using System.Collections.Generic;
 using UnityEditor;
-using UnityEngine.Experimental.Rendering;
-using static Unity.Mathematics.math;
+using Unity.Mathematics;
 using Unity.Collections;
+
 #if UNITY_EDITOR
 using UnityEditor.SceneManagement;
 #endif
+
+using static Unity.Mathematics.math;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -149,6 +150,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool cpuSimulation = false;
 
         /// <summary>
+        /// Specifies if the CPU simulation should be evaluated on CPU, or results should be fetched from the GPU with a few frames latency.
+        /// </summary>
+        public bool cpuLowLatency = false;
+
+        /// <summary>
         /// Specifies if the CPU simulation should be evaluated at full or half resolution. When in full resolution, the visual fidelity will be higher but the cost of the simulation will increase.
         /// </summary>
         public bool cpuFullResolution = false;
@@ -208,6 +214,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Min(0.0f), Tooltip("Sets the range at which the tessellation factor reaches zero.")]
         public float tessellationFactorFadeRange = 1850.0f;
+
+#if UNITY_EDITOR
+        static internal bool IsWaterMaterial(Material material)
+        {
+            return material.shader.FindSubshaderTagValue(0, (ShaderTagId)"ShaderGraphTargetId").name == "WaterSubTarget";
+        }
+#endif
         #endregion
 
         #region Water Refraction
@@ -481,6 +494,8 @@ namespace UnityEngine.Rendering.HighDefinition
             return (WaterSimulationResolution)resolution;
         }
 
+        static internal NativeArray<float4> s_EmptyNativeArray;
+
         /// <summary>
         /// Function that fills a WaterSimSearchData with the data of the current water surface.
         /// </summary>
@@ -489,22 +504,38 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool FillWaterSearchData(ref WaterSimSearchData wsd)
         {
             var hdrp = HDRenderPipeline.currentPipeline;
-            if (hdrp == null|| !hdrp.m_ActiveWaterSimulationCPU)
+            if (hdrp == null|| !hdrp.m_ActiveWaterSimulationCPU || !cpuSimulation)
                 return false;
 
-            if (simulation != null
-                && simulation.cpuBuffers != null
-                && simulation.ValidResources((int)hdrp.m_WaterBandResolution, numActiveBands))
+            if (simulation != null && simulation.ValidResources((int)hdrp.m_WaterBandResolution, numActiveBands))
             {
                 // General
                 wsd.simulationTime = simulation.simulationTime;
 
                 // Simulation
-                wsd.simulationRes = (int)GetSimulationResolutionCPU();
-                wsd.displacementData = simulation.cpuBuffers.displacementBufferCPU;
+                wsd.activeBandCount = HDRenderPipeline.EvaluateCPUBandCount(surfaceType, ripples, cpuEvaluateRipples);
+                wsd.lowLatency = cpuLowLatency;
                 wsd.spectrum = simulation.spectrum;
                 wsd.rendering = simulation.rendering;
-                wsd.activeBandCount = HDRenderPipeline.EvaluateCPUBandCount(surfaceType, ripples, cpuEvaluateRipples);
+
+                if (cpuLowLatency)
+                {
+                    if (simulation.cpuBuffers == null)
+                        return false;
+
+                    wsd.simulationRes = (int)GetSimulationResolutionCPU();
+                    wsd.displacementDataCPU = simulation.cpuBuffers.displacementBufferCPU;
+                    wsd.displacementDataGPU = s_EmptyNativeArray.Reinterpret<half4>(4 * sizeof(float));
+                }
+                else
+                {
+                    wsd.simulationRes = simulation.simulationResolution;
+                    wsd.displacementDataGPU = displacementBufferSynchronizer.CurrentBuffer();
+                    wsd.displacementDataCPU = s_EmptyNativeArray;
+
+                    if (wsd.displacementDataGPU.Length == 0 || displacementBufferSynchronizer.CurrentSlices() < wsd.activeBandCount)
+                        return false;
+                }
 
                 // Mask data
                 FillWaterMaskData(ref wsd);

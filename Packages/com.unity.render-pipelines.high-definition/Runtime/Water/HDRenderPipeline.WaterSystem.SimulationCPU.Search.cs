@@ -14,7 +14,9 @@ namespace UnityEngine.Rendering.HighDefinition
         #region Simulation
         internal float simulationTime;
         internal int simulationRes;
-        [ReadOnly] internal NativeArray<float4> displacementData;
+        internal bool lowLatency;
+        [ReadOnly] internal NativeArray<float4> displacementDataCPU;
+        [ReadOnly] internal NativeArray<half4> displacementDataGPU;
         internal WaterSpectrumParameters spectrum;
         internal WaterRenderingParameters rendering;
         internal int activeBandCount;

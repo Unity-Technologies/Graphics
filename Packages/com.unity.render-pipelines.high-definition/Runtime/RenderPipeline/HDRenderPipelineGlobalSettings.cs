@@ -38,6 +38,9 @@ namespace UnityEngine.Rendering.HighDefinition
     [DisplayName("HDRP")]
     partial class HDRenderPipelineGlobalSettings : RenderPipelineGlobalSettings<HDRenderPipelineGlobalSettings, HDRenderPipeline>
     {
+        [SerializeField] RenderPipelineGraphicsSettingsContainer m_Settings = new();
+        protected override List<IRenderPipelineGraphicsSettings> settingsList => m_Settings.settingsList;
+
 #if UNITY_EDITOR
         internal static string defaultPath => $"Assets/{HDProjectSettingsReadOnlyBase.projectSettingsFolderPath}/HDRenderPipelineGlobalSettings.asset";
 

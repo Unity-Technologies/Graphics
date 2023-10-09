@@ -25,7 +25,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float _AtmosphericRadius;
         public float _AerosolAnisotropy;
         public float _AerosolPhasePartConstant;
-        public float _Unused;
+        public float _CelestialLightCount;
 
         public float _AirDensityFalloff;
         public float _AirScaleHeight;
@@ -48,6 +48,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public float _AlphaMultiplier;
         public float _HorizonZenithShiftPower;
         public float _HorizonZenithShiftScale;
-        public float _Unused2;
+        public uint _CelestialBodyCount;
     }
 }
