@@ -4,6 +4,7 @@ using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEditor;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEngine.Rendering
 {
@@ -28,8 +29,7 @@ namespace UnityEngine.Rendering
             var shadingSampleAtlas = resources.sharedBuffers.groupShadingSampleAtlas;
             var prefixResources   = GPUPrefixSum.SupportResources.Load(transientBuffers.prefixResources);
 
-#region Setup
-            using (new ProfilingScope(cmd, new ProfilingSampler("Rasterization Setup")))
+            using (new ProfilingScope(ProfilingSampler.Get(HDProfileId.LinesRasterizationSetup)))
             {
                 // Reset per-bin data
                 cmd.SetComputeBufferParam(resources.systemResources.stagePrepareCS, 1, ShaderIDs._BinCountersBuffer, transientBuffers.binCounters);
@@ -40,19 +40,15 @@ namespace UnityEngine.Rendering
                 cmd.SetComputeBufferParam(resources.systemResources.stagePrepareCS, 2, ShaderIDs._ClusterCountersBuffer, transientBuffers.clusterCounters);
                 cmd.DispatchCompute(resources.systemResources.stagePrepareCS, 2, DivRoundUp(resources.shaderVariables._ClusterCount, 1024), 1, 1);
             }
-#endregion
 
-#region BuildClusters
-            using (new ProfilingScope(cmd, new ProfilingSampler("Build Clusters")))
+            using (new ProfilingScope(ProfilingSampler.Get(HDProfileId.LinesBuildClusters)))
             {
                 cmd.SetComputeBufferParam(resources.systemResources.stagePrepareCS, 3, ShaderIDs._ViewSpaceDepthRangeBuffer, buffers.viewSpaceDepthRange);
                 cmd.SetComputeBufferParam(resources.systemResources.stagePrepareCS, 3, ShaderIDs._ClusterRangesBuffer, transientBuffers.clusterRanges);
                 cmd.DispatchCompute(resources.systemResources.stagePrepareCS, 3, DivRoundUp(resources.shaderVariables._ClusterDepth, 64), 1, 1);
             }
-#endregion
 
-#region StageBinning
-            using (new ProfilingScope(cmd, new ProfilingSampler("Binning Stage")))
+            using (new ProfilingScope(ProfilingSampler.Get(HDProfileId.LinesBinningStage)))
             {
                 // Derive a dispatch launch size from the amount of bin records.
                 cmd.SetComputeBufferParam(resources.systemResources.stageRasterBinCS, 1, ShaderIDs._CounterBuffer, buffers.counterBuffer);
@@ -69,77 +65,57 @@ namespace UnityEngine.Rendering
                 cmd.SetComputeBufferParam(resources.systemResources.stageRasterBinCS, 0, ShaderIDs._ClusterRangesBuffer, transientBuffers.clusterRanges);
                 cmd.DispatchCompute(resources.systemResources.stageRasterBinCS, 0, transientBuffers.binningIndirectArgs, 0);
             }
-#endregion
 
-#region StageWorkQueue
             // Generate the offset indices into the global work queue.
-
             var resourceSortTiles = GPUSort.SupportResources.Load(transientBuffers.binSortResources);
 
-            using (new ProfilingScope(cmd, new ProfilingSampler("Work Queue")))
+            using (new ProfilingScope(ProfilingSampler.Get(HDProfileId.LinesWorkQueue)))
             {
-                using (new ProfilingScope(cmd, new ProfilingSampler("Prefix Sum Segments")))
+                resources.systemResources.gpuPrefixSum.DispatchDirect(cmd, new GPUPrefixSum.DirectArgs
                 {
-                    resources.systemResources.gpuPrefixSum.DispatchDirect(cmd, new GPUPrefixSum.DirectArgs
-                    {
-                        exclusive = true,
-                        inputCount = resources.shaderVariables._ClusterCount,
-                        input = transientBuffers.clusterCounters,
-                        supportResources = prefixResources
-                    });
-                }
+                    exclusive = true,
+                    inputCount = resources.shaderVariables._ClusterCount,
+                    input = transientBuffers.clusterCounters,
+                    supportResources = prefixResources
+                });
 
-                using (new ProfilingScope(cmd, new ProfilingSampler("Build")))
+                // Derive a dispatch launch size from the amount of bin records.
+                cmd.SetComputeBufferParam(resources.systemResources.stageWorkQueue, 0, ShaderIDs._CounterBuffer, buffers.counterBuffer);
+                cmd.SetComputeBufferParam(resources.systemResources.stageWorkQueue, 0, ShaderIDs._OutputWorkQueueArgs, transientBuffers.workQueueArgs);
+                cmd.DispatchCompute(resources.systemResources.stageWorkQueue, 0, 1, 1, 1);
+
+                // Indirectly dispatch the work queue construction.
+                cmd.SetComputeBufferParam(resources.systemResources.stageWorkQueue, 1, ShaderIDs._CounterBuffer, buffers.counterBuffer);
+                cmd.SetComputeBufferParam(resources.systemResources.stageWorkQueue, 1, ShaderIDs._BinOffsetsBuffer, prefixResources.output);
+                cmd.SetComputeBufferParam(resources.systemResources.stageWorkQueue, 1, ShaderIDs._ClusterRecordBuffer, transientBuffers.recordBufferCluster);
+                cmd.SetComputeBufferParam(resources.systemResources.stageWorkQueue, 1, ShaderIDs._WorkQueueBuffer, transientBuffers.workQueue);
+                cmd.DispatchCompute(resources.systemResources.stageWorkQueue, 1, transientBuffers.workQueueArgs, 0);
+
+                cmd.SetComputeBufferParam(resources.systemResources.stageWorkQueue, 3, ShaderIDs._BinCountersBuffer,     transientBuffers.binCounters);
+                cmd.SetComputeBufferParam(resources.systemResources.stageWorkQueue, 3, ShaderIDs._ClusterCountersBuffer, transientBuffers.clusterCounters);
+                cmd.SetComputeBufferParam(resources.systemResources.stageWorkQueue, 3, ShaderIDs._ActiveClusterIndices, transientBuffers.activeClusterIndices);
+                cmd.SetComputeBufferParam(resources.systemResources.stageWorkQueue, 3, ShaderIDs._CounterBuffer, buffers.counterBuffer);
+                cmd.DispatchCompute(resources.systemResources.stageWorkQueue, 3, DivRoundUp(resources.shaderVariables._ClusterCount, 1024), 1, 1);
+
+                cmd.SetComputeBufferParam(resources.systemResources.stageWorkQueue, 2, ShaderIDs._BinCountersBuffer, transientBuffers.binCounters);
+                cmd.SetComputeBufferParam(resources.systemResources.stageWorkQueue, 2, ShaderIDs._CounterBuffer, buffers.counterBuffer);
+                cmd.DispatchCompute(resources.systemResources.stageWorkQueue, 2, DivRoundUp(resources.shaderVariables._BinCount, 1024), 1, 1);
+
+                resources.systemResources.gpuSort.Dispatch(cmd, new GPUSort.Args
                 {
-                    // Derive a dispatch launch size from the amount of bin records.
-                    cmd.SetComputeBufferParam(resources.systemResources.stageWorkQueue, 0, ShaderIDs._CounterBuffer, buffers.counterBuffer);
-                    cmd.SetComputeBufferParam(resources.systemResources.stageWorkQueue, 0, ShaderIDs._OutputWorkQueueArgs, transientBuffers.workQueueArgs);
-                    cmd.DispatchCompute(resources.systemResources.stageWorkQueue, 0, 1, 1, 1);
-
-                    // Indirectly dispatch the work queue construction.
-                    cmd.SetComputeBufferParam(resources.systemResources.stageWorkQueue, 1, ShaderIDs._CounterBuffer, buffers.counterBuffer);
-                    cmd.SetComputeBufferParam(resources.systemResources.stageWorkQueue, 1, ShaderIDs._BinOffsetsBuffer, prefixResources.output);
-                    cmd.SetComputeBufferParam(resources.systemResources.stageWorkQueue, 1, ShaderIDs._ClusterRecordBuffer, transientBuffers.recordBufferCluster);
-                    cmd.SetComputeBufferParam(resources.systemResources.stageWorkQueue, 1, ShaderIDs._WorkQueueBuffer, transientBuffers.workQueue);
-                    cmd.DispatchCompute(resources.systemResources.stageWorkQueue, 1, transientBuffers.workQueueArgs, 0);
-                }
-
-                using (new ProfilingScope(cmd, new ProfilingSampler("Active Clusters")))
-                {
-                    cmd.SetComputeBufferParam(resources.systemResources.stageWorkQueue, 3, ShaderIDs._BinCountersBuffer,     transientBuffers.binCounters);
-                    cmd.SetComputeBufferParam(resources.systemResources.stageWorkQueue, 3, ShaderIDs._ClusterCountersBuffer, transientBuffers.clusterCounters);
-                    cmd.SetComputeBufferParam(resources.systemResources.stageWorkQueue, 3, ShaderIDs._ActiveClusterIndices, transientBuffers.activeClusterIndices);
-                    cmd.SetComputeBufferParam(resources.systemResources.stageWorkQueue, 3, ShaderIDs._CounterBuffer, buffers.counterBuffer);
-                    cmd.DispatchCompute(resources.systemResources.stageWorkQueue, 3, DivRoundUp(resources.shaderVariables._ClusterCount, 1024), 1, 1);
-                }
-
-                using (new ProfilingScope(cmd, new ProfilingSampler("Count Active Bins")))
-                {
-                    cmd.SetComputeBufferParam(resources.systemResources.stageWorkQueue, 2, ShaderIDs._BinCountersBuffer, transientBuffers.binCounters);
-                    cmd.SetComputeBufferParam(resources.systemResources.stageWorkQueue, 2, ShaderIDs._CounterBuffer, buffers.counterBuffer);
-                    cmd.DispatchCompute(resources.systemResources.stageWorkQueue, 2, DivRoundUp(resources.shaderVariables._BinCount, 1024), 1, 1);
-                }
-
-                using (new ProfilingScope(cmd, new ProfilingSampler("Sort Bins")))
-                {
-                    resources.systemResources.gpuSort.Dispatch(cmd, new GPUSort.Args
-                    {
-                        count = (uint) resources.shaderVariables._BinCount,
-                        maxDepth = (uint) resources.shaderVariables._BinCount,
-                        inputKeys = transientBuffers.binCounters,
-                        inputValues = transientBuffers.binIndices,
-                        resources = resourceSortTiles
-                    });
-                }
+                    count = (uint) resources.shaderVariables._BinCount,
+                    maxDepth = (uint) resources.shaderVariables._BinCount,
+                    inputKeys = transientBuffers.binCounters,
+                    inputValues = transientBuffers.binIndices,
+                    resources = resourceSortTiles
+                });
 
                 cmd.SetComputeBufferParam(resources.systemResources.stageWorkQueue, 4, ShaderIDs._CounterBuffer, buffers.counterBuffer);
                 cmd.SetComputeBufferParam(resources.systemResources.stageWorkQueue, 4, "_FineRasterDispatchArgs", transientBuffers.fineRasterArgs);
                 cmd.DispatchCompute(resources.systemResources.stageWorkQueue, 4, 1, 1, 1);
             }
-#endregion
 
-#region StageFine
-            using (new ProfilingScope(cmd, new ProfilingSampler("Fine Stage")))
+            using (new ProfilingScope(ProfilingSampler.Get(HDProfileId.LinesFineRaster)))
             {
                 int fineStageKernel;
 
@@ -183,7 +159,6 @@ namespace UnityEngine.Rendering
 
                 cmd.DispatchCompute(resources.systemResources.stageRasterFineCS, fineStageKernel, transientBuffers.fineRasterArgs, 0);
             }
-#endregion
         }
     }
 }

@@ -12,7 +12,6 @@ namespace UnityEngine.Rendering
     {
         private const uint kWorkGroupSize = 1024;
 
-        private string[] m_StageNames;
         private LocalKeyword[] m_Keywords;
 
         enum Stage
@@ -40,14 +39,6 @@ namespace UnityEngine.Rendering
                 new(resources.computeAsset, "STAGE_BIG_FLIP"),
                 new(resources.computeAsset, "STAGE_BIG_DISPERSE")
             };
-
-            m_StageNames = new[]
-            {
-                Enum.GetName(typeof(Stage), Stage.BigDisperse),
-                Enum.GetName(typeof(Stage), Stage.BigFlip),
-                Enum.GetName(typeof(Stage), Stage.LocalDisperse),
-                Enum.GetName(typeof(Stage), Stage.LocalBMS)
-            };
         }
 
         void DispatchStage(CommandBuffer cmd, Args args, uint h, Stage stage)
@@ -56,7 +47,7 @@ namespace UnityEngine.Rendering
             Assert.IsNotNull(resources.computeAsset);
 
             // When the is no geometry, instead of computing the distance field, we clear it with a big value.
-            using (new ProfilingScope(cmd, new ProfilingSampler(m_StageNames[(int) stage])))
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(stage)))
             {
 #if false
                 m_SortCS.enabledKeywords = new[]  { keywords[(int)stage] };
