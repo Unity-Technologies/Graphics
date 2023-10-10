@@ -402,15 +402,15 @@ platforms:
     agents_project:
       default:
         type: Unity::VM::GPU
-        image: automation-tooling/ubuntu-20.04-desktop-unity:v2.929715
+        image: desktop/ubuntu-20.04-desktop:v2.1179434
         flavor: b1.large
       editmode:
         type: Unity::VM
-        image: automation-tooling/ubuntu-20.04-desktop-unity:v2.929715
+        image: desktop/ubuntu-20.04-desktop:v2.1179434
         flavor: b1.large
       standalone_build:
         type: Unity::VM
-        image: automation-tooling/ubuntu-20.04-desktop-unity:v2.929715
+        image: desktop/ubuntu-20.04-desktop:v2.1179434
         flavor: b1.xlarge
     commands:
       [OpenGlCore, Vulkan]:
