@@ -168,6 +168,14 @@ If there is any noise that affects the exposure in the final converged frame, ad
 
 * **Limit Max**
 
+## Path tracing and Light sources 
+
+Due to the fundamentally different nature of Path Tracing, light sources are queried differently. To support this, the path tracer needs to build some additional data structures that contain light source information. These data structures limit the maximum number of lights that can be evaluated in local neighborhoods. In the current implementation, there are two such data structures. 
+
+The first one is the [Ray Tracing Light Cluster](Ray-Tracing-Light-Cluster.md). It is used to resolve the lights around a specific point. The maximum number of lights per cell in this cluster can be increased if necessary. 
+
+The second one is the Path Tracing light list, an internal data structure used to capture all light sources relevant to a specific path segment. If too many light sources are close to each other, they might not all fit in the light list. This might result in artifacts. To remove these artifacts, you can change the `PathTracingMaxLightCount` setting through the [HDRP Config mechanism](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/HDRP-Config-Package.html).
+
 ## Limitations
 
 This section contains information on the limitations of HDRP's path tracing implementation. Mainly, this is a list of features that HDRP supports in its rasterized render pipeline, but not in its path-traced render pipeline.

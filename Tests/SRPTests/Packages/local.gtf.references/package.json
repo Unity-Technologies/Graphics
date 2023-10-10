@@ -1,0 +1,14 @@
+{
+  "displayName": "Local Graphics Test Framework references",
+  "name": "local.gtf.references",
+  "version": "1.0.0",
+  "unity": "2019.1",
+  "description": "This is a dummy package that contains references to other packages needed for tests in the repository.",
+  "keywords": [
+    "test"
+  ],
+  "category": "Libraries",
+  "dependencies": {
+    "com.unity.testframework.graphics": "7.15.0-exp.1"
+  }
+}
