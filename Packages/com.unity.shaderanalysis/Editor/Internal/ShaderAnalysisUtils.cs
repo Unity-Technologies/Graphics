@@ -386,7 +386,8 @@ namespace UnityEditor.ShaderAnalysis.Internal
             {
                 includeFolders = includes,
                 defines = new HashSet<string>(),
-                entry = entry
+                entry = entry,
+                generateExtraPerfData = true,
             };
 
             compileOptions.defines.UnionWith(defines);
