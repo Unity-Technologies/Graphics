@@ -2,6 +2,7 @@ using UnityEditor.ShaderGraph;
 using UnityEngine;
 using System;
 using UnityEngine.UIElements;
+using UnityEditor.Rendering.BuiltIn.ShaderGraph;
 
 namespace UnityEditor.Rendering.Canvas.ShaderGraph
 {
@@ -70,7 +71,6 @@ namespace UnityEditor.Rendering.Canvas.ShaderGraph
         protected bool TargetsVFX() => false;
         protected virtual IncludeCollection pregraphIncludes => new IncludeCollection();
         protected virtual IncludeCollection postgraphIncludes => new IncludeCollection();
-        protected virtual DefineCollection GetAdditionalDefines() => new DefineCollection();
         protected virtual KeywordCollection GetAdditionalKeywords() => new KeywordCollection();
         protected abstract string pipelineTag { get; }
 
@@ -126,6 +126,14 @@ namespace UnityEditor.Rendering.Canvas.ShaderGraph
             context.AddField(UnityEditor.ShaderGraph.Fields.GraphPixel);
         }
 
+        protected virtual DefineCollection GetAdditionalDefines()
+        {
+            var result = new DefineCollection();
+            if (canvasData.disableTint)
+                result.Add(CanvasKeywords.DisableTint, 1);
+            return result;
+        }
+
 
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<string> registerUndo)
@@ -137,6 +145,16 @@ namespace UnityEditor.Rendering.Canvas.ShaderGraph
 
                 registerUndo("Alpha Clip");
                 canvasData.alphaClip = evt.newValue;
+                onChange();
+            });
+
+            context.AddProperty("Disable Color Tint", new Toggle() { value = canvasData.disableTint }, (evt) =>
+            {
+                if (Equals(canvasData.disableTint, evt.newValue))
+                    return;
+
+                registerUndo("Disable Tint");
+                canvasData.disableTint = evt.newValue;
                 onChange();
             });
         }
@@ -287,7 +305,7 @@ namespace UnityEditor.Rendering.Canvas.ShaderGraph
         }
 
         #region KeywordDescriptors
-        static class CanvasKeywords
+        internal static class CanvasKeywords
         {
             public static KeywordCollection GenerateCoreKeywords()
             {
@@ -314,6 +332,16 @@ namespace UnityEditor.Rendering.Canvas.ShaderGraph
                 type = KeywordType.Boolean,
                 definition = KeywordDefinition.MultiCompile,
                 scope = KeywordScope.Local,
+            };
+
+            public static readonly KeywordDescriptor DisableTint = new KeywordDescriptor()
+            {
+                displayName = "Disable Tint",
+                referenceName = "_DISABLE_COLOR_TINT",
+                type = KeywordType.Boolean,
+                definition = KeywordDefinition.ShaderFeature,
+                scope = KeywordScope.Local,
+                stages = KeywordShaderStage.All,
             };
         }
         #endregion
@@ -377,6 +405,8 @@ namespace UnityEditor.Rendering.Canvas.ShaderGraph
             StructFields.Attributes.color,
             StructFields.Attributes.uv0, // Always need texCoord0, for UI image
             StructFields.Attributes.uv1, // Always need texCoord1 for UI Clip Mask
+            StructFields.Attributes.uv2,
+            StructFields.Attributes.uv3,
             StructFields.Attributes.positionOS,
             StructFields.Attributes.normalOS,
             StructFields.Attributes.instanceID,

@@ -28,6 +28,12 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetRenderTarget(passData.shadowTarget, passData.shadowDepth);
                 cmd.ClearRenderTarget(RTClearFlags.All, Color.clear, 1, 0);
 
+                var projectedShadowMaterial = passData.rendererData.GetProjectedShadowMaterial();
+                var projectedUnshadowMaterial = passData.rendererData.GetProjectedUnshadowMaterial();
+
+                projectedShadowMaterial.SetTexture(DrawLight2DPass.k_FalloffLookupID, passData.fallOffLookUp);
+                projectedUnshadowMaterial.SetTexture(DrawLight2DPass.k_FalloffLookupID, passData.fallOffLookUp);
+
                 ShadowRendering.PrerenderShadows(cmd, passData.rendererData, ref passData.layerBatch, light, 0, light.shadowIntensity);
             }
         }
@@ -43,16 +49,6 @@ namespace UnityEngine.Rendering.Universal
                     cmd.SetRenderTarget(passData.lightTexturesRT, passData.lightDepth);
                 else
                     cmd.SetRenderTarget(passData.lightTexturesRT[0], passData.lightDepth);
-
-                // Set Global Textures
-                cmd.SetGlobalTexture(DrawLight2DPass.k_FalloffLookupID, passData.fallOffLookUp);
-                cmd.SetGlobalTexture(DrawLight2DPass.k_LightLookupID, passData.lightLookUp);
-
-                if (passData.normalMap.IsValid())
-                    cmd.SetGlobalTexture(DrawLight2DPass.k_NormalMapID, passData.normalMap);
-
-                if (passData.shadowTarget.IsValid())
-                    cmd.SetGlobalTexture(DrawLight2DPass.k_ShadowMapID, passData.shadowTarget);
 
                 cmd.SetGlobalFloat(DrawLight2DPass.k_InverseHDREmulationScaleID, 1.0f / passData.rendererData.hdrEmulationScale);
 
@@ -111,14 +107,24 @@ namespace UnityEngine.Rendering.Universal
                     //if (breakBatch && LightBatch.isBatchingSupported)
                     //    RendererLighting.lightBatch.Flush(cmd);
 
+                    // Set material properties
+                    lightMaterial.SetTexture(DrawLight2DPass.k_LightLookupID, passData.lightLookUp);
+                    lightMaterial.SetTexture(DrawLight2DPass.k_FalloffLookupID, passData.fallOffLookUp);
+
+                    if (passData.layerBatch.lightStats.useNormalMap)
+                        lightMaterial.SetTexture(DrawLight2DPass.k_NormalMapID, passData.normalMap);
+
+                    if (passData.layerBatch.lightStats.useShadows)
+                        lightMaterial.SetTexture(DrawLight2DPass.k_ShadowMapID, passData.shadowTarget);
+
+                    if (!passData.isVolumetric || (passData.isVolumetric && light.volumetricEnabled))
+                        RendererLighting.SetCookieShaderProperties(light, lightMaterial);
+
                     // Set shader global properties
                     RendererLighting.SetPerLightShaderGlobals(cmd, light, slotIndex, passData.isVolumetric, true, LightBatch.isBatchingSupported);
 
                     if (light.normalMapQuality != Light2D.NormalMapQuality.Disabled || light.lightType == Light2D.LightType.Point)
                         RendererLighting.SetPerPointLightShaderGlobals(cmd, light, slotIndex, LightBatch.isBatchingSupported);
-
-                    if (!passData.isVolumetric || (passData.isVolumetric && light.volumetricEnabled))
-                        RendererLighting.SetCookieShaderGlobals(cmd, light);
 
                     if (LightBatch.isBatchingSupported)
                     {

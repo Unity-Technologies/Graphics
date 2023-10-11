@@ -253,7 +253,7 @@ namespace UnityEditor.ShaderAnalysis
                         continue;
 
                     var perf = GetPerfReportAt(unitIndices[j]);
-                    program.AddPerformanceReport(j, perf.rawReport, perf.parsedReport);
+                    program.AddPerformanceReport(j, perf.rawReport, perf.parsedReport, perf.compiledfile);
                 }
             }
 

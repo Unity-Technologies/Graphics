@@ -143,8 +143,8 @@ namespace UnityEditor.VFX
 
         public virtual void SetupMaterial(Material material) { }
 
-        public bool HasIndirectDraw() { return (indirectDraw || HasSorting() || VFXOutputUpdate.HasFeature(outputUpdateFeatures, VFXOutputUpdate.Features.IndirectDraw)) && !HasStrips(true); }
-        public virtual bool HasSorting() { return (sort == SortActivationMode.On || (sort == SortActivationMode.Auto && (blendMode == BlendMode.Alpha || blendMode == BlendMode.AlphaPremultiplied))) && !HasStrips(true); }
+        public bool HasIndirectDraw() { return (indirectDraw || HasSorting() || VFXOutputUpdate.HasFeature(outputUpdateFeatures, VFXOutputUpdate.Features.IndirectDraw)); }
+        public virtual bool HasSorting() { return sort == SortActivationMode.On || (sort == SortActivationMode.Auto && (blendMode == BlendMode.Alpha || blendMode == BlendMode.AlphaPremultiplied)); }
 
         public bool HasCustomSortingCriterion() { return HasSorting() && sortMode == VFXSortingUtility.SortCriteria.Custom; }
         public bool HasComputeCulling() { return computeCulling && !HasStrips(true); }
@@ -216,7 +216,7 @@ namespace UnityEditor.VFX
                 }
             }
         }
-        public bool NeedsDeadListCount() { return HasIndirectDraw() && (taskType == VFXTaskType.ParticleQuadOutput || taskType == VFXTaskType.ParticleHexahedronOutput); } // Should take the capacity into account to avoid false positive
+        public bool NeedsDeadListCount() { return HasIndirectDraw() && !HasStrips() && (taskType == VFXTaskType.ParticleQuadOutput || taskType == VFXTaskType.ParticleHexahedronOutput); } // Should take the capacity into account to avoid false positive
 
         public bool HasStrips(bool data = false) { return (data ? GetData().type : ownedType) == VFXDataType.ParticleStrip; }
 
@@ -577,7 +577,7 @@ namespace UnityEditor.VFX
                     yield return "useExposureWeight";
 
                 // indirect draw is implicit or forbidden
-                if (HasStrips(true) || HasSorting() || VFXOutputUpdate.HasFeature(outputUpdateFeatures, VFXOutputUpdate.Features.IndirectDraw))
+                if (HasSorting() || VFXOutputUpdate.HasFeature(outputUpdateFeatures, VFXOutputUpdate.Features.IndirectDraw))
                     yield return "indirectDraw";
 
                 // compute culling is implicit or forbidden
@@ -587,10 +587,9 @@ namespace UnityEditor.VFX
                     || VFXOutputUpdate.HasFeature(outputUpdateFeatures, VFXOutputUpdate.Features.FrustumCulling))
                     yield return "computeCulling";
 
-                // No indirect / sorting support now for strips
+                // Features not supported yet by strips
                 if (HasStrips(true))
                 {
-                    yield return "sort";
                     yield return "frustumCulling";
                     yield return "isRaytraced";
                 }
@@ -718,7 +717,18 @@ namespace UnityEditor.VFX
             VFXDataParticle data = (VFXDataParticle)GetData();
             if (HasStrips())
             {
-                fixedSize = (uint)data.GetSetting("stripCapacity").value;
+                UInt32 stripCapacity = (uint)data.GetSetting("stripCapacity").value;
+                UInt32 particlePerStripCount = (uint)data.GetSetting("particlePerStripCount").value;
+                if (HasIndirectDraw())
+                {
+                    // With indirect, we use all particle indices
+                    fixedSize = stripCapacity * particlePerStripCount;
+                }
+                else
+                {
+                    // Without indirect, we are not counting the last particle of each strip
+                    fixedSize = stripCapacity * (particlePerStripCount - 1);
+                }
             }
             else
             {

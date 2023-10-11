@@ -1,0 +1,75 @@
+{
+    "introduction": 
+	"""Welcome to the collection of <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Override-Fog.html">Volumetric Fog</a> Samples.
+	Each of the effects instantiated by this script are Prefabs available for usage in <b>VolumetricSamples/Prefabs/…</b>
+	
+	The <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Local-Volumetric-Fog.html">Local Volumetric Fog</a> component allows the usage of <b>3D Textures</b> or <b>Shader Graphs</b> to add details and animation locally to the fog. <b>Blending Modes</b> are also available to add, multiply or overwrite fog values.
+	
+	The Local Fog visual quality is dependent on the <b>Volumetric Fog quality settings</b>, found in the active <b>Volume Profile</b>. The Manual control offers precise management over the Fog's budget : for an effect with lots of variation over a short distance, it is preferred to increase the <b>Volume Slice Count</b>. If performance is an issue, the <b>Screen Resolution Percentage</b> can be kept low as a tradeoff.""",
+    "samples": [
+        {
+            "title": "3D Texture Mask",
+            "prefabName": "3D Texture Mask Sample",
+            "description": 
+	"""This Local Volumetric Fog uses the <b>Texture Mask Mode</b>.
+It requires a <b>3D texture</b>, some more examples are found in <b>VolumetricSamples/3D Textures/...</b> .
+RGB channels are used for tint, while the alpha channel will drive the density. If the 3D texture contains only the alpha channel, the tint will be presumed white."""
+        },
+        {
+            "title": "Ground Smoke",
+            "prefabName": "Ground Smoke Prefab Sample",
+            "description": 
+	"""This <link="Ground Smoke.shadergraph"><b>Ground Smoke Shader Graph</b></link> is special because it exclusively relies on 2D textures. To achieve this effect, we only need to adjust density vertically, so we simply project a 2D noise pattern from above. Two textures of varying sizes move in separate directions, while a basic color gradient adds depth to the volume."""
+        },
+        {
+            "title": "Local Clouds",
+            "prefabName": "Cloudy Sample",
+            "description": 
+	"""This Shader Graph creates the <link="LocalClouds.shadergraph"><b>Local Clouds</b></link> Effect. It utilizes various sampled noises stored in <b>3D textures</b> to generate these distinct cloud-like formations. If you require realistic sky clouds, it's advisable to opt for <b>Volumetric Clouds</b>, as Local Volumetric Fog is designed for close-range, localized camera effects."""
+        },
+        {
+            "title": "Foggy Orb And Light",
+            "prefabName": "Foggy Orb and Light Sample",
+            "description": 
+	"""This <link="Foggy Orb.shadergraph"><b>Foggy Orb</b></link> uses a Shader Graph. The 3D texture is not only scrolling upwards, but also rotating, which helps to give it a good flow. It has a <b>light</b> in the middle."""
+        },
+        {
+            "title": "Procedural Noise Fog",
+            "prefabName": "Procedural Noise Fog Sample",
+            "description": 
+	"""This sample showcases <link="ProceduralNoiseShowcase.shadergraph"><b>procedural 3D Noise</b></link>.
+It is possible to compute a 3D noise directly in the Shader Graph. Several <b>3D noise functions</b> are available as <b>SubGraphs</b> found in <b>VolumetricSamples/Fog Volume Shadergraph/Procedural Noises/...</b> .
+	
+Procedural Noise can be quite slow to run as there is complex math involved.
+	
+Check out the <link="ProceduralNoiseShowcase_Material.mat">Material</link> on the Sample to visualize different noise functions."""
+        },
+        {
+            "title": "Fumes",
+            "prefabName": "Fumes Sample",
+            "description": 
+	"""This <link="Fumes.shadergraph"><b>Fumes</b></link> Effect uses a Shader Graph with a <b>procedural 3D Noise SubGraph</b>. Not utilising any textures allows us to scale and deform the effect without a loss in quality."""
+        },
+        {
+            "title": "Blending Modes",
+            "prefabName": "Blending Modes",
+            "description": 
+	"""The <b>Local Volumetric Fog</b> has different <b>Blending Modes</b>.
+	
+The <link="Add Fog"><b>Additive</b></link> blending mode is the most commonly used as it will seamlessly blend with the surrounding fog by simply adding the color and density values of overlapping volumes. This mode does not allow subtraction.
+	
+The <link="Overwrite Fog"><b>Overwrite</b></link> blending mode will replace any fog value. It won't blend at all with the surrounding fog. Can be useful to remove fog from an interior.
+	
+The <b>Multiply</b> blending mode can be used to <b><link="Tint Fog">tint</link></b> the fog color's locally. It can also be used to <b><link="Remove Fog">reduce</link></b> the fog's density by multiplying it with small values
+	
+The <link="Max Value Fog"><b>Min and Max</b></link> blending mode can be used to clamp value in one way or the other."""
+        },
+        {
+            "title": "Volumetric Heart",
+            "prefabName": "Volumetric Heart Sample",
+            "description": 
+	"""It's a very simple <link="Volumetric Heart.shadergraph"><b>Heart</b></link>, using simple math in Shader Graph. No textures are involved."""
+        }
+    ]	
+}
+

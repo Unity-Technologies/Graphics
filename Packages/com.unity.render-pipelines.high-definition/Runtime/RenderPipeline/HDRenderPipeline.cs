@@ -694,6 +694,7 @@ namespace UnityEngine.Rendering.HighDefinition
             LensFlareCommonSRP.Initialize();
 
             Hammersley.Initialize();
+            DecalSystem.instance.Initialize();
 
             LocalVolumetricFogManager.manager.InitializeGraphicsBuffers(asset.currentPlatformRenderPipelineSettings.lightLoopSettings.maxLocalVolumetricFogOnScreen);
 
@@ -1427,6 +1428,15 @@ namespace UnityEngine.Rendering.HighDefinition
                             needCulling = false;
                             m_SkyManager.UpdateCurrentSkySettings(hdCamera);
                         }
+                    }
+
+                    // Skip request for the second pass: culling the same camera twice in a row would crash the editor/player.
+                    // https://jira.unity3d.com/browse/UUM-41447
+                    if (needCulling == true && m_ActiveTerrains.Count > 0)
+                    {
+                        Debug.LogWarning("The current XR provider does not support rendering Terrain under the XR multipass rendering mode. Please set the XR render mode to single pass or multi-view in the XR provider settings.");
+                        needCulling = false;
+                        skipRequest = true;
                     }
                 }
 
@@ -2657,6 +2667,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 BeginPostProcessFrame(cmd, hdCamera, this);
 
                 ApplyDebugDisplaySettings(hdCamera, cmd, aovRequest.isValid);
+
+                // Now BRG ambient probe setup has moved to SetupCameraProperties we need to make sure ambient probe is up to date in RenderSettings
+                skyManager.UpdateCurrentSkySettings(hdCamera);
+                skyManager.SetupAmbientProbe(hdCamera);
 
                 SetupCameraProperties(hdCamera, renderContext, cmd);
 

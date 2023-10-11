@@ -1,0 +1,18 @@
+.warningIcon {
+    background-image: var(--unity-icons-console_entry_warn);
+    margin-right: 5px;
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    min-height: 32px;
+}
+
+.link-cursor {
+    cursor: link;
+}
+
+.link {
+}
+
+Label {
+}

@@ -62,7 +62,7 @@ namespace UnityEngine.Rendering
         /// Constructor. This overload allows you to only allocate memory without setting the size.
         /// </summary>
         /// <param name="capacity">The nubmer of elements to allocate.</param>
-        /// <param name="resize">If true, also set the size of the array to the passed in capacity. If fase, only allocate data but keep the size at 0.</param>/// 
+        /// <param name="resize">If true, also set the size of the array to the passed in capacity. If false, only allocate data but keep the size at 0.</param>/// 
         public DynamicArray(int capacity, bool resize)
         {
             m_Array = new T[capacity];
@@ -135,9 +135,10 @@ namespace UnityEngine.Rendering
         /// <param name="item">Item to be inserted in the DynamicArray.</param>
         public void Insert(int index, T item)
         {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
             if (index < 0 || index > size)
                 throw new IndexOutOfRangeException();
-
+#endif
             if (index == size)
                 Add(item);
             else
@@ -171,8 +172,10 @@ namespace UnityEngine.Rendering
         /// <param name="index">The zero-based index of the element to remove.</param>
         public void RemoveAt(int index)
         {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
             if (index < 0 || index >= size)
                 throw new IndexOutOfRangeException();
+#endif
 
             if (index != size - 1)
                 Array.Copy(m_Array, index + 1, m_Array, index, size - index - 1);
@@ -190,9 +193,11 @@ namespace UnityEngine.Rendering
         {
             if (count == 0)
                 return;
-
+                
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
             if (index < 0 || index >= size || count < 0 || index + count > size)
                 throw new ArgumentOutOfRangeException();
+#endif
 
             Array.Copy(m_Array, index + count, m_Array, index, size - index - count);
             size -= count;

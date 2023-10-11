@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: ccd23b3eb0caff84aab1cd555791352b
+VisualEffectImporter:
+  externalObjects: {}
+  serializedVersion: 1
+  template:
+    name: 'Rotation & Angle '
+    category: Learning Templates
+    description: It's often really useful to be able to rotate particles. This VFX
+      shows how to rotate particles thanks to the Angle attribute.
+    icon: {fileID: 2800000, guid: 49836be3225b70342b4057f6bf94b554, type: 3}
+    thumbnail: {fileID: 2800000, guid: 0fb02ec51733f84499bed29bbbb0b51e, type: 3}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

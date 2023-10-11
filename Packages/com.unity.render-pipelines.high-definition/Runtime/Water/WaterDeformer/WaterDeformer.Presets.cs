@@ -48,5 +48,14 @@ namespace UnityEngine.Rendering.HighDefinition
             waterDeformer.texture = null;
             waterDeformer.range = new Vector2(0.0f, 1.0f);
         }
+
+        static internal void ApplyWaterMaterialDeformerPreset(WaterDeformer waterDeformer)
+        {
+            waterDeformer.regionSize = new Vector2(10f, 10.0f);
+            waterDeformer.resolution = new Vector2Int(256, 256);
+            waterDeformer.updateMode = CustomRenderTextureUpdateMode.OnLoad;
+            waterDeformer.amplitude = 1.0f;
+            waterDeformer.material = null;
+        }
     }
 }

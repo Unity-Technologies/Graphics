@@ -387,6 +387,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public List<HDLightRenderEntity> hdPointLightArray = new List<HDLightRenderEntity>();
         public List<HDLightRenderEntity> hdLineLightArray = new List<HDLightRenderEntity>();
         public List<HDLightRenderEntity> hdRectLightArray = new List<HDLightRenderEntity>();
+        public List<HDLightRenderEntity> hdDiscLightArray = new List<HDLightRenderEntity>();
         public List<HDLightRenderEntity> hdLightEntityArray = new List<HDLightRenderEntity>();
 
         // The list of directional lights in the sub-scene
@@ -404,6 +405,7 @@ namespace UnityEngine.Rendering.HighDefinition
             hdPointLightArray.Clear();
             hdLineLightArray.Clear();
             hdRectLightArray.Clear();
+            hdDiscLightArray.Clear();
             hdLightEntityArray.Clear();
             reflectionProbeArray.Clear();
             lightCount = 0;

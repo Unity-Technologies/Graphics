@@ -7,4 +7,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     class WaterData : HDTargetData
     {
     }
+
+    class WaterDecalData : HDTargetData
+    {
+    }
 }

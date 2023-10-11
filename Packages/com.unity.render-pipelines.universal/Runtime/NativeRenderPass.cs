@@ -534,7 +534,7 @@ namespace UnityEngine.Rendering.Universal
             uint lastSubPassAttCount = GetSubPassAttachmentIndicesCount(lastSubPass);
             uint currentSubPassAttCount = GetSubPassAttachmentIndicesCount(currentSubPass);
 
-            if (currentSubPassAttCount > lastSubPassAttCount)
+            if (currentSubPassAttCount != lastSubPassAttCount)
                 return false;
 
             uint numEqualAttachments = 0;

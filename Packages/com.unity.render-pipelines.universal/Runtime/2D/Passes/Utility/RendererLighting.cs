@@ -616,16 +616,10 @@ namespace UnityEngine.Rendering.Universal
             return light.useCookieSprite;
         }
 
-        internal static void SetCookieShaderGlobals(RasterCommandBuffer cmd, Light2D light)
+        internal static void SetCookieShaderProperties(Light2D light, Material material)
         {
             if (light.useCookieSprite && light.m_CookieSpriteTextureHandle.IsValid())
-                cmd.SetGlobalTexture(light.lightType == Light2D.LightType.Sprite ? k_CookieTexID : k_PointLightCookieTexID, light.m_CookieSpriteTextureHandle);
-        }
-
-        internal static void SetCookieShaderGlobals(LowLevelCommandBuffer cmd, Light2D light)
-        {
-            if (light.useCookieSprite && light.m_CookieSpriteTextureHandle.IsValid())
-                cmd.SetGlobalTexture(light.lightType == Light2D.LightType.Sprite ? k_CookieTexID : k_PointLightCookieTexID, light.m_CookieSpriteTextureHandle);
+                material.SetTexture(light.lightType == Light2D.LightType.Sprite ? k_CookieTexID : k_PointLightCookieTexID, light.m_CookieSpriteTextureHandle);
         }
 
         public static void ClearDirtyLighting(this IRenderPass2D pass, CommandBuffer cmd, uint blendStylesUsed)

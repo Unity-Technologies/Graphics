@@ -21,11 +21,12 @@ This section includes all the menu items under the **Edit > Rendering > Renderin
 
 This section includes all the menu items under the **Edit > Rendering > Materials** menu fold-out.
 
-| **Item**                                        | **Description**                                              |
-| ----------------------------------------------- | ------------------------------------------------------------ |
-| **Upgrade HDRP Materials to Latest Version**    | Upgrades all HDRP Materials in the project to the latest version. This is useful if HDRP's automatic Material upgrade process fails to upgrade a Material. |
-| **Convert All Built-in Materials to HDRP**      | Converts every compatible Material in your project to an HDRP Material. |
-| **Convert Selected Built-in Materials to HDRP** | Converts every compatible Material currently selected in the project window to an HDRP Material. |
+| **Item**                                        | **Description**                                                                                                                                                                      |
+|-------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Generate Material Resources**                 | Generate look-up table resources for all HDRP Materials. The generated resources will be placed in the directory **Assets/HDRPDefaultResources/Generated**.                             |
+| **Upgrade HDRP Materials to Latest Version**    | Upgrades all HDRP Materials in the project to the latest version. This is useful if HDRP's automatic Material upgrade process fails to upgrade a Material.                           |
+| **Convert All Built-in Materials to HDRP**      | Converts every compatible Material in your project to an HDRP Material.                                                                                                              |
+| **Convert Selected Built-in Materials to HDRP** | Converts every compatible Material currently selected in the project window to an HDRP Material.                                                                                     |
 | **Convert Scene Terrains to HDRP Terrains**     | Replaces the built-in default standard terrain Material in every [Terrain](https://docs.unity3d.com/Manual/script-Terrain.html) in the scene with the HDRP default Terrain Material. |
 
 ### Other

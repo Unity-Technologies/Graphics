@@ -1,0 +1,171 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-961147180734093749
+MonoBehaviour:
+  m_ObjectHideFlags: 11
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da692e001514ec24dbc4cca1949ff7e8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  version: 13
+  hdPluginSubTargetMaterialVersions:
+    m_Keys: []
+    m_Values: 
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: HairRibbon_Blond
+  m_Shader: {fileID: -6465566751694194690, guid: 92f8c085987503d4da7eb0960db2c23b, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords:
+  - _BLUE_VERTEX_COLOR_FOR_PER_STRAND_INDEX_EFFECT
+  - _DISABLE_SSR_TRANSPARENT
+  - _GREEN_VERTEX_COLOR_FOR_RADIUS_VARIATION
+  - _RED_VERTEX_COLOR_FOR_AMBIENT_OCCLUSION
+  - _SCREEN_ALIGNED_THICKNESS
+  m_InvalidKeywords:
+  - _GENERATE_THICKNESS_FROM_COLLAPSED_RIBBON_GEOMETRY
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: 2225
+  stringTagMap:
+    MotionVector: User
+  disabledShaderPasses:
+  - TransparentDepthPrepass
+  - TransparentDepthPostpass
+  - TransparentBackface
+  - MOTIONVECTORS
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _SampleTexture2D_4adae90930c444c9a4e1cdcce51a7545_Texture_1:
+        m_Texture: {fileID: 2800000, guid: 6900a676e9d22024f9d13cb6bde68e8c, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_f635909c9f214acdb43680cbe1ed69c9_Texture_1:
+        m_Texture: {fileID: 2800000, guid: c555d93bea2ae764b94ce79beeb63a4e, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_Lightmaps:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_LightmapsInd:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_ShadowMasks:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _AddPrecomputedVelocity: 0
+    - _AlphaCutoffEnable: 0
+    - _AlphaDstBlend: 0
+    - _AlphaSrcBlend: 1
+    - _AlphaToMask: 0
+    - _AlphaToMaskInspectorValue: 0
+    - _Alpha_Threshold: 0.33
+    - _Ambient_Occlusion: 1
+    - _BLUE_VERTEX_COLOR_FOR_PER_STRAND_INDEX_EFFECT: 1
+    - _BlendMode: 0
+    - _ConservativeDepthOffsetEnable: 0
+    - _CullMode: 2
+    - _CullModeForward: 2
+    - _Cuticle_Angle: 3
+    - _Cuticle_Angle_Distance: 1
+    - _Cuticle_Angle_Tip: 50
+    - _DepthOffsetEnable: 0
+    - _DoubleSidedEnable: 0
+    - _DoubleSidedGIMode: 0
+    - _DoubleSidedNormalMode: 2
+    - _DstBlend: 0
+    - _DstBlend2: 0
+    - _EnableBlendModePreserveSpecularLighting: 1
+    - _EnableFogOnTransparent: 1
+    - _Float: 0.6
+    - _GENERATE_THICKNESS_FROM_COLLAPSED_RIBBON_GEOMETRY: 1
+    - _GREEN_VERTEX_COLOR_FOR_RADIUS_VARIATION: 1
+    - _Going_Grey: 0
+    - _Grey_Hair: 1.06
+    - _IS_RIBBON_HAIR: 1
+    - _Length_Smoothness: 0.7
+    - _MaxRadius: 0.075
+    - _Max_Radius: 0.1
+    - _MinRadius: 0.025
+    - _Min_Radius: 0.025
+    - _OpaqueCullMode: 2
+    - _PerPixelSorting: 0
+    - _Per_Strand_Hue_Variation: 0.027
+    - _Per_Strand_Smoothness_Variation: 0.1
+    - _RED_VERTEX_COLOR_FOR_AMBIENT_OCCLUSION: 1
+    - _RIBBON_HAIR: 1
+    - _Radial_Smoothness: 0.7
+    - _ReceivesSSR: 1
+    - _ReceivesSSRTransparent: 0
+    - _RenderQueueType: 1
+    - _RequireSplitLighting: 0
+    - _Root_Distance: 0.439
+    - _Root_Fade: 0.25
+    - _Root_Smoothness: 0.5
+    - _Root_Smoothness_Distance: 0.4
+    - _Root_Smoothness_Fade: 0.4
+    - _SCREEN_ALIGNED_THICKNESS: 1
+    - _Smoothness: 0.588
+    - _SrcBlend: 1
+    - _StencilRef: 0
+    - _StencilRefDepth: 8
+    - _StencilRefDistortionVec: 4
+    - _StencilRefGBuffer: 10
+    - _StencilRefMV: 40
+    - _StencilWriteMask: 6
+    - _StencilWriteMaskDepth: 9
+    - _StencilWriteMaskDistortionVec: 4
+    - _StencilWriteMaskGBuffer: 14
+    - _StencilWriteMaskMV: 43
+    - _SupportDecals: 1
+    - _SurfaceType: 0
+    - _Tip_Distance: 0.8
+    - _Tip_Fade: 0.8
+    - _Tip_Thinning: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentCullMode: 2
+    - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
+    - _TransparentSortPriority: 0
+    - _TransparentWritingMotionVec: 0
+    - _TransparentZWrite: 0
+    - _UseShadowThreshold: 0
+    - _ZTestDepthEqualForOpaque: 3
+    - _ZTestGBuffer: 4
+    - _ZTestTransparent: 4
+    - _ZWrite: 1
+    - _salt_and_pepper: 0.24
+    - _size: 0.1
+    m_Colors:
+    - _Color: {r: 0, g: 0, b: 0, a: 0}
+    - _DoubleSidedConstants: {r: 1, g: 1, b: 1, a: 0}
+    - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
+    - _Grey_Hair_Color: {r: 0.51886785, g: 0.51886785, b: 0.51886785, a: 0}
+    - _HairDirection: {r: 0, g: -1, b: 0, a: 0}
+    - _Hair_Direction: {r: 0, g: -1, b: 0, a: 0}
+    - _Hair_Strand_Direction: {r: 0, g: -1, b: 0, a: 0}
+    - _Length_Color: {r: 0.4245283, g: 0.25719398, b: 0.12281949, a: 1}
+    - _Root_Color: {r: 0.2735849, g: 0.16752969, b: 0.079150334, a: 1}
+    - _Tip_Color: {r: 0.509434, g: 0.4015529, b: 0.2963688, a: 1}
+    - _dir: {r: 1, g: 0, b: 0, a: 0}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1

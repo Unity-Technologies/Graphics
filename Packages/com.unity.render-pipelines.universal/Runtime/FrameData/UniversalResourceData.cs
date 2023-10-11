@@ -16,7 +16,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Returns the current active color target texture. To be referenced at RenderGraph pass recording time, not in passes render functions.
         /// </summary>
-        /// <returns>TextureHandle</returns>
+        /// <value>Returns the active color texture between the front and back buffer.</value>
         public TextureHandle activeColorTexture
         {
             get
@@ -44,7 +44,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Returns the current active color target texture. To be referenced at RenderGraph pass recording time, not in passes render functions.
         /// </summary>
-        /// <returns>TextureHandle</returns>
+        /// <value>TextureHandle</value>
         public TextureHandle activeDepthTexture
         {
             get
@@ -61,6 +61,24 @@ namespace UnityEngine.Rendering.Universal
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
+            }
+        }
+
+        /// <summary>
+        /// True if the current active target is the backbuffer. To be referenced at RenderGraph pass recording time, not in passes render functions.
+        /// </summary>
+        /// <value>Returns true if the backbuffer is currently in use and false otherwise.</value>
+        public bool isActiveTargetBackBuffer
+        {
+            get
+            {
+                if (!isAccessible)
+                {
+                    Debug.LogError("Trying to access frameData outside of the current frame setup.");
+                    return false;
+                }
+
+                return activeColorID == UniversalResourceData.ActiveID.BackBuffer;
             }
         }
 

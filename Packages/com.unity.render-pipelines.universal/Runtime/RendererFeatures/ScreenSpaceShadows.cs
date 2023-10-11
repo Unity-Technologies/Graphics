@@ -9,6 +9,7 @@ namespace UnityEngine.Rendering.Universal
     {
     }
 
+    [SupportedOnRenderer(typeof(UniversalRendererData))]
     [DisallowMultipleRendererFeature("Screen Space Shadows")]
     [Tooltip("Screen Space Shadows")]
     [URPHelpURL("renderer-feature-screen-space-shadows")]
@@ -208,9 +209,9 @@ namespace UnityEngine.Rendering.Universal
             private static void ExecutePass(RasterCommandBuffer cmd, PassData data, RTHandle target)
             {
                 Blitter.BlitTexture(cmd, target, Vector2.one, data.material, 0);
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadows, false);
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadowCascades, false);
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadowScreen, true);
+                cmd.SetKeyword(ref ShaderGlobalKeywords.MainLightShadows, false);
+                cmd.SetKeyword(ref ShaderGlobalKeywords.MainLightShadowCascades, false);
+                cmd.SetKeyword(ref ShaderGlobalKeywords.MainLightShadowScreen, true);
             }
 
             /// <inheritdoc/>
@@ -243,7 +244,6 @@ namespace UnityEngine.Rendering.Universal
                 ConfigureTarget(k_CurrentActive);
             }
 
-
             private static void ExecutePass(RasterCommandBuffer cmd, UniversalShadowData shadowData)
             {
                 int cascadesCount = shadowData.mainLightShadowCascadesCount;
@@ -252,11 +252,11 @@ namespace UnityEngine.Rendering.Universal
                 bool receiveShadowsCascades = mainLightShadows && cascadesCount > 1;
 
                 // Before transparent object pass, force to disable screen space shadow of main light
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadowScreen, false);
+                cmd.SetKeyword(ref ShaderGlobalKeywords.MainLightShadowScreen, false);
 
                 // then enable main light shadows with or without cascades
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadows, receiveShadowsNoCascade);
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadowCascades, receiveShadowsCascades);
+                cmd.SetKeyword(ref ShaderGlobalKeywords.MainLightShadows, receiveShadowsNoCascade);
+                cmd.SetKeyword(ref ShaderGlobalKeywords.MainLightShadowCascades, receiveShadowsCascades);
             }
 
             public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)

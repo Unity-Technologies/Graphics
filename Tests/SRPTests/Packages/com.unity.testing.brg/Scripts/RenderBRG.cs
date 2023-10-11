@@ -139,6 +139,9 @@ public unsafe class RenderBRG : MonoBehaviour
     private uint m_brgBatchWindowSize;
     private bool UseConstantBuffer => BatchRendererGroup.BufferTarget == BatchBufferTarget.ConstantBuffer;
 
+    public bool useBatchLayer = false;
+    public int batchLayer = 0;
+    
     public static T* Malloc<T>(int count) where T : unmanaged
     {
         return (T*)UnsafeUtility.Malloc(
@@ -228,6 +231,7 @@ public unsafe class RenderBRG : MonoBehaviour
         [ReadOnly]
         public NativeArray<int> pickingIDs;
         public bool isPickingCulling;
+        public int batchLayer;
 
         public void Execute()
         {
@@ -359,7 +363,8 @@ public unsafe class RenderBRG : MonoBehaviour
                                 {
                                     rendererPriority = drawRanges[activeRange].key.rendererPriority,
                                     renderingLayerMask = 1,
-                                    layer = 0,
+                                    layer = 1,
+                                    batchLayer = (byte)batchLayer,
                                     motionMode = MotionVectorGenerationMode.Camera,
                                     shadowCastingMode = drawRanges[activeRange].key.shadows,
                                     receiveShadows = true,
@@ -491,7 +496,8 @@ public unsafe class RenderBRG : MonoBehaviour
                 new BatchFilterSettings
                 {
                     renderingLayerMask = 1,
-                    layer = 0,
+                    layer = 1,
+                    batchLayer = (byte)batchLayer,
                     motionMode = MotionVectorGenerationMode.Camera,
                     shadowCastingMode = ShadowCastingMode.Off,
                     receiveShadows = true,
@@ -580,6 +586,7 @@ public unsafe class RenderBRG : MonoBehaviour
             drawCommands = cullingOutput.drawCommands,
             isPickingCulling = needInstanceIDs,
             pickingIDs = m_pickingIDs,
+            batchLayer = useBatchLayer ? batchLayer : 0
         };
 
         var jobHandleCulling = cullingJob.Schedule(visibilityLength, 8);

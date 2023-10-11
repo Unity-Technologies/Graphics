@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
@@ -9,6 +10,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Regular interface
         public virtual void Build(HDRenderPipelineAsset hdAsset, HDRenderPipelineRuntimeResources runtimeResources) { }
+
+        // Optionally build resources offline (in editor).
+        public virtual void BuildOffline(ref List<RenderTexture> resourceList) { }
         public virtual void Cleanup() { }
 
         // Following function can be use to initialize GPU resource (once or each frame) and bind them

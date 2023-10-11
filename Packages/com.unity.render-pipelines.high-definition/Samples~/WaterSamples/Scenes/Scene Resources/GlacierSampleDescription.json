@@ -1,0 +1,33 @@
+{
+    "introduction":
+	"""Welcome to the Water System Samples.
+	The <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/WaterSystem.html ">WaterSystem</a> allows you to add water to your scenes. 
+	Multiple surface types are available, this scene showcases the Ocean preset and how it can be used to seamlessly transition from a river to a larger body type like an ocean.
+
+	<i>To make sure the project is set up properly, use the HDRP Asset Settings Helper buttons at the top of this component, otherwise some features might not be visible.</i>
+
+	<h1>General</h1>
+
+	• Current Maps are used to guide agitation and ripples direction along the river curves. 
+
+	<h1>Waterfall</h1>
+
+	• A <link="Waterfall Deformer">Texture Deformer</link> is used to control the water elevation during the fall. This method is recommended over using a custom geometry, as it allows the use of the Underwater effect.
+	• To recreate the falling water effect, we used a <link="Decal Waterfall">Decal Projector</link>. It affects transparents and the motion is derived from a Custom Render Texture.
+	• A Water Mask is also used to dampen the water agitation throughout the level. It prevents the ocean swell from occurring along the river.
+
+	<h1>Foam</h1>
+	
+	• To add foam along the river bank, we subtract the depth of what’s below the water (usually the bottom of the river) from the depth of the water surface. If the difference is really small, foam is added.
+
+	<h1>Caustics</h1>
+
+	• To render the caustics on the ice wall we use a <link="Decal Projector">CausticsProjector</link>. Simulation changes are updated in real time with the help of the <code>GetCausticsBuffer()</code> function in the Water Surface script.
+	• Caustics on the bottom of the river are enabled on the Water surface itself. However they are not affected by the Current maps.
+
+	<h1>Ice Chunks</h1>
+
+	• Each <link="IceChunk">ice chunk</link> sticks to the Water Surface and follows the direction of the current using the FloatingIceberg script.
+	• A disk <link="Foam trail">Foam Generator</link> is set as a child of each ice chunk to create a foam trail.""",
+    "samples": []	
+}

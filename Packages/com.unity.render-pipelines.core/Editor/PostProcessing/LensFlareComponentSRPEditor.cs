@@ -23,6 +23,7 @@ namespace UnityEditor.Rendering
         SerializedProperty m_RadialScreenAttenuationCurve;
         SerializedProperty m_UseOcclusion;
         SerializedProperty m_BackgroundCloudOcclusion;
+        SerializedProperty m_WaterOcclusion;
         SerializedProperty m_OcclusionRadius;
         SerializedProperty m_SamplesCount;
         SerializedProperty m_OcclusionOffset;
@@ -51,6 +52,7 @@ namespace UnityEditor.Rendering
             m_RadialScreenAttenuationCurve = entryPoint.Find(x => x.radialScreenAttenuationCurve);
             m_UseOcclusion = entryPoint.Find(x => x.useOcclusion);
             m_BackgroundCloudOcclusion = entryPoint.Find(x => x.useBackgroundCloudOcclusion);
+            m_WaterOcclusion = entryPoint.Find(x => x.useWaterOcclusion);
             m_OcclusionRadius = entryPoint.Find(x => x.occlusionRadius);
             m_SamplesCount = entryPoint.Find(x => x.sampleCount);
             m_OcclusionOffset = entryPoint.Find(x => x.occlusionOffset);
@@ -152,6 +154,8 @@ namespace UnityEditor.Rendering
                     EditorGUILayout.PropertyField(m_BackgroundCloudOcclusion, Styles.backgroundCloudOcclusion);
                 if (RenderPipelineManager.currentPipeline is IVolumetricCloud volumetricCloud && volumetricCloud.IsVolumetricCloudUsable())
                     EditorGUILayout.PropertyField(m_VolumetricCloudOcclusion, Styles.volumetricCloudOcclusion);
+                if (RenderPipelineManager.currentPipeline is IWaterRendering waterRendering && waterRendering.IsWaterRenderingUsable())
+                    EditorGUILayout.PropertyField(m_WaterOcclusion, Styles.waterOcclusion);
                 EditorGUILayout.PropertyField(m_OcclusionRadius, Styles.occlusionRadius);
                 EditorGUILayout.PropertyField(m_SamplesCount, Styles.sampleCount);
                 EditorGUILayout.PropertyField(m_OcclusionOffset, Styles.occlusionOffset);
@@ -196,6 +200,7 @@ namespace UnityEditor.Rendering
             static public readonly GUIContent occlusionRemapCurve = EditorGUIUtility.TrTextContent("Occlusion Remap Curve", "Specifies the curve used to remap the occlusion of the flare. By default, the occlusion is linear, between 0 and 1. This can be specifically useful to occlude flare more drastically when behind clouds.");
             static public readonly GUIContent allowOffScreen = EditorGUIUtility.TrTextContent("Allow Off Screen", "When enabled, allows the lens flare to affect the scene even when it is outside the Camera's field of view.");
             static public readonly GUIContent volumetricCloudOcclusion = EditorGUIUtility.TrTextContent("Volumetric Clouds", "When enabled, HDRP uses the volumetric clouds texture (in screen space) for the occlusion.");
+            static public readonly GUIContent waterOcclusion = EditorGUIUtility.TrTextContent("Water", "When enabled, HDRP uses the Water Rendering (in screen space) for the occlusion.");
         }
     }
 }

@@ -105,12 +105,12 @@ public class OutputTextureFeature : ScriptableRendererFeature
 
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
-            var cameraData = frameData.Get<UniversalCameraData>();
-            UniversalRenderer renderer = (UniversalRenderer)cameraData.renderer;
+            UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
 
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("Output Texture Pass", out var passData, m_ProfilingSampler))
             {
-                builder.UseTextureFragment(renderer.activeColorTexture, 0, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
+                builder.UseTextureFragment(resourceData.activeColorTexture, 0, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
                 builder.AllowPassCulling(false);
                 passData.profilingSampler = m_ProfilingSampler;
                 passData.material = m_Material;

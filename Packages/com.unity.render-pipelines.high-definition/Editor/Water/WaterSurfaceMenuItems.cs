@@ -187,6 +187,21 @@ namespace UnityEditor.Rendering
             WaterDeformerPresets.ApplyWaterTextureDeformerPreset(waterDeformer);
         }
 
+        [MenuItem("GameObject/Water/Deformer/Material", priority = 18)]
+        static void CreateMaterialDeformer(MenuCommand menuCommand)
+        {
+            // Create the holding game object
+            var go = CoreEditorUtils.CreateGameObject("Water Material Deformer", menuCommand.context);
+            go.transform.position = new Vector3(0.0f, 0.0f, 0.0f);
+
+            // Add the water surface component
+            var waterDeformer = go.AddComponent<WaterDeformer>();
+
+            // Set the parameters
+            waterDeformer.type = WaterDeformerType.Material;
+            WaterDeformerPresets.ApplyWaterMaterialDeformerPreset(waterDeformer);
+        }
+
         [MenuItem("GameObject/Water/Foam Generator", priority = 14)]
         static void CreateFoamGenerator(MenuCommand menuCommand)
         {

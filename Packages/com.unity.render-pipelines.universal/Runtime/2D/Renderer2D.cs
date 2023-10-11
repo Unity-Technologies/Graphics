@@ -44,6 +44,7 @@ namespace UnityEngine.Rendering.Universal
         Material m_BlitMaterial;
         Material m_BlitHDRMaterial;
         Material m_SamplingMaterial;
+        Material m_ClearMaterial;
 
         Renderer2DData m_Renderer2DData;
 
@@ -68,6 +69,8 @@ namespace UnityEngine.Rendering.Universal
             m_BlitMaterial = CoreUtils.CreateEngineMaterial(data.coreBlitPS);
             m_BlitHDRMaterial = CoreUtils.CreateEngineMaterial(data.blitHDROverlay);
             m_SamplingMaterial = CoreUtils.CreateEngineMaterial(data.samplingShader);
+            m_ClearMaterial = CoreUtils.CreateEngineMaterial(data.customClearShader);
+            CustomClear2D.Initialize(m_ClearMaterial);
 
             m_Render2DLightingPass = new Render2DLightingPass(data, m_BlitMaterial, m_SamplingMaterial);
             // we should determine why clearing the camera target is set so late in the events... sounds like it could be earlier
@@ -135,7 +138,9 @@ namespace UnityEngine.Rendering.Universal
             CoreUtils.Destroy(m_BlitMaterial);
             CoreUtils.Destroy(m_BlitHDRMaterial);
             CoreUtils.Destroy(m_SamplingMaterial);
+            CoreUtils.Destroy(m_ClearMaterial);
 
+            CustomClear2D.Cleanup();
             Blitter.Cleanup();
             CleanupRenderGraphResources();
 
@@ -159,7 +164,7 @@ namespace UnityEngine.Rendering.Universal
             internal bool requiresColorTexture;
         }
 
-        private RenderPassInputSummary GetRenderPassInputs(ref RenderingData renderingData, UniversalCameraData cameraData)
+        private RenderPassInputSummary GetRenderPassInputs(UniversalCameraData cameraData)
         {
             RenderPassInputSummary inputSummary = new RenderPassInputSummary();
 
@@ -264,10 +269,13 @@ namespace UnityEngine.Rendering.Universal
 
         public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            UniversalCameraData cameraData = renderingData.frameData.Get<UniversalCameraData>();
+            UniversalRenderingData universalRenderingData = frameData.Get<UniversalRenderingData>();
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+            UniversalPostProcessingData postProcessingData = frameData.Get<UniversalPostProcessingData>();
+
             ref var cameraTargetDescriptor = ref cameraData.cameraTargetDescriptor;
-            bool stackHasPostProcess = renderingData.postProcessingEnabled && m_PostProcessPasses.isCreated;
-            bool hasPostProcess = renderingData.cameraData.postProcessEnabled && m_PostProcessPasses.isCreated;
+            bool stackHasPostProcess = postProcessingData.isEnabled && m_PostProcessPasses.isCreated;
+            bool hasPostProcess = cameraData.postProcessEnabled && m_PostProcessPasses.isCreated;
             bool lastCameraInStack = cameraData.resolveFinalTarget;
             var colorTextureFilterMode = FilterMode.Bilinear;
 
@@ -285,7 +293,7 @@ namespace UnityEngine.Rendering.Universal
                     stackHasPostProcess = stackHasPostProcess && DebugHandler.IsPostProcessingAllowed;
                     hasPostProcess = hasPostProcess && DebugHandler.IsPostProcessingAllowed;
                 }
-                DebugHandler.Setup(ref renderingData);
+                DebugHandler.Setup(universalRenderingData.commandBuffer, cameraData.isPreviewCamera);
 
                 if (DebugHandler.IsActiveForCamera(cameraData.isPreviewCamera))
                 {
@@ -302,7 +310,7 @@ namespace UnityEngine.Rendering.Universal
 
                     if (DebugHandler.HDRDebugViewIsActive(cameraData.resolveFinalTarget))
                     {
-                        DebugHandler.hdrDebugViewPass.Setup(ref renderingData.cameraData, DebugHandler.DebugDisplaySettings.lightingSettings.hdrDebugMode);
+                        DebugHandler.hdrDebugViewPass.Setup(cameraData, DebugHandler.DebugDisplaySettings.lightingSettings.hdrDebugMode);
                         EnqueuePass(DebugHandler.hdrDebugViewPass);
                     }
                 }
@@ -312,7 +320,7 @@ namespace UnityEngine.Rendering.Universal
             // The scene view camera cannot be uninitialized or skybox when using the 2D renderer.
             if (cameraData.cameraType == CameraType.SceneView)
             {
-                renderingData.cameraData.camera.clearFlags = CameraClearFlags.SolidColor;
+                cameraData.camera.clearFlags = CameraClearFlags.SolidColor;
             }
 #endif
 
@@ -341,12 +349,12 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
-            RenderPassInputSummary renderPassInputs = GetRenderPassInputs(ref renderingData, cameraData);
+            RenderPassInputSummary renderPassInputs = GetRenderPassInputs(cameraData);
 
             RTHandle colorTargetHandle;
             RTHandle depthTargetHandle;
 
-            var cmd = renderingData.commandBuffer;
+            var cmd = universalRenderingData.commandBuffer;
 
 #if UNITY_EDITOR
             if(m_DefaultWhiteTextureHandle == null)
@@ -367,7 +375,7 @@ namespace UnityEngine.Rendering.Universal
 
             if (hasPostProcess)
             {
-                colorGradingLutPass.ConfigureDescriptor(in renderingData.postProcessingData, out var desc, out var filterMode);
+                colorGradingLutPass.ConfigureDescriptor(in postProcessingData, out var desc, out var filterMode);
                 RenderingUtils.ReAllocateIfNeeded(ref m_PostProcessPasses.m_ColorGradingLut, desc, filterMode, TextureWrapMode.Clamp, name: "_InternalGradingLut");
                 colorGradingLutPass.Setup(colorGradingLutHandle);
                 EnqueuePass(colorGradingLutPass);
@@ -426,7 +434,7 @@ namespace UnityEngine.Rendering.Universal
                     int upscaleWidth = ppc.refResolutionX * ppc.pixelRatio;
                     int upscaleHeight = ppc.refResolutionY * ppc.pixelRatio;
 
-                    m_UpscalePass.Setup(colorTargetHandle, upscaleWidth, upscaleHeight, ppc.finalBlitFilterMode, ref renderingData, out finalTargetHandle);
+                    m_UpscalePass.Setup(colorTargetHandle, upscaleWidth, upscaleHeight, ppc.finalBlitFilterMode, cameraData.cameraTargetDescriptor, out finalTargetHandle);
                     EnqueuePass(m_UpscalePass);
                 }
             }
@@ -490,7 +498,6 @@ namespace UnityEngine.Rendering.Universal
             m_ColorBufferSystem.EnableMSAA(enable);
         }
 
-        internal override bool supportsNativeRenderPassRendergraphCompiler { get => SystemInfo.graphicsDeviceType != GraphicsDeviceType.Vulkan &&
-                                                                                    SystemInfo.graphicsDeviceType != GraphicsDeviceType.Direct3D12; } // Temporarily disable DX12, until it's fixed
+        internal override bool supportsNativeRenderPassRendergraphCompiler { get => true; }
     }
 }

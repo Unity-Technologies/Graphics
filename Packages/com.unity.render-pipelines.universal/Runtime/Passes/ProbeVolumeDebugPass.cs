@@ -61,12 +61,13 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="renderingData"></param>
         /// <param name="depthPyramidBuffer"></param>
         /// <param name="normalBuffer"></param>
-        internal void Render(RenderGraph renderGraph, ref RenderingData renderingData, TextureHandle depthPyramidBuffer, TextureHandle normalBuffer)
+        internal void Render(RenderGraph renderGraph, ContextContainer frameData, TextureHandle depthPyramidBuffer, TextureHandle normalBuffer)
         {
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+
             if (!ProbeReferenceVolume.instance.isInitialized)
                 return;
 
-            ref CameraData cameraData = ref renderingData.cameraData;
             if (ProbeReferenceVolume.instance.GetProbeSamplingDebugResources(cameraData.camera, out var resultBuffer, out Vector2 coords))
             {
                 using (var builder = renderGraph.AddRenderPass<WriteApvData>("Debug", out var passData, base.profilingSampler))

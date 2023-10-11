@@ -1,4 +1,6 @@
 using System;
+using System.Runtime.CompilerServices;
+using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine.Rendering;
 using System.Collections.Generic;
 
@@ -22,6 +24,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
         public ResourceHandle resource;
         public IBaseRenderGraphBuilder.AccessFlags accessFlags;
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override int GetHashCode()
         {
             var hash = resource.GetHashCode();
@@ -48,13 +51,19 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
     // Data per pass
     internal struct PassData
     {
-        public readonly int passId; // Index of self in the passData list, can we calculate this somehow in c#? would use offsetof in c++
-        public readonly string name;
-        public readonly RenderGraphPassType type;
-        public readonly bool asyncCompute;
-        public bool hasSideEffects;        
+        // Warning, any field must initialized in both constructor and ResetAndInitialize function
+
+        public int passId; // Index of self in the passData list, can we calculate this somehow in c#? would use offsetof in c++
+        public RenderGraphPassType type;
+        public bool asyncCompute;
+        public bool hasSideEffects;
         public bool culled;
         public int tag; // Arbitrary per node int used by various graph analysis tools
+
+        public PassMergeState mergeState;
+        public int nativePassIndex; // Index of the native pass this pass belongs to
+        public int nativeSubPassIndex; // Index of the native subpass this pass belongs to
+        public bool beginNativeSubpass; // If true this is the first graph pass of a merged native subpass
 
         public bool isSource;
         public bool isSink;
@@ -81,18 +90,15 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
         public bool insertGraphicsFence; // Whether this pass should insert a fence into the command buffer
         public int waitOnGraphicsFencePassId; // -1 if no fence wait is needed, otherwise the passId to wait on
 
-        public PassMergeState mergeState;
-        public int nativePassIndex; // Index of the native pass this pass belongs to
-        public int nativeSubPassIndex; // Index of the native subpass this pass belongs to
-        public bool beginNativeSubpass; // If true this is the first graph pass of a merged native subpass
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Name GetName(CompilerContextData ctx) => ctx.GetFullPassName(passId);
 
-        public PassData(ref List<RenderGraphPass> passes, int passIndex)
+        public PassData(in RenderGraphPass pass, int passIndex)
         {
             passId = passIndex;
-            name = passes[passIndex].name;
-            type = passes[passIndex].type;
-            asyncCompute = passes[passIndex].enableAsyncCompute;
-            hasSideEffects = !passes[passIndex].allowPassCulling;
+            type = pass.type;
+            asyncCompute = pass.enableAsyncCompute;
+            hasSideEffects = !pass.allowPassCulling;
 
             mergeState = PassMergeState.None;
             nativePassIndex = -1;
@@ -128,185 +134,90 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
             waitOnGraphicsFencePassId = -1;
         }
 
-    public string identifier
+        // Helper func to reset and initialize existing PassData struct directly in a data container without costly deep copy (~120bytes) when adding it
+        public void ResetAndInitialize(in RenderGraphPass pass, int passIndex)
         {
-            get { return "pass_" + passId; }
+            passId = passIndex;
+            type = pass.type;
+            asyncCompute = pass.enableAsyncCompute;
+            hasSideEffects = !pass.allowPassCulling;
+
+            mergeState = PassMergeState.None;
+            nativePassIndex = -1;
+            nativeSubPassIndex = -1;
+            beginNativeSubpass = false;
+
+            culled = false;
+            tag = 0;
+
+            isSource = false;
+            isSink = false;
+            firstInput = 0;
+            numInputs = 0;
+            firstOutput = 0;
+            numOutputs = 0;
+            firstFragment = 0;
+            numFragments = 0;
+            firstFragmentInput = 0;
+            numFragmentInputs = 0;
+            firstCreate = 0;
+            numCreated = 0;
+            firstDestroy = 0;
+            numDestroyed = 0;
+
+            fragmentInfoValid = false;
+            fragmentInfoWidth = 0;
+            fragmentInfoHeight = 0;
+            fragmentInfoVolumeDepth = 0;
+            fragmentInfoSamples = 0;
+            fragmentInfoHasDepth = false;
+            
+            insertGraphicsFence = false;
+            waitOnGraphicsFencePassId = -1;
         }
 
-        // Loop over this pass's outputs returned as PassOutputData
-        public DynamicArray<PassOutputData>.RangeEnumerable Outputs(CompilerContextData ctx)
-        {
-            return ctx.outputData.SubRange(firstOutput, numOutputs);
-        }
+        public string identifier => "pass_" + passId;
 
-        // Loop over this pass's inputs returned as PassInputData
-        public DynamicArray<PassInputData>.RangeEnumerable Inputs(CompilerContextData ctx)
-        {
-            return ctx.inputData.SubRange(firstInput, numInputs);
-        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly ReadOnlySpan<PassOutputData> Outputs(CompilerContextData ctx)
+            => ctx.outputData.MakeReadOnlySpan(firstOutput, numOutputs);
 
-        // Loop over this pass's fragments returned as PassFragmentData
-        public DynamicArray<PassFragmentData>.RangeEnumerable Fragments(CompilerContextData ctx)
-        {
-            return ctx.fragmentData.SubRange(firstFragment, numFragments);
-        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly ReadOnlySpan<PassInputData> Inputs(CompilerContextData ctx)
+            => ctx.inputData.MakeReadOnlySpan(firstInput, numInputs);
 
-        // Loop over this pass's fragments returned as PassFragmentData
-        public DynamicArray<PassFragmentData>.RangeEnumerable FragmentInputs(CompilerContextData ctx)
-        {
-            return ctx.fragmentData.SubRange(firstFragmentInput, numFragmentInputs);
-        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly ReadOnlySpan<PassFragmentData> Fragments(CompilerContextData ctx)
+            => ctx.fragmentData.MakeReadOnlySpan(firstFragment, numFragments);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly ReadOnlySpan<PassFragmentData> FragmentInputs(CompilerContextData ctx)
+            => ctx.fragmentData.MakeReadOnlySpan(firstFragmentInput, numFragmentInputs);
 
-        // Loop over this pass's created resources returned as PassFragmentData
-        public DynamicArray<ResourceHandle>.RangeEnumerable FirstUsedResources(CompilerContextData ctx)
-        {
-            return ctx.createData.SubRange(firstCreate, numCreated);
-        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly ReadOnlySpan<ResourceHandle> FirstUsedResources(CompilerContextData ctx)
+            => ctx.createData.MakeReadOnlySpan(firstCreate, numCreated);
 
-        // Loop over this pass's destroyedResources returned as PassFragmentData
-        public DynamicArray<ResourceHandle>.RangeEnumerable LastUsedResources(CompilerContextData ctx)
-        {
-            return ctx.destroyData.SubRange(firstDestroy, numDestroyed);
-        }
-
-        // Helper to loop over nodes
-        public struct InputNodeIterator
-        {
-            CompilerContextData ctx;
-            int passId;
-            int input;
-
-            public InputNodeIterator(CompilerContextData ctx, int passId)
-            {
-                this.ctx = ctx;
-                this.passId = passId;
-                this.input = -1;
-            }
-
-            public int Current
-            {
-                get { return ctx.resources[ctx.inputData[ctx.passData[passId].firstInput + input].resource].writePass; }
-            }
-
-            public bool MoveNext()
-            {
-                input++;
-                return input < ctx.passData[passId].numInputs;
-            }
-
-            public void Reset()
-            {
-                input = -1;
-            }
-
-            public InputNodeIterator GetEnumerator()
-            {
-                return this;
-            }
-        }
-
-        // Iterate over the links (indexes into the pass array) that are connected to the inputs of this pass
-        public InputNodeIterator InputNodes(CompilerContextData ctx)
-        {
-            return new InputNodeIterator(ctx, passId);
-        }
-
-        public struct OutputNodeIterator
-        {
-            CompilerContextData ctx;
-            int passId;
-            int output;
-            int outputUser;
-
-            public OutputNodeIterator(CompilerContextData ctx, int passId)
-            {
-                this.ctx = ctx;
-                this.passId = passId;
-                this.output = 0;
-                this.outputUser = -1;
-            }
-
-            public int Current
-            {
-                get
-                {
-                    // Current output resource
-                    var resHandle = ctx.outputData[ctx.passData[passId].firstOutput + output].resource;
-
-                    // Select the outputUser for that resource
-                    ResourceReaderData r = ctx.ResourceReader(resHandle, outputUser);
-                    return r.passId;
-                }
-            }
-
-            public bool MoveNext()
-            {
-                ref var pass = ref ctx.passData[passId];
-
-                // Handle the empty list. Output == numOutputs == 0 so immediately return
-                if (output >= pass.numOutputs) return false;
-
-                // Move to the next user for the current output
-                outputUser++;
-
-                // Get number of users for the current output
-                ref ResourceVersionedData outputResource = ref ctx.resources[ctx.outputData[pass.firstOutput + output].resource];
-                int numUsers = outputResource.numReaders;
-
-                //We are past the user list. Go to the beginning of the reader list of the next output.
-                //If the next output has 0 users we skip to the next and so on untill there are no more
-                // outputs or one of them has non-zero users
-                while (outputUser >= numUsers)
-                {
-                    outputUser = 0;
-                    output++;
-
-                    if (output >= pass.numOutputs)
-                    {
-                        break;
-                    }
-
-                    // Update numUsers for this new list
-                    ref ResourceVersionedData tmpRes = ref ctx.resources[ctx.outputData[pass.firstOutput + output].resource];
-                    numUsers = tmpRes.numReaders;
-                }
-
-                // Beyond the last output > done
-                return output < pass.numOutputs && outputUser < numUsers;
-            }
-
-            public void Reset()
-            {
-                this.output = 0;
-                this.outputUser = -1;
-            }
-
-            public OutputNodeIterator GetEnumerator()
-            {
-                return this;
-            }
-        }
-
-        // Iterate over the links (indexes into the pass array) that are connected to the outputs of this pass
-        public OutputNodeIterator OutputNodes(CompilerContextData ctx)
-        {
-            return new OutputNodeIterator(ctx, passId);
-        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly ReadOnlySpan<ResourceHandle> LastUsedResources(CompilerContextData ctx)
+            => ctx.destroyData.MakeReadOnlySpan(firstDestroy, numDestroyed);
 
         private void SetupAndValidateFragmentInfo(ResourceHandle h, CompilerContextData ctx)
         {
-            //resources.GetRenderTargetInfo(h, out var info);
-            var resInfo = ctx.UnversionedResourceData(h);
-            if (resInfo.width == 0 || resInfo.height == 0 || resInfo.msaaSamples == 0) throw new Exception("GetRenderTargetInfo returned invalid results.");
+            ref readonly var resInfo = ref ctx.UnversionedResourceData(h);
 
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            if (resInfo.width == 0 || resInfo.height == 0 || resInfo.msaaSamples == 0) throw new Exception("GetRenderTargetInfo returned invalid results.");
+#endif
             if (fragmentInfoValid)
             {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
                 if (fragmentInfoWidth != resInfo.width ||
                     fragmentInfoHeight != resInfo.height ||
                     fragmentInfoVolumeDepth != resInfo.volumeDepth ||
                     fragmentInfoSamples != resInfo.msaaSamples)
                     throw new Exception("Mismatch in Fragment dimensions");
+#endif
             }
             else
             {
@@ -318,27 +229,32 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal void AddFragment(ResourceHandle h, CompilerContextData ctx)
         {
             SetupAndValidateFragmentInfo(h, ctx);
             numFragments++;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal void AddFragmentInput(ResourceHandle h, CompilerContextData ctx)
         {
             SetupAndValidateFragmentInfo(h, ctx);
             numFragmentInputs++;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal void AddFirstUse(ResourceHandle h, CompilerContextData ctx)
         {
             // Already registered? Skip it
-            foreach (var res in FirstUsedResources(ctx))
+            foreach (ref readonly var res in FirstUsedResources(ctx))
             {
-                if (res.index == h.index) return;
+                if (res.index == h.index)
+                    return;
             }
 
-            int addedIndex = ctx.createData.Add(h);
+            ctx.createData.Add(h);
+            int addedIndex = ctx.createData.LastIndex();
 
             // First item added, set up firstCreate
             if (numCreated == 0)
@@ -351,15 +267,18 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
             numCreated++;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal void AddLastUse(ResourceHandle h, CompilerContextData ctx)
         {
             // Already registered? Skip it
-            foreach (var res in LastUsedResources(ctx))
+            foreach (ref readonly var res in LastUsedResources(ctx))
             {
-                if (res.index == h.index) return;
+                if (res.index == h.index)
+                    return;
             }
 
-            int addedIndex = ctx.destroyData.Add(h);
+            ctx.destroyData.Add(h);
+            int addedIndex = ctx.destroyData.LastIndex();
 
             // First item added, set up firstDestroy
             if (numDestroyed == 0)
@@ -374,22 +293,23 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
         // Is the resource used as a fragment this pass.
         // As it is ambiguous if this is an input our output version, the version is ignored
         // This checks use of both MRT attachment as well as input attachment
-        internal bool IsUsedAsFragment(ResourceHandle h, CompilerContextData ctx)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal readonly bool IsUsedAsFragment(ResourceHandle h, CompilerContextData ctx)
         {
             // Only raster passes can have fragment attachments
             if (type != RenderGraphPassType.Raster) return false;
 
-            foreach (var f in Fragments(ctx))
+            foreach (ref readonly var fragment in Fragments(ctx))
             {
-                if (f.resource.index == h.index)
+                if (fragment.resource.index == h.index)
                 {
                     return true;
                 }
             }
 
-            foreach (var f in FragmentInputs(ctx))
+            foreach (ref readonly var fragmentInput in FragmentInputs(ctx))
             {
-                if (f.resource.index == h.index)
+                if (fragmentInput.resource.index == h.index)
                 {
                     return true;
                 }
@@ -400,11 +320,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
 
         // Is the resource used the first time in the graph this pass. Resources are always created at version 0 so the passed in version is ignored
         // This is usually when a resource is created but for imported resources it's when it's first used by this graph
-        internal bool IsFirstUsed(ResourceHandle h, CompilerContextData ctx)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal readonly bool IsFirstUsed(ResourceHandle h, CompilerContextData ctx)
         {
-            foreach (var c in FirstUsedResources(ctx))
+            foreach (ref readonly var res in FirstUsedResources(ctx))
             {
-                if (c.index == h.index)
+                if (res.index == h.index)
                 {
                     return true;
                 }
@@ -423,6 +344,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
         public bool memoryless;
     }
 
+#if UNITY_EDITOR
     internal enum LoadReason
     {
         InvalidReason,
@@ -490,6 +412,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
             msaaPassId = setMsaaPassId;
         }
     }
+#endif
 
     internal enum PassBreakReason
     {
@@ -511,8 +434,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
 
         public PassBreakAudit(PassBreakReason reason, int breakPass)
         {
-            this.reason=reason;
-            this.breakPass=breakPass; // This is not so simple as finding the next pass as it might be culled etc, so we store it to be sure we get the right pass
+            this.reason = reason;
+            this.breakPass = breakPass; // This is not so simple as finding the next pass as it might be culled etc, so we store it to be sure we get the right pass
         }
 
         public static string[] BreakReasonMessages = new string[] {
@@ -540,13 +463,16 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
 
         public FixedAttachmentArray<PassFragmentData> fragments;
         public FixedAttachmentArray<NativePassAttachment> attachments;
-        public FixedAttachmentArray<LoadAudit> loadAudit;
-        public FixedAttachmentArray<StoreAudit> storeAudit;
         public int width;
         public int height;
         public int samples;
         public bool hasDepth;
+
+#if UNITY_EDITOR
+        public FixedAttachmentArray<LoadAudit> loadAudit;
+        public FixedAttachmentArray<StoreAudit> storeAudit;
         public PassBreakAudit breakAudit;
+#endif
 
         public NativePassData(ref PassData pass, CompilerContextData ctx)
         {
@@ -554,22 +480,27 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
             numGraphPasses = 1;
             firstNativeSubPass = -1;// Set up during compile
             numNativeSubPasses = 0;
+
             fragments = new FixedAttachmentArray<PassFragmentData>();
             attachments = new FixedAttachmentArray<NativePassAttachment>();
-            loadAudit = new FixedAttachmentArray<LoadAudit>();
-            storeAudit = new FixedAttachmentArray<StoreAudit>();
+
             width = pass.fragmentInfoWidth;
             height = pass.fragmentInfoHeight;
             samples = pass.fragmentInfoSamples;
             hasDepth = pass.fragmentInfoHasDepth;
-            breakAudit = new PassBreakAudit(PassBreakReason.NotOptimized, -1);
 
-            foreach (var fragment in pass.Fragments(ctx))
+#if UNITY_EDITOR
+            loadAudit = new FixedAttachmentArray<LoadAudit>();
+            storeAudit = new FixedAttachmentArray<StoreAudit>();
+            breakAudit = new PassBreakAudit(PassBreakReason.NotOptimized, -1);
+#endif
+
+            foreach (ref readonly var fragment in pass.Fragments(ctx))
             {
                 fragments.Add(fragment);
             }
 
-            foreach (var fragment in pass.FragmentInputs(ctx))
+            foreach (ref readonly var fragment in pass.FragmentInputs(ctx))
             {
                 fragments.Add(fragment);
             }
@@ -580,56 +511,44 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
             firstGraphPass = 0;
             numGraphPasses = 0;
             attachments.Clear();
+            fragments.Clear();
+#if UNITY_EDITOR
+            loadAudit.Clear();
+            storeAudit.Clear();
+#endif
         }
 
-        public bool IsValid()
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly bool IsValid()
         {
             return numGraphPasses > 0;
         }
 
-        // Iterate over the graph passes in the native render pass
-        public DynamicArray<PassData>.RangeEnumerable GraphPasses(CompilerContextData ctx)
-        {
-            return ctx.passData.SubRange(this.firstGraphPass, numGraphPasses);
-        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly ReadOnlySpan<PassData> GraphPasses(CompilerContextData ctx) => ctx.passData.MakeReadOnlySpan(firstGraphPass, numGraphPasses);
 
-
-        // Iterate over the native sub passes in the native render pass. This maybe less than
-        // the number of graph passes in the native pass if there were passes that were merged
-        // or didn't have any attachments.
-        public DynamicArray<SubPassDescriptor>.RangeEnumerable NativeSubPasses(CompilerContextData ctx)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly void GetPassNames(CompilerContextData ctx, DynamicArray<Name> dest)
         {
-            return ctx.nativeSubPassData.SubRange(this.firstNativeSubPass, numNativeSubPasses);
-        }
-
-        public void GetDebugName(CompilerContextData ct, DynamicString dest)
-        {
-            bool first = true;
-            foreach (ref var pass in GraphPasses(ct))
+            foreach (ref readonly var pass in GraphPasses(ctx))
             {
-                if (!first)
-                {
-                    dest.Append("|");
-                }
-                dest.Append(pass.name);
-                first=false;
+                dest.Add(pass.GetName(ctx));
             }
         }
 
-        //NOTE NOTE NOTE
-        // if testOnly == true this not NOT modify the state in any way, only evaluate it and return the correct PassBreakAudit
-        public static PassBreakAudit TryMerge(CompilerContextData contextData, int activeNativePassId, int passIdToAdd, bool testOnly )
+        // This function does not modify the current render graph state, it only evaluates and returns the correct PassBreakAudit
+        public static PassBreakAudit CanMerge(CompilerContextData contextData, int activeNativePassId, int passIdToMerge)
         {
-            ref var passToAdd = ref contextData.passData[passIdToAdd];
+            ref readonly var passToMerge = ref contextData.passData.ElementAt(passIdToMerge);
 
             // Non raster passes (low level, compute,...) will break the native pass chain
             // as they may need to do SetRendertarget or non-fragment work
-            if (passToAdd.type != RenderGraphPassType.Raster)
+            if (passToMerge.type != RenderGraphPassType.Raster)
             {
-                return new PassBreakAudit(PassBreakReason.NonRasterPass, passIdToAdd);
+                return new PassBreakAudit(PassBreakReason.NonRasterPass, passIdToMerge);
             }
 
-            ref var nativePass = ref contextData.nativePassData[activeNativePassId];
+            ref readonly var nativePass = ref contextData.nativePassData.ElementAt(activeNativePassId);
 
             // If a pass has no fragment attachments a lot of the tests can be skipped
             // You could argue that a raster pass with no fragments is not allowed but why not?
@@ -638,177 +557,216 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
             // Fill Gbuffer - Set Shadow Globals - Do light pass would break as the shadow globals pass
             // is a 0x0 pass with no rendertargets that just sets shadow global texture pointers
             // By allowing this to be merged into the NRP we can actually ensure these passes are merged
-            bool hasFragments = (passToAdd.numFragments > 0 || passToAdd.numFragmentInputs > 0);
+            bool hasFragments = (passToMerge.numFragments > 0 || passToMerge.numFragmentInputs > 0);
             if (hasFragments)
             {
                 // Easy early outs, sizes mismatch
-                if (nativePass.width != passToAdd.fragmentInfoWidth ||
-                    nativePass.height != passToAdd.fragmentInfoHeight ||
-                    nativePass.samples != passToAdd.fragmentInfoSamples)
+                if (nativePass.width != passToMerge.fragmentInfoWidth ||
+                    nativePass.height != passToMerge.fragmentInfoHeight ||
+                    nativePass.samples != passToMerge.fragmentInfoSamples)
                 {
-                    return new PassBreakAudit(PassBreakReason.TargetSizeMismatch, passIdToAdd);
+                    return new PassBreakAudit(PassBreakReason.TargetSizeMismatch, passIdToMerge);
                 }
 
                 // Not same depth enabled state
-                if (nativePass.hasDepth != passToAdd.fragmentInfoHasDepth)
+                if (nativePass.hasDepth != passToMerge.fragmentInfoHasDepth)
                 {
-                    return new PassBreakAudit(PassBreakReason.DepthBufferUseMismatch, passIdToAdd);
+                    return new PassBreakAudit(PassBreakReason.DepthBufferUseMismatch, passIdToMerge);
                 }
 
                 // Easy early outs, different depth buffers we only allow a single depth for the whole NRP for now ?!?
                 // Depth buffer is by-design always at index 0
                 if (nativePass.hasDepth)
                 {
-                    if (nativePass.fragments[0].resource.index != contextData.fragmentData[passToAdd.firstFragment].resource.index)
+                    ref readonly var firstFragment = ref contextData.fragmentData.ElementAt(passToMerge.firstFragment);
+                    if (nativePass.fragments[0].resource.index != firstFragment.resource.index)
                     {
-                        return new PassBreakAudit(PassBreakReason.DifferentDepthTextures, passIdToAdd);
+                        return new PassBreakAudit(PassBreakReason.DifferentDepthTextures, passIdToMerge);
                     }
                 }
             }
 
             // Check the non-fragment inputs of this pass, if they are generated by the current open native pass we can't merge
             // as we need to commit the pixels to the texture
-            bool breakPass = false;
-            foreach (var input in passToAdd.Inputs(contextData))
+            foreach (ref readonly var input in passToMerge.Inputs(contextData))
             {
-                var writingPassId = contextData.resources[input.resource].writePass;
+                var inputResource = input.resource;
+                var writingPassId = contextData.resources[inputResource].writePassId;
                 // Is the writing pass enclosed in the current native renderpass
                 if (writingPassId >= nativePass.firstGraphPass && writingPassId < nativePass.firstGraphPass + nativePass.numGraphPasses)
                 {
-                    // If it's not used as a fragment it's used as some sort of texture read of load so we need so sync it out
-                    if (!passToAdd.IsUsedAsFragment(input.resource, contextData))
+                    // If it's not used as a fragment, it's used as some sort of texture read of load so we need so sync it out
+                    if (!passToMerge.IsUsedAsFragment(inputResource, contextData))
                     {
-                        breakPass = true;
-                        break;
+                        return new PassBreakAudit(PassBreakReason.NextPassReadsTexture, passIdToMerge);
                     }
                 }
             }
-            if (breakPass)
-            {
-                return new PassBreakAudit(PassBreakReason.NextPassReadsTexture, passIdToAdd);
-            }
 
-            // Gather which attachments to add to the current pass
-            // Update versions and flags of the attachments that are already used by the pass
+            // Gather which attachments to add to the current renderpass
             var attachmentsToTryAdding = new FixedAttachmentArray<PassFragmentData>();
-            foreach (var newAttach in passToAdd.Fragments(contextData))
+
+            // We can't have more than the maximum amout of attachments in a given native renderpass
+            int currAvailableAttachmentSlots = FixedAttachmentArray<PassFragmentData>.MaxAttachments - nativePass.fragments.size;
+
+            foreach (ref readonly var fragment in passToMerge.Fragments(contextData))
             {
                 bool alreadyAttached = false;
+
                 for (int i = 0; i < nativePass.fragments.size; ++i)
                 {
-                    if (nativePass.fragments[i].resource.index == newAttach.resource.index)
+                    if (nativePass.fragments[i].resource.index == fragment.resource.index)
                     {
                         alreadyAttached = true;
                         break;
                     }
                 }
 
+                // This fragment is not attached to the native renderpass yet, we will need to attach it
                 if (!alreadyAttached)
                 {
-                    attachmentsToTryAdding.Add(newAttach);
+                    // We already reached the maximum amount of attachments in this renderpass
+                    // We can't add any new attachment, just start a new renderpass
+                    if (currAvailableAttachmentSlots == 0)
+                    {
+                        return new PassBreakAudit(PassBreakReason.AttachmentLimitReached, passIdToMerge);
+                    }
+                    else
+                    {
+                        attachmentsToTryAdding.Add(fragment);
+                        currAvailableAttachmentSlots--;
+                    }
                 }
             }
 
-            foreach (var newAttach in passToAdd.FragmentInputs(contextData))
+            foreach (ref readonly var fragmentInput in passToMerge.FragmentInputs(contextData))
             {
                 bool alreadyAttached = false;
+
                 for (int i = 0; i < nativePass.fragments.size; ++i)
                 {
-                    if (nativePass.fragments[i].resource.index == newAttach.resource.index)
+                    if (nativePass.fragments[i].resource.index == fragmentInput.resource.index)
                     {
                         alreadyAttached = true;
                         break;
                     }
                 }
 
+                // This fragment input is not attached to the native renderpass yet, we will need to attach it
                 if (!alreadyAttached)
                 {
-                    attachmentsToTryAdding.Add(newAttach);
+                    // We already reached the maximum amount of attachments in this native renderpass
+                    // We can't add any new attachment, just start a new renderpass
+                    if (currAvailableAttachmentSlots == 0)
+                    {
+                        return new PassBreakAudit(PassBreakReason.AttachmentLimitReached, passIdToMerge);
+                    }
+                    else
+                    {
+                        attachmentsToTryAdding.Add(fragmentInput);
+                        currAvailableAttachmentSlots--;
+                    }
                 }
             }
 
-            // If we would have more than the maximum amount of attachments just start a new native renderpass
-            if (nativePass.fragments.size + attachmentsToTryAdding.size > FixedAttachmentArray<PassFragmentData>.MaxAttachments)
-            {
-                return new PassBreakAudit(PassBreakReason.AttachmentLimitReached, passIdToAdd);
-            }
-
-            // All is good! Merge them
-            if (!testOnly)
-            {
-                passToAdd.mergeState = PassMergeState.SubPass;
-                if (passToAdd.nativePassIndex >= 0) contextData.nativePassData[passToAdd.nativePassIndex].Clear();
-                passToAdd.nativePassIndex = activeNativePassId;
-                nativePass.numGraphPasses++;
-
-                // Update versions and flags of existing attachments and
-                // add any new attachments
-                foreach (var newAttach in passToAdd.Fragments(contextData))
-                {
-                    bool alreadyAttached = false;
-                    for (int i = 0; i < nativePass.fragments.size; ++i)
-                    {
-                        if (nativePass.fragments[i].resource.index == newAttach.resource.index)
-                        {
-                            // Update the attached version access flags and version
-                            nativePass.fragments[i].accessFlags |= newAttach.accessFlags;
-                            if (nativePass.fragments[i].resource.version > newAttach.resource.version)
-                                throw new Exception("Adding a older version while a higher version is already registered with the pass.");
-                            nativePass.fragments[i].resource.version = newAttach.resource.version;
-                            alreadyAttached = true;
-                            break;
-                        }
-                    }
-
-                    if (!alreadyAttached)
-                    {
-                        nativePass.fragments.Add(newAttach);
-                    }
-                }
-
-                foreach (var newAttach in passToAdd.FragmentInputs(contextData))
-                {
-                    bool alreadyAttached = false;
-                    for (int i = 0; i < nativePass.fragments.size; ++i)
-                    {
-                        if (nativePass.fragments[i].resource.index == newAttach.resource.index)
-                        {
-                            // Update the attached version access flags and version
-                            nativePass.fragments[i].accessFlags |= newAttach.accessFlags;
-                            if (nativePass.fragments[i].resource.version > newAttach.resource.version)
-                                throw new Exception("Adding a older version while a higher version is already registered with the pass.");
-                            nativePass.fragments[i].resource.version = newAttach.resource.version;
-                            alreadyAttached = true;
-                            break;
-                        }
-                    }
-
-                    if (!alreadyAttached)
-                    {
-                        nativePass.fragments.Add(newAttach);
-                    }
-                }
-
-                SetPassStatesForNativePass(contextData, activeNativePassId);
-            }
-            return new PassBreakAudit(PassBreakReason.Merged, passIdToAdd);
+            // All is good! Pass can be merged into active native pass
+            return new PassBreakAudit(PassBreakReason.Merged, passIdToMerge);
         }
 
+        public static PassBreakAudit TryMerge(CompilerContextData contextData, int activeNativePassId, int passIdToMerge)
+        {
+            var passBreakAudit = CanMerge(contextData, activeNativePassId, passIdToMerge);
+
+            // Pass cannot be merged into active native pass
+            if(passBreakAudit.reason != PassBreakReason.Merged)
+                return passBreakAudit;
+
+            ref var passToMerge = ref contextData.passData.ElementAt(passIdToMerge);
+            ref var nativePass = ref contextData.nativePassData.ElementAt(activeNativePassId);
+
+            passToMerge.mergeState = PassMergeState.SubPass;
+            if (passToMerge.nativePassIndex >= 0)
+                contextData.nativePassData.ElementAt(passToMerge.nativePassIndex).Clear();
+            passToMerge.nativePassIndex = activeNativePassId;
+            nativePass.numGraphPasses++;
+
+            // Update versions and flags of existing attachments and
+            // add any new attachments
+            foreach (ref readonly var newAttach in passToMerge.Fragments(contextData))
+            {
+                bool alreadyAttached = false;
+
+                for (int i = 0; i < nativePass.fragments.size; ++i)
+                {
+                    ref var existingAttach = ref nativePass.fragments[i];
+                    if (existingAttach.resource.index == newAttach.resource.index)
+                    {
+                        // Update the attached version access flags and version
+                        existingAttach.accessFlags |= newAttach.accessFlags;
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+                        if (existingAttach.resource.version > newAttach.resource.version)
+                            throw new Exception("Adding an older version while a higher version is already registered with the pass.");
+#endif
+                        existingAttach.resource.version = newAttach.resource.version;
+                        alreadyAttached = true;
+                        break;
+                    }
+                }
+
+                if (!alreadyAttached)
+                {
+                    nativePass.fragments.Add(newAttach);
+                }
+            }
+
+            foreach (ref readonly var newAttach in passToMerge.FragmentInputs(contextData))
+            {
+                bool alreadyAttached = false;
+
+                for (int i = 0; i < nativePass.fragments.size; ++i)
+                {
+                    ref var existingAttach = ref nativePass.fragments[i];
+                    if (existingAttach.resource.index == newAttach.resource.index)
+                    {
+                        // Update the attached version access flags and version
+                        existingAttach.accessFlags |= newAttach.accessFlags;
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+                        if (existingAttach.resource.version > newAttach.resource.version)
+                            throw new Exception("Adding an older version while a higher version is already registered with the pass.");
+#endif
+                        existingAttach.resource.version = newAttach.resource.version;
+                        alreadyAttached = true;
+                        break;
+                    }
+                }
+
+                if (!alreadyAttached)
+                {
+                    nativePass.fragments.Add(newAttach);
+                }
+            }
+
+            SetPassStatesForNativePass(contextData, activeNativePassId);
+        
+            return passBreakAudit;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void SetPassStatesForNativePass(CompilerContextData contextData, int nativePassId)
         {
-            ref var nativePass = ref contextData.nativePassData[nativePassId];
+            ref readonly var nativePass = ref contextData.nativePassData.ElementAt(nativePassId);
             if (nativePass.numGraphPasses > 1)
             {
-                contextData.passData[nativePass.firstGraphPass].mergeState = PassMergeState.Begin;
+                contextData.passData.ElementAt(nativePass.firstGraphPass).mergeState = PassMergeState.Begin;
                 for (int i = 1; i < nativePass.numGraphPasses - 1; i++)
                 {
-                    contextData.passData[nativePass.firstGraphPass + i].mergeState = PassMergeState.SubPass;
+                    contextData.passData.ElementAt(nativePass.firstGraphPass + i).mergeState = PassMergeState.SubPass;
                 }
-                contextData.passData[nativePass.firstGraphPass + nativePass.numGraphPasses - 1].mergeState = PassMergeState.End;
+                contextData.passData.ElementAt(nativePass.firstGraphPass + nativePass.numGraphPasses - 1).mergeState = PassMergeState.End;
             }
             else
             {
-                contextData.passData[nativePass.firstGraphPass].mergeState = PassMergeState.None;
+                contextData.passData.ElementAt(nativePass.firstGraphPass).mergeState = PassMergeState.None;
             }
         }
     }

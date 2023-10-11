@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5f6aa9f32113aec4a8bded44c1febe5c, type: 3}
   m_Name: TestCaseFilters
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   filters:
   - FilteredScene: {fileID: 0}
     FilteredScenes:
@@ -19,7 +19,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 4
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: Strict Mode not supported
   - FilteredScene: {fileID: 0}
@@ -54,10 +54,12 @@ MonoBehaviour:
     - {fileID: 102900000, guid: f1fed14747b504a47970a47d6ad4f64f, type: 3}
     - {fileID: 102900000, guid: 6d94b324982b10f4386673838de4498c, type: 3}
     - {fileID: 102900000, guid: a469a947680f48644967493aba255270, type: 3}
+    - {fileID: 102900000, guid: 151529e60a002004f921ef6ebbc361ae, type: 3}
+    - {fileID: 102900000, guid: efb54c201f4649344a2b5369d723e9de, type: 3}
     ColorSpace: -1
     BuildPlatform: 42
     GraphicsDevice: 4
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: Unsupported
   - FilteredScene: {fileID: 0}
@@ -91,10 +93,12 @@ MonoBehaviour:
     - {fileID: 102900000, guid: f1fed14747b504a47970a47d6ad4f64f, type: 3}
     - {fileID: 102900000, guid: 6d94b324982b10f4386673838de4498c, type: 3}
     - {fileID: 102900000, guid: a469a947680f48644967493aba255270, type: 3}
+    - {fileID: 102900000, guid: 151529e60a002004f921ef6ebbc361ae, type: 3}
+    - {fileID: 102900000, guid: efb54c201f4649344a2b5369d723e9de, type: 3}
     ColorSpace: -1
     BuildPlatform: 44
     GraphicsDevice: 4
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: Unsupported
   - FilteredScene: {fileID: 0}
@@ -103,7 +107,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 42
     GraphicsDevice: 4
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: issue on Yamato/HDRP-3081
   - FilteredScene: {fileID: 0}
@@ -112,7 +116,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 44
     GraphicsDevice: 4
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: issue on Yamato/HDRP-3081
   - FilteredScene: {fileID: 0}
@@ -121,7 +125,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 19
     GraphicsDevice: 4
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: 'issue on Yamato only: jira: https://jira.unity3d.com/browse/UUM-26542'
   - FilteredScene: {fileID: 0}
@@ -130,7 +134,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 42
     GraphicsDevice: 4
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: Inconsistent on Yamato
   - FilteredScene: {fileID: 0}
@@ -139,7 +143,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 44
     GraphicsDevice: 4
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: Inconsistent on Yamato
   - FilteredScene: {fileID: 0}
@@ -148,7 +152,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 4
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: 'issue on Yamato only: jira: https://jira.unity3d.com/browse/UUM-26542'
   - FilteredScene: {fileID: 0}
@@ -157,6 +161,6 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 19
     GraphicsDevice: 4
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: 'issue on Yamato only: jira: https://jira.unity3d.com/browse/UUM-26542'

@@ -12,6 +12,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedProperty m_FoamAreaSize;
         SerializedProperty m_FoamAreaOffset;
         SerializedProperty m_FoamPersistenceMultiplier;
+        SerializedProperty m_FoamCurrentInfluence;
         SerializedProperty m_FoamSmoothness;
         SerializedProperty m_FoamTextureTiling;
         SerializedProperty m_FoamColor;
@@ -32,6 +33,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_FoamAreaSize = o.Find(x => x.foamAreaSize);
             m_FoamAreaOffset = o.Find(x => x.foamAreaOffset);
             m_FoamPersistenceMultiplier = o.Find(x => x.foamPersistenceMultiplier);
+            m_FoamCurrentInfluence = o.Find(x => x.foamCurrentInfluence);
             m_FoamSmoothness = o.Find(x => x.foamSmoothness);
             m_FoamTextureTiling = o.Find(x => x.foamTextureTiling);
             m_FoamColor = o.Find(x => x.foamColor);
@@ -76,6 +78,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 // Foam properties
                 EditorGUILayout.PropertyField(serialized.m_FoamPersistenceMultiplier, k_FoamPersistenceMultiplier);
+                EditorGUILayout.PropertyField(serialized.m_FoamCurrentInfluence, k_FoamCurrentInfluence);
                 ColorFieldLinear(serialized.m_FoamColor, k_FoamColor);
                 EditorGUILayout.PropertyField(serialized.m_FoamSmoothness, k_FoamSmoothness);
                 EditorGUILayout.PropertyField(serialized.m_FoamTextureTiling, k_FoamTextureTiling);

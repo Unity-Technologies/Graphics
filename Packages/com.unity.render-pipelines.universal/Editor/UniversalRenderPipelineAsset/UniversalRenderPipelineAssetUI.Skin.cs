@@ -118,7 +118,6 @@ namespace UnityEditor.Rendering.Universal
 
             // GPU Resident Drawer
             public static GUIContent gpuResidentDrawerMode = EditorGUIUtility.TrTextContent("GPU Resident Drawer", "Enables draw submission through the GPU Resident Drawer, which can improve CPU performance");
-            public static GUIContent gpuResidentDrawerAllowInEditMode = EditorGUIUtility.TrTextContent("Allow in Edit Mode", "Allows the GPU Resident Drawer to run in edit mode. This functionality is a work-in-progress and may produce incorrect results in some cases.");
 
             // Adaptive performance settings
             public static GUIContent useAdaptivePerformance = EditorGUIUtility.TrTextContent("Use adaptive performance", "Allows Adaptive Performance to adjust rendering quality during runtime");

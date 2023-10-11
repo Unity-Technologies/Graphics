@@ -740,18 +740,21 @@ namespace UnityEditor.ShaderAnalysis.Internal
         IAsyncJob BuildShaderReport()
         {
             m_ShaderFilter = ShaderProgramFilter.Parse(m_ShaderPassFilter, m_KeywordFilter);
+            m_ShaderFilter.generateExtraPerfData = true;
             return EditorShaderTools.GenerateBuildReportAsync(ShaderAnalysis.ShaderAnalysisReport.New(m_Shader, m_CurrentPlatform, m_SelectedShaderStage, m_ShaderFilter, m_BuildReportFeature, m_LogCompilerArguments));
         }
 
         IAsyncJob BuildComputeShaderReport()
         {
             m_ShaderFilter = ShaderProgramFilter.Parse(m_ShaderPassFilter, m_KeywordFilter);
+            m_ShaderFilter.generateExtraPerfData = true;
             return EditorShaderTools.GenerateBuildReportAsync(ShaderAnalysis.ShaderAnalysisReport.New(m_Compute, m_CurrentPlatform, ShaderProfile.ComputeProgram, m_ShaderFilter, m_BuildReportFeature, m_LogCompilerArguments));
         }
 
         IAsyncJob BuildMaterialReport()
         {
             m_ShaderFilter = ShaderProgramFilter.Parse(m_ShaderPassFilter, m_KeywordFilter);
+            m_ShaderFilter.generateExtraPerfData = true;
             return EditorShaderTools.GenerateBuildReportAsync(ShaderAnalysis.ShaderAnalysisReport.New(m_Material, m_CurrentPlatform, m_SelectedShaderStage, m_ShaderFilter, m_BuildReportFeature, m_LogCompilerArguments));
         }
 

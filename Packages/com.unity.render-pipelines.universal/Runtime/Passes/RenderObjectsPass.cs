@@ -1,16 +1,15 @@
 using System;
 using System.Collections.Generic;
-using Unity.Collections;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
-using UnityEngine.Rendering.Universal;
-using UnityEngine.Rendering;
 using UnityEngine.Scripting.APIUpdating;
 
-namespace UnityEngine.Experimental.Rendering.Universal
+namespace UnityEngine.Rendering.Universal
 {
     /// <summary>
     /// The scriptable render pass used with the render objects renderer feature.
     /// </summary>
+    [MovedFrom(true, "UnityEngine.Experimental.Rendering.Universal")]
     public class RenderObjectsPass : ScriptableRenderPass
     {
         RenderQueueType renderQueueType;
@@ -241,11 +240,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 if (activeDebugHandler != null)
                 {
                     passData.debugRendererLists = activeDebugHandler.CreateRendererListsWithDebugRenderState(renderGraph,
-                        renderingData, ref drawingSettings, ref m_FilteringSettings, ref m_RenderStateBlock);
+                        ref renderingData.cullResults, ref drawingSettings, ref m_FilteringSettings, ref m_RenderStateBlock);
                 }
                 else
                 {
-                    RenderingUtils.CreateRendererListWithRenderStateBlock(renderGraph, renderingData, drawingSettings,
+                    RenderingUtils.CreateRendererListWithRenderStateBlock(renderGraph, ref renderingData.cullResults, drawingSettings,
                         m_FilteringSettings, m_RenderStateBlock, ref passData.rendererListHdl);
                 }
             }
@@ -253,11 +252,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
             {
                 if (activeDebugHandler != null)
                 {
-                    passData.debugRendererLists = activeDebugHandler.CreateRendererListsWithDebugRenderState(context, renderingData, ref drawingSettings, ref m_FilteringSettings, ref m_RenderStateBlock);
+                    passData.debugRendererLists = activeDebugHandler.CreateRendererListsWithDebugRenderState(context, ref renderingData.cullResults, ref drawingSettings, ref m_FilteringSettings, ref m_RenderStateBlock);
                 }
                 else
                 {
-                    RenderingUtils.CreateRendererListWithRenderStateBlock(context, renderingData, drawingSettings, m_FilteringSettings, m_RenderStateBlock, ref passData.rendererList);
+                    RenderingUtils.CreateRendererListWithRenderStateBlock(context, ref renderingData.cullResults, drawingSettings, m_FilteringSettings, m_RenderStateBlock, ref passData.rendererList);
                 }
             }
         }

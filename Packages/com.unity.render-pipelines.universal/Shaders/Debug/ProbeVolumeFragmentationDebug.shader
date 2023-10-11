@@ -1,8 +1,8 @@
-Shader "Hidden/Core/ProbeVolumeFragmentationDebug"
+Shader "Hidden/Universal Render Pipeline/ProbeVolumeFragmentationDebug"
 {
     SubShader
     {
-        Tags { "Queue" = "Transparent" }
+        Tags { "RenderPipeline" = "UniversalPipeline" "Queue" = "Transparent" }
         Pass
         {
             ZWrite On

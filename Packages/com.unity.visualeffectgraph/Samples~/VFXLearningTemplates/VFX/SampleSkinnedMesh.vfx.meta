@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 986cf4b6651f46246bdc1e5e7f81b4c2
+VisualEffectImporter:
+  externalObjects: {}
+  serializedVersion: 1
+  template:
+    name: Sample Skinned Mesh
+    category: Learning Templates
+    description: This basic example shows how to sample a Skinned Mesh and spawn
+      particles on its surface.
+    icon: {fileID: 2800000, guid: 49836be3225b70342b4057f6bf94b554, type: 3}
+    thumbnail: {fileID: 2800000, guid: 57b45e399d8fe394a98a5675906c287d, type: 3}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

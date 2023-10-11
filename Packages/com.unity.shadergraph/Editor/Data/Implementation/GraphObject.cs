@@ -12,7 +12,16 @@ namespace UnityEditor.Graphing
         {
             AssertHelpers.IsNotNull(graphData, "GraphData is null while carrying out HandleUndoRedoAction");
             AssertHelpers.IsNotNull(newGraphData, "NewGraphData is null while carrying out HandleUndoRedoAction");
-            graphData?.ReplaceWith(newGraphData);
+            try
+            {
+                graphData?.ReplaceWith(newGraphData);
+            }
+            catch (Exception e)
+            {
+                if (graphData != null)
+                    graphData.replaceInProgress = false;
+                throw e;
+            }
         }
 
         public Action<GraphData> modifyGraphDataAction => HandleGraphUndoRedo;

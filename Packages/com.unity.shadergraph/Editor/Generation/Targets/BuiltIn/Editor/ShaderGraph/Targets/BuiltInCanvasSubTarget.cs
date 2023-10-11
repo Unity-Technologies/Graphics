@@ -55,6 +55,8 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             var result = new DefineCollection() { CoreDefines.BuiltInTargetAPI };
             if (target.alphaClip)
                 result.Add(CoreKeywordDescriptors.AlphaTestOn, 1);
+
+            result.Add(base.GetAdditionalDefines());
             return result;
         }
         protected override KeywordCollection GetAdditionalKeywords() => new KeywordCollection {};
@@ -69,6 +71,17 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
 
                 registerUndo("Change Alpha Clip");
                 builtInTarget.alphaClip = evt.newValue;
+                onChange();
+            });
+
+            // copied from subtarget, because built-in overrides this function completely.
+            context.AddProperty("Disable Color Tint", new Toggle() { value = canvasData.disableTint }, (evt) =>
+            {
+                if (Equals(canvasData.disableTint, evt.newValue))
+                    return;
+
+                registerUndo("Disable Tint");
+                canvasData.disableTint = evt.newValue;
                 onChange();
             });
         }

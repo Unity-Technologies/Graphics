@@ -100,9 +100,9 @@ namespace UnityEngine.Rendering.Universal
             m_MipScaleOffset = new Vector4[maxProbes * 7];
         }
 
-        public unsafe void UpdateGpuData(CommandBuffer cmd, ref RenderingData renderingData)
+        public unsafe void UpdateGpuData(CommandBuffer cmd, ref CullingResults cullResults)
         {
-            var probes = renderingData.cullResults.visibleReflectionProbes;
+            var probes = cullResults.visibleReflectionProbes;
             var probeCount = math.min(probes.Length, UniversalRenderPipeline.maxVisibleReflectionProbes);
             var frameIndex = Time.renderedFrameCount;
 

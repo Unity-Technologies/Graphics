@@ -265,6 +265,11 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
+        /// True if the last camera in the stack outputs to an HDR screen
+        /// </summary>
+        internal bool stackLastCameraOutputToHDR;
+
+        /// <summary>
         /// HDR Display information about the current display this camera is rendering to.
         /// </summary>
         public HDROutputUtils.HDRDisplayInformation hdrDisplayInformation
@@ -426,6 +431,11 @@ namespace UnityEngine.Rendering.Universal
         public bool postProcessEnabled;
 
         /// <summary>
+        /// True if post-processing is enabled for any camera in this camera's stack.
+        /// </summary>
+        internal bool stackAnyPostProcessingEnabled;
+
+        /// <summary>
         /// Provides set actions to the renderer to be triggered at the end of the render loop for camera capture.
         /// </summary>
         public IEnumerator<Action<RenderTargetIdentifier, CommandBuffer>> captureActions;
@@ -494,7 +504,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Persistent TAA data, primarily for the accumulation texture.
         /// </summary>
-        internal TaaPersistentData taaPersistentData;
+        internal TemporalAA.PersistentData taaPersistentData;
 
         // TAA settings.
         internal TemporalAA.Settings taaSettings;
@@ -565,6 +575,8 @@ namespace UnityEngine.Rendering.Universal
             taaPersistentData = null;
             taaSettings = default;
             baseCamera = null;
+            stackAnyPostProcessingEnabled = false;
+            stackLastCameraOutputToHDR = false;
         }
     }
 }

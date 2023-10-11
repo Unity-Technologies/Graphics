@@ -61,6 +61,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent shapeWidthTube = EditorGUIUtility.TrTextContent("Length", "Length of the Tube Light.");
             public readonly GUIContent shapeWidthRect = EditorGUIUtility.TrTextContent("Size X", "Sets the width of the Rectangle Light.");
             public readonly GUIContent shapeHeightRect = EditorGUIUtility.TrTextContent("Size Y", "Sets the height of the Rectangle Light.");
+            public readonly GUIContent shapeRadiusDisc = EditorGUIUtility.TrTextContent("Radius", "Sets the radius of the Disc Light.");
             public readonly GUIContent barnDoorAngle = EditorGUIUtility.TrTextContent("Barn Door Angle", "Sets the angle of the Rectangle Light so that is behaves like a barn door.");
             public readonly GUIContent barnDoorLength = EditorGUIUtility.TrTextContent("Barn Door Length", "Sets the length for the barn door.");
             public readonly GUIContent aspectRatioPyramid = EditorGUIUtility.TrTextContent("Aspect ratio", "Controls the aspect ration of the Pyramid Light's projection. A value of 1 results in a square.");

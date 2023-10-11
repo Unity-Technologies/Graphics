@@ -1,13 +1,14 @@
 {
   "name": "com.unity.render-pipelines.core",
   "description": "SRP Core makes it easier to create or customize a Scriptable Render Pipeline (SRP). SRP Core contains reusable code, including boilerplate code for working with platform-specific graphics APIs, utility functions for common rendering operations, and  shader libraries. The code in SRP Core is use by the High Definition Render Pipeline (HDRP) and Universal Render Pipeline (URP). If you are creating a custom SRP from scratch or customizing a prebuilt SRP, using SRP Core will save you time.",
-  "version": "17.0.0",
+  "version": "17.0.1",
   "unity": "2023.3",
   "displayName": "Core RP Library",
   "dependencies": {
     "com.unity.collections": "1.4.0",
     "com.unity.mathematics": "1.2.6",
     "com.unity.ugui": "2.0.0",
+    "com.unity.collections": "2.2.0",
     "com.unity.modules.physics": "1.0.0",
     "com.unity.modules.terrain": "1.0.0",
     "com.unity.modules.jsonserialize": "1.0.0",

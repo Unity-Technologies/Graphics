@@ -55,7 +55,7 @@ namespace UnityEngine.Rendering.Universal
             internal TextureHandle source;
         }
 
-        public void Render(RenderGraph graph, ref RenderingData renderingData, in TextureHandle cameraColorAttachment, in TextureHandle destination)
+        public void Render(RenderGraph graph, in TextureHandle cameraColorAttachment, in TextureHandle destination)
         {
             using (var builder = graph.AddRasterRenderPass<PassData>(k_CopyCameraSortingLayerPass, out var passData, m_ProfilingSampler))
             {

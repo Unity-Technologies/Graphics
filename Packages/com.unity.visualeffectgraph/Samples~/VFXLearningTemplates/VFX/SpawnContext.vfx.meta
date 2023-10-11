@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 59d56ab246a8d9d44a0b28c80ceb819c
+VisualEffectImporter:
+  externalObjects: {}
+  serializedVersion: 1
+  template:
+    name: Spawn Context
+    category: Learning Templates
+    description: This VFX is intended to provide information related to the Spawn
+      Contex. What is the Spawn Context, what options can be found in the inspector
+      but also extra informations
+    icon: {fileID: 2800000, guid: 49836be3225b70342b4057f6bf94b554, type: 3}
+    thumbnail: {fileID: 2800000, guid: 92301f5ec2ae13446a380b57f6d3614f, type: 3}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

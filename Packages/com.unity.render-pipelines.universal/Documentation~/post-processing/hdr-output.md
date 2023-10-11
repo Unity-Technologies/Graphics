@@ -19,11 +19,36 @@ To activate HDR output, follow these steps.
 
 If you switch to a URP Asset that does not have HDR enabled, URP disables HDR Output until you change to a URP Asset with HDR enabled.
 
-> **Note**: If HDR Output is active, the grading mode falls back to HDR, even if there is a different Color Grading Mode active in the URP Asset.
+> **Note**: When HDR Output is active the color grading mode is HDR by default, even if a different Color Grading Mode is active in the URP Asset.
+
+## Understand HDR Output implementation
+
+Unity's HDR Output is split into the following steps which always occur in this order:
+
+1. [Tone mapping](#tone-mapping)
+2. [Transfer Function](#transfer-function)
+
+### Tone mapping
+
+Tone mapping is the first step in the HDR Output process. In this step, Unity balances the exposure and hue of the scene according to the target display's dynamic range. Dynamic range is determined by the following properties:
+
+* **Minimum brightness**
+* **Maximum brightness**
+* **Paper white brightness**
+ 
+For more information on these properties, see [Important tone mapping values](#important-tone-mapping-values).
+
+At the same time, Unity performs the color space conversion. Unity converts the colors from the default Rec. 709 color space to the target display's color space. This maps the colors in the scene to the wider gamut of colors of the target display and ensures Unity utilizes the full color gamut available on the display.
+
+For more information, see [HDR tone mapping in URP](#hdr-tone-mapping-in-urp) and [configure HDR tone mapping settings](#configure-hdr-tone-mapping-settings).
+
+### Transfer function
+
+The second step of HDR Output is the transfer function. The transfer function converts the output of the rendering process to levels of brightness of a given display. Unity determines the correct transfer function for the display and uses it to encode the output according to the standard the display expects. This enables Unity to use the correct level of precision for the gamma and create accurate exposure levels on the target display.
 
 ## HDR tone mapping in URP
 
-After you enable **Allow HDR Display Output**, you must configure [Tonemapping](./../post-processing-tonemapping.md) settings for your HDR input.
+After you enable **Allow HDR Display Output**, you must configure [tone mapping](./../post-processing-tonemapping.md) settings for your HDR input.
 
 In order to configure these settings effectively, you need to understand how certain values related to tone mapping determine the visual characteristics of your HDR output.
 
@@ -45,15 +70,15 @@ However, in HDR mode, URP uses Paper White values to determine the brightness of
 
 As a result, Paper White values determine the brightness of UI elements in HDR mode, especially white elements, whose brightness matches Paper White values.
 
-## Configure HDR Tone Mapping settings
+## Configure HDR tone mapping settings
 
-You can select and adjust Tonemapping modes in the [Volume](./../Volumes.md) component settings. You can also adjust some aspects of your HDR Tonemapping configuration with a script (see the [HDROutputSettings API](#the-hdroutputsettings-api)).
+You can select and adjust tone mapping modes in the [Volume](./../Volumes.md) component settings. You can also adjust some aspects of your HDR tone mapping configuration with a script (see the [HDROutputSettings API](#the-hdroutputsettings-api)).
 
-After you enable **Allow HDR Display Output**, HDR Tonemapping options become visible in the Volume component.
+After you enable **Allow HDR Display Output**, HDR tone mapping options become visible in the Volume component.
 
 ### Tone mapping modes
 
-URP provides two **Tonemapping** modes: **Neutral** and **ACES**. Each Tonemapping mode has some unique properties.
+URP provides two **Tonemapping** modes: **Neutral** and **ACES**. Each tone mapping mode has some unique properties.
 
 * **Neutral** mode is especially suitable for situations where you do not want the tone mapper to color grade your content.
 * **ACES** mode uses the ACES reference color space for feature films. It produces a cinematic, contrasty result.
@@ -92,13 +117,13 @@ The [HDROutputSettings](https://docs.unity3d.com/ScriptReference/HDROutputSettin
 
 These values are also listed on the HDR output display table on the Rendering Debugger. To access the table, navigate to **Window** > **Analysis** > **Render Pipeline Debugger** > **Rendering** > **HDR Output**.
 
-## Offscreen Rendering
+## Use Offscreen Rendering with HDR Output
 
-When using offscreen rendering techniques, not all cameras in a scene output directly to the display. For example, when Unity is rendering the output to a Render Texture. In these situations, you use the output of the camera before rendering post-processing.
+When you use offscreen rendering techniques, not all cameras in a scene output directly to the display, for example, when Unity renders the output to a Render Texture. In these situations, use the output of the camera before rendering post-processing.
 
-Unity does not apply HDR Output processing to the output of cameras which use offscreen rendering techniques. This prevents HDR Output processing being applied twice to the camera's output.
+Unity does not apply HDR Output processing to the output of cameras which use offscreen rendering techniques. This prevents HDR Output processing from being applied twice to the camera's output.
 
-## SDR Rendering
+## Use Standard Dynamic Range (SDR) Rendering with HDR Output enabled
 
 HDR Output relies on HDR Rendering to provide pixel values in the correct format for tone mapping and color encoding. The values after HDR tone mapping are in nits and exceed 1. This differs from SDR Rendering where the pixel values are between 0 and 1. As a result of this, the use of SDR Rendering with HDR Output can cause the rendered image to look underexposed or oversaturated.
 
@@ -147,4 +172,3 @@ URP only supports HDR Output on the following platforms:
 * XR devices with HDR support
 
 > **Note**: DirectX 11 only supports HDR Output in the Player, it does not support HDR Output in the Editor.
-

@@ -386,6 +386,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeBufferParam(parameters.waterSimulation, parameters.patchEvaluation, HDShaderIDs._FrustumGPUBuffer, cameraFrustumBuffer);
                 cmd.DispatchCompute(parameters.waterSimulation, parameters.patchEvaluation, 1, 1, 1);
 
+                parameters.mbp.SetBuffer(HDShaderIDs._WaterPatchData, patchDataBuffer);
+
                 // Draw all the patches
                 cmd.DrawMeshInstancedIndirect(parameters.ringMesh, 0, parameters.waterMaterial, passIndex, indirectBuffer, 0, parameters.mbp);
             }

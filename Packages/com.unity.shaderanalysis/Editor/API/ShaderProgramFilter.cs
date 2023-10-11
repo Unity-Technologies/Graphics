@@ -50,6 +50,8 @@ namespace UnityEditor.ShaderAnalysis
         /// <summary>If not empty, a variant is selected if it contains all keywords of one keyword set.</summary>
         public List<KeywordSet> includedKeywords = new List<KeywordSet>();
 
+        public bool generateExtraPerfData = true;
+
         public static ShaderProgramFilter Parse(string shaderPassFilter, string keywordFilter)
         {
             var result = new ShaderProgramFilter();

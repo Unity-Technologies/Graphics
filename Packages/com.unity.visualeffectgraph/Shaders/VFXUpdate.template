@@ -131,6 +131,20 @@ void CSMain(uint3 groupId          : SV_GroupID,
             }
         }
 #endif
+
+// For strips, we still need to render some dead particles if they are in the middle of the strip
+#if HAS_STRIPS && VFX_HAS_INDIRECT_DRAW
+		if (!attributes.alive)
+		{
+			const StripData stripData = GetStripDataFromParticleIndex(index, instanceIndex);
+			uint relativeIndexInStrip = GetRelativeIndex(index, stripData);
+			if (relativeIndexInStrip > 0 && relativeIndexInStrip < stripData.nextIndex - 1)
+			{
+				AppendOutputBuffer(indirectBuffer, index, instanceActiveIndex);
+			}
+		}
+#endif
+
 #else
 		${VFXLoadAttributes}
 #if HAS_STRIPS

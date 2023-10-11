@@ -342,11 +342,9 @@ namespace UnityEngine.Rendering.Universal
         {
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
-            UniversalRenderer renderer = (UniversalRenderer)cameraData.renderer;
 
             // Create the texture handles...
             CreateRenderTextureHandles(renderGraph,
-                                       ref renderer,
                                        resourceData,
                                        cameraData,
                                        out TextureHandle aoTexture,
@@ -403,12 +401,12 @@ namespace UnityEngine.Rendering.Universal
 
                     // We only want URP shaders to sample SSAO if After Opaque is disabled...
                     if (!data.settings.AfterOpaque)
-                        CoreUtils.SetKeyword(rgContext.cmd, ShaderKeywordStrings.ScreenSpaceOcclusion, true);
+                        rgContext.cmd.SetKeyword(ref ShaderGlobalKeywords.ScreenSpaceOcclusion, true);
                 });
             }
         }
 
-        private void CreateRenderTextureHandles(RenderGraph renderGraph, ref UniversalRenderer renderer, UniversalResourceData resourceData,
+        private void CreateRenderTextureHandles(RenderGraph renderGraph, UniversalResourceData resourceData,
             UniversalCameraData cameraData, out TextureHandle aoTexture, out TextureHandle blurTexture, out TextureHandle finalTexture)
         {
             // Descriptor for the final blur pass
@@ -429,7 +427,7 @@ namespace UnityEngine.Rendering.Universal
             // Handles
             aoTexture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, aoBlurDescriptor, "_SSAO_OcclusionTexture0", false, FilterMode.Bilinear);
             blurTexture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, aoBlurDescriptor, "_SSAO_OcclusionTexture1", false, FilterMode.Bilinear);
-            finalTexture = m_CurrentSettings.AfterOpaque ? renderer.activeColorTexture : UniversalRenderer.CreateRenderGraphTexture(renderGraph, finalTextureDescriptor, k_SSAOTextureName, false, FilterMode.Bilinear);
+            finalTexture = m_CurrentSettings.AfterOpaque ? resourceData.activeColorTexture : UniversalRenderer.CreateRenderGraphTexture(renderGraph, finalTextureDescriptor, k_SSAOTextureName, false, FilterMode.Bilinear);
 
             if (!m_CurrentSettings.AfterOpaque)
                 resourceData.ssaoTexture = finalTexture;
@@ -614,7 +612,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 // We only want URP shaders to sample SSAO if After Opaque is off.
                 if (!m_CurrentSettings.AfterOpaque)
-                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ScreenSpaceOcclusion, true);
+                    cmd.SetKeyword(ShaderGlobalKeywords.ScreenSpaceOcclusion, true);
 
                 cmd.SetGlobalTexture(k_SSAOTextureName, m_SSAOTextures[3]);
 
@@ -710,7 +708,7 @@ namespace UnityEngine.Rendering.Universal
                 throw new ArgumentNullException("cmd");
 
             if (!m_CurrentSettings.AfterOpaque)
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ScreenSpaceOcclusion, false);
+                cmd.SetKeyword(ShaderGlobalKeywords.ScreenSpaceOcclusion, false);
         }
 
         public void Dispose()

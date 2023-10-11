@@ -210,8 +210,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
             else
             {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
                 // You tried to do UseTextureFragment(tex1, 1, ..); UseTextureFragment(tex2, 1, ..); that is not valid for different textures on the same index
                 throw new InvalidOperationException("You can only bind a single texture to an MRT index. Verify your indexes are correct.");
+#endif
             }
         }
 
@@ -227,8 +229,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
             else
             {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
                 // You tried to do UseTextureFragment(tex1, 1, ..); UseTextureFragment(tex2, 1, ..); that is not valid for different textures on the same index
                 throw new InvalidOperationException("You can only bind a single texture to an fragment input index. Verify your indexes are correct.");
+#endif
             }
         }
 
@@ -252,7 +256,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
             else
             {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
                 throw new InvalidOperationException("You can only set a single depth texture per pass.");
+#endif
             }
         }
     }

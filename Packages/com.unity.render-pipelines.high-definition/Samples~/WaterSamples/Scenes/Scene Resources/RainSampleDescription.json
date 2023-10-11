@@ -1,0 +1,23 @@
+{
+    "introduction": 
+	"""Welcome to the Water System Samples.
+	The <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/WaterSystem.html">Water System</a> allows you to add water to your scenes.
+	
+	This scene showcases rain on an ocean and how to alter the appearance of a water surface by editing the shader graph of the <link="Shader Graphs_RainOcean.mat">Water material</link>.
+	
+	<i>To make sure the project is set up properly, use the HDRP Asset Settings Helper buttons at the top of this component, otherwise some features might not be visible.</i>
+	
+	<h1>Custom Render Texture</h1>
+	
+		• This effect uses a double buffered <link="CustomRT_Droplets.asset">Custom Render Texture</link> to generate rain drop ripples. The double buffered texture means we can read it and write on it at the same time.  
+		• This texture is updated in realtime with the <link="Shader_Droplets.shadergraph">droplets shader graph</link>.
+		• The first two channels of the texture are used to compute the effect while the last two channels are the actual current normal alteration.
+		• A simple <a href="https://docs.unity3d.com/Packages/com.unity.shadergraph@latest/index.html?subfolder=/manual/Voronoi-Node.html">Voronoi</a> noise is used to create random nucleation site at each update to simulate rain drops. 
+		
+	<h1>Ocean Shader Graph</h1>
+	
+		• Then, the <link="RainOcean.shadergraph">ocean shader graph</link> uses this texture as an input and uses the last two channels to alter the world space normal of the water surface. 
+		• To reduce aliasing at a distance, the graph fades the intensity of the normal by using mips from the input texture and a mulitplier to attenuate the effect. 
+		• Lastly, the <link="Shader Graphs_RainOcean.mat">ocean material</link> has parameters to control the raindrop's direction and speed, these are useful when trying to align the effect with the general flow of the water body.""",
+    "samples": []	
+}

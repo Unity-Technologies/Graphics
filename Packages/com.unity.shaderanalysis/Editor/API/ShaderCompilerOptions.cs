@@ -12,5 +12,7 @@ namespace UnityEditor.ShaderAnalysis
         public HashSet<string> defines;
         /// <summary>Entry point name to use when compiling a shader.</summary>
         public string entry;
+
+        public bool generateExtraPerfData;
     }
 }

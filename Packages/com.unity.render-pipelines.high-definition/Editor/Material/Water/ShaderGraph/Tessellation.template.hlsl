@@ -32,6 +32,8 @@ VertexDescriptionInputs VaryingsMeshToDSToVertexDescriptionInputs(VaryingsMeshTo
     $VertexDescriptionInputs.ObjectSpaceNormal:    output.ObjectSpaceNormal   = input.normalWS;
     $VertexDescriptionInputs.WorldSpaceNormal:     output.WorldSpaceNormal    = TransformObjectToWorldNormal(input.normalWS);
 
+    $VertexDescriptionInputs.VertexColor:          output.VertexColor         = input.color;
+
     return output;
 }
 

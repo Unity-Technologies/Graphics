@@ -552,6 +552,12 @@ namespace UnityEngine.Rendering.HighDefinition
                             m_RayTracingLights.hdLineLightArray.Add(lightRenderEntity);
                         }
                         break;
+                        case LightType.Disc:
+                        {
+                            hasRayTracedShadows = hdLight.ShadowsEnabled() && hdLight.useRayTracedShadows;
+                            m_RayTracingLights.hdDiscLightArray.Add(lightRenderEntity);
+                        }
+                        break;
                     }
 
                     // Check if there is a ray traced shadow in the scene
@@ -564,6 +570,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RayTracingLights.hdLightEntityArray.AddRange(m_RayTracingLights.hdPointLightArray);
             m_RayTracingLights.hdLightEntityArray.AddRange(m_RayTracingLights.hdLineLightArray);
             m_RayTracingLights.hdLightEntityArray.AddRange(m_RayTracingLights.hdRectLightArray);
+            m_RayTracingLights.hdLightEntityArray.AddRange(m_RayTracingLights.hdDiscLightArray);
 
             // Process the lights
             HDAdditionalReflectionData[] reflectionProbeArray = UnityEngine.GameObject.FindObjectsByType<HDAdditionalReflectionData>(FindObjectsSortMode.None);
@@ -585,6 +592,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RayTracingLights.lightCount = m_RayTracingLights.hdPointLightArray.Count
                 + m_RayTracingLights.hdLineLightArray.Count
                 + m_RayTracingLights.hdRectLightArray.Count
+                + m_RayTracingLights.hdDiscLightArray.Count
                 + m_RayTracingLights.reflectionProbeArray.Count;
         }
 

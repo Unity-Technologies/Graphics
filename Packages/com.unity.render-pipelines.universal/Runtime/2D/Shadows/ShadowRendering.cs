@@ -3,6 +3,10 @@ using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
 using Unity.Collections;
 
+#if USING_SPRITESHAPE
+using UnityEngine.U2D;
+#endif
+
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -75,7 +79,7 @@ namespace UnityEngine.Rendering.Universal
             return material;
         }
 
-        private static Material GetProjectedShadowMaterial(this Renderer2DData rendererData)
+        internal static Material GetProjectedShadowMaterial(this Renderer2DData rendererData)
         {
             //rendererData.projectedShadowMaterial = null;
             if (rendererData.projectedShadowMaterial == null || rendererData.projectedShadowShader != rendererData.projectedShadowMaterial.shader)
@@ -86,7 +90,7 @@ namespace UnityEngine.Rendering.Universal
             return rendererData.projectedShadowMaterial;
         }
 
-        private static Material GetProjectedUnshadowMaterial(this Renderer2DData rendererData)
+        internal static Material GetProjectedUnshadowMaterial(this Renderer2DData rendererData)
         {
             //rendererData.projectedShadowMaterial = null;
             if (rendererData.projectedUnshadowMaterial == null  || rendererData.projectedShadowShader != rendererData.projectedUnshadowMaterial.shader)
@@ -371,6 +375,27 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        static int GetRendererSubmeshes(Renderer renderer, ShadowCaster2D shadowCaster2D)
+        {
+            int numberOfSubmeshes;
+
+            #if USING_SPRITESHAPE
+                if (renderer is SpriteShapeRenderer)
+                {
+                    SpriteShapeRenderer spriteShapeRenderer = (SpriteShapeRenderer)renderer;
+                    numberOfSubmeshes = spriteShapeRenderer.GetSplineMeshCount();
+                }
+                else
+                {
+                    numberOfSubmeshes = shadowCaster2D.spriteMaterialCount;
+                }
+            #else
+                numberOfSubmeshes = shadowCaster2D.spriteMaterialCount;
+            #endif
+
+            return numberOfSubmeshes;
+        }
+
         private static void RenderSelfShadowOption(LowLevelCommandBuffer cmdBuffer, int layerToRender, Light2D light, List<ShadowCaster2D> shadowCasters, Material projectedUnshadowMaterial, Material spriteShadowMaterial, Material spriteUnshadowMaterial, Material geometryShadowMaterial, Material geometryUnshadowMaterial)
         {
             // Draw the sprites, either as self shadowing or unshadowing
@@ -388,19 +413,19 @@ namespace UnityEngine.Rendering.Universal
                 {
                     if (ShadowCasterIsVisible(shadowCaster) && shadowCaster.selfShadows)
                     {
-                        int numberOfMaterials = shadowCaster.spriteMaterialCount;
-                        for (int materialIndex = 0; materialIndex < numberOfMaterials; materialIndex++)
-                            cmdBuffer.DrawRenderer(renderer, spriteShadowMaterial, materialIndex, 0);
+                        int numberOfSubmeshes = GetRendererSubmeshes(renderer, shadowCaster);
+                        for (int submeshIndex = 0; submeshIndex < numberOfSubmeshes; submeshIndex++)
+                            cmdBuffer.DrawRenderer(renderer, spriteShadowMaterial, submeshIndex, 0);
                     }
                     else
                     {
-                        int numberOfMaterials = shadowCaster.spriteMaterialCount;
-                        for (int materialIndex = 0; materialIndex < numberOfMaterials; materialIndex++)
+                        int numberOfSubmeshes = GetRendererSubmeshes(renderer, shadowCaster);
+                        for (int submeshIndex = 0; submeshIndex < numberOfSubmeshes; submeshIndex++)
                         {
-                            cmdBuffer.DrawRenderer(renderer, spriteUnshadowMaterial, materialIndex, 0);
+                            cmdBuffer.DrawRenderer(renderer, spriteUnshadowMaterial, submeshIndex, 0);
 
                         }
-                    }
+                    }   
                 }
                 else
                 {
@@ -434,10 +459,10 @@ namespace UnityEngine.Rendering.Universal
                     Renderer renderer = GetRendererFromCaster(shadowCaster, light, layerToRender);
                     if (renderer != null)
                     {
-                        int numberOfMaterials = shadowCaster.spriteMaterialCount;
-                        for (int materialIndex = 0; materialIndex < numberOfMaterials; materialIndex++)
+                        int numberOfSubmeshes = GetRendererSubmeshes(renderer, shadowCaster);
+                        for (int submeshIndex = 0; submeshIndex < numberOfSubmeshes; submeshIndex++)
                         {
-                            cmdBuffer.DrawRenderer(renderer, spriteUnshadowMaterial, materialIndex, 1);
+                            cmdBuffer.DrawRenderer(renderer, spriteUnshadowMaterial, submeshIndex, 1);
                         }
                     }
                     else

@@ -10,12 +10,11 @@ using UnityEngine.Rendering.HighDefinition;
 namespace UnityEditor.Rendering.HighDefinition
 {
     [SRPFilter(typeof(HDRenderPipeline))]
-    [Title("Utility", "High Definition Render Pipeline", "Water", "PackVertexData_Water")]
     class PackVertexData_Water : AbstractMaterialNode, IGeneratesBodyCode
     {
         public PackVertexData_Water()
         {
-            name = "Pack Water Vertex Data";
+            name = "Pack Water Vertex Data (Legacy)";
             UpdateNodeAfterDeserialization();
         }
 
@@ -125,6 +124,11 @@ namespace UnityEditor.Rendering.HighDefinition
                     GetVariableNameForSlot(kUV1OutputSlotId)
                 );
             }
+        }
+
+        public override void ValidateNode()
+        {
+            owner.messageManager?.AddOrAppendError(owner, objectId, new ShaderMessage("This node is deprecated and will be released in a future version. Please refer to the Water Samples for the new version.", ShaderCompilerMessageSeverity.Warning));
         }
     }
 }

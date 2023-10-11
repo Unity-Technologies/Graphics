@@ -62,6 +62,7 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// The class for the SSAO renderer feature.
     /// </summary>
+    [SupportedOnRenderer(typeof(UniversalRendererData))]
     [DisallowMultipleRendererFeature("Screen Space Ambient Occlusion")]
     [Tooltip("The Ambient Occlusion effect darkens creases, holes, intersections and surfaces that are close to each other.")]
     [URPHelpURL("post-processing-ssao")]
@@ -151,7 +152,5 @@ namespace UnityEngine.Rendering.Universal
                 m_Material = CoreUtils.CreateEngineMaterial(m_Shader);
             return m_Material != null;
         }
-
-
     }
 }

@@ -130,8 +130,9 @@ namespace UnityEditor.Rendering.HighDefinition
             return false;
         }
 
-        internal static Material CreateNewWaterMaterialAndShader(string sceneName, string surfaceName)
+        internal static string GetWaterResourcesPath(MonoBehaviour component)
         {
+            var sceneName = component.gameObject.scene.name;
             string folderName = "Assets/WaterResources/" + sceneName;
             // Make sure the folder exists
             if (!AssetDatabase.IsValidFolder("Assets/WaterResources"))
@@ -139,15 +140,15 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!AssetDatabase.IsValidFolder(folderName))
                 AssetDatabase.CreateFolder("Assets/WaterResources", sceneName);
 
+            return folderName;
+        }
+
+        internal static Material CreateNewWaterMaterialAndShader(MonoBehaviour component)
+        {
+            string folderName = GetWaterResourcesPath(component);
+
             // Make sure they don't already exist
-            var sgPath = folderName + "/" + surfaceName + ".shadergraph";
-            // First check if the shader graph or the materials exist if they do we stop right away with a message.
-            var sg = AssetDatabase.LoadAssetAtPath<Shader>(sgPath);
-            if (sg != null)
-            {
-                Debug.LogWarning("A water shader or material has already been created in the " + folderName +" folder.");
-                return null;
-            }
+            var sgPath = AssetDatabase.GenerateUniqueAssetPath(folderName + "/" + component.name + ".shadergraph");
 
             // Copy the shader graph
             var originalSG = HDRenderPipeline.currentAsset.renderPipelineResources.shaders.waterPS;
@@ -160,23 +161,35 @@ namespace UnityEditor.Rendering.HighDefinition
             return AssetDatabase.LoadAssetAtPath<Material>(sgPath);
         }
 
-        static internal void WaterCustomMaterialField(WaterSurfaceEditor serialized, Editor owner)
+        static internal void MaterialFieldWithButton(GUIContent label, SerializedProperty prop, System.Func<Material> onClick)
         {
-            const int buttonWidth = 60;
-            Rect lineRect = EditorGUILayout.GetControlRect();
-            var fieldRect = new Rect(lineRect.x, lineRect.y, lineRect.width - buttonWidth - 2, lineRect.height);
-            var buttonNewRect = new Rect(fieldRect.xMax + 2, lineRect.y, buttonWidth, lineRect.height);
+            const int k_NewFieldWidth = 70;
 
-            // Display the label
-            PropertyField(fieldRect, serialized.m_CustomMaterial, k_CustomMaterial);
+            var rect = EditorGUILayout.GetControlRect();
+            rect.xMax -= k_NewFieldWidth + 2;
 
-            if (GUI.Button(buttonNewRect, k_WaterNewLMaterialLabel, EditorStyles.miniButton))
+            var newFieldRect = rect;
+            newFieldRect.x = rect.xMax + 2;
+            newFieldRect.width = k_NewFieldWidth;
+            if (GUI.Button(newFieldRect, "New", EditorStyles.miniButton))
             {
-                WaterSurface ws = (serialized.target as WaterSurface);
-                Material newMaterial = CreateNewWaterMaterialAndShader(ws.gameObject.scene.name, ws.name);
-                if (newMaterial != null)
-                    serialized.m_CustomMaterial.objectReferenceValue = newMaterial;
+                var value = onClick();
+                if (value != null)
+                    prop.objectReferenceValue = value;
             }
+
+            if (label != null)
+                PropertyField(rect, prop, label);
+            else
+                PropertyField(rect, prop);
+        }
+
+        static void WaterCustomMaterialField(WaterSurfaceEditor serialized)
+        {
+            MaterialFieldWithButton(k_CustomMaterial, serialized.m_CustomMaterial, () => {
+                WaterSurface ws = (serialized.target as WaterSurface);
+                return CreateNewWaterMaterialAndShader(ws);
+            });
 
             var material = serialized.m_CustomMaterial.objectReferenceValue as Material;
             if (material != null && !WaterSurface.IsWaterMaterial(material))
@@ -188,7 +201,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static internal void WaterSurfaceAppearanceSection(WaterSurfaceEditor serialized, Editor owner)
         {
             // Handle the custom material field
-            WaterCustomMaterialField(serialized, owner);
+            WaterCustomMaterialField(serialized);
 
             // Grab the type of the surface
             WaterSurfaceType surfaceType = (WaterSurfaceType)(serialized.m_SurfaceType.enumValueIndex);

@@ -177,6 +177,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         bool m_ReceiveShadows = true;
 
         [SerializeField]
+        bool m_DisableTint = false;
+
+        [SerializeField]
         AdditionalMotionVectorMode m_AdditionalMotionVectorMode = AdditionalMotionVectorMode.None;
 
         [SerializeField]
@@ -288,6 +291,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             get => m_AlphaClip;
             set => m_AlphaClip = value;
+        }
+
+        public bool disableTint
+        {
+            get => m_DisableTint;
+            set => m_DisableTint = value;
         }
 
         public bool castShadows
@@ -2223,6 +2232,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             //       as well as a VS-based smooth LOD transition effect.
             //       These shaders need the LOD_FADE_CROSSFADE keyword in the VS
             //       to skip the VS-based effect. 
+            // Note: DOTS instancing uses a different instance index encoding
+            //       when crossfade is active, so all stages are affected by the
+            //       LOD_FADE_CROSSFADE keyword.
             scope = KeywordScope.Global
         };
 

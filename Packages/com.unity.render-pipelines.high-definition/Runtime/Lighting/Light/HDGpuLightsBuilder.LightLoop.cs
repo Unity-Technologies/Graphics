@@ -144,7 +144,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (lightComponent != null &&
                 (
                     (lightType.IsSpot() && (lightComponent.cookie != null || additionalLightData.IESPoint != null)) ||
-                    ((lightType.IsArea() && lightData.lightType == GPULightType.Rectangle) && (lightComponent.cookie != null || additionalLightData.IESSpot != null)) ||
+                    ((lightType.IsArea() && (lightData.lightType == GPULightType.Rectangle || lightData.lightType == GPULightType.Disc)) && (lightComponent.cookie != null || additionalLightData.IESSpot != null)) ||
                     (lightType == LightType.Point && (lightComponent.cookie != null || additionalLightData.IESPoint != null))
                 )
             )
@@ -193,7 +193,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 lightData.cookieMode = CookieMode.Clamp;
                 lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.Fetch2DCookie(cmd, Texture2D.whiteTexture);
             }
-            else if (lightData.lightType == GPULightType.Rectangle)
+            else if (lightData.lightType == GPULightType.Rectangle || lightData.lightType == GPULightType.Disc)
             {
                 if (additionalLightData.areaLightCookie != null || additionalLightData.IESPoint != null)
                 {

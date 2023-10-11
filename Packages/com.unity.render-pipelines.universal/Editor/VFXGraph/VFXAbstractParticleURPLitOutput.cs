@@ -66,12 +66,6 @@ namespace UnityEditor.VFX.URP
             CustomCurve,
         }
 
-        private readonly string[] kWorkflowModeToName = new string[]
-        {
-            nameof(StandardProperties),
-            nameof(SpecularColorProperties)
-        };
-
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Header("Lighting"), Tooltip("Specifies the surface type of this output. Surface types determine how the particle will react to light.")]
         protected MaterialType materialType = MaterialType.Standard;
 
@@ -365,8 +359,12 @@ namespace UnityEditor.VFX.URP
                 {
                     if (materialType == MaterialType.Standard)
                     {
-                        properties = properties.Concat(PropertiesFromType(nameof(URPLitInputProperties)));
-                        properties = properties.Concat(PropertiesFromType(kWorkflowModeToName[(int)workflowMode]));
+                        if(useSmoothness)
+                            properties = properties.Concat(PropertiesFromType(nameof(URPLitInputProperties)));
+                        if(useMetallic)
+                            properties = properties.Concat(PropertiesFromType(nameof(StandardProperties)));
+                        if(useSpecular)
+                            properties = properties.Concat(PropertiesFromType(nameof(SpecularColorProperties)));
                     }
                     else if(materialType == MaterialType.SixWaySmokeLit)
                         properties = properties.Concat(sixWayMapsProperties);

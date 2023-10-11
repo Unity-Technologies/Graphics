@@ -49,6 +49,12 @@
 
     // We need to redeclare these macros for XR reasons to actually utilise the Texture2DArrays
     // TODO: add MSAA support, which is not being used anywhere in URP at the moment
+    #undef FRAMEBUFFER_INPUT_X_HALF
+    #undef FRAMEBUFFER_INPUT_X_FLOAT
+    #undef FRAMEBUFFER_INPUT_X_INT
+    #undef FRAMEBUFFER_INPUT_X_UINT
+    #undef LOAD_FRAMEBUFFER_X_INPUT
+
     #if defined(SHADER_API_METAL) && defined(UNITY_NEEDS_RENDERPASS_FBFETCH_FALLBACK)
 
         #define RENDERPASS_DECLARE_FALLBACK_X(T, idx)                                                   \

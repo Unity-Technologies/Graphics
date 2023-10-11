@@ -1,0 +1,35 @@
+{
+    "introduction":
+	"""Welcome to the Water System Samples.
+	The <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/WaterSystem.html">WaterSystem</a> allows you to add water to your scenes.
+	Multiple surface types are available, this scene showcases the Ocean preset.
+	
+	<i>To make sure the project is set up properly, use the HDRP Asset Settings Helper buttons at the top of this component, otherwise some features might not be visible.</i>
+	
+	<h1>General</h1>
+	
+		• A Water Mask texture is used on the Water Surface to reduce the water agitation closer to the island.
+		• A Current Map Texture is set on the Water Surface to slightly change the direction of the current around the island. The Wrap Mode of the texture is set to Clamp to prevent the texture from repeating.
+	
+	<h1>Exclusion</h1>
+	
+		• A <link="Water Excluder">Water Excluder</link> with a specifically authored mesh is set on the boat to exclude water from rendering inside it.
+	
+	<h1>Shores Waves</h1>
+	
+		• There are 3 different <link="Water Wave Deformer Middle">Shore Wave Water Deformers</link>. Each Water Deformer has a <link="DecalTriggerDummy">child gameobject</link>. It’s used to trigger a <link="ShoreFoam">Decal Projector</link> when submerged underwater. To prevent unwanted effects, the trigger script ignores the general water agitation and only calculates if the dummy gets submerged due to a wave deformation.
+		• The Decal Projector has a component 'FoamShore' controling the scale, opacity and position, effectively describing how far can the wave decals be seen after reaching the shore.
+		• In addition, the Decal Projector Material is animated using a flipbook texture.
+		• Moreover, each Decal has a child <link="Water Texture Deformer">Deformer</link> with the same animated texture for the foam to have "volume". This deformer is triggered at the same time and uses one shared <link="Shader Graphs_Custom Foam Flipbook">material</link> with a <a href="https://docs.unity3d.com/ScriptReference/MaterialPropertyBlock.html">Material Property Block</a> for all Water Deformers, eliminating the need for a Custom Render Texture.
+		• Finally, a very large <link="Decal Projector Wave Foam">Decal Projector</link> retrieves the foam texture of the Shore Wave Deformers using the <code>GetFoamBuffer()</code> function to further blend the foam on the shore.
+		
+	<h1>Third Person Sailor</h1>
+	
+		• The <link="Sailor">Sailor</link> works only in <b>Play Mode</b>.
+		• Use the direction arrows of your keyboard to move the sailor.
+		• The gameObject <link="DeformerPool">Deformer Pool</link> holds a list of deformers to use as children for deformations.
+		• When the controller is moving, the component <b>CharacterControllerSpawnDeformation</b> enables <b>Water Deformers</b> continuously in the <link="DeformerPool">Deformer Pool</link> child list just ahead of the character. These deformers are then animated and faded, making ripples. 
+		• The <link="Sailor Foam Generator">foam generator</link> is also scaled by its parent transform based on the controller velocity to generate foam trail that disappears over time. This foam can also be visible on the sand since there's a <link="Decal Projector Wave Foam">decal</link> reprojecting it on the shore.  
+		""",
+    "samples": []	
+}

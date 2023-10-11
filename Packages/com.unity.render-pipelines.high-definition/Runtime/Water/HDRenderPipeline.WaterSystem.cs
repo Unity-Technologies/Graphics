@@ -260,6 +260,8 @@ namespace UnityEngine.Rendering.HighDefinition
             else
                 cb._SimulationFoamAmount = 4.0f * Mathf.Pow(0.72f + currentWater.simulationFoamAmount * 0.28f, 0.25f);
 
+            cb._FoamFollowCurrent = currentWater.foamCurrentInfluence;
+
             // Smoothness of the foam
             cb._FoamPersistenceMultiplier = 1.0f / Mathf.Lerp(0.25f, 2.0f, currentWater.foamPersistenceMultiplier);
             cb._FoamSmoothness = currentWater.foamSmoothness;
@@ -490,6 +492,10 @@ namespace UnityEngine.Rendering.HighDefinition
             // If water surface simulation is disabled, skip.
             if (!m_ActiveWaterSystem || numWaterSurfaces == 0)
                 return;
+
+            float ct = waterSurfaces[0].simulation != null ? waterSurfaces[0].simulation.simulationTime : 0.0f;
+            Vector4 _WaterDecalTimeParameters = new Vector4(ct, Mathf.Sin(ct), Mathf.Cos(ct), 0.0f);
+            Shader.SetGlobalVector(HDShaderIDs._WaterDecalTimeParameters, _WaterDecalTimeParameters);
 
             // Make sure that all the deformers are on the GPU
             UpdateWaterDeformersData(cmd);
@@ -896,7 +902,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 parameters.mbp.SetBuffer(HDShaderIDs.g_logBaseBuffer, logBaseBuffer);
 
             // Normally we should bind this into the material property block, but on metal there seems to be an issue. This fixes it.
-            parameters.mbp.SetBuffer(HDShaderIDs._WaterPatchData, patchDataBuffer);
             parameters.mbp.SetBuffer(HDShaderIDs._WaterCameraHeightBuffer, cameraHeightBuffer);
             parameters.mbp.SetTexture(HDShaderIDs._CameraDepthTexture, depthPyramid);
             parameters.mbp.SetTexture(HDShaderIDs._NormalBufferTexture, normalBuffer);

@@ -9,6 +9,26 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [17.0.0] - 2023-09-26
+
+This version is compatible with Unity 2023.3.0a8.
+
+### Fixed
+- Fixed an issue where the "materials" and "sharedMaterials" properties returned all materials instead of returning only the active materials.
+- Fixed an issue where an event at frame zero in Timeline were not handled correctly.
+- Fixed an issue with the wrong size used for updates in strips with immortal particles.
+- Fixed Six-way Shader Graph sub target when using more than one SRP in a project.
+- Unexpected generated shader with invalid ShaderGraph.
+- Keep the built-in templates category always visible when there's no user defined category.
+- Template items could have uneven width when the left panel is too small.
+- The template item hit box was slightly bigger than its visual representation, now it perfectly match.
+- The right panel (details panel) could be resize to as small as zero width, leading to messy layout. Now it has a minimum width of 200px (like the left panel).
+- Fixed a performance issue with parameters gizmos.
+- Fixed missing gizmo for Position exposed property
+- Fixed error log raised by VFX analytics while building a project.
+- Fixed unexpected behavior while switching to AfterPostProcess with ShaderGraph.
+- Fixed gizmo overlay's drop down was cut at the bottom
+
 ## [16.0.3] - 2023-07-04
 
 This version is compatible with Unity 2023.3.0a1.

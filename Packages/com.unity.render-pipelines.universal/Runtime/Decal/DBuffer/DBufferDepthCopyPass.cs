@@ -28,7 +28,7 @@ namespace UnityEngine.Rendering.Universal
             TextureHandle src, dest;
             if (renderer.renderingModeActual == RenderingMode.Deferred)
             {
-                src = renderer.activeDepthTexture;
+                src = resourceData.activeDepthTexture;
                 dest = cameraDepthTexture;
             }
             else
@@ -41,11 +41,11 @@ namespace UnityEngine.Rendering.Universal
                 resourceData.dBufferDepth = depthTarget;
 
                 src = cameraDepthTexture;
-                dest = cameraData.cameraTargetDescriptor.msaaSamples > 1 ? depthTarget : renderer.activeDepthTexture;
+                dest = cameraData.cameraTargetDescriptor.msaaSamples > 1 ? depthTarget : resourceData.activeDepthTexture;
             }
 
             //TODO: bindAsCameraDepth should be investigated as without it DBufferDepth will not be bound correctly, though it should
-            Render(renderGraph, dest, src, cameraData, resourceData, cameraData.cameraTargetDescriptor.msaaSamples > 1);
+            Render(renderGraph, dest, src, resourceData, cameraData, cameraData.cameraTargetDescriptor.msaaSamples > 1);
         }
     }
 }

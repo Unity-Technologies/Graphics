@@ -13,12 +13,17 @@ public static class PerformanceTestUtils
     /// Note that you need to call this function using yield return LoadScene(...) Otherwise the scene doesn't have the time to load properly.
     /// </summary>
     /// <param name="sceneName"></param>
-    /// <param name="hdAsset"></param>
+    /// <param name="asset"></param>
     /// <returns>Call yield return LoadScene()</returns>
-    public static IEnumerator LoadScene(string sceneName, RenderPipelineAsset hdAsset)
+    public static IEnumerator LoadScene(string sceneName, RenderPipelineAsset asset)
     {
-        if (GraphicsSettings.renderPipelineAsset != hdAsset)
-            GraphicsSettings.renderPipelineAsset = hdAsset;
+        if (QualitySettings.renderPipeline != null)
+        {
+            if (QualitySettings.renderPipeline != asset)
+                QualitySettings.renderPipeline = asset;
+        }
+        else if (GraphicsSettings.renderPipelineAsset != asset)
+            GraphicsSettings.renderPipelineAsset = asset;
 
         SceneManager.LoadScene(sceneName);
 

@@ -1,0 +1,15 @@
+{
+    "displayName": "Local Code Coverage references",
+    "name": "local.code.coverage.references",
+    "version": "1.0.0",
+    "unity": "2019.1",
+    "description": "This is a dummy package that contains references to other packages needed for tests in the repository.",
+    "keywords": [
+      "test"
+    ],
+    "category": "Libraries",
+    "dependencies": {
+      "com.unity.testtools.codecoverage": "1.2.3"
+    }
+  }
+  

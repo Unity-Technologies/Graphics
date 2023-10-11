@@ -74,24 +74,24 @@ namespace UnityEngine.Rendering.Universal
 
         internal void CreateRendererList(
             ScriptableRenderContext context,
-            UniversalRenderingData renderingData,
+            ref CullingResults cullResults,
             ref DrawingSettings drawingSettings,
             ref FilteringSettings filteringSettings,
             ref RenderStateBlock renderStateBlock,
             ref RendererList rendererList)
         {
-            RenderingUtils.CreateRendererListWithRenderStateBlock(context, renderingData, drawingSettings, filteringSettings, renderStateBlock, ref rendererList);
+            RenderingUtils.CreateRendererListWithRenderStateBlock(context, ref cullResults, drawingSettings, filteringSettings, renderStateBlock, ref rendererList);
         }
 
         internal void CreateRendererList(
             RenderGraph renderGraph,
-            UniversalRenderingData renderingData,
+            ref CullingResults cullResults,
             ref DrawingSettings drawingSettings,
             ref FilteringSettings filteringSettings,
             ref RenderStateBlock renderStateBlock,
             ref RendererListHandle rendererListHdl)
         {
-            RenderingUtils.CreateRendererListWithRenderStateBlock(renderGraph, renderingData, drawingSettings, filteringSettings, renderStateBlock, ref rendererListHdl);
+            RenderingUtils.CreateRendererListWithRenderStateBlock(renderGraph, ref cullResults, drawingSettings, filteringSettings, renderStateBlock, ref rendererListHdl);
         }
 
         internal void DrawWithRendererList(RasterCommandBuffer cmd, ref RendererList rendererList)

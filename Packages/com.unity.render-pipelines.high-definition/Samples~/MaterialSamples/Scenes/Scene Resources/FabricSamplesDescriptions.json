@@ -1,0 +1,26 @@
+{
+    "introduction":
+	"""<h1>Cotton Wool</h1>
+
+<b>Cotton Wool</b> is a Material Type with a diffused shading model which you can use to create Materials like <link="Cotton.mat">cotton</link>, <link="Denim.mat">denim</link>, <link="Wool.mat">wool</link>, <link="Linen.mat">linen</link>, and <link="Velvet.mat">velvet</link>. The type of fibers that make up the fabric, as well as the fabric's knit or weave, influence the appearance of the fabric. Natural fibers are typically rougher and therefore diffuse light.
+
+
+<h1>Silk</h1>
+
+You can use the <b>Silk</b> Material Type to create fabrics like <link="Silk.mat">silk</link>, <link="Shot_silk.mat">shot silk</link>, <link="Nylon.mat">nylon</link>. In general, silk and other synthetic fibers are smoother because they are produced as a single smooth filament. When weaved, it produces a fabric with anisotropic specular highlights.
+     
+
+<h1>About Thread Map</h1>
+    
+These Materials use a <b>threadmap</b> for the high-frequency details that fabrics include. It is similar to the Detail Map found in HDRP's Lit Shaders. The threadmap input is channel-packed and arranged in a certain way for optimal normal map precision and smallest texture size. 
+
+The channel packing is:
+    
+    - Red channel - Ambient occlusion
+    - Green and alpha channels - Normal
+    - Blue channel - Smoothness
+    
+    """,
+    "samples": []	
+}
+

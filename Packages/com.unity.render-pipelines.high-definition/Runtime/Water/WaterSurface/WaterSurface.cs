@@ -732,5 +732,16 @@ namespace UnityEngine.Rendering.HighDefinition
             foamArea = foamAreaSize;
             return FoamBuffer();
         }
+
+        /// <summary>
+        /// Function that returns the deformation buffer for the water surface. If the feature is disabled or the resource is not available the function returns null.
+        /// </summary>
+        /// <seealso cref="WaterSurface.deformationAreaSize"/>
+        /// <seealso cref="WaterSurface.deformationAreaOffset"/>
+        /// <returns>A single channgel texture that holds the surface deformation of the water surface.</returns>
+        public Texture GetDeformationBuffer()
+        {
+            return deformation ? deformationBuffer : null;
+        }
     }
 }

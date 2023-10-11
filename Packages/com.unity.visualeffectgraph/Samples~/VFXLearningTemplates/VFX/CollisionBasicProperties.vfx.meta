@@ -1,0 +1,20 @@
+fileFormatVersion: 2
+guid: 768710f96cc43ca45b44ca733a6ac7ba
+VisualEffectImporter:
+  externalObjects: {}
+  serializedVersion: 1
+  template:
+    name: Collision Properties
+    category: Learning Templates
+    description: As VFX Graph is simulating particles on the GPU, they cannot collide
+      with regular Rigid Body Colliders. But you can still make them collide with
+      different geometry approximations like Boxes, Spheres, Cones, Planes or even
+      complex shapes with the use of SDF and/or Depth Buffer. This VFX Graph, shows
+      the use of a standard Collider Block and how the different Collision Properties
+      like Bounce, Friction and/or Roughness can influence the collision response
+      of the particles.
+    icon: {fileID: 2800000, guid: 49836be3225b70342b4057f6bf94b554, type: 3}
+    thumbnail: {fileID: 2800000, guid: c95ee797abda9044db03398c3f647520, type: 3}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

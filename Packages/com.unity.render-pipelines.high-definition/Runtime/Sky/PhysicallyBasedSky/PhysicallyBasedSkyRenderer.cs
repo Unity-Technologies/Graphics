@@ -351,7 +351,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             CoreUtils.Destroy(m_PbrSkyMaterial);
 
-            if (!s_PrecomputaionCache.HasAliveData())
+            if (!s_PrecomputaionCache.HasAliveData() && s_CelestialBodyBuffer != null)
             {
                 s_CelestialBodyBuffer.Dispose();
                 s_CelestialBodyBuffer = null;

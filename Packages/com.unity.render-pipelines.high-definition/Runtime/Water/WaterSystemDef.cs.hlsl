@@ -83,9 +83,13 @@ CBUFFER_START(ShaderVariablesWater)
     float _HeightBasedScattering;
     float _DisplacementScattering;
     float _ScatteringWaveHeight;
+    float _FoamFollowCurrent;
     float _FoamSmoothness;
     float _WaterSmoothness;
     float _FoamPersistenceMultiplier;
+    float _PaddingW1;
+    float _PaddingW2;
+    float _PaddingW3;
     int _WaterDeformationResolution;
     float _MaxWaveDisplacement;
     float _MaxWaveHeight;

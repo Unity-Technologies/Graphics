@@ -16,7 +16,8 @@ To open the Default VFX Graph Templates window:
 3. In the Create new VFX Asset window, select a Default VFX Graph template. 
 4. Double-click the Template asset, or select **Create**
 
-**Note**: Select the Add (**+**) button to repeat the last action you selected in the dropdown. For example, if you select **Insert Template**, the **Add** (**+**) button opens the **Insert Template** window. 
+>- The Add **[+]** button opens the templates window to insert a template in the current VFX.
+>- If you hold the **CTRL** key while clicking on **[+]** button the templates window will open to create a new VFX asset.
 
 ## Create a custom VFX Graph template
 

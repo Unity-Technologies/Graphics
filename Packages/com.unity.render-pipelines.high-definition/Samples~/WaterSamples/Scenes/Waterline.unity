@@ -13,7 +13,7 @@ OcclusionCullingSettings:
 --- !u!104 &2
 RenderSettings:
   m_ObjectHideFlags: 0
-  serializedVersion: 9
+  serializedVersion: 10
   m_Fog: 0
   m_FogColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
   m_FogMode: 3
@@ -38,13 +38,12 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 5151.8677, g: 7742.286, b: 7954.0713, a: 1}
+  m_IndirectSpecularColor: {r: 5758.9126, g: 8288.993, b: 8261.235, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 12
-  m_GIWorkflowMode: 1
   m_GISettings:
     serializedVersion: 2
     m_BounceScale: 1
@@ -143,6 +142,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 96575297}
+  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
@@ -150,7 +150,6 @@ Transform:
   m_Children:
   - {fileID: 833608556}
   m_Father: {fileID: 0}
-  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &137834543
 GameObject:
@@ -238,13 +237,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 137834543}
+  serializedVersion: 2
   m_LocalRotation: {x: 0.40821788, y: -0.23456968, z: 0.10938163, w: 0.8754261}
   m_LocalPosition: {x: 0, y: 3, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1053179244}
-  m_RootOrder: -1
   m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
 --- !u!114 &137834546
 MonoBehaviour:
@@ -292,9 +291,17 @@ MonoBehaviour:
   m_UseScreenSpaceShadows: 0
   m_InteractsWithSky: 1
   m_AngularDiameter: 0.5
+  m_DiameterMultiplerMode: 1
+  m_DiameterMultiplier: 1
+  m_DiameterOverride: 0.5
+  m_EmissiveLightSource: 1
   m_FlareSize: 2
   m_FlareTint: {r: 1, g: 1, b: 1, a: 1}
   m_FlareFalloff: 4
+  m_AutomaticMoonPhase: 1
+  m_MoonPhase: 0.2
+  m_MoonPhaseRotation: 0
+  m_Earthshine: 1
   m_SurfaceTexture: {fileID: 0}
   m_SurfaceTint: {r: 1, g: 1, b: 1, a: 1}
   m_Distance: 1.5e+11
@@ -317,6 +324,14 @@ MonoBehaviour:
   m_BlockerSampleCount: 24
   m_FilterSampleCount: 16
   m_MinFilterSize: 0.1
+  m_DirLightPCSSBlockerSampleCount: 24
+  m_DirLightPCSSFilterSampleCount: 16
+  m_DirLightPCSSMaxBlockerDistance: 64
+  m_DirLightPCSSMaxSamplingDistance: 0.5
+  m_DirLightPCSSMinFilterSizeTexels: 1.5
+  m_DirLightPCSSMinFilterMaxAngularDiameter: 10
+  m_DirLightPCSSBlockerSearchAngularDiameter: 12
+  m_DirLightPCSSBlockerSamplingClumpExponent: 2
   m_KernelSize: 5
   m_LightAngle: 1
   m_MaxDepthBias: 0.001
@@ -409,13 +424,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 668297701}
+  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 4.794359, y: -3.6763802, z: 12.558522}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &729886570
 GameObject:
@@ -503,13 +518,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 729886570}
+  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &729886574
 MonoBehaviour:
@@ -655,7 +670,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6dac9292e94438546aa9801a7d4cbfd1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  target: {fileID: 0}
 --- !u!1 &833608554
 GameObject:
   m_ObjectHideFlags: 0
@@ -703,6 +717,10 @@ MonoBehaviour:
   endSmoothness: 0.85
   smoothnessFadeStart: 100
   smoothnessFadeDistance: 500
+  tessellation: 1
+  maxTessellationFactor: 3
+  tessellationFactorFadeStart: 150
+  tessellationFactorFadeRange: 1850
   refractionColor: {r: 0.010022826, g: 0.21404114, b: 0.21404114, a: 1}
   maxRefractionDistance: 0.5
   absorptionDistance: 1.5
@@ -838,13 +856,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 833608554}
+  serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 96575298}
-  m_RootOrder: -1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1053179243
 GameObject:
@@ -869,6 +887,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1053179243}
+  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
@@ -876,7 +895,6 @@ Transform:
   m_Children:
   - {fileID: 137834545}
   m_Father: {fileID: 0}
-  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1181935496
 GameObject:
@@ -887,7 +905,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1181935497}
-  - component: {fileID: 1181935498}
+  - component: {fileID: 1181935499}
   m_Layer: 0
   m_Name: Water Sample Description
   m_TagString: Untagged
@@ -902,15 +920,15 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1181935496}
+  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 20}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1181935498
+--- !u!114 &1181935499
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -919,16 +937,43 @@ MonoBehaviour:
   m_GameObject: {fileID: 1181935496}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8595ac3db1d27264ab4ffd8b5c54603e, type: 3}
+  m_Script: {fileID: 11500000, guid: 43f37cacaa9726942b97c38d03b617ac, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   headline: Waterline
-  headlineColor: {r: 1, g: 1, b: 1, a: 1}
-  linkColor: {r: 1, g: 1, b: 1, a: 1}
-  SamplesDescriptions: {fileID: 4900000, guid: 393613c3cc30a604ba1ad9e205edfbdf, type: 3}
+  headlineLightColor: {r: 0.066, g: 0.066, b: 0.066, a: 1}
+  headlineDarkColor: {r: 0.82, g: 0.82, b: 0.82, a: 1}
+  linkLightColor: {r: 0.086, g: 0.427, b: 0.792, a: 1}
+  linkDarkColor: {r: 0.478, g: 0.658, b: 0.933, a: 1}
+  codeLightColor: {r: 0.76, g: 0.41, b: 0, a: 1}
+  codeDarkColor: {r: 0.91, g: 0.57, b: 0.17, a: 1}
+  SamplesDescriptionsJson: {fileID: 4900000, guid: 30b11a6066b51364a833dbb1c768aea3, type: 3}
   samplesPrefabs: []
+  PresentationMode: 2
+  enableSelectButton: 0
   currentIndex: 0
-  instantiatedPrefab: {fileID: 0}
+  currentPrefab: {fileID: 0}
+  requiredSettingsSO: {fileID: 11400000, guid: 633cf8ce1756ef641a560e1512b73e4f, type: 2}
+  SanitizedIntroduction: "Welcome to the Water System Samples.\nThe Water System
+    allows you to add water to your scenes.\nThis scene showcases the use of Before
+    Post Process Custom Pass that allows you to further customize the water rendering,
+    in this case blurring the hard waterline.\n\nPlease use the HDRP Asset Settings
+    Helper buttons to make sure the project is set up properly otherwise some features
+    might not be visible.\n\n<b><size=16>Custom Pass</size> </b>\n\n\u2022 The default
+    Water line is a hard line separating Over and Under-water rendering.\n\u2022
+    This scene uses a Custom Pass with a Full Screen Shader Graph injected Before
+    Post Processing.\n\u2022 The Full Screen Shader Graph samples the underwater
+    buffer by using the HD Sample Buffer node with 'isUnderwater' selected.\n\u2022
+    The shader creates a blur effect around the line by sampling the HD Scene Color
+    node.\n\u2022 A small distortion is added by stretching the UVs above the water
+    line to create a meniscus like effect.\n\u2022 Distortion needs to be enabled
+    in the HDRP Asset so that Water could be copied into the Color pyramid, which
+    we use when sampling the HD Scene Color node. Also, make sure Dynamic Render
+    Pass Culling is disabled in HDRP Global Settings to avoid having the Distortion
+    pass culled.\n"
+  gameobjectSamplesName: {fileID: 0}
+  gameobjectSamplesDescription: {fileID: 0}
+  gameViewCamera: {fileID: 0}
 --- !u!1 &1455686065
 GameObject:
   m_ObjectHideFlags: 0
@@ -970,8 +1015,7 @@ MonoBehaviour:
     version: 2
     RefIds:
     - rid: 6032564216186535994
-      type: {class: FullScreenCustomPass, ns: UnityEngine.Rendering.HighDefinition,
-        asm: Unity.RenderPipelines.HighDefinition.Runtime}
+      type: {class: FullScreenCustomPass, ns: UnityEngine.Rendering.HighDefinition, asm: Unity.RenderPipelines.HighDefinition.Runtime}
       data:
         m_Name: Custom Pass
         enabled: 1
@@ -980,8 +1024,7 @@ MonoBehaviour:
         clearFlags: 0
         passFoldout: 0
         m_Version: 0
-        fullscreenPassMaterial: {fileID: 2100000, guid: a833b83a3707b31459d59dd7273f43e8,
-          type: 2}
+        fullscreenPassMaterial: {fileID: 2100000, guid: a833b83a3707b31459d59dd7273f43e8, type: 2}
         materialPassIndex: 0
         materialPassName: Custom Pass 0
         fetchColorBuffer: 0
@@ -992,84 +1035,21 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1455686065}
+  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 13.692476, y: -3.8500357, z: 4.008173}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1001 &1760100006
-PrefabInstance:
+--- !u!1660057539 &9223372036854775807
+SceneRoots:
   m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 5749916998138002497, guid: a13af4876f85c994c975f5f3dcfdf5a0,
-        type: 3}
-      propertyPath: m_Name
-      value: HDRP Asset Config
-      objectReference: {fileID: 0}
-    - target: {fileID: 7112703832947952385, guid: a13af4876f85c994c975f5f3dcfdf5a0,
-        type: 3}
-      propertyPath: m_RootOrder
-      value: 6
-      objectReference: {fileID: 0}
-    - target: {fileID: 7112703832947952385, guid: a13af4876f85c994c975f5f3dcfdf5a0,
-        type: 3}
-      propertyPath: m_LocalPosition.x
-      value: -44.444202
-      objectReference: {fileID: 0}
-    - target: {fileID: 7112703832947952385, guid: a13af4876f85c994c975f5f3dcfdf5a0,
-        type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 7.2474866
-      objectReference: {fileID: 0}
-    - target: {fileID: 7112703832947952385, guid: a13af4876f85c994c975f5f3dcfdf5a0,
-        type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 5.8273115
-      objectReference: {fileID: 0}
-    - target: {fileID: 7112703832947952385, guid: a13af4876f85c994c975f5f3dcfdf5a0,
-        type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 7112703832947952385, guid: a13af4876f85c994c975f5f3dcfdf5a0,
-        type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7112703832947952385, guid: a13af4876f85c994c975f5f3dcfdf5a0,
-        type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7112703832947952385, guid: a13af4876f85c994c975f5f3dcfdf5a0,
-        type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7112703832947952385, guid: a13af4876f85c994c975f5f3dcfdf5a0,
-        type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7112703832947952385, guid: a13af4876f85c994c975f5f3dcfdf5a0,
-        type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7112703832947952385, guid: a13af4876f85c994c975f5f3dcfdf5a0,
-        type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: a13af4876f85c994c975f5f3dcfdf5a0, type: 3}
+  m_Roots:
+  - {fileID: 1181935497}
+  - {fileID: 729886573}
+  - {fileID: 668297703}
+  - {fileID: 1053179244}
+  - {fileID: 96575298}
+  - {fileID: 1455686067}

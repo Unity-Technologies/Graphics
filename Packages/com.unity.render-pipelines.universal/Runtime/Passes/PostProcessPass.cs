@@ -360,12 +360,12 @@ namespace UnityEngine.Rendering.Universal
             return desc;
         }
 
-        bool RequireSRGBConversionBlitToBackBuffer(ref CameraData cameraData)
+        bool RequireSRGBConversionBlitToBackBuffer(bool requireSrgbConversion)
         {
-            return cameraData.requireSrgbConversion && m_EnableColorEncodingIfNeeded;
+            return requireSrgbConversion && m_EnableColorEncodingIfNeeded;
         }
 
-        bool RequireHDROutput(ref CameraData cameraData)
+        bool RequireHDROutput(UniversalCameraData cameraData)
         {
             // If capturing, don't convert to HDR.
             // If not last in the stack, don't convert to HDR.
@@ -581,13 +581,13 @@ namespace UnityEngine.Rendering.Universal
                 SetupColorGrading(cmd, ref renderingData, m_Materials.uber);
 
                 // Only apply dithering & grain if there isn't a final pass.
-                SetupGrain(ref renderingData.cameraData, m_Materials.uber);
-                SetupDithering(ref renderingData.cameraData, m_Materials.uber);
+                SetupGrain(cameraData, m_Materials.uber);
+                SetupDithering(cameraData, m_Materials.uber);
 
-                if (RequireSRGBConversionBlitToBackBuffer(ref renderingData.cameraData))
+                if (RequireSRGBConversionBlitToBackBuffer(cameraData.requireSrgbConversion))
                     m_Materials.uber.EnableKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
 
-                bool requireHDROutput = RequireHDROutput(ref renderingData.cameraData);
+                bool requireHDROutput = RequireHDROutput(cameraData);
                 if (requireHDROutput)
                 {
                     // Color space conversion is already applied through color grading, do encoding if uber post is the last pass
@@ -658,7 +658,7 @@ namespace UnityEngine.Rendering.Universal
                         RTHandleStaticHelpers.SetRTHandleStaticWrapper(cameraTarget);
                         var cameraTargetHandle = RTHandleStaticHelpers.s_RTHandleWrapper;
 
-                        RenderingUtils.FinalBlit(cmd, ref renderingData.cameraData, GetSource(), cameraTargetHandle, colorLoadAction, RenderBufferStoreAction.Store, m_Materials.uber, 0);
+                        RenderingUtils.FinalBlit(cmd, cameraData, GetSource(), cameraTargetHandle, colorLoadAction, RenderBufferStoreAction.Store, m_Materials.uber, 0);
                         renderer.ConfigureCameraColorTarget(cameraTargetHandle);
                     }
                 }
@@ -947,7 +947,7 @@ namespace UnityEngine.Rendering.Universal
                 camera.transform.position,
                 gpuVP,
                 cmd,
-                false, false, null, null,
+                false, false, null, null, null,
                 ShaderConstants._FlareOcclusionTex, -1, ShaderConstants._FlareOcclusionIndex, ShaderConstants._FlareTex, ShaderConstants._FlareColorValue,
                 -1, ShaderConstants._FlareData0, ShaderConstants._FlareData1, ShaderConstants._FlareData2, ShaderConstants._FlareData3, ShaderConstants._FlareData4);
         }
@@ -1411,7 +1411,7 @@ namespace UnityEngine.Rendering.Universal
 
 #region Film Grain
 
-        void SetupGrain(ref CameraData cameraData, Material material)
+        void SetupGrain(UniversalCameraData cameraData, Material material)
         {
             if (!m_HasFinalPass && m_FilmGrain.IsActive())
             {
@@ -1429,7 +1429,7 @@ namespace UnityEngine.Rendering.Universal
 
 #region 8-bit Dithering
 
-        void SetupDithering(ref CameraData cameraData, Material material)
+        void SetupDithering(UniversalCameraData cameraData, Material material)
         {
             if (!m_HasFinalPass && cameraData.isDitheringEnabled)
             {
@@ -1466,14 +1466,14 @@ namespace UnityEngine.Rendering.Universal
 
             PostProcessUtils.SetSourceSize(cmd, cameraData.renderer.cameraColorTargetHandle);
 
-            SetupGrain(ref renderingData.cameraData, material);
-            SetupDithering(ref renderingData.cameraData, material);
+            SetupGrain(renderingData.cameraData.universalCameraData, material);
+            SetupDithering(renderingData.cameraData.universalCameraData, material);
 
-            if (RequireSRGBConversionBlitToBackBuffer(ref renderingData.cameraData))
+            if (RequireSRGBConversionBlitToBackBuffer(renderingData.cameraData.requireSrgbConversion))
                 material.EnableKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
 
             HDROutputUtils.Operation hdrOperations = HDROutputUtils.Operation.None;
-            bool requireHDROutput = RequireHDROutput(ref renderingData.cameraData);
+            bool requireHDROutput = RequireHDROutput(renderingData.cameraData.universalCameraData);
             if (requireHDROutput)
             {
                 // If there is a final post process pass, it's always the final pass so do color encoding
@@ -1653,7 +1653,7 @@ namespace UnityEngine.Rendering.Universal
                 // Get RTHandle alias to use RTHandle apis
                 RTHandleStaticHelpers.SetRTHandleStaticWrapper(cameraTarget);
                 var cameraTargetHandle = RTHandleStaticHelpers.s_RTHandleWrapper;
-                RenderingUtils.FinalBlit(cmd, ref renderingData.cameraData, sourceTex, cameraTargetHandle, colorLoadAction, RenderBufferStoreAction.Store, material, 0);
+                RenderingUtils.FinalBlit(cmd, cameraData, sourceTex, cameraTargetHandle, colorLoadAction, RenderBufferStoreAction.Store, material, 0);
             }
         }
 

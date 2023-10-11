@@ -10,16 +10,10 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns>Default value for GlobalImprovedDrawSubmissionSettings</returns>
         public static GlobalGPUResidentDrawerSettings NewDefault() => new GlobalGPUResidentDrawerSettings()
         {
-            mode = GPUResidentDrawerMode.Disabled,
-            allowInEditMode = false
+            mode = GPUResidentDrawerMode.Disabled
         };
 
         /// <summary>batching mode of macro batcher.</summary>
         public GPUResidentDrawerMode mode;
-
-        /// <summary>
-        /// Allows the GPU Resident Drawer to run in edit mode
-        /// </summary>
-        public bool allowInEditMode;
     }
 }

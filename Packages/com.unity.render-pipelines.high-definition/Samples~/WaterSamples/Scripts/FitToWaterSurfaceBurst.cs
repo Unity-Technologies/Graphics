@@ -51,6 +51,7 @@ public class FitToWaterSurfaceBurst : MonoBehaviour
         projectedPositionWSBuffer = new NativeArray<float3>(count, Allocator.Persistent);
         stepCountBuffer = new NativeArray<int>(count, Allocator.Persistent);
         directionBuffer = new NativeArray<float3>(count, Allocator.Persistent);
+		
         prefabList = new List<GameObject>();
         prefabList.Clear();
 
@@ -130,11 +131,12 @@ public class FitToWaterSurfaceBurst : MonoBehaviour
 
     void OnDestroy()
     {
-        if(directionBuffer.IsCreated)           directionBuffer.Dispose();
-        if(targetPositionBuffer.IsCreated)      targetPositionBuffer.Dispose();
-        if(errorBuffer.IsCreated)               errorBuffer.Dispose();
-        if(candidatePositionBuffer.IsCreated)   candidatePositionBuffer.Dispose();
-        if(stepCountBuffer.IsCreated)           stepCountBuffer.Dispose();
+        if(targetPositionBuffer.IsCreated)      	targetPositionBuffer.Dispose();
+        if(errorBuffer.IsCreated)               	errorBuffer.Dispose();
+        if(candidatePositionBuffer.IsCreated)   	candidatePositionBuffer.Dispose();
+        if(projectedPositionWSBuffer.IsCreated)   	projectedPositionWSBuffer.Dispose();
+        if(stepCountBuffer.IsCreated)           	stepCountBuffer.Dispose();
+        if(directionBuffer.IsCreated)           	directionBuffer.Dispose();
     }
 
     void OnDisable()

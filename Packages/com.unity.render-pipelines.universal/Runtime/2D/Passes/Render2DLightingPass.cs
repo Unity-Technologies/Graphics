@@ -145,7 +145,8 @@ namespace UnityEngine.Rendering.Universal
             {
                 UniversalRenderingData universalRenderingData = renderingData.universalRenderingData;
                 RenderStateBlock renderStateBlock = new RenderStateBlock();
-                var debugRendererLists = activeDebugHandler.CreateRendererListsWithDebugRenderState(context, universalRenderingData, ref drawSettings, ref filterSettings, ref renderStateBlock);
+                var debugRendererLists = activeDebugHandler.CreateRendererListsWithDebugRenderState(context,
+                    ref universalRenderingData.cullResults, ref drawSettings, ref filterSettings, ref renderStateBlock);
                 debugRendererLists.DrawWithRendererList(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer));
             }
             else
@@ -336,7 +337,7 @@ namespace UnityEngine.Rendering.Universal
                 isLitView = false;
 #endif
             var camera = renderingData.cameraData.camera;
-            var filterSettings = new FilteringSettings();
+            var filterSettings = FilteringSettings.defaultValue;
             filterSettings.renderQueueRange = RenderQueueRange.all;
             filterSettings.layerMask = -1;
             filterSettings.renderingLayerMask = 0xFFFFFFFF;

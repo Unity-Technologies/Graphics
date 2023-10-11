@@ -1,0 +1,209 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &1438778594143038820
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 598425183958095028, guid: 7837c49e89b12db43b2a59edba6bff6b,
+        type: 3}
+      propertyPath: m_Name
+      value: 00_VFXG_Basic_Flow
+      objectReference: {fileID: 0}
+    - target: {fileID: 1893462436456550022, guid: 7837c49e89b12db43b2a59edba6bff6b,
+        type: 3}
+      propertyPath: m_Name
+      value: Contexts & Data Flow
+      objectReference: {fileID: 0}
+    - target: {fileID: 2858169859643980640, guid: 7837c49e89b12db43b2a59edba6bff6b,
+        type: 3}
+      propertyPath: m_Asset
+      value: 
+      objectReference: {fileID: 8926484042661614526, guid: 4bac8f94c64bb6545880cdfd6b88a375,
+        type: 3}
+    - target: {fileID: 3081683560716131922, guid: 7837c49e89b12db43b2a59edba6bff6b,
+        type: 3}
+      propertyPath: m_ReflectionProbeUsage
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 3385902144265741256, guid: 7837c49e89b12db43b2a59edba6bff6b,
+        type: 3}
+      propertyPath: m_text
+      value: Contexts & Data Flow
+      objectReference: {fileID: 0}
+    - target: {fileID: 3385902144265741256, guid: 7837c49e89b12db43b2a59edba6bff6b,
+        type: 3}
+      propertyPath: m_margin.x
+      value: -0.06579522
+      objectReference: {fileID: 0}
+    - target: {fileID: 3385902144265741256, guid: 7837c49e89b12db43b2a59edba6bff6b,
+        type: 3}
+      propertyPath: m_margin.z
+      value: -0.0635393
+      objectReference: {fileID: 0}
+    - target: {fileID: 3385902144265741256, guid: 7837c49e89b12db43b2a59edba6bff6b,
+        type: 3}
+      propertyPath: m_fontStyle
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3385902144265741256, guid: 7837c49e89b12db43b2a59edba6bff6b,
+        type: 3}
+      propertyPath: m_fontSizeBase
+      value: 0.75
+      objectReference: {fileID: 0}
+    - target: {fileID: 3385902144265741256, guid: 7837c49e89b12db43b2a59edba6bff6b,
+        type: 3}
+      propertyPath: m_HorizontalAlignment
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3385902144265741256, guid: 7837c49e89b12db43b2a59edba6bff6b,
+        type: 3}
+      propertyPath: 'm_ActiveFontFeatures.Array.data[0]'
+      value: 1801810542
+      objectReference: {fileID: 0}
+    - target: {fileID: 3796978554488964388, guid: 7837c49e89b12db43b2a59edba6bff6b,
+        type: 3}
+      propertyPath: m_text
+      value: Contexts & Data Flow
+      objectReference: {fileID: 0}
+    - target: {fileID: 3796978554488964388, guid: 7837c49e89b12db43b2a59edba6bff6b,
+        type: 3}
+      propertyPath: m_fontSize
+      value: 0.3
+      objectReference: {fileID: 0}
+    - target: {fileID: 3796978554488964388, guid: 7837c49e89b12db43b2a59edba6bff6b,
+        type: 3}
+      propertyPath: m_margin.y
+      value: 0.0032787072
+      objectReference: {fileID: 0}
+    - target: {fileID: 3796978554488964388, guid: 7837c49e89b12db43b2a59edba6bff6b,
+        type: 3}
+      propertyPath: m_fontSizeMin
+      value: 0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3796978554488964388, guid: 7837c49e89b12db43b2a59edba6bff6b,
+        type: 3}
+      propertyPath: m_enableAutoSizing
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3796978554488964388, guid: 7837c49e89b12db43b2a59edba6bff6b,
+        type: 3}
+      propertyPath: m_VerticalAlignment
+      value: 8192
+      objectReference: {fileID: 0}
+    - target: {fileID: 3796978554488964388, guid: 7837c49e89b12db43b2a59edba6bff6b,
+        type: 3}
+      propertyPath: 'm_ActiveFontFeatures.Array.data[0]'
+      value: 1801810542
+      objectReference: {fileID: 0}
+    - target: {fileID: 4116565481347820810, guid: 7837c49e89b12db43b2a59edba6bff6b,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0.205
+      objectReference: {fileID: 0}
+    - target: {fileID: 4116565481347820810, guid: 7837c49e89b12db43b2a59edba6bff6b,
+        type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: -5
+      objectReference: {fileID: 0}
+    - target: {fileID: 4116565481347820810, guid: 7837c49e89b12db43b2a59edba6bff6b,
+        type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 2.65
+      objectReference: {fileID: 0}
+    - target: {fileID: 6393118192857248175, guid: 7837c49e89b12db43b2a59edba6bff6b,
+        type: 3}
+      propertyPath: m_text
+      value: "This VFX is intended to provide an overview and basic understanding
+        of how <b>data flow</b> is articulated in VFX Graph. It also presents an
+        overview of the most frequently used <b>Context Blocks</b>.\n\n<b>Covered
+        Aspects:</b>\n\u2022 Data Flow\n\u2022 Context Block"
+      objectReference: {fileID: 0}
+    - target: {fileID: 6393118192857248175, guid: 7837c49e89b12db43b2a59edba6bff6b,
+        type: 3}
+      propertyPath: m_enableAutoSizing
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6393118192857248175, guid: 7837c49e89b12db43b2a59edba6bff6b,
+        type: 3}
+      propertyPath: 'm_ActiveFontFeatures.Array.data[0]'
+      value: 1801810542
+      objectReference: {fileID: 0}
+    - target: {fileID: 6424475011069275086, guid: 7837c49e89b12db43b2a59edba6bff6b,
+        type: 3}
+      propertyPath: m_text
+      value: Contexts & Data Flow
+      objectReference: {fileID: 0}
+    - target: {fileID: 6424475011069275086, guid: 7837c49e89b12db43b2a59edba6bff6b,
+        type: 3}
+      propertyPath: m_fontSize
+      value: 1.65
+      objectReference: {fileID: 0}
+    - target: {fileID: 6424475011069275086, guid: 7837c49e89b12db43b2a59edba6bff6b,
+        type: 3}
+      propertyPath: 'm_ActiveFontFeatures.Array.data[0]'
+      value: 1801810542
+      objectReference: {fileID: 0}
+    - target: {fileID: 7965218866101898010, guid: 7837c49e89b12db43b2a59edba6bff6b,
+        type: 3}
+      propertyPath: m_RootOrder
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7965218866101898010, guid: 7837c49e89b12db43b2a59edba6bff6b,
+        type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7965218866101898010, guid: 7837c49e89b12db43b2a59edba6bff6b,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7965218866101898010, guid: 7837c49e89b12db43b2a59edba6bff6b,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7965218866101898010, guid: 7837c49e89b12db43b2a59edba6bff6b,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7965218866101898010, guid: 7837c49e89b12db43b2a59edba6bff6b,
+        type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7965218866101898010, guid: 7837c49e89b12db43b2a59edba6bff6b,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7965218866101898010, guid: 7837c49e89b12db43b2a59edba6bff6b,
+        type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7965218866101898010, guid: 7837c49e89b12db43b2a59edba6bff6b,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7965218866101898010, guid: 7837c49e89b12db43b2a59edba6bff6b,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7965218866101898010, guid: 7837c49e89b12db43b2a59edba6bff6b,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 7837c49e89b12db43b2a59edba6bff6b, type: 3}

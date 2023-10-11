@@ -335,6 +335,18 @@ namespace UnityEditor.VFX.URP
                     useMetallicMap = false;
                 }
             }
+
+            if (setting.name == nameof(affectBaseColor))
+            {
+                if (!affectBaseColor)
+                {
+                    useBaseColorMap = BaseColorMapMode.Alpha;
+                }
+                else
+                {
+                    useBaseColorMap = BaseColorMapMode.ColorAndAlpha;
+                }
+            }
         }
     }
 }

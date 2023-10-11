@@ -1,0 +1,141 @@
+Pass
+{
+
+$splice(PassName)
+
+// Render State
+$splice(RenderState)
+
+// Debug
+$splice(Debug)
+
+// --------------------------------------------------
+// Pass
+
+HLSLPROGRAM
+
+// Pragmas
+$splice(PassPragmas)
+
+// Keywords
+$splice(PassKeywords)
+$splice(GraphKeywords)
+
+// Defines
+$Attributes.vertexID: #define ATTRIBUTES_NEED_VERTEXID
+$Attributes.uv0: #define ATTRIBUTES_NEED_TEXCOORD0
+$Attributes.uv1: #define ATTRIBUTES_NEED_TEXCOORD1
+$Attributes.uv2: #define ATTRIBUTES_NEED_TEXCOORD2
+$Attributes.uv3: #define ATTRIBUTES_NEED_TEXCOORD3
+
+$Varyings.texCoord0: #define VARYINGS_NEED_TEXCOORD0
+$Varyings.texCoord1: #define VARYINGS_NEED_TEXCOORD1
+$Varyings.texCoord2: #define VARYINGS_NEED_TEXCOORD2
+$Varyings.texCoord3: #define VARYINGS_NEED_TEXCOORD3
+
+
+$splice(PassInstancing)
+$splice(GraphDefines)
+
+// Includes
+$splice(PreGraphIncludes)
+
+// --------------------------------------------------
+// Structs and Packing
+
+$splice(PassStructs)
+
+$splice(InterpolatorPack)
+
+// --------------------------------------------------
+// Graph
+
+// Graph Properties
+$splice(GraphProperties)
+
+// Graph Includes
+$splice(GraphIncludes)
+
+// Graph Functions
+$splice(GraphFunctions)
+
+// Graph Pixel
+$splice(GraphPixel)
+
+// --------------------------------------------------
+// Build Graph Inputs
+
+void BuildVaryings(Attributes input, inout Varyings output)
+{
+    UNITY_SETUP_INSTANCE_ID(input);
+    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+
+    output.texCoord0 = output.positionCS * 0.5 + 0.5;
+
+#if UNITY_UV_STARTS_AT_TOP
+    if (_FlipY < 0.5)
+        output.texCoord0.y = 1 - output.texCoord0.y;
+#endif
+
+    float3 p = ComputeWorldSpacePosition(output.positionCS, UNITY_MATRIX_I_VP);
+
+    // Encode view direction in texCoord1
+    output.texCoord1.xyz = GetWorldSpaceViewDir(p);
+}
+
+float3 _WaterDecalTimeParameters;
+
+SurfaceDescriptionInputs BuildSurfaceDescriptionInputs(Varyings input)
+{
+    SurfaceDescriptionInputs output;
+    ZERO_INITIALIZE(SurfaceDescriptionInputs, output);
+
+    $SurfaceDescriptionInputs.ScreenPosition:                           output.ScreenPosition = float4(input.texCoord0.xy, 0, 1);
+    $SurfaceDescriptionInputs.NDCPosition:                              output.NDCPosition = input.texCoord0.xy;
+
+    $SurfaceDescriptionInputs.uv0:                                      output.uv0 = input.texCoord0;
+    $SurfaceDescriptionInputs.uv1:                                      output.uv1 = input.texCoord1;
+    $SurfaceDescriptionInputs.uv2:                                      output.uv2 = input.texCoord2;
+    $SurfaceDescriptionInputs.uv3:                                      output.uv3 = input.texCoord3;
+
+    $SurfaceDescriptionInputs.TimeParameters:                           output.TimeParameters = _WaterDecalTimeParameters.xyz;
+
+    return output;
+}
+
+// --------------------------------------------------
+// Main
+
+PackedVaryings Vert(Attributes input)
+{
+    Varyings output = (Varyings)0;
+    output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID, UNITY_RAW_FAR_CLIP_VALUE);
+    BuildVaryings(input, output);
+    PackedVaryings packedOutput = PackVaryings(output);
+    return packedOutput;
+}
+
+#ifdef PASS_DEFORMATION
+	#define TARGET_TYPE float
+#elif defined(PASS_FOAM)
+	#define TARGET_TYPE float2
+#endif
+
+
+TARGET_TYPE Frag(PackedVaryings packedInput) : SV_Target
+{
+    Varyings varyings = UnpackVaryings(packedInput);
+	SurfaceDescriptionInputs inputs = BuildSurfaceDescriptionInputs(varyings);
+	SurfaceDescription surface = SurfaceDescriptionFunction(inputs);
+
+#ifdef PASS_DEFORMATION
+    return surface.Deformation;
+#elif defined(PASS_FOAM)
+	return float2(surface.SurfaceFoam, surface.DeepFoam);
+#endif
+}
+
+$splice(PostGraphIncludes)
+
+ENDHLSL
+}

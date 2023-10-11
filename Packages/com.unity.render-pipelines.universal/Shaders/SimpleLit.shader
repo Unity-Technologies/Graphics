@@ -123,7 +123,7 @@ Shader "Universal Render Pipeline/Simple Lit"
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile_fog
             #pragma multi_compile_fragment _ DEBUG_DISPLAY
-            #pragma multi_compile_fragment _ LOD_FADE_CROSSFADE
+            #pragma multi_compile _ LOD_FADE_CROSSFADE
 
             //--------------------------------------
             // GPU Instancing
@@ -172,7 +172,7 @@ Shader "Universal Render Pipeline/Simple Lit"
 
             // -------------------------------------
             // Unity defined keywords
-            #pragma multi_compile_fragment _ LOD_FADE_CROSSFADE
+            #pragma multi_compile _ LOD_FADE_CROSSFADE
 
             //--------------------------------------
             // GPU Instancing
@@ -245,7 +245,7 @@ Shader "Universal Render Pipeline/Simple Lit"
             #pragma multi_compile _ SHADOWS_SHADOWMASK
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
             #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
-            #pragma multi_compile_fragment _ LOD_FADE_CROSSFADE
+            #pragma multi_compile _ LOD_FADE_CROSSFADE
 
             //--------------------------------------
             // GPU Instancing
@@ -293,7 +293,7 @@ Shader "Universal Render Pipeline/Simple Lit"
 
             // -------------------------------------
             // Unity defined keywords
-            #pragma multi_compile_fragment _ LOD_FADE_CROSSFADE
+            #pragma multi_compile _ LOD_FADE_CROSSFADE
 
             //--------------------------------------
             // GPU Instancing
@@ -337,7 +337,7 @@ Shader "Universal Render Pipeline/Simple Lit"
 
             // -------------------------------------
             // Unity defined keywords
-            #pragma multi_compile_fragment _ LOD_FADE_CROSSFADE
+            #pragma multi_compile _ LOD_FADE_CROSSFADE
 
             // Universal Pipeline keywords
             #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/RenderingLayers.hlsl"
@@ -427,7 +427,7 @@ Shader "Universal Render Pipeline/Simple Lit"
 
             HLSLPROGRAM
             #pragma shader_feature_local _ALPHATEST_ON
-            #pragma multi_compile_fragment _ LOD_FADE_CROSSFADE
+            #pragma multi_compile _ LOD_FADE_CROSSFADE
             #pragma shader_feature_local_vertex _ADD_PRECOMPUTED_VELOCITY
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/SimpleLitInput.hlsl"

@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: d8ac821b2f9954541a191644e9ecc747
+VisualEffectImporter:
+  externalObjects: {}
+  serializedVersion: 1
+  template:
+    name: Capacity Count
+    category: Learning Templates
+    description: 'Capacity Count is used for the particle Memory allocation of a
+      system. Increasing this number will increase the memory allocated. This capacity
+      can be seen as the max active particles.It''s a good practice to keep this
+      number as close as possible to the Maximum alive particles.This VFX explains
+      what capacity is and how to use the VFX Control to set the Capacity. '
+    icon: {fileID: 2800000, guid: 49836be3225b70342b4057f6bf94b554, type: 3}
+    thumbnail: {fileID: 2800000, guid: 4564276fcad6d6c4fba693a4a9552555, type: 3}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

@@ -1,0 +1,20 @@
+fileFormatVersion: 2
+guid: 43cf54d53d92df1498cf12fec3653478
+VisualEffectImporter:
+  externalObjects: {}
+  serializedVersion: 1
+  template:
+    name: Decal Particles
+    category: Learning Templates
+    description: 'Decal is a very powerful tool that can add a lot of visual complexity
+      to an environment. We can use decals to project textures on the environment
+      and even on dynamic objects or skinned meshes. Output Decals allow you to render
+      particles as decals and to project its properties onto a surface using a Base
+      Color map (albedo), a Normal Map, or a Mask Map. This example shows how to
+      leverage the Output Decal to stick and project animated decals onto an animated
+      skinned mesh renderer. '
+    icon: {fileID: 2800000, guid: 49836be3225b70342b4057f6bf94b554, type: 3}
+    thumbnail: {fileID: 2800000, guid: 79996b38f37551f40bad61027b8f1e0b, type: 3}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

@@ -6,13 +6,22 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
-## [17.0.0] - 2023-08-0
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+## [17.0.0] - 2023-09-26
+
+This version is compatible with Unity 2023.3.0a8.
 
 ### Added
  - Added the new Node Reference sample pack which adds 146 reference assets to help users learn more about available nodes
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Changed
+- Added a shader variant limit to the project settings, clarified the difference between the variant limit in user preferences.
+- Updated toolbar UI.
+
+### Fixed
+- Fixed a regression where adding nodes in large graphs caused a major slowdown.
 
 ## [16.0.3] - 2023-07-04
 

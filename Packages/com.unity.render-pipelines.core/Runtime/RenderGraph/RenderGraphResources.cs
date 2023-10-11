@@ -26,7 +26,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         uint m_Value;
         int m_Version; // A freshly created resource always starts at version 0 the first write should bring it to v1
-
+        
         static uint s_CurrentValidBit = 1 << 16;
         static uint s_SharedResourceValidBit = 0x7FFF << 16;
 

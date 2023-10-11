@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: e166f36ceb1831f46bea1e17fbc67c5a
+VisualEffectImporter:
+  externalObjects: {}
+  serializedVersion: 1
+  template:
+    name: 'Sample Texture2D '
+    category: Learning Templates
+    description: This VFX demonstrates how to use the texture2D sample operator to
+      determine the color of particles and perform rejection sampling.
+    icon: {fileID: 2800000, guid: 49836be3225b70342b4057f6bf94b554, type: 3}
+    thumbnail: {fileID: 2800000, guid: 3d351a536d397c14ab916464f774d4f2, type: 3}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

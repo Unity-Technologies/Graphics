@@ -9,6 +9,73 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [17.0.0] - 2023-09-26
+
+This version is compatible with Unity 2023.3.0a8.
+
+### Changed
+- Added Volumetrics settings to Area lights similar to other light types, to control their influence on volumetric fog when using the path tracer.
+- Following HDRP fixes were made:
+* Support for decals in the Raytracing mode of SSR and SSGI.
+* Changed the value type of *Texture Lod Bias* from integer to float
+* Support debug rendering of decals' light cluster from Window > Rendering Debugger > Fullscreen Debug Mode > LightCluster, Light Category > Decal.
+* Changed the color of the light cluster in the debug view, so that it uses the same color palette as that of tiled lighting.
+- Update description of Decal Projector Draw Distance setting to mention HDRP asset setting.
+- Changed how the mask map ambient occlusion channel is taken into account in rendering to have better consistency between area lights and emissive quads.
+- Users can now express the width of High Quality Lines in centimeter units on a per-vertex basis via Shader Graph.
+- Added a new LOD mode for High Quality Lines that is based on screen coverage.
+- Adds a warning to the HDRP Wizard if a users project contains materials that cant be upgraded
+- Improved skyContext caching when the sky renderer changes
+- Add support for fixing IRenderPipelineGraphicsSettings on the HDRP Wizard
+- Reduced memory consumed by LTC area light table
+
+### Fixed
+- Removed the Render Graph option from the rendering debugger Rendering panel.
+- Fixed a performance reduction caused by MemClear calls on large frame buffers in HDRP PrepareLightsForGPU.
+- Global Settings always exist when HDRP is the current active pipeline.
+- Fixed a hole in water geometry.
+- Fixed an issue where prefab previews would be rendered too dark until they move.
+- Fixed material previews being rendered black.
+- Fixed GPU warnings due to water system.
+- Improved performance of infinite water surfaces with tessellation on metal.
+- Fixed fog on spherical planets.
+- Fixed Helpbox UI for LightProbeGroup Inspector.
+- Fixed virtual offset on complex geometries.
+- Changed lens flare behavior to use the camera culling mask and the GameObject layer.
+- Fixed error when a user assigned non-water material to water.
+- Fixed the Sample Settings Helper.
+- Fixed foam generated too far away for shore waves.
+- Fixed missing foam color parameter.
+- Fixed errors when resizing the Scene view while using the water system.
+- Add error when the Rendering Layer names in HDRP Global Settings is empty.
+- Fixed an issue where an async pass would try to sync to a culled pass mistakenly.
+- Fixed the logic used to set up materials featuring displacement mapping that would sometimes result in artifacts or suboptimal performance.
+- Mixed tracing mode for transparent screenspace reflections now mixes both tracing modes as expected, instead of only using ray traced reflections.
+- Fixed custom post process volume component example in doc.
+- Fixed ShaderGraph Decal material position issue by using world space position.
+- Mixed tracing mode for transparent screenspace reflections now mixes both tracing modes as expected, instead of only using ray traced reflections.
+- Fixed the sharpening pass in order to avoid washed-out colors when using a render target with an alpha channel.
+- New checkbox in surface options to allow materials to be excluded from temporal anti aliasing. The checkbox name is "RemoveFromTUAndAA". This checkbox is ideal for surfaces that contain texture scrolling that has to be neat and does not have velocity information.
+For now, this checkbox is only exposed to transparent materials since they are the only ones that can fit a stencil bit for such operation.
+- Fixed issue with dual lobe SSS incorrectly evaluated with area light.
+- Fixed support of cookie area light on water surface.
+- Fixed NaN propagation for path traced hair.
+- Fixed an issue with High Quality Line Rendering spamming the console with errors in certain frame setting configurations.
+- Fixed an issue that caused standalone runtime rebuilds of hair instances to fail when using High Quality Lines.
+- Improved VolumetricSky caching and Reduced significantly memory allocation for scenes with multiple realtime reflection probes.
+- Gray out the UI of light cluster override and show the same message as path tracing if raytracing is disabled.
+- Fixed an issue where non directional light could react to "interact with sky" flag.
+- Fixed crash when cleaning up the reflection probe camera cache.
+- Fixed a SetData error when using more lights in a scene than the configured max light count settings.
+- Fixed blending between cascaded shadowmaps and shadowmask as well as cascades border ranges.
+- Fixed XR occlusion mesh artifact with HDRP camera relative rendering.
+- Fixed Directional light PCSS API
+- Fixed a bug caused by inconsistency of the interpretation of he depth parameters on the HDRP parameters.
+- Fix incorrect area light LUT parametrization used by the Water shader.
+- Fix the area light basis used by the Water shader.
+- Physically Based Sky fixes
+- Allowed users to change the maximum amount of lights used in a local neighborhood in the HDRP path tracer through the shader config mechanism.
+
 ## [16.0.3] - 2023-07-04
 
 This version is compatible with Unity 2023.3.0a1.

@@ -50,7 +50,7 @@ namespace UnityEngine.Rendering.Universal
             internal CommandBuffer cmd;
             internal Material material;
             internal HDRDebugMode hdrDebugMode;
-            internal CameraData cameraData;
+            internal UniversalCameraData cameraData;
             internal Vector4 luminanceParameters;
             internal TextureHandle overlayUITexture;
             internal TextureHandle xyBuffer;
@@ -72,7 +72,7 @@ namespace UnityEngine.Rendering.Universal
             descriptor.vrUsage = VRTextureUsage.None; // We only need one for both eyes in VR
         }
 
-        internal static Vector4 GetLuminanceParameters(CameraData cameraData)
+        internal static Vector4 GetLuminanceParameters(UniversalCameraData cameraData)
         {
             var luminanceParams = Vector4.zero;
             if (cameraData.isHDROutputActive)
@@ -133,7 +133,7 @@ namespace UnityEngine.Rendering.Universal
                     cmd.SetGlobalTexture(ShaderPropertyId.overlayUITexture, overlayUITexture);
                 cmd.SetGlobalVector(ShaderConstants._HDRDebugParamsId, data.luminanceParameters);
                 cmd.SetGlobalInteger(ShaderConstants._DebugHDRModeId, (int)data.hdrDebugMode);
-                RenderingUtils.FinalBlit(cmd, ref data.cameraData, sourceTexture, destTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, data.material, 1);
+                RenderingUtils.FinalBlit(cmd, data.cameraData, sourceTexture, destTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, data.material, 1);
             }
         }
 
@@ -149,7 +149,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="cameraData">Descriptor for the color buffer.</param>
         /// <param name="hdrdebugMode">Active DebugMode for HDR.</param>
-        public void Setup(ref CameraData cameraData, HDRDebugMode hdrdebugMode)
+        public void Setup(UniversalCameraData cameraData, HDRDebugMode hdrdebugMode)
         {
             m_PassDataDebugView.hdrDebugMode = hdrdebugMode;
 
@@ -167,8 +167,8 @@ namespace UnityEngine.Rendering.Universal
         {
             UniversalCameraData cameraData = renderingData.frameData.Get<UniversalCameraData>();
             var cmd = m_PassDataCIExy.cmd = m_PassDataDebugView.cmd = renderingData.commandBuffer;
-            m_PassDataCIExy.luminanceParameters = m_PassDataDebugView.luminanceParameters = GetLuminanceParameters(renderingData.cameraData);
-            m_PassDataDebugView.cameraData = renderingData.cameraData;
+            m_PassDataCIExy.luminanceParameters = m_PassDataDebugView.luminanceParameters = GetLuminanceParameters(cameraData);
+            m_PassDataDebugView.cameraData = cameraData;
 
             var sourceTexture = renderingData.cameraData.renderer.cameraColorTargetHandle;
 
@@ -186,20 +186,20 @@ namespace UnityEngine.Rendering.Universal
         }
 
         //RenderGraph path
-        internal void RenderHDRDebug(RenderGraph renderGraph, ref RenderingData renderingData, TextureHandle srcColor, TextureHandle overlayUITexture, TextureHandle dstColor, HDRDebugMode hDRDebugMode)
+        internal void RenderHDRDebug(RenderGraph renderGraph, CommandBuffer cmd, UniversalCameraData cameraData, TextureHandle srcColor, TextureHandle overlayUITexture, TextureHandle dstColor, HDRDebugMode hDRDebugMode)
         {
-            RenderTextureDescriptor descriptor = renderingData.cameraData.cameraTargetDescriptor;
-            DebugHandler.ConfigureColorDescriptorForDebugScreen(ref descriptor, renderingData.cameraData.pixelWidth, renderingData.cameraData.pixelHeight);
+            RenderTextureDescriptor descriptor = cameraData.cameraTargetDescriptor;
+            DebugHandler.ConfigureColorDescriptorForDebugScreen(ref descriptor, cameraData.pixelWidth, cameraData.pixelHeight);
             var passThroughRT = UniversalRenderer.CreateRenderGraphTexture(renderGraph, descriptor, "_HDRDebugDummyRT", false);
 
             ConfigureDescriptorForCIEPrepass(ref descriptor);
             var xyBuffer = UniversalRenderer.CreateRenderGraphTexture(renderGraph, descriptor, "_xyBuffer", true);
 
-            var luminanceParameters = GetLuminanceParameters(renderingData.cameraData);
+            var luminanceParameters = GetLuminanceParameters(cameraData);
 
             using (var builder = renderGraph.AddRasterRenderPass<PassDataCIExy>("Generate HDR DebugView CIExy", out var passData, base.profilingSampler))
             {
-                passData.cmd = renderingData.commandBuffer;
+                passData.cmd = cmd;
                 passData.material = m_material;
                 passData.luminanceParameters = luminanceParameters;
                 passData.srcColor = srcColor;
@@ -210,16 +210,17 @@ namespace UnityEngine.Rendering.Universal
                 builder.UseTexture(srcColor);
                 builder.SetRenderFunc((PassDataCIExy data, RasterGraphContext context) =>
                 {
+                    //TODO: investigate why we use renderingData.commandBuffer instead of context.cmd.
                     ExecuteCIExyPrepass(data, data.srcColor, data.passThrough, data.xyBuffer);
                 });
             }
             using (var builder = renderGraph.AddRasterRenderPass<PassDataDebugView>("HDR DebugView", out var passData, base.profilingSampler))
             {
-                passData.cmd = renderingData.commandBuffer;
+                passData.cmd = cmd;
                 passData.material = m_material;
                 passData.hdrDebugMode = hDRDebugMode;
                 passData.luminanceParameters = luminanceParameters;
-                passData.cameraData = renderingData.cameraData;
+                passData.cameraData = cameraData;
                 passData.overlayUITexture = overlayUITexture;
                 passData.xyBuffer = xyBuffer;
                 passData.passThrough = passThroughRT;
@@ -231,6 +232,7 @@ namespace UnityEngine.Rendering.Universal
                     builder.UseTexture(overlayUITexture);
                 builder.SetRenderFunc((PassDataDebugView data, RasterGraphContext context) =>
                 {
+                    //TODO: investigate why we use renderingData.commandBuffer instead of context.cmd.
                     ExecuteHDRDebugViewFinalPass(data, data.passThrough, data.xyBuffer, data.overlayUITexture, data.dstColor);
                 });
             }

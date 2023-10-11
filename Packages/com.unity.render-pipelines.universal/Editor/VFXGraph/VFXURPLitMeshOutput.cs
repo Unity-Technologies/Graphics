@@ -40,9 +40,9 @@ namespace UnityEditor.VFX.URP
                         features |= VFXOutputUpdate.Features.MultiMesh;
                     if (lod)
                         features |= VFXOutputUpdate.Features.LOD;
-                    if (HasSorting() && VFXOutputUpdate.HasFeature(features, VFXOutputUpdate.Features.IndirectDraw))
-                        features |= VFXOutputUpdate.Features.Sort;
                 }
+                if (HasSorting() && VFXOutputUpdate.HasFeature(features, VFXOutputUpdate.Features.IndirectDraw))
+                    features |= VFXOutputUpdate.Features.Sort;
                 return features;
             }
         }

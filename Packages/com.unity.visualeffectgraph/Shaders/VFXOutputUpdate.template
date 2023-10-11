@@ -111,19 +111,24 @@ void CSMain(uint3 groupId		: SV_GroupID,
 		VFXAttributes attributes = (VFXAttributes)0;
 		VFXSourceAttributes sourceAttributes = (VFXSourceAttributes)0;
 		${VFXLoadAttributes:{alive}}
+#if HAS_STRIPS
+        // For strips, we need to render the entire strip, even if some particles are dead.
+        const StripData stripData = GetStripDataFromParticleIndex(index, instanceIndex);
+        InitStripAttributes(index, attributes, stripData);
+        uint relativeIndexInStrip = GetRelativeIndex(index, stripData);
+		if (relativeIndexInStrip < stripData.nextIndex)
+#else
 		if (attributes.alive)
+#endif
 		{
 			${VFXLoadAttributes:{(?!(alive))(\b\w)}}
-#if HAS_STRIPS
-            const StripData stripData = GetStripDataFromParticleIndex(index, instanceIndex);
-            InitStripAttributes(index, attributes, stripData);
-            uint relativeIndexInStrip = GetRelativeIndex(index, stripData);
-#endif
 			${VFXProcessBlocks}
 
+#if !HAS_STRIPS
             // Recheck alive as blocks can set it to false for manual culling.
             // Test will be stripped if it's not the case anyway.
             if (attributes.alive)
+#endif
             {
                 ${VFXLoadSize}
 #if HAS_STRIPS

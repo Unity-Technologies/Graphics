@@ -77,7 +77,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
-        private static void ExecutePass(RasterCommandBuffer cmd, PassData passData, RendererList rendererList, ref RenderingData renderingData)
+        private static void ExecutePass(RasterCommandBuffer cmd, RendererList rendererList)
         {
             using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.DepthPrepass)))
             {
@@ -88,33 +88,39 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            m_PassData.renderingData = renderingData;
-            var param = InitRendererListParams(ref renderingData);
+            ContextContainer frameData = renderingData.frameData;
+            UniversalRenderingData universalRenderingData = frameData.Get<UniversalRenderingData>();
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+            UniversalLightData lightData = frameData.Get<UniversalLightData>();
+
+            var param = InitRendererListParams(universalRenderingData, cameraData, lightData);
             RendererList rendererList = context.CreateRendererList(ref param);
 
-            ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), m_PassData, rendererList, ref renderingData);
+            ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), rendererList);
         }
 
         private class PassData
         {
-            internal RenderingData renderingData;
             internal RendererListHandle rendererList;
         }
 
-        private RendererListParams InitRendererListParams(ref RenderingData renderingData)
+        private RendererListParams InitRendererListParams(UniversalRenderingData renderingData, UniversalCameraData cameraData, UniversalLightData lightData)
         {
-            var sortFlags = renderingData.cameraData.defaultOpaqueSortFlags;
-            var drawSettings = RenderingUtils.CreateDrawingSettings(this.shaderTagId, ref renderingData, sortFlags);
+            var sortFlags = cameraData.defaultOpaqueSortFlags;
+            var drawSettings = RenderingUtils.CreateDrawingSettings(this.shaderTagId, renderingData, cameraData, lightData, sortFlags);
             drawSettings.perObjectData = PerObjectData.None;
             return new RendererListParams(renderingData.cullResults, drawSettings, m_FilteringSettings);
         }
 
-        internal void Render(RenderGraph renderGraph, ref TextureHandle cameraDepthTexture, ref RenderingData renderingData)
+        internal void Render(RenderGraph renderGraph, ContextContainer frameData, ref TextureHandle cameraDepthTexture)
         {
+            UniversalRenderingData renderingData = frameData.Get<UniversalRenderingData>();
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+            UniversalLightData lightData = frameData.Get<UniversalLightData>();
+
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("DepthOnly Prepass", out var passData, base.profilingSampler))
             {
-                passData.renderingData = renderingData;
-                var param = InitRendererListParams(ref renderingData);
+                var param = InitRendererListParams(renderingData, cameraData, lightData);
                 passData.rendererList = renderGraph.CreateRendererList(param);
                 builder.UseRendererList(passData.rendererList);
 
@@ -126,7 +132,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
                 {
-                    ExecutePass(context.cmd, data, data.rendererList, ref data.renderingData);
+                    ExecutePass(context.cmd, data.rendererList);
                 });
             }
 

@@ -24,13 +24,14 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         public void Setup(RenderGraphPass renderPass, RenderGraphResourceRegistry resources, RenderGraph renderGraph)
         {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
             // If the object is not disposed yet this is an error as the pass is not finished (only in the dispose we register it with the rendergraph)
             // This is likely cause by a user not doing a clean using and then forgetting to manually dispose the object.
             if (m_Disposed != true)
             {
                 throw new Exception("Please finish building the previous pass first by disposing the pass builder object before adding a new pass.");
             }
-
+#endif
             m_RenderPass = renderPass;
             m_Resources = resources;
             m_RenderGraph = renderGraph;
@@ -144,6 +145,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
             if ((flags & IBaseRenderGraphBuilder.AccessFlags.Write) != 0)
             {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
                 // Write by design generates a new version of the resource. However
                 // you could in theory write to v2 of the resource while there is already
                 // a v3 so this write would then introduce a new v4 of the resource.
@@ -175,6 +177,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                     var name = m_Resources.GetRenderGraphResourceName(handle);
                     throw new InvalidOperationException($"Trying to write a resource twice in a pass. You can only write the same resource once within a pass (pass {m_RenderPass.name} resource{name}).");
                 }
+#endif
                 m_RenderPass.AddResourceWrite(m_Resources.GetNewVersionedHandle(handle));
                 m_Resources.IncrementWriteCount(handle);
             }
@@ -184,10 +187,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         public BufferHandle UseBuffer(in BufferHandle input, IBaseRenderGraphBuilder.AccessFlags flags)
         {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
             if ((flags & IBaseRenderGraphBuilder.AccessFlags.AllowGrab) != 0)
             {
                 throw new ArgumentException("AllowGrab is only valid on UseTexture");
             }
+#endif
             return new BufferHandle(UseResource(input.handle, flags).index);
         }
 
@@ -203,7 +208,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             {
                 return;
             }
-
 
             bool usedAsFragment = false;
             usedAsFragment = (m_RenderPass.depthBuffer.handle.index == tex.handle.index);

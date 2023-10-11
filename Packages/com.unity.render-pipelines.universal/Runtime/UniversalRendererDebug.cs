@@ -28,10 +28,10 @@ namespace UnityEngine.Rendering.Universal
             RenderingUtils.ReAllocateIfNeeded(ref m_RenderGraphDebugTextureHandle, debugTexDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: "_RenderingDebuggerTexture");
         }
 
-        private void SetupRenderGraphFinalPassDebug(RenderGraph renderGraph, ref RenderingData renderingData)
+        private void SetupRenderGraphFinalPassDebug(RenderGraph renderGraph, ContextContainer frameData)
         {
-            UniversalCameraData cameraData = renderingData.frameData.Get<UniversalCameraData>();
-            UniversalResourceData resourceData = renderingData.frameData.Get<UniversalResourceData>();
+            UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
 
             if ((DebugHandler != null) && DebugHandler.IsActiveForCamera(cameraData.isPreviewCamera))
             {

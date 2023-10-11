@@ -60,7 +60,8 @@ namespace UnityEngine.Rendering
         // Compute resources and utility container.
         private SystemResources m_SystemResources;
 
-        static readonly ProfilingSampler k_LineRenderingSampler = new ProfilingSampler("LineRendering");
+        static readonly ProfilingSampler k_LineRenderingGeometrySampler      = new ProfilingSampler("LineRenderingGeometry");
+        static readonly ProfilingSampler k_LineRenderingRasterizationSampler = new ProfilingSampler("LineRenderingRasterization");
 
         internal void Initialize(SystemResources parameters)
         {
@@ -155,7 +156,7 @@ namespace UnityEngine.Rendering
             }
 
             // Pass 1: Geometry Processing and Shading
-            using (var builder = args.renderGraph.AddRenderPass<GeometryPassData>("Geometry Processing", out var passData, k_LineRenderingSampler))
+            using (var builder = args.renderGraph.AddRenderPass<GeometryPassData>("Geometry Processing", out var passData, k_LineRenderingGeometrySampler))
             {
                 // TODO: Get rid of this...
                 // Unfortunately we currently need this utility to "reimport" some buffers.
@@ -208,7 +209,7 @@ namespace UnityEngine.Rendering
             }
 
             // Pass 2: Rasterization
-            using (var builder = args.renderGraph.AddRenderPass<RasterizationPassData>("Rasterization", out var passData, k_LineRenderingSampler))
+            using (var builder = args.renderGraph.AddRenderPass<RasterizationPassData>("Rasterization", out var passData, k_LineRenderingRasterizationSampler))
             {
                 // Optionally schedule this pass in async. (This is actually the whole reason we split this process into two passes).
                 builder.EnableAsyncCompute(args.settings.executeAsync);

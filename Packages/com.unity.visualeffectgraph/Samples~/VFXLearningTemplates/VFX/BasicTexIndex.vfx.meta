@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: d27e95a5e4a69f84ba7d1a7c6b791ae0
+VisualEffectImporter:
+  externalObjects: {}
+  serializedVersion: 1
+  template:
+    name: TexIndex Attribute
+    category: Learning Templates
+    description: It's pretty common for VFX artists to rely on Sprite sheets. This
+      VFX shows how to use Uvs options in the Output to use a Sprite sheet. It also
+      explains how to set up the Flipbook Settings and the relation with the texIndex
+      attribute.
+    icon: {fileID: 2800000, guid: 49836be3225b70342b4057f6bf94b554, type: 3}
+    thumbnail: {fileID: 2800000, guid: ec5b3fc4b1b065c48aa4944f0496294a, type: 3}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

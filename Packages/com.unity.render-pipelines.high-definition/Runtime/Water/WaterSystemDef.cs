@@ -447,12 +447,18 @@ namespace UnityEngine.Rendering.HighDefinition
         public float _DisplacementScattering;
         public float _ScatteringWaveHeight;
 
+        // Influence of current on foam scrolling
+        public float _FoamFollowCurrent;
         // Smoothness of the foam
         public float _FoamSmoothness;
         // Water smoothness
         public float _WaterSmoothness;
         // Controls the fade multiplier of the foam
         public float _FoamPersistenceMultiplier;
+
+        public float _PaddingW1;
+        public float _PaddingW2;
+        public float _PaddingW3;
         // Deformation region resolution
         public int _WaterDeformationResolution;
 

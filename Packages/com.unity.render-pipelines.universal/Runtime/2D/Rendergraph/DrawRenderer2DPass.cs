@@ -87,8 +87,12 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
-        public void Render(RenderGraph graph, ref RenderingData renderingData, Renderer2DData rendererData, ref LayerBatch layerBatch, ref FilteringSettings filterSettings, in TextureHandle cameraColorAttachment, in TextureHandle cameraDepthAttachment, in TextureHandle[] lightTextures)
+        public void Render(RenderGraph graph, ContextContainer frameData, Renderer2DData rendererData, ref LayerBatch layerBatch, ref FilteringSettings filterSettings, in TextureHandle cameraColorAttachment, in TextureHandle cameraDepthAttachment, in TextureHandle[] lightTextures)
         {
+            UniversalRenderingData renderingData = frameData.Get<UniversalRenderingData>();
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+            UniversalLightData lightData = frameData.Get<UniversalLightData>();
+
             using (var builder = graph.AddRasterRenderPass<PassData>(k_RenderPass, out var passData, m_ProfilingSampler))
             {
                 passData.lightBlendStyles = rendererData.lightBlendStyles;
@@ -101,17 +105,17 @@ namespace UnityEngine.Rendering.Universal
                 passData.isLitView = true;
 
                 // Early out for prefabs
-                if (renderingData.cameraData.isSceneViewCamera && !UnityEditor.SceneView.currentDrawingSceneView.sceneLighting)
+                if (cameraData.isSceneViewCamera && !UnityEditor.SceneView.currentDrawingSceneView.sceneLighting)
                     passData.isLitView = false;
 
                 // Early out for preview camera
-                if (renderingData.cameraData.cameraType == CameraType.Preview)
+                if (cameraData.cameraType == CameraType.Preview)
                     passData.isLitView = false;
 #endif
 
-                var drawSettings = CreateDrawingSettings(k_ShaderTags, ref renderingData, SortingCriteria.CommonTransparent);
+                var drawSettings = CreateDrawingSettings(k_ShaderTags, renderingData, cameraData, lightData, SortingCriteria.CommonTransparent);
                 var sortSettings = drawSettings.sortingSettings;
-                RendererLighting.GetTransparencySortingMode(rendererData, renderingData.cameraData.camera, ref sortSettings);
+                RendererLighting.GetTransparencySortingMode(rendererData, cameraData.camera, ref sortSettings);
                 drawSettings.sortingSettings = sortSettings;
 
                 var param = new RendererListParams(renderingData.cullResults, drawSettings, filterSettings);

@@ -1,12 +1,14 @@
 # Scripting in the Water System
 
+## Access Water Surface Height
+
 You can add buoyancy to the water simulation with a script that queries the height of the water surface.
 
 To do this, enable **Script Interactions** in the Water section of the [HDRP Asset](HDRP-Asset.md#water-scriptinteractions) and in the Inspector for the water surface you want to query (see [Settings and properties related to the Water System](WaterSystem-Properties.md#scriptinteractions)).
 
 The [WaterSearchParameters](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@14.0/api/UnityEngine.Rendering.HighDefinition.WaterSearchParameters.html) struct makes water height queries possible.
 
-## One object
+### One object
 
 ![](Images/water-22.2-onebuoyancy.png)<br/>
 
@@ -48,7 +50,7 @@ public class FitToWaterSurface : MonoBehaviour
 ```
 
 
-## Multiple objects (with Burst)
+### Multiple objects (with Burst)
 
 ![](Images/water-22.2-multibuoyancy.png)<br/>
 
@@ -155,5 +157,17 @@ public class FitToWaterSurface_Burst : MonoBehaviour
 
 ```
 
-### Limitations
-[Masks](WaterSystem-decals-masking.md) do not affect CPU simulations. As a result, buoyancy scripts produce incorrect results for masked water surfaces.
+## Synchronizing Water Surfaces
+
+When making a multiplayer game, it can be useful to ensure all clients have a water simulation that is running in sync.
+You can achieve this by specifying the absolute time at which the simulation started by using the following API:
+
+```cs
+water.simulationStart = new DateTime(2008, 5, 1, 8, 30, 52); // HDRP will compute the water simulation as if the program started at that time
+```
+
+Alternatively, if you have a reference water surface, you can make sure other existing surfaces are synchronized with this one by copying the start value:
+
+```cs
+water.simulationStart = referenceSurface.simulationStart;
+```

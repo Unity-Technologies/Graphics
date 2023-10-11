@@ -588,7 +588,13 @@ namespace UnityEditor.Rendering.HighDefinition
                     else if (lightType == LightType.Disc)
                     {
                         //draw the built-in area light control at the moment as everything is handled by built-in
-                        serialized.settings.DrawArea();
+                        EditorGUI.BeginChangeCheck();
+                        EditorGUILayout.PropertyField(serialized.shapeWidth, s_Styles.shapeRadiusDisc);
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            serialized.settings.areaSizeX.floatValue = serialized.shapeWidth.floatValue;
+                            serialized.settings.areaSizeY.floatValue = serialized.shapeWidth.floatValue;
+                        }
                         serialized.displayAreaLightEmissiveMesh.boolValue = false; //force deactivate emissive mesh for Disc (not supported)
                     }
                     else if (lightType == LightType.Tube)

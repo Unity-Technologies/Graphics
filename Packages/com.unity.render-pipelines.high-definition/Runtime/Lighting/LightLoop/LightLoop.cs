@@ -441,7 +441,7 @@ namespace UnityEngine.Rendering.HighDefinition
         static internal readonly bool s_UseCascadeBorders = true;
 
         // Keep sorting array around to avoid garbage
-        uint[] m_SortKeys = null;
+        ulong[] m_SortKeys = null;
         DynamicArray<ProcessedProbeData> m_ProcessedReflectionProbeData = new DynamicArray<ProcessedProbeData>();
         DynamicArray<ProcessedProbeData> m_ProcessedPlanarProbeData = new DynamicArray<ProcessedProbeData>();
 
@@ -449,7 +449,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (m_SortKeys == null || count > m_SortKeys.Length)
             {
-                m_SortKeys = new uint[count];
+                m_SortKeys = new ulong[count];
             }
         }
 
@@ -1381,7 +1381,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 case LightType.Disc:
                     lightCategory = LightCategory.Area;
-                    //not used in real-time at the moment anyway
+                    //not used in real-time at the moment anyway, except for path tracing
                     gpuLightType = GPULightType.Disc;
                     lightVolumeType = LightVolumeType.Sphere;
                     break;
@@ -1652,9 +1652,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (processedData.hdProbe != null && processedData.hdProbe.influenceVolume.shape == InfluenceShape.Sphere)
                         lightVolumeType = LightVolumeType.Sphere;
 
-                    var logVolume = CalculateProbeLogVolume(probe.bounds);
+                    var priority = CalculateProbePriority(probe.bounds, probe.importance);
 
-                    m_SortKeys[envLightCount++] = PackProbeKey(logVolume, lightVolumeType, 0u, probeIndex); // Sort by volume
+                    m_SortKeys[envLightCount++] = PackProbeKey(priority, lightVolumeType, 0u, probeIndex); // Sort by priority
                 }
             }
 
@@ -1680,9 +1680,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (probe.influenceVolume.shape == InfluenceShape.Sphere)
                         lightVolumeType = LightVolumeType.Sphere;
 
-                    var logVolume = CalculateProbeLogVolume(probe.bounds);
+                    var priority = CalculateProbePriority(probe.bounds, probe.importance);
 
-                    m_SortKeys[envLightCount++] = PackProbeKey(logVolume, lightVolumeType, 1u, planarProbeIndex); // Sort by volume
+                    m_SortKeys[envLightCount++] = PackProbeKey(priority, lightVolumeType, 1u, planarProbeIndex); // Sort by priority
                 }
             }
 
@@ -1912,6 +1912,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         m_TextureCaches.lightCookieManager.ReserveSpace(Texture2D.whiteTexture);
                     break;
                 case LightType.Rectangle:
+                case LightType.Disc:
                     // Only rectangle can have cookies
                     if (hdLightData.IESSpot != null && hdLightData.areaLightCookie != null && hdLightData.IESSpot != hdLightData.areaLightCookie)
                         m_TextureCaches.lightCookieManager.ReserveSpace(hdLightData.areaLightCookie, hdLightData.IESSpot);
@@ -1921,7 +1922,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         m_TextureCaches.lightCookieManager.ReserveSpace(hdLightData.areaLightCookie);
                     break;
                 case LightType.Tube:
-                case LightType.Disc:
                     // These light types can't have cookies
                     break;
             }
@@ -1946,28 +1946,45 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        static float CalculateProbeLogVolume(Bounds bounds)
+        const uint k_floatSignMask = (1u << 31)-1;
+
+        // 52 bits total stored when packing, 6 bits unused, 15 bits importance, 31 bits volume
+        static ulong CalculateProbePriority(Bounds bounds, int importance = 1)
         {
-            //Notes:
-            // - 1+ term is to prevent having negative values in the log result
-            // - 1000* is too keep 3 digit after the dot while we truncate the result later
-            // - 1048575 is 2^20-1 as we pack the result on 20bit later
             float boxVolume = 8f * bounds.extents.x * bounds.extents.y * bounds.extents.z;
-            float logVolume = Mathf.Clamp(Mathf.Log(1 + boxVolume, 1.05f) * 1000, 0, 1048575);
-            return logVolume;
+
+            ulong priority;
+            uint uintVolume;
+
+            // Use unsafe to point uintVolume to the same bits as boxVolume
+            unsafe
+            {
+                uintVolume = *((uint*)&boxVolume);
+            }
+
+            // The sign bit should always be positive (0), but just in case, force it to 0
+            uintVolume &= k_floatSignMask;
+
+            // Copy the bits to the 64 bits unsigned integer
+            priority = uintVolume;
+
+            // Store the importance value in bits of higher weight, inverted so higher importances result in lower priority value and are displayed on top.
+            priority |= (ulong)(32767 - importance) << 31;
+
+             return priority;
         }
 
-        static void UnpackProbeSortKey(uint sortKey, out LightVolumeType lightVolumeType, out int probeIndex, out int listType)
+        static void UnpackProbeSortKey(ulong sortKey, out LightVolumeType lightVolumeType, out int probeIndex, out int listType)
         {
             lightVolumeType = (LightVolumeType)((sortKey >> 9) & 0x3);
             probeIndex = (int)(sortKey & 0xFF);
             listType = (int)((sortKey >> 8) & 1);
         }
 
-        static uint PackProbeKey(float logVolume, LightVolumeType lightVolumeType, uint listType, int probeIndex)
+        static ulong PackProbeKey(ulong priority, LightVolumeType lightVolumeType, uint listType, int probeIndex)
         {
-            // 20 bit volume, 3 bit LightVolumeType, 1 bit list type, 8 bit index
-            return (uint)logVolume << 12 | (uint)lightVolumeType << 9 | listType << 8 | ((uint)probeIndex & 0xFF);
+            // 52 bit priority, 3 bit LightVolumeType, 1 bit list type, 8 bit index
+            return priority << 12 | (uint)lightVolumeType << 9 | listType << 8 | ((uint)probeIndex & 0xFF);
         }
 
         HDAdditionalLightData GetHDAdditionalLightData(Light light)

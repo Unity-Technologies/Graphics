@@ -693,25 +693,68 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="shaderTagId">Shader pass tag to render.</param>
         /// <param name="renderingData">Current rendering state.</param>
         /// <param name="sortingCriteria">Criteria to sort objects being rendered.</param>
-        /// <returns></returns>
+        /// <returns>Returns the draw settings created.</returns>
         /// <seealso cref="DrawingSettings"/>
         public DrawingSettings CreateDrawingSettings(ShaderTagId shaderTagId, ref RenderingData renderingData, SortingCriteria sortingCriteria)
         {
-            return RenderingUtils.CreateDrawingSettings(shaderTagId, ref renderingData, sortingCriteria);
+            ContextContainer frameData = renderingData.frameData;
+            UniversalRenderingData universalRenderingData = frameData.Get<UniversalRenderingData>();
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+            UniversalLightData lightData = frameData.Get<UniversalLightData>();
+
+            return RenderingUtils.CreateDrawingSettings(shaderTagId, universalRenderingData, cameraData, lightData, sortingCriteria);
+        }
+
+        /// <summary>
+        /// Creates <c>DrawingSettings</c> based on current the rendering state.
+        /// </summary>
+        /// <param name="shaderTagId">Shader pass tag to render.</param>
+        /// <param name="renderingData">Current rendering state.</param>
+        /// <param name="cameraData">Current camera state.</param>
+        /// <param name="lightData">Current light state.</param>
+        /// <param name="sortingCriteria">Criteria to sort objects being rendered.</param>
+        /// <returns>Returns the draw settings created.</returns>
+        /// <seealso cref="DrawingSettings"/>
+        public DrawingSettings CreateDrawingSettings(ShaderTagId shaderTagId, UniversalRenderingData renderingData,
+            UniversalCameraData cameraData, UniversalLightData lightData, SortingCriteria sortingCriteria)
+        {
+            return RenderingUtils.CreateDrawingSettings(shaderTagId, renderingData, cameraData, lightData, sortingCriteria);
         }
 
         /// <summary>
         /// Creates <c>DrawingSettings</c> based on current rendering state.
         /// </summary>
-        /// /// <param name="shaderTagIdList">List of shader pass tag to render.</param>
+        /// <param name="shaderTagIdList">List of shader pass tag to render.</param>
         /// <param name="renderingData">Current rendering state.</param>
         /// <param name="sortingCriteria">Criteria to sort objects being rendered.</param>
-        /// <returns></returns>
+        /// <returns>Returns the draw settings created.</returns>
         /// <seealso cref="DrawingSettings"/>
         public DrawingSettings CreateDrawingSettings(List<ShaderTagId> shaderTagIdList,
             ref RenderingData renderingData, SortingCriteria sortingCriteria)
         {
-            return RenderingUtils.CreateDrawingSettings(shaderTagIdList, ref renderingData, sortingCriteria);
+            ContextContainer frameData = renderingData.frameData;
+            UniversalRenderingData universalRenderingData = frameData.Get<UniversalRenderingData>();
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+            UniversalLightData lightData = frameData.Get<UniversalLightData>();
+
+            return RenderingUtils.CreateDrawingSettings(shaderTagIdList, universalRenderingData, cameraData, lightData, sortingCriteria);
+        }
+
+        /// <summary>
+        /// Creates <c>DrawingSettings</c> based on current rendering state.
+        /// </summary>
+        /// <param name="shaderTagIdList">List of shader pass tag to render.</param>
+        /// <param name="renderingData">Current rendering state.</param>
+        /// <param name="cameraData">Current camera state.</param>
+        /// <param name="lightData">Current light state.</param>
+        /// <param name="sortingCriteria">Criteria to sort objects being rendered.</param>
+        /// <returns>Returns the draw settings created.</returns>
+        /// <seealso cref="DrawingSettings"/>
+        public DrawingSettings CreateDrawingSettings(List<ShaderTagId> shaderTagIdList,
+            UniversalRenderingData renderingData, UniversalCameraData cameraData,
+            UniversalLightData lightData, SortingCriteria sortingCriteria)
+        {
+            return RenderingUtils.CreateDrawingSettings(shaderTagIdList, renderingData, cameraData, lightData, sortingCriteria);
         }
 
         /// <summary>

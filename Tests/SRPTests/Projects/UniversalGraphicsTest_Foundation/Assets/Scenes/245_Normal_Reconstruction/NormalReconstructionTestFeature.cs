@@ -106,11 +106,10 @@ public class NormalReconstructionTestFeature : ScriptableRendererFeature
         {
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("Normal Reconstruction Test Pass", out var passData, m_ProfilingSampler))
             {
+                UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
                 UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
 
-                UniversalRenderer renderer = (UniversalRenderer) cameraData.renderer;
-
-                TextureHandle color = renderer.activeColorTexture;
+                TextureHandle color = resourceData.activeColorTexture;
                 passData.color = builder.UseTextureFragment(color, 0, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
                 passData.cameraData = cameraData;
                 builder.AllowGlobalStateModification(true);

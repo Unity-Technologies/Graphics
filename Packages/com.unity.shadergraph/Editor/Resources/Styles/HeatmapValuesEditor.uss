@@ -1,0 +1,27 @@
+.sg-heatmap__heat-field,
+.sg-heatmap__subgraph-picker {
+    margin-right: 0;
+}
+
+.sg-heatmap__node-label {
+    flex-grow: 1;
+    -unity-text-align: middle-left;
+    margin-left: 4px;
+}
+
+.sg-heatmap__list,
+.sg-heatmap__help-box {
+    margin-bottom: 7px;
+}
+
+.sg-heatmap__list {
+    max-height: none;
+}
+
+.sg-heatmap__help-box--hidden {
+    display: none;
+}
+
+.unity-foldout__content {
+    margin-left: 15px;
+}

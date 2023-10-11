@@ -3191,6 +3191,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 case LightType.Tube:
                     m_ShapeWidth = lightSize.x;
                     break;
+                case LightType.Disc:
+                    m_ShapeWidth = lightSize.x;
+                    m_ShapeHeight = lightSize.x;
+                    break;
                 default:
                     break;
             }

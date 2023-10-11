@@ -1,5 +1,3 @@
-using System;
-
 using UnityEditor.Experimental;
 using UnityEditor.VFX.UI;
 
@@ -10,7 +8,8 @@ namespace UnityEditor.VFX
 {
     class CreateFromTemplateDropDownButton : DropDownButtonBase
     {
-        private Action m_LastAction;
+        private const string mainButtonName = "create-button";
+
         private Button m_InsertButton;
 
         public CreateFromTemplateDropDownButton(VFXView vfxView)
@@ -18,8 +17,8 @@ namespace UnityEditor.VFX
             nameof(CreateFromTemplateDropDownButton),
             vfxView,
         "VFXCreateFromTemplateDropDownPanel",
-        "Create or Insert from a template",
-        "create-button",
+        "Insert a template into current asset\nHold CTRL key and click to create a new VFX",
+            mainButtonName,
         EditorResources.iconsPath + "CreateAddNew.png",
         true,
         false)
@@ -27,8 +26,31 @@ namespace UnityEditor.VFX
             var createNew = m_PopupContent.Q<Button>("createNew");
             createNew.clicked += OnCreateNew;
 
+            var mainButton = this.Q<Button>(mainButtonName);
+            mainButton.RegisterCallback<MouseUpEvent>(OnMainButtonMouseUp);
+
             m_InsertButton = m_PopupContent.Q<Button>("insert");
             m_InsertButton.clicked += OnInsert;
+        }
+
+        private void OnMainButtonMouseUp(MouseUpEvent evt)
+        {
+            if (evt.button != (int)MouseButton.LeftMouse || evt.clickCount > 1)
+                return;
+
+            // If the current asset is a subgraph do not call "OnInsert" callback and rather open the dropdown
+            if (m_VFXView.controller.model.isSubgraph)
+            {
+                OnTogglePopup();
+            }
+            else if (evt.modifiers.HasFlag(EventModifiers.Control))
+            {
+                OnCreateNew();
+            }
+            else
+            {
+                OnInsert();
+            }
         }
 
         protected override Vector2 GetPopupSize() => new(200, 54);
@@ -39,29 +61,14 @@ namespace UnityEditor.VFX
             base.OnOpenPopup();
         }
 
-        protected override void OnMainButton()
-        {
-            // If the current asset is a subgraph do not call "OnInsert" callback and rather open the dropdown
-            if (m_LastAction != null && (!m_VFXView.controller.model.isSubgraph || m_LastAction != OnInsert))
-                m_LastAction();
-            else
-            {
-                OnTogglePopup();
-            }
-        }
-
         private void OnCreateNew()
         {
-            m_LastAction = OnCreateNew;
             VFXTemplateWindow.ShowCreateFromTemplate(null, null);
-            SetMainButtonTooltip("Create new VFX asset from a template");
         }
 
         private void OnInsert()
         {
-            m_LastAction = OnInsert;
             VFXTemplateWindow.ShowInsertTemplate(m_VFXView);
-            SetMainButtonTooltip("Insert VFX into current asset from template");
         }
     }
 }

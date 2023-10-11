@@ -134,36 +134,35 @@ namespace UnityEngine.Rendering.Universal.Internal
                 switch (cameraSamples)
                 {
                     case 8:
-                        cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa2);
-                        cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa4);
-                        cmd.EnableShaderKeyword(ShaderKeywordStrings.DepthMsaa8);
+                        cmd.SetKeyword(ref ShaderGlobalKeywords.DepthMsaa2, false);
+                        cmd.SetKeyword(ref ShaderGlobalKeywords.DepthMsaa4, false);
+                        cmd.SetKeyword(ref ShaderGlobalKeywords.DepthMsaa8, true);
                         break;
 
                     case 4:
-                        cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa2);
-                        cmd.EnableShaderKeyword(ShaderKeywordStrings.DepthMsaa4);
-                        cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa8);
+                        cmd.SetKeyword(ref ShaderGlobalKeywords.DepthMsaa2, false);
+                        cmd.SetKeyword(ref ShaderGlobalKeywords.DepthMsaa4, true);
+                        cmd.SetKeyword(ref ShaderGlobalKeywords.DepthMsaa8, false);
                         break;
 
                     case 2:
-                        cmd.EnableShaderKeyword(ShaderKeywordStrings.DepthMsaa2);
-                        cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa4);
-                        cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa8);
+                        cmd.SetKeyword(ref ShaderGlobalKeywords.DepthMsaa2, true);
+                        cmd.SetKeyword(ref ShaderGlobalKeywords.DepthMsaa4, false);
+                        cmd.SetKeyword(ref ShaderGlobalKeywords.DepthMsaa8, false);
                         break;
 
                     // MSAA disabled, auto resolve supported or ms textures not supported
                     default:
-                        cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa2);
-                        cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa4);
-                        cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa8);
+                        cmd.SetKeyword(ref ShaderGlobalKeywords.DepthMsaa2, false);
+                        cmd.SetKeyword(ref ShaderGlobalKeywords.DepthMsaa4, false);
+                        cmd.SetKeyword(ref ShaderGlobalKeywords.DepthMsaa8, false);
                         break;
                 }
 
                 if (copyToDepth || destination.rt.graphicsFormat == GraphicsFormat.None)
-                    cmd.EnableShaderKeyword("_OUTPUT_DEPTH");
+                    cmd.SetKeyword(ref ShaderGlobalKeywords._OUTPUT_DEPTH, true);
                 else
-                    cmd.DisableShaderKeyword("_OUTPUT_DEPTH");
-
+                    cmd.SetKeyword(ref ShaderGlobalKeywords._OUTPUT_DEPTH, false);
 
                 Vector2 viewportScale = source.useScaling ? new Vector2(source.rtHandleProperties.rtHandleScale.x, source.rtHandleProperties.rtHandleScale.y) : Vector2.one;
                 // We y-flip if
@@ -201,29 +200,30 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <summary>
         /// Sets up the Copy Depth pass for RenderGraph execution
         /// </summary>
-        /// <param name="renderGraph"></param>
-        /// <param name="destination"></param>
-        /// <param name="source"></param>
-        /// <param name="renderingData"></param>
+        /// <param name="renderGraph">The current RenderGraph used for recording and execution of a frame.</param>
+        /// <param name="frameData">The renderer settings containing rendering data of the current frame.</param>
+        /// <param name="destination"><c>TextureHandle</c> of the destination it will copy to.</param>
+        /// <param name="source"><c>TextureHandle</c> of the source it will copy from.</param>
         /// <param name="bindAsCameraDepth">If this is true, the destination texture is bound as _CameraDepthTexture after the copy pass</param>
-        /// <param name="passName"></param>
-        public void Render(RenderGraph renderGraph, TextureHandle destination, TextureHandle source, ref RenderingData renderingData, bool bindAsCameraDepth = false, string passName = "Copy Depth")
+        /// <param name="passName">The pass name used for debug and identifying the pass.</param>
+        public void Render(RenderGraph renderGraph, ContextContainer frameData, TextureHandle destination, TextureHandle source, bool bindAsCameraDepth = false, string passName = "Copy Depth")
         {
-            UniversalCameraData cameraData = renderingData.frameData.Get<UniversalCameraData>();
-            Render(renderGraph, destination, source, cameraData, renderingData.frameData.Get<UniversalResourceData>(), bindAsCameraDepth);
+            UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+            Render(renderGraph, destination, source, resourceData, cameraData, bindAsCameraDepth);
         }
 
         /// <summary>
         /// Sets up the Copy Depth pass for RenderGraph execution
         /// </summary>
-        /// <param name="renderGraph"></param>
-        /// <param name="destination"></param>
-        /// <param name="source"></param>
-        /// <param name="cameraData"></param>
-        /// <param name="resourceData"></param>
+        /// <param name="renderGraph">The current RenderGraph used for recording and execution of a frame.</param>
+        /// <param name="destination"><c>TextureHandle</c> of the destination it will copy to.</param>
+        /// <param name="source"><c>TextureHandle</c> of the source it will copy from.</param>
+        /// <param name="resourceData">URP texture handles for the current frame.</param>
+        /// <param name="cameraData">Camera settings for the current frame.</param>
         /// <param name="bindAsCameraDepth">If this is true, the destination texture is bound as _CameraDepthTexture after the copy pass</param>
-        /// <param name="passName"></param>
-        public void Render(RenderGraph renderGraph, TextureHandle destination, TextureHandle source, UniversalCameraData cameraData, UniversalResourceData resourceData, bool bindAsCameraDepth = false, string passName = "Copy Depth")
+        /// <param name="passName">The pass name used for debug and identifying the pass.</param>
+        public void Render(RenderGraph renderGraph, TextureHandle destination, TextureHandle source, UniversalResourceData resourceData, UniversalCameraData cameraData, bool bindAsCameraDepth = false, string passName = "Copy Depth")
         {
             // TODO RENDERGRAPH: should call the equivalent of Setup() to initialise everything correctly
             MssaSamples = -1;

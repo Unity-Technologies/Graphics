@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 33f68cda04641ea4e8bb4e16fc221947
+VisualEffectImporter:
+  externalObjects: {}
+  serializedVersion: 1
+  template:
+    name: 'Orient Advanced '
+    category: Learning Templates
+    description: 'Whether the Output be Quad, Meshes, or even strip, we often want
+      to control how to instantiate the geometry on a particle. Should it be facing
+      the camera ? What is the forward and/or Up-Axis ? The Orient Block, allows
+      us to easily orient or particles as it comes with a number of different modes.
+      This example shows how to use the Advanced mode. '
+    icon: {fileID: 2800000, guid: 49836be3225b70342b4057f6bf94b554, type: 3}
+    thumbnail: {fileID: 2800000, guid: fa359bb45eebf334abfc735206cd5e80, type: 3}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

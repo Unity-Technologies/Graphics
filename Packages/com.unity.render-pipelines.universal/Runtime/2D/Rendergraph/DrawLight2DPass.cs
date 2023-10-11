@@ -12,10 +12,10 @@ namespace UnityEngine.Rendering.Universal
         private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler(k_LightPass);
         private static readonly ProfilingSampler m_ProfilingSamplerVolume = new ProfilingSampler(k_LightVolumetricPass);
         internal static readonly int k_InverseHDREmulationScaleID = Shader.PropertyToID("_InverseHDREmulationScale");
-        internal static readonly int k_NormalMapID = Shader.PropertyToID("_NormalMap");
-        internal static readonly int k_ShadowMapID = Shader.PropertyToID("_ShadowTex");
-        internal static readonly int k_LightLookupID = Shader.PropertyToID("_LightLookup");
-        internal static readonly int k_FalloffLookupID = Shader.PropertyToID("_FalloffLookup");
+        internal static readonly string k_NormalMapID = "_NormalMap";
+        internal static readonly string k_ShadowMapID = "_ShadowTex";
+        internal static readonly string k_LightLookupID = "_LightLookup";
+        internal static readonly string k_FalloffLookupID = "_FalloffLookup";
         internal static Color[] clearColors = new Color[RendererLighting.k_ShapeLightTextureIDs.Length];
 
         TextureHandle[] intermediateTexture = new TextureHandle[1];
@@ -61,16 +61,6 @@ namespace UnityEngine.Rendering.Universal
 
         private static void Execute(RasterCommandBuffer cmd, PassData passData, ref LayerBatch layerBatch)
         {
-            // Set Global Textures
-            cmd.SetGlobalTexture(k_FalloffLookupID, passData.fallOffLookUp);
-            cmd.SetGlobalTexture(k_LightLookupID, passData.lightLookUp);
-
-            if (passData.normalMap.IsValid())
-                cmd.SetGlobalTexture(k_NormalMapID, passData.normalMap);
-
-            if (passData.shadowMap.IsValid())
-                cmd.SetGlobalTexture(k_ShadowMapID, passData.shadowMap);
-
             cmd.SetGlobalFloat(k_InverseHDREmulationScaleID, 1.0f / passData.rendererData.hdrEmulationScale);
 
             var lightBlendStyles = passData.rendererData.lightBlendStyles;
@@ -86,7 +76,7 @@ namespace UnityEngine.Rendering.Universal
                     Light2DManager.GetGlobalColor(layerBatch.startLayerID, i, out clearColors[i]);
                 }
 
-                cmd.ClearRenderTarget(RTClearFlags.Color, clearColors, 1, 0);
+                CustomClear2D.Clear(cmd, clearColors);
             }
 
             for (var blendStyleIndex = 0; blendStyleIndex < lightBlendStyles.Length; blendStyleIndex++)
@@ -134,14 +124,24 @@ namespace UnityEngine.Rendering.Universal
                     if (breakBatch && LightBatch.isBatchingSupported)
                         RendererLighting.lightBatch.Flush(cmd);
 
+                    // Set material properties
+                    lightMaterial.SetTexture(k_LightLookupID, passData.lightLookUp);
+                    lightMaterial.SetTexture(k_FalloffLookupID, passData.fallOffLookUp);
+
+                    if (passData.layerBatch.lightStats.useNormalMap)
+                        lightMaterial.SetTexture(k_NormalMapID, passData.normalMap);
+
+                    if (passData.layerBatch.lightStats.useShadows)
+                        lightMaterial.SetTexture(k_ShadowMapID, passData.shadowMap);
+
+                    if (!passData.isVolumetric || (passData.isVolumetric && light.volumetricEnabled))
+                        RendererLighting.SetCookieShaderProperties(light, lightMaterial);
+
                     // Set shader global properties
                     RendererLighting.SetPerLightShaderGlobals(cmd, light, slotIndex, passData.isVolumetric, false, LightBatch.isBatchingSupported);
 
                     if (light.normalMapQuality != Light2D.NormalMapQuality.Disabled || light.lightType == Light2D.LightType.Point)
                         RendererLighting.SetPerPointLightShaderGlobals(cmd, light, slotIndex, LightBatch.isBatchingSupported);
-
-                    if (!passData.isVolumetric || (passData.isVolumetric && light.volumetricEnabled))
-                        RendererLighting.SetCookieShaderGlobals(cmd, light);
 
                     if (LightBatch.isBatchingSupported)
                     {

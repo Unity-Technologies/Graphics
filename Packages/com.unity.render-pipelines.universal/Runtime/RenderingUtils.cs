@@ -212,7 +212,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal static void FinalBlit(
             CommandBuffer cmd,
-            ref CameraData cameraData,
+            UniversalCameraData cameraData,
             RTHandle source,
             RTHandle destination,
             RenderBufferLoadAction loadAction,
@@ -313,7 +313,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         // Create a RendererList using a RenderStateBlock override is quite common so we have this optimized utility function for it
-        internal static void CreateRendererListWithRenderStateBlock(ScriptableRenderContext context, UniversalRenderingData data, DrawingSettings ds, FilteringSettings fs, RenderStateBlock rsb, ref RendererList rl)
+        internal static void CreateRendererListWithRenderStateBlock(ScriptableRenderContext context, ref CullingResults cullResults, DrawingSettings ds, FilteringSettings fs, RenderStateBlock rsb, ref RendererList rl)
         {
             RendererListParams param = new RendererListParams();
             unsafe
@@ -338,7 +338,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
                 // Create & schedule the RL
-                param = new RendererListParams(data.cullResults, ds, fs)
+                param = new RendererListParams(cullResults, ds, fs)
                 {
                     tagValues = tagValues,
                     stateBlocks = stateBlocks
@@ -357,13 +357,13 @@ namespace UnityEngine.Rendering.Universal
         static ShaderTagId[] s_ShaderTagValues = new ShaderTagId[1];
         static RenderStateBlock[] s_RenderStateBlocks = new RenderStateBlock[1];
         // Create a RendererList using a RenderStateBlock override is quite common so we have this optimized utility function for it
-        internal static void CreateRendererListWithRenderStateBlock(RenderGraph renderGraph, UniversalRenderingData data, DrawingSettings ds, FilteringSettings fs, RenderStateBlock rsb, ref RendererListHandle rl)
+        internal static void CreateRendererListWithRenderStateBlock(RenderGraph renderGraph, ref CullingResults cullResults, DrawingSettings ds, FilteringSettings fs, RenderStateBlock rsb, ref RendererListHandle rl)
         {
             s_ShaderTagValues[0] = ShaderTagId.none;
             s_RenderStateBlocks[0] = rsb;
             NativeArray<ShaderTagId> tagValues = new NativeArray<ShaderTagId>(s_ShaderTagValues, Allocator.Temp);
             NativeArray<RenderStateBlock> stateBlocks = new NativeArray<RenderStateBlock>(s_RenderStateBlocks, Allocator.Temp);
-            var param = new RendererListParams(data.cullResults, ds, fs)
+            var param = new RendererListParams(cullResults, ds, fs)
             {
                 tagValues = tagValues,
                 stateBlocks = stateBlocks,

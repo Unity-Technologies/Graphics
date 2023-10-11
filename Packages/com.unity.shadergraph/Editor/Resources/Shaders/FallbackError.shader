@@ -6,6 +6,7 @@ Shader "Hidden/Shader Graph/FallbackError"
         {
             "ShaderGraphShader" = "true"
             "ShaderGraphTargetId" = "FallbackError"
+            "DisableBatching" = "true"
         }
         Pass
         {

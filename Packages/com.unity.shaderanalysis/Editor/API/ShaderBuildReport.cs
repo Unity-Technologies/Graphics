@@ -92,9 +92,9 @@ namespace UnityEditor.ShaderAnalysis
                 return report.AddCompileUnit(this, multicompileIndex, defines, warnings, errors, profile, entry);
             }
 
-            public PerformanceUnit AddPerformanceReport(int multicompileIndex, string rawReport, ProgramPerformanceMetrics parsedReport)
+            public PerformanceUnit AddPerformanceReport(int multicompileIndex, string rawReport, ProgramPerformanceMetrics parsedReport, FileInfo compiledFile)
             {
-                return report.AddPerformanceReport(this, multicompileIndex, rawReport, parsedReport);
+                return report.AddPerformanceReport(this, multicompileIndex, rawReport, parsedReport, compiledFile);
             }
 
             public CompileUnit GetCompileUnit(int multicompileIndex)
@@ -238,7 +238,9 @@ namespace UnityEditor.ShaderAnalysis
             public CompileUnit compileUnit { get { return owner.GetCompileUnit(m_GPUProgramIndex, m_MultiCompileIndex); } }
             public GPUProgram program { get { return owner.m_Programs[m_GPUProgramIndex]; } }
 
-            internal PerformanceUnit(ShaderBuildReport owner, int programIndex, int multicompileIndex, string rawReport, ProgramPerformanceMetrics parsedReport)
+            public String extraPerfDataFile;
+
+            internal PerformanceUnit(ShaderBuildReport owner, int programIndex, int multicompileIndex, string rawReport, ProgramPerformanceMetrics parsedReport, string extraPerfDataFile)
             {
                 this.owner = owner;
 
@@ -246,6 +248,7 @@ namespace UnityEditor.ShaderAnalysis
                 m_MultiCompileIndex = multicompileIndex;
                 m_RawReport = rawReport;
                 m_ParsedReport = parsedReport;
+                this.extraPerfDataFile = extraPerfDataFile;
             }
 
             public void OnBeforeSerialize()
@@ -396,11 +399,14 @@ namespace UnityEditor.ShaderAnalysis
             return unit;
         }
 
-        PerformanceUnit AddPerformanceReport(GPUProgram gpuProgram, int multicompileIndex, string rawReport, ProgramPerformanceMetrics parsedReport)
+        PerformanceUnit AddPerformanceReport(GPUProgram gpuProgram, int multicompileIndex, string rawReport, ProgramPerformanceMetrics parsedReport, FileInfo compiledFile)
         {
             var programIndex = m_Programs.IndexOf(gpuProgram);
 
-            var unit = new PerformanceUnit(this, programIndex, multicompileIndex, rawReport, parsedReport);
+            var extraInfoFileName = compiledFile.FullName + ".disasm.txt";
+            if (!File.Exists(extraInfoFileName))
+                extraInfoFileName = null;
+            var unit = new PerformanceUnit(this, programIndex, multicompileIndex, rawReport, parsedReport, extraInfoFileName);
 
             m_PerformanceUnit.Add(unit);
 

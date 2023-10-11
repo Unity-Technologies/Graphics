@@ -181,7 +181,7 @@ namespace UnityEngine.Rendering.Universal
 
         public static void GetFilterSettings(Renderer2DData rendererData, ref LayerBatch layerBatch, short cameraSortingLayerBoundsIndex, out FilteringSettings filterSettings)
         {
-            filterSettings = new FilteringSettings();
+            filterSettings = FilteringSettings.defaultValue;
             filterSettings.renderQueueRange = RenderQueueRange.all;
             filterSettings.layerMask = -1;
             filterSettings.renderingLayerMask = 0xFFFFFFFF;

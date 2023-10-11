@@ -45,6 +45,10 @@ Material:
         m_Texture: {fileID: 2800000, guid: 3daf94270f45b514589e3f67f61b73c6, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_a7f3a3b273bd4452a47a71f259e31a2f_Texture_1_Texture2D:
+        m_Texture: {fileID: 2800000, guid: 3daf94270f45b514589e3f67f61b73c6, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _Texture2D:
         m_Texture: {fileID: 2800000, guid: 7c0dc5f55bc3fd648b29c854019b4a44, type: 3}
         m_Scale: {x: 1, y: 1}
@@ -93,11 +97,14 @@ Material:
     - _FoamSmoothness: 0.3
     - _NormalizedAliveTime: 0
     - _Opacity: 1
+    - _OpticalFlowMultiplier: 0
     - _Speed: 1
     - _WaterSmoothness: 0.9
     m_Colors:
-    - _Color: {r: 1, g: 0.9877524, b: 0.8836478, a: 1}
+    - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _FlipbookSize: {r: 4, g: 8, b: 0, a: 0}
   m_BuildTextureStacks: []
+  m_AllowLocking: 1
 --- !u!114 &3589186126516050471
 MonoBehaviour:
   m_ObjectHideFlags: 11

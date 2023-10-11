@@ -59,7 +59,7 @@ namespace UnityEngine.Rendering.Universal
         #endregion
 
         #region Execution
-        private static void ExecutePass(RasterCommandBuffer cmd, PassData passData, RendererList rendererList, ref RenderingData renderingData)
+        private static void ExecutePass(RasterCommandBuffer cmd, PassData passData, RendererList rendererList)
         {
             var cameraMaterial = passData.cameraMaterial;
 
@@ -67,8 +67,7 @@ namespace UnityEngine.Rendering.Universal
                 return;
 
             // Get data
-            ref var cameraData = ref renderingData.cameraData;
-            Camera camera = cameraData.camera;
+            Camera camera = passData.camera;
 
             // Never draw in Preview
             if (camera.cameraType == CameraType.Preview)
@@ -82,27 +81,31 @@ namespace UnityEngine.Rendering.Universal
                 camera.depthTextureMode |= DepthTextureMode.MotionVectors | DepthTextureMode.Depth;
 
                 // TODO: add option to only draw either one?
-                DrawCameraMotionVectors(cmd, ref renderingData, cameraMaterial);
-                DrawObjectMotionVectors(cmd, ref renderingData, ref rendererList);
+                DrawCameraMotionVectors(cmd, passData.xr, cameraMaterial);
+                DrawObjectMotionVectors(cmd, passData.xr, ref rendererList);
             }
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            InitPassData(ref renderingData, ref m_PassData);
+            ContextContainer frameData = renderingData.frameData;
+            UniversalRenderingData universalRenderingData = frameData.Get<UniversalRenderingData>();
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
 
-            InitRendererLists(ref renderingData, ref m_PassData, context, default(RenderGraph), false);
-            ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), m_PassData, m_PassData.rendererList, ref renderingData);
+            InitPassData(ref m_PassData, cameraData);
+
+            InitRendererLists(ref m_PassData, ref universalRenderingData.cullResults, universalRenderingData.supportsDynamicBatching,
+                context, default(RenderGraph), false);
+            ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), m_PassData, m_PassData.rendererList);
         }
 
-        private static DrawingSettings GetDrawingSettings(ref RenderingData renderingData)
+        private static DrawingSettings GetDrawingSettings(Camera camera, bool supportsDynamicBatching)
         {
-            var camera = renderingData.cameraData.camera;
             var sortingSettings = new SortingSettings(camera) { criteria = SortingCriteria.CommonOpaque };
             var drawingSettings = new DrawingSettings(ShaderTagId.none, sortingSettings)
             {
                 perObjectData = PerObjectData.MotionVectors,
-                enableDynamicBatching = renderingData.supportsDynamicBatching,
+                enableDynamicBatching = supportsDynamicBatching,
                 enableInstancing = true,
             };
 
@@ -115,10 +118,10 @@ namespace UnityEngine.Rendering.Universal
         }
 
         // NOTE: depends on camera depth to reconstruct static geometry positions
-        private static void DrawCameraMotionVectors(RasterCommandBuffer cmd, ref RenderingData renderingData, Material cameraMaterial)
+        private static void DrawCameraMotionVectors(RasterCommandBuffer cmd, XRPass xr, Material cameraMaterial)
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
-            bool foveatedRendering = renderingData.cameraData.xr.supportsFoveatedRendering;
+            bool foveatedRendering = xr.supportsFoveatedRendering;
             bool nonUniformFoveatedRendering = foveatedRendering && XRSystem.foveatedRenderingCaps.HasFlag(FoveatedRenderingCaps.NonUniformRaster);
             if (foveatedRendering)
             {
@@ -138,10 +141,10 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
-        private static void DrawObjectMotionVectors(RasterCommandBuffer cmd, ref RenderingData renderingData, ref RendererList rendererList)
+        private static void DrawObjectMotionVectors(RasterCommandBuffer cmd, XRPass xr, ref RendererList rendererList)
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
-            bool foveatedRendering = renderingData.cameraData.xr.supportsFoveatedRendering;
+            bool foveatedRendering = xr.supportsFoveatedRendering;
             if (foveatedRendering)
                 // This is a geometry pass, enable foveated rendering (we need to disable it after)
                 cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Enabled);
@@ -160,10 +163,12 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         private class PassData
         {
+            internal Camera camera;
+            internal XRPass xr;
+
             internal TextureHandle motionVectorColor;
             internal TextureHandle motionVectorDepth;
             internal TextureHandle cameraDepth;
-            internal RenderingData renderingData;
             internal Material cameraMaterial;
             internal RendererListHandle rendererListHdl;
 
@@ -174,26 +179,30 @@ namespace UnityEngine.Rendering.Universal
         /// Initialize the shared pass data.
         /// </summary>
         /// <param name="passData"></param>
-        private void InitPassData(ref RenderingData renderingData, ref PassData passData)
+        private void InitPassData(ref PassData passData, UniversalCameraData cameraData)
         {
+            passData.camera = cameraData.camera;
+            passData.xr = cameraData.xr;
+
             passData.cameraMaterial = m_CameraMaterial;
         }
 
-        private void InitRendererLists(ref RenderingData renderingData, ref PassData passData, ScriptableRenderContext context, RenderGraph renderGraph, bool useRenderGraph)
+        private void InitRendererLists(ref PassData passData, ref CullingResults cullResults, bool supportsDynamicBatching, ScriptableRenderContext context, RenderGraph renderGraph, bool useRenderGraph)
         {
-            UniversalRenderingData universalRenderingData = renderingData.frameData.Get<UniversalRenderingData>();
-            var camera = renderingData.cameraData.camera;
-            var drawingSettings = GetDrawingSettings(ref renderingData);
-            var filteringSettings = new FilteringSettings(RenderQueueRange.opaque, camera.cullingMask);
+            var drawingSettings = GetDrawingSettings(passData.camera, supportsDynamicBatching);
+            var filteringSettings = new FilteringSettings(RenderQueueRange.opaque, passData.camera.cullingMask);
             var renderStateBlock = new RenderStateBlock(RenderStateMask.Nothing);
             if(useRenderGraph)
-                RenderingUtils.CreateRendererListWithRenderStateBlock(renderGraph, universalRenderingData, drawingSettings, filteringSettings, renderStateBlock, ref passData.rendererListHdl);
+                RenderingUtils.CreateRendererListWithRenderStateBlock(renderGraph, ref cullResults, drawingSettings, filteringSettings, renderStateBlock, ref passData.rendererListHdl);
             else
-                RenderingUtils.CreateRendererListWithRenderStateBlock(context, universalRenderingData, drawingSettings, filteringSettings, renderStateBlock, ref passData.rendererList);
+                RenderingUtils.CreateRendererListWithRenderStateBlock(context, ref cullResults, drawingSettings, filteringSettings, renderStateBlock, ref passData.rendererList);
         }
 
-        internal void Render(RenderGraph renderGraph, TextureHandle cameraDepthTexture, TextureHandle motionVectorColor, TextureHandle motionVectorDepth, ref RenderingData renderingData)
+        internal void Render(RenderGraph renderGraph, ContextContainer frameData, TextureHandle cameraDepthTexture, TextureHandle motionVectorColor, TextureHandle motionVectorDepth)
         {
+            UniversalRenderingData renderingData = frameData.Get<UniversalRenderingData>();
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("Motion Vector Pass", out var passData, base.profilingSampler))
             {
                 //  TODO RENDERGRAPH: culling? force culling off for testing
@@ -202,16 +211,16 @@ namespace UnityEngine.Rendering.Universal
 
                 passData.motionVectorColor = builder.UseTextureFragment(motionVectorColor, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
                 passData.motionVectorDepth = builder.UseTextureFragmentDepth(motionVectorDepth, IBaseRenderGraphBuilder.AccessFlags.Write);
-                InitPassData(ref renderingData, ref passData);
+                InitPassData(ref passData, cameraData);
                 passData.cameraDepth = builder.UseTexture(cameraDepthTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
-                passData.renderingData = renderingData;
 
-                InitRendererLists(ref renderingData, ref passData, default(ScriptableRenderContext), renderGraph, true);
+                InitRendererLists(ref passData, ref renderingData.cullResults, renderingData.supportsDynamicBatching,
+                    default(ScriptableRenderContext), renderGraph, true);
                 builder.UseRendererList(passData.rendererListHdl);
 
                 builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
                 {
-                    ExecutePass(context.cmd, data, data.rendererListHdl, ref data.renderingData);
+                    ExecutePass(context.cmd, data, data.rendererListHdl);
                 });
             }
 

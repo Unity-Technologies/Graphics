@@ -22,6 +22,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public static readonly string[] s_MaterialDecalPassNames = Enum.GetNames(typeof(MaterialDecalPass));
         public static readonly string s_AtlasSizeWarningMessage = "Decal texture atlas out of space, decals on transparent geometry might not render correctly, atlas size can be changed in HDRenderPipelineAsset";
+        public static readonly string s_GlobalDrawDistanceWarning = "The Draw Distance on the decal projector is larger than the global Draw Distance of {0} set in the render pipeline settings. The global setting will be used.";
 
         static class DecalShaderIds
         {
@@ -329,6 +330,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool m_AllocationSuccess = true;
         public bool m_PrevAllocationSuccess = true;
 
+        private int m_GlobalDrawDistance = kDefaultDrawDistance;
+
 #if UNITY_EDITOR
         private bool m_ShaderGraphSaved = false;
         private bool m_ShaderGraphSaveRequested = false;
@@ -484,6 +487,22 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             return false;
+        }
+
+        internal void Initialize()
+        {
+            int globalDrawDistance = DrawDistance;
+
+            // Reset draw cached draw distances that depend on global draw distance setting
+            if (m_GlobalDrawDistance != globalDrawDistance)
+            {
+                m_GlobalDrawDistance = globalDrawDistance;
+
+                DecalProjector[] decalProjectors = Resources.FindObjectsOfTypeAll<DecalProjector>();
+                int projectorCount = decalProjectors.Length;
+                for (int i = 0; i < projectorCount; i++)
+                    ResetCachedDrawDistance(decalProjectors[i]);
+            }
         }
 
         private partial class DecalSet : IDisposable
@@ -656,16 +675,22 @@ namespace UnityEngine.Rendering.HighDefinition
                 InitializeMaterialValues();
             }
 
+            private float GetDrawDistance(float projectorDrawDistance)
+            {
+                // draw distance can't be more than global draw distance
+                float globalDrawDistance = instance.DrawDistance;
+                return projectorDrawDistance < globalDrawDistance
+                    ? projectorDrawDistance
+                    : globalDrawDistance;
+            }
+
             public void UpdateCachedData(DecalHandle handle, DecalProjector decalProjector)
             {
                 DecalProjector.CachedDecalData data = decalProjector.GetCachedDecalData();
 
                 int index = handle.m_Index;
 
-                // draw distance can't be more than global draw distance
-                m_CachedDrawDistances[index].x = data.drawDistance < instance.DrawDistance
-                    ? data.drawDistance
-                    : instance.DrawDistance;
+                m_CachedDrawDistances[index].x = GetDrawDistance(data.drawDistance);
                 m_CachedDrawDistances[index].y = data.fadeScale;
                 // In the shader to remap from cosine -1 to 1 to new range 0..1  (with 0 = 0 degree and 1 = 180 degree)
                 // Approximate acos with polynom: (-0.69 * x^2 - 0.87) * x + HALF_PI;
@@ -702,6 +727,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 UpdateCachedDrawOrder();
 
                 UpdateJobArrays(index, decalProjector);
+            }
+
+            internal void ResetCachedDrawDistance(DecalHandle handle, DecalProjector decalProjector)
+            {
+                var data = decalProjector.GetCachedDecalData();
+                int index = handle.m_Index;
+                m_CachedDrawDistances[index].x = GetDrawDistance(data.drawDistance);
             }
 
             public void UpdateCachedDrawOrder()
@@ -1279,6 +1311,14 @@ namespace UnityEngine.Rendering.HighDefinition
             DecalSet decalSet = GetDecalSet(handle);
             if (decalSet != null)
                 decalSet.UpdateCachedData(handle, decalProjector);
+        }
+
+        private void ResetCachedDrawDistance(DecalProjector decalProjector)
+        {
+            DecalHandle handle = decalProjector.Handle;
+            DecalSet decalSet = GetDecalSet(handle);
+            if (decalSet != null)
+                decalSet.ResetCachedDrawDistance(handle, decalProjector);
         }
 
         public void UpdateTransparentShaderGraphTextures(DecalHandle handle, DecalProjector decalProjector)

@@ -197,6 +197,12 @@ MonoBehaviour:
   type:
     m_OverrideState: 0
     m_Value: 1
+  renderingMode:
+    m_OverrideState: 0
+    m_Value: 0
+  material:
+    m_OverrideState: 0
+    m_Value: {fileID: -876546973899608171, guid: 02532cbb810fb404db49da84f1efe41e, type: 3}
   sphericalMode:
     m_OverrideState: 0
     m_Value: 1
@@ -301,27 +307,9 @@ MonoBehaviour:
   enable:
     m_OverrideState: 1
     m_Value: 1
-  minGridSize:
+  triangleSize:
     m_OverrideState: 0
-    m_Value: 75
-  maxGridSize:
-    m_OverrideState: 0
-    m_Value: 2500
-  elevationTransition:
-    m_OverrideState: 0
-    m_Value: 1000
-  numLevelOfDetails:
-    m_OverrideState: 1
-    m_Value: 4
-  maxTessellationFactor:
-    m_OverrideState: 1
-    m_Value: 10
-  tessellationFactorFadeStart:
-    m_OverrideState: 0
-    m_Value: 150
-  tessellationFactorFadeRange:
-    m_OverrideState: 0
-    m_Value: 1850
+    m_Value: 30
   ambientProbeDimmer:
     m_OverrideState: 0
     m_Value: 0.5
@@ -406,10 +394,10 @@ MonoBehaviour:
     m_Value: 64
   m_VolumetricFogBudget:
     m_OverrideState: 0
-    m_Value: 0.5
+    m_Value: 0.33
   m_ResolutionDepthRatio:
     m_OverrideState: 0
-    m_Value: 0.5
+    m_Value: 0.666
   directionalLightsOnly:
     m_OverrideState: 0
     m_Value: 0
@@ -533,7 +521,7 @@ MonoBehaviour:
     m_Value: 0
   m_RayMaxIterations:
     m_OverrideState: 0
-    m_Value: 64
+    m_Value: 48
   rayMiss:
     m_OverrideState: 0
     m_Value: 3
@@ -563,9 +551,9 @@ MonoBehaviour:
   m_DenoiserRadius:
     m_OverrideState: 0
     m_Value: 8
-  m_AffectSmoothSurfaces:
+  m_DenoiserAntiFlickeringStrength:
     m_OverrideState: 0
-    m_Value: 0
+    m_Value: 1
   mode:
     m_OverrideState: 0
     m_Value: 2

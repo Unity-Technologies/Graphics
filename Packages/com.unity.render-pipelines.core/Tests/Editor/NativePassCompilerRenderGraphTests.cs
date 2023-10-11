@@ -367,14 +367,18 @@ namespace UnityEngine.Rendering.Tests
 
             // Pass 1 first used = {extra 1}
             List<ResourceHandle> firstUsed = new List<ResourceHandle>();
-            foreach (var res in result.contextData.passData[1].FirstUsedResources(result.contextData)) firstUsed.Add(res);
+            ref var pass1Data = ref result.contextData.passData.ElementAt(1);
+            foreach (ref readonly var res in pass1Data.FirstUsedResources(result.contextData))
+                firstUsed.Add(res);
 
             Assert.AreEqual(1, firstUsed.Count);
             Assert.AreEqual(buffers.extraBuffers[1].handle.index, firstUsed[0].index);
 
             // Pass 2 last used = {
             List<ResourceHandle> lastUsed = new List<ResourceHandle>();
-            foreach (var res in result.contextData.passData[2].LastUsedResources(result.contextData)) lastUsed.Add(res);
+            ref var pass2Data = ref result.contextData.passData.ElementAt(2);
+            foreach (ref readonly var res in pass2Data.LastUsedResources(result.contextData))
+                lastUsed.Add(res);
 
             Assert.AreEqual(1, lastUsed.Count);
             Assert.AreEqual(buffers.extraBuffers[1].handle.index, lastUsed[0].index);
@@ -416,7 +420,9 @@ namespace UnityEngine.Rendering.Tests
 
             // Pass 0 : first used = {depthBuffer, extraBuffers[0]}
             List<ResourceHandle> firstUsed = new List<ResourceHandle>();
-            foreach (var res in result.contextData.passData[0].FirstUsedResources(result.contextData)) firstUsed.Add(res);
+            ref var pass0Data = ref result.contextData.passData.ElementAt(0);
+            foreach (ref readonly var res in pass0Data.FirstUsedResources(result.contextData))
+                firstUsed.Add(res);
 
             //Extra buffer 0 should be memoryless
             Assert.AreEqual(2, firstUsed.Count);
@@ -426,7 +432,9 @@ namespace UnityEngine.Rendering.Tests
 
             // Pass 1 : last used = {depthBuffer, extraBuffers[0], backBuffer}
             List<ResourceHandle> lastUsed = new List<ResourceHandle>();
-            foreach (var res in result.contextData.passData[1].LastUsedResources(result.contextData)) lastUsed.Add(res);
+            ref var pass1Data = ref result.contextData.passData.ElementAt(1);
+            foreach (var res in pass1Data.LastUsedResources(result.contextData))
+                lastUsed.Add(res);
 
             Assert.AreEqual(3, lastUsed.Count);
             Assert.AreEqual(buffers.extraBuffers[0].handle.index, lastUsed[1].index);
@@ -477,7 +485,7 @@ namespace UnityEngine.Rendering.Tests
             Assert.AreEqual(buffers.backBuffer.handle.index, nativePasses[0].attachments[4].handle.index);
 
             // Sub Pass 0
-            ref var subPass = ref result.contextData.nativeSubPassData[nativePasses[0].firstNativeSubPass];
+            ref var subPass = ref result.contextData.nativeSubPassData.ElementAt(nativePasses[0].firstNativeSubPass);
             Assert.AreEqual(0, subPass.inputs.Length);
 
             Assert.AreEqual(3, subPass.colorOutputs.Length);
@@ -486,7 +494,7 @@ namespace UnityEngine.Rendering.Tests
             Assert.AreEqual(3, subPass.colorOutputs[2]);
 
             // Sub Pass 1
-            ref var subPass2 = ref result.contextData.nativeSubPassData[nativePasses[0].firstNativeSubPass+1];
+            ref var subPass2 = ref result.contextData.nativeSubPassData.ElementAt(nativePasses[0].firstNativeSubPass+1);
             Assert.AreEqual(3, subPass2.inputs.Length);
             Assert.AreEqual(1, subPass2.inputs[0]);
             Assert.AreEqual(2, subPass2.inputs[1]);

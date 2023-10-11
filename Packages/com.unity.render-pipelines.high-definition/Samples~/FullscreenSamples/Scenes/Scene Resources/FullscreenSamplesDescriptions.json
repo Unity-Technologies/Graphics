@@ -1,0 +1,74 @@
+{
+    "introduction": 
+    """Welcome to the collection of <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/fullscreen-shader.html">Fullscreen Shaders</a> Samples. Each of the effects instantiated by this script are Prefabs available for usage in the Fullscreen Samples folder. Fullscreen shaders can be used through different means :
+
+        • <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Custom-Pass.html">Custom Pass</a> configured through the <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Custom-Pass-Volume-Workflow.html">Custom Pass Volume</a> component can apply shaders over the screen or selected layers.
+    
+        • <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Custom-Post-Process.html">Custom Post Process</a> to add custom-made post processing effects integrated to the Volume Profile system.
+
+        • <a href="https://docs.unity3d.com/2023.2/Documentation/Manual/class-CustomRenderTexture.html"> Custom Render Texture</a> that are able to be updated at runtime with a shader. Those dynamic textures can be used for simulation or animated effects such as water ripples, rain, or footprints.""",
+    
+    "samples": [
+        {
+            "title": "Edge Detection",
+            "prefabName": "EdgeDetection_CustomPass",
+            "description": 
+	"""Fullscreen Custom Pass using a <link="EdgeDetection.shadergraph">Shader Graph</link>. The material performs a <b>Robert Cross Edge Detection</b> on the Scene Depth and Normal Buffers. The normal and depth buffer take place before Transparency in the rendering pipeline. It means that transparent objects won't be altered by this effect."""
+        },
+        {
+            "title": "Highlight",
+            "prefabName": "Highlight_CustomPass",
+            "description": 
+	"""Here objects are highlighted thanks to two passes.
+    
+First objects inside the UI Layer are rendered with a single color onto the Custom Color Buffer.This color is changed per object through a <link="CustomizeHighlightColor.cs">C# script</link> that edits Material Property Block. Then in a second Pass, a <link="HighlightFullscreen.shadergraph">fullscreen shader</link> uses the <b>Custom Color Buffer</b> to create the visual highlight seen on screen.
+    """
+        },
+        {
+            "title": "Sobel Filter",
+            "prefabName": "SobelFilter_CustomPass",
+            "description": 
+	"""Fullscreen Custom Pass that uses a <link="SobelFilter.shadergraph">Shader Graph</link> that performs a <b>Sobel Filter</b> on the Scene Color."""
+        },
+        {
+            "title": "Speed Lines",
+            "prefabName": "SpeedLines_CustomPass",
+            "description": 
+	"""This Fullscreen Custom Pass creates animated speed lines over the screen with <link="SpeedLines.shadergraph">Shader Graph</link>."""
+        },
+        {
+            "title": "Night Vision",
+            "prefabName": "NightVision_CustomPass",
+            "description": 
+	"""Fullscreen Custom Pass using a <link="Nighvision.shadergraph">Shader Graph</link> to create a Night Vision filter. Its potential is seen while the scene has very low light values. <b>Change the scene lighting to night by reorienting the <link="Directional Light">Sun</link>.</b>"""
+        },
+        {
+            "title": "Custom Sky Cubemap",
+            "prefabName": "NightSky_CustomHDRi",
+            "description": 
+	"""A <link="NightSky_ToCubemaptarget.shadergraph">Shader Graph</link> is used to render the artistic look of a night sky on a <link="NightSky_CubemapRenderTarget.asset">cubemap</link>. The cubemap is then used by the HDRi Sky Override on a Volume Profile. A <link="LinkDirectionalToCustomNightSky.cs">C# script</link> links the <link="Directional Light">directional light</link> to the Moon position."""
+        },
+        {
+            "title": "Rain on Camera",
+            "prefabName": "RainOnCamera_CustomPass",
+            "description":     
+	"""The rain animation is created using two Shader Graphs. The <link="Rain_ToRenderTarget.shadergraph">first one</link> is responsible for creating a rain droplet texture that is stored as a <link="Rain_RenderTarget.asset">Double Buffered Custom Render Target</link>. The <link="Rain_ToCustomPass.shadergraph">second one</link> then uses this texture to create the final effect and is connected to a Fullscreen Custom Pass.
+    
+To note : while in editor and outside of runtime, the double buffered Render Target update timing is not consistant.
+    """
+        },
+        {
+            "title": "Colorblindness",
+            "prefabName": "Colorblindness_VolumeProfile",
+            "description": 
+	"""Filter that simulates types of Colorblindness.
+
+The filter needs to be applied to the final color of the render, after Tonemapping or any other color grading. This is done in <link="ColorblindFilter.shadergraph">Shader Graph</link> by using PostProcessInput of the HDSampleBuffer node, which is only available after Post Process. It means a new Post Process for the Volume Profile needs to be created.
+
+Custom Post Processes are created through C# script, see <link="Colorblindness.cs">Colorblindness.cs</link>. 
+    
+<b>This custom post process needs to be added to the HDRP Global settings</b> : (Custom Post Process Orders > After Post Process) otherwise HDRP won't recognize it.Then, Colorblindness will be available as a new Override for Volume Profile under Post-Processing>Custom."""
+        }
+    ]	
+}
+

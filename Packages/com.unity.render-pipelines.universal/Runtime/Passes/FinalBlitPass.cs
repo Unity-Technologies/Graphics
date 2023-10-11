@@ -136,7 +136,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 debugHandler?.UpdateShaderGlobalPropertiesForFinalValidationPass(cmd, cameraData, !resolveToDebugScreen);
 
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.LinearToSRGBConversion,
+                cmd.SetKeyword(ShaderGlobalKeywords.LinearToSRGBConversion,
                     cameraData.requireSrgbConversion);
 
                 if (outputsToHDR)
@@ -211,6 +211,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (isRenderToBackBufferTarget)
                 cmd.SetViewport(cameraData.pixelRect);
 
+            // turn off any global wireframe & "scene view wireframe shader hijack" settings for doing blits:
+            // we never want them to show up as wireframe
+            cmd.SetWireframe(false);
+
             int shaderPassIndex = source.rt?.filterMode == FilterMode.Bilinear ? data.blitMaterialData.bilinearSamplerPass : data.blitMaterialData.nearestSamplerPass;
             Blitter.BlitTexture(cmd, source, scaleBias, data.blitMaterialData.material, shaderPassIndex);
         }
@@ -238,13 +242,12 @@ namespace UnityEngine.Rendering.Universal.Internal
             passData.blitMaterialData = m_BlitMaterialData[(int)blitType];
         }
 
-        internal void Render(RenderGraph renderGraph, ref RenderingData renderingData, TextureHandle src, TextureHandle dest, TextureHandle overlayUITexture)
+        internal void Render(RenderGraph renderGraph, UniversalCameraData cameraData, TextureHandle src, TextureHandle dest, TextureHandle overlayUITexture)
         {
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("Final Blit", out var passData, base.profilingSampler))
             {
-                UniversalCameraData cameraData = renderingData.frameData.Get<UniversalCameraData>();
 
-                bool outputsToHDR = renderingData.cameraData.isHDROutputActive;
+                bool outputsToHDR = cameraData.isHDROutputActive;
                 InitPassData(cameraData, ref passData, outputsToHDR ? BlitType.HDR : BlitType.Core);
 
                 passData.sourceID = ShaderPropertyId.sourceTex;
@@ -270,7 +273,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 {
                     data.blitMaterialData.material.enabledKeywords = null;
 
-                    CoreUtils.SetKeyword(context.cmd, ShaderKeywordStrings.LinearToSRGBConversion, data.requireSrgbConversion);
+                    context.cmd.SetKeyword(ref ShaderGlobalKeywords.LinearToSRGBConversion, data.requireSrgbConversion);
                     data.blitMaterialData.material.SetTexture(data.sourceID, data.source);
 
                     DebugHandler debugHandler = GetActiveDebugHandler(data.cameraData);

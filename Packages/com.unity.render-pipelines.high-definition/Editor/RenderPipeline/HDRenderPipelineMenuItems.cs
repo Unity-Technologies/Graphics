@@ -127,6 +127,21 @@ namespace UnityEditor.Rendering.HighDefinition
             MaterialReimporter.ReimportAllMaterials();
         }
 
+        [MenuItem("Edit/Rendering/Materials/Generate Material Resources", priority = CoreUtils.Priorities.editMenuPriority)]
+        internal static void GenerateLookUpTables()
+        {
+            var resources = new List<RenderTexture>();
+
+            // Ask for each render pipeline material to build their look-ups
+            HDUtils.GetRenderPipelineMaterialList().ForEach(material => material.BuildOffline(ref resources));
+
+            // Write the resources to disk.
+            resources.ForEach(resource => HDTextureUtilities.WriteTextureToAsset(resource, $"Assets/HDRPDefaultResources/Generated/{resource.name}.asset"));
+
+            // Release
+            resources.ForEach(RenderTexture.ReleaseTemporary);
+        }
+
         [MenuItem("Edit/Rendering/Rendering Layers/Add HDRP Default Layer Mask to Loaded Mesh Renderers and Terrains", priority = CoreUtils.Priorities.editMenuPriority + 2)]
         internal static void UpgradeDefaultRenderingLayerMask()
         {

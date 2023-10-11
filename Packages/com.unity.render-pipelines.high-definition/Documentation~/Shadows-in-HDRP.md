@@ -193,6 +193,18 @@ This setup is particularly useful if your environment consists of mostly static 
 
 **Note**: If a Light with mixed cached shadows moves and you don't update the cached counterpart, the result looks wrong. In such cases either enable the Light's **Update on light movement** option or set the Light's update mode to **OnDemand** and make sure to trigger an update when you move the Light.
 
+### View Dependent Update
+
+Anything that's view-dependent is likely to create problems with cached shadow maps because HDRP doesn't automatically update them as the main view moves. An example of this is tessellation. Tessellation factor is view-dependent, so the geometry that the main camera sees might not match the geometry that HDRP rendered into the cached shadow map. If this visibly occurs, trigger a request for HDRP to update the Light's shadow map. To do this, make sure you set the Light's **Update Mode** to **On Demand** and call `RequestShadowMapRendering`.
+
+Another example is when multiple views are available. The light will be updated only for a single view therefore causing the other views to have incorrect results. To avoid a common scenario in which the described artifact will occur, HDRP won't mark a shadow request as completed when performed from reflection probes with view dependent shadows and waiting until a non-reflection camera triggers a shadow update.
+
+#### Directional Light Update
+
+The shadow cascades of a directional light are always view dependent. This means that camera movement that changes view direction or moves outside of the area in which the cached cascades were captured will lead to artifacts if the cached shadows are not updated. These artifacts can manifest as incorrect shadows around the camera or at the edges of cascades.
+
+Because of this it is advisable to use **Update Mode** with **On Demand** and call `RequestShadowMapRendering` frequently if the main camera is moved to avoid artifacts.
+
 ### Notes
 
 While you are in the Unity Editor, HDRP updates shadow maps whenever you modify the Light that casts them. In a built application, HDRP refreshes cached shadow maps when you change different properties on the Light or when you call one of the following functions:
@@ -201,10 +213,6 @@ While you are in the Unity Editor, HDRP updates shadow maps whenever you modify 
 - `SetShadowResolutionLevel()`
 - `SetShadowResolutionOverride()`
 - `SetShadowUpdateMode()` or `shadowUpdateMode`. In this case, HDRP only refreshes the cached shadow maps if the mode changes between Every Frame and not Every Frame.
-
-Anything that's view-dependent is likely to create problems with cached shadow maps because HDRP doesn't automatically update them as the main view moves. An example of this is tessellation. Tessellation factor is view-dependent, so the geometry that the main camera sees might not match the geometry that HDRP rendered into the cached shadow map. If this visibly occurs, trigger a request for HDRP to update the Light's shadow map. To do this, make sure you set the Light's **Update Mode** to **On Demand** and call `RequestShadowMapRendering`.
-
-Another example is when multiple views are available. The light will be updated only for a single view therefore causing the other views to have incorrect results. To avoid a common scenario in which the described artifact will occur, HDRP won't mark a shadow request as completed when performed from reflection probes with view dependent shadows and waiting until a non-reflection camera triggers a shadow update.
 
 ## Contact Shadows
 

@@ -325,7 +325,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             mode = m_RenderPipelineSettings.gpuResidentDrawerSettings.mode,
             supportDitheringCrossFade = QualitySettings.enableLODCrossFade,
-            allowInEditMode = m_RenderPipelineSettings.gpuResidentDrawerSettings.allowInEditMode,
+            allowInEditMode = true,
 #if UNITY_EDITOR
             pickingShader = Shader.Find("Hidden/HDRP/BRGPicking"),
 #endif

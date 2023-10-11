@@ -68,6 +68,7 @@
 * [Post-processing](integration-with-post-processing.md)
   * [How to configure](integration-with-post-processing.md#post-proc-how-to)
   * [HDR Output](post-processing/hdr-output.md)
+    * [Custom Passes with HDR Output](post-processing/hdr-custom-pass.md)
   * [Volumes](Volumes.md)
     * [Volume Profile](Volume-Profile.md)
     * [Volume Overrides](VolumeOverrides.md)

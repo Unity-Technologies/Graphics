@@ -65,7 +65,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     - _BaseColorMap0:
         m_Texture: {fileID: 2800000, guid: a71ed4d43c237a74f80f21c3dccc4f75, type: 3}
-        m_Scale: {x: 5, y: 10}
+        m_Scale: {x: 8, y: 10}
         m_Offset: {x: 0, y: 0}
     - _BaseColorMap1:
         m_Texture: {fileID: 2800000, guid: 81b32ef85db4a46498dbd16f881b7c7f, type: 3}
@@ -470,7 +470,7 @@ Material:
     - _InheritBaseNormal2: 0
     - _InheritBaseNormal3: 0
     - _InvTilingScale: 1
-    - _InvTilingScale0: 0.13333334
+    - _InvTilingScale0: 0.11111111
     - _InvTilingScale1: 0.22222222
     - _InvTilingScale2: 0.26666668
     - _InvTilingScale3: 1
@@ -490,7 +490,7 @@ Material:
     - _Metallic2: 0
     - _Metallic3: 0
     - _MetallicRemapMax: 1
-    - _MetallicRemapMax0: 0
+    - _MetallicRemapMax0: 0.047244094
     - _MetallicRemapMax1: 0.02135104
     - _MetallicRemapMax2: 1
     - _MetallicRemapMax3: 1
@@ -505,7 +505,7 @@ Material:
     - _NormalMapSpace2: 0
     - _NormalMapSpace3: 0
     - _NormalScale: 1
-    - _NormalScale0: 0.3
+    - _NormalScale0: 0.5
     - _NormalScale1: 0.1
     - _NormalScale2: 0.1
     - _NormalScale3: 1
@@ -532,7 +532,7 @@ Material:
     - _Smoothness2: 0
     - _Smoothness3: 0.5
     - _SmoothnessRemapMax: 1
-    - _SmoothnessRemapMax0: 0.05075252
+    - _SmoothnessRemapMax0: 0.21905959
     - _SmoothnessRemapMax1: 1
     - _SmoothnessRemapMax2: 1
     - _SmoothnessRemapMax3: 1
@@ -647,6 +647,7 @@ Material:
     - _UVMappingMaskBlendMask: {r: 1, g: 0, b: 0, a: 0}
     - _UVMappingMaskEmissive: {r: 1, g: 0, b: 0, a: 0}
   m_BuildTextureStacks: []
+  m_AllowLocking: 1
 --- !u!114 &3510983040912666096
 MonoBehaviour:
   m_ObjectHideFlags: 11

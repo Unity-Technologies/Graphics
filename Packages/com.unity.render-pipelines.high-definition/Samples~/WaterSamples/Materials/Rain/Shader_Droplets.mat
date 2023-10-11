@@ -1,0 +1,132 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-6599002181580244438
+MonoBehaviour:
+  m_ObjectHideFlags: 11
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da692e001514ec24dbc4cca1949ff7e8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  version: 13
+  hdPluginSubTargetMaterialVersions:
+    m_Keys: []
+    m_Values: 
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Shader_Droplets
+  m_Shader: {fileID: -6465566751694194690, guid: d6d512ad1abf5494c9cf6c1fe42e1bcc,
+    type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap:
+    MotionVector: User
+  disabledShaderPasses:
+  - MOTIONVECTORS
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _Droplets_Texture:
+        m_Texture: {fileID: 8600000, guid: 9c1cca59737f4534ea675a56e4b3fcbe, type: 2}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Sample4_48b1dac454414a5caa897f3aa653d124_DropletsTexture_2421910828_Texture2D:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2DLOD_b64ff09832ed45a28005994dd2f263ad_Texture_1_Texture2D:
+        m_Texture: {fileID: 8600000, guid: 9c1cca59737f4534ea675a56e4b3fcbe, type: 2}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_2bac954466bf4635a4f95f8ca2d995df_Texture_1_Texture2D:
+        m_Texture: {fileID: 2800000, guid: 940b1c9ababba9547b0214a2d9e3292a, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_2ca18c2fbc0a4f3db793ae3da19d7b38_Texture_1_Texture2D:
+        m_Texture: {fileID: 8600000, guid: 9c1cca59737f4534ea675a56e4b3fcbe, type: 2}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_360e520d753942d0b9d75a5c6b080fa0_Texture_1_Texture2D:
+        m_Texture: {fileID: 8600000, guid: 9c1cca59737f4534ea675a56e4b3fcbe, type: 2}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_3c6f820ccb084181b1fd4871117c14ac_Texture_1_Texture2D:
+        m_Texture: {fileID: 8600000, guid: 9c1cca59737f4534ea675a56e4b3fcbe, type: 2}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_5098c5d1aeeb48e3897167bb8917c138_Texture_1_Texture2D:
+        m_Texture: {fileID: 8600000, guid: 9c1cca59737f4534ea675a56e4b3fcbe, type: 2}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_53a7492f72d44e1b8e818814f5151861_Texture_1_Texture2D:
+        m_Texture: {fileID: 8600000, guid: 9c1cca59737f4534ea675a56e4b3fcbe, type: 2}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_88d7249850a74121ab4574452820d50d_Texture_1_Texture2D:
+        m_Texture: {fileID: 8600000, guid: 9c1cca59737f4534ea675a56e4b3fcbe, type: 2}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_987d3e0d75c744e881c9f5d8ce4f4371_Texture_1_Texture2D:
+        m_Texture: {fileID: 8600000, guid: 9c1cca59737f4534ea675a56e4b3fcbe, type: 2}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_a6fcff989d0a493da597c1d25f6011e4_Texture_1_Texture2D:
+        m_Texture: {fileID: 8600000, guid: 9c1cca59737f4534ea675a56e4b3fcbe, type: 2}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_ad3b4107c5a940f7a9d6f9499fce9a09_Texture_1_Texture2D:
+        m_Texture: {fileID: 2800000, guid: a9fc7e5bf71dcb540b7a9398076abb0f, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_ba8d0a754bd143be986aab1624c3321b_Texture_1_Texture2D:
+        m_Texture: {fileID: 8600000, guid: 9c1cca59737f4534ea675a56e4b3fcbe, type: 2}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_e74a3bb52b4247eeb144fe32ca34dfcf_Texture_1_Texture2D:
+        m_Texture: {fileID: 8600000, guid: 9c1cca59737f4534ea675a56e4b3fcbe, type: 2}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_Lightmaps:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_LightmapsInd:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_ShadowMasks:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _Drop_Size: 0.5
+    - _Droplets_Intensity: 55.26
+    - _Fade: 0.95
+    - _Fade_End: 30
+    - _Fade_Start: 10
+    - _Fade_Value: 0.95
+    - _Float: 0
+    - _Normal_Intensity: 10
+    - _Rain_Amount: 0.05
+    - _Texture_Resolution: 1024
+    m_Colors:
+    - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1

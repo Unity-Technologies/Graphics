@@ -121,6 +121,18 @@ namespace UnityEngine.Rendering.HighDefinition
         WaterSurfaceRenderingDeferred,
         WaterSurfaceRenderingWaterLine,
 
+        // High Quality Lines
+        LinesGeometrySetup,
+        LinesVertexSetup,
+        LinesSegmentSetup,
+        LinesShadingPrepare,
+        LinesShading,
+        LinesRasterizationSetup,
+        LinesBuildClusters,
+        LinesBinningStage,
+        LinesWorkQueue,
+        LinesFineRaster,
+
         // RT Cluster
         RaytracingBuildCluster,
         RaytracingCullLights,

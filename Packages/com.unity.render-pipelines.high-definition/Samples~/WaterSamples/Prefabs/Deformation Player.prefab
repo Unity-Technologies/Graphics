@@ -1,0 +1,79 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &3629222103406291135
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6849520575537755077}
+  - component: {fileID: 3259858252447291180}
+  - component: {fileID: 1980968489909947230}
+  m_Layer: 0
+  m_Name: Deformation Player
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6849520575537755077
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3629222103406291135}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 0, y: 0, z: 0}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &3259858252447291180
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3629222103406291135}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 78cf48dc57241ca4180a616b92b5d9f2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  type: 4
+  amplitude: 0.5
+  regionSize: {x: 10, y: 10}
+  scaleMode: 1
+  boxBlend: {x: 0, y: 0}
+  cubicBlend: 1
+  waveLength: 3
+  waveRepetition: 10
+  waveSpeed: 15
+  waveOffset: 0
+  waveBlend: {x: 0.3, y: 0.6}
+  breakingRange: {x: 0.7, y: 0.8}
+  deepFoamRange: {x: 0.5, y: 0.8}
+  bowWaveElevation: 1
+  range: {x: 0, y: 1}
+  texture: {fileID: 2800000, guid: 940b1c9ababba9547b0214a2d9e3292a, type: 3}
+  deepFoamDimmer: 1
+  surfaceFoamDimmer: 1
+--- !u!114 &1980968489909947230
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3629222103406291135}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 096b6060f115f9344bc95529a5c57e6a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  defaultAmplitude: 0.33
+  defaultSpeed: 1

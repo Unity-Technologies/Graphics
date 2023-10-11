@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da692e001514ec24dbc4cca1949ff7e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 12
+  version: 13
   hdPluginSubTargetMaterialVersions:
     m_Keys: []
     m_Values: 
@@ -68,12 +68,20 @@ Material:
     - _DoubleSidedNormalMode: 2
     - _DstBlend: 0
     - _EnableFogOnTransparent: 1
+    - _FogVolumeAlphaBlendOp: 0
+    - _FogVolumeBlendMode: 1
+    - _FogVolumeColorBlendOp: 0
+    - _FogVolumeDstAlphaBlend: 1
+    - _FogVolumeDstColorBlend: 1
+    - _FogVolumeFogDistanceProperty: 2
+    - _FogVolumeSrcAlphaBlend: 1
+    - _FogVolumeSrcColorBlend: 1
     - _Frequency: 3
     - _NOISE_TYPE: 3
     - _OpaqueCullMode: 2
     - _Perlin_Octaves: 6
     - _RenderQueueType: 1
-    - _Scale: 1
+    - _Scale: 0.25
     - _SrcBlend: 1
     - _SurfaceType: 0
     - _TransparentBackfaceEnable: 0
@@ -91,5 +99,7 @@ Material:
     - _Color: {r: 1, g: 1, b: 1, a: 0}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
+    - _FogVolumeSingleScatteringAlbedo: {r: 1, g: 1, b: 1, a: 1}
     - _Range: {r: 0, g: 1, b: 0, a: 0}
   m_BuildTextureStacks: []
+  m_AllowLocking: 1

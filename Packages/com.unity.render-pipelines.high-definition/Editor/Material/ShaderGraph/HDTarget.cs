@@ -94,6 +94,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             typeof(HDCanvasSubTarget),
             typeof(HDFullscreenSubTarget),
             typeof(WaterSubTarget),
+            typeof(WaterDecalSubTarget),
             typeof(FogVolumeSubTarget),
             typeof(PBRSkySubTarget),
         };
@@ -104,6 +105,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             typeof(HDCanvasSubTarget),
             typeof(HDFullscreenSubTarget),
             typeof(WaterSubTarget),
+            typeof(WaterDecalSubTarget),
             typeof(FogVolumeSubTarget),
             typeof(PBRSkySubTarget),
         };

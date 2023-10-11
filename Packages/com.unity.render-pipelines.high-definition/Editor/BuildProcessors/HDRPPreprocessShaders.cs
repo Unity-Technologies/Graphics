@@ -33,21 +33,28 @@ namespace UnityEditor.Rendering.HighDefinition
             // Remove water if disabled
             if (!settings.supportWater)
             {
-                
+                if (shader == m_Resources.shaders.opaqueAtmosphericScatteringPS)
+                {
+                    if (inputData.shaderKeywordSet.IsEnabled(m_SupportWater) ||
+                        inputData.shaderKeywordSet.IsEnabled(m_SupportWaterCaustics) ||
+                        inputData.shaderKeywordSet.IsEnabled(m_SupportWaterCausticsShadow))
+                        return true;
+                }
+
                 if (shader == m_Resources.shaders.waterCausticsPS ||
                     shader == m_Resources.shaders.waterFoamPS ||
                     shader == m_Resources.shaders.waterPS ||
                     shader == m_Resources.materials.waterExclusionMaterial.shader)
                     return true;
             }
-            
+
             // If Screen Space Lens Flare is disabled, strip all the shaders
             if (!settings.supportScreenSpaceLensFlare)
             {
                 if (shader == m_Resources.shaders.lensFlareScreenSpacePS)
                     return true;
             }
-            
+
             // If Data Driven Lens Flare is disabled, strip all the shaders (the preview shader LensFlareDataDrivenPreview.shader in Core will not be stripped)
             if (!settings.supportDataDrivenLensFlare)
             {

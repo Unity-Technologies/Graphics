@@ -92,12 +92,12 @@ namespace UnityEngine.Rendering.Tests
             {
                 using (var brg = new InstanceCullingBatcher(brgContext, InstanceCullingBatcherDesc.NewDefault(), gpuDrivenProcessor, null, null, null))
                 {
-                    brg.UpdateRenderers(objIDs);
+                    brg.UpdateRenderers(objIDs.AsArray());
 
                     Assert.IsTrue(brg.GetInstanceData().valid);
                     Assert.IsTrue(brg.GetInstanceData().drawInstances.Length == 3);
 
-                    brgContext.QueryInstanceData(objIDs, new NativeArray<int>(), new NativeArray<int>(), new NativeArray<int>(), new NativeArray<int>(),
+                    brgContext.QueryInstanceData(objIDs.AsArray(), new NativeArray<int>(), new NativeArray<int>(), new NativeArray<int>(), new NativeArray<int>(),
                         instances, new NativeArray<InstanceHandle>(), new NativeArray<InstanceHandle>(),
                         new NativeList<KeyValuePair<InstanceHandle, int>>(), new NativeList<InstanceHandle>());
 
@@ -184,7 +184,7 @@ namespace UnityEngine.Rendering.Tests
                 };
                 using (var brg = new InstanceCullingBatcher(brgContext, cpuDrivenDesc, gpuDrivenProcessor, null, null, null))
                 {
-                    brg.UpdateRenderers(objIDs);
+                    brg.UpdateRenderers(objIDs.AsArray());
 
                     var cameraObject = new GameObject("myCamera");
                     var mainCamera = cameraObject.AddComponent<Camera>();
@@ -195,7 +195,7 @@ namespace UnityEngine.Rendering.Tests
                     mainCamera = null;
                     GameObject.DestroyImmediate(cameraObject);
 
-                    brgContext.QueryInstanceData(objIDs, new NativeArray<int>(), new NativeArray<int>(), new NativeArray<int>(), new NativeArray<int>(),
+                    brgContext.QueryInstanceData(objIDs.AsArray(), new NativeArray<int>(), new NativeArray<int>(), new NativeArray<int>(), new NativeArray<int>(),
                         instances, new NativeArray<InstanceHandle>(), new NativeArray<InstanceHandle>(),
                         new NativeList<KeyValuePair<InstanceHandle, int>>(), new NativeList<InstanceHandle>());
 
@@ -268,7 +268,7 @@ namespace UnityEngine.Rendering.Tests
                 };
                 using (var brg = new InstanceCullingBatcher(brgContext, cpuDrivenDesc, gpuDrivenProcessor, null, null, null))
                 {
-                    brg.UpdateRenderers(objIDs);
+                    brg.UpdateRenderers(objIDs.AsArray());
 
                     var cameraObject = new GameObject("myCamera");
                     var mainCamera = cameraObject.AddComponent<Camera>();
@@ -278,7 +278,7 @@ namespace UnityEngine.Rendering.Tests
                     mainCamera = null;
                     GameObject.DestroyImmediate(cameraObject);
 
-                    brgContext.QueryInstanceData(objIDs, new NativeArray<int>(), new NativeArray<int>(), new NativeArray<int>(), new NativeArray<int>(),
+                    brgContext.QueryInstanceData(objIDs.AsArray(), new NativeArray<int>(), new NativeArray<int>(), new NativeArray<int>(), new NativeArray<int>(),
                         instances, new NativeArray<InstanceHandle>(), new NativeArray<InstanceHandle>(),
                         new NativeList<KeyValuePair<InstanceHandle, int>>(), new NativeList<InstanceHandle>());
 
@@ -382,8 +382,8 @@ namespace UnityEngine.Rendering.Tests
                 };
                 using (var brg = new InstanceCullingBatcher(brgContext, cpuDrivenDesc, gpuDrivenProcessor, null, null, null))
                 {
-                    brgContext.UpdateLODGroups(lodGroupInstancesID);
-                    brg.UpdateRenderers(objIDs);
+                    brgContext.UpdateLODGroups(lodGroupInstancesID.AsArray());
+                    brg.UpdateRenderers(objIDs.AsArray());
 
                     var cameraObject = new GameObject("myCamera");
                     var mainCamera = cameraObject.AddComponent<Camera>();
@@ -431,7 +431,7 @@ namespace UnityEngine.Rendering.Tests
                     mainCamera = null;
                     GameObject.DestroyImmediate(cameraObject);
 
-                    brgContext.QueryInstanceData(objIDs, new NativeArray<int>(), new NativeArray<int>(), new NativeArray<int>(), new NativeArray<int>(),
+                    brgContext.QueryInstanceData(objIDs.AsArray(), new NativeArray<int>(), new NativeArray<int>(), new NativeArray<int>(), new NativeArray<int>(),
                         instances, new NativeArray<InstanceHandle>(), new NativeArray<InstanceHandle>(),
                         new NativeList<KeyValuePair<InstanceHandle, int>>(), new NativeList<InstanceHandle>());
 
@@ -534,8 +534,8 @@ namespace UnityEngine.Rendering.Tests
                 };
                 using (var brg = new InstanceCullingBatcher(brgContext, cpuDrivenDesc, gpuDrivenProcessor, null, null, null))
                 {
-                    brgContext.UpdateLODGroups(lodGroupInstancesID);
-                    brg.UpdateRenderers(objIDs);
+                    brgContext.UpdateLODGroups(lodGroupInstancesID.AsArray());
+                    brg.UpdateRenderers(objIDs.AsArray());
 
                     var cameraObject = new GameObject("myCamera");
                     var mainCamera = cameraObject.AddComponent<Camera>();
@@ -588,7 +588,7 @@ namespace UnityEngine.Rendering.Tests
                     mainCamera = null;
                     GameObject.DestroyImmediate(cameraObject);
 
-                    brgContext.QueryInstanceData(objIDs, new NativeArray<int>(), new NativeArray<int>(), new NativeArray<int>(), new NativeArray<int>(),
+                    brgContext.QueryInstanceData(objIDs.AsArray(), new NativeArray<int>(), new NativeArray<int>(), new NativeArray<int>(), new NativeArray<int>(),
                         instances, new NativeArray<InstanceHandle>(), new NativeArray<InstanceHandle>(),
                         new NativeList<KeyValuePair<InstanceHandle, int>>(), new NativeList<InstanceHandle>());
 

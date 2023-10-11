@@ -46,6 +46,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             var result = new DefineCollection();
             if (canvasData.alphaClip)
                 result.Add(CoreKeywordDescriptors.AlphaTestOn, 1);
+
+            result.Add(base.GetAdditionalDefines());
             return result;
         }
 
@@ -58,7 +60,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public override void GetFields(ref TargetFieldContext context)
         {
             base.GetFields(ref context);
-            if(canvasData.alphaClip)
+            if (canvasData.alphaClip)
                 context.AddField(UnityEditor.ShaderGraph.Fields.AlphaTest);
         }
         public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)

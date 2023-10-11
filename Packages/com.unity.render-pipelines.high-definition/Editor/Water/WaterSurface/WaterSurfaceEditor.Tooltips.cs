@@ -90,7 +90,6 @@ namespace UnityEditor.Rendering.HighDefinition
         static public readonly GUIContent k_SmoothnessFadeRange = EditorGUIUtility.TrTextContent("Fade Range", "Specifies the range over which the smoothness is interpolated from close to distant.");
         static public readonly GUIContent k_SmoothnessFadeStart = EditorGUIUtility.TrTextContent("Start", "Sets the distance in meters at which HDRP starts interpolating the smoothness value for the water surface. ");
         static public readonly GUIContent k_SmoothnessFadeDistance = EditorGUIUtility.TrTextContent("Distance", "Sets the length in meters during which HDRP interpolates the smoothness value for the water surface. ");
-        public static readonly GUIContent k_WaterNewLMaterialLabel = EditorGUIUtility.TrTextContent("New", "Create a new water material.");
 
         static public readonly GUIContent k_Amplitude = EditorGUIUtility.TrTextContent("Amplitude", "Sets the normalized (between 0.0 and 1.0) amplitude of each simulation band (from lower to higher frequencies).");
 
@@ -118,6 +117,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static public readonly GUIContent k_FoamSmoothness = EditorGUIUtility.TrTextContent("Smoothness", "Controls the simulation foam smoothness.");
         static public readonly GUIContent k_FoamPersistenceMultiplier = EditorGUIUtility.TrTextContent("Persistence Multiplier", "Specifies the foam persistence multiplier. A higher value will lead to the foam remaining visible longer.");
+        static public readonly GUIContent k_FoamCurrentInfluence = EditorGUIUtility.TrTextContent("Current Influence", "Specifies the influence of the swell current on foam. A value of zero means foam stays still, a value of one makes the foam match with current direction and speed. Ripples motion have no impact on foam.");
         static public readonly GUIContent k_FoamTextureTiling = EditorGUIUtility.TrTextContent("Texture Tiling", "Sets the per meter tiling for the foam texture.");
         static public readonly GUIContent k_FoamColor = EditorGUIUtility.TrTextContent("Color", "Sets the foam color.");
         static public readonly GUIContent k_SimulationFoam = EditorGUIUtility.TrTextContent("Simulation Foam", "When enabled, the water simulation will generate foam on the tip of the waves.");

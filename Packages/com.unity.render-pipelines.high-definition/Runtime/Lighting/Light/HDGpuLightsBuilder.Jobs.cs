@@ -270,7 +270,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     lightData.size = new Vector4(shapeRadiusVal * shapeRadiusVal, 0, 0, 0);
                 }
 
-                if (lightData.lightType == GPULightType.Rectangle || lightData.lightType == GPULightType.Tube)
+                if (lightData.lightType == GPULightType.Rectangle || lightData.lightType == GPULightType.Tube || lightData.lightType == GPULightType.Disc)
                 {
                     lightData.size = new Vector4(shapeWidthVal, shapeHeightVal, Mathf.Cos(lightRenderData.barnDoorAngle * Mathf.PI / 180.0f), lightRenderData.barnDoorLength);
                 }

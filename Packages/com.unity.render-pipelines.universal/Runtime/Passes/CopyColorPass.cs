@@ -178,19 +178,21 @@ namespace UnityEngine.Rendering.Universal.Internal
             internal int sampleOffsetShaderHandle;
         }
 
-        internal TextureHandle Render(RenderGraph renderGraph, out TextureHandle destination, in TextureHandle source, Downsampling downsampling, ref RenderingData renderingData)
+        internal TextureHandle Render(RenderGraph renderGraph, ContextContainer frameData, out TextureHandle destination, in TextureHandle source, Downsampling downsampling)
         {
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+
             m_DownsamplingMethod = downsampling;
 
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("Copy Color", out var passData, base.profilingSampler))
             {
-                RenderTextureDescriptor descriptor = renderingData.cameraData.cameraTargetDescriptor;
+                RenderTextureDescriptor descriptor = cameraData.cameraTargetDescriptor;
                 ConfigureDescriptor(downsampling, ref descriptor, out var filterMode);
 
                 destination = UniversalRenderer.CreateRenderGraphTexture(renderGraph, descriptor, "_CameraOpaqueTexture", true, filterMode);
                 passData.destination = builder.UseTextureFragment(destination, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
                 passData.source = builder.UseTexture(source, IBaseRenderGraphBuilder.AccessFlags.Read);
-                passData.useProceduralBlit = renderingData.cameraData.xr.enabled;
+                passData.useProceduralBlit = cameraData.xr.enabled;
                 passData.samplingMaterial = m_SamplingMaterial;
                 passData.copyColorMaterial = m_CopyColorMaterial;
                 passData.downsamplingMethod = m_DownsamplingMethod;
