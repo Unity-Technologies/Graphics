@@ -86,7 +86,7 @@ void ShadowLoopMin(HDShadowContext shadowContext, PositionInputs posInput, float
         GetLightCountAndStartCluster(actualWSPos, LIGHTCATEGORY_PUNCTUAL, lightStart, lightEnd, cellIndex);
         #else
         lightStart = 0;
-        lightEnd = _PunctualLightCountRT;
+        lightEnd = _WorldPunctualLightCount;
         #endif
 
         for (i = lightStart; i < lightEnd; i++)
@@ -94,7 +94,7 @@ void ShadowLoopMin(HDShadowContext shadowContext, PositionInputs posInput, float
             #ifdef USE_LIGHT_CLUSTER
             LightData lightData = FetchClusterLightIndex(cellIndex, i);
             #else
-            LightData lightData = _LightDatasRT[i];
+            LightData lightData = _WorldLightDatas[i];
             #endif
             if (IsMatchingLightLayer(lightData.lightLayers, renderLayer) &&
                         lightData.shadowIndex >= 0 &&
@@ -154,8 +154,8 @@ void ShadowLoopMin(HDShadowContext shadowContext, PositionInputs posInput, float
         // Let's loop through all the
         GetLightCountAndStartCluster(actualWSPos, LIGHTCATEGORY_AREA, lightStart, lightEnd, cellIndex);
         #else
-        lightStart = _PunctualLightCountRT;
-        lightEnd = _PunctualLightCountRT + _AreaLightCountRT;
+        lightStart = _WorldPunctualLightCount;
+        lightEnd = _WorldPunctualLightCount + _WorldAreaLightCount;
         #endif
 
         for (i = lightStart; i < lightEnd; i++)
@@ -163,7 +163,7 @@ void ShadowLoopMin(HDShadowContext shadowContext, PositionInputs posInput, float
             #ifdef USE_LIGHT_CLUSTER
             LightData lightData = FetchClusterLightIndex(cellIndex, i);
             #else
-            LightData lightData = _LightDatasRT[i];
+            LightData lightData = _WorldLightDatas[i];
             #endif
             if (IsMatchingLightLayer(lightData.lightLayers, renderLayer))
             {

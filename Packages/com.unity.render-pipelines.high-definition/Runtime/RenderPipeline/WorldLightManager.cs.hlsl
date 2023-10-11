@@ -2,14 +2,14 @@
 // This file was automatically generated. Please don't edit by hand. Execute Editor command [ Edit > Rendering > Generate Shader Includes ] instead
 //
 
-#ifndef HDRAYTRACINGLIGHTCLUSTER_CS_HLSL
-#define HDRAYTRACINGLIGHTCLUSTER_CS_HLSL
-// Generated from UnityEngine.Rendering.HighDefinition.LightVolume
+#ifndef WORLDLIGHTMANAGER_CS_HLSL
+#define WORLDLIGHTMANAGER_CS_HLSL
+// Generated from UnityEngine.Rendering.HighDefinition.WorldLightVolume
 // PackingRules = Exact
-struct LightVolume
+struct WorldLightVolume
 {
-    int active;
-    int shape;
+    uint flags;
+    uint shape;
     float3 position;
     float3 range;
     uint lightType;

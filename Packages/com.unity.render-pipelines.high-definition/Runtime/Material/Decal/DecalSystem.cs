@@ -337,6 +337,13 @@ namespace UnityEngine.Rendering.HighDefinition
         private bool m_ShaderGraphSaveRequested = false;
 #endif
 
+        static public int GetDecalCount(HDCamera hdCamera)
+        {
+            if ((hdCamera.IsPathTracingEnabled() || hdCamera.IsRayTracingEnabled()) && hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals))
+                return m_DecalDatasCount;
+            return 0;
+        }
+
         public Texture2DAtlas Atlas
         {
             get

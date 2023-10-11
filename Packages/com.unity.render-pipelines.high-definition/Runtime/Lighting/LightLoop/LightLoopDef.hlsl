@@ -7,10 +7,10 @@
 #define DWORD_PER_TILE 16 // See dwordsPerTile in LightLoop.cs, we have roomm for 31 lights and a number of light value all store on 16 bit (ushort)
 
 // Depending if we are in ray tracing or not we need to use a different set of environement data
-#if defined(RAY_TRACING_ENVIRONMENT_DATA) || defined(SHADER_STAGE_RAY_TRACING)
-#define PLANAR_CAPTURE_VP _PlanarCaptureVPRT
-#define PLANAR_SCALE_OFFSET _PlanarScaleOffsetRT
-#define CUBE_SCALE_OFFSET _CubeScaleOffsetRT
+#if defined(WORLD_ENVIRONMENT_DATA) || defined(SHADER_STAGE_RAY_TRACING)
+#define PLANAR_CAPTURE_VP _PlanarCaptureVPWL
+#define PLANAR_SCALE_OFFSET _PlanarScaleOffsetWL
+#define CUBE_SCALE_OFFSET _CubeScaleOffsetWL
 #else
 #define PLANAR_CAPTURE_VP _PlanarCaptureVP
 #define PLANAR_SCALE_OFFSET _PlanarScaleOffset

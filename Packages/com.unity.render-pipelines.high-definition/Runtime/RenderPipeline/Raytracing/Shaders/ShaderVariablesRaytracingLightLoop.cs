@@ -6,8 +6,5 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector3 _MinClusterPos;
         public uint _LightPerCellCount;
         public Vector3 _MaxClusterPos;
-        public uint _PunctualLightCountRT;
-        public uint _AreaLightCountRT;
-        public uint _EnvLightCountRT;
     }
 }

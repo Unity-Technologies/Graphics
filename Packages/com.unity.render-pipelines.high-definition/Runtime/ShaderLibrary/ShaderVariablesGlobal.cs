@@ -10,7 +10,7 @@ namespace UnityEngine.Rendering.HighDefinition
         PBRSky = 2,
         RayTracing = 3,
         RayTracingLightLoop = 4,
-        RayTracingEnvLightReflectionData = 5,
+        WorldEnvLightReflectionData = 5,
         APV = APVConstantBufferRegister.GlobalRegister,
     }
 
@@ -185,6 +185,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public uint _PunctualLightCount;
         public uint _AreaLightCount;
         public uint _EnvLightCount;
+
+        public uint _WorldDirectionalLightCount;
+        public uint _WorldPunctualLightCount;
+        public uint _WorldAreaLightCount;
+        public uint _WorldEnvLightCount;
 
         public int _EnvLightSkyEnabled;
         public uint _CascadeShadowCount;

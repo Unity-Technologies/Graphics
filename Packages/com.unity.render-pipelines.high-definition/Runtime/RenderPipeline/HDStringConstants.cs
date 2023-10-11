@@ -200,9 +200,13 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _DirectionalLightDatas = Shader.PropertyToID("_DirectionalLightDatas");
         public static readonly int _LightDatas = Shader.PropertyToID("_LightDatas");
         public static readonly int _EnvLightDatas = Shader.PropertyToID("_EnvLightDatas");
+        public static readonly int _WorldLightDatas = Shader.PropertyToID("_WorldLightDatas");
+        public static readonly int _WorldEnvLightDatas = Shader.PropertyToID("_WorldEnvLightDatas");
+        public static readonly int _WorldLightVolumes = Shader.PropertyToID("_WorldLightVolumes");
+        public static readonly int _WorldLightFlags = Shader.PropertyToID("_WorldLightFlags");
         public static readonly int _AmbientProbeData = Shader.PropertyToID("_AmbientProbeData");
         public static readonly int _EnvLightReflectionData = Shader.PropertyToID("EnvLightReflectionData");
-        public static readonly int _EnvLightReflectionDataRT = Shader.PropertyToID("EnvLightReflectionDataRT");
+        public static readonly int _WorldEnvLightReflectionData = Shader.PropertyToID("WorldEnvLightReflectionData");
 
         public static readonly int _ProbeVolumeBounds = Shader.PropertyToID("_ProbeVolumeBounds");
         public static readonly int _ProbeVolumeDatas = Shader.PropertyToID("_ProbeVolumeDatas");
@@ -741,8 +745,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _MotionVectorAOV = Shader.PropertyToID("_MotionVectorAOV");
 
         // Light Cluster
-        public static readonly int _LightDatasRT = Shader.PropertyToID("_LightDatasRT");
-        public static readonly int _EnvLightDatasRT = Shader.PropertyToID("_EnvLightDatasRT");
         public static readonly int _RaytracingLightCluster = Shader.PropertyToID("_RaytracingLightCluster");
         public static readonly int _RaytracingLightClusterRW = Shader.PropertyToID("_RaytracingLightClusterRW");
 

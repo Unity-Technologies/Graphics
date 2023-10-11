@@ -601,6 +601,7 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         public const int k_DirectionalShadowCascadeCount = 4;
         public const int k_MinShadowMapResolution = 16;
+        public const int k_OffscreenShadowMapResolution = 64;
         public const int k_MaxShadowMapResolution = 16384;
 
         List<HDShadowData>          m_ShadowDatas = new List<HDShadowData>();

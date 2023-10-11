@@ -49,22 +49,24 @@ namespace UnityEngine.Rendering.HighDefinition
         public HDRenderPipeline.ScreenSpaceShadowData[] currentScreenSpaceShadowData => m_CurrentScreenSpaceShadowData;
 
         //Packs a sort key for a light
-        public static uint PackLightSortKey(LightCategory lightCategory, GPULightType gpuLightType, LightVolumeType lightVolumeType, int lightIndex)
+        public static uint PackLightSortKey(LightCategory lightCategory, GPULightType gpuLightType, LightVolumeType lightVolumeType, int lightIndex, bool offscreen)
         {
             //We sort directional lights to be in the beginning of the list.
             //This ensures that we can access directional lights very easily after we sort them.
             uint isDirectionalMSB = gpuLightType == GPULightType.Directional ? 0u : 1u;
-            uint sortKey = (uint)isDirectionalMSB << 31 | (uint)lightCategory << 27 | (uint)gpuLightType << 22 | (uint)lightVolumeType << 17 | (uint)lightIndex;
+            uint isOffscreen = offscreen ? 1u : 0u;
+            uint sortKey = (uint)isDirectionalMSB << 31 | (uint)isOffscreen << 30 | (uint)lightCategory << 26 | (uint)gpuLightType << 21 | (uint)lightVolumeType << 16 | (uint)lightIndex;
             return sortKey;
         }
 
         //Unpacks a sort key for a light
-        public static void UnpackLightSortKey(uint sortKey, out LightCategory lightCategory, out GPULightType gpuLightType, out LightVolumeType lightVolumeType, out int lightIndex)
+        public static void UnpackLightSortKey(uint sortKey, out LightCategory lightCategory, out GPULightType gpuLightType, out LightVolumeType lightVolumeType, out int lightIndex, out bool offscreen)
         {
-            lightCategory = (LightCategory)((sortKey >> 27) & 0xF);
-            gpuLightType = (GPULightType)((sortKey >> 22) & 0x1F);
-            lightVolumeType = (LightVolumeType)((sortKey >> 17) & 0x1F);
+            lightCategory = (LightCategory)((sortKey >> 26) & 0xF);
+            gpuLightType = (GPULightType)((sortKey >> 21) & 0x1F);
+            lightVolumeType = (LightVolumeType)((sortKey >> 16) & 0x1F);
             lightIndex = (int)(sortKey & 0xFFFF);
+            offscreen = ((sortKey >> 30) & 0x1) > 0;
         }
 
         //Initialization of builder

@@ -380,35 +380,4 @@ namespace UnityEngine.Rendering.HighDefinition
                 rtas.Dispose();
         }
     }
-
-    class HDRayTracingLights
-    {
-        // The list of non-directional lights in the sub-scene
-        public List<HDLightRenderEntity> hdPointLightArray = new List<HDLightRenderEntity>();
-        public List<HDLightRenderEntity> hdLineLightArray = new List<HDLightRenderEntity>();
-        public List<HDLightRenderEntity> hdRectLightArray = new List<HDLightRenderEntity>();
-        public List<HDLightRenderEntity> hdDiscLightArray = new List<HDLightRenderEntity>();
-        public List<HDLightRenderEntity> hdLightEntityArray = new List<HDLightRenderEntity>();
-
-        // The list of directional lights in the sub-scene
-        public List<HDAdditionalLightData> hdDirectionalLightArray = new List<HDAdditionalLightData>();
-
-        // The list of reflection probes
-        public List<HDProbe> reflectionProbeArray = new List<HDProbe>();
-
-        // Counter of the current number of lights
-        public int lightCount;
-
-        internal void Reset()
-        {
-            hdDirectionalLightArray.Clear();
-            hdPointLightArray.Clear();
-            hdLineLightArray.Clear();
-            hdRectLightArray.Clear();
-            hdDiscLightArray.Clear();
-            hdLightEntityArray.Clear();
-            reflectionProbeArray.Clear();
-            lightCount = 0;
-        }
-    }
 }

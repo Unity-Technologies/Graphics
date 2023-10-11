@@ -382,6 +382,11 @@ namespace UnityEngine.Rendering.HighDefinition
         static int s_ColorResolve4XPassIndex;
         static int s_ColorResolve8XPassIndex;
 
+        WorldLights m_WorldLights = new WorldLights();
+        WorldLightsGpu m_WorldLightsGpu = new WorldLightsGpu();
+        WorldLightsVolumes m_WorldLightsVolumes = new WorldLightsVolumes();
+        WorldLightsSettings m_WorldLightsSettings = new WorldLightsSettings();
+
         internal Material GetMSAAColorResolveMaterial()
         {
             return m_ColorResolveMaterial;
@@ -983,6 +988,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 ReleaseRayTracedIndirectDiffuse();
                 ReleasePathTracing();
             }
+
+            m_WorldLights.Release();
+            m_WorldLightsGpu.Release();
+            m_WorldLightsVolumes.Release();
 
             ReleaseRayTracingManager();
 
@@ -2623,6 +2632,28 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
 
+                Func<HDCamera, HDAdditionalLightData, Light,  uint> flagsFunc = delegate (HDCamera hdCamera, HDAdditionalLightData data, Light light)
+                {
+                    uint result = 0u;
+
+                    bool baked = light.bakingOutput.lightmapBakeType == LightmapBakeType.Baked && light.bakingOutput.isBaked;
+                    bool raytracing = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && data.includeForRayTracing;
+                    bool pathtracing = raytracing && hdCamera.volumeStack.GetComponent<PathTracing>().enable.value;
+
+                    if (raytracing && !baked)
+                        result |= (uint)WorldLightFlags.Raytracing;
+                    if (pathtracing)
+                        result |= (uint)WorldLightFlags.Pathtracing;
+
+                    return result;
+                };
+
+                m_WorldLightsSettings.enabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing);
+
+                WorldLightManager.CollectWorldLights(hdCamera, m_WorldLightsSettings, flagsFunc, m_WorldLights);
+                WorldLightManager.BuildWorldLightVolumes(hdCamera, HDRenderPipeline.currentPipeline, m_WorldLights, flagsFunc, m_WorldLightsVolumes);
+                m_WorldLightsVolumes.Bind(cmd, HDShaderIDs._WorldLightVolumes, HDShaderIDs._WorldLightFlags);
+
                 if (m_RayTracingSupported)
                 {
                     // This call need to happen once per camera
@@ -2700,6 +2731,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 EvaluateShadowRegionData(hdCamera, cmd);
 
                 UpdateGlobalConstantBuffers(hdCamera, cmd);
+
+                WorldLightManager.BuildWorldLightDatas(cmd, hdCamera, HDRenderPipeline.currentPipeline, m_WorldLights, m_WorldLightsGpu);
+                m_WorldLightsGpu.Bind(cmd, HDShaderIDs._WorldLightDatas, HDShaderIDs._WorldEnvLightDatas);
 
                 // Do the same for ray tracing if allowed
                 if (m_RayTracingSupported)
