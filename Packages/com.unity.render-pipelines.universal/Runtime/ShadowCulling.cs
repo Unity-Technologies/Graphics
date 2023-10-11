@@ -17,20 +17,20 @@ namespace UnityEngine.Rendering.Universal
         static readonly ProfilingSampler computeShadowCasterCullingInfosMarker = new ProfilingSampler($"{nameof(UniversalRenderPipeline)}.{nameof(ComputeShadowCasterCullingInfos)}");
 
         public static NativeArray<URPLightShadowCullingInfos> CullShadowCasters(ref ScriptableRenderContext context,
-            ref ShadowData shadowData,
+            UniversalShadowData shadowData,
             ref AdditionalLightsShadowAtlasLayout shadowAtlasLayout,
             ref CullingResults cullResults)
         {
             ShadowCastersCullingInfos shadowCullingInfos;
             NativeArray<URPLightShadowCullingInfos> urpVisibleLightsShadowCullingInfos;
-            ComputeShadowCasterCullingInfos(ref shadowData, ref shadowAtlasLayout, ref cullResults, out shadowCullingInfos, out urpVisibleLightsShadowCullingInfos);
+            ComputeShadowCasterCullingInfos(shadowData, ref shadowAtlasLayout, ref cullResults, out shadowCullingInfos, out urpVisibleLightsShadowCullingInfos);
 
             context.CullShadowCasters(cullResults, shadowCullingInfos);
 
             return urpVisibleLightsShadowCullingInfos;
         }
 
-        static void ComputeShadowCasterCullingInfos(ref ShadowData shadowData,
+        static void ComputeShadowCasterCullingInfos(UniversalShadowData shadowData,
             ref AdditionalLightsShadowAtlasLayout shadowAtlasLayout,
             ref CullingResults cullingResults,
             out ShadowCastersCullingInfos shadowCullingInfos,
@@ -71,7 +71,7 @@ namespace UnityEngine.Rendering.Universal
                     for (int i = 0; i < splitCount; ++i)
                     {
                         ShadowSliceData slice = default;
-                        bool isValid = ShadowUtils.ExtractDirectionalLightMatrix(ref cullingResults, ref shadowData,
+                        bool isValid = ShadowUtils.ExtractDirectionalLightMatrix(ref cullingResults, shadowData,
                             lightIndex, i, renderTargetWidth, renderTargetHeight, shadowResolution, visibleLight.light.shadowNearPlane,
                             out _, // Vector4 cascadeSplitDistance. This is basically just the culling sphere which is already present in ShadowSplitData
                             out slice);
@@ -102,7 +102,7 @@ namespace UnityEngine.Rendering.Universal
                     {
                         ShadowSliceData slice = default;
                         bool isValid = ShadowUtils.ExtractPointLightMatrix(ref cullingResults,
-                            ref shadowData,
+                            shadowData,
                             lightIndex,
                             (CubemapFace)i,
                             fovBias,
@@ -128,7 +128,7 @@ namespace UnityEngine.Rendering.Universal
 
                     ShadowSliceData slice = default;
                     bool isValid = ShadowUtils.ExtractSpotLightMatrix(ref cullingResults,
-                        ref shadowData,
+                        shadowData,
                         lightIndex,
                         out slice.shadowTransform,
                         out slice.viewMatrix,

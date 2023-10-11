@@ -1910,6 +1910,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
 #endif
             isXRMobile = isRunningMobile;
+            isShaderAPIMobileDefined = GraphicsSettings.HasShaderDefine(BuiltinShaderDefine.SHADER_API_MOBILE);
         }
 
 #if ENABLE_VR && ENABLE_VR_MODULE
@@ -1938,6 +1939,29 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// If true, the runtime platform is an XR mobile platform.
         /// </summary>
-        static internal bool isXRMobile { get; private set; } = false;
+        internal static bool isXRMobile { get; private set; } = false;
+
+        /// <summary>
+        /// If true, then SHADER_API_MOBILE has been defined in URP Shaders.
+        /// </summary>
+        internal static bool isShaderAPIMobileDefined { get; private set; } = false;
+
+        /// <summary>
+        /// Gives the SH evaluation mode when set to automatically detect.
+        /// </summary>
+        /// <param name="mode">The current SH evaluation mode.</param>
+        /// <returns>Returns the SH evaluation mode to use.</returns>
+        internal static ShEvalMode ShAutoDetect(ShEvalMode mode)
+        {
+            if (mode == ShEvalMode.Auto)
+            {
+                if (PlatformAutoDetect.isXRMobile)
+                    return ShEvalMode.PerVertex;
+                else
+                    return ShEvalMode.PerPixel;
+            }
+
+            return mode;
+        }
     }
 }
