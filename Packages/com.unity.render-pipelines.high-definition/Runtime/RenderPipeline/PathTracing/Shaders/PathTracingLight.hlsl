@@ -735,7 +735,8 @@ bool SampleLights(LightList lightList,
 
 void EvaluateRectAreaLight(LightList lightList,
                            LightData lightData,
-                           RayDesc rayDescriptor,
+                           float3 rayOrigin,
+                           float3 rayDirection,
                            float t,
                            float cosTheta,
                            float3 hitPosition, // Hit position is relative to lightCenter
@@ -751,7 +752,7 @@ void EvaluateRectAreaLight(LightList lightList,
         float t2 = Sq(t);
         float3 lightValue = GetAreaEmission(lightData, centerU, centerV, t2);
 #ifndef LIGHT_EVALUATION_NO_HEIGHT_FOG
-        ApplyFogAttenuation(rayDescriptor.Origin, rayDescriptor.Direction, t, lightValue);
+        ApplyFogAttenuation(rayOrigin, rayDirection, t, lightValue);
 #endif
 
 #ifndef SAMPLE_SOLID_ANGLE
@@ -759,7 +760,7 @@ void EvaluateRectAreaLight(LightList lightList,
         value += lightValue;
         pdf += GetLocalLightWeight(lightList) * t2 / (lightArea * cosTheta);
 #else
-        float3 position = rayDescriptor.Origin;
+        float3 position = rayOrigin;
 
         SphQuad squad;
         lightCenter = lightCenter - 0.5 * lightData.size.x * lightData.right;
@@ -778,7 +779,8 @@ void EvaluateRectAreaLight(LightList lightList,
 
 void EvaluateDiscAreaLight(LightList lightList,
                            LightData lightData,
-                           RayDesc rayDescriptor,
+                           float3 rayOrigin,
+                           float3 rayDirection,
                            float t,
                            float cosTheta,
                            float3 hitPosition, // Hit position is relative to lightCenter
@@ -795,7 +797,7 @@ void EvaluateDiscAreaLight(LightList lightList,
         float t2 = Sq(t);
         float3 lightValue = GetAreaEmission(lightData, centerUV.x, centerUV.y, t2);
 #ifndef LIGHT_EVALUATION_NO_HEIGHT_FOG
-        ApplyFogAttenuation(rayDescriptor.Origin, rayDescriptor.Direction, t, lightValue);
+        ApplyFogAttenuation(rayOrigin, rayDirection, t, lightValue);
 #endif
 
         float lightArea = PI * lightRadiusSquared;
@@ -805,7 +807,9 @@ void EvaluateDiscAreaLight(LightList lightList,
 }
 
 void EvaluateLights(LightList lightList,
-                    RayDesc rayDescriptor,
+                    float3 rayOrigin,
+                    float3 rayDirection,
+                    float  rayHit,
                     out float3 value,
                     out float pdf)
 {
@@ -822,24 +826,24 @@ void EvaluateLights(LightList lightList,
         if (lightData.lightType == GPULIGHTTYPE_TUBE)
             continue;
 
-        float t = rayDescriptor.TMax;
-        float cosTheta = -dot(rayDescriptor.Direction, lightData.forward);
+        float t = rayHit;
+        float cosTheta = -dot(rayDirection, lightData.forward);
         float3 lightCenter = lightData.positionRWS;
 
         // Check if we hit the light plane, at a distance below our tMax (coming from indirect computation)
-        if (cosTheta > 0.0 && IntersectPlane(rayDescriptor.Origin, rayDescriptor.Direction, lightCenter, lightData.forward, t))
+        if (cosTheta > 0.0 && IntersectPlane(rayOrigin, rayDirection, lightCenter, lightData.forward, t))
         {
-            if (t < rayDescriptor.TMax)
+            if (t < rayHit)
             {
-                float3 hitVec = rayDescriptor.Origin + t * rayDescriptor.Direction - lightCenter;
+                float3 hitVec = rayOrigin + t * rayDirection - lightCenter;
 
                 if (lightData.lightType == GPULIGHTTYPE_RECTANGLE)
                 {
-                    EvaluateRectAreaLight(lightList, lightData, rayDescriptor, t, cosTheta, hitVec, value, pdf);
+                    EvaluateRectAreaLight(lightList, lightData, rayOrigin, rayDirection, t, cosTheta, hitVec, value, pdf);
                 }
                 else
                 {
-                    EvaluateDiscAreaLight(lightList, lightData, rayDescriptor, t, cosTheta, hitVec, value, pdf);
+                    EvaluateDiscAreaLight(lightList, lightData, rayOrigin, rayDirection, t, cosTheta, hitVec, value, pdf);
                 }
             }
         }
@@ -850,15 +854,15 @@ void EvaluateLights(LightList lightList,
     {
         DirectionalLightData lightData = GetDistantLightData(lightList, i);
 
-        if (lightData.angularDiameter > 0.0 && rayDescriptor.TMax >= FLT_INF)
+        if (lightData.angularDiameter > 0.0 && rayHit >= FLT_INF)
         {
             float cosHalfAngle = cos(lightData.angularDiameter * 0.5);
-            float cosTheta = -dot(rayDescriptor.Direction, lightData.forward);
+            float cosTheta = -dot(rayDirection, lightData.forward);
             if (cosTheta >= cosHalfAngle)
             {
-                float3 lightValue = GetDirectionalEmission(lightData, rayDescriptor.Direction);
+                float3 lightValue = GetDirectionalEmission(lightData, rayDirection);
 #ifndef LIGHT_EVALUATION_NO_HEIGHT_FOG
-                ApplyFogAttenuation(rayDescriptor.Origin, rayDescriptor.Direction, lightValue);
+                ApplyFogAttenuation(rayOrigin, rayDirection, lightValue);
 #endif
                 float rcpPdf = TWO_PI * (1.0 - cosHalfAngle);
                 value += lightValue / rcpPdf;
@@ -868,12 +872,12 @@ void EvaluateLights(LightList lightList,
     }
 
     // Then sky light
-    if (lightList.skyCount && rayDescriptor.TMax >= FLT_INF)
+    if (lightList.skyCount && rayHit >= FLT_INF)
     {
-        float3 skyValue = GetSkyValue(rayDescriptor.Direction);
+        float3 skyValue = GetSkyValue(rayDirection);
         pdf += GetSkyLightWeight(lightList) * GetSkyPDFFromValue(skyValue);
 #ifndef LIGHT_EVALUATION_NO_HEIGHT_FOG
-        ApplyFogAttenuation(rayDescriptor.Origin, rayDescriptor.Direction, skyValue);
+        ApplyFogAttenuation(rayOrigin, rayDirection, skyValue);
 #endif
         value += skyValue;
     }

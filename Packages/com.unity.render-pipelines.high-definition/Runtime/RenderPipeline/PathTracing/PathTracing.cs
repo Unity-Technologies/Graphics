@@ -541,6 +541,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.lightCluster = RequestLightCluster();
 
                 passData.shaderVariablesRaytracingCB = m_ShaderVariablesRayTracingCB;
+                // This doesn't actually do anything in the path tracing shaders
                 passData.shaderVariablesRaytracingCB._RaytracingNumSamples = (int)m_SubFrameManager.subFrameCount;
                 passData.shaderVariablesRaytracingCB._RaytracingMinRecursion = m_PathTracingSettings.minimumDepth.value;
 #if NO_RAY_RECURSION
@@ -734,6 +735,7 @@ namespace UnityEngine.Rendering.HighDefinition
             int camID = hdCamera.camera.GetInstanceID();
             CameraData camData = m_SubFrameManager.GetCameraData(camID);
 
+            // Set up the subframe manager for correct accumulation in case of multiframe accumulation  
             // Check if the camera has a valid history buffer and if not reset the accumulation.
             // This can happen if a script disables and re-enables the camera (case 1337843).
             if (!hdCamera.isPersistent && hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.PathTracing) == null)
@@ -749,7 +751,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-                // When recording, as be bypass dirtiness checks which update camData, we need to indicate whether we want to render a sky or not
+                // When recording, as we bypass dirtiness checks which update camData, we need to indicate whether we want to render a sky or not
                 camData.skyEnabled = (hdCamera.clearColorMode == HDAdditionalCameraData.ClearColorMode.Sky);
                 m_SubFrameManager.SetCameraData(camID, camData);
             }

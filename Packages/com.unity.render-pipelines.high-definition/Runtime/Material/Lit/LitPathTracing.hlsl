@@ -362,6 +362,7 @@ float3 GetMaterialAbsorption(MaterialData mtlData, SurfaceData surfaceData, floa
     if (isSampleBelow)
     {
     #ifdef _REFRACTION_THIN
+        // On thin surfaces, we apply a fixed distance of absorption. 
         return exp(-mtlData.bsdfData.absorptionCoefficient * REFRACTION_THIN_DISTANCE);
     #else
         // We allow a reasonable max distance of 10 times the "atDistance" (so that objects do not end up appearing black)
