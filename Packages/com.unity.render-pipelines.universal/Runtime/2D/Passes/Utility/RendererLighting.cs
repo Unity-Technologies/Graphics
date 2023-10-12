@@ -437,11 +437,11 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        internal static void SetLightShaderGlobals(ref Light2DBlendStyle[] lightBlendStyles, RasterCommandBuffer cmd)
+        internal static void SetLightShaderGlobals(RasterCommandBuffer cmd, Light2DBlendStyle[] lightBlendStyles, int[] blendStyleIndices)
         {
-            for (var i = 0; i < lightBlendStyles.Length; i++)
+            for (var i = 0; i < blendStyleIndices.Length; i++)
             {
-                var blendStyle = lightBlendStyles[i];
+                var blendStyle = lightBlendStyles[blendStyleIndices[i]];
                 if (i >= k_BlendFactorsPropIDs.Length)
                     break;
 
@@ -616,10 +616,10 @@ namespace UnityEngine.Rendering.Universal
             return light.useCookieSprite;
         }
 
-        internal static void SetCookieShaderProperties(Light2D light, Material material)
+        internal static void SetCookieShaderProperties(Light2D light, MaterialPropertyBlock properties)
         {
             if (light.useCookieSprite && light.m_CookieSpriteTextureHandle.IsValid())
-                material.SetTexture(light.lightType == Light2D.LightType.Sprite ? k_CookieTexID : k_PointLightCookieTexID, light.m_CookieSpriteTextureHandle);
+                properties.SetTexture(light.lightType == Light2D.LightType.Sprite ? k_CookieTexID : k_PointLightCookieTexID, light.m_CookieSpriteTextureHandle);
         }
 
         public static void ClearDirtyLighting(this IRenderPass2D pass, CommandBuffer cmd, uint blendStylesUsed)
@@ -783,7 +783,6 @@ namespace UnityEngine.Rendering.Universal
                     SetBlendModes(material, BlendMode.SrcAlpha, BlendMode.One);
                 }
             }
-
 
             if (isPoint && light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
                 material.EnableKeyword(k_UsePointLightCookiesKeyword);

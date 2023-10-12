@@ -88,9 +88,6 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField, Reload("Shaders/2D/Shadow2D-Unshadow-Geometry.shader")]
         Shader m_GeometryUnshadowShader = null;
 
-        [SerializeField, Reload("Shaders/2D/CustomClear2D.shader")]
-        Shader m_CustomClearShader = null;
-
         [SerializeField, Reload("Shaders/Utils/FallbackError.shader")]
         Shader m_FallbackErrorShader;
 
@@ -124,7 +121,6 @@ namespace UnityEngine.Rendering.Universal
         internal Shader geometryShadowShader => m_GeometryShadowShader;
         internal Shader geometryUnshadowShader => m_GeometryUnshadowShader;
         internal Shader projectedShadowShader => m_ProjectedShadowShader;
-        internal Shader customClearShader => m_CustomClearShader;
         internal TransparencySortMode transparencySortMode => m_TransparencySortMode;
         internal Vector3 transparencySortAxis => m_TransparencySortAxis;
         internal uint lightRenderTextureMemoryBudget => m_MaxLightRenderTextureCount;
@@ -200,8 +196,6 @@ namespace UnityEngine.Rendering.Universal
 
         internal RTHandle normalsRenderTarget;
         internal RTHandle cameraSortingLayerRenderTarget;
-
-
 
         // this shouldn've been in RenderingData along with other cull results
         internal ILight2DCullResult lightCullResult { get; set; }

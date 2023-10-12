@@ -64,6 +64,26 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        TextureHandle[][] CheckAndGetTextureHandle(ref TextureHandle[][] handle)
+        {
+            if (!CheckAndWarnAboutAccessibility())
+                return new TextureHandle[][] { new TextureHandle[] { TextureHandle.nullHandle } };
+
+            return handle;
+        }
+
+        void CheckAndSetTextureHandle(ref TextureHandle[][] handle, TextureHandle[][] newHandle)
+        {
+            if (!CheckAndWarnAboutAccessibility())
+                return;
+
+            if (handle == null || handle.Length != newHandle.Length)
+                handle = new TextureHandle[newHandle.Length][];
+
+            for (int i = 0; i < newHandle.Length; i++)
+                handle[i] = newHandle[i];
+        }
+
         /// <summary>
         /// The backbuffer color used to render directly to screen. All passes can write to it depending on frame setup.
         /// </summary>
@@ -105,19 +125,19 @@ namespace UnityEngine.Rendering.Universal
         }
         private TextureHandle _intermediateDepth;
 
-        internal TextureHandle[] lightTextures
+        internal TextureHandle[][] lightTextures
         {
             get => CheckAndGetTextureHandle(ref _lightTextures);
             set => CheckAndSetTextureHandle(ref _lightTextures, value);
         }
-        private TextureHandle[] _lightTextures = new TextureHandle[RenderGraphUtils.LightTextureSize];
+        private TextureHandle[][] _lightTextures = new TextureHandle[0][];
 
-        internal TextureHandle normalsTexture
+        internal TextureHandle[] normalsTexture
         {
             get => CheckAndGetTextureHandle(ref _cameraNormalsTexture);
             set => CheckAndSetTextureHandle(ref _cameraNormalsTexture, value);
         }
-        private TextureHandle _cameraNormalsTexture;
+        private TextureHandle[] _cameraNormalsTexture = new TextureHandle[0];
 
         internal TextureHandle shadowsTexture
         {
@@ -185,15 +205,14 @@ namespace UnityEngine.Rendering.Universal
         }
         private TextureHandle _overlayUITexture;
 
-
         /// <inheritdoc />
         public override void Reset()
         {
+            _intermediateDepth = TextureHandle.nullHandle;
             _backBufferColor = TextureHandle.nullHandle;
             _backBufferDepth = TextureHandle.nullHandle;
             _cameraColor = TextureHandle.nullHandle;
             _cameraDepth = TextureHandle.nullHandle;
-            _cameraNormalsTexture = TextureHandle.nullHandle;
             _shadowsTexture = TextureHandle.nullHandle;
             _shadowsDepth = TextureHandle.nullHandle;
             _upscaleTexture = TextureHandle.nullHandle;
@@ -203,10 +222,12 @@ namespace UnityEngine.Rendering.Universal
             _afterPostProcessColor = TextureHandle.nullHandle;
             _overlayUITexture = TextureHandle.nullHandle;
 
+            for (int i = 0; i < _cameraNormalsTexture.Length; i++)
+                _cameraNormalsTexture[i] = TextureHandle.nullHandle;
+
             for (int i = 0; i < _lightTextures.Length; i++)
-                _lightTextures[i] = TextureHandle.nullHandle;
+                for (int j = 0; j < _lightTextures[i].Length; j++)
+                    _lightTextures[i][j] = TextureHandle.nullHandle;
         }
-
-
     }
 }

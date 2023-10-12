@@ -38,7 +38,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        private static void ExecuteLightPass(LowLevelCommandBuffer cmd, PassData passData, ref LayerBatch layerBatch, Light2D light, bool clear)
+        private static void ExecuteLightPass(LowLevelCommandBuffer cmd, PassData passData, ref LayerBatch layerBatch, Light2D light)
         {
             using (new ProfilingScope(cmd, m_ExecuteLightProfilingSampler))
             {
@@ -52,30 +52,10 @@ namespace UnityEngine.Rendering.Universal
 
                 cmd.SetGlobalFloat(DrawLight2DPass.k_InverseHDREmulationScaleID, 1.0f / passData.rendererData.hdrEmulationScale);
 
-                var lightBlendStyles = passData.rendererData.lightBlendStyles;
-
-                // Clear light textures
-                if (clear)
+                for (var i = 0; i < layerBatch.activeBlendStylesIndices.Length; i++)
                 {
-                    for (var i = 0; i < DrawLight2DPass.clearColors.Length; i++)
-                    {
-                        if ((layerBatch.lightStats.blendStylesUsed & (uint)(1 << i)) == 0)
-                            continue;
+                    var blendStyleIndex = layerBatch.activeBlendStylesIndices[i];
 
-                        Light2DManager.GetGlobalColor(layerBatch.startLayerID, i, out DrawLight2DPass.clearColors[i]);
-                    }
-
-                    cmd.ClearRenderTarget(RTClearFlags.Color, DrawLight2DPass.clearColors, 1, 0);
-                }
-
-                for (var blendStyleIndex = 0; blendStyleIndex < lightBlendStyles.Length; blendStyleIndex++)
-                {
-                    var blendStyleMask = (uint)(1 << blendStyleIndex);
-                    var blendStyleUsed = (layerBatch.lightStats.blendStylesUsed & blendStyleMask) > 0;
-
-                    if (!blendStyleUsed)
-                        continue;
-                
                     // Check if light is valid
                     if (light == null ||
                         light.lightType == Light2D.LightType.Global ||
@@ -89,11 +69,11 @@ namespace UnityEngine.Rendering.Universal
                         layerBatch.endLayerValue != light.GetTopMostLitLayer()))
                         continue;
 
-                    var blendOpName = lightBlendStyles[blendStyleIndex].name;
+                    var blendOpName = passData.rendererData.lightBlendStyles[blendStyleIndex].name;
                     cmd.BeginSample(blendOpName);
 
                     if (!passData.isVolumetric)
-                        RendererLighting.EnableBlendStyle(cmd, blendStyleIndex, blendStyleUsed);
+                        RendererLighting.EnableBlendStyle(cmd, i, true);
 
                     var lightMaterial = passData.rendererData.GetLightMaterial(light, passData.isVolumetric);
                     var lightMesh = light.lightMesh;
@@ -112,13 +92,13 @@ namespace UnityEngine.Rendering.Universal
                     lightMaterial.SetTexture(DrawLight2DPass.k_FalloffLookupID, passData.fallOffLookUp);
 
                     if (passData.layerBatch.lightStats.useNormalMap)
-                        lightMaterial.SetTexture(DrawLight2DPass.k_NormalMapID, passData.normalMap);
+                        DrawLight2DPass.s_PropertyBlock.SetTexture(DrawLight2DPass.k_NormalMapID, passData.normalMap);
 
                     if (passData.layerBatch.lightStats.useShadows)
-                        lightMaterial.SetTexture(DrawLight2DPass.k_ShadowMapID, passData.shadowTarget);
+                        DrawLight2DPass.s_PropertyBlock.SetTexture(DrawLight2DPass.k_ShadowMapID, passData.shadowTarget);
 
                     if (!passData.isVolumetric || (passData.isVolumetric && light.volumetricEnabled))
-                        RendererLighting.SetCookieShaderProperties(light, lightMaterial);
+                        RendererLighting.SetCookieShaderProperties(light, DrawLight2DPass.s_PropertyBlock);
 
                     // Set shader global properties
                     RendererLighting.SetPerLightShaderGlobals(cmd, light, slotIndex, passData.isVolumetric, true, LightBatch.isBatchingSupported);
@@ -133,10 +113,10 @@ namespace UnityEngine.Rendering.Universal
                     }
                     else
                     {
-                        cmd.DrawMesh(lightMesh, light.GetMatrix(), lightMaterial);
+                        cmd.DrawMesh(lightMesh, light.GetMatrix(), lightMaterial, 0, 0, DrawLight2DPass.s_PropertyBlock);
                     }
 
-                    RendererLighting.EnableBlendStyle(cmd, blendStyleIndex, false);
+                    RendererLighting.EnableBlendStyle(cmd, i, false);
                     cmd.EndSample(blendOpName);
                 }
             }
@@ -158,7 +138,7 @@ namespace UnityEngine.Rendering.Universal
             internal RenderTargetIdentifier[] lightTexturesRT;
         }
 
-        public void Render(RenderGraph graph, Renderer2DData rendererData, ref LayerBatch layerBatch, ContextContainer frameData, bool isVolumetric = false)
+        public void Render(RenderGraph graph, ContextContainer frameData, Renderer2DData rendererData, ref LayerBatch layerBatch, int batchIndex, bool isVolumetric = false)
         {
             Universal2DResourceData resourceData = frameData.Get<Universal2DResourceData>();
 
@@ -171,32 +151,32 @@ namespace UnityEngine.Rendering.Universal
 
             using (var builder = graph.AddLowLevelPass<PassData>(!isVolumetric ? k_ShadowPass : k_ShadowVolumetricPass, out var passData, !isVolumetric ? m_ProfilingSampler : m_ProfilingSamplerVolume))
             {
-                if (passData.lightTexturesRT == null)
-                    passData.lightTexturesRT = new RenderTargetIdentifier[RendererLighting.k_ShapeLightTextureIDs.Length];
-
                 passData.layerBatch = layerBatch;
                 passData.rendererData = rendererData;
                 passData.isVolumetric = isVolumetric;
                 passData.shadowTarget = shadowTexture;
                 passData.shadowDepth = depthTexture;
                 passData.lightDepth = !isVolumetric ? resourceData.intermediateDepth : resourceData.activeDepthTexture;
-                passData.normalMap = layerBatch.lightStats.useNormalMap ? resourceData.normalsTexture : TextureHandle.nullHandle;
+                passData.normalMap = layerBatch.lightStats.useNormalMap ? resourceData.normalsTexture[batchIndex] : TextureHandle.nullHandle;
                 passData.fallOffLookUp = graph.ImportTexture(DrawLight2DPass.m_FallOffRTHandle);
                 passData.lightLookUp = graph.ImportTexture(DrawLight2DPass.m_LightLookupRTHandle);
 
                 if (!isVolumetric)
-                    passData.lightTextures = resourceData.lightTextures;
+                    passData.lightTextures = resourceData.lightTextures[batchIndex];
                 else
                 {
                     intermediateTexture[0] = resourceData.activeColorTexture;
                     passData.lightTextures = intermediateTexture;
                 }
 
+                if (passData.lightTexturesRT == null || passData.lightTexturesRT.Length != passData.lightTextures.Length)
+                    passData.lightTexturesRT = new RenderTargetIdentifier[passData.lightTextures.Length];
+
                 for (int i = 0; i < passData.lightTextures.Length; ++i)
                     builder.UseTexture(passData.lightTextures[i], IBaseRenderGraphBuilder.AccessFlags.Write);
 
                 if (layerBatch.lightStats.useNormalMap)
-                    builder.UseTexture(resourceData.normalsTexture);
+                    builder.UseTexture(resourceData.normalsTexture[batchIndex]);
 
                 builder.UseTexture(shadowTexture, IBaseRenderGraphBuilder.AccessFlags.Write);
                 builder.UseTexture(depthTexture, IBaseRenderGraphBuilder.AccessFlags.Write);
@@ -222,7 +202,7 @@ namespace UnityEngine.Rendering.Universal
                     {
                         var light = data.layerBatch.shadowLights[i];
                         ExecuteShadowPass(context.cmd, data, light);
-                        ExecuteLightPass(context.cmd, data, ref data.layerBatch, light, i == 0 && !data.isVolumetric);
+                        ExecuteLightPass(context.cmd, data, ref data.layerBatch, light);
                     }
                 });
             }

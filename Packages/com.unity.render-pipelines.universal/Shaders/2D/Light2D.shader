@@ -13,8 +13,9 @@ Shader "Hidden/Light2D"
 
         Pass
         {
-            Blend[_SrcBlend][_DstBlend]
+            Blend [_SrcBlend][_DstBlend]
             ZWrite Off
+            ZTest [_HandleZTest]
             Cull Off
 
             HLSLPROGRAM

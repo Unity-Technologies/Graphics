@@ -35,7 +35,6 @@ namespace UnityEngine.Rendering.Universal
 
     internal sealed partial class Renderer2D
     {
-        TextureHandle[] m_LightTextureHandles = new TextureHandle[RendererLighting.k_ShapeLightTextureIDs.Length];
         RTHandle m_RenderGraphCameraColorHandle;
         RTHandle m_RenderGraphCameraDepthHandle;
         RTHandle m_RenderGraphBackbufferColorHandle;
@@ -46,6 +45,9 @@ namespace UnityEngine.Rendering.Universal
         DrawLight2DPass m_LightPass = new DrawLight2DPass();
         DrawShadow2DPass m_ShadowPass = new DrawShadow2DPass();
         DrawRenderer2DPass m_RendererPass = new DrawRenderer2DPass();
+
+        LayerBatch[] m_LayerBatches;
+        int m_BatchCount;
 
         bool ppcUpscaleRT = false;
 
@@ -158,11 +160,32 @@ namespace UnityEngine.Rendering.Universal
             return output;
         }
 
+        void InitializeLayerBatches()
+        {
+            Universal2DResourceData resourceData = frameData.Get<Universal2DResourceData>();
+
+            m_LayerBatches = LayerUtility.CalculateBatches(m_Renderer2DData.lightCullResult, out m_BatchCount);
+
+            // Initialize textures dependent on batch size
+            if (resourceData.normalsTexture.Length != m_BatchCount)
+                resourceData.normalsTexture = new TextureHandle[m_BatchCount];
+
+            if (resourceData.lightTextures.Length != m_BatchCount)
+                resourceData.lightTextures = new TextureHandle[m_BatchCount][];
+
+            // Initialize light textures based on active blend styles to save on resources
+            for (int i = 0; i < resourceData.lightTextures.Length; ++i)
+            {
+                if (resourceData.lightTextures[i] == null || resourceData.lightTextures[i].Length != m_LayerBatches[i].activeBlendStylesIndices.Length)
+                    resourceData.lightTextures[i] = new TextureHandle[m_LayerBatches[i].activeBlendStylesIndices.Length];
+            }
+        }
+
         void CreateResources(RenderGraph renderGraph)
         {
             Universal2DResourceData resourceData = frameData.Get<Universal2DResourceData>();
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
-
+         
             ref var cameraTargetDescriptor = ref cameraData.cameraTargetDescriptor;
             var cameraTargetFilterMode = FilterMode.Bilinear;
             bool lastCameraInTheStack = cameraData.resolveFinalTarget;
@@ -230,12 +253,20 @@ namespace UnityEngine.Rendering.Universal
                 desc.autoGenerateMips = false;
                 desc.depthBufferBits = 0;
 
-                resourceData.normalsTexture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, "_NormalMap", true);
+                for (int i = 0; i < resourceData.normalsTexture.Length; ++i)
+                    resourceData.normalsTexture[i] = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, "_NormalMap", true, RendererLighting.k_NormalClearColor);
 
-                for (var i = 0; i < RendererLighting.k_ShapeLightTextureIDs.Length; i++)
-                    m_LightTextureHandles[i] = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, RendererLighting.k_ShapeLightTextureIDs[i], false, FilterMode.Bilinear);
+                for (int i = 0; i < resourceData.lightTextures.Length; ++i)
+                {
+                    for (var j = 0; j < m_LayerBatches[i].activeBlendStylesIndices.Length; ++j)
+                    {
+                        var index = m_LayerBatches[i].activeBlendStylesIndices[j];
+                        if (!Light2DManager.GetGlobalColor(m_LayerBatches[i].startLayerID, index, out var clearColor))
+                            clearColor = Color.black;
 
-                resourceData.lightTextures = m_LightTextureHandles;
+                        resourceData.lightTextures[i][j] = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, RendererLighting.k_ShapeLightTextureIDs[j], true, clearColor, FilterMode.Bilinear);
+                    }
+                }
             }
 
             // Shadow desc
@@ -372,6 +403,8 @@ namespace UnityEngine.Rendering.Universal
 
         internal override void OnRecordRenderGraph(RenderGraph renderGraph, ScriptableRenderContext context)
         {
+            InitializeLayerBatches();
+
             CreateResources(renderGraph);
 
             SetupRenderGraphCameraProperties(renderGraph, false);
@@ -416,13 +449,6 @@ namespace UnityEngine.Rendering.Universal
             Universal2DResourceData resourceData = frameData.Get<Universal2DResourceData>();
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
 
-            RTClearFlags clearFlags = RTClearFlags.None;
-
-            if (cameraData.renderType == CameraRenderType.Base)
-                clearFlags = RTClearFlags.All;
-            else if (cameraData.clearDepth)
-                clearFlags = RTClearFlags.Depth;
-
             // Color Grading LUT
             bool requiredColorGradingLutPass = cameraData.postProcessEnabled && m_PostProcessPasses.isCreated;
 
@@ -438,31 +464,32 @@ namespace UnityEngine.Rendering.Universal
             RendererLighting.lightBatch.Reset();
 
             // Main render passes
-            var layerBatches = LayerUtility.CalculateBatches(m_Renderer2DData.lightCullResult, out var batchCount);
-            for (var i = 0; i < batchCount; i++)
+
+            // Normal Pass
+            for (var i = 0; i < m_BatchCount; i++)
+                m_NormalPass.Render(renderGraph, frameData, m_Renderer2DData, ref m_LayerBatches[i], i);
+
+            // Shadow Pass (TODO: Optimize RT swapping between shadow and light textures)
+            for (var i = 0; i < m_BatchCount; i++)
+                m_ShadowPass.Render(renderGraph, frameData, m_Renderer2DData, ref m_LayerBatches[i], i);
+
+            // Light Pass
+            for (var i = 0; i < m_BatchCount; i++)
+                m_LightPass.Render(renderGraph, frameData, m_Renderer2DData, ref m_LayerBatches[i], i);
+
+            // Default Render Pass
+            for (var i = 0; i < m_BatchCount; i++)
             {
-                ref var layerBatch = ref layerBatches[i];
+                ref var layerBatch = ref m_LayerBatches[i];
 
-                // Normal Pass
-                m_NormalPass.Render(renderGraph, frameData, m_Renderer2DData, ref layerBatch);
+                LayerUtility.GetFilterSettings(m_Renderer2DData, ref m_LayerBatches[i], cameraSortingLayerBoundsIndex, out var filterSettings);
+                m_RendererPass.Render(renderGraph, frameData, m_Renderer2DData, ref layerBatch, i, ref filterSettings);
 
-                // Shadow Pass (TODO: Optimize RT swapping between shadow and light textures)
-                m_ShadowPass.Render(renderGraph, m_Renderer2DData, ref layerBatch, frameData);
+                // Shadow Volumetric Pass
+                m_ShadowPass.Render(renderGraph, frameData, m_Renderer2DData, ref m_LayerBatches[i], i, true);
 
-                // Shadow pass already clears textures
-                bool clearLightTextures = !layerBatch.lightStats.useShadows;
-
-                // Light Pass
-                m_LightPass.Render(renderGraph, m_Renderer2DData, ref layerBatch, frameData, m_LightTextureHandles, resourceData.intermediateDepth, clear: clearLightTextures);
-
-                // Clear camera targets for Metal Arm64 platform
-                if (CustomClear2D.isMetalArm64 && i == 0)
-                    CustomClear2D.RasterPassClear(renderGraph, resourceData.activeColorTexture, resourceData.activeDepthTexture, clearFlags, cameraData.backgroundColor);
-
-                LayerUtility.GetFilterSettings(m_Renderer2DData, ref layerBatch, cameraSortingLayerBoundsIndex, out var filterSettings);
-
-                // Default Render Pass
-                m_RendererPass.Render(renderGraph, frameData, m_Renderer2DData, ref layerBatch, ref filterSettings, resourceData.activeColorTexture, resourceData.activeDepthTexture, m_LightTextureHandles);
+                // Light Volumetric Pass
+                m_LightPass.Render(renderGraph, frameData, m_Renderer2DData, ref m_LayerBatches[i], i, true);
 
                 // Camera Sorting Layer Pass
                 if (m_Renderer2DData.useCameraSortingLayerTexture)
@@ -473,19 +500,13 @@ namespace UnityEngine.Rendering.Universal
                         m_CopyCameraSortingLayerPass.Render(renderGraph, resourceData.activeColorTexture, resourceData.cameraSortingLayerTexture);
 
                         filterSettings.sortingLayerRange = new SortingLayerRange((short)(cameraSortingLayerBoundsIndex + 1), layerBatch.layerRange.upperBound);
-                        m_RendererPass.Render(renderGraph, frameData, m_Renderer2DData, ref layerBatch, ref filterSettings, resourceData.activeColorTexture, resourceData.activeDepthTexture, m_LightTextureHandles);
+                        m_RendererPass.Render(renderGraph, frameData, m_Renderer2DData, ref layerBatch, i, ref filterSettings);
                     }
                     else if (cameraSortingLayerBoundsIndex == layerBatch.layerRange.upperBound)
                     {
                         m_CopyCameraSortingLayerPass.Render(renderGraph, resourceData.activeColorTexture, resourceData.cameraSortingLayerTexture);
                     }
                 }
-
-                // Shadow Volumetric Pass
-                m_ShadowPass.Render(renderGraph, m_Renderer2DData, ref layerBatch, frameData, true);
-
-                // Light Volumetric Pass
-                m_LightPass.Render(renderGraph, m_Renderer2DData, ref layerBatch, frameData, resourceData.activeColorTexture, resourceData.activeDepthTexture, isVolumetric: true);
             }
 
             bool shouldRenderUI = cameraData.rendersOverlayUI;
