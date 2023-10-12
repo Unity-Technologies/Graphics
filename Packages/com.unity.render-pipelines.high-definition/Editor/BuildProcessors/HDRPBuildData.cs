@@ -44,9 +44,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 var hdrpGlobalSettingsInstance = HDRenderPipelineGlobalSettings.Ensure();
                 if (hdrpGlobalSettingsInstance != null)
                 {
-                    var rtxResources = hdrpGlobalSettingsInstance.renderPipelineRayTracingResources;
-                    if (rtxResources != null)
-                        rtxResources.ForEachFieldOfType<ComputeShader>(computeShader => rayTracingComputeShaderCache.Add(computeShader.GetInstanceID(), computeShader));
+                    GraphicsSettings.GetRenderPipelineSettings<HDRPRayTracingResources>()
+                        .ForEachFieldOfType<ComputeShader>(computeShader => rayTracingComputeShaderCache.Add(computeShader.GetInstanceID(), computeShader));
 
                     var runtimeShaderResources = hdrpGlobalSettingsInstance.renderPipelineResources.shaders;
                     runtimeShaderResources?.ForEachFieldOfType<ComputeShader>(computeShader => computeShaderCache.Add(computeShader.GetInstanceID(), computeShader));

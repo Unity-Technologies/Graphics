@@ -757,7 +757,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.pixelCoordToViewDirWS = hdCamera.mainViewConstants.pixelCoordToViewDirWS;
 
                 // Other parameters
-                passData.debugRTASRT = rayTracingResources.rtasDebug;
+                passData.debugRTASRT = rayTracingResources.debugRTASRT;
                 passData.rayTracingAccelerationStructure = RequestAccelerationStructure(hdCamera);
 
                 // Depending of if we will have to denoise (or not), we need to allocate the final format, or a bigger texture

@@ -7,8 +7,6 @@ namespace UnityEngine.Rendering.HighDefinition
     class HDRaytracingLightCluster
     {
         // External data
-        HDRenderPipelineRuntimeResources m_RenderPipelineResources = null;
-        HDRenderPipelineRayTracingResources m_RenderPipelineRayTracingResources = null;
         HDRenderPipeline m_RenderPipeline = null;
 
         // Culling result
@@ -56,10 +54,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void Initialize(HDRenderPipeline renderPipeline)
         {
-            // Keep track of the external buffers
-            m_RenderPipelineResources = HDRenderPipelineGlobalSettings.instance.renderPipelineResources;
-            m_RenderPipelineRayTracingResources = HDRenderPipelineGlobalSettings.instance.renderPipelineRayTracingResources;
-
             // Keep track of the render pipeline
             m_RenderPipeline = renderPipeline;
 
@@ -69,7 +63,7 @@ namespace UnityEngine.Rendering.HighDefinition
             ResizeClusterBuffer(bufferSize);
 
             // Create the material required for debug
-            m_DebugMaterial = CoreUtils.CreateEngineMaterial(m_RenderPipelineRayTracingResources.lightClusterDebugS);
+            m_DebugMaterial = CoreUtils.CreateEngineMaterial(renderPipeline.rayTracingResources.lightClusterDebugS);
         }
 
         public void ReleaseResources()
@@ -179,7 +173,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     ResizeCullResultBuffer(totalLightCount);
                 }
 
-                ComputeShader lightClusterCS = m_RenderPipelineRayTracingResources.lightClusterBuildCS;
+                ComputeShader lightClusterCS = m_RenderPipeline.rayTracingResources.lightClusterBuildCS;
 
                 // Grab the kernel
                 int lightClusterCullKernel = lightClusterCS.FindKernel(m_LightCullKernelName);
@@ -203,7 +197,7 @@ namespace UnityEngine.Rendering.HighDefinition
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RaytracingBuildCluster)))
             {
                 // Grab the kernel
-                ComputeShader lightClusterCS = m_RenderPipelineRayTracingResources.lightClusterBuildCS;
+                ComputeShader lightClusterCS = m_RenderPipeline.rayTracingResources.lightClusterBuildCS;
                 int lightClusterKernel = lightClusterCS.FindKernel(m_LightClusterKernelName);
 
                 // Inject all the parameters
@@ -255,7 +249,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.texHeight = hdCamera.actualHeight;
                 passData.clusterCellSize = clusterCellSize;
                 passData.lightCluster = builder.ReadBuffer(renderGraph.ImportBuffer(m_LightCluster));
-                passData.lightClusterDebugCS = m_RenderPipelineRayTracingResources.lightClusterDebugCS;
+                passData.lightClusterDebugCS = m_RenderPipeline.rayTracingResources.lightClusterDebugCS;
                 passData.lightClusterDebugKernel = passData.lightClusterDebugCS.FindKernel("DebugLightCluster");
                 passData.debugMaterial = m_DebugMaterial;
                 passData.depthStencilBuffer = builder.UseDepthBuffer(depthStencilBuffer, DepthAccess.Read);

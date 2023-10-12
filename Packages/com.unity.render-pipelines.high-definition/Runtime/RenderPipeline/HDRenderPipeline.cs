@@ -407,7 +407,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public bool rayTracingSupported { get { return m_RayTracingSupported; } }
 
-        internal HDRenderPipelineRayTracingResources rayTracingResources { get; private set; }
+        internal HDRPRayTracingResources rayTracingResources { get; private set; }
 
 #if UNITY_EDITOR
         bool m_ResourcesInitialized = false;
@@ -461,12 +461,11 @@ namespace UnityEngine.Rendering.HighDefinition
             //In case we are loading element in the asset pipeline (occurs when library is not fully constructed) the creation of the HDRenderPipeline is done at a time we cannot access resources.
             //So in this case, the reloader would fail and the resources cannot be validated. So skip validation here.
             //The HDRenderPipeline will be reconstructed in a few frame which will fix this issue.
-            if ((m_GlobalSettings.AreRuntimeResourcesCreated() == false)
-                || (m_GlobalSettings.AreEditorResourcesCreated() == false)
-                || (m_RayTracingSupported && !m_GlobalSettings.AreRayTracingResourcesCreated()))
+            m_ResourcesInitialized = m_GlobalSettings.AreRuntimeResourcesCreated() &&
+                                     m_GlobalSettings.AreEditorResourcesCreated();
+
+            if (!m_ResourcesInitialized)
                 return;
-            else
-                m_ResourcesInitialized = true;
 
             m_GlobalSettings.EnsureShadersCompiled();
 #endif
@@ -476,7 +475,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // The first thing we need to do is to set the defines that depend on the render pipeline settings
             bool pipelineSupportsRayTracing = PipelineSupportsRayTracing(m_Asset.currentPlatformRenderPipelineSettings);
 
-            rayTracingResources = m_GlobalSettings.renderPipelineRayTracingResources;
+            rayTracingResources = GraphicsSettings.GetRenderPipelineSettings<HDRPRayTracingResources>();
 
             m_RayTracingSupported = pipelineSupportsRayTracing && rayTracingResources != null;
 
@@ -714,24 +713,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // Check that the serialized Resources are not broken
             m_GlobalSettings.EnsureRuntimeResources(forceReload: true);
             m_GlobalSettings.EnsureEditorResources(forceReload: true);
-
-            // Make sure to include ray-tracing resources if at least one of the defaultAsset or quality levels needs it
-            bool requiresRayTracingResources = m_Asset.currentPlatformRenderPipelineSettings.supportRayTracing;
-
-            // Make sure to include ray-tracing resources if at least one of the quality levels needs it
-            int qualityLevelCount = QualitySettings.names.Length;
-            for (int i = 0; i < qualityLevelCount && !requiresRayTracingResources; ++i)
-            {
-                var hdrpAsset = QualitySettings.GetRenderPipelineAssetAt(i) as HDRenderPipelineAsset;
-                if (hdrpAsset != null && hdrpAsset.currentPlatformRenderPipelineSettings.supportRayTracing)
-                    requiresRayTracingResources = true;
-            }
-
-            // If ray tracing is not enabled we do not want to have ray tracing resources referenced
-            if (requiresRayTracingResources)
-                m_GlobalSettings.EnsureRayTracingResources(forceReload: true);
-            else
-                m_GlobalSettings.ClearRayTracingResources();
 
             if(m_Asset.currentPlatformRenderPipelineSettings.gpuResidentDrawerSettings.mode != GPUResidentDrawerMode.Disabled)
                 m_GlobalSettings.EnsureGPUResidentDrawerResources(forceReload: true);
@@ -2071,8 +2052,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // Potentially the asset might have been deleted by the user
             // Obtain the asset again at least one per frame to make sure we are pointing to a valid resources.
             runtimeResources = m_GlobalSettings.renderPipelineResources;
-            rayTracingResources = m_GlobalSettings.renderPipelineRayTracingResources;
-
 #endif
 
             if (m_GlobalSettings.lensAttenuationMode == LensAttenuationMode.ImperfectLens)

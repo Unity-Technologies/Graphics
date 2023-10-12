@@ -31,7 +31,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
         }
 
-        public void Init(HDRenderPipelineRayTracingResources rpRTResources)
+        public void Init(HDRPRayTracingResources rpRTResources)
         {
             m_ShadowDenoiser = rpRTResources.diffuseShadowDenoiserCS;
 

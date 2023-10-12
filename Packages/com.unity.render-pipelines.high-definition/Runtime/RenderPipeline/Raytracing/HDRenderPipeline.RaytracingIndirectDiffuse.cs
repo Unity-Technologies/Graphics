@@ -16,7 +16,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void InitRayTracedIndirectDiffuse()
         {
-            ComputeShader indirectDiffuseShaderCS = rayTracingResources.indirectDiffuseRaytracingCS;
+            ComputeShader indirectDiffuseShaderCS = rayTracingResources.indirectDiffuseRayTracingCS;
 
             // Grab all the kernels we shall be using
             m_RaytracingIndirectDiffuseFullResKernel = indirectDiffuseShaderCS.FindKernel("RaytracingIndirectDiffuseFullRes");
@@ -78,8 +78,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Shaders
             deferredParameters.rayMarchingCS = rayTracingResources.rayMarchingCS;
-            deferredParameters.gBufferRaytracingRT = rayTracingResources.gBufferRaytracingRT;
-            deferredParameters.deferredRaytracingCS = rayTracingResources.deferredRaytracingCS;
+            deferredParameters.gBufferRaytracingRT = rayTracingResources.gBufferRayTracingRT;
+            deferredParameters.deferredRaytracingCS = rayTracingResources.deferredRayTracingCS;
             deferredParameters.rayBinningCS = rayTracingResources.rayBinningCS;
 
             // Make a copy of the previous values that were defined in the CB
@@ -134,7 +134,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.fullResolution = fullResolution;
 
                 // Grab the right kernel
-                passData.directionGenCS = rayTracingResources.indirectDiffuseRaytracingCS;
+                passData.directionGenCS = rayTracingResources.indirectDiffuseRayTracingCS;
                 passData.dirGenKernel = fullResolution ? m_RaytracingIndirectDiffuseFullResKernel : m_RaytracingIndirectDiffuseHalfResKernel;
 
                 // Grab the additional parameters
@@ -215,7 +215,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.viewCount = hdCamera.viewCount;
 
                 // Grab the right kernel
-                passData.upscaleCS = rayTracingResources.indirectDiffuseRaytracingCS;
+                passData.upscaleCS = rayTracingResources.indirectDiffuseRayTracingCS;
                 passData.upscaleKernel = fullResolution ? m_IndirectDiffuseUpscaleFullResKernel : m_IndirectDiffuseUpscaleHalfResKernel;
 
                 // Grab the additional parameters
@@ -357,7 +357,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     if(m_Asset.currentPlatformRenderPipelineSettings.probeVolumeSHBands == ProbeVolumeSHBands.SphericalHarmonicsL1)
                     {
-                        passData.indirectDiffuseRT = rayTracingResources.indirectDiffuseRaytracingL1RT;
+                        passData.indirectDiffuseRT = rayTracingResources.indirectDiffuseRayTracingL1RT;
                     }
                     else
                     {
@@ -366,7 +366,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 else
                 {
-                    passData.indirectDiffuseRT = rayTracingResources.indirectDiffuseRaytracingOffRT;
+                    passData.indirectDiffuseRT = rayTracingResources.indirectDiffuseRayTracingOffRT;
                 }
 
                 passData.accelerationStructure = RequestAccelerationStructure(hdCamera);

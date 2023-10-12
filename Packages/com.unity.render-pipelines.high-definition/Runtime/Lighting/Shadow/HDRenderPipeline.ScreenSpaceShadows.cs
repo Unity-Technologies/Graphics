@@ -189,9 +189,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // Fetch the shaders
             if (m_RayTracingSupported)
             {
-                m_ScreenSpaceShadowsCS = rayTracingResources.shadowRaytracingCS;
+                m_ScreenSpaceShadowsCS = rayTracingResources.shadowRayTracingCS;
                 m_ScreenSpaceShadowsFilterCS = rayTracingResources.shadowFilterCS;
-                m_ScreenSpaceShadowsRT = rayTracingResources.shadowRaytracingRT;
+                m_ScreenSpaceShadowsRT = rayTracingResources.shadowRayTracingRT;
 
                 // Directional shadow kernels
                 m_ClearShadowTexture = m_ScreenSpaceShadowsCS.FindKernel("ClearShadowTexture");
