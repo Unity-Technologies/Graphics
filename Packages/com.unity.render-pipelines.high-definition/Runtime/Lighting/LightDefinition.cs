@@ -95,8 +95,6 @@ namespace UnityEngine.Rendering.HighDefinition
         [SurfaceDataAttributes(precision = FieldPrecision.Real)]
         public Vector4 shadowMaskSelector;      // Used with ShadowMask feature
 
-        public Vector2 cascadesBorderFadeScaleBias;
-
         public float diffuseDimmer;
         public float specularDimmer;
 

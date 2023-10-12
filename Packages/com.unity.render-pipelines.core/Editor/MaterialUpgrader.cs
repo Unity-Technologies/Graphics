@@ -38,6 +38,13 @@ namespace UnityEditor.Rendering
         string m_OldShader;
         string m_NewShader;
 
+        private static string[] s_PathsWhiteList = new[]
+        {
+            "Hidden/",
+            "HDRP/",
+            "Shader Graphs/"
+        };
+
         /// <summary>
         /// Retrieves path to new shader.
         /// </summary>
@@ -309,20 +316,6 @@ namespace UnityEditor.Rendering
             m_KeywordFloatRename.Add(new KeywordFloatRename { keyword = oldName, property = newName, setVal = setVal, unsetVal = unsetVal });
         }
 
-        /// <summary>
-        /// Checking if the passed in value is a path to a Material.
-        /// </summary>
-        /// <param name="path">Path to test.</param>
-        /// <return>Returns true if the passed in value is a path to a material.</return>
-        static bool IsMaterialPath(string path)
-        {
-            if (string.IsNullOrEmpty(path))
-            {
-                throw new ArgumentNullException(nameof(path));
-            }
-            return path.EndsWith(".mat", StringComparison.OrdinalIgnoreCase);
-        }
-
         static MaterialUpgrader GetUpgrader(List<MaterialUpgrader> upgraders, Material material)
         {
             if (material == null || material.shader == null)
@@ -364,6 +357,29 @@ namespace UnityEditor.Rendering
             return !shaderNamesToIgnore.Contains(material.shader.name);
         }
 
+
+        private static bool IsNotAutomaticallyUpgradable(List<MaterialUpgrader> upgraders, Material material)
+        {
+            return GetUpgrader(upgraders, material) == null && !material.shader.name.ContainsAny(s_PathsWhiteList);
+        }
+
+
+        /// <summary>
+        /// Checking if project folder contains any materials that are not using built-in shaders.
+        /// </summary>
+        /// <param name="upgraders">List if MaterialUpgraders</param>
+        /// <returns>Returns true if at least one material uses a non-built-in shader (ignores Hidden, HDRP and Shader Graph Shaders)</returns>
+        public static bool ProjectFolderContainsNonBuiltinMaterials(List<MaterialUpgrader> upgraders)
+        {
+            foreach (var material in AssetDatabaseHelper.FindAssets<Material>(".mat"))
+            {
+                if(IsNotAutomaticallyUpgradable(upgraders, material))
+                    return true;
+            }
+
+            return false;
+        }
+
         /// <summary>
         /// Upgrade the project folder.
         /// </summary>
@@ -388,31 +404,21 @@ namespace UnityEditor.Rendering
             if ((!Application.isBatchMode) && (!EditorUtility.DisplayDialog(DialogText.title, "The upgrade will overwrite materials in your project. " + DialogText.projectBackMessage, DialogText.proceed, DialogText.cancel)))
                 return;
 
-            int totalMaterialCount = 0;
-            foreach (string s in UnityEditor.AssetDatabase.GetAllAssetPaths())
-            {
-                if (IsMaterialPath(s))
-                    totalMaterialCount++;
-            }
-
+            var materialAssets = AssetDatabase.FindAssets($"t:{nameof(Material)} glob:\"**/*.mat\"");
             int materialIndex = 0;
-            foreach (string path in UnityEditor.AssetDatabase.GetAllAssetPaths())
+
+            foreach (var guid in materialAssets)
             {
-                if (IsMaterialPath(path))
-                {
-                    materialIndex++;
-                    if (UnityEditor.EditorUtility.DisplayCancelableProgressBar(progressBarName, string.Format("({0} of {1}) {2}", materialIndex, totalMaterialCount, path), (float)materialIndex / (float)totalMaterialCount))
-                        break;
+                Material material = AssetDatabase.LoadAssetAtPath<Material>(AssetDatabase.GUIDToAssetPath(guid));
+                materialIndex++;
+                if (UnityEditor.EditorUtility.DisplayCancelableProgressBar(progressBarName, string.Format("({0} of {1}) {2}", materialIndex, materialAssets.Length, material), (float)materialIndex / (float)materialAssets.Length))
+                    break;
 
-                    Material m = UnityEditor.AssetDatabase.LoadMainAssetAtPath(path) as Material;
+                if (!ShouldUpgradeShader(material, shaderNamesToIgnore))
+                    continue;
 
-                    if (!ShouldUpgradeShader(m, shaderNamesToIgnore))
-                        continue;
+                Upgrade(material, upgraders, flags);
 
-                    Upgrade(m, upgraders, flags);
-
-                    //SaveAssetsAndFreeMemory();
-                }
             }
 
             // Upgrade terrain specifically since it is a builtin material

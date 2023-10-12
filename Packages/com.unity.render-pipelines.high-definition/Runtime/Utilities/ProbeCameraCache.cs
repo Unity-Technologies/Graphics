@@ -89,7 +89,10 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             m_Cache.Clear();
             foreach(var camera in m_CameraPool)
-                CoreUtils.Destroy(camera.gameObject);
+            {
+                if (camera != null)
+                    CoreUtils.Destroy(camera.gameObject);
+            }    
             m_CameraPool.Clear();
         }
 

@@ -776,7 +776,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public bool interactsWithSky
         {
-            get => m_InteractsWithSky;
+            // m_InteractWithSky can be true if user changed from directional to point light, so we need to check current type
+            get => m_InteractsWithSky && legacyLight.type == LightType.Directional; 
             set
             {
                 if (m_InteractsWithSky == value)
