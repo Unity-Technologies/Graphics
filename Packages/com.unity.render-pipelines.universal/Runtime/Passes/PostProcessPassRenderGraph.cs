@@ -1445,6 +1445,7 @@ namespace UnityEngine.Rendering.Universal
             }
             DebugHandler debugHandler = GetActiveDebugHandler(cameraData);
             bool resolveToDebugScreen = debugHandler != null && debugHandler.WriteToDebugScreenTexture(cameraData.resolveFinalTarget);
+            // TODO: this uses renderingData.commandBuffer in the RenderGraph path!! Fix it to run in a proper RenderGraph pass
             debugHandler?.UpdateShaderGlobalPropertiesForFinalValidationPass(cmd, cameraData, !m_HasFinalPass && !resolveToDebugScreen);
 
             bool outputToHDR = cameraData.isHDROutputActive;
@@ -1541,6 +1542,7 @@ namespace UnityEngine.Rendering.Universal
             if (isTaaSharpeningEnabled)
             {
                 material.EnableKeyword(ShaderKeywordStrings.Rcas);
+                // TODO: this uses renderingData.commandBuffer in the RenderGraph path!! Fix it to run in a proper RenderGraph pass
                 FSRUtils.SetRcasConstantsLinear(cmd, cameraData.taaSettings.contrastAdaptiveSharpening);
             }
 
@@ -1803,6 +1805,7 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 DebugHandler debugHandler = GetActiveDebugHandler(cameraData);
+                // TODO: this uses renderingData.commandBuffer in the RenderGraph path!! Fix it to run in a proper RenderGraph pass
                 debugHandler?.UpdateShaderGlobalPropertiesForFinalValidationPass(renderingData.commandBuffer, cameraData, !m_HasFinalPass && !resolveToDebugScreen);
 
                 RenderUberPost(renderGraph, cameraData, postProcessingData, in currentSource, in postProcessingTarget, in lutTexture, in overlayUITexture, requireHDROutput, resolveToDebugScreen);

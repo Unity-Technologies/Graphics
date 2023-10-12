@@ -233,23 +233,23 @@ namespace UnityEngine.Rendering.Universal
         /// the backbuffer color as standard output because the later cannot be sampled back (or may not be in HDR format).
         /// If used, DebugHandler will perform the blit from DebugScreenTexture to BackBufferColor.
         /// </summary>
-        public TextureHandle debugScreenColor
+        internal TextureHandle debugScreenColor
         {
             get => CheckAndGetTextureHandle(ref _debugScreenColor);
             set => CheckAndSetTextureHandle(ref _debugScreenColor, value);
         }
-        private TextureHandle _debugScreenColor;
+        internal TextureHandle _debugScreenColor;
 
         /// <summary>
         /// Depth output of post-process passes (uberPost and finalPost) when HDR debug views are enabled. It replaces
         /// the backbuffer depth as standard output because the later cannot be sampled back.
         /// </summary>
-        public TextureHandle debugScreenDepth
+        internal TextureHandle debugScreenDepth
         {
             get => CheckAndGetTextureHandle(ref _debugScreenDepth);
             set => CheckAndSetTextureHandle(ref _debugScreenDepth, value);
         }
-        private TextureHandle _debugScreenDepth;
+        internal TextureHandle _debugScreenDepth;
 
         /// <summary>
         /// After Post Process Color. Stores the contents of the main color target after the post processing passes.

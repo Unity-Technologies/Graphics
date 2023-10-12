@@ -133,6 +133,8 @@ namespace UnityEngine.Rendering.Universal
 
                 passData.dest = builder.UseTextureFragment(destination, 0);
 
+                builder.AllowPassCulling(false);
+
                 builder.SetRenderFunc((CopyToDebugTexturePassData data, RasterGraphContext context) =>
                 {
                     Blitter.BlitTexture(context.cmd, data.src, new Vector4(1,1,0,0), 0, false);

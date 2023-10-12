@@ -953,6 +953,19 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Draws a full screen triangle.
         /// </summary>
+        /// <param name="commandBuffer">RasterCommandBuffer used for rendering commands.</param>
+        /// <param name="material">Material used on the full screen triangle.</param>
+        /// <param name="properties">Optional material property block for the provided material.</param>
+        /// <param name="shaderPassId">Index of the material pass.</param>
+        public static void DrawFullScreen(RasterCommandBuffer commandBuffer, Material material,
+            MaterialPropertyBlock properties = null, int shaderPassId = 0)
+        {
+            DrawFullScreen(commandBuffer.m_WrappedCommandBuffer, material, properties, shaderPassId);
+        }
+
+        /// <summary>
+        /// Draws a full screen triangle.
+        /// </summary>
         /// <param name="commandBuffer">CommandBuffer used for rendering commands.</param>
         /// <param name="material">Material used on the full screen triangle.</param>
         /// <param name="colorBuffer">RenderTargetIdentifier of the color buffer that needs to be set before drawing the full screen triangle.</param>

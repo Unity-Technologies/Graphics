@@ -635,6 +635,7 @@ namespace UnityEngine.Rendering.Universal
 
             useRenderPassEnabled = renderGraph.NativeRenderPassesEnabled;
 
+            // TODO: this uses renderingData.commandBuffer in the RenderGraph path!! Fix it to run in a proper RenderGraph pass
             SetupMotionVectorGlobalMatrix(renderingData.commandBuffer, cameraData);
 
             SetupRenderGraphLights(renderGraph, renderingData, cameraData, lightData);
@@ -1122,6 +1123,9 @@ namespace UnityEngine.Rendering.Universal
                 // make sure we are accessing the proper camera color in case it was replaced by injected passes
                 cameraColor = resourceData.cameraColor;
 
+                // TODO: this uses renderingData.commandBuffer in the RenderGraph path!! Fix it to run in a proper RenderGraph pass
+                debugHandler?.UpdateShaderGlobalPropertiesForFinalValidationPass(renderingData.commandBuffer, cameraData, !resolveToDebugScreen);
+
                 m_FinalBlitPass.Render(renderGraph, cameraData, cameraColor, target, overlayUITexture);
                 resourceData.activeColorID = UniversalResourceData.ActiveID.BackBuffer;
                 resourceData.activeDepthID = UniversalResourceData.ActiveID.BackBuffer;
@@ -1151,6 +1155,7 @@ namespace UnityEngine.Rendering.Universal
                 TextureHandle overlayUITexture = resourceData.overlayUITexture;
                 TextureHandle debugScreenTexture = resourceData.debugScreenColor;
 
+                // TODO: this uses renderingData.commandBuffer in the RenderGraph path!! Fix it to run in a proper RenderGraph pass
                 debugHandler.Render(renderGraph, renderingData.commandBuffer, cameraData, debugScreenTexture, overlayUITexture, debugHandlerColorTarget);
             }
 
