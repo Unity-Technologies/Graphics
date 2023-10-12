@@ -42,8 +42,8 @@ namespace UnityEditor.Rendering.HighDefinition
             High = 2
         }
 
-        static Func<BuildTargetGroup, LightmapEncodingQualityCopy> GetLightmapEncodingQualityForPlatformGroup;
-        static Action<BuildTargetGroup, LightmapEncodingQualityCopy> SetLightmapEncodingQualityForPlatformGroup;
+        static Func<BuildTarget, LightmapEncodingQualityCopy> GetLightmapEncodingQualityForPlatform;
+        static Action<BuildTarget, LightmapEncodingQualityCopy> SetLightmapEncodingQualityForPlatform;
         static Func<BuildTarget> CalculateSelectedBuildTarget;
         static Func<BuildTarget, GraphicsDeviceType[]> GetSupportedGraphicsAPIs;
         static Func<BuildTarget, bool> WillEditorUseFirstGraphicsAPI;
@@ -63,32 +63,32 @@ namespace UnityEditor.Rendering.HighDefinition
             var buildTargetGroupParameter = Expression.Parameter(typeof(BuildTargetGroup), "platformGroup");
             var buildTargetParameter = Expression.Parameter(typeof(BuildTarget), "platform");
             var qualityParameter = Expression.Parameter(typeof(LightmapEncodingQualityCopy), "quality");
-            var getLightmapEncodingQualityForPlatformGroupInfo = playerSettingsType.GetMethod("GetLightmapEncodingQualityForPlatformGroup", BindingFlags.Static | BindingFlags.NonPublic);
-            var setLightmapEncodingQualityForPlatformGroupInfo = playerSettingsType.GetMethod("SetLightmapEncodingQualityForPlatformGroup", BindingFlags.Static | BindingFlags.NonPublic);
+            var GetLightmapEncodingQualityForPlatformInfo = playerSettingsType.GetMethod("GetLightmapEncodingQualityForPlatform", BindingFlags.Static | BindingFlags.NonPublic);
+            var SetLightmapEncodingQualityForPlatformInfo = playerSettingsType.GetMethod("SetLightmapEncodingQualityForPlatform", BindingFlags.Static | BindingFlags.NonPublic);
             var calculateSelectedBuildTargetInfo = editorUserBuildSettingsUtilsType.GetMethod("CalculateSelectedBuildTarget", BindingFlags.Static | BindingFlags.Public);
             var getSupportedGraphicsAPIsInfo = playerSettingsType.GetMethod("GetSupportedGraphicsAPIs", BindingFlags.Static | BindingFlags.NonPublic);
             var getStaticBatchingInfo = playerSettingsType.GetMethod("GetBatchingForPlatform", BindingFlags.Static | BindingFlags.NonPublic);
             var setStaticBatchingInfo = playerSettingsType.GetMethod("SetBatchingForPlatform", BindingFlags.Static | BindingFlags.NonPublic);
             var willEditorUseFirstGraphicsAPIInfo = playerSettingsEditorType.GetMethod("WillEditorUseFirstGraphicsAPI", BindingFlags.Static | BindingFlags.NonPublic);
             var requestCloseAndRelaunchWithCurrentArgumentsInfo = typeof(EditorApplication).GetMethod("RequestCloseAndRelaunchWithCurrentArguments", BindingFlags.Static | BindingFlags.NonPublic);
-            var getLightmapEncodingQualityForPlatformGroupBlock = Expression.Block(
+            var GetLightmapEncodingQualityForPlatformBlock = Expression.Block(
                 new[] { qualityVariable },
-                Expression.Assign(qualityVariable, Expression.Call(getLightmapEncodingQualityForPlatformGroupInfo, buildTargetGroupParameter)),
+                Expression.Assign(qualityVariable, Expression.Call(GetLightmapEncodingQualityForPlatformInfo, buildTargetParameter)),
                 Expression.Convert(qualityVariable, typeof(LightmapEncodingQualityCopy))
             );
-            var setLightmapEncodingQualityForPlatformGroupBlock = Expression.Block(
+            var SetLightmapEncodingQualityForPlatformBlock = Expression.Block(
                 new[] { qualityVariable },
                 Expression.Assign(qualityVariable, Expression.Convert(qualityParameter, lightEncodingQualityType)),
-                Expression.Call(setLightmapEncodingQualityForPlatformGroupInfo, buildTargetGroupParameter, qualityVariable)
+                Expression.Call(SetLightmapEncodingQualityForPlatformInfo, buildTargetParameter, qualityVariable)
             );
-            var getLightmapEncodingQualityForPlatformGroupLambda = Expression.Lambda<Func<BuildTargetGroup, LightmapEncodingQualityCopy>>(getLightmapEncodingQualityForPlatformGroupBlock, buildTargetGroupParameter);
-            var setLightmapEncodingQualityForPlatformGroupLambda = Expression.Lambda<Action<BuildTargetGroup, LightmapEncodingQualityCopy>>(setLightmapEncodingQualityForPlatformGroupBlock, buildTargetGroupParameter, qualityParameter);
+            var GetLightmapEncodingQualityForPlatformLambda = Expression.Lambda<Func<BuildTarget, LightmapEncodingQualityCopy>>(GetLightmapEncodingQualityForPlatformBlock, buildTargetParameter);
+            var SetLightmapEncodingQualityForPlatformLambda = Expression.Lambda<Action<BuildTarget, LightmapEncodingQualityCopy>>(SetLightmapEncodingQualityForPlatformBlock, buildTargetParameter, qualityParameter);
             var calculateSelectedBuildTargetLambda = Expression.Lambda<Func<BuildTarget>>(Expression.Call(null, calculateSelectedBuildTargetInfo));
             var getSupportedGraphicsAPIsLambda = Expression.Lambda<Func<BuildTarget, GraphicsDeviceType[]>>(Expression.Call(null, getSupportedGraphicsAPIsInfo, buildTargetParameter), buildTargetParameter);
             var willEditorUseFirstGraphicsAPILambda = Expression.Lambda<Func<BuildTarget, bool>>(Expression.Call(null, willEditorUseFirstGraphicsAPIInfo, buildTargetParameter), buildTargetParameter);
             var requestCloseAndRelaunchWithCurrentArgumentsLambda = Expression.Lambda<Action>(Expression.Call(null, requestCloseAndRelaunchWithCurrentArgumentsInfo));
-            GetLightmapEncodingQualityForPlatformGroup = getLightmapEncodingQualityForPlatformGroupLambda.Compile();
-            SetLightmapEncodingQualityForPlatformGroup = setLightmapEncodingQualityForPlatformGroupLambda.Compile();
+            GetLightmapEncodingQualityForPlatform = GetLightmapEncodingQualityForPlatformLambda.Compile();
+            SetLightmapEncodingQualityForPlatform = SetLightmapEncodingQualityForPlatformLambda.Compile();
             CalculateSelectedBuildTarget = calculateSelectedBuildTargetLambda.Compile();
             GetSupportedGraphicsAPIs = getSupportedGraphicsAPIsLambda.Compile();
             WillEditorUseFirstGraphicsAPI = willEditorUseFirstGraphicsAPILambda.Compile();
@@ -178,7 +178,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             entryList.AddRange(new Entry[]
             {
-                new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpRuntimeResources, IsRuntimeResourcesCorrect, FixRuntimeResources, indent: 1), 
+                new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpRuntimeResources, IsRuntimeResourcesCorrect, FixRuntimeResources, indent: 1),
                 new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpEditorResources, IsEditorResourcesCorrect, FixEditorResources, indent: 1),
                 new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpVolumeProfile, IsDefaultVolumeProfileCorrect, FixDefaultVolumeProfile, indent: 1),
                 new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpDiffusionProfile, IsDiffusionProfileCorrect, FixDiffusionProfile, indent: 1),
@@ -404,16 +404,22 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             // Shame alert: plateform supporting Encodement are partly hardcoded
             // in editor (Standalone) and for the other part, it is all in internal code.
-            return GetLightmapEncodingQualityForPlatformGroup(BuildTargetGroup.Standalone) == LightmapEncodingQualityCopy.High
-                && GetLightmapEncodingQualityForPlatformGroup(BuildTargetGroup.Android) == LightmapEncodingQualityCopy.High
-                && GetLightmapEncodingQualityForPlatformGroup(BuildTargetGroup.WSA) == LightmapEncodingQualityCopy.High;
+            return GetLightmapEncodingQualityForPlatform(BuildTarget.StandaloneWindows) == LightmapEncodingQualityCopy.High
+                && GetLightmapEncodingQualityForPlatform(BuildTarget.StandaloneWindows64) == LightmapEncodingQualityCopy.High
+                && GetLightmapEncodingQualityForPlatform(BuildTarget.StandaloneLinux64) == LightmapEncodingQualityCopy.High
+                && GetLightmapEncodingQualityForPlatform(BuildTarget.StandaloneOSX) == LightmapEncodingQualityCopy.High
+                && GetLightmapEncodingQualityForPlatform(BuildTarget.Android) == LightmapEncodingQualityCopy.High
+                && GetLightmapEncodingQualityForPlatform(BuildTarget.WSAPlayer) == LightmapEncodingQualityCopy.High;
         }
 
         void FixLightmap(bool fromAsyncUnused)
         {
-            SetLightmapEncodingQualityForPlatformGroup(BuildTargetGroup.Standalone, LightmapEncodingQualityCopy.High);
-            SetLightmapEncodingQualityForPlatformGroup(BuildTargetGroup.Android, LightmapEncodingQualityCopy.High);
-            SetLightmapEncodingQualityForPlatformGroup(BuildTargetGroup.WSA, LightmapEncodingQualityCopy.High);
+            SetLightmapEncodingQualityForPlatform(BuildTarget.StandaloneWindows, LightmapEncodingQualityCopy.High);
+            SetLightmapEncodingQualityForPlatform(BuildTarget.StandaloneWindows64, LightmapEncodingQualityCopy.High);
+            SetLightmapEncodingQualityForPlatform(BuildTarget.StandaloneLinux64, LightmapEncodingQualityCopy.High);
+            SetLightmapEncodingQualityForPlatform(BuildTarget.StandaloneOSX, LightmapEncodingQualityCopy.High);
+            SetLightmapEncodingQualityForPlatform(BuildTarget.Android, LightmapEncodingQualityCopy.High);
+            SetLightmapEncodingQualityForPlatform(BuildTarget.WSAPlayer, LightmapEncodingQualityCopy.High);
         }
 
         bool IsShadowCorrect()
