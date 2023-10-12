@@ -406,6 +406,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 RenderGizmos(m_RenderGraph, hdCamera, GizmoSubset.PostImageEffects);
 
+                // Stop XR single pass before rendering screenspace UI
+                StopXRSinglePass(m_RenderGraph, hdCamera);
+
                 RenderScreenSpaceOverlayUI(m_RenderGraph, hdCamera, backBuffer);
             }
         }
