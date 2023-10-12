@@ -254,12 +254,16 @@ void LoadDirectionalShadowDatas(inout HDShadowData sd, HDShadowContext shadowCon
     sd.cacheTranslationDelta = shadowContext.shadowDatas[index].cacheTranslationDelta;
 }
 
-float EvalShadow_CascadedDepth_Blend_SplitIndex(HDShadowContext shadowContext, Texture2D tex, SamplerComparisonState samp, float2 positionSS, float3 positionWS, float3 normalWS, int index, float3 L, out int shadowSplitIndex)
+float EvalShadow_CascadedDepth_Blend_SplitIndex(inout HDShadowContext shadowContext, Texture2D tex, SamplerComparisonState samp, float2 positionSS, float3 positionWS, float3 normalWS, int index, float3 L, out int shadowSplitIndex)
 {
     float   alpha;
     int     cascadeCount;
     float   shadow = 1.0;
     shadowSplitIndex = EvalShadow_GetSplitIndex(shadowContext, index, positionWS, alpha, cascadeCount);
+#ifdef SHADOWS_SHADOWMASK
+    shadowContext.shadowSplitIndex = shadowSplitIndex;
+    shadowContext.fade = alpha;
+#endif
 
     float3 basePositionWS = positionWS;
 
@@ -309,18 +313,22 @@ float EvalShadow_CascadedDepth_Blend_SplitIndex(HDShadowContext shadowContext, T
     return shadow;
 }
 
-float EvalShadow_CascadedDepth_Blend(HDShadowContext shadowContext, Texture2D tex, SamplerComparisonState samp, float2 positionSS, float3 positionWS, float3 normalWS, int index, float3 L)
+float EvalShadow_CascadedDepth_Blend(inout HDShadowContext shadowContext, Texture2D tex, SamplerComparisonState samp, float2 positionSS, float3 positionWS, float3 normalWS, int index, float3 L)
 {
     int unusedSplitIndex;
     return EvalShadow_CascadedDepth_Blend_SplitIndex(shadowContext, tex, samp, positionSS, positionWS, normalWS, index, L, unusedSplitIndex);
 }
 
-float EvalShadow_CascadedDepth_Dither_SplitIndex(HDShadowContext shadowContext, Texture2D tex, SamplerComparisonState samp, float2 positionSS, float3 positionWS, float3 normalWS, int index, float3 L, out int shadowSplitIndex)
+float EvalShadow_CascadedDepth_Dither_SplitIndex(inout HDShadowContext shadowContext, Texture2D tex, SamplerComparisonState samp, float2 positionSS, float3 positionWS, float3 normalWS, int index, float3 L, out int shadowSplitIndex)
 {
     float   alpha;
     int     cascadeCount;
     float   shadow = 1.0;
     shadowSplitIndex = EvalShadow_GetSplitIndex(shadowContext, index, positionWS, alpha, cascadeCount);
+#ifdef SHADOWS_SHADOWMASK
+    shadowContext.shadowSplitIndex = shadowSplitIndex;
+    shadowContext.fade = alpha;
+#endif
 
     // Forcing the alpha to zero allows us to avoid the dithering as it requires the screen space position and an additional
     // shadow read wich can be avoided in this case.
@@ -362,7 +370,7 @@ float EvalShadow_CascadedDepth_Dither_SplitIndex(HDShadowContext shadowContext, 
     return shadow;
 }
 
-float EvalShadow_CascadedDepth_Dither(HDShadowContext shadowContext, Texture2D tex, SamplerComparisonState samp, float2 positionSS, float3 positionWS, float3 normalWS, int index, float3 L)
+float EvalShadow_CascadedDepth_Dither(inout HDShadowContext shadowContext, Texture2D tex, SamplerComparisonState samp, float2 positionSS, float3 positionWS, float3 normalWS, int index, float3 L)
 {
     int unusedSplitIndex;
     return EvalShadow_CascadedDepth_Dither_SplitIndex(shadowContext, tex, samp, positionSS, positionWS, normalWS, index, L, unusedSplitIndex);
