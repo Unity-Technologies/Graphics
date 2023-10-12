@@ -75,7 +75,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (cmd != null)
             {
                 var allocateGbufferDepth = true;
-                if (m_DeferredLights.UseRenderPass && (m_DeferredLights.DepthCopyTexture != null && m_DeferredLights.DepthCopyTexture.rt != null))
+                if (m_DeferredLights.UseFramebufferFetch && (m_DeferredLights.DepthCopyTexture != null && m_DeferredLights.DepthCopyTexture.rt != null))
                 {
                     m_DeferredLights.GbufferAttachments[m_DeferredLights.GbufferDepthIndex] = m_DeferredLights.DepthCopyTexture;
                     allocateGbufferDepth = false;
@@ -96,7 +96,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                         continue;
 
                     // No need to setup temporaryRTs if we are using input attachments as they will be Memoryless
-                    if (m_DeferredLights.UseRenderPass && (i != m_DeferredLights.GbufferDepthIndex && !m_DeferredLights.HasDepthPrepass))
+                    if (m_DeferredLights.UseFramebufferFetch && (i != m_DeferredLights.GbufferDepthIndex && !m_DeferredLights.HasDepthPrepass))
                         continue;
 
                     m_DeferredLights.ReAllocateGBufferIfNeeded(cameraTextureDescriptor, i);
@@ -105,7 +105,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
             }
 
-            if (m_DeferredLights.UseRenderPass)
+            if (m_DeferredLights.UseFramebufferFetch)
                 m_DeferredLights.UpdateDeferredInputAttachments();
 
             ConfigureTarget(m_DeferredLights.GbufferAttachments, m_DeferredLights.DepthAttachment, m_DeferredLights.GbufferFormats);
@@ -132,7 +132,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 // If any sub-system needs camera normal texture, make it available.
                 // Input attachments will only be used when this is not needed so safe to skip in that case
-                if (!m_DeferredLights.UseRenderPass)
+                if (!m_DeferredLights.UseFramebufferFetch)
                     renderingData.commandBuffer.SetGlobalTexture(s_CameraNormalsTextureID, m_DeferredLights.GbufferAttachments[m_DeferredLights.GBufferNormalSmoothnessIndex]);
             }
         }
@@ -314,6 +314,33 @@ namespace UnityEngine.Rendering.Universal.Internal
                         context.cmd.SetGlobalTexture(DeferredLights.k_GBufferNames[data.deferredLights.GBufferRenderingLayers], data.gbuffer[data.deferredLights.GBufferRenderingLayers]);
                         context.cmd.SetGlobalTexture("_CameraRenderingLayersTexture", data.gbuffer[data.deferredLights.GBufferRenderingLayers]);
                     }
+                });
+            }
+        }
+
+        internal static void ResetGlobalGBufferTextures(RenderGraph renderGraph, TextureHandle[] gbuffer, TextureHandle depthTarget,
+            UniversalResourceData resourcesData, ref DeferredLights deferredLights)
+        {
+            using (var builder = renderGraph.AddRasterRenderPass<PassData>("Reset Global GBuffer Textures",
+                out var passData, s_ProfilingSampler))
+            {
+                passData.deferredLights = deferredLights;
+                gbuffer = resourcesData.gBuffer;
+                passData.gbuffer = deferredLights.GbufferTextureHandles;
+
+                for (int i = 0; i < deferredLights.GBufferSliceCount; i++)
+                {
+                    if (i != deferredLights.GBufferLightingIndex)
+                        passData.gbuffer[i] =
+                            builder.UseTextureFragment(gbuffer[i], i, IBaseRenderGraphBuilder.AccessFlags.Write);
+                }
+
+                builder.UseTextureFragmentDepth(depthTarget, IBaseRenderGraphBuilder.AccessFlags.Write);
+                builder.AllowPassCulling(false);
+                builder.AllowGlobalStateModification(true);
+
+                builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
+                {
                 });
             }
         }

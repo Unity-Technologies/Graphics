@@ -614,7 +614,7 @@ namespace UnityEngine.Rendering.Universal
             m_ForwardLights.SetupRenderGraphLights(renderGraph, renderingData, cameraData, lightData);
             if (this.renderingModeActual == RenderingMode.Deferred)
             {
-                m_DeferredLights.UseRenderPass = renderGraph.NativeRenderPassesEnabled;
+                m_DeferredLights.UseFramebufferFetch = renderGraph.NativeRenderPassesEnabled;
                 m_DeferredLights.SetupRenderGraphLights(renderGraph, cameraData, lightData);
             }
         }
@@ -826,7 +826,8 @@ namespace UnityEngine.Rendering.Universal
                 m_DeferredLights.Setup(m_AdditionalLightsShadowCasterPass);
                 if (m_DeferredLights != null)
                 {
-                    m_DeferredLights.UseRenderPass = renderGraph.NativeRenderPassesEnabled;
+                    // We need to be sure there are no custom passes in between GBuffer/Deferred passes, if there are - we disable fb fetch just to be safe`
+                    m_DeferredLights.UseFramebufferFetch = renderGraph.NativeRenderPassesEnabled;
                     m_DeferredLights.HasNormalPrepass = renderPassInputs.requiresNormalsTexture;
                     m_DeferredLights.HasDepthPrepass = requiresDepthPrepass;
                     m_DeferredLights.ResolveMixedLightingMode(lightData);
@@ -844,6 +845,13 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.AfterRenderingGbuffer, RenderPassEvent.BeforeRenderingDeferredLights);
+                
+                var gfxDeviceType = SystemInfo.graphicsDeviceType;
+                // We double check for features in between GBuffer and Deferred passes just in case to know whether we need to reload the attachments
+                // Metal and Vulkan works fine as it just loads
+                if ((gfxDeviceType == GraphicsDeviceType.Vulkan || gfxDeviceType == GraphicsDeviceType.Metal) &&
+                    InterruptFramebufferFetch(FramebufferFetchEvent.FetchGbufferInDeferred,RenderPassEvent.AfterRenderingGbuffer, RenderPassEvent.BeforeRenderingDeferredLights))
+                    GBufferPass.ResetGlobalGBufferTextures(renderGraph, resourceData.gBuffer, resourceData.activeDepthTexture, resourceData, ref m_DeferredLights);
 
                 m_DeferredPass.Render(renderGraph, frameData, resourceData.activeColorTexture, resourceData.activeDepthTexture, resourceData.gBuffer);
 

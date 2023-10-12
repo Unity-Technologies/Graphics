@@ -30,7 +30,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             var lightingAttachment = m_DeferredLights.GbufferAttachments[m_DeferredLights.GBufferLightingIndex];
             var depthAttachment = m_DeferredLights.DepthAttachmentHandle;
-            if (m_DeferredLights.UseRenderPass)
+            if (m_DeferredLights.UseFramebufferFetch)
                 ConfigureInputAttachments(m_DeferredLights.DeferredInputAttachments, m_DeferredLights.DeferredInputIsTransient);
 
             // TODO: Cannot currently bind depth texture as read-only!
@@ -77,7 +77,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 passData.depth = builder.UseTextureFragmentDepth(depth, IBaseRenderGraphBuilder.AccessFlags.Write);
                 passData.deferredLights = m_DeferredLights;
 
-                if (!m_DeferredLights.UseRenderPass)
+                if (!m_DeferredLights.UseFramebufferFetch)
                 {
                     for (int i = 0; i < gbuffer.Length; ++i)
                     {

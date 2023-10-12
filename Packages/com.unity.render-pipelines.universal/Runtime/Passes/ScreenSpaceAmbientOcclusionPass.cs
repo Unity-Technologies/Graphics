@@ -103,6 +103,10 @@ namespace UnityEngine.Rendering.Universal
             if (isRendererDeferred)
             {
                 renderPassEvent = m_CurrentSettings.AfterOpaque ? RenderPassEvent.AfterRenderingOpaques : RenderPassEvent.AfterRenderingGbuffer;
+
+                if (renderPassEvent == RenderPassEvent.AfterRenderingGbuffer)
+                    breakGBufferAndDeferredRenderPass = true;
+
                 m_CurrentSettings.Source = ScreenSpaceAmbientOcclusionSettings.DepthSource.DepthNormals;
             }
             else

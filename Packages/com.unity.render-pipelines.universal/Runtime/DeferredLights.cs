@@ -133,12 +133,12 @@ namespace UnityEngine.Rendering.Universal.Internal
         internal int GBufferSpecularMetallicIndex { get { return 1; } }
         internal int GBufferNormalSmoothnessIndex { get { return 2; } }
         internal int GBufferLightingIndex { get { return 3; } }
-        internal int GbufferDepthIndex { get { return UseRenderPass ? GBufferLightingIndex + 1 : -1; } }
-        internal int GBufferRenderingLayers { get { return UseRenderingLayers ? GBufferLightingIndex + (UseRenderPass ? 1 : 0) + 1 : -1; } }
+        internal int GbufferDepthIndex { get { return UseFramebufferFetch ? GBufferLightingIndex + 1 : -1; } }
+        internal int GBufferRenderingLayers { get { return UseRenderingLayers ? GBufferLightingIndex + (UseFramebufferFetch ? 1 : 0) + 1 : -1; } }
         // Shadow Mask can change at runtime. Because of this it needs to come after the non-changing buffers.
-        internal int GBufferShadowMask { get { return UseShadowMask ? GBufferLightingIndex + (UseRenderPass ? 1 : 0) + (UseRenderingLayers ? 1 : 0) + 1 : -1; } }
+        internal int GBufferShadowMask { get { return UseShadowMask ? GBufferLightingIndex + (UseFramebufferFetch ? 1 : 0) + (UseRenderingLayers ? 1 : 0) + 1 : -1; } }
         // Color buffer count (not including dephStencil).
-        internal int GBufferSliceCount { get { return 4 + (UseRenderPass ? 1 : 0) + (UseShadowMask ? 1 : 0) + (UseRenderingLayers ? 1 : 0); } }
+        internal int GBufferSliceCount { get { return 4 + (UseFramebufferFetch ? 1 : 0) + (UseShadowMask ? 1 : 0) + (UseRenderingLayers ? 1 : 0); } }
 
         internal int GBufferInputAttachmentCount { get { return 4 + (UseShadowMask ? 1 : 0); } }
 
@@ -173,7 +173,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         //
         internal bool UseLightLayers { get { return UniversalRenderPipeline.asset.useRenderingLayers; } }
         //
-        internal bool UseRenderPass { get; set; }
+        internal bool UseFramebufferFetch { get; set; }
         //
         internal bool HasDepthPrepass { get; set; }
         //
@@ -264,7 +264,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             this.AccurateGbufferNormals = true;
             this.UseJobSystem = true;
-            this.UseRenderPass = useNativeRenderPass;
+            this.UseFramebufferFetch = useNativeRenderPass;
             m_LightCookieManager = initParams.lightCookieManager;
         }
 
@@ -339,7 +339,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     cmd.SetKeyword(ShaderGlobalKeywords.ShadowsShadowMask, isShadowMask);
                     cmd.SetKeyword(ShaderGlobalKeywords.MixedLightingSubtractive, isSubtractive); // Backward compatibility
                     // This should be moved to a more global scope when framebuffer fetch is introduced to more passes
-                    cmd.SetKeyword(ShaderGlobalKeywords.RenderPassEnabled, this.UseRenderPass && cameraData.cameraType == CameraType.Game);
+                    cmd.SetKeyword(ShaderGlobalKeywords.RenderPassEnabled, this.UseFramebufferFetch && cameraData.cameraType == CameraType.Game);
                     cmd.SetKeyword(ShaderGlobalKeywords.LightLayers, UseLightLayers);
 
                     RenderingLayerUtils.SetupProperties(CommandBufferHelpers.GetRasterCommandBuffer(cmd), RenderingLayerMaskSize);
@@ -391,7 +391,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         // To non-renderpass path in the middle of setup, which means recreating the gbuffer attachments as well due to GBuffer4 used for RenderPass
         internal void DisableFramebufferFetchInput()
         {
-            this.UseRenderPass = false;
+            this.UseFramebufferFetch = false;
             CreateGbufferResources();
         }
 
@@ -483,7 +483,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             this.DepthAttachment = depthAttachment;
 
             var inputCount = 4 + (UseShadowMask ?  1 : 0);
-            if (this.DeferredInputAttachments == null && this.UseRenderPass && this.GbufferAttachments.Length >= 3 ||
+            if (this.DeferredInputAttachments == null && this.UseFramebufferFetch && this.GbufferAttachments.Length >= 3 ||
                 (this.DeferredInputAttachments != null && inputCount != this.DeferredInputAttachments.Length))
             {
                 this.DeferredInputAttachments = new RTHandle[inputCount];
