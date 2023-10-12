@@ -251,11 +251,14 @@ namespace UnityEditor.ShaderGraph
                 }
             }
 
+            var variantLimit = this.m_Mode == GenerationMode.Preview
+                ? Mathf.Min(ShaderGraphPreferences.previewVariantLimit, ShaderGraphProjectSettings.instance.shaderVariantLimit)
+                : ShaderGraphProjectSettings.instance.shaderVariantLimit;
             // Send an action about our current variant usage. This will either add or clear a warning if it exists
-            var action = new ShaderVariantLimitAction(shaderKeywords.permutations.Count, ShaderGraphPreferences.variantLimit);
+            var action = new ShaderVariantLimitAction(shaderKeywords.permutations.Count, variantLimit);
             m_GraphData.owner?.graphDataStore?.Dispatch(action);
 
-            if (shaderKeywords.permutations.Count > ShaderGraphPreferences.variantLimit)
+            if (shaderKeywords.permutations.Count > variantLimit)
             {
                 // ideally we would not rely on the graph having an asset guid / asset path here (to support compiling asset-less graph datas)
                 string path = AssetDatabase.GUIDToAssetPath(m_GraphData.assetGuid);
