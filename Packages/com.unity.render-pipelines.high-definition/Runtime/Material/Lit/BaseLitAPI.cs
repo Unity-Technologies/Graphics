@@ -54,23 +54,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 bool enableDisplacement = material.HasProperty(kDisplacementMode) && (GetFilteredDisplacementMode(material) != DisplacementMode.None);
 
-                // Displacement mapping requires a height map.
-                if (enableDisplacement)
-                {
-                    int layerCount = material.HasProperty(kLayerCount) ? material.GetInt(kLayerCount) : 1;
-
-                    // If the layerCount is 1, then it means that the property we're fetching is not from a layered material
-                    // thus it doesn't have a postfix
-                    string[] postfixes = (layerCount > 1) ? new[] { "0", "1", "2", "3" } : new[] { "" };
-
-                    for (int i = 0; i < layerCount; i++)
-                    {
-                        string kHeightMapN = string.Format("{0}{1}", kHeightMap, postfixes[i]);
-
-                        enableDisplacement = enableDisplacement && material.HasProperty(kHeightMapN) && (material.GetTexture(kHeightMapN) != null);
-                    }
-                }
-
                 if (enableDisplacement)
                 {
                     var displacementMode = GetFilteredDisplacementMode(material);
