@@ -108,10 +108,8 @@ namespace UnityEditor.ShaderGraph
                     var drawState = node.drawState;
                     drawState.position = new Rect(nodePosition, drawState.position.size);
                     node.drawState = drawState;
-                    graphData.AddNode(node);
-
-                    // Setting the guid requires the graph to be set first.
                     node.property = property;
+                    graphData.AddNode(node);
                     break;
                 }
                 case ShaderKeyword keyword:
@@ -129,10 +127,8 @@ namespace UnityEditor.ShaderGraph
                     var drawState = node.drawState;
                     drawState.position = new Rect(nodePosition, drawState.position.size);
                     node.drawState = drawState;
-                    graphData.AddNode(node);
-
-                    // Setting the guid requires the graph to be set first.
                     node.keyword = keyword;
+                    graphData.AddNode(node);
                     break;
                 }
                 case ShaderDropdown dropdown:
@@ -152,10 +148,8 @@ namespace UnityEditor.ShaderGraph
                         var drawState = node.drawState;
                         drawState.position = new Rect(nodePosition, drawState.position.size);
                         node.drawState = drawState;
-                        graphData.AddNode(node);
-
-                        // Setting the guid requires the graph to be set first.
                         node.dropdown = dropdown;
+                        graphData.AddNode(node);
                     }
                     break;
                 }

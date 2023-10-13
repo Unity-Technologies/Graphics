@@ -14,7 +14,7 @@ namespace UnityEditor.ShaderGraph
 
             public static void ConcretizeProperties(GraphData graph)
             {
-                var propertyNodes = graph.GetNodes<PropertyNode>().Where(n => !graph.m_Properties.Any(p => p == n.property)).ToArray();
+                var propertyNodes = graph.GetNodes<PropertyNode>().Where(n => !graph.m_Properties.Any(p => p.value.objectId == n.property.objectId)).ToArray();
                 foreach (var pNode in propertyNodes)
                     graph.ReplacePropertyNodeWithConcreteNodeNoValidate(pNode);
             }
