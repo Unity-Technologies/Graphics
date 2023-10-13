@@ -126,16 +126,36 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        static public void SetupStencil(Material material, bool receivesLighting, bool receivesSSR, bool useSplitLighting)
+        static public bool CompatibleWithExcludeFromTUAndAA(SurfaceType surfaceType, int renderQueue)
+        {
+            return surfaceType == SurfaceType.Transparent && HDRenderQueue.k_RenderQueue_Transparent.Contains(renderQueue);
+        }
+
+        static public bool CompatibleWithExcludeFromTUAndAA(Material material)
+        {
+            return CompatibleWithExcludeFromTUAndAA(material.GetSurfaceType(), material.renderQueue) && material.HasProperty(kExcludeFromTUAndAA);
+        }
+
+        static public void SetupStencil(Material material, bool receivesLighting, bool receivesSSR, bool useSplitLighting, bool excludeFromTUAndAA = false)
         {
             // To determine if the shader is forward only, we can't rely on the presence of GBuffer pass because that depends on the active subshader, which
             // depends on the active render pipeline, giving an inconsistent result. The properties of a shader are always the same so it's ok to check them
             bool forwardOnly = material.shader.FindPropertyIndex(kZTestGBuffer) == -1;
 
-            ComputeStencilProperties(receivesLighting, forwardOnly, receivesSSR, useSplitLighting, out int stencilRef, out int stencilWriteMask,
-                out int stencilRefDepth, out int stencilWriteMaskDepth, out int stencilRefGBuffer, out int stencilWriteMaskGBuffer,
-                out int stencilRefMV, out int stencilWriteMaskMV
-            );
+            ComputeStencilProperties(
+                receivesLighting,
+                forwardOnly,
+                receivesSSR,
+                useSplitLighting,
+                excludeFromTUAndAA,
+                out int stencilRef,
+                out int stencilWriteMask,
+                out int stencilRefDepth,
+                out int stencilWriteMaskDepth,
+                out int stencilRefGBuffer,
+                out int stencilWriteMaskGBuffer,
+                out int stencilRefMV,
+                out int stencilWriteMaskMV);
 
             // As we tag both during motion vector pass and Gbuffer pass we need a separate state and we need to use the write mask
             if (material.HasProperty(kStencilRef))
@@ -165,9 +185,20 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        static public void ComputeStencilProperties(bool receivesLighting, bool forwardOnly, bool receivesSSR, bool useSplitLighting, out int stencilRef, out int stencilWriteMask,
-            out int stencilRefDepth, out int stencilWriteMaskDepth, out int stencilRefGBuffer, out int stencilWriteMaskGBuffer,
-            out int stencilRefMV, out int stencilWriteMaskMV)
+        static public void ComputeStencilProperties(
+            bool receivesLighting,
+            bool forwardOnly,
+            bool receivesSSR,
+            bool useSplitLighting,
+            bool excludeFromTUAndAA,
+            out int stencilRef,
+            out int stencilWriteMask,
+            out int stencilRefDepth,
+            out int stencilWriteMaskDepth,
+            out int stencilRefGBuffer,
+            out int stencilWriteMaskGBuffer,
+            out int stencilRefMV,
+            out int stencilWriteMaskMV)
         {
             // Stencil usage rules:
             // TraceReflectionRay need to be tagged during depth prepass
@@ -219,6 +250,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 stencilRefDepth |= (int)StencilUsage.IsUnlit;
                 stencilWriteMaskDepth |= (int)StencilUsage.IsUnlit;
                 stencilRefMV |= (int)StencilUsage.IsUnlit;
+            }
+
+            if (excludeFromTUAndAA)
+            {
+                stencilRefDepth |= (int)StencilUsage.ExcludeFromTUAndAA;
+                stencilRef |= (int)StencilUsage.ExcludeFromTUAndAA;
+                stencilWriteMask |= (int)StencilUsage.ExcludeFromTUAndAA;
+                stencilWriteMaskDepth |= (int)StencilUsage.ExcludeFromTUAndAA;
             }
 
             stencilWriteMaskDepth |= (int)StencilUsage.IsUnlit;

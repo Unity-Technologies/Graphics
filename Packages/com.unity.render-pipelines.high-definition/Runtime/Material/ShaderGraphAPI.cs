@@ -76,7 +76,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             }
 
-            BaseLitAPI.SetupStencil(material, receivesLighting: true, receiveSSR, useSplitLighting);
+            bool excludeFromTUAndAA = BaseLitAPI.CompatibleWithExcludeFromTUAndAA(material) && material.GetInt(kExcludeFromTUAndAA) != 0;
+            BaseLitAPI.SetupStencil(material, receivesLighting: true, receiveSSR, useSplitLighting, excludeFromTUAndAA);
         }
 
         public static void ValidateDecalMaterial(Material material)

@@ -151,6 +151,7 @@ Depending on the [Graph Settings](#graph-settings) you use, Shader Graph can add
 [!include[](snippets/shader-properties/surface-options/alpha-clipping.md)]
 [!include[](snippets/shader-properties/surface-options/use-shadow-threshold.md)]
 [!include[](snippets/shader-properties/surface-options/alpha-to-mask.md)]
+[!include[](snippets/shader-properties/surface-options/exclude-from-taau.md)]
 [!include[](snippets/shader-properties/surface-options/double-sided-mode.md)]
 [!include[](snippets/shader-properties/surface-options/fragment-normal-space.md)]
 [!include[](snippets/shader-properties/surface-options/receive-decals.md)]
