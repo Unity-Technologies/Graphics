@@ -519,6 +519,18 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
             }
         }
 
+        static bool IsGlobalTextureInPass(RenderGraphPass pass, ResourceHandle handle)
+        {
+            foreach (var g in pass.setGlobalsList)
+            {
+                if (g.Item1.handle.index == handle.index)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         void DetectMemoryLessResources()
         {
             using (new ProfilingScope(ProfilingSampler.Get(NativeCompilerProfileId.NRPRGComp_DetectMemorylessResources)))
@@ -536,6 +548,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
                             ref var createInfo = ref contextData.UnversionedResourceData(createdRes);
                             if (createdRes.type == RenderGraphResourceType.Texture && createInfo.isImported == false)
                             {
+                                bool isGlobal = IsGlobalTextureInPass(graph.m_RenderPasses[subPass.passId], createdRes);
+
                                 // Note: You could think but what if the texture is used as a regular non-frambuffer attachment texture
                                 // surely it can't be memoryless then?
                                 // That is true, but it can never happen as the fact these passes got merged means the textures cannot be used
@@ -549,7 +563,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
                                         ref var destInfo = ref contextData.UnversionedResourceData(destroyedRes);
                                         if (destroyedRes.type == RenderGraphResourceType.Texture && destInfo.isImported == false)
                                         {
-                                            if (createdRes.index == destroyedRes.index)
+                                            if (createdRes.index == destroyedRes.index && !isGlobal)
                                             {
                                                 createInfo.memoryLess = true;
                                                 destInfo.memoryLess = true;
@@ -1023,7 +1037,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
                 if (nativePass.attachments.size == 0 || nativePass.numNativeSubPasses == 0) throw new Exception("Empty render pass");
-             
+
                 nativePass.GetPassNames(contextData, passNamesForDebug);
 #endif
 
@@ -1036,7 +1050,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
                                             hasDepth,
                                             ref contextData.nativeSubPassData,
                                             nativePass.firstNativeSubPass,
-                                            nativePass.numNativeSubPasses,                     
+                                            nativePass.numNativeSubPasses,
                                             passNamesForDebug);
             }
         }

@@ -197,13 +197,14 @@ namespace UnityEngine.Rendering.Universal
                     InitPassData(ref passData);
                     builder.AllowGlobalStateModification(true);
 
+                    if (color.IsValid())
+                        builder.PostSetGlobalTexture(color, m_ScreenSpaceShadowmapTextureID);
+
                     builder.SetRenderFunc((PassData data, RasterGraphContext rgContext) =>
                     {
                         ExecutePass(rgContext.cmd, data, data.target);
                     });
                 }
-
-                RenderGraphUtils.SetGlobalTexture(renderGraph, m_ScreenSpaceShadowmapTextureID, color);
             }
 
             private static void ExecutePass(RasterCommandBuffer cmd, PassData data, RTHandle target)

@@ -231,9 +231,6 @@ namespace UnityEngine.Rendering.Universal
             TextureHandle depthTarget = renderer.renderingModeActual == RenderingMode.Deferred ? resourceData.activeDepthTexture :
                 (cameraData.cameraTargetDescriptor.msaaSamples > 1 ? resourceData.dBufferDepth : resourceData.activeDepthTexture);
 
-            RenderGraphUtils.SetGlobalTexture(renderGraph, Shader.PropertyToID("_CameraDepthTexture"), cameraDepthTexture);
-            RenderGraphUtils.SetGlobalTexture(renderGraph, Shader.PropertyToID("_CameraNormalsTexture"), cameraNormalsTexture);
-
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("DBuffer Pass", out var passData, m_ProfilingSampler))
             {
                 InitPassData(ref passData);
@@ -272,6 +269,8 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 builder.UseTextureFragmentDepth(depthTarget, IBaseRenderGraphBuilder.AccessFlags.Write);
+                if (cameraData.cameraTargetDescriptor.msaaSamples > 1)
+                    builder.PostSetGlobalTexture(depthTarget, Shader.PropertyToID("_CameraDepthTexture"));
 
                 if (cameraDepthTexture.IsValid())
                     builder.UseTexture(cameraDepthTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
@@ -281,6 +280,12 @@ namespace UnityEngine.Rendering.Universal
                 var param = InitRendererListParams(renderingData, cameraData, lightData);
                 passData.rendererList = renderGraph.CreateRendererList(param);
                 builder.UseRendererList(passData.rendererList);
+
+                for (int i = 0; i < RenderGraphUtils.DBufferSize; ++i)
+                {
+                    if (dbufferHandles[i].IsValid())
+                        builder.PostSetGlobalTexture(dbufferHandles[i], Shader.PropertyToID(s_DBufferNames[i]));
+                }
 
                 builder.AllowPassCulling(false);
                 builder.AllowGlobalStateModification(true);
@@ -292,11 +297,6 @@ namespace UnityEngine.Rendering.Universal
                 });
             }
 
-            for (int i = 0; i < RenderGraphUtils.DBufferSize; ++i)
-            {
-                if (dbufferHandles[i].IsValid())
-                    RenderGraphUtils.SetGlobalTexture(renderGraph, Shader.PropertyToID(s_DBufferNames[i]), dbufferHandles[i]);
-            }
             resourceData.dBuffer = dbufferHandles;
         }
 

@@ -262,21 +262,23 @@ internal class RenderGraphView : GraphView
 
         foreach (var pass in nrpPasses)
         {
-            nrp.title += pass.title + "  ";
+            nrp.title += pass.title + ", ";
             m_Passes.Remove(pass);
             MoveConnections(pass, nrp, nrp.m_MergedPasses);
         }
 
-        for (int i = 0; i < nrp.m_InputPort.Count; ++i)
+        for (int i = nrp.m_InputPort.Count-1; i >= 0; i--)
         {
-            if (LinqButNotLinq.Any(nrp.m_InputPort[i].connections) == false)
+            bool isGlobal = (nrp.m_InputPort[i].portType == typeof(bool)); //HACK: Find a better way to keep track of globals
+            if (LinqButNotLinq.Any(nrp.m_InputPort[i].connections) == false && !isGlobal)
             {
+
                 nrp.inputContainer.Remove(nrp.m_InputPort[i]);
                 nrp.m_InputPort.RemoveAt(i);
             }
         }
 
-        for (int i = 0; i < nrp.m_OutputPort.Count; ++i)
+        for (int i = nrp.m_OutputPort.Count-1; i >= 0; i--)
         {
             if (LinqButNotLinq.Any(nrp.m_OutputPort[i].connections) == false)
             {
@@ -311,7 +313,8 @@ internal class RenderGraphView : GraphView
             Port destPort = destination.GetPort(Direction.Input, port.name);
             if (destPort == null)
             {
-                destPort = destination.AddPort(Direction.Input, port.name);
+                bool isGlobal = (port.portType == typeof(bool)); //HACK: Find a better way to keep track of globals
+                destPort = destination.AddPort(Direction.Input, port.name, isGlobal);
             }
 
             foreach (var edge in port.connections)
@@ -341,7 +344,7 @@ internal class RenderGraphView : GraphView
             var destPort = destination.GetPort(Direction.Output, port.name);
             if (destPort == null)
             {
-                destPort = destination.AddPort(Direction.Output, port.name);
+                destPort = destination.AddPort(Direction.Output, port.name, false);
             }
 
             foreach (var edge in port.connections)
@@ -426,7 +429,7 @@ internal class RenderGraphView : GraphView
     }
 
     internal void AddConnection(string from, string to, string resourceName,
-        string resourceNameNoVersion, string mergeMessage, RenderGraphDebugger.InputUsageType use)
+        string resourceNameNoVersion, string mergeMessage, RenderGraphDebugger.InputUsageType use, bool isGlobal)
     {
         var fromNode = m_Passes.Find(node => node.m_ID == from);
         var toNode = m_Passes.Find(node => node.m_ID == to);
@@ -457,23 +460,28 @@ internal class RenderGraphView : GraphView
         Port fromPort = fromNode.GetPort(Direction.Output, resourceNameNoVersion);
         if (fromPort == null)
         {
-            fromPort = fromNode.AddPort(Direction.Output, resourceNameNoVersion);
+            fromPort = fromNode.AddPort(Direction.Output, resourceNameNoVersion, isGlobal);
         }
 
         Port toPort = toNode.GetPort(Direction.Input, resourceNameNoVersion);
         if (toPort == null)
         {
-            toPort = toNode.AddPort(Direction.Input, resourceNameNoVersion);
+            toPort = toNode.AddPort(Direction.Input, resourceNameNoVersion, isGlobal);
         }
 
         //connect ports
-        var edge = new RenderGraphEdge();
-        edge.view = this;
-        edge.tooltip = mergeMessage;
-        edge.input = toPort;
-        edge.output = fromPort;
-        toPort.Connect(edge);
-        fromPort.Connect(edge);
+        if (!isGlobal)
+        {
+            var edge = new RenderGraphEdge();
+            edge.view = this;
+            edge.tooltip = mergeMessage;
+            edge.input = toPort;
+            edge.output = fromPort;
+            toPort.Connect(edge);
+            fromPort.Connect(edge);
+
+            AddElement(edge);
+        }
 
         //save input/output connections to make sorting the view easier
         if (!fromNode.m_Outputs.Contains(toNode))
@@ -485,8 +493,6 @@ internal class RenderGraphView : GraphView
         {
             toNode.m_Inputs.Add(fromNode);
         }
-
-        AddElement(edge);
     }
 
     internal ResourceNode AddResource(string resourceID, string label, RenderGraphWindow.ResourceDebugData data)
@@ -910,10 +916,9 @@ internal class RenderGraphNode : Node
         return null;
     }
 
-    public Port AddPort(Direction portDirection, string connectionName,
-        Port.Capacity capacity = Port.Capacity.Multi)
+    public Port AddPort(Direction portDirection, string connectionName, bool isGlobal)
     {
-        var n = InstantiatePort(Orientation.Horizontal, portDirection, capacity, typeof(string));
+        var n = InstantiatePort(Orientation.Horizontal, portDirection, Port.Capacity.Multi, (isGlobal) ? typeof(bool) : typeof(string));
         n.name = connectionName;
         n.portName = connectionName;
         if (portDirection == Direction.Output)

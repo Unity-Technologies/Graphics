@@ -197,6 +197,16 @@ namespace UnityEngine.Rendering.Universal.Internal
                 passData.rendererList = renderGraph.CreateRendererList(param);
                 builder.UseRendererList(passData.rendererList);
 
+                UniversalRenderer universalRenderer = cameraData.renderer as UniversalRenderer;
+                if (universalRenderer != null)
+                {
+                    var renderingMode = universalRenderer.renderingModeActual;
+                    if (cameraNormalsTexture.IsValid() && renderingMode != RenderingMode.Deferred)
+                        builder.PostSetGlobalTexture(cameraNormalsTexture, Shader.PropertyToID("_CameraNormalsTexture"));
+                    if (cameraDepthTexture.IsValid() && renderingMode != RenderingMode.Deferred)
+                        builder.PostSetGlobalTexture(cameraDepthTexture, Shader.PropertyToID("_CameraDepthTexture"));
+                }
+
                 //  TODO RENDERGRAPH: culling? force culling off for testing
                 builder.AllowPassCulling(false);
                 // Required here because of RenderingLayerUtils.SetupProperties
@@ -208,9 +218,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                     ExecutePass(context.cmd, data, data.rendererList);
                 });
             }
-
-            RenderGraphUtils.SetGlobalTexture(renderGraph, "_CameraNormalsTexture", cameraNormalsTexture, "Set Camera Normals Texture");
-            RenderGraphUtils.SetGlobalTexture(renderGraph,"_CameraDepthTexture", cameraDepthTexture, "Set Global CameraDepthTexture");
         }
     }
 }

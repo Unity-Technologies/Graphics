@@ -431,47 +431,36 @@ namespace UnityEngine.Rendering.Universal.Internal
                         builder.UseRendererList(passData.shadowRendererListsHandle[cascadeIndex]);
                     }
 
-                    passData.shadowmapTexture = UniversalRenderer.CreateRenderGraphTexture(graph, m_MainLightShadowmapTexture.rt.descriptor, "Main Shadowmap", true, ShadowUtils.m_ForceShadowPointSampling ? FilterMode.Point : FilterMode.Bilinear);
-                    builder.UseTextureFragmentDepth(passData.shadowmapTexture, IBaseRenderGraphBuilder.AccessFlags.Write);
+                    shadowTexture = UniversalRenderer.CreateRenderGraphTexture(graph, m_MainLightShadowmapTexture.rt.descriptor, "_MainLightShadowmapTexture", true, ShadowUtils.m_ForceShadowPointSampling ? FilterMode.Point : FilterMode.Bilinear);
+                    builder.UseTextureFragmentDepth(shadowTexture, IBaseRenderGraphBuilder.AccessFlags.Write);
+                }
+                else
+                {
+                    shadowTexture = graph.defaultResources.defaultShadowTexture;
                 }
 
                 // Need this as shadowmap is only used as Global Texture and not a buffer, so would get culled by RG
                 builder.AllowPassCulling(false);
                 builder.AllowGlobalStateModification(true);
 
+
+                if (shadowTexture.IsValid())
+                    builder.PostSetGlobalTexture(shadowTexture, m_MainLightShadowmapID);
+
                 builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
                 {
                     if (!data.emptyShadowmap)
+                    {
                         data.pass.RenderMainLightCascadeShadowmap(context.cmd, ref data, true);
-                });
-
-                shadowTexture = passData.shadowmapTexture;
-            }
-
-            using (var builder = graph.AddRasterRenderPass<PassData>("Set Main Shadow Globals", out var passData, base.profilingSampler))
-            {
-                InitEmptyPassData(ref passData, renderingData, cameraData, lightData, shadowData);
-
-                passData.shadowmapTexture = shadowTexture;
-
-                if (shadowTexture.IsValid())
-                    builder.UseTexture(shadowTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
-
-                builder.AllowPassCulling(false);
-                builder.AllowGlobalStateModification(true);
-
-                builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
-                {
-                    if (data.emptyShadowmap)
+                    }
+                    else
                     {
                         data.pass.SetEmptyMainLightCascadeShadowmap(context.cmd);
-                        data.shadowmapTexture = context.defaultResources.defaultShadowTexture;
                     }
-
-                    context.cmd.SetGlobalTexture(data.shadowmapID, data.shadowmapTexture);
                 });
-                return passData.shadowmapTexture;
             }
+
+            return shadowTexture;
         }
     };
 }

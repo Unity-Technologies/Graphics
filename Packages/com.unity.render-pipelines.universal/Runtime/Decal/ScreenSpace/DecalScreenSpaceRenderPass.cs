@@ -108,7 +108,6 @@ namespace UnityEngine.Rendering.Universal
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
 
             TextureHandle cameraDepthTexture = resourceData.cameraDepthTexture;
-            RenderGraphUtils.SetGlobalTexture(renderGraph, Shader.PropertyToID("_CameraDepthTexture"), cameraDepthTexture);
 
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("Decal Screen Space Pass", out var passData, m_ProfilingSampler))
             {

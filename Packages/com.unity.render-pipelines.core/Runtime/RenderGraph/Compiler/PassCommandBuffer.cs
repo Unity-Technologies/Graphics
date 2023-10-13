@@ -383,30 +383,39 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
 
         internal static unsafe void Execute(in ExecuteNodeCommand* cmd, ref PassCommandBufferState state)
         {
+            var pass = state.passes[cmd->passID];
+
 #if THROW_ON_SETRENDERTARGET_DEBUG
-            if (state.passes[cmd->passID].type == RenderGraphPassType.Raster)
+            if (pass.type == RenderGraphPassType.Raster)
             {
                 CommandBuffer.ThrowOnSetRenderTarget = true;
             }
 #endif
             try
             {
-                state.rgContext.executingPass = state.passes[cmd->passID];
+                state.rgContext.executingPass = pass;
 
-                if (!state.passes[cmd->passID].HasRenderFunc())
+                if (!pass.HasRenderFunc())
                 {
                     throw new InvalidOperationException(string.Format("RenderPass {0} was not provided with an execute function.", state.passes[cmd->passID].name));
                 }
 
-                using (new ProfilingScope(state.rgContext.cmd, state.passes[cmd->passID].customSampler))
+                using (new ProfilingScope(state.rgContext.cmd, pass.customSampler))
                 {
-                    state.passes[cmd->passID].Execute(state.rgContext);
+                    pass.Execute(state.rgContext);
+
+                    foreach (var tex in pass.setGlobalsList)
+                    {
+                        state.rgContext.cmd.SetGlobalTexture(tex.Item2, tex.Item1);
+                    }
                 }
+
+
             }
             finally
             {
 #if THROW_ON_SETRENDERTARGET_DEBUG
-                if (state.passes[cmd->passID].type == RenderGraphPassType.Raster)
+                if (pass.type == RenderGraphPassType.Raster)
                 {
                     CommandBuffer.ThrowOnSetRenderTarget = false;
                 }

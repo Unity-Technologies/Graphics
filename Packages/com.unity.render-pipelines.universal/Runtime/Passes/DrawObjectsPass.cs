@@ -291,7 +291,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                     ExecutePass(context.cmd, data, data.rendererListHdl, data.objectsWithErrorRendererListHdl, yFlip);
                 });
-
             }
         }
     }
@@ -400,6 +399,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     TextureHandle ssaoTexture = resourceData.ssaoTexture;
                     if (ssaoTexture.IsValid())
                         builder.UseTexture(ssaoTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+
                     RenderGraphUtils.UseDBufferIfValid(builder, resourceData);
                 }
 

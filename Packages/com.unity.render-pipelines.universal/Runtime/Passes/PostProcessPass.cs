@@ -85,10 +85,10 @@ namespace UnityEngine.Rendering.Universal
 
         // Use Fast conversions between SRGB and Linear
         bool m_UseFastSRGBLinearConversion;
-        
+
         // Support Screen Space Lens Flare post process effect
         bool m_SupportScreenSpaceLensFlare;
-        
+
         // Support Data Driven Lens Flare post process effect
         bool m_SupportDataDrivenLensFlare;
 
@@ -1670,6 +1670,7 @@ namespace UnityEngine.Rendering.Universal
             public readonly Material cameraMotionBlur;
             public readonly Material paniniProjection;
             public readonly Material bloom;
+            public readonly Material[] bloomUpsample;
             public readonly Material temporalAntialiasing;
             public readonly Material scalingSetup;
             public readonly Material easu;
@@ -1698,6 +1699,10 @@ namespace UnityEngine.Rendering.Universal
                 finalPass = Load(data.shaders.finalPostPassPS);
                 lensFlareDataDriven = Load(data.shaders.LensFlareDataDrivenPS);
                 lensFlareScreenSpace = Load(data.shaders.LensFlareScreenSpacePS);
+
+                bloomUpsample = new Material[k_MaxPyramidSize];
+                for (uint i = 0; i < k_MaxPyramidSize; ++i)
+                    bloomUpsample[i] = Load(data.shaders.bloomPS);
             }
 
             Material Load(Shader shader)
@@ -1731,6 +1736,9 @@ namespace UnityEngine.Rendering.Universal
                 CoreUtils.Destroy(finalPass);
                 CoreUtils.Destroy(lensFlareDataDriven);
                 CoreUtils.Destroy(lensFlareScreenSpace);
+
+                for (uint i = 0; i < k_MaxPyramidSize; ++i)
+                    CoreUtils.Destroy(bloomUpsample[i]);
             }
         }
 

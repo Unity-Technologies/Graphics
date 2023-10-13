@@ -362,7 +362,7 @@ namespace UnityEngine.Rendering.Universal
             {
             	importSummary.cameraColorParams.discardOnLastUse = lastCameraInTheStack;
                 importSummary.cameraDepthParams.discardOnLastUse = lastCameraInTheStack;
-                
+
                 resourceData.cameraColor = renderGraph.ImportTexture(m_RenderGraphCameraColorHandle, importSummary.cameraColorParams);
                 resourceData.cameraDepth = renderGraph.ImportTexture(m_RenderGraphCameraDepthHandle, importSummary.cameraDepthParams);
             }
@@ -395,7 +395,7 @@ namespace UnityEngine.Rendering.Universal
             resourceData.afterPostProcessColor = UniversalRenderer.CreateRenderGraphTexture(renderGraph, postProcessDesc, "_AfterPostProcessTexture", true);
         }
 
-        internal override void OnBeginRenderGraphFrame()
+        public override void OnBeginRenderGraphFrame()
         {
             Universal2DResourceData resourceData = frameData.Create<Universal2DResourceData>();
             resourceData.InitFrame();
@@ -420,7 +420,7 @@ namespace UnityEngine.Rendering.Universal
             OnAfterRendering(renderGraph);
         }
 
-        internal override void OnEndRenderGraphFrame()
+        public override void OnEndRenderGraphFrame()
         {
             Universal2DResourceData resourceData = frameData.Get<Universal2DResourceData>();
             resourceData.EndFrame();

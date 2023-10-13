@@ -73,13 +73,13 @@ namespace UnityEngine.Rendering.Universal
             m_ForwardLights.SetupRenderGraphLights(renderGraph, renderingData ,cameraData, lightData);
         }
 
-        internal override void OnBeginRenderGraphFrame()
+        public override void OnBeginRenderGraphFrame()
         {
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
             resourceData.InitFrame();
         }
 
-        internal override void OnEndRenderGraphFrame()
+        public override void OnEndRenderGraphFrame()
         {
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
             resourceData.EndFrame();

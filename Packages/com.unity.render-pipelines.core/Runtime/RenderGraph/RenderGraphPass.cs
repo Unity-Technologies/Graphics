@@ -43,6 +43,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         public List<RendererListHandle> usedRendererListList = new List<RendererListHandle>();
 
+        public List<ValueTuple<TextureHandle, int>> setGlobalsList = new List<ValueTuple<TextureHandle, int>>();
+        public bool useAllGlobalTextures;
+
         public RenderGraphPass()
         {
             for (int i = 0; i < (int)RenderGraphResourceType.Count; ++i)
@@ -66,6 +69,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
 
             usedRendererListList.Clear();
+            setGlobalsList.Clear();
+            useAllGlobalTextures = false;
             enableAsyncCompute = false;
             allowPassCulling = true;
             allowRendererListCulling = true;

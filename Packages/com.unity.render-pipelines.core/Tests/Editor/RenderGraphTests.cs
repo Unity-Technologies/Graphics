@@ -488,37 +488,6 @@ namespace UnityEngine.Rendering.Tests
         }
 
         [Test]
-        public void GlobalStateIsGuarded()
-        {
-            TextureHandle texture0;
-            texture0 = m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
-
-
-            RenderGraphParameters pars;
-            pars.executionName = "test";
-            pars.currentFrameIndex = 0;
-            pars.rendererListCulling = false;
-            pars.scriptableRenderContext = new ScriptableRenderContext();
-            pars.commandBuffer = new CommandBuffer();
-            pars.invalidContextForTesting = true;
-
-            Assert.Throws<System.InvalidOperationException>(() =>
-            {
-                using (m_RenderGraph.RecordAndExecute(in pars))
-                {
-                    using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("Async_TestPass0", out var passData))
-                    {
-                        builder.AllowGlobalStateModification(false);
-                        builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) =>
-                        {
-                            context.cmd.SetGlobalTexture("test", texture0);
-                        });
-                    }
-                }
-            });
-        }
-
-        [Test]
         public void UseTextureFragmentValidation()
         {
             TextureHandle texture0;

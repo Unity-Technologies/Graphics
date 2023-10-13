@@ -766,7 +766,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Override this method to initialize before recording the render graph, such as resources.
         /// </summary>
-        internal virtual void OnBeginRenderGraphFrame()
+        public virtual void OnBeginRenderGraphFrame()
         {
         }
 
@@ -782,7 +782,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Override this method to cleanup things after recording the render graph, such as resources.
         /// </summary>
-        internal virtual void OnEndRenderGraphFrame()
+        public virtual void OnEndRenderGraphFrame()
         {
         }
 

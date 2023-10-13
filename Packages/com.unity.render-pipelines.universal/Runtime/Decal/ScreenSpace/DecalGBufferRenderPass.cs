@@ -153,10 +153,6 @@ namespace UnityEngine.Rendering.Universal
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
             TextureHandle cameraDepthTexture = resourceData.cameraDepthTexture;
 
-            // By calling SetGlobalTexture we would break active render pass and using framebuffer fetch would be impossible
-            if (!renderGraph.NativeRenderPassesEnabled)
-                RenderGraphUtils.SetGlobalTexture(renderGraph, Shader.PropertyToID("_CameraDepthTexture"), cameraDepthTexture);
-
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("Decal GBuffer Pass", out var passData, m_ProfilingSampler))
             {
                 UniversalRenderingData renderingData = frameData.Get<UniversalRenderingData>();

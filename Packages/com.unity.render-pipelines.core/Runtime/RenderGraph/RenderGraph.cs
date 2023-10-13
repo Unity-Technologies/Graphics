@@ -1393,6 +1393,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             for (int i = 0; i < (int)RenderGraphResourceType.Count; ++i)
                 m_CompiledResourcesInfos[i].Clear();
             m_CompiledPassInfos.Clear();
+            registeredGlobals.Clear();
         }
 
         void InvalidateContext()
@@ -2209,6 +2210,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
             RenderGraphPass pass = passInfo.pass;
 
+            foreach (var tex in pass.setGlobalsList)
+            {
+                rgContext.cmd.SetGlobalTexture(tex.Item2, tex.Item1);
+            }
+
             if (passInfo.needGraphicsFence)
                 passInfo.fence = rgContext.cmd.CreateAsyncGraphicsFence();
 
@@ -2447,6 +2453,31 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         }
 
         #endregion
+
+
+        Dictionary<int, TextureHandle> registeredGlobals = new Dictionary<int, TextureHandle>();
+
+        internal void SetGlobal(TextureHandle h, int globalPropertyId)
+        {
+            registeredGlobals[globalPropertyId] = h;
+        }
+
+        internal bool IsGlobal(int globalPropertyId)
+        {
+            return registeredGlobals.ContainsKey(globalPropertyId);
+        }
+
+        internal Dictionary<int, TextureHandle>.ValueCollection AllGlobals()
+        {
+            return registeredGlobals.Values;
+        }
+
+        internal TextureHandle GetGlobal(int globalPropertyId)
+        {
+            TextureHandle h;
+            registeredGlobals.TryGetValue(globalPropertyId, out h);
+            return h;
+        }
     }
 
     /// <summary>

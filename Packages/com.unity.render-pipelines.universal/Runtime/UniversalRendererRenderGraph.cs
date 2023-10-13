@@ -619,7 +619,10 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        internal override void OnBeginRenderGraphFrame()
+        /// <summary>
+        /// Called before recording the render graph. Can be used to initialize resources.
+        /// </summary>
+        public override void OnBeginRenderGraphFrame()
         {
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
             resourceData.InitFrame();
@@ -675,7 +678,10 @@ namespace UnityEngine.Rendering.Universal
             EndRenderGraphXRRendering(renderGraph);
         }
 
-        internal override void OnEndRenderGraphFrame()
+        /// <summary>
+        /// Called after recording the render graph. Can be used to clean up resources.
+        /// </summary>
+        public override void OnEndRenderGraphFrame()
         {
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
             resourceData.EndFrame();
@@ -791,9 +797,16 @@ namespace UnityEngine.Rendering.Universal
                 depthTarget = (useDepthPriming && (cameraData.renderType == CameraRenderType.Base || cameraData.clearDepth)) ? resourceData.activeDepthTexture : depthTarget;
 
                 if (renderPassInputs.requiresNormalsTexture)
+                {
                     DepthNormalPrepassRender(renderGraph, renderPassInputs, depthTarget);
+                }
                 else
+                {
                     m_DepthPrepass.Render(renderGraph, frameData, ref depthTarget);
+
+                    if (!useDepthPriming && depthTarget.IsValid())
+                        RenderGraphUtils.SetGlobalTexture(renderGraph, Shader.PropertyToID("_CameraDepthTexture"), depthTarget, "Set Global Depth Texture");
+                }
             }
 
             // depth priming still needs to copy depth because the prepass doesn't target anymore CameraDepthTexture
@@ -804,9 +817,6 @@ namespace UnityEngine.Rendering.Universal
                 TextureHandle cameraDepthTexture = resourceData.cameraDepthTexture;
                 m_PrimedDepthCopyPass.Render(renderGraph, frameData, cameraDepthTexture, depth, true);
             }
-
-            if (cameraData.renderType == CameraRenderType.Base && !requiresDepthPrepass && !requiresDepthCopyPass)
-                RenderGraphUtils.SetGlobalTexture(renderGraph, "_CameraDepthTexture", SystemInfo.usesReversedZBuffer ? renderGraph.defaultResources.blackTexture : renderGraph.defaultResources.whiteTexture, "Set default Camera Depth Texture");
 
             RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.AfterRenderingPrePasses);
 
@@ -1226,10 +1236,8 @@ namespace UnityEngine.Rendering.Universal
         {
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
 
-            RenderGraphUtils.SetGlobalTexture(renderGraph, m_RenderingLayersTextureName, resourceData.renderingLayersTexture, "Set Rendering Layers Texture");
-
-            if (renderingModeActual == RenderingMode.Deferred) // As this is requested by render pass we still want to set it
-                RenderGraphUtils.SetGlobalTexture(renderGraph, "_CameraRenderingLayersTexture", resourceData.renderingLayersTexture, "Set Deferred Rendering Layers Texture");
+            if (resourceData.renderingLayersTexture.IsValid() && renderingModeActual != RenderingMode.Deferred)
+                RenderGraphUtils.SetGlobalTexture(renderGraph, Shader.PropertyToID(m_RenderingLayersTextureName), resourceData.renderingLayersTexture, "Set Global Rendering Layers Texture");
         }
 
         void CreateCameraDepthCopyTexture(RenderGraph renderGraph, RenderTextureDescriptor descriptor, bool isDepthTexture)
@@ -1381,54 +1389,23 @@ namespace UnityEngine.Rendering.Universal
         private class PassData
         {
             internal TextureHandle texture;
-            internal string name;
             internal int nameID;
         }
 
-        /// <summary>
-        /// Records a RenderGraph pass that binds a global texture
-        /// </summary>
-        /// <param name="graph"></param>
-        /// <param name="name"></param>
-        /// <param name="texture"></param>
-        /// <param name="passName"></param>
-        public static void SetGlobalTexture(RenderGraph graph, string name, TextureHandle texture, string passName = "Set Global Texture")
+        public static void SetGlobalTexture(RenderGraph graph, int nameId, TextureHandle handle, string passName = "Set Global Texture")
         {
             using (var builder = graph.AddRasterRenderPass<PassData>(passName, out var passData, s_SetGlobalTextureProfilingSampler))
             {
-                passData.texture = builder.UseTexture(texture, IBaseRenderGraphBuilder.AccessFlags.Read);
-                passData.name = name;
+                passData.nameID = nameId;
+                passData.texture = builder.UseTexture(handle, IBaseRenderGraphBuilder.AccessFlags.Read);
 
                 builder.AllowPassCulling(false);
                 builder.AllowGlobalStateModification(true);
 
-                builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
-                {
-                    context.cmd.SetGlobalTexture(data.name, data.texture);
-                });
-            }
-        }
-
-        /// <summary>
-        /// Records a RenderGraph pass that binds a global texture
-        /// </summary>
-        /// <param name="graph"></param>
-        /// <param name="nameID"></param>
-        /// <param name="texture"></param>
-        /// <param name="passName"></param>
-        public static void SetGlobalTexture(RenderGraph graph, int nameID, TextureHandle texture, string passName = "Set Global Texture")
-        {
-            using (var builder = graph.AddRasterRenderPass<PassData>(passName, out var passData, s_SetGlobalTextureProfilingSampler))
-            {
-                passData.texture = builder.UseTexture(texture, IBaseRenderGraphBuilder.AccessFlags.Read);
-                passData.nameID = nameID;
-
-                builder.AllowPassCulling(false);
-                builder.AllowGlobalStateModification(true);
+                builder.PostSetGlobalTexture(handle, nameId);
 
                 builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
                 {
-                    context.cmd.SetGlobalTexture(data.nameID, data.texture);
                 });
             }
         }
