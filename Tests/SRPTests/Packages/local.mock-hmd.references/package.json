@@ -1,0 +1,14 @@
+{
+  "displayName": "Local MockHMD XR package references",
+  "name": "local.mock-hmd.references",
+  "version": "1.0.0",
+  "unity": "2019.4",
+  "description": "This is a dummy package that contains references to the MockHMD needed for tests in the repository.",
+  "keywords": [
+    "test"
+  ],
+  "category": "Libraries",
+  "dependencies": {
+    "com.unity.xr.mock-hmd": "1.3.1-preview.1"
+  }
+}
