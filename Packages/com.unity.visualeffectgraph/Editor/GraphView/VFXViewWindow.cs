@@ -301,7 +301,6 @@ namespace UnityEditor.VFX.UI
             VFXManagerEditor.CheckVFXManager();
 
             graphView = new VFXView();
-            graphView.StretchToParentSize();
             SetupFramingShortcutHandler(graphView);
 
             rootVisualElement.Add(graphView);
