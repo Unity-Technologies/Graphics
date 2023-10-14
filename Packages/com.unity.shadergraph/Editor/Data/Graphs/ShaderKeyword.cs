@@ -118,6 +118,8 @@ namespace UnityEditor.ShaderGraph
             set => m_IsEditable = !value;
         }
 
+        internal override bool isCustomSlotAllowed => false;
+
         internal override bool isExposable => !isBuiltIn && (keywordDefinition != KeywordDefinition.Predefined);
 
         internal override bool isRenamable => !isBuiltIn;
