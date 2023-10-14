@@ -53,8 +53,10 @@ namespace UnityEditor.Rendering.Universal
             // Probe volumes
             public static readonly GUIContent lightProbeSystemContent = EditorGUIUtility.TrTextContent("Light Probe System", "What system to use for Light Probes.");
             public static readonly GUIContent probeVolumeMemoryBudget = EditorGUIUtility.TrTextContent("Memory Budget", "Determines the width and height of the 3D textures used to store lighting data from probes. Depth is fixed.");
+            public static readonly GUIContent probeVolumeBlendingMemoryBudget = EditorGUIUtility.TrTextContent("Blending Memory Budget", "Determines the width and height of the 3D textures used to store light scenario blending data from probes. Depth is fixed.");
             public static readonly GUIContent supportProbeVolumeStreaming = EditorGUIUtility.TrTextContent("Enable Streaming", "Enable steaming of Cells in the Probe Volume system.");
             public static readonly GUIContent supportProbeVolumeScenarios = EditorGUIUtility.TrTextContent("Enable Lighting Scenarios", "Enable Lighting Scenario Baking in the Probe Volume system.");
+            public static readonly GUIContent supportProbeVolumeScenarioBlending = EditorGUIUtility.TrTextContent("Enable Lighting Scenario Blending", "Enable Lighting Scenario Blending in the Probe Volume system.\nNote: Lighting Scenario Blending requires Compute Shader support.");
             public static readonly GUIContent probeVolumeSHBands = EditorGUIUtility.TrTextContent("SH Bands", "The number of Spherical Harmonic bands used by Probe Volumes to store lighting data. Choosing L2 provides better quality but with higher memory and runtime costs.");
 
             // Additional lights

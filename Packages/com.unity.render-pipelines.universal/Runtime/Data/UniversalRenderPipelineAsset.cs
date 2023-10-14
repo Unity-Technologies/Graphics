@@ -482,8 +482,10 @@ namespace UnityEngine.Rendering.Universal
 #endif
         [SerializeField] LightProbeSystem m_LightProbeSystem = LightProbeSystem.LegacyLightProbes;
         [SerializeField] ProbeVolumeTextureMemoryBudget m_ProbeVolumeMemoryBudget = ProbeVolumeTextureMemoryBudget.MemoryBudgetMedium;
+        [SerializeField] ProbeVolumeBlendingTextureMemoryBudget m_ProbeVolumeBlendingMemoryBudget = ProbeVolumeBlendingTextureMemoryBudget.MemoryBudgetMedium;
         [SerializeField] bool m_SupportProbeVolumeStreaming = false;
         [SerializeField] bool m_SupportProbeVolumeScenarios = false;
+        [SerializeField] bool m_SupportProbeVolumeScenarioBlending = false;
 #if UNITY_EDITOR
         [ShaderKeywordFilter.RemoveIf(ProbeVolumeSHBands.SphericalHarmonicsL1, keywordNames: ShaderKeywordStrings.ProbeVolumeL2)]
         [ShaderKeywordFilter.RemoveIf(ProbeVolumeSHBands.SphericalHarmonicsL2, keywordNames: ShaderKeywordStrings.ProbeVolumeL1)]
@@ -1207,6 +1209,15 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
+        /// Probe Volume Blending Memory Budget.
+        /// </summary>
+        public ProbeVolumeBlendingTextureMemoryBudget probeVolumeBlendingMemoryBudget
+        {
+            get => m_ProbeVolumeBlendingMemoryBudget;
+            internal set => m_ProbeVolumeBlendingMemoryBudget = value;
+        }
+
+        /// <summary>
         /// Support Streaming for Probe Volumes.
         /// </summary>
         public bool supportProbeVolumeStreaming
@@ -1222,6 +1233,15 @@ namespace UnityEngine.Rendering.Universal
         {
             get { return m_SupportProbeVolumeScenarios; }
             internal set { m_SupportProbeVolumeScenarios = value; }
+        }
+
+        /// <summary>
+        /// Support Lighting Scenario Blending for Probe Volumes.
+        /// </summary>
+        public bool supportProbeVolumeScenarioBlending
+        {
+            get { return m_SupportProbeVolumeScenarioBlending; }
+            internal set { m_SupportProbeVolumeScenarioBlending = value; }
         }
 
         /// <summary>

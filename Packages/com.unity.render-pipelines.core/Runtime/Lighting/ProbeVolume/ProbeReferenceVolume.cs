@@ -230,7 +230,7 @@ namespace UnityEngine.Rendering
             }
 
             public Dictionary<string, PerScenarioData> scenarios = new Dictionary<string, PerScenarioData>();
-            
+
             // Brick data.
             public NativeArray<Brick> bricks { get; internal set; }
 
@@ -803,7 +803,7 @@ namespace UnityEngine.Rendering
             else
             {
                 Debug.Assert(perSceneDataList.Count > 0);
-                var sceneBakingSet = sceneData.GetBakingSetForScene(data.sceneGUID); // It can be null if the scene was never added to a baking set and we are baking in single scene mode, in that case we don't have a baking set for it yet and we need to skip 
+                var sceneBakingSet = sceneData.GetBakingSetForScene(data.sceneGUID); // It can be null if the scene was never added to a baking set and we are baking in single scene mode, in that case we don't have a baking set for it yet and we need to skip
 
                 if (sceneBakingSet != null && !string.IsNullOrEmpty(data.sceneGUID) && sceneBakingSet != m_CurrentBakingSet)
                 {
@@ -1040,7 +1040,7 @@ namespace UnityEngine.Rendering
 
                 cell.loaded = false;
                 cell.debugProbes = null;
-                
+
                 ClearDebugData();
             }
         }

@@ -254,6 +254,18 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUILayout.PropertyField(serialized.probeVolumeSHBands, Styles.probeVolumeSHBands);
                 EditorGUILayout.PropertyField(serialized.supportProbeVolumeStreaming, Styles.supportProbeVolumeStreaming);
                 EditorGUILayout.PropertyField(serialized.supportProbeVolumeScenarios, Styles.supportProbeVolumeScenarios);
+                if (serialized.supportProbeVolumeScenarios.boolValue)
+                {
+                    EditorGUI.indentLevel++;
+                    EditorGUILayout.PropertyField(serialized.supportProbeVolumeScenarioBlending, Styles.supportProbeVolumeScenarioBlending);
+                    if (serialized.supportProbeVolumeScenarioBlending.boolValue)
+                    {
+                        EditorGUI.indentLevel++;
+                        EditorGUILayout.PropertyField(serialized.probeVolumeBlendingTextureSize, Styles.probeVolumeBlendingMemoryBudget);
+                        EditorGUI.indentLevel--;
+                    }
+                    EditorGUI.indentLevel--;
+                }
 
                 int estimatedVMemCost = ProbeReferenceVolume.instance.GetVideoMemoryCost();
                 if (estimatedVMemCost == 0)

@@ -267,17 +267,19 @@ namespace UnityEngine.Rendering.Universal
             SupportedRenderingFeatures.active.overridesLightProbeSystem = apvIsEnabled;
             if (apvIsEnabled)
             {
+                bool supportBlending = SystemInfo.supportsComputeShaders && asset.supportProbeVolumeScenarios && asset.supportProbeVolumeScenarioBlending;
                 var pvr = ProbeReferenceVolume.instance;
                 ProbeReferenceVolume.instance.Initialize(new ProbeVolumeSystemParameters
                 {
                     memoryBudget = asset.probeVolumeMemoryBudget,
+                    blendingMemoryBudget = asset.probeVolumeBlendingMemoryBudget,
                     probeDebugShader = asset.scriptableRendererData.probeVolumeResources.probeVolumeDebugShader,
                     fragmentationDebugShader = asset.scriptableRendererData.probeVolumeResources.probeVolumeFragmentationDebugShader,
                     probeSamplingDebugShader = asset.scriptableRendererData.probeVolumeResources.probeVolumeSamplingDebugShader,
                     probeSamplingDebugMesh = asset.scriptableRendererData.probeVolumeResources.probeSamplingDebugMesh,
                     probeSamplingDebugTexture = asset.scriptableRendererData.probeVolumeResources.probeSamplingDebugTexture,
                     offsetDebugShader = asset.scriptableRendererData.probeVolumeResources.probeVolumeOffsetDebugShader,
-                    scenarioBlendingShader = null, // Disable this since it requires compute 'data.probeVolumeResources.probeVolumeBlendStatesCS,'
+                    scenarioBlendingShader = supportBlending ? asset.scriptableRendererData.probeVolumeResources.probeVolumeBlendStatesCS : null,
                     sceneData = m_GlobalSettings.GetOrCreateAPVSceneData(),
                     shBands = asset.probeVolumeSHBands,
                     supportGPUStreaming = asset.supportProbeVolumeStreaming,
