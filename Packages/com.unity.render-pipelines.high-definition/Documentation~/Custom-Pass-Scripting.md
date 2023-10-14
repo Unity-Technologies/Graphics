@@ -179,7 +179,12 @@ Shader "Hidden/Outline"
             color = float4(CustomPassSampleCameraColor(posInput.positionNDC.xy, 0), 1);
 
         // When sampling RTHandle texture, always use _RTHandleScale.xy to scale your UVs first.
-        float2 uv = posInput.positionNDC.xy * _RTHandleScale.xy;
+        float2 scaling = _RTHandleScale.xy;
+        if (_CustomPassInjectionPoint == CUSTOMPASSINJECTIONPOINT_AFTER_POST_PROCESS)
+            scaling *= rcp(_DynamicResolutionFullscreenScale.xy);
+
+        // When sampling RTHandle texture, always use _RTHandleScale.xy to scale your UVs first.
+        float2 uv = posInput.positionNDC.xy * scaling;
         float4 outline = SAMPLE_TEXTURE2D_X_LOD(_OutlineBuffer, s_linear_clamp_sampler, uv, 0);
         outline.a = 0;
 
@@ -189,7 +194,7 @@ Shader "Hidden/Outline"
             // Search neighbors
             for (int i = 0; i < MAXSAMPLES; i++)
             {
-                float2 uvN = uv + _ScreenSize.zw * _RTHandleScale.xy * samplingPositions[i];
+                float2 uvN = uv + _ScreenSize.zw * scaling * samplingPositions[i];
                 float4 neighbour = SAMPLE_TEXTURE2D_X_LOD(_OutlineBuffer, s_linear_clamp_sampler, uvN, 0);
 
                 if (Luminance(neighbour) > luminanceThreshold)
