@@ -632,7 +632,6 @@ namespace UnityEditor.VFX.UI
             toggleComponentBoard.value = componentBoardVisible;
 #endif
 
-            Add(m_Toolbar);
             Add(m_LockedElement);
             Add(m_NoAssetElement);
             SetToolbarEnabled(false);
@@ -861,8 +860,7 @@ namespace UnityEditor.VFX.UI
 
         public void SetBoardToFront(GraphElement board)
         {
-            board.SendToBack();
-            board.PlaceBehind(m_Toolbar);
+            board.BringToFront();
         }
 
         public bool TryAttachTo(VisualEffect visualEffect, bool showNotification)
@@ -2465,6 +2463,7 @@ namespace UnityEditor.VFX.UI
 
         void OnEnterPanel(AttachToPanelEvent e)
         {
+            parent.Insert(0, m_Toolbar);
             Undo.undoRedoPerformed += OnUndoPerformed;
         }
 

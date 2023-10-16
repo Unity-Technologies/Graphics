@@ -18,10 +18,13 @@ namespace UnityEngine.VFX.Test
         //Once in the Render Pipeline preparation, once in the Render Context Submit.
         private const int kMarkerMultiplier = 2;
 
-
+        private const int kWaitFrameCount = 32;
         [OneTimeSetUp]
         public void Init()
         {
+            m_VFXSortRecorder = Recorder.Get("VFX.SortBuffer");
+            m_VFXSortRecorder.FilterToCurrentThread();
+            m_VFXSortRecorder.enabled = false;
         }
 
         [UnityTest]
@@ -30,16 +33,28 @@ namespace UnityEngine.VFX.Test
             UnityEngine.SceneManagement.SceneManager.LoadScene(kScenePath);
             yield return null;
 
-            m_VFXSortRecorder = Recorder.Get("VFX.SortBuffer");
-            m_VFXSortRecorder.FilterToCurrentThread();
+            var vfxComponents = Resources.FindObjectsOfTypeAll<VisualEffect>();
 
             m_VFXSortRecorder.enabled = true;
-            yield return new WaitForEndOfFrame();;
-            m_VFXSortRecorder.enabled = false;
 
-            int sortBufferCommandCount = m_VFXSortRecorder.sampleBlockCount;
-            Debug.Log($"Sort Buffer Counts : {sortBufferCommandCount}");
-            Assert.AreEqual(sortBufferCommandCount, kCameraVisibleCount * kMarkerMultiplier);
+            int maxFrame = 8;
+            while (vfxComponents[^1].culled && maxFrame-- > 0)
+                yield return new WaitForEndOfFrame();
+
+            //Extra wait frame to ensure that the profiler recorder is ready
+            yield return new WaitForEndOfFrame();
+
+            int totalSampleCount = 0;
+            for (int i = 0; i < kWaitFrameCount; i++)
+            {
+                totalSampleCount +=  m_VFXSortRecorder.sampleBlockCount;
+                yield return new WaitForEndOfFrame();
+            }
+
+            m_VFXSortRecorder.enabled = false;
+            int averageSampleCount = Mathf.RoundToInt((float)totalSampleCount / kWaitFrameCount);
+
+            Assert.AreEqual(kCameraVisibleCount * kMarkerMultiplier, averageSampleCount);
         }
     }
 }
