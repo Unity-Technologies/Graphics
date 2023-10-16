@@ -915,7 +915,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             SphericalHarmonicsL2 cachedAmbientProbe = new SphericalHarmonicsL2();
             // Release the old context if needed.
-            if (IsCachedContextValid(updateContext))
+            if (CachedContextNeedsCleanup(updateContext))
             {
                 ref var cachedContext = ref m_CachedSkyContexts[updateContext.cachedSkyRenderingContextId];
                 if (newHash != cachedContext.hash || updateContext.skySettings.GetSkyRendererType() != cachedContext.type)
@@ -997,6 +997,16 @@ namespace UnityEngine.Rendering.HighDefinition
             int id = skyContext.cachedSkyRenderingContextId;
             // When the renderer changes, the cached context is no longer valid so we sometimes need to check that.
             return id != -1 && (skyContext.skySettings.GetSkyRendererType() == m_CachedSkyContexts[id].type) && (m_CachedSkyContexts[id].hash != 0);
+        }
+
+        bool CachedContextNeedsCleanup(SkyUpdateContext skyContext)
+        {
+            if (skyContext.skySettings == null) // Sky set to None
+                return false;
+
+            int id = skyContext.cachedSkyRenderingContextId;
+            // When the renderer changes, the cached context is no longer valid but needs to be cleaned up to allow for proper refCounting.
+            return id != -1 && (m_CachedSkyContexts[id].hash != 0);
         }
 
         int ComputeSkyHash(HDCamera camera, SkyUpdateContext skyContext, Light sunLight, SkyAmbientMode ambientMode, bool staticSky = false)

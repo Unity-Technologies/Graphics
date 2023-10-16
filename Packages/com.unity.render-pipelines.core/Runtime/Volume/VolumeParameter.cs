@@ -1875,6 +1875,20 @@ namespace UnityEngine.Rendering
         {
             return new AnimationCurveParameter(new AnimationCurve(GetValue<AnimationCurve>().keys), overrideState);
         }
+
+        /// <summary>
+        /// Returns a hash code for the animationCurve.
+        /// </summary>
+        /// <returns>A hash code for the animationCurve.</returns>
+        public override int GetHashCode()
+         {
+             unchecked
+             {
+                var hash = overrideState.GetHashCode();
+
+                return hash * 23 + value.GetHashCode();
+             }
+         }
     }
 
     /// <summary>

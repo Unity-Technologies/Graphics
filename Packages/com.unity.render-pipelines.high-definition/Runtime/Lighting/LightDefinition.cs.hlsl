@@ -5,29 +5,16 @@
 #ifndef LIGHTDEFINITION_CS_HLSL
 #define LIGHTDEFINITION_CS_HLSL
 //
-// UnityEngine.Rendering.HighDefinition.GPULightType:  static fields
+// UnityEngine.Rendering.HighDefinition.EnvCacheType:  static fields
 //
-#define GPULIGHTTYPE_DIRECTIONAL (0)
-#define GPULIGHTTYPE_POINT (1)
-#define GPULIGHTTYPE_SPOT (2)
-#define GPULIGHTTYPE_PROJECTOR_PYRAMID (3)
-#define GPULIGHTTYPE_PROJECTOR_BOX (4)
-#define GPULIGHTTYPE_TUBE (5)
-#define GPULIGHTTYPE_RECTANGLE (6)
-#define GPULIGHTTYPE_DISC (7)
+#define ENVCACHETYPE_TEXTURE2D (0)
+#define ENVCACHETYPE_CUBEMAP (1)
 
 //
-// UnityEngine.Rendering.HighDefinition.GPUImageBasedLightingType:  static fields
+// UnityEngine.Rendering.HighDefinition.EnvLightReflectionDataRT:  static fields
 //
-#define GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION (0)
-#define GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION (1)
-
-//
-// UnityEngine.Rendering.HighDefinition.CookieMode:  static fields
-//
-#define COOKIEMODE_NONE (0)
-#define COOKIEMODE_CLAMP (1)
-#define COOKIEMODE_REPEAT (2)
+#define MAX_PLANAR_REFLECTIONS (16)
+#define MAX_CUBE_REFLECTIONS (64)
 
 //
 // UnityEngine.Rendering.HighDefinition.EnvShapeType:  static fields
@@ -43,63 +30,80 @@
 #define ENVCONSTANTS_CONVOLUTION_MIP_COUNT (7)
 
 //
+// UnityEngine.Rendering.HighDefinition.GPUImageBasedLightingType:  static fields
+//
+#define GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION (0)
+#define GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION (1)
+
+//
+// UnityEngine.Rendering.HighDefinition.CookieMode:  static fields
+//
+#define COOKIEMODE_NONE (0)
+#define COOKIEMODE_CLAMP (1)
+#define COOKIEMODE_REPEAT (2)
+
+//
 // UnityEngine.Rendering.HighDefinition.EnvLightReflectionData:  static fields
 //
 #define MAX_PLANAR_REFLECTIONS (16)
 #define MAX_CUBE_REFLECTIONS (64)
 
 //
-// UnityEngine.Rendering.HighDefinition.EnvLightReflectionDataRT:  static fields
+// UnityEngine.Rendering.HighDefinition.GPULightType:  static fields
 //
-#define MAX_PLANAR_REFLECTIONS (16)
-#define MAX_CUBE_REFLECTIONS (64)
+#define GPULIGHTTYPE_DIRECTIONAL (0)
+#define GPULIGHTTYPE_POINT (1)
+#define GPULIGHTTYPE_SPOT (2)
+#define GPULIGHTTYPE_PROJECTOR_PYRAMID (3)
+#define GPULIGHTTYPE_PROJECTOR_BOX (4)
+#define GPULIGHTTYPE_TUBE (5)
+#define GPULIGHTTYPE_RECTANGLE (6)
+#define GPULIGHTTYPE_DISC (7)
 
-//
-// UnityEngine.Rendering.HighDefinition.EnvCacheType:  static fields
-//
-#define ENVCACHETYPE_TEXTURE2D (0)
-#define ENVCACHETYPE_CUBEMAP (1)
-
-// Generated from UnityEngine.Rendering.HighDefinition.DirectionalLightData
+// Generated from UnityEngine.Rendering.HighDefinition.EnvLightData
 // PackingRules = Exact
-struct DirectionalLightData
+struct EnvLightData
 {
-    float3 positionRWS;
     uint lightLayers;
-    float lightDimmer;
-    float volumetricLightDimmer;
-    float3 forward;
-    int cookieMode;
-    float4 cookieScaleOffset;
-    float3 right;
-    int shadowIndex;
-    float3 up;
-    int contactShadowIndex;
-    float3 color;
-    int contactShadowMask;
-    float3 shadowTint;
-    float shadowDimmer;
-    float volumetricShadowDimmer;
-    int nonLightMappedOnly;
-    real minRoughness;
-    int screenSpaceShadowIndex;
-    real4 shadowMaskSelector;
-    float2 cascadesBorderFadeScaleBias;
-    float diffuseDimmer;
-    float specularDimmer;
-    float penumbraTint;
-    float isRayTracedContactShadow;
-    float distanceFromCamera;
-    float angularDiameter;
-    float flareFalloff;
-    float flareCosInner;
-    float flareCosOuter;
-    float __unused__;
-    float3 flareTint;
-    float flareSize;
-    float3 surfaceTint;
-    float4 surfaceTextureScaleOffset;
+    float3 capturePositionRWS;
+    int influenceShapeType;
+    float3 proxyExtents;
+    real minProjectionDistance;
+    float3 proxyPositionRWS;
+    float3 proxyForward;
+    float3 proxyUp;
+    float3 proxyRight;
+    float3 influencePositionRWS;
+    float3 influenceForward;
+    float3 influenceUp;
+    float3 influenceRight;
+    float3 influenceExtents;
+    float3 blendDistancePositive;
+    float3 blendDistanceNegative;
+    float3 blendNormalDistancePositive;
+    float3 blendNormalDistanceNegative;
+    real3 boxSideFadePositive;
+    real3 boxSideFadeNegative;
+    float weight;
+    float multiplier;
+    float rangeCompressionFactorCompensation;
+    float roughReflections;
+    float distanceBasedRoughness;
+    int envIndex;
+    float4 L0L1;
+    float4 L2_1;
+    float L2_2;
+    int normalizeWithAPV;
+    float2 padding;
 };
+
+// Generated from UnityEngine.Rendering.HighDefinition.EnvLightReflectionDataRT
+// PackingRules = Exact
+CBUFFER_START(EnvLightReflectionDataRT)
+    float4x4 _PlanarCaptureVPRT[16];
+    float4 _PlanarScaleOffsetRT[16];
+    float4 _CubeScaleOffsetRT[64];
+CBUFFER_END
 
 // Generated from UnityEngine.Rendering.HighDefinition.LightData
 // PackingRules = Exact
@@ -141,43 +145,6 @@ struct LightData
     float boxLightSafeExtent;
 };
 
-// Generated from UnityEngine.Rendering.HighDefinition.EnvLightData
-// PackingRules = Exact
-struct EnvLightData
-{
-    uint lightLayers;
-    float3 capturePositionRWS;
-    int influenceShapeType;
-    float3 proxyExtents;
-    real minProjectionDistance;
-    float3 proxyPositionRWS;
-    float3 proxyForward;
-    float3 proxyUp;
-    float3 proxyRight;
-    float3 influencePositionRWS;
-    float3 influenceForward;
-    float3 influenceUp;
-    float3 influenceRight;
-    float3 influenceExtents;
-    float3 blendDistancePositive;
-    float3 blendDistanceNegative;
-    float3 blendNormalDistancePositive;
-    float3 blendNormalDistanceNegative;
-    real3 boxSideFadePositive;
-    real3 boxSideFadeNegative;
-    float weight;
-    float multiplier;
-    float rangeCompressionFactorCompensation;
-    float roughReflections;
-    float distanceBasedRoughness;
-    int envIndex;
-    float4 L0L1;
-    float4 L2_1;
-    float L2_2;
-    int normalizeWithAPV;
-    float2 padding;
-};
-
 // Generated from UnityEngine.Rendering.HighDefinition.EnvLightReflectionData
 // PackingRules = Exact
 CBUFFER_START(EnvLightReflectionData)
@@ -186,13 +153,45 @@ CBUFFER_START(EnvLightReflectionData)
     float4 _CubeScaleOffset[64];
 CBUFFER_END
 
-// Generated from UnityEngine.Rendering.HighDefinition.EnvLightReflectionDataRT
+// Generated from UnityEngine.Rendering.HighDefinition.DirectionalLightData
 // PackingRules = Exact
-CBUFFER_START(EnvLightReflectionDataRT)
-    float4x4 _PlanarCaptureVPRT[16];
-    float4 _PlanarScaleOffsetRT[16];
-    float4 _CubeScaleOffsetRT[64];
-CBUFFER_END
+struct DirectionalLightData
+{
+    float3 positionRWS;
+    uint lightLayers;
+    float lightDimmer;
+    float volumetricLightDimmer;
+    float3 forward;
+    int cookieMode;
+    float4 cookieScaleOffset;
+    float3 right;
+    int shadowIndex;
+    float3 up;
+    int contactShadowIndex;
+    float3 color;
+    int contactShadowMask;
+    float3 shadowTint;
+    float shadowDimmer;
+    float volumetricShadowDimmer;
+    int nonLightMappedOnly;
+    real minRoughness;
+    int screenSpaceShadowIndex;
+    real4 shadowMaskSelector;
+    float diffuseDimmer;
+    float specularDimmer;
+    float penumbraTint;
+    float isRayTracedContactShadow;
+    float distanceFromCamera;
+    float angularDiameter;
+    float flareFalloff;
+    float flareCosInner;
+    float flareCosOuter;
+    float __unused__;
+    float3 flareTint;
+    float flareSize;
+    float3 surfaceTint;
+    float4 surfaceTextureScaleOffset;
+};
 
 
 #endif

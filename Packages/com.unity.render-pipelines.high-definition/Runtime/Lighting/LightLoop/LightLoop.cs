@@ -268,7 +268,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal const int k_MaxDecalsOnScreen = 2048;
         internal const int k_MaxPlanarReflectionsOnScreen = 16;
         internal const int k_MaxCubeReflectionsOnScreen = 64;
-        internal const int k_MaxLightsPerClusterCell = 24;
+        internal const int k_MaxLightsPerClusterCell = ShaderConfig.LightClusterMaxCellElementCount;
         internal static readonly Vector3 k_BoxCullingExtentThreshold = Vector3.one * 0.01f;
 
 #if UNITY_SWITCH
@@ -1976,16 +1976,19 @@ namespace UnityEngine.Rendering.HighDefinition
             for (int viewId = 0; viewId < m_GpuLightsBuilder.lightsPerViewCount; ++viewId)
             {
                 HDGpuLightsBuilder.LightsPerView lightsPerView = m_GpuLightsBuilder.lightsPerView[viewId];
-                Debug.Assert(lightsPerView.boundsCount <= m_TotalLightCount, "Encountered bounds counts that are greater than the total light count.");
+
+                bool validLightCount = lightsPerView.boundsCount <= m_TileAndClusterData.maxLightCount;
+                Debug.Assert(validLightCount, "Encountered bounds counts that are greater than the total light count.");
 
                 /// In the CPU we have stored the left and right eye in one single array, offset by the LightsPerView.boundsOffset. This is before trivial rejection.
                 /// In the GPU we compact them, and access each eye by the actual m_TotalLightCount, which contains the post trivial rejection offset.
                 int inputStartIndex = lightsPerView.boundsOffset;
                 int outputStartIndex = viewId * m_TotalLightCount;
+                int maxLightCount = (validLightCount) ? lightsPerView.boundsCount : m_TileAndClusterData.maxLightCount;
 
                 // These two buffers have been set in Rebuild(). At this point, view 0 contains combined data from all views
-                m_TileAndClusterData.convexBoundsBuffer.SetData(m_GpuLightsBuilder.lightBounds, inputStartIndex, outputStartIndex, lightsPerView.boundsCount);
-                m_TileAndClusterData.lightVolumeDataBuffer.SetData(m_GpuLightsBuilder.lightVolumes, inputStartIndex, outputStartIndex, lightsPerView.boundsCount);
+                m_TileAndClusterData.convexBoundsBuffer.SetData(m_GpuLightsBuilder.lightBounds, inputStartIndex, outputStartIndex, maxLightCount);
+                m_TileAndClusterData.lightVolumeDataBuffer.SetData(m_GpuLightsBuilder.lightVolumes, inputStartIndex, outputStartIndex, maxLightCount);
             }
 
             ConstantBuffer.PushGlobal(cmd, m_EnvLightReflectionData, HDShaderIDs._EnvLightReflectionData);

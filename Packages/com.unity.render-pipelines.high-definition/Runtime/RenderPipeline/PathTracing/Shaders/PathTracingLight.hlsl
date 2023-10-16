@@ -24,7 +24,7 @@
 
 // How many lights (at most) do we support at one given shading point
 // FIXME: hardcoded limits are evil, this LightList should instead be put together in C#
-#define MAX_LOCAL_LIGHT_COUNT 16
+#define MAX_LOCAL_LIGHT_COUNT SHADEROPTIONS_PATH_TRACING_MAX_LIGHT_COUNT
 #define MAX_DISTANT_LIGHT_COUNT 4
 
 #define DELTA_PDF 1000000.0

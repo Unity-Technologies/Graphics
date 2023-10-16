@@ -15,17 +15,17 @@ namespace UnityEditor.ShaderGraph
         internal delegate void PreferenceChangedDelegate();
 
         internal static PreferenceChangedDelegate onVariantLimitChanged;
-        static int m_VariantLimit = 128;
+        static int m_previewVariantLimit = 128;
 
         internal static PreferenceChangedDelegate onAllowDeprecatedChanged;
-        internal static int variantLimit
+        internal static int previewVariantLimit
         {
-            get { return m_VariantLimit; }
+            get { return m_previewVariantLimit; }
             set
             {
                 if (onVariantLimitChanged != null)
                     onVariantLimitChanged();
-                TrySave(ref m_VariantLimit, value, Keys.variantLimit);
+                TrySave(ref m_previewVariantLimit, value, Keys.variantLimit);
             }
         }
 
@@ -75,10 +75,18 @@ namespace UnityEditor.ShaderGraph
             EditorGUILayout.Space();
 
             EditorGUI.BeginChangeCheck();
-            var variantLimitValue = EditorGUILayout.DelayedIntField("Shader Variant Limit", variantLimit);
+
+            var actualLimit = ShaderGraphProjectSettings.instance.shaderVariantLimit;
+            var willPreviewVariantBeIgnored = ShaderGraphPreferences.previewVariantLimit > actualLimit;
+
+            var variantLimitLabel = willPreviewVariantBeIgnored
+                ? new GUIContent("Preview Variant Limit", EditorGUIUtility.IconContent("console.infoicon").image, $"The Preview Variant Limit is higher than the Shader Variant Limit in Project Settings: {actualLimit}. The Preview Variant Limit will be ignored.")
+                : new GUIContent("Preview Variant Limit");
+
+            var variantLimitValue = EditorGUILayout.DelayedIntField(variantLimitLabel, previewVariantLimit);            
             if (EditorGUI.EndChangeCheck())
             {
-                variantLimit = variantLimitValue;
+                previewVariantLimit = variantLimitValue;
             }
 
             EditorGUI.BeginChangeCheck();
@@ -100,7 +108,7 @@ namespace UnityEditor.ShaderGraph
 
         static void Load()
         {
-            m_VariantLimit = EditorPrefs.GetInt(Keys.variantLimit, 128);
+            m_previewVariantLimit = EditorPrefs.GetInt(Keys.variantLimit, 128);
             m_AutoAddRemoveBlocks = EditorPrefs.GetBool(Keys.autoAddRemoveBlocks, true);
             m_AllowDeprecatedBehaviors = EditorPrefs.GetBool(Keys.allowDeprecatedBehaviors, false);
 

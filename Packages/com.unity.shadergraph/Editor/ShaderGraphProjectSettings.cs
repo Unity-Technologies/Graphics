@@ -8,9 +8,12 @@ namespace UnityEditor.ShaderGraph
     internal class ShaderGraphProjectSettings : ScriptableSingleton<ShaderGraphProjectSettings>
     {
         [SerializeField]
+        internal int shaderVariantLimit = 128;        
+        [SerializeField]
         internal int customInterpolatorErrorThreshold = 32;
         [SerializeField]
         internal int customInterpolatorWarningThreshold = 16;
+
         internal SerializedObject GetSerializedObject() { return new SerializedObject(this); }
         internal void Save() { Save(true); }
         private void OnDisable() { Save(); }
@@ -25,6 +28,7 @@ namespace UnityEditor.ShaderGraph
 
         private class Styles
         {
+            public static readonly GUIContent shaderVariantLimitLabel = L10n.TextContent("Shader Variant Limit", "");            
             public static readonly GUIContent CustomInterpLabel = L10n.TextContent("Custom Interpolator Channel Settings", "");
             public static readonly GUIContent CustomInterpWarnThresholdLabel = L10n.TextContent("Warning Threshold", $"ShaderGraph displays a warning when the user creates more custom interpolators than permitted by this setting. The number of interpolators that trigger this warning must be between {kMinChannelThreshold} and the Error Threshold.");
             public static readonly GUIContent CustomInterpErrorThresholdLabel = L10n.TextContent("Error Threshold", $"ShaderGraph displays an error message when the user tries to create more custom interpolators than permitted by this setting. The number of interpolators that trigger this error must be between {kMinChannelThreshold} and {kMaxChannelThreshold}.");
@@ -32,6 +36,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         SerializedObject m_SerializedObject;
+        SerializedProperty m_shaderVariantLimit;        
         SerializedProperty m_customInterpWarn;
         SerializedProperty m_customInterpError;
 
@@ -44,6 +49,7 @@ namespace UnityEditor.ShaderGraph
         {
             ShaderGraphProjectSettings.instance.Save();
             m_SerializedObject = ShaderGraphProjectSettings.instance.GetSerializedObject();
+            m_shaderVariantLimit = m_SerializedObject.FindProperty("shaderVariantLimit");            
             m_customInterpWarn = m_SerializedObject.FindProperty("customInterpolatorWarningThreshold");
             m_customInterpError = m_SerializedObject.FindProperty("customInterpolatorErrorThreshold");
         }
@@ -52,7 +58,15 @@ namespace UnityEditor.ShaderGraph
         void OnGUIHandler(string searchContext)
         {
             m_SerializedObject.Update();
+
             EditorGUI.BeginChangeCheck();
+            
+            var newValue = EditorGUILayout.DelayedIntField(Styles.shaderVariantLimitLabel, m_shaderVariantLimit.intValue);
+            if (newValue != m_shaderVariantLimit.intValue)
+            {
+                m_shaderVariantLimit.intValue = newValue;
+                ShaderGraphPreferences.onVariantLimitChanged();
+            }
 
             EditorGUILayout.LabelField(Styles.CustomInterpLabel, EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
