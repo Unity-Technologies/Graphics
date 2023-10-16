@@ -103,8 +103,10 @@ namespace UnityEditor.Rendering.Universal
         {
             using (new EditorGUI.IndentLevelScope())
             {
+                EditorGUI.BeginChangeCheck();
                 EditorGUILayout.PropertyField(serialized.serializedObject?.FindProperty("m_EnableRenderGraph"), Styles.enableRenderGraphLabel);
-
+                if (EditorGUI.EndChangeCheck())
+                    UniversalRenderPipeline.asset.OnEnableRenderGraphChanged();
                 EditorGUILayout.Space();
             }
         }
