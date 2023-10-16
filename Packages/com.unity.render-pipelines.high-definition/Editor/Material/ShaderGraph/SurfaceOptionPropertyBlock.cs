@@ -128,6 +128,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
 
             AddProperty(customVelocityText, () => systemData.customVelocity, (newValue) => systemData.customVelocity = newValue);
+            AddProperty(excludeFromTUAndAAText, () => systemData.excludeFromTUAndAA, (newValue) => systemData.excludeFromTUAndAA = newValue);
 
             AddProperty(tessellationEnableText, () => systemData.tessellation, (newValue) => systemData.tessellation = newValue);
             if (systemData.tessellation)

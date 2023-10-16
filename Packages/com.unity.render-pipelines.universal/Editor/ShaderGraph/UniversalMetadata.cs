@@ -24,6 +24,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         [SerializeField]
         bool m_CastShadows;
 
+        [SerializeField]
+        bool m_IsVFXCompatible;
+
         public ShaderUtils.ShaderID shaderID
         {
             get => m_ShaderID;
@@ -51,6 +54,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             get => m_CastShadows;
             set => m_CastShadows = value;
+        }
+
+        public bool isVFXCompatible
+        {
+            get => m_IsVFXCompatible;
+            set => m_IsVFXCompatible = value;
         }
     }
 }

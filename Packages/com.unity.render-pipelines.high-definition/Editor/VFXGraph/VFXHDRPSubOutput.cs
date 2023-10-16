@@ -30,7 +30,7 @@ namespace UnityEditor.VFX.HDRP
                     && transparentRenderQueue != TransparentRenderQueue.AfterPostProcessing;
             }
         }
-        public override bool supportsExcludeFromTAA { get { return !owner.isBlendModeOpaque; } }
+        public override bool supportsExcludeFromTUAndAA { get { return !owner.isBlendModeOpaque; } }
 
         bool GeneratesWithShaderGraph()
         {
@@ -199,12 +199,12 @@ namespace UnityEditor.VFX.HDRP
             stencilRef |= hasSubsurfaceScattering ? (int)StencilUsage.SubsurfaceScattering : 0;
         }
 
-        private void GetStencilStateForward(out int stencilWriteMask, out int stencilRef, bool excludeFromTAA)
+        private void GetStencilStateForward(out int stencilWriteMask, out int stencilRef, bool excludeFromTUAndAA)
         {
             GetStencilStateCommon(out stencilWriteMask, out stencilRef);
 
-            stencilWriteMask |= excludeFromTAA ? (int)StencilUsage.ExcludeFromTAA : 0;
-            stencilRef |= excludeFromTAA ? (int)StencilUsage.ExcludeFromTAA : 0;
+            stencilWriteMask |= excludeFromTUAndAA ? (int)StencilUsage.ExcludeFromTUAndAA : 0;
+            stencilRef |= excludeFromTUAndAA ? (int)StencilUsage.ExcludeFromTUAndAA : 0;
         }
 
         public override IEnumerable<KeyValuePair<string, VFXShaderWriter>> GetStencilStateOverridesStr()
@@ -222,7 +222,7 @@ namespace UnityEditor.VFX.HDRP
             yield return CreateStencilStateOverrideStr("${VFXStencilGBuffer}", stencilWriteMaskGBuffer, stencilRefGBuffer);
 
             int stencilWriteMaskForward, stencilRefForward;
-            GetStencilStateForward(out stencilWriteMaskForward, out stencilRefForward, owner.hasExcludeFromTAA);
+            GetStencilStateForward(out stencilWriteMaskForward, out stencilRefForward, owner.hasExcludeFromTUAndAA);
             yield return CreateStencilStateOverrideStr("${VFXStencilForward}", stencilWriteMaskForward, stencilRefForward);
         }
 

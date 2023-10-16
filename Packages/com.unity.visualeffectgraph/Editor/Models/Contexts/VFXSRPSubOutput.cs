@@ -24,7 +24,7 @@ namespace UnityEditor.VFX
         // Caps
         public virtual bool supportsExposure { get { return false; } }
         public virtual bool supportsMotionVector { get { return false; } }
-        public virtual bool supportsExcludeFromTAA { get { return false; } }
+        public virtual bool supportsExcludeFromTUAndAA { get { return false; } }
         public virtual bool supportsSortingPriority { get { return true; } }
 
         // Sealed override as SRP suboutputs cannot have dependencies

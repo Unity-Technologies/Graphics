@@ -112,7 +112,9 @@ namespace UnityEngine.Rendering.HighDefinition
             SetupLayersMappingKeywords(material);
             bool receiveSSR = material.GetSurfaceType() == SurfaceType.Opaque ? (material.HasProperty(kReceivesSSR) ? material.GetInt(kReceivesSSR) != 0 : false)
                 : (material.HasProperty(kReceivesSSRTransparent) ? material.GetInt(kReceivesSSRTransparent) != 0 : false);
-            BaseLitAPI.SetupStencil(material, receivesLighting: true, receiveSSR, materialId == MaterialId.LitSSS);
+
+            bool excludeFromTUAndAA = BaseLitAPI.CompatibleWithExcludeFromTUAndAA(material) && material.GetInt(kExcludeFromTUAndAA) != 0;
+            BaseLitAPI.SetupStencil(material, receivesLighting: true, receiveSSR, materialId == MaterialId.LitSSS, excludeFromTUAndAA: excludeFromTUAndAA);
 
             for (int i = 0; i < kMaxLayerCount; ++i)
             {

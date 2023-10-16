@@ -467,7 +467,7 @@ namespace UnityEditor.VFX
             yield return "cullMode";
             yield return "zWriteMode";
             yield return "zTestMode";
-            yield return "excludeFromTAA";
+            yield return "excludeFromTUAndAA";
             yield return "preserveSpecularLighting";
             yield return "doubleSided";
             yield return "onlyAmbientLighting";

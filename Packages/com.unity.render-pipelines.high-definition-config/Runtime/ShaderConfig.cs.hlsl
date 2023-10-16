@@ -16,6 +16,7 @@
 #define SHADEROPTIONS_BARN_DOOR (0)
 #define SHADEROPTIONS_GLOBAL_MIP_BIAS (1)
 #define SHADEROPTIONS_FPTLMAX_LIGHT_COUNT (63)
+#define SHADEROPTIONS_PATH_TRACING_MAX_LIGHT_COUNT (16)
 
 //
 // UnityEngine.Rendering.HighDefinition.InternalLightCullingDefs:  static fields
