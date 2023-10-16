@@ -11,6 +11,10 @@ struct HDShadowContext
 {
     StructuredBuffer<HDShadowData>  shadowDatas;
     HDDirectionalShadowData         directionalShadowData;
+#ifdef SHADOWS_SHADOWMASK
+    int shadowSplitIndex;
+    float fade;
+#endif 
 };
 
 // HD shadow sampling bindings
@@ -33,6 +37,10 @@ HDShadowContext InitShadowContext()
 
     sc.shadowDatas = _HDShadowDatas;
     sc.directionalShadowData = _HDDirectionalShadowData[0];
+#ifdef SHADOWS_SHADOWMASK
+    sc.shadowSplitIndex = -1;
+    sc.fade = 0.0;
+#endif
 
     return sc;
 }

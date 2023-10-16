@@ -79,8 +79,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public float aerosolExtinctionCoefficient;
             [ReadOnly]
             public float maxShadowDistance;
-            [ReadOnly]
-            public float shadowOutBorderDistance;
 
 
             #endregion
@@ -639,21 +637,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     var bakingOutput = visibleLightBakingOutput[lightIndex];
                     lightData.shadowMaskSelector[bakingOutput.occlusionMaskChannel] = 1.0f;
                     lightData.nonLightMappedOnly = visibleLightShadowCasterMode[lightIndex] == LightShadowCasterMode.NonLightmappedOnly ? 1 : 0;
-                    // Get shadow info from the volume stack.
-                    float maxDistanceSq = maxShadowDistance * maxShadowDistance;
-                    float outBorderDistance = shadowOutBorderDistance;
-                    if (outBorderDistance < 1e-4f)
-                    {
-                        lightData.cascadesBorderFadeScaleBias = new Vector2(1e6f, -maxDistanceSq * 1e6f);
-                    }
-                    else
-                    {
-                        outBorderDistance = 1.0f - outBorderDistance;
-                        outBorderDistance *= outBorderDistance;
-                        float distanceFadeNear = outBorderDistance * maxDistanceSq;
-                        lightData.cascadesBorderFadeScaleBias.x = 1.0f / (maxDistanceSq - distanceFadeNear);
-                        lightData.cascadesBorderFadeScaleBias.y = -distanceFadeNear / (maxDistanceSq - distanceFadeNear);
-                    }
                 }
                 else
                 {
@@ -764,7 +747,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 aerosolExtinctionCoefficient = skySettings.GetAerosolExtinctionCoefficient(),
 
                 maxShadowDistance = shadowSettings.maxShadowDistance.value,
-                shadowOutBorderDistance = shadowSettings.cascadeShadowBorders[shadowSettings.cascadeShadowSplitCount.value - 1],
 
                 // light entity data
                 lightRenderDataArray = lightEntities.lightData,
