@@ -614,12 +614,15 @@ namespace UnityEngine.Rendering.Universal
             m_ForwardLights.SetupRenderGraphLights(renderGraph, renderingData, cameraData, lightData);
             if (this.renderingModeActual == RenderingMode.Deferred)
             {
-                m_DeferredLights.UseRenderPass = renderGraph.NativeRenderPassesEnabled;
+                m_DeferredLights.UseFramebufferFetch = renderGraph.NativeRenderPassesEnabled;
                 m_DeferredLights.SetupRenderGraphLights(renderGraph, cameraData, lightData);
             }
         }
 
-        internal override void OnBeginRenderGraphFrame()
+        /// <summary>
+        /// Called before recording the render graph. Can be used to initialize resources.
+        /// </summary>
+        public override void OnBeginRenderGraphFrame()
         {
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
             resourceData.InitFrame();
@@ -635,6 +638,7 @@ namespace UnityEngine.Rendering.Universal
 
             useRenderPassEnabled = renderGraph.NativeRenderPassesEnabled;
 
+            // TODO: this uses renderingData.commandBuffer in the RenderGraph path!! Fix it to run in a proper RenderGraph pass
             SetupMotionVectorGlobalMatrix(renderingData.commandBuffer, cameraData);
 
             SetupRenderGraphLights(renderGraph, renderingData, cameraData, lightData);
@@ -674,7 +678,10 @@ namespace UnityEngine.Rendering.Universal
             EndRenderGraphXRRendering(renderGraph);
         }
 
-        internal override void OnEndRenderGraphFrame()
+        /// <summary>
+        /// Called after recording the render graph. Can be used to clean up resources.
+        /// </summary>
+        public override void OnEndRenderGraphFrame()
         {
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
             resourceData.EndFrame();
@@ -790,9 +797,16 @@ namespace UnityEngine.Rendering.Universal
                 depthTarget = (useDepthPriming && (cameraData.renderType == CameraRenderType.Base || cameraData.clearDepth)) ? resourceData.activeDepthTexture : depthTarget;
 
                 if (renderPassInputs.requiresNormalsTexture)
+                {
                     DepthNormalPrepassRender(renderGraph, renderPassInputs, depthTarget);
+                }
                 else
+                {
                     m_DepthPrepass.Render(renderGraph, frameData, ref depthTarget);
+
+                    if (!useDepthPriming && depthTarget.IsValid())
+                        RenderGraphUtils.SetGlobalTexture(renderGraph, Shader.PropertyToID("_CameraDepthTexture"), depthTarget, "Set Global Depth Texture");
+                }
             }
 
             // depth priming still needs to copy depth because the prepass doesn't target anymore CameraDepthTexture
@@ -803,9 +817,6 @@ namespace UnityEngine.Rendering.Universal
                 TextureHandle cameraDepthTexture = resourceData.cameraDepthTexture;
                 m_PrimedDepthCopyPass.Render(renderGraph, frameData, cameraDepthTexture, depth, true);
             }
-
-            if (cameraData.renderType == CameraRenderType.Base && !requiresDepthPrepass && !requiresDepthCopyPass)
-                RenderGraphUtils.SetGlobalTexture(renderGraph, "_CameraDepthTexture", SystemInfo.usesReversedZBuffer ? renderGraph.defaultResources.blackTexture : renderGraph.defaultResources.whiteTexture, "Set default Camera Depth Texture");
 
             RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.AfterRenderingPrePasses);
 
@@ -826,7 +837,8 @@ namespace UnityEngine.Rendering.Universal
                 m_DeferredLights.Setup(m_AdditionalLightsShadowCasterPass);
                 if (m_DeferredLights != null)
                 {
-                    m_DeferredLights.UseRenderPass = renderGraph.NativeRenderPassesEnabled;
+                    // We need to be sure there are no custom passes in between GBuffer/Deferred passes, if there are - we disable fb fetch just to be safe`
+                    m_DeferredLights.UseFramebufferFetch = renderGraph.NativeRenderPassesEnabled;
                     m_DeferredLights.HasNormalPrepass = renderPassInputs.requiresNormalsTexture;
                     m_DeferredLights.HasDepthPrepass = requiresDepthPrepass;
                     m_DeferredLights.ResolveMixedLightingMode(lightData);
@@ -844,6 +856,13 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.AfterRenderingGbuffer, RenderPassEvent.BeforeRenderingDeferredLights);
+                
+                var gfxDeviceType = SystemInfo.graphicsDeviceType;
+                // We double check for features in between GBuffer and Deferred passes just in case to know whether we need to reload the attachments
+                // Metal and Vulkan works fine as it just loads
+                if ((gfxDeviceType == GraphicsDeviceType.Vulkan || gfxDeviceType == GraphicsDeviceType.Metal) &&
+                    InterruptFramebufferFetch(FramebufferFetchEvent.FetchGbufferInDeferred,RenderPassEvent.AfterRenderingGbuffer, RenderPassEvent.BeforeRenderingDeferredLights))
+                    GBufferPass.ResetGlobalGBufferTextures(renderGraph, resourceData.gBuffer, resourceData.activeDepthTexture, resourceData, ref m_DeferredLights);
 
                 m_DeferredPass.Render(renderGraph, frameData, resourceData.activeColorTexture, resourceData.activeDepthTexture, resourceData.gBuffer);
 
@@ -883,18 +902,20 @@ namespace UnityEngine.Rendering.Universal
             }
 
             // Custom passes come before built-in passes to keep parity with non-RG code path where custom passes are added before renderer Setup.
-            RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.AfterRenderingOpaques, RenderPassEvent.BeforeRenderingSkybox);
-
-            if (cameraData.camera.clearFlags == CameraClearFlags.Skybox && cameraData.renderType != CameraRenderType.Overlay)
-            {
-                if (RenderSettings.skybox != null || (cameraData.camera.TryGetComponent(out Skybox cameraSkybox) && cameraSkybox.material != null))
-                    m_DrawSkyboxPass.Render(renderGraph, frameData, context, resourceData.activeColorTexture, resourceData.activeDepthTexture);
-            }
+            RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.AfterRenderingOpaques);
 
             if (requiresDepthCopyPass && m_CopyDepthMode != CopyDepthMode.AfterTransparents)
             {
                 TextureHandle cameraDepthTexture = resourceData.cameraDepthTexture;
                 m_CopyDepthPass.Render(renderGraph, frameData, cameraDepthTexture, resourceData.activeDepthTexture, true);
+            }
+
+            RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.BeforeRenderingSkybox);
+
+            if (cameraData.camera.clearFlags == CameraClearFlags.Skybox && cameraData.renderType != CameraRenderType.Overlay)
+            {
+                if (RenderSettings.skybox != null || (cameraData.camera.TryGetComponent(out Skybox cameraSkybox) && cameraSkybox.material != null))
+                    m_DrawSkyboxPass.Render(renderGraph, frameData, context, resourceData.activeColorTexture, resourceData.activeDepthTexture);
             }
 
             if (requiresColorCopyPass)
@@ -1112,6 +1133,9 @@ namespace UnityEngine.Rendering.Universal
                 // make sure we are accessing the proper camera color in case it was replaced by injected passes
                 cameraColor = resourceData.cameraColor;
 
+                // TODO: this uses renderingData.commandBuffer in the RenderGraph path!! Fix it to run in a proper RenderGraph pass
+                debugHandler?.UpdateShaderGlobalPropertiesForFinalValidationPass(renderingData.commandBuffer, cameraData, !resolveToDebugScreen);
+
                 m_FinalBlitPass.Render(renderGraph, cameraData, cameraColor, target, overlayUITexture);
                 resourceData.activeColorID = UniversalResourceData.ActiveID.BackBuffer;
                 resourceData.activeDepthID = UniversalResourceData.ActiveID.BackBuffer;
@@ -1141,6 +1165,7 @@ namespace UnityEngine.Rendering.Universal
                 TextureHandle overlayUITexture = resourceData.overlayUITexture;
                 TextureHandle debugScreenTexture = resourceData.debugScreenColor;
 
+                // TODO: this uses renderingData.commandBuffer in the RenderGraph path!! Fix it to run in a proper RenderGraph pass
                 debugHandler.Render(renderGraph, renderingData.commandBuffer, cameraData, debugScreenTexture, overlayUITexture, debugHandlerColorTarget);
             }
 
@@ -1211,10 +1236,8 @@ namespace UnityEngine.Rendering.Universal
         {
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
 
-            RenderGraphUtils.SetGlobalTexture(renderGraph, m_RenderingLayersTextureName, resourceData.renderingLayersTexture, "Set Rendering Layers Texture");
-
-            if (renderingModeActual == RenderingMode.Deferred) // As this is requested by render pass we still want to set it
-                RenderGraphUtils.SetGlobalTexture(renderGraph, "_CameraRenderingLayersTexture", resourceData.renderingLayersTexture, "Set Deferred Rendering Layers Texture");
+            if (resourceData.renderingLayersTexture.IsValid() && renderingModeActual != RenderingMode.Deferred)
+                RenderGraphUtils.SetGlobalTexture(renderGraph, Shader.PropertyToID(m_RenderingLayersTextureName), resourceData.renderingLayersTexture, "Set Global Rendering Layers Texture");
         }
 
         void CreateCameraDepthCopyTexture(RenderGraph renderGraph, RenderTextureDescriptor descriptor, bool isDepthTexture)
@@ -1366,54 +1389,23 @@ namespace UnityEngine.Rendering.Universal
         private class PassData
         {
             internal TextureHandle texture;
-            internal string name;
             internal int nameID;
         }
 
-        /// <summary>
-        /// Records a RenderGraph pass that binds a global texture
-        /// </summary>
-        /// <param name="graph"></param>
-        /// <param name="name"></param>
-        /// <param name="texture"></param>
-        /// <param name="passName"></param>
-        public static void SetGlobalTexture(RenderGraph graph, string name, TextureHandle texture, string passName = "Set Global Texture")
+        public static void SetGlobalTexture(RenderGraph graph, int nameId, TextureHandle handle, string passName = "Set Global Texture")
         {
             using (var builder = graph.AddRasterRenderPass<PassData>(passName, out var passData, s_SetGlobalTextureProfilingSampler))
             {
-                passData.texture = builder.UseTexture(texture, IBaseRenderGraphBuilder.AccessFlags.Read);
-                passData.name = name;
+                passData.nameID = nameId;
+                passData.texture = builder.UseTexture(handle, IBaseRenderGraphBuilder.AccessFlags.Read);
 
                 builder.AllowPassCulling(false);
                 builder.AllowGlobalStateModification(true);
 
-                builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
-                {
-                    context.cmd.SetGlobalTexture(data.name, data.texture);
-                });
-            }
-        }
-
-        /// <summary>
-        /// Records a RenderGraph pass that binds a global texture
-        /// </summary>
-        /// <param name="graph"></param>
-        /// <param name="nameID"></param>
-        /// <param name="texture"></param>
-        /// <param name="passName"></param>
-        public static void SetGlobalTexture(RenderGraph graph, int nameID, TextureHandle texture, string passName = "Set Global Texture")
-        {
-            using (var builder = graph.AddRasterRenderPass<PassData>(passName, out var passData, s_SetGlobalTextureProfilingSampler))
-            {
-                passData.texture = builder.UseTexture(texture, IBaseRenderGraphBuilder.AccessFlags.Read);
-                passData.nameID = nameID;
-
-                builder.AllowPassCulling(false);
-                builder.AllowGlobalStateModification(true);
+                builder.PostSetGlobalTexture(handle, nameId);
 
                 builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
                 {
-                    context.cmd.SetGlobalTexture(data.nameID, data.texture);
                 });
             }
         }

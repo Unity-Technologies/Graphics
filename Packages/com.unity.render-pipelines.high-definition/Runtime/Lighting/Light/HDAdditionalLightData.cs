@@ -1811,23 +1811,9 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (m_ShadowUpdateMode == value)
                     return;
-
-                if (m_ShadowUpdateMode != ShadowUpdateMode.EveryFrame && value == ShadowUpdateMode.EveryFrame)
-                {
-                    if (!preserveCachedShadow)
-                    {
-                        HDShadowManager.cachedShadowManager.EvictLight(this, this.legacyLight.type);
-                    }
-                }
-                else if (legacyLight.shadows != LightShadows.None && m_ShadowUpdateMode == ShadowUpdateMode.EveryFrame && value != ShadowUpdateMode.EveryFrame)
-                {
-                    // If we are OnDemand not rendered on placement, we defer the registering of the light until the rendering is requested.
-                    if (!(shadowUpdateMode == ShadowUpdateMode.OnDemand && !onDemandShadowRenderOnPlacement))
-                        HDShadowManager.cachedShadowManager.RegisterLight(this);
-                }
-
                 m_ShadowUpdateMode = value;
 
+                RegisterCachedShadowLightOptional();
                 if (lightEntity.valid)
                 {
                     HDLightRenderDatabase.instance.EditAdditionalLightUpdateDataAsRef(lightEntity).shadowUpdateMode = value;
@@ -2163,12 +2149,23 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        // temporary matrix that stores the previous light data (mainly used to discard history for ray traced screen space shadows)
+        // Temporary matrix that stores the previous light data (mainly used to discard history for ray traced screen space shadows)
         [System.NonSerialized, ExcludeCopy]
         internal Matrix4x4 previousTransform = Matrix4x4.identity;
         // Temporary index that stores the current shadow index for the light
         [System.NonSerialized, ExcludeCopy]
         internal int shadowIndex = -1;
+        // Temporary information if the shadow was cached
+        [System.NonSerialized, ExcludeCopy]
+        internal bool wasReallyVisibleLastFrame = true;
+
+        [System.NonSerialized, ExcludeCopy]
+        internal bool fallbackToCachedShadows = false;
+
+        // Track if light is registered in the cached shadow map
+        [System.NonSerialized, ExcludeCopy]
+        internal bool hasShadowCache = false;
+
 
         // Runtime datas used to compute light intensity
         [ExcludeCopy]
@@ -2418,7 +2415,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public void RequestShadowMapRendering()
         {
             if (shadowUpdateMode == ShadowUpdateMode.OnDemand)
+            {
                 HDShadowManager.cachedShadowManager.ScheduleShadowUpdate(this);
+                hasShadowCache = true;
+            }
         }
 
         /// <summary>
@@ -2430,12 +2430,44 @@ namespace UnityEngine.Rendering.HighDefinition
         public void RequestSubShadowMapRendering(int shadowIndex)
         {
             if (shadowUpdateMode == ShadowUpdateMode.OnDemand)
+            {
                 HDShadowManager.cachedShadowManager.ScheduleShadowUpdate(this, shadowIndex);
+                hasShadowCache = true;
+            }
         }
 
         internal bool ShadowIsUpdatedEveryFrame()
         {
             return shadowUpdateMode == ShadowUpdateMode.EveryFrame;
+        }
+        
+        // TODO: This is used to avoid compilation errors due to unreachable code
+        static bool s_EnableFallbackToCachedShadows = false;
+
+        internal void RegisterCachedShadowLightOptional()
+        {
+            // TODO Enable fall back to cached shadows for relevant systems
+            fallbackToCachedShadows = (shadowUpdateMode == ShadowUpdateMode.EveryFrame)
+                && (legacyLight.type != LightType.Directional)
+                && s_EnableFallbackToCachedShadows;
+
+            bool wantsShadowCache = shadowUpdateMode != ShadowUpdateMode.EveryFrame || fallbackToCachedShadows;
+
+            wantsShadowCache = wantsShadowCache && (legacyLight.shadows != LightShadows.None);
+
+            if (!wantsShadowCache && hasShadowCache && !preserveCachedShadow)
+            {
+                HDShadowManager.cachedShadowManager.EvictLight(this, this.legacyLight.type);
+                hasShadowCache = false;
+            }
+
+            bool onDemand = shadowUpdateMode == ShadowUpdateMode.OnDemand && !onDemandShadowRenderOnPlacement;
+
+            if (wantsShadowCache && !hasShadowCache && !onDemand && lightEntity.valid)
+            {
+                HDShadowManager.cachedShadowManager.RegisterLight(this);
+                hasShadowCache = true;
+            }
         }
 
         internal ShadowMapUpdateType GetShadowUpdateType(LightType lightType)
@@ -2462,8 +2494,13 @@ namespace UnityEngine.Rendering.HighDefinition
             return ShadowMapUpdateType.Cached;
         }
 
-        internal int GetResolutionFromSettings(ShadowMapType shadowMapType, HDShadowInitParameters initParameters)
+        internal int GetResolutionFromSettings(ShadowMapType shadowMapType, HDShadowInitParameters initParameters, bool cachedResolution = false)
         {
+            if (cachedResolution && fallbackToCachedShadows)
+            {
+                return HDShadowManager.k_OffscreenShadowMapResolution;
+            }
+
             switch (shadowMapType)
             {
                 case ShadowMapType.CascadedDirectional:
@@ -2482,7 +2519,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return GetResolutionFromSettings(GetShadowMapType(lightType), initParameters);
         }
 
-        internal void ReserveShadowMap(Camera camera, HDShadowManager shadowManager, HDShadowSettings shadowSettings, in HDShadowInitParameters initParameters, in VisibleLight visibleLight, LightType lightType)
+        internal void ReserveShadowMap(Camera camera, HDShadowManager shadowManager, HDShadowSettings shadowSettings, in HDShadowInitParameters initParameters, in VisibleLight visibleLight, LightType lightType, bool forcedVisible)
         {
             HDLightRenderDatabase renderDatabase = HDLightRenderDatabase.instance;
 
@@ -2541,13 +2578,39 @@ namespace UnityEngine.Rendering.HighDefinition
             if (lightType == LightType.Directional)
                 shadowManager.UpdateDirectionalShadowResolution((int)viewportSize.x, shadowSettings.cascadeShadowSplitCount.value);
 
-            int count = GetShadowRequestCount(shadowSettings.cascadeShadowSplitCount.value, lightType);
+            if (shadowIsInCacheSystem)
+                viewportSize = new Vector2(resolution, resolution);
 
+            int count = GetShadowRequestCount(shadowSettings.cascadeShadowSplitCount.value, lightType);
             var updateType = GetShadowUpdateType(lightType);
+            bool hasCachedComponent = !ShadowIsUpdatedEveryFrame();
+
+            if (forcedVisible && !shadowIsInCacheSystem)
+            {
+                // Limit resolution for offscreen lights with dynamic shadowmap
+                viewportSize = Vector2.Min(viewportSize, new Vector2(HDShadowManager.k_OffscreenShadowMapResolution, HDShadowManager.k_OffscreenShadowMapResolution));
+                if (lightEntity.valid)
+                {
+                    // Change this in the database
+                    HDLightRenderDatabase.instance.EditAdditionalLightUpdateDataAsRef(lightEntity).shadowUpdateMode = ShadowUpdateMode.OnDemand;
+                }
+                HDShadowManager.cachedShadowManager.ScheduleShadowUpdate(this);
+                updateType = ShadowMapUpdateType.Cached;
+                wasReallyVisibleLastFrame = false;
+            }
+            else
+            {
+                if (lightEntity.valid)
+                {
+                    // Change this in the database
+                    HDLightRenderDatabase.instance.EditAdditionalLightUpdateDataAsRef(lightEntity).shadowUpdateMode = m_ShadowUpdateMode;
+                }
+                wasReallyVisibleLastFrame = true;
+            }
             var requestIndices = shadowRequestIndices;
             for (int index = 0; index < count; index++)
             {
-                requestIndices[index] = shadowManager.ReserveShadowResolutions(shadowIsInCacheSystem ? new Vector2(resolution, resolution) : viewportSize, shadowMapType, GetInstanceID(), index, updateType);
+                requestIndices[index] = shadowManager.ReserveShadowResolutions(viewportSize, shadowMapType, GetInstanceID(), index, updateType);
             }
         }
 
@@ -2669,6 +2732,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (lightData.m_ShadowUpdateMode != ShadowUpdateMode.EveryFrame && lightData.cachedLightType.HasValue)
                     {
                         HDShadowManager.cachedShadowManager.EvictLight(lightData, lightData.cachedLightType.Value);
+                        lightData.hasShadowCache = false;
                     }
 
                     var directionalLights = HDLightRenderDatabase.instance.directionalLights;
@@ -2694,16 +2758,27 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     lightData.cachedLightType = lightData.legacyLight.type;
 
-                    if (lightData.legacyLight.shadows != LightShadows.None && lightData.m_ShadowUpdateMode != ShadowUpdateMode.EveryFrame)
-                    {
-                        HDShadowManager.cachedShadowManager.RegisterLight(lightData);
-                    }
+                    lightData.RegisterCachedShadowLightOptional();
 
                     // If the current light unit is not supported by the new light type, we change it
                     UInt64 supportedUnitsMask = GetSupportedLightUnitsBitMask(lightData.legacyLight.type);
                     if ((supportedUnitsMask & (1UL << (int)lightData.lightUnit)) == 0)
                         lightData.lightUnit = GetSupportedLightUnits(lightData.legacyLight.type)[0];
                 }
+
+                bool forceShadowCulling = false;
+                // TODO enable for relevant systems
+                if (s_EnableFallbackToCachedShadows)
+                {
+                    // Only force lights that will fall back to cached shadows
+                    forceShadowCulling = lightData.fallbackToCachedShadows;
+
+                    // If we have something in the cache, there is no need to force culling
+                    // if the light is visible again it will be culled, until then we use
+                    // the cached shadow map
+                    forceShadowCulling &= lightData.wasReallyVisibleLastFrame;
+                }
+                lightData.legacyLight.forceVisible = forceShadowCulling;
 
                 // TODO: The rest of this loop only handles animation. Iterate over a separate list in builds,
                 // containing only lights with Animator components.
@@ -3377,12 +3452,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (wentThroughCachedShadowSystem)
                 HDShadowManager.cachedShadowManager.EvictLight(this, legacyLight.type);
 
-            if (!ShadowIsUpdatedEveryFrame() && legacyLight.shadows != LightShadows.None)
-            {
-                // If we are OnDemand not rendered on placement, we defer the registering of the light until the rendering is requested.
-                if (!(shadowUpdateMode == ShadowUpdateMode.OnDemand && !onDemandShadowRenderOnPlacement))
-                    HDShadowManager.cachedShadowManager.RegisterLight(this);
-            }
+            RegisterCachedShadowLightOptional();
         }
 
         #endregion
@@ -3822,12 +3892,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             CreateHDLightRenderEntity();
 
-            if (!ShadowIsUpdatedEveryFrame() && legacyLight.shadows != LightShadows.None)
-            {
-                // If we are OnDemand not rendered on placement, we defer the registering of the light until the rendering is requested.
-                if (!(shadowUpdateMode == ShadowUpdateMode.OnDemand && !onDemandShadowRenderOnPlacement))
-                    HDShadowManager.cachedShadowManager.RegisterLight(this);
-            }
+            RegisterCachedShadowLightOptional();
 
             SetEmissiveMeshRendererEnabled(true);
         }

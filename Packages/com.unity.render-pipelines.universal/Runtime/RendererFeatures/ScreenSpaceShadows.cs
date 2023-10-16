@@ -66,7 +66,7 @@ namespace UnityEngine.Rendering.Universal
 
                 m_SSShadowsPass.renderPassEvent = isDeferredRenderingMode
                     ? RenderPassEvent.AfterRenderingGbuffer
-                    : RenderPassEvent.AfterRenderingPrePasses;
+                    : RenderPassEvent.AfterRenderingPrePasses + 1; // We add 1 to ensure this happens after depth priming depth copy pass that might be scheduled
 
                 renderer.EnqueuePass(m_SSShadowsPass);
                 renderer.EnqueuePass(m_SSShadowsPostPass);
@@ -197,13 +197,14 @@ namespace UnityEngine.Rendering.Universal
                     InitPassData(ref passData);
                     builder.AllowGlobalStateModification(true);
 
+                    if (color.IsValid())
+                        builder.PostSetGlobalTexture(color, m_ScreenSpaceShadowmapTextureID);
+
                     builder.SetRenderFunc((PassData data, RasterGraphContext rgContext) =>
                     {
                         ExecutePass(rgContext.cmd, data, data.target);
                     });
                 }
-
-                RenderGraphUtils.SetGlobalTexture(renderGraph, m_ScreenSpaceShadowmapTextureID, color);
             }
 
             private static void ExecutePass(RasterCommandBuffer cmd, PassData data, RTHandle target)

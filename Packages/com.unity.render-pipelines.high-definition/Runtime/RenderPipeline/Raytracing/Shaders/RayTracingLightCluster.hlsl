@@ -88,13 +88,13 @@ void GetLightCountAndStartCluster(float3 positionWS, uint lightCategory, out uin
 LightData FetchClusterLightIndex(int cellIndex, uint lightIndex)
 {
     int absoluteLightIndex = GetLightClusterCellLightByIndex(cellIndex, lightIndex);
-    return _LightDatasRT[absoluteLightIndex];
+    return _WorldLightDatas[absoluteLightIndex];
 }
 
 EnvLightData FetchClusterEnvLightIndex(int cellIndex, uint lightIndex)
 {
     int absoluteLightIndex = GetLightClusterCellLightByIndex(cellIndex, lightIndex);
-    return _EnvLightDatasRT[absoluteLightIndex];
+    return _WorldEnvLightDatas[absoluteLightIndex];
 }
 
 #if defined(HAS_LIGHTLOOP) && (SHADERPASS != SHADERPASS_PATH_TRACING) && !defined(PATH_TRACING_CLUSTERED_DECALS)
@@ -109,7 +109,7 @@ float3 RayTraceReflectionProbes(float3 rayOrigin, float3 rayDirection, inout flo
     GetLightCountAndStartCluster(rayOrigin, LIGHTCATEGORY_ENV, lightStart, lightEnd, cellIndex);
     #else
     lightStart = 0;
-    lightEnd = _EnvLightCountRT;
+    lightEnd = _WorldEnvLightCount;
     #endif
     // Scalarized loop, same rationale of the punctual light version
     uint envLightIdx = lightStart;
@@ -118,7 +118,7 @@ float3 RayTraceReflectionProbes(float3 rayOrigin, float3 rayDirection, inout flo
         #ifdef USE_LIGHT_CLUSTER
         EnvLightData envLightData = FetchClusterEnvLightIndex(cellIndex, envLightIdx);
         #else
-        EnvLightData envLightData = _EnvLightDatasRT[envLightIdx];
+        EnvLightData envLightData = _WorldEnvLightDatas[envLightIdx];
         #endif
 
         if (IsEnvIndexCubemap(envLightData.envIndex) && totalWeight < 1.0)

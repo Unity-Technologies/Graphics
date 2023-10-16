@@ -4,15 +4,6 @@
 
 #ifndef TRANSFORMUPDATERDEFS_CS_HLSL
 #define TRANSFORMUPDATERDEFS_CS_HLSL
-// Generated from UnityEngine.Rendering.TransformUpdatePacket
-// PackingRules = Exact
-struct TransformUpdatePacket
-{
-    float4 localToWorld0;
-    float4 localToWorld1;
-    float4 localToWorld2;
-};
-
 // Generated from UnityEngine.Rendering.SHUpdatePacket
 // PackingRules = Exact
 struct SHUpdatePacket
@@ -46,21 +37,15 @@ struct SHUpdatePacket
     float shb8;
 };
 
-//
-// Accessors for UnityEngine.Rendering.TransformUpdatePacket
-//
-float4 GetLocalToWorld0(TransformUpdatePacket value)
+// Generated from UnityEngine.Rendering.TransformUpdatePacket
+// PackingRules = Exact
+struct TransformUpdatePacket
 {
-    return value.localToWorld0;
-}
-float4 GetLocalToWorld1(TransformUpdatePacket value)
-{
-    return value.localToWorld1;
-}
-float4 GetLocalToWorld2(TransformUpdatePacket value)
-{
-    return value.localToWorld2;
-}
+    float4 localToWorld0;
+    float4 localToWorld1;
+    float4 localToWorld2;
+};
+
 //
 // Accessors for UnityEngine.Rendering.SHUpdatePacket
 //
@@ -171,6 +156,21 @@ float GetShb7(SHUpdatePacket value)
 float GetShb8(SHUpdatePacket value)
 {
     return value.shb8;
+}
+//
+// Accessors for UnityEngine.Rendering.TransformUpdatePacket
+//
+float4 GetLocalToWorld0(TransformUpdatePacket value)
+{
+    return value.localToWorld0;
+}
+float4 GetLocalToWorld1(TransformUpdatePacket value)
+{
+    return value.localToWorld1;
+}
+float4 GetLocalToWorld2(TransformUpdatePacket value)
+{
+    return value.localToWorld2;
 }
 
 #endif

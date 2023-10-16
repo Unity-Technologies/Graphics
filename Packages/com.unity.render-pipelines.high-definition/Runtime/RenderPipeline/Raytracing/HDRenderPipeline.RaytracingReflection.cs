@@ -22,7 +22,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void InitRayTracedReflections()
         {
-            ComputeShader reflectionShaderCS = rayTracingResources.reflectionRaytracingCS;
+            ComputeShader reflectionShaderCS = rayTracingResources.reflectionRayTracingCS;
             ComputeShader reflectionBilateralFilterCS = rayTracingResources.reflectionBilateralFilterCS;
 
             // Grab all the kernels we shall be using
@@ -147,7 +147,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.frameIndex = RayTracingFrameIndex(hdCamera, 32);
 
                 // Grab the right kernel
-                passData.directionGenCS = rayTracingResources.reflectionRaytracingCS;
+                passData.directionGenCS = rayTracingResources.reflectionRayTracingCS;
                 if (fullResolution)
                     passData.dirGenKernel = transparent ? m_RaytracingReflectionsTransparentFullResKernel : m_RaytracingReflectionsFullResKernel;
                 else
@@ -423,8 +423,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Shaders
             deferredParameters.rayMarchingCS = rayTracingResources.rayMarchingCS;
-            deferredParameters.gBufferRaytracingRT = rayTracingResources.gBufferRaytracingRT;
-            deferredParameters.deferredRaytracingCS = rayTracingResources.deferredRaytracingCS;
+            deferredParameters.gBufferRaytracingRT = rayTracingResources.gBufferRayTracingRT;
+            deferredParameters.deferredRaytracingCS = rayTracingResources.deferredRayTracingCS;
             deferredParameters.rayBinningCS = rayTracingResources.rayBinningCS;
 
             // Make a copy of the previous values that were defined in the CB
@@ -560,7 +560,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.ditheredTextureSet = GetBlueNoiseManager().DitheredTextureSet8SPP();
                 passData.shaderVariablesRayTracingCB = m_ShaderVariablesRayTracingCB;
                 passData.skyTexture = m_SkyManager.GetSkyReflection(hdCamera);
-                passData.reflectionShader = rayTracingResources.reflectionRaytracingRT;
+                passData.reflectionShader = rayTracingResources.reflectionRayTracingRT;
 
                 passData.depthBuffer = builder.ReadTexture(depthPyramid);
                 passData.stencilBuffer = builder.ReadTexture(stencilBuffer);

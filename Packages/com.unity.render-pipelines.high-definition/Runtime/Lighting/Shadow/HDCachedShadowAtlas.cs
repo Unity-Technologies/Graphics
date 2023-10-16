@@ -361,7 +361,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 var currentLightData = additionalLightDatas[dataIndex];
                 int resolution = 0;
 
-                resolution = currentLightData.GetResolutionFromSettings(m_ShadowType, initParams);
+                resolution = currentLightData.GetResolutionFromSettings(m_ShadowType, initParams, cachedResolution: true);
 
                 LightType lightType = currentLightData.legacyLight.type;
                 int numberOfShadows = (lightType == LightType.Point) ? 6 : 1;

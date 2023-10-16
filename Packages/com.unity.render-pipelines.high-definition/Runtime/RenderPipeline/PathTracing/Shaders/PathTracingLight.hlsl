@@ -153,8 +153,8 @@ LightList CreateLightList(float3 position, float3 normal, uint lightLayers = REN
             localCount = 0;
         }
 #else
-        localPointCount = _PunctualLightCountRT;
-        localCount = _PunctualLightCountRT + _AreaLightCountRT;
+        localPointCount = _WorldPunctualLightCount;
+        localCount = _WorldPunctualLightCount + _WorldAreaLightCount;
 #endif
 
         // Do we have an imposed local light (identificed by position), for volumetric scattering?
@@ -168,7 +168,7 @@ LightList CreateLightList(float3 position, float3 normal, uint lightLayers = REN
     #ifdef USE_LIGHT_CLUSTER
                 const LightData lightData = FetchClusterLightIndex(list.cellIndex, i);
     #else
-                const LightData lightData = _LightDatasRT[i];
+                const LightData lightData = _WorldLightDatas[i];
     #endif
 
                 if (forceLightPosition && any(lightPosition - lightData.positionRWS))
@@ -189,7 +189,7 @@ LightList CreateLightList(float3 position, float3 normal, uint lightLayers = REN
     #ifdef USE_LIGHT_CLUSTER
                 const LightData lightData = FetchClusterLightIndex(list.cellIndex, i);
     #else
-                const LightData lightData = _LightDatasRT[i];
+                const LightData lightData = _WorldLightDatas[i];
     #endif
 
                 if (forceLightPosition && any(lightPosition - lightData.positionRWS))
@@ -235,7 +235,7 @@ LightData GetLocalLightData(LightList list, uint i)
 #ifdef USE_LIGHT_CLUSTER
     return FetchClusterLightIndex(list.cellIndex, list.localIndex[i]);
 #else
-    return _LightDatasRT[list.localIndex[i]];
+    return _WorldLightDatas[list.localIndex[i]];
 #endif
 }
 
@@ -1053,10 +1053,10 @@ bool GetPointLightInterval(LightData lightData, float3 rayOrigin, float3 rayDire
 //     float tLightMin, tLightMax;
 
 //     // First process point lights
-//     uint i = 0, n = _PunctualLightCountRT, localCount = 0;
+//     uint i = 0, n = _WorldPunctualLightCount, localCount = 0;
 //     for (; i < n; i++)
 //     {
-//         if (GetPointLightInterval(_LightDatasRT[i], rayOrigin, rayDirection, tLightMin, tLightMax))
+//         if (GetPointLightInterval(_WorldLightDatas[i], rayOrigin, rayDirection, tLightMin, tLightMax))
 //         {
 //             tMin = min(tMin, tLightMin);
 //             tMax = max(tMax, tLightMax);
@@ -1065,10 +1065,10 @@ bool GetPointLightInterval(LightData lightData, float3 rayOrigin, float3 rayDire
 //     }
 
 //     // Then area lights
-//     n += _AreaLightCountRT;
+//     n += _WorldAreaLightCount;
 //     for (; i < n; i++)
 //     {
-//         if (GetRectAreaLightInterval(_LightDatasRT[i], rayOrigin, rayDirection, tLightMin, tLightMax))
+//         if (GetRectAreaLightInterval(_WorldLightDatas[i], rayOrigin, rayDirection, tLightMin, tLightMax))
 //         {
 //             tMin = min(tMin, tLightMin);
 //             tMax = max(tMax, tLightMax);
@@ -1102,12 +1102,12 @@ float PickLocalLightInterval(float3 rayOrigin, float3 rayDirection, inout float 
     float wLight, wSum = 0.0;
 
     // First process point lights
-    uint i = 0, n = _PunctualLightCountRT, localCount = 0;
+    uint i = 0, n = _WorldPunctualLightCount, localCount = 0;
     for (; i < n; i++)
     {
-        if (GetPointLightInterval(_LightDatasRT[i], rayOrigin, rayDirection, tLightMin, tLightMax))
+        if (GetPointLightInterval(_WorldLightDatas[i], rayOrigin, rayDirection, tLightMin, tLightMax))
         {
-            wLight = GetLocalLightWeight(_LightDatasRT[i], rayOrigin, rayDirection, tLightMin, tLightMax);
+            wLight = GetLocalLightWeight(_WorldLightDatas[i], rayOrigin, rayDirection, tLightMin, tLightMax);
 
             if (wLight > 0.0)
             {
@@ -1116,7 +1116,7 @@ float PickLocalLightInterval(float3 rayOrigin, float3 rayDirection, inout float 
 
                 if (inputSample < wLight)
                 {
-                    lightPosition = _LightDatasRT[i].positionRWS;
+                    lightPosition = _WorldLightDatas[i].positionRWS;
                     lightWeight = wLight;
                     tMin = tLightMin;
                     tMax = tLightMax;
@@ -1136,12 +1136,12 @@ float PickLocalLightInterval(float3 rayOrigin, float3 rayDirection, inout float 
     }
 
     // Then area lights
-    n += _AreaLightCountRT;
+    n += _WorldAreaLightCount;
     for (; i < n; i++)
     {
-        if (GetRectAreaLightInterval(_LightDatasRT[i], rayOrigin, rayDirection, tLightMin, tLightMax))
+        if (GetRectAreaLightInterval(_WorldLightDatas[i], rayOrigin, rayDirection, tLightMin, tLightMax))
         {
-            wLight = GetLocalLightWeight(_LightDatasRT[i], rayOrigin, rayDirection, tLightMin, tLightMax);
+            wLight = GetLocalLightWeight(_WorldLightDatas[i], rayOrigin, rayDirection, tLightMin, tLightMax);
 
             if (wLight > 0.0)
             {
@@ -1150,7 +1150,7 @@ float PickLocalLightInterval(float3 rayOrigin, float3 rayDirection, inout float 
 
                 if (inputSample < wLight)
                 {
-                    lightPosition = _LightDatasRT[i].positionRWS;
+                    lightPosition = _WorldLightDatas[i].positionRWS;
                     lightWeight = wLight;
                     tMin = tLightMin;
                     tMax = tLightMax;

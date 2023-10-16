@@ -225,7 +225,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
             ViewModel.model = Model;
             ViewModel.isSubGraph = DataStore.State.isSubGraph;
-            ViewModel.isInputExposed = (DataStore.State.isSubGraph || (Model.isExposable && Model.generatePropertyBlock));
+            ViewModel.isInputExposed = (DataStore.State.isSubGraph || Model.isExposed);
             ViewModel.inputName = Model.displayName;
             switch (Model)
             {

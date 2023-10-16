@@ -135,8 +135,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                     ExecutePass(context.cmd, data.rendererList);
                 });
             }
-
-            RenderGraphUtils.SetGlobalTexture(renderGraph,"_CameraDepthTexture", cameraDepthTexture, "Set Global CameraDepthTexture");
         }
     }
 }

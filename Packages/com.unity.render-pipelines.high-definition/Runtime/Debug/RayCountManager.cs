@@ -53,10 +53,10 @@ namespace UnityEngine.Rendering.HighDefinition
         // Given that the requests are guaranteed to be executed in order we use a queue to store it
         Queue<AsyncGPUReadbackRequest> m_RayCountReadbacks = new Queue<AsyncGPUReadbackRequest>();
 
-        public void Init(HDRenderPipelineRayTracingResources rayTracingResources)
+        public void Init(HDRPRayTracingResources rayTracingResources)
         {
             // Keep track of the compute shader we are going to use
-            m_RayCountCS = rayTracingResources.countTracedRays;
+            m_RayCountCS = rayTracingResources.countTracedRaysCS;
 
             // We only require 3 buffers (this supports a maximal size of 8192x8192)
             m_ReducedRayCountBufferOutput = new ComputeBuffer((int)RayCountValues.Count + 1, sizeof(uint));

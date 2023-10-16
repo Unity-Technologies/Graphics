@@ -703,7 +703,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         HashSet<IShaderNodeView> m_NodeViewHashSet = new HashSet<IShaderNodeView>();
         HashSet<ShaderGroup> m_GroupHashSet = new HashSet<ShaderGroup>();
-
+        float lastUpdate = 0f;
         public void HandleGraphChanges(bool wasUndoRedoPerformed)
         {
             UnregisterGraphViewCallbacks();
@@ -717,6 +717,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             });
 
             previewManager.HandleGraphChanges();
+            if(Time.realtimeSinceStartup - lastUpdate >= 0.03f && EditorWindow.focusedWindow == m_EditorWindow && m_UserViewSettings.isPreviewVisible)
+            {
+                lastUpdate = Time.realtimeSinceStartup;
+                previewManager.UpdateMasterPreview(ModificationScope.Node);
+            }
             m_InspectorView.HandleGraphChanges();
 
             if (m_Graph.addedEdges.Any() || m_Graph.removedEdges.Any())

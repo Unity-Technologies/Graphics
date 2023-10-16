@@ -443,9 +443,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Check lights dirtiness
-            if (m_CacheLightCount != m_RayTracingLights.lightCount)
+            if (m_CacheLightCount != m_WorldLights.totalLighttCount)
             {
-                m_CacheLightCount = (uint)m_RayTracingLights.lightCount;
+                m_CacheLightCount = (uint)m_WorldLights.totalLighttCount;
                 isSceneDirty = true;
             }
 
@@ -587,7 +587,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         // LightLoop data
                         ctx.cmd.SetGlobalBuffer(HDShaderIDs._RaytracingLightCluster, data.lightCluster.GetCluster());
-                        ctx.cmd.SetGlobalBuffer(HDShaderIDs._LightDatasRT, data.lightCluster.GetLightDatas());
 
                         // Global sky data
                         ctx.cmd.SetGlobalInt(HDShaderIDs._PathTracingCameraSkyEnabled, data.cameraData.skyEnabled ? 1 : 0);

@@ -55,7 +55,7 @@
 #define MAX_CUBE_REFLECTIONS (64)
 
 //
-// UnityEngine.Rendering.HighDefinition.EnvLightReflectionDataRT:  static fields
+// UnityEngine.Rendering.HighDefinition.WorldEnvLightReflectionData:  static fields
 //
 #define MAX_PLANAR_REFLECTIONS (16)
 #define MAX_CUBE_REFLECTIONS (64)
@@ -161,14 +161,6 @@ CBUFFER_START(EnvLightReflectionData)
     float4 _CubeScaleOffset[64];
 CBUFFER_END
 
-// Generated from UnityEngine.Rendering.HighDefinition.EnvLightReflectionDataRT
-// PackingRules = Exact
-GLOBAL_CBUFFER_START(EnvLightReflectionDataRT, b5)
-    float4x4 _PlanarCaptureVPRT[16];
-    float4 _PlanarScaleOffsetRT[16];
-    float4 _CubeScaleOffsetRT[64];
-CBUFFER_END
-
 // Generated from UnityEngine.Rendering.HighDefinition.LightData
 // PackingRules = Exact
 struct LightData
@@ -208,6 +200,14 @@ struct LightData
     float isRayTracedContactShadow;
     float boxLightSafeExtent;
 };
+
+// Generated from UnityEngine.Rendering.HighDefinition.WorldEnvLightReflectionData
+// PackingRules = Exact
+GLOBAL_CBUFFER_START(WorldEnvLightReflectionData, b5)
+    float4x4 _PlanarCaptureVPWL[16];
+    float4 _PlanarScaleOffsetWL[16];
+    float4 _CubeScaleOffsetWL[64];
+CBUFFER_END
 
 
 #endif

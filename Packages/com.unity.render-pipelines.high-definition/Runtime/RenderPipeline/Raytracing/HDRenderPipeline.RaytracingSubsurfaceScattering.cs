@@ -26,7 +26,7 @@ namespace UnityEngine.Rendering.HighDefinition
         void InitializeSubsurfaceScatteringRT()
         {
             ComputeShader rayTracingSubSurfaceCS = rayTracingResources.subSurfaceRayTracingCS;
-            ComputeShader deferredRayTracingCS = rayTracingResources.deferredRaytracingCS;
+            ComputeShader deferredRayTracingCS = rayTracingResources.deferredRayTracingCS;
 
             m_SSSClearTextureKernel = rayTracingSubSurfaceCS.FindKernel("ClearTexture");
             m_RaytracingDiffuseDeferredKernel = deferredRayTracingCS.FindKernel("RaytracingDiffuseDeferred");
@@ -101,7 +101,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // other required parameters
                 passData.rayTracingSubSurfaceRT = rayTracingResources.subSurfaceRayTracingRT;
                 passData.rayTracingSubSurfaceCS = rayTracingResources.subSurfaceRayTracingCS;
-                passData.deferredRayTracingCS = rayTracingResources.deferredRaytracingCS;
+                passData.deferredRayTracingCS = rayTracingResources.deferredRayTracingCS;
                 passData.accelerationStructure = RequestAccelerationStructure(hdCamera);
                 passData.lightCluster = RequestLightCluster();
                 passData.shaderVariablesRayTracingCB = m_ShaderVariablesRayTracingCB;

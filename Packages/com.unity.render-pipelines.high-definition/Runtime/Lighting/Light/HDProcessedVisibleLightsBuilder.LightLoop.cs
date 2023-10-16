@@ -150,7 +150,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (additionalLightData.GetResolutionFromSettings(additionalLightData.GetShadowMapType(visibleLight.lightType), inShadowInitParameters) == 0)
                         continue;
 
-                    additionalLightData.ReserveShadowMap(hdCamera.camera, shadowManager, hdShadowSettings, inShadowInitParameters, visibleLight, entity->lightType);
+                    additionalLightData.ReserveShadowMap(hdCamera.camera, shadowManager, hdShadowSettings, inShadowInitParameters, visibleLight, entity->lightType, visibleLight.forcedVisible);
                 }
 
                 // Now that all the lights have requested a shadow resolution, we can layout them in the atlas

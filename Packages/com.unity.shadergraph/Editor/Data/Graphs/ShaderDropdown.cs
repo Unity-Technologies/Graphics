@@ -27,6 +27,7 @@ namespace UnityEditor.ShaderGraph
             set => m_Entries = value;
         }
 
+        internal override bool isCustomSlotAllowed { get => false; }
         public override bool allowedInMainGraph { get => false; }
 
         [SerializeField]

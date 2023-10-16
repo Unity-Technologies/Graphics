@@ -1,6 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
 using UnityEngine;
-using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -8,9 +7,17 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         public bool active => !HDRPBuildData.instance.buildingPlayerForHDRenderPipeline;
 
-        public bool CanRemoveVariant([DisallowNull] ComputeShader shader, string shaderVariant, ShaderCompilerData shaderCompilerData)
+        public bool CanRemoveVariant([DisallowNull] ComputeShader shader, string _, ShaderCompilerData __)
         {
-            return HDRPBuildData.instance.computeShaderCache.ContainsKey(shader.GetInstanceID());
+            var shaderInstanceID = shader.GetInstanceID();
+
+            if (HDRPBuildData.instance.computeShaderCache.ContainsKey(shaderInstanceID))
+                return true;
+
+            if (HDRPBuildData.instance.rayTracingComputeShaderCache.ContainsKey(shaderInstanceID))
+                return true;
+
+            return false;
         }
     }
 }

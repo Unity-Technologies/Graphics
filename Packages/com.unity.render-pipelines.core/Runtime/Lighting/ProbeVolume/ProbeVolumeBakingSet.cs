@@ -529,10 +529,6 @@ namespace UnityEngine.Rendering
         {
             if (!string.IsNullOrEmpty(otherScenario) && !ProbeReferenceVolume.instance.enableScenarioBlending)
             {
-                if (!ProbeBrickBlendingPool.isSupported)
-                    Debug.LogError("Blending between lighting scenarios is not supported by this render pipeline.");
-                else
-                    Debug.LogError("Blending between lighting scenarios is disabled in the render pipeline settings.");
                 return;
             }
 

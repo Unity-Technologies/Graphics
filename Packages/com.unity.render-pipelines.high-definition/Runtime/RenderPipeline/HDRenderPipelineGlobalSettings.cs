@@ -96,7 +96,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // ensure resources are here
             EnsureEditorResources(forceReload: true);
             EnsureRuntimeResources(forceReload: true);
-            EnsureRayTracingResources(forceReload: true);
             EnsureGPUResidentDrawerResources(forceReload: true);
 
             var defaultVolumeProfile = GetOrCreateDefaultVolumeProfile();
@@ -315,40 +314,6 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
 
         #endregion //Editor Resources
-
-        #region Ray Tracing Resources
-        [SerializeField]
-        HDRenderPipelineRayTracingResources m_RenderPipelineRayTracingResources;
-        internal HDRenderPipelineRayTracingResources renderPipelineRayTracingResources
-        {
-            get
-            {
-                // No ensure because it can be null if we do not use ray tracing
-                return m_RenderPipelineRayTracingResources;
-            }
-        }
-
-#if UNITY_EDITOR
-        // be sure to cach result for not using GC in a frame after first one.
-        static readonly string raytracingResourcesPath = HDUtils.GetHDRenderPipelinePath() + "Runtime/RenderPipelineResources/HDRenderPipelineRayTracingResources.asset";
-
-        internal void EnsureRayTracingResources(bool forceReload)
-            => ResourceReloader.EnsureResources(forceReload, ref m_RenderPipelineRayTracingResources, raytracingResourcesPath, AreRayTracingResourcesCreated_Internal, this);
-
-        internal void ClearRayTracingResources()
-            => m_RenderPipelineRayTracingResources = null;
-
-        // Passing method in a Func argument create a functor that create GC
-        // If it is static it is then only computed once but the Ensure is called after first frame which will make our GC check fail
-        // So create it once and store it here.
-        // Expected usage: HDRenderPipelineGlobalSettings.AreRayTracingResourcesCreated(anyHDRenderPipelineGlobalSettings) that will return a bool
-        static Func<HDRenderPipelineGlobalSettings, bool> AreRayTracingResourcesCreated_Internal = global
-            => global.m_RenderPipelineRayTracingResources != null && !global.m_RenderPipelineRayTracingResources.Equals(null);
-
-        internal bool AreRayTracingResourcesCreated() => AreRayTracingResourcesCreated_Internal(this);
-#endif
-
-        #endregion //Ray Tracing Resources
 
         #region GPU Resident Drawer Resources
         [FormerlySerializedAs("m_RenderPipelineMacroBatcherResources")]

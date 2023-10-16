@@ -184,6 +184,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                     cmd.SetViewport(passData.cameraData.pixelRect);
                 else
                     cmd.SetViewport(new Rect(0, 0, passData.cameraData.cameraTargetDescriptor.width, passData.cameraData.cameraTargetDescriptor.height));
+
+                copyDepthMaterial.SetTexture(Shader.PropertyToID("_CameraDepthAttachment"), source);
                 Blitter.BlitTexture(cmd, source, scaleBias, copyDepthMaterial, 0);
             }
         }
@@ -227,7 +229,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             // TODO RENDERGRAPH: should call the equivalent of Setup() to initialise everything correctly
             MssaSamples = -1;
-            RenderGraphUtils.SetGlobalTexture(renderGraph, "_CameraDepthAttachment", source, "Set Global CameraDepthAttachment");
 
             using (var builder = renderGraph.AddRasterRenderPass<PassData>(passName, out var passData, base.profilingSampler))
             {
@@ -236,6 +237,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 passData.cameraData = cameraData;
                 passData.copyResolvedDepth = m_CopyResolvedDepth;
                 passData.copyToDepth = CopyToDepth;
+
                 if (CopyToDepth)
                 {
                     // Writes depth using custom depth output
@@ -252,7 +254,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                     // Writes depth as "grayscale color" output
                     passData.destination = builder.UseTextureFragment(destination, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
                 }
+
                 passData.source = builder.UseTexture(source, IBaseRenderGraphBuilder.AccessFlags.Read);
+
+                if (bindAsCameraDepth && destination.IsValid())
+                    builder.PostSetGlobalTexture(destination, Shader.PropertyToID("_CameraDepthTexture"));
 
                 // TODO RENDERGRAPH: culling? force culling off for testing
                 builder.AllowPassCulling(false);
@@ -263,9 +269,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                     ExecutePass(context.cmd, data, data.source, data.destination);
                 });
             }
-
-            if (bindAsCameraDepth)
-                RenderGraphUtils.SetGlobalTexture(renderGraph, "_CameraDepthTexture", destination, "Set Global CameraDepthTexture");
         }
     }
 }

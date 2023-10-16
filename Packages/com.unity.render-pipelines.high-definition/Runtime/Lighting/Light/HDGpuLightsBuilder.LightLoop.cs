@@ -422,10 +422,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 for (int sortKeyIndex = 0; sortKeyIndex < lightCounts; ++sortKeyIndex)
                 {
                     uint sortKey = visibleLights.sortKeys[sortKeyIndex];
-                    LightCategory lightCategory = (LightCategory)((sortKey >> 27) & 0x1F);
-                    GPULightType gpuLightType = (GPULightType)((sortKey >> 22) & 0x1F);
-                    LightVolumeType lightVolumeType = (LightVolumeType)((sortKey >> 17) & 0x1F);
-                    int lightIndex = (int)(sortKey & 0xFFFF);
+                    HDGpuLightsBuilder.UnpackLightSortKey(sortKey, out var lightCategory, out var gpuLightType, out var lightVolumeType, out var lightIndex, out var offscreen);
+
+                    // We don't need offscreen lights on the GPU
+                    if (offscreen)
+                        continue;
 
                     int dataIndex = visibleLights.visibleLightEntityDataIndices[lightIndex];
                     if (dataIndex == HDLightRenderDatabase.InvalidDataIndex)

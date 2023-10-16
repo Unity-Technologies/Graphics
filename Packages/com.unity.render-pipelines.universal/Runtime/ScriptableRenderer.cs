@@ -766,7 +766,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Override this method to initialize before recording the render graph, such as resources.
         /// </summary>
-        internal virtual void OnBeginRenderGraphFrame()
+        public virtual void OnBeginRenderGraphFrame()
         {
         }
 
@@ -782,7 +782,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Override this method to cleanup things after recording the render graph, such as resources.
         /// </summary>
-        internal virtual void OnEndRenderGraphFrame()
+        public virtual void OnEndRenderGraphFrame()
         {
         }
 
@@ -1120,6 +1120,29 @@ namespace UnityEngine.Rendering.Universal
                 if (pass.renderPassEvent >= startInjectionPoint && (int) pass.renderPassEvent < nextValue)
                     pass.RecordRenderGraph(renderGraph, m_frameData);
             }
+        }
+
+        // ScriptableRenderPass if executed in a critical point (such as in between Deferred and GBuffer) has to have
+        // interruptFramebufferFetchEvent set to actually interrupt it so we could fall back to non framebuffer fetch path
+        internal bool InterruptFramebufferFetch(FramebufferFetchEvent fetchEvent, RenderPassEvent startInjectionPoint, RenderPassEvent endInjectionPoint)
+        {
+            int range = ScriptableRenderPass.GetRenderPassEventRange(endInjectionPoint);
+            int nextValue = (int) endInjectionPoint + range;
+
+            foreach (ScriptableRenderPass pass in m_ActiveRenderPassQueue)
+            {
+                if (pass.renderPassEvent >= startInjectionPoint && (int) pass.renderPassEvent < nextValue)
+                    switch (fetchEvent)
+                    {
+                        case FramebufferFetchEvent.FetchGbufferInDeferred:
+                            if (pass.breakGBufferAndDeferredRenderPass)
+                                return true;
+                            break;
+                        default:
+                            continue;
+                    }
+            }
+            return false;
         }
 
         internal void SetPerCameraProperties(ScriptableRenderContext context, UniversalCameraData cameraData, Camera camera,

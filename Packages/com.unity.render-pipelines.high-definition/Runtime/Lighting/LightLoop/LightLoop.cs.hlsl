@@ -39,6 +39,16 @@
 #define LIGHTVOLUMETYPE_COUNT (3)
 
 //
+// UnityEngine.Rendering.HighDefinition.WorldLightFlags:  static fields
+//
+#define WORLDLIGHTFLAGS_NONE (0)
+#define WORLDLIGHTFLAGS_ACTIVE (1)
+#define WORLDLIGHTFLAGS_RAYTRACING (2)
+#define WORLDLIGHTFLAGS_PATHTRACING (4)
+#define WORLDLIGHTFLAGS_ACTIVE_RAYTRACING (3)
+#define WORLDLIGHTFLAGS_ACTIVE_PATHTRACING (5)
+
+//
 // UnityEngine.Rendering.HighDefinition.LightDefinitions:  static fields
 //
 #define VIEWPORT_SCALE_Z (1)

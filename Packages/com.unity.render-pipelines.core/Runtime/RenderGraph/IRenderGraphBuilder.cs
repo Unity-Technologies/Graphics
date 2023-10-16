@@ -56,6 +56,41 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public TextureHandle UseTexture(in TextureHandle input, AccessFlags flags = AccessFlags.Read);
 
         /// <summary>
+        /// Declare that this pass uses the texture assigned to the global texture slot. The actual texture referenced is indirectly specified here it depends
+        /// on the value previous passes that were added to the graph set for the global texture slot. If no previous pass set a texture to the global slot an
+        /// exception will be raised.
+        /// </summary>
+        /// <param name="glboalTextureSlotId">The global texture slot read by shaders in this pass. Use Shader.PropertyToID to generate these ids.</param>
+        /// <param name="flags">A combination of flags indicating how the resource will be used during the pass. Default value is set to AccessFlag.Read </param>
+        public void UseGlobalTexture(int glboalTextureSlotId, AccessFlags flags = AccessFlags.Read);
+
+        /// <summary>
+        /// Indicate that this pass will reference all textures in global texture slots known to the graph. The default setting is true.
+        /// It is highly recommended if you know which globals you pass will access to set this value to false and do UseTexture(glboalTextureSlotId) instead
+        /// to ensure the graph can maximally optimize resource use and lifetimes.
+        ///
+        /// Note that in some cases it is difficult/impossible to know which globals a pass will access. This is for example true if your pass renders objects
+        /// in the scene (e.g. using CommandBuffer.DrawRendererList) that might be using arbitrary shaders which in turn may access arbitrary global textures.
+        /// In this situation you will either have to ensure *all* shaders are well behaved and do not access spurious globals our make sure your rendererlists
+        /// filters allow only shaders that are known to be well behaved to pass.
+        /// </summary>
+        /// <param name="enable">If true the pass from which this is called will reference all global textures.</param>
+        public void UseAllGlobalTextures(bool enable);
+
+        /// <summary>
+        /// Make this pass set a global texture slot *at the end* of this pass. During this pass the global texture will still have it's
+        /// old value. Only after this pass the global texture slot will take on the new value specified.
+        /// Generally this pass will also do a UseTexture(write) on this texture handle to indicate it is generating this texture, but this is not really a requirement
+        /// you can have a pass that simply sets up a new value in a global texture slot but doesn't write it.
+        /// Although counter-intuitive at first, this call doesn't actually have a dependency on the passed in texture handle. It's only when a subsequent pass has
+        /// a dependency on the global texture slot that subsequent pass will get a dependency on the currently set global texture for that slot. This means
+        /// globals slots can be set witout overhead if you're unsure if a resource will be used or not, the graph will still maintain the correct lifetimes.
+        /// </summary>
+        /// <param name="input">The texture value to set in the global texture slot. This can be an null handle to clear the global texture slot.</param>
+        /// <param name="globalPropertyID">The global texture slot to set the value for. Use Shader.PropertyToID to generate the id.</param>
+        public void PostSetGlobalTexture(in TextureHandle input, int globalPropertyID);
+
+        /// <summary>
         /// Declare that this pass uses the input compute buffer.
         /// </summary>
         /// <param name="input">The compute buffer resource to use during the pass.</param>
@@ -168,7 +203,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     {
         /// <summary>
         /// Use the texture as an rendertarget attachment.
-        /// 
+        ///
         /// Writing:
         /// Indicate this pass will write a texture through rendertarget rasterization writes.
         /// The graph will automatically bind the texture as an MRT output on the indicated index slot.
@@ -178,7 +213,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// Reading:
         /// Indicates this pass will read a texture on the current fragment position but not unnecessarily modify it. Although not explicitly visible in shader code
         /// Reading may happen depending on the rasterization state, e.g. Blending (read and write) or Z-Testing (read only) may read the buffer.
-        /// 
+        ///
         /// Note: The rendergraph does not know what content will be rendered in the bound texture. By default it assumes only partial data
         /// is written (e.g. a small rectangle is drawn on the screen) so it will preserve the existing rendertarget content (e.g. behind/around the triangle)
         /// if you know you will write the full screen the AccessFlags.WriteAll should be used instead as it will give better performance.
@@ -196,7 +231,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// This informs the graph that any shaders in pass will only read from this texture at the current fragment position using the
         /// LOAD_FRAMEBUFFER_INPUT(idx)/LOAD_FRAMEBUFFER_INPUT_MS(idx,sampleIdx) macros. The index passed to LOAD_FRAMEBUFFER_INPUT needs
         /// to match the index passed to UseTextureFragmentInput for this texture.
-        /// 
+        ///
         /// </summary>
         /// <param name="tex">Texture to use during this pass.</param>
         /// <param name="index">Index the shader will use to access this texture.</param>

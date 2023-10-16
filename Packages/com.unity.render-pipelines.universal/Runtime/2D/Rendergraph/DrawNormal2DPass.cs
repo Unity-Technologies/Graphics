@@ -23,11 +23,10 @@ namespace UnityEngine.Rendering.Universal
 
         private static void Execute(RasterCommandBuffer cmd, PassData passData)
         {
-            CustomClear2D.Clear(cmd, RendererLighting.k_NormalClearColor);
             cmd.DrawRendererList(passData.rendererList);
         }
 
-        public void Render(RenderGraph graph, ContextContainer frameData, Renderer2DData rendererData, ref LayerBatch layerBatch)
+        public void Render(RenderGraph graph, ContextContainer frameData, Renderer2DData rendererData, ref LayerBatch layerBatch, int batchIndex)
         {
             if (!layerBatch.lightStats.useNormalMap)
                 return;
@@ -51,7 +50,7 @@ namespace UnityEngine.Rendering.Universal
                 drawSettings.sortingSettings = sortSettings;
 
                 builder.AllowPassCulling(false);
-                builder.UseTextureFragment(resourceData.normalsTexture, 0);
+                builder.UseTextureFragment(resourceData.normalsTexture[batchIndex], 0);
                 builder.UseTextureFragmentDepth(resourceData.intermediateDepth, IBaseRenderGraphBuilder.AccessFlags.Write);
 
                 var param = new RendererListParams(renderingData.cullResults, drawSettings, filterSettings);

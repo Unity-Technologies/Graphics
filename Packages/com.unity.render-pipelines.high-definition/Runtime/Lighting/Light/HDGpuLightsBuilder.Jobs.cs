@@ -327,7 +327,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
             private void StoreAndConvertLightToGPUFormat(
                 int outputIndex, int lightIndex,
-                LightCategory lightCategory, GPULightType gpuLightType, LightVolumeType lightVolumeType)
+                LightCategory lightCategory, GPULightType gpuLightType, LightVolumeType lightVolumeType, bool offscreen)
             {
                 var light = visibleLights[lightIndex];
                 var processedEntity = processedEntities[lightIndex];
@@ -648,7 +648,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public void Execute(int index)
             {
                 var sortKey = sortKeys[index];
-                HDGpuLightsBuilder.UnpackLightSortKey(sortKey, out var lightCategory, out var gpuLightType, out var lightVolumeType, out var lightIndex);
+                HDGpuLightsBuilder.UnpackLightSortKey(sortKey, out var lightCategory, out var gpuLightType, out var lightVolumeType, out var lightIndex, out var offscreen);
 
                 if (gpuLightType == GPULightType.Directional)
                 {
@@ -658,7 +658,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 else
                 {
                     int outputIndex = index - directionalSortedLightCounts;
-                    StoreAndConvertLightToGPUFormat(outputIndex, lightIndex, lightCategory, gpuLightType, lightVolumeType);
+                    StoreAndConvertLightToGPUFormat(outputIndex, lightIndex, lightCategory, gpuLightType, lightVolumeType, offscreen);
                 }
             }
         }

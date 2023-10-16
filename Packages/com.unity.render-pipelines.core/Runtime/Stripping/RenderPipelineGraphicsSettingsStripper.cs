@@ -1,13 +1,14 @@
 #if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
 namespace UnityEngine.Rendering
 {
     internal static partial class RenderPipelineGraphicsSettingsStripper
     {
-        private static bool CanRemoveSettings(this List<IStripper> strippers, Type settingsType, IRenderPipelineGraphicsSettings settings)
+        private static bool CanRemoveSettings(this List<IStripper> strippers, [DisallowNull] Type settingsType, [DisallowNull] IRenderPipelineGraphicsSettings settings)
         {
             const BindingFlags flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
 
@@ -26,8 +27,8 @@ namespace UnityEngine.Rendering
         }
 
         private static bool CanTransferSettingsToPlayer(
-            Dictionary<Type, List<IStripper>> strippersMap,
-            IRenderPipelineGraphicsSettings settings,
+            [DisallowNull] Dictionary<Type, List<IStripper>> strippersMap,
+            [DisallowNull] IRenderPipelineGraphicsSettings settings,
             out bool isAvailableOnPlayerBuild,
             out bool strippersDefined)
         {
@@ -70,6 +71,9 @@ namespace UnityEngine.Rendering
                 for (int i = 0; i < settingsList.Count; ++i)
                 {
                     var settings = settingsList[i];
+                    if (settings == null)
+                        continue;
+
                     if (CanTransferSettingsToPlayer(strippersMap, settings, out var isAvailableOnPlayerBuild, out var strippersDefined))
                         runtimeSettingsList.Add(settings);
 

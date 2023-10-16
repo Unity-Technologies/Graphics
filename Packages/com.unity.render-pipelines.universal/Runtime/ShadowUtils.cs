@@ -74,19 +74,19 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Extracts the directional light matrix.
         /// </summary>
-        /// <param name="cullResults"></param>
-        /// <param name="shadowData"></param>
-        /// <param name="shadowLightIndex"></param>
-        /// <param name="cascadeIndex"></param>
-        /// <param name="shadowmapWidth"></param>
-        /// <param name="shadowmapHeight"></param>
-        /// <param name="shadowResolution"></param>
-        /// <param name="shadowNearPlane"></param>
-        /// <param name="cascadeSplitDistance"></param>
-        /// <param name="shadowSliceData"></param>
-        /// <param name="viewMatrix"></param>
-        /// <param name="projMatrix"></param>
-        /// <returns></returns>
+        /// <param name="cullResults">The results of a culling operation.</param>
+        /// <param name="shadowData">Data containing shadow settings.</param>
+        /// <param name="shadowLightIndex">The visible light index.</param>
+        /// <param name="cascadeIndex">The cascade index.</param>
+        /// <param name="shadowmapWidth">The shadow map width.</param>
+        /// <param name="shadowmapHeight">The shadow map height.</param>
+        /// <param name="shadowResolution">The shadow map resolution.</param>
+        /// <param name="shadowNearPlane">Near plane value to use for shadow frustums.</param>
+        /// <param name="cascadeSplitDistance">The culling sphere for the cascade.</param>
+        /// <param name="shadowSliceData">The struct container for shadow slice data.</param>
+        /// <param name="viewMatrix">The view matrix to be set.</param>
+        /// <param name="projMatrix">The projection matrix to be set.</param>
+        /// <returns>True if the matrix was successfully extracted.</returns>
         public static bool ExtractDirectionalLightMatrix(ref CullingResults cullResults, ref ShadowData shadowData, int shadowLightIndex, int cascadeIndex, int shadowmapWidth, int shadowmapHeight, int shadowResolution, float shadowNearPlane, out Vector4 cascadeSplitDistance, out ShadowSliceData shadowSliceData, out Matrix4x4 viewMatrix, out Matrix4x4 projMatrix)
         {
             bool result = ExtractDirectionalLightMatrix(ref cullResults, ref shadowData, shadowLightIndex, cascadeIndex, shadowmapWidth, shadowmapHeight, shadowResolution, shadowNearPlane, out cascadeSplitDistance, out shadowSliceData);
@@ -98,18 +98,39 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Extracts the directional light matrix.
         /// </summary>
-        /// <param name="cullResults"></param>
-        /// <param name="shadowData"></param>
-        /// <param name="shadowLightIndex"></param>
-        /// <param name="cascadeIndex"></param>
-        /// <param name="shadowmapWidth"></param>
-        /// <param name="shadowmapHeight"></param>
-        /// <param name="shadowResolution"></param>
-        /// <param name="shadowNearPlane"></param>
-        /// <param name="cascadeSplitDistance"></param>
-        /// <param name="shadowSliceData"></param>
-        /// <returns></returns>
+        /// <param name="cullResults">The results of a culling operation.</param>
+        /// <param name="shadowData">Data containing shadow settings.</param>
+        /// <param name="shadowLightIndex">The visible light index.</param>
+        /// <param name="cascadeIndex">The cascade index.</param>
+        /// <param name="shadowmapWidth">The shadow map width.</param>
+        /// <param name="shadowmapHeight">The shadow map height.</param>
+        /// <param name="shadowResolution">The shadow map resolution.</param>
+        /// <param name="shadowNearPlane">Near plane value to use for shadow frustums.</param>
+        /// <param name="cascadeSplitDistance">The culling sphere for the cascade.</param>
+        /// <param name="shadowSliceData">The struct container for shadow slice data.</param>
+        /// <returns>True if the matrix was successfully extracted.</returns>
         public static bool ExtractDirectionalLightMatrix(ref CullingResults cullResults, ref ShadowData shadowData, int shadowLightIndex, int cascadeIndex, int shadowmapWidth, int shadowmapHeight, int shadowResolution, float shadowNearPlane, out Vector4 cascadeSplitDistance, out ShadowSliceData shadowSliceData)
+        {
+            return ExtractDirectionalLightMatrix(ref cullResults, shadowData.universalShadowData,
+                shadowLightIndex, cascadeIndex, shadowmapWidth, shadowmapHeight, shadowResolution,
+                shadowNearPlane, out cascadeSplitDistance, out shadowSliceData);
+        }
+
+        /// <summary>
+        /// Extracts the directional light matrix.
+        /// </summary>
+        /// <param name="cullResults">The results of a culling operation.</param>
+        /// <param name="shadowData">Data containing shadow settings.</param>
+        /// <param name="shadowLightIndex">The visible light index.</param>
+        /// <param name="cascadeIndex">The cascade index.</param>
+        /// <param name="shadowmapWidth">The shadow map width.</param>
+        /// <param name="shadowmapHeight">The shadow map height.</param>
+        /// <param name="shadowResolution">The shadow map resolution.</param>
+        /// <param name="shadowNearPlane">Near plane value to use for shadow frustums.</param>
+        /// <param name="cascadeSplitDistance">The culling sphere for the cascade.</param>
+        /// <param name="shadowSliceData">The struct container for shadow slice data.</param>
+        /// <returns>True if the matrix was successfully extracted.</returns>
+        public static bool ExtractDirectionalLightMatrix(ref CullingResults cullResults, UniversalShadowData shadowData, int shadowLightIndex, int cascadeIndex, int shadowmapWidth, int shadowmapHeight, int shadowResolution, float shadowNearPlane, out Vector4 cascadeSplitDistance, out ShadowSliceData shadowSliceData)
         {
             bool success = cullResults.ComputeDirectionalShadowMatricesAndCullingPrimitives(shadowLightIndex,
                 cascadeIndex, shadowData.mainLightShadowCascadesCount, shadowData.mainLightShadowCascadesSplit, shadowResolution, shadowNearPlane, out shadowSliceData.viewMatrix, out shadowSliceData.projectionMatrix,
@@ -136,15 +157,31 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Extracts the spot light matrix.
         /// </summary>
-        /// <param name="cullResults"></param>
-        /// <param name="shadowData"></param>
-        /// <param name="shadowLightIndex"></param>
-        /// <param name="shadowMatrix"></param>
-        /// <param name="viewMatrix"></param>
-        /// <param name="projMatrix"></param>
-        /// <param name="splitData"></param>
-        /// <returns></returns>
+        /// <param name="cullResults">The results of a culling operation.</param>
+        /// <param name="shadowData">Data containing shadow settings.</param>
+        /// <param name="shadowLightIndex">The visible light index.</param>
+        /// <param name="shadowMatrix">The shadow matrix to be set.</param>
+        /// <param name="viewMatrix">The view matrix to be set.</param>
+        /// <param name="projMatrix">The projection matrix to be set.</param>
+        /// <param name="splitData">The shadow split data containing culling information.</param>
+        /// <returns>True if the matrix was successfully extracted.</returns>
         public static bool ExtractSpotLightMatrix(ref CullingResults cullResults, ref ShadowData shadowData, int shadowLightIndex, out Matrix4x4 shadowMatrix, out Matrix4x4 viewMatrix, out Matrix4x4 projMatrix, out ShadowSplitData splitData)
+        {
+            return ExtractSpotLightMatrix(ref cullResults, shadowData.universalShadowData, shadowLightIndex, out shadowMatrix, out viewMatrix, out projMatrix, out splitData);
+        }
+
+        /// <summary>
+        /// Extracts the spot light matrix.
+        /// </summary>
+        /// <param name="cullResults">The results of a culling operation.</param>
+        /// <param name="shadowData">Data containing shadow settings.</param>
+        /// <param name="shadowLightIndex">The visible light index.</param>
+        /// <param name="shadowMatrix">The shadow matrix to be set.</param>
+        /// <param name="viewMatrix">The view matrix to be set.</param>
+        /// <param name="projMatrix">The projection matrix to be set.</param>
+        /// <param name="splitData">The shadow split data containing culling information.</param>
+        /// <returns>True if the matrix was successfully extracted.</returns>
+        public static bool ExtractSpotLightMatrix(ref CullingResults cullResults, UniversalShadowData shadowData, int shadowLightIndex, out Matrix4x4 shadowMatrix, out Matrix4x4 viewMatrix, out Matrix4x4 projMatrix, out ShadowSplitData splitData)
         {
             bool success = cullResults.ComputeSpotShadowMatricesAndCullingPrimitives(shadowLightIndex, out viewMatrix, out projMatrix, out splitData); // returns false if input parameters are incorrect (rare)
             shadowMatrix = GetShadowTransform(projMatrix, viewMatrix);
@@ -152,19 +189,37 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Extracts the spot light matrix.
+        /// Extracts the point light matrix.
         /// </summary>
-        /// <param name="cullResults"></param>
-        /// <param name="shadowData"></param>
-        /// <param name="shadowLightIndex"></param>
-        /// <param name="cubemapFace"></param>
-        /// <param name="fovBias"></param>
-        /// <param name="shadowMatrix"></param>
-        /// <param name="viewMatrix"></param>
-        /// <param name="projMatrix"></param>
-        /// <param name="splitData"></param>
-        /// <returns></returns>
+        /// <param name="cullResults">The results of a culling operation.</param>
+        /// <param name="shadowData">Data containing shadow settings.</param>
+        /// <param name="shadowLightIndex">The visible light index.</param>
+        /// <param name="cubemapFace">The face of the cubemap to use.</param>
+        /// <param name="fovBias">The guard angle that must be added to a point light shadow face frustum angle in order to avoid shadows missing at the boundaries between cube faces.</param>
+        /// <param name="shadowMatrix">The shadow matrix to be set.</param>
+        /// <param name="viewMatrix">The view matrix to be set.</param>
+        /// <param name="projMatrix">The projection matrix to be set.</param>
+        /// <param name="splitData">The shadow split data containing culling information.</param>
+        /// <returns>True if the matrix was successfully extracted.</returns>
         public static bool ExtractPointLightMatrix(ref CullingResults cullResults, ref ShadowData shadowData, int shadowLightIndex, CubemapFace cubemapFace, float fovBias, out Matrix4x4 shadowMatrix, out Matrix4x4 viewMatrix, out Matrix4x4 projMatrix, out ShadowSplitData splitData)
+        {
+            return ExtractPointLightMatrix(ref cullResults, shadowData.universalShadowData, shadowLightIndex, cubemapFace, fovBias, out shadowMatrix, out viewMatrix, out projMatrix, out splitData);
+        }
+
+        /// <summary>
+        /// Extracts the point light matrix.
+        /// </summary>
+        /// <param name="cullResults">The results of a culling operation.</param>
+        /// <param name="shadowData">Data containing shadow settings.</param>
+        /// <param name="shadowLightIndex">The visible light index.</param>
+        /// <param name="cubemapFace">The face of the cubemap to use.</param>
+        /// <param name="fovBias">The guard angle that must be added to a point light shadow face frustum angle in order to avoid shadows missing at the boundaries between cube faces.</param>
+        /// <param name="shadowMatrix">The shadow matrix to be set.</param>
+        /// <param name="viewMatrix">The view matrix to be set.</param>
+        /// <param name="projMatrix">The projection matrix to be set.</param>
+        /// <param name="splitData">The shadow split data containing culling information.</param>
+        /// <returns>True if the matrix was successfully extracted.</returns>
+        public static bool ExtractPointLightMatrix(ref CullingResults cullResults, UniversalShadowData shadowData, int shadowLightIndex, CubemapFace cubemapFace, float fovBias, out Matrix4x4 shadowMatrix, out Matrix4x4 viewMatrix, out Matrix4x4 projMatrix, out ShadowSplitData splitData)
         {
             bool success = cullResults.ComputePointShadowMatricesAndCullingPrimitives(shadowLightIndex, cubemapFace, fovBias, out viewMatrix, out projMatrix, out splitData); // returns false if input parameters are incorrect (rare)
 

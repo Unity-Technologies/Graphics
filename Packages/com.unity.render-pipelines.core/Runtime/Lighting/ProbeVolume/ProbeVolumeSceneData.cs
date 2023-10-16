@@ -131,9 +131,6 @@ namespace UnityEngine.Rendering
                 var set = AssetDatabase.LoadAssetAtPath<ProbeVolumeBakingSet>(AssetDatabase.GUIDToAssetPath(setGUID));
                 AddBakingSet(set);
             }
-
-            if (parentAsset != null)
-                EditorUtility.SetDirty(parentAsset);
             #endif
         }
 

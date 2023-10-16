@@ -30,7 +30,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             var lightingAttachment = m_DeferredLights.GbufferAttachments[m_DeferredLights.GBufferLightingIndex];
             var depthAttachment = m_DeferredLights.DepthAttachmentHandle;
-            if (m_DeferredLights.UseRenderPass)
+            if (m_DeferredLights.UseFramebufferFetch)
                 ConfigureInputAttachments(m_DeferredLights.DeferredInputAttachments, m_DeferredLights.DeferredInputIsTransient);
 
             // TODO: Cannot currently bind depth texture as read-only!
@@ -77,7 +77,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 passData.depth = builder.UseTextureFragmentDepth(depth, IBaseRenderGraphBuilder.AccessFlags.Write);
                 passData.deferredLights = m_DeferredLights;
 
-                if (!m_DeferredLights.UseRenderPass)
+                if (!m_DeferredLights.UseFramebufferFetch)
                 {
                     for (int i = 0; i < gbuffer.Length; ++i)
                     {
@@ -98,6 +98,10 @@ namespace UnityEngine.Rendering.Universal.Internal
                     }
                 }
 
+                // Without NRP GBuffer textures are set after GBuffer, we only do this here to avoid breaking the pass
+                if (renderGraph.NativeRenderPassesEnabled)
+                    GBufferPass.SetGlobalGBufferTextures(builder, gbuffer, ref m_DeferredLights);
+
                 builder.AllowPassCulling(false);
                 builder.AllowGlobalStateModification(true);
 
@@ -106,10 +110,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                     data.deferredLights.ExecuteDeferredPass(context.cmd, data.cameraData, data.lightData, data.shadowData);
                 });
             }
-
-            // Without NRP GBuffer textures are set after GBuffer, we only do this here to avoid breaking the pass
-            if (renderGraph.NativeRenderPassesEnabled)
-                GBufferPass.SetGlobalGBufferTextures(renderGraph, gbuffer, resourceData, ref m_DeferredLights);
         }
 
         // ScriptableRenderPass

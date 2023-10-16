@@ -103,6 +103,10 @@ namespace UnityEngine.Rendering.Universal
             if (isRendererDeferred)
             {
                 renderPassEvent = m_CurrentSettings.AfterOpaque ? RenderPassEvent.AfterRenderingOpaques : RenderPassEvent.AfterRenderingGbuffer;
+
+                if (renderPassEvent == RenderPassEvent.AfterRenderingGbuffer)
+                    breakGBufferAndDeferredRenderPass = true;
+
                 m_CurrentSettings.Source = ScreenSpaceAmbientOcclusionSettings.DepthSource.DepthNormals;
             }
             else
@@ -319,6 +323,8 @@ namespace UnityEngine.Rendering.Universal
             internal Material material;
             internal TextureHandle source;
             internal TextureHandle destination;
+            internal TextureHandle depthTexture;
+            internal TextureHandle normalTexture;
         }
 
         private void InitSetupPassData(ref SetupPassData data)
@@ -354,7 +360,8 @@ namespace UnityEngine.Rendering.Universal
             ExecuteSetupPass(renderGraph, cameraData, resourceData);
 
             // Ambient Occlusion Pass...
-            ExecuteOcclusionPass(renderGraph, resourceData, in aoTexture);
+            UniversalRenderer renderer = cameraData.renderer as UniversalRenderer;
+            ExecuteOcclusionPass(renderGraph, resourceData, in aoTexture, renderer.renderingModeActual);
 
             // Blur & Upsample Passes...
             switch (m_BlurType)
@@ -371,10 +378,6 @@ namespace UnityEngine.Rendering.Universal
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-
-            // The global SSAO texture only needs to be set if After Opaque is disabled...
-            if (!m_CurrentSettings.AfterOpaque)
-                RenderGraphUtils.SetGlobalTexture(renderGraph,k_SSAOTextureName, finalTexture, "Set SSAO Texture");
         }
 
         private void ExecuteSetupPass(RenderGraph renderGraph, UniversalCameraData cameraData, UniversalResourceData resourceData)
@@ -433,7 +436,7 @@ namespace UnityEngine.Rendering.Universal
                 resourceData.ssaoTexture = finalTexture;
         }
 
-        private void ExecuteOcclusionPass(RenderGraph renderGraph, UniversalResourceData resourceData, in TextureHandle aoTexture)
+        private void ExecuteOcclusionPass(RenderGraph renderGraph, UniversalResourceData resourceData, in TextureHandle aoTexture, RenderingMode renderingMode)
         {
             using (IRasterRenderGraphBuilder builder = renderGraph.AddRasterRenderPass<PassData>("SSAO_Occlusion", out PassData passData, m_ProfilingSampler))
             {
@@ -446,15 +449,17 @@ namespace UnityEngine.Rendering.Universal
                 builder.UseTextureFragment(aoTexture, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
 
                 // Get the resources
-                TextureHandle cameraDepthTexture = resourceData.cameraDepthTexture;
+                TextureHandle cameraDepthTexture = renderingMode == RenderingMode.Deferred ? resourceData.activeDepthTexture : resourceData.cameraDepthTexture;
                 TextureHandle cameraNormalsTexture = resourceData.cameraNormalsTexture;
 
                 if (cameraDepthTexture.IsValid())
-                    builder.UseTexture(cameraDepthTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+                    passData.depthTexture = builder.UseTexture(cameraDepthTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
 
                 if (m_CurrentSettings.Source == ScreenSpaceAmbientOcclusionSettings.DepthSource.DepthNormals)
+                {
                     if (cameraNormalsTexture.IsValid())
-                        builder.UseTexture(cameraNormalsTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+                        passData.normalTexture = builder.UseTexture(cameraNormalsTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+                }
 
                 builder.SetRenderFunc<PassData>((data, context) => RenderGraphRenderFunc(data, context));
             }
@@ -495,6 +500,10 @@ namespace UnityEngine.Rendering.Universal
                 passData.afterOpaque = m_CurrentSettings.AfterOpaque;
                 passData.shaderPassID = (int) (passData.afterOpaque ? ShaderPasses.BilateralAfterOpaque : ShaderPasses.BilateralBlurFinal);
 
+                // The global SSAO texture only needs to be set if After Opaque is disabled...
+                if (!m_CurrentSettings.AfterOpaque && finalTexture.IsValid())
+                    builder.PostSetGlobalTexture(finalTexture, Shader.PropertyToID(k_SSAOTextureName));
+
                 // Set up the builder
                 builder.SetRenderFunc<PassData>((data, context) => RenderGraphRenderFunc(data, context));
             }
@@ -523,6 +532,10 @@ namespace UnityEngine.Rendering.Universal
                 passData.afterOpaque = m_CurrentSettings.AfterOpaque;
                 passData.shaderPassID = (int) (passData.afterOpaque ? ShaderPasses.GaussianAfterOpaque : ShaderPasses.GaussianBlurVertical);
 
+                // The global SSAO texture only needs to be set if After Opaque is disabled...
+                if (!m_CurrentSettings.AfterOpaque && finalTexture.IsValid())
+                    builder.PostSetGlobalTexture(finalTexture, Shader.PropertyToID(k_SSAOTextureName));
+
                 // Set up the builder
                 builder.SetRenderFunc<PassData>((data, context) => RenderGraphRenderFunc(data, context));
             }
@@ -539,6 +552,10 @@ namespace UnityEngine.Rendering.Universal
                 passData.afterOpaque = m_CurrentSettings.AfterOpaque;
                 passData.shaderPassID = (int) (passData.afterOpaque ? ShaderPasses.KawaseAfterOpaque : ShaderPasses.KawaseBlur);
 
+                // The global SSAO texture only needs to be set if After Opaque is disabled...
+                if (!m_CurrentSettings.AfterOpaque && finalTexture.IsValid())
+                    builder.PostSetGlobalTexture(finalTexture, Shader.PropertyToID(k_SSAOTextureName));
+
                 // Set up the builder
                 builder.SetRenderFunc<PassData>((data, context) => RenderGraphRenderFunc(data, context));
             }
@@ -546,6 +563,11 @@ namespace UnityEngine.Rendering.Universal
 
         private static void RenderGraphRenderFunc(PassData data, RasterGraphContext context)
         {
+            if (data.depthTexture.IsValid())
+                data.material.SetTexture(Shader.PropertyToID("_CameraDepthTexture"), data.depthTexture);
+            if (data.normalTexture.IsValid())
+                data.material.SetTexture(Shader.PropertyToID("_CameraNormalsTexture"), data.normalTexture);
+
             Blitter.BlitTexture(context.cmd, data.source, Vector2.one, data.material, data.shaderPassID);
         }
 

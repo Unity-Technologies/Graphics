@@ -1,8 +1,8 @@
-using UnityEngine.Experimental.Rendering;
+using System;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    [HDRPHelpURL("Default-Settings-Window")]
+    [HDRPHelpURL("Default-Settings-Window")][Obsolete("Migrated to GraphicsSettings. #from(23.3)")]
     partial class HDRenderPipelineRayTracingResources : HDRenderPipelineResources
     {
         // Reflection

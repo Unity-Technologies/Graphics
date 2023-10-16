@@ -41,6 +41,8 @@ namespace UnityEngine.Rendering.Universal
 
             m_PassData = new PassData();
             m_GbufferAttachments = new RTHandle[4];
+
+            breakGBufferAndDeferredRenderPass = false;
         }
 
         internal void Setup(DeferredLights deferredLights)
@@ -50,7 +52,7 @@ namespace UnityEngine.Rendering.Universal
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
-            if (m_DeferredLights.UseRenderPass)
+            if (m_DeferredLights.UseFramebufferFetch)
             {
                 m_GbufferAttachments[0] = m_DeferredLights.GbufferAttachments[0];
                 m_GbufferAttachments[1] = m_DeferredLights.GbufferAttachments[1];
@@ -150,10 +152,6 @@ namespace UnityEngine.Rendering.Universal
         {
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
             TextureHandle cameraDepthTexture = resourceData.cameraDepthTexture;
-
-            // By calling SetGlobalTexture we would break active render pass and using framebuffer fetch would be impossible
-            if (!renderGraph.NativeRenderPassesEnabled)
-                RenderGraphUtils.SetGlobalTexture(renderGraph, Shader.PropertyToID("_CameraDepthTexture"), cameraDepthTexture);
 
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("Decal GBuffer Pass", out var passData, m_ProfilingSampler))
             {

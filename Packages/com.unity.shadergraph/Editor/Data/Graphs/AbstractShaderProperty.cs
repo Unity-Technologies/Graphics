@@ -66,7 +66,9 @@ namespace UnityEditor.ShaderGraph.Internal
         [SerializeField]
         internal HLSLDeclaration hlslDeclarationOverride;
 
-        private bool shouldForceExposed => hlslDeclarationOverride == HLSLDeclaration.HybridPerInstance;
+        override internal bool isExposed => base.isExposed && shouldForceExposed;
+
+        internal bool shouldForceExposed => (hlslDeclarationOverride == HLSLDeclaration.HybridPerInstance || GetDefaultHLSLDeclaration() == HLSLDeclaration.UnityPerMaterial) && isExposable;
 
         internal Precision precision
         {
@@ -109,7 +111,8 @@ namespace UnityEditor.ShaderGraph.Internal
             return string.Empty;
         }
 
-        internal bool shouldGeneratePropertyBlock => generatePropertyBlock || shouldForceExposed;
+        internal bool shouldGeneratePropertyBlock => (generatePropertyBlock || shouldForceExposed)
+                                                  && GetDefaultHLSLDeclaration() != HLSLDeclaration.Global;
 
         // the more complex interface for complex properties (defaulted for simple properties)
         internal virtual void AppendPropertyBlockStrings(ShaderStringBuilder builder)

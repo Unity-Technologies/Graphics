@@ -198,6 +198,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 passData.downsamplingMethod = m_DownsamplingMethod;
                 passData.sampleOffsetShaderHandle = m_SampleOffsetShaderHandle;
 
+                if (destination.IsValid())
+                    builder.PostSetGlobalTexture(destination, Shader.PropertyToID("_CameraOpaqueTexture"));
+
                 // TODO RENDERGRAPH: culling? force culling off for testing
                 builder.AllowPassCulling(false);
 
@@ -206,8 +209,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                     ExecutePass(context.cmd, data, data.source, data.useProceduralBlit);
                 });
             }
-
-            RenderGraphUtils.SetGlobalTexture(renderGraph, "_CameraOpaqueTexture", destination, "Set Camera Opaque Texture");
 
             return destination;
         }

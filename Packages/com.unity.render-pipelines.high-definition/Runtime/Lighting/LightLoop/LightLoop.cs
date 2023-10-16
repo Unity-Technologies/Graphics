@@ -86,6 +86,17 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     [GenerateHLSL]
+    internal enum WorldLightFlags : uint
+    {
+        None = 0u,
+        Active = 1u,
+        Raytracing = 2u,
+        Pathtracing = 4u,
+        ActiveRaytracing = Active | Raytracing,
+        ActivePathtracing = Active | Pathtracing,
+    }
+
+    [GenerateHLSL]
     class LightDefinitions
     {
         public static float s_ViewportScaleZ = 1.0f;
@@ -1392,22 +1403,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        bool TrivialRejectLight(in VisibleLight light, Light lightComponent, int pixelCount, in AOVRequestData aovRequest)
-        {
-            // We can skip the processing of lights that are so small to not affect at least a pixel on screen.
-            // TODO: The minimum pixel size on screen should really be exposed as parameter, to allow small lights to be culled to user's taste.
-            const int minimumPixelAreaOnScreen = 1;
-            if ((light.screenRect.height * light.screenRect.width * pixelCount) < minimumPixelAreaOnScreen)
-            {
-                return true;
-            }
-
-            if (lightComponent != null && !aovRequest.IsLightEnabled(lightComponent.gameObject))
-                return true;
-
-            return false;
-        }
-
         private static void CullShadowCasters(ScriptableRenderContext renderContext,
             in HDShadowInitParameters hdShadowInitParams,
             HDShadowManager shadowManager,
@@ -1478,7 +1473,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     for (int i = 0; i < visibleLightCounts; ++i)
                     {
                         uint sortKey = m_ProcessedLightsBuilder.sortKeys[i];
-                        HDGpuLightsBuilder.UnpackLightSortKey(sortKey, out var _, out var _, out var _, out var lightIndex);
+                        HDGpuLightsBuilder.UnpackLightSortKey(sortKey, out var _, out var _, out var _, out var lightIndex, out var _);
                         HDProcessedVisibleLight processedLightEntity = m_ProcessedLightsBuilder.processedEntities[lightIndex];
                         HDAdditionalLightData additionalLightData = lightEntities.hdAdditionalLightData[processedLightEntity.dataIndex];
                         if (additionalLightData == null)
@@ -2018,10 +2013,17 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._EnvSliceSize = m_TextureCaches.reflectionProbeTextureCache.GetEnvSliceSize();
 
             // Light info
+            cb._DirectionalLightCount = (uint)m_GpuLightsBuilder.directionalLightCount;
             cb._PunctualLightCount = (uint)m_GpuLightsBuilder.punctualLightCount;
             cb._AreaLightCount = (uint)m_GpuLightsBuilder.areaLightCount;
             cb._EnvLightCount = (uint)m_lightList.envLights.Count;
-            cb._DirectionalLightCount = (uint)m_GpuLightsBuilder.directionalLightCount;
+
+            // TODO-WL: Directional lights?
+            cb._WorldDirectionalLightCount = 0u;
+            cb._WorldPunctualLightCount = (uint)m_WorldLights.pointLightCount;
+            cb._WorldAreaLightCount = (uint)m_WorldLights.rectLightCount;
+            cb._WorldEnvLightCount = (uint)m_WorldLights.envLightCount;
+
             cb._DecalCount = (uint)DecalSystem.m_DecalDatasCount;
             HDAdditionalLightData sunLightData = GetHDAdditionalLightData(m_CurrentSunLight);
             bool sunLightShadow = sunLightData != null && m_CurrentShadowSortedSunLightIndex >= 0;

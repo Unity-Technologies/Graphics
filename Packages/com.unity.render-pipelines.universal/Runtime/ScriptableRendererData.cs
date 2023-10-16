@@ -91,9 +91,11 @@ namespace UnityEngine.Rendering.Universal
             [Reload("Shaders/Debug/NumbersDisplayTex.png")]
             public Texture2D probeSamplingDebugTexture;
 
-            // Disable this since it requires compute
-            //[Reload("Shaders/ProbeVolumeBlendStates.compute")]
-            //public ComputeShader probeVolumeBlendStatesCS;
+            /// <summary>
+            /// Compute Shader used for Blending.
+            /// </summary>
+            [Reload("Shaders/ProbeVolumeBlendStates.compute")]
+            public ComputeShader probeVolumeBlendStatesCS;
         }
 
         /// <summary>

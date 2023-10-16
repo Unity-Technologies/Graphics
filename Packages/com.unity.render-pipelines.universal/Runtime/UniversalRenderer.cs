@@ -385,7 +385,7 @@ namespace UnityEngine.Rendering.Universal
         internal override void ReleaseRenderTargets()
         {
             m_ColorBufferSystem.Dispose();
-            if (m_DeferredLights != null && !m_DeferredLights.UseRenderPass)
+            if (m_DeferredLights != null && !m_DeferredLights.UseFramebufferFetch)
                 m_GBufferPass?.Dispose();
 
             m_PostProcessPasses.ReleaseRenderTargets();
@@ -656,7 +656,7 @@ namespace UnityEngine.Rendering.Universal
 
                 m_DeferredLights.ResolveMixedLightingMode(lightData);
                 m_DeferredLights.IsOverlay = cameraData.renderType == CameraRenderType.Overlay;
-                if (m_DeferredLights.UseRenderPass)
+                if (m_DeferredLights.UseFramebufferFetch)
                 {
                     // At this point we only have injected renderer features in the queue and can do assumptions on whether we'll need Framebuffer Fetch
                     foreach (var pass in activeRenderPassQueue)
@@ -912,7 +912,7 @@ namespace UnityEngine.Rendering.Universal
 
             if (this.renderingModeActual == RenderingMode.Deferred)
             {
-                if (m_DeferredLights.UseRenderPass && (RenderPassEvent.AfterRenderingGbuffer == renderPassInputs.requiresDepthNormalAtEvent || !useRenderPassEnabled))
+                if (m_DeferredLights.UseFramebufferFetch && (RenderPassEvent.AfterRenderingGbuffer == renderPassInputs.requiresDepthNormalAtEvent || !useRenderPassEnabled))
                     m_DeferredLights.DisableFramebufferFetchInput();
             }
 
@@ -1091,7 +1091,7 @@ namespace UnityEngine.Rendering.Universal
 
             if (this.renderingModeActual == RenderingMode.Deferred)
             {
-                if (m_DeferredLights.UseRenderPass && (RenderPassEvent.AfterRenderingGbuffer == renderPassInputs.requiresDepthNormalAtEvent || !useRenderPassEnabled))
+                if (m_DeferredLights.UseFramebufferFetch && (RenderPassEvent.AfterRenderingGbuffer == renderPassInputs.requiresDepthNormalAtEvent || !useRenderPassEnabled))
                     m_DeferredLights.DisableFramebufferFetchInput();
 
                 EnqueueDeferred(cameraData.cameraTargetDescriptor, requiresDepthPrepass, renderPassInputs.requiresNormalsTexture, renderingLayerProvidesByDepthNormalPass, mainLightShadows, additionalLightShadows);
@@ -1462,7 +1462,7 @@ namespace UnityEngine.Rendering.Universal
                 m_ActiveCameraColorAttachment
             );
             // Need to call Configure for both of these passes to setup input attachments as first frame otherwise will raise errors
-            if (useRenderPassEnabled && m_DeferredLights.UseRenderPass)
+            if (useRenderPassEnabled && m_DeferredLights.UseFramebufferFetch)
             {
                 m_GBufferPass.Configure(null, cameraTargetDescriptor);
                 m_DeferredPass.Configure(null, cameraTargetDescriptor);
@@ -1471,7 +1471,7 @@ namespace UnityEngine.Rendering.Universal
             EnqueuePass(m_GBufferPass);
 
             //Must copy depth for deferred shading: TODO wait for API fix to bind depth texture as read-only resource.
-            if (!useRenderPassEnabled || !m_DeferredLights.UseRenderPass)
+            if (!useRenderPassEnabled || !m_DeferredLights.UseFramebufferFetch)
             {
                 m_GBufferCopyDepthPass.Setup(m_CameraDepthAttachment, m_DepthTexture);
                 EnqueuePass(m_GBufferCopyDepthPass);
@@ -1705,6 +1705,6 @@ namespace UnityEngine.Rendering.Universal
             m_ColorBufferSystem.EnableMSAA(enable);
         }
 
-        internal override bool supportsNativeRenderPassRendergraphCompiler { get => true; }
+        internal override bool supportsNativeRenderPassRendergraphCompiler { get => SystemInfo.graphicsDeviceType != GraphicsDeviceType.Direct3D12; }
     }
 }

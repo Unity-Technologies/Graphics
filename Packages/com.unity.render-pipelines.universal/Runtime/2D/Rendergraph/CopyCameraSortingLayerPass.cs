@@ -11,6 +11,7 @@ namespace UnityEngine.Rendering.Universal
         private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler(k_CopyCameraSortingLayerPass);
         private static readonly ProfilingSampler m_ExecuteProfilingSampler = new ProfilingSampler("Copy");
         public static readonly string k_CameraSortingLayerTexture = "_CameraSortingLayerTexture";
+        private static readonly int k_CameraSortingLayerTextureId = Shader.PropertyToID(k_CameraSortingLayerTexture);
         static Material m_BlitMaterial;
 
         public CopyCameraSortingLayerPass(Material blitMaterial)
@@ -71,7 +72,7 @@ namespace UnityEngine.Rendering.Universal
                 });
             }
 
-            RenderGraphUtils.SetGlobalTexture(graph, k_CameraSortingLayerTexture, destination, "Set Camera Sorting Layer Texture");
+            RenderGraphUtils.SetGlobalTexture(graph, k_CameraSortingLayerTextureId, destination, "Set Camera Sorting Layer Texture");
         }
     }
 }

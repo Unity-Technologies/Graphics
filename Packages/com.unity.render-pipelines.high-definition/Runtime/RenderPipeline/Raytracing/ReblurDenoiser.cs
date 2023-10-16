@@ -77,7 +77,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
         }
 
-        public void Init(HDRenderPipelineRayTracingResources rpRTResources)
+        public void Init(HDRPRayTracingResources rpRTResources)
         {
             // PreBlur
             m_PreBlurCS = rpRTResources.reblurPreBlurCS;

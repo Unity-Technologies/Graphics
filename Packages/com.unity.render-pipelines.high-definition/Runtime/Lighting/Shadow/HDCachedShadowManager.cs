@@ -103,12 +103,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="lightData">The light that we try to fit in the atlas.</param>
         /// <returns>True if the shadow map would fit in the atlas, false otherwise. If lightData does not cast shadows, false is returned.</returns>
-        public bool WouldFitInAtlas(HDAdditionalLightData lightData)
+        public bool WouldFitInAtlas(HDAdditionalLightData lightData)    
         {
             if (lightData.legacyLight.shadows != LightShadows.None)
             {
                 var lightType = lightData.legacyLight.type;
-                var resolution = lightData.GetResolutionFromSettings(lightData.GetShadowMapType(lightType), m_InitParams);
+                var resolution = lightData.GetResolutionFromSettings(lightData.GetShadowMapType(lightType), m_InitParams, cachedResolution: true);
                 return WouldFitInAtlas(resolution, lightType);
             }
             return false;

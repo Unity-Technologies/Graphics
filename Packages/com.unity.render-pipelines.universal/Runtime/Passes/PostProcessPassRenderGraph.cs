@@ -191,8 +191,7 @@ namespace UnityEngine.Rendering.Universal
                     RTHandle sourceTextureHdl = data.sourceTexture;
 
                     // Pass 3: Neighborhood blending
-                    cmd.SetGlobalTexture(ShaderConstants._BlendTexture, data.blendTexture);
-
+                    SMAAMaterial.SetTexture(ShaderConstants._BlendTexture, data.blendTexture);
                     Vector2 viewportScale = sourceTextureHdl.useScaling ? new Vector2(sourceTextureHdl.rtHandleProperties.rtHandleScale.x, sourceTextureHdl.rtHandleProperties.rtHandleScale.y) : Vector2.one;
                     Blitter.BlitTexture(cmd, sourceTextureHdl, viewportScale, SMAAMaterial, 2);
                 });
@@ -281,6 +280,7 @@ namespace UnityEngine.Rendering.Universal
             internal bool highQualityFilteringValue;
             internal bool useRGBM;
             internal Material material;
+            internal Material[] upsampleMaterials;
         }
 
         private class BloomPassData
@@ -330,6 +330,7 @@ namespace UnityEngine.Rendering.Universal
                 passData.highQualityFilteringValue = m_Bloom.highQualityFiltering.value;
                 passData.useRGBM = m_UseRGBM;
                 passData.material = bloomMaterial;
+                passData.upsampleMaterials = m_Materials.bloomUpsample;
 
                 // TODO RENDERGRAPH: properly setup dependencies between passes
                 builder.AllowPassCulling(false);
@@ -341,6 +342,13 @@ namespace UnityEngine.Rendering.Universal
                     bloomMaterial.SetVector(ShaderConstants._Params, data.bloomParams);
                     CoreUtils.SetKeyword(bloomMaterial, ShaderKeywordStrings.BloomHQ, data.highQualityFilteringValue);
                     CoreUtils.SetKeyword(bloomMaterial, ShaderKeywordStrings.UseRGBM, data.useRGBM);
+
+                    for (uint i = 0; i < k_MaxPyramidSize; ++i)
+                    {
+                        data.upsampleMaterials[i].SetVector(ShaderConstants._Params, data.bloomParams);
+                        CoreUtils.SetKeyword(data.upsampleMaterials[i], ShaderKeywordStrings.BloomHQ, data.highQualityFilteringValue);
+                        CoreUtils.SetKeyword(data.upsampleMaterials[i], ShaderKeywordStrings.UseRGBM, data.useRGBM);
+                    }
                 });
             }
 
@@ -433,7 +441,10 @@ namespace UnityEngine.Rendering.Universal
                     builder.AllowGlobalStateModification(true);
                     passData.sourceTexture = builder.UseTexture(highMip, IBaseRenderGraphBuilder.AccessFlags.Read);
                     passData.sourceTextureLowMip = builder.UseTexture(lowMip, IBaseRenderGraphBuilder.AccessFlags.Read);
-                    passData.material = bloomMaterial;
+
+                    // We need a separate material for each upsample pass because setting the low texture mip source
+                    // gets overriden by the time the render func is executed.
+                    passData.material = m_Materials.bloomUpsample[i];
 
                     builder.SetRenderFunc((BloomPassData data, RasterGraphContext context) =>
                     {
@@ -441,7 +452,7 @@ namespace UnityEngine.Rendering.Universal
                         var cmd = context.cmd;
                         RTHandle sourceTextureHdl = data.sourceTexture;
 
-                        cmd.SetGlobalTexture(ShaderConstants._SourceTexLowMip, data.sourceTextureLowMip);
+                        data.material.SetTexture(ShaderConstants._SourceTexLowMip, data.sourceTextureLowMip);
 
                         Vector2 viewportScale = sourceTextureHdl.useScaling ? new Vector2(sourceTextureHdl.rtHandleProperties.rtHandleScale.x, sourceTextureHdl.rtHandleProperties.rtHandleScale.y) : Vector2.one;
                         Blitter.BlitTexture(cmd, sourceTextureHdl, viewportScale, material, 3);
@@ -582,8 +593,7 @@ namespace UnityEngine.Rendering.Universal
                     RTHandle sourceTextureHdl = data.sourceTexture;
 
                     // Downscale & prefilter color + coc
-                    cmd.SetGlobalTexture(ShaderConstants._FullCoCTexture, data.cocTexture);
-
+                    dofmaterial.SetTexture(ShaderConstants._FullCoCTexture, data.cocTexture);
                     Vector2 viewportScale = sourceTextureHdl.useScaling ? new Vector2(sourceTextureHdl.rtHandleProperties.rtHandleScale.x, sourceTextureHdl.rtHandleProperties.rtHandleScale.y) : Vector2.one;
                     Blitter.BlitTexture(cmd, sourceTextureHdl, viewportScale, dofmaterial, 1);
                 });
@@ -604,7 +614,7 @@ namespace UnityEngine.Rendering.Universal
                     RTHandle sourceTexture = data.sourceTexture;
 
                     // Blur
-                    cmd.SetGlobalTexture(ShaderConstants._HalfCoCTexture, data.cocTexture);
+                    dofmaterial.SetTexture(ShaderConstants._HalfCoCTexture, data.cocTexture);
                     Vector2 viewportScale = sourceTexture.useScaling ? new Vector2(sourceTexture.rtHandleProperties.rtHandleScale.x, sourceTexture.rtHandleProperties.rtHandleScale.y) : Vector2.one;
                     Blitter.BlitTexture(cmd, sourceTexture, viewportScale, dofmaterial, 2);
                 });
@@ -625,7 +635,7 @@ namespace UnityEngine.Rendering.Universal
                     RTHandle sourceTextureHdl = data.sourceTexture;
 
                     // Blur
-                    cmd.SetGlobalTexture(ShaderConstants._HalfCoCTexture, data.cocTexture);
+                    dofmaterial.SetTexture(ShaderConstants._HalfCoCTexture, data.cocTexture);
                     Vector2 viewportScale = sourceTextureHdl.useScaling ? new Vector2(sourceTextureHdl.rtHandleProperties.rtHandleScale.x, sourceTextureHdl.rtHandleProperties.rtHandleScale.y) : Vector2.one;
                     Blitter.BlitTexture(cmd, sourceTextureHdl, viewportScale, dofmaterial, 3);
                 });
@@ -647,9 +657,8 @@ namespace UnityEngine.Rendering.Universal
                     RTHandle sourceTextureHdl = data.sourceTexture;
 
                     // Composite
-                    cmd.SetGlobalTexture(ShaderConstants._ColorTexture, data.colorTexture);
-                    cmd.SetGlobalTexture(ShaderConstants._FullCoCTexture, data.cocTexture);
-
+                    dofmaterial.SetTexture(ShaderConstants._ColorTexture, data.colorTexture);
+                    dofmaterial.SetTexture(ShaderConstants._FullCoCTexture, data.cocTexture);
                     Vector2 viewportScale = sourceTextureHdl.useScaling ? new Vector2(sourceTextureHdl.rtHandleProperties.rtHandleScale.x, sourceTextureHdl.rtHandleProperties.rtHandleScale.y) : Vector2.one;
                     Blitter.BlitTexture(cmd, sourceTextureHdl, viewportScale, dofmaterial, 4);
                 });
@@ -773,7 +782,7 @@ namespace UnityEngine.Rendering.Universal
                     RTHandle sourceTextureHdl = data.sourceTexture;
 
                     // Downscale & prefilter color + coc
-                    cmd.SetGlobalTexture(ShaderConstants._FullCoCTexture, data.cocTexture);
+                    dofmaterial.SetTexture(ShaderConstants._FullCoCTexture, data.cocTexture);
                     Vector2 viewportScale = sourceTextureHdl.useScaling ? new Vector2(sourceTextureHdl.rtHandleProperties.rtHandleScale.x, sourceTextureHdl.rtHandleProperties.rtHandleScale.y) : Vector2.one;
                     Blitter.BlitTexture(cmd, sourceTextureHdl, viewportScale, dofmaterial, 1);
                 });
@@ -833,7 +842,7 @@ namespace UnityEngine.Rendering.Universal
 
                     // Composite
                     // TODO RENDERGRAPH: Look into loadstore op in BlitDstDiscardContent
-                    cmd.SetGlobalTexture(ShaderConstants._DofTexture, data.dofTexture);
+                    dofmaterial.SetTexture(ShaderConstants._DofTexture, data.dofTexture);
                     Vector2 viewportScale = sourceTextureHdl.useScaling ? new Vector2(sourceTextureHdl.rtHandleProperties.rtHandleScale.x, sourceTextureHdl.rtHandleProperties.rtHandleScale.y) : Vector2.one;
                     Blitter.BlitTexture(cmd, sourceTextureHdl, viewportScale, dofmaterial, 4);
                 });
@@ -1445,6 +1454,7 @@ namespace UnityEngine.Rendering.Universal
             }
             DebugHandler debugHandler = GetActiveDebugHandler(cameraData);
             bool resolveToDebugScreen = debugHandler != null && debugHandler.WriteToDebugScreenTexture(cameraData.resolveFinalTarget);
+            // TODO: this uses renderingData.commandBuffer in the RenderGraph path!! Fix it to run in a proper RenderGraph pass
             debugHandler?.UpdateShaderGlobalPropertiesForFinalValidationPass(cmd, cameraData, !m_HasFinalPass && !resolveToDebugScreen);
 
             bool outputToHDR = cameraData.isHDROutputActive;
@@ -1541,6 +1551,7 @@ namespace UnityEngine.Rendering.Universal
             if (isTaaSharpeningEnabled)
             {
                 material.EnableKeyword(ShaderKeywordStrings.Rcas);
+                // TODO: this uses renderingData.commandBuffer in the RenderGraph path!! Fix it to run in a proper RenderGraph pass
                 FSRUtils.SetRcasConstantsLinear(cmd, cameraData.taaSettings.contrastAdaptiveSharpening);
             }
 
@@ -1803,6 +1814,7 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 DebugHandler debugHandler = GetActiveDebugHandler(cameraData);
+                // TODO: this uses renderingData.commandBuffer in the RenderGraph path!! Fix it to run in a proper RenderGraph pass
                 debugHandler?.UpdateShaderGlobalPropertiesForFinalValidationPass(renderingData.commandBuffer, cameraData, !m_HasFinalPass && !resolveToDebugScreen);
 
                 RenderUberPost(renderGraph, cameraData, postProcessingData, in currentSource, in postProcessingTarget, in lutTexture, in overlayUITexture, requireHDROutput, resolveToDebugScreen);

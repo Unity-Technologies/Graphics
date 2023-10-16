@@ -192,7 +192,7 @@ namespace UnityEngine.Rendering.Universal
             var drawingSettings = GetDrawingSettings(passData.camera, supportsDynamicBatching);
             var filteringSettings = new FilteringSettings(RenderQueueRange.opaque, passData.camera.cullingMask);
             var renderStateBlock = new RenderStateBlock(RenderStateMask.Nothing);
-            if(useRenderGraph)
+            if (useRenderGraph)
                 RenderingUtils.CreateRendererListWithRenderStateBlock(renderGraph, ref cullResults, drawingSettings, filteringSettings, renderStateBlock, ref passData.rendererListHdl);
             else
                 RenderingUtils.CreateRendererListWithRenderStateBlock(context, ref cullResults, drawingSettings, filteringSettings, renderStateBlock, ref passData.rendererList);
@@ -218,14 +218,16 @@ namespace UnityEngine.Rendering.Universal
                     default(ScriptableRenderContext), renderGraph, true);
                 builder.UseRendererList(passData.rendererListHdl);
 
+                if (motionVectorColor.IsValid())
+                    builder.PostSetGlobalTexture(motionVectorColor, Shader.PropertyToID(k_MotionVectorTextureName));
+                if (motionVectorDepth.IsValid())
+                    builder.PostSetGlobalTexture(motionVectorDepth, Shader.PropertyToID(k_MotionVectorDepthTextureName));
+
                 builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
                 {
                     ExecutePass(context.cmd, data, data.rendererListHdl);
                 });
             }
-
-            RenderGraphUtils.SetGlobalTexture(renderGraph,k_MotionVectorTextureName, motionVectorColor, "Set Motion Vector Color Texture");
-            RenderGraphUtils.SetGlobalTexture(renderGraph,k_MotionVectorDepthTextureName, motionVectorDepth, "Set Motion Vector Depth Texture");
         }
     }
 }

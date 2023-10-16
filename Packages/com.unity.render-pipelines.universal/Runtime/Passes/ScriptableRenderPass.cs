@@ -147,6 +147,15 @@ namespace UnityEngine.Rendering.Universal
         AfterRendering = 1000,
     }
 
+    /// <summary>
+    /// Framebuffer fetch events in Universal RP
+    /// </summary>
+    internal enum FramebufferFetchEvent
+    {
+        None = 0,
+        FetchGbufferInDeferred = 1
+    }
+
     internal static class RenderPassEventsEnumValues
     {
         // we cache the values in this array at construction time to avoid runtime allocations, which we would cause if we accessed valuesInternal directly
@@ -268,6 +277,8 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool useNativeRenderPass { get; set; }
 
+        internal bool breakGBufferAndDeferredRenderPass { get; set; }
+
         // index to track the position in the current frame
         internal int renderPassQueueIndex { get; set; }
 
@@ -313,6 +324,7 @@ namespace UnityEngine.Rendering.Universal
             isBlitRenderPass = false;
             profilingSampler = new ProfilingSampler($"Unnamed_{nameof(ScriptableRenderPass)}");
             useNativeRenderPass = true;
+            breakGBufferAndDeferredRenderPass = true;
             renderPassQueueIndex = -1;
             renderTargetFormat = new GraphicsFormat[]
             {

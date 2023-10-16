@@ -75,7 +75,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (cmd != null)
             {
                 var allocateGbufferDepth = true;
-                if (m_DeferredLights.UseRenderPass && (m_DeferredLights.DepthCopyTexture != null && m_DeferredLights.DepthCopyTexture.rt != null))
+                if (m_DeferredLights.UseFramebufferFetch && (m_DeferredLights.DepthCopyTexture != null && m_DeferredLights.DepthCopyTexture.rt != null))
                 {
                     m_DeferredLights.GbufferAttachments[m_DeferredLights.GbufferDepthIndex] = m_DeferredLights.DepthCopyTexture;
                     allocateGbufferDepth = false;
@@ -96,7 +96,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                         continue;
 
                     // No need to setup temporaryRTs if we are using input attachments as they will be Memoryless
-                    if (m_DeferredLights.UseRenderPass && (i != m_DeferredLights.GbufferDepthIndex && !m_DeferredLights.HasDepthPrepass))
+                    if (m_DeferredLights.UseFramebufferFetch && (i != m_DeferredLights.GbufferDepthIndex && !m_DeferredLights.HasDepthPrepass))
                         continue;
 
                     m_DeferredLights.ReAllocateGBufferIfNeeded(cameraTextureDescriptor, i);
@@ -105,7 +105,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
             }
 
-            if (m_DeferredLights.UseRenderPass)
+            if (m_DeferredLights.UseFramebufferFetch)
                 m_DeferredLights.UpdateDeferredInputAttachments();
 
             ConfigureTarget(m_DeferredLights.GbufferAttachments, m_DeferredLights.DepthAttachment, m_DeferredLights.GbufferFormats);
@@ -132,7 +132,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 // If any sub-system needs camera normal texture, make it available.
                 // Input attachments will only be used when this is not needed so safe to skip in that case
-                if (!m_DeferredLights.UseRenderPass)
+                if (!m_DeferredLights.UseFramebufferFetch)
                     renderingData.commandBuffer.SetGlobalTexture(s_CameraNormalsTextureID, m_DeferredLights.GbufferAttachments[m_DeferredLights.GBufferNormalSmoothnessIndex]);
             }
         }
@@ -252,12 +252,17 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 RenderGraphUtils.UseDBufferIfValid(builder, resourceData);
                 resourceData.gBuffer = gbuffer;
+
                 passData.depth = builder.UseTextureFragmentDepth(cameraDepth, IBaseRenderGraphBuilder.AccessFlags.Write);
                 passData.deferredLights = m_DeferredLights;
 
                 InitRendererLists(ref passData, default(ScriptableRenderContext), renderGraph, renderingData, cameraData, lightData, true);
                 builder.UseRendererList(passData.rendererListHdl);
                 builder.UseRendererList(passData.objectsWithErrorRendererListHdl);
+
+                // With NRP GBuffer textures are set after Deferred, we do this to avoid breaking the pass
+                if (!renderGraph.NativeRenderPassesEnabled)
+                    GBufferPass.SetGlobalGBufferTextures(builder, gbuffer, ref m_DeferredLights);
 
                 builder.AllowPassCulling(false);
                 builder.AllowGlobalStateModification(true);
@@ -267,53 +272,51 @@ namespace UnityEngine.Rendering.Universal.Internal
                     ExecutePass(context.cmd, data, data.rendererListHdl, data.objectsWithErrorRendererListHdl);
                 });
             }
-
-            // With NRP GBuffer textures are set after Deferred, we do this to avoid breaking the pass
-            if (!renderGraph.NativeRenderPassesEnabled)
-                GBufferPass.SetGlobalGBufferTextures(renderGraph, gbuffer, resourceData, ref m_DeferredLights);
         }
 
-        internal static void SetGlobalGBufferTextures(RenderGraph renderGraph, TextureHandle[] gbuffer, UniversalResourceData resourceData, ref DeferredLights deferredLights)
+        internal static void SetGlobalGBufferTextures(IRasterRenderGraphBuilder builder, TextureHandle[] gbuffer, ref DeferredLights deferredLights)
         {
-            using (var builder = renderGraph.AddRasterRenderPass<PassData>("Set Global GBuffer Textures", out var passData, s_ProfilingSampler))
+            for (int i = 0; i < gbuffer.Length; i++)
+            {
+                if (i != deferredLights.GBufferLightingIndex && gbuffer[i].IsValid())
+                    builder.PostSetGlobalTexture(gbuffer[i], Shader.PropertyToID(DeferredLights.k_GBufferNames[i]));
+            }
+
+            // If any sub-system needs camera normal texture, make it available.
+            // Input attachments will only be used when this is not needed so safe to skip in that case
+            if (gbuffer[deferredLights.GBufferNormalSmoothnessIndex].IsValid())
+                builder.PostSetGlobalTexture(gbuffer[deferredLights.GBufferNormalSmoothnessIndex], s_CameraNormalsTextureID);
+
+            if (deferredLights.UseRenderingLayers && gbuffer[deferredLights.GBufferRenderingLayers].IsValid())
+            {
+                builder.PostSetGlobalTexture(gbuffer[deferredLights.GBufferRenderingLayers], Shader.PropertyToID(DeferredLights.k_GBufferNames[deferredLights.GBufferRenderingLayers]));
+                builder.PostSetGlobalTexture(gbuffer[deferredLights.GBufferRenderingLayers], Shader.PropertyToID("_CameraRenderingLayersTexture"));
+            }
+        }
+
+        internal static void ResetGlobalGBufferTextures(RenderGraph renderGraph, TextureHandle[] gbuffer, TextureHandle depthTarget,
+            UniversalResourceData resourcesData, ref DeferredLights deferredLights)
+        {
+            using (var builder = renderGraph.AddRasterRenderPass<PassData>("Reset Global GBuffer Textures",
+                out var passData, s_ProfilingSampler))
             {
                 passData.deferredLights = deferredLights;
-                gbuffer = resourceData.gBuffer;
+                gbuffer = resourcesData.gBuffer;
                 passData.gbuffer = deferredLights.GbufferTextureHandles;
 
                 for (int i = 0; i < deferredLights.GBufferSliceCount; i++)
                 {
                     if (i != deferredLights.GBufferLightingIndex)
-                        passData.gbuffer[i] = builder.UseTexture(gbuffer[i], IBaseRenderGraphBuilder.AccessFlags.Read);
+                        passData.gbuffer[i] =
+                            builder.UseTextureFragment(gbuffer[i], i, IBaseRenderGraphBuilder.AccessFlags.Write);
                 }
 
-                TextureHandle[] dBufferHandles = resourceData.dBuffer;
-                for (int i = 0; i < dBufferHandles.Length; ++i)
-                {
-                    var dbuffer = dBufferHandles[i];
-                    if (dbuffer.IsValid())
-                        builder.UseTexture(dbuffer);
-                }
-
+                builder.UseTextureFragmentDepth(depthTarget, IBaseRenderGraphBuilder.AccessFlags.Write);
                 builder.AllowPassCulling(false);
                 builder.AllowGlobalStateModification(true);
 
                 builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
                 {
-                    for (int i = 0; i < data.gbuffer.Length; i++)
-                    {
-                        if (i != data.deferredLights.GBufferLightingIndex)
-                            context.cmd.SetGlobalTexture(DeferredLights.k_GBufferNames[i], data.gbuffer[i]);
-                    }
-                    // If any sub-system needs camera normal texture, make it available.
-                    // Input attachments will only be used when this is not needed so safe to skip in that case
-                    context.cmd.SetGlobalTexture(s_CameraNormalsTextureID, data.gbuffer[data.deferredLights.GBufferNormalSmoothnessIndex]);
-
-                    if (data.deferredLights.UseRenderingLayers)
-                    {
-                        context.cmd.SetGlobalTexture(DeferredLights.k_GBufferNames[data.deferredLights.GBufferRenderingLayers], data.gbuffer[data.deferredLights.GBufferRenderingLayers]);
-                        context.cmd.SetGlobalTexture("_CameraRenderingLayersTexture", data.gbuffer[data.deferredLights.GBufferRenderingLayers]);
-                    }
                 });
             }
         }

@@ -18,9 +18,11 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             string labelName,
             Enum defaultValue,
             out VisualElement propertyVisualElement,
-            int indentLevel = 0)
+            int indentLevel = 0,
+            string tooltip = null)
         {
             var row = new PropertyRow(PropertyDrawerUtils.CreateLabel(labelName, indentLevel));
+            row.tooltip = tooltip;
             propertyVisualElement = new EnumField(defaultValue);
             row.Add((EnumField)propertyVisualElement, (field) =>
             {

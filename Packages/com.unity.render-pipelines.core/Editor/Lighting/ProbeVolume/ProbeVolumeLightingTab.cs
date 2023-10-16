@@ -1075,18 +1075,18 @@ namespace UnityEngine.Rendering
             var positionsBufferID = ctx.CreateBuffer(positionsBytes);
             using var positionsNative = new NativeArray<Vector3>(probePositions, Allocator.TempJob);
             ctx.WriteBuffer(positionsBufferID, positionsNative.Reinterpret<byte>(sizeOfFloat * 3));
-            var positionsSlice = new BufferSlice(positionsBufferID, 0);
+            var positionsSlice = new BufferSlice<Vector3>(positionsBufferID, 0);
 
             LightmapParameters parameters = LightmapParameters.GetLightmapParametersForLightingSettings(lightingSettings);
-            integrator.Prepare(world, positionsSlice, parameters.pushoff, bounceCount);
+            integrator.Prepare(ctx, world, positionsSlice, parameters.pushoff, bounceCount);
             integrator.SetProgressReporter(progress);
 
             var positionOffset = 0; // can be used to bake portions/tiles of the full set of positions.
             var shBytes = (ulong)(sizeSHL2RGB * positionsLength);
             var directRadianceBufferId = ctx.CreateBuffer(shBytes);
             var indirectRadianceBufferId = ctx.CreateBuffer(shBytes);
-            var directRadianceSlice = new BufferSlice(directRadianceBufferId, 0);
-            var indirectRadianceSlice = new BufferSlice(indirectRadianceBufferId, 0);
+            var directRadianceSlice = new BufferSlice<SphericalHarmonicsL2>(directRadianceBufferId, 0);
+            var indirectRadianceSlice = new BufferSlice<SphericalHarmonicsL2>(indirectRadianceBufferId, 0);
 
             // Bake direct radiance.
             var integrationResult = integrator.IntegrateDirectRadiance(ctx, positionOffset, positionsLength,
@@ -1101,7 +1101,7 @@ namespace UnityEngine.Rendering
             // Bake validity.
             var validityBytes = (ulong)(sizeOfFloat * positionsLength);
             var validityBufferId = ctx.CreateBuffer(validityBytes);
-            var validitySlice = new BufferSlice(validityBufferId, 0);
+            var validitySlice = new BufferSlice<float>(validityBufferId, 0);
             var validityResult = integrator.IntegrateValidity(ctx, positionOffset, positionsLength,
                 sampleCountValidity, validitySlice);
             Assert.AreEqual(IProbeIntegrator.ResultType.Success, validityResult.type, "IntegrateLightProbeValidity failed.");
@@ -1114,7 +1114,7 @@ namespace UnityEngine.Rendering
             // Note that windowing can be controlled separately from de-ringing.
             // Windowing and de-ringing are done together to stay as close to legacy light probe baking behaviour as possible.
             var windowedDirectSHBufferId = ctx.CreateBuffer(shBytes);
-            var windowedDirectRadianceSlice = new BufferSlice(windowedDirectSHBufferId, 0);
+            var windowedDirectRadianceSlice = new BufferSlice<SphericalHarmonicsL2>(windowedDirectSHBufferId, 0);
             bool dering = true; // TODO: get this from LightProbeGroup.dering or APV UI?
             if (dering)
             {
@@ -1128,7 +1128,7 @@ namespace UnityEngine.Rendering
 
             // Apply indirect intensity multiplier to indirect radiance.
             var boostedIndirectSHBufferId = ctx.CreateBuffer(shBytes);
-            var boostedIndirectRadianceSlice = new BufferSlice(boostedIndirectSHBufferId, 0);
+            var boostedIndirectRadianceSlice = new BufferSlice<SphericalHarmonicsL2>(boostedIndirectSHBufferId, 0);
             if (lightingSettings.indirectScale.Equals(1.0f) == false)
             {
                 bool multiplyOk = postProcessor.ScaleSphericalHarmonicsL2(ctx, indirectRadianceSlice, boostedIndirectRadianceSlice, positionsLength, lightingSettings.indirectScale);
@@ -1141,13 +1141,13 @@ namespace UnityEngine.Rendering
 
             // Combine direct and indirect radiance.
             var combinedSHBufferId = ctx.CreateBuffer(shBytes);
-            var combinedSHBufferSlice = new BufferSlice(combinedSHBufferId, 0);
+            var combinedSHBufferSlice = new BufferSlice<SphericalHarmonicsL2>(combinedSHBufferId, 0);
             bool addOk = postProcessor.AddSphericalHarmonicsL2(ctx, windowedDirectRadianceSlice, boostedIndirectRadianceSlice, combinedSHBufferSlice, positionsLength);
             Assert.IsTrue(addOk);
 
             // Convert radiance to irradiance and transform to the format expected by the Unity renderer.
             var irradianceBufferId = ctx.CreateBuffer(shBytes);
-            var irradianceSlice = new BufferSlice(irradianceBufferId, 0);
+            var irradianceSlice = new BufferSlice<SphericalHarmonicsL2>(irradianceBufferId, 0);
             bool convolvedOk = postProcessor.ConvolveRadianceToIrradiance(ctx, combinedSHBufferSlice, irradianceSlice, positionsLength);
             Assert.IsTrue(convolvedOk);
 
@@ -1170,9 +1170,9 @@ namespace UnityEngine.Rendering
             Assert.IsTrue(flushOk);
 
             // Wait for read backs to complete.
-            bool waitResult = ctx.WaitForAsyncOperation(irradianceReadEvent);
+            bool waitResult = ctx.Wait(irradianceReadEvent);
             Debug.Assert(waitResult, "Failed to read irradiance from context.");
-            waitResult = ctx.WaitForAsyncOperation(validityReadEvent);
+            waitResult = ctx.Wait(validityReadEvent);
             Debug.Assert(waitResult, "Failed to read validity from context.");
 
             // Output data in result buffers is now ready, in CPU side memory, release all buffers.

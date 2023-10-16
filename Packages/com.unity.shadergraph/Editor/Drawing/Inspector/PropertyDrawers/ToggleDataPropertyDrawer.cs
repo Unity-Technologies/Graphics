@@ -18,9 +18,11 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             ToggleData fieldToDraw,
             string labelName,
             out VisualElement propertyToggle,
-            int indentLevel = 0)
+            int indentLevel = 0,
+            string tooltip = null)
         {
             var row = new PropertyRow(PropertyDrawerUtils.CreateLabel(labelName, indentLevel));
+            row.tooltip = tooltip;
             // Create and assign toggle as out variable here so that callers can also do additional work with enabling/disabling if needed
             propertyToggle = new Toggle();
             row.Add((Toggle)propertyToggle, (toggle) =>

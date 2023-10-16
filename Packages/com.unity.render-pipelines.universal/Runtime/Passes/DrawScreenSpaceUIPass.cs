@@ -24,7 +24,7 @@ namespace UnityEngine.Rendering.Universal
         {
             base.profilingSampler = new ProfilingSampler(nameof(DrawScreenSpaceUIPass));
             renderPassEvent = evt;
-            useNativeRenderPass = false;            
+            useNativeRenderPass = false;
             m_RenderOffscreen = renderOffscreen;
             m_PassData = new PassData();
         }
@@ -147,7 +147,7 @@ namespace UnityEngine.Rendering.Universal
 
         // Specific to RG cases which have to go through LowLevel commands
         private class LowLevelPassData
-        { 
+        {
             internal RendererListHandle rendererList;
             internal TextureHandle colorTarget;
             internal TextureHandle depthTarget;
@@ -159,7 +159,7 @@ namespace UnityEngine.Rendering.Universal
 
             // Vulkan backend doesn't support SetSRGBWhite() calls in Render Pass and we have some of them at Imgui levels on native side
             // For now, D3D12 crashes with UI Canvas (uGUI) within a raster render pass
-            // TODO: add granularity to UIOverlayRendererList to have one specific rendererList for Imgui to be called through LowLevelPass while the rest can use RasterRenderPass 
+            // TODO: add granularity to UIOverlayRendererList to have one specific rendererList for Imgui to be called through LowLevelPass while the rest can use RasterRenderPass
             if(SystemInfo.graphicsDeviceType == GraphicsDeviceType.Vulkan || SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D12)
             {
                 using (var builder = renderGraph.AddLowLevelPass<LowLevelPassData>("Draw Screen Space UI Pass - Offscreen", out var passData, base.profilingSampler))
@@ -176,6 +176,9 @@ namespace UnityEngine.Rendering.Universal
                     ConfigureDepthDescriptor(ref depthDescriptor, depthStencilFormat, cameraData.pixelWidth, cameraData.pixelHeight);
                     TextureHandle depthBuffer = UniversalRenderer.CreateRenderGraphTexture(renderGraph, depthDescriptor, "_OverlayUITexture_Depth", false);
                     passData.depthTarget = builder.UseTexture(depthBuffer, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
+
+                    if (output.IsValid())
+                        builder.PostSetGlobalTexture(output, ShaderPropertyId.overlayUITexture);
 
                     builder.SetRenderFunc((LowLevelPassData data, LowLevelGraphContext context) =>
                     {
@@ -202,21 +205,22 @@ namespace UnityEngine.Rendering.Universal
                     TextureHandle depthBuffer = UniversalRenderer.CreateRenderGraphTexture(renderGraph, depthDescriptor, "_OverlayUITexture_Depth", false);
                     builder.UseTextureFragmentDepth(depthBuffer, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
 
+                    if (output.IsValid())
+                        builder.PostSetGlobalTexture(output, ShaderPropertyId.overlayUITexture);
+
                     builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
                     {
                         ExecutePass(context.cmd, data, data.rendererList);
                     });
-                }                
+                }
             }
-
-            RenderGraphUtils.SetGlobalTexture(renderGraph, ShaderPropertyId.overlayUITexture, output);
         }
 
         internal void RenderOverlay(RenderGraph renderGraph, Camera camera, in TextureHandle colorBuffer, in TextureHandle depthBuffer)
         {
             // Vulkan backend doesn't support SetSRGBWhite() calls in Render Pass and we have some of them at Imgui levels on native side
             // For now, D3D12 crashes with UI Canvas (uGUI) within a raster render pass
-            // TODO: add granularity to UIOverlayRendererList to have one specific rendererList for Imgui to be called through LowLevelPass while the rest can use RasterRenderPass 
+            // TODO: add granularity to UIOverlayRendererList to have one specific rendererList for Imgui to be called through LowLevelPass while the rest can use RasterRenderPass
             if(SystemInfo.graphicsDeviceType == GraphicsDeviceType.Vulkan || SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D12)
             {
                 using (var builder = renderGraph.AddLowLevelPass<LowLevelPassData>("Draw Screen Space UI Pass - Overlay", out var passData, base.profilingSampler))
@@ -230,7 +234,7 @@ namespace UnityEngine.Rendering.Universal
                     builder.SetRenderFunc((LowLevelPassData data, LowLevelGraphContext context) =>
                     {
                         context.legacyCmd.SetRenderTarget(data.colorTarget, data.depthTarget);
-                        
+
                         ExecutePass(context.cmd, data, data.rendererList);
                     });
                 }

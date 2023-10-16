@@ -46,7 +46,6 @@ namespace UnityEngine.Rendering.HighDefinition
         static readonly string m_RTASDebugRTKernel = "RTASDebug";
         HDRTASManager m_RTASManager;
         HDRaytracingLightCluster m_RayTracingLightCluster;
-        HDRayTracingLights m_RayTracingLights = new HDRayTracingLights();
         bool m_ValidRayTracingState = false;
         bool m_ValidRayTracingCluster = false;
         bool m_ValidRayTracingClusterCulling = false;
@@ -184,7 +183,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return false;
 
             // For the time being, we only consider non-decal HDRP materials as valid
-            return currentMaterial.GetTag("RenderPipeline", false) == "HDRenderPipeline" && !DecalSystem.IsDecalMaterial(currentMaterial); ;
+            return currentMaterial.GetTag("RenderPipeline", false) == "HDRenderPipeline" && !DecalSystem.IsDecalMaterial(currentMaterial);
         }
 
         static bool IsTransparentMaterial(Material currentMaterial)
@@ -492,7 +491,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return instanceFlag;
         }
 
-        void CollectLightsForRayTracing(HDCamera hdCamera, ref bool transformDirty)
+        void GatherLightInformationForRayTracing(HDCamera hdCamera, ref bool transformDirty)
         {
             // fetch all the lights in the scene
             HDLightRenderDatabase lightEntities = HDLightRenderDatabase.instance;
@@ -528,7 +527,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         case LightType.Directional:
                         {
                             hasRayTracedShadows = hdLight.ShadowsEnabled() && hdLight.useScreenSpaceShadows && hdLight.useRayTracedShadows;
-                            m_RayTracingLights.hdDirectionalLightArray.Add(hdLight);
                         }
                         break;
                         case LightType.Point:
@@ -537,25 +535,21 @@ namespace UnityEngine.Rendering.HighDefinition
                         case LightType.Box:
                         {
                             hasRayTracedShadows = hdLight.ShadowsEnabled() && hdLight.useRayTracedShadows;
-                            m_RayTracingLights.hdPointLightArray.Add(lightRenderEntity);
                         }
                         break;
                         case LightType.Rectangle:
                         {
                             hasRayTracedShadows = hdLight.ShadowsEnabled() && hdLight.useRayTracedShadows;
-                            m_RayTracingLights.hdRectLightArray.Add(lightRenderEntity);
                         }
                         break;
                         case LightType.Tube:
                         {
                             hasRayTracedShadows = hdLight.ShadowsEnabled() && hdLight.useRayTracedShadows;
-                            m_RayTracingLights.hdLineLightArray.Add(lightRenderEntity);
                         }
                         break;
                         case LightType.Disc:
                         {
                             hasRayTracedShadows = hdLight.ShadowsEnabled() && hdLight.useRayTracedShadows;
-                            m_RayTracingLights.hdDiscLightArray.Add(lightRenderEntity);
                         }
                         break;
                     }
@@ -565,35 +559,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_RayTracedContactShadowsRequired |= (hdLight.useContactShadow.@override && hdLight.rayTraceContactShadow);
                 }
             }
-
-            // Add the lights to the structure
-            m_RayTracingLights.hdLightEntityArray.AddRange(m_RayTracingLights.hdPointLightArray);
-            m_RayTracingLights.hdLightEntityArray.AddRange(m_RayTracingLights.hdLineLightArray);
-            m_RayTracingLights.hdLightEntityArray.AddRange(m_RayTracingLights.hdRectLightArray);
-            m_RayTracingLights.hdLightEntityArray.AddRange(m_RayTracingLights.hdDiscLightArray);
-
-            // Process the lights
-            HDAdditionalReflectionData[] reflectionProbeArray = UnityEngine.GameObject.FindObjectsByType<HDAdditionalReflectionData>(FindObjectsSortMode.None);
-            for (int reflIdx = 0; reflIdx < reflectionProbeArray.Length; ++reflIdx)
-            {
-                HDAdditionalReflectionData reflectionProbe = reflectionProbeArray[reflIdx];
-                // Add it to the list if enabled
-                // Skip the probe if the probe has never rendered (in real time cases) or if texture is null
-                if (reflectionProbe != null
-                    && reflectionProbe.enabled
-                    && reflectionProbe.ReflectionProbeIsEnabled()
-                    && reflectionProbe.gameObject.activeSelf
-                    && reflectionProbe.HasValidRenderedData())
-                {
-                    m_RayTracingLights.reflectionProbeArray.Add(reflectionProbe);
-                }
-            }
-
-            m_RayTracingLights.lightCount = m_RayTracingLights.hdPointLightArray.Count
-                + m_RayTracingLights.hdLineLightArray.Count
-                + m_RayTracingLights.hdRectLightArray.Count
-                + m_RayTracingLights.hdDiscLightArray.Count
-                + m_RayTracingLights.reflectionProbeArray.Count;
         }
 
         /// <summary>
@@ -658,9 +623,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // Resets the rtas manager
             m_RTASManager.Reset();
 
-            // Resets the light lists
-            m_RayTracingLights.Reset();
-
             // Reset all the flags
             m_ValidRayTracingState = false;
             m_ValidRayTracingCluster = false;
@@ -675,8 +637,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_VFXRayTracingSupported && hdCamera.frameSettings.IsEnabled(FrameSettingsField.RaytracingVFX))
                 VFXManager.RequestRtasAabbConstruction();
 
-            // Collect the lights
-            CollectLightsForRayTracing(hdCamera, ref m_RTASManager.transformsDirty);
+            GatherLightInformationForRayTracing(hdCamera, ref m_RTASManager.transformsDirty);
 
             // Evaluate the parameters of the effects
             HDEffectsParameters effectParameters = EvaluateEffectsParameters(hdCamera, m_RayTracedShadowsRequired, m_RayTracedContactShadowsRequired);
@@ -796,7 +757,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.pixelCoordToViewDirWS = hdCamera.mainViewConstants.pixelCoordToViewDirWS;
 
                 // Other parameters
-                passData.debugRTASRT = rayTracingResources.rtasDebug;
+                passData.debugRTASRT = rayTracingResources.debugRTASRT;
                 passData.rayTracingAccelerationStructure = RequestAccelerationStructure(hdCamera);
 
                 // Depending of if we will have to denoise (or not), we need to allocate the final format, or a bigger texture
@@ -859,7 +820,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (m_ValidRayTracingState && RayTracingLightClusterRequired(hdCamera))
             {
-                m_RayTracingLightCluster.CullForRayTracing(hdCamera, m_RayTracingLights);
+                m_RayTracingLightCluster.CullForRayTracing(hdCamera, m_WorldLights, m_WorldLightsVolumes);
                 m_ValidRayTracingClusterCulling = true;
             }
         }
@@ -868,7 +829,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (m_ValidRayTracingState && m_ValidRayTracingClusterCulling)
             {
-                m_RayTracingLightCluster.ReserveCookieAtlasSlots(m_RayTracingLights);
+                m_RayTracingLightCluster.ReserveCookieAtlasSlots(m_WorldLights);
             }
         }
 
@@ -876,12 +837,11 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (m_ValidRayTracingState && m_ValidRayTracingClusterCulling)
             {
-                m_RayTracingLightCluster.BuildRayTracingLightData(cmd, hdCamera, m_RayTracingLights);
                 m_ValidRayTracingCluster = true;
 
                 UpdateShaderVariablesRaytracingLightLoopCB(hdCamera, cmd);
 
-                m_RayTracingLightCluster.BuildLightClusterBuffer(cmd, hdCamera, m_RayTracingLights);
+                m_RayTracingLightCluster.BuildLightClusterBuffer(cmd, hdCamera, m_WorldLightsVolumes);
             }
         }
 
@@ -910,9 +870,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ShaderVariablesRaytracingLightLoopCB._MinClusterPos = m_RayTracingLightCluster.GetMinClusterPos();
             m_ShaderVariablesRaytracingLightLoopCB._LightPerCellCount = (uint)m_RayTracingLightCluster.GetLightPerCellCount();
             m_ShaderVariablesRaytracingLightLoopCB._MaxClusterPos = m_RayTracingLightCluster.GetMaxClusterPos();
-            m_ShaderVariablesRaytracingLightLoopCB._PunctualLightCountRT = (uint)m_RayTracingLightCluster.GetPunctualLightCount();
-            m_ShaderVariablesRaytracingLightLoopCB._AreaLightCountRT = (uint)m_RayTracingLightCluster.GetAreaLightCount();
-            m_ShaderVariablesRaytracingLightLoopCB._EnvLightCountRT = (uint)m_RayTracingLightCluster.GetEnvLightCount();
 
             ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesRaytracingLightLoopCB, HDShaderIDs._ShaderVariablesRaytracingLightLoop);
         }

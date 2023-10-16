@@ -368,7 +368,7 @@ namespace UnityEngine.Rendering.Universal
             if (Application.platform == RuntimePlatform.WebGLPlayer)
                 return false;
 #endif
-            return !GraphicsSettings.HasShaderDefine(BuiltinShaderDefine.SHADER_API_MOBILE);
+            return !PlatformAutoDetect.isShaderAPIMobileDefined;
         }
 
         private bool RecreateSystemsIfNeeded(ScriptableRenderer renderer, in CameraData cameraData)
@@ -568,7 +568,7 @@ namespace UnityEngine.Rendering.Universal
                     m_CopyDepthPass.MssaSamples = 1;
                 }
             }
-            else if (m_Technique == DecalTechnique.GBuffer && m_DeferredLights.UseRenderPass)
+            else if (m_Technique == DecalTechnique.GBuffer && m_DeferredLights.UseFramebufferFetch)
             {
                 // Need to call Configure for both of these passes to setup input attachments as first frame otherwise will raise errors
                 m_GBufferRenderPass.Configure(null, renderingData.cameraData.cameraTargetDescriptor);

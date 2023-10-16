@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace UnityEngine.Rendering
@@ -62,11 +63,25 @@ namespace UnityEngine.Rendering
         /// Constructor. This overload allows you to only allocate memory without setting the size.
         /// </summary>
         /// <param name="capacity">The nubmer of elements to allocate.</param>
-        /// <param name="resize">If true, also set the size of the array to the passed in capacity. If false, only allocate data but keep the size at 0.</param>/// 
+        /// <param name="resize">If true, also set the size of the array to the passed in capacity. If false, only allocate data but keep the size at 0.</param>///
         public DynamicArray(int capacity, bool resize)
         {
             m_Array = new T[capacity];
             this.size = (resize) ? capacity : 0;
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            version = 0;
+#endif
+        }
+
+        /// <summary>
+        /// Constructor. This constructor allocates memory and does a deep copy of the provided array.
+        /// </summary>
+        /// <param name="deepCopy">Array to be copied</param>
+        public DynamicArray(DynamicArray<T> deepCopy)
+        {
+            m_Array = new T[deepCopy.size];
+            size = deepCopy.size;
+            Array.Copy(deepCopy.m_Array, m_Array, size);
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
             version = 0;
 #endif
@@ -102,7 +117,7 @@ namespace UnityEngine.Rendering
             // Grow array if needed;
             if (index >= m_Array.Length)
             {
-                var newArray = new T[m_Array.Length * 2];
+                var newArray = new T[Math.Max(m_Array.Length * 2,1)];
                 Array.Copy(m_Array, newArray, m_Array.Length);
                 m_Array = newArray;
             }
@@ -193,7 +208,7 @@ namespace UnityEngine.Rendering
         {
             if (count == 0)
                 return;
-                
+
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
             if (index < 0 || index >= size || count < 0 || index + count > size)
                 throw new ArgumentOutOfRangeException();

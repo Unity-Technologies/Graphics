@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassCompiler;
+using UnityEngine.Rendering;
 
 internal class RenderGraphDebugger : IRenderGraphDebugger
 {
@@ -19,7 +20,7 @@ internal class RenderGraphDebugger : IRenderGraphDebugger
         if (captureNextGraph)
         {
             var view = RenderGraphWindow.OpenGraphVisualizer();
-            CollectGraphDebugData(graph.contextData, graph.graph.m_ResourcesForDebugOnly, view);
+            CollectGraphDebugData(graph.contextData, graph.graph, view);
             view.UpdateNodeVisualisation();
             captureNextGraph = false;
         }
@@ -32,10 +33,92 @@ internal class RenderGraphDebugger : IRenderGraphDebugger
         Fetch //Used with fetch ops
     }
 
+    // Actual values of global variables when a certain pass executes
+    class PassGlobalState
+    {
+        public PassGlobalState() { }
+        public PassGlobalState(PassGlobalState copyFrom)
+        {
+            values = new DynamicArray<ValueTuple<int, ResourceHandle>>(copyFrom.values);
+        }
+
+        public void SetGlobalValue(int shaderPropertyId, ResourceHandle value)
+        {
+            if (TryFind(shaderPropertyId, out var index))
+            {
+                values[index].Item2 = value;
+            }
+            else
+            {
+                values.Add(ValueTuple.Create(shaderPropertyId, value));
+            }
+        }
+
+        public ResourceHandle GetGlobalValue(int shaderPropertyId)
+        {
+            if (TryFind(shaderPropertyId, out var index))
+            {
+                return values[index].Item2;
+            }
+            return new ResourceHandle();
+        }
+
+        public bool IsUsedAsGlobal(ResourceHandle h)
+        {
+            for (int i = 0; i < values.size; i++)
+            {
+                if (h.index == values[i].Item2.index)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private bool TryFind(int shaderPropertyId, out int idx)
+        {
+            for (int i = 0; i < values.size; i++)
+            {
+                if (shaderPropertyId == values[i].Item1)
+                {
+                    idx = i;
+                    return true;
+                }
+            }
+            idx = -1;
+            return false;
+        }
+
+        DynamicArray<ValueTuple<int, ResourceHandle>> values = new DynamicArray<ValueTuple<int, ResourceHandle>>();
+    }
+
+
     private static RenderGraphWindow debugWindow;
     static void CollectGraphDebugData(CompilerContextData ctx,
-        RenderGraphResourceRegistry resources, RenderGraphView view)
+        NativePassCompiler.RenderGraphInputInfo inputInfo, RenderGraphView view)
     {
+        var resources = inputInfo.m_ResourcesForDebugOnly;
+
+        // Derive the state of the global variables at each pass
+        List<PassGlobalState> passGlobals = new List<PassGlobalState>(ctx.passData.Length);
+        for (var i = 0; i < ctx.passData.Length; i++)
+            passGlobals.Add(null);
+        passGlobals[0] = new PassGlobalState();// first pass has empty globals set
+
+        for (var i = 0; i < ctx.passData.Length; i++)
+        {
+            ref readonly var pass = ref ctx.passData.ElementAt(i);
+            if (pass.passId == ctx.passData.Length-1) continue; // last pass doesn't matter
+            var nextGlobalState = new PassGlobalState(passGlobals[pass.passId]);
+            var globals = inputInfo.m_RenderPasses[pass.passId].setGlobalsList;
+            foreach (var g in globals)
+            {
+                nextGlobalState.SetGlobalValue(g.Item2, g.Item1.handle);
+            }
+
+            passGlobals[pass.passId + 1] = nextGlobalState;
+        }
+
         //loop over all passes to add them and their resources to the graph
         for (int passIndex = 0; passIndex < ctx.passData.Length; passIndex++)
         {
@@ -297,7 +380,8 @@ internal class RenderGraphDebugger : IRenderGraphDebugger
 
                 if (pointToVer.written)
                 {
-                    view.AddConnection(prevPass.identifier, pass.identifier, resourceVersionedName, resourceName, mergeMessage, use);
+                    bool isGlobal = passGlobals[pass.passId].IsUsedAsGlobal(inputResource);
+                    view.AddConnection(prevPass.identifier, pass.identifier, resourceVersionedName, resourceName, mergeMessage, use, isGlobal);
                 }
             }
         }

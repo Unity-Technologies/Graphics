@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
+using static UnityEngine.Rendering.DebugUI;
+using ValueTuple = System.ValueTuple;
 
 namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 {
@@ -13,6 +15,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         RenderGraphResourceRegistry m_Resources;
         RenderGraph m_RenderGraph;
         bool m_Disposed;
+
 
         public RenderGraphBuilders()
         {
@@ -36,6 +39,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             m_Resources = resources;
             m_RenderGraph = renderGraph;
             m_Disposed = false;
+
+            // For now we reference all globals by default
+            renderPass.useAllGlobalTextures = true;
 
             if (renderPass.type == RenderGraphPassType.Raster)
             {
@@ -99,20 +105,42 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             if (m_Disposed)
                 return;
 
-            if (disposing)
+            try
             {
-                m_RenderGraph.OnPassAdded(m_RenderPass);
-            }
 
-            if (m_RenderPass.type == RenderGraphPassType.Raster)
+                if (disposing)
+                {
+                    // Use all globals simply means this... we do a UseTexture on all globals so the pass has the correct dependencies.
+                    // This of course goes to show how bad an idea shader-system wide globals really are dependency/lifetime tracking wise :-)
+                    if (m_RenderPass.useAllGlobalTextures)
+                    {
+                        foreach (var texture in m_RenderGraph.AllGlobals())
+                        {
+                            this.UseTexture(texture, IBaseRenderGraphBuilder.AccessFlags.Read);
+                        }
+                    }
+
+                    // Set globals on the graph fronted side so subsequent passes can have pass dependencies on these global texture handles
+                    foreach (var t in m_RenderPass.setGlobalsList)
+                    {
+                        m_RenderGraph.SetGlobal(t.Item1, t.Item2);
+                    }
+
+                    m_RenderGraph.OnPassAdded(m_RenderPass);
+                }
+            }
+            finally
             {
-                CommandBuffer.ThrowOnSetRenderTarget = false;
-            }
+                if (m_RenderPass.type == RenderGraphPassType.Raster)
+                {
+                    CommandBuffer.ThrowOnSetRenderTarget = false;
+                }
 
-            m_RenderPass = null;
-            m_Resources = null;
-            m_RenderGraph = null;
-            m_Disposed = true;
+                m_RenderPass = null;
+                m_Resources = null;
+                m_RenderGraph = null;
+                m_Disposed = true;
+            }
         }
 
         private ResourceHandle UseResource(in ResourceHandle handle, IBaseRenderGraphBuilder.AccessFlags flags)
@@ -239,6 +267,29 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return h;
         }
 
+        public void UseGlobalTexture(int globalPropertyID, IBaseRenderGraphBuilder.AccessFlags flags)
+        {
+            var h = m_RenderGraph.GetGlobal(globalPropertyID);
+            if (h.IsValid())
+            {
+                UseTexture(h, flags);
+            }
+            else
+            {
+                throw new ArgumentException("Trying to read global texture property {globalPropertyID} but no previous pass in the graph assigned a value to this global.");
+            }
+        }
+
+        public void UseAllGlobalTextures(bool enable)
+        {
+            m_RenderPass.useAllGlobalTextures = enable;
+        }
+
+        public void PostSetGlobalTexture(in TextureHandle input, int globalPropertyID)
+        {
+            m_RenderPass.setGlobalsList.Add(ValueTuple.Create(input, globalPropertyID));
+        }
+
         // Shared validation between UseTextureFragment/UseTextureFragmentDepth
         private void CheckUseFragment(TextureHandle tex, IBaseRenderGraphBuilder.AccessFlags flags, bool isDepth)
         {
@@ -297,8 +348,16 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                     if (GraphicsFormatUtility.IsDepthFormat(info.format))
                     {
                         var name = m_Resources.GetRenderGraphResourceName(tex.handle);
-                        throw new InvalidOperationException($"Trying to UseTextureFragment on a texture thas has a depth format. Use a texture with a color format instead. (pass '{m_RenderPass.name}' resource '{name}').");
+                        throw new InvalidOperationException($"Trying to UseTextureFragment on a texture that has a depth format. Use a texture with a color format instead. (pass '{m_RenderPass.name}' resource '{name}').");
                     }
+                }
+            }
+
+            foreach (var globalTex in m_RenderPass.setGlobalsList)
+            {
+                if (globalTex.Item1.handle.index == tex.handle.index)
+                {
+                    throw new InvalidOperationException($"Trying to UseTextureFragment on a texture is currently set on a global texture slot. Shaders might be using the texture using samplers. You should ensure textures are not set as globals when using them as fragment attachments.");
                 }
             }
 #endif
