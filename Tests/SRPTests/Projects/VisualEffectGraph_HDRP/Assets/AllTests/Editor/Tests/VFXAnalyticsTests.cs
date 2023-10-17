@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Linq;
+using System.Reflection;
 
 using NUnit.Framework;
 using Moq;
@@ -87,6 +88,7 @@ namespace UnityEditor.VFX.Test
             // Assert
             m_EditorAnalyticsMock.Verify(x => x.SendEventWithLimit("uVFXGraphUsage", It.IsAny<object>(), 4), Times.Once);
 
+
             Assert.AreEqual(new [] { 1 }, m_SentData.specific_setting_Count);
             Assert.AreEqual(new [] { settingPath }, m_SentData.specific_setting_names);
         }
@@ -129,6 +131,46 @@ namespace UnityEditor.VFX.Test
 
             Assert.AreEqual(1, m_SentData.nb_vfx_opened);
             Assert.AreEqual(VFXAnalytics.EventKind.Quit.ToString(), m_SentData.event_kind);
+        }
+
+        [Test]
+        public void OnBuildReport_Test_Invalid_Path()
+        {
+            // Arrange
+            VFXAnalytics.UsageEventData? sentData = null;
+            var vfxAnalytics = new VFXAnalytics(m_EditorAnalyticsMock.Object);
+            var buildReportMock = new Mock<IBuildReport>();
+            buildReportMock.SetupGet(x => x.packedAssetsInfoPath).Returns(new[] { "Built-in Texture2D: sactx-0-512x1024-DXT5|BC3-New Sprite Atlas-41152f59" });
+            m_EditorAnalyticsMock.Setup(x => x.SendEventWithLimit(It.IsAny<string>(), It.IsAny<object>(), 4)).Callback<string, object, int>((id, d, ver) => sentData = (VFXAnalytics.UsageEventData)d);
+
+            // Act
+            var buildReportMethodInfo = typeof(VFXAnalytics).GetMethod("OnPostprocessBuildInternal", BindingFlags.Instance | BindingFlags.NonPublic);
+            buildReportMethodInfo.Invoke(vfxAnalytics, new object[] { buildReportMock.Object });
+
+            // Assert
+            m_EditorAnalyticsMock.Verify(x => x.SendEventWithLimit(It.IsAny<string>(), It.IsAny<object>(), 4), Times.Once);
+            Assert.IsTrue(sentData.HasValue);
+            Assert.AreEqual(0, sentData.Value.nb_vfx_assets);
+        }
+
+        [Test]
+        public void OnBuildReport_Test_Duplicated_Paths()
+        {
+            // Arrange
+            VFXAnalytics.UsageEventData? sentData = null;
+            var vfxAnalytics = new VFXAnalytics(m_EditorAnalyticsMock.Object);
+            var buildReportMock = new Mock<IBuildReport>();
+            buildReportMock.SetupGet(x => x.packedAssetsInfoPath).Returns(new[] { "Assets/effect.vfx", "Assets/effect.vfx" });
+            m_EditorAnalyticsMock.Setup(x => x.SendEventWithLimit(It.IsAny<string>(), It.IsAny<object>(), 4)).Callback<string, object, int>((id, d, ver) => sentData = (VFXAnalytics.UsageEventData)d);
+
+            // Act
+            var buildReportMethodInfo = typeof(VFXAnalytics).GetMethod("OnPostprocessBuildInternal", BindingFlags.Instance | BindingFlags.NonPublic);
+            buildReportMethodInfo.Invoke(vfxAnalytics, new object[] { buildReportMock.Object });
+
+            // Assert
+            m_EditorAnalyticsMock.Verify(x => x.SendEventWithLimit(It.IsAny<string>(), It.IsAny<object>(), 4), Times.Once);
+            Assert.IsTrue(sentData.HasValue);
+            Assert.AreEqual(1, sentData.Value.nb_vfx_assets);
         }
 
         private VFXAnalytics.UsageEventData CopyUsageEventData(VFXAnalytics.UsageEventData source)
