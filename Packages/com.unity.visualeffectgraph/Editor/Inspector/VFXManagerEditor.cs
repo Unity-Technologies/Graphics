@@ -93,12 +93,12 @@ class VFXManagerEditor : Editor
         serializedObject.ApplyModifiedProperties();
     }
 
-    private static bool SetBuiltInShaderIfNeeded(SerializedObject obj, string shaderName, string shaderPath)
+    private static bool SetBuiltInShaderIfNeeded<T>(SerializedObject obj, string shaderName, string shaderPath) where T : UnityObject
     {
         var shaderProperty = obj.FindProperty(shaderName);
         if (shaderProperty.objectReferenceValue == null)
         {
-            var shader = AssetDatabase.LoadAssetAtPath<ComputeShader>(shaderPath);
+            var shader = AssetDatabase.LoadAssetAtPath<T>(shaderPath);
             if (shader != null)
             {
                 shaderProperty.objectReferenceValue = shader;
@@ -142,10 +142,13 @@ class VFXManagerEditor : Editor
         SerializedObject obj = new SerializedObject(vfxmanager);
         bool shaderModified = false;
 
-        shaderModified |= SetBuiltInShaderIfNeeded(obj, "m_IndirectShader", "Packages/com.unity.visualeffectgraph/Shaders/VFXFillIndirectArgs.compute");
-        shaderModified |= SetBuiltInShaderIfNeeded(obj, "m_CopyBufferShader", "Packages/com.unity.visualeffectgraph/Shaders/VFXCopyBuffer.compute");
-        shaderModified |= SetBuiltInShaderIfNeeded(obj, "m_SortShader", "Packages/com.unity.visualeffectgraph/Shaders/Sort.compute");
-        shaderModified |= SetBuiltInShaderIfNeeded(obj, "m_StripUpdateShader", "Packages/com.unity.visualeffectgraph/Shaders/UpdateStrips.compute");
+        shaderModified |= SetBuiltInShaderIfNeeded<ComputeShader>(obj, "m_IndirectShader", "Packages/com.unity.visualeffectgraph/Shaders/VFXFillIndirectArgs.compute");
+        shaderModified |= SetBuiltInShaderIfNeeded<ComputeShader>(obj, "m_CopyBufferShader", "Packages/com.unity.visualeffectgraph/Shaders/VFXCopyBuffer.compute");
+        shaderModified |= SetBuiltInShaderIfNeeded<ComputeShader>(obj, "m_SortShader", "Packages/com.unity.visualeffectgraph/Shaders/Sort.compute");
+        shaderModified |= SetBuiltInShaderIfNeeded<ComputeShader>(obj, "m_StripUpdateShader", "Packages/com.unity.visualeffectgraph/Shaders/UpdateStrips.compute");
+
+        shaderModified |= SetBuiltInShaderIfNeeded<Shader>(obj, "m_EmptyShader", "Packages/com.unity.visualeffectgraph/Shaders/Empty.shader");
+
         bool runtimeResourcesModified = false;
         runtimeResourcesModified = SetRuntimeResourcesIfNeeded(obj);
 
