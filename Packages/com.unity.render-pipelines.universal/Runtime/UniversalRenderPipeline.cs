@@ -779,7 +779,7 @@ namespace UnityEngine.Rendering.Universal
 
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
                 if (asset.useAdaptivePerformance)
-                    ApplyAdaptivePerformance(ref renderingData);
+                    ApplyAdaptivePerformance(frameData);
 #endif
 
                 CreateShadowAtlasAndCullShadowCasters(lightData, shadowData, cameraData, ref data.cullResults, ref context);
@@ -2121,44 +2121,48 @@ namespace UnityEngine.Rendering.Universal
             cameraData.antialiasingQuality = (AntialiasingQuality)Mathf.Clamp(antialiasingQualityIndex, (int)AntialiasingQuality.Low, (int)AntialiasingQuality.High);
         }
 
-        static void ApplyAdaptivePerformance(ref RenderingData renderingData)
+        static void ApplyAdaptivePerformance(ContextContainer frameData)
         {
+            UniversalRenderingData renderingData = frameData.Get<UniversalRenderingData>();
+            UniversalShadowData shadowData = frameData.Get<UniversalShadowData>();
+            UniversalPostProcessingData postProcessingData = frameData.Get<UniversalPostProcessingData>();
+
             if (AdaptivePerformance.AdaptivePerformanceRenderSettings.SkipDynamicBatching)
                 renderingData.supportsDynamicBatching = false;
 
             var MainLightShadowmapResolutionMultiplier = AdaptivePerformance.AdaptivePerformanceRenderSettings.MainLightShadowmapResolutionMultiplier;
-            renderingData.shadowData.mainLightShadowmapWidth = (int)(renderingData.shadowData.mainLightShadowmapWidth * MainLightShadowmapResolutionMultiplier);
-            renderingData.shadowData.mainLightShadowmapHeight = (int)(renderingData.shadowData.mainLightShadowmapHeight * MainLightShadowmapResolutionMultiplier);
+            shadowData.mainLightShadowmapWidth = (int)(shadowData.mainLightShadowmapWidth * MainLightShadowmapResolutionMultiplier);
+            shadowData.mainLightShadowmapHeight = (int)(shadowData.mainLightShadowmapHeight * MainLightShadowmapResolutionMultiplier);
 
             var MainLightShadowCascadesCountBias = AdaptivePerformance.AdaptivePerformanceRenderSettings.MainLightShadowCascadesCountBias;
-            renderingData.shadowData.mainLightShadowCascadesCount = Mathf.Clamp(renderingData.shadowData.mainLightShadowCascadesCount - MainLightShadowCascadesCountBias, 0, 4);
+            shadowData.mainLightShadowCascadesCount = Mathf.Clamp(shadowData.mainLightShadowCascadesCount - MainLightShadowCascadesCountBias, 0, 4);
 
             var shadowQualityIndex = AdaptivePerformance.AdaptivePerformanceRenderSettings.ShadowQualityBias;
             for (int i = 0; i < shadowQualityIndex; i++)
             {
-                if (renderingData.shadowData.supportsSoftShadows)
+                if (shadowData.supportsSoftShadows)
                 {
-                    renderingData.shadowData.supportsSoftShadows = false;
+                    shadowData.supportsSoftShadows = false;
                     continue;
                 }
 
-                if (renderingData.shadowData.supportsAdditionalLightShadows)
+                if (shadowData.supportsAdditionalLightShadows)
                 {
-                    renderingData.shadowData.supportsAdditionalLightShadows = false;
+                    shadowData.supportsAdditionalLightShadows = false;
                     continue;
                 }
 
-                if (renderingData.shadowData.supportsMainLightShadows)
+                if (shadowData.supportsMainLightShadows)
                 {
-                    renderingData.shadowData.supportsMainLightShadows = false;
+                    shadowData.supportsMainLightShadows = false;
                     continue;
                 }
 
                 break;
             }
 
-            if (AdaptivePerformance.AdaptivePerformanceRenderSettings.LutBias >= 1 && renderingData.postProcessingData.lutSize == 32)
-                renderingData.postProcessingData.lutSize = 16;
+            if (AdaptivePerformance.AdaptivePerformanceRenderSettings.LutBias >= 1 && postProcessingData.lutSize == 32)
+                postProcessingData.lutSize = 16;
         }
 
 #endif
