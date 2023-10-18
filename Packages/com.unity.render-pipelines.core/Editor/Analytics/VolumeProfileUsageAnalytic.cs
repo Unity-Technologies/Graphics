@@ -10,7 +10,7 @@ namespace UnityEditor.Rendering.Analytics
     // taxonomy = editor.analytics.uVolumeProfileUsageAnalytic.v4
     internal class VolumeProfileUsageAnalytic
     {
-        [AnalyticInfo(eventName: "uVolumeProfileUsageAnalytic", version: 4)]
+        [AnalyticInfo(eventName: "uVolumeProfileUsageAnalytic", version: 4, vendorKey: "unity.srp" )]
         class Analytic : IAnalytic
         {
             public Analytic(Volume volume, VolumeProfile volumeProfile)
