@@ -301,99 +301,116 @@ real PolygonIrradiance(real4x3 L, out real3 F)
 #endif
 }
 
-real LineFpo(real tLDDL, real lrcpD, real rcpD)
+// This function assumes that inputs are well-behaved, e.i.
+// that the line does not pass through the origin and
+// that the light is (at least partially) above the surface.
+float I_diffuse_line(float3 C, float3 A, float hl)
 {
-    // Compute: ((l / d) / (d * d + l * l)) + (1.0 / (d * d)) * atan(l / d).
-    return tLDDL + (rcpD * rcpD) * FastATan(lrcpD);
+    // Solve C.z + h * A.z = 0.
+    float h = -C.z * rcp(A.z);  // May be Inf, but never NaN
+
+    // Clip the line segment against the z-plane if necessary.
+    float h2 = (A.z >= 0) ? max( hl, h)
+                          : min( hl, h); // P2 = C + h2 * A
+    float h1 = (A.z >= 0) ? max(-hl, h)
+                          : min(-hl, h); // P1 = C + h1 * A
+
+    // Normalize the tangent.
+    float  as = dot(A, A);      // |A|^2
+    float  ar = rsqrt(as);      // 1/|A|
+    float  a  = as * ar;        // |A|
+    float3 T  = A * ar;         // A/|A|
+
+    // Orthogonal 2D coordinates:
+    // P(n, t) = n * N + t * T.
+    float  tc = dot(T, C);      // C = n * N + tc * T
+    float3 P0 = C - tc * T;     // P(n, 0) = n * N
+    float  ns = dot(P0, P0);    // |P0|^2
+
+    float nr = rsqrt(ns);       // 1/|P0|
+    float n  = ns * nr;         // |P0|
+    float Nz = P0.z * nr;       // N.z = (P0/n).z
+
+    // P(n, t) - C = P0 + t * T - P0 - tc * T
+    // = (t - tc) * T = h * A = (h * a) * T.
+    float t2 = tc + h2 * a;     // P2.t
+    float t1 = tc + h1 * a;     // P1.t
+    float s2 = ns + t2 * t2;    // |P2|^2
+    float s1 = ns + t1 * t1;    // |P1|^2
+    float mr = rsqrt(s1 * s2);  // 1/(|P1|*|P2|)
+    float r2 = s1 * (mr * mr);  // 1/|P2|^2
+    float r1 = s2 * (mr * mr);  // 1/|P1|^2
+
+    // I = (i1 + i2 + i3) / Pi.
+    // i1 =  N.z * (P2.t / |P2|^2 - P1.t / |P1|^2).
+    // i2 = -T.z * (P2.n / |P2|^2 - P1.n / |P1|^2).
+    // i3 =  N.z * ArcCos[Dot[P1, P2]/(|P1|*|P2|)] / n.
+    float i12 = (Nz * t2 - (T.z * n)) * r2
+              - (Nz * t1 - (T.z * n)) * r1;
+    // Guard against numerical errors.
+    float dt  = min(1, (ns + t1 * t2) * mr);
+    float i3  = Nz * acos(dt) * nr;
+
+    // Guard against numerical errors.
+    return INV_PI * max(0, i12 + i3);
 }
 
-real LineFwt(real tLDDL, real l)
+// Computes 1 / length(mul(transpose(inverse(invM)), normalize(ortho))).
+float ComputeLineWidthFactor(float3x3 invM, float3 ortho, float orthoSq)
 {
-    // Compute: l * ((l / d) / (d * d + l * l)).
-    return l * tLDDL;
+    // transpose(inverse(invM)) = 1 / determinant(invM) * cofactor(invM).
+    // Take into account the sparsity of the matrix:
+    // {{a,0,b},
+    //  {0,c,0},
+    //  {d,0,1}}
+    float a = invM[0][0];
+    float b = invM[0][2];
+    float c = invM[1][1];
+    float d = invM[2][0];
+
+    float  det = c * (a - b * d);
+    float3 X   = float3(c * (ortho.x - d * ortho.z),
+                            (ortho.y * (a - b * d)),
+                        c * (-b * ortho.x + a * ortho.z));  // mul(cof, ortho)
+
+    // 1 / length(1/s * X) = abs(s) / length(X).
+    return abs(det) * rsqrt(dot(X, X) * orthoSq) * orthoSq; // rsqrt(x^2) * x^2 = x
 }
 
-// Computes the integral of the clamped cosine over the line segment.
-// 'l1' and 'l2' define the integration interval.
-// 'tangent' is the line's tangent direction.
-// 'normal' is the direction orthogonal to the tangent. It is the shortest vector between
-// the shaded point and the line, pointing away from the shaded point.
-real LineIrradiance(real l1, real l2, real3 normal, real3 tangent)
+float I_ltc_line(float3x3 invM, float3 center, float3 axis, float halfLength)
 {
-    real d      = length(normal);
-    real l1rcpD = l1 * rcp(d);
-    real l2rcpD = l2 * rcp(d);
-    real tLDDL1 = l1rcpD / (d * d + l1 * l1);
-    real tLDDL2 = l2rcpD / (d * d + l2 * l2);
-    real intWt  = LineFwt(tLDDL2, l2) - LineFwt(tLDDL1, l1);
-    real intP0  = LineFpo(tLDDL2, l2rcpD, rcp(d)) - LineFpo(tLDDL1, l1rcpD, rcp(d));
-    return intP0 * normal.z + intWt * tangent.z;
-}
+    float3 ortho   = cross(center, axis);
+    float  orthoSq = dot(ortho, ortho);
 
-// Computes 1.0 / length(mul(ortho, transpose(inverse(invM)))).
-real ComputeLineWidthFactor(real3x3 invM, real3 ortho)
-{
-    // transpose(inverse(M)) = (1.0 / determinant(M)) * cofactor(M).
-    // Take into account that m12 = m21 = m23 = m32 = 0 and m33 = 1.
-    real    det = invM._11 * invM._22 - invM._22 * invM._31 * invM._13;
-    real3x3 cof = {invM._22, 0.0, -invM._22 * invM._31,
-                   0.0, invM._11 - invM._13 * invM._31, 0.0,
-                   -invM._13 * invM._22, 0.0, invM._11 * invM._22};
+    // Check whether the line passes through the origin.
+    bool quit = (orthoSq == 0);
 
-    // 1.0 / length(mul(V, (1.0 / s * M))) = abs(s) / length(mul(V, M)).
-    return abs(det) / length(mul(ortho, cof));
-}
+    // Check whether the light is entirely below the surface.
+    // We must test twice, since a linear transformation
+    // may bring the light above the surface (a side-effect).
+    quit = quit || (center.z + halfLength * abs(axis.z) <= 0);
 
-// For line lights.
-real LTCEvaluate(real3 P1, real3 P2, real3 B, real3x3 invM)
-{
-    real result = 0.0;
-    // Inverse-transform the endpoints.
-    P1 = mul(P1, invM);
-    P2 = mul(P2, invM);
+    // Transform into the diffuse configuration.
+    // This is a sparse matrix multiplication.
+    // Pay attention to the multiplication order
+    // (in case your matrices are transposed).
+    float3 C = mul(invM, center);
+    float3 A = mul(invM, axis);
 
-    // Terminate the algorithm if both points are below the horizon.
-    if (!(P1.z <= 0.0 && P2.z <= 0.0))
+    // Check whether the light is entirely below the surface.
+    // We must test twice, since a linear transformation
+    // may bring the light below the surface (as expected).
+    quit = quit || (C.z + halfLength * abs(A.z) <= 0);
+
+    float result = 0;
+
+    if (!quit)
     {
-        real width = ComputeLineWidthFactor(invM, B);
+        float w = ComputeLineWidthFactor(invM, ortho, orthoSq);
 
-        if (P1.z > P2.z)
-        {
-            // Convention: 'P2' is above 'P1', with the tangent pointing upwards.
-            Swap(P1, P2);
-        }
-
-        // Recompute the length and the tangent in the new coordinate system.
-        real  len = length(P2 - P1);
-        real3 T   = normalize(P2 - P1);
-
-        // Clip the part of the light below the horizon.
-        if (P1.z <= 0.0)
-        {
-            // P = P1 + t * T; P.z == 0.
-            real t = -P1.z / T.z;
-            P1 = real3(P1.xy + t * T.xy, 0.0);
-
-            // Set the length of the visible part of the light.
-            len -= t;
-        }
-
-        // Compute the normal direction to the line, s.t. it is the shortest vector
-        // between the shaded point and the line, pointing away from the shaded point.
-        // Can be interpreted as a point on the line, since the shaded point is at the origin.
-        real  proj = dot(P1, T);
-        real3 P0   = P1 - proj * T;
-
-        // Compute the parameterization: distances from 'P1' and 'P2' to 'P0'.
-        real l1 = proj;
-        real l2 = l1 + len;
-
-        // Integrate the clamped cosine over the line segment.
-        real irradiance = LineIrradiance(l1, l2, P0, T);
-
-        // Guard against numerical precision issues.
-        result = max(INV_PI * width * irradiance, 0.0);
+        result = I_diffuse_line(C, A, halfLength) * w;
     }
+
     return result;
 }
 
