@@ -27,7 +27,7 @@ float2 CalcNdcMotionVectorFromCsPositions(float4 posCS, float4 prevPosCS)
 
     float2 velocity;
     #if defined(SUPPORTS_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
-    if (_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
+    UNITY_BRANCH if (_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
     {
         // Convert velocity from NDC space (-1..1) to screen UV 0..1 space since FoveatedRendering remap needs that range.
         float2 posUV = RemapFoveatedRenderingResolve(posNDC * 0.5 + 0.5);

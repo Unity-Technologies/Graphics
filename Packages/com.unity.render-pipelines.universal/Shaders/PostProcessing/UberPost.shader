@@ -181,7 +181,7 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
             {
                 float2 uvBloom = ClampUVForBilinear(uvDistorted, _BloomTexture_TexelSize.xy);
                 #if defined(SUPPORTS_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
-                if (_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
+                UNITY_BRANCH if (_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
                 {
                     uvBloom = RemapFoveatedRenderingNonUniformToLinear(uvBloom);
                 }
