@@ -518,6 +518,9 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
 
         private static readonly ProfilerMarker RenderPreviewsMarker = new ProfilerMarker("RenderPreviews");
+        private static int k_spriteProps = Shader.PropertyToID("unity_SpriteProps");
+        private static int k_spriteColor = Shader.PropertyToID("unity_SpriteColor");
+        private static int k_rendererColor = Shader.PropertyToID("_RendererColor");
         public void RenderPreviews(EditorWindow editorWindow, bool requestShaders = true)
         {
             using (RenderPreviewsMarker.Auto())
@@ -673,6 +676,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                     previewTransform *= Matrix4x4.Scale(scale * Vector3.one * (Vector3.one).magnitude / mesh.bounds.size.magnitude);
                     previewTransform *= Matrix4x4.Translate(-mesh.bounds.center);
 
+                    //bugfix for some variables that need to be setup for URP Sprite material previews. Want a better isolated place to put them,
+                    //but I dont believe such a place exists and would be too costly to add.
+                    masterRenderData.shaderData.mat.SetVector(k_spriteProps, new Vector4(1, 1, -1, 0));
+                    masterRenderData.shaderData.mat.SetVector(k_spriteColor, new Vector4(1, 1, 1, 1));
+                    masterRenderData.shaderData.mat.SetVector(k_rendererColor, new Vector4(1, 1, 1, 1));
                     RenderPreview(masterRenderData, mesh, previewTransform, perMaterialPreviewProperties);
                 }
 

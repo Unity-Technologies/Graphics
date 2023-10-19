@@ -29,7 +29,7 @@ namespace UnityEditor.ShaderGraph
             return
 @"
 {
-    Out = !A && !B;
+    Out = !(A && B);
 }
 ";
         }
