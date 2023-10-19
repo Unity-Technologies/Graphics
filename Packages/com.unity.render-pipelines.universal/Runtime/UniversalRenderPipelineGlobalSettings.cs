@@ -216,8 +216,16 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField]
         uint m_ValidRenderingLayers;
         /// <summary>Valid rendering layers that can be used by graphics. </summary>
-        public uint validRenderingLayers => m_ValidRenderingLayers;
+        public uint validRenderingLayers
+        {
+            get
+            {
+                if (m_PrefixedRenderingLayerNames == null)
+                    UpdateRenderingLayerNames();
 
+                return m_ValidRenderingLayers;
+            }
+        }
         /// <summary>Regenerate Rendering Layer names and their prefixed versions.</summary>
         internal void UpdateRenderingLayerNames()
         {
