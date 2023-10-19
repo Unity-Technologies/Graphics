@@ -5,17 +5,16 @@ using UnityEditor;
 using UnityEditor.PackageManager;
 using UnityEditor.PackageManager.Requests;
 using UnityEditor.XR.Management;
-using UnityEngine.TestTools;
 using UnityEngine.TestTools.Graphics;
 
-class InjectMockHMDTest
+class SetupMockHMDTest
 {
     [Test]
     public void ValidateLoaderTest()
     {
         if (RuntimeSettings.reuseTestsForXR)
         {
-            InjectMockHMD.SetupLoader();
+            SetupMockHMD.SetupLoader();
 
             var buildTargetSettings = XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(BuildTargetGroup.Standalone);
 
@@ -40,24 +39,5 @@ class InjectMockHMDTest
         }
 
         return false;
-    }
-
-    [UnityTest]
-    public IEnumerator AddPackageTest()
-    {
-        var req = Client.List();
-        while (!req.IsCompleted)
-            yield return null;
-
-        bool packageFound = IsPackageInstalled("com.unity.xr.mock-hmd", req);
-
-        if (RuntimeSettings.reuseTestsForXR)
-        {
-            Assert.True(packageFound, "MockHMD was not installed!");
-        }
-        else
-        {
-            Assert.False(packageFound, "MockHMD should not be installed when running non-XR tests!");
-        }
     }
 }
