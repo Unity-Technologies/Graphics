@@ -148,16 +148,6 @@ internal class RenderGraphDebugger : IRenderGraphDebugger
                 var unversionedName = pointTo.GetName(ctx, inputResource);
                 var versionedName = unversionedName + " V" + inputResource.version;
 
-                if (pointTo.firstUsePassID == pass.passId)
-                {
-                    passDebug.allocations.Add(unversionedName);
-                }
-
-                if (pointTo.lastUsePassID == pass.passId)
-                {
-                    passDebug.releases.Add(unversionedName);
-                }
-
                 if (pointTo.lastWritePassID == pass.passId)
                 {
                     passDebug.lastWrites.Add(unversionedName);
@@ -195,6 +185,20 @@ internal class RenderGraphDebugger : IRenderGraphDebugger
                     };
                     view.AddResource(versionedName, unversionedName, data);
                 }
+            }
+
+            foreach (ref readonly var released in pass.LastUsedResources(ctx))
+            {
+                ref var pointTo = ref ctx.UnversionedResourceData(released);
+                string name = pointTo.GetName(ctx, released);
+                passDebug.releases.Add(name);
+            }
+
+            foreach (ref readonly var allocated in pass.FirstUsedResources(ctx))
+            {
+                ref var pointTo = ref ctx.UnversionedResourceData(allocated);
+                string name = pointTo.GetName(ctx, allocated);
+                passDebug.releases.Add(name);
             }
 
             if (pass.numFragments > 0 && pass.nativePassIndex >= 0)

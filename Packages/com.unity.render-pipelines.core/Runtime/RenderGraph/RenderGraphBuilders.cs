@@ -402,6 +402,41 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return th;
         }
 
+        public TextureHandle UseTextureRandomAccess(TextureHandle input, int index, IBaseRenderGraphBuilder.AccessFlags flags = IBaseRenderGraphBuilder.AccessFlags.Read)
+        {
+            CheckNotUseFragment(input, flags);
+            TextureHandle h = new TextureHandle();
+            h.handle = UseResource(input.handle, flags);
+
+            // Note the version for the attachments is a bit arbitrary so we just use the latest for now
+            // it doesn't really matter as it's really the Read/Write lists that determine that
+            // This is just to keep track of the resources to bind before execution
+            m_RenderPass.SetRandomWriteResourceRaw(h.handle, index, false, flags);
+            return h;
+        }
+
+        public BufferHandle UseBufferRandomAccess(BufferHandle input, int index, IBaseRenderGraphBuilder.AccessFlags flags = IBaseRenderGraphBuilder.AccessFlags.Read)
+        {
+            var h = UseBuffer(input, flags);
+
+            // Note the version for the attachments is a bit arbitrary so we just use the latest for now
+            // it doesn't really matter as it's really the Read/Write lists that determine that
+            // This is just to keep track of the resources to bind before execution
+            m_RenderPass.SetRandomWriteResourceRaw(h.handle, index, true, flags);
+            return h;
+        }
+
+        public BufferHandle UseBufferRandomAccess(BufferHandle input, int index, bool preserveCounterValue, IBaseRenderGraphBuilder.AccessFlags flags = IBaseRenderGraphBuilder.AccessFlags.Read)
+        {
+            var h = UseBuffer(input, flags);
+
+            // Note the version for the attachments is a bit arbitrary so we just use the latest for now
+            // it doesn't really matter as it's really the Read/Write lists that determine that
+            // This is just to keep track of the resources to bind before execution
+            m_RenderPass.SetRandomWriteResourceRaw(h.handle, index, preserveCounterValue, flags);
+            return h;
+        }
+
         public void SetRenderFunc<PassData>(BaseRenderFunc<PassData, ComputeGraphContext> renderFunc) where PassData : class, new()
         {
             ((ComputeRenderGraphPass<PassData>)m_RenderPass).renderFunc = renderFunc;

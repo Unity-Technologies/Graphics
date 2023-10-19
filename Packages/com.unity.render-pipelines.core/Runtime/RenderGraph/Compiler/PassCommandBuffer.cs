@@ -107,7 +107,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
         BeginAsyncCompute,
         EndAsyncCompute,
         InsertFence,
-        WaitOnFence
+        WaitOnFence,
+        SetRandomWriteTarget,
+        ClearRandomWriteTargets
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -424,7 +426,67 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
         }
     }
 
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct SetRandomWriteTargetCommand
+    {
+        internal BasicCommand Header;
+        internal int Index;
+        internal bool PreserveCounterValue;
+        internal ResourceHandle Resource;
 
+        internal static unsafe void AddCommand(int index, ResourceHandle res, ref PassCommandBufferData data)
+        {
+            var cmd = (SetRandomWriteTargetCommand*)data.Reserve(sizeof(SetRandomWriteTargetCommand));
+            cmd->Header.CommandType = PassCommand.SetRandomWriteTarget;
+            cmd->Header.TotalSize = sizeof(SetRandomWriteTargetCommand);
+            cmd->Index = index;
+            cmd->Resource = res;
+        }
+        internal static unsafe void Execute(in SetRandomWriteTargetCommand* cmd, ref PassCommandBufferState state)
+        {
+            var resource = cmd->Resource;
+            if (resource.type == RenderGraphResourceType.Texture)
+            {
+                var tex = state.resources.GetTexture(new TextureHandle(resource));
+                state.rgContext.cmd.SetRandomWriteTarget(cmd->Index, tex);
+            }
+            else if (resource.type == RenderGraphResourceType.Buffer)
+            {
+                var buff = state.resources.GetBuffer(new BufferHandle(resource));
+                // Default is to preserve the value
+                if (cmd->PreserveCounterValue == false)
+                {
+                    state.rgContext.cmd.SetRandomWriteTarget(cmd->Index, buff, false);
+                }
+                else
+                {
+                    state.rgContext.cmd.SetRandomWriteTarget(cmd->Index, buff);
+                }
+
+            }
+            else
+            {
+                throw new Exception($"Invalid resource type {resource.type}, expected texture or buffer");
+            }
+        }
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct ClearRandomWriteTargetsCommand
+    {
+        internal BasicCommand Header;
+
+        internal static unsafe void AddCommand(ref PassCommandBufferData data)
+        {
+            var cmd = (ClearRandomWriteTargetsCommand*)data.Reserve(sizeof(ClearRandomWriteTargetsCommand));
+            cmd->Header.CommandType = PassCommand.ClearRandomWriteTargets;
+            cmd->Header.TotalSize = sizeof(ClearRandomWriteTargetsCommand);
+        }
+        internal static void Execute(ref PassCommandBufferState state)
+        {
+            state.rgContext.cmd.ClearRandomWriteTargets();
+        }
+    }
 
     [StructLayout(LayoutKind.Sequential)]
     struct BeginAsyncComputeCommand
@@ -605,6 +667,18 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
                     WaitOnGraphicsFenceCommand.Execute(cmd, ref state);
                     break;
                 }
+                case PassCommand.SetRandomWriteTarget:
+                {
+                    var cmd = (SetRandomWriteTargetCommand*)baseCommand;
+                    SetRandomWriteTargetCommand.Execute(cmd, ref state);
+                    break;
+                }
+                case PassCommand.ClearRandomWriteTargets:
+                {
+                    var cmd = (ClearRandomWriteTargetsCommand*)baseCommand;
+                    ClearRandomWriteTargetsCommand.Execute(ref state);
+                    break;
+                }
                 default:
                     Debug.LogError($"Unknown command {baseCommand->CommandType}");
                     break;
@@ -677,6 +751,18 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
                     Debug.Log($"Waiting on fence inserted at pass {cmd->passID}");
                     break;
                 }
+                case PassCommand.SetRandomWriteTarget:
+                {
+                    var cmd = (SetRandomWriteTargetCommand*)baseCommand;
+                    Debug.Log($"Setting random write target {cmd->Index}");
+                    break;
+                }
+                case PassCommand.ClearRandomWriteTargets:
+                {
+                    var cmd = (ClearRandomWriteTargetsCommand*)baseCommand;
+                    Debug.Log($"Clearing random write targets");
+                    break;
+                }
                 default:
                     Debug.LogError($"Unknown command {baseCommand->CommandType}");
                     break;
@@ -742,5 +828,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
         internal void EndAsyncCompute() => EndAsyncComputeCommand.AddCommand(ref m_Data);
         internal void InsertGraphicsFence(int passID) => InsertGraphicsFenceCommand.AddCommand(passID, ref m_Data);
         internal void WaitOnGraphicsFence(int passID) => WaitOnGraphicsFenceCommand.AddCommand(passID, ref m_Data);
+
+        internal void SetRandomWriteTarget(int index, ResourceHandle h) => SetRandomWriteTargetCommand.AddCommand(index, h, ref m_Data);
+        internal void ClearRandomWriteTargets() => ClearRandomWriteTargetsCommand.AddCommand(ref m_Data);
     }
 }

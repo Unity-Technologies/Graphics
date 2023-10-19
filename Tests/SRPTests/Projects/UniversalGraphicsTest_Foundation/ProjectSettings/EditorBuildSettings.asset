@@ -401,5 +401,8 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/270_ScreenSpace_UI_Overlay.unity
     guid: bb5aa41014ad2014eb5b3dbd7d7e6463
+  - enabled: 1
+    path: Assets/Scenes/300_RandomUAV.unity
+    guid: 5e57a94eeee3964488362ad6cab7cfb2
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0

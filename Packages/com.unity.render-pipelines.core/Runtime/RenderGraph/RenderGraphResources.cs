@@ -1,6 +1,5 @@
 using System;
 using System.Diagnostics;
-using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 {
@@ -98,7 +97,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         public bool Equals(ResourceHandle hdl)
         {
-            return hdl.m_Value == this.m_Value && hdl.m_Version == this.m_Version;
+            return hdl.m_Value == this.m_Value && hdl.m_Version == this.m_Version && hdl.type == this.type;
         }
     }
 

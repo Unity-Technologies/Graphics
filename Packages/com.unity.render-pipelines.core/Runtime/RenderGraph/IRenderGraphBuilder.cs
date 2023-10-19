@@ -51,7 +51,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// </summary>
         /// <param name="input">The texture resource to use during the pass.</param>
         /// <param name="flags">A combination of flags indicating how the resource will be used during the pass. Default value is set to AccessFlag.Read </param>
-        /// <returns>A explicitly versioned handle representing the latest version of the pased in texture.
+        /// <returns>A explicitly versioned handle representing the latest version of the passed in texture.
         /// Note that except for special cases where you want to refer to a specific version return value is generally discarded.</returns>
         public TextureHandle UseTexture(in TextureHandle input, AccessFlags flags = AccessFlags.Read);
 
@@ -221,7 +221,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <param name="tex">Texture to use during this pass.</param>
         /// <param name="index">Index the shader will use to access this texture.</param>
         /// <param name="flags">How this pass will acess the texture. Default value is set to AccessFlag.Write </param>
-        /// <returns>A explicitly versioned handle representing the latest version of the pased in texture.
+        /// <returns>A explicitly versioned handle representing the latest version of the passed in texture.
         /// Note that except for special cases where you want to refer to a specific version return value is generally discarded.</returns>
         TextureHandle UseTextureFragment(TextureHandle tex, int index, AccessFlags flags = AccessFlags.Write);
 
@@ -236,7 +236,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <param name="tex">Texture to use during this pass.</param>
         /// <param name="index">Index the shader will use to access this texture.</param>
         /// <param name="flags">How this pass will acess the texture. Default value is set to AccessFlag.Read. Writing is currently not supported on any platform. </param>
-        /// <returns>A explicitly versioned handle representing the latest version of the pased in texture.
+        /// <returns>A explicitly versioned handle representing the latest version of the passed in texture.
         /// Note that except for special cases where you want to refer to a specific version return value is generally discarded.</returns>
         TextureHandle UseTextureFragmentInput(TextureHandle tex, int index, AccessFlags flags = AccessFlags.Read);
 
@@ -252,9 +252,55 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// </summary>
         /// <param name="tex">Texture to use during this pass.</param>
         /// <param name="flags">How this pass will acess the texture. Default value is set to AccessFlag.Write </param>
-        /// <returns>A explicitly versioned handle representing the latest version of the pased in texture.
+        /// <returns>A explicitly versioned handle representing the latest version of the passed in texture.
         /// Note that except for special cases where you want to refer to a specific version return value is generally discarded.</returns>
         TextureHandle UseTextureFragmentDepth(TextureHandle tex, AccessFlags flags = AccessFlags.Write);
+
+        /// <summary>
+        /// Use the texture as an random access attachment. This is called "Unordered Access View" in DX12 and "Storage Image" in Vulkan.
+        ///
+        /// This informs the graph that any shaders in the pass will access the texture as a random access attachment through RWTexture2d&lt;T&gt;, RWTexture3d&lt;T&gt;,... 
+        /// The texture can then be read/written by regular HLSL commands (including atomics, etc.).
+        ///
+        /// As in other parts of the Unity graphics APIs random access textures share the index-based slots with render targets and input attachments. See CommandBuffer.SetRandomWriteTarget for details.
+        /// </summary>
+        /// <param name="tex">Texture to use during this pass.</param>
+        /// <param name="index">Index the shader will use to access this texture. This is set in the shader through the `register(ux)`  keyword.</param>
+        /// <param name="flags">How this pass will acess the texture. Default value is set to AccessFlag.ReadWrite.</param>
+        /// <returns>A explicitly versioned handle representing the latest version of the passed in texture.
+        /// Note that except for special cases where you want to refer to a specific version return value is generally discarded.</returns>
+        TextureHandle UseTextureRandomAccess(TextureHandle tex, int index, AccessFlags flags = AccessFlags.ReadWrite);
+
+        /// <summary>
+        /// Use the buffer as an random access attachment. This is called "Unordered Access View" in DX12 and "Storage Buffer" in Vulkan.
+        ///
+        /// This informs the graph that any shaders in the pass will access the buffer as a random access attachment through RWStructuredBuffer, RWByteAddressBuffer,... 
+        /// The buffer can then be read/written by regular HLSL commands (including atomics, etc.).
+        ///
+        /// As in other parts of the Unity graphics APIs random access buffers share the index-based slots with render targets and input attachments. See CommandBuffer.SetRandomWriteTarget for details.
+        /// </summary>
+        /// <param name="tex">Buffer to use during this pass.</param>
+        /// <param name="index">Index the shader will use to access this texture. This is set in the shader through the `register(ux)`  keyword.</param>
+        /// <param name="flags">How this pass will acess the buffer. Default value is set to AccessFlag.Read.</param>
+        /// <returns>A explicitly versioned handle representing the latest version of the passed in buffer.
+        /// Note that except for special cases where you want to refer to a specific version return value is generally discarded.</returns>
+        BufferHandle UseBufferRandomAccess(BufferHandle tex, int index, AccessFlags flags = AccessFlags.Read);
+
+        /// <summary>
+        /// Use the buffer as an random access attachment. This is called "Unordered Access View" in DX12 and "Storage Buffer" in Vulkan.
+        ///
+        /// This informs the graph that any shaders in the pass will access the buffer as a random access attachment through RWStructuredBuffer, RWByteAddressBuffer,... 
+        /// The buffer can then be read/written by regular HLSL commands (including atomics, etc.).
+        ///
+        /// As in other parts of the Unity graphics APIs random access buffers share the index-based slots with render targets and input attachments. See CommandBuffer.SetRandomWriteTarget for details.
+        /// </summary>
+        /// <param name="tex">Buffer to use during this pass.</param>
+        /// <param name="index">Index the shader will use to access this texture. This is set in the shader through the `register(ux)`  keyword.</param>
+        /// <param name="preserveCounterValue">Whether to leave the append/consume counter value unchanged. The default is to preserve the value.</param>
+        /// <param name="flags">How this pass will acess the buffer. Default value is set to AccessFlag.Read.</param>
+        /// <returns>A explicitly versioned handle representing the latest version of the passed in buffer.
+        /// Note that except for special cases where you want to refer to a specific version return value is generally discarded.</returns>
+        BufferHandle UseBufferRandomAccess(BufferHandle tex, int index, bool preserveCounterValue, AccessFlags flags = AccessFlags.Read);
 
         /// <summary>
         /// Specify the render function to use for this pass.

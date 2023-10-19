@@ -764,9 +764,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
 
-            createColorTexture |= RequiresIntermediateColorTexture(cameraData);
-            createColorTexture |= renderPassInputs.requiresColorTexture;
-            createColorTexture |= renderPassInputs.requiresColorTextureCreated;
+            createColorTexture |= RequiresIntermediateColorTexture(cameraData, ref renderPassInputs);
             createColorTexture &= !isPreviewCamera;
 
             // If camera requires depth and there's no depth pre-pass we create a depth texture that can be read later by effect requiring it.
@@ -1628,7 +1626,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="cameraData">CameraData contains all relevant render target information for the camera.</param>
         /// <seealso cref="CameraData"/>
         /// <returns>Return true if pipeline needs to render to a intermediate render texture.</returns>
-        bool RequiresIntermediateColorTexture(UniversalCameraData cameraData)
+        bool RequiresIntermediateColorTexture(UniversalCameraData cameraData, ref RenderPassInputSummary renderPassInputs)
         {
             // When rendering a camera stack we always create an intermediate render texture to composite camera results.
             // We create it upon rendering the Base camera.
@@ -1666,7 +1664,8 @@ namespace UnityEngine.Rendering.Universal
                 return requiresBlitForOffscreenCamera;
 
             return requiresBlitForOffscreenCamera || isSceneViewCamera || isScaledRender || cameraData.isHdrEnabled ||
-                !isCompatibleBackbufferTextureDimension || isCapturing || cameraData.requireSrgbConversion;
+                !isCompatibleBackbufferTextureDimension || isCapturing || cameraData.requireSrgbConversion ||
+                renderPassInputs.requiresColorTexture || renderPassInputs.requiresColorTextureCreated;
         }
 
         bool CanCopyDepth(UniversalCameraData cameraData)

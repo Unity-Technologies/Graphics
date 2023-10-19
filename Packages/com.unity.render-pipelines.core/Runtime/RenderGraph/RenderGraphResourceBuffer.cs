@@ -22,6 +22,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         internal ResourceHandle handle;
 
+        internal BufferHandle(ResourceHandle h) { handle = h; }
+
         internal BufferHandle(int handle, bool shared = false) { this.handle = new ResourceHandle(handle, RenderGraphResourceType.Buffer, shared); }
 
         /// <summary>

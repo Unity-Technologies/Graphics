@@ -169,9 +169,25 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
                             }
                         }
 
-                        // Not sure what having no fragment would mean, you're reading fragment inputs but not outputing anything???
-                        // could happen if you're trying to write to a raw buffer instead of pixel output?!? anyhow
-                        // this sounds dodgy so assert for now until we clear this one out
+                        // Grab offset in context random write list to begin building the per pass random write lists
+                        ctxPass.firstRandomAccessResource = ctx.randomAccessResourceData.Length;
+
+                        for (var ci = 0; ci < passes[passId].randomAccessResourceMaxIndex + 1; ++ci)
+                        {
+                            ref var uav = ref passes[passId].randomAccessResource[ci];
+
+                            // Skip unused random write slots
+                            if (!uav.h.IsValid()) continue;
+
+                            if (ctx.AddToRandomAccessResourceList(uav.h, ci, uav.preserveCounterValue, ctxPass.firstRandomAccessResource, ctxPass.numRandomAccessResources))
+                            {
+                                ctxPass.AddRandomAccessResource();
+                            }
+                        }
+
+                        // This is suspicious, there are frame buffer fetch inputs but nothing is output. We don't allow this for now.
+                        // In theory you could fb-fetch inputs and write something to a uav and output nothing? This needs to be investigated
+                        // so don't allow it for now.
                         if (ctxPass.numFragments == 0)
                         {
                             Debug.Assert(ctxPass.numFragmentInputs == 0);
@@ -554,6 +570,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
                                 // surely it can't be memoryless then?
                                 // That is true, but it can never happen as the fact these passes got merged means the textures cannot be used
                                 // as regular textures halfway through a pass. If that were the case they would never have been merged in the first place.
+                                // Except! If the pass consists of a single pass, in that case a texture could be allocated and freed within the single pass
+                                // This is a somewhat degenerate case (e.g. a pass with culling forced off doing a uav write that is never used anywhere)
+                                // But to avoid execution errors we still need to create the resource in this case.
 
                                 // Check if it is in the destroy list of any of the subpasses > if yes > memoryless
                                 foreach (ref readonly var subPass2 in graphPasses)
@@ -565,8 +584,13 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
                                         {
                                             if (createdRes.index == destroyedRes.index && !isGlobal)
                                             {
-                                                createInfo.memoryLess = true;
-                                                destInfo.memoryLess = true;
+                                                // If a single pass in the native pass we need to check fragment attachment otherwise we're good
+                                                // we could always check this in theory but it's an optimization not to check it.
+                                                if (nativePass.numNativeSubPasses > 1 || subPass2.IsUsedAsFragment(createdRes, contextData))
+                                                {
+                                                    createInfo.memoryLess = true;
+                                                    destInfo.memoryLess = true;
+                                                }
                                             }
                                         }
                                     }
@@ -653,13 +677,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
         {
             using (new ProfilingScope(ProfilingSampler.Get(NativeCompilerProfileId.NRPRGComp_GenBeginRenderpassCommand)))
             {
-                // Some passes don't do any rendering so just skip them
-                // E.g. the "SetShadowGlobals" pass
                 ref readonly var firstGraphPass = ref contextData.passData.ElementAt(nativePass.firstGraphPass);
                 ref readonly var lastGraphPass = ref contextData.passData.ElementAt(nativePass.firstGraphPass + nativePass.numGraphPasses - 1);
 
-                // This can happen when we merge a number of raster passes that all have no rendertargets
-                // e.g. a number of "set global" passes
+                // Some passes don't do any rendering only state changes so just skip them
+                // If these passes trigger any drawing the raster command buffer will warn users no render targets are set-up for their rendering
                 if (nativePass.fragments.size <= 0)
                 {
                     return;
@@ -1152,7 +1174,22 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
                         }
                     }
 
+                    if (pass.numRandomAccessResources > 0)
+                    {
+                        //TODO: are we that paranoid? maybe clean it once at the beginning of the graph?
+                        passCmdBuffer.ClearRandomWriteTargets();
+                        foreach (var randomWriteAttachment in pass.RandomWriteTextures(contextData))
+                        {
+                            passCmdBuffer.SetRandomWriteTarget(randomWriteAttachment.index, randomWriteAttachment.resource);
+                        }
+                    }
+
                     passCmdBuffer.ExecuteGraphNode(pass.passId);
+
+                    if (pass.numRandomAccessResources > 0)
+                    {
+                        passCmdBuffer.ClearRandomWriteTargets();
+                    }
 
                     // should we insert a fence to sync between difference queues?
                     if (pass.insertGraphicsFence)

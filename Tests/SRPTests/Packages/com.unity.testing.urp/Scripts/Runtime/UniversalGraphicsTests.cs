@@ -5,6 +5,7 @@ using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Graphics;
@@ -79,6 +80,19 @@ public class UniversalGraphicsTests
 
         if (!settings.gpuDrivenCompatible && GPUResidentDrawerRequested())
             Assert.Ignore("Test scene is not compatible with GPU Driven and and will be skipped.");
+
+        // Check for RenderGraph compatibility and skip test if needed.
+        bool isUsingRenderGraph = RenderGraphGraphicsAutomatedTests.enabled;
+#if RENDER_GRAPH_ENABLED
+        if (UniversalRenderPipelineGlobalSettings.instance)
+            isUsingRenderGraph |= UniversalRenderPipelineGlobalSettings.instance.enableRenderGraph;
+#endif
+
+        if (isUsingRenderGraph && settings.renderBackendCompatibility == UniversalGraphicsTestSettings.RenderBackendCompatibility.NonRenderGraph)
+            Assert.Ignore("Test scene is not compatible with Render Graph and will be skipped.");
+        else if (!isUsingRenderGraph && settings.renderBackendCompatibility == UniversalGraphicsTestSettings.RenderBackendCompatibility.RenderGraph)
+            Assert.Ignore("Test scene is not compatible with non-Render Graph and will be skipped.");
+
 
         int waitFrames = 1;
 
