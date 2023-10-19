@@ -156,6 +156,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         SphericalHarmonicsL2 m_BlackAmbientProbe = new SphericalHarmonicsL2();
 
+        HDRenderPipeline m_RenderPipeline;
         bool m_UpdateRequired = false;
         bool m_StaticSkyUpdateRequired = false;
         int m_Resolution, m_LowResolution;
@@ -396,7 +397,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 m_DefaultPreviewSky = ScriptableObject.CreateInstance<HDRISky>();
                 m_DefaultPreviewSky.hdriSky.overrideState = true;
-                m_DefaultPreviewSky.hdriSky.value = HDRenderPipeline.currentAsset?.renderPipelineResources?.textures?.defaultHDRISky;
+                m_DefaultPreviewSky.hdriSky.value = m_RenderPipeline.runtimeTextures.defaultHDRISky;
             }
 
             return m_DefaultPreviewSky;
@@ -404,18 +405,19 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #endif
 
-        public void Build(HDRenderPipelineAsset hdAsset, HDRenderPipelineRuntimeResources defaultResources, IBLFilterBSDF[] iblFilterBSDFArray)
+        public void Build(HDRenderPipelineAsset hdAsset, HDRenderPipeline renderPipeline, IBLFilterBSDF[] iblFilterBSDFArray)
         {
+            m_RenderPipeline = renderPipeline;
             m_LowResolution = 16;
             m_Resolution = (int)hdAsset.currentPlatformRenderPipelineSettings.lightLoopSettings.skyReflectionSize;
             m_IBLFilterArray = iblFilterBSDFArray;
 
-            m_StandardSkyboxMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.skyboxCubemapPS);
-            m_BlitCubemapMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.blitCubemapPS);
+            m_StandardSkyboxMaterial = CoreUtils.CreateEngineMaterial(m_RenderPipeline.runtimeShaders.skyboxCubemapPS);
+            m_BlitCubemapMaterial = CoreUtils.CreateEngineMaterial(m_RenderPipeline.runtimeShaders.blitCubemapPS);
 
-            m_OpaqueAtmScatteringMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.opaqueAtmosphericScatteringPS);
+            m_OpaqueAtmScatteringMaterial = CoreUtils.CreateEngineMaterial(m_RenderPipeline.runtimeShaders.opaqueAtmosphericScatteringPS);
 
-            m_ComputeAmbientProbeCS = HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders.ambientProbeConvolutionCS;
+            m_ComputeAmbientProbeCS = m_RenderPipeline.runtimeShaders.ambientProbeConvolutionCS;
             m_ComputeAmbientProbeKernel = m_ComputeAmbientProbeCS.FindKernel("AmbientProbeConvolutionDiffuse");
             m_ComputeAmbientProbeVolumetricKernel = m_ComputeAmbientProbeCS.FindKernel("AmbientProbeConvolutionDiffuseVolumetric");
             m_ComputeAmbientProbeCloudsKernel = m_ComputeAmbientProbeCS.FindKernel("AmbientProbeConvolutionClouds");
@@ -1623,8 +1625,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 
             // Happens sometime in the tests.
-            if (m_StandardSkyboxMaterial == null)
+            if (m_StandardSkyboxMaterial == null && HDRenderPipelineGlobalSettings.instance != null)
                 m_StandardSkyboxMaterial = CoreUtils.CreateEngineMaterial(HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders.skyboxCubemapPS);
+
+            if (m_StandardSkyboxMaterial == null)
+                Debug.LogError("Unable to create the default Skybox material. Baking cancelled.");
 
             // It is possible that HDRP hasn't rendered any frame when clicking the bake lighting button.
             // This can happen when baked lighting debug are used for example and no other window with HDRP is visible.

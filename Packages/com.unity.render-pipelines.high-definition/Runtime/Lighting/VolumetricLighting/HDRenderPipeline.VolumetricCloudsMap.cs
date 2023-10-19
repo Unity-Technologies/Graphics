@@ -9,12 +9,13 @@ namespace UnityEngine.Rendering.HighDefinition
         RTHandle m_AdvancedCloudMap;
         int m_CloudMapHash;
         int m_EvaluateCloudMapKernel;
+        ComputeShader m_CloudMapGeneratorCS;
 
         void InitializeVolumetricCloudsMap()
         {
             // Grab the kernels we need
-            ComputeShader cloudMapGeneratorCS = m_Asset.renderPipelineResources.shaders.volumetricCloudMapGeneratorCS;
-            m_EvaluateCloudMapKernel = cloudMapGeneratorCS.FindKernel("EvaluateCloudMap");
+            m_CloudMapGeneratorCS = runtimeShaders.volumetricCloudMapGeneratorCS;
+            m_EvaluateCloudMapKernel = m_CloudMapGeneratorCS.FindKernel("EvaluateCloudMap");
             m_CloudMapHash = 0;
         }
 
@@ -100,7 +101,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             parameters.cloudMapResolution = (int)settings.cloudMapResolution.value;
 
-            parameters.generationCS = m_Asset.renderPipelineResources.shaders.volumetricCloudMapGeneratorCS;
+            parameters.generationCS = m_CloudMapGeneratorCS;
             parameters.generationKernel = m_EvaluateCloudMapKernel;
 
             parameters.cumulusMap = settings.cumulusMap.value != null ? settings.cumulusMap.value : Texture2D.blackTexture;

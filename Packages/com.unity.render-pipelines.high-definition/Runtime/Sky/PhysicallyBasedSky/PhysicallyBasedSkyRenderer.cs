@@ -321,14 +321,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public override void Build()
         {
-            var hdrpResources = HDRenderPipelineGlobalSettings.instance.renderPipelineResources;
+            var shaders = HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders;
 
             // Shaders
-            s_GroundIrradiancePrecomputationCS = hdrpResources.shaders.groundIrradiancePrecomputationCS;
-            s_InScatteredRadiancePrecomputationCS = hdrpResources.shaders.inScatteredRadiancePrecomputationCS;
+            s_GroundIrradiancePrecomputationCS = shaders.groundIrradiancePrecomputationCS;
+            s_InScatteredRadiancePrecomputationCS = shaders.inScatteredRadiancePrecomputationCS;
             s_PbrSkyMaterialProperties = new MaterialPropertyBlock();
 
-            m_PbrSkyMaterial = CoreUtils.CreateEngineMaterial(hdrpResources.shaders.physicallyBasedSkyPS);
+            m_PbrSkyMaterial = CoreUtils.CreateEngineMaterial(shaders.physicallyBasedSkyPS);
 
             Debug.Assert(s_GroundIrradiancePrecomputationCS != null);
             Debug.Assert(s_InScatteredRadiancePrecomputationCS != null);

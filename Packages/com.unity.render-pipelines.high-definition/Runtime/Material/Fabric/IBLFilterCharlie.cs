@@ -2,10 +2,9 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     class IBLFilterCharlie : IBLFilterBSDF
     {
-        public IBLFilterCharlie(HDRenderPipelineRuntimeResources renderPipelineResources, MipGenerator mipGenerator)
+        public IBLFilterCharlie(HDRenderPipeline renderPipeline, MipGenerator mipGenerator)
+            : base(renderPipeline, mipGenerator)
         {
-            m_RenderPipelineResources = renderPipelineResources;
-            m_MipGenerator = mipGenerator;
         }
 
         public override bool IsInitialized()
@@ -17,7 +16,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (!m_convolveMaterial)
             {
-                m_convolveMaterial = CoreUtils.CreateEngineMaterial(m_RenderPipelineResources.shaders.charlieConvolvePS);
+                m_convolveMaterial = CoreUtils.CreateEngineMaterial(m_RenderPipeline.runtimeShaders.charlieConvolvePS);
             }
 
             for (int i = 0; i < 6; ++i)

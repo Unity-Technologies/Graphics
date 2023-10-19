@@ -7,8 +7,14 @@ namespace UnityEngine.Rendering.HighDefinition
         protected Matrix4x4[] m_faceWorldToViewMatrixMatrices = new Matrix4x4[6];
 
         // Input data
-        protected HDRenderPipelineRuntimeResources m_RenderPipelineResources;
+        protected HDRenderPipeline m_RenderPipeline;
         protected MipGenerator m_MipGenerator;
+
+        protected IBLFilterBSDF(HDRenderPipeline renderPipeline, MipGenerator mipGenerator)
+        {
+            m_RenderPipeline = renderPipeline;
+            m_MipGenerator = mipGenerator;
+        }
 
         abstract public bool IsInitialized();
 

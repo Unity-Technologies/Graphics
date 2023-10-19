@@ -46,7 +46,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (var builder = renderGraph.AddRenderPass<RenderDenoisePassData>("Denoise Pass", out var passData))
             {
-                passData.blitAndExposeCS = m_Asset.renderPipelineResources.shaders.blitAndExposeCS;
+                passData.blitAndExposeCS = runtimeShaders.blitAndExposeCS;
                 passData.blitAndExposeKernel = passData.blitAndExposeCS.FindKernel("KMain");
                 passData.subFrameManager = m_SubFrameManager;
                 // Note: for now we enable AOVs when temporal is enabled, because this seems to work better with Optix.

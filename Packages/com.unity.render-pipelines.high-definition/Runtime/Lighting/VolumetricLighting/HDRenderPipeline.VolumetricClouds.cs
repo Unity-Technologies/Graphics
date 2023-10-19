@@ -89,7 +89,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_PhaseZHClouds.coeffs = new float[3];
 
             // Grab the kernels we need
-            m_VolumetricCloudsCS = m_Asset.renderPipelineResources.shaders.volumetricCloudsCS;
+            m_VolumetricCloudsCS = runtimeShaders.volumetricCloudsCS;
             m_ConvertObliqueDepthKernel = m_VolumetricCloudsCS.FindKernel("ConvertObliqueDepth");
             m_CloudDownscaleDepthKernel = m_VolumetricCloudsCS.FindKernel("DownscaleDepth");
 
@@ -107,9 +107,9 @@ namespace UnityEngine.Rendering.HighDefinition
             m_CombineCloudsSkyKernel = m_VolumetricCloudsCS.FindKernel("CombineCloudsSky");
 
             // Create the material needed for the combination
-            m_CloudCombinePass = CoreUtils.CreateEngineMaterial(runtimeResources.shaders.volumetricCloudsCombinePS);
+            m_CloudCombinePass = CoreUtils.CreateEngineMaterial(runtimeShaders.volumetricCloudsCombinePS);
 
-            m_VolumetricCloudsTraceCS = m_Asset.renderPipelineResources.shaders.volumetricCloudsTraceCS;
+            m_VolumetricCloudsTraceCS = runtimeShaders.volumetricCloudsTraceCS;
             m_CloudRenderKernel = m_VolumetricCloudsTraceCS.FindKernel("RenderClouds");
 
             // Allocate all the texture initially
@@ -498,11 +498,11 @@ namespace UnityEngine.Rendering.HighDefinition
             switch (noiseType)
             {
                 case VolumetricClouds.CloudErosionNoise.Worley32:
-                    return m_Asset.renderPipelineResources.textures.worleyNoise32RGB;
+                    return runtimeTextures.worleyNoise32RGB;
                 case VolumetricClouds.CloudErosionNoise.Perlin32:
-                    return m_Asset.renderPipelineResources.textures.perlinNoise32RGB;
+                    return runtimeTextures.perlinNoise32RGB;
             }
-            return m_Asset.renderPipelineResources.textures.worleyNoise32RGB;
+            return runtimeTextures.worleyNoise32RGB;
         }
 
         void FillVolumetricCloudsCommonData(bool enableExposureControl, VolumetricClouds settings, TVolumetricCloudsCameraType cameraType, in CloudModelData cloudModelData, ref VolumetricCloudCommonData commonData)
@@ -524,7 +524,7 @@ namespace UnityEngine.Rendering.HighDefinition
             else if (settings.cloudControl.value == VolumetricClouds.CloudControl.Advanced)
             {
                 commonData.cloudMapTexture = m_AdvancedCloudMap;
-                commonData.cloudLutTexture = m_Asset.renderPipelineResources.textures.cloudLutRainAO;
+                commonData.cloudLutTexture = runtimeTextures.cloudLutRainAO;
                 commonData.microErosion = settings.microErosion.value;
             }
             else
@@ -534,7 +534,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 commonData.microErosion = settings.microErosion.value;
             }
 
-            commonData.worley128RGBA = m_Asset.renderPipelineResources.textures.worleyNoise128RGBA;
+            commonData.worley128RGBA = runtimeTextures.worleyNoise128RGBA;
             commonData.erosionNoise = ErosionNoiseTypeToTexture(cloudModelData.erosionNoise);
             BlueNoise blueNoise = GetBlueNoiseManager();
             commonData.ditheredTextureSet = blueNoise.DitheredTextureSet8SPP();

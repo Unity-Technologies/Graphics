@@ -30,9 +30,9 @@ namespace UnityEngine.Rendering.HighDefinition
         void InitializeVolumetricCloudsShadows()
         {
             // Grab the kernels we need
-            m_VolumetricCloudsTraceShadowsCS = m_Asset.renderPipelineResources.shaders.volumetricCloudsTraceShadowsCS;
+            m_VolumetricCloudsTraceShadowsCS = runtimeShaders.volumetricCloudsTraceShadowsCS;
             m_TraceVolumetricCloudsShadowsKernel = m_VolumetricCloudsTraceShadowsCS.FindKernel("TraceVolumetricCloudsShadows");
-            m_VolumetricCloudsShadowFilterCS = m_Asset.renderPipelineResources.shaders.volumetricCloudsShadowFilterCS;
+            m_VolumetricCloudsShadowFilterCS = runtimeShaders.volumetricCloudsShadowFilterCS;
             m_FilterShadowCloudsKernel = m_VolumetricCloudsShadowFilterCS.FindKernel("FilterVolumetricCloudsShadow");
 
             // Invalidate the shadow region

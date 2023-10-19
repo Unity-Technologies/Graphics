@@ -17,8 +17,8 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_Asset.currentPlatformRenderPipelineSettings.supportSSGI)
             {
                 // Grab the sets of shaders that we'll be using
-                ComputeShader ssGICS = m_Asset.renderPipelineResources.shaders.screenSpaceGlobalIlluminationCS;
-                ComputeShader bilateralUpsampleCS = m_Asset.renderPipelineResources.shaders.bilateralUpsampleCS;
+                ComputeShader ssGICS = runtimeShaders.screenSpaceGlobalIlluminationCS;
+                ComputeShader bilateralUpsampleCS =runtimeShaders.bilateralUpsampleCS;
 
                 // Grab the set of kernels that we shall be using
                 m_TraceGlobalIlluminationKernel = ssGICS.FindKernel("TraceGlobalIllumination");
@@ -192,7 +192,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.rayMiss = (int)giSettings.rayMiss.value;
 
                 // Grab the right kernel
-                passData.ssGICS = asset.renderPipelineResources.shaders.screenSpaceGlobalIlluminationCS;
+                passData.ssGICS = runtimeShaders.screenSpaceGlobalIlluminationCS;
                 passData.traceKernel = giSettings.fullResolutionSS.value ? m_TraceGlobalIlluminationKernel : m_TraceGlobalIlluminationHalfKernel;
                 passData.projectKernel = giSettings.fullResolutionSS.value ? m_ReprojectGlobalIlluminationKernel : m_ReprojectGlobalIlluminationHalfKernel;
 
@@ -334,7 +334,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 // Grab the right kernel
-                passData.bilateralUpsampleCS = m_Asset.renderPipelineResources.shaders.bilateralUpsampleCS;
+                passData.bilateralUpsampleCS = runtimeShaders.bilateralUpsampleCS;
                 passData.upscaleKernel = m_BilateralUpSampleColorKernel;
 
                 passData.depthTexture = builder.ReadTexture(depthPyramid);

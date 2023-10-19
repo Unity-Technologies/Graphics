@@ -33,10 +33,12 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             if (!HDRenderPipeline.isReady)
                 return;
 
+            var runtimeShaders = HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders;
+
             // Setup code here
             if (string.IsNullOrEmpty(name)) name = "CustomClear";
 
-            m_FullscreenPassMaterial = CoreUtils.CreateEngineMaterial(HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders.customClearPS);
+            m_FullscreenPassMaterial = CoreUtils.CreateEngineMaterial(runtimeShaders.customClearPS);
             m_ClearColorAndStencilPassIndex = m_FullscreenPassMaterial.FindPass("ClearColorAndStencil");
             m_DrawTextureAndClearStencilPassIndex = m_FullscreenPassMaterial.FindPass("DrawTextureAndClearStencil");
         }

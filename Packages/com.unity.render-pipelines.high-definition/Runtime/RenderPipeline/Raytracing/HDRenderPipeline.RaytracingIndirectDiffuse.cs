@@ -220,7 +220,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Grab the additional parameters
                 passData.blueNoiseTexture = GetBlueNoiseManager().textureArray16RGB;
-                passData.scramblingTexture = m_Asset.renderPipelineResources.textures.scramblingTex;
+                passData.scramblingTexture = runtimeTextures.scramblingTex;
 
                 passData.depthBuffer = builder.ReadTexture(depthPyramid);
                 passData.normalBuffer = builder.ReadTexture(normalBuffer);

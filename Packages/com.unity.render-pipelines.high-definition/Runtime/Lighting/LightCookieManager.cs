@@ -49,17 +49,16 @@ namespace UnityEngine.Rendering.HighDefinition
         readonly int cookieAtlasLastValidMip;
         readonly GraphicsFormat cookieFormat;
 
-        public LightCookieManager(HDRenderPipelineAsset hdAsset, int maxCacheSize)
+        public LightCookieManager(HDRenderPipelineAsset hdAsset, HDRenderPipeline renderPipeline, int maxCacheSize)
         {
             // Keep track of the render pipeline asset
             m_RenderPipelineAsset = hdAsset;
-            var hdResources = HDRenderPipelineGlobalSettings.instance.renderPipelineResources;
 
             // Create the texture cookie cache that we shall be using for the area lights
             GlobalLightLoopSettings gLightLoopSettings = hdAsset.currentPlatformRenderPipelineSettings.lightLoopSettings;
 
             // Also make sure to create the engine material that is used for the filtering
-            m_MaterialFilterAreaLights = CoreUtils.CreateEngineMaterial(hdResources.shaders.filterAreaLightCookiesPS);
+            m_MaterialFilterAreaLights = CoreUtils.CreateEngineMaterial(renderPipeline.runtimeShaders.filterAreaLightCookiesPS);
 
             int cookieAtlasSize = (int)gLightLoopSettings.cookieAtlasSize;
             cookieFormat = (GraphicsFormat)gLightLoopSettings.cookieFormat;

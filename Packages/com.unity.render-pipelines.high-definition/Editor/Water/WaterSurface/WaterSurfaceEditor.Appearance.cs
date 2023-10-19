@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using static UnityEditor.EditorGUI;
 
@@ -132,33 +133,35 @@ namespace UnityEditor.Rendering.HighDefinition
 
         internal static string GetWaterResourcesPath(MonoBehaviour component)
         {
-            var sceneName = component.gameObject.scene.name;
-            string folderName = "Assets/WaterResources/" + sceneName;
-            // Make sure the folder exists
-            if (!AssetDatabase.IsValidFolder("Assets/WaterResources"))
-                AssetDatabase.CreateFolder("Assets", "WaterResources");
-            if (!AssetDatabase.IsValidFolder(folderName))
-                AssetDatabase.CreateFolder("Assets/WaterResources", sceneName);
+            string sceneName = component.gameObject.scene.name;
+            if (string.IsNullOrEmpty(sceneName))
+                sceneName = "Untitled";
 
+            string folderName = $"Assets/WaterResources/{sceneName}";
+            CoreUtils.EnsureFolderTreeInAssetFilePath(folderName);
             return folderName;
         }
-
+        
         internal static Material CreateNewWaterMaterialAndShader(MonoBehaviour component)
         {
             string folderName = GetWaterResourcesPath(component);
 
             // Make sure they don't already exist
-            var sgPath = AssetDatabase.GenerateUniqueAssetPath(folderName + "/" + component.name + ".shadergraph");
-
-            // Copy the shader graph
-            var originalSG = HDRenderPipeline.currentAsset.renderPipelineResources.shaders.waterPS;
-            if (!AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(originalSG), sgPath))
+            var path = $"{folderName}/{component.name}.shadergraph";
+            if (AssetDatabase.AssetPathExists(path))
             {
-                Debug.LogWarning("Failed to copy the Water Shader Graph at: " + sgPath);
+                Debug.LogWarning($"A Water Shader or Material at {path} already exists.");
                 return null;
             }
 
-            return AssetDatabase.LoadAssetAtPath<Material>(sgPath);
+            var shader = HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders.waterPS;
+            if (!AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(shader), path))
+            {
+                Debug.LogWarning($"Failed to copy the Water Shader Graph to {path}");
+                return null;
+            }
+
+            return AssetDatabase.LoadAssetAtPath<Material>(path);
         }
 
         static internal void MaterialFieldWithButton(GUIContent label, SerializedProperty prop, System.Func<Material> onClick)

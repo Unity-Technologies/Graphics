@@ -46,16 +46,16 @@ namespace UnityEngine.Rendering.HighDefinition
         static int normalToColorPassIndex;
         static int tangentToColorPassIndex;
 
-        internal static void Initialize()
+        internal static void Initialize(HDRenderPipeline renderPipeline)
         {
-            customPassUtilsMaterial = CoreUtils.CreateEngineMaterial(HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders.customPassUtils);
+            customPassUtilsMaterial = CoreUtils.CreateEngineMaterial(renderPipeline.runtimeShaders.customPassUtils);
             downSamplePassIndex = customPassUtilsMaterial.FindPass("Downsample");
             verticalBlurPassIndex = customPassUtilsMaterial.FindPass("VerticalBlur");
             horizontalBlurPassIndex = customPassUtilsMaterial.FindPass("HorizontalBlur");
             copyPassIndex = customPassUtilsMaterial.FindPass("Copy");
             copyDepthPassIndex = customPassUtilsMaterial.FindPass("CopyDepth");
 
-            customPassRenderersUtilsMaterial = CoreUtils.CreateEngineMaterial(HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders.customPassRenderersUtils);
+            customPassRenderersUtilsMaterial = CoreUtils.CreateEngineMaterial(renderPipeline.runtimeShaders.customPassRenderersUtils);
             depthToColorPassIndex = customPassRenderersUtilsMaterial.FindPass("DepthToColorPass");
             depthPassIndex = customPassRenderersUtilsMaterial.FindPass("DepthPass");
             normalToColorPassIndex = customPassRenderersUtilsMaterial.FindPass("NormalToColorPass");
