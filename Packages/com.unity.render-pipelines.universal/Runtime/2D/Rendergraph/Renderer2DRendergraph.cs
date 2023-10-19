@@ -488,6 +488,13 @@ namespace UnityEngine.Rendering.Universal
             // Default Render Pass
             for (var i = 0; i < m_BatchCount; i++)
             {
+                if (!renderGraph.NativeRenderPassesEnabled && i == 0)
+                {
+                    RTClearFlags clearFlags = (RTClearFlags)GetCameraClearFlag(cameraData);
+                    if (clearFlags != RTClearFlags.None)
+                        ClearTargetsPass.Render(renderGraph, commonResourceData.activeColorTexture, commonResourceData.activeDepthTexture, clearFlags, cameraData.backgroundColor);
+                }
+
                 ref var layerBatch = ref m_LayerBatches[i];
 
                 LayerUtility.GetFilterSettings(m_Renderer2DData, ref m_LayerBatches[i], cameraSortingLayerBoundsIndex, out var filterSettings);
@@ -585,14 +592,11 @@ namespace UnityEngine.Rendering.Universal
                 finalColorHandle = commonResourceData.afterPostProcessColor;
             }
 
-            if (isPixelPerfectCameraEnabled)
+            // Do PixelPerfect upscaling when using the Stretch Fill option
+            if (requirePixelPerfectUpscale)
             {
-                // Do PixelPerfect upscaling when using the Stretch Fill option
-                if (requirePixelPerfectUpscale)
-                {
-                    m_UpscalePass.Render(renderGraph, cameraData.camera, in finalColorHandle, universal2DResourceData.upscaleTexture);
-                    finalColorHandle = universal2DResourceData.upscaleTexture;
-                }
+                m_UpscalePass.Render(renderGraph, cameraData.camera, in finalColorHandle, universal2DResourceData.upscaleTexture);
+                finalColorHandle = universal2DResourceData.upscaleTexture;
             }
 
             // We need to switch the "final" blit target to debugScreenColor if HDR debug views are enabled.
