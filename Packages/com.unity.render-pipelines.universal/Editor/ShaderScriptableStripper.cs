@@ -661,13 +661,7 @@ namespace UnityEditor.Rendering.Universal
 
         internal bool StripUnusedFeatures_AccurateGbufferNormals(ref IShaderScriptableStrippingData strippingData, ref ShaderStripTool<ShaderFeatures> stripTool)
         {
-            // Do not strip accurateGbufferNormals on Mobile Vulkan as some GPUs do not support R8G8B8A8_SNorm,
-            // which then force us to use accurateGbufferNormals
-            if (strippingData.shaderCompilerPlatform != ShaderCompilerPlatform.Vulkan)
-                if (stripTool.StripMultiCompile(m_GbufferNormalsOct, ShaderFeatures.AccurateGbufferNormals))
-                    return true;
-
-            return false;
+            return stripTool.StripMultiCompile(m_GbufferNormalsOct, ShaderFeatures.AccurateGbufferNormals);
         }
 
         internal bool StripUnusedFeatures_LightCookies(ref IShaderScriptableStrippingData strippingData, ref ShaderStripTool<ShaderFeatures> stripTool)
@@ -685,10 +679,10 @@ namespace UnityEditor.Rendering.Universal
             // If this is not the right shader, then skip
             if (strippingData.shader != m_DataDrivenLensFlareShader)
                 return false;
-            
+
             return !strippingData.IsShaderFeatureEnabled(ShaderFeatures.DataDrivenLensFlare);
         }
-        
+
         internal bool StripUnusedFeatures_ScreenSpaceLensFlare(ref IShaderScriptableStrippingData strippingData)
         {
             // If this is not the right shader, then skip
@@ -717,10 +711,10 @@ namespace UnityEditor.Rendering.Universal
 
             if (StripUnusedFeatures_DeferredRendering(ref strippingData))
                 return true;
-            
+
             if (StripUnusedFeatures_DataDrivenLensFlare(ref strippingData))
                 return true;
-           
+
             // Eventhough, it's a post process and a volume override, we put that here since it depend on a URP asset property.
             if (StripUnusedFeatures_ScreenSpaceLensFlare(ref strippingData))
                 return true;
