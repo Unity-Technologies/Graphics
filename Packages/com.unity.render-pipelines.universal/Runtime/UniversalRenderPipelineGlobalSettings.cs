@@ -155,8 +155,10 @@ namespace UnityEngine.Rendering.Universal
             }
 
             if (instance != null && instance.m_AssetVersion != k_LastVersion)
+            {
                 UpgradeAsset(instance.GetInstanceID());
-
+                AssetDatabase.SaveAssetIfDirty(instance);
+			}
             return instance;
         }
 
