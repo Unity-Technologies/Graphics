@@ -59,6 +59,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             var urpMetadata = ScriptableObject.CreateInstance<UniversalMetadata>();
             urpMetadata.shaderID = shaderID;
             urpMetadata.alphaMode = target.alphaMode;
+            urpMetadata.isVFXCompatible = graphData.IsVFXCompatible();
 
             if (shaderID != ShaderID.SG_SpriteLit && shaderID != ShaderID.SG_SpriteUnlit)
             {
