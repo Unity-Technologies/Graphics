@@ -192,14 +192,6 @@ namespace UnityEngine.Rendering.Universal
             descriptor.depthStencilFormat = depthStencilFormat;
         }
 
-        internal void BlitTextureToDebugScreenTexture(CommandBuffer cmd, RTHandle sourceTexture, Material material, int passId)
-        {
-            Vector2 viewportScale = sourceTexture.useScaling ? new Vector2(sourceTexture.rtHandleProperties.rtHandleScale.x, sourceTexture.rtHandleProperties.rtHandleScale.y) : Vector2.one;
-
-            CoreUtils.SetRenderTarget(cmd, m_DebugScreenColorHandle, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store);
-            Blitter.BlitTexture(cmd, sourceTexture, viewportScale, material, passId);
-        }
-
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
         internal void SetupShaderProperties(RasterCommandBuffer cmd, int passIndex = 0)
         {

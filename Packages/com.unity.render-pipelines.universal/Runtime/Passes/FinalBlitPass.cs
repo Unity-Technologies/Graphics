@@ -101,6 +101,19 @@ namespace UnityEngine.Rendering.Universal.Internal
         }
 
         /// <inheritdoc/>
+        public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
+        {
+            UniversalCameraData cameraData = renderingData.frameData.Get<UniversalCameraData>();
+            DebugHandler debugHandler = GetActiveDebugHandler(cameraData);
+            bool resolveToDebugScreen = debugHandler != null && debugHandler.WriteToDebugScreenTexture(cameraData.resolveFinalTarget);
+            
+            if (resolveToDebugScreen)
+            {
+                ConfigureTarget(debugHandler.DebugScreenColorHandle, debugHandler.DebugScreenDepthHandle);
+            }
+        }
+
+        /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             ContextContainer frameData = renderingData.frameData;
@@ -117,7 +130,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             var cameraTarget = RenderingUtils.GetCameraTargetIdentifier(ref renderingData);
             DebugHandler debugHandler = GetActiveDebugHandler(cameraData);
-            bool resolveToDebugScreen = debugHandler != null && debugHandler.WriteToDebugScreenTexture(cameraData.isPreviewCamera);
+            bool resolveToDebugScreen = debugHandler != null && debugHandler.WriteToDebugScreenTexture(cameraData.resolveFinalTarget);
 
             // Get RTHandle alias to use RTHandle apis
             RTHandleStaticHelpers.SetRTHandleStaticWrapper(cameraTarget);
@@ -160,8 +173,11 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 if (resolveToDebugScreen)
                 {
+                    // Blit to the debugger texture instead of the camera target
                     int shaderPassIndex = m_Source.rt?.filterMode == FilterMode.Bilinear ? m_PassData.blitMaterialData.bilinearSamplerPass : m_PassData.blitMaterialData.nearestSamplerPass;
-                    debugHandler.BlitTextureToDebugScreenTexture(cmd, m_Source, m_PassData.blitMaterialData.material, shaderPassIndex);
+                    Vector2 viewportScale = m_Source.useScaling ? new Vector2(m_Source.rtHandleProperties.rtHandleScale.x, m_Source.rtHandleProperties.rtHandleScale.y) : Vector2.one;
+                    Blitter.BlitTexture(cmd, m_Source, viewportScale, m_PassData.blitMaterialData.material, shaderPassIndex);
+
                     cameraData.renderer.ConfigureCameraTarget(debugHandler.DebugScreenColorHandle, debugHandler.DebugScreenDepthHandle);
                 }
                 // TODO RENDERGRAPH: See https://jira.unity3d.com/projects/URP/issues/URP-1737
