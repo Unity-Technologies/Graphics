@@ -2288,12 +2288,12 @@ namespace UnityEngine.Rendering.HighDefinition
                             var renderRequest = renderRequests[renderRequestIndex];
 
                             var cmd = CommandBufferPool.Get("");
-                            var renderRequestContext = new RenderRequestBatcherContext
+
+                            GPUResidentDrawer.PostCullBeginCameraRendering(new RenderRequestBatcherContext
                             {
                                 commandBuffer = cmd,
                                 ambientProbe = renderRequest.hdCamera.cameraFrameCount < 2 ? RenderSettings.ambientProbe : m_SkyManager.GetAmbientProbe(renderRequest.hdCamera)
-                            };
-                            BaseRendererBatcherPipeline.PostCullBeginCameraRendering(renderRequestContext);
+                            });
 
                             // The HDProbe store only one RenderData per probe, however RenderData can be view dependent (e.g. planar probes).
                             // To avoid that the render data for the wrong view is used, we previously store a copy of the render data

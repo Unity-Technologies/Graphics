@@ -1,18 +1,23 @@
-#include "Packages/com.unity.render-pipelines.core/Runtime/GPUDriven/TransformUpdaterDefs.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/GPUDriven/InstanceData/InstanceTransformUpdateDefs.cs.hlsl"
 
 #pragma kernel ScatterInitTransformMain
 #pragma kernel ScatterUpdateTransformMain
+#pragma kernel ScatterUpdateMotionMain
 #pragma kernel ScatterUpdateProbesMain
 
+#pragma multi_compile_local _ PROCESS_BOUNDING_SPHERES
+
 int _TransformUpdateQueueCount;
-int _TransformUpdateCombinedQueueCount;
 int _TransformUpdateOutputL2WVec4Offset;
 int _TransformUpdateOutputW2LVec4Offset;
 int _TransformUpdateOutputPrevL2WVec4Offset;
 int _TransformUpdateOutputPrevW2LVec4Offset;
+int _BoundingSphereOutputVec4Offset;
 
 StructuredBuffer<TransformUpdatePacket> _TransformUpdateDataQueue;
 ByteAddressBuffer _TransformUpdateIndexQueue;
+StructuredBuffer<float4> _BoundingSphereDataQueue;
 RWByteAddressBuffer _OutputTransformBuffer;
 
 float4x4 UnpackMatrix(float4 p1, float4 p2, float4 p3)
@@ -62,7 +67,7 @@ float4x4 AffineInverse3D(float4x4 m)
 [numthreads(64, 1, 1)]
 void ScatterInitTransformMain(uint3 dispatchThreadID : SV_DispatchThreadID)
 {
-    if (dispatchThreadID.x >= (uint)_TransformUpdateCombinedQueueCount)
+    if (dispatchThreadID.x >= (uint)_TransformUpdateQueueCount)
         return;
 
     uint queueIndex = dispatchThreadID.x;
@@ -83,6 +88,10 @@ void ScatterInitTransformMain(uint3 dispatchThreadID : SV_DispatchThreadID)
     float4x4 w2l = AffineInverse3D(l2w);
     float4x4 w2lPrev = AffineInverse3D(l2wPrev);
 
+#ifdef PROCESS_FLIP_GPUDRIVEN_WINDING
+    UpdateInstanceFlipWindingFlag(l2w, outputIndex);
+#endif
+
     // initialize current transforms
     _OutputTransformBuffer.Store4(byteOutputL2WOffset + 0, asuint(PackMatrix0(l2w)));
     _OutputTransformBuffer.Store4(byteOutputL2WOffset + 16, asuint(PackMatrix1(l2w)));
@@ -98,12 +107,18 @@ void ScatterInitTransformMain(uint3 dispatchThreadID : SV_DispatchThreadID)
     _OutputTransformBuffer.Store4(byteOutputPrevW2LOffset + 0, asuint(PackMatrix0(w2lPrev)));
     _OutputTransformBuffer.Store4(byteOutputPrevW2LOffset + 16, asuint(PackMatrix1(w2lPrev)));
     _OutputTransformBuffer.Store4(byteOutputPrevW2LOffset + 32, asuint(PackMatrix2(w2lPrev)));
+
+#ifdef PROCESS_BOUNDING_SPHERES
+    uint byteOutputBoundingSphereOffset = _BoundingSphereOutputVec4Offset * 4 + outputIndex * 4 * 4;
+    float4 updateSphereValue = _BoundingSphereDataQueue[queueIndex];
+    _OutputTransformBuffer.Store4(byteOutputBoundingSphereOffset, asuint(updateSphereValue));
+#endif
 }
 
 [numthreads(64, 1, 1)]
 void ScatterUpdateTransformMain(uint3 dispatchThreadID : SV_DispatchThreadID)
 {
-    if (dispatchThreadID.x >= (uint)_TransformUpdateCombinedQueueCount)
+    if (dispatchThreadID.x >= (uint)_TransformUpdateQueueCount)
         return;
 
     uint queueIndex = dispatchThreadID.x;
@@ -130,14 +145,14 @@ void ScatterUpdateTransformMain(uint3 dispatchThreadID : SV_DispatchThreadID)
     _OutputTransformBuffer.Store4(byteOutputPrevW2LOffset + 16, prevWorldToLocal1);
     _OutputTransformBuffer.Store4(byteOutputPrevW2LOffset + 32, prevWorldToLocal2);
 
-    // continue only if we have updated transform data too
-    if (dispatchThreadID.x >= (uint)_TransformUpdateQueueCount)
-        return;
-
     TransformUpdatePacket updatePacket = _TransformUpdateDataQueue[queueIndex];
 
     float4x4 l2w = UnpackMatrix(updatePacket.localToWorld0, updatePacket.localToWorld1, updatePacket.localToWorld2);
     float4x4 w2l = AffineInverse3D(l2w);
+
+#ifdef PROCESS_FLIP_GPUDRIVEN_WINDING
+    UpdateInstanceFlipWindingFlag(l2w, outputIndex);
+#endif
 
     // update current world transform
     _OutputTransformBuffer.Store4(byteOutputL2WOffset + 0,  asuint(PackMatrix0(l2w)));
@@ -146,6 +161,43 @@ void ScatterUpdateTransformMain(uint3 dispatchThreadID : SV_DispatchThreadID)
     _OutputTransformBuffer.Store4(byteOutputW2LOffset + 0,  asuint(PackMatrix0(w2l)));
     _OutputTransformBuffer.Store4(byteOutputW2LOffset + 16, asuint(PackMatrix1(w2l)));
     _OutputTransformBuffer.Store4(byteOutputW2LOffset + 32, asuint(PackMatrix2(w2l)));
+
+#ifdef PROCESS_BOUNDING_SPHERES
+    uint byteOutputBoundingSphereOffset = _BoundingSphereOutputVec4Offset * 4 + outputIndex * 4 * 4;
+    float4 updateSphereValue = _BoundingSphereDataQueue[queueIndex];
+    _OutputTransformBuffer.Store4(byteOutputBoundingSphereOffset, asuint(updateSphereValue));
+#endif
+}
+
+[numthreads(64, 1, 1)]
+void ScatterUpdateMotionMain(uint3 dispatchThreadID : SV_DispatchThreadID)
+{
+    if (dispatchThreadID.x >= (uint)_TransformUpdateQueueCount)
+        return;
+
+    uint queueIndex = dispatchThreadID.x;
+    uint queueByteIndex = queueIndex << 2;
+    uint outputIndex = _TransformUpdateIndexQueue.Load(queueByteIndex);
+
+    uint byteOutputL2WOffset = _TransformUpdateOutputL2WVec4Offset * 4 + outputIndex * 4 * 4 * 3;
+    uint byteOutputW2LOffset = _TransformUpdateOutputW2LVec4Offset * 4 + outputIndex * 4 * 4 * 3;
+    uint byteOutputPrevL2WOffset = _TransformUpdateOutputPrevL2WVec4Offset * 4 + outputIndex * 4 * 4 * 3;
+    uint byteOutputPrevW2LOffset = _TransformUpdateOutputPrevW2LVec4Offset * 4 + outputIndex * 4 * 4 * 3;
+
+    // copy the current world transform to the previous one
+    uint4 prevLocalToWorld0 = _OutputTransformBuffer.Load4(byteOutputL2WOffset + 0);
+    uint4 prevLocalToWorld1 = _OutputTransformBuffer.Load4(byteOutputL2WOffset + 16);
+    uint4 prevLocalToWorld2 = _OutputTransformBuffer.Load4(byteOutputL2WOffset + 32);
+    uint4 prevWorldToLocal0 = _OutputTransformBuffer.Load4(byteOutputW2LOffset + 0);
+    uint4 prevWorldToLocal1 = _OutputTransformBuffer.Load4(byteOutputW2LOffset + 16);
+    uint4 prevWorldToLocal2 = _OutputTransformBuffer.Load4(byteOutputW2LOffset + 32);
+
+    _OutputTransformBuffer.Store4(byteOutputPrevL2WOffset + 0, prevLocalToWorld0);
+    _OutputTransformBuffer.Store4(byteOutputPrevL2WOffset + 16, prevLocalToWorld1);
+    _OutputTransformBuffer.Store4(byteOutputPrevL2WOffset + 32, prevLocalToWorld2);
+    _OutputTransformBuffer.Store4(byteOutputPrevW2LOffset + 0, prevWorldToLocal0);
+    _OutputTransformBuffer.Store4(byteOutputPrevW2LOffset + 16, prevWorldToLocal1);
+    _OutputTransformBuffer.Store4(byteOutputPrevW2LOffset + 32, prevWorldToLocal2);
 }
 
 int _ProbeUpdateQueueCount;

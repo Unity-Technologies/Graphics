@@ -4,6 +4,7 @@ using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine.TestTools;
 using UnityEditor;
+using Unity.Mathematics;
 
 namespace UnityEngine.Rendering.Tests
 {
@@ -83,27 +84,24 @@ namespace UnityEngine.Rendering.Tests
                 instances[i] = InstanceHandle.Invalid;
 
             var rbcDesc = RenderersBatchersContextDesc.NewDefault();
-            rbcDesc.maxInstances = 4096;
+            rbcDesc.instanceNumInfo = new InstanceNumInfo(meshRendererNum: 4096, 0);
             rbcDesc.supportDitheringCrossFade = false;
 
             var gpuDrivenProcessor = new GPUDrivenProcessor();
 
             using (var brgContext = new RenderersBatchersContext(rbcDesc, gpuDrivenProcessor, m_Resources))
             {
-                using (var brg = new InstanceCullingBatcher(brgContext, InstanceCullingBatcherDesc.NewDefault(), gpuDrivenProcessor, null, null, null))
+                using (var brg = new GPUResidentBatcher(brgContext, InstanceCullingBatcherDesc.NewDefault(), gpuDrivenProcessor))
                 {
                     brg.UpdateRenderers(objIDs.AsArray());
 
-                    Assert.IsTrue(brg.GetInstanceData().valid);
-                    Assert.IsTrue(brg.GetInstanceData().drawInstances.Length == 3);
+                    Assert.IsTrue(brg.instanceCullingBatcher.GetDrawInstanceData().valid);
+                    Assert.IsTrue(brg.instanceCullingBatcher.GetDrawInstanceData().drawInstances.Length == 3);
 
-                    brgContext.QueryInstanceData(objIDs.AsArray(), new NativeArray<int>(), new NativeArray<int>(), new NativeArray<int>(), new NativeArray<int>(),
-                        instances, new NativeArray<InstanceHandle>(), new NativeArray<InstanceHandle>(),
-                        new NativeList<KeyValuePair<InstanceHandle, int>>(), new NativeList<InstanceHandle>());
-
+                    brgContext.ScheduleQueryRendererGroupInstancesJob(objIDs.AsArray(), instances).Complete();
                     brg.DestroyInstances(instances);
 
-                    Assert.IsTrue(brg.GetInstanceData().drawInstances.Length == 0);
+                    Assert.IsTrue(brg.instanceCullingBatcher.GetDrawInstanceData().drawInstances.Length == 0);
                 }
             }
 
@@ -141,7 +139,7 @@ namespace UnityEngine.Rendering.Tests
                 instances[i] = InstanceHandle.Invalid;
 
             var rbcDesc = RenderersBatchersContextDesc.NewDefault();
-            rbcDesc.maxInstances = 1;
+            rbcDesc.instanceNumInfo = new InstanceNumInfo(meshRendererNum: 1, 0);
             rbcDesc.supportDitheringCrossFade = false;
 
             var gpuDrivenProcessor = new GPUDrivenProcessor();
@@ -182,7 +180,8 @@ namespace UnityEngine.Rendering.Tests
 
                     materials.Dispose();
                 };
-                using (var brg = new InstanceCullingBatcher(brgContext, cpuDrivenDesc, gpuDrivenProcessor, null, null, null))
+
+                using (var brg = new GPUResidentBatcher(brgContext, cpuDrivenDesc, gpuDrivenProcessor))
                 {
                     brg.UpdateRenderers(objIDs.AsArray());
 
@@ -195,10 +194,7 @@ namespace UnityEngine.Rendering.Tests
                     mainCamera = null;
                     GameObject.DestroyImmediate(cameraObject);
 
-                    brgContext.QueryInstanceData(objIDs.AsArray(), new NativeArray<int>(), new NativeArray<int>(), new NativeArray<int>(), new NativeArray<int>(),
-                        instances, new NativeArray<InstanceHandle>(), new NativeArray<InstanceHandle>(),
-                        new NativeList<KeyValuePair<InstanceHandle, int>>(), new NativeList<InstanceHandle>());
-
+                    brgContext.ScheduleQueryRendererGroupInstancesJob(objIDs.AsArray(), instances).Complete();
                     brg.DestroyInstances(instances);
                 }
             }
@@ -240,7 +236,7 @@ namespace UnityEngine.Rendering.Tests
 
             var gpuDrivenProcessor = new GPUDrivenProcessor();
 
-            using (var brgContext = new RenderersBatchersContext(new RenderersBatchersContextDesc() { maxInstances = 64, supportDitheringCrossFade = false }, gpuDrivenProcessor, m_Resources))
+            using (var brgContext = new RenderersBatchersContext(new RenderersBatchersContextDesc() { instanceNumInfo = new InstanceNumInfo(meshRendererNum: 64, 0), supportDitheringCrossFade = false }, gpuDrivenProcessor, m_Resources))
             {
                 var cpuDrivenDesc = InstanceCullingBatcherDesc.NewDefault();
                 cpuDrivenDesc.onCompleteCallback = (JobHandle jobHandle, in BatchCullingContext cc, in BatchCullingOutput cullingOutput) =>
@@ -266,7 +262,8 @@ namespace UnityEngine.Rendering.Tests
                     }
                     Assert.AreEqual(3, drawCommandCount);
                 };
-                using (var brg = new InstanceCullingBatcher(brgContext, cpuDrivenDesc, gpuDrivenProcessor, null, null, null))
+
+                using (var brg = new GPUResidentBatcher(brgContext, cpuDrivenDesc, gpuDrivenProcessor))
                 {
                     brg.UpdateRenderers(objIDs.AsArray());
 
@@ -278,10 +275,7 @@ namespace UnityEngine.Rendering.Tests
                     mainCamera = null;
                     GameObject.DestroyImmediate(cameraObject);
 
-                    brgContext.QueryInstanceData(objIDs.AsArray(), new NativeArray<int>(), new NativeArray<int>(), new NativeArray<int>(), new NativeArray<int>(),
-                        instances, new NativeArray<InstanceHandle>(), new NativeArray<InstanceHandle>(),
-                        new NativeList<KeyValuePair<InstanceHandle, int>>(), new NativeList<InstanceHandle>());
-
+                    brgContext.ScheduleQueryRendererGroupInstancesJob(objIDs.AsArray(), instances).Complete();
                     brg.DestroyInstances(instances);
                 }
             }
@@ -321,7 +315,7 @@ namespace UnityEngine.Rendering.Tests
             gos[lodCount].transform.parent = gameObject.transform;
             lodGroup.SetLODs(lods);
 
-            var lodGroupInstancesID = new NativeList<int>(Allocator.Temp);
+            var lodGroupInstancesID = new NativeList<int>(Allocator.TempJob);
             lodGroupInstancesID.Add(lodGroup.GetInstanceID());
 
             var objList = new List<MeshRenderer>();
@@ -346,7 +340,7 @@ namespace UnityEngine.Rendering.Tests
                 instances[i] = InstanceHandle.Invalid;
 
             var rbcDesc = RenderersBatchersContextDesc.NewDefault();
-            rbcDesc.maxInstances = 64;
+            rbcDesc.instanceNumInfo = new InstanceNumInfo(meshRendererNum: 64);
             rbcDesc.supportDitheringCrossFade = false;
 
             var gpuDrivenProcessor = new GPUDrivenProcessor();
@@ -380,7 +374,8 @@ namespace UnityEngine.Rendering.Tests
 
                     callbackCounter.Value += 1;
                 };
-                using (var brg = new InstanceCullingBatcher(brgContext, cpuDrivenDesc, gpuDrivenProcessor, null, null, null))
+
+                using (var brg = new GPUResidentBatcher(brgContext, cpuDrivenDesc, gpuDrivenProcessor))
                 {
                     brgContext.UpdateLODGroups(lodGroupInstancesID.AsArray());
                     brg.UpdateRenderers(objIDs.AsArray());
@@ -431,14 +426,12 @@ namespace UnityEngine.Rendering.Tests
                     mainCamera = null;
                     GameObject.DestroyImmediate(cameraObject);
 
-                    brgContext.QueryInstanceData(objIDs.AsArray(), new NativeArray<int>(), new NativeArray<int>(), new NativeArray<int>(), new NativeArray<int>(),
-                        instances, new NativeArray<InstanceHandle>(), new NativeArray<InstanceHandle>(),
-                        new NativeList<KeyValuePair<InstanceHandle, int>>(), new NativeList<InstanceHandle>());
-
+                    brgContext.ScheduleQueryRendererGroupInstancesJob(objIDs.AsArray(), instances).Complete();
                     brg.DestroyInstances(instances);
                 }
             }
 
+            lodGroupInstancesID.Dispose();
             gpuDrivenProcessor.Dispose();
 
             objIDs.Dispose();
@@ -482,7 +475,7 @@ namespace UnityEngine.Rendering.Tests
             }
             objList.Add(gos[lodCount].GetComponent<MeshRenderer>());
 
-            var lodGroupInstancesID = new NativeList<int>(Allocator.Temp);
+            var lodGroupInstancesID = new NativeList<int>(Allocator.TempJob);
             lodGroupInstancesID.Add(lodGroup.GetInstanceID());
 
             var objIDs = new NativeList<int>(Allocator.TempJob);
@@ -500,7 +493,7 @@ namespace UnityEngine.Rendering.Tests
                 instances[i] = InstanceHandle.Invalid;
 
             var rbcDesc = RenderersBatchersContextDesc.NewDefault();
-            rbcDesc.maxInstances = 64;
+            rbcDesc.instanceNumInfo = new InstanceNumInfo(meshRendererNum: 64);
             rbcDesc.supportDitheringCrossFade = true;
 
             var gpuDrivenProcessor = new GPUDrivenProcessor();
@@ -532,7 +525,8 @@ namespace UnityEngine.Rendering.Tests
                         }
                     }
                 };
-                using (var brg = new InstanceCullingBatcher(brgContext, cpuDrivenDesc, gpuDrivenProcessor, null, null, null))
+
+                using (var brg = new GPUResidentBatcher(brgContext, cpuDrivenDesc, gpuDrivenProcessor))
                 {
                     brgContext.UpdateLODGroups(lodGroupInstancesID.AsArray());
                     brg.UpdateRenderers(objIDs.AsArray());
@@ -588,14 +582,12 @@ namespace UnityEngine.Rendering.Tests
                     mainCamera = null;
                     GameObject.DestroyImmediate(cameraObject);
 
-                    brgContext.QueryInstanceData(objIDs.AsArray(), new NativeArray<int>(), new NativeArray<int>(), new NativeArray<int>(), new NativeArray<int>(),
-                        instances, new NativeArray<InstanceHandle>(), new NativeArray<InstanceHandle>(),
-                        new NativeList<KeyValuePair<InstanceHandle, int>>(), new NativeList<InstanceHandle>());
-
+                    brgContext.ScheduleQueryRendererGroupInstancesJob(objIDs.AsArray(), instances).Complete();
                     brg.DestroyInstances(instances);
                 }
             }
 
+            lodGroupInstancesID.Dispose();
             gpuDrivenProcessor.Dispose();
 
             objIDs.Dispose();
@@ -610,46 +602,47 @@ namespace UnityEngine.Rendering.Tests
             var gpuResources = new GPUInstanceDataBufferUploader.GPUResources();
             gpuResources.LoadShaders(m_Resources);
 
-            const int instanceCount = 4;
+            var meshInstancesCount = 4;
+            var instanceNumInfo = new InstanceNumInfo(meshRendererNum: meshInstancesCount);
 
-            using (var instanceBuffer = RenderersParameters.CreateInstanceDataBuffer(instanceCount))
+            using (var instanceBuffer = RenderersParameters.CreateInstanceDataBuffer(RenderersParameters.Flags.None, instanceNumInfo))
             {
                 var renderersParameters = new RenderersParameters(instanceBuffer);
 
-                var instances = new NativeArray<InstanceHandle>(instanceCount, Allocator.TempJob);
-                var lightmapTextureIndices = new NativeArray<Vector4>(instanceCount, Allocator.TempJob);
-                var lightmapScaleOffsets = new NativeArray<Vector4>(instanceCount, Allocator.TempJob);
+                var instances = new NativeArray<GPUInstanceIndex>(meshInstancesCount, Allocator.TempJob);
+                var lightmapTextureIndices = new NativeArray<Vector4>(meshInstancesCount, Allocator.TempJob);
+                var lightmapScaleOffsets = new NativeArray<Vector4>(meshInstancesCount, Allocator.TempJob);
 
-                for (int i = 0; i < instanceCount; ++i)
-                    instances[i] = new InstanceHandle { index = i };
+                for (int i = 0; i < meshInstancesCount; ++i)
+                    instances[i] = new GPUInstanceIndex { index = i };
 
-                for (int i = 0; i < instanceCount; ++i)
+                for (int i = 0; i < meshInstancesCount; ++i)
                     lightmapTextureIndices[i] = new Vector4(16 + i, 0.0f, 0.0f, 0.0f);
 
-                for (int i = 0; i < instanceCount; ++i)
+                for (int i = 0; i < meshInstancesCount; ++i)
                     lightmapScaleOffsets[i] = Vector4.one * i;
 
-                using (var instanceUploader0 = new GPUInstanceDataBufferUploader(instanceBuffer.descriptions, instanceCount))
+                using (var instanceUploader0 = new GPUInstanceDataBufferUploader(instanceBuffer.descriptions, meshInstancesCount, InstanceType.MeshRenderer))
                 {
-                    instanceUploader0.AllocateInstanceHandles(instances);
+                    instanceUploader0.AllocateUploadHandles(instances.Length);
 
-                    instanceUploader0.WriteInstanceData(renderersParameters.lightmapIndex.index, lightmapTextureIndices);
-                    instanceUploader0.WriteInstanceData(renderersParameters.lightmapScale.index, lightmapScaleOffsets);
-                    instanceUploader0.SubmitToGpu(instanceBuffer, instances, ref gpuResources);
-
+                    instanceUploader0.WriteInstanceDataJob(renderersParameters.lightmapIndex.index, lightmapTextureIndices).Complete();
+                    instanceUploader0.WriteInstanceDataJob(renderersParameters.lightmapScale.index, lightmapScaleOffsets).Complete();
+                    instanceUploader0.SubmitToGpu(instanceBuffer, instances, ref gpuResources, submitOnlyWrittenParams: false);
                 }
 
                 using (var readbackData = new InstanceDataBufferCPUReadbackData())
-                {
-                    readbackData.Load(instanceBuffer);
-
-                    for (int i = 0; i < instanceCount; ++i)
+                {	
+                    if (readbackData.Load(instanceBuffer))
                     {
-                        var lightmapIndex = readbackData.LoadData<Vector4>(instances[i].index, RenderersParameters.ParamNames.unity_LightmapIndex);
-                        var lightmapScaleOffset = readbackData.LoadData<Vector4>(instances[i].index, RenderersParameters.ParamNames.unity_LightmapST);
+                        for (int i = 0; i < meshInstancesCount; ++i)
+                        {
+                            var lightmapIndex = readbackData.LoadData<Vector4>(instances[i], RenderersParameters.ParamNames.unity_LightmapIndex);
+                            var lightmapScaleOffset = readbackData.LoadData<Vector4>(instances[i], RenderersParameters.ParamNames.unity_LightmapST);
 
-                        Assert.AreEqual(lightmapIndex, lightmapTextureIndices[i]);
-                        Assert.AreEqual(lightmapScaleOffset, lightmapScaleOffsets[i]);
+                            Assert.AreEqual(lightmapIndex, lightmapTextureIndices[i]);
+                            Assert.AreEqual(lightmapScaleOffset, lightmapScaleOffsets[i]);
+                        }
                     }
                 }
 
@@ -668,50 +661,51 @@ namespace UnityEngine.Rendering.Tests
             uploadResources.LoadShaders(m_Resources);
             growResources.LoadShaders(m_Resources);
 
-            const int instanceCount = 8;
+            var meshInstancesCount = 8;
+            var instanceNumInfo = new InstanceNumInfo(meshRendererNum: meshInstancesCount, 0);
 
-            using (var instanceBuffer = RenderersParameters.CreateInstanceDataBuffer(instanceCount))
+            using (var instanceBuffer = RenderersParameters.CreateInstanceDataBuffer(RenderersParameters.Flags.None, instanceNumInfo))
             {
                 var renderersParameters = new RenderersParameters(instanceBuffer);
 
-                var instances = new NativeArray<InstanceHandle>(instanceCount, Allocator.TempJob);
-                var lightmapTextureIndices = new NativeArray<Vector4>(instanceCount, Allocator.TempJob);
-                var lightmapScaleOffsets = new NativeArray<Vector4>(instanceCount, Allocator.TempJob);
+                var instances = new NativeArray<GPUInstanceIndex>(meshInstancesCount, Allocator.TempJob);
+                var lightmapTextureIndices = new NativeArray<Vector4>(meshInstancesCount, Allocator.TempJob);
+                var lightmapScaleOffsets = new NativeArray<Vector4>(meshInstancesCount, Allocator.TempJob);
 
-                for (int i = 0; i < instanceCount; ++i)
-                    instances[i] = new InstanceHandle { index = i };
+                for (int i = 0; i < meshInstancesCount; ++i)
+                    instances[i] = new GPUInstanceIndex {  index = i };
 
-                for (int i = 0; i < instanceCount; ++i)
+                for (int i = 0; i < meshInstancesCount; ++i)
                     lightmapTextureIndices[i] = new Vector4(16 + i, 0.0f, 0.0f, 0.0f);
 
-                for (int i = 0; i < instanceCount; ++i)
+                for (int i = 0; i < meshInstancesCount; ++i)
                     lightmapScaleOffsets[i] = Vector4.one * i;
 
-                using (var instanceUploader0 = new GPUInstanceDataBufferUploader(instanceBuffer.descriptions, instanceCount))
+                using (var instanceUploader0 = new GPUInstanceDataBufferUploader(instanceBuffer.descriptions, meshInstancesCount, InstanceType.MeshRenderer))
                 {
-                    instanceUploader0.AllocateInstanceHandles(instances);
+                    instanceUploader0.AllocateUploadHandles(instances.Length);
 
-                    instanceUploader0.WriteInstanceData(renderersParameters.lightmapIndex.index, lightmapTextureIndices);
-                    instanceUploader0.WriteInstanceData(renderersParameters.lightmapScale.index, lightmapScaleOffsets);
-                    instanceUploader0.SubmitToGpu(instanceBuffer, instances, ref uploadResources);
-
+                    instanceUploader0.WriteInstanceDataJob(renderersParameters.lightmapIndex.index, lightmapTextureIndices).Complete();
+                    instanceUploader0.WriteInstanceDataJob(renderersParameters.lightmapScale.index, lightmapScaleOffsets).Complete();
+                    instanceUploader0.SubmitToGpu(instanceBuffer, instances, ref uploadResources, submitOnlyWrittenParams: false);
                 }
 
-                var instanceGrower = new GPUInstanceDataBufferGrower(instanceBuffer, instanceCount * 2);
+                var instanceGrower = new GPUInstanceDataBufferGrower(instanceBuffer, new InstanceNumInfo(meshRendererNum: meshInstancesCount * 2, 0));
                 var newGPUDataBuffer = instanceGrower.SubmitToGpu(ref growResources);
                 instanceGrower.Dispose();
 
                 using (var readbackData = new InstanceDataBufferCPUReadbackData())
                 {
-                    readbackData.Load(newGPUDataBuffer);
-
-                    for (int i = 0; i < instanceCount; ++i)
+                    if (readbackData.Load(newGPUDataBuffer))
                     {
-                        var lightmapIndex = readbackData.LoadData<Vector4>(instances[i].index, RenderersParameters.ParamNames.unity_LightmapIndex);
-                        var lightmapScaleOffset = readbackData.LoadData<Vector4>(instances[i].index, RenderersParameters.ParamNames.unity_LightmapST);
+                        for (int i = 0; i < meshInstancesCount; ++i)
+                        {
+                            var lightmapIndex = readbackData.LoadData<Vector4>(instances[i], RenderersParameters.ParamNames.unity_LightmapIndex);
+                            var lightmapScaleOffset = readbackData.LoadData<Vector4>(instances[i], RenderersParameters.ParamNames.unity_LightmapST);
 
-                        Assert.AreEqual(lightmapIndex, lightmapTextureIndices[i]);
-                        Assert.AreEqual(lightmapScaleOffset, lightmapScaleOffsets[i]);
+                            Assert.AreEqual(lightmapIndex, lightmapTextureIndices[i]);
+                            Assert.AreEqual(lightmapScaleOffset, lightmapScaleOffsets[i]);
+                        }
                     }
                 }
 
@@ -725,11 +719,11 @@ namespace UnityEngine.Rendering.Tests
         }
 
         [Test, ConditionalIgnore("IgnoreGfxAPI", "Graphics API Not Supported.")]
-        public void TestInstancePool()
+        public void TestInstanceData()
         {
             var gpuDrivenProcessor = new GPUDrivenProcessor();
 
-            using (var instancePool = new GPURendererInstancePool(5, enableBoundingSpheres: false, m_Resources))
+            using (var instanceSystem = new InstanceDataSystem(5, enableBoundingSpheres: false, m_Resources))
             {
                 var simpleDots = Shader.Find("Unlit/SimpleDots");
                 var simpleDotsMat = new Material(simpleDots);
@@ -756,72 +750,71 @@ namespace UnityEngine.Rendering.Tests
                 renderersID[1] = gameObjects[1].GetComponent<MeshRenderer>().GetInstanceID();
                 renderersID[2] = gameObjects[2].GetComponent<MeshRenderer>().GetInstanceID();
 
-                var lodGroupDataMap = new NativeParallelHashMap<int, InstanceHandle>(64, Allocator.TempJob);
+                var lodGroupDataMap = new NativeParallelHashMap<int, GPUInstanceIndex>(64, Allocator.TempJob);
 
-                gpuDrivenProcessor.EnableGPUDrivenRenderingAndDispatchRendererData(renderersID, (GPUDrivenRendererData rendererData, IList<Mesh> meshes, IList<Material> materials) =>
+                gpuDrivenProcessor.EnableGPUDrivenRenderingAndDispatchRendererData(renderersID, (in GPUDrivenRendererGroupData rendererData, IList<Mesh> meshes, IList<Material> materials) =>
                 {
                     var instances = new NativeArray<InstanceHandle>(3, Allocator.TempJob);
                     instances[0] = InstanceHandle.Invalid;
                     instances[1] = InstanceHandle.Invalid;
                     instances[2] = InstanceHandle.Invalid;
 
-                    instancePool.Resize(3);
-                    instancePool.AllocateInstances(renderersID, instances, 3);
-                    instancePool.UpdateInstanceData(instances, rendererData, lodGroupDataMap);
+                    instanceSystem.ReallocateAndGetInstances(rendererData, instances);
+                    instanceSystem.ScheduleUpdateInstanceDataJob(instances, rendererData, lodGroupDataMap).Complete();
 
-                    Assert.IsTrue(instancePool.InternalSanityCheckStates());
+                    Assert.IsTrue(instanceSystem.InternalSanityCheckStates());
 
-                    instancePool.FreeInstances(instances);
+                    instanceSystem.FreeInstances(instances);
 
                     instances.Dispose();
                 });
 
-                Assert.IsTrue(instancePool.InternalSanityCheckStates());
+                Assert.IsTrue(instanceSystem.InternalSanityCheckStates());
 
                 renderersID[0] = gameObjects[3].GetComponent<MeshRenderer>().GetInstanceID();
                 renderersID[1] = gameObjects[4].GetComponent<MeshRenderer>().GetInstanceID();
                 renderersID[2] = gameObjects[5].GetComponent<MeshRenderer>().GetInstanceID();
 
-                gpuDrivenProcessor.EnableGPUDrivenRenderingAndDispatchRendererData(renderersID, (GPUDrivenRendererData rendererData, IList<Mesh> meshes, IList<Material> materials) =>
+                gpuDrivenProcessor.EnableGPUDrivenRenderingAndDispatchRendererData(renderersID, (in GPUDrivenRendererGroupData rendererData, IList<Mesh> meshes, IList<Material> materials) =>
                 {
                     var instances = new NativeArray<InstanceHandle>(3, Allocator.TempJob);
                     instances[0] = InstanceHandle.Invalid;
                     instances[1] = InstanceHandle.Invalid;
                     instances[2] = InstanceHandle.Invalid;
 
-                    instancePool.AllocateInstances(renderersID, instances, 3);
-                    instancePool.UpdateInstanceData(instances, rendererData, lodGroupDataMap);
+                    instanceSystem.ReallocateAndGetInstances(rendererData, instances);
+                    instanceSystem.ScheduleUpdateInstanceDataJob(instances, rendererData, lodGroupDataMap).Complete();
 
-                    Assert.IsTrue(instancePool.InternalSanityCheckStates());
+                    Assert.IsTrue(instanceSystem.InternalSanityCheckStates());
 
-                    instancePool.FreeInstances(instances);
+                    instanceSystem.FreeInstances(instances);
 
                     instances.Dispose();
                 });
 
-                Assert.IsTrue(instancePool.InternalSanityCheckStates());
+                Assert.IsTrue(instanceSystem.InternalSanityCheckStates());
 
                 renderersID.Dispose();
 
                 renderersID = new NativeArray<int>(1, Allocator.TempJob);
                 renderersID[0] = gameObjects[6].GetComponent<MeshRenderer>().GetInstanceID();
 
-                gpuDrivenProcessor.EnableGPUDrivenRenderingAndDispatchRendererData(renderersID, (GPUDrivenRendererData rendererData, IList<Mesh> meshes, IList<Material> materials) =>
+                gpuDrivenProcessor.EnableGPUDrivenRenderingAndDispatchRendererData(renderersID, (in GPUDrivenRendererGroupData rendererData, IList<Mesh> meshes, IList<Material> materials) =>
                 {
                     var instances = new NativeArray<InstanceHandle>(1, Allocator.TempJob);
                     instances[0] = InstanceHandle.Invalid;
 
-                    instancePool.AllocateInstances(renderersID, instances, 1);
-                    instancePool.UpdateInstanceData(instances, rendererData, lodGroupDataMap);
+                    instanceSystem.ReallocateAndGetInstances(rendererData, instances);
+                    instanceSystem.ScheduleUpdateInstanceDataJob(instances, rendererData, lodGroupDataMap).Complete();
 
-                    Assert.IsTrue(instancePool.InternalSanityCheckStates());
+                    Assert.IsTrue(instanceSystem.InternalSanityCheckStates());
 
-                    instancePool.FreeInstances(instances);
+                    instanceSystem.FreeInstances(instances);
 
                     instances.Dispose();
                 });
 
-                Assert.IsTrue(instancePool.InternalSanityCheckStates());
+                Assert.IsTrue(instanceSystem.InternalSanityCheckStates());
 
                 renderersID.Dispose();
                 lodGroupDataMap.Dispose();
@@ -874,18 +867,19 @@ namespace UnityEngine.Rendering.Tests
 
                 var lodGroupDataMap = new NativeParallelHashMap<int, InstanceHandle>(64, Allocator.TempJob);
                 var instances = new NativeArray<InstanceHandle>(2, Allocator.TempJob);
-                var localToWorldMatrices = new NativeArray<Matrix4x4>(2, Allocator.Temp);
+                var localToWorldMatrices = new NativeArray<float4x4>(2, Allocator.Temp);
 
-                gpuDrivenProcessor.EnableGPUDrivenRenderingAndDispatchRendererData(renderersID, (GPUDrivenRendererData rendererData, IList<Mesh> meshes, IList<Material> materials) =>
+                gpuDrivenProcessor.EnableGPUDrivenRenderingAndDispatchRendererData(renderersID, (in GPUDrivenRendererGroupData rendererData, IList<Mesh> meshes, IList<Material> materials) =>
                 {
                     Assert.IsTrue(rendererData.packedRendererData[0].isPartOfStaticBatch);
                     Assert.IsTrue(rendererData.packedRendererData[1].isPartOfStaticBatch);
 
-                    brgContext.AllocateOrGetInstances(rendererData.rendererID, instances);
-                    brgContext.UpdateInstanceData(instances, rendererData);
-                    brgContext.ReinitializeInstanceTransforms(instances, rendererData.localToWorldMatrix, rendererData.localToWorldMatrix);
+                    brgContext.ReallocateAndGetInstances(rendererData, instances);
+                    brgContext.ScheduleUpdateInstanceDataJob(instances, rendererData).Complete();
+                    brgContext.InitializeInstanceTransforms(instances, rendererData.localToWorldMatrix, rendererData.localToWorldMatrix);
 
-                    localToWorldMatrices.CopyFrom(rendererData.localToWorldMatrix);
+                    for(int i = 0; i < localToWorldMatrices.Length; ++i)
+                        localToWorldMatrices[i] = rendererData.localToWorldMatrix[i];
                 });
 
                 gameObjects[0].transform.position = new Vector3(100, 0, 0);
@@ -894,10 +888,23 @@ namespace UnityEngine.Rendering.Tests
                 var transfomData = dispatcher.GetTransformChangesAndClear<MeshRenderer>(ObjectDispatcher.TransformTrackingType.GlobalTRS, Allocator.TempJob);
                 Assert.AreEqual(transfomData.transformedID.Length, 2);
 
-                brgContext.TransformInstances(instances, transfomData.localToWorldMatrices);
+                brgContext.UpdateInstanceTransforms(instances, transfomData.localToWorldMatrices);
 
-                Assert.AreEqual(brgContext.GetInstanceLocalToWorldMatrix(instances[0]), localToWorldMatrices[0]);
-                Assert.AreEqual(brgContext.GetInstanceLocalToWorldMatrix(instances[1]), localToWorldMatrices[1]);
+                using (var readbackData = new InstanceDataBufferCPUReadbackData())
+                {
+                    if (readbackData.Load(brgContext.GetInstanceDataBuffer()))
+                    {
+                        var localToWorldMatrix0 = readbackData.LoadData<PackedMatrix>(instances[0], RenderersParameters.ParamNames.unity_ObjectToWorld);
+                        var localToWorldMatrix1 = readbackData.LoadData<PackedMatrix>(instances[1], RenderersParameters.ParamNames.unity_ObjectToWorld);
+
+                        Assert.AreEqual(localToWorldMatrix0, PackedMatrix.FromMatrix4x4(localToWorldMatrices[0]));
+                        Assert.AreEqual(localToWorldMatrix1, PackedMatrix.FromMatrix4x4(localToWorldMatrices[1]));
+                    }
+                    else
+                    {
+                        Assert.IsTrue(false, "Unable to read instance data.");
+                    }
+                }
 
                 transfomData.Dispose();
                 renderersID.Dispose();
@@ -936,9 +943,9 @@ namespace UnityEngine.Rendering.Tests
 
             var gpuDrivenProcessor = new GPUDrivenProcessor();
 
-            gpuDrivenProcessor.EnableGPUDrivenRenderingAndDispatchRendererData(rendererIDs, (GPUDrivenRendererData rendererData, IList<Mesh> meshes, IList<Material> materials) =>
+            gpuDrivenProcessor.EnableGPUDrivenRenderingAndDispatchRendererData(rendererIDs, (in GPUDrivenRendererGroupData rendererData, IList<Mesh> meshes, IList<Material> materials) =>
             {
-                Assert.IsTrue(rendererData.rendererID.Length == 2);
+                Assert.IsTrue(rendererData.rendererGroupID.Length == 2);
                 dispatched = true;
             });
 
@@ -947,10 +954,12 @@ namespace UnityEngine.Rendering.Tests
             dispatched = false;
             renderer0.allowGPUDrivenRendering = false;
 
-            gpuDrivenProcessor.EnableGPUDrivenRenderingAndDispatchRendererData(rendererIDs, (GPUDrivenRendererData rendererData, IList<Mesh> meshes, IList<Material> materials) =>
+            gpuDrivenProcessor.EnableGPUDrivenRenderingAndDispatchRendererData(rendererIDs, (in GPUDrivenRendererGroupData rendererData, IList<Mesh> meshes, IList<Material> materials) =>
             {
-                Assert.IsTrue(rendererData.rendererID.Length == 1);
-                Assert.IsTrue(rendererData.rendererID[0] == renderer1.GetInstanceID());
+                Assert.IsTrue(rendererData.rendererGroupID.Length == 1);
+                Assert.IsTrue(rendererData.rendererGroupID[0] == renderer1.GetInstanceID());
+                Assert.IsTrue(rendererData.invalidRendererGroupID.Length == 1);
+                Assert.IsTrue(rendererData.invalidRendererGroupID[0] == renderer0.GetInstanceID());
                 dispatched = true;
             });
 
@@ -959,12 +968,13 @@ namespace UnityEngine.Rendering.Tests
             dispatched = false;
             renderer1.allowGPUDrivenRendering = false;
 
-            gpuDrivenProcessor.EnableGPUDrivenRenderingAndDispatchRendererData(rendererIDs, (GPUDrivenRendererData rendererData, IList<Mesh> meshes, IList<Material> materials) =>
+            gpuDrivenProcessor.EnableGPUDrivenRenderingAndDispatchRendererData(rendererIDs, (in GPUDrivenRendererGroupData rendererData, IList<Mesh> meshes, IList<Material> materials) =>
             {
+                Assert.IsTrue(rendererData.invalidRendererGroupID.Length == 2);
                 dispatched = true;
             });
 
-            Assert.IsFalse(dispatched);
+            Assert.IsTrue(dispatched);
 
             Object.DestroyImmediate(simpleDotsMat);
             Object.DestroyImmediate(gameObject0);
@@ -1004,9 +1014,9 @@ namespace UnityEngine.Rendering.Tests
 
             var gpuDrivenProcessor = new GPUDrivenProcessor();
 
-            gpuDrivenProcessor.EnableGPUDrivenRenderingAndDispatchRendererData(rendererIDs, (GPUDrivenRendererData rendererData, IList<Mesh> meshes, IList<Material> materials) =>
+            gpuDrivenProcessor.EnableGPUDrivenRenderingAndDispatchRendererData(rendererIDs, (in GPUDrivenRendererGroupData rendererData, IList<Mesh> meshes, IList<Material> materials) =>
             {
-                Assert.IsTrue(rendererData.rendererID.Length == 4);
+                Assert.IsTrue(rendererData.rendererGroupID.Length == 4);
                 dispatched = true;
             });
 
@@ -1018,9 +1028,9 @@ namespace UnityEngine.Rendering.Tests
 
             dispatched = false;
 
-            gpuDrivenProcessor.EnableGPUDrivenRenderingAndDispatchRendererData(rendererIDs, (GPUDrivenRendererData rendererData, IList<Mesh> meshes, IList<Material> materials) =>
+            gpuDrivenProcessor.EnableGPUDrivenRenderingAndDispatchRendererData(rendererIDs, (in GPUDrivenRendererGroupData rendererData, IList<Mesh> meshes, IList<Material> materials) =>
             {
-                Assert.IsTrue(rendererData.rendererID.Length == 1);
+                Assert.IsTrue(rendererData.rendererGroupID.Length == 1);
                 dispatched = true;
             });
 
@@ -1060,9 +1070,9 @@ namespace UnityEngine.Rendering.Tests
 
             var gpuDrivenProcessor = new GPUDrivenProcessor();
 
-            gpuDrivenProcessor.EnableGPUDrivenRenderingAndDispatchRendererData(rendererIDs, (GPUDrivenRendererData rendererData, IList<Mesh> meshes, IList<Material> materials) =>
+            gpuDrivenProcessor.EnableGPUDrivenRenderingAndDispatchRendererData(rendererIDs, (in GPUDrivenRendererGroupData rendererData, IList<Mesh> meshes, IList<Material> materials) =>
             {
-                Assert.IsTrue(rendererData.rendererID.Length == 1);
+                Assert.IsTrue(rendererData.rendererGroupID.Length == 1);
                 dispatched = true;
             });
 

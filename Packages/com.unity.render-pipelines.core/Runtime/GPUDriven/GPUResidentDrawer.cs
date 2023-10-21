@@ -9,6 +9,9 @@ using UnityEngine.PlayerLoop;
 using UnityEngine.Profiling;
 using UnityEngine.SceneManagement;
 using static UnityEngine.ObjectDispatcher;
+using Unity.Jobs;
+using static UnityEngine.Rendering.RenderersParameters;
+using Unity.Jobs.LowLevel.Unsafe;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -17,9 +20,32 @@ using UnityEditor.Rendering;
 
 namespace UnityEngine.Rendering
 {
-    internal class GPUResidentDrawer
+    /// <summary>
+    /// Static utility class for updating data post cull in begin camera rendering
+    /// </summary>
+    public class GPUResidentDrawer
     {
+        internal static GPUResidentDrawer instance { get => s_Instance; }
         private static GPUResidentDrawer s_Instance = null;
+
+        ////////////////////////////////////////
+        // Public API for rendering pipelines //
+        ////////////////////////////////////////
+
+        #region Public API
+
+        /// <summary>
+        /// Utility function for updating data post cull in begin camera rendering
+        /// </summary>
+        /// <param name="context">
+        /// Context containing the data to be set
+        /// </param>
+        public static void PostCullBeginCameraRendering(RenderRequestBatcherContext context)
+        {
+            s_Instance?.batcher.PostCullBeginCameraRendering(context);
+        }
+
+        #endregion
 
         private void InsertIntoPlayerLoop()
         {
@@ -48,10 +74,10 @@ namespace UnityEngine.Rendering
             rootLoop.subSystemList = newList.ToArray();
             LowLevel.PlayerLoop.SetPlayerLoop(rootLoop);
 
-			try
+            try
             {
                 // We inject to the player loop during the first frame so we have to call PostPostLateUpdate manually here once.
-				// If an exception is not caught explicitly here, then the player loop becomes broken in the editor.
+                // If an exception is not caught explicitly here, then the player loop becomes broken in the editor.
                 PostPostLateUpdate();
             }
             catch (Exception e)
@@ -83,7 +109,7 @@ namespace UnityEngine.Rendering
         }
 #endif
 
-        public static bool IsProjectSupported(bool logReason = false)
+        internal static bool IsProjectSupported(bool logReason = false)
         {
             bool supported = true;
 
@@ -110,7 +136,7 @@ namespace UnityEngine.Rendering
             return supported;
         }
 
-        public static bool IsEnabled()
+        internal static bool IsEnabled()
         {
             return s_Instance is not null;
         }
@@ -144,21 +170,12 @@ namespace UnityEngine.Rendering
 #endif
             return false;
         }
-
-        private static void Reinitialize(GPUResidentDrawerMode overrideMode, bool forceSupported = false)
-        {
-            var settings = GetGlobalSettingsFromRPAsset();
-            settings.mode = overrideMode;
-            var resources = GetResourcesFromRPAsset();
-            Recreate(settings, resources, forceSupported);
-        }
-
-		public static void Reinitialize()
+		internal static void Reinitialize()
         {
 			Reinitialize(false);
 		}
 
-        public static void Reinitialize(bool forceSupported)
+        internal static void Reinitialize(bool forceSupported)
         {
             var settings = GetGlobalSettingsFromRPAsset();
             var resources = GetResourcesFromRPAsset();
@@ -175,6 +192,7 @@ namespace UnityEngine.Rendering
             catch (Exception exception)
             {
                 Debug.LogError($"The GPU Resident Drawer encountered an error during initialization. The standard SRP path will be used instead. [Error: {exception.Message}]");
+                Debug.LogError($"GPU Resident drawer stack trace: {exception.StackTrace}");
                 CleanUp();
             }
 #endif
@@ -247,22 +265,26 @@ namespace UnityEngine.Rendering
             s_Instance = new GPUResidentDrawer(settings, resources, 4096);
         }
 
-        internal GPUResidentDrawerSettings m_Settings;
+        internal GPUResidentBatcher batcher { get => m_Batcher; }
+        internal GPUResidentDrawerSettings settings { get => m_Settings; }
 
+        private GPUResidentDrawerSettings m_Settings;
         private GPUDrivenProcessor m_GPUDrivenProcessor = null;
         private RenderersBatchersContext m_BatchersContext = null;
-        private BaseRendererBatcher m_Batcher = null;
+        private GPUResidentBatcher m_Batcher = null;
 
         private ObjectDispatcher m_Dispatcher;
+
+        private MeshRendererDrawer m_MeshRendererDrawer;
 
 #if UNITY_EDITOR
         static GPUResidentDrawer()
         {
-            Reinitialize();
-
 			Lightmapping.bakeCompleted += Reinitialize;
         }
 #endif
+
+        private List<Object> m_ChangedMaterials;
 
         private GPUResidentDrawer(GPUResidentDrawerSettings settings, GPUResidentDrawerResources resources, int maxInstanceCount)
         {
@@ -274,29 +296,32 @@ namespace UnityEngine.Rendering
 
             var mode = settings.mode;
             var rbcDesc = RenderersBatchersContextDesc.NewDefault();
-            rbcDesc.maxInstances = maxInstanceCount;
+            rbcDesc.instanceNumInfo = new InstanceNumInfo(meshRendererNum: maxInstanceCount);
             rbcDesc.supportDitheringCrossFade = settings.supportDitheringCrossFade;
+
+            var instanceCullingBatcherDesc = InstanceCullingBatcherDesc.NewDefault();
+#if UNITY_EDITOR
+            instanceCullingBatcherDesc.brgPicking = settings.pickingShader;
+            instanceCullingBatcherDesc.brgLoading = settings.loadingShader;
+            instanceCullingBatcherDesc.brgError = settings.errorShader;
+#endif
 
             m_GPUDrivenProcessor = new GPUDrivenProcessor();
             m_BatchersContext = new RenderersBatchersContext(rbcDesc, m_GPUDrivenProcessor, resources);
-
-            Shader brgPicking = null;
-#if UNITY_EDITOR
-            brgPicking = settings.pickingShader;
-#endif
-            Shader brgLoading = settings.loadingShader;
-            Shader brgError = settings.errorShader;
-
-            m_Batcher = new InstanceCullingBatcher(m_BatchersContext, InstanceCullingBatcherDesc.NewDefault(), m_GPUDrivenProcessor, brgPicking, brgLoading, brgError);
+            m_Batcher = new GPUResidentBatcher(
+                m_BatchersContext,
+                instanceCullingBatcherDesc,
+                m_GPUDrivenProcessor);
 
             m_Dispatcher = new ObjectDispatcher();
-            m_Dispatcher.EnableTypeTracking<MeshRenderer>(TypeTrackingFlags.SceneObjects);
             m_Dispatcher.EnableTypeTracking<LODGroup>(TypeTrackingFlags.SceneObjects);
             m_Dispatcher.EnableTypeTracking<LightmapSettings>();
             m_Dispatcher.EnableTypeTracking<Mesh>();
             m_Dispatcher.EnableTypeTracking<Material>();
-            m_Dispatcher.EnableTransformTracking<MeshRenderer>(TransformTrackingType.GlobalTRS);
             m_Dispatcher.EnableTransformTracking<LODGroup>(TransformTrackingType.GlobalTRS);
+
+            m_MeshRendererDrawer = new MeshRendererDrawer(this, m_Dispatcher);
+            m_ChangedMaterials = new List<Object>();
 
 #if UNITY_EDITOR
             AssemblyReloadEvents.beforeAssemblyReload += OnAssemblyReload;
@@ -304,6 +329,7 @@ namespace UnityEngine.Rendering
             SceneManager.sceneLoaded += OnSceneLoaded;
 
             RenderPipelineManager.beginContextRendering += OnBeginContextRendering;
+            RenderPipelineManager.endContextRendering += OnEndContextRendering;
 
             InsertIntoPlayerLoop();
         }
@@ -317,7 +343,16 @@ namespace UnityEngine.Rendering
 #endif
             SceneManager.sceneLoaded -= OnSceneLoaded;
 
+            RenderPipelineManager.beginContextRendering -= OnBeginContextRendering;
+            RenderPipelineManager.endContextRendering -= OnEndContextRendering;
+
             RemoveFromPlayerLoop();
+
+            m_ChangedMaterials.Clear();
+            m_ChangedMaterials = null;
+
+            m_MeshRendererDrawer.Dispose();
+            m_MeshRendererDrawer = null;
 
             m_Dispatcher.Dispose();
             m_Dispatcher = null;
@@ -345,82 +380,63 @@ namespace UnityEngine.Rendering
         {
             if (s_Instance is null)
                 return;
+
+            m_Batcher.OnBeginContextRendering();
+        }
+
+        private void OnEndContextRendering(ScriptableRenderContext context, List<Camera> cameras)
+        {
+            if (s_Instance is null)
+                return;
+
+            m_Batcher.OnEndContextRendering();
         }
 
         private void PostPostLateUpdate()
         {
-            Profiler.BeginSample("DispatchChanges");
+            Profiler.BeginSample("GPUResidentDrawer.DispatchChanges");
             var lodGroupTransformData = m_Dispatcher.GetTransformChangesAndClear<LODGroup>(TransformTrackingType.GlobalTRS, Allocator.TempJob);
-            var rendererTransformData = m_Dispatcher.GetTransformChangesAndClear<MeshRenderer>(TransformTrackingType.GlobalTRS, Allocator.TempJob);
             var lodGroupData = m_Dispatcher.GetTypeChangesAndClear<LODGroup>(Allocator.TempJob, noScriptingArray: true);
-            var rendererData = m_Dispatcher.GetTypeChangesAndClear<MeshRenderer>(Allocator.TempJob, noScriptingArray: true);
             var meshDataSorted = m_Dispatcher.GetTypeChangesAndClear<Mesh>(Allocator.TempJob, sortByInstanceID: true, noScriptingArray: true);
-            var materialData = m_Dispatcher.GetTypeChangesAndClear<Material>(Allocator.TempJob);
             var lightmapSettingsData = m_Dispatcher.GetTypeChangesAndClear<LightmapSettings>(Allocator.TempJob, noScriptingArray: true);
+            m_Dispatcher.GetTypeChangesAndClear<Material>(m_ChangedMaterials, out var changedMateirlasID, out var destroyedMaterialsID, Allocator.TempJob);
             Profiler.EndSample();
 
-            Profiler.BeginSample("QueryInstanceData");
-            var changedRendererInstances = new NativeArray<InstanceHandle>(rendererData.changedID.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-            var destroyedRendererInstances = new NativeArray<InstanceHandle>(rendererData.destroyedID.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-            var transformedInstances = new NativeArray<InstanceHandle>(rendererTransformData.transformedID.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-            var changedMeshInstanceIndexPairs = new NativeList<KeyValuePair<InstanceHandle, int>>(Allocator.TempJob);
-            var destroyedMeshInstances = new NativeList<InstanceHandle>(Allocator.TempJob);
-
-            m_BatchersContext.QueryInstanceData(rendererData.changedID, rendererData.destroyedID, rendererTransformData.transformedID, meshDataSorted.changedID, meshDataSorted.destroyedID,
-                changedRendererInstances, destroyedRendererInstances, transformedInstances, changedMeshInstanceIndexPairs, destroyedMeshInstances);
+            Profiler.BeginSample("GPUResindentDrawer.ProcessLightmapSettings");
+            ProcessLightmapSettings(lightmapSettingsData.changedID, lightmapSettingsData.destroyedID);
             Profiler.EndSample();
 
-            Profiler.BeginSample("UpdateLightmapSettings");
-            UpdateLightmapSettings(lightmapSettingsData.changedID, lightmapSettingsData.destroyedID);
+            Profiler.BeginSample("GPUResindentDrawer.ProcessMaterials");
+            ProcessMaterials(m_ChangedMaterials, changedMateirlasID, destroyedMaterialsID);
             Profiler.EndSample();
 
-            Profiler.BeginSample("UpdateMaterials");
-            UpdateMaterials((Material[])materialData.changed, materialData.changedID, materialData.destroyedID);
+            Profiler.BeginSample("GPUResindentDrawer.ProcessMeshes");
+            ProcessMeshes(meshDataSorted.destroyedID);
             Profiler.EndSample();
 
-            Profiler.BeginSample("UpdateLODGroups");
-            UpdateLODGroups(lodGroupData.changedID, lodGroupData.destroyedID);
+            Profiler.BeginSample("GPUResindentDrawer.ProcessLODGroups");
+            ProcessLODGroups(lodGroupData.changedID, lodGroupData.destroyedID, lodGroupTransformData.transformedID);
             Profiler.EndSample();
 
-            Profiler.BeginSample("UpdateRenderers");
-            UpdateRenderers(rendererData.changedID, changedRendererInstances, destroyedRendererInstances, destroyedMeshInstances.AsArray(),
-                materialData.destroyedID, meshDataSorted.destroyedID);
-            Profiler.EndSample();
+            lodGroupTransformData.Dispose();
+            lodGroupData.Dispose();
+            meshDataSorted.Dispose();
+            lightmapSettingsData.Dispose();
+            changedMateirlasID.Dispose();
+            destroyedMaterialsID.Dispose();
 
-            Profiler.BeginSample("TransformLODGroups");
-            TransformLODGroups(lodGroupTransformData.transformedID);
-            Profiler.EndSample();
-
-            Profiler.BeginSample("TransformRenderers");
-            TransformRenderers(transformedInstances, rendererTransformData.localToWorldMatrices);
-            Profiler.EndSample();
-
-            // This is very important to free instances after all updates as we don't have InstanceHandle generation yet.
-            // So if we free instances and then update, some InstanceHandles might belong to a different instance data, because they were recycled and reallocated.
-            Profiler.BeginSample("FreeInstances");
-            FreeInstances(destroyedRendererInstances, destroyedMeshInstances.AsArray());
+            Profiler.BeginSample("GPUResindentDrawer.ProcessDraws");
+            m_MeshRendererDrawer.ProcessDraws();
+            // Add more drawers here ...
             Profiler.EndSample();
 
             m_BatchersContext.UpdateAmbientProbeAndGpuBuffer(RenderSettings.ambientProbe);
-
-            changedRendererInstances.Dispose();
-            destroyedRendererInstances.Dispose();
-            transformedInstances.Dispose();
-            changedMeshInstanceIndexPairs.Dispose();
-            destroyedMeshInstances.Dispose();
-
-            lodGroupTransformData.Dispose();
-            rendererTransformData.Dispose();
-            lodGroupData.Dispose();
-            rendererData.Dispose();
-            meshDataSorted.Dispose();
-            materialData.Dispose();
-            lightmapSettingsData.Dispose();
+            m_BatchersContext.UpdateInstanceMotions();
 
             m_Batcher.UpdateFrame();
         }
 
-        private void UpdateLightmapSettings(NativeArray<int> changed, NativeArray<int> destroyed)
+        private void ProcessLightmapSettings(NativeArray<int> changed, NativeArray<int> destroyed)
         {
             if (changed.Length == 0 && destroyed.Length == 0)
                 return;
@@ -428,69 +444,118 @@ namespace UnityEngine.Rendering
             m_BatchersContext.lightmapManager.RecreateLightmaps();
         }
 
-        private void UpdateMaterials(Material[] changed, NativeArray<int> changedID, NativeArray<int> destroyedID)
+        private void ProcessMaterials(IList<Object> changed, NativeArray<int> changedID, NativeArray<int> destroyedID)
         {
-            if (destroyedID.Length > 0)
-            {
-                var destroyedLightmappedMaterialsID = new NativeList<int>(Allocator.TempJob);
-                m_BatchersContext.lightmapManager.DestroyMaterials(destroyedID, destroyedLightmappedMaterialsID);
-                m_Batcher.DestroyMaterials(destroyedLightmappedMaterialsID.AsArray());
-                destroyedLightmappedMaterialsID.Dispose();
-            }
-
-            if (changed.Length > 0)
-            {
-                m_BatchersContext.lightmapManager.UpdateMaterials(changed, changedID);
-            }
-        }
-
-        private void UpdateRenderers(NativeArray<int> changedID, NativeArray<InstanceHandle> changedRendererInstances,
-            NativeArray<InstanceHandle> destroyedRendererInstances, NativeArray<InstanceHandle> destroyedMeshInstances,
-            NativeArray<int> destroyedMaterials, NativeArray<int> destroyedMeshes)
-        {
-            Profiler.BeginSample("UpdateRenderers");
-
-            var destroyedInstances = new NativeList<InstanceHandle>(changedRendererInstances.Length + destroyedRendererInstances.Length + destroyedMeshInstances.Length, Allocator.TempJob);
-            destroyedInstances.AddRange(changedRendererInstances);
-            destroyedInstances.AddRange(destroyedRendererInstances);
-            destroyedInstances.AddRange(destroyedMeshInstances);
-
-            m_Batcher.DestroyInstances(destroyedInstances.AsArray());
-            m_Batcher.DestroyMaterials(destroyedMaterials);
-            m_Batcher.DestroyMeshes(destroyedMeshes);
-
-            destroyedInstances.Dispose();
-
-            Profiler.EndSample();
-
-            Profiler.BeginSample("Batcher.UpdateRenderers");
-            m_Batcher.UpdateRenderers(changedID);
-            Profiler.EndSample();
-        }
-
-        private void UpdateLODGroups(NativeArray<int> changedID, NativeArray<int> destroyed)
-        {
-            if (changedID.Length == 0 && destroyed.Length == 0)
+            if(changedID.Length == 0 && destroyedID.Length == 0)
                 return;
 
+            var destroyedLightmappedMaterialsID = new NativeList<int>(Allocator.TempJob);
+            m_BatchersContext.lightmapManager.DestroyMaterials(destroyedID, destroyedLightmappedMaterialsID);
+            m_Batcher.DestroyMaterials(destroyedLightmappedMaterialsID.AsArray());
+            destroyedLightmappedMaterialsID.Dispose();
+
+            m_BatchersContext.lightmapManager.UpdateMaterials(changed, changedID);
+            m_Batcher.DestroyMaterials(destroyedID);
+        }
+
+        private void ProcessMeshes(NativeArray<int> destroyedID)
+        {
+            if (destroyedID.Length == 0)
+                return;
+
+            var destroyedMeshInstances = new NativeList<InstanceHandle>(Allocator.TempJob);
+            ScheduleQueryMeshInstancesJob(destroyedID, destroyedMeshInstances).Complete();
+            m_Batcher.DestroyInstances(destroyedMeshInstances.AsArray());
+            destroyedMeshInstances.Dispose();
+
+            //@ Some rendererGroupID will not be invalidated when their mesh changed. We will need to update Mesh bounds, probes etc. manually for them.
+            m_Batcher.DestroyMeshes(destroyedID);
+        }
+
+        private void ProcessLODGroups(NativeArray<int> changedID, NativeArray<int> destroyed, NativeArray<int> transformedID)
+        {
             m_BatchersContext.DestroyLODGroups(destroyed);
             m_BatchersContext.UpdateLODGroups(changedID);
+            m_BatchersContext.TransformLODGroups(transformedID);
         }
 
-        public void TransformRenderers(NativeArray<InstanceHandle> instances, NativeArray<Matrix4x4> localToWorldMatrices)
+        internal void ProcessRenderers(NativeArray<int> rendererGroupsID)
         {
-            m_BatchersContext.TransformInstances(instances, localToWorldMatrices);
+            Profiler.BeginSample("GPUResindentDrawer.ProcessMeshRenderers");
+
+            var changedInstances = new NativeArray<InstanceHandle>(rendererGroupsID.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+            ScheduleQueryRendererGroupInstancesJob(rendererGroupsID, changedInstances).Complete();
+            m_Batcher.DestroyInstances(changedInstances);
+            changedInstances.Dispose();
+
+            m_Batcher.UpdateRenderers(rendererGroupsID);
+
+            Profiler.EndSample();
         }
 
-        public void TransformLODGroups(NativeArray<int> lodGroupsID)
+        internal void TransformInstances(NativeArray<InstanceHandle> instances, NativeArray<Matrix4x4> localToWorldMatrices)
         {
-            m_BatchersContext.TransformLODGroups(lodGroupsID);
+            Profiler.BeginSample("GPUResindentDrawer.TransformInstances");
+
+            m_BatchersContext.UpdateInstanceTransforms(instances, localToWorldMatrices);
+
+            Profiler.EndSample();
         }
 
-        private void FreeInstances(NativeArray<InstanceHandle> destroyedRendererInstances, NativeArray<InstanceHandle> destroyedMeshInstances)
+        internal void FreeInstances(NativeArray<InstanceHandle> instances)
         {
-            m_BatchersContext.FreeInstances(destroyedRendererInstances);
-            m_BatchersContext.FreeInstances(destroyedMeshInstances);
+            Profiler.BeginSample("GPUResindentDrawer.FreeInstances");
+
+            m_Batcher.DestroyInstances(instances);
+            m_BatchersContext.FreeInstances(instances);
+
+            Profiler.EndSample();
+        }
+
+        internal void FreeRendererGroupInstances(NativeArray<int> rendererGroupIDs)
+        {
+            if(rendererGroupIDs.Length == 0)
+                return;
+
+            Profiler.BeginSample("GPUResindentDrawer.FreeRendererGroupInstances");
+
+            var instances = new NativeList<InstanceHandle>(rendererGroupIDs.Length, Allocator.TempJob);
+            ScheduleQueryRendererGroupInstancesJob(rendererGroupIDs, instances).Complete();
+            m_Batcher.DestroyInstances(instances.AsArray());
+            instances.Dispose();
+
+            m_BatchersContext.FreeRendererGroupInstances(rendererGroupIDs);
+
+            Profiler.EndSample();
+        }
+
+        //@ Implement later...
+        internal InstanceHandle AppendNewInstance(int rendererGroupID, in Matrix4x4 instanceTransform)
+        {
+            throw new NotImplementedException();
+        }
+
+        //@ Additionally we need to implement the way to tie external transforms (not Transform components) with instances.
+        //@ So that an individual instance could be transformed externally and then updated in the drawer.
+
+        internal JobHandle ScheduleQueryRendererGroupInstancesJob(NativeArray<int> rendererGroupIDs, NativeArray<InstanceHandle> instances)
+        {
+            return m_BatchersContext.ScheduleQueryRendererGroupInstancesJob(rendererGroupIDs, instances);
+        }
+
+        internal JobHandle ScheduleQueryRendererGroupInstancesJob(NativeArray<int> rendererGroupIDs, NativeList<InstanceHandle> instances)
+        {
+            return m_BatchersContext.ScheduleQueryRendererGroupInstancesJob(rendererGroupIDs, instances);
+        }
+
+        internal JobHandle ScheduleQueryRendererGroupInstancesJob(NativeArray<int> rendererGroupIDs, NativeArray<int> instancesOffset, NativeArray<int> instancesCount, NativeList<InstanceHandle> instances)
+        {
+            return m_BatchersContext.ScheduleQueryRendererGroupInstancesJob(rendererGroupIDs, instancesOffset, instancesCount, instances);
+        }
+
+        internal JobHandle ScheduleQueryMeshInstancesJob(NativeArray<int> sortedMeshIDs, NativeList<InstanceHandle> instances)
+        {
+            return m_BatchersContext.ScheduleQueryMeshInstancesJob(sortedMeshIDs, instances);
         }
     }
 }

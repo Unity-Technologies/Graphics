@@ -9,6 +9,7 @@ using Unity.Jobs.LowLevel.Unsafe;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Burst;
 using UnityEngine.Profiling;
+using UnityEngine.XR;
 
 [assembly: RegisterGenericJobType(typeof(UnityEngine.Rendering.RegisterNewInstancesJob<UnityEngine.Rendering.BatchMeshID>))]
 [assembly: RegisterGenericJobType(typeof(UnityEngine.Rendering.RegisterNewInstancesJob<UnityEngine.Rendering.BatchMaterialID>))]
@@ -23,11 +24,22 @@ namespace UnityEngine.Rendering
     {
         public OnCullingCompleteCallback onCompleteCallback;
 
+#if UNITY_EDITOR
+        public Shader brgPicking;
+        public Shader brgLoading;
+        public Shader brgError;
+#endif
+
         public static InstanceCullingBatcherDesc NewDefault()
         {
             return new InstanceCullingBatcherDesc()
             {
                 onCompleteCallback = null
+#if UNITY_EDITOR
+                ,brgPicking = null
+                ,brgLoading = null
+                ,brgError = null
+#endif
             };
         }
     }
@@ -147,7 +159,7 @@ namespace UnityEngine.Rendering
     }
 
     [BurstCompile(DisableSafetyChecks = true)]
-    internal unsafe struct FindDrawInstancesJob : IJobParallelFor
+    internal unsafe struct FindDrawInstancesJob : IJobParallelForBatch
     {
         public const int k_BatchSize = 128;
 
@@ -156,19 +168,16 @@ namespace UnityEngine.Rendering
 
         [WriteOnly] public NativeList<int>.ParallelWriter outDrawInstanceIndicesWriter;
 
-        public void Execute(int index)
+        public void Execute(int startIndex, int count)
         {
             int* instancesToRemove = stackalloc int[k_BatchSize];
             int length = 0;
 
-            int start = index * k_BatchSize;
-            int end = math.min(start + k_BatchSize, drawInstances.Length);
-
-            for (int i = start; i < end; ++i)
+            for (int i = startIndex; i < startIndex + count; ++i)
             {
                 ref DrawInstance drawInstance = ref drawInstances.ElementAt(i);
 
-                if (instancesSorted.BinarySearch(new InstanceHandle { index = drawInstance.instanceIndex }) >= 0)
+                if (instancesSorted.BinarySearch(InstanceHandle.FromInt(drawInstance.instanceIndex)) >= 0)
                     instancesToRemove[length++] = i;
             }
 
@@ -177,7 +186,7 @@ namespace UnityEngine.Rendering
     }
 
     [BurstCompile(DisableSafetyChecks = true)]
-    internal unsafe struct FindMaterialDrawInstancesJob : IJobParallelFor
+    internal unsafe struct FindMaterialDrawInstancesJob : IJobParallelForBatch
     {
         public const int k_BatchSize = 128;
 
@@ -186,15 +195,12 @@ namespace UnityEngine.Rendering
 
         [WriteOnly] public NativeList<int>.ParallelWriter outDrawInstanceIndicesWriter;
 
-        public void Execute(int index)
+        public void Execute(int startIndex, int count)
         {
             int* instancesToRemove = stackalloc int[k_BatchSize];
             int length = 0;
 
-            int start = index * k_BatchSize;
-            int end = math.min(start + k_BatchSize, drawInstances.Length);
-
-            for (int i = start; i < end; ++i)
+            for (int i = startIndex; i < startIndex + count; ++i)
             {
                 ref DrawInstance drawInstance = ref drawInstances.ElementAt(i);
 
@@ -207,7 +213,7 @@ namespace UnityEngine.Rendering
     }
 
     [BurstCompile(DisableSafetyChecks = true)]
-    internal struct FindNonRegisteredInstancesJob<T> : IJobParallelFor where T : unmanaged
+    internal struct FindNonRegisteredInstancesJob<T> : IJobParallelForBatch where T : unmanaged
     {
         public const int k_BatchSize = 128;
 
@@ -216,15 +222,12 @@ namespace UnityEngine.Rendering
 
         [WriteOnly] public NativeList<int>.ParallelWriter outInstancesWriter;
 
-        public unsafe void Execute(int index)
+        public unsafe void Execute(int startIndex, int count)
         {
             int* notFoundinstanceIDs = stackalloc int[k_BatchSize];
             int length = 0;
 
-            int start = index * k_BatchSize;
-            int end = math.min(start + k_BatchSize, instanceIDs.Length);
-
-            for (int i = start; i < end; ++i)
+            for (int i = startIndex; i < startIndex + count; ++i)
             {
                 int instanceID = instanceIDs[i];
 
@@ -325,8 +328,9 @@ namespace UnityEngine.Rendering
     [BurstCompile(DisableSafetyChecks = true)]
     internal struct CreateDrawBatchesJob : IJob
     {
+        [ReadOnly] public bool implicitInstanceIndices;
         [ReadOnly] public NativeArray<InstanceHandle> instances;
-        [ReadOnly] public GPUDrivenRendererData rendererData;
+        [ReadOnly] public GPUDrivenRendererGroupData rendererData;
         [ReadOnly] public NativeParallelHashMap<LightmapManager.RendererSubmeshPair, int> rendererToMaterialMap;
         [ReadOnly] public NativeParallelHashMap<int, BatchMeshID> batchMeshHash;
         [ReadOnly] public NativeParallelHashMap<int, BatchMaterialID> batchMaterialHash;
@@ -394,92 +398,110 @@ namespace UnityEngine.Rendering
             return ref data;
         }
 
-        public void Execute()
+        public void ProcessRenderer(int i)
         {
-            for (int i = 0; i < rendererData.rendererID.Length; ++i)
+            var meshIndex = rendererData.meshIndex[i];
+            var meshID = rendererData.meshID[meshIndex];
+            var submeshCount = rendererData.subMeshCount[meshIndex];
+            var subMeshDescOffset = rendererData.subMeshDescOffset[meshIndex];
+            var batchMeshID = batchMeshHash[meshID];
+            var rendererGroupID = rendererData.rendererGroupID[i];
+            var startSubMesh = rendererData.subMeshStartIndex[i];
+            var gameObjectLayer = rendererData.gameObjectLayer[i];
+            var renderingLayerMask = rendererData.renderingLayerMask[i];
+            var materialsOffset = rendererData.materialsOffset[i];
+            var materialsCount = rendererData.materialsCount[i];
+            var lightmapIndex = rendererData.lightmapIndex[i];
+            var packedRendererData = rendererData.packedRendererData[i];
+            var rendererPriority = rendererData.rendererPriority[i];
+
+            int instanceCount;
+            int instanceOffset;
+
+            if (implicitInstanceIndices)
             {
-                var instance = instances[i];
-                var meshIndex = rendererData.meshIndex[i];
-                var meshID = rendererData.meshID[meshIndex];
-                var submeshCount = rendererData.subMeshCount[meshIndex];
-                var subMeshDescOffset = rendererData.subMeshDescOffset[meshIndex];
-                var batchMeshID = batchMeshHash[meshID];
-                var rendererID = rendererData.rendererID[i];
-                var startSubMesh = rendererData.subMeshStartIndex[i];
-                var gameObjectLayer = rendererData.gameObjectLayer[i];
-                var renderingLayerMask = rendererData.renderingLayerMask[i];
-                var materialsOffset = rendererData.materialsOffset[i];
-                var materialsCount = rendererData.materialsCount[i];
-                var lightmapIndex = rendererData.lightmapIndex[i];
-                var packedRendererData = rendererData.packedRendererData[i];
-                var rendererPriority = rendererData.rendererPriority[i];
+                instanceCount = 1;
+                instanceOffset = i;
+            }
+            else
+            {
+                instanceCount = rendererData.instancesCount[i];
+                instanceOffset = rendererData.instancesOffset[i];
+            }
 
-                const int kLightmapIndexMask = 0xffff;
-                const int kLightmapIndexInfluenceOnly = 0xfffe;
+            if (instanceCount == 0)
+                return;
 
-                var overridenComponents = RenderersParameters.DefaultComponents;
-                var lmIndexMasked = lightmapIndex & kLightmapIndexMask;
+            const int kLightmapIndexMask = 0xffff;
+            const int kLightmapIndexInfluenceOnly = 0xfffe;
 
-                // Object doesn't have a valid lightmap Index, -> uses probes for lighting
-                if (lmIndexMasked >= kLightmapIndexInfluenceOnly)
+            var overridenComponents = InstanceComponentGroup.Default;
+
+            var lmIndexMasked = lightmapIndex & kLightmapIndexMask;
+
+            // Object doesn't have a valid lightmap Index, -> uses probes for lighting
+            if (lmIndexMasked >= kLightmapIndexInfluenceOnly)
+            {
+                // Only add the component when needed to store blended results (shader will use the ambient probe when not present)
+                if (packedRendererData.lightProbeUsage == LightProbeUsage.BlendProbes)
+                    overridenComponents |= InstanceComponentGroup.LightProbe;
+            }
+            else
+            {
+                // Add per-instance lightmap parameters
+                overridenComponents |= InstanceComponentGroup.Lightmap;
+            }
+
+            var rangeKey = new RangeKey
+            {
+                layer = (byte)gameObjectLayer,
+                renderingLayerMask = renderingLayerMask,
+                motionMode = packedRendererData.motionVecGenMode,
+                shadowCastingMode = packedRendererData.shadowCastingMode,
+                staticShadowCaster = packedRendererData.staticShadowCaster,
+                rendererPriority = rendererPriority,
+            };
+
+            ref DrawRange drawRange = ref EditDrawRange(rangeKey);
+
+            for (int matIndex = 0; matIndex < materialsCount; ++matIndex)
+            {
+                if (matIndex >= submeshCount)
                 {
-                    // Only add the component when needed to store blended results (shader will use the ambient probe when not present)
-                    if (packedRendererData.lightProbeUsage == LightProbeUsage.BlendProbes)
-                        overridenComponents = RenderersParameters.DefaultAndProbesComponents;
+                    Debug.LogWarning("Material count in the shared material list is higher than sub mesh count for the mesh. Object may be corrupted.");
+                    continue;
                 }
-                else
+
+                var materialIndex = rendererData.materialIndex[materialsOffset + matIndex];
+                var materialID = rendererData.materialID[materialIndex];
+                var isTransparent = rendererData.isTransparent[materialIndex];
+                var isMotionVectorsPassEnabled = rendererData.isMotionVectorsPassEnabled[materialIndex];
+
+                if (rendererToMaterialMap.TryGetValue(new LightmapManager.RendererSubmeshPair(rendererGroupID, matIndex), out var cachedMaterialID))
+                    materialID = cachedMaterialID;
+
+
+                if (materialID == 0)
                 {
-                    // Add per-instance lightmap parameters
-                    overridenComponents = RenderersParameters.DefaultAndLightmapComponents;
+                    Debug.LogWarning("Material in the shared materials list is null. Object will be partially rendered.");
+                    continue;
                 }
 
-                var rangeKey = new RangeKey
+                batchMaterialHash.TryGetValue(materialID, out BatchMaterialID batchMaterialID);
+
+                var flags = BatchDrawCommandFlags.None;
+
+                // assume that a custom motion vectors pass contains deformation motion, so should always output motion vectors
+                // (otherwise this flag is set dynamically during culling only when the transform is changing)
+                if (isMotionVectorsPassEnabled)
+                    flags |= BatchDrawCommandFlags.HasMotion;
+
+                if (isTransparent)
+                    flags |= BatchDrawCommandFlags.HasSortingPosition;
+
                 {
-                    layer = (byte)gameObjectLayer,
-                    renderingLayerMask = renderingLayerMask,
-                    motionMode = packedRendererData.motionVecGenMode,
-                    shadowCastingMode = packedRendererData.shadowCastingMode,
-                    staticShadowCaster = packedRendererData.staticShadowCaster,
-                    rendererPriority = rendererPriority,
-                };
-
-                ref DrawRange drawRange = ref EditDrawRange(rangeKey);
-
-                for (int matIndex = 0; matIndex < materialsCount; ++matIndex)
-                {
-                    if (matIndex >= submeshCount)
-                    {
-                        Debug.LogWarning("Material count in the shared material list is higher than sub mesh count for the mesh. Object may be corrupted.");
-                        continue;
-                    }
-
                     var submeshIndex = startSubMesh + matIndex;
-                    var materialIndex = rendererData.materialIndex[materialsOffset + matIndex];
-                    var materialID = rendererData.materialID[materialIndex];
-                    var isTransparent = rendererData.isTransparent[materialIndex];
-                    var isMotionVectorsPassEnabled = rendererData.isMotionVectorsPassEnabled[materialIndex];
                     var subMeshDesc = rendererData.subMeshDesc[subMeshDescOffset + submeshIndex];
-
-                    if (rendererToMaterialMap.TryGetValue(new LightmapManager.RendererSubmeshPair(rendererID, matIndex), out var cachedMaterialID))
-                        materialID = cachedMaterialID;
-
-                    if (materialID == 0)
-                    {
-                        Debug.LogWarning("Material in the shared materials list is null. Object will be partially rendered.");
-                        continue;
-                    }
-
-                    batchMaterialHash.TryGetValue(materialID, out BatchMaterialID batchMaterialID);
-
-                    var flags = BatchDrawCommandFlags.None;
-
-                    // assume that a custom motion vectors pass contains deformation motion, so should always output motion vectors
-                    // (otherwise this flag is set dynamically during culling only when the transform is changing)
-                    if (isMotionVectorsPassEnabled)
-                        flags |= BatchDrawCommandFlags.HasMotion;
-
-                    if (isTransparent)
-                        flags |= BatchDrawCommandFlags.HasSortingPosition;
 
                     var drawKey = new DrawKey
                     {
@@ -487,9 +509,9 @@ namespace UnityEngine.Rendering
                         meshID = batchMeshID,
                         submeshIndex = submeshIndex,
                         flags = flags,
-                        transparentInstanceId = isTransparent ? rendererID : 0,
+                        transparentInstanceId = isTransparent ? rendererGroupID : 0,
                         range = rangeKey,
-                        overridenComponents = (int)overridenComponents
+                        overridenComponents = (uint)overridenComponents
                     };
 
                     ref DrawBatch drawBatch = ref EditDrawBatch(drawKey, subMeshDesc);
@@ -497,16 +519,29 @@ namespace UnityEngine.Rendering
                     if (drawBatch.instanceCount == 0)
                         ++drawRange.drawCount;
 
-                    ++drawBatch.instanceCount;
+                    drawBatch.instanceCount += instanceCount;
 
-                    drawInstances.Add(new DrawInstance { key = drawKey, instanceIndex = instance.index });
+                    for (int j = 0; j < instanceCount; ++j)
+                    {
+                        var instanceIndex = instanceOffset + j;
+                        InstanceHandle instance = instances[instanceIndex];
+                        drawInstances.Add(new DrawInstance { key = drawKey, instanceIndex = instance.index });
+                    }
                 }
+            }
+        }
+
+        public void Execute()
+        {
+            {
+                for (int i = 0; i < rendererData.rendererGroupID.Length; ++i)
+                    ProcessRenderer(i);
             }
         }
     }
 
     [BurstCompile]
-    internal class CPUInstanceData
+    internal class CPUDrawInstanceData
     {
         public NativeList<DrawInstance> drawInstances => m_DrawInstances;
         public NativeParallelHashMap<DrawKey, int> batchHash => m_BatchHash;
@@ -651,7 +686,7 @@ namespace UnityEngine.Rendering
                 outDrawInstanceIndicesWriter = drawInstanceIndicesToDestroy.AsParallelWriter()
             };
 
-            findDrawInstancesJobHandle.Schedule(Mathf.CeilToInt((float)m_DrawInstances.Length / FindDrawInstancesJob.k_BatchSize), 1).Complete();
+            findDrawInstancesJobHandle.ScheduleBatch(m_DrawInstances.Length, FindDrawInstancesJob.k_BatchSize).Complete();
 
             DestroyDrawInstanceIndices(drawInstanceIndicesToDestroy.AsArray());
 
@@ -681,7 +716,7 @@ namespace UnityEngine.Rendering
                 outDrawInstanceIndicesWriter = drawInstanceIndicesToDestroy.AsParallelWriter()
             };
 
-            findDrawInstancesJobHandle.Schedule(Mathf.CeilToInt((float)m_DrawInstances.Length / FindMaterialDrawInstancesJob.k_BatchSize), 1).Complete();
+            findDrawInstancesJobHandle.ScheduleBatch(m_DrawInstances.Length, FindMaterialDrawInstancesJob.k_BatchSize).Complete();
 
             DestroyDrawInstanceIndices(drawInstanceIndicesToDestroy.AsArray());
 
@@ -695,13 +730,12 @@ namespace UnityEngine.Rendering
         }
     }
 
-    internal class InstanceCullingBatcher : BaseRendererBatcher
+    internal class InstanceCullingBatcher : IDisposable
     {
         private RenderersBatchersContext m_BatchersContext;
-        private GPUDrivenProcessor m_GPUDrivenProcessor;
-        private CPUInstanceData m_InstanceData;
+        private CPUDrawInstanceData m_DrawInstanceData;
         private BatchRendererGroup m_BRG;
-        private NativeParallelHashMap<int, BatchID> m_GlobalBatchIDs;
+        private NativeParallelHashMap<uint, BatchID> m_GlobalBatchIDs;
         private InstanceCuller m_Culler;
         private NativeParallelHashMap<int, BatchMaterialID> m_BatchMaterialHash;
         private NativeParallelHashMap<int, BatchMeshID> m_BatchMeshHash;
@@ -709,32 +743,28 @@ namespace UnityEngine.Rendering
         private int m_CachedInstanceDataBufferLayoutVersion;
 
         private OnCullingCompleteCallback m_OnCompleteCallback;
-
-        private List<CPUInstanceData> m_ListCacheNoGC;
-
-        public InstanceCullingBatcher(RenderersBatchersContext batcherContext, InstanceCullingBatcherDesc desc, GPUDrivenProcessor gpuDrivenProcessor, Shader brgPicking, Shader brgLoading, Shader brgError)
+        public InstanceCullingBatcher(RenderersBatchersContext batcherContext, InstanceCullingBatcherDesc desc)
         {
             m_BatchersContext = batcherContext;
-            m_GPUDrivenProcessor = gpuDrivenProcessor;
-            m_InstanceData = new CPUInstanceData();
-            m_InstanceData.Initialize();
+            m_DrawInstanceData = new CPUDrawInstanceData();
+            m_DrawInstanceData.Initialize();
             m_BRG = new BatchRendererGroup(OnPerformCulling, IntPtr.Zero);
 #if UNITY_EDITOR
-            if (brgPicking != null)
+            if (desc.brgPicking != null)
             {
-                var mat = new Material(brgPicking);
+                var mat = new Material(desc.brgPicking);
                 mat.hideFlags = HideFlags.HideAndDontSave;
                 m_BRG.SetPickingMaterial(mat);
             }
-            if (brgLoading != null)
+            if (desc.brgLoading != null)
             {
-                var mat = new Material(brgLoading);
+                var mat = new Material(desc.brgLoading);
                 mat.hideFlags = HideFlags.HideAndDontSave;
                 m_BRG.SetLoadingMaterial(mat);
             }
-            if (brgError != null)
+            if (desc.brgError != null)
             {
-                var mat = new Material(brgError);
+                var mat = new Material(desc.brgError);
                 mat.hideFlags = HideFlags.HideAndDontSave;
                 m_BRG.SetErrorMaterial(mat);
             }
@@ -748,21 +778,19 @@ namespace UnityEngine.Rendering
             m_BRG.SetEnabledViewTypes(viewTypes);
 #endif
             m_Culler = new InstanceCuller();
+
             m_CachedInstanceDataBufferLayoutVersion = -1;
             m_OnCompleteCallback = desc.onCompleteCallback;
-            m_ListCacheNoGC = new List<CPUInstanceData>(1);
             m_BatchMaterialHash = new NativeParallelHashMap<int, BatchMaterialID>(64, Allocator.Persistent);
             m_BatchMeshHash = new NativeParallelHashMap<int, BatchMeshID>(64, Allocator.Persistent);
 
-            m_GlobalBatchIDs = new NativeParallelHashMap<int, BatchID>(4, Allocator.Persistent);
-            m_GlobalBatchIDs.Add((int)RenderersParameters.DefaultComponents, GetBatchID(RenderersParameters.DefaultComponents));
-            m_GlobalBatchIDs.Add((int)RenderersParameters.DefaultAndProbesComponents, GetBatchID(RenderersParameters.DefaultAndProbesComponents));
-            m_GlobalBatchIDs.Add((int)RenderersParameters.DefaultAndLightmapComponents, GetBatchID(RenderersParameters.DefaultAndLightmapComponents));
-
-            BaseRendererBatcherPipeline.Initialize(this);
+            m_GlobalBatchIDs = new NativeParallelHashMap<uint, BatchID>(6, Allocator.Persistent);
+            m_GlobalBatchIDs.Add((uint)InstanceComponentGroup.Default, GetBatchID(InstanceComponentGroup.Default));
+            m_GlobalBatchIDs.Add((uint)InstanceComponentGroup.DefaultLightProbe, GetBatchID(InstanceComponentGroup.DefaultLightProbe));
+            m_GlobalBatchIDs.Add((uint)InstanceComponentGroup.DefaultLightmap, GetBatchID(InstanceComponentGroup.DefaultLightmap));
         }
 
-        public override void Dispose()
+        public void Dispose()
         {
             m_OnCompleteCallback = null;
             m_Culler.Dispose();
@@ -777,32 +805,33 @@ namespace UnityEngine.Rendering
             if (m_BRG != null)
                 m_BRG.Dispose();
 
-            m_InstanceData.Dispose();
-            m_InstanceData = null;
-
-            m_ListCacheNoGC.Clear();
-            m_ListCacheNoGC = null;
+            m_DrawInstanceData.Dispose();
+            m_DrawInstanceData = null;
 
             m_BatchMaterialHash.Dispose();
             m_BatchMeshHash.Dispose();
-
-            BaseRendererBatcherPipeline.Shutdown();
         }
 
-        private BatchID GetBatchID(RenderersParameters.InstanceComponents componentsOverriden)
+        private BatchID GetBatchID(InstanceComponentGroup componentsOverriden)
         {
             if (m_CachedInstanceDataBufferLayoutVersion != m_BatchersContext.instanceDataBufferLayoutVersion)
                 return BatchID.Null;
 
+            Assert.IsTrue(m_BatchersContext.defaultDescriptions.Length == m_BatchersContext.defaultMetadata.Length);
+
             const uint kClearIsOverriddenBit = 0x4FFFFFFF;
             var tempMetadata = new NativeList<MetadataValue>(m_BatchersContext.defaultMetadata.Length, Allocator.Temp);
-            var componentOffset = 0;
-            foreach (var metadata in m_BatchersContext.defaultMetadata)
+
+            for(int i = 0; i < m_BatchersContext.defaultDescriptions.Length; ++i)
             {
+                var componentGroup = m_BatchersContext.defaultDescriptions[i].componentGroup;
+                var metadata = m_BatchersContext.defaultMetadata[i];
                 var value = metadata.Value;
+
                 // if instances in this batch do not override the component, clear the override bit
-                if (((int)componentsOverriden & (1 << componentOffset++)) == 0)
+                if ((componentsOverriden & componentGroup) == 0)
                     value &= kClearIsOverriddenBit;
+
                 tempMetadata.Add(new MetadataValue
                 {
                     NameID = metadata.NameID,
@@ -825,15 +854,15 @@ namespace UnityEngine.Rendering
                     if (!batchID.Equals(BatchID.Null))
                         m_BRG.RemoveBatch(batchID);
 
-                    var componentsOverriden = (RenderersParameters.InstanceComponents)componentsToBatchID.Key;
+                    var componentsOverriden = (InstanceComponentGroup)componentsToBatchID.Key;
                     componentsToBatchID.Value = GetBatchID(componentsOverriden);
                 }
             }
         }
 
-        public CPUInstanceData GetInstanceData()
+        public CPUDrawInstanceData GetDrawInstanceData()
         {
-            return m_InstanceData;
+            return m_DrawInstanceData;
         }
 
         public unsafe JobHandle OnPerformCulling(
@@ -848,19 +877,18 @@ namespace UnityEngine.Rendering
                     return new JobHandle();
             }
 
-            m_InstanceData.RebuildDrawListsIfNeeded();
+            m_DrawInstanceData.RebuildDrawListsIfNeeded();
 
             JobHandle jobHandle = m_Culler.CreateCullJobTree(
                 cc,
                 cullingOutput,
-                m_BatchersContext.instanceDrawData,
+                m_BatchersContext.instanceData,
+                m_BatchersContext.sharedInstanceData,
+                m_BatchersContext.instanceDataBuffer,
                 m_BatchersContext.lodGroupCullingData,
-                m_InstanceData,
+                m_DrawInstanceData,
                 m_GlobalBatchIDs,
-                m_BatchersContext.crossfadedRendererCount,
-                m_BatchersContext.rendererInstanceIDs,
-                m_BatchersContext.transformIndices,
-                m_BatchersContext.movedTransformIndices);
+                m_BatchersContext.crossfadedRendererCount);
 
             if (m_OnCompleteCallback != null)
                 m_OnCompleteCallback(jobHandle, cc, cullingOutput);
@@ -868,19 +896,19 @@ namespace UnityEngine.Rendering
             return jobHandle;
         }
 
-        public override void DestroyInstances(NativeArray<InstanceHandle> destroyedInstances)
+        public void DestroyInstances(NativeArray<InstanceHandle> instances)
         {
-            if (destroyedInstances.Length == 0)
+            if (instances.Length == 0)
                 return;
 
             Profiler.BeginSample("DestroyInstances");
 
-            m_InstanceData.DestroyDrawInstances(destroyedInstances);
+            m_DrawInstanceData.DestroyDrawInstances(instances);
 
             Profiler.EndSample();
         }
 
-        public override void DestroyMaterials(NativeArray<int> destroyedMaterials)
+        public void DestroyMaterials(NativeArray<int> destroyedMaterials)
         {
             if (destroyedMaterials.Length == 0)
                 return;
@@ -899,14 +927,14 @@ namespace UnityEngine.Rendering
                 }
             }
 
-            m_InstanceData.DestroyMaterialDrawInstances(destroyedBatchMaterials.AsArray());
+            m_DrawInstanceData.DestroyMaterialDrawInstances(destroyedBatchMaterials.AsArray());
 
             destroyedBatchMaterials.Dispose();
 
             Profiler.EndSample();
         }
 
-        public override void DestroyMeshes(NativeArray<int> destroyedMeshes)
+        public void DestroyMeshes(NativeArray<int> destroyedMeshes)
         {
             if (destroyedMeshes.Length == 0)
                 return;
@@ -925,172 +953,104 @@ namespace UnityEngine.Rendering
             Profiler.EndSample();
         }
 
-        /*
-        public override void UpdateMaterials(Material[] changedMaterials, NativeArray<int> changedMaterialsID, NativeArray<int> destroyedMaterialsID)
+        public void PostCullBeginCameraRendering(RenderRequestBatcherContext context)
         {
         }
-        */
 
-        public override void PostCullBeginCameraRendering(RenderRequestBatcherContext context)
+        private void RegisterBatchMeshes(NativeArray<int> meshIDs)
         {
-            // We must update the ambient probe manually here to make sure probes are interpolated using the correct value.
-            // Other renderer doesn't have this issue as probes are interpolated every frame. For us, a wrong interpolation would be stored persistently in our GPUInstanceDataBuffer.
-            RenderSettings.ambientProbe = context.ambientProbe;
-            m_BatchersContext.UpdateAmbientProbeAndGpuBuffer(context.ambientProbe);
-        }
-
-        public override void UpdateRenderers(NativeArray<int> renderersID)
-        {
-            if (renderersID.Length == 0)
-                return;
-
-            m_GPUDrivenProcessor.EnableGPUDrivenRenderingAndDispatchRendererData(renderersID, (GPUDrivenRendererData rendererData, IList<Mesh> meshes, IList<Material> materials) =>
+            var newMeshIDs = new NativeList<int>(meshIDs.Length, Allocator.TempJob);
+            new FindNonRegisteredInstancesJob<BatchMeshID>
             {
-                if (rendererData.rendererID.Length == 0)
-                    return;
+                instanceIDs = meshIDs,
+                hashMap = m_BatchMeshHash,
+                outInstancesWriter = newMeshIDs.AsParallelWriter()
+            }
+            .ScheduleBatch(meshIDs.Length, FindNonRegisteredInstancesJob<BatchMeshID>.k_BatchSize).Complete();
+            var newBatchMeshIDs = new NativeArray<BatchMeshID>(newMeshIDs.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+            m_BRG.RegisterMeshes(newMeshIDs.AsArray(), newBatchMeshIDs);
 
-                Profiler.BeginSample("ConvertRenderersToBRG");
+            int totalMeshesNum = m_BatchMeshHash.Count() + newBatchMeshIDs.Length;
+            m_BatchMeshHash.Capacity = Math.Max(m_BatchMeshHash.Capacity, Mathf.CeilToInt(totalMeshesNum / 1023.0f) * 1024);
 
-                var usedMaterials = new NativeList<int>(Allocator.TempJob);
-                usedMaterials.AddRange(rendererData.materialID);
+            new RegisterNewInstancesJob<BatchMeshID>
+            {
+                instanceIDs = newMeshIDs.AsArray(),
+                batchIDs = newBatchMeshIDs,
+                hashMap = m_BatchMeshHash.AsParallelWriter()
+            }
+            .Schedule(newMeshIDs.Length, RegisterNewInstancesJob<BatchMeshID>.k_BatchSize).Complete();
 
-                // Register lightmaps.
-                // ----------------------------------------------------------------------------------------------------------------------------------
-
-                Profiler.BeginSample("GenerateLightmappingData");
-
-                var rendererToMaterialMap = m_BatchersContext.lightmapManager.GenerateLightmappingData(rendererData, materials, usedMaterials);
-
-                Profiler.BeginSample("GetLightmapTextureIndex");
-
-                var lightMapTextureIndices = new NativeArray<float4>(rendererData.rendererID.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-                m_BatchersContext.lightmapManager.GetLightmapTextureIndices(rendererData, lightMapTextureIndices);
-
-                Profiler.EndSample();
-
-                Profiler.EndSample();
-
-                // ----------------------------------------------------------------------------------------------------------------------------------
-
-                // Register Meshes
-                // --------------------------------------------------------------------------------------------------------------------------------------
-
-                var newMeshIDs = new NativeList<int>(rendererData.meshID.Length, Allocator.TempJob);
-
-                new FindNonRegisteredInstancesJob<BatchMeshID>
-                {
-                    instanceIDs = rendererData.meshID,
-                    hashMap = m_BatchMeshHash,
-                    outInstancesWriter = newMeshIDs.AsParallelWriter()
-                }
-                .Schedule(Mathf.CeilToInt((float)rendererData.meshID.Length / FindNonRegisteredInstancesJob<BatchMeshID>.k_BatchSize), 1).Complete();
-
-                var newBatchMeshIDs = new NativeArray<BatchMeshID>(newMeshIDs.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-                m_BRG.RegisterMeshes(newMeshIDs.AsArray(), newBatchMeshIDs);
-
-                int totalMeshesNum = m_BatchMeshHash.Count() + newBatchMeshIDs.Length;
-                m_BatchMeshHash.Capacity = Math.Max(m_BatchMeshHash.Capacity, Mathf.CeilToInt(totalMeshesNum / 1023.0f) * 1024);
-
-                new RegisterNewInstancesJob<BatchMeshID>
-                {
-                    instanceIDs = newMeshIDs.AsArray(),
-                    batchIDs = newBatchMeshIDs,
-                    hashMap = m_BatchMeshHash.AsParallelWriter()
-                }
-                .Schedule(newMeshIDs.Length, RegisterNewInstancesJob<BatchMeshID>.k_BatchSize).Complete();
-
-                newMeshIDs.Dispose();
-                newBatchMeshIDs.Dispose();
-
-                // --------------------------------------------------------------------------------------------------------------------------------------
-
-                // Register Materials
-                // --------------------------------------------------------------------------------------------------------------------------------------
-
-                var newMaterialIDs = new NativeList<int>(usedMaterials.Length, Allocator.TempJob);
-
-                new FindNonRegisteredInstancesJob<BatchMaterialID>
-                {
-                    instanceIDs = usedMaterials.AsArray(),
-                    hashMap = m_BatchMaterialHash,
-                    outInstancesWriter = newMaterialIDs.AsParallelWriter()
-                }
-                .Schedule(Mathf.CeilToInt((float)usedMaterials.Length / FindNonRegisteredInstancesJob<BatchMaterialID>.k_BatchSize), 1).Complete();
-
-                var newBatchMaterialIDs = new NativeArray<BatchMaterialID>(newMaterialIDs.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-                m_BRG.RegisterMaterials(newMaterialIDs.AsArray(), newBatchMaterialIDs);
-
-                int totalMaterialsNum = m_BatchMaterialHash.Count() + newMaterialIDs.Length;
-                m_BatchMaterialHash.Capacity = Math.Max(m_BatchMaterialHash.Capacity, Mathf.CeilToInt(totalMaterialsNum / 1023.0f) * 1024);
-
-                new RegisterNewInstancesJob<BatchMaterialID>
-                {
-                    instanceIDs = newMaterialIDs.AsArray(),
-                    batchIDs = newBatchMaterialIDs,
-                    hashMap = m_BatchMaterialHash.AsParallelWriter()
-                }
-                .Schedule(newMaterialIDs.Length, RegisterNewInstancesJob<BatchMaterialID>.k_BatchSize).Complete();
-
-                newMaterialIDs.Dispose();
-                newBatchMaterialIDs.Dispose();
-                usedMaterials.Dispose();
-
-                // --------------------------------------------------------------------------------------------------------------------------------------
-
-                // Allocate and Update CPU instance data
-                // --------------------------------------------------------------------------------------------------------------------------------------
-
-                var instances = new NativeArray<InstanceHandle>(rendererData.rendererID.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-                m_BatchersContext.AllocateOrGetInstances(rendererData.rendererID, instances);
-                m_BatchersContext.UpdateInstanceData(instances, rendererData);
-
-                // --------------------------------------------------------------------------------------------------------------------------------------
-
-                // Upload CPU Instance data to GPU
-                // --------------------------------------------------------------------------------------------------------------------------------------
-
-                GPUInstanceDataBufferUploader instanceUploader = m_BatchersContext.CreateDataBufferUploader(instances.Length);
-                instanceUploader.AllocateInstanceHandles(instances);
-                instanceUploader.WriteInstanceData(m_BatchersContext.renderersParameters.lightmapIndex.index, lightMapTextureIndices);
-                // If an object is statically batched then rendererData.lightmapScaleOffset will contain identity scale offset.
-                instanceUploader.WriteInstanceData(m_BatchersContext.renderersParameters.lightmapScale.index, rendererData.lightmapScaleOffset);
-                m_BatchersContext.SubmitToGpu(instances, ref instanceUploader);
-                m_BatchersContext.ChangeInstanceBufferVersion();
-                lightMapTextureIndices.Dispose();
-                instanceUploader.Dispose();
-
-                // --------------------------------------------------------------------------------------------------------------------------------------
-
-                m_BatchersContext.ReinitializeInstanceTransforms(instances, rendererData.localToWorldMatrix, rendererData.prevLocalToWorldMatrix);
-
-                new CreateDrawBatchesJob
-                {
-                    instances = instances,
-                    rendererData = rendererData,
-                    rendererToMaterialMap = rendererToMaterialMap,
-                    batchMeshHash = m_BatchMeshHash,
-                    batchMaterialHash = m_BatchMaterialHash,
-                    rangeHash = m_InstanceData.rangeHash,
-                    drawRanges = m_InstanceData.drawRanges,
-                    batchHash = m_InstanceData.batchHash,
-                    drawBatches = m_InstanceData.drawBatches,
-                    meshProceduralInfoHash = m_InstanceData.meshProceduralInfoHash,
-                    drawInstances = m_InstanceData.drawInstances
-                }.Run();
-
-                m_InstanceData.NeedsRebuild();
-
-                UpdateInstanceDataBufferLayoutVersion();
-
-                instances.Dispose();
-
-                Profiler.EndSample();
-            });
+            newMeshIDs.Dispose();
+            newBatchMeshIDs.Dispose();
         }
 
-        public override void UpdateFrame()
+        private void RegisterBatchMaterials(in NativeArray<int> usedMaterialIDs)
         {
+            var newMaterialIDs = new NativeList<int>(usedMaterialIDs.Length, Allocator.TempJob);
+            new FindNonRegisteredInstancesJob<BatchMaterialID>
+            {
+                instanceIDs = usedMaterialIDs,
+                hashMap = m_BatchMaterialHash,
+                outInstancesWriter = newMaterialIDs.AsParallelWriter()
+            }
+            .ScheduleBatch(usedMaterialIDs.Length, FindNonRegisteredInstancesJob<BatchMaterialID>.k_BatchSize).Complete();
 
+            var newBatchMaterialIDs = new NativeArray<BatchMaterialID>(newMaterialIDs.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+            m_BRG.RegisterMaterials(newMaterialIDs.AsArray(), newBatchMaterialIDs);
+
+            int totalMaterialsNum = m_BatchMaterialHash.Count() + newMaterialIDs.Length;
+            m_BatchMaterialHash.Capacity = Math.Max(m_BatchMaterialHash.Capacity, Mathf.CeilToInt(totalMaterialsNum / 1023.0f) * 1024);
+
+            new RegisterNewInstancesJob<BatchMaterialID>
+            {
+                instanceIDs = newMaterialIDs.AsArray(),
+                batchIDs = newBatchMaterialIDs,
+                hashMap = m_BatchMaterialHash.AsParallelWriter()
+            }
+            .Schedule(newMaterialIDs.Length, RegisterNewInstancesJob<BatchMaterialID>.k_BatchSize).Complete();
+
+            newMaterialIDs.Dispose();
+            newBatchMaterialIDs.Dispose();
+        }
+
+        public void BuildBatch(
+            NativeArray<InstanceHandle> instances,
+            NativeArray<int> usedMaterialIDs,
+            NativeArray<int> usedMeshIDs,
+            NativeParallelHashMap<LightmapManager.RendererSubmeshPair, int> rendererToMaterialMap,
+            in GPUDrivenRendererGroupData rendererData)
+        {
+            RegisterBatchMaterials(usedMaterialIDs);
+            RegisterBatchMeshes(usedMeshIDs);
+
+            new CreateDrawBatchesJob
+            {
+                implicitInstanceIndices = rendererData.instancesCount.Length == 0,
+                instances = instances,
+                rendererData = rendererData,
+                rendererToMaterialMap = rendererToMaterialMap,
+                batchMeshHash = m_BatchMeshHash,
+                batchMaterialHash = m_BatchMaterialHash,
+                rangeHash = m_DrawInstanceData.rangeHash,
+                drawRanges = m_DrawInstanceData.drawRanges,
+                batchHash = m_DrawInstanceData.batchHash,
+                drawBatches = m_DrawInstanceData.drawBatches,
+                meshProceduralInfoHash = m_DrawInstanceData.meshProceduralInfoHash,
+                drawInstances = m_DrawInstanceData.drawInstances
+            }.Run();
+
+            m_DrawInstanceData.NeedsRebuild();
+            UpdateInstanceDataBufferLayoutVersion();
+        }
+
+        public void UpdateFrame()
+        {
+            m_Culler.UpdateFrame();
+        }
+
+        public void OnEndContextRendering()
+        {
         }
     }
 }

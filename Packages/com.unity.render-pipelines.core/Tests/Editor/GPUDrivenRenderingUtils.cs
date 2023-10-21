@@ -8,6 +8,14 @@ using System.Collections.Generic;
 
 namespace UnityEngine.Rendering.Tests
 {
+    internal struct GPUDrivenTestHelper
+    {
+        static public uint4 UnpackUintTo4x8Bit(uint val)
+        {
+            return new uint4(val & 0xFF, (val >> 8) & 0xFF, (val >> 16) & 0xFF, (val >> 24) & 0xFF);
+        }
+    }
+
     internal struct MeshTestData : IDisposable
     {
         public Mesh cube;
@@ -22,14 +30,18 @@ namespace UnityEngine.Rendering.Tests
         {
             // SetupGeometryPoolTests
             cube = GameObject.CreatePrimitive(PrimitiveType.Cube).GetComponent<MeshFilter>().sharedMesh;
+            cube.name = "Cube";
             sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere).GetComponent<MeshFilter>().sharedMesh;
             capsule = GameObject.CreatePrimitive(PrimitiveType.Capsule).GetComponent<MeshFilter>().sharedMesh;
             cube16bit = Create16BitIndexMesh(cube);
+            cube16bit.name = "Cube16bit";
             capsule16bit = Create16BitIndexMesh(capsule);
+            capsule16bit.name = "Capsule16bit";
 
-            var newCube = GameObject.CreatePrimitive(PrimitiveType.Cube).GetComponent<MeshFilter>();
             mergedCubeSphere = MergeMeshes(cube, sphere);
+            mergedCubeSphere.name = "MergedCubeSphere";
             mergedSphereCube = MergeMeshes(sphere, cube);
+            mergedSphereCube.name = "MergedSphereCube";
         }
 
         public static Mesh Create16BitIndexMesh(Mesh input)
@@ -101,37 +113,47 @@ namespace UnityEngine.Rendering.Tests
     //Helper class containing a snapshot of the GPU big instance buffer data
     internal struct InstanceDataBufferCPUReadbackData : IDisposable
     {
-        public NativeArray<Vector4> data;
+        public NativeArray<uint> data;
         GPUInstanceDataBuffer m_InstanceDataBuffer;
 
-        public void Load(GPUInstanceDataBuffer instanceDataBuffer)
+        public bool Load(GPUInstanceDataBuffer instanceDataBuffer)
         {
+            int errorCount = 0;
             m_InstanceDataBuffer = instanceDataBuffer;
             var cmdBuffer = new CommandBuffer();
-            int vec4Size = UnsafeUtility.SizeOf<Vector4>();
-            var localData = new NativeArray<Vector4>(instanceDataBuffer.byteSize / vec4Size, Allocator.Persistent);
+            int uintSize = UnsafeUtility.SizeOf<uint>();
+            var localData = new NativeArray<uint>(instanceDataBuffer.byteSize / uintSize, Allocator.Persistent);
             cmdBuffer.RequestAsyncReadback(instanceDataBuffer.gpuBuffer, (AsyncGPUReadbackRequest req) =>
             {
                 if (req.done)
-                    localData.CopyFrom(req.GetData<Vector4>());
+                    localData.CopyFrom(req.GetData<uint>());
+                else ++errorCount;
             });
             cmdBuffer.WaitAllAsyncReadbackRequests();
             Graphics.ExecuteCommandBuffer(cmdBuffer);
             cmdBuffer.Release();
             data = localData;
+            if (errorCount != 0)
+                Debug.LogError("GPU Readback fail: Instance buffer data. Abandoning test.");
+            return errorCount == 0;
         }
 
-        public T LoadData<T>(int instanceId, int propertyID) where T : unmanaged
+        public T LoadData<T>(InstanceHandle instance, int propertyID) where T : unmanaged
         {
-            int vec4Size = UnsafeUtility.SizeOf<Vector4>();
+            return LoadData<T>(m_InstanceDataBuffer.CPUInstanceToGPUInstance(instance), propertyID);
+        }
+
+        public T LoadData<T>(GPUInstanceIndex gpuInstanceIndex, int propertyID) where T : unmanaged
+        {
+            int uintSize = UnsafeUtility.SizeOf<uint>();
             int propertyIndex = m_InstanceDataBuffer.GetPropertyIndex(propertyID);
             Assert.IsTrue(m_InstanceDataBuffer.descriptions[propertyIndex].isPerInstance);
             int gpuBaseAddress = m_InstanceDataBuffer.gpuBufferComponentAddress[propertyIndex];
-            int indexInArray = (gpuBaseAddress + m_InstanceDataBuffer.descriptions[propertyIndex].byteSize * instanceId) / vec4Size;
+            int indexInArray = (gpuBaseAddress + m_InstanceDataBuffer.descriptions[propertyIndex].byteSize * gpuInstanceIndex.index) / uintSize;
 
             unsafe
             {
-                Vector4* dataPtr = (Vector4*)data.GetUnsafePtr<Vector4>() + indexInArray;
+                uint* dataPtr = (uint*)data.GetUnsafePtr<uint>() + indexInArray;
                 T result = *(T*)(dataPtr);
                 return result;
             }

@@ -13,59 +13,49 @@ namespace UnityEngine.Rendering
 {
     internal struct RenderersBatchersContextDesc
     {
-        public int maxInstances;
+        public InstanceNumInfo instanceNumInfo;
         public bool supportDitheringCrossFade;
-        public bool enableDeferredMaterialInstanceData;
         public bool enableBoundingSpheresInstanceData;
-        public bool enableDeferredVertexDeformation;
-        public bool enableDeferredMaterialPartialMeshConversion;
 
         public static RenderersBatchersContextDesc NewDefault()
         {
             return new RenderersBatchersContextDesc()
             {
-                maxInstances = 1024,
-                supportDitheringCrossFade = false,
-                enableBoundingSpheresInstanceData = false,
-                enableDeferredMaterialInstanceData = false,
-                enableDeferredVertexDeformation = false,
-                enableDeferredMaterialPartialMeshConversion = false
+                instanceNumInfo = new InstanceNumInfo(meshRendererNum: 1024),
             };
         }
     }
 
     internal class RenderersBatchersContext : IDisposable
     {
-        public int maxInstances { get { return m_InstanceDataBuffer.maxInstances; } }
         public RenderersParameters renderersParameters { get { return m_RenderersParameters; } }
         public GraphicsBuffer gpuInstanceDataBuffer { get { return m_InstanceDataBuffer.gpuBuffer; } }
-        public GraphicsBuffer gpuLodDataBuffer { get { return m_LODGroupDataPool.lodCullingDataBuffer.gpuBuffer; } }
-        public int gpuLodDataBufferAddress { get { return m_LODGroupDataPool.lodDataBufferAddress; } }
+        public int activeLodGroupCount { get { return m_LODGroupDataPool.activeLodGroupCount; } }
+        public NativeArray<GPUInstanceComponentDesc>.ReadOnly defaultDescriptions { get { return m_InstanceDataBuffer.descriptions.AsReadOnly(); } }
         public NativeArray<MetadataValue> defaultMetadata { get { return m_InstanceDataBuffer.defaultMetadata; } }
-        public NativeArray<int> aliveInstanceIndices { get { return m_InstancePool.aliveInstanceIndices; } }
-        public NativeArray<int> rendererInstanceIDs { get { return m_InstancePool.instanceDataArrays.rendererIDs.AsArray(); } }
-        public InstanceDrawData instanceDrawData { get { return m_InstancePool.transformUpdater.drawData; } }
         public NativeList<LODGroupCullingData> lodGroupCullingData { get { return m_LODGroupDataPool.lodGroupCullingData; } }
         public int instanceDataBufferVersion { get { return m_InstanceDataBuffer.version; } }
         public int instanceDataBufferLayoutVersion { get { return m_InstanceDataBuffer.layoutVersion; } }
         public LightmapManager lightmapManager { get { return m_LightmapManager; } }
         public int crossfadedRendererCount { get { return m_LODGroupDataPool.crossfadedRendererCount; } }
         public SphericalHarmonicsL2 cachedAmbientProbe { get { return m_CachedAmbientProbe; } }
-        public NativeArray<TransformIndex> transformIndices { get { return m_InstancePool.instanceDataArrays.transformIndices.AsArray(); } }
-        public ParallelBitArray movedTransformIndices { get { return m_InstancePool.transformUpdater.movedTransformIndices; } }
 
-        public bool enableDeferredVertexShader { get { return m_EnableDeferredVertexShader; } }
-        public bool enableDeferredMaterialPartialMeshConversion { get { return m_EnableDeferredMaterialPartialMeshConversion; } }
-        public bool enableGPUInstanceCulling { get { return m_EnableGPUInstanceCulling; } }
-        public bool enableGPUInstanceOcclusionCulling { get { return m_EnableGPUInstanceOcclusionCulling; } }
+        public CPUInstanceData.ReadOnly instanceData { get { return m_InstanceDataSystem.instanceData; } }
+        public CPUSharedInstanceData.ReadOnly sharedInstanceData { get { return m_InstanceDataSystem.sharedInstanceData; } }
+        public GPUInstanceDataBuffer.ReadOnly instanceDataBuffer { get { return m_InstanceDataBuffer.AsReadOnly(); } }
+        public NativeArray<InstanceHandle> aliveInstances { get { return m_InstanceDataSystem.aliveInstances; } }
 
+        private InstanceDataSystem m_InstanceDataSystem;
+
+        public GPUResidentDrawerResources resources { get { return m_Resources; } }
+
+        private GPUResidentDrawerResources m_Resources;
         private GPUDrivenProcessor m_GPUDrivenProcessor;
 
         private LODGroupDataPool m_LODGroupDataPool;
 
         private LightmapManager m_LightmapManager;
 
-        private GPURendererInstancePool m_InstancePool;
         internal GPUInstanceDataBuffer m_InstanceDataBuffer;
         private RenderersParameters m_RenderersParameters;
         private GPUInstanceDataBufferUploader.GPUResources m_UploadResources;
@@ -77,23 +67,22 @@ namespace UnityEngine.Rendering
 
         private bool m_EnableDeferredVertexShader;
         private bool m_EnableDeferredMaterialPartialMeshConversion;
-        private bool m_EnableGPUInstanceCulling;
-        private bool m_EnableGPUInstanceOcclusionCulling;
+
+        private GPUDrivenLODGroupDataCallback m_UpdateLODGroupCallback;
+        private GPUDrivenLODGroupDataCallback m_TransformLODGroupCallback;
 
         public RenderersBatchersContext(in RenderersBatchersContextDesc desc, GPUDrivenProcessor gpuDrivenProcessor, GPUResidentDrawerResources resources)
         {
+            m_Resources = resources;
             m_GPUDrivenProcessor = gpuDrivenProcessor;
 
             RenderersParameters.Flags rendererParametersFlags = RenderersParameters.Flags.None;
             if (desc.enableBoundingSpheresInstanceData)
                 rendererParametersFlags |= RenderersParameters.Flags.UseBoundingSphereParameter;
-            if (desc.enableDeferredMaterialInstanceData)
-                rendererParametersFlags |= RenderersParameters.Flags.UseDeferredMaterialInstanceParameter;
 
-            m_InstanceDataBuffer = RenderersParameters.CreateInstanceDataBuffer(desc.maxInstances, rendererParametersFlags);
+            m_InstanceDataBuffer = RenderersParameters.CreateInstanceDataBuffer(rendererParametersFlags, desc.instanceNumInfo);
             m_RenderersParameters = new RenderersParameters(m_InstanceDataBuffer);
-            m_InstancePool = new GPURendererInstancePool(m_InstanceDataBuffer.maxInstances, desc.enableBoundingSpheresInstanceData, resources);
-            m_LODGroupDataPool = new LODGroupDataPool(resources, desc.maxInstances, desc.supportDitheringCrossFade, desc.enableDeferredMaterialInstanceData);
+            m_LODGroupDataPool = new LODGroupDataPool(resources, desc.instanceNumInfo.GetInstanceNum(InstanceType.MeshRenderer), desc.supportDitheringCrossFade);
             m_UploadResources = new GPUInstanceDataBufferUploader.GPUResources();
             m_UploadResources.LoadShaders(resources);
 
@@ -107,30 +96,46 @@ namespace UnityEngine.Rendering
 
             m_LightmapManager = new LightmapManager();
 
-            m_EnableDeferredVertexShader = desc.enableDeferredVertexDeformation;
-            m_EnableDeferredMaterialPartialMeshConversion = desc.enableDeferredMaterialPartialMeshConversion;
-            m_EnableGPUInstanceCulling = false; //TODO: Simon brown, restore settings and GPU culling / occlusion culling
-            m_EnableGPUInstanceOcclusionCulling = false;
+            m_InstanceDataSystem = new InstanceDataSystem(desc.instanceNumInfo.GetTotalInstanceNum(), desc.enableBoundingSpheresInstanceData, resources);
+
+            m_UpdateLODGroupCallback = UpdateLODGroupData;
+            m_TransformLODGroupCallback = TransformLODGroupData;
+
         }
 
         public void Dispose()
         {
-            m_GPUDrivenProcessor.DisableGPUDrivenRendering(m_InstancePool.instanceDataArrays.rendererIDs.AsArray());
+            NativeArray<int>.ReadOnly rendererGroupIDs = m_InstanceDataSystem.sharedInstanceData.rendererGroupIDs;
+
+            if (rendererGroupIDs.Length > 0)
+                m_GPUDrivenProcessor.DisableGPUDrivenRendering(rendererGroupIDs);
+
+            m_InstanceDataSystem.Dispose();
 
             m_CmdBuffer.Release();
             m_GrowerResources.Dispose();
             m_UploadResources.Dispose();
-            m_InstancePool.Dispose();
             m_LODGroupDataPool.Dispose();
             m_InstanceDataBuffer.Dispose();
             m_LightmapManager.Dispose();
+
+            m_UpdateLODGroupCallback = null;
+            m_TransformLODGroupCallback = null;
         }
 
-        public void GrowInstanceBuffer(int newLength)
+        public int GetMaxInstancesOfType(InstanceType instanceType)
         {
-            m_InstancePool.Resize(newLength);
+            return m_InstanceDataSystem.GetMaxInstancesOfType(instanceType);
+        }
 
-            using (var grower = new GPUInstanceDataBufferGrower(m_InstanceDataBuffer, newLength))
+        public int GetAliveInstancesOfType(InstanceType instanceType)
+        {
+            return m_InstanceDataSystem.GetAliveInstancesOfType(instanceType);
+        }
+
+        public void GrowInstanceBuffer(in InstanceNumInfo instanceNumInfo)
+        {
+            using (var grower = new GPUInstanceDataBufferGrower(m_InstanceDataBuffer, instanceNumInfo))
             {
                 var newInstanceDataBuffer = grower.SubmitToGpu(ref m_GrowerResources);
 
@@ -146,16 +151,49 @@ namespace UnityEngine.Rendering
             m_RenderersParameters = new RenderersParameters(m_InstanceDataBuffer);
         }
 
-        public void EnsureSpaceForNewInstances(int numNewInstances)
+        private void EnsureInstanceBufferCapacity()
         {
-            var requiredLength = m_InstancePool.aliveInstanceIndices.Length + numNewInstances;
+            const int kMeshRendererGrowNum = 1024;
 
-            if (requiredLength > m_InstancePool.maxInstanceCount)
-                GrowInstanceBuffer(requiredLength + 1024);
+            int maxCPUMeshRendererNum = m_InstanceDataSystem.GetMaxInstancesOfType(InstanceType.MeshRenderer);
+
+            int maxGPUMeshRendererInstances = m_InstanceDataBuffer.instanceNumInfo.GetInstanceNum(InstanceType.MeshRenderer);
+
+            bool needToGrow = false;
+
+            if(maxCPUMeshRendererNum > maxGPUMeshRendererInstances)
+            {
+                needToGrow = true;
+                maxGPUMeshRendererInstances = maxCPUMeshRendererNum + kMeshRendererGrowNum;
+            }
+
+            if (needToGrow)
+                GrowInstanceBuffer(new InstanceNumInfo(meshRendererNum: maxGPUMeshRendererInstances));
+        }
+
+        private void UpdateLODGroupData(in GPUDrivenLODGroupData lodGroupData)
+        {
+            Profiler.BeginSample("Convert LODGroups To BRG");
+
+            m_LODGroupDataPool.UpdateLODGroupData(lodGroupData);
+
+            Profiler.EndSample();
+        }
+
+        private void TransformLODGroupData(in GPUDrivenLODGroupData lodGroupData)
+        {
+            Profiler.BeginSample("Transform LODGroups");
+
+            m_LODGroupDataPool.UpdateLODGroupTransformData(lodGroupData);
+
+            Profiler.EndSample();
         }
 
         public void DestroyLODGroups(NativeArray<int> destroyed)
         {
+            if (destroyed.Length == 0)
+                return;
+
             m_LODGroupDataPool.FreeLODGroupData(destroyed);
         }
 
@@ -164,64 +202,49 @@ namespace UnityEngine.Rendering
             if (changedID.Length == 0)
                 return;
 
-            m_GPUDrivenProcessor.DispatchLODGroupData(changedID, (GPUDrivenLODGroupData lodGroupsData) =>
-            {
-                Profiler.BeginSample("ConvertLODGroupsToBRG");
-
-                m_LODGroupDataPool.UpdateLODGroupData(lodGroupsData);
-
-                Profiler.EndSample();
-            });
+            m_GPUDrivenProcessor.DispatchLODGroupData(changedID, m_UpdateLODGroupCallback);
         }
 
-        public InstanceHandle GetInstanceHandle(int rendererID)
+        public void ReallocateAndGetInstances(in GPUDrivenRendererGroupData rendererData, NativeArray<InstanceHandle> instances)
         {
-            return m_InstancePool.GetInstanceHandle(rendererID);
+            m_InstanceDataSystem.ReallocateAndGetInstances(rendererData, instances);
+
+            EnsureInstanceBufferCapacity();
         }
 
-        public void AllocateOrGetInstances(NativeArray<int> renderersID, NativeArray<InstanceHandle> instances)
+        public JobHandle ScheduleUpdateInstanceDataJob(NativeArray<InstanceHandle> instances, in GPUDrivenRendererGroupData rendererData)
         {
-            Assert.AreEqual(renderersID.Length, instances.Length);
-
-            int numNewInstances = m_InstancePool.QueryInstances(renderersID, instances);
-
-            EnsureSpaceForNewInstances(numNewInstances);
-
-            m_InstancePool.AllocateInstances(renderersID, instances, numNewInstances);
+            return m_InstanceDataSystem.ScheduleUpdateInstanceDataJob(instances, rendererData, m_LODGroupDataPool.lodGroupDataHash);
         }
 
-        public void UpdateInstanceData(NativeArray<InstanceHandle> instances, in GPUDrivenRendererData rendererData)
+        public void FreeRendererGroupInstances(NativeArray<int> rendererGroupsID)
         {
-            m_InstancePool.UpdateInstanceData(instances, rendererData, m_LODGroupDataPool.lodGroupDataHash);
+            m_InstanceDataSystem.FreeRendererGroupInstances(rendererGroupsID);
         }
 
         public void FreeInstances(NativeArray<InstanceHandle> instances)
         {
-            m_InstancePool.FreeInstances(instances);
+            m_InstanceDataSystem.FreeInstances(instances);
         }
 
-        public void QueryInstanceData(NativeArray<int> changedRenderers, NativeArray<int> destroyedRenderers, NativeArray<int> transformedRenderers, NativeArray<int> changedMeshesSorted, NativeArray<int> destroyedMeshesSorted,
-            NativeArray<InstanceHandle> outChangedRendererInstances, NativeArray<InstanceHandle> outDestroyedRendererInstances, NativeArray<InstanceHandle> outTransformedInstances,
-            NativeList<KeyValuePair<InstanceHandle, int>> outChangedMeshInstanceIndexPairs, NativeList<InstanceHandle> outDestroyedMeshInstances)
+        public JobHandle ScheduleQueryRendererGroupInstancesJob(NativeArray<int> rendererGroupIDs, NativeArray<InstanceHandle> instances)
         {
-            m_InstancePool.QueryInstanceData(changedRenderers, destroyedRenderers, transformedRenderers, changedMeshesSorted, destroyedMeshesSorted,
-                outChangedRendererInstances, outDestroyedRendererInstances, outTransformedInstances,
-                outChangedMeshInstanceIndexPairs, outDestroyedMeshInstances);
+            return m_InstanceDataSystem.ScheduleQueryRendererGroupInstancesJob(rendererGroupIDs, instances);
         }
 
-        public int GetRendererInstanceID(InstanceHandle instance)
+        public JobHandle ScheduleQueryRendererGroupInstancesJob(NativeArray<int> rendererGroupIDs, NativeList<InstanceHandle> instances)
         {
-            return m_InstancePool.GetRendererInstanceID(instance);
+            return m_InstanceDataSystem.ScheduleQueryRendererGroupInstancesJob(rendererGroupIDs, instances);
         }
 
-        public TransformIndex GetTransformIndex(InstanceHandle instance)
+        public JobHandle ScheduleQueryRendererGroupInstancesJob(NativeArray<int> rendererGroupIDs, NativeArray<int> instancesOffset, NativeArray<int> instancesCount, NativeList<InstanceHandle> instances)
         {
-            return m_InstancePool.GetTransformIndex(instance);
+            return m_InstanceDataSystem.ScheduleQueryRendererGroupInstancesJob(rendererGroupIDs, instancesOffset, instancesCount, instances);
         }
 
-        public Matrix4x4 GetInstanceLocalToWorldMatrix(InstanceHandle instance)
+        public JobHandle ScheduleQueryMeshInstancesJob(NativeArray<int> sortedMeshIDs, NativeList<InstanceHandle> instances)
         {
-            return m_InstancePool.GetInstanceLocalToWorldMatrix(instance);
+            return m_InstanceDataSystem.ScheduleQuerySortedMeshInstancesJob(sortedMeshIDs, instances);
         }
 
         public void ChangeInstanceBufferVersion()
@@ -229,27 +252,38 @@ namespace UnityEngine.Rendering
             ++m_InstanceDataBuffer.version;
         }
 
-        public GPUInstanceDataBufferUploader CreateDataBufferUploader(int capacity)
+        public GPUInstanceDataBufferUploader CreateDataBufferUploader(int capacity, InstanceType instanceType)
         {
-            return new GPUInstanceDataBufferUploader(m_InstanceDataBuffer.descriptions, capacity);
+            //@ This is not quite efficient as we will allocate all the parameters/descriptions of an certain type but write only some of them later.
+            //@ We should allow to preallocate space only for needed parameters/descriptions.
+            return new GPUInstanceDataBufferUploader(m_InstanceDataBuffer.descriptions, capacity, instanceType);
         }
 
-        public void SubmitToGpu(NativeArray<InstanceHandle> instances, ref GPUInstanceDataBufferUploader uploader)
+        public void SubmitToGpu(NativeArray<InstanceHandle> instances, ref GPUInstanceDataBufferUploader uploader, bool submitOnlyWrittenParams)
         {
-            uploader.SubmitToGpu(m_InstanceDataBuffer, instances, ref m_UploadResources);
+            uploader.SubmitToGpu(m_InstanceDataBuffer, instances, ref m_UploadResources, submitOnlyWrittenParams);
         }
 
-        public void ReinitializeInstanceTransforms(NativeArray<InstanceHandle> instances, NativeArray<Matrix4x4> localToWorldMatrices, NativeArray<Matrix4x4> prevLocalToWorldMatrices)
+        public void SubmitToGpu(NativeArray<GPUInstanceIndex> gpuInstanceIndices, ref GPUInstanceDataBufferUploader uploader, bool submitOnlyWrittenParams)
         {
-            //Order matters  - transforms should be updated before ambient probe for correct AABB
-            m_InstancePool.ReinitializeInstanceTransforms(instances, localToWorldMatrices, prevLocalToWorldMatrices, m_RenderersParameters, m_InstanceDataBuffer.gpuBuffer);
+            uploader.SubmitToGpu(m_InstanceDataBuffer, gpuInstanceIndices, ref m_UploadResources, submitOnlyWrittenParams);
+        }
+
+        public void InitializeInstanceTransforms(NativeArray<InstanceHandle> instances, NativeArray<Matrix4x4> localToWorldMatrices, NativeArray<Matrix4x4> prevLocalToWorldMatrices)
+        {
+            if (instances.Length == 0)
+                return;
+
+            m_InstanceDataSystem.InitializeInstanceTransforms(instances, localToWorldMatrices, prevLocalToWorldMatrices, m_RenderersParameters, m_InstanceDataBuffer);
             ChangeInstanceBufferVersion();
         }
 
-        public void TransformInstances(NativeArray<InstanceHandle> instances, NativeArray<Matrix4x4> localToWorldMatrices)
+        public void UpdateInstanceTransforms(NativeArray<InstanceHandle> instances, NativeArray<Matrix4x4> localToWorldMatrices)
         {
-            //Order matters  - transforms should be updated before ambient probe for correct AABB
-            m_InstancePool.UpdateInstanceTransforms(instances, localToWorldMatrices, m_RenderersParameters, m_InstanceDataBuffer.gpuBuffer);
+            if(instances.Length == 0)
+                return;
+
+            m_InstanceDataSystem.UpdateInstanceTransforms(instances, localToWorldMatrices, m_RenderersParameters, m_InstanceDataBuffer);
             ChangeInstanceBufferVersion();
         }
 
@@ -258,10 +292,16 @@ namespace UnityEngine.Rendering
             if (m_CachedAmbientProbe != ambientProbe || forceUpdate)
             {
                 m_CachedAmbientProbe = ambientProbe;
-
-                m_InstancePool.UpdateAllInstanceProbes(m_RenderersParameters, m_InstanceDataBuffer.gpuBuffer);
+                m_InstanceDataSystem.UpdateAllInstanceProbes(m_RenderersParameters, m_InstanceDataBuffer);
                 ChangeInstanceBufferVersion();
             }
+        }
+
+        // This should be called at the end of the frame loop to properly update motion vectors.
+        public void UpdateInstanceMotions()
+        {
+            m_InstanceDataSystem.UpdateInstanceMotions(m_RenderersParameters, m_InstanceDataBuffer);
+            ChangeInstanceBufferVersion();
         }
 
         public void TransformLODGroups(NativeArray<int> lodGroupsID)
@@ -269,10 +309,38 @@ namespace UnityEngine.Rendering
             if (lodGroupsID.Length == 0)
                 return;
 
-            m_GPUDrivenProcessor.DispatchLODGroupData(lodGroupsID, (GPUDrivenLODGroupData lodGroupsData) =>
-            {
-                m_LODGroupDataPool.UpdateLODGroupTransformData(lodGroupsData);
-            });
+            m_GPUDrivenProcessor.DispatchLODGroupData(lodGroupsID, m_TransformLODGroupCallback);
+        }
+
+        public JobHandle ScheduleCollectInstancesLODGroupAndMasksJob(NativeArray<InstanceHandle> instances, NativeArray<uint> lodGroupAndMasks)
+        {
+            return m_InstanceDataSystem.ScheduleCollectInstancesLODGroupAndMasksJob(instances, lodGroupAndMasks);
+        }
+
+        public InstanceHandle GetRendererInstanceHandle(int rendererID)
+        {
+            var rendererIDs = new NativeArray<int>(1, Allocator.TempJob);
+            var instances = new NativeArray<InstanceHandle>(1, Allocator.TempJob);
+
+            rendererIDs[0] = rendererID;
+
+            m_InstanceDataSystem.ScheduleQueryRendererGroupInstancesJob(rendererIDs, instances).Complete();
+
+            InstanceHandle instance = instances[0];
+
+            rendererIDs.Dispose();
+            instances.Dispose();
+
+            return instance;
+        }
+
+        public GPUInstanceDataBuffer GetInstanceDataBuffer()
+        {
+            return m_InstanceDataBuffer;
+        }
+
+        public void UpdateFrame()
+        {
         }
     }
 }

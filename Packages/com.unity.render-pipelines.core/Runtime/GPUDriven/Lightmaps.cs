@@ -50,24 +50,24 @@ namespace UnityEngine.Rendering
 
         public struct RendererSubmeshPair : IEquatable<RendererSubmeshPair>
         {
-            int rendererID;
+            int rendererGroupID;
             int materialIndex;
 
-            public RendererSubmeshPair(int inRendererID, int submeshIndex)
+            public RendererSubmeshPair(int inRendererGroupID, int submeshIndex)
             {
-                rendererID = inRendererID;
+                rendererGroupID = inRendererGroupID;
                 materialIndex = submeshIndex;
             }
 
             public override int GetHashCode()
             {
-                int hash = rendererID;
+                int hash = rendererGroupID;
                 return hash * 31 + materialIndex;
             }
 
             public bool Equals(RendererSubmeshPair other)
             {
-                return (rendererID == other.rendererID &&
+                return (rendererGroupID == other.rendererGroupID &&
                     materialIndex == other.materialIndex);
             }
         }
@@ -128,12 +128,12 @@ namespace UnityEngine.Rendering
             m_RendererToMaterialMap.Dispose();
         }
 
-        public void GetLightmapTextureIndices(in GPUDrivenRendererData rendererData, NativeArray<float4> lightMapTextureIndices)
+        public void GetLightmapTextureIndices(in GPUDrivenRendererGroupData rendererData, NativeArray<float4> lightMapTextureIndices)
         {
             //@ This should be converted to burst.
             //@ But m_Lightmaps references Unity.Object so we need to do something about that later.
 
-            for (int i = 0; i < rendererData.rendererID.Length; ++i)
+            for (int i = 0; i < rendererData.rendererGroupID.Length; ++i)
             {
                 int lightmapIndex = rendererData.lightmapIndex[i];
 
@@ -155,13 +155,16 @@ namespace UnityEngine.Rendering
                     }
                 }
 
-                lightMapTextureIndices[i] = lightmapTextureIndex;
+                lightMapTextureIndices[i] = new float4(lightmapTextureIndex, 0.0f, 0.0f, 0.0f);
             }
         }
 
-        public void UpdateMaterials(Material[] changed, NativeArray<int> changedID)
+        public void UpdateMaterials(IList<Object> changed, NativeArray<int> changedID)
         {
-            Assert.AreEqual(changed.Length, changedID.Length);
+            Assert.AreEqual(changed.Count, changedID.Length);
+
+            if(changed.Count == 0)
+                return;
 
             var baseMaterialIndices = new NativeList<int>(Allocator.TempJob);
             var lightmappedMaterialKeys = new NativeList<MaterialLookupKey>(Allocator.TempJob);
@@ -181,7 +184,7 @@ namespace UnityEngine.Rendering
                 int baseMaterialIndex = baseMaterialIndices[i];
                 ref MaterialLookupKey lightmappedMaterialKey = ref lightmappedMaterialKeys.ElementAt(i);
 
-                Material baseMaterial = changed[baseMaterialIndex];
+                Material baseMaterial = (Material)changed[baseMaterialIndex];
                 Material lightmappedMaterial = m_LightmappedMaterialCache[lightmappedMaterialKey];
 
                 lightmappedMaterial.CopyPropertiesFromMaterial(baseMaterial);
@@ -303,7 +306,7 @@ namespace UnityEngine.Rendering
             {
                 var lightmapData = m_CachedLightmapData[i];
 
-				if (lightmapData.lightmapColor == null)
+                if (lightmapData.lightmapColor == null)
                     continue;
 
                 int instanceID = lightmapData.lightmapColor.GetInstanceID();
@@ -422,16 +425,16 @@ namespace UnityEngine.Rendering
 
         // build a map of renderer / submesh -> Material.
         // create a new material if lightmapping is needed
-        public NativeParallelHashMap<RendererSubmeshPair, int> GenerateLightmappingData(in GPUDrivenRendererData rendererData, IList<Material> materials, NativeList<int> usedMaterials)
+        public NativeParallelHashMap<RendererSubmeshPair, int> GenerateLightmappingData(in GPUDrivenRendererGroupData rendererData, IList<Material> materials, NativeList<int> usedMaterials)
         {
             Profiler.BeginSample("CreateLightmappingMaterials");
 
             m_RendererToMaterialMap.Clear();
-            m_RendererToMaterialMap.Capacity = Mathf.Max(m_RendererToMaterialMap.Capacity, rendererData.rendererID.Length);
+            m_RendererToMaterialMap.Capacity = Mathf.Max(m_RendererToMaterialMap.Capacity, rendererData.rendererGroupID.Length);
 
-            for (int j = 0; j < rendererData.rendererID.Length; ++j)
+            for (int j = 0; j < rendererData.rendererGroupID.Length; ++j)
             {
-                int rendererID = rendererData.rendererID[j];
+                var rendererGroupID = rendererData.rendererGroupID[j];
                 var lightmapIndex = rendererData.lightmapIndex[j];
 
                 if (lightmapIndex < 0 || lightmapIndex >= 65534)
@@ -462,7 +465,7 @@ namespace UnityEngine.Rendering
                     else
                         material = GetOrCreateLightmappedMaterial(sharedMaterial, lightMapKey, resAndIndex.y, usedMaterials);
 
-                    var pair = new RendererSubmeshPair(rendererID, i);
+                    var pair = new RendererSubmeshPair(rendererGroupID, i);
                     m_RendererToMaterialMap.TryAdd(pair, material.GetInstanceID());
                 }
             }
