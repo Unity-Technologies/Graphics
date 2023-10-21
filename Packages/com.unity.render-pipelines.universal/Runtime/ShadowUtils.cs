@@ -489,17 +489,36 @@ namespace UnityEngine.Rendering.Universal
             SetupShadowCasterConstantBuffer(CommandBufferHelpers.GetRasterCommandBuffer(cmd), ref shadowLight, shadowBias);
         }
 
+        private static int _ShadowBias = Shader.PropertyToID("_ShadowBias");
+        private static int _LightDirection = Shader.PropertyToID("_LightDirection");
+        private static int _LightPosition = Shader.PropertyToID("_LightPosition");
+
         internal static void SetupShadowCasterConstantBuffer(RasterCommandBuffer cmd, ref VisibleLight shadowLight, Vector4 shadowBias)
         {
-            cmd.SetGlobalVector("_ShadowBias", shadowBias);
+            SetShadowBias(cmd, shadowBias);
 
             // Light direction is currently used in shadow caster pass to apply shadow normal offset (normal bias).
             Vector3 lightDirection = -shadowLight.localToWorldMatrix.GetColumn(2);
-            cmd.SetGlobalVector("_LightDirection", new Vector4(lightDirection.x, lightDirection.y, lightDirection.z, 0.0f));
+            SetLightDirection(cmd, lightDirection);
 
             // For punctual lights, computing light direction at each vertex position provides more consistent results (shadow shape does not change when "rotating the point light" for example)
             Vector3 lightPosition = shadowLight.localToWorldMatrix.GetColumn(3);
-            cmd.SetGlobalVector("_LightPosition", new Vector4(lightPosition.x, lightPosition.y, lightPosition.z, 1.0f));
+            SetLightPosition(cmd, lightPosition);
+        }
+
+        internal static void SetShadowBias(RasterCommandBuffer cmd, Vector4 shadowBias)
+        {
+            cmd.SetGlobalVector(_ShadowBias, shadowBias);
+        }
+
+        internal static void SetLightDirection(RasterCommandBuffer cmd, Vector3 lightDirection)
+        {
+            cmd.SetGlobalVector(_LightDirection, new Vector4(lightDirection.x, lightDirection.y, lightDirection.z, 0.0f));
+        }
+
+        internal static void SetLightPosition(RasterCommandBuffer cmd, Vector3 lightPosition)
+        {
+            cmd.SetGlobalVector(_LightPosition, new Vector4(lightPosition.x, lightPosition.y, lightPosition.z, 1.0f));
         }
 
         private static RenderTextureDescriptor GetTemporaryShadowTextureDescriptor(int width, int height, int bits)
@@ -694,17 +713,25 @@ namespace UnityEngine.Rendering.Universal
 
         internal static bool IsValidShadowCastingLight(UniversalLightData lightData, int i)
         {
+            ref VisibleLight shadowLight = ref lightData.visibleLights.UnsafeElementAt(i);
+            Light light = shadowLight.light;
+
+            if (light == null)
+                return false;
+
+            return IsValidShadowCastingLight(lightData, i, shadowLight.lightType, light.shadows, light.shadowStrength);
+        }
+
+        internal static bool IsValidShadowCastingLight(UniversalLightData lightData, int i, LightType lightType, LightShadows lightShadows, float shadowStrength)
+        {
             if (i == lightData.mainLightIndex)
                 return false;
 
-            ref VisibleLight shadowLight = ref lightData.visibleLights.UnsafeElementAt(i);
-
             // Directional and light shadows are not supported in the shadow map atlas
-            if (shadowLight.lightType == LightType.Directional)
+            if (lightType == LightType.Directional)
                 return false;
 
-            Light light = shadowLight.light;
-            return light != null && light.shadows != LightShadows.None && !Mathf.Approximately(light.shadowStrength, 0.0f);
+            return lightShadows != LightShadows.None && shadowStrength > 0.0f;
         }
 
         internal static int GetPunctualLightShadowSlicesCount(in LightType lightType)
@@ -718,6 +745,11 @@ namespace UnityEngine.Rendering.Universal
                 default:
                     return 0;
             }
+        }
+
+        internal static bool FastApproximately(float a, float b)
+        {
+            return Mathf.Abs(a - b) < 0.000001f;
         }
 
         internal const int kMinimumPunctualLightHardShadowResolution = 8;

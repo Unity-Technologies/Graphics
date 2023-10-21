@@ -633,26 +633,23 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             ContextContainer frameData = renderingData.frameData;
             UniversalRenderingData universalRenderingData = frameData.Get<UniversalRenderingData>();
-            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
-            UniversalLightData lightData = frameData.Get<UniversalLightData>();
-            UniversalShadowData shadowData = frameData.Get<UniversalShadowData>();
             if (m_CreateEmptyShadowmap)
             {
                 SetEmptyAdditionalShadowmapAtlas(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer));
                 universalRenderingData.commandBuffer.SetGlobalTexture(m_AdditionalLightsShadowmapID, m_EmptyAdditionalLightShadowmapTexture);
-
                 return;
             }
 
-            if (shadowData.supportsAdditionalLightShadows)
-            {
+            UniversalShadowData shadowData = frameData.Get<UniversalShadowData>();
+            if (!shadowData.supportsAdditionalLightShadows)
+                return;
 
-                InitPassData(ref m_PassData, cameraData, lightData, shadowData);
-                InitRendererLists(ref universalRenderingData.cullResults, ref m_PassData, context, default(RenderGraph), false);
-
-                RenderAdditionalShadowmapAtlas(CommandBufferHelpers.GetRasterCommandBuffer(universalRenderingData.commandBuffer), ref m_PassData, false);
-                universalRenderingData.commandBuffer.SetGlobalTexture(m_AdditionalLightsShadowmapID, m_AdditionalLightsShadowmapHandle.nameID);
-            }
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+            UniversalLightData lightData = frameData.Get<UniversalLightData>();
+            InitPassData(ref m_PassData, cameraData, lightData, shadowData);
+            InitRendererLists(ref universalRenderingData.cullResults, ref m_PassData, context, default(RenderGraph), false);
+            RenderAdditionalShadowmapAtlas(CommandBufferHelpers.GetRasterCommandBuffer(universalRenderingData.commandBuffer), ref m_PassData, false);
+            universalRenderingData.commandBuffer.SetGlobalTexture(m_AdditionalLightsShadowmapID, m_AdditionalLightsShadowmapHandle.nameID);
         }
 
         /// <summary>
@@ -700,23 +697,44 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 bool anyShadowSliceRenderer = false;
                 int shadowSlicesCount = m_ShadowSliceToAdditionalLightIndex.Count;
+                if (shadowSlicesCount > 0)
+                    cmd.SetKeyword(ref ShaderGlobalKeywords.CastingPunctualLightShadow, true);
+
+                float lastDepthBias = -10f;
+                float lastNormalBias = -10f;
                 for (int globalShadowSliceIndex = 0; globalShadowSliceIndex < shadowSlicesCount; ++globalShadowSliceIndex)
                 {
                     int additionalLightIndex = m_ShadowSliceToAdditionalLightIndex[globalShadowSliceIndex];
 
                     // we do the shadow strength check here again here because we might have zero strength for non-shadow-casting lights.
                     // In that case we need the shadow data buffer but we can skip rendering them to shadowmap.
-                    if (Mathf.Approximately(m_AdditionalLightIndexToShadowParams[additionalLightIndex].x, 0.0f) || Mathf.Approximately(m_AdditionalLightIndexToShadowParams[additionalLightIndex].w, -1.0f))
+                    if (   ShadowUtils.FastApproximately(m_AdditionalLightIndexToShadowParams[additionalLightIndex].x, 0.0f)
+                        || ShadowUtils.FastApproximately(m_AdditionalLightIndexToShadowParams[additionalLightIndex].w, -1.0f))
                         continue;
 
                     int visibleLightIndex = m_AdditionalLightIndexToVisibleLightIndex[additionalLightIndex];
                     ref VisibleLight shadowLight = ref visibleLights.UnsafeElementAt(visibleLightIndex);
                     ShadowSliceData shadowSliceData = m_AdditionalLightsShadowSlices[globalShadowSliceIndex];
+                    Vector4 shadowBias = ShadowUtils.GetShadowBias(ref shadowLight, visibleLightIndex, data.shadowData, shadowSliceData.projectionMatrix, shadowSliceData.resolution);
 
-                    Vector4 shadowBias = ShadowUtils.GetShadowBias(ref shadowLight, visibleLightIndex,
-                        data.shadowData, shadowSliceData.projectionMatrix, shadowSliceData.resolution);
-                    ShadowUtils.SetupShadowCasterConstantBuffer(cmd, ref shadowLight, shadowBias);
-                    cmd.SetKeyword(ref ShaderGlobalKeywords.CastingPunctualLightShadow, true);
+                    // Update the bias when rendering the first slice or when the bias has changed
+                    if (   globalShadowSliceIndex == 0
+                        || !ShadowUtils.FastApproximately(shadowBias.x, lastDepthBias)
+                        || !ShadowUtils.FastApproximately(shadowBias.y, lastNormalBias))
+                    {
+                        ShadowUtils.SetShadowBias(cmd, shadowBias);
+                        lastDepthBias = shadowBias.x;
+                        lastNormalBias = shadowBias.y;
+                    }
+
+                    // Update light position
+                    Vector3 lightPosition = shadowLight.localToWorldMatrix.GetColumn(3);
+                    ShadowUtils.SetLightPosition(cmd, lightPosition);
+
+                    // Note: _LightDirection is not updated for additional lights.
+                    // For Directional lights, _LightDirection is used when applying shadow Normal Bias.
+                    // For Spot lights and Point lights _LightPosition is used to compute the actual light direction because it is different at each shadow caster geometry vertex.
+
                     RendererList shadowRendererList = useRenderGraph? data.shadowRendererListsHdl[globalShadowSliceIndex] : data.shadowRendererLists[globalShadowSliceIndex];
                     ShadowUtils.RenderShadowSlice(cmd, ref shadowSliceData, ref shadowRendererList, shadowSliceData.projectionMatrix, shadowSliceData.viewMatrix);
                     additionalLightHasSoftShadows |= shadowLight.light.shadows == LightShadows.Soft;
