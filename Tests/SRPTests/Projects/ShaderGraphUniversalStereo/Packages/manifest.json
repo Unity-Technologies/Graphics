@@ -11,6 +11,7 @@
     "local.utf.references": "file:../../../Packages/local.utf.references",
     "local.gtf.references": "file:../../../Packages/local.gtf.references",
     "com.unity.ugui": "2.0.0",
+	"local.mock-hmd.references": "file:../../../Packages/local.mock-hmd.references",
     "com.unity.modules.ai": "1.0.0",
     "com.unity.modules.androidjni": "1.0.0",
     "com.unity.modules.animation": "1.0.0",
