@@ -445,6 +445,11 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
+        /// True if the last camera in the stack outputs to an HDR screen
+        /// </summary>
+        internal bool stackLastCameraOutputToHDR;
+
+        /// <summary>
         /// HDR Display information about the current display this camera is rendering to.
         /// </summary>
         public HDROutputUtils.HDRDisplayInformation hdrDisplayInformation
@@ -638,6 +643,11 @@ namespace UnityEngine.Rendering.Universal
         /// True if post-processing is enabled for this camera.
         /// </summary>
         public bool postProcessEnabled;
+
+        /// <summary>
+        /// True if post-processing is enabled for any camera in this camera's stack.
+        /// </summary>
+        internal bool stackAnyPostProcessingEnabled;
 
         /// <summary>
         /// Provides set actions to the renderer to be triggered at the end of the render loop for camera capture.
