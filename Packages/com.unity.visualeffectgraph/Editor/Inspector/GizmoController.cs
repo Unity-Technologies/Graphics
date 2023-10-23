@@ -29,6 +29,7 @@ namespace UnityEditor.VFX.UI
 
     interface IGizmoController : IGizmoError
     {
+        void CollectGizmos();
         void DrawGizmos(VisualEffect component);
         Bounds GetGizmoBounds(VisualEffect component);
 

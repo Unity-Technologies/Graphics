@@ -1184,7 +1184,7 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
-                VFXSlotContainerEditor.SceneViewVFXSlotContainerOverlay.UpdateFromVFXView(this, Enumerable.Empty<IGizmoController>());
+                VFXSlotContainerEditor.SceneViewVFXSlotContainerOverlay.UpdateFromVFXView(this, null);
                 if (m_NoAssetElement.parent == null)
                 {
                     Add(m_NoAssetElement);
@@ -3117,17 +3117,24 @@ namespace UnityEditor.VFX.UI
             {
                 if (controller != null && controller.model && attachedComponent != null)
                 {
-                    var controllers = selection
-                        .OfType<IControlledElement<VFXParameterController>>()
-                        .Select(x => x.controller)
-                        .OfType<IGizmoController>()
-                        .Union(selection.OfType<ISettableControlledElement<VFXNodeController>>()
-                            .Select(x => x.controller)
-                            .OfType<IGizmoController>()).ToList();
-
-                    controllers.ForEach(x => x.DrawGizmos(attachedComponent));
+                    var controllers = new List<IGizmoController>();
+                    foreach (var selectable in selection)
+                    {
+                        if (selectable is IControlledElement<VFXParameterController> { controller: IGizmoController gizmoController })
+                        {
+                            controllers.Add(gizmoController);
+                        }
+                        else if (selectable is ISettableControlledElement<VFXNodeController> { controller: IGizmoController gizmoController2 })
+                        {
+                            controllers.Add(gizmoController2);
+                        }
+                    }
 
                     VFXSlotContainerEditor.SceneViewVFXSlotContainerOverlay.UpdateFromVFXView(this, controllers);
+                }
+                else
+                {
+                    VFXSlotContainerEditor.SceneViewVFXSlotContainerOverlay.UpdateFromVFXView(this, null);
                 }
             }
             catch (Exception e)
