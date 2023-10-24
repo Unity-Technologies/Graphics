@@ -332,11 +332,11 @@ namespace UnityEngine.Rendering.HighDefinition
             public LightCookieManager lightCookieManager { get; private set; }
             public ReflectionProbeTextureCache reflectionProbeTextureCache { get; private set; }
 
-            public void Initialize(HDRenderPipelineAsset hdrpAsset, HDRenderPipelineRuntimeResources defaultResources, IBLFilterBSDF[] iBLFilterBSDFArray)
+            public void Initialize(HDRenderPipelineAsset hdrpAsset, HDRenderPipeline renderPipeline, IBLFilterBSDF[] iBLFilterBSDFArray)
             {
                 var lightLoopSettings = hdrpAsset.currentPlatformRenderPipelineSettings.lightLoopSettings;
 
-                lightCookieManager = new LightCookieManager(hdrpAsset, k_MaxCacheSize);
+                lightCookieManager = new LightCookieManager(hdrpAsset, renderPipeline, k_MaxCacheSize);
 
                 // For regular reflection probes, we need to convolve with all the BSDF functions
                 GraphicsFormat probeCacheFormat = lightLoopSettings.reflectionProbeFormat == ReflectionAndPlanarProbeFormat.R11G11B10 ?
@@ -350,7 +350,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 Vector2Int cacheDim = GlobalLightLoopSettings.GetReflectionProbeTextureCacheDim(lightLoopSettings.reflectionProbeTexCacheSize);
 
-                reflectionProbeTextureCache = new ReflectionProbeTextureCache(defaultResources, iBLFilterBSDFArray, cacheDim.x, cacheDim.y, probeCacheFormat,
+                reflectionProbeTextureCache = new ReflectionProbeTextureCache(renderPipeline, iBLFilterBSDFArray, cacheDim.x, cacheDim.y, probeCacheFormat,
                     lightLoopSettings.reflectionProbeDecreaseResToFit, lightLoopSettings.reflectionProbeTexLastValidCubeMip, lightLoopSettings.reflectionProbeTexLastValidPlanarMip);
             }
 
@@ -507,19 +507,19 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_TotalLightCount = 0;
         bool m_EnableBakeShadowMask = false; // Track if any light require shadow mask. In this case we will need to enable the keyword shadow mask
 
-        ComputeShader buildScreenAABBShader { get { return runtimeResources.shaders.buildScreenAABBCS; } }
-        ComputeShader buildPerTileLightListShader { get { return runtimeResources.shaders.buildPerTileLightListCS; } }
-        ComputeShader buildPerBigTileLightListShader { get { return runtimeResources.shaders.buildPerBigTileLightListCS; } }
-        ComputeShader buildPerVoxelLightListShader { get { return runtimeResources.shaders.buildPerVoxelLightListCS; } }
-        ComputeShader clearClusterAtomicIndexShader { get { return runtimeResources.shaders.lightListClusterClearAtomicIndexCS; } }
-        ComputeShader buildMaterialFlagsShader { get { return runtimeResources.shaders.buildMaterialFlagsCS; } }
-        ComputeShader buildDispatchIndirectShader { get { return runtimeResources.shaders.buildDispatchIndirectCS; } }
-        ComputeShader clearDispatchIndirectShader { get { return runtimeResources.shaders.clearDispatchIndirectCS; } }
-        ComputeShader deferredComputeShader { get { return runtimeResources.shaders.deferredCS; } }
-        ComputeShader contactShadowComputeShader { get { return runtimeResources.shaders.contactShadowCS; } }
-        Shader screenSpaceShadowsShader { get { return runtimeResources.shaders.screenSpaceShadowPS; } }
-
-        Shader deferredTilePixelShader { get { return runtimeResources.shaders.deferredTilePS; } }
+        ComputeShader buildScreenAABBShader => runtimeShaders.buildScreenAABBCS;
+        ComputeShader buildPerTileLightListShader => runtimeShaders.buildPerTileLightListCS;
+        ComputeShader buildPerBigTileLightListShader => runtimeShaders.buildPerBigTileLightListCS;
+        ComputeShader buildPerVoxelLightListShader => runtimeShaders.buildPerVoxelLightListCS;
+        ComputeShader clearClusterAtomicIndexShader => runtimeShaders.lightListClusterClearAtomicIndexCS;
+        ComputeShader buildMaterialFlagsShader => runtimeShaders.buildMaterialFlagsCS;
+        ComputeShader buildDispatchIndirectShader => runtimeShaders.buildDispatchIndirectCS;
+        ComputeShader clearDispatchIndirectShader => runtimeShaders.clearDispatchIndirectCS;
+        ComputeShader deferredComputeShader => runtimeShaders.deferredCS;
+        ComputeShader contactShadowComputeShader => runtimeShaders.contactShadowCS;
+        Shader screenSpaceShadowsShader => runtimeShaders.screenSpaceShadowPS;
+        Shader deferredPS => runtimeShaders.deferredPS;
+        Shader deferredTilePixelShader => runtimeShaders.deferredTilePS;
 
         ShaderVariablesLightList m_ShaderVariablesLightListCB = new ShaderVariablesLightList();
 
@@ -673,16 +673,11 @@ namespace UnityEngine.Rendering.HighDefinition
             return HDUtils.DivRoundUp((int)hdCamera.screenSize.y, LightDefinitions.s_TileSizeClustered);
         }
 
-        void InitShadowSystem(HDRenderPipelineAsset hdAsset, HDRenderPipelineRuntimeResources runtimeResources)
+        void InitShadowSystem(HDRenderPipelineAsset hdAsset)
         {
             m_ShadowInitParameters = hdAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams;
             m_ShadowManager = HDShadowManager.instance;
-            m_ShadowManager.InitShadowManager(
-                runtimeResources,
-                m_ShadowInitParameters,
-                m_RenderGraph,
-                runtimeResources.shaders.shadowClearPS
-            );
+            m_ShadowManager.InitShadowManager(this, m_ShadowInitParameters, m_RenderGraph);
         }
 
         void DeinitShadowSystem()
@@ -767,7 +762,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 s_shadeOpaqueIndirectFptlKernels[variant] = deferredComputeShader.FindKernel("Deferred_Indirect_Fptl_Variant" + variant);
             }
 
-            m_TextureCaches.Initialize(asset, runtimeResources, iBLFilterBSDFArray);
+            m_TextureCaches.Initialize(asset, this, iBLFilterBSDFArray);
 
             // All the allocation of the compute buffers need to happened after the kernel finding in order to avoid the leak loop when a shader does not compile or is not available
             m_LightLoopLightData.Initialize(m_MaxDirectionalLightsOnScreen, m_MaxPunctualLightsOnScreen, m_MaxAreaLightsOnScreen, m_MaxEnvLightsOnScreen, m_MaxDecalsOnScreen);
@@ -786,8 +781,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         int index = GetDeferredLightingMaterialIndex(outputSplitLighting, shadowMask, debugDisplay);
 
-                        m_deferredLightingMaterial[index] = CoreUtils.CreateEngineMaterial(runtimeResources.shaders.deferredPS);
-                        m_deferredLightingMaterial[index].name = string.Format("{0}_{1}", runtimeResources.shaders.deferredPS.name, index);
+                        m_deferredLightingMaterial[index] = CoreUtils.CreateEngineMaterial(deferredPS);
+                        m_deferredLightingMaterial[index].name = string.Format("{0}_{1}", deferredPS.name, index);
                         CoreUtils.SetKeyword(m_deferredLightingMaterial[index], "OUTPUT_SPLIT_LIGHTING", outputSplitLighting == 1);
                         CoreUtils.SetKeyword(m_deferredLightingMaterial[index], "SHADOWS_SHADOWMASK", shadowMask == 1);
                         CoreUtils.SetKeyword(m_deferredLightingMaterial[index], "DEBUG_DISPLAY", debugDisplay == 1);
@@ -861,12 +856,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 Shader.EnableKeyword("SCREEN_SPACE_SHADOWS_OFF");
             }
 
-            InitShadowSystem(asset, runtimeResources);
+            InitShadowSystem(asset);
 
             m_GpuLightsBuilder.Initialize(m_Asset, m_ShadowManager, m_TextureCaches);
 
             s_lightVolumes = new DebugLightVolumes();
-            s_lightVolumes.InitData(runtimeResources);
+            s_lightVolumes.InitData(this);
 
             // Screen space shadow
             int numMaxShadows = Math.Max(m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots, 1);

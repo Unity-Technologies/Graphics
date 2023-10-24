@@ -79,7 +79,7 @@ namespace UnityEngine.Rendering.HighDefinition
             InitializeWaterSimulation();
 
             // Water rendering
-            m_WaterLightingCS = m_Asset.renderPipelineResources.shaders.waterLightingCS;
+            m_WaterLightingCS = runtimeShaders.waterLightingCS;
             m_WaterPrepareSSRIndirectKernel = m_WaterLightingCS.FindKernel("PrepareSSRIndirect");
             m_WaterClearIndirectKernel = m_WaterLightingCS.FindKernel("WaterClearIndirect");
             m_WaterClassifyTilesKernel = m_WaterLightingCS.FindKernel("WaterClassifyTiles");
@@ -92,18 +92,18 @@ namespace UnityEngine.Rendering.HighDefinition
             m_WaterFogIndirectKernel = m_WaterLightingCS.FindKernel("WaterFogIndirect");
 
             // Water evaluation
-            m_WaterEvaluationCS = m_Asset.renderPipelineResources.shaders.waterEvaluationCS;
+            m_WaterEvaluationCS = runtimeShaders.waterEvaluationCS;
             m_FindVerticalDisplacementsKernel = m_WaterEvaluationCS.FindKernel("FindVerticalDisplacements");
 
             // Allocate the additional rendering data
             m_WaterMaterialPropertyBlock = new MaterialPropertyBlock();
-            m_InternalWaterMaterial = runtimeResources.materials.waterMaterial;
+            m_InternalWaterMaterial = runtimeMaterials.waterMaterial;
             InitializeInstancingData();
 
             // Create the caustics water geometry
             m_CausticsGeometry = new GraphicsBuffer(GraphicsBuffer.Target.Raw | GraphicsBuffer.Target.Index, WaterConsts.k_WaterCausticsMeshNumQuads * 6, sizeof(int));
             m_CausticsBufferGeometryInitialized = false;
-            m_CausticsMaterial = CoreUtils.CreateEngineMaterial(runtimeResources.shaders.waterCausticsPS);
+            m_CausticsMaterial = CoreUtils.CreateEngineMaterial(runtimeShaders.waterCausticsPS);
 
             // Waterline / Underwater
             // TODO: This should be entirely dynamic and depend on M_MaxViewCount
@@ -666,7 +666,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // All the required global textures
             parameters.waterMask = currentWater.waterMask != null ? currentWater.waterMask : Texture2D.whiteTexture;
-            parameters.surfaceFoamTexture = m_Asset.renderPipelineResources.textures.foamMask;
+            parameters.surfaceFoamTexture = runtimeTextures.foamMask;
             parameters.simulationFoamMask = currentWater.simulationFoamMask != null ? currentWater.simulationFoamMask : Texture2D.whiteTexture;
 
             // Current

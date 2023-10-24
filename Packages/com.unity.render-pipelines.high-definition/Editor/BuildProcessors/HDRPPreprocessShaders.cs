@@ -1,14 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using UnityEditor;
-using UnityEditor.Build;
-using UnityEditor.Build.Reporting;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
-using Debug = UnityEngine.Debug;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -16,12 +8,13 @@ namespace UnityEditor.Rendering.HighDefinition
     class CommonShaderPreprocessor : BaseShaderPreprocessor
     {
         public override int Priority => 100;
-        private HDRenderPipelineRuntimeResources m_Resources;
+        private HDRenderPipelineRuntimeResources.ShaderResources m_ShaderResources;
+        private HDRenderPipelineRuntimeResources.MaterialResources m_MaterialResources;
 
         public CommonShaderPreprocessor()
         {
-            var globalSettings = HDRenderPipelineGlobalSettings.Ensure();
-            m_Resources = globalSettings.renderPipelineResources;
+            m_ShaderResources = HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders;
+            m_MaterialResources = HDRenderPipelineGlobalSettings.instance.renderPipelineResources.materials;
         }
 
         protected override bool DoShadersStripper(HDRenderPipelineAsset hdrpAsset, Shader shader, ShaderSnippetData snippet, ShaderCompilerData inputData)
@@ -33,7 +26,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // Remove water if disabled
             if (!settings.supportWater)
             {
-                if (shader == m_Resources.shaders.opaqueAtmosphericScatteringPS)
+                if (shader == m_ShaderResources.opaqueAtmosphericScatteringPS)
                 {
                     if (inputData.shaderKeywordSet.IsEnabled(m_SupportWater) ||
                         inputData.shaderKeywordSet.IsEnabled(m_SupportWaterCaustics) ||
@@ -41,24 +34,24 @@ namespace UnityEditor.Rendering.HighDefinition
                         return true;
                 }
 
-                if (shader == m_Resources.shaders.waterCausticsPS ||
-                    shader == m_Resources.shaders.waterFoamPS ||
-                    shader == m_Resources.shaders.waterPS ||
-                    shader == m_Resources.materials.waterExclusionMaterial.shader)
+                if (shader == m_ShaderResources.waterCausticsPS ||
+                    shader == m_ShaderResources.waterFoamPS ||
+                    shader == m_ShaderResources.waterPS ||
+                    shader == m_MaterialResources.waterExclusionMaterial.shader)
                     return true;
             }
 
             // If Screen Space Lens Flare is disabled, strip all the shaders
             if (!settings.supportScreenSpaceLensFlare)
             {
-                if (shader == m_Resources.shaders.lensFlareScreenSpacePS)
+                if (shader == m_ShaderResources.lensFlareScreenSpacePS)
                     return true;
             }
 
             // If Data Driven Lens Flare is disabled, strip all the shaders (the preview shader LensFlareDataDrivenPreview.shader in Core will not be stripped)
             if (!settings.supportDataDrivenLensFlare)
             {
-                if (shader == m_Resources.shaders.lensFlareDataDrivenPS)
+                if (shader == m_ShaderResources.lensFlareDataDrivenPS)
                     return true;
             }
 
@@ -113,19 +106,19 @@ namespace UnityEditor.Rendering.HighDefinition
             // we allow user to make explicit request for it and it bypass other request
             if (m_StripDebugVariants && !settings.supportRuntimeAOVAPI)
             {
-                if (shader == m_Resources.shaders.debugDisplayLatlongPS ||
-                    shader == m_Resources.shaders.debugViewMaterialGBufferPS ||
-                    shader == m_Resources.shaders.debugViewTilesPS ||
-                    shader == m_Resources.shaders.debugFullScreenPS ||
-                    shader == m_Resources.shaders.debugColorPickerPS ||
-                    shader == m_Resources.shaders.debugExposurePS ||
-                    shader == m_Resources.shaders.debugHDRPS ||
-                    shader == m_Resources.shaders.debugLightVolumePS ||
-                    shader == m_Resources.shaders.debugBlitQuad ||
-                    shader == m_Resources.shaders.debugViewVirtualTexturingBlit ||
-                    shader == m_Resources.shaders.debugWaveformPS ||
-                    shader == m_Resources.shaders.debugVectorscopePS ||
-                    shader == m_Resources.shaders.debugLocalVolumetricFogAtlasPS)
+                if (shader == m_ShaderResources.debugDisplayLatlongPS ||
+                    shader == m_ShaderResources.debugViewMaterialGBufferPS ||
+                    shader == m_ShaderResources.debugViewTilesPS ||
+                    shader == m_ShaderResources.debugFullScreenPS ||
+                    shader == m_ShaderResources.debugColorPickerPS ||
+                    shader == m_ShaderResources.debugExposurePS ||
+                    shader == m_ShaderResources.debugHDRPS ||
+                    shader == m_ShaderResources.debugLightVolumePS ||
+                    shader == m_ShaderResources.debugBlitQuad ||
+                    shader == m_ShaderResources.debugViewVirtualTexturingBlit ||
+                    shader == m_ShaderResources.debugWaveformPS ||
+                    shader == m_ShaderResources.debugVectorscopePS ||
+                    shader == m_ShaderResources.debugLocalVolumetricFogAtlasPS)
                     return true;
 
                 if (inputData.shaderKeywordSet.IsEnabled(m_DebugDisplay))
@@ -135,18 +128,18 @@ namespace UnityEditor.Rendering.HighDefinition
             // Remove APV debug if disabled
             if (m_StripDebugVariants || !settings.supportProbeVolume)
             {
-                if (shader == m_Resources.shaders.probeVolumeDebugShader ||
-                    shader == m_Resources.shaders.probeVolumeFragmentationDebugShader ||
-                    shader == m_Resources.shaders.probeVolumeSamplingDebugShader ||
-                    shader == m_Resources.shaders.probeVolumeOffsetDebugShader)
+                if (shader == m_ShaderResources.probeVolumeDebugShader ||
+                    shader == m_ShaderResources.probeVolumeFragmentationDebugShader ||
+                    shader == m_ShaderResources.probeVolumeSamplingDebugShader ||
+                    shader == m_ShaderResources.probeVolumeOffsetDebugShader)
                     return true;
             }
 
 
             if (settings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly)
             {
-                if (shader == m_Resources.shaders.deferredPS ||
-                    shader == m_Resources.shaders.deferredTilePS)
+                if (shader == m_ShaderResources.deferredPS ||
+                    shader == m_ShaderResources.deferredTilePS)
                     return true;
             }
 
@@ -155,7 +148,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (!settings.supportSubsurfaceScattering)
             {
-                if (shader == m_Resources.shaders.combineLightingPS)
+                if (shader == m_ShaderResources.combineLightingPS)
                     return true;
                 // Note that this is only going to affect the deferred shader and for a debug case, so it won't save much.
                 if (inputData.shaderKeywordSet.IsEnabled(m_SubsurfaceScattering))
@@ -164,7 +157,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (!settings.lightLoopSettings.supportFabricConvolution)
             {
-                if (shader == m_Resources.shaders.charlieConvolvePS)
+                if (shader == m_ShaderResources.charlieConvolvePS)
                     return true;
             }
 
@@ -222,7 +215,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         return true;
             }
 
-            if (!shadowInitParams.supportScreenSpaceShadows && shader == m_Resources.shaders.screenSpaceShadowPS)
+            if (!shadowInitParams.supportScreenSpaceShadows && shader == m_ShaderResources.screenSpaceShadowPS)
                 return true;
 
             // Screen space shadow variant is exclusive, either we have a variant with dynamic if that support screen space shadow or not

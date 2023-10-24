@@ -90,7 +90,7 @@ namespace UnityEngine.Rendering.Tests
                 builder.UseTextureFragment(buffers.extraBuffers[0], 0, IBaseRenderGraphBuilder.AccessFlags.Write);
                 builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
                 builder.Dispose();
-        }
+            }
             // Render to final buffer
             {
                 var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass2", out var passData);
@@ -297,7 +297,7 @@ namespace UnityEngine.Rendering.Tests
                 builder.UseTextureFragmentDepth(buffers.depthBuffer, IBaseRenderGraphBuilder.AccessFlags.Write);
                 for (int i = 0; i < 2; i++)
                 {
-                    builder.UseTextureFragment(buffers.extraBuffers[i+6], i, IBaseRenderGraphBuilder.AccessFlags.Write);
+                    builder.UseTextureFragment(buffers.extraBuffers[i + 6], i, IBaseRenderGraphBuilder.AccessFlags.Write);
                 }
                 builder.UseTextureFragment(buffers.backBuffer, 2, IBaseRenderGraphBuilder.AccessFlags.Write);
                 builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
@@ -494,7 +494,7 @@ namespace UnityEngine.Rendering.Tests
             Assert.AreEqual(3, subPass.colorOutputs[2]);
 
             // Sub Pass 1
-            ref var subPass2 = ref result.contextData.nativeSubPassData.ElementAt(nativePasses[0].firstNativeSubPass+1);
+            ref var subPass2 = ref result.contextData.nativeSubPassData.ElementAt(nativePasses[0].firstNativeSubPass + 1);
             Assert.AreEqual(3, subPass2.inputs.Length);
             Assert.AreEqual(1, subPass2.inputs[0]);
             Assert.AreEqual(2, subPass2.inputs[1]);
@@ -624,6 +624,77 @@ namespace UnityEngine.Rendering.Tests
             // #4 waits for nothing, doesn't insert a fence
             Assert.AreEqual(-1, passData[3].waitOnGraphicsFencePassId);
             Assert.False(passData[3].insertGraphicsFence);
+        }
+
+        [Test]
+        public void BuffersWork()
+        {
+            var g = AllocateRenderGraph();
+            var rendertargets = ImportAndCreateBuffers(g);
+
+            var desc = new BufferDesc(1024, 16);
+            var buffer = g.CreateBuffer(desc);
+
+            // Render something to extra 0 and write uav
+            {
+                var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass0", out var passData);
+                builder.UseTextureFragmentDepth(rendertargets.depthBuffer, IBaseRenderGraphBuilder.AccessFlags.Write);
+                builder.UseTextureFragment(rendertargets.extraBuffers[0], 0, IBaseRenderGraphBuilder.AccessFlags.Write);
+                builder.UseBufferRandomAccess(buffer, 1, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.Dispose();
+            }
+
+            // Render extra bits to 0 reading from the uav
+            {
+                var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass1", out var passData);
+                builder.UseTextureFragmentDepth(rendertargets.depthBuffer, IBaseRenderGraphBuilder.AccessFlags.Write);
+                builder.UseTextureFragment(rendertargets.extraBuffers[0], 0, IBaseRenderGraphBuilder.AccessFlags.Write);
+                builder.UseBuffer(buffer, IBaseRenderGraphBuilder.AccessFlags.Read);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.Dispose();
+            }
+
+            // Render to final buffer
+            {
+                var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass2", out var passData);
+                builder.UseTexture(rendertargets.extraBuffers[0]);
+                builder.UseTextureFragment(rendertargets.backBuffer, 2, IBaseRenderGraphBuilder.AccessFlags.Write);
+                builder.UseTextureFragmentDepth(rendertargets.depthBuffer, IBaseRenderGraphBuilder.AccessFlags.Write);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.Dispose();
+            }
+
+            var result = g.CompileNativeRenderGraph();
+            var passes = result.contextData.GetNativePasses();
+
+            // Validate Pass 0 : uav is first used and created
+            ref var pass0Data = ref result.contextData.passData.ElementAt(0);
+            var firstUsedList = pass0Data.FirstUsedResources(result.contextData).ToArray();
+
+            Assert.AreEqual(3, firstUsedList.Length);
+            Assert.AreEqual(rendertargets.depthBuffer.handle.index, firstUsedList[0].index);
+            Assert.AreEqual(RenderGraphResourceType.Texture, firstUsedList[0].type);
+            Assert.AreEqual(rendertargets.extraBuffers[0].handle.index, firstUsedList[1].index);
+            Assert.AreEqual(RenderGraphResourceType.Texture, firstUsedList[1].type);
+            Assert.AreEqual(buffer.handle.index, firstUsedList[2].index);
+            Assert.AreEqual(RenderGraphResourceType.Buffer, firstUsedList[2].type);
+
+            var randomAccessList = pass0Data.RandomWriteTextures(result.contextData).ToArray();
+            Assert.AreEqual(1, randomAccessList.Length);
+            Assert.AreEqual(buffer.handle.index, randomAccessList[0].resource.index);
+            Assert.AreEqual(RenderGraphResourceType.Buffer, randomAccessList[0].resource.type);
+            Assert.AreEqual(1, randomAccessList[0].index); // we asked for it to be at index 1 in the builder
+            Assert.AreEqual(true, randomAccessList[0].preserveCounterValue); // preserve is default
+
+            // Validate Pass 1 : uav buffer is last used and destroyed
+            ref var pass1Data = ref result.contextData.passData.ElementAt(1);
+            var lastUsedList = pass1Data.LastUsedResources(result.contextData).ToArray();
+
+            Assert.AreEqual(1, lastUsedList.Length);
+            Assert.AreEqual(buffer.handle.index, lastUsedList[0].index);
+            Assert.AreEqual(RenderGraphResourceType.Buffer, lastUsedList[0].type);
+
         }
     }
 }

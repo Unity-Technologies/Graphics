@@ -40,8 +40,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             public override void Action(int instanceId, string pathName, string resourceFile)
             {
-                var originalSG = HDRenderPipeline.currentAsset.renderPipelineResources.shaders.waterPS;
-                AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(originalSG), pathName);
+                var shader = HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders.waterPS;
+                AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(shader), pathName);
             }
         }
 

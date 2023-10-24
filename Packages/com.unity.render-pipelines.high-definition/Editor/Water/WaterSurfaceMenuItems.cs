@@ -91,7 +91,7 @@ namespace UnityEditor.Rendering
 
             // Assign the material
             var excluderMeshRenderer = waterExclusion.m_ExclusionRenderer.GetComponent<MeshRenderer>();
-            excluderMeshRenderer.sharedMaterial = HDRenderPipeline.currentAsset.renderPipelineResources.materials.waterExclusionMaterial;
+            excluderMeshRenderer.sharedMaterial = HDRenderPipelineGlobalSettings.instance.renderPipelineResources.materials.waterExclusionMaterial;
             excluderMeshRenderer.rayTracingMode = UnityEngine.Experimental.Rendering.RayTracingMode.Off;
 
             // If an object was selected and it had a mesh filter, assign it

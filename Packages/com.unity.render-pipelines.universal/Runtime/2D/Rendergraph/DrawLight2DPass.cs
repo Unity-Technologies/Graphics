@@ -1,6 +1,7 @@
 using System;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using CommonResourceData = UnityEngine.Rendering.Universal.UniversalResourceData;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -153,7 +154,8 @@ namespace UnityEngine.Rendering.Universal
 
         public void Render(RenderGraph graph, ContextContainer frameData, Renderer2DData rendererData, ref LayerBatch layerBatch, int batchIndex, bool isVolumetric = false)
         {
-            Universal2DResourceData resourceData = frameData.Get<Universal2DResourceData>();
+            Universal2DResourceData universal2DResourceData = frameData.Get<Universal2DResourceData>();
+            CommonResourceData commonResourceData = frameData.Get<CommonResourceData>();
 
             if (!layerBatch.lightStats.useLights ||
                 isVolumetric && !layerBatch.lightStats.useVolumetricLights)
@@ -161,9 +163,9 @@ namespace UnityEngine.Rendering.Universal
 
             using (var builder = graph.AddRasterRenderPass<PassData>(!isVolumetric ? k_LightPass : k_LightVolumetricPass, out var passData, !isVolumetric ? m_ProfilingSampler : m_ProfilingSamplerVolume))
             {
-                intermediateTexture[0] = resourceData.activeColorTexture;
-                var lightTextures = !isVolumetric ? resourceData.lightTextures[batchIndex] : intermediateTexture;
-                var depthTexture = !isVolumetric ? resourceData.intermediateDepth : resourceData.activeDepthTexture;
+                intermediateTexture[0] = commonResourceData.activeColorTexture;
+                var lightTextures = !isVolumetric ? universal2DResourceData.lightTextures[batchIndex] : intermediateTexture;
+                var depthTexture = !isVolumetric ? universal2DResourceData.intermediateDepth : commonResourceData.activeDepthTexture;
 
                 for (var i = 0; i < lightTextures.Length; i++)
                     builder.UseTextureFragment(lightTextures[i], i);
@@ -171,10 +173,10 @@ namespace UnityEngine.Rendering.Universal
                 builder.UseTextureFragmentDepth(depthTexture);
 
                 if (layerBatch.lightStats.useNormalMap)
-                    builder.UseTexture(resourceData.normalsTexture[batchIndex]);
+                    builder.UseTexture(universal2DResourceData.normalsTexture[batchIndex]);
 
                 if (layerBatch.lightStats.useShadows)
-                    builder.UseTexture(resourceData.shadowsTexture);
+                    builder.UseTexture(universal2DResourceData.shadowsTexture);
 
                 foreach (var light in layerBatch.lights)
                 {
@@ -188,8 +190,8 @@ namespace UnityEngine.Rendering.Universal
                 passData.layerBatch = layerBatch;
                 passData.rendererData = rendererData;
                 passData.isVolumetric = isVolumetric;
-                passData.normalMap = layerBatch.lightStats.useNormalMap ? resourceData.normalsTexture[batchIndex] : TextureHandle.nullHandle;
-                passData.shadowMap = layerBatch.lightStats.useShadows ? resourceData.shadowsTexture : TextureHandle.nullHandle;
+                passData.normalMap = layerBatch.lightStats.useNormalMap ? universal2DResourceData.normalsTexture[batchIndex] : TextureHandle.nullHandle;
+                passData.shadowMap = layerBatch.lightStats.useShadows ? universal2DResourceData.shadowsTexture : TextureHandle.nullHandle;
                 passData.fallOffLookUp = graph.ImportTexture(m_FallOffRTHandle);
                 passData.lightLookUp = graph.ImportTexture(m_LightLookupRTHandle);
 

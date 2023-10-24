@@ -283,7 +283,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public StackLit() { }
 
-        public override void Build(HDRenderPipelineAsset hdAsset, HDRenderPipelineRuntimeResources runtimeResources)
+        public override void Build(HDRenderPipeline _)
         {
             PreIntegratedFGD.instance.Build(PreIntegratedFGD.FGDIndex.FGD_GGXAndDisneyDiffuse);
             LTCAreaLight.instance.Build();

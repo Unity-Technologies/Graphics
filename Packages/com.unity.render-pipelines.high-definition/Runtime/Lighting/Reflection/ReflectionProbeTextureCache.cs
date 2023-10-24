@@ -54,8 +54,15 @@ namespace UnityEngine.Rendering.HighDefinition
         RenderTexture m_TempConvertedReflectionProbeTexture;
         RenderTexture m_TempConvolvedReflectionProbeTexture;
 
-        public ReflectionProbeTextureCache(HDRenderPipelineRuntimeResources runtimeResources, IBLFilterBSDF[] iblFiltersBSDF, int width, int height, GraphicsFormat format,
-            bool decreaseResToFit, int lastValidCubeMip, int lastValidPlanarMip)
+        public ReflectionProbeTextureCache(
+            HDRenderPipeline renderPipeline,
+            IBLFilterBSDF[] iblFiltersBSDF,
+            int width,
+            int height,
+            GraphicsFormat format,
+            bool decreaseResToFit,
+            int lastValidCubeMip,
+            int lastValidPlanarMip)
         {
             Assert.IsTrue(Mathf.IsPowerOfTwo(width) && Mathf.IsPowerOfTwo(height));
             Assert.IsTrue(width <= (int)ReflectionProbeTextureCacheResolution.Resolution16384x16384);
@@ -94,8 +101,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_PlanarTexelPadding = (1 << m_PlanarMipPadding) * 2;
 
             m_DecreaseResToFit = decreaseResToFit;
-
-            m_ConvertTextureMaterial = CoreUtils.CreateEngineMaterial(runtimeResources.shaders.blitCubeTextureFacePS);
+            m_ConvertTextureMaterial = CoreUtils.CreateEngineMaterial(renderPipeline.runtimeShaders.blitCubeTextureFacePS);
         }
 
         private static int GetTextureID(HDProbe probe)

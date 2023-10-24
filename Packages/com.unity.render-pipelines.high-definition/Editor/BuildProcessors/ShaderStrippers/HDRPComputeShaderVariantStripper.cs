@@ -15,6 +15,13 @@ namespace UnityEditor.Rendering.HighDefinition
         protected ShaderKeyword m_ProbeVolumesL1 = new ShaderKeyword("PROBE_VOLUMES_L1");
         protected ShaderKeyword m_ProbeVolumesL2 = new ShaderKeyword("PROBE_VOLUMES_L2");
 
+        protected HDRenderPipelineRuntimeResources.ShaderResources m_Shaders;
+
+        public HDRPComputeShaderVariantStripper()
+        {
+            m_Shaders = HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders;
+        }
+
         // Modify this function to add more stripping clauses
         internal bool StripShader(HDRenderPipelineAsset hdAsset, ComputeShader shader, string kernelName, ShaderCompilerData inputData)
         {
@@ -23,76 +30,76 @@ namespace UnityEditor.Rendering.HighDefinition
             // Strip debug compute shaders
             if (stripDebug && !hdAsset.currentPlatformRenderPipelineSettings.supportRuntimeAOVAPI)
             {
-                if (shader == hdAsset.renderPipelineResources.shaders.debugLightVolumeCS ||
-                    shader == hdAsset.renderPipelineResources.shaders.clearDebugBufferCS ||
-                    shader == hdAsset.renderPipelineResources.shaders.debugWaveformCS ||
-                    shader == hdAsset.renderPipelineResources.shaders.debugVectorscopeCS ||
-                    shader == hdAsset.renderPipelineResources.shaders.probeVolumeSamplingDebugComputeShader)
+                if (shader == m_Shaders.debugLightVolumeCS ||
+                    shader == m_Shaders.clearDebugBufferCS ||
+                    shader == m_Shaders.debugWaveformCS ||
+                    shader == m_Shaders.debugVectorscopeCS ||
+                    shader == m_Shaders.probeVolumeSamplingDebugComputeShader)
                     return true;
             }
 
             // Remove water if disabled
             if (!hdAsset.currentPlatformRenderPipelineSettings.supportWater)
             {
-                if (shader == hdAsset.renderPipelineResources.shaders.waterSimulationCS ||
-                    shader == hdAsset.renderPipelineResources.shaders.fourierTransformCS ||
-                    shader == hdAsset.renderPipelineResources.shaders.waterEvaluationCS ||
-                    shader == hdAsset.renderPipelineResources.shaders.waterLightingCS ||
-                    shader == hdAsset.renderPipelineResources.shaders.waterLineCS ||
-                    shader == hdAsset.renderPipelineResources.shaders.waterDeformationCS ||
-                    shader == hdAsset.renderPipelineResources.shaders.waterFoamCS)
+                if (shader == m_Shaders.waterSimulationCS ||
+                    shader == m_Shaders.fourierTransformCS ||
+                    shader == m_Shaders.waterEvaluationCS ||
+                    shader == m_Shaders.waterLightingCS ||
+                    shader == m_Shaders.waterLineCS ||
+                    shader == m_Shaders.waterDeformationCS ||
+                    shader == m_Shaders.waterFoamCS)
                     return true;
             }
 
             // Remove volumetric clouds if disabled
             if (!hdAsset.currentPlatformRenderPipelineSettings.supportVolumetricClouds)
             {
-                if (shader == hdAsset.renderPipelineResources.shaders.volumetricCloudsCS ||
-                    shader == hdAsset.renderPipelineResources.shaders.volumetricCloudsTraceCS ||
-                    shader == hdAsset.renderPipelineResources.shaders.volumetricCloudMapGeneratorCS)
+                if (shader == m_Shaders.volumetricCloudsCS ||
+                    shader == m_Shaders.volumetricCloudsTraceCS ||
+                    shader == m_Shaders.volumetricCloudMapGeneratorCS)
                     return true;
             }
 
             // Remove volumetric fog if disabled
             if (!hdAsset.currentPlatformRenderPipelineSettings.supportVolumetrics)
             {
-                if (shader == hdAsset.renderPipelineResources.shaders.volumeVoxelizationCS ||
-                    shader == hdAsset.renderPipelineResources.shaders.volumetricLightingCS ||
-                    shader == hdAsset.renderPipelineResources.shaders.volumetricLightingFilteringCS)
+                if (shader == m_Shaders.volumeVoxelizationCS ||
+                    shader == m_Shaders.volumetricLightingCS ||
+                    shader == m_Shaders.volumetricLightingFilteringCS)
                     return true;
             }
 
             // Remove SSR if disabled
             if (!hdAsset.currentPlatformRenderPipelineSettings.supportSSR)
             {
-                if (shader == hdAsset.renderPipelineResources.shaders.screenSpaceReflectionsCS)
+                if (shader == m_Shaders.screenSpaceReflectionsCS)
                     return true;
             }
 
             // Remove SSGI if disabled
             if (!hdAsset.currentPlatformRenderPipelineSettings.supportSSGI)
             {
-                if (shader == hdAsset.renderPipelineResources.shaders.screenSpaceGlobalIlluminationCS)
+                if (shader == m_Shaders.screenSpaceGlobalIlluminationCS)
                     return true;
             }
 
             // Remove SSS if disabled
             if (!hdAsset.currentPlatformRenderPipelineSettings.supportSubsurfaceScattering)
             {
-                if (shader == hdAsset.renderPipelineResources.shaders.subsurfaceScatteringCS ||
-                    shader == hdAsset.renderPipelineResources.shaders.subsurfaceScatteringDownsampleCS)
+                if (shader == m_Shaders.subsurfaceScatteringCS ||
+                    shader == m_Shaders.subsurfaceScatteringDownsampleCS)
                     return true;
             }
 
             // Remove Line Rendering if disabled
             if (!hdAsset.currentPlatformRenderPipelineSettings.supportHighQualityLineRendering)
             {
-                if (shader == hdAsset.renderPipelineResources.shaders.lineStagePrepareCS ||
-                    shader == hdAsset.renderPipelineResources.shaders.lineStageSetupSegmentCS ||
-                    shader == hdAsset.renderPipelineResources.shaders.lineStageShadingSetupCS ||
-                    shader == hdAsset.renderPipelineResources.shaders.lineStageRasterBinCS ||
-                    shader == hdAsset.renderPipelineResources.shaders.lineStageWorkQueueCS ||
-                    shader == hdAsset.renderPipelineResources.shaders.lineStageRasterFineCS)
+                if (shader == m_Shaders.lineStagePrepareCS ||
+                    shader == m_Shaders.lineStageSetupSegmentCS ||
+                    shader == m_Shaders.lineStageShadingSetupCS ||
+                    shader == m_Shaders.lineStageRasterBinCS ||
+                    shader == m_Shaders.lineStageWorkQueueCS ||
+                    shader == m_Shaders.lineStageRasterFineCS)
                     return true;
             }
 
@@ -134,10 +141,10 @@ namespace UnityEditor.Rendering.HighDefinition
             // In forward only, strip deferred shaders
             if (hdAsset.currentPlatformRenderPipelineSettings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly)
             {
-                if (shader == hdAsset.renderPipelineResources.shaders.clearDispatchIndirectCS ||
-                    shader == hdAsset.renderPipelineResources.shaders.buildDispatchIndirectCS ||
-                    shader == hdAsset.renderPipelineResources.shaders.buildMaterialFlagsCS ||
-                    shader == hdAsset.renderPipelineResources.shaders.deferredCS)
+                if (shader == m_Shaders.clearDispatchIndirectCS ||
+                    shader == m_Shaders.buildDispatchIndirectCS ||
+                    shader == m_Shaders.buildMaterialFlagsCS ||
+                    shader == m_Shaders.deferredCS)
                     return true;
             }
 

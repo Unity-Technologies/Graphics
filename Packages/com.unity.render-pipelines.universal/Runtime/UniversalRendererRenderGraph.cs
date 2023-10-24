@@ -263,21 +263,21 @@ namespace UnityEngine.Rendering.Universal
             return ShouldApplyPostProcessing(cameraData.postProcessEnabled) && cameraData.postProcessingRequiresDepthTexture;
         }
 
-        void RequiresColorAndDepthTextures(RenderGraph renderGraph, out bool createColorTexture, out bool createDepthTexture, UniversalCameraData cameraData, RenderPassInputSummary renderPassInputs)
+        void RequiresColorAndDepthTextures(RenderGraph renderGraph, out bool createColorTexture, out bool createDepthTexture, UniversalCameraData cameraData, ref RenderPassInputSummary renderPassInputs)
         {
             bool isPreviewCamera = cameraData.isPreviewCamera;
-            bool requiresDepthPrepass = RequireDepthPrepass(cameraData, renderPassInputs);
+            bool requiresDepthPrepass = RequireDepthPrepass(cameraData, ref renderPassInputs);
 
             var requireColorTexture = HasActiveRenderFeatures() && m_IntermediateTextureMode == IntermediateTextureMode.Always;
             requireColorTexture |= Application.isEditor && m_Clustering;
-            requireColorTexture |= RequiresIntermediateColorTexture(cameraData);
+            requireColorTexture |= RequiresIntermediateColorTexture(cameraData, ref renderPassInputs);
             requireColorTexture &= !isPreviewCamera;
 
-            var requireDepthTexture = RequireDepthTexture(cameraData, renderPassInputs, requiresDepthPrepass);
+            var requireDepthTexture = RequireDepthTexture(cameraData, requiresDepthPrepass, ref renderPassInputs);
 
             useDepthPriming = IsDepthPrimingEnabled(cameraData);
 
-            // Intermediate texture has different yflip state than backbuffer. In case we use intermedaite texture, we must use both color and depth together.
+            // Intermediate texture has different yflip state than backbuffer. In case we use intermediate texture, we must use both color and depth together.
             bool intermediateRenderTexture = (requireColorTexture || requireDepthTexture);
             createDepthTexture = intermediateRenderTexture;
             createColorTexture = intermediateRenderTexture;
@@ -390,7 +390,7 @@ namespace UnityEngine.Rendering.Universal
             // We configure this for the first camera of the stack and overlay camera will reuse create color/depth var
             // to pick the correct target, as if there is an intermediate texture, overlay cam should use them
             if (cameraData.renderType == CameraRenderType.Base)
-                RequiresColorAndDepthTextures(renderGraph, out m_CreateColorTexture, out m_CreateDepthTexture, cameraData, renderPassInputs);
+                RequiresColorAndDepthTextures(renderGraph, out m_CreateColorTexture, out m_CreateDepthTexture, cameraData, ref renderPassInputs);
 
 
             // The final output back buffer should be cleared by the graph on first use only if we have no final blit pass.
@@ -581,7 +581,7 @@ namespace UnityEngine.Rendering.Universal
             }
             #endregion
 
-            CreateCameraDepthCopyTexture(renderGraph, cameraData.cameraTargetDescriptor, RequireDepthPrepass(cameraData, renderPassInputs) && this.renderingModeActual != RenderingMode.Deferred);
+            CreateCameraDepthCopyTexture(renderGraph, cameraData.cameraTargetDescriptor, RequireDepthPrepass(cameraData, ref renderPassInputs) && this.renderingModeActual != RenderingMode.Deferred);
 
             CreateCameraNormalsTexture(renderGraph, cameraData.cameraTargetDescriptor);
 
@@ -778,7 +778,7 @@ namespace UnityEngine.Rendering.Universal
                 renderPassInputs.requiresNormalsTexture = true;
 #endif
 
-            bool requiresDepthPrepass = RequireDepthPrepass(cameraData, renderPassInputs);
+            bool requiresDepthPrepass = RequireDepthPrepass(cameraData, ref renderPassInputs);
             bool requiresDepthCopyPass = !requiresDepthPrepass
                                          && (cameraData.requiresDepthTexture || cameraHasPostProcessingWithDepth || renderPassInputs.requiresDepthTexture)
                                          && m_CreateDepthTexture; // we create both intermediate textures if this is true, so instead of repeating the checks we reuse this
@@ -1182,7 +1182,7 @@ namespace UnityEngine.Rendering.Universal
                 DrawRenderGraphGizmos(renderGraph, frameData, resourceData.backBufferColor, resourceData.activeDepthTexture, GizmoSubset.PostImageEffects);
         }
 
-        bool RequireDepthPrepass(UniversalCameraData cameraData, RenderPassInputSummary renderPassInputs)
+        bool RequireDepthPrepass(UniversalCameraData cameraData, ref RenderPassInputSummary renderPassInputs)
         {
             bool applyPostProcessing = ShouldApplyPostProcessing(cameraData.postProcessEnabled);
             // If Camera's PostProcessing is enabled and if there any enabled PostProcessing requires depth texture as shader read resource (Motion Blur/DoF)
@@ -1212,7 +1212,7 @@ namespace UnityEngine.Rendering.Universal
             return requiresDepthPrepass;
         }
 
-        bool RequireDepthTexture(UniversalCameraData cameraData, RenderPassInputSummary renderPassInputs, bool requiresDepthPrepass)
+        bool RequireDepthTexture(UniversalCameraData cameraData, bool requiresDepthPrepass, ref RenderPassInputSummary renderPassInputs)
         {
             bool depthPrimingEnabled = IsDepthPrimingEnabled(cameraData);
             bool requiresDepthTexture = cameraData.requiresDepthTexture || renderPassInputs.requiresDepthTexture || depthPrimingEnabled;

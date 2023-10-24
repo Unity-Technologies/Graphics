@@ -235,7 +235,7 @@ float SampleAndGetLinearEyeDepth(float2 uv)
 half3 ReconstructViewPos(float2 uv, float linearDepth)
 {
     #if defined(SUPPORTS_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
-    if (_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
+    UNITY_BRANCH if (_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
     {
         uv = RemapFoveatedRenderingNonUniformToLinear(uv);
     }
@@ -359,7 +359,7 @@ half4 SSAO(Varyings input) : SV_Target
 
     float2 pixelDensity;
     #if defined(SUPPORTS_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
-    if (_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
+    UNITY_BRANCH if (_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
     {
         pixelDensity = RemapFoveatedRenderingDensity(RemapFoveatedRenderingNonUniformToLinear(uv));
     }
@@ -405,7 +405,7 @@ half4 SSAO(Varyings input) : SV_Target
         #endif
 
         #if defined(SUPPORTS_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
-        if (_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
+        UNITY_BRANCH if (_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
         {
             uv_s1_01 = RemapFoveatedRenderingLinearToNonUniform(uv_s1_01);
         }

@@ -212,14 +212,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public AxF() { }
 
-        public override void Build(HDRenderPipelineAsset hdAsset, HDRenderPipelineRuntimeResources runtimeResources)
+        public override void Build(HDRenderPipeline renderPipeline)
         {
             // Create Materials
-            m_preIntegratedFGDMaterial_Ward = CoreUtils.CreateEngineMaterial(runtimeResources.shaders.preIntegratedFGD_WardPS);
+            m_preIntegratedFGDMaterial_Ward = CoreUtils.CreateEngineMaterial(renderPipeline.runtimeShaders.preIntegratedFGD_WardPS);
             if (m_preIntegratedFGDMaterial_Ward == null)
                 throw new Exception("Failed to create material for Ward BRDF pre-integration!");
 
-            m_preIntegratedFGDMaterial_CookTorrance = CoreUtils.CreateEngineMaterial(runtimeResources.shaders.preIntegratedFGD_CookTorrancePS);
+            m_preIntegratedFGDMaterial_CookTorrance = CoreUtils.CreateEngineMaterial(renderPipeline.runtimeShaders.preIntegratedFGD_CookTorrancePS);
             if (m_preIntegratedFGDMaterial_CookTorrance == null)
                 throw new Exception("Failed to create material for Cook-Torrance BRDF pre-integration!");
 

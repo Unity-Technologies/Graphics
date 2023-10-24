@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using CommonResourceData = UnityEngine.Rendering.Universal.UniversalResourceData;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -89,7 +90,9 @@ namespace UnityEngine.Rendering.Universal
             UniversalRenderingData renderingData = frameData.Get<UniversalRenderingData>();
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
             UniversalLightData lightData = frameData.Get<UniversalLightData>();
-            Universal2DResourceData resourceData = frameData.Get<Universal2DResourceData>();
+            Universal2DResourceData universal2DResourceData = frameData.Get<Universal2DResourceData>();
+            CommonResourceData commonResourceData = frameData.Get<CommonResourceData>();
+
 
             using (var builder = graph.AddRasterRenderPass<PassData>(k_RenderPass, out var passData, m_ProfilingSampler))
             {
@@ -122,7 +125,7 @@ namespace UnityEngine.Rendering.Universal
 
                 if (layerBatch.lightStats.useLights)
                 {
-                    passData.lightTextures = resourceData.lightTextures[batchIndex];
+                    passData.lightTextures = universal2DResourceData.lightTextures[batchIndex];
                     for (var i = 0; i < passData.lightTextures.Length; i++)
                         builder.UseTexture(passData.lightTextures[i]);
                 }
@@ -131,8 +134,8 @@ namespace UnityEngine.Rendering.Universal
                 if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal)
                     accessFlags = IBaseRenderGraphBuilder.AccessFlags.Write;
 
-                builder.UseTextureFragment(resourceData.activeColorTexture, 0);
-                builder.UseTextureFragmentDepth(resourceData.activeDepthTexture, accessFlags);
+                builder.UseTextureFragment(commonResourceData.activeColorTexture, 0);
+                builder.UseTextureFragmentDepth(commonResourceData.activeDepthTexture, accessFlags);
                 builder.AllowPassCulling(false);
                 builder.AllowGlobalStateModification(true);
 

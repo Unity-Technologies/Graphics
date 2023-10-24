@@ -27,7 +27,7 @@ ClusterIterator ClusterInit(float2 normalizedScreenSpaceUV, float3 positionWS, i
     ClusterIterator state = (ClusterIterator)0;
 
 #if defined(SUPPORTS_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
-    if (_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
+    UNITY_BRANCH if (_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
     {
 #if UNITY_UV_STARTS_AT_TOP
         // RemapFoveatedRenderingNonUniformToLinear expects the UV coordinate to be non-flipped, so we un-flip it before

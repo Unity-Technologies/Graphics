@@ -27,27 +27,27 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!s_SupportLineRendering)
                 return;
 
-            m_LineCompositePass = CoreUtils.CreateEngineMaterial(runtimeResources.shaders.lineCompositePS);
+            m_LineCompositePass = CoreUtils.CreateEngineMaterial(runtimeShaders.lineCompositePS);
 
             m_PrefixSum = new GPUPrefixSum(new GPUPrefixSum.SystemResources
             {
-                computeAsset = runtimeResources.shaders.gpuPrefixSumCS
+                computeAsset = runtimeShaders.gpuPrefixSumCS
             });
 
             m_Sorter = new GPUSort(new GPUSort.SystemResources
             {
-                computeAsset = runtimeResources.shaders.gpuSortCS
+                computeAsset = runtimeShaders.gpuSortCS
             });
 
             LineRendering.Instance.Initialize(new LineRendering.SystemResources
             {
                 // Due to a lack of a "Core Resource" concept, we pass along the kernel assets as initialization parameters.
-                stagePrepareCS      = runtimeResources.shaders.lineStagePrepareCS,
-                stageSetupSegmentCS = runtimeResources.shaders.lineStageSetupSegmentCS,
-                stageShadingSetupCS = runtimeResources.shaders.lineStageShadingSetupCS,
-                stageRasterBinCS    = runtimeResources.shaders.lineStageRasterBinCS,
-                stageWorkQueue      = runtimeResources.shaders.lineStageWorkQueueCS,
-                stageRasterFineCS   = runtimeResources.shaders.lineStageRasterFineCS,
+                stagePrepareCS      = runtimeShaders.lineStagePrepareCS,
+                stageSetupSegmentCS = runtimeShaders.lineStageSetupSegmentCS,
+                stageShadingSetupCS = runtimeShaders.lineStageShadingSetupCS,
+                stageRasterBinCS    = runtimeShaders.lineStageRasterBinCS,
+                stageWorkQueue      = runtimeShaders.lineStageWorkQueueCS,
+                stageRasterFineCS   = runtimeShaders.lineStageRasterFineCS,
 
                 // Misc. Compute Utility
                 gpuSort      = m_Sorter,

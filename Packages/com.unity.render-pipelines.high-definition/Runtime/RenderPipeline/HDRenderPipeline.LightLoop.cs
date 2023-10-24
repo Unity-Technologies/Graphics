@@ -501,7 +501,7 @@ namespace UnityEngine.Rendering.HighDefinition
             bool isProjectionOblique = GeometryUtils.IsProjectionMatrixOblique(m_LightListProjMatrices[0]);
 
             // Clear light lsts
-            passData.clearLightListCS = runtimeResources.shaders.clearLightListsCS;
+            passData.clearLightListCS = runtimeShaders.clearLightListsCS;
             passData.clearLightListKernel = passData.clearLightListCS.FindKernel("ClearList");
 
             // Screen space AABB

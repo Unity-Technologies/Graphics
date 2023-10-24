@@ -472,6 +472,21 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+
+        /// <summary>
+        /// Returns if the camera renders to a offscreen depth texture.
+        /// </summary>
+        /// <param name="cameraData">The camera data for the camera being rendered.</param>
+        /// <returns>Returns true if the camera renders to depth without any color buffer. It will return false otherwise.</returns>
+        public static bool IsOffscreenDepthTexture(ref CameraData cameraData) => IsOffscreenDepthTexture(cameraData.universalCameraData);
+
+        /// <summary>
+        /// Returns if the camera renders to a offscreen depth texture.
+        /// </summary>
+        /// <param name="cameraData">The camera data for the camera being rendered.</param>
+        /// <returns>Returns true if the camera renders to depth without any color buffer. It will return false otherwise.</returns>
+        public static bool IsOffscreenDepthTexture(UniversalCameraData cameraData) => cameraData.targetTexture != null && cameraData.targetTexture.format == RenderTextureFormat.Depth;
+
         bool IsDepthPrimingEnabled(UniversalCameraData cameraData)
         {
             // depth priming requires an extra depth copy, disable it on platforms not supporting it (like GLES when MSAA is on)
@@ -566,16 +581,12 @@ namespace UnityEngine.Rendering.Universal
                 useRenderPassEnabled = false;
 
             // Special path for depth only offscreen cameras. Only write opaques + transparents.
-            bool isOffscreenDepthTexture = cameraData.targetTexture != null && cameraData.targetTexture.format == RenderTextureFormat.Depth;
-            if (isOffscreenDepthTexture)
+            if (IsOffscreenDepthTexture(cameraData))
             {
                 ConfigureCameraTarget(k_CameraTarget, k_CameraTarget);
-                SetupRenderPasses(in renderingData);
                 EnqueuePass(m_RenderOpaqueForwardPass);
 
-                // TODO: Do we need to inject transparents and skybox when rendering depth only camera? They don't write to depth.
                 // TODO: Transparents might have force Z write option in the future.
-                EnqueuePass(m_DrawSkyboxPass);
 #if ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER
                 if (!needTransparencyPass)
                     return;
@@ -753,9 +764,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
 
-            createColorTexture |= RequiresIntermediateColorTexture(cameraData);
-            createColorTexture |= renderPassInputs.requiresColorTexture;
-            createColorTexture |= renderPassInputs.requiresColorTextureCreated;
+            createColorTexture |= RequiresIntermediateColorTexture(cameraData, ref renderPassInputs);
             createColorTexture &= !isPreviewCamera;
 
             // If camera requires depth and there's no depth pre-pass we create a depth texture that can be read later by effect requiring it.
@@ -1617,7 +1626,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="cameraData">CameraData contains all relevant render target information for the camera.</param>
         /// <seealso cref="CameraData"/>
         /// <returns>Return true if pipeline needs to render to a intermediate render texture.</returns>
-        bool RequiresIntermediateColorTexture(UniversalCameraData cameraData)
+        bool RequiresIntermediateColorTexture(UniversalCameraData cameraData, ref RenderPassInputSummary renderPassInputs)
         {
             // When rendering a camera stack we always create an intermediate render texture to composite camera results.
             // We create it upon rendering the Base camera.
@@ -1655,7 +1664,8 @@ namespace UnityEngine.Rendering.Universal
                 return requiresBlitForOffscreenCamera;
 
             return requiresBlitForOffscreenCamera || isSceneViewCamera || isScaledRender || cameraData.isHdrEnabled ||
-                !isCompatibleBackbufferTextureDimension || isCapturing || cameraData.requireSrgbConversion;
+                !isCompatibleBackbufferTextureDimension || isCapturing || cameraData.requireSrgbConversion ||
+                renderPassInputs.requiresColorTexture || renderPassInputs.requiresColorTextureCreated;
         }
 
         bool CanCopyDepth(UniversalCameraData cameraData)
@@ -1705,6 +1715,13 @@ namespace UnityEngine.Rendering.Universal
             m_ColorBufferSystem.EnableMSAA(enable);
         }
 
-        internal override bool supportsNativeRenderPassRendergraphCompiler { get => SystemInfo.graphicsDeviceType != GraphicsDeviceType.Direct3D12; }
+        internal override bool supportsNativeRenderPassRendergraphCompiler
+        {
+            get => SystemInfo.graphicsDeviceType != GraphicsDeviceType.Direct3D12
+#if UNITY_EDITOR
+                   && SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES3 // GLES in editor is not really GLES and doesn't support MSAA resolve with the NRP API
+#endif
+            ;
+        }
     }
 }

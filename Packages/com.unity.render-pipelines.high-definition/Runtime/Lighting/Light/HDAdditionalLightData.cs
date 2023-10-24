@@ -3236,17 +3236,19 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Update Mesh
-            if (HDRenderPipelineGlobalSettings.instance != null && !HDRenderPipelineGlobalSettings.instance.Equals(null))
+            if (HDRenderPipelineGlobalSettings.instance != null)
             {
+                var assets = HDRenderPipelineGlobalSettings.instance.renderPipelineResources.assets;
+
                 switch (lightType)
                 {
                     case LightType.Tube:
-                        if (m_EmissiveMeshFilter.sharedMesh != HDRenderPipelineGlobalSettings.instance.renderPipelineResources.assets.emissiveCylinderMesh)
-                            m_EmissiveMeshFilter.sharedMesh = HDRenderPipelineGlobalSettings.instance.renderPipelineResources.assets.emissiveCylinderMesh;
+                        if (m_EmissiveMeshFilter.sharedMesh != assets.emissiveCylinderMesh)
+                            m_EmissiveMeshFilter.sharedMesh = assets.emissiveCylinderMesh;
                         break;
                     default:
-                        if (m_EmissiveMeshFilter.sharedMesh != HDRenderPipelineGlobalSettings.instance.renderPipelineResources.assets.emissiveQuadMesh)
-                            m_EmissiveMeshFilter.sharedMesh = HDRenderPipelineGlobalSettings.instance.renderPipelineResources.assets.emissiveQuadMesh;
+                        if (m_EmissiveMeshFilter.sharedMesh != assets.emissiveQuadMesh)
+                            m_EmissiveMeshFilter.sharedMesh = assets.emissiveQuadMesh;
                         break;
                 }
             }

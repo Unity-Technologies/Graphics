@@ -60,6 +60,54 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
             discard = desc.discardBuffer;
             bindMS = info.bindMS;
         }
+
+        public ResourceUnversionedData(IRenderGraphResource rll, ref BufferDesc _, bool isResourceShared)
+        {
+            // We don't do anything with the BufferDesc for now. The compiler doesn't really need the details of the buffer like it does with textures
+            // since for textures it needs the details to merge passes etc. Which is not relevant for buffers.
+            isImported = rll.imported;
+            isShared = isResourceShared;
+            tag = 0;
+            firstUsePassID = -1;
+            lastUsePassID = -1;
+            lastWritePassID = -1;
+            memoryLess = false;
+
+            width = -1;
+            height = -1;
+            volumeDepth = -1;
+            msaaSamples = -1;
+
+            latestVersionNumber = rll.version;
+
+            clear = false;
+            discard = false;
+            bindMS = false;
+        }
+
+        public ResourceUnversionedData(IRenderGraphResource rll, ref RayTracingAccelerationStructureDesc _, bool isResourceShared)
+        {
+            // We don't do anything with the RayTracingAccelerationStructureDesc for now. The compiler doesn't really need the details of the acceleration structures like it does with textures
+            // since for textures it needs the details to merge passes etc. Which is not relevant for acceleration structures.
+            isImported = rll.imported;
+            isShared = isResourceShared;
+            tag = 0;
+            firstUsePassID = -1;
+            lastUsePassID = -1;
+            lastWritePassID = -1;
+            memoryLess = false;
+
+            width = -1;
+            height = -1;
+            volumeDepth = -1;
+            msaaSamples = -1;
+
+            latestVersionNumber = rll.version;
+
+            clear = false;
+            discard = false;
+            bindMS = false;
+        }
     }
 
     // Data per resource(version)
@@ -139,7 +187,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
         public NativeList<ResourceVersionedData>[] versionedData; // Flattened fixed size array storing up to MaxVersions versions per resource id.
         public NativeList<ResourceReaderData>[] readerData; // Flattened fixed size array storing up to MaxReaders per resource id per version.
         public const int MaxVersions = 20; // A quite arbitrary limit should be enough for most graphs. Increasing it shouldn't be a problem but will use more memory as these lists use a fixed size upfront allocation.
-        public const int MaxReaders = 35; // A quite arbitrary limit should be enough for most graphs. Increasing it shouldn't be a problem but will use more memory as these lists use a fixed size upfront allocation.
+        public const int MaxReaders = 100; // A quite arbitrary limit should be enough for most graphs. Increasing it shouldn't be a problem but will use more memory as these lists use a fixed size upfront allocation.
 
         public DynamicArray<Name>[] resourceNames;
 
@@ -196,12 +244,38 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
                     // graph data structures external to NRP RG is costly
                     var h = new ResourceHandle(r, resourceType, false);
                     var rll = resources.GetResourceLowLevel(h);
-                    resources.GetRenderTargetInfo(h, out var info);
-                    ref var desc = ref (rll as TextureResource).desc;
-                    bool isResourceShared = resources.IsRenderGraphResourceShared(h);
-
-                    unversionedData[t][r] = new ResourceUnversionedData(rll, ref info, ref desc, isResourceShared);
                     resourceNames[t][r] = new Name(rll.GetName());
+
+                    switch (t)
+                    {
+                        case (int)RenderGraphResourceType.Texture:
+                            {
+                                resources.GetRenderTargetInfo(h, out var info);
+                                ref var desc = ref (rll as TextureResource).desc;
+                                bool isResourceShared = resources.IsRenderGraphResourceShared(h);
+
+                                unversionedData[t][r] = new ResourceUnversionedData(rll, ref info, ref desc, isResourceShared);
+                                break;
+                            }
+                        case (int)RenderGraphResourceType.Buffer:
+                            {
+                                ref var desc = ref (rll as BufferResource).desc;
+                                bool isResourceShared = resources.IsRenderGraphResourceShared(h);
+
+                                unversionedData[t][r] = new ResourceUnversionedData(rll, ref desc, isResourceShared);
+                                break;
+                            }
+                        case (int)RenderGraphResourceType.AccelerationStructure:
+                            {
+                                ref var desc = ref (rll as RayTracingAccelerationStructureResource).desc;
+                                bool isResourceShared = resources.IsRenderGraphResourceShared(h);
+
+                                unversionedData[t][r] = new ResourceUnversionedData(rll, ref desc, isResourceShared);
+                                break;
+                            }
+                        default:
+                            throw new Exception("Unsupported resource type: " + t);
+                    }
                 }
 
                 // Clear the other caching structures, they will be filled later

@@ -95,21 +95,21 @@ namespace UnityEditor.Rendering
 
         // Fuctions for raster (native render passes) only
         static List<FunctionInfo> rasterFunctions = new List<FunctionInfo> {
-                "DrawMesh",
-                "DrawMultipleMeshes",
-                "DrawRenderer",
-                "DrawRendererList",
-                "DrawProcedural",
-                "DrawProceduralIndirect",
-                "DrawMeshInstanced",
-                "DrawMeshInstancedProcedural",
-                "DrawMeshInstancedIndirect",
-                "DrawOcclusionMesh",
+                new FunctionInfo("DrawMesh", textureArg : "", modifiesGlobalState : false, triggersRasterization: true),
+                new FunctionInfo("DrawMultipleMeshes", textureArg : "", modifiesGlobalState : false, triggersRasterization: true),
+                new FunctionInfo("DrawRenderer", textureArg : "", modifiesGlobalState : false, triggersRasterization: true),
+                new FunctionInfo("DrawRendererList", textureArg : "", modifiesGlobalState : false, triggersRasterization: true),
+                new FunctionInfo("DrawProcedural", textureArg : "", modifiesGlobalState : false, triggersRasterization: true),
+                new FunctionInfo("DrawProceduralIndirect", textureArg : "", modifiesGlobalState : false, triggersRasterization: true),
+                new FunctionInfo("DrawMeshInstanced", textureArg : "", modifiesGlobalState : false, triggersRasterization: true),
+                new FunctionInfo("DrawMeshInstancedProcedural", textureArg : "", modifiesGlobalState : false, triggersRasterization: true),
+                new FunctionInfo("DrawMeshInstancedIndirect", textureArg : "", modifiesGlobalState : false, triggersRasterization: true),
+                new FunctionInfo("DrawOcclusionMesh", textureArg : "", modifiesGlobalState : false, triggersRasterization: true),
                 new FunctionInfo("SetInstanceMultiplier", "", true),
-                "ClearRenderTarget",
+                new FunctionInfo("ClearRenderTarget", textureArg : "", modifiesGlobalState : false, triggersRasterization: true),
                 new FunctionInfo("SetFoveatedRenderingMode", "", true),
                 new FunctionInfo("ConfigureFoveatedRendering", "", true),
-                "SetWireframe"
+                new FunctionInfo("SetWireframe", "", true),
             };
 
         // Fuctions for lowlevel (warpper around Commandbuffer) only
@@ -217,11 +217,12 @@ namespace UnityEngine.Experimental.Rendering
 
         struct FunctionInfo
         {
-            public FunctionInfo(string name, string textureArg, bool modifiesGlobalState = false)
+            public FunctionInfo(string name, string textureArg, bool modifiesGlobalState = false, bool triggersRasterization = false)
             {
                 this.name = name;
                 this.textureArgs = textureArg;
                 this.modifiesGlobalState = modifiesGlobalState;
+                this.triggersRasterization = triggersRasterization;
             }
 
             public static implicit operator FunctionInfo(string value)
@@ -235,6 +236,8 @@ namespace UnityEngine.Experimental.Rendering
             public string textureArgs;
             // Indicate if the function modifies global render state.
             public bool modifiesGlobalState;
+            // Indicate if the function actually triggers rasterization and may thus cause pixel shader invocations.
+            public bool triggersRasterization;
         }
 
 
@@ -287,6 +290,11 @@ namespace UnityEngine.Experimental.Rendering
                 if (info.modifiesGlobalState)
                 {
                     validationCode.Append("ThrowIfGlobalStateNotAllowed(); ");
+                }
+
+                if (info.triggersRasterization)
+                {
+                    validationCode.Append("ThrowIfRasterNotAllowed(); ");
                 }
 
                 var arguments = method.GetParameters();

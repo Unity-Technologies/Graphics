@@ -51,6 +51,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
             inputData = new NativeList<PassInputData>(estimatedNumPasses * 2, AllocatorManager.Persistent);
             outputData = new NativeList<PassOutputData>(estimatedNumPasses * 2, AllocatorManager.Persistent);
             fragmentData = new NativeList<PassFragmentData>(estimatedNumPasses * 4, AllocatorManager.Persistent);
+            randomAccessResourceData = new NativeList<PassRandomWriteData>(4, AllocatorManager.Persistent); // We assume not a lot of passes use random write
             resources = new ResourcesData(estimatedNumResourcesPerType);
             nativePassData = new NativeList<NativePassData>(estimatedNumPasses, AllocatorManager.Persistent);// assume nothing gets merged
             nativeSubPassData = new NativeList<SubPassDescriptor>(estimatedNumPasses, AllocatorManager.Persistent);// there should "never" be more subpasses than graph passes
@@ -70,6 +71,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
             inputData.Clear();
             outputData.Clear();
             fragmentData.Clear();
+            randomAccessResourceData.Clear();
             resources.Clear();
             nativePassData.Clear();
             nativeSubPassData.Clear();
@@ -124,6 +126,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
         public NativeList<PassFragmentData> fragmentData;
         public NativeList<ResourceHandle> createData;
         public NativeList<ResourceHandle> destroyData;
+        public NativeList<PassRandomWriteData> randomAccessResourceData;
 
 
         // Data per native renderpas
@@ -133,6 +136,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
         // resources can be added as fragment both as input and output so make sure not to add them twice (return true upon new addition)
         public bool AddToFragmentList(ResourceHandle h, IBaseRenderGraphBuilder.AccessFlags accessFlags, int listFirstIndex, int numItems)
         {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            if (h.type != RenderGraphResourceType.Texture) new Exception("Only textures can be used as a fragment attachment.");
+#endif
             for (var i = listFirstIndex; i < listFirstIndex + numItems; ++i)
             {
                 ref var fragment = ref fragmentData.ElementAt(i);
@@ -173,6 +179,36 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public string GetResourceVersionedName(ResourceHandle h) => GetResourceName(h) + " V" + h.version;
+        
+        // resources can be added as fragment both as input and output so make sure not to add them twice (return true upon new addition)
+        public bool AddToRandomAccessResourceList(ResourceHandle h, int randomWriteSlotIndex, bool preserveCounterValue, int listFirstIndex, int numItems)
+        {
+            for (var i = listFirstIndex; i < listFirstIndex + numItems; ++i)
+            {
+                if (randomAccessResourceData[i].resource.index == h.index && randomAccessResourceData[i].resource.type == h.type)
+                {
+                    if (randomAccessResourceData[i].resource.version != h.version)
+                    {
+                        //this would mean you're trying to attach say both v1 and v2 of a resource to the same pass as an attachment
+                        //this is not allowed
+                        throw new Exception("Trying to UseTextureRandomWrite two versions of the same resource");
+                    }
+                    return false;
+                }
+            }
+
+            // Validate that we're correctly building up the fragment lists we can only append to the last list
+            // not int the middle of lists
+            Debug.Assert(listFirstIndex + numItems == randomAccessResourceData.Length);
+
+            randomAccessResourceData.Add(new PassRandomWriteData()
+            {
+                resource = h,
+                index = randomWriteSlotIndex,
+                preserveCounterValue = preserveCounterValue
+            });
+            return true;
+        }
 
         // Mark all passes as unvisited this is useful for graph algorithms that do something with the tag
         public void TagAllPasses(int value)

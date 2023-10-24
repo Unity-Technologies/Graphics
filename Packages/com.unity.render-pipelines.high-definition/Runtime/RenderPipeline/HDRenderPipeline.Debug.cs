@@ -53,28 +53,28 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void InitializeDebug()
         {
-            m_ComputePositionNormal = runtimeResources.shaders.probeVolumeSamplingDebugComputeShader;
-            m_DebugViewMaterialGBuffer           = CoreUtils.CreateEngineMaterial(runtimeResources.shaders.debugViewMaterialGBufferPS);
-            m_DebugViewMaterialGBufferShadowMask = CoreUtils.CreateEngineMaterial(runtimeResources.shaders.debugViewMaterialGBufferPS);
+            m_ComputePositionNormal = runtimeShaders.probeVolumeSamplingDebugComputeShader;
+            m_DebugViewMaterialGBuffer           = CoreUtils.CreateEngineMaterial(runtimeShaders.debugViewMaterialGBufferPS);
+            m_DebugViewMaterialGBufferShadowMask = CoreUtils.CreateEngineMaterial(runtimeShaders.debugViewMaterialGBufferPS);
             m_DebugViewMaterialGBufferShadowMask.EnableKeyword("SHADOWS_SHADOWMASK");
 
-            m_DebugDisplayLatlong             = CoreUtils.CreateEngineMaterial(runtimeResources.shaders.debugDisplayLatlongPS);
-            m_DebugFullScreen                 = CoreUtils.CreateEngineMaterial(runtimeResources.shaders.debugFullScreenPS);
-            m_DebugColorPicker                = CoreUtils.CreateEngineMaterial(runtimeResources.shaders.debugColorPickerPS);
-            m_DebugExposure                   = CoreUtils.CreateEngineMaterial(runtimeResources.shaders.debugExposurePS);
-            m_DebugHDROutput                  = CoreUtils.CreateEngineMaterial(runtimeResources.shaders.debugHDRPS);
-            m_DebugViewTilesMaterial          = CoreUtils.CreateEngineMaterial(runtimeResources.shaders.debugViewTilesPS);
-            m_DebugHDShadowMapMaterial        = CoreUtils.CreateEngineMaterial(runtimeResources.shaders.debugHDShadowMapPS);
-            m_DebugLocalVolumetricFogMaterial = CoreUtils.CreateEngineMaterial(runtimeResources.shaders.debugLocalVolumetricFogAtlasPS);
-            m_DebugBlitMaterial               = CoreUtils.CreateEngineMaterial(runtimeResources.shaders.debugBlitQuad);
-            m_DebugWaveform                   = CoreUtils.CreateEngineMaterial(runtimeResources.shaders.debugWaveformPS);
-            m_DebugVectorscope                = CoreUtils.CreateEngineMaterial(runtimeResources.shaders.debugVectorscopePS);
+            m_DebugDisplayLatlong             = CoreUtils.CreateEngineMaterial(runtimeShaders.debugDisplayLatlongPS);
+            m_DebugFullScreen                 = CoreUtils.CreateEngineMaterial(runtimeShaders.debugFullScreenPS);
+            m_DebugColorPicker                = CoreUtils.CreateEngineMaterial(runtimeShaders.debugColorPickerPS);
+            m_DebugExposure                   = CoreUtils.CreateEngineMaterial(runtimeShaders.debugExposurePS);
+            m_DebugHDROutput                  = CoreUtils.CreateEngineMaterial(runtimeShaders.debugHDRPS);
+            m_DebugViewTilesMaterial          = CoreUtils.CreateEngineMaterial(runtimeShaders.debugViewTilesPS);
+            m_DebugHDShadowMapMaterial        = CoreUtils.CreateEngineMaterial(runtimeShaders.debugHDShadowMapPS);
+            m_DebugLocalVolumetricFogMaterial = CoreUtils.CreateEngineMaterial(runtimeShaders.debugLocalVolumetricFogAtlasPS);
+            m_DebugBlitMaterial               = CoreUtils.CreateEngineMaterial(runtimeShaders.debugBlitQuad);
+            m_DebugWaveform                   = CoreUtils.CreateEngineMaterial(runtimeShaders.debugWaveformPS);
+            m_DebugVectorscope                = CoreUtils.CreateEngineMaterial(runtimeShaders.debugVectorscopePS);
 
-            m_ClearFullScreenBufferCS        = runtimeResources.shaders.clearDebugBufferCS;
+            m_ClearFullScreenBufferCS        = runtimeShaders.clearDebugBufferCS;
             m_ClearFullScreenBufferKernel    = m_ClearFullScreenBufferCS.FindKernel("clearMain");
 
 #if ENABLE_VIRTUALTEXTURES
-            m_VTDebugBlit = CoreUtils.CreateEngineMaterial(runtimeResources.shaders.debugViewVirtualTexturingBlit);
+            m_VTDebugBlit = CoreUtils.CreateEngineMaterial(runtimeShaders.debugViewVirtualTexturingBlit);
 #endif
         }
 
@@ -148,7 +148,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Setting this all the time due to a strange bug that either reports a (globally) bound texture as not bound or where SetGlobalTexture doesn't behave as expected.
             // As a workaround we bind it regardless of debug display. Eventually with
-            cmd.SetGlobalTexture(HDShaderIDs._DebugMatCapTexture, runtimeResources.textures.matcapTex);
+            cmd.SetGlobalTexture(HDShaderIDs._DebugMatCapTexture, runtimeTextures.matcapTex);
 
             m_ShaderVariablesGlobalCB._GlobalTessellationFactorMultiplier = (m_CurrentDebugDisplaySettings.data.fullScreenDebugMode == FullScreenDebugMode.QuadOverdraw) ? 0.0f : 1.0f;
 
@@ -239,7 +239,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesDebugDisplayCB, HDShaderIDs._ShaderVariablesDebugDisplay);
 
-                cmd.SetGlobalTexture(HDShaderIDs._DebugFont, runtimeResources.textures.debugFontTex);
+                cmd.SetGlobalTexture(HDShaderIDs._DebugFont, runtimeTextures.debugFontTex);
             }
         }
 
@@ -337,7 +337,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void FillWaveformData(MonitorsPassData data, RenderGraphBuilder builder)
         {
-            data.waveformCS           = runtimeResources.shaders.debugWaveformCS;
+            data.waveformCS           = runtimeShaders.debugWaveformCS;
             data.waveformMaterial     = m_DebugWaveform;
             data.waveformClearKernel  = data.waveformCS.FindKernel("KWaveformClear");
             data.waveformGatherKernel = data.waveformCS.FindKernel("KWaveformGather");
@@ -359,7 +359,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void FillVectorscopeData(MonitorsPassData data, int size, RenderGraphBuilder builder)
         {
-            data.vectorscopeCS           = runtimeResources.shaders.debugVectorscopeCS;
+            data.vectorscopeCS           = runtimeShaders.debugVectorscopeCS;
             data.vectorscopeSize         = new Vector2Int(size, size);
             data.vectorscopeMaterial     = m_DebugVectorscope;
             data.vectorscopeBufferSize   = data.vectorscopeSize.x * data.vectorscopeSize.x;
@@ -1060,7 +1060,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 ValidateComputeBuffer(ref m_DebugImageHistogramBuffer, k_DebugImageHistogramBins, 4 * sizeof(uint));
                 m_DebugImageHistogramBuffer.SetData(m_EmptyDebugImageHistogram);    // Clear the histogram
 
-                passData.debugImageHistogramCS = runtimeResources.shaders.debugImageHistogramCS;
+                passData.debugImageHistogramCS = runtimeShaders.debugImageHistogramCS;
                 passData.debugImageHistogramKernel = passData.debugImageHistogramCS.FindKernel("KHistogramGen");
                 passData.imageHistogram = m_DebugImageHistogramBuffer;
                 passData.cameraWidth = postProcessViewportSize.x;
@@ -1103,7 +1103,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (var builder = renderGraph.AddRenderPass<GenerateHDRDebugData>("Generate HDR debug data", out var passData, ProfilingSampler.Get(HDProfileId.HDRDebugData)))
             {
-                passData.generateXYMappingCS = runtimeResources.shaders.debugHDRxyMappingCS;
+                passData.generateXYMappingCS = runtimeShaders.debugHDRxyMappingCS;
                 passData.debugXYGenKernel = passData.generateXYMappingCS.FindKernel("KCIExyGen");
                 passData.cameraWidth = postProcessViewportSize.x;
                 passData.cameraHeight = postProcessViewportSize.y;

@@ -479,7 +479,7 @@ real3x3 GetLocalFrame(real3 localZ, real3 localX)
 
 // Construct a right-handed view-dependent orthogonal basis around the normal:
 // b0-b2 is the view-normal aka reflection plane.
-real3x3 GetOrthoBasisViewNormal(real3 V, real3 N, real unclampedNdotV, bool testSingularity = false)
+real3x3 GetOrthoBasisViewNormal(real3 V, real3 N, real unclampedNdotV, bool testSingularity = true)
 {
     real3x3 orthoBasisViewNormal;
     if (testSingularity && (abs(1.0 - unclampedNdotV) <= FLT_EPS))

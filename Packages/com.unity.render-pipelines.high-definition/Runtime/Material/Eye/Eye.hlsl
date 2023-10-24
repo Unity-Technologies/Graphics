@@ -571,7 +571,69 @@ DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
     DirectLighting lighting;
     ZERO_INITIALIZE(DirectLighting, lighting);
 
-    // TODO
+    float3 positionWS = posInput.positionWS;
+
+    float3 unL = lightData.positionRWS - positionWS;
+
+    // We define the ellipsoid s.t. r1 = (r + len / 2), r2 = r3 = r.
+    // TODO: This could be precomputed.
+    float range          = lightData.range;
+    float halfLength     = 0.5 * lightData.size.x;
+    float invAspectRatio = saturate(range / (range + halfLength));
+
+    // Compute the light attenuation.
+    float intensity = EllipsoidalDistanceAttenuation(unL, lightData.right, invAspectRatio,
+                                                     lightData.rangeAttenuationScale,
+                                                     lightData.rangeAttenuationBias);
+
+    // Terminate if the shaded point is too far away.
+    if (intensity > 0)
+    {
+        lightData.diffuseDimmer  *= intensity;
+        lightData.specularDimmer *= intensity;
+
+        float ltcValue;
+
+        // ----- 1. Evaluate the diffuse part -----
+
+        // Note: We don't have the same normal for diffuse and specular
+        float3 centerDiff = mul(preLightData.orthoBasisViewDiffuseNormal, unL);
+        float3 axisDiff   = mul(preLightData.orthoBasisViewDiffuseNormal, lightData.right);
+
+        ltcValue = I_ltc_line(transpose(preLightData.ltcTransformDiffuse), centerDiff, axisDiff, halfLength);
+
+        // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
+        lighting.diffuse += ltcValue * lightData.diffuseDimmer;
+
+        // ----- 2. Evaluate the specular part -----
+
+        // Note: We don't have the same normal for diffuse and specular
+        float3 centerSpec = mul(preLightData.orthoBasisViewNormal, unL);
+        float3 axisSpec   = mul(preLightData.orthoBasisViewNormal, lightData.right);
+
+        ltcValue = I_ltc_line(transpose(preLightData.ltcTransformSpecular), centerSpec, axisSpec, halfLength);
+
+        lighting.specular += ltcValue * lightData.specularDimmer;
+
+        // We need to multiply by the magnitude of the integral of the BRDF
+        // ref: http://advances.realtimerendering.com/s2016/s2016_ltc_fresnel.pdf
+        lighting.diffuse  *= lightData.color * preLightData.diffuseFGD;
+        lighting.specular *= lightData.color * preLightData.specularFGD;
+
+        // ----- 3. Debug display -----
+
+    #ifdef DEBUG_DISPLAY
+        if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
+        {
+            ltcValue = I_ltc_line(k_identity3x3, centerDiff, axisDiff, halfLength);
+
+            // Only lighting, not BSDF
+            lighting.diffuse  = lightData.color * (ltcValue * lightData.diffuseDimmer);
+            // Apply area light on lambert then multiply by PI to cancel Lambert
+            lighting.diffuse *= PI;
+        }
+    #endif
+    }
 
     return lighting;
 }
@@ -630,7 +692,7 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
 #endif
 
         // Terminate if the shaded point is too far away.
-        if (intensity != 0.0)
+        if (intensity > 0)
         {
             lightData.diffuseDimmer *= intensity;
             lightData.specularDimmer *= intensity;
@@ -658,9 +720,7 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
                                         lightData.cookieMode, lightData.cookieScaleOffset);
 
             // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
-            // See comment for specular magnitude, it apply to diffuse as well
-            lighting.diffuse += preLightData.diffuseFGD * (ltcValue.rgb * (ltcValue.a * lightData.diffuseDimmer));
-
+            lighting.diffuse += ltcValue.rgb * (ltcValue.a * lightData.diffuseDimmer);
 
             // ----- 2. Evaluate the specular part -----
 
@@ -671,28 +731,26 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
             ltcValue = EvaluateLTC_Rect(mul(lightVertsSpec, preLightData.ltcTransformSpecular), bsdfData.perceptualRoughness,
                                         lightData.cookieMode, lightData.cookieScaleOffset);
 
-            // We need to multiply by the magnitude of the integral of the BRDF
-            // ref: http://advances.realtimerendering.com/s2016/s2016_ltc_fresnel.pdf
-            // This value is what we store in specularFGD, so reuse it
-            lighting.specular += preLightData.specularFGD * (ltcValue.rgb * (ltcValue.a * lightData.specularDimmer));
+            lighting.specular += ltcValue.rgb * (ltcValue.a * lightData.specularDimmer);
 
             SHADOW_TYPE shadow = EvaluateShadow_RectArea(lightLoopContext, posInput, lightData, builtinData, bsdfData.normalWS, normalize(lightData.positionRWS), length(lightData.positionRWS));
             lightData.color.rgb *= ComputeShadowColor(shadow, lightData.shadowTint, lightData.penumbraTint);
 
-             // Save ALU by applying 'lightData.color' only once.
-            lighting.diffuse *= lightData.color;
-            lighting.specular *= lightData.color;
+            // We need to multiply by the magnitude of the integral of the BRDF
+            // ref: http://advances.realtimerendering.com/s2016/s2016_ltc_fresnel.pdf
+            lighting.diffuse  *= lightData.color * preLightData.diffuseFGD;
+            lighting.specular *= lightData.color * preLightData.specularFGD;
 
             // ----- 3. Debug display -----
 
  #ifdef DEBUG_DISPLAY
             if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
             {
-                ltcValue = EvaluateLTC_Rect(lightVerts, 1.0f,
+                ltcValue = EvaluateLTC_Rect(lightVertsDiff, 1.0f,
                                             lightData.cookieMode, lightData.cookieScaleOffset);
 
                 // Only lighting, not BSDF
-                lighting.diffuse  = ltcValue.rgb * (ltcValue.a * lightData.diffuseDimmer);
+                lighting.diffuse  = lightData.color * ltcValue.rgb * (ltcValue.a * lightData.diffuseDimmer);
                 // Apply area light on Lambert then multiply by PI to cancel Lambert
                 lighting.diffuse *= PI;
             }

@@ -232,6 +232,12 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
                     context.shadowValue = GetDirectionalShadowAttenuation(context.shadowContext,
                                                                           posInput.positionSS, posInput.positionWS, GetNormalForShadowBias(bsdfData),
                                                                           light.shadowIndex, L);
+
+                    #ifndef LIGHT_EVALUATION_NO_CLOUDS_SHADOWS
+                    // Apply the volumetric cloud shadow if relevant
+                    if (_VolumetricCloudsShadowOriginToggle.w == 1.0)
+                        context.shadowValue *= EvaluateVolumetricCloudsShadows(context, light, posInput.positionWS);
+                    #endif
                 }
             }
         }

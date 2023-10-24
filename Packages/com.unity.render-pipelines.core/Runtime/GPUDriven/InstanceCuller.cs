@@ -63,7 +63,7 @@ namespace UnityEngine.Rendering
         public BatchMaterialID materialID;
         public BatchDrawCommandFlags flags;
         public int transparentInstanceId; // non-zero for transparent instances, to ensure each instance has its own draw command (for sorting)
-        public int overridenComponents;
+        public uint overridenComponents;
         public RangeKey range;
 
         public bool Equals(DrawKey other)
@@ -128,6 +128,11 @@ namespace UnityEngine.Rendering
     {
         public const int k_BatchSize = 32;
 
+        const uint k_LODFadeZeroPacked = 127;
+
+        const float k_LODPercentInvisible = 0.0f;
+        const float k_LODPercentFullyVisible = 1.0f;
+
         enum CrossFadeType
         {
             kDisabled,
@@ -137,8 +142,6 @@ namespace UnityEngine.Rendering
         }
 
         [ReadOnly] public BinningConfig binningConfig;
-        [ReadOnly] public NativeArray<TransformIndex> transformIndices;
-        [ReadOnly] public ParallelBitArray movedTransformIndices;
 
         [ReadOnly] public BatchCullingViewType viewType;
         [ReadOnly] public float3 cameraPosition;
@@ -154,28 +157,32 @@ namespace UnityEngine.Rendering
         [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<ReceiverSphereCuller.SplitInfo> receiverSplitInfos;
         public float3x3 worldToLightSpaceRotation;
 
-        [ReadOnly] public InstanceDrawData instanceDrawData;
+        [ReadOnly] public CPUInstanceData.ReadOnly instanceData;
+        [ReadOnly] public CPUSharedInstanceData.ReadOnly sharedInstanceData;
         [NativeDisableContainerSafetyRestriction] [ReadOnly] public NativeList<LODGroupCullingData> lodGroupCullingData;
         [NativeDisableUnsafePtrRestriction] [ReadOnly] public IntPtr occlusionBuffer;
 
-        [WriteOnly] public NativeArray<byte> rendererVisibilityMasks;
-        [WriteOnly] public NativeArray<byte> rendererCrossFadeValues;
+        [NativeDisableParallelForRestriction][WriteOnly] public NativeArray<byte> rendererVisibilityMasks;
+        [NativeDisableParallelForRestriction][WriteOnly] public NativeArray<byte> rendererCrossFadeValues;
 
 
         // float [-1.0f... 1.0f] -> uint [0...254]
         static uint PackFloatToUint8(float percent)
         {
             uint packed = (uint)((1.0f + percent) * 127.0f + 0.5f);
-            // ensure negative values remain negative
+            // avoid zero
             if (percent < 0.0f)
-                packed = math.min(packed, 126);
+                packed = math.clamp(packed, 0, 126);
+            else
+                packed = math.clamp(packed, 128, 254);
             return packed;
         }
 
-        unsafe float CalculateLODVisibility(int i)
+        unsafe float CalculateLODVisibility(int sharedInstanceIndex)
         {
-            var lodDataIndexAndMask = instanceDrawData.lodIndicesAndMasks[i];
+            var lodDataIndexAndMask = sharedInstanceData.lodGroupAndMasks[sharedInstanceIndex];
             var lodPercent = 1.0f;
+
             if (lodDataIndexAndMask != 0xFFFFFFFF)
             {
                 var lodIndex = lodDataIndexAndMask >> 8;
@@ -253,16 +260,12 @@ namespace UnityEngine.Rendering
             return lodPercent;
         }
 
-        private uint CalculateVisibilityMask(int i)
+        private unsafe uint CalculateVisibilityMask(int instanceIndex, int sharedInstanceIndex, InstanceFlags instanceFlags)
         {
-            var instanceFlags = instanceDrawData.flags[i];
-            if ((instanceFlags & InstanceFlags.HasBounds) == 0)
-                return 0;
-
             if (cullingLayerMask == 0)
                 return 0;
 
-            if ((cullingLayerMask & (1 << (int)instanceDrawData.layers[i])) == 0)
+            if ((cullingLayerMask & (1 << sharedInstanceData.gameObjectLayers[sharedInstanceIndex])) == 0)
                 return 0;
 
             if (cullLightmappedShadowCasters && (instanceFlags & InstanceFlags.AffectsLightmaps) != 0)
@@ -274,57 +277,61 @@ namespace UnityEngine.Rendering
             if (viewType == BatchCullingViewType.Light && (instanceFlags & InstanceFlags.IsShadowsOff) != 0)
                 return 0;
 
-            AABB instanceBounds = instanceDrawData.worldBounds[i];
-            uint visibilityMask = FrustumPlaneCuller.ComputeSplitVisibilityMask(frustumPlanePackets, frustumSplitInfos, instanceBounds);
+            ref readonly AABB worldAABB = ref instanceData.worldAABBs.UnsafeElementAt(instanceIndex);
+            uint visibilityMask = FrustumPlaneCuller.ComputeSplitVisibilityMask(frustumPlanePackets, frustumSplitInfos, worldAABB);
 
             if (visibilityMask != 0 && receiverSplitInfos.Length > 0)
-                visibilityMask &= ReceiverSphereCuller.ComputeSplitVisibilityMask(lightFacingFrustumPlanes, receiverSplitInfos, worldToLightSpaceRotation, instanceBounds);
+                visibilityMask &= ReceiverSphereCuller.ComputeSplitVisibilityMask(lightFacingFrustumPlanes, receiverSplitInfos, worldToLightSpaceRotation, worldAABB);
 
             // Perform an occlusion test on the instance bounds if we have an occlusion buffer available and the instance is still visible
             if (visibilityMask != 0 && occlusionBuffer != IntPtr.Zero)
-                visibilityMask = BatchRendererGroup.OcclusionTestAABB(occlusionBuffer, instanceBounds.ToBounds()) ? visibilityMask : 0;
+                visibilityMask = BatchRendererGroup.OcclusionTestAABB(occlusionBuffer, worldAABB.ToBounds()) ? visibilityMask : 0;
 
             return visibilityMask;
         }
 
-
-        public void Execute(int index)
+        public void Execute(int instanceIndex)
         {
-            var visibilityMask = CalculateVisibilityMask(index);
+            InstanceHandle instance = instanceData.instances[instanceIndex];
+            int sharedInstanceIndex = sharedInstanceData.InstanceToIndex(instanceData, instance);
+            var instanceFlags = sharedInstanceData.flags[sharedInstanceIndex].instanceFlags;
 
-            float lodPercent = 0.0f;
+            var visibilityMask = CalculateVisibilityMask(instanceIndex, sharedInstanceIndex, instanceFlags);
+            var crossFadeValue = k_LODFadeZeroPacked;
+
             if (visibilityMask != 0)
             {
-                lodPercent = CalculateLODVisibility(index);
-                if (lodPercent == 0.0f)
+                float lodPercent = CalculateLODVisibility(sharedInstanceIndex);
+
+                if (lodPercent != k_LODPercentInvisible)
+                {
+                    if (binningConfig.supportsMotionCheck)
+                    {
+                        bool hasMotion = instanceData.movedInPreviousFrameBits.Get(instanceIndex);
+                        visibilityMask = (visibilityMask << 1) | (hasMotion ? 1U : 0);
+                    }
+
+                    if (binningConfig.supportsCrossFade)
+                    {
+                        bool hasDitheringCrossFade = false;
+
+                        if (lodPercent != k_LODPercentFullyVisible)
+                        {
+                            hasDitheringCrossFade = true;
+                            crossFadeValue = PackFloatToUint8(lodPercent);
+                        }
+
+                        visibilityMask = (visibilityMask << 1) | (hasDitheringCrossFade ? 1U : 0);
+                    }
+                }
+                else
+                {
                     visibilityMask = 0;
-            }
-
-            var crossFadeValue = 0U;
-            bool hasMotion = false;
-            bool hasCrossFade = false;
-            if (visibilityMask != 0)
-            {
-                if (binningConfig.supportsMotionCheck)
-                {
-                    var transformIndex = transformIndices[index];
-                    hasMotion = movedTransformIndices.Get(transformIndex.index);
-
-                    visibilityMask = (visibilityMask << 1) | (hasMotion ? 1U : 0);
-                }
-
-                if (binningConfig.supportsCrossFade)
-                {
-                    crossFadeValue = PackFloatToUint8(lodPercent);
-                    hasCrossFade = (crossFadeValue < 254);
-
-                    visibilityMask = (visibilityMask << 1) | (hasCrossFade ? 1U : 0);
                 }
             }
 
-            rendererVisibilityMasks[index] = (byte)visibilityMask;
-            if (hasCrossFade)
-                rendererCrossFadeValues[index] = (byte)crossFadeValue;
+            rendererVisibilityMasks[instance.index] = (byte)visibilityMask;
+            rendererCrossFadeValues[instance.index] = (byte)crossFadeValue;
         }
     }
 
@@ -335,8 +342,7 @@ namespace UnityEngine.Rendering
 
         [ReadOnly] public NativeList<DrawBatch> drawBatches;
         [ReadOnly] public NativeArray<int> drawInstanceIndices;
-        [ReadOnly] public InstanceDrawData instanceDrawData;
-
+        [ReadOnly] public CPUInstanceData.ReadOnly instanceData;
         [ReadOnly] public NativeArray<byte> rendererVisibilityMasks;
 
         [NativeDisableContainerSafetyRestriction] [WriteOnly] public NativeArray<int> batchBinAllocOffsets;
@@ -345,6 +351,13 @@ namespace UnityEngine.Rendering
         [NativeDisableContainerSafetyRestriction] [DeallocateOnJobCompletion] public NativeArray<int> binAllocCounter;
         [NativeDisableContainerSafetyRestriction] [WriteOnly] public NativeArray<short> binConfigIndices;
         [NativeDisableContainerSafetyRestriction] [WriteOnly] public NativeArray<int> binVisibleInstanceCounts;
+
+        bool IsInstanceFlipped(int rendererIndex)
+        {
+            InstanceHandle instance = InstanceHandle.FromInt(rendererIndex);
+            int instanceIndex = instanceData.InstanceToIndex(instance);
+            return instanceData.localToWorldIsFlippedBits.Get(instanceIndex);
+        }
 
         unsafe public void Execute(int batchIndex)
         {
@@ -370,12 +383,12 @@ namespace UnityEngine.Rendering
             {
                 var rendererIndex = drawInstanceIndices[instanceOffset + i];
 
-                bool isFlipped = instanceDrawData.localToWorldIsFlipped.Get(rendererIndex);
-                int visiblityMask = (int)rendererVisibilityMasks[rendererIndex];
-                if (visiblityMask == 0)
+                bool isFlipped = IsInstanceFlipped(rendererIndex);
+                int visibilityMask = (int)rendererVisibilityMasks[rendererIndex];
+                if (visibilityMask == 0)
                     continue;
 
-                int configIndex = (int)(visiblityMask << 1) | (isFlipped ? 1 : 0);
+                int configIndex = (int)(visibilityMask << 1) | (isFlipped ? 1 : 0);
                 Assert.IsTrue(configIndex < configCount);
                 visibleCountPerConfig[configIndex]++;
                 configUsedMasks[configIndex >> 6] |= 1ul << (configIndex & 0x3f);
@@ -509,11 +522,13 @@ namespace UnityEngine.Rendering
     internal unsafe struct DrawCommandOutputPerBatch : IJobParallelFor
     {
         [ReadOnly] public BinningConfig binningConfig;
-        [ReadOnly] public NativeParallelHashMap<int, BatchID> batchIDs;
+        [ReadOnly] public NativeParallelHashMap<uint, BatchID> batchIDs;
+
+        [ReadOnly] public GPUInstanceDataBuffer.ReadOnly instanceDataBuffer;
 
         [ReadOnly] public NativeList<DrawBatch> drawBatches;
         [ReadOnly] public NativeArray<int> drawInstanceIndices;
-        [ReadOnly] public InstanceDrawData instanceDrawData;
+        [ReadOnly] public CPUInstanceData.ReadOnly instanceData;
 
         [ReadOnly] [DeallocateOnJobCompletion] public NativeArray<byte> rendererVisibilityMasks;
         [ReadOnly] [DeallocateOnJobCompletion] public NativeArray<byte> rendererCrossFadeValues;
@@ -528,19 +543,22 @@ namespace UnityEngine.Rendering
 
         [ReadOnly] public NativeArray<BatchCullingOutputDrawCommands> cullingOutput;
 
-        unsafe int EncodeCrossFadeIntoRendererIndex(int rendererIndex, int visibilityMask)
+        unsafe int EncodeGPUInstanceIndexAndCrossFade(int rendererIndex, bool negateCrossFade)
         {
-            if (binningConfig.supportsCrossFade)
-            {
-                // always in the low bit
-                bool hasCrossFade = ((visibilityMask & 1) != 0);
-                if (hasCrossFade)
-                {
-                    int crossFadeValue = (int)rendererCrossFadeValues[rendererIndex];
-                    rendererIndex |= (crossFadeValue - 127) << 24;
-                }
-            }
-            return rendererIndex;
+            var gpuInstanceIndex = instanceDataBuffer.CPUInstanceToGPUInstance(InstanceHandle.FromInt(rendererIndex));
+            int crossFadeValue = rendererCrossFadeValues[rendererIndex];
+            crossFadeValue -= 127;
+            if (negateCrossFade)
+                crossFadeValue = -crossFadeValue;
+            gpuInstanceIndex.index |= crossFadeValue << 24;
+            return gpuInstanceIndex.index;
+        }
+
+        bool IsInstanceFlipped(int rendererIndex)
+        {
+            InstanceHandle instance = InstanceHandle.FromInt(rendererIndex);
+            int instanceIndex = instanceData.InstanceToIndex(instance);
+            return instanceData.localToWorldIsFlippedBits.Get(instanceIndex);
         }
 
         unsafe public void Execute(int batchIndex)
@@ -618,7 +636,7 @@ namespace UnityEngine.Rendering
                     flags = drawFlags,
                     visibleOffset = (uint)visibleInstanceOffset,
                     visibleCount = (uint)visibleInstanceCount,
-                    batchID = batchIDs[(int)drawBatch.key.overridenComponents],
+                    batchID = batchIDs[drawBatch.key.overridenComponents],
                     materialID = drawBatch.key.materialID,
                     splitVisibilityMask = (ushort)visibilityMask,
                     sortingPosition = sortingPosition,
@@ -637,12 +655,11 @@ namespace UnityEngine.Rendering
                 {
                     var rendererIndex = drawInstanceIndices[instanceOffset + i];
 
-                    bool isFlipped = instanceDrawData.localToWorldIsFlipped.Get(rendererIndex);
+                    bool isFlipped = IsInstanceFlipped(rendererIndex);
                     int visibilityMask = (int)rendererVisibilityMasks[rendererIndex];
                     if (visibilityMask == 0)
                         continue;
 
-                    rendererIndex = EncodeCrossFadeIntoRendererIndex(rendererIndex, visibilityMask);
                     lastRendererIndex = rendererIndex;
 
                     // add to the instance list for this bin
@@ -655,7 +672,7 @@ namespace UnityEngine.Rendering
                     if (visibleInstanceOffset >= output.visibleInstanceCount)
                         throw new Exception("Exceeding visible instance count");
 #endif
-                    output.visibleInstances[visibleInstanceOffset] = rendererIndex;
+                    output.visibleInstances[visibleInstanceOffset] = EncodeGPUInstanceIndexAndCrossFade(rendererIndex, false);
                 }
             }
             else
@@ -668,11 +685,10 @@ namespace UnityEngine.Rendering
                     if (visibilityMask == 0)
                         continue;
 
-                    rendererIndex = EncodeCrossFadeIntoRendererIndex(rendererIndex, visibilityMask);
                     lastRendererIndex = rendererIndex;
 
                     // only one bin for this batch
-                    output.visibleInstances[visibleInstanceOffset] = rendererIndex;
+                    output.visibleInstances[visibleInstanceOffset] = EncodeGPUInstanceIndexAndCrossFade(rendererIndex, false);
                     visibleInstanceOffset++;
                 }
             }
@@ -680,8 +696,11 @@ namespace UnityEngine.Rendering
             // use the first instance position of each batch as the sorting position if necessary
             if ((drawBatch.key.flags & BatchDrawCommandFlags.HasSortingPosition) != 0)
             {
-                AABB bounds = instanceDrawData.worldBounds[lastRendererIndex & 0xffffff];
-                float3 position = bounds.center;
+                InstanceHandle instance = InstanceHandle.FromInt(lastRendererIndex & 0xffffff);
+                int instanceIndex = instanceData.InstanceToIndex(instance);
+
+                ref readonly AABB worldAABB = ref instanceData.worldAABBs.UnsafeElementAt(instanceIndex);
+                float3 position = worldAABB.center;
 
                 int sortingPosition = 3 * batchDrawCommandOffset;
                 output.instanceSortingPositions[sortingPosition + 0] = position.x;
@@ -701,21 +720,24 @@ namespace UnityEngine.Rendering
     [BurstCompile]
     internal unsafe struct DrawCommandOutputFiltering : IJob
     {
-        [ReadOnly] public NativeParallelHashMap<int, BatchID> batchIDs;
+        [ReadOnly] public NativeParallelHashMap<uint, BatchID> batchIDs;
         [ReadOnly] public int viewID;
+
+        [ReadOnly] public GPUInstanceDataBuffer.ReadOnly instanceDataBuffer;
 
         [ReadOnly] [DeallocateOnJobCompletion] public NativeArray<byte> rendererVisibilityMasks;
         [ReadOnly] [DeallocateOnJobCompletion] public NativeArray<byte> rendererCrossFadeValues;
+
+        [ReadOnly] public CPUInstanceData.ReadOnly instanceData;
+        [ReadOnly] public CPUSharedInstanceData.ReadOnly sharedInstanceData;
 
         [ReadOnly] public NativeArray<int> drawInstanceIndices;
         [ReadOnly] public NativeList<DrawBatch> drawBatches;
         [ReadOnly] public NativeList<DrawRange> drawRanges;
         [ReadOnly] public NativeArray<int> drawBatchIndices;
-        [ReadOnly] public InstanceDrawData instanceDrawData;
 
         [ReadOnly] public NativeArray<bool> filteringResults;
         [ReadOnly] public NativeArray<int> excludedRenderers;
-        [ReadOnly] public NativeArray<int> rendererInstanceIDs;
 
         [ReadOnly]
         public FilteringJobMode mode;
@@ -768,10 +790,13 @@ namespace UnityEngine.Rendering
                         if (visibilityMask == 0)
                             continue;
 
-                        if (mode == FilteringJobMode.Filtering && filteringResults.IsCreated && !filteringResults[rendererIndex])
+                        InstanceHandle instance = InstanceHandle.FromInt(rendererIndex);
+                        int sharedInstanceIndex = sharedInstanceData.InstanceToIndex(instanceData, instance);
+
+                        if (mode == FilteringJobMode.Filtering && filteringResults.IsCreated && (sharedInstanceIndex >= filteringResults.Length || !filteringResults[sharedInstanceIndex]))
                             continue;
 
-                        var rendererID = rendererInstanceIDs[rendererIndex];
+                        var rendererID = sharedInstanceData.rendererGroupIDs[sharedInstanceIndex];
                         if (mode == FilteringJobMode.PickingSelection && excludedRenderers.IsCreated && excludedRenderers.Contains(rendererID))
                             continue;
 
@@ -785,7 +810,7 @@ namespace UnityEngine.Rendering
                         if (!batchIDs.ContainsKey(drawBatch.key.overridenComponents))
                             throw new Exception("Draw command created with an invalid BatchID");
 #endif
-                        output.visibleInstances[outVisibleInstanceIndex] = rendererIndex;
+                        output.visibleInstances[outVisibleInstanceIndex] = instanceDataBuffer.CPUInstanceToGPUInstance(instance).index;
                         output.drawCommands[outCommandIndex] = new BatchDrawCommand
                         {
                             flags = BatchDrawCommandFlags.None,
@@ -850,11 +875,10 @@ namespace UnityEngine.Rendering
     {
         private JobHandle CreateFrustumCullingJob(
             BatchCullingContext cc,
-            in InstanceDrawData instanceDrawData,
+            in CPUInstanceData.ReadOnly instanceData,
+            in CPUSharedInstanceData.ReadOnly sharedInstanceData,
             NativeList<LODGroupCullingData> lodGroupCullingData,
             in BinningConfig binningConfig,
-            in NativeArray<TransformIndex> transformIndices,
-            in ParallelBitArray movedTransformIndices,
             out NativeArray<byte> rendererVisibilityMasks,
             out NativeArray<byte> rendererCrossFadeValues)
         {
@@ -866,7 +890,7 @@ namespace UnityEngine.Rendering
             var lightFacingFrustumPlanes = receiverPlanes.CopyLightFacingFrustumPlanes(Allocator.TempJob);
             receiverPlanes.planes.Dispose();
 
-            var visibilityLength = instanceDrawData.length;
+            var visibilityLength = instanceData.handlesLength;
             rendererVisibilityMasks = new NativeArray<byte>(visibilityLength, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
             rendererCrossFadeValues = new NativeArray<byte>(visibilityLength, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
 
@@ -875,8 +899,6 @@ namespace UnityEngine.Rendering
             var cullingJob = new CullingJob
             {
                 binningConfig = binningConfig,
-                transformIndices = transformIndices,
-                movedTransformIndices = movedTransformIndices,
                 viewType = cc.viewType,
                 frustumPlanePackets = frustumPlaneCuller.planePackets,
                 frustumSplitInfos = frustumPlaneCuller.splitInfos,
@@ -887,7 +909,8 @@ namespace UnityEngine.Rendering
                 cameraPosition = cc.lodParameters.cameraPosition,
                 sqrScreenRelativeMetric = screenRelativeMetric * screenRelativeMetric,
                 isOrtho = cc.lodParameters.isOrthographic,
-                instanceDrawData = instanceDrawData,
+                instanceData = instanceData,
+                sharedInstanceData = sharedInstanceData,
                 lodGroupCullingData = lodGroupCullingData,
                 occlusionBuffer = cc.occlusionBuffer,
                 rendererVisibilityMasks = rendererVisibilityMasks,
@@ -896,17 +919,17 @@ namespace UnityEngine.Rendering
                 cullingLayerMask = cc.cullingLayerMask,
             };
 
-            return cullingJob.Schedule(visibilityLength, CullingJob.k_BatchSize);
+            return cullingJob.Schedule(instanceData.instancesLength, CullingJob.k_BatchSize);
         }
 
         private int ComputeWorstCaseDrawCommandCount(
             BatchCullingContext cc,
             BinningConfig binningConfig,
-            CPUInstanceData instanceData,
+            CPUDrawInstanceData drawInstanceData,
             int crossFadedRendererCount)
         {
-            int visibleInstancesCount = instanceData.drawInstances.Length;
-            int drawCommandCount = instanceData.drawBatches.Length;
+            int visibleInstancesCount = drawInstanceData.drawInstances.Length;
+            int drawCommandCount = drawInstanceData.drawBatches.Length;
 
             // add the number of batches split due to actively cross-fading
             drawCommandCount += math.min(crossFadedRendererCount, drawCommandCount);
@@ -935,14 +958,13 @@ namespace UnityEngine.Rendering
         public JobHandle CreateCullJobTree(
             BatchCullingContext cc,
             BatchCullingOutput cullingOutput,
-            in InstanceDrawData instanceDrawData,
+            in CPUInstanceData.ReadOnly instanceData,
+            in CPUSharedInstanceData.ReadOnly sharedInstanceData,
+            in GPUInstanceDataBuffer.ReadOnly instanceDataBuffer,
             NativeList<LODGroupCullingData> lodGroupCullingData,
-            CPUInstanceData instanceData,
-            NativeParallelHashMap<int, BatchID> batchIDs,
-            int crossFadedRendererCount,
-            NativeArray<int> rendererInstanceIDs,
-            in NativeArray<TransformIndex> transformIndices,
-            in ParallelBitArray movedTransformIndices)
+            CPUDrawInstanceData drawInstanceData,
+            NativeParallelHashMap<uint, BatchID> batchIDs,
+            int crossFadedRendererCount)
         {
             var binningConfig = new BinningConfig
             {
@@ -953,17 +975,16 @@ namespace UnityEngine.Rendering
 
             var cullingJobHandle = CreateFrustumCullingJob(
                 cc,
-                instanceDrawData,
+                instanceData,
+                sharedInstanceData,
                 lodGroupCullingData,
                 binningConfig,
-                transformIndices,
-                movedTransformIndices,
                 out var rendererVisibilityMasks,
                 out var rendererCrossFadeValues);
 
             // allocate for worst case number of draw ranges (all other arrays allocated after size is known)
             var drawCommands = new BatchCullingOutputDrawCommands();
-            drawCommands.drawRangeCount = instanceData.drawRanges.Length;
+            drawCommands.drawRangeCount = drawInstanceData.drawRanges.Length;
             unsafe
             {
                 drawCommands.drawRanges = MemoryUtilities.Malloc<BatchDrawRange>(drawCommands.drawRangeCount, Allocator.TempJob);
@@ -980,14 +1001,15 @@ namespace UnityEngine.Rendering
                 {
                     viewID = cc.viewID.GetInstanceID(),
                     batchIDs = batchIDs,
+                    instanceDataBuffer = instanceDataBuffer,
                     rendererVisibilityMasks = rendererVisibilityMasks,
                     rendererCrossFadeValues = rendererCrossFadeValues,
-                    drawInstanceIndices = instanceData.drawInstanceIndices,
-                    drawBatches = instanceData.drawBatches,
-                    drawRanges = instanceData.drawRanges,
-                    drawBatchIndices = instanceData.drawBatchIndices,
-                    instanceDrawData = instanceDrawData,
-                    rendererInstanceIDs = rendererInstanceIDs,
+                    instanceData = instanceData,
+                    sharedInstanceData = sharedInstanceData,
+                    drawInstanceIndices = drawInstanceData.drawInstanceIndices,
+                    drawBatches = drawInstanceData.drawBatches,
+                    drawRanges = drawInstanceData.drawRanges,
+                    drawBatchIndices = drawInstanceData.drawBatchIndices,
                     filteringResults = dummyFilteringResults,
                     excludedRenderers = excludedRenderers,
                     cullingOutput = cullingOutput.drawCommands,
@@ -1004,21 +1026,25 @@ namespace UnityEngine.Rendering
             }
             else if(cc.viewType == BatchCullingViewType.Filtering)
             {
-                NativeArray<bool> filteredRenderers = new NativeArray<bool>(rendererInstanceIDs.Length, Allocator.TempJob);
-                EditorCameraUtils.GetRenderersFilteringResults(rendererInstanceIDs, filteredRenderers);
+                NativeArray<bool> filteredRenderers = new NativeArray<bool>(sharedInstanceData.rendererGroupIDs.Length, Allocator.TempJob);
+                NativeArray<int> rendererIdCopy = new NativeArray<int>(sharedInstanceData.rendererGroupIDs.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+                sharedInstanceData.rendererGroupIDs.CopyTo(rendererIdCopy);
+
+                EditorCameraUtils.GetRenderersFilteringResults(rendererIdCopy, filteredRenderers);
                 var dummyExcludedRenderers = new NativeArray<int>(0, Allocator.TempJob);
-                var drawOutputJob = new DrawCommandOutputFiltering()
+                var drawOutputJob = new DrawCommandOutputFiltering
                 {
                     viewID = cc.viewID.GetInstanceID(),
                     batchIDs = batchIDs,
+                    instanceDataBuffer = instanceDataBuffer,
                     rendererVisibilityMasks = rendererVisibilityMasks,
                     rendererCrossFadeValues = rendererCrossFadeValues,
-                    drawInstanceIndices = instanceData.drawInstanceIndices,
-                    drawBatches = instanceData.drawBatches,
-                    drawRanges = instanceData.drawRanges,
-                    drawBatchIndices = instanceData.drawBatchIndices,
-                    instanceDrawData = instanceDrawData,
-                    rendererInstanceIDs = rendererInstanceIDs,
+                    instanceData = instanceData,
+                    sharedInstanceData = sharedInstanceData,
+                    drawInstanceIndices = drawInstanceData.drawInstanceIndices,
+                    drawBatches = drawInstanceData.drawBatches,
+                    drawRanges = drawInstanceData.drawRanges,
+                    drawBatchIndices = drawInstanceData.drawBatchIndices,
                     filteringResults = filteredRenderers,
                     excludedRenderers = dummyExcludedRenderers,
                     cullingOutput = cullingOutput.drawCommands,
@@ -1028,6 +1054,7 @@ namespace UnityEngine.Rendering
                 var drawOutputHandle = drawOutputJob.Schedule(cullingJobHandle);
                 drawOutputHandle.Complete();
                 filteredRenderers.Dispose();
+                rendererIdCopy.Dispose();
                 dummyExcludedRenderers.Dispose();
 
                 return drawOutputHandle;
@@ -1035,8 +1062,8 @@ namespace UnityEngine.Rendering
             else
 #endif
             {
-                var batchCount = instanceData.drawBatches.Length;
-                int maxBinCount = ComputeWorstCaseDrawCommandCount(cc, binningConfig, instanceData, crossFadedRendererCount);
+                var batchCount = drawInstanceData.drawBatches.Length;
+                int maxBinCount = ComputeWorstCaseDrawCommandCount(cc, binningConfig, drawInstanceData, crossFadedRendererCount);
 
                 var batchBinAllocOffsets = new NativeArray<int>(batchCount, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
                 var batchBinCounts = new NativeArray<int>(batchCount, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
@@ -1050,9 +1077,9 @@ namespace UnityEngine.Rendering
                 var allocateBinsJob = new AllocateBinsPerBatch
                 {
                     binningConfig = binningConfig,
-                    drawBatches = instanceData.drawBatches,
-                    drawInstanceIndices = instanceData.drawInstanceIndices,
-                    instanceDrawData = instanceDrawData,
+                    drawBatches = drawInstanceData.drawBatches,
+                    drawInstanceIndices = drawInstanceData.drawInstanceIndices,
+                    instanceData = instanceData,
                     rendererVisibilityMasks = rendererVisibilityMasks,
                     batchBinAllocOffsets = batchBinAllocOffsets,
                     batchBinCounts = batchBinCounts,
@@ -1064,8 +1091,8 @@ namespace UnityEngine.Rendering
 
                 var prefixSumJob = new PrefixSumDrawsAndInstances
                 {
-                    drawRanges = instanceData.drawRanges,
-                    drawBatchIndices = instanceData.drawBatchIndices,
+                    drawRanges = drawInstanceData.drawRanges,
+                    drawBatchIndices = drawInstanceData.drawBatchIndices,
                     batchBinAllocOffsets = batchBinAllocOffsets,
                     batchBinCounts = batchBinCounts,
                     binVisibleInstanceCounts = binVisibleInstanceCounts,
@@ -1079,9 +1106,10 @@ namespace UnityEngine.Rendering
                 {
                     binningConfig = binningConfig,
                     batchIDs = batchIDs,
-                    drawBatches = instanceData.drawBatches,
-                    drawInstanceIndices = instanceData.drawInstanceIndices,
-                    instanceDrawData = instanceDrawData,
+                    instanceDataBuffer = instanceDataBuffer,
+                    drawBatches = drawInstanceData.drawBatches,
+                    drawInstanceIndices = drawInstanceData.drawInstanceIndices,
+                    instanceData = instanceData,
                     rendererVisibilityMasks = rendererVisibilityMasks,
                     rendererCrossFadeValues = rendererCrossFadeValues,
                     batchBinAllocOffsets = batchBinAllocOffsets,
@@ -1094,6 +1122,10 @@ namespace UnityEngine.Rendering
                 };
                 return drawCommandOutputJob.Schedule(batchCount, 1, prefixSumHandle);
             }
+        }
+
+        public void UpdateFrame()
+        {
         }
 
         public void Dispose()

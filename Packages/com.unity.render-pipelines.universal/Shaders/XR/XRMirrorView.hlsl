@@ -53,7 +53,7 @@ float4 FragBilinear(Varyings input) : SV_Target
     float2 uv = input.texcoord.xy;
 
 #if defined(SUPPORTS_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
-    if (_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
+    UNITY_BRANCH if (_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
     {
         // We use stereo eye index to sample the correct slice when resolving foveated targets.
         // Since MirrorView is not a stereo shader we have to populate unity_StereoEyeIndex ourselves.

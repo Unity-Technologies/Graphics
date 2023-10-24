@@ -186,14 +186,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public Hair() { }
 
-        public override void Build(HDRenderPipelineAsset hdAsset, HDRenderPipelineRuntimeResources runtimeResources)
+        public override void Build(HDRenderPipeline renderPipeline)
         {
             PreIntegratedFGD.instance.Build(PreIntegratedFGD.FGDIndex.FGD_GGXAndDisneyDiffuse);
             LTCAreaLight.instance.Build();
 
-            m_HairAttenuationLUT            = runtimeResources.textures.hairAttenuationLUT;
-            m_HairAzimuthalScatteringLUT    = runtimeResources.textures.hairAzimuthalScatteringLUT;
-            m_HairLongitudinalScatteringLUT = runtimeResources.textures.hairLongitudinalScatteringLUT;
+            m_HairAttenuationLUT            = renderPipeline.runtimeTextures.hairAttenuationLUT;
+            m_HairAzimuthalScatteringLUT    = renderPipeline.runtimeTextures.hairAzimuthalScatteringLUT;
+            m_HairLongitudinalScatteringLUT = renderPipeline.runtimeTextures.hairLongitudinalScatteringLUT;
         }
 
         public override void BuildOffline(ref List<RenderTexture> generatedResourceList)

@@ -24,9 +24,9 @@ namespace UnityEngine.Rendering
         public ComputeShader instanceDataBufferUploadKernels;
 
         /// <summary>
-        /// TransformUpdaterKernels compute shader reference
+        /// InstanceTransformUpdateKernels compute shader reference
         /// </summary>
-        [Reload("Runtime/RenderPipelineResources/GPUDriven/TransformUpdaterKernels.compute")]
+        [Reload("Runtime/RenderPipelineResources/GPUDriven/InstanceTransformUpdateKernels.compute")]
         public ComputeShader transformUpdaterKernels;
     }
 }

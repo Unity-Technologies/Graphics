@@ -929,7 +929,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_TemporalFilter == null)
             {
                 m_TemporalFilter = new HDTemporalFilter();
-                m_TemporalFilter.Init(m_GlobalSettings.renderPipelineResources);
+                m_TemporalFilter.Init(this);
             }
             return m_TemporalFilter;
         }
@@ -939,7 +939,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_DiffuseDenoiser == null)
             {
                 m_DiffuseDenoiser = new HDDiffuseDenoiser();
-                m_DiffuseDenoiser.Init(m_GlobalSettings.renderPipelineResources, this);
+                m_DiffuseDenoiser.Init(this);
             }
             return m_DiffuseDenoiser;
         }

@@ -42,6 +42,7 @@
     #define SLICE_ARRAY_INDEX   unity_StereoEyeIndex
 
     #define TEXTURE2D_X(textureName)                                        TEXTURE2D_ARRAY(textureName)
+    #define TYPED_TEXTURE2D_X(type, textureName)                            TYPED_TEXTURE2D_ARRAY(type, textureName)
     #define TEXTURE2D_X_PARAM(textureName, samplerName)                     TEXTURE2D_ARRAY_PARAM(textureName, samplerName)
     #define TEXTURE2D_X_ARGS(textureName, samplerName)                      TEXTURE2D_ARRAY_ARGS(textureName, samplerName)
     #define TEXTURE2D_X_HALF(textureName)                                   TEXTURE2D_ARRAY_HALF(textureName)
@@ -106,6 +107,7 @@
     #define SLICE_ARRAY_INDEX       0
 
     #define TEXTURE2D_X(textureName)                                        TEXTURE2D(textureName)
+    #define TYPED_TEXTURE2D_X(type, textureName)                            TYPED_TEXTURE2D(type, textureName)
     #define TEXTURE2D_X_PARAM(textureName, samplerName)                     TEXTURE2D_PARAM(textureName, samplerName)
     #define TEXTURE2D_X_ARGS(textureName, samplerName)                      TEXTURE2D_ARGS(textureName, samplerName)
     #define TEXTURE2D_X_HALF(textureName)                                   TEXTURE2D_HALF(textureName)

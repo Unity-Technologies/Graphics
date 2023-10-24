@@ -32,6 +32,16 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public IBaseRenderGraphBuilder.AccessFlags[] fragmentInputAccessFlags { get; protected set; } = new IBaseRenderGraphBuilder.AccessFlags[RenderGraph.kMaxMRTCount];
         public int fragmentInputMaxIndex { get; protected set; } = -1;
 
+        public struct RandomWriteResourceInfo
+        {
+            public ResourceHandle h;
+            public bool preserveCounterValue;
+        }
+
+        // This list can contain both texture and buffer resources based on their binding index.
+        public RandomWriteResourceInfo[] randomAccessResource { get; protected set; } = new RandomWriteResourceInfo[RenderGraph.kMaxMRTCount];
+        public int randomAccessResourceMaxIndex { get; protected set; } = -1;
+
         public int refCount { get; protected set; }
         public bool generateDebugData { get; protected set; }
 
@@ -92,8 +102,20 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 fragmentInputs[i] = TextureHandle.nullHandle;
                 fragmentInputAccessFlags[i] = IBaseRenderGraphBuilder.AccessFlags.None;
             }
+            randomAccessResourceMaxIndex = -1;
+            for (int i = 0; i < RenderGraph.kMaxMRTCount; ++i)
+            {
+                randomAccessResource[i].h = new ResourceHandle();
+            }
         }
 
+        // Check if the pass has any render targets set-up
+        public bool HasUseTextureFragments()
+        {
+            // Temporarily disabled until case UUM-53711 is fixed
+            return true;
+            //return depthBuffer.IsValid() || colorBuffers[0].IsValid() || colorBufferMaxIndex > 0;
+        }
 
         // Checks if the resource is involved in this pass
         public bool IsTransient(in ResourceHandle res)
@@ -241,6 +263,25 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
         }
 
+        // Sets up the color buffer for this pass but not any resource Read/Writes for it
+        public void SetRandomWriteResourceRaw(ResourceHandle resource, int index, bool preserveCounterValue, IBaseRenderGraphBuilder.AccessFlags accessFlags)
+        {
+            Debug.Assert(index < RenderGraph.kMaxMRTCount && index >= 0);
+            if (randomAccessResource[index].h.Equals(resource) || randomAccessResource[index].h.IsNull())
+            {
+                randomAccessResourceMaxIndex = Math.Max(randomAccessResourceMaxIndex, index);
+                ref var info = ref randomAccessResource[index];
+                info.h = resource;
+                info.preserveCounterValue = preserveCounterValue;
+            }
+            else
+            {
+                // You tried to do UseTextureFragment(tex1, 1, ..); UseTextureFragment(tex2, 1, ..); that is not valid for different textures on the same index
+                throw new InvalidOperationException("You can only bind a single texture to an random write input index. Verify your indexes are correct.");
+            }
+        }
+
+
         public void SetDepthBuffer(TextureHandle resource, DepthAccess flags)
         {
             depthBuffer = resource;
@@ -322,7 +363,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     where PassData : class, new()
     {
         internal BaseRenderFunc<PassData, ComputeGraphContext> renderFunc;
-        internal static ComputeGraphContext c = new ComputeGraphContext(); 
+        internal static ComputeGraphContext c = new ComputeGraphContext();
         public override void Execute(InternalRenderGraphContext renderGraphContext)
         {
             c.FromInternalContext(renderGraphContext);

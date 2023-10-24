@@ -31,7 +31,7 @@ namespace UnityEngine.Rendering.Universal
             if (!layerBatch.lightStats.useNormalMap)
                 return;
 
-            Universal2DResourceData resourceData = frameData.Get<Universal2DResourceData>();
+            Universal2DResourceData universal2DResourceData = frameData.Get<Universal2DResourceData>();
             UniversalRenderingData renderingData = frameData.Get<UniversalRenderingData>();
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
             UniversalLightData lightData = frameData.Get<UniversalLightData>();
@@ -50,8 +50,9 @@ namespace UnityEngine.Rendering.Universal
                 drawSettings.sortingSettings = sortSettings;
 
                 builder.AllowPassCulling(false);
-                builder.UseTextureFragment(resourceData.normalsTexture[batchIndex], 0);
-                builder.UseTextureFragmentDepth(resourceData.intermediateDepth, IBaseRenderGraphBuilder.AccessFlags.Write);
+
+                builder.UseTextureFragment(universal2DResourceData.normalsTexture[batchIndex], 0);
+                builder.UseTextureFragmentDepth(universal2DResourceData.intermediateDepth, IBaseRenderGraphBuilder.AccessFlags.Write);
 
                 var param = new RendererListParams(renderingData.cullResults, drawSettings, filterSettings);
                 passData.rendererList = graph.CreateRendererList(param);

@@ -1263,7 +1263,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
             var targetSlot = targetNode.FindInputSlot<MaterialSlot>(edge.inputSlot.slotId);
 
-            IShaderNodeView sourceNodeView;
+            IShaderNodeView sourceNodeView = null;
             if (lookupTable != null)
             {
                 lookupTable.TryGetValue(sourceNode, out var graphElement);
@@ -1271,14 +1271,15 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
             else if (useVisualNodeMap)
                 visualNodeMap.TryGetValue(sourceNode, out sourceNodeView);
-            else
+
+            if (sourceNodeView == null)
                 sourceNodeView = m_GraphView.nodes.ToList().OfType<IShaderNodeView>().FirstOrDefault(x => x.node == sourceNode);
 
             if (sourceNodeView != null)
             {
                 sourceNodeView.FindPort(sourceSlot.slotReference, out var sourceAnchor);
 
-                IShaderNodeView targetNodeView;
+                IShaderNodeView targetNodeView = null;
                 if (lookupTable != null)
                 {
                     lookupTable.TryGetValue(targetNode, out var graphElement);
@@ -1286,7 +1287,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
                 else if (useVisualNodeMap)
                     visualNodeMap.TryGetValue(targetNode, out targetNodeView);
-                else
+
+                if (targetNodeView == null)
                     targetNodeView = m_GraphView.nodes.ToList().OfType<IShaderNodeView>().First(x => x.node == targetNode);
 
                 targetNodeView.FindPort(targetSlot.slotReference, out var targetAnchor);

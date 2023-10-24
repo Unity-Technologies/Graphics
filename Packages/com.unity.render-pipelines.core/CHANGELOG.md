@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Added
+- Added TYPED_TEXTURE[2D|2D_ARRAY|3D] macros to allow cross platform declaration of explicitly typed Texture[2D|2DArray|3D] resources.
+
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 

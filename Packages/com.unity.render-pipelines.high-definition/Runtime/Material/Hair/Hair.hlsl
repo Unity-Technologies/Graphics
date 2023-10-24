@@ -872,7 +872,80 @@ DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
     DirectLighting lighting;
     ZERO_INITIALIZE(DirectLighting, lighting);
 
-    // TODO
+    float3 positionWS = posInput.positionWS;
+
+    float3 unL = lightData.positionRWS - positionWS;
+
+    // We define the ellipsoid s.t. r1 = (r + len / 2), r2 = r3 = r.
+    // TODO: This could be precomputed.
+    float range          = lightData.range;
+    float halfLength     = 0.5 * lightData.size.x;
+    float invAspectRatio = saturate(range / (range + halfLength));
+
+    // Compute the light attenuation.
+    float intensity = EllipsoidalDistanceAttenuation(unL, lightData.right, invAspectRatio,
+                                                     lightData.rangeAttenuationScale,
+                                                     lightData.rangeAttenuationBias);
+
+    // Terminate if the shaded point is too far away.
+    if (intensity > 0)
+    {
+        lightData.diffuseDimmer  *= intensity;
+        lightData.specularDimmer *= intensity;
+
+        float3 center = mul(preLightData.orthoBasisViewNormal, unL);
+        float3 axis   = mul(preLightData.orthoBasisViewNormal, lightData.right);
+
+        float ltcValue;
+
+        // ----- 1. Evaluate the diffuse part -----
+
+        ltcValue = I_ltc_line(transpose(preLightData.ltcTransformDiffuse), center, axis, halfLength);
+
+        // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
+        lighting.diffuse += ltcValue * lightData.diffuseDimmer;
+
+        // Transmission Lobe
+        {
+            // Flip the view vector and the normal. The bitangent stays the same.
+            float3x3 flipMatrix = float3x3(-1,  0,  0,
+                                            0,  1,  0,
+                                            0,  0, -1);
+
+            // Use the Lambertian approximation for performance reasons.
+            // TODO: performing the evaluation twice is very inefficient!
+            ltcValue = I_ltc_line(flipMatrix, center, axis, halfLength);
+
+            // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
+            // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
+            lighting.diffuse += bsdfData.transmittance * (ltcValue * lightData.diffuseDimmer);
+        }
+
+        // ----- 2. Evaluate the specular part -----
+
+        ltcValue = I_ltc_line(transpose(preLightData.ltcTransformSpecular), center, axis, halfLength);
+
+        lighting.specular += ltcValue * lightData.specularDimmer;
+
+        // We need to multiply by the magnitude of the integral of the BRDF
+        // ref: http://advances.realtimerendering.com/s2016/s2016_ltc_fresnel.pdf
+        lighting.diffuse  *= lightData.color * preLightData.diffuseFGD;
+        lighting.specular *= lightData.color * preLightData.specularFGD;
+
+        // ----- 3. Debug display -----
+
+    #ifdef DEBUG_DISPLAY
+        if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
+        {
+            ltcValue = I_ltc_line(k_identity3x3, center, axis, halfLength);
+
+            // Only lighting, not BSDF
+            lighting.diffuse  = lightData.color * (ltcValue * lightData.diffuseDimmer);
+            // Apply area light on lambert then multiply by PI to cancel Lambert
+            lighting.diffuse *= PI;
+        }
+    #endif
+    }
 
     return lighting;
 }
@@ -930,7 +1003,7 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
     #endif
 
         // Terminate if the shaded point is too far away.
-        if (intensity != 0.0)
+        if (intensity > 0)
         {
             lightData.diffuseDimmer  *= intensity;
             lightData.specularDimmer *= intensity;
@@ -992,8 +1065,8 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
 
             // We need to multiply by the magnitude of the integral of the BRDF
             // ref: http://advances.realtimerendering.com/s2016/s2016_ltc_fresnel.pdf
-            lighting.diffuse  *= preLightData.diffuseFGD  * lightData.color;
-            lighting.specular *= preLightData.specularFGD * lightData.color;
+            lighting.diffuse  *= lightData.color * preLightData.diffuseFGD;
+            lighting.specular *= lightData.color * preLightData.specularFGD;
 
             // ----- 3. Debug display -----
 
@@ -1004,7 +1077,7 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
                                             lightData.cookieMode, lightData.cookieScaleOffset);
 
                 // Only lighting, not BSDF
-                lighting.diffuse  = ltcValue.rgb * (ltcValue.a * lightData.diffuseDimmer);
+                lighting.diffuse  = lightData.color * ltcValue.rgb * (ltcValue.a * lightData.diffuseDimmer);
                 // Apply area light on Lambert then multiply by PI to cancel Lambert
                 lighting.diffuse *= PI;
             }

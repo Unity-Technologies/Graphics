@@ -1567,6 +1567,11 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        internal void OnEnableRenderGraphChanged()
+        {
+            OnValidate();
+        }
+
         /// <summary>
         /// Returns the selected ColorGradingMode in the URP Asset.
         /// <see cref="ColorGradingMode"/>

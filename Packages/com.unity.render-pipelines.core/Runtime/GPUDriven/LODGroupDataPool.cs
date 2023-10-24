@@ -22,9 +22,11 @@ namespace UnityEngine.Rendering
     internal unsafe struct LODGroupCullingData
     {
         public float3 worldSpaceReferencePoint;
-        public float usedinCullingShader;
+        public int lodCount;
         public fixed float sqrDistances[LODGroupData.k_MaxLODLevelsCount]; // we use square distance to get rid of a sqrt in gpu culling..
-        public fixed float transitionDistances[LODGroupData.k_MaxLODLevelsCount];
+        public fixed float transitionDistances[LODGroupData.k_MaxLODLevelsCount]; // todo - make this a separate data struct (CPUOnly, as we do not support dithering on GPU..)
+        public float worldSpaceSize;// SpeedTree crossfade.
+        public fixed bool percentageFlags[LODGroupData.k_MaxLODLevelsCount];// SpeedTree crossfade.
     }
 
     [BurstCompile]
@@ -32,7 +34,7 @@ namespace UnityEngine.Rendering
     {
         public const int k_BatchSize = 256;
 
-        [ReadOnly] public NativeParallelHashMap<int, InstanceHandle> lodGroupDataHash;
+        [ReadOnly] public NativeParallelHashMap<int, GPUInstanceIndex> lodGroupDataHash;
         [ReadOnly] public NativeArray<int> lodGroupIDs;
         [ReadOnly] public NativeArray<Vector3> worldSpaceReferencePoints;
         [ReadOnly] public NativeArray<float> worldSpaceSizes;
@@ -43,9 +45,6 @@ namespace UnityEngine.Rendering
 
         [NativeDisableContainerSafetyRestriction, WriteOnly] public NativeList<LODGroupCullingData> lodGroupCullingData;
 
-        [NativeDisableContainerSafetyRestriction, WriteOnly] public NativeArray<LODGroupCullingData> lodGroupCullingDataForUpdate;
-        [NativeDisableContainerSafetyRestriction, WriteOnly] public NativeArray<uint> lodGroupIndicesForUpdate;
-
         [NativeDisableUnsafePtrRestriction] public UnsafeAtomicCounter32 atomicUpdateCount;
 
         public unsafe void Execute(int index)
@@ -54,12 +53,12 @@ namespace UnityEngine.Rendering
 
             if (lodGroupDataHash.TryGetValue(lodGroupID, out var lodGroupInstance))
             {
+                var worldSpaceSize = worldSpaceSizes[index];
+
                 LODGroupData* lodGroup = (LODGroupData*)lodGroupData.GetUnsafePtr() + lodGroupInstance.index;
                 LODGroupCullingData* lodGroupTransformResult = (LODGroupCullingData*)lodGroupCullingData.GetUnsafePtr() + lodGroupInstance.index;
-
+                lodGroupTransformResult->worldSpaceSize = worldSpaceSize;
                 lodGroupTransformResult->worldSpaceReferencePoint = worldSpaceReferencePoints[index];
-
-                var worldSpaceSize = worldSpaceSizes[index];
 
                 for (int i = 0; i < lodGroup->lodCount; ++i)
                 {
@@ -68,7 +67,7 @@ namespace UnityEngine.Rendering
                     var lodDist = LODGroupRenderingUtils.CalculateLODDistance(lodHeight, worldSpaceSize);
                     lodGroupTransformResult->sqrDistances[i] = lodDist * lodDist;
 
-                    if (supportDitheringCrossFade)
+                    if (supportDitheringCrossFade && !lodGroupTransformResult->percentageFlags[i])
                     {
                         float prevLODHeight = i != 0 ? lodGroup->screenRelativeTransitionHeights[i - 1] : 1.0f;
                         float transitionHeight = lodHeight + lodGroup->fadeTransitionWidth[i] * (prevLODHeight - lodHeight);
@@ -82,16 +81,6 @@ namespace UnityEngine.Rendering
                     }
 
                 }
-
-                if (!requiresGPUUpload)
-                    return;
-
-                var offset = atomicUpdateCount.Add(1);
-                lodGroupCullingDataForUpdate[offset] = *lodGroupTransformResult;
-                // To avoid useless GPU copies during scattered update, we pack in the lowest bits of the index
-                // whether or not we require to copy all 8 lods, or 4 is enough
-                uint requireFullCopy = (uint)lodGroup->lodCount >> 2;
-                lodGroupIndicesForUpdate[offset] = (uint)lodGroupInstance.index << 1 | requireFullCopy;
             }
         }
     }
@@ -103,10 +92,10 @@ namespace UnityEngine.Rendering
 
         public NativeList<LODGroupData> lodGroupsData;
         public NativeList<LODGroupCullingData> lodGroupCullingData;
-        public NativeParallelHashMap<int, InstanceHandle> lodGroupDataHash;
-        public NativeList<InstanceHandle> freeLODGroupDataHandles;
+        public NativeParallelHashMap<int, GPUInstanceIndex> lodGroupDataHash;
+        public NativeList<GPUInstanceIndex> freeLODGroupDataHandles;
 
-        [WriteOnly] public NativeArray<InstanceHandle> lodGroupInstances;
+        [WriteOnly] public NativeArray<GPUInstanceIndex> lodGroupInstances;
 
         [NativeDisableUnsafePtrRestriction] public int* previousRendererCount;
 
@@ -122,7 +111,7 @@ namespace UnityEngine.Rendering
                 if (!lodGroupDataHash.TryGetValue(lodGroupID, out var lodGroupInstance))
                 {
                     if (freeHandlesCount == 0)
-                        lodGroupInstance = new InstanceHandle() { index = lodDataLength++ };
+                        lodGroupInstance = new GPUInstanceIndex() { index = lodDataLength++ };
                     else
                         lodGroupInstance = freeLODGroupDataHandles[--freeHandlesCount];
 
@@ -147,7 +136,7 @@ namespace UnityEngine.Rendering
     {
         public const int k_BatchSize = 256;
 
-        [ReadOnly] public NativeArray<InstanceHandle> lodGroupInstances;
+        [ReadOnly] public NativeArray<GPUInstanceIndex> lodGroupInstances;
         [ReadOnly] public GPUDrivenLODGroupData inputData;
         [ReadOnly] public bool supportDitheringCrossFade;
 
@@ -165,36 +154,58 @@ namespace UnityEngine.Rendering
             var renderersCount = inputData.renderersCount[index];
             var worldReferencePoint = inputData.worldSpaceReferencePoint[index];
             var worldSpaceSize = inputData.worldSpaceSize[index];
-            var useCrossFade = fadeMode == LODFadeMode.CrossFade && supportDitheringCrossFade;
+            var lastLODIsBillboard = inputData.lastLODIsBillboard[index];
+            var useDitheringCrossFade = fadeMode != LODFadeMode.None && supportDitheringCrossFade;
+            var useSpeedTreeCrossFade = fadeMode == LODFadeMode.SpeedTree;
 
             LODGroupData* lodGroupData = (LODGroupData*)lodGroupsData.GetUnsafePtr() + lodGroupInstance.index;
             LODGroupCullingData* lodGroupCullingData = (LODGroupCullingData*)lodGroupsCullingData.GetUnsafePtr() + lodGroupInstance.index;
 
             lodGroupData->valid = true;
             lodGroupData->lodCount = lodCount;
-            lodGroupData->rendererCount = useCrossFade ? renderersCount : 0;
+            lodGroupData->rendererCount = useDitheringCrossFade ? renderersCount : 0;
+            lodGroupCullingData->worldSpaceSize = worldSpaceSize;
             lodGroupCullingData->worldSpaceReferencePoint = worldReferencePoint;
-            lodGroupCullingData->usedinCullingShader = 0.0f;
+            lodGroupCullingData->lodCount = lodCount;
 
             rendererCount.Add(lodGroupData->rendererCount);
+
+            var crossFadeLODBegin = 0;
+
+            if (useSpeedTreeCrossFade)
+            {
+                var lastLODIndex = lodOffset + (lodCount - 1);
+                var hasBillboardLOD = lodCount > 0 && inputData.lodRenderersCount[lastLODIndex] == 1 && lastLODIsBillboard;
+
+                if (lodCount == 0)
+                    crossFadeLODBegin = 0;
+                else if (hasBillboardLOD)
+                    crossFadeLODBegin = Math.Max(lodCount, 2) - 2;
+                else
+                    crossFadeLODBegin = lodCount - 1;
+            }
 
             for (int i = 0; i < lodCount; ++i)
             {
                 var lodIndex = lodOffset + i;
-                var fadeTransitionWidth = inputData.lodFadeTransitionWidth[lodIndex];
                 var lodHeight = inputData.lodScreenRelativeTransitionHeight[lodIndex];
                 var lodDist = LODGroupRenderingUtils.CalculateLODDistance(lodHeight, worldSpaceSize);
 
-                lodGroupCullingData->sqrDistances[i] = lodDist * lodDist;
-                lodGroupCullingData->transitionDistances[i] = 0;
                 lodGroupData->screenRelativeTransitionHeights[i] = lodHeight;
-                lodGroupData->fadeTransitionWidth[i] = 0;
+                lodGroupData->fadeTransitionWidth[i] = 0.0f;
+                lodGroupCullingData->sqrDistances[i] = lodDist * lodDist;
+                lodGroupCullingData->percentageFlags[i] = false;
+                lodGroupCullingData->transitionDistances[i] = 0.0f;
 
-                if (useCrossFade)
+                if (useSpeedTreeCrossFade && i < crossFadeLODBegin)
                 {
-                    float prevLODHeight = i != 0 ? inputData.lodScreenRelativeTransitionHeight[lodIndex - 1] : 1.0f;
-                    float transitionHeight = lodHeight + fadeTransitionWidth * (prevLODHeight - lodHeight);
-
+                    lodGroupCullingData->percentageFlags[i] = true;
+                }
+                else if (useDitheringCrossFade && i >= crossFadeLODBegin)
+                {
+                    var fadeTransitionWidth = inputData.lodFadeTransitionWidth[lodIndex];
+                    var prevLODHeight = i != 0 ? inputData.lodScreenRelativeTransitionHeight[lodIndex - 1] : 1.0f;
+                    var transitionHeight = lodHeight + fadeTransitionWidth * (prevLODHeight - lodHeight);
                     var transitionDistance = lodDist - LODGroupRenderingUtils.CalculateLODDistance(transitionHeight, worldSpaceSize);
                     transitionDistance = Mathf.Max(0.0f, transitionDistance);
 
@@ -211,8 +222,8 @@ namespace UnityEngine.Rendering
         [ReadOnly] public NativeArray<int> destroyedLODGroupsID;
 
         public NativeList<LODGroupData> lodGroupsData;
-        public NativeParallelHashMap<int, InstanceHandle> lodGroupDataHash;
-        public NativeList<InstanceHandle> freeLODGroupDataHandles;
+        public NativeParallelHashMap<int, GPUInstanceIndex> lodGroupDataHash;
+        public NativeList<GPUInstanceIndex> freeLODGroupDataHandles;
 
         [NativeDisableUnsafePtrRestriction] public int* removedRendererCount;
 
@@ -240,11 +251,11 @@ namespace UnityEngine.Rendering
     internal class LODGroupDataPool : IDisposable
     {
         private NativeList<LODGroupData> m_LODGroupData;
-        private NativeParallelHashMap<int, InstanceHandle> m_LODGroupDataHash;
-        public NativeParallelHashMap<int, InstanceHandle> lodGroupDataHash => m_LODGroupDataHash;
+        private NativeParallelHashMap<int, GPUInstanceIndex> m_LODGroupDataHash;
+        public NativeParallelHashMap<int, GPUInstanceIndex> lodGroupDataHash => m_LODGroupDataHash;
 
         private NativeList<LODGroupCullingData> m_LODGroupCullingData;
-        private NativeList<InstanceHandle> m_FreeLODGroupDataHandles;
+        private NativeList<GPUInstanceIndex> m_FreeLODGroupDataHandles;
 
         private int m_CrossfadedRendererCount;
         private bool m_SupportDitheringCrossFade;
@@ -252,21 +263,7 @@ namespace UnityEngine.Rendering
         public NativeList<LODGroupCullingData> lodGroupCullingData => m_LODGroupCullingData;
         public int crossfadedRendererCount => m_CrossfadedRendererCount;
 
-        // GPU Lod selection declarations
-        private bool m_useGPUCulling;
-        private GPUInstanceDataBuffer m_LodGroupCullingDataBuffer;
-        public GPUInstanceDataBuffer lodCullingDataBuffer => m_LodGroupCullingDataBuffer;
-        public int lodDataBufferAddress => m_LodGroupCullingDataBuffer.gpuBufferComponentAddress[0];
-        private GPUInstanceDataBufferUploader.GPUResources m_UploaderGPUResources;
-        private GPUInstanceDataBufferGrower.GPUResources m_GrowerGPUResources;
-
-        // Scattered update declarations
-        private CommandBuffer m_CmdBuffer;
-        private int m_ScatteredUpdateBuffersSize;
-        private ComputeBuffer m_ScatteredUpdateIndexQueueBuffer;
-        private ComputeBuffer m_ScatteredUpdateDataQueueBuffer;
-        private ComputeShader m_LodGroupUpdateCS;
-        private int m_LodGroupUpdateKernel;
+        public int activeLodGroupCount => m_LODGroupData.Length;
 
         private static class LodGroupShaderIDs
         {
@@ -279,33 +276,15 @@ namespace UnityEngine.Rendering
             public static readonly int _LodGroupCullingData = Shader.PropertyToID("_LodGroupCullingData");
         }
 
-        public LODGroupDataPool(GPUResidentDrawerResources resources, int initialInstanceCount, bool supportDitheringCrossFade, bool useGPUCulling)
+        public LODGroupDataPool(GPUResidentDrawerResources resources, int initialInstanceCount, bool supportDitheringCrossFade)
         {
             m_LODGroupData = new NativeList<LODGroupData>(Allocator.Persistent);
-            m_LODGroupDataHash = new NativeParallelHashMap<int, InstanceHandle>(64, Allocator.Persistent);
+            m_LODGroupDataHash = new NativeParallelHashMap<int, GPUInstanceIndex>(64, Allocator.Persistent);
 
             m_LODGroupCullingData = new NativeList<LODGroupCullingData>(Allocator.Persistent);
-            m_FreeLODGroupDataHandles = new NativeList<InstanceHandle>(Allocator.Persistent);
+            m_FreeLODGroupDataHandles = new NativeList<GPUInstanceIndex>(Allocator.Persistent);
 
             m_SupportDitheringCrossFade = supportDitheringCrossFade;
-
-            if (!useGPUCulling)
-                return;
-
-            // We currently do not support lod crossfade with GPU culling - setting it to false as an optimization to avoid update / GPU upload of unused data
-            m_SupportDitheringCrossFade = false;
-            m_useGPUCulling = true;
-            using (var builder = new GPUInstanceDataBufferBuilder())
-            {
-                builder.AddComponent<LODGroupCullingData>(LodGroupShaderIDs._LodGroupCullingData, isOverriden: true, isPerInstance: true);
-                m_LodGroupCullingDataBuffer = builder.Build(initialInstanceCount / 4);
-            }
-            m_GrowerGPUResources = new GPUInstanceDataBufferGrower.GPUResources();
-            m_UploaderGPUResources = new GPUInstanceDataBufferUploader.GPUResources();
-
-            m_CmdBuffer = new CommandBuffer();
-            m_CmdBuffer.name = "LodGroupUpdaterCommands";
-            LoadShaders(resources);
         }
 
         public void Dispose()
@@ -315,25 +294,12 @@ namespace UnityEngine.Rendering
 
             m_LODGroupCullingData.Dispose();
             m_FreeLODGroupDataHandles.Dispose();
-
-            if (!m_useGPUCulling)
-                return;
-
-            m_ScatteredUpdateDataQueueBuffer?.Release();
-            m_ScatteredUpdateIndexQueueBuffer?.Release();
-
-            m_GrowerGPUResources.Dispose();
-            m_UploaderGPUResources.Dispose();
-            m_LodGroupCullingDataBuffer?.Dispose();
         }
 
         public unsafe void UpdateLODGroupTransformData(in GPUDrivenLODGroupData inputData)
         {
             var lodGroupCount = inputData.lodGroupID.Length;
 
-            // todo - profile cost of per frame tempAlloc vs. footprint of making these 2 persistent
-            var lodGroupIndicesForUpdate = new NativeArray<uint>(m_useGPUCulling ? lodGroupCount : 0, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-            var lodGroupCullingDataForUpdate = new NativeArray<LODGroupCullingData>(m_useGPUCulling ? lodGroupCount : 0, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
             var updateCount = 0;
 
             var jobData = new UpdateLODGroupTransformJob()
@@ -345,29 +311,20 @@ namespace UnityEngine.Rendering
                 lodGroupData = m_LODGroupData,
                 lodGroupCullingData = m_LODGroupCullingData,
                 supportDitheringCrossFade = m_SupportDitheringCrossFade,
-                requiresGPUUpload = m_useGPUCulling,
                 atomicUpdateCount = new UnsafeAtomicCounter32(&updateCount),
-                lodGroupIndicesForUpdate = lodGroupIndicesForUpdate,
-                lodGroupCullingDataForUpdate = lodGroupCullingDataForUpdate
             };
 
             if (lodGroupCount >= UpdateLODGroupTransformJob.k_BatchSize)
                 jobData.Schedule(lodGroupCount, UpdateLODGroupTransformJob.k_BatchSize).Complete();
             else
                 jobData.Run(lodGroupCount);
-
-            if (m_useGPUCulling)
-                AddLODGroupUpdateCommand(updateCount, lodGroupIndicesForUpdate, lodGroupCullingDataForUpdate);
-
-            lodGroupIndicesForUpdate.Dispose();
-            lodGroupCullingDataForUpdate.Dispose();
         }
 
         public unsafe void UpdateLODGroupData(in GPUDrivenLODGroupData inputData)
         {
             FreeLODGroupData(inputData.invalidLODGroupID);
 
-            var lodGroupInstances = new NativeArray<InstanceHandle>(inputData.lodGroupID.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+            var lodGroupInstances = new NativeArray<GPUInstanceIndex>(inputData.lodGroupID.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
 
             int previousRendererCount = 0;
 
@@ -404,8 +361,6 @@ namespace UnityEngine.Rendering
 
             m_CrossfadedRendererCount += rendererCount;
 
-            SubmitToGPU(lodGroupInstances);
-
             lodGroupInstances.Dispose();
         }
 
@@ -427,62 +382,6 @@ namespace UnityEngine.Rendering
 
             m_CrossfadedRendererCount -= removedRendererCount;
             Assert.IsTrue(m_CrossfadedRendererCount >= 0);
-        }
-
-        //GPU Lod Selection below
-        private void LoadShaders(GPUResidentDrawerResources resources)
-        {
-            m_UploaderGPUResources.LoadShaders(resources);
-            m_GrowerGPUResources.LoadShaders(resources);
-
-            m_LodGroupUpdateCS = resources.transformUpdaterKernels;
-            m_LodGroupUpdateKernel = m_LodGroupUpdateCS.FindKernel("ScatterUpdateLodGroupMain");
-        }
-
-        private void SubmitToGPU(NativeArray<InstanceHandle> lodInstancesToUpload)
-        {
-            if (!m_useGPUCulling || lodInstancesToUpload.Length == 0)
-                return;
-
-            using var uploader = new GPUInstanceDataBufferUploader(m_LodGroupCullingDataBuffer.descriptions, lodInstancesToUpload.Length);
-            uploader.AllocateInstanceHandles(lodInstancesToUpload);
-            uploader.GatherInstanceData<LODGroupCullingData>(0, lodInstancesToUpload, m_LODGroupCullingData.AsArray());
-            uploader.SubmitToGpu(m_LodGroupCullingDataBuffer, lodInstancesToUpload, ref m_UploaderGPUResources);
-        }
-
-        private bool GrowUpdateBuffers(int requiredSize)
-        {
-            if (requiredSize < m_ScatteredUpdateBuffersSize)
-                return false;
-
-            var sizeAligned = (requiredSize | 0x3F) + 1; // size aligned to 64
-            m_ScatteredUpdateIndexQueueBuffer?.Release();
-            m_ScatteredUpdateDataQueueBuffer?.Release();
-
-            m_ScatteredUpdateIndexQueueBuffer = new ComputeBuffer(sizeAligned, 4, ComputeBufferType.Raw);
-            m_ScatteredUpdateDataQueueBuffer = new ComputeBuffer(sizeAligned, System.Runtime.InteropServices.Marshal.SizeOf<LODGroupCullingData>(), ComputeBufferType.Raw);
-
-            return true;
-        }
-
-        private void AddLODGroupUpdateCommand(int queueCount, NativeArray<uint> scatteredUpdateLodGroupIndices, NativeArray<LODGroupCullingData> scatteredUpdateCullingData)
-        {
-            if (queueCount == 0)
-                return;
-
-            GrowUpdateBuffers(queueCount);
-            m_CmdBuffer.Clear();
-            m_CmdBuffer.SetBufferData(m_ScatteredUpdateIndexQueueBuffer, scatteredUpdateLodGroupIndices, 0, 0, queueCount);
-            m_CmdBuffer.SetBufferData(m_ScatteredUpdateDataQueueBuffer, scatteredUpdateCullingData, 0, 0, queueCount);
-            m_CmdBuffer.SetComputeIntParam(m_LodGroupUpdateCS, LodGroupShaderIDs._SupportDitheringCrossFade, Convert.ToInt32(m_SupportDitheringCrossFade));
-            m_CmdBuffer.SetComputeIntParam(m_LodGroupUpdateCS, LodGroupShaderIDs._LodGroupCullingDataGPUByteSize, System.Runtime.InteropServices.Marshal.SizeOf<LODGroupCullingData>());
-            m_CmdBuffer.SetComputeIntParam(m_LodGroupUpdateCS, LodGroupShaderIDs._LodCullingDataQueueCount, queueCount);
-            m_CmdBuffer.SetComputeIntParam(m_LodGroupUpdateCS, LodGroupShaderIDs._LodGroupCullingDataStartOffset, m_LodGroupCullingDataBuffer.gpuBufferComponentAddress[0]); // buffer has a single component - at index 0
-            m_CmdBuffer.SetComputeBufferParam(m_LodGroupUpdateCS, m_LodGroupUpdateKernel, LodGroupShaderIDs._InputLodCullingDataIndices, m_ScatteredUpdateIndexQueueBuffer);
-            m_CmdBuffer.SetComputeBufferParam(m_LodGroupUpdateCS, m_LodGroupUpdateKernel, LodGroupShaderIDs._InputLodCullingDataBuffer, m_ScatteredUpdateDataQueueBuffer);
-            m_CmdBuffer.SetComputeBufferParam(m_LodGroupUpdateCS, m_LodGroupUpdateKernel, LodGroupShaderIDs._LodGroupCullingData, m_LodGroupCullingDataBuffer.gpuBuffer);
-            m_CmdBuffer.DispatchCompute(m_LodGroupUpdateCS, m_LodGroupUpdateKernel, (queueCount + 63) / 64, 1, 1);
-            Graphics.ExecuteCommandBuffer(m_CmdBuffer);
         }
     }
 }

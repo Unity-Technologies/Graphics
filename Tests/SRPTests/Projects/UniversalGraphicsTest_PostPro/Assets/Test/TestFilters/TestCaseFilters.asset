@@ -27,6 +27,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 13
     GraphicsDevice: 11
+    Architecture: 0
     XrSdk: 
     StereoModes: 7
     Reason: 'XR : development build text issue'
@@ -36,6 +37,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 17
+    Architecture: 0
     XrSdk: None
     StereoModes: 0
     Reason: Needs fixing in OpenGL
@@ -45,6 +47,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 17
+    Architecture: 0
     XrSdk: None
     StereoModes: 0
     Reason: Needs fixing in OpenGL
@@ -55,6 +58,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 13
     GraphicsDevice: 11
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: https://fogbugz.unity3d.com/f/cases/1395088
@@ -64,6 +68,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 17
+    Architecture: 0
     XrSdk: None
     StereoModes: 0
     Reason: Needs fixing in OpenGL
@@ -83,6 +88,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 2
     GraphicsDevice: 16
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: https://jira.unity3d.com/browse/URP-1506
@@ -92,6 +98,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 17
+    Architecture: 0
     XrSdk: None
     StereoModes: 0
     Reason: Needs fixing in OpenGL
@@ -101,6 +108,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 17
+    Architecture: 0
     XrSdk: None
     StereoModes: 0
     Reason: Needs fixing in OpenGL
@@ -114,6 +122,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 2
     GraphicsDevice: 16
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: MacOS11 https://jira.unity3d.com/browse/UUM-19249
@@ -127,6 +136,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 13
     GraphicsDevice: 4
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: https://jira.unity3d.com/browse/UUM-12033  (Motion vectors broken ==
@@ -141,6 +151,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 38
     GraphicsDevice: 22
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: https://jira.unity3d.com/browse/UUM-12033  (Motion vectors broken ==
@@ -155,6 +166,7 @@ MonoBehaviour:
     ColorSpace: 1
     BuildPlatform: 13
     GraphicsDevice: 11
+    Architecture: 0
     XrSdk: OculusLoader
     StereoModes: 0
     Reason: Instability on Quest OpenGLES3
@@ -165,6 +177,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 13
     GraphicsDevice: 4
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: UUM-43923
@@ -175,6 +188,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 9
     GraphicsDevice: 4
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: ANT-1473
@@ -185,25 +199,17 @@ MonoBehaviour:
     ColorSpace: 1
     BuildPlatform: 20
     GraphicsDevice: 11
+    Architecture: 0
     XrSdk: None
     StereoModes: 0
     Reason: HDR not supported on WebGL OpenGLES3
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 809a83a0529a18940a9676977eea69c4, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 38
-    GraphicsDevice: 22
-    XrSdk: 
-    StereoModes: 0
-    Reason: depth write appears to be missing in the test output on switch for unknown
-      reasons
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: 1a7776e5343210f439cfe2e361eba611, type: 3}
     ColorSpace: -1
     BuildPlatform: 13
     GraphicsDevice: 4
+    Architecture: 0
     XrSdk: OculusLoader
     StereoModes: 0
     Reason: Instability on Quest - frame captured appears to not always have a consistent

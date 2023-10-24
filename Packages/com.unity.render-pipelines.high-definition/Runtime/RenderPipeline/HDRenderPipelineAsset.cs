@@ -91,11 +91,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         HDRenderPipelineGlobalSettings globalSettings => HDRenderPipelineGlobalSettings.instance;
 
-        internal HDRenderPipelineRuntimeResources renderPipelineResources
-        {
-            get { return globalSettings.renderPipelineResources; }
-        }
-
         internal bool frameSettingsHistory { get; set; } = false;
 
         internal ReflectionSystemParameters reflectionSystemParameters

@@ -583,9 +583,11 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         static void Init()
         {
-            var globalSettings = HDRenderPipelineGlobalSettings.instance;
-            if (globalSettings != null)
-                s_DefaultMaterial = globalSettings.renderPipelineResources?.materials.pbrSkyMaterial;
+            if (HDRenderPipelineGlobalSettings.instance != null)
+            {
+                var materials = HDRenderPipelineGlobalSettings.instance.renderPipelineResources.materials;
+                s_DefaultMaterial = materials.pbrSkyMaterial;
+            }
         }
     }
 }

@@ -357,7 +357,7 @@ void TracePath(uint2 pixelCoord, bool withAOV = false)
     bool continuePath = true;
     // These are the quantities we need to store for computing light evaluation along the next segment
     float3 scatteringPosition;
-    float2 materialSamplePdf = 0.0;
+    float materialSamplePdf = 0.0;
     float4 lightListParams = 0.0;
     bool evalLightsAlongSegment = true;
 

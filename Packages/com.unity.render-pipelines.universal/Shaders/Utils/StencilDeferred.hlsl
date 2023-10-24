@@ -241,7 +241,7 @@ half4 DeferredShading(Varyings input) : SV_Target
 
 #if defined(SUPPORTS_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
      float2 undistorted_screen_uv = screen_uv;
-     if (_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
+     UNITY_BRANCH if (_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
      {
          screen_uv = input.positionCS.xy * _ScreenSize.zw;
      }
@@ -282,7 +282,7 @@ half4 DeferredShading(Varyings input) : SV_Target
     #endif
 
     #if defined(SUPPORTS_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
-     if (_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
+     UNITY_BRANCH if (_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
      {
         input.positionCS.xy = undistorted_screen_uv * _ScreenSize.xy;
      }

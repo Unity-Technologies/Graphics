@@ -235,7 +235,11 @@ namespace UnityEngine.Rendering.Universal
         public bool enableRenderGraph
         {
             get => m_EnableRenderGraph;
-            set => m_EnableRenderGraph = value;
+            set
+            {
+                m_EnableRenderGraph = value;
+                UniversalRenderPipeline.asset.OnEnableRenderGraphChanged();
+            }
         }
 
         /// <summary>

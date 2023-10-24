@@ -40,6 +40,21 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
         }
     }
 
+    // Per pass random write texture info
+    internal struct PassRandomWriteData
+    {
+        public ResourceHandle resource;
+        public int index;
+        public bool preserveCounterValue;
+
+        public override int GetHashCode()
+        {
+            var hash = resource.GetHashCode();
+            hash = hash * 23 + index.GetHashCode();
+            return hash;
+        }
+    }
+
     internal enum PassMergeState
     {
         None = -1, // this pass is "standalone", it will begin and end the NRP
@@ -75,6 +90,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
         public int numFragments;
         public int firstFragmentInput; //base+offset in CompilerContextData.fragmentData (use the Fragment inputs iterator to iterate this more easily)
         public int numFragmentInputs;
+        public int firstRandomAccessResource; //base+offset in CompilerContextData.randomWriteData (use the Fragment inputs iterator to iterate this more easily)
+        public int numRandomAccessResources;
         public int firstCreate; //base+offset in CompilerContextData.createData (use the InputNodes iterator to iterate this more easily)
         public int numCreated;
         public int firstDestroy; //base+offset in CompilerContextData.destroyData (use the InputNodes iterator to iterate this more easily)
@@ -116,6 +133,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
             numOutputs = 0;
             firstFragment = 0;
             numFragments = 0;
+            firstRandomAccessResource = 0;
+            numRandomAccessResources = 0;
             firstFragmentInput = 0;
             numFragmentInputs = 0;
             firstCreate = 0;
@@ -160,6 +179,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
             numFragments = 0;
             firstFragmentInput = 0;
             numFragmentInputs = 0;
+            firstRandomAccessResource = 0;
+            numRandomAccessResources = 0;
             firstCreate = 0;
             numCreated = 0;
             firstDestroy = 0;
@@ -197,6 +218,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly ReadOnlySpan<ResourceHandle> FirstUsedResources(CompilerContextData ctx)
             => ctx.createData.MakeReadOnlySpan(firstCreate, numCreated);
+        
+        // Loop over this pass's random write textures returned as PassFragmentData
+        public ReadOnlySpan<PassRandomWriteData> RandomWriteTextures(CompilerContextData ctx)
+         => ctx.randomAccessResourceData.MakeReadOnlySpan(firstRandomAccessResource, numRandomAccessResources);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly ReadOnlySpan<ResourceHandle> LastUsedResources(CompilerContextData ctx)
@@ -204,6 +229,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
 
         private void SetupAndValidateFragmentInfo(ResourceHandle h, CompilerContextData ctx)
         {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            if (h.type != RenderGraphResourceType.Texture) new Exception("Only textures can be used as a fragment attachment.");
+#endif
+
             ref readonly var resInfo = ref ctx.UnversionedResourceData(h);
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
@@ -243,13 +272,20 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
             numFragmentInputs++;
         }
 
+        internal void AddRandomAccessResource()
+        {
+            // This function is here for orthogonality with AddFragment/AddFragmentInput
+            // Random write textures can be arbitrary sizes and do not need to validate or set-up the fragment info
+            numRandomAccessResources++;
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal void AddFirstUse(ResourceHandle h, CompilerContextData ctx)
         {
             // Already registered? Skip it
             foreach (ref readonly var res in FirstUsedResources(ctx))
             {
-                if (res.index == h.index)
+                if (res.index == h.index && res.type == h.type)
                     return;
             }
 
@@ -273,7 +309,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
             // Already registered? Skip it
             foreach (ref readonly var res in LastUsedResources(ctx))
             {
-                if (res.index == h.index)
+                if (res.index == h.index && res.type == h.type)
                     return;
             }
 
@@ -296,6 +332,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal readonly bool IsUsedAsFragment(ResourceHandle h, CompilerContextData ctx)
         {
+            //Only textures can be used as a fragment attachment.
+            if (h.type != RenderGraphResourceType.Texture) return false;
+
             // Only raster passes can have fragment attachments
             if (type != RenderGraphPassType.Raster) return false;
 
@@ -310,22 +349,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
             foreach (ref readonly var fragmentInput in FragmentInputs(ctx))
             {
                 if (fragmentInput.resource.index == h.index)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        // Is the resource used the first time in the graph this pass. Resources are always created at version 0 so the passed in version is ignored
-        // This is usually when a resource is created but for imported resources it's when it's first used by this graph
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal readonly bool IsFirstUsed(ResourceHandle h, CompilerContextData ctx)
-        {
-            foreach (ref readonly var res in FirstUsedResources(ctx))
-            {
-                if (res.index == h.index)
                 {
                     return true;
                 }
