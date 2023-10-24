@@ -38,8 +38,8 @@ These settings determine the method that the Cameras and Reflection Probes using
   </tr>
   <tr>
     <td></td>
-    <td><strong>Depth Prepass within Deferred</strong></td>
-    <td>If you enable Decals then HDRP forces a depth prepass and you can not disable this feature. This feature fills the depth buffer with all Meshes, without rendering any color. It's an optimization option that depends on the Unity Project you are creating, meaning that you should measure the performance before and after you enable this feature to make sure it benefits your Project. This is only available if you set <strong>Lit Shader Mode</strong> to <strong>Deferred</strong>.</td>
+    <td><strong>Full Depth Prepass within Deferred</strong></td>
+    <td>By default HDRP try to minimize the number of Meshes sent in the depth prepass. This feature fills the depth buffer during depth prepass with all Meshes, without rendering any color. It's an optimization option that depends on the Unity Project you are creating, meaning that you should measure the performance before and after you enable this feature to make sure it benefits your Project. This is only available if you set <strong>Lit Shader Mode</strong> to <strong>Deferred</strong>.</td>
   </tr>
   <tr>
     <td></td>

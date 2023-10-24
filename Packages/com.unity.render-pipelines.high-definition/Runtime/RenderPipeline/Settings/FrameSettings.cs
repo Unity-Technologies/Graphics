@@ -111,8 +111,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Specifies the Lit Shader Mode for Cameras using these Frame Settings use to render the Scene.</summary>
         [FrameSettingsField(0, autoName: LitShaderMode, type: FrameSettingsFieldAttribute.DisplayType.BoolAsEnumPopup, targetType: typeof(LitShaderMode), customOrderInGroup: 0, tooltip: "Specifies the Lit Shader Mode for Cameras using these Frame Settings use to render the Scene (Depends on \"Lit Shader Mode\" in current HDRP Asset).")]
         LitShaderMode = 0,
-        /// <summary>When enabled, HDRP processes a depth prepass for Cameras using these Frame Settings. Set Lit Shader Mode to Deferred to access this option.</summary>
-        [FrameSettingsField(0, displayedName: "Depth Prepass within Deferred", positiveDependencies: new[] { LitShaderMode }, tooltip: "When enabled, HDRP processes a depth prepass for Cameras using these Frame Settings. Set Lit Shader Mode to Deferred to access this option.")]
+        /// <summary>When enabled, HDRP processes a full depth prepass for Cameras using these Frame Settings. Set Lit Shader Mode to Deferred to access this option.</summary>
+        [FrameSettingsField(0, displayedName: "Full Depth Prepass within Deferred", positiveDependencies: new[] { LitShaderMode }, tooltip: "When enabled, HDRP processes a full depth prepass (All meshes are sent) for Cameras using these Frame Settings. Set Lit Shader Mode to Deferred to access this option.")]
         DepthPrepassWithDeferredRendering = 1,
         /// <summary>When enabled, HDRP clear GBuffers for Cameras using these Frame Settings. Set Lit Shader Mode to Deferred to access this option.</summary>
         [FrameSettingsField(0, displayedName: "Clear GBuffers", positiveDependencies: new[] { LitShaderMode }, customOrderInGroup: 2, tooltip: "When enabled, HDRP clear GBuffers for Cameras using these Frame Settings. Set Lit Shader Mode to Deferred to access this option.")]

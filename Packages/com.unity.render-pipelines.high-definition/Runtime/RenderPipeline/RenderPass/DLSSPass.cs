@@ -145,7 +145,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return false;
             }
 
-            if (!SystemInfo.graphicsDeviceVendor.ToLower().Contains("nvidia"))
+            if (!SystemInfo.graphicsDeviceVendor.ToLowerInvariant().Contains("nvidia"))
                 return false;
 
             NVIDIA.GraphicsDevice device = null;
