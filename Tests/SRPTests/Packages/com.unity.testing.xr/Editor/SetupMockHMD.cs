@@ -7,23 +7,10 @@ using UnityEngine.XR.Management;
 
 namespace Unity.Testing.XR.Editor
 {
-    public class InjectMockHMD
+    public class SetupMockHMD
     {
-        static readonly string packageToInject = "com.unity.xr.mock-hmd";
         static readonly string pathToSettings = "Packages/com.unity.testing.xr/XR/XRGeneralSettings.asset";
-
-        [InitializeOnLoadMethod]
-        static public void Initialize()
-        {
-            if (XRGraphicsAutomatedTests.enabled)
-            {
-                var req = Client.Add(packageToInject);
-
-                while (!req.IsCompleted)
-                    System.Threading.Thread.Yield();
-            }
-        }
-
+        
         static public void SetupLoader()
         {
             if (XRGraphicsAutomatedTests.enabled)

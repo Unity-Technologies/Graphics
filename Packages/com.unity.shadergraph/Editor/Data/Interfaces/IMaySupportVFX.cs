@@ -8,16 +8,7 @@ namespace UnityEditor.ShaderGraph
 
     static class MaySupportVFXExtensions
     {
-        public static bool SupportsVFX(this Target target)
-        {
-            var vfxTarget = target as IMaySupportVFX;
-            return vfxTarget != null && vfxTarget.SupportsVFX();
-        }
-
-        public static bool CanSupportVFX(this Target target)
-        {
-            var vfxTarget = target as IMaySupportVFX;
-            return vfxTarget != null && vfxTarget.CanSupportVFX();
-        }
+        public static bool SupportsVFX(this Target target) =>  target is IMaySupportVFX vfxTarget && vfxTarget.SupportsVFX();
+        public static bool CanSupportVFX(this Target target) =>  target is IMaySupportVFX vfxTarget && vfxTarget.CanSupportVFX();
     }
 }

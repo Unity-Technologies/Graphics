@@ -47,7 +47,10 @@ if(_EnableDecalLayers)
     float3 positionDS = mul(worldToElement, worldPos).xyz * 2.0f;
 	clip(1.0f - abs(positionDS));
 
-    worldToElement[2].xyz = VFXSafeNormalize(worldToElement[2].xyz); //Cancel scale along Z to avoid scaling the normal
+    float3x3 normalToWorld = transpose(float3x3(
+                                    VFXSafeNormalize(worldToElement[0].xyz),
+                                    VFXSafeNormalize(worldToElement[1].xyz),
+                                    VFXSafeNormalize(worldToElement[2].xyz)));
 
 	float2 uv = positionDS.xy * 0.5f + 0.5f;
 	VFXUVData uvData = GetUVData(i,uv);
@@ -57,7 +60,8 @@ if(_EnableDecalLayers)
 {
 	if (i.VFX_VARYING_ANGLEFADE.x > 0.0f) // if angle fade is enabled
 	{
-		float3 decalNormal = worldToElement[2].xyz;
+        float3 decalNormal = float3(normalToWorld[0].z, normalToWorld[1].z, normalToWorld[2].z);
+
 		float dotAngle = dot(material.geomNormalWS, decalNormal);
         angleFadeFactor = DecodeAngleFade(dot(material.geomNormalWS, decalNormal), i.VFX_VARYING_ANGLEFADE);
 	}
@@ -136,7 +140,7 @@ if(_EnableDecalLayers)
         float normalAlpha = 1.0f;
 
     #ifdef DECAL_SURFACE_GRADIENT
-
+        float3x3 tangentToWorld = transpose(normalToWorld);
         #if USE_NORMAL_MAP
         #ifdef VFX_VARYING_NORMALSCALE
         normalScale = i.VFX_VARYING_NORMALSCALE;
@@ -145,7 +149,7 @@ if(_EnableDecalLayers)
         #else // USE_NORMAL_MAP
         float2 deriv = float2(0.0f,0.0f);
         #endif  // USE_NORMAL_MAP
-        float3 normalWS = SurfaceGradientFromTBN(deriv, worldToElement._m00_m01_m02, worldToElement._m10_m11_m12);
+        float3 normalWS = SurfaceGradientFromTBN(deriv, tangentToWorld[0], tangentToWorld[1]);
 
     #else //DECAL_SURFACE_GRADIENT
         #if USE_NORMAL_MAP
@@ -153,7 +157,7 @@ if(_EnableDecalLayers)
         #else //USE_NORMAL_MAP
 	    float3 normalTS = float3(0.0f,0.0f,1.0f);
 	    #endif //USE_NORMAL_MAP
-        float3 normalWS = mul(normalTS, (float3x3)worldToElement);
+        float3 normalWS = mul(normalToWorld, normalTS);
 	    normalWS = normalize(normalWS);
     #endif //DECAL_SURFACE_GRADIENT
 

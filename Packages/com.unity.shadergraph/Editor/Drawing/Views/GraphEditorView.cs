@@ -359,9 +359,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_SearchWindowProvider.connectedPort = null;
                 m_SearchWindowProvider.target = c.target ?? m_HoveredContextView;
                 var displayPosition = (c.screenMousePosition - m_EditorWindow.position.position);
-
+                displayPosition = graphView.cachedMousePosition;
                 SearcherWindow.Show(m_EditorWindow, (m_SearchWindowProvider as SearcherProvider).LoadSearchWindow(),
-                    item => (m_SearchWindowProvider as SearcherProvider).OnSearcherSelectEntry(item, c.screenMousePosition - m_EditorWindow.position.position),
+                    item => (m_SearchWindowProvider as SearcherProvider).OnSearcherSelectEntry(item, displayPosition),
                     displayPosition, null, new SearcherWindow.Alignment(SearcherWindow.Alignment.Vertical.Center, SearcherWindow.Alignment.Horizontal.Left));
             }
         }
@@ -669,6 +669,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         HashSet<IShaderNodeView> m_NodeViewHashSet = new HashSet<IShaderNodeView>();
         HashSet<ShaderGroup> m_GroupHashSet = new HashSet<ShaderGroup>();
 
+        float lastUpdate = 0f;
         public void HandleGraphChanges(bool wasUndoRedoPerformed)
         {
             UnregisterGraphViewCallbacks();
@@ -682,6 +683,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             });
 
             previewManager.HandleGraphChanges();
+            if(Time.realtimeSinceStartup - lastUpdate >= 0.03f && EditorWindow.focusedWindow == m_EditorWindow && m_UserViewSettings.isPreviewVisible)
+            {
+                lastUpdate = Time.realtimeSinceStartup;
+                previewManager.UpdateMasterPreview(ModificationScope.Node);
+            }            
             m_InspectorView.HandleGraphChanges();
 
             if (m_Graph.addedEdges.Any() || m_Graph.removedEdges.Any())
@@ -1220,7 +1226,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
             var targetSlot = targetNode.FindInputSlot<MaterialSlot>(edge.inputSlot.slotId);
 
-            IShaderNodeView sourceNodeView;
+            IShaderNodeView sourceNodeView = null;
             if (lookupTable != null)
             {
                 lookupTable.TryGetValue(sourceNode, out var graphElement);
@@ -1228,14 +1234,15 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
             else if (useVisualNodeMap)
                 visualNodeMap.TryGetValue(sourceNode, out sourceNodeView);
-            else
+            
+            if (sourceNodeView == null)
                 sourceNodeView = m_GraphView.nodes.ToList().OfType<IShaderNodeView>().FirstOrDefault(x => x.node == sourceNode);
 
             if (sourceNodeView != null)
             {
                 sourceNodeView.FindPort(sourceSlot.slotReference, out var sourceAnchor);
 
-                IShaderNodeView targetNodeView;
+                IShaderNodeView targetNodeView = null;
                 if (lookupTable != null)
                 {
                     lookupTable.TryGetValue(targetNode, out var graphElement);
@@ -1243,7 +1250,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
                 else if (useVisualNodeMap)
                     visualNodeMap.TryGetValue(targetNode, out targetNodeView);
-                else
+
+                if (targetNodeView == null)
                     targetNodeView = m_GraphView.nodes.ToList().OfType<IShaderNodeView>().First(x => x.node == targetNode);
 
                 targetNodeView.FindPort(targetSlot.slotReference, out var targetAnchor);

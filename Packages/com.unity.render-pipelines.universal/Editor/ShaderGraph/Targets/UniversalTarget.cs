@@ -99,9 +99,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         Both = 0        // = CullMode.Off -- render both faces
     }
 
-    sealed class UniversalTarget : Target, IHasMetadata, ILegacyTarget
+    sealed class UniversalTarget : Target, IHasMetadata, ILegacyTarget, IMaySupportVFX
 #if HAS_VFX_GRAPH
-        , IMaySupportVFX, IRequireVFXContext
+        , IRequireVFXContext
 #endif
     {
         public override int latestVersion => 1;
@@ -551,7 +551,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 onChange();
             });
 
-            context.AddProperty("Alpha Clipping", new Toggle() { value = alphaClip }, (evt) =>
+            context.AddProperty("Alpha Clipping", "Avoid using when Alpha and AlphaThreshold are constant for the entire material as enabling in this case could introduce visual artifacts and will add an unnecessary performance cost when used with MSAA (due to AlphaToMask)", 0, new Toggle() { value = alphaClip }, (evt) =>
             {
                 if (Equals(alphaClip, evt.newValue))
                     return;
@@ -773,17 +773,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             return false;
         }
 
-        public bool SupportsVFX()
-        {
-#if HAS_VFX_GRAPH
-            if (!CanSupportVFX())
-                return false;
-
-            return m_SupportVFX;
-#else
-            return false;
-#endif
-        }
+        public bool SupportsVFX() => CanSupportVFX() && m_SupportVFX;
 
         [Serializable]
         class UniversalTargetLegacySerialization

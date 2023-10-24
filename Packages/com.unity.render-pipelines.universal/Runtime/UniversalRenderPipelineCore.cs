@@ -234,6 +234,12 @@ namespace UnityEngine.Rendering.Universal
                     }
                     XRBuiltinShaderConstants.SetBuiltinShaderConstants(cmd);
                 }
+                else
+                {
+                    // Update multipass worldSpace camera pos
+                    Vector3 worldSpaceCameraPos = Matrix4x4.Inverse(GetViewMatrix(0)).GetColumn(3);
+                    cmd.SetGlobalVector(ShaderPropertyId.worldSpaceCameraPos, worldSpaceCameraPos);
+                }
             }
 #endif
         }

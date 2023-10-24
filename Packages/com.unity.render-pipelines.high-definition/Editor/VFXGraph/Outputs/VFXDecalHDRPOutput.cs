@@ -250,7 +250,6 @@ namespace UnityEditor.VFX.HDRP
                 yield return "zWriteMode";
                 yield return "castShadows";
                 yield return "materialType";
-                yield return "sort";
 
                 if (!enableDecalLayers)
                     yield return "decalLayer";

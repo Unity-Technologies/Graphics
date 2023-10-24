@@ -46,7 +46,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
         {
             context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
 
-            if (!context.HasCustomEditorForRenderPipeline(""))
+            if (!context.HasCustomEditorForRenderPipeline("")  && String.IsNullOrEmpty(target.customEditorGUI))
                 context.AddCustomEditorForRenderPipeline(typeof(BuiltInLitGUI).FullName, "");
 
             // Process SubShaders
