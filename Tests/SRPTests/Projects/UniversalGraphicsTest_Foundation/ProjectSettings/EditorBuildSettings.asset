@@ -279,6 +279,9 @@ EditorBuildSettings:
     path: Assets/Scenes/201_DepthNormalsDeferred.unity
     guid: dafa2658c5a644673a2697d24ad96ffe
   - enabled: 1
+    path: Assets/Scenes/201_DepthNormalsDeferred_AccurateGBuffer.unity
+    guid: ef6895fb19f2e42639db3e3a801fa76f
+  - enabled: 1
     path: Assets/Scenes/201_DepthNormalsForward.unity
     guid: 50a55af44edbd47579041b1556ed9a58
   - enabled: 1

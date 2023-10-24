@@ -85,10 +85,10 @@ namespace UnityEngine.Rendering.Universal
 
         // Use Fast conversions between SRGB and Linear
         bool m_UseFastSRGBLinearConversion;
-        
+
         // Support Screen Space Lens Flare post process effect
         bool m_SupportScreenSpaceLensFlare;
-        
+
         // Support Data Driven Lens Flare post process effect
         bool m_SupportDataDrivenLensFlare;
 
@@ -388,6 +388,10 @@ namespace UnityEngine.Rendering.Universal
             bool useLensFlareScreenSpace = m_LensFlareScreenSpace.IsActive() && m_SupportScreenSpaceLensFlare;
             bool useMotionBlur = m_MotionBlur.IsActive() && !isSceneViewCamera;
             bool usePaniniProjection = m_PaniniProjection.IsActive() && !isSceneViewCamera;
+
+            // Disable MotionBlur in EditMode, so that editing remains clear and readable.
+            // NOTE: HDRP does the same via CoreUtils::AreAnimatedMaterialsEnabled().
+            useMotionBlur = useMotionBlur && Application.isPlaying;
 
             // Note that enabling jitters uses the same CameraData::IsTemporalAAEnabled(). So if we add any other kind of overrides (like
             // disable useTemporalAA if another feature is disabled) then we need to put it in CameraData::IsTemporalAAEnabled() as opposed

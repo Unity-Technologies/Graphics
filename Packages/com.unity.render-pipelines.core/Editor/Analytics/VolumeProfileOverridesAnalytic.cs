@@ -17,7 +17,7 @@ namespace UnityEditor.Rendering.Analytics
         public int callbackOrder => int.MaxValue;
 
 
-        [AnalyticInfo(eventName: "uVolumeProfileOverridesAnalytic", version: 2, maxEventsPerHour:1000)]
+        [AnalyticInfo(eventName: "uVolumeProfileOverridesAnalytic", version: 2, maxEventsPerHour:1000, vendorKey: "unity.srp")]
         public class Analytic : IAnalytic
         {
             public Analytic(string asset_guid, string type, string[] p)

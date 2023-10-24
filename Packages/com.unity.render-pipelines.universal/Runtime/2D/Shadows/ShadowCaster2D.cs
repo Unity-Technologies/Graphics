@@ -83,7 +83,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_UseRendererSilhouette = true;
         [SerializeField] bool m_CastsShadows = true;
         [SerializeField] bool m_SelfShadows = false;
-        [Range(0,1)]
+        [Range(0, 1)]
         [SerializeField] float m_AlphaCutoff = 0.1f;
         [SerializeField] int[] m_ApplyToSortingLayers = null;
         [SerializeField] Vector3[] m_ShapePath = null;
@@ -105,7 +105,7 @@ namespace UnityEngine.Rendering.Universal
         internal ShadowCasterGroup2D m_ShadowCasterGroup = null;
         internal ShadowCasterGroup2D m_PreviousShadowCasterGroup = null;
 
-        
+
         internal bool m_ForceShadowMeshRebuild;
 
         internal EdgeProcessing edgeProcessing
@@ -167,7 +167,6 @@ namespace UnityEngine.Rendering.Universal
         internal Matrix4x4 m_CachedShadowMatrix;
         internal Matrix4x4 m_CachedInverseShadowMatrix;
         internal Matrix4x4 m_CachedLocalToWorldMatrix;
-
         internal int spriteMaterialCount => m_SpriteMaterialCount;
 
         internal override void CacheValues()
