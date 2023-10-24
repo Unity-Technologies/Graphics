@@ -176,6 +176,7 @@ namespace UnityEngine.Rendering
                     (MSAASamples)d.msaaSamples,
                     d.bindMS,
                     d.useDynamicScale,
+                    d.useDynamicScaleExplicit,
                     d.memoryless,
                     d.vrUsage,
                     n);
