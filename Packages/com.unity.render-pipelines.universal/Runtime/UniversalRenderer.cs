@@ -420,7 +420,7 @@ namespace UnityEngine.Rendering.Universal
             // Enabled Depth priming when baking Reflection Probes causes artefacts (UUM-12397)
             bool isNotReflectionCamera = cameraData.cameraType != CameraType.Reflection;
 
-            return depthPrimingRequested && isForwardRenderingMode && isFirstCameraToWriteDepth && isNotReflectionCamera;
+            return depthPrimingRequested && isForwardRenderingMode && isFirstCameraToWriteDepth && isNotReflectionCamera && !GL.wireframe ;
         }
 
         /// <inheritdoc />
@@ -645,6 +645,7 @@ namespace UnityEngine.Rendering.Universal
                     if (!isSceneViewOrPreviewCamera)
                     {
                         requiresDepthPrepass = false;
+                        useDepthPriming = false;
                         generateColorGradingLUT = false;
                         copyColorPass = false;
                         requiresDepthCopyPass = false;

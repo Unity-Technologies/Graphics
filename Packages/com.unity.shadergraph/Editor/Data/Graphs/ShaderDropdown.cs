@@ -73,6 +73,7 @@ namespace UnityEditor.ShaderGraph
             get { return m_Entries.Count; }
         }
 
+        internal override bool isCustomSlotAllowed { get => false; }
         internal override bool isExposable => true;
         internal override bool isRenamable => true;
 
