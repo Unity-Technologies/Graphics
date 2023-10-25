@@ -615,10 +615,6 @@ Compiled compute shader: GTAOBlurAndUpsample, kernel: BilateralUpsampling, keywo
 Compiled compute shader: GTAOCopyHistory, kernel: GTAODenoise_CopyHistory, keywords <no keywords>
 Compiled compute shader: GTAOSpatialDenoise, kernel: SpatialDenoise, keywords TO_TEMPORAL
 Compiled compute shader: GTAOTemporalDenoise, kernel: TemporalDenoise, keywords HALF_RES
-Compiled compute shader: HairMultipleScatteringPreIntegration, kernel: ComputeAttenuationBackward, keywords <no keywords>
-Compiled compute shader: HairMultipleScatteringPreIntegration, kernel: ComputeAttenuationForward, keywords <no keywords>
-Compiled compute shader: HairMultipleScatteringPreIntegration, kernel: ComputeAzimuthalScattering, keywords <no keywords>
-Compiled compute shader: HairMultipleScatteringPreIntegration, kernel: ComputeLongitudinalScattering, keywords <no keywords>
 Compiled compute shader: HistogramExposure, kernel: KHistogramGen, keywords <no keywords>
 Compiled compute shader: HistogramExposure, kernel: KHistogramReduce, keywords <no keywords>
 Compiled compute shader: InScatteredRadiancePrecomputation, kernel: MAIN_1, keywords <no keywords>
@@ -643,6 +639,8 @@ Compiled compute shader: PlanarReflectionFiltering, kernel: DepthConversion, key
 Compiled compute shader: PlanarReflectionFiltering, kernel: DownScale, keywords <no keywords>
 Compiled compute shader: PlanarReflectionFiltering, kernel: FilterPlanarReflection, keywords <no keywords>
 Compiled compute shader: ProbeVolumeBlendStates, kernel: BlendScenarios, keywords <no keywords>
+Compiled compute shader: ProbeVolumeUploadData, kernel: UploadData, keywords <no keywords>
+Compiled compute shader: ProbeVolumeUploadData, kernel: UploadData, keywords PROBE_VOLUMES_SHARED_DATA
 Compiled compute shader: ResolveStencilBuffer, kernel: Main, keywords COARSE_STENCIL
 Compiled compute shader: ResolveStencilBuffer, kernel: Main, keywords COARSE_STENCIL MSAA2X
 Compiled compute shader: scrbound, kernel: main, keywords <no keywords>
@@ -664,11 +662,11 @@ Compiled compute shader: StageShadingSetup, kernel: ClearShadingCompactionBuffer
 Compiled compute shader: StageShadingSetup, kernel: ClearShadingSampleVisibilityBuffer, keywords <no keywords>
 Compiled compute shader: StageShadingSetup, kernel: CreateCompactedShadingSamplesMapping, keywords <no keywords>
 Compiled compute shader: StageShadingSetup, kernel: ReplicateShadedSamplesToShadingAtlas, keywords <no keywords>
+Compiled compute shader: StageWorkQueue, kernel: BuildFineRasterArgs, keywords <no keywords>
 Compiled compute shader: StageWorkQueue, kernel: WorkQueueActiveBins, keywords <no keywords>
 Compiled compute shader: StageWorkQueue, kernel: WorkQueueActiveClusters, keywords <no keywords>
 Compiled compute shader: StageWorkQueue, kernel: WorkQueueBuild, keywords <no keywords>
 Compiled compute shader: StageWorkQueue, kernel: WorkQueueBuildArgs, keywords <no keywords>
-Compiled compute shader: StageWorkQueue, kernel: BuildFineRasterArgs, keywords <no keywords>
 Compiled compute shader: SubsurfaceScattering, kernel: SubsurfaceScattering, keywords <no keywords>
 Compiled compute shader: SubsurfaceScattering, kernel: SubsurfaceScattering, keywords ENABLE_MSAA
 Compiled compute shader: TemporalFilter, kernel: CopyHistory, keywords FULL_RESOLUTION_FILTER
@@ -677,7 +675,6 @@ Compiled compute shader: TemporalFilter, kernel: ValidateHistory, keywords FULL_
 Compiled compute shader: UberPost, kernel: Uber, keywords <no keywords>
 Compiled compute shader: UberPost, kernel: Uber, keywords CHROMATIC_ABERRATION ENABLE_ALPHA LENS_DISTORTION VIGNETTE
 Compiled compute shader: UberPost, kernel: Uber, keywords CHROMATIC_ABERRATION GAMMA2_OUTPUT LENS_DISTORTION VIGNETTE
-Compiled compute shader: UberPost, kernel: Uber, keywords CHROMATIC_ABERRATION LENS_DISTORTION VIGNETTE
 Compiled compute shader: UberPost, kernel: Uber, keywords ENABLE_ALPHA
 Compiled compute shader: VolumetricClouds, kernel: ConvertObliqueDepth, keywords <no keywords>
 Compiled compute shader: VolumetricClouds, kernel: DownscaleDepth, keywords <no keywords>
@@ -923,13 +920,10 @@ Compiled shader: HDRP/Lit, pass: DepthOnly, stage: pixel, keywords WRITE_DECAL_B
 Compiled shader: HDRP/Lit, pass: DepthOnly, stage: pixel, keywords WRITE_DECAL_BUFFER WRITE_MSAA_DEPTH WRITE_NORMAL_BUFFER _DISABLE_SSR_TRANSPARENT _MATERIAL_FEATURE_TRANSMISSION _NORMALMAP_TANGENT_SPACE
 Compiled shader: HDRP/Lit, pass: DepthOnly, stage: pixel, keywords WRITE_DECAL_BUFFER WRITE_MSAA_DEPTH WRITE_NORMAL_BUFFER _DISABLE_SSR_TRANSPARENT _NORMALMAP _NORMALMAP_TANGENT_SPACE
 Compiled shader: HDRP/Lit, pass: DepthOnly, stage: pixel, keywords WRITE_DECAL_BUFFER WRITE_MSAA_DEPTH WRITE_NORMAL_BUFFER _DISABLE_SSR_TRANSPARENT _NORMALMAP_TANGENT_SPACE
-Compiled shader: HDRP/Lit, pass: DepthOnly, stage: pixel, keywords WRITE_DECAL_BUFFER WRITE_NORMAL_BUFFER _DISABLE_SSR _DISABLE_SSR_TRANSPARENT _NORMALMAP_TANGENT_SPACE
 Compiled shader: HDRP/Lit, pass: DepthOnly, stage: pixel, keywords WRITE_DECAL_BUFFER WRITE_NORMAL_BUFFER _DISABLE_SSR_TRANSPARENT _ENABLE_GEOMETRIC_SPECULAR_AA _MASKMAP _NORMALMAP _NORMALMAP_TANGENT_SPACE
 Compiled shader: HDRP/Lit, pass: DepthOnly, stage: pixel, keywords WRITE_DECAL_BUFFER WRITE_NORMAL_BUFFER _DISABLE_SSR_TRANSPARENT _MASKMAP _NORMALMAP _NORMALMAP_TANGENT_SPACE
 Compiled shader: HDRP/Lit, pass: DepthOnly, stage: pixel, keywords WRITE_DECAL_BUFFER WRITE_NORMAL_BUFFER _DISABLE_SSR_TRANSPARENT _MASKMAP _NORMALMAP_TANGENT_SPACE
-Compiled shader: HDRP/Lit, pass: DepthOnly, stage: pixel, keywords WRITE_DECAL_BUFFER WRITE_NORMAL_BUFFER _DISABLE_SSR_TRANSPARENT _MATERIAL_FEATURE_TRANSMISSION _NORMALMAP _NORMALMAP_TANGENT_SPACE
 Compiled shader: HDRP/Lit, pass: DepthOnly, stage: pixel, keywords WRITE_DECAL_BUFFER WRITE_NORMAL_BUFFER _DISABLE_SSR_TRANSPARENT _MATERIAL_FEATURE_TRANSMISSION _NORMALMAP_TANGENT_SPACE
-Compiled shader: HDRP/Lit, pass: DepthOnly, stage: pixel, keywords WRITE_DECAL_BUFFER WRITE_NORMAL_BUFFER _DISABLE_SSR_TRANSPARENT _NORMALMAP _NORMALMAP_TANGENT_SPACE
 Compiled shader: HDRP/Lit, pass: DepthOnly, stage: pixel, keywords WRITE_DECAL_BUFFER WRITE_NORMAL_BUFFER _DISABLE_SSR_TRANSPARENT _NORMALMAP_TANGENT_SPACE
 Compiled shader: HDRP/Lit, pass: DepthOnly, stage: pixel, keywords WRITE_NORMAL_BUFFER _DISABLE_SSR _DISABLE_SSR_TRANSPARENT _NORMALMAP_TANGENT_SPACE
 Compiled shader: HDRP/Lit, pass: DepthOnly, stage: pixel, keywords WRITE_NORMAL_BUFFER _DISABLE_SSR_TRANSPARENT _NORMALMAP_TANGENT_SPACE
@@ -982,7 +976,6 @@ Compiled shader: HDRP/Lit, pass: Forward, stage: pixel, keywords AREA_SHADOW_MED
 Compiled shader: HDRP/Lit, pass: Forward, stage: pixel, keywords AREA_SHADOW_MEDIUM DECALS_4RT DIRECTIONAL_SHADOW_HIGH DIRLIGHTMAP_COMBINED LIGHTMAP_ON PUNCTUAL_SHADOW_HIGH SCREEN_SPACE_SHADOWS_OFF USE_CLUSTERED_LIGHTLIST _DISABLE_SSR_TRANSPARENT _NORMALMAP_TANGENT_SPACE
 Compiled shader: HDRP/Lit, pass: Forward, stage: pixel, keywords AREA_SHADOW_MEDIUM DECALS_4RT DIRECTIONAL_SHADOW_HIGH DIRLIGHTMAP_COMBINED LIGHTMAP_ON PUNCTUAL_SHADOW_HIGH SCREEN_SPACE_SHADOWS_OFF USE_FPTL_LIGHTLIST _DISABLE_SSR_TRANSPARENT _ENABLE_GEOMETRIC_SPECULAR_AA _MASKMAP _NORMALMAP _NORMALMAP_TANGENT_SPACE
 Compiled shader: HDRP/Lit, pass: Forward, stage: pixel, keywords AREA_SHADOW_MEDIUM DECALS_4RT DIRECTIONAL_SHADOW_HIGH DIRLIGHTMAP_COMBINED LIGHTMAP_ON PUNCTUAL_SHADOW_HIGH SCREEN_SPACE_SHADOWS_OFF USE_FPTL_LIGHTLIST _DISABLE_SSR_TRANSPARENT _MASKMAP _NORMALMAP _NORMALMAP_TANGENT_SPACE
-Compiled shader: HDRP/Lit, pass: Forward, stage: pixel, keywords AREA_SHADOW_MEDIUM DECALS_4RT DIRECTIONAL_SHADOW_HIGH DIRLIGHTMAP_COMBINED LIGHTMAP_ON PUNCTUAL_SHADOW_HIGH SCREEN_SPACE_SHADOWS_OFF USE_FPTL_LIGHTLIST _DISABLE_SSR_TRANSPARENT _NORMALMAP_TANGENT_SPACE
 Compiled shader: HDRP/Lit, pass: Forward, stage: pixel, keywords AREA_SHADOW_MEDIUM DECALS_4RT DIRECTIONAL_SHADOW_HIGH DOTS_INSTANCING_ON PUNCTUAL_SHADOW_HIGH SCREEN_SPACE_SHADOWS_OFF STEREO_INSTANCING_ON USE_CLUSTERED_LIGHTLIST _DISABLE_SSR_TRANSPARENT _ENABLE_FOG_ON_TRANSPARENT _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
 Compiled shader: HDRP/Lit, pass: Forward, stage: pixel, keywords AREA_SHADOW_MEDIUM DECALS_4RT DIRECTIONAL_SHADOW_HIGH DOTS_INSTANCING_ON PUNCTUAL_SHADOW_HIGH SCREEN_SPACE_SHADOWS_OFF STEREO_INSTANCING_ON USE_FPTL_LIGHTLIST _DISABLE_SSR_TRANSPARENT _NORMALMAP_TANGENT_SPACE
 Compiled shader: HDRP/Lit, pass: Forward, stage: pixel, keywords AREA_SHADOW_MEDIUM DECALS_4RT DIRECTIONAL_SHADOW_HIGH DOTS_INSTANCING_ON PUNCTUAL_SHADOW_HIGH SCREEN_SPACE_SHADOWS_OFF USE_CLUSTERED_LIGHTLIST _DISABLE_SSR_TRANSPARENT _ENABLE_FOG_ON_TRANSPARENT _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
@@ -1014,9 +1007,7 @@ Compiled shader: HDRP/Lit, pass: Forward, stage: pixel, keywords AREA_SHADOW_MED
 Compiled shader: HDRP/Lit, pass: Forward, stage: pixel, keywords AREA_SHADOW_MEDIUM DECALS_4RT DIRECTIONAL_SHADOW_HIGH PUNCTUAL_SHADOW_HIGH SCREEN_SPACE_SHADOWS_OFF USE_FPTL_LIGHTLIST _DISABLE_SSR_TRANSPARENT _ENABLE_GEOMETRIC_SPECULAR_AA _MASKMAP _NORMALMAP _NORMALMAP_TANGENT_SPACE
 Compiled shader: HDRP/Lit, pass: Forward, stage: pixel, keywords AREA_SHADOW_MEDIUM DECALS_4RT DIRECTIONAL_SHADOW_HIGH PUNCTUAL_SHADOW_HIGH SCREEN_SPACE_SHADOWS_OFF USE_FPTL_LIGHTLIST _DISABLE_SSR_TRANSPARENT _MASKMAP _NORMALMAP _NORMALMAP_TANGENT_SPACE
 Compiled shader: HDRP/Lit, pass: Forward, stage: pixel, keywords AREA_SHADOW_MEDIUM DECALS_4RT DIRECTIONAL_SHADOW_HIGH PUNCTUAL_SHADOW_HIGH SCREEN_SPACE_SHADOWS_OFF USE_FPTL_LIGHTLIST _DISABLE_SSR_TRANSPARENT _MASKMAP _NORMALMAP_TANGENT_SPACE
-Compiled shader: HDRP/Lit, pass: Forward, stage: pixel, keywords AREA_SHADOW_MEDIUM DECALS_4RT DIRECTIONAL_SHADOW_HIGH PUNCTUAL_SHADOW_HIGH SCREEN_SPACE_SHADOWS_OFF USE_FPTL_LIGHTLIST _DISABLE_SSR_TRANSPARENT _MATERIAL_FEATURE_TRANSMISSION _NORMALMAP _NORMALMAP_TANGENT_SPACE
 Compiled shader: HDRP/Lit, pass: Forward, stage: pixel, keywords AREA_SHADOW_MEDIUM DECALS_4RT DIRECTIONAL_SHADOW_HIGH PUNCTUAL_SHADOW_HIGH SCREEN_SPACE_SHADOWS_OFF USE_FPTL_LIGHTLIST _DISABLE_SSR_TRANSPARENT _MATERIAL_FEATURE_TRANSMISSION _NORMALMAP_TANGENT_SPACE
-Compiled shader: HDRP/Lit, pass: Forward, stage: pixel, keywords AREA_SHADOW_MEDIUM DECALS_4RT DIRECTIONAL_SHADOW_HIGH PUNCTUAL_SHADOW_HIGH SCREEN_SPACE_SHADOWS_OFF USE_FPTL_LIGHTLIST _DISABLE_SSR_TRANSPARENT _NORMALMAP _NORMALMAP_TANGENT_SPACE
 Compiled shader: HDRP/Lit, pass: Forward, stage: pixel, keywords AREA_SHADOW_MEDIUM DECALS_4RT DIRECTIONAL_SHADOW_HIGH PUNCTUAL_SHADOW_HIGH SCREEN_SPACE_SHADOWS_OFF USE_FPTL_LIGHTLIST _DISABLE_SSR_TRANSPARENT _NORMALMAP_TANGENT_SPACE
 Compiled shader: HDRP/Lit, pass: Forward, stage: vertex, keywords _DISABLE_SSR_TRANSPARENT
 Compiled shader: HDRP/Lit, pass: Forward, stage: vertex, keywords _DISABLE_SSR_TRANSPARENT _NORMALMAP
@@ -1385,7 +1376,6 @@ Compiled shader: Hidden/HDRP/FinalPass, pass: <Unnamed Pass 0>, stage: pixel, ke
 Compiled shader: Hidden/HDRP/FinalPass, pass: <Unnamed Pass 0>, stage: pixel, keywords APPLY_AFTER_POST DITHER STEREO_INSTANCING_ON
 Compiled shader: Hidden/HDRP/FinalPass, pass: <Unnamed Pass 0>, stage: pixel, keywords APPLY_AFTER_POST ENABLE_ALPHA
 Compiled shader: Hidden/HDRP/FinalPass, pass: <Unnamed Pass 0>, stage: pixel, keywords APPLY_AFTER_POST ENABLE_ALPHA GRAIN
-Compiled shader: Hidden/HDRP/FinalPass, pass: <Unnamed Pass 0>, stage: pixel, keywords APPLY_AFTER_POST GRAIN
 Compiled shader: Hidden/HDRP/FinalPass, pass: <Unnamed Pass 0>, stage: pixel, keywords APPLY_AFTER_POST GRAIN RCAS
 Compiled shader: Hidden/HDRP/FinalPass, pass: <Unnamed Pass 0>, stage: pixel, keywords APPLY_AFTER_POST GRAIN RCAS STEREO_INSTANCING_ON
 Compiled shader: Hidden/HDRP/FinalPass, pass: <Unnamed Pass 0>, stage: pixel, keywords APPLY_AFTER_POST STEREO_INSTANCING_ON
@@ -1580,8 +1570,6 @@ Compiled shader: Hidden/InternalClear, pass: <Unnamed Pass 6>, stage: pixel, key
 Compiled shader: Hidden/InternalClear, pass: <Unnamed Pass 6>, stage: pixel, keywords STEREO_INSTANCING_ON
 Compiled shader: Hidden/InternalClear, pass: <Unnamed Pass 6>, stage: vertex, keywords <no keywords>
 Compiled shader: Hidden/InternalClear, pass: <Unnamed Pass 6>, stage: vertex, keywords STEREO_INSTANCING_ON
-Compiled shader: Hidden/InternalErrorShader, pass: <Unnamed Pass 0>, stage: pixel, keywords <no keywords>
-Compiled shader: Hidden/InternalErrorShader, pass: <Unnamed Pass 0>, stage: vertex, keywords <no keywords>
 Compiled shader: Hidden/Internal-GUITexture, pass: <Unnamed Pass 0>, stage: all, keywords <no keywords>
 Compiled shader: Hidden/Internal-GUITexture, pass: <Unnamed Pass 0>, stage: pixel, keywords <no keywords>
 Compiled shader: Hidden/Internal-GUITexture, pass: <Unnamed Pass 0>, stage: vertex, keywords <no keywords>

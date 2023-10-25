@@ -18,7 +18,7 @@ namespace UnityEngine.Rendering
         internal static readonly int _Out_L2_1 = Shader.PropertyToID("_Out_L2_1");
         internal static readonly int _Out_L2_2 = Shader.PropertyToID("_Out_L2_2");
         internal static readonly int _Out_L2_3 = Shader.PropertyToID("_Out_L2_3");
-        internal static readonly int _ProbeVolumeScratchBufferLayout = Shader.PropertyToID("ProbeVolumeScratchBufferLayout");
+        internal static readonly int _ProbeVolumeScratchBufferLayout = Shader.PropertyToID("CellStreamingScratchBufferLayout");
         internal static readonly int _ProbeVolumeScratchBuffer= Shader.PropertyToID("_ScratchBuffer");
 
         internal static int DivRoundUp(int x, int y) => (x + y - 1) / y;

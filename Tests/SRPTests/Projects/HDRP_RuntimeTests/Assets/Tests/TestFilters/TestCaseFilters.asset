@@ -19,6 +19,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 16
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: https://jira.unity3d.com/browse/UUM-48116
@@ -28,6 +29,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 16
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: 
@@ -37,6 +39,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 31
     GraphicsDevice: 4
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: https://jira.unity3d.com/browse/UUM-45673
@@ -46,6 +49,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 44
     GraphicsDevice: 4
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: https://jira.unity3d.com/browse/UUM-45673
@@ -55,6 +59,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 16
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: 
@@ -64,6 +69,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 16
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: 
@@ -73,6 +79,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 44
     GraphicsDevice: 4
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: https://jira.unity3d.com/browse/UUM-41066
@@ -82,6 +89,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 44
     GraphicsDevice: 4
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: https://jira.unity3d.com/browse/PLATGRAPH-2249
@@ -91,6 +99,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 42
     GraphicsDevice: 4
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: https://jira.unity3d.com/browse/UUM-51336
@@ -100,6 +109,17 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 16
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: 'don''t work on metal '
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 5028fc98db6fe304c90852113dca5b00, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    Architecture: 4
+    XrSdk: 
+    StereoModes: 0
+    Reason: https://jira.unity3d.com/browse/UUM-54029

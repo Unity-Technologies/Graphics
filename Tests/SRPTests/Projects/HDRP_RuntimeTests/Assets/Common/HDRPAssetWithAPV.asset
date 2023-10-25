@@ -77,8 +77,8 @@ MonoBehaviour:
     lightProbeSystem: 1
     oldLightProbeSystem: 0
     probeVolumeMemoryBudget: 1024
-    supportProbeVolumeGPUStreaming: 0
-    supportProbeVolumeDiskStreaming: 0
+    supportProbeVolumeGPUStreaming: 1
+    supportProbeVolumeDiskStreaming: 1
     probeVolumeSHBands: 1
     supportProbeVolumeScenarios: 1
     supportProbeVolumeScenarioBlending: 1
@@ -305,6 +305,8 @@ MonoBehaviour:
       - 0.666
       - 0.666
       - 0.5
+    gpuResidentDrawerSettings:
+      mode: 0
     m_ObsoleteLightLayerName0: Light Layer default
     m_ObsoleteLightLayerName1: Light Layer 1
     m_ObsoleteLightLayerName2: Light Layer 2
@@ -336,6 +338,9 @@ MonoBehaviour:
     - format: 0
       sizeInMegaBytes: 128
   m_UseRenderGraph: 1
+  m_CompositorCustomVolumeComponentsList:
+    m_InjectionPoint: 1
+    m_CustomPostProcessTypesAsString: []
   m_Version: 24
   m_ObsoleteFrameSettings:
     overrides: 0
