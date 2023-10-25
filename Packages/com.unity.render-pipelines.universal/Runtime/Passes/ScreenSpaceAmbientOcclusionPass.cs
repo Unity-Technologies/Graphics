@@ -36,10 +36,11 @@ namespace UnityEngine.Rendering.Universal
 
         // Constants
         private const string k_SSAOTextureName = "_ScreenSpaceOcclusionTexture";
-        private const string k_SSAOAmbientOcclusionParamName = "_AmbientOcclusionParam";
+        private const string k_AmbientOcclusionParamName = "_AmbientOcclusionParam";
 
         // Statics
         private static readonly int s_SSAOParamsID = Shader.PropertyToID("_SSAOParams");
+        private static readonly int s_AmbientOcclusionParamID = Shader.PropertyToID(k_AmbientOcclusionParamName);
         private static readonly int s_SSAOBlueNoiseParamsID = Shader.PropertyToID("_SSAOBlueNoiseParams");
         private static readonly int s_BlueNoiseTextureID = Shader.PropertyToID("_BlueNoiseTexture");
         private static readonly int s_CameraViewXExtentID = Shader.PropertyToID("_CameraViewXExtent");
@@ -306,6 +307,7 @@ namespace UnityEngine.Rendering.Universal
             internal RTHandle[] ssaoTextures;
             internal Texture2D[] blueNoiseTextures;
             internal Material material;
+            internal Vector4 ambientOcclusionParams;
             internal Vector4[] cameraTopLeftCorner;
             internal Vector4[] cameraXExtent;
             internal Vector4[] cameraYExtent;
@@ -382,13 +384,13 @@ namespace UnityEngine.Rendering.Universal
 
         private void ExecuteSetupPass(RenderGraph renderGraph, UniversalCameraData cameraData, UniversalResourceData resourceData)
         {
-
             using (IRasterRenderGraphBuilder builder = renderGraph.AddRasterRenderPass<SetupPassData>("SSAO_Setup", out var passData, m_ProfilingSampler))
             {
                 // Initialize the pass data
                 InitSetupPassData(ref passData);
                 passData.cameraColor = resourceData.cameraColor;
                 passData.cameraData = cameraData;
+                passData.ambientOcclusionParams = new Vector4(0f, 0f, 0f, m_CurrentSettings.DirectLightingStrength);
 
                 // Shader keyword changes are considered as global state modifications
                 builder.AllowGlobalStateModification(true);
@@ -404,7 +406,10 @@ namespace UnityEngine.Rendering.Universal
 
                     // We only want URP shaders to sample SSAO if After Opaque is disabled...
                     if (!data.settings.AfterOpaque)
+                    {
                         rgContext.cmd.SetKeyword(ref ShaderGlobalKeywords.ScreenSpaceOcclusion, true);
+                        rgContext.cmd.SetGlobalVector(s_AmbientOcclusionParamID, data.ambientOcclusionParams);
+                    }
                 });
             }
         }
@@ -661,7 +666,7 @@ namespace UnityEngine.Rendering.Universal
 
                 GetPassOrder(m_BlurType, m_CurrentSettings.AfterOpaque, out int[] textureIndices, out ShaderPasses[] shaderPasses);
 
-                // Execute the SSAO
+                // Execute the SSAO Occlusion pass
                 RTHandle cameraDepthTargetHandle = renderingData.cameraData.renderer.cameraDepthTargetHandle;
                 RenderAndSetBaseMap(ref cmd, ref renderingData, ref renderingData.cameraData.renderer, ref m_Material, ref cameraDepthTargetHandle, ref m_SSAOTextures[0], ShaderPasses.AmbientOcclusion);
 
@@ -674,7 +679,7 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 // Set the global SSAO Params
-                cmd.SetGlobalVector(k_SSAOAmbientOcclusionParamName, new Vector4(0f, 0f, 0f, m_CurrentSettings.DirectLightingStrength));
+                cmd.SetGlobalVector(s_AmbientOcclusionParamID, new Vector4(0f, 0f, 0f, m_CurrentSettings.DirectLightingStrength));
                 #if ENABLE_VR && ENABLE_XR_MODULE
                     // Cleanup, making sure it doesn't stay enabled for a pass after that should not have it on
                     if (isFoveatedEnabled)
