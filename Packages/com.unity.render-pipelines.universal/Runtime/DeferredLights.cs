@@ -335,7 +335,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     cmd.SetKeyword(ShaderGlobalKeywords.ShadowsShadowMask, isShadowMask);
                     cmd.SetKeyword(ShaderGlobalKeywords.MixedLightingSubtractive, isSubtractive); // Backward compatibility
                     // This should be moved to a more global scope when framebuffer fetch is introduced to more passes
-                    cmd.SetKeyword(ShaderGlobalKeywords.RenderPassEnabled, this.UseFramebufferFetch && cameraData.cameraType == CameraType.Game);
+                    cmd.SetKeyword(ShaderGlobalKeywords.RenderPassEnabled, this.UseFramebufferFetch && (cameraData.cameraType == CameraType.Game || camera.cameraType == CameraType.SceneView));
                     cmd.SetKeyword(ShaderGlobalKeywords.LightLayers, UseLightLayers);
 
                     RenderingLayerUtils.SetupProperties(CommandBufferHelpers.GetRasterCommandBuffer(cmd), RenderingLayerMaskSize);
