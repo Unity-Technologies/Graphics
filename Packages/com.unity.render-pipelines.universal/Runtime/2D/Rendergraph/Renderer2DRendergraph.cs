@@ -35,7 +35,7 @@ namespace UnityEngine.Rendering.Universal
         DebugScreenDepth
     }
 
-    internal sealed partial class Renderer2D
+    internal sealed partial class Renderer2D : ScriptableRenderer
     {
         RTHandle m_RenderGraphCameraColorHandle;
         RTHandle m_RenderGraphCameraDepthHandle;
@@ -406,6 +406,17 @@ namespace UnityEngine.Rendering.Universal
             commonResourceData.InitFrame();
         }
 
+        internal void RecordCustomRenderGraphPasses(RenderGraph renderGraph, RenderPassEvent2D activeRPEvent)
+        {
+            foreach (ScriptableRenderPass pass in activeRenderPassQueue)
+            {
+                pass.GetInjectionPoint2D(out RenderPassEvent2D rpEvent, out int rpLayer);
+
+                if (rpEvent == activeRPEvent)
+                    pass.RecordRenderGraph(renderGraph, frameData);
+            }
+        }
+
         internal override void OnRecordRenderGraph(RenderGraph renderGraph, ScriptableRenderContext context)
         {
             InitializeLayerBatches();
@@ -420,9 +431,12 @@ namespace UnityEngine.Rendering.Universal
 
             OnBeforeRendering(renderGraph);
 
+            RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent2D.BeforeRendering);
             OnMainRendering(renderGraph);
 
+            RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent2D.BeforeRenderingPostProcessing);
             OnAfterRendering(renderGraph);
+            
         }
 
         public override void OnEndRenderGraphFrame()
@@ -592,6 +606,7 @@ namespace UnityEngine.Rendering.Universal
                 finalColorHandle = commonResourceData.afterPostProcessColor;
             }
 
+            RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent2D.AfterRenderingPostProcessing);
             // Do PixelPerfect upscaling when using the Stretch Fill option
             if (requirePixelPerfectUpscale)
             {

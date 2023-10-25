@@ -198,7 +198,6 @@ public partial class FullScreenPassRendererFeature : ScriptableRendererFeature
             UniversalResourceData resourcesData = frameData.Get<UniversalResourceData>();
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
 
-            UniversalRenderer renderer = (UniversalRenderer)cameraData.renderer;
             var colorCopyDescriptor = cameraData.cameraTargetDescriptor;
             colorCopyDescriptor.msaaSamples = 1;
             colorCopyDescriptor.depthBufferBits = (int)DepthBits.None;
