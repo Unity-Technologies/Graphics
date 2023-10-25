@@ -417,6 +417,9 @@ MonoBehaviour:
     scramblingTile256SPP: {fileID: 2800000, guid: 882fb55d7b3e7c94598a318df9376e32,
       type: 3}
     eyeCausticLUT: {fileID: 11700000, guid: d4ec12283a044584794485916f4142a9, type: 3}
+    hairAttenuationLUT: {fileID: 11700000, guid: d37662e2b254e594abf839dddc5ab653, type: 2}
+    hairAzimuthalScatteringLUT: {fileID: 11700000, guid: d217deac7ff61094080126811521ab5b, type: 2}
+    hairLongitudinalScatteringLUT: {fileID: 11700000, guid: 0da412d38ea6ba3459322abe6984ca9b, type: 2}
     cloudLutRainAO: {fileID: 2800000, guid: e0bcfddf26ed5584ba3d8b94d3200114, type: 3}
     worleyNoise128RGBA: {fileID: 11700000, guid: 1fe54a721d0e2504e89f121c723404a8,
       type: 3}
