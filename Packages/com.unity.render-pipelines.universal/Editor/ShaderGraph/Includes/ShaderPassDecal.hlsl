@@ -90,7 +90,7 @@ void InitializeInputData(Varyings input, float3 positionWS, half3 normalWS, half
 #if defined(VARYINGS_NEED_DYNAMIC_LIGHTMAP_UV) && defined(DYNAMICLIGHTMAP_ON)
     inputData.bakedGI = SAMPLE_GI(input.staticLightmapUV, input.dynamicLightmapUV.xy, half3(input.sh), normalWS);
 #elif defined(VARYINGS_NEED_STATIC_LIGHTMAP_UV)
-#if (defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2))
+#if !defined(LIGHTMAP_ON) && (defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2))
     inputData.bakedGI = SAMPLE_GI(input.sh,
         GetAbsolutePositionWS(inputData.positionWS),
         inputData.normalWS,
