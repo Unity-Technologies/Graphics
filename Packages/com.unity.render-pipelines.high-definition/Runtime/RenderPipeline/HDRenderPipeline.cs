@@ -66,7 +66,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal HDRenderPipelineRuntimeResources.MaterialResources runtimeMaterials { get; private set; }
         internal HDRenderPipelineRuntimeResources.ShaderResources runtimeShaders { get; private set; }
         internal HDRenderPipelineRuntimeResources.AssetResources runtimeAssets { get; private set; }
-        internal HDRenderPipelineRuntimeResources.TextureResources runtimeTextures { get; private set; }
+        internal HDRenderPipelineRuntimeTextures runtimeTextures { get; private set; }
 
         internal RenderPipelineSettings currentPlatformRenderPipelineSettings { get { return m_Asset.currentPlatformRenderPipelineSettings; } }
 
@@ -447,7 +447,7 @@ namespace UnityEngine.Rendering.HighDefinition
             runtimeMaterials = m_GlobalSettings.renderPipelineResources.materials;
             runtimeShaders   = m_GlobalSettings.renderPipelineResources.shaders;
             runtimeAssets    = m_GlobalSettings.renderPipelineResources.assets;
-            runtimeTextures  = m_GlobalSettings.renderPipelineResources.textures;
+            runtimeTextures  = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeTextures>();
 
             m_Asset = asset;
             HDProbeSystem.Parameters = asset.reflectionSystemParameters;
@@ -2061,7 +2061,7 @@ namespace UnityEngine.Rendering.HighDefinition
             runtimeMaterials = m_GlobalSettings.renderPipelineResources.materials;
             runtimeShaders   = m_GlobalSettings.renderPipelineResources.shaders;
             runtimeAssets    = m_GlobalSettings.renderPipelineResources.assets;
-            runtimeTextures  = m_GlobalSettings.renderPipelineResources.textures;
+            runtimeTextures  = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeTextures>();
 #endif
             if (m_GlobalSettings.lensAttenuationMode == LensAttenuationMode.ImperfectLens)
             {

@@ -510,7 +510,7 @@ namespace UnityEngine.Rendering.HighDefinition
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.WaterSurfaceUpdate)))
             {
                 // Bind the noise textures
-                GetBlueNoiseManager().BindDitheredRNGData1SPP(cmd);
+                BlueNoise.BindDitheredTextureSet(cmd, GetBlueNoiseManager().DitheredTextureSet1SPP());
 
                 // Loop through them and update them
                 for (int surfaceIdx = 0; surfaceIdx < numWaterSurfaces; ++surfaceIdx)

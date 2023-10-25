@@ -1392,7 +1392,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                                 ctx.cmd.SetComputeFloatParam(cs, HDShaderIDs._SsrPBRBias, data.roughnessBiasFactor);
 
-                                data.blueNoise.BindDitheredRNGData1SPP(ctx.cmd);
+                                BlueNoise.BindDitheredTextureSet(ctx.cmd, data.blueNoise.DitheredTextureSet1SPP());
 
                                 ConstantBuffer.Push(ctx.cmd, data.cb, cs, HDShaderIDs._ShaderVariablesScreenSpaceReflection);
 

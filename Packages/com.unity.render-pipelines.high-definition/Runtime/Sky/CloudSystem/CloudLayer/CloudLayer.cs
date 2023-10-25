@@ -337,9 +337,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         static void Init()
         {
-            if (HDRenderPipelineGlobalSettings.instance != null)
+            if (GraphicsSettings.TryGetRenderPipelineSettings<HDRenderPipelineRuntimeTextures>(out var runtimeTextures))
             {
-                var runtimeTextures = HDRenderPipelineGlobalSettings.instance.renderPipelineResources.textures;
                 CloudMap.s_DefaultTexture = runtimeTextures.defaultCloudMap;
             }
         }
