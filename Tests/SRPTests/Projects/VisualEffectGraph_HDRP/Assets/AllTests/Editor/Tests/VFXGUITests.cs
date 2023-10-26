@@ -365,7 +365,7 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(1, blockController.inputPorts.OfType<VFXContextDataInputAnchorController>().Count(x => x.path == "aVector3.y"));
             Assert.AreEqual(1, blockController.inputPorts.OfType<VFXContextDataInputAnchorController>().Count(x => x.path == "aVector3.z"));
 
-            aVector3Controller.SetPropertyValue(new Vector3(1.2f, 3.4f, 5.6f));
+            aVector3Controller.value = new Vector3(1.2f, 3.4f, 5.6f);
 
             Assert.AreEqual(slot.value, new Vector3(1.2f, 3.4f, 5.6f));
 
@@ -374,7 +374,7 @@ namespace UnityEditor.VFX.Test
 
             var vector3yController = blockController.inputPorts.OfType<VFXContextDataInputAnchorController>().First(x => x.path == "aVector3.y");
 
-            vector3yController.SetPropertyValue(7.8f);
+            vector3yController.value = 7.8f;
 
             Assert.AreEqual(slot.value, new Vector3(1.2f, 7.8f, 5.6f));
         }
