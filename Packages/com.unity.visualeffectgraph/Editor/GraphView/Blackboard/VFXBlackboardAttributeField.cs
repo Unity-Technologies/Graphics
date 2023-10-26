@@ -23,7 +23,7 @@ namespace UnityEditor.VFX.UI
 
         private readonly Pill m_Pill;
 
-        public VFXBlackboardAttributeField(AttributeItem attribute)
+        public VFXBlackboardAttributeField(AttributeItem attribute) : base($"attr:{attribute.title}")
         {
             this.AddStyleSheetPath(Blackboard.StyleSheetPath);
 

@@ -202,42 +202,47 @@ namespace UnityEditor.VFX.Test
             Undo.IncrementCurrentGroup();
             var crossDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name.Contains("Cross"));
             var cross = m_ViewController.AddVFXOperator(new Vector2(0, 0), crossDesc);
+            m_ViewController.ApplyChanges();
 
-            foreach (var slot in cross.inputSlots.Concat(cross.outputSlots))
+            var operatorController = m_ViewController.allChildren.OfType<VFXOperatorController>().FirstOrDefault();
+            Assert.IsNotNull(operatorController);
+
+            foreach (var controller in operatorController.inputPorts.Concat(operatorController.outputPorts).Where(t => t.model.IsMasterSlot()))
             {
-                Undo.IncrementCurrentGroup();
-                Assert.IsTrue(slot.collapsed);
-                slot.collapsed = false;
+                Undo.IncrementCurrentGroup();   
+                Assert.IsTrue(controller.model.collapsed);
+                controller.ExpandPath();
+                Assert.IsTrue(!controller.model.collapsed);
             }
 
             m_ViewController.ApplyChanges();
 
             var totalSlotCount = cross.inputSlots.Concat(cross.outputSlots).Count();
-            for (int step = 1; step < totalSlotCount; step++)
+            for (int step = 1; step <= totalSlotCount; step++)
             {
                 Undo.PerformUndo();
                 var vfxOperatorController = m_ViewController.allChildren.OfType<VFXOperatorController>().FirstOrDefault();
                 Assert.IsNotNull(vfxOperatorController);
 
-                var slots = vfxOperatorController.model.inputSlots.Concat(vfxOperatorController.model.outputSlots).Reverse();
+                var slots = cross.inputSlots.Concat(cross.outputSlots).Reverse();
                 for (int i = 0; i < totalSlotCount; ++i)
-                {
+                {         
                     var slot = slots.ElementAt(i);
                     Assert.AreEqual(i < step, slot.collapsed);
                 }
             }
 
-            for (int step = 1; step < totalSlotCount; step++)
+            for (int step = 1; step <= totalSlotCount; step++)
             {
                 Undo.PerformRedo();
                 var vfxOperatorController = m_ViewController.allChildren.OfType<VFXOperatorController>().FirstOrDefault();
                 Assert.IsNotNull(vfxOperatorController);
 
-                var slots = vfxOperatorController.model.inputSlots.Concat(vfxOperatorController.model.outputSlots);
+                var slots = cross.inputSlots.Concat(cross.outputSlots);
                 for (int i = 0; i < totalSlotCount; ++i)
                 {
                     var slot = slots.ElementAt(i);
-                    Assert.AreEqual(i > step, slot.collapsed);
+                    Assert.AreEqual(i >= step, slot.collapsed);
                 }
             }
         }
@@ -247,13 +252,15 @@ namespace UnityEditor.VFX.Test
         {
             Undo.IncrementCurrentGroup();
             var absDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "Absolute");
-            var abs = m_ViewController.AddVFXOperator(new Vector2(0, 0), absDesc);
+            m_ViewController.AddVFXOperator(new Vector2(0, 0), absDesc);
+            m_ViewController.ApplyChanges();
+            var absController = m_ViewController.allChildren.OfType<VFXOperatorController>().FirstOrDefault();
 
             var positions = new[] { new Vector2(1, 1), new Vector2(2, 2), new Vector2(3, 3), new Vector2(4, 4) };
             foreach (var position in positions)
             {
                 Undo.IncrementCurrentGroup();
-                abs.position = position;
+                absController.position = position;
             }
 
             Func<Type, VFXNodeController> fnFindController = delegate(Type type)
@@ -460,10 +467,9 @@ namespace UnityEditor.VFX.Test
             var absOperator = fnAllOperatorController()[0];
 
             Undo.IncrementCurrentGroup();
+
             absOperator.inputPorts[0].value = 0;
-
             absOperator.position = new Vector2(1, 2);
-
 
             Undo.IncrementCurrentGroup();
 
@@ -472,7 +478,7 @@ namespace UnityEditor.VFX.Test
 
             Undo.PerformUndo();
 
-            Assert.AreEqual(123, absOperator.inputPorts[0].value);
+            Assert.AreEqual(0, absOperator.inputPorts[0].value);
             Assert.AreEqual(new Vector2(1, 2), absOperator.position);
 
             Undo.PerformRedo();
@@ -833,6 +839,115 @@ namespace UnityEditor.VFX.Test
 
             Undo.PerformUndo();
             Assert.AreEqual(1, fnFlowEdgeCount(), "Fail undo Delete");
+        }
+
+        [Test]
+        public void UndoRedoEnableBlock()
+        {
+            var contextUpdateDesc = VFXLibrary.GetContexts().FirstOrDefault(o => o.name.Contains("Update"));
+            var gravityDesc = VFXLibrary.GetBlocks().FirstOrDefault(o => o.name == "Gravity");
+            var notOperatorDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "Not");
+
+            var updateContext = m_ViewController.AddVFXContext(new Vector2(10, 0), contextUpdateDesc);
+            var gravityBlock = gravityDesc.CreateInstance();
+            var notOperator = m_ViewController.AddVFXOperator(new Vector2(0, 8), notOperatorDesc);
+
+            notOperator.outputSlots[0].Link(gravityBlock.activationSlot);
+            updateContext.AddChild(gravityBlock);
+            m_ViewController.ApplyChanges();
+
+            Assert.IsTrue(gravityBlock.enabled);
+
+            Undo.IncrementCurrentGroup();
+
+            var notController = m_ViewController.GetNodeController(notOperator, 0);
+            notController.inputPorts[0].value = true;
+            Assert.IsFalse(gravityBlock.enabled);
+
+            Undo.PerformUndo();
+            Assert.IsTrue(gravityBlock.enabled);
+
+            Undo.PerformRedo();
+            Assert.IsFalse(gravityBlock.enabled);
+        }
+
+        [Test]
+        public void UndoRedoAddRemoveGroup()
+        {
+            var notOperatorDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "Not");
+            var notOperatorA = m_ViewController.AddVFXOperator(new Vector2(0, 0), notOperatorDesc);
+            var notOperatorB = m_ViewController.AddVFXOperator(new Vector2(0, 40), notOperatorDesc);
+
+            m_ViewController.ApplyChanges();
+
+            var notControllerA = m_ViewController.GetNodeController(notOperatorA, 0);
+            var notControllerB = m_ViewController.GetNodeController(notOperatorB, 0);
+
+            Undo.IncrementCurrentGroup();
+
+            m_ViewController.GroupNodes(new [] { notControllerA, notControllerB });
+            m_ViewController.ApplyChanges();
+
+            Assert.AreEqual(1, m_ViewController.groupNodes.Count);
+            Assert.IsTrue(m_ViewController.groupNodes.First().ContainsNode(notControllerA));
+            Assert.IsTrue(m_ViewController.groupNodes.First().ContainsNode(notControllerB));
+
+            Undo.PerformUndo();
+
+            Assert.AreEqual(0, m_ViewController.groupNodes.Count);
+
+            Undo.PerformRedo();
+
+            notControllerA = m_ViewController.GetNodeController(notOperatorA, 0);
+            notControllerB = m_ViewController.GetNodeController(notOperatorB, 0);
+
+            Assert.AreEqual(1, m_ViewController.groupNodes.Count);
+            Assert.IsTrue(m_ViewController.groupNodes.First().ContainsNode(notControllerA));
+            Assert.IsTrue(m_ViewController.groupNodes.First().ContainsNode(notControllerB));
+        }
+
+        [Test]
+        public void UndoRedoAddModifyRemoveStickyNote()
+        {
+            const string testStr = "TEST";
+
+            m_ViewController.AddStickyNote(new Vector2(0, 0), null);
+            m_ViewController.ApplyChanges();
+
+            Assert.AreEqual(1, m_ViewController.stickyNotes.Count);
+            Assert.AreNotEqual(testStr, m_ViewController.stickyNotes.First().title);
+
+            Undo.IncrementCurrentGroup();
+
+            m_ViewController.stickyNotes.First().title = testStr;
+            Assert.AreEqual(testStr, m_ViewController.stickyNotes.First().title);
+
+            Undo.IncrementCurrentGroup();
+
+            m_ViewController.RemoveElement(m_ViewController.stickyNotes.First());
+            Assert.AreEqual(0, m_ViewController.stickyNotes.Count);
+
+            Undo.PerformUndo();
+            Assert.AreEqual(1, m_ViewController.stickyNotes.Count);
+            Assert.AreEqual(testStr, m_ViewController.stickyNotes.First().title);
+
+            Undo.PerformUndo();
+            Assert.AreEqual(1, m_ViewController.stickyNotes.Count);
+            Assert.AreNotEqual(testStr, m_ViewController.stickyNotes.First().title);
+
+            Undo.PerformUndo();
+            Assert.AreEqual(0, m_ViewController.stickyNotes.Count);
+
+            Undo.PerformRedo();
+            Assert.AreEqual(1, m_ViewController.stickyNotes.Count);
+            Assert.AreNotEqual(testStr, m_ViewController.stickyNotes.First().title);
+
+            Undo.PerformRedo();
+            Assert.AreEqual(1, m_ViewController.stickyNotes.Count);
+            Assert.AreEqual(testStr, m_ViewController.stickyNotes.First().title);
+
+            Undo.PerformRedo();
+            Assert.AreEqual(0, m_ViewController.stickyNotes.Count);
         }
 
         [Test]

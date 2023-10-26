@@ -11,6 +11,11 @@ namespace UnityEditor.VFX.UI
         protected Label m_Label;
         protected TextField m_TextField;
 
+        protected VFXBlackboardFieldBase(string dataKey)
+        {
+            viewDataKey = dataKey;
+        }
+
         public abstract IParameterItem item { get; }
         public string text
         {
@@ -24,6 +29,11 @@ namespace UnityEditor.VFX.UI
             m_TextField.value = text;
             m_TextField.style.display = DisplayStyle.Flex;
             m_TextField.Q(TextField.textInputUssName).Focus();
+        }
+
+        public override void OnSelected()
+        {
+            GetView().blackboard.UpdateSelection();
         }
 
         protected virtual void OnMouseDown(MouseDownEvent evt)

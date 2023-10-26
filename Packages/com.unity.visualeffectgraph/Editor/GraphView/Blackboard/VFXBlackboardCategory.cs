@@ -15,7 +15,7 @@ namespace UnityEditor.VFX.UI
     {
         private readonly IParameterItem m_Category;
 
-        public VFXBlackboardCategory(IParameterItem category)
+        public VFXBlackboardCategory(IParameterItem category) : base($"cat:{category.title}")
         {
             m_Category = category;
 

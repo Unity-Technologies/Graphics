@@ -737,6 +737,7 @@ namespace UnityEditor.VFX.UI
             elementResized = VFXElementResized;
             canPasteSerializedData = VFXCanPaste;
 
+            viewDataKey = "VFXView";
             RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
         }
 

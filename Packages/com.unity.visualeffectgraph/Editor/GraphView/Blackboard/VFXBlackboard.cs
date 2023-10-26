@@ -153,6 +153,7 @@ namespace UnityEditor.VFX.UI
         Label m_PathLabel;
         TextField m_PathTextField;
         bool m_CanEdit;
+        bool m_IsChangingSelection;
         ViewMode m_ViewMode;
         List<string> m_pendingSelectionItems = new ();
 
@@ -326,24 +327,35 @@ namespace UnityEditor.VFX.UI
 
         private void OnSelectionChanged(IEnumerable<object> selectedItems)
         {
+            if (m_IsChangingSelection)
+                return;
+
             var newSelection = selectedItems.ToArray();
             if (newSelection.Length > 0)
             {
-                m_View.ClearSelectionFast();
-                foreach (var item in newSelection)
+                try
                 {
-                    if (item is IParameterItem parameterItem)
+                    m_IsChangingSelection = true;
+                    m_View.ClearSelectionFast();
+                    foreach (var item in newSelection)
                     {
-                        if (parameterItem.selectable != null)
+                        if (item is IParameterItem parameterItem)
                         {
-                            AddToSelection(parameterItem.selectable);
-                        }
-                        else
-                        {
-                            m_pendingSelectionItems.Add(parameterItem.title);
-                            m_Treeview.ScrollToItemById(parameterItem.id);
+                            if (parameterItem.selectable != null)
+                            {
+                                AddToSelection(parameterItem.selectable);
+                            }
+                            else
+                            {
+                                m_pendingSelectionItems.Add(parameterItem.title);
+                                m_Treeview.ScrollToItemById(parameterItem.id);
+                            }
                         }
                     }
+                }
+                finally
+                {
+                    m_IsChangingSelection = false;
                 }
             }
         }
@@ -1199,6 +1211,26 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        public void UpdateSelection()
+        {
+            if (m_IsChangingSelection)
+                return;
+
+            try
+            {
+                m_IsChangingSelection = true;
+                m_Treeview.ClearSelection();
+                foreach (var selectedField in m_View.selection.OfType<VFXBlackboardFieldBase>().ToArray())
+                {
+                    m_Treeview.AddToSelection(selectedField.item.index);
+                }
+            }
+            finally
+            {
+                m_IsChangingSelection = false;
+            }
+        }
+
         public override void ClearSelection()
         {
             // Do nothing!!
@@ -1297,7 +1329,7 @@ namespace UnityEditor.VFX.UI
                 }
 
                 m_Treeview.SetRootItems(m_ParametersController);
-                m_Treeview.ClearSelection();
+                UpdateSelection();
                 m_Treeview.RefreshItems();
                 UpdateSubtitle();
                 SynchronizeExpandState();
