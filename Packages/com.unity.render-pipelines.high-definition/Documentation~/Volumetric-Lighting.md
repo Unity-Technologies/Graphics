@@ -17,4 +17,9 @@ To increase the resolution of the volumetrics, in the **Lighting** section of th
 
 If you want to enable reprojection support, go to **Edit** > **Project Settings** > **HDRP Global Settings** > **Frame Settings (Default Values)** >  **Lighting** and enable **Reprojection**. Reprojection improves the lighting quality in the Scene by taking previous frames into account when calculating the lighting for the current frame. This option isn't compatible with dynamic lights, so you might encounter ghosting artifacts behind moving Lights. Using high values for **Anisotropy** in the [Fog](Override-Fog.md) Volume override might cause flickering Shadows.
 
-**Note**: Volumetric fog doesn't work for Cameras that use oblique projection matrices. If you want a Camera to render volumetric fog, don't assign an off-axis projection to it.
+### Limitations
+
+Volumentic Fog does not work with:
+
+* Cameras that use oblique projection matrices. If you want a Camera to render volumetric fog, don't assign an off-axis projection to it.
+* Platforms/GPUs that do not support RGBA16 Read/Write (e.g. Mac Intel GPUs).

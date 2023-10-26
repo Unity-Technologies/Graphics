@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
@@ -156,6 +157,15 @@ namespace UnityEngine.Rendering.HighDefinition
             return hdCamera.frameSettings.IsEnabled(FrameSettingsField.AtmosphericScattering) && hdCamera.volumeStack.GetComponent<Fog>().enabled.value;
         }
 
+        private static class FogGraphicsUtils
+        {
+            // There are some device types that do not support load/store (random read/write) on R16G16B16A16_SFloat textures
+            // where SystemInfo.IsFormatSupported(GraphicsFormat.R16G16B16A16_SFloat, GraphicsFormatUsage.LoadStore) would return true,
+            // which is incorrect (i.e. Metal), so SystemInfo.SupportsRandomWriteOnRenderTextureFormat() needs to be used as well.
+            // (See https://developer.apple.com/documentation/metal/mtlreadwritetexturetier/tier1).
+            public static readonly bool GraphicsDeviceSupportsRGBA16LoadStore = SystemInfo.IsFormatSupported(GraphicsFormat.R16G16B16A16_SFloat, GraphicsFormatUsage.LoadStore) && SystemInfo.SupportsRandomWriteOnRenderTextureFormat(GraphicsFormatUtility.GetRenderTextureFormat(GraphicsFormat.R16G16B16A16_SFloat));
+        }
+
         internal static bool IsVolumetricFogEnabled(HDCamera hdCamera)
         {
             var fog = hdCamera.volumeStack.GetComponent<Fog>();
@@ -164,8 +174,9 @@ namespace UnityEngine.Rendering.HighDefinition
             bool b = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Volumetrics);
             bool c = CoreUtils.IsSceneViewFogEnabled(hdCamera.camera);
             bool d = fog.enabled.value;
+            bool e = FogGraphicsUtils.GraphicsDeviceSupportsRGBA16LoadStore;
 
-            return a && b && c && d;
+            return a && b && c && d && e;
         }
 
         internal static bool IsPBRFogEnabled(HDCamera hdCamera)
