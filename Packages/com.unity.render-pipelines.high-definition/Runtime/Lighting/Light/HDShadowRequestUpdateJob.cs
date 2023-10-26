@@ -635,7 +635,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             // Handshake with the cached shadow manager to notify about the rendering.
                             // Technically the rendering has not happened yet, but it is scheduled.
-                            cachedShadowAtlas.shadowsWithValidData.Add(cachedShadowID, cachedShadowID);
+                            cachedShadowAtlas.shadowsWithValidData.TryAdd(cachedShadowID, cachedShadowID);
                         }
                     }
 
