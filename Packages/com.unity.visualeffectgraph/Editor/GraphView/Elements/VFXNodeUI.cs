@@ -51,17 +51,7 @@ namespace UnityEditor.VFX.UI
 
                 base.expanded = value;
                 controller.expanded = value;
-                if (controller.HasActivationAnchor)
-                {
-                    var anchorController = controller.inputPorts[0];
-                    var anchor = inputContainer.Children()
-                        .Cast<VFXDataAnchor>()
-                        .SingleOrDefault(x => x.controller == anchorController);
-                    if (anchor != null)
-                    {
-                        this.UpdateActivationPortPosition(anchor);
-                    }
-                }
+                UpdateActivationPortPositionIfAny();
             }
         }
 
@@ -261,12 +251,6 @@ namespace UnityEditor.VFX.UI
                     else
                         anchor = InstantiateDataAnchor(portController, this); // new anchor
 
-                    if (hasActivationPort && i == 0) // activation anchor
-                    {
-                        anchor.alwaysVisible = true;
-                        this.UpdateActivationPortPosition(anchor);
-                    }
-
                     if (hasActivationPort && i == 1 || !hasActivationPort && i == 0)
                     {
                         anchor.AddToClassList("first");
@@ -286,6 +270,8 @@ namespace UnityEditor.VFX.UI
                     anchor.parent?.Remove(anchor);
                 }
             }
+
+            UpdateActivationPortPositionIfAny(); // Needed to account for expanded state change in case of undo/redo
         }
 
         private void UpdateActivationPortPosition(VFXDataAnchor anchor)
@@ -298,6 +284,24 @@ namespace UnityEditor.VFX.UI
             titleContainer.AddToClassList("activationslot");
             anchor.AddToClassList("activationslot");
             AddToClassList("activationslot");
+        }
+
+        private bool UpdateActivationPortPositionIfAny()
+        {
+            if (controller.HasActivationAnchor)
+            {
+                var anchorController = controller.inputPorts[0];
+                var anchor = inputContainer.Children()
+                    .Cast<VFXDataAnchor>()
+                    .SingleOrDefault(x => x.controller == anchorController);
+                if (anchor != null)
+                {
+                    UpdateActivationPortPosition(anchor);
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public void ForceUpdate()
