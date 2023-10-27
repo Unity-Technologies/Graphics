@@ -65,7 +65,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal HDRenderPipelineRuntimeResources.MaterialResources runtimeMaterials { get; private set; }
         internal HDRenderPipelineRuntimeResources.ShaderResources runtimeShaders { get; private set; }
-        internal HDRenderPipelineRuntimeResources.AssetResources runtimeAssets { get; private set; }
+        internal HDRenderPipelineRuntimeAssets runtimeAssets { get; private set; }
         internal HDRenderPipelineRuntimeTextures runtimeTextures { get; private set; }
 
         internal RenderPipelineSettings currentPlatformRenderPipelineSettings { get { return m_Asset.currentPlatformRenderPipelineSettings; } }
@@ -446,7 +446,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             runtimeMaterials = m_GlobalSettings.renderPipelineResources.materials;
             runtimeShaders   = m_GlobalSettings.renderPipelineResources.shaders;
-            runtimeAssets    = m_GlobalSettings.renderPipelineResources.assets;
+            runtimeAssets    = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeAssets>();
             runtimeTextures  = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeTextures>();
 
             m_Asset = asset;
@@ -2060,8 +2060,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // Obtain the asset again at least one per frame to make sure we are pointing to a valid resources.
             runtimeMaterials = m_GlobalSettings.renderPipelineResources.materials;
             runtimeShaders   = m_GlobalSettings.renderPipelineResources.shaders;
-            runtimeAssets    = m_GlobalSettings.renderPipelineResources.assets;
+            runtimeAssets    = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeAssets>();
             runtimeTextures  = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeTextures>();
+            
 #endif
             if (m_GlobalSettings.lensAttenuationMode == LensAttenuationMode.ImperfectLens)
             {

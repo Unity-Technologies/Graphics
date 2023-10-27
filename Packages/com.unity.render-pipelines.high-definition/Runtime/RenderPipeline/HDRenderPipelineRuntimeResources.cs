@@ -504,28 +504,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader defaultFogVolumeShader;
         }
 
-        [Serializable, ReloadGroup]
-        public sealed class AssetResources
-        {
-            [Reload("Runtime/RenderPipelineResources/defaultDiffusionProfile.asset")]
-            public DiffusionProfileSettings defaultDiffusionProfile;
-
-            //Area Light Emissive Meshes
-            [Reload("Runtime/RenderPipelineResources/Mesh/Cylinder.fbx")]
-            public Mesh emissiveCylinderMesh;
-            [Reload("Runtime/RenderPipelineResources/Mesh/Quad.fbx")]
-            public Mesh emissiveQuadMesh;
-            [Reload("Runtime/RenderPipelineResources/Mesh/Sphere.fbx")]
-            public Mesh sphereMesh;
-
-            // APV Sampling debug
-            [Reload("Runtime/RenderPipelineResources/Mesh/ProbeSamplingDebugMesh.fbx")]
-            public Mesh probeSamplingDebugMesh;
-        }
-
         public ShaderResources shaders;
         public MaterialResources materials;
         public ShaderGraphResources shaderGraphs;
-        public AssetResources assets;
     }
 }

@@ -87,8 +87,10 @@ namespace UnityEngine.Rendering.HighDefinition
             accumulatedCount = 0;
 
             if (m_DefaultDiffusionProfileSettings == null)
-                m_DefaultDiffusionProfileSettings = HDRenderPipelineGlobalSettings.instance != null
-                    ? HDRenderPipelineGlobalSettings.instance.renderPipelineResources.assets.defaultDiffusionProfile : null;
+            {
+                m_DefaultDiffusionProfileSettings = GraphicsSettings.TryGetRenderPipelineSettings<HDRenderPipelineRuntimeAssets>(out var assets) ?
+                    assets.defaultDiffusionProfile : null;
+            }
 
             m_Value[accumulatedCount++] = m_DefaultDiffusionProfileSettings;
 

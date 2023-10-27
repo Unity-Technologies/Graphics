@@ -2190,7 +2190,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [ExcludeCopy]
         GameObject m_ChildEmissiveMeshViewer;
         [ExcludeCopy]
-        MeshFilter m_EmissiveMeshFilter;
+        internal MeshFilter m_EmissiveMeshFilter;
 
         [field: ExcludeCopy]
         internal MeshRenderer emissiveMeshRenderer { get; private set; }
@@ -3236,10 +3236,8 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Update Mesh
-            if (HDRenderPipelineGlobalSettings.instance != null)
+            if (GraphicsSettings.TryGetRenderPipelineSettings<HDRenderPipelineRuntimeAssets>(out var assets))
             {
-                var assets = HDRenderPipelineGlobalSettings.instance.renderPipelineResources.assets;
-
                 switch (lightType)
                 {
                     case LightType.Tube:
