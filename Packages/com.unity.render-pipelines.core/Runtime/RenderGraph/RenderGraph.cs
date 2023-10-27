@@ -125,11 +125,15 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         ///<summary>Render Graph pool used for temporary data.</summary>
         public RenderGraphObjectPool renderGraphPool { get => wrappedContext.renderGraphPool; }
 
+        static internal ComputeCommandBuffer computecmd = new ComputeCommandBuffer(null, null, false);
+
         /// <inheritdoc />
         public void FromInternalContext(InternalRenderGraphContext context)
         {
             wrappedContext = context;
-            cmd = new ComputeCommandBuffer(wrappedContext.cmd, wrappedContext.executingPass, false);
+            computecmd.m_WrappedCommandBuffer = wrappedContext.cmd;
+            computecmd.m_ExecutingPass = context.executingPass;
+            cmd = computecmd;
         }
     }
 
