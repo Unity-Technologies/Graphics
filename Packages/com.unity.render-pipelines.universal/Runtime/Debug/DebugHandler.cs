@@ -15,7 +15,6 @@ namespace UnityEngine.Rendering.Universal
         static readonly int k_DebugTextureNoStereoPropertyId = Shader.PropertyToID("_DebugTextureNoStereo");
         static readonly int k_DebugTextureDisplayRect = Shader.PropertyToID("_DebugTextureDisplayRect");
         static readonly int k_DebugRenderTargetSupportsStereo = Shader.PropertyToID("_DebugRenderTargetSupportsStereo");
-        static readonly int k_DebugScreenTexturePropertyId = Shader.PropertyToID("_DebugScreenTexture");
 
         // Material settings...
         static readonly int k_DebugMaterialModeId = Shader.PropertyToID("_DebugMaterialMode");
@@ -183,15 +182,6 @@ namespace UnityEngine.Rendering.Universal
             descriptor.autoGenerateMips = false;
             descriptor.useDynamicScale = true;
             descriptor.depthBufferBits = depthBufferBits;
-        }
-
-        internal void BlitTextureToDebugScreenTexture(CommandBuffer cmd, RTHandle sourceTexture, Material material, int passId)
-        {
-            cmd.SetGlobalTexture(k_DebugScreenTexturePropertyId, m_DebugScreenColorHandle);
-            Vector2 viewportScale = sourceTexture.useScaling ? new Vector2(sourceTexture.rtHandleProperties.rtHandleScale.x, sourceTexture.rtHandleProperties.rtHandleScale.y) : Vector2.one;
-
-            CoreUtils.SetRenderTarget(cmd, m_DebugScreenColorHandle, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store);
-            Blitter.BlitTexture(cmd, sourceTexture, viewportScale, material, passId);
         }
 
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]

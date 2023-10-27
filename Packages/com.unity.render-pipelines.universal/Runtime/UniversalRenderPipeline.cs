@@ -1854,7 +1854,6 @@ namespace UnityEngine.Rendering.Universal
             float minNits = hdrDisplayInformation.minToneMapLuminance;
             float maxNits = hdrDisplayInformation.maxToneMapLuminance;
             float paperWhite = hdrDisplayInformation.paperWhiteNits;
-            //ColorPrimaries colorPrimaries = ColorGamutUtility.GetColorPrimaries(hdrDisplayColorGamut);
 
             if (!tonemapping.detectPaperWhite.value)
             {
