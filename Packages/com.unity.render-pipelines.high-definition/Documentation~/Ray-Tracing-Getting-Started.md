@@ -1,69 +1,10 @@
-# Getting started with ray tracing
+# Set up ray tracing
 
 The High Definition Render Pipeline (HDRP) includes preview ray tracing support from Unity 2019.3. Ray tracing allows you to access data that's not on screen. For example, you can use it to request position data, normal data, or lighting data, and then use this data to compute quantities that are hard to approximate using classic rasterization techniques.
 
-This document covers:
+For information about the hardware ray tracing requires, refer to [Ray tracing hardware requirements](raytracing-requirements.md)
 
-- [Hardware requirements](#HardwareRequirements).
-- [Integrate ray tracing into your HDRP Project](#Integration).
-- [HDRP effects that use ray tracing](#RayTracingEffectsOverview).
-
-<a name="HardwareRequirements"></a>
-
-## Hardware requirements
-
-Full ray tracing hardware acceleration is available on the following GPUs:
-- NVIDIA GeForce 20 series:
-  - RTX 2060
-  - RTX 2060 Super
-  - RTX 2070
-  - RTX 2070 Super
-  - RTX 2080
-  - RTX 2080 Super
-  - RTX 2080 Ti
-  - NVIDIA TITAN RTX
-- NVIDIA GeForce 30 series:
-  - RTX 3060
-  - RTX 3060Ti
-  - RTX 3070
-  - RTX 3080
-  - RTX 3090
-- NVIDIA Quadro:
-  - RTX 3000 (laptop only)
-  - RTX 4000
-  - RTX 5000
-  - RTX 6000
-  - RTX 8000
-- AMD RX series:
-  - RX 6600
-  - RX 6600 XT
-  - RX 6700
-  - RX 6700 XT
-  - RX 6800
-  - RX 6800 XT
-  - RX 6900 XT
-- AMD Radeon Pro series:
-  - Pro W6600
-  - Pro W6800
-
-NVIDIA also provides a ray tracing fallback for some previous generation graphics cards:
-- NVIDIA GeForce GTX
-  - Turing generation: GTX 1660 Super, GTX 1660 Ti
-  - Pascal generation: GTX 1060 6GB, GTX 1070, GTX 1080, GTX 1080 Ti
-- NVIDIA TITAN V
-- NVIDIA Quadro: P4000, P5000, P6000, V100
-
-If your computer has one of these graphics cards, it can run ray tracing in Unity.
-
-Before you open Unity, make sure to update your NVIDIA drivers to the latest version, and make sure your Windows version is at least 1809.
-
-Ray tracing is also supported on specific console platforms. Consult console-specific documentation for more information.
-
-You can use the Boolean [`SystemInfo.supportsRayTracing`](https://docs.unity3d.com/ScriptReference/SystemInfo-supportsRayTracing.html) to check if the current system supports ray tracing. This function checks the operating system, GPU, graphics driver and API.
-
-<a name="Integration"></a>
-
-## Integrating ray tracing into your HDRP Project
+## Integrate ray tracing into your HDRP Project
 
 Before you use ray tracing features in your HDRP Project, you need to set up your HDRP Project for ray tracing support. HDRP only supports ray tracing using the DirectX 12 API, so ray tracing only works in the Unity Editor or the Windows Unity Player when they render with DirectX 12. You need to change the default graphics API of your HDRP project from DirectX 11 to DirectX 12.
 
@@ -105,7 +46,7 @@ To set up ray tracing manually, you need to:
 
 <a name="ManualSetup-EnablingDX12"></a>
 
-#### Upgrading to DirectX 12
+#### Upgrade to DirectX 12
 
 HDRP enables DirextX12 by default. To enable DirectX 12 manually:
 
@@ -121,7 +62,7 @@ The Unity Editor window should now include the &lt;DX12&gt; tag in the title bar
 
 <a name="ManualSetup-DisablingStaticBatching"></a>
 
-#### Disabling static batching
+#### Disable static batching
 
 Next, you need to disable static batching, because HDRP doesn't support this feature with ray tracing in **Play Mode**. To do this:
 
@@ -130,7 +71,7 @@ Next, you need to disable static batching, because HDRP doesn't support this fea
 
 <a name="ManualSetup-EnablingRayTracing"></a>
 
-#### HDRP Asset configuration
+#### Enable ray tracing in the HDRP Asset 
 
 Now that Unity is running in DirectX 12, and you have disabled [static batching](https://docs.unity3d.com/Manual/DrawCallBatching.html), enable and configure ray tracing in your [HDRP Asset](HDRP-Asset.md). The previous steps configured Unity to support ray tracing; the following step enables it in your HDRP Unity Project.
 
@@ -139,7 +80,7 @@ Now that Unity is running in DirectX 12, and you have disabled [static batching]
 
 <a name="ManualSetup-RayTracingResources"></a>
 
-#### Ray tracing resources
+#### Verify ray tracing resources
 
 To verify that HDRP has assigned ray tracing resources:
 
@@ -148,7 +89,7 @@ To verify that HDRP has assigned ray tracing resources:
 
 <a name="ManualSetup-EnableAssetFeatures"></a>
 
-#### (Optional) Enable ray-traced effects in your HDRP Asset
+#### Enable ray-traced effects in the HDRP Asset (Optional)
 
 HDRP uses ray tracing to replace certain rasterized effects. To use a ray tracing effect in your Project, you must first enable the rasterized version of the effect. The four effects that require you to modify your HDRP Asset  are:
 
@@ -178,7 +119,7 @@ Now that your HDRP Project supports ray tracing, there are steps you must comple
 
 #### Frame Settings
 
-To make HDRP calculate ray tracing effects for [Cameras](HDRP-Camera.md) in your Scene, make sure your Cameras use [Frame Settings](Frame-Settings.md) that have ray tracing enabled. You can enable ray tracing for all Cameras by default, or you can enable ray tracing for specific Cameras in your Scene.
+To make HDRP calculate ray tracing effects for [Cameras](hdrp-camera-component-reference.md) in your Scene, make sure your Cameras use [Frame Settings](Frame-Settings.md) that have ray tracing enabled. You can enable ray tracing for all Cameras by default, or you can enable ray tracing for specific Cameras in your Scene.
 
 To enable ray tracing by default:
 
@@ -204,20 +145,6 @@ To build your Project to a Unity Player, ray tracing requires that the build use
 To check whether it's possible to use ray tracing in a Scene, HDRP includes a menu option that validates each GameObject in the Scene. If you don't setup GameObjects correctly, this process throws warnings in the Console window. For the list of things this option checks for, see [Menu items](Menu-Items.md#other). To use it:
 1. Click **Edit** > **Render Pipeline** > **HD Render Pipeline**  > **Check Scene Content for Ray Tracing**.
 2. In the Console window (menu: **Window > General > Console**), check if there are any warnings.
-
-<a name="RayTracingEffectsOverview"></a>
-
-## Ray tracing effects overview
-
-HDRP uses ray tracing to replace some of its screen space effects, shadowing techniques, and Mesh rendering techniques:
-
-- [Ray-Traced Ambient Occlusion](Ray-Traced-Ambient-Occlusion.md) replaces [screen space ambient occlusion](Override-Ambient-Occlusion.md) with a more accurate, ray-traced, ambient occlusion technique that can use off screen data.
-- [Ray-Traced Contact Shadows](Ray-Traced-Contact-Shadows.md) replaces [contact shadows](Override-Contact-Shadows.md) with a more accurate, ray-traced, contact shadow technique that can use off screen data.
-- [Ray-Traced Global Illumination](Ray-Traced-Global-Illumination.md) is an alternative to Light Probes and lightmaps in HDRP.
-- [Ray-Traced Reflections](Ray-Traced-Reflections.md) is a replacement for [screen space reflection](Override-Screen-Space-Reflection.md) that uses a ray-traced reflection technique that can use off-screen data.
-- [Ray-Traced Shadows](Ray-Traced-Shadows.md) replace shadow maps for Directional, Point, and Area [Lights](Light-Component.md).
-- [Recursive Ray Tracing](Ray-Tracing-Recursive-Rendering.md) replaces the rendering pipeline for Meshes. Meshes that use this feature cast refraction and reflection rays recursively.
-- [Ray-Traced Subsurface Scattering](Ray-Traced-Subsurface-Scattering.md) replaces [subsurface scattering](Subsurface-Scattering.md) with a more accurate, ray-traced, subsurface scattering technique that can use off screen data.
 
 <a name="RayTracingMeshes"></a>
 
@@ -272,16 +199,16 @@ HDRP supports ray tracing for DirectX 12 and specific console platforms. Consult
 HDRP ray tracing in Unity isn't compatible with the following features:
 
 - Vertex animation, for example wind deformation of vegetation.
-- [Decals](Decal.md).
+- [Decals](decals.md).
 - Ray tracing is not compatible with the detail meshes and trees in the [Terrain system](https://docs.unity3d.com/Manual/script-Terrain.html). It is compatible with terrain geometry. To include detailed meshes and trees in ray traced reflections, use [mixed tracing](Override-Screen-Space-Reflection.md#mixed-tracing).
 - Box-shaped spot lights.
-- Volumetric [fog](Override-Fog.md).
+- Volumetric [fog](create-a-local-fog-effect.md).
 - [Tessellation](Tessellation.md).
 - Per-pixel displacement techniques such as parallax occlusion mapping, depth offset, and non-terrain height maps.
 - VFX.
 - MSAA.
 - [Graphics.DrawMesh](https://docs.unity3d.com/ScriptReference/Graphics.DrawMesh.html) or [Graphics.RenderMesh](https://docs.unity3d.com/ScriptReference/Graphics.RenderMesh.html), because rasterization and ray tracing are different ways of generating an image.
-- [Orthographic projection](HDRP-Camera.md). If you enable orthographic projection mode, you might experience rendering problems with transparent materials, volumetrics, and planar reflections.
+- [Orthographic projection](hdrp-camera-component-reference.md). If you enable orthographic projection mode, you might experience rendering problems with transparent materials, volumetrics, and planar reflections.
 - Ray Traced and Screen Space effects. These don't appear recursively in [Ray Traced Reflections](Ray-Traced-Reflections.md), [Ray Traced Global Illumination](Ray-Traced-Global-Illumination.md) or [Recursive Ray Tracing](Ray-Tracing-Recursive-Rendering.md). This means, for example, you can't see [Screen Space Global Illumination](Override-Screen-Space-GI.md) in [ray-traced reflections](Ray-Traced-Reflections.md).
 - Fully accurate shadow culling. You might see missing shadows in ray-traced effects. You can use **Extend Shadow Culling** to improve accuracy. See [Ray Tracing Settings](Ray-Tracing-Settings.md) for more information.
 
@@ -291,11 +218,11 @@ Although ray-traced rendering results include data from [Reflection Probes](Refl
 
 ### Unsupported shader graph nodes for ray tracing
 
-When building your custom shaders using shader graph, some nodes are incompatible with ray tracing. You need either to avoid using them or provide an alternative behavior using the [ray tracing shader node](SGNode-Raytracing-Quality). Here is the list of the incompatible nodes:
+When building your custom shaders using shader graph, some nodes are incompatible with ray tracing. You need either to avoid using them or provide an alternative behavior using the [ray tracing shader node](SGNode-Raytracing-Quality.md). Here is the list of the incompatible nodes:
 - DDX, DDY and DDXY nodes, and NormalFromHeight nodes.
 - All the nodes under **Inputs** > **Geometry** (Position, View Direction, Normal, etc.) in View Space mode.
-Furthermore, Shader Graphs that use [Custom Interpolators](../../com.unity.shadergraph/Documentation~/Custom-Interpolators.md) aren't supported in ray tracing.
+Furthermore, Shader Graphs that use [Custom Interpolators](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest/index.html?subfolder=/manual/Custom-Interpolators.html) aren't supported in ray tracing.
 
 ### Unsupported features of path tracing
 
-For information about unsupported features of path tracing, see [Path tracing limitations](Ray-Tracing-Path-Tracing.md#limitations).
+For information about unsupported features of path tracing, see [Path tracing limitations](path-tracing-limitations.md).

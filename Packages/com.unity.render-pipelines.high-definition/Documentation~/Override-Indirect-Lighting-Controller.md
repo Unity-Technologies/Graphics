@@ -1,4 +1,4 @@
-# Indirect Lighting Controller
+# Control indirect lighting
 
 The **Indirect Lighting Controller** is a Volume component that allows you to globally control the intensity of baked or precomputed indirect lighting.
 
@@ -6,26 +6,14 @@ This override is useful in situations where you need to animate your lighting gl
 
 ## Using the Indirect Lighting Controller
 
-The **Indirect Lighting Controller** uses the [Volume](Volumes.md) framework, so to enable and modify **Indirect Lighting Controller** properties, you must add an **Indirect Lighting Controller** override to a [Volume](Volumes.md) in your Scene. To add **Indirect Lighting Controller** to a Volume:
+The **Indirect Lighting Controller** uses the [Volume](understand-volumes.md) framework, so to enable and modify **Indirect Lighting Controller** properties, you must add an **Indirect Lighting Controller** override to a [Volume](understand-volumes.md) in your Scene. To add **Indirect Lighting Controller** to a Volume:
 
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
 2. In the Inspector, go to **Add Override** > **Lighting** and select **Indirect Lighting Controller**.
 
 [!include[](snippets/volume-override-api.md)]
 
-## Properties
-
-![](Images/Override-IndirectLightingController1.png)
-
-[!include[](snippets/Volume-Override-Enable-Properties.md)]
-
-| Property                        | Description                                                  |
-| ------------------------------- | ------------------------------------------------------------ |
-| **Indirect Diffuse Lighting Multiplier**  | A multiplier for lightmaps, Light Probes, Light Probe Volumes, Screen-Space Global Illumination, and [Ray-Traced Global Illumination](Ray-Traced-Global-Illumination.md). HDRP multiplies the light data from these by this value. |
-| **Indirect Diffuse Rendering Layer Mask** | Specifies the [Rendering Layer Mask](Rendering-Layers.md) for indirect diffuse lighting multiplier. If you enable Light Layers, you can use them to decouple Meshes in your Scene from the above multiplier. |
-| **Reflection Lighting Multiplier**  | A multiplier for baked, realtime, custom [Reflection Probes](Reflection-Probe.md) and [Planar Probes](Planar-Reflection-Probe.md), [Screen-Space Reflection](Override-Screen-Space-Reflection.md), [Ray-Traced Reflection](Ray-Traced-Reflections.md), and Sky Reflection. HDRP multiplies the light data from these by this value. |
-| **Reflection Rendering Layer Mask**  | Specifies the [Rendering Layer Mask](Rendering-Layers.md) for reflection lighting. If you enable Light Layers, you can use them to decouple Meshes in your Scene from the above multiplier. |
-| **Reflection/Planar Probe Intensity Multiplier** | A multiplier for baked, realtime, and custom [Reflection Probes](Reflection-Probe.md) and [Planar Probes](Planar-Reflection-Probe.md). HDRP multiplies the Reflection Probe data by this value. |
+For information about the indirect lighting controller properties, refer to [Indirect lighting controller reference]().
 
 ## Details
 

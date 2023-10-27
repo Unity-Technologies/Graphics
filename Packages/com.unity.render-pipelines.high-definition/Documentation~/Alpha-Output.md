@@ -1,4 +1,4 @@
-# Alpha Output
+# Alpha channel configuration
 
 To maximize performance and minimize bandwidth usage, HDRP by default renders image frames in the **R11G11B10** format. However, this format doesn't include an alpha channel, which might be required for applications that want to composite HDRP's output over other images.
 

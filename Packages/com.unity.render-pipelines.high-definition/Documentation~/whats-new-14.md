@@ -17,7 +17,7 @@ In HDRP 14, the [Ray Tracing Settings](Ray-Tracing-Settings.md) volume includes 
 HDRP 14 introduces a new **Fullscreen** Material type in ShaderGraph.
 You can use Fullscreen shaders in fullscreen custom passes, custom post processes and C# scripting.
 
-For more details on how to use fulscreen shaders, see [FullScreen Shader Graph](Fullscreen-Shader-Graph.md).
+For more details on how to use fullscreen shaders, see [Create a fullscreen Shader Graph](create-a-fullscreen-material.md#create-fullscreen-shadergraph).
 
 #### Fullscreen Sample set
 
@@ -73,12 +73,12 @@ HDRP 14 adds denoising for frames that use path tracing. You can choose from the
 
 in HDRP 14, Local Volumetric Fog volume supports Materials you create in ShaderGraph.
 
-You can use this to create dynamic fog effects. For more information, see [Volumetric Material](Volumetric-Material.md)
+You can use this to create dynamic fog effects. For more information, see [Volumetric Material](create-a-fog-volume-shader.md)
 ![](Images/Aurora_Fog.png)
 
 ### Local Volumetric Fog blending
 
-HDRP 14 adds a **Blending mode** to the [Local Volumetric Fog](Local-Volumetric-Fog.md) component. You can use this property to create various effects, for example, to remove fog inside a house.
+HDRP 14 adds a **Blending mode** to the [Local Volumetric Fog](create-a-local-fog-effect.md) component. You can use this property to create various effects, for example, to remove fog inside a house.
 
 This version also adds a **Priority** property that you can use to control the order in which HDRP blends multiple volumes.
 
@@ -98,7 +98,7 @@ For more information, see [Screen Space Reflection](Override-Screen-Space-Reflec
 
 ### Diffusion Profile Scattering Distance
 
-HDRP 14 replaces the [Diffusion Profile](Diffusion-Profile.md) **Scattering Color** HDR color picker with an LDR color picker. The LDR color picker includes a **Multiplier** slider.
+HDRP 14 replaces the [Diffusion Profile](diffusion-profile-reference.md) **Scattering Color** HDR color picker with an LDR color picker. The LDR color picker includes a **Multiplier** slider.
 
 When you upgrade to HDRP 14, it automatically migrates any existing diffusion profiles.
 
@@ -134,7 +134,7 @@ You can find the new Unity material ball asset in `com.unity.render-pipelines.hi
 
 #### Planar and Triplanar Mapping
 
-From HDRP 14, the [Lit Material](Lit-Shader.md) options include the **Emission UV Mapping** property to perform planar and triplanar mapping in Object space. Use these options to keep the texture mapping consistent when a you change a GameObject's transform.
+From HDRP 14, the [Lit Material](lit-material.md) options include the **Emission UV Mapping** property to perform planar and triplanar mapping in Object space. Use these options to keep the texture mapping consistent when a you change a GameObject's transform.
 
 #### Hair Material Samples
 
@@ -161,7 +161,7 @@ HDRP 14 improves the fallbacks for refractive transparent Materials. These impro
 
 ### Cloud Layer
 
-HDRP 14 makes the following improvements to the [Cloud Layer](Override-Cloud-Layer.md):
+HDRP 14 makes the following improvements to the [Cloud Layer](create-simple-clouds-cloud-layer.md):
 
 - The sun light color correctly takes atmospheric attenuation into account when you use the Cloud Layer in combination with the physically based sky.
 - The sun light color now always impacts the color of the clouds, even if raymarching is disabled.

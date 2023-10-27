@@ -4,7 +4,7 @@ You can use the Rendering Debugger to see how HDRP places Light Probes in a Prob
 
 ## Display Probe Volumes
 
-To display Probe Volumes, open the [Rendering Debugger](Render-Pipeline-Debug-Window.md#ProbeVolume).
+To display Probe Volumes, open the [Rendering Debugger](rendering-debugger-window-reference.md#ProbeVolume).
 
 You can display the following:
 
@@ -73,5 +73,5 @@ Because terrain is detailed but less important to you than your main scenery or 
 
 ## Additional resources
 
-* [Rendering Debugger](Render-Pipeline-Debug-Window.md#probe-volume)
+* [Rendering Debugger](rendering-debugger-window-reference.md#probe-volume)
 * [Probe Volumes settings and properties](probevolumes-settings.md)

@@ -1,6 +1,6 @@
-# Post-processing: Propagating Not a Number or Infinite values
+# Understand Not a Number (NAN) and Infinite (Inf) values
 
-Not a Number (NaN) and Infinite (Inf) values occur when shader operations produce an undefined result. Visually, they manifest as purely black or white pixels.
+Not a Number (NaN) and Infinite (Inf) values occur when shader operations produce an undefined result. Visually, they appear as black or white pixels.
 
 Example operations that can lead to a NaN or Inf are:
 
@@ -30,11 +30,11 @@ A similar issue occurs when HDRP generates color pyramids for use by features su
 
 If you disable bloom and the screen stops being black, the cause of the black screen is likely because a single Nan or Inf pixel is present, but not really visible, and bloom propagated it across the whole screen. It's **not** because bloom created the invalid values.
 
-## Fixing NaNs and Infs
+## Fix NaNs and Infs
 
 The best way to stop bloom or other HDRP features from propagating Nan or Inf values is to fix the source of the Nan or Inf values. For information on how to do this, see [finding NaNs and Infs](#finding-nans-and-infs).
 
-If you are unable to fix the source of the Nan or Inf values, [HDRP Cameras](HDRP-Camera.md) include a feature which replaces NaN and Inf values with a black pixel. This stops effects like bloom from propagating Nan or Inf values, but is a fairly resource intensive process. To enable this feature, select a Camera and, in the Inspector, enable the **Stop NaNs** checkbox.
+If you are unable to fix the source of the Nan or Inf values, [HDRP Cameras](hdrp-camera-component-reference.md) include a feature which replaces NaN and Inf values with a black pixel. This stops effects like bloom from propagating Nan or Inf values, but is a fairly resource intensive process. To enable this feature, select a Camera and, in the Inspector, enable the **Stop NaNs** checkbox.
 
 **Note**: Only enable this feature if you are unable to fix the root cause of the Nan or Inf values.
 
@@ -48,7 +48,7 @@ To find the root cause of a Nan or Inf, HDRP includes a debug mode which display
 This helps you to see if there are actually NaNs or Infs on screen and which material causes them. However, if you need more information, such as which particular draw call causes the issue, you can use frame debugging tools such as [RenderDoc](https://renderdoc.org/). For information on how to use RenderDoc to capture frames in Unity, see [RenderDoc integration](https://docs.unity3d.com/Manual/RenderDocIntegration.html).
 
 A common situation that leads to NaNs is when a mesh is imported with ill-defined normals, like normals equal to the zero vector.
-To find these normals, you can use one of the normal visualization modes in the [Material panel](Render-Pipeline-Debug-Window.md#material-panel) of the Rendering Debugger.
+To find these normals, you can use one of the normal visualization modes in the [Material panel](rendering-debugger-window-reference.md#material-panel) of the Rendering Debugger.
 
 #### RenderDoc
 
@@ -65,6 +65,6 @@ If the Nan or Inf values are still difficult to find:
 1. Look at the bloom dispatches to see where bloom propagates the Nan or Inf pixels from.
 2. Pinpoint the exact pixel or pixels responsible.
 
-In the example images under [Propagating NaNs/Infs](#propagating-nans/infs), you can see by how bloom expands the Nan or Inf values that the source is around the center of the screen, on the sphere's Material.
+In the example images under [Propagating NaNs/Infs](#propagating-nans-or-infs), you can see by how bloom expands the Nan or Inf values that the source is around the center of the screen, on the sphere's Material.
 
 After you find which Materials or shaders produce the NaNs and Infs, you can debug them to find out which operation causes the invalid values.

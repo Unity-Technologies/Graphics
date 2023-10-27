@@ -4,7 +4,7 @@ Use this effect to tweak the overall tone, brightness, and contrast of the final
 
 ## Using Color Adjustments
 
-**Color Adjustments** uses the [Volume](Volumes.md) framework, so to enable and modify **Color Adjustments** properties, you must add a **Color Adjustments** override to a [Volume](Volumes.md) in your Scene. To add **Color Adjustments** to a Volume:
+**Color Adjustments** uses the [Volume](understand-volumes.md) framework, so to enable and modify **Color Adjustments** properties, you must add a **Color Adjustments** override to a [Volume](understand-volumes.md) in your Scene. To add **Color Adjustments** to a Volume:
 
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
 2. In the Inspector, go to **Add Override** > **Post-processing** and select **Color Adjustments**. HDRP now applies **Color Adjustments** to any Camera this Volume affects.
@@ -12,8 +12,6 @@ Use this effect to tweak the overall tone, brightness, and contrast of the final
 [!include[](snippets/volume-override-api.md)]
 
 ## Properties
-
-![](Images/Post-processingColorAdjustments1.png)
 
 | **Property**      | **Description**                                              |
 | ----------------- | ------------------------------------------------------------ |

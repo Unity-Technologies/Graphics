@@ -1,4 +1,4 @@
-# Physical light units
+# Understand physical light units
 
 HDRP uses Physical Light Units (PLU) for its lighting. These units are based on real-life light measurements, like those you see on light bulb packaging or a photographic light meter. Note that for lights to behave properly when using PLU, you need to respect HDRP unit convention (1 Unity unit equals 1 meter).
 

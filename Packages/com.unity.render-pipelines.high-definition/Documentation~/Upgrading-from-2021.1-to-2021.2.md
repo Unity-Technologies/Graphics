@@ -8,7 +8,7 @@ In the High Definition Render Pipeline (HDRP), some features work differently be
 * Density Volumes
 * Ambient Mode
 
-For information about new, removed, or updated features, see [What's new in HDRP version 12 / Unity 2021.2](whats-new-12).
+For information about new, removed, or updated features, see [What's new in HDRP version 12 / Unity 2021.2](whats-new-12.md).
 
 ## HDRP Global Settings
 
@@ -125,4 +125,4 @@ HDRP 12.x doesn't include Bilinear and Lanczos upscale filters:
 * If your project uses a Bilinear filter, HDRP migrates it to Catmull-Rom.
 * If your project uses a Lanczos filter, HDRP migrates it to Contrast Adaptive Sharpening (CAS).
 
-If your project relies on those filters you can use the TAA Upscale and FidelityFX Super Resolution 1.0 filters. For more information about these upscale filters, see [Dynamic Resolution](Dynamic-Resolution).
+If your project relies on those filters you can use the TAA Upscale and FidelityFX Super Resolution 1.0 filters. For more information about these upscale filters, see [Dynamic Resolution](Dynamic-Resolution.md).

@@ -35,7 +35,7 @@ This is the Scene from the perspective of the ray tracing mode. See how the orig
 #### Ray Tracing
 
 * Transparent Emissive Material aren't taken into account.
-* No [decals](decal.md) are supported including Emissive Decals.
+* No [decals](decals.md) are supported including Emissive Decals.
 
 #### Mixed Tracing
 

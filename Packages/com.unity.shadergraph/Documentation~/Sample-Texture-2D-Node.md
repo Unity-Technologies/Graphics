@@ -131,7 +131,7 @@ float _SampleTexture2D_A = _SampleTexture2D_RGBA.a;
 
 ```
 float4 _SampleTexture2D_RGBA = SAMPLE_TEXTURE2D(Texture, Sampler, UV);
-_SampleTexture2D_RGBA.rgb = UnpackNormalRGorAG(_SampleTexture2D_RGBA);
+_SampleTexture2D_RGBA.rgb = UnpackNormalmapRGorAG(_SampleTexture2D_RGBA);
 float _SampleTexture2D_R = _SampleTexture2D_RGBA.r;
 float _SampleTexture2D_G = _SampleTexture2D_RGBA.g;
 float _SampleTexture2D_B = _SampleTexture2D_RGBA.b;

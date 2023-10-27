@@ -8,7 +8,7 @@ The following list of features are new to version 12 of the High Definition Rend
 
 ### Tessellation support for ShaderGraph Master Stack
 
-From HDRP 12.0, you can enable [tessellation](Tessellation.md) on any HDRP [Master Stack](master-stack-hdrp.md). The option is in the Master Stack settings and adds two new inputs to the Vertex Block:
+From HDRP 12.0, you can enable [tessellation](Tessellation.md) on any HDRP [Master Stack](understand-shader-graph-in-hdrp.md). The option is in the Master Stack settings and adds two new inputs to the Vertex Block:
 
 * Tessellation Factor
 * World Displacement
@@ -17,7 +17,7 @@ For more information about tessellation, see the [Tessellation documentation](Te
 
 ### Custom Velocity support for ShaderGraph Master Stack
 
-From HDRP 12.0, you can enable custom Velocity on any HDRP [Master Stack](master-stack-hdrp.md). This option is in the Master Stack settings and adds one new input to the Vertex Block:
+From HDRP 12.0, you can enable custom Velocity on any HDRP [Master Stack](understand-shader-graph-in-hdrp.md). This option is in the Master Stack settings and adds one new input to the Vertex Block:
 
 * Velocity
 
@@ -29,13 +29,13 @@ You can use this Vertex Block to create an additional velocity for procedural ge
 
 HDRP 12.0 introduces a cloud system that you can control through the volume framework.
 
-HDRP includes a Cloud Layer volume override which renders a cloud texture on top of the sky. For more information, see the [Cloud Layer](Override-Cloud-Layer.md) documentation.
+HDRP includes a Cloud Layer volume override which renders a cloud texture on top of the sky. For more information, see the [Cloud Layer](create-simple-clouds-cloud-layer.md) documentation.
 
-For detailed steps on how to create custom clouds in your scene, see [creating custom clouds](Creating-Custom-Clouds.md).
+For detailed steps on how to create custom clouds in your scene, see [creating custom clouds](create-custom-cloud-effects.md).
 
 ### Volumetric Clouds volume override
 
-HDRP now includes a Volumetric Clouds volume override which allows you to precisely control the cloud coverage in your scene. These clouds receive realistic lighting from the sun and sky. For more information, see the [Volumetric Clouds](Override-Volumetric-Clouds.md) documentation.
+HDRP now includes a Volumetric Clouds volume override which allows you to precisely control the cloud coverage in your scene. These clouds receive realistic lighting from the sun and sky. For more information, see the [Volumetric Clouds](create-realistic-clouds-volumetric-clouds.md) documentation.
 
 ![](Images/volumetric-clouds-2.png)
 
@@ -47,7 +47,7 @@ HDRP now includes a Volumetric Clouds volume override which allows you to precis
 
 HDRP 12.0 includes a new Lens Flare system. You can attach a Lens Flare (SRP) component to any GameObject.
 
-Some Lens Flare properties only appear when you attach a Lens Flare (SRP) component to a light. Each Lens Flare has optional multiple elements that you can control individually. HDRP also provides a [new lens flare asset](lens-flare-data-driven-asset.md) and a [new lens flare component](lens-flare-data-driven-component.md) that you can attach to any GameObject.
+Some Lens Flare properties only appear when you attach a Lens Flare (SRP) component to a light. Each Lens Flare has optional multiple elements that you can control individually. HDRP also provides a [new lens flare asset](shared/lens-flare/lens-flare-asset.md) and a [new lens flare component](shared/lens-flare/lens-flare-component.md) that you can attach to any GameObject.
 
 HDRP includes a new Lens Flare sample that uses presets and Textures. You can see an example of the Textures included in this sample in the image below:
 
@@ -161,7 +161,7 @@ The AxF shader and Fabric master stack now correctly support Area lights. Hair m
 
 HDRP 12.0 introduces multiple improvements to Density Volumes (Local Volumetric Fog):
 
-- Density Volumes is now named **Local Volumetric Fog**. This new name removes confusion with [Volumes](Volumes.md) and makes it clear that this feature creates a fog effect.
+- Density Volumes is now named **Local Volumetric Fog**. This new name removes confusion with [Volumes](understand-volumes.md) and makes it clear that this feature creates a fog effect.
 - Local Volumetric Fog masks now support 3D RenderTextures as masks.
 - 3D mask Textures now use all four RGBA channels. This allows volumetric fog to have different colors and density based on the 3D Texture.
 - You can now change the mask Texture size limit (32x32x32). To do this, use the new setting in the [HDRP Asset](HDRP-Asset.md) **Lighting > Volumetrics** section, called **Max Local Volumetric Fog Resolution**. The upper limit for mask Textures is now 256x256x256.
@@ -254,7 +254,7 @@ In the image above, the example image on the left does not use this method. The 
 
 This version of HDRP increases the default number of lights a single pixel can get influence from to 63. You can use a new setting in `ShaderConfig.cs` called `FPTLMaxLightCount` to set the maximum number of lights per tile on the GPU.
 
-To increase this value, you must generate a new Shader config project. For information on how to create a new Shader config project, see [HDRP-Config-Package](HDRP-Config-Package.md).
+To increase this value, you must generate a new Shader config project. For information on how to create a new Shader config project, see [HDRP-Config-Package](configure-a-project-using-the-hdrp-config-package.md).
 
 ### Physical Camera
 
@@ -277,7 +277,7 @@ Improved the quality of the physically-based Depth Of Field in the following way
 ### Physically Based Hair Shader
 ![](Images/PBHairShader.png)
 
-HDRP 12.0 includes a new physically-based Marschner hair shader. You can use this as an alternative to the Kajiya-Kay hair shader. This new shading model allows you to quickly create a hair material that fits any lighting scenario. For more information about this new hair shader model and its parameters, see [Hair Master Stack](master-stack-hair.md).
+HDRP 12.0 includes a new physically-based Marschner hair shader. You can use this as an alternative to the Kajiya-Kay hair shader. This new shading model allows you to quickly create a hair material that fits any lighting scenario. For more information about this new hair shader model and its parameters, see [Hair Master Stack](hair-master-stack-reference.md).
 
 ### New shader for Custom Render Textures
 
@@ -340,7 +340,7 @@ These new parameters control the fallback method HDRP uses when RTGI interacts w
 
 This HDRP version also improves the quality of the RTGI denoiser.Emissive properties work correctly by default and do not require [Screen Space Global Illumination (SSGI)](Override-Screen-Space-GI.md) flags.
 
-This version includes a new RTGI **Tracing** option called **Mixed.** Select this option to make RTGI use a combination of ray tracing and ray marching to calculate global illumination. **Mixed** tracing only works with RTGI when you set the RTGI  **Mode** to  **Performance**. For more information, see [tracing modes](tracing-modes.md).
+This version includes a new RTGI **Tracing** option called **Mixed.** Select this option to make RTGI use a combination of ray tracing and ray marching to calculate global illumination. **Mixed** tracing only works with RTGI when you set the RTGI  **Mode** to  **Performance**. For more information, see [tracing modes](snippets/tracing-modes.md).
 
 ### Ray Traced Reflections
 
@@ -353,7 +353,7 @@ These new parameters control the fallback method HDRP uses when Ray Traced Refle
 
 This version includes a new Ray Traced Reflections **Mode** option called **Mixed Ray Casting**. This new Mode is only a Select this mode to make Ray Traced Reflections evaluate ray intersections using ray marching and the GBuffer when possible.
 
-This version includes a new Ray Traced Reflections **Tracing** option called **Mixed**. Select this option to make Ray Traced Reflections use a combination of ray tracing and ray marching to calculate global illumination. **Mixed** tracing for Ray Traced Reflections is only compatible with [Lit shaders](Lit-Shader.md) that use [deferred rendering](Forward-And-Deferred-Rendering.md). For more information, see [tracing modes](tracing-modes.md).
+This version includes a new Ray Traced Reflections **Tracing** option called **Mixed**. Select this option to make Ray Traced Reflections use a combination of ray tracing and ray marching to calculate global illumination. **Mixed** tracing for Ray Traced Reflections is only compatible with [Lit shaders](Lit-Shader.md) that use [deferred rendering](Forward-And-Deferred-Rendering.md). For more information, see [tracing modes](snippets/tracing-modes.md).
 
 ### Recursive rendering
 
@@ -366,7 +366,7 @@ These new parameters control the fallback method HDRP uses when Recursive Render
 
 ### Conservative Depth Offset
 
-HDRP version 12.0 adds a new **Depth Offset** property called **Conservative** to all [Master stacks in HDRP](master-stack-hdrp.md)**.** This option makes all depth offsets positive to  take advantage of the early depth test mechanic.
+HDRP version 12.0 adds a new **Depth Offset** property called **Conservative** to all [Master stacks in HDRP](understand-shader-graph-in-hdrp.md)**.** This option makes all depth offsets positive to  take advantage of the early depth test mechanic.
 
 The **Conservative** option only appears when you enable a Material’s **Surface options** > **Depth Offset** property.
 
@@ -409,8 +409,6 @@ This version of HDRP introduces performance improvements for the CPU culling lig
 - Replacement of the flat ProcessVisibleLightsLoop with a parallel job using the HDVisibleLightEntities helper.
 - Burstification and parallelization of ProcessVisibleLights.
 - Introduction new sorting functions introduced in the core package.
-
-For a more detailed information please check the [Lightloop-Burstification](Lightloop-Burstification.md) documentation entry.
 
 ## Removed
 

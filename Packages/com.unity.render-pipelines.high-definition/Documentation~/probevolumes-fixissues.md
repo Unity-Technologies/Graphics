@@ -6,7 +6,7 @@ You can adjust settings or use Volume overrides to fix artefacts from Probe Volu
 
 Dark blotches and streaks are caused by Light Probes inside geometry ('invalid' probes). HDRP marks a Light Probe as invalid when the probe fires sampling rays to capture surrounding light data, but the rays hits the unlit backfaces inside geometry.
 
-You can see which Light Probes are invalid using the [Rendering Debugger](Render-Pipeline-Debug-Window.md#ProbeVolume).
+You can see which Light Probes are invalid using the [Rendering Debugger](rendering-debugger-window-reference.md#ProbeVolume).
 
 To minimise dark blotches and streaks, HDRP uses the following techniques:
 
@@ -70,9 +70,9 @@ Adjust walls so their width is closer to the distance between probes in the loca
 <a name="volume"></a>
 ### Add a Volume to your Scene
 
-You can add a [Volume](Volumes.md) with a **Probe Volume Options** override to adjust which Light Probes object pixels sample at runtime.
+You can add a [Volume](understand-volumes.md) with a **Probe Volume Options** override to adjust which Light Probes object pixels sample at runtime.
 
-1. Add a [Volume](Volumes.md) to your Scene and make sure its area overlaps the camera position.
+1. Add a [Volume](understand-volumes.md) to your Scene and make sure its area overlaps the camera position.
 2. Select **Add Override**, then select **Lighting** > **Probe Volume Options**.
 3. Enable **Normal Bias**, then adjust the value to move the position that object pixels use to sample the Light Probes, along the pixel's surface normal.
 4. Enable **View Bias**, then adjust the value to move the position that object pixels use to sample the Light Probes, towards the camera.
@@ -108,7 +108,7 @@ Use a Probe Adjustment Volume Component to make Light Probes invalid in a small 
 
 Adding a Probe Adjustment Volume solves some light leak issues but usually not all. If you use many Probe Adjustment Volumes in a Scene, your bake will be slower, and your Scene might be harder to understand and maintain.
 
-See [Settings and properties related to Probe Volumes](probevolumes-settings.md#adjustment-properties).
+See [Settings and properties related to Probe Volumes](probevolumes-settings.md#pv-adjustment).
 
 ## Fix seams
 
@@ -120,7 +120,7 @@ Two seams.
 
 To fix seams, do the following:
 
-1. Add a [Volume](Volumes.html) to your Scene and make sure its area overlaps the position of the camera.
+1. Add a [Volume](understand-volumes.md) to your Scene and make sure its area overlaps the position of the camera.
 2. Select **Add Override**, then select **Lighting** > **Probe Volume Options**.
 3. Enable **Sampling Bias**, then try adjusting the value to add noise and make the transition more diffuse.
 

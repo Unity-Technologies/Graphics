@@ -15,11 +15,11 @@ A Probe Volume is a group of [Light Probes](https://docs.unity3d.com/Manual/Ligh
 Probe Volumes have the following advantages:
 
 - Unity selects surrounding probes per-pixel rather than per-object, which means HDRP lights objects more accurately.
-- If you use [volumetric fog](Local-Volumetric-Fog.md), the per-pixel probe selection provides more accurate lighting for the variations in a fog mass.
+- If you use [volumetric fog](create-a-local-fog-effect.md), the per-pixel probe selection provides more accurate lighting for the variations in a fog mass.
 - You can adjust Light Probe layouts across a Scene, for example using a denser set of Light Probes in an interior area with more detailed lighting or geometry. See [Display and adjust Probe Volumes](probevolumes-showandadjust.md) for more information.
 - Probe Volumes work well with multiple scenes simultaneously. See [Baking Sets](probevolumes-concept.md#baking-sets)
 - Because Probe Volumes can cover a whole scene, screen space effects can fall back to Light Probes to get lighting data from objects that are off-screen or occluded. See [Screen Space Global Illumination](Override-Screen-Space-GI.md) for more information.
-- Unity can use the data in Probe Volumes to adjust lighting from Reflection Probes to match the local environment, which reduces the number of Reflection Probes you need. See [Frame Settings properties](Frame-Settings.md#cameralighting).
+- Unity can use the data in Probe Volumes to adjust lighting from Reflection Probes to match the local environment, which reduces the number of Reflection Probes you need. See [Frame Settings properties](frame-settings-reference.md).
 - Probe Volumes include [streaming](probevolumes-streaming.md) functionality to support large open worlds.
 
 ![](Images/probevolumes-per-pixel.png)<br/>
@@ -81,5 +81,5 @@ See [Use Baking Sets](probevolumes-use.md#use-baking-sets).
 ## Additional resources
 
 * [Light Probes](https://docs.unity3d.com/Manual/LightProbes.html)
-* [Local Volumetric Fog](Local-Volumetric-Fog.md)
+* [Local Volumetric Fog](create-a-local-fog-effect.md)
 * [Work with multiple Scenes in Unity](https://docs.unity3d.com/Documentation/Manual/MultiSceneEditing.html)

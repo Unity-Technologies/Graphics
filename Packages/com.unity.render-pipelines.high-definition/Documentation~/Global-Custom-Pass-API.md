@@ -1,6 +1,6 @@
-﻿# Scripting your own Custom Pass in C#
+﻿# Manage a Custom Pass without a GameObject
 
-Use The Global custom pass API to register  custom passes in the render loop without a custom pass Volume.
+Use the Global custom pass API to register custom passes in the render loop without a custom pass Volume.
 This means you don't need to use the [Custom Pass workflow](Custom-Pass-Volume-Workflow.md) on a GameObject, modify user scenes or dynamically spawn custom pass volumes at runtime.
 
 <a name="Custom-Pass-C# -template"></a>
@@ -48,13 +48,11 @@ You can add a single custom pass instance multiple times at a single injection p
 
 ## Execution order
 
-The order HDRP executes each Custom Pass in depends on which injection point you assign it to. The following diagram shows all HDRP passes and injection points.  
-
-![](Images/HDRP-frame-graph-diagram.png) 
+To learn when in the render pipeline HDRP can execute custom passes, refer to [Excecution order](rendering-excecution-order.md).
 
 If you assign more than one custom pass to the same injection point, HDRP executes the custom passes in priority order. HDRP excecutes high priority custom passes before the low priority ones. You can set the priority when you register a global custom pass.
 
-For more information, see [Custom pass injection points](Custom-Pass-Injection-Points.md).
+For more information, see [Custom pass injection points](Custom-Pass-Injection-Points.md). 
 
 ## Good practices
 

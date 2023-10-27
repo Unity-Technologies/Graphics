@@ -149,7 +149,7 @@ This section appears only if you enable **Lighting Scenarios** under **Light Pro
         </tr>
         <tr>
             <td><strong>Layer Mask</strong></td>
-            <td>Specify which layers HDRP includes in collision calculations for [Virtual Offset](probevolumes-fixissues.html).</td>
+            <td>Specify which layers HDRP includes in collision calculations for [Virtual Offset](probevolumes-fixissues.md).</td>
         </tr>
         <tr>
             <td><strong>Refresh Virtual Offset Debug</strong></td>
@@ -310,7 +310,7 @@ Select a [Probe Adjustment Volume Component](probevolumes-fixissues.md#add-a-pro
 
 To add a Probe Volume Options Override, do the following:
 
-1. Add a [Volume](Volumes.html) to your Scene and make sure its area overlaps the position of the camera.
+1. Add a [Volume](understand-volumes.md) to your Scene and make sure its area overlaps the position of the camera.
 2. Select **Add Override**, then select **Lighting** > **Probe Volume Options**.
 
 | **Property**                           | **Description** |
@@ -322,7 +322,7 @@ To add a Probe Volume Options Override, do the following:
 | **Animate Sampling Noise** | Enable to animate sampling noise when Temporal Anti-Aliasing (TAA) is enabled. This can make noise patterns less visible. |
 | **Leak Reduction Mode** | Enable to choose the method Unity uses to reduce leaks. See [Fix light leaks](probevolumes-fixissues.md#fix-light-leaks).<br/>Options:<br/>&#8226; **Validity and Normal Based**: Enable to make HDRP prevent invalid Light Probes contributing to the lighting result, and give Light Probes more weight than others based on the object pixel's sampling position.<br/>&#8226; **None**: No leak reduction.
 | **Min Valid Dot Product Value** | Enable to make HDRP reduce a Light Probe's influence on an object if the direction towards the Light Probe is too different to the object's surface normal direction. The value is the minimum [dot product](https://docs.unity3d.com/ScriptReference/Vector3.Dot.html) between the two directions where HDRP will reduce the Light Probe's influence. |
-| **Occlusion Only Reflection Normalization** | Enable to limit Reflection Probe Normalization so it only decreases the intensity of reflections. Keep this enabled to reduce light leaks. See [Frame Settings](Frame-Settings.md#lighting). |
+| **Occlusion Only Reflection Normalization** | Enable to limit Reflection Probe Normalization so it only decreases the intensity of reflections. Keep this enabled to reduce light leaks. See [Frame Settings](frame-settings-reference.md#lighting). |
 
 ## Size gizmo
 <a name ="size-gizmo"></a>
