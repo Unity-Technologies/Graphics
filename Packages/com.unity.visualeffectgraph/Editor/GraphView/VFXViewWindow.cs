@@ -34,6 +34,7 @@ namespace UnityEditor.VFX.UI
         void OnEnable()
         {
             s_VFXWindows.Add(this);
+            DisableViewDataPersistence();
         }
 
         protected void SetupFramingShortcutHandler(VFXView view)
@@ -298,10 +299,6 @@ namespace UnityEditor.VFX.UI
                 rootVisualElement.AddManipulator(m_ShortcutHandler);
             }
 
-#if USE_EXIT_WORKAROUND_FOGBUGZ_1062258
-            EditorApplication.wantsToQuit += Quitting_Workaround;
-#endif
-
             if (graphView?.controller == null && m_DisplayedResource != null)
             {
                 LoadResource(m_DisplayedResource);
@@ -316,22 +313,9 @@ namespace UnityEditor.VFX.UI
             graphView?.OnFocus();
         }
 
-#if USE_EXIT_WORKAROUND_FOGBUGZ_1062258
-        private bool Quitting_Workaround()
-        {
-            if (graphView != null)
-                graphView.controller = null;
-            return true;
-        }
-
-#endif
-
         protected void OnDestroy()
         {
             s_VFXWindows.Remove(this);
-#if USE_EXIT_WORKAROUND_FOGBUGZ_1062258
-            EditorApplication.wantsToQuit -= Quitting_Workaround;
-#endif
 
             if (graphView != null)
             {
