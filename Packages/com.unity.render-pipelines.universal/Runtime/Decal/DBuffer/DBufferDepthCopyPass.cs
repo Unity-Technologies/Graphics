@@ -10,8 +10,8 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     internal class DBufferCopyDepthPass : CopyDepthPass
     {
-        public DBufferCopyDepthPass(RenderPassEvent evt, Material copyDepthMaterial, bool shouldClear = false, bool copyToDepth = false, bool copyResolvedDepth = false)
-            : base(evt, copyDepthMaterial, shouldClear, copyToDepth, copyResolvedDepth)
+        public DBufferCopyDepthPass(RenderPassEvent evt, Shader copyDepthShader, bool shouldClear = false, bool copyToDepth = false, bool copyResolvedDepth = false)
+            : base(evt, copyDepthShader, shouldClear, copyToDepth, copyResolvedDepth)
         {
         }
 
