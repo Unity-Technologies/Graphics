@@ -147,7 +147,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             else if (index == GBufferSpecularMetallicIndex) // sRGB specular, [unused]
                 return GraphicsFormat.R8G8B8A8_UNorm;
             else if (index == GBufferNormalSmoothnessIndex)
-                return this.AccurateGbufferNormals ? GraphicsFormat.R8G8B8A8_UNorm : GraphicsFormat.R8G8B8A8_SNorm; // normal normal normal packedSmoothness
+                return AccurateGbufferNormals ? GraphicsFormat.R8G8B8A8_UNorm : DepthNormalOnlyPass.GetGraphicsFormat(); // normal normal normal packedSmoothness
             else if (index == GBufferLightingIndex) // Emissive+baked: Most likely B10G11R11_UFloatPack32 or R16G16B16A16_SFloat
                 return GraphicsFormat.None;
             else if (index == GbufferDepthIndex) // Render-pass on mobiles: reading back real depth-buffer is either inefficient (Arm Vulkan) or impossible (Metal).
@@ -180,13 +180,9 @@ namespace UnityEngine.Rendering.Universal.Internal
         internal bool HasRenderingLayerPrepass { get; set; }
         // This is an overlay camera being rendered.
         internal bool IsOverlay { get; set; }
-        // Not all platforms support R8G8B8A8_SNorm, so we need to check for the support and force accurate GBuffer normals and relevant shader variants
-        private bool m_AccurateGbufferNormals;
-        internal bool AccurateGbufferNormals
-        {
-            get { return m_AccurateGbufferNormals; }
-            set { m_AccurateGbufferNormals = value || !RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.R8G8B8A8_SNorm, FormatUsage.Render); }
-        }
+
+        internal bool AccurateGbufferNormals { get; set; }
+
         // We browse all visible lights and found the mixed lighting setup every frame.
         internal MixedLightingSetup MixedLightingSetup { get; set; }
         //

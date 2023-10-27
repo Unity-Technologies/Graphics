@@ -685,13 +685,7 @@ namespace UnityEditor.Rendering.Universal
 
         internal bool StripUnusedFeatures_AccurateGbufferNormals(ref IShaderScriptableStrippingData strippingData, ref ShaderStripTool<ShaderFeatures> stripTool)
         {
-            // Do not strip accurateGbufferNormals on Mobile Vulkan as some GPUs do not support R8G8B8A8_SNorm,
-            // which then force us to use accurateGbufferNormals
-            if (strippingData.shaderCompilerPlatform != ShaderCompilerPlatform.Vulkan)
-                if (stripTool.StripMultiCompile(m_GbufferNormalsOct, ShaderFeatures.AccurateGbufferNormals))
-                    return true;
-
-            return false;
+            return stripTool.StripMultiCompile(m_GbufferNormalsOct, ShaderFeatures.AccurateGbufferNormals);
         }
 
         internal bool StripUnusedFeatures_LightCookies(ref IShaderScriptableStrippingData strippingData, ref ShaderStripTool<ShaderFeatures> stripTool)
@@ -727,7 +721,7 @@ namespace UnityEditor.Rendering.Universal
 
             if (StripUnusedFeatures_DeferredRendering(ref strippingData))
                 return true;
-            
+
             if (StripUnusedFeatures_DataDrivenLensFlare(ref strippingData))
                 return true;
 
