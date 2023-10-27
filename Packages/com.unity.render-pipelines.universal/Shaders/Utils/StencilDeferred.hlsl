@@ -5,7 +5,7 @@
 #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/Deferred.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/DynamicScaling.hlsl"
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRendering.hlsl"
+#include_with_pragmas "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl"
 
 struct Attributes
 {
@@ -239,9 +239,12 @@ half4 DeferredShading(Varyings input) : SV_Target
 
     float2 screen_uv = (input.screenUV.xy / input.screenUV.z);
 
-#if defined(_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
-    float2 undistorted_screen_uv = screen_uv;
-    screen_uv = input.positionCS.xy * _ScreenSize.zw;
+#if defined(SUPPORTS_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
+     float2 undistorted_screen_uv = screen_uv;
+     UNITY_BRANCH if (_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
+     {
+         screen_uv = input.positionCS.xy * _ScreenSize.zw;
+     }
 #endif
 
     half4 shadowMask = 1.0;
@@ -278,8 +281,11 @@ half4 DeferredShading(Varyings input) : SV_Target
         return half4(color, alpha); // Cannot discard because stencil must be updated.
     #endif
 
-    #if defined(_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
-    input.positionCS.xy = undistorted_screen_uv * _ScreenSize.xy;
+    #if defined(SUPPORTS_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
+     UNITY_BRANCH if (_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
+     {
+        input.positionCS.xy = undistorted_screen_uv * _ScreenSize.xy;
+     }
     #endif
 
     #if defined(USING_STEREO_MATRICES)
