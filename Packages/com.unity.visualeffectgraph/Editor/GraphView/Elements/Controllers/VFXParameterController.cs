@@ -735,8 +735,6 @@ namespace UnityEditor.VFX.UI
             }
             set
             {
-                Undo.RecordObject(model, "Change Value");
-
                 VFXSlot slot = model.GetOutputSlot(0);
 
                 if (valueFilter == VFXValueFilter.Range)
