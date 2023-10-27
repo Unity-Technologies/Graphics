@@ -7,3 +7,7 @@ This page contains an overview of new features, improvements, and issues resolve
 ### Lights
 
 Disc and tube shaped area lights are now supported with path tracing.
+
+### Seed mode parameter in path tracing 
+
+The HDRP path tracer now allows you to choose a *Seed mode*. This determines the noise pattern used to path trace.

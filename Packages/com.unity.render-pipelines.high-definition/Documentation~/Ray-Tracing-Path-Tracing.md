@@ -4,7 +4,7 @@ Path tracing is a ray tracing algorithm that sends rays from the Camera and, whe
 
 It enables HDRP to compute various effects (such as hard or soft shadows, mirror or glossy reflections and refractions, and indirect illumination) in a single unified process.
 
-A notable downside to path tracing is noise. Noise vanishes as more paths accumulate and converges toward a clean image. For more information about path tracing limitations in HDRP, see [Unsupported features of path tracing](Ray-Tracing-Getting-Started.md#unsupported-features-of-path-tracing).
+A notable downside to path tracing is noise. Noise is caused by the randomness underlying the path tracing process; at each surface interaction, a new direction is chosen randomly. Noise vanishes as more paths accumulate and converge toward a clean image. For more information about path tracing limitations in HDRP, see [Unsupported features of path tracing](Ray-Tracing-Getting-Started.md#unsupported-features-of-path-tracing).
 
 ![](Images/RayTracingPathTracing1.png)
 
@@ -45,7 +45,8 @@ Path tracing uses the [Volume](Volumes.md) framework, so to enable this feature,
 | **Maximum Depth**           | Set the maximum number of light bounces in each path. You can not set this to be lower than Minimum Depth.<br /> **Note**: You can set this and Minimum Depth to 1 if you only want to direct lighting. You can set them both to 2 if you only want to visualize indirect lighting (which is only visible on the second bounce). |
 | **Maximum Intensity**       | Set a value to clamp the intensity of the light value each bounce returns. This avoids bright, isolated pixels in the final result.<br />**Note**: This property can make the final image dimmer, so if the result looks dark, increase the value of this property. |
 | **Sky Importance Sampling** | Set the sky sampling mode. Importance sampling favors the brightest directions, which is beneficial when using a sky model with high contrast and intense spots (like a sun, or street lights). On the other hand, it can be slightly detrimental when using a smooth, uniform sky. It's active by default for HDRI skies only, but can also be turned On and Off, regardless of the type of sky in use. |
-| **Denoising** | Denoises the output of the the path tracer. This setting is only available when you install the **Unity Denoising** Package. **Denoising** has the following options:<br />&#8226; **None**: Does not denoise (this is the default option).<br />&#8226; **Intel Open Image Denoise** : Uses the Intel Open Image Denoise library to denoise the frame.<br />&#8226; **NVIDIA OptiX** : Uses NVIDIA OptiX to denoise the frame.<br /><br />You can also enable the following additional settings:<br />&#8226; **Use AOVs** (Arbitrary Output Variables): Increases the amount of detail kept in the frame after HDRP denoises it.<br />&#8226; **Temporal**: Improves the temporal consistency of denoised frame sequences. |
+| **Seed Mode**               | Set the way the seed is used to generate random numbers.  The seed is basically the pattern the noise will have. When accumulating samples, every frame needs a different seed, otherwise the same noisy image would get accumulated over and over. **Seed Mode** has the following options:<br />&#8226; **Non Repeating**: In this mode, the seed is chosen based on the camera framecount, meaning that it will not reset to zero when the accumulation is reset. This is the default option.<br />&#8226; **Repeating**: This mode resets the seed every time the accumulation is reset. This means every image is rendered with the same random numbers.<br />&#8226; **Custom**: This mode allows you to set the seed using a custom script. For more information, see [the example below](#seed-example).|
+| **Denoising**               | Denoises the output of the the path tracer. This setting is only available when you install the **Unity Denoising** Package. **Denoising** has the following options:<br />&#8226; **None**: Does not denoise (this is the default option).<br />&#8226; **Intel Open Image Denoise**: Uses the Intel Open Image Denoise library to denoise the frame.<br />&#8226; **NVIDIA OptiX**: Uses NVIDIA OptiX to denoise the frame.<br /><br />You can also enable the following additional settings:<br />&#8226; **Use AOVs** (Arbitrary Output Variables): Increases the amount of detail kept in the frame after HDRP denoises it.<br />&#8226; **Temporal**: Improves the temporal consistency of denoised frame sequences. |
 
 ![](Images/RayTracingPathTracing4.png)
 
@@ -178,6 +179,60 @@ In order to efficiently support the path tracing of decals, Decal Projectors are
 Additionally, the path tracer treats all decals as clustered decals. This might require increasing the "Maximum Lights per Cell (Ray Tracing)" (in the HDRP Quality settings, under lighting) and the size of the decal atlas (in the HDRP Quality settings, under Rendering), as more decals will be added to these data-structures.
 
 Finally, emission from decals is currently not supported.
+
+## Path tracing and random numbers
+
+Path tracing uses random numbers to select new directions to trace in. In order to generate these random numbers, the path tracer needs a seed for every frame. There are different ways the seed number can be computed which can be changed using the *Seed Mode* property.
+
+You can use the Custom mode to script your own behavior for the seed. In this mode, the seed is taken from the *customSeed* parameter on the path tracing override. It is important to update the seed every frame, as otherwise the same random numbers are generated every frame and no convergence will take place. 
+<a name="seed-example"></a>
+### Custom seed example: accumulating images over multiple recorder runs 
+
+The following script is an example of the Custom Seed mode. It uses the framecount as the seed and adds a user-defined offset to it. 
+
+This is useful in the following scenario: you want to render a sequence with the path tracer and the [Recorder package](https://docs.unity3d.com/Packages/com.unity.recorder@latest). You render each frame as a separate image with 512 samples but you notice the images have not converged yet. Instead of starting from 0, you want to re-render the same sequence with a different seed and add the results to the first set of images you rendered. 
+
+You can use the following script: 
+```
+using System.Collections;
+using System.Collections.Generic;
+using Unity.VisualScripting;
+using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition;
+
+public class exampleBehavior : MonoBehaviour
+{
+    static int framecounter = 0;
+    public Volume pathTracingVolume;
+    VolumeProfile pathTracingVolumeProfile;
+    PathTracing pathTracing;
+
+    public int seedOffset = 0;
+
+
+    void Start()
+    {
+        framecounter = 0;
+        pathTracingVolumeProfile = pathTracingVolume.sharedProfile;
+        if(!pathTracingVolumeProfile.TryGet<PathTracing>(out pathTracing))
+        {
+            Debug.Log("Path Tracing not found");
+        }
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        pathTracing.customSeed.overrideState = true;
+        pathTracing.customSeed.value = framecounter + seedOffset;
+
+        framecounter++;
+    }
+}
+```
+
+Using this script and setting the Seed mode to custom allows you to render a first batch of images with 512 samples with the Seed offset set to zero, and afterwards a second batch with the Seed offset set to 512 to ensure different random numbers for the second batch of images. This way, the images can be added together for a more converged end result.
 
 ## Limitations
 
