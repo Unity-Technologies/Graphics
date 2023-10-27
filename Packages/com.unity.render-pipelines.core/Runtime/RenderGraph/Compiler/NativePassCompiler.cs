@@ -716,6 +716,13 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
                         continue;
                     }
 
+                    // If depth ends up being bound only because of merging we explicitly say that we will not write to it
+                    // which could have been implied by leaving the flag to None
+                    if (!graphPass.fragmentInfoHasDepth && nativePass.hasDepth)
+                    {
+                        desc.flags = SubPassFlags.ReadOnlyDepth;
+                    }
+
                     // MRT attachments
                     {
                         int fragmentIdx = 0;

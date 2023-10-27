@@ -27,6 +27,7 @@ namespace UnityEngine.Rendering.Tests
             public TextureHandle backBuffer;
             public TextureHandle depthBuffer;
             public TextureHandle[] extraBuffers = new TextureHandle[10];
+            public TextureHandle extraDepthBuffer;
         };
 
         TestBuffers ImportAndCreateBuffers(RenderGraph g)
@@ -36,6 +37,7 @@ namespace UnityEngine.Rendering.Tests
             var backBufferHandle = RTHandles.Alloc(backBuffer, "Backbuffer Color");
             var depthBuffer = BuiltinRenderTextureType.Depth;
             var depthBufferHandle = RTHandles.Alloc(depthBuffer, "Backbuffer Depth");
+            var extraDepthBufferHandle = RTHandles.Alloc(depthBuffer, "Extra Depth Buffer");
 
             RenderTargetInfo importInfo = new RenderTargetInfo();
             RenderTargetInfo importInfoDepth = new RenderTargetInfo();
@@ -44,12 +46,14 @@ namespace UnityEngine.Rendering.Tests
             importInfo.volumeDepth = 1;
             importInfo.msaaSamples = 1;
             importInfo.format = GraphicsFormat.R16G16B16A16_SFloat;
+            result.backBuffer = g.ImportTexture(backBufferHandle, importInfo);
 
             importInfoDepth = importInfo;
             importInfoDepth.format = GraphicsFormat.D32_SFloat_S8_UInt;
-
-            result.backBuffer = g.ImportTexture(backBufferHandle, importInfo);
             result.depthBuffer = g.ImportTexture(depthBufferHandle, importInfoDepth);
+
+            importInfo.format = GraphicsFormat.D24_UNorm;
+            result.extraDepthBuffer = g.ImportTexture(extraDepthBufferHandle, importInfoDepth);
 
             for (int i = 0; i < result.extraBuffers.Length; i++)
             {
@@ -168,20 +172,49 @@ namespace UnityEngine.Rendering.Tests
         }*/
 
         [Test]
-        public void DepthUseMismatch()
+        public void MergeDepthPassWithNoDepthPass()
         {
             var g = AllocateRenderGraph();
-
             var buffers = ImportAndCreateBuffers(g);
 
-            // No depth
+            // depth
+            {
+                var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass0", out var passData);
+                builder.UseTextureFragmentDepth(buffers.depthBuffer, IBaseRenderGraphBuilder.AccessFlags.Write);
+                builder.UseTextureFragment(buffers.extraBuffers[0], 0, IBaseRenderGraphBuilder.AccessFlags.Write);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.Dispose();
+            }
+            // with no depth
+            {
+                var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass1", out var passData);
+                builder.UseTextureFragment(buffers.extraBuffers[0], 0, IBaseRenderGraphBuilder.AccessFlags.Write);
+                builder.UseTextureFragment(buffers.backBuffer, 2, IBaseRenderGraphBuilder.AccessFlags.Write);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.Dispose();
+            }
+
+            var result = g.CompileNativeRenderGraph();
+            var passes = result.contextData.GetNativePasses();
+
+            Assert.AreEqual(1, passes.Count);
+            Assert.AreEqual(Experimental.Rendering.RenderGraphModule.NativeRenderPassCompiler.PassBreakReason.EndOfGraph, passes[0].breakAudit.reason);
+        }
+
+        [Test]
+        public void MergeNoDepthPassWithDepthPass()
+        {
+            var g = AllocateRenderGraph();
+            var buffers = ImportAndCreateBuffers(g);
+
+            // no depth
             {
                 var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass0", out var passData);
                 builder.UseTextureFragment(buffers.extraBuffers[0], 0, IBaseRenderGraphBuilder.AccessFlags.Write);
                 builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
                 builder.Dispose();
             }
-            // With depth
+            // with depth
             {
                 var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass1", out var passData);
                 builder.UseTextureFragmentDepth(buffers.depthBuffer, IBaseRenderGraphBuilder.AccessFlags.Write);
@@ -194,8 +227,75 @@ namespace UnityEngine.Rendering.Tests
             var result = g.CompileNativeRenderGraph();
             var passes = result.contextData.GetNativePasses();
 
+            Assert.AreEqual(1, passes.Count);
+            Assert.AreEqual(Experimental.Rendering.RenderGraphModule.NativeRenderPassCompiler.PassBreakReason.EndOfGraph, passes[0].breakAudit.reason);
+        }
+
+        [Test]
+        public void MergeMultiplePassesDifferentDepth()
+        {
+            var g = AllocateRenderGraph();
+            var buffers = ImportAndCreateBuffers(g);
+
+            // no depth
+            {
+                var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass0", out var passData);
+                builder.UseTextureFragment(buffers.extraBuffers[0], 0, IBaseRenderGraphBuilder.AccessFlags.Write);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.Dispose();
+            }
+            // with depth
+            {
+                var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass1", out var passData);
+                builder.UseTextureFragmentDepth(buffers.depthBuffer, IBaseRenderGraphBuilder.AccessFlags.Write);
+                builder.UseTextureFragment(buffers.extraBuffers[0], 0, IBaseRenderGraphBuilder.AccessFlags.Write);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.Dispose();
+            }
+            // with no depth
+            {
+                var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass2", out var passData);
+                builder.UseTextureFragment(buffers.extraBuffers[0], 0, IBaseRenderGraphBuilder.AccessFlags.Write);
+                builder.UseTextureFragment(buffers.backBuffer, 2, IBaseRenderGraphBuilder.AccessFlags.Write);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.Dispose();
+            }
+
+            var result = g.CompileNativeRenderGraph();
+            var passes = result.contextData.GetNativePasses();
+
+            Assert.AreEqual(1, passes.Count);
+            Assert.AreEqual(Experimental.Rendering.RenderGraphModule.NativeRenderPassCompiler.PassBreakReason.EndOfGraph, passes[0].breakAudit.reason);
+        }
+
+        [Test]
+        public void MergeDifferentDepthFormatsBreaksPass()
+        {
+            var g = AllocateRenderGraph();
+            var buffers = ImportAndCreateBuffers(g);
+
+            // depth
+            {
+                var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass0", out var passData);
+                builder.UseTextureFragmentDepth(buffers.depthBuffer, IBaseRenderGraphBuilder.AccessFlags.Write);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.Dispose();
+            }
+            // with different depth
+            {
+                var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass1", out var passData);
+                builder.UseTextureFragmentDepth(buffers.extraDepthBuffer, IBaseRenderGraphBuilder.AccessFlags.Write);
+                builder.UseTextureFragment(buffers.extraBuffers[0], 0, IBaseRenderGraphBuilder.AccessFlags.Write);
+                builder.UseTextureFragment(buffers.backBuffer, 2, IBaseRenderGraphBuilder.AccessFlags.Write);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.Dispose();
+            }
+
+            var result = g.CompileNativeRenderGraph();
+            var passes = result.contextData.GetNativePasses();
+
             Assert.AreEqual(2, passes.Count);
-            Assert.AreEqual(Experimental.Rendering.RenderGraphModule.NativeRenderPassCompiler.PassBreakReason.DepthBufferUseMismatch, passes[0].breakAudit.reason);
+            Assert.AreEqual(Experimental.Rendering.RenderGraphModule.NativeRenderPassCompiler.PassBreakReason.DifferentDepthTextures, passes[0].breakAudit.reason);
         }
 
         [Test]

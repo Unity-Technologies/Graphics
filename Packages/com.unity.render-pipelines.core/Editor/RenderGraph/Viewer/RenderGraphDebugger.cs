@@ -353,11 +353,6 @@ internal class RenderGraphDebugger : IRenderGraphDebugger
                                        pass.fragmentInfoWidth + "x" + pass.fragmentInfoHeight + "x" + pass.fragmentInfoSamples + ".";
                         break;
 
-                    case PassBreakReason.DepthBufferUseMismatch:
-                        mergeMessage = "Some passes use a depth buffer and some not. " + prevPassName + ": " +
-                                       prevPass.fragmentInfoHasDepth + ". \n" + passName + ": " + pass.fragmentInfoHasDepth + '.';
-                        break;
-
                     case PassBreakReason.NextPassReadsTexture:
                         mergeMessage = "The next pass reads one of the outputs as a regular texture, the pass needs to break.";
                         break;
