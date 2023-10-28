@@ -865,7 +865,7 @@ namespace ShaderStrippingAndPrefiltering
             TestHelper.s_PassKeywords = shShaderKeywords;
             helper.AreEqual(shader != null, helper.stripper.StripUnusedFeatures_SHAuto(ref helper.data, ref helper.featureStripTool));
         }
-        
+
         public void TestStripUnusedFeatures_ScreenSpaceLensFlare(Shader shader)
         {
             TestHelper helper;
@@ -875,13 +875,13 @@ namespace ShaderStrippingAndPrefiltering
 
             helper = new TestHelper(shader, ShaderFeatures.None);
             bool isLensFlareScreenSpace = shader != null && shader.name == "Hidden/Universal Render Pipeline/LensFlareScreenSpace";
-            //We should strip the shader only if it's the lens flare one. 
+            //We should strip the shader only if it's the lens flare one.
             helper.IsTrue(isLensFlareScreenSpace ? helper.stripper.StripUnusedFeatures_ScreenSpaceLensFlare(ref helper.data) : !helper.stripper.StripUnusedFeatures_ScreenSpaceLensFlare(ref helper.data));
         }
-        
+
         public void TestStripUnusedFeatures_DataDrivenLensFlare(Shader shader)
         {
-            
+
             TestHelper helper;
 
             helper = new TestHelper(shader, ShaderFeatures.DataDrivenLensFlare);
@@ -889,7 +889,7 @@ namespace ShaderStrippingAndPrefiltering
 
             helper = new TestHelper(shader, ShaderFeatures.None);
             bool isLensFlareDataDriven = shader != null && shader.name == "Hidden/Universal Render Pipeline/LensFlareDataDriven";
-            //We should strip the shader only if it's the lens flare one. 
+            //We should strip the shader only if it's the lens flare one.
             helper.IsTrue(isLensFlareDataDriven ? helper.stripper.StripUnusedFeatures_DataDrivenLensFlare(ref helper.data) : !helper.stripper.StripUnusedFeatures_DataDrivenLensFlare(ref helper.data));
         }
 
@@ -2024,12 +2024,12 @@ namespace ShaderStrippingAndPrefiltering
             helper.data.shaderCompilerPlatform = ShaderCompilerPlatform.Vulkan;
             TestHelper.s_EnabledKeywords = new List<string>() {ShaderKeywordStrings._GBUFFER_NORMALS_OCT};
             TestHelper.s_PassKeywords = new List<string>() {ShaderKeywordStrings._GBUFFER_NORMALS_OCT};
-            helper.IsFalse(helper.stripper.StripUnusedFeatures_AccurateGbufferNormals(ref helper.data, ref helper.featureStripTool));
+            helper.AreEqual(shader != null, helper.stripper.StripUnusedFeatures_AccurateGbufferNormals(ref helper.data, ref helper.featureStripTool));
 
             helper = new TestHelper(shader, ShaderFeatures.AccurateGbufferNormals);
             helper.data.shaderCompilerPlatform = ShaderCompilerPlatform.Vulkan;
             TestHelper.s_PassKeywords = new List<string>() {ShaderKeywordStrings._GBUFFER_NORMALS_OCT};
-            helper.IsFalse(helper.stripper.StripUnusedFeatures_AccurateGbufferNormals(ref helper.data, ref helper.featureStripTool));
+            helper.AreEqual(shader != null, helper.stripper.StripUnusedFeatures_AccurateGbufferNormals(ref helper.data, ref helper.featureStripTool));
 
             helper = new TestHelper(shader, ShaderFeatures.AccurateGbufferNormals);
             helper.data.shaderCompilerPlatform = ShaderCompilerPlatform.Vulkan;
