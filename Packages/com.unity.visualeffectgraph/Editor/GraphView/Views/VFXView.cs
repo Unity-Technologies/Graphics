@@ -881,6 +881,7 @@ namespace UnityEditor.VFX.UI
                 {
                     badge.Detach();
                     badge.RemoveFromHierarchy();
+                    model.IgnoreError(error);
                 }));
                 badge.AddManipulator(new DownClickable(() =>
                 {

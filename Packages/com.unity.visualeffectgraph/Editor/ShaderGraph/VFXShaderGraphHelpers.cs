@@ -16,8 +16,15 @@ namespace UnityEditor.VFX
     {
         public static string GetMissingShaderGraphErrorMessage(ShaderGraphVfxAsset shader)
         {
-            var missingShaderPath = AssetDatabase.GetAssetPath(shader.GetInstanceID());
-            return $" cannot be compiled because a Shader Graph asset located here '{missingShaderPath}' is missing.";
+            var instanceID = shader.GetInstanceID();
+            var missingShaderPath = AssetDatabase.GetAssetPath(instanceID);
+            if (!string.IsNullOrEmpty(missingShaderPath))
+            {
+                return $" cannot be compiled because a Shader Graph asset located here '{missingShaderPath}' is missing.";
+            }
+
+            AssetDatabase.TryGetGUIDAndLocalFileIdentifier(shader, out var guid, out var localID);
+            return $" cannot be compiled because a Shader Graph with GUID '{guid}' is missing.\nYou might find the missing file by searching on your disk this guid in .meta files.";
         }
 
         private static Type GetPropertyType(AbstractShaderProperty property)
