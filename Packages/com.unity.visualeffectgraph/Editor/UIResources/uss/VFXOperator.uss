@@ -19,29 +19,15 @@ VFXOperatorUI #title #edit #icon
     align-self: center;
 }
 
-OperandInfo *
+OperandInfo PopupField
 {
     height: 16px;
 }
-OperandInfo .unity-text-field
-{
-    flex:1 0 auto;
-}
 
-OperandInfo .PopupButton
+OperandInfo .unity-text-element, OperandInfo .unity-text-field
 {
-    flex:0 0 auto;
-    width: 64px;
-}
-
-VFXUnifiedOperatorEdit OperandInfo .unity-label
-{
-    flex:1 0 auto;
-}
-
-VFXUnifiedOperatorEdit OperandInfo .PopupButton
-{
-    width: 80px;
+    margin-left: 4px;
+    flex: 1 1 auto;
 }
 
 #edit-container
