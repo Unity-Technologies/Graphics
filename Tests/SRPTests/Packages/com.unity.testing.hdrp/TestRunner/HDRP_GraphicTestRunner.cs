@@ -54,6 +54,7 @@ public class HDRP_GraphicTestRunner
         UnityEditor.ShaderUtil.allowAsyncCompilation = true;
         UnityEditor.EditorSettings.asyncShaderCompilation = true;
 
+		Debug.Log($"Running test case '{testCase}' with scene '{testCase.ScenePath}' {testCase.ReferenceImagePathLog}.");
         SceneManager.LoadScene(testCase.ScenePath);
 
         // Wait for scene loading to retrieve settings/camera.

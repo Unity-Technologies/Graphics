@@ -30,11 +30,12 @@ public class GraphicsTests
 #endif
     [UseGraphicsTestCases(path)]
     public IEnumerator Run(GraphicsTestCase testCase)
-    {
+    {		
 #if UNITY_WEBGL || UNITY_ANDROID
         // Do this near the beginning of the test case method before you test or assert
         RuntimeGraphicsTestCaseProvider.AssociateReferenceImageWithTest(testCase);
 #endif
+		Debug.Log($"Running test case '{testCase}' with scene '{testCase.ScenePath}' {testCase.ReferenceImagePathLog}.");
         SceneManager.LoadScene(testCase.ScenePath);
 
         // Always wait one frame for scene load

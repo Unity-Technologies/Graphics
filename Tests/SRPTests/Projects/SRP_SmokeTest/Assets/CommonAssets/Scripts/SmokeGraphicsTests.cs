@@ -12,6 +12,7 @@ public class SmokeGraphicsTests
     [UseGraphicsTestCases]
     public IEnumerator Run(GraphicsTestCase testCase)
     {
+		Debug.Log($"Running test case '{testCase}' with scene '{testCase.ScenePath}' {testCase.ReferenceImagePathLog}.");
         SceneManager.LoadScene(testCase.ScenePath);
 
         // Always wait one frame for scene load

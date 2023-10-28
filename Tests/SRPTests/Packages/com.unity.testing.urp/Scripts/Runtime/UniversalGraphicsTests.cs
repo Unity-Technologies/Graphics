@@ -56,7 +56,7 @@ public class UniversalGraphicsTests
     [UseGraphicsTestCases(universalPackagePath)]
     public IEnumerator Run(GraphicsTestCase testCase)
     {
-        Debug.Log($"Running test case {testCase.ScenePath} with reference image {testCase.ScenePath}. {testCase.ReferenceImagePathLog}.");
+        Debug.Log($"Running test case '{testCase}' with scene '{testCase.ScenePath}' {testCase.ReferenceImagePathLog}.");
 #if UNITY_WEBGL || UNITY_ANDROID
         RuntimeGraphicsTestCaseProvider.AssociateReferenceImageWithTest(testCase);
 #endif

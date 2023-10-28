@@ -131,6 +131,7 @@ namespace UnityEditor.VFX.PerformanceTest
 
         public static IEnumerator Load_And_Prepare(GraphicsTestCase testCase)
         {
+			Debug.Log($"Running test case '{testCase}' with scene '{testCase.ScenePath}' {testCase.ReferenceImagePathLog}.");
             UnityEngine.SceneManagement.SceneManager.LoadScene(testCase.ScenePath);
             yield return new WaitForEndOfFrame();
 

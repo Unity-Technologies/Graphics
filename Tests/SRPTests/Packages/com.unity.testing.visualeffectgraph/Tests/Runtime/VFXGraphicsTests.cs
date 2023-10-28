@@ -65,6 +65,7 @@ namespace UnityEngine.VFX.Test
                 sceneView.Close();
             }
 #endif
+			Debug.Log($"Running test case '{testCase}' with scene '{testCase.ScenePath}' {testCase.ReferenceImagePathLog}.");
             SceneManagement.SceneManager.LoadScene(testCase.ScenePath);
 
             // Always wait one frame for scene load

@@ -41,7 +41,7 @@ public class BaseGraphicsTests
 #if UNITY_WEBGL || UNITY_ANDROID
         RuntimeGraphicsTestCaseProvider.AssociateReferenceImageWithTest(testCase);
 #endif
-
+		Debug.Log($"Running test case '{testCase}' with scene '{testCase.ScenePath}' {testCase.ReferenceImagePathLog}.");
         var oldTimeScale = Time.timeScale;
         var currentRPAsset = GraphicsSettings.renderPipelineAsset;
         Time.timeScale = 0.0f;
