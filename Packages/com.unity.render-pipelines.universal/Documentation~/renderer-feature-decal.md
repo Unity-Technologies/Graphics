@@ -54,7 +54,7 @@ This section describes the options in this property.
 
 #### Automatic
 
-Unity selects the rendering technique automatically based on the build platform.
+Unity selects the rendering technique automatically based on the build platform. The [Accurate G-buffer normals](rendering/deferred-rendering-path.md#accurate-g-buffer-normals) option is also taken into account, as it prevents normal blending from working correctly without the D-Buffer technique.
 
 #### DBuffer
 
@@ -72,9 +72,9 @@ Selecting this technique reveals the **Surface Data** property. The Surface Data
 
 * This technique does not work on particles and terrain details.
 
-#### Screen Space
+#### <a name="screen-space-technique"></a>Screen Space
 
-Unity renders decals after the opaque objects using normals that Unity reconstructs from the depth texture. Unity renders decals as meshes on top of the opaque meshes. This technique supports only the normal blending.
+Unity renders decals after the opaque objects using normals that Unity reconstructs from the depth texture, or from the G-Buffer when using the Deferred rendering path. Unity renders decals as meshes on top of the opaque meshes. This technique supports only the normal blending. When using the Deferred rendering path with [Accurate G-buffer normals](rendering/deferred-rendering-path.md#accurate-g-buffer-normals), blending of normals is not supported, and will yield incorrect results.
 
 Screen space decals are recommended for mobile platforms that use tile-based rendering, because URP doesn't create a DepthNormal prepass unless you enable **Use Rendering Layers**. 
 

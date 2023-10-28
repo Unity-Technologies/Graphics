@@ -108,7 +108,7 @@ public class DrawRenderingLayersFeature : ScriptableRendererFeature
 
     private RTHandle m_ColoredRenderingLayersTextureHandle;
 
-    internal override bool RequireRenderingLayers(bool isDeferred, out RenderingLayerUtils.Event atEvent, out RenderingLayerUtils.MaskSize maskSize)
+    internal override bool RequireRenderingLayers(bool isDeferred, bool needsGBufferAccurateNormals, out RenderingLayerUtils.Event atEvent, out RenderingLayerUtils.MaskSize maskSize)
     {
         if (m_Event < RenderPassEvent.AfterRenderingGbuffer)
             atEvent = RenderingLayerUtils.Event.DepthNormalPrePass;
