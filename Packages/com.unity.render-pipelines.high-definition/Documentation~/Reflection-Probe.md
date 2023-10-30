@@ -1,6 +1,6 @@
-# Reflection Probe
+# Reflection probe reference
 
-The Reflection Probe component is one of the types of [Reflection Probe](Reflection-Probes-Intro.md) that the High Definition Render Pipeline (HDRP) provides to help you create reactive and accurate reflective Materials.
+The Reflection Probe component is one of the types of [Reflection Probes](Reflection-Probes-Intro.md) that the High Definition Render Pipeline (HDRP) provides to help you create reactive and accurate reflective Materials.
 
 ## Properties
 
@@ -54,11 +54,11 @@ The following properties control the method that the Reflection Probe uses to ca
 | **Property**                 | **Description**                                              |
 | ---------------------------- | ------------------------------------------------------------ |
 | **Capture Position**         | The position, relative to the Transform Position, from which the Reflection Probe captures its surroundings. |
-| **Clear Mode**               | Defines how to fill empty background areas of the RenderTexture this Probe captures.<br />&#8226; **Sky** uses the sky defined by the current [Volume](Volumes.md) settings to fill empty background areas.<br />&#8226; **Background** uses the **Background Color** property to fill empty background areas.<br />&#8226; **None** reuses the previous value for each pixel that doesn’t represent a reflected GameObject, instead of filling in empty areas of the RenderTexture. |
+| **Clear Mode**               | Defines how to fill empty background areas of the RenderTexture this Probe captures.<br />&#8226; **Sky** uses the sky defined by the current [Volume](understand-volumes.md) settings to fill empty background areas.<br />&#8226; **Background** uses the **Background Color** property to fill empty background areas.<br />&#8226; **None** reuses the previous value for each pixel that doesn’t represent a reflected GameObject, instead of filling in empty areas of the RenderTexture. |
 | **Background Color**         | The color to fill empty background areas of the RenderTexture if you set the **Clear Mode** to **Background**. |
 | **Clear Depth**              | Choose whether the Reflection Probe clears the Depth Buffer or not. |
 | **Volume Layer Mask**        | A LayerMask that defines which Volumes affect this Reflection Probe’s capture. |
-| **Volume Anchor Override**   | Set the Transform that the [Volume](Volumes.md) system uses to handle the position of this Reflection Probe. For example, if you want this Reflection Probe to match post-processing effects with the view Camera, set this property to the view Camera’s Transform. The Volume system then uses the Camera’s position to process which Volume affects this Reflection Probe. |
+| **Volume Anchor Override**   | Set the Transform that the [Volume](understand-volumes.md) system uses to handle the position of this Reflection Probe. For example, if you want this Reflection Probe to match post-processing effects with the view Camera, set this property to the view Camera’s Transform. The Volume system then uses the Camera’s position to process which Volume affects this Reflection Probe. |
 | **Use Occlusion Culling**    | Enables [Occlusion Culling](https://docs.unity3d.com/Manual/OcclusionCulling.html) for this Reflection Probe. |
 | **Culling Mask**             | A LayerMask that defines which Layers to include in the reflection. GameObjects on the Layers included in this LayerMask appear in the reflection. |
 | **Clip Planes - Near**       | The closest point relative to the Reflection Probe that the Probe captures reflections. |
@@ -66,7 +66,7 @@ The following properties control the method that the Reflection Probe uses to ca
 | **Probe Layer Mask**         | Acts as a culling mask for environment lights (light from Planar Reflection Probes and Reflection Probes). This Reflection Probe ignores all Reflection Probes that are on Layers not included in this Layer mask, so use this property to ignore certain Reflection Probes when rendering this one. |
 | **Custom Frame Settings**    | Allows you to define custom [Frame Settings](Frame-Settings.md) for this Probe. Disable this property to use the **Default Frame Settings** in your Unity Project’s [HDRP Asset](HDRP-Asset.md). |
 | **Resolution**             | Select a quality mode to determine the resolution of this Reflection Probe. If you select Custom, you must specify a resolution in the dropdown menu. Higher resolutions increase the fidelity of cube reflections but can reduce GPU performance and increase memory consumption. The resolution can be set to 0 to prevent the probe from being rendered for certain quality levels. |
-| **Range Compression Factor** | The factor which HDRP divides the result of the probe's rendering by. This is useful to deal with very bright or dark objects in the reflections that would otherwise be saturated.<br/>This property only appears when you enable [additional properties](More-Options.md) for this section. |
+| **Range Compression Factor** | The factor which HDRP divides the result of the probe's rendering by. This is useful to deal with very bright or dark objects in the reflections that would otherwise be saturated.<br/>This property only appears when you enable [additional properties](expose-all-additional-properties.md) for this section. |
 
 ### Render Settings
 

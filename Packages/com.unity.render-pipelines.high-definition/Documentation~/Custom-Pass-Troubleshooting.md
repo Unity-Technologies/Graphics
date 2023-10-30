@@ -40,8 +40,8 @@ Sometimes when you enable [Temporal antialiasing (TAA)](https://docs.unity3d.com
 
 Jittering can happen when both of the following conditions are met:
 
-* The object is rendered in the **AfterPostProcess** [Injection Point](Custom-Pass-Injection-Points.md) . To fix this, change the **Injection Point** in the [Custom Pass Volume](Custom-Pass-Creating.md#Custom-Pass-Volume) component.
-* The object has **Depth Test** enabled. To fix this, disable **Depth Test** in the [shader properties](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@10.2/manual/Lit-Shader.html), or set the Depth Test property in the [draw renders Custom Pass component](Custom-Pass-Creating.md#Draw-Renderers-Custom-Pass) to **Disabled**.
+* The object is rendered in the **AfterPostProcess** [Injection Point](Custom-Pass-Injection-Points.md) . To fix this, change the **Injection Point** in the [Custom Pass Volume](custom-pass-reference.md#custom-pass-volume-component-properties) component.
+* The object has **Depth Test** enabled. To fix this, disable **Depth Test** in the [shader properties](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@10.2/manual/Lit-Shader.html), or set the Depth Test property in the [draw renders Custom Pass component](custom-pass-create-gameobject.md#draw-renderers-custom-pass) to **Disabled**.
 
 ## Particles face the wrong direction
 

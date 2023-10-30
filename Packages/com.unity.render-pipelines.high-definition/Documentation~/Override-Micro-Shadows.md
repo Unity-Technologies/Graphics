@@ -8,9 +8,9 @@ In this image, the different layers of details in the Material shadow each other
 
 Micro shadows at 0.85 opacity on a mossy ground material viewed from the top.
 
-## Using Micro Shadows
+## Use Micro Shadows
 
-HDRP uses the [Volume](Volumes.md) framework to generate **Micro Shadows**, so to enable and modify **Micro Shadow** properties, you must add a **Micro Shadows** override to a [Volume](Volumes.md) in your Scene. To add **Micro Shadows** to a Volume:
+HDRP uses the [Volume](understand-volumes.md) framework to generate **Micro Shadows**, so to enable and modify **Micro Shadow** properties, you must add a **Micro Shadows** override to a [Volume](understand-volumes.md) in your Scene. To add **Micro Shadows** to a Volume:
 
 1. Select the Volume component in the Scene or Hierarchy to view it in the Inspector
 2. In the Inspector, go to **Add Override** > **Shadowing** and select **Micro Shadows**. HDRP now processes **Micro Shadows** for any Camera this Volume affects.
@@ -20,8 +20,6 @@ Micro shadowing only works with directional [Lights](Light-Component.md). If you
 [!include[](snippets/volume-override-api.md)]
 
 ## Properties
-
-![](Images/OverrideMicroShadows2.png)
 
 [!include[](snippets/Volume-Override-Enable-Properties.md)]
 

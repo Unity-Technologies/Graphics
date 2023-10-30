@@ -1,4 +1,4 @@
-# Lens Flare (SRP) component
+# Lens Flare (SRP) 
 
 ![](../../images/shared/lens-flare/lens-flare-header.png)
 
@@ -8,9 +8,9 @@ Unity’s Scriptable Render Pipeline (SRP) includes the Lens Flare (SRP) compone
 
 Use the Lens Flare (SRP) component to create lens flares for lights that have specific locations in your scene, for example bright bulbs. You can also create lens flares using the [Screen Space Lens Flare](Override-Screen-Space-Lens-Flare.md) volume override, or use both the Lens Flare (SRP) component and the Screen Space Lens Flare override in the same scene.
 
-## Creating lens flares in SRP
+## Create a lens flare in SRP
 
-The Lens Flare (SRP) component controls where the lens flare is as well as properties such as attenuation and whether the lens flare considers occlusion. For properties that define how the lens flare looks, SRP uses the [Lens Flare (SRP) Data](lens-flare-asset.md) asset. Each Lens Flare (SRP) component must reference a Lens Flare (SRP) data asset to display a lens flare on-screen.
+The Lens Flare (SRP) component controls where the lens flare is as well as properties such as attenuation and whether the lens flare considers occlusion. For properties that define how the lens flare looks, SRP uses the [Lens Flare (SRP) Data](shared/lens-flare/lens-flare-asset.md) asset. Each Lens Flare (SRP) component must reference a Lens Flare (SRP) data asset to display a lens flare on-screen.
 
 To create a lens flare in a scene:
 
@@ -49,3 +49,4 @@ To create a lens flare in a scene:
 | Occlusion Remap Curve | Specifies the curve used to remap the occlusion of the flare. By default, the occlusion is linear, between 0 and 1. This can be specifically useful to occlude flare more drastically when behind clouds. |
 | Volumetric Cloud Occlusion | When enabled, HDRP uses the volumetric cloud texture to occlude the lens flare. HDRP always considers the lens flare to be behind the volumetric clouds because it calculates occlusion in screen space. |
 | Allow Off Screen | Enable this property to allow lens flares outside the Camera's view to affect the current field of view. |
+

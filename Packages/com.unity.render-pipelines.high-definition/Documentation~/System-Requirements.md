@@ -1,4 +1,4 @@
-# Requirements and compatibility
+# System requirements and compatibility
 
 This page contains information on system requirements and compatibility of the High Definition Render Pipeline (HDRP) package.
 
@@ -30,7 +30,7 @@ This section describes the HDRP package’s target platform requirements. For pl
 
 For more information, see [System requirements for Unity](https://docs.unity3d.com/Manual/system-requirements.html).
 
-HRDP is only compatible with the following platforms:
+HRDP is compatible with the following platforms:
 
 - Windows and Windows Store, with DirectX 11 or DirectX 12 and Shader Model 5.0
 - Google
@@ -48,4 +48,4 @@ HRDP is only compatible with the following platforms:
 
 ### Ray tracing
 
-To use ray tracing in HDRP, there are hardware requirements you must meet. For information on these requirements, see [Getting started with ray tracing](Ray-Tracing-Getting-Started.md#HardwareRequirements).
+To use ray tracing in HDRP, there are hardware requirements you must meet. For information on these requirements, see [Getting started with ray tracing](Ray-Tracing-Getting-Started.md).

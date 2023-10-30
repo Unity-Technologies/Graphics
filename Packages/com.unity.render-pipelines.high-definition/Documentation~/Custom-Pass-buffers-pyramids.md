@@ -18,7 +18,7 @@ HDRP custom passes use the following buffers:
 You can set each of these buffers to use:
 
 - The camera’s color or depth buffer.
-- A [custom buffer](Custom-Pass-Creating.md#using-a-custom-buffer-format) under your control.
+- A [custom buffer](custom-pass-create-gameobject.md#use-the-custom-buffer) under your control.
 - No buffer to disable color or depth outputs.
 
 <a name="Custom-Pass-depth-buffer"></a>
@@ -76,7 +76,7 @@ HDRP generates a single depth pyramid after the AfterOpaqueDepthAndNormal [injec
 
 HDRP generates color pyramids at these points in the rendering pipeline:
 
-1. After the BeforePreRefraction injection point (in **Color Pyramid PreRefraction**). This contains opaque objects and objects rendered in BeforePreRefraction and is used for [Screen space reflections](Reflection-in-HDRP#ScreenSpaceReflection) next frame and the [refraction effect](Refraction-in-HDRP.md) in the current frame.
+1. After the BeforePreRefraction injection point (in **Color Pyramid PreRefraction**). This contains opaque objects and objects rendered in BeforePreRefraction and is used for [Screen space reflections](Override-Screen-Space-Reflection.md) next frame and the [refraction effect](Override-Screen-Space-Refraction.md) in the current frame.
 2. If **Distortion** is enabled in the [Frame Settings](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@10.4/manual/Frame-Settings.html), after the BeforeTransparent injection point and all the Transparent rendering passes. This is used for distortion and contains all opaque and transparent objects.
 3. As part of the bloom post-processing effect. This contains all opaque and transparent objects and the distortion effect.
 

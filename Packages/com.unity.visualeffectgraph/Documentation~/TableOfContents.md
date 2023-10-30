@@ -7,6 +7,7 @@
   * [13 / Unity 2022.1](whats-new-13.md)
   * [14 / Unity 2022.2](whats-new-14.md)
   * [15 / Unity 2023.1](whats-new-15.md)
+  * [16 / Unity 2023.2](whats-new-16.md)
 * [Getting Started](GettingStarted.md)
   * [Visual Effect Graph Assets](VisualEffectGraphAsset.md)
   * [Visual Effect Graph Window](VisualEffectGraphWindow.md)

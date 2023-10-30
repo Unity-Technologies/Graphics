@@ -1,4 +1,4 @@
-# Upgrading HDRP from 2023.1 to 2023.2
+# Upgrading HDRP from 2023.2 to 2023.3
 
 In the High Definition Render Pipeline (HDRP), some features work differently between major versions. This document helps you upgrade HDRP from 16.x to 17.x.
 

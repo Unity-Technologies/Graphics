@@ -28,7 +28,7 @@ If your Project uses ray tracing, follow these additional steps:
 
 ## Procedural Sky
 
-The [Procedural Sky](Override-Procedural-Sky.md) override is deprecated in 7.x. If your Project uses a procedural sky, you need to do one of the following options:
+The Procedural Sky override is deprecated in 7.x. If your Project uses a procedural sky, you need to do one of the following options:
 
 * Install the Procedural Sky override into your 7.x Project.
 * Switch to the new physically based sky.
@@ -49,7 +49,7 @@ In 7.x, the way HDRP handles sky intensity is different. Previously, there were 
 
 ## Fog
 
-HDRP has deprecated the Linear Fog, Exponential Fog, Volumetric Fog, and Volumetric Fog Quality overrides in 7.x and replaced them with a single [Fog](Override-Fog.md) override. This override acts as an exponential fog with a height component by default and allows you to add additional volumetric fog. To automatically update old fog overrides to the new system, go to **Edit** > **Render Pipeline** > **Upgrade Fog Volume Components**.
+HDRP has deprecated the Linear Fog, Exponential Fog, Volumetric Fog, and Volumetric Fog Quality overrides in 7.x and replaced them with a single [Fog](fog-volume-override-reference.md) override. This override acts as an exponential fog with a height component by default and allows you to add additional volumetric fog. To automatically update old fog overrides to the new system, go to **Edit** > **Render Pipeline** > **Upgrade Fog Volume Components**.
 
 **Note**: HDRP can't convert all overrides automatically. You might need to upgrade some overrides manually.
 

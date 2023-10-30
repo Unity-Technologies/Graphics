@@ -1,11 +1,11 @@
 # Refraction models
-A refraction model tells HDRP which simple shape most closely matches the internal shape of the object. See [Set the approximate shape of a refractive object](refraction-use.md#set-shape) for more information.
+A refraction model tells HDRP which simple shape most closely matches the internal shape of the object. See [Set the approximate shape of a refractive object](create-a-refractive-material.md#set-shape) for more information.
 
 ## Sphere refraction model
 
 Use the sphere refraction model if your object is solid with a convex shape. Convex is when the surfaces are not parallel, and bend inward toward the object's center. For example, a round marble.
 
-If you use this model, HDRP does the following [during the refraction process](refraction-concept.md#how-refraction-works-in-hdrp) for each surface pixel:
+If you use this model, HDRP does the following [during the refraction process](Override-Screen-Space-Refraction.md) for each surface pixel:
 
 1. When the light enters the object, HDRP uses the object's surface normal as part of calculating the first refraction. This determines how much the light bends.
 2. HDRP uses a sphere to approximate the object's shape, and the diameter of the sphere to determine how far the light travels inside.
@@ -36,7 +36,7 @@ Use the planar reflection model in the following cases:
 
 You should also use the planar refraction model for a hollow sphere, for example a bubble.
 
-If you use this model, HDRP does the following [during the refraction process](refraction-concept.md#how-refraction-works-in-hdrp) for each surface pixel:
+If you use this model, HDRP does the following [during the refraction process](Override-Screen-Space-Refraction.md) for each surface pixel:
 
 1. When the light enters the object, HDRP uses the object's surface normal as part of calculating the first refraction. This determines how much the light bends.
 2. HDRP uses a parallel plane to approximate the exit surface (this is a 'planar projection'), and the distance between the object's surface and the plane to determine how far the light travels inside.

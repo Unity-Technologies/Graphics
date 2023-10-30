@@ -6,7 +6,7 @@ For more information on the Chromatic Aberration effect, see the [Chromatic Aber
 
 ## Using Chromatic Aberration
 
-**Chromatic Aberration** uses the [Volume](Volumes.md) framework, so to enable and modify **Chromatic Aberration** properties, you must add a **Chromatic Aberration** override to a [Volume](Volumes.md) in your Scene. To add **Chromatic Aberration** to a Volume:
+**Chromatic Aberration** uses the [Volume](understand-volumes.md) framework, so to enable and modify **Chromatic Aberration** properties, you must add a **Chromatic Aberration** override to a [Volume](understand-volumes.md) in your Scene. To add **Chromatic Aberration** to a Volume:
 
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
 2. In the Inspector, go to **Add Override** > **Post-processing** and select **Chromatic Aberration**. HDRP now applies **Chromatic Aberration** to any Camera this Volume affects.
@@ -14,8 +14,6 @@ For more information on the Chromatic Aberration effect, see the [Chromatic Aber
 [!include[](snippets/volume-override-api.md)]
 
 ## Properties
-
-![](Images/Post-processingChromaticAberration1.png)
 
 | **Property**     | **Description**                                              |
 | ---------------- | ------------------------------------------------------------ |

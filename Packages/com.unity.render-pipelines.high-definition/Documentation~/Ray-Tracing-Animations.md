@@ -16,7 +16,7 @@ This allows the alembic mesh to animate in ray-traced effects.
 
 If you use a [Skinned Mesh Renderer](<https://docs.unity3d.com/Manual/class-SkinnedMeshRenderer.html>) and the mesh is culled by the camera, the animation may not appear to play in ray-traced effects. To fix this:
 
-1. Find and select the [Volume](Volumes.md) that contains your [Ray Tracing Settings](Ray-Tracing-Settings.md).
+1. Find and select the [Volume](understand-volumes.md) that contains your [Ray Tracing Settings](Ray-Tracing-Settings.md).
 2. In the Inspector, find the **Volume** component.
 3. Override and enable the **Extend Camera Culling** property.
 

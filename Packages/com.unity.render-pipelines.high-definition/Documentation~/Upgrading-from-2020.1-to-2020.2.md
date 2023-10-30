@@ -11,7 +11,7 @@ In the High Definition Render Pipeline (HDRP), some features work differently be
 * Custom Pass API
 * Diffusion Profiles
 
-For information about new, removed, or updated features, see [What's new in HDRP version 10 / Unity 2020.2](whats-new-10).
+For information about new, removed, or updated features, see [What's new in HDRP version 10 / Unity 2020.2](whats-new-10.md).
 
 ## Lighting
 
@@ -19,7 +19,7 @@ For information about new, removed, or updated features, see [What's new in HDRP
 
 HDRP might not have enough space on the current 2D atlas for Light cookies. This is because the **Cubemap cookie atlas** no longer exists in HDRP 10.x. If this happens, HDRP displays an error in the Console window. To fix this, increase the size of the 2D cookie atlas:
 
-1. Select your [HDRP Asset](HDRP-Asset).
+1. Select your [HDRP Asset](HDRP-Asset.md).
 2. In the Inspector, go to **Lighting** > **Cookies**.
 3. In the **2D Atlas Size** drop-down, select a  higher maximum size value.
 
@@ -45,7 +45,7 @@ From 10.x, **Debug Lens Attenuation** no longer exists in the **Render Pipeline 
 
 ### Filtering quality
 
-From 10.x, you don’t need to change the [HDRP Config package](HDRP-Config-Package) to set the shadow filtering quality for deferred rendering. Instead, change the filtering quality in the [HDRP Asset](HDRP-Asset.html#filtering-qualities):
+From 10.x, you don’t need to change the [HDRP Config package](configure-a-project-using-the-hdrp-config-package.md) to set the shadow filtering quality for deferred rendering. Instead, change the filtering quality in the [HDRP Asset](HDRP-Asset.md#filtering-quality):
 
 1. Open your HDRP Asset in the Inspector window.
 2. Go to **Lighting** > **Shadows** > **Filtering Quality**.
@@ -54,7 +54,7 @@ From 10.x, you don’t need to change the [HDRP Config package](HDRP-Config-Pack
 
 ### OnEnable and OnDemand shadows
 
-HDRP now stores **OnEnable** and **OnDemand** shadows in a separate atlas and more API is available to handle them. For more information, see [Shadows in HDRP](Shadows-in-HDRP).
+HDRP now stores **OnEnable** and **OnDemand** shadows in a separate atlas and more API is available to handle them. For more information, see [Shadows in HDRP](Shadows-in-HDRP.md).
 
 ### Sample shadow API
 
@@ -66,12 +66,12 @@ When you upgrade a project to 10.x, the quality of volumetric fog in your Scene 
 
 * Use manual **Fog Control Mode** properties.
 
-  1. In the Inspector, go to the [Fog Volume Override](Override-Fog).
+  1. In the Inspector, go to the [Fog Volume Override](fog-volume-override-reference.md).
   2. To expose additional properties, set **Fog Control Mode** to **Manual**.
   3. Set these properties to the same values you used in 8.x.
 
 * Use the new performance-oriented properties.
-  1. In the Inspector, go to the [Fog Volume Override](Override-Fog).
+  1. In the Inspector, go to the [Fog Volume Override](fog-volume-override-reference.md).
   2. Set **Fog Control Mode** to **Balance**.
   3. Use the new performance-oriented properties to define the quality of the volumetric fog.
 
@@ -108,7 +108,7 @@ HDRP 10.x introduces a new multi-compile for Depth Prepass and Motion vector pas
 
 ### Shader decal properties
 
-HDRP 10.x changes shader decal properties to match a new set of `AffectXXX` properties. HDRP’s Material upgrade process automatically upgrades all the Decal Materials when you open your project, but it doesn’t automatically upgrade procedurally generated Decal Materials. If your project includes any C# scripts that create or manipulate a Decal Material, you must update the scripts to use the new properties. To find the new properties, see [What's new in HDRP version 10 / Unity 2021.2](whats-new-10#shader-decal-properties).
+HDRP 10.x changes shader decal properties to match a new set of `AffectXXX` properties. HDRP’s Material upgrade process automatically upgrades all the Decal Materials when you open your project, but it doesn’t automatically upgrade procedurally generated Decal Materials. If your project includes any C# scripts that create or manipulate a Decal Material, you must update the scripts to use the new properties. To find the new properties, see [What's new in HDRP version 10 / Unity 2021.2](whats-new-10.md#shader-decal-properties).
 
 ### Decal application
 
@@ -157,7 +157,7 @@ For an example of how to apply decals to a material, see the ApplyDecalToSurface
 
 ### Planar Reflection Probes
 
-From 10.x, HDRP includes a new optimization for [Planar Reflection Probes](Planar-Reflection-Probe). When a shader samples a probe's environment map, it samples from mip level 0 if you enable the `LightData.roughReflections` parameter by giving it a value of 1.0. If you have any custom shaders in your scene, multiply the mip level by `lightData.roughReflections` to take this into account. For example, 10.x updates the call in the Lit shader to:
+From 10.x, HDRP includes a new optimization for [Planar Reflection Probes](Planar-Reflection-Probe.md). When a shader samples a probe's environment map, it samples from mip level 0 if you enable the `LightData.roughReflections` parameter by giving it a value of 1.0. If you have any custom shaders in your scene, multiply the mip level by `lightData.roughReflections` to take this into account. For example, 10.x updates the call in the Lit shader to:
 
 `float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness) * lightData.roughReflections, lightData.rangeCompressionFactorCompensation, posInput.positionNDC);`
 
@@ -175,7 +175,7 @@ HDRP 10.x adds the Decal Layers system. This system uses the **Rendering Layer M
 
 From 10.x, HDRP uses a new constant buffer API that it can use to set up uniforms during the frame and send them to the shader in a single transfer instead of multiple transfers. This means you can’t set up any of the global values individually using `CommandBuffer.SetVectorXXX()` or its related functions. This is because the global variables that HDRP declares individually in previous HDRP versions are now in the `ShaderVariablesGlobal` struct.
 
-The only variables you can access in the `ShaderVariablesGlobal` struct are related to the Camera, and they’re only available in a [Custom Pass](Custom-Pass) through the following functions:
+The only variables you can access in the `ShaderVariablesGlobal` struct are related to the Camera, and they’re only available in a [Custom Pass](Custom-Pass.md) through the following functions:
 
 * `RenderFromCamera()`
 * `RenderDepthFromCamera()`
@@ -190,7 +190,7 @@ From HDRP 10.x, the `Execute` function only takes a `CustomPassContext` as its i
 
 The `CustomPassContext` now contains all the parameters of the old `Execute` function and all the available Render Textures and a `MaterialPropertyBlock` unique to the custom pass instance.
 
-You can use the `CustomPassContex` to access the new [`CustomPassUtils`](ScriptRef:UnityEngine.Rendering.HighDefinition.CustomPassUtils) class which contains functions to speed up the development of your custom passes. For information on custom pass utilities, see the [custom pass API manual](Custom-Pass-API-User-Manual) or the [CustomPassUtils API documentation](ScriptRef:UnityEngine.Rendering.HighDefinition.CustomPassUtils).
+You can use the `CustomPassContex` to access the new [`CustomPassUtils`](ScriptRef:UnityEngine.Rendering.HighDefinition.CustomPassUtils) class which contains functions to speed up the development of your custom passes. For information on custom pass utilities, see the [CustomPassUtils API documentation](ScriptRef:UnityEngine.Rendering.HighDefinition.CustomPassUtils).
 
 To upgrade your custom pass, replace the original execute function prototype with the new one. To do this:
 

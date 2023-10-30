@@ -76,7 +76,7 @@ The effect of two specular lobes on a subsurface scattering material.
 
 **D**: Final result.
 
-For more information, refer to [Diffusion Profile](Diffusion-Profile.md).
+For more information, refer to [Diffusion Profile](diffusion-profile-reference.md).
 
 ### Adaptive Probe Volumes (APV)
 
@@ -99,10 +99,10 @@ HDRP 15 makes the following improvements and additions to the water system:
 - Improves the appearance of water on instanced quads, custom mesh renderers and non-horizontal surfaces.
 - Improves how the water and the cloud systems interact.
 - Adds the following features: 
-  - [Local currents](WaterSystem-currentmap.md).
-  - [Surface deformer](WaterSystem-waterdeformer.md).
-  - [Water excluder](WaterSystem-waterexcluder.md).
-  - [Local foam system](WaterSystem-foam.md).
+  - [Local currents](water-create-a-current-in-the-water-system.md).
+  - [Surface deformer](water-deform-a-water-surface.md).
+  - [Water excluder](water-exclude-part-of-the-water-surface.md).
+  - [Local foam system](water-foam-in-the-water-system.md).
   - Water line, water fog, and caustics in the underwater view.
   - Timeline support.
   - Water mask, foam mask, deformation and foam debug modes.
@@ -111,7 +111,7 @@ HDRP 15 makes the following improvements and additions to the water system:
 
 ![](Images/Volumetric-Clouds-2023-1.png)
 
-HDRP 15 makes the following improvements to [volumetric clouds](Override-Volumetric-Clouds.md):
+HDRP 15 makes the following improvements to [volumetric clouds](create-realistic-clouds-volumetric-clouds.md):
 - Adds a third level of noise to achieve even more convincing results.
 - Improves anti-ghosting for scenarios where the camera flies through the clouds at high speed.
 - Improves the performance of the **Simple** clouds mode.

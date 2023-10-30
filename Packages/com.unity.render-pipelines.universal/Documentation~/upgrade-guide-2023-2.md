@@ -4,6 +4,14 @@ This page describes how to upgrade from an older version of the Universal Render
 
 For information on converting assets made for a Built-in Render Pipeline project to assets compatible with URP, see the page [Render Pipeline Converter](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@14.0/manual/features/rp-converter.html).
 
+## Upgrading from URP 15 (Unity 2023.1)
+
+### Volume Framework
+
+When you create a custom Volume component class that overrides the `VolumeComponent.Override(VolumeComponent state, float interpFactor)` method, your implementation must set the `VolumeParameter.overrideState` property to `true` whenever the `VolumeParameter` value is changed. This ensures that the Volume framework resets the parameters to their correct default values. This lets the framework to use fewer resources every frame which improves performance.
+
+For an example, refer to the [Override(VolumeComponent, float)](xref:UnityEngine.Rendering.VolumeParameter.overrideState) description.
+
 ## Upgrading from URP 13 (Unity 2022.1)
 
 ### Two shader defines were removed

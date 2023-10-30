@@ -1,21 +1,21 @@
-# HDRP Global Settings Window
+# HDRP Global Settings Window reference
 
 The High Definition Render Pipeline (HDRP) adds the HDRP Settings tab to Unity's Graphics Settings window. Use this tab to set up default settings for certain features in your Project. You can:
 
 - Assign Render Pipeline Resources Assets for your HDRP Project.
 - Set the verboseness of Shader variant information that Unity writes to the Console window when you build your Project.
-- Set up default [Frame Setting](Frame-Settings.md) values for [Cameras](HDRP-Camera.md) to use.
-- Assign and edit a default [Volume Profile](Volume-Profile.md).
+- Set up default [Frame Setting](Frame-Settings.md) values for [Cameras](hdrp-camera-component-reference.md) to use.
+- Assign and edit a default [Volume Profile](create-a-volume-profile.md).
 
 The HDRP Settings tab is part of the Graphics Settings window. To get to this tab, select **Edit > Project Settings > Graphics** and then, in the sidebar, click **HDRP Global Settings**.
 
 ## <a name="volume-profiles"></a> Volume Profiles
 
-You can use the **Volume Profiles** section to assign and edit a [Volume Profile](Volume-Profile.md) that [Volumes](Volumes.md) use by default in your Scenes. You do not need to create a Volume for this specific Volume Profile to be active, because HDRP always processes it as if it's assigned to a global Volume in the Scene, but with the lowest priority. This means that any Volume that you add to a Scene takes priority.
+You can use the **Volume Profiles** section to assign and edit a [Volume Profile](create-a-volume-profile.md) that [Volumes](understand-volumes.md) use by default in your Scenes. You do not need to create a Volume for this specific Volume Profile to be active, because HDRP always processes it as if it's assigned to a global Volume in the Scene, but with the lowest priority. This means that any Volume that you add to a Scene takes priority.
 
-The **Default Volume Profile Asset** (A) references a Volume Profile in the HDRP package folder called `DefaultSettingsVolumeProfile` by default. Below it, you can add [Volume overrides](Volume-Components.md), and edit their properties. You can assign your own Volume Profile to this property field. Be aware that this property must always reference a Volume Profile. If you assign your own Volume Profile and then delete it, HDRP automatically re-assigns the `DefaultSettingsVolumeProfile` from the HDRP package folder.
+The **Default Volume Profile Asset** (A) references a Volume Profile in the HDRP package folder called `DefaultSettingsVolumeProfile` by default. Below it, you can add [Volume overrides](volume-component.md), and edit their properties. You can assign your own Volume Profile to this property field. Be aware that this property must always reference a Volume Profile. If you assign your own Volume Profile and then delete it, HDRP automatically re-assigns the `DefaultSettingsVolumeProfile` from the HDRP package folder.
 
-The **LookDev Volume Profile Asset** (B) references the Volume Profile HDRP uses in the [LookDev window](Look-Dev.md). This Asset works in almost the same way as the Default Volume Profile Asset, except that it overrides [Visual Environment Components](Override-Visual-Environment.md) and sky components.![](Images/HDRPgs_Volume_Profiles.png)
+The **LookDev Volume Profile Asset** (B) references the Volume Profile HDRP uses in the [LookDev window](test-and-debug-materials-in-different-lighting-conditions-look-dev.md). This Asset works in almost the same way as the Default Volume Profile Asset, except that it overrides [Visual Environment Components](visual-environment-volume-override-reference.md) and sky components.![](Images/HDRPgs_Volume_Profiles.png)
 
 ## Frame Settings (Default Values)
 
@@ -27,7 +27,7 @@ Use this section to set default values for the Frame Settings that all Cameras u
 
 | **Property**              | **Description**                                              |
 | --------------------------| ------------------------------------------------------------ |
-| Default Mesh Rendering Layer Mask | Defines the Default Rendering Layer Mask for any Terrains or Renderer you create after you set this property.<br/> To set a Layer Mast on existing Terrains or Renderers, use [Decal Layers](Decal.md.) |
+| Default Mesh Rendering Layer Mask | Defines the Default Rendering Layer Mask for any Terrains or Renderer you create after you set this property.<br/> To set a Layer Mast on existing Terrains or Renderers, use [Decal Layers](use-decals.md) |
 | Rendering Layer Names     | Defines the number and names of the Rendering Layers in your project. |
 
 ## Custom Post Process Orders

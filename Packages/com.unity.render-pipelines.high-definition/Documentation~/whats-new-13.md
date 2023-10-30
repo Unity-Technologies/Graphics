@@ -10,7 +10,7 @@ This page contains an overview of new features, improvements, and issues resolve
 
 From 13.x, you can use new APIs to run shader validation steps from a script at runtime, both in the editor and in standalone builds. You can use this to change the keyword state or properties of a Material, to enable or disable HDRP shader features on the Material.
 
-For more information, see the [Material Scripting API documentation](Material-API).
+For more information, see the [Modify materials at runtime documentation](modify-materials-at-runtime.md).
 
 #### Diffusion Profiles
 

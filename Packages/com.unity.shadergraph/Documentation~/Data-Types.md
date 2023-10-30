@@ -31,7 +31,7 @@ Some **Data Types** have associated [Property Types](Property-Types.md) for expo
 
 ## Promoting/Truncating
 
-All **Vector** types can be promoted or truncated to match any **Vector** type [Port](Port.md). This behaviour occurs only when the [Port](Port.md) in question is not of type **Dynamic Vector**. When truncating, excess channels are simply removed. When promoting, the extra required channels are filled by default values. These values values are (0, 0, 0, 1).
+All **Vector** types can be promoted or truncated to match any **Vector** type [Port](Port.md). This behaviour occurs only when the [Port](Port.md) in question is not of type **Dynamic Vector**. When truncating, excess channels are simply removed. When promoting, the extra required channels are filled by default values. These values are (0, 0, 0, 1).
 
 ## Dynamic Data Types
 
