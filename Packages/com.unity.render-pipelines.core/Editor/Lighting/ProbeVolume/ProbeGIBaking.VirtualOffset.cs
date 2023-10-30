@@ -385,5 +385,76 @@ namespace UnityEngine.Rendering
             }
             return offsets;
         }
+
+        enum InstanceFlags
+        {
+            DIRECT_RAY_VIS_MASK = 1,
+            INDIRECT_RAY_VIS_MASK = 2,
+            SHADOW_RAY_VIS_MASK = 4,
+        }
+
+        private static uint GetInstanceMask(ShadowCastingMode shadowMode)
+        {
+            uint instanceMask = 0u;
+
+            if (shadowMode != ShadowCastingMode.Off)
+                instanceMask |= (uint)InstanceFlags.SHADOW_RAY_VIS_MASK;
+
+            if (shadowMode != ShadowCastingMode.ShadowsOnly)
+            {
+                instanceMask |= (uint)InstanceFlags.DIRECT_RAY_VIS_MASK;
+                instanceMask |= (uint)InstanceFlags.INDIRECT_RAY_VIS_MASK;
+            }
+
+            return instanceMask;
+        }
+
+        static uint[] GetMaterialIndices(Renderer renderer)
+        {
+            int submeshCount = 1;
+            var meshFilter = renderer.GetComponent<MeshFilter>();
+            if (meshFilter)
+                submeshCount = renderer.GetComponent<MeshFilter>().sharedMesh.subMeshCount;
+
+            uint[] matIndices = new uint[submeshCount];
+            for (int i = 0; i < matIndices.Length; ++i)
+            {
+                if (i < renderer.sharedMaterials.Length && renderer.sharedMaterials[i] != null)
+                    matIndices[i] = (uint)renderer.sharedMaterials[i].GetInstanceID();
+                else
+                    matIndices[i] = 0;
+            }
+
+            return matIndices;
+        }
+
+        static void AddInstance(IRayTracingAccelStruct accelStruct, MeshRenderer renderer, uint mask, uint[] perSubMeshMaterialIDs)
+        {
+            var mesh = renderer.GetComponent<MeshFilter>().sharedMesh;
+            int subMeshCount = mesh.subMeshCount;
+
+            for (int i = 0; i < subMeshCount; ++i)
+            {
+                var instanceDesc = new MeshInstanceDesc(mesh, i);
+                instanceDesc.localToWorldMatrix = renderer.transform.localToWorldMatrix;
+                instanceDesc.mask = mask;
+                instanceDesc.materialID = perSubMeshMaterialIDs[i];
+
+                instanceDesc.enableTriangleCulling = true;
+                instanceDesc.frontTriangleCounterClockwise = false;
+
+                accelStruct.AddInstance(instanceDesc);
+            }
+        }
+
+        static void AddInstance(IRayTracingAccelStruct accelStruct, Terrain terrain, uint mask, uint materialID)
+        {
+            var terrainDesc = new TerrainDesc(terrain);
+            terrainDesc.localToWorldMatrix = terrain.transform.localToWorldMatrix;
+            terrainDesc.mask = mask;
+            terrainDesc.materialID = materialID;
+
+            accelStruct.AddTerrain(terrainDesc);
+        }
     }
 }

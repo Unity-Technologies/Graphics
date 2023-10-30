@@ -91,7 +91,7 @@ namespace UnityEngine.Rendering
 
             void PushRenderer(Renderer renderer)
             {
-                if (!ContributesGI(renderer.gameObject) || !renderer.gameObject.activeInHierarchy || !renderer.enabled)
+                if (!ContributesGI(renderer.gameObject) || !renderer.gameObject.activeInHierarchy || !renderer.enabled || !renderer.isLOD0)
                     return;
 
                 var bounds = renderer.bounds;

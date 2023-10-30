@@ -282,12 +282,13 @@ Screen space ambient occlusion in HDRP can apply a direction to indirect specula
 ### Adaptive Probe Volumes 
 ![](Images/HDRPFeatures-APV.png)
 
-Adaptive Probe Volumes (APV) is a probe-based global illumination system that automatically places light probes based on the geometry density in your scene. APV  features include:
+Adaptive Probe Volumes (APV) is a probe-based global illumination system that automatically places light probes based on the geometry density in your scene. APV features include:
 - Per-pixel probe selection and lighting.
 - Volumetric light support. 
 - Reduced light leaking.
 - Settings to improve memory management.
-- Properties to blend different lighting scenarios. 
+- Properties to blend different lighting scenarios.
+- Sky occlusion.
 
 For more information, see [APV](probevolumes.md).
 

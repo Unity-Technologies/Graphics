@@ -81,6 +81,7 @@
     * [Display and adjust Probe Volumes](probevolumes-showandadjust.md)
     * [Fix issues with Probe Volumes](probevolumes-fixissues.md)
     * [Streaming](probevolumes-streaming.md)
+    * [Sky Occlusion](probevolumes-skyocclusion.md)
     * [Probe Volume settings and properties](probevolumes-settings.md)
   * [Ray tracing](ray-tracing.md)  
     * [Set up ray tracing](Ray-Tracing-Getting-Started.md)

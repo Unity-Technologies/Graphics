@@ -19,6 +19,7 @@ MonoBehaviour:
     ColorSpace: 1
     BuildPlatform: -2
     GraphicsDevice: 16
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: Disable this test as we disable the feature for Yamto on Mac
@@ -28,6 +29,27 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 16
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: incorrect on metal
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 7ade3d105a5eb453b96e65e54f9609f8, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: incorrect on metal
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 264a0ae5c6968478a9e86baddc77f843, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: incorrect on metal
@@ -37,6 +59,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 16
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: crash on yamato
@@ -46,6 +69,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 16
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: incorrect on metal
@@ -55,6 +79,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 16
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: incorrect on metal
@@ -64,6 +89,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 16
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: incorrect on metal
@@ -73,6 +99,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 16
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: incorrect on metal
@@ -82,6 +109,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 16
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: incorrect on metal
@@ -91,6 +119,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 16
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: artifact on intel
@@ -100,6 +129,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 16
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: corrupt on yamato
@@ -109,6 +139,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 16
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: corrupt on yamato
@@ -118,6 +149,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 16
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: crash on yamato
@@ -127,6 +159,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 16
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: crash on yamato
@@ -136,6 +169,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 16
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: artifact on intel
@@ -145,6 +179,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 16
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: artifact on intel
@@ -154,6 +189,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 16
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: artifact on intel
@@ -163,6 +199,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 16
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: crash on yamato
@@ -172,6 +209,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 16
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: crash on yamato
@@ -181,6 +219,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 16
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: artifact on intel
@@ -190,6 +229,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 16
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: crash on yamato
@@ -199,6 +239,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 16
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: crash on yamato
@@ -208,6 +249,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 16
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: crash on yamato
@@ -217,6 +259,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 16
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: artifact on intel
@@ -226,6 +269,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 16
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: crash on yamato
@@ -235,6 +279,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 16
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: crash on yamato
@@ -244,6 +289,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 16
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: don't work on metal

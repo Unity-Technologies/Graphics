@@ -47,6 +47,9 @@ namespace UnityEngine.Rendering
             ApplyVirtualOffset,
             /// <summary>Override the virtual offset settings for the probes within the adjustment volume.</summary>
             OverrideVirtualOffsetSettings,
+            /// <summary>Override the dynamic sky shading direction for the probes within the adjustment volume.</summary>
+            OverrideSkyDirection,
+            
             /// <summary>Scale probe intensity.</summary>
             IntensityScale = 99, // make sure this appears last
         };
@@ -80,6 +83,12 @@ namespace UnityEngine.Rendering
         /// <summary>Distance from the probe position used to determine the origin of the sampling ray.</summary>
         [Range(-0.05f, 0f), Tooltip("Distance from the probe position used to determine the origin of the sampling ray.")]
         public float rayOriginBias = -0.001f;
+
+        /// <summary>The sky direction.</summary>
+        [Tooltip("The direction for sampling the ambient probe in worldspace when using the Sky Visibility feature.")]
+        public Vector3 skyDirection = Vector3.zero;
+
+        internal Vector3 skyShadingDirectionRotation = Vector3.zero;
 
 #if UNITY_EDITOR
         /// <summary>

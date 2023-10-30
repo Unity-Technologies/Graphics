@@ -8,6 +8,7 @@
 
 uniform int _ShadingMode;
 uniform float _ExposureCompensation;
+uniform bool _BypassExposure;
 uniform float _ProbeSize;
 uniform float4 _Color;
 uniform int _SubdivLevel;
@@ -197,7 +198,7 @@ half4 WriteFractNumber(float input, float2 texCoord)
         outVal = SampleCharacter(10, dot_uv);
     else if (texCoord.x <= 0.75)
         outVal = SampleCharacter(n1_value, n1_uv);
-    else 
+    else
         outVal = SampleCharacter(n2_value, n2_uv);
 
     return outVal;
@@ -246,32 +247,76 @@ float3 CalculateDiffuseLighting(v2f i)
     int3 texLoc = UNITY_ACCESS_INSTANCED_PROP(Props, _IndexInAtlas).xyz;
     float3 normal = normalize(i.normal);
 
-    float4 L0_L1Rx = apvRes.L0_L1Rx[texLoc].rgba;
-    float3 L0 = L0_L1Rx.xyz;
+    float3 skyShadingDirection = normal;
+    if (_ShadingMode == DEBUGPROBESHADINGMODE_SKY_DIRECTION)
+    {
+        uint index = 255;
+        if (_EnableSkyOcclusionShadingDirection > 0)
+        {
+            index = apvRes.SkyShadingDirectionIndices[texLoc].r * 255;
+            if (index != 255)
+                skyShadingDirection = apvRes.SkyPrecomputedDirections[index].rgb;
+        }
+        float value = 1.0f;
+        // TODO: doesn't comile on URP
+        //if (_BypassExposure)
+        //    value *= 1.0f / GetCurrentExposureMultiplier();
 
-    if (_ShadingMode == DEBUGPROBESHADINGMODE_SHL0)
-        return L0;
+        if (index == 255)
+            return float3(value, 0.0f, 0.0f);
 
-    float  L1Rx = L0_L1Rx.w;
-    float4 L1G_L1Ry = apvRes.L1G_L1Ry[texLoc].rgba;
-    float4 L1B_L1Rz = apvRes.L1B_L1Rz[texLoc].rgba;
+        if (dot(normal, skyShadingDirection) > 0.95)
+            return float3(0.0f, value, 0.0f);
+        return float3(0.0f, 0.0f, 0.0f);
+    }
+    else
+    {
+        float skyOcclusion = 0.0f;
+        float skyOcclusionNoExposure = 0.0f;
+        if (_EnableSkyOcclusion > 0)
+        {
+            // L0 L1
+            float4 temp = float4(kSHBasis0, kSHBasis1 * normal.x, kSHBasis1 * normal.y, kSHBasis1 * normal.z);
+            skyOcclusion = dot(temp, apvRes.SkyOcclusionL0L1[texLoc].rgba);
+            skyOcclusionNoExposure = skyOcclusion ;//* 1.0f / GetCurrentExposureMultiplier();
+        }
 
-    float3 bakeDiffuseLighting = EvalL1(L0, float3(L1Rx, L1G_L1Ry.w, L1B_L1Rz.w), L1G_L1Ry.xyz, L1B_L1Rz.xyz, normal);
-    bakeDiffuseLighting += L0;
+        if (_ShadingMode == DEBUGPROBESHADINGMODE_SKY_OCCLUSION_SH)
+        {
+            if (_BypassExposure)
+                return float3(skyOcclusionNoExposure, skyOcclusionNoExposure, skyOcclusionNoExposure);
+            return float3(skyOcclusion, skyOcclusion, skyOcclusion);
+        }
 
-    if (_ShadingMode == DEBUGPROBESHADINGMODE_SHL0L1)
-        return bakeDiffuseLighting;
+        float4 L0_L1Rx = apvRes.L0_L1Rx[texLoc].rgba;
+        float3 L0 = L0_L1Rx.xyz;
+
+        if (_ShadingMode == DEBUGPROBESHADINGMODE_SHL0)
+            return L0;
+
+        float  L1Rx = L0_L1Rx.w;
+        float4 L1G_L1Ry = apvRes.L1G_L1Ry[texLoc].rgba;
+        float4 L1B_L1Rz = apvRes.L1B_L1Rz[texLoc].rgba;
+
+        float3 bakeDiffuseLighting = EvalL1(L0, float3(L1Rx, L1G_L1Ry.w, L1B_L1Rz.w), L1G_L1Ry.xyz, L1B_L1Rz.xyz, normal);
+        bakeDiffuseLighting += L0;
+
+        if (_ShadingMode == DEBUGPROBESHADINGMODE_SHL0L1)
+            return bakeDiffuseLighting;
 
 #ifdef PROBE_VOLUMES_L2
-    float4 L2_R = apvRes.L2_0[texLoc].rgba;
-    float4 L2_G = apvRes.L2_1[texLoc].rgba;
-    float4 L2_B = apvRes.L2_2[texLoc].rgba;
-    float4 L2_C = apvRes.L2_3[texLoc].rgba;
+        float4 L2_R = apvRes.L2_0[texLoc].rgba;
+        float4 L2_G = apvRes.L2_1[texLoc].rgba;
+        float4 L2_B = apvRes.L2_2[texLoc].rgba;
+        float4 L2_C = apvRes.L2_3[texLoc].rgba;
 
-    bakeDiffuseLighting += EvalL2(L0, L2_R, L2_G, L2_B, L2_C, normal);
+        bakeDiffuseLighting += EvalL2(L0, L2_R, L2_G, L2_B, L2_C, normal);
 #endif
+        if (_EnableSkyOcclusion > 0)
+            bakeDiffuseLighting += skyOcclusion * EvaluateAmbientProbe(skyShadingDirection);
 
-    return bakeDiffuseLighting;
+        return bakeDiffuseLighting;
+    }
 }
 
 #endif //PROBEVOLUMEDEBUG_BASE_HLSL

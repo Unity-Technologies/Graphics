@@ -21,6 +21,7 @@ Probe Volumes have the following advantages:
 - Because Probe Volumes can cover a whole scene, screen space effects can fall back to Light Probes to get lighting data from objects that are off-screen or occluded. See [Screen Space Global Illumination](Override-Screen-Space-GI.md) for more information.
 - Unity can use the data in Probe Volumes to adjust lighting from Reflection Probes to match the local environment, which reduces the number of Reflection Probes you need. See [Frame Settings properties](frame-settings-reference.md).
 - Probe Volumes include [streaming](probevolumes-streaming.md) functionality to support large open worlds.
+- Probe Volumes support [Sky Occlusion](probevolumes-skyocclusion.md) for dynamic sky relighting at runtime.
 
 ![](Images/probevolumes-per-pixel.png)<br/>
 The left scene uses original Light Probes, where the per-object lighting means each part of the car is uniformly lit and the lighting does not transition well from light to dark. The right scene uses Probe Volumes. This image uses the ArchVizPRO Photostudio HDRP asset from the Unity Asset Store.

@@ -225,7 +225,6 @@ namespace UnityEngine.Rendering
                 {
                     touchup.GetOBBandAABB(out var obb, out var aabb);
                     touchupVolumesAndBounds.Add((obb, aabb, touchup));
-
                 }
             }
 
@@ -254,49 +253,11 @@ namespace UnityEngine.Rendering
                         localTouchupVolumes.Add(touchup);
                 }
 
-                for (int i=0; i< bakingCell.probePositions.Length; ++i)
+                for (int probeId = 0; probeId < bakingCell.probePositions.Length; ++probeId)
                 {
-                    var probePos = bakingCell.probePositions[i];
-                    // Restore validity modified by the touchup volume before going forward.
-                    bool wasForceInvalidated = bakingCell.touchupVolumeInteraction[i] > 0.0f && bakingCell.touchupVolumeInteraction[i] <= 1;
-                    if (wasForceInvalidated)
-                    {
-                        bakingCell.validity[i] = 0.0f;
-                    }
-
-                    var probeValidity = bakingCell.validity[i];
-                    bakingCell.touchupVolumeInteraction[i] = 0.0f; // Reset as we don't force write it and we might have stale data from previous.
-
-                    bool invalidatedProbe = false;
-                    foreach (var touchup in localTouchupVolumes)
-                    {
-                        var touchupBound = touchup.aabb;
-                        var touchupVolume = touchup.touchupVolume;
-
-                        // We check a small box around the probe to give some leniency (a couple of centimeters).
-                        var probeBounds = new Bounds(bakingCell.probePositions[i], new Vector3(0.02f, 0.02f, 0.02f));
-                        if (ProbeVolumePositioning.OBBAABBIntersect(touchup.obb, probeBounds, touchupBound))
-                        {
-                            if (touchupVolume.mode == ProbeTouchupVolume.Mode.InvalidateProbes)
-                            {
-                                invalidatedProbe = true;
-                                // We check as below 1 but bigger than 0 in the debug shader, so any value <1 will do to signify touched up.
-                                bakingCell.touchupVolumeInteraction[i] = 0.5f;
-
-                                if (probeValidity < 0.05f) // We just want to add probes that were not already invalid or close to.
-                                {
-                                    s_ForceInvalidatedProbesAndTouchupVols[bakingCell.probePositions[i]] = touchupBound;
-                                }
-                                break;
-                            }
-                        }
-                    }
-
-                    float currValidity = invalidatedProbe ? 1.0f : probeValidity;
-                    byte currValidityNeighbourMask = 255;
-                    bakingCell.validity[i] = currValidity;
-                    bakingCell.validityNeighbourMask[i] = currValidityNeighbourMask;
+                    updateProbeValidity(bakingCell, localTouchupVolumes, probeId);
                 }
+
                 ComputeValidityMasks(bakingCell);
 
                 bakingCells.Add(bakingCell);
@@ -328,6 +289,52 @@ namespace UnityEngine.Rendering
             }
 
             prv.PerformPendingOperations();
+        }
+
+        internal static void updateProbeValidity(BakingCell bakingCell, List<(ProbeReferenceVolume.Volume obb, Bounds aabb, ProbeTouchupVolume touchupVolume)> localTouchupVolumes, int probeId)
+        {
+            var probePos = bakingCell.probePositions[probeId];
+
+            // Restore validity modified by the touchup volume before going forward.
+            bool wasForceInvalidated = bakingCell.touchupVolumeInteraction[probeId] > 0.0f && bakingCell.touchupVolumeInteraction[probeId] <= 1;
+            if (wasForceInvalidated)
+            {
+                bakingCell.validity[probeId] = 0.0f;
+            }
+
+
+            var probeValidity = bakingCell.validity[probeId];
+            bakingCell.touchupVolumeInteraction[probeId] = 0.0f; // Reset as we don't force write it and we might have stale data from previous.
+
+            bool invalidatedProbe = false;
+            foreach (var touchup in localTouchupVolumes)
+            {
+                var touchupBound = touchup.aabb;
+                var touchupVolume = touchup.touchupVolume;
+
+                // We check a small box around the probe to give some leniency (a couple of centimeters).
+                var probeBounds = new Bounds(probePos, new Vector3(0.02f, 0.02f, 0.02f));
+                if (ProbeVolumePositioning.OBBAABBIntersect(touchup.obb, probeBounds, touchupBound))
+                {
+                    if (touchupVolume.mode == ProbeTouchupVolume.Mode.InvalidateProbes)
+                    {
+                        invalidatedProbe = true;
+                        // We check as below 1 but bigger than 0 in the debug shader, so any value <1 will do to signify touched up.
+                        bakingCell.touchupVolumeInteraction[probeId] = 0.5f;
+
+                        if (probeValidity < 0.05f) // We just want to add probes that were not already invalid or close to.
+                        {
+                            s_ForceInvalidatedProbesAndTouchupVols[probePos] = touchupBound;
+                        }
+                        break;
+                    }
+                }
+            }
+
+            float currValidity = invalidatedProbe ? 1.0f : probeValidity;
+            byte currValidityNeighbourMask = 255;
+            bakingCell.validity[probeId] = currValidity;
+            bakingCell.validityNeighbourMask[probeId] = currValidityNeighbourMask;
         }
     }
 }

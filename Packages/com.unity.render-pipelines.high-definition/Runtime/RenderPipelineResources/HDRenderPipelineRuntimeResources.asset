@@ -35,6 +35,7 @@ MonoBehaviour:
     debugLocalVolumetricFogAtlasPS: {fileID: 4800000, guid: 8371b763f09c7304889c22aa97ebdfd2, type: 3}
     probeVolumeBlendStatesCS: {fileID: 7200000, guid: a3f7b8c99de28a94684cb1daebeccf5d, type: 3}
     probeVolumeUploadDataCS: {fileID: 7200000, guid: 0951de5992461754fa73650732c4954c, type: 3}
+    probeVolumeUploadDataL2CS: {fileID: 7200000, guid: 6196f34ed825db14b81fb3eb0ea8d931, type: 3}
     probeVolumeDebugShader: {fileID: 4800000, guid: 3b21275fd12d65f49babb5286f040f2d, type: 3}
     probeVolumeFragmentationDebugShader: {fileID: 4800000, guid: 3a80877c579b9144ebdcc6d923bca303, type: 3}
     probeVolumeSamplingDebugShader: {fileID: 4800000, guid: bf54e6528c79a224e96346799064c393, type: 3}
