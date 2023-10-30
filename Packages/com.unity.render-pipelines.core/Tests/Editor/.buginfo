@@ -1,0 +1,17 @@
+rpw:
+  area: RP Workflow
+
+rpf:
+  when:
+    path:
+      - ^.*Array.*$
+      - ^.*Buffer.*$
+      - ^.*RenderGraph.*$
+      - ^.*Unsafe.*$
+  area: RP Foundation
+
+weta:
+  when:
+    path:
+      - ^.*GPUDriven.*$
+  area: Weta Real Time

@@ -1,0 +1,9 @@
+rule1:
+  area: RP Workflow
+
+rule2:
+  when:
+    path:
+      - ^.*IES.*$
+      - ^.*ProbeVolume.*$
+  area: HD RP
