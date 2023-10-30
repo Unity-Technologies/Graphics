@@ -1559,10 +1559,8 @@ namespace UnityEngine.Rendering.Universal
         {
             get
             {
-#if RENDER_GRAPH_ENABLED
                 if (UniversalRenderPipelineGlobalSettings.instance)
                     return UniversalRenderPipelineGlobalSettings.instance.enableRenderGraph || RenderGraphGraphicsAutomatedTests.enabled;
-#endif
                 return RenderGraphGraphicsAutomatedTests.enabled;
             }
         }
