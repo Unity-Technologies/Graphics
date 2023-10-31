@@ -102,7 +102,7 @@ namespace UnityEditor.VFX.Block
         {
             if (!TryGetAttribute(out var vfxAttribute))
             {
-                return string.Empty;
+                vfxAttribute = new VFXAttribute { name = attribute };
             }
 
             if (Source != ValueSource.Slot && Source != ValueSource.Source)
@@ -196,7 +196,7 @@ namespace UnityEditor.VFX.Block
 
         private static string GenerateLocalAttributeName(string name)
         {
-            return name[0].ToString().ToUpper(CultureInfo.InvariantCulture) + name.Substring(1);
+            return "_" + name[0].ToString().ToUpper(CultureInfo.InvariantCulture) + name.Substring(1);
         }
 
         public override string source
@@ -395,7 +395,7 @@ namespace UnityEditor.VFX.Block
                 }
 
                 // Temporary attribute
-                return new VFXAttribute(attribute, VFXValueType.Float, null);
+                return default;
             }
         }
 

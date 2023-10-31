@@ -303,6 +303,11 @@ namespace UnityEditor.VFX
         {
             if (TryFind(name, out attribute))
             {
+                if (IsCustom(name))
+                {
+                    return true;
+                }
+
                 switch (mode)
                 {
                     case VFXAttributeMode.Read:

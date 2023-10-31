@@ -552,9 +552,11 @@ namespace UnityEditor.VFX
         public void SyncCustomAttributes()
         {
             m_CustomAttributes.RemoveAll(x => x == null);
-            m_AttributesManager.ClearCustomAttributes();
             foreach (var attributeDescriptor in customAttributes.ToArray())
             {
+                attributeDescriptor.graph = this;
+                m_AttributesManager.TryRegisterCustomAttribute(attributeDescriptor.attributeName, attributeDescriptor.type, attributeDescriptor.description, out _);
+
                 var usages = GetCustomAttributeUsage(attributeDescriptor.attributeName).ToArray();
 
                 attributeDescriptor.ClearSubgraphUse();
@@ -577,7 +579,7 @@ namespace UnityEditor.VFX
                     attributeDescriptor.isReadOnly = false;
                     SetCustomAttributeDirty();
                 }
-                // Move custom attributes used in subgraph into the transiant collection
+                // Move custom attributes used in subgraph into the transient collection
                 else if (attributeDescriptor.usedInSubgraphs != null && m_CustomAttributes.Contains(attributeDescriptor))
                 {
                     m_CustomAttributes.Remove(attributeDescriptor);
@@ -590,10 +592,13 @@ namespace UnityEditor.VFX
                 }
             }
 
-            foreach (var customAttribute in customAttributes)
+            // Remove custom attributes from attribute manager if they do not exist anymore
+            foreach (var customAttribute in m_AttributesManager.GetCustomAttributes().ToArray())
             {
-                customAttribute.graph = this;
-                m_AttributesManager.TryRegisterCustomAttribute(customAttribute.attributeName, customAttribute.type, customAttribute.description, out _);
+                if (customAttributes.All(x => string.Compare(x.attributeName, customAttribute.name, StringComparison.OrdinalIgnoreCase) != 0))
+                {
+                    m_AttributesManager.UnregisterCustomAttribute(customAttribute.name);
+                }
             }
         }
 
@@ -700,20 +705,22 @@ namespace UnityEditor.VFX
         {
             var customAttributeDescriptor = FindCustomAttribute(oldName);
 
+            var usingNodes = GetRecursiveChildren()
+                .OfType<IVFXAttributeUsage>()
+                .Where(x => x.usedAttributes.Any(x => string.Compare(x.name, oldName, StringComparison.OrdinalIgnoreCase) == 0))
+                .ToArray();
+
             var result = this.m_AttributesManager.TryRename(oldName, newName);
             if (result == RenameStatus.Success)
             {
                 customAttributeDescriptor.attributeName = newName;
-
-                var usingNodes = GetRecursiveChildren()
-                    .OfType<IVFXAttributeUsage>()
-                    .Where(x => x.usedAttributes.Any(x => string.Compare(x.name, oldName, StringComparison.OrdinalIgnoreCase) == 0));
 
                 foreach (var customAttributeNode in usingNodes)
                 {
                     customAttributeNode.Rename(oldName, newName);
                 }
 
+                Invalidate(this, InvalidationCause.kStructureChanged);
                 return true;
             }
 
@@ -747,6 +754,7 @@ namespace UnityEditor.VFX
                     ((VFXModel)node).Invalidate(InvalidationCause.kSettingChanged);
                 }
 
+                Invalidate(this, InvalidationCause.kStructureChanged);
                 return true;
             }
 

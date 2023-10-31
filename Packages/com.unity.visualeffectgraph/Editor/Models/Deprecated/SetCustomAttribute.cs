@@ -103,8 +103,8 @@ namespace UnityEditor.VFX.Block
             setAttribute.attribute = vfxAttribute.name;
             setAttribute.Composition = Composition;
             setAttribute.ResyncSlots(true);
+            ReplaceModel(setAttribute, this, true, false);
             VFXBlock.CopyInputLinks(setAttribute, this);
-            ReplaceModel(setAttribute, this);
         }
 
         internal sealed override void GenerateErrors(VFXInvalidateErrorReporter manager)
