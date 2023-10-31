@@ -79,7 +79,6 @@ namespace UnityEditor.Rendering.Universal
         void CreateDefaultVolumeProfileEditor()
         {
             Debug.Assert(VolumeManager.instance.isInitialized);
-            Debug.Assert(m_DefaultVolumeProfileEditor == null);
             Debug.Assert(m_DefaultVolumeProfileEditorRoot.childCount == 0);
 
             var volumeProfile = m_SerializedGlobalSettings.defaultVolumeProfile.objectReferenceValue as VolumeProfile;
