@@ -854,11 +854,22 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <summary>
         /// Creates a new UIOverlay Renderer List Render Graph resource.
         /// </summary>
-        /// <param name="camera">The camera that is used for rendering the UIOverlay.</param>
+        /// <param name="camera">The camera that is used for rendering the full UIOverlay.</param>
         /// <returns>A new RendererListHandle.</returns>
         public RendererListHandle CreateUIOverlayRendererList(in Camera camera)
         {
-            return m_Resources.CreateUIOverlayRendererList(m_RenderGraphContext.renderContext, camera);
+            return m_Resources.CreateUIOverlayRendererList(m_RenderGraphContext.renderContext, camera, UISubset.All);
+        }
+
+        /// <summary>
+        /// Creates a new UIOverlay Renderer List Render Graph resource.
+        /// </summary>
+        /// <param name="camera">The camera that is used for rendering some subset of the UIOverlay.</param>
+        /// <param name="uiSubset">Enum flag that specifies which subset to render.</param>
+        /// <returns>A new RendererListHandle.</returns>
+        public RendererListHandle CreateUIOverlayRendererList(in Camera camera, in UISubset uiSubset)
+        {
+            return m_Resources.CreateUIOverlayRendererList(m_RenderGraphContext.renderContext, camera, uiSubset);
         }
 
         /// <summary>

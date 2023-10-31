@@ -805,10 +805,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return new RendererListHandle(newHandle, RendererListHandleType.Legacy);
         }
 
-        internal RendererListHandle CreateUIOverlayRendererList(ScriptableRenderContext context, in Camera camera)
+        internal RendererListHandle CreateUIOverlayRendererList(ScriptableRenderContext context, in Camera camera, in UISubset uiSubset)
         {
             RendererListLegacyResource resource = new RendererListLegacyResource();
-            resource.rendererList = context.CreateUIOverlayRendererList(camera);
+            resource.rendererList = context.CreateUIOverlayRendererList(camera, uiSubset);
             int newHandle = m_RendererListLegacyResources.Add(resource);
             return new RendererListHandle(newHandle, RendererListHandleType.Legacy);
         }

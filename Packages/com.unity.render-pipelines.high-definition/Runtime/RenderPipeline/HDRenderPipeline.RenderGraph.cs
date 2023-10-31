@@ -2386,7 +2386,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 using (var builder = renderGraph.AddRenderPass<RenderScreenSpaceOverlayData>("Screen Space Overlay UI", out var passData))
                 {
                     builder.UseColorBuffer(colorBuffer, 0);
-                    passData.rendererList = builder.UseRendererList(renderGraph.CreateUIOverlayRendererList(hdCamera.camera));
+                    passData.rendererList = builder.UseRendererList(renderGraph.CreateUIOverlayRendererList(hdCamera.camera, UISubset.All));
 
                     builder.SetRenderFunc(
                         (RenderScreenSpaceOverlayData data, RenderGraphContext ctx) =>
