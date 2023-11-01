@@ -217,8 +217,8 @@ namespace UnityEngine.Rendering
         /// </summary>
         public void Clear()
         {
-            for (int i = 0; i < Count; i++)
-                RemoveAt(i);
+            while (Count > 0)
+                RemoveAt(Count - 1);
         }
 
         /// <summary>
