@@ -123,10 +123,8 @@ namespace UnityEngine.Rendering.Universal
                 data.material.SetVector(ShaderPropertyId.hdrOutputLuminanceParams, data.luminanceParameters);
                 data.material.SetInteger(ShaderConstants._DebugHDRModeId, (int)data.hdrDebugMode);
 
-                Vector2 viewportScale = sourceTexture.useScaling ? new Vector2(sourceTexture.rtHandleProperties.rtHandleScale.x, sourceTexture.rtHandleProperties.rtHandleScale.y) : Vector2.one;
-                bool yflip = data.cameraData.IsRenderTargetProjectionMatrixFlipped(destination);
-                Vector4 scaleBias = !yflip ? new Vector4(viewportScale.x, -viewportScale.y, 0, viewportScale.y) : new Vector4(viewportScale.x, viewportScale.y, 0, 0);
-                
+                Vector4 scaleBias = RenderingUtils.GetFinalBlitScaleBias(sourceTexture, destination, data.cameraData);
+
                 RenderTargetIdentifier cameraTarget = BuiltinRenderTextureType.CameraTarget;
                 #if ENABLE_VR && ENABLE_XR_MODULE
                     if (data.cameraData.xr.enabled)

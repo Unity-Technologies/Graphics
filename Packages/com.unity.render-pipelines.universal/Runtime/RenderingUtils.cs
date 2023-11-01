@@ -795,7 +795,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Add stale rtHandle to pool so that it could be reused in the future. 
+        /// Add stale rtHandle to pool so that it could be reused in the future.
         /// For stale rtHandle failed to add to pool(could happen when pool is reaching its max stale resource capacity), the stale resource will be released.
         /// </summary>
         internal static void AddStaleResourceToPoolOrRelease(TextureDesc desc, RTHandle handle)
@@ -889,6 +889,22 @@ namespace UnityEngine.Rendering.Universal
             for (int i = 1; i < shaderTagIdList.Count; ++i)
                 settings.SetShaderPassName(i, shaderTagIdList[i]);
             return settings;
+        }
+
+        /// <summary>
+        /// Returns the scale bias vector to use for final blits to the backbuffer, based on scaling mode and y-flip platform requirements.
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="destination"></param>
+        /// <param name="cameraData"></param>
+        /// <returns></returns>
+        internal static Vector4 GetFinalBlitScaleBias(RTHandle source, RTHandle destination, UniversalCameraData cameraData)
+        {
+            Vector2 viewportScale = source.useScaling ? new Vector2(source.rtHandleProperties.rtHandleScale.x, source.rtHandleProperties.rtHandleScale.y) : Vector2.one;
+            var yflip = cameraData.IsRenderTargetProjectionMatrixFlipped(destination);
+            Vector4 scaleBias = !yflip ? new Vector4(viewportScale.x, -viewportScale.y, 0, viewportScale.y) : new Vector4(viewportScale.x, viewportScale.y, 0, 0);
+
+            return scaleBias;
         }
     }
 }

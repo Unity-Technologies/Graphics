@@ -11,7 +11,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// The active color target ID.
         /// </summary>
-        public ActiveID activeColorID { get; internal set; }
+        internal ActiveID activeColorID { get; set; }
 
         /// <summary>
         /// Returns the current active color target texture. To be referenced at RenderGraph pass recording time, not in passes render functions.
@@ -39,7 +39,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// The active depth target ID.
         /// </summary>
-        public ActiveID activeDepthID { get; internal set; }
+        internal ActiveID activeDepthID { get; set; }
 
         /// <summary>
         /// Returns the current active color target texture. To be referenced at RenderGraph pass recording time, not in passes render functions.

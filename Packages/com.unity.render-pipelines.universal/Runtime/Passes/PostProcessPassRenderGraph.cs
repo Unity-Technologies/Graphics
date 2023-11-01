@@ -1211,9 +1211,7 @@ namespace UnityEngine.Rendering.Universal
 
         static private void ScaleViewportAndBlit(RasterCommandBuffer cmd, RTHandle sourceTextureHdl, RTHandle dest, UniversalCameraData cameraData, Material material)
         {
-            Vector2 viewportScale = sourceTextureHdl.useScaling ? new Vector2(sourceTextureHdl.rtHandleProperties.rtHandleScale.x, sourceTextureHdl.rtHandleProperties.rtHandleScale.y) : Vector2.one;
-            var yflip = cameraData.IsRenderTargetProjectionMatrixFlipped(dest);
-            Vector4 scaleBias = !yflip ? new Vector4(viewportScale.x, -viewportScale.y, 0, viewportScale.y) : new Vector4(viewportScale.x, viewportScale.y, 0, 0);
+            Vector4 scaleBias = RenderingUtils.GetFinalBlitScaleBias(sourceTextureHdl, dest, cameraData);
             RenderTargetIdentifier cameraTarget = BuiltinRenderTextureType.CameraTarget;
         #if ENABLE_VR && ENABLE_XR_MODULE
             if (cameraData.xr.enabled)

@@ -10,7 +10,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Options for the active color &amp; depth target texture.
         /// </summary>
-        public enum ActiveID
+        internal enum ActiveID
         {
             /// <summary>The camera buffer.</summary>
             Camera,

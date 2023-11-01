@@ -993,9 +993,6 @@ namespace UnityEngine.Rendering.Universal
             if (cameraData.resolveFinalTarget)
                 SetupRenderGraphFinalPassDebug(renderGraph, frameData);
 
-#if UNITY_EDITOR
-            bool isGizmosEnabled = UnityEditor.Handles.ShouldRenderGizmos();
-#endif
             // Disable Gizmos when using scene overrides. Gizmos break some effects like Overdraw debug.
             bool drawGizmos = UniversalRenderPipelineDebugDisplaySettings.Instance.renderingSettings.sceneOverrideMode == DebugSceneOverrideMode.None;
 
@@ -1173,6 +1170,8 @@ namespace UnityEngine.Rendering.Universal
             }
 
 #if UNITY_EDITOR
+            bool isGizmosEnabled = UnityEditor.Handles.ShouldRenderGizmos();
+
             if (cameraData.isSceneViewCamera || (isGizmosEnabled && cameraData.resolveFinalTarget))
             {
                 TextureHandle cameraDepthTexture = resourceData.cameraDepthTexture;
@@ -1194,10 +1193,16 @@ namespace UnityEngine.Rendering.Universal
             bool forcePrepass = (m_CopyDepthMode == CopyDepthMode.ForcePrepass);
             bool depthPrimingEnabled = IsDepthPrimingEnabled(cameraData);
 
+#if UNITY_EDITOR
+            bool isGizmosEnabled = UnityEditor.Handles.ShouldRenderGizmos();
+#else
+            bool isGizmosEnabled = false;
+#endif
+
             bool requiresDepthTexture = cameraData.requiresDepthTexture || renderPassInputs.requiresDepthTexture || depthPrimingEnabled;
             bool requiresDepthPrepass = (requiresDepthTexture || cameraHasPostProcessingWithDepth) && (!CanCopyDepth(cameraData) || forcePrepass);
             requiresDepthPrepass |= cameraData.isSceneViewCamera;
-            // requiresDepthPrepass |= isGizmosEnabled;
+            requiresDepthPrepass |= isGizmosEnabled;
             requiresDepthPrepass |= cameraData.isPreviewCamera;
             requiresDepthPrepass |= renderPassInputs.requiresDepthPrepass;
             requiresDepthPrepass |= renderPassInputs.requiresNormalsTexture;
