@@ -282,6 +282,11 @@ namespace UnityEngine.Rendering.HighDefinition
             colorPyramidHistoryValidFrames = 0;
             dofHistoryIsValid = false;
 
+            // Reset the volumetric cloud offset animation data
+            volumetricCloudsAnimationData.cloudOffset = new Vector2(0.0f, 0.0f);
+            volumetricCloudsAnimationData.verticalShapeOffset = 0.0f;
+            volumetricCloudsAnimationData.verticalErosionOffset = 0.0f;
+
             // Camera was potentially Reset() so we need to reset timers on the renderers.
             if (visualSky != null)
                 visualSky.Reset();
@@ -359,7 +364,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
-        // Generic structure that captures various history validity states.
+        /// Generic structure that captures various history validity states.
         /// </summary>
         internal struct HistoryEffectValidity
         {
@@ -370,40 +375,34 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
-        // Struct that lists the data required to perform the volumetric clouds animation
+        /// Struct that holds volumetric clouds animation data accumulated over time
         /// </summary>
         internal struct VolumetricCloudsAnimationData
         {
-            public float lastTime;
             public Vector2 cloudOffset;
             public float verticalShapeOffset;
             public float verticalErosionOffset;
         }
 
+        // This property allows us to track the volumetric cloud animation data
+        internal VolumetricCloudsAnimationData volumetricCloudsAnimationData;
+
         internal struct PlanetData
         {
             internal float radius;
             internal Vector3 center;
+            internal RenderingSpace renderingSpace;
 
-            internal void Set(VisualEnvironment visualEnv, Vector3 camPosWS)
+            internal void Set(Vector3 cameraPos, VisualEnvironment visualEnv)
             {
-                switch (visualEnv.planetType.value)
-                {
-                    case VisualEnvironment.ShapeType.Flat:
-                        radius = visualEnv.planetRadius.value;
-                        center = new Vector3(camPosWS.x, -radius + visualEnv.seaLevel.value, camPosWS.z);
-                        break;
-
-                    case VisualEnvironment.ShapeType.Earth:
-                        radius = VisualEnvironment.k_DefaultEarthRadius;
-                        center = new Vector3(0, -radius, 0);
-                        break;
-
-                    case VisualEnvironment.ShapeType.Spherical:
-                        radius = visualEnv.planetRadius.value;
-                        center = visualEnv.planetCenter.value;
-                        break;
-                }
+                renderingSpace = visualEnv.renderingSpace.value;
+                radius = visualEnv.planetRadius.value * 1000.0f;
+                if (renderingSpace == RenderingSpace.Camera)
+                    center = new Vector3(cameraPos.x, cameraPos.y - radius, cameraPos.z);
+                else if (visualEnv.centerMode.value == VisualEnvironment.PlanetMode.Automatic)
+                    center = new Vector3(0, -radius, 0);
+                else
+                    center = visualEnv.planetCenter.value * 1000.0f;
             }
         }
 
@@ -1483,14 +1482,21 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._FrameCount = frameCount;
             cb._XRViewCount = (uint)viewCount;
 
-            var cameraPos = camera.transform.position;
+            var cameraPos = mainViewConstants.worldSpaceCameraPos;
             var planetPosRWS = planet.center - cameraPos;
-            cb._PlanetCenterRadius = ShaderConfig.s_CameraRelativeRendering != 0 ? planetPosRWS : planet.center;
-            cb._PlanetCenterRadius.w = planet.radius;
 
             // This is not very efficient but necessary for precision
             var planetUp = -planetPosRWS.normalized;
             var cameraHeight = Vector3.Dot(cameraPos - (planetUp * planet.radius + planet.center), planetUp);
+
+            if (planet.renderingSpace == RenderingSpace.Camera)
+            {
+                planetPosRWS = new Vector3(0, -planet.radius, 0.0f);
+                cameraHeight = 0.0f;
+            }
+
+            cb._PlanetCenterRadius = ShaderConfig.s_CameraRelativeRendering != 0 ? planetPosRWS : planet.center;
+            cb._PlanetCenterRadius.w = planet.radius;
             cb._PlanetUpAltitude = planetUp;
             cb._PlanetUpAltitude.w = cameraHeight;
 
@@ -2064,7 +2070,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Update planet data
             var visualEnv = volumeStack.GetComponent<VisualEnvironment>();
-            planet.Set(visualEnv, camera.transform.position);
+            planet.Set(mainViewConstants.worldSpaceCameraPos, visualEnv);
 
             // Update info about current target mid gray
             TargetMidGray requestedMidGray = volumeStack.GetComponent<Exposure>().targetMidGray.value;

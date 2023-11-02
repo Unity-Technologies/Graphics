@@ -11,7 +11,6 @@ Refer to [Create realistic clouds (volumetric clouds)](create-realistic-clouds-v
 | **Property** | **Description**                                       |
 | ------------ | ----------------------------------------------------- |
 | **State**        | When set to **Enabled**, HDRP renders volumetric clouds. |
-| **Local Clouds** | Indicates whether the clouds are part of the scene or rendered into the skybox. When enabled, clouds are part of the scene and you can interact with them. This means, you can move around the clouds, clouds can appear between the Camera and other GameObjects, and the Camera's clipping planes affects the clouds. When disabled, the clouds are part of the skybox. This means the clouds and their shadows appear relative to the Camera and always appear behind geometry. |
 
 ### Shape
 
@@ -42,7 +41,6 @@ Refer to [Create realistic clouds (volumetric clouds)](create-realistic-clouds-v
 | - **Shape Offset Z**              | Controls the offset (world Z-axis) applied when evaluating the larger noise passing through the cloud coverage. The values "0", "-1" and "1" will give the same result. |
 | - **Erosion Factor**              | Controls the amount of erosion to apply on the edge of the clouds. A higher value erodes clouds more significantly. <br/><br/>This property only appears if you set **Cloud Control** to **Advanced** or **Custom**, or if you set it to **Simple** and then set **Cloud Preset** to **Custom**. |
 | - **Erosion Scale**               | Controls the size of the noise HDRP uses in the erosion stage to add local details to the cloud edges. <br/><br/>This property only appears if you set **Cloud Control** to **Advanced** or **Custom**, or if you set it to **Simple** and then set **Cloud Preset** to **Custom**. |
-| **Earth Curvature**               | The curvature of the cloud volume. This defines the distance at which the clouds intersect with the horizon. |
 | **Bottom Altitude**               | Controls the altitude of the bottom of the volumetric clouds volume in meters.|
 | **Altitude Range**                | Controls the size of the volumetric clouds volume in meters. |
 | **Fade In Mode**                  | Controls the mode in which the clouds fade in when close to the camera's near plane.|

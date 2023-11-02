@@ -9,6 +9,7 @@ namespace UnityEditor.Rendering.HighDefinition
     class PhysicallyBasedSkyEditor : SkySettingsEditor
     {
         SerializedDataParameter m_Type;
+        SerializedDataParameter m_AtmosphericScattering;
         SerializedDataParameter m_Mode;
         SerializedDataParameter m_Material;
         SerializedDataParameter m_PlanetRotation;
@@ -32,16 +33,16 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_AerosolTint;
         SerializedDataParameter m_AerosolAnisotropy;
 
+        SerializedDataParameter m_OzoneDensity;
+        SerializedDataParameter m_OzoneMinimumAltitude;
+        SerializedDataParameter m_OzoneLayerWidth;
+
         SerializedDataParameter m_ColorSaturation;
         SerializedDataParameter m_AlphaSaturation;
         SerializedDataParameter m_AlphaMultiplier;
         SerializedDataParameter m_HorizonTint;
         SerializedDataParameter m_ZenithTint;
         SerializedDataParameter m_HorizonZenithShift;
-
-        SerializedDataParameter m_NumberOfBounces;
-
-        GUIContent m_ModelTypeLabel = new GUIContent("Type", "Specifies a preset to simplify the interface.");
 
         GUIContent[] m_ModelTypes = { new GUIContent("Earth (Simple)"), new GUIContent("Earth (Advanced)"), new GUIContent("Custom Planet") };
         int[] m_ModelTypeValues = { (int)PhysicallyBasedSkyModel.EarthSimple, (int)PhysicallyBasedSkyModel.EarthAdvanced, (int)PhysicallyBasedSkyModel.Custom };
@@ -57,6 +58,7 @@ namespace UnityEditor.Rendering.HighDefinition
             var o = new PropertyFetcher<PhysicallyBasedSky>(serializedObject);
 
             m_Type = Unpack(o.Find(x => x.type));
+            m_AtmosphericScattering = Unpack(o.Find(x => x.atmosphericScattering));
             m_Mode = Unpack(o.Find(x => x.renderingMode));
             m_Material = Unpack(o.Find(x => x.material));
             m_PlanetRotation = Unpack(o.Find(x => x.planetRotation));
@@ -80,24 +82,46 @@ namespace UnityEditor.Rendering.HighDefinition
             m_AerosolTint = Unpack(o.Find(x => x.aerosolTint));
             m_AerosolAnisotropy = Unpack(o.Find(x => x.aerosolAnisotropy));
 
+            m_OzoneDensity = Unpack(o.Find(x => x.ozoneDensityDimmer));
+            m_OzoneMinimumAltitude = Unpack(o.Find(x => x.ozoneMinimumAltitude));
+            m_OzoneLayerWidth = Unpack(o.Find(x => x.ozoneLayerWidth));
+
             m_ColorSaturation = Unpack(o.Find(x => x.colorSaturation));
             m_AlphaSaturation = Unpack(o.Find(x => x.alphaSaturation));
             m_AlphaMultiplier = Unpack(o.Find(x => x.alphaMultiplier));
             m_HorizonTint = Unpack(o.Find(x => x.horizonTint));
             m_ZenithTint = Unpack(o.Find(x => x.zenithTint));
             m_HorizonZenithShift = Unpack(o.Find(x => x.horizonZenithShift));
+        }
 
-            m_NumberOfBounces = Unpack(o.Find(x => x.numberOfBounces));
+        void ModelTypeField(SerializedDataParameter property)
+        {
+            var title = EditorGUIUtility.TrTextContent(property.displayName,
+                property.GetAttribute<TooltipAttribute>()?.tooltip);
+
+            using (var scope = new OverridablePropertyScope(property, title, this))
+            {
+                if (!scope.displayed)
+                    return;
+
+                var rect = EditorGUILayout.GetControlRect();
+                EditorGUI.BeginProperty(rect, title, property.value);
+
+                EditorGUI.BeginChangeCheck();
+                var value = EditorGUI.IntPopup(rect, title, property.value.intValue, m_ModelTypes, m_ModelTypeValues);
+                if (EditorGUI.EndChangeCheck())
+                    property.value.intValue = value;
+
+                EditorGUI.EndProperty();
+            }
         }
 
         public override void OnInspectorGUI()
         {
             DrawHeader("Model");
 
-            using (var scope = new OverridablePropertyScope(m_Type, m_ModelTypeLabel, this))
-                if (scope.displayed)
-                    m_Type.value.intValue = EditorGUILayout.IntPopup(m_ModelTypeLabel, m_Type.value.intValue, m_ModelTypes, m_ModelTypeValues);
-            PhysicallyBasedSkyModel type = (PhysicallyBasedSkyModel)m_Type.value.intValue;
+            ModelTypeField(m_Type);
+            PropertyField(m_AtmosphericScattering);
 
             DrawHeader("Planet and Space");
 
@@ -111,13 +135,14 @@ namespace UnityEditor.Rendering.HighDefinition
 
             DrawHeader("Planet");
 
+            PhysicallyBasedSkyModel type = (PhysicallyBasedSkyModel)m_Type.value.intValue;
             if (type != PhysicallyBasedSkyModel.EarthSimple && !hasMaterial)
             {
                 PropertyField(m_PlanetRotation);
                 PropertyField(m_GroundColorTexture);
             }
 
-            PropertyField(m_GroundTint);
+            ColorFieldLinear(m_GroundTint);
 
             if (type != PhysicallyBasedSkyModel.EarthSimple && !hasMaterial)
             {
@@ -146,10 +171,19 @@ namespace UnityEditor.Rendering.HighDefinition
             DrawHeader("Aerosols");
             PropertyField(m_AerosolDensity);
             PropertyField(m_AerosolTint);
+            PropertyField(m_AerosolAnisotropy);
+            if (type != PhysicallyBasedSkyModel.EarthSimple)
+                PropertyField(m_AerosolMaximumAltitude);
+
             if (type != PhysicallyBasedSkyModel.EarthSimple)
             {
-                PropertyField(m_AerosolAnisotropy);
-                PropertyField(m_AerosolMaximumAltitude);
+                DrawHeader("Ozone");
+                PropertyField(m_OzoneDensity);
+                if (type == PhysicallyBasedSkyModel.Custom)
+                {
+                    PropertyField(m_OzoneMinimumAltitude);
+                    PropertyField(m_OzoneLayerWidth);
+                }
             }
 
             EditorGUILayout.Space();
@@ -163,7 +197,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
             EditorGUILayout.Space();
             DrawHeader("Miscellaneous");
-            PropertyField(m_NumberOfBounces);
 
             base.CommonSkySettingsGUI();
         }

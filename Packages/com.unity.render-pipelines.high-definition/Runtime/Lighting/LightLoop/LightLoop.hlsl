@@ -236,7 +236,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
                     #ifndef LIGHT_EVALUATION_NO_CLOUDS_SHADOWS
                     // Apply the volumetric cloud shadow if relevant
                     if (_VolumetricCloudsShadowOriginToggle.w == 1.0)
-                        context.shadowValue *= EvaluateVolumetricCloudsShadows(context, light, posInput.positionWS);
+                        context.shadowValue *= EvaluateVolumetricCloudsShadows(light, posInput.positionWS);
                     #endif
                 }
             }

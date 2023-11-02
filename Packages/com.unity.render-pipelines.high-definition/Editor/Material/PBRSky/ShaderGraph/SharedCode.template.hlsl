@@ -4,17 +4,27 @@ SurfaceDescriptionInputs BuildSurfaceDescriptionInputs(Varyings input)
     ZERO_INITIALIZE(SurfaceDescriptionInputs, output);
 
     const float R = _PlanetaryRadius;
-
-    const float3 O = _PBRSkyCameraPosPS;
     const float3 V = GetSkyViewDirWS(input.positionCS.xy);
+    float3 N; float r;
 
-    float3 N; float r; // These params correspond to the entry point
+#ifdef LOCAL_SKY
+    const float3 O = _PBRSkyCameraPosPS;
+
     float tEntry = IntersectAtmosphere(O, V, N, r).x;
     float tExit  = IntersectAtmosphere(O, V, N, r).y;
 
-    float NdotV  = dot(N, V);
-    float cosChi = -NdotV;
+    float cosChi = -dot(N, V);
     float cosHor = ComputeCosineOfHorizonAngle(r);
+#else
+    N = float3(0, 1, 0);
+    r = _PlanetaryRadius;
+    float cosChi = -dot(N, V);
+    float cosHor = 0.0f;
+    const float3 O = N * r;
+
+    float tEntry = 0.0f;
+    float tExit  = IntersectSphere(_AtmosphericRadius, -dot(N, V), r).y;
+#endif
 
     bool rayIntersectsAtmosphere = (tEntry >= 0);
     bool lookAboveHorizon        = (cosChi >= cosHor);

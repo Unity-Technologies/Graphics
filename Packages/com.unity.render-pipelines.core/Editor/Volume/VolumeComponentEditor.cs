@@ -726,6 +726,27 @@ namespace UnityEditor.Rendering
         }
 
         /// <summary>
+        /// Draw a Color Field but convert the color to gamma space before displaying it in the shader.
+        /// Using SetColor on a material does the conversion, but setting the color as vector3 in a constant buffer doesn't
+        /// So we have to do it manually, doing it in the UI avoids having to do a migration step for existing fields
+        /// </summary>
+        /// <param name="property">The color property</param>
+        protected void ColorFieldLinear(SerializedDataParameter property)
+        {
+            var title = EditorGUIUtility.TrTextContent(property.displayName,
+                property.GetAttribute<TooltipAttribute>()?.tooltip);
+
+            using (var scope = new OverridablePropertyScope(property, title, this))
+            {
+                if (!scope.displayed)
+                    return;
+
+                // Standard Unity drawer
+                CoreEditorUtils.ColorFieldLinear(property.value, title);
+            }
+        }
+
+        /// <summary>
         /// Draws the override checkbox used by a property in the editor.
         /// </summary>
         /// <param name="property">The property to draw the override checkbox for</param>

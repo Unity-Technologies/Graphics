@@ -561,7 +561,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _CloudsLightingTexture = Shader.PropertyToID("_CloudsLightingTexture");
         public static readonly int _CloudsLightingTextureRW = Shader.PropertyToID("_CloudsLightingTextureRW");
         public static readonly int _HalfResDepthBufferRW = Shader.PropertyToID("_HalfResDepthBufferRW");
-        public static readonly int _DepthBufferRW = Shader.PropertyToID("_DepthBufferRW");
         public static readonly int _CloudsDepthTexture = Shader.PropertyToID("_CloudsDepthTexture");
         public static readonly int _DepthStatusTexture = Shader.PropertyToID("_DepthStatusTexture");
         public static readonly int _CloudsDepthTextureRW = Shader.PropertyToID("_CloudsDepthTextureRW");
@@ -585,7 +584,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _CumulonimbusMapMultiplier = Shader.PropertyToID("_CumulonimbusMapMultiplier");
         public static readonly int _RainMap = Shader.PropertyToID("_RainMap");
         public static readonly int _CloudMapResolution = Shader.PropertyToID("_CloudMapResolution");
-        public static readonly int _CloudsPixelCoordToViewDirWS = Shader.PropertyToID("_CloudsPixelCoordToViewDirWS");
         public static readonly int _VolumetricCloudsAmbientProbeBuffer = Shader.PropertyToID("_VolumetricCloudsAmbientProbeBuffer");
         public static readonly int _VolumetricCloudsLightingTexture = Shader.PropertyToID("_VolumetricCloudsLightingTexture");
         public static readonly int _VolumetricCloudsLightingTextureRW = Shader.PropertyToID("_VolumetricCloudsLightingTextureRW");
@@ -699,7 +697,14 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _AerosolSingleScatteringTable = Shader.PropertyToID("_AerosolSingleScatteringTable");
         public static readonly int _MultipleScatteringTexture = Shader.PropertyToID("_MultipleScatteringTexture");
         public static readonly int _MultipleScatteringTable = Shader.PropertyToID("_MultipleScatteringTable");
-        public static readonly int _MultipleScatteringTableOrder = Shader.PropertyToID("_MultipleScatteringTableOrder");
+
+        public static readonly int _MultiScatteringLUT = Shader.PropertyToID("_MultiScatteringLUT");
+        public static readonly int _MultiScatteringLUT_RW = Shader.PropertyToID("_MultiScatteringLUT_RW");
+        public static readonly int _SkyViewLUT = Shader.PropertyToID("_SkyViewLUT");
+        public static readonly int _SkyViewLUT_RW = Shader.PropertyToID("_SkyViewLUT_RW");
+        public static readonly int _AtmosphericScatteringLUT = Shader.PropertyToID("_AtmosphericScatteringLUT");
+        public static readonly int _AtmosphericScatteringLUT_RW = Shader.PropertyToID("_AtmosphericScatteringLUT_RW");
+        public static readonly int _SkyLUTScale = Shader.PropertyToID("_SkyLUTScale");
 
         public static readonly int _PlanetRotation = Shader.PropertyToID("_PlanetRotation");
         public static readonly int _SpaceRotation = Shader.PropertyToID("_SpaceRotation");

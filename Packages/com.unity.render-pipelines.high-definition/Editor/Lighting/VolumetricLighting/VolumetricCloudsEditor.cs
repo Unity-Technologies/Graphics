@@ -11,7 +11,6 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         // General
         SerializedDataParameter m_Enable;
-        SerializedDataParameter m_LocalClouds;
 
         // Shape
         SerializedDataParameter m_CloudControl;
@@ -34,7 +33,6 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_CloudMap;
         SerializedDataParameter m_CloudLut;
 
-        SerializedDataParameter m_EarthCurvature;
         SerializedDataParameter m_CloudTiling;
         SerializedDataParameter m_CloudOffset;
 
@@ -98,7 +96,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // General
             m_Enable = Unpack(o.Find(x => x.enable));
-            m_LocalClouds = Unpack(o.Find(x => x.localClouds));
 
             // Shape
             m_CloudControl = Unpack(o.Find(x => x.cloudControl));
@@ -121,7 +118,6 @@ namespace UnityEditor.Rendering.HighDefinition
             m_CloudMap = Unpack(o.Find(x => x.cloudMap));
             m_CloudLut = Unpack(o.Find(x => x.cloudLut));
 
-            m_EarthCurvature = Unpack(o.Find(x => x.earthCurvature));
             m_CloudTiling = Unpack(o.Find(x => x.cloudTiling));
             m_CloudOffset = Unpack(o.Find(x => x.cloudOffset));
 
@@ -499,7 +495,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Additional properties
             PropertyField(m_ShapeOffset);
-            PropertyField(m_EarthCurvature);
 
             // For the other sections
             return hasCloudMap;
@@ -521,9 +516,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             EditorGUILayout.LabelField("General", EditorStyles.miniLabel);
             PropertyField(m_Enable, EditorGUIUtility.TrTextContent("State"));
-            PropertyField(m_LocalClouds);
-            if (m_LocalClouds.value.boolValue)
-                EditorGUILayout.HelpBox("Volumetric Clouds are only displayed up to the far plane of the used camera. Make sure to increase the far and near planes accordingly.", MessageType.Info);
+
             EditorGUILayout.Space();
 
             // Shape UI

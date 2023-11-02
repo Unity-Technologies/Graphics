@@ -648,6 +648,9 @@ Compiled compute shader: ScreenSpaceGlobalIllumination, kernel: ReprojectGlobalI
 Compiled compute shader: ScreenSpaceGlobalIllumination, kernel: TraceGlobalIllumination, keywords <no keywords>
 Compiled compute shader: ScreenSpaceReflections, kernel: ScreenSpaceReflectionsReprojection, keywords SSR_APPROX
 Compiled compute shader: ScreenSpaceReflections, kernel: ScreenSpaceReflectionsTracing, keywords SSR_APPROX
+Compiled compute shader: SkyLUTGenerator, kernel: AtmosphericScatteringLUTCamera, keywords <no keywords>
+Compiled compute shader: SkyLUTGenerator, kernel: MultiScatteringLUT, keywords <no keywords>
+Compiled compute shader: SkyLUTGenerator, kernel: SkyViewLUT, keywords <no keywords>
 Compiled compute shader: StagePrepare, kernel: ClearBins, keywords <no keywords>
 Compiled compute shader: StagePrepare, kernel: ClearClusters, keywords <no keywords>
 Compiled compute shader: StagePrepare, kernel: ClearCounters, keywords <no keywords>
@@ -678,10 +681,12 @@ Compiled compute shader: UberPost, kernel: Uber, keywords CHROMATIC_ABERRATION G
 Compiled compute shader: UberPost, kernel: Uber, keywords ENABLE_ALPHA
 Compiled compute shader: VolumetricClouds, kernel: ConvertObliqueDepth, keywords <no keywords>
 Compiled compute shader: VolumetricClouds, kernel: DownscaleDepth, keywords <no keywords>
+Compiled compute shader: VolumetricClouds, kernel: PreUpscaleClouds, keywords <no keywords>
 Compiled compute shader: VolumetricClouds, kernel: ReprojectClouds, keywords <no keywords>
 Compiled compute shader: VolumetricClouds, kernel: UpscaleCloudsPerceptual, keywords <no keywords>
 Compiled compute shader: VolumetricCloudsShadowFilter, kernel: FilterVolumetricCloudsShadow, keywords <no keywords>
 Compiled compute shader: VolumetricCloudsTrace, kernel: RenderClouds, keywords CLOUDS_SIMPLE_PRESET PHYSICALLY_BASED_SUN
+Compiled compute shader: VolumetricCloudsTrace, kernel: RenderClouds, keywords CLOUDS_SIMPLE_PRESET PHYSICALLY_BASED_SUN TRACE_FOR_SKY
 Compiled compute shader: VolumetricCloudsTraceShadows, kernel: TraceVolumetricCloudsShadows, keywords CLOUDS_SIMPLE_PRESET
 Compiled compute shader: VolumetricLighting, kernel: VolumetricLighting, keywords ENABLE_ANISOTROPY SUPPORT_LOCAL_LIGHTS
 Compiled compute shader: VolumetricLighting, kernel: VolumetricLighting, keywords PROBE_VOLUMES_L1 SUPPORT_LOCAL_LIGHTS VL_PRESET_OPTIMAL
@@ -1430,6 +1435,8 @@ Compiled shader: Hidden/HDRP/OpaqueAtmosphericScattering, pass: MSAA, stage: all
 Compiled shader: Hidden/HDRP/OpaqueAtmosphericScattering, pass: MSAA, stage: pixel, keywords <no keywords>
 Compiled shader: Hidden/HDRP/OpaqueAtmosphericScattering, pass: MSAA, stage: vertex, keywords <no keywords>
 Compiled shader: Hidden/HDRP/OpaqueAtmosphericScattering, pass: Polychromatic Alpha, stage: all, keywords SUPPORT_WATER
+Compiled shader: Hidden/HDRP/OpaqueAtmosphericScattering, pass: Polychromatic Alpha, stage: pixel, keywords NO_WATER
+Compiled shader: Hidden/HDRP/OpaqueAtmosphericScattering, pass: Polychromatic Alpha, stage: pixel, keywords NO_WATER STEREO_INSTANCING_ON
 Compiled shader: Hidden/HDRP/OpaqueAtmosphericScattering, pass: Polychromatic Alpha, stage: pixel, keywords STEREO_INSTANCING_ON SUPPORT_WATER
 Compiled shader: Hidden/HDRP/OpaqueAtmosphericScattering, pass: Polychromatic Alpha, stage: pixel, keywords SUPPORT_WATER
 Compiled shader: Hidden/HDRP/OpaqueAtmosphericScattering, pass: Polychromatic Alpha, stage: vertex, keywords <no keywords>

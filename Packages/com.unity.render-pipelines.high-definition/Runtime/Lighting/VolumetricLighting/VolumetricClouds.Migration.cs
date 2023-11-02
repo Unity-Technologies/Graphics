@@ -24,6 +24,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Initial,
             GlobalWind,
             ShapeOffset,
+            SharedRenderingSpace,
 
             Count
         }
@@ -53,6 +54,36 @@ namespace UnityEngine.Rendering.HighDefinition
                 c.shapeOffset.overrideState = c.m_ObsoleteShapeOffsetX.overrideState || c.m_ObsoleteShapeOffsetY.overrideState || c.m_ObsoleteShapeOffsetZ.overrideState;
                 c.shapeOffset.value = new Vector3(c.m_ObsoleteShapeOffsetX.value, c.m_ObsoleteShapeOffsetY.value, c.m_ObsoleteShapeOffsetZ.value);
 #pragma warning restore 618
+            }),
+            MigrationStep.New(Version.SharedRenderingSpace, (VolumetricClouds c) =>
+            {
+                c.perceptualBlending.value = 0.0f;
+
+                #if UNITY_EDITOR
+                var profiles = UnityEditor.AssetDatabase.FindAssets("t:" + typeof(VolumeProfile).Name);
+                foreach (var guid in profiles)
+                {
+                    var path = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
+                    if (!UnityEditor.AssetDatabase.IsMainAssetAtPathLoaded(path))
+                        continue;
+                    var profile = UnityEditor.AssetDatabase.LoadAssetAtPath<VolumeProfile>(path);
+                    if (!profile.components.Contains(c))
+                        continue;
+
+                    if (!profile.TryGet<VisualEnvironment>(out var env))
+                        env = profile.Add<VisualEnvironment>();
+
+#pragma warning disable 618 // Type or member is obsolete
+                    env.renderingSpace.value = c.localClouds.value ? RenderingSpace.World : RenderingSpace.Camera;
+                    env.renderingSpace.overrideState = c.localClouds.overrideState;
+#pragma warning restore 618
+
+                    UnityEditor.EditorUtility.SetDirty(env);
+                    UnityEditor.EditorUtility.SetDirty(profile);
+
+                    return;
+                }
+                #endif
             })
         );
 
@@ -65,6 +96,10 @@ namespace UnityEngine.Rendering.HighDefinition
         Version m_Version = Version.Count;
         Version IVersionable<Version>.version { get => m_Version; set => m_Version = value; }
 
+
+        [SerializeField, Obsolete("For Data Migration")]
+        internal BoolParameter localClouds = new(false);
+
         [SerializeField, FormerlySerializedAs("globalWindSpeed"), Obsolete("For Data Migration")]
         MinFloatParameter m_ObsoleteWindSpeed = new MinFloatParameter(1.0f, 0.0f);
         [SerializeField, FormerlySerializedAs("orientation"), Obsolete("For Data Migration")]
@@ -76,6 +111,5 @@ namespace UnityEngine.Rendering.HighDefinition
         FloatParameter m_ObsoleteShapeOffsetY = new FloatParameter(0.0f);
         [SerializeField, FormerlySerializedAs("shapeOffsetZ"), Obsolete("For Data Migration")]
         FloatParameter m_ObsoleteShapeOffsetZ = new FloatParameter(0.0f);
-
     }
 }

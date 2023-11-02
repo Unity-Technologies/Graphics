@@ -15,9 +15,9 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_CloudType;
         SerializedDataParameter m_SkyAmbientMode;
 
-        SerializedDataParameter m_ShapeType;
-        SerializedDataParameter m_SeaLevel;
         SerializedDataParameter m_PlanetRadius;
+        SerializedDataParameter m_RenderingSpace;
+        SerializedDataParameter m_CenterMode;
         SerializedDataParameter m_PlanetCenter;
 
         SerializedDataParameter m_WindOrientation;
@@ -74,9 +74,9 @@ namespace UnityEditor.Rendering.HighDefinition
             m_CloudType = Unpack(o.Find(x => x.cloudType));
             m_SkyAmbientMode = Unpack(o.Find(x => x.skyAmbientMode));
 
-            m_ShapeType = Unpack(o.Find(x => x.planetType));
-            m_SeaLevel = Unpack(o.Find(x => x.seaLevel));
             m_PlanetRadius = Unpack(o.Find(x => x.planetRadius));
+            m_RenderingSpace = Unpack(o.Find(x => x.renderingSpace));
+            m_CenterMode = Unpack(o.Find(x => x.centerMode));
             m_PlanetCenter = Unpack(o.Find(x => x.planetCenter));
 
             m_WindOrientation = Unpack(o.Find(x => x.windOrientation));
@@ -159,20 +159,18 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             // Planet
-            PropertyField(m_ShapeType);
+            PropertyField(m_PlanetRadius, EditorGUIUtility.TrTextContent("Radius", "Sets the radius of the planet in kilometers. This is distance from the center of the planet to the sea level."));
+            PropertyField(m_RenderingSpace);
 
-            var shapeType = (VisualEnvironment.ShapeType)m_ShapeType.value.intValue;
-            if (shapeType != VisualEnvironment.ShapeType.Earth)
+            if (m_RenderingSpace.value.intValue == (int)RenderingSpace.World && BeginAdditionalPropertiesScope())
             {
-                using (new IndentLevelScope())
+                PropertyField(m_CenterMode, EditorGUIUtility.TrTextContent("Center", "The center is used when defining where the planets surface is. In automatic mode, the surface is at the world's origin and the center is derived from the planet radius."));
+                if (m_CenterMode.value.intValue == (int)VisualEnvironment.PlanetMode.Manual)
                 {
-                    if (shapeType == VisualEnvironment.ShapeType.Spherical)
-                        PropertyField(m_PlanetCenter, EditorGUIUtility.TrTextContent("Center", "Sets the world-space position of the planet's center in meters."));
-                    else if (shapeType == VisualEnvironment.ShapeType.Flat)
-                        PropertyField(m_SeaLevel);
-
-                    PropertyField(m_PlanetRadius, EditorGUIUtility.TrTextContent("Radius", "Sets the radius of the planet in meters. This is distance from the center of the planet to the sea level."));
+                    using (new IndentLevelScope())
+                        PropertyField(m_PlanetCenter, EditorGUIUtility.TrTextContent("Position", "Sets the world-space position of the planet's center in kilometers."));
                 }
+                EndAdditionalPropertiesScope();
             }
 
             // Wind
@@ -181,7 +179,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (m_WindSpeed.overrideState.boolValue && m_WindSpeed.value.floatValue != 0.0f && SceneView.lastActiveSceneView && !SceneView.lastActiveSceneView.sceneViewState.alwaysRefreshEnabled)
                 EditorGUILayout.HelpBox("Wind animations in the scene view are only supported when \"Always Refresh\" is enabled.", MessageType.Info);
-
         }
     }
 
@@ -195,6 +192,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             rect = EditorGUILayout.GetControlRect();
             rect.xMax -= popupWidth + 2;
+            EditorGUI.BeginProperty(rect, title, parameter.value);
 
             var popupRect = rect;
             popupRect.x = rect.xMax + 2;
@@ -225,6 +223,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public static void EndGUI(SerializedProperty mode)
         {
+            EditorGUI.EndProperty();
             if (mode.intValue == (int)WindParameter.WindOverrideMode.Global)
             {
                 EditorGUI.showMixedValue = false;

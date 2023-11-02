@@ -86,6 +86,7 @@ MonoBehaviour:
     ambientProbeConvolutionCS: {fileID: 7200000, guid: 6d048f7b1bd45e840b4e79ec92639fa8, type: 3}
     groundIrradiancePrecomputationCS: {fileID: 7200000, guid: eb6ae6f326207ee4d987a3e5adddf63a, type: 3}
     inScatteredRadiancePrecomputationCS: {fileID: 7200000, guid: 70c69d514688f8545855680760d77418, type: 3}
+    skyLUTGenerator: {fileID: 7200000, guid: 79224112d91b32241be6b65802863db4, type: 3}
     physicallyBasedSkyPS: {fileID: 4800000, guid: a06934a4863e778498be65d8f865b7a4, type: 3}
     cloudLayerPS: {fileID: 4800000, guid: 001a47fa123e95a4bba13ecb0442d944, type: 3}
     bakeCloudTextureCS: {fileID: 7200000, guid: 09a7f6850ee9fb4439e5ebd632127da5, type: 3}

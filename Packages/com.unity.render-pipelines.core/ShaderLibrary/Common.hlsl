@@ -1238,6 +1238,20 @@ float DecodeLogarithmicDepth(float d, float4 encodingParams)
     return encodingParams.x * exp2(d * encodingParams.y);
 }
 
+// Use an infinite far plane
+// https://chaosinmotion.com/2010/09/06/goodbye-far-clipping-plane/
+// 'depth' is the linear depth (view-space Z position)
+float EncodeInfiniteDepth(float depth, float near)
+{
+    return saturate(near / depth);
+}
+
+// 'z' is the depth encoded in the depth buffer (1 at near plane, 0 at far plane)
+float DecodeInfiniteDepth(float z, float near)
+{
+    return near / max(z, FLT_EPS);
+}
+
 real4 CompositeOver(real4 front, real4 back)
 {
     return front + (1 - front.a) * back;

@@ -180,6 +180,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader groundIrradiancePrecomputationCS;
             [Reload("Runtime/Sky/PhysicallyBasedSky/InScatteredRadiancePrecomputation.compute")]
             public ComputeShader inScatteredRadiancePrecomputationCS;
+            [Reload("Runtime/Sky/PhysicallyBasedSky/SkyLUTGenerator.compute")]
+            public ComputeShader skyLUTGenerator;
             [Reload("Runtime/Sky/PhysicallyBasedSky/PhysicallyBasedSky.shader")]
             public Shader physicallyBasedSkyPS;
             [Reload("Runtime/Sky/CloudSystem/CloudLayer/CloudLayer.shader")]

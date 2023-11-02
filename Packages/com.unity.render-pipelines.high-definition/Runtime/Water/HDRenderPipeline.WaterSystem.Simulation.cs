@@ -1,6 +1,5 @@
 using Unity.Collections;
 using Unity.Mathematics;
-using UnityEditor;
 using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
@@ -292,7 +291,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_Time = totalTime;
 
                 #if UNITY_EDITOR
-                if (EditorApplication.isPaused)
+                if (UnityEditor.EditorApplication.isPaused)
                     delta = 0.0f;
                 #endif
 

@@ -1,6 +1,6 @@
 # Create a physically based sky
 
-Physically Based Sky simulates a spherical planet with a two-part atmosphere that has an exponentially decreasing density based on its altitude. 
+The Physically Based Sky Volume Override lets you configure how the High Definition Render Pipeline (HDRP) renders physically based sky.
 
 ![](Images/Override-PhysicallyBasedSky2.png)
 
@@ -19,8 +19,6 @@ Next, set the Volume to use **Physically Based Sky**. The [Visual Environment](O
 To change how much the atmosphere attenuates light, you can change the density of both air and aerosol molecules (participating media) in the atmosphere. You can also use aerosols to simulate real-world pollution or fog.
 
 **Note**: HDRP only takes into account Lights that have **Affect Physically Based Sky** enabled. After Unity bakes the lighting in your project, Physically Based Sky ignores all Lights that have their **Mode** property set to **Baked**. To fix this, set the **Mode** to **Realtime** or **Mixed**.
-
-**Note:** When Unity initializes a Physically Based Sky, it performs a resource-intensive operation which can cause the frame rate of your project to drop for a few frames. Once Unity has completed this operation, it stores the data in a cache to access the next time Unity initializes this volume. You might experience this frame rate drop if you have two Physically Based Sky volumes with different properties and switch between them.
 
 Refer to the [Physically Based Sky Volume Override Reference](physically-based-sky-volume-override-reference.md) for more information.
 
@@ -42,4 +40,3 @@ The default values in either mode make it so the planet's surface is at **0** on
 The planet does not render in the depth buffer, this means it won't occlude lens flare and will not behave correctly when using motion blur.
 
 Refer to the [Physically Based Sky Volume Override Reference](physically-based-sky-volume-override-reference.md) for more information.
-

@@ -4,6 +4,7 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/SphericalHarmonics.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/SkyUtils.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/CloudUtils.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/PhysicallyBasedSky/PhysicallyBasedSkyCommon.hlsl"
 
 
@@ -32,6 +33,8 @@ StructuredBuffer<float4> _AmbientProbeBuffer;
 #define _Altitude(l)        _Params1[l].w
 #define _AmbientDimmer(l)   _Params2[l]
 
+#define _LowestAltitude(l)  (_Altitude(l) + _PlanetaryRadius)
+
 struct CloudLayerData
 {
     int index;
@@ -40,12 +43,6 @@ struct CloudLayerData
     TEXTURE2D(flowmap);
     SAMPLER(flowmapSampler);
 };
-
-float3 GetCloudVolumeIntersection(int index, float3 dir)
-{
-    const float _EarthRadius = 6378100.0f;
-    return dir * -IntersectSphere(_Altitude(index) + _EarthRadius, -dir.y, _EarthRadius).x;
-}
 
 float2 SampleCloudMap(float3 dir, int layer)
 {
@@ -89,8 +86,7 @@ CloudLayerData GetCloudLayer(int index)
 float4 GetCloudLayerColor(float3 dir, int index)
 {
     float2 cloud;
-
-    float3 position = GetCloudVolumeIntersection(index, dir);
+    float3 position = dir * IntersectSphere(_LowestAltitude(index), dir.y, _PlanetaryRadius).y;
 
     CloudLayerData layer = GetCloudLayer(index);
     if (layer.distort)

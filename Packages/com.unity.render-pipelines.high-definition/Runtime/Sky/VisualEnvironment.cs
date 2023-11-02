@@ -4,33 +4,44 @@ using System.Diagnostics;
 namespace UnityEngine.Rendering.HighDefinition
 {
     /// <summary>
+    /// Rendering space used for planetary effects
+    /// </summary>
+    public enum RenderingSpace
+    {
+        /// <summary>
+        /// Always centered around the camera
+        /// </summary>
+        Camera,
+        /// <summary>
+        /// Rendered in world space
+        /// </summary>
+        World,
+    };
+
+    /// <summary>
     /// Visual Environment Volume Component.
     /// This component setups the sky used for rendering as well as the way ambient probe should be computed.
     /// </summary>
     [Serializable, VolumeComponentMenu("Visual Environment")]
     [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
     [HDRPHelpURL("Override-Visual-Environment")]
-    public sealed class VisualEnvironment : VolumeComponent
+    public sealed partial class VisualEnvironment : VolumeComponent
     {
         internal const float k_DefaultEarthRadius = 6.3781f * 1000000;
 
         /// <summary>
-        /// Planet shape type
+        /// Specifies how the planet center is computed
         /// </summary>
-        public enum ShapeType
+        public enum PlanetMode
         {
             /// <summary>
-            /// Simulate a planet with the same dimesions as the earth
+            /// Top of the planet is located at the world origin.
             /// </summary>
-            Earth,
+            Automatic,
             /// <summary>
-            /// Simulates a generic spherical planet
+            /// Arbitrary position in space.
             /// </summary>
-            Spherical,
-            /// <summary>
-            /// Simulates a flat planet
-            /// </summary>
-            Flat
+            Manual,
         };
 
         /// <summary>Type of sky that should be used for rendering.</summary>
@@ -41,16 +52,17 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Defines the way the ambient probe should be computed.</summary>
         public SkyAmbientModeParameter skyAmbientMode = new SkyAmbientModeParameter(SkyAmbientMode.Dynamic);
 
-        /// <summary> Allows to specify the location of the planet. If disabled, the planet is always below the camera in the world-space X-Z plane. </summary>
+        /// <summary> Radius of the planet (distance from the center of the planet to the sea level). Units: kilometers. </summary>
         [Header("Planet")]
-        [Tooltip("Controls the planet settings which will impact environment effects like clouds, fog and sky.\nChoose whether to simulate a flat planet, a spherical planet, or use a preset with Earth values.")]
-        public EnumParameter<ShapeType> planetType = new (ShapeType.Earth);
-        /// <summary> World-space Y coordinate of the sea level of the planet. Units: meters. </summary>
-        [Tooltip("Sets the world-space y coordinate of the planet's sea level in meters.")]
-        public FloatParameter seaLevel = new FloatParameter(0);
-        /// <summary> Radius of the planet (distance from the center of the planet to the sea level). Units: meters. </summary>
         public MinFloatParameter planetRadius = new MinFloatParameter(k_DefaultEarthRadius, 0);
-        /// <summary> Position of the center of the planet in the world space. Units: meters. Does not affect the precomputation. </summary>
+        /// <summary>When in Camera Space, sky and clouds will be centered on the camera. When in World Space, the camera can navigate through the atmosphere and the clouds.</summary>
+        [Tooltip("When in Camera Space, sky and clouds will be centered on the camera.\nWhen in World Space, the camera can navigate through the atmosphere and the clouds.")]
+        public EnumParameter<RenderingSpace> renderingSpace = new(RenderingSpace.World);
+        /// <summary>The center is used when defining where the planets surface is. In automatic mode, the surface is at the world's origin and the center is derived from the planet radius. </summary>
+        [AdditionalProperty]
+        public EnumParameter<PlanetMode> centerMode = new(PlanetMode.Automatic);
+        /// <summary> Position of the center of the planet in world space. Units: kilometers. </summary>
+        [AdditionalProperty]
         public Vector3Parameter planetCenter = new Vector3Parameter(new Vector3(0, -k_DefaultEarthRadius, 0));
 
         /// <summary>Controls the global orientation of the wind relative to the X world vector.</summary>

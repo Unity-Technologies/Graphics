@@ -699,9 +699,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         struct WaterRenderingDeferredParameters
         {
-            // Camera parameters
-            public bool pbsActive;
-
             // Deferred Lighting
             public ComputeShader waterLighting;
             public int[] indirectLightingKernels;
@@ -716,10 +713,6 @@ namespace UnityEngine.Rendering.HighDefinition
         WaterRenderingDeferredParameters PrepareWaterRenderingDeferredParameters(HDCamera hdCamera)
         {
             WaterRenderingDeferredParameters parameters = new WaterRenderingDeferredParameters();
-
-            // Is the physically based sky active? (otherwise we need to bind some fall back textures)
-            var visualEnvironment = hdCamera.volumeStack.GetComponent<VisualEnvironment>();
-            parameters.pbsActive = visualEnvironment.skyType.value == (int)SkyType.PhysicallyBased;
 
             // Deferred Lighting
             parameters.waterLighting = m_WaterLightingCS;
@@ -1267,6 +1260,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // All the parameters required to simulate and render the water
             public WaterRenderingDeferredParameters parameters;
+            public bool pbrSkyActive;
 
             // GBuffer Data
             public BufferHandle indirectBuffer;
@@ -1282,7 +1276,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public BufferHandle waterSurfaceProfiles;
 
             // Lighting textures/buffers
-            public TextureHandle scatteringFallbackTexture;
             public TextureHandle volumetricLightingTexture;
             public TextureHandle transparentSSRLighting;
             public BufferHandle perVoxelOffset;
@@ -1316,6 +1309,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 // Prepare all the internal parameters
                 passData.parameters = PrepareWaterRenderingDeferredParameters(hdCamera);
+                passData.pbrSkyActive = hdCamera.volumeStack.GetComponent<VisualEnvironment>().skyType.value == (int)SkyType.PhysicallyBased;
 
                 // GBuffer data
                 passData.indirectBuffer = builder.ReadBuffer(prepassOutput.waterGBuffer.indirectBuffer);
@@ -1328,7 +1322,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.depthBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.Read);
                 passData.depthPyramid = builder.ReadTexture(depthPyramid);
                 passData.waterSurfaceProfiles = builder.ReadBuffer(prepassOutput.waterSurfaceProfiles);
-                passData.scatteringFallbackTexture = renderGraph.defaultResources.blackTexture3DXR;
                 passData.volumetricLightingTexture = builder.ReadTexture(volumetricLightingTexture);
                 passData.transparentSSRLighting = builder.ReadTexture(ssrLighting);
                 passData.perVoxelOffset = builder.ReadBuffer(lightLists.perVoxelOffset);
@@ -1346,15 +1339,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         // Make sure the constant buffer is pushed
                         ConstantBuffer.Push(ctx.cmd, data.parameters.waterRenderingCB, data.parameters.waterLighting, HDShaderIDs._ShaderVariablesWaterRendering);
-
-                        if (!data.parameters.pbsActive)
-                        {
-                            // This has to be done in the global space given that the "correct" one happens in the global space.
-                            // If we do it in the local space, there are some cases when the previous frames local take precedence over the current frame global one.
-                            ctx.cmd.SetGlobalTexture(HDShaderIDs._AirSingleScatteringTexture, data.scatteringFallbackTexture);
-                            ctx.cmd.SetGlobalTexture(HDShaderIDs._AerosolSingleScatteringTexture, data.scatteringFallbackTexture);
-                            ctx.cmd.SetGlobalTexture(HDShaderIDs._MultipleScatteringTexture, data.scatteringFallbackTexture);
-                        }
 
                         for (int variantIdx = 0; variantIdx < data.parameters.numVariants; ++variantIdx)
                         {
@@ -1381,6 +1365,9 @@ namespace UnityEngine.Rendering.HighDefinition
                             // Run the lighting
                             ctx.cmd.DispatchCompute(data.parameters.waterLighting, kernel, data.indirectBuffer, (uint)variantIdx * 3 * sizeof(uint));
                         }
+
+                        if (!data.pbrSkyActive)
+                            PhysicallyBasedSkyRenderer.SetDefaultGlobalSkyData(ctx.cmd);
 
                         // Evaluate the fog
                         int fogKernel = data.parameters.waterFogKernel;

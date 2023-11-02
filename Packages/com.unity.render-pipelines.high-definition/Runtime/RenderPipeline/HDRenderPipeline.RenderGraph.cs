@@ -240,7 +240,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     colorBuffer = RenderOpaqueFog(m_RenderGraph, hdCamera, colorBuffer, volumetricLighting, msaa, in prepassOutput, in transparentPrepass);
 
-                    RenderVolumetricClouds(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthPyramidTexture, prepassOutput.motionVectorsBuffer, volumetricLighting, maxZMask, ref transparentPrepass);
+                    RenderClouds(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, volumetricLighting, maxZMask, in prepassOutput, ref transparentPrepass);
                     sunOcclusionTexture = transparentPrepass.clouds.lightingBuffer;
 
                     colorBuffer = RenderTransparency(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.resolvedNormalBuffer, vtFeedbackBuffer, currentColorPyramid, volumetricLighting, rayCountTexture,
@@ -1955,6 +1955,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 return colorBuffer;
 
             return m_SkyManager.RenderOpaqueAtmosphericScattering(renderGraph, hdCamera, in refractionOutput, colorBuffer, msaa ? prepassOutput.depthAsColor : prepassOutput.depthPyramidTexture, volumetricLighting, prepassOutput.depthBuffer, prepassOutput.normalBuffer);
+        }
+
+        void RenderClouds(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthStencilBuffer, TextureHandle volumetricLighting, TextureHandle maxZMask, in PrepassOutput prepassOutput, ref TransparentPrepassOutput transparentPrepass)
+        {
+            if (m_CurrentDebugDisplaySettings.DebugHideSky(hdCamera))
+                return;
+
+            m_SkyManager.RenderClouds(renderGraph, hdCamera, colorBuffer, depthStencilBuffer);
+
+            RenderVolumetricClouds(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthPyramidTexture, prepassOutput.motionVectorsBuffer, volumetricLighting, maxZMask, ref transparentPrepass);
         }
 
         class GenerateColorPyramidData

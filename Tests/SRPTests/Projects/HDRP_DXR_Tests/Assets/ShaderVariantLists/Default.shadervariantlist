@@ -482,22 +482,13 @@ Compiled compute shader: DiffuseShadowDenoiser, kernel: BilateralFilterVSingleSp
 Compiled compute shader: EVSMBlur, kernel: ConvertAndBlur, keywords <no keywords>
 Compiled compute shader: Exposure, kernel: KFixedExposure, keywords <no keywords>
 Compiled compute shader: GPUCopy, kernel: KSampleCopy4_1_x_8, keywords <no keywords>
-Compiled compute shader: GroundIrradiancePrecomputation, kernel: MAIN_1, keywords <no keywords>
-Compiled compute shader: GroundIrradiancePrecomputation, kernel: MAIN_M, keywords <no keywords>
-Compiled compute shader: GroundIrradiancePrecomputation, kernel: MAIN_S, keywords <no keywords>
+Compiled compute shader: GroundIrradiancePrecomputation, kernel: main, keywords <no keywords>
 Compiled compute shader: GTAO, kernel: GTAOMain, keywords HALF_RES TEMPORAL
 Compiled compute shader: GTAOBlurAndUpsample, kernel: BilateralUpsampling, keywords <no keywords>
 Compiled compute shader: GTAOCopyHistory, kernel: GTAODenoise_CopyHistory, keywords <no keywords>
 Compiled compute shader: GTAOSpatialDenoise, kernel: SpatialDenoise, keywords TO_TEMPORAL
 Compiled compute shader: GTAOTemporalDenoise, kernel: TemporalDenoise, keywords HALF_RES
-Compiled compute shader: HairMultipleScatteringPreIntegration, kernel: ComputeAttenuationBackward, keywords <no keywords>
-Compiled compute shader: HairMultipleScatteringPreIntegration, kernel: ComputeAttenuationForward, keywords <no keywords>
-Compiled compute shader: HairMultipleScatteringPreIntegration, kernel: ComputeAzimuthalScattering, keywords <no keywords>
-Compiled compute shader: HairMultipleScatteringPreIntegration, kernel: ComputeLongitudinalScattering, keywords <no keywords>
-Compiled compute shader: InScatteredRadiancePrecomputation, kernel: MAIN_1, keywords <no keywords>
-Compiled compute shader: InScatteredRadiancePrecomputation, kernel: MAIN_A, keywords <no keywords>
-Compiled compute shader: InScatteredRadiancePrecomputation, kernel: MAIN_M, keywords <no keywords>
-Compiled compute shader: InScatteredRadiancePrecomputation, kernel: MAIN_S, keywords <no keywords>
+Compiled compute shader: InScatteredRadiancePrecomputation, kernel: main, keywords <no keywords>
 Compiled compute shader: Internal-Skinning, kernel: main, keywords <no keywords>
 Compiled compute shader: lightlistbuild, kernel: TileLightListGen, keywords USE_FEATURE_FLAGS USE_TWO_PASS_TILED_LIGHTING
 Compiled compute shader: lightlistbuild, kernel: TileLightListGen, keywords USE_TWO_PASS_TILED_LIGHTING
@@ -576,6 +567,7 @@ Compiled compute shader: ScreenSpaceReflections, kernel: ScreenSpaceReflectionsR
 Compiled compute shader: ScreenSpaceReflections, kernel: ScreenSpaceReflectionsReprojection, keywords SSR_APPROX
 Compiled compute shader: ScreenSpaceReflections, kernel: ScreenSpaceReflectionsTracing, keywords DEPTH_SOURCE_NOT_FROM_MIP_CHAIN SSR_APPROX
 Compiled compute shader: ScreenSpaceReflections, kernel: ScreenSpaceReflectionsTracing, keywords SSR_APPROX
+Compiled compute shader: SkyLUTGenerator, kernel: MultiScatteringLUT, keywords <no keywords>
 Compiled compute shader: Sort, kernel: BitonicSort128, keywords <no keywords>
 Compiled compute shader: SubsurfaceScattering, kernel: SubsurfaceScattering, keywords <no keywords>
 Compiled compute shader: TemporalFilter, kernel: BlendHistoryColorArray, keywords FULL_RESOLUTION_FILTER
@@ -1031,9 +1023,7 @@ Compiled shader: HDRP/Lit, pass: PathTracingDXR, stage: raytracing, keywords DEB
 Compiled shader: HDRP/Lit, pass: PathTracingDXR, stage: raytracing, keywords DECALS_3RT _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON _MATERIAL_FEATURE_IRIDESCENCE _NORMALMAP_TANGENT_SPACE _REFRACTION_THIN _SURFACE_TYPE_TRANSPARENT
 Compiled shader: HDRP/Lit, pass: PathTracingDXR, stage: raytracing, keywords DECALS_3RT _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON _NORMALMAP_TANGENT_SPACE _REFRACTION_SPHERE _SURFACE_TYPE_TRANSPARENT
 Compiled shader: HDRP/Lit, pass: PathTracingDXR, stage: raytracing, keywords DECALS_3RT _DISABLE_SSR_TRANSPARENT _MATERIAL_FEATURE_CLEAR_COAT _NORMALMAP_TANGENT_SPACE
-Compiled shader: HDRP/Lit, pass: PathTracingDXR, stage: raytracing, keywords DECALS_3RT _DISABLE_SSR_TRANSPARENT _MATERIAL_FEATURE_IRIDESCENCE _NORMALMAP_TANGENT_SPACE _REFRACTION_THIN _SURFACE_TYPE_TRANSPARENT
 Compiled shader: HDRP/Lit, pass: PathTracingDXR, stage: raytracing, keywords DECALS_3RT _DISABLE_SSR_TRANSPARENT _NORMALMAP_TANGENT_SPACE
-Compiled shader: HDRP/Lit, pass: PathTracingDXR, stage: raytracing, keywords DECALS_3RT _DISABLE_SSR_TRANSPARENT _NORMALMAP_TANGENT_SPACE _REFRACTION_SPHERE _SURFACE_TYPE_TRANSPARENT
 Compiled shader: HDRP/Lit, pass: PathTracingDXR, stage: raytracing, keywords DECALS_3RT _DISABLE_SSR_TRANSPARENT _NORMALMAP_TANGENT_SPACE _REFRACTION_THIN _SURFACE_TYPE_TRANSPARENT
 Compiled shader: HDRP/Lit, pass: PathTracingDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON _NORMALMAP _NORMALMAP_TANGENT_SPACE
 Compiled shader: HDRP/Lit, pass: PathTracingDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON _NORMALMAP_TANGENT_SPACE
@@ -1047,7 +1037,6 @@ Compiled shader: HDRP/Lit, pass: PathTracingDXR, stage: raytracing, keywords DEC
 Compiled shader: HDRP/Lit, pass: PathTracingDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON _NORMALMAP_TANGENT_SPACE _REFRACTION_PLANE _SURFACE_TYPE_TRANSPARENT
 Compiled shader: HDRP/Lit, pass: PathTracingDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON _NORMALMAP_TANGENT_SPACE _REFRACTION_SPHERE _SURFACE_TYPE_TRANSPARENT
 Compiled shader: HDRP/Lit, pass: PathTracingDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT _MATERIAL_FEATURE_CLEAR_COAT _NORMALMAP_TANGENT_SPACE
-Compiled shader: HDRP/Lit, pass: PathTracingDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT _MATERIAL_FEATURE_IRIDESCENCE _NORMALMAP_TANGENT_SPACE _REFRACTION_THIN _SURFACE_TYPE_TRANSPARENT
 Compiled shader: HDRP/Lit, pass: PathTracingDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT _MATERIAL_FEATURE_SUBSURFACE_SCATTERING _MATERIAL_FEATURE_TRANSMISSION _NORMALMAP_TANGENT_SPACE
 Compiled shader: HDRP/Lit, pass: PathTracingDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT _MATERIAL_FEATURE_SUBSURFACE_SCATTERING _NORMALMAP_TANGENT_SPACE
 Compiled shader: HDRP/Lit, pass: PathTracingDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT _NORMALMAP _NORMALMAP_TANGENT_SPACE
@@ -1121,7 +1110,6 @@ Compiled shader: HDRP/Lit, pass: ShadowCaster, stage: pixel, keywords _DISABLE_S
 Compiled shader: HDRP/Lit, pass: ShadowCaster, stage: pixel, keywords _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON _MATERIAL_FEATURE_SUBSURFACE_SCATTERING _MATERIAL_FEATURE_TRANSMISSION _NORMALMAP_TANGENT_SPACE
 Compiled shader: HDRP/Lit, pass: ShadowCaster, stage: pixel, keywords _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON _MATERIAL_FEATURE_SUBSURFACE_SCATTERING _NORMALMAP_TANGENT_SPACE
 Compiled shader: HDRP/Lit, pass: ShadowCaster, stage: pixel, keywords _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON _NORMALMAP_TANGENT_SPACE
-Compiled shader: HDRP/Lit, pass: ShadowCaster, stage: pixel, keywords _DISABLE_SSR_TRANSPARENT _ENABLE_FOG_ON_TRANSPARENT _MATERIAL_FEATURE_IRIDESCENCE _NORMALMAP_TANGENT_SPACE _REFRACTION_THIN _SURFACE_TYPE_TRANSPARENT
 Compiled shader: HDRP/Lit, pass: ShadowCaster, stage: pixel, keywords _DISABLE_SSR_TRANSPARENT _ENABLE_FOG_ON_TRANSPARENT _NORMALMAP_TANGENT_SPACE _REFRACTION_PLANE _SURFACE_TYPE_TRANSPARENT
 Compiled shader: HDRP/Lit, pass: ShadowCaster, stage: pixel, keywords _DISABLE_SSR_TRANSPARENT _ENABLE_FOG_ON_TRANSPARENT _NORMALMAP_TANGENT_SPACE _REFRACTION_SPHERE _SURFACE_TYPE_TRANSPARENT
 Compiled shader: HDRP/Lit, pass: ShadowCaster, stage: pixel, keywords _DISABLE_SSR_TRANSPARENT _ENABLE_FOG_ON_TRANSPARENT _NORMALMAP_TANGENT_SPACE _REFRACTION_THIN _SURFACE_TYPE_TRANSPARENT
@@ -1350,8 +1338,6 @@ Compiled shader: HDRP/Unlit, pass: VisibilityDXR, stage: raytracing, keywords TR
 Compiled shader: Hidden/BlitCopy, pass: <Unnamed Pass 0>, stage: all, keywords <no keywords>
 Compiled shader: Hidden/BlitCopy, pass: <Unnamed Pass 0>, stage: pixel, keywords <no keywords>
 Compiled shader: Hidden/BlitCopy, pass: <Unnamed Pass 0>, stage: vertex, keywords <no keywords>
-Compiled shader: Hidden/ColorPyramidPS, pass: <Unnamed Pass 0>, stage: pixel, keywords <no keywords>
-Compiled shader: Hidden/ColorPyramidPS, pass: <Unnamed Pass 0>, stage: vertex, keywords <no keywords>
 Compiled shader: Hidden/ColorPyramidPS, pass: <Unnamed Pass 1>, stage: all, keywords <no keywords>
 Compiled shader: Hidden/ColorPyramidPS, pass: <Unnamed Pass 1>, stage: pixel, keywords <no keywords>
 Compiled shader: Hidden/ColorPyramidPS, pass: <Unnamed Pass 1>, stage: vertex, keywords <no keywords>
@@ -1461,10 +1447,12 @@ Compiled shader: Hidden/HDRP/Sky/HDRISky, pass: FragRender, stage: pixel, keywor
 Compiled shader: Hidden/HDRP/Sky/HDRISky, pass: FragRender, stage: pixel, keywords AREA_SHADOW_MEDIUM DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM USE_FPTL_LIGHTLIST
 Compiled shader: Hidden/HDRP/Sky/HDRISky, pass: FragRender, stage: vertex, keywords <no keywords>
 Compiled shader: Hidden/HDRP/Sky/PbrSky, pass: PBRSky Cubemap, stage: all, keywords <no keywords>
-Compiled shader: Hidden/HDRP/Sky/PbrSky, pass: PBRSky Cubemap, stage: pixel, keywords <no keywords>
+Compiled shader: Hidden/HDRP/Sky/PbrSky, pass: PBRSky Cubemap, stage: all, keywords LOCAL_SKY
+Compiled shader: Hidden/HDRP/Sky/PbrSky, pass: PBRSky Cubemap, stage: pixel, keywords LOCAL_SKY
 Compiled shader: Hidden/HDRP/Sky/PbrSky, pass: PBRSky Cubemap, stage: vertex, keywords <no keywords>
 Compiled shader: Hidden/HDRP/Sky/PbrSky, pass: PBRSky, stage: all, keywords <no keywords>
-Compiled shader: Hidden/HDRP/Sky/PbrSky, pass: PBRSky, stage: pixel, keywords <no keywords>
+Compiled shader: Hidden/HDRP/Sky/PbrSky, pass: PBRSky, stage: all, keywords LOCAL_SKY
+Compiled shader: Hidden/HDRP/Sky/PbrSky, pass: PBRSky, stage: pixel, keywords LOCAL_SKY
 Compiled shader: Hidden/HDRP/Sky/PbrSky, pass: PBRSky, stage: vertex, keywords <no keywords>
 Compiled shader: Hidden/HDRP/TerrainLit_Basemap, pass: ShadowCaster, stage: all, keywords _TERRAIN_INSTANCED_PERPIXEL_NORMAL
 Compiled shader: Hidden/HDRP/TerrainLit_Basemap, pass: ShadowCaster, stage: all, keywords <no keywords>
@@ -1485,11 +1473,7 @@ Compiled shader: Hidden/HDRP/TerrainLit_BasemapGen, pass: <Unnamed Pass 1>, stag
 Compiled shader: Hidden/HDRP/TerrainLit_BasemapGen, pass: <Unnamed Pass 1>, stage: vertex, keywords _MASKMAP _NORMALMAP
 Compiled shader: Hidden/HDRP/TerrainLit_BasemapGen, pass: <Unnamed Pass 1>, stage: vertex, keywords <no keywords>
 Compiled shader: Hidden/InternalClear, pass: <Unnamed Pass 1>, stage: all, keywords <no keywords>
-Compiled shader: Hidden/InternalClear, pass: <Unnamed Pass 1>, stage: pixel, keywords <no keywords>
-Compiled shader: Hidden/InternalClear, pass: <Unnamed Pass 1>, stage: vertex, keywords <no keywords>
 Compiled shader: Hidden/InternalClear, pass: <Unnamed Pass 6>, stage: all, keywords <no keywords>
-Compiled shader: Hidden/InternalClear, pass: <Unnamed Pass 6>, stage: pixel, keywords <no keywords>
-Compiled shader: Hidden/InternalClear, pass: <Unnamed Pass 6>, stage: vertex, keywords <no keywords>
 Compiled shader: Hidden/Internal-GUITexture, pass: <Unnamed Pass 0>, stage: all, keywords <no keywords>
 Compiled shader: Hidden/Internal-GUITexture, pass: <Unnamed Pass 0>, stage: pixel, keywords <no keywords>
 Compiled shader: Hidden/Internal-GUITexture, pass: <Unnamed Pass 0>, stage: vertex, keywords <no keywords>
@@ -2037,13 +2021,9 @@ Compiled shader: Shader Graphs/Lit Shader, pass: ShadowCaster, stage: pixel, key
 Compiled shader: Shader Graphs/Lit Shader, pass: ShadowCaster, stage: vertex, keywords <no keywords>
 Compiled shader: Shader Graphs/Lit_Anisotropy, pass: DepthOnly, stage: all, keywords <no keywords>
 Compiled shader: Shader Graphs/Lit_Anisotropy, pass: DepthOnly, stage: all, keywords WRITE_DECAL_BUFFER
-Compiled shader: Shader Graphs/Lit_Anisotropy, pass: DepthOnly, stage: pixel, keywords WRITE_DECAL_BUFFER
-Compiled shader: Shader Graphs/Lit_Anisotropy, pass: DepthOnly, stage: vertex, keywords <no keywords>
 Compiled shader: Shader Graphs/Lit_Anisotropy, pass: ForwardDXR, stage: raytracing, keywords <no keywords>
 Compiled shader: Shader Graphs/Lit_Anisotropy, pass: GBuffer, stage: all, keywords <no keywords>
 Compiled shader: Shader Graphs/Lit_Anisotropy, pass: GBuffer, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT
-Compiled shader: Shader Graphs/Lit_Anisotropy, pass: GBuffer, stage: pixel, keywords DECALS_4RT DECAL_SURFACE_GRADIENT
-Compiled shader: Shader Graphs/Lit_Anisotropy, pass: GBuffer, stage: vertex, keywords <no keywords>
 Compiled shader: Shader Graphs/Lit_Anisotropy, pass: IndirectDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT
 Compiled shader: Shader Graphs/Lit_Anisotropy, pass: ShadowCaster, stage: all, keywords <no keywords>
 Compiled shader: Shader Graphs/Lit_Anisotropy, pass: ShadowCaster, stage: pixel, keywords <no keywords>
@@ -2051,13 +2031,9 @@ Compiled shader: Shader Graphs/Lit_Anisotropy, pass: ShadowCaster, stage: vertex
 Compiled shader: Shader Graphs/Lit_Anisotropy, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW
 Compiled shader: Shader Graphs/Lit_Iridescence, pass: DepthOnly, stage: all, keywords <no keywords>
 Compiled shader: Shader Graphs/Lit_Iridescence, pass: DepthOnly, stage: all, keywords WRITE_DECAL_BUFFER
-Compiled shader: Shader Graphs/Lit_Iridescence, pass: DepthOnly, stage: pixel, keywords WRITE_DECAL_BUFFER
-Compiled shader: Shader Graphs/Lit_Iridescence, pass: DepthOnly, stage: vertex, keywords <no keywords>
 Compiled shader: Shader Graphs/Lit_Iridescence, pass: ForwardDXR, stage: raytracing, keywords <no keywords>
 Compiled shader: Shader Graphs/Lit_Iridescence, pass: GBuffer, stage: all, keywords <no keywords>
 Compiled shader: Shader Graphs/Lit_Iridescence, pass: GBuffer, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT
-Compiled shader: Shader Graphs/Lit_Iridescence, pass: GBuffer, stage: pixel, keywords DECALS_4RT DECAL_SURFACE_GRADIENT
-Compiled shader: Shader Graphs/Lit_Iridescence, pass: GBuffer, stage: vertex, keywords <no keywords>
 Compiled shader: Shader Graphs/Lit_Iridescence, pass: IndirectDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT
 Compiled shader: Shader Graphs/Lit_Iridescence, pass: ShadowCaster, stage: all, keywords <no keywords>
 Compiled shader: Shader Graphs/Lit_Iridescence, pass: ShadowCaster, stage: pixel, keywords <no keywords>
@@ -2065,13 +2041,9 @@ Compiled shader: Shader Graphs/Lit_Iridescence, pass: ShadowCaster, stage: verte
 Compiled shader: Shader Graphs/Lit_Iridescence, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW
 Compiled shader: Shader Graphs/Lit_Specular, pass: DepthOnly, stage: all, keywords <no keywords>
 Compiled shader: Shader Graphs/Lit_Specular, pass: DepthOnly, stage: all, keywords WRITE_DECAL_BUFFER
-Compiled shader: Shader Graphs/Lit_Specular, pass: DepthOnly, stage: pixel, keywords WRITE_DECAL_BUFFER
-Compiled shader: Shader Graphs/Lit_Specular, pass: DepthOnly, stage: vertex, keywords <no keywords>
 Compiled shader: Shader Graphs/Lit_Specular, pass: ForwardDXR, stage: raytracing, keywords <no keywords>
 Compiled shader: Shader Graphs/Lit_Specular, pass: GBuffer, stage: all, keywords <no keywords>
 Compiled shader: Shader Graphs/Lit_Specular, pass: GBuffer, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT
-Compiled shader: Shader Graphs/Lit_Specular, pass: GBuffer, stage: pixel, keywords DECALS_4RT DECAL_SURFACE_GRADIENT
-Compiled shader: Shader Graphs/Lit_Specular, pass: GBuffer, stage: vertex, keywords <no keywords>
 Compiled shader: Shader Graphs/Lit_Specular, pass: IndirectDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT
 Compiled shader: Shader Graphs/Lit_Specular, pass: ShadowCaster, stage: all, keywords <no keywords>
 Compiled shader: Shader Graphs/Lit_Specular, pass: ShadowCaster, stage: pixel, keywords <no keywords>
@@ -2079,13 +2051,9 @@ Compiled shader: Shader Graphs/Lit_Specular, pass: ShadowCaster, stage: vertex, 
 Compiled shader: Shader Graphs/Lit_Specular, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW
 Compiled shader: Shader Graphs/Lit_Standard, pass: DepthOnly, stage: all, keywords <no keywords>
 Compiled shader: Shader Graphs/Lit_Standard, pass: DepthOnly, stage: all, keywords WRITE_DECAL_BUFFER
-Compiled shader: Shader Graphs/Lit_Standard, pass: DepthOnly, stage: pixel, keywords WRITE_DECAL_BUFFER
-Compiled shader: Shader Graphs/Lit_Standard, pass: DepthOnly, stage: vertex, keywords <no keywords>
 Compiled shader: Shader Graphs/Lit_Standard, pass: ForwardDXR, stage: raytracing, keywords <no keywords>
 Compiled shader: Shader Graphs/Lit_Standard, pass: GBuffer, stage: all, keywords <no keywords>
 Compiled shader: Shader Graphs/Lit_Standard, pass: GBuffer, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT
-Compiled shader: Shader Graphs/Lit_Standard, pass: GBuffer, stage: pixel, keywords DECALS_4RT DECAL_SURFACE_GRADIENT
-Compiled shader: Shader Graphs/Lit_Standard, pass: GBuffer, stage: vertex, keywords <no keywords>
 Compiled shader: Shader Graphs/Lit_Standard, pass: IndirectDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT
 Compiled shader: Shader Graphs/Lit_Standard, pass: ShadowCaster, stage: all, keywords <no keywords>
 Compiled shader: Shader Graphs/Lit_Standard, pass: ShadowCaster, stage: pixel, keywords <no keywords>
@@ -2093,13 +2061,9 @@ Compiled shader: Shader Graphs/Lit_Standard, pass: ShadowCaster, stage: vertex, 
 Compiled shader: Shader Graphs/Lit_Standard, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW
 Compiled shader: Shader Graphs/Lit_SubSurface, pass: DepthOnly, stage: all, keywords <no keywords>
 Compiled shader: Shader Graphs/Lit_SubSurface, pass: DepthOnly, stage: all, keywords WRITE_DECAL_BUFFER
-Compiled shader: Shader Graphs/Lit_SubSurface, pass: DepthOnly, stage: pixel, keywords WRITE_DECAL_BUFFER
-Compiled shader: Shader Graphs/Lit_SubSurface, pass: DepthOnly, stage: vertex, keywords <no keywords>
 Compiled shader: Shader Graphs/Lit_SubSurface, pass: ForwardDXR, stage: raytracing, keywords <no keywords>
 Compiled shader: Shader Graphs/Lit_SubSurface, pass: GBuffer, stage: all, keywords <no keywords>
 Compiled shader: Shader Graphs/Lit_SubSurface, pass: GBuffer, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT
-Compiled shader: Shader Graphs/Lit_SubSurface, pass: GBuffer, stage: pixel, keywords DECALS_4RT DECAL_SURFACE_GRADIENT
-Compiled shader: Shader Graphs/Lit_SubSurface, pass: GBuffer, stage: vertex, keywords <no keywords>
 Compiled shader: Shader Graphs/Lit_SubSurface, pass: IndirectDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT
 Compiled shader: Shader Graphs/Lit_SubSurface, pass: ShadowCaster, stage: all, keywords <no keywords>
 Compiled shader: Shader Graphs/Lit_SubSurface, pass: ShadowCaster, stage: pixel, keywords <no keywords>
@@ -2107,13 +2071,9 @@ Compiled shader: Shader Graphs/Lit_SubSurface, pass: ShadowCaster, stage: vertex
 Compiled shader: Shader Graphs/Lit_SubSurface, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW
 Compiled shader: Shader Graphs/Lit_Translucent, pass: DepthOnly, stage: all, keywords <no keywords>
 Compiled shader: Shader Graphs/Lit_Translucent, pass: DepthOnly, stage: all, keywords WRITE_DECAL_BUFFER
-Compiled shader: Shader Graphs/Lit_Translucent, pass: DepthOnly, stage: pixel, keywords WRITE_DECAL_BUFFER
-Compiled shader: Shader Graphs/Lit_Translucent, pass: DepthOnly, stage: vertex, keywords <no keywords>
 Compiled shader: Shader Graphs/Lit_Translucent, pass: ForwardDXR, stage: raytracing, keywords <no keywords>
 Compiled shader: Shader Graphs/Lit_Translucent, pass: GBuffer, stage: all, keywords <no keywords>
 Compiled shader: Shader Graphs/Lit_Translucent, pass: GBuffer, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT
-Compiled shader: Shader Graphs/Lit_Translucent, pass: GBuffer, stage: pixel, keywords DECALS_4RT DECAL_SURFACE_GRADIENT
-Compiled shader: Shader Graphs/Lit_Translucent, pass: GBuffer, stage: vertex, keywords <no keywords>
 Compiled shader: Shader Graphs/Lit_Translucent, pass: IndirectDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT
 Compiled shader: Shader Graphs/Lit_Translucent, pass: ShadowCaster, stage: all, keywords <no keywords>
 Compiled shader: Shader Graphs/Lit_Translucent, pass: ShadowCaster, stage: pixel, keywords <no keywords>
@@ -2121,8 +2081,6 @@ Compiled shader: Shader Graphs/Lit_Translucent, pass: ShadowCaster, stage: verte
 Compiled shader: Shader Graphs/Lit_Translucent, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW
 Compiled shader: Shader Graphs/Lit_Transparent_Box, pass: Forward, stage: all, keywords _REFRACTION_PLANE _SURFACE_TYPE_TRANSPARENT
 Compiled shader: Shader Graphs/Lit_Transparent_Box, pass: Forward, stage: all, keywords AREA_SHADOW_MEDIUM DECALS_4RT DECAL_SURFACE_GRADIENT DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM SCREEN_SPACE_SHADOWS_ON USE_CLUSTERED_LIGHTLIST _ENABLE_FOG_ON_TRANSPARENT _REFRACTION_PLANE _SURFACE_TYPE_TRANSPARENT
-Compiled shader: Shader Graphs/Lit_Transparent_Box, pass: Forward, stage: pixel, keywords AREA_SHADOW_MEDIUM DECALS_4RT DECAL_SURFACE_GRADIENT DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM SCREEN_SPACE_SHADOWS_ON USE_CLUSTERED_LIGHTLIST _ENABLE_FOG_ON_TRANSPARENT _REFRACTION_PLANE _SURFACE_TYPE_TRANSPARENT
-Compiled shader: Shader Graphs/Lit_Transparent_Box, pass: Forward, stage: vertex, keywords _REFRACTION_PLANE _SURFACE_TYPE_TRANSPARENT
 Compiled shader: Shader Graphs/Lit_Transparent_Box, pass: ForwardDXR, stage: raytracing, keywords _REFRACTION_PLANE _SURFACE_TYPE_TRANSPARENT
 Compiled shader: Shader Graphs/Lit_Transparent_Box, pass: IndirectDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _REFRACTION_PLANE _SURFACE_TYPE_TRANSPARENT
 Compiled shader: Shader Graphs/Lit_Transparent_Box, pass: ShadowCaster, stage: all, keywords _ENABLE_FOG_ON_TRANSPARENT _REFRACTION_PLANE _SURFACE_TYPE_TRANSPARENT
@@ -2131,13 +2089,9 @@ Compiled shader: Shader Graphs/Lit_Transparent_Box, pass: ShadowCaster, stage: p
 Compiled shader: Shader Graphs/Lit_Transparent_Box, pass: ShadowCaster, stage: vertex, keywords _REFRACTION_PLANE _SURFACE_TYPE_TRANSPARENT
 Compiled shader: Shader Graphs/Lit_Transparent_Box, pass: TransparentDepthPrepass, stage: all, keywords _ENABLE_FOG_ON_TRANSPARENT _REFRACTION_PLANE _SURFACE_TYPE_TRANSPARENT
 Compiled shader: Shader Graphs/Lit_Transparent_Box, pass: TransparentDepthPrepass, stage: all, keywords _REFRACTION_PLANE _SURFACE_TYPE_TRANSPARENT
-Compiled shader: Shader Graphs/Lit_Transparent_Box, pass: TransparentDepthPrepass, stage: pixel, keywords _ENABLE_FOG_ON_TRANSPARENT _REFRACTION_PLANE _SURFACE_TYPE_TRANSPARENT
-Compiled shader: Shader Graphs/Lit_Transparent_Box, pass: TransparentDepthPrepass, stage: vertex, keywords _REFRACTION_PLANE _SURFACE_TYPE_TRANSPARENT
 Compiled shader: Shader Graphs/Lit_Transparent_Box, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW _REFRACTION_PLANE _SURFACE_TYPE_TRANSPARENT
 Compiled shader: Shader Graphs/Lit_Transparent_None, pass: Forward, stage: all, keywords _SURFACE_TYPE_TRANSPARENT
 Compiled shader: Shader Graphs/Lit_Transparent_None, pass: Forward, stage: all, keywords AREA_SHADOW_MEDIUM DECALS_4RT DECAL_SURFACE_GRADIENT DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM SCREEN_SPACE_SHADOWS_ON USE_CLUSTERED_LIGHTLIST _ENABLE_FOG_ON_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
-Compiled shader: Shader Graphs/Lit_Transparent_None, pass: Forward, stage: pixel, keywords AREA_SHADOW_MEDIUM DECALS_4RT DECAL_SURFACE_GRADIENT DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM SCREEN_SPACE_SHADOWS_ON USE_CLUSTERED_LIGHTLIST _ENABLE_FOG_ON_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
-Compiled shader: Shader Graphs/Lit_Transparent_None, pass: Forward, stage: vertex, keywords _SURFACE_TYPE_TRANSPARENT
 Compiled shader: Shader Graphs/Lit_Transparent_None, pass: ForwardDXR, stage: raytracing, keywords _SURFACE_TYPE_TRANSPARENT
 Compiled shader: Shader Graphs/Lit_Transparent_None, pass: IndirectDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _SURFACE_TYPE_TRANSPARENT
 Compiled shader: Shader Graphs/Lit_Transparent_None, pass: ShadowCaster, stage: all, keywords _ENABLE_FOG_ON_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
@@ -2146,13 +2100,9 @@ Compiled shader: Shader Graphs/Lit_Transparent_None, pass: ShadowCaster, stage: 
 Compiled shader: Shader Graphs/Lit_Transparent_None, pass: ShadowCaster, stage: vertex, keywords _SURFACE_TYPE_TRANSPARENT
 Compiled shader: Shader Graphs/Lit_Transparent_None, pass: TransparentDepthPrepass, stage: all, keywords _ENABLE_FOG_ON_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
 Compiled shader: Shader Graphs/Lit_Transparent_None, pass: TransparentDepthPrepass, stage: all, keywords _SURFACE_TYPE_TRANSPARENT
-Compiled shader: Shader Graphs/Lit_Transparent_None, pass: TransparentDepthPrepass, stage: pixel, keywords _ENABLE_FOG_ON_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
-Compiled shader: Shader Graphs/Lit_Transparent_None, pass: TransparentDepthPrepass, stage: vertex, keywords _SURFACE_TYPE_TRANSPARENT
 Compiled shader: Shader Graphs/Lit_Transparent_None, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW _SURFACE_TYPE_TRANSPARENT
 Compiled shader: Shader Graphs/Lit_Transparent_Sphere, pass: Forward, stage: all, keywords _REFRACTION_SPHERE _SURFACE_TYPE_TRANSPARENT
 Compiled shader: Shader Graphs/Lit_Transparent_Sphere, pass: Forward, stage: all, keywords AREA_SHADOW_MEDIUM DECALS_4RT DECAL_SURFACE_GRADIENT DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM SCREEN_SPACE_SHADOWS_ON USE_CLUSTERED_LIGHTLIST _ENABLE_FOG_ON_TRANSPARENT _REFRACTION_SPHERE _SURFACE_TYPE_TRANSPARENT
-Compiled shader: Shader Graphs/Lit_Transparent_Sphere, pass: Forward, stage: pixel, keywords AREA_SHADOW_MEDIUM DECALS_4RT DECAL_SURFACE_GRADIENT DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM SCREEN_SPACE_SHADOWS_ON USE_CLUSTERED_LIGHTLIST _ENABLE_FOG_ON_TRANSPARENT _REFRACTION_SPHERE _SURFACE_TYPE_TRANSPARENT
-Compiled shader: Shader Graphs/Lit_Transparent_Sphere, pass: Forward, stage: vertex, keywords _REFRACTION_SPHERE _SURFACE_TYPE_TRANSPARENT
 Compiled shader: Shader Graphs/Lit_Transparent_Sphere, pass: ForwardDXR, stage: raytracing, keywords _REFRACTION_SPHERE _SURFACE_TYPE_TRANSPARENT
 Compiled shader: Shader Graphs/Lit_Transparent_Sphere, pass: IndirectDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _REFRACTION_SPHERE _SURFACE_TYPE_TRANSPARENT
 Compiled shader: Shader Graphs/Lit_Transparent_Sphere, pass: ShadowCaster, stage: all, keywords _ENABLE_FOG_ON_TRANSPARENT _REFRACTION_SPHERE _SURFACE_TYPE_TRANSPARENT
@@ -2161,13 +2111,9 @@ Compiled shader: Shader Graphs/Lit_Transparent_Sphere, pass: ShadowCaster, stage
 Compiled shader: Shader Graphs/Lit_Transparent_Sphere, pass: ShadowCaster, stage: vertex, keywords _REFRACTION_SPHERE _SURFACE_TYPE_TRANSPARENT
 Compiled shader: Shader Graphs/Lit_Transparent_Sphere, pass: TransparentDepthPrepass, stage: all, keywords _ENABLE_FOG_ON_TRANSPARENT _REFRACTION_SPHERE _SURFACE_TYPE_TRANSPARENT
 Compiled shader: Shader Graphs/Lit_Transparent_Sphere, pass: TransparentDepthPrepass, stage: all, keywords _REFRACTION_SPHERE _SURFACE_TYPE_TRANSPARENT
-Compiled shader: Shader Graphs/Lit_Transparent_Sphere, pass: TransparentDepthPrepass, stage: pixel, keywords _ENABLE_FOG_ON_TRANSPARENT _REFRACTION_SPHERE _SURFACE_TYPE_TRANSPARENT
-Compiled shader: Shader Graphs/Lit_Transparent_Sphere, pass: TransparentDepthPrepass, stage: vertex, keywords _REFRACTION_SPHERE _SURFACE_TYPE_TRANSPARENT
 Compiled shader: Shader Graphs/Lit_Transparent_Sphere, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW _REFRACTION_SPHERE _SURFACE_TYPE_TRANSPARENT
 Compiled shader: Shader Graphs/Lit_Transparent_Thin, pass: Forward, stage: all, keywords _REFRACTION_THIN _SURFACE_TYPE_TRANSPARENT
 Compiled shader: Shader Graphs/Lit_Transparent_Thin, pass: Forward, stage: all, keywords AREA_SHADOW_MEDIUM DECALS_4RT DECAL_SURFACE_GRADIENT DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM SCREEN_SPACE_SHADOWS_ON USE_CLUSTERED_LIGHTLIST _ENABLE_FOG_ON_TRANSPARENT _REFRACTION_THIN _SURFACE_TYPE_TRANSPARENT
-Compiled shader: Shader Graphs/Lit_Transparent_Thin, pass: Forward, stage: pixel, keywords AREA_SHADOW_MEDIUM DECALS_4RT DECAL_SURFACE_GRADIENT DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM SCREEN_SPACE_SHADOWS_ON USE_CLUSTERED_LIGHTLIST _ENABLE_FOG_ON_TRANSPARENT _REFRACTION_THIN _SURFACE_TYPE_TRANSPARENT
-Compiled shader: Shader Graphs/Lit_Transparent_Thin, pass: Forward, stage: vertex, keywords _REFRACTION_THIN _SURFACE_TYPE_TRANSPARENT
 Compiled shader: Shader Graphs/Lit_Transparent_Thin, pass: ForwardDXR, stage: raytracing, keywords _REFRACTION_THIN _SURFACE_TYPE_TRANSPARENT
 Compiled shader: Shader Graphs/Lit_Transparent_Thin, pass: IndirectDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _REFRACTION_THIN _SURFACE_TYPE_TRANSPARENT
 Compiled shader: Shader Graphs/Lit_Transparent_Thin, pass: ShadowCaster, stage: all, keywords _ENABLE_FOG_ON_TRANSPARENT _REFRACTION_THIN _SURFACE_TYPE_TRANSPARENT
@@ -2176,8 +2122,6 @@ Compiled shader: Shader Graphs/Lit_Transparent_Thin, pass: ShadowCaster, stage: 
 Compiled shader: Shader Graphs/Lit_Transparent_Thin, pass: ShadowCaster, stage: vertex, keywords _REFRACTION_THIN _SURFACE_TYPE_TRANSPARENT
 Compiled shader: Shader Graphs/Lit_Transparent_Thin, pass: TransparentDepthPrepass, stage: all, keywords _ENABLE_FOG_ON_TRANSPARENT _REFRACTION_THIN _SURFACE_TYPE_TRANSPARENT
 Compiled shader: Shader Graphs/Lit_Transparent_Thin, pass: TransparentDepthPrepass, stage: all, keywords _REFRACTION_THIN _SURFACE_TYPE_TRANSPARENT
-Compiled shader: Shader Graphs/Lit_Transparent_Thin, pass: TransparentDepthPrepass, stage: pixel, keywords _ENABLE_FOG_ON_TRANSPARENT _REFRACTION_THIN _SURFACE_TYPE_TRANSPARENT
-Compiled shader: Shader Graphs/Lit_Transparent_Thin, pass: TransparentDepthPrepass, stage: vertex, keywords _REFRACTION_THIN _SURFACE_TYPE_TRANSPARENT
 Compiled shader: Shader Graphs/Lit_Transparent_Thin, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW _REFRACTION_THIN _SURFACE_TYPE_TRANSPARENT
 Compiled shader: Shader Graphs/LitGraphSubSurface, pass: DepthOnly, stage: all, keywords <no keywords>
 Compiled shader: Shader Graphs/LitGraphSubSurface, pass: DepthOnly, stage: all, keywords WRITE_DECAL_BUFFER _DISABLE_SSR_TRANSPARENT

@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 5610.8877, g: 8262.98, b: 13690.752, a: 1}
+  m_IndirectSpecularColor: {r: 6383.382, g: 8698.077, b: 13856.471, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -245,19 +245,22 @@ MonoBehaviour:
   m_UseScreenSpaceShadows: 0
   m_InteractsWithSky: 1
   m_AngularDiameter: 0.5
-  m_DiameterMultiplerMode: 1
-  m_DiameterMultiplier: 1
-  m_DiameterOverride: 0.5
-  m_EmissiveLightSource: 1
-  m_FlareSize: 2
-  m_FlareTint: {r: 1, g: 1, b: 1, a: 1}
-  m_FlareFalloff: 4
-  m_AutomaticMoonPhase: 1
-  m_MoonPhase: 0.2
-  m_MoonPhaseRotation: 0
-  m_Earthshine: 1
-  m_SurfaceTexture: {fileID: 0}
-  m_SurfaceTint: {r: 1, g: 1, b: 1, a: 1}
+  diameterMultiplerMode: 1
+  diameterMultiplier: 1
+  diameterOverride: 0.5
+  celestialBodyShadingSource: 1
+  sunLightOverride: {fileID: 0}
+  sunColor: {r: 1, g: 1, b: 1, a: 1}
+  sunIntensity: 130000
+  moonPhase: 0.2
+  moonPhaseRotation: 0
+  earthshine: 1
+  flareSize: 2
+  flareTint: {r: 1, g: 1, b: 1, a: 1}
+  flareFalloff: 4
+  flareMultiplier: 1
+  surfaceTexture: {fileID: 0}
+  surfaceTint: {r: 1, g: 1, b: 1, a: 1}
   m_Distance: 1.5e+11
   m_UseRayTracedShadows: 0
   m_NumRayTracingSamples: 4
@@ -280,7 +283,7 @@ MonoBehaviour:
   m_MinFilterSize: 0.1
   m_DirLightPCSSBlockerSampleCount: 24
   m_DirLightPCSSFilterSampleCount: 16
-  m_DirLightPCSSMaxBlockerDistance: 64
+  m_DirLightPCSSMaxPenumbraSize: 0.56
   m_DirLightPCSSMaxSamplingDistance: 0.5
   m_DirLightPCSSMinFilterSizeTexels: 1.5
   m_DirLightPCSSMinFilterMaxAngularDiameter: 10
@@ -533,7 +536,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d38ea3fc359d79f43a9e46e2b6b373ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  targetSurface: {fileID: 0}
+  targetSurface: {fileID: 1530353650}
   includeDeformation: 0
 --- !u!1 &446513390
 GameObject:
@@ -582,7 +585,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d38ea3fc359d79f43a9e46e2b6b373ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  targetSurface: {fileID: 0}
+  targetSurface: {fileID: 1530353650}
   includeDeformation: 0
 --- !u!65 &446513393
 BoxCollider:
@@ -704,7 +707,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d38ea3fc359d79f43a9e46e2b6b373ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  targetSurface: {fileID: 0}
+  targetSurface: {fileID: 1530353650}
   includeDeformation: 0
 --- !u!65 &534300669
 BoxCollider:
@@ -804,7 +807,7 @@ Transform:
   m_GameObject: {fileID: 683303420}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 16.9}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1225,6 +1228,11 @@ PrefabInstance:
         type: 2}
     - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
+      propertyPath: checkMemoryAllocation
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
+        type: 3}
       propertyPath: xrThresholdMultiplier
       value: 10
       objectReference: {fileID: 0}
@@ -1280,7 +1288,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d38ea3fc359d79f43a9e46e2b6b373ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  targetSurface: {fileID: 0}
+  targetSurface: {fileID: 1530353650}
   includeDeformation: 0
 --- !u!65 &988374819
 BoxCollider:
@@ -1402,7 +1410,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d38ea3fc359d79f43a9e46e2b6b373ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  targetSurface: {fileID: 0}
+  targetSurface: {fileID: 1530353650}
   includeDeformation: 0
 --- !u!65 &1049207506
 BoxCollider:
@@ -1524,7 +1532,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d38ea3fc359d79f43a9e46e2b6b373ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  targetSurface: {fileID: 0}
+  targetSurface: {fileID: 1530353650}
   includeDeformation: 0
 --- !u!65 &1101829605
 BoxCollider:
@@ -1904,7 +1912,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d38ea3fc359d79f43a9e46e2b6b373ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  targetSurface: {fileID: 0}
+  targetSurface: {fileID: 1530353650}
   includeDeformation: 0
 --- !u!65 &1485866815
 BoxCollider:
@@ -2054,7 +2062,7 @@ MonoBehaviour:
   geometryType: 3
   meshRenderers: []
   timeMultiplier: 0
-  cpuSimulation: 0
+  cpuSimulation: 1
   cpuLowLatency: 0
   cpuFullResolution: 0
   cpuEvaluateRipples: 0
@@ -2398,7 +2406,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d38ea3fc359d79f43a9e46e2b6b373ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  targetSurface: {fileID: 0}
+  targetSurface: {fileID: 1530353650}
   includeDeformation: 0
 --- !u!65 &1735536577
 BoxCollider:
@@ -2582,8 +2590,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d38ea3fc359d79f43a9e46e2b6b373ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  targetSurface: {fileID: 0}
-  includeDeformation: 0
+  targetSurface: {fileID: 1530353650}
+  includeDeformation: 1
 --- !u!65 &1747717254
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -2704,8 +2712,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d38ea3fc359d79f43a9e46e2b6b373ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  targetSurface: {fileID: 0}
-  includeDeformation: 0
+  targetSurface: {fileID: 1530353650}
+  includeDeformation: 1
 --- !u!65 &1790949767
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -2826,7 +2834,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d38ea3fc359d79f43a9e46e2b6b373ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  targetSurface: {fileID: 0}
+  targetSurface: {fileID: 1530353650}
   includeDeformation: 0
 --- !u!65 &1873968866
 BoxCollider:
@@ -3055,7 +3063,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d38ea3fc359d79f43a9e46e2b6b373ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  targetSurface: {fileID: 0}
+  targetSurface: {fileID: 1530353650}
   includeDeformation: 0
 --- !u!65 &1992721654
 BoxCollider:

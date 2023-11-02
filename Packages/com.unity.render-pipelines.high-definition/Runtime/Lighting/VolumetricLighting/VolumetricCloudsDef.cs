@@ -8,24 +8,22 @@ namespace UnityEngine.Rendering.HighDefinition
     [GenerateHLSL(needAccessors = false, generateCBuffer = true)]
     unsafe struct ShaderVariablesClouds
     {
-        // Maximal ray marching distance
-        public float _MaxRayMarchingDistance;
         // The highest altitude clouds can reach in meters
         public float _HighestCloudAltitude;
         // The lowest altitude clouds can reach in meters
         public float _LowestCloudAltitude;
-        // Radius of the earth so that the dome falls exactly at the horizon
-        public float _EarthRadius;
+        // The closest distance to the cloud layer
+        public float _CloudNearPlane;
+        // Render the clouds in camera space
+        public float _CameraSpace;
 
-        // Stores (_HighestCloudAltitude + _EarthRadius)^2 and (_LowestCloudAltitude + _EarthRadius)^2
-        public Vector2 _CloudRangeSquared;
         // Maximal primary steps that a ray can do
         public int _NumPrimarySteps;
         // Maximal number of light steps a ray can do
         public int _NumLightSteps;
 
-        // Controls the tiling of the cloud map
-        public Vector4 _CloudMapTiling;
+        // The size of the shadow region (meters)
+        public Vector2 _ShadowRegionSize;
 
         // Direction of the wind
         public Vector2 _WindDirection;
@@ -52,37 +50,34 @@ namespace UnityEngine.Rendering.HighDefinition
         // Direction to the sun
         public Vector4 _SunDirection;
 
-        // Is the current sun a physically based one
-        public int _PhysicallyBasedSun;
+        // Controls the tiling of the cloud map
+        public Vector4 _CloudMapTiling;
+
         // Factor for the multi scattering
         public float _MultiScattering;
-        // Strength of the erosion occlusion
-        public float _ErosionOcclusion;
         // Controls the strength of the powder effect intensity
         public float _PowderEffectIntensity;
-
         // NormalizationFactor
         public float _NormalizationFactor;
-        // Maximal cloud distance
-        public float _MaxCloudDistance;
         // Global multiplier to the density
         public float _DensityMultiplier;
+
         // Controls the amount of shaping
         public float _ShapeFactor;
-
         // Multiplier to shape tiling
         public float _ShapeScale;
+        //  Controls the amount of micro details
+        public float _MicroErosionFactor;
+        // Multiplier to micro details tiling
+        public float _MicroErosionScale;
+
+        // Strength of the erosion occlusion
+        public float _ErosionOcclusion;
         // Controls the amount of erosion
         public float _ErosionFactor;
         // Multiplier to erosion tiling
         public float _ErosionScale;
-        //  Controls the amount of micro details
-        public float _MicroErosionFactor;
-
-        // The size of the shadow region (meters)
-        public Vector2 _ShadowRegionSize;
-        // Multiplier to micro details tiling
-        public float _MicroErosionScale;
+        // Modifier of the history accumulation
         public float _CloudHistoryInvalidation;
 
         // Scattering Tint
@@ -99,28 +94,26 @@ namespace UnityEngine.Rendering.HighDefinition
         // Resolution of the history depth buffer
         public Vector2 _HistoryBufferSize;
 
-        // Flag that tells us if we should apply the exposure to the sun light color (in case no directional is specified)
-        public int _ExposureSunColor;
-        // Frame index for the accumulation
-        public int _AccumulationFrameIndex;
-        // Index for which of the 4 local pixels should be evaluated
-        public int _SubPixelIndex;
-        // Render the clouds for the sky
-        public int _RenderForSky;
-
-        // Fade in parameters
-        public float _FadeInStart;
-        public float _FadeInDistance;
         // Flag that defines if the clouds should be evaluated at full resolution
         public int _LowResolutionEvaluation;
         // Flag that defines if the we should enable integration, checkerboard rendering, etc.
         public int _EnableIntegration;
+        // Flag that allows us to know if the scene depth is available
+        public int _ValidSceneDepth;
+        // Flag that allows us to know if the maxZMask texture is valid
+        public int _ValidMaxZMask;
 
-        // View projection matrix (non oblique) for the planar reflection matrices
-        public Matrix4x4 _CameraViewProjection_NO;
-        public Matrix4x4 _CameraInverseViewProjection_NO;
-        public Matrix4x4 _CameraPrevViewProjection_NO;
+        // Frame index for the accumulation
+        public int _AccumulationFrameIndex;
+        // Index for which of the 4 local pixels should be evaluated
+        public int _SubPixelIndex;
+        // Factor to decode previous depth from history buffer
+        public float _NearPlaneReprojection;
+        // padding
+        public int _PaddingVC2;
+
         public Matrix4x4 _CloudsPixelCoordToViewDirWS;
+        public Matrix4x4 _CameraPrevViewProjection;
 
         // Controls the intensity of the wind distortion at high altitudes
         public float _AltitudeDistortion;
@@ -128,17 +121,16 @@ namespace UnityEngine.Rendering.HighDefinition
         public float _ErosionFactorCompensation;
         // Fast tone mapping settings
         public int _EnableFastToneMapping;
-        // Flag that defines if the current camera is a planar reflection
-        public int _IsPlanarReflection;
+        // Maximal temporal accumulation
+        public float _TemporalAccumulationFactor;
 
-        // Flag that allows us to know if the maxZMask texture is valid
-        public int _ValidMaxZMask;
+        // Fade in parameters
+        public float _FadeInStart;
+        public float _FadeInDistance;
         // Flag that allows to know if we should be using the improved transmittance blending
         public float _ImprovedTransmittanceBlend;
         // Flag that defines if the transmittance should follow a cubic profile (For MSAA)
         public float _CubicTransmittance;
-        // Maximal temporal accumulation
-        public float _TemporalAccumulationFactor;
 
         [HLSLArray(3 * 4, typeof(Vector4))]
         public fixed float _DistanceBasedWeights[12 * 4];
@@ -166,7 +158,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Forward direction of the sun
         public float4 _CloudShadowSunForward;
 
-        // Up direction of the sun
-        public float4 _WorldSpaceShadowCenter;
+        // Camera position in planet space
+        public float4 _CameraPositionPS;
     }
 }

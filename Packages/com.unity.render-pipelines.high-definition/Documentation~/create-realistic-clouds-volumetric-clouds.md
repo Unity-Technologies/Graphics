@@ -27,5 +27,9 @@ The [**Volumetric Clouds** Volume component override](volumetric-clouds-volume-o
 
 Refer to the [Volumetric Clouds Volume Override reference](volumetric-clouds-volume-override-reference.md) for more information.
 
+**Note**: The volumetric clouds depend on the planet settings that are set in the [Visual Environment override](visual-environment-volume-override-reference.md).
+When **Rendering Space** is set to **World**, the camera can navigate inside the clouds and the clouds are positioned around the planet.
+When **Rendering Space** is set to **Camera**, the clouds are always located above the camera.
+
 [!include[](snippets/volume-override-api.md)]
 

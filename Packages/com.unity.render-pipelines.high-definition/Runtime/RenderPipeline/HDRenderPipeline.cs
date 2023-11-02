@@ -1773,11 +1773,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Make sure that the volumetric cloud animation data is in sync with the parent camera.
                     useFetchedGpuExposure = true;
                 }
-                else
-                {
-                    hdCamera.realtimeReflectionProbe = (visibleProbe.mode == ProbeSettings.Mode.Realtime);
-                }
 
+                hdCamera.realtimeReflectionProbe = (visibleProbe.mode == ProbeSettings.Mode.Realtime);
                 hdCamera.SetParentCamera(hdParentCamera, useFetchedGpuExposure, fetchedGpuExposure); // Used to inherit the properties of the view
 
                 HDAdditionalCameraData hdCam;

@@ -35,10 +35,10 @@ The planet settings will impact various environment effects like Volumetric Clou
 
 | **Property**                   | **Description**                                              |
 | ------------------------------ | ------------------------------------------------------------ |
-| **Planet Type**                | When in Spherical Mode, you can specify the location and radius of the planet. Earth Mode is spherical mode using Earth dimensions. Otherwise in Flat Mode, the planet is always below the Camera in the world-space x-z plane. |
-| **Planet Center**              | The world-space position of the planet's center in meters. Only available in **Spherical Mode**. |
-| **Sea Level**                  | The world-space y coordinate of the planet's sea level in meters. Only available in **Flat Mode**. |
-| **Planetary Radius**           | The radius of the planet in meters. The radius is the distance from the center of the planet to the sea level. |
+| **Radius**                     | The radius of the planet in kilometers. The radius is the distance from the center of the planet to the sea level. |
+| **Rendering Space**            | Indicates the space in which HDRP computes the various environement effects. The options are: <br/>&#8226; **Camera**: Use this option when the camera stays on the ground and do not need to go high in the atmosphere. This mode allow the various effects to use faster and more memory efficient variants. <br/>&#8226; **World**: Use this option when you need the camera to fly through the volumetric clouds or go outside of the atmosphere. |
+| **- Center**                     | The center is used when defining where the planet's surface is. In automatic mode, the top of the planet is at the world's origin and the center is derived from the planet radius. Only available when **Rendering Space** is set to **World** |
+| **- Position**                 | The world-space position of the planet's center in kilometers. Only available when **Center** is set to **Manual**. |
 
 ### Wind
 

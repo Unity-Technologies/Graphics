@@ -25,20 +25,6 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// A <see cref="VolumeParameter"/> that holds a <see cref="CloudControl"/> value.
-        /// </summary>
-        [Serializable]
-        public sealed class CloudControlParameter : VolumeParameter<CloudControl>
-        {
-            /// <summary>
-            /// Creates a new <see cref="CloudControlParameter"/> instance.
-            /// </summary>
-            /// <param name="value">The initial value to store in the parameter.</param>
-            /// <param name="overrideState">The initial override state for the parameter.</param>
-            public CloudControlParameter(CloudControl value, bool overrideState = false) : base(value, overrideState) { }
-        }
-
-        /// <summary>
         /// Controls the quality level for the simple mode.
         /// </summary>
         public enum CloudSimpleMode
@@ -47,20 +33,6 @@ namespace UnityEngine.Rendering.HighDefinition
             Performance,
             /// <summary>Control the volumetric clouds with a set of presets and very few parameters (quality mode).</summary>
             Quality
-        }
-
-        /// <summary>
-        /// A <see cref="VolumeParameter"/> that holds a <see cref="CloudSimpleMode"/> value.
-        /// </summary>
-        [Serializable]
-        public sealed class CloudSimpleModeParameter : VolumeParameter<CloudSimpleMode>
-        {
-            /// <summary>
-            /// Creates a new <see cref="CloudSimpleModeParameter"/> instance.
-            /// </summary>
-            /// <param name="value">The initial value to store in the parameter.</param>
-            /// <param name="overrideState">The initial override state for the parameter.</param>
-            public CloudSimpleModeParameter(CloudSimpleMode value, bool overrideState = false) : base(value, overrideState) { }
         }
 
         /// <summary>
@@ -81,20 +53,6 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// A <see cref="VolumeParameter"/> that holds a <see cref="CloudControl"/> value.
-        /// </summary>
-        [Serializable]
-        public sealed class CloudPresetsParameter : VolumeParameter<CloudPresets>
-        {
-            /// <summary>
-            /// Creates a new <see cref="CloudPresetsParameter"/> instance.
-            /// </summary>
-            /// <param name="value">The initial value to store in the parameter.</param>
-            /// <param name="overrideState">The initial override state for the parameter.</param>
-            public CloudPresetsParameter(CloudPresets value, bool overrideState = false) : base(value, overrideState) { }
-        }
-
-        /// <summary>
         /// Resolution of the volumetric clouds shadow.
         /// </summary>
         public enum CloudShadowResolution
@@ -109,23 +67,6 @@ namespace UnityEngine.Rendering.HighDefinition
             High512 = 512,
             /// <summary>The volumetric clouds shadow will be 1024x1024.</summary>
             Ultra1024 = 1024,
-        }
-
-        /// <summary> </summary>
-        public const int CloudShadowResolutionCount = 5;
-
-        /// <summary>
-        /// A <see cref="VolumeParameter"/> that holds a <see cref="CloudControl"/> value.
-        /// </summary>
-        [Serializable]
-        public sealed class CloudShadowResolutionParameter : VolumeParameter<CloudShadowResolution>
-        {
-            /// <summary>
-            /// Creates a new <see cref="CloudShadowResolutionParameter"/> instance.
-            /// </summary>
-            /// <param name="value">The initial value to store in the parameter.</param>
-            /// <param name="overrideState">The initial override state for the parameter.</param>
-            public CloudShadowResolutionParameter(CloudShadowResolution value, bool overrideState = false) : base(value, overrideState) { }
         }
 
         /// <summary>
@@ -144,20 +85,6 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// A <see cref="VolumeParameter"/> that holds a <see cref="CloudMapResolution"/> value.
-        /// </summary>
-        [Serializable]
-        public sealed class CloudMapResolutionParameter : VolumeParameter<CloudMapResolution>
-        {
-            /// <summary>
-            /// Creates a new <see cref="CloudMapResolutionParameter"/> instance.
-            /// </summary>
-            /// <param name="value">The initial value to store in the parameter.</param>
-            /// <param name="overrideState">The initial override state for the parameter.</param>
-            public CloudMapResolutionParameter(CloudMapResolution value, bool overrideState = false) : base(value, overrideState) { }
-        }
-
-        /// <summary>
         /// Controls the erosion noise used for the clouds.
         /// </summary>
         public enum CloudErosionNoise
@@ -166,20 +93,6 @@ namespace UnityEngine.Rendering.HighDefinition
             Worley32,
             /// <summary>The erosion noise will be a 32x32x32 perlin texture.</summary>
             Perlin32,
-        }
-
-        /// <summary>
-        /// A <see cref="VolumeParameter"/> that holds a <see cref="CloudErosionNoise"/> value.
-        /// </summary>
-        [Serializable]
-        public sealed class CloudErosionNoiseParameter : VolumeParameter<CloudErosionNoise>
-        {
-            /// <summary>
-            /// Creates a new <see cref="CloudErosionNoiseParameter"/> instance.
-            /// </summary>
-            /// <param name="value">The initial value to store in the parameter.</param>
-            /// <param name="overrideState">The initial override state for the parameter.</param>
-            public CloudErosionNoiseParameter(CloudErosionNoise value, bool overrideState = false) : base(value, overrideState) { }
         }
 
         /// <summary>
@@ -194,36 +107,10 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// A <see cref="VolumeParameter"/> that holds a <see cref="CloudControl"/> value.
-        /// </summary>
-        [Serializable]
-        public sealed class CloudFadeInModeParameter : VolumeParameter<CloudFadeInMode>
-        {
-            /// <summary>
-            /// Creates a new <see cref="CloudFadeInModeParameter"/> instance.
-            /// </summary>
-            /// <param name="value">The initial value to store in the parameter.</param>
-            /// <param name="overrideState">The initial override state for the parameter.</param>
-            public CloudFadeInModeParameter(CloudFadeInMode value, bool overrideState = false) : base(value, overrideState) { }
-        }
-
-        /// <summary>
         /// Enable/Disable the volumetric clouds effect.
         /// </summary>
         [Tooltip("Enable/Disable the volumetric clouds effect.")]
         public BoolParameter enable = new BoolParameter(false, BoolParameter.DisplayType.EnumPopup);
-
-        /// <summary>
-        /// When enabled, clouds are part of the scene and you can interact with them. This means you can move around and inside the clouds, they can appear between the Camera and other GameObjects, and the Camera's clipping planes affect the clouds. When disabled, the clouds are part of the skybox. This means the clouds and their shadows appear relative to the Camera and always appear behind geometry.
-        /// </summary>
-        [Tooltip("When enabled, clouds are part of the scene and you can interact with them. This means you can move around and inside the clouds, they can appear between the Camera and other GameObjects, and the Camera's clipping planes affect the clouds. When disabled, the clouds are part of the skybox. This means the clouds and their shadows appear relative to the Camera and always appear behind geometry.")]
-        public BoolParameter localClouds = new BoolParameter(false);
-
-        /// <summary>
-        /// Controls the curvature of the cloud volume which defines the distance at which the clouds intersect with the horizon.
-        /// </summary>
-        [Tooltip("Controls the curvature of the cloud volume which defines the distance at which the clouds intersect with the horizon.")]
-        public ClampedFloatParameter earthCurvature = new ClampedFloatParameter(0.0f, 0.0f, 1.0f);
 
         /// <summary>
         /// Tiling (x,y) of the cloud map.
@@ -253,7 +140,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Controls the mode in which the clouds fade in when close to the camera's near plane.
         /// </summary>
         [Tooltip("Controls the mode in which the clouds fade in when close to the camera's near plane.")]
-        public CloudFadeInModeParameter fadeInMode = new CloudFadeInModeParameter(CloudFadeInMode.Automatic);
+        public EnumParameter<CloudFadeInMode> fadeInMode = new EnumParameter<CloudFadeInMode>(CloudFadeInMode.Automatic);
 
         /// <summary>
         /// Controls the minimal distance at which clouds start appearing.
@@ -295,12 +182,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Specifies the cloud control Mode: Simple, Advanced or Manual.
         /// </summary>
         [Tooltip("Specifies the cloud control Mode: Simple, Advanced or Manual.")]
-        public CloudControlParameter cloudControl = new CloudControlParameter(CloudControl.Simple);
+        public EnumParameter<CloudControl> cloudControl = new EnumParameter<CloudControl>(CloudControl.Simple);
 
         /// <summary>
         /// Specifies the quality mode used to render the volumetric clouds.
         /// </summary>
-        public CloudSimpleModeParameter cloudSimpleMode = new CloudSimpleModeParameter(CloudSimpleMode.Performance);
+        public EnumParameter<CloudSimpleMode> cloudSimpleMode = new EnumParameter<CloudSimpleMode>(CloudSimpleMode.Performance);
 
         /// <summary>
         /// Specifies the weather preset in Simple mode.
@@ -318,7 +205,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
         [SerializeField, FormerlySerializedAs("cloudPreset")]
-        private CloudPresetsParameter m_CloudPreset = new CloudPresetsParameter(CloudPresets.Cloudy);
+        private EnumParameter<CloudPresets> m_CloudPreset = new EnumParameter<CloudPresets>(CloudPresets.Cloudy);
 
         /// <summary>
         /// Specifies the lower cloud layer distribution in the advanced mode.
@@ -366,7 +253,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Specifies the internal texture resolution used for the cloud map in the advanced mode. A lower value will lead to higher performance, but less precise cloud type transitions.
         /// </summary>
         [Tooltip("Specifies the internal texture resolution used for the cloud map in the advanced mode. A lower value will lead to higher performance, but less precise cloud type transitions.")]
-        public CloudMapResolutionParameter cloudMapResolution = new CloudMapResolutionParameter(CloudMapResolution.Medium64x64);
+        public EnumParameter<CloudMapResolution> cloudMapResolution = new EnumParameter<CloudMapResolution>(CloudMapResolution.Medium64x64);
 
         /// <summary>
         /// Controls the density (Y axis) of the volumetric clouds as a function of the height (X Axis) inside the cloud volume.
@@ -447,7 +334,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Tooltip("Controls the type of noise used to generate the smaller noise passing through the cloud coverage.")]
         [AdditionalProperty]
-        public CloudErosionNoiseParameter erosionNoiseType = new CloudErosionNoiseParameter(CloudErosionNoise.Perlin32);
+        public EnumParameter<CloudErosionNoise> erosionNoiseType = new EnumParameter<CloudErosionNoise>(CloudErosionNoise.Perlin32);
 
         /// <summary>
         /// When enabled, an additional noise should be evaluated for the clouds in the advanced and manual modes. This increases signficantly the cost of the volumetric clouds.
@@ -556,7 +443,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Specifies the strength of the perceptual blending for the volumetric clouds. This value should be treated as flag and only be set to 0.0 or 1.0.
         /// </summary>
         [Tooltip("Specifies the strength of the perceptual blending for the volumetric clouds. This value should be treated as flag and only be set to 0.0 or 1.0.")]
-        public ClampedFloatParameter perceptualBlending = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
+        public ClampedFloatParameter perceptualBlending = new ClampedFloatParameter(0.0f, 0.0f, 1.0f);
 
         /// <summary>
         /// When enabled, HDRP evaluates the Volumetric Clouds' shadows. The Volumetric Clouds shadow is rendered independently of the shadow map toggle of the directional light.
@@ -568,7 +455,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Specifies the resolution of the volumetric clouds shadow map.
         /// </summary>
         [Tooltip("Specifies the resolution of the volumetric clouds shadow map.")]
-        public CloudShadowResolutionParameter shadowResolution = new CloudShadowResolutionParameter(CloudShadowResolution.Medium256);
+        public EnumParameter<CloudShadowResolution> shadowResolution = new EnumParameter<CloudShadowResolution>(CloudShadowResolution.Medium256);
 
         /// <summary>
         /// Sets the size of the area covered by shadow around the camera.
