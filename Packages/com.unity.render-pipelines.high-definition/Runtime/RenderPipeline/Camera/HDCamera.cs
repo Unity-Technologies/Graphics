@@ -274,6 +274,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             isFirstFrame = true;
             cameraFrameCount = 0;
+            taaFrameIndex = 0;
             resetPostProcessingHistory = true;
             volumetricHistoryIsValid = false;
             volumetricValidFrames = 0;
@@ -438,6 +439,10 @@ namespace UnityEngine.Rendering.HighDefinition
         internal bool rayTracingAccumulation = true;
         internal bool animateMaterials;
         internal float lastTime;
+
+        // This value is used to limit the taaFrameIndex value to a reasonable numeric range. The taaFrameIndex value is uploaded to shaders as a float so we should avoid letting it get too large to avoid precision issues.
+        // NOTE: We assume this value is always a power of two when using it modulate taaFrameIndex
+        internal const int kTaaSequenceLength = 1024;
 
         private Camera m_parentCamera = null; // Used for recursive rendering, e.g. a reflection in a scene view.
         internal Camera parentCamera { get { return m_parentCamera; } }
@@ -1246,9 +1251,15 @@ namespace UnityEngine.Rendering.HighDefinition
             SetPostProcessScreenSize(screenWidth, screenHeight);
             screenParams = new Vector4(screenSize.x, screenSize.y, 1 + screenSize.z, 1 + screenSize.w);
 
-            const int kMaxSampleCount = 8;
-            if (++taaFrameIndex >= kMaxSampleCount)
+            // We reset the TAA frame index counter whenever the history data is reset to ensure TAA behaves consistently on camera cuts
+            // We also only increment the TAA frame index if the camera requires jitter.
+            // Other logic in the camera code resets taaFrameIndex to 0 when jitter isn't enabled, and this logic ensures that it actually remains 0 for the entire frame rather than being confusingly set to 1.
+            //
+            // Additionally, we clamp the value range here as well to avoid letting the number get too big over time as its used as a float within shaders.
+            if (resetPostProcessingHistory)
                 taaFrameIndex = 0;
+            else if (RequiresCameraJitter())
+                taaFrameIndex = (taaFrameIndex + 1) & (kTaaSequenceLength - 1);
 
             UpdateAllViewConstants();
             isFirstFrame = false;
@@ -2092,8 +2103,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // The variance between 0 and the actual halton sequence values reveals noticeable
             // instability in Unity's shadow maps, so we avoid index 0.
-            float jitterX = HaltonSequence.Get((taaFrameIndex & 1023) + 1, 2) - 0.5f;
-            float jitterY = HaltonSequence.Get((taaFrameIndex & 1023) + 1, 3) - 0.5f;
+            float jitterX = HaltonSequence.Get(taaFrameIndex + 1, 2) - 0.5f;
+            float jitterY = HaltonSequence.Get(taaFrameIndex + 1, 3) - 0.5f;
 
             if (!(IsDLSSEnabled() || IsTAAUEnabled() || camera.cameraType == CameraType.SceneView))
             {
