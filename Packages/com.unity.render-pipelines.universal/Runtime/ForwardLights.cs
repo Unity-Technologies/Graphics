@@ -445,9 +445,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     cameraData.IsTemporalAAEnabled() ? Time.frameCount : 0);
 
                 cmd.SetGlobalInt("_EnableProbeVolumes", enableProbeVolumes ? 1 : 0);
-
-                bool lightLayers = lightData.supportsLightLayers;
-                cmd.SetKeyword(ShaderGlobalKeywords.LightLayers, lightLayers);
+                cmd.SetKeyword(ShaderGlobalKeywords.LightLayers, lightData.supportsLightLayers && !CoreUtils.IsSceneLightingDisabled(cameraData.camera));
 
                 if (m_LightCookieManager != null)
                 {
