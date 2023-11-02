@@ -429,7 +429,7 @@ namespace UnityEngine.Rendering.Universal
 
         // Default values set when a new UniversalRenderPipeline asset is created
         [SerializeField] int k_AssetVersion = 12;
-        [SerializeField] int k_AssetPreviousVersion = 11;
+        [SerializeField] int k_AssetPreviousVersion = 12;
 
         // Deprecated settings for upgrading sakes
         [SerializeField] RendererType m_RendererType = RendererType.UniversalRenderer;
@@ -1997,9 +1997,8 @@ namespace UnityEngine.Rendering.Universal
                 asset.k_AssetPreviousVersion = 10;
             }
 
-            if(asset.k_AssetPreviousVersion < 11)
+            if (asset.k_AssetPreviousVersion < 11)
             {
-                ResourceReloader.ReloadAllNullIn(asset, packagePath);
                 asset.k_AssetPreviousVersion = 11;
             }
 
@@ -2013,6 +2012,7 @@ namespace UnityEngine.Rendering.Universal
                 asset.k_AssetPreviousVersion = 12;
             }
 
+            ResourceReloader.ReloadAllNullIn(asset, packagePath);
             EditorUtility.SetDirty(asset);
         }
 
