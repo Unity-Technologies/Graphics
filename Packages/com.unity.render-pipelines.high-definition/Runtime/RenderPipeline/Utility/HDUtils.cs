@@ -15,6 +15,10 @@ namespace UnityEngine.Rendering.HighDefinition
     /// </summary>
     public class HDUtils
     {
+#if UNITY_EDITOR
+        internal const string k_HdrpAssetBuildLabel = "HDRP:IncludeInBuild";
+#endif
+
         internal const SortingCriteria k_OpaqueSortingCriteria = SortingCriteria.CommonOpaque & (~SortingCriteria.QuantizedFrontToBack);
 
         /// <summary>Returns the render configuration for baked static lighting, this value can be used in a RendererListDesc call to render Lit objects.</summary>

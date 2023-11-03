@@ -722,11 +722,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // Check that the serialized Resources are not broken
             m_GlobalSettings.EnsureEditorResources(forceReload: true);
-
-            if(m_Asset.currentPlatformRenderPipelineSettings.gpuResidentDrawerSettings.mode != GPUResidentDrawerMode.Disabled)
-                m_GlobalSettings.EnsureGPUResidentDrawerResources(forceReload: true);
-            else
-                m_GlobalSettings.ClearGPUResidentDrawerResources();
         }
 
         public void UpdateDecalSystemShaderGraphs()

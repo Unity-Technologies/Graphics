@@ -5,6 +5,9 @@ using Unity.Jobs;
 using UnityEngine.TestTools;
 using UnityEditor;
 using Unity.Mathematics;
+#if UNITY_EDITOR
+using UnityEditor.Rendering;
+#endif
 
 namespace UnityEngine.Rendering.Tests
 {
@@ -32,10 +35,29 @@ namespace UnityEngine.Rendering.Tests
         private RenderPassTest m_RenderPipe;
         private RenderPipelineAsset m_OldPipelineAsset;
         private GPUResidentDrawerResources m_Resources;
+        private RenderPassGlobalSettings m_GlobalSettings;
 
         class BoxedCounter
         {
             public int Value { get; set; }
+        }
+
+        [OneTimeSetUp]
+        public void OneTimeSetup()
+        {
+            m_GlobalSettings = ScriptableObject.CreateInstance<RenderPassGlobalSettings>();
+#if UNITY_EDITOR
+            EditorGraphicsSettings.SetRenderPipelineGlobalSettingsAsset<RenderPassTestCullInstance>(m_GlobalSettings);
+#endif
+        }
+
+        [OneTimeTearDown]
+        public void OneTimeTearDown()
+        {
+#if UNITY_EDITOR
+            EditorGraphicsSettings.SetRenderPipelineGlobalSettingsAsset<RenderPassTestCullInstance>(null);
+#endif
+            Object.DestroyImmediate(m_GlobalSettings);
         }
 
         [SetUp]
@@ -45,8 +67,7 @@ namespace UnityEngine.Rendering.Tests
             m_RenderPipe = ScriptableObject.CreateInstance<RenderPassTest>();
             m_OldPipelineAsset = GraphicsSettings.defaultRenderPipeline;
             GraphicsSettings.defaultRenderPipeline = m_RenderPipe;
-            m_Resources = ScriptableObject.CreateInstance<GPUResidentDrawerResources>();
-            ResourceReloader.ReloadAllNullIn(m_Resources, "Packages/com.unity.render-pipelines.core/");
+            m_Resources = GraphicsSettings.GetRenderPipelineSettings<GPUResidentDrawerResources>();
         }
 
         [TearDown]

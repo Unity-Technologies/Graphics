@@ -1,24 +1,30 @@
 {
     "name": "Unity.RenderPipelines.HighDefinition.Editor.Tests",
+    "rootNamespace": "",
     "references": [
         "Unity.RenderPipelines.Core.Runtime",
         "Unity.RenderPipelines.Core.Editor",
         "Unity.RenderPipelines.Core.Editor.Tests",
         "Unity.RenderPipelines.HighDefinition.Runtime",
-        "Unity.RenderPipelines.HighDefinition.Editor"
-    ],
-    "optionalUnityReferences": [
-        "TestAssemblies"
+        "Unity.RenderPipelines.HighDefinition.Editor",
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner",
+        "Unity.RenderPipelines.GPUDriven.Runtime"
     ],
     "includePlatforms": [
         "Editor"
     ],
     "excludePlatforms": [],
     "allowUnsafeCode": true,
-    "overrideReferences": false,
-    "precompiledReferences": [],
-    "autoReferenced": true,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
     "defineConstraints": [
-		"UNITY_INCLUDE_TESTS"
-		]
+        "UNITY_INCLUDE_TESTS",
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
 }

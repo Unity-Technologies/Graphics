@@ -594,8 +594,6 @@ namespace UnityEngine.Rendering.Universal
             loadingShader = Shader.Find("Hidden/Universal Render Pipeline/FallbackLoading"),
         };
 
-        GPUResidentDrawerResources IGPUResidentRenderPipeline.gpuResidentDrawerResources => UniversalRenderPipelineGlobalSettings.instance.m_GPUResidentDrawerResources;
-
         // Deprecated settings
         [SerializeField] ShadowQuality m_ShadowType = ShadowQuality.HardShadows;
         [SerializeField] bool m_LocalShadowsSupported = false;

@@ -29,7 +29,7 @@ namespace UnityEditor.Rendering.HighDefinition
             var labelList = AssetDatabase.GetLabels(hdRenderPipelineAsset);
             foreach (string item in labelList)
             {
-                if (item == HDEditorUtils.HDRPAssetBuildLabel)
+                if (item == HDUtils.k_HdrpAssetBuildLabel)
                 {
                     return true;
                 }

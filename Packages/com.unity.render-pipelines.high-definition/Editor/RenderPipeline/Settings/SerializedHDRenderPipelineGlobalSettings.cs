@@ -14,7 +14,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public SerializedProperty renderPipelineResources;
         public SerializedProperty renderPipelineRayTracingResources;
-        public SerializedProperty renderPipelineGPUResidentDrawerResources;
 
         public SerializedProperty defaultVolumeProfile;
         public SerializedProperty lookDevVolumeProfile;
@@ -79,7 +78,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
             renderPipelineResources = serializedObject.FindProperty("m_RenderPipelineResources");
             renderPipelineRayTracingResources = serializedObject.FindProperty("m_RenderPipelineRayTracingResources");
-            renderPipelineGPUResidentDrawerResources = serializedObject.FindProperty("m_RenderPipelineGPUResidentDrawerResources");
 
             var serializedRenderingPathProperty = serializedObject.FindProperty("m_RenderingPath");
             if (serializedRenderingPathProperty == null)

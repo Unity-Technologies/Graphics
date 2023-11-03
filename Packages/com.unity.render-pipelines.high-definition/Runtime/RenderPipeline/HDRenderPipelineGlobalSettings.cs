@@ -93,10 +93,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public override void Initialize(RenderPipelineGlobalSettings source = null)
         {
+            SetUpRPAssetIncluded();
+
             // ensure resources are here
             EnsureEditorResources(forceReload: true);
             EnsureRuntimeResources(forceReload: true);
-            EnsureGPUResidentDrawerResources(forceReload: true);
 
             var defaultVolumeProfile = GetOrCreateDefaultVolumeProfile();
             var diffusionProfileList = GetOrCreateDiffusionProfileList(defaultVolumeProfile);
@@ -108,6 +109,19 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             GetOrAssignLookDevVolumeProfile();
+        }
+
+        void SetUpRPAssetIncluded()
+        {
+            if (!TryGet(typeof(IncludeAdditionalRPAssets), out var rpgs) || rpgs is not IncludeAdditionalRPAssets includer)
+            {
+                Debug.Log($"Missing {nameof(IncludeAdditionalRPAssets)} set up for HDRP.");
+                return;
+            }
+
+            includer.includeReferencedInScenes = true;
+            includer.includeAssetsByLabel = true;
+            includer.labelToInclude = HDUtils.k_HdrpAssetBuildLabel;
         }
 
 #endif // UNITY_EDITOR
@@ -314,43 +328,6 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
 
         #endregion //Editor Resources
-
-        #region GPU Resident Drawer Resources
-        [FormerlySerializedAs("m_RenderPipelineMacroBatcherResources")]
-        [SerializeField]
-        GPUResidentDrawerResources m_RenderPipelineGPUResidentDrawerResources;
-        internal GPUResidentDrawerResources gpuResidentDrawerResources
-        {
-            get
-            {
-#if UNITY_EDITOR
-                EnsureGPUResidentDrawerResources(forceReload: false);
-#endif
-                return m_RenderPipelineGPUResidentDrawerResources;
-            }
-        }
-
-#if UNITY_EDITOR
-        // be sure to cache result for not using GC in a frame after first one.
-        static readonly string gpuResidentDrawerResourcesPath = HDUtils.GetCorePath() + "Runtime/RenderPipelineResources/GPUDriven/GPUResidentDrawerResources.asset";
-
-        internal void EnsureGPUResidentDrawerResources(bool forceReload)
-            => ResourceReloader.EnsureResources(forceReload, ref m_RenderPipelineGPUResidentDrawerResources, gpuResidentDrawerResourcesPath, AreGPUResidentDrawerResourcesCreated_Internal, this);
-
-        internal void ClearGPUResidentDrawerResources()
-            => m_RenderPipelineGPUResidentDrawerResources = null;
-
-        // Passing method in a Func argument create a functor that create GC
-        // If it is static it is then only computed once but the Ensure is called after first frame which will make our GC check fail
-        // So create it once and store it here.
-        // Expected usage: HDRenderPipelineGlobalSettings.AreGPUResidentDrawerResourcesCreated(anyHDRenderPipelineGlobalSettings) that will return a bool
-        static Func<HDRenderPipelineGlobalSettings, bool> AreGPUResidentDrawerResourcesCreated_Internal = global
-            => global.m_RenderPipelineGPUResidentDrawerResources != null && !global.m_RenderPipelineGPUResidentDrawerResources.Equals(null);
-
-        internal bool AreGPUResidentDrawerResourcesCreated() => AreGPUResidentDrawerResourcesCreated_Internal(this);
-#endif
-
-        #endregion // GPU Resident Drawer Resources
 
         #region Custom Post Processes Injections
 

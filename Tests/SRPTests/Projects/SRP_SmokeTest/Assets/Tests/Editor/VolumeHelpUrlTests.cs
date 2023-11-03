@@ -37,7 +37,7 @@ namespace UnityEditor.Rendering.Tests
         {
             new TestCaseData("Assets/PipelineAssets/UniversalRenderPipelineAsset.asset" , typeof(UniversalRenderPipeline))
                 .SetName("Volumes URL's are correct when URP is the active pipeline"),
-            new TestCaseData("Assets/PipelineAssets/New HDRenderPipelineAsset.asset", typeof(HDRenderPipeline))
+            new TestCaseData("Assets/PipelineAssets/HDRenderPipelineAsset.asset", typeof(HDRenderPipeline))
                 .SetName("Volumes URL's are correct when HDRP is the active pipeline"),
         };
 
