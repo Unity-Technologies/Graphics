@@ -64,10 +64,12 @@ namespace UnityEngine.Rendering
 
             var resources = ScriptableObject.CreateInstance<RayTracingResources>();
             ResourceReloader.ReloadAllNullIn(resources, "Packages/com.unity.rendering.light-transport");
-            Func<string, Type, Object> fileLoader = (filename, type) => AssetDatabase.LoadAssetAtPath("Packages/com.unity.render-pipelines.core/" + filename, type);
 
             m_RayTracingContext = new RayTracingContext(backend, resources);
-            m_RayTracingShader = m_RayTracingContext.CreateRayTracingShader("Editor/Lighting/ProbeVolume/VirtualOffset/TraceVirtualOffset", fileLoader);
+            Type type = BackendHelpers.GetTypeOfShader(backend);
+            string filename = BackendHelpers.GetFileNameOfShader(backend, $"Editor/Lighting/ProbeVolume/VirtualOffset/TraceVirtualOffset");
+            Object shader = AssetDatabase.LoadAssetAtPath($"Packages/com.unity.render-pipelines.core/{filename}", type);
+            m_RayTracingShader = m_RayTracingContext.CreateRayTracingShader(shader);
             m_RayTracingAccelerationStructure = m_RayTracingContext.CreateAccelerationStructure(new AccelerationStructureOptions());
 
             _Probes = Shader.PropertyToID("_Probes");
