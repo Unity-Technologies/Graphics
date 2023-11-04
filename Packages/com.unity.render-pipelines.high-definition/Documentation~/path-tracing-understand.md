@@ -4,7 +4,7 @@ Path tracing is a ray tracing algorithm that sends rays from the Camera and, whe
 
 It enables HDRP to compute various effects (such as hard or soft shadows, mirror or glossy reflections and refractions, and indirect illumination) in a single unified process.
 
-A notable downside to path tracing is noise. Noise vanishes as more paths accumulate and converges toward a clean image. For more information about path tracing limitations in HDRP, see [Unsupported features of path tracing](Ray-Tracing-Getting-Started.md#unsupported-features-of-path-tracing).
+A notable downside to path tracing is noise. Noise results from the random nature of the path tracing process; at each surface interaction, a new direction is chosen randomly. Noise vanishes as more paths accumulate and converge toward a clean image. For more information about path tracing limitations in HDRP, see [Unsupported features of path tracing](Ray-Tracing-Getting-Started.md#unsupported-features-of-path-tracing).
 
 ![](Images/RayTracingPathTracing1.png)
 
@@ -134,3 +134,49 @@ In order to efficiently support the path tracing of decals, Decal Projectors are
 
 Additionally, the path tracer treats all decals as clustered decals. This might require increasing the "Maximum Lights per Cell (Ray Tracing)" (in the HDRP Quality settings, under lighting) and the size of the decal atlas (in the HDRP Quality settings, under Rendering), as more decals will be added to these data-structures. Emission from decals is currently not supported.
 
+## Path tracing and random numbers
+
+Path tracing uses random numbers to select new directions to trace in. The path tracer needs a seed for every frame to generate these random numbers. The **Seed Mode** property allows you to change how to calculate the seed number.
+
+You can use the Custom mode to script your own behavior for the seed. This mode takes the seed from the **customSeed** parameter on the path tracing override. You must update the seed every frame. Otherwise every frame generates the same random numbers, resulting in no convergence.
+<a name="seed-example"></a>
+### Custom seed example: accumulating images over multiple recorder runs 
+
+The following script is an example of the Custom Seed mode. It uses the frame count as the seed and adds a user-defined offset. 
+
+You can use the script in the following scenario: rendering a sequence using the path tracer and the [Recorder package](https://docs.unity3d.com/Packages/com.unity.recorder@latest). You render each frame as a separate image with 512 samples. However, the images have not converged yet. Instead of starting from 0, you can re-render the same sequence with a different seed and add the results to the first set of images you rendered. 
+
+```
+using System.Collections;
+using System.Collections.Generic;
+using Unity.VisualScripting;
+using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition;
+public class exampleBehavior : MonoBehaviour
+{
+    static int framecounter = 0;
+    public Volume pathTracingVolume;
+    VolumeProfile pathTracingVolumeProfile;
+    PathTracing pathTracing;
+    public int seedOffset = 0;
+    void Start()
+    {
+        framecounter = 0;
+        pathTracingVolumeProfile = pathTracingVolume.sharedProfile;
+        if(!pathTracingVolumeProfile.TryGet<PathTracing>(out pathTracing))
+        {
+            Debug.Log("Path Tracing not found");
+        }
+    }
+    // Update is called once per frame
+    void Update()
+    {
+        pathTracing.customSeed.overrideState = true;
+        pathTracing.customSeed.value = framecounter + seedOffset;
+        framecounter++;
+    }
+}
+```
+
+This script allows you to render a first batch of images with 512 samples and a seed offset of zero by setting the Seed mode to custom. A second batch of images is then generated with the Seed offset set to 512 to ensure different random numbers. By doing this, the images are added together and the end result is more converged.
