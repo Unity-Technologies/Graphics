@@ -22,32 +22,12 @@ The Sample Texture 3D [!include[nodes-compatibility-all](./snippets/nodes-compat
 
 The Sample Texture 3D [!include[nodes-inputs](./snippets/nodes-inputs.md)]
 
-<table>
-<thead>
-<tr>
-<th><strong>Name</strong></th>
-<th><strong>Type</strong></th>
-<th><strong>Binding</strong></th>
-<th><strong>Description</strong></th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>Texture</strong></td>
-<td>Texture 3D</td>
-<td>None</td>
-<td>The 3D Texture asset to sample.</td>
-</tr>
-<tr>
-<td><strong>UV</strong></td>
-<td>Vector 3</td>
-<td>None</td>
-<td>The 3D UV coordinates to use to sample the Texture.</td>
-</tr>
-[!include[nodes-sample-ss-table](./snippets/sample-nodes/nodes-sample-ss-table.md)]
-[!include[nodes-sample-lod-table](./snippets/sample-nodes/nodes-sample-lod-table.md)]
-</tbody>
-</table>
+| **Name** | **Type**  | **Binding** | **Description** |
+|--|--|--|--|
+| **Texture** | Texture 3D | None | The 3D Texture asset to sample. |
+| **UV** | Vector 3 | None | The 3D UV coordinates to use to sample the Texture. | 
+| **Sampler** | Sampler State | Default Sampler State | The Sampler State and settings to use to sample the texture.|
+| **LOD** | Float | LOD | The specific mip to use when sampling the Texture. **NOTE** The **LOD** Input port only displays if **Mip Sampling Mode** is **LOD**. For more information, refer to [Additional node settings](#additional-node-settings). |
 
 
 ## Additional node settings
