@@ -46,6 +46,9 @@ VaryingsMeshToDS InterpolateWithBaryCoordsMeshToDS(VaryingsMeshToDS input0, Vary
 #ifdef VARYINGS_DS_NEED_COLOR
     TESSELLATION_INTERPOLATE_BARY(color, baryCoords);
 #endif
+#if defined(VARYINGS_DS_NEED_INSTANCEID) && !UNITY_ANY_INSTANCING_ENABLED
+    output.instanceID = input0.instanceID;
+#endif
 
     // Pass-Through for custom interpolator
     $splice(CustomInterpolatorInterpolateWithBaryCoordsMeshToDS)
@@ -97,6 +100,7 @@ VertexDescriptionInputs VaryingsMeshToDSToVertexDescriptionInputs(VaryingsMeshTo
     //$VertexDescriptionInputs.BoneWeights:                             output.BoneWeights = input.weights; // undefined for Hull shader
     //$VertexDescriptionInputs.BoneIndices:                             output.BoneIndices = input.indices; // undefined for Hull shader
     //$VertexDescriptionInputs.VertexID:                                output.VertexID = input.vertexID;   // undefined for Hull shader
+    $VertexDescriptionInputs.InstanceID:                                output.InstanceID = input.instanceID;
 
     return output;
 }

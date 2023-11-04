@@ -67,6 +67,7 @@ namespace UnityEditor.ShaderGraph
                 StructFields.VertexDescriptionInputs.uv3,
                 StructFields.VertexDescriptionInputs.TimeParameters,
                 StructFields.VertexDescriptionInputs.VertexID,
+                StructFields.VertexDescriptionInputs.InstanceID,
             }
         };
          public static StructDescriptor CanvasSurfaceDescriptionInputs = new StructDescriptor()

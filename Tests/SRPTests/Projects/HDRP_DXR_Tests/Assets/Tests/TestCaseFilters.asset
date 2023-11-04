@@ -19,6 +19,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 4
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: Strict Mode not supported
@@ -57,9 +58,11 @@ MonoBehaviour:
     - {fileID: 102900000, guid: 151529e60a002004f921ef6ebbc361ae, type: 3}
     - {fileID: 102900000, guid: efb54c201f4649344a2b5369d723e9de, type: 3}
     - {fileID: 102900000, guid: b8027b89c6fd3d5428a58472925a4f8b, type: 3}
+    - {fileID: 102900000, guid: ec1f3295dcc2dc44eb68106c1619f321, type: 3}
     ColorSpace: -1
     BuildPlatform: 42
     GraphicsDevice: 4
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: Unsupported
@@ -97,9 +100,11 @@ MonoBehaviour:
     - {fileID: 102900000, guid: 151529e60a002004f921ef6ebbc361ae, type: 3}
     - {fileID: 102900000, guid: efb54c201f4649344a2b5369d723e9de, type: 3}
     - {fileID: 102900000, guid: b8027b89c6fd3d5428a58472925a4f8b, type: 3}
+    - {fileID: 102900000, guid: ec1f3295dcc2dc44eb68106c1619f321, type: 3}
     ColorSpace: -1
     BuildPlatform: 44
     GraphicsDevice: 4
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: Unsupported
@@ -109,6 +114,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 42
     GraphicsDevice: 4
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: issue on Yamato/HDRP-3081
@@ -118,6 +124,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 44
     GraphicsDevice: 4
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: issue on Yamato/HDRP-3081
@@ -127,6 +134,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 19
     GraphicsDevice: 4
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: 'issue on Yamato only: jira: https://jira.unity3d.com/browse/UUM-26542'
@@ -136,6 +144,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 42
     GraphicsDevice: 4
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: Inconsistent on Yamato
@@ -145,6 +154,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 44
     GraphicsDevice: 4
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: Inconsistent on Yamato
@@ -154,6 +164,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 4
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: 'issue on Yamato only: jira: https://jira.unity3d.com/browse/UUM-26542'
@@ -163,6 +174,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 19
     GraphicsDevice: 4
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: 'issue on Yamato only: jira: https://jira.unity3d.com/browse/UUM-26542'

@@ -55,8 +55,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         class SixWayShaderPasses
         {
-            public static PassDescriptor GenerateForwardOnly(bool useVFX, bool useTessellation, bool useColorAbsorption,
-                bool useDebugSymbols)
+            public static PassDescriptor GenerateForwardOnly(bool useVFX, bool useTessellation, bool useColorAbsorption)
             {
                 FieldCollection requiredFields = new FieldCollection();
                 requiredFields.Add(CoreRequiredFields.BasicLighting);
@@ -83,8 +82,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     // We need motion vector version as Forward pass support transparent motion vector and we can't use ifdef for it
                     requiredFields = requiredFields,
                     renderStates = CoreRenderStates.Forward,
-                    pragmas = HDShaderPasses.GeneratePragmas(CorePragmas.DotsInstanced, useVFX, useTessellation,
-                        useDebugSymbols),
+                    pragmas = HDShaderPasses.GeneratePragmas(CorePragmas.DotsInstanced, useVFX, useTessellation),
                     defines = defines,
                     includes = GenerateIncludes(),
 
@@ -226,7 +224,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             var descriptor = base.GetSubShaderDescriptor();
             descriptor.passes.Add(HDShaderPasses.GenerateDepthForwardOnlyPass(supportLighting, TargetsVFX(), systemData.tessellation));
-            descriptor.passes.Add(SixWayShaderPasses.GenerateForwardOnly(TargetsVFX(), systemData.tessellation, sixWayData.useColorAbsorption, systemData.debugSymbols));
+            descriptor.passes.Add(SixWayShaderPasses.GenerateForwardOnly(TargetsVFX(), systemData.tessellation, sixWayData.useColorAbsorption));
             return descriptor;
         }
 

@@ -2019,6 +2019,57 @@ Compiled shader: Shader Graphs/Lit Shader, pass: ShadowCaster, stage: all, keywo
 Compiled shader: Shader Graphs/Lit Shader, pass: ShadowCaster, stage: all, keywords <no keywords>
 Compiled shader: Shader Graphs/Lit Shader, pass: ShadowCaster, stage: pixel, keywords _DISABLE_SSR _DISABLE_SSR_TRANSPARENT
 Compiled shader: Shader Graphs/Lit Shader, pass: ShadowCaster, stage: vertex, keywords <no keywords>
+Compiled shader: Shader Graphs/Lit, pass: DebugDXR, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT
+Compiled shader: Shader Graphs/Lit, pass: DebugDXR, stage: all, keywords INSTANCING_ON
+Compiled shader: Shader Graphs/Lit, pass: DebugDXR, stage: all, keywords INSTANCING_ON _DISABLE_SSR_TRANSPARENT
+Compiled shader: Shader Graphs/Lit, pass: DepthOnly, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT
+Compiled shader: Shader Graphs/Lit, pass: DepthOnly, stage: all, keywords INSTANCING_ON
+Compiled shader: Shader Graphs/Lit, pass: DepthOnly, stage: all, keywords INSTANCING_ON _DISABLE_SSR_TRANSPARENT
+Compiled shader: Shader Graphs/Lit, pass: Forward, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT
+Compiled shader: Shader Graphs/Lit, pass: Forward, stage: all, keywords INSTANCING_ON
+Compiled shader: Shader Graphs/Lit, pass: Forward, stage: all, keywords INSTANCING_ON _DISABLE_SSR_TRANSPARENT
+Compiled shader: Shader Graphs/Lit, pass: ForwardDXR, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT
+Compiled shader: Shader Graphs/Lit, pass: ForwardDXR, stage: all, keywords INSTANCING_ON
+Compiled shader: Shader Graphs/Lit, pass: ForwardDXR, stage: all, keywords INSTANCING_ON _DISABLE_SSR_TRANSPARENT
+Compiled shader: Shader Graphs/Lit, pass: FullScreenDebug, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT
+Compiled shader: Shader Graphs/Lit, pass: FullScreenDebug, stage: all, keywords INSTANCING_ON
+Compiled shader: Shader Graphs/Lit, pass: FullScreenDebug, stage: all, keywords INSTANCING_ON _DISABLE_SSR_TRANSPARENT
+Compiled shader: Shader Graphs/Lit, pass: GBuffer, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT
+Compiled shader: Shader Graphs/Lit, pass: GBuffer, stage: all, keywords INSTANCING_ON
+Compiled shader: Shader Graphs/Lit, pass: GBuffer, stage: all, keywords INSTANCING_ON _DISABLE_SSR_TRANSPARENT
+Compiled shader: Shader Graphs/Lit, pass: GBufferDXR, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT
+Compiled shader: Shader Graphs/Lit, pass: GBufferDXR, stage: all, keywords INSTANCING_ON
+Compiled shader: Shader Graphs/Lit, pass: GBufferDXR, stage: all, keywords INSTANCING_ON _DISABLE_SSR_TRANSPARENT
+Compiled shader: Shader Graphs/Lit, pass: IndirectDXR, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT
+Compiled shader: Shader Graphs/Lit, pass: IndirectDXR, stage: all, keywords INSTANCING_ON
+Compiled shader: Shader Graphs/Lit, pass: IndirectDXR, stage: all, keywords INSTANCING_ON _DISABLE_SSR_TRANSPARENT
+Compiled shader: Shader Graphs/Lit, pass: META, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT
+Compiled shader: Shader Graphs/Lit, pass: META, stage: all, keywords INSTANCING_ON
+Compiled shader: Shader Graphs/Lit, pass: META, stage: all, keywords INSTANCING_ON _DISABLE_SSR_TRANSPARENT
+Compiled shader: Shader Graphs/Lit, pass: MotionVectors, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT
+Compiled shader: Shader Graphs/Lit, pass: MotionVectors, stage: all, keywords INSTANCING_ON
+Compiled shader: Shader Graphs/Lit, pass: MotionVectors, stage: all, keywords INSTANCING_ON _DISABLE_SSR_TRANSPARENT
+Compiled shader: Shader Graphs/Lit, pass: PathTracingDXR, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT
+Compiled shader: Shader Graphs/Lit, pass: PathTracingDXR, stage: all, keywords INSTANCING_ON
+Compiled shader: Shader Graphs/Lit, pass: PathTracingDXR, stage: all, keywords INSTANCING_ON _DISABLE_SSR_TRANSPARENT
+Compiled shader: Shader Graphs/Lit, pass: RayTracingPrepass, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT
+Compiled shader: Shader Graphs/Lit, pass: RayTracingPrepass, stage: all, keywords INSTANCING_ON
+Compiled shader: Shader Graphs/Lit, pass: RayTracingPrepass, stage: all, keywords INSTANCING_ON _DISABLE_SSR_TRANSPARENT
+Compiled shader: Shader Graphs/Lit, pass: ScenePickingPass, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT
+Compiled shader: Shader Graphs/Lit, pass: ScenePickingPass, stage: all, keywords INSTANCING_ON
+Compiled shader: Shader Graphs/Lit, pass: ScenePickingPass, stage: all, keywords INSTANCING_ON _DISABLE_SSR_TRANSPARENT
+Compiled shader: Shader Graphs/Lit, pass: SceneSelectionPass, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT
+Compiled shader: Shader Graphs/Lit, pass: SceneSelectionPass, stage: all, keywords INSTANCING_ON
+Compiled shader: Shader Graphs/Lit, pass: SceneSelectionPass, stage: all, keywords INSTANCING_ON _DISABLE_SSR_TRANSPARENT
+Compiled shader: Shader Graphs/Lit, pass: ShadowCaster, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT
+Compiled shader: Shader Graphs/Lit, pass: ShadowCaster, stage: all, keywords INSTANCING_ON
+Compiled shader: Shader Graphs/Lit, pass: ShadowCaster, stage: all, keywords INSTANCING_ON _DISABLE_SSR_TRANSPARENT
+Compiled shader: Shader Graphs/Lit, pass: TransparentDepthPrepass, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT
+Compiled shader: Shader Graphs/Lit, pass: TransparentDepthPrepass, stage: all, keywords INSTANCING_ON
+Compiled shader: Shader Graphs/Lit, pass: TransparentDepthPrepass, stage: all, keywords INSTANCING_ON _DISABLE_SSR_TRANSPARENT
+Compiled shader: Shader Graphs/Lit, pass: VisibilityDXR, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT
+Compiled shader: Shader Graphs/Lit, pass: VisibilityDXR, stage: all, keywords INSTANCING_ON
+Compiled shader: Shader Graphs/Lit, pass: VisibilityDXR, stage: all, keywords INSTANCING_ON _DISABLE_SSR_TRANSPARENT
 Compiled shader: Shader Graphs/Lit_Anisotropy, pass: DepthOnly, stage: all, keywords <no keywords>
 Compiled shader: Shader Graphs/Lit_Anisotropy, pass: DepthOnly, stage: all, keywords WRITE_DECAL_BUFFER
 Compiled shader: Shader Graphs/Lit_Anisotropy, pass: ForwardDXR, stage: raytracing, keywords <no keywords>

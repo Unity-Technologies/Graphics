@@ -381,7 +381,7 @@ void AnyHit(inout PathPayload payload : SV_RayPayload, AttributeData attributeDa
 
 #endif // _ALPHATEST_ON
 
-    if      (payload.segmentID == SEGMENT_ID_NEAREST_HIT )
+    if (payload.segmentID == SEGMENT_ID_NEAREST_HIT )
     {
         // We just need the nearest hit distance here
         payload.rayTHit = min(payload.rayTHit, RayTCurrent());

@@ -7,7 +7,7 @@ VaryingsMeshToDS InterpolateWithBaryCoordsMeshToDS(VaryingsMeshToDS input0, Vary
 
     UNITY_TRANSFER_INSTANCE_ID(input0, output);
 
-    // The set of values that need to interlopated is fixed
+    // The set of values that need to interpolated is fixed
     TESSELLATION_INTERPOLATE_BARY(positionRWS, baryCoords);
     TESSELLATION_INTERPOLATE_BARY(normalWS, baryCoords);
     TESSELLATION_INTERPOLATE_BARY(texCoord0, baryCoords);
@@ -46,10 +46,10 @@ VertexDescriptionInputs VaryingsMeshToDSToVertexDescriptionInputs(VaryingsMeshTo
 VaryingsMeshToDS ApplyTessellationModification(VaryingsMeshToDS input, float3 timeParameters)
 {
     // HACK: As there is no specific tessellation stage for now in shadergraph, we reuse the vertex description mechanism.
-    // It mean we store TessellationFactor inside vertex description causing extra read on both vertex and hull stage, but unusued paramater are optimize out by the shader compiler, so no impact.
+    // It mean we store TessellationFactor inside vertex description causing extra read on both vertex and hull stage, but unused parameters are optimize out by the shader compiler, so no impact.
     VertexDescriptionInputs vertexDescriptionInputs = VaryingsMeshToDSToVertexDescriptionInputs(input);
 
-    // Override time paramters with used one (This is required to correctly handle motion vector for tessellation animation based on time)
+    // Override time parameters with used one (This is required to correctly handle motion vector for tessellation animation based on time)
     $VertexDescriptionInputs.TimeParameters: vertexDescriptionInputs.TimeParameters = timeParameters;
 
     // evaluate vertex graph

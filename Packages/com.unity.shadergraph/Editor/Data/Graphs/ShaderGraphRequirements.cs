@@ -26,6 +26,7 @@ namespace UnityEditor.ShaderGraph.Internal
         [SerializeField] bool m_RequiresTime;
         [SerializeField] bool m_RequiresVertexSkinning;
         [SerializeField] bool m_RequiresVertexID;
+        [SerializeField] bool m_RequiresInstanceID;
         [SerializeField] List<UVChannel> m_RequiresMeshUVDerivatives;
 
         internal static ShaderGraphRequirements none
@@ -155,6 +156,12 @@ namespace UnityEditor.ShaderGraph.Internal
             internal set { m_RequiresVertexID = value; }
         }
 
+        public bool requiresInstanceID
+        {
+            get { return m_RequiresInstanceID; }
+            internal set { m_RequiresInstanceID = value; }
+        }
+
         internal bool NeedsTangentSpace()
         {
             var compoundSpaces = m_RequiresBitangent | m_RequiresNormal | m_RequiresPosition
@@ -183,6 +190,7 @@ namespace UnityEditor.ShaderGraph.Internal
             newReqs.m_RequiresTime = other.m_RequiresTime | m_RequiresTime;
             newReqs.m_RequiresVertexSkinning = other.m_RequiresVertexSkinning | m_RequiresVertexSkinning;
             newReqs.m_RequiresVertexID = other.m_RequiresVertexID | m_RequiresVertexID;
+            newReqs.m_RequiresInstanceID = other.m_RequiresInstanceID | m_RequiresInstanceID;
 
             newReqs.m_RequiresMeshUVs = new List<UVChannel>();
             if (m_RequiresMeshUVs != null)
@@ -278,6 +286,9 @@ namespace UnityEditor.ShaderGraph.Internal
                         }
                     }
                 }
+
+                if (!reqs.m_RequiresInstanceID && node is IMayRequireInstanceID r)
+                    reqs.m_RequiresInstanceID = r.RequiresInstanceID(stageCapability);
             }
 
             reqs.m_RequiresTransforms = reqs.m_RequiresTransforms.Distinct().ToList();

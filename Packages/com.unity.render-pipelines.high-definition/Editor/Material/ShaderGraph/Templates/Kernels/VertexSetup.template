@@ -31,6 +31,7 @@ $AttributesMesh.uv2:                                #define ATTRIBUTES_NEED_TEXC
 $AttributesMesh.uv3:                                #define ATTRIBUTES_NEED_TEXCOORD3
 $AttributesMesh.color:                              #define ATTRIBUTES_NEED_COLOR
 $AttributesMesh.vertexID:                           #define ATTRIBUTES_NEED_VERTEXID
+$AttributesMesh.instanceID:                         #define ATTRIBUTES_NEED_INSTANCEID
 $VaryingsMeshToPS.positionRWS:                      #define VARYINGS_NEED_POSITION_WS
 $VaryingsMeshToPS.positionPredisplacementRWS:       #define VARYINGS_NEED_POSITIONPREDISPLACEMENT_WS
 $VaryingsMeshToPS.normalWS:                         #define VARYINGS_NEED_TANGENT_TO_WORLD

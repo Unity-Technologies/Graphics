@@ -1,34 +1,35 @@
-using System.Reflection;
+using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
     [Title("Input", "Geometry", "Instance ID")]
-    class InstanceIDNode : CodeFunctionNode
+    class InstanceIDNode : AbstractMaterialNode, IMayRequireInstanceID
     {
-        public override bool hasPreview { get { return false; } }
+        private const int kOutputSlotId = 0;
+        private const string kOutputSlotName = "Out";
+
+        public override bool hasPreview => false;
 
         public InstanceIDNode()
         {
             name = "Instance ID";
+            UpdateNodeAfterDeserialization();
         }
 
-        protected override MethodInfo GetFunctionToConvert()
+        public sealed override void UpdateNodeAfterDeserialization()
         {
-            return GetType().GetMethod("UnityGetInstanceID", BindingFlags.Static | BindingFlags.NonPublic);
+            AddSlot(new Vector1MaterialSlot(kOutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, (int)0, ShaderStageCapability.All));
+            RemoveSlotsNameNotMatching(new[] { kOutputSlotId });
         }
 
-        static string UnityGetInstanceID([Slot(0, Binding.None)] out Vector1 Out)
+        public override string GetVariableNameForSlot(int slotId)
         {
-            return
-@"
-{
-#if UNITY_ANY_INSTANCING_ENABLED
-    Out = unity_InstanceID;
-#else
-    Out = 0;
-#endif
-}
-";
+            return string.Format("IN.{0}", ShaderGeneratorNames.InstanceID);
+        }
+
+        public bool RequiresInstanceID(ShaderStageCapability stageCapability)
+        {
+            return true;
         }
     }
 }

@@ -43,6 +43,11 @@ VertexDescriptionInputs AttributesMeshToVertexDescriptionInputs(AttributesMesh i
     $VertexDescriptionInputs.BoneWeights:                               output.BoneWeights =                                input.weights;
     $VertexDescriptionInputs.BoneIndices:                               output.BoneIndices =                                input.indices;
     $VertexDescriptionInputs.VertexID:                                  output.VertexID =                                   input.vertexID;
+$VertexDescriptionInputs.InstanceID: #if UNITY_ANY_INSTANCING_ENABLED
+    $VertexDescriptionInputs.InstanceID:                                output.InstanceID =                                 unity_InstanceID;
+$VertexDescriptionInputs.InstanceID: #else
+    $VertexDescriptionInputs.InstanceID:                                output.InstanceID =                                 input.instanceID; // PSSL/Raytracing/XR/Stereo support?
+$VertexDescriptionInputs.InstanceID: #endif
 
     return output;
 }
@@ -148,6 +153,11 @@ FragInputs BuildFragInputs(VaryingsMeshToPS input)
     $FragInputs.diffuseGIData1:                 output.diffuseGIData[1] =           input.diffuseGIData1;
     $FragInputs.diffuseGIData2:                 output.diffuseGIData[2] =           input.diffuseGIData2;
 
+$FragInputs.instanceID: #if UNITY_ANY_INSTANCING_ENABLED
+    $FragInputs.instanceID:                     output.instanceID =                 unity_InstanceID;
+$FragInputs.instanceID: #else
+    $FragInputs.instanceID:                     output.instanceID =                 input.instanceID;
+$FragInputs.instanceID: #endif
 
 #ifdef HAVE_VFX_MODIFICATION
     // FragInputs from VFX come from two places: Interpolator or CBuffer.

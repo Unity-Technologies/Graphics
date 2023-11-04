@@ -639,6 +639,7 @@ namespace UnityEditor.ShaderGraph
                 new ConditionalField(StructFields.VertexDescriptionInputs.BoneWeights,                                  requirements.requiresVertexSkinning),
                 new ConditionalField(StructFields.VertexDescriptionInputs.BoneIndices,                                  requirements.requiresVertexSkinning),
                 new ConditionalField(StructFields.VertexDescriptionInputs.VertexID,                                     requirements.requiresVertexID),
+                new ConditionalField(StructFields.VertexDescriptionInputs.InstanceID,                                   requirements.requiresInstanceID),
 
                 new ConditionalField(Fields.ObjectToWorld, requirements.requiresTransforms.Contains(NeededTransform.ObjectToWorld)),
                 new ConditionalField(Fields.WorldToObject, requirements.requiresTransforms.Contains(NeededTransform.WorldToObject)),
@@ -698,6 +699,7 @@ namespace UnityEditor.ShaderGraph
                 new ConditionalField(StructFields.SurfaceDescriptionInputs.BoneWeights,                                 requirements.requiresVertexSkinning),
                 new ConditionalField(StructFields.SurfaceDescriptionInputs.BoneIndices,                                 requirements.requiresVertexSkinning),
                 new ConditionalField(StructFields.SurfaceDescriptionInputs.VertexID,                                    requirements.requiresVertexID),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.InstanceID,                                  requirements.requiresInstanceID),
 
                 new ConditionalField(Fields.ObjectToWorld, requirements.requiresTransforms.Contains(NeededTransform.ObjectToWorld)),
                 new ConditionalField(Fields.WorldToObject, requirements.requiresTransforms.Contains(NeededTransform.WorldToObject)),
@@ -1008,6 +1010,11 @@ namespace UnityEditor.ShaderGraph
                 {
                     sb.AppendLine("uint {0};", ShaderGeneratorNames.VertexID);
                 }
+
+                if (requirements.requiresInstanceID)
+                {
+                    sb.AppendLine("uint {0};", ShaderGeneratorNames.InstanceID);
+                }
             }
         }
 
@@ -1054,6 +1061,11 @@ namespace UnityEditor.ShaderGraph
             if (requirements.requiresVertexID)
             {
                 sb.AppendLine($"{variableName}.{ShaderGeneratorNames.VertexID} = IN.{ShaderGeneratorNames.VertexID};");
+            }
+
+            if (requirements.requiresInstanceID)
+            {
+                sb.AppendLine($"{variableName}.{ShaderGeneratorNames.InstanceID} = IN.{ShaderGeneratorNames.InstanceID};");
             }
         }
 
