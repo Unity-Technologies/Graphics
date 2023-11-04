@@ -187,9 +187,9 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                         this._postChangeValueCallback(false, ModificationScope.Graph);
                     },
                     new ToggleData(shaderInput.isExposed),
-                    "Show In Inspector",
+                    shaderInput is ShaderKeyword ? "Generate Material Property" : "Show In Inspector",
                     out var exposedToggleVisualElement,
-                    tooltip: "Hide or Show this property in the material inspector."));
+                    tooltip: shaderInput is ShaderKeyword ? "Generate a material property declaration to show this field in the material inspector." : "Hide or Show this property in the material inspector."));
                 exposedToggle = exposedToggleVisualElement as Toggle;
             }
         }
