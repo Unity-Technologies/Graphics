@@ -8,7 +8,8 @@
     "com.unity.mathematics": "1.2.1",
     "com.unity.burst": "1.8.9",
     "com.unity.render-pipelines.core": "14.0.9",
-    "com.unity.shadergraph": "14.0.9"
+    "com.unity.shadergraph": "14.0.9",
+	"com.unity.render-pipelines.universal-config": "14.0.9"
   },
   "keywords": [
     "graphics",
