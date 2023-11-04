@@ -1223,7 +1223,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (colorPyramid != null && hdCamera.frameSettings.IsEnabled(FrameSettingsField.Refraction) && !preRefractionPass)
                     passData.colorPyramid = builder.ReadTexture(colorPyramid.Value);
                 else
-                    passData.colorPyramid = renderGraph.defaultResources.blackTextureXR;            
+                    passData.colorPyramid = renderGraph.defaultResources.blackTextureXR;
 
                 // TODO RENDERGRAPH
                 // Since in the old code path we bound this as global, it was available here so we need to bind it as well in order not to break existing projects...

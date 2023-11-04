@@ -20,6 +20,7 @@ public enum RegisterType
     TMA,
 }
 
+
 public class AliveRegisterRange
 {
     public Register register;
@@ -59,6 +60,7 @@ public class AssemblyLine
     public int vgprPressure;
     public List<Register> registerReads = new();
     public List<Register> registerWrites = new();
+    public List<Register> registersAlive = null;
     public CBufferRead cbufferRead = null;
 }
 
@@ -114,99 +116,44 @@ public class AnalyzedShader
     public int maxAnalyzedAliveSGPROnLine; // max number of register that are alive during a single line of code in the whole program
     public int maxVGPRAlive;
     public int maxSGPRAlive;
+    public BuildTarget target;
 }
 
 public static class ShaderAnalyzer
 {
-    static Regex readRegex = new(@"Reads: ([^.]*)", RegexOptions.Compiled);
-    static Regex writeRegex = new(@"Writes: (.*)", RegexOptions.Compiled);
-    static Regex noRegisterRegex = new(@"No registers accessed", RegexOptions.Compiled);
-    static Regex codeLineRegex = new(@"//\s+(\d+):(\s+.*)", RegexOptions.Compiled);
-    static Regex registerPressureRegex = new(@"Register pressure: (\d+) SGPRs, (\d+) VGPRs:", RegexOptions.Compiled);
-    static Regex sourceFilePathRegex = new(@"// --- (.*) ---", RegexOptions.Compiled);
-    static Regex assemblyLineRegex = new(@"^(\w+\s+[^//]*)\s*", RegexOptions.Compiled);
-    static Regex sLoadRegex = new(@"\bs_load_dword(\b|x(\d+))\s+[^,]+,\s+[^,]+,\s+(0x\d+)", RegexOptions.Compiled);
-    static Regex sBufferLoadRegex = new(@"\bs_buffer_load_dword(\b|x(\d+))\s+[^,]+,\s+[^,]+,\s+(\w+)", RegexOptions.Compiled);
-    static Regex jumpLabelRegex = new(@"(\w+):$", RegexOptions.Compiled);
+    static readonly Regex readRegex = new(@"Reads: ([^.]*)", RegexOptions.Compiled);
+    static readonly Regex writeRegex = new(@"Writes: (.*)", RegexOptions.Compiled);
+    static readonly Regex noRegisterRegex = new(@"No registers accessed", RegexOptions.Compiled);
+    static readonly Regex codeLineRegex = new(@"//\s+(\d+):(\s+.*)", RegexOptions.Compiled);
+    static readonly Regex registerPressureRegex = new(@"Register pressure: (\d+) SGPRs, (\d+) VGPRs:", RegexOptions.Compiled);
+    static readonly Regex sourceFilePathRegex = new(@"// --- (.*) ---", RegexOptions.Compiled);
+    static readonly Regex assemblyLineRegex = new(@"^(\w+\s+[^//]*)\s*", RegexOptions.Compiled);
+    static readonly Regex sLoadRegex = new(@"\bs_load_dword(\b|x(\d+))\s+[^,]+,\s+[^,]+,\s+(0x\d+)", RegexOptions.Compiled);
+    static readonly Regex sBufferLoadRegex = new(@"\bs_buffer_load_dword(\b|x(\d+))\s+[^,]+,\s+[^,]+,\s+(\w+)", RegexOptions.Compiled);
+    static readonly Regex jumpLabelRegex = new(@"(\w+):$", RegexOptions.Compiled);
 
+    static readonly string registerTableBase = @"\/\* \|\s+(\d+)\s+\|(.+?)(?=\d)(\d+)\s+\|(.+?)(?= \*\/)\s+\*\/\s+";
+    static readonly string registerTableBaseNoCapture = @"\/\* \|\s+\d+\s+\|.+?(?=\d)\d+\s+\|.+?(?= \*\/)\s+\*\/\s+";
+    static readonly Regex codeLineRegex2Regex = new(registerTableBaseNoCapture + @"\/\* (\d+):(.+)(?=\*\/)");
+    static readonly Regex sourceFilePath2Regex = new(registerTableBaseNoCapture + @"\/\*(.+)(?=\*\/)"); // Warning: this also matches code line2 regex
+    static readonly Regex assemblyLine2Regex = new(registerTableBase + @"(\w+\s+\w+.+)");
+    static readonly Regex jumpLabel2Regex = new(registerTableBaseNoCapture + @"(\w+):");
 
     public static AnalyzedShader ParseCompiledShader(string compiledShaderContent)
     {
         if (compiledShaderContent == null)
             return null;
 
-        AnalyzedShader analyzedShader = new();
+        AnalyzedShader analyzedShader;
+        Dictionary<string, int> jumps;
+        StringBuilder wholeSourceCode;
+        if (compiledShaderContent.StartsWith("// guid: "))
+            analyzedShader = ParseCompiledShaderFromText2(compiledShaderContent, out jumps, out wholeSourceCode);
+        else
+            analyzedShader = ParseCompiledShaderFromText(compiledShaderContent, out jumps, out wholeSourceCode);
 
-        Dictionary<string, int> jumps = new();
-        var lines = compiledShaderContent.Split(new string[]{"\n", "\r\n"}, StringSplitOptions.None);
-        string currentSourceFilePath = null;
-        CodeLine currentCodeLine = null;
-        AssemblyLine currentAssemblyLine = null;
-        StringBuilder wholeSourceCode = new();
-        int codeLineIndex = -1;
-        foreach (var line in lines)
-        {
-            var l = line.Trim();
-            if (String.IsNullOrWhiteSpace(l))
-                continue;
-
-            if (Match(sourceFilePathRegex, l, out var s))
-                currentSourceFilePath = s.Groups[1].Value;
-
-            if (Match(codeLineRegex, l, out var c))
-            {
-                wholeSourceCode.AppendLine(c.Groups[2].Value);
-                currentCodeLine = new CodeLine{ code = c.Groups[2].Value, line = int.Parse(c.Groups[1].Value), filePath = currentSourceFilePath };
-                analyzedShader.lines.Add(currentCodeLine);
-                codeLineIndex++;
-            }
-
-            if (Match(assemblyLineRegex, l, out var a))
-            {
-                currentAssemblyLine = new AssemblyLine() { assembly = a.Groups[1].Value };
-                currentCodeLine.assemblyLines.Add(currentAssemblyLine);
-            }
-
-            if (Match(readRegex, l, out var r))
-                currentAssemblyLine.registerReads.AddRange(ParseRegisters(r.Groups[1].Value));
-
-            if (Match(writeRegex, l, out var w))
-                currentAssemblyLine.registerWrites.AddRange(ParseRegisters(w.Groups[1].Value));
-
-            if (Match(registerPressureRegex, l, out var p))
-            {
-                currentAssemblyLine.vgprPressure = int.Parse(p.Groups[2].Value);
-                currentAssemblyLine.sgprPressure = int.Parse(p.Groups[1].Value);
-            }
-
-            if (Match(sLoadRegex, l, out var sl))
-            {
-                int readCount = 1;
-                if (!String.IsNullOrWhiteSpace(sl.Groups[2].Value))
-                    readCount = int.Parse(sl.Groups[2].Value);
-                currentAssemblyLine.cbufferRead = new CBufferRead { dwordReadCount = readCount, offset = Convert.ToInt32(sl.Groups[3].Value, 16) };
-            }
-
-            if (Match(sBufferLoadRegex, l, out var sbl))
-            {
-                int readCount = 1;
-                if (!String.IsNullOrWhiteSpace(sbl.Groups[2].Value))
-                    readCount = int.Parse(sbl.Groups[2].Value);
-                if (sbl.Groups[3].Value.StartsWith("0x"))
-                {
-                    int.TryParse(sbl.Groups[3].Value.Substring(2), NumberStyles.HexNumber, null, out var offset);
-                    currentAssemblyLine.cbufferRead = new CBufferRead { dwordReadCount = readCount, offset = offset };
-                }
-                else
-                    currentAssemblyLine.cbufferRead = new CBufferRead { dwordReadCount = readCount, dynamicScalarOffset = true };
-
-            }
-
-            if (Match(jumpLabelRegex, l, out var j))
-            {
-                jumps.Add(j.Groups[1].Value, codeLineIndex);
-            }
-        }
+        if (analyzedShader == null)
+            return null;
 
         // Jumps
         List<JumpData> jumpDatas = new();
@@ -338,7 +285,7 @@ public static class ShaderAnalyzer
         }
 
         assemblyLineIndex = 0;
-        codeLineIndex = 0;
+        int codeLineIndex = 0;
         foreach (var codeLine in analyzedShader.lines)
         {
             foreach (var assemblyLine in codeLine.assemblyLines)
@@ -386,6 +333,192 @@ public static class ShaderAnalyzer
         analyzedShader.maxAnalyzedAliveSGPROnLine = maxSGPRAllocatedOnLine;
 
         return analyzedShader;
+    }
+
+    public static AnalyzedShader ParseCompiledShaderFromText(string compiledShaderContent, out Dictionary<string, int> jumps, out StringBuilder wholeSourceCode)
+    {
+        AnalyzedShader analyzedShader = new();
+
+        analyzedShader.target = BuildTarget.PS4;
+        var lines = compiledShaderContent.Split(new string[]{"\n", "\r\n"}, StringSplitOptions.None);
+        string currentSourceFilePath = null;
+        CodeLine currentCodeLine = null;
+        AssemblyLine currentAssemblyLine = null;
+        int codeLineIndex = -1;
+        wholeSourceCode = new();
+        jumps = new();
+        foreach (var line in lines)
+        {
+            var l = line.Trim();
+            if (String.IsNullOrWhiteSpace(l))
+                continue;
+
+            if (Match(sourceFilePathRegex, l, out var s))
+                currentSourceFilePath = s.Groups[1].Value;
+
+            if (Match(codeLineRegex, l, out var c))
+            {
+                wholeSourceCode.AppendLine(c.Groups[2].Value);
+                currentCodeLine = new CodeLine{ code = c.Groups[2].Value, line = int.Parse(c.Groups[1].Value), filePath = currentSourceFilePath };
+                analyzedShader.lines.Add(currentCodeLine);
+                codeLineIndex++;
+            }
+
+            if (Match(assemblyLineRegex, l, out var a))
+            {
+                var asm = a.Groups[1].Value;
+                currentAssemblyLine = new AssemblyLine() { assembly = asm };
+                currentCodeLine.assemblyLines.Add(currentAssemblyLine);
+
+                if (Match(sLoadRegex, asm, out var sl))
+                {
+                    int readCount = 1;
+                    if (!String.IsNullOrWhiteSpace(sl.Groups[2].Value))
+                        readCount = int.Parse(sl.Groups[2].Value);
+                    currentAssemblyLine.cbufferRead = new CBufferRead { dwordReadCount = readCount, offset = Convert.ToInt32(sl.Groups[3].Value, 16) };
+                }
+
+                if (Match(sBufferLoadRegex, asm, out var sbl))
+                {
+                    int readCount = 1;
+                    if (!String.IsNullOrWhiteSpace(sbl.Groups[2].Value))
+                        readCount = int.Parse(sbl.Groups[2].Value);
+                    if (sbl.Groups[3].Value.StartsWith("0x"))
+                    {
+                        int.TryParse(sbl.Groups[3].Value.Substring(2), NumberStyles.HexNumber, null, out var offset);
+                        currentAssemblyLine.cbufferRead = new CBufferRead { dwordReadCount = readCount, offset = offset };
+                    }
+                    else
+                        currentAssemblyLine.cbufferRead = new CBufferRead { dwordReadCount = readCount, dynamicScalarOffset = true };
+                }
+            }
+
+            if (Match(readRegex, l, out var r))
+                currentAssemblyLine.registerReads.AddRange(ParseRegisters(r.Groups[1].Value));
+
+            if (Match(writeRegex, l, out var w))
+                currentAssemblyLine.registerWrites.AddRange(ParseRegisters(w.Groups[1].Value));
+
+            if (Match(registerPressureRegex, l, out var p))
+            {
+                currentAssemblyLine.vgprPressure = int.Parse(p.Groups[2].Value);
+                currentAssemblyLine.sgprPressure = int.Parse(p.Groups[1].Value);
+            }
+
+            if (Match(jumpLabelRegex, l, out var j))
+            {
+                jumps.Add(j.Groups[1].Value, codeLineIndex);
+            }
+        }
+
+        return analyzedShader;
+    }
+
+    public static AnalyzedShader ParseCompiledShaderFromText2(string compiledShaderContent, out Dictionary<string, int> jumps, out StringBuilder wholeSourceCode)
+    {
+        AnalyzedShader analyzedShader = new();
+
+        analyzedShader.target = BuildTarget.PS5;
+        var lines = compiledShaderContent.Split(new string[]{"\n", "\r\n"}, StringSplitOptions.None);
+        string currentSourceFilePath = null;
+        CodeLine currentCodeLine = null;
+        AssemblyLine currentAssemblyLine = null;
+        int codeLineIndex = -1;
+        wholeSourceCode = new();
+        jumps = new();
+        foreach (var line in lines)
+        {
+            var l = line.Trim();
+            if (String.IsNullOrWhiteSpace(l))
+                continue;
+
+            if (Match(codeLineRegex2Regex, l, out var c))
+            {
+                wholeSourceCode.AppendLine(c.Groups[2].Value);
+                currentCodeLine = new CodeLine{ code = c.Groups[2].Value, line = int.Parse(c.Groups[1].Value), filePath = currentSourceFilePath };
+                analyzedShader.lines.Add(currentCodeLine);
+                codeLineIndex++;
+            }
+            else if (Match(sourceFilePath2Regex, l, out var s))
+                currentSourceFilePath = s.Groups[1].Value.Trim();
+
+            if (Match(assemblyLine2Regex, l, out var a))
+            {
+                var asm = a.Groups[5].Value;
+                currentAssemblyLine = new AssemblyLine() { assembly = asm };
+                currentCodeLine.assemblyLines.Add(currentAssemblyLine);
+
+                if (Match(sLoadRegex, asm, out var sl))
+                {
+                    int readCount = 1;
+                    if (!String.IsNullOrWhiteSpace(sl.Groups[2].Value))
+                        readCount = int.Parse(sl.Groups[2].Value);
+                    currentAssemblyLine.cbufferRead = new CBufferRead { dwordReadCount = readCount, offset = Convert.ToInt32(sl.Groups[3].Value, 16) };
+                }
+
+                if (Match(sBufferLoadRegex, asm, out var sbl))
+                {
+                    int readCount = 1;
+                    if (!String.IsNullOrWhiteSpace(sbl.Groups[2].Value))
+                        readCount = int.Parse(sbl.Groups[2].Value);
+                    if (sbl.Groups[3].Value.StartsWith("0x"))
+                    {
+                        int.TryParse(sbl.Groups[3].Value.Substring(2), NumberStyles.HexNumber, null, out var offset);
+                        currentAssemblyLine.cbufferRead = new CBufferRead { dwordReadCount = readCount, offset = offset };
+                    }
+                    else
+                        currentAssemblyLine.cbufferRead = new CBufferRead { dwordReadCount = readCount, dynamicScalarOffset = true };
+                }
+
+                ParseRegistersFromTable(currentAssemblyLine, a.Groups[2].Value, a.Groups[4].Value);
+                currentAssemblyLine.vgprPressure = int.Parse(a.Groups[1].Value);
+                currentAssemblyLine.sgprPressure = int.Parse(a.Groups[3].Value);
+            }
+
+            if (Match(jumpLabel2Regex, l, out var j))
+            {
+                jumps.Add(j.Groups[1].Value, codeLineIndex);
+            }
+        }
+
+        return analyzedShader;
+    }
+
+    static void ParseRegistersFromTable(AssemblyLine assemblyLine, string vgprTable, string sgprTable)
+    {
+        void ParseTable(string table, RegisterType type)
+        {
+            int registerIndex = 0;
+            for (int i = 0; i < table.Length; i++)
+            {
+                var r = new Register { type = type, registerIndex = registerIndex };
+                switch (table[i])
+                {
+                    case ':':
+                        // TODO: use this data
+                        if (assemblyLine.registersAlive == null)
+                            assemblyLine.registersAlive = new();
+                        assemblyLine.registersAlive.Add(r);
+                        break;
+                    case '^':
+                        assemblyLine.registerWrites.Add(r);
+                        break;
+                    case 'v':
+                        assemblyLine.registerReads.Add(r);
+                        break;
+                    case 'x':
+                        assemblyLine.registerWrites.Add(r);
+                        assemblyLine.registerReads.Add(r);
+                        break;
+                }
+
+                if (table[i] != '|')
+                    registerIndex++;
+            }
+        }
+
+        ParseTable(vgprTable, RegisterType.Vector);
+        ParseTable(sgprTable, RegisterType.Scalar);
     }
 
     // Thanks Chat-GPT
