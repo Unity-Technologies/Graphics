@@ -5,8 +5,8 @@ namespace UnityEditor.Rendering.Tests
 {
     [HideInInspector]
     [VolumeComponentMenu("Supported On Tests/Not Specified Pipeline Supported On")]
-    [SupportedOnRenderPipeline(typeof(CustomRenderPipelineAsset))]
-    class VolumeComponentCustomRenderPipelineAsset : VolumeComponent
+    [SupportedOnRenderPipeline]
+    class VolumeComponentNotSpecifiedSupportedOn : VolumeComponent
     {
     }
 }
