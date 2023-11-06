@@ -98,6 +98,8 @@ To remove this angle constraint on the normal at the cost of a higher memory usa
 
 - A Decal Projector can only affect transparent Materials when you enable the **Affect Transparent** checkbox.
 
+- With [Lit Shader Mode](Frame-Settings.md) setup to **Deferred**. Decals projected on objects relying on object motion vectors (Deformed objects) can exhibit artifacts like being visible even if not in the projector frustrum. This can be fixed by enabling **Full Depth Prepass within Deferred** option in [FrameSettings](Frame-Settings.md).
+
 ### Migration of data previous to Unity 2020.2
 
 When you convert a project from 2020.2, Mesh renderers and Terrain do not receive any decals by default.
