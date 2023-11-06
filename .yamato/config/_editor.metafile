@@ -41,7 +41,7 @@ editor_pinning_config:
     - git clone git@github.cds.internal.unity3d.com:unity/gfx-sdet-tools.git
     - cd gfx-sdet-tools && git rev-parse HEAD
     - python3 gfx-sdet-tools/scripts/update_revisions.py --track 2023.1 --unity-branch 2023.1/staging --api-key $CDS_GITHUB_SERVICE_TOKEN --commit-and-push --nr-commits-to-retrieve 1 --vcs git
-  triggers:
-    recurring:
-      - branch: 2023.1/staging
-        frequency: 21 * * ?
+  # triggers:
+  #   recurring:
+  #     - branch: 2023.1/staging
+  #       frequency: 21 * * ?

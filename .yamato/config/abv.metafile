@@ -7,7 +7,7 @@ jobs:
     dependencies:
       - .yamato/_templates.yml#all_template_ci_<TRACK>
       - .yamato/all-urp_template.yml#URP_Template_<TRACK>
-    triggers:
-        recurring:
-          -  branch: 2023.1/staging
-             frequency: weekly
+    # triggers:
+    #     recurring:
+    #       -  branch: 2023.1/staging
+    #          frequency: weekly

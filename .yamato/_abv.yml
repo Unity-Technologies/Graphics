@@ -14,10 +14,6 @@ graphics_repo_nightly_2023.1:
         CUSTOM_REVISION: '{{2023_1.changeset.id}}'
         TEST_FILTER: .*
         UTR_VERSION: "current"
-    triggers:
-        recurring:
-          -  branch: 2023.1/staging
-             frequency: weekly
     dependencies:
       -  path: .yamato/_templates.yml#all_template_ci_2023.1
          rerun: on_new_revision
