@@ -43,5 +43,5 @@ editor_pinning_config:
     - python3 gfx-sdet-tools/scripts/update_revisions.py --track trunk --unity-branch $ONO_BRANCH_TRUNK --api-key $CDS_GITHUB_SERVICE_TOKEN --commit-and-push --nr-commits-to-retrieve 1 --vcs git
   triggers:
     recurring:
-      - branch: master
-        frequency: 21 * * ?
+      - branch: 2023.2/staging
+        frequency: 21 ? * 7 # At 9pm every Saturday - must happen before the ABV (abv.metafile). 2hrs before is arbitrary

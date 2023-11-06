@@ -2,15 +2,12 @@ project:
   name: ABV
 
 jobs:
-  - name: Templates and PPV2
+  - name: Templates CI
     job_id: graphics_repo_nightly
     dependencies:
       - .yamato/_templates.yml#all_template_ci_<TRACK>
-      - .yamato/all-postprocessing.yml#PostProcessing_<TRACK>
       - .yamato/all-urp_template.yml#URP_Template_<TRACK>
     triggers:
         recurring:
-          -  branch: master
-             frequency: weekly
-        allow_on:
-          - trunk
+          - branch: 2023.2/staging
+            frequency: 23 ? * 7 # At 11pm every Saturday

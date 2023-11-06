@@ -8,7 +8,7 @@
 ---
 
 graphics_repo_nightly_trunk:
-    name: Templates and PPV2 on trunk
+    name: Templates CI on trunk
     variables:
         CACHE_ARGS: '{{cache.flags}}'
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
@@ -16,17 +16,15 @@ graphics_repo_nightly_trunk:
         UTR_VERSION: "current"
     triggers:
         recurring:
-          -  branch: master
-             frequency: weekly
+          -  branch: 2023.2/staging
+             frequency: 23 ? * 7 # At 11pm every Saturday
     dependencies:
       -  path: .yamato/_templates.yml#all_template_ci_trunk
-         rerun: on_new_revision
-      -  path: .yamato/all-postprocessing.yml#PostProcessing_trunk
          rerun: on_new_revision
       -  path: .yamato/all-urp_template.yml#URP_Template_trunk
          rerun: on_new_revision
 graphics_repo_nightly_CUSTOM-REVISION:
-    name: Templates and PPV2 on CUSTOM-REVISION
+    name: Templates CI on CUSTOM-REVISION
     variables:
         CACHE_ARGS: '{{cache.flags}}'
         CUSTOM_REVISION: custom_revision_not_set
@@ -34,8 +32,6 @@ graphics_repo_nightly_CUSTOM-REVISION:
         UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/_templates.yml#all_template_ci_CUSTOM-REVISION
-         rerun: on_new_revision
-      -  path: .yamato/all-postprocessing.yml#PostProcessing_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/all-urp_template.yml#URP_Template_CUSTOM-REVISION
          rerun: on_new_revision
