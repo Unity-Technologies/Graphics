@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using UnityEditor.VFX.Block;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.VFX;
 
 using UnityObject = UnityEngine.Object;
@@ -156,11 +157,12 @@ namespace UnityEditor.VFX.UI
         }
 
         [Serializable]
-        protected struct Attribute
+        internal struct Attribute
         {
             public string name;
             public VFXValueType type;
             public string description;
+            public bool canDuplicate;
         }
 
         [Serializable]

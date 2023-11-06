@@ -59,7 +59,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         int dataIndex = HDLightRenderDatabase.instance.FindEntityDataIndex(light);
                         if (dataIndex == HDLightRenderDatabase.InvalidDataIndex)
                         {
-                            //Shuriken lights bullshit: this happens because shuriken lights dont have the HDAdditionalLightData OnEnabled.
+                            //Shuriken lights thing: this happens because shuriken lights dont have the HDAdditionalLightData OnEnabled.
                             //Because of this, we have to forcefully create a light render entity on the rendering side. Horrible!!!
                             if (light.TryGetComponent<HDAdditionalLightData>(out var hdAdditionalLightData))
                             {

@@ -51,6 +51,7 @@ SurfaceDescriptionInputs FragInputsToSurfaceDescriptionInputs(FragInputs input, 
     $SurfaceDescriptionInputs.uv3:                                          output.uv3 =                                        input.texCoord3;
     $SurfaceDescriptionInputs.VertexColor:                                  output.VertexColor =                                input.color;
     $SurfaceDescriptionInputs.FaceSign:                                     output.FaceSign =                                   input.isFrontFace;
+    $SurfaceDescriptionInputs.InstanceID:                                   output.InstanceID =                                 input.instanceID;
     $SurfaceDescriptionInputs.TimeParameters:                               output.TimeParameters =                             _TimeParameters.xyz; // This is mainly for LW as HD overwrite this value
 
     // splice point to copy frag inputs custom interpolator pack into the SDI

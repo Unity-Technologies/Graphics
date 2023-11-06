@@ -438,9 +438,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 HDStructFields.AttributesMesh.normalOS,
                 HDStructFields.AttributesMesh.tangentOS,
                 HDStructFields.AttributesMesh.uv0,
+                HDStructFields.AttributesMesh.instanceID,
                 HDStructFields.FragInputs.tangentToWorld,
                 HDStructFields.FragInputs.positionRWS,
                 HDStructFields.FragInputs.texCoord0,
+                HDStructFields.FragInputs.instanceID
             };
         }
         #endregion

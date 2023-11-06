@@ -150,15 +150,6 @@ namespace UnityEngine.Rendering
             return new GPUResidentDrawerSettings();
         }
 
-        private static GPUResidentDrawerResources GetResourcesFromRPAsset()
-        {
-            var renderPipelineAsset = GraphicsSettings.currentRenderPipeline;
-            if (renderPipelineAsset is IGPUResidentRenderPipeline mbAsset)
-                return mbAsset.gpuResidentDrawerResources;
-
-            return null;
-        }
-
         private static bool IsForcedOnViaCommandLine()
         {
 #if UNITY_EDITOR && GPU_RESIDENT_DRAWER_ALLOW_FORCE_ON
@@ -170,6 +161,7 @@ namespace UnityEngine.Rendering
 #endif
             return false;
         }
+
 		internal static void Reinitialize()
         {
 			Reinitialize(false);
@@ -178,7 +170,6 @@ namespace UnityEngine.Rendering
         internal static void Reinitialize(bool forceSupported)
         {
             var settings = GetGlobalSettingsFromRPAsset();
-            var resources = GetResourcesFromRPAsset();
 
             // When compiling in the editor, we include a try catch block around our initialization logic to avoid leaving the editor window in a broken state if something goes wrong.
             // We can probably remove this in the future once the edit mode functionality stabilizes, but for now it's safest to have a fallback.
@@ -186,7 +177,7 @@ namespace UnityEngine.Rendering
             try
 #endif
             {
-                Recreate(settings, resources, forceSupported);
+                Recreate(settings, forceSupported);
             }
 #if UNITY_EDITOR
             catch (Exception exception)
@@ -207,22 +198,12 @@ namespace UnityEngine.Rendering
             s_Instance = null;
         }
 
-        private static void Recreate(GPUResidentDrawerSettings settings, GPUResidentDrawerResources resources, bool forceSupported)
+        private static void Recreate(GPUResidentDrawerSettings settings, bool forceSupported)
         {
             if (IsForcedOnViaCommandLine())
             {
                 forceSupported = true;
                 settings.mode = GPUResidentDrawerMode.InstancedDrawing;
-#if UNITY_EDITOR
-                // If we force the batcher on we might not get resources from the SRP global asset
-                // Create a temp object here instead.
-                if (resources is null)
-                {
-                    resources = ScriptableObject.CreateInstance<GPUResidentDrawerResources>();
-                    resources.hideFlags = HideFlags.HideAndDontSave;
-                    ResourceReloader.ReloadAllNullIn(resources, "Packages/com.unity.render-pipelines.core/");
-                }
-#endif
             }
 
             CleanUp();
@@ -262,7 +243,7 @@ namespace UnityEngine.Rendering
                 return;
             }
 
-            s_Instance = new GPUResidentDrawer(settings, resources, 4096);
+            s_Instance = new GPUResidentDrawer(settings, 4096);
         }
 
         internal GPUResidentBatcher batcher { get => m_Batcher; }
@@ -286,8 +267,9 @@ namespace UnityEngine.Rendering
 
         private List<Object> m_ChangedMaterials;
 
-        private GPUResidentDrawer(GPUResidentDrawerSettings settings, GPUResidentDrawerResources resources, int maxInstanceCount)
+        private GPUResidentDrawer(GPUResidentDrawerSettings settings, int maxInstanceCount)
         {
+            var resources = GraphicsSettings.GetRenderPipelineSettings<GPUResidentDrawerResources>();
             var renderPipelineAsset = GraphicsSettings.currentRenderPipeline;
             var mbAsset = renderPipelineAsset as IGPUResidentRenderPipeline;
             Debug.Assert(mbAsset != null, "No compatible Render Pipeline found");

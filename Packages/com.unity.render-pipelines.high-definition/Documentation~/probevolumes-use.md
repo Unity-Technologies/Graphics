@@ -47,7 +47,7 @@ You can use the following to configure a Probe Volume:
 - Use [Baking Set properties](probevolumes-settings.md#pv-tab) to change the probe spacing and behaviour in all the Probe Volumes in a Baking Set.
 - Use the settings in the [Probe Volume Inspector](probevolumes-settings.md#probe-volume-properties) to change the Probe Volume size and probe density.
 - Add a [Probe Adjustment Volume](probevolumes-settings.md#probe-adjustment-volume) to the scene, to make probes invalid in a small area or fix other lighting issues.
-- Add a [Volume](Volumes.md) to your Scene with a [Probe Volume Options](probevolumes-settings.md#probe-volumes-options-override) override, to change the way HDRP samples Probe Volume data when the Camera is inside the Volume. This doesn't affect baking.
+- Add a [Volume](understand-volumes.md) to your Scene with a [Probe Volume Options](probevolumes-settings.md#probe-volumes-options-override) override, to change the way HDRP samples Probe Volume data when the Camera is inside the Volume. This doesn't affect baking.
 
 For more information, see the following:
 
@@ -117,7 +117,7 @@ If you need to make changes to the static geometry for your Lighting Scenarios, 
 
 If you switch between Lighting Scenarios at runtime, HDRP changes only the Probe Volume's baked indirect lighting. You might still need to use scripts to move geometry or change direct lighting.
 
-You can use the use the [Rendering Debugger](Render-Pipeline-Debug-Window.md#ProbeVolume) to preview transitions between Lighting Scenarios.
+You can use the use the [Rendering Debugger](rendering-debugger-window-reference.md#ProbeVolume) to preview transitions between Lighting Scenarios.
 
 ## Additional resources
 

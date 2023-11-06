@@ -64,6 +64,7 @@ Pass
     $AttributesMesh.uv3:                                #define ATTRIBUTES_NEED_TEXCOORD3
     $AttributesMesh.color:                              #define ATTRIBUTES_NEED_COLOR
     $AttributesMesh.vertexID:                           #define ATTRIBUTES_NEED_VERTEXID
+    $AttributesMesh.instanceID:                         #define ATTRIBUTES_NEED_INSTANCEID
     $VaryingsMeshToPS.positionRWS:                      #define VARYINGS_NEED_POSITION_WS
     $VaryingsMeshToPS.positionPredisplacementRWS:       #define VARYINGS_NEED_POSITIONPREDISPLACEMENT_WS
     $VaryingsMeshToPS.normalWS:                         #define VARYINGS_NEED_TANGENT_TO_WORLD
@@ -74,6 +75,7 @@ Pass
     $VaryingsMeshToPS.color:                            #define VARYINGS_NEED_COLOR
     $VaryingsMeshToPS.elementToWorld0:                  #define VARYINGS_NEED_ELEMENT_TO_WORLD
     $VaryingsMeshToPS.worldToElement0:                  #define VARYINGS_NEED_WORLD_TO_ELEMENT
+    $VaryingsMeshToPS.instanceID:                       #define VARYINGS_NEED_INSTANCEID
     $Varyings.diffuseGIData0:                           #define VARYINGS_NEED_SIX_WAY_DIFFUSE_GI_DATA
 
     $features.graphVertex:                              #define HAVE_MESH_MODIFICATION
@@ -88,6 +90,7 @@ Pass
     $FragInputs.texCoord1: #define FRAG_INPUTS_USE_TEXCOORD1
     $FragInputs.texCoord2: #define FRAG_INPUTS_USE_TEXCOORD2
     $FragInputs.texCoord3: #define FRAG_INPUTS_USE_TEXCOORD3
+    $FragInputs.instanceID: #define FRAG_INPUTS_USE_INSTANCEID
 
     $FragInputs.diffuseGIData0: #define FRAG_INPUTS_USE_SIX_WAY_DIFFUSE_GI_DATA
 
@@ -107,6 +110,7 @@ Pass
     $features.graphTessellation: $VaryingsMeshToDS.texCoord2:                           #define VARYINGS_DS_NEED_TEXCOORD2
     $features.graphTessellation: $VaryingsMeshToDS.texCoord3:                           #define VARYINGS_DS_NEED_TEXCOORD3
     $features.graphTessellation: $VaryingsMeshToDS.color:                               #define VARYINGS_DS_NEED_COLOR
+    $features.graphTessellation: $VaryingsMeshToDS.instanceID:                          #define VARYINGS_DS_NEED_INSTANCEID
 	$features.graphTessellation: #endif
 
     // Following two define are a workaround introduce in 10.1.x for RaytracingQualityNode
@@ -193,7 +197,7 @@ Pass
 
     // Includes
     $splice(PreGraphIncludes)
-	$splice(GraphIncludes)
+    $splice(GraphIncludes)
 
     // --------------------------------------------------
     // Structs and Packing

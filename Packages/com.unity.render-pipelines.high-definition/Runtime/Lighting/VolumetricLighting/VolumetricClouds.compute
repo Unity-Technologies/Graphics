@@ -1,39 +1,27 @@
 #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
 // Depth related kernels
-#pragma kernel ConvertObliqueDepth
 #pragma kernel DownscaleDepth
 
-// Trace to intermedaite
+// Trace to intermediate
 #pragma kernel ReprojectClouds                      REPROJECT_CLOUDS=ReprojectClouds
 #pragma kernel ReprojectCloudsRejection             REPROJECT_CLOUDS=ReprojectCloudsRejection WITH_REJECTION
 #pragma kernel PreUpscaleClouds
-#pragma kernel PreUpscaleCloudsSky
 
 // Intermediate to Full resolution
 #pragma kernel UpscaleClouds UPSCALE_CLOUDS=UpscaleClouds
 #pragma kernel UpscaleCloudsPerceptual UPSCALE_CLOUDS=UpscaleCloudsPerceptual PERCEPTUAL_TRANSMITTANCE
-#pragma kernel UpscaleCloudsSky
 
 // Full resolution combination
 #pragma kernel CombineClouds COMBINE_CLOUDS=CombineClouds
 #pragma kernel CombineCloudsPerceptual COMBINE_CLOUDS=CombineCloudsPerceptual PERCEPTUAL_TRANSMITTANCE
-#pragma kernel CombineCloudsSky
-
-#pragma multi_compile _ LOCAL_VOLUMETRIC_CLOUDS
 
 // #define WITHOUT_LDS
 // #pragma enable_d3d11_debug_symbols
 
 // HDRP generic includes
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/GeometricTools.hlsl"
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/PhysicallyBasedSky/ShaderVariablesPhysicallyBasedSky.cs.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/PhysicallyBasedSky/PhysicallyBasedSkyCommon.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingSampling.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/BilateralUpsample.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RayTracingCommon.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/VolumetricClouds/VolumetricCloudsUtilities.hlsl"
@@ -50,23 +38,9 @@ TEXTURE2D_X(_HistoryVolumetricClouds0Texture);
 TEXTURE2D_X(_HistoryVolumetricClouds1Texture);
 
 // Output texture
-RW_TEXTURE2D_X(float, _DepthBufferRW);
 RW_TEXTURE2D_X(float, _HalfResDepthBufferRW);
 RW_TEXTURE2D_X(float4, _CloudsLightingTextureRW);
 RW_TEXTURE2D_X(float3, _CloudsAdditionalTextureRW);
-
-[numthreads(8, 8, 1)]
-void ConvertObliqueDepth(uint3 currentCoord : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
-{
-    UNITY_XR_ASSIGN_VIEW_INDEX(currentCoord.z);
-
-    // If this is bigger than the trace size, we are done
-    if (any(currentCoord.xy >= uint2(_FinalScreenSize.xy)))
-        return;
-
-    // Combine it with the current shift to define which half res depth should be used
-    _DepthBufferRW[COORD_TEXTURE2D_X(currentCoord.xy)] = ConvertObliqueDepthToNonOblique(currentCoord.xy, LOAD_TEXTURE2D_X(_DepthTexture, currentCoord.xy).x);
-}
 
 [numthreads(8, 8, 1)]
 void DownscaleDepth(uint3 intermediateCoord : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
@@ -120,12 +94,7 @@ void REPROJECT_CLOUDS(uint3 dispatchThreadId : SV_DispatchThreadID,
 #endif
 
     // Compute the motionVector of the clouds
-#ifdef LOCAL_VOLUMETRIC_CLOUDS
     float2 motionVector = EvaluateCloudMotionVectors(fullResCoord, currentCloudDepth, 1.0);
-#else
-    // If we are processing clouds as distant, we have no choice but to consider them very far.
-    float2 motionVector = EvaluateCloudMotionVectors(fullResCoord, UNITY_RAW_FAR_CLIP_VALUE, 0.0);
-#endif
 
     // Compute the history pixel coordinate to tap from
     float2 historyCoord = (intermediateCoord.xy + 0.5) - motionVector * _IntermediateScreenSize.xy;
@@ -147,6 +116,9 @@ void REPROJECT_CLOUDS(uint3 dispatchThreadId : SV_DispatchThreadID,
     float previousDepth = previousResult1.y;
     float previousCloudDepth = previousResult1.z;
 
+    // Reproject previous cloud depth in case near plane has changed
+    previousCloudDepth = saturate(previousCloudDepth * _NearPlaneReprojection);
+
     // This tracks if the history is considered valid
     bool validHistory = previousSampleCount >= 0.5f;
 
@@ -167,7 +139,7 @@ void REPROJECT_CLOUDS(uint3 dispatchThreadId : SV_DispatchThreadID,
 
     float validityFactor = 1.0;
 #ifdef WITH_REJECTION
-    // We need to validate that within the 3x3 trace region, at least one of the pixels is not a background pixel (incluing the clouds)
+    // We need to validate that within the 3x3 trace region, at least one of the pixels is not a background pixel (including the clouds)
     float4 lightingMin = float4(FLT_MAX, FLT_MAX, FLT_MAX, 1.0);
     float4 lightingMax = float4(0, 0, 0, 0.0);
     for (int y = -1; y <= 1; ++y)
@@ -250,14 +222,11 @@ void REPROJECT_CLOUDS(uint3 dispatchThreadId : SV_DispatchThreadID,
             FillCloudReprojectionNeighborhoodData(groupThreadId, localIndex, upsampleData);
             #endif
             // Make sure that at least one of the pixels in the neighborhood can be used
-            float rejectNeighborhood = 0.0f;
+            bool rejectNeighborhood;
             int closestNeighbor = 4;
             OverrideMaskValues(currentDepth, upsampleData, rejectNeighborhood, closestNeighbor);
 
-            // 1.0  if we were able to produce a value 0.0 if we failed to
-            previousSampleCount = 1.0f - rejectNeighborhood;
-
-            if (rejectNeighborhood == 1.0f)
+            if (rejectNeighborhood)
             {
                 // We don't have any valid history and there is no neighbor that is usable, we consider that we have no clouds.
                 previousResult = float4(0.0, 0.0, 0.0, 1.0);
@@ -348,12 +317,12 @@ void PreUpscaleClouds(uint3 dispatchThreadId : SV_DispatchThreadID,
         FillCloudReprojectionNeighborhoodData(groupThreadId, localIndex, upsampleData);
         #endif
         // Make sure that at least one of the pixels in the neighborhood can be used
-        float rejectNeighborhood = 0.0f;
-        int closestNeighbor = 4;
+        float rejectNeighborhood;
+        int closestNeighbor;
         OverrideMaskValues(currentDepth, upsampleData, rejectNeighborhood, closestNeighbor);
 
         // 1.0 if we were able to produce a value 0.0 if we failed to
-        if (rejectNeighborhood == 1.0f)
+        if (rejectNeighborhood)
         {
             // We don't have any valid history and there is no neighbor that is usable
             cloudLighting = 0.0f;
@@ -380,44 +349,6 @@ void PreUpscaleClouds(uint3 dispatchThreadId : SV_DispatchThreadID,
     // Accumulate the result with the previous frame
     _CloudsLightingTextureRW[COORD_TEXTURE2D_X(intermediateCoord)] = cloudLighting;
     _CloudsAdditionalTextureRW[COORD_TEXTURE2D_X(intermediateCoord)] = float3(1, currentDepth, cloudCloudDepth);
-}
-
-[numthreads(8, 8, 1)]
-void PreUpscaleCloudsSky(uint3 dispatchThreadId : SV_DispatchThreadID,
-                    int groupIndex : SV_GroupIndex,
-                    uint2 groupThreadId : SV_GroupThreadID,
-                    uint2 groupId : SV_GroupID)
-{
-    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
-
-    // Compute the set of coordinates we need
-    uint2 intermediateCoord = dispatchThreadId.xy;
-    uint2 traceCoord = intermediateCoord / 2;
-
-#ifndef WITHOUT_LDS
-    // Only 36 workers of the 64 do the pre-fetching
-    if (groupIndex < 36)
-    {
-        // Load 1 value per thread
-        FillCloudReprojectionLDS(groupIndex, groupId * 8);
-    }
-    // Make sure all values are loaded in LDS by now.
-    GroupMemoryBarrierWithGroupSync();
-#endif
-
-    // If out of bounds, leave right away
-    if (any(intermediateCoord.xy >= uint2(_IntermediateScreenSize.xy)))
-        return;
-
-    // Grab the cloud data
-#ifdef WITHOUT_LDS
-    float4 cloudLighting = LOAD_TEXTURE2D_X(_CloudsLightingTexture, traceCoord);
-#else
-    float4 cloudLighting = GetCloudLighting_LDS(groupThreadId, int2(0, 0));
-#endif
-
-    // Accumulate the result with the previous frame
-    _CloudsLightingTextureRW[COORD_TEXTURE2D_X(intermediateCoord)] = cloudLighting;
 }
 
 // Constant buffer where all variables should land
@@ -500,24 +431,16 @@ void UPSCALE_CLOUDS(uint3 finalCoord : SV_DispatchThreadID,
 #endif
 
     // This flags allows us to track if at least one of the contributing pixels has some clouds
-#ifdef LOCAL_VOLUMETRIC_CLOUDS
-    // Flag that tells us which pixel holds valid information
-    float rejectedNeighborhood = 0.0;
-    int closestNeighbor = 4;
+    int closestNeighbor;
+    bool rejectedNeighborhood;
     OverrideMaskValues(highDepth, upsampleData, rejectedNeighborhood, closestNeighbor);
 
     // Do the bilateral upscale
     float4 currentClouds = BilUpColor3x3(highDepth, upsampleData);
 
     // Read the fallback value and use it if we defined that it was impossible for us to do something about it
-    if (rejectedNeighborhood == 1.0f)
+    if (rejectedNeighborhood)
         currentClouds = float4(0.0, 0.0, 0.0, 1.0);
-#else
-    upsampleData.lowDepthA = UNITY_RAW_FAR_CLIP_VALUE;
-    upsampleData.lowDepthB = UNITY_RAW_FAR_CLIP_VALUE;
-    upsampleData.lowDepthC = UNITY_RAW_FAR_CLIP_VALUE;
-    float4 currentClouds = highDepth == UNITY_RAW_FAR_CLIP_VALUE ? BilUpColor3x3(highDepth, upsampleData) : float4(0.0, 0.0, 0.0, 1.0);
-#endif
 
     // De-tonemap the inscattering value
     currentClouds.w = saturate(currentClouds.w);
@@ -538,12 +461,6 @@ void UPSCALE_CLOUDS(uint3 finalCoord : SV_DispatchThreadID,
         float cloudDepth = currentClouds.w != 1.0 ? EvaluateUpscaledCloudDepth(groupThreadId, upsampleData) : UNITY_RAW_FAR_CLIP_VALUE;
     #endif
 
-    // Compute the pos input of the cloud position
-    PositionInputs cloudPosInput = GetPositionInput(finalCoord.xy, _FinalScreenSize.zw, cloudDepth, _IsPlanarReflection ? _CameraInverseViewProjection_NO : UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
-
-    // Compute the view direction
-    float3 viewDir = -normalize(cloudPosInput.positionWS);
-
 #if defined(PERCEPTUAL_TRANSMITTANCE)
     // Estimate the transmittance that shall be used
     float4 currentColor = _CameraColorTexture[COORD_TEXTURE2D_X(finalCoord.xy)];
@@ -555,37 +472,6 @@ void UPSCALE_CLOUDS(uint3 finalCoord : SV_DispatchThreadID,
     // Store the upscaled result only, composite in later pass.
     _VolumetricCloudsLightingTextureRW[COORD_TEXTURE2D_X(finalCoord.xy)] = float4(currentClouds.xyz, finalTransmittance);
     _VolumetricCloudsDepthTextureRW[COORD_TEXTURE2D_X(finalCoord.xy)] = cloudDepth;
-}
-
-[numthreads(8, 8, 1)]
-void UpscaleCloudsSky(uint3 finalCoord : SV_DispatchThreadID,
-                            int groupIndex : SV_GroupIndex,
-                            uint2 groupThreadId : SV_GroupThreadID,
-                            uint2 groupId : SV_GroupID)
-{
-    UNITY_XR_ASSIGN_VIEW_INDEX(finalCoord.z);
-
-    // Only 36 workers of the 64 do the pre-fetching
-    if (groupIndex < 36)
-    {
-        // Load 1 value per thread
-        FillLDSUpscale(groupIndex, groupId * 8);
-    }
-
-    // Make sure all values are loaded in LDS by now.
-    GroupMemoryBarrierWithGroupSync();
-
-    // If out of bounds, leave right away
-    if (any(finalCoord.xy >= uint2(_FinalScreenSize.xy)))
-        return;
-
-    float4 currentClouds = GetCloudLighting_LDS(groupThreadId, int2(0, 0));
-
-    // De-tonemap the inscattering value
-    currentClouds.w = saturate(currentClouds.w);
-
-    // Store the upscaled result only, composite in later pass.
-    _VolumetricCloudsLightingTextureRW[COORD_TEXTURE2D_X(finalCoord.xy)] = currentClouds;
 }
 
 [numthreads(8, 8, 1)]
@@ -604,23 +490,13 @@ void COMBINE_CLOUDS(uint3 finalCoord : SV_DispatchThreadID,
     float highDepth = LOAD_TEXTURE2D_X(_DepthTexture, finalCoord.xy).x;
     float4 sampleVal = LOAD_TEXTURE2D_X(_VolumetricCloudsTexture, finalCoord.xy);
 
-#ifdef LOCAL_VOLUMETRIC_CLOUDS
     // Do the bilateral upscale
     float4 currentClouds = sampleVal;
-#else
-    float4 currentClouds = highDepth == UNITY_RAW_FAR_CLIP_VALUE ? sampleVal : float4(0.0, 0.0, 0.0, 1.0);
-#endif
 
     // De-tonemap the inscattering value
     currentClouds.w = saturate(currentClouds.w);
 
     float cloudsDepth = LOAD_TEXTURE2D_X(_DepthStatusTexture, finalCoord.xy).z;
-
-    // Compute the pos input of the cloud position
-    PositionInputs cloudPosInput = GetPositionInput(finalCoord.xy, _FinalScreenSize.zw, cloudsDepth, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
-
-    // Compute the view direction
-    float3 viewDir = -normalize(cloudPosInput.positionWS);
 
 #if defined(PERCEPTUAL_TRANSMITTANCE)
     // Estimate the transmittance that shall be used
@@ -633,23 +509,4 @@ void COMBINE_CLOUDS(uint3 finalCoord : SV_DispatchThreadID,
     // Store the upscaled result only, composite in later pass.
     _VolumetricCloudsLightingTextureRW[COORD_TEXTURE2D_X(finalCoord.xy)] = float4(currentClouds.xyz, finalTransmittance);
     _VolumetricCloudsDepthTextureRW[COORD_TEXTURE2D_X(finalCoord.xy)] = cloudsDepth;
-}
-
-[numthreads(8, 8, 1)]
-void CombineCloudsSky(uint3 finalCoord : SV_DispatchThreadID)
-{
-    UNITY_XR_ASSIGN_VIEW_INDEX(finalCoord.z);
-
-    // If out of bounds, leave right away
-    if (any(finalCoord.xy >= uint2(_FinalScreenSize.xy)))
-        return;
-
-    // Grab the depth value of the pixel
-    float4 currentClouds = LOAD_TEXTURE2D_X(_VolumetricCloudsTexture, finalCoord.xy);
-
-    // De-tonemap the inscattering value
-    currentClouds.w = saturate(currentClouds.w);
-
-    // Store the upscaled result only, composite in later pass.
-    _VolumetricCloudsLightingTextureRW[COORD_TEXTURE2D_X(finalCoord.xy)] = currentClouds;
 }

@@ -70,7 +70,6 @@ namespace Threading
             TYPE PrefixProduct(TYPE v); \
             TYPE ReadLaneAt(TYPE v, uint i); \
             TYPE ReadLaneFirst(TYPE v); \
-            TYPE ReadLaneShuffle(TYPE v, uint i); \
 
         // Currently just support scalars.
         DECLARE_API_FOR_TYPE(uint)

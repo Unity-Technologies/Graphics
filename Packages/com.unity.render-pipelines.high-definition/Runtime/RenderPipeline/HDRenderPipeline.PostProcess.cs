@@ -3281,19 +3281,9 @@ namespace UnityEngine.Rendering.HighDefinition
                         passData.waterGBuffer3Thickness = TextureHandle.nullHandle;
                     passData.taaEnabled = taaEnabled;
 
-                    CloudSettings cloudSettings;
-                    CloudRenderer cloudRenderer;
-                    bool hasCloud = m_SkyManager.TryGetCloudSettings(hdCamera, out cloudSettings, out cloudRenderer);
-                    CloudLayer cloudLayer = cloudSettings as CloudLayer;
-                    passData.hasCloudLayer = hasCloud && cloudLayer && LensFlareCommonSRP.IsCloudLayerOpacityNeeded(hdCamera.camera);
-                    if (passData.hasCloudLayer && LensFlareCommonSRP.IsCloudLayerOpacityNeeded(hdCamera.camera))
-                    {
-                        passData.hasCloudLayer &= cloudSettings.active && cloudLayer.opacity.value > 0.0f;
-                        if (passData.hasCloudLayer && skyManager.cloudOpacity.IsValid())
-                        {
-                            passData.cloudOpacityTexture = builder.ReadTexture(skyManager.cloudOpacity);
-                        }
-                    }
+                    passData.hasCloudLayer = skyManager.cloudOpacity.IsValid();
+                    if (passData.hasCloudLayer)
+                        passData.cloudOpacityTexture = builder.ReadTexture(skyManager.cloudOpacity);
 
                     builder.SetRenderFunc(
                         (LensFlareData data, RenderGraphContext ctx) =>

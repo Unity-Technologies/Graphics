@@ -101,21 +101,6 @@ namespace UnityEditor.Rendering.HighDefinition
             m_UnderWaterAmbientProbeContribution = o.Find(x => x.underWaterAmbientProbeContribution);
         }
 
-        // We pass colors to shader via constant buffers instead of Material.SetColor
-        // So we have to apply gamma correction ourselves
-        static internal void ColorFieldLinear(SerializedProperty property, GUIContent label)
-        {
-            var rect = EditorGUILayout.GetControlRect();
-            BeginProperty(rect, label, property);
-
-            BeginChangeCheck();
-            var color = ColorField(rect, label, property.colorValue.gamma, true, false, false);
-            if (EndChangeCheck())
-                property.colorValue = color.linear;
-
-            EndProperty();
-        }
-
         static internal bool WaterBandHasAgitation(WaterSurfaceEditor serialized, Editor owner, int bandIndex)
         {
             WaterSurfaceType surfaceType = (WaterSurfaceType)(serialized.m_SurfaceType.enumValueIndex);
@@ -225,7 +210,7 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.LabelField("Refraction", EditorStyles.boldLabel);
             using (new IndentLevelScope())
             {
-                ColorFieldLinear(serialized.m_RefractionColor, k_RefractionColor);
+                CoreEditorUtils.ColorFieldLinear(serialized.m_RefractionColor, k_RefractionColor);
                 serialized.m_MaxRefractionDistance.floatValue = EditorGUILayout.Slider(k_MaxRefractionDistance, serialized.m_MaxRefractionDistance.floatValue, 0.0f, 3.5f);
                 serialized.m_AbsorptionDistance.floatValue = EditorGUILayout.Slider(k_AbsorptionDistance, serialized.m_AbsorptionDistance.floatValue, 0.0f, 100.0f);
             }
@@ -233,7 +218,7 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.LabelField("Scattering", EditorStyles.boldLabel);
             using (new IndentLevelScope())
             {
-                ColorFieldLinear(serialized.m_ScatteringColor, k_ScatteringColor);
+                CoreEditorUtils.ColorFieldLinear(serialized.m_ScatteringColor, k_ScatteringColor);
                 serialized.m_AmbientScattering.floatValue = EditorGUILayout.Slider(k_AmbientScattering, serialized.m_AmbientScattering.floatValue, 0.0f, 1.0f);
                 serialized.m_HeightScattering.floatValue = EditorGUILayout.Slider(k_HeightScattering, serialized.m_HeightScattering.floatValue, 0.0f, 1.0f);
                 serialized.m_DisplacementScattering.floatValue = EditorGUILayout.Slider(k_DisplacementScattering, serialized.m_DisplacementScattering.floatValue, 0.0f, 1.0f);
@@ -376,7 +361,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     if ((WaterSurface.UnderWaterScatteringColorMode)serialized.m_UnderWaterScatteringColorMode.enumValueIndex == WaterSurface.UnderWaterScatteringColorMode.Custom)
                     {
                         using (new IndentLevelScope())
-                            ColorFieldLinear(serialized.m_UnderWaterScatteringColor, k_UnderWaterScatteringColor);
+                            CoreEditorUtils.ColorFieldLinear(serialized.m_UnderWaterScatteringColor, k_UnderWaterScatteringColor);
                     }
 
                     // Refraction fallback

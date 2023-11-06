@@ -274,12 +274,18 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             isFirstFrame = true;
             cameraFrameCount = 0;
+            taaFrameIndex = 0;
             resetPostProcessingHistory = true;
             volumetricHistoryIsValid = false;
             volumetricValidFrames = 0;
             colorPyramidHistoryIsValid = false;
             colorPyramidHistoryValidFrames = 0;
             dofHistoryIsValid = false;
+
+            // Reset the volumetric cloud offset animation data
+            volumetricCloudsAnimationData.cloudOffset = new Vector2(0.0f, 0.0f);
+            volumetricCloudsAnimationData.verticalShapeOffset = 0.0f;
+            volumetricCloudsAnimationData.verticalErosionOffset = 0.0f;
 
             // Camera was potentially Reset() so we need to reset timers on the renderers.
             if (visualSky != null)
@@ -358,7 +364,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
-        // Generic structure that captures various history validity states.
+        /// Generic structure that captures various history validity states.
         /// </summary>
         internal struct HistoryEffectValidity
         {
@@ -369,40 +375,34 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
-        // Struct that lists the data required to perform the volumetric clouds animation
+        /// Struct that holds volumetric clouds animation data accumulated over time
         /// </summary>
         internal struct VolumetricCloudsAnimationData
         {
-            public float lastTime;
             public Vector2 cloudOffset;
             public float verticalShapeOffset;
             public float verticalErosionOffset;
         }
 
+        // This property allows us to track the volumetric cloud animation data
+        internal VolumetricCloudsAnimationData volumetricCloudsAnimationData;
+
         internal struct PlanetData
         {
             internal float radius;
             internal Vector3 center;
+            internal RenderingSpace renderingSpace;
 
-            internal void Set(VisualEnvironment visualEnv, Vector3 camPosWS)
+            internal void Set(Vector3 cameraPos, VisualEnvironment visualEnv)
             {
-                switch (visualEnv.planetType.value)
-                {
-                    case VisualEnvironment.ShapeType.Flat:
-                        radius = visualEnv.planetRadius.value;
-                        center = new Vector3(camPosWS.x, -radius + visualEnv.seaLevel.value, camPosWS.z);
-                        break;
-
-                    case VisualEnvironment.ShapeType.Earth:
-                        radius = VisualEnvironment.k_DefaultEarthRadius;
-                        center = new Vector3(0, -radius, 0);
-                        break;
-
-                    case VisualEnvironment.ShapeType.Spherical:
-                        radius = visualEnv.planetRadius.value;
-                        center = visualEnv.planetCenter.value;
-                        break;
-                }
+                renderingSpace = visualEnv.renderingSpace.value;
+                radius = visualEnv.planetRadius.value * 1000.0f;
+                if (renderingSpace == RenderingSpace.Camera)
+                    center = new Vector3(cameraPos.x, cameraPos.y - radius, cameraPos.z);
+                else if (visualEnv.centerMode.value == VisualEnvironment.PlanetMode.Automatic)
+                    center = new Vector3(0, -radius, 0);
+                else
+                    center = visualEnv.planetCenter.value * 1000.0f;
             }
         }
 
@@ -438,6 +438,10 @@ namespace UnityEngine.Rendering.HighDefinition
         internal bool rayTracingAccumulation = true;
         internal bool animateMaterials;
         internal float lastTime;
+
+        // This value is used to limit the taaFrameIndex value to a reasonable numeric range. The taaFrameIndex value is uploaded to shaders as a float so we should avoid letting it get too large to avoid precision issues.
+        // NOTE: We assume this value is always a power of two when using it modulate taaFrameIndex
+        internal const int kTaaSequenceLength = 1024;
 
         private Camera m_parentCamera = null; // Used for recursive rendering, e.g. a reflection in a scene view.
         internal Camera parentCamera { get { return m_parentCamera; } }
@@ -1246,9 +1250,15 @@ namespace UnityEngine.Rendering.HighDefinition
             SetPostProcessScreenSize(screenWidth, screenHeight);
             screenParams = new Vector4(screenSize.x, screenSize.y, 1 + screenSize.z, 1 + screenSize.w);
 
-            const int kMaxSampleCount = 8;
-            if (++taaFrameIndex >= kMaxSampleCount)
+            // We reset the TAA frame index counter whenever the history data is reset to ensure TAA behaves consistently on camera cuts
+            // We also only increment the TAA frame index if the camera requires jitter.
+            // Other logic in the camera code resets taaFrameIndex to 0 when jitter isn't enabled, and this logic ensures that it actually remains 0 for the entire frame rather than being confusingly set to 1.
+            //
+            // Additionally, we clamp the value range here as well to avoid letting the number get too big over time as its used as a float within shaders.
+            if (resetPostProcessingHistory)
                 taaFrameIndex = 0;
+            else if (RequiresCameraJitter())
+                taaFrameIndex = (taaFrameIndex + 1) & (kTaaSequenceLength - 1);
 
             UpdateAllViewConstants();
             isFirstFrame = false;
@@ -1472,14 +1482,21 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._FrameCount = frameCount;
             cb._XRViewCount = (uint)viewCount;
 
-            var cameraPos = camera.transform.position;
+            var cameraPos = mainViewConstants.worldSpaceCameraPos;
             var planetPosRWS = planet.center - cameraPos;
-            cb._PlanetCenterRadius = ShaderConfig.s_CameraRelativeRendering != 0 ? planetPosRWS : planet.center;
-            cb._PlanetCenterRadius.w = planet.radius;
 
             // This is not very efficient but necessary for precision
             var planetUp = -planetPosRWS.normalized;
             var cameraHeight = Vector3.Dot(cameraPos - (planetUp * planet.radius + planet.center), planetUp);
+
+            if (planet.renderingSpace == RenderingSpace.Camera)
+            {
+                planetPosRWS = new Vector3(0, -planet.radius, 0.0f);
+                cameraHeight = 0.0f;
+            }
+
+            cb._PlanetCenterRadius = ShaderConfig.s_CameraRelativeRendering != 0 ? planetPosRWS : planet.center;
+            cb._PlanetCenterRadius.w = planet.radius;
             cb._PlanetUpAltitude = planetUp;
             cb._PlanetUpAltitude.w = cameraHeight;
 
@@ -2053,7 +2070,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Update planet data
             var visualEnv = volumeStack.GetComponent<VisualEnvironment>();
-            planet.Set(visualEnv, camera.transform.position);
+            planet.Set(mainViewConstants.worldSpaceCameraPos, visualEnv);
 
             // Update info about current target mid gray
             TargetMidGray requestedMidGray = volumeStack.GetComponent<Exposure>().targetMidGray.value;
@@ -2092,8 +2109,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // The variance between 0 and the actual halton sequence values reveals noticeable
             // instability in Unity's shadow maps, so we avoid index 0.
-            float jitterX = HaltonSequence.Get((taaFrameIndex & 1023) + 1, 2) - 0.5f;
-            float jitterY = HaltonSequence.Get((taaFrameIndex & 1023) + 1, 3) - 0.5f;
+            float jitterX = HaltonSequence.Get(taaFrameIndex + 1, 2) - 0.5f;
+            float jitterY = HaltonSequence.Get(taaFrameIndex + 1, 3) - 0.5f;
 
             if (!(IsDLSSEnabled() || IsTAAUEnabled() || camera.cameraType == CameraType.SceneView))
             {

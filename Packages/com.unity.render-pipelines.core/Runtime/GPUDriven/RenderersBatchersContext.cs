@@ -71,7 +71,7 @@ namespace UnityEngine.Rendering
         private GPUDrivenLODGroupDataCallback m_UpdateLODGroupCallback;
         private GPUDrivenLODGroupDataCallback m_TransformLODGroupCallback;
 
-        public RenderersBatchersContext(in RenderersBatchersContextDesc desc, GPUDrivenProcessor gpuDrivenProcessor, GPUResidentDrawerResources resources)
+        public RenderersBatchersContext(in RenderersBatchersContextDesc desc, GPUDrivenProcessor gpuDrivenProcessor, GPUResidentDrawerResources resources) 
         {
             m_Resources = resources;
             m_GPUDrivenProcessor = gpuDrivenProcessor;

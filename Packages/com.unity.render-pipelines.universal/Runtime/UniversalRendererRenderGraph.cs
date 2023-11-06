@@ -854,14 +854,17 @@ namespace UnityEngine.Rendering.Universal
                     TextureHandle cameraDepthTexture = resourceData.cameraDepthTexture;
                     m_GBufferCopyDepthPass.Render(renderGraph, frameData, cameraDepthTexture, resourceData.activeDepthTexture, true, "GBuffer Depth Copy");
                 }
+                else
+                {
+                    // if NativeRenderPassesEnabled, we write the camera depth to gBuffer[4], to be used with framebuffer fetch
+                    resourceData.cameraDepthTexture = resourceData.gBuffer[m_DeferredLights.GbufferDepthIndex];
+                }
 
                 RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.AfterRenderingGbuffer, RenderPassEvent.BeforeRenderingDeferredLights);
-                
+
                 var gfxDeviceType = SystemInfo.graphicsDeviceType;
                 // We double check for features in between GBuffer and Deferred passes just in case to know whether we need to reload the attachments
-                // Metal and Vulkan works fine as it just loads
-                if ((gfxDeviceType == GraphicsDeviceType.Vulkan || gfxDeviceType == GraphicsDeviceType.Metal) &&
-                    InterruptFramebufferFetch(FramebufferFetchEvent.FetchGbufferInDeferred,RenderPassEvent.AfterRenderingGbuffer, RenderPassEvent.BeforeRenderingDeferredLights))
+                if (InterruptFramebufferFetch(FramebufferFetchEvent.FetchGbufferInDeferred,RenderPassEvent.AfterRenderingGbuffer, RenderPassEvent.BeforeRenderingDeferredLights))
                     GBufferPass.ResetGlobalGBufferTextures(renderGraph, resourceData.gBuffer, resourceData.activeDepthTexture, resourceData, ref m_DeferredLights);
 
                 m_DeferredPass.Render(renderGraph, frameData, resourceData.activeColorTexture, resourceData.activeDepthTexture, resourceData.gBuffer);
@@ -990,9 +993,6 @@ namespace UnityEngine.Rendering.Universal
             if (cameraData.resolveFinalTarget)
                 SetupRenderGraphFinalPassDebug(renderGraph, frameData);
 
-#if UNITY_EDITOR
-            bool isGizmosEnabled = UnityEditor.Handles.ShouldRenderGizmos();
-#endif
             // Disable Gizmos when using scene overrides. Gizmos break some effects like Overdraw debug.
             bool drawGizmos = UniversalRenderPipelineDebugDisplaySettings.Instance.renderingSettings.sceneOverrideMode == DebugSceneOverrideMode.None;
 
@@ -1170,6 +1170,8 @@ namespace UnityEngine.Rendering.Universal
             }
 
 #if UNITY_EDITOR
+            bool isGizmosEnabled = UnityEditor.Handles.ShouldRenderGizmos();
+
             if (cameraData.isSceneViewCamera || (isGizmosEnabled && cameraData.resolveFinalTarget))
             {
                 TextureHandle cameraDepthTexture = resourceData.cameraDepthTexture;
@@ -1191,10 +1193,16 @@ namespace UnityEngine.Rendering.Universal
             bool forcePrepass = (m_CopyDepthMode == CopyDepthMode.ForcePrepass);
             bool depthPrimingEnabled = IsDepthPrimingEnabled(cameraData);
 
+#if UNITY_EDITOR
+            bool isGizmosEnabled = UnityEditor.Handles.ShouldRenderGizmos();
+#else
+            bool isGizmosEnabled = false;
+#endif
+
             bool requiresDepthTexture = cameraData.requiresDepthTexture || renderPassInputs.requiresDepthTexture || depthPrimingEnabled;
             bool requiresDepthPrepass = (requiresDepthTexture || cameraHasPostProcessingWithDepth) && (!CanCopyDepth(cameraData) || forcePrepass);
             requiresDepthPrepass |= cameraData.isSceneViewCamera;
-            // requiresDepthPrepass |= isGizmosEnabled;
+            requiresDepthPrepass |= isGizmosEnabled;
             requiresDepthPrepass |= cameraData.isPreviewCamera;
             requiresDepthPrepass |= renderPassInputs.requiresDepthPrepass;
             requiresDepthPrepass |= renderPassInputs.requiresNormalsTexture;

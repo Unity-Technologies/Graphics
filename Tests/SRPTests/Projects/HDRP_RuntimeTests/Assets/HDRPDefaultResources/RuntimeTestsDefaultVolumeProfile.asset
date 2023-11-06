@@ -1397,12 +1397,6 @@ MonoBehaviour:
   enable:
     m_OverrideState: 1
     m_Value: 0
-  localClouds:
-    m_OverrideState: 1
-    m_Value: 0
-  earthCurvature:
-    m_OverrideState: 1
-    m_Value: 0
   cloudTiling:
     m_OverrideState: 1
     m_Value: {x: 1, y: 1}
@@ -1684,7 +1678,10 @@ MonoBehaviour:
   shadowOpacityFallback:
     m_OverrideState: 1
     m_Value: 0
-  m_Version: 2
+  m_Version: 3
+  localClouds:
+    m_OverrideState: 1
+    m_Value: 0
   m_ObsoleteWindSpeed:
     m_OverrideState: 1
     m_Value: 1
@@ -2132,6 +2129,18 @@ MonoBehaviour:
   skyAmbientMode:
     m_OverrideState: 1
     m_Value: 1
+  planetRadius:
+    m_OverrideState: 1
+    m_Value: 6378.1
+  renderingSpace:
+    m_OverrideState: 1
+    m_Value: 1
+  centerMode:
+    m_OverrideState: 1
+    m_Value: 0
+  planetCenter:
+    m_OverrideState: 1
+    m_Value: {x: 0, y: -6378.1, z: 0}
   windOrientation:
     m_OverrideState: 1
     m_Value: 0
@@ -2141,6 +2150,7 @@ MonoBehaviour:
   fogType:
     m_OverrideState: 1
     m_Value: 0
+  m_Version: 1
 --- !u!114 &4949846515292518198
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -2582,7 +2592,10 @@ MonoBehaviour:
     m_Value: 0
   type:
     m_OverrideState: 1
-    m_Value: 1
+    m_Value: 2
+  atmosphericScattering:
+    m_OverrideState: 1
+    m_Value: 0
   renderingMode:
     m_OverrideState: 1
     m_Value: 0
@@ -2590,18 +2603,6 @@ MonoBehaviour:
     m_OverrideState: 1
     m_Value: {fileID: -876546973899608171, guid: 02532cbb810fb404db49da84f1efe41e,
       type: 3}
-  sphericalMode:
-    m_OverrideState: 1
-    m_Value: 1
-  seaLevel:
-    m_OverrideState: 1
-    m_Value: 0
-  planetaryRadius:
-    m_OverrideState: 1
-    m_Value: 6378100
-  planetCenterPosition:
-    m_OverrideState: 1
-    m_Value: {x: 0, y: -6378100, z: 0}
   airDensityR:
     m_OverrideState: 1
     m_Value: 0.04534
@@ -2629,9 +2630,15 @@ MonoBehaviour:
   aerosolAnisotropy:
     m_OverrideState: 1
     m_Value: 0
-  numberOfBounces:
+  ozoneDensityDimmer:
     m_OverrideState: 1
-    m_Value: 3
+    m_Value: 0
+  ozoneMinimumAltitude:
+    m_OverrideState: 1
+    m_Value: 10000
+  ozoneLayerWidth:
+    m_OverrideState: 1
+    m_Value: 30000
   groundTint:
     m_OverrideState: 1
     m_Value: {r: 0.4, g: 0.25, b: 0.15, a: 1}
@@ -2678,6 +2685,12 @@ MonoBehaviour:
   m_ObsoleteEarthPreset:
     m_OverrideState: 1
     m_Value: 1
+  planetaryRadius:
+    m_OverrideState: 1
+    m_Value: 6378100
+  planetCenterPosition:
+    m_OverrideState: 1
+    m_Value: {x: 0, y: -6378100, z: 0}
 --- !u!114 &6960557901262462549
 MonoBehaviour:
   m_ObjectHideFlags: 3

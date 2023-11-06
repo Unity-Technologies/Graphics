@@ -41,6 +41,7 @@ namespace UnityEditor.Rendering
             internal static readonly GUIContent s_VODistance = new GUIContent("Distance", "Determines how far probes are pushed in the direction of the Virtual Offset.");
 
             internal static readonly EditMode.SceneViewEditMode VirtualOffsetEditMode = (EditMode.SceneViewEditMode)110;
+            internal static readonly EditMode.SceneViewEditMode SkyDirectionEditMode = (EditMode.SceneViewEditMode)110;
 
             internal static readonly Color k_GizmoColorBase = ProbeTouchupColorPreferences.s_ProbeTouchupVolumeGizmoColorDefault;
 
@@ -127,6 +128,7 @@ namespace UnityEditor.Rendering
 
                 var bakingSet = ProbeReferenceVolume.instance.sceneData.GetBakingSetForScene(ptv.gameObject.scene);
                 bool useVirtualOffset = bakingSet != null ? bakingSet.settings.virtualOffsetSettings.useVirtualOffset : false;
+                bool useSkyOcclusion = bakingSet.bakedSkyShadingDirection && bakingSet.bakedSkyOcclusion;
 
                 var hiddenMode = (int)ProbeTouchupVolume.Mode.IntensityScale;
                 var availableValues = (int[])Enum.GetValues(typeof(ProbeTouchupVolume.Mode));
@@ -199,6 +201,40 @@ namespace UnityEditor.Rendering
                 {
                     EditorGUILayout.HelpBox("Overriding the intensity of probes can break the physical plausibility of lighting. This may result in unwanted visual inconsistencies.", MessageType.Info, wide: true);
                     EditorGUILayout.PropertyField(serialized.intensityScale);
+                }
+				else if (serialized.mode.intValue == (int)ProbeTouchupVolume.Mode.OverrideSkyDirection)
+                {
+                    if(!SupportedRenderingFeatures.active.skyOcclusion)
+                    {
+                        EditorGUILayout.HelpBox("Sky Occlusion is not supported with this rendering pipeline.", MessageType.Warning);
+                        return;
+                    }
+
+                    var editMode = Styles.SkyDirectionEditMode;
+
+                    EditorGUI.BeginDisabledGroup(!useSkyOcclusion);
+                    EditorGUILayout.BeginHorizontal();
+
+                    EditorGUI.BeginDisabledGroup(editMode == EditMode.editMode);
+                    EditorGUILayout.PropertyField(serialized.skyDirection);
+                    EditorGUI.EndDisabledGroup();
+
+
+                    EditorGUI.BeginChangeCheck();
+                    GUILayout.Toggle(editMode == EditMode.editMode, Styles.s_RotateToolIcon, EditorStyles.miniButton, GUILayout.Width(28f));
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        EditMode.SceneViewEditMode targetMode = EditMode.editMode == editMode ? EditMode.SceneViewEditMode.None : editMode;
+                        EditMode.ChangeEditMode(targetMode, GetBounds(serialized, owner), owner);
+                    }
+                    EditorGUILayout.EndHorizontal();
+
+                    EditorGUI.EndDisabledGroup();
+
+                    if (!useSkyOcclusion)
+                    {
+                        EditorGUILayout.HelpBox("Override sky occlusion shading direction can be used only if Probe Volumes were baked with sky occlusion on.", MessageType.Warning);
+                    }
                 }
             }
 
@@ -295,6 +331,21 @@ namespace UnityEditor.Rendering
                 {
                     ArrowHandle(0, Quaternion.Euler(touchupVolume.virtualOffsetRotation), touchupVolume.virtualOffsetDistance);
                 }
+                
+            }
+            using (new Handles.DrawingScope(Matrix4x4.TRS(touchupVolume.transform.position, Quaternion.identity, Vector3.one)))
+            {
+                if (touchupVolume.mode == ProbeTouchupVolume.Mode.OverrideSkyDirection)
+                {
+                    var editMode = Styles.SkyDirectionEditMode;
+                    if (editMode != EditMode.editMode)
+                    {
+                        var quat = Quaternion.FromToRotation(Vector3.forward, touchupVolume.skyDirection);
+                        touchupVolume.skyShadingDirectionRotation = quat.eulerAngles;
+                    }
+
+                    ArrowHandle(0, Quaternion.Euler(touchupVolume.skyShadingDirectionRotation), 1.0f);
+                }
             }
         }
 
@@ -369,6 +420,19 @@ namespace UnityEditor.Rendering
                         Undo.RecordObject(touchupVolume, "Change Virtual Offset Direction");
                         touchupVolume.virtualOffsetRotation = rotation.eulerAngles;
                     }
+                }
+            }
+            if (touchupVolume.mode == ProbeTouchupVolume.Mode.OverrideSkyDirection && EditMode.editMode == Styles.SkyDirectionEditMode)
+            {
+                EditorGUI.BeginChangeCheck();
+
+                Quaternion rotation = Handles.RotationHandle(Quaternion.Euler(touchupVolume.skyShadingDirectionRotation), touchupVolume.transform.position);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    Undo.RecordObject(touchupVolume, "Change Sky Shading Direction");
+                    touchupVolume.skyShadingDirectionRotation = rotation.eulerAngles;
+                    touchupVolume.skyDirection = rotation * Vector3.forward;
+                    touchupVolume.skyDirection.Normalize();
                 }
             }
         }

@@ -294,7 +294,7 @@ namespace UnityEditor.VFX.Block
             return transformedBody.ToString();
         }
 
-        public string GetNameWithHashCode() => $"{name}_{GetHashCode():X}";
+        public string GetNameWithHashCode() => $"{name}_{body.GetHashCode():X}";
 
         private Dictionary<string, string> GetDoc(string rawDoc)
         {

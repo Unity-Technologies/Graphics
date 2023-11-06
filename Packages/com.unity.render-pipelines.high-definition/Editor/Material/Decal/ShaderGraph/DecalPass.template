@@ -1,8 +1,8 @@
 Pass
-{ 
+{
     $splice(PassName)
-    Tags 
-    { 
+    Tags
+    {
         $splice(LightMode)
     }
 
@@ -44,6 +44,7 @@ Pass
     $AttributesMesh.uv2:                    #define ATTRIBUTES_NEED_TEXCOORD2
     $AttributesMesh.uv3:                    #define ATTRIBUTES_NEED_TEXCOORD3
     $AttributesMesh.color:                  #define ATTRIBUTES_NEED_COLOR
+    $AttributesMesh.instanceID:             #define ATTRIBUTES_NEED_INSTANCEID
     $VaryingsMeshToPS.positionRWS:          #define VARYINGS_NEED_POSITION_WS
     $VaryingsMeshToPS.normalWS:             #define VARYINGS_NEED_TANGENT_TO_WORLD
     $VaryingsMeshToPS.texCoord0:            #define VARYINGS_NEED_TEXCOORD0
@@ -51,7 +52,9 @@ Pass
     $VaryingsMeshToPS.texCoord2:            #define VARYINGS_NEED_TEXCOORD2
     $VaryingsMeshToPS.texCoord3:            #define VARYINGS_NEED_TEXCOORD3
     $VaryingsMeshToPS.color:                #define VARYINGS_NEED_COLOR
-    
+    $VaryingsMeshToPS.instanceID:           #define VARYINGS_NEED_INSTANCEID
+    $FragInputs.instanceID:                 #define FRAG_INPUTS_USE_INSTANCEID
+
     $features.graphVertex:                  #define HAVE_MESH_MODIFICATION
 
     $SurfaceDescriptionInputs.FaceSign:     // Define when IsFontFaceNode is included in ShaderGraph
@@ -88,7 +91,7 @@ Pass
 
     // Graph Vertex
     $splice(GraphVertex)
-    
+
     // Graph Pixel
     $splice(GraphPixel)
 

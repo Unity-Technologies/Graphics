@@ -271,10 +271,13 @@ MonoBehaviour:
     m_Extent: {x: 40.5, y: 40.5, z: 40.5}
   bakedSimplificationLevels: 3
   bakedMinDistanceBetweenProbes: 0.5
+  bakedHandlesSkyDynamicallyValue: 0
   L0ChunkSize: 65536
   L1ChunkSize: 32768
   L2TextureChunkSize: 32768
-  validityMaskChunkSize: 8192
+  sharedValidityMaskChunkSize: 8192
+  sharedSkyOcclusionL0L1ChunkSize: 0
+  sharedDataChunkSize: 8192
   supportPositionChunkSize: 98304
   supportValidityChunkSize: 32768
   supportTouchupChunkSize: 32768
@@ -283,7 +286,7 @@ MonoBehaviour:
   totalCellCounts:
     bricksCount: 562
     chunksCount: 8
-  lightingScenario: Scenario 1
+  lightingScenario: Scenario 2
   version: 0
   freezePlacement: 0
   simplificationLevels: 3
@@ -292,3 +295,4 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 4294967295
   minRendererVolumeSize: 0.1
+  handleSkyDynamically: 0

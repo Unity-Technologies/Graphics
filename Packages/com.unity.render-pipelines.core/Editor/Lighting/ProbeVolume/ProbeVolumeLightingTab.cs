@@ -80,6 +80,7 @@ namespace UnityEngine.Rendering
             Settings = 1 << 5,
             SettingsDilation = 1 << 6,
             SettingsVirtualOffset = 1 << 7,
+            SettingsSkyOcclusion = 1 << 8,
         };
 
         static readonly Expandable k_ExpandableDefault = Expandable.Baking | Expandable.BakingWarnings | Expandable.Scenarios | Expandable.Placement | Expandable.Settings;

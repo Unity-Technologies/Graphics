@@ -12,7 +12,7 @@ namespace UnityEditor.VFX.UI
 
         public VFXBlackboardRow owner { get; set; }
 
-        public VFXBlackboardField(PropertyItem propertyItem)
+        public VFXBlackboardField(PropertyItem propertyItem) : base($"prop:{propertyItem.title}")
         {
             this.AddStyleSheetPath(Blackboard.StyleSheetPath);
 

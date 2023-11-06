@@ -88,7 +88,6 @@ namespace Threading
         TYPE Wave::PrefixProduct (TYPE v)           { EMULATED_WAVE_PREFIX(TYPE, *, (TYPE)1)                                                                                                       } \
         TYPE Wave::ReadLaneAt(TYPE v, uint i)       { GroupMemoryBarrierWithGroupSync(); g_Scratch[indexG] = asuint(v); GroupMemoryBarrierWithGroupSync(); return as##TYPE(g_Scratch[offset + i]); } \
         TYPE Wave::ReadLaneFirst(TYPE v)            { return ReadLaneAt(v, 0u);                                                                                                                    } \
-        TYPE Wave::ReadLaneShuffle(TYPE v, uint i)  { return ReadLaneAt(v, i);                                                                                                                     } \
 
     // Currently just support scalars.
     DEFINE_API_FOR_TYPE(uint)

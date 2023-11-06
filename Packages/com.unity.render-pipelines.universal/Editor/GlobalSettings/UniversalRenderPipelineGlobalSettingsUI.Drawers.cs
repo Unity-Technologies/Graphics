@@ -114,11 +114,9 @@ namespace UnityEditor.Rendering.Universal
         private static readonly CED.IDrawer MiscSection =
             CED.Group((s, owner) =>
             {
-                #if RENDER_GRAPH_ENABLED
-                    CoreEditorUtils.DrawSectionHeader(Styles.renderGraphHeaderLabel);
-                    EditorGUILayout.Space();
-                    DrawRenderGraphCheckBox(s, owner);
-                #endif
+                CoreEditorUtils.DrawSectionHeader(Styles.renderGraphHeaderLabel);
+                EditorGUILayout.Space();
+                DrawRenderGraphCheckBox(s, owner);
 #pragma warning disable 618 // Obsolete warning
                 CoreEditorUtils.DrawSectionHeader(RenderPipelineGlobalSettingsUI.Styles.shaderStrippingSettingsLabel);
 #pragma warning restore 618 // Obsolete warning

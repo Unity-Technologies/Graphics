@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
+using RenderingLayerMask = UnityEngine.Rendering.HighDefinition.RenderingLayerMask;
 
 namespace UnityEditor.VFX.HDRP
 {

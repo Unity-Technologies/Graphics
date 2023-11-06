@@ -737,6 +737,7 @@ namespace UnityEditor.VFX.UI
             elementResized = VFXElementResized;
             canPasteSerializedData = VFXCanPaste;
 
+            viewDataKey = "VFXView";
             RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
         }
 
@@ -880,6 +881,7 @@ namespace UnityEditor.VFX.UI
                 {
                     badge.Detach();
                     badge.RemoveFromHierarchy();
+                    model.IgnoreError(error);
                 }));
                 badge.AddManipulator(new DownClickable(() =>
                 {
@@ -1336,7 +1338,7 @@ namespace UnityEditor.VFX.UI
             var frameTranslation = Vector3.zero;
             var frameScaling = Vector3.one;
 
-            if (controller.graph == null)
+            if (controller?.graph == null)
             {
                 return;
             }
@@ -2361,13 +2363,20 @@ namespace UnityEditor.VFX.UI
             return elements.OfType<IControlledElement>().Select(t => t.controller);
         }
 
-        IEnumerable<VFXAttribute> ElementsToVFXAttributes(IEnumerable<GraphElement> elements)
+        IEnumerable<VFXCopyPasteCommon.Attribute> ElementsToVFXAttributes(IEnumerable<GraphElement> elements)
         {
-            foreach (var attributeItem in elements.OfType<VFXBlackboardAttributeField>().Select(x => x.attribute))
+            foreach (var element in elements)
             {
-                if (m_Controller.graph.attributesManager.TryFind(attributeItem.title, out var attribute))
+                if (element is VFXBlackboardAttributeField attributeField && m_Controller.graph.attributesManager.TryFind(attributeField.attribute.title, out var attribute))
                 {
-                    yield return attribute;
+                    yield return new VFXCopyPasteCommon.Attribute { name = attribute.name, type = attribute.type, description = attribute.description, canDuplicate = true };
+                }
+                else if (element is VFXBlockUI block && block.controller.model is IVFXAttributeUsage attributeUsage)
+                {
+                    foreach (var customAttribute in attributeUsage.usedAttributes.Where(x => controller.graph.attributesManager.IsCustom(x.name)))
+                    {
+                        yield return new VFXCopyPasteCommon.Attribute { name = customAttribute.name, type = customAttribute.type, description = customAttribute.description, canDuplicate = false };
+                    }
                 }
             }
         }
@@ -2471,7 +2480,7 @@ namespace UnityEditor.VFX.UI
         {
             Profiler.BeginSample("VFXCopy.SerializeElements");
             string result = elements.Any()
-                ? VFXCopy.SerializeElements(ElementsToController(elements), GetElementsBounds(elements), ElementsToVFXAttributes(elements), ElementsToParameters(elements, out var categories), categories)
+                ? VFXCopy.SerializeElements(ElementsToController(elements), GetElementsBounds(elements), ElementsToVFXAttributes(elements).Distinct(), ElementsToParameters(elements, out var categories), categories)
                 : string.Empty;
             Profiler.EndSample();
             return result;

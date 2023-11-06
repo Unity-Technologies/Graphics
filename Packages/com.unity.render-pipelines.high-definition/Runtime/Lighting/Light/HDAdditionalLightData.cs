@@ -816,7 +816,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool interactsWithSky
         {
             // m_InteractWithSky can be true if user changed from directional to point light, so we need to check current type
-            get => m_InteractsWithSky && legacyLight.type == LightType.Directional; 
+            get => m_InteractsWithSky && legacyLight.type == LightType.Directional;
             set
             {
                 if (m_InteractsWithSky == value)
@@ -856,13 +856,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Multiplier for the angular diameter of the celestial body used only when rendering the sun disk.
         /// </summary>
-        [SerializeField, FormerlySerializedAs("m_DiameterMultiplier")]
+        [SerializeField, Min(0.0f), FormerlySerializedAs("m_DiameterMultiplier")]
         public float diameterMultiplier = 1.0f;
 
         /// <summary>
         /// Override for the angular diameter of the celestial body used only when rendering the sun disk.
         /// </summary>Mode
-        [SerializeField, FormerlySerializedAs("m_DiameterOverride")]
+        [SerializeField, Min(0.0f), FormerlySerializedAs("m_DiameterOverride")]
         public float diameterOverride = 0.5f;
 
         /// <summary>
@@ -2190,7 +2190,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [ExcludeCopy]
         GameObject m_ChildEmissiveMeshViewer;
         [ExcludeCopy]
-        MeshFilter m_EmissiveMeshFilter;
+        internal MeshFilter m_EmissiveMeshFilter;
 
         [field: ExcludeCopy]
         internal MeshRenderer emissiveMeshRenderer { get; private set; }
@@ -2440,7 +2440,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             return shadowUpdateMode == ShadowUpdateMode.EveryFrame;
         }
-        
+
         // TODO: This is used to avoid compilation errors due to unreachable code
         static bool s_EnableFallbackToCachedShadows = false;
 
@@ -3236,10 +3236,8 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Update Mesh
-            if (HDRenderPipelineGlobalSettings.instance != null)
+            if (GraphicsSettings.TryGetRenderPipelineSettings<HDRenderPipelineRuntimeAssets>(out var assets))
             {
-                var assets = HDRenderPipelineGlobalSettings.instance.renderPipelineResources.assets;
-
                 switch (lightType)
                 {
                     case LightType.Tube:

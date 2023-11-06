@@ -14,6 +14,15 @@ void BuildFragInputsFromIntersection(IntersectionVertex currentVertex, out FragI
     outFragInputs.texCoord3 = currentVertex.texCoord3;
     outFragInputs.color = currentVertex.color;
 
+#ifdef FRAG_INPUTS_USE_INSTANCEID
+    #if UNITY_ANY_INSTANCING_ENABLED
+        const int localBaseInstanceId = unity_BaseInstanceID;
+    #else
+        const int localBaseInstanceId = 0;
+    #endif
+    outFragInputs.instanceID = InstanceIndex() - localBaseInstanceId;
+#endif
+
     // Compute the world space normal
     float3 normalWS = normalize(mul(currentVertex.normalOS, (float3x3)WorldToObject3x4()));
     float3 tangentWS = normalize(mul(currentVertex.tangentOS.xyz, (float3x3)WorldToObject3x4()));

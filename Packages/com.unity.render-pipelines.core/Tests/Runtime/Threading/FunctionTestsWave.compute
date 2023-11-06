@@ -281,7 +281,7 @@ void kReadLaneAtShuffle(Group group)
 
     const uint laneValue = DATA & (wave.GetLaneCount() - 1);
 
-    const uint result = (wave.ReadLaneShuffle(laneValue, laneValue) == laneValue);
+    const uint result = (wave.ReadLaneAt(laneValue, laneValue) == laneValue);
 
     _Output.Store(OUTPUT_ADDR, result);
 }

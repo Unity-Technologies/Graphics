@@ -5,6 +5,7 @@
         <ui:VisualElement name="ShaderFilterSettings" style="flex-grow: 1;" />
         <ui:VisualElement name="MaterialFilterSettings" style="flex-grow: 1;" />
         <uie:ToolbarSpacer style="flex-direction: row; flex-grow: 1; flex-shrink: 0;" />
+        <ui:DropdownField label="Platform" choices="PS4,PS5" name="PlatformField" />
         <uie:ToolbarSearchField placeholder-text="Search In Code" name="CodeSearch" style="width: 200px;" />
         <uie:ToolbarButton text="Analyze" name="Analyze" style="white-space: nowrap; -unity-font-style: bold; right: auto; left: 0;" />
     </uie:Toolbar>

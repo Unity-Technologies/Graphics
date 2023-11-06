@@ -213,6 +213,10 @@ VoxelLighting EvaluateVoxelLightingDirectional(LightLoopContext context, uint fe
             context.shadowValue = GetDirectionalShadowAttenuation(context.shadowContext,
                                                                   posInput.positionSS, posInput.positionWS, shadowN,
                                                                   light.shadowIndex, L);
+                                                                  
+            // Apply the volumetric cloud shadow if relevant
+            if (_VolumetricCloudsShadowOriginToggle.w == 1.0)
+                context.shadowValue *= EvaluateVolumetricCloudsShadows(light, posInput.positionWS);
         }
     }
     else

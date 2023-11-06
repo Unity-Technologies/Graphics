@@ -200,13 +200,6 @@ namespace UnityEngine.Rendering.Universal
             pipelineAsset = asset;
 #if UNITY_EDITOR
             m_GlobalSettings = UniversalRenderPipelineGlobalSettings.Ensure();
-            if (asset is IGPUResidentRenderPipeline mbAsset)
-            {
-                if (mbAsset.gpuResidentDrawerSettings.mode != GPUResidentDrawerMode.Disabled)
-                    m_GlobalSettings.EnsureGPUResidentDrawerResources(forceReload: true);
-                else
-                    m_GlobalSettings.ClearGPUResidentDrawerResources();
-            }
 #else
             m_GlobalSettings = UniversalRenderPipelineGlobalSettings.instance;
 #endif
@@ -1482,122 +1475,26 @@ namespace UnityEngine.Rendering.Universal
             return data;
         }
 
-        static UniversalShadowData CreateShadowData(ContextContainer frameData, UniversalRenderPipelineAsset settings, bool isForwardPlus)
+        static UniversalShadowData CreateShadowData(ContextContainer frameData, UniversalRenderPipelineAsset urpAsset, bool isForwardPlus)
         {
             using var profScope = new ProfilingScope(Profiling.Pipeline.initializeShadowData);
 
+            // Initial setup
+            // ------------------------------------------------------
             UniversalShadowData shadowData = frameData.Create<UniversalShadowData>();
-
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
-
             UniversalLightData lightData = frameData.Get<UniversalLightData>();
-            var mainLightIndex = lightData.mainLightIndex;
-            var visibleLights = lightData.visibleLights;
-
-            var mainLightCastShadows = false;
-            var additionalLightsCastShadows = false;
-
-            if (cameraData.maxShadowDistance > 0.0f)
-            {
-                mainLightCastShadows = mainLightIndex != -1
-                    && visibleLights[mainLightIndex].light != null
-                    && visibleLights[mainLightIndex].light.shadows != LightShadows.None;
-
-                // If Additional Light Shadows are enabled in the URP Asset
-                if (settings.supportsAdditionalLightShadows)
-                {
-                    // If additional lights are shaded per-vertex they cannot cast shadows
-                    if (settings.additionalLightsRenderingMode == LightRenderingMode.PerPixel || isForwardPlus)
-                    {
-                        for (int i = 0; i < visibleLights.Length; ++i)
-                        {
-                            if (i == mainLightIndex)
-                                continue;
-
-                            ref VisibleLight vl = ref visibleLights.UnsafeElementAtMutable(i);
-                            Light light = vl.light;
-
-                            // UniversalRP doesn't support additional directional light shadows yet
-                            if ((vl.lightType == LightType.Spot || vl.lightType == LightType.Point) && light != null && light.shadows != LightShadows.None)
-                            {
-                                additionalLightsCastShadows = true;
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-
-            additionalLightsCastShadows = additionalLightsCastShadows && !lightData.shadeAdditionalLightsPerVertex;
 
             m_ShadowBiasData.Clear();
             m_ShadowResolutionData.Clear();
 
-            for (int i = 0; i < visibleLights.Length; ++i)
-            {
-                ref VisibleLight vl = ref visibleLights.UnsafeElementAtMutable(i);
-                Light light = vl.light;
-                UniversalAdditionalLightData data = null;
-                if (light != null)
-                {
-                    light.gameObject.TryGetComponent(out data);
-                }
-
-                if (data && !data.usePipelineSettings)
-                    m_ShadowBiasData.Add(new Vector4(light.shadowBias, light.shadowNormalBias, 0.0f, 0.0f));
-                else
-                    m_ShadowBiasData.Add(new Vector4(settings.shadowDepthBias, settings.shadowNormalBias, 0.0f, 0.0f));
-
-                if (data && (data.additionalLightsShadowResolutionTier == UniversalAdditionalLightData.AdditionalLightsShadowResolutionTierCustom))
-                {
-                    m_ShadowResolutionData.Add((int)light.shadowResolution); // native code does not clamp light.shadowResolution between -1 and 3
-                }
-                else if (data && (data.additionalLightsShadowResolutionTier != UniversalAdditionalLightData.AdditionalLightsShadowResolutionTierCustom))
-                {
-                    int resolutionTier = Mathf.Clamp(data.additionalLightsShadowResolutionTier, UniversalAdditionalLightData.AdditionalLightsShadowResolutionTierLow, UniversalAdditionalLightData.AdditionalLightsShadowResolutionTierHigh);
-                    m_ShadowResolutionData.Add(settings.GetAdditionalLightsShadowResolution(resolutionTier));
-                }
-                else
-                {
-                    m_ShadowResolutionData.Add(settings.GetAdditionalLightsShadowResolution(UniversalAdditionalLightData.AdditionalLightsShadowDefaultResolutionTier));
-                }
-            }
-
-            shadowData.bias = m_ShadowBiasData;
-            shadowData.resolution = m_ShadowResolutionData;
-            shadowData.mainLightShadowsEnabled = settings.supportsMainLightShadows && settings.mainLightRenderingMode == LightRenderingMode.PerPixel;
-            shadowData.supportsMainLightShadows = SystemInfo.supportsShadows && shadowData.mainLightShadowsEnabled && mainLightCastShadows;
-
-            shadowData.mainLightShadowCascadesCount = settings.shadowCascadeCount;
-            shadowData.mainLightShadowmapWidth = settings.mainLightShadowmapResolution;
-            shadowData.mainLightShadowmapHeight = settings.mainLightShadowmapResolution;
-
-            switch (shadowData.mainLightShadowCascadesCount)
-            {
-                case 1:
-                    shadowData.mainLightShadowCascadesSplit = new Vector3(1.0f, 0.0f, 0.0f);
-                    break;
-
-                case 2:
-                    shadowData.mainLightShadowCascadesSplit = new Vector3(settings.cascade2Split, 1.0f, 0.0f);
-                    break;
-
-                case 3:
-                    shadowData.mainLightShadowCascadesSplit = new Vector3(settings.cascade3Split.x, settings.cascade3Split.y, 0.0f);
-                    break;
-
-                default:
-                    shadowData.mainLightShadowCascadesSplit = settings.cascade4Split;
-                    break;
-            }
-
-            shadowData.mainLightShadowCascadeBorder = settings.cascadeBorder;
-
-            shadowData.additionalLightShadowsEnabled = settings.supportsAdditionalLightShadows && (settings.additionalLightsRenderingMode == LightRenderingMode.PerPixel || isForwardPlus);
-            shadowData.supportsAdditionalLightShadows = SystemInfo.supportsShadows && shadowData.additionalLightShadowsEnabled && additionalLightsCastShadows;
-            shadowData.additionalLightsShadowmapWidth = shadowData.additionalLightsShadowmapHeight = settings.additionalLightsShadowmapResolution;
-            shadowData.supportsSoftShadows = settings.supportsSoftShadows && (shadowData.supportsMainLightShadows || shadowData.supportsAdditionalLightShadows);
             shadowData.shadowmapDepthBufferBits = 16;
+            shadowData.mainLightShadowCascadeBorder = urpAsset.cascadeBorder;
+            shadowData.mainLightShadowCascadesCount = urpAsset.shadowCascadeCount;
+            shadowData.mainLightShadowCascadesSplit = GetMainLightCascadeSplit(shadowData.mainLightShadowCascadesCount, urpAsset);
+            shadowData.mainLightShadowmapWidth = urpAsset.mainLightShadowmapResolution;
+            shadowData.mainLightShadowmapHeight = urpAsset.mainLightShadowmapResolution;
+            shadowData.additionalLightsShadowmapWidth = shadowData.additionalLightsShadowmapHeight = urpAsset.additionalLightsShadowmapResolution;
 
             // This will be setup in AdditionalLightsShadowCasterPass.
             shadowData.isKeywordAdditionalLightShadowsEnabled = false;
@@ -1615,7 +1512,117 @@ namespace UnityEngine.Rendering.Universal
             shadowData.shadowAtlasLayout = default;
             shadowData.visibleLightsShadowCullingInfos = default;
 
+            // Setup data that requires iterating over lights
+            // ------------------------------------------------------
+            var mainLightIndex = lightData.mainLightIndex;
+            var visibleLights = lightData.visibleLights;
+
+            // maxShadowDistance is set to 0.0f when the Render Shadows toggle is disabled on the camera
+            bool cameraRenderShadows = cameraData.maxShadowDistance > 0.0f;
+
+            shadowData.mainLightShadowsEnabled = urpAsset.supportsMainLightShadows && urpAsset.mainLightRenderingMode == LightRenderingMode.PerPixel;
+            shadowData.supportsMainLightShadows = SystemInfo.supportsShadows && shadowData.mainLightShadowsEnabled && cameraRenderShadows;
+
+            shadowData.additionalLightShadowsEnabled = urpAsset.supportsAdditionalLightShadows && (urpAsset.additionalLightsRenderingMode == LightRenderingMode.PerPixel || isForwardPlus);
+            shadowData.supportsAdditionalLightShadows = SystemInfo.supportsShadows && shadowData.additionalLightShadowsEnabled && !lightData.shadeAdditionalLightsPerVertex && cameraRenderShadows;
+
+            // Early out if shadows are not rendered...
+            if (!shadowData.supportsMainLightShadows && !shadowData.supportsAdditionalLightShadows)
+                return shadowData;
+
+            shadowData.supportsMainLightShadows &= mainLightIndex != -1
+                                                   && visibleLights[mainLightIndex].light != null
+                                                   && visibleLights[mainLightIndex].light.shadows != LightShadows.None;
+
+            if (shadowData.supportsAdditionalLightShadows)
+            {
+                // Check if there is at least one additional light casting shadows...
+                bool additionalLightsCastShadows = false;
+                for (int i = 0; i < visibleLights.Length; ++i)
+                {
+                    if (i == mainLightIndex)
+                        continue;
+
+                    ref VisibleLight vl = ref visibleLights.UnsafeElementAtMutable(i);
+
+                    // UniversalRP doesn't support additional directional light shadows yet
+                    if (vl.lightType == LightType.Spot || vl.lightType == LightType.Point)
+                    {
+                        Light light = vl.light;
+                        if (light == null || light.shadows == LightShadows.None)
+                            continue;
+
+                        additionalLightsCastShadows = true;
+                        break;
+                    }
+                }
+                shadowData.supportsAdditionalLightShadows &= additionalLightsCastShadows;
+            }
+
+            // Check again if it's possible to early out...
+            if (!shadowData.supportsMainLightShadows && !shadowData.supportsAdditionalLightShadows)
+                return shadowData;
+
+            for (int i = 0; i < visibleLights.Length; ++i)
+            {
+                if (!shadowData.supportsMainLightShadows && i == mainLightIndex)
+                {
+                    m_ShadowBiasData.Add(Vector4.zero);
+                    m_ShadowResolutionData.Add(0);
+                    continue;
+                }
+
+                if (!shadowData.supportsAdditionalLightShadows && i != mainLightIndex)
+                {
+                    m_ShadowBiasData.Add(Vector4.zero);
+                    m_ShadowResolutionData.Add(0);
+                    continue;
+                }
+
+                ref VisibleLight vl = ref visibleLights.UnsafeElementAtMutable(i);
+                Light light = vl.light;
+                UniversalAdditionalLightData data = null;
+                if (light != null)
+                {
+                    light.gameObject.TryGetComponent(out data);
+                }
+
+                if (data && !data.usePipelineSettings)
+                    m_ShadowBiasData.Add(new Vector4(light.shadowBias, light.shadowNormalBias, 0.0f, 0.0f));
+                else
+                    m_ShadowBiasData.Add(new Vector4(urpAsset.shadowDepthBias, urpAsset.shadowNormalBias, 0.0f, 0.0f));
+
+                if (data && (data.additionalLightsShadowResolutionTier == UniversalAdditionalLightData.AdditionalLightsShadowResolutionTierCustom))
+                {
+                    m_ShadowResolutionData.Add((int)light.shadowResolution); // native code does not clamp light.shadowResolution between -1 and 3
+                }
+                else if (data && (data.additionalLightsShadowResolutionTier != UniversalAdditionalLightData.AdditionalLightsShadowResolutionTierCustom))
+                {
+                    int resolutionTier = Mathf.Clamp(data.additionalLightsShadowResolutionTier, UniversalAdditionalLightData.AdditionalLightsShadowResolutionTierLow, UniversalAdditionalLightData.AdditionalLightsShadowResolutionTierHigh);
+                    m_ShadowResolutionData.Add(urpAsset.GetAdditionalLightsShadowResolution(resolutionTier));
+                }
+                else
+                {
+                    m_ShadowResolutionData.Add(urpAsset.GetAdditionalLightsShadowResolution(UniversalAdditionalLightData.AdditionalLightsShadowDefaultResolutionTier));
+                }
+            }
+
+            shadowData.bias = m_ShadowBiasData;
+            shadowData.resolution = m_ShadowResolutionData;
+            shadowData.supportsSoftShadows = urpAsset.supportsSoftShadows && (shadowData.supportsMainLightShadows || shadowData.supportsAdditionalLightShadows);
+
             return shadowData;
+        }
+
+        private static Vector3 GetMainLightCascadeSplit(int mainLightShadowCascadesCount, UniversalRenderPipelineAsset urpAsset)
+        {
+            switch (mainLightShadowCascadesCount)
+            {
+                case 1:  return new Vector3(1.0f, 0.0f, 0.0f);
+                case 2:  return new Vector3(urpAsset.cascade2Split, 1.0f, 0.0f);
+                case 3:  return urpAsset.cascade3Split;
+                default: return urpAsset.cascade4Split;
+            }
         }
 
         static void InitializeMainLightShadowResolution(UniversalShadowData shadowData)
@@ -1658,17 +1665,12 @@ namespace UnityEngine.Rendering.Universal
 
             UniversalLightData lightData = frameData.Create<UniversalLightData>();
 
-            int maxPerObjectAdditionalLights = UniversalRenderPipeline.maxPerObjectLights;
-            int maxVisibleAdditionalLights = UniversalRenderPipeline.maxVisibleAdditionalLights;
-
             lightData.mainLightIndex = GetMainLightIndex(settings, visibleLights);
 
             if (settings.additionalLightsRenderingMode != LightRenderingMode.Disabled)
             {
-                lightData.additionalLightsCount =
-                    Math.Min((lightData.mainLightIndex != -1) ? visibleLights.Length - 1 : visibleLights.Length,
-                        maxVisibleAdditionalLights);
-                lightData.maxPerObjectAdditionalLightsCount = Math.Min(settings.maxAdditionalLightsCount, maxPerObjectAdditionalLights);
+                lightData.additionalLightsCount = Math.Min((lightData.mainLightIndex != -1) ? visibleLights.Length - 1 : visibleLights.Length, maxVisibleAdditionalLights);
+                lightData.maxPerObjectAdditionalLightsCount = Math.Min(settings.maxAdditionalLightsCount, maxPerObjectLights);
             }
             else
             {

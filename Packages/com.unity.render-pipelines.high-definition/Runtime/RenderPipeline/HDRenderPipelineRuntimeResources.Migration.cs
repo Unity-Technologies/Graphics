@@ -27,7 +27,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 //force full reimport to remove moved resources
                 i.materials = null;
                 i.shaderGraphs = null;
-                i.textures = null;
                 i.shaders = null;
                 ResourceReloader.ReloadAllNullIn(i, HDUtils.GetHDRenderPipelinePath());
             })

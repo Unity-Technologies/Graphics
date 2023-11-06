@@ -105,7 +105,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [HLSLArray(6, typeof(Vector4))]
         public fixed float _ShadowFrustumPlanes[6 * 4];     // { (a, b, c) = N, d = -dot(N, P) } [L, R, T, B, N, F]
 
-        // TAA Frame Index ranges from 0 to 7.
+        // TAA Frame Index ranges from 0 to 1023.
         public Vector4 _TaaFrameInfo;               // { taaSharpenStrength, unused, taaFrameIndex, taaEnabled ? 1 : 0 }
 
         // Current jitter strength (0 if TAA is disabled)

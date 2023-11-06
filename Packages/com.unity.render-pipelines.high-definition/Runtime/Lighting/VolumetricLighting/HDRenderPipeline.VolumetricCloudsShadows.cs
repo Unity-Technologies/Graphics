@@ -56,35 +56,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return HasVolumetricCloudsShadows(hdCamera, settings);
         }
 
-        int RaySphereIntersection(float3 startWS, float3 dir, float radius, float earthRadius, out float2 result)
-        {
-            float3 startPS = startWS + float3(0, earthRadius, 0);
-            float a = dot(dir, dir);
-            float b = 2.0f * dot(dir, startPS);
-            float c = dot(startPS, startPS) - (radius * radius);
-            float d = (b * b) - 4.0f * a * c;
-            result = 0.0f;
-            int numSolutions = 0;
-            if (d >= 0.0f)
-            {
-                // Compute the values required for the solution eval
-                float sqrtD = sqrt(d);
-                float q = -0.5f * (b + sign(b) * sqrtD);
-                result = float2(c / q, q / a);
-                // Remove the solutions we do not want
-                numSolutions = 2;
-                if (result.x < 0.0)
-                {
-                    numSolutions--;
-                    result.x = result.y;
-                }
-                if (result.y < 0.0)
-                    numSolutions--;
-            }
-            // Return the number of solutions
-            return numSolutions;
-        }
-
         void EvaluateShadowRegionData(HDCamera hdCamera, CommandBuffer cmd)
         {
             // Invalidate the region in case something goes wrong
@@ -151,11 +122,11 @@ namespace UnityEngine.Rendering.HighDefinition
             // Resolution of the cloud shadow
             cb._ShadowCookieResolution = (int)settings.shadowResolution.value;
             cb._ShadowIntensity = settings.shadowOpacity.value;
-            cb._CloudShadowSunOrigin = float4(shadowRegion.origin, 1);
+            cb._CloudShadowSunOrigin = float4(shadowRegion.origin - new float3(hdCamera.planet.center), 1);
             cb._CloudShadowSunRight = float4(shadowRegion.dirX, 0);
             cb._CloudShadowSunUp = float4(shadowRegion.dirY, 0);
             cb._CloudShadowSunForward = float4(shadowRegion.lightDir, 0);
-            cb._WorldSpaceShadowCenter = float4(hdCamera.camera.transform.position, 0);
+            cb._CameraPositionPS = float4(hdCamera.mainViewConstants.worldSpaceCameraPos - hdCamera.planet.center, 0);
         }
 
         struct VolumetricCloudsShadowsParameters
@@ -188,7 +159,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.shadowRegion = m_VolumetricCloudsShadowRegion;
 
             // Fill the common data
-            FillVolumetricCloudsCommonData(false, settings, TVolumetricCloudsCameraType.Default, in cloudModelData, ref parameters.commonData);
+            FillVolumetricCloudsCommonData(hdCamera, false, settings, TVolumetricCloudsCameraType.Default, in cloudModelData, ref parameters.commonData);
 
             // Update the main constant buffer
             VolumetricCloudsCameraData cameraData;
@@ -203,7 +174,8 @@ namespace UnityEngine.Rendering.HighDefinition
             cameraData.enableExposureControl = false;
             cameraData.lowResolution = false;
             cameraData.enableIntegration = false;
-            UpdateShaderVariableslClouds(ref parameters.commonData.cloudsCB, hdCamera, settings, cameraData, cloudModelData, true);
+            cameraData.maxZMaskValidity = false;
+            UpdateShaderVariablesClouds(ref parameters.commonData.cloudsCB, hdCamera, settings, cameraData, cloudModelData, true);
 
             // Update the shadow constant buffer
             UpdateShaderVariablesCloudsShadow(ref parameters.cloudsShadowCB, hdCamera, settings, parameters.shadowRegion);
@@ -213,7 +185,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static void TraceVolumetricCloudShadow(CommandBuffer cmd, VolumetricCloudsShadowsParameters parameters, RTHandle intermediateTexture, RTHandle shadowTexture)
         {
-            CoreUtils.SetKeyword(cmd, "LOCAL_VOLUMETRIC_CLOUDS", parameters.commonData.localClouds);
             CoreUtils.SetKeyword(cmd, "CLOUDS_SIMPLE_PRESET", parameters.commonData.simplePreset);
 
             // Bind the constant buffer for the trace CS
@@ -235,9 +206,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // Evaluate the shadow
             cmd.DispatchCompute(parameters.traceShadowsCS, parameters.shadowsKernel, tileCount, tileCount, 1);
 
-            CoreUtils.SetKeyword(cmd, "LOCAL_VOLUMETRIC_CLOUDS", false);
-            CoreUtils.SetKeyword(cmd, "CLOUDS_SIMPLE_PRESET", false);
-            
             // Bind the constant buffer for the other CS
             ConstantBuffer.Push(cmd, parameters.cloudsShadowCB, parameters.shadowFilterCS, HDShaderIDs._ShaderVariablesCloudsShadows);
 

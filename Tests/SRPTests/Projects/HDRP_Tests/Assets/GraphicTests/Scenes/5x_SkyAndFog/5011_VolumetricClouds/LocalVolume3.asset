@@ -30,12 +30,6 @@ MonoBehaviour:
   enable:
     m_OverrideState: 1
     m_Value: 1
-  localClouds:
-    m_OverrideState: 1
-    m_Value: 1
-  earthCurvature:
-    m_OverrideState: 1
-    m_Value: 0
   cloudTiling:
     m_OverrideState: 1
     m_Value: {x: 5, y: 5}
@@ -66,36 +60,45 @@ MonoBehaviour:
   cloudMap:
     m_OverrideState: 1
     m_Value: {fileID: 2800000, guid: e9c4da07dec84e440bc5ce22500f0a2e, type: 3}
+    dimension: 2
   cloudLut:
     m_OverrideState: 1
     m_Value: {fileID: 2800000, guid: c048349d208625040b34910e0ba90ee4, type: 3}
+    dimension: 2
   cloudControl:
     m_OverrideState: 1
     m_Value: 2
-  cloudPreset:
+  cloudSimpleMode:
+    m_OverrideState: 0
+    m_Value: 0
+  m_CloudPreset:
     m_OverrideState: 1
     m_Value: 3
   cumulusMap:
     m_OverrideState: 0
     m_Value: {fileID: 0}
+    dimension: 2
   cumulusMapMultiplier:
     m_OverrideState: 0
     m_Value: 1
   altoStratusMap:
     m_OverrideState: 0
     m_Value: {fileID: 0}
+    dimension: 2
   altoStratusMapMultiplier:
     m_OverrideState: 0
     m_Value: 1
   cumulonimbusMap:
     m_OverrideState: 0
     m_Value: {fileID: 0}
+    dimension: 2
   cumulonimbusMapMultiplier:
     m_OverrideState: 0
     m_Value: 1
   rainMap:
     m_OverrideState: 0
     m_Value: {fileID: 0}
+    dimension: 2
   cloudMapResolution:
     m_OverrideState: 0
     m_Value: 64
@@ -234,6 +237,15 @@ MonoBehaviour:
   erosionNoiseType:
     m_OverrideState: 0
     m_Value: 1
+  microErosion:
+    m_OverrideState: 0
+    m_Value: 0
+  microErosionFactor:
+    m_OverrideState: 0
+    m_Value: 0.5
+  microErosionScale:
+    m_OverrideState: 0
+    m_Value: 200
   ambientLightProbeDimmer:
     m_OverrideState: 1
     m_Value: 0
@@ -281,15 +293,15 @@ MonoBehaviour:
   ghostingReduction:
     m_OverrideState: 0
     m_Value: 0
+  perceptualBlending:
+    m_OverrideState: 0
+    m_Value: 1
   shadows:
     m_OverrideState: 1
     m_Value: 1
   shadowResolution:
     m_OverrideState: 1
     m_Value: 256
-  shadowPlaneHeightOffset:
-    m_OverrideState: 0
-    m_Value: 0
   shadowDistance:
     m_OverrideState: 0
     m_Value: 8000
@@ -299,7 +311,10 @@ MonoBehaviour:
   shadowOpacityFallback:
     m_OverrideState: 0
     m_Value: 0
-  m_Version: 2
+  m_Version: 3
+  localClouds:
+    m_OverrideState: 0
+    m_Value: 0
   m_ObsoleteWindSpeed:
     m_OverrideState: 1
     m_Value: 0

@@ -322,6 +322,8 @@ namespace UnityEditor.VFX.UI
                     CopyValueToParameter(parameter);
 
                     viewController.AddVFXModel(pos, parameter);
+                    // Update blackboard because the VFXParameterController will be added on next graph update
+                    EditorApplication.delayCall += () => view.blackboard.Update(true);
                 }
             }
             else if (!exists)

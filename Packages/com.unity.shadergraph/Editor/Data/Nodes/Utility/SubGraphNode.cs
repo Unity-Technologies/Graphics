@@ -30,6 +30,7 @@ namespace UnityEditor.ShaderGraph
         , IMayRequireDepthTexture
         , IMayRequireVertexSkinning
         , IMayRequireVertexID
+        , IMayRequireInstanceID
         , IDisposable
     {
         [Serializable]
@@ -877,6 +878,14 @@ namespace UnityEditor.ShaderGraph
                 return false;
 
             return asset.requirements.requiresVertexID;
+        }
+
+        public bool RequiresInstanceID(ShaderStageCapability stageCapability)
+        {
+            if (asset == null)
+                return false;
+
+            return asset.requirements.requiresInstanceID;
         }
 
         public string GetDropdownEntryName(string referenceName)

@@ -169,9 +169,10 @@ namespace UnityEditor.Rendering.HighDefinition
                         CED.AdditionalPropertiesFoldoutGroup(LightUI.Styles.shadowHeader, Expandable.Shadows, k_ExpandedState, AdditionalProperties.Shadow, k_AdditionalPropertiesState,
                             CED.Group(
                                 CED.Group(
-                                    CED.AdditionalPropertiesFoldoutGroup(s_Styles.shadowMapSubHeader, Expandable.ShadowMap, k_ExpandedState, AdditionalProperties.Shadow, k_AdditionalPropertiesState,
-                                        DrawShadowMapContent, DrawShadowMapAdditionalContent, FoldoutOption.SubFoldout | FoldoutOption.Indent | FoldoutOption.NoSpaceAtEnd)),
-                                CED.space,
+
+                                CED.AdditionalPropertiesFoldoutGroup(s_Styles.shadowMapSubHeader, Expandable.ShadowMap, k_ExpandedState, AdditionalProperties.Shadow, k_AdditionalPropertiesState,
+                                    DrawShadowMapContent, DrawShadowMapAdditionalContent, FoldoutOption.SubFoldout | FoldoutOption.Indent | FoldoutOption.NoSpaceAtEnd)),
+
                                 CED.Conditional((serialized, owner) => !isArea(serialized) && k_AdditionalPropertiesState[AdditionalProperties.Shadow] && HasPunctualShadowQualitySettingsUI(HDShadowFilteringQuality.High, serialized, owner),
                                     CED.FoldoutGroup(s_Styles.highShadowQualitySubHeader, Expandable.ShadowQuality, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent, DrawHighShadowSettingsContent)),
                                 CED.Conditional((serialized, owner) => !isArea(serialized) && HasPunctualShadowQualitySettingsUI(HDShadowFilteringQuality.Medium, serialized, owner),
@@ -190,9 +191,9 @@ namespace UnityEditor.Rendering.HighDefinition
                                     CED.FoldoutGroup(s_Styles.highShadowQualitySubHeader, Expandable.ShadowQuality, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent, DrawHighShadowSettingsContent)),
                                 CED.Conditional((serialized, owner) => isArea(serialized) && HasAreaShadowQualitySettingsUI(HDAreaShadowFilteringQuality.Medium, serialized, owner),
                                     CED.FoldoutGroup(s_Styles.mediumShadowQualitySubHeader, Expandable.ShadowQuality, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent, DrawMediumShadowSettingsContent)),
+
                                 CED.Conditional((serialized, owner) => !isArea(serialized),
-                                    CED.FoldoutGroup(s_Styles.contactShadowsSubHeader, Expandable.ContactShadow, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent | FoldoutOption.NoSpaceAtEnd, DrawContactShadowsContent)
-                                )
+                                    CED.FoldoutGroup(s_Styles.contactShadowsSubHeader, Expandable.ContactShadow, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent | FoldoutOption.NoSpaceAtEnd, DrawContactShadowsContent))
                                 ),
                             CED.noop //will only add parameter in first sub header
                             ),
@@ -1648,12 +1649,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static bool HasPunctualShadowQualitySettingsUI(HDShadowFilteringQuality quality, SerializedHDLight serialized, Editor owner)
         {
-            // Handle quality where there is nothing to draw directly here
-            // No PCSS for now with directional light
-            if (quality == HDShadowFilteringQuality.Medium || quality == HDShadowFilteringQuality.Low)
+            var lightType = serialized.settings.lightType.GetEnumValue<LightType>();
+            if (lightType != LightType.Point && lightType != LightType.Spot && lightType != LightType.Pyramid && lightType != LightType.Box)
                 return false;
 
-            // Draw shadow settings using the current shadow algorithm
+            // Need to test quality here to not display an empty foldout
+            if (quality == HDShadowFilteringQuality.Medium || quality == HDShadowFilteringQuality.Low)
+                return false;
 
             HDShadowInitParameters hdShadowInitParameters = HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams;
             return hdShadowInitParameters.punctualShadowFilteringQuality == quality;
@@ -1661,12 +1663,12 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static bool HasDirectionalShadowQualitySettingsUI(HDShadowFilteringQuality quality, SerializedHDLight serialized, Editor owner)
         {
-            // Handle quality where there is nothing to draw directly here
-            // No PCSS for now with directional light
-            if (quality == HDShadowFilteringQuality.Medium || quality == HDShadowFilteringQuality.Low)
+            if (serialized.settings.lightType.GetEnumValue<LightType>() != LightType.Directional)
                 return false;
 
-            // Draw shadow settings using the current shadow algorithm
+            // Need to test quality here to not display an empty foldout
+            if (quality == HDShadowFilteringQuality.Medium || quality == HDShadowFilteringQuality.Low)
+                return false;
 
             HDShadowInitParameters hdShadowInitParameters = HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams;
             return hdShadowInitParameters.directionalShadowFilteringQuality == quality;
@@ -1674,12 +1676,12 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static bool HasAreaShadowQualitySettingsUI(HDAreaShadowFilteringQuality quality, SerializedHDLight serialized, Editor owner)
         {
-            // Handle quality where there is nothing to draw directly here
-            // No PCSS for now with directional light
-            if (quality == HDAreaShadowFilteringQuality.Medium)
+            if (!serialized.settings.lightType.GetEnumValue<LightType>().IsArea())
                 return false;
 
-            // Draw shadow settings using the current shadow algorithm
+            // Need to test quality here to not display an empty foldout
+            if (quality == HDAreaShadowFilteringQuality.Medium)
+                return false;
 
             HDShadowInitParameters hdShadowInitParameters = HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams;
             return hdShadowInitParameters.areaShadowFilteringQuality == quality;
@@ -1688,13 +1690,13 @@ namespace UnityEditor.Rendering.HighDefinition
         static void DrawLowShadowSettingsContent(SerializedHDLight serialized, Editor owner)
         {
             // Currently there is nothing to display here
-            // when adding something, update IsShadowSettings
+            // when adding something, update HasDirectionalShadowQualitySettingsUI, HasPunctualShadowQualitySettingsUI and HasAreaShadowQualitySettingsUI
         }
 
         static void DrawMediumShadowSettingsContent(SerializedHDLight serialized, Editor owner)
         {
             // Currently there is nothing to display here
-            // when adding something, update IsShadowSettings
+            // when adding something, update HasDirectionalShadowQualitySettingsUI, HasPunctualShadowQualitySettingsUI and HasAreaShadowQualitySettingsUI
         }
 
         static void DrawHighShadowSettingsContent(SerializedHDLight serialized, Editor owner)

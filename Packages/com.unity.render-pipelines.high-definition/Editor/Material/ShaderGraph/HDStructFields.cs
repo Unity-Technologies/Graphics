@@ -26,8 +26,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 "BLENDINDICES", subscriptOptions: StructFieldOptions.Optional);
             public static FieldDescriptor color = new FieldDescriptor(AttributesMesh.name, "color", "ATTRIBUTES_NEED_COLOR", ShaderValueType.Float4,
                 "COLOR", subscriptOptions: StructFieldOptions.Optional);
-            public static FieldDescriptor instanceID = new FieldDescriptor(AttributesMesh.name, "instanceID", "", ShaderValueType.Uint,
-                "INSTANCEID_SEMANTIC", "UNITY_ANY_INSTANCING_ENABLED");
+            public static FieldDescriptor instanceID = new FieldDescriptor(AttributesMesh.name, "instanceID", "ATTRIBUTES_NEED_INSTANCEID", ShaderValueType.Uint,
+                "INSTANCEID_SEMANTIC", "UNITY_ANY_INSTANCING_ENABLED || defined(ATTRIBUTES_NEED_INSTANCEID)");
             public static FieldDescriptor vertexID = new FieldDescriptor(AttributesMesh.name, "vertexID", "ATTRIBUTES_NEED_VERTEXID", ShaderValueType.Uint,
                 "VERTEXID_SEMANTIC", subscriptOptions: StructFieldOptions.Optional);
         }
@@ -54,8 +54,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 subscriptOptions: StructFieldOptions.Optional);
             public static FieldDescriptor color = new FieldDescriptor(VaryingsMeshToPS.name, "color", "VARYINGS_NEED_COLOR", ShaderValueType.Float4,
                 subscriptOptions: StructFieldOptions.Optional);
-            public static FieldDescriptor instanceID = new FieldDescriptor(VaryingsMeshToPS.name, "instanceID", "", ShaderValueType.Uint,
-                "CUSTOM_INSTANCE_ID", "UNITY_ANY_INSTANCING_ENABLED");
+            public static FieldDescriptor instanceID = new FieldDescriptor(VaryingsMeshToPS.name, "instanceID", "VARYINGS_NEED_INSTANCEID", ShaderValueType.Uint,
+                "CUSTOM_INSTANCE_ID", "UNITY_ANY_INSTANCING_ENABLED || defined(VARYINGS_NEED_INSTANCEID)");
             // Note: we don't generate cullFace here as it is always present in VertMesh.hlsl
 
             // VFX
@@ -87,8 +87,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 subscriptOptions: StructFieldOptions.Optional);
             public static FieldDescriptor color = new FieldDescriptor(VaryingsMeshToDS.name, "color", "VARYINGS_DS_NEED_COLOR", ShaderValueType.Float4,
                 subscriptOptions: StructFieldOptions.Optional);
-            public static FieldDescriptor instanceID = new FieldDescriptor(VaryingsMeshToDS.name, "instanceID", "", ShaderValueType.Uint,
-                "CUSTOM_INSTANCE_ID", "UNITY_ANY_INSTANCING_ENABLED");
+            public static FieldDescriptor instanceID = new FieldDescriptor(VaryingsMeshToDS.name, "instanceID", "VARYINGS_DS_NEED_INSTANCEID", ShaderValueType.Uint,
+                "CUSTOM_INSTANCE_ID", "UNITY_ANY_INSTANCING_ENABLED || defined(VARYINGS_DS_NEED_INSTANCEID) || defined(VARYINGS_NEED_INSTANCEID)");
         }
 
         public struct FragInputs
@@ -115,6 +115,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             public static FieldDescriptor primitiveID = new FieldDescriptor(FragInputs.name, "primitiveID", "", ShaderValueType.Uint,
                 subscriptOptions: StructFieldOptions.Optional);
             public static FieldDescriptor IsFrontFace = new FieldDescriptor(FragInputs.name, "isFrontFace", "", ShaderValueType.Boolean,
+                subscriptOptions: StructFieldOptions.Optional);
+            public static FieldDescriptor instanceID = new FieldDescriptor(FragInputs.name, "instanceID", "", ShaderValueType.Uint,
                 subscriptOptions: StructFieldOptions.Optional);
 
             // VFX

@@ -7,6 +7,8 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.Graphing;
+using UnityEngine.UIElements;
+using UnityEditor.ShaderGraph.Drawing;
 
 namespace UnityEditor.ShaderGraph.Serialization
 {
@@ -108,6 +110,14 @@ namespace UnityEditor.ShaderGraph.Serialization
                     s_ObjectIdField.SetValue(umst, objectId);
                     castedObject = umst;
                     return umst.CastTo<T>();
+                }
+                else if (t == typeof(AbstractShaderGraphDataExtension) || t.IsSubclassOf(typeof(AbstractShaderGraphDataExtension)))
+                {
+                    UnknownGraphDataExtension usge = new UnknownGraphDataExtension(typeInfo, jsonData);
+                    valueMap[objectId] = usge;
+                    s_ObjectIdField.SetValue(usge, objectId);
+                    castedObject = usge;
+                    return usge.CastTo<T>();
                 }
                 else
                 {
@@ -399,6 +409,39 @@ namespace UnityEditor.ShaderGraph.Serialization
             // unknown node types cannot be copied, or else their GUID would not match the GUID in the serialized jsonDAta
             public override bool canCutNode => false;
             public override bool canCopyNode => false;
+        }
+
+        internal class UnknownGraphDataExtension : AbstractShaderGraphDataExtension
+        {
+            public string name;
+            public string jsonData;
+            internal override string displayName => name;
+
+            internal UnknownGraphDataExtension() : base() { }
+
+            internal UnknownGraphDataExtension(string displayName, string jsonData)
+            {
+                name = displayName;
+                this.jsonData = jsonData;
+            }
+
+            public override void Deserailize(string typeInfo, string jsonData)
+            {
+                this.jsonData = jsonData;
+                base.Deserailize(typeInfo, jsonData);
+            }
+
+            public override string Serialize()
+            {
+                return jsonData.Trim();
+            }
+
+            internal override void OnPropertiesGUI(VisualElement context, Action onChange, Action<string> registerUndo, GraphData owner)
+            {
+                var helpBox = new HelpBoxRow(MessageType.Info);
+                helpBox.Add(new Label("Cannot find the code for this data extension, a package may be missing."));
+                context.hierarchy.Add(helpBox);
+            }
         }
         #endregion //Unknown Data Handling
 

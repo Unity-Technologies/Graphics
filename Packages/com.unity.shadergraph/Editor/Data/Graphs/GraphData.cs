@@ -385,6 +385,15 @@ namespace UnityEditor.ShaderGraph
         internal delegate void SaveGraphDelegate(Shader shader, object context);
         internal static SaveGraphDelegate onSaveGraph;
 
+
+        #region SubData
+
+        [SerializeField]
+        internal List<JsonData<AbstractShaderGraphDataExtension>> m_SubDatas = new List<JsonData<AbstractShaderGraphDataExtension>>();
+        public DataValueEnumerable<AbstractShaderGraphDataExtension> SubDatas => m_SubDatas.SelectValue();
+
+        #endregion
+
         #region Targets
 
         // Serialized list of user-selected active targets, sorted in displayName order (to maintain deterministic serialization order)

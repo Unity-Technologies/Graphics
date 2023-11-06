@@ -19,7 +19,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             return structs;
         }
 
-        public static PragmaCollection GeneratePragmas(PragmaCollection input, bool useVFX, bool useTessellation, bool useDebugSymbols = false, bool useInstancing = true)
+        public static PragmaCollection GeneratePragmas(PragmaCollection input, bool useVFX, bool useTessellation, bool useInstancing = true)
         {
             PragmaCollection pragmas = input == null ? new PragmaCollection() : new PragmaCollection { input };
 
@@ -28,9 +28,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             else
                 pragmas.Add(useTessellation ? CorePragmas.BasicTessellation : CorePragmas.Basic);
 
-            if (useDebugSymbols && Unsupported.IsDeveloperMode())
-                pragmas.Add(Pragma.DebugSymbols);
-            
             if (useInstancing)
                 pragmas.Add(Pragma.MultiCompileInstancing);
 
@@ -443,7 +440,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         #region Forward Only
 
-        public static PassDescriptor GenerateForwardOnlyPass(bool supportLighting, bool useVFX, bool useTessellation, bool useDebugSymbols)
+        public static PassDescriptor GenerateForwardOnlyPass(bool supportLighting, bool useVFX, bool useTessellation)
         {
             return new PassDescriptor
             {
@@ -458,7 +455,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // We need motion vector version as Forward pass support transparent motion vector and we can't use ifdef for it
                 requiredFields = supportLighting ? CoreRequiredFields.BasicLighting : CoreRequiredFields.BasicSurfaceData,
                 renderStates = CoreRenderStates.Forward,
-                pragmas = GeneratePragmas(CorePragmas.DotsInstanced, useVFX, useTessellation, useDebugSymbols),
+                pragmas = GeneratePragmas(CorePragmas.DotsInstanced, useVFX, useTessellation),
                 defines = GenerateDefines(supportLighting ? CoreDefines.Forward : CoreDefines.ForwardUnlit, useVFX, useTessellation),
                 includes = GenerateIncludes(),
 
@@ -775,7 +772,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         #region GBuffer
 
-        public static PassDescriptor GenerateGBuffer(bool useVFX, bool useTessellation, bool useDebugSymbols)
+        public static PassDescriptor GenerateGBuffer(bool useVFX, bool useTessellation)
         {
             return new PassDescriptor
             {
@@ -789,7 +786,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = GenerateStructs(null, useVFX, useTessellation),
                 requiredFields = CoreRequiredFields.BasicLighting,
                 renderStates = GBufferRenderState,
-                pragmas = GeneratePragmas(CorePragmas.DotsInstanced, useVFX, useTessellation, useDebugSymbols),
+                pragmas = GeneratePragmas(CorePragmas.DotsInstanced, useVFX, useTessellation),
                 defines = GenerateDefines(CoreDefines.ShaderGraphRaytracingDefault, useVFX, useTessellation),
                 keywords = GBufferKeywords,
                 includes = GBufferIncludes,
@@ -834,7 +831,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         #region Lit Forward
 
-        public static PassDescriptor GenerateLitForward(bool useVFX, bool useTessellation, bool useDebugSymbols)
+        public static PassDescriptor GenerateLitForward(bool useVFX, bool useTessellation)
         {
             return new PassDescriptor
             {
@@ -849,7 +846,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // We need motion vector version as Forward pass support transparent motion vector and we can't use ifdef for it
                 requiredFields = CoreRequiredFields.BasicLighting,
                 renderStates = CoreRenderStates.Forward,
-                pragmas = GeneratePragmas(CorePragmas.DotsInstanced, useVFX, useTessellation, useDebugSymbols),
+                pragmas = GeneratePragmas(CorePragmas.DotsInstanced, useVFX, useTessellation),
                 defines = GenerateDefines(CoreDefines.ForwardLit, useVFX, useTessellation),
                 includes = ForwardIncludes,
                 virtualTextureFeedback = true,

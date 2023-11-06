@@ -14,7 +14,7 @@ For information about ray tracing in HDRP, and how to set up your HDRP Project t
 
 To troubleshoot this effect, HDRP provides a Global Illumination [Debug Mode](Ray-Tracing-Debug.md) and a Ray Tracing Acceleration Structure [Debug Mode](Ray-Tracing-Debug.md) in Lighting Full Screen Debug Mode.
 
-## Using Ray-Traced Global Illumination
+## Use ray-traced global illumination
 
 This feature replaces the [Screen Space Global Illumination](Override-Screen-Space-GI.md) Volume override, so the initial setup is similar. To setup ray traced global illumination on your Volume:
 
@@ -25,4 +25,4 @@ This feature replaces the [Screen Space Global Illumination](Override-Screen-Spa
 
 ## Properties
 
-HDRP implements ray-traced global illumination on top of the Screen Space Global Illumination override. For information on the properties that control this effect, see [Ray-traced properties](Override-Screen-Space-GI.md#ray-traced).
+HDRP implements ray-traced global illumination on top of the Screen Space Global Illumination override. For information on the properties that control this effect, see [Ray-traced properties](Override-Screen-Space-GI.md).

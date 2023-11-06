@@ -7,14 +7,13 @@
 // Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesClouds
 // PackingRules = Exact
 CBUFFER_START(ShaderVariablesClouds)
-    float _MaxRayMarchingDistance;
     float _HighestCloudAltitude;
     float _LowestCloudAltitude;
-    float _EarthRadius;
-    float2 _CloudRangeSquared;
+    float _CloudNearPlane;
+    float _CameraSpace;
     int _NumPrimarySteps;
     int _NumLightSteps;
-    float4 _CloudMapTiling;
+    float2 _ShadowRegionSize;
     float2 _WindDirection;
     float2 _WindVector;
     float2 _ShapeNoiseOffset;
@@ -26,20 +25,18 @@ CBUFFER_START(ShaderVariablesClouds)
     float _SmallWindSpeed;
     float4 _SunLightColor;
     float4 _SunDirection;
-    int _PhysicallyBasedSun;
+    float4 _CloudMapTiling;
     float _MultiScattering;
-    float _ErosionOcclusion;
     float _PowderEffectIntensity;
     float _NormalizationFactor;
-    float _MaxCloudDistance;
     float _DensityMultiplier;
     float _ShapeFactor;
     float _ShapeScale;
+    float _MicroErosionFactor;
+    float _MicroErosionScale;
+    float _ErosionOcclusion;
     float _ErosionFactor;
     float _ErosionScale;
-    float _MicroErosionFactor;
-    float2 _ShadowRegionSize;
-    float _MicroErosionScale;
     float _CloudHistoryInvalidation;
     float4 _ScatteringTint;
     float4 _FinalScreenSize;
@@ -47,26 +44,24 @@ CBUFFER_START(ShaderVariablesClouds)
     float4 _TraceScreenSize;
     float2 _HistoryViewportSize;
     float2 _HistoryBufferSize;
-    int _ExposureSunColor;
-    int _AccumulationFrameIndex;
-    int _SubPixelIndex;
-    int _RenderForSky;
-    float _FadeInStart;
-    float _FadeInDistance;
     int _LowResolutionEvaluation;
     int _EnableIntegration;
-    float4x4 _CameraViewProjection_NO;
-    float4x4 _CameraInverseViewProjection_NO;
-    float4x4 _CameraPrevViewProjection_NO;
+    int _ValidSceneDepth;
+    int _ValidMaxZMask;
+    int _AccumulationFrameIndex;
+    int _SubPixelIndex;
+    float _NearPlaneReprojection;
+    int _PaddingVC2;
     float4x4 _CloudsPixelCoordToViewDirWS;
+    float4x4 _CameraPrevViewProjection;
     float _AltitudeDistortion;
     float _ErosionFactorCompensation;
     int _EnableFastToneMapping;
-    int _IsPlanarReflection;
-    int _ValidMaxZMask;
+    float _TemporalAccumulationFactor;
+    float _FadeInStart;
+    float _FadeInDistance;
     float _ImprovedTransmittanceBlend;
     float _CubicTransmittance;
-    float _TemporalAccumulationFactor;
     float4 _DistanceBasedWeights[12];
 CBUFFER_END
 
@@ -81,7 +76,7 @@ CBUFFER_START(ShaderVariablesCloudsShadows)
     float4 _CloudShadowSunRight;
     float4 _CloudShadowSunUp;
     float4 _CloudShadowSunForward;
-    float4 _WorldSpaceShadowCenter;
+    float4 _CameraPositionPS;
 CBUFFER_END
 
 

@@ -31,7 +31,7 @@ namespace UnityEditor.VFX.UI
             return s_Instance.CreateCopy(elements, bounds, null, null, null);
         }
 
-        public static string SerializeElements(IEnumerable<Controller> elements, Rect bounds, IEnumerable<VFXAttribute> attributes, IEnumerable<VFXParameter> parameters, string[] categories)
+        internal static string SerializeElements(IEnumerable<Controller> elements, Rect bounds, IEnumerable<Attribute> attributes, IEnumerable<VFXParameter> parameters, string[] categories)
         {
             if (s_Instance == null)
                 s_Instance = new VFXCopy();
@@ -53,7 +53,7 @@ namespace UnityEditor.VFX.UI
             return serializableGraph;
         }
 
-        object CreateCopy(IEnumerable<Controller> elements, Rect bounds, IEnumerable<VFXAttribute> vfxAttributes, IEnumerable<VFXParameter> vfxParameters, string[] categoriesToCopy)
+        object CreateCopy(IEnumerable<Controller> elements, Rect bounds, IEnumerable<Attribute> vfxAttributes, IEnumerable<VFXParameter> vfxParameters, string[] categoriesToCopy)
         {
             IEnumerable<VFXContextController> contexts = elements.OfType<VFXContextController>();
             IEnumerable<VFXNodeController> nodes = elements.Where(t => t is VFXOperatorController || t is VFXParameterNodeController).Cast<VFXNodeController>();
@@ -63,7 +63,7 @@ namespace UnityEditor.VFX.UI
 
             SerializableGraph serializableGraph = new SerializableGraph();
 
-            serializableGraph.attributes = vfxAttributes?.Select(x => new Attribute { name = x.name, type = x.type, description = x.description }).ToArray();
+            serializableGraph.attributes = vfxAttributes?.ToArray();
             serializableGraph.controllerCount = elements.Count();
 
             if (contexts.Count() == 0 && nodes.Count() == 0 && blocks.Count() > 0)

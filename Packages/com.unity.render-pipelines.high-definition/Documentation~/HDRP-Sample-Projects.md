@@ -14,7 +14,7 @@ https://github.com/Unity-Technologies/FontainebleauDemo
 
 This Project demonstrates how to use Photogrammetry to create game ready Assets. From Unity 2020.1, Fontainebleau will no longer receive updates; Unity 2019.4 is the last supported version.
 
-Graphics Features used :
+Graphics Features used:
 
 * Shader Graph (Wind animation)
 * Contact Shadows
@@ -29,16 +29,15 @@ Relevant  links :
   * [Siggraph 2017 - Photogrammetry workflow and the tech behind the de-lighting tool](https://www.youtube.com/watch?v=Ny9ZXt_2v2Y)
 
 
-
 ## Spaceship
 
 https://github.com/Unity-Technologies/SpaceshipDemo
 
 ![Spaceship](Images/HDRPDemos-Spaceship.png)
 
-This Project demonstrates how to use the Visual Effect Graph to create interactive AAA grade Visual Effects.
+This project demonstrates how to use the Visual Effect Graph to create interactive AAA grade Visual Effects.
 
-Graphics features used :
+Graphics features used:
 
 * Visual Effect Graph
 * Volumetric fog
@@ -59,9 +58,7 @@ https://github.com/Unity-Technologies/VRAlchemyLab
 
 ![VR Alchemy Lab](Images/HDRPDemos-VRAlchemyLab.png)
 
-This Project shows the use of HDRP rendering features in the context of a VR interactive demo.
-
-Graphics features used :
+This project demonstrates the following HDRP rendering features in the context of a VR interactive demo:
 
 * Visual Effect Graph
 * Shader Graph
@@ -69,4 +66,18 @@ Graphics features used :
 * Custom Render Texture
 * Custom Pass
 * Object Motion Blur
+* Decals
+
+## Water scenes
+
+https://github.com/Unity-Technologies/WaterScenes
+
+![Water Scenes](Images/HDRPDemos-Water.png)
+
+This project demonstrates the following HDRP Water System features:
+
+* Water System
+* Visual Effect Graph
+* Shader Graph
+* Custom Render Texture
 * Decals

@@ -1,4 +1,4 @@
-# Authoring lookup textures with Adobe Photoshop
+# Create an LUT in Adobe Photoshop
 
 The following process uses Photoshop, but you can apply it to other digital content creation tools such as [DaVinci Resolve](LUT-Authoring-Resolve.md) or Nuke.
 
@@ -13,7 +13,7 @@ This is a fixed size; if you change it later, you need to rebake all your LUTs. 
 
 ## Step 2: Render the Camera view to an EXR file
 
-Export the current [Camera](HDRP-Camera.md)'s view to a log-encoded EXR file. To do this:
+Export the current [Camera](hdrp-camera-component-reference.md)'s view to a log-encoded EXR file. To do this:
 
 1. In the Scene view or Hierarchy, select a GameObject that contains a Camera component.
 2. Select **Edit** > **Rendering** > **Render Selected HDRP Camera to Log EXR** **(**or press **Ctrl+Shift+Alt+E)**.

@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
+using RenderingLayerMask = UnityEngine.Rendering.HighDefinition.RenderingLayerMask;
 
 public class DebugViewController : MonoBehaviour
 {

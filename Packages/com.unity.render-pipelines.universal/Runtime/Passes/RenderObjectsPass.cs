@@ -268,7 +268,6 @@ namespace UnityEngine.Rendering.Universal
             UniversalRenderingData renderingData = frameData.Get<UniversalRenderingData>();
             UniversalLightData lightData = frameData.Get<UniversalLightData>();
 
-            UniversalRenderer renderer = (UniversalRenderer)cameraData.renderer;
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("Render Objects Pass", out var passData, s_ProfilingSampler))
             {
                 UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();

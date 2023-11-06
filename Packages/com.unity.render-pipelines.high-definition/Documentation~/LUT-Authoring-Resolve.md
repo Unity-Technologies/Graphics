@@ -1,4 +1,4 @@
-# Authoring lookup textures with DaVinci Resolve
+# Create an LUT in DaVinci Resolve
 
 The following process uses DaVinci Resolve, but you can apply it to other digital content creation tools such as [Photoshop](LUT-Authoring-Photoshop.md) or Nuke.
 
@@ -13,7 +13,7 @@ Resolve only exports LUTs of size 33 so set **Grading LUT Size** to **33** for i
 
 ## Step 2: Render the Camera view to an EXR file
 
-Export the current [Camera](HDRP-Camera.md)'s view to a log-encoded EXR file. To do this:
+Export the current [Camera](hdrp-camera-component-reference.md)'s view to a log-encoded EXR file. To do this:
 
 1. In the Scene view or Hierarchy, select a GameObject that contains a Camera component.
 2. Select **Edit** > **Rendering** > **Render Selected HDRP Camera to Log EXR** **(**or press **Ctrl+Shift+Alt+E)**.

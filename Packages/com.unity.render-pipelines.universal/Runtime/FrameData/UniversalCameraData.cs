@@ -338,13 +338,13 @@ namespace UnityEngine.Rendering.Universal
         public bool IsHandleYFlipped(RTHandle handle)
         {
             if (!SystemInfo.graphicsUVStartsAtTop)
-                return false;
+                return true;
 
             if (cameraType == CameraType.SceneView || cameraType == CameraType.Preview)
                 return true;
 
             var handleID = new RenderTargetIdentifier(handle.nameID, 0, CubemapFace.Unknown, 0);
-            bool isBackbuffer = handleID == BuiltinRenderTextureType.CameraTarget;
+            bool isBackbuffer = handleID == BuiltinRenderTextureType.CameraTarget || handleID == BuiltinRenderTextureType.Depth;
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (xr.enabled)
                 isBackbuffer |= handleID == new RenderTargetIdentifier(xr.renderTarget, 0, CubemapFace.Unknown, 0);
@@ -386,7 +386,7 @@ namespace UnityEngine.Rendering.Universal
         public bool IsRenderTargetProjectionMatrixFlipped(RTHandle color, RTHandle depth = null)
         {
             if (!SystemInfo.graphicsUVStartsAtTop)
-                return false;
+                return true;
 
             return targetTexture != null || IsHandleYFlipped(color ?? depth);
         }

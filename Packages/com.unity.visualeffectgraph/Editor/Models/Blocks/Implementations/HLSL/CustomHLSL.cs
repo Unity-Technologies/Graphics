@@ -309,8 +309,9 @@ namespace UnityEditor.VFX.Block
                 return;
             }
 
+            var hasError = m_Function?.errorList != null;
             var strippedHLSL = HLSLParser.StripCommentedCode(GetHLSLCode());
-            if (strippedHLSL != cachedHLSLCode || m_SelectedFunction != m_AvailableFunction.GetSelection() || m_AvailableFunction.values == null)
+            if (hasError || strippedHLSL != cachedHLSLCode || m_SelectedFunction != m_AvailableFunction.GetSelection() || m_AvailableFunction.values == null)
             {
                 var functions = new List<HLSLFunction>(HLSLFunction.Parse(graph.attributesManager, strippedHLSL));
 

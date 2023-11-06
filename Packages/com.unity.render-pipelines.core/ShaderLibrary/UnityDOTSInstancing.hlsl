@@ -225,7 +225,9 @@ static const uint kDOTSInstancingFlagMainLightEnabled = (1 << 4); // Object shou
 static const uint kPerInstanceDataBit = 0x80000000;
 static const uint kAddressMask        = 0x7fffffff;
 
-static DOTSVisibleData unity_SampledDOTSVisibleData;
+static const uint kIndirectVisibleOffsetEnabledBit = 0x80000000;
+static uint unity_SampledDOTSIndirectVisibleIndex;
+static uint unity_SampledDOTSPackedInstanceIndex;
 static real4 unity_DOTS_Sampled_SHAr;
 static real4 unity_DOTS_Sampled_SHAg;
 static real4 unity_DOTS_Sampled_SHAb;
@@ -237,9 +239,18 @@ static real4 unity_DOTS_Sampled_ProbesOcclusion;
 static float3 unity_DOTS_RendererBounds_Min;
 static float3 unity_DOTS_RendererBounds_Max;
 
+uint GetDOTSIndirectVisibleIndex()
+{
+    return unity_SampledDOTSIndirectVisibleIndex;
+}
+
 uint GetDOTSInstanceIndex()
 {
-    return unity_SampledDOTSVisibleData.VisibleData.x;
+#ifdef LOD_FADE_CROSSFADE
+    return unity_SampledDOTSPackedInstanceIndex & 0x00ffffff;
+#else
+    return unity_SampledDOTSPackedInstanceIndex;
+#endif
 }
 
 #ifdef UNITY_DOTS_INSTANCING_UNIFORM_BUFFER
@@ -283,20 +294,45 @@ void SetupDOTSInstanceSelectMasks() {}
 
 #endif
 
-void SetDOTSVisibleData(DOTSVisibleData visibleData)
+#ifdef UNITY_DOTS_INSTANCING_UNIFORM_BUFFER
+CBUFFER_START(unity_DOTSInstancing_IndirectInstanceVisibility)
+    float4 unity_DOTSInstancing_IndirectInstanceVisibilityRaw[4096];
+CBUFFER_END
+#else
+ByteAddressBuffer unity_DOTSInstancing_IndirectInstanceVisibility;
+#endif
+
+uint LoadDOTSIndirectInstanceIndex(uint indirectIndex)
 {
-    unity_SampledDOTSVisibleData = visibleData;
-    SetupDOTSInstanceSelectMasks();
+#ifdef UNITY_DOTS_INSTANCING_UNIFORM_BUFFER
+    uint4 raw = asuint(unity_DOTSInstancing_IndirectInstanceVisibilityRaw[indirectIndex >> 2]);
+    uint2 tmp = (indirectIndex & 0x2) ? raw.zw : raw.xy;
+    return (indirectIndex & 0x1) ? tmp.y : tmp.x;
+#else
+    return unity_DOTSInstancing_IndirectInstanceVisibility.Load(indirectIndex << 2);
+#endif
 }
 
 void SetupDOTSVisibleInstancingData()
 {
-    SetDOTSVisibleData(unity_DOTSVisibleInstances[unity_InstanceID]);
+    uint packedIndirectVisibleOffset = unity_DOTSVisibleInstances[0].VisibleData.y;
+    unity_SampledDOTSIndirectVisibleIndex = (packedIndirectVisibleOffset & ~kIndirectVisibleOffsetEnabledBit) + unity_InstanceID;
+
+    if (packedIndirectVisibleOffset != 0)
+        unity_SampledDOTSPackedInstanceIndex = LoadDOTSIndirectInstanceIndex(unity_SampledDOTSIndirectVisibleIndex);
+    else
+        unity_SampledDOTSPackedInstanceIndex = unity_DOTSVisibleInstances[unity_InstanceID].VisibleData.x;
+
+    SetupDOTSInstanceSelectMasks();
 }
 
 int GetDOTSInstanceCrossfadeSnorm8()
 {
-    return unity_SampledDOTSVisibleData.VisibleData.y;
+#ifdef LOD_FADE_CROSSFADE
+    return int(unity_SampledDOTSPackedInstanceIndex) >> 24;
+#else
+    return 0;
+#endif
 }
 
 bool IsDOTSInstancedProperty(uint metadata)

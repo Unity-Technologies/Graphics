@@ -64,6 +64,7 @@ namespace UnityEditor.ShaderGraph
             new FieldDependency(StructFields.VertexDescriptionInputs.BoneWeights,                                   StructFields.Attributes.weights),
             new FieldDependency(StructFields.VertexDescriptionInputs.BoneIndices,                                   StructFields.Attributes.indices),
             new FieldDependency(StructFields.VertexDescriptionInputs.VertexID,                                      StructFields.Attributes.vertexID),
+            new FieldDependency(StructFields.VertexDescriptionInputs.InstanceID,                                    StructFields.Attributes.instanceID),
         };
 
         public static DependencyCollection SurfaceDescription = new DependencyCollection
@@ -110,6 +111,7 @@ namespace UnityEditor.ShaderGraph
             new FieldDependency(StructFields.SurfaceDescriptionInputs.VertexColor,                                  StructFields.Varyings.color),
             new FieldDependency(StructFields.SurfaceDescriptionInputs.FaceSign,                                     StructFields.Varyings.cullFace),
             new FieldDependency(StructFields.SurfaceDescriptionInputs.VertexID,                                     StructFields.Varyings.vertexID),
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.InstanceID,                                   StructFields.Varyings.instanceID),
         };
 
         public static DependencyCollection Default = new DependencyCollection

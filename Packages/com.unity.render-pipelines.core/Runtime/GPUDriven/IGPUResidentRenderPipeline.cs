@@ -68,11 +68,6 @@ namespace UnityEngine.Rendering
         GPUResidentDrawerSettings gpuResidentDrawerSettings { get; }
 
         /// <summary>
-        /// Gets the GPU resident drawer resources
-        /// </summary>
-        GPUResidentDrawerResources gpuResidentDrawerResources { get; }
-
-        /// <summary>
         /// The mode the GPUResidentDrawer is configured for on this RenderPipeline
         /// </summary>
         GPUResidentDrawerMode gpuResidentDrawerMode

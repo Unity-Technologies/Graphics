@@ -52,7 +52,7 @@ namespace UnityEditor.VFX.UI
             if (s_Instance == null)
                 s_Instance = new VFXPaste();
 
-            s_Instance.PasteStickyNotes(data as SerializableGraph, Vector2.zero, viewController.graph.UIInfos);
+            s_Instance.PasteStickyNotes(viewController, data as SerializableGraph, Vector2.zero, viewController.graph.UIInfos);
         }
 
         static bool CanPasteSubgraph(VisualEffectSubgraph subgraph, string openedAssetPath)
@@ -131,6 +131,7 @@ namespace UnityEditor.VFX.UI
             {
                 if (view != null)
                 {
+                    PasteVFXAttributes(viewController, serializableGraph);
                     PasteBlocks(view, ref serializableGraph, nodesInTheSameOrder);
                 }
             }
@@ -279,7 +280,7 @@ namespace UnityEditor.VFX.UI
 
             //Paste Everything else
             PasteGroupNodes(serializableGraph, center, ui);
-            PasteStickyNotes(serializableGraph, center, ui);
+            PasteStickyNotes(viewController, serializableGraph, center, ui);
 
             PasteDatas(viewController, serializableGraph); // TODO Data settings should be pasted at context creation. This can lead to issues as blocks are added before data is initialized
             PasteDataEdges(serializableGraph);
@@ -371,7 +372,7 @@ namespace UnityEditor.VFX.UI
             {
                 var blk = block;
 
-                VFXBlock newBlock = PasteAndInitializeNode<VFXBlock>(null, center, bounds, ref blk);
+                VFXBlock newBlock = PasteAndInitializeNode<VFXBlock>(controller, center, bounds, ref blk);
 
                 blocks.Add(newBlock);
 
@@ -393,15 +394,13 @@ namespace UnityEditor.VFX.UI
                 return null;
 
             var ope = node;
-            PasteNode(newNode, center, bounds, ref ope);
-
             if (!(newNode is VFXBlock))
             {
                 controller.graph.AddChild(newNode);
 
                 m_NodesInTheSameOrder[node.indexInClipboard] = new VFXNodeID(newNode, 0);
             }
-
+            PasteNode(newNode, center, bounds, ref ope);
 
             return newNode;
         }
@@ -676,7 +675,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        private void PasteStickyNotes(SerializableGraph serializableGraph, Vector2 center, VFXUI ui)
+        private void PasteStickyNotes(VFXViewController vfxViewController, SerializableGraph serializableGraph, Vector2 center, VFXUI ui)
         {
             if (serializableGraph.stickyNotes != null && serializableGraph.stickyNotes.Length > 0)
             {
@@ -694,6 +693,8 @@ namespace UnityEditor.VFX.UI
                         position = new Rect(center + offset, t.position.size)
                     };
                 })).ToArray();
+
+                vfxViewController?.graph?.Invalidate(VFXModel.InvalidationCause.kUIChanged);
             }
         }
 
@@ -761,7 +762,8 @@ namespace UnityEditor.VFX.UI
                 {
                     VFXAttribute pastedAttribute;
                     // Check that the attribute still exists because it can have been deleted between copy and paste operations
-                    if (viewController.graph.attributesManager.Exist(attribute.name))
+                    // Also do not duplicate when the custom attribute comes from a block (we might have multiple blocks referring to the same custom attribute for instance)
+                    if (attribute.canDuplicate && viewController.graph.attributesManager.Exist(attribute.name))
                     {
                         pastedAttribute = viewController.graph.DuplicateCustomAttribute(attribute.name);
                     }

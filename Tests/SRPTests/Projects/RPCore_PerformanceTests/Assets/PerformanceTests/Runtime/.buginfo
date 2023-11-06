@@ -1,0 +1,5 @@
+when:
+  path:
+    - ^.*RenderGraph.*$
+add:
+  area: RP Foundation

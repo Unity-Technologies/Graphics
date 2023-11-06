@@ -1,12 +1,10 @@
 # Forward and Deferred rendering
 
-The High Definition Render Pipeline (HDRP) allows you to render Lit Materials using either Forward or Deferred rendering. You can configure your Unity Project to only use one of these modes, or allow it to use both and switch at runtime on a per-[Camera](HDRP-Camera.md) basis.
+The High Definition Render Pipeline (HDRP) allows you to render Lit Materials using either Forward or Deferred rendering. You can configure your Unity Project to only use one of these modes, or allow it to use both and switch at runtime on a per-[Camera](hdrp-camera-component-reference.md) basis.
 
-## Using Forward or Deferred rendering
+## Use Forward or Deferred rendering
 
 Before you use forward or deferred rendering in your Unity Project, you must make sure your [HDRP Asset](HDRP-Asset.md) supports them.
-
-![](Images/ForwardAndDeferred1.png)
 
 To set the default support for forward or deferred rendering in your Project:
 

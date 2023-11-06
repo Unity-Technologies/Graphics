@@ -9,21 +9,13 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/AtmosphericScattering/AtmosphericScattering.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/VolumetricLighting/VBuffer.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/PhysicallyBasedSky/PhysicallyBasedSkyCommon.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/PhysicallyBasedSky/PhysicallyBasedSkyEvaluation.hlsl"
 
 #ifdef DEBUG_DISPLAY
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
 #endif
 
 TEXTURE3D(_VBufferLighting);
-
-float3 ExpLerp(float3 A, float3 B, float t, float x, float y)
-{
-    // Remap t: (exp(10 k t) - 1) / (exp(10 k) - 1) = exp(x t) y - y.
-    t = exp(x * t) * y - y;
-    // Perform linear interpolation using the new value of t.
-    return lerp(A, B, t);
-}
 
 float3 GetFogColor(float3 V, float fragDist)
 {
@@ -183,7 +175,7 @@ void EvaluatePbrAtmosphere(float3 positionPS, float3 V, float distAlongRay, bool
             // MS.
             radiance += lerp(SAMPLE_TEXTURE3D_LOD(_MultipleScatteringTexture,      s_linear_clamp_sampler, float3(tc.u, tc.v, tc.w0), 0).rgb,
                              SAMPLE_TEXTURE3D_LOD(_MultipleScatteringTexture,      s_linear_clamp_sampler, float3(tc.u, tc.v, tc.w1), 0).rgb,
-                             tc.a);
+                             tc.a) * MS_EXPOSURE_INV;
 
             if (rayEndsInsideAtmosphere)
             {
@@ -216,7 +208,7 @@ void EvaluatePbrAtmosphere(float3 positionPS, float3 V, float distAlongRay, bool
                 // MS.
                 radiance1 += lerp(SAMPLE_TEXTURE3D_LOD(_MultipleScatteringTexture,      s_linear_clamp_sampler, float3(tc.u, tc.v, tc.w0), 0).rgb,
                                   SAMPLE_TEXTURE3D_LOD(_MultipleScatteringTexture,      s_linear_clamp_sampler, float3(tc.u, tc.v, tc.w1), 0).rgb,
-                                  tc.a);
+                                  tc.a) * MS_EXPOSURE_INV;
 
                 // L(tEntry, tFrag) = L(tEntry, tExit) - T(tEntry, tFrag) * L(tFrag, tExit)
                 radiance = max(0, radiance - (1 - skyOpacity) * radiance1);
@@ -227,21 +219,9 @@ void EvaluatePbrAtmosphere(float3 positionPS, float3 V, float distAlongRay, bool
             skyColor += radiance;
         }
 
-        skyColor   = Desaturate(skyColor,   _ColorSaturation);
-        skyOpacity = Desaturate(skyOpacity, _AlphaSaturation) * _AlphaMultiplier;
-
-        float horAngle = acos(cosHor);
-        float chiAngle = acos(cosChi);
-
-        // [start, end] -> [0, 1] : (x - start) / (end - start) = x * rcpLength - (start * rcpLength)
-        // TEMPLATE_3_REAL(Remap01, x, rcpLength, startTimesRcpLength, return saturate(x * rcpLength - startTimesRcpLength))
-        float start    = horAngle;
-        float end      = 0;
-        float rcpLen   = rcp(end - start);
-        float nrmAngle = Remap01(chiAngle, rcpLen, start * rcpLen);
-        // float angle = saturate((0.5 * PI) - acos(cosChi) * rcp(0.5 * PI));
-
-        skyColor *= ExpLerp(_HorizonTint.rgb, _ZenithTint.rgb, nrmAngle, _HorizonZenithShiftPower, _HorizonZenithShiftScale);
+        #ifndef DISABLE_ATMOS_EVALUATE_ARTIST_OVERRIDE
+        AtmosphereArtisticOverride(cosHor, cosChi, skyColor, skyOpacity);
+        #endif
     }
 }
 
@@ -328,19 +308,15 @@ void EvaluateAtmosphericScattering(PositionInputs posInput, float3 V, out float3
         opacity = volFog.a;
     }
 
-#if 0 // _PBRFogEnabled is disabled from C# anyway
+#ifndef ATMOSPHERE_NO_AERIAL_PERSPECTIVE
     // Sky pass already applies atmospheric scattering to the far plane.
     // This pass only handles geometry.
     if (_PBRFogEnabled && (posInput.deviceDepth != UNITY_RAW_FAR_CLIP_VALUE))
     {
         float3 skyColor = 0, skyOpacity = 0;
 
-        // Convert it to distance along the ray. Doesn't work with tilt shift, etc.
-        float tFrag = posInput.linearDepth * rcp(dot(-V, GetViewForwardDir1(UNITY_MATRIX_V)));
-
-        float3 positionPS = _WorldSpaceCameraPos.xyz - _PlanetCenterPosition;
-        EvaluatePbrAtmosphere(positionPS, V, tFrag, false, skyColor, skyOpacity);
-        skyColor *= _IntensityMultiplier * GetCurrentExposureMultiplier();
+        float tFrag = posInput.linearDepth;
+        EvaluateAtmosphericScattering(-V, posInput.positionNDC, tFrag, skyColor, skyOpacity);
 
         // Rendering of fog and atmospheric scattering cannot really be decoupled.
 #if 0

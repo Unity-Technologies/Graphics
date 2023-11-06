@@ -12,6 +12,13 @@
 #define PBRSKYCONFIG_IN_SCATTERED_RADIANCE_TABLE_SIZE_Y (32)
 #define PBRSKYCONFIG_IN_SCATTERED_RADIANCE_TABLE_SIZE_Z (16)
 #define PBRSKYCONFIG_IN_SCATTERED_RADIANCE_TABLE_SIZE_W (64)
+#define PBRSKYCONFIG_MULTI_SCATTERING_LUT_WIDTH (32)
+#define PBRSKYCONFIG_MULTI_SCATTERING_LUT_HEIGHT (32)
+#define PBRSKYCONFIG_SKY_VIEW_LUT_WIDTH (256)
+#define PBRSKYCONFIG_SKY_VIEW_LUT_HEIGHT (144)
+#define PBRSKYCONFIG_ATMOSPHERIC_SCATTERING_LUT_WIDTH (32)
+#define PBRSKYCONFIG_ATMOSPHERIC_SCATTERING_LUT_HEIGHT (32)
+#define PBRSKYCONFIG_ATMOSPHERIC_SCATTERING_LUT_DEPTH (64)
 
 // Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesPhysicallyBasedSky
 // PackingRules = Exact
@@ -24,9 +31,13 @@ GLOBAL_CBUFFER_START(ShaderVariablesPhysicallyBasedSky, b2)
     float _AirScaleHeight;
     float _AerosolDensityFalloff;
     float _AerosolScaleHeight;
+    float2 _OzoneScaleOffset;
+    float _OzoneLayerStart;
+    float _OzoneLayerEnd;
     float4 _AirSeaLevelExtinction;
     float4 _AirSeaLevelScattering;
     float4 _AerosolSeaLevelScattering;
+    float4 _OzoneSeaLevelExtinction;
     float4 _GroundAlbedo_PlanetRadius;
     float4 _HorizonTint;
     float4 _ZenithTint;
@@ -40,8 +51,8 @@ GLOBAL_CBUFFER_START(ShaderVariablesPhysicallyBasedSky, b2)
     uint _CelestialBodyCount;
     float _AtmosphericDepth;
     float _RcpAtmosphericDepth;
-    float _PaddingPBS1;
-    float _PaddingPBS2;
+    float _CelestialLightExposure;
+    float _PaddingPBS;
 CBUFFER_END
 
 

@@ -328,8 +328,6 @@ namespace UnityEngine.Rendering.HighDefinition
             errorShader = Shader.Find("Hidden/HDRP/MaterialError"),
         };
 
-        GPUResidentDrawerResources IGPUResidentRenderPipeline.gpuResidentDrawerResources=> globalSettings.gpuResidentDrawerResources;
-
         /// <summary>
         /// GPUResidentDrawerMode configured on this pipeline asset
         /// </summary>

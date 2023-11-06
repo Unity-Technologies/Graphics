@@ -79,7 +79,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Foam properties
                 EditorGUILayout.PropertyField(serialized.m_FoamPersistenceMultiplier, k_FoamPersistenceMultiplier);
                 EditorGUILayout.PropertyField(serialized.m_FoamCurrentInfluence, k_FoamCurrentInfluence);
-                ColorFieldLinear(serialized.m_FoamColor, k_FoamColor);
+                CoreEditorUtils.ColorFieldLinear(serialized.m_FoamColor, k_FoamColor);
                 EditorGUILayout.PropertyField(serialized.m_FoamSmoothness, k_FoamSmoothness);
                 EditorGUILayout.PropertyField(serialized.m_FoamTextureTiling, k_FoamTextureTiling);
 

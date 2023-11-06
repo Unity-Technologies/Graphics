@@ -305,30 +305,5 @@ namespace UnityEngine.Rendering.Universal
         }
 
         #endregion
-
-        #region GPUDriven
-        [FormerlySerializedAs("m_MacroBatcherResources"), SerializeField]
-        public GPUResidentDrawerResources m_GPUResidentDrawerResources;
-
-#if UNITY_EDITOR
-        // be sure to cache result for not using GC in a frame after first one.
-        static readonly string GPUResidentDrawerResourcesPath = "Packages/com.unity.render-pipelines.core/Runtime/RenderPipelineResources/GPUDriven/GPUResidentDrawerResources.asset";
-
-        internal void EnsureGPUResidentDrawerResources(bool forceReload)
-            => ResourceReloader.EnsureResources(forceReload, ref m_GPUResidentDrawerResources, GPUResidentDrawerResourcesPath, AreGPUResidentDrawerResourcesCreated_Internal, this);
-
-        internal void ClearGPUResidentDrawerResources()
-            => m_GPUResidentDrawerResources = null;
-
-        // Passing method in a Func argument create a functor that create GC
-        // If it is static it is then only computed once but the Ensure is called after first frame which will make our GC check fail
-        // So create it once and store it here.
-        // Expected usage: UniversalRenderPipelineGlobalSettings.AreMacroBathesResourcesCreated(anyUniversalRenderPipelineGlobalSettings) that will return a bool
-        static Func<UniversalRenderPipelineGlobalSettings, bool> AreGPUResidentDrawerResourcesCreated_Internal = global
-            => global.m_GPUResidentDrawerResources != null && !global.m_GPUResidentDrawerResources.Equals(null);
-
-        internal bool AreGPUResidentDrawerResourcesCreated() => AreGPUResidentDrawerResourcesCreated_Internal(this);
-#endif
-        #endregion
     }
 }

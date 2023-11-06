@@ -24,6 +24,7 @@ public class ShaderGraphGraphicsTests
 #if UNITY_WEBGL || UNITY_ANDROID
         RuntimeGraphicsTestCaseProvider.AssociateReferenceImageWithTest(testCase);
 #endif
+		Debug.Log($"Running test case '{testCase}' with scene '{testCase.ScenePath}' {testCase.ReferenceImagePathLog}.");
         SceneManager.LoadScene(testCase.ScenePath);
 
         // Always wait one frame for scene load

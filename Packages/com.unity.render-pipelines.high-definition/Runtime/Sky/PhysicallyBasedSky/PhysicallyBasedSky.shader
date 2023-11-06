@@ -9,7 +9,10 @@ Shader "Hidden/HDRP/Sky/PbrSky"
     #pragma target 4.5
     #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
+    #pragma multi_compile_fragment _ LOCAL_SKY
+
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/PhysicallyBasedSky/PhysicallyBasedSkyRendering.hlsl"
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/PhysicallyBasedSky/PhysicallyBasedSkyEvaluation.hlsl"
 
     int _HasGroundAlbedoTexture;    // bool...
     int _HasGroundEmissionTexture;  // bool...
@@ -50,19 +53,28 @@ Shader "Hidden/HDRP/Sky/PbrSky"
     float4 RenderSky(Varyings input)
     {
         const float R = _PlanetaryRadius;
-
-        const float3 O = _PBRSkyCameraPosPS;
         const float3 V = GetSkyViewDirWS(input.positionCS.xy);
-
-        bool renderSunDisk = _RenderSunDisk != 0;
-
+        const bool renderSunDisk = _RenderSunDisk != 0;
         float3 N; float r; // These params correspond to the entry point
+
+    #ifdef LOCAL_SKY
+        const float3 O = _PBRSkyCameraPosPS;
+
         float tEntry = IntersectAtmosphere(O, V, N, r).x;
         float tExit  = IntersectAtmosphere(O, V, N, r).y;
 
-        float NdotV  = dot(N, V);
-        float cosChi = -NdotV;
+        float cosChi = -dot(N, V);
         float cosHor = ComputeCosineOfHorizonAngle(r);
+    #else
+        N = float3(0, 1, 0);
+        r = _PlanetaryRadius;
+        float cosChi = -dot(N, V);
+        float cosHor = 0.0f;
+        const float3 O = N * r;
+
+        float tEntry = 0.0f;
+        float tExit  = IntersectSphere(_AtmosphericRadius, -dot(N, V), r).y;
+    #endif
 
         bool rayIntersectsAtmosphere = (tEntry >= 0);
         bool lookAboveHorizon        = (cosChi >= cosHor);
@@ -110,9 +122,15 @@ Shader "Hidden/HDRP/Sky/PbrSky"
 
                     float3 L          = -light.forward.xyz;
                     float3 intensity  = light.color.rgb;
-                    float3 irradiance = SampleGroundIrradianceTexture(dot(gN, L));
 
-                    radiance += gBrdf * (irradiance * intensity); // Scale from unit intensity to light's intensity
+                #ifdef LOCAL_SKY
+                    intensity *= SampleGroundIrradianceTexture(dot(gN, L));
+                #else
+                    float3 opticalDepth = ComputeAtmosphericOpticalDepth(r, dot(N, L), true);
+                    intensity *= TransmittanceFromOpticalDepth(opticalDepth) * saturate(dot(N, L));
+                #endif
+
+                    radiance += gBrdf * intensity;
                 }
             }
         }
@@ -128,8 +146,13 @@ Shader "Hidden/HDRP/Sky/PbrSky"
 
         float3 skyColor = 0, skyOpacity = 0;
 
+        #ifdef LOCAL_SKY
         if (rayIntersectsAtmosphere)
             EvaluatePbrAtmosphere(_PBRSkyCameraPosPS, V, tFrag, renderSunDisk, skyColor, skyOpacity);
+        #else
+        if (lookAboveHorizon)
+            EvaluateDistantAtmosphere(-V, skyColor, skyOpacity);
+        #endif
 
         skyColor += radiance * (1 - skyOpacity);
         skyColor *= _IntensityMultiplier;

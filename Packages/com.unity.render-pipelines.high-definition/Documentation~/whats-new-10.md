@@ -36,7 +36,7 @@ For more information about this feature, see [Exposure](Override-Exposure.md).
 
 HDRP now includes new debug modes that can help you to set the correct exposure for your Scene.
 
-For more information about the debug modes, see [Exposure](Override-Exposure.md) and [Rendering Debugger](Render-Pipeline-Debug-Window.md).
+For more information about the debug modes, see [Exposure](Override-Exposure.md) and [Rendering Debugger](rendering-debugger-window-reference.md).
 
 
 ### Scalability settings
@@ -74,14 +74,14 @@ To help you to debug lighting in your Scene, HDRP now includes various lighting 
 
 #### Light Layer debug mode
 
-HDRP now includes a new [light layer](Light-Layers.md) debug mode which can display the light layers assigned to each GameObject or can highlight GameObjects which match the light layers of a specific Light.
+HDRP now includes a new [light layer](Rendering-Layers.md) debug mode which can display the light layers assigned to each GameObject or can highlight GameObjects which match the light layers of a specific Light.
 
-For more information, see the Lighting panel section in the [Rendering Debugger](Render-Pipeline-Debug-Window.md).
+For more information, see the Lighting panel section in the [Rendering Debugger](rendering-debugger-window-reference.md).
 
 #### Volume debug mode
 ![](Images/VolumeDebugMode.png)
 
-The Rendering Debugger window now has a new Volume panel which you can use to visualize the Volume components that affect a specific Camera. For each Volume that contributes to the final interpolated value, this panel shows the value of each property and whether or not it is overridden. It also calculates the Volume's influence percentage using the Volume's weight and blend distance. For more information, see the Volume panel section in the [Rendering Debugger](Render-Pipeline-Debug-Window.md#VolumePanel).
+The Rendering Debugger window now has a new Volume panel which you can use to visualize the Volume components that affect a specific Camera. For each Volume that contributes to the final interpolated value, this panel shows the value of each property and whether or not it is overridden. It also calculates the Volume's influence percentage using the Volume's weight and blend distance. For more information, see the Volume panel section in the [Rendering Debugger](rendering-debugger-window-reference.md#VolumePanel).
 
 #### Quad Overdraw and Vertex Density
 
@@ -117,7 +117,7 @@ HDRP now includes a new sample that contains example fabric and hair materials. 
 
 ### Decal improvment - Decal Bias, Decal Layers, and Decal angle fading
 
-This version of HDRP introduces Decal Layers which allow you to specify which decals affect which Materials on a layer by layer basis. For more information about Decal Layers, see the [Decal documentation](Decal.md). This version also introduce the support of angle based fading for Decal when Decal Layers are enabled. Lastly this version introduces a new world-space bias (in meters) option that HDRP applies to the decal’s Mesh to stop it from overlapping with other Meshes along the view vector.
+This version of HDRP introduces Decal Layers which allow you to specify which decals affect which Materials on a layer by layer basis. For more information about Decal Layers, see the [Decal documentation](decals.md). This version also introduce the support of angle based fading for Decal when Decal Layers are enabled. Lastly this version introduces a new world-space bias (in meters) option that HDRP applies to the decal’s Mesh to stop it from overlapping with other Meshes along the view vector.
 
 ### Input System package support
 
@@ -125,9 +125,9 @@ This version of HDRP introduces support for the [Input System package](http://do
 
 ### HDRI Flowmap
 
-The [HDRI Sky](Override-HDRI-Sky.md) override now contains a new property to allow you to apply a flowmap to the sky cubemap.
+The [HDRI Sky](hdri-sky-volume-override-reference.md) override now contains a new property to allow you to apply a flowmap to the sky cubemap.
 
-For more information, see the [HDRI Sky documentation](Override-HDRI-Sky.md).
+For more information, see the [Create an HDRI sky](create-an-hdri-sky.md).
 
 ### Graphics Compositor
 
@@ -142,7 +142,7 @@ The tool support three types of compositing techniques:
 
 Overall, this tool allows you to compose a final frame by mixing images and videos with 3D content in real-time inside Unity, without the need of an external compositing tool.
 
-For information about the feature, see the [HDRP Compositor documentation](Compositor-Main.md).
+For information about the feature, see the [HDRP Compositor documentation](graphics-compositor.md).
 
 ### Path tracing
 
@@ -167,14 +167,14 @@ For information about this feature and for some example scripts, see [Multiframe
 
 Path tracing now supports subsurface scattering (SSS), using a random walk approach. To use it, enable path tracing and set up SSS in the same way as you would for HDRP materials.
 
-For information on SSS in HDRP, see [subsurface scattering](Subsurface-Scattering.md).
+For information on SSS in HDRP, see [subsurface scattering](subsurface-scattering.md).
 
 #### Path-traced fog
 ![](Images/Path-traced-fog-Feature.png)
 
 Path tracing now supports fog absorption. Like SSS, to use this feature, enable path tracing and set up fog in the same way as you would for standard fog in HDRP.
 
-For information on fog in HDRP, see [fog](Override-Fog.md).
+For information on fog in HDRP, see [fog](fog.md).
 
 #### Support for shader graph in path tracing
 
@@ -245,7 +245,7 @@ HDRP 10.x adds a new pass, `ScenePickingPass`, to all the shader and master node
 
 The HDRP-specific Scene view Camera properties, such as anti-aliasing mode and stop NaNs, are no longer in the preferences window and are instead in the [Scene view camera](https://docs.unity3d.com/Manual/SceneViewCamera.html) settings menu.
 
-For information on HDRP's Scene view Camera properties, see [Scene view Camera](Scene-View-Camera.md).
+For information on HDRP's Scene view Camera properties, see [Scene view Camera](hdrp-scene-view-camera-settings-reference.md).
 
 ### Shadow caching system
 
@@ -302,7 +302,7 @@ In terms of performance, one of the most resource intensive operations for HDRP 
 
 ### Decal improvement
 
-HDRP no longer forces a full depth pre-pass when you enable decals in Deferred Lit Mode. Only materials with the **Receive Decals** property enabled render in the pre-pass. Decal shader code has improved and now produces fewer shader variants and includes better UI to control which material attributes the decal affects. Finally, the [Decal Master Stack](master-stack-decal.md) now exposes affects flags control on the Material.
+HDRP no longer forces a full depth pre-pass when you enable decals in Deferred Lit Mode. Only materials with the **Receive Decals** property enabled render in the pre-pass. Decal shader code has improved and now produces fewer shader variants and includes better UI to control which material attributes the decal affects. Finally, the [Decal Master Stack](decal-master-stack-reference.md) now exposes affects flags control on the Material.
 
 ### Constant buffer setup optimization
 
@@ -314,9 +314,9 @@ HDRP's previous temporal anti-aliasing (TAA) solution suffered from typical TAA 
 
 ### AxF mapping modes
 
-You can now control the texture mapping mode for all textures in the [AxF Shader](AxF-Shader.md). You can choose between planar, triplanar, or different uv sets.
+You can now control the texture mapping mode for all textures in the [AxF Shader](AxF-material-inspector-reference.md). You can choose between planar, triplanar, or different uv sets.
 
-For more information about this improvement, see [AxF Shader](AxF-Shader.md).
+For more information about this improvement, see [AxF Shader](AxF-material-inspector-reference.md).
 
 ### Contact shadows improvements
 
@@ -381,7 +381,7 @@ HDRP now uses range remapping for the metallic value when using a mask map on Li
 
 ### Frame Settings
 
-From 10.x, when you create a new [HDRP Asset](HDRP-Asset), HDRP enables the **Frame Setting** option **MSAA Within Forward** by default.
+From 10.x, when you create a new [HDRP Asset](HDRP-Asset.md), HDRP enables the **Frame Setting** option **MSAA Within Forward** by default.
 
 ### Menu
 
@@ -397,11 +397,11 @@ From 10.x, when you create a Spot Light from the Editor menu, HDRP enables the *
 
 #### Backplate rendering
 
-From 10.x, HDRP disables [Backplate rendering](Override-HDRI-Sky) for lighting cubemaps that aren’t compatible.
+From 10.x, HDRP disables [Backplate rendering](hdri-sky-volume-override-reference.md) for lighting cubemaps that aren’t compatible.
 
 #### Reflection Probe interaction
 
-From 10.x, [Screen Space Ambient Occlusion](Override-Ambient-Occlusion), [Screen Space Global Illumination](Override-Screen-Space-GI), [Screen Space Reflection](Override-Screen-Space-Reflection), [Ray Tracing Effects](Ray-Tracing-Getting-Started), and [Volumetric Reprojection](Override-Fog) don’t interact with Reflection Probes. This is because these effects take many frames to render correctly which makes the Reflection Probe’s cubemap appear incorrectly.
+From 10.x, [Screen Space Ambient Occlusion](Override-Ambient-Occlusion), [Screen Space Global Illumination](Override-Screen-Space-GI), [Screen Space Reflection](Override-Screen-Space-Reflection.md), [Ray Tracing Effects](Ray-Tracing-Getting-Started.md), and [Volumetric Reprojection](fog-volume-override-reference.md) don’t interact with Reflection Probes. This is because these effects take many frames to render correctly which makes the Reflection Probe’s cubemap appear incorrectly.
 
 #### Static Lighting Sky
 
@@ -413,7 +413,7 @@ From 10.x, HDRP includes aCubemap Array for Point Light cookies, and uses octahe
 
 #### Color buffer texture format
 
-From 10.x, the Texture format of the color buffer in the HDRP Asset also applies to [Planar Reflection Probes](Planar-Reflection-Probe). In earlier HDRP versions Planar Reflection Probes use a float16 rendertarget.
+From 10.x, the Texture format of the color buffer in the HDRP Asset also applies to [Planar Reflection Probes](Planar-Reflection-Probe.md). In earlier HDRP versions Planar Reflection Probes use a float16 rendertarget.
 
 #### Light layer properties
 
@@ -431,7 +431,7 @@ From 10.x, the [Screen Space Reflection](Override-Screen-Space-Reflection) effec
 
 HDRP 10.x moves the `HDShadowFilteringQuality` enum to `HDShadowManager.cs`.
 
-10.x adds a new option named **ColoredShadow**. It allows you to control whether a shadow is chromatic or monochrome. HDRP enables **ColoredShadow** by default and currently only works with [Ray-traced shadows](Ray-Traced-Shadows).
+10.x adds a new option named **ColoredShadow**. It allows you to control whether a shadow is chromatic or monochrome. HDRP enables **ColoredShadow** by default and currently only works with [Ray-traced shadows](Ray-Traced-Shadows.md).
 
 **Note**: Colored shadows are more resource-intensive to process than standard shadows.
 
@@ -496,7 +496,7 @@ From Unity 2020.2, the Raytracing Node in shader graph applies the raytraced pat
 
 ### Local Volumetric Fog Mask Texture
 
-From Unity 2020.2, you can use the **Texture Importer** to convert a 2D flipbook texture to the 3D format that Density Mask Textures require. For information on how to use the importer to convert the flipbook texture, see the [Local Volumetric Fog documentation](Local-Volumetric-Fog).
+From Unity 2020.2, you can use the **Texture Importer** to convert a 2D flipbook texture to the 3D format that Density Mask Textures require. For information on how to use the importer to convert the flipbook texture, see the [Local Volumetric Fog documentation](create-a-local-fog-effect.md).
 
 ### Post Processing
 

@@ -51,10 +51,10 @@ MonoBehaviour:
     supportTransparentDepthPostpass: 1
     colorBufferFormat: 48
     supportCustomPass: 1
-    customBufferFormat: 12
+    customBufferFormat: 48
     supportedLitShaderMode: 1
     planarReflectionResolution:
-      m_Values: 000100000004000000080000
+      m_Values: 000100000002000000040000
       m_SchemaId:
         m_Id: With3Levels
     cubeReflectionResolution:
@@ -88,10 +88,10 @@ MonoBehaviour:
     supportedRayTracingMode: 3
     lightLoopSettings:
       cookieAtlasSize: 2048
-      cookieFormat: 74
+      cookieFormat: 48
       cookieAtlasLastValidMip: 0
       cookieTexArraySize: 1
-      planarReflectionAtlasSize: 4096
+      planarReflectionAtlasSize: 1024
       reflectionProbeCacheSize: 64
       reflectionCubemapSize: 256
       maxEnvLightsOnScreen: 64
@@ -147,7 +147,7 @@ MonoBehaviour:
       maxDirectionalShadowMapResolution: 2048
       maxPunctualShadowMapResolution: 2048
       maxAreaShadowMapResolution: 2048
-      supportScreenSpaceShadows: 1
+      supportScreenSpaceShadows: 0
       maxScreenSpaceShadowSlots: 4
       screenSpaceShadowBufferFormat: 48
     decalSettings:
@@ -305,6 +305,8 @@ MonoBehaviour:
       - 0.666
       - 0.666
       - 0.5
+    gpuResidentDrawerSettings:
+      mode: 0
     m_ObsoleteLightLayerName0: 
     m_ObsoleteLightLayerName1: 
     m_ObsoleteLightLayerName2: 
@@ -336,6 +338,9 @@ MonoBehaviour:
     - format: 0
       sizeInMegaBytes: 128
   m_UseRenderGraph: 1
+  m_CompositorCustomVolumeComponentsList:
+    m_InjectionPoint: 1
+    m_CustomPostProcessTypesAsString: []
   m_Version: 24
   m_ObsoleteFrameSettings:
     overrides: 0
@@ -477,7 +482,7 @@ MonoBehaviour:
   m_ObsoleteFrameSettingsMovedToDefaultSettings:
     bitDatas:
       data1: 139567109766989
-      data2: 4539628429758103576
+      data2: 4539628425463136280
     lodBias: 1
     lodBiasMode: 0
     lodBiasQualityLevel: 0
@@ -485,7 +490,7 @@ MonoBehaviour:
     maximumLODLevelMode: 0
     maximumLODLevelQualityLevel: 0
     sssQualityMode: 0
-    sssQualityLevel: 2
+    sssQualityLevel: 0
     sssCustomSampleBudget: 20
     sssCustomDownsampleSteps: 0
     msaaMode: 0

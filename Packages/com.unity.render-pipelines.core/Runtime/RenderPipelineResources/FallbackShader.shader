@@ -2,10 +2,6 @@ Shader "Hidden/Core/FallbackError"
 {
     SubShader
     {
-        Tags
-        {
-            "DisableBatching" = "true"
-        }
         Pass
         {
             CGPROGRAM

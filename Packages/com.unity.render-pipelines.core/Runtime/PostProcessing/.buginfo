@@ -1,5 +1,6 @@
 when:
   path:
     - ^.*HDROutput?.*$
+    - ^.*LensFlare?.*$
 add:
   area: HD RP

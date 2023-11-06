@@ -108,7 +108,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!hdCamera.animateMaterials)
                 cloudLayer.layerA.scrollFactor = cloudLayer.layerB.scrollFactor = 0.0f;
 
-            m_PrecomputedData.InitIfNeeded(cloudLayer, builtinParams.sunLight, builtinParams.commandBuffer);
+            m_PrecomputedData.InitIfNeeded(cloudLayer, builtinParams.sunLight, hdCamera, builtinParams.commandBuffer);
             m_CloudLayerMaterial.SetTexture(_CloudTexture, m_PrecomputedData.cloudTextureRT);
 
             // Parameters
@@ -314,12 +314,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 cloudShadowsCache.Cache(cloudShadowsResolution, cloudShadowsResolution, cloudShadowsRT);
             }
 
-            public bool InitIfNeeded(CloudLayer cloudLayer, Light sunLight, CommandBuffer cmd)
+            public bool InitIfNeeded(CloudLayer cloudLayer, Light sunLight, HDCamera hdCamera, CommandBuffer cmd)
             {
                 if (initialized) return false;
 
                 Vector4 params1 = sunLight == null ? Vector3.zero : -sunLight.transform.forward;
-                params1.w = (cloudLayer.upperHemisphereOnly.value ? 1.0f : 0.0f);
+                params1.w = (cloudLayer.upperHemisphereOnly.value ? 1.0f : -1.0f) * hdCamera.planet.radius;
 
                 cmd.SetComputeVectorParam(s_BakeCloudTextureCS, HDShaderIDs._Params, params1);
                 cmd.SetComputeTextureParam(s_BakeCloudTextureCS, s_BakeCloudTextureKernel, _CloudTexture, cloudTextureRT);
@@ -360,7 +360,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public void BakeCloudShadows(CloudLayer cloudLayer, Light sunLight, HDCamera hdCamera, CommandBuffer cmd)
             {
-                InitIfNeeded(cloudLayer, sunLight, cmd);
+                InitIfNeeded(cloudLayer, sunLight, hdCamera, cmd);
                 Vector4 _Params = cloudLayer.shadowTint.value;
                 _Params.w = cloudLayer.shadowMultiplier.value * 8.0f;
 

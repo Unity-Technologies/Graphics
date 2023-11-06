@@ -38,7 +38,7 @@ namespace UnityEditor.Rendering.HighDefinition.Tests
         }
 
         [Test]
-        [TestCase(HDEditorUtils.HDRPAssetBuildLabel, ExpectedResult = true)]
+        [TestCase(HDUtils.k_HdrpAssetBuildLabel, ExpectedResult = true)]
         [TestCase("", ExpectedResult = false)]
         public bool CheckAssetContainsHDRPLabel(string label)
         {

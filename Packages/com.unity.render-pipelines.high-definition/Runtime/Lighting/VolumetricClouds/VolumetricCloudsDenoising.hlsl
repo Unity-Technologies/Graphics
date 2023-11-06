@@ -1,6 +1,9 @@
 #ifndef VOLUMETRIC_CLOUDS_DENOISING_H
 #define VOLUMETRIC_CLOUDS_DENOISING_H
 
+// Need a max to avoid infinitely far away points
+#define MAX_VOLUMETRIC_CLOUDS_DISTANCE 200000.0f
+
 // Half resolution volumetric cloud texture
 TEXTURE2D_X(_VolumetricCloudsTexture);
 TEXTURE2D_X(_DepthStatusTexture);
@@ -15,12 +18,14 @@ TEXTURE2D_X(_HalfResDepthBuffer);
 // Given that the sky is virtually a skybox, we cannot use the motion vector buffer
 float2 EvaluateCloudMotionVectors(float2 fullResCoord, float deviceDepth, float positionFlag)
 {
-    PositionInputs posInput = GetPositionInput(fullResCoord, _ScreenSize.zw, deviceDepth, _IsPlanarReflection ? _CameraInverseViewProjection_NO : UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
-    float4 worldPos = float4(posInput.positionWS, positionFlag);
+    float3 V = GetCloudViewDirWS(fullResCoord);
+
+    float depth = min(DecodeInfiniteDepth(deviceDepth, _CloudNearPlane), MAX_VOLUMETRIC_CLOUDS_DISTANCE);
+    float4 worldPos = float4(V * depth, positionFlag);
     float4 prevPos = worldPos;
 
-    float4 prevClipPos = mul(_IsPlanarReflection ? _CameraPrevViewProjection_NO : UNITY_MATRIX_PREV_VP, prevPos);
-    float4 curClipPos = mul(_IsPlanarReflection ?  _CameraViewProjection_NO: UNITY_MATRIX_UNJITTERED_VP, worldPos);
+    float4 curClipPos = mul(UNITY_MATRIX_UNJITTERED_VP, worldPos);
+    float4 prevClipPos = mul(_CameraPrevViewProjection, prevPos);
 
     float2 previousPositionCS = prevClipPos.xy / prevClipPos.w;
     float2 positionCS = curClipPos.xy / curClipPos.w;
@@ -545,7 +550,7 @@ float EvaluateUpscaledCloudDepth_NOLDS(int2 halfResCoord, NeighborhoodUpsampleDa
     finalDepth += weight * LOAD_TEXTURE2D_X(_DepthStatusTexture, halfResCoord + int2(1, 1)).z;
     sumWeight += weight;
 
-    return finalDepth / sumWeight;
+    return sumWeight != 0.0f ? finalDepth / sumWeight : 0.0f;
 }
 
 // This function will return something strictly smaller than 0 if any of the lower res pixels

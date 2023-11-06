@@ -1,6 +1,6 @@
-# Scripting your own Custom Pass in C#
+# Create a Custom Pass in a C# script
 
-You can extend the CustomPass class in the Custom Pass API to create complex effects, such as a Custom Pass that has more than one buffer or uses [Compute Shaders](https://docs.unity3d.com/Manual/class-ComputeShader.html).
+You can extend the `CustomPass` class in the Custom Pass API to create complex effects, such as a Custom Pass that has more than one buffer or uses [Compute Shaders](https://docs.unity3d.com/Manual/class-ComputeShader.html).
 
 When you create your own C# Custom Pass using the instructions in [The Custom Pass C# Template](#Custom-Pass-C#-template), it automatically appears in the list of available Custom Passes in the Custom Pass Volume component.
 
@@ -31,7 +31,7 @@ The C# Custom Pass template includes the following entry points to code your cus
 
 The `Setup` and `Execute` methods give you access to a `ScriptableRenderContext` and a `CommandBuffer`. For information on using `CommandBuffers` with a `ScriptableRenderContext`, see [Scheduling and executing commands in the Scriptable Render Pipeline](https://docs.unity3d.com/Manual/srp-using-scriptable-render-context.html).
 
-## Creating a full-screen Custom Pass in C#
+## Create a full-screen Custom Pass in C#
 
 This section demonstrates how to create a full-screen Custom Pass that applies an outline effect to an object in your scene.
 
@@ -48,7 +48,7 @@ This shader code performs the following steps:
 
 <a name="Creating-Cusom-Pass-script"></a>
 
-### Creating a CustomPass script
+### Create a CustomPass script
 
 This section provides an example of a Custom Pass C# script that applies an outline effect to every GameObject in a Layer.
 
@@ -122,7 +122,7 @@ class Outline : CustomPass
 
 <a name="Creating-Cusom-Pass-Shader"></a>
 
-### Scripting a Custom Pass shader
+### Script a Custom Pass shader
 
 To create a new shader:
 
@@ -231,11 +231,11 @@ Shader "Hidden/Outline"
 }
 ```
 
-### Using a C# Custom Pass Shader effect
+### Use a C# Custom Pass Shader effect
 
-To enable a full-screen effect that you have created in a shader, assign it to the **FullScreen Material** property of a [**FullScreeenCustomPass**](Custom-Pass-Creating.md#Full-Screen-Custom-Pass) component.
+To enable a full-screen effect that you have created in a shader, assign it to the **FullScreen Material** property of a [**FullScreeenCustomPass**](custom-pass-create-gameobject.md#full-screen-custom-pass) component.
 
-To enable a Draw renderers Custom Pass that you have created in a shader, assign it to the Material property of a [**DrawRenderersCustomPass**](Custom-Pass-Creating.md#Draw-Renderers-Custom-Pass) component.
+To enable a Draw renderers Custom Pass that you have created in a shader, assign it to the Material property of a [**DrawRenderersCustomPass**](custom-pass-create-gameobject.md#draw-renderers-custom-pass) component.
 
 You can also make your Custom Pass effect visible automatically in script. To do this, assign a Material to a shader within a Custom Pass script. The example script provided in [Creating a Custom Pass script](#Creating-Cusom-Pass-script) does this in the following lines:
 
@@ -254,7 +254,7 @@ fullscreenOutline = CoreUtils.CreateEngineMaterial(outlineShader);
 ```
 
 
-## Controlling a Custom Pass Volume component using code
+## Control a Custom Pass Volume component using code
 
 You can use [GetComponent](https://docs.unity3d.com/2019.3/Documentation/ScriptReference/GameObject.GetComponent.html) to retrieve the `CustomPassVolume` in a script and access most of the properties available in the UI (for example,`isGlobal`, `fadeRadius` and `injectionPoint`).
 
@@ -304,7 +304,7 @@ public class ExtractColorBuffer : MonoBehaviour
 }
 ```
 
-### Creating a custom editor for a C# custom pass
+### Create a custom editor for a C# custom pass
 
 To write a custom editor you can use a similar pattern to the [CustomPropertyDrawer](https://docs.unity3d.com/ScriptReference/CustomPropertyDrawer.html) MonoBehaviour Editor, but with different attributes.
 
@@ -345,7 +345,7 @@ public class OutlineDrawer : CustomPassDrawer
 }
 ```
 
-When you create a Custom Pass drawer, Unity provides a default list of Custom Pass properties. Unity still does this when `DoPassGUI` is empty. These properties are the same properties that Unity provides in the [draw renderers CustomPass Volume](Custom-Pass-Creating.md#Draw-Renderers-Custom-Pass) component by default.
+When you create a Custom Pass drawer, Unity provides a default list of Custom Pass properties. Unity still does this when `DoPassGUI` is empty. These properties are the same properties that Unity provides in the [draw renderers CustomPass Volume](custom-pass-create-gameobject.md#draw-renderers-custom-pass) component by default.
 
 If you don't need all these settings, you can override the `commonPassUIFlags` property to remove some of them. The following example only keeps the name and the target buffer enum:
 

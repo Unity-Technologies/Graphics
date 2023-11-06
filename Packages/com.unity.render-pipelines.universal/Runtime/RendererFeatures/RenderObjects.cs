@@ -22,7 +22,6 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// The class for the render objects renderer feature.
     /// </summary>
-    [SupportedOnRenderer(typeof(UniversalRendererData))]
     [ExcludeFromPreset]
     [MovedFrom(true, "UnityEngine.Experimental.Rendering.Universal")]
     [Tooltip("Render Objects simplifies the injection of additional render passes by exposing a selection of commonly used settings.")]

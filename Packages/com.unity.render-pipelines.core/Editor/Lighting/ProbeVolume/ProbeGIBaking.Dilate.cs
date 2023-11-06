@@ -211,6 +211,8 @@ namespace UnityEngine.Rendering
             parameters.frameIndexForNoise = 0;
             parameters.reflNormalizationLowerClamp = 0.1f;
             parameters.reflNormalizationUpperClamp = 1.0f;
+            parameters.skyOcclusion = false;
+            parameters.skyOcclusionShadingDirection = false;
             ProbeReferenceVolume.instance.UpdateConstantBuffer(cmd, parameters);
 
 

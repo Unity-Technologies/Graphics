@@ -44,6 +44,7 @@ public class ShaderViewerWindow : EditorWindow
     [SerializeField] List<string> selectedShaderKeywords = new();
     [SerializeField, SerializeReference] ShaderBuildReport.PerformanceUnit lastPerfUnit;
     [SerializeField, SerializeReference] ShaderBuildReport lastBuildReport;
+    [SerializeField] int lastPlatformIndex;
 
     private VisualElement codeVGPRView;
     private VisualElement assemblyVGPRView;
@@ -59,6 +60,7 @@ public class ShaderViewerWindow : EditorWindow
     private VisualElement shaderFilterSettings;
     private VisualElement materialFilterSettings;
     private Tab currentlySelectedTab;
+    private DropdownField targetPlatform;
 
     HashSet<RegisterUsageNode> vgprGraph = new();
     private List<VisualElement> allVGPRBars = new();
@@ -73,6 +75,33 @@ public class ShaderViewerWindow : EditorWindow
         ShaderViewerWindow viewer = CreateWindow<ShaderViewerWindow>();
         viewer.lastPerfUnit = p;
         viewer.UpdateViewWithCurrentProgram(p);
+    }
+
+    public static void ShowReportFromFile()
+    {
+        var args = Environment.GetCommandLineArgs();
+        string filePath = null;
+
+        for (int i = 0; i < args.Length; i++)
+            if (args[i] == "-perfFile" && i != args.Length - 1)
+                filePath = args[i + 1];
+
+        if (filePath == null)
+        {
+            Debug.LogError("-perfFile argument not provided");
+            return;
+        }
+
+        try
+        {
+            ShaderViewerWindow viewer = CreateWindow<ShaderViewerWindow>();
+            var content = File.ReadAllText(filePath);
+            viewer.UpdateViewWithTextFile(content);
+        }
+        catch (Exception e)
+        {
+            Debug.LogException(e);
+        }
     }
 
     public void CreateGUI()
@@ -181,12 +210,22 @@ public class ShaderViewerWindow : EditorWindow
             HighlightCodeLines(v.newValue);
         });
 
+        targetPlatform = toolbar.Q<DropdownField>("PlatformField");
+        targetPlatform.index = lastPlatformIndex;
+        targetPlatform.RegisterValueChangedCallback(v => lastPlatformIndex = targetPlatform.index);
+
         rootVisualElement.schedule.Execute(Update).Every(33); // 30hz refresh rate
 
         CreateViews();
 
         if (lastPerfUnit != null)
             UpdateViewWithCurrentProgram(lastPerfUnit);
+    }
+
+    private void OnDestroy()
+    {
+        if (Application.isBatchMode)
+            EditorApplication.Exit(0);
     }
 
     void AnalyzeContent()
@@ -366,7 +405,8 @@ public class ShaderViewerWindow : EditorWindow
         var set = new KeywordSet(selectedShaderKeywords);
         filter.includedKeywords.Add(set);
 
-        currentCompilationJob = (AsyncBuildReportJob)EditorShaderTools.GenerateBuildReportAsyncGeneric(ShaderAnalysisReport.New(currentUnityObject, BuildTarget.PS4, profile, filter)); // TODO: PS5
+        var target = targetPlatform.index == 0 ? BuildTarget.PS4 : BuildTarget.PS5;
+        currentCompilationJob = (AsyncBuildReportJob)EditorShaderTools.GenerateBuildReportAsyncGeneric(ShaderAnalysisReport.New(currentUnityObject, target, profile, filter));
         currentCompilationJob.throwOnError = true;
         timeAtJobStart = Time.realtimeSinceStartup;
     }
@@ -424,15 +464,40 @@ public class ShaderViewerWindow : EditorWindow
     {
         try
         {
-            var file = File.ReadAllText(kernelUnit.extraPerfDataFile);
-            currentAnalyzedShader = ShaderAnalyzer.ParseCompiledShader(file);
-            currentAnalyzedShader.maxVGPRUsed = Mathf.Max(kernelUnit.parsedReport.VGPRUsedCount, kernelUnit.parsedReport.VGPRCount);
-            currentAnalyzedShader.maxSGPRUsed = Mathf.Max(kernelUnit.parsedReport.SGPRUsedCount, kernelUnit.parsedReport.SGPRCount);
+            string fileContent;
+            int maxVGPR = -1;
+            int maxSGPR = -1;
+
+            if (String.IsNullOrEmpty(kernelUnit.extraPerfDataFile))
+                fileContent = kernelUnit.rawReport;
+            else
+            {
+                fileContent = File.ReadAllText(kernelUnit.extraPerfDataFile);
+                maxVGPR = Mathf.Max(kernelUnit.parsedReport.VGPRUsedCount, kernelUnit.parsedReport.VGPRCount);
+                maxSGPR = Mathf.Max(kernelUnit.parsedReport.SGPRUsedCount, kernelUnit.parsedReport.SGPRCount);
+            }
+
+            UpdateViewWithTextFile(fileContent, maxVGPR, maxSGPR);
             UpdateViews();
         }
-        catch (Exception)
+        catch (Exception e)
         {
-            // Debug.LogException(e);
+            Debug.LogException(e);
+        }
+    }
+
+    void UpdateViewWithTextFile(string fileContent, int maxVGPRUsed = -1, int maxSGPRUsed = -1)
+    {
+        try
+        {
+            currentAnalyzedShader = ShaderAnalyzer.ParseCompiledShader(fileContent);
+            currentAnalyzedShader.maxVGPRUsed = maxVGPRUsed == -1 ? currentAnalyzedShader.maxVGPRAlive : maxVGPRUsed;
+            currentAnalyzedShader.maxSGPRUsed = maxSGPRUsed == -1 ? currentAnalyzedShader.maxSGPRAlive : maxSGPRUsed;
+            UpdateViews();
+        }
+        catch (Exception e)
+        {
+            Debug.LogException(e);
         }
     }
 
@@ -475,15 +540,45 @@ public class ShaderViewerWindow : EditorWindow
     }
 
     // VGPR occupancy directly taken from the graph on console (not AMD desktop GPU)
-    private int[] vgprOccupancy = { 24, 28, 36, 36, 40, 48, 64, 84, 128 };
+    private int[] vgprOccupancy = { 24, 28, 36, 36, 40, 48, 64, 84, 128, 256 };
+    private Dictionary<int, int> vgprOccupancy2 = new()
+    {
+        {20, 24},
+        {18, 28},
+        {16, 32},
+        {14, 36},
+        {12, 40},
+        {11, 44},
+        {10, 48},
+        {9, 56},
+        {8, 64},
+        {7, 72},
+        {6, 84},
+        {5, 100},
+        {4, 128},
+        {3, 168},
+        {2, 256}, // Max VGPR alloc
+    };
     int GetVGPROccupancy(int vgpr)
     {
-        for (int i = 0; i < vgprOccupancy.Length; i++)
+        int max = GetMaxOccupancy(currentAnalyzedShader);
+        if (currentAnalyzedShader.target == BuildTarget.PS4)
         {
-            if (vgpr <= vgprOccupancy[i])
-                return i + 1;
+            for (int i = 0; i < vgprOccupancy.Length; i++)
+            {
+                if (vgpr <= vgprOccupancy[i])
+                    return max - i;
+            }
         }
-        return 10;
+        else
+        {
+            foreach (var kp in vgprOccupancy2)
+            {
+                if (vgpr <= kp.Value)
+                    return kp.Key;
+            }
+        }
+        return max;
     }
 
     // numbers may be approximate :shrug:
@@ -491,12 +586,34 @@ public class ShaderViewerWindow : EditorWindow
 
     int GetSGPROccupancy(int sgpr)
     {
-        for (int i = 0; i < vgprOccupancy.Length; i++)
+        int max = GetMaxOccupancy(currentAnalyzedShader);
+
+        if (currentAnalyzedShader.target == BuildTarget.PS4)
         {
-            if (sgpr <= sgprOccupancy[i])
-                return i + 1;
+            for (int i = 0; i < sgprOccupancy.Length; i++)
+            {
+                if (sgpr <= sgprOccupancy[i])
+                    return max - i;
+            }
         }
-        return 10;
+        else
+        {
+            for (int i = 0; i < sgprOccupancy.Length; i++)
+            {
+                if (sgpr <= sgprOccupancy[i])
+                    return max - i * 2; // TODO: This is wrong, find correct numbers
+            }
+        }
+
+        return max;
+    }
+
+    int GetMaxOccupancy(AnalyzedShader analyzedShader)
+    {
+        if (analyzedShader.target == BuildTarget.PS4)
+            return 10;
+        else
+            return 20;
     }
 
     VisualElement CreateRegisterViewLine(RegisterType registerType, CodeLine line, int lineIndex, int assemblyLineIndex)
@@ -511,20 +628,21 @@ public class ShaderViewerWindow : EditorWindow
         int occupancy = registerType == RegisterType.Vector ? GetVGPROccupancy(line.vgprPressure) : GetSGPROccupancy(line.sgprPressure);
         int registerPressure = registerType == RegisterType.Vector ? line.vgprPressure : line.sgprPressure;
         int maxRegisterAlive = registerType == RegisterType.Vector ? currentAnalyzedShader.maxVGPRAlive : currentAnalyzedShader.maxSGPRAlive;
+        var maxOccupancy = registerType == RegisterType.Vector ? GetVGPROccupancy(currentAnalyzedShader.maxVGPRAlive) : GetSGPROccupancy(currentAnalyzedShader.maxSGPRAlive);
+        int maxAnalyzedRegisterOnLine = registerType == RegisterType.Vector ? currentAnalyzedShader.maxAnalyzedAliveVGPROnLine : currentAnalyzedShader.maxAnalyzedAliveSGPROnLine;
 
         Color.RGBToHSV(new Color(0.28f, 0.83f, 0.07f), out var RH, out var RG, out var RB);
         Color.RGBToHSV(new Color(0.84f, 0.14f, 0.11f), out var GH, out var GG, out var GB);
 
         // Show occupancy per line and wavefront number.
         var square = new VisualElement();
-        square.style.width = square.style.minWidth = 5 * line.vgprPressure;
+        square.style.width = square.style.minWidth = 5 * registerPressure;
         square.style.height = 15;
         square.style.marginLeft = offsetLeft;
-        float f = (occupancy - 1.0f) / 9.0f;
+        float f = 1 - (occupancy / (float)GetMaxOccupancy(currentAnalyzedShader));
         var gradient = Color.HSVToRGB(Mathf.Lerp(RH, GH, f), RG, RB) ;
-        var maxOccupancy = registerType == RegisterType.Vector ? GetVGPROccupancy(currentAnalyzedShader.maxVGPRAlive) : GetSGPROccupancy(currentAnalyzedShader.maxSGPRAlive);
         square.style.backgroundColor = registerPressure == maxRegisterAlive ? new Color(1f, 0.28f, 1f) : occupancy == maxOccupancy ? new Color(0.98f, 0.2f, 0.56f) : gradient;
-        square.tooltip = registerPressure + " VGPR (" + (11-occupancy) + "/10 waves)";
+        square.tooltip = registerPressure + " " + (registerType == RegisterType.Vector ? "VGPR" : "SGPR") +" (" + occupancy + "/" + GetMaxOccupancy(currentAnalyzedShader) + " waves)";
         lineView.Add(square);
 
         // Show the graph of alive registers (analyzed from the assembly read / write data)
@@ -533,7 +651,7 @@ public class ShaderViewerWindow : EditorWindow
         square2.style.width = square2.style.minWidth = 5 * aliveRegisterCount;
         square2.style.height = 15;
         square2.style.marginLeft = 5 * maxRegisterAlive - square.style.width.value.value + 5;
-        float f2 = aliveRegisterCount / (float)(registerType == RegisterType.Vector ? currentAnalyzedShader.maxAnalyzedAliveVGPROnLine : currentAnalyzedShader.maxAnalyzedAliveSGPROnLine);
+        float f2 = aliveRegisterCount / (float)maxAnalyzedRegisterOnLine;
         square2.style.backgroundColor = Color.HSVToRGB(Mathf.Lerp(RH, GH, f2), RG, RB);
         square2.tooltip = aliveRegisterCount.ToString();
         lineView.Add(square2);
@@ -571,6 +689,7 @@ public class ShaderViewerWindow : EditorWindow
 
     void CreateRegisterViewAssemblyLines(RegisterType registerType, VisualElement targetTab, CodeLine line, ref int assemblyLineIndex)
     {
+        int maxOccupancy = (registerType == RegisterType.Vector) ? GetVGPROccupancy(currentAnalyzedShader.maxVGPRAlive) : GetSGPROccupancy(currentAnalyzedShader.maxSGPRAlive);
         foreach (var assemblyLine in line.assemblyLines)
         {
             VisualElement lineView = new();
@@ -590,10 +709,10 @@ public class ShaderViewerWindow : EditorWindow
             square.style.width = square.style.minWidth = 5 * assemblyLine.vgprPressure;
             square.style.height = 15;
             square.style.marginLeft = offsetLeft;
-            float f = (occupancy - 1.0f) / 9.0f;
+            float f = 1 - (occupancy / (float)GetMaxOccupancy(currentAnalyzedShader));
             var gradient = Color.HSVToRGB(Mathf.Lerp(RH, GH, f), RG, RB) ;
-            square.style.backgroundColor = assemblyLine.vgprPressure == currentAnalyzedShader.maxVGPRAlive ? new Color(1f, 0.28f, 1f) : occupancy == GetVGPROccupancy(currentAnalyzedShader.maxVGPRAlive) ? new Color(0.98f, 0.2f, 0.56f) : gradient;
-            square.tooltip = assemblyLine.vgprPressure + " VGPR (" + (11-occupancy) + "/10 waves)";
+            square.style.backgroundColor = assemblyLine.vgprPressure == currentAnalyzedShader.maxVGPRAlive ? new Color(1f, 0.28f, 1f) : occupancy == maxOccupancy ? new Color(0.98f, 0.2f, 0.56f) : gradient;
+            square.tooltip = assemblyLine.vgprPressure + " " + (registerType == RegisterType.Vector ? "VGPR" : "SGPR") + " (" + occupancy + "/" + GetMaxOccupancy(currentAnalyzedShader) + " waves)";
             lineView.Add(square);
 
             // // Show the graph of alive registers (analyzed from the assembly read / write data)

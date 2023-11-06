@@ -35,7 +35,7 @@ This image shows the elements of the Scene that ray tracing takes into account. 
 #### Ray Tracing
 
 * Transparent Emissive Material aren't taken into account.
-* Emission of [Decals](../Decal.md) is not taken into account.
+* No [decals](decals.md) are supported including Emissive Decals.
 
 #### Mixed Tracing
 

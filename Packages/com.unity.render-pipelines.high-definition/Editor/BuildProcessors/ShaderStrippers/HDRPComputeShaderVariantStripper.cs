@@ -26,9 +26,10 @@ namespace UnityEditor.Rendering.HighDefinition
         internal bool StripShader(HDRenderPipelineAsset hdAsset, ComputeShader shader, string kernelName, ShaderCompilerData inputData)
         {
             bool stripDebug = HDRPBuildData.instance.stripDebugVariants;
+            var settings = hdAsset.currentPlatformRenderPipelineSettings;
 
             // Strip debug compute shaders
-            if (stripDebug && !hdAsset.currentPlatformRenderPipelineSettings.supportRuntimeAOVAPI)
+            if (stripDebug && !settings.supportRuntimeAOVAPI)
             {
                 if (shader == m_Shaders.debugLightVolumeCS ||
                     shader == m_Shaders.clearDebugBufferCS ||
@@ -39,7 +40,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             // Remove water if disabled
-            if (!hdAsset.currentPlatformRenderPipelineSettings.supportWater)
+            if (!settings.supportWater)
             {
                 if (shader == m_Shaders.waterSimulationCS ||
                     shader == m_Shaders.fourierTransformCS ||
@@ -52,7 +53,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             // Remove volumetric clouds if disabled
-            if (!hdAsset.currentPlatformRenderPipelineSettings.supportVolumetricClouds)
+            if (!settings.supportVolumetricClouds)
             {
                 if (shader == m_Shaders.volumetricCloudsCS ||
                     shader == m_Shaders.volumetricCloudsTraceCS ||
@@ -61,7 +62,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             // Remove volumetric fog if disabled
-            if (!hdAsset.currentPlatformRenderPipelineSettings.supportVolumetrics)
+            if (!settings.supportVolumetrics)
             {
                 if (shader == m_Shaders.volumeVoxelizationCS ||
                     shader == m_Shaders.volumetricLightingCS ||
@@ -70,21 +71,21 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             // Remove SSR if disabled
-            if (!hdAsset.currentPlatformRenderPipelineSettings.supportSSR)
+            if (!settings.supportSSR)
             {
                 if (shader == m_Shaders.screenSpaceReflectionsCS)
                     return true;
             }
 
             // Remove SSGI if disabled
-            if (!hdAsset.currentPlatformRenderPipelineSettings.supportSSGI)
+            if (!settings.supportSSGI)
             {
                 if (shader == m_Shaders.screenSpaceGlobalIlluminationCS)
                     return true;
             }
 
             // Remove SSS if disabled
-            if (!hdAsset.currentPlatformRenderPipelineSettings.supportSubsurfaceScattering)
+            if (!settings.supportSubsurfaceScattering)
             {
                 if (shader == m_Shaders.subsurfaceScatteringCS ||
                     shader == m_Shaders.subsurfaceScatteringDownsampleCS)
@@ -92,7 +93,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             // Remove Line Rendering if disabled
-            if (!hdAsset.currentPlatformRenderPipelineSettings.supportHighQualityLineRendering)
+            if (!settings.supportHighQualityLineRendering)
             {
                 if (shader == m_Shaders.lineStagePrepareCS ||
                     shader == m_Shaders.lineStageSetupSegmentCS ||
@@ -104,7 +105,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             // Strip every useless shadow configs
-            var shadowInitParams = hdAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams;
+            var shadowInitParams = settings.hdShadowInitParams;
 
             foreach (var shadowVariant in m_ShadowKeywords.PunctualShadowVariants)
             {
@@ -139,7 +140,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 return true;
 
             // In forward only, strip deferred shaders
-            if (hdAsset.currentPlatformRenderPipelineSettings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly)
+            if (settings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly)
             {
                 if (shader == m_Shaders.clearDispatchIndirectCS ||
                     shader == m_Shaders.buildDispatchIndirectCS ||
@@ -149,7 +150,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             // In deferred only, strip MSAA variants
-            if (inputData.shaderKeywordSet.IsEnabled(m_MSAA) && (hdAsset.currentPlatformRenderPipelineSettings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly))
+            if (inputData.shaderKeywordSet.IsEnabled(m_MSAA) && (settings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly))
             {
                 return true;
             }
@@ -157,18 +158,18 @@ namespace UnityEditor.Rendering.HighDefinition
             if (inputData.shaderKeywordSet.IsEnabled(m_ScreenSpaceShadowONKeywords) && !shadowInitParams.supportScreenSpaceShadows)
                 return true;
 
-            if (inputData.shaderKeywordSet.IsEnabled(m_EnableAlpha) && !hdAsset.currentPlatformRenderPipelineSettings.SupportsAlpha())
+            if (inputData.shaderKeywordSet.IsEnabled(m_EnableAlpha) && !settings.SupportsAlpha())
             {
                 return true;
             }
 
             // Global Illumination
             if (inputData.shaderKeywordSet.IsEnabled(m_ProbeVolumesL1) &&
-                (!hdAsset.currentPlatformRenderPipelineSettings.supportProbeVolume || hdAsset.currentPlatformRenderPipelineSettings.probeVolumeSHBands != ProbeVolumeSHBands.SphericalHarmonicsL1))
+                (!settings.supportProbeVolume || settings.probeVolumeSHBands != ProbeVolumeSHBands.SphericalHarmonicsL1))
                 return true;
 
             if (inputData.shaderKeywordSet.IsEnabled(m_ProbeVolumesL2) &&
-                (!hdAsset.currentPlatformRenderPipelineSettings.supportProbeVolume || hdAsset.currentPlatformRenderPipelineSettings.probeVolumeSHBands != ProbeVolumeSHBands.SphericalHarmonicsL2))
+                (!settings.supportProbeVolume || settings.probeVolumeSHBands != ProbeVolumeSHBands.SphericalHarmonicsL2))
                 return true;
 
             // HDR Output

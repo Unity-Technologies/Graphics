@@ -19,6 +19,18 @@ namespace UnityEngine.Rendering
     /// </summary>
     public sealed class ProbeVolumeBakingSet : ScriptableObject, ISerializationCallbackReceiver
     {
+        internal class LogarithmicAttribute : PropertyAttribute
+        {
+            public int min;
+            public int max;
+
+            public LogarithmicAttribute(int min, int max)
+            {
+                this.min = min;
+                this.max = max;
+            }
+        }
+
         internal enum Version
         {
             Initial,
@@ -115,12 +127,27 @@ namespace UnityEngine.Rendering
         [SerializeField] internal Bounds globalBounds;
         [SerializeField] internal int bakedSimplificationLevels = -1;
         [SerializeField] internal float bakedMinDistanceBetweenProbes = -1.0f;
+        [SerializeField] internal int bakedSkyOcclusionValue = -1;
+        [SerializeField] internal int bakedSkyShadingDirectionValue = -1;
+        internal bool bakedSkyOcclusion
+        {
+            get => bakedSkyOcclusionValue <= 0 ? false : true;
+            set => bakedSkyOcclusionValue = value ? 1 : 0;
+        }
+        internal bool bakedSkyShadingDirection
+        {
+            get => bakedSkyShadingDirectionValue <= 0 ? false : true;
+            set => bakedSkyShadingDirectionValue = value ? 1 : 0;
+        }
 
         [SerializeField] internal int maxSHChunkCount = -1; // Maximum number of SH chunk for a cell in this set.
         [SerializeField] internal int L0ChunkSize;
         [SerializeField] internal int L1ChunkSize;
         [SerializeField] internal int L2TextureChunkSize; // Optional. Size of the chunk for one texture (4 textures for all data)
-        [SerializeField] internal int validityMaskChunkSize; // Shared
+        [SerializeField] internal int sharedValidityMaskChunkSize; // Shared
+        [SerializeField] internal int sharedSkyOcclusionL0L1ChunkSize; // Shared
+        [SerializeField] internal int sharedSkyShadingDirectionIndicesChunkSize;
+        [SerializeField] internal int sharedDataChunkSize;
         [SerializeField] internal int supportPositionChunkSize;
         [SerializeField] internal int supportValidityChunkSize;
         [SerializeField] internal int supportTouchupChunkSize;
@@ -139,6 +166,8 @@ namespace UnityEngine.Rendering
         Stack<NativeArray<byte>> m_ReadOperationScratchBuffers = new Stack<NativeArray<byte>>();
         List<int> m_PrunedIndexList = new List<int>();
         List<int> m_PrunedScenarioIndexList = new List<int>();
+
+        const int s_MaxSkyOcclusionBakingSamples = 8192;
 
         // Baking Profile
 
@@ -191,6 +220,39 @@ namespace UnityEngine.Rendering
         /// </summary>
         [Min(0)]
         public float minRendererVolumeSize = 0.1f;
+
+        /// <summary>
+        /// Specifies whether the baking set will have sky handled dynamically.
+        /// </summary>
+        public bool skyOcclusion = false;
+
+        /// <summary>
+        /// Controls the number of samples per probe for dynamic sky baking.
+        /// </summary>
+        [Logarithmic(1, s_MaxSkyOcclusionBakingSamples)]
+        public int skyOcclusionBakingSamples = 2048;
+
+        /// <summary>
+        /// Controls the number of bounces per light path for dynamic sky baking.
+        /// </summary>
+        [Range(0, 5)]
+        public int skyOcclusionBakingBounces = 2;
+
+        /// <summary>
+        /// Average albedo for dynamic sky bounces
+        /// </summary>
+        [Range(0, 1)]
+        public float skyOcclusionAverageAlbedo = 0.6f;
+
+        /// <summary>
+        /// Sky Occlusion backface culling
+        /// </summary>
+        public bool skyOcclusionBackFaceCulling = true;
+
+        /// <summary>
+        ///  Bake sky shading direction.
+        /// </summary>
+        public bool skyOcclusionShadingDirection = false;
 
         internal static int GetCellSizeInBricks(int simplificationLevels) => (int)Mathf.Pow(3, simplificationLevels);
         internal static int GetMaxSubdivision(int simplificationLevels) => simplificationLevels + 1; // we add one for the top subdiv level which is the same size as a cell
@@ -278,6 +340,13 @@ namespace UnityEngine.Rendering
                 bakedSimplificationLevels = simplificationLevels;
                 bakedMinDistanceBetweenProbes = minDistanceBetweenProbes;
             }
+
+            if (bakedSkyOcclusionValue == -1)
+                bakedSkyOcclusion = false;
+
+            if (bakedSkyShadingDirectionValue == -1)
+                bakedSkyShadingDirection = false;
+
 
             // Hack T_T
             // Added the new bricksCount in Disk Streaming PR to have everything ready in the serialized desc but old data does not have it so we need to recompute it...
@@ -868,7 +937,22 @@ namespace UnityEngine.Rendering
                 Debug.Assert(!cellDataMap.ContainsKey(cellIndex)); // Don't resolve the same cell twice.
 
                 cellData.bricks = new NativeArray<ProbeBrickIndex.Brick>(bricksData.GetSubArray(totalBricksCount, bricksCount), Allocator.Persistent);
-                cellData.validityNeighMaskData = new NativeArray<byte>(cellSharedData.GetSubArray(sharedDataChunkOffset, validityMaskChunkSize * shChunkCount), Allocator.Persistent);
+                cellData.validityNeighMaskData = new NativeArray<byte>(cellSharedData.GetSubArray(sharedDataChunkOffset, sharedValidityMaskChunkSize * shChunkCount), Allocator.Persistent);
+				sharedDataChunkOffset += sharedValidityMaskChunkSize * shChunkCount;
+                // TODO save sky occlusion in a separate asset (see ProbeGIBaking WriteBakingCells)
+                // And load it depending on ProbeReferenceVolume.instance.skyOcclusion
+                if (bakedSkyOcclusion)
+                {
+                    if(ProbeReferenceVolume.instance.skyOcclusion)
+                        cellData.skyOcclusionDataL0L1 = new NativeArray<ushort>(cellSharedData.GetSubArray(sharedDataChunkOffset, sharedSkyOcclusionL0L1ChunkSize * shChunkCount).Reinterpret<ushort>(1), Allocator.Persistent);
+                    sharedDataChunkOffset += sharedSkyOcclusionL0L1ChunkSize * shChunkCount;
+                    if(bakedSkyShadingDirection)
+                    {
+                        if (ProbeReferenceVolume.instance.skyOcclusion && ProbeReferenceVolume.instance.skyOcclusionShadingDirection)
+                            cellData.skyShadingDirectionIndices = new NativeArray<byte>(cellSharedData.GetSubArray(sharedDataChunkOffset, sharedSkyShadingDirectionIndicesChunkSize * shChunkCount), Allocator.Persistent);
+                        sharedDataChunkOffset += sharedSkyShadingDirectionIndicesChunkSize * shChunkCount;
+                    }
+                }
 
                 if (hasSupportData)
                 {
@@ -885,7 +969,6 @@ namespace UnityEngine.Rendering
                     supportDataChunkOffset += shChunkCount * supportOffsetsChunkSize;
                 }
 
-                sharedDataChunkOffset += validityMaskChunkSize * shChunkCount;
                 cellDataMap.Add(cellIndex, cellData);
                 totalBricksCount += bricksCount;
                 totalSHChunkCount += shChunkCount;
@@ -1003,11 +1086,13 @@ namespace UnityEngine.Rendering
 
         internal int GetChunkGPUMemory(ProbeVolumeSHBands shBands)
         {
-            // One L0 Chunk, Two L1 Chunks, 1 byte of validity per probe.
-            int size = L0ChunkSize + 2 * L1ChunkSize + validityMaskChunkSize;
+            // One L0 Chunk, Two L1 Chunks, 1 shared chunk which may contain sky occlusion
+            int size = L0ChunkSize + 2 * L1ChunkSize + sharedDataChunkSize;
+
             // 4 Optional L2 Chunks
             if (shBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
                 size += 4 * L2TextureChunkSize;
+
             return size;
         }
 
@@ -1125,7 +1210,7 @@ namespace UnityEngine.Rendering
             return cellSharedDataAsset.IsValid();
         }
 
-        public static string GetDirectory(string scenePath, string sceneName)
+        internal static string GetDirectory(string scenePath, string sceneName)
         {
             string sceneDir = Path.GetDirectoryName(scenePath);
             string assetPath = Path.Combine(sceneDir, sceneName);
@@ -1135,12 +1220,12 @@ namespace UnityEngine.Rendering
             return assetPath;
         }
 
-        public bool DialogNoProbeVolumeInSetShown()
+        internal bool DialogNoProbeVolumeInSetShown()
         {
             return dialogNoProbeVolumeInSetShown;
         }
 
-        public void SetDialogNoProbeVolumeInSetShown(bool value)
+        internal void SetDialogNoProbeVolumeInSetShown(bool value)
         {
             dialogNoProbeVolumeInSetShown = value;
         }

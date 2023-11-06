@@ -35,6 +35,7 @@ MonoBehaviour:
     debugLocalVolumetricFogAtlasPS: {fileID: 4800000, guid: 8371b763f09c7304889c22aa97ebdfd2, type: 3}
     probeVolumeBlendStatesCS: {fileID: 7200000, guid: a3f7b8c99de28a94684cb1daebeccf5d, type: 3}
     probeVolumeUploadDataCS: {fileID: 7200000, guid: 0951de5992461754fa73650732c4954c, type: 3}
+    probeVolumeUploadDataL2CS: {fileID: 7200000, guid: 6196f34ed825db14b81fb3eb0ea8d931, type: 3}
     probeVolumeDebugShader: {fileID: 4800000, guid: 3b21275fd12d65f49babb5286f040f2d, type: 3}
     probeVolumeFragmentationDebugShader: {fileID: 4800000, guid: 3a80877c579b9144ebdcc6d923bca303, type: 3}
     probeVolumeSamplingDebugShader: {fileID: 4800000, guid: bf54e6528c79a224e96346799064c393, type: 3}
@@ -85,6 +86,7 @@ MonoBehaviour:
     ambientProbeConvolutionCS: {fileID: 7200000, guid: 6d048f7b1bd45e840b4e79ec92639fa8, type: 3}
     groundIrradiancePrecomputationCS: {fileID: 7200000, guid: eb6ae6f326207ee4d987a3e5adddf63a, type: 3}
     inScatteredRadiancePrecomputationCS: {fileID: 7200000, guid: 70c69d514688f8545855680760d77418, type: 3}
+    skyLUTGenerator: {fileID: 7200000, guid: 79224112d91b32241be6b65802863db4, type: 3}
     physicallyBasedSkyPS: {fileID: 4800000, guid: a06934a4863e778498be65d8f865b7a4, type: 3}
     cloudLayerPS: {fileID: 4800000, guid: 001a47fa123e95a4bba13ecb0442d944, type: 3}
     bakeCloudTextureCS: {fileID: 7200000, guid: 09a7f6850ee9fb4439e5ebd632127da5, type: 3}

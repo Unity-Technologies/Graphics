@@ -78,8 +78,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent angularDiameter = EditorGUIUtility.TrTextContent("Angular Diameter", "Angular diameter of the emissive celestial body represented by the light as seen from the camera (in degrees). Used to render the sun/moon disk and affects the sharpness of shadows.");
 
             // Celestial Body
-            public readonly GUIContent diameterMultiplier = EditorGUIUtility.TrTextContent("Angular Diameter", "Angular diameter of the celestial body. This value is multiplied by the Angular Diameter set in the Shape section.");
-            public readonly GUIContent diameterOverride = EditorGUIUtility.TrTextContent("Angular Diameter", "Angular diameter of the celestial body as seen from the camera (in degrees).");
+            public readonly GUIContent diameterMultiplier = EditorGUIUtility.TrTextContent("Angular Diameter Multiplier", "Angular diameter used to render the celestial body in the sky without affecting the sharpness of shadows. This value is multiplied by the Angular Diameter set in the Shape section.");
+            public readonly GUIContent diameterOverride = EditorGUIUtility.TrTextContent("Angular Diameter", "Angular diameter used to render the celestial body in the sky without affecting the sharpness of shadows.");
             public readonly GUIContent distance = EditorGUIUtility.TrTextContent("Distance", "Distance from the camera (in meters) to the emissive celestial body represented by the light. This value is only used for sorting.");
             public readonly GUIContent surfaceColor = EditorGUIUtility.TrTextContent("Surface Color", "Texture of the surface of the celestial body.");
             public readonly GUIContent shadingSource = EditorGUIUtility.TrTextContent("Shading", "Specify the light source used for shading of the Celestial Body.\nIt can either emit it's own light, receive it from a Light in the scene, or using manual settings.");

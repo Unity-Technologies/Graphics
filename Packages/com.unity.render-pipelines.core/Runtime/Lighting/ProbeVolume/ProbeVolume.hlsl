@@ -28,6 +28,8 @@
 #define _MinReflProbeNormalizationFactor _NormalizationClamp_IndirectionEntryDim_Padding.x
 #define _MaxReflProbeNormalizationFactor _NormalizationClamp_IndirectionEntryDim_Padding.y
 #define _GlobalIndirectionEntryDim _NormalizationClamp_IndirectionEntryDim_Padding.z
+#define _EnableSkyOcclusion _LeakReductionParams.w
+#define _EnableSkyOcclusionShadingDirection _NormalizationClamp_IndirectionEntryDim_Padding.w
 
 #ifndef DECODE_SH
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/DecodeSH.hlsl"
@@ -37,7 +39,7 @@
 // TODO Until ambient probe is moved to core
 float3 EvaluateAmbientProbe(float3 normalWS)
 {
-    return 0;
+    return float3(0.0f, 0.0f, 0.0f);
 }
 #endif
 
@@ -52,6 +54,7 @@ SAMPLER(s_point_clamp_sampler);
 struct APVResources
 {
     StructuredBuffer<int> index;
+    StructuredBuffer<float3> SkyPrecomputedDirections;
 
 #ifdef USE_APV_TEXTURE_HALF
     TEXTURE3D_HALF(L0_L1Rx);
@@ -76,6 +79,8 @@ struct APVResources
 
     TEXTURE3D(Validity);
 #endif // USE_APV_TEXTURE_HALF
+    TEXTURE3D(SkyOcclusionL0L1);
+    TEXTURE3D(SkyShadingDirectionIndices);
 };
 
 struct APVResourcesRW
@@ -120,6 +125,9 @@ struct APVSample
     real3 L2_C;
 #endif // PROBE_VOLUMES_L2
 
+    float4 skyOcclusionL0L1;
+    float3 skyShadingDirection;
+
 #define APV_SAMPLE_STATUS_INVALID -1
 #define APV_SAMPLE_STATUS_ENCODED 0
 #define APV_SAMPLE_STATUS_DECODED 1
@@ -162,6 +170,7 @@ struct APVSample
 // Resources required for APV
 StructuredBuffer<int> _APVResIndex;
 StructuredBuffer<uint3> _APVResCellIndices;
+StructuredBuffer<float3> _SkyPrecomputedDirections;
 
 #ifdef USE_APV_TEXTURE_HALF
 TEXTURE3D_HALF(_APVResL0_L1Rx);
@@ -186,6 +195,8 @@ TEXTURE3D(_APVResL2_3);
 
 TEXTURE3D(_APVResValidity);
 #endif // USE_APV_TEXTURE_HALF
+TEXTURE3D(_SkyOcclusionTexL0L1);
+TEXTURE3D(_SkyShadingDirectionIndicesTex);
 
 
 // -------------------------------------------------------------
@@ -352,6 +363,9 @@ APVResources FillAPVResources()
     apvRes.L2_3 = _APVResL2_3;
 
     apvRes.Validity = _APVResValidity;
+    apvRes.SkyOcclusionL0L1 = _SkyOcclusionTexL0L1;
+    apvRes.SkyShadingDirectionIndices = _SkyShadingDirectionIndicesTex;
+    apvRes.SkyPrecomputedDirections = _SkyPrecomputedDirections;
 
     return apvRes;
 }
@@ -419,6 +433,25 @@ APVSample SampleAPV(APVResources apvRes, float3 uvw)
     apvSample.L2_C = SAMPLE_TEXTURE3D_LOD(apvRes.L2_3, s_linear_clamp_sampler, uvw, 0).rgb;
 #endif // PROBE_VOLUMES_L2
 
+    if(_EnableSkyOcclusion > 0)
+        apvSample.skyOcclusionL0L1 = SAMPLE_TEXTURE3D_LOD(apvRes.SkyOcclusionL0L1, s_linear_clamp_sampler, uvw, 0).rgba;
+    else
+        apvSample.skyOcclusionL0L1 = float4(0, 0, 0, 0);
+    if (_EnableSkyOcclusionShadingDirection > 0)
+    {
+        // No interpolation for sky shading indices
+        float3 texCoordFloat = uvw * _PoolDim - 0.5f;
+        int3 texCoordInt = texCoordFloat;
+        uint index = LOAD_TEXTURE3D(apvRes.SkyShadingDirectionIndices, texCoordInt).x * 255.0;
+
+        if (index == 255)
+            apvSample.skyShadingDirection = float3(0, 0, 0);
+        else
+            apvSample.skyShadingDirection = apvRes.SkyPrecomputedDirections[index].rgb;
+    }
+    else
+        apvSample.skyShadingDirection = float3(0, 0, 0);
+    
     apvSample.status = APV_SAMPLE_STATUS_ENCODED;
 
     return apvSample;
@@ -621,6 +654,47 @@ APVSample SampleAPV(float3 posWS, float3 biasNormalWS, float3 viewDir)
 }
 
 // -------------------------------------------------------------
+// Dynamic Sky Handling
+// -------------------------------------------------------------
+
+// Expects Layout DC, x, y, z
+// See on baking side in DynamicGISkyOcclusion.hlsl
+float EvalSHSkyOcclusion(float3 dir, APVSample apvSample)
+{
+    // L0 L1
+    float4 temp = float4(kSHBasis0, kSHBasis1 * dir.x, kSHBasis1 * dir.y, kSHBasis1 * dir.z);
+    return dot(temp, apvSample.skyOcclusionL0L1);
+}
+
+float3 EvaluateOccludedSky(APVSample apvSample, float3 N)
+{
+#ifndef __BUILTINGIUTILITIES_HLSL__
+    return float3(0.0f,0.0f,0.0f);
+#else
+    if (_EnableSkyOcclusion > 0)
+    {
+        float occValue = EvalSHSkyOcclusion(N, apvSample);
+        float3 shadingNormal = N;
+
+        if (_EnableSkyOcclusionShadingDirection > 0)
+        {
+            shadingNormal = apvSample.skyShadingDirection;
+            float normSquared = dot(shadingNormal, shadingNormal);
+            if (normSquared < 0.2f)
+                shadingNormal = N;
+            else
+            {
+                shadingNormal = shadingNormal / sqrt(normSquared);
+            }
+        }
+        return occValue * EvaluateAmbientProbe(shadingNormal);
+    }
+    else
+       return float3(0.0f, 0.0f, 0.0f);
+#endif
+}
+
+// -------------------------------------------------------------
 // Internal Evaluation functions (avoid usage in caller code outside this file)
 // -------------------------------------------------------------
 float3 EvaluateAPVL0(APVSample apvSample)
@@ -658,6 +732,8 @@ void EvaluateAdaptiveProbeVolume(APVSample apvSample, float3 normalWS, out float
 #endif
 
         bakeDiffuseLighting += apvSample.L0;
+        if(_EnableSkyOcclusion > 0)
+            bakeDiffuseLighting += EvaluateOccludedSky(apvSample, normalWS);
 
         //if (_Weight < 1.f)
         {
@@ -687,6 +763,11 @@ void EvaluateAdaptiveProbeVolume(APVSample apvSample, float3 normalWS, float3 ba
 
         bakeDiffuseLighting += apvSample.L0;
         backBakeDiffuseLighting += apvSample.L0;
+        if (_EnableSkyOcclusion > 0)
+        {
+            bakeDiffuseLighting += EvaluateOccludedSky(apvSample, normalWS);
+            backBakeDiffuseLighting += EvaluateOccludedSky(apvSample, backNormalWS);
+        }
 
         //if (_Weight < 1.f)
         {
@@ -730,6 +811,12 @@ void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 
         bakeDiffuseLighting += apvSample.L0;
         backBakeDiffuseLighting += apvSample.L0;
         lightingInReflDir += apvSample.L0;
+        if (_EnableSkyOcclusion > 0)
+        {
+            bakeDiffuseLighting += EvaluateOccludedSky(apvSample, normalWS);
+            backBakeDiffuseLighting += EvaluateOccludedSky(apvSample, backNormalWS);
+            lightingInReflDir += EvaluateOccludedSky(apvSample, reflDir);
+        }
 
         //if (_Weight < 1.f)
         {

@@ -815,7 +815,7 @@ namespace UnityEngine.Rendering
         /// <param name="msaaSamples">Number of MSAA samples.</param>
         /// <returns>Generated names bassed on the provided parameters.</returns>
         public static string GetRenderTargetAutoName(int width, int height, int depth, RenderTextureFormat format, string name, bool mips = false, bool enableMSAA = false, MSAASamples msaaSamples = MSAASamples.None)
-            => GetRenderTargetAutoName(width, height, depth, format.ToString(), TextureDimension.None, name, mips, enableMSAA, msaaSamples, dynamicRes: false);
+            => GetRenderTargetAutoName(width, height, depth, format.ToString(), TextureDimension.None, name, mips, enableMSAA, msaaSamples, dynamicRes: false, dynamicResExplicit: false);
 
         /// <summary>
         /// Generate a name based on render texture parameters.
@@ -830,7 +830,7 @@ namespace UnityEngine.Rendering
         /// <param name="msaaSamples">Number of MSAA samples.</param>
         /// <returns>Generated names bassed on the provided parameters.</returns>
         public static string GetRenderTargetAutoName(int width, int height, int depth, GraphicsFormat format, string name, bool mips = false, bool enableMSAA = false, MSAASamples msaaSamples = MSAASamples.None)
-            => GetRenderTargetAutoName(width, height, depth, format.ToString(), TextureDimension.None, name, mips, enableMSAA, msaaSamples, dynamicRes: false);
+            => GetRenderTargetAutoName(width, height, depth, format.ToString(), TextureDimension.None, name, mips, enableMSAA, msaaSamples, dynamicRes: false, dynamicResExplicit: false);
 
         /// <summary>
         /// Generate a name based on render texture parameters.
@@ -845,11 +845,12 @@ namespace UnityEngine.Rendering
         /// <param name="enableMSAA">True if the texture is multisampled.</param>
         /// <param name="msaaSamples">Number of MSAA samples.</param>
         /// <param name="dynamicRes">True if the texture uses dynamic resolution.</param>
+        /// <param name="dynamicResExplicit">True if the texture uses dynamic resolution with explicit resize control.</param>
         /// <returns>Generated names bassed on the provided parameters.</returns>
-        public static string GetRenderTargetAutoName(int width, int height, int depth, GraphicsFormat format, TextureDimension dim, string name, bool mips = false, bool enableMSAA = false, MSAASamples msaaSamples = MSAASamples.None, bool dynamicRes = false)
-            => GetRenderTargetAutoName(width, height, depth, format.ToString(), dim, name, mips, enableMSAA, msaaSamples, dynamicRes);
+        public static string GetRenderTargetAutoName(int width, int height, int depth, GraphicsFormat format, TextureDimension dim, string name, bool mips = false, bool enableMSAA = false, MSAASamples msaaSamples = MSAASamples.None, bool dynamicRes = false, bool dynamicResExplicit = false)
+            => GetRenderTargetAutoName(width, height, depth, format.ToString(), dim, name, mips, enableMSAA, msaaSamples, dynamicRes, dynamicResExplicit);
 
-        static string GetRenderTargetAutoName(int width, int height, int depth, string format, TextureDimension dim, string name, bool mips, bool enableMSAA, MSAASamples msaaSamples, bool dynamicRes)
+        static string GetRenderTargetAutoName(int width, int height, int depth, string format, TextureDimension dim, string name, bool mips, bool enableMSAA, MSAASamples msaaSamples, bool dynamicRes, bool dynamicResExplicit)
         {
             string result = string.Format("{0}_{1}x{2}", name, width, height);
 
@@ -868,7 +869,10 @@ namespace UnityEngine.Rendering
                 result = string.Format("{0}_{1}", result, msaaSamples.ToString());
 
             if (dynamicRes)
-                result = string.Format("{0}_{1}", result, "dynamic");
+                result = string.Format("{0}_{1}", result, "Dynamic");
+
+            if (dynamicResExplicit)
+                result = string.Format("{0}_{1}", result, "DynamicExplicit");
 
             return result;
         }

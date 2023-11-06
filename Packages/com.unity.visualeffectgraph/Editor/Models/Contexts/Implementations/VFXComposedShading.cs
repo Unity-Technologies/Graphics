@@ -54,7 +54,7 @@ namespace UnityEditor.VFX
 
             if (currentShaderGraph == null)
             {
-                if (errors != null)
+                if (errors?.Count == 0)
                     errors.Add(("NoShaderGraph", VFXErrorType.Error, "Please assign a compatible ShaderGraph Asset."));
 
                 currentShaderGraph = VFXResources.errorFallbackShaderGraph;

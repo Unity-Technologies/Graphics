@@ -25,8 +25,8 @@ namespace UnityEditor.ShaderGraph
                 "BLENDINDICES", subscriptOptions: StructFieldOptions.Optional);
             public static FieldDescriptor color = new FieldDescriptor(Attributes.name, "color", "ATTRIBUTES_NEED_COLOR", ShaderValueType.Float4,
                 "COLOR", subscriptOptions: StructFieldOptions.Optional);
-            public static FieldDescriptor instanceID = new FieldDescriptor(Attributes.name, "instanceID", "", ShaderValueType.Uint,
-                "INSTANCEID_SEMANTIC", "UNITY_ANY_INSTANCING_ENABLED");
+            public static FieldDescriptor instanceID = new FieldDescriptor(Attributes.name, "instanceID", "ATTRIBUTES_NEED_INSTANCEID", ShaderValueType.Uint,
+                "INSTANCEID_SEMANTIC", "UNITY_ANY_INSTANCING_ENABLED || defined(ATTRIBUTES_NEED_INSTANCEID)");
             public static FieldDescriptor vertexID = new FieldDescriptor(Attributes.name, "vertexID", "ATTRIBUTES_NEED_VERTEXID", ShaderValueType.Uint,
                 "VERTEXID_SEMANTIC", subscriptOptions: StructFieldOptions.Optional);
         }
@@ -55,8 +55,8 @@ namespace UnityEditor.ShaderGraph
                 subscriptOptions: StructFieldOptions.Optional);
             public static FieldDescriptor screenPosition = new FieldDescriptor(Varyings.name, "screenPosition", "VARYINGS_NEED_SCREENPOSITION", ShaderValueType.Float4,
                 subscriptOptions: StructFieldOptions.Optional);
-            public static FieldDescriptor instanceID = new FieldDescriptor(Varyings.name, "instanceID", "", ShaderValueType.Uint,
-                "CUSTOM_INSTANCE_ID", "UNITY_ANY_INSTANCING_ENABLED");
+            public static FieldDescriptor instanceID = new FieldDescriptor(Varyings.name, "instanceID", "VARYINGS_NEED_INSTANCEID", ShaderValueType.Uint,
+                "CUSTOM_INSTANCE_ID", "UNITY_ANY_INSTANCING_ENABLED || defined(VARYINGS_NEED_INSTANCEID)");
             public static FieldDescriptor cullFace = new FieldDescriptor(Varyings.name, "cullFace", "VARYINGS_NEED_CULLFACE", "FRONT_FACE_TYPE",
                 "FRONT_FACE_SEMANTIC", "defined(SHADER_STAGE_FRAGMENT) && defined(VARYINGS_NEED_CULLFACE)", StructFieldOptions.Generated & StructFieldOptions.Optional);
             public static FieldDescriptor vertexID = new FieldDescriptor(Varyings.name, "vertexID", "VARYINGS_NEED_VERTEXID", ShaderValueType.Uint,
@@ -165,6 +165,9 @@ namespace UnityEditor.ShaderGraph
 
             public static FieldDescriptor VertexID = new FieldDescriptor(VertexDescriptionInputs.name, "VertexID", "", ShaderValueType.Uint,
                 subscriptOptions: StructFieldOptions.Optional);
+
+            public static FieldDescriptor InstanceID = new FieldDescriptor(VertexDescriptionInputs.name, "InstanceID", "", ShaderValueType.Uint,
+                subscriptOptions: StructFieldOptions.Optional);
         }
 
         public struct SurfaceDescriptionInputs
@@ -257,6 +260,9 @@ namespace UnityEditor.ShaderGraph
                 subscriptOptions: StructFieldOptions.Optional);
 
             public static FieldDescriptor VertexID = new FieldDescriptor(SurfaceDescriptionInputs.name, "VertexID", "", ShaderValueType.Uint,
+                subscriptOptions: StructFieldOptions.Optional);
+
+            public static FieldDescriptor InstanceID = new FieldDescriptor(SurfaceDescriptionInputs.name, "InstanceID", "", ShaderValueType.Uint,
                 subscriptOptions: StructFieldOptions.Optional);
 
             // VFX

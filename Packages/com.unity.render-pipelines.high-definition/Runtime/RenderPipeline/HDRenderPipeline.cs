@@ -65,8 +65,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal HDRenderPipelineRuntimeResources.MaterialResources runtimeMaterials { get; private set; }
         internal HDRenderPipelineRuntimeResources.ShaderResources runtimeShaders { get; private set; }
-        internal HDRenderPipelineRuntimeResources.AssetResources runtimeAssets { get; private set; }
-        internal HDRenderPipelineRuntimeResources.TextureResources runtimeTextures { get; private set; }
+        internal HDRenderPipelineRuntimeAssets runtimeAssets { get; private set; }
+        internal HDRenderPipelineRuntimeTextures runtimeTextures { get; private set; }
 
         internal RenderPipelineSettings currentPlatformRenderPipelineSettings { get { return m_Asset.currentPlatformRenderPipelineSettings; } }
 
@@ -446,8 +446,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             runtimeMaterials = m_GlobalSettings.renderPipelineResources.materials;
             runtimeShaders   = m_GlobalSettings.renderPipelineResources.shaders;
-            runtimeAssets    = m_GlobalSettings.renderPipelineResources.assets;
-            runtimeTextures  = m_GlobalSettings.renderPipelineResources.textures;
+            runtimeAssets    = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeAssets>();
+            runtimeTextures  = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeTextures>();
 
             m_Asset = asset;
             HDProbeSystem.Parameters = asset.reflectionSystemParameters;
@@ -613,6 +613,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             SupportedRenderingFeatures.active.overridesLightProbeSystem = apvIsEnabled;
             SupportedRenderingFeatures.active.rendererProbes = !apvIsEnabled;
+            SupportedRenderingFeatures.active.skyOcclusion = apvIsEnabled;
             if (apvIsEnabled)
             {
                 var pvr = ProbeReferenceVolume.instance;
@@ -628,6 +629,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     probeSamplingDebugTexture = runtimeTextures.numbersDisplayTex,
                     offsetDebugShader = runtimeShaders.probeVolumeOffsetDebugShader,
                     streamingUploadShader = runtimeShaders.probeVolumeUploadDataCS,
+                    streamingUploadL2Shader = runtimeShaders.probeVolumeUploadDataL2CS,
                     scenarioBlendingShader = supportBlending ? runtimeShaders.probeVolumeBlendStatesCS : null,
                     sceneData = m_GlobalSettings.GetOrCreateAPVSceneData(),
                     shBands = m_Asset.currentPlatformRenderPipelineSettings.probeVolumeSHBands,
@@ -720,11 +722,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // Check that the serialized Resources are not broken
             m_GlobalSettings.EnsureEditorResources(forceReload: true);
-
-            if(m_Asset.currentPlatformRenderPipelineSettings.gpuResidentDrawerSettings.mode != GPUResidentDrawerMode.Disabled)
-                m_GlobalSettings.EnsureGPUResidentDrawerResources(forceReload: true);
-            else
-                m_GlobalSettings.ClearGPUResidentDrawerResources();
         }
 
         public void UpdateDecalSystemShaderGraphs()
@@ -1239,12 +1236,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 bool outputRenderingLayers = hdCamera.frameSettings.IsEnabled(FrameSettingsField.LightLayers) || hdCamera.frameSettings.IsEnabled(FrameSettingsField.RenderingLayerMaskBuffer);
                 CoreUtils.SetKeyword(cmd, "RENDERING_LAYERS", outputRenderingLayers);
 
+                var renderPipelineSettings = m_Asset.currentPlatformRenderPipelineSettings;
+
                 // configure keyword for both decal.shader and material
-                if (m_Asset.currentPlatformRenderPipelineSettings.supportDecals)
+                if (renderPipelineSettings.supportDecals)
                 {
                     CoreUtils.SetKeyword(cmd, "DECALS_OFF", false);
-                    CoreUtils.SetKeyword(cmd, "DECALS_3RT", !m_Asset.currentPlatformRenderPipelineSettings.decalSettings.perChannelMask);
-                    CoreUtils.SetKeyword(cmd, "DECALS_4RT", m_Asset.currentPlatformRenderPipelineSettings.decalSettings.perChannelMask);
+                    CoreUtils.SetKeyword(cmd, "DECALS_3RT", !renderPipelineSettings.decalSettings.perChannelMask);
+                    CoreUtils.SetKeyword(cmd, "DECALS_4RT", renderPipelineSettings.decalSettings.perChannelMask);
                 }
                 else
                 {
@@ -1253,8 +1252,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     CoreUtils.SetKeyword(cmd, "DECALS_4RT", false);
                 }
 
-                CoreUtils.SetKeyword(cmd, "PROBE_VOLUMES_L1", apvIsEnabled && m_Asset.currentPlatformRenderPipelineSettings.probeVolumeSHBands == ProbeVolumeSHBands.SphericalHarmonicsL1);
-                CoreUtils.SetKeyword(cmd, "PROBE_VOLUMES_L2", apvIsEnabled && m_Asset.currentPlatformRenderPipelineSettings.probeVolumeSHBands == ProbeVolumeSHBands.SphericalHarmonicsL2);
+                CoreUtils.SetKeyword(cmd, "PROBE_VOLUMES_L1", apvIsEnabled && renderPipelineSettings.probeVolumeSHBands == ProbeVolumeSHBands.SphericalHarmonicsL1);
+                CoreUtils.SetKeyword(cmd, "PROBE_VOLUMES_L2", apvIsEnabled && renderPipelineSettings.probeVolumeSHBands == ProbeVolumeSHBands.SphericalHarmonicsL2);
 
                 // Raise the normal buffer flag only if we are in forward rendering
                 CoreUtils.SetKeyword(cmd, "WRITE_NORMAL_BUFFER", hdCamera.frameSettings.litShaderMode == LitShaderMode.Forward);
@@ -1265,7 +1264,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 bool decalLayers = hdCamera.frameSettings.IsEnabled(FrameSettingsField.DecalLayers);
                 bool renderingLayerMaskBuffer = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RenderingLayerMaskBuffer);
                 // Because of stripping, we may use rendering layer variant even when they are disabled in the framesettings
-                if (m_Asset.currentPlatformRenderPipelineSettings.renderingLayerMaskBuffer)
+                if (renderPipelineSettings.renderingLayerMaskBuffer)
                 {
                     CoreUtils.SetKeyword(cmd, "WRITE_DECAL_BUFFER", false);
                     CoreUtils.SetKeyword(cmd, "WRITE_RENDERING_LAYER", decalLayers || renderingLayerMaskBuffer);
@@ -1769,11 +1768,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Make sure that the volumetric cloud animation data is in sync with the parent camera.
                     useFetchedGpuExposure = true;
                 }
-                else
-                {
-                    hdCamera.realtimeReflectionProbe = (visibleProbe.mode == ProbeSettings.Mode.Realtime);
-                }
 
+                hdCamera.realtimeReflectionProbe = (visibleProbe.mode == ProbeSettings.Mode.Realtime);
                 hdCamera.SetParentCamera(hdParentCamera, useFetchedGpuExposure, fetchedGpuExposure); // Used to inherit the properties of the view
 
                 HDAdditionalCameraData hdCam;
@@ -2060,8 +2056,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // Obtain the asset again at least one per frame to make sure we are pointing to a valid resources.
             runtimeMaterials = m_GlobalSettings.renderPipelineResources.materials;
             runtimeShaders   = m_GlobalSettings.renderPipelineResources.shaders;
-            runtimeAssets    = m_GlobalSettings.renderPipelineResources.assets;
-            runtimeTextures  = m_GlobalSettings.renderPipelineResources.textures;
+            runtimeAssets    = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeAssets>();
+            runtimeTextures  = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeTextures>();
+            
 #endif
             if (m_GlobalSettings.lensAttenuationMode == LensAttenuationMode.ImperfectLens)
             {

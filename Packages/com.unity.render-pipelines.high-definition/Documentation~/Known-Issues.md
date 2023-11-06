@@ -16,6 +16,6 @@ To fix this issue, restart the Unity editor.
 
 ## Working with Collaborate and a local HDRP config package
 
-If you installed the [config package](HDRP-Config-Package.md) locally using the [HDRP Wizard](Render-Pipeline-Wizard.md), Unity may have placed it in `LocalPackages/com.unity.render-pipelines.high-definition-config` depending on the HDRP version your project used at that time.
+If you installed the [config package](configure-a-project-using-the-hdrp-config-package.md) locally using the [HDRP Wizard](Render-Pipeline-Wizard.md), Unity may have placed it in `LocalPackages/com.unity.render-pipelines.high-definition-config` depending on the HDRP version your project used at that time.
 
 In this case, Collaborate does not track changes you make to the local HDRP config package files. To fix this, move the local config package from `LocalPackages/com.unity.render-pipelines.high-definition-config` to `Packages/com.unity.render-pipelines.high-definition-config`. This embeds it in your project and allows Collaborate to tracks and version changes you make.

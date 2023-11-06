@@ -385,6 +385,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         data.builtinParameters.commandBuffer = ctx.cmd;
                         data.skyRenderer.SetGlobalSkyData(ctx.cmd, data.builtinParameters);
+                        // TODO: set volumetric clouds shadow texture ?
                     });
                 }
             }
@@ -837,11 +838,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // Render the volumetric clouds into the cubemap
             if (skyContext.volumetricClouds != null)
             {
-                // The volumetric clouds explicitly rely on the physically based sky. We need to make sure that the sun textures are properly bound.
-                // Unfortunately, the global binding happens too late, so we need to bind it here.
-                SetGlobalSkyData(renderGraph, skyContext, m_BuiltinParameters);
-                outputCubemap = HDRenderPipeline.currentPipeline.RenderVolumetricClouds_Sky(renderGraph, hdCamera, m_FacePixelCoordToViewDirMatrices,
-                    skyContext.volumetricClouds, (int)m_BuiltinParameters.screenSize.x, (int)m_BuiltinParameters.screenSize.y, cloudsProbeBuffer, outputCubemap);
+                HDRenderPipeline.currentPipeline.RenderVolumetricClouds_Sky(renderGraph, hdCamera, m_FacePixelCoordToViewDirMatrices, skyContext.volumetricClouds,
+                    skyContext.skyRenderer, (int)m_BuiltinParameters.screenSize.x, (int)m_BuiltinParameters.screenSize.y, cloudsProbeBuffer, outputCubemap);
             }
 
             // Generate mipmap for our cubemap
@@ -1325,33 +1323,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.colorBuffer = builder.WriteTexture(colorBuffer);
                     passData.depthBuffer = builder.WriteTexture(depthBuffer);
                     passData.skyContext = skyContext;
-                    bool isCloudLayerUsed = false;
-                    if (passData.skyContext.HasClouds())
-                    {
-                        CloudLayer cloudLayer = passData.skyContext.cloudSettings as CloudLayer;
-                        if (cloudLayer)
-                        {
-                            isCloudLayerUsed = cloudLayer.active && cloudLayer.opacity.value > 0.0f;
-                        }
-                    }
-                    // Allocate only if the cloudLayer is used and at least one LensFlare request an occlusion with the CloudLayer
-                    if (isCloudLayerUsed && LensFlareCommonSRP.IsCloudLayerOpacityNeeded(hdCamera.camera))
-                    {
-                        // Nice-to-have: analyze the asset, if a 16 bits for the Rendering use the alpha channel to back
-                        // the cloud occlusion instead of allocating a new texture
-                        TextureHandle cloudOpacity = renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                        {
-                            colorFormat = GraphicsFormat.R8_UNorm,
-                            clearBuffer = true,
-                            clearColor = Color.black,
-                            name = "Cloud Occlusion"
-                        });
-                        m_CloudOpacity = builder.WriteTexture(cloudOpacity);
-                    }
-                    else
-                    {
-                        m_CloudOpacity = TextureHandle.nullHandle;
-                    }
+
                     // When rendering the visual sky for reflection probes, we need to remove the sun disk if skySettings.includeSunInBaking is false.
                     passData.renderSunDisk = hdCamera.camera.cameraType != CameraType.Reflection || skyContext.skySettings.includeSunInBaking.value;
                     UpdateBuiltinParameters(ref passData.builtinParameters,
@@ -1359,37 +1331,81 @@ namespace UnityEngine.Rendering.HighDefinition
                         hdCamera,
                         m_CurrentSunLight,
                         m_CurrentDebugDisplaySettings);
-                    passData.cloudOpacityBuffer = m_CloudOpacity;
-
-                    if (skyContext.HasClouds())
-                    {
-                        ref var cachedContext = ref m_CachedSkyContexts[skyContext.cachedSkyRenderingContextId];
-                        passData.builtinParameters.cloudAmbientProbe = cachedContext.renderingContext.cloudAmbientProbeBuffer;
-                    }
 
                     builder.SetRenderFunc(
                         (RenderSkyPassData data, RenderGraphContext ctx) =>
                         {
                             data.builtinParameters.colorBuffer = data.colorBuffer;
                             data.builtinParameters.depthBuffer = data.depthBuffer;
-                            data.builtinParameters.cloudOpacity = data.cloudOpacityBuffer;
                             data.builtinParameters.commandBuffer = ctx.cmd;
 
                             CoreUtils.SetRenderTarget(ctx.cmd, data.colorBuffer, data.depthBuffer);
 
                             data.skyContext.skyRenderer.DoUpdate(data.builtinParameters);
                             data.skyContext.skyRenderer.RenderSky(data.builtinParameters, renderForCubemap: false, renderSunDisk: data.renderSunDisk);
-
-                            if (data.skyContext.HasClouds())
-                            {
-                                using (new ProfilingScope(ctx.cmd, ProfilingSampler.Get(HDProfileId.RenderClouds)))
-                                {
-                                    data.skyContext.cloudRenderer.DoUpdate(data.builtinParameters);
-                                    data.skyContext.cloudRenderer.RenderClouds(data.builtinParameters, false);
-                                }
-                            }
                         });
                 }
+            }
+        }
+
+        public void RenderClouds(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthBuffer)
+        {
+            m_CloudOpacity = TextureHandle.nullHandle;
+
+            if (hdCamera.clearColorMode != HDAdditionalCameraData.ClearColorMode.Sky ||
+                // If the luxmeter is enabled, we don't render the sky
+                m_CurrentDebugDisplaySettings.data.lightingDebugSettings.debugLightingMode == DebugLightingMode.LuxMeter)
+                return;
+
+            var skyContext = hdCamera.visualSky;
+            if (!skyContext.IsValid() || !skyContext.HasClouds())
+                return;
+
+            using (var builder = renderGraph.AddRenderPass<RenderSkyPassData>("Render Clouds", out var passData, ProfilingSampler.Get(HDProfileId.RenderClouds)))
+            {
+                // Allocate only if the cloudLayer is used and at least one LensFlare request an occlusion with the CloudLayer
+                CloudLayer cloudLayer = skyContext.cloudSettings as CloudLayer;
+                bool isCloudLayerUsed = cloudLayer != null && cloudLayer.opacity.value > 0.0f;
+                if (isCloudLayerUsed && LensFlareCommonSRP.IsCloudLayerOpacityNeeded(hdCamera.camera))
+                {
+                    // Nice-to-have: analyze the asset, if a 16 bits for the Rendering use the alpha channel to store
+                    // the cloud occlusion instead of allocating a new texture
+                    m_CloudOpacity = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
+                    {
+                        colorFormat = GraphicsFormat.R8_UNorm,
+                        clearBuffer = true,
+                        clearColor = Color.black,
+                        name = "Cloud Occlusion"
+                    }));
+                }
+
+                passData.colorBuffer = builder.WriteTexture(colorBuffer);
+                passData.depthBuffer = builder.WriteTexture(depthBuffer);
+                passData.cloudOpacityBuffer = m_CloudOpacity;
+                passData.skyContext = skyContext;
+
+                UpdateBuiltinParameters(ref passData.builtinParameters,
+                    skyContext,
+                    hdCamera,
+                    m_CurrentSunLight,
+                    m_CurrentDebugDisplaySettings);
+
+                ref var cachedContext = ref m_CachedSkyContexts[skyContext.cachedSkyRenderingContextId];
+                passData.builtinParameters.cloudAmbientProbe = cachedContext.renderingContext.cloudAmbientProbeBuffer;
+
+                builder.SetRenderFunc(
+                    (RenderSkyPassData data, RenderGraphContext ctx) =>
+                    {
+                        data.builtinParameters.colorBuffer = data.colorBuffer;
+                        data.builtinParameters.depthBuffer = data.depthBuffer;
+                        data.builtinParameters.cloudOpacity = data.cloudOpacityBuffer;
+                        data.builtinParameters.commandBuffer = ctx.cmd;
+
+                        CoreUtils.SetRenderTarget(ctx.cmd, data.colorBuffer, data.depthBuffer);
+
+                        data.skyContext.cloudRenderer.DoUpdate(data.builtinParameters);
+                        data.skyContext.cloudRenderer.RenderClouds(data.builtinParameters, false);
+                    });
             }
         }
 

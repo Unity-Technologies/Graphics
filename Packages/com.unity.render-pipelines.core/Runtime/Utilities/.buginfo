@@ -5,6 +5,7 @@ rpw:
   when:
     path:
       - ^.*CameraCaptureBridge?.*$
+      - ^.*CoreRenderPipelinePreferences?.*$
       - ^.*CoreUtils?.*$
       - ^.*DelegateUtility?.*$
       - ^.*MeshGizmo?.*$

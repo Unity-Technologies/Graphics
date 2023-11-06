@@ -30,7 +30,8 @@ namespace UnityEngine.Rendering.HighDefinition
             EnableAmethystFeaturesByDefault, 
             ShaderStrippingSettings,
             RenderingPathFrameSettings,
-            CustomPostProcessOrdersSettings
+            CustomPostProcessOrdersSettings,
+            SetUpIncluderRenderPipelineAssetGraphicsSettings,
         }
 
         static Version[] skipedStepWhenCreatedFromHDRPAsset = new Version[] { };
@@ -173,6 +174,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 data.m_CustomPostProcessOrdersSettings.beforeTransparentCustomPostProcesses.AddRange(data.beforeTransparentCustomPostProcesses);
 #pragma warning restore 618
             })
+            ,
+            MigrationStep.New(Version.SetUpIncluderRenderPipelineAssetGraphicsSettings, (HDRenderPipelineGlobalSettings data) => data.SetUpRPAssetIncluded())
         );
         public bool Migrate()
             => k_Migration.Migrate(this);

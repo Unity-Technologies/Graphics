@@ -165,7 +165,7 @@ namespace UnityEngine.Rendering.Tests
         }
     }
 
-    internal class RenderPassTest : RenderPipelineAsset
+    internal class RenderPassTest : RenderPipelineAsset<RenderPassTestCullInstance>
     {
         public delegate void TestDelegate(ScriptableRenderContext ctx, Camera[] cameras);
 
@@ -196,5 +196,13 @@ namespace UnityEngine.Rendering.Tests
             }
             renderContext.Submit();
         }
+    }
+    
+    [SupportedOnRenderPipeline(typeof(RenderPassTest))]
+    [System.ComponentModel.DisplayName("RenderPass")]
+    internal class RenderPassGlobalSettings : RenderPipelineGlobalSettings<RenderPassGlobalSettings, RenderPassTestCullInstance>
+    {
+        [SerializeField] RenderPipelineGraphicsSettingsContainer m_Settings = new();
+        protected override List<IRenderPipelineGraphicsSettings> settingsList => m_Settings.settingsList;
     }
 }

@@ -639,14 +639,14 @@ namespace UnityEditor.VFX.Test
 
             frame = 16;
             expectedAttribute = GetItemOfTypeAndName<AttributeItem>(blackboard, attribute.name);
-            while (frame-- > 0 && expectedAttribute == null)
+            while (frame-- > 0 && expectedAttribute != null)
             {
                 yield return null;
                 expectedAttribute = GetItemOfTypeAndName<AttributeItem>(blackboard, attribute.name);
             }
 
             Assert.IsNull(expectedAttribute);
-            Assert.GreaterOrEqual(0, frame);
+            Assert.GreaterOrEqual(frame, 0);
         }
 
         [UnityTest]
@@ -696,14 +696,14 @@ namespace UnityEditor.VFX.Test
 
             frame = 16;
             expectedAttribute = GetItemOfTypeAndName<AttributeItem>(blackboard, attribute.name);
-            while (frame-- > 0 && expectedAttribute == null)
+            while (frame-- > 0 && expectedAttribute != null)
             {
                 yield return null;
                 expectedAttribute = GetItemOfTypeAndName<AttributeItem>(blackboard, attribute.name);
             }
 
             Assert.IsNull(expectedAttribute);
-            Assert.GreaterOrEqual(0, frame);
+            Assert.GreaterOrEqual(frame, 0);
         }
 
         private void AddCustomAttribute(VFXBlackboard blackboard, VFXValueType type)

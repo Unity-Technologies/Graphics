@@ -34,6 +34,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }),
             MigrationStep.New(Version.SharedPlanet, (PhysicallyBasedSky p) =>
             {
+                // Previously, ozone was approximated by tinting air, undo that
+                p.airTint.value = Color.white;
+
                 #if UNITY_EDITOR
                 var profiles = UnityEditor.AssetDatabase.FindAssets("t:" + typeof(VolumeProfile).Name);
                 foreach (var guid in profiles)
@@ -50,18 +53,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #pragma warning disable 618 // Type or member is obsolete
                     var type = p.type.overrideState ? p.type.value : PhysicallyBasedSkyModel.EarthAdvanced;
-                    if (type != PhysicallyBasedSkyModel.EarthSimple)
-                        env.planetType.Override(p.sphericalMode.value || !p.sphericalMode.overrideState ? VisualEnvironment.ShapeType.Spherical : VisualEnvironment.ShapeType.Flat);
 
-                    env.seaLevel.value = p.seaLevel.value;
-                    env.seaLevel.overrideState = p.seaLevel.overrideState;
-
-                    env.planetRadius.value = p.planetaryRadius.value;
+                    env.planetRadius.value = p.planetaryRadius.value / 1000.0f;
                     env.planetRadius.overrideState = (type == PhysicallyBasedSkyModel.Custom) && p.planetaryRadius.overrideState;
 
-                    env.planetCenter.value = p.planetCenterPosition.value;
+                    env.planetCenter.value = p.planetCenterPosition.value / 1000.0f;
                     env.planetCenter.overrideState = (type != PhysicallyBasedSkyModel.EarthSimple) && p.planetCenterPosition.overrideState;
 #pragma warning restore 618
+
+                    UnityEditor.EditorUtility.SetDirty(env);
+                    UnityEditor.EditorUtility.SetDirty(profile);
 
                     return;
                 }
@@ -81,14 +82,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Obsolete field. Simplifies the interface by using parameters suitable to simulate Earth.</summary>
         [SerializeField, FormerlySerializedAs("earthPreset"), Obsolete("For Data Migration")]
         BoolParameter m_ObsoleteEarthPreset = new BoolParameter(true);
-
-        /// <summary> Allows to specify the location of the planet. If disabled, the planet is always below the camera in the world-space X-Z plane. </summary>
-        [SerializeField, Obsolete("For Data Migration")]
-        BoolParameter sphericalMode = new BoolParameter(true);
-
-        /// <summary> World-space Y coordinate of the sea level of the planet. Units: meters. </summary>
-        [SerializeField, Obsolete("For Data Migration")]
-        FloatParameter seaLevel = new FloatParameter(0);
 
         /// <summary> Radius of the planet (distance from the center of the planet to the sea level). Units: meters. </summary>
         [SerializeField, Obsolete("For Data Migration")]

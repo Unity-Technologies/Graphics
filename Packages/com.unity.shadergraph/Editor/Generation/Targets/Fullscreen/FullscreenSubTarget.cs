@@ -498,9 +498,9 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
                 return true;
 
             // There is no input in the vertex block for now
-            if (interfaces.Contains(typeof(IMayRequireVertexID)))
-                allowed = false;
-            if (interfaces.Contains(typeof(IMayRequireVertexSkinning)))
+            if (interfaces.Contains(typeof(IMayRequireVertexID))
+                || interfaces.Contains(typeof(IMayRequireVertexSkinning))
+                || interfaces.Contains(typeof(IMayRequireInstanceID)))
                 allowed = false;
 
             return allowed;

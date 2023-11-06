@@ -56,7 +56,7 @@ public class UniversalGraphicsTests
     [UseGraphicsTestCases(universalPackagePath)]
     public IEnumerator Run(GraphicsTestCase testCase)
     {
-        Debug.Log($"Running test case {testCase.ScenePath} with reference image {testCase.ScenePath}. {testCase.ReferenceImagePathLog}.");
+        Debug.Log($"Running test case '{testCase}' with scene '{testCase.ScenePath}' {testCase.ReferenceImagePathLog}.");
 #if UNITY_WEBGL || UNITY_ANDROID
         RuntimeGraphicsTestCaseProvider.AssociateReferenceImageWithTest(testCase);
 #endif
@@ -83,10 +83,8 @@ public class UniversalGraphicsTests
 
         // Check for RenderGraph compatibility and skip test if needed.
         bool isUsingRenderGraph = RenderGraphGraphicsAutomatedTests.enabled;
-#if RENDER_GRAPH_ENABLED
         if (UniversalRenderPipelineGlobalSettings.instance)
             isUsingRenderGraph |= UniversalRenderPipelineGlobalSettings.instance.enableRenderGraph;
-#endif
 
         if (isUsingRenderGraph && settings.renderBackendCompatibility == UniversalGraphicsTestSettings.RenderBackendCompatibility.NonRenderGraph)
             Assert.Ignore("Test scene is not compatible with Render Graph and will be skipped.");

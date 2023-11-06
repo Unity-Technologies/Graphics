@@ -39,7 +39,15 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Based on size
         /// </summary>
-        Size
+        Size,
+        /// <summary>
+        /// Based on spherical harmonics sky occlusion
+        /// </summary>
+        SkyOcclusionSH,
+        /// <summary>
+        /// Based on shading direction
+        /// </summary>
+        SkyDirection
     }
 
     enum ProbeSamplingDebugUpdate
@@ -486,6 +494,8 @@ namespace UnityEngine.Rendering
                             DebugProbeShadingMode.SH => false,
                             DebugProbeShadingMode.SHL0 => false,
                             DebugProbeShadingMode.SHL0L1 => false,
+                            DebugProbeShadingMode.SkyOcclusionSH => false,
+                            DebugProbeShadingMode.SkyDirection => false,
                             _ => true
                         };
                     }
@@ -832,6 +842,7 @@ namespace UnityEngine.Rendering
                     props.SetInt("_MinAllowedSubdiv", probeVolumeDebug.minSubdivToVisualize);
                     props.SetFloat("_ValidityThreshold", m_CurrentBakingSet.settings.dilationSettings.dilationValidityThreshold);
                     props.SetFloat("_OffsetSize", probeVolumeDebug.offsetSize);
+                    props.SetInt("_BypassExposure", 1);
 
                     if (probeVolumeDebug.drawProbes)
                     {

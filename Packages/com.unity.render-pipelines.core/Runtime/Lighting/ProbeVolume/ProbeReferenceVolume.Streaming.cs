@@ -81,7 +81,9 @@ namespace UnityEngine.Rendering
             public int _L0L1rxOffset;
             public int _L1GryOffset;
             public int _L1BrzOffset;
-            public int _SharedOffset;
+            public int _ValidityOffset;
+            public int _SkyOcclusionOffset;
+            public int _SkyShadingDirectionOffset;
             public int _L2_0Offset;
             public int _L2_1Offset;
             public int _L2_2Offset;
@@ -91,8 +93,12 @@ namespace UnityEngine.Rendering
             public int _L0ProbeSize; // In bytes
             public int _L1Size;
             public int _L1ProbeSize; // In bytes
-            public int _SharedSize;
-            public int _SharedProbeSize; // In bytes
+            public int _ValiditySize;
+            public int _ValidityProbeSize; // In bytes
+            public int _SkyOcclusionSize;
+            public int _SkyOcclusionProbeSize; // In bytes
+            public int _SkyShadingDirectionSize;
+            public int _SkyShadingDirectionProbeSize; // In bytes
             public int _L2Size;
             public int _L2ProbeSize; // In bytes
 
@@ -1120,7 +1126,8 @@ namespace UnityEngine.Rendering
             {
                 var sharedDataAsset = m_CurrentBakingSet.cellSharedDataAsset;
                 cellStreamingDesc = sharedDataAsset.streamableCellDescs[cellIndex];
-                var sharedChunkSize = m_CurrentBakingSet.validityMaskChunkSize; // TODO: Replace with generic shared data size
+                var sharedChunkSize = m_CurrentBakingSet.sharedDataChunkSize;
+
                 request.cellSharedDataStreamingRequest.AddReadCommand(cellStreamingDesc.offset, sharedChunkSize * chunkCount, mappedBufferAddr);
                 mappedBufferAddr += (sharedChunkSize * chunkCount);
                 request.bytesWritten += request.cellSharedDataStreamingRequest.RunCommands(sharedDataAsset.OpenFile());
@@ -1192,7 +1199,7 @@ namespace UnityEngine.Rendering
                     if (m_ScratchBufferPool != null)
                         m_ScratchBufferPool.Cleanup();
 
-                    m_ScratchBufferPool = new ProbeVolumeScratchBufferPool(m_CurrentBakingSet, m_SHBands);
+                    m_ScratchBufferPool = new ProbeVolumeScratchBufferPool(m_CurrentBakingSet, m_SHBands, skyOcclusion, skyOcclusionShadingDirection);
                 }
             }
         }

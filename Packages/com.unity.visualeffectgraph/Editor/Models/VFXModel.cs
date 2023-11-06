@@ -431,9 +431,8 @@ namespace UnityEditor.VFX
             foreach (var settings in GetFields(GetType()))
             {
                 if (ShouldSettingBeListed(settings.field, settings.attribute, listHidden, flags, filteredOutSettings))
-                    yield return new VFXSetting(settings.field, this);
+                    yield return new VFXSetting(settings.field, this, settings.attribute.visibleFlags);
             }
-
         }
 
         static protected VFXExpression TransformExpression(VFXExpression input, SpaceableType dstSpaceType, VFXExpression matrix)
@@ -572,7 +571,7 @@ namespace UnityEditor.VFX
             model.Detach(notify);
         }
 
-        public static void ReplaceModel(VFXModel dst, VFXModel src, bool notify = true)
+        public static void ReplaceModel(VFXModel dst, VFXModel src, bool notify = true, bool unlink = true)
         {
             // UI
             dst.m_UIPosition = src.m_UIPosition;
@@ -594,7 +593,8 @@ namespace UnityEditor.VFX
             }
 
             // Unlink everything
-            UnlinkModel(src);
+            if (unlink)
+                UnlinkModel(src);
 
             // Replace model
             var parent = src.GetParent();

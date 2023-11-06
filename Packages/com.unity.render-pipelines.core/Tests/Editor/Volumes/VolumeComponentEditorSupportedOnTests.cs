@@ -1,38 +1,13 @@
 using System;
 using System.Linq;
 using NUnit.Framework;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Tests;
 
-namespace UnityEngine.Rendering.Tests
+namespace UnityEditor.Rendering.Tests
 {
-    public class VolumeComponentEditorSupportedOnTests : RenderPipelineTests
+    class VolumeComponentEditorSupportedOnTests : RenderPipelineTests
     {
-        [VolumeComponentMenu("SupportedOnTests/SupportedEverywhere")]
-        public class VolumeComponentSupportedEverywhere : VolumeComponent
-        {
-        }
-
-        [VolumeComponentMenu("SupportedOnTests/SupportedOnAnySRP")]
-        [SupportedOnRenderPipeline]
-        public class VolumeComponentSupportedOnAnySRP : VolumeComponent
-        {
-        }
-
-        [VolumeComponentMenu("SupportedOnTests/SupportedOnCustomSRP")]
-        [SupportedOnRenderPipeline(typeof(CustomSRPAsset))]
-        public class VolumeComponentSupportedOnCustomSRP : VolumeComponent
-        {
-        }
-
-        class CustomSRPAsset : RenderPipelineAsset
-        {
-            protected override RenderPipeline CreatePipeline() => throw new NotImplementedException();
-        }
-
-        class AnotherSRPAsset : RenderPipelineAsset
-        {
-            protected override RenderPipeline CreatePipeline() => throw new NotImplementedException();
-        }
-
         static TestCaseData[] s_TestCaseDataGetItem =
         {
             new TestCaseData(
@@ -42,16 +17,16 @@ namespace UnityEngine.Rendering.Tests
                 .SetName("Given null SRP asset (Builtin), volumeManager.baseComponentTypeArray contains volume component without attribute but not others"),
 
             new TestCaseData(
-                    typeof(CustomSRPAsset),
+                    typeof(CustomRenderPipelineAsset),
                     new[] { typeof(VolumeComponentSupportedEverywhere), typeof(VolumeComponentSupportedOnAnySRP), typeof(VolumeComponentSupportedOnCustomSRP)},
                     new Type[] {})
-                .SetName("Given CustomSRPAsset, volumeManager.baseComponentTypeArray contains all volume components"),
+                .SetName("Given CustomRenderPipelineAsset, volumeManager.baseComponentTypeArray contains all volume components"),
 
             new TestCaseData(
-                    typeof(AnotherSRPAsset),
+                    typeof(SecondCustomRenderPipelineAsset),
                     new[] { typeof(VolumeComponentSupportedEverywhere), typeof(VolumeComponentSupportedOnAnySRP)},
                     new[] { typeof(VolumeComponentSupportedOnCustomSRP) })
-                .SetName("Given AnotherSRPAsset, volumeManager.baseComponentTypeArray does not contains component that only supports CustomSRP")
+                .SetName("Given SecondCustomRenderPipelineAsset, volumeManager.baseComponentTypeArray does not contains component that only supports CustomSRP")
         };
 
         [Test, TestCaseSource(nameof(s_TestCaseDataGetItem))]

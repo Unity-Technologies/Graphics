@@ -115,7 +115,12 @@ namespace UnityEditor.VFX.UI
             }
             set
             {
-                model.position = new Vector2(Mathf.Round(value.x), Mathf.Round(value.y));
+                value = new Vector2(Mathf.Round(value.x), Mathf.Round(value.y));
+                if (model.position != value)
+                {
+                    Undo.RecordObject(model, "Move VFXModel: " + value);
+                    model.position = value;
+                }
             }
         }
         public virtual bool superCollapsed
@@ -126,10 +131,14 @@ namespace UnityEditor.VFX.UI
             }
             set
             {
-                model.superCollapsed = value;
-                if (model.superCollapsed)
+                if (value != model.superCollapsed)
                 {
-                    model.collapsed = false;
+                    Undo.RecordObject(model, "Collapse VFXModel: " + value);
+                    model.superCollapsed = value;
+                    if (model.superCollapsed)
+                    {
+                        model.collapsed = false;
+                    }
                 }
             }
         }
@@ -270,6 +279,7 @@ namespace UnityEditor.VFX.UI
             {
                 if (value != !slotContainer.collapsed)
                 {
+                    Undo.RecordObject(model, "Collapse VFXModel: " + !value);
                     slotContainer.collapsed = !value;
                 }
             }

@@ -31,17 +31,17 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// Creates a new <c>CopyDepthPass</c> instance.
         /// </summary>
         /// <param name="evt">The <c>RenderPassEvent</c> to use.</param>
-        /// <param name="copyDepthMaterial">The <c>Material</c> to use for copying the depth.</param>
+        /// <param name="copyDepthShader">The <c>Shader</c> to use for copying the depth.</param>
         /// <param name="shouldClear">Controls whether it should do a clear before copying the depth.</param>
         /// <param name="copyToDepth">Controls whether it should do a copy to a depth format target.</param>
         /// <param name="copyResolvedDepth">Set to true if the source depth is MSAA resolved.</param>
         /// <seealso cref="RenderPassEvent"/>
-        public CopyDepthPass(RenderPassEvent evt, Material copyDepthMaterial, bool shouldClear = false, bool copyToDepth = false, bool copyResolvedDepth = false)
+        public CopyDepthPass(RenderPassEvent evt, Shader copyDepthShader, bool shouldClear = false, bool copyToDepth = false, bool copyResolvedDepth = false)
         {
             base.profilingSampler = new ProfilingSampler(nameof(CopyDepthPass));
             m_PassData = new PassData();
             CopyToDepth = copyToDepth;
-            m_CopyDepthMaterial = copyDepthMaterial;
+            m_CopyDepthMaterial = CoreUtils.CreateEngineMaterial(copyDepthShader);
             renderPassEvent = evt;
             m_CopyResolvedDepth = copyResolvedDepth;
             m_ShouldClear = shouldClear;
@@ -57,6 +57,14 @@ namespace UnityEngine.Rendering.Universal.Internal
             this.source = source;
             this.destination = destination;
             this.MssaSamples = -1;
+        }
+
+        /// <summary>
+        /// Cleans up resources used by the pass.
+        /// </summary>
+        public void Dispose()
+        {
+            CoreUtils.Destroy(m_CopyDepthMaterial);
         }
 
         /// <inheritdoc />

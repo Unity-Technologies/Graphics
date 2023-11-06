@@ -37,8 +37,8 @@ namespace UnityEditor.VFX
             vfxAttributeParameter.attribute = vfxAttribute.name;
             vfxAttributeParameter.location = location;
             vfxAttributeParameter.ResyncSlots(true);
+            ReplaceModel(vfxAttributeParameter, this, true, false);
             VFXSlot.CopyLinksAndValue(vfxAttributeParameter.outputSlots[0], outputSlots[0]);
-            ReplaceModel(vfxAttributeParameter, this);
         }
 
         internal sealed override void GenerateErrors(VFXInvalidateErrorReporter manager)
