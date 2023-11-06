@@ -8,5 +8,5 @@ jobs:
       - .yamato/_templates.yml#all_template_ci_<TRACK>
     triggers:
         recurring:
-          -  branch: 2022.3/staging
-             frequency: weekly
+          - branch: 2022.3/staging
+            frequency: 23 ? * 7 # At 11pm every Saturday

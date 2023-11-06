@@ -44,4 +44,4 @@ editor_pinning_config:
   triggers:
     recurring:
       - branch: 2022.3/staging
-        frequency: 21 * * ?
+        frequency: 21 ? * 7 # At 9pm every Saturday - must happen before the ABV (abv.metafile). 2hrs before is arbitrary
