@@ -17,6 +17,10 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         internal DebugDisplaySettingsDecal decalSettings { get; private set; }
 
+        /// <summary>
+        /// GPU Resident Drawer Rendering Debugger settings and statistics.
+        /// </summary>
+        internal DebugDisplayGPUResidentDrawer gpuResidentDrawerSettings { get; private set; }
 
 #if ENABLE_VIRTUALTEXTURES
         internal DebugDisplayVirtualTexturing vtSettings { get; private set; }
@@ -32,6 +36,7 @@ namespace UnityEngine.Rendering.HighDefinition
             displayStats = Add(new DebugDisplaySettingsStats<HDProfileId>(new HDDebugDisplayStats()));
             volumeSettings = Add(new DebugDisplaySettingsVolume(new HDVolumeDebugSettings()));
             decalSettings = Add(new DebugDisplaySettingsDecal());
+            gpuResidentDrawerSettings = Add(new DebugDisplayGPUResidentDrawer());
 #if ENABLE_VIRTUALTEXTURES
             vtSettings = Add(new DebugDisplayVirtualTexturing());
 #endif

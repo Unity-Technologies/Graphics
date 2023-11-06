@@ -352,6 +352,9 @@ namespace UnityEngine.Rendering
         [NativeDisableContainerSafetyRestriction] [WriteOnly] public NativeArray<short> binConfigIndices;
         [NativeDisableContainerSafetyRestriction] [WriteOnly] public NativeArray<int> binVisibleInstanceCounts;
 
+        [ReadOnly] public int debugCounterIndexBase;
+        [NativeDisableContainerSafetyRestriction] public NativeArray<int> splitDebugCounters;
+
         bool IsInstanceFlipped(int rendererIndex)
         {
             InstanceHandle instance = InstanceHandle.FromInt(rendererIndex);
@@ -402,6 +405,17 @@ namespace UnityEngine.Rendering
             int allocOffsetStart = 0;
             if (binCount > 0)
             {
+                var drawCommandCountPerView = stackalloc int[binningConfig.viewCount];
+                var visibleCountPerView = stackalloc int[binningConfig.viewCount];
+                for (int i = 0; i < binningConfig.viewCount; ++i)
+                {
+                    drawCommandCountPerView[i] = 0;
+                    visibleCountPerView[i] = 0;
+                }
+
+                bool countVisibilityStats = (debugCounterIndexBase >= 0);
+                int shiftForVisibilityMask = 1 + (binningConfig.supportsMotionCheck ? 1 : 0) + (binningConfig.supportsCrossFade ? 1 : 0);
+
                 int *allocCounter = (int *)binAllocCounter.GetUnsafePtr<int>();
                 int allocOffsetEnd = Interlocked.Add(ref UnsafeUtility.AsRef<int>(allocCounter), binCount);
                 allocOffsetStart = allocOffsetEnd - binCount;
@@ -422,9 +436,35 @@ namespace UnityEngine.Rendering
                         binConfigIndices[allocOffset] = (short)configIndex;
                         binVisibleInstanceCounts[allocOffset] = visibleCount;
                         allocOffset++;
+
+                        int visibilityMask = countVisibilityStats ? (configIndex >> shiftForVisibilityMask) : 0;
+                        while (visibilityMask != 0)
+                        {
+                            var viewIndex = math.tzcnt(visibilityMask);
+                            visibilityMask ^= 1 << viewIndex;
+
+                            drawCommandCountPerView[viewIndex] += 1;
+                            visibleCountPerView[viewIndex] += visibleCount;
+                        }
                     }
                 }
                 Assert.IsTrue(allocOffset == allocOffsetEnd);
+
+                if (countVisibilityStats)
+                {
+                    for (int viewIndex = 0; viewIndex < binningConfig.viewCount; ++viewIndex)
+                    {
+                        int* counterPtr = (int*)splitDebugCounters.GetUnsafePtr() + (debugCounterIndexBase + viewIndex) * (int)InstanceCullerSplitDebugCounter.Count;
+
+                        int drawCommandCount = drawCommandCountPerView[viewIndex];
+                        if (drawCommandCount > 0)
+                            Interlocked.Add(ref UnsafeUtility.AsRef<int>(counterPtr + (int)InstanceCullerSplitDebugCounter.DrawCommands), drawCommandCount);
+
+                        int visibleCount = visibleCountPerView[viewIndex];
+                        if (visibleCount > 0)
+                            Interlocked.Add(ref UnsafeUtility.AsRef<int>(counterPtr + (int)InstanceCullerSplitDebugCounter.VisibleInstances), visibleCount);
+                    }
+                }
             }
             batchBinAllocOffsets[batchIndex] = allocOffsetStart;
             batchBinCounts[batchIndex] = binCount;
@@ -870,9 +910,109 @@ namespace UnityEngine.Rendering
     }
 #endif
 
+    internal enum InstanceCullerSplitDebugCounter
+    {
+        VisibleInstances,
+        DrawCommands,
+        Count,
+    }
+
+    internal struct InstanceCullerSplitDebugArray : IDisposable
+    {
+        private const int MaxSplitCount = 64;
+
+        internal struct Info
+        {
+            public SplitID splitID;
+        }
+
+        private NativeList<Info> m_Info;
+        private NativeArray<int> m_Counters;
+        private NativeQueue<JobHandle> m_CounterSync;
+
+        public NativeArray<int> Counters { get => m_Counters; }
+
+        public void Init()
+        {
+            m_Info = new NativeList<Info>(Allocator.Persistent);
+            m_Counters = new NativeArray<int>(MaxSplitCount * (int)InstanceCullerSplitDebugCounter.Count, Allocator.Persistent);
+            m_CounterSync = new NativeQueue<JobHandle>(Allocator.Persistent);
+        }
+
+        public void Dispose()
+        {
+            m_Info.Dispose();
+            m_Counters.Dispose();
+            m_CounterSync.Dispose();
+        }
+
+        public int TryAddSplits(int viewID, SplitViewType viewType, int splitCount)
+        {
+            int baseIndex = m_Info.Length;
+            if (baseIndex + splitCount > MaxSplitCount)
+                return -1;
+
+            for (int splitIndex = 0; splitIndex < splitCount; ++splitIndex)
+            {
+                m_Info.Add(new Info()
+                {
+                    splitID = new SplitID()
+                    {
+                        viewType = viewType,
+                        viewID = viewID,
+                        splitIndex = splitIndex,
+                    },
+                });
+            }
+            return baseIndex;
+        }
+
+        public void AddSync(int baseIndex, JobHandle jobHandle)
+        {
+            if (baseIndex != -1)
+                m_CounterSync.Enqueue(jobHandle);
+        }
+
+        public void MoveToDebugStatsAndClear(DebugRendererBatcherStats debugStats)
+        {
+            // wait for stats-writing jobs to complete
+            while (m_CounterSync.TryDequeue(out var jobHandle))
+            {
+                jobHandle.Complete();
+            }
+
+            // overwrite debug stats with the latest
+            debugStats.instanceCullerStats.Clear();
+            for (int index = 0; index < m_Info.Length; ++index)
+            {
+                int counterBase = index * (int)InstanceCullerSplitDebugCounter.Count;
+                debugStats.instanceCullerStats.Add(new InstanceCullerViewStats
+                {
+                    splitID = m_Info[index].splitID,
+                    visibleInstances = m_Counters[counterBase + (int)InstanceCullerSplitDebugCounter.VisibleInstances],
+                    drawCommands = m_Counters[counterBase + (int)InstanceCullerSplitDebugCounter.DrawCommands],
+                });
+            }
+
+            // clear for next frame
+            m_Info.Clear();
+            m_Counters.FillArray(0);
+        }
+    }
+
     [BurstCompile]
     internal struct InstanceCuller : IDisposable
     {
+        private DebugRendererBatcherStats m_DebugStats;
+        private InstanceCullerSplitDebugArray m_SplitDebugArray;
+
+        internal void Init(DebugRendererBatcherStats debugStats = null)
+        {
+            m_DebugStats = debugStats;
+            m_SplitDebugArray = new InstanceCullerSplitDebugArray();
+            m_SplitDebugArray.Init();
+        }
+
         private JobHandle CreateFrustumCullingJob(
             BatchCullingContext cc,
             in CPUInstanceData.ReadOnly instanceData,
@@ -1062,6 +1202,15 @@ namespace UnityEngine.Rendering
             else
 #endif
             {
+                int debugCounterBaseIndex = -1;
+                if (m_DebugStats?.enabled ?? false)
+                {
+                    int viewID = cc.viewID.GetInstanceID();
+                    SplitViewType viewType = (cc.viewType == BatchCullingViewType.Light) ? SplitViewType.Shadow : SplitViewType.Camera;
+                    int splitCount = cc.cullingSplits.Length;
+                    debugCounterBaseIndex = m_SplitDebugArray.TryAddSplits(viewID, viewType, splitCount);
+                }
+
                 var batchCount = drawInstanceData.drawBatches.Length;
                 int maxBinCount = ComputeWorstCaseDrawCommandCount(cc, binningConfig, drawInstanceData, crossFadedRendererCount);
 
@@ -1086,8 +1235,12 @@ namespace UnityEngine.Rendering
                     binAllocCounter = binAllocCounter,
                     binConfigIndices = binConfigIndices,
                     binVisibleInstanceCounts = binVisibleInstanceCounts,
+                    splitDebugCounters = m_SplitDebugArray.Counters,
+                    debugCounterIndexBase = debugCounterBaseIndex,
                 };
                 var allocateBinsHandle = allocateBinsJob.Schedule(batchCount, 1, cullingJobHandle);
+
+                m_SplitDebugArray.AddSync(debugCounterBaseIndex, allocateBinsHandle);
 
                 var prefixSumJob = new PrefixSumDrawsAndInstances
                 {
@@ -1124,12 +1277,23 @@ namespace UnityEngine.Rendering
             }
         }
 
+        private void FlushDebugCounters()
+        {
+            if (m_DebugStats?.enabled ?? false)
+            {
+                m_SplitDebugArray.MoveToDebugStatsAndClear(m_DebugStats);
+            }
+        }
+
         public void UpdateFrame()
         {
+            FlushDebugCounters();
         }
 
         public void Dispose()
         {
+            m_DebugStats = null;
+            m_SplitDebugArray.Dispose();
         }
     }
 }

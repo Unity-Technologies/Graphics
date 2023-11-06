@@ -34,6 +34,11 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         internal DebugDisplaySettingsStats<URPProfileId> displayStats { get; private set; }
 
+        /// <summary>
+        /// GPU Resident Drawer Rendering Debugger settings and statistics.
+        /// </summary>
+        internal DebugDisplayGPUResidentDrawer gpuResidentDrawerSettings { get; private set; }
+
         #region IDebugDisplaySettingsQuery
 
         /// <summary>
@@ -94,6 +99,7 @@ namespace UnityEngine.Rendering.Universal
             renderingSettings = Add(new DebugDisplaySettingsRendering());
             volumeSettings = Add(new DebugDisplaySettingsVolume(new UniversalRenderPipelineVolumeDebugSettings()));
             commonSettings = Add(new DebugDisplaySettingsCommon());
+            gpuResidentDrawerSettings = Add(new DebugDisplayGPUResidentDrawer());
         }
 
         internal void UpdateDisplayStats()

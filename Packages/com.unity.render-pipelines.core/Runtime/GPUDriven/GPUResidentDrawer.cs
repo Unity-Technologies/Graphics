@@ -47,6 +47,11 @@ namespace UnityEngine.Rendering
 
         #endregion
 
+        internal static DebugRendererBatcherStats GetDebugStats()
+        {
+            return s_Instance?.m_BatchersContext.debugStats;
+        }
+
         private void InsertIntoPlayerLoop()
         {
             var rootLoop = LowLevel.PlayerLoop.GetCurrentPlayerLoop();
@@ -259,6 +264,9 @@ namespace UnityEngine.Rendering
         private MeshRendererDrawer m_MeshRendererDrawer;
 
 #if UNITY_EDITOR
+        private NativeList<int> m_FrameCameraIDs;
+        private bool m_FrameUpdateNeeded = false;
+
         static GPUResidentDrawer()
         {
 			Lightmapping.bakeCompleted += Reinitialize;
@@ -280,6 +288,7 @@ namespace UnityEngine.Rendering
             var rbcDesc = RenderersBatchersContextDesc.NewDefault();
             rbcDesc.instanceNumInfo = new InstanceNumInfo(meshRendererNum: maxInstanceCount);
             rbcDesc.supportDitheringCrossFade = settings.supportDitheringCrossFade;
+            rbcDesc.enableCullerDebugStats = true; // for now, always allow the possibility of reading counter stats from the cullers.
 
             var instanceCullingBatcherDesc = InstanceCullingBatcherDesc.NewDefault();
 #if UNITY_EDITOR
@@ -307,6 +316,7 @@ namespace UnityEngine.Rendering
 
 #if UNITY_EDITOR
             AssemblyReloadEvents.beforeAssemblyReload += OnAssemblyReload;
+            m_FrameCameraIDs = new NativeList<int>(1, Allocator.Persistent);
 #endif
             SceneManager.sceneLoaded += OnSceneLoaded;
 
@@ -322,6 +332,8 @@ namespace UnityEngine.Rendering
 
 #if UNITY_EDITOR
             AssemblyReloadEvents.beforeAssemblyReload -= OnAssemblyReload;
+            if (m_FrameCameraIDs.IsCreated)
+                m_FrameCameraIDs.Dispose();
 #endif
             SceneManager.sceneLoaded -= OnSceneLoaded;
 
@@ -362,10 +374,41 @@ namespace UnityEngine.Rendering
         {
             if (s_Instance is null)
                 return;
+#if UNITY_EDITOR
+            EditorFrameUpdate(cameras);
+#endif
 
             m_Batcher.OnBeginContextRendering();
         }
 
+
+#if UNITY_EDITOR
+        // If running in the editor the player loop might not run
+        // In order to still have a single frame update we keep track of the camera ids
+        // A frame update happens in case the first camera is rendered again
+        private void EditorFrameUpdate(List<Camera> cameras)
+        {
+            bool newFrame = false;
+            foreach (Camera camera in cameras)
+            {
+                int instanceID = camera.GetInstanceID();
+                if (m_FrameCameraIDs.Length == 0 || m_FrameCameraIDs.Contains(instanceID))
+                {
+                    newFrame = true;
+                    m_FrameCameraIDs.Clear();
+                }
+                m_FrameCameraIDs.Add(instanceID);
+            }
+
+            if (newFrame)
+            {
+                if (m_FrameUpdateNeeded)
+                    m_Batcher.UpdateFrame();
+                else
+                    m_FrameUpdateNeeded = true;
+            }
+        }
+#endif
         private void OnEndContextRendering(ScriptableRenderContext context, List<Camera> cameras)
         {
             if (s_Instance is null)
@@ -416,6 +459,10 @@ namespace UnityEngine.Rendering
             m_BatchersContext.UpdateInstanceMotions();
 
             m_Batcher.UpdateFrame();
+
+#if UNITY_EDITOR
+            m_FrameUpdateNeeded = false;
+#endif
         }
 
         private void ProcessLightmapSettings(NativeArray<int> changed, NativeArray<int> destroyed)
