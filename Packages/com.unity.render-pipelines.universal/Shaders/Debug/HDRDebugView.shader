@@ -14,18 +14,17 @@ Shader "Hidden/Universal/HDRDebugView"
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Debug/DebuggingFullscreen.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Debug.hlsl"
     #include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/Blit.hlsl"
-    
-    TEXTURE2D_X(_DebugScreenTexture);
+
     TEXTURE2D_X(_OverlayUITexture);
-    TEXTURE2D_X(_SourceTexture);
     TEXTURE2D(_xyBuffer);
 
     int _DebugHDRMode;
 
-    float4 _HDRDebugParams; // xy: brightness min/max, z: paper white brightness, w: color primairies
-    #define _MinNits    _HDRDebugParams.x
-    #define _MaxNits    _HDRDebugParams.y
-    #define _PaperWhite _HDRDebugParams.z
+    float4 _HDRDebugParams; // xy: xyBuffer size, zw: unused
+    float4 _HDROutputLuminanceParams; // xy: brightness min/max, z: paper white brightness, w: one over paper white brightness
+    #define _MinNits    _HDROutputLuminanceParams.x
+    #define _MaxNits    _HDROutputLuminanceParams.y
+    #define _PaperWhite _HDROutputLuminanceParams.z
 
     float2 RGBtoxy(float3 rgb)
     {
@@ -201,7 +200,7 @@ Shader "Hidden/Universal/HDRDebugView"
 
                 half4 Frag(Varyings input) : SV_Target
                 {
-                    float4 col = SAMPLE_TEXTURE2D_X(_DebugScreenTexture, sampler_PointClamp, input.texcoord);
+                    float4 col = SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_PointClamp, input.texcoord);
                     float2 xy = (RGBtoxy(col.rgb));
 
                     _xyBufferRW[(xy * _SizePerDim)] = 1;
@@ -226,7 +225,7 @@ Shader "Hidden/Universal/HDRDebugView"
                 {
                     float4 outCol = 0;
                     float2 uv = input.texcoord;
-                    half4 col = SAMPLE_TEXTURE2D_X(_SourceTexture, sampler_PointClamp, uv);
+                    half4 col = SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_PointClamp, uv);
                     half4 outColor = 0;
                     RenderDebugHDR(col, uv, outColor);
 

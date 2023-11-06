@@ -272,6 +272,7 @@ HDRP ray tracing in Unity has the following limitations:
 
 - Doesn't support vertex animation.
 - Doesn't support decals.
+- Doesn't support Box-shaped spot lights.
 - Doesn't support the volumetric part of the [fog](Override-Fog.md).
 - Doesn't support tessellation.
 - Doesn't support per pixel displacement (parallax occlusion mapping, height map, depth offset).

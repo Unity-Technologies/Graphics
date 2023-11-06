@@ -686,6 +686,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.PropertyField(m_DrawDistanceProperty, k_DistanceContent);
                 if (EditorGUI.EndChangeCheck() && m_DrawDistanceProperty.floatValue < 0f)
                     m_DrawDistanceProperty.floatValue = 0f;
+                if (m_DrawDistanceProperty.floatValue > DecalSystem.instance.DrawDistance)
+                {
+                    EditorGUILayout.HelpBox(String.Format(DecalSystem.s_GlobalDrawDistanceWarning, DecalSystem.instance.DrawDistance), MessageType.Warning);
+                }
 
                 EditorGUILayout.PropertyField(m_FadeScaleProperty, k_FadeScaleContent);
                 using (new EditorGUI.DisabledScope(!decalLayerEnabled))

@@ -115,7 +115,12 @@ namespace UnityEditor.VFX.UI
             }
             set
             {
-                model.position = new Vector2(Mathf.Round(value.x), Mathf.Round(value.y));
+                value = new Vector2(Mathf.Round(value.x), Mathf.Round(value.y));
+                if (model.position != value)
+                {
+                    Undo.RecordObject(model, "Move VFXModel: " + value);
+                    model.position = value;
+                }
             }
         }
         public virtual bool superCollapsed
@@ -126,10 +131,14 @@ namespace UnityEditor.VFX.UI
             }
             set
             {
-                model.superCollapsed = value;
-                if (model.superCollapsed)
+                if (value != model.superCollapsed)
                 {
-                    model.collapsed = false;
+                    Undo.RecordObject(model, "Collapse VFXModel: " + value);
+                    model.superCollapsed = value;
+                    if (model.superCollapsed)
+                    {
+                        model.collapsed = false;
+                    }
                 }
             }
         }
@@ -250,12 +259,13 @@ namespace UnityEditor.VFX.UI
             {
                 if (value != !slotContainer.collapsed)
                 {
+                    Undo.RecordObject(model, "Collapse VFXModel: " + !value);
                     slotContainer.collapsed = !value;
                 }
             }
         }
 
-        public virtual void DrawGizmos(VisualEffect component)
+        public virtual void CollectGizmos()
         {
             m_GizmoableAnchors.Clear();
             foreach (VFXDataAnchorController controller in inputPorts)
@@ -265,49 +275,36 @@ namespace UnityEditor.VFX.UI
                     m_GizmoableAnchors.Add(controller);
                 }
             }
+        }
 
-            if (!m_GizmoableAnchors.Contains(m_GizmoedAnchor))
-                m_GizmoedAnchor = null;
-
-            if (m_GizmoedAnchor == null)
+        public virtual void DrawGizmos(VisualEffect component)
+        {
+            if (currentGizmoable is VFXDataAnchorController gizmoable)
             {
-                m_GizmoedAnchor = m_GizmoableAnchors.FirstOrDefault();
-            }
-
-            if (m_GizmoedAnchor != null)
-            {
-                ((VFXDataAnchorController)m_GizmoedAnchor).DrawGizmo(component);
+                gizmoable.DrawGizmo(component);
             }
         }
 
         public virtual Bounds GetGizmoBounds(VisualEffect component)
         {
-            if (m_GizmoedAnchor != null)
-                return ((VFXDataAnchorController)m_GizmoedAnchor).GetGizmoBounds(component);
+            if (currentGizmoable != null)
+                return ((VFXDataAnchorController)currentGizmoable).GetGizmoBounds(component);
 
             return new Bounds();
         }
 
         public virtual GizmoError GetGizmoError(VisualEffect component)
         {
-            return m_GizmoedAnchor is IGizmoError gizmoController
+            return currentGizmoable is IGizmoError gizmoController
                 ? gizmoController.GetGizmoError(component)
                 : GizmoError.NotAvailable;
         }
 
-        IGizmoable m_GizmoedAnchor;
-        protected List<IGizmoable> m_GizmoableAnchors = new List<IGizmoable>();
+        protected List<IGizmoable> m_GizmoableAnchors = new();
 
-        public ReadOnlyCollection<IGizmoable> gizmoables
-        {
-            get { return m_GizmoableAnchors.AsReadOnly(); }
-        }
+        public ReadOnlyCollection<IGizmoable> gizmoables => m_GizmoableAnchors.AsReadOnly();
 
-        public IGizmoable currentGizmoable
-        {
-            get { return m_GizmoedAnchor; }
-            set { m_GizmoedAnchor = value; }
-        }
+        public IGizmoable currentGizmoable { get; set; }
 
         private VFXSettingController[] m_Settings;
     }

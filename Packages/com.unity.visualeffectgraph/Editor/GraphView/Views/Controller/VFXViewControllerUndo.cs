@@ -9,102 +9,281 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.VFX.UI
 {
+    [Serializable]
     class VFXGraphUndoStack
     {
+        public enum RestoreResult
+        {
+            None,
+            FullGraph,
+            Deltas,
+        };
+
         public VFXGraphUndoStack(VFXGraph initialState)
         {
             m_graphUndoCursor = ScriptableObject.CreateInstance<VFXGraphUndoCursor>();
 
             m_graphUndoCursor.hideFlags = HideFlags.HideAndDontSave;
-            m_undoStack = new SortedDictionary<int, SerializedState>();
+            m_undoStack = new List<IBackupState>();
+
+            m_CurrentDeltas = new BackupDeltas();
 
             m_graphUndoCursor.index = 0;
-            m_lastGraphUndoCursor = 0;
-            m_undoStack.Add(0, new SerializedState() { serializedGraph = initialState.Backup() });
+            m_undoStack.Add(new BackupGraph() { graphData = initialState.Backup() });
             m_Graph = initialState;
+
+            m_NeedsFlush = false;
+            m_CurrentCursor = 0;
         }
 
-        VFXGraph m_Graph;
-
-        public void IncrementGraphState()
+        public void UpdateState(VFXModel model, VFXModel.InvalidationCause cause)
         {
-            Undo.RecordObject(m_graphUndoCursor, string.Format("VFXGraph ({0})", m_graphUndoCursor.index + 1));
-            m_graphUndoCursor.index = m_graphUndoCursor.index + 1;
-        }
-
-        public bool IsDirtyState()
-        {
-            return m_lastGraphUndoCursor != m_graphUndoCursor.index;
-        }
-
-        public void FlushAndPushGraphState(VFXGraph graph)
-        {
-            int lastCursorInStack = m_undoStack.Last().Key;
-            while (lastCursorInStack > m_lastGraphUndoCursor)
+            bool newGroup = m_CurrentUndoGroup != Undo.GetCurrentGroup();
+            if (newGroup)
             {
-                //An action has been performed which overwrite
-                m_undoStack.Remove(lastCursorInStack);
-                lastCursorInStack = m_undoStack.Last().Key;
+                m_CurrentDeltas = new BackupDeltas();
+                m_FullGraphBackup = false;
             }
-            m_undoStack.Add(m_graphUndoCursor.index, new SerializedState() { serializedGraph = graph.Backup() });
-        }
 
-        public void CleanDirtyState()
-        {
-            m_lastGraphUndoCursor = m_graphUndoCursor.index;
-        }
-
-        public void RestoreCurrentGraphState()
-        {
-            SerializedState refGraph = null;
-            if (!m_undoStack.TryGetValue(m_graphUndoCursor.index, out refGraph))
+            bool stateUpdated = false;
+            switch (cause)
             {
-                throw new Exception(string.Format("Unable to retrieve current state at : {0} (max {1})", m_graphUndoCursor.index, m_undoStack.Last().Key));
+                case VFXModel.InvalidationCause.kParamChanged:
+                    {
+                        if (model is VFXSlot slot) // model not beeing a VFXSlot means it is a subgraph reporting a value change
+                        {
+                            AddSlotValueChange(slot);
+                            stateUpdated = true;
+                        }
+                        else if (model is VFXParameter) // Cannot use fast path for VFX parameters
+                        {
+                            m_FullGraphBackup = true;
+                            stateUpdated = true;
+                        }
+                    }
+                    break;
+
+                case VFXModel.InvalidationCause.kUIChanged:
+                    {
+                        // If model is null or graph (meaning group or stickynote change) or is a VFX parameter, we cannot use fast path and have to serialize all graph
+                        if (model == null || model is VFXGraph || model is VFXParameter)
+                        { 
+                            m_FullGraphBackup = true;
+                        }
+                        else // fast path for model UI change
+                        {
+                            AddModelUIChange(model);
+                        }
+                        stateUpdated = true;
+                    }
+                    break;
+
+                case VFXModel.InvalidationCause.kStructureChanged:
+                case VFXModel.InvalidationCause.kSettingChanged:
+                case VFXModel.InvalidationCause.kSpaceChanged:
+                case VFXModel.InvalidationCause.kConnectionChanged:
+                    {
+                        m_FullGraphBackup = true;
+                        stateUpdated = true;
+                    }
+                    break;
             }
-            m_Graph.Restore(refGraph.serializedGraph);
-            if (refGraph.slotDeltas != null)
+
+            if (!stateUpdated)
+                return;
+
+            if (newGroup)
             {
-                foreach (var kv in refGraph.slotDeltas)
+                Undo.RecordObject(m_graphUndoCursor, string.Format("Modify VFX Graph - {0} ({1})", m_Graph?.GetResource()?.name, m_graphUndoCursor.index + 1));
+                m_graphUndoCursor.index = m_graphUndoCursor.index + 1;
+                m_CurrentUndoGroup = Undo.GetCurrentGroup();
+                m_CurrentCursor = m_graphUndoCursor.index;
+            }
+
+            m_NeedsFlush = true;
+        }
+
+        public void FlushState()
+        {
+            if (!m_NeedsFlush)
+                return;
+
+            int entriesCount = m_undoStack.Count();
+            if (entriesCount != m_CurrentCursor + 1)
+            {
+                if (entriesCount == m_CurrentCursor)
+                    m_undoStack.Add(null);
+                else if (entriesCount > m_CurrentCursor + 1)
+                    m_undoStack.RemoveRange(m_CurrentCursor + 1, m_undoStack.Count() - (m_CurrentCursor + 1));
+                else
+                    throw new InvalidOperationException("Corrupted VFX Graph undo stack - Missing entries");
+            }
+
+            // Store state
+            if (m_FullGraphBackup)
+            {
+                m_undoStack[m_CurrentCursor] = new BackupGraph() { graphData = m_Graph.Backup() };
+            }
+            else
+            {
+                m_undoStack[m_CurrentCursor] = new BackupDeltas()
                 {
-                    kv.Key.value = kv.Value;
-                }
+                    slotValues = m_CurrentDeltas.slotValues,
+                    modelUI = m_CurrentDeltas.modelUI,
+                };
             }
+
+            m_NeedsFlush = false;
         }
 
-        public void AddSlotDelta(VFXSlot slot)
+        public RestoreResult RestoreState()
         {
-            SerializedState state = null;
-            if (m_undoStack.TryGetValue(m_lastGraphUndoCursor, out state))
+            if (m_CurrentCursor == m_graphUndoCursor.index)
+                return RestoreResult.None;
+
+            int order = Math.Sign(m_CurrentCursor - m_graphUndoCursor.index);
+            bool needsRecompile = false;
+            do
             {
-                if (state.slotDeltas == null)
-                    state.slotDeltas = new Dictionary<VFXSlot, object>();
-                state.slotDeltas[slot] = slot.value;
+                if (order == 1) // undo
+                {
+                    // Undoing a full graph backup, needs to go back to previous backup and replay delta changes 
+                    if (m_undoStack[m_CurrentCursor] is BackupGraph)
+                    {
+                        int currentRestoredCursor = m_graphUndoCursor.index;
+                        while (!(m_undoStack[currentRestoredCursor] is BackupGraph))
+                            --currentRestoredCursor;
+
+                        while (currentRestoredCursor <= m_graphUndoCursor.index)
+                        {
+                            m_undoStack[currentRestoredCursor].Apply(m_Graph, true);
+                            ++currentRestoredCursor;
+                        }
+
+                        needsRecompile = true;
+                    }
+                    // Undoing a delta command, simply send delta notifications 
+                    else
+                    {
+                        m_undoStack[m_CurrentCursor].Apply(m_Graph, false);
+                    }
+                }
+                else // order == -1 // redo
+                {
+                    needsRecompile = m_undoStack[m_graphUndoCursor.index].Apply(m_Graph, false);
+                }
+
+                m_CurrentCursor -= order;
+            }
+            while (m_CurrentCursor != m_graphUndoCursor.index);
+
+            return needsRecompile ? RestoreResult.FullGraph : RestoreResult.Deltas;
+        }
+
+        public void AddSlotValueChange(VFXSlot slot)
+        {
+            if (slot != null)
+            {
+                if (m_CurrentDeltas.slotValues == null)
+                    m_CurrentDeltas.slotValues = new Dictionary<VFXSlot, object>();
+                m_CurrentDeltas.slotValues[slot] = slot.value;
             }
         }
 
-        class SerializedState
+        public void AddModelUIChange(VFXModel model) 
         {
-            public object serializedGraph;
-            public Dictionary<VFXSlot, object> slotDeltas;
+            if (model != null)
+            {
+                if (m_CurrentDeltas.modelUI == null)
+                    m_CurrentDeltas.modelUI = new Dictionary<VFXModel, UIState>();
+                m_CurrentDeltas.modelUI[model] = new UIState
+                {
+                    pos = model.position,
+                    collapsed = model.collapsed,
+                    superCollapsed = model.superCollapsed
+                };
+            }
         }
 
-        [NonSerialized]
-        private SortedDictionary<int, SerializedState> m_undoStack;
+        struct UIState
+        {
+            public Vector2 pos;
+            public bool collapsed;
+            public bool superCollapsed;
+        }
 
-        [NonSerialized]
+        interface IBackupState
+        {
+            // Apply state to graph and returns true if recompilation is needed, false otherwise
+            public bool Apply(VFXGraph graph, bool updateDeltas);
+        }
+
+        class BackupGraph : IBackupState
+        {
+            public object graphData;
+
+            public bool Apply(VFXGraph graph, bool updateDeltas)
+            {
+                graph.Restore(graphData);
+                return true;
+            }
+        }
+
+        class BackupDeltas : IBackupState
+        {
+            public Dictionary<VFXSlot, object> slotValues;
+            public Dictionary<VFXModel, UIState> modelUI;
+
+            public bool Apply(VFXGraph graph, bool updateDeltas)
+            {
+                if (slotValues != null)
+                    foreach (var kv in slotValues)
+                    {
+                        kv.Key.value = updateDeltas ? kv.Value : kv.Key.value;
+                    }
+
+                if (modelUI != null)
+                    foreach (var kv in modelUI)
+                    {
+                        if (updateDeltas)
+                        {
+                            kv.Key.position = kv.Value.pos;
+                            kv.Key.collapsed = kv.Value.collapsed;
+                            kv.Key.superCollapsed = kv.Value.superCollapsed;
+                        }
+                        else
+                        {
+                            kv.Key.Invalidate(VFXModel.InvalidationCause.kUIChanged);
+                        }
+                    }
+
+                return false;  
+            } 
+        }
+
+        [SerializeField]
+        private VFXGraph m_Graph;
+        [SerializeField]
+        private int m_CurrentCursor;
+        [SerializeField]
+        private List<IBackupState> m_undoStack;
+        [SerializeField]
         private VFXGraphUndoCursor m_graphUndoCursor;
-        [NonSerialized]
-        private int m_lastGraphUndoCursor;
+
+        private BackupDeltas m_CurrentDeltas;
+        private bool m_NeedsFlush;
+        private int m_CurrentUndoGroup = -1;
+        private bool m_FullGraphBackup = false;
     }
 
     partial class VFXViewController : Controller<VisualEffectResource>
     {
         [NonSerialized]
-        private bool m_reentrant;
-        [NonSerialized]
+        private bool m_reentrantUndo;
+        [SerializeField]
         private VFXGraphUndoStack m_graphUndoStack;
 
-        public bool isReentrant => m_reentrant;
+        public bool isReentrant => m_reentrantUndo;
 
         private void InitializeUndoStack()
         {
@@ -113,64 +292,15 @@ namespace UnityEditor.VFX.UI
 
         private void ReleaseUndoStack()
         {
-            m_graphUndoStack = null;
+            m_graphUndoStack = null; 
         }
 
         public void IncremenentGraphUndoRedoState(VFXModel model, VFXModel.InvalidationCause cause)
         {
-            if (cause == VFXModel.InvalidationCause.kParamChanged)
-            {
-                if (model is VFXSlot) // model not beeing a VFXSlot means it is a subgraph reporting a value change
-                {
-                    if (m_graphUndoStack != null)
-                        m_graphUndoStack.AddSlotDelta(model as VFXSlot);
-                }
-                return;
-            }
-
-            if (cause == VFXModel.InvalidationCause.kExpressionInvalidated ||   // Ignore invalidation which doesn't modify model
-                cause == VFXModel.InvalidationCause.kExpressionGraphChanged ||
-                cause == VFXModel.InvalidationCause.kExpressionValueInvalidated ||
-                cause == VFXModel.InvalidationCause.kUIChangedTransient)
+            if (m_graphUndoStack == null || m_reentrantUndo)
                 return;
 
-            if (m_reentrant)
-            {
-                m_reentrant = false;
-                throw new InvalidOperationException("Reentrant undo/redo, this is not supposed to happen!");
-            }
-
-            if (m_graphUndoStack != null)
-            {
-                if (m_graphUndoStack == null)
-                {
-                    Debug.LogError("Unexpected IncrementGraphState (not initialize)");
-                    return;
-                }
-
-                m_graphUndoStack.IncrementGraphState();
-            }
-        }
-
-        public bool m_InLiveModification;
-
-        public void BeginLiveModification()
-        {
-            if (m_InLiveModification == true)
-                throw new InvalidOperationException("BeginLiveModification is not reentrant");
-            m_InLiveModification = true;
-        }
-
-        public void EndLiveModification()
-        {
-            if (m_InLiveModification == false)
-                throw new InvalidOperationException("EndLiveModification is not reentrant");
-            m_InLiveModification = false;
-            if (m_graphUndoStack.IsDirtyState())
-            {
-                m_graphUndoStack.FlushAndPushGraphState(graph);
-                m_graphUndoStack.CleanDirtyState();
-            }
+            m_graphUndoStack.UpdateState(model, cause);
         }
 
         private void WillFlushUndoRecord()
@@ -180,14 +310,7 @@ namespace UnityEditor.VFX.UI
                 return;
             }
 
-            if (!m_InLiveModification)
-            {
-                if (m_graphUndoStack.IsDirtyState())
-                {
-                    m_graphUndoStack.FlushAndPushGraphState(graph);
-                    m_graphUndoStack.CleanDirtyState();
-                }
-            }
+            m_graphUndoStack.FlushState();
         }
 
         private void SynchronizeUndoRedoState()
@@ -197,51 +320,31 @@ namespace UnityEditor.VFX.UI
                 return;
             }
 
-            if (m_graphUndoStack.IsDirtyState())
+            m_reentrantUndo = true;
+            try
             {
-                try
+                var result = m_graphUndoStack.RestoreState();
+
+                if (result != VFXGraphUndoStack.RestoreResult.None)
                 {
-                    m_graphUndoStack.RestoreCurrentGraphState();
-                    m_reentrant = true;
-                    ExpressionGraphDirty = true;
-                    model.GetOrCreateGraph().UpdateSubAssets();
-                    EditorUtility.SetDirty(graph);
-                    NotifyUpdate();
-                    m_reentrant = false;
-                    m_graphUndoStack.CleanDirtyState();
-                }
-                catch (Exception e)
-                {
-                    Debug.LogError(e);
-                    Undo.ClearAll();
-                    m_graphUndoStack = new VFXGraphUndoStack(graph);
+                    if (result == VFXGraphUndoStack.RestoreResult.FullGraph)
+                    {
+                        ExpressionGraphDirty = true;
+                        model.GetOrCreateGraph().UpdateSubAssets();
+                        EditorUtility.SetDirty(graph);
+                        NotifyUpdate();
+                    }
+                    else // deltas
+                    {
+                        ExpressionGraphDirty = true;
+                        ExpressionGraphDirtyParamOnly = true;
+                        graph.SetExpressionValueDirty();
+                    }
                 }
             }
-            else
+            finally
             {
-                //The graph didn't change by this undo, only, potentially the slot values.
-                // Any undo could be a slot value undo: update input slot expressions and expression graph values
-                ExpressionGraphDirty = true;
-                ExpressionGraphDirtyParamOnly = true;
-
-                if (model != null && graph != null)
-                {
-                    foreach (var element in AllSlotContainerControllers)
-                    {
-                        var slotContainer = element.model as IVFXSlotContainer;
-                        slotContainer.activationSlot?.UpdateDefaultExpressionValue();
-                        foreach (var slot in slotContainer.inputSlots)
-                        {
-                            slot.UpdateDefaultExpressionValue();
-                        }
-                    }
-
-                    foreach (var parameter in m_ParameterControllers.Keys)
-                    {
-                        parameter.UpdateDefaultExpressionValue();
-                    }
-                    graph.SetExpressionValueDirty();
-                }
+                m_reentrantUndo = false;
             }
         }
     }

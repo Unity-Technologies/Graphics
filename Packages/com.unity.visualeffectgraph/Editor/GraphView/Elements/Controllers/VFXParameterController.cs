@@ -735,8 +735,6 @@ namespace UnityEditor.VFX.UI
             }
             set
             {
-                Undo.RecordObject(model, "Change Value");
-
                 VFXSlot slot = model.GetOutputSlot(0);
 
                 if (valueFilter == VFXValueFilter.Range)
@@ -792,14 +790,14 @@ namespace UnityEditor.VFX.UI
 
 
         ParameterGizmoContext m_Context;
+
+        public void CollectGizmos() { }
+
         public void DrawGizmos(VisualEffect component)
         {
             if (isOutput)
                 return;
-            if (m_Context == null)
-            {
-                m_Context = new ParameterGizmoContext(this);
-            }
+            m_Context ??= new ParameterGizmoContext(this);
             VFXGizmoUtility.Draw(m_Context, component);
         }
 

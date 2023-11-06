@@ -629,7 +629,7 @@ namespace UnityEditor.Rendering.Universal
                     continue;
 
                 // Rendering Layers...
-                if (rendererRequirements.isUniversalRenderer && rendererFeature.RequireRenderingLayers(isDeferredRenderer, out RenderingLayerUtils.Event rendererEvent, out _))
+                if (rendererRequirements.isUniversalRenderer && rendererFeature.RequireRenderingLayers(isDeferredRenderer, rendererRequirements.needsGBufferAccurateNormals, out RenderingLayerUtils.Event rendererEvent, out _))
                 {
                     usesRenderingLayers = true;
                     RenderingLayerUtils.CombineRendererEvents(isDeferredRenderer, rendererRequirements.msaaSampleCount, rendererEvent, ref renderingLayersEvent);
@@ -692,7 +692,7 @@ namespace UnityEditor.Rendering.Universal
                     }
                     else
                     {
-                        DecalTechnique technique = decal.GetTechnique(isDeferredRenderer, false);
+                        DecalTechnique technique = decal.GetTechnique(isDeferredRenderer, rendererRequirements.needsGBufferAccurateNormals, false);
                         switch (technique)
                         {
                             case DecalTechnique.DBuffer:

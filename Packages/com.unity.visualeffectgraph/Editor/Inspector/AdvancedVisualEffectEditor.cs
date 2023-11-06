@@ -491,6 +491,7 @@ namespace UnityEditor.VFX
                                 var vector3Property = specialSpacableVector3CaseField.GetValue(o);
                                 SetObjectValue(property, vector3Property);
                             });
+                            return true;
                         }
                         else if (currentValue is T)
                         {
@@ -701,8 +702,8 @@ namespace UnityEditor.VFX
                 int current = m_GizmoDisplayed ? m_GizmoableParameters.IndexOf(m_GizmoedParameter) : -1;
                 EditorGUI.BeginChangeCheck();
                 GUILayout.BeginHorizontal();
-                GUILayout.Label("Gizmos", GUILayout.Width(45));
-                int result = EditorGUILayout.Popup(current, m_GizmoableParameters.Select(t => t.exposedName).ToArray(), GUILayout.Width(140));
+                GUILayout.Label("Gizmos", GUILayout.Width(50));
+                int result = EditorGUILayout.Popup(current, m_GizmoableParameters.Select(t => t.exposedName).ToArray(), GUILayout.Width(140), GUILayout.Height(20));
                 if (EditorGUI.EndChangeCheck() && result != current)
                 {
                     m_GizmoedParameter = m_GizmoableParameters[result];

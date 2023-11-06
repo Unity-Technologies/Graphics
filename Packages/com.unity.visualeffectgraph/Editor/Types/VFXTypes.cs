@@ -251,6 +251,11 @@ namespace UnityEditor.VFX
         }
 
         public static Position defaultValue = new Position { position = Vector3.zero };
+
+        public override string ToString()
+        {
+            return position.ToString();
+        }
     }
 
     [VFXType(VFXTypeAttribute.Usage.Default, "Direction"), Serializable]
@@ -270,6 +275,11 @@ namespace UnityEditor.VFX
         }
 
         public static DirectionType defaultValue = new DirectionType { direction = Vector3.up };
+
+        public override string ToString()
+        {
+            return direction.ToString();
+        }
     }
 
     [VFXType, Serializable]
@@ -289,6 +299,11 @@ namespace UnityEditor.VFX
         }
 
         public static Vector defaultValue = new Vector { vector = Vector3.zero };
+
+        public override string ToString()
+        {
+            return vector.ToString();
+        }
     }
 
     [VFXType, Serializable]

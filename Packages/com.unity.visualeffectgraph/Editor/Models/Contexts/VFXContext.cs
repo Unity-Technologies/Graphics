@@ -72,11 +72,11 @@ namespace UnityEditor.VFX
             get { return m_Label; }
             set
             {
-                var invalidationCause = InvalidationCause.kUIChanged;
-                if (contextType == VFXContextType.Spawner && m_Label != value)
-                    invalidationCause = InvalidationCause.kSettingChanged;
-                m_Label = value;
-                Invalidate(invalidationCause);
+                if (m_Label != value)
+                {
+                    m_Label = value;
+                    Invalidate(InvalidationCause.kSettingChanged);
+                }
             }
         }
 

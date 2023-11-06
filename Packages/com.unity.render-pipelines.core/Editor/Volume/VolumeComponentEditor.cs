@@ -238,16 +238,19 @@ namespace UnityEditor.Rendering
         {
             s_ParameterDrawers.Clear();
 
-            // Look for all the valid parameter drawers
-            var types = CoreUtils.GetAllTypesDerivedFrom<VolumeParameterDrawer>()
-                .Where(t => t.IsDefined(typeof(VolumeParameterDrawerAttribute), false) && !t.IsAbstract);
-
-            // Store them
-            foreach (var type in types)
+            foreach (var type in TypeCache.GetTypesDerivedFrom<VolumeParameterDrawer>())
             {
-                var attr = (VolumeParameterDrawerAttribute)type.GetCustomAttributes(typeof(VolumeParameterDrawerAttribute), false)[0];
-                var decorator = (VolumeParameterDrawer)Activator.CreateInstance(type);
-                s_ParameterDrawers.Add(attr.parameterType, decorator);
+                if (type.IsAbstract)
+                    continue;
+
+                var attr = type.GetCustomAttribute<VolumeParameterDrawerAttribute>(false);
+                if (attr == null)
+                {
+                    Debug.LogWarning($"{type} is missing the attribute {nameof(VolumeParameterDrawerAttribute)}");
+                    continue;
+                }
+
+                s_ParameterDrawers.Add(attr.parameterType, Activator.CreateInstance(type) as VolumeParameterDrawer);
             }
         }
 

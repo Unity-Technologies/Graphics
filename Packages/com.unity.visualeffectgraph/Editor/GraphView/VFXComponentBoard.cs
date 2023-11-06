@@ -215,6 +215,8 @@ namespace UnityEditor.VFX.UI
             capabilities |= Capabilities.Movable;
 
             RegisterCallback<MouseDownEvent>(OnMouseClick);
+            // Prevent graphview from zooming in/out when using the mouse wheel over the component board
+            RegisterCallback<WheelEvent>(e => e.StopPropagation());
 
             style.position = PositionType.Absolute;
 

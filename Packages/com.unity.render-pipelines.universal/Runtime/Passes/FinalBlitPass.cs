@@ -69,6 +69,19 @@ namespace UnityEngine.Rendering.Universal.Internal
         }
 
         /// <inheritdoc/>
+        public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
+        {
+            ref CameraData cameraData = ref renderingData.cameraData;
+            DebugHandler debugHandler = GetActiveDebugHandler(ref renderingData);
+            bool resolveToDebugScreen = debugHandler != null && debugHandler.WriteToDebugScreenTexture(ref cameraData);
+            
+            if (resolveToDebugScreen)
+            {
+                ConfigureTarget(debugHandler.DebugScreenColorHandle, debugHandler.DebugScreenDepthHandle);
+            }
+        }
+
+        /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             bool outputsToHDR = renderingData.cameraData.isHDROutputActive;
@@ -126,7 +139,11 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 if (resolveToDebugScreen)
                 {
-                    debugHandler.BlitTextureToDebugScreenTexture(cmd, m_Source, blitMaterial, m_Source.rt?.filterMode == FilterMode.Bilinear ? 1 : 0);
+                    // Blit to the debugger texture instead of the camera target
+                    int shaderPassIndex = m_Source.rt?.filterMode == FilterMode.Bilinear ? 1 : 0;
+                    Vector2 viewportScale = m_Source.useScaling ? new Vector2(m_Source.rtHandleProperties.rtHandleScale.x, m_Source.rtHandleProperties.rtHandleScale.y) : Vector2.one;
+                    Blitter.BlitTexture(cmd, m_Source, viewportScale, blitMaterial, shaderPassIndex);
+
                     cameraData.renderer.ConfigureCameraTarget(debugHandler.DebugScreenColorHandle, debugHandler.DebugScreenDepthHandle);
                 }
                 else
