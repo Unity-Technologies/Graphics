@@ -79,6 +79,12 @@ namespace UnityEditor.VFX
             CreateActivationSlotIfNeeded();
         }
 
+        public override void OnUnknownChange()
+        {
+            base.OnUnknownChange();
+            m_EnableStateUpToDate = false;
+        }
+
         public override void Sanitize(int version)
         {
             if (CreateActivationSlotIfNeeded())

@@ -1,8 +1,6 @@
 #if VFX_HAS_TIMELINE
 using System;
-using System.Linq;
 using System.Collections.Generic;
-using UnityEngine;
 using UnityEngine.Playables;
 using UnityEngine.Timeline;
 using System.Runtime.CompilerServices;
@@ -75,6 +73,7 @@ namespace UnityEngine.VFX
                     name = VisualEffectAsset.PlayEventName,
                     time = 0.0,
                     timeSpace = PlayableTimeSpace.AfterClipStart,
+                    eventAttributes = new EventAttributes() { content = Array.Empty<EventAttribute>() }
                 },
 
                 exit = new VisualEffectPlayableSerializedEventNoColor()
@@ -82,6 +81,7 @@ namespace UnityEngine.VFX
                     name = VisualEffectAsset.StopEventName,
                     time = 0.0,
                     timeSpace = PlayableTimeSpace.BeforeClipEnd,
+                    eventAttributes = new EventAttributes() { content = Array.Empty<EventAttribute>() }
                 }
             }
         };
@@ -132,7 +132,18 @@ namespace UnityEngine.VFX
                 singleEvents = new List<VisualEffectPlayableSerializedEvent>();
 
             behaviour.clipEventsCount = (uint)clipEvents.Count;
-            behaviour.events = clipEvents.SelectMany(x => new VisualEffectPlayableSerializedEvent[] { x.enter, x.exit }).Concat(singleEvents).ToArray();
+
+            var tempCollectedEvent = new List<VisualEffectPlayableSerializedEvent>();
+            foreach (var clipEvent in clipEvents)
+            {
+                tempCollectedEvent.Add(clipEvent.enter);
+                tempCollectedEvent.Add(clipEvent.exit);
+            }
+            foreach (var singleEvent in singleEvents)
+            {
+                tempCollectedEvent.Add(singleEvent);
+            }
+            behaviour.events = tempCollectedEvent.ToArray();
 
             if (!prewarm.enable || !behaviour.reinitEnter || prewarm.eventName == null || string.IsNullOrEmpty((string)prewarm.eventName))
             {
