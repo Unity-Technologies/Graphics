@@ -11,12 +11,9 @@
 #pragma multi_compile_instancing
 #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DOTS.hlsl"
 
-//--------------------------------------
+//-------------------------------------
 // Other pragmas
-#pragma multi_compile_fragment _ _FOVEATED_RENDERING_NON_UNIFORM_RASTER
-// Marc-André Loyer: Metal's Foveated Rendering code relies on shader compiler changes to be able to set the needed data
-// for "non-uniform <==> Linear rasterizer" UV-space transformations, but this is not currently supported with DXC.
-#pragma never_use_dxc metal
+#include_with_pragmas "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl"
 
 // -------------------------------------
 // Includes

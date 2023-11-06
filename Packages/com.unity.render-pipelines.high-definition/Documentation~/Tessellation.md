@@ -13,13 +13,13 @@ If you enable this feature, HDRP exposes the following properties to control how
 | **Tessellation Mode**        | Specifies whether HDRP applies Phong tessellation or not. Materials can use a [displacement map](Displacement-Mode.md) to tessellate a mesh. To smooth the result of displacement, you can also apply Phong tessellation. The options for the property are:<br/>&#8226; **None**: HDRP only uses the displacement map to tessellate the mesh. If you do not assign a displacement map for this Material and select this option, HDRP does not apply tessellation.<br/>&#8226; **Phong**: HDRP applies Phong tessellation to the mesh. Phong tessellation applies vertex interpolation to make geometry smoother. If you assign a displacement map for this Material and select this option, HDRP applies smoothing to the displacement map. |
 | **Shape Factor**             | To smooth the Mesh surface, Phong tessellation spherizes the Mesh. This property represents the strength of the spherization effect. If you do not want HDRP to spherize the Mesh, set this to **0**. If you want HDRP to fully spherize the Mesh, set this to **1**.<br/>This property only appears when you select **Phong** from **Tessellation Mode**. |
 
-The following property is only available in the [Layered Lit Tessellation Shader](layered-lit-tessellation-shader.md) and [Lit Tessellation Shader](Lit-Tessellation-Shader.md). For [Master Stacks](master-stack-hdrp.md) this option appears as an input.
+The following property is only available in the [Layered Lit Tessellation Shader](layered-lit-material-inspector-reference.md) and [Lit Tessellation Shader](lit-tessellation-material.md). For [Master Stacks](understand-shader-graph-in-hdrp.md) this option appears as an input.
 
 | **Properties**               | **Description**                                              |
 | ---------------------------- | ------------------------------------------------------------ |
 | **Tessellation Factor**      | The number of subdivisions that a triangle can have. If you want more subdivisions, set this to a higher value. More subdivisions increase the strength of the tessellation effect and further smooths the geometry. Note that higher values also increase the resource intensity of the tessellation effect. To maintain good performance on the Xbox One or PlayStation 4, do not use values greater than 15. This is because these platforms cannot consistently handle this many subdivisions. |
 
-The following property is only available in Master Stacks. In the [Layered Lit Tessellation Shader](layered-lit-tessellation-shader.md) and [Lit Tessellation Shader](Lit-Tessellation-Shader.md), Unity calculates it automatically from displacement.
+The following property is only available in Master Stacks. In the [Layered Lit Tessellation Shader](layered-lit-material-inspector-reference.md) and [Lit Tessellation Shader](lit-tessellation-material.md), Unity calculates it automatically from displacement.
 
 | **Properties**               | **Description**                                              |
 | ---------------------------- | ------------------------------------------------------------ |
@@ -27,7 +27,7 @@ The following property is only available in Master Stacks. In the [Layered Lit T
 
 ## Limitation
 
-- [Decal Meshes](Decal.md) do not support tessellation.
+- [Decal Meshes](decals.md) do not support tessellation.
 - The [Visual Effect Graph](https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html) does not support tessellation.
 - HDRP does not support tessellation for [ray tracing](Ray-Tracing-Getting-Started.md), tessellated meshes fall back to a non-tessellated version.
 - When using world-space displacement, the object can expand out of its original bounds. You need to adjust the bounds manually to get correct rendering.

@@ -1,4 +1,4 @@
-﻿# Mesh Renderer Extension
+﻿# Mesh Renderer Extension reference
 
 Use the Mesh Renderer Extension component to activate and control [High Quality Line Rendering](Override-High-Quality-Lines.md) on a Mesh Renderer.
 

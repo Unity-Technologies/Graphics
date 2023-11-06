@@ -18,7 +18,7 @@ To troubleshoot this effect, HDRP provides a Reflection [Debug Mode](Ray-Tracing
 
 This feature replaces the [Screen Space Reflection](Override-Screen-Space-Reflection.md) Volume override, so the initial setup is similar. To setup ray traced reflections:
 
-1. Follow the [Enabling Screen Space Reflection](Override-Screen-Space-Reflection.md#enabling-screen-space-reflection) and [Using Screen Space Reflection](Override-Screen-Space-Reflection.md#using-screen-space-reflection) steps to set up the Screen Space Reflection override.
+1. Follow the steps in [Use the screen space reflection (SSR) override](Override-ScreeOverride-Screen-Space-Reflectionn-Space-Reflection.md) to set up the Screen Space Reflection override.
 2. In the Frame Settings for your Cameras, enable **Ray Tracing**.
 3. Select the [Screen Space Reflection](Override-Screen-Space-Reflection.md) override and, in the Inspector, enable **Ray Tracing**. If you don't see a **Ray Tracing** option, make sure your HDRP Project supports ray tracing. For information on setting up ray tracing in HDRP, see [Getting started with ray tracing](Ray-Tracing-Getting-Started.md).
 
@@ -26,11 +26,11 @@ This feature replaces the [Screen Space Reflection](Override-Screen-Space-Reflec
 
 A clear coat simulates a thin transparent layer on top of the material. It's particularly useful for materials with a thin translucent layer over a base layer. Real world examples of such materials include car paints, soda cans, lacquered wood, and acrylic.
 
-If you use a [Lit material](Lit-Shader.md) with Ray Traced Reflection, HDRP uses ray tracing to render indirect specular reflection for the base layer (if that material's **Smoothness** is above the minimal smoothness specified in the override).
+If you use a [Lit material](lit-material.md) with Ray Traced Reflection, HDRP uses ray tracing to render indirect specular reflection for the base layer (if that material's **Smoothness** is above the minimal smoothness specified in the override).
 
-If the material's **Coat Mask** value is greater than zero, HDRP only uses ray tracing for the transparent smooth clear coat specular reflection. The specular reflection of the base layer of the material falls back to the next reflection method in the [reflection hierarchy](Reflection-in-HDRP.md#reflection-hierarchy).
+If the material's **Coat Mask** value is greater than zero, HDRP only uses ray tracing for the transparent smooth clear coat specular reflection. The specular reflection of the base layer of the material falls back to the next reflection method in the [reflection hierarchy](reflection-understand.md).
 
-The same principle applies to the [StackLit Shader Graph](master-stack-stacklit.md) when you enable **Coat**.
+The same principle applies to the [StackLit Shader Graph](stacklit-master-stack-reference.md) when you enable **Coat**.
 
 For an example of a 75% smooth Lit material with different **Coat Mask** values, see the following images:
 
@@ -45,4 +45,4 @@ A Lit material with a Coat Mask value of 1.0.
 
 ## Properties
 
-HDRP implements ray-traced reflection on top of the Screen Space Reflection override. For information on the properties that control this effect, see [Ray-traced properties](Override-Screen-Space-Reflection.md#ray-traced).
+HDRP implements ray-traced reflection on top of the Screen Space Reflection override. For information on the properties that control this effect, see [Ray-traced reflection](reference-screen-space-reflection.md).

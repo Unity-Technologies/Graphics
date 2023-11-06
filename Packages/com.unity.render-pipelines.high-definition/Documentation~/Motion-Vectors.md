@@ -22,8 +22,7 @@ To use motion vectors in HDRP, you must first enable them:
    3. To enable motion vectors for opaque GameObjects, enable **Opaque Object Motion**. To enable motion vectors for transparent GameObjects, enable **Transparent Object Motion**.
 
 
-HDRP can now render motion vectors. If you enabled object motion vectors, be aware that, by default, new Mesh Renderers write object motion vectors. To change this behavior, select the Mesh Renderer and, in the Inspector, change the value of the **Motion Vectors** property.<br/>![](Images/MotionVectors1.png)
-The options are:
+HDRP can now render motion vectors. If you enabled object motion vectors, be aware that, by default, new Mesh Renderers write object motion vectors. To change this behavior, select the Mesh Renderer and, in the Inspector, open the **Additional Setting**s tab and change the value of the **Motion Vectors** property. The options are:
 
 * **Camera Motion Only**: HDRP only calculates camera motion vectors for the area of the screen this GameObject fills.
 * **Per Object Motion**: HDRP calculates motion vectors for this GameObject if:
@@ -34,7 +33,7 @@ The options are:
 
 ## Motion vectors for transparent objects
 
-By default, HDRP does not render motion vectors for transparent Materials. This is because motion vectors from transparent GameObjects overwrite motion vectors for GameObjects behind them. For example, a window would overwrite the motion vectors for a bird flying behind it. In this example, since the bird's motion vectors are now invalid, if you used [temporal anti-aliasing](Anti-Aliasing.md#temporal-anti-aliasing-taa), the bird would produce ghosting.
+By default, HDRP does not render motion vectors for transparent Materials. This is because motion vectors from transparent GameObjects overwrite motion vectors for GameObjects behind them. For example, a window would overwrite the motion vectors for a bird flying behind it. In this example, since the bird's motion vectors are now invalid, if you used [temporal anti-aliasing](Anti-Aliasing.md#TAA), the bird would produce ghosting.
 
 To make HDRP render motion vectors for transparent Materials, see the steps in [Using motion vectors](#using-motion-vectors) and enable **Transparent Object Motion**.
 

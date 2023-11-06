@@ -50,7 +50,7 @@ From HDRP 11.0, the decal widget includes more functionality to help you create 
 
 Cubemap fields now accept both [RenderTextures](https://docs.unity3d.com/Manual/class-RenderTexture.html) and [CustomRenderTextures](https://docs.unity3d.com/Manual/class-CustomRenderTexture.html) if they use the cubemap mode / dimension. This change affects the `HDRI Sky` and `Physically Based Sky` components and allows you to animate both skies.
 
-For more information, see the [HDRI Sky](Override-HDRI-Sky.md) and [Physically Based Sky](Override-Physically-Based-Sky) sections of the documentation.
+For more information, see the [HDRI Sky](create-an-hdri-sky.md) and [Physically Based Sky](create-a-physically-based-sky.md) sections of the documentation.
 
 ### Volume System API
 

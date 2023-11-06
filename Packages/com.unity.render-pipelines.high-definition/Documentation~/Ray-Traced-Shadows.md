@@ -1,4 +1,4 @@
-# Ray-traced shadows
+# Use ray-traced shadows
 
 Ray-traced shadows are shadows that HDRP generates by tracing rays of light from the following [Light](Light-Component.md) sources:
 
@@ -11,7 +11,7 @@ When you enable ray-traced shadows in your HDRP Project, they replace shadow map
 
 To troubleshoot this effect, HDRP provides a Shadows [Debug Mode](Ray-Tracing-Debug.md) and a Ray Tracing Acceleration Structure [Debug Mode](Ray-Tracing-Debug.md) in Lighting Full Screen Debug Mode.
 
-## Using ray-traced shadows
+## Set up ray-traced shadows
 
 All ray-traced shadows are screen space shadows. This means that HDRP stores them in a screen space buffer which holds the information for every pixel on the screen that is in the depth buffer (which only stores opaque GameObjects).
 
@@ -33,7 +33,7 @@ Finally, to make HDRP process ray-traced shadows for your Directional, Point, or
 2. Also in the Shadow Map foldout, enable Ray-Traced Shadows. For Directional Lights, you need to enable Screen Space Shadows to access this property.
 3. To change the behavior of the shadows, edit the properties under Ray-Traced Shadows.
 
-If a light is has **Shadowmask Mode** set to **Shadowmask**, then ray traced shadows will not be rendered and shadow masks will be used instead.
+If a light is has **Shadowmask Mode** set to **Shadowmask**, then ray traced shadows will not be rendered and shadowmasks will be used instead.
 
 <a name="DirectionalLight"></a>
 
@@ -126,7 +126,7 @@ Ray-traced shadows offer an alternative to the [exponential variance shadow map]
 ![](Images/RayTracedShadows8.png)
 **Ray-traced Rectangle Light shadows**
 
-**Note**: When rendering in [deferred mode](Forward-And-Deferred-Rendering.md), HDRP provides accurate ray-traced area light shadows for the [Lit](Lit-Shader.md) shader. When HDRP renders for any other shader, or for the Lit shader in forward mode, it uses an approximation to calculate ray-traced shadows for area lights. This approximation is not perfectly accurate, but does produce plausible results.
+**Note**: When rendering in [deferred mode](Forward-And-Deferred-Rendering.md), HDRP provides accurate ray-traced area light shadows for the [Lit](lit-material.md) shader. When HDRP renders for any other shader, or for the Lit shader in forward mode, it uses an approximation to calculate ray-traced shadows for area lights. This approximation is not perfectly accurate, but does produce plausible results.
 
 When you use a Rectangle Light with a transmissive GameObject, HDRP displays rasterized shadows on the reverse side of the GameObject
 

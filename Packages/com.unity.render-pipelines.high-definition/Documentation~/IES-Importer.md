@@ -1,4 +1,4 @@
-# IES importer
+# IES importer reference
 
 The High Definition Render Pipeline (HDRP) includes an importer to handle the .ies file format. When you add an [IES profile](IES-Profile.md) to your project, the IES importer Inspector provides information and customization options for the internally used textures.
 

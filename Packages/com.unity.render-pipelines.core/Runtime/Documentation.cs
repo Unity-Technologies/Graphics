@@ -80,7 +80,7 @@ namespace UnityEngine.Rendering
                     return DocumentationInfo.GetPackageLink(package, version, this.pageName);
                 }
 #endif
-                return null;
+                return string.Empty;
             }
         }
     }

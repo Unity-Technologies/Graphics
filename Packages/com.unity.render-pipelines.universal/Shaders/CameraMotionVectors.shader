@@ -10,9 +10,6 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionVectors"
             ZWrite On
 
             HLSLPROGRAM
-            #pragma multi_compile_fragment _ _FOVEATED_RENDERING_NON_UNIFORM_RASTER
-            #pragma never_use_dxc metal
-
             #pragma target 3.5
 
             #pragma vertex vert
@@ -23,9 +20,8 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionVectors"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityInput.hlsl"
-            #if defined(_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
-                #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRendering.hlsl"
-            #endif
+            #include_with_pragmas "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl"
+            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRendering.hlsl"
 
             // -------------------------------------
             // Structs
@@ -69,9 +65,12 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionVectors"
                 depth = lerp(UNITY_NEAR_CLIP_VALUE, 1, SampleSceneDepth(uv).x);
             #endif
 
-            #if defined(_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
-                // Get the UVs from non-unifrom space to linear space to determine the right world-space position
-                uv = RemapFoveatedRenderingNonUniformToLinear(uv);
+            #if defined(SUPPORTS_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
+                UNITY_BRANCH if (_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
+                {
+                    // Get the UVs from non-unifrom space to linear space to determine the right world-space position
+                    uv = RemapFoveatedRenderingNonUniformToLinear(uv);
+                }
             #endif
 
                 // Reconstruct world position
@@ -86,7 +85,10 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionVectors"
                 float2 posNDC = posCS.xy * rcp(posCS.w);
                 float2 prevPosNDC = prevPosCS.xy * rcp(prevPosCS.w);
 
-                #if defined(_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
+                float2 velocity;
+                #if defined(SUPPORTS_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
+                UNITY_BRANCH if (_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
+                {
                     // Convert velocity from NDC space (-1..1) to screen UV 0..1 space since FoveatedRendering remap needs that range.
                     // Also return both position in non-uniform UV space to get the right velocity vector
 
@@ -94,13 +96,16 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionVectors"
                     float2 prevPosUV = RemapFoveatedRenderingPrevFrameLinearToNonUniform(prevPosNDC * 0.5f + 0.5f);
 
                     // Calculate forward velocity
-                    float2 velocity = (posUV - prevPosUV);
+                    velocity = (posUV - prevPosUV);
                     #if UNITY_UV_STARTS_AT_TOP
                         velocity.y = -velocity.y;
                     #endif
-                #else
+                }
+                else
+                #endif
+                {
                     // Calculate forward velocity
-                    float2 velocity = (posNDC - prevPosNDC);
+                    velocity = (posNDC - prevPosNDC);
 
                     // TODO: test that velocity.y is correct
                     #if UNITY_UV_STARTS_AT_TOP
@@ -111,7 +116,8 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionVectors"
                     // Note: It doesn't mean we don't have negative values, we store negative or positive offset in the UV space.
                     // Note: ((posNDC * 0.5 + 0.5) - (prevPosNDC * 0.5 + 0.5)) = (velocity * 0.5)
                     velocity.xy *= 0.5;
-                #endif
+                }
+
                 return float4(velocity, 0, 0);
             }
 

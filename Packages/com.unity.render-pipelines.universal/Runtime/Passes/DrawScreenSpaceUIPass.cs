@@ -24,6 +24,7 @@ namespace UnityEngine.Rendering.Universal
         {
             base.profilingSampler = new ProfilingSampler(nameof(DrawScreenSpaceUIPass));
             renderPassEvent = evt;
+            useNativeRenderPass = false;
             m_RenderOffscreen = renderOffscreen;
             m_PassData = new PassData();
         }

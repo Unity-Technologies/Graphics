@@ -4,7 +4,7 @@
 
 HDRP can use the optical path to make transparent or opaque materials appear more dense in larger internal areas of a mesh. This is called compute thickness.
 
-Compute thickness is ideal for transparent materials that use [subsurface scattering](Subsurface-Scattering.md) or [refraction](Refraction-in-HDRP.md). You can also use it on flat geometry like grass and leaves.
+Compute thickness is ideal for transparent materials that use [subsurface scattering](skin-and-diffusive-surfaces-subsurface-scattering.md) or [refraction](Override-Screen-Space-Refraction.md). You can also use it on flat geometry like grass and leaves.
 
 To use compute thickness, perform the following actions: 
 

@@ -89,7 +89,6 @@ namespace UnityEditor.Rendering.HighDefinition
         void CreateDefaultVolumeProfileEditor()
         {
             Debug.Assert(VolumeManager.instance.isInitialized);
-            Debug.Assert(m_DefaultVolumeProfileEditor == null);
             Debug.Assert(m_DefaultVolumeProfileEditorRoot.childCount == 0);
 
             var volumeProfile = m_SerializedHDRenderPipelineGlobalSettings.defaultVolumeProfile.objectReferenceValue as VolumeProfile;

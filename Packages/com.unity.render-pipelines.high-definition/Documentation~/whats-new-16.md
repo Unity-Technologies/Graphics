@@ -14,5 +14,5 @@ This new denoiser is used in Raytracing Mode and Mixed Mode and completely repla
 
 ### Decals
 
-HDRP 16.0 adds support for [Decal Master Stack](master-stack-decal.md) to affect transparent objects. The result of the shader graph is stored within the same decal atlas as [Decal Shader](Decal-Shader.md) materials.
+HDRP 16.0 adds support for [Decal Master Stack](decal-master-stack-reference.md) to affect transparent objects. The result of the shader graph is stored within the same decal atlas as [Decal Shader](decal-material-inspector-reference.md) materials.
 In addition through the **Transparent Dynamic Update** setting within the decal shader graphs it is now possible to animate the decal within the atlas.

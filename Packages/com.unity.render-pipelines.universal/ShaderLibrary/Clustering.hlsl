@@ -4,6 +4,8 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Input.hlsl"
 
 #if USE_FORWARD_PLUS
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRendering.hlsl"
+
 
 // Debug switches for disabling parts of the algorithm. Not implemented for mobile.
 #define URP_FP_DISABLE_ZBINNING 0
@@ -23,6 +25,21 @@ struct ClusterIterator
 ClusterIterator ClusterInit(float2 normalizedScreenSpaceUV, float3 positionWS, int headerIndex)
 {
     ClusterIterator state = (ClusterIterator)0;
+
+#if defined(SUPPORTS_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
+    UNITY_BRANCH if (_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
+    {
+#if UNITY_UV_STARTS_AT_TOP
+        // RemapFoveatedRenderingNonUniformToLinear expects the UV coordinate to be non-flipped, so we un-flip it before
+        // the call, and then flip it back afterwards.
+        normalizedScreenSpaceUV.y = 1.0 - normalizedScreenSpaceUV.y;
+#endif
+        normalizedScreenSpaceUV = RemapFoveatedRenderingNonUniformToLinear(normalizedScreenSpaceUV);
+#if UNITY_UV_STARTS_AT_TOP
+        normalizedScreenSpaceUV.y = 1.0 - normalizedScreenSpaceUV.y;
+#endif
+    }
+#endif // SUPPORTS_FOVEATED_RENDERING_NON_UNIFORM_RASTER
 
     uint2 tileId = uint2(normalizedScreenSpaceUV * URP_FP_TILE_SCALE);
     state.tileOffset = tileId.y * URP_FP_TILE_COUNT_X + tileId.x;

@@ -22,30 +22,15 @@ The Sample Texture 2D [!include[nodes-compatibility-all](./snippets/nodes-compat
 
 The Sample Texture 2D [!include[nodes-inputs](./snippets/nodes-inputs.md)]
 
-<table>
-<thead>
-<tr>
-<th><strong>Name</strong></th>
-<th><strong>Type</strong></th>
-<th><strong>Binding</strong></th>
-<th><strong>Description</strong></th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>Texture</strong></td>
-<td>Texture 2D</td>
-<td>None</td>
-<td>The Texture 2D asset to sample.</td>
-</tr>
-[!include[nodes-sample-uv-table](./snippets/sample-nodes/nodes-sample-uv-table.md)]
-[!include[nodes-sample-ss-table](./snippets/sample-nodes/nodes-sample-ss-table.md)]
-[!include[nodes-sample-lod-table](./snippets/sample-nodes/nodes-sample-lod-table.md)]
-[!include[nodes-sample-mip-bias-table](./snippets/sample-nodes/nodes-sample-mip-bias-table.md)]
-[!include[nodes-sample-ddx-table](./snippets/sample-nodes/nodes-sample-ddx-table.md)]
-[!include[nodes-sample-ddy-table](./snippets/sample-nodes/nodes-sample-ddy-table.md)]
-</tbody>
-</table>
+| **Name** | **Type**  | **Binding** | **Description** |
+|--|--|--|--|
+| **Texture** | Texture 2D | None | The Texture 2D asset to sample.| 
+| **UV** | Vector 2 | UV | The UV coordinates to use to sample the texture. |
+| **Sampler** | Sampler State | Default Sampler State | The Sampler State and settings to use to sample the texture.|
+| **LOD** | Float | LOD | The specific mip to use when sampling the Texture. **NOTE** The **LOD** Input port only displays if **Mip Sampling Mode** is **LOD**. For more information, refer to [Additional node settings](#additional-node-settings). |
+| **Bias** | Float | Bias | **NOTE**: The **Bias** Input port only displays if **Mip Sampling Mode** is **Bias**. For more information, refer to [Additional node settings](#additional-node-settings). If **Use Global Mip Bias** is enabled, Unity adds this Bias amount to the Global Mip Bias for a texture's mip calculation. If **Global Mip Bias** is disabled, Unity uses this Bias amount instead of the Global Mip Bias. |
+| **DDX** | Float | DDY | **NOTE**: The DDX Input port only displays if **Mip Sampling Mode** is **Gradient**. For more information, refer to [Additional node settings](#additional-node-settings). The specific DDX value to use to calculate the texture's mip when sampling. For more information on DDX values for mipmaps, refer to [Mipmaps introduction](https://docs.unity3d.com/Documentation/Manual/texture-mipmaps-introduction.html) in the Unity User Manual. |
+| **DDY** | Float | DDY | **NOTE** The **DDY** Input port only displays if **Mip Sampling Mode** is **Gradient**. For more information, refer to [Additional node settings](#additional-node-settings). The specific DDY value to use to calculate the texture's mip when sampling. For more information on DDY values for mipmaps, refer to [Mipmaps introduction](https://docs.unity3d.com/Documentation/Manual/texture-mipmaps-introduction.html)> in the Unity User Manual. |
 
 ## Controls
 
@@ -131,7 +116,7 @@ float _SampleTexture2D_A = _SampleTexture2D_RGBA.a;
 
 ```
 float4 _SampleTexture2D_RGBA = SAMPLE_TEXTURE2D(Texture, Sampler, UV);
-_SampleTexture2D_RGBA.rgb = UnpackNormalRGorAG(_SampleTexture2D_RGBA);
+_SampleTexture2D_RGBA.rgb = UnpackNormalmapRGorAG(_SampleTexture2D_RGBA);
 float _SampleTexture2D_R = _SampleTexture2D_RGBA.r;
 float _SampleTexture2D_G = _SampleTexture2D_RGBA.g;
 float _SampleTexture2D_B = _SampleTexture2D_RGBA.b;
