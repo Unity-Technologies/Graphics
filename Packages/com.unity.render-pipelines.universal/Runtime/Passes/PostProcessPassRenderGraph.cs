@@ -898,12 +898,10 @@ namespace UnityEngine.Rendering.Universal
                     RTHandle sourceTextureHdl = data.sourceTexture;
 
                     cmd.SetGlobalVector(ShaderConstants._Params, data.paniniParams);
-                    cmd.EnableShaderKeyword(data.isPaniniGeneric ? ShaderKeywordStrings.PaniniGeneric : ShaderKeywordStrings.PaniniUnitDistance);
+                    data.material.EnableKeyword(data.isPaniniGeneric ? ShaderKeywordStrings.PaniniGeneric : ShaderKeywordStrings.PaniniUnitDistance);
 
                     Vector2 viewportScale = sourceTextureHdl.useScaling ? new Vector2(sourceTextureHdl.rtHandleProperties.rtHandleScale.x, sourceTextureHdl.rtHandleProperties.rtHandleScale.y) : Vector2.one;
                     Blitter.BlitTexture(cmd, sourceTextureHdl, viewportScale, data.material, 0);
-
-                    cmd.DisableShaderKeyword(data.isPaniniGeneric ? ShaderKeywordStrings.PaniniGeneric : ShaderKeywordStrings.PaniniUnitDistance);
                 });
 
                 return;
