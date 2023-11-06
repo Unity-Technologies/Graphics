@@ -1726,6 +1726,8 @@ namespace UnityEngine.Rendering.HighDefinition
         float m_AmbientOcclusionResolutionScale = 0.0f; // Factor used to track if history should be reallocated for Ambient Occlusion
         float m_ScreenSpaceAccumulationResolutionScale = 0.0f; // Use another scale if AO & SSR don't have the same resolution
 
+        static internal IEnumerable<HDCamera> GetHDCameras() => s_Cameras.Values.AsEnumerable();
+
         Dictionary<AOVRequestData, BufferedRTHandleSystem> m_AOVHistoryRTSystem = new Dictionary<AOVRequestData, BufferedRTHandleSystem>(new AOVRequestDataComparer());
 
 

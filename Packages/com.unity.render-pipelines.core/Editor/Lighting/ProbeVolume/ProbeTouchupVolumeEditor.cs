@@ -303,6 +303,8 @@ namespace UnityEditor.Rendering
                 return;
             }
 
+            ProbeVolumeEditor.FrameSettingDisabledHelpBox();
+
             serializedObject.Update();
             ProbeTouchupVolumeUI.Inspector.Draw(m_SerializedTouchupVolume, this);
             serializedObject.ApplyModifiedProperties();

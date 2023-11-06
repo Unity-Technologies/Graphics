@@ -191,6 +191,8 @@ namespace UnityEngine.Rendering
                 return;
             }
 
+            ProbeVolumeEditor.FrameSettingDisabledHelpBox();
+
             if (m_Initialized)
                 return;
 
