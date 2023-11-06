@@ -350,13 +350,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void InitMaterial()
         {
+#if UNITY_EDITOR
+            if (m_Material == null && GraphicsSettings.TryGetRenderPipelineSettings<HDRenderPipelineEditorMaterials>(out var defaultMaterials))
+                m_Material = defaultMaterials.defaultDecalMaterial;
+#endif
+
             if (m_Material == null)
             {
-#if UNITY_EDITOR
-                m_Material = HDRenderPipelineGlobalSettings.instance != null ? HDRenderPipelineGlobalSettings.instance.GetDefaultDecalMaterial() : null;
-#else
-                m_Material = null;
-#endif
+                Debug.LogWarning($"{name} has a null {typeof(Material)} on the {nameof(material)} property.");
             }
         }
 

@@ -713,7 +713,7 @@ namespace UnityEngine.Rendering.HighDefinition
             LocalVolumetricFogManager.manager.InitializeGraphicsBuffers(asset.currentPlatformRenderPipelineSettings.lightLoopSettings.maxLocalVolumetricFogOnScreen);
 
 #if UNITY_EDITOR
-            GPUInlineDebugDrawer.Initialize(m_GlobalSettings.renderPipelineEditorResources);
+            GPUInlineDebugDrawer.Initialize();
 #endif
         }
 
@@ -2042,7 +2042,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 SupportedRenderingFeatures.active.rendersUIOverlay = true;
             }
-            
+
 #if UNITY_2021_1_OR_NEWER
             if (!m_ValidAPI || cameras.Count == 0)
 #else
@@ -2058,7 +2058,7 @@ namespace UnityEngine.Rendering.HighDefinition
             runtimeShaders   = m_GlobalSettings.renderPipelineResources.shaders;
             runtimeAssets    = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeAssets>();
             runtimeTextures  = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeTextures>();
-            
+
 #endif
             if (m_GlobalSettings.lensAttenuationMode == LensAttenuationMode.ImperfectLens)
             {
