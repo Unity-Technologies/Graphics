@@ -307,6 +307,12 @@ namespace UnityEngine.Rendering.Universal
         public ref Camera camera => ref frameData.Get<UniversalCameraData>().camera;
 
         /// <summary>
+        /// The camera history texture manager. Used to access camera history from a ScriptableRenderPass.
+        /// </summary>
+        /// <seealso cref="ScriptableRenderPass"/>
+        public ref UniversalCameraHistory historyManager => ref frameData.Get<UniversalCameraData>().m_HistoryManager;
+
+        /// <summary>
         /// The camera render type used for camera stacking.
         /// <see cref="CameraRenderType"/>
         /// </summary>

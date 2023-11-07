@@ -1209,6 +1209,9 @@ namespace UnityEngine.Rendering.Universal
 
             cameraData.camera = camera;
 
+            // Add reference to writable camera history to give access to injected user render passes which can produce history.
+            cameraData.historyManager = additionalCameraData?.historyManager;
+
             ///////////////////////////////////////////////////////////////////
             // Descriptor settings                                            /
             ///////////////////////////////////////////////////////////////////

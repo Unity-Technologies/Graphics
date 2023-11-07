@@ -35,10 +35,11 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <param name="shouldClear">Controls whether it should do a clear before copying the depth.</param>
         /// <param name="copyToDepth">Controls whether it should do a copy to a depth format target.</param>
         /// <param name="copyResolvedDepth">Set to true if the source depth is MSAA resolved.</param>
+        /// <param name="customPassName">An optional custom profiling name to disambiguate multiple copy passes.</param>
         /// <seealso cref="RenderPassEvent"/>
-        public CopyDepthPass(RenderPassEvent evt, Shader copyDepthShader, bool shouldClear = false, bool copyToDepth = false, bool copyResolvedDepth = false)
+        public CopyDepthPass(RenderPassEvent evt, Shader copyDepthShader, bool shouldClear = false, bool copyToDepth = false, bool copyResolvedDepth = false, string customPassName = null)
         {
-            base.profilingSampler = new ProfilingSampler(nameof(CopyDepthPass));
+            base.profilingSampler = customPassName != null ? new ProfilingSampler(customPassName) : new ProfilingSampler(nameof(CopyDepthPass));
             m_PassData = new PassData();
             CopyToDepth = copyToDepth;
             m_CopyDepthMaterial = CoreUtils.CreateEngineMaterial(copyDepthShader);
