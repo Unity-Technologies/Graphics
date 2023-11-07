@@ -490,20 +490,20 @@ namespace UnityEditor.Rendering.HighDefinition
             CubeReflectionResolution highestResolution = highestTierInCurrent;
 
             //Iterate over every quality setting to check their settings for the cubemap resolution
-            QualitySettings.ForEach(() =>
+            for (int i = 0; i < QualitySettings.count; ++i)
             {
-                HDRenderPipelineAsset asset = QualitySettings.renderPipeline as HDRenderPipelineAsset;
-                if(asset != null)
+                var asset = QualitySettings.GetRenderPipelineAssetAt(i) as HDRenderPipelineAsset;
+                if (asset != null)
                 {
                     //Iterate through reflection cube map quality tiers
                     CubeReflectionResolution highestInTier = GetHighestCubemapResolutionSetting(asset.currentPlatformRenderPipelineSettings);
 
-                    if(highestInTier > highestResolution)
+                    if (highestInTier > highestResolution)
                     {
                         highestResolution = highestInTier;
                     }
                 }
-            });
+            }
 
             return highestResolution == highestTierInCurrent;
         }
