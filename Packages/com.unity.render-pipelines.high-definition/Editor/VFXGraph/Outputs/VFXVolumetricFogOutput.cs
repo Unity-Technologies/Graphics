@@ -1,14 +1,13 @@
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.VFX.Block;
+
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
-using UnityEngine.Serialization;
 using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.HDRP
 {
-    [VFXInfo(experimental = true)]
+    [VFXInfo(name = "Output Particle HDRP Volumetric Fog", category = "Output", experimental = true)]
     class VFXVolumetricFogOutput : VFXAbstractParticleOutput
     {
         public override string name => "Output Particle HDRP Volumetric Fog";

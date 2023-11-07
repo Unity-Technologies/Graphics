@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.VFX;
+
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Serialization;
@@ -9,7 +9,7 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
-    [VFXInfo]
+    [VFXInfo(name = "Output Mesh", category = "Output")]
     class VFXStaticMeshOutput : VFXContext, IVFXSubRenderer
     {
         [VFXSetting, Tooltip("Specifies the shader with which the mesh output is rendered.")]

@@ -6,7 +6,7 @@ using UnityEngine.VFX;
 namespace UnityEditor.VFX.Block
 {
     [VFXHelpURL("Block-TriggerEventRate")]
-    [VFXInfo(category = "GPUEvent", experimental = true)]
+    [VFXInfo(name = "Trigger Event Rate (OverTime)", category = "GPUEvent", experimental = true)]
     class GPUEventRate : VFXBlock
     {
         public enum Mode

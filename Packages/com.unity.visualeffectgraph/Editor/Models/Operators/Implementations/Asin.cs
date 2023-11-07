@@ -3,7 +3,7 @@ using UnityEngine;
 namespace UnityEditor.VFX.Operator
 {
     [VFXHelpURL("Operator-Asin")]
-    [VFXInfo(category = "Math/Trigonometry")]
+    [VFXInfo(name = "Asin", category = "Math/Trigonometry", synonyms = new []{ "arc", "sinus" })]
     class Asin : VFXOperatorNumericUniform
     {
         public class InputProperties

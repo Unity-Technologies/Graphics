@@ -1,15 +1,15 @@
-using System;
 using System.Collections.Generic;
-using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
-    [VFXInfo(category = "Implicit")]
+    [VFXHelpURL("Block-UpdatePosition")]
+    [VFXInfo(name = "Integration: Update Position", category = "Implicit")]
     class EulerIntegration : VFXBlock
     {
-        public override string name { get { return "Integration: Update Position"; } }
-        public override VFXContextType compatibleContexts { get { return VFXContextType.Update; } }
-        public override VFXDataType compatibleData { get { return VFXDataType.Particle; } }
+        public override string name => "Integration: Update Position";
+        public override VFXContextType compatibleContexts => VFXContextType.Update;
+        public override VFXDataType compatibleData => VFXDataType.Particle;
+
         public override IEnumerable<VFXAttributeInfo> attributes
         {
             get

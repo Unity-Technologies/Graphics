@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.VFX.Block;
@@ -5,7 +6,23 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.HDRP
 {
-    [VFXInfo]
+    internal class VFXDistortionPlanarPrimitiveOutputProvider : VariantProvider
+    {
+        public override IEnumerable<Variant> GetVariants()
+        {
+            foreach (var primitive in Enum.GetValues(typeof(VFXPrimitiveType)).Cast<VFXPrimitiveType>())
+            {
+                yield return new Variant(
+                    $"Output Particle HDRP Distortion {primitive}",
+                    "Output",
+                    typeof(VFXDistortionPlanarPrimitiveOutput),
+                    new[] {new KeyValuePair<string, object>("primitiveType", primitive)}
+                );
+            }
+        }
+    }
+
+    [VFXInfo(variantProvider = typeof(VFXDistortionPlanarPrimitiveOutputProvider))]
     class VFXDistortionPlanarPrimitiveOutput : VFXAbstractDistortionOutput
     {
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]

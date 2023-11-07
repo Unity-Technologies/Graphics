@@ -6,7 +6,8 @@ using UnityEditor.VFX.Block;
 
 namespace UnityEditor.VFX
 {
-    [VFXInfo]
+    [VFXHelpURL("Subgraph")]
+    [VFXInfo(name = "Empty Subgraph Block")]
     class VFXSubgraphBlock : VFXBlock
     {
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]

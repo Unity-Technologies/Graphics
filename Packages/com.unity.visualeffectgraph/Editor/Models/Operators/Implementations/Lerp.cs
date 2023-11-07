@@ -5,7 +5,7 @@ using UnityEngine;
 namespace UnityEditor.VFX.Operator
 {
     [VFXHelpURL("Operator-Lerp")]
-    [VFXInfo(category = "Math/Arithmetic")]
+    [VFXInfo(category = "Math/Arithmetic", synonyms = new []{ "linear", "interpolation" })]
     class Lerp : VFXOperatorNumericUnified, IVFXOperatorNumericUnifiedConstrained
     {
         public class InputProperties

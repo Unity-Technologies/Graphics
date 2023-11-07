@@ -3,7 +3,7 @@ using UnityEngine;
 namespace UnityEditor.VFX.Operator
 {
     [VFXHelpURL("Operator-Distance(Sphere)")]
-    [VFXInfo(category = "Math/Geometry")]
+    [VFXInfo(name = "Distance (Sphere)", category = "Math/Geometry")]
     class DistanceToSphere : VFXOperator
     {
         public class InputProperties

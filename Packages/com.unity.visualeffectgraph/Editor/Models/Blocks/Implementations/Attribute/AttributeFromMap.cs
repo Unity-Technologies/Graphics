@@ -1,43 +1,77 @@
 using System;
 using System.Linq;
-using System.Collections;
 using System.Collections.Generic;
+
 using UnityEngine;
 using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Block
 {
-    class AttributeFromMapProvider : VariantProvider
+    class AttributeFromMapVariantProvider : VariantProvider
     {
-        public override IEnumerable<Variant> ComputeVariants()
+        private readonly string m_Attribute;
+
+        public AttributeFromMapVariantProvider(string attribute)
+        {
+            m_Attribute = attribute;
+        }
+
+        public override IEnumerable<Variant> GetVariants()
         {
             var compositions = new[] { AttributeCompositionMode.Add, AttributeCompositionMode.Overwrite, AttributeCompositionMode.Multiply, AttributeCompositionMode.Blend };
-            var attributes = VFXAttributesManager.GetBuiltInNamesOrCombination(true, false, false, false).Except(new[] { VFXAttribute.Alive.name }).ToArray();
             var sampleModes = Enum.GetValues(typeof(AttributeFromMap.AttributeMapSampleMode)).OfType<AttributeFromMap.AttributeMapSampleMode>().ToArray();
 
-            foreach (var attribute in attributes)
+            foreach (var composition in compositions)
             {
-                foreach (var composition in compositions)
+                foreach (var sampleMode in sampleModes)
                 {
-                    foreach (var sampleMode in sampleModes)
+                    // This is the main variant settings
+                    if (composition == AttributeCompositionMode.Overwrite && sampleMode == AttributeFromMap.AttributeMapSampleMode.Random)
                     {
-                        yield return new Variant(
-                            new[]
-                            {
-                                new KeyValuePair<string, object>("attribute", attribute),
-                                new KeyValuePair<string, object>("Composition", composition),
-                                new KeyValuePair<string, object>("SampleMode", sampleMode)
-                            },
-                            new[] { attribute, VFXBlockUtility.GetNameString(composition) });
+                        continue;
                     }
+
+                    var compositionString = $"{VFXBlockUtility.GetNameString(composition)}";
+                    yield return new Variant(
+                        $"{compositionString} {m_Attribute} | Sample {sampleMode}",
+                        compositionString,
+                        typeof(AttributeFromMap),
+                        new[]
+                        {
+                            new KeyValuePair<string, object>("attribute", m_Attribute),
+                            new KeyValuePair<string, object>("Composition", composition),
+                            new KeyValuePair<string, object>("SampleMode", sampleMode)
+                        });
                 }
             }
         }
     }
 
+    class AttributeFromMapProvider : VariantProvider
+    {
+        public override IEnumerable<Variant> GetVariants()
+        {
+            var attributes = VFXAttributesManager.GetBuiltInNamesOrCombination(true, false, false, false).Except(new[] { VFXAttribute.Alive.name }).ToArray();
+            foreach (var attribute in attributes)
+            {
+                yield return new Variant(
+                    $"Set {attribute} | Sample Random",
+                    "Attribute from map",
+                    typeof(AttributeFromMap),
+                    new[]
+                    {
+                        new KeyValuePair<string, object>("attribute", attribute),
+                        new KeyValuePair<string, object>("Composition", AttributeCompositionMode.Overwrite),
+                        new KeyValuePair<string, object>("SampleMode", AttributeFromMap.AttributeMapSampleMode.Random)
+                    },
+                    () => new AttributeFromMapVariantProvider(attribute));
+            }
+        }
+    }
+
     [VFXHelpURL("Block-SetAttributeFromMap")]
-    [VFXInfo(category = "Attribute/{0}/Map/{1}", variantProvider = typeof(AttributeFromMapProvider))]
-    class AttributeFromMap : VFXBlock, IVFXAttributeUsage
+    [VFXInfo(variantProvider = typeof(AttributeFromMapProvider))]
+    class AttributeFromMap : VFXBlock
     {
         // TODO: Let's factorize this this into a utility class
         public enum AttributeMapSampleMode
@@ -69,8 +103,6 @@ namespace UnityEditor.VFX.Block
 
         [VFXSetting, SerializeField, Tooltip("When enabled, you can specify the number of points contained in the attribute map. This is useful when the number of points is smaller than the texture size.")]
         private bool usePointCount = false;
-
-        public override string libraryName => $"{VFXBlockUtility.GetNameString(Composition)} {ObjectNames.NicifyVariableName(attribute)} from Map ({ObjectNames.NicifyVariableName(SampleMode.ToString())})";
 
         public override string name
         {

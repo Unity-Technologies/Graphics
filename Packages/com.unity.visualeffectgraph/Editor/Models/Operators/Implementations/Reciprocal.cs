@@ -1,7 +1,7 @@
 namespace UnityEditor.VFX.Operator
 {
     [VFXHelpURL("Operator-Reciprocal")]
-    [VFXInfo(category = "Math/Arithmetic")]
+    [VFXInfo(name = "Reciprocal (1/x)", category = "Math/Arithmetic", synonyms = new []{ "inverse" })]
     class Reciprocal : VFXOperatorNumericUniform
     {
         public class InputProperties

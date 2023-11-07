@@ -805,10 +805,10 @@ namespace UnityEditor.VFX.UI
                     if (p == null)
                     {
                         Type type = parameter.value.type;
-                        VFXModelDescriptorParameters desc = VFXLibrary.GetParameters().FirstOrDefault(t => t.model.type == type);
+                        VFXModelDescriptorParameters desc = VFXLibrary.GetParameters().FirstOrDefault(t => t.variant.modelType == type);
                         if (desc != null)
                         {
-                            p = viewController.AddVFXParameter(Vector2.zero, desc);
+                            p = viewController.AddVFXParameter(Vector2.zero, desc.variant);
                             serializableGraph.parameters = serializableGraph.parameters.Where(x => x.name != parameter.name).ToArray();
                             CopyParameter(parameter, p, viewController.model.visualEffectObject is VisualEffectSubgraphOperator && parameter.isOutput);
                         }

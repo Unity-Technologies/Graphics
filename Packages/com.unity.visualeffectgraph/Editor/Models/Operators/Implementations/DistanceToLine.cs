@@ -3,7 +3,7 @@ using UnityEngine;
 namespace UnityEditor.VFX.Operator
 {
     [VFXHelpURL("Operator-Distance(Line)")]
-    [VFXInfo(category = "Math/Geometry")]
+    [VFXInfo(name = "Distance (Line)", category = "Math/Geometry")]
     class DistanceToLine : VFXOperator
     {
         public class InputProperties

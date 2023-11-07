@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 
+using UnityEditor.VFX.Operator;
 using UnityEngine;
 using UnityEngine.Assertions;
 
@@ -52,6 +53,19 @@ namespace UnityEditor.VFX.Block
             }
         }
 
+        public static string GetNameString(AttributeFromCurve.CurveSampleMode mode)
+        {
+            switch (mode)
+            {
+                case AttributeFromCurve.CurveSampleMode.OverLife: return "Over Life";
+                case AttributeFromCurve.CurveSampleMode.BySpeed: return "By Speed";
+                case AttributeFromCurve.CurveSampleMode.Random: return "Random";
+                case AttributeFromCurve.CurveSampleMode.RandomConstantPerParticle: return "Random Constant/Particle";
+                case AttributeFromCurve.CurveSampleMode.Custom: return "Custom";
+                default: throw new ArgumentException();
+            }
+        }
+
         public static string GetComposeString(AttributeCompositionMode mode, params string[] parameters)
         {
             switch (mode)
@@ -61,6 +75,17 @@ namespace UnityEditor.VFX.Block
                 case AttributeCompositionMode.Multiply: return string.Format("{0} *= {1};", parameters);
                 case AttributeCompositionMode.Blend: return string.Format("{0} = lerp({0},{1},{2});", parameters);
                 default: throw new System.NotImplementedException("VFXBlockUtility.GetComposeFormatString() does not implement return string for : " + mode.ToString());
+            }
+        }
+
+        public static string GetNameString(Noise.DimensionCount mode)
+        {
+            switch (mode)
+            {
+                case Noise.DimensionCount.One: return "1D";
+                case Noise.DimensionCount.Two: return "2D";
+                case Noise.DimensionCount.Three: return "3D";
+                default: throw new NotImplementedException("VFXBlockUtility.GetNameString() does not implement return string for : " + mode);
             }
         }
 

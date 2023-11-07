@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.VFX.Block;
@@ -5,7 +6,22 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.HDRP
 {
-    [VFXInfo(variantProvider = typeof(VFXPlanarPrimitiveVariantProvider))]
+    class VFXLitPlanarPrimitiveOutputProvider : VariantProvider
+    {
+        public override IEnumerable<Variant> GetVariants()
+        {
+            foreach (var primitive in Enum.GetValues(typeof(VFXPrimitiveType)))
+            {
+                yield return new Variant(
+                    $"Lit Output Particle {primitive}",
+                    "Output",
+                    typeof(VFXLitPlanarPrimitiveOutput),
+                    new[] {new KeyValuePair<string, object>("primitiveType", primitive)});
+            }
+        }
+    }
+
+    [VFXInfo(variantProvider = typeof(VFXLitPlanarPrimitiveOutputProvider))]
     class VFXLitPlanarPrimitiveOutput : VFXAbstractParticleHDRPLitOutput
     {
         public override string name

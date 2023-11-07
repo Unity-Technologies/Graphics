@@ -1,7 +1,7 @@
 namespace UnityEditor.VFX.Operator
 {
     [VFXHelpURL("Operator-AgeOverLifetime")]
-    [VFXInfo(category = "Attribute")]
+    [VFXInfo(name = "Get Age Over Lifetime [0..1]", category = "Attribute")]
     class AgeOverLifetime : VFXOperator
     {
         public class OutputProperties

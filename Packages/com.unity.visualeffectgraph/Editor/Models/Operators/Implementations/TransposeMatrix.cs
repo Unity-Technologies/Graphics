@@ -3,7 +3,7 @@ using UnityEngine;
 namespace UnityEditor.VFX.Operator
 {
     //[VFXHelpURL("Operator-TransposeMatrix")]
-    [VFXInfo(category = "Math/Geometry")]
+    [VFXInfo(name = "Transpose (Matrix)", category = "Math/Geometry")]
     class TransposeMatrix : VFXOperator
     {
         public class InputProperties

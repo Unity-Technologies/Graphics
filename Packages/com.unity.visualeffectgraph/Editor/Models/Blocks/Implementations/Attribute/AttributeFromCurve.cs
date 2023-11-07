@@ -7,47 +7,82 @@ using System.Globalization;
 
 namespace UnityEditor.VFX.Block
 {
-    class AttributeFromCurveProvider : VariantProvider
+    class AttributeFromCurveVariantProvider : VariantProvider
     {
-        public override IEnumerable<Variant> ComputeVariants()
+        private readonly string m_Attribute;
+
+        public AttributeFromCurveVariantProvider(string attribute)
+        {
+            m_Attribute = attribute;
+        }
+
+        public override IEnumerable<Variant> GetVariants()
         {
             var compositions = new[] { AttributeCompositionMode.Add, AttributeCompositionMode.Overwrite, AttributeCompositionMode.Multiply, AttributeCompositionMode.Blend };
-            var attributes = VFXAttributesManager.GetBuiltInNamesOrCombination(true, false, false, false).Except(new[] { VFXAttribute.Alive.name }).ToArray();
             var sampleModes = new[] { AttributeFromCurve.CurveSampleMode.OverLife, AttributeFromCurve.CurveSampleMode.BySpeed, AttributeFromCurve.CurveSampleMode.Random }.ToArray();
 
-            foreach (var attribute in attributes)
+            foreach (var composition in compositions)
             {
-                foreach (var composition in compositions)
+                foreach (var sampleMode in sampleModes)
                 {
-                    foreach (var sampleMode in sampleModes)
+                    if (m_Attribute == VFXAttribute.Age.name && sampleMode == AttributeFromCurve.CurveSampleMode.OverLife)
                     {
-                        if (attribute == VFXAttribute.Age.name && sampleMode == AttributeFromCurve.CurveSampleMode.OverLife)
-                        {
-                            continue;
-                        }
-
-                        if (attribute == VFXAttribute.Velocity.name && sampleMode == AttributeFromCurve.CurveSampleMode.BySpeed)
-                        {
-                            continue;
-                        }
-
-                        yield return new Variant(
-                            new[]
-                            {
-                                new KeyValuePair<string, object>("attribute", attribute),
-                                new KeyValuePair<string, object>("Composition", composition),
-                                new KeyValuePair<string, object>("SampleMode", sampleMode)
-                            },
-                            new[] { attribute, VFXBlockUtility.GetNameString(composition) });
+                        continue;
                     }
+
+                    if (m_Attribute == VFXAttribute.Velocity.name && sampleMode == AttributeFromCurve.CurveSampleMode.BySpeed)
+                    {
+                        continue;
+                    }
+
+                    // This is the main variant settings
+                    if (composition == AttributeCompositionMode.Overwrite && sampleMode == AttributeFromCurve.CurveSampleMode.OverLife)
+                    {
+                        continue;
+                    }
+
+                    var compositionString = $"{VFXBlockUtility.GetNameString(composition)}";
+                    yield return new Variant(
+                        $"{compositionString} {m_Attribute} | {VFXBlockUtility.GetNameString(sampleMode)}",
+                        compositionString,
+                        typeof(AttributeFromCurve),
+                        new[]
+                        {
+                            new KeyValuePair<string, object>("attribute", m_Attribute),
+                            new KeyValuePair<string, object>("Composition", composition),
+                            new KeyValuePair<string, object>("SampleMode", sampleMode)
+                        });
                 }
             }
         }
     }
 
+    class AttributeFromCurveProvider : VariantProvider
+    {
+        public override IEnumerable<Variant> GetVariants()
+        {
+            var attributes = VFXAttributesManager.GetBuiltInNamesOrCombination(true, false, false, false).Except(new[] { VFXAttribute.Alive.name }).ToArray();
+            foreach (var attribute in attributes)
+            {
+                var sampleMode = attribute != VFXAttribute.Age.name ? AttributeFromCurve.CurveSampleMode.OverLife : AttributeFromCurve.CurveSampleMode.BySpeed;
+                yield return new Variant(
+                    $"Set {attribute} | {VFXBlockUtility.GetNameString(sampleMode)}",
+                    "Attribute from curve",
+                    typeof(AttributeFromCurve),
+                    new[]
+                    {
+                        new KeyValuePair<string, object>("attribute", attribute),
+                        new KeyValuePair<string, object>("Composition", AttributeCompositionMode.Overwrite),
+                        new KeyValuePair<string, object>("SampleMode", sampleMode)
+                    },
+                    () => new AttributeFromCurveVariantProvider(attribute));
+            }
+        }
+    }
+
     [VFXHelpURL("Block-SetAttributeFromCurve")]
-    [VFXInfo(category = "Attribute/{0}/Curve/{1}", variantProvider = typeof(AttributeFromCurveProvider))]
-    class AttributeFromCurve : VFXBlock, IVFXAttributeUsage
+    [VFXInfo(variantProvider = typeof(AttributeFromCurveProvider))]
+    class AttributeFromCurve : VFXBlock
     {
         public enum CurveSampleMode
         {
@@ -80,7 +115,7 @@ namespace UnityEditor.VFX.Block
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("Specifies what operation to perform on the alpha value. The value derived from this block can overwrite, add to, multiply with, or blend with the existing alpha value.")]
         public AttributeCompositionMode AlphaComposition = AttributeCompositionMode.Overwrite;
 
-        [VFXSetting, Tooltip("Specifies the method by which to sample the curve. This can be over the particle’s lifetime, its speed, randomly, or through a user-specified value.")]
+        [VFXSetting, Tooltip("Specifies the method by which to sample the curve. This can be over the particle's lifetime, its speed, randomly, or through a user-specified value.")]
         public CurveSampleMode SampleMode = CurveSampleMode.OverLife;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("Specifies whether the block operates per component or uniformly across all components of the chosen attribute.")]
@@ -93,9 +128,9 @@ namespace UnityEditor.VFX.Block
         public VariadicChannelOptions channels = VariadicChannelOptions.XYZ;
         private static readonly char[] channelNames = new char[] { 'x', 'y', 'z' };
 
-        private string GenerateName(bool library)
+        private string GenerateName()
         {
-            var variadicName = (currentAttribute.variadic == VFXVariadic.True && !library) ? "." + channels.ToString() : string.Empty;
+            var variadicName = currentAttribute.variadic == VFXVariadic.True ? "." + channels : string.Empty;
             var n = VFXBlockUtility.GetNameString(Composition) + " " + ObjectNames.NicifyVariableName(attribute) + variadicName;
             switch (SampleMode)
             {
@@ -108,16 +143,10 @@ namespace UnityEditor.VFX.Block
                     throw new NotImplementedException("Invalid CurveSampleMode");
             }
 
-            if (library && attribute == VFXAttribute.Color.name)
-            {
-                n += " (Gradient)";
-            }
             return n;
         }
 
-        public override string name => GenerateName(false);
-
-        public override string libraryName => GenerateName(true);
+        public override string name => GenerateName();
 
         public override VFXContextType compatibleContexts => VFXContextType.InitAndUpdateAndOutput;
         public override VFXDataType compatibleData => VFXDataType.Particle;

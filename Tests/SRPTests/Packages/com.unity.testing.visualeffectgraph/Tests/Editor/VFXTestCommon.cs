@@ -174,8 +174,8 @@ namespace UnityEditor.VFX.Test
 
             var contextInitialize = ScriptableObject.CreateInstance<VFXBasicInitialize>();
 
-            var blockAttributeDesc = VFXLibrary.GetBlocks().FirstOrDefault(o => o.modelType == typeof(Block.SetAttribute));
-            var blockAttribute = blockAttributeDesc.CreateInstance();
+            var blockAttributeDesc = VFXLibrary.GetBlocks().FirstOrDefault(o => o.variant.modelType == typeof(Block.SetAttribute));
+            var blockAttribute = blockAttributeDesc.variant.CreateInstance();
             blockAttribute.SetSettingValue("attribute", "position");
             contextInitialize.AddChild(blockAttribute);
 
@@ -267,12 +267,12 @@ namespace UnityEditor.VFX.Test
                 return viewController.allChildren.OfType<VFXContextController>().Single(x => x.model == context);
             }
 
-            var contextInitializeDesc = VFXLibrary.GetContexts().FirstOrDefault(o => o.name.Contains("Init"));
-            var contextOutputDesc = VFXLibrary.GetContexts().FirstOrDefault(o => o.name.StartsWith("Output Particle Quad"));
+            var contextInitializeDesc = VFXLibrary.GetContexts().FirstOrDefault(o => o.variant.name.Contains("Init"));
+            var contextOutputDesc = VFXLibrary.GetContexts().FirstOrDefault(o => o.variant.name.StartsWith("Output Particle Quad"));
             for (int i = 0; i < count; ++i)
             {
-                var output = viewController.AddVFXContext(new Vector2(2 * i, 2 * i), contextOutputDesc);
-                var init = viewController.AddVFXContext(new Vector2(i, i), contextInitializeDesc);
+                var output = viewController.AddVFXContext(new Vector2(2 * i, 2 * i), contextOutputDesc.variant);
+                var init = viewController.AddVFXContext(new Vector2(i, i), contextInitializeDesc.variant);
 
                 var flowEdge = new VFXFlowEdgeController(GetContextController(output).flowInputAnchors.FirstOrDefault(), GetContextController(init).flowOutputAnchors.FirstOrDefault());
                 viewController.AddElement(flowEdge);

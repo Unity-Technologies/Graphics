@@ -7,26 +7,35 @@ namespace UnityEditor.VFX.Operator
 {
     class CurlNoiseVariantProvider : VariantProvider
     {
-        protected sealed override Dictionary<string, object[]> variants { get; } = new Dictionary<string, object[]>
+        public override IEnumerable<Variant> GetVariants()
         {
+            var types = Enum.GetValues(typeof(NoiseBase.NoiseType))
+                .Cast<NoiseBase.NoiseType>()
+                .Where(o => o != NoiseBase.NoiseType.Cellular);
+            var dimensions = Enum.GetValues(typeof(CurlNoise.DimensionCount))
+                .Cast<CurlNoise.DimensionCount>()
+                .ToArray();
+            foreach (var type in types)
             {
-                "type",
-                Enum.GetValues(typeof(NoiseBase.NoiseType)).OfType<NoiseBase.NoiseType>()
-                    .Where(o => o != NoiseBase.NoiseType.Cellular)
-                    .Cast<object>()
-                    .ToArray()
-            },
-            {
-                "dimensions",
-                Enum.GetValues(typeof(CurlNoise.DimensionCount))
-                    .Cast<object>()
-                    .ToArray()
+                foreach (var dimension in dimensions)
+                {
+                    yield return new Variant(
+                        $"{type} Curl Noise {dimension+2}D",
+                        "Noise",
+                        typeof(CurlNoise),
+                        new []
+                        {
+                            new KeyValuePair<string, object>("type", type),
+                            new KeyValuePair<string, object>("dimensions", dimension)
+                        });
+                }
+
             }
-        };
+        }
     }
 
     [VFXHelpURL("Operator-CellularCurlNoise")]
-    [VFXInfo(category = "Noise", variantProvider = typeof(CurlNoiseVariantProvider))]
+    [VFXInfo(variantProvider = typeof(CurlNoiseVariantProvider))]
     class CurlNoise : NoiseBase
     {
         public class InputPropertiesAmplitude

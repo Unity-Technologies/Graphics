@@ -5,7 +5,19 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Block
 {
-    [VFXInfo(category = "Attribute/position/Composition/{0}", variantProvider = typeof(PositionBaseProvider))]
+    class PositionTorusProvider : VariantProvider
+    {
+        public override IEnumerable<Variant> GetVariants()
+        {
+            yield return new Variant(
+                VFXBlockUtility.GetNameString(AttributeCompositionMode.Overwrite) + " Position (Shape: Torus)",
+                "Position/Position on shape",
+                typeof(PositionTorus),
+                new[] {new KeyValuePair<string, object>("compositionPosition", AttributeCompositionMode.Overwrite)});
+        }
+    }
+
+    [VFXInfo(variantProvider = typeof(PositionTorusProvider))]
     class PositionTorus : PositionBase
     {
         public override string name { get { return string.Format(base.name, "Arc Torus"); } }

@@ -1050,7 +1050,8 @@ namespace UnityEditor.VFX.UI
 
         private void OnAddParameter(object parameter)
         {
-            var newParam = m_Controller.AddVFXParameter(Vector2.zero, (VFXModelDescriptorParameters)parameter);
+            var descriptor = (VFXModelDescriptorParameters)parameter;
+            var newParam = m_Controller.AddVFXParameter(Vector2.zero, descriptor.variant);
 
             var categoryName = string.Empty;
             switch (m_Treeview.selectedItem)
@@ -1109,7 +1110,7 @@ namespace UnityEditor.VFX.UI
             OpenTextEditor<VFXBlackboardAttributeField>(newCustomAttribute.name);
         }
 
-        private static IEnumerable<VFXModelDescriptor> GetSortedParameters()
+        private static IEnumerable<VFXModelDescriptorParameters> GetSortedParameters()
         {
             foreach (var desc in VFXLibrary.GetParameters().OrderBy(o => o.name))
             {

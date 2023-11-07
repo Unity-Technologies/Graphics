@@ -102,7 +102,7 @@ namespace UnityEditor.VFX.Test
             var output = ScriptableObject.CreateInstance<VFXComposedParticleOutput>();
             output.SetSettingValue("m_Topology", new ParticleTopologyPlanarPrimitive());
             graph.AddChild(output);
-            Assert.AreEqual("Output Particle ShaderGraph Quad", output.libraryName);
+            Assert.AreEqual("Output Particle ShaderGraph\nQuad", output.name);
 
             var contextInitialize = ScriptableObject.CreateInstance<VFXBasicInitialize>();
             contextInitialize.LinkTo(output);

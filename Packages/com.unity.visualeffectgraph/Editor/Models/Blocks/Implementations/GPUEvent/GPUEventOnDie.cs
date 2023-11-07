@@ -5,7 +5,7 @@ using UnityEngine;
 namespace UnityEditor.VFX.Block
 {
     [VFXHelpURL("Block-TriggerEventOnDie")]
-    [VFXInfo(category = "GPUEvent", experimental = true)]
+    [VFXInfo(name = "Trigger Event On Die", category = "GPUEvent", experimental = true)]
     class GPUEventOnDie : VFXBlock
     {
         public override string name { get { return "Trigger Event On Die"; } }

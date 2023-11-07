@@ -18,7 +18,7 @@ namespace UnityEditor.VFX.Test
 
         GameObject m_mainObject;
         GameObject m_mainCamera;
-        
+
         [OneTimeSetUp]
         public void Init()
         {
@@ -52,11 +52,11 @@ namespace UnityEditor.VFX.Test
         {
             var graph = VFXTestCommon.MakeTemporaryGraph();
 
-            var graphicsBufferDesc = VFXLibrary.GetParameters().Where(o => o.name.ToLowerInvariant().Contains("graphicsbuffer")).FirstOrDefault();
+            var graphicsBufferDesc = VFXLibrary.GetParameters().FirstOrDefault(o => o.name.ToLowerInvariant().Contains("graphics buffer"));
             Assert.IsNotNull(graphicsBufferDesc);
             foreach (var targetGraphicsBuffer in names)
             {
-                var parameter = graphicsBufferDesc.CreateInstance();
+                var parameter = graphicsBufferDesc.variant.CreateInstance();
                 parameter.SetSettingValue("m_ExposedName", targetGraphicsBuffer);
                 parameter.SetSettingValue("m_Exposed", true);
                 graph.AddChild(parameter);
@@ -100,11 +100,11 @@ namespace UnityEditor.VFX.Test
                 Assert.IsTrue(sampleBuffer.inputSlots[0].Link(param.outputSlots[0]));
 
                 var block = VFXLibrary.GetBlocks().FirstOrDefault(o =>
-                     o.model is UnityEditor.VFX.Block.SetAttribute setAttr
-                     && setAttr.attribute.Contains("color"));
+                     o.modelType == typeof(Block.SetAttribute)
+                     && o.variant.settings.Any(x => x.Value.Equals(VFXAttribute.Color.name)));
                 Assert.IsNotNull(block);
 
-                var addAttribute = block.CreateInstance();
+                var addAttribute = (VFXBlock)block.variant.CreateInstance();
                 addAttribute.SetSettingValue("Composition", UnityEditor.VFX.Block.AttributeCompositionMode.Add);
                 contextInitialize.AddChild(addAttribute);
                 Assert.IsTrue(sampleBuffer.outputSlots[0].Link(addAttribute.inputSlots[0]));
@@ -162,17 +162,17 @@ namespace UnityEditor.VFX.Test
         {
             var graph = VFXTestCommon.MakeTemporaryGraph();
 
-            var coneParameter = VFXLibrary.GetParameters().FirstOrDefault(o => o.name.ToLowerInvariant() == "cone");
+            var coneParameter = VFXLibrary.GetParameters().FirstOrDefault(o => o.modelType == typeof(TCone));
             Assert.IsNotNull(coneParameter);
 
             //Basic spaceable parameter
             var baseName = "my_exposed_cone_";
             var availableSpace = Enum.GetValues(typeof(VFXSpace)).Cast<VFXSpace>().ToArray();
             var expectedSpaceCount = 3;
-            Assert.AreEqual(expectedSpaceCount, availableSpace.Count());
+            Assert.AreEqual(expectedSpaceCount, availableSpace.Length);
             foreach (var space in availableSpace)
             {
-                var parameter = coneParameter.CreateInstance();
+                var parameter = (VFXParameter)coneParameter.variant.CreateInstance();
                 parameter.SetSettingValue("m_ExposedName", baseName + space.ToString().ToLowerInvariant());
                 parameter.SetSettingValue("m_Exposed", true);
                 parameter.outputSlots[0].space = space;
@@ -180,7 +180,7 @@ namespace UnityEditor.VFX.Test
             }
 
             //Other parameter (not spaceable)
-            var intDesc = VFXLibrary.GetParameters().FirstOrDefault(o => o.name.ToLowerInvariant().Contains("int"));
+            var intDesc = VFXLibrary.GetParameters().FirstOrDefault(o => o.modelType == typeof(int));
             Assert.IsNotNull(intDesc);
             var parameterInteger = intDesc.CreateInstance();
             parameterInteger.SetSettingValue("m_ExposedName", "my_exposed_integer");
@@ -238,7 +238,7 @@ namespace UnityEditor.VFX.Test
             if (resetCase == GraphicsBufferResetCase.EditSerializedObject)
             {
                 //Other value used for vfx editor update
-                var intDesc = VFXLibrary.GetParameters().Where(o => o.name.ToLowerInvariant().Contains("int")).FirstOrDefault();
+                var intDesc = VFXLibrary.GetParameters().Where(o => o.variant.name.ToLowerInvariant().Contains("int")).FirstOrDefault();
                 Assert.IsNotNull(intDesc);
                 var parameterInteger = intDesc.CreateInstance();
                 parameterInteger.SetSettingValue("m_ExposedName", targetInteger);
@@ -329,7 +329,7 @@ namespace UnityEditor.VFX.Test
             yield return null;
 
             //Plug a GPU instruction on bounds, excepting an exception while recompiling
-            var getPositionDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.modelType == typeof(VFXAttributeParameter) && o.name.Contains(VFXAttribute.Position.name));
+            var getPositionDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.variant.modelType == typeof(VFXAttributeParameter) && o.variant.name.Contains(VFXAttribute.Position.name));
             var getPosition = getPositionDesc.CreateInstance();
             graph.AddChild(getPosition);
             var initializeContext = graph.children.OfType<VFXBasicInitialize>().FirstOrDefault();
@@ -344,14 +344,14 @@ namespace UnityEditor.VFX.Test
             Assert.Throws(typeof(IndexOutOfRangeException), () => VFXTestCommon.GetSpawnerState(vfxComponent, 0)); //This is the exception which matters for this test
         }
 
-        
+
         [UnityTest]
         public IEnumerator Create_Component_With_All_Basic_Type_Exposed_Check_Exposed_API()
         {
             var graph = VFXTestCommon.MakeTemporaryGraph();
             foreach (var type in VFXTestCommon.s_supportedValueType)
             {
-                var parameterDesc = VFXLibrary.GetParameters().First(o => VFXExpression.GetVFXValueTypeFromType(o.model.type) == type);
+                var parameterDesc = VFXLibrary.GetParameters().First(o => VFXExpression.GetVFXValueTypeFromType(o.modelType) == type);
                 var newInstance = parameterDesc.CreateInstance();
 
                 newInstance.SetSettingValue("m_ExposedName", "abcd_" + type.ToString());

@@ -46,21 +46,22 @@ namespace UnityEditor.VFX.Test
         {
             var viewController = VFXTestCommon.StartEditTestAsset();
 
+            // Todo: find a way to retrieve the context type
             var allContexts = VFXLibrary.GetContexts().ToArray();
-            var eventContextDesc = allContexts.First(t => t.model.contextType == VFXContextType.Event);
-            var eventContext = viewController.AddVFXContext(new Vector2(300, 100), eventContextDesc);
+            var eventContextDesc = allContexts.First(t => t.modelType == typeof(VFXBasicEvent));
+            var eventContext = viewController.AddVFXContext(new Vector2(300, 100), eventContextDesc.variant);
 
-            var spawnerContextDesc = allContexts.First(t => t.model.contextType == VFXContextType.Spawner);
-            var spawnerContext = viewController.AddVFXContext(new Vector2(300, 100), spawnerContextDesc);
+            var spawnerContextDesc = allContexts.First(t => t.modelType == typeof(VFXBasicSpawner));
+            var spawnerContext = viewController.AddVFXContext(new Vector2(300, 100), spawnerContextDesc.variant);
 
-            var initContextDesc = allContexts.First(t => t.model.contextType == VFXContextType.Init);
-            var initContext = viewController.AddVFXContext(new Vector2(300, 100), initContextDesc);
+            var initContextDesc = allContexts.First(t => t.modelType == typeof(VFXBasicInitialize));
+            var initContext = viewController.AddVFXContext(new Vector2(300, 100), initContextDesc.variant);
 
-            var updateContextDesc = allContexts.First(t => t.model.contextType == VFXContextType.Update);
-            var updateContext = viewController.AddVFXContext(new Vector2(300, 1000), updateContextDesc);
+            var updateContextDesc = allContexts.First(t => t.modelType == typeof(VFXBasicUpdate));
+            var updateContext = viewController.AddVFXContext(new Vector2(300, 1000), updateContextDesc.variant);
 
-            var outputContextDesc = allContexts.First(t => t.model.contextType == VFXContextType.Output && t.model.name.Contains("Particle"));
-            var outputContext = viewController.AddVFXContext(new Vector2(300, 2000), outputContextDesc);
+            var outputContextDesc = allContexts.First(t => t.modelType.IsSubclassOf( typeof(VFXAbstractParticleOutput)) && t.name.Contains("Particle"));
+            var outputContext = viewController.AddVFXContext(new Vector2(300, 2000), outputContextDesc.variant);
 
             viewController.ApplyChanges();
 
@@ -137,9 +138,9 @@ namespace UnityEditor.VFX.Test
         //[UnityTest] Not really a test but helper to profile the controller invalidation.
         public IEnumerator ExperimentCreateAllBlocksTiming([ValueSource(nameof(kApplyChange))] bool applyChanges, [ValueSource(nameof(kApplyChange))] bool blocks)
         {
-            var referenceBlock = VFXLibrary.GetBlocks().First(t => t.model is KillSphere);
-            var referenceOperator = VFXLibrary.GetOperators().First(t => t.model is DistanceToSphere);
-            var referenceContext = VFXLibrary.GetContexts().First(t => t.model is VFXBasicUpdate);
+            var referenceBlock = VFXLibrary.GetBlocks().First(t => t.modelType == typeof(KillSphere));
+            var referenceOperator = VFXLibrary.GetOperators().First(t => t.modelType == typeof(DistanceToSphere));
+            var referenceContext = VFXLibrary.GetContexts().First(t => t.modelType == typeof(VFXBasicUpdate));
 
             var param = new CreateAllBlockParam()
             {
@@ -200,7 +201,7 @@ namespace UnityEditor.VFX.Test
         void CreateAllOperatorsExperiment(VFXViewController viewController, IEnumerable<VFXModelDescriptor<VFXOperator>> operators, bool applyChanges)
         {
             foreach (var op in operators)
-                viewController.AddVFXOperator(new Vector2(300, 2000), op);
+                viewController.AddVFXOperator(new Vector2(300, 2000), op.variant);
 
             if (applyChanges)
                 viewController.ApplyChanges();
@@ -208,7 +209,7 @@ namespace UnityEditor.VFX.Test
 
         void CreateAllBlocksExperiment(VFXViewController viewController, VFXModelDescriptor<VFXContext> context, IEnumerable<VFXModelDescriptor<VFXBlock>> blocks, bool applyChanges)
         {
-            var newContext = viewController.AddVFXContext(new Vector2(300, 2000), context);
+            var newContext = viewController.AddVFXContext(new Vector2(300, 2000), context.variant);
             //if (applyChanges) //Needed for retrieving the following contextController
             viewController.ApplyChanges();
 
@@ -225,18 +226,18 @@ namespace UnityEditor.VFX.Test
 
         static IEnumerable<CreateAllBlockParam> GenerateCreateBlockParams(VFXContextType type)
         {
-            VFXModelDescriptor<VFXContext> destContext;
+            VFXModelDescriptor<VFXContext> destContext = null;
             if (type == VFXContextType.Output)
             {
                 //Exception: VFXStaticMeshOutput doesn't accept any block, fallback on VFXPlanarPrimitiveOutput
-                destContext = VFXLibrary.GetContexts().First(t => t.model is VFXPlanarPrimitiveOutput);
+                destContext = VFXLibrary.GetContexts().First(t => t.modelType == typeof(VFXPlanarPrimitiveOutput));
             }
             else
             {
                 destContext = VFXLibrary.GetContexts().First(t => t.model.contextType == type);
             }
 
-            var allBlocks = GetAllBlocks(true, x => x.AcceptParent(destContext.model));
+            var allBlocks = GetAllBlocks(true, x => destContext.model.AcceptChild(x.model));
             var batchCount = (uint)Math.Ceiling((double)allBlocks.Length / kMaximumBlockPerContext);
             for (var batch = 0u; batch < batchCount; batch++)
             {
@@ -271,7 +272,8 @@ namespace UnityEditor.VFX.Test
         }
 
         //Reduced selection for CreateAllDataEdgesTest, only testing block outputs
-        static CreateAllBlockParam[] kCreateAllBlockParamOutput = kCreateAllBlockParam.Where(o => o.destContext.model.contextType == VFXContextType.Output).ToArray();
+        // Todo: find a way to retrieve the context type
+        static CreateAllBlockParam[] kCreateAllBlockParamOutput = kCreateAllBlockParam./*Where(o => o.destContext.model.contextType == VFXContextType.Output).*/ToArray();
         [Test]
         public void CreateAllDataEdgesTest([ValueSource(nameof(kCreateAllBlockParamOutput))] CreateAllBlockParam param)
         {
@@ -282,7 +284,7 @@ namespace UnityEditor.VFX.Test
 
         VFXContextController CreateAllBlocks(VFXViewController viewController, VFXModelDescriptor<VFXContext> context, IEnumerable<VFXModelDescriptor<VFXBlock>> blocks)
         {
-            var newContext = viewController.AddVFXContext(new Vector2(300, 2000), context);
+            var newContext = viewController.AddVFXContext(new Vector2(300, 2000), context.variant);
             viewController.ApplyChanges();
 
             var contextController = viewController.nodes
@@ -316,7 +318,7 @@ namespace UnityEditor.VFX.Test
 
             var initContextDesc = VFXLibrary.GetContexts().First(t => typeof(VFXBasicInitialize).IsAssignableFrom(t.modelType));
 
-            var newContext = viewController.AddVFXContext(new Vector2(300, 100), initContextDesc);
+            var newContext = viewController.AddVFXContext(new Vector2(300, 100), initContextDesc.variant);
             viewController.ApplyChanges();
 
             var allChildContextControllers = viewController.allChildren.OfType<VFXContextController>().ToArray();
@@ -328,7 +330,7 @@ namespace UnityEditor.VFX.Test
 
             // Adding every block compatible with an init context
 
-            var blockDesc = new VFXModelDescriptor<VFXBlock>(ScriptableObject.CreateInstance<AllType>());
+            var blockDesc = new VFXModelDescriptor<VFXBlock>(new Variant(null, null, typeof(AllType), null), null);
 
             var newBlock = blockDesc.CreateInstance();
             contextController.AddBlock(0, newBlock);
@@ -400,7 +402,7 @@ namespace UnityEditor.VFX.Test
 
             var builtInItem = VFXLibrary.GetOperators().First(t => typeof(VFXDynamicBuiltInParameter).IsAssignableFrom(t.modelType));
 
-            var builtIn = viewController.AddVFXOperator(Vector2.zero, builtInItem);
+            var builtIn = viewController.AddVFXOperator(Vector2.zero, builtInItem.variant);
 
             yield return null;
 
@@ -429,14 +431,14 @@ namespace UnityEditor.VFX.Test
         VFXOperator[] CreateAllOperators(VFXViewController viewController)
         {
             return VFXLibrary.GetOperators()
-                .Select((x, i) => viewController.AddVFXOperator(new Vector2(700, 150 * i), x))
+                .Select((x, i) => viewController.AddVFXOperator(new Vector2(700, 150 * i), x.variant))
                 .ToArray();
         }
 
         VFXParameter[] CreateAllParameters(VFXViewController viewController)
         {
             return VFXLibrary.GetParameters()
-                .Select((x, i) => viewController.AddVFXParameter(new Vector2(-400, 150 * i), x))
+                .Select((x, i) => viewController.AddVFXParameter(new Vector2(-400, 150 * i), x.variant))
                 .ToArray();
         }
 
@@ -500,7 +502,7 @@ namespace UnityEditor.VFX.Test
             var sphereOperatorDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "Sphere");
 
             var window = EditorWindow.GetWindow<VFXViewWindow>(null, true);
-            var sphereOperator = vfxController.AddVFXOperator(new Vector2(4, 4), sphereOperatorDesc);
+            var sphereOperator = vfxController.AddVFXOperator(new Vector2(4, 4), sphereOperatorDesc.variant);
             vfxController.ApplyChanges();
 
             var sphereNode = window.graphView.GetAllNodes().Single(x => x.controller.model == sphereOperator);
@@ -528,10 +530,10 @@ namespace UnityEditor.VFX.Test
             var op = ScriptableObject.CreateInstance<VFXInlineOperator>();
             op.SetSettingValue("m_Type", (SerializableType)typeof(SkinnedMeshRenderer));
 
-            var inlineSkinnedMeshRendererDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.model is VFXInlineOperator && o.name == VFXTypeExtension.UserFriendlyName(typeof(SkinnedMeshRenderer)));
-            Assert.IsNotNull(inlineSkinnedMeshRendererDesc);
+            var inlineSkinnedMeshRendererDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.modelType == typeof(VFXInlineOperator) && o.name == typeof(SkinnedMeshRenderer).UserFriendlyName());
+            Assert.IsNotNull(inlineSkinnedMeshRendererDesc.variant);
             var window = EditorWindow.GetWindow<VFXViewWindow>(null, true);
-            var skinnedMeshInlineOperator = vfxController.AddVFXOperator(new Vector2(4, 4), inlineSkinnedMeshRendererDesc);
+            var skinnedMeshInlineOperator = vfxController.AddVFXOperator(new Vector2(4, 4), inlineSkinnedMeshRendererDesc.variant);
 
             vfxController.ApplyChanges();
             yield return null;
@@ -546,10 +548,10 @@ namespace UnityEditor.VFX.Test
             var descriptors = nodeProvider.GetDescriptorsForInternalTest().ToArray();
             Assert.IsNotEmpty(descriptors);
 
-            var operatorDescriptors = descriptors.Select(o => o.modelDescriptor).OfType<VFXModelDescriptor<VFXOperator>>().ToArray();
+            var operatorDescriptors = descriptors.Where(o => o.modelType.IsSubclassOf(typeof(VFXOperator))).ToArray();
             Assert.IsNotEmpty(operatorDescriptors);
 
-            var skinnedMeshSampleDescriptor = operatorDescriptors.Where(o => o.model is Operator.SampleMesh).ToArray();
+            var skinnedMeshSampleDescriptor = operatorDescriptors.Where(o => o.modelType == typeof(SampleMesh)).ToArray();
             Assert.AreEqual(1u, skinnedMeshSampleDescriptor.Length);
             Assert.IsTrue(skinnedMeshSampleDescriptor[0].name.Contains("Skin"));
         }
@@ -562,7 +564,7 @@ namespace UnityEditor.VFX.Test
             var sphereOperatorDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "Sphere");
 
             var window = EditorWindow.GetWindow<VFXViewWindow>(null, true);
-            var sphereOperator = vfxController.AddVFXOperator(new Vector2(4, 4), sphereOperatorDesc);
+            var sphereOperator = vfxController.AddVFXOperator(new Vector2(4, 4), sphereOperatorDesc.variant);
             vfxController.ApplyChanges();
 
             // Check the focus is in the graph (so that "space" shortcut will work)
@@ -805,7 +807,7 @@ namespace UnityEditor.VFX.Test
             var initializeContextDesc = VFXLibrary.GetContexts().FirstOrDefault(o => o.name == "Initialize Particle");
 
             var window = EditorWindow.GetWindow<VFXViewWindow>(null, true);
-            var initializeContext = vfxController.AddVFXContext(new Vector2(4, 4), initializeContextDesc) as VFXBasicInitialize;
+            var initializeContext = vfxController.AddVFXContext(new Vector2(4, 4), initializeContextDesc.variant) as VFXBasicInitialize;
             vfxController.ApplyChanges();
             yield return null;
 
@@ -931,8 +933,8 @@ namespace UnityEditor.VFX.Test
             {
                 return VFXLibrary.GetBlocks()
                     .Where(x => predicate(x))
-                    .GroupBy(x => x.category)
-                    .Select(x => x.First())
+                    //.GroupBy(x => x.category)
+                    //.Select(x => x.First())
                     .ToArray();
             }
             else

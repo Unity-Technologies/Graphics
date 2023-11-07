@@ -3,7 +3,7 @@ using UnityEngine;
 namespace UnityEditor.VFX
 {
     [VFXHelpURL("Block-ConstantRate")]
-    [VFXInfo(category = "Spawn")]
+    [VFXInfo(name = "Constant Spawn Rate", category = "Spawn")]
     class VFXSpawnerConstantRate : VFXAbstractSpawner
     {
         public override string name { get { return "Constant Spawn Rate"; } }

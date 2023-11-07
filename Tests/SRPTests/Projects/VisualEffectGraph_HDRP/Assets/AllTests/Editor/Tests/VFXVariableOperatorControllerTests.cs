@@ -45,8 +45,8 @@ namespace UnityEditor.VFX.Test
 
         VFXNodeController CreateNew(string name, Vector2 position, Type nodeType = null)
         {
-            var desc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name.Contains(name) && (nodeType == null || o.modelType == nodeType));
-            var op = m_ViewController.AddVFXOperator(position, desc);
+            var desc = VFXLibrary.GetOperators().FirstOrDefault(o => o.variant.name == name && (nodeType == null || o.variant.modelType == nodeType));
+            var op = m_ViewController.AddVFXOperator(position, desc.variant);
             m_ViewController.LightApplyChanges();
 
             return m_ViewController.GetRootNodeController(op, 0);

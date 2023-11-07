@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.VFX.Block
 {
     [VFXHelpURL("Block-TriggerEventAlways")]
-    [VFXInfo(category = "GPUEvent", experimental = true)]
+    [VFXInfo(name = "Trigger Event Always", category = "GPUEvent", experimental = true)]
     class GPUEventAlways : VFXBlock
     {
         public override string name { get { return "Trigger Event Always"; } }

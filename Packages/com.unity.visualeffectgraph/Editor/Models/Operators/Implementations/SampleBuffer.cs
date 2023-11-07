@@ -7,7 +7,7 @@ using UnityEngine.VFX;
 namespace UnityEditor.VFX.Operator
 {
     [VFXHelpURL("Operator-SampleBuffer")]
-    [VFXInfo(category = "Sampling")]
+    [VFXInfo(name = "Sample Graphics Buffer", category = "Sampling")]
     class SampleBuffer : VFXOperatorDynamicType
     {
         public override IEnumerable<int> staticSlotIndex

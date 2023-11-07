@@ -62,7 +62,9 @@ namespace UnityEditor.VFX
             return models.OfType<VFXParameter>().Where(predicate).OrderBy(t => t.order);
         }
     }
-    [VFXInfo]
+
+    [VFXHelpURL("Subgraph")]
+    [VFXInfo(name = "Empty Subgraph Operator")]
     class VFXSubgraphOperator : VFXOperator, IVFXAttributeUsage
     {
         bool m_IsMissing;

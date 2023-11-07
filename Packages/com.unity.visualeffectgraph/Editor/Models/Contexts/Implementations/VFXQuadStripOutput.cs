@@ -5,7 +5,7 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
-    [VFXInfo(experimental = true)]
+    [VFXInfo(name = "Output ParticleStrip Quad", category = "Output", experimental = true)]
     class VFXQuadStripOutput : VFXShaderGraphParticleOutput
     {
         [VFXSetting, SerializeField, Tooltip("Specifies the way the UVs are interpolated along the strip. They can either be stretched or repeated per segment.")]

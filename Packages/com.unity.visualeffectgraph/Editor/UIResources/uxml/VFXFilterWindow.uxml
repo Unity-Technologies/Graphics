@@ -1,0 +1,55 @@
+<ui:UXML
+        xmlns:ui="UnityEngine.UIElements"
+        xmlns:uie="UnityEditor.UIElements"
+        editor-extension-mode="False">
+    <ui:TwoPaneSplitView name="SplitPanel"
+                         fixedPaneIndex="0"
+                         fixed-pane-initial-dimension="350"
+                         orientation="Horizontal">
+        <ui:VisualElement name="ListOfNodesPanel">
+            <ui:VisualElement name="Header">
+                <uie:ToolbarSearchField name="SearchField" />
+                <ui:Toggle name="ListVariantToggle"
+                           tooltip="Toggle sub-variants visibility in search results and favorites"
+                           />
+                <ui:Toggle name="CollapseButton"
+                           tooltip="Show details panel"
+                           />
+            </ui:VisualElement>
+            <ui:TreeView name="ListOfNodes"
+                         selectionType="Single"
+                         virtualizationMethod="FixedHeight"
+                         fixedItemHeight = "24"
+                         />
+        </ui:VisualElement>
+        <ui:VisualElement name="DetailsPanel">
+            <ui:VisualElement name="TitleAndDoc">
+                <uie:ToolbarBreadcrumbs name="Breadcrumbs" />
+                <ui:Button name="HelpButton"
+                           tooltip="Open node documentation in a browser"
+                           />
+            </ui:VisualElement>
+            <ui:TreeView name="ListOfVariants"
+                         selectionType="Single"
+                         virtualizationMethod="FixedHeight"
+                         fixedItemHeight = "24"
+                         />
+            <ui:Label name="CategoryLabel"
+                      text="Pick a color to customize the category folder icon"
+                      />
+            <ui:VisualElement name="ColorFieldRow">
+                <uie:ColorField name="CategoryColorField"
+                                label="Set Custom color"
+                                value="#FFFFFF"
+                                />
+                <ui:Button name="ResetButton"
+                           tooltip="Reset color to default"
+                           />
+            </ui:VisualElement>
+            <ui:Label name="NoSubvariantLabel"
+                      text="No variant available for this node"
+                      />
+        </ui:VisualElement>
+    </ui:TwoPaneSplitView>
+    <ui:VisualElement name="Resizer" />
+</ui:UXML>

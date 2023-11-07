@@ -39,7 +39,7 @@ namespace UnityEditor.VFX.Test
 
             var add = ScriptableObject.CreateInstance<Operator.Add>();
             var length = ScriptableObject.CreateInstance<Operator.Length>();
-            var float4 = VFXLibrary.GetParameters().First(o => o.name == "Vector4").CreateInstance();
+            var float4 = VFXLibrary.GetParameters().First(o => o.modelType == typeof(Vector4)).CreateInstance();
 
             graph.AddChild(updateContext);
             updateContext.AddChild(blockSetVelocity);

@@ -6,8 +6,14 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Operator
 {
+    class SampleMeshVertexCountProvider : SampleMeshProvider
+    {
+        protected override string nameTemplate { get; } = "Get {0} Vertex Count";
+        protected override Type operatorType { get; } = typeof(MeshVertexCount);
+    }
+
     [VFXHelpURL("Operator-MeshVertexCount")]
-    [VFXInfo(category = "Sampling", variantProvider = typeof(SampleMeshProvider))]
+    [VFXInfo(variantProvider = typeof(SampleMeshVertexCountProvider))]
     class MeshVertexCount : VFXOperator
     {
         override public string name

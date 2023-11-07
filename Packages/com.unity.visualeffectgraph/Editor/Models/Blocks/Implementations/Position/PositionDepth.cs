@@ -6,7 +6,7 @@ using UnityEngine.VFX;
 namespace UnityEditor.VFX.Block
 {
     [VFXHelpURL("Block-SetPosition(Depth)")]
-    [VFXInfo(category = "Attribute/position/Composition/Set")]
+    [VFXInfo(name = "Set Position (Depth)", category = "Position")]
     class PositionDepth : VFXBlock
     {
         public enum PositionMode

@@ -5,16 +5,18 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    class MathBaseVariantProvider : VariantProvider
+    class MathExpVariantProvider : VariantProvider
     {
-        protected sealed override Dictionary<string, object[]> variants { get; } = new Dictionary<string, object[]>
+        public override IEnumerable<Variant> GetVariants()
         {
-            {"_base", Enum.GetValues(typeof(VFXOperatorUtility.Base)).Cast<object>().ToArray()}
-        };
+            yield return new Variant($"Exp2", "Math/Exp", typeof(Exp), new[] {new KeyValuePair<string, object>("_base", VFXOperatorUtility.Base.Base2)}, null, new []{ "exponential" });
+            yield return new Variant($"Exp10", "Math/Exp", typeof(Exp), new[] {new KeyValuePair<string, object>("_base", VFXOperatorUtility.Base.Base10)}, null, new []{ "exponential" });
+            yield return new Variant($"Exp", "Math/Exp", typeof(Exp), new[] {new KeyValuePair<string, object>("_base", VFXOperatorUtility.Base.BaseE)}, null, new []{ "exponential" });
+        }
     }
 
     [VFXHelpURL("Operator-Exp")]
-    [VFXInfo(category = "Math/Exp", variantProvider = typeof(MathBaseVariantProvider))]
+    [VFXInfo(variantProvider = typeof(MathExpVariantProvider))]
     class Exp : VFXOperatorNumericUniform
     {
         [VFXSetting, SerializeField, Tooltip("Specifies the base of the exponential")]

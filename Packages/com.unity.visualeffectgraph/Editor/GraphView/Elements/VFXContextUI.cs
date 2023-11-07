@@ -43,9 +43,15 @@ namespace UnityEditor.VFX.UI
         }
         protected override void OnNewController()
         {
-            var blocks = new List<VFXModelDescriptor<VFXBlock>>(VFXLibrary.GetBlocks());
-
-            m_CanHaveBlocks = blocks.Any(t => controller.model.AcceptChild(t.model));
+            foreach (var descriptor in VFXLibrary.GetBlocks())
+            {
+                var model = descriptor.CreateInstance();
+                if (controller.model.AcceptChild(model))
+                {
+                    m_CanHaveBlocks = true;
+                    break;
+                }
+            }
         }
 
         public bool canHaveBlocks { get => m_CanHaveBlocks; }
@@ -76,20 +82,28 @@ namespace UnityEditor.VFX.UI
             Profiler.BeginSample("VFXContextUI.CreateBlockProvider");
             if (m_BlockProvider == null)
             {
-                m_BlockProvider = new VFXBlockProvider(controller, (d, mPos) =>
+                m_BlockProvider = new VFXBlockProvider(controller, (variant, mPos) =>
                 {
-                    if (d is VFXBlockProvider.NewBlockDescriptor)
+                    if (variant.modelType != typeof(VisualEffectSubgraphBlock))
                     {
                         UpdateSelectionWithNewBlocks();
-                        AddBlock(mPos, (d as VFXBlockProvider.NewBlockDescriptor).newBlock);
+                        AddBlock(mPos, variant);
                     }
                     else
                     {
-                        var subgraphBlock = AssetDatabase.LoadAssetAtPath<VisualEffectSubgraphBlock>((d as VFXBlockProvider.SubgraphBlockDescriptor).item.path);
+                        var path = variant.settings.Single(x => x.Key == "path").Value as string;
+                        var subgraphBlock = AssetDatabase.LoadAssetAtPath<VisualEffectSubgraphBlock>(path);
                         var view = GetFirstAncestorOfType<VFXView>();
                         var graph = subgraphBlock.GetResource().GetOrCreateGraph();
                         if (view.HasCustomAttributeConflicts(graph.attributesManager.GetCustomAttributes()))
                         {
+                            return;
+                        }
+
+                        // Prevent cyclic recursion
+                        if (controller.model.GetGraph() == graph)
+                        {
+                            Debug.LogWarning("Cannot add this subgraph because it would create a cyclic recursion");
                             return;
                         }
 
@@ -98,10 +112,8 @@ namespace UnityEditor.VFX.UI
 
                         newModel.SetSettingValue("m_Subgraph", subgraphBlock);
                         UpdateSelectionWithNewBlocks();
-                        using (var growContext = new GrowContext(this))
-                        {
-                            controller.AddBlock(blockIndex, newModel, true);
-                        }
+                        using var growContext = new GrowContext(this);
+                        controller.AddBlock(blockIndex, newModel, true);
                     }
                 });
             }
@@ -750,7 +762,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        void AddBlock(Vector2 position, VFXModelDescriptor<VFXBlock> descriptor)
+        void AddBlock(Vector2 position, Variant variant)
         {
             int blockIndex = -1;
 
@@ -774,7 +786,7 @@ namespace UnityEditor.VFX.UI
 
             using (new GrowContext(this))
             {
-                controller.AddBlock(blockIndex, descriptor.CreateInstance(), true /* freshly created block, should init space */);
+                controller.AddBlock(blockIndex, (VFXBlock)variant.CreateInstance(), true /* freshly created block, should init space */);
             }
         }
 
@@ -791,8 +803,7 @@ namespace UnityEditor.VFX.UI
 
             Vector2 screenPosition = view.ViewToScreenPosition(referencePosition);
 
-            var window = VFXViewWindow.GetWindow(view);
-            VFXFilterWindow.Show(window, referencePosition, screenPosition, m_BlockProvider);
+            VFXFilterWindow.Show(referencePosition, screenPosition, m_BlockProvider);
         }
 
         VFXBlockProvider m_BlockProvider = null;
@@ -833,53 +844,43 @@ namespace UnityEditor.VFX.UI
 
         private class VFXContextOnlyVFXNodeProvider : VFXNodeProvider
         {
-            public VFXContextOnlyVFXNodeProvider(VFXViewController controller, Action<Descriptor, Vector2> onAddBlock, Func<Descriptor, bool> filter) :
+            public VFXContextOnlyVFXNodeProvider(VFXViewController controller, Action<Variant, Vector2> onAddBlock, Func<IVFXModelDescriptor, bool> filter) :
                 base(controller, onAddBlock, filter, new Type[] { typeof(VFXContext) })
             {
             }
-
-            protected override string GetCategory(Descriptor desc)
-            {
-                return string.Empty;
-            }
         }
 
-        bool ProviderFilter(VFXNodeProvider.Descriptor d)
+        bool ProviderFilter(IVFXModelDescriptor descriptor)
         {
-            VFXModelDescriptor desc = d.modelDescriptor as VFXModelDescriptor;
-            if (desc == null)
+            if (!descriptor.modelType.IsSubclassOf(typeof(VFXAbstractParticleOutput)))
                 return false;
-
-            if (!(desc.model is VFXAbstractParticleOutput))
-                return false;
-
+            var toContext = (VFXContext)descriptor.CreateInstance();
             foreach (var links in controller.model.inputFlowSlot.Select((t, i) => new { index = i, links = t.link }))
             {
                 foreach (var link in links.links)
                 {
-                    if (!VFXContext.CanLink(link.context, (VFXContext)desc.model, links.index, link.slotIndex))
+                    if (!VFXContext.CanLink(link.context, toContext, links.index, link.slotIndex))
                         return false;
                 }
             }
 
-            return (desc.model as VFXContext).contextType == VFXContextType.Output;
+            return toContext.contextType == VFXContextType.Output;
         }
 
         void OnConvertContext(DropdownMenuAction action)
         {
             VFXView view = this.GetFirstAncestorOfType<VFXView>();
-            var window = VFXViewWindow.GetWindow(view);
-            VFXFilterWindow.Show(window, action.eventInfo.mousePosition, view.ViewToScreenPosition(action.eventInfo.mousePosition), new VFXContextOnlyVFXNodeProvider(view.controller, ConvertContext, ProviderFilter));
+            VFXFilterWindow.Show(action.eventInfo.mousePosition, view.ViewToScreenPosition(action.eventInfo.mousePosition), new VFXContextOnlyVFXNodeProvider(view.controller, ConvertContext, ProviderFilter));
         }
 
-        void ConvertContext(VFXNodeProvider.Descriptor d, Vector2 mPos)
+        void ConvertContext(Variant variant, Vector2 mPos)
         {
             VFXView view = GetFirstAncestorOfType<VFXView>();
             VFXViewController viewController = controller.viewController;
             if (view == null) return;
 
             mPos = view.contentViewContainer.ChangeCoordinatesTo(view, controller.position);
-            var newNodeController = view.AddNode(d, mPos);
+            var newNodeController = view.AddNode(variant, mPos);
             var newContextController = newNodeController as VFXContextController;
             newContextController.model.label = controller.model.label;
 

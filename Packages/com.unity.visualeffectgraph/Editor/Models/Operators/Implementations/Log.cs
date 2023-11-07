@@ -1,11 +1,21 @@
 using System;
-
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
+    class MathLogVariantProvider : VariantProvider
+    {
+        public override IEnumerable<Variant> GetVariants()
+        {
+            yield return new Variant($"Log2", "Math/Log", typeof(Log), new[] {new KeyValuePair<string, object>("_base", VFXOperatorUtility.Base.Base2)}, null, new []{ "Logarithm" });
+            yield return new Variant($"Log10", "Math/Log", typeof(Log), new[] {new KeyValuePair<string, object>("_base", VFXOperatorUtility.Base.Base10)}, null, new []{ "Logarithm" });
+            yield return new Variant($"Log", "Math/Log", typeof(Log), new[] {new KeyValuePair<string, object>("_base", VFXOperatorUtility.Base.BaseE)}, null, new []{ "Logarithm" });
+        }
+    }
+
     [VFXHelpURL("Operator-Log")]
-    [VFXInfo(category = "Math/Log", variantProvider = typeof(MathBaseVariantProvider))]
+    [VFXInfo(variantProvider = typeof(MathLogVariantProvider))]
     class Log : VFXOperatorNumericUniform
     {
         [VFXSetting, SerializeField, Tooltip("Specifies the base of the logarithm")]

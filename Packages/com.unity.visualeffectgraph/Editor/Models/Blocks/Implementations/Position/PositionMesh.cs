@@ -3,22 +3,38 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.VFX;
-using UnityEngine.Rendering;
 using UnityEditor.VFX.Operator;
 
 namespace UnityEditor.VFX.Block
 {
     class PositionMeshProvider : VariantProvider
     {
-        protected sealed override Dictionary<string, object[]> variants { get; } = new Dictionary<string, object[]>
+        public override IEnumerable<Variant> GetVariants()
         {
-            {"sourceMesh", Enum.GetValues(typeof(SampleMesh.SourceType)).Cast<object>().ToArray()},
-            {"compositionPosition", new object[] { AttributeCompositionMode.Overwrite } }
-        };
+            yield return new Variant(
+                $"{VFXBlockUtility.GetNameString(AttributeCompositionMode.Overwrite)} Position (Mesh)",
+                "Position/Position on mesh",
+                typeof(PositionMesh),
+                new[]
+                {
+                    new KeyValuePair<string, object>("sourceMesh", SampleMesh.SourceType.Mesh),
+                    new KeyValuePair<string, object>("compositionPosition", AttributeCompositionMode.Overwrite)
+                });
+
+            yield return new Variant(
+                $"{VFXBlockUtility.GetNameString(AttributeCompositionMode.Overwrite)} Position (Skinned Mesh)",
+                "Position/Position on mesh",
+                typeof(PositionMesh),
+                new[]
+                {
+                    new KeyValuePair<string, object>("sourceMesh", SampleMesh.SourceType.SkinnedMeshRenderer),
+                    new KeyValuePair<string, object>("compositionPosition", AttributeCompositionMode.Overwrite)
+                });
+        }
     }
 
     [VFXHelpURL("Block-SetPosition(Mesh)")]
-    [VFXInfo(category = "Attribute/position/Composition/Set", variantProvider = typeof(PositionMeshProvider))]
+    [VFXInfo(variantProvider = typeof(PositionMeshProvider))]
     class PositionMesh : PositionBase
     {
         [VFXSetting, SerializeField, Tooltip("Specifies how Unity handles the sample when the custom vertex index is out the out of bounds of the vertex array.")]

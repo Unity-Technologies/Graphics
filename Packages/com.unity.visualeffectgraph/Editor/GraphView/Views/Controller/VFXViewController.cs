@@ -97,7 +97,7 @@ namespace UnityEditor.VFX.UI
         Dictionary<ScriptableObject, bool>[] modifiedModels = NewPrioritizedHashSet();
         Dictionary<ScriptableObject, bool>[] otherModifiedModels = NewPrioritizedHashSet();
 
-        public void OnObjectModified(VFXObject obj, bool uiChange)
+        private void OnObjectModified(VFXObject obj, bool uiChange)
         {
             // uiChange == false is stronger : if we have a uiChange and there was a nonUIChange before we keep the non uichange.
             if (!uiChange)
@@ -120,6 +120,7 @@ namespace UnityEditor.VFX.UI
                 return;
 
             target.onModified += OnObjectModified;
+
             List<Action> notifieds;
             if (m_Notified.TryGetValue(target, out notifieds))
             {
@@ -1191,23 +1192,23 @@ namespace UnityEditor.VFX.UI
             this.graph.AddChild(model);
         }
 
-        public VFXContext AddVFXContext(Vector2 pos, VFXModelDescriptor<VFXContext> desc)
+        public VFXContext AddVFXContext(Vector2 pos, Variant variant)
         {
-            VFXContext model = desc.CreateInstance();
+            VFXContext model = (VFXContext)variant.CreateInstance();
             AddVFXModel(pos, model);
             return model;
         }
 
-        public VFXOperator AddVFXOperator(Vector2 pos, VFXModelDescriptor<VFXOperator> desc)
+        public VFXOperator AddVFXOperator(Vector2 pos, Variant variant)
         {
-            var model = desc.CreateInstance();
+            var model = (VFXOperator)variant.CreateInstance();
             AddVFXModel(pos, model);
             return model;
         }
 
-        public VFXParameter AddVFXParameter(Vector2 pos, VFXModelDescriptorParameters desc, bool parent = true)
+        public VFXParameter AddVFXParameter(Vector2 pos, Variant variant, bool parent = true)
         {
-            var parameter = desc.CreateInstance();
+            var parameter = (VFXParameter)variant.CreateInstance();
             if (parent)
                 AddVFXModel(pos, parameter);
 
@@ -1221,7 +1222,7 @@ namespace UnityEditor.VFX.UI
                 order = m_ParameterControllers.Keys.Select(t => t.order).Max() + 1;
             }
             parameter.order = order;
-            parameter.SetSettingValue("m_ExposedName", string.Format("New {0}", type.UserFriendlyName()));
+            parameter.SetSettingValue("m_ExposedName", $"New {ObjectNames.NicifyVariableName(type.UserFriendlyName())}");
 
             if (!type.IsPrimitive)
             {
@@ -1246,42 +1247,37 @@ namespace UnityEditor.VFX.UI
             return nodeControllers.FirstOrDefault();
         }
 
-        public VFXNodeController AddNode(Vector2 tPos, object modelDescriptor, VFXGroupNodeController groupNode)
+        public VFXNodeController AddNode(Vector2 tPos, Variant variant, VFXGroupNodeController groupNode)
         {
             VFXModel newNode = null;
-            if (modelDescriptor is VFXModelDescriptor<VFXOperator>)
+            if (variant.modelType.IsSubclassOf(typeof(VFXOperator)))
             {
-                newNode = AddVFXOperator(tPos, (modelDescriptor as VFXModelDescriptor<VFXOperator>));
+                newNode = AddVFXOperator(tPos, variant);
             }
-            else if (modelDescriptor is VFXModelDescriptor<VFXContext>)
+            else if (variant.modelType.IsSubclassOf(typeof(VFXContext)))
             {
-                newNode = AddVFXContext(tPos, modelDescriptor as VFXModelDescriptor<VFXContext>);
+                newNode = AddVFXContext(tPos, variant);
             }
-            else if (modelDescriptor is VFXModelDescriptorParameters)
+            else if (variant.modelType == typeof(VFXParameter))
             {
-                newNode = AddVFXParameter(tPos, modelDescriptor as VFXModelDescriptorParameters);
+                newNode = AddVFXParameter(tPos, variant);
             }
             if (newNode != null)
             {
-                bool groupNodeChanged = false;
+                var groupNodeChanged = false;
                 SyncControllerFromModel(ref groupNodeChanged);
 
-                List<VFXNodeController> nodeControllers = null;
-                m_SyncedModels.TryGetValue(newNode, out nodeControllers);
+                m_SyncedModels.TryGetValue(newNode, out var nodeControllers);
 
-                if (newNode is VFXParameter)
+                if (newNode is VFXParameter newParameter)
                 {
-                    // Set an exposed name on a new parameter so that uncity is ensured
-                    VFXParameter newParameter = newNode as VFXParameter;
-                    m_ParameterControllers[newParameter].exposedName = string.Format("New {0}", newParameter.type.UserFriendlyName());
+                    // Set an exposed name on a new parameter so that uniqueness is ensured
+                    m_ParameterControllers[newParameter].exposedName = $"New {ObjectNames.NicifyVariableName(newParameter.type.UserFriendlyName())}";
                 }
 
                 NotifyChange(AnyThing);
 
-                if (groupNode != null)
-                {
-                    groupNode.AddNode(nodeControllers.First());
-                }
+                groupNode?.AddNode(nodeControllers.First());
 
                 return nodeControllers[0];
             }

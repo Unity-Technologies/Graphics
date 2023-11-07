@@ -4,8 +4,20 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
+    class PositionLineProvider : VariantProvider
+    {
+        public override IEnumerable<Variant> GetVariants()
+        {
+            yield return new Variant(
+                VFXBlockUtility.GetNameString(AttributeCompositionMode.Overwrite) + " Position (Shape: Line)",
+                "Position/Position on shape",
+                typeof(PositionLine),
+                new[] {new KeyValuePair<string, object>("compositionPosition", AttributeCompositionMode.Overwrite)});
+        }
+    }
+
     [VFXHelpURL("Block-SetPosition(Line)")]
-    [VFXInfo(category = "Attribute/position/Composition/{0}", variantProvider = typeof(PositionBaseProvider))]
+    [VFXInfo(variantProvider = typeof(PositionLineProvider))]
     class PositionLine : PositionBase
     {
         public override string name { get { return string.Format(base.name, "Line"); } }

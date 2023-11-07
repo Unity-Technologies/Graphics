@@ -2,26 +2,26 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
     class VFXSpawnerBurstVariantCollection : VariantProvider
     {
-        protected override sealed Dictionary<string, object[]> variants
+        public override IEnumerable<Variant> GetVariants()
         {
-            get
+            foreach (var mode in Enum.GetValues(typeof(VFXSpawnerBurst.RepeatMode)).Cast<VFXSpawnerBurst.RepeatMode>())
             {
-                return new Dictionary<string, object[]>
-                {
-                    { "repeat", Enum.GetValues(typeof(VFXSpawnerBurst.RepeatMode)).Cast<object>().ToArray() }
-                };
+                yield return new Variant(
+                    $"{mode} Burst",
+                    "Spawn",
+                    typeof(VFXSpawnerBurst),
+                    new[] { new KeyValuePair<string, object>("repeat", mode) });
             }
         }
     }
 
     [VFXHelpURL("Block-Burst")]
-    [VFXInfo(category = "Spawn", variantProvider = typeof(VFXSpawnerBurstVariantCollection))]
+    [VFXInfo(variantProvider = typeof(VFXSpawnerBurstVariantCollection))]
     class VFXSpawnerBurst : VFXAbstractSpawner
     {
         public enum RepeatMode

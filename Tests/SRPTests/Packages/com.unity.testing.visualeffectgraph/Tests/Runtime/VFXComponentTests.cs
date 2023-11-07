@@ -354,7 +354,7 @@ namespace UnityEditor.VFX.Test
                 graph.AddChild(output);
             }
 
-            var parameter = VFXLibrary.GetParameters().First(o => o.model.type == typeof(Texture2D)).CreateInstance();
+            var parameter = VFXLibrary.GetParameters().First(o => o.modelType == typeof(Texture2D)).CreateInstance();
             var type = VFXValueType.Texture2D;
 
             var targetTextureName = "exposed_test_tex2D";
@@ -418,7 +418,7 @@ namespace UnityEditor.VFX.Test
         {
             var graph_A = VFXTestCommon.MakeTemporaryGraph();
             var graph_B = VFXTestCommon.MakeTemporaryGraph();
-            var parametersVector3Desc = VFXLibrary.GetParameters().Where(o => o.model.type == typeof(Vector3)).First();
+            var parametersVector3Desc = VFXLibrary.GetParameters().Where(o => o.modelType == typeof(Vector3)).First();
 
             var commonExposedName = "vorfji";
             var parameter_A = parametersVector3Desc.CreateInstance();
@@ -458,8 +458,8 @@ namespace UnityEditor.VFX.Test
         public IEnumerator CreateComponent_Change_ExposedType_Keeping_Same_Name()
         {
             var graph = VFXTestCommon.MakeTemporaryGraph();
-            var parametersVector3Desc = VFXLibrary.GetParameters().Where(o => o.model.type == typeof(Vector3)).First();
-            var parametersGradientDesc = VFXLibrary.GetParameters().Where(o => o.model.type == typeof(Gradient)).First();
+            var parametersVector3Desc = VFXLibrary.GetParameters().Where(o => o.modelType == typeof(Vector3)).First();
+            var parametersGradientDesc = VFXLibrary.GetParameters().Where(o => o.modelType == typeof(Gradient)).First();
 
             var commonExposedName = "azerty";
             var parameter_A = parametersVector3Desc.CreateInstance();
@@ -502,7 +502,7 @@ namespace UnityEditor.VFX.Test
         public IEnumerator CreateComponent_Modify_Value_Doesnt_Reset([ValueSource("trueOrFalse")] bool modifyValue, [ValueSource("trueOrFalse")] bool modifyAssetValue)
         {
             var graph = VFXTestCommon.MakeTemporaryGraph();
-            var parametersVector2Desc = VFXLibrary.GetParameters().Where(o => o.model.type == typeof(Vector2)).First();
+            var parametersVector2Desc = VFXLibrary.GetParameters().Where(o => o.modelType == typeof(Vector2)).First();
 
             Vector2 expectedValue = new Vector2(1.0f, 2.0f);
 
@@ -619,7 +619,7 @@ namespace UnityEditor.VFX.Test
         {
             var graph = VFXTestCommon.MakeTemporaryGraph();
 
-            var parametersVector3Desc = VFXLibrary.GetParameters().Where(o => o.model.type == typeof(Vector3)).First();
+            var parametersVector3Desc = VFXLibrary.GetParameters().Where(o => o.modelType == typeof(Vector3)).First();
 
             var exposedName = "poiuyt";
             var parameter = parametersVector3Desc.CreateInstance();
@@ -1206,12 +1206,12 @@ namespace UnityEditor.VFX.Test
             //Check default Value_A & change to Value_B (At this stage, it's useless to access with SerializedProperty)
             foreach (var parameter in VFXLibrary.GetParameters())
             {
-                VFXValueType type = VFXTestCommon.s_supportedValueType.FirstOrDefault(e => VFXExpression.GetVFXValueTypeFromType(parameter.model.type) == e);
+                VFXValueType type = VFXTestCommon.s_supportedValueType.FirstOrDefault(e => VFXExpression.GetVFXValueTypeFromType(parameter.modelType) == e);
                 if (type == VFXValueType.None)
                     continue;
-                var currentName = commonBaseName + parameter.model.type.UserFriendlyName();
-                var baseValue = GetValue_A_Type(parameter.model.type);
-                var newValue = GetValue_B_Type(parameter.model.type);
+                var currentName = commonBaseName + parameter.modelType.UserFriendlyName();
+                var baseValue = GetValue_A_Type(parameter.modelType);
+                var newValue = GetValue_B_Type(parameter.modelType);
 
                 Assert.IsTrue(fnHas_UsingBindings(type, vfxComponent, currentName));
                 var currentValue = fnGet_UsingBindings(type, vfxComponent, currentName);
@@ -1223,7 +1223,7 @@ namespace UnityEditor.VFX.Test
                 {
                     Assert.IsTrue(fnCompareCurve((AnimationCurve)baseValue, (AnimationCurve)currentValue));
                 }
-                else if (parameter.model.type == typeof(Color))
+                else if (parameter.modelType == typeof(Color))
                 {
                     Color col = (Color)baseValue;
                     Assert.AreEqual(new Vector4(col.r, col.g, col.b, col.a), currentValue);
@@ -1240,11 +1240,11 @@ namespace UnityEditor.VFX.Test
             //Compare new setted values
             foreach (var parameter in VFXLibrary.GetParameters())
             {
-                VFXValueType type = VFXTestCommon.s_supportedValueType.FirstOrDefault(e => VFXExpression.GetVFXValueTypeFromType(parameter.model.type) == e);
+                VFXValueType type = VFXTestCommon.s_supportedValueType.FirstOrDefault(e => VFXExpression.GetVFXValueTypeFromType(parameter.modelType) == e);
                 if (type == VFXValueType.None)
                     continue;
-                var currentName = commonBaseName + parameter.model.type.UserFriendlyName();
-                var baseValue = GetValue_B_Type(parameter.model.type);
+                var currentName = commonBaseName + parameter.modelType.UserFriendlyName();
+                var baseValue = GetValue_B_Type(parameter.modelType);
                 if (bindingModes)
                     Assert.IsTrue(fnHas_UsingBindings(type, vfxComponent, currentName));
                 else
@@ -1275,13 +1275,13 @@ namespace UnityEditor.VFX.Test
             //Test ResetOverride function
             foreach (var parameter in VFXLibrary.GetParameters())
             {
-                VFXValueType type = VFXTestCommon.s_supportedValueType.FirstOrDefault(e => VFXExpression.GetVFXValueTypeFromType(parameter.model.type) == e);
+                VFXValueType type = VFXTestCommon.s_supportedValueType.FirstOrDefault(e => VFXExpression.GetVFXValueTypeFromType(parameter.modelType) == e);
                 if (type == VFXValueType.None)
                     continue;
-                var currentName = commonBaseName + parameter.model.type.UserFriendlyName();
+                var currentName = commonBaseName + parameter.modelType.UserFriendlyName();
                 vfxComponent.ResetOverride(currentName);
 
-                var baseValue = GetValue_A_Type(parameter.model.type);
+                var baseValue = GetValue_A_Type(parameter.modelType);
                 object currentValue = null;
                 if (bindingModes)
                     currentValue = fnGet_UsingBindings(type, vfxComponent, currentName);
@@ -1295,7 +1295,7 @@ namespace UnityEditor.VFX.Test
                 {
                     Assert.IsTrue(fnCompareCurve((AnimationCurve)baseValue, (AnimationCurve)currentValue));
                 }
-                else if (parameter.model.type == typeof(Color))
+                else if (parameter.modelType == typeof(Color))
                 {
                     Color col = (Color)baseValue;
                     Assert.AreEqual(new Vector4(col.r, col.g, col.b, col.a), currentValue);
@@ -1308,7 +1308,7 @@ namespace UnityEditor.VFX.Test
                 if (!bindingModes)
                 {
                     var internalValue = fnGet_UsingBindings(type, vfxComponent, currentName);
-                    var originalAssetValue = GetValue_A_Type(parameter.model.type);
+                    var originalAssetValue = GetValue_A_Type(parameter.modelType);
 
                     if (type == VFXValueType.ColorGradient)
                     {
@@ -1318,7 +1318,7 @@ namespace UnityEditor.VFX.Test
                     {
                         Assert.IsTrue(fnCompareCurve((AnimationCurve)originalAssetValue, (AnimationCurve)internalValue));
                     }
-                    else if (parameter.model.type == typeof(Color))
+                    else if (parameter.modelType == typeof(Color))
                     {
                         Color col = (Color)originalAssetValue;
                         Assert.AreEqual(new Vector4(col.r, col.g, col.b, col.a), internalValue);

@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+
 using UnityEngine;
-using UnityEditor.VFX;
 using UnityEditor.VFX.UI;
 using UnityEngine.VFX;
 using UnityEngine.Profiling;
@@ -58,8 +58,7 @@ namespace UnityEditor.VFX
             kInitValueChanged,              // A value has changed in a spawn/init context and may require a reinit
         }
 
-        public new virtual string name { get { return string.Empty; } }
-        public virtual string libraryName { get { return name; } }
+        public new virtual string name => string.Empty;
 
         public delegate void InvalidateEvent(VFXModel model, InvalidationCause cause);
 

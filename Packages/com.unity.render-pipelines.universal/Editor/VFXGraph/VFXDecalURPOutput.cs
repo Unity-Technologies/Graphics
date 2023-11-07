@@ -1,24 +1,21 @@
 ﻿#if HAS_VFX_GRAPH
-
-using System;
 using System.Linq;
 using System.Collections.Generic;
+
 using UnityEngine;
-using UnityEngine.Rendering;
-using UnityEngine.Rendering.Universal;
-using UnityEngine.Serialization;
 
 namespace UnityEditor.VFX.URP
 {
-    [VFXInfo]
+    [VFXHelpURL("Context-OutputParticleURPLitDecal")]
+    [VFXInfo(name = "Output Particle URP Decal", category = "Output")]
     internal class VFXDecalURPOutput : VFXAbstractParticleURPLitOutput
     {
         public override string name => "Output Particle URP Decal";
 
-        public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleURPDecal"); } }
+        public override string codeGeneratorTemplate => RenderPipeTemplate("VFXParticleURPDecal");
 
-        public override VFXTaskType taskType { get { return VFXTaskType.ParticleHexahedronOutput; } }
-        public override bool supportsUV { get { return GetOrRefreshShaderGraphObject() == null; } }
+        public override VFXTaskType taskType => VFXTaskType.ParticleHexahedronOutput;
+        public override bool supportsUV => GetOrRefreshShaderGraphObject() == null;
 
         //TODO: Factorize this, we have the same a bit everywhere
         public override IEnumerable<VFXAttributeInfo> attributes

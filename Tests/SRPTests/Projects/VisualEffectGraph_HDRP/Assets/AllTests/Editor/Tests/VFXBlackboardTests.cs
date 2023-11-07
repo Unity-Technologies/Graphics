@@ -508,8 +508,8 @@ namespace UnityEditor.VFX.Test
             var blackboard2 = window.graphView.blackboard;
             yield return null;
 
-            var modelDescriptor = VFXLibrary.GetOperators().Single(x => x.model is VFXSubgraphOperator);
-            var subgraphOperator = window2.graphView.controller.AddVFXOperator(Vector2.zero, modelDescriptor);
+            var modelDescriptor = VFXLibrary.GetOperators().Single(x => x.modelType == typeof(VFXSubgraphOperator));
+            var subgraphOperator = window2.graphView.controller.AddVFXOperator(Vector2.zero, modelDescriptor.variant);
             subgraphOperator.SetSettingValue("m_Subgraph", subgraph);
             window2.graphView.controller.ApplyChanges();
             window2.graphView.OnSave();
@@ -604,7 +604,7 @@ namespace UnityEditor.VFX.Test
             var subgraphGraph = subgraph.GetResource().GetOrCreateGraph();
             subgraphGraph.TryAddCustomAttribute("myattribute", VFXValueType.Boolean, string.Empty, false, out var attribute);
             var subgraphBlockContext = (VFXBlockSubgraphContext)subgraphGraph.children.Single(x => x is VFXBlockSubgraphContext);
-            var setAttribute = (SetAttribute)VFXLibrary.GetBlocks().Single(x => x.name == "Set Custom Attribute").CreateInstance();
+            var setAttribute = (SetAttribute)VFXLibrary.GetBlocks().First(x => x.modelType == typeof(SetAttribute)).CreateInstance();
             setAttribute.SetSettingValue("attribute", attribute.name);
             subgraphBlockContext.AddChild(setAttribute);
             var subgraphBlock = (VFXSubgraphBlock)VFXLibrary.GetBlocks().Single(x => x.model is VFXSubgraphBlock).CreateInstance();
@@ -662,7 +662,7 @@ namespace UnityEditor.VFX.Test
             var subgraph = VFXTestCommon.MakeTemporarySubGraphOperator();
             var subgraphGraph = subgraph.GetResource().GetOrCreateGraph();
             subgraphGraph.TryAddCustomAttribute("myattribute", VFXValueType.Boolean, string.Empty, false, out var attribute);
-            var getAttribute = (VFXAttributeParameter)VFXLibrary.GetOperators().Single(x => x.name == "Get CustomAttribute").CreateInstance();
+            var getAttribute = (VFXAttributeParameter)VFXLibrary.GetOperators().First(x => x.modelType == typeof(VFXAttributeParameter)).CreateInstance();
             getAttribute.SetSettingValue("attribute", attribute.name);
             subgraphGraph.AddChild(getAttribute);
             var subgraphOperator = (VFXSubgraphOperator)VFXLibrary.GetOperators().Single(x => x.model is VFXSubgraphOperator).CreateInstance();

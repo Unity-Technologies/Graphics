@@ -3,7 +3,7 @@ using UnityEngine;
 namespace UnityEditor.VFX.Operator
 {
     [VFXHelpURL("Operator-BufferCount")]
-    [VFXInfo(category = "Sampling")]
+    [VFXInfo(name = "Graphics Buffer Count", category = "Sampling")]
     class BufferCount : VFXOperator
     {
         public override string name { get { return "Graphics Buffer Count"; } }

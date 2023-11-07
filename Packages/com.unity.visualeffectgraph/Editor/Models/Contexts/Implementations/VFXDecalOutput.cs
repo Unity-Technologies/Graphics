@@ -6,7 +6,7 @@ using UnityEngine;
 namespace UnityEditor.VFX
 {
     [VFXHelpURL("Context-OutputForwardDecal")]
-    [VFXInfo]
+    [VFXInfo(name = "Output Particle Forward Decal", category = "Output")]
     class VFXDecalOutput : VFXAbstractParticleOutput
     {
         public override string name { get { return "Output Particle Forward Decal"; } }

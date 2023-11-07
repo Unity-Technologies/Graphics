@@ -1,11 +1,11 @@
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.VFX.Block;
+
 using UnityEngine;
 
 namespace UnityEditor.VFX.HDRP
 {
-    [VFXInfo(experimental = true)]
+    [VFXInfo(name = "Output ParticleStrip HDRP Lit Quad", category = "Output", experimental = true)]
     class VFXLitQuadStripOutput : VFXAbstractParticleHDRPLitOutput
     {
         protected VFXLitQuadStripOutput() : base(true) { }  // strips

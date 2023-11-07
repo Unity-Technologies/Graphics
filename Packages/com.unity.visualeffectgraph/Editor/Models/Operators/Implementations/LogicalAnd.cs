@@ -3,7 +3,7 @@ using UnityEngine;
 namespace UnityEditor.VFX.Operator
 {
     [VFXHelpURL("Operator-LogicAnd")]
-    [VFXInfo(category = "Logic")]
+    [VFXInfo(name = "And", category = "Logic")]
     class LogicalAnd : VFXOperator
     {
         override public string name { get { return "And"; } }

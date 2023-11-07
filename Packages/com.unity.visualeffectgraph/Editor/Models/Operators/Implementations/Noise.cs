@@ -1,21 +1,36 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
+using UnityEditor.VFX.Block;
 using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
     class NoiseVariantProvider : VariantProvider
     {
-        protected sealed override Dictionary<string, object[]> variants { get; } = new Dictionary<string, object[]>
+        public override IEnumerable<Variant> GetVariants()
         {
-            {"type", Enum.GetValues(typeof(NoiseBase.NoiseType)).Cast<object>().ToArray()},
-            {"dimensions", Enum.GetValues(typeof(Noise.DimensionCount)).Cast<object>().ToArray()}
-        };
+            foreach (var type in Enum.GetValues(typeof(NoiseBase.NoiseType)).Cast<NoiseBase.NoiseType>())
+            {
+                foreach (var dimension in Enum.GetValues(typeof(Noise.DimensionCount)).Cast<Noise.DimensionCount>())
+                {
+                    yield return new Variant(
+                        $"{type} Noise {VFXBlockUtility.GetNameString(dimension)}",
+                        $"Noise",
+                        typeof(Noise),
+                        new[]
+                        {
+                            new KeyValuePair<string, object>("type", type),
+                            new KeyValuePair<string, object>("dimensions", dimension)
+                        });
+                }
+            }
+        }
     }
 
     [VFXHelpURL("Operator-CellularNoise")]
-    [VFXInfo(category = "Noise", variantProvider = typeof(NoiseVariantProvider))]
+    [VFXInfo(variantProvider = typeof(NoiseVariantProvider))]
     class Noise : NoiseBase
     {
         public class InputPropertiesRange

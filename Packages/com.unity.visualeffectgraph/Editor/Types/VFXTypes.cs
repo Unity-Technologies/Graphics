@@ -182,7 +182,7 @@ namespace UnityEditor.VFX
         public static AABox defaultValue = new AABox { size = Vector3.one };
     }
 
-    [VFXType, Serializable]
+    [VFXType(name:"Plane"), Serializable]
     struct Plane
     {
         public Plane(Vector3 direction) { position = Vector3.zero; normal = direction; }
@@ -195,7 +195,7 @@ namespace UnityEditor.VFX
         public static Plane defaultValue = new Plane { normal = Vector3.up };
     }
 
-    [VFXType, Serializable]
+    [VFXType(name:"Line"), Serializable]
     struct Line
     {
         [Tooltip("Sets the start position of the line."), VFXSpace(SpaceableType.Position)]

@@ -3,7 +3,7 @@ using UnityEngine;
 namespace UnityEditor.VFX.Operator
 {
     [VFXHelpURL("Operator-Volume(Cone)")]
-    [VFXInfo(category = "Math/Geometry")]
+    [VFXInfo(name = "Volume (Cone)", category = "Math/Geometry")]
     class ConeVolume : VFXOperator
     {
         public class InputProperties

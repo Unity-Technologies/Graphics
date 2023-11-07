@@ -572,8 +572,11 @@ namespace UnityEditor.VFX.Test
             graph = VFXTestCommon.CreateGraph_And_System();
             view = VFXViewWindow.GetWindow(graph, true, true);
             view.LoadResource(graph.visualEffectResource);
-            view.graphView.controller.contexts.Single(x => x.model is VFXBasicInitialize).model.AddChild(hlslBlock);
-            view.graphView.controller.ApplyChanges();
+
+            var updateContext = (VFXBasicUpdate)VFXLibrary.GetContexts().Single(x => x.modelType == typeof(VFXBasicUpdate)).CreateInstance();
+            updateContext.AddChild(hlslBlock);
+            graph.AddChild(updateContext);
+            view.graphView.OnSave();
         }
 
         private CustomHLSL CreateCustomHLSLBlock()

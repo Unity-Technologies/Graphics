@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
-
+using System.Reflection;
 using UnityEngine;
 
 namespace UnityEditor.VFX
@@ -64,6 +64,13 @@ namespace UnityEditor.VFX
             packageName = packageInfo.name;
             version = packageInfo.version.Substring(0, packageInfo.version.LastIndexOf('.'));
             return true;
+        }
+
+        public static string GetHelpUrl(Type t)
+        {
+            var attribute = (VFXHelpURLAttribute)t.GetCustomAttribute(typeof(VFXHelpURLAttribute), false);
+            return attribute?.URL;
+
         }
 #endif
     }
