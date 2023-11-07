@@ -1100,7 +1100,7 @@ Shader "HDRP/LayeredLit"
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON
 
-            #pragma multi_compile _ DECALS_OFF DECALS_3RT DECALS_4RT
+            #pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT
             #pragma multi_compile _ DECAL_SURFACE_GRADIENT
 
             #define SHADERPASS SHADERPASS_RAYTRACING_INDIRECT
@@ -1195,7 +1195,7 @@ Shader "HDRP/LayeredLit"
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON
 
-            #pragma multi_compile _ DECALS_OFF DECALS_3RT DECALS_4RT
+            #pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT
             #pragma multi_compile _ DECAL_SURFACE_GRADIENT
 
             #define SHADERPASS SHADERPASS_RAYTRACING_GBUFFER
