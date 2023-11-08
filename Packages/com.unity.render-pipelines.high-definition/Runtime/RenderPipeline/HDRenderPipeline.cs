@@ -63,7 +63,7 @@ namespace UnityEngine.Rendering.HighDefinition
         readonly HDRenderPipelineAsset m_Asset;
         internal HDRenderPipelineAsset asset => m_Asset;
 
-        internal HDRenderPipelineRuntimeResources.MaterialResources runtimeMaterials { get; private set; }
+        internal HDRenderPipelineRuntimeMaterials runtimeMaterials { get; private set; }
         internal HDRenderPipelineRuntimeResources.ShaderResources runtimeShaders { get; private set; }
         internal HDRenderPipelineRuntimeAssets runtimeAssets { get; private set; }
         internal HDRenderPipelineRuntimeTextures runtimeTextures { get; private set; }
@@ -444,7 +444,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_GlobalSettings = HDRenderPipelineGlobalSettings.instance;
 
-            runtimeMaterials = m_GlobalSettings.renderPipelineResources.materials;
+            runtimeMaterials = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeMaterials>();
             runtimeShaders   = m_GlobalSettings.renderPipelineResources.shaders;
             runtimeAssets    = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeAssets>();
             runtimeTextures  = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeTextures>();
@@ -2055,7 +2055,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Potentially the asset might have been deleted by the user
             // Obtain the asset again at least one per frame to make sure we are pointing to a valid resources.
-            runtimeMaterials = m_GlobalSettings.renderPipelineResources.materials;
+            runtimeMaterials = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeMaterials>();
             runtimeShaders   = m_GlobalSettings.renderPipelineResources.shaders;
             runtimeAssets    = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeAssets>();
             runtimeTextures  = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeTextures>();

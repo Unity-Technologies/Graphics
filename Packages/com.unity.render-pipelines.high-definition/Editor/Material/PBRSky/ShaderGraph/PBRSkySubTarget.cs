@@ -289,7 +289,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             public override void Action(int instanceId, string pathName, string resourceFile)
             {
-                var material = HDRenderPipelineGlobalSettings.instance.renderPipelineResources.materials.pbrSkyMaterial;
+                var material = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeMaterials>().pbrSkyMaterial;
                 AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(material), pathName);
             }
         }
