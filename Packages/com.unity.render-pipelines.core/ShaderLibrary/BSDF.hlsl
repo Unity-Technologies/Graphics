@@ -134,7 +134,7 @@ real3 F_FresnelConductor(real3 eta, real3 etak2, real cosTheta)
 
 // Conversion FO/IOR
 
-TEMPLATE_2_REAL(IorToFresnel0, transmittedIor, incidentIor, return Sq((transmittedIor - incidentIor) / (transmittedIor + incidentIor)) )
+TEMPLATE_2_FLT_HALF(IorToFresnel0, transmittedIor, incidentIor, return Sq((transmittedIor - incidentIor) / (transmittedIor + incidentIor)) )
 // ior is a value between 1.0 and 3.0. 1.0 is air interface
 real IorToFresnel0(real transmittedIor)
 {
@@ -148,7 +148,7 @@ real IorToFresnel0(real transmittedIor)
 //    real sqrtF0 = sqrt(fresnel0);
 //    return (1.0 + sqrtF0) / (1.0 - sqrtF0);
 //}
-TEMPLATE_1_REAL(Fresnel0ToIor, fresnel0, return ((1.0 + sqrt(fresnel0)) / (1.0 - sqrt(fresnel0))) )
+TEMPLATE_1_FLT_HALF(Fresnel0ToIor, fresnel0, return ((1.0 + sqrt(fresnel0)) / (1.0 - sqrt(fresnel0))) )
 
 // This function is a coarse approximation of computing fresnel0 for a different top than air (here clear coat of IOR 1.5) when we only have fresnel0 with air interface
 // This function is equivalent to IorToFresnel0(Fresnel0ToIor(fresnel0), 1.5)
@@ -156,10 +156,10 @@ TEMPLATE_1_REAL(Fresnel0ToIor, fresnel0, return ((1.0 + sqrt(fresnel0)) / (1.0 -
 // real sqrtF0 = sqrt(fresnel0);
 // return Sq(1.0 - 5.0 * sqrtF0) / Sq(5.0 - sqrtF0);
 // Optimization: Fit of the function (3 mad) for range [0.04 (should return 0), 1 (should return 1)]
-TEMPLATE_1_REAL(ConvertF0ForAirInterfaceToF0ForClearCoat15, fresnel0, return saturate(-0.0256868 + fresnel0 * (0.326846 + (0.978946 - 0.283835 * fresnel0) * fresnel0)))
+TEMPLATE_1_FLT_HALF(ConvertF0ForAirInterfaceToF0ForClearCoat15, fresnel0, return saturate(-0.0256868 + fresnel0 * (0.326846 + (0.978946 - 0.283835 * fresnel0) * fresnel0)))
 
 // Even coarser approximation of ConvertF0ForAirInterfaceToF0ForClearCoat15 (above) for mobile (2 mad)
-TEMPLATE_1_REAL(ConvertF0ForAirInterfaceToF0ForClearCoat15Fast, fresnel0, return saturate(fresnel0 * (fresnel0 * 0.526868 + 0.529324) - 0.0482256))
+TEMPLATE_1_FLT_HALF(ConvertF0ForAirInterfaceToF0ForClearCoat15Fast, fresnel0, return saturate(fresnel0 * (fresnel0 * 0.526868 + 0.529324) - 0.0482256))
 
 // Artist Friendly Metallic Fresnel Ref: http://jcgt.org/published/0003/04/03/paper.pdf
 
