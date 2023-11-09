@@ -53,12 +53,13 @@ namespace UnityEngine.Rendering
             RayTracingResources resources = ScriptableObject.CreateInstance<RayTracingResources>();
             ResourceReloader.ReloadAllNullIn(resources, packagePath);
 
-            if (RayTracingContext.IsBackendSupported(RayTracingBackend.Hardware))
-            {
-                ProbeGIBaking.m_SkyOcclusionRayTracingContext = new RayTracingContext(RayTracingBackend.Hardware, resources);
-                ProbeGIBaking.m_SkyOcclusionRayTracingShader = ProbeGIBaking.m_SkyOcclusionRayTracingContext.CreateRayTracingShader(ProbeGIBaking.m_DynamicGISkyOcclusionResources.hardwareRayTracingShader);
-            }
-            else
+            // Disabled hardware backend as it's inconsistent on yamato
+            //if (RayTracingContext.IsBackendSupported(RayTracingBackend.Hardware))
+            //{
+            //    ProbeGIBaking.m_SkyOcclusionRayTracingContext = new RayTracingContext(RayTracingBackend.Hardware, resources);
+            //    ProbeGIBaking.m_SkyOcclusionRayTracingShader = ProbeGIBaking.m_SkyOcclusionRayTracingContext.CreateRayTracingShader(ProbeGIBaking.m_DynamicGISkyOcclusionResources.hardwareRayTracingShader);
+            //}
+            //else
             {
                 ProbeGIBaking.m_SkyOcclusionRayTracingContext = new RayTracingContext(RayTracingBackend.Compute, resources);
                 ProbeGIBaking.m_SkyOcclusionRayTracingShader = ProbeGIBaking.m_SkyOcclusionRayTracingContext.CreateRayTracingShader(ProbeGIBaking.m_DynamicGISkyOcclusionResources.rayTracingShader);
@@ -234,7 +235,7 @@ namespace UnityEngine.Rendering
 
                 skyOccShader.SetBufferParam(cmd, _SobolBuffer, sobolBuffer);
                 skyOccShader.SetBufferParam(cmd, _CPRBuffer, cprBuffer);
-                
+
                 skyOccShader.Dispatch(cmd, scratchBuffer,(uint)numProbes, 1, 1);
 
                 Graphics.ExecuteCommandBuffer(cmd);

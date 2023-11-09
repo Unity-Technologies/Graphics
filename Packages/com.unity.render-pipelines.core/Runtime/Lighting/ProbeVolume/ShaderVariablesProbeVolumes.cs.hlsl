@@ -14,11 +14,11 @@
 // PackingRules = Exact
 GLOBAL_CBUFFER_START(ShaderVariablesProbeVolumes, b6)
     float4 _PoolDim_CellInMeters;
-    float4 _RcpPoolDim_Padding;
+    float4 _RcpPoolDim_XY;
     float4 _MinEntryPos_Noise;
     float4 _IndicesDim_IndexChunkSize;
-    float4 _Biases_CellInMinBrick_MinBrickSize;
-    float4 _LeakReductionParams;
+    float4 _Biases_MinBrickSize_Padding;
+    float4 _LeakReduction_SkyOcclusion;
     float4 _Weight_MinLoadedCellInEntries;
     float4 _MaxLoadedCellInEntries_FrameIndex;
     float4 _NormalizationClamp_IndirectionEntryDim_Padding;

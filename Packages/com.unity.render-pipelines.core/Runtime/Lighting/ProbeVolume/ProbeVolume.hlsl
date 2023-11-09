@@ -11,16 +11,16 @@
 
 // Unpack variables
 #define _PoolDim _PoolDim_CellInMeters.xyz
-#define _RcpPoolDim _RcpPoolDim_Padding.xyz
-#define _RcpPoolDimXY _RcpPoolDim_Padding.w
 #define _CellInMeters _PoolDim_CellInMeters.w
+#define _RcpPoolDim _RcpPoolDim_XY.xyz
+#define _RcpPoolDimXY _RcpPoolDim_XY.w
 #define _MinEntryPosition _MinEntryPos_Noise.xyz
 #define _PVSamplingNoise _MinEntryPos_Noise.w
 #define _GlobalIndirectionDimension _IndicesDim_IndexChunkSize.xyz
 #define _IndexChunkSize _IndicesDim_IndexChunkSize.w
-#define _NormalBias _Biases_CellInMinBrick_MinBrickSize.x
-#define _ViewBias _Biases_CellInMinBrick_MinBrickSize.y
-#define _MinBrickSize _Biases_CellInMinBrick_MinBrickSize.w
+#define _NormalBias _Biases_MinBrickSize_Padding.x
+#define _ViewBias _Biases_MinBrickSize_Padding.y
+#define _MinBrickSize _Biases_MinBrickSize_Padding.z
 #define _Weight _Weight_MinLoadedCellInEntries.x
 #define _MinLoadedCellInEntries _Weight_MinLoadedCellInEntries.yzw
 #define _MaxLoadedCellInEntries _MaxLoadedCellInEntries_FrameIndex.xyz
@@ -28,8 +28,10 @@
 #define _MinReflProbeNormalizationFactor _NormalizationClamp_IndirectionEntryDim_Padding.x
 #define _MaxReflProbeNormalizationFactor _NormalizationClamp_IndirectionEntryDim_Padding.y
 #define _GlobalIndirectionEntryDim _NormalizationClamp_IndirectionEntryDim_Padding.z
-#define _EnableSkyOcclusion _LeakReductionParams.w
-#define _EnableSkyOcclusionShadingDirection _NormalizationClamp_IndirectionEntryDim_Padding.w
+#define _LeakReductionMode _LeakReduction_SkyOcclusion.x
+#define _MinValidNormalWeight _LeakReduction_SkyOcclusion.y
+#define _SkyOcclusionIntensity _LeakReduction_SkyOcclusion.z
+#define _EnableSkyOcclusionShadingDirection _LeakReduction_SkyOcclusion.w
 
 #ifndef DECODE_SH
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/DecodeSH.hlsl"
@@ -202,15 +204,19 @@ TEXTURE3D(_SkyShadingDirectionIndicesTex);
 // -------------------------------------------------------------
 // Various weighting functions for occlusion or helper functions.
 // -------------------------------------------------------------
-float3 AddNoiseToSamplingPosition(float3 posWS, float2 positionSS)
+float3 AddNoiseToSamplingPosition(float3 posWS, float2 positionSS, float3 direction)
 {
-    float3 outPos = posWS;
-    if (_PVSamplingNoise > 0)
-    {
-        float noise1D_0 = (InterleavedGradientNoise(positionSS, _NoiseFrameIndex) * 2.0f - 1.0f) * _PVSamplingNoise;
-        outPos += noise1D_0;
-    }
-    return outPos;
+#ifdef UNITY_SPACE_TRANSFORMS_INCLUDED
+    float3 right = mul((float3x3)GetViewToWorldMatrix(), float3(1.0, 0.0, 0.0));
+    float3 top = mul((float3x3)GetViewToWorldMatrix(), float3(0.0, 1.0, 0.0));
+    float noise01 = InterleavedGradientNoise(positionSS, _NoiseFrameIndex);
+    float noise02 = frac(noise01 * 100.0);
+    float noise03 = frac(noise01 * 1000.0);
+    direction += top * (noise02 - 0.5) + right * (noise03 - 0.5);
+    return _PVSamplingNoise > 0 ? posWS + noise01 * _PVSamplingNoise * direction : posWS;
+#else
+    return posWS;
+#endif
 }
 
 uint3 GetSampleOffset(uint i)
@@ -248,7 +254,7 @@ float GetNormalWeight(uint3 offset, float3 posWS, float3 sample0Pos, float3 norm
     // TODO: This can be optimized.
     float3 samplePos = (sample0Pos - posWS) + (float3)offset * ProbeDistance(subdiv);
     float3 vecToProbe = normalize(samplePos);
-    float weight = saturate(dot(vecToProbe, normalWS) - _LeakReductionParams.z);
+    float weight = saturate(dot(vecToProbe, normalWS) - _MinValidNormalWeight);
     return weight;
 }
 
@@ -257,7 +263,7 @@ real GetNormalWeightReal(uint3 offset, float3 posWS, float3 sample0Pos, float3 n
     // TODO: This can be optimized.
     real3 samplePos = (real3)(sample0Pos - posWS) + (real3)offset * ProbeDistanceReal(subdiv);
     real3 vecToProbe = normalize(samplePos);
-    real weight = saturate(dot(vecToProbe, (half3)normalWS) - (real)_LeakReductionParams.z);
+    real weight = saturate(dot(vecToProbe, (half3)normalWS) - (real)_MinValidNormalWeight);
     return weight;
 }
 
@@ -433,7 +439,7 @@ APVSample SampleAPV(APVResources apvRes, float3 uvw)
     apvSample.L2_C = SAMPLE_TEXTURE3D_LOD(apvRes.L2_3, s_linear_clamp_sampler, uvw, 0).rgb;
 #endif // PROBE_VOLUMES_L2
 
-    if(_EnableSkyOcclusion > 0)
+    if(_SkyOcclusionIntensity > 0)
         apvSample.skyOcclusionL0L1 = SAMPLE_TEXTURE3D_LOD(apvRes.SkyOcclusionL0L1, s_linear_clamp_sampler, uvw, 0).rgba;
     else
         apvSample.skyOcclusionL0L1 = float4(0, 0, 0, 0);
@@ -451,7 +457,7 @@ APVSample SampleAPV(APVResources apvRes, float3 uvw)
     }
     else
         apvSample.skyShadingDirection = float3(0, 0, 0);
-    
+
     apvSample.status = APV_SAMPLE_STATUS_ENCODED;
 
     return apvSample;
@@ -625,12 +631,12 @@ APVSample SampleAPV(APVResources apvRes, float3 posWS, float3 biasNormalWS, floa
     if (TryToGetPoolUVWAndSubdiv(apvRes, posWS, biasNormalWS, viewDir, pool_uvw, subdiv, biasedPosWS))
     {
 #if MANUAL_FILTERING == 1
-        if (_LeakReductionParams.x != 0)
+        if (_LeakReductionMode != 0)
             outSample = ManuallyFilteredSample(apvRes, posWS, biasNormalWS, subdiv, biasedPosWS, pool_uvw);
         else
             outSample = SampleAPV(apvRes, pool_uvw);
 #else
-        if (_LeakReductionParams.x != 0)
+        if (_LeakReductionMode != 0)
         {
             WarpUVWLeakReduction(apvRes, posWS, biasNormalWS, subdiv, biasedPosWS, pool_uvw);
         }
@@ -663,7 +669,7 @@ float EvalSHSkyOcclusion(float3 dir, APVSample apvSample)
 {
     // L0 L1
     float4 temp = float4(kSHBasis0, kSHBasis1 * dir.x, kSHBasis1 * dir.y, kSHBasis1 * dir.z);
-    return dot(temp, apvSample.skyOcclusionL0L1);
+    return _SkyOcclusionIntensity * dot(temp, apvSample.skyOcclusionL0L1);
 }
 
 float3 EvaluateOccludedSky(APVSample apvSample, float3 N)
@@ -671,7 +677,7 @@ float3 EvaluateOccludedSky(APVSample apvSample, float3 N)
 #ifndef __BUILTINGIUTILITIES_HLSL__
     return float3(0.0f,0.0f,0.0f);
 #else
-    if (_EnableSkyOcclusion > 0)
+    if (_SkyOcclusionIntensity > 0)
     {
         float occValue = EvalSHSkyOcclusion(N, apvSample);
         float3 shadingNormal = N;
@@ -732,12 +738,12 @@ void EvaluateAdaptiveProbeVolume(APVSample apvSample, float3 normalWS, out float
 #endif
 
         bakeDiffuseLighting += apvSample.L0;
-        if(_EnableSkyOcclusion > 0)
+        if (_SkyOcclusionIntensity > 0)
             bakeDiffuseLighting += EvaluateOccludedSky(apvSample, normalWS);
 
         //if (_Weight < 1.f)
         {
-            bakeDiffuseLighting = lerp(EvaluateAmbientProbe(normalWS), bakeDiffuseLighting, _Weight);
+            bakeDiffuseLighting = bakeDiffuseLighting * _Weight;
         }
     }
     else
@@ -763,7 +769,7 @@ void EvaluateAdaptiveProbeVolume(APVSample apvSample, float3 normalWS, float3 ba
 
         bakeDiffuseLighting += apvSample.L0;
         backBakeDiffuseLighting += apvSample.L0;
-        if (_EnableSkyOcclusion > 0)
+        if (_SkyOcclusionIntensity > 0)
         {
             bakeDiffuseLighting += EvaluateOccludedSky(apvSample, normalWS);
             backBakeDiffuseLighting += EvaluateOccludedSky(apvSample, backNormalWS);
@@ -771,8 +777,8 @@ void EvaluateAdaptiveProbeVolume(APVSample apvSample, float3 normalWS, float3 ba
 
         //if (_Weight < 1.f)
         {
-            bakeDiffuseLighting = lerp(EvaluateAmbientProbe(normalWS), bakeDiffuseLighting, _Weight);
-            backBakeDiffuseLighting = lerp(EvaluateAmbientProbe(backNormalWS), backBakeDiffuseLighting, _Weight);
+            bakeDiffuseLighting = bakeDiffuseLighting * _Weight;
+            backBakeDiffuseLighting = backBakeDiffuseLighting * _Weight;
         }
     }
     else
@@ -788,7 +794,7 @@ void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 
 {
     APVResources apvRes = FillAPVResources();
 
-    posWS = AddNoiseToSamplingPosition(posWS, positionSS);
+    posWS = AddNoiseToSamplingPosition(posWS, positionSS, viewDir);
 
     APVSample apvSample = SampleAPV(posWS, normalWS, viewDir);
 
@@ -811,7 +817,7 @@ void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 
         bakeDiffuseLighting += apvSample.L0;
         backBakeDiffuseLighting += apvSample.L0;
         lightingInReflDir += apvSample.L0;
-        if (_EnableSkyOcclusion > 0)
+        if (_SkyOcclusionIntensity > 0)
         {
             bakeDiffuseLighting += EvaluateOccludedSky(apvSample, normalWS);
             backBakeDiffuseLighting += EvaluateOccludedSky(apvSample, backNormalWS);
@@ -820,8 +826,8 @@ void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 
 
         //if (_Weight < 1.f)
         {
-            bakeDiffuseLighting = lerp(EvaluateAmbientProbe(normalWS), bakeDiffuseLighting, _Weight);
-            backBakeDiffuseLighting = lerp(EvaluateAmbientProbe(backNormalWS), backBakeDiffuseLighting, _Weight);
+            bakeDiffuseLighting = bakeDiffuseLighting * _Weight;
+            backBakeDiffuseLighting = backBakeDiffuseLighting * _Weight;
         }
     }
     else
@@ -838,7 +844,7 @@ void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 
     bakeDiffuseLighting = float3(0.0, 0.0, 0.0);
     backBakeDiffuseLighting = float3(0.0, 0.0, 0.0);
 
-    posWS = AddNoiseToSamplingPosition(posWS, positionSS);
+    posWS = AddNoiseToSamplingPosition(posWS, positionSS, viewDir);
 
     APVSample apvSample = SampleAPV(posWS, normalWS, viewDir);
     EvaluateAdaptiveProbeVolume(apvSample, normalWS, backNormalWS, bakeDiffuseLighting, backBakeDiffuseLighting);
@@ -849,7 +855,7 @@ void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 
 {
     bakeDiffuseLighting = float3(0.0, 0.0, 0.0);
 
-    posWS = AddNoiseToSamplingPosition(posWS, positionSS);
+    posWS = AddNoiseToSamplingPosition(posWS, positionSS, viewDir);
 
     APVSample apvSample = SampleAPV(posWS, normalWS, viewDir);
     EvaluateAdaptiveProbeVolume(apvSample, normalWS, bakeDiffuseLighting);
@@ -859,7 +865,7 @@ void EvaluateAdaptiveProbeVolume(in float3 posWS, in float2 positionSS, out floa
 {
     APVResources apvRes = FillAPVResources();
 
-    posWS = AddNoiseToSamplingPosition(posWS, positionSS);
+    posWS = AddNoiseToSamplingPosition(posWS, positionSS, 1);
 
     float3 uvw;
     if (TryToGetPoolUVW(apvRes, posWS, 0, 0, uvw))

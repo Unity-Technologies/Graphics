@@ -43,7 +43,7 @@ namespace UnityEngine.Rendering
             public static readonly GUIContent bakeBox = new GUIContent("", "Controls if Probe Volumes in this scene are baked when Generating Lighting.");
             public static readonly GUIContent warnings = new GUIContent("Warnings");
 
-            public static readonly string[] bakingModeOptions = new string[] { "Single Scene", "Baking Sets (Advanced)" };
+            public static readonly string[] bakingModeOptions = new string[] { "Single Scene", "Baking Set" };
 
             public static readonly GUIContent iconEnableAll = new GUIContent("", CoreEditorStyles.GetMessageTypeIcon(MessageType.Info), "The Scene is loaded but is currently not enabled for Baking. It will therefore not be considered when generating lighting data.");
             public static readonly GUIContent iconLoadForBake = new GUIContent("", CoreEditorStyles.GetMessageTypeIcon(MessageType.Warning), "The Scene is currently enabled for baking but is unloaded in the Hierarchy. This may result in incomplete lighting data being generated.\nLoad the Scene in the Hierarchy, or use the shortcuts below to fix the issue.");

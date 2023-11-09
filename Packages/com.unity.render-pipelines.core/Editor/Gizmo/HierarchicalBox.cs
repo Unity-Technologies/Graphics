@@ -66,7 +66,7 @@ namespace UnityEditor.Rendering
     /// </example>
     public class HierarchicalBox
     {
-        const float k_HandleSizeCoef = 0.05f;
+        const float k_HandleSizeCoef = 0.07f;
         static Material k_Material_Cache;
         static Material k_Material => (k_Material_Cache == null || k_Material_Cache.Equals(null) ? (k_Material_Cache = new Material(Shader.Find("Hidden/UnlitTransparentColored"))) : k_Material_Cache);
         static Mesh k_MeshQuad_Cache;
@@ -492,6 +492,6 @@ namespace UnityEditor.Rendering
             }
         }
 
-        Color GetHandleColor(NamedFace name) => monoHandle ? m_MonochromeHandleColor : m_PolychromeHandleColor[(int)name];
+        Color GetHandleColor(NamedFace name) => monoHandle ? m_MonochromeHandleColor : GizmoUtility.GetHandleColor(m_PolychromeHandleColor[(int)name]);
     }
 }

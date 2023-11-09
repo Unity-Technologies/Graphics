@@ -74,7 +74,7 @@ void FindSamplingData(float3 posWS, float3 normalWS, out float3 snappedProbePosi
     {
         float2 posNDC = ComputeNormalizedDeviceCoordinates(GetCameraRelativePositionWS(posWS), UNITY_MATRIX_VP);
         float2 posSS = floor(posNDC.xy * _ScreenSize.xy);
-        posWS = AddNoiseToSamplingPosition(posWS, posSS);
+        posWS = AddNoiseToSamplingPosition(posWS, posSS, viewDir_WS);
     }
 
     APVResources apvRes = FillAPVResources();
@@ -89,7 +89,7 @@ void FindSamplingData(float3 posWS, float3 normalWS, out float3 snappedProbePosi
 
     WarpUVWLeakReduction(apvRes, posWS, normalWS, subdiv, biasedPosWS, uvw, normalizedOffset, validityWeights);
 
-    if (_LeakReductionParams.x != 0)
+    if (_LeakReductionMode != 0)
     {
         samplingPosition_WS = snappedProbePosition_WS + (normalizedOffset*probeDistance);
     }
@@ -273,7 +273,7 @@ float3 CalculateDiffuseLighting(v2f i)
     {
         float skyOcclusion = 0.0f;
         float skyOcclusionNoExposure = 0.0f;
-        if (_EnableSkyOcclusion > 0)
+        if (_SkyOcclusionIntensity > 0)
         {
             // L0 L1
             float4 temp = float4(kSHBasis0, kSHBasis1 * normal.x, kSHBasis1 * normal.y, kSHBasis1 * normal.z);
@@ -312,7 +312,7 @@ float3 CalculateDiffuseLighting(v2f i)
 
         bakeDiffuseLighting += EvalL2(L0, L2_R, L2_G, L2_B, L2_C, normal);
 #endif
-        if (_EnableSkyOcclusion > 0)
+        if (_SkyOcclusionIntensity > 0)
             bakeDiffuseLighting += skyOcclusion * EvaluateAmbientProbe(skyShadingDirection);
 
         return bakeDiffuseLighting;
