@@ -127,7 +127,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     cameraSamples = msaaSamples;
 
                 // When depth resolve is supported or multisampled texture is not supported, set camera samples to 1
-                if (SystemInfo.supportsMultisampledTextures == 0 || copyResolvedDepth)
+                if (SystemInfo.supportsMultisampledTextures == 0 || SystemInfo.supportsMultisampleAutoResolve || copyResolvedDepth)
                     cameraSamples = 1;
 
                 switch (cameraSamples)

@@ -161,7 +161,7 @@ namespace UnityEngine.Rendering.Universal
                 depthDescriptor.autoGenerateMips = false;
                 depthDescriptor.bindMS = false;
 
-                bool hasMSAA = depthDescriptor.msaaSamples > 1 && (SystemInfo.supportsMultisampledTextures != 0);
+                bool hasMSAA = depthDescriptor.msaaSamples > 1 && !SystemInfo.supportsMultisampleAutoResolve && (SystemInfo.supportsMultisampledTextures != 0);
 
                 if (hasMSAA)
                     depthDescriptor.bindMS = true;
