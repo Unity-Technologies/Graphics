@@ -520,7 +520,7 @@ namespace UnityEngine.Rendering.Universal
             if (!SystemInfo.graphicsUVStartsAtTop)
                 return false;
 
-            if (cameraType == CameraType.SceneView)
+            if (cameraType == CameraType.SceneView || cameraType == CameraType.Preview)
                 return true;
 
             var handleID = new RenderTargetIdentifier(handle.nameID, 0, CubemapFace.Unknown, 0);
