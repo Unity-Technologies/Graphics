@@ -1475,6 +1475,13 @@ namespace UnityEngine.Rendering.Universal
 
             if (this.renderingModeActual == RenderingMode.Deferred)
                 cullingParameters.maximumVisibleLights = 0xFFFF;
+            else if (this.renderingModeActual == RenderingMode.ForwardPlus)
+            {
+                // We don't add one to the maximum light because mainlight is treated as any other light.
+                cullingParameters.maximumVisibleLights = UniversalRenderPipeline.maxVisibleAdditionalLights;
+                // Sort the reflection probes in engine.
+                cullingParameters.reflectionProbeSortingCriteria = ReflectionProbeSortingCriteria.ImportanceThenSize;
+            }    
             else
             {
                 // We set the number of maximum visible lights allowed and we add one for the mainlight...
