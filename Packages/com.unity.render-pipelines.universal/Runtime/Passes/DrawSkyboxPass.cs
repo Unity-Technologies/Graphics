@@ -120,6 +120,7 @@ namespace UnityEngine.Rendering.Universal
                 builder.UseTextureFragmentDepth(depthTarget, IBaseRenderGraphBuilder.AccessFlags.Write);
 
                 builder.AllowPassCulling(false);
+                builder.EnableFoveatedRasterization(cameraData.xr.supportsFoveatedRendering);
 
                 builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
                 {

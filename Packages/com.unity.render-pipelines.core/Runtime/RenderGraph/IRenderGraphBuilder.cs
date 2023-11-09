@@ -159,6 +159,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// </summary>
         /// <param name="value">True to allow global state modification.</param>
         public void AllowGlobalStateModification(bool value);
+
+        /// <summary>
+        /// Enable foveated rendering for this pass.
+        /// </summary>
+        /// <param name="value">True to enable foveated rendering.</param>
+        public void EnableFoveatedRasterization(bool value);
     }
 
     /// <summary>

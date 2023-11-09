@@ -19,6 +19,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public bool enableAsyncCompute { get; protected set; }
         public bool allowPassCulling { get; protected set; }
         public bool allowGlobalState { get; protected set; }
+        public bool enableFoveatedRasterization { get; protected set; }
 
         public TextureHandle depthBuffer { get; protected set; }
         public IBaseRenderGraphBuilder.AccessFlags depthBufferAccessFlags { get; protected set; }
@@ -85,6 +86,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             allowPassCulling = true;
             allowRendererListCulling = true;
             allowGlobalState = false;
+            enableFoveatedRasterization = false;
             generateDebugData = true;
             refCount = 0;
 
@@ -200,6 +202,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public void AllowPassCulling(bool value)
         {
             allowPassCulling = value;
+        }
+
+        public void EnableFoveatedRasterization(bool value)
+        {
+            enableFoveatedRasterization = value;
         }
 
         public void AllowRendererListCulling(bool value)

@@ -749,7 +749,7 @@ namespace UnityEngine.Rendering.Universal
 
             OnBeforeRendering(renderGraph);
 
-            BeginRenderGraphXRRendering(renderGraph, cameraData);
+            BeginRenderGraphXRRendering(renderGraph);
 
             OnMainRendering(renderGraph, context);
 

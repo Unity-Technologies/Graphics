@@ -279,6 +279,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 builder.AllowPassCulling(false);
                 builder.AllowGlobalStateModification(true);
+                builder.EnableFoveatedRasterization(cameraData.xr.supportsFoveatedRendering);
 
                 builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
                 {
@@ -418,6 +419,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 builder.AllowPassCulling(false);
                 // Required here because of RenderingLayerUtils.SetupProperties
                 builder.AllowGlobalStateModification(true);
+                builder.EnableFoveatedRasterization(cameraData.xr.supportsFoveatedRendering);
 
                 builder.SetRenderFunc((RenderingLayersPassData data, RasterGraphContext context) =>
                 {

@@ -154,6 +154,7 @@ For an overview of the `RenderGraphBuilder` APIs, see the below table. For more 
 | void SetRenderFunc<PassData>(RenderFunc<PassData> renderFunc) where PassData : class, new() | Set the rendering function for the render pass.              |
 | void EnableAsyncCompute(bool value)                                                         | Declares that the render pass runs on the asynchronous compute pipeline. |
 | void AllowPassCulling(bool value)                                                           | Specifies whether Unity should cull the render pass (default is true). This can be useful when the render pass has side effects and you never want the render graph system to cull. |
+| void EnableFoveatedRasterization(bool value)																	  | Declares that the render pass runs with foveated rendering feature enabled. |
 
 #### Rendering Code
 

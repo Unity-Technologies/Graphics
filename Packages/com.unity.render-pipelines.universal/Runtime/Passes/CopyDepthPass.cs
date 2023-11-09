@@ -110,6 +110,13 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_PassData.cameraData = renderingData.frameData.Get<UniversalCameraData>();
             var cmd = renderingData.commandBuffer;
             cmd.SetGlobalTexture("_CameraDepthAttachment", source.nameID);
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (m_PassData.cameraData.xr.enabled)
+            {
+                if (m_PassData.cameraData.xr.supportsFoveatedRendering)
+                    cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Disabled);
+            }
+#endif
             ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(cmd), m_PassData, this.source, this.destination);
         }
 
@@ -181,9 +188,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 #if ENABLE_VR && ENABLE_XR_MODULE
                 if (passData.cameraData.xr.enabled)
                 {
-                    if (passData.cameraData.xr.supportsFoveatedRendering)
-                        cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Disabled);
-
                     isGameViewFinalTarget |= new RenderTargetIdentifier(destination.nameID, 0, CubemapFace.Unknown, 0) == new RenderTargetIdentifier(passData.cameraData.xr.renderTarget, 0, CubemapFace.Unknown, 0);
                 }
 #endif

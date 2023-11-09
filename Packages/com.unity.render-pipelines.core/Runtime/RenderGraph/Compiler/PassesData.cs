@@ -73,6 +73,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
         public bool asyncCompute;
         public bool hasSideEffects;
         public bool culled;
+        public bool hasFoveatedRasterization;
         public int tag; // Arbitrary per node int used by various graph analysis tools
 
         public PassMergeState mergeState;
@@ -116,7 +117,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
             type = pass.type;
             asyncCompute = pass.enableAsyncCompute;
             hasSideEffects = !pass.allowPassCulling;
-
+            hasFoveatedRasterization = pass.enableFoveatedRasterization;
             mergeState = PassMergeState.None;
             nativePassIndex = -1;
             nativeSubPassIndex = -1;
@@ -160,6 +161,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
             type = pass.type;
             asyncCompute = pass.enableAsyncCompute;
             hasSideEffects = !pass.allowPassCulling;
+            hasFoveatedRasterization = pass.enableFoveatedRasterization;
 
             mergeState = PassMergeState.None;
             nativePassIndex = -1;
@@ -446,6 +448,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
         DifferentDepthTextures, // The next pass uses a different depth texture (and we only allow one in a whole NRP)
         AttachmentLimitReached, // Adding the next pass would have used more attachments than allowed
         EndOfGraph, // The last pass in the graph was reached
+        FRStateMismatch, // One pass is using foveated rendering and the other not
         Merged // I actually got merged
     }
 
@@ -469,6 +472,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
             "The next pass uses a different depth buffer. All passes in the native render pass need to use the same depth buffer.",
             "The limit of 8 native pass attachments would be exceeded when merging with the next pass.",
             "This is the last pass in the graph, there are no other passes to merge.",
+            "The the next pass uses a different foveated rendering state",
             "The next pass got merged into this pass.",
         };
     }
@@ -487,8 +491,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
         public FixedAttachmentArray<NativePassAttachment> attachments;
         public int width;
         public int height;
+        public int volumeDepth;
         public int samples;
         public bool hasDepth;
+        public bool hasFoveatedRasterization;
 
 #if UNITY_EDITOR
         public FixedAttachmentArray<LoadAudit> loadAudit;
@@ -508,9 +514,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
 
             width = pass.fragmentInfoWidth;
             height = pass.fragmentInfoHeight;
+            volumeDepth = pass.fragmentInfoVolumeDepth;
             samples = pass.fragmentInfoSamples;
             hasDepth = pass.fragmentInfoHasDepth;
-
+            hasFoveatedRasterization = pass.hasFoveatedRasterization;
+            
 #if UNITY_EDITOR
             loadAudit = new FixedAttachmentArray<LoadAudit>();
             storeAudit = new FixedAttachmentArray<StoreAudit>();
@@ -585,6 +593,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
                 // Easy early outs, sizes mismatch
                 if (nativePass.width != passToMerge.fragmentInfoWidth ||
                     nativePass.height != passToMerge.fragmentInfoHeight ||
+                    nativePass.volumeDepth != passToMerge.fragmentInfoVolumeDepth ||
                     nativePass.samples != passToMerge.fragmentInfoSamples)
                 {
                     return new PassBreakAudit(PassBreakReason.TargetSizeMismatch, passIdToMerge);
@@ -599,6 +608,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
                     {
                         return new PassBreakAudit(PassBreakReason.DifferentDepthTextures, passIdToMerge);
                     }
+                }
+
+                // We do not support foveation state changes within the renderpass due to platform limitation
+                if (nativePass.hasFoveatedRasterization != passToMerge.hasFoveatedRasterization)
+                {
+                    return new PassBreakAudit(PassBreakReason.FRStateMismatch, passIdToMerge);
                 }
             }
 

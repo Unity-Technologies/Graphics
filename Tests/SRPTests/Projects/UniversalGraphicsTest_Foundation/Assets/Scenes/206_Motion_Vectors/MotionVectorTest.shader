@@ -17,7 +17,7 @@ Shader "MotionVectorTestShader"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/Blit.hlsl"
 
-            TEXTURE2D(_MotionVectorTexture);
+            TEXTURE2D_X(_MotionVectorTexture);
             SAMPLER(sampler_MotionVectorTexture);
 
             float4 _SourceTex_TexelSize;

@@ -1127,7 +1127,7 @@ namespace UnityEngine.Rendering.Universal
             internal int downsample;
         }
 
-        public TextureHandle RenderLensFlareScreenSpace(RenderGraph renderGraph, Camera camera, in TextureHandle destination, TextureHandle originalBloomTexture, TextureHandle screenSpaceLensFlareBloomMipTexture)
+        public TextureHandle RenderLensFlareScreenSpace(RenderGraph renderGraph, Camera camera, in TextureHandle destination, TextureHandle originalBloomTexture, TextureHandle screenSpaceLensFlareBloomMipTexture, bool enableXR)
         {
             var downsample = (int) m_LensFlareScreenSpace.resolution.value;
             int width = m_Descriptor.width / downsample;
@@ -1152,7 +1152,7 @@ namespace UnityEngine.Rendering.Universal
                 passData.material = m_Materials.lensFlareScreenSpace;
                 passData.downsample = downsample;
 
-                passData.result = builder.UseTexture(renderGraph.CreateTexture(new TextureDesc(width, height, true)
+                passData.result = builder.UseTexture(renderGraph.CreateTexture(new TextureDesc(width, height, true, enableXR)
                     { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, useMipMap = false, name = "Lens Flare Screen Space Result" }), IBaseRenderGraphBuilder.AccessFlags.Write);
 
                 builder.SetRenderFunc((LensFlareScreenSpacePassData data, LowLevelGraphContext context) =>
@@ -1775,7 +1775,7 @@ namespace UnityEngine.Rendering.Universal
                     if (useLensFlareScreenSpace)
                     {
                         int maxBloomMip = Mathf.Clamp(m_LensFlareScreenSpace.bloomMip.value, 0, m_Bloom.maxIterations.value/2);
-                        BloomTexture = RenderLensFlareScreenSpace(renderGraph, cameraData.camera, in currentSource, _BloomMipUp[0], _BloomMipUp[maxBloomMip]);
+                        BloomTexture = RenderLensFlareScreenSpace(renderGraph, cameraData.camera, in currentSource, _BloomMipUp[0], _BloomMipUp[maxBloomMip], cameraData.xr.enabled);
                     }
 
                     UberPostSetupBloomPass(renderGraph, in BloomTexture, m_Materials.uber);

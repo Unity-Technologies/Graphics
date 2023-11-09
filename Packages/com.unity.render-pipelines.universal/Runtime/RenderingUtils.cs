@@ -778,7 +778,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Resize the rthandle pool's max stale resource capacity. The default value is 16.
+        /// Resize the rthandle pool's max stale resource capacity. The default value is 32.
         /// Increasing the capacity may have a negative impact on the memory usage(dued to staled resources in pool).
         /// Increasing the capacity may improve runtime performance (by reducing the runtime RTHandle realloc count in multi view/multi camera setup).
         /// Setting capacity will purge the current pool. It is recommended to setup the capacity upfront and not changing it during the runtime.
