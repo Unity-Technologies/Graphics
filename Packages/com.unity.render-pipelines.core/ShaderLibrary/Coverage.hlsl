@@ -363,12 +363,17 @@ uint2 CreateCoverageMask(in LineArea lineArea)
         //Case were we have flipped axis / transpose. We generate top and bottom part
         int2 tOffsets = clamp(offsets, -31, 31);
         uint2 workMask = leftSideMask << clamp(offsets, 0, 4);
-        uint2 topDownMasks = (tOffsets > 0 ?
-            ((halfSamples << min(4,tOffsets)) & leftSideMask) | ((halfSamples << min(8,tOffsets)) & ~leftSideMask)
-          : (((halfSamples << 4) >> min(4,-tOffsets) & ~leftSideMask) >> 4));
+        uint2 topDownMasks = uint2( tOffsets.x > 0 ?
+                                    ((halfSamples.x << min(4,tOffsets.x)) & leftSideMask) | ((halfSamples.x << min(8,tOffsets.x)) & ~leftSideMask)
+                                    : ((halfSamples.x << 4) >> min(4,-tOffsets.x) & ~leftSideMask) >> 4,
+                                    tOffsets.y > 0 ?
+                                    ((halfSamples.y << min(4, tOffsets.y)) & leftSideMask) | ((halfSamples.y << min(8, tOffsets.y)) & ~leftSideMask)
+                                    : ((halfSamples.y << 4) >> min(4, -tOffsets.y) & ~leftSideMask) >> 4);
+            ;
         int2 backMaskShift = lineArea.flipX ? clamp(tOffsets + 4, -31, 31) : tOffsets;
-        uint2 backMaskOp = ((backMaskShift > 0 ? 1u << backMaskShift : 1u >> -backMaskShift) - 1u);
-        uint2 backBite = backMaskShift <= 0 ? (lineArea.flipX ? ~0x0 : 0x0) : (lineArea.flipX ? (0xFF & ~backMaskOp) : (0xFFFF & backMaskOp));
+        uint2 backMaskOp = int2((backMaskShift.x > 0 ? 1u << backMaskShift.x : 1u >> -backMaskShift.x) - 1u, (backMaskShift.y > 0 ? 1u << backMaskShift.y : 1u >> -backMaskShift.y) - 1u);
+        uint2 backBite = uint2( backMaskShift.x <= 0 ? (lineArea.flipX ? ~0x0 : 0x0) : (lineArea.flipX ? (0xFF & ~backMaskOp.x) : (0xFFFF & backMaskOp.x)),
+                                backMaskShift.y <= 0 ? (lineArea.flipX ? ~0x0 : 0x0) : (lineArea.flipX ? (0xFF & ~backMaskOp.y) : (0xFFFF & backMaskOp.y)));
         result = backBite | (backBite << 8) | (backBite << 16) | (backBite << 24) | (topDownMasks & workMask);
     }
     else
@@ -376,7 +381,10 @@ uint2 CreateCoverageMask(in LineArea lineArea)
         //Case were the masks are positioned horizontally. We generate 4 quads
         uint2 sideMasks = uint2(halfSamples.x, (halfSamples.y << 4));
         int4 tOffsets = clamp((offsets.xyxy - int4(0,0,4,4)) << 3, -31, 31);
-        uint4 halfMasks = (tOffsets > 0 ? (~sideMasks.xyxy & horizontalMask.xyxy) << tOffsets : ~(sideMasks.xyxy >> -tOffsets)) & horizontalMask.xyxy;
+        uint4 halfMasks = uint4( tOffsets.x > 0 ? (~sideMasks.x & horizontalMask.x) << tOffsets.x : ~(sideMasks.x >> -tOffsets.x),
+                                 tOffsets.y > 0 ? (~sideMasks.y & horizontalMask.y) << tOffsets.y : ~(sideMasks.y >> -tOffsets.y),
+                                 tOffsets.z > 0 ? (~sideMasks.x & horizontalMask.x) << tOffsets.z : ~(sideMasks.x >> -tOffsets.z),
+                                 tOffsets.w > 0 ? (~sideMasks.y & horizontalMask.y) << tOffsets.w : ~(sideMasks.y >> -tOffsets.w)) & horizontalMask.xyxy;
         result = uint2(halfMasks.x | halfMasks.y, halfMasks.z | halfMasks.w);
     }
 

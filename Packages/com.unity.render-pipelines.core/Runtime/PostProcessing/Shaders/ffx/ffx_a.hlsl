@@ -2043,9 +2043,9 @@
   AF4 AZolSignedF4(AF4 x){return ASatF4(x*AF4_(A_INFN_F));}
 //------------------------------------------------------------------------------------------------------------------------------
   AF1 AZolZeroPassF1(AF1 x,AF1 y){return AF1_AU1((AU1_AF1(x)!=AU1_(0))?AU1_(0):AU1_AF1(y));}
-  AF2 AZolZeroPassF2(AF2 x,AF2 y){return AF2_AU2((AU2_AF2(x)!=AU2_(0))?AU2_(0):AU2_AF2(y));}
-  AF3 AZolZeroPassF3(AF3 x,AF3 y){return AF3_AU3((AU3_AF3(x)!=AU3_(0))?AU3_(0):AU3_AF3(y));}
-  AF4 AZolZeroPassF4(AF4 x,AF4 y){return AF4_AU4((AU4_AF4(x)!=AU4_(0))?AU4_(0):AU4_AF4(y));}
+  AF2 AZolZeroPassF2(AF2 x,AF2 y){return AF2(AZolZeroPassF1(x.x, y.x), AZolZeroPassF1(x.y, y.y)); }
+  AF3 AZolZeroPassF3(AF3 x,AF3 y){return AF3(AZolZeroPassF1(x.x, y.x), AZolZeroPassF1(x.y, y.y), AZolZeroPassF1(x.z, y.z)); }
+  AF4 AZolZeroPassF4(AF4 x,AF4 y){return AF4(AZolZeroPassF1(x.x, y.x), AZolZeroPassF1(x.y, y.y), AZolZeroPassF1(x.z, y.z), AZolZeroPassF1(x.w, y.w)); }
  #endif
 //==============================================================================================================================
  #ifdef A_HALF

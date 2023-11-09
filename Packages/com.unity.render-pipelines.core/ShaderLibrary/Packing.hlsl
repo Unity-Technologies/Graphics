@@ -65,7 +65,7 @@ float2 PackNormalOctQuadEncode(float3 n)
     // Optimized version of above code:
     n *= rcp(max(dot(abs(n), 1.0), 1e-6));
     float t = saturate(-n.z);
-    return n.xy + (n.xy >= 0.0 ? t : -t);
+    return n.xy + float2(n.x >= 0.0 ? t : -t, n.y >= 0.0 ? t : -t);
 }
 
 float3 UnpackNormalOctQuadEncode(float2 f)
@@ -77,7 +77,7 @@ float3 UnpackNormalOctQuadEncode(float2 f)
 
     // Optimized version of above code:
     float t = max(-n.z, 0.0);
-    n.xy += n.xy >= 0.0 ? -t.xx : t.xx;
+    n.xy += float2(n.x >= 0.0 ? -t : t, n.y >= 0.0 ? -t : t);
 
     return normalize(n);
 }

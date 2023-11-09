@@ -83,13 +83,25 @@ void EncodeMode11( inout uint4 block, inout float blockMSLE, float3 texels[ 16 ]
         blockMax = max( blockMax, texels[ i ] );
     }
 
-    // refine endpoints in log2 RGB space
+    // refine endpoints in log2 RGB space - find the second mix and max value
     float3 refinedBlockMin = blockMax;
     float3 refinedBlockMax = blockMin;
     for (i = 0; i < 16; ++i )
     {
-        refinedBlockMin = min( refinedBlockMin, texels[ i ] == blockMin ? refinedBlockMin : texels[ i ] );
-        refinedBlockMax = max( refinedBlockMax, texels[ i ] == blockMax ? refinedBlockMax : texels[ i ] );
+        float3 minTexel = float3(
+            (texels[i].x == blockMin.x) ? refinedBlockMin.x : texels[i].x,
+            (texels[i].y == blockMin.y) ? refinedBlockMin.y : texels[i].y,
+            (texels[i].z == blockMin.z) ? refinedBlockMin.z : texels[i].z
+            );
+
+        float3 maxTexel = float3(
+            (texels[i].x == blockMax.x) ? refinedBlockMax.x : texels[i].x,
+            (texels[i].y == blockMax.y) ? refinedBlockMax.y : texels[i].y,
+            (texels[i].z == blockMax.z) ? refinedBlockMax.z : texels[i].z
+            );
+
+        refinedBlockMin = min(refinedBlockMin, minTexel);
+        refinedBlockMax = max(refinedBlockMax, maxTexel);
     }
 
     float3 logBlockMax          = log2( blockMax + 1.0 );
