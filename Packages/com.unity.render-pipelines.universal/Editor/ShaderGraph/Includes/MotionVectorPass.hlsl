@@ -168,7 +168,7 @@ float4 frag(
     UNITY_SETUP_INSTANCE_ID(input);
     SurfaceDescription surfaceDescription = BuildSurfaceDescription(input);
 
-#if _ALPHATEST_ON
+#if defined(_ALPHATEST_ON)
     clip(surfaceDescription.Alpha - surfaceDescription.AlphaClipThreshold);
 #endif
 

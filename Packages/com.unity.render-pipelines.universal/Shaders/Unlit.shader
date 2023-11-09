@@ -159,7 +159,7 @@ Shader "Universal Render Pipeline/Unlit"
 
             // -------------------------------------
             // Material Keywords
-            #pragma shader_feature_local_fragment _ALPHATEST_ON
+            #pragma shader_feature_local _ALPHATEST_ON
 
             // -------------------------------------
             // Unity defined keywords
