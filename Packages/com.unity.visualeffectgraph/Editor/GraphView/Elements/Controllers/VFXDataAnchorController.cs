@@ -455,7 +455,7 @@ namespace UnityEditor.VFX.UI
         {
             if (model.value != value)
             {
-                Undo.RecordObject(model.GetMasterSlot(), "VFX port value (" + model.GetMasterSlot().value.ToString() + ")"); // The slot value is stored on the master slot, not necessarily my own slot
+                Undo.RecordObject(model.GetMasterSlot(), "VFX port value (" + model.GetMasterSlot().value?.ToString() ?? "null" + ")"); // The slot value is stored on the master slot, not necessarily my own slot
                 model.value = value;
             }
         }

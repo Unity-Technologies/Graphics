@@ -14,6 +14,8 @@ using UnityEngine.Profiling;
 using UnityEngine.VFX.PerformanceTest;
 using static PerformanceTestUtils;
 using static PerformanceMetricNames;
+using Unity.Profiling;
+using Unity.Testing.VisualEffectGraph;
 
 namespace UnityEditor.VFX.PerformanceTest
 {
@@ -215,7 +217,10 @@ namespace UnityEditor.VFX.PerformanceTest
                 yield return new WaitForEndOfFrame();
         }
 
-        [Timeout(600 * 1000), Version("1"), UnityTest, VFXPerformanceUseGraphicsTestCases, PrebuildSetup("SetupGraphicsTestCases"), Performance]
+        [Timeout(600 * 1000), Version("1"), UnityTest, VFXPerformanceUseGraphicsTestCases, Performance, Order(0)]
+#if UNITY_EDITOR
+        [PrebuildSetup("SetupGraphicsTestCases")]
+#endif
         public IEnumerator Memory(GraphicsTestCase testCase)
         {
             yield return FreeMemory();
@@ -265,6 +270,40 @@ namespace UnityEditor.VFX.PerformanceTest
             Measure.Custom(new SampleGroup(FormatSampleGroupName(k_TotalMemory, "totalMemoryVfx"), SampleUnit.Byte, false), totalMemoryVfx);
             Measure.Custom(new SampleGroup(FormatSampleGroupName(k_TotalMemory, "totalMemoryAllocated"), SampleUnit.Byte, false), Profiler.GetTotalAllocatedMemoryLong());
             Measure.Custom(new SampleGroup(FormatSampleGroupName(k_TotalMemory, "totalMemoryAllocatedForGraphicsDriver"), SampleUnit.Byte, false), Profiler.GetAllocatedMemoryForGraphicsDriver());
+
+            yield return FreeMemory();
+        }
+
+        [Version("1"), UnityTest, Performance, Order(1000)]
+        public IEnumerator RemainingMemoryAfterAllRun()
+        {
+            yield return FreeMemory();
+
+            var assetBundle = AssetBundleHelper.Load("scene_in_assetbundle");
+            UnityEngine.SceneManagement.SceneManager.LoadScene("Packages/com.unity.testing.visualeffectgraph/Scenes/Empty.unity");
+            for (int i = 0; i < 4; ++i)
+                yield return new WaitForEndOfFrame();
+
+            var globalSampleToFetch = new[] { "System Used Memory", "Total Reserved Memory", "Gfx Used Memory", "Gfx Reserved Memory" };
+            var profilerRecorders = new ProfilerRecorder[globalSampleToFetch.Length];
+            for (int i = 0; i < globalSampleToFetch.Length; ++i)
+            {
+                profilerRecorders[i] = ProfilerRecorder.StartNew(ProfilerCategory.Memory, globalSampleToFetch[i]);
+            }
+
+            yield return new WaitForEndOfFrame();
+            for (int i = 0; i < globalSampleToFetch.Length; ++i)
+            {
+                var profilerRecorder = profilerRecorders[i];
+                Assert.AreNotEqual((long)0, profilerRecorder.LastValue);
+                var name = "Remaining_" + globalSampleToFetch[i].Replace(" ", "");
+                Measure.Custom(new SampleGroup(name, SampleUnit.Byte, false), profilerRecorder.LastValue);
+            }
+
+            foreach (var profilerRecorder in profilerRecorders)
+                profilerRecorder.Dispose();
+
+            AssetBundleHelper.Unload(assetBundle);
 
             yield return FreeMemory();
         }

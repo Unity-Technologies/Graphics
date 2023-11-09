@@ -4,6 +4,7 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.VFX;
 using UnityEditor.VFX;
+using UnityEditor.VFX.UI;
 using UnityEngine.Rendering;
 using UnityEngine.TestTools;
 using System.Linq;
@@ -1720,8 +1721,127 @@ namespace UnityEditor.VFX.Test
 
             Assert.IsTrue(s_VisualEffect_Spawned_Behind_Camera_Doesnt_Update_EventCount > 0u);
             Assert.IsFalse(vfx.culled);
-
+            
             yield return new ExitPlayMode();
+        }
+
+        private static Vector4 s_Constant_Curve_And_Gradient_Readback;
+        static void Constant_Curve_And_Gradient_Readback(AsyncGPUReadbackRequest request)
+        {
+            if (request.hasError)
+                Debug.LogError("Constant_Curve_And_Gradient_Readback failure.");
+
+            var data = request.GetData<Vector4>();
+            s_Constant_Curve_And_Gradient_Readback = data[0];
+        }
+
+        static int GetVisualEffectVisibleCount(VisualEffectAsset reference)
+        {
+            int visibleCount = 0;
+            foreach (var vfx in UnityEngine.Object.FindObjectsOfType<VisualEffect>())
+            {
+                if (vfx.visualEffectAsset != reference)
+                    continue;
+
+                visibleCount += vfx.culled ? 0 : 1;
+            }
+            return visibleCount;
+        }
+
+        [UnityTest, Description("Regression test UUM-52510"), Ignore("This test rely on custom HLSL feature to analyze content of a sampled curve. This feature isn't available on this branch.")]
+        public IEnumerator VisualEffectAsset_Authoring_Constant_Curve_And_Gradient()
+        {
+            while (EditorWindow.HasOpenInstances<SceneView>())
+                EditorWindow.GetWindow<SceneView>().Close();
+            EditorApplication.ExecuteMenuItem("Window/General/Game");
+
+            var structuredBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, GraphicsBuffer.UsageFlags.None, 1, 16);
+            Shader.SetGlobalBuffer("global_debug_buffer", structuredBuffer);
+
+            var mainCamera = Camera.main;
+            mainCamera.transform.position = Vector3.zero;
+            mainCamera.transform.eulerAngles = Vector3.zero;
+
+            var graph = VFXTestCommon.CopyTemporaryGraph("Packages/com.unity.testing.visualeffectgraph/Scenes/Repro_ConstantCurveAndGradient.vfx");
+
+            var initialAsset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(AssetDatabase.GetAssetPath(graph));
+            var window = VFXViewWindow.GetWindow<VFXViewWindow>();
+            window.LoadAsset(initialAsset, null);
+            for (int i = 0; i < 4; ++i)
+                yield return null;
+
+            var expectedValues = new[]
+            {
+                new Vector4(1, 0, 0, 1),
+                new Vector4(0, 1, 0, 0.5f),
+                new Vector4(0, 0, 1, 0.25f),
+                new Vector4(0.1f, 0.2f, 0.3f, 0.3f),
+            };
+
+            mainCamera.transform.Translate(Vector3.up * 500.0f);
+
+            var kMaxFrame = 32;
+            for (int step = 0; step < 3; ++step)
+            {
+                //Move ahead to get a new instance while the old one is culled
+                mainCamera.transform.Translate(Vector3.forward * 2.0f);
+
+                var visualEffectObject = new GameObject("VFX_Step_" + step);
+                visualEffectObject.transform.position = mainCamera.transform.position + Vector3.forward;
+
+                var vfx = visualEffectObject.AddComponent<VisualEffect>();
+                vfx.visualEffectAsset = graph.visualEffectResource.asset;
+                yield return null;
+
+                int maxFrame = kMaxFrame;
+                while (GetVisualEffectVisibleCount(vfx.visualEffectAsset) != 1 && --maxFrame > 0)
+                    yield return null;
+                Assert.IsTrue(maxFrame > 0, "Fail at isolating vfx moving camera at step {0}({1})", step, GetVisualEffectVisibleCount(vfx.visualEffectAsset));
+
+                s_Constant_Curve_And_Gradient_Readback = Vector4.zero;
+                var request = AsyncGPUReadback.Request(structuredBuffer, Constant_Curve_And_Gradient_Readback);
+                var expectedValue = expectedValues[step];
+
+                maxFrame = kMaxFrame;
+                while (Vector4.Magnitude(expectedValue - s_Constant_Curve_And_Gradient_Readback) > 1e-3f && --maxFrame > 0)
+                {
+                    if (request.done)
+                        request = AsyncGPUReadback.Request(structuredBuffer, Constant_Curve_And_Gradient_Readback);
+                    yield return null;
+                }
+                Assert.IsTrue(maxFrame > 0, "Fail before modifying curve at step {0} ({1})", step, s_Constant_Curve_And_Gradient_Readback.ToString());
+
+                var vfxUpdate = graph.children.OfType<VFXBasicUpdate>().First();
+                var colorSlot = vfxUpdate.children.SelectMany(o => o.inputSlots).First(o => o.valueType == VFXValueType.ColorGradient);
+                var curveSlot = vfxUpdate.children.SelectMany(o => o.inputSlots).First(o => o.valueType == VFXValueType.Curve);
+
+                var nextExpectedValue = expectedValues[step + 1];
+                colorSlot.value = new Gradient()
+                {
+                    colorKeys = new []
+                    {
+                        new GradientColorKey(new Color(nextExpectedValue.x, nextExpectedValue.y, nextExpectedValue.z), 0.0f),
+                        new GradientColorKey(new Color(nextExpectedValue.x, nextExpectedValue.y, nextExpectedValue.z), 1.0f)
+                    }
+                };
+                curveSlot.value = new AnimationCurve(new Keyframe(0, nextExpectedValue.w), new Keyframe(1, nextExpectedValue.w));
+                graph.RecompileIfNeeded(); //This recompile is expecting to invoke UpdateValues 
+
+                s_Constant_Curve_And_Gradient_Readback = Vector4.zero;
+                request = AsyncGPUReadback.Request(structuredBuffer, Constant_Curve_And_Gradient_Readback);
+                expectedValue = nextExpectedValue;
+                maxFrame = kMaxFrame;
+                while (Vector4.Magnitude(expectedValue - s_Constant_Curve_And_Gradient_Readback) > 1e-3f && --maxFrame > 0)
+                {
+                    if (request.done)
+                        request = AsyncGPUReadback.Request(structuredBuffer, Constant_Curve_And_Gradient_Readback);
+                    yield return null;
+                }
+                Assert.IsTrue(maxFrame > 0, "Fail after modifying curve at step {0} ({1})", step, s_Constant_Curve_And_Gradient_Readback.ToString());
+            }
+
+            structuredBuffer.Release();
+            window.Close();
         }
     }
 }
