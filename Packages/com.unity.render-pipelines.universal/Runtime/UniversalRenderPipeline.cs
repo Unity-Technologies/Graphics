@@ -158,6 +158,8 @@ namespace UnityEngine.Rendering.Universal
 
         private UniversalRenderPipelineGlobalSettings m_GlobalSettings;
 
+        internal UniversalRenderPipelineRuntimeTextures runtimeTextures { get; private set; }
+
         /// <summary>
         /// The default Render Pipeline Global Settings.
         /// </summary>
@@ -198,6 +200,8 @@ namespace UnityEngine.Rendering.Universal
 #else
             m_GlobalSettings = UniversalRenderPipelineGlobalSettings.instance;
 #endif
+
+            runtimeTextures = GraphicsSettings.GetRenderPipelineSettings<UniversalRenderPipelineRuntimeTextures>();
 
             SetSupportedRenderingFeatures(pipelineAsset);
 
@@ -1827,22 +1831,31 @@ namespace UnityEngine.Rendering.Universal
             return brightestDirectionalLightIndex;
         }
 
-        static void SetupPerFrameShaderConstants()
+        void SetupPerFrameShaderConstants()
         {
             using var profScope = new ProfilingScope(Profiling.Pipeline.setupPerFrameShaderConstants);
 
             // Required for 2D Unlit Shadergraph master node as it doesn't currently support hidden properties.
             Shader.SetGlobalColor(ShaderPropertyId.rendererColor, Color.white);
 
-            if (asset.lodCrossFadeDitheringType == LODCrossFadeDitheringType.BayerMatrix)
+            Texture2D ditheringTexture = null;
+            switch (asset.lodCrossFadeDitheringType)
             {
-                Shader.SetGlobalFloat(ShaderPropertyId.ditheringTextureInvSize, 1.0f / asset.textures.bayerMatrixTex.width);
-                Shader.SetGlobalTexture(ShaderPropertyId.ditheringTexture, asset.textures.bayerMatrixTex);
+                case LODCrossFadeDitheringType.BayerMatrix:
+                    ditheringTexture = runtimeTextures.bayerMatrixTex;
+                    break;
+                case LODCrossFadeDitheringType.BlueNoise:
+                    ditheringTexture = runtimeTextures.blueNoise64LTex;
+                    break;
+                default:
+                    Debug.LogWarning($"This Lod Cross Fade Dithering Type is not supported: {asset.lodCrossFadeDitheringType}");
+                    break;
             }
-            else if (asset.lodCrossFadeDitheringType == LODCrossFadeDitheringType.BlueNoise)
+
+            if (ditheringTexture != null)
             {
-                Shader.SetGlobalFloat(ShaderPropertyId.ditheringTextureInvSize, 1.0f / asset.textures.blueNoise64LTex.width);
-                Shader.SetGlobalTexture(ShaderPropertyId.ditheringTexture, asset.textures.blueNoise64LTex);
+                Shader.SetGlobalFloat(ShaderPropertyId.ditheringTextureInvSize, 1.0f / ditheringTexture.width);
+                Shader.SetGlobalTexture(ShaderPropertyId.ditheringTexture, ditheringTexture);
             }
         }
 

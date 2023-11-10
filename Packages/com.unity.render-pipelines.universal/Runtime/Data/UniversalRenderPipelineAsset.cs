@@ -605,8 +605,6 @@ namespace UnityEngine.Rendering.Universal
 
         [SerializeField] VolumeProfile m_VolumeProfile;
 
-        [SerializeField] TextureResources m_Textures;
-
         // Note: A lut size of 16^3 is barely usable with the HDR grading mode. 32 should be the
         // minimum, the lut being encoded in log. Lower sizes would work better with an additional
         // 1D shaper lut but for now we'll keep it simple.
@@ -1792,25 +1790,6 @@ namespace UnityEngine.Rendering.Universal
         public string[] lightLayerMaskNames => new string[0];
 
         /// <summary>
-        /// Returns asset texture resources
-        /// </summary>
-        public TextureResources textures
-        {
-            get
-            {
-                if (m_Textures == null)
-                    m_Textures = new TextureResources();
-
-#if UNITY_EDITOR
-                if (m_Textures.NeedsReload())
-                    ResourceReloader.ReloadAllNullIn(this, packagePath);
-#endif
-
-                return m_Textures;
-            }
-        }
-
-        /// <summary>
         /// GPUResidentDrawerMode configured on this pipeline asset
         /// </summary>
         public GPUResidentDrawerMode gpuResidentDrawerMode
@@ -2074,34 +2053,6 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField, Obsolete("Kept for migration. #from(2023.3")]
         internal ProbeVolumeSceneData apvScenesData;
         #endregion
-
-        /// <summary>
-        /// Class containing texture resources used in URP.
-        /// </summary>
-        [Serializable, ReloadGroup]
-        public sealed class TextureResources
-        {
-            /// <summary>
-            /// Pre-baked blue noise textures.
-            /// </summary>
-            [Reload("Textures/BlueNoise64/L/LDR_LLL1_0.png")]
-            public Texture2D blueNoise64LTex;
-
-            /// <summary>
-            /// Bayer matrix texture.
-            /// </summary>
-            [Reload("Textures/BayerMatrix.png")]
-            public Texture2D bayerMatrixTex;
-
-            /// <summary>
-            /// Check if the textures need reloading.
-            /// </summary>
-            /// <returns>True if any of the textures need reloading.</returns>
-            public bool NeedsReload()
-            {
-                return blueNoise64LTex == null || bayerMatrixTex == null;
-            }
-        }
 
         /// <summary>
         /// Indicates the maximum number of SH Bands used by this render pipeline instance.
