@@ -517,6 +517,9 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.LabelField("General", EditorStyles.miniLabel);
             PropertyField(m_Enable, EditorGUIUtility.TrTextContent("State"));
 
+            if (m_Enable.value.boolValue && !notSupported)
+                HDEditorUtils.EnsureFrameSetting(FrameSettingsField.VolumetricClouds, "Volumetric Clouds");
+
             EditorGUILayout.Space();
 
             // Shape UI

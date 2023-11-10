@@ -9,62 +9,89 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Block
 {
-    class SetAttributeVariantReadWritable : VariantProvider
+    class AttributeVariantProvider : VariantProvider
     {
-        public sealed override IEnumerable<Variant> ComputeVariants()
+        private readonly string m_Attribute;
+
+        public AttributeVariantProvider(string attribute)
         {
-            // Todo: should also list custom attributes here?
-            var attributes = VFXAttributesManager.GetBuiltInNamesOrCombination(true, false, false, false);
+            m_Attribute = attribute;
+        }
+
+        public override IEnumerable<Variant> GetVariants()
+        {
             var randoms = new[] { RandomMode.Off, RandomMode.Uniform, RandomMode.PerComponent };
             var sources = new[] { SetAttribute.ValueSource.Slot, SetAttribute.ValueSource.Source };
             var compositions = new[] { AttributeCompositionMode.Overwrite, AttributeCompositionMode.Add, AttributeCompositionMode.Multiply, AttributeCompositionMode.Blend };
 
-            foreach (var attribute in attributes)
+            var attributeRefSize = VFXExpressionHelper.GetSizeOfType(VFXAttributesManager.FindBuiltInOnly(m_Attribute).type);;
+            foreach (var random in randoms)
             {
-                var attributeRefSize = VFXExpressionHelper.GetSizeOfType(VFXAttributesManager.FindBuiltInOnly(attribute).type);
-                foreach (var random in randoms)
+                foreach (var source in sources)
                 {
-                    foreach (var source in sources)
+                    foreach (var composition in compositions)
                     {
-                        foreach (var composition in compositions)
-                        {
-                            if (random != RandomMode.Off && source == SetAttribute.ValueSource.Source)
-                                continue;
+                        if (random != RandomMode.Off && source == SetAttribute.ValueSource.Source)
+                            continue;
 
-                            if (composition != AttributeCompositionMode.Overwrite && source == SetAttribute.ValueSource.Source)
-                                continue;
+                        if (composition != AttributeCompositionMode.Overwrite && source == SetAttribute.ValueSource.Source)
+                            continue;
 
-                            if (composition != AttributeCompositionMode.Overwrite && attribute == VFXAttribute.Alive.name)
-                                continue;
+                        if (composition != AttributeCompositionMode.Overwrite && m_Attribute == VFXAttribute.Alive.name)
+                            continue;
 
-                            if (random == RandomMode.PerComponent && attributeRefSize == 1)
-                                continue;
+                        if (random == RandomMode.PerComponent && attributeRefSize == 1)
+                            continue;
 
-                            yield return new Variant(
-                                new[]
-                                {
-                                    new KeyValuePair<string, object>("attribute", attribute),
-                                    new KeyValuePair<string, object>("Random", random),
-                                    new KeyValuePair<string, object>("Source", source),
-                                    new KeyValuePair<string, object>("Composition", composition)
+                        // This is the main variant settings
+                        if (composition == AttributeCompositionMode.Overwrite && source == SetAttribute.ValueSource.Slot && random == RandomMode.Off)
+                            continue;
 
-                                },
-                                new[] { attribute, VFXBlockUtility.GetNameString(composition) });
-                        }
+                        var compositionString = $"{VFXBlockUtility.GetNameString(composition)}";
+                        yield return new Variant(
+                            source != SetAttribute.ValueSource.Source ? $"{compositionString} {m_Attribute} | Random {random}" : $"Inherit source {m_Attribute}",
+                            m_Attribute != VFXAttribute.Alive.name ? compositionString : null,
+                            typeof(SetAttribute),
+                            new[]
+                            {
+                                new KeyValuePair<string, object>("attribute", m_Attribute),
+                                new KeyValuePair<string, object>("Random", random),
+                                new KeyValuePair<string, object>("Source", source),
+                                new KeyValuePair<string, object>("Composition", composition)
+                            });
                     }
                 }
             }
-            yield return new Variant(new []
+        }
+    }
+
+    class SetAttributeVariantReadWritable : VariantProvider
+    {
+        public override IEnumerable<Variant> GetVariants()
+        {
+            var attributes = VFXAttributesManager.GetBuiltInNamesOrCombination(true, false, true, true);
+
+            foreach (var attribute in attributes)
             {
-                new KeyValuePair<string, object>("attribute", "CustomAttribute"),
-            },
-            new[] { "Custom Attribute", VFXBlockUtility.GetNameString(AttributeCompositionMode.Overwrite) });
+                yield return new Variant(
+                    $"Set {attribute}",
+                    "Attribute",
+                    typeof(SetAttribute),
+                    new[]
+                    {
+                        new KeyValuePair<string, object>("attribute", attribute),
+                        new KeyValuePair<string, object>("Random", RandomMode.Off),
+                        new KeyValuePair<string, object>("Source", SetAttribute.ValueSource.Slot),
+                        new KeyValuePair<string, object>("Composition", AttributeCompositionMode.Overwrite)
+                    },
+                    () => new AttributeVariantProvider(attribute));
+            }
         }
     }
 
     [VFXHelpURL("Block-SetAttribute")]
-    [VFXInfo(category = "Attribute/{0}/Composition/{1}", variantProvider = typeof(SetAttributeVariantReadWritable))]
-    class SetAttribute : VFXBlock, IVFXAttributeUsage
+    [VFXInfo(variantProvider = typeof(SetAttributeVariantReadWritable))]
+    class SetAttribute : VFXBlock
     {
         public enum ValueSource
         {
@@ -78,7 +105,7 @@ namespace UnityEditor.VFX.Block
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("Specifies what operation to perform on the chosen attribute. The input value can overwrite, add to, multiply with, or blend with the existing attribute value.")]
         public AttributeCompositionMode Composition = AttributeCompositionMode.Overwrite;
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("Specifies the source of the attribute data. ‘Slot’ enables a user input to modify the value, while a 'Source' attribute derives its value from a Spawn event attribute or inherits it from a parent system via a GPU event.")]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("Specifies the source of the attribute data. 'Slot' enables a user input to modify the value, while a 'Source' attribute derives its value from a Spawn event attribute or inherits it from a parent system via a GPU event.")]
         public ValueSource Source = ValueSource.Slot;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("Specifies whether random values can be derived from this block. Random values can be turned off, derived per component, or be uniform.")]
@@ -88,9 +115,7 @@ namespace UnityEditor.VFX.Block
         public VariadicChannelOptions channels = VariadicChannelOptions.XYZ;
         private static readonly char[] channelNames = new char[] { 'x', 'y', 'z' };
 
-        public override string libraryName => ComputeName(true);
-
-        public override string name => ComputeName(false);
+        public override string name => ComputeName();
 
         private bool TryGetAttribute(out VFXAttribute vfxAttribute)
         {
@@ -98,7 +123,7 @@ namespace UnityEditor.VFX.Block
             return !string.IsNullOrEmpty(vfxAttribute.name);
         }
 
-        private string ComputeName(bool isLibraryName)
+        private string ComputeName()
         {
             if (!TryGetAttribute(out var vfxAttribute))
             {
@@ -115,7 +140,7 @@ namespace UnityEditor.VFX.Block
                 builder.Append("Inherit Source ");
 
             builder.Append(ObjectNames.NicifyVariableName(attribute));
-            if (!isLibraryName && vfxAttribute.variadic == VFXVariadic.True)
+            if (vfxAttribute.variadic == VFXVariadic.True)
                 builder.AppendFormat(".{0}", channels.ToString());
 
             if (Source == ValueSource.Slot)
@@ -374,7 +399,7 @@ namespace UnityEditor.VFX.Block
             }
         }
 
-        public VFXAttribute currentAttribute
+        private VFXAttribute currentAttribute
         {
             get
             {

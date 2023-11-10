@@ -5,7 +5,7 @@ using UnityEngine;
 namespace UnityEditor.VFX.Block
 {
     [VFXHelpURL("Block-Kill(Sphere)")]
-    [VFXInfo(category = "Kill")]
+    [VFXInfo(name = "Kill (Sphere)", category = "Kill")]
     class KillSphere : VFXBlock
     {
         [VFXSetting]

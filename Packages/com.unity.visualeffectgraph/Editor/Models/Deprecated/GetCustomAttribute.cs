@@ -7,6 +7,7 @@ using UnityEngine;
 namespace UnityEditor.VFX
 {
     [Obsolete]
+    [VFXHelpURL("Operator-GetCustomAttribute")]
     class GetCustomAttribute : VFXOperator
     {
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Delayed, Tooltip("Specifies the name of the custom attribute to use.")]
@@ -27,7 +28,6 @@ namespace UnityEditor.VFX
             }
         }
 
-        public override string libraryName => "Get Attribute: custom";
         public override string name => $"Get '{attribute}' ({AttributeType})";
 
         public override void Sanitize(int version)

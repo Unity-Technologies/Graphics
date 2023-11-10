@@ -10,6 +10,11 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     public class UniversalCameraHistory : ICameraHistoryReadAccess, ICameraHistoryWriteAccess, IPerFrameHistoryAccessTracker, IDisposable
     {
+        /// <summary>
+        /// Number of frames to consider history valid.
+        /// </summary>
+        const int k_ValidVersionCount = 2;  // current frame + previous frame
+
         private static uint s_TypeCount = 0;
         private static class TypeId<T>
         {
@@ -25,6 +30,13 @@ namespace UnityEngine.Rendering.Universal
 
             // The last tick the type was written to.
             public int writeVersion;
+
+            public void Reset()
+            {
+                storage?.Reset();
+                requestVersion = -k_ValidVersionCount;  // NOTE: must be invalid on frame 0
+                writeVersion   = -k_ValidVersionCount;
+            }
         }
         private Item[] m_Items = new Item[32];
         private int m_Version = 0;
@@ -150,17 +162,20 @@ namespace UnityEngine.Rendering.Universal
     #endregion
     #region UrpApi
 
+        internal UniversalCameraHistory()
+        {
+            // Init items with invalid versions.
+            for(int i = 0; i < m_Items.Length; i++)
+                m_Items[i].Reset();
+        }
+
         /// <summary>
         /// Release all camera history textures on the GPU.
         /// </summary>
         public void Dispose()
         {
             for (int i = 0; i < m_Items.Length; i++)
-            {
-                m_Items[i].storage?.Reset();
-                m_Items[i].requestVersion = -1;
-                m_Items[i].writeVersion = -1;
-            }
+                m_Items[i].Reset();
 
             m_HistoryTextures.ReleaseAll();
         }
@@ -175,7 +190,7 @@ namespace UnityEngine.Rendering.Universal
         // Requesting access in the leaf classes, means we might be 1 frame late.
         private bool IsValidRequest(int i)
         {
-            return ((m_Version - m_Items[i].requestVersion) < 2);
+            return ((m_Version - m_Items[i].requestVersion) < k_ValidVersionCount);
         }
 
         // A type is valid if it was requested and written to this or the last frame.
@@ -185,7 +200,7 @@ namespace UnityEngine.Rendering.Universal
         //       For now we expect that active history has the previous frame written.
         private bool IsValid(int i)
         {
-            return ((m_Version - m_Items[i].writeVersion) < 2);
+            return ((m_Version - m_Items[i].writeVersion) < k_ValidVersionCount);
         }
 
         // Garbage collect old unused type instances and Reset them. The user is expected to free any GPU resources.
@@ -194,11 +209,7 @@ namespace UnityEngine.Rendering.Universal
             for (int i = 0; i < m_Items.Length; i++)
             {
                 if (!IsValidRequest(i) && !IsValid(i))
-                {
-                    m_Items[i].storage?.Reset();
-                    m_Items[i].requestVersion = -1;
-                    m_Items[i].writeVersion = -1;
-                }
+                    m_Items[i].Reset();
             }
 
             // After collecting stale Types, start a new generation.

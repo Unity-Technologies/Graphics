@@ -62,7 +62,7 @@ namespace UnityEngine.Rendering
                     cmdBuffer.SetGlobalTexture(ShaderIDs._SkyOcclusionTexL0L1, rr.SkyOcclusionL0L1);
                     cmdBuffer.SetGlobalTexture(ShaderIDs._SkyShadingDirectionIndicesTex, rr.SkyShadingDirectionIndices);
                     cmdBuffer.SetGlobalBuffer(ShaderIDs._SkyPrecomputedDirections, rr.SkyPrecomputedDirections);
-                    
+
                     if (refVolume.shBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
                     {
                         cmdBuffer.SetGlobalTexture(ShaderIDs._APVResL2_0, rr.L2_0);
@@ -99,7 +99,7 @@ namespace UnityEngine.Rendering
                 cmdBuffer.SetGlobalTexture(ShaderIDs._SkyOcclusionTexL0L1, TextureXR.GetBlackTexture3D());
                 cmdBuffer.SetGlobalTexture(ShaderIDs._SkyShadingDirectionIndicesTex, TextureXR.GetBlackTexture3D());
                 cmdBuffer.SetGlobalBuffer(ShaderIDs._SkyPrecomputedDirections, m_EmptyDirectionsBuffer);
-                
+
                 if (refVolume.shBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
                 {
                     cmdBuffer.SetGlobalTexture(ShaderIDs._APVResL2_0, TextureXR.GetBlackTexture3D());
@@ -119,9 +119,7 @@ namespace UnityEngine.Rendering
         /// <returns>True if successful</returns>
         public bool UpdateShaderVariablesProbeVolumes(CommandBuffer cmd, ProbeVolumesOptions probeVolumeOptions, int taaFrameIndex)
         {
-            bool loadedData = DataHasBeenLoaded();
-            var weight = probeVolumesWeight;
-            bool enableProbeVolumes = loadedData && weight > 0f;
+            bool enableProbeVolumes = DataHasBeenLoaded();
 
             if (enableProbeVolumes)
             {
@@ -130,15 +128,14 @@ namespace UnityEngine.Rendering
                 parameters.viewBias = probeVolumeOptions.viewBias.value;
                 parameters.scaleBiasByMinDistanceBetweenProbes = probeVolumeOptions.scaleBiasWithMinProbeDistance.value;
                 parameters.samplingNoise = probeVolumeOptions.samplingNoise.value;
-                parameters.weight = weight;
+                parameters.weight = probeVolumeOptions.intensityMultiplier.value;
                 parameters.leakReductionMode = probeVolumeOptions.leakReductionMode.value;
-                parameters.occlusionWeightContribution = 1.0f;
                 parameters.frameIndexForNoise = taaFrameIndex * (probeVolumeOptions.animateSamplingNoise.value ? 1 : 0);
                 parameters.reflNormalizationLowerClamp = 0.005f;
                 parameters.reflNormalizationUpperClamp = probeVolumeOptions.occlusionOnlyReflectionNormalization.value ? 1.0f : 7.0f;
 
                 parameters.minValidNormalWeight = probeVolumeOptions.minValidDotProductValue.value;
-                parameters.skyOcclusion = skyOcclusion;
+                parameters.skyOcclusionIntensity = skyOcclusion ? probeVolumeOptions.skyOcclusionIntensityMultiplier.value : 0.0f;
                 parameters.skyOcclusionShadingDirection = skyOcclusion && skyOcclusionShadingDirection;
                 UpdateConstantBuffer(cmd, parameters);
             }

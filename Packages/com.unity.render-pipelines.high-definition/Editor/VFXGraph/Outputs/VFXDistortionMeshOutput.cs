@@ -1,13 +1,11 @@
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.VFX.Block;
+
 using UnityEngine;
-using UnityEngine.Rendering;
-using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.VFX.HDRP
 {
-    [VFXInfo]
+    [VFXInfo(name = "Output Particle HDRP Distortion Mesh", category = "Output")]
     class VFXDistortionMeshOutput : VFXAbstractDistortionOutput
     {
         public override string name { get { return "Output Particle HDRP Distortion Mesh"; } }

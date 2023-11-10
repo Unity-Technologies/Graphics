@@ -9,8 +9,7 @@ namespace UnityEditor.VFX.Operator
     [VFXInfo(category = "Math/Vector")]
     class Swizzle : VFXOperatorNumericUniform
     {
-        public override sealed string libraryName { get { return "Swizzle"; } }
-        protected override sealed string operatorName { get { return "Swizzle." + mask; } }
+        protected sealed override string operatorName => "Swizzle." + mask;
 
         public class InputProperties
         {

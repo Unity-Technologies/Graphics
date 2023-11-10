@@ -414,6 +414,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
             public bool enableAsyncCompute;
             public bool allowPassCulling { get { return pass.allowPassCulling; } }
+            public bool enableFoveatedRasterization { get { return pass.enableFoveatedRasterization; } }
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
             // This members are only here to ease debugging.
@@ -2200,6 +2201,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 }
             }
 
+            if (passInfo.enableFoveatedRasterization)
+                rgContext.cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Enabled);
+
             PreRenderPassSetRenderTargets(passInfo, rgContext);
 
             if (passInfo.enableAsyncCompute)
@@ -2244,6 +2248,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 CommandBufferPool.Release(rgContext.cmd);
                 rgContext.cmd = m_PreviousCommandBuffer; // Restore the main command buffer.
             }
+
+            if (passInfo.enableFoveatedRasterization)
+                rgContext.cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Disabled);
 
             m_RenderGraphPool.ReleaseAllTempAlloc();
 

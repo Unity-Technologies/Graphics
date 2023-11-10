@@ -128,11 +128,6 @@ namespace UnityEngine.Rendering.Universal
             get => 8;
         }
 
-        // These limits have to match same limits in Input.hlsl
-        internal const int k_MaxVisibleAdditionalLightsMobileShaderLevelLessThan45 = 16;
-        internal const int k_MaxVisibleAdditionalLightsMobile = 32;
-        internal const int k_MaxVisibleAdditionalLightsNonMobile = 256;
-
         /// <summary>
         /// The max number of additional lights that can can affect each GameObject.
         /// </summary>
@@ -143,12 +138,12 @@ namespace UnityEngine.Rendering.Universal
                 // Must match: Input.hlsl, MAX_VISIBLE_LIGHTS
                 bool isMobileOrMobileBuildTarget = PlatformAutoDetect.isShaderAPIMobileDefined;
                 if (isMobileOrMobileBuildTarget && (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3 && Graphics.minOpenGLESVersion <= OpenGLESVersion.OpenGLES30))
-                    return k_MaxVisibleAdditionalLightsMobileShaderLevelLessThan45;
+                    return ShaderOptions.k_MaxVisibleLightCountLowEndMobile;
 
                 // GLES can be selected as platform on Windows (not a mobile platform) but uniform buffer size so we must use a low light count.
                 // WebGPU's minimal limits are based on mobile rather than desktop, so it will need to assume mobile.
                 return (isMobileOrMobileBuildTarget || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3 || SystemInfo.graphicsDeviceType == GraphicsDeviceType.WebGPU)
-                    ? k_MaxVisibleAdditionalLightsMobile : k_MaxVisibleAdditionalLightsNonMobile;
+                    ? ShaderOptions.k_MaxVisibleLightCountMobile : ShaderOptions.k_MaxVisibleLightCountDesktop;
             }
         }
 
@@ -1213,6 +1208,9 @@ namespace UnityEngine.Rendering.Universal
             InitializeStackedCameraData(camera, additionalCameraData, cameraData);
 
             cameraData.camera = camera;
+
+            // Add reference to writable camera history to give access to injected user render passes which can produce history.
+            cameraData.historyManager = additionalCameraData?.historyManager;
 
             ///////////////////////////////////////////////////////////////////
             // Descriptor settings                                            /

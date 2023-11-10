@@ -1099,7 +1099,7 @@ Shader "HDRP/LitTessellation"
             // multi compile that allows us to strip the recursive code
             #pragma multi_compile _ MULTI_BOUNCE_INDIRECT
 
-            #pragma multi_compile _ DECALS_OFF DECALS_3RT DECALS_4RT
+            #pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT
             #pragma multi_compile _ DECAL_SURFACE_GRADIENT
 
             // We use the low shadow maps for raytracing
@@ -1147,7 +1147,7 @@ Shader "HDRP/LitTessellation"
             #pragma multi_compile _ PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
 
-            #pragma multi_compile _ DECALS_OFF DECALS_3RT DECALS_4RT
+            #pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT
             #pragma multi_compile _ DECAL_SURFACE_GRADIENT
 
             #define SHADERPASS SHADERPASS_RAYTRACING_FORWARD
@@ -1197,7 +1197,7 @@ Shader "HDRP/LitTessellation"
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ MINIMAL_GBUFFER
 
-            #pragma multi_compile _ DECALS_OFF DECALS_3RT DECALS_4RT
+            #pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT
             #pragma multi_compile _ DECAL_SURFACE_GRADIENT
 
             #define SHADERPASS SHADERPASS_RAYTRACING_GBUFFER

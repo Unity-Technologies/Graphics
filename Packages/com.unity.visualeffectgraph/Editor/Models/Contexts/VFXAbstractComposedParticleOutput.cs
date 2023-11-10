@@ -179,8 +179,6 @@ namespace UnityEditor.VFX
 
         public sealed override string name => GetOrRefreshDecription().name ?? "NULL";
 
-        public sealed override string libraryName => name.Replace('\n', ' ');
-
         public sealed override string codeGeneratorTemplate => null;
         public sealed override bool doesGenerateShader => true;
 
@@ -303,6 +301,14 @@ namespace UnityEditor.VFX
         {
             //Avoid usage of independent boolean to be consistent with domain reload behavior (avoid restoring state)
             m_CacheComposedTraitDescription.taskType = VFXTaskType.None;
+        }
+
+        internal static string GetName(VFXDataType dataType,string topologyDescription, string shadingDescription)
+        {
+            return $"Output " +
+                $"{(dataType == VFXDataType.ParticleStrip ? "ParticleStrip" : "Particle")} ShaderGraph" +
+                $"\n{topologyDescription}" +
+                (string.IsNullOrEmpty(shadingDescription) ? string.Empty : $" - {shadingDescription}");
         }
 
         public void InitInspectorGUI()
@@ -482,7 +488,7 @@ namespace UnityEditor.VFX
 
         protected sealed override IEnumerable<VFXNamedExpression> CollectGPUExpressions(IEnumerable<VFXNamedExpression> slotExpressions)
         {
-            //Directly implemented in GetExpressionMapper, parent CollectGPUExpressions is only relevant for built in 
+            //Directly implemented in GetExpressionMapper, parent CollectGPUExpressions is only relevant for built in
             throw new NotImplementedException();
         }
 

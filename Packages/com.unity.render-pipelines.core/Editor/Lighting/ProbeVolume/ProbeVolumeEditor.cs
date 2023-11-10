@@ -74,6 +74,25 @@ namespace UnityEditor.Rendering
             }
         }
 
+        internal static void FrameSettingDisabledHelpBox()
+        {
+            var renderPipelineAssetType = GraphicsSettings.currentRenderPipelineAssetType;
+
+            // HDRP only
+            if (renderPipelineAssetType != null && renderPipelineAssetType.Name == "HDRenderPipelineAsset")
+            {
+                static int IndexOf(string[] names, string name) { for (int i = 0; i < names.Length; i++) { if (name == names[i]) return i; } return -1; }
+
+                var k_FrameSettingsField = Type.GetType("UnityEngine.Rendering.HighDefinition.FrameSettingsField,Unity.RenderPipelines.HighDefinition.Runtime");
+                var k_APVFrameSetting = k_FrameSettingsField.GetEnumValues().GetValue(IndexOf(k_FrameSettingsField.GetEnumNames(), "ProbeVolume"));
+
+                var k_EnsureFrameSetting = Type.GetType("UnityEditor.Rendering.HighDefinition.HDEditorUtils,Unity.RenderPipelines.HighDefinition.Editor")
+                    .GetMethod("EnsureFrameSetting", BindingFlags.Static | BindingFlags.NonPublic);
+
+                k_EnsureFrameSetting.Invoke(null, new object[] { k_APVFrameSetting, "Probe Volumes" });
+            }
+        }
+
         public override void OnInspectorGUI()
         {
             ProbeVolume probeVolume = target as ProbeVolume;
@@ -107,6 +126,8 @@ namespace UnityEditor.Rendering
 
             if (drawInspector)
             {
+                ProbeVolumeEditor.FrameSettingDisabledHelpBox();
+
                 serializedObject.Update();
                 ProbeVolumeUI.Inspector.Draw(m_SerializedProbeVolume, this);
                 m_SerializedProbeVolume.Apply();

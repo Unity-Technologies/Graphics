@@ -1,11 +1,50 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
-using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
-    [VFXInfo(category = "Attribute/{0}/Direction & Speed/{1}", experimental = true, variantProvider = typeof(VelocityBaseProvider))]
+    class VelocityRandomVariantProvider : VariantProvider
+    {
+        public override IEnumerable<Variant> GetVariants()
+        {
+            foreach (var mode in Enum.GetValues(typeof(AttributeCompositionMode)).Cast<AttributeCompositionMode>())
+            {
+                // Skip the composition mode from main provider
+                if (mode == AttributeCompositionMode.Overwrite)
+                    continue;
+
+                var composition = VFXBlockUtility.GetNameString(mode);
+
+                yield return new Variant(
+                    $"{composition} Random Velocity from Direction & Speed",
+                    null,
+                    typeof(VelocityRandomize),
+                    new[]
+                    {
+                        new KeyValuePair<string, object>("composition", mode),
+                    });
+            }
+        }
+    }
+
+    class VelocityRandomProvider : VariantProvider
+    {
+        public override IEnumerable<Variant> GetVariants()
+        {
+            yield return new Variant(
+                "Set Random Velocity from Direction & Speed",
+                "Attribute/From Direction & Speed",
+                typeof(VelocityRandomize),
+                new[]
+                {
+                    new KeyValuePair<string, object>("composition", AttributeCompositionMode.Overwrite),
+                },
+                () => new VelocityRandomVariantProvider());
+        }
+    }
+
+    [VFXInfo(experimental = true, variantProvider = typeof(VelocityRandomProvider))]
     class VelocityRandomize : VelocityBase
     {
         public override string name { get { return string.Format(base.name, "Random Direction"); } }

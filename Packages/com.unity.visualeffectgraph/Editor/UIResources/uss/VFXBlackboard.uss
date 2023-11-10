@@ -21,6 +21,7 @@ VFXBlackboard.blackboard > .mainContainer > #content > #header > #addButton {
     background-image: none;
     font-size: 20px;
     align-self: flex-start;
+    padding: 0 6px 3px 6px;
 }
 
 VFXBlackboard #vfx-properties
@@ -88,8 +89,8 @@ VFXBlackboard #labelContainer TextField.unity-base-field {
 
 VFXBlackboard .blackboardField #textField
 {
-    height: 28px;
-    margin: 4px 3px;
+    height: 23px;
+    margin: 4px 0 4px 3px;
     flex-grow: 1;
 }
 
@@ -240,13 +241,6 @@ VFXBlackboard .blackboardRow .pill
     margin: 2px 4px;
 }
 
-VFXBlackboard VFXBlackboardField .pill #contents > #top > #icon
-{
-    width: 6px;
-    height: 6px;
-    margin: 9px 4px;
-}
-
 VFXBlackboard .blackboardRow VFXBlackboardField .pill #node-border
 {
     border-radius: 12px;
@@ -274,6 +268,30 @@ VFXBlackboard .blackboardRow.hovered .pill #node-border
     background-color: #955E27;
     border-color: #FF8000;
 }
+
+VFXBlackboard VFXBlackboardField.unused .pill.has-icon #contents > #top > #icon
+{
+    opacity:0.2;
+}
+
+VFXBlackboard VFXBlackboardField .pill #contents > #top > #icon,
+VFXBlackboard VFXBlackboardField .pill.has-icon #contents > #top > #icon
+{
+    width: 7px;
+    height: 7px;
+    margin: 8px 4px;
+}
+
+VFXBlackboard VFXBlackboardField .pill #node-border
+{
+    border-radius: 12px;
+    border-color: #242424;
+}
+
+VFXBlackboard .expanded VFXBlackboardField .pill #node-border
+{
+    border-radius: 12px 12px 0 0;
+}
 /*-- End of Pill UI --*/
 
 VFXBlackboard .unity-collection-view__item--selected .blackboardRow,
@@ -291,28 +309,10 @@ VFXBlackboard .blackboardField #typeLabel
     -unity-text-align: middle-right;
 }
 
-VFXBlackboard VFXBlackboardField.unused .pill.has-icon #contents > #top > #icon
-{
-    opacity:0.2;
-}
-
-VFXBlackboard VFXBlackboardField .pill #node-border
-{
-    border-radius: 12px;
-    border-color: #242424;
-}
-
-VFXBlackboard .expanded VFXBlackboardField .pill #node-border
-{
-    border-radius: 12px 12px 0 0;
-}
-
-/*-- End of pill UI --*/
-
 VFXBlackboard VFXBlackboardPropertyView
 {
     padding: 4px;
-    margin-top: -6px;
+    margin-top: -3px;
     margin-left: 16px;
     border-radius: 0 12px 12px 12px;
     border-width: 1px;
@@ -330,25 +330,18 @@ VFXBlackboard VFXBlackboardPropertyView .propertyrm
 VFXBlackboard VFXBlackboardAttributeRow.blackboardRow.expanded .pill #node-border
 {
     border-radius: 5px 5px 0 0;
-    border-width: 1px 1px 0 1px;
 }
 
 VFXBlackboardAttributeField .pill.has-icon #contents > #top > #icon {
     flex-shrink: 0;
     width: 22px;
     height: 22px;
-    margin: 1px 2px;
+    margin: 0px 2px 1px 0px;
 }
 
 VFXBlackboard VFXBlackboardAttributeRow .pill #node-border
 {
     border-radius: 5px;
-}
-
-VFXBlackboard VFXBlackboardAttributeRow.blackboardRow.expanded .pill #node-border
-{
-    border-radius: 5px 5px 0 0;
-    border-width: 1px 1px 0 1px;
 }
 
 VFXBlackboardAttributeView
@@ -360,7 +353,7 @@ VFXBlackboardAttributeView
     padding-left: 16px;
     padding-top: 4px;
     padding-bottom: 4px;
-    margin-top: -5px;
+    margin-top: -3px;
     margin-left: 16px;
     margin-bottom: 4px;
 }

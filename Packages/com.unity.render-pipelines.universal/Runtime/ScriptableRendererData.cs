@@ -37,11 +37,13 @@ namespace UnityEngine.Rendering.Universal
             [Reload("Shaders/Debug/HDRDebugView.shader")]
             public Shader hdrDebugViewPS;
 
+#if UNITY_EDITOR
             /// <summary>
             /// Debug shader used to output world position and world normal for the pixel under the cursor.
             /// </summary>
             [Reload("Shaders/Debug/ProbeVolumeSamplingDebugPositionNormal.compute")]
             public ComputeShader probeVolumeSamplingDebugComputeShader;
+#endif
         }
 
         /// <summary>

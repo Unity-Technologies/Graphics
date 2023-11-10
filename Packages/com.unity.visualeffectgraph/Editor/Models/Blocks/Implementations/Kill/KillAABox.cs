@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.VFX.Block
 {
     [VFXHelpURL("Block-Kill(AABox)")]
-    [VFXInfo(category = "Kill")]
+    [VFXInfo(name = "Kill (AABox)", category = "Kill")]
     class KillAABox : VFXBlock
     {
         [VFXSetting]

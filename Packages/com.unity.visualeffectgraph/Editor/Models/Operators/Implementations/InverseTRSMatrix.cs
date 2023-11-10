@@ -3,7 +3,7 @@ using UnityEngine;
 namespace UnityEditor.VFX.Operator
 {
     [VFXHelpURL("Operator-InvertTRS(Matrix)")]
-    [VFXInfo(category = "Math/Geometry")]
+    [VFXInfo(name = "InvertTRS (Matrix)", category = "Math/Geometry")]
     class InverseTRSMatrix : VFXOperator
     {
         public class InputProperties

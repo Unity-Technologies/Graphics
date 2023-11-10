@@ -9,12 +9,12 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         public override int Priority => 100;
         private HDRenderPipelineRuntimeResources.ShaderResources m_ShaderResources;
-        private HDRenderPipelineRuntimeResources.MaterialResources m_MaterialResources;
+        private HDRenderPipelineRuntimeMaterials m_MaterialResources;
 
         public CommonShaderPreprocessor()
         {
             m_ShaderResources = HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders;
-            m_MaterialResources = HDRenderPipelineGlobalSettings.instance.renderPipelineResources.materials;
+            m_MaterialResources = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeMaterials>();
         }
 
         protected override bool DoShadersStripper(HDRenderPipelineAsset hdrpAsset, Shader shader, ShaderSnippetData snippet, ShaderCompilerData inputData)

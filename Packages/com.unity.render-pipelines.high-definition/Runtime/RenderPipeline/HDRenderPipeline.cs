@@ -63,7 +63,7 @@ namespace UnityEngine.Rendering.HighDefinition
         readonly HDRenderPipelineAsset m_Asset;
         internal HDRenderPipelineAsset asset => m_Asset;
 
-        internal HDRenderPipelineRuntimeResources.MaterialResources runtimeMaterials { get; private set; }
+        internal HDRenderPipelineRuntimeMaterials runtimeMaterials { get; private set; }
         internal HDRenderPipelineRuntimeResources.ShaderResources runtimeShaders { get; private set; }
         internal HDRenderPipelineRuntimeAssets runtimeAssets { get; private set; }
         internal HDRenderPipelineRuntimeTextures runtimeTextures { get; private set; }
@@ -444,7 +444,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_GlobalSettings = HDRenderPipelineGlobalSettings.instance;
 
-            runtimeMaterials = m_GlobalSettings.renderPipelineResources.materials;
+            runtimeMaterials = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeMaterials>();
             runtimeShaders   = m_GlobalSettings.renderPipelineResources.shaders;
             runtimeAssets    = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeAssets>();
             runtimeTextures  = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeTextures>();
@@ -713,7 +713,7 @@ namespace UnityEngine.Rendering.HighDefinition
             LocalVolumetricFogManager.manager.InitializeGraphicsBuffers(asset.currentPlatformRenderPipelineSettings.lightLoopSettings.maxLocalVolumetricFogOnScreen);
 
 #if UNITY_EDITOR
-            GPUInlineDebugDrawer.Initialize(m_GlobalSettings.renderPipelineEditorResources);
+            GPUInlineDebugDrawer.Initialize();
 #endif
         }
 
@@ -1191,6 +1191,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_ShaderVariablesGlobalCB._VolumetricCloudsShadowOriginToggle -= new Vector4(hdCamera.camera.transform.position.x, hdCamera.camera.transform.position.y, hdCamera.camera.transform.position.z, 0);
             }
             m_ShaderVariablesGlobalCB._VolumetricCloudsFallBackValue = m_VolumetricCloudsShadowRegion.fallbackValue;
+            m_ShaderVariablesGlobalCB._ColorPyramidUvScaleAndLimitPrevFrame = HDUtils.ComputeViewportScaleAndLimit(hdCamera.historyRTHandleProperties.previousViewportSize, hdCamera.historyRTHandleProperties.previousRenderTargetSize);
 
             ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
         }
@@ -2042,7 +2043,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 SupportedRenderingFeatures.active.rendersUIOverlay = true;
             }
-            
+
 #if UNITY_2021_1_OR_NEWER
             if (!m_ValidAPI || cameras.Count == 0)
 #else
@@ -2054,11 +2055,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Potentially the asset might have been deleted by the user
             // Obtain the asset again at least one per frame to make sure we are pointing to a valid resources.
-            runtimeMaterials = m_GlobalSettings.renderPipelineResources.materials;
+            runtimeMaterials = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeMaterials>();
             runtimeShaders   = m_GlobalSettings.renderPipelineResources.shaders;
             runtimeAssets    = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeAssets>();
             runtimeTextures  = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeTextures>();
-            
+
 #endif
             if (m_GlobalSettings.lensAttenuationMode == LensAttenuationMode.ImperfectLens)
             {

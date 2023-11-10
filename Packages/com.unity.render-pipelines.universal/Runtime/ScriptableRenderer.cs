@@ -949,9 +949,10 @@ namespace UnityEngine.Rendering.Universal
             internal UniversalCameraData cameraData;
         };
 
-        internal void BeginRenderGraphXRRendering(RenderGraph renderGraph, UniversalCameraData cameraData)
+        internal void BeginRenderGraphXRRendering(RenderGraph renderGraph)
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
             if (!cameraData.xr.enabled)
                 return;
 
@@ -961,6 +962,7 @@ namespace UnityEngine.Rendering.Universal
                 passData.cameraData = cameraData;
 
                 builder.AllowPassCulling(false);
+                builder.AllowGlobalStateModification(true);
 
                 builder.SetRenderFunc((BeginXRPassData data, RasterGraphContext context) =>
                 {
@@ -970,6 +972,13 @@ namespace UnityEngine.Rendering.Universal
                             data.cameraData.xrUniversal.canMarkLateLatch = true;
 
                         data.cameraData.xr.StartSinglePass(context.cmd);
+                        if (data.cameraData.xr.supportsFoveatedRendering)
+                        {
+                            context.cmd.ConfigureFoveatedRendering(data.cameraData.xr.foveatedRenderingInfo);
+
+                            if (XRSystem.foveatedRenderingCaps.HasFlag(FoveatedRenderingCaps.NonUniformRaster))
+                                context.cmd.SetKeyword(ref ShaderGlobalKeywords.FoveatedRenderingNonUniformRaster, true);
+                        }
                     }
                 });
             }
@@ -994,12 +1003,21 @@ namespace UnityEngine.Rendering.Universal
                 passData.cameraData = cameraData;
 
                 builder.AllowPassCulling(false);
+                builder.AllowGlobalStateModification(true);
 
                 builder.SetRenderFunc((EndXRPassData data, RasterGraphContext context) =>
                 {
                     if (data.cameraData.xr.enabled)
                     {
                         data.cameraData.xr.StopSinglePass(context.cmd);
+                    }
+
+                    if (XRSystem.foveatedRenderingCaps != FoveatedRenderingCaps.None)
+                    {
+                        if (XRSystem.foveatedRenderingCaps.HasFlag(FoveatedRenderingCaps.NonUniformRaster))
+                            context.cmd.SetKeyword(ref ShaderGlobalKeywords.FoveatedRenderingNonUniformRaster, false);
+
+                        context.cmd.ConfigureFoveatedRendering(IntPtr.Zero);
                     }
                 });
             }

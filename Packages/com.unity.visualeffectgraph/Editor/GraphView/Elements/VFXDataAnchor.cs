@@ -258,7 +258,6 @@ namespace UnityEditor.VFX.UI
 
                 if (nodeController != null)
                 {
-                    IVFXSlotContainer slotContainer = nodeController.slotContainer;
                     if (controller.direction == Direction.Input)
                     {
                         foreach (var output in nodeController.outputPorts.Where(t => t.model == null || t.model.IsMasterSlot()))
@@ -287,9 +286,10 @@ namespace UnityEditor.VFX.UI
                 {
                     parameterDesc = VFXLibrary.GetParameters().FirstOrDefault(t =>
                     {
-                        if (!t.model.outputSlots[0].CanLink(controller.model))
+                        var model = t.model;
+                        if (!model.outputSlots[0].CanLink(controller.model))
                             return false;
-                        var attributeCandidate = VFXLibrary.GetAttributeFromSlotType(t.model.type);
+                        var attributeCandidate = VFXLibrary.GetAttributeFromSlotType(model.type);
                         return attributeCandidate == null || !attributeCandidate.usages.HasFlag(VFXTypeAttribute.Usage.ExcludeFromProperty);
                     });
                 }
@@ -297,7 +297,8 @@ namespace UnityEditor.VFX.UI
                 {
                     parameterDesc = VFXLibrary.GetParameters().FirstOrDefault(t =>
                     {
-                        return t.model.type == targetType;
+                        var model = t.model;
+                        return model.type == targetType;
                     });
                 }
 
@@ -305,14 +306,19 @@ namespace UnityEditor.VFX.UI
                 {
                     Vector2 pos = view.contentViewContainer.GlobalToBound(position) - new Vector2(140, 20);
                     view.UpdateSelectionWithNewNode();
-                    VFXParameter parameter = viewController.AddVFXParameter(pos, parameterDesc, false);
+                    VFXParameter parameter = viewController.AddVFXParameter(pos, parameterDesc.variant, false);
                     parameter.SetSettingValue("m_Exposed", true);
                     var window = VFXViewWindow.GetWindow(view);
-                    var category = window.graphView.blackboard.selection.OfType<VFXBlackboardCategory>().FirstOrDefault()?.category.title;
-                    if (string.IsNullOrEmpty(category))
+                    var category = string.Empty;
+                    if (window.graphView.blackboard.selection != null)
                     {
-                        category = window.graphView.blackboard.selection.OfType<VFXBlackboardField>().FirstOrDefault()?.controller.model.category;
+                        category = window.graphView.blackboard.selection.OfType<VFXBlackboardCategory>().FirstOrDefault()?.category.title;
+                        if (string.IsNullOrEmpty(category))
+                        {
+                            category = window.graphView.blackboard.selection.OfType<VFXBlackboardField>().FirstOrDefault()?.controller.model.category;
+                        }
                     }
+
                     if (!string.IsNullOrEmpty(category))
                     {
                         parameter.SetSettingValue("m_Category", category);
@@ -322,18 +328,17 @@ namespace UnityEditor.VFX.UI
                     CopyValueToParameter(parameter);
 
                     viewController.AddVFXModel(pos, parameter);
+
                     // Update blackboard because the VFXParameterController will be added on next graph update
                     EditorApplication.delayCall += () => view.blackboard.Update(true);
                 }
             }
             else if (!exists)
             {
-                var window = VFXViewWindow.GetWindow(view);
-
                 if (direction == Direction.Input || viewController.model.visualEffectObject is VisualEffectSubgraphOperator || viewController.model.visualEffectObject is VisualEffectSubgraphBlock) // no context for subgraph operators.
-                    VFXFilterWindow.Show(window, Event.current.mousePosition, view.ViewToScreenPosition(Event.current.mousePosition), BuildNodeProvider(viewController, new Type[] { typeof(VFXOperator), typeof(VFXParameter) }));
+                    VFXFilterWindow.Show(Event.current.mousePosition, view.ViewToScreenPosition(Event.current.mousePosition), BuildNodeProvider(viewController, new Type[] { typeof(VFXOperator), typeof(VFXParameter) }));
                 else
-                    VFXFilterWindow.Show(window, Event.current.mousePosition, view.ViewToScreenPosition(Event.current.mousePosition), BuildNodeProvider(viewController, new Type[] { typeof(VFXOperator), typeof(VFXParameter), typeof(VFXContext) }));
+                    VFXFilterWindow.Show(Event.current.mousePosition, view.ViewToScreenPosition(Event.current.mousePosition), BuildNodeProvider(viewController, new Type[] { typeof(VFXOperator), typeof(VFXParameter), typeof(VFXContext) }));
             }
         }
 
@@ -349,44 +354,29 @@ namespace UnityEditor.VFX.UI
             return new VFXNodeProvider(viewController, AddLinkedNode, ProviderFilter, acceptedType);
         }
 
-        bool ProviderFilter(VFXNodeProvider.Descriptor d)
+        bool ProviderFilter(IVFXModelDescriptor descriptor)
         {
             var mySlot = controller.model;
-            var parameterDescriptor = d.modelDescriptor as VFXParameterController;
-            IVFXSlotContainer container = null;
-            if (parameterDescriptor != null)
+            if (descriptor.modelType == typeof(VisualEffectSubgraphOperator))
             {
-                container = parameterDescriptor.model;
-            }
-            else
-            {
-                VFXModelDescriptor desc = d.modelDescriptor as VFXModelDescriptor;
-                if (desc == null)
+                var path = (string)descriptor.variant.settings.Single(x => x.Key == "path").Value;
+                if (!path.StartsWith(VisualEffectAssetEditorUtility.templatePath) && path.EndsWith(VisualEffectSubgraphOperator.Extension))
                 {
-                    string path = d.modelDescriptor as string;
-
-                    if (path != null && !path.StartsWith(VisualEffectAssetEditorUtility.templatePath))
-                    {
-                        if (Path.GetExtension(path) == VisualEffectSubgraphOperator.Extension)
-                        {
-                            var subGraph = AssetDatabase.LoadAssetAtPath<VisualEffectSubgraphOperator>(path);
-                            if (subGraph != null && (!controller.viewController.model.isSubgraph || !subGraph.GetResource().GetOrCreateGraph().subgraphDependencies.Contains(controller.viewController.model.subgraph) && subGraph.GetResource() != controller.viewController.model))
-                                return true;
-                        }
-                    }
-                    return false;
+                    var subGraph = AssetDatabase.LoadAssetAtPath<VisualEffectSubgraphOperator>(path);
+                    if (subGraph != null && (!controller.viewController.model.isSubgraph || !subGraph.GetResource().GetOrCreateGraph().subgraphDependencies.Contains(controller.viewController.model.subgraph) && subGraph.GetResource() != controller.viewController.model))
+                        return true;
                 }
-
-                container = desc.model as IVFXSlotContainer;
-                if (container == null)
-                    return false;
-
-                if (direction == Direction.Output
-                    && mySlot != null
-                    && container is VFXOperatorDynamicOperand
-                    && (container as VFXOperatorDynamicOperand).validTypes.Contains(mySlot.property.type))
-                    return true;
+                return false;
             }
+
+            if (descriptor.CreateInstance() is not IVFXSlotContainer container)
+                return false;
+
+            if (direction == Direction.Output
+                && mySlot != null
+                && container is VFXOperatorDynamicOperand
+                && (container as VFXOperatorDynamicOperand).validTypes.Contains(mySlot.property.type))
+                return true;
 
             IEnumerable<Type> validTypes = null;
             if (mySlot == null)
@@ -418,7 +408,7 @@ namespace UnityEditor.VFX.UI
             return false;
         }
 
-        void AddLinkedNode(VFXNodeProvider.Descriptor d, Vector2 mPos)
+        void AddLinkedNode(Variant variant, Vector2 mPos)
         {
             var mySlot = controller.model;
 
@@ -426,7 +416,7 @@ namespace UnityEditor.VFX.UI
             VFXViewController viewController = controller.viewController;
             if (view == null) return;
 
-            var newNodeController = view.AddNode(d, mPos);
+            var newNodeController = view.AddNode(variant, mPos);
 
             if (newNodeController == null)
                 return;

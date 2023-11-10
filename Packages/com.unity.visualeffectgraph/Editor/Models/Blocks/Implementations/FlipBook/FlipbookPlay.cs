@@ -5,7 +5,7 @@ using System.Collections.Generic;
 namespace UnityEditor.VFX.Block
 {
     [VFXHelpURL("Block-FlipbookPlayer")]
-    [VFXInfo(category = "FlipBook")]
+    [VFXInfo(name = "Flipbook Player", category = "FlipBook")]
     class FlipbookPlay : VFXBlock
     {
         public enum Mode
@@ -17,7 +17,7 @@ namespace UnityEditor.VFX.Block
         [VFXSetting, Tooltip("Specifies whether particles use a constant frame rate or a curve sampled over the particle’s lifetime when playing the flipbook.")]
         public Mode mode = Mode.Constant;
 
-        public override string name { get { return "Flipbook Player"; } }
+        public override string name => "Flipbook Player";
 
         public override VFXContextType compatibleContexts { get { return VFXContextType.Update; } }
 

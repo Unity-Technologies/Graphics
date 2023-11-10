@@ -5,11 +5,10 @@ using UnityEngine;
 namespace UnityEditor.VFX.Operator
 {
     [VFXHelpURL("Operator-Pi")]
-    [VFXInfo(category = "Math/Constants")]
+    [VFXInfo(name = "Pi (π)", category = "Math/Constants")]
     class Pi : VFXOperator
     {
-        override public string libraryName { get { return "Pi (π)"; } }
-        override public string name
+        public override string name
         {
             get
             {

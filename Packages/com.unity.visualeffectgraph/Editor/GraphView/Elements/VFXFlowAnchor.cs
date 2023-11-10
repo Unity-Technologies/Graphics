@@ -120,20 +120,17 @@ namespace UnityEditor.VFX.UI
             view.controller.AddElement(edgeController);
         }
 
-        bool ProviderFilter(VFXNodeProvider.Descriptor d)
+        bool ProviderFilter(IVFXModelDescriptor descriptor)
         {
-            if (!(d.modelDescriptor is VFXModelDescriptor<VFXContext>)) return false;
-
-            var desc = d.modelDescriptor as VFXModelDescriptor<VFXContext>;
-
-            if (direction == Direction.Input)
+            if (descriptor.modelType?.IsSubclassOf(typeof(VFXContext)) != true)
             {
-                return VFXContext.CanLink(desc.model, controller.context.model);
+                return false;
             }
-            else
-            {
-                return VFXContext.CanLink(controller.context.model, desc.model);
-            }
+
+            var model = (VFXContext)descriptor.CreateInstance();
+            return direction == Direction.Input
+                ? VFXContext.CanLink(model, controller.context.model)
+                : VFXContext.CanLink(controller.context.model, model);
         }
 
         public override void Disconnect(Edge edge)
@@ -142,14 +139,14 @@ namespace UnityEditor.VFX.UI
             UpdateCapColor();
         }
 
-        void AddLinkedContext(VFXNodeProvider.Descriptor d, Vector2 mPos)
+        void AddLinkedContext(Variant variant, Vector2 mPos)
         {
             VFXView view = GetFirstAncestorOfType<VFXView>();
             if (view == null) return;
             Vector2 tPos = view.ChangeCoordinatesTo(view.contentViewContainer, mPos);
 
             view.UpdateSelectionWithNewNode();
-            VFXContext context = view.controller.AddVFXContext(tPos, d.modelDescriptor as VFXModelDescriptor<VFXContext>);
+            VFXContext context = view.controller.AddVFXContext(tPos, variant);
             view.controller.LightApplyChanges();
 
             if (context == null) return;
@@ -224,7 +221,6 @@ namespace UnityEditor.VFX.UI
             else if (!exists)
             {
                 VFXFilterWindow.Show(
-                    VFXViewWindow.GetWindow(view),
                     Event.current.mousePosition - new Vector2(376 * 0.5f * view.scale, 0),
                     view.ViewToScreenPosition(Event.current.mousePosition),
                     new VFXNodeProvider(viewController, AddLinkedContext, ProviderFilter, new Type[] { typeof(VFXContext) }));

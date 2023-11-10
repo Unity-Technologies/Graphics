@@ -3,7 +3,7 @@ using UnityEngine;
 namespace UnityEditor.VFX.Operator
 {
     [VFXHelpURL("Operator-Remap(01)")]
-    [VFXInfo(category = "Math/Remap")]
+    [VFXInfo(name = "Remap [-1..1] => [0..1]", category = "Math/Remap")]
     class RemapToZeroOne : VFXOperatorNumericUniform
     {
         [VFXSetting, SerializeField, Tooltip("When enabled, the input value is clamped between -1 and 1.")]

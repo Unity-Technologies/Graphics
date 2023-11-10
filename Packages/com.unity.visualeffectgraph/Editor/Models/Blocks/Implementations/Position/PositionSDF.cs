@@ -1,14 +1,27 @@
+using System;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
+    class PositionSDFProvider : VariantProvider
+    {
+        public override IEnumerable<Variant> GetVariants()
+        {
+            yield return new Variant(
+                "Set Position (Signed Distance Field)",
+                "Position/Position on shape",
+                typeof(PositionSDF),
+                Array.Empty<KeyValuePair<string, object>>());
+        }
+    }
+
     [VFXHelpURL("Block-SetPosition(SignedDistanceField)")]
-    [VFXInfo(category = "Attribute/position/Composition/Set")]
+    [VFXInfo(variantProvider = typeof(PositionSDFProvider))]
     class PositionSDF : PositionBase
     {
-        public override string name { get { return "Position (Signed Distance Field)"; } }
+        public override string name => "Set Position (Signed Distance Field)";
 
         public class InputProperties
         {

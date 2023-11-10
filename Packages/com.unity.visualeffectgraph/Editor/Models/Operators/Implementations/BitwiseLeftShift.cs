@@ -3,7 +3,7 @@ using UnityEngine;
 namespace UnityEditor.VFX.Operator
 {
     [VFXHelpURL("Operator-BitwiseLeftShift")]
-    [VFXInfo(category = "Bitwise")]
+    [VFXInfo(name = "Left Shift", category = "Bitwise")]
     class BitwiseLeftShift : VFXOperator
     {
         override public string name { get { return "Left Shift"; } }

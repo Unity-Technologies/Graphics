@@ -3,7 +3,7 @@ using UnityEngine;
 namespace UnityEditor.VFX.Operator
 {
     [VFXHelpURL("Operator-LoadTexture2DArray")]
-    [VFXInfo(category = "Sampling")]
+    [VFXInfo(name = "Load Texture2DArray", category = "Sampling")]
     class LoadTexture2DArray : VFXOperator
     {
         override public string name { get { return "Load Texture2DArray"; } }

@@ -6,7 +6,7 @@ using UnityEngine.VFX;
 namespace UnityEditor.VFX.Block
 {
     [VFXHelpURL("Block-TileWarpPositions")]
-    [VFXInfo(category = "Attribute/position/TileWarp")]
+    [VFXInfo(name = "Tile/Warp Positions", category = "Position")]
     class TileWarp : VFXBlock
     {
         public class InputProperties

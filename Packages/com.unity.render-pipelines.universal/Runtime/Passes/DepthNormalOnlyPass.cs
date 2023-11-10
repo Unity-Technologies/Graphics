@@ -196,6 +196,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 var param = InitRendererListParams(renderingData, cameraData, lightData);
                 passData.rendererList = renderGraph.CreateRendererList(param);
                 builder.UseRendererList(passData.rendererList);
+                builder.EnableFoveatedRasterization(cameraData.xr.supportsFoveatedRendering);
 
                 UniversalRenderer universalRenderer = cameraData.renderer as UniversalRenderer;
                 if (universalRenderer != null)

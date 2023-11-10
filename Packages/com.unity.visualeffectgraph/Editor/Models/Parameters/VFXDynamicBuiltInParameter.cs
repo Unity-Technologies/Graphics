@@ -6,16 +6,14 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
-    class DynamicBuiltInVariant : VariantProvider
+    class DynamicBuiltInSubVariantProvider : VariantProvider
     {
-        protected sealed override Dictionary<string, object[]> variants { get; } = BuildVariants();
-
-        private static Dictionary<string, object[]> BuildVariants()
+        public override IEnumerable<Variant> GetVariants()
         {
             var builtInFlag =
                 Enum.GetValues(typeof(VFXDynamicBuiltInParameter.BuiltInFlag))
                     .Cast<VFXDynamicBuiltInParameter.BuiltInFlag>()
-                    .Where(o => o != VFXDynamicBuiltInParameter.BuiltInFlag.None)
+                    .Where(o => o != VFXDynamicBuiltInParameter.BuiltInFlag.None && o != VFXDynamicBuiltInParameter.BuiltInFlag.VfxTotalTime)
                     .Concat(
                         new[]
                         {
@@ -23,17 +21,32 @@ namespace UnityEditor.VFX
                             VFXDynamicBuiltInParameter.s_allGameTime
                         });
 
-            return new Dictionary<string, object[]>
-            {
-                {
-                    "m_BuiltInParameters",
-                    builtInFlag.Cast<object>().ToArray()
-                }
-            };
+                    foreach (var flag in builtInFlag)
+                    {
+                        yield return new Variant(
+                            VFXDynamicBuiltInParameter.BuildName(flag),
+                            null,
+                            typeof(VFXDynamicBuiltInParameter),
+                            new[] {new KeyValuePair<string, object>("m_BuiltInParameters", flag)});
+                    }
         }
     }
 
-    [VFXInfo(category = "BuiltIn", variantProvider = typeof(DynamicBuiltInVariant))]
+    class DynamicBuiltInVariantProvider : VariantProvider
+    {
+        public override IEnumerable<Variant> GetVariants()
+        {
+            const VFXDynamicBuiltInParameter.BuiltInFlag mainVariantFlag = VFXDynamicBuiltInParameter.BuiltInFlag.VfxTotalTime;
+            yield return new Variant(
+                VFXDynamicBuiltInParameter.BuildName(mainVariantFlag),
+                "Time",
+                typeof(VFXDynamicBuiltInParameter),
+                new[] {new KeyValuePair<string, object>("m_BuiltInParameters", mainVariantFlag)},
+                () => new DynamicBuiltInSubVariantProvider());
+        }
+    }
+
+    [VFXInfo(variantProvider = typeof(DynamicBuiltInVariantProvider))]
     class VFXDynamicBuiltInParameter : VFXOperator
     {
         [Flags]
@@ -158,23 +171,31 @@ namespace UnityEditor.VFX
             }
         }
 
-        override public string name
+        public override string name => BuildName(m_BuiltInParameters);
+
+        public static string BuildName(BuiltInFlag flag)
         {
-            get
+            if (flag == BuiltInFlag.None)
+                return "Built-In Properties (None)";
+            if (SplitFlags(flag).ToArray() is { } flags && flags.Length == 1)
+                return s_BuiltInInfo[flags[0]].operatorName;
+            if ((flag & ~s_allVFXTime) == 0)
+                return "VFX Time";
+            if ((flag & ~s_allGameTime) == 0)
+                return "Game Time";
+
+            return "Built-In Properties";
+        }
+
+        private static IEnumerable<BuiltInFlag> SplitFlags(BuiltInFlag flags)
+        {
+            foreach (BuiltInFlag flag in Enum.GetValues(typeof(BuiltInFlag)))
             {
-                if (m_BuiltInParameters == BuiltInFlag.None)
-                    return "Built-In Properties (None)";
+                if (flag == BuiltInFlag.None)
+                    continue;
 
-                if (builtInParameterEnumerable.Count() == 1)
-                    return s_BuiltInInfo[builtInParameterEnumerable.First()].operatorName;
-
-                if ((m_BuiltInParameters & ~s_allVFXTime) == 0) //This is only a set of VFX Time
-                    return "VFX Time";
-
-                if ((m_BuiltInParameters & ~s_allGameTime) == 0) //This is only a set of Game Time
-                    return "Game Time";
-
-                return "Built-In Properties";
+                if ((flags & flag) != 0)
+                    yield return flag;
             }
         }
 

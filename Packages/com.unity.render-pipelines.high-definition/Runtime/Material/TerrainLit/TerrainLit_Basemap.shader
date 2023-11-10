@@ -269,7 +269,7 @@ Shader "Hidden/HDRP/TerrainLit_Basemap"
             #pragma multi_compile _ PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
 
-            #pragma multi_compile _ DECALS_OFF DECALS_3RT DECALS_4RT
+            #pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT
             #pragma multi_compile _ DECAL_SURFACE_GRADIENT
 
             #define PATH_TRACING_CLUSTERED_DECALS
@@ -303,7 +303,7 @@ Shader "Hidden/HDRP/TerrainLit_Basemap"
             #pragma multi_compile _ PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
 
-            #pragma multi_compile _ DECALS_OFF DECALS_3RT DECALS_4RT
+            #pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT
             #pragma multi_compile _ DECAL_SURFACE_GRADIENT
 
             #define PATH_TRACING_CLUSTERED_DECALS
@@ -338,7 +338,7 @@ Shader "Hidden/HDRP/TerrainLit_Basemap"
             #pragma multi_compile _ PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
 
-            #pragma multi_compile _ DECALS_OFF DECALS_3RT DECALS_4RT
+            #pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT
             #pragma multi_compile _ DECAL_SURFACE_GRADIENT
 
             #define PATH_TRACING_CLUSTERED_DECALS

@@ -3,7 +3,7 @@ using UnityEngine;
 namespace UnityEditor.VFX.Operator
 {
     [VFXHelpURL("Operator-BitwiseOr")]
-    [VFXInfo(category = "Bitwise")]
+    [VFXInfo(name = "Or", category = "Bitwise")]
     class BitwiseOr : VFXOperator
     {
         override public string name { get { return "Or"; } }

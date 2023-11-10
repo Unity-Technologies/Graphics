@@ -12,19 +12,6 @@ namespace UnityEditor.VFX
         Quad,
         Octagon,
     }
-    class VFXPlanarPrimitiveVariantProvider : VariantProvider
-    {
-        protected override sealed Dictionary<string, object[]> variants
-        {
-            get
-            {
-                return new Dictionary<string, object[]>
-                {
-                    { "primitiveType", Enum.GetValues(typeof(VFXPrimitiveType)).Cast<object>().ToArray() }
-                };
-            }
-        }
-    }
 
     static class VFXPlanarPrimitiveHelper
     {

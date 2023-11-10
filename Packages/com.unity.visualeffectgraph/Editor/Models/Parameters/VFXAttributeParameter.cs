@@ -8,6 +8,25 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
+    // This derived variant is used to provide a documentation link based on the attribute name
+    class GetAttributeVariant : Variant
+    {
+        private string attribute;
+        public GetAttributeVariant(string attribute)
+        : base($"Get {attribute}",
+            "Attribute",
+            typeof(VFXAttributeParameter),
+            new[] { new KeyValuePair<string, object>("attribute", attribute) },
+            null)
+        {
+            this.attribute = char.ToUpper(attribute[0]) + attribute.Substring(1);
+        }
+        public override string GetDocumentationLink()
+        {
+            return string.Format(base.GetDocumentationLink(), this.attribute);
+        }
+    }
+
     class AttributeProvider : IVFXModelStringProvider
     {
         public string[] GetAvailableString(VFXModel model)
@@ -26,17 +45,17 @@ namespace UnityEditor.VFX
 
     class AttributeVariant : VariantProvider
     {
-        public sealed override IEnumerable<Variant> ComputeVariants()
+        public override IEnumerable<Variant> GetVariants()
         {
             foreach (var attribute in VFXAttributesManager.GetBuiltInNamesOrCombination(true, false, true, false))
             {
-                yield return new Variant(new[] { new KeyValuePair<string, object>("attribute", attribute) });
+                yield return new GetAttributeVariant(attribute);
             }
-
-            yield return new Variant(new [] { new KeyValuePair<string, object>("attribute", "CustomAttribute") });
         }
     }
 
+
+    [VFXHelpURL("Operator-GetAttribute{0}")]
     [VFXInfo(category = "Attribute", variantProvider = typeof(AttributeVariant))]
     class VFXAttributeParameter : VFXOperator, IVFXAttributeUsage
     {
@@ -103,8 +122,6 @@ namespace UnityEditor.VFX
                 }
             }
         }
-
-        public override string libraryName => string.IsNullOrEmpty(attribute) ? "Get Custom Attribute" :$"Get {attribute}";
 
         public override string name
         {

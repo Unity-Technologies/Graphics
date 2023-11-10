@@ -170,12 +170,13 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
         internal BasicCommand Header;
         internal int w, h, d, s;
         internal bool hasDepth;
+        internal bool hasFoveatedRasterization;
         internal int numAttachments;
         internal int numSubpasses;
 
         internal int debugNameLength;
 
-        internal static unsafe void AddCommand(int w, int h, int d, int s, ref FixedAttachmentArray<NativePassAttachment> attachments, int handleCount, bool hasDepth, ref NativeList<SubPassDescriptor> passes, int passOffset, int passCount, ref PassCommandBufferData data, DynamicArray<Name> passNamesForDebug)
+        internal static unsafe void AddCommand(int w, int h, int d, int s, ref FixedAttachmentArray<NativePassAttachment> attachments, int handleCount, bool hasDepth, bool hasFoveatedRasterization, ref NativeList<SubPassDescriptor> passes, int passOffset, int passCount, ref PassCommandBufferData data, DynamicArray<Name> passNamesForDebug)
         {
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
             if (w == 0 || h == 0 || d == 0 || s == 0 || passCount == 0 || handleCount == 0)
@@ -202,6 +203,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
             cmd->d = d;
             cmd->s = s;
             cmd->hasDepth = hasDepth;
+            cmd->hasFoveatedRasterization = hasFoveatedRasterization;
             cmd->numAttachments = handleCount;
             cmd->numSubpasses = passCount;
             cmd->debugNameLength = utf8CStrDebugNameLength;
@@ -257,6 +259,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
             AtomicSafetyHandle.SetAllowReadOrWriteAccess(safetyHandle, true);
             NativeArrayUnsafeUtility.SetAtomicSafetyHandle(ref subpass, safetyHandle);
 #endif
+            if(cmd->hasFoveatedRasterization)
+            {
+                state.rgContext.cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Enabled);
+            }
+
             var depthIDx = (cmd->hasDepth) ? 0 : -1;
             var att = new NativeArray<AttachmentDescriptor>(cmd->numAttachments, Allocator.Temp);
             for (var i = 0; i < cmd->numAttachments; ++i)
@@ -352,16 +359,24 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
     internal struct EndRenderPassCommand
     {
         internal BasicCommand Header;
+        internal bool hasFoveatedRasterization;
 
-        internal static unsafe void AddCommand(ref PassCommandBufferData data)
+        internal static unsafe void AddCommand(ref PassCommandBufferData data, bool hasFoveatedRasterization)
         {
             var cmd = (EndRenderPassCommand*)data.Reserve(sizeof(EndRenderPassCommand));
             cmd->Header.CommandType = PassCommand.EndRenderPass;
             cmd->Header.TotalSize = sizeof(EndRenderPassCommand);
+            cmd->hasFoveatedRasterization = hasFoveatedRasterization;
         }
 
-        internal static void Execute(ref PassCommandBufferState state)
+        internal static unsafe void Execute(in byte* ptr, ref PassCommandBufferState state)
         {
+            var cmd = (EndRenderPassCommand*)ptr;
+            if (cmd->hasFoveatedRasterization)
+            {
+                state.rgContext.cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Disabled);
+            }
+
             state.rgContext.cmd.EndRenderPass();
             //PassCommandBufferState.NativeRenderPassSampler.End(state.rgContext.cmd);
             CommandBuffer.ThrowOnSetRenderTarget = false;
@@ -634,7 +649,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
                 }
                 case PassCommand.EndRenderPass:
                 {
-                    EndRenderPassCommand.Execute(ref state);
+                    EndRenderPassCommand.Execute((Byte*)baseCommand, ref state);
                     break;
                 }
                 case PassCommand.ExecuteNode:
@@ -818,9 +833,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
         internal void CreateResource(ResourceHandle h, bool clear) => ResourceLifetimeCommand.AddCreateCommand(h, clear, ref m_Data);
         internal void ReleaseResource(ResourceHandle h) => ResourceLifetimeCommand.AddReleaseCommand(h, ref m_Data);
         internal void BeginRenderPass(int w, int h, int d, int s,
-            ref FixedAttachmentArray<NativePassAttachment> attachments, int attachmentCount, bool hasDepth, ref NativeList<SubPassDescriptor> passes, int passOffset, int passCount, DynamicArray<Name> passNamesForDebug = null)
-            => BeginRenderPassCommand.AddCommand(w, h, d, s, ref attachments, attachmentCount, hasDepth, ref passes, passOffset, passCount, ref m_Data, passNamesForDebug);
-        internal void EndRenderPass() => EndRenderPassCommand.AddCommand(ref m_Data);
+            ref FixedAttachmentArray<NativePassAttachment> attachments, int attachmentCount, bool hasDepth, bool hasFoveatedRasterization, ref NativeList<SubPassDescriptor> passes, int passOffset, int passCount, DynamicArray<Name> passNamesForDebug = null)
+            => BeginRenderPassCommand.AddCommand(w, h, d, s, ref attachments, attachmentCount, hasDepth, hasFoveatedRasterization, ref passes, passOffset, passCount, ref m_Data, passNamesForDebug);
+        internal void EndRenderPass(bool hasFoveatedRasterization) => EndRenderPassCommand.AddCommand(ref m_Data, hasFoveatedRasterization);
         internal void NextSubPass() => NextSubpassCommand.AddCommand(ref m_Data);
         internal void ExecuteGraphNode(int passID) => ExecuteNodeCommand.AddCommand(passID, ref m_Data);
 

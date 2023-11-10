@@ -117,10 +117,6 @@ namespace UnityEngine.Rendering
         /// </summary>
         public APVLeakReductionMode leakReductionMode;
         /// <summary>
-        /// Contribution of leak reduction weights.
-        /// </summary>
-        public float occlusionWeightContribution;
-        /// <summary>
         /// The minimum value that dot(N, vectorToProbe) need to have to be considered valid.
         /// </summary>
         public float minValidNormalWeight;
@@ -139,7 +135,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Enable sky occlusion.
         /// </summary>
-        public bool skyOcclusion;
+        public float skyOcclusionIntensity;
         /// <summary>
         /// Enable Sky shading direction.
         /// </summary>
@@ -749,7 +745,6 @@ namespace UnityEngine.Rendering
         ProbeVolumeTextureMemoryBudget m_MemoryBudget;
         ProbeVolumeBlendingTextureMemoryBudget m_BlendingMemoryBudget;
         ProbeVolumeSHBands m_SHBands;
-        float m_ProbeVolumesWeight;
 
         /// <summary>
         /// The <see cref="ProbeVolumeSHBands"/>
@@ -809,11 +804,6 @@ namespace UnityEngine.Rendering
         /// Get the memory budget for the Probe Volume system.
         /// </summary>
         public ProbeVolumeTextureMemoryBudget memoryBudget => m_MemoryBudget;
-
-        /// <summary>
-        /// Global probe volumes weight. Allows for fading out probe volumes influence falling back to ambient probe.
-        /// </summary>
-        public float probeVolumesWeight { get => m_ProbeVolumesWeight; set => m_ProbeVolumesWeight = Mathf.Clamp01(value); }
 
         static ProbeReferenceVolume _instance = new ProbeReferenceVolume();
 
@@ -916,7 +906,6 @@ namespace UnityEngine.Rendering
             m_BlendingMemoryBudget = parameters.blendingMemoryBudget;
             m_SupportScenarios = parameters.supportScenarios;
             m_SHBands = parameters.shBands;
-            m_ProbeVolumesWeight = 1f;
             m_SupportGPUStreaming = parameters.supportGPUStreaming;
             m_SupportDiskStreaming = parameters.supportDiskStreaming && SystemInfo.supportsComputeShaders && m_SupportGPUStreaming; // GPU Streaming is required for Disk Streaming
             // For now this condition is redundant with m_SupportDiskStreaming but we plan to support disk streaming without compute in the future.
@@ -934,7 +923,6 @@ namespace UnityEngine.Rendering
 #if UNITY_EDITOR
             if (sceneData != null)
                 UnityEditor.SceneManagement.EditorSceneManager.sceneSaving += sceneData.OnSceneSaving;
-            AdditionalGIBakeRequestsManager.instance.Init();
 #endif
             m_EnabledBySRP = true;
 
@@ -1014,7 +1002,6 @@ namespace UnityEngine.Rendering
             if (!m_ProbeReferenceVolumeInit) return;
 
 #if UNITY_EDITOR
-            AdditionalGIBakeRequestsManager.instance.Cleanup();
             if (sceneData != null)
                 UnityEditor.SceneManagement.EditorSceneManager.sceneSaving -= sceneData.OnSceneSaving;
 #endif
@@ -1512,7 +1499,7 @@ namespace UnityEngine.Rendering
                 {
                     m_DefragIndex = new ProbeBrickIndex(memoryBudget);
                 }
-                
+
                 InitializeGlobalIndirection();
 
                 m_TemporaryDataLocation = ProbeBrickPool.CreateDataLocation(ProbeBrickPool.GetChunkSizeInProbeCount(), compressed: false, m_SHBands, "APV_Intermediate",
@@ -1644,7 +1631,7 @@ namespace UnityEngine.Rendering
             }
             return null;
         }
-          
+
         internal void Clear()
         {
             if (m_ProbeReferenceVolumeInit)
@@ -1767,7 +1754,7 @@ namespace UnityEngine.Rendering
                 UpdateDataLocationTexture(m_TemporaryDataLocation.TexSkyOcclusion, skyOcclusionData.GetSubArray(chunkIndex * chunkSizeInProbes * 4, chunkSizeInProbes * 4));
             if (skyOcclusion && skyOcclusionShadingDirection && skyShadingDirectionIndices.Length > 0)
             {
-                UpdateDataLocationTexture(m_TemporaryDataLocation.TexSkyShadingDirectionIndices, skyShadingDirectionIndices.GetSubArray(chunkIndex * chunkSizeInProbes, chunkSizeInProbes));                
+                UpdateDataLocationTexture(m_TemporaryDataLocation.TexSkyShadingDirectionIndices, skyShadingDirectionIndices.GetSubArray(chunkIndex * chunkSizeInProbes, chunkSizeInProbes));
             }
 
             var srcChunks = GetSourceLocations(1, ProbeBrickPool.GetChunkSizeInBrickCount(), m_TemporaryDataLocation);
@@ -1962,27 +1949,25 @@ namespace UnityEngine.Rendering
                 normalBias *= MinDistanceBetweenProbes();
                 viewBias *= MinDistanceBetweenProbes();
             }
-            float enableSkyOcc = parameters.skyOcclusion ? 1.0f : 0.0f;
-            float enableSkyOccShadingDir = (parameters.skyOcclusion && parameters.skyOcclusionShadingDirection) ? 1.0f : 0.0f;
-
 
             var indexDim = m_CellIndices.GetGlobalIndirectionDimension();
             var poolDim = m_Pool.GetPoolDimensions();
             m_CellIndices.GetMinMaxEntry(out Vector3Int minEntry, out Vector3Int maxEntry);
             var entriesPerCell = m_CellIndices.entriesPerCellDimension;
+            var enableSkyOccShadingDir = parameters.skyOcclusionShadingDirection ? 1.0f : 0.0f;
 
             ShaderVariablesProbeVolumes shaderVars;
-            shaderVars._Biases_CellInMinBrick_MinBrickSize = new Vector4(normalBias, viewBias, (int)Mathf.Pow(3, m_MaxSubdivision - 1), MinBrickSize());
+            shaderVars._Biases_MinBrickSize_Padding = new Vector4(normalBias, viewBias, MinBrickSize(), 0.0f);
             shaderVars._IndicesDim_IndexChunkSize = new Vector4(indexDim.x, indexDim.y, indexDim.z, ProbeBrickIndex.kIndexChunkSize);
             shaderVars._MinEntryPos_Noise = new Vector4(minEntry.x, minEntry.y, minEntry.z, parameters.samplingNoise); // TODO_FCC! IMPORTANT! RENAME!
             shaderVars._PoolDim_CellInMeters = new Vector4(poolDim.x, poolDim.y, poolDim.z, MaxBrickSize());
-            shaderVars._RcpPoolDim_Padding = new Vector4(1.0f / poolDim.x, 1.0f / poolDim.y, 1.0f / poolDim.z, 1.0f / (poolDim.x * poolDim.y));
+            shaderVars._RcpPoolDim_XY = new Vector4(1.0f / poolDim.x, 1.0f / poolDim.y, 1.0f / poolDim.z, 1.0f / (poolDim.x * poolDim.y));
             shaderVars._Weight_MinLoadedCellInEntries = new Vector4(parameters.weight, minLoadedCellPos.x * entriesPerCell, minLoadedCellPos.y * entriesPerCell, minLoadedCellPos.z * entriesPerCell);
             shaderVars._MaxLoadedCellInEntries_FrameIndex = new Vector4((maxLoadedCellPos.x + 1) * entriesPerCell - 1, (maxLoadedCellPos.y + 1) * entriesPerCell - 1, (maxLoadedCellPos.z + 1) * entriesPerCell - 1, parameters.frameIndexForNoise);
-            shaderVars._LeakReductionParams = new Vector4((int)parameters.leakReductionMode, parameters.occlusionWeightContribution, parameters.minValidNormalWeight, enableSkyOcc);
+            shaderVars._LeakReduction_SkyOcclusion = new Vector4((int)parameters.leakReductionMode, parameters.minValidNormalWeight, parameters.skyOcclusionIntensity, enableSkyOccShadingDir);
 
             // TODO: Expose this somewhere UX visible? To discuss.
-            shaderVars._NormalizationClamp_IndirectionEntryDim_Padding = new Vector4(parameters.reflNormalizationLowerClamp, parameters.reflNormalizationUpperClamp, GetEntrySize(), enableSkyOccShadingDir);
+            shaderVars._NormalizationClamp_IndirectionEntryDim_Padding = new Vector4(parameters.reflNormalizationLowerClamp, parameters.reflNormalizationUpperClamp, GetEntrySize(), 0.0f);
 
             ConstantBuffer.PushGlobal(cmd, shaderVars, m_CBShaderID);
         }

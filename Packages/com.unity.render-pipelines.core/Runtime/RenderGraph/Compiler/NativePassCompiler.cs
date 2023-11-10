@@ -695,7 +695,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
                 var numFragments = nativePass.fragments.size;
                 var numMSAASamples = nativePass.samples;
                 var hasDepth = nativePass.hasDepth;
-
+                var hasFoveatedRasterization = nativePass.hasFoveatedRasterization;
                 // Fill out the subpass descriptors for the native renderpasses
                 // NOTE: Not all graph subpasses get an actual native pass:
                 // - There could be passes that do only non-raster ops (like setglobal) and have no attachments. They don't get a native pass
@@ -1077,6 +1077,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
                                             ref nativePass.attachments,
                                             nativePass.attachments.size,
                                             hasDepth,
+                                            hasFoveatedRasterization,
                                             ref contextData.nativeSubPassData,
                                             nativePass.firstNativeSubPass,
                                             nativePass.numNativeSubPasses,
@@ -1218,7 +1219,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
                                     {
                                         throw new Exception("Compiler error: Generated a subpass pass but no pass is currently active.");
                                     }
-                                    passCmdBuffer.EndRenderPass();
+                                    passCmdBuffer.EndRenderPass(nativePass.hasFoveatedRasterization);
                                     inRenderPass = false;
                                 }
                             }

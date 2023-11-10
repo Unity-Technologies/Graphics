@@ -3,7 +3,7 @@ using UnityEngine;
 namespace UnityEditor.VFX.Operator
 {
     [VFXHelpURL("Operator-ConstructMatrix")]
-    [VFXInfo(category = "Math/Vector")]
+    [VFXInfo(name = "Construct Matrix", category = "Math/Vector")]
     class MatrixFromVector4 : VFXOperator
     {
         public class InputProperties

@@ -4,15 +4,19 @@ namespace UnityEditor.VFX
 {
     class VFXTopologyProvider : VariantProvider
     {
-        protected sealed override Dictionary<string, object[]> variants
+        public override IEnumerable<Variant> GetVariants()
         {
-            get
-            {
-                return new Dictionary<string, object[]>
-                {
-                    { "m_Topology", new object[] { new ParticleTopologyPlanarPrimitive(), new ParticleTopologyMesh() } }
-                };
-            }
+            yield return new Variant(
+                "Output Particle ShaderGraph Quad",
+                "Output",
+                typeof(VFXComposedParticleOutput),
+                new[] { new KeyValuePair<string, object>("m_Topology", new ParticleTopologyPlanarPrimitive()) });
+
+            yield return new Variant(
+                "Output Particle ShaderGraph Mesh",
+                "Output",
+                typeof(VFXComposedParticleOutput),
+                new[] { new KeyValuePair<string, object>("m_Topology", new ParticleTopologyMesh()) });
         }
     }
 

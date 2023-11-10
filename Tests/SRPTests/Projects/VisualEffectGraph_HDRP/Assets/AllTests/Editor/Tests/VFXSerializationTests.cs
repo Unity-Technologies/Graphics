@@ -933,7 +933,7 @@ namespace UnityEditor.VFX.Test
             var name = "unity";
             Action<VisualEffectAsset> write = delegate(VisualEffectAsset asset)
             {
-                var parameter = VFXLibrary.GetParameters().First(o => o.name == "Vector2").CreateInstance();
+                var parameter = VFXLibrary.GetParameters().First(o => o.modelType == typeof(Vector2)).CreateInstance();
                 parameter.SetSettingValue("m_Exposed", true);
                 parameter.SetSettingValue("m_ExposedName", name);
                 asset.GetResource().GetOrCreateGraph().AddChild(parameter);
@@ -959,7 +959,7 @@ namespace UnityEditor.VFX.Test
             {
                 var graph = asset.GetResource().GetOrCreateGraph();
                 var add = ScriptableObject.CreateInstance<Operator.Add>();
-                var parameter = VFXLibrary.GetParameters().First(o => o.name == "Vector2").CreateInstance();
+                var parameter = VFXLibrary.GetParameters().First(o => o.modelType == typeof(Vector2)).CreateInstance();
                 add.SetOperandType(0, typeof(Vector2));
                 graph.AddChild(add);
                 graph.AddChild(parameter);
@@ -985,7 +985,7 @@ namespace UnityEditor.VFX.Test
         {
             Action<VisualEffectAsset> write = delegate(VisualEffectAsset asset)
             {
-                var builtIn = VFXLibrary.GetOperators().First(o => o.name.StartsWith("Total Time (VFX)")).CreateInstance();
+                var builtIn = VFXLibrary.GetOperators().First(o => o.variant.name.StartsWith("Total Time (VFX)")).CreateInstance();
                 asset.GetResource().GetOrCreateGraph().AddChild(builtIn);
                 Assert.AreEqual(VFXExpressionOperation.TotalTime, builtIn.outputSlots[0].GetExpression().operation);
             };
@@ -1006,7 +1006,7 @@ namespace UnityEditor.VFX.Test
             {
                 var graph = asset.GetResource().GetOrCreateGraph();
                 var add = ScriptableObject.CreateInstance<Operator.Add>();
-                var builtIn = VFXLibrary.GetOperators().First(o => o.name.StartsWith("Total Time (VFX)")).CreateInstance();
+                var builtIn = VFXLibrary.GetOperators().First(o => o.variant.name.StartsWith("Total Time (VFX)")).CreateInstance();
                 graph.AddChild(builtIn);
                 graph.AddChild(add);
                 add.inputSlots[0].Link(builtIn.outputSlots[0]);
@@ -1044,8 +1044,8 @@ namespace UnityEditor.VFX.Test
 
             Action<VisualEffectAsset> write = delegate(VisualEffectAsset asset)
             {
-                var sizeCurrent = VFXLibrary.GetOperators().First(o => o.name.Contains(testAttribute) && o.modelType == typeof(VFXAttributeParameter)).CreateInstance();
-                var sizeSource = VFXLibrary.GetOperators().First(o => o.name.Contains(testAttribute) && o.modelType == typeof(VFXAttributeParameter)).CreateInstance();
+                var sizeCurrent = VFXLibrary.GetOperators().First(o => o.variant.name.Contains(testAttribute) && o.variant.modelType == typeof(VFXAttributeParameter)).CreateInstance();
+                var sizeSource = VFXLibrary.GetOperators().First(o => o.variant.name.Contains(testAttribute) && o.variant.modelType == typeof(VFXAttributeParameter)).CreateInstance();
                 (sizeSource as VFXAttributeParameter).SetSettingValue("location", VFXAttributeLocation.Source);
                 asset.GetResource().GetOrCreateGraph().AddChild(sizeCurrent);
                 asset.GetResource().GetOrCreateGraph().AddChild(sizeSource);
@@ -1260,8 +1260,8 @@ namespace UnityEditor.VFX.Test
             yield return null;
 
             // Add a static mesh output
-            var staticMeshOutputContextDesc = VFXLibrary.GetContexts().Single(x => x.model is VFXStaticMeshOutput);
-            var staticMeshOutputContext = (VFXStaticMeshOutput)window.graphView.controller.AddVFXContext(Vector2.zero, staticMeshOutputContextDesc);
+            var staticMeshOutputContextDesc = VFXLibrary.GetContexts().Single(x => x.modelType == typeof(VFXStaticMeshOutput));
+            var staticMeshOutputContext = (VFXStaticMeshOutput)window.graphView.controller.AddVFXContext(Vector2.zero, staticMeshOutputContextDesc.variant);
             var shaderGraph = AssetDatabase.LoadAssetAtPath<Shader>("Assets/AllTests/Editor/Tests/Modify_SG_Property_A.shadergraph");
             staticMeshOutputContext.SetSettingValue("shader", shaderGraph);
             window.graphView.OnSave();

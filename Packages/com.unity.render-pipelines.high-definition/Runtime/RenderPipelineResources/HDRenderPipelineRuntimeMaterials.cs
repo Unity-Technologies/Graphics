@@ -1,0 +1,63 @@
+using System;
+using System.ComponentModel;
+
+namespace UnityEngine.Rendering.HighDefinition
+{
+    [Serializable]
+    [HideInInspector]
+    [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
+    [Category("Resources/Runtime Materials")]
+    class HDRenderPipelineRuntimeMaterials : IRenderPipelineResources
+    {
+        public int version => 0;
+
+        bool IRenderPipelineGraphicsSettings.isAvailableInPlayerBuild => true;
+
+        #region Water
+        [SerializeField][ResourcePath("Runtime/RenderPipelineResources/ShaderGraph/Water.shadergraph")]
+        private Material m_WaterMaterial;
+        public Material waterMaterial
+        {
+            get => m_WaterMaterial;
+            set => this.SetValueAndNotify(ref m_WaterMaterial, value);
+        }
+
+        [SerializeField][ResourcePath("Runtime/RenderPipelineResources/Material/MaterialWaterExclusion.mat")]
+        private Material m_WaterExclusionMaterial;
+        public Material waterExclusionMaterial
+        {
+            get => m_WaterExclusionMaterial;
+            set => this.SetValueAndNotify(ref m_WaterExclusionMaterial, value);
+        }
+        #endregion
+
+        #region Sky
+        [SerializeField][ResourcePath("Runtime/RenderPipelineResources/ShaderGraph/PhysicallyBasedSky.shadergraph")]
+        private Material m_PBRSkyMaterial;
+        public Material pbrSkyMaterial
+        {
+            get => m_PBRSkyMaterial;
+            set => this.SetValueAndNotify(ref m_PBRSkyMaterial, value);
+        }
+        #endregion
+
+        #region Area Light
+        [SerializeField][ResourcePath("Runtime/RenderPipelineResources/Material/AreaLightViewer.mat")]
+        private Material m_AreaLightMaterial; // never referenced but required by area light mesh renderer, otherwise shader is stripped
+        public Material areaLightMaterial
+        {
+            get => m_AreaLightMaterial;
+            set => this.SetValueAndNotify(ref m_AreaLightMaterial, value);
+        }
+        [SerializeField][ResourcePath("Runtime/RenderPipelineResources/Material/AreaLightCookieViewer.mat")]
+        private Material m_AreaLightCookieMaterial; // We also need one for the cookie because the emissive map is a keyword in our Unlit shader.
+        public Material areaLightCookieMaterial
+        {
+            get => m_AreaLightCookieMaterial;
+            set => this.SetValueAndNotify(ref m_AreaLightCookieMaterial, value);
+        }
+        #endregion
+
+
+    }
+}

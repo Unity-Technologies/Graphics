@@ -22,10 +22,13 @@ namespace UnityEditor.Rendering.HighDefinition
             // normal HD probes, but for planar reflections it can cause some undesirable default results.
             planarProbe.useInfluenceVolumeAsProxyVolume = false;
 
-            var material = HDRenderPipelineGlobalSettings.instance?.GetDefaultMirrorMaterial();
-            if (material)
+            if (GraphicsSettings.TryGetRenderPipelineSettings<HDRenderPipelineEditorMaterials>(out var defaultMaterials))
             {
-                plane.GetComponent<MeshRenderer>().sharedMaterial = material;
+                plane.GetComponent<MeshRenderer>().sharedMaterial = defaultMaterials.defaultMirrorMaterial;
+            }
+            else
+            {
+                Debug.LogWarning($"{plane.name} is missing the {nameof(MeshRenderer.sharedMaterial)} due to not being able to find {nameof(HDRenderPipelineEditorMaterials.defaultMirrorMaterial)}.");
             }
         }
 

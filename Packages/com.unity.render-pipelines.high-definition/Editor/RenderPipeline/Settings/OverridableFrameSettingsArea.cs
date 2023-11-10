@@ -22,6 +22,8 @@ namespace UnityEditor.Rendering.HighDefinition
         FrameSettings? defaultFrameSettings;
         SerializedFrameSettings serializedFrameSettings;
 
+        static internal FrameSettingsFieldAttribute GetFieldAttribute(FrameSettingsField field) => attributes[field];
+
         static OverridableFrameSettingsArea()
         {
             attributes = new Dictionary<FrameSettingsField, FrameSettingsFieldAttribute>();

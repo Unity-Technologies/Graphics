@@ -3,7 +3,7 @@ using UnityEngine;
 namespace UnityEditor.VFX.Operator
 {
     [VFXHelpURL("Operator-Area(Circle)")]
-    [VFXInfo(category = "Math/Geometry")]
+    [VFXInfo(name = "Area (Circle)", category = "Math/Geometry")]
     class CircleArea : VFXOperator
     {
         public class InputProperties

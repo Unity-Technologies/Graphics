@@ -391,7 +391,7 @@ float SampleShadow_PCSS_Area(float3 posTCAtlas, float2 posSS, float2 shadowmapIn
 
     //3) Filter
     // We can't early out of the function if blockers are not found since Vulkan triggers a warning otherwise
-    bool withinShadowmap = all(posTCShadowmap.xy > 0 && posTCShadowmap.xy < 1);
+    bool withinShadowmap = all(posTCShadowmap.xy > 0) && all(posTCShadowmap.xy < 1);
     return blockerFound && withinShadowmap ? PCSS_Area(posTCAtlas.xy, posTCShadowmap, maxSampleZDistance, shadowmapInAtlasScale, shadowmapInAtlasOffset, minCoord, maxCoord, sampleJitter, tex, compSamp, filterSampleCount) : 1.0f;
 }
 

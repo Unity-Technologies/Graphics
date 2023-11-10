@@ -3,7 +3,7 @@ using UnityEngine;
 namespace UnityEditor.VFX.Operator
 {
     //[VFXHelpURL("Operator-PerParticleTotalTime")]
-    [VFXInfo(category = "Time")]
+    [VFXInfo(name = "Total Time (Per-Particle)", category = "Time")]
     class PerParticleTotalTime : VFXOperator
     {
         public class OutputProperties

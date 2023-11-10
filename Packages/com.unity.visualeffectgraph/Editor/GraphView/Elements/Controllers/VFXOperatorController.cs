@@ -58,11 +58,11 @@ namespace UnityEditor.VFX.UI
 
         public void ConvertToProperty(bool exposed = false)
         {
-            var desc = VFXLibrary.GetParameters().FirstOrDefault(t => t.model.type == (model as VFXInlineOperator).type);
+            var desc = VFXLibrary.GetParameters().FirstOrDefault(t => t.modelType == ((VFXInlineOperator)model).type);
             if (desc == null)
                 return;
 
-            var param = viewController.AddVFXParameter(Vector2.zero, desc, false); // parameters should have zero for position, position is help by the nodes
+            var param = viewController.AddVFXParameter(Vector2.zero, desc.variant, false); // parameters should have zero for position, position is help by the nodes
             param.SetSettingValue("m_Exposed", exposed);
 
             VFXSlot.CopyLinks(param.GetOutputSlot(0), model.GetOutputSlot(0), false);

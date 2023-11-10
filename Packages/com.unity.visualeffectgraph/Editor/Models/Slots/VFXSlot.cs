@@ -16,7 +16,6 @@ namespace UnityEditor.VFX
             kInput,
             kOutput,
         }
-
         public Direction direction { get { return m_Direction; } }
         public VFXProperty property { get { return m_Property; } }
         public override string name { get { return m_Property.name; } }

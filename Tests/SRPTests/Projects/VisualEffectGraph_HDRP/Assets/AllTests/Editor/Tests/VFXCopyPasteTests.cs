@@ -9,6 +9,7 @@ using UnityEngine.VFX;
 using UnityEditor.VFX;
 using UnityEditor.VFX.UI;
 using UnityEditor.Experimental.GraphView;
+using UnityEditor.VFX.Block;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.VFX.Test
@@ -67,14 +68,14 @@ namespace UnityEditor.VFX.Test
         {
             // Create a BasicInitialize context
             var initContextDesc = VFXLibrary.GetContexts().First(t => typeof(VFXBasicInitialize).IsAssignableFrom(t.modelType));
-            var newContext = m_ViewController.AddVFXContext(new Vector2(100, 100), initContextDesc);
+            var newContext = m_ViewController.AddVFXContext(new Vector2(100, 100), initContextDesc.variant);
             m_ViewController.ApplyChanges();
             Assert.AreEqual(1, m_ViewController.allChildren.Count(t => t is VFXContextController));
             var contextController = m_ViewController.allChildren.OfType<VFXContextController>().Single();
             Assert.AreEqual(contextController.model, newContext);
 
             // Add a block to that context
-            var flipBookBlockDesc = VFXLibrary.GetBlocks().First(t => t.name == "Set Tex Index");
+            var flipBookBlockDesc = VFXLibrary.GetBlocks().First(t => t.modelType == typeof(SetAttribute) && t.HasSettingValue(VFXAttribute.TexIndex.name));
             contextController.AddBlock(0, flipBookBlockDesc.CreateInstance());
             m_ViewController.ApplyChanges();
 
@@ -129,7 +130,7 @@ namespace UnityEditor.VFX.Test
         {
             // Create an operator
             var crossOperatorDesc = VFXLibrary.GetOperators().First(t => t.name == "Cross Product");
-            var newOperator = m_ViewController.AddVFXOperator(new Vector2(100, 100), crossOperatorDesc);
+            var newOperator = m_ViewController.AddVFXOperator(new Vector2(100, 100), crossOperatorDesc.variant);
             m_ViewController.ApplyChanges();
             var operatorController = m_ViewController.allChildren.OfType<VFXOperatorController>().Single();
             Assert.AreEqual(operatorController.model, newOperator);
@@ -177,7 +178,7 @@ namespace UnityEditor.VFX.Test
         {
             // Create a spaceable operator
             var inlineOperatorDesc = VFXLibrary.GetOperators().First(t => t.modelType == typeof(VFXInlineOperator));
-            var newOperator = m_ViewController.AddVFXOperator(new Vector2(100, 100), inlineOperatorDesc);
+            var newOperator = m_ViewController.AddVFXOperator(new Vector2(100, 100), inlineOperatorDesc.variant);
             newOperator.SetSettingValue("m_Type", new SerializableType(typeof(DirectionType)));
             m_ViewController.ApplyChanges();
             var operatorController = m_ViewController.allChildren.OfType<VFXOperatorController>().First();
@@ -291,14 +292,14 @@ namespace UnityEditor.VFX.Test
         {
             // Create a new BasicInitialize context
             var initContextDesc = VFXLibrary.GetContexts().First(t => typeof(VFXBasicInitialize).IsAssignableFrom(t.modelType));
-            var newContext = m_ViewController.AddVFXContext(new Vector2(100, 100), initContextDesc);
+            var newContext = m_ViewController.AddVFXContext(new Vector2(100, 100), initContextDesc.variant);
             m_ViewController.ApplyChanges();
             Assert.AreEqual(1, m_ViewController.allChildren.Count(t => t is VFXContextController));
             var contextController = m_ViewController.allChildren.OfType<VFXContextController>().First();
             Assert.AreEqual(contextController.model, newContext);
 
             // Add a block to that context
-            var flipBookBlockDesc = VFXLibrary.GetBlocks().First(t => t.name == "Set Tex Index");
+            var flipBookBlockDesc = VFXLibrary.GetBlocks().First(t => t.modelType == typeof(SetAttribute) && t.HasSettingValue(VFXAttribute.TexIndex.name));
             contextController.AddBlock(0, flipBookBlockDesc.CreateInstance());
             var newBlock = contextController.model.children.First();
             m_ViewController.ApplyChanges();

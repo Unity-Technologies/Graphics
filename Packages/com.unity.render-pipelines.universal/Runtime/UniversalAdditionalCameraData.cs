@@ -687,6 +687,9 @@ namespace UnityEngine.Rendering.Universal
 
         // Returns the URP camera history texture manager with full access for internal systems.
         // NOTE: Only the pipeline should write/render history textures. Should be kept internal.
+        //
+        // The history is camera specific. The UniversalAdditionalCameraData is the URP specific camera (data).
+        // Therefore it owns the UniversalCameraHistory. The history should follow the camera lifetime.
         internal UniversalCameraHistory historyManager => m_History;
 
         /// <summary>

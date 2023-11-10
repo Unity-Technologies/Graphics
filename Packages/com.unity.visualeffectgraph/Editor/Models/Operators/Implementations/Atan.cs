@@ -1,7 +1,7 @@
 namespace UnityEditor.VFX.Operator
 {
     [VFXHelpURL("Operator-Atan")]
-    [VFXInfo(category = "Math/Trigonometry")]
+    [VFXInfo(name = "Atan", category = "Math/Trigonometry", synonyms = new []{ "arc", "tangent" })]
     class Atan : VFXOperatorNumericUniform
     {
         public class InputProperties

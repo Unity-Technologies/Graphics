@@ -283,6 +283,42 @@ namespace UnityEngine.Rendering.Universal
             createColorTexture = intermediateRenderTexture;
         }
 
+        // Gather history render requests and manage camera history texture life-time.
+        private void UpdateCameraHistory(UniversalCameraData cameraData)
+        {
+            // NOTE: Can be null for non-game cameras.
+            // Technically each camera has AdditionalCameraData which owns the historyManager.
+            if (cameraData != null && cameraData.historyManager != null)
+            {
+                // XR multipass renders the frame twice, avoid updating camera history twice.
+                bool xrMultipassEnabled = false;
+                int multipassId = 0;
+#if ENABLE_VR && ENABLE_XR_MODULE
+                xrMultipassEnabled = cameraData.xr.enabled && !cameraData.xr.singlePassEnabled;
+                multipassId = cameraData.xr.multipassId;
+#endif
+                bool isNewFrame = !xrMultipassEnabled || (multipassId == 0);
+
+                if (isNewFrame)
+                {
+                    var history = cameraData.historyManager;
+
+                    // Gather all external user requests by callback.
+                    history.GatherHistoryRequests();
+
+                    // Typically we would also gather all the internal requests here before checking for unused textures.
+                    // However the requests are versioned in the history manager, so we can defer the clean up for couple frames.
+
+                    // Garbage collect all the unused persistent data instances. Free GPU resources if any.
+                    // This will start a new "history frame".
+                    history.ReleaseUnusedHistory();
+
+                    // Swap and cycle camera history RTHandles. Update the reference size for the camera history RTHandles.
+                    history.SwapAndSetReferenceSize(cameraData.cameraTargetDescriptor.width, cameraData.cameraTargetDescriptor.height);
+                }
+            }
+        }
+
         void CreateRenderGraphCameraRenderTargets(RenderGraph renderGraph, bool isCameraTargetOffscreenDepth)
         {
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
@@ -364,22 +400,8 @@ namespace UnityEngine.Rendering.Universal
                 RTHandleStaticHelpers.SetRTHandleUserManagedWrapper(ref m_TargetDepthHandle, targetDepthId);
             }
 
-            // Gather render pass history requests
-            if (cameraData.camera.TryGetComponent(out UniversalAdditionalCameraData additionalCameraData))
-            {
-                // Gather all external user requests by callback.
-                additionalCameraData.historyManager.GatherHistoryRequests();
-
-                // Typically we would also gather all the internal requests here before checking for unused textures.
-                // However the requests are versioned in the history manager, so we can defer the clean up for couple frames.
-
-                // Garbage collect all the unused persistent data instances. Free GPU resources if any.
-                // This will start a new "history frame".
-                additionalCameraData.historyManager.ReleaseUnusedHistory();
-
-                // Swap and cycle camera history RTHandles. Update the reference size for the camera history RTHandles.
-                additionalCameraData.historyManager.SwapAndSetReferenceSize(cameraData.cameraTargetDescriptor.width, cameraData.cameraTargetDescriptor.height);
-            }
+            // Gather render pass history requests and update history textures.
+            UpdateCameraHistory(cameraData);
 
             RenderPassInputSummary renderPassInputs = GetRenderPassInputs(cameraData.IsTemporalAAEnabled(), postProcessingData.isEnabled);
 
@@ -619,6 +641,64 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        // "Raw render" color/depth history.
+        // Should include opaque and transparent geometry before TAA or any post-processing effects. No UI overlays etc.
+        private void RenderRawColorDepthHistory(RenderGraph renderGraph, UniversalCameraData cameraData, UniversalResourceData resourceData)
+        {
+            if (cameraData != null && cameraData.historyManager != null && resourceData != null)
+            {
+                UniversalCameraHistory history = cameraData.historyManager;
+
+                bool xrMultipassEnabled = false;
+                int multipassId = 0;
+#if ENABLE_VR && ENABLE_XR_MODULE
+                xrMultipassEnabled = cameraData.xr.enabled && !cameraData.xr.singlePassEnabled;
+                multipassId = cameraData.xr.multipassId;
+#endif
+
+                if (history.IsAccessRequested<RawColorHistory>())
+                {
+                    var colorHistory = history.GetHistoryForWrite<RawColorHistory>();
+                    if (colorHistory != null)
+                    {
+                        colorHistory.Update(ref cameraData.cameraTargetDescriptor, xrMultipassEnabled);
+                        if (colorHistory.GetCurrentTexture() != null && resourceData.cameraColor.IsValid())
+                        {
+                            var colorHistoryTarget = renderGraph.ImportTexture(colorHistory.GetCurrentTexture(multipassId));
+                            // See pass create in UniversalRenderer() for execution order.
+                            m_HistoryRawColorCopyPass.RenderToExistingTexture(renderGraph, frameData, colorHistoryTarget, resourceData.cameraColor, Downsampling.None, "Copy Raw Color History");
+                        }
+                    }
+                }
+
+                if (history.IsAccessRequested<RawDepthHistory>())
+                {
+                    var depthHistory = history.GetHistoryForWrite<RawDepthHistory>();
+                    if (depthHistory != null)
+                    {
+                        if (m_HistoryRawDepthCopyPass.CopyToDepth == false)
+                        {
+                            // Fall back to R32_Float if depth copy is disabled.
+                            var tempColorDepthDesc = cameraData.cameraTargetDescriptor;
+                            tempColorDepthDesc.colorFormat = RenderTextureFormat.RFloat;
+                            tempColorDepthDesc.graphicsFormat = GraphicsFormat.R32_SFloat;
+                            tempColorDepthDesc.depthBufferBits = 0;
+                            depthHistory.Update(ref tempColorDepthDesc, xrMultipassEnabled);
+                        }
+                        else
+                            depthHistory.Update(ref cameraData.cameraTargetDescriptor, xrMultipassEnabled);
+
+                        if (depthHistory.GetCurrentTexture(multipassId) != null && resourceData.cameraDepth.IsValid())
+                        {
+                            var depthHistoryTarget = renderGraph.ImportTexture(depthHistory.GetCurrentTexture(multipassId));
+                            // See pass create in UniversalRenderer() for execution order.
+                            m_HistoryRawDepthCopyPass.Render(renderGraph, frameData, depthHistoryTarget, resourceData.cameraDepth, false, "Copy Raw Depth History");
+                        }
+                    }
+                }
+            }
+        }
+
         /// <summary>
         /// Called before recording the render graph. Can be used to initialize resources.
         /// </summary>
@@ -669,7 +749,7 @@ namespace UnityEngine.Rendering.Universal
 
             OnBeforeRendering(renderGraph);
 
-            BeginRenderGraphXRRendering(renderGraph, cameraData);
+            BeginRenderGraphXRRendering(renderGraph);
 
             OnMainRendering(renderGraph, context);
 
@@ -971,6 +1051,8 @@ namespace UnityEngine.Rendering.Universal
 
             if (context.HasInvokeOnRenderObjectCallbacks())
                 m_OnRenderObjectCallbackPass.Render(renderGraph, resourceData.activeColorTexture, resourceData.activeDepthTexture);
+
+            RenderRawColorDepthHistory(renderGraph, cameraData, resourceData);
 
             bool shouldRenderUI = cameraData.rendersOverlayUI;
             bool outputToHDR = cameraData.isHDROutputActive;

@@ -14,6 +14,9 @@ namespace UnityEditor.Rendering
         SerializedDataParameter m_AnimateNoise;
         SerializedDataParameter m_OcclusionOnlyNormalization;
 
+        SerializedDataParameter m_IntensityMultiplier;
+        SerializedDataParameter m_SkyOcclusionIntensityMultiplier;
+
         public override void OnEnable()
         {
             var o = new PropertyFetcher<ProbeVolumesOptions>(serializedObject);
@@ -26,6 +29,9 @@ namespace UnityEditor.Rendering
             m_MinValidDotProdValue = Unpack(o.Find(x => x.minValidDotProductValue));
             m_AnimateNoise = Unpack(o.Find(x => x.animateSamplingNoise));
             m_OcclusionOnlyNormalization = Unpack(o.Find(x => x.occlusionOnlyReflectionNormalization));
+
+            m_IntensityMultiplier = Unpack(o.Find(x => x.intensityMultiplier));
+            m_SkyOcclusionIntensityMultiplier = Unpack(o.Find(x => x.skyOcclusionIntensityMultiplier));
 
             base.OnEnable();
         }
@@ -46,6 +52,8 @@ namespace UnityEditor.Rendering
 
             PropertyField(m_OcclusionOnlyNormalization);
 
+            PropertyField(m_IntensityMultiplier);
+            PropertyField(m_SkyOcclusionIntensityMultiplier);
         }
     }
 }

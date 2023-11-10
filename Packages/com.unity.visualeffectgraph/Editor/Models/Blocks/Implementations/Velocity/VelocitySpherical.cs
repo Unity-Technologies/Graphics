@@ -5,7 +5,47 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
-    [VFXInfo(category = "Attribute/{0}/Direction & Speed/{1}", experimental = true, variantProvider = typeof(VelocityBaseProvider))]
+    class VelocitySphericalVariantProvider : VariantProvider
+    {
+        public override IEnumerable<Variant> GetVariants()
+        {
+            foreach (var mode in Enum.GetValues(typeof(AttributeCompositionMode)).Cast<AttributeCompositionMode>())
+            {
+                // Skip the composition mode from main provider
+                if (mode == AttributeCompositionMode.Overwrite)
+                    continue;
+
+                var composition = VFXBlockUtility.GetNameString(mode);
+
+                yield return new Variant(
+                    $"{composition} Spherical Velocity from Direction & Speed",
+                    null,
+                    typeof(VelocitySpherical),
+                    new[]
+                    {
+                        new KeyValuePair<string, object>("composition", mode),
+                    });
+            }
+        }
+    }
+
+    class VelocitySphericalProvider : VariantProvider
+    {
+        public override IEnumerable<Variant> GetVariants()
+        {
+            yield return new Variant(
+                $"Set Spherical Velocity from Direction & Speed",
+                "Attribute/From Direction & Speed",
+                typeof(VelocitySpherical),
+                new[]
+                {
+                    new KeyValuePair<string, object>("composition", AttributeCompositionMode.Overwrite),
+                },
+                () => new VelocitySphericalVariantProvider());
+        }
+    }
+
+    [VFXInfo(experimental = true, variantProvider = typeof(VelocitySphericalProvider))]
     class VelocitySpherical : VelocityBase
     {
         public override string name { get { return string.Format(base.name, "Spherical"); } }

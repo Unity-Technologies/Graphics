@@ -5,8 +5,20 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Block
 {
+    class PositionCircleProvider : VariantProvider
+    {
+        public override IEnumerable<Variant> GetVariants()
+        {
+            yield return new Variant(
+                VFXBlockUtility.GetNameString(AttributeCompositionMode.Overwrite) + " Position (Shape: Circle)",
+                "Position/Position on shape",
+                typeof(PositionCircle),
+                new[] {new KeyValuePair<string, object>("compositionPosition", AttributeCompositionMode.Overwrite)});
+        }
+    }
+
     [VFXHelpURL("Block-SetPosition(Circle)")]
-    [VFXInfo(category = "Attribute/position/Composition/{0}", variantProvider = typeof(PositionBaseProvider))]
+    [VFXInfo(variantProvider = typeof(PositionCircleProvider))]
     class PositionCircle : PositionBase
     {
         public override string name { get { return string.Format(base.name, "Arc Circle"); } }

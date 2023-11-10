@@ -744,3 +744,14 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: https://jira.unity3d.com/browse/UUM-53003
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: bd68475ed4c0e4de3b933af285be496d, type: 3}
+    - {fileID: 102900000, guid: f0bc0b58fd157401e8ce7dfa0eca3084, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 11
+    Architecture: 0
+    XrSdk: OculusLoader
+    StereoModes: 0
+    Reason: Fix MSAA, Depth.

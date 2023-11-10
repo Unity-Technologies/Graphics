@@ -1,19 +1,16 @@
-using System;
 using System.Collections.Generic;
 
 namespace UnityEditor.VFX
 {
     class VFXStripTopologyProvider : VariantProvider
     {
-        protected sealed override Dictionary<string, object[]> variants
+        public override IEnumerable<Variant> GetVariants()
         {
-            get
-            {
-                return new Dictionary<string, object[]>
-                {
-                    { "m_Topology", new object[] { new ParticleTopologyQuadStrip() } }
-                };
-            }
+            yield return new Variant(
+                "Output Particle ShaderGraph Quad Strip",
+                "Output",
+                typeof(VFXComposedParticleOutput),
+                new[] { new KeyValuePair<string, object>("m_Topology", new ParticleTopologyQuadStrip()) });
         }
     }
 

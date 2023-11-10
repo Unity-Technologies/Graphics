@@ -315,16 +315,6 @@ namespace UnityEngine.Rendering.HighDefinition
             => global.m_RenderPipelineEditorResources != null && !global.m_RenderPipelineEditorResources.Equals(null);
 
         internal bool AreEditorResourcesCreated() => AreEditorResourcesCreated_Internal(this);
-
-        // Note: This function is HD specific
-        /// <summary>HDRP default Decal material.</summary>
-        public Material GetDefaultDecalMaterial()
-            => m_RenderPipelineEditorResources.materials.defaultDecalMat;
-
-        // Note: This function is HD specific
-        /// <summary>HDRP default mirror material.</summary>
-        public Material GetDefaultMirrorMaterial()
-            => m_RenderPipelineEditorResources.materials.defaultMirrorMat;
 #endif
 
         #endregion //Editor Resources

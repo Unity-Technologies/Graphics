@@ -45,7 +45,7 @@ namespace UnityEngine.Rendering
         /// Noise to be applied to the sampling position. It can hide seams issues between subdivision levels, but introduces noise.
         /// </summary>
         [Tooltip("Noise to be applied to the sampling position. It can hide seams issues between subdivision levels, but introduces noise.")]
-        public ClampedFloatParameter samplingNoise = new ClampedFloatParameter(0.1f, 0.0f, 0.5f);
+        public ClampedFloatParameter samplingNoise = new ClampedFloatParameter(0.1f, 0.0f, 1.0f);
 
 
         /// <summary>
@@ -66,12 +66,22 @@ namespace UnityEngine.Rendering
         [Tooltip("The minimum value that the dot product between the sample position normal and the vector to contributing probe need to have to have the probe considered.")]
         public ClampedFloatParameter minValidDotProductValue = new ClampedFloatParameter(0.1f, -1.0f, 0.33f);
 
-
         /// <summary>
         /// When enabled, reflection probe normalization can only decrease the reflections intensity.
         /// </summary>
         [Tooltip("When enabled, reflection probe normalization can only decrease the reflection intensity.")]
         public BoolParameter occlusionOnlyReflectionNormalization = new BoolParameter(true);
 
+        /// <summary>
+        /// Global probe volumes weight. Allows for fading out probe volumes influence falling back to ambient probe.
+        /// </summary>
+        [AdditionalProperty, Tooltip("Global probe volumes weight. Allows for fading out probe volumes influence falling back to ambient probe.")]
+        public ClampedFloatParameter intensityMultiplier = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
+
+        /// <summary>
+        /// Multiplier applied on the sky lighting when using sky occlusion.
+        /// </summary>
+        [AdditionalProperty, Tooltip("Multiplier applied on the sky lighting when using sky occlusion.")]
+        public ClampedFloatParameter skyOcclusionIntensityMultiplier = new ClampedFloatParameter(1.0f, 0.0f, 5.0f);
     }
 }

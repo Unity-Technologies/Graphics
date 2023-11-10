@@ -5,7 +5,47 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
-    [VFXInfo(category = "Attribute/{0}/Direction & Speed/{1}", experimental = true, variantProvider = typeof(VelocityBaseProvider))]
+    class VelocityDirectionVariantProvider : VariantProvider
+    {
+        public override IEnumerable<Variant> GetVariants()
+        {
+            foreach (var mode in Enum.GetValues(typeof(AttributeCompositionMode)).Cast<AttributeCompositionMode>())
+            {
+                // Skip the composition mode from main provider
+                if (mode == AttributeCompositionMode.Overwrite)
+                    continue;
+
+                var composition = VFXBlockUtility.GetNameString(mode);
+
+                yield return new Variant(
+                    $"{composition} Direction from Direction & Speed",
+                    null,
+                    typeof(VelocityDirection),
+                    new[]
+                    {
+                        new KeyValuePair<string, object>("composition", mode),
+                    });
+            }
+        }
+    }
+
+    class VelocityDirectionProvider : VariantProvider
+    {
+        public override IEnumerable<Variant> GetVariants()
+        {
+            yield return new Variant(
+                "Set Direction from Direction & Speed",
+                "Attribute/From Direction & Speed",
+                typeof(VelocityDirection),
+                new[]
+                {
+                    new KeyValuePair<string, object>("composition", AttributeCompositionMode.Overwrite),
+                },
+                () => new VelocityDirectionVariantProvider());
+        }
+    }
+
+    [VFXInfo(experimental = true, variantProvider = typeof(VelocityDirectionProvider))]
     class VelocityDirection : VelocityBase
     {
         public override string name { get { return string.Format(base.name, "New Direction"); } }

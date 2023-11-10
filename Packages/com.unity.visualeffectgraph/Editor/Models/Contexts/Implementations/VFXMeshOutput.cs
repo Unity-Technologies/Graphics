@@ -6,7 +6,7 @@ using UnityEngine;
 namespace UnityEditor.VFX
 {
     [VFXHelpURL("Context-OutputParticleMesh")]
-    [VFXInfo]
+    [VFXInfo(name = "Output Particle Mesh", category = "Output")]
     class VFXMeshOutput : VFXShaderGraphParticleOutput, IVFXMultiMeshOutput
     {
         public override string name

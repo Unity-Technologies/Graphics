@@ -495,7 +495,7 @@ namespace UnityEditor.VFX.UI
 
                 for (int i = 0; i < newSourceInputs.Length; ++i)
                 {
-                    VFXParameter newTargetParameter = m_TargetController.AddVFXParameter(Vector2.zero, VFXLibrary.GetParameters().First(t => t.model.type == newSourceInputs[i].portType));
+                    VFXParameter newTargetParameter = m_TargetController.AddVFXParameter(Vector2.zero, VFXLibrary.GetParameters().First(t => t.modelType == newSourceInputs[i].portType).variant);
 
                     m_TargetController.LightApplyChanges();
 
@@ -625,7 +625,7 @@ namespace UnityEditor.VFX.UI
 
                 for (int i = 0; i < newSourceOutputs.Length; ++i)
                 {
-                    VFXParameter newTargetParameter = m_TargetController.AddVFXParameter(Vector2.zero, VFXLibrary.GetParameters().First(t => t.model.type == newSourceOutputs[i].portType));
+                    VFXParameter newTargetParameter = m_TargetController.AddVFXParameter(Vector2.zero, VFXLibrary.GetParameters().First(t => t.variant.modelType == newSourceOutputs[i].portType).variant);
 
                     m_TargetController.LightApplyChanges();
 

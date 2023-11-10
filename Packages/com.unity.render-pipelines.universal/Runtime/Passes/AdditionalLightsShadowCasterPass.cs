@@ -820,9 +820,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             internal bool emptyShadowmap;
 
-            // k_MaxVisibleAdditionalLightsNonMobile is the maximum addtional lights urp supports(non mobile). Check Input.hlsl and UniversalRenderPipeline.cs
-            internal RendererListHandle[] shadowRendererListsHdl = new RendererListHandle[UniversalRenderPipeline.k_MaxVisibleAdditionalLightsNonMobile];
-            internal RendererList[] shadowRendererLists = new RendererList[UniversalRenderPipeline.k_MaxVisibleAdditionalLightsNonMobile];
+            internal RendererListHandle[] shadowRendererListsHdl = new RendererListHandle[ShaderOptions.k_MaxVisibleLightCountDesktop];
+            internal RendererList[] shadowRendererLists = new RendererList[ShaderOptions.k_MaxVisibleLightCountDesktop];
         }
 
         private void InitPassData(ref PassData passData, UniversalCameraData cameraData, UniversalLightData lightData, UniversalShadowData shadowData)

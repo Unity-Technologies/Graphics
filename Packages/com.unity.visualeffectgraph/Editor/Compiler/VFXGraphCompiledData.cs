@@ -908,7 +908,7 @@ namespace UnityEditor.VFX
 
                     var systemName = systemNames.GetUniqueSystemName(generated.context.GetData());
                     var contextLetter = generated.context.letter;
-                    var contextName = string.IsNullOrEmpty(generated.context.label) ? generated.context.libraryName : generated.context.label;
+                    var contextName = string.IsNullOrEmpty(generated.context.label) ? generated.context.name.Replace('\n', ' ') : generated.context.label;
 
                     var shaderName = string.Empty;
                     var fileName = string.Empty;

@@ -189,8 +189,8 @@ namespace UnityEngine.Rendering.Universal
                         ExecutePass(context.cmd, data, data.rendererList);
                     });
                 }
-                // Render IMGUI overlay (and software cursor TODO)
-                using (var builder = renderGraph.AddLowLevelPass<LowLevelPassData>("Draw Screen Space IMGUI Pass - Offscreen", out var passData, base.profilingSampler))
+                // Render IMGUI overlay and software cursor
+                using (var builder = renderGraph.AddLowLevelPass<LowLevelPassData>("Draw Screen Space IMGUI/SoftwareCursor Pass - Offscreen", out var passData, base.profilingSampler))
                 {
                     passData.colorTarget = builder.UseTexture(output, IBaseRenderGraphBuilder.AccessFlags.Write);
                     
@@ -233,8 +233,8 @@ namespace UnityEngine.Rendering.Universal
                         ExecutePass(context.cmd, data, data.rendererList);
                     });
                 }
-                // Render UIToolkit and IMGUI overlays (and software cursor TODO)
-                using (var builder = renderGraph.AddRasterRenderPass<PassData>("Draw Screen Space UIToolkit/IMGUI Pass - Offscreen", out var passData, base.profilingSampler))
+                // Render UIToolkit/IMGUI overlays and software cursor
+                using (var builder = renderGraph.AddRasterRenderPass<PassData>("Draw Screen Space UIToolkit/IMGUI/SoftwareCursor Pass - Offscreen", out var passData, base.profilingSampler))
                 {
                     builder.UseTextureFragment(output, 0);
                     
@@ -298,8 +298,8 @@ namespace UnityEngine.Rendering.Universal
                         ExecutePass(context.cmd, data, data.rendererList);
                     });
                 }
-                // Render IMGUI overlay (and software cursor TODO)
-                using (var builder = renderGraph.AddLowLevelPass<LowLevelPassData>("Draw Screen Space IMGUI Pass - Overlay", out var passData, base.profilingSampler))
+                // Render IMGUI overlay and software cursor
+                using (var builder = renderGraph.AddLowLevelPass<LowLevelPassData>("Draw Screen Space IMGUI/SoftwareCursor Pass - Overlay", out var passData, base.profilingSampler))
                 {
                     passData.colorTarget = builder.UseTexture(colorBuffer, IBaseRenderGraphBuilder.AccessFlags.Write);
                     passData.depthTarget = builder.UseTexture(depthBuffer, IBaseRenderGraphBuilder.AccessFlags.Write);
@@ -334,8 +334,8 @@ namespace UnityEngine.Rendering.Universal
                         ExecutePass(context.cmd, data, data.rendererList);
                     });
                 }
-                // Render UIToolkit and IMGUI overlays
-                using (var builder = renderGraph.AddRasterRenderPass<PassData>("Draw Screen Space UIToolkit/IMGUI Pass - Overlay", out var passData, base.profilingSampler))
+                // Render UIToolkit/IMGUI overlays and software cursor
+                using (var builder = renderGraph.AddRasterRenderPass<PassData>("Draw Screen Space UIToolkit/IMGUI/SoftwareCursor Pass - Overlay", out var passData, base.profilingSampler))
                 {
                     builder.UseTextureFragment(colorBuffer, 0);
                     builder.UseTextureFragmentDepth(depthBuffer, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);

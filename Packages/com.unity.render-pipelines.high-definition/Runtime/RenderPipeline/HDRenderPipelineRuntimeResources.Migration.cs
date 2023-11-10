@@ -25,7 +25,6 @@ namespace UnityEngine.Rendering.HighDefinition
             MigrationStep.New(Version.RemovedEditorOnlyResources, (HDRenderPipelineRuntimeResources i) =>
             {
                 //force full reimport to remove moved resources
-                i.materials = null;
                 i.shaderGraphs = null;
                 i.shaders = null;
                 ResourceReloader.ReloadAllNullIn(i, HDUtils.GetHDRenderPipelinePath());

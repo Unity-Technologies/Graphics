@@ -7,7 +7,7 @@ namespace UnityEditor.VFX.Block
     [VFXInfo(category = "Force")]
     class ConformToSphere : VFXBlock
     {
-        public override string name { get { return "Conform to Sphere"; } }
+        public override string name => "Conform to Sphere";
         public override VFXContextType compatibleContexts { get { return VFXContextType.Update; } }
         public override VFXDataType compatibleData { get { return VFXDataType.Particle; } }
 

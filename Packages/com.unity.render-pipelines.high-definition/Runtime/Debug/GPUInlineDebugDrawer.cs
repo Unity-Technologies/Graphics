@@ -86,11 +86,16 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Manually initialize resources needed to render the debug draw.
         /// </summary>
-        /// <param name="editorResources">Editor resources which contains the gpuInlineDebugDrawerLine shader.</param>
-        static public void Initialize(HDRenderPipelineEditorResources editorResources)
+        public static void Initialize()
         {
 #if ENABLE_GPU_INLINE_DEBUG_DRAWER
-            m_LineMaterial = CoreUtils.CreateEngineMaterial(editorResources.shaders.gpuInlineDebugDrawerLine);
+            if (!GraphicsSettings.TryGetRenderPipelineSettings<HDRenderPipelineEditorShaders>(out var defaultShaders))
+            {
+                Debug.LogWarning($"Unable to initialize {nameof(GPUInlineDebugDrawer)} due to missing {nameof(HDRenderPipelineEditorShaders)}");
+                return;
+            }
+
+            m_LineMaterial = CoreUtils.CreateEngineMaterial(defaultShaders.gpuInlineDebugDrawerLine);
             m_LineMaterial.SetOverrideTag("RenderType", "Transparent");
             m_LineWSNoDepthTestPassID = m_LineMaterial.FindPass("LineWSNoDepthTest");
             m_LineCSNoDepthTestPassID = m_LineMaterial.FindPass("LineCSNoDepthTest");
@@ -117,7 +122,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Manually release resources.
         /// </summary>
-        static public void Dispose()
+        public static void Dispose()
         {
 #if ENABLE_GPU_INLINE_DEBUG_DRAWER
             void TryFreeBuffer(ref GraphicsBuffer resource)

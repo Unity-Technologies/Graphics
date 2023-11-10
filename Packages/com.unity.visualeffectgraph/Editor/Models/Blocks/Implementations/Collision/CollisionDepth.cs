@@ -7,7 +7,7 @@ using UnityEngine.VFX;
 namespace UnityEditor.VFX.Block
 {
     [VFXHelpURL("Block-CollideWithDepthBuffer")]
-    [VFXInfo(category = "Collision")]
+    [VFXInfo(name = "Collide with Depth Buffer", category = "Collision")]
     class CollisionDepth : CollisionBase
     {
         enum SurfaceThickness
@@ -22,7 +22,7 @@ namespace UnityEditor.VFX.Block
         [VFXSetting, SerializeField, Tooltip("Specifies the thickness mode for the colliding surface. It can have an infinite thickness, or be set to a custom value.")]
         SurfaceThickness surfaceThickness = SurfaceThickness.Infinite;
 
-        public override string name { get { return "Collide with Depth Buffer"; } }
+        public override string name => "Collide with Depth Buffer";
 
         public class ThicknessProperties
         {

@@ -1,33 +1,23 @@
-//#define OLD_COPY_PASTE
 using System;
 using System.Linq;
 using System.Collections.Generic;
-using System.IO;
+
 using UnityEngine;
-using UnityEngine.Rendering;
-using UnityEditor.VFX;
 using UnityEngine.VFX;
 
 using UnityObject = UnityEngine.Object;
 
 namespace UnityEditor.VFX.UI
 {
-    class GroupNodeAdder
-    {
-    }
-
     abstract class SubGraphCache
     {
-        protected SubGraphCache()
-        {
-        }
-
         string m_Filter;
         public struct Item
         {
             public string category;
             public string name;
             public string path;
+            public string guid;
             public object additionalInfos;
         }
 
@@ -38,9 +28,8 @@ namespace UnityEditor.VFX.UI
         }
 
         protected List<Item> m_Items = new List<Item>();
-        protected bool m_UptoDate = false;
 
-        public IEnumerable<Item> items
+        private IEnumerable<Item> items
         {
             get
             {
@@ -51,28 +40,16 @@ namespace UnityEditor.VFX.UI
 
         protected abstract void UpdateCache();
 
-        static Dictionary<Type, SubGraphCache> s_Caches = new Dictionary<Type, SubGraphCache>
+        static readonly Dictionary<Type, SubGraphCache> s_Caches = new()
         {
             { typeof(VisualEffectAsset), new SubGraphCache<VisualEffectAsset>()},
             { typeof(VisualEffectSubgraphBlock), new SubGraphCache<VisualEffectSubgraphBlock>()},
             { typeof(VisualEffectSubgraphOperator), new SubGraphCache<VisualEffectSubgraphOperator>()},
         };
 
-        static void MarkChanged(Type type)
-        {
-            SubGraphCache cache;
-            s_Caches.TryGetValue(type, out cache);
-            if (cache != null)
-                cache.m_UptoDate = false;
-        }
-
         public static IEnumerable<Item> GetItems(Type type)
         {
-            SubGraphCache cache;
-            s_Caches.TryGetValue(type, out cache);
-            if (cache != null)
-                return cache.items;
-            return Enumerable.Empty<Item>();
+            return s_Caches.TryGetValue(type, out var cache) ? cache.items : Enumerable.Empty<Item>();
         }
     }
     class SubGraphCache<T> : SubGraphCache where T : VisualEffectObject
@@ -91,7 +68,7 @@ namespace UnityEditor.VFX.UI
                     {
                         VisualEffectResource res = asset.GetResource();
 
-                        Item item = new Item() { name = asset.name, category = res.GetOrCreateGraph().categoryPath, path = path };
+                        Item item = new Item { name = asset.name, category = res.GetOrCreateGraph().categoryPath, path = path, guid = guid};
                         if (item.category == null)
                             item.category = "";
 
@@ -101,7 +78,7 @@ namespace UnityEditor.VFX.UI
 
                             if (blockContext != null)
                             {
-                                item.additionalInfos = new AdditionalBlockInfo() { compatibleType = blockContext.compatibleContextType, compatibleData = blockContext.ownedType };
+                                item.additionalInfos = new AdditionalBlockInfo { compatibleType = blockContext.compatibleContextType, compatibleData = blockContext.ownedType };
                                 m_Items.Add(item);
                             }
                         }
@@ -110,137 +87,82 @@ namespace UnityEditor.VFX.UI
                     }
                 }
             }
-            m_UptoDate = true;
         }
     }
 
-    class VFXNodeProvider : VFXAbstractProvider<VFXNodeProvider.Descriptor>
+    class SubgraphVariant : Variant
     {
-        public class Descriptor
+        private readonly string m_Guid;
+
+        public SubgraphVariant(string name, string category, Type modelType, KeyValuePair<string, object>[] kvp, string guid)
+            : base(name, category, modelType, kvp, null, null, true)
         {
-            public object modelDescriptor;
-            public string category;
-            public string name;
+            m_Guid = guid;
         }
 
-        Func<Descriptor, bool> m_Filter;
-        IEnumerable<Type> m_AcceptedTypes;
-        VFXViewController m_Controller;
+        public override string GetUniqueIdentifier() => m_Guid;
+    }
 
-        public VFXNodeProvider(VFXViewController controller, Action<Descriptor, Vector2> onAddBlock, Func<Descriptor, bool> filter = null, IEnumerable<Type> acceptedTypes = null) : base(onAddBlock)
+    class VFXNodeProvider : VFXAbstractProvider<VFXOperator>
+    {
+        readonly Func<IVFXModelDescriptor, bool> m_Filter;
+        readonly IEnumerable<Type> m_AcceptedTypes;
+        readonly VFXViewController m_Controller;
+
+        public VFXNodeProvider(VFXViewController controller, Action<Variant, Vector2> onAddBlock, Func<IVFXModelDescriptor, bool> filter = null, IEnumerable<Type> acceptedTypes = null) : base(onAddBlock)
         {
             m_Filter = filter;
             m_AcceptedTypes = acceptedTypes;
             m_Controller = controller;
         }
 
-        protected override string GetCategory(Descriptor desc)
-        {
-            return desc.category;
-        }
-
-        protected override string GetName(Descriptor desc)
-        {
-            return desc.name;
-        }
-
-        protected override string title
-        {
-            get { return "Node"; }
-        }
-
-        string ComputeCategory<T>(string type, VFXModelDescriptor<T> model) where T : VFXModel
-        {
-            if (model.info != null && model.info.category != null)
-            {
-                if (m_AcceptedTypes != null && m_AcceptedTypes.Count() == 1)
-                {
-                    return model.info.category;
-                }
-                else
-                {
-                    return string.Format("{0}/{1}", type, model.info.category);
-                }
-            }
-            else
-            {
-                return type;
-            }
-        }
-
 #if VFX_HAS_UNIT_TEST
-        public IEnumerable<Descriptor> GetDescriptorsForInternalTest()
+        public IEnumerable<IVFXModelDescriptor> GetDescriptorsForInternalTest()
         {
             return GetDescriptors();
         }
 #endif
 
-        protected override IEnumerable<Descriptor> GetDescriptors()
+        public override IEnumerable<IVFXModelDescriptor> GetDescriptors()
         {
-            IEnumerable<Descriptor> descs = Enumerable.Empty<Descriptor>();
+            var descs = new List<IVFXModelDescriptor>();
 
             if (m_AcceptedTypes == null || m_AcceptedTypes.Contains(typeof(VFXContext)))
             {
-                var descriptorsContext = VFXLibrary.GetContexts().Select(o =>
-                {
-                    return new Descriptor()
-                    {
-                        modelDescriptor = o,
-                        category = ComputeCategory("Context", o),
-                        name = o.name
-                    };
-                }).OrderBy(o => o.category + o.name);
-
-                descs = descs.Concat(descriptorsContext);
+                descs.AddRange(VFXLibrary.GetContexts().Select(x => new VFXModelDescriptor<VFXContext>(x.variant, null)));
             }
             if (m_AcceptedTypes == null || m_AcceptedTypes.Contains(typeof(VFXOperator)))
             {
-                var descriptorsOperator = VFXLibrary.GetOperators().Select(o =>
-                {
-                    return new Descriptor()
-                    {
-                        modelDescriptor = o,
-                        category = ComputeCategory("Operator", o),
-                        name = o.name
-                    };
-                });
-
-                descriptorsOperator = descriptorsOperator.Concat(SubGraphCache.GetItems(typeof(VisualEffectSubgraphOperator)).Select(
-                    t => new Descriptor()
-                    {
-                        modelDescriptor = t.path,
-                        category = "Operator/" + t.category,
-                        name = t.name
-                    }
-                ));
-
-                descs = descs.Concat(descriptorsOperator.OrderBy(o => o.category + o.name));
+                descs.AddRange(VFXLibrary.GetOperators());
+                descs.AddRange(SubGraphCache.GetItems(typeof(VisualEffectSubgraphOperator)).Select(x => new VFXModelDescriptor<VFXOperator>(new SubgraphVariant(
+                    x.name,
+                    x.category,
+                    typeof(VisualEffectSubgraphOperator),
+                    new []{ new KeyValuePair<string, object>("path", x.path)},
+                    x.guid),
+                    null)));
+                descs.AddRange(m_Controller.graph.attributesManager.GetCustomAttributes().Select(x => new VFXModelDescriptor<VFXOperator>(new Variant(
+                    $"Get {x.name}",
+                    "Operator/Attribute",
+                    typeof(VFXAttributeParameter),
+                    new[] { new KeyValuePair<string, object>(nameof(VFXAttributeParameter.attribute), x.name) },
+                    null,
+                    null,
+                    false), null)));
             }
             if (m_AcceptedTypes == null || m_AcceptedTypes.Contains(typeof(VFXParameter)))
             {
-                var parameterDescriptors = m_Controller.parameterControllers.Select(t =>
-                    new Descriptor
-                    {
-                        modelDescriptor = t,
-                        category = string.IsNullOrEmpty(t.model.category) ? "Property" : string.Format("Property/{0}", t.model.category),
-                        name = t.exposedName
-                    }
-                    ).OrderBy(t => t.category);
-                descs = descs.Concat(parameterDescriptors);
+                var parameterVariants = m_Controller.parameterControllers.Select(t => new VFXModelDescriptor<VFXParameter>(
+                    new VFXModelDescriptorParameters.ParameterVariant(
+                        t.exposedName,
+                        string.IsNullOrEmpty(t.model.category)
+                            ? "Property"
+                            : $"Property/{t.model.category}",
+                        t.portType), null));
+                descs.AddRange(parameterVariants);
             }
-            var groupNodeDesc = new Descriptor()
-            {
-                modelDescriptor = new GroupNodeAdder(),
-                category = "Misc",
-                name = "Group Node"
-            };
 
-            descs = descs.Concat(Enumerable.Repeat(groupNodeDesc, 1));
-
-            if (m_Filter == null)
-                return descs;
-            else
-                return descs.Where(t => m_Filter(t));
+            return m_Filter == null ? descs : descs.Where(t => m_Filter(t));
         }
     }
 }

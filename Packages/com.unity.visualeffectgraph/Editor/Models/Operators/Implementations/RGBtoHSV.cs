@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.VFX.Operator
 {
     [VFXHelpURL("Operator-RGBToHSV")]
-    [VFXInfo(category = "Color")]
+    [VFXInfo(name = "RGB to HSV", category = "Color")]
     class RGBtoHSV : VFXOperator
     {
         public class InputProperties

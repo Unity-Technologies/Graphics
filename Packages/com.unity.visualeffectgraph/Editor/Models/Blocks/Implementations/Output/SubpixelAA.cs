@@ -3,7 +3,7 @@ using System.Collections.Generic;
 namespace UnityEditor.VFX.Block
 {
     [VFXHelpURL("Block-SubpixelAntiAliasing")]
-    [VFXInfo(category = "Output")]
+    [VFXInfo(name = "Subpixel Anti-Aliasing", category = "Output")]
     class SubpixelAA : VFXBlock
     {
         public override string name { get { return "Subpixel Anti-Aliasing"; } }

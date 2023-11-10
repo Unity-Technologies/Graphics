@@ -8,14 +8,21 @@ namespace UnityEditor.VFX.Block
 {
     class OrientationModeProvider : VariantProvider
     {
-        protected sealed override Dictionary<string, object[]> variants { get; } = new Dictionary<string, object[]>
+        public override IEnumerable<Variant> GetVariants()
         {
-            {"mode", Enum.GetValues(typeof(Orient.Mode)).Cast<object>().ToArray()}
-        };
+            foreach (var mode in Enum.GetValues(typeof(Orient.Mode)))
+            {
+                yield return new Variant(
+                    $"Orient {ObjectNames.NicifyVariableName(mode.ToString())}",
+                    "Attribute/orientation",
+                    typeof(Orient),
+                    new[] {new KeyValuePair<string, object>("mode", mode)});
+            }
+        }
     }
 
     [VFXHelpURL("Block-Orient")]
-    [VFXInfo(category = "Attribute/orientation", variantProvider = typeof(OrientationModeProvider))]
+    [VFXInfo(variantProvider = typeof(OrientationModeProvider))]
     class Orient : VFXBlock
     {
         public enum Mode

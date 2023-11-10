@@ -13,18 +13,30 @@ namespace UnityEditor.VFX.Block
         static AttributeProviderSpawner()
         {
             kSupportedAttributesFromSpawnContext = VFXAttributesManager
-                .GetBuiltInNamesOrCombination(false, true, false, false)
-                .Concat(new[] { VFXAttribute.SpawnCount.name, VFXAttribute.SpawnTime.name })
-                .ToArray();
+                    .GetBuiltInNamesOrCombination(false, true, false, false)
+                    .Concat(new[] { VFXAttribute.SpawnCount.name, VFXAttribute.SpawnTime.name })
+                    .ToArray();
         }
 
-        protected sealed override Dictionary<string, object[]> variants { get; } = new() { { "attribute", kSupportedAttributesFromSpawnContext } };
+        public override IEnumerable<Variant> GetVariants()
+        {
+            // Todo: should I add a sub-provider for random variants?
+            foreach (var attribute in kSupportedAttributesFromSpawnContext)
+            {
+                yield return new Variant(
+                    $"Set {attribute} SpawnEvent)",
+                    "Attribute",
+                    typeof(VFXSpawnerSetAttribute),
+                    new[] {new KeyValuePair<string, object>("attribute", attribute)});
+            }
+        }
+
         public string[] GetAvailableString() => kSupportedAttributesFromSpawnContext;
     }
 
     [VFXHelpURL("Block-SetSpawnEvent")]
     [VFXInfo(category = "Attribute", variantProvider = typeof(AttributeProviderSpawner))]
-    class VFXSpawnerSetAttribute : VFXAbstractSpawner, IVFXAttributeUsage
+    class VFXSpawnerSetAttribute : VFXAbstractSpawner
     {
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), StringProvider(typeof(AttributeProviderSpawner))]
         public string attribute;

@@ -387,6 +387,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 return;
             }
 
+            Func<WaterRendering, string> validator = (water) => !water.enable.value ? "Water Surface Rendering is not enabled in the Volume System." : null;
+            HDEditorUtils.EnsureVolumeAndFrameSetting(validator, FrameSettingsField.Water, "Water");
+
             // Draw UI
             WaterSurfaceUI.Inspector.Draw(this, this);
 

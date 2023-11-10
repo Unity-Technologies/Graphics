@@ -94,9 +94,14 @@ namespace UnityEditor.Rendering.HighDefinition
             light.colorTemperature = 4100;
             hdLight.intensity = 0.5f; // 0.5 lux is actually a bit more than max moon light intensity on a full moon
 
-            var globalSettings = HDRenderPipelineGlobalSettings.instance;
-            if (globalSettings != null)
-                hdLight.surfaceTexture = globalSettings.renderPipelineEditorResources?.textures.moonAlbedo;
+            if (GraphicsSettings.TryGetRenderPipelineSettings<HDRenderPipelineEditorTextures>(out var defaultRenderPipelineTextures))
+            {
+                hdLight.surfaceTexture = defaultRenderPipelineTextures.moonAlbedo;
+            }
+            else
+            {
+                Debug.LogWarning($"{go.name} is missing the {nameof(HDAdditionalLightData.surfaceTexture)} due to not being able to find {nameof(HDRenderPipelineEditorTextures.moonAlbedo)} Texture.");
+            }
         }
 
         [MenuItem("GameObject/Volume/Sky and Fog Global Volume", priority = CoreUtils.Priorities.gameObjectMenuPriority + 1)]

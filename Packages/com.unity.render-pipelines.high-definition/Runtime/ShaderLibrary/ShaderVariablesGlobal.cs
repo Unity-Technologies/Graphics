@@ -292,5 +292,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public uint _EnableComputeThickness;
         public float _VolumetricCloudsFallBackValue;
         public Vector4 _VolumetricCloudsShadowOriginToggle;
+
+        public Vector4 _ColorPyramidUvScaleAndLimitPrevFrame;
     }
 }

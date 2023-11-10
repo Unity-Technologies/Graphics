@@ -1,11 +1,50 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
-using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
-    [VFXInfo(category = "Attribute/{0}/Direction & Speed/{1}", experimental = true, variantProvider = typeof(VelocityBaseProvider))]
+    class VelocitySpeedVariantProvider : VariantProvider
+    {
+        public override IEnumerable<Variant> GetVariants()
+        {
+            foreach (var mode in Enum.GetValues(typeof(AttributeCompositionMode)).Cast<AttributeCompositionMode>())
+            {
+                // Skip the composition mode from main provider
+                if (mode == AttributeCompositionMode.Overwrite)
+                    continue;
+
+                var composition = VFXBlockUtility.GetNameString(mode);
+
+                yield return new Variant(
+                    $"{composition} Velocity from Direction & Speed",
+                    null,
+                    typeof(VelocitySpeed),
+                    new[]
+                    {
+                        new KeyValuePair<string, object>("composition", mode),
+                    });
+            }
+        }
+    }
+
+    class VelocitySpeedProvider : VariantProvider
+    {
+        public override IEnumerable<Variant> GetVariants()
+        {
+            yield return new Variant(
+                $"Set Velocity from Direction & Speed",
+                "Attribute/From Direction & Speed",
+                typeof(VelocitySpeed),
+                new[]
+                {
+                    new KeyValuePair<string, object>("composition", AttributeCompositionMode.Overwrite),
+                },
+                () => new VelocitySpeedVariantProvider());
+        }
+    }
+
+    [VFXInfo(experimental = true, variantProvider = typeof(VelocitySpeedProvider))]
     class VelocitySpeed : VelocityBase
     {
         public override string name { get { return string.Format(base.name, "Change Speed"); } }

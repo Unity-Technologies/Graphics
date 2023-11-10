@@ -3,7 +3,7 @@ using UnityEngine;
 namespace UnityEditor.VFX.Operator
 {
     [VFXHelpURL("Operator-Modulo")]
-    [VFXInfo(category = "Math/Arithmetic")]
+    [VFXInfo(category = "Math/Arithmetic", synonyms = new[] { "%" })]
     class Modulo : VFXOperatorNumericUniform
     {
         public class InputProperties

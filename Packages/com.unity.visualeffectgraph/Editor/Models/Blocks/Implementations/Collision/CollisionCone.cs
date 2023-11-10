@@ -4,10 +4,10 @@ using UnityEngine;
 namespace UnityEditor.VFX.Block
 {
     [VFXHelpURL("Block-CollideWithCone")]
-    [VFXInfo(category = "Collision")]
+    [VFXInfo(name = "Collide with Cone", category = "Collision")]
     class CollisionCone : CollisionBase
     {
-        public override string name { get { return "Collide with Cone"; } }
+        public override string name => "Collide with Cone";
 
         public class InputProperties
         {

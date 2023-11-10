@@ -4,8 +4,20 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
+    class PositionConeProvider : VariantProvider
+    {
+        public override IEnumerable<Variant> GetVariants()
+        {
+            yield return new Variant(
+                VFXBlockUtility.GetNameString(AttributeCompositionMode.Overwrite) + " Position (Shape: Cone)",
+                "Position/Position on shape",
+                typeof(PositionCone),
+                new[] {new KeyValuePair<string, object>("compositionPosition", AttributeCompositionMode.Overwrite)});
+        }
+    }
+
     [VFXHelpURL("Block-SetPosition(Cone)")]
-    [VFXInfo(category = "Attribute/position/Composition/Set", variantProvider = typeof(PositionBaseProvider))]
+    [VFXInfo(variantProvider = typeof(PositionConeProvider))]
     class PositionCone : PositionBase
     {
         [VFXSetting, Tooltip("Controls whether particles are spawned on the base of the cone, or throughout the entire volume.")]

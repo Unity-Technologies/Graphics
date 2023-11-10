@@ -184,7 +184,7 @@ class VisualEffectAssetEditor : UnityEditor.Editor
 
         var systemName = context.GetGraph().systemNames.GetUniqueSystemName(context.GetData());
         var contextLetter = context.letter;
-        var contextName = string.IsNullOrEmpty(context.label) ? context.libraryName : context.label;
+        var contextName = string.IsNullOrEmpty(context.label) ? context.name.Replace('\n', ' ') : context.label;
         var fullName = string.Format("{0}{1}/{2}", systemName, contextLetter != '\0' ? "/" + contextLetter : string.Empty, contextName.Replace('\n', ' '));
 
         EditorGUI.LabelField(rect, EditorGUIUtility.TempContent(fullName));

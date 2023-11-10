@@ -8,19 +8,23 @@ namespace UnityEditor.VFX
 {
     class CustomSpawnerVariant : VariantProvider
     {
-        protected sealed override Dictionary<string, object[]> variants { get; } = new Dictionary<string, object[]>
+        public override IEnumerable<Variant> GetVariants()
         {
+            var types = VFXLibrary.FindConcreteSubclasses(typeof(VFXSpawnerCallbacks))
+                .Where(x => x != typeof(LoopAndDelay)) //Explicitly exclude loop and delay from listing, preferably use VFXSpawnContext settings instead
+                .ToArray();
+            foreach (var type in types)
             {
-                "m_customType",
-                VFXLibrary.FindConcreteSubclasses(typeof(VFXSpawnerCallbacks))
-                    .Where(o => o != typeof(LoopAndDelay)) //Explicitly exclude loop and delay from listing, preferably use VFXSpawnContext settings instead 
-                    .Select(o => new SerializableType(o) as object)
-                    .ToArray()
+                yield return new Variant(
+                    ObjectNames.NicifyVariableName(type.Name),
+                    $"Spawn/Custom",
+                    typeof(VFXSpawnerCustomWrapper),
+                    new[] {new KeyValuePair<string, object>("m_customType", new SerializableType(type))});
             }
-        };
+        }
     }
 
-    [VFXInfo(category = "Custom", variantProvider = typeof(CustomSpawnerVariant))]
+    [VFXInfo(variantProvider = typeof(CustomSpawnerVariant))]
     class VFXSpawnerCustomWrapper : VFXAbstractSpawner
     {
         [SerializeField, VFXSetting(VFXSettingAttribute.VisibleFlags.None)]

@@ -5,10 +5,10 @@ using UnityEngine;
 namespace UnityEditor.VFX.Block
 {
     [VFXHelpURL("Block-CollideWithSignedDistanceField")]
-    [VFXInfo(category = "Collision")]
+    [VFXInfo(name = "Collide with Signed Distance Field", category = "Collision")]
     class CollisionSDF : CollisionBase
     {
-        public override string name { get { return "Collide with Signed Distance Field"; } }
+        public override string name => "Collide with Signed Distance Field";
 
         public class InputProperties
         {

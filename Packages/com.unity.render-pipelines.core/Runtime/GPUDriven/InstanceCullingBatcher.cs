@@ -778,6 +778,7 @@ namespace UnityEngine.Rendering
             m_BRG.SetEnabledViewTypes(viewTypes);
 #endif
             m_Culler = new InstanceCuller();
+            m_Culler.Init(batcherContext.debugStats);
 
             m_CachedInstanceDataBufferLayoutVersion = -1;
             m_OnCompleteCallback = desc.onCompleteCallback;

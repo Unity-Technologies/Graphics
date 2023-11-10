@@ -4,14 +4,6 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
-    class PositionBaseProvider : VariantProvider
-    {
-        public override IEnumerable<Variant> ComputeVariants()
-        {
-            return new[] { AttributeCompositionMode.Overwrite }
-                .Select(x => new Variant(new[] { new KeyValuePair<string, object>("compositionPosition", x) }, new[] { VFXBlockUtility.GetNameString(x) }));
-        }
-    }
     abstract class PositionBase : VFXBlock
     {
         public enum HeightMode
