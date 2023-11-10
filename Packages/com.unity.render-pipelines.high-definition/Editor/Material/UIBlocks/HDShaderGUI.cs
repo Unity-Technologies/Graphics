@@ -66,26 +66,38 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <param name="background">Style for the background.</param>
         public override void OnMaterialPreviewGUI(MaterialEditor materialEditor, Rect r, GUIStyle background)
         {
-            List<DiffusionProfileSettings> overrides = new();
-            Material material = materialEditor.target as Material;
-            foreach (var nameID in HDMaterial.GetShaderDiffusionProfileProperties(material.shader))
+            using (ListPool<DiffusionProfileSettings>.Get(out var overrides))
             {
-                if (!material.HasProperty(nameID))
-                    continue;
+                Material material = materialEditor.target as Material;
+                foreach (var nameID in HDMaterial.GetShaderDiffusionProfileProperties(material.shader))
+                {
+                    if (!material.HasProperty(nameID))
+                        continue;
 
-                var diffusionProfile = HDMaterial.GetDiffusionProfileAsset(material, nameID);
-                if (diffusionProfile != null)
-                    overrides.Add(diffusionProfile);
-                if (overrides.Count >= DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT - 1)
-                    break;
+                    var diffusionProfile = HDMaterial.GetDiffusionProfileAsset(material, nameID);
+                    if (diffusionProfile != null)
+                        overrides.Add(diffusionProfile);
+                    if (overrides.Count >= DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT - 1)
+                        break;
+                }
+
+                var volumeProfile = HDRenderPipelineGlobalSettings.instance.volumeProfile;
+                if (volumeProfile == null)
+                {
+                    EditorGUI.HelpBox(r, $"The current {nameof(VolumeProfile)} is null, please assign one on Graphics Settings > HDRP", MessageType.Error);
+                }
+                else
+                {
+                    var diffusionProfileList = VolumeUtils.GetOrCreateDiffusionProfileList(volumeProfile);
+
+                    var profiles = diffusionProfileList.ToArray();
+                    diffusionProfileList.ReplaceWithArray(overrides.ToArray());
+
+                    materialEditor.DefaultPreviewGUI(r, background);
+
+                    diffusionProfileList.ReplaceWithArray(profiles);
+                }
             }
-
-            var profiles = HDRenderPipelineGlobalSettings.instance.diffusionProfileSettingsList;
-            HDRenderPipelineGlobalSettings.instance.diffusionProfileSettingsList = overrides.ToArray();
-
-            materialEditor.DefaultPreviewGUI(r, background);
-
-            HDRenderPipelineGlobalSettings.instance.diffusionProfileSettingsList = profiles;
         }
 
         /// <summary>

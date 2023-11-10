@@ -134,7 +134,16 @@ namespace UnityEditor.Rendering.HighDefinition
                 VolumeProfile lookDevAsset = RenderPipelineGlobalSettingsUI.DrawVolumeProfileAssetField(
                     serialized.lookDevVolumeProfile,
                     Styles.lookDevVolumeProfileAssetLabel,
-                    getOrCreateVolumeProfile: () => globalSettings.GetOrAssignLookDevVolumeProfile(),
+                    getOrCreateVolumeProfile: () =>
+                    {
+                        var globalSettings = serialized.serializedObject.targetObject as HDRenderPipelineGlobalSettings;
+                        var volumeProfile = globalSettings.lookDevVolumeProfile;
+                        if (volumeProfile != null)
+                            return volumeProfile;
+
+                        return VolumeUtils.CopyVolumeProfileFromResourcesToAssets(GraphicsSettings
+                            .GetRenderPipelineSettings<HDRenderPipelineEditorAssets>().lookDevVolumeProfile);
+                    },
                     ref s_LookDevVolumeProfileFoldoutExpanded
                 );
 

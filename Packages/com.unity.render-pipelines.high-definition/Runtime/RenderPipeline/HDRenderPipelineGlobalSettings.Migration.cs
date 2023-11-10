@@ -75,36 +75,25 @@ namespace UnityEngine.Rendering.HighDefinition
             MigrationStep.New(Version.MoveDiffusionProfilesToVolume, (HDRenderPipelineGlobalSettings data) =>
             {
 #pragma warning disable 618 // Type or member is obsolete
-                if (data.m_ObsoleteDiffusionProfileSettingsList.Length == 0)
+                if (data.m_ObsoleteDiffusionProfileSettingsList == null ||
+                    data.m_ObsoleteDiffusionProfileSettingsList.Length == 0)
                     return;
 
-                var volumeProfile = data.GetOrCreateDefaultVolumeProfile();
-
-                #if UNITY_EDITOR
-                // Profile from resources is read only in released packages, so we have to copy it to the assets folder
-                if (data.IsVolumeProfileFromResources())
+                var defaultVolumeProfile = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineEditorAssets>().defaultVolumeProfile;
+                if (data.m_DefaultVolumeProfile != null && VolumeUtils.IsDefaultVolumeProfile(data.m_DefaultVolumeProfile, defaultVolumeProfile))
                 {
-                    data.volumeProfile = CopyVolumeProfileFromResourcesToAssets(volumeProfile);
+                    // Profile from resources is read only in released packages, so we have to copy it to the assets folder
+                    data.m_DefaultVolumeProfile = null;
                 }
 
-                UnityEditor.AssetDatabase.MakeEditable(UnityEditor.AssetDatabase.GetAssetPath(volumeProfile));
-                #endif
-
-                var overrides = data.GetOrCreateDiffusionProfileList();
-                foreach (var profile in data.m_ObsoleteDiffusionProfileSettingsList)
+                if (data.m_DefaultVolumeProfile == null)
                 {
-                    bool found = false;
-                    foreach (var profile2 in overrides.diffusionProfiles.value)
-                    {
-                        if (profile2 == profile)
-                        {
-                            found = true;
-                            break;
-                        }
-                    }
-                    if (!found)
-                        data.AddDiffusionProfile(profile);
+                    data.m_DefaultVolumeProfile = VolumeUtils.CopyVolumeProfileFromResourcesToAssets(defaultVolumeProfile);
                 }
+
+                UnityEditor.AssetDatabase.MakeEditable(UnityEditor.AssetDatabase.GetAssetPath(data.m_DefaultVolumeProfile));
+
+                VolumeUtils.TryAddDiffusionProfiles(data.m_DefaultVolumeProfile, data.m_ObsoleteDiffusionProfileSettingsList);
 #pragma warning restore 618
             }),
             MigrationStep.New(Version.GenericRenderingLayers, (HDRenderPipelineGlobalSettings data) =>

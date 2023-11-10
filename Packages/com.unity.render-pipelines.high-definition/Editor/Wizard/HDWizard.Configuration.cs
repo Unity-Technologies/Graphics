@@ -150,7 +150,7 @@ namespace UnityEditor.Rendering.HighDefinition
             var entryList = new List<Entry>();
 
             // Add the general and XR entries
-            entryList.AddRange(new []
+            entryList.AddRange(new[]
             {
                 new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpAssetGraphicsAssigned,
                     IsHdrpAssetGraphicsUsedCorrect, FixHdrpAssetGraphicsUsed),
@@ -201,7 +201,7 @@ namespace UnityEditor.Rendering.HighDefinition
             });
 
             var currentBuildTarget = CalculateSelectedBuildTarget();
-            if (( currentBuildTarget == BuildTarget.PS5) || (currentBuildTarget == BuildTarget.GameCoreXboxSeries ))
+            if ((currentBuildTarget == BuildTarget.PS5) || (currentBuildTarget == BuildTarget.GameCoreXboxSeries))
             {
                 entryList.AddRange(new[]
                 {
@@ -507,7 +507,14 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!IsHdrpGlobalSettingsUsedCorrect())
                 return false;
 
-            var profileList = HDRenderPipelineGlobalSettings.instance.diffusionProfileSettingsList;
+            if (!IsDefaultVolumeProfileCorrect())
+                return false;
+
+            if (!GraphicsSettings.TryGetRenderPipelineSettings<HDRenderPipelineEditorAssets>(out var _))
+                return false;
+
+            var volumeProfile = HDRenderPipelineGlobalSettings.instance.volumeProfile;
+            var profileList = VolumeUtils.GetOrCreateDiffusionProfileList(volumeProfile).ToArray();
             return profileList.Length != 0 && profileList.Any(p => p != null);
         }
 
@@ -516,69 +523,74 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!IsHdrpGlobalSettingsUsedCorrect())
                 FixHdrpGlobalSettingsUsed(fromAsync: false);
 
-            if (!IsEditorResourcesCorrect())
-                FixEditorResources(fromAsyncUnused: false);
-
             if (!IsDefaultVolumeProfileCorrect())
                 FixDefaultVolumeProfile(fromAsyncUnused: false);
 
-            var instance = HDRenderPipelineGlobalSettings.instance;
-            instance.diffusionProfileSettingsList = HDRenderPipelineGlobalSettings
-                .instance.CreateArrayWithDefaultDiffusionProfileSettingsList(instance.renderPipelineEditorResources);
-            EditorUtility.SetDirty(instance.GetOrCreateDiffusionProfileList());
-        }
-
-        VolumeProfile CreateDefaultVolumeProfileIfNeeded(VolumeProfile defaultSettingsVolumeProfileInPackage)
-        {
-            string defaultSettingsVolumeProfilePath = "Assets/" + HDProjectSettings.projectSettingsFolderPath + '/' + defaultSettingsVolumeProfileInPackage.name + ".asset";
-
-            if (!AssetDatabase.IsValidFolder("Assets/" + HDProjectSettings.projectSettingsFolderPath))
-                AssetDatabase.CreateFolder("Assets", HDProjectSettings.projectSettingsFolderPath);
-
-            //try load one if one already exist
-            VolumeProfile defaultSettingsVolumeProfile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(defaultSettingsVolumeProfilePath);
-            if (defaultSettingsVolumeProfile == null || defaultSettingsVolumeProfile.Equals(null))
+            var volumeProfile = HDRenderPipelineGlobalSettings.instance.volumeProfile;
+            var diffusionProfileList = VolumeUtils.GetOrCreateDiffusionProfileList(volumeProfile);
+            if (diffusionProfileList.diffusionProfiles.value.Length == 0)
             {
-                //else create it
-                AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(defaultSettingsVolumeProfileInPackage), defaultSettingsVolumeProfilePath);
-                defaultSettingsVolumeProfile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(defaultSettingsVolumeProfilePath);
+                diffusionProfileList.ReplaceWithArray(VolumeUtils.CreateArrayWithDefaultDiffusionProfileSettingsList());
+                EditorUtility.SetDirty(diffusionProfileList);
+                EditorUtility.SetDirty(volumeProfile);
             }
-
-            return defaultSettingsVolumeProfile;
         }
 
         bool IsDefaultVolumeProfileCorrect()
-            => IsHdrpGlobalSettingsUsedCorrect() && !HDRenderPipelineGlobalSettings.instance.IsVolumeProfileFromResources();
+        {
+            if (!IsHdrpGlobalSettingsUsedCorrect())
+                return false;
+
+            var defaultVolumeProfile = HDRenderPipelineGlobalSettings.instance.volumeProfile;
+            if (defaultVolumeProfile == null)
+                return false;
+
+            if (!GraphicsSettings.TryGetRenderPipelineSettings<HDRenderPipelineEditorAssets>(out var editorAssets))
+                return false;
+
+            var defaultValuesAsset = editorAssets.defaultVolumeProfile;
+            return !VolumeUtils.IsDefaultVolumeProfile(defaultVolumeProfile, defaultValuesAsset);
+        }
 
         void FixDefaultVolumeProfile(bool fromAsyncUnused)
         {
             if (!IsHdrpGlobalSettingsUsedCorrect())
                 FixHdrpGlobalSettingsUsed(fromAsync: false);
 
-            if (!IsEditorResourcesCorrect())
-                FixEditorResources(fromAsyncUnused: false);
+            var defaultValuesAsset = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineEditorAssets>().defaultVolumeProfile;
+            var volumeProfileCopy = VolumeUtils.CopyVolumeProfileFromResourcesToAssets(defaultValuesAsset);
+            HDRenderPipelineGlobalSettings.instance.volumeProfile = volumeProfileCopy;
+            EditorUtility.SetDirty(HDRenderPipelineGlobalSettings.instance);
 
-            var hdrpSettings = HDRenderPipelineGlobalSettings.instance;
-            hdrpSettings.volumeProfile = CreateDefaultVolumeProfileIfNeeded(hdrpSettings.renderPipelineEditorResources.defaultSettingsVolumeProfile);
-
-            EditorUtility.SetDirty(hdrpSettings);
+            if (VolumeManager.instance.isInitialized)
+                VolumeManager.instance.SetGlobalDefaultProfile(volumeProfileCopy);
         }
 
         bool IsDefaultLookDevVolumeProfileCorrect()
-            => IsHdrpGlobalSettingsUsedCorrect() && !HDRenderPipelineGlobalSettings.instance.IsVolumeProfileLookDevFromResources();
+        {
+            if (!IsHdrpGlobalSettingsUsedCorrect())
+                return false;
+
+            var defaultVolumeProfile = HDRenderPipelineGlobalSettings.instance.lookDevVolumeProfile;
+            if (defaultVolumeProfile == null)
+                return false;
+
+            if (!GraphicsSettings.TryGetRenderPipelineSettings<HDRenderPipelineEditorAssets>(out var editorAssets))
+                return false;
+
+            var defaultValuesAsset = editorAssets.lookDevVolumeProfile;
+            return !VolumeUtils.IsDefaultVolumeProfile(defaultVolumeProfile, defaultValuesAsset);
+        }
 
         void FixDefaultLookDevVolumeProfile(bool fromAsyncUnused)
         {
             if (!IsHdrpGlobalSettingsUsedCorrect())
                 FixHdrpGlobalSettingsUsed(fromAsync: false);
 
-            if (!IsEditorResourcesCorrect())
-                FixEditorResources(fromAsyncUnused: false);
-
-            var hdrpSettings = HDRenderPipelineGlobalSettings.instance;
-            hdrpSettings.lookDevVolumeProfile = CreateDefaultVolumeProfileIfNeeded(hdrpSettings.renderPipelineEditorResources.lookDev.defaultLookDevVolumeProfile);
-
-            EditorUtility.SetDirty(hdrpSettings);
+            var defaultValuesAsset = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineEditorAssets>().lookDevVolumeProfile;
+            var volumeProfileCopy = VolumeUtils.CopyVolumeProfileFromResourcesToAssets(defaultValuesAsset);
+            HDRenderPipelineGlobalSettings.instance.lookDevVolumeProfile = volumeProfileCopy;
+            EditorUtility.SetDirty(HDRenderPipelineGlobalSettings.instance);
         }
 
         IEnumerable<IMigratableAsset> migratableAssets
