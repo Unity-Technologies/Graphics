@@ -56,7 +56,6 @@ CBUFFER_START(UnityScreenSpaceGlobalIllumination)
 
     int _IndirectDiffuseProbeFallbackFlag;
     int _IndirectDiffuseProbeFallbackBias;
-    float4 _ColorPyramidUvScaleAndLimitPrevFrame;
     int _SsrStencilBit;
     int _IndirectDiffuseFrameIndex;
     int _ObjectMotionStencilBit;

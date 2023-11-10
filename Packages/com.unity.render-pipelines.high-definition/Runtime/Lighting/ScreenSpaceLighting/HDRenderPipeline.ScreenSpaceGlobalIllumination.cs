@@ -130,7 +130,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public float thickness;
             public int raySteps;
             public int frameIndex;
-            public Vector4 colorPyramidUvScaleAndLimitPrevFrame;
             public int rayMiss;
 
             // Compute Shader
@@ -188,7 +187,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.thickness = giSettings.depthBufferThickness.value;
                 passData.raySteps = giSettings.maxRaySteps;
                 passData.frameIndex = RayTracingFrameIndex(hdCamera, 16);
-                passData.colorPyramidUvScaleAndLimitPrevFrame = HDUtils.ComputeViewportScaleAndLimit(hdCamera.historyRTHandleProperties.previousViewportSize, hdCamera.historyRTHandleProperties.previousRenderTargetSize);
                 passData.rayMiss = (int)giSettings.rayMiss.value;
 
                 // Grab the right kernel
@@ -268,7 +266,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         ConstantBuffer.PushGlobal(ctx.cmd, data.shaderVariablesRayTracingCB, HDShaderIDs._ShaderVariablesRaytracing);
 
                         // Inject all the input scalars
-                        ctx.cmd.SetComputeVectorParam(data.ssGICS, HDShaderIDs._ColorPyramidUvScaleAndLimitPrevFrame, data.colorPyramidUvScaleAndLimitPrevFrame);
                         ctx.cmd.SetComputeIntParam(data.ssGICS, HDShaderIDs._ObjectMotionStencilBit, (int)StencilUsage.ObjectMotionVector);
                         ctx.cmd.SetComputeIntParam(data.ssGICS, HDShaderIDs._RayMarchingFallbackHierarchy, data.rayMiss);
 
