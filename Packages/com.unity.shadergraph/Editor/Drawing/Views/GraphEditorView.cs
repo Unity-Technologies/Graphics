@@ -139,6 +139,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_UserViewSettings = JsonUtility.FromJson<UserViewSettings>(serializedSettings) ?? new UserViewSettings();
             m_ColorManager = new ColorManager(m_UserViewSettings.colorProvider);
 
+            List<IShaderGraphToolbarExtension> toolbarExtensions = new();
+            foreach (var type in TypeCache.GetTypesDerivedFrom(typeof(IShaderGraphToolbarExtension)).Where(e => !e.IsGenericType))
+            {
+                toolbarExtensions.Add((IShaderGraphToolbarExtension)Activator.CreateInstance(type));
+            }
+
             var colorProviders = m_ColorManager.providerNames.ToArray();
             var toolbar = new IMGUIContainer(() =>
             {
@@ -177,6 +183,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                         EditorGUI.EndDisabledGroup();
                     }
                 }
+
+                if (graphView != null)
+                    foreach (var ext in toolbarExtensions)
+                        ext.OnGUI(graphView);
 
                 GUILayout.FlexibleSpace();
 

@@ -23,6 +23,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         ChangeGraphDefaultPrecisionCallback m_changeGraphDefaultPrecisionCallback;
 
         Dictionary<Target, bool> m_TargetFoldouts = new Dictionary<Target, bool>();
+        Dictionary<AbstractShaderGraphDataExtension, bool> m_SubDataFoldouts = new Dictionary<AbstractShaderGraphDataExtension, bool>();
 
         public void GetPropertyData(
             PostTargetSettingsChangedCallback postChangeValueCallback,
@@ -110,6 +111,70 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 }
             }
 
+            // Data Extensions
+            var validExtensions = AbstractShaderGraphDataExtension.ValidExtensions();
+            if (validExtensions.Count() > 0 || graphData.SubDatas.Count() > 0)
+            {
+                var dataExtensionSettings = new Label("\nData Extension Settings");
+                dataExtensionSettings.style.unityFontStyleAndWeight = FontStyle.Bold;
+                element.Add(new PropertyRow(dataExtensionSettings));
+
+                var extensionList = new ReorderableListView<JsonData<AbstractShaderGraphDataExtension>>(
+                    graphData.m_SubDatas,
+                    "Active Data Extensions",
+                    false,
+                    data => data.value.displayName);
+
+
+                extensionList.GetAddMenuOptions = () => validExtensions.Select(o => o.displayName).ToList();
+
+                extensionList.OnAddMenuItemCallback +=
+                    (list, addMenuOptionIndex, addMenuOption) =>
+                    {
+                        RegisterActionToUndo("Add Data Extension");
+                        graphData.m_SubDatas.Add(validExtensions[addMenuOptionIndex]);
+                        onChange();
+                    };
+
+                extensionList.RemoveItemCallback +=
+                    (list, itemIndex) =>
+                    {
+                        RegisterActionToUndo("Remove Data Extension");
+                        graphData.m_SubDatas.RemoveAt(itemIndex);
+                        onChange();
+                    };
+
+                element.Add(extensionList);
+                foreach (var subData in graphData.SubDatas)
+                {
+                    if (subData != null) // I think we need to do this in case it didn't serialize correctly.
+                    {
+                        bool foldoutActive;
+                        if (!m_SubDataFoldouts.TryGetValue(subData, out foldoutActive))
+                        {
+                            foldoutActive = true;
+                            m_SubDataFoldouts.Add(subData, foldoutActive);
+                        }
+                        var foldout = new Foldout() { text = subData.displayName, value = foldoutActive, name = "foldout" };
+                        element.Add(foldout);
+                        foldout.AddToClassList("MainFoldout");
+                        foldout.RegisterValueChangedCallback(evt =>
+                        {
+                            // Update foldout value and rebuild
+                            m_SubDataFoldouts[subData] = evt.newValue;
+                            foldout.value = evt.newValue;
+                            onChange();
+                        });
+
+                        if (foldout.value)
+                        {
+                            var subDataElement = new VisualElement();
+                            subData.OnPropertiesGUI(subDataElement, onChange, RegisterActionToUndo, graphData);
+                            element.Add(subDataElement);
+                        }
+                    }
+                }
+            }
 #if VFX_GRAPH_10_0_0_OR_NEWER
             // Inform the user that VFXTarget is deprecated, if they are using one.
             var activeTargetSRP = graphData.m_ActiveTargets.Where(t => !(t.value is VFXTarget));
