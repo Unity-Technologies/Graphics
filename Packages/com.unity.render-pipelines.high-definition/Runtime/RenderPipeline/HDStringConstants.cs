@@ -704,7 +704,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _SkyViewLUT_RW = Shader.PropertyToID("_SkyViewLUT_RW");
         public static readonly int _AtmosphericScatteringLUT = Shader.PropertyToID("_AtmosphericScatteringLUT");
         public static readonly int _AtmosphericScatteringLUT_RW = Shader.PropertyToID("_AtmosphericScatteringLUT_RW");
-        public static readonly int _SkyLUTScale = Shader.PropertyToID("_SkyLUTScale");
 
         public static readonly int _PlanetRotation = Shader.PropertyToID("_PlanetRotation");
         public static readonly int _SpaceRotation = Shader.PropertyToID("_SpaceRotation");

@@ -8,21 +8,8 @@ namespace UnityEngine.Rendering
 {
     public partial class LineRendering
     {
-        private static MaterialPropertyBlock s_OffscreenShadingPropertyBlock;
-
         static void ExecuteGeometryPass(CommandBuffer cmd, GeometryPassData resources)
         {
-            // Set up constant buffer for different stages. (This can't be global because it will not work if using the async queue).
-            int constantBufferSize;
-            unsafe
-            {
-                constantBufferSize = sizeof(ShaderVariables);
-            }
-            cmd.SetComputeConstantBufferParam(resources.systemResources.stagePrepareCS,      ShaderIDs._ConstantBuffer, resources.sharedBuffers.constantBuffer, 0, constantBufferSize);
-            cmd.SetComputeConstantBufferParam(resources.systemResources.stageShadingSetupCS, ShaderIDs._ConstantBuffer, resources.sharedBuffers.constantBuffer, 0, constantBufferSize);
-            cmd.SetComputeConstantBufferParam(resources.systemResources.stageSetupSegmentCS, ShaderIDs._ConstantBuffer, resources.sharedBuffers.constantBuffer, 0, constantBufferSize);
-            cmd.SetComputeConstantBufferParam(resources.systemResources.stageShadingSetupCS, ShaderIDs._ConstantBuffer, resources.sharedBuffers.constantBuffer, 0, constantBufferSize);
-
             var buffers = resources.sharedBuffers;
             var transientBuffers = resources.transientBuffers;
             var shadingHistoryAtlasCurrent = resources.shadingAtlas.current;
@@ -30,6 +17,10 @@ namespace UnityEngine.Rendering
             var shadingSampleAtlas = resources.sharedBuffers.groupShadingSampleAtlas;
             var shadingSampleAtlasDimensions = resources.sharedBuffers.groupShadingSampleAtlasDimensions;
             var prefixResources   = GPUPrefixSum.SupportResources.Load(transientBuffers.prefixResources);
+
+            resources.shaderVariablesBuffer.Set(cmd, resources.systemResources.stagePrepareCS,      ShaderIDs._ConstantBuffer);
+            resources.shaderVariablesBuffer.Set(cmd, resources.systemResources.stageSetupSegmentCS, ShaderIDs._ConstantBuffer);
+            resources.shaderVariablesBuffer.Set(cmd, resources.systemResources.stageShadingSetupCS, ShaderIDs._ConstantBuffer);
 
             using (new ProfilingScope(ProfilingSampler.Get(HDProfileId.LinesGeometrySetup)))
             {
@@ -57,8 +48,9 @@ namespace UnityEngine.Rendering
                 using (new ProfilingScope(ProfilingSampler.Get(HDProfileId.LinesVertexSetup)))
                 using (new BindRendererToComputeKernel(cmd, renderer))
                 {
+                    resources.shaderVariablesBuffer.Set(cmd, renderer.vertexSetupCompute, ShaderIDs._ConstantBuffer);
+
                     cmd.SetComputeFloatParam(renderer.vertexSetupCompute, ShaderIDs._LOD, renderer.lodMode != RendererLODMode.None ? renderer.lod : 1f);
-                    cmd.SetComputeConstantBufferParam(renderer.vertexSetupCompute, ShaderIDs._ConstantBuffer, resources.sharedBuffers.constantBuffer, 0, constantBufferSize);
                     cmd.SetComputeIntParam(renderer.vertexSetupCompute, ShaderIDs._VertexOffset, resources.offsetsVertex[i]);
                     cmd.SetComputeBufferParam(renderer.vertexSetupCompute, 0, ShaderIDs._Vertex0RecordBuffer, buffers.vertexStream0);
                     cmd.SetComputeBufferParam(renderer.vertexSetupCompute, 0, ShaderIDs._Vertex1RecordBuffer, buffers.vertexStream1);
@@ -69,6 +61,10 @@ namespace UnityEngine.Rendering
 
                 using (new ProfilingScope(ProfilingSampler.Get(HDProfileId.LinesSegmentSetup)))
                 {
+                    bool needs16BitIndices = renderer.mesh.indexFormat == IndexFormat.UInt16;
+                    cmd.SetKeyword(resources.systemResources.stageSetupSegmentCS, Instance.m_SegmentIndicesKeywords[(int)IndexFormat.UInt16], needs16BitIndices);
+                    cmd.SetKeyword(resources.systemResources.stageSetupSegmentCS, Instance.m_SegmentIndicesKeywords[(int)IndexFormat.UInt32], !needs16BitIndices);
+
                     cmd.SetComputeBufferParam(resources.systemResources.stageSetupSegmentCS, 0, ShaderIDs._LODBuffer, renderer.lodBuffer);
                     cmd.SetComputeIntParam(resources.systemResources.stageSetupSegmentCS, ShaderIDs._SegmentsPerLine, renderer.segmentsPerLine);
                     cmd.SetComputeIntParam(resources.systemResources.stageSetupSegmentCS, ShaderIDs._LineCount, renderer.lineCount);
@@ -181,30 +177,24 @@ namespace UnityEngine.Rendering
                         cmd.SetComputeBufferParam(resources.systemResources.stageShadingSetupCS, 5, ShaderIDs._PrefixSumBuffer, prefixResources.output);
                         cmd.SetComputeIntParam(resources.systemResources.stageShadingSetupCS, ShaderIDs._SampleCount, renderer.mesh.vertexCount);
                         cmd.DispatchCompute(resources.systemResources.stageShadingSetupCS, 5, DivRoundUp(renderer.mesh.vertexCount, 256), 1, 1);
-
                     }
                 }
 
                 using (new ProfilingScope(ProfilingSampler.Get(HDProfileId.LinesShading)))
                 {
-                    // TODO: Cull shading samples from culled segments
-                    // TODO: Choose atlas size based on vertex count (NearestPow2(Sqrt(VertexCount)))
-
                     Vector2Int scratchAtlasSize = transientBuffers.shadingScratchTextureDimensions;
 
                     var offscreenViewport = new Rect(
                         0, 0, scratchAtlasSize.x, scratchAtlasSize.y
                     );
 
-                    ref var mpb = ref s_OffscreenShadingPropertyBlock;
+                    var mpb = resources.materialPropertyBlock;
                     {
-                        if (mpb == null)
-                            mpb = new MaterialPropertyBlock();
+                        resources.shaderVariablesBuffer.Set(mpb, ShaderIDs._ConstantBuffer);
 
                         mpb.SetBuffer(ShaderIDs._Vertex0RecordBuffer, buffers.vertexStream0);
                         mpb.SetBuffer(ShaderIDs._Vertex2RecordBuffer, buffers.vertexStream2);
                         mpb.SetBuffer(ShaderIDs._Vertex3RecordBuffer, buffers.vertexStream3);
-                        mpb.SetConstantBuffer(ShaderIDs._ConstantBuffer, buffers.constantBuffer, 0, constantBufferSize);
 
                         // TODO: Might need to set the premultiply keyword as well for fog.
                         // TODO: Currently hard coding HDRP blendmode value (pre-multiply).
@@ -219,6 +209,7 @@ namespace UnityEngine.Rendering
                         mpb.SetInteger(ShaderIDs._SoftwareLineOffscreenAtlasHeight, scratchAtlasSize.y);
                         mpb.SetInteger(ShaderIDs._ShadingSampleVisibilityCount, renderer.mesh.vertexCount);
                         mpb.SetInteger("_VertexOffset", resources.offsetsVertex[i]);
+
                         // Need to manually reinterpret the bits from uint -> float (and then back to uint on GPU..).
                         mpb.SetVector("unity_RenderingLayer", new Vector4(BitConverter.Int32BitsToSingle((int)renderer.renderingLayerMask), 0f, 0f, 0f));
                         mpb.SetVector("unity_RendererBounds_Min", renderer.bounds.min);
@@ -229,8 +220,9 @@ namespace UnityEngine.Rendering
 
                     CoreUtils.SetRenderTarget(cmd, transientBuffers.shadingScratchTexture);
                     cmd.SetViewport(offscreenViewport);
-                    CoreUtils.ClearRenderTarget(cmd, ClearFlag.Color, Color.black); //workaround for what seems like a bug in xbox, writes from scratch to shading atlas seem to get previous values of scratch. TODO: investigate what is missing
 
+                    // Workaround for what seems like a bug in xbox, writes from scratch to shading atlas seem to get previous values of scratch.
+                    CoreUtils.ClearRenderTarget(cmd, ClearFlag.Color, Color.black);
 
                     cmd.DrawProcedural(Matrix4x4.identity, renderer.material, renderer.offscreenShadingPass, MeshTopology.Triangles, 6, 1, mpb);
                 }

@@ -22,6 +22,15 @@ namespace UnityEngine.Rendering.HighDefinition
             set => this.SetValueAndNotify(ref m_DefaultDiffusionProfile, value);
         }
 
+        // Compute Material Library
+        [SerializeField] [ResourcePath("Runtime/RenderPipelineResources/ComputeMaterialLibrary.asset")]
+        private ComputeMaterialLibrary m_ComputeMaterialLibrary;
+        public ComputeMaterialLibrary computeMaterialLibrary
+        {
+            get => m_ComputeMaterialLibrary;
+            set => this.SetValueAndNotify(ref m_ComputeMaterialLibrary, value, nameof(m_ComputeMaterialLibrary));
+        }
+
         // Area Light Emissive Meshes
         [SerializeField][ResourcePath("Runtime/RenderPipelineResources/Mesh/Cylinder.fbx")]
         private Mesh m_EmissiveCylinderMesh;

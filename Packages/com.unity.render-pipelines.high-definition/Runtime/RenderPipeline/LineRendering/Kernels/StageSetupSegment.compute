@@ -1,5 +1,7 @@
 #pragma kernel Main
 
+#pragma multi_compile INDEX_FORMAT_UINT_16 INDEX_FORMAT_UINT_32
+
 #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/LineRendering/Core/LineRenderingCommon.hlsl"
@@ -102,7 +104,17 @@ void Main(Group group)
         culled = true;
 
     // Load Indices
-    const uint2 segmentIndices = _VertexOffset + _IndexBuffer.Load2(segmentIndex << 3);
+#if INDEX_FORMAT_UINT_32
+    const uint2 segmentIndices = _VertexOffset + _IndexBuffer. Load2(segmentIndex << 3);
+#else
+    const uint segmentIndicesCompressed = _IndexBuffer.Load(segmentIndex << 2);
+
+    const uint2 segmentIndices = _VertexOffset + uint2
+    (
+        segmentIndicesCompressed >> 0  & 0xFFFF,
+        segmentIndicesCompressed >> 16 & 0xFFFF
+    );
+#endif
 
     // Load Vertices
     const float4 positionCS0 = asfloat(_Vertex0RecordBuffer.Load4(segmentIndices.x << 4));

@@ -256,36 +256,24 @@ void VertexSetup (uint3 dispatchThreadID : SV_DispatchThreadID)
 
     // Construct the input vertex.
     AttributesMesh inputMesh;
-    {
-        ZERO_INITIALIZE(AttributesMesh, inputMesh);
-        inputMesh.positionOS = LOAD_ATTRIBUTE_FLOAT3(Position, i);
-#if defined(ATTRIBUTES_NEED_NORMAL) || defined(ATTRIBUTES_NEED_TANGENT)
-        BuildStrandBasis(i, inputMesh.positionOS, inputMesh.normalOS, inputMesh.tangentOS);
-#endif
-#ifdef ATTRIBUTES_NEED_TEXCOORD0
-        const uint unnormalizedPackedID = LOAD_ATTRIBUTE_UINT(TexCoord0, i);
+    ZERO_INITIALIZE(AttributesMesh, inputMesh);
+    inputMesh.positionOS = LOAD_ATTRIBUTE_FLOAT3(Position, i);
 
-        inputMesh.uv0 = float4
-        (
-            ((unnormalizedPackedID >>  0) & 0xFF) / 255.0,
-            ((unnormalizedPackedID >>  8) & 0xFF) / 255.0,
-            ((unnormalizedPackedID >> 16) & 0xFF) / 255.0,
-            ((unnormalizedPackedID >> 24) & 0xFF) / 255.0
-        );
+#if defined(ATTRIBUTES_NEED_NORMAL) || defined(ATTRIBUTES_NEED_TANGENT)
+    BuildStrandBasis(i, inputMesh.positionOS, inputMesh.normalOS, inputMesh.tangentOS);
 #endif
-#ifdef ATTRIBUTES_NEED_TEXCOORD1
-    // TODO
+
+#ifdef ATTRIBUTES_NEED_TEXCOORD0
+    const uint unnormalizedPackedID = LOAD_ATTRIBUTE_UINT(TexCoord0, i);
+
+    inputMesh.uv0 = float4
+    (
+        ((unnormalizedPackedID >>  0) & 0xFF) / 255.0,
+        ((unnormalizedPackedID >>  8) & 0xFF) / 255.0,
+        ((unnormalizedPackedID >> 16) & 0xFF) / 255.0,
+        ((unnormalizedPackedID >> 24) & 0xFF) / 255.0
+    );
 #endif
-#ifdef ATTRIBUTES_NEED_TEXCOORD2
-    // TODO
-#endif
-#ifdef ATTRIBUTES_NEED_TEXCOORD3
-    // TODO
-#endif
-#ifdef ATTRIBUTES_NEED_COLOR
-    // TODO
-#endif
-    }
 
 #if UNITY_ANY_INSTANCING_ENABLED
     // See: [NOTE-HQ-LINES-SINGLE-PASS-STEREO]
@@ -315,11 +303,9 @@ void VertexSetup (uint3 dispatchThreadID : SV_DispatchThreadID)
             vertexRecord.previousPositionCS = output.vpass.previousPositionCS;
 
 #ifdef VARYINGS_NEED_TEXCOORD0
-        vertexRecord.texCoord0 = output.vmesh.texCoord0.x;
+        vertexRecord.texCoord0 = unnormalizedPackedID;
 #endif
-#ifdef VARYINGS_NEED_TEXCOORD1
-        vertexRecord.texCoord1 = output.vmesh.texCoord1.y;
-#endif
+
 #ifdef VARYINGS_NEED_TANGENT_TO_WORLD
         vertexRecord.normalWS  = output.vmesh.normalWS;
         vertexRecord.tangentWS = output.vmesh.tangentWS.xyz;
@@ -339,7 +325,7 @@ void VertexSetup (uint3 dispatchThreadID : SV_DispatchThreadID)
     _Vertex2RecordBuffer.Store4(offset << 4, uint4(encodedN, encodedT));
 #endif
 
-#if defined(VARYINGS_NEED_TEXCOORD0) || defined(VARYINGS_NEED_TEXCOORD1)
-    _Vertex3RecordBuffer.Store2(8 * offset, asuint(float2(vertexRecord.texCoord0, vertexRecord.texCoord1)));
+#if defined(VARYINGS_NEED_TEXCOORD0)
+    _Vertex3RecordBuffer.Store2(8 * offset, uint2(vertexRecord.texCoord0, 0));
 #endif
 }
