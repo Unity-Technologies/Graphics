@@ -3313,17 +3313,19 @@ namespace UnityEditor.VFX.UI
                     {
                         if (selectable is IControlledElement<VFXParameterController> { controller: IGizmoController gizmoController })
                         {
-                            gizmoController.DrawGizmos(attachedComponent);
                             controllers.Add(gizmoController);
                         }
                         else if (selectable is ISettableControlledElement<VFXNodeController> { controller: IGizmoController gizmoController2 })
                         {
-                            gizmoController2.DrawGizmos(attachedComponent);
                             controllers.Add(gizmoController2);
                         }
                     }
 
                     VFXSlotContainerEditor.SceneViewVFXSlotContainerOverlay.UpdateFromVFXView(this, controllers);
+                }
+                else
+                {
+                    VFXSlotContainerEditor.SceneViewVFXSlotContainerOverlay.UpdateFromVFXView(this, null);
                 }
             }
             catch (Exception e)

@@ -162,7 +162,7 @@ class VFXSlotContainerEditor : Editor
     [Overlay(typeof(SceneView), k_OverlayId, k_DisplayName)]
     internal class SceneViewVFXSlotContainerOverlay : IMGUIOverlay, ITransientOverlay
     {
-        private struct GizmoInfo
+        private struct GizmoInfo : IComparable<GizmoInfo>
         {
             public GizmoInfo(VFXView view, IGizmoController controller, IGizmoable gizmo)
             {
@@ -174,6 +174,12 @@ class VFXSlotContainerEditor : Editor
             public VFXView view { get; }
             public IGizmoController controller { get; }
             public IGizmoable gizmo { get; }
+            public int CompareTo(GizmoInfo other)
+            {
+                if (view.attachedComponent == null)
+                    return int.MinValue;
+                return string.Compare(view.attachedComponent.name, other.view.attachedComponent.name, StringComparison.OrdinalIgnoreCase);
+            }
         }
 
         const string k_OverlayId = "Scene View/Visual Effect Model";
@@ -182,8 +188,7 @@ class VFXSlotContainerEditor : Editor
         static readonly List<GizmoInfo> s_AllGizmosInfo = new();
         static string[] s_Entries;
         static bool s_HasGizmos;
-
-        private int currentIndex;
+        static int currentIndex;
 
         public static void UpdateFromVFXView(VFXView vfxView, List<IGizmoController> controllers)
         {
@@ -201,12 +206,21 @@ class VFXSlotContainerEditor : Editor
 
                 if (controllers != null)
                 {
+                    var index = s_AllGizmosInfo.TakeWhile(x => x.view != vfxView).Count();
                     foreach (var controller in controllers)
                     {
+                        controller.CollectGizmos();
                         if (s_AllGizmosInfo.All(x => x.view != vfxView || x.controller != controller))
                         {
                             s_AllGizmosInfo.AddRange(controller.gizmoables.Select(x => new GizmoInfo(vfxView, controller, x)));
                         }
+
+                        var currentGizmo = controller.gizmoables.ElementAtOrDefault(currentIndex - index);
+                        if (currentGizmo != null)
+                        {
+                            controller.DrawGizmos(vfxView.attachedComponent);
+                        }
+                        index += controller.gizmoables.Count;
                     }
                 }
 
@@ -227,6 +241,7 @@ class VFXSlotContainerEditor : Editor
             {
                 if (s_AllGizmosInfo.Count > 0)
                 {
+                    s_AllGizmosInfo.Sort();
                     GUILayout.BeginHorizontal();
                     try
                     {
@@ -260,6 +275,7 @@ class VFXSlotContainerEditor : Editor
                         GUI.enabled = true;
                         currentIndex = EditorGUILayout.Popup(currentIndex, s_Entries, GUILayout.Height(20));
                         var currentGizmo = s_AllGizmosInfo[currentIndex];
+                        currentGizmo.controller.currentGizmoable = currentGizmo.gizmo;
                         var component = currentGizmo.view.attachedComponent;
                         var gizmoError = currentGizmo.controller.GetGizmoError(component);
                         if (gizmoError != GizmoError.None)
