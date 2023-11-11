@@ -10,11 +10,8 @@ using UnityObject = UnityEngine.Object;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXSystemBorderFactory : UxmlFactory<VFXSystemBorder>
-    { }
-
-
-    class VFXSystemBorder : GraphElement, IControlledElement<VFXSystemController>, IDisposable
+    [UxmlElement]
+    partial class VFXSystemBorder : GraphElement, IControlledElement<VFXSystemController>, IDisposable
     {
         class Content : ImmediateModeElement
         {

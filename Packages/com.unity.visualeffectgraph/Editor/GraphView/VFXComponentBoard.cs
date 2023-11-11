@@ -854,6 +854,8 @@ namespace UnityEditor.VFX.UI
             BoardPreferenceHelper.SavePosition(BoardPreferenceHelper.Board.componentBoard, GetPosition());
         }
     }
+
+    [System.Obsolete("VFXComponentBoardEventUIFactory is deprecated and will be removed. Use UxmlElementAttribute instead.", false)]
     class VFXComponentBoardEventUIFactory : UxmlFactory<VFXComponentBoardEventUI>
     { }
     class VFXComponentBoardEventUI : VisualElement
@@ -917,6 +919,7 @@ namespace UnityEditor.VFX.UI
         }
     }
 
+    [System.Obsolete("VFXComponentBoardBoundsSystemUIFactory is deprecated and will be removed. Use UxmlElementAttribute instead.", false)]
     class VFXComponentBoardBoundsSystemUIFactory : UxmlFactory<VFXComponentBoardBoundsSystemUI>
     { }
 

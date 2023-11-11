@@ -1,10 +1,13 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-public class TabbedView : VisualElement
+[UxmlElement]
+public partial class TabbedView : VisualElement
 {
+    [Obsolete("UxmlFactory is deprecated and will be removed. Use UxmlElementAttribute instead.", false)]
     public new class UxmlFactory : UxmlFactory<TabbedView, UxmlTraits> { }
 
     private const string k_styleName = "TabbedView";
