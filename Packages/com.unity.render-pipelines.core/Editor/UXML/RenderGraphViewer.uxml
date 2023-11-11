@@ -1,0 +1,28 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="True">
+    <Style src="project://database/Packages/com.unity.render-pipelines.core/Editor/StyleSheets/RenderGraphViewer.uss" />
+    <ui:VisualElement name="header-container">
+        <ui:Button name="capture-button" text="Capture"/>
+        <ui:DropdownField name="current-graph-dropdown" />
+        <ui:DropdownField name="current-execution-dropdown"/>
+        <uie:EnumFlagsField label="Pass Filter" name="pass-filter-field"/>
+        <uie:EnumFlagsField label="Resource Filter" name="resource-filter-field"/>
+    </ui:VisualElement>
+
+    <ui:VisualElement name="content-container">
+        <ui:ScrollView name="pass-list-scroll-view">
+            <ui:VisualElement name="pass-list"/>
+        </ui:ScrollView>
+        <ui:VisualElement name="pass-list-corner-occluder"/>
+        <ui:VisualElement name="resource-container">
+            <ui:ScrollView name="resource-list-scroll-view"/>
+            <ui:ScrollView name="resource-grid-scroll-view">
+                <ui:VisualElement name="resource-grid"/>
+                <ui:VisualElement name="grid-line-container"/>
+                <ui:VisualElement name="hover-overlay"/>
+            </ui:ScrollView>
+        </ui:VisualElement>
+    </ui:VisualElement>
+    <ui:VisualElement name="empty-state-message">
+        <ui:TextElement/>
+    </ui:VisualElement>
+</ui:UXML>

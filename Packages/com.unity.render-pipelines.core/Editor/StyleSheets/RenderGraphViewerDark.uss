@@ -1,0 +1,16 @@
+/* Dark theme colors */
+:root {
+    --resource-read-color: #008126;
+    --resource-write-color: #FF534A;
+    --merged-pass-accent-color: #57AEFF;
+    --native-pass-accent-color: #4B88AC;
+    --native-pass-accent-compatible-color: #62B0DE;
+    --pass-block-color--async: #FFC107;
+    --pass-block-border-color: var(--unity-colors-highlight-background-hover-lighter);
+    --pass-block-color--highlight: white;
+    --pass-block-text-color--highlight: white;
+    --pass-block-color--culled: black;
+    --grid-line-color: #454545;
+    --grid-line-color--hover: white;
+    --usage-range-color: grey;
+}

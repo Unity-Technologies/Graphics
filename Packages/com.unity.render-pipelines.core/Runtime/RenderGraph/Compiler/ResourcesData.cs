@@ -108,6 +108,13 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
             discard = false;
             bindMS = false;
         }
+
+        public void InitializeNullResource()
+        {
+            firstUsePassID = -1;
+            lastUsePassID = -1;
+            lastWritePassID = -1;
+        }
     }
 
     // Data per resource(version)
@@ -121,7 +128,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetWritingPass(CompilerContextData ctx, ResourceHandle h, int passId)
         {
-#if DEVELOPMENT_BUILD || UNITY_EDITOR 
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
             if (written)
             {
                 string passName = ctx.GetPassName(passId);
@@ -232,7 +239,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
 
                 if (numResources > 0) // Null Resource
                 {
-                    unversionedData[t][0] = new ResourceUnversionedData();
+                    var nullResource = new ResourceUnversionedData();
+                    nullResource.InitializeNullResource();
+                    unversionedData[t][0] = nullResource;
                     resourceNames[t][0] = new Name("");
                 }
 

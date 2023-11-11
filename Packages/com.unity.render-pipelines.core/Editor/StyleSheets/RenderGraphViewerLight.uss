@@ -1,0 +1,16 @@
+/* Light theme colors */
+:root {
+    --resource-read-color: #14D368;
+    --resource-write-color: #B10C0C;
+    --merged-pass-accent-color: #0F49BD;
+    --native-pass-accent-color: #4B88AC;
+    --native-pass-accent-compatible-color: #62B0DE;
+    --pass-block-color--async: #C99700;
+    --pass-block-border-color: var(--unity-colors-highlight-background-hover-lighter);
+    --pass-block-color--highlight: white;
+    --pass-block-text-color--highlight: var(--unity-colors-default-text-hover);
+    --pass-block-color--culled: rgb(30, 30, 30);
+    --grid-line-color: var(--unity-colors-app_toolbar_button-background-hover);
+    --grid-line-color--hover: white;
+    --usage-range-color: rgb(120, 120, 120);
+}

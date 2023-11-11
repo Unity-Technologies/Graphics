@@ -1,0 +1,279 @@
+:root {
+    --header-container-height: 24px;
+    --resource-column-width: 180px;
+    --pass-width: 26px;
+    --pass-list-height: 180px;
+    --dependency-row-height: 30px;
+    --dependency-block-height: 26px;
+    --dependency-block-width: var(--pass-width);
+    --hover-overlay-offset-top: 204px;
+
+    flex-grow: 1;
+    flex-direction: column;
+}
+
+/* Header */
+
+#header-container {
+    flex-direction: row;
+    height: var(--header-container-height);
+    min-height: 24px;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+#header-container .unity-base-popup-field__label {
+    min-width: auto;
+}
+
+#header-container PopupTextElement {
+    flex-grow: 0;
+}
+
+/* Passes */
+
+#pass-list-scroll-view {
+    min-height: var(--pass-list-height);
+}
+
+#pass-list {
+    margin-left: var(--resource-column-width);
+    flex-direction: row;
+    height: var(--pass-list-height);
+    align-items: flex-end;
+    flex-shrink: 0;
+}
+
+.pass-list__item {
+    min-width: var(--pass-width);
+    width: var(--pass-width);
+    justify-content: center;
+    flex-direction: column;
+}
+
+.pass-list__item .pass-title {
+    rotate: -45deg;
+    margin-bottom: 10px;
+    margin-left: 8px;
+}
+
+.pass-list__item .pass-block {
+    margin-top: 2px;
+    height: 15px;
+    border-width: 0.5px; /* 1px width looks too wide for some reason? */
+    border-radius: 2px;
+    border-color: var(--pass-block-border-color);
+}
+
+.pass-block--culled {
+    background-color: var(--pass-block-color--culled);
+}
+
+.pass-block--async {
+    background-color: var(--pass-block-color--async);
+}
+
+.pass-list__item .pass-merge-indicator {
+    background-color: var(--merged-pass-accent-color);
+    height: 3px;
+    margin-bottom: 1px;
+    margin-top: 3px;
+    visibility: hidden;
+}
+
+.pass-block.pass--highlight {
+    background-color: var(--pass-block-color--highlight);
+}
+
+.pass-block.pass--highlight-border {
+    border-color: var(--pass-block-color--highlight);
+}
+
+.pass-title.pass--highlight {
+    color: var(--pass-block-text-color--highlight);
+    -unity-font-style: bold;
+}
+
+.pass-block.pass-compatibility-message-indicator {
+    background-color: var(--native-pass-accent-color);
+    border-color: var(--pass-block-border-color);
+}
+
+.pass-block.pass-compatibility-message-indicator--anim {
+    /* compatible pass animation transitions */
+    transition-property: background-color;
+    transition-duration: 0.7s;
+    transition-timing-function: ease-in-out;
+}
+
+.pass-block.pass-compatibility-message-indicator--compatible {
+    background-color: var(--native-pass-accent-compatible-color);
+}
+
+.pass-block.pass-synchronization-message-indicator {
+    background-color: var(--pass-block-color--async);
+}
+
+#pass-list-corner-occluder {
+    position: absolute;
+    min-width: var(--resource-column-width);
+    min-height: var(--pass-list-height);
+    top: var(--header-container-height);
+    background-color: var(--unity-colors-window-background);
+}
+
+/* Resource container */
+
+#resource-container {
+    flex-direction: row;
+    margin-top: 5px;
+}
+
+#resource-container ScrollView {
+    flex-grow: 1;
+}
+
+#resource-container .unity-scroll-view__content-container {
+    margin-bottom: 10px;
+    margin-left: 4px;
+}
+
+/* Grid lines */
+
+#grid-line-container {
+    position: absolute;
+}
+
+.grid-line {
+    position: absolute;
+    border-color: var(--grid-line-color);
+    border-left-width: 2px;
+    width: 0px;
+    flex-grow: 1;
+}
+
+.grid-line--highlight {
+    border-color: var(--grid-line-color--hover);
+}
+
+/* Resource list */
+
+#resource-list-scroll-view {
+    flex-direction: column;
+    margin-top: 6px;
+    width: var(--resource-column-width);
+    min-width: var(--resource-column-width);
+    max-width: var(--resource-column-width);
+    margin-right: 0;
+    margin-bottom: 12px;
+}
+
+.resource-list__item {
+    height: var(--dependency-row-height);
+    justify-content: center;
+    min-width: var(--resource-column-width);
+}
+
+.resource-list__item--highlight {
+    -unity-font-style: bold;
+    color: var(--pass-block-color--highlight);
+}
+
+/* Resource grid */
+
+#resource-grid-scroll-view .unity-scroll-view__content-container {
+    margin: 0px;
+}
+
+#resource-grid {
+    flex-direction: column;
+    margin-top: 6px;
+}
+
+#resource-grid-scroll-view.content-pan VisualElement {
+    cursor: pan;
+}
+
+.resource-grid__row {
+    height: var(--dependency-row-height);
+    flex-direction: row;
+}
+
+.resource-helper-line {
+    height: var(--dependency-row-height);
+    flex-shrink: 0;
+    -unity-background-image-tint-color: darkgray;
+    background-image: url("project:///Packages/com.unity.render-pipelines.core/Editor/Icons/dash.png");
+    background-repeat: repeat-x;
+    background-size: 8px 8px;
+}
+
+.usage-range-block {
+    margin-top: 2px;
+    background-color: var(--usage-range-color);
+    height: var(--dependency-block-height);
+}
+
+.usage-range-block--highlight {
+    position: absolute;
+    border-width: 1px;
+    border-color: var(--pass-block-color--highlight);
+    height: 28px;
+    margin-top: 0px;
+}
+
+.dependency-block {
+    position: absolute;
+    margin-top: 2px;
+    width: var(--dependency-block-width);
+    min-width: var(--dependency-block-width);
+    height: var(--dependency-block-height);
+    background-color: grey;
+}
+
+.dependency-block-read {
+    background-color: var(--resource-read-color);
+}
+
+.dependency-block-write {
+    background-color: var(--resource-write-color);
+}
+
+.dependency-block-readwrite {
+    /* foreground color is set in code when rendering the triangle */
+    background-color: var(--resource-write-color);
+}
+
+.dependency-block-fb-fetch-text {
+    font-size: 20px;
+    margin-top: 1px;
+    -unity-text-align: middle-center;
+    -unity-font-style: bold;
+}
+
+#hover-overlay {
+    /*display: none; /* for debugging */
+    /*background-color: rgba(255, 0, 0, 0.2); /* for debugging */
+    position: absolute;
+}
+
+#hover-overlay.content-pan {
+    cursor: pan;
+}
+
+.resource-grid-focus-overlay {
+    background-color: rgba(10, 10, 10, 0.2);
+    position: absolute;
+}
+
+#empty-state-message {
+    flex-direction: row;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+    -unity-text-align: middle-center;
+}
+
+#empty-state-message > TextElement {
+    max-width: 260px;
+}

@@ -1,0 +1,56 @@
+:root {
+    height: 100%;
+    --resource-item-border-color: #666666;
+}
+
+#content-container {
+    flex-direction: column;
+}
+
+#empty-contents-message {
+    flex-direction: row;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+    -unity-text-align: middle-center;
+}
+
+.resource-list__item {
+    background-color: var(--unity-colors-window-background);
+    border-radius: 4px;
+    border-width: 1px;
+    border-color: var(--resource-item-border-color);
+    margin-top: 8px;
+    margin-right: 4px;
+    padding-top: 4px;
+    padding-bottom: 6px;
+    -unity-font-style: bold;
+
+    /* selection animation */
+    transition-property: background-color;
+    transition-duration: 0.7s;
+    transition-timing-function: ease-in-out;
+}
+
+.resource-list__item--selection-animation {
+    background-color: var(--unity-colors-highlight-background-hover-lighter);
+}
+
+
+.resource-list__item.imported-resource {
+}
+
+
+.resource-list__item > Label {
+    -unity-font-style: normal;
+    margin-top: 2px;
+    color: var(--unity-colors-default-text);
+}
+
+.resource-line-break {
+    border-top-width: 2px;
+    border-color: var(--resource-item-border-color);
+    margin-left: -15px; /* counteract foldout indent */
+    margin-top: 2px;
+    margin-bottom: 4px;
+}

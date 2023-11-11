@@ -169,7 +169,14 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 {
                     versioned = handle;
                 }
+
                 m_RenderPass.AddResourceRead(versioned);
+
+                if ((flags & IBaseRenderGraphBuilder.AccessFlags.Read) == 0)
+                {
+                    // Flag the resource as being an "implicit read" so that we can distinguish it from a user-specified read
+                    m_RenderPass.implicitReadsList.Add(versioned);
+                }
             }
             else
             {
