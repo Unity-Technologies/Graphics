@@ -337,9 +337,15 @@ namespace UnityEditor.VFX.UI
             set
             {
                 if (value == null)
+                {
                     m_ComponentBoard.Detach();
+                    m_ProfilingBoard.Detach();
+                }
                 else
+                {
                     m_ComponentBoard.Attach(value);
+                    m_ProfilingBoard.Attach(value);
+                }
             }
         }
 
@@ -671,6 +677,13 @@ namespace UnityEditor.VFX.UI
             m_ToggleComponentBoard.RegisterCallback<ChangeEvent<bool>>(ToggleComponentBoard);
             m_Toolbar.Add(m_ToggleComponentBoard);
 
+            m_ToggleProfilingBoard = new ToolbarToggle { tooltip = "Display profiling information about current attached GameObject." };
+            m_ToggleProfilingBoard.Add(new Image { image = EditorGUIUtility.LoadIcon(Path.Combine(VisualEffectGraphPackageInfo.assetPackagePath, "Editor/UIResources/VFX/debug.png")) });
+            m_ToggleProfilingBoard.style.borderRightWidth = 1;
+            m_ToggleProfilingBoard.RegisterCallback<ChangeEvent<bool>>(ToggleProfilingBoard);
+            m_Toolbar.Add(m_ToggleProfilingBoard);
+
+
             var helpDropDownButton = new VFXHelpDropdownButton(this);
             m_Toolbar.Add(helpDropDownButton);
             // End Toolbar
@@ -695,6 +708,7 @@ namespace UnityEditor.VFX.UI
             toggleBlackboard.value = blackboardVisible;
 
             m_ComponentBoard = new VFXComponentBoard(this);
+            m_ProfilingBoard = new VFXProfilingBoard(this);
 #if _ENABLE_RESTORE_BOARD_VISIBILITY
             bool componentBoardVisible = BoardPreferenceHelper.IsVisible(BoardPreferenceHelper.Board.componentBoard, false);
             if (componentBoardVisible)
@@ -940,6 +954,7 @@ namespace UnityEditor.VFX.UI
             if (controllerAsset != null && controllerAsset == visualEffect.visualEffectAsset)
             {
                 attached = m_ComponentBoard.Attach(visualEffect);
+                m_ProfilingBoard.Attach(visualEffect);
             }
 
             if (attached && showNotification)
@@ -961,6 +976,8 @@ namespace UnityEditor.VFX.UI
         internal void Detach()
         {
             m_ComponentBoard.Detach();
+            m_ProfilingBoard.Detach();
+
             UpdateToolbarButtons();
         }
 
@@ -1054,12 +1071,35 @@ namespace UnityEditor.VFX.UI
             m_ComponentBoard.RefreshInitializeErrors();
         }
 
+        void ToggleProfilingBoard()
+        {
+            if (m_ProfilingBoard.parent == null)
+            {
+                Insert(childCount - 1, m_ProfilingBoard);
+                m_ProfilingBoard.Enable();
+                m_ProfilingBoard.RegisterCallback<GeometryChangedEvent>(OnFirstProfilingBoardGeometryChanged);
+            }
+            else
+            {
+                m_ProfilingBoard.Disable();
+            }
+        }
+
         void OnFirstComponentBoardGeometryChanged(GeometryChangedEvent e)
         {
             if (m_FirstResize)
             {
                 m_ComponentBoard.ValidatePosition();
                 m_ComponentBoard.UnregisterCallback<GeometryChangedEvent>(OnFirstComponentBoardGeometryChanged);
+            }
+        }
+
+        void OnFirstProfilingBoardGeometryChanged(GeometryChangedEvent e)
+        {
+            if (m_FirstResize)
+            {
+                m_ProfilingBoard.ValidatePosition();
+                m_ProfilingBoard.UnregisterCallback<GeometryChangedEvent>(OnFirstProfilingBoardGeometryChanged);
             }
         }
 
@@ -1078,6 +1118,7 @@ namespace UnityEditor.VFX.UI
         {
             m_FirstResize = true;
             m_ComponentBoard.ValidatePosition();
+            m_ProfilingBoard.ValidatePosition();
             m_Blackboard.ValidatePosition();
         }
 
@@ -1085,6 +1126,12 @@ namespace UnityEditor.VFX.UI
         void ToggleComponentBoard(ChangeEvent<bool> e)
         {
             ToggleComponentBoard();
+        }
+
+        Toggle m_ToggleProfilingBoard;
+        void ToggleProfilingBoard(ChangeEvent<bool> e)
+        {
+            ToggleProfilingBoard();
         }
 
         public void OnVisualEffectComponentChanged(IEnumerable<VisualEffect> visualEffects)
@@ -1189,6 +1236,7 @@ namespace UnityEditor.VFX.UI
             {
                 m_Blackboard.controller = null;
                 m_ComponentBoard.controller = null;
+                m_ProfilingBoard.controller = null;
                 controller = null;
                 return;
             }
@@ -1241,7 +1289,7 @@ namespace UnityEditor.VFX.UI
         {
             m_Blackboard.controller = controller;
             m_ComponentBoard.controller = controller;
-
+            m_ProfilingBoard.controller = controller;
             m_VCSDropDown.style.display = (Provider.enabled && !IsOffline()) ? DisplayStyle.Flex : DisplayStyle.None;
 
             if (controller != null)
@@ -1362,7 +1410,6 @@ namespace UnityEditor.VFX.UI
 
         Dictionary<VFXNodeController, VFXNodeUI> rootNodes = new Dictionary<VFXNodeController, VFXNodeUI>();
         Dictionary<Controller, GraphElement> rootGroupNodeElements = new Dictionary<Controller, GraphElement>();
-
 
         public GraphElement GetGroupNodeElement(Controller controller)
         {
@@ -2315,6 +2362,7 @@ namespace UnityEditor.VFX.UI
 
         VFXBlackboard m_Blackboard;
         VFXComponentBoard m_ComponentBoard;
+        internal VFXProfilingBoard m_ProfilingBoard;
 
         public VFXBlackboard blackboard
         {

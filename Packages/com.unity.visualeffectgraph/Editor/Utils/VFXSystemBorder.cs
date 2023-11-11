@@ -260,13 +260,13 @@ namespace UnityEditor.VFX.UI
         }
 
         VFXContextUI[] m_Contexts;
-        private VFXContextUI[] contexts
+        internal VFXContextUI[] contexts
         {
             get
             {
                 return m_Contexts;
             }
-            set
+            private set
             {
                 if (m_Contexts != null)
                 {

@@ -831,7 +831,6 @@ namespace UnityEditor.VFX.UI
             var efficiency = new TextElement();
             efficiency.name = "debug-system-stat-entry";
             efficiency.text = " - ";
-
             statContainer.Add(toggle);
             statContainer.Add(name);
             statContainer.Add(alive);
