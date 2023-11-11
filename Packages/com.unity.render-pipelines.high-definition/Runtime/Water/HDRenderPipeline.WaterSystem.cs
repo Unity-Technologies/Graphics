@@ -260,10 +260,10 @@ namespace UnityEngine.Rendering.HighDefinition
             else
                 cb._SimulationFoamAmount = 4.0f * Mathf.Pow(0.72f + currentWater.simulationFoamAmount * 0.28f, 0.25f);
 
-            cb._FoamFollowCurrent = currentWater.foamCurrentInfluence;
+            cb._FoamCurrentInfluence = currentWater.foamCurrentInfluence;
 
             // Smoothness of the foam
-            cb._FoamPersistenceMultiplier = 1.0f / Mathf.Lerp(0.25f, 2.0f, currentWater.foamPersistenceMultiplier);
+            cb._FoamPersistenceMultiplier = 1.0f / Mathf.Lerp(0.05f, 1f, currentWater.foamPersistenceMultiplier );
             cb._FoamSmoothness = currentWater.foamSmoothness;
             cb._FoamTiling = currentWater.foamTextureTiling;
 

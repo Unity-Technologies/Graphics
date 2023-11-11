@@ -13,7 +13,7 @@ StructuredBuffer<float> _WaterCameraHeightBuffer;
 
 float GetWaterCameraHeight()
 {
-    return _WaterCameraHeightBuffer[unity_StereoEyeIndex];
+    return _WaterCameraHeightBuffer[4 * unity_StereoEyeIndex];
 }
 
 StructuredBuffer<uint> _WaterLine;

@@ -1558,12 +1558,12 @@ Compiled shader: Hidden/HDRP/WaterExclusion, pass: StencilTag, stage: pixel, key
 Compiled shader: Hidden/HDRP/WaterExclusion, pass: StencilTag, stage: pixel, keywords STEREO_INSTANCING_ON
 Compiled shader: Hidden/HDRP/WaterExclusion, pass: StencilTag, stage: vertex, keywords <no keywords>
 Compiled shader: Hidden/HDRP/WaterExclusion, pass: StencilTag, stage: vertex, keywords STEREO_INSTANCING_ON
-Compiled shader: Hidden/HDRP/WaterFoam, pass: <Unnamed Pass 0>, stage: all, keywords <no keywords>
-Compiled shader: Hidden/HDRP/WaterFoam, pass: <Unnamed Pass 0>, stage: pixel, keywords <no keywords>
-Compiled shader: Hidden/HDRP/WaterFoam, pass: <Unnamed Pass 0>, stage: vertex, keywords <no keywords>
-Compiled shader: Hidden/HDRP/WaterFoam, pass: <Unnamed Pass 2>, stage: all, keywords <no keywords>
-Compiled shader: Hidden/HDRP/WaterFoam, pass: <Unnamed Pass 2>, stage: pixel, keywords <no keywords>
-Compiled shader: Hidden/HDRP/WaterFoam, pass: <Unnamed Pass 2>, stage: vertex, keywords <no keywords>
+Compiled shader: Hidden/HDRP/WaterFoam, pass: Reprojection, stage: all, keywords <no keywords>
+Compiled shader: Hidden/HDRP/WaterFoam, pass: Reprojection, stage: pixel, keywords <no keywords>
+Compiled shader: Hidden/HDRP/WaterFoam, pass: Reprojection, stage: vertex, keywords <no keywords>
+Compiled shader: Hidden/HDRP/WaterFoam, pass: ShoreWaveFoamGeneration, stage: all, keywords <no keywords>
+Compiled shader: Hidden/HDRP/WaterFoam, pass: ShoreWaveFoamGeneration, stage: pixel, keywords <no keywords>
+Compiled shader: Hidden/HDRP/WaterFoam, pass: ShoreWaveFoamGeneration, stage: vertex, keywords <no keywords>
 Compiled shader: Hidden/HDRP/XRMirrorView, pass: <Unnamed Pass 0>, stage: pixel, keywords <no keywords>
 Compiled shader: Hidden/HDRP/XRMirrorView, pass: <Unnamed Pass 0>, stage: pixel, keywords DISABLE_TEXTURE2D_X_ARRAY
 Compiled shader: Hidden/HDRP/XRMirrorView, pass: <Unnamed Pass 0>, stage: vertex, keywords <no keywords>

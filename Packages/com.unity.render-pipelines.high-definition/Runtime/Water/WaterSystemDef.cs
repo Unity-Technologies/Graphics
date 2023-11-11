@@ -448,7 +448,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float _ScatteringWaveHeight;
 
         // Influence of current on foam scrolling
-        public float _FoamFollowCurrent;
+        public float _FoamCurrentInfluence;
         // Smoothness of the foam
         public float _FoamSmoothness;
         // Water smoothness

@@ -45,12 +45,6 @@ Texture2DArray<float4> _WaterAdditionalDataBuffer;
 TEXTURE2D(_WaterMask);
 SAMPLER(sampler_WaterMask);
 
-// Foam textures
-Texture2D<float2> _WaterFoamBuffer;
-TEXTURE2D(_SimulationFoamMask);
-SAMPLER(sampler_SimulationFoamMask);
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/Shaders/FoamUtilities.hlsl"
-
 // Water deformation data
 Texture2D<float> _WaterDeformationBuffer;
 Texture2D<float2> _WaterDeformationSGBuffer;
@@ -285,6 +279,12 @@ struct WaterDisplacementData
     float3 displacement;
     float lowFrequencyHeight;
 };
+
+// Foam textures
+Texture2D<float2> _WaterFoamBuffer;
+TEXTURE2D(_SimulationFoamMask);
+SAMPLER(sampler_SimulationFoamMask);
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/Shaders/FoamUtilities.hlsl"
 
 // UV to sample the foam mask
 float2 EvaluateFoamMaskUV(float2 foamUV)
@@ -661,8 +661,8 @@ void EvaluateWaterAdditionalData(float3 positionOS, float3 transformedPosition, 
     }
 #endif
 
-    // Apply the texture
-    waterAdditionalData.deepFoam = DeepFoam(positionOS.xz, 1.0 - waterAdditionalData.deepFoam);
+    // Final foam value
+    waterAdditionalData.deepFoam = FoamErosion(1.0 - waterAdditionalData.deepFoam, positionOS.xz, false, 4);
 }
 
 float3 EvaluateWaterSurfaceGradient_VS(float3 positionAWS, int LOD, int bandIndex)
@@ -699,28 +699,10 @@ struct FoamData
     float foamValue;
 };
 
-void EvaluateFoamData(float surfaceFoam, float customFoam, float3 positionAWS, out FoamData foamData)
+void EvaluateFoamData(float surfaceFoam, float customFoam, float3 positionOS, out FoamData foamData)
 {
     float foamLifeTime = saturate(1.0 - (surfaceFoam + customFoam));
-
-    float2 dir = OrientationToDirection(_PatchOrientation[0]);
-
-#if defined(WATER_LOCAL_CURRENT)
-    dir = SampleWaterGroup0CurrentMap(positionAWS.xz);
-
-    // Apply the current orientation
-    float sinC, cosC;
-    sincos(_GroupOrientation[_WaterCurrentDebugMode], sinC, cosC);
-    dir = float2(cosC * dir.x - sinC * dir.y, sinC * dir.x + cosC * dir.y);
-#endif
-
-    dir *= 3.0f;
-    float2 alpha = frac(_SimulationTime * 0.5f * _FoamFollowCurrent + float2(0.0, 0.5));
-    float foam1 = SurfaceFoam(positionAWS.xz - dir * alpha.x, foamLifeTime);
-    float foam2 = SurfaceFoam(positionAWS.xz - dir * alpha.y, foamLifeTime);
-
-    // Final foam value
-    foamData.foamValue = lerp(foam1, foam2, pow(cos(alpha.x * PI), 2));
+    foamData.foamValue = FoamErosion(foamLifeTime, positionOS.xz);
 
     // Blend the smoothness of the water and the foam
     foamData.smoothness = lerp(_WaterSmoothness, _FoamSmoothness, saturate(foamData.foamValue));
@@ -801,34 +783,34 @@ void ComputeWaterRefractionParams(float3 waterPosRWS, float2 positionNDC, float3
         distortedWaterWS = waterPosRWS + refractedView * refractionDistance;
     }
 
-	// If underwater
-	if (!aboveWater)
-	{
-		float3 refractedView = refract(-V, waterNormal, WATER_IOR);
+    // If underwater
+    if (!aboveWater)
+    {
+        float3 refractedView = refract(-V, waterNormal, WATER_IOR);
 
-		bool totalInternalReflection = all(refractedView == 0.0f);
-		absorptionTint = totalInternalReflection ? 0.0f : 1.0f;
+        bool totalInternalReflection = all(refractedView == 0.0f);
+        absorptionTint = totalInternalReflection ? 0.0f : 1.0f;
 
-		if (disableUnderWaterIOR)
-		{
-			// At the limit between refraction and internal reflection, we simulate a higher refraction to avoid having a harsh threshold between both ray directions.
+        if (disableUnderWaterIOR)
+        {
+            // At the limit between refraction and internal reflection, we simulate a higher refraction to avoid having a harsh threshold between both ray directions.
             float NdotV = dot(waterNormal, V);
             float k = 1.f - WATER_IOR * WATER_IOR * (1.f - NdotV * NdotV);
-			float refractionValueMultiplier = 1;
-			if (k >= -MENISCUS_THRESHOLD && k <= MENISCUS_THRESHOLD)
-			{
-				float lerpFactor = saturate((k + MENISCUS_THRESHOLD) / (2 * MENISCUS_THRESHOLD));
-				refractionValueMultiplier *= lerp(MAX_MENISCUS_REFRACTION_MULTIPLIER, 0, lerpFactor);
-				distortedWaterWS += refractedView * refractionValueMultiplier;
+            float refractionValueMultiplier = 1;
+            if (k >= -MENISCUS_THRESHOLD && k <= MENISCUS_THRESHOLD)
+            {
+                float lerpFactor = saturate((k + MENISCUS_THRESHOLD) / (2 * MENISCUS_THRESHOLD));
+                refractionValueMultiplier *= lerp(MAX_MENISCUS_REFRACTION_MULTIPLIER, 0, lerpFactor);
+                distortedWaterWS += refractedView * refractionValueMultiplier;
 
-				absorptionTint = saturate(2 * lerpFactor - 1);
-			}
-		}
-		else
-		{
-			distortedWaterWS = waterPosRWS + refractedView * UNDER_WATER_REFRACTION_DISTANCE;
-		}
-	}
+                absorptionTint = saturate(2 * lerpFactor - 1);
+            }
+        }
+        else
+        {
+            distortedWaterWS = waterPosRWS + refractedView * UNDER_WATER_REFRACTION_DISTANCE;
+        }
+    }
     else
         absorptionTint = outScatteringCoeff * (1.f - transparencyColor); // this is weird but compiler complains otherwise
 
