@@ -718,8 +718,7 @@ namespace UnityEngine.Rendering.Universal
 
             useRenderPassEnabled = renderGraph.NativeRenderPassesEnabled;
 
-            // TODO: this uses renderingData.commandBuffer in the RenderGraph path!! Fix it to run in a proper RenderGraph pass
-            SetupMotionVectorGlobalMatrix(renderingData.commandBuffer, cameraData);
+            MotionVectorRenderPass.SetRenderGraphMotionVectorGlobalMatrices(renderGraph, cameraData);
 
             SetupRenderGraphLights(renderGraph, renderingData, cameraData, lightData);
 

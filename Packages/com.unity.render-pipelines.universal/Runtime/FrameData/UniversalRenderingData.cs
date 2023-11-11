@@ -5,6 +5,7 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     public class UniversalRenderingData : ContextItem
     {
+        // Non-rendergraph path only. Do NOT use with rendergraph! (RG execution timeline breaks.)
         internal CommandBuffer commandBuffer;
 
         /// <summary>

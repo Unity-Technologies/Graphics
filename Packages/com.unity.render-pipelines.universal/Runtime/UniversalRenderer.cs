@@ -1219,7 +1219,7 @@ namespace UnityEngine.Rendering.Universal
                 depthDescriptor.msaaSamples = 1;
                 RenderingUtils.ReAllocateIfNeeded(ref m_MotionVectorDepth, depthDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: MotionVectorRenderPass.k_MotionVectorDepthTextureName);
 
-                SetupMotionVectorGlobalMatrix(cmd, cameraData);
+                MotionVectorRenderPass.SetMotionVectorGlobalMatrices(cmd, cameraData);
 
                 m_MotionVectorPass.Setup(m_MotionVectorColor, m_MotionVectorDepth);
                 EnqueuePass(m_MotionVectorPass);
@@ -1496,32 +1496,6 @@ namespace UnityEngine.Rendering.Universal
             cullingParameters.conservativeEnclosingSphere = UniversalRenderPipeline.asset.conservativeEnclosingSphere;
 
             cullingParameters.numIterationsEnclosingSphere = UniversalRenderPipeline.asset.numIterationsEnclosingSphere;
-        }
-
-
-        // Used for MotionVector passes and also read in VFX early compute shader
-        static void SetupMotionVectorGlobalMatrix(CommandBuffer cmd, UniversalCameraData cameraData)
-        {
-            if (!cameraData.camera.TryGetComponent<UniversalAdditionalCameraData>(out var additionalCameraData))
-                return;
-
-            var motionData = additionalCameraData.motionVectorsPersistentData;
-            if (motionData != null)
-            {
-                var passID = motionData.GetXRMultiPassId(cameraData.xr);
-#if ENABLE_VR && ENABLE_XR_MODULE
-                if (cameraData.xr.enabled && cameraData.xr.singlePassEnabled)
-                {
-                    cmd.SetGlobalMatrixArray(ShaderPropertyId.previousViewProjectionNoJitterStereo, motionData.previousViewProjectionStereo);
-                    cmd.SetGlobalMatrixArray(ShaderPropertyId.viewProjectionNoJitterStereo, motionData.viewProjectionStereo);
-                }
-                else
-#endif
-                {
-                    cmd.SetGlobalMatrix(ShaderPropertyId.previousViewProjectionNoJitter, motionData.previousViewProjectionStereo[passID]);
-                    cmd.SetGlobalMatrix(ShaderPropertyId.viewProjectionNoJitter, motionData.viewProjectionStereo[passID]);
-                }
-            }
         }
 
         /// <inheritdoc />

@@ -1310,13 +1310,30 @@ namespace UnityEngine.Rendering.Universal
             internal TextureHandle sourceTexture;
             internal Material material;
             internal UniversalCameraData cameraData;
-            internal bool isFxaaEnabled;
-            internal bool isFsrEnabled;
-            internal bool requireHDROutput;
-            internal bool resolveToDebugScreen;
+            internal FinalBlitSettings settings;
         }
 
-        public void RenderFinalBlit(RenderGraph renderGraph, UniversalCameraData cameraData, in TextureHandle source, in TextureHandle overlayUITexture, in TextureHandle postProcessingTarget, bool performFXAA, bool performFsr, bool requireHDROutput, bool resolveToDebugScreen)
+        public struct FinalBlitSettings
+        {
+            public bool isFxaaEnabled;
+            public bool isFsrEnabled;
+            public bool isTaaSharpeningEnabled;
+            public bool requireHDROutput;
+            public bool resolveToDebugScreen;
+
+            public static FinalBlitSettings Create()
+            {
+                FinalBlitSettings s = new FinalBlitSettings();
+                s.isFxaaEnabled = false;
+                s.isFsrEnabled = false;
+                s.isTaaSharpeningEnabled = false;
+                s.requireHDROutput = false;
+                s.resolveToDebugScreen = false;
+                return s;
+            }
+        };
+
+        public void RenderFinalBlit(RenderGraph renderGraph, UniversalCameraData cameraData, in TextureHandle source, in TextureHandle overlayUITexture, in TextureHandle postProcessingTarget, ref FinalBlitSettings settings)
         {
             using (var builder = renderGraph.AddRasterRenderPass<PostProcessingFinalBlitPassData>("Postprocessing Final Blit Pass", out var passData, ProfilingSampler.Get(URPProfileId.RG_FinalBlit)))
             {
@@ -1325,22 +1342,20 @@ namespace UnityEngine.Rendering.Universal
                 passData.sourceTexture = builder.UseTexture(source, IBaseRenderGraphBuilder.AccessFlags.Read);
                 passData.cameraData = cameraData;
                 passData.material = m_Materials.finalPass;
-                passData.isFxaaEnabled = performFXAA;
-                passData.isFsrEnabled = performFsr;
-                passData.requireHDROutput = requireHDROutput;
-                passData.resolveToDebugScreen = resolveToDebugScreen;
+                passData.settings = settings;
 
-                if (requireHDROutput && m_EnableColorEncodingIfNeeded)
+                if (settings.requireHDROutput && m_EnableColorEncodingIfNeeded)
                     builder.UseTexture(overlayUITexture, IBaseRenderGraphBuilder.AccessFlags.Read);
 
-                builder.SetRenderFunc((PostProcessingFinalBlitPassData data, RasterGraphContext context) =>
+                builder.SetRenderFunc(static (PostProcessingFinalBlitPassData data, RasterGraphContext context) =>
                 {
                     var cmd = context.cmd;
                     var material = data.material;
-                    var isFxaaEnabled = data.isFxaaEnabled;
-                    var isFsrEnabled = data.isFsrEnabled;
-                    var requireHDROutput = data.requireHDROutput;
-                    var resolveToDebugScreen = data.resolveToDebugScreen;
+                    var isFxaaEnabled = data.settings.isFxaaEnabled;
+                    var isFsrEnabled = data.settings.isFsrEnabled;
+                    var isRcasEnabled = data.settings.isTaaSharpeningEnabled;
+                    var requireHDROutput = data.settings.requireHDROutput;
+                    var resolveToDebugScreen = data.settings.resolveToDebugScreen;
                     RTHandle sourceTextureHdl = data.sourceTexture;
                     RTHandle destinationTextureHdl = data.destinationTexture;
 
@@ -1355,7 +1370,6 @@ namespace UnityEngine.Rendering.Universal
                         // Use the override value if it's available, otherwise use the default.
                         float sharpness = data.cameraData.fsrOverrideSharpness ? data.cameraData.fsrSharpness : FSRUtils.kDefaultSharpnessLinear;
 
-
                         // Set up the parameters for the RCAS pass unless the sharpness value indicates that it wont have any effect.
                         if (data.cameraData.fsrSharpness > 0.0f)
                         {
@@ -1363,6 +1377,13 @@ namespace UnityEngine.Rendering.Universal
                             material.EnableKeyword(requireHDROutput ? ShaderKeywordStrings.EasuRcasAndHDRInput : ShaderKeywordStrings.Rcas);
                             FSRUtils.SetRcasConstantsLinear(cmd, sharpness);
                         }
+                    }
+                    else if (isRcasEnabled)   // RCAS only
+                    {
+                        // Reuse RCAS as a standalone sharpening filter for TAA.
+                        // If FSR is enabled then it overrides the sharpening/TAA setting and we skip it.
+                        material.EnableKeyword(ShaderKeywordStrings.Rcas);
+                        FSRUtils.SetRcasConstantsLinear(cmd, data.cameraData.taaSettings.contrastAdaptiveSharpening);
                     }
 
                     bool isRenderToBackBufferTarget = !data.cameraData.isSceneViewCamera;
@@ -1404,6 +1425,8 @@ namespace UnityEngine.Rendering.Universal
 
             material.shaderKeywords = null;
 
+            FinalBlitSettings settings = FinalBlitSettings.Create();
+
             // TODO RENDERGRAPH: when we remove the old path we should review the naming of these variables...
             // m_HasFinalPass is used to let FX passes know when they are not being called by the actual final pass, so they can skip any "final work"
             m_HasFinalPass = false;
@@ -1437,8 +1460,8 @@ namespace UnityEngine.Rendering.Universal
                 material.EnableKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
 
             HDROutputUtils.Operation hdrOperations = HDROutputUtils.Operation.None;
-            bool requireHDROutput = RequireHDROutput(cameraData);
-            if (requireHDROutput)
+            settings.requireHDROutput = RequireHDROutput(cameraData);
+            if (settings.requireHDROutput)
             {
                 // If there is a final post process pass, it's always the final pass so do color encoding
                 hdrOperations = m_EnableColorEncodingIfNeeded ? HDROutputUtils.Operation.ColorEncoding : HDROutputUtils.Operation.None;
@@ -1454,13 +1477,13 @@ namespace UnityEngine.Rendering.Universal
             debugHandler?.UpdateShaderGlobalPropertiesForFinalValidationPass(cmd, cameraData, !m_HasFinalPass && !resolveToDebugScreen);
 
             bool outputToHDR = cameraData.isHDROutputActive;
-            bool isFxaaEnabled = (cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing);
-            bool isFsrEnabled = ((cameraData.imageScalingMode == ImageScalingMode.Upscaling) && (cameraData.upscalingFilter == ImageUpscalingFilter.FSR));
+            settings.isFxaaEnabled = (cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing);
+            settings.isFsrEnabled = ((cameraData.imageScalingMode == ImageScalingMode.Upscaling) && (cameraData.upscalingFilter == ImageUpscalingFilter.FSR));
 
             // Reuse RCAS pass as an optional standalone post sharpening pass for TAA.
             // This avoids the cost of EASU and is available for other upscaling options.
             // If FSR is enabled then FSR settings override the TAA settings and we perform RCAS only once.
-            bool isTaaSharpeningEnabled = (cameraData.IsTemporalAAEnabled() && cameraData.taaSettings.contrastAdaptiveSharpening > 0.0f) && !isFsrEnabled;
+            settings.isTaaSharpeningEnabled = (cameraData.IsTemporalAAEnabled() && cameraData.taaSettings.contrastAdaptiveSharpening > 0.0f) && !settings.isFsrEnabled;
 
             var tempRtDesc = cameraData.cameraTargetDescriptor;
             tempRtDesc.msaaSamples = 1;
@@ -1468,7 +1491,7 @@ namespace UnityEngine.Rendering.Universal
 
             // Select a UNORM format since we've already performed tonemapping. (Values are in 0-1 range)
             // This improves precision and is required if we want to avoid excessive banding when FSR is in use.
-            if (!requireHDROutput)
+            if (!settings.requireHDROutput)
                 tempRtDesc.graphicsFormat = UniversalRenderPipeline.MakeUnormRenderTextureGraphicsFormat();
 
             var scalingSetupTarget = UniversalRenderer.CreateRenderGraphTexture(renderGraph, tempRtDesc, "scalingSetupTarget", true, FilterMode.Point);
@@ -1487,16 +1510,16 @@ namespace UnityEngine.Rendering.Universal
                 // NOTE: An ideal implementation could inline this color conversion logic into the UberPost pass, but the current code structure would make
                 //       this process very complex. Specifically, we'd need to guarantee that the uber post output is always written to a UNORM format render
                 //       target in order to preserve the precision of specially encoded color data.
-                bool isSetupRequired = (isFxaaEnabled || isFsrEnabled);
+                bool isSetupRequired = (settings.isFxaaEnabled || settings.isFsrEnabled);
 
                 // When FXAA is needed while scaling is active, we must perform it before the scaling takes place.
                 if (isSetupRequired)
                 {
-                    RenderFinalSetup(renderGraph, cameraData, in currentSource, in scalingSetupTarget, isFxaaEnabled, isFsrEnabled, hdrOperations);
+                    RenderFinalSetup(renderGraph, cameraData, in currentSource, in scalingSetupTarget, settings.isFxaaEnabled, settings.isFsrEnabled, hdrOperations);
                     currentSource = scalingSetupTarget;
 
                     // Indicate that we no longer need to perform FXAA in the final pass since it was already perfomed here.
-                    isFxaaEnabled = false;
+                    settings.isFxaaEnabled = false;
                 }
 
                 switch (cameraData.imageScalingMode)
@@ -1508,7 +1531,7 @@ namespace UnityEngine.Rendering.Universal
                             case ImageUpscalingFilter.Point:
                             {
                                 // TAA post sharpening is an RCAS pass, avoid overriding it with point sampling.
-                                if (!isTaaSharpeningEnabled)
+                                if (!settings.isTaaSharpeningEnabled)
                                     material.EnableKeyword(ShaderKeywordStrings.PointSampling);
                                 break;
                             }
@@ -1531,27 +1554,18 @@ namespace UnityEngine.Rendering.Universal
                         // and it's already the default option in the shader.
 
                         // Also disable TAA post sharpening pass when downscaling.
-                        isTaaSharpeningEnabled = false;
+                        settings.isTaaSharpeningEnabled = false;
                         break;
                     }
                 }
             }
-            else if (isFxaaEnabled)
+            else if (settings.isFxaaEnabled)
             {
                 // In unscaled renders, FXAA can be safely performed in the FinalPost shader
                 material.EnableKeyword(ShaderKeywordStrings.Fxaa);
             }
 
-            // Reuse RCAS as a standalone sharpening filter for TAA.
-            // If FSR is enabled then it overrides the TAA setting and we skip it.
-            if (isTaaSharpeningEnabled)
-            {
-                material.EnableKeyword(ShaderKeywordStrings.Rcas);
-                // TODO: this uses renderingData.commandBuffer in the RenderGraph path!! Fix it to run in a proper RenderGraph pass
-                FSRUtils.SetRcasConstantsLinear(cmd, cameraData.taaSettings.contrastAdaptiveSharpening);
-            }
-
-            RenderFinalBlit(renderGraph, cameraData, in currentSource, in overlayUITexture, in postProcessingTarget, isFxaaEnabled, isFsrEnabled, requireHDROutput, resolveToDebugScreen);
+            RenderFinalBlit(renderGraph, cameraData, in currentSource, in overlayUITexture, in postProcessingTarget, ref settings);
         }
 #endregion
 

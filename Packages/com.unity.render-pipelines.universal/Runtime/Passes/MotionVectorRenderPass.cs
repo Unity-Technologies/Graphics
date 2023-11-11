@@ -16,6 +16,8 @@ namespace UnityEngine.Rendering.Universal
         public const string k_MotionVectorsLightModeTag = "MotionVectors";
         static readonly string[] s_ShaderTags = new string[] { k_MotionVectorsLightModeTag };
 
+        private static readonly ProfilingSampler s_SetMotionMatrixProfilingSampler = new ProfilingSampler("SetMotionVectorGlobalMatrices");
+
         RTHandle m_Color;
         RTHandle m_Depth;
         readonly Material m_CameraMaterial;
@@ -228,6 +230,41 @@ namespace UnityEngine.Rendering.Universal
                 {
                     ExecutePass(context.cmd, data, data.rendererListHdl);
                 });
+            }
+        }
+
+        // Global motion vector matrix setup pass.
+        // Used for MotionVector passes and also read in VFX early compute shader
+        public class MotionMatrixPassData
+        {
+            public MotionVectorsPersistentData motionData;
+            public XRPass xr;
+        };
+
+        internal static void SetMotionVectorGlobalMatrices(CommandBuffer cmd, UniversalCameraData cameraData)
+        {
+            if (cameraData.camera.TryGetComponent<UniversalAdditionalCameraData>(out var additionalCameraData))
+            {
+                additionalCameraData.motionVectorsPersistentData?.SetGlobalMotionMatrices(CommandBufferHelpers.GetRasterCommandBuffer(cmd), cameraData.xr);
+            }
+        }
+
+        internal static void SetRenderGraphMotionVectorGlobalMatrices(RenderGraph renderGraph, UniversalCameraData cameraData)
+        {
+            if (cameraData.camera.TryGetComponent<UniversalAdditionalCameraData>(out var additionalCameraData))
+            {
+                using (var builder = renderGraph.AddRasterRenderPass<MotionMatrixPassData>("SetMotionVectorGlobalMatrices", out var passData, s_SetMotionMatrixProfilingSampler))
+                {
+                    passData.motionData = additionalCameraData.motionVectorsPersistentData;
+                    passData.xr = cameraData.xr;
+
+                    builder.AllowPassCulling(false);
+                    builder.AllowGlobalStateModification(true);
+                    builder.SetRenderFunc(static (MotionMatrixPassData data, RasterGraphContext context) =>
+                    {
+                        data.motionData.SetGlobalMotionMatrices(context.cmd, data.xr);
+                    });
+                }
             }
         }
     }

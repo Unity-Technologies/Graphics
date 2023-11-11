@@ -96,6 +96,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal UniversalRenderingData universalRenderingData => frameData.Get<UniversalRenderingData>();
 
+        // Non-rendergraph path only. Do NOT use with rendergraph!
         internal ref CommandBuffer commandBuffer => ref frameData.Get<UniversalRenderingData>().commandBuffer;
 
         /// <summary>
