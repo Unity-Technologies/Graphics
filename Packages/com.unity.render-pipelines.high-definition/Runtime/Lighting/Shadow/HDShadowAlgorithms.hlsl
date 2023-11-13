@@ -155,7 +155,7 @@ bool EvalShadow_PositionTC(HDShadowData sd, float2 texelSize, float3 positionWS,
 
     float2 minCoord, maxCoord;
     EvalShadow_MinMaxCoords(sd, texelSize, minCoord, maxCoord, blurPassesScale);
-    return !any(posTC.xy > maxCoord || posTC.xy < minCoord);
+    return !(any(posTC.xy > maxCoord) || any(posTC.xy < minCoord));
 }
 
 //

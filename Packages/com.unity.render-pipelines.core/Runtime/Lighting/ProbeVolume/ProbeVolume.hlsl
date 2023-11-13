@@ -228,7 +228,7 @@ uint GetIndexData(APVResources apvRes, float3 posWS)
         int3 localBrickIndex = floor(residualPosWS / (_MinBrickSize * stepSize));
 
         // Out of bounds.
-        if (any(localBrickIndex < minRelativeIdx || localBrickIndex >= maxRelativeIdx))
+        if (any(localBrickIndex < minRelativeIdx) || any(localBrickIndex >= maxRelativeIdx))
         {
             isValidBrick = false;
         }
