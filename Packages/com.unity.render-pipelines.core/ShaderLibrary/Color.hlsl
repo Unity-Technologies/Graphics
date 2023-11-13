@@ -87,58 +87,37 @@ real SRGBToLinear(real c)
 
 real2 SRGBToLinear(real2 c)
 {
-#if defined(UNITY_COLORSPACE_GAMMA) && REAL_IS_HALF
-    c = min(c, 100.0); // Make sure not to exceed HALF_MAX after the pow() below
-#endif
-    real2 linearRGBLo  = c / 12.92;
-    real2 linearRGBHi  = PositivePow((c + 0.055) / 1.055, real2(2.4, 2.4));
-    real2 linearRGB    = (c <= 0.04045) ? linearRGBLo : linearRGBHi;
-    return linearRGB;
+    return real2(SRGBToLinear(c.r), SRGBToLinear(c.g));
 }
 
 real3 SRGBToLinear(real3 c)
 {
-#if defined(UNITY_COLORSPACE_GAMMA) && REAL_IS_HALF
-    c = min(c, 100.0); // Make sure not to exceed HALF_MAX after the pow() below
-#endif
-    real3 linearRGBLo  = c / 12.92;
-    real3 linearRGBHi  = PositivePow((c + 0.055) / 1.055, real3(2.4, 2.4, 2.4));
-    real3 linearRGB    = (c <= 0.04045) ? linearRGBLo : linearRGBHi;
-    return linearRGB;
+    return real3(SRGBToLinear(c.r), SRGBToLinear(c.g), SRGBToLinear(c.b));
 }
 
 real4 SRGBToLinear(real4 c)
 {
-    return real4(SRGBToLinear(c.rgb), c.a);
+    return real4(SRGBToLinear(c.r), SRGBToLinear(c.g), SRGBToLinear(c.b), c.a);
 }
 
 real LinearToSRGB(real c)
 {
-    real sRGBLo = c * 12.92;
-    real sRGBHi = (PositivePow(c, 1.0/2.4) * 1.055) - 0.055;
-    real sRGB   = (c <= 0.0031308) ? sRGBLo : sRGBHi;
-    return sRGB;
+    return (c <= 0.0031308) ? (c * 12.9232102) : 1.055 * PositivePow(c, 1.0 / 2.4) - 0.055;
 }
 
 real2 LinearToSRGB(real2 c)
 {
-    real2 sRGBLo = c * 12.92;
-    real2 sRGBHi = (PositivePow(c, real2(1.0/2.4, 1.0/2.4)) * 1.055) - 0.055;
-    real2 sRGB   = (c <= 0.0031308) ? sRGBLo : sRGBHi;
-    return sRGB;
+    return real2(LinearToSRGB(c.r), LinearToSRGB(c.g));
 }
 
 real3 LinearToSRGB(real3 c)
 {
-    real3 sRGBLo = c * 12.92;
-    real3 sRGBHi = (PositivePow(c, real3(1.0/2.4, 1.0/2.4, 1.0/2.4)) * 1.055) - 0.055;
-    real3 sRGB   = (c <= 0.0031308) ? sRGBLo : sRGBHi;
-    return sRGB;
+    return real3(LinearToSRGB(c.r), LinearToSRGB(c.g), LinearToSRGB(c.b));
 }
 
 real4 LinearToSRGB(real4 c)
 {
-    return real4(LinearToSRGB(c.rgb), c.a);
+    return real4(LinearToSRGB(c.r), LinearToSRGB(c.g), LinearToSRGB(c.b), c.a);
 }
 
 // TODO: Seb - To verify and refit!
