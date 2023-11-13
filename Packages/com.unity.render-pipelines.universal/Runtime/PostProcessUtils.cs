@@ -43,9 +43,11 @@ namespace UnityEngine.Rendering.Universal
             if (++index >= blueNoise.Length)
                 index = 0;
 
+            var oldState = Random.state;
             Random.InitState(Time.frameCount);
             float rndOffsetX = Random.value;
             float rndOffsetY = Random.value;
+            Random.state = oldState;
 #endif
 
             // Ideally we would be sending a texture array once and an index to the slice to use
@@ -92,17 +94,19 @@ namespace UnityEngine.Rendering.Universal
                 texture = data.textures.filmGrainTex[(int)settings.type.value];
 
 #if LWRP_DEBUG_STATIC_POSTFX
-            float offsetX = 0f;
-            float offsetY = 0f;
+            float rndOffsetX = 0f;
+            float rndOffsetY = 0f;
 #else
+            var oldState = Random.state;
             Random.InitState(Time.frameCount);
-            float offsetX = Random.value;
-            float offsetY = Random.value;
+            float rndOffsetX = Random.value;
+            float rndOffsetY = Random.value;
+            Random.state = oldState;
 #endif
 
             var tilingParams = texture == null
                 ? Vector4.zero
-                : new Vector4(cameraPixelWidth / (float)texture.width, cameraPixelHeight / (float)texture.height, offsetX, offsetY);
+                : new Vector4(cameraPixelWidth / (float)texture.width, cameraPixelHeight / (float)texture.height, rndOffsetX, rndOffsetY);
 
             material.SetTexture(ShaderConstants._Grain_Texture, texture);
             material.SetVector(ShaderConstants._Grain_Params, new Vector2(settings.intensity.value * 4f, settings.response.value));
