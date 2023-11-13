@@ -252,8 +252,6 @@
   * [Rendering Debugger](Render-Pipeline-Debug-Window.md)
 * Virtual Reality
   * [VR Overview](VR-Overview.md)
-* Consoles
-  * [Building For Consoles](Building-For-Consoles.md)
 * Customizing HDRP
   * [Camera-relative Rendering](Camera-Relative-Rendering.md)
   * [Creating a Custom Sky](Creating-a-Custom-Sky.md)

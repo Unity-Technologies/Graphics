@@ -839,7 +839,7 @@ This version is compatible with Unity 2022.2.0a14.
 - Fixed an issue where Terrain hole Shader changes were missing. [Case 1179808](https://issuetracker.unity3d.com/issues/terrain-brush-tool-is-not-drawing-when-paint-holes-is-selected).
 - Fixed an issue where the Shader Graph `SceneDepth` node didn't work with XR single-pass (double-wide) rendering. See [case 1123069](https://issuetracker.unity3d.com/issues/lwrp-vr-shadergraph-scenedepth-doesnt-work-in-single-pass-rendering).
 - Fixed Unlit and BakedLit shader compilations in the meta pass.
-- Fixed an issue where the Bokeh Depth of Field shader would fail to compile on PS4.
+- Fixed an issue where the Bokeh Depth of Field shader would fail to compile on a console platform.
 - Fixed an issue where the Scene lighting button didn't work when you used the 2D Renderer.
 - Fixed a performance regression when you used the 2D Renderer.
 - Fixed an issue where the Freeform 2D Light gizmo didn't correctly show the Falloff offset.
@@ -1430,7 +1430,7 @@ Read/write XRGraphicsConfig -> Read-only XRGraphics interface to XRSettings.
 
 ### Fixed
 - Post-processing now works with VR on PC.
-- PS4 compiler error
+- Console platform compiler error
 - Fixed VR multiview rendering by forcing MSAA to be off. There's a current issue in engine that breaks MSAA and Texture2DArray.
 - Fixed UnityPerDraw CB layout
 - GLCore compute buffer compiler error
