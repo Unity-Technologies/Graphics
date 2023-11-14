@@ -65,6 +65,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree8"
             #pragma multi_compile_fragment _ LOD_FADE_CROSSFADE
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
             #pragma multi_compile_fragment _ _LIGHT_COOKIES
+            #pragma multi_compile _ EVALUATE_SH_MIXED EVALUATE_SH_VERTEX
             #include_with_pragmas "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl"
             #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ProbeVolumeVariants.hlsl"
 
