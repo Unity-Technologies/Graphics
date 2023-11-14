@@ -55,14 +55,5 @@ namespace UnityEngine.Rendering.HighDefinition
             get => m_SphereMesh;
             set => this.SetValueAndNotify(ref m_SphereMesh, value);
         }
-
-        // APV Sampling Debug Mesh
-        [SerializeField][ResourcePath("Runtime/RenderPipelineResources/Mesh/ProbeSamplingDebugMesh.fbx")]
-        private Mesh m_ProbeSamplingDebugMesh;
-        public Mesh probeSamplingDebugMesh
-        {
-            get => m_ProbeSamplingDebugMesh;
-            set => this.SetValueAndNotify(ref m_ProbeSamplingDebugMesh, value);
-        }
     }
 }

@@ -616,26 +616,18 @@ namespace UnityEngine.Rendering.HighDefinition
             SupportedRenderingFeatures.active.skyOcclusion = apvIsEnabled;
             if (apvIsEnabled)
             {
-                var pvr = ProbeReferenceVolume.instance;
-                bool supportBlending = m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolumeScenarioBlending;
                 ProbeReferenceVolume.instance.Initialize(new ProbeVolumeSystemParameters
                 {
                     memoryBudget = m_Asset.currentPlatformRenderPipelineSettings.probeVolumeMemoryBudget,
                     blendingMemoryBudget = m_Asset.currentPlatformRenderPipelineSettings.probeVolumeBlendingMemoryBudget,
-                    probeDebugShader = runtimeShaders.probeVolumeDebugShader,
-                    fragmentationDebugShader = runtimeShaders.probeVolumeFragmentationDebugShader,
-                    probeSamplingDebugShader = runtimeShaders.probeVolumeSamplingDebugShader,
-                    probeSamplingDebugMesh = runtimeAssets.probeSamplingDebugMesh,
-                    probeSamplingDebugTexture = runtimeTextures.numbersDisplayTex,
-                    offsetDebugShader = runtimeShaders.probeVolumeOffsetDebugShader,
-                    streamingUploadShader = runtimeShaders.probeVolumeUploadDataCS,
-                    streamingUploadL2Shader = runtimeShaders.probeVolumeUploadDataL2CS,
-                    scenarioBlendingShader = supportBlending ? runtimeShaders.probeVolumeBlendStatesCS : null,
-                    sceneData = m_GlobalSettings.GetOrCreateAPVSceneData(),
                     shBands = m_Asset.currentPlatformRenderPipelineSettings.probeVolumeSHBands,
                     supportScenarios = m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolumeScenarios,
+                    supportScenarioBlending = m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolumeScenarioBlending,
                     supportDiskStreaming = m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolumeDiskStreaming,
-                    supportGPUStreaming = m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolumeGPUStreaming
+                    supportGPUStreaming = m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolumeGPUStreaming,
+#pragma warning disable 618
+                    sceneData = m_GlobalSettings.GetOrCreateAPVSceneData(), // Only needed for migration
+#pragma warning restore 618
                 });
                 RegisterRetrieveOfProbeVolumeExtraDataAction();
             }
@@ -3005,7 +2997,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Must be called before culling because it emits intermediate renderers via Graphics.DrawInstanced.
             if (currentPipeline.apvIsEnabled)
             {
-                ProbeReferenceVolume.instance.RenderDebug(hdCamera.camera);
+                ProbeReferenceVolume.instance.RenderDebug(hdCamera.camera, currentPipeline.GetExposureTexture(hdCamera));
             }
 
             // Set the LOD bias and store current value to be able to restore it.

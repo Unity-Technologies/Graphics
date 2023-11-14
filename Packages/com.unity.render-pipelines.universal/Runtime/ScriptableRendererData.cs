@@ -55,54 +55,56 @@ namespace UnityEngine.Rendering.Universal
         /// Class contains references to shader resources used by APV.
         /// </summary>
         [Serializable, ReloadGroup]
+        [Obsolete("Probe volume debug resource are now in the ProbeVolumeDebugResources class.")]
         public sealed class ProbeVolumeResources
         {
             /// <summary>
             /// Debug shader used to render probes in the volume.
             /// </summary>
-            [Reload("Shaders/Debug/ProbeVolumeDebug.shader")]
+            [Obsolete("This shader is now in the ProbeVolumeDebugResources class.")]
             public Shader probeVolumeDebugShader;
 
             /// <summary>
             /// Debug shader used to display fragmentation of the GPU memory.
             /// </summary>
-            [Reload("Shaders/Debug/ProbeVolumeFragmentationDebug.shader")]
+            [Obsolete("This shader is now in the ProbeVolumeDebugResources class.")]
             public Shader probeVolumeFragmentationDebugShader;
 
             /// <summary>
             /// Debug shader used to draw the offset direction used for a probe.
             /// </summary>
-            [Reload("Shaders/Debug/ProbeVolumeOffsetDebug.shader")]
+            [Obsolete("This shader is now in the ProbeVolumeDebugResources class.")]
             public Shader probeVolumeOffsetDebugShader;
 
             /// <summary>
             /// Debug shader used to draw the sampling weights of the probe volume.
             /// </summary>
-            [Reload("Shaders/Debug/ProbeVolumeSamplingDebug.shader")]
+            [Obsolete("This shader is now in the ProbeVolumeDebugResources class.")]
             public Shader probeVolumeSamplingDebugShader;
 
             /// <summary>
             /// Debug mesh used to draw the sampling weights of the probe volume.
             /// </summary>
-            [Reload("Shaders/Debug/ProbeSamplingDebugMesh.fbx")]
+            [Obsolete("This shader is now in the ProbeVolumeDebugResources class.")]
             public Mesh probeSamplingDebugMesh;
 
             /// <summary>
             /// Texture with the numbers dor sampling weights.
             /// </summary>
-            [Reload("Shaders/Debug/NumbersDisplayTex.png")]
+            [Obsolete("This shader is now in the ProbeVolumeDebugResources class.")]
             public Texture2D probeSamplingDebugTexture;
 
             /// <summary>
             /// Compute Shader used for Blending.
             /// </summary>
-            [Reload("Shaders/ProbeVolumeBlendStates.compute")]
+            [Obsolete("This shader is now in the ProbeVolumeRuntimeResources class.")]
             public ComputeShader probeVolumeBlendStatesCS;
         }
 
         /// <summary>
         /// Probe volume resources used by URP
         /// </summary>
+        [Obsolete("Probe volume debug resource are now in the ProbeVolumeDebugResources class.")]
         public ProbeVolumeResources probeVolumeResources;
 
         /// <summary>

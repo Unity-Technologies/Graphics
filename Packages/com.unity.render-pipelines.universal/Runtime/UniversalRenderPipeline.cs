@@ -259,24 +259,19 @@ namespace UnityEngine.Rendering.Universal
             SupportedRenderingFeatures.active.overridesLightProbeSystem = apvIsEnabled;
             if (apvIsEnabled)
             {
-                bool supportBlending = SystemInfo.supportsComputeShaders && asset.supportProbeVolumeScenarios && asset.supportProbeVolumeScenarioBlending;
                 var pvr = ProbeReferenceVolume.instance;
                 ProbeReferenceVolume.instance.Initialize(new ProbeVolumeSystemParameters
                 {
                     memoryBudget = asset.probeVolumeMemoryBudget,
                     blendingMemoryBudget = asset.probeVolumeBlendingMemoryBudget,
-                    probeDebugShader = asset.scriptableRendererData.probeVolumeResources.probeVolumeDebugShader,
-                    fragmentationDebugShader = asset.scriptableRendererData.probeVolumeResources.probeVolumeFragmentationDebugShader,
-                    probeSamplingDebugShader = asset.scriptableRendererData.probeVolumeResources.probeVolumeSamplingDebugShader,
-                    probeSamplingDebugMesh = asset.scriptableRendererData.probeVolumeResources.probeSamplingDebugMesh,
-                    probeSamplingDebugTexture = asset.scriptableRendererData.probeVolumeResources.probeSamplingDebugTexture,
-                    offsetDebugShader = asset.scriptableRendererData.probeVolumeResources.probeVolumeOffsetDebugShader,
-                    scenarioBlendingShader = supportBlending ? asset.scriptableRendererData.probeVolumeResources.probeVolumeBlendStatesCS : null,
-                    sceneData = m_GlobalSettings.GetOrCreateAPVSceneData(),
                     shBands = asset.probeVolumeSHBands,
                     supportGPUStreaming = asset.supportProbeVolumeStreaming,
                     supportDiskStreaming = false,
                     supportScenarios = asset.supportProbeVolumeScenarios,
+                    supportScenarioBlending = asset.supportProbeVolumeScenarioBlending,
+#pragma warning disable 618
+                    sceneData = m_GlobalSettings.GetOrCreateAPVSceneData(),
+#pragma warning restore 618
                 });
             }
         }
@@ -729,7 +724,7 @@ namespace UnityEngine.Rendering.Universal
                     ProbeReferenceVolume.instance.BindAPVRuntimeResources(cmd, true);
 
                 // Must be called before culling because it emits intermediate renderers via Graphics.DrawInstanced.
-                ProbeReferenceVolume.instance.RenderDebug(camera);
+                ProbeReferenceVolume.instance.RenderDebug(camera, Texture2D.whiteTexture);
 
                 // Update camera motion tracking (prev matrices) from cameraData.
                 // Called and updated only once, as the same camera can be rendered multiple times.

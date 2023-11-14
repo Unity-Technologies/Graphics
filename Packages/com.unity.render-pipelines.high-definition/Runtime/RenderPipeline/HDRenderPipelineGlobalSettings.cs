@@ -412,6 +412,9 @@ namespace UnityEngine.Rendering.HighDefinition
         #endregion
 
         #region APV
+
+#pragma warning disable 618
+#pragma warning disable 612
         // This is temporarily here until we have a core place to put it shared between pipelines.
         [SerializeField]
         internal ProbeVolumeSceneData apvScenesData;
@@ -424,6 +427,8 @@ namespace UnityEngine.Rendering.HighDefinition
             apvScenesData.SetParentObject(this);
             return apvScenesData;
         }
+#pragma warning restore 612
+#pragma warning restore 618
 
         #endregion
     }

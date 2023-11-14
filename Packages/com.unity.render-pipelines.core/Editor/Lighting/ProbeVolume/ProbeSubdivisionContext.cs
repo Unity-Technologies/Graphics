@@ -43,10 +43,10 @@ namespace UnityEngine.Rendering
                 if (Time.realtimeSinceStartupAsDouble - s_LastSubdivisionTime > debugDisplay.subdivisionDelayInSeconds)
                 {
                     var probeVolume = GameObject.FindFirstObjectByType<ProbeVolume>();
-                    if (probeVolume == null || !probeVolume.isActiveAndEnabled || ProbeReferenceVolume.instance.sceneData == null)
+                    if (probeVolume == null || !probeVolume.isActiveAndEnabled)
                         return;
 
-                    var profile = ProbeReferenceVolume.instance.sceneData.GetBakingSetForScene(probeVolume.gameObject.scene);
+                    var profile = ProbeVolumeBakingSet.GetBakingSetForScene(probeVolume.gameObject.scene);
                     if (profile == null)
                         return;
 

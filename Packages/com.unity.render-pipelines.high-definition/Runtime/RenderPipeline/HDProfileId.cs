@@ -306,9 +306,10 @@ namespace UnityEngine.Rendering.HighDefinition
         Sharpening,
         ContrastAdaptiveSharpen,
         EdgeAdaptiveSpatialUpsampling,
-        PrepareProbeVolumeList,
-        ProbeVolumeDebug,
         CustomPassBufferClearDebug,
+
+        // Temp
+        APVSamplingDebug,
 
         AOVExecute,
         AOVOutput,

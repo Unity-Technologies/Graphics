@@ -592,7 +592,7 @@ namespace UnityEngine.Rendering
                     pvAABB.max = Vector3.Min(pvAABB.max, cellAABB.max);
 
                     // Compute the max size of a brick that can fit in the biggest dimension of a probe volume
-                    int subdivLevel = ProbeVolumeSceneData.MaxSubdivLevelInProbeVolume(pvAABB.size, maxSubdiv);
+                    int subdivLevel = ProbeVolumeBakingSet.MaxSubdivLevelInProbeVolume(pvAABB.size, maxSubdiv);
                     if (kp.component.fillEmptySpaces)
                         subdivLevel = ctx.maxSubdivisionLevelInSubCell - minSubdiv;
 

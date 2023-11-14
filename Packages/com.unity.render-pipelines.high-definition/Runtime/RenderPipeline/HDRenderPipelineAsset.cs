@@ -208,6 +208,14 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool virtualTexturingEnabled { get { return true; } }
 
         /// <summary>
+        /// Indicates if this render pipeline instance supports Adaptive Probe Volume.
+        /// </summary>
+        public bool supportProbeVolume
+        {
+            get => currentPlatformRenderPipelineSettings.supportProbeVolume;
+        }
+
+        /// <summary>
         /// Indicates the maximum number of SH Bands used by this render pipeline instance.
         /// </summary>
         public ProbeVolumeSHBands maxSHBands
@@ -221,16 +229,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        /// <summary>
-        /// Returns the projects global ProbeVolumeSceneData instance.
-        /// </summary>
-        public ProbeVolumeSceneData probeVolumeSceneData
-        {
-            get
-            {
-                return HDRenderPipelineGlobalSettings.instance?.apvScenesData;
-            }
-        }
 
         /// <summary>
         /// Global settings struct for GPU Resident Drawer
@@ -263,5 +261,10 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        /// <summary>
+        /// Returns the projects global ProbeVolumeSceneData instance.
+        /// </summary>
+        [Obsolete("This property is no longer necessary.")]
+        public ProbeVolumeSceneData probeVolumeSceneData => null;
     }
 }

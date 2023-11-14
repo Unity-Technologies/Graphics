@@ -106,7 +106,7 @@ namespace UnityEditor.Rendering
             m_SkyOcclusionBackFaceCulling = serializedObject.FindProperty(nameof(ProbeVolumeBakingSet.skyOcclusionBackFaceCulling));
             m_SkyOcclusionShadingDirection = serializedObject.FindProperty(nameof(ProbeVolumeBakingSet.skyOcclusionShadingDirection));
 
-            if (ProbeReferenceVolume.instance.enableScenarioBlending)
+            if (ProbeReferenceVolume.instance.supportScenarioBlending)
             {
                 hasPendingScenarioUpdate = true;
                 Lightmapping.lightingDataCleared += UpdateScenarioStatuses;
@@ -345,9 +345,9 @@ namespace UnityEditor.Rendering
             if (scenario == ProbeReferenceVolume.instance.lightingScenario)
                 return;
 
-            Undo.RegisterCompleteObjectUndo(ProbeReferenceVolume.instance.sceneData.parentAsset, "Change active scenario");
-            ProbeReferenceVolume.instance.SetActiveScenario(scenario, false);
-            EditorUtility.SetDirty(ProbeReferenceVolume.instance.sceneData.parentAsset);
+            Undo.RegisterCompleteObjectUndo(bakingSet, "Change active scenario");
+            bakingSet.SetActiveScenario(scenario, false);
+            EditorUtility.SetDirty(bakingSet);
             SceneView.RepaintAll();
         }
 

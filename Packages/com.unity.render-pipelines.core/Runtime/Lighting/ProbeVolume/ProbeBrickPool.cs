@@ -20,7 +20,7 @@ namespace UnityEngine.Rendering
         internal static readonly int _Out_L2_1 = Shader.PropertyToID("_Out_L2_1");
         internal static readonly int _Out_L2_2 = Shader.PropertyToID("_Out_L2_2");
         internal static readonly int _Out_L2_3 = Shader.PropertyToID("_Out_L2_3");
-        internal static readonly int _ProbeVolumeScratchBufferLayout = Shader.PropertyToID("CellStreamingScratchBufferLayout");
+        internal static readonly int _ProbeVolumeScratchBufferLayout = Shader.PropertyToID(nameof(ProbeReferenceVolume.CellStreamingScratchBufferLayout));
         internal static readonly int _ProbeVolumeScratchBuffer= Shader.PropertyToID("_ScratchBuffer");
 
         internal static int DivRoundUp(int x, int y) => (x + y - 1) / y;
@@ -113,9 +113,11 @@ namespace UnityEngine.Rendering
         static LocalKeyword s_DataUpload_SkyOcclusion;
         static LocalKeyword s_DataUpload_SkyShadingDirection;
 
-        internal static void Initialize(in ProbeVolumeSystemParameters parameters)
+        internal static void Initialize()
         {
-            s_DataUploadCS = parameters.streamingUploadShader;
+            s_DataUploadCS = GraphicsSettings.GetRenderPipelineSettings<ProbeVolumeRuntimeResources>()?.probeVolumeUploadDataCS;
+            s_DataUploadL2CS = GraphicsSettings.GetRenderPipelineSettings<ProbeVolumeRuntimeResources>()?.probeVolumeUploadDataL2CS;
+
             if (s_DataUploadCS != null)
             {
                 s_DataUploadKernel = s_DataUploadCS ? s_DataUploadCS.FindKernel("UploadData") : -1;
@@ -123,7 +125,7 @@ namespace UnityEngine.Rendering
                 s_DataUpload_SkyOcclusion = new LocalKeyword(s_DataUploadCS, "PROBE_VOLUMES_SKY_OCCLUSION");
                 s_DataUpload_SkyShadingDirection = new LocalKeyword(s_DataUploadCS, "PROBE_VOLUMES_SKY_SHADING_DIRECTION");
             }
-            s_DataUploadL2CS = parameters.streamingUploadL2Shader;
+
             if (s_DataUploadL2CS != null)
             {
                 s_DataUploadL2Kernel = s_DataUploadL2CS ? s_DataUploadL2CS.FindKernel("UploadDataL2") : -1;
@@ -578,11 +580,9 @@ namespace UnityEngine.Rendering
         static readonly int _State1_L2_2 = Shader.PropertyToID("_State1_L2_2");
         static readonly int _State1_L2_3 = Shader.PropertyToID("_State1_L2_3");
 
-        internal static bool isSupported => stateBlendShader != null;
-
-        internal static void Initialize(in ProbeVolumeSystemParameters parameters)
+        internal static void Initialize()
         {
-            stateBlendShader = parameters.scenarioBlendingShader;
+            stateBlendShader = GraphicsSettings.GetRenderPipelineSettings<ProbeVolumeRuntimeResources>()?.probeVolumeBlendStatesCS;
             scenarioBlendingKernel = stateBlendShader ? stateBlendShader.FindKernel("BlendScenarios") : -1;
         }
 
@@ -598,7 +598,7 @@ namespace UnityEngine.Rendering
         {
             get
             {
-                if (!isSupported || !ProbeReferenceVolume.instance.supportLightingScenarios)
+                if (!ProbeReferenceVolume.instance.supportScenarioBlending)
                     return 0;
                 if (isAllocated)
                     return m_State0.estimatedVMemCost + m_State1.estimatedVMemCost;

@@ -35,12 +35,8 @@ namespace UnityEditor.Rendering
 
                 // Get minBrickSize from scene profile if available
                 float minBrickSize = ProbeReferenceVolume.instance.MinBrickSize();
-                if (ProbeReferenceVolume.instance.sceneData != null)
-                {
-                    var profile = ProbeReferenceVolume.instance.sceneData.GetBakingSetForScene(pv.gameObject.scene);
-                    if (profile != null)
-                        minBrickSize = profile.minBrickSize;
-                }
+                if (ProbeReferenceVolume.instance.TryGetBakingSetForLoadedScene(pv.gameObject.scene, out var profile))
+                    minBrickSize = profile.minBrickSize;
 
                 var bounds = pv.ComputeBounds(filter.Value, pv.gameObject.scene);
                 pv.transform.position = bounds.center;
@@ -99,8 +95,7 @@ namespace UnityEditor.Rendering
         {
             ProbeVolume pv = (serialized.serializedObject.targetObject as ProbeVolume);
 
-            var profile = ProbeReferenceVolume.instance.sceneData.GetBakingSetForScene(pv.gameObject.scene);
-            bool hasProfile = profile != null;
+            bool hasProfile = ProbeReferenceVolume.instance.TryGetBakingSetForLoadedScene(pv.gameObject.scene, out var profile);
 
             EditorGUILayout.PropertyField(serialized.mode);
             if (serialized.mode.intValue == (int)ProbeVolume.Mode.Local)
@@ -136,7 +131,7 @@ namespace UnityEditor.Rendering
                 // Get settings from scene profile if available
                 int maxSubdiv = ProbeReferenceVolume.instance.GetMaxSubdivision() - 1;
                 float minDistance = ProbeReferenceVolume.instance.MinDistanceBetweenProbes();
-                if (ProbeReferenceVolume.instance.sceneData != null && hasProfile)
+                if (hasProfile)
                 {
                     maxSubdiv = profile.maxSubdivision - 1;
                     minDistance = profile.minDistanceBetweenProbes;

@@ -72,7 +72,7 @@ namespace UnityEngine.Rendering
                 return;
 
             var refVol = ProbeReferenceVolume.instance;
-            refVol.AddPendingSceneLoading(sceneGUID);
+            refVol.AddPendingSceneLoading(sceneGUID, bakingSet);
         }
 
         internal void QueueSceneRemoval()
@@ -84,15 +84,10 @@ namespace UnityEngine.Rendering
         void OnEnable()
         {
             ProbeReferenceVolume.instance.RegisterPerSceneData(this);
-
-            if (ProbeReferenceVolume.instance.sceneData != null)
-                Initialize();
         }
 
         void OnDisable()
         {
-            ProbeReferenceVolume.instance.UnregisterPerSceneDataMigration(this);
-
             QueueSceneRemoval();
             ProbeReferenceVolume.instance.UnregisterPerSceneData(this);
         }
@@ -124,8 +119,6 @@ namespace UnityEngine.Rendering
 
         internal void Initialize()
         {
-            MigrateIfNeeded();
-
             ProbeReferenceVolume.instance.RegisterBakingSet(this);
 
             QueueSceneRemoval();
@@ -135,28 +128,9 @@ namespace UnityEngine.Rendering
         internal bool ResolveCellData()
         {
             if (bakingSet != null)
-                return bakingSet.ResolveCellData(sceneGUID);
+                return bakingSet.ResolveCellData(bakingSet.GetSceneCellIndexList(sceneGUID));
 
             return false;
-        }
-
-        internal void MigrateIfNeeded()
-        {
-#if UNITY_EDITOR
-            if (ProbeReferenceVolume.instance.sceneData != null)
-            {
-                if (String.IsNullOrEmpty(sceneGUID))
-                {
-                    sceneGUID = ProbeVolumeSceneData.GetSceneGUID(gameObject.scene);
-                    bakingSet = ProbeReferenceVolume.instance.sceneData.GetBakingSetForScene(sceneGUID);
-                    EditorUtility.SetDirty(this);
-                }
-            }
-            else
-            {
-                ProbeReferenceVolume.instance.RegisterPerSceneDataMigration(this);
-            }
-#endif
         }
     }
 }

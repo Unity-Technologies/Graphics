@@ -1390,7 +1390,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Compute worldspace position and normal at given screenspace clickCoordinates, and write it into given ResultBuffer.
         void WriteApvPositionNormalDebugBuffer(RenderGraph renderGraph, GraphicsBuffer resultBuffer, Vector2 clickCoordinates, TextureHandle depthBuffer, TextureHandle normalBuffer)
         {
-            using (var builder = renderGraph.AddRenderPass<WriteApvData>("Debug Exposure", out var passData, ProfilingSampler.Get(HDProfileId.HorizonSSAO)))
+            using (var builder = renderGraph.AddRenderPass<WriteApvData>("APV Debug Sampling", out var passData, ProfilingSampler.Get(HDProfileId.APVSamplingDebug)))
             {
                 passData.resultBuffer = renderGraph.ImportBuffer(resultBuffer);
                 passData.clickCoordinates = clickCoordinates;

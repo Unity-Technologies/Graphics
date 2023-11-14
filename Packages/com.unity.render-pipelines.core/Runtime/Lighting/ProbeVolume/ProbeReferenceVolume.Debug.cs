@@ -93,6 +93,7 @@ namespace UnityEngine.Rendering
         public bool displayIndexFragmentation;
         public int otherStateIndex = 0;
         public bool verboseStreamingLog;
+        public bool debugStreaming = false;
 
         public ProbeVolumeDebug()
         {
@@ -197,7 +198,7 @@ namespace UnityEngine.Rendering
         Material m_ProbeSamplingDebugMaterial; // Used to draw probe sampling information (quad with weight, arrow, locator)
         Material m_ProbeSamplingDebugMaterial02; // Used to draw probe sampling information (shaded probes)
 
-        Texture m_displayNumbersTexture;
+        Texture m_DisplayNumbersTexture;
 
         internal static ProbeSamplingDebugData probeSamplingDebugData = new ProbeSamplingDebugData();
 
@@ -221,11 +222,12 @@ namespace UnityEngine.Rendering
         ///  Render Probe Volume related debug
         /// </summary>
         /// <param name="camera">The <see cref="Camera"/></param>
-        public void RenderDebug(Camera camera)
+        /// <param name="exposureTexture">Texture containing the exposure value for this frame.</param>
+        public void RenderDebug(Camera camera, Texture exposureTexture)
         {
             if (camera.cameraType != CameraType.Reflection && camera.cameraType != CameraType.Preview)
             {
-                DrawProbeDebug(camera);
+                DrawProbeDebug(camera, exposureTexture);
             }
         }
 
@@ -309,38 +311,32 @@ namespace UnityEngine.Rendering
         }
 #endif
 
-        bool TryCreateDebugRenderData(in ProbeVolumeSystemParameters parameters)
+        bool TryCreateDebugRenderData()
         {
+            if (!GraphicsSettings.TryGetRenderPipelineSettings<ProbeVolumeDebugResources>(out var debugResources))
+                return false;
 
-#if !UNITY_EDITOR
-            if (GraphicsSettings.TryGetCurrentRenderPipelineGlobalSettings(out var settings) && settings is IShaderVariantSettings shaderVariantSettings)
-            {
-                // On non editor builds, we need to check if the standalone build contains debug shaders
-                if (shaderVariantSettings.stripDebugVariants)
-                    return false;
-            }
-#endif
-            m_DebugMaterial = CoreUtils.CreateEngineMaterial(parameters.probeDebugShader);
+            m_DebugMaterial = CoreUtils.CreateEngineMaterial(debugResources.probeVolumeDebugShader);
             m_DebugMaterial.enableInstancing = true;
 
             // Probe Sampling Debug Mesh : useful to show additional information concerning probe sampling for a specific fragment
             // - Arrow : Debug fragment position and normal
             // - Locator : Debug sampling position
             // - 8 Quads : Debug probes weights
-            m_DebugProbeSamplingMesh = parameters.probeSamplingDebugMesh;
+            m_DebugProbeSamplingMesh = debugResources.probeSamplingDebugMesh;
             m_DebugProbeSamplingMesh.bounds = new Bounds(Vector3.zero, Vector3.one * 9999999.9f); // dirty way of disabling culling (objects spawned at (0.0, 0.0, 0.0) but vertices moved in vertex shader)
-            m_ProbeSamplingDebugMaterial = CoreUtils.CreateEngineMaterial(parameters.probeSamplingDebugShader);
-            m_ProbeSamplingDebugMaterial02 = CoreUtils.CreateEngineMaterial(parameters.probeDebugShader);
+            m_ProbeSamplingDebugMaterial = CoreUtils.CreateEngineMaterial(debugResources.probeVolumeSamplingDebugShader);
+            m_ProbeSamplingDebugMaterial02 = CoreUtils.CreateEngineMaterial(debugResources.probeVolumeDebugShader);
             m_ProbeSamplingDebugMaterial02.enableInstancing = true;
 
             probeSamplingDebugData.positionNormalBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, 2, System.Runtime.InteropServices.Marshal.SizeOf(typeof(Vector4)));
 
-            m_displayNumbersTexture = parameters.probeSamplingDebugTexture;
+            m_DisplayNumbersTexture = debugResources.numbersDisplayTex;
 
             m_DebugOffsetMesh = Resources.GetBuiltinResource<Mesh>("pyramid.fbx");
-            m_DebugOffsetMaterial = CoreUtils.CreateEngineMaterial(parameters.offsetDebugShader);
+            m_DebugOffsetMaterial = CoreUtils.CreateEngineMaterial(debugResources.probeVolumeOffsetDebugShader);
             m_DebugOffsetMaterial.enableInstancing = true;
-            m_DebugFragmentationMaterial = CoreUtils.CreateEngineMaterial(parameters.fragmentationDebugShader);
+            m_DebugFragmentationMaterial = CoreUtils.CreateEngineMaterial(debugResources.probeVolumeFragmentationDebugShader);
 
             // Hard-coded colors for now.
             Debug.Assert(ProbeBrickIndex.kMaxSubdivisionLevels == 7); // Update list if this changes.
@@ -356,13 +352,13 @@ namespace UnityEngine.Rendering
             return true;
         }
 
-        void InitializeDebug(in ProbeVolumeSystemParameters parameters)
+        void InitializeDebug()
         {
 #if UNITY_EDITOR
             SceneView.duringSceneGui += SceneGUI; // Used to get click and keyboard event on scene view for Probe Sampling Debug
 #endif
-            if (TryCreateDebugRenderData(parameters))
-                RegisterDebug(parameters);
+            if (TryCreateDebugRenderData())
+                RegisterDebug();
 
 #if UNITY_EDITOR
             UnityEditor.Lightmapping.lightingDataCleared += OnClearLightingdata;
@@ -390,12 +386,12 @@ namespace UnityEngine.Rendering
             ClearDebugData();
         }
 
-        void RegisterDebug(ProbeVolumeSystemParameters parameters)
+        void RegisterDebug()
         {
             void RefreshDebug<T>(DebugUI.Field<T> field, T value)
             {
                 UnregisterDebug(false);
-                RegisterDebug(parameters);
+                RegisterDebug();
             }
 
             const float kProbeSizeMin = 0.05f, kProbeSizeMax = 10.0f;
@@ -507,9 +503,9 @@ namespace UnityEngine.Rendering
                     displayName = "Max Subdivisions Displayed",
                     tooltip = "The highest (most dense) probe subdivision level displayed in the debug view.",
                     getter = () => probeVolumeDebug.maxSubdivToVisualize,
-                    setter = (v) => probeVolumeDebug.maxSubdivToVisualize = Mathf.Min(v, ProbeReferenceVolume.instance.GetMaxSubdivision() - 1),
+                    setter = (v) => probeVolumeDebug.maxSubdivToVisualize = Mathf.Min(v, GetMaxSubdivision() - 1),
                     min = () => 0,
-                    max = () => ProbeReferenceVolume.instance.GetMaxSubdivision() - 1,
+                    max = () => GetMaxSubdivision() - 1,
                 });
 
                 probeContainerChildren.children.Add(new DebugUI.IntField
@@ -519,7 +515,7 @@ namespace UnityEngine.Rendering
                     getter = () => probeVolumeDebug.minSubdivToVisualize,
                     setter = (v) => probeVolumeDebug.minSubdivToVisualize = Mathf.Max(v, 0),
                     min = () => 0,
-                    max = () => ProbeReferenceVolume.instance.GetMaxSubdivision() - 1,
+                    max = () => GetMaxSubdivision() - 1,
                 });
 
 
@@ -583,7 +579,7 @@ namespace UnityEngine.Rendering
             var streamingContainer = new DebugUI.Container()
             {
                 displayName = "Streaming",
-                isHiddenCallback = () => !(parameters.supportGPUStreaming || parameters.supportDiskStreaming)
+                isHiddenCallback = () => !(gpuStreamingEnabled || diskStreamingEnabled)
             };
             streamingContainer.children.Add(new DebugUI.BoolField { displayName = "Freeze Streaming", tooltip = "Stop Unity from streaming probe data in or out of GPU memory.", getter = () => probeVolumeDebug.freezeStreaming, setter = value => probeVolumeDebug.freezeStreaming = value });
             streamingContainer.children.Add(new DebugUI.BoolField { displayName = "Display Streaming Score", getter = () => probeVolumeDebug.displayCellStreamingScore, setter = value => probeVolumeDebug.displayCellStreamingScore = value });
@@ -604,11 +600,12 @@ namespace UnityEngine.Rendering
                 indexDefragContainerChildren.children.Add(new DebugUI.Value { displayName = "Index Fragmentation Rate", getter = () => instance.indexFragmentationRate });
                 streamingContainer.children.Add(indexDefragContainerChildren);
                 streamingContainer.children.Add(new DebugUI.BoolField { displayName = "Verbose Log", getter = () => probeVolumeDebug.verboseStreamingLog, setter = value => probeVolumeDebug.verboseStreamingLog = value });
+                streamingContainer.children.Add(new DebugUI.BoolField { displayName = "Debug Streaming", getter = () => probeVolumeDebug.debugStreaming, setter = value => probeVolumeDebug.debugStreaming = value });
             }
 
             widgetList.Add(streamingContainer);
 
-            if (parameters.supportScenarios && parameters.scenarioBlendingShader != null && parameters.blendingMemoryBudget != 0 && m_CurrentBakingSet != null)
+            if (supportScenarioBlending && m_CurrentBakingSet != null)
             {
                 var blendingContainer = new DebugUI.Container() { displayName = "Scenario Blending" };
                 blendingContainer.children.Add(new DebugUI.IntField { displayName = "Number Of Cells Blended Per Frame", getter = () => instance.numberOfCellsBlendedPerFrame, setter = value => instance.numberOfCellsBlendedPerFrame = value, min = () => 0 });
@@ -657,7 +654,7 @@ namespace UnityEngine.Rendering
                     enumValues = m_DebugScenarioValues,
                     getIndex = () =>
                     {
-                        RefreshScenarioNames(ProbeVolumeSceneData.GetSceneGUID(SceneManagement.SceneManager.GetActiveScene()));
+                        RefreshScenarioNames(GetSceneGUID(SceneManagement.SceneManager.GetActiveScene()));
 
                         probeVolumeDebug.otherStateIndex = 0;
                         if (!string.IsNullOrEmpty(m_CurrentBakingSet.otherScenario))
@@ -756,8 +753,7 @@ namespace UnityEngine.Rendering
         bool ShouldCullCell(Vector3 cellPosition, Transform cameraTransform, Plane[] frustumPlanes)
         {
             var cellSize = MaxBrickSize();
-            var originWS = GetTransform().posWS;
-            Vector3 cellCenterWS = cellPosition * cellSize + originWS + Vector3.one * (cellSize / 2.0f);
+            Vector3 cellCenterWS = cellPosition * cellSize + Vector3.one * (cellSize / 2.0f);
 
             // We do coarse culling with cell, finer culling later.
             float distanceRoundedUpWithCellSize = Mathf.CeilToInt(probeVolumeDebug.probeCullingDistance / cellSize) * cellSize;
@@ -769,7 +765,7 @@ namespace UnityEngine.Rendering
             return !GeometryUtility.TestPlanesAABB(frustumPlanes, volumeAABB);
         }
 
-        void DrawProbeDebug(Camera camera)
+        void DrawProbeDebug(Camera camera, Texture exposureTexture)
         {
             if (!enabledBySRP || !isInitialized)
                 return;
@@ -800,7 +796,7 @@ namespace UnityEngine.Rendering
                 m_ProbeSamplingDebugMaterial.SetVector("_DebugLocator01Color", new Vector4(1.0f, 1.0f, 1.0f, 1.0f));
                 m_ProbeSamplingDebugMaterial.SetVector("_DebugLocator02Color", new Vector4(0.3f, 0.3f, 0.3f, 1.0f));
                 m_ProbeSamplingDebugMaterial.SetFloat("_ProbeSize", probeVolumeDebug.probeSamplingDebugSize);
-                m_ProbeSamplingDebugMaterial.SetTexture("_NumbersTex", m_displayNumbersTexture);
+                m_ProbeSamplingDebugMaterial.SetTexture("_NumbersTex", m_DisplayNumbersTexture);
                 m_ProbeSamplingDebugMaterial.SetInt("_DebugSamplingNoise", Convert.ToInt32(probeVolumeDebug.debugWithSamplingNoise));
                 m_ProbeSamplingDebugMaterial.SetInt("_ForceDebugNormalViewBias", 0); // Add a secondary locator to show intermediate position (with no Anti-Leak) when Anti-Leak is active
 
@@ -811,17 +807,17 @@ namespace UnityEngine.Rendering
             }
 
             // Sanitize the min max subdiv levels with what is available
-            int minAvailableSubdiv = ProbeReferenceVolume.instance.cells.Count > 0 ? ProbeReferenceVolume.instance.GetMaxSubdivision()-1 : 0;
-            foreach (var cell in ProbeReferenceVolume.instance.cells.Values)
+            int minAvailableSubdiv = cells.Count > 0 ? GetMaxSubdivision()-1 : 0;
+            foreach (var cell in cells.Values)
             {
                 minAvailableSubdiv = Mathf.Min(minAvailableSubdiv, cell.desc.minSubdiv);
             }
 
-            probeVolumeDebug.maxSubdivToVisualize = Mathf.Min(probeVolumeDebug.maxSubdivToVisualize, ProbeReferenceVolume.instance.GetMaxSubdivision() - 1);
-            m_MaxSubdivVisualizedIsMaxAvailable = probeVolumeDebug.maxSubdivToVisualize == ProbeReferenceVolume.instance.GetMaxSubdivision() - 1;
+            probeVolumeDebug.maxSubdivToVisualize = Mathf.Min(probeVolumeDebug.maxSubdivToVisualize, GetMaxSubdivision() - 1);
+            m_MaxSubdivVisualizedIsMaxAvailable = probeVolumeDebug.maxSubdivToVisualize == GetMaxSubdivision() - 1;
             probeVolumeDebug.minSubdivToVisualize = Mathf.Clamp(probeVolumeDebug.minSubdivToVisualize, minAvailableSubdiv, probeVolumeDebug.maxSubdivToVisualize);
 
-            foreach (var cell in ProbeReferenceVolume.instance.cells.Values)
+            foreach (var cell in cells.Values)
             {
                 if (ShouldCullCell(cell.desc.position, camera.transform, m_DebugFrustumPlanes))
                     continue;
@@ -842,7 +838,7 @@ namespace UnityEngine.Rendering
                     props.SetInt("_MinAllowedSubdiv", probeVolumeDebug.minSubdivToVisualize);
                     props.SetFloat("_ValidityThreshold", m_CurrentBakingSet.settings.dilationSettings.dilationValidityThreshold);
                     props.SetFloat("_OffsetSize", probeVolumeDebug.offsetSize);
-                    props.SetInt("_BypassExposure", 1);
+                    props.SetTexture("_ExposureTexture", exposureTexture);
 
                     if (probeVolumeDebug.drawProbes)
                     {
@@ -874,7 +870,7 @@ namespace UnityEngine.Rendering
         internal void ResetDebugViewToMaxSubdiv()
         {
             if (m_MaxSubdivVisualizedIsMaxAvailable)
-                probeVolumeDebug.maxSubdivToVisualize = ProbeReferenceVolume.instance.GetMaxSubdivision() - 1;
+                probeVolumeDebug.maxSubdivToVisualize = GetMaxSubdivision() - 1;
         }
 
         void ClearDebugData()
@@ -887,7 +883,7 @@ namespace UnityEngine.Rendering
             if (cell.debugProbes != null)
                 return cell.debugProbes;
 
-            int maxSubdiv = ProbeReferenceVolume.instance.GetMaxSubdivision() - 1;
+            int maxSubdiv = GetMaxSubdivision() - 1;
 
             if (!cell.data.bricks.IsCreated || cell.data.bricks.Length == 0 || !cell.data.probePositions.IsCreated || !cell.loaded)
                 return null;

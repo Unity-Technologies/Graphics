@@ -2055,6 +2055,14 @@ namespace UnityEngine.Rendering.Universal
         #endregion
 
         /// <summary>
+        /// Indicates if this render pipeline instance supports Adaptive Probe Volume.
+        /// </summary>
+        public bool supportProbeVolume
+        {
+            get => lightProbeSystem == LightProbeSystem.ProbeVolumes;
+        }
+
+        /// <summary>
         /// Indicates the maximum number of SH Bands used by this render pipeline instance.
         /// </summary>
         public ProbeVolumeSHBands maxSHBands
@@ -2071,12 +2079,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Returns the projects global ProbeVolumeSceneData instance.
         /// </summary>
-        public ProbeVolumeSceneData probeVolumeSceneData
-        {
-            get
-            {
-                return UniversalRenderPipelineGlobalSettings.instance?.apvScenesData;
-            }
-        }
+        [Obsolete("This property is no longer necessary.")]
+        public ProbeVolumeSceneData probeVolumeSceneData => null;
     }
 }

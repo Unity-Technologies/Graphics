@@ -56,25 +56,10 @@ namespace UnityEngine.Rendering.HighDefinition
             [Reload("Runtime/Lighting/VolumetricLighting/DebugLocalVolumetricFogAtlas.shader")]
             public Shader debugLocalVolumetricFogAtlasPS;
 
-            // APV
-            [Reload("Runtime/Lighting/ProbeVolume/ProbeVolumeBlendStates.compute")]
-            public ComputeShader probeVolumeBlendStatesCS;
-            [Reload("Runtime/Lighting/ProbeVolume/ProbeVolumeUploadData.compute")]
-            public ComputeShader probeVolumeUploadDataCS;
-            [Reload("Runtime/Lighting/ProbeVolume/ProbeVolumeUploadDataL2.compute")]
-            public ComputeShader probeVolumeUploadDataL2CS;
-
             // APV Debug
-            [Reload("Runtime/Debug/ProbeVolumeDebug.shader")]
-            public Shader probeVolumeDebugShader;
-            [Reload("Runtime/Debug/ProbeVolumeFragmentationDebug.shader")]
-            public Shader probeVolumeFragmentationDebugShader;
-            [Reload("Runtime/Debug/ProbeVolumeSamplingDebug.shader")]
-            public Shader probeVolumeSamplingDebugShader;
+            // TODO Should be moved to Core as well but currently this debug is entirely done from HDRP side so it should be done in a separate PR.
             [Reload("Runtime/Debug/ProbeVolumeSamplingDebugPositionNormal.compute")]
             public ComputeShader probeVolumeSamplingDebugComputeShader;
-            [Reload("Runtime/Debug/ProbeVolumeOffsetDebug.shader")]
-            public Shader probeVolumeOffsetDebugShader;
 
             // Lighting
             [Reload("Runtime/Lighting/Deferred.Shader")]
