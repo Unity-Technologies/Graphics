@@ -289,7 +289,7 @@ uint GetIndexData(APVResources apvRes, float3 posWS)
     float3 entryPos = floor(posWS / _GlobalIndirectionEntryDim);
     float3 topLeftEntryWS = entryPos * _GlobalIndirectionEntryDim;
 
-    bool isALoadedCell = all(entryPos >= _MinLoadedCellInEntries && entryPos <= _MaxLoadedCellInEntries);
+    bool isALoadedCell = all(entryPos >= _MinLoadedCellInEntries) && all(entryPos <= _MaxLoadedCellInEntries);
 
     // Make sure we start from 0
     int3 entryPosInt = (int3)(entryPos - _MinEntryPosition);
@@ -311,7 +311,7 @@ uint GetIndexData(APVResources apvRes, float3 posWS)
             int3 localBrickIndex = floor(residualPosWS / (_MinBrickSize * stepSize));
 
             // Out of bounds.
-            isValidBrick = all(localBrickIndex >= minRelativeIdx && localBrickIndex < maxRelativeIdxPlusOne);
+            isValidBrick = all(localBrickIndex >= minRelativeIdx) && all(localBrickIndex < maxRelativeIdxPlusOne);
 
             int3 sizeOfValid = maxRelativeIdxPlusOne - minRelativeIdx;
             // Relative to valid region
