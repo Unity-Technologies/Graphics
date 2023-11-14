@@ -15,10 +15,12 @@ using UnityEditor.Rendering;
 /// </summary>
 public class ColorCheckerToolEditor : Editor
 {
-
-
     private static readonly string UXMLPath = "ColorCheckerUI";
-    List<string> Modes = new List<string>() { "Color Palette", "Cross Polarized Grayscale", "Middle Gray","Reflection","Stepped Luminance", "Material Palette", "External Texture" };//Displayed names for the color checker modes
+   
+    private void OnEnable()
+    {
+        var self = (ColorCheckerTool)target;
+    }
 
     public override VisualElement CreateInspectorGUI()
     {
@@ -31,24 +33,34 @@ public class ColorCheckerToolEditor : Editor
 
         //Mode Dropdown
         var dropdownMode = root.Q<DropdownField>("ModesDropdown");
-        dropdownMode.choices = Modes;
-        int currentModeIndex = (int)self.Mode;
-        if ( currentModeIndex >= 0 && currentModeIndex <= Modes.Count )
-        {
-            dropdownMode.index = currentModeIndex;
-            dropdownMode.RegisterValueChangedCallback(v => 
-            {
-                self.Mode = (ColorCheckerTool.ColorCheckerModes)dropdownMode.index;
-                onChange(self, root);
-            });
-        }
+        dropdownMode.RegisterValueChangedCallback(v => onChange(self, root));
 
         //Field counts sliders
         root.Q<SliderInt>("fieldCount").RegisterValueChangedCallback(v => onChange(self, root));
         root.Q<SliderInt>("fieldsPerRow").RegisterValueChangedCallback(v => onChange(self, root));
         root.Q<SliderInt>("materialFieldsCount").RegisterValueChangedCallback(v => onChange(self, root));
+
+        //Sphere Mode Toggle needs to update geometry
+        root.Q<Toggle>("sphereModeToggle").RegisterValueChangedCallback(v=> self.UpdateGeometry());
+        //fields margin regenerates the spheres if sphere mode is used
+        root.Q<Slider>("fieldsMargin").RegisterValueChangedCallback(v=> {if(self.sphereModeToDisplay == true) {self.UpdateGeometry();}});
         
-        //Prepare Color Fields
+        //callback for face view
+        root.Q<Button>("moveToViewButton").clicked += () => 
+        {
+            SceneView view = SceneView.lastActiveSceneView;
+            if (view != null)
+            {
+                GameObject currentSelection = Selection.activeGameObject;
+                Selection.activeGameObject = self.gameObject;
+                view.AlignWithView();
+                view.MoveToView(self.transform);
+                Selection.activeGameObject = currentSelection;
+            }
+        };
+
+
+        //Prepare Color Fields, they have to be instanciated in advance to make sure bindings work
         for(int i=0; i<64;i++)
         {
             ColorField colorInput = new ColorField() { name = "Color" + i, tabIndex = i, showAlpha = false};
@@ -71,6 +83,7 @@ public class ColorCheckerToolEditor : Editor
        gradientToggle.RegisterValueChangedCallback(v => 
         {
             GradientField(root,gradientToggle);
+            onChange(self, root);
         });
         GradientField(root,gradientToggle);
 
@@ -78,6 +91,7 @@ public class ColorCheckerToolEditor : Editor
         root.Q<Button>("resetBtn").clicked += () =>
              {   
                 self.ResetColors();
+                self.UpdateMaterial();
              };
 
         onChange(self, root); // Initialize
@@ -138,7 +152,8 @@ public class ColorCheckerToolEditor : Editor
             ColorField colorInput = root.Q<ColorField>("Color"+i);
             colorInput.style.display = UnityEngine.UIElements.DisplayStyle.Flex;
             colorInput.showEyeDropper = editable;
-            colorInput.SetEnabled(editable);
+            colorInput.pickingMode = editable ? UnityEngine.UIElements.PickingMode.Position : UnityEngine.UIElements.PickingMode.Ignore;
+            //colorInput.SetEnabled(editable); //better to let this editable so that users can check out the presets color values. those values won't be saved.
 
 
             //Resize the colorfields nicely when they fall short to fill the last row
@@ -181,7 +196,7 @@ public class ColorCheckerToolEditor : Editor
     void onChange(ColorCheckerTool target, VisualElement root)
     {
         //reset UI settings visibility
-        string[] UINames =new string[]{"colorfields","materialFieldsCount","fieldCount","fieldsPerRow","textureMode","fieldsMargin","gradientElement","sphericalToggle","unlit","resetBtn"};
+        string[] UINames =new string[]{"colorfields","materialFieldsCount","fieldCount","fieldsPerRow","textureMode","fieldsMargin","gradientElement","sphereModeToggle","unlit","resetBtn"};
         for (int i = 0; i < UINames.Length; i++)
         {
             root.Q<VisualElement>(UINames[i]).style.display = UnityEngine.UIElements.DisplayStyle.None;
@@ -193,30 +208,38 @@ public class ColorCheckerToolEditor : Editor
         switch (target.Mode)
         {
             case ColorCheckerTool.ColorCheckerModes.Colors:
+
                 CreateColorFields(target, root, target.customColors, root.Q<SliderInt>("fieldCount").value, target.fieldsPerRow, true);
-                UINamesToShow = new string[]{"colorfields","fieldCount","fieldsPerRow","fieldsMargin","gradientElement","sphericalToggle","unlit","resetBtn"};
+                UINamesToShow = new string[]{"colorfields","fieldCount","fieldsPerRow","fieldsMargin","gradientElement","sphereModeToggle","unlit","resetBtn"};
+                root.Q<Label>("Info").text="This procedural color checker can be used for color and lighting calibration. Color fields are customisable and persistent, with up to 64 values.";
                 break;
             case ColorCheckerTool.ColorCheckerModes.Grayscale:
                 CreateColorFields(target, root, target.CrossPolarizedGrayscale, 6, 6, false);
-                UINamesToShow = new string[]{"colorfields","fieldsMargin","gradientElement","sphericalToggle","unlit"}; 
+                UINamesToShow = new string[]{"colorfields","fieldsMargin","gradientElement","sphereModeToggle","unlit"}; 
+                root.Q<Label>("Info").text="These values have been measured without specular lighting using a cross-polarized filter, making it more accurate for light calibration in PBR.";
                 break;
             case ColorCheckerTool.ColorCheckerModes.MiddleGray:
                 CreateColorFields(target, root, target.MiddleGray, 1, 1, false);
-                UINamesToShow = new string[]{"colorfields","fieldsMargin","sphericalToggle","unlit"}; 
+                UINamesToShow = new string[]{"colorfields","fieldsMargin","sphereModeToggle","unlit"}; 
+                root.Q<Label>("Info").text="This is neutral 5, the mid-gray value.";
                 break;
             case ColorCheckerTool.ColorCheckerModes.Reflection:
                 UINamesToShow = new string[]{"fieldsMargin"}; 
+                root.Q<Label>("Info").text="Useful for checking local reflections.";
                 break;
             case ColorCheckerTool.ColorCheckerModes.SteppedLuminance:
                 CreateColorFields(target, root, target.steppedLuminance, 16, 16, false);
                 UINamesToShow = new string[]{"colorfields","gradientElement","unlit"}; 
+                root.Q<Label>("Info").text="Stepped luminance is a good way to check gamma calibration.";
                 break;
             case ColorCheckerTool.ColorCheckerModes.Materials:
                 CreateColorFields(target,root,target.customMaterials,root.Q<SliderInt>("materialFieldsCount").value,1,true);
                 UINamesToShow = new string[]{"colorfields","materialFieldsCount","fieldsMargin","resetBtn"}; 
+                root.Q<Label>("Info").text="Each row represents a material with varying smoothness. Material fields are customizable and persistent, with up to 12 values.";
                 break;
             case ColorCheckerTool.ColorCheckerModes.Texture:
                 UINamesToShow = new string[]{"textureMode"}; 
+                root.Q<Label>("Info").text="Useful for calibration using captured data. Use the slicer to compare lit values to unlit, raw values. Pre-exposure can be disabled.";
                 break;
         }
 
@@ -226,30 +249,35 @@ public class ColorCheckerToolEditor : Editor
             root.Q<VisualElement>(UINamesToShow[i]).style.display = UnityEngine.UIElements.DisplayStyle.Flex;
         } 
 
-        if(!target.isHDRP)
-        {
-            root.Q<VisualElement>("unlit").style.display = UnityEngine.UIElements.DisplayStyle.None;
-            root.Q<VisualElement>("unlitTextureExposure").style.display = UnityEngine.UIElements.DisplayStyle.None;
-            root.Q<VisualElement>("rawTexture").style.display = UnityEngine.UIElements.DisplayStyle.None;
-            root.Q<VisualElement>("textureSlice").style.display = UnityEngine.UIElements.DisplayStyle.None;
-             root.Q<VisualElement>("faceCam").style.display = UnityEngine.UIElements.DisplayStyle.None;
-        }
-    
         target.UpdateMaterial();
+        target.UpdateGeometry();
 
     }
+
 
 //Creation
    [MenuItem("GameObject/Rendering/Color Checker Tool", false, 999)]
     public static void CreateColorChecker(MenuCommand menuCommand)
     {   
-        var checkerTransform = CoreEditorUtils.CreateGameObject("Color Checker",menuCommand.context);
-        var checkerComponent = checkerTransform.AddComponent<ColorCheckerTool>();
-        checkerTransform.tag = "EditorOnly";
-        Selection.activeObject = checkerTransform;
-        Undo.RegisterCreatedObjectUndo(checkerTransform, "Color Checker");
-        Undo.RegisterCompleteObjectUndo(checkerTransform, "ColorChecker");
+        var newColorChecker = CoreEditorUtils.CreateGameObject("Color Checker",menuCommand.context);
+        var checkerComponent = newColorChecker.AddComponent<ColorCheckerTool>();
+        newColorChecker.tag = "EditorOnly";
+        newColorChecker.hideFlags = HideFlags.DontSaveInBuild;
+        Selection.activeObject = newColorChecker;
+        //Place color checker in view
+        SceneView view = SceneView.lastActiveSceneView;
+        if (view != null)
+        {
+                view.AlignWithView();
+                view.MoveToView(newColorChecker.transform);
+                newColorChecker.transform.eulerAngles = new Vector3(0f,newColorChecker.transform.eulerAngles.y,newColorChecker.transform.eulerAngles.z); //so that it stays upright
+        }
+
+        Undo.RegisterCreatedObjectUndo(newColorChecker, "Color Checker");
+        Undo.RegisterCompleteObjectUndo(newColorChecker, "ColorChecker");
     }
 
 }
 #endif
+
+
