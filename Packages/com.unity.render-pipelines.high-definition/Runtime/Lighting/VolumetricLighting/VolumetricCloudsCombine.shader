@@ -211,7 +211,7 @@ Shader "Hidden/HDRP/VolumetricCloudsCombine"
             ZWrite Off
 
             // If this is a background pixel, we want the cloud value, otherwise we do not.
-            Blend  One OneMinusSrcAlpha
+            Blend  One OneMinusSrcAlpha, Zero One
 
             Blend 1 One OneMinusSrcAlpha // before refraction
             Blend 2 One OneMinusSrcAlpha // before refraction alpha
