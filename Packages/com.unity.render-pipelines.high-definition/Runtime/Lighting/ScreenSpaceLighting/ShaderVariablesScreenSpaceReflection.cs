@@ -13,8 +13,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public float _SsrRoughnessFadeEndTimesRcpLength;
         public float _SsrEdgeFadeRcpLength;
 
-        public Vector4 _ColorPyramidUvScaleAndLimitPrevFrame;
-
         public int _SsrDepthPyramidMaxMip;
         public int _SsrColorPyramidMaxMip;
         public int _SsrReflectsSky;
