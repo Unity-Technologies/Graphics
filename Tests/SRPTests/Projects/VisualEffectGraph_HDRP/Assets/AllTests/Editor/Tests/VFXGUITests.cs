@@ -11,6 +11,8 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
 using Moq;
+using UnityEditor.Search;
+using UnityEditor.SearchService;
 using UnityEditor.VFX.UI;
 using UnityEditor.VFX.Block.Test;
 using UnityEngine.UIElements;
@@ -894,6 +896,51 @@ namespace UnityEditor.VFX.Test
         {
             CheckNumericPropertyRM(x => new UintPropertyRM(x, 60f), new RangeAttribute(1f, 100f), 1U, new List<(uint, uint)> { (0, 1), (105, 100 )});
             CheckNumericPropertyRM(x => new UintPropertyRM(x, 60f), new MinMaxAttribute(1f, 100f), 1U, new List<(uint, uint)> { (0, 1), (105, 100 )});
+        }
+
+        [UnityTest]
+        public IEnumerator Check_ObjectPropertyRMTextureSearch()
+        {
+            try
+            {
+                var viewController = VFXTestCommon.StartEditTestAsset();
+                var texture2DDesc = VFXLibrary.GetOperators().Single(x => x.name == "Texture2D");
+                viewController.AddVFXOperator(Vector2.zero, texture2DDesc);
+                viewController.ApplyChanges();
+                yield return null;
+
+                var window = VFXViewWindow.GetWindow(viewController.graph.GetResource(), true, true);
+                var texture2DNodeUI = window.graphView.Q<VFXOperatorUI>();
+                var button = texture2DNodeUI.Q<VisualElement>(null, "unity-object-field__selector");
+
+                VFXGUITestHelper.SendDoubleClick(button, 1);
+                yield return null;
+
+                Assert.IsTrue(EditorWindow.HasOpenInstances<ObjectSelector>());
+
+                if (ObjectSelectorSearch.HasEngineOverride())
+                {
+                    // Work around a bug in ObjectSelector which property searchFilter do not return correct value when the search mode is advanced
+                    var searchWindow = EditorWindow.GetWindowDontShow<SearchPickerWindow>();
+                    Assert.AreEqual("t:Texture2D or t:RenderTexture", searchWindow.context.searchText);
+                }
+                else
+                {
+                    Assert.AreEqual("t:Texture2D t:RenderTexture", ObjectSelector.get.searchFilter);
+                }
+            }
+            finally
+            {
+                if (EditorWindow.HasOpenInstances<ObjectSelector>())
+                {
+                    EditorWindow.GetWindow<ObjectSelector>().Close();
+                }
+
+                if (EditorWindow.HasOpenInstances<SearchPickerWindow>())
+                {
+                    EditorWindow.GetWindow<SearchPickerWindow>().Close();
+                }
+            }
         }
 
         private void CheckNumericPropertyRM<T,U>(Func<IPropertyRMProvider, NumericPropertyRM<T, U>> creator, UnityEngine.PropertyAttribute attribute, T initialValue, List<(T, T)> testCases)
