@@ -27,3 +27,9 @@ The volumetric clouds are not clipped by the far plane anymore.
 ### Seed mode parameter in path tracing 
 
 The HDRP path tracer now allows you to choose a *Seed mode*. This determines the noise pattern used to path trace.
+
+## Fixed
+
+### Lights
+
+Box lights behaviour has been fixed in Path Tracing.

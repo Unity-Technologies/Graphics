@@ -83,16 +83,19 @@ bool IsPointLightActive(LightData lightData, float3 position, float3 normal)
 {
     float3 lightToPosition = position - lightData.positionRWS;
 
+    if(lightData.lightType != GPULIGHTTYPE_PROJECTOR_BOX)
+    {
 #ifndef USE_LIGHT_CLUSTER
-    // Check light range first
-    if (Length2(lightToPosition) > Sq(lightData.range))
-        return false;
+        // Check light range first
+        if (Length2(lightToPosition) > Sq(lightData.range))
+            return false;
 #endif
 
-    // Check that at least part of the light is above the tangent plane
-    float lightTangentDist = dot(normal, lightToPosition);
-    if (lightTangentDist * abs(lightTangentDist) > lightData.size.x)
-        return false;
+        // Check that at least part of the light is above the tangent plane
+        float lightTangentDist = dot(normal, lightToPosition);
+        if (lightTangentDist * abs(lightTangentDist) > lightData.size.x)
+            return false;
+    }
 
     // If this is an omni-directional point light, we're done
     if (lightData.lightType == GPULIGHTTYPE_POINT)
@@ -294,19 +297,31 @@ uint PickLightType(LightList list, inout float theSample)
     return PTLIGHT_SKY;
  }
 
-float3 GetPunctualEmission(LightData lightData, float3 outgoingDir, float dist)
+float3 GetPunctualEmission(LightData lightData, float3 position, float3 outgoingDir, float dist)
 {
     float3 emission = lightData.color;
 
     // Punctual attenuation
     float4 distances = float4(dist, Sq(dist), rcp(dist), -dist * dot(outgoingDir, lightData.forward));
+    if(lightData.lightType == GPULIGHTTYPE_PROJECTOR_BOX)
+    {
+        //Note that we won't use GetPunctualLightVectors for non-Box cases to avoid calling ModifyDistancesForFillLighting
+        //We ensure the distances z and w coordinates are the same as for GetPunctualLightVectors for Box lights
+        distances.z = 1.0;
+        distances.w = dist;
+    }
     emission *= PunctualLightAttenuation(distances, lightData.rangeAttenuationScale, lightData.rangeAttenuationBias, lightData.angleScale, lightData.angleOffset);
 
 #ifndef LIGHT_EVALUATION_NO_COOKIE
     if (lightData.cookieMode != COOKIEMODE_NONE)
     {
         LightLoopContext context;
-        emission *= EvaluateCookie_Punctual(context, lightData, -dist * outgoingDir).rgb;
+        float3 lightToSample = - dist * outgoingDir;
+        if(lightData.lightType == GPULIGHTTYPE_PROJECTOR_BOX)
+        {
+            lightToSample = position - lightData.positionRWS;
+        }
+        emission *= EvaluateCookie_Punctual(context, lightData, lightToSample).rgb;
     }
 #endif
 
@@ -597,10 +612,16 @@ bool SamplePunctualLight(LightList lightList, LightData lightData,
         pdf = DELTA_PDF;
     }
 
+    if(lightData.lightType == GPULIGHTTYPE_PROJECTOR_BOX)
+    {
+        outgoingDir = -lightData.forward;
+        dist = dot(outgoingDir, lightData.positionRWS - position);
+    }
+
     if (!isSpherical && dot(normal, outgoingDir) < DOT_PRODUCT_EPSILON)
         return false;
 
-    value = GetPunctualEmission(lightData, outgoingDir, dist) * pdf;
+    value = GetPunctualEmission(lightData, position, outgoingDir, dist) * pdf;
     pdf = GetLocalLightWeight(lightList) * pdf;
 
     return true;
@@ -960,8 +981,11 @@ bool GetPointLightInterval(LightData lightData, float3 rayOrigin, float3 rayDire
 
     float3 lightToRayOrigin = rayOrigin - lightData.positionRWS;
 
-    if (!GetSphereInterval(lightToRayOrigin, lightData.range, rayDirection, tMin, tMax))
-        return false;
+    if (lightData.lightType != GPULIGHTTYPE_PROJECTOR_BOX)
+    {
+        if (!GetSphereInterval(lightToRayOrigin, lightData.range, rayDirection, tMin, tMax))
+            return false;
+    }
 
     // This is just a point light (no spot cone angle)
     if (lightData.lightType == GPULIGHTTYPE_POINT)
@@ -977,28 +1001,11 @@ bool GetPointLightInterval(LightData lightData, float3 rayOrigin, float3 rayDire
 
     if (lightData.lightType == GPULIGHTTYPE_PROJECTOR_BOX)
     {
-        // Compute intersections with planes x=-1 and x=1
-        float tx1 = (-1.0 - localOrigin.x) / localDirection.x;
-        float tx2 = (1.0 - localOrigin.x) / localDirection.x;
-        Sort(tx1, tx2);
+        float tStart = 0;
+        float tEnd = rcp(FLT_EPS);
+        IntersectRayAABB(localOrigin, (localDirection), float3(-1, -1, 0), float3(1,1,lightData.range),
+            tStart, tEnd, tMin, tMax);
 
-        // Compute intersections with planes y=-1 and y=1
-        float ty1 = (-1.0 - localOrigin.y) / localDirection.y;
-        float ty2 = (1.0 - localOrigin.y) / localDirection.y;
-        Sort(ty1, ty2);
-
-        // Compute intersection with plane z=0
-        float tz = -localOrigin.z / localDirection.z;
-
-        float t1 = max(tx1, ty1);
-        float t2 = min(tx2, ty2);
-
-        // Check validity of the intersections (we want them only in front of the light)
-        bool t1Valid = localOrigin.z + t1 * localDirection.z > 0.0;
-        bool t2Valid = localOrigin.z + t2 * localDirection.z > 0.0;
-
-        tMin = t1Valid ? max(t1, tMin) : tz;
-        tMax = t2Valid ? min(t2, tMax) : tz;
     }
     else if (lightData.lightType == GPULIGHTTYPE_PROJECTOR_PYRAMID)
     {
