@@ -520,6 +520,10 @@ In HDRP, you can use [Custom Render Textures](https://docs.unity3d.com/Manual/cl
 
 You can also create complex effects like dynamic ripples and snow deformation wne you enable **Double Buffered**.
 
+### Canvas Shader Graph
+
+Use the [Canvas ShaderGraph](canvas-material.md) to create custom [UGUI user interface elements](https://docs.unity3d.com/Packages/com.unity.ugui@1.0/manual/UICanvas.html).
+
 ### Graphics Compositor
 ![](Images/Compositor-HDRPTemplateWithLogo_Feature.png)
 
