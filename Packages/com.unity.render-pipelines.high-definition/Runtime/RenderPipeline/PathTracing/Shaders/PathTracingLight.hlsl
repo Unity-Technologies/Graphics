@@ -901,7 +901,7 @@ bool GetSphereInterval(float3 lightToRayOrigin, float radius, float3 rayDirectio
     return tMin < tMax;
 }
 
-bool GetRectAreaLightInterval(LightData lightData, float3 rayOrigin, float3 rayDirection, out float tMin, out float tMax)
+bool GetAreaLightInterval(LightData lightData, float3 rayOrigin, float3 rayDirection, out float tMin, out float tMax)
 {
     if (lightData.volumetricLightDimmer < 0.001)
         return false;
@@ -910,6 +910,10 @@ bool GetRectAreaLightInterval(LightData lightData, float3 rayOrigin, float3 rayD
 
     if (!GetSphereInterval(lightToRayOrigin, lightData.range, rayDirection, tMin, tMax))
         return false;
+
+    // If this is  tube light, we're done
+    if (lightData.lightType == GPULIGHTTYPE_TUBE)
+        return true;
 
     float LdotD = dot(lightData.forward, rayDirection);
     float t = -dot(lightData.forward, lightToRayOrigin) / LdotD;
@@ -1068,7 +1072,7 @@ bool GetPointLightInterval(LightData lightData, float3 rayOrigin, float3 rayDire
 //     n += _WorldAreaLightCount;
 //     for (; i < n; i++)
 //     {
-//         if (GetRectAreaLightInterval(_WorldLightDatas[i], rayOrigin, rayDirection, tLightMin, tLightMax))
+//         if (GetAreaLightInterval(_WorldLightDatas[i], rayOrigin, rayDirection, tLightMin, tLightMax))
 //         {
 //             tMin = min(tMin, tLightMin);
 //             tMax = max(tMax, tLightMax);
@@ -1102,7 +1106,9 @@ float PickLocalLightInterval(float3 rayOrigin, float3 rayDirection, inout float 
     float wLight, wSum = 0.0;
 
     // First process point lights
-    uint i = 0, n = _WorldPunctualLightCount, localCount = 0;
+    uint i = 0, n = 0, localCount = 0;
+
+    n += _WorldPunctualLightCount;
     for (; i < n; i++)
     {
         if (GetPointLightInterval(_WorldLightDatas[i], rayOrigin, rayDirection, tLightMin, tLightMax))
@@ -1139,7 +1145,7 @@ float PickLocalLightInterval(float3 rayOrigin, float3 rayDirection, inout float 
     n += _WorldAreaLightCount;
     for (; i < n; i++)
     {
-        if (GetRectAreaLightInterval(_WorldLightDatas[i], rayOrigin, rayDirection, tLightMin, tLightMax))
+        if (GetAreaLightInterval(_WorldLightDatas[i], rayOrigin, rayDirection, tLightMin, tLightMax))
         {
             wLight = GetLocalLightWeight(_WorldLightDatas[i], rayOrigin, rayDirection, tLightMin, tLightMax);
 

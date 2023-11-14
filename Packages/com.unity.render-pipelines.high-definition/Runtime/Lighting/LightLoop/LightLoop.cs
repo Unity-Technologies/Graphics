@@ -2016,7 +2016,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // TODO-WL: Directional lights?
             cb._WorldDirectionalLightCount = 0u;
             cb._WorldPunctualLightCount = (uint)m_WorldLights.pointLightCount;
-            cb._WorldAreaLightCount = (uint)m_WorldLights.rectLightCount;
+            cb._WorldAreaLightCount = (uint)(m_WorldLights.rectLightCount + m_WorldLights.lineLightCount + m_WorldLights.discLightCount);
             cb._WorldEnvLightCount = (uint)m_WorldLights.envLightCount;
 
             cb._DecalCount = (uint)DecalSystem.m_DecalDatasCount;
