@@ -20,7 +20,7 @@ PackedVaryingsType Vert(uint vertexID : SV_VertexID)
 
 
         int startRow = 0;
-        int endRow = startRow + _ShadingSampleVisibilityCount / OffscreenAtlasWidth;
+        int endRow = startRow + (uint)_ShadingSampleVisibilityCount / OffscreenAtlasWidth;
         float2 minMaxRowsUV = 1.0 - (float2(startRow, endRow) / float(OffscreenAtlasHeight));
         uvScreen.y = clamp(uvScreen.y, minMaxRowsUV.y - 2.0 / (float)OffscreenAtlasHeight, minMaxRowsUV.x);
         varyingsType.vmesh.positionCS = float4(uvScreen * 2.0 - 1.0, UNITY_NEAR_CLIP_VALUE, 1.0);
@@ -102,8 +102,6 @@ void Frag(PackedVaryingsToPS packedInput, out float4 outColor : SV_Target0)
         outResult = result;
     }
 #endif
-
-    outResult.a = EncodeLineWidth(outResult.a, builtinData.lineWidth);
 
     outColor = outResult;
 }

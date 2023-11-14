@@ -3,17 +3,15 @@
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinGIUtilities.hlsl"
 
-// Calculate motion vector in Clip space [-1..1]
-float2 CalculateMotionVector(float4 positionCS, float4 previousPositionCS)
+// Calculate motion vector variant for High Quality Line Rendering, which needs to divide by W much earlier in the pipeline.
+float2 CalculateMotionVector(float4 positionCS, float2 previousPositionSS)
 {
     // This test on define is required to remove warning of divide by 0 when initializing empty struct
     // TODO: Add forward opaque MRT case...
 #if (SHADERPASS == SHADERPASS_MOTION_VECTORS) || defined(_WRITE_TRANSPARENT_MOTION_VECTOR)
     // Encode motion vector
     positionCS.xy = positionCS.xy / positionCS.w;
-    previousPositionCS.xy = previousPositionCS.xy / previousPositionCS.w;
-
-    float2 motionVec = (positionCS.xy - previousPositionCS.xy);
+    float2 motionVec = (positionCS.xy - previousPositionSS);
 
 #ifdef KILL_MICRO_MOVEMENT
     motionVec.x = abs(motionVec.x) < MICRO_MOVEMENT_THRESHOLD.x ? 0 : motionVec.x;
@@ -31,6 +29,12 @@ float2 CalculateMotionVector(float4 positionCS, float4 previousPositionCS)
 #else
     return float2(0.0, 0.0);
 #endif
+}
+
+// Calculate motion vector in Clip space [-1..1]
+float2 CalculateMotionVector(float4 positionCS, float4 previousPositionCS)
+{
+    return CalculateMotionVector(positionCS, previousPositionCS.xy / previousPositionCS.w);
 }
 
 // For builtinData we want to allow the user to overwrite default GI in the surface shader / shader graph.

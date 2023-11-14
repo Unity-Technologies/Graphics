@@ -15,7 +15,10 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent lineRenderingGroup { get; } = EditorGUIUtility.TrTextContent("Group");
             public static GUIContent lineRenderingLODMode { get; } = EditorGUIUtility.TrTextContent("LOD Mode");
             public static GUIContent lineRenderingLODFixed { get; } = EditorGUIUtility.TrTextContent("Fixed LOD");
-            public static GUIContent lineRenderingLODCurve { get; } = EditorGUIUtility.TrTextContent("Camera Distance LOD");
+
+            public static GUIContent lineRenderingCameraDistanceLODCurve { get; } = EditorGUIUtility.TrTextContent("Camera Distance LOD");
+
+            public static GUIContent lineRenderingScreenCoverageLODCurve { get; } = EditorGUIUtility.TrTextContent("Screen Coverage LOD");
             public static GUIContent lineRenderingShadingSampleFraction { get; } = EditorGUIUtility.TrTextContent("Shading Fraction");
         }
 
@@ -85,10 +88,18 @@ namespace UnityEditor.Rendering.HighDefinition
                     {
                         using (new EditorGUI.IndentLevelScope())
                         {
-                            if (serialized.rendererLODMode.enumValueIndex == (int)LineRendering.RendererLODMode.Fixed)
-                                EditorGUILayout.PropertyField(serialized.rendererLODFixed, Styles.lineRenderingLODFixed);
-                            else
-                                EditorGUILayout.PropertyField(serialized.rendererLODCameraDistanceCurve, Styles.lineRenderingLODCurve);
+                            switch (serialized.rendererLODMode.enumValueIndex)
+                            {
+                                case (int)LineRendering.RendererLODMode.Fixed:
+                                    EditorGUILayout.PropertyField(serialized.rendererLODFixed, Styles.lineRenderingLODFixed);
+                                    break;
+                                case (int)LineRendering.RendererLODMode.CameraDistance:
+                                    EditorGUILayout.PropertyField(serialized.rendererLODCameraDistanceCurve, Styles.lineRenderingCameraDistanceLODCurve);
+                                    break;
+                                case (int)LineRendering.RendererLODMode.ScreenCoverage:
+                                    EditorGUILayout.PropertyField(serialized.rendererLODScreenCoverageCurve, Styles.lineRenderingScreenCoverageLODCurve);
+                                    break;
+                            }
                         }
                     }
 
