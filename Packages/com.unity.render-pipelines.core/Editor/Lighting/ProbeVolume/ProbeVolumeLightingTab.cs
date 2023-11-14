@@ -959,9 +959,16 @@ namespace UnityEngine.Rendering
             }
 
             bool createPV = m_SingleSceneMode ? !ActiveSceneHasProbeVolume() : NoSceneHasProbeVolume();
-            if (createPV && EditorUtility.DisplayDialog("No Probe Volume in Scene", "Probe Volumes are enabled for this Project, but none exist in the Scene.\n\n" +
+            if (createPV)
+            {
+                if(!activeSet.DialogNoProbeVolumeInSetShown())
+                {
+                    if(EditorUtility.DisplayDialog("No Probe Volume in Scene", "Probe Volumes are enabled for this Project, but none exist in the Scene.\n\n" +
                         "Do you wish to add a Probe Volume to the Active Scene?", "Yes", "No"))
-                CreateProbeVolume();
+                        CreateProbeVolume();
+                    activeSet.SetDialogNoProbeVolumeInSetShown(true);
+                }
+            }
             if (m_SingleSceneMode)
             {
                 if (GetFirstProbeVolumeInNonActiveScene() != null)

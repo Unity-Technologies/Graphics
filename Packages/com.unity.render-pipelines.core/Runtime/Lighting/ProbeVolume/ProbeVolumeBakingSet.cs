@@ -73,6 +73,7 @@ namespace UnityEngine.Rendering
 
         // Baking Set Data
         [SerializeField] internal bool singleSceneMode = true;
+        [SerializeField] internal bool dialogNoProbeVolumeInSetShown = false;
         [SerializeField] internal ProbeVolumeBakingProcessSettings settings;
 
         [SerializeField] private List<string> m_SceneGUIDs = new List<string>();
@@ -1136,6 +1137,16 @@ namespace UnityEngine.Rendering
                 AssetDatabase.CreateFolder(sceneDir, sceneName);
 
             return assetPath;
+        }
+
+        public bool DialogNoProbeVolumeInSetShown()
+        {
+            return dialogNoProbeVolumeInSetShown;
+        }
+
+        public void SetDialogNoProbeVolumeInSetShown(bool value)
+        {
+            dialogNoProbeVolumeInSetShown = value;
         }
 #endif
     }
