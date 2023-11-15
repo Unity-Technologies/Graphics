@@ -38,11 +38,6 @@
 #define USE_DEPTH_BUFFER        1 // Accounts for opaque geometry along the camera ray
 #define SAMPLE_PROBE_VOLUMES    1 && (defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2))
 
-// Filter out lights that are not meant to be affecting volumetric once per thread rather than per voxel. This has the downside that it limits the max processable lights to MAX_SUPPORTED_LIGHTS
-// which might be lower than the max number of lights that might be in the big tile.
-#define PRE_FILTER_LIGHT_LIST   1 && defined(USE_BIG_TILE_LIGHTLIST)
-
-
 #define SHADOW_DATA_NOT_GUARANTEED_SCALAR // We are not looping over shadows in a scalarized fashion. If we will at some point, remove this define.
 
 //--------------------------------------------------------------------------------------------------
@@ -88,18 +83,6 @@ StructuredBuffer<float4> _VolumetricAmbientProbeBuffer;
 //--------------------------------------------------------------------------------------------------
 // Implementation
 //--------------------------------------------------------------------------------------------------
-
-#if PRE_FILTER_LIGHT_LIST
-
-#if MAX_NR_BIG_TILE_LIGHTS_PLUS_ONE > 48
-#define MAX_SUPPORTED_LIGHTS 48
-#else
-#define MAX_SUPPORTED_LIGHTS MAX_NR_BIG_TILE_LIGHTS_PLUS_ONE
-#endif
-
-groupshared int gs_localLightList[GROUP_SIZE_1D*GROUP_SIZE_1D][MAX_SUPPORTED_LIGHTS];
-
-#endif
 
 // Ambient probe for volumetric contains a convolution with Cornette Shank phase function so it needs to sample a different buffer.
 real3 EvaluateVolumetricAmbientProbe(real3 normalWS)
@@ -300,13 +283,8 @@ VoxelLighting EvaluateVoxelLightingLocal(LightLoopContext context, uint groupIdx
         // This loop does not process box lights.
         for (; lightOffset < lightCount; lightOffset++)
         {
-#if PRE_FILTER_LIGHT_LIST
-            uint lightIndex = gs_localLightList[groupIdx][lightOffset];
-#else
             uint lightIndex = FetchIndex(lightStart, lightOffset);
-#endif
             LightData light = _LightDatas[lightIndex];
-
 
             if (light.lightType >= GPULIGHTTYPE_PROJECTOR_BOX) { break; }
 
@@ -314,7 +292,7 @@ VoxelLighting EvaluateVoxelLightingLocal(LightLoopContext context, uint groupIdx
             light.contactShadowMask  = 0;
             light.shadowDimmer       = light.volumetricShadowDimmer;
 
-            bool sampleLight = (light.volumetricLightDimmer > 0);
+            bool sampleLight = true;
 
             float tEntr = t0;
             float tExit = t1;
@@ -340,7 +318,7 @@ VoxelLighting EvaluateVoxelLightingLocal(LightLoopContext context, uint groupIdx
                 float3 coneAxisX = lenMul * light.right;
                 float3 coneAxisY = lenMul * light.up;
 
-                sampleLight = sampleLight && IntersectRayCone(ray.originWS, ray.jitterDirWS,
+                sampleLight = IntersectRayCone(ray.originWS, ray.jitterDirWS,
                                                               light.positionRWS, light.forward,
                                                               coneAxisX, coneAxisY,
                                                               t0, t1, tEntr, tExit);
@@ -407,11 +385,7 @@ VoxelLighting EvaluateVoxelLightingLocal(LightLoopContext context, uint groupIdx
         // This loop only processes box lights.
         for (; lightOffset < lightCount; lightOffset++)
         {
-#if PRE_FILTER_LIGHT_LIST
-            uint lightIndex = gs_localLightList[groupIdx][lightOffset];
-#else
             uint lightIndex = FetchIndex(lightStart, lightOffset);
-#endif
             LightData light = _LightDatas[lightIndex];
 
             if (light.lightType != GPULIGHTTYPE_PROJECTOR_BOX) { break; }
@@ -420,7 +394,7 @@ VoxelLighting EvaluateVoxelLightingLocal(LightLoopContext context, uint groupIdx
             light.contactShadowMask  = 0;
             light.shadowDimmer       = light.volumetricShadowDimmer;
 
-            bool sampleLight = (light.volumetricLightDimmer > 0);
+            bool sampleLight = true;
 
             // Convert the box light from OBB to AABB.
             // 'light.right' and 'light.up' vectors are pre-scaled on the CPU by (2/w) and (2/h).
@@ -433,7 +407,7 @@ VoxelLighting EvaluateVoxelLightingLocal(LightLoopContext context, uint groupIdx
             float3 boxPt1 = float3( 1,  1, light.range);
 
             float tEntr, tExit;
-            sampleLight = sampleLight && IntersectRayAABB(o, d, boxPt0, boxPt1, t0, t1, tEntr, tExit);
+            sampleLight = IntersectRayAABB(o, d, boxPt0, boxPt1, t0, t1, tEntr, tExit);
 
             // Is it worth evaluating the light?
             if (sampleLight)
@@ -536,43 +510,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
     // Offset for stereo rendering
     tileIndex += unity_StereoEyeIndex * _NumTileBigTileX * _NumTileBigTileY;
 
-    // The "big tile" list contains the number of objects contained within the tile followed by the
-    // list of object indices. Note that while objects are already sorted by type, we don't know the
-    // number of each type of objects (e.g. lights), so we should remember to break out of the loop.
-    lightCount = g_vBigTileLightList[MAX_NR_BIG_TILE_LIGHTS_PLUS_ONE * tileIndex];
-    // On Metal for unknow reasons it seems we have bad value sometimes causing freeze / crash. This min here prevent it.
-    lightCount = min(lightCount, MAX_NR_BIG_TILE_LIGHTS_PLUS_ONE);
-    lightStart = MAX_NR_BIG_TILE_LIGHTS_PLUS_ONE * tileIndex + 1;
-
-    // For now, iterate through all the objects to determine the correct range.
-    // TODO: precompute this, of course.
-    {
-        uint offset = 0;
-
-        int validLightCount = 0;
-
-        for (; offset < lightCount; offset++)
-        {
-            uint objectIndex = FetchIndex(lightStart, offset);
-#if PRE_FILTER_LIGHT_LIST
-            if (validLightCount < MAX_SUPPORTED_LIGHTS && objectIndex < _EnvLightIndexShift)
-            {
-                LightData light = _LightDatas[objectIndex];
-                if (light.volumetricLightDimmer > 0)
-                    gs_localLightList[groupIdx][validLightCount++] = objectIndex;
-            }
-#else
-            validLightCount++;
-#endif
-            if (objectIndex >= _EnvLightIndexShift)
-            {
-                // We have found the last local analytical light.
-                break;
-            }
-        }
-
-        lightCount = validLightCount;
-    }
+    GetBigTileLightCountAndStart(tileIndex, lightCount, lightStart);
 
 #else  // USE_BIG_TILE_LIGHTLIST
 

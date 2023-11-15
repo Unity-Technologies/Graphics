@@ -200,7 +200,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     volumetricDensityBuffer = FogVolumeAndVFXVoxelizationPass(m_RenderGraph, hdCamera, volumetricDensityBuffer, m_VisibleVolumeBoundsBuffer, cullingResults);
 
-                    var volumetricLighting = VolumetricLightingPass(m_RenderGraph, hdCamera, prepassOutput.depthPyramidTexture, volumetricDensityBuffer, maxZMask, gpuLightListOutput.bigTileLightList, shadowResult);
+                    var volumetricLighting = VolumetricLightingPass(m_RenderGraph, hdCamera, prepassOutput.depthPyramidTexture, volumetricDensityBuffer, maxZMask, gpuLightListOutput.bigTileVolumetricLightList, shadowResult);
 
                     var deferredLightingOutput = RenderDeferredLighting(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, prepassOutput.depthPyramidTexture, lightingBuffers, prepassOutput.gbuffer, shadowResult, gpuLightListOutput);
 

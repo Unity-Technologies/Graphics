@@ -1260,11 +1260,11 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle maxZBuffer;
             public TextureHandle historyBuffer;
             public TextureHandle feedbackBuffer;
-            public BufferHandle bigTileLightListBuffer;
+            public BufferHandle bigTileVolumetricLightListBuffer;
             public GraphicsBuffer volumetricAmbientProbeBuffer;
         }
 
-        TextureHandle VolumetricLightingPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthTexture, TextureHandle densityBuffer, TextureHandle maxZBuffer, BufferHandle bigTileLightListBuffer, ShadowResult shadowResult)
+        TextureHandle VolumetricLightingPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthTexture, TextureHandle densityBuffer, TextureHandle maxZBuffer, BufferHandle bigTileVolumetricLightListBuffer, ShadowResult shadowResult)
         {
             if (Fog.IsVolumetricFogEnabled(hdCamera))
             {
@@ -1315,7 +1315,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.lightListCB = m_ShaderVariablesLightListCB;
 
                     if (passData.tiledLighting)
-                        passData.bigTileLightListBuffer = builder.ReadBuffer(bigTileLightListBuffer);
+                        passData.bigTileVolumetricLightListBuffer = builder.ReadBuffer(bigTileVolumetricLightListBuffer);
                     passData.densityBuffer = builder.ReadTexture(densityBuffer);
                     passData.depthTexture = builder.ReadTexture(depthTexture);
                     passData.maxZBuffer = builder.ReadTexture(maxZBuffer);
@@ -1344,7 +1344,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         (VolumetricLightingPassData data, RenderGraphContext ctx) =>
                         {
                             if (data.tiledLighting)
-                                ctx.cmd.SetComputeBufferParam(data.volumetricLightingCS, data.volumetricLightingKernel, HDShaderIDs.g_vBigTileLightList, data.bigTileLightListBuffer);
+                                ctx.cmd.SetComputeBufferParam(data.volumetricLightingCS, data.volumetricLightingKernel, HDShaderIDs.g_vBigTileLightList, data.bigTileVolumetricLightListBuffer);
 
                             ctx.cmd.SetComputeTextureParam(data.volumetricLightingCS, data.volumetricLightingKernel, HDShaderIDs._MaxZMaskTexture, data.maxZBuffer);  // Read
 

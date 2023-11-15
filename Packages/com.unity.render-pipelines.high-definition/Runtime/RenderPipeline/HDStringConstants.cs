@@ -172,6 +172,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int g_vLayeredLightList = Shader.PropertyToID("g_vLayeredLightList");
         public static readonly int g_LayeredOffset = Shader.PropertyToID("g_LayeredOffset");
         public static readonly int g_vBigTileLightList = Shader.PropertyToID("g_vBigTileLightList");
+        public static readonly int g_vVolumetricLightList = Shader.PropertyToID("g_vVolumetricLightList");
         public static readonly int g_vLightListGlobal = Shader.PropertyToID("g_vLightListGlobal");
         public static readonly int g_vLightListTile = Shader.PropertyToID("g_vLightListTile");
         public static readonly int g_vLightListCluster = Shader.PropertyToID("g_vLightListCluster");

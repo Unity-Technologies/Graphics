@@ -89,7 +89,7 @@ struct LightVolumeData
     float3 boxInnerDist;
     uint featureFlags;
     float3 boxInvRange;
-    float unused2;
+    int affectVolumetric;
 };
 
 // Generated from UnityEngine.Rendering.HighDefinition.SFiniteLightBound
@@ -168,9 +168,9 @@ float3 GetBoxInvRange(LightVolumeData value)
 {
     return value.boxInvRange;
 }
-float GetUnused2(LightVolumeData value)
+int GetAffectVolumetric(LightVolumeData value)
 {
-    return value.unused2;
+    return value.affectVolumetric;
 }
 //
 // Accessors for UnityEngine.Rendering.HighDefinition.SFiniteLightBound

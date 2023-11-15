@@ -399,6 +399,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 lightVolumeData.lightCategory = (uint)lightCategory;
                 lightVolumeData.lightVolume = (uint)lightVolumeType;
+                lightVolumeData.affectVolumetric = lightData.volumetricLightDimmer > 0.0f ? 1 : 0;
 
                 if (gpuLightType == GPULightType.Spot || gpuLightType == GPULightType.ProjectorPyramid)
                 {
