@@ -22,3 +22,9 @@ The HDRP Default Volume defines the default values for the Default layer and all
 ## Light Baking
 
 From version 16, baked probe volumes and lightmaps that contain lights that use the **Mixed** mode take the **Intensity multiplier** property into account.
+
+## Volume Framework
+
+When you create a custom Volume component class that overrides the `VolumeComponent.Override(VolumeComponent state, float interpFactor)` method, your implementation must set the `VolumeParameter.overrideState` property to `true` whenever the `VolumeParameter` value is changed. This ensures that the Volume framework resets the parameters to their correct default values. This lets the framework to use fewer resources every frame which improves performance.
+
+For an example, refer to the [Override(VolumeComponent, float)](xref:UnityEngine.Rendering.VolumeParameter.overrideState) description.
