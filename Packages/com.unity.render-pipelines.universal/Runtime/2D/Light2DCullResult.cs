@@ -7,6 +7,7 @@ namespace UnityEngine.Rendering.Universal
     internal struct LightStats
     {
         public int totalLights;
+        public int totalShadowLights;
         public int totalShadows;
         public int totalNormalMapUsage;
         public int totalVolumetricUsage;
@@ -14,6 +15,7 @@ namespace UnityEngine.Rendering.Universal
         public uint blendStylesUsed;
         public uint blendStylesWithLights;
 
+        public bool useAnyLights { get { return totalLights + totalShadowLights > 0; } }
         public bool useLights { get { return totalLights > 0; } }
         public bool useShadows { get { return totalShadows > 0; } }
         public bool useVolumetricLights { get { return totalVolumetricUsage > 0; } }
@@ -69,7 +71,6 @@ namespace UnityEngine.Rendering.Universal
                 if (!light.IsLitLayer(layerID))
                     continue;
 
-                returnStats.totalLights++;
                 if (light.normalMapQuality != Light2D.NormalMapQuality.Disabled)
                     returnStats.totalNormalMapUsage++;
                 if (light.volumeIntensity > 0 && light.volumetricEnabled)
@@ -82,7 +83,7 @@ namespace UnityEngine.Rendering.Universal
                     returnStats.blendStylesWithLights |= (uint)(1 << light.blendStyleIndex);
 
                 // Check if layer has shadows
-                bool isLit = false;
+                bool isShadowed = false;
                 if (RendererLighting.CanCastShadows(light, layerID))
                 {
                     foreach (var group in visibleShadows)
@@ -94,7 +95,7 @@ namespace UnityEngine.Rendering.Universal
                             {
                                 if (shadowCaster.IsLit(light) && shadowCaster.IsShadowedLayer(layerID))
                                 {
-                                    isLit = true;
+                                    isShadowed = true;
                                     returnStats.totalShadows++;
 
                                     if (!layer.shadowCasters.Contains(group))
@@ -105,10 +106,16 @@ namespace UnityEngine.Rendering.Universal
                     }
                 }
 
-                if (isLit)
+                if (isShadowed)
+                {
+                    returnStats.totalShadowLights++;
                     layer.shadowLights.Add(light);
+                }
                 else
+                {
+                    returnStats.totalLights++;
                     layer.lights.Add(light);
+                }
             }
 
             return returnStats;

@@ -242,7 +242,7 @@ namespace UnityEngine.Rendering.Universal
                         // This is a local copy of the array element (it's a struct). Remember to add a ref here if you need to modify the real thing.
                         var layerBatch = layerBatches[i];
 
-                        if (layerBatch.lightStats.totalLights > 0)
+                        if (layerBatch.lightStats.useAnyLights)
                         {
                             for (var blendStyleIndex = 0; blendStyleIndex < blendStylesCount; blendStyleIndex++)
                             {

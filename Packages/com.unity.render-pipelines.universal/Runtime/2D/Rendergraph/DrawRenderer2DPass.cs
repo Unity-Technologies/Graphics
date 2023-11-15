@@ -100,7 +100,7 @@ namespace UnityEngine.Rendering.Universal
                 passData.blendStyleIndices = layerBatch.activeBlendStylesIndices;
                 passData.hdrEmulationScale = rendererData.hdrEmulationScale;
                 passData.isSceneLit = rendererData.lightCullResult.IsSceneLit();
-                passData.layerUseLights = layerBatch.lightStats.useLights;
+                passData.layerUseLights = layerBatch.lightStats.useAnyLights;
 
 #if UNITY_EDITOR
                 passData.isLitView = true;
@@ -123,7 +123,7 @@ namespace UnityEngine.Rendering.Universal
                 passData.rendererList = graph.CreateRendererList(param);
                 builder.UseRendererList(passData.rendererList);
 
-                if (layerBatch.lightStats.useLights)
+                if (passData.layerUseLights)
                 {
                     passData.lightTextures = universal2DResourceData.lightTextures[batchIndex];
                     for (var i = 0; i < passData.lightTextures.Length; i++)
