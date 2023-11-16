@@ -145,13 +145,3 @@ MonoBehaviour:
     StereoModes: 0
     Reason: https://jira.unity3d.com/browse/UUM-12033  (Motion vectors broken ==
       TAA is broken)
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 809a83a0529a18940a9676977eea69c4, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 38
-    GraphicsDevice: 4
-    XrSdk: 
-    StereoModes: 0
-    Reason: Depth write appears to be missing in the test output on switch for unknown
-      reasons
