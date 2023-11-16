@@ -1,9 +1,9 @@
 /* Light theme colors */
 :root {
-    --resource-read-color: #14D368;
-    --resource-write-color: #B10C0C;
-    --merged-pass-accent-color: #0F49BD;
-    --native-pass-accent-color: #4B88AC;
+    --resource-read-color: #679C33; /* keep in sync with kReadWriteBlockFillColorLight */
+    --resource-write-color: #A83645;
+    --merged-pass-accent-color: #475F78;
+    --native-pass-accent-color: #475F78;
     --native-pass-accent-compatible-color: #62B0DE;
     --pass-block-color--async: #C99700;
     --pass-block-border-color: var(--unity-colors-highlight-background-hover-lighter);
@@ -12,5 +12,51 @@
     --pass-block-color--culled: rgb(30, 30, 30);
     --grid-line-color: var(--unity-colors-app_toolbar_button-background-hover);
     --grid-line-color--hover: white;
-    --usage-range-color: rgb(120, 120, 120);
+    --resource-helper-line-color: #b0b0b0;
+    --resource-helper-line-color--hover: white;
+    --usage-range-color: #979797;
+}
+
+#capture-button {
+    background-image: url("../Icons/RenderGraphViewer/Refresh@2x.png");
+}
+
+#capture-button:hover {
+    background-color: #BBBBBB;
+}
+
+#capture-button:active {
+    background-color: #656565;
+}
+
+.resource-icon--imported {
+    background-image: url("../Icons/RenderGraphViewer/Import@2x.png");
+}
+
+.resource-icon--global-dark {
+    background-image: url("../Icons/RenderGraphViewer/Global@2x.png");
+}
+
+.resource-icon--global-light {
+    background-image: url("../Icons/RenderGraphViewer/d_Global@2x.png");
+}
+
+.resource-icon--texture {
+    background-image: url("../Icons/RenderGraphViewer/Texture@2x.png");
+}
+
+.resource-icon--buffer {
+    background-image: url("../Icons/RenderGraphViewer/Buffer@2x.png");
+}
+
+.resource-icon--acceleration-structure {
+    background-image: url("../Icons/RenderGraphViewer/AccelerationStructure@2x.png");
+}
+
+.resource-icon--fbfetch {
+    background-image: url("../Icons/RenderGraphViewer/d_FramebufferFetch@2x.png");
+}
+
+.resource-helper-line--highlight {
+    background-size: 8px 20px; /* light theme needs a wider dashed line to be properly visible */
 }

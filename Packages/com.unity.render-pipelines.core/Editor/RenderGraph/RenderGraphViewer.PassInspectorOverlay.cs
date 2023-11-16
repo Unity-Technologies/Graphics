@@ -7,6 +7,7 @@ namespace UnityEditor.Rendering
 {
     public partial class RenderGraphViewer
     {
+        [Icon("Packages/com.unity.render-pipelines.core/Editor/Icons/Processed/PassInspector Icon.asset")]
         [Overlay(typeof(RenderGraphViewer), ViewId, "Pass Inspector", defaultLayout = Layout.Panel,
             defaultDockZone = DockZone.RightColumn, defaultDockPosition = DockPosition.Bottom)]
         class PassInspectorOverlay : OverlayBase, ITransientOverlay
@@ -37,6 +38,11 @@ namespace UnityEditor.Rendering
                     var visualTreeAsset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(k_TemplatePath);
                     root = visualTreeAsset.Instantiate();
                     SetDisplayState(DisplayState.Empty);
+
+                    var themeStyleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>(EditorGUIUtility.isProSkin
+                        ? k_DarkStylePath
+                        : k_LightStylePath);
+                    root.styleSheets.Add(themeStyleSheet);
                 }
 
                 return root;

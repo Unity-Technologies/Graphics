@@ -86,7 +86,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                     public NativeRenderPassInfo nativePassInfo;
 
                     // List of ResourceHandle.index's for each texture resource that is accessed using framebuffer fetch.
-                    public List<int> textureFBFetchList;
+                    public List<int> textureFBFetchList = new();
+
+                    // List of ResourceHandle.index's for each texture resource that this pass called PostSetGlobalTexture() for.
+                    public List<int> setGlobals = new();
 
                     // Fragment info
                     public int width;

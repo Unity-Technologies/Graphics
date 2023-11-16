@@ -7,6 +7,7 @@ namespace UnityEditor.Rendering
 {
     public partial class RenderGraphViewer
     {
+        [Icon("Packages/com.unity.render-pipelines.core/Editor/Icons/Processed/Resources Icon.asset")]
         [Overlay(typeof(RenderGraphViewer), ViewId, "Resources", defaultLayout = Layout.Panel,
             defaultDockZone = DockZone.LeftColumn, defaultDockPosition = DockPosition.Bottom)]
         class ResourcesOverlay : OverlayBase, ITransientOverlay
@@ -19,6 +20,9 @@ namespace UnityEditor.Rendering
             static class Classes
             {
                 public const string kResourceListItem = "resource-list__item";
+                public const string kResourceIconContainer = "resource-icon-container";
+                public const string kResourceIconImported = "resource-icon--imported";
+                public const string kResourceIconGlobal = "resource-icon--global";
                 public const string kResourceLineBreak = "resource-line-break";
                 public const string kImportedResource = "imported-resource";
                 public const string kResourceSelectionAnimation = "resource-list__item--selection-animation";
@@ -37,6 +41,11 @@ namespace UnityEditor.Rendering
                     var visualTreeAsset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(k_TemplatePath);
                     root = visualTreeAsset.Instantiate();
                     SetDisplayState(DisplayState.Empty);
+
+                    var themeStyleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>(EditorGUIUtility.isProSkin
+                            ? k_DarkStylePath
+                            : k_LightStylePath);
+                    root.styleSheets.Add(themeStyleSheet);
                 }
 
                 if (m_Content != null)
@@ -63,7 +72,7 @@ namespace UnityEditor.Rendering
                 for (int type = 0; type < viewer.m_CurrentDebugData.resourceLists.Length; type++)
                 {
                     var resourceTypeFoldout = new Foldout();
-                    resourceTypeFoldout.text = k_ResourceNames[type];
+                    resourceTypeFoldout.text = $"{k_ResourceNames[type]}s";
 
                     var resources = viewer.m_CurrentDebugData.resourceLists[type];
                     for (int i = 0; i < resources.Count; i++)
@@ -79,6 +88,16 @@ namespace UnityEditor.Rendering
                         resourceItem.userData = resourceItemIndex;
                         resourceItem.AddToClassList(Classes.kResourceListItem);
                         resourceItemIndex++;
+
+                        var iconContainer = new VisualElement();
+                        iconContainer.AddToClassList(Classes.kResourceIconContainer);
+
+                        var importedIcon = new VisualElement();
+                        importedIcon.AddToClassList(Classes.kResourceIconImported);
+                        importedIcon.tooltip = "Imported resource";
+                        importedIcon.style.display = res.imported ? DisplayStyle.Flex : DisplayStyle.None;
+                        iconContainer.Add(importedIcon);
+                        resourceItem.Q<Toggle>().Add(iconContainer);
 
                         if ((RenderGraphResourceType) type == RenderGraphResourceType.Texture)
                         {

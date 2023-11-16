@@ -62,3 +62,8 @@ ScrollView .sub-header-text {
     margin-bottom: 4px;
 }
 
+.unity-foldout__text {
+    color: var(--unity-colors-default-text);
+}
+
+

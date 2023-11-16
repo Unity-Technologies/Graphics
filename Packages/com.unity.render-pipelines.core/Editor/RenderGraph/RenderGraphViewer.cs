@@ -17,13 +17,11 @@ namespace UnityEditor.Rendering
     {
         static class Names
         {
-            public const string kHeaderContainer = "header-container";
             public const string kCaptureButton = "capture-button";
             public const string kCurrentGraphDropdown = "current-graph-dropdown";
             public const string kCurrentExecutionDropdown = "current-execution-dropdown";
             public const string kPassFilterField = "pass-filter-field";
             public const string kResourceFilterField = "resource-filter-field";
-
             public const string kContentContainer = "content-container";
             public const string kPassList = "pass-list";
             public const string kPassListScrollView = "pass-list-scroll-view";
@@ -31,15 +29,14 @@ namespace UnityEditor.Rendering
             public const string kResourceGridScrollView = "resource-grid-scroll-view";
             public const string kResourceGrid = "resource-grid";
             public const string kGridlineContainer = "grid-line-container";
-
             public const string kHoverOverlay = "hover-overlay";
-
             public const string kEmptyStateMessage = "empty-state-message";
         }
 
         static class Classes
         {
             public const string kPassListItem = "pass-list__item";
+            public const string kPassListPaddingItem = "pass-list-padding-item";
             public const string kPassTitle = "pass-title";
             public const string kPassBlock = "pass-block";
             public const string kPassBlockCulledPass = "pass-block--culled";
@@ -58,16 +55,26 @@ namespace UnityEditor.Rendering
             public const string kPassSynchronizationMessageIndicator = "pass-synchronization-message-indicator";
             public const string kResourceListItem = "resource-list__item";
             public const string kResourceListItemHighlight = "resource-list__item--highlight";
+            public const string kResourceListPaddingItem = "resource-list-padding-item";
+            public const string kResourceIconContainer = "resource-icon-container";
+            public const string kResourceIcon = "resource-icon";
+            public const string kResourceIconImported = "resource-icon--imported";
+            public const string kResourceIconGlobalDark = "resource-icon--global-dark";
+            public const string kResourceIconGlobalLight = "resource-icon--global-light";
+            public const string kResourceIconFbfetch = "resource-icon--fbfetch";
+            public const string kResourceIconTexture = "resource-icon--texture";
+            public const string kResourceIconBuffer = "resource-icon--buffer";
+            public const string kResourceIconAccelerationStructure = "resource-icon--acceleration-structure";
             public const string kResourceGridRow = "resource-grid__row";
             public const string kResourceGridFocusOverlay = "resource-grid-focus-overlay";
             public const string kResourceHelperLine = "resource-helper-line";
+            public const string kResourceHelperLineHighlight = "resource-helper-line--highlight";
             public const string kResourceUsageRangeBlock = "usage-range-block";
             public const string kResourceUsageRangeBlockHighlight = "usage-range-block--highlight";
             public const string kResourceDependencyBlock = "dependency-block";
             public const string kResourceDependencyBlockRead = "dependency-block-read";
             public const string kResourceDependencyBlockWrite = "dependency-block-write";
             public const string kResourceDependencyBlockReadWrite = "dependency-block-readwrite";
-            public const string kResourceDependencyBlockFBFetchText = "dependency-block-fb-fetch-text";
             public const string kGridLine = "grid-line";
             public const string kGridLineHighlight = "grid-line--highlight";
         }
@@ -83,13 +90,15 @@ namespace UnityEditor.Rendering
         // keep in sync with .uss
         const int kPassWidthPx = 26;
         const int kResourceRowHeightPx = 30;
-        const int kResourceColumnWidthPx = 180;
+        const int kResourceColumnWidth = 220;
+        const int kResourceIconSize = 16;
         const int kResourceGridMarginTopPx = 6;
         const int kDependencyBlockHeightPx = 26;
         const int kDependencyBlockWidthPx = kPassWidthPx;
+        const int kPassTitleAllowanceMargin = 120;
 
-        static readonly Color kReadWriteBlockFillColorDark = new Color32(0x00, 0x81, 0x26, 255);
-        static readonly Color kReadWriteBlockFillColorLight = new Color32(0x14, 0xD3, 0x68, 255);
+        static readonly Color kReadWriteBlockFillColorDark = new Color32(0xA9, 0xD1, 0x36, 255);
+        static readonly Color kReadWriteBlockFillColorLight = new Color32(0x67, 0x9C, 0x33, 255);
 
         readonly Dictionary<RenderGraph, HashSet<string>> m_RegisteredGraphs = new();
         RenderGraph.DebugData m_CurrentDebugData;
@@ -110,8 +119,9 @@ namespace UnityEditor.Rendering
         PassFilter m_PassFilter = PassFilter.CulledPasses | PassFilter.RasterPasses | PassFilter.LowLevelPasses | PassFilter.ComputePasses;
         PassFilterLegacy m_PassFilterLegacy = PassFilterLegacy.CulledPasses;
 
-        ResourceFilter m_ResourceFilter = ResourceFilter.ImportedResources | ResourceFilter.Textures |
-                                          ResourceFilter.Buffers | ResourceFilter.AccelerationStructures;
+        ResourceFilter m_ResourceFilter =
+            ResourceFilter.ImportedResources |  ResourceFilter.Textures |
+            ResourceFilter.Buffers | ResourceFilter.AccelerationStructures;
 
         enum EmptyStateReason
         {
@@ -167,7 +177,8 @@ namespace UnityEditor.Rendering
         class ResourceElementInfo
         {
             public VisualElement usageRangeBlock;
-            public VisualElement resourceTitle;
+            public VisualElement resourceListItem;
+            public VisualElement resourceHelperLine;
             public int firstPassId;
             public int lastPassId;
         }
@@ -180,6 +191,7 @@ namespace UnityEditor.Rendering
             public bool read;
             public bool write;
             public bool frameBufferFetch;
+            public bool setGlobalResource;
         }
 
         class PassElementInfo
@@ -299,15 +311,16 @@ namespace UnityEditor.Rendering
         enum ResourceHighlightOptions
         {
             None = 1 << 0,
-            ResourceTitle = 1 << 1,
+            ResourceListItem = 1 << 1,
             ResourceUsageRangeBorder = 1 << 2,
+            ResourceHelperLine = 1 << 3,
 
-            All = ResourceTitle | ResourceUsageRangeBorder
+            All = ResourceListItem | ResourceUsageRangeBorder | ResourceHelperLine
         }
 
         void ClearResourceHighlight(ResourceHighlightOptions highlightOptions = ResourceHighlightOptions.All)
         {
-            if (highlightOptions.HasFlag(ResourceHighlightOptions.ResourceTitle))
+            if (highlightOptions.HasFlag(ResourceHighlightOptions.ResourceListItem))
             {
                 rootVisualElement.Query(classes: Classes.kResourceListItem).ForEach(elem =>
                 {
@@ -316,25 +329,45 @@ namespace UnityEditor.Rendering
             }
 
             if (highlightOptions.HasFlag(ResourceHighlightOptions.ResourceUsageRangeBorder))
-                rootVisualElement.Q(classes: Classes.kResourceUsageRangeBlockHighlight)?.RemoveFromHierarchy();
+            {
+                rootVisualElement.Query(classes: Classes.kResourceUsageRangeBlockHighlight).ForEach(elem =>
+                {
+                    elem.RemoveFromHierarchy();
+                });
+            }
+
+            if (highlightOptions.HasFlag(ResourceHighlightOptions.ResourceHelperLine))
+            {
+                rootVisualElement.Query(classes: Classes.kResourceHelperLineHighlight).ForEach(elem =>
+                {
+                    elem.RemoveFromClassList(Classes.kResourceHelperLineHighlight);
+                });
+            }
         }
 
-        void SetResourceHighlight(ResourceElementInfo info, ResourceHighlightOptions highlightOptions)
+        void SetResourceHighlight(ResourceElementInfo info, int visibleResourceIndex, ResourceHighlightOptions highlightOptions)
         {
-            if (highlightOptions.HasFlag(ResourceHighlightOptions.ResourceTitle))
+            if (highlightOptions.HasFlag(ResourceHighlightOptions.ResourceListItem))
             {
-                info.resourceTitle.AddToClassList(Classes.kResourceListItemHighlight);
+                info.resourceListItem.AddToClassList(Classes.kResourceListItemHighlight);
             }
 
             if (highlightOptions.HasFlag(ResourceHighlightOptions.ResourceUsageRangeBorder))
             {
                 var usageRangeHighlightBlock = new VisualElement();
-                usageRangeHighlightBlock.style.left = -1;
-                usageRangeHighlightBlock.style.top = -1;
-                usageRangeHighlightBlock.style.width = info.usageRangeBlock.style.width.value.value + 3.0f;
+                usageRangeHighlightBlock.style.left = info.usageRangeBlock.style.left.value.value - 1.0f;
+                usageRangeHighlightBlock.style.width = info.usageRangeBlock.style.width.value.value + 2.0f;
+                usageRangeHighlightBlock.style.top =  visibleResourceIndex * kResourceRowHeightPx;
                 usageRangeHighlightBlock.pickingMode = PickingMode.Ignore;
                 usageRangeHighlightBlock.AddToClassList(Classes.kResourceUsageRangeBlockHighlight);
-                info.usageRangeBlock.Add(usageRangeHighlightBlock);
+
+                rootVisualElement.Q<VisualElement>(Names.kResourceGrid).parent.Add(usageRangeHighlightBlock);
+                usageRangeHighlightBlock.PlaceInFront(rootVisualElement.Q<VisualElement>(Names.kGridlineContainer));
+            }
+
+            if (highlightOptions.HasFlag(ResourceHighlightOptions.ResourceHelperLine))
+            {
+                info.resourceHelperLine.AddToClassList(Classes.kResourceHelperLineHighlight);
             }
         }
 
@@ -584,7 +617,7 @@ namespace UnityEditor.Rendering
             if (m_CurrentHoveredVisibleResourceIndex != visibleResourceIndex ||
                 m_CurrentHoveredVisiblePassIndex != visiblePassIndex)
             {
-                var highlight = ResourceHighlightOptions.ResourceUsageRangeBorder;
+                var highlight = ResourceHighlightOptions.ResourceUsageRangeBorder | ResourceHighlightOptions.ResourceHelperLine;
                 if (m_CurrentHoveredVisibleResourceIndex >= 0 &&
                     m_CurrentHoveredVisibleResourceIndex < m_ResourceElementsInfo.Count)
                 {
@@ -598,9 +631,25 @@ namespace UnityEditor.Rendering
                     var info = m_ResourceElementsInfo[visibleResourceIndex];
                     if (m_VisiblePassIndexToPassId.TryGetValue(visiblePassIndex, out int passId))
                     {
+                        bool disablePanning = false;
+                        var passInfo = m_PassElementsInfo[visiblePassIndex];
+                        foreach (var res in passInfo.resourceBlocks)
+                        {
+                            if (res.visibleResourceIndex == visibleResourceIndex &&
+                                res.setGlobalResource)
+                            {
+                                disablePanning = true;
+                            }
+                        }
+
                         if (passId >= info.firstPassId && passId <= info.lastPassId)
                         {
-                            SetResourceHighlight(info, highlight);
+                            SetResourceHighlight(info, visibleResourceIndex, highlight);
+                            disablePanning = true;
+                        }
+
+                        if (disablePanning)
+                        {
                             rootVisualElement.Q(Names.kHoverOverlay)
                                 .RemoveFromClassList(PanManipulator.k_ContentPanClassName);
                             m_PanManipulator.canStartDragging = false;
@@ -669,23 +718,22 @@ namespace UnityEditor.Rendering
                 var passInfo = m_PassElementsInfo[m_CurrentHoveredVisiblePassIndex];
                 var resourceInfo = m_ResourceElementsInfo[m_CurrentHoveredVisibleResourceIndex];
                 var passId = m_VisiblePassIndexToPassId[m_CurrentHoveredVisiblePassIndex];
-                if (passId >= resourceInfo.firstPassId && passId <= resourceInfo.lastPassId)
-                {
-                    foreach (var rwBlock in passInfo.resourceBlocks)
-                    {
-                        if (rwBlock.visibleResourceIndex == m_CurrentHoveredVisibleResourceIndex)
-                        {
-                            evt.tooltip = rwBlock.tooltip;
-                            evt.rect = rwBlock.element.worldBound;
-                            break;
-                        }
-                    }
 
-                    if (evt.tooltip == string.Empty)
+                foreach (var rwBlock in passInfo.resourceBlocks)
+                {
+                    if (rwBlock.visibleResourceIndex == m_CurrentHoveredVisibleResourceIndex)
                     {
-                        evt.tooltip = "Resource is alive but not used by this pass.";
-                        evt.rect = resourceInfo.usageRangeBlock.worldBound;
+                        evt.tooltip = rwBlock.tooltip;
+                        evt.rect = rwBlock.element.worldBound;
+                        break;
                     }
+                }
+
+                if (evt.tooltip == string.Empty &&
+                    passId >= resourceInfo.firstPassId && passId <= resourceInfo.lastPassId)
+                {
+                    evt.tooltip = "Resource is alive but not used by this pass.";
+                    evt.rect = resourceInfo.usageRangeBlock.worldBound;
                 }
             }
 
@@ -806,6 +854,12 @@ namespace UnityEditor.Rendering
             RebuildGraphViewerUI();
         }
 
+        void OnResourceFilterChanged(ChangeEvent<Enum> evt)
+        {
+            m_ResourceFilter = (ResourceFilter) evt.newValue;
+            RebuildGraphViewerUI();
+        }
+
         void RebuildPassFilterUI()
         {
             var passFilter = rootVisualElement.Q<EnumFlagsField>(Names.kPassFilterField);
@@ -823,6 +877,15 @@ namespace UnityEditor.Rendering
                 passFilter.Init(m_PassFilterLegacy);
                 passFilter.RegisterCallback<ChangeEvent<Enum>>(OnPassFilterLegacyChanged);
             }
+        }
+
+        void RebuildResourceFilterUI()
+        {
+            var resourceFilter = rootVisualElement.Q<EnumFlagsField>(Names.kResourceFilterField);
+            resourceFilter.style.display = DisplayStyle.Flex;
+            resourceFilter.UnregisterCallback<ChangeEvent<Enum>>(OnResourceFilterChanged);
+            resourceFilter.Init(m_ResourceFilter);
+            resourceFilter.RegisterCallback<ChangeEvent<Enum>>(OnResourceFilterChanged);
         }
 
         void RebuildHeaderUI()
@@ -875,8 +938,10 @@ namespace UnityEditor.Rendering
 
         bool IsResourceVisible(RenderGraph.DebugData.ResourceData resource, RenderGraphResourceType type)
         {
+            // Unused resources are always hidden
             if (resource.releasePassIndex == -1 && resource.creationPassIndex == -1)
                 return false;
+
             if (resource.imported && !m_ResourceFilter.HasFlag(ResourceFilter.ImportedResources))
                 return false;
             if (type == RenderGraphResourceType.Texture && !m_ResourceFilter.HasFlag(ResourceFilter.Textures))
@@ -886,6 +951,7 @@ namespace UnityEditor.Rendering
             if (type == RenderGraphResourceType.AccelerationStructure &&
                 !m_ResourceFilter.HasFlag(ResourceFilter.AccelerationStructures))
                 return false;
+
             return true;
         }
 
@@ -915,7 +981,37 @@ namespace UnityEditor.Rendering
         }
 
         static readonly string[] k_ResourceNames =
-            { "Texture Resources", "Buffer Resources", "Acceleration Structure Resources" };
+            { "Texture Resource", "Buffer Resource", "Acceleration Structure Resource" };
+
+
+        // Pass title ellipsis must be generated manually because it can't be done right for rotated text using uss.
+        void TruncatePassTitle(GeometryChangedEvent evt)
+        {
+            const int MaxPassTitleLenghtPx = 180;
+
+            if (evt.target is Label label)
+            {
+                bool wasTruncated = false;
+                while (true)
+                {
+                    var rect = label.MeasureTextSize(label.text, 0, VisualElement.MeasureMode.Undefined, 0,
+                        VisualElement.MeasureMode.Undefined);
+
+                    if (float.IsNaN(rect.x))
+                        return; // layout not ready yet
+
+                    var needsTruncate = rect.x > MaxPassTitleLenghtPx;
+                    if (!needsTruncate)
+                        break;
+
+                    label.text = label.text.Remove(label.text.Length - 1, 1);
+                    wasTruncated = true;
+                }
+
+                if (wasTruncated)
+                    label.text += "...";
+            }
+        }
 
         VisualElement CreatePassListItem(int passId, RenderGraph.DebugData.PassData pass, int visiblePassIndex)
         {
@@ -923,7 +1019,9 @@ namespace UnityEditor.Rendering
             passListItem.AddToClassList(Classes.kPassListItem);
 
             var passTitle = new Label(pass.name);
+            passTitle.tooltip = pass.name;
             passTitle.AddToClassList(Classes.kPassTitle);
+            passTitle.RegisterCallback<GeometryChangedEvent>(TruncatePassTitle);
             passListItem.Add(passTitle);
 
             var passMergeIndicator = new VisualElement();
@@ -993,14 +1091,48 @@ namespace UnityEditor.Rendering
             return gridline;
         }
 
-        VisualElement CreateResourceTitle(RenderGraph.DebugData.ResourceData res)
+        VisualElement CreateResourceListItem(RenderGraph.DebugData.ResourceData res, RenderGraphResourceType type)
         {
-            var resourceTitle = new VisualElement();
+            var resourceListItem = new VisualElement();
+            resourceListItem.AddToClassList(Classes.kResourceListItem);
+
+            var resourceTitleContainer = new VisualElement();
+
+            var resourceTypeIcon = new VisualElement();
+            resourceTypeIcon.AddToClassList(Classes.kResourceIcon);
+            string className = type switch
+            {
+                RenderGraphResourceType.Texture => Classes.kResourceIconTexture,
+                RenderGraphResourceType.Buffer => Classes.kResourceIconBuffer,
+                RenderGraphResourceType.AccelerationStructure => Classes.kResourceIconAccelerationStructure,
+                _ => throw new ArgumentOutOfRangeException(nameof(type))
+            };
+            resourceTypeIcon.AddToClassList(className);
+            resourceTypeIcon.tooltip = k_ResourceNames[(int)type];
+            resourceTitleContainer.Add(resourceTypeIcon);
+
             var resourceLabel = new Label();
             resourceLabel.text = res.name;
-            resourceTitle.Add(resourceLabel);
-            resourceTitle.AddToClassList(Classes.kResourceListItem);
-            return resourceTitle;
+            resourceLabel.tooltip = res.name;
+            resourceTitleContainer.Add(resourceLabel);
+
+            var iconContainer = new VisualElement();
+            iconContainer.AddToClassList(Classes.kResourceIconContainer);
+
+            var importedIcon = new VisualElement();
+            importedIcon.AddToClassList(Classes.kResourceIcon);
+            importedIcon.AddToClassList(Classes.kResourceIconImported);
+            importedIcon.tooltip = "Imported resource";
+            importedIcon.style.visibility = res.imported ? Visibility.Visible : Visibility.Hidden;
+            iconContainer.Add(importedIcon);
+
+            int numIcons = 1 + iconContainer.childCount;
+            resourceLabel.style.maxWidth = kResourceColumnWidth - numIcons * kResourceIconSize - 4;
+
+            resourceListItem.Add(resourceTitleContainer);
+            resourceListItem.Add(iconContainer);
+
+            return resourceListItem;
         }
 
         int FindNextVisiblePassIndex(int passId)
@@ -1017,7 +1149,7 @@ namespace UnityEditor.Rendering
 
         void CreateRWResourceBlockElement(int offsetPx, ResourceRWBlock block)
         {
-            string accessType;
+            string accessType = null;
             if (block.read && block.write)
             {
                 var triangle = new TriangleElement();
@@ -1036,7 +1168,7 @@ namespace UnityEditor.Rendering
                     block.element.AddToClassList(Classes.kResourceDependencyBlockRead);
                     accessType = "Read";
                 }
-                else // write
+                else if (block.write)
                 {
                     block.element.AddToClassList(Classes.kResourceDependencyBlockWrite);
                     accessType = "Write";
@@ -1045,14 +1177,28 @@ namespace UnityEditor.Rendering
 
             if (block.frameBufferFetch)
             {
-                var textElement = new TextElement { text = "F" };
-                textElement.AddToClassList(Classes.kResourceDependencyBlockFBFetchText);
-                block.element.Add(textElement);
+                var fbFetchIcon = new VisualElement();
+                fbFetchIcon.AddToClassList(Classes.kResourceIcon);
+                fbFetchIcon.AddToClassList(Classes.kResourceIconFbfetch);
+                block.element.Add(fbFetchIcon);
+            }
+            else if (block.setGlobalResource)
+            {
+                var globalIcon = new VisualElement();
+                globalIcon.AddToClassList(Classes.kResourceIcon);
+                string globalIconAsset = block.read || block.write ? Classes.kResourceIconGlobalLight : Classes.kResourceIconGlobalDark;
+                globalIcon.AddToClassList(globalIconAsset);
+                block.element.Add(globalIcon);
             }
 
-            block.tooltip = $"<b>{accessType}</b> access to this resource.";
+            List<string> tooltipMessages = new List<string>(3);
+            if (accessType != null)
+                tooltipMessages.Add($"<b>{accessType}</b> access to this resource.");
             if (block.frameBufferFetch)
-                block.tooltip += "\n\nRead is using <b>framebuffer fetch</b>.";
+                tooltipMessages.Add("Read is using <b>framebuffer fetch</b>.");
+            if (block.setGlobalResource)
+                tooltipMessages.Add("Updates global resource.");
+            block.tooltip = string.Join("\n\n", tooltipMessages);
             block.element.style.left = offsetPx;
             block.element.AddToClassList(Classes.kResourceDependencyBlock);
         }
@@ -1076,21 +1222,26 @@ namespace UnityEditor.Rendering
             }
 
             int firstUsePassOffsetPx = firstVisiblePassUsingResource * kPassWidthPx;
+            const int resourceHelperLineMargin = 4;
             var resourceHelperLine = new VisualElement();
             resourceHelperLine.AddToClassList(Classes.kResourceHelperLine);
-            resourceHelperLine.style.width = firstUsePassOffsetPx;
+            resourceHelperLine.style.marginLeft = resourceHelperLineMargin;
+            resourceHelperLine.style.width = firstUsePassOffsetPx - 2 * resourceHelperLineMargin;
             resourceHelperLine.pickingMode = PickingMode.Ignore;
             row.Add(resourceHelperLine);
+            elementInfo.resourceHelperLine = resourceHelperLine;
 
             // Wide gray block indicating first <-> last use range
             var usageRangeBlock = new VisualElement();
             usageRangeBlock.AddToClassList(Classes.kResourceUsageRangeBlock);
-            int lastVisiblePassUsingResource = FindNextVisiblePassIndex(res.releasePassIndex);
-            if (lastVisiblePassUsingResource == -1)
-                lastVisiblePassUsingResource = m_PassElementsInfo.Count - 1;
-            int numVisiblePassesUsed = lastVisiblePassUsingResource - firstVisiblePassUsingResource + 1;
-            if (!m_PassIdToVisiblePassIndex.TryGetValue(res.releasePassIndex, out int _))
-                numVisiblePassesUsed -= 1; // Don't count the last using pass if it's not visible
+
+            int passIdAfterLastUse = res.releasePassIndex + 1;
+            int visiblePassAfterLastUse = FindNextVisiblePassIndex(passIdAfterLastUse);
+            if (visiblePassAfterLastUse == -1)
+                visiblePassAfterLastUse = m_PassElementsInfo.Count; // last pass uses resource
+
+            int numVisiblePassesUsed = visiblePassAfterLastUse - firstVisiblePassUsingResource;
+
             usageRangeBlock.style.position = Position.Absolute;
             usageRangeBlock.style.left = firstUsePassOffsetPx;
             usageRangeBlock.style.width = numVisiblePassesUsed * kPassWidthPx;
@@ -1111,17 +1262,19 @@ namespace UnityEditor.Rendering
             for (int passId = 0; passId < blocks.Count; passId++)
             {
                 ResourceRWBlock block = blocks[passId];
-                if (!block.read && !block.write)
-                    continue; // Discard block
-
                 if (m_PassIdToVisiblePassIndex.TryGetValue(passId, out int visiblePassIndex))
                 {
                     var pass = m_CurrentDebugData.passList[passId];
-                    if (resourceType == RenderGraphResourceType.Texture &&
-                        pass.nrpInfo != null && pass.nrpInfo.textureFBFetchList.Contains(resourceIndex))
+                    if (resourceType == RenderGraphResourceType.Texture && pass.nrpInfo != null)
                     {
-                        block.frameBufferFetch = true;
+                        if (pass.nrpInfo.textureFBFetchList.Contains(resourceIndex))
+                            block.frameBufferFetch = true;
+                        if (pass.nrpInfo.setGlobals.Contains(resourceIndex))
+                            block.setGlobalResource = true;
                     }
+
+                    if (!block.read && !block.write && !block.frameBufferFetch && !block.setGlobalResource)
+                        continue; // No need to create a visual element
 
                     int offsetPx = visiblePassIndex * kPassWidthPx;
                     CreateRWResourceBlockElement(offsetPx, block);
@@ -1198,14 +1351,17 @@ namespace UnityEditor.Rendering
             // Resource list & grid
             var resourceListScrollView = rootVisualElement.Q<ScrollView>(Names.kResourceListScrollView);
             var resourceGrid = rootVisualElement.Q<VisualElement>(Names.kResourceGrid);
+            resourceGrid.style.width = numVisiblePasses * kPassWidthPx + kPassTitleAllowanceMargin;
+
             int visibleResourceIndex = 0;
-            for (int resourceType = 0; resourceType < (int) RenderGraphResourceType.Count; resourceType++)
+            for (int t = 0; t < (int) RenderGraphResourceType.Count; t++)
             {
-                var resourceList = m_CurrentDebugData.resourceLists[resourceType];
+                var resourceType = (RenderGraphResourceType) t;
+                var resourceList = m_CurrentDebugData.resourceLists[t];
                 for (int resourceIndex = 0; resourceIndex < resourceList.Count; resourceIndex++)
                 {
                     var res = resourceList[resourceIndex];
-                    if (!IsResourceVisible(res, (RenderGraphResourceType) resourceType))
+                    if (!IsResourceVisible(res, resourceType))
                         continue;
 
                     var elementInfo = new ResourceElementInfo
@@ -1213,9 +1369,9 @@ namespace UnityEditor.Rendering
                         firstPassId = res.creationPassIndex,
                         lastPassId = res.releasePassIndex
                     };
-                    elementInfo.resourceTitle = CreateResourceTitle(res);
-                    resourceListScrollView.Add(elementInfo.resourceTitle);
-                    resourceGrid.Add(CreateResourceGridRow(res, (RenderGraphResourceType) resourceType, resourceIndex,
+                    elementInfo.resourceListItem = CreateResourceListItem(res, resourceType);
+                    resourceListScrollView.Add(elementInfo.resourceListItem);
+                    resourceGrid.Add(CreateResourceGridRow(res, resourceType, resourceIndex,
                         elementInfo, visibleResourceIndex));
                     m_ResourceElementsInfo.Add(elementInfo);
 
@@ -1230,6 +1386,11 @@ namespace UnityEditor.Rendering
                 SetEmptyStateMessage(EmptyStateReason.EmptyResourceFilterResult);
                 return;
             }
+
+            // Add a padding item to ensure horizontal scrollbar doesn't cause the listviews to get out of sync
+            var resourcePaddingItem = new VisualElement();
+            resourcePaddingItem.AddToClassList(Classes.kResourceListPaddingItem);
+            resourceListScrollView.Add(resourcePaddingItem);
 
             // Grid lines
             int gridLineHeightPx = numVisibleResources * kResourceRowHeightPx + kResourceGridMarginTopPx;
@@ -1292,12 +1453,7 @@ namespace UnityEditor.Rendering
             passFilter.style.display = DisplayStyle.None; // Hidden until the compiler is known
 
             var resourceFilter = rootVisualElement.Q<EnumFlagsField>(Names.kResourceFilterField);
-            resourceFilter.Init(m_ResourceFilter);
-            resourceFilter.RegisterCallback<ChangeEvent<Enum>>((evt) =>
-            {
-                m_ResourceFilter = (ResourceFilter) evt.newValue;
-                RebuildGraphViewerUI();
-            });
+            resourceFilter.style.display = DisplayStyle.None; // Hidden until the compiler is known
 
             // Hover overlay
             var hoverOverlay = rootVisualElement.Q(Names.kHoverOverlay);
@@ -1344,6 +1500,8 @@ namespace UnityEditor.Rendering
         {
             m_RegisteredGraphs.Remove(graph);
             RebuildHeaderUI();
+            if (m_RegisteredGraphs.Count == 0)
+                RebuildGraphViewerUI();
         }
 
         void OnExecutionRegistered(RenderGraph graph, string name)
@@ -1394,6 +1552,7 @@ namespace UnityEditor.Rendering
                         m_PassInspectorOverlay.displayed = m_CurrentDebugData.isNRPCompiler;
 
                         RebuildPassFilterUI();
+                        RebuildResourceFilterUI();
                         RebuildGraphViewerUI();
                     }
                 }

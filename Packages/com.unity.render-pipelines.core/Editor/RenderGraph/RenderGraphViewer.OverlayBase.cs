@@ -30,12 +30,13 @@ namespace UnityEditor.Rendering
                  element = root?.Q<VisualElement>(kEmptyContentsMessageName);
                  return element != null;
             }
+
             protected void Init(string title)
             {
                 displayName = title;
                 defaultSize = new Vector2(300, 300);
                 minSize = new Vector2(100, 100);
-                maxSize = new Vector2(600, 600);
+                maxSize = new Vector2(1500, 1500);
             }
 
             protected void SetDisplayState(DisplayState state)

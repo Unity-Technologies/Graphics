@@ -1,8 +1,12 @@
 :root {
     --header-container-height: 24px;
-    --resource-column-width: 180px;
+    --resource-column-width: 220px;
+    --resource-list-icon-size: 16px;
+    --resource-grid-icon-size: 12px;
     --pass-width: 26px;
     --pass-list-height: 180px;
+    --pass-title-allowance-margin: 120px; /* used to reserve enough space so that rotated pass names stay visible */
+    --pass-title-allowance-margin-with-scrollbar: 133px;
     --dependency-row-height: 30px;
     --dependency-block-height: 26px;
     --dependency-block-width: var(--pass-width);
@@ -12,14 +16,21 @@
     flex-direction: column;
 }
 
+#content-container {
+    margin-left: 10px;
+}
+
+
 /* Header */
 
 #header-container {
     flex-direction: row;
     height: var(--header-container-height);
-    min-height: 24px;
+    min-height: 30px;
     align-items: center;
     justify-content: flex-start;
+    border-width: 0px 0 1px 0;
+    border-color: black;
 }
 
 #header-container .unity-base-popup-field__label {
@@ -28,6 +39,17 @@
 
 #header-container PopupTextElement {
     flex-grow: 0;
+}
+
+#capture-button {
+    width: 28px;
+    height: 28px;
+    background-size: 16px;
+    border-width: 0px 1px 0px 0;
+    border-radius: 0;
+    border-color: var(--unity-colors-app_toolbar-background);
+    margin: 0;
+    background-color: var(--unity-colors-app_toolbar_button-background);
 }
 
 /* Passes */
@@ -42,6 +64,15 @@
     height: var(--pass-list-height);
     align-items: flex-end;
     flex-shrink: 0;
+    padding-right: var(--pass-title-allowance-margin-with-scrollbar);
+}
+
+#pass-list-scroll-view #unity-content-container {
+    flex-direction: row;
+}
+
+#pass-list-width-helper {
+    width: var(--pass-title-allowance-margin);
 }
 
 .pass-list__item {
@@ -118,7 +149,6 @@
     position: absolute;
     min-width: var(--resource-column-width);
     min-height: var(--pass-list-height);
-    top: var(--header-container-height);
     background-color: var(--unity-colors-window-background);
 }
 
@@ -131,11 +161,6 @@
 
 #resource-container ScrollView {
     flex-grow: 1;
-}
-
-#resource-container .unity-scroll-view__content-container {
-    margin-bottom: 10px;
-    margin-left: 4px;
 }
 
 /* Grid lines */
@@ -170,8 +195,39 @@
 
 .resource-list__item {
     height: var(--dependency-row-height);
-    justify-content: center;
     min-width: var(--resource-column-width);
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.resource-list__item VisualElement {
+    flex-direction: row;
+}
+
+.resource-list__item Label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-left: 4px;
+}
+
+.resource-list__item .resource-icon-container {
+    align-items: center;
+    flex-direction: row;
+    margin-right: 6px;
+    flex: none;
+}
+
+.resource-icon {
+    width: var(--resource-list-icon-size);
+    height: var(--resource-list-icon-size);
+}
+
+#resource-grid .resource-icon {
+    width: var(--resource-grid-icon-size);
+    height: var(--resource-grid-icon-size);
+    margin-top: 8px;
+    align-self: center;
 }
 
 .resource-list__item--highlight {
@@ -185,9 +241,15 @@
     margin: 0px;
 }
 
+.resource-list-padding-item {
+    height: 13px;
+}
+
 #resource-grid {
     flex-direction: column;
     margin-top: 6px;
+    margin-bottom: 6px;
+    padding-right: var(--pass-title-allowance-margin);
 }
 
 #resource-grid-scroll-view.content-pan VisualElement {
@@ -202,10 +264,15 @@
 .resource-helper-line {
     height: var(--dependency-row-height);
     flex-shrink: 0;
-    -unity-background-image-tint-color: darkgray;
-    background-image: url("project:///Packages/com.unity.render-pipelines.core/Editor/Icons/dash.png");
+    -unity-background-image-tint-color: var(--resource-helper-line-color);
+    background-image: url("../Icons/RenderGraphViewer/dash.png");
     background-repeat: repeat-x;
     background-size: 8px 8px;
+    margin-top: 1px;
+}
+
+.resource-helper-line--highlight {
+    -unity-background-image-tint-color: var(--resource-helper-line-color--hover);
 }
 
 .usage-range-block {
@@ -218,8 +285,8 @@
     position: absolute;
     border-width: 1px;
     border-color: var(--pass-block-color--highlight);
-    height: 28px;
-    margin-top: 0px;
+    height: 27px;
+    margin-top: 8px;
 }
 
 .dependency-block {
@@ -228,7 +295,7 @@
     width: var(--dependency-block-width);
     min-width: var(--dependency-block-width);
     height: var(--dependency-block-height);
-    background-color: grey;
+    background-color: var(--unity-colors-window-background);
 }
 
 .dependency-block-read {
@@ -242,13 +309,6 @@
 .dependency-block-readwrite {
     /* foreground color is set in code when rendering the triangle */
     background-color: var(--resource-write-color);
-}
-
-.dependency-block-fb-fetch-text {
-    font-size: 20px;
-    margin-top: 1px;
-    -unity-text-align: middle-center;
-    -unity-font-style: bold;
 }
 
 #hover-overlay {

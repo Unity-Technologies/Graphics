@@ -157,16 +157,19 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
             }
 
             // Create resource debug data
-            for (int type = 0; type < (int)RenderGraphResourceType.Count; ++type)
+            for (int t = 0; t < (int)RenderGraphResourceType.Count; ++t)
             {
-                var numResources = ctx.resources.unversionedData[type].Length;
+                var numResources = ctx.resources.unversionedData[t].Length;
                 for (int i = 0; i < numResources; ++i)
                 {
-                    ref var resourceUnversioned = ref ctx.resources.unversionedData[type].ElementAt(i);
+                    ref var resourceUnversioned = ref ctx.resources.unversionedData[t].ElementAt(i);
                     RenderGraph.DebugData.ResourceData debugResource = new RenderGraph.DebugData.ResourceData();
-                    if (i != 0)
+                    RenderGraphResourceType type = (RenderGraphResourceType) t;
+                    bool isNullResource = i == 0;
+
+                    if (!isNullResource)
                     {
-                        string resourceName = ctx.resources.resourceNames[type][i].name;
+                        string resourceName = ctx.resources.resourceNames[t][i].name;
                         debugResource.name = !string.IsNullOrEmpty(resourceName) ? resourceName : "(unnamed)";
                         debugResource.imported = resourceUnversioned.isImported;
                     }
@@ -178,11 +181,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
                     }
 
                     var info = new RenderTargetInfo();
-                    if (i != 0)
+                    if (type == RenderGraphResourceType.Texture && !isNullResource)
                     {
+                        var handle = new ResourceHandle(i, type, false);
                         try
                         {
-                            var handle = new ResourceHandle(i, (RenderGraphResourceType)type, false);
                             graph.m_ResourcesForDebugOnly.GetRenderTargetInfo(handle, out info);
                         }
                         catch (Exception) { }
@@ -201,13 +204,13 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
                     debugResource.consumerList = new List<int>();
                     debugResource.producerList = new List<int>();
 
-                    if (resourceReadLists.ContainsKey(((RenderGraphResourceType) type, i)))
-                        debugResource.consumerList = resourceReadLists[((RenderGraphResourceType) type, i)];
+                    if (resourceReadLists.ContainsKey(((RenderGraphResourceType) t, i)))
+                        debugResource.consumerList = resourceReadLists[((RenderGraphResourceType) t, i)];
 
-                    if (resourceWriteLists.ContainsKey(((RenderGraphResourceType) type, i)))
-                        debugResource.producerList = resourceWriteLists[((RenderGraphResourceType) type, i)];
+                    if (resourceWriteLists.ContainsKey(((RenderGraphResourceType) t, i)))
+                        debugResource.producerList = resourceWriteLists[((RenderGraphResourceType) t, i)];
 
-                    debugData.resourceLists[type].Add(debugResource);
+                    debugData.resourceLists[t].Add(debugResource);
                 }
             }
 
@@ -236,6 +239,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
                 debugPass.nrpInfo.samples = passData.fragmentInfoSamples;
                 debugPass.nrpInfo.hasDepth = passData.fragmentInfoHasDepth;
 
+                foreach (var setGlobal in graphPass.setGlobalsList)
+                    debugPass.nrpInfo.setGlobals.Add(setGlobal.Item1.handle.index);
+
                 for (int type = 0; type < (int)RenderGraphResourceType.Count; ++type)
                 {
                     debugPass.resourceReadLists[type] = new List<int>();
@@ -252,7 +258,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
                         debugPass.resourceWriteLists[type].Add(resWrite.index);
                 }
 
-                debugPass.nrpInfo.textureFBFetchList = new List<int>();
                 foreach (var fragmentInput in passData.FragmentInputs(ctx))
                 {
                     Debug.Assert(fragmentInput.resource.type == RenderGraphResourceType.Texture);

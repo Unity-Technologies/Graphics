@@ -1,9 +1,9 @@
 /* Dark theme colors */
 :root {
-    --resource-read-color: #008126;
-    --resource-write-color: #FF534A;
-    --merged-pass-accent-color: #57AEFF;
-    --native-pass-accent-color: #4B88AC;
+    --resource-read-color: #A9D136; /* keep in sync with kReadWriteBlockFillColorDark */
+    --resource-write-color: #FF5D45;
+    --merged-pass-accent-color: #395C94;
+    --native-pass-accent-color: #395C94;
     --native-pass-accent-compatible-color: #62B0DE;
     --pass-block-color--async: #FFC107;
     --pass-block-border-color: var(--unity-colors-highlight-background-hover-lighter);
@@ -12,5 +12,47 @@
     --pass-block-color--culled: black;
     --grid-line-color: #454545;
     --grid-line-color--hover: white;
-    --usage-range-color: grey;
+    --resource-helper-line-color: darkgray;
+    --resource-helper-line-color--hover: white;
+    --usage-range-color: #7D7D7D;
+}
+
+#capture-button {
+    background-image: url("../Icons/RenderGraphViewer/d_Refresh@2x.png");
+}
+
+#capture-button:hover {
+    background-color: #424242;
+}
+
+#capture-button:active {
+    background-color: #6A6A6A;
+}
+
+.resource-icon--imported {
+    background-image: url("../Icons/RenderGraphViewer/d_Import@2x.png");
+}
+
+.resource-icon--global-dark {
+    background-image: url("../Icons/RenderGraphViewer/d_Global@2x.png");
+}
+
+.resource-icon--global-light {
+    background-image: url("../Icons/RenderGraphViewer/Global@2x.png");
+}
+
+.resource-icon--texture {
+    background-image: url("../Icons/RenderGraphViewer/d_Texture@2x.png");
+}
+
+.resource-icon--buffer {
+    background-image: url("../Icons/RenderGraphViewer/d_Buffer@2x.png");
+}
+
+.resource-icon--acceleration-structure {
+    background-image: url("../Icons/RenderGraphViewer/d_AccelerationStructure@2x.png");
+}
+
+.resource-icon--fbfetch {
+    background-image: url("../Icons/RenderGraphViewer/FramebufferFetch@2x.png");
 }

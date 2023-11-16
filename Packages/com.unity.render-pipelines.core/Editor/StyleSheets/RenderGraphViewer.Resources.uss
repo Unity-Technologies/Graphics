@@ -1,6 +1,7 @@
 :root {
     height: 100%;
     --resource-item-border-color: #666666;
+    --resource-icon-size: 16px;
 }
 
 #content-container {
@@ -36,14 +37,30 @@
     background-color: var(--unity-colors-highlight-background-hover-lighter);
 }
 
-
-.resource-list__item.imported-resource {
+.resource-list__item .resource-icon-container {
+    align-items: center;
+    flex-direction: row;
+    margin-right: 4px;
+    flex: none;
 }
 
+.resource-list__item .resource-icon--imported {
+    width: var(--resource-icon-size);
+    height: var(--resource-icon-size);
+}
+
+.resource-list__item .resource-icon--global {
+    width: var(--resource-icon-size);
+    height: var(--resource-icon-size);
+}
 
 .resource-list__item > Label {
     -unity-font-style: normal;
     margin-top: 2px;
+    color: var(--unity-colors-default-text);
+}
+
+.resource-list__item .unity-foldout__text {
     color: var(--unity-colors-default-text);
 }
 
