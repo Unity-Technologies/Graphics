@@ -5,6 +5,8 @@ using Unity.Jobs;
 using UnityEngine.TestTools;
 using UnityEditor;
 using Unity.Mathematics;
+using NUnit.Framework.Internal;
+using System.Diagnostics;
 #if UNITY_EDITOR
 using UnityEditor.Rendering;
 #endif
@@ -361,7 +363,7 @@ namespace UnityEngine.Rendering.Tests
                 instances[i] = InstanceHandle.Invalid;
 
             var rbcDesc = RenderersBatchersContextDesc.NewDefault();
-            rbcDesc.instanceNumInfo = new InstanceNumInfo(meshRendererNum: 64);
+            rbcDesc.instanceNumInfo = new InstanceNumInfo(meshRendererNum: 64, 0);
             rbcDesc.supportDitheringCrossFade = false;
 
             var gpuDrivenProcessor = new GPUDrivenProcessor();
@@ -514,7 +516,7 @@ namespace UnityEngine.Rendering.Tests
                 instances[i] = InstanceHandle.Invalid;
 
             var rbcDesc = RenderersBatchersContextDesc.NewDefault();
-            rbcDesc.instanceNumInfo = new InstanceNumInfo(meshRendererNum: 64);
+            rbcDesc.instanceNumInfo = new InstanceNumInfo(meshRendererNum: 64, 0);
             rbcDesc.supportDitheringCrossFade = true;
 
             var gpuDrivenProcessor = new GPUDrivenProcessor();
@@ -561,8 +563,8 @@ namespace UnityEngine.Rendering.Tests
                     //Test 0 - Should render Lod0 (cube) + non loded sphere
                     expectedMeshIDs.Add(1);
                     expectedMeshIDs.Add(2);
-                    expectedFlags.Add(BatchDrawCommandFlags.None);
-                    expectedFlags.Add(BatchDrawCommandFlags.None);
+                    expectedFlags.Add(BatchDrawCommandFlags.LODCrossFadeValuePacked);
+                    expectedFlags.Add(BatchDrawCommandFlags.LODCrossFadeValuePacked);
                     expectedDrawCommandCount = 2;
                     cameraObject.transform.position = new Vector3(0.0f, 0.0f, -1.0f);
                     mainCamera.Render();
@@ -574,7 +576,7 @@ namespace UnityEngine.Rendering.Tests
                     expectedMeshIDs.Add(2);
                     expectedFlags.Clear();
                     expectedFlags.Add(BatchDrawCommandFlags.LODCrossFade);
-                    expectedFlags.Add(BatchDrawCommandFlags.None);
+                    expectedFlags.Add(BatchDrawCommandFlags.LODCrossFadeValuePacked);
                     expectedFlags.Add(BatchDrawCommandFlags.LODCrossFade);
                     expectedDrawCommandCount = 3;
                     cameraObject.transform.position = new Vector3(0.0f, 0.0f, -2.0f);
@@ -584,7 +586,7 @@ namespace UnityEngine.Rendering.Tests
                     expectedMeshIDs.Clear();
                     expectedMeshIDs.Add(2);
                     expectedFlags.Clear();
-                    expectedFlags.Add(BatchDrawCommandFlags.None);
+                    expectedFlags.Add(BatchDrawCommandFlags.LODCrossFadeValuePacked);
                     expectedDrawCommandCount = 1;
                     cameraObject.transform.position = new Vector3(0.0f, 0.0f, -3.0f);
                     mainCamera.Render();
@@ -594,7 +596,7 @@ namespace UnityEngine.Rendering.Tests
                     expectedMeshIDs.Add(2);
                     expectedMeshIDs.Add(2);
                     expectedFlags.Clear();
-                    expectedFlags.Add(BatchDrawCommandFlags.None);
+                    expectedFlags.Add(BatchDrawCommandFlags.LODCrossFadeValuePacked);
                     expectedFlags.Add(BatchDrawCommandFlags.LODCrossFade);
                     expectedDrawCommandCount = 2;
                     cameraObject.transform.position = new Vector3(0.0f, 0.0f, -4.0f);
@@ -624,7 +626,7 @@ namespace UnityEngine.Rendering.Tests
             gpuResources.LoadShaders(m_Resources);
 
             var meshInstancesCount = 4;
-            var instanceNumInfo = new InstanceNumInfo(meshRendererNum: meshInstancesCount);
+            var instanceNumInfo = new InstanceNumInfo(meshRendererNum: meshInstancesCount, 0);
 
             using (var instanceBuffer = RenderersParameters.CreateInstanceDataBuffer(RenderersParameters.Flags.None, instanceNumInfo))
             {
@@ -653,7 +655,7 @@ namespace UnityEngine.Rendering.Tests
                 }
 
                 using (var readbackData = new InstanceDataBufferCPUReadbackData())
-                {	
+                {
                     if (readbackData.Load(instanceBuffer))
                     {
                         for (int i = 0; i < meshInstancesCount; ++i)
@@ -1109,5 +1111,73 @@ namespace UnityEngine.Rendering.Tests
         class OnWillRenderObjectBehaviour : MonoBehaviour { void OnWillRenderObject() { } }
         class OnBecameInvisibleBehaviour : MonoBehaviour { void OnBecameInvisible() { } }
         class OnBecameVisibleBehaviour : MonoBehaviour { void OnBecameVisible() { } }
+
+        [Test, ConditionalIgnore("IgnoreGfxAPI", "Graphics API Not Supported.")]
+        public void TestSimpleSpeedTree()
+        {
+            var simpleSpeedTreeDots = Shader.Find("Unlit/SimpleSpeedTreeDots");
+            var simpleSpeedTreeDotsMat = new Material(simpleSpeedTreeDots);
+
+            var tree0 = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            var tree1 = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            tree0.AddComponent<Tree>();
+            tree1.AddComponent<Tree>();
+
+            var renderers = new List<MeshRenderer>
+            {
+                tree0.GetComponent<MeshRenderer>(),
+                tree1.GetComponent<MeshRenderer>()
+            };
+
+            var rendererIDs = new NativeList<int>(Allocator.TempJob);
+
+            foreach (var renderer in renderers)
+            {
+                renderer.receiveGI = ReceiveGI.LightProbes;
+                renderer.lightProbeUsage = LightProbeUsage.BlendProbes;
+                renderer.material = simpleSpeedTreeDotsMat;
+                rendererIDs.Add(renderer.GetInstanceID());
+            }
+
+            var instances = new NativeArray<InstanceHandle>(renderers.Count, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+
+            for (int i = 0; i < renderers.Count; ++i)
+                instances[i] = InstanceHandle.Invalid;
+
+            var gpuDrivenProcessor = new GPUDrivenProcessor();
+
+            using (var context = new RenderersBatchersContext(new RenderersBatchersContextDesc() { instanceNumInfo = new InstanceNumInfo(speedTreeNum: 8), supportDitheringCrossFade = true }, gpuDrivenProcessor, m_Resources))
+            using (var batcher = new GPUResidentBatcher(context, InstanceCullingBatcherDesc.NewDefault(), gpuDrivenProcessor))
+            {
+                batcher.UpdateRenderers(rendererIDs.AsArray());
+                context.ScheduleQueryRendererGroupInstancesJob(rendererIDs.AsArray(), instances).Complete();
+
+                Assert.AreEqual(2, instances.Length);
+                Assert.AreEqual(instances[0].type, InstanceType.SpeedTree);
+                Assert.AreEqual(instances[1].type, InstanceType.SpeedTree);
+
+                Assert.AreEqual(context.GetAliveInstancesOfType(InstanceType.MeshRenderer), 0);
+                Assert.AreEqual(context.GetAliveInstancesOfType(InstanceType.SpeedTree), 2);
+
+                var instanceIndex0 = context.instanceData.InstanceToIndex(instances[0]);
+                var instanceIndex1 = context.instanceData.InstanceToIndex(instances[1]);
+                var sharedInstance0 = context.instanceData.sharedInstances[instanceIndex0];
+                var sharedInstance1 = context.instanceData.sharedInstances[instanceIndex1];
+                var sharedInstanceIndex0 = context.sharedInstanceData.SharedInstanceToIndex(sharedInstance0);
+                var sharedInstanceIndex1 = context.sharedInstanceData.SharedInstanceToIndex(sharedInstance1);
+
+                Assert.AreEqual(context.sharedInstanceData.rendererGroupIDs[sharedInstanceIndex0], tree0.GetComponent<Renderer>().GetInstanceID());
+                Assert.AreEqual(context.sharedInstanceData.rendererGroupIDs[sharedInstanceIndex1], tree1.GetComponent<Renderer>().GetInstanceID());
+
+                context.FreeInstances(instances);
+
+                Assert.AreEqual(context.GetAliveInstancesOfType(InstanceType.SpeedTree), 0);
+            }
+
+            gpuDrivenProcessor.Dispose();
+
+            instances.Dispose();
+            rendererIDs.Dispose();
+        }
     }
 }

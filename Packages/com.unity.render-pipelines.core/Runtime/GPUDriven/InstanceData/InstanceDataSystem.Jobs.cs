@@ -512,6 +512,7 @@ namespace UnityEngine.Rendering
                 for (int i = 0; i < rendererGroupIDs.Length; ++i)
                 {
                     var rendererGroupID = rendererGroupIDs[i];
+                    var hasTree = packedRendererData[i].hasTree;
 
                     int instanceCount;
                     int instanceOffset;
@@ -576,7 +577,12 @@ namespace UnityEngine.Rendering
                             if (instances[instanceIndex].valid)
                                 continue;
 
-                            InstanceHandle newInstance = instanceAllocators.AllocateInstance(InstanceType.MeshRenderer);
+                            InstanceHandle newInstance;
+
+                            if (!hasTree)
+                                newInstance = instanceAllocators.AllocateInstance(InstanceType.MeshRenderer);
+                            else
+                                newInstance = instanceAllocators.AllocateInstance(InstanceType.SpeedTree);
 
                             instanceData.AddNoGrow(newInstance);
                             int index = instanceData.InstanceToIndex(newInstance);
@@ -822,6 +828,115 @@ namespace UnityEngine.Rendering
                 var instance = instances[index];
                 var sharedInstanceIndex = sharedInstanceData.InstanceToIndex(instanceData, instance);
                 lodGroupAndMasks[index] = sharedInstanceData.lodGroupAndMasks[sharedInstanceIndex];
+            }
+        }
+
+        [BurstCompile]
+        private struct GetVisibleNonProcessedTreeInstancesJob : IJobParallelForBatch
+        {
+            public const int k_BatchSize = 64;
+
+            [ReadOnly] public CPUInstanceData instanceData;
+            [ReadOnly] public CPUSharedInstanceData sharedInstanceData;
+            [ReadOnly][NativeDisableContainerSafetyRestriction] public ParallelBitArray compactedVisibilityMasks;
+            [ReadOnly] public bool becomeVisible;
+
+            [NativeDisableParallelForRestriction] public ParallelBitArray processedBits;
+
+            [NativeDisableParallelForRestriction][WriteOnly] public NativeArray<int> rendererIDs;
+            [NativeDisableParallelForRestriction][WriteOnly] public NativeArray<InstanceHandle> instances;
+
+            [NativeDisableUnsafePtrRestriction] public UnsafeAtomicCounter32 atomicTreeInstancesCount;
+
+            public void Execute(int startIndex, int count)
+            {
+                var chunkIndex = startIndex / 64;
+                var visibleInPrevFrameChunk = instanceData.visibleInPreviousFrameBits.GetChunk(chunkIndex);
+                var processedChunk = processedBits.GetChunk(chunkIndex);
+
+                ulong validBits = 0;
+
+                for (int i = 0; i < count; ++i)
+                {
+                    int instanceIndex = startIndex + i;
+                    InstanceHandle instance = instanceData.IndexToInstance(instanceIndex);
+                    bool hasTree = instance.type == InstanceType.SpeedTree;
+
+                    if (hasTree && compactedVisibilityMasks.Get(instance.index))
+                    {
+                        var bitMask = 1ul << i;
+
+                        var processedInCurrentFrame = (processedChunk & bitMask) != 0;
+
+                        if (!processedInCurrentFrame)
+                        {
+                            bool visibleInPrevFrame = (visibleInPrevFrameChunk & bitMask) != 0;
+
+                            if (becomeVisible)
+                            {
+                                if (!visibleInPrevFrame)
+                                    validBits |= bitMask;
+                            }
+                            else
+                            {
+                                if (visibleInPrevFrame)
+                                    validBits |= bitMask;
+                            }
+                        }
+                    }
+                }
+
+                int validBitsCount = math.countbits(validBits);
+
+                if (validBitsCount > 0)
+                {
+                    processedBits.SetChunk(chunkIndex, processedChunk | validBits);
+
+                    int writeIndex = atomicTreeInstancesCount.Add(validBitsCount);
+                    int validBitIndex = math.tzcnt(validBits);
+
+                    while (validBits != 0)
+                    {
+                        int instanceIndex = startIndex + validBitIndex;
+                        InstanceHandle instance = instanceData.IndexToInstance(instanceIndex);
+                        SharedInstanceHandle sharedInstanceHandle = instanceData.Get_SharedInstance(instance);
+                        int rendererID = sharedInstanceData.Get_RendererGroupID(sharedInstanceHandle);
+
+                        rendererIDs[writeIndex] = rendererID;
+                        instances[writeIndex] = instance;
+
+                        writeIndex += 1;
+                        validBits &= ~(1ul << validBitIndex);
+                        validBitIndex = math.tzcnt(validBits);
+                    }
+                }
+            }
+        }
+
+        [BurstCompile]
+        private struct UpdateCompactedInstanceVisibilityJob : IJobParallelForBatch
+        {
+            public const int k_BatchSize = 64;
+
+            [ReadOnly] public ParallelBitArray compactedVisibilityMasks;
+
+            [NativeDisableContainerSafetyRestriction][NativeDisableParallelForRestriction] public CPUInstanceData instanceData;
+
+            public void Execute(int startIndex, int count)
+            {
+                ulong visibleBits = 0;
+
+                for (int i = 0; i < count; ++i)
+                {
+                    int instanceIndex = startIndex + i;
+                    InstanceHandle instance = instanceData.IndexToInstance(instanceIndex);
+                    bool visible = compactedVisibilityMasks.Get(instance.index);
+
+                    if (visible)
+                        visibleBits |= 1ul << i;
+                }
+
+                instanceData.visibleInPreviousFrameBits.SetChunk(startIndex / 64, visibleBits);
             }
         }
     }

@@ -132,6 +132,7 @@ namespace UnityEngine.Rendering
 
         const float k_LODPercentInvisible = 0.0f;
         const float k_LODPercentFullyVisible = 1.0f;
+        const float k_LODPercentSpeedTree = 2.0f;
 
         enum CrossFadeType
         {
@@ -180,76 +181,95 @@ namespace UnityEngine.Rendering
 
         unsafe float CalculateLODVisibility(int sharedInstanceIndex)
         {
+            var lodPercent = k_LODPercentFullyVisible;
             var lodDataIndexAndMask = sharedInstanceData.lodGroupAndMasks[sharedInstanceIndex];
-            var lodPercent = 1.0f;
 
             if (lodDataIndexAndMask != 0xFFFFFFFF)
             {
+                lodPercent = k_LODPercentInvisible;
+
                 var lodIndex = lodDataIndexAndMask >> 8;
                 var lodMask = lodDataIndexAndMask & 0xFF;
-
                 Assert.IsTrue(lodMask > 0);
 
-                var maxLodMask = 1 << maxLOD;
-
                 ref var lodGroup = ref lodGroupCullingData.ElementAt((int)lodIndex);
-                float sqrDistanceToLODCenter = isOrtho ? sqrScreenRelativeMetric : LODGroupRenderingUtils.CalculateSqrPerspectiveDistance(lodGroup.worldSpaceReferencePoint, cameraPosition, sqrScreenRelativeMetric);
+                float cameraSqrDistToLODCenter = isOrtho ? sqrScreenRelativeMetric : LODGroupRenderingUtils.CalculateSqrPerspectiveDistance(lodGroup.worldSpaceReferencePoint, cameraPosition, sqrScreenRelativeMetric);
 
-                // Max lod exceeded
-                if(lodMask < maxLodMask)
-                    return 0.0f;
-
-                bool isMaxLOD = lodMask == maxLodMask;
-
-                lodPercent = 0.0f;
+                // Remove lods that are beyond the max lod.
+                uint maxLodMask = 0xffffffff << maxLOD;
+                lodMask &= maxLodMask;
 
                 // Offset to the lod preceding the first for proper cross fade calculation.
-                int m = math.max(math.tzcnt(lodMask) - 1, 0);
+                int m = math.max(math.tzcnt(lodMask) - 1, maxLOD);
                 lodMask >>= m;
 
                 while (lodMask > 0)
                 {
-                    var type = (CrossFadeType)(lodMask & 3);
-                    var sqrMaxDist = lodGroup.sqrDistances[m];
-                    // if current instance is either not present in this current lod, or that the distance is further away, check next level
-                    if (type == CrossFadeType.kDisabled || sqrDistanceToLODCenter >= sqrMaxDist)
-                    {
-                        ++m;
-                        lodMask >>= 1;
-                        continue;
-                    }
+                    var lodRangeSqrMin = m == maxLOD ? 0.0f : lodGroup.sqrDistances[m - 1];
+                    var lodRangeSqrMax = lodGroup.sqrDistances[m];
 
-                    var minDist = (m == 0 || isMaxLOD) ? 0.0f : lodGroup.sqrDistances[m - 1];
-
-                    // we're testing lod ranges further than current distance. stop.
-                    if (sqrDistanceToLODCenter < minDist)
-                    {
-                        ++m;
-                        lodMask >>= 1;
-                        continue;
-                    }
-
-                    if (type == CrossFadeType.kVisible) // Between min and max
-                    {
-                        lodPercent = 1.0f;
+                    // Camera is beyond the range of this all further lods. No need to proceed.
+                    if (cameraSqrDistToLODCenter < lodRangeSqrMin)
                         break;
-                    }
 
-                    var transitionDist = lodGroup.transitionDistances[m];
-                    var distanceToLodCenter = math.sqrt(sqrDistanceToLODCenter);
-                    var maxDist = Mathf.Sqrt(sqrMaxDist);
-                    var dif = maxDist - distanceToLodCenter;
-                    if (dif < transitionDist)
+                    // Instance is in the min/max range of this lod. Proceeding.
+                    if (cameraSqrDistToLODCenter < lodRangeSqrMax)
                     {
-                        lodPercent = dif / transitionDist;
-                        if (type == CrossFadeType.kCrossFadeIn)
+                        var type = (CrossFadeType)(lodMask & 3);
+
+                        // Instance is in this and/or the next lod. 
+                        if (type != CrossFadeType.kDisabled)
                         {
-                            lodPercent = -lodPercent;
+                            // Instance is in both this and the next lod. No need to fade.
+                            if (type == CrossFadeType.kVisible)
+                            {
+                                lodPercent = k_LODPercentFullyVisible;
+                            }
+                            else
+                            {
+                                var distanceToLodCenter = math.sqrt(cameraSqrDistToLODCenter);
+                                var maxDist = math.sqrt(lodRangeSqrMax);
+
+                                // SpeedTree cross fade.
+                                if (lodGroup.percentageFlags[m])
+                                {
+                                    // The fading-in instance is not visible but the fading-out is visible and it does the speed tree vertex deformation.
+
+                                    if (type == CrossFadeType.kCrossFadeIn)
+                                    {
+                                        lodPercent = k_LODPercentInvisible;
+                                    }
+                                    else if (type == CrossFadeType.kCrossFadeOut)
+                                    {
+                                        var minDist = m > 0 ? math.sqrt(lodGroup.sqrDistances[m - 1]) : lodGroup.worldSpaceSize;
+                                        lodPercent = k_LODPercentSpeedTree + math.max(distanceToLodCenter - minDist, 0.0f) / (maxDist - minDist);
+                                    }
+                                }
+                                // Dithering cross fade.
+                                else
+                                {
+                                    // If in the transition zone, both fading-in and fading-out instances are visible. Calculate the lod percent.
+                                    // If not then only the fading-out instance is fully visible, and fading-in is invisible.
+
+                                    var transitionDist = lodGroup.transitionDistances[m];
+                                    var dif = maxDist - distanceToLodCenter;
+
+                                    if (dif < transitionDist)
+                                    {
+                                        lodPercent = dif / transitionDist;
+
+                                        if (type == CrossFadeType.kCrossFadeIn)
+                                            lodPercent = -lodPercent;
+                                    }
+                                    else if (type == CrossFadeType.kCrossFadeOut)
+                                    {
+                                        lodPercent = k_LODPercentFullyVisible;
+                                    }
+                                }
+                            }
                         }
-                    }
-                    else if (type == CrossFadeType.kCrossFadeOut) // not at transition distance, yet - fully visible
-                    {
-                        lodPercent = 1.0f;
+
+                        // We found the lod and the percentage.
                         break;
                     }
 
@@ -257,6 +277,7 @@ namespace UnityEngine.Rendering
                     lodMask >>= 1;
                 }
             }
+
             return lodPercent;
         }
 
@@ -317,7 +338,14 @@ namespace UnityEngine.Rendering
 
                         if (lodPercent != k_LODPercentFullyVisible)
                         {
-                            hasDitheringCrossFade = true;
+                            bool isSpeedTreeCrossFade = lodPercent >= k_LODPercentSpeedTree;
+
+                            // If this is a speed tree cross fade then we provide cross fade value but we don't enable cross fade keyword.
+                            if (isSpeedTreeCrossFade)
+                                lodPercent -= k_LODPercentSpeedTree;
+                            else
+                                hasDitheringCrossFade = true;
+
                             crossFadeValue = PackFloatToUint8(lodPercent);
                         }
 
@@ -649,7 +677,7 @@ namespace UnityEngine.Rendering
                 if (binningConfig.supportsCrossFade)
                 {
                     if ((visibilityMask & 1) != 0)
-                        drawFlags |= BatchDrawCommandFlags.LODCrossFade;
+                        drawFlags |= BatchDrawCommandFlags.LODCrossFadeKeyword;
                     visibilityMask >>= 1;
                 }
                 if (binningConfig.supportsMotionCheck)
@@ -726,8 +754,6 @@ namespace UnityEngine.Rendering
                         continue;
 
                     lastRendererIndex = rendererIndex;
-
-                    // only one bin for this batch
                     output.visibleInstances[visibleInstanceOffset] = EncodeGPUInstanceIndexAndCrossFade(rendererIndex, false);
                     visibleInstanceOffset++;
                 }
@@ -747,6 +773,32 @@ namespace UnityEngine.Rendering
                 output.instanceSortingPositions[sortingPosition + 1] = position.y;
                 output.instanceSortingPositions[sortingPosition + 2] = position.z;
             }
+        }
+    }
+
+    [BurstCompile]
+    internal unsafe struct CompactVisibilityMasksJob : IJobParallelForBatch
+    {
+        public const int k_BatchSize = 64;
+
+        [ReadOnly] public NativeArray<byte> rendererVisibilityMasks;
+
+        [NativeDisableContainerSafetyRestriction] public ParallelBitArray compactedVisibilityMasks;
+
+        unsafe public void Execute(int startIndex, int count)
+        {
+            ulong chunkBits = 0;
+
+            for(int i = 0; i < count; ++i)
+            {
+                var visibilityMask = rendererVisibilityMasks[startIndex + i];
+
+                if(visibilityMask != 0)
+                    chunkBits |= (1ul << i);
+            }
+
+            var chunkIndex = startIndex / k_BatchSize;
+            compactedVisibilityMasks.InterlockedOrChunk(chunkIndex, chunkBits);
         }
     }
 
@@ -1003,6 +1055,9 @@ namespace UnityEngine.Rendering
     [BurstCompile]
     internal struct InstanceCuller : IDisposable
     {
+        private ParallelBitArray m_CompactedVisibilityMasks;
+        private JobHandle m_CompactedVisibilityMasksJobsHandle;
+
         private DebugRendererBatcherStats m_DebugStats;
         private InstanceCullerSplitDebugArray m_SplitDebugArray;
 
@@ -1130,6 +1185,23 @@ namespace UnityEngine.Rendering
                 drawCommands.drawRanges = MemoryUtilities.Malloc<BatchDrawRange>(drawCommands.drawRangeCount, Allocator.TempJob);
             }
             cullingOutput.drawCommands[0] = drawCommands;
+
+            if (!m_CompactedVisibilityMasks.IsCreated)
+            {
+                Assert.IsTrue(m_CompactedVisibilityMasksJobsHandle.IsCompleted);
+                m_CompactedVisibilityMasks = new ParallelBitArray(instanceData.handlesLength, Allocator.TempJob);
+            }
+
+            var compactVisibilityMasksJob = new CompactVisibilityMasksJob
+            {
+                rendererVisibilityMasks = rendererVisibilityMasks,
+                compactedVisibilityMasks = m_CompactedVisibilityMasks
+            };
+
+            var compactVisibilityMasksJobHandle = compactVisibilityMasksJob.ScheduleBatch(rendererVisibilityMasks.Length, CompactVisibilityMasksJob.k_BatchSize, cullingJobHandle);
+            cullingJobHandle = JobHandle.CombineDependencies(cullingJobHandle, compactVisibilityMasksJobHandle);
+            // Accumulate all per frame compact job handles.
+            m_CompactedVisibilityMasksJobsHandle = JobHandle.CombineDependencies(m_CompactedVisibilityMasksJobsHandle, compactVisibilityMasksJobHandle);
 
 #if UNITY_EDITOR
             if (cc.viewType == BatchCullingViewType.Picking || cc.viewType == BatchCullingViewType.SelectionOutline)
@@ -1277,6 +1349,23 @@ namespace UnityEngine.Rendering
             }
         }
 
+        private void DisposeCompactVisibilityMasks()
+        {
+            if (m_CompactedVisibilityMasks.IsCreated)
+            {
+                Assert.IsTrue(m_CompactedVisibilityMasksJobsHandle.IsCompleted);
+                m_CompactedVisibilityMasks.Dispose();
+            }
+        }
+
+        public ParallelBitArray GetCompactedVisibilityMasks(bool syncCullingJobs)
+        {
+            if (syncCullingJobs)
+                m_CompactedVisibilityMasksJobsHandle.Complete();
+
+            return m_CompactedVisibilityMasks;
+        }
+
         private void FlushDebugCounters()
         {
             if (m_DebugStats?.enabled ?? false)
@@ -1287,11 +1376,13 @@ namespace UnityEngine.Rendering
 
         public void UpdateFrame()
         {
+            DisposeCompactVisibilityMasks();
             FlushDebugCounters();
         }
 
         public void Dispose()
         {
+            DisposeCompactVisibilityMasks();
             m_DebugStats = null;
             m_SplitDebugArray.Dispose();
         }

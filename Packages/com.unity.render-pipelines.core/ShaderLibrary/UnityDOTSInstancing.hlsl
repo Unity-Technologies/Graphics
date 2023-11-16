@@ -221,13 +221,15 @@ static const uint kDOTSInstancingFlagForceZeroMotion  = (1 << 1); // Object shou
 static const uint kDOTSInstancingFlagCameraMotion     = (1 << 2); // Object uses Camera motion (i.e. not per-Object motion)
 static const uint kDOTSInstancingFlagHasPrevPosition  = (1 << 3); // Object has a separate previous frame position vertex streams (e.g. for deformed objects)
 static const uint kDOTSInstancingFlagMainLightEnabled = (1 << 4); // Object should receive direct lighting from the main light (e.g. light not baked into lightmap)
+static const uint kDOTSInstancingFlagLODCrossFadeValuePacked = (1 << 5); // Object's cross fade value is encoded in the higher 8 bits of the instance index
 
 static const uint kPerInstanceDataBit = 0x80000000;
 static const uint kAddressMask        = 0x7fffffff;
 
 static const uint kIndirectVisibleOffsetEnabledBit = 0x80000000;
 static uint unity_SampledDOTSIndirectVisibleIndex;
-static uint unity_SampledDOTSPackedInstanceIndex;
+static uint unity_SampledDOTSInstanceIndex;
+static int unity_SampledLODCrossfade;
 static real4 unity_DOTS_Sampled_SHAr;
 static real4 unity_DOTS_Sampled_SHAg;
 static real4 unity_DOTS_Sampled_SHAb;
@@ -246,11 +248,7 @@ uint GetDOTSIndirectVisibleIndex()
 
 uint GetDOTSInstanceIndex()
 {
-#ifdef LOD_FADE_CROSSFADE
-    return unity_SampledDOTSPackedInstanceIndex & 0x00ffffff;
-#else
-    return unity_SampledDOTSPackedInstanceIndex;
-#endif
+    return unity_SampledDOTSInstanceIndex;
 }
 
 #ifdef UNITY_DOTS_INSTANCING_UNIFORM_BUFFER
@@ -316,23 +314,30 @@ uint LoadDOTSIndirectInstanceIndex(uint indirectIndex)
 void SetupDOTSVisibleInstancingData()
 {
     uint packedIndirectVisibleOffset = unity_DOTSVisibleInstances[0].VisibleData.y;
+    uint crossFadeValuePacked = unity_DOTSVisibleInstances[0].VisibleData.w & kDOTSInstancingFlagLODCrossFadeValuePacked;
     unity_SampledDOTSIndirectVisibleIndex = (packedIndirectVisibleOffset & ~kIndirectVisibleOffsetEnabledBit) + unity_InstanceID;
 
     if (packedIndirectVisibleOffset != 0)
-        unity_SampledDOTSPackedInstanceIndex = LoadDOTSIndirectInstanceIndex(unity_SampledDOTSIndirectVisibleIndex);
+        unity_SampledDOTSInstanceIndex = LoadDOTSIndirectInstanceIndex(unity_SampledDOTSIndirectVisibleIndex);
     else
-        unity_SampledDOTSPackedInstanceIndex = unity_DOTSVisibleInstances[unity_InstanceID].VisibleData.x;
+        unity_SampledDOTSInstanceIndex = unity_DOTSVisibleInstances[unity_InstanceID].VisibleData.x;
+
+    if(crossFadeValuePacked != 0)
+    {
+        unity_SampledLODCrossfade = int(unity_SampledDOTSInstanceIndex) >> 24;
+        unity_SampledDOTSInstanceIndex &= 0x00ffffff;
+    }
+    else
+    {
+        unity_SampledLODCrossfade = 0;
+    }
 
     SetupDOTSInstanceSelectMasks();
 }
 
 int GetDOTSInstanceCrossfadeSnorm8()
 {
-#ifdef LOD_FADE_CROSSFADE
-    return int(unity_SampledDOTSPackedInstanceIndex) >> 24;
-#else
-    return 0;
-#endif
+    return unity_SampledLODCrossfade;
 }
 
 bool IsDOTSInstancedProperty(uint metadata)

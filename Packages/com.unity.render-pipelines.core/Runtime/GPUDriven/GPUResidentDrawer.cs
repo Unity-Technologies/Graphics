@@ -12,6 +12,7 @@ using static UnityEngine.ObjectDispatcher;
 using Unity.Jobs;
 using static UnityEngine.Rendering.RenderersParameters;
 using Unity.Jobs.LowLevel.Unsafe;
+using UnityEngine.Experimental.Rendering;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -248,7 +249,7 @@ namespace UnityEngine.Rendering
                 return;
             }
 
-            s_Instance = new GPUResidentDrawer(settings, 4096);
+            s_Instance = new GPUResidentDrawer(settings, 4096, 0);
         }
 
         internal GPUResidentBatcher batcher { get => m_Batcher; }
@@ -275,7 +276,7 @@ namespace UnityEngine.Rendering
 
         private List<Object> m_ChangedMaterials;
 
-        private GPUResidentDrawer(GPUResidentDrawerSettings settings, int maxInstanceCount)
+        private GPUResidentDrawer(GPUResidentDrawerSettings settings, int maxInstanceCount, int maxTreeInstanceCount)
         {
             var resources = GraphicsSettings.GetRenderPipelineSettings<GPUResidentDrawerResources>();
             var renderPipelineAsset = GraphicsSettings.currentRenderPipeline;
@@ -286,7 +287,7 @@ namespace UnityEngine.Rendering
 
             var mode = settings.mode;
             var rbcDesc = RenderersBatchersContextDesc.NewDefault();
-            rbcDesc.instanceNumInfo = new InstanceNumInfo(meshRendererNum: maxInstanceCount);
+            rbcDesc.instanceNumInfo = new InstanceNumInfo(meshRendererNum: maxInstanceCount, speedTreeNum: maxTreeInstanceCount);
             rbcDesc.supportDitheringCrossFade = settings.supportDitheringCrossFade;
             rbcDesc.enableCullerDebugStats = true; // for now, always allow the possibility of reading counter stats from the cullers.
 

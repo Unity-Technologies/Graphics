@@ -49,5 +49,17 @@ namespace UnityEngine.Rendering
             get => m_TransformUpdaterKernels;
             set => this.SetValueAndNotify(ref m_TransformUpdaterKernels, value, nameof(m_TransformUpdaterKernels));
         }
+
+        [SerializeField, ResourcePath("Runtime/RenderPipelineResources/GPUDriven/InstanceWindDataUpdateKernels.compute")]
+        public ComputeShader m_WindDataUpdaterKernels;
+
+        /// <summary>
+        /// InstanceWindDataUpdateKernels compute shader reference
+        /// </summary>
+        public ComputeShader windDataUpdaterKernels
+        {
+            get => m_WindDataUpdaterKernels;
+            set => this.SetValueAndNotify(ref m_WindDataUpdaterKernels, value, nameof(m_WindDataUpdaterKernels));
+        }
     }
 }
