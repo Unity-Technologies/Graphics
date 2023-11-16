@@ -58,7 +58,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             unchecked
             {
                 hash = hash * 23 + builtinData.alphaTestShadow.GetHashCode();
-                hash = hash * 23 + lightingData.receiveSSR.GetHashCode();
+                hash = hash * 23 + (!lightingData.receiveSSR).GetHashCode();
                 hash = hash * 23 + lightingData.receiveSSRTransparent.GetHashCode();
             }
 

@@ -228,14 +228,14 @@ bool BlockerSearch_Area(inout real closestBlocker, real maxSampleZDistance, real
         offset = real2(offset.x *  sampleJitter.y + offset.y * sampleJitter.x,
                        offset.x * -sampleJitter.x + offset.y * sampleJitter.y);
 
-        offset = offset * (offset > 0 ? filterScalePos : filterScaleNeg) + filterOffset * sampleDistNorm;
+        offset = offset * real2(offset.x > 0 ? filterScalePos.x : filterScaleNeg.x, offset.y > 0 ? filterScalePos.y : filterScaleNeg.y) + filterOffset * sampleDistNorm;
         real zoffset = maxSampleZDistance * sampleDistNorm;
 
         real2 pos = posTCAtlas + offset;
 
         real blocker = SAMPLE_TEXTURE2D_LOD(shadowMap, pointSampler, pos, 0.0).x;
 
-        if (!any(pos < minCoord || pos > maxCoord) &&
+        if (!(any(pos < minCoord) || any(pos > maxCoord)) &&
             COMPARE_DEVICE_DEPTH_CLOSER(blocker, posTCShadowmap.z + zoffset) &&
             COMPARE_DEVICE_DEPTH_CLOSER(closestBlocker, blocker))
         {
@@ -264,14 +264,14 @@ real PCSS_Area(real2 posTCAtlas, real3 posTCShadowmap, real maxSampleZDistance, 
         offset = real2(offset.x *  sampleJitter.y + offset.y * sampleJitter.x,
                        offset.x * -sampleJitter.x + offset.y * sampleJitter.y);
 
-        offset = offset * (offset > 0 ? filterScalePos : filterScaleNeg) + filterOffset * sampleDistNorm;
+        offset = offset * real2(offset.x > 0 ? filterScalePos.x : filterScaleNeg.x, offset.y > 0 ? filterScalePos.y : filterScaleNeg.y) + filterOffset * sampleDistNorm;
         real zoffset = maxSampleZDistance * sampleDistNorm;
 
         real3 pos = 0;
         pos.xy = posTCAtlas + offset;
         pos.z = posTCShadowmap.z + zoffset;
 
-        sum += any(pos.xy < minCoord || pos.xy > maxCoord) ? 1 : SAMPLE_TEXTURE2D_SHADOW(shadowMap, compSampler, pos).r;
+        sum += (any(pos.xy < minCoord) || any(pos.xy > maxCoord)) ? 1 : SAMPLE_TEXTURE2D_SHADOW(shadowMap, compSampler, pos).r;
     }
 
     return sum / sampleCount;

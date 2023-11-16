@@ -2,6 +2,8 @@
 
 This page provides the basic workflow you need to use Probe Volumes in your project.
 
+This feature is experimental, so it's not ready for production use.
+
 ## Add and bake a Probe Volume
 
 ### Enable Probe Volumes

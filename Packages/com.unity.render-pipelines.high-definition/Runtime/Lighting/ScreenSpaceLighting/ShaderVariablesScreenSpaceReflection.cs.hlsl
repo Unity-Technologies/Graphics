@@ -15,7 +15,6 @@ CBUFFER_START(ShaderVariablesScreenSpaceReflection)
     float _SsrRoughnessFadeRcpLength;
     float _SsrRoughnessFadeEndTimesRcpLength;
     float _SsrEdgeFadeRcpLength;
-    float4 _ColorPyramidUvScaleAndLimitPrevFrame;
     int _SsrDepthPyramidMaxMip;
     int _SsrColorPyramidMaxMip;
     int _SsrReflectsSky;

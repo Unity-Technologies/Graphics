@@ -83,7 +83,7 @@ float IntersectRayAABBSimple(float3 start, float3 dir, float3 boxMin, float3 box
     float3 rbmin = (boxMin - start) * invDir;
     float3 rbmax = (boxMax - start) * invDir;
 
-    float3 rbminmax = (dir > 0.0) ? rbmax : rbmin;
+    float3 rbminmax = float3((dir.x > 0.0) ? rbmax.x : rbmin.x, (dir.y > 0.0) ? rbmax.y : rbmin.y, (dir.z > 0.0) ? rbmax.z : rbmin.z);
 
     return min(min(rbminmax.x, rbminmax.y), rbminmax.z);
 }
@@ -266,7 +266,10 @@ bool4 CullFullTriangleAndEdgesFrustum(float3 p0, float3 p1, float3 p2, float eps
         edgesOutside.y = pointsOutside.x && pointsOutside.z;
         edgesOutside.z = pointsOutside.x && pointsOutside.y;
 
-        edgesOutsideXYZ_triangleOutsideW = edgesOutsideXYZ_triangleOutsideW || bool4(edgesOutside.xyz, all(pointsOutside));
+        edgesOutsideXYZ_triangleOutsideW = bool4(edgesOutsideXYZ_triangleOutsideW.x || edgesOutside.x,
+                                                 edgesOutsideXYZ_triangleOutsideW.y || edgesOutside.y,
+                                                 edgesOutsideXYZ_triangleOutsideW.z || edgesOutside.z,
+                                                 all(pointsOutside));
     }
 
     return edgesOutsideXYZ_triangleOutsideW;

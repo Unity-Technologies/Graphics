@@ -1614,6 +1614,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             // Pre-graph
             { CorePregraph },
             { ShaderGraphPregraph },
+            { DOTSPregraph },
 
             // Post-graph
             { CorePostgraph },
@@ -1625,6 +1626,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             // Pre-graph
             { CorePregraph },
             { ShaderGraphPregraph },
+            { DOTSPregraph },
 
             // Post-graph
             { CorePostgraph },

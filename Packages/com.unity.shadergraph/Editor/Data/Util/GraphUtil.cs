@@ -120,6 +120,7 @@ namespace UnityEditor.ShaderGraph
             var graph = new GraphData();
             graph.AddContexts();
             graph.InitializeOutputs(m_Targets, m_Blocks);
+            graph.AddCategory(CategoryData.DefaultCategory());
 
             graph.path = "Shader Graphs";
             FileUtilities.WriteShaderGraphToDisk(pathName, graph);

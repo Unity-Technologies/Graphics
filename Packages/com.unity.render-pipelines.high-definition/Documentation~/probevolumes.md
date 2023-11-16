@@ -2,6 +2,8 @@
 
 Probe Volumes make [Light Probes](https://docs.unity3d.com/Manual/LightProbes.html) easier to use by automating placement. They also provide higher quality, more accurate lighting, because they light per-pixel not per-object.
 
+This feature is experimental, so it's not ready for production use.
+
 | Topic                    | Description                                                 |
 |--------------------------|-------------------------------------------------------------|
 | [Understand Probe Volumes](probevolumes-concept.md) | The purpose of Probe Volumes and what you can do with them.   |

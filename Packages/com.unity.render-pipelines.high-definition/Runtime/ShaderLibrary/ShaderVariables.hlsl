@@ -203,6 +203,14 @@ TEXTURE2D(_PrevExposureTexture);
         #endif //SAMPLE_TEXTURE2D_ARRAY_BIAS
     #endif //PLATFORM_SAMPLE_TEXTURE2D_ARRAY_BIAS
 
+    #ifdef PLATFORM_SAMPLE_TEXTURE2D_ARRAY_GRAD
+        #ifdef SAMPLE_TEXTURE2D_ARRAY_GRAD
+            #undef SAMPLE_TEXTURE2D_ARRAY_GRAD
+            #define SAMPLE_TEXTURE2D_ARRAY_GRAD(textureName, samplerName, coord2, index, dpdx, dpdy)\
+                PLATFORM_SAMPLE_TEXTURE2D_ARRAY_GRAD(textureName, samplerName, coord2, index, (dpdx * _GlobalMipBiasPow2), (dpdy * _GlobalMipBiasPow2))
+        #endif
+    #endif //PLATFORM_SAMPLE_TEXTURE2D_ARRAY_BIAS
+
     //2d texture cube arrays bias manipulation
     #ifdef PLATFORM_SAMPLE_TEXTURECUBE_BIAS
         #ifdef  SAMPLE_TEXTURECUBE
