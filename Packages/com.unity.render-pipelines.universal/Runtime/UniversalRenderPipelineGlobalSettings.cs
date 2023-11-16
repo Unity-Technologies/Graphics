@@ -22,6 +22,8 @@ namespace UnityEngine.Rendering.Universal
 
         #region Version system
 
+        internal bool IsAtLastVersion() => k_LastVersion == m_AssetVersion;
+
         internal const int k_LastVersion = 5;
 
 #pragma warning disable CS0414

@@ -432,9 +432,12 @@ namespace UnityEngine.Rendering.Universal
         Shader m_DefaultShader;
         ScriptableRenderer[] m_Renderers = new ScriptableRenderer[1];
 
+        internal bool IsAtLastVersion() => k_LastVersion == k_AssetVersion;
+
+        private const int k_LastVersion = 12;
         // Default values set when a new UniversalRenderPipeline asset is created
-        [SerializeField] int k_AssetVersion = 12;
-        [SerializeField] int k_AssetPreviousVersion = 12;
+        [SerializeField] int k_AssetVersion = k_LastVersion;
+        [SerializeField] int k_AssetPreviousVersion = k_LastVersion;
 
         // Deprecated settings for upgrading sakes
         [SerializeField] RendererType m_RendererType = RendererType.UniversalRenderer;
