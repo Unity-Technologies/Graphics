@@ -179,7 +179,6 @@ namespace UnityEditor.Rendering.HighDefinition
             entryList.AddRange(new Entry[]
             {
                 new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpRuntimeResources, IsRuntimeResourcesCorrect, FixRuntimeResources, indent: 1),
-                new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpEditorResources, IsEditorResourcesCorrect, FixEditorResources, indent: 1),
                 new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpVolumeProfile, IsDefaultVolumeProfileCorrect, FixDefaultVolumeProfile, indent: 1),
                 new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpDiffusionProfile, IsDiffusionProfileCorrect, FixDiffusionProfile, indent: 1),
                 new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpLookDevVolumeProfile, IsDefaultLookDevVolumeProfileCorrect, FixDefaultLookDevVolumeProfile, indent: 1),
@@ -473,17 +472,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 FixHdrpGlobalSettingsUsed(fromAsync: false);
 
             HDRenderPipelineGlobalSettings.instance.EnsureRuntimeResources(forceReload: true);
-        }
-
-        bool IsEditorResourcesCorrect()
-            => IsHdrpGlobalSettingsUsedCorrect() && HDRenderPipelineGlobalSettings.instance.AreEditorResourcesCreated();
-
-        void FixEditorResources(bool fromAsyncUnused)
-        {
-            if (!IsHdrpGlobalSettingsUsedCorrect())
-                FixHdrpGlobalSettingsUsed(fromAsync: false);
-
-            HDRenderPipelineGlobalSettings.instance.EnsureEditorResources(forceReload: true);
         }
 
         bool IsSRPBatcherCorrect()

@@ -466,13 +466,10 @@ namespace UnityEngine.Rendering.HighDefinition
             QualitySettings.maximumLODLevel = cameraFrameSettings.GetResolvedMaximumLODLevel(m_Asset);
 
 #if UNITY_EDITOR
-            UpgradeResourcesIfNeeded();
-
             //In case we are loading element in the asset pipeline (occurs when library is not fully constructed) the creation of the HDRenderPipeline is done at a time we cannot access resources.
             //So in this case, the reloader would fail and the resources cannot be validated. So skip validation here.
             //The HDRenderPipeline will be reconstructed in a few frame which will fix this issue.
-            m_ResourcesInitialized = m_GlobalSettings.AreRuntimeResourcesCreated() &&
-                                     m_GlobalSettings.AreEditorResourcesCreated();
+            m_ResourcesInitialized = m_GlobalSettings.AreRuntimeResourcesCreated();
 
             if (!m_ResourcesInitialized)
                 return;
@@ -710,12 +707,6 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 #if UNITY_EDITOR
-        void UpgradeResourcesIfNeeded()
-        {
-            // Check that the serialized Resources are not broken
-            m_GlobalSettings.EnsureEditorResources(forceReload: true);
-        }
-
         public void UpdateDecalSystemShaderGraphs()
         {
             DecalSystem.instance.UpdateTransparentShaderGraphs();

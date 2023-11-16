@@ -96,7 +96,6 @@ namespace UnityEngine.Rendering.HighDefinition
             SetUpRPAssetIncluded();
 
             // ensure resources are here
-            EnsureEditorResources(forceReload: true);
             EnsureRuntimeResources(forceReload: true);
 
             HDRenderPipelineGlobalSettings hdrpSource = source as HDRenderPipelineGlobalSettings;
@@ -171,7 +170,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // we create a runtime copy (m_ActiveFrameSettings that is used, and any parametrization is done on serialized frameSettings)
         [SerializeField, FormerlySerializedAs("m_RenderingPathDefaultCameraFrameSettings"), Obsolete("Kept For Migration. #from(2023.2")]
         FrameSettings m_ObsoleteRenderingPathDefaultCameraFrameSettings = FrameSettingsDefaults.Get(FrameSettingsRenderType.Camera);
-        
+
         [SerializeField, FormerlySerializedAs("m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings"), Obsolete("Kept For Migration. #from(2023.2")]
         FrameSettings m_ObsoleteRenderingPathDefaultBakedOrCustomReflectionFrameSettings = FrameSettingsDefaults.Get(FrameSettingsRenderType.CustomOrBakedReflection);
 
@@ -243,41 +242,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #endif //UNITY_EDITOR
         #endregion // Runtime Resources
-
-        #region Editor Resources (not serialized)
-#if UNITY_EDITOR
-        HDRenderPipelineEditorResources m_RenderPipelineEditorResources;
-        internal HDRenderPipelineEditorResources renderPipelineEditorResources
-        {
-            get
-            {
-                //there is no clean way to load editor resources without having it serialized
-                // - impossible to load them at deserialization
-                // - constructor only called at asset creation
-                // - cannot rely on OnEnable
-                //thus fallback with lazy init for them
-                EnsureEditorResources(forceReload: false);
-                return m_RenderPipelineEditorResources;
-            }
-        }
-
-        // be sure to cach result for not using GC in a frame after first one.
-        static readonly string editorResourcesPath = HDUtils.GetHDRenderPipelinePath() + "Editor/RenderPipelineResources/HDRenderPipelineEditorResources.asset";
-
-        internal void EnsureEditorResources(bool forceReload)
-            => ResourceReloader.EnsureResources(forceReload, ref m_RenderPipelineEditorResources, editorResourcesPath, AreEditorResourcesCreated_Internal, this);
-
-        // Passing method in a Func argument create a functor that create GC
-        // If it is static it is then only computed once but the Ensure is called after first frame which will make our GC check fail
-        // So create it once and store it here.
-        // Expected usage: HDRenderPipelineGlobalSettings.AreEditorResourcesCreated(anyHDRenderPipelineGlobalSettings) that will return a bool
-        static Func<HDRenderPipelineGlobalSettings, bool> AreEditorResourcesCreated_Internal = global
-            => global.m_RenderPipelineEditorResources != null && !global.m_RenderPipelineEditorResources.Equals(null);
-
-        internal bool AreEditorResourcesCreated() => AreEditorResourcesCreated_Internal(this);
-#endif
-
-        #endregion //Editor Resources
 
         #region Custom Post Processes Injections
 

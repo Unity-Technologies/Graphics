@@ -64,10 +64,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 bool oldGuiEnabled = GUI.enabled;
                 GUI.enabled = false;
 
-                // Not serialized as editor only datas... Retrieve them in data
-                EditorGUI.showMixedValue = serialized.editorResourceHasMultipleDifferentValues;
-                var editorResources = EditorGUILayout.ObjectField(Styles.renderPipelineEditorResourcesContent, serialized.firstEditorResources, typeof(HDRenderPipelineEditorResources), allowSceneObjects: false) as HDRenderPipelineEditorResources;
-
                 EditorGUI.showMixedValue = false;
 
                 GUI.enabled = oldGuiEnabled;
@@ -302,8 +298,6 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         #endregion
-
-
 
         static readonly CED.IDrawer Inspector = CED.Group(
             VolumeSection,
