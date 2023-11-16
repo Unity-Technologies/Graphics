@@ -23,6 +23,8 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public const string k_ShaderTagName = "UniversalPipeline";
 
+        private static bool lastRenderGraphEnabledState = false;
+
         internal static class Profiling
         {
             private static Dictionary<int, ProfilingSampler> s_HashSamplerCache = new Dictionary<int, ProfilingSampler>();
@@ -349,6 +351,14 @@ namespace UnityEngine.Rendering.Universal
 #endif
         {
             useRenderGraph = asset.enableRenderGraph;
+
+            var renderGraphEnablementChanged = lastRenderGraphEnabledState != useRenderGraph;
+
+            if (renderGraphEnablementChanged)
+            {
+                Debug.Log($"RenderGraph is now {(useRenderGraph ? "enabled" : "disabled")}.");
+                lastRenderGraphEnabledState = useRenderGraph;
+            }
 
             SetHDRState(cameras);
 
