@@ -1,12 +1,12 @@
 Shader "Hidden/Universal Render Pipeline/Scaling Setup"
 {
     HLSLINCLUDE
-        #pragma multi_compile_local_fragment _ _FXAA
-        #pragma multi_compile_local_fragment _ _GAMMA_20 _GAMMA_20_AND_HDR_INPUT
+        #pragma multi_compile_local_fragment _FXAA _GAMMA_20 _FXAA_AND_GAMMA_20
+        #pragma multi_compile_local_fragment _ HDR_INPUT
 
-        #if defined(_GAMMA_20_AND_HDR_INPUT)
+        #if defined(_FXAA_AND_GAMMA_20)
+        #define _FXAA 1
         #define _GAMMA_20 1
-        #define HDR_INPUT 1
         #endif
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
