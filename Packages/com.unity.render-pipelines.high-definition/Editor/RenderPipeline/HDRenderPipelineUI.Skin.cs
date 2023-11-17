@@ -17,8 +17,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent xrTitle = EditorGUIUtility.TrTextContent("XR");
             public static readonly GUIContent virtualTexturingTitle = EditorGUIUtility.TrTextContent("Virtual Texturing", "Virtual Texturing Settings. These are only available when Virtual Texturing is enabled in the Player Settings.");
             public static readonly GUIContent lightLoopSubTitle = EditorGUIUtility.TrTextContent("Lights");
-            public static readonly GUIContent postProcessQualitySubTitle = EditorGUIUtility.TrTextContent("Post-processing Quality Settings");
-            public static readonly GUIContent lightingQualitySettings = EditorGUIUtility.TrTextContent("Lighting Quality Settings");
+            public static readonly GUIContent tierSubTitle = EditorGUIUtility.TrTextContent("Tier Settings");
 
             public static readonly GUIContent volumetricSubTitle = EditorGUIUtility.TrTextContent("Volumetrics");
             public static readonly GUIContent volumetricCloudsSubTitle = EditorGUIUtility.TrTextContent("Volumetric Clouds");

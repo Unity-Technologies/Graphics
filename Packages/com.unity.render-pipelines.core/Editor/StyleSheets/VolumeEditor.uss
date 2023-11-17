@@ -62,7 +62,7 @@
 }
 
 #volume-profile-instance-profile-label {
-    -unity-font-style: italic;
+    -unity-font-style: bold;
     margin-left: 4px;
 }
 

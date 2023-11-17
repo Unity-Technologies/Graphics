@@ -22,10 +22,10 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             Rendering = 1 << 4,
             Lighting = 1 << 5,
-            LightingQuality = 1 << 6,
+            LightingTiers = 1 << 6,
             Material = 1 << 7,
             PostProcess = 1 << 8,
-            PostProcessQuality = 1 << 9,
+            PostProcessTiers = 1 << 9,
             XR = 1 << 10,
             VirtualTexturing = 1 << 11,
             Volumes = 1 << 12
@@ -183,29 +183,28 @@ namespace UnityEditor.Rendering.HighDefinition
                         CED.FoldoutGroup(Styles.directionalLightshadowSubTitle, ExpandableShadows.DirectionalLightShadows, k_LightsExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_DirectionalLightSectionShadows),
                         CED.FoldoutGroup(Styles.areaLightshadowSubTitle, ExpandableShadows.AreaLightShadows, k_LightsExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_AreaLightSectionShadows)
                         ),
-                    CED.FoldoutGroup(Styles.lightLoopSubTitle, ExpandableLighting.LightLoop, k_ExpandableLightingState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionLightLoop)
-                    ),
-                SubInspectors[ExpandableGroup.LightingQuality] = CED.FoldoutGroup(Styles.lightingQualitySettings, ExpandableGroup.LightingQuality, k_ExpandedGroupState,
-                    QualityDrawer(Styles.SSAOQualitySettingSubTitle, ExpandableLightingQuality.SSAOQuality, k_ExpandableLightingQualityState, DrawAOQualitySetting),
-                    QualityDrawer(Styles.RTAOQualitySettingSubTitle, ExpandableLightingQuality.RTAOQuality, k_ExpandableLightingQualityState, DrawRTAOQualitySetting),
-                    QualityDrawer(Styles.contactShadowsSettingsSubTitle, ExpandableLightingQuality.ContactShadowQuality, k_ExpandableLightingQualityState, DrawContactShadowQualitySetting),
-                    QualityDrawer(Styles.SSRSettingsSubTitle, ExpandableLightingQuality.SSRQuality, k_ExpandableLightingQualityState, DrawSSRQualitySetting),
-                    QualityDrawer(Styles.RTRSettingsSubTitle, ExpandableLightingQuality.RTRQuality, k_ExpandableLightingQualityState, DrawRTRQualitySetting),
-                    QualityDrawer(Styles.FogSettingsSubTitle, ExpandableLightingQuality.FogQuality, k_ExpandableLightingQualityState, DrawVolumetricFogQualitySetting),
-                    QualityDrawer(Styles.RTGISettingsSubTitle, ExpandableLightingQuality.RTGIQuality, k_ExpandableLightingQualityState, DrawRTGIQualitySetting),
-                    QualityDrawer(Styles.SSGISettingsSubTitle, ExpandableLightingQuality.SSGIQuality, k_ExpandableLightingQualityState, DrawSSGIQualitySetting)
+                    CED.FoldoutGroup(Styles.lightLoopSubTitle, ExpandableLighting.LightLoop, k_ExpandableLightingState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionLightLoop),
+                    CED.FoldoutGroup(Styles.tierSubTitle, ExpandableGroup.LightingTiers, k_ExpandedGroupState, FoldoutOption.Indent | FoldoutOption.SubFoldout,
+                        QualityDrawer(Styles.SSAOQualitySettingSubTitle, ExpandableLightingQuality.SSAOQuality, k_ExpandableLightingQualityState, DrawAOQualitySetting),
+                        QualityDrawer(Styles.RTAOQualitySettingSubTitle, ExpandableLightingQuality.RTAOQuality, k_ExpandableLightingQualityState, DrawRTAOQualitySetting),
+                        QualityDrawer(Styles.contactShadowsSettingsSubTitle, ExpandableLightingQuality.ContactShadowQuality, k_ExpandableLightingQualityState, DrawContactShadowQualitySetting),
+                        QualityDrawer(Styles.SSRSettingsSubTitle, ExpandableLightingQuality.SSRQuality, k_ExpandableLightingQualityState, DrawSSRQualitySetting),
+                        QualityDrawer(Styles.RTRSettingsSubTitle, ExpandableLightingQuality.RTRQuality, k_ExpandableLightingQualityState, DrawRTRQualitySetting),
+                        QualityDrawer(Styles.FogSettingsSubTitle, ExpandableLightingQuality.FogQuality, k_ExpandableLightingQualityState, DrawVolumetricFogQualitySetting),
+                        QualityDrawer(Styles.RTGISettingsSubTitle, ExpandableLightingQuality.RTGIQuality, k_ExpandableLightingQualityState, DrawRTGIQualitySetting),
+                        QualityDrawer(Styles.SSGISettingsSubTitle, ExpandableLightingQuality.SSGIQuality, k_ExpandableLightingQualityState, DrawSSGIQualitySetting))
                     ),
                 SubInspectors[ExpandableGroup.Material] = CED.FoldoutGroup(Styles.materialSectionTitle, ExpandableGroup.Material, k_ExpandedGroupState, Drawer_SectionMaterialUnsorted),
                 SubInspectors[ExpandableGroup.PostProcess] = CED.FoldoutGroup(Styles.postProcessSectionTitle, ExpandableGroup.PostProcess, k_ExpandedGroupState,
                     CED.Group(GroupOption.Indent, Drawer_SectionPostProcessSettings),
-                    CED.FoldoutGroup(Styles.LensFlareTitle, ExpandablePostProcess.LensFlare, k_ExpandablePostProcessState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_LensFlare)
+                    CED.FoldoutGroup(Styles.LensFlareTitle, ExpandablePostProcess.LensFlare, k_ExpandablePostProcessState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_LensFlare),
+                    CED.FoldoutGroup(Styles.tierSubTitle, ExpandableGroup.PostProcessTiers, k_ExpandedGroupState, FoldoutOption.Indent | FoldoutOption.SubFoldout,
+                        QualityDrawer(Styles.depthOfFieldQualitySettings, ExpandablePostProcessQuality.DepthOfFieldQuality, k_ExpandablePostProcessQualityState, DrawDepthOfFieldQualitySetting),
+                        QualityDrawer(Styles.motionBlurQualitySettings, ExpandablePostProcessQuality.MotionBlurQuality, k_ExpandablePostProcessQualityState, DrawMotionBlurQualitySetting),
+                        QualityDrawer(Styles.bloomQualitySettings, ExpandablePostProcessQuality.BloomQuality, k_ExpandablePostProcessQualityState, DrawBloomQualitySetting),
+                        QualityDrawer(Styles.chromaticAberrationQualitySettings, ExpandablePostProcessQuality.ChromaticAberrationQuality, k_ExpandablePostProcessQualityState, DrawChromaticAberrationQualitySetting)
+                    )
                 ),
-                SubInspectors[ExpandableGroup.PostProcessQuality] = CED.FoldoutGroup(Styles.postProcessQualitySubTitle, ExpandableGroup.PostProcessQuality, k_ExpandedGroupState,
-                    QualityDrawer(Styles.depthOfFieldQualitySettings, ExpandablePostProcessQuality.DepthOfFieldQuality, k_ExpandablePostProcessQualityState, DrawDepthOfFieldQualitySetting),
-                    QualityDrawer(Styles.motionBlurQualitySettings, ExpandablePostProcessQuality.MotionBlurQuality, k_ExpandablePostProcessQualityState, DrawMotionBlurQualitySetting),
-                    QualityDrawer(Styles.bloomQualitySettings, ExpandablePostProcessQuality.BloomQuality, k_ExpandablePostProcessQualityState, DrawBloomQualitySetting),
-                    QualityDrawer(Styles.chromaticAberrationQualitySettings, ExpandablePostProcessQuality.ChromaticAberrationQuality, k_ExpandablePostProcessQualityState, DrawChromaticAberrationQualitySetting)
-                    ),
                 SubInspectors[ExpandableGroup.Volumes] = CED.FoldoutGroup(Styles.volumesSectionTitle, ExpandableGroup.Volumes, k_ExpandedGroupState, Drawer_SectionVolumes),
                 SubInspectors[ExpandableGroup.XR] = CED.FoldoutGroup(Styles.xrTitle, ExpandableGroup.XR, k_ExpandedGroupState, Drawer_SectionXRSettings),
                 SubInspectors[ExpandableGroup.VirtualTexturing] = CED.FoldoutGroup(Styles.virtualTexturingTitle, ExpandableGroup.VirtualTexturing, k_ExpandedGroupState, Drawer_SectionVTSettings)
