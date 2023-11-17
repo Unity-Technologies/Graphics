@@ -895,7 +895,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
                 else
                 {
-                    shadowTexture = graph.defaultResources.blackTexture;
+                    shadowTexture = graph.defaultResources.defaultShadowTexture;
                 }
 
                 // RENDERGRAPH TODO: Need this as shadowmap is only used as Global Texture and not a buffer, so would get culled by RG
@@ -908,13 +908,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
                 {
                     if (!data.emptyShadowmap)
-                    {
                         data.pass.RenderAdditionalShadowmapAtlas(context.cmd, ref data, true);
-                    }
                     else
-                    {
                         data.pass.SetEmptyAdditionalShadowmapAtlas(context.cmd);
-                    }
                 });
 
                 return shadowTexture;

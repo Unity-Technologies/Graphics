@@ -1130,13 +1130,14 @@ namespace UnityEngine.Rendering.Universal
         public TextureHandle RenderLensFlareScreenSpace(RenderGraph renderGraph, Camera camera, in TextureHandle destination, TextureHandle originalBloomTexture, TextureHandle screenSpaceLensFlareBloomMipTexture, bool enableXR)
         {
             var downsample = (int) m_LensFlareScreenSpace.resolution.value;
+
             int width = m_Descriptor.width / downsample;
             int height = m_Descriptor.height / downsample;
 
-            var streakTextureDesc = PostProcessPass.GetCompatibleDescriptor(m_Descriptor, width, height, m_DefaultHDRFormat);
+            var streakTextureDesc = GetCompatibleDescriptor(m_Descriptor, width, height, m_DefaultHDRFormat);
             var streakTmpTexture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, streakTextureDesc, "_StreakTmpTexture", true, FilterMode.Bilinear);
             var streakTmpTexture2 = UniversalRenderer.CreateRenderGraphTexture(renderGraph, streakTextureDesc, "_StreakTmpTexture2", true, FilterMode.Bilinear);
-            TextureHandle result = renderGraph.defaultResources.blackTextureXR;
+            var resultTexture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, streakTextureDesc, "Lens Flare Screen Space Result", true, FilterMode.Bilinear);
 
             using (var builder = renderGraph.AddLowLevelPass<LensFlareScreenSpacePassData>("Lens Flare Screen Space Pass", out var passData, ProfilingSampler.Get(URPProfileId.LensFlareScreenSpace)))
             {
@@ -1151,15 +1152,12 @@ namespace UnityEngine.Rendering.Universal
                 passData.camera = camera;
                 passData.material = m_Materials.lensFlareScreenSpace;
                 passData.downsample = downsample;
-
-                passData.result = builder.UseTexture(renderGraph.CreateTexture(new TextureDesc(width, height, true, enableXR)
-                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, useMipMap = false, name = "Lens Flare Screen Space Result" }), IBaseRenderGraphBuilder.AccessFlags.Write);
+                passData.result = builder.UseTexture(resultTexture, IBaseRenderGraphBuilder.AccessFlags.Write);
 
                 builder.SetRenderFunc((LensFlareScreenSpacePassData data, LowLevelGraphContext context) =>
                 {
                     var cmd = context.cmd;
                     var camera = data.camera;
-                    var ratio = (int) m_LensFlareScreenSpace.resolution.value;
 
                     LensFlareCommonSRP.DoLensFlareScreenSpaceCommon(
                         m_Materials.lensFlareScreenSpace,

@@ -867,6 +867,8 @@ namespace UnityEngine.Rendering.Universal
 
                 builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
                 {
+                    bool yFlip = !SystemInfo.graphicsUVStartsAtTop || data.isTargetBackbuffer;
+
                     // This is still required because of the following reasons:
                     // - Camera billboard properties.
                     // - Camera frustum planes: unity_CameraWorldClipPlanes[6]
@@ -878,13 +880,13 @@ namespace UnityEngine.Rendering.Universal
                     if (data.cameraData.renderType == CameraRenderType.Base)
                     {
                         context.cmd.SetupCameraProperties(data.cameraData.camera);
-                        data.renderer.SetPerCameraShaderVariables(context.cmd, data.cameraData, !data.isTargetBackbuffer);
+                        data.renderer.SetPerCameraShaderVariables(context.cmd, data.cameraData, !yFlip);
                     }
                     else
                     {
                         // Set new properties
-                        data.renderer.SetPerCameraShaderVariables(context.cmd, data.cameraData, !data.isTargetBackbuffer);
-                        data.renderer.SetPerCameraClippingPlaneProperties(context.cmd, in data.cameraData, !data.isTargetBackbuffer);
+                        data.renderer.SetPerCameraShaderVariables(context.cmd, data.cameraData, !yFlip);
+                        data.renderer.SetPerCameraClippingPlaneProperties(context.cmd, in data.cameraData, !yFlip);
                         data.renderer.SetPerCameraBillboardProperties(context.cmd, data.cameraData);
                     }
 

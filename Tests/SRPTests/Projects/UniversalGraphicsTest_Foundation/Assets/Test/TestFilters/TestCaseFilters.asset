@@ -32,6 +32,16 @@ MonoBehaviour:
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: f542939af2a7f44d2bcbca8cd5ec5875, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 38
+    GraphicsDevice: 4
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: UUM-56486
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: f542939af2a7f44d2bcbca8cd5ec5875, type: 3}
     - {fileID: 102900000, guid: 6fbea5cb60d394329b2ac2b4a3788d12, type: 3}
     - {fileID: 102900000, guid: 0bcaa565757b243bba6bd2c007b0977c, type: 3}
     - {fileID: 102900000, guid: e277e63daf9584a9291edc2c56bcd258, type: 3}
