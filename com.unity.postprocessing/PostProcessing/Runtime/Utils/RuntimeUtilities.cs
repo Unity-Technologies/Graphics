@@ -869,7 +869,7 @@ namespace UnityEngine.Rendering.PostProcessing
 #if UNITY_EDITOR
     #if UNITY_WEBGL
         #if UNITY_2023_2_OR_NEWER
-                return PlayerSettings.GetGraphicsAPIs(BuildTarget.WebGL)[0] != GraphicsDeviceType.WebGPU;
+                return PlayerSettings.GetGraphicsAPIs(BuildTarget.WebGL).First() != GraphicsDeviceType.WebGPU;
         #else
                 return true;
         #endif
