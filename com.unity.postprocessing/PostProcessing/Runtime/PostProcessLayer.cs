@@ -474,6 +474,10 @@ namespace UnityEngine.Rendering.PostProcessing
 #endif
                 }
             }
+            else
+            {
+                m_Camera.nonJitteredProjectionMatrix = m_Camera.projectionMatrix;
+            }
 
 #if (ENABLE_VR_MODULE && ENABLE_VR)
             if (m_Camera.stereoEnabled)
