@@ -1,6 +1,7 @@
-when:
-  path:
-    - ^.*HDROutput?.*$
-    - ^.*LensFlare?.*$
-add:
-  area: HD RP
+hdrp:
+  when:
+    path:
+      - ^.*HDROutput?.*$
+      - ^.*LensFlare?.*$
+  add:
+    area: HD RP
