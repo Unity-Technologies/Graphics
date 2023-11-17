@@ -47,6 +47,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
         public CompilerContextData(int estimatedNumPasses, int estimatedNumResourcesPerType)
         {
             passData = new NativeList<PassData>(estimatedNumPasses, AllocatorManager.Persistent);
+            fences = new Dictionary<int, GraphicsFence>();
             passNames = new DynamicArray<Name>(estimatedNumPasses, false); // T in NativeList<T> cannot contain managed types, so the names are stored separately
             inputData = new NativeList<PassInputData>(estimatedNumPasses * 2, AllocatorManager.Persistent);
             outputData = new NativeList<PassOutputData>(estimatedNumPasses * 2, AllocatorManager.Persistent);
@@ -67,6 +68,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
         public void Clear()
         {
             passData.Clear();
+            fences.Clear();
             passNames.Clear();
             inputData.Clear();
             outputData.Clear();
@@ -118,6 +120,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
 
         // Data per graph level renderpass
         public NativeList<PassData> passData;
+        public Dictionary<int, GraphicsFence> fences;
         public DynamicArray<Name> passNames;
 
         // Tightly packed lists all passes, add to these lists then index in it using offset+count
@@ -127,7 +130,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
         public NativeList<ResourceHandle> createData;
         public NativeList<ResourceHandle> destroyData;
         public NativeList<PassRandomWriteData> randomAccessResourceData;
-
 
         // Data per native renderpas
         public NativeList<NativePassData> nativePassData;

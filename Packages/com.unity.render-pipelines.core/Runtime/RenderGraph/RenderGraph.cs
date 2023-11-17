@@ -357,24 +357,25 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             public RenderGraphPass pass;
             public List<int>[] resourceCreateList;
             public List<int>[] resourceReleaseList;
-            public int refCount;
-            public bool culled;
-            public bool culledByRendererList;
-            public bool hasSideEffect;
-            public int syncToPassIndex; // Index of the pass that needs to be waited for.
-            public int syncFromPassIndex; // Smaller pass index that waits for this pass.
-            public bool needGraphicsFence;
             public GraphicsFence fence;
-
-            public bool enableAsyncCompute;
-            public bool allowPassCulling { get { return pass.allowPassCulling; } }
-            public bool enableFoveatedRasterization { get { return pass.enableFoveatedRasterization; } }
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
             // This members are only here to ease debugging.
-            public List<string>[]   debugResourceReads;
-            public List<string>[]   debugResourceWrites;
+            public List<string>[] debugResourceReads;
+            public List<string>[] debugResourceWrites;
 #endif
+
+            public int refCount;
+            public int syncToPassIndex; // Index of the pass that needs to be waited for.
+            public int syncFromPassIndex; // Smaller pass index that waits for this pass.
+
+            public bool enableAsyncCompute;
+            public bool allowPassCulling { get { return pass.allowPassCulling; } }
+            public bool needGraphicsFence;
+            public bool culled;
+            public bool culledByRendererList;
+            public bool hasSideEffect;
+            public bool enableFoveatedRasterization { get { return pass.enableFoveatedRasterization; } }
 
             public void Reset(RenderGraphPass pass)
             {
@@ -455,7 +456,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             get; set;
         }
 
-
         internal/*for tests*/ RenderGraphResourceRegistry m_Resources;
         RenderGraphObjectPool m_RenderGraphPool = new RenderGraphObjectPool();
         RenderGraphBuilders m_builderInstance = new RenderGraphBuilders();
@@ -465,10 +465,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         RenderGraphLogger m_FrameInformationLogger = new RenderGraphLogger();
         RenderGraphDefaultResources m_DefaultResources = new RenderGraphDefaultResources();
         Dictionary<int, ProfilingSampler> m_DefaultProfilingSamplers = new Dictionary<int, ProfilingSampler>();
-        bool m_ExecutionExceptionWasRaised;
         InternalRenderGraphContext m_RenderGraphContext = new InternalRenderGraphContext();
         CommandBuffer m_PreviousCommandBuffer;
-        int m_CurrentImmediatePassIndex;
         List<int>[] m_ImmediateModeResourceList = new List<int>[(int)RenderGraphResourceType.Count];
 
         // Compiled Render Graph info.
@@ -478,10 +476,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         DynamicArray<CompiledPassInfo> m_CompiledPassInfos = new DynamicArray<CompiledPassInfo>();
         Stack<int> m_CullingStack = new Stack<int>();
 
+        string m_CurrentExecutionName;
         int m_ExecutionCount;
         int m_CurrentFrameIndex;
+        int m_CurrentImmediatePassIndex;
+        bool m_ExecutionExceptionWasRaised;
         bool m_HasRenderGraphBegun;
-        string m_CurrentExecutionName;
         bool m_RendererListCulling;
         string m_CaptureDebugDataForExecution; // Null unless debug data has been requested
         Dictionary<string, DebugData> m_DebugData = new Dictionary<string, DebugData>();
@@ -2501,9 +2501,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     /// </summary>
     public struct RenderGraphProfilingScope : IDisposable
     {
-        bool m_Disposed;
         ProfilingSampler m_Sampler;
         RenderGraph m_RenderGraph;
+        bool m_Disposed;
 
         /// <summary>
         /// Profiling Scope constructor
