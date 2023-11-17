@@ -1,10 +1,11 @@
 #include "Packages/com.unity.rendering.light-transport/Runtime/UnifiedRayTracing/FetchGeometry.hlsl"
 #include "Packages/com.unity.rendering.light-transport/Runtime/UnifiedRayTracing/TraceRay.hlsl"
+#include "Packages/com.unity.rendering.light-transport/Runtime/UnifiedRayTracing/Common.hlsl"
 
 #define RNG_METHOD 5 // SOBOL
 #define RAND_SAMPLES_PER_BOUNCE 2
-#include "Packages/com.unity.rendering.light-transport/Runtime/UnifiedRayTracing/Random.hlsl"
-#include "Packages/com.unity.rendering.light-transport/Runtime/UnifiedRayTracing/Common.hlsl"
+#include "Packages/com.unity.rendering.light-transport/Runtime/Sampling/Random.hlsl"
+#include "Packages/com.unity.rendering.light-transport/Runtime/Sampling/Common.hlsl"
 
 UNITY_DECLARE_RT_ACCEL_STRUCT(_AccelStruct);
 
