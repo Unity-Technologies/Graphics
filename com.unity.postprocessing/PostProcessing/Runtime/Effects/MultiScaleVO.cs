@@ -88,6 +88,7 @@ namespace UnityEngine.Rendering.PostProcessing
                     m_R16Format = RenderTextureFormat.RFloat;
                 }
             }
+
 #else
             if (!SystemInfo.IsFormatSupported(GraphicsFormatUtility.GetGraphicsFormat(m_R8Format, false), FormatUsage.LoadStore))
             {
@@ -331,10 +332,6 @@ namespace UnityEngine.Rendering.PostProcessing
             }
 
             // 1st downsampling pass.
-
-            // Some platforms only support 4 writable storage textures, so we need to split the downsampling
-            // into two passes. The first pass downsamples the depth buffer to 2x2 tiles, the second pass
-            // downsamples to 4x4 tiles.
             var cs = m_Resources.computeShaders.multiScaleAODownsample1;
             int kernel = cs.FindKernel(isMSAA ? "MultiScaleVODownsample1_MSAA" : "MultiScaleVODownsample1");
 
@@ -343,14 +340,8 @@ namespace UnityEngine.Rendering.PostProcessing
             cmd.SetComputeTextureParam(cs, kernel, "DS2xAtlas", ShaderIDs.TiledDepth1);
             cmd.SetComputeVectorParam(cs, "ZBufferParams", CalculateZBufferParams(camera));
             cmd.SetComputeTextureParam(cs, kernel, "Depth", depthMapId);
-
-            cmd.DispatchCompute(cs, kernel, m_ScaledWidths[(int)MipLevel.L4], m_ScaledHeights[(int)MipLevel.L4], 1);
-
-            kernel = cs.FindKernel(isMSAA ? "MultiScaleVODownsample1_MSAA_4x" : "MultiScaleVODownsample1_4x");
             cmd.SetComputeTextureParam(cs, kernel, "DS4x", ShaderIDs.LowDepth2);
             cmd.SetComputeTextureParam(cs, kernel, "DS4xAtlas", ShaderIDs.TiledDepth2);
-            cmd.SetComputeTextureParam(cs, kernel, "Depth", depthMapId);
-
             cmd.DispatchCompute(cs, kernel, m_ScaledWidths[(int)MipLevel.L4], m_ScaledHeights[(int)MipLevel.L4], 1);
 
             if (needDepthMapRelease)
