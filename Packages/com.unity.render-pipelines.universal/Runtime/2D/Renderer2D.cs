@@ -505,7 +505,8 @@ namespace UnityEngine.Rendering.Universal
 
         internal override bool supportsNativeRenderPassRendergraphCompiler
         {
-            get => !IsGLDevice(); // GLES and doesn't support MSAA resolve with the NRP API
+            get => !IsGLDevice() // GLES and doesn't support MSAA resolve with the NRP API
+                   && SystemInfo.graphicsDeviceType != GraphicsDeviceType.Direct3D12;
         }
     }
 }
