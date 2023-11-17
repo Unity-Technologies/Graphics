@@ -12,6 +12,8 @@ namespace UnityEditor.Rendering.HighDefinition
     [CustomPropertyDrawer(typeof(CustomPostProcessVolumeComponentList))]
     class CustomPostProcessVolumeComponentListPropertyDrawer : PropertyDrawer
     {
+        const string k_StyleSheet = @"Packages/com.unity.render-pipelines.high-definition/Editor/USS/ReorderableList.uss";
+
         List<Type> FetchAvailableCustomPostProcessVolumesTypes(CustomPostProcessInjectionPoint injectionPoint, SerializedProperty list)
         {
             var listTypes = new List<Type>();
@@ -45,7 +47,85 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override VisualElement CreatePropertyGUI(SerializedProperty property)
         {
-            return new Label(property.propertyPath);
+            var styleSheet = EditorGUIUtility.Load(k_StyleSheet) as StyleSheet;
+
+            var currentPostProcessTypes = property.FindPropertyRelative("m_CustomPostProcessTypesAsString");
+            var injectionPoint = property.FindPropertyRelative("m_InjectionPoint")
+                .GetEnumValue<CustomPostProcessInjectionPoint>();
+            FieldInfo fieldInfo = typeof(CustomPostProcessInjectionPoint).GetField(injectionPoint.ToString());
+            InspectorNameAttribute attribute = fieldInfo.GetCustomAttribute<InspectorNameAttribute>();
+            string header = attribute != null ? attribute.displayName : injectionPoint.ToString();
+
+            var listView = new ListView();
+            listView.styleSheets.Add(styleSheet);
+            listView.name = "ReorderableList";
+            listView.showBorder = true;
+            listView.virtualizationMethod = CollectionVirtualizationMethod.FixedHeight;
+            listView.showAlternatingRowBackgrounds = AlternatingRowBackground.None;
+            listView.showAddRemoveFooter = true;
+            listView.showBoundCollectionSize = false;
+            listView.showFoldoutHeader = true;
+            listView.headerTitle = header;
+            listView.makeHeader = () => new Label(listView.headerTitle) { name = "ReorderableList-header" };
+
+            listView.selectionType = SelectionType.Single;
+            listView.reorderMode = ListViewReorderMode.Animated;
+            listView.reorderable = true;
+
+            listView.allowRemove = currentPostProcessTypes.arraySize > 0;
+            listView.overridingAddButtonBehavior = (list, button) => {
+                var menu = new GenericDropdownMenu();
+                
+                //Sadly, public API don't allow tooltips
+                var addItemMethod = typeof(GenericDropdownMenu).GetMethod("AddItem", BindingFlags.Instance | BindingFlags.NonPublic, null, new[] { typeof(string), typeof(bool), typeof(Action), typeof(Texture2D), typeof(string) }, null);
+
+                var listTypes = FetchAvailableCustomPostProcessVolumesTypes(injectionPoint, currentPostProcessTypes);
+                bool atLeastOne = false;
+                foreach (var type in listTypes)
+                {
+                    atLeastOne = true;
+                    addItemMethod.Invoke(menu, new object[] { type.Name, false, (Action)(() =>
+                    {
+                        int lastPos = currentPostProcessTypes.arraySize;
+                        currentPostProcessTypes.InsertArrayElementAtIndex(lastPos);
+                        var newProperty = currentPostProcessTypes.GetArrayElementAtIndex(lastPos);
+                        newProperty.stringValue = type.AssemblyQualifiedName;
+                        property.serializedObject.ApplyModifiedProperties();
+                        listView.allowRemove = true;
+                    }), null, type.AssemblyQualifiedName });
+                }
+                if (!atLeastOne)
+                    menu.AddDisabledItem("No Custom Post Process Available", false);
+
+                //Sadly, public API menu.DropDown will produce cropped menu as everything that 
+                //would go over the edge of the inspector will vanish. We must rely on the internal
+                //DoDisplayGenericDropdownMenu that generate a temporary flying window to deal 
+                //with this.
+                var rect = button.worldBound;
+                var position = rect.position + Vector2.up * rect.size.y;
+                var descriptor = new DropdownMenuDescriptor()
+                {
+                    search = DropdownMenuSearch.Always,
+                    parseShortcuts = false,
+                    autoClose = true
+                };
+                typeof(EditorMenuExtensions)
+                    .GetMethod("DoDisplayGenericDropdownMenu", BindingFlags.Static | BindingFlags.NonPublic, null, new Type[] { typeof(GenericDropdownMenu), typeof(Vector2), typeof(DropdownMenuDescriptor) }, null)
+                    .Invoke(null, new object[] { menu, position, descriptor });
+            };
+            listView.itemsRemoved += (indices) => listView.allowRemove = currentPostProcessTypes.arraySize  != 1;
+            listView.makeItem = () => new Label() { name = "ReorderableList-element" };
+            listView.bindItem = (element, index) =>
+            {
+                var label = element as Label;
+                var target = property.boxedValue as CustomPostProcessVolumeComponentList;
+                var type = target[index];
+                label.text = type.Name;
+                label.tooltip = type.AssemblyQualifiedName;
+            };
+
+            listView.BindProperty(currentPostProcessTypes);
+            return listView;
         }
 
         private static Dictionary<string, UnityEditorInternal.ReorderableList> s_ReorderableList = new();

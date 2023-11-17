@@ -1,0 +1,29 @@
+#ReorderableList
+{
+	padding: 2px 0px 0px 0px;
+}
+
+#ReorderableList > ScrollView
+{
+	border-top-left-radius: 0px;
+	border-top-right-radius: 0px;
+	border-color: var(--unity-colors-window-border);
+}
+
+#ReorderableList-header
+{
+	padding-left: 6px;
+	-unity-font-style: bold;
+	-unity-text-align: middle-left;
+	border-top-left-radius: 3px;
+	border-top-right-radius: 3px;
+	border-width: 1px 1px 0px 1px;
+	border-color: var(--unity-colors-window-border);
+	background-color: var(--unity-colors-tab-background);
+}
+
+#ReorderableList-element
+{
+	-unity-text-align: middle-left;
+	height: 18px;
+}
