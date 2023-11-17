@@ -799,14 +799,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
             m_DebugDisplaySettings.nvidiaDebugView.Reset();
-            SetupDLSSFeature();
 #endif
-        }
-
-        internal static void SetupDLSSFeature()
-        {
-            if (DLSSPass.SetupFeature())
-                HDDynamicResolutionPlatformCapabilities.ActivateDLSS();
+            HDDynamicResolutionPlatformCapabilities.SetupFeatures();
         }
 
         bool CheckAPIValidity()
@@ -1268,7 +1262,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void SetupDLSSForCameraDataAndDynamicResHandler(
+        void SetupPartnerUpscalers(
             in HDAdditionalCameraData hdCam,
             Camera camera,
             XRPass xrPass,
@@ -1278,18 +1272,50 @@ namespace UnityEngine.Rendering.HighDefinition
             if (hdCam == null)
                 return;
 
-            hdCam.cameraCanRenderDLSS = cameraRequestedDynamicRes
-                && HDDynamicResolutionPlatformCapabilities.DLSSDetected
-                && hdCam.allowDeepLearningSuperSampling
-                && m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.enableDLSS
-                && m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.enabled;
+            hdCam.cameraCanRenderDLSS = false;
+            hdCam.cameraCanRenderFSR2 = false;
 
-            if (m_DLSSPass != null && hdCam.cameraCanRenderDLSS)
+            if (!cameraRequestedDynamicRes || !m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.enabled)
+                return;
+
+            var upscalerList = m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.advancedUpscalersByPriority;
+            if (upscalerList == null || upscalerList.Count == 0)
+                return;
+
+            // External upscaler priority system: we pick the first upscaler in the pre sorted priority list to activate for the frame.
+            bool found = false;
+            for (int i = 0; i < upscalerList.Count && !found; ++i)
             {
-                bool useOptimalSettings = hdCam.deepLearningSuperSamplingUseCustomAttributes
-                    ? hdCam.deepLearningSuperSamplingUseOptimalSettings
-                    : m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.DLSSUseOptimalSettings;
-                m_DLSSPass.SetupDRSScaling(useOptimalSettings, camera, xrPass, ref outDrsSettings);
+                var scaler = upscalerList[i];
+                switch (scaler)
+                {
+                case AdvancedUpscalers.DLSS:
+                    {
+                        hdCam.cameraCanRenderDLSS = HDDynamicResolutionPlatformCapabilities.DLSSDetected && hdCam.allowDeepLearningSuperSampling;
+                        found = hdCam.cameraCanRenderDLSS;
+                        if (m_DLSSPass != null && hdCam.cameraCanRenderDLSS)
+                        {
+                            bool useOptimalSettings = hdCam.deepLearningSuperSamplingUseCustomAttributes
+                                ? hdCam.deepLearningSuperSamplingUseOptimalSettings
+                                : m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.DLSSUseOptimalSettings;
+                            m_DLSSPass.SetupDRSScaling(useOptimalSettings, camera, hdCam, xrPass, ref outDrsSettings);
+                        }
+                    }
+                    break;
+                case AdvancedUpscalers.FSR2:
+                    {
+                        hdCam.cameraCanRenderFSR2 = HDDynamicResolutionPlatformCapabilities.FSR2Detected && hdCam.allowFidelityFX2SuperResolution;
+                        found = hdCam.cameraCanRenderFSR2;
+                        if (m_FSR2Pass != null && hdCam.cameraCanRenderFSR2)
+                        {
+                            bool useOptimalSettings = hdCam.fidelityFX2SuperResolutionUseCustomQualitySettings
+                                ? hdCam.fidelityFX2SuperResolutionUseOptimalSettings
+                                : m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.FSR2UseOptimalSettings;
+                            m_FSR2Pass.SetupDRSScaling(useOptimalSettings, camera, hdCam, xrPass, ref outDrsSettings);
+                        }
+                    }
+                    break;
+                }
             }
         }
 
@@ -2190,8 +2216,9 @@ namespace UnityEngine.Rendering.HighDefinition
                         cameraRequestedDynamicRes &= !HDCamera.GetOrCreate(camera).IsPathTracingEnabled();
                     }
 
-                    // We now setup DLSS if its enabled. DLSS can override the drsSettings (i.e. setting a System scaler slot, and providing quality settings).
-                    SetupDLSSForCameraDataAndDynamicResHandler(hdCam, camera, xrPass, cameraRequestedDynamicRes, ref drsSettings);
+                    // We now setup DLSS/FSR2 and partner upscalers if enabled.
+                    // These upscalers can override the drsSettings (i.e. setting a System scaler slot, and providing quality settings).
+                    SetupPartnerUpscalers(hdCam, camera, xrPass, cameraRequestedDynamicRes, ref drsSettings);
 
                     // only select the current instance for this camera. We dont pass the settings set to prevent an update.
                     // This will set a new instance in DynamicResolutionHandler.instance that is specific to this camera.
@@ -2856,7 +2883,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             //Forcefully disable antialiasing if DLSS is enabled.
             if (additionalCameraData != null)
-                currentFrameSettings.SetEnabled(FrameSettingsField.Antialiasing, currentFrameSettings.IsEnabled(FrameSettingsField.Antialiasing) && !additionalCameraData.cameraCanRenderDLSS);
+                currentFrameSettings.SetEnabled(FrameSettingsField.Antialiasing, currentFrameSettings.IsEnabled(FrameSettingsField.Antialiasing) && !additionalCameraData.cameraCanRenderDLSS && !additionalCameraData.cameraCanRenderFSR2);
 
             // From this point, we should only use frame settings from the camera
             hdCamera.Update(currentFrameSettings, this, xrPass);

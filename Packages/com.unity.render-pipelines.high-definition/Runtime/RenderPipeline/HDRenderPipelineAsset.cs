@@ -40,7 +40,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Migrate();
             ///////////////////////////
 
-            HDRenderPipeline.SetupDLSSFeature();
+            HDDynamicResolutionPlatformCapabilities.SetupFeatures();
         }
 
         void Reset()

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace UnityEngine.Rendering
 {
@@ -50,6 +51,21 @@ namespace UnityEngine.Rendering
         TAAU
     }
 
+    /// <summary>User-facing settings for advanced upscalers.</summary>
+    public enum AdvancedUpscalers : byte
+    {
+        /// <summary>
+        /// NVIDIA Deep Learning Super Sampling (DLSS).
+        /// </summary>
+        [InspectorName("Deep Learning Super Sampling (DLSS)")]
+        DLSS = 0,
+        /// <summary>
+        /// AMD FidelityFX Super Resolution (FSR2).
+        /// </summary>
+        [InspectorName("FidelityFX Super Resolution 2.0 (FSR2)")]
+        FSR2 = 1
+    }
+
     /// <summary>User-facing settings for dynamic resolution.</summary>
     [Serializable]
     public struct GlobalDynamicResolutionSettings
@@ -68,12 +84,13 @@ namespace UnityEngine.Rendering
             lowResTransparencyMinimumThreshold = 0.0f,
             rayTracingHalfResThreshold = 50.0f,
 
-            // Defaults for dlss
-            enableDLSS = false,
             DLSSUseOptimalSettings = true,
             DLSSPerfQualitySetting = 0,
             DLSSSharpness = 0.5f,
             DLSSInjectionPoint = DynamicResolutionHandler.UpsamplerScheduleType.BeforePost,
+            
+            FSR2InjectionPoint = DynamicResolutionHandler.UpsamplerScheduleType.BeforePost,
+            advancedUpscalersByPriority = new List<AdvancedUpscalers>() { },
 
             fsrOverrideSharpness = false,
             fsrSharpness = FSRUtils.kDefaultSharpnessLinear
@@ -84,8 +101,8 @@ namespace UnityEngine.Rendering
         /// <summary>Offsets the mip bias to recover mode detail. This only works if the camera is utilizing TAA.</summary>
         public bool useMipBias;
 
-        /// <summary>Toggle NVIDIA Deep Learning Super Sampling (DLSS).</summary>
-        public bool enableDLSS;
+        /// <summary> Enables upsamplers available for certain platforms by priority. </summary>
+        public List<AdvancedUpscalers> advancedUpscalersByPriority;
 
         /// <summary>Opaque quality setting of NVIDIA Deep Learning Super Sampling (DLSS). Use the system enum UnityEngine.NVIDIA.DLSSQuality to set the quality.</summary>
         public uint DLSSPerfQualitySetting;
@@ -101,6 +118,24 @@ namespace UnityEngine.Rendering
         /// <summary>Pixel sharpness of NVIDIA Deep Leraning Super Sampling (DLSS).</summary>
         [Range(0, 1)]
         public float DLSSSharpness;
+
+        /// <summary>Enable sharpness control for FidelityFX 2.0 Super Resolution (FSR2).</summary>
+        public bool FSR2EnableSharpness;
+
+        /// <summary>Pixel sharpness of AMD FidelityFX 2.0 Super Resolution (FSR2).</summary>
+        [Range(0, 1)]
+        public float FSR2Sharpness;
+
+        /// <summary>Toggle AMD FidelityFX 2.0 Super Resolution (FSR2) automatic recommendation system for scaling.
+        /// If this is on, the manually established scale callback for Dynamic Resolution Scaling is ignored.
+        /// </summary>
+        public bool FSR2UseOptimalSettings;
+
+        /// <summary>Opaque quality setting of AMD FidelityFX 2.0 Super Resolution (FSR2). Use the system enum UnityEngine.AMD.FSR2Quality to set the quality.</summary>
+        public uint FSR2QualitySetting;
+
+        /// <summary>The injection point at which to apply FSR2 upscaling.</summary>
+        public DynamicResolutionHandler.UpsamplerScheduleType FSR2InjectionPoint;
 
         /// <summary>Toggle sharpness override for AMD FidelityFX Super Resolution (FSR).
         /// If this is on, a sharpness value specified by the user will be used instead of the default.
@@ -131,5 +166,11 @@ namespace UnityEngine.Rendering
 
         /// <summary>The minimum percentage threshold allowed to render ray tracing effects at half resolution. When the resolution percentage falls below this threshold, HDRP will render ray tracing effects at full resolution.</summary>
         public float rayTracingHalfResThreshold;
+
+#pragma warning disable 618 // Type or member is obsolete
+        /// <summary>Obsolete, used only for data migration. Use the advancedUpscalersByPriority list instead to add the proper supported advanced upscaler by priority.</summary>
+        [Obsolete("Obsolete, used only for data migration. Use the advancedUpscalersByPriority list instead to add the proper supported advanced upscaler by priority.")]
+        public bool enableDLSS;
+#pragma warning restore 618
     }
 }
