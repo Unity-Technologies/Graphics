@@ -259,10 +259,10 @@ namespace UnityEngine.Rendering.Universal
             NativeArray<int> calculatedStartingEdges;
             NativeArray<bool> calculatedIsClosedArray;
 
-            ShadowUtility.CalculateEdgesFromLines(generatedIndices, out calculatedEdges, out calculatedStartingEdges, out calculatedIsClosedArray);
+            ShadowUtility.CalculateEdgesFromLines(ref generatedIndices, out calculatedEdges, out calculatedStartingEdges, out calculatedIsClosedArray);
 
             if (reverseWindingOrder)
-                ShadowUtility.ReverseWindingOrder(calculatedStartingEdges, calculatedEdges);
+                ShadowUtility.ReverseWindingOrder(ref calculatedStartingEdges, ref calculatedEdges);
 
             if (m_EdgeProcessing == EdgeProcessing.Clipping)
             {
@@ -270,7 +270,7 @@ namespace UnityEngine.Rendering.Universal
                 NativeArray<ShadowEdge> clippedEdges;
                 NativeArray<int> clippedStartingIndices;
 
-                ShadowUtility.ClipEdges(generatedVertices, calculatedEdges, calculatedStartingEdges, calculatedIsClosedArray, trimEdge, out clippedVertices, out clippedEdges, out clippedStartingIndices);
+                ShadowUtility.ClipEdges(ref generatedVertices, ref calculatedEdges, ref calculatedStartingEdges, ref calculatedIsClosedArray, trimEdge, out clippedVertices, out clippedEdges, out clippedStartingIndices);
 
                 if (clippedStartingIndices.Length > 0)
                     m_LocalBounds = ShadowUtility.GenerateShadowMesh(m_Mesh, clippedVertices, clippedEdges, clippedStartingIndices, calculatedIsClosedArray, true, createInteriorGeometry, ShadowShape2D.OutlineTopology.Lines);
@@ -320,18 +320,18 @@ namespace UnityEngine.Rendering.Universal
             if (outlineTopology == ShadowShape2D.OutlineTopology.Triangles)
             {
                 NativeArray<Vector3> newVertices;
-                ShadowUtility.CalculateEdgesFromTriangles(vertices, indices, true, out newVertices, out edges, out shapeStartingIndices, out shapeIsClosedArray);
+                ShadowUtility.CalculateEdgesFromTriangles(ref vertices, ref indices, true, out newVertices, out edges, out shapeStartingIndices, out shapeIsClosedArray);
 
                 disposeVertices = true;
                 vertices = newVertices;
             }
             else // if (outlineTopology == ShadowShape2D.OutlineTopology.Lines)
             {
-                ShadowUtility.CalculateEdgesFromLines(indices, out edges, out shapeStartingIndices, out shapeIsClosedArray);
+                ShadowUtility.CalculateEdgesFromLines(ref indices, out edges, out shapeStartingIndices, out shapeIsClosedArray);
             }
 
             if (windingOrder == ShadowShape2D.WindingOrder.CounterClockwise)
-                ShadowUtility.ReverseWindingOrder(shapeStartingIndices, edges);
+                ShadowUtility.ReverseWindingOrder(ref shapeStartingIndices, ref edges);
 
             // It would be better if we don't have to rerun SetShape after a trimEdge change.
             if (m_EdgeProcessing == EdgeProcessing.Clipping && allowTrimming)
@@ -340,7 +340,7 @@ namespace UnityEngine.Rendering.Universal
                 NativeArray<ShadowEdge> clippedEdges;
                 NativeArray<int> clippedStartingIndices;
 
-                ShadowUtility.ClipEdges(vertices, edges, shapeStartingIndices, shapeIsClosedArray, trimEdge, out clippedVertices, out clippedEdges, out clippedStartingIndices);
+                ShadowUtility.ClipEdges(ref vertices, ref edges, ref shapeStartingIndices, ref shapeIsClosedArray, trimEdge, out clippedVertices, out clippedEdges, out clippedStartingIndices);
 
                 m_LocalBounds = ShadowUtility.GenerateShadowMesh(m_Mesh, clippedVertices, clippedEdges, clippedStartingIndices, shapeIsClosedArray, allowTrimming, createInteriorGeometry, outlineTopology);
 

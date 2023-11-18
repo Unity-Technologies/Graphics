@@ -7,11 +7,14 @@ using UnityEngine.U2D;
 using UnityEngine.Rendering.Universal.UTess;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Mathematics;
+using Unity.Burst;
 
 
 
 namespace UnityEngine.Rendering.Universal
 {
+
+    [BurstCompile]
     internal class ShadowUtility
     {
         internal const int k_AdditionalVerticesPerEdge = 4;
@@ -70,6 +73,7 @@ namespace UnityEngine.Rendering.Universal
             new VertexAttributeDescriptor(VertexAttribute.Tangent,    VertexAttributeFormat.Float32, 4),
         };
 
+
         unsafe static int GetNextShapeStart(int currentShape, int* inShapeStartingEdgePtr, int inShapeStartingEdgeLength, int maxValue)
         {
             // Make sure we are in the bounds of the shapes we have. Also make sure our starting edge isn't negative
@@ -77,13 +81,8 @@ namespace UnityEngine.Rendering.Universal
         }
 
 
-        static Vector2 CalculateTangent(Vector2 start, Vector2 end)
-        {
-            Vector3 direction = end - start;
-            return Vector3.Cross(direction, Vector3.forward);
-        }
-
-        static internal void CalculateProjectionInfo(NativeArray<Vector3> inVertices, NativeArray<ShadowEdge> inEdges, NativeArray<int> inShapeStartingEdge, NativeArray<bool> inShapeIsClosedArray, ref NativeArray<Vector2> outProjectionInfo)
+        [BurstCompile]
+        static internal void CalculateProjectionInfo(ref NativeArray<Vector3> inVertices, ref NativeArray<ShadowEdge> inEdges, ref NativeArray<int> inShapeStartingEdge, ref NativeArray<bool> inShapeIsClosedArray, ref NativeArray<Vector2> outProjectionInfo)
         {
             unsafe
             {
@@ -157,7 +156,9 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        static internal void CalculateVertices(NativeArray<Vector3> inVertices, NativeArray<ShadowEdge> inEdges, NativeArray<Vector2> inEdgeOtherPoints, ref NativeArray<ShadowMeshVertex> outMeshVertices)
+
+        [BurstCompile]
+        static internal void CalculateVertices(ref NativeArray<Vector3> inVertices, ref NativeArray<ShadowEdge> inEdges, ref NativeArray<Vector2> inEdgeOtherPoints, ref NativeArray<ShadowMeshVertex> outMeshVertices)
         {
             unsafe
             {
@@ -208,7 +209,8 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        static internal void CalculateTriangles(NativeArray<Vector3> inVertices, NativeArray<ShadowEdge> inEdges, NativeArray<int> inShapeStartingEdge, NativeArray<bool> inShapeIsClosedArray, ref NativeArray<int> outMeshIndices)
+        [BurstCompile]
+        static internal void CalculateTriangles(ref NativeArray<Vector3> inVertices, ref NativeArray<ShadowEdge> inEdges, ref NativeArray<int> inShapeStartingEdge, ref NativeArray<bool> inShapeIsClosedArray, ref NativeArray<int> outMeshIndices)
         {
             unsafe
             {
@@ -269,33 +271,40 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        static internal Bounds CalculateLocalBounds(NativeArray<Vector3> inVertices)
+        [BurstCompile]
+        static internal void CalculateLocalBounds(ref NativeArray<Vector3> inVertices, out Bounds retBounds)
         {
             if (inVertices.Length <= 0)
-                return new Bounds(Vector3.zero, Vector3.zero);
-
-            Vector2 minVec = Vector2.positiveInfinity;
-            Vector2 maxVec = Vector2.negativeInfinity;
-
-            unsafe
             {
-                Vector3* inVerticesPtr = (Vector3*)inVertices.m_Buffer;
-                int inVerticesLength = inVertices.Length;
-
-                // Add outline vertices
-                for (int i = 0; i < inVerticesLength; i++)
-                {
-                    Vector2 vertex = new Vector2(inVerticesPtr[i].x, inVerticesPtr[i].y);
-
-                    minVec = Vector2.Min(minVec, vertex);
-                    maxVec = Vector2.Max(maxVec, vertex);
-                }
+                retBounds = new Bounds(Vector3.zero, Vector3.zero);
             }
+            else
+            {
 
-            return new Bounds { max = maxVec, min = minVec };
+                Vector2 minVec = Vector2.positiveInfinity;
+                Vector2 maxVec = Vector2.negativeInfinity;
+
+                unsafe
+                {
+                    Vector3* inVerticesPtr = (Vector3*)inVertices.m_Buffer;
+                    int inVerticesLength = inVertices.Length;
+
+                    // Add outline vertices
+                    for (int i = 0; i < inVerticesLength; i++)
+                    {
+                        Vector2 vertex = new Vector2(inVerticesPtr[i].x, inVerticesPtr[i].y);
+
+                        minVec = Vector2.Min(minVec, vertex);
+                        maxVec = Vector2.Max(maxVec, vertex);
+                    }
+                }
+
+                retBounds = new Bounds { max = maxVec, min = minVec };
+            }
         }
 
-        static void GenerateInteriorMesh(NativeArray<ShadowMeshVertex> inVertices, NativeArray<int> inIndices, NativeArray<ShadowEdge> inEdges, out NativeArray<ShadowMeshVertex> outVertices, out NativeArray<int> outIndices, out int outStartIndex, out int outIndexCount)
+        [BurstCompile]
+        static void GenerateInteriorMesh(ref NativeArray<ShadowMeshVertex> inVertices, ref NativeArray<int> inIndices, ref NativeArray<ShadowEdge> inEdges, out NativeArray<ShadowMeshVertex> outVertices, out NativeArray<int> outIndices, out int outStartIndex, out int outIndexCount)
         {
             int inEdgeCount = inEdges.Length;
 
@@ -364,9 +373,9 @@ namespace UnityEngine.Rendering.Universal
             NativeArray<int> meshIndices = new NativeArray<int>(meshIndexCount, Allocator.Persistent);
             NativeArray<ShadowMeshVertex> meshVertices = new NativeArray<ShadowMeshVertex>(meshVertexCount, Allocator.Persistent);
 
-            CalculateProjectionInfo(inVertices, inEdges, inShapeStartingEdge, inShapeIsClosedArray, ref meshProjectionInfo);
-            CalculateVertices(inVertices, inEdges, meshProjectionInfo, ref meshVertices);
-            CalculateTriangles(inVertices, inEdges, inShapeStartingEdge, inShapeIsClosedArray, ref meshIndices);
+            CalculateProjectionInfo(ref inVertices, ref inEdges, ref inShapeStartingEdge, ref inShapeIsClosedArray, ref meshProjectionInfo);
+            CalculateVertices(ref inVertices, ref inEdges, ref meshProjectionInfo, ref meshVertices);
+            CalculateTriangles(ref inVertices, ref inEdges, ref inShapeStartingEdge, ref inShapeIsClosedArray, ref meshIndices);
 
             NativeArray<ShadowMeshVertex> finalVertices;
             NativeArray<int> finalIndices;
@@ -375,7 +384,7 @@ namespace UnityEngine.Rendering.Universal
 
             if (fill) // This has limited utility at the moment as contraction is not calculated. More work will need to be done to generalize this
             {
-                GenerateInteriorMesh(meshVertices, meshIndices, inEdges, out finalVertices, out finalIndices, out fillSubmeshStartIndex, out fillSubmeshIndexCount);
+                GenerateInteriorMesh(ref meshVertices, ref meshIndices, ref inEdges, out finalVertices, out finalIndices, out fillSubmeshStartIndex, out fillSubmeshIndexCount);
                 meshVertices.Dispose();
                 meshIndices.Dispose();
             }
@@ -398,11 +407,13 @@ namespace UnityEngine.Rendering.Universal
             finalVertices.Dispose();
             finalIndices.Dispose();
 
-            Bounds retLocalBound = CalculateLocalBounds(inVertices);
+            CalculateLocalBounds(ref inVertices, out Bounds retLocalBound);
             return retLocalBound;
         }
 
-        static public void CalculateEdgesFromLines(NativeArray<int> indices, out NativeArray<ShadowEdge> outEdges, out NativeArray<int> outShapeStartingEdge, out NativeArray<bool> outShapeIsClosedArray)
+
+        [BurstCompile]
+        static public void CalculateEdgesFromLines(ref NativeArray<int> indices, out NativeArray<ShadowEdge> outEdges, out NativeArray<int> outShapeStartingEdge, out NativeArray<bool> outShapeIsClosedArray)
         {
             unsafe
             {
@@ -476,7 +487,8 @@ namespace UnityEngine.Rendering.Universal
         }
 
 
-        static internal void GetVertexReferenceStats(NativeArray<Vector3> vertices, NativeArray<ShadowEdge> edges, int vertexCount, out bool hasReusedVertices, out int newVertexCount, out NativeArray<RemappingInfo> remappingInfo)
+        [BurstCompile]
+        static internal void GetVertexReferenceStats(ref NativeArray<Vector3> vertices, ref NativeArray<ShadowEdge> edges, int vertexCount, out bool hasReusedVertices, out int newVertexCount, out NativeArray<RemappingInfo> remappingInfo)
         {
             unsafe
             {
@@ -530,56 +542,6 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        static public void RemapGeometry(NativeArray<Vector3> vertices, NativeArray<int> indices, NativeArray<ShadowEdge> unsortedEdges, out NativeArray<Vector3> newVertices, out NativeArray<ShadowEdge> remappedEdges)
-        {
-            // This function will remove shared vertices and do reindexing so that the indices are contiguous. Both of these steps are needed for quickly finding edges that go together.
-            unsafe
-            {
-                int vertexCount = vertices.Length;
-                int unsortedEdgesCount = unsortedEdges.Length;
-
-                remappedEdges = new NativeArray<ShadowEdge>(unsortedEdgesCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-
-                // First gather a repeat index usage statistic from the unsortedEdges. This will be used for size, and might be used for remapping
-                bool hasReusedVertices;
-                int newVertexCount;
-                NativeArray<RemappingInfo> remappingInfo;
-
-                GetVertexReferenceStats(vertices, unsortedEdges, vertexCount, out hasReusedVertices, out newVertexCount, out remappingInfo);
-
-                newVertices = new NativeArray<Vector3>(newVertexCount, Allocator.Persistent);
-
-                // Copy vertices into our new vertex array which duplicates vertices
-                RemappingInfo* remappingInfoPtr = (RemappingInfo*)remappingInfo.GetUnsafePtr();
-                Vector3* vertexPtr = (Vector3*)vertices.GetUnsafePtr();
-                Vector3* newVertexPtr = (Vector3*)newVertices.GetUnsafePtr();
-                ShadowEdge* remappedEdgesPtr = (ShadowEdge*)remappedEdges.GetUnsafePtr();
-                ShadowEdge* unsortedEdgesPtr = (ShadowEdge*)unsortedEdges.GetUnsafePtr();
-
-                for (int i = 0; i < vertexCount; i++)
-                {
-                    int timesDuplicated = remappingInfoPtr[i].count;
-                    int startIndex = remappingInfoPtr[i].index;
-                    if (startIndex >= 0)
-                    {
-                        for (int t = 0; t < timesDuplicated; t++)
-                        {
-                            newVertexPtr[startIndex + t] = vertexPtr[i];
-                        }
-                    }
-                }
-
-                // Remap into our new remappedEdges array
-                for (int i = 0; i < unsortedEdgesCount; i++)
-                {
-                    remappedEdgesPtr[i].v0 = remappingInfoPtr[unsortedEdgesPtr[i].v0].index + remappingInfoPtr[unsortedEdgesPtr[i].v0].v0Offset++;
-                    remappedEdgesPtr[i].v1 = remappingInfoPtr[unsortedEdgesPtr[i].v1].index + remappingInfoPtr[unsortedEdgesPtr[i].v1].v1Offset++;
-                }
-
-
-                remappingInfo.Dispose();
-            }
-        }
 
         static public bool IsTriangleReversed(NativeArray<Vector3> vertices, int idx0, int idx1, int idx2)
         {
@@ -591,20 +553,9 @@ namespace UnityEngine.Rendering.Universal
             return Mathf.Sign(twiceArea) >= 0;
         }
 
-        static public void FixTriangleWindingOrder(NativeArray<Vector3> vertices, NativeArray<int> indices)
-        {
-            for(int i=0;i<indices.Length;i+=3)
-            {
-                if (IsTriangleReversed(vertices, indices[i], indices[i + 1], indices[i + 2]))
-                {
-                    indices[i] = 0;
-                    indices[i+1] = 0;
-                    indices[i+2] = 0;
-                }
-            }
-        }
 
-        static public void CalculateEdgesFromTriangles(NativeArray<Vector3> vertices, NativeArray<int> indices, bool duplicatesVertices, out NativeArray<Vector3> newVertices, out NativeArray<ShadowEdge> outEdges, out NativeArray<int> outShapeStartingEdge, out NativeArray<bool> outShapeIsClosedArray)
+        [BurstCompile]
+        static public void CalculateEdgesFromTriangles(ref NativeArray<Vector3> vertices, ref NativeArray<int> indices, bool duplicatesVertices, out NativeArray<Vector3> newVertices, out NativeArray<ShadowEdge> outEdges, out NativeArray<int> outShapeStartingEdge, out NativeArray<bool> outShapeIsClosedArray)
         {
             unsafe
             {
@@ -688,7 +639,9 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        static public void ReverseWindingOrder(NativeArray<int> inShapeStartingEdge, NativeArray<ShadowEdge> inOutSortedEdges)
+
+        [BurstCompile]
+        static public void ReverseWindingOrder(ref NativeArray<int> inShapeStartingEdge, ref NativeArray<ShadowEdge> inOutSortedEdges)
         {
             for (int shapeIndex = 0; shapeIndex < inShapeStartingEdge.Length; shapeIndex++)
             {
@@ -729,7 +682,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        static int GetClosedPathCount(NativeArray<int> inShapeStartingEdge, NativeArray<bool> inShapeIsClosedArray)
+        static int GetClosedPathCount(ref NativeArray<int> inShapeStartingEdge, ref NativeArray<bool> inShapeIsClosedArray)
         {
             int count = 0;
             for(int i=0;i<inShapeStartingEdge.Length;i++)
@@ -775,7 +728,8 @@ namespace UnityEngine.Rendering.Universal
 
         }
 
-        static public void ClipEdges(NativeArray<Vector3> inVertices, NativeArray<ShadowEdge> inEdges, NativeArray<int> inShapeStartingEdge, NativeArray<bool> inShapeIsClosedArray, float contractEdge, out NativeArray<Vector3> outVertices, out NativeArray<ShadowEdge> outEdges, out NativeArray<int> outShapeStartingEdge)
+        [BurstCompile]
+        static public void ClipEdges(ref NativeArray<Vector3> inVertices, ref NativeArray<ShadowEdge> inEdges, ref NativeArray<int> inShapeStartingEdge, ref NativeArray<bool> inShapeIsClosedArray, float contractEdge, out NativeArray<Vector3> outVertices, out NativeArray<ShadowEdge> outEdges, out NativeArray<int> outShapeStartingEdge)
         {
             unsafe
             {
