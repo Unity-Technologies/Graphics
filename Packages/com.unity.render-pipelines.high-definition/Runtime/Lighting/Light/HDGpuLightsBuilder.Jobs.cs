@@ -163,13 +163,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     lightData.rangeAttenuationScale = 1.0f / (light.range * light.range);
                     lightData.rangeAttenuationBias = 1.0f;
-
-                    if (lightData.lightType == GPULightType.Rectangle)
-                    {
-                        // Rect lights are currently a special case because they use the normalized
-                        // [0, 1] attenuation range rather than the regular [0, r] one.
-                        lightData.rangeAttenuationScale = 1.0f;
-                    }
                 }
                 else
                 {
@@ -180,17 +173,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     const float sqrtHuge = 4096.0f;
                     lightData.rangeAttenuationScale = sqrtHuge / (light.range * light.range);
                     lightData.rangeAttenuationBias = hugeValue;
-
-                    if (lightData.lightType == GPULightType.Rectangle)
-                    {
-                        // Rect lights are currently a special case because they use the normalized
-                        // [0, 1] attenuation range rather than the regular [0, r] one.
-                        lightData.rangeAttenuationScale = sqrtHuge;
-                    }
                 }
 
                 float shapeWidthVal = lightRenderData.shapeWidth;
                 float shapeHeightVal = lightRenderData.shapeHeight;
+
+                if (lightData.lightType == GPULightType.Tube) shapeHeightVal = 0;
+
                 lightData.color = GetLightColor(light);
                 lightData.forward = visibleLightAxisAndPosition.Forward;
                 lightData.up = visibleLightAxisAndPosition.Up;

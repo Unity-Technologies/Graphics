@@ -648,43 +648,14 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         lightStart = _PunctualLightCount;
     #endif
 
-        // COMPILER BEHAVIOR WARNING!
-        // If rectangle lights are before line lights, the compiler will duplicate light matrices in VGPR because they are used differently between the two types of lights.
-        // By keeping line lights first we avoid this behavior and save substantial register pressure.
-        // TODO: This is based on the current Lit.shader and can be different for any other way of implementing area lights, how to be generic and ensure performance ?
-
-        if (lightCount > 0)
+        for (i = 0; i < lightCount; i++)
         {
-            i = 0;
-
-            uint      last      = lightCount - 1;
             LightData lightData = FetchLight(lightStart, i);
 
-            while (i <= last && lightData.lightType == GPULIGHTTYPE_TUBE)
+            if (IsMatchingLightLayer(lightData.lightLayers, builtinData.renderingLayers))
             {
-                lightData.lightType = GPULIGHTTYPE_TUBE; // Enforce constant propagation
-                lightData.cookieMode = COOKIEMODE_NONE;  // Enforce constant propagation
-
-                if (IsMatchingLightLayer(lightData.lightLayers, builtinData.renderingLayers))
-                {
-                    DirectLighting lighting = EvaluateBSDF_Area(context, V, posInput, preLightData, lightData, bsdfData, builtinData);
-                    AccumulateDirectLighting(lighting, aggregateLighting);
-                }
-
-                lightData = FetchLight(lightStart, min(++i, last));
-            }
-
-            while (i <= last) // GPULIGHTTYPE_RECTANGLE
-            {
-                lightData.lightType = GPULIGHTTYPE_RECTANGLE; // Enforce constant propagation
-
-                if (IsMatchingLightLayer(lightData.lightLayers, builtinData.renderingLayers))
-                {
-                    DirectLighting lighting = EvaluateBSDF_Area(context, V, posInput, preLightData, lightData, bsdfData, builtinData);
-                    AccumulateDirectLighting(lighting, aggregateLighting);
-                }
-
-                lightData = FetchLight(lightStart, min(++i, last));
+                DirectLighting lighting = EvaluateBSDF_Area(context, V, posInput, preLightData, lightData, bsdfData, builtinData);
+                AccumulateDirectLighting(lighting, aggregateLighting);
             }
         }
     }

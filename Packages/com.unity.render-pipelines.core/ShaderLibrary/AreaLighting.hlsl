@@ -4,30 +4,6 @@
 #define APPROXIMATE_POLY_LIGHT_AS_SPHERE_LIGHT
 #define APPROXIMATE_SPHERE_LIGHT_NUMERICALLY
 
-// The output is *not* normalized by the factor of 1/TWO_PI (this is done by the PolygonFormFactor function).
-real3 ComputeEdgeFactor(real3 V1, real3 V2)
-{
-    real  V1oV2 = dot(V1, V2);
-    real3 V1xV2 = cross(V1, V2);
-#if 0
-    return normalize(V1xV2) * acos(V1oV2));
-#else
-    // Approximate: { y = rsqrt(1.0 - V1oV2 * V1oV2) * acos(V1oV2) } on [0, 1].
-    // Fit: HornerForm[MiniMaxApproximation[ArcCos[x]/Sqrt[1 - x^2], {x, {0, 1 - $MachineEpsilon}, 6, 0}][[2, 1]]].
-    // Maximum relative error: 2.6855360216340534 * 10^-6. Intensities up to 1000 are artifact-free.
-    real x = abs(V1oV2);
-    real y = 1.5707921083647782 + x * (-0.9995697178013095 + x * (0.778026455830408 + x * (-0.6173111361273548 + x * (0.4202724111150622 + x * (-0.19452783598217288 + x * 0.04232040013661036)))));
-
-    if (V1oV2 < 0)
-    {
-        // Undo range reduction.
-        const float epsilon = 1e-5f;
-        y = PI * rsqrt(max(epsilon, saturate(1 - V1oV2 * V1oV2))) - y;
-    }
-
-    return V1xV2 * y;
-#endif
-}
 
 // 'sinSqSigma' is the sine^2 of the half-angle subtended by the sphere (aperture) as seen from the shaded point.
 // 'cosOmega' is the cosine of the angle between the normal and the direction to the center of the light.
@@ -116,14 +92,49 @@ real DiffuseSphereLightIrradiance(real sinSqSigma, real cosOmega)
 #endif
 }
 
+// The output is *not* normalized by the factor of 1/TWO_PI (this is done by the PolygonFormFactor function).
+real3 ComputeEdgeFactor(real3 V1, real3 V2)
+{
+    real subtendedAngle;
+
+    real  V1oV2  = dot(V1, V2);
+    real3 V1xV2  = cross(V1, V2);               // Plane normal (tangent to the unit sphere)
+    real  sqLen  = saturate(1 - V1oV2 * V1oV2); // length(V1xV2) = abs(sin(angle))
+    real  rcpLen = rsqrt(max(FLT_MIN, sqLen));  // Make sure it is finite
+#if 0
+    real y = rcpLen * acos(V1oV2);
+#else
+    // Let y[x_] = ArcCos[x] / Sqrt[1 - x^2].
+    // Range reduction: since ArcCos[-x] == Pi - ArcCos[x], we only need to consider x on [0, 1].
+    real x = abs(V1oV2);
+    // Limit[y[x], x -> 1] == 1,
+    // Limit[y[x], x -> 0] == Pi/2.
+    // The approximation is exact at the endpoints of [0, 1].
+    // Max. abs. error on [0, 1] is 1.33e-6 at x = 0.0036.
+    // Max. rel. error on [0, 1] is 8.66e-7 at x = 0.0037.
+    real y = HALF_PI + x * (-0.99991 + x * (0.783393 + x * (-0.649178 + x * (0.510589 + x * (-0.326137 + x * (0.137528 + x * -0.0270813))))));
+
+    if (V1oV2 < 0)
+    {
+        y = rcpLen * PI - y;
+    }
+
+#endif
+
+    return V1xV2 * y;
+}
+
 // Input: 3-5 vertices in the coordinate frame centered at the shaded point.
 // Output: signed vector irradiance.
 // No horizon clipping is performed.
 real3 PolygonFormFactor(real4x3 L, real3 L4, uint n)
 {
-    L[0] = SafeNormalize(L[0]);
-    L[1] = SafeNormalize(L[1]);
-    L[2] = SafeNormalize(L[2]);
+    // The length cannot be zero since we have already checked
+    // that the light has a non-zero effective area,
+    // and thus its plane cannot pass through the origin.
+    L[0] = normalize(L[0]);
+    L[1] = normalize(L[1]);
+    L[2] = normalize(L[2]);
 
     switch (n)
     {
@@ -131,15 +142,23 @@ real3 PolygonFormFactor(real4x3 L, real3 L4, uint n)
             L[3] = L[0];
             break;
         case 4:
-            L[3] = SafeNormalize(L[3]);
+            L[3] = normalize(L[3]);
             L4   = L[0];
             break;
         case 5:
-            L[3] = SafeNormalize(L[3]);
-            L4   = SafeNormalize(L4);
+            L[3] = normalize(L[3]);
+            L4   = normalize(L4);
             break;
     }
 
+    // If the magnitudes of a pair of edge factors are
+    // nearly the same, catastrophic cancellation may occur:
+    // https://en.wikipedia.org/wiki/Catastrophic_cancellation
+    // For the same reason, the value of the cross product of two
+    // nearly collinear vectors is prone to large errors.
+    // Therefore, the algorithm is inherently numerically unstable
+    // for area lights that shrink to a line (or a point) after
+    // projection onto the unit sphere.
     real3 F  = ComputeEdgeFactor(L[0], L[1]);
           F += ComputeEdgeFactor(L[1], L[2]);
           F += ComputeEdgeFactor(L[2], L[3]);
@@ -177,7 +196,7 @@ real PolygonIrradianceFromVectorFormFactor(float3 F)
 real PolygonIrradiance(real4x3 L, out real3 F)
 {
 #ifdef APPROXIMATE_POLY_LIGHT_AS_SPHERE_LIGHT
-    F = PolygonFormFactor(L, real3(0,0,0), 4); // Before horizon clipping.
+    F = PolygonFormFactor(L, real3(0,0,1), 4); // Before horizon clipping.
 
     return PolygonIrradianceFromVectorFormFactor(F); // Accounts for the horizon.
 #else
@@ -329,7 +348,7 @@ float I_diffuse_line(float3 C, float3 A, float hl)
 
     float nr = rsqrt(ns);       // 1/|P0|
     float n  = ns * nr;         // |P0|
-    float Nz = P0.z * nr;       // N.z = (P0/n).z
+    float Nz = P0.z * nr;       // N.z = P0.z/|P0|
 
     // P(n, t) - C = P0 + t * T - P0 - tc * T
     // = (t - tc) * T = h * A = (h * a) * T.
@@ -344,12 +363,12 @@ float I_diffuse_line(float3 C, float3 A, float hl)
     // I = (i1 + i2 + i3) / Pi.
     // i1 =  N.z * (P2.t / |P2|^2 - P1.t / |P1|^2).
     // i2 = -T.z * (P2.n / |P2|^2 - P1.n / |P1|^2).
-    // i3 =  N.z * ArcCos[Dot[P1, P2]/(|P1|*|P2|)] / n.
+    // i3 =  N.z * ArcCos[Dot[P1, P2] / (|P1| * |P2|)] / |P0|.
     float i12 = (Nz * t2 - (T.z * n)) * r2
               - (Nz * t1 - (T.z * n)) * r1;
     // Guard against numerical errors.
     float dt  = min(1, (ns + t1 * t2) * mr);
-    float i3  = Nz * acos(dt) * nr;
+    float i3  = acos(dt) * (Nz * nr); // angle * cos(θ) / r^2
 
     // Guard against numerical errors.
     return INV_PI * max(0, i12 + i3);

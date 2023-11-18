@@ -91,7 +91,8 @@ float3 SampleAreaLightCookie(float4 cookieScaleOffset, float4x3 L, float3 F, flo
 
 // Helper function for rectangular area lights.
 // Input: 'ltcVerts' must be inversely transformed in such a way that the transformed BRDF becomes uniform (diffuse).
-// Output: RGB is the color, and A is the irradiance of the light (not pre-multiplied).
+// Returns unassociated (non-premultiplied) color with alpha (irradiance).
+// The calling code must perform alpha-compositing.
 float4 EvaluateLTC_Rect(float4x3 ltcVerts, float perceptualRoughness, int cookieMode, float4 cookieScaleOffset)
 {
     float4 ltcValue;
@@ -104,6 +105,65 @@ float4 EvaluateLTC_Rect(float4x3 ltcVerts, float perceptualRoughness, int cookie
     if (cookieMode != COOKIEMODE_NONE)
     {
         ltcValue.rgb = SampleAreaLightCookie(cookieScaleOffset, ltcVerts, formFactor, perceptualRoughness);
+    }
+
+    return ltcValue;
+}
+
+float4 EvaluateLTC_Area(bool isRectLight, float3 center, float3 right, float3 up, float halfLength, float halfHeight,
+                        float3x3 invM, float perceptualRoughness, int cookieMode, float4 cookieScaleOffset)
+{
+    float3 ortho   = cross(center, right);
+    float  orthoSq = dot(ortho, ortho);
+
+    // Check whether the light is in a vertical orientation.
+    bool quit = (orthoSq == 0);
+
+    // Check whether the light is entirely below the surface.
+    // We must test twice, since a linear transformation
+    // may bring the light above the surface (a side-effect).
+    quit = quit || (center.z + halfLength * abs(right.z) + halfHeight * abs(up.z) <= 0);
+
+    float4 ltcValue = float4(1, 1, 1, 0);
+
+    if (!quit)
+    {
+        // Perform a sparse matrix multiplication.
+        float3 C = mul(invM, center);
+        float3 A = mul(invM, right);
+        float3 B = mul(invM, up);
+
+        // Check whether the light is entirely below the surface.
+        // We must test twice, since a linear transformation
+        // may bring the light below the surface (as expected).
+        if (C.z + halfLength * abs(A.z) + halfHeight * abs(B.z) > 0)
+        {
+            if (isRectLight)
+            {
+                float4x3 lightVerts;
+
+                lightVerts[0] = C - halfLength * A - halfHeight  * B; // LL
+                lightVerts[1] = lightVerts[0] + (2 * halfHeight) * B; // UL
+                lightVerts[2] = lightVerts[1] + (2 * halfLength) * A; // UR
+                lightVerts[3] = lightVerts[2] - (2 * halfHeight) * B; // LR
+
+                float3 formFactor;
+
+                // Polygon irradiance in the transformed configuration.
+                ltcValue.a = PolygonIrradiance(lightVerts, formFactor);
+
+                if (cookieMode != COOKIEMODE_NONE)
+                {
+                    ltcValue.rgb = SampleAreaLightCookie(cookieScaleOffset, lightVerts, formFactor, perceptualRoughness);
+                }
+            }
+            else // Line light
+            {
+                float w = ComputeLineWidthFactor(invM, ortho, orthoSq);
+
+                ltcValue.a = I_diffuse_line(C, A, halfLength) * w;
+            }
+        }
     }
 
     return ltcValue;
