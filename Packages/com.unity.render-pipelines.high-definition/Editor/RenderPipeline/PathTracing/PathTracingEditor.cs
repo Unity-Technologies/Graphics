@@ -24,6 +24,7 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
         SerializedDataParameter m_MaxDepth;
         SerializedDataParameter m_MaxIntensity;
         SerializedDataParameter m_SkyImportanceSampling;
+        SerializedDataParameter m_SeedMode;
         SerializedDataParameter m_Denoising;
         SerializedDataParameter m_UseAOV;
         SerializedDataParameter m_Temporal;
@@ -44,6 +45,7 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
             m_MaxDepth = Unpack(o.Find(x => x.maximumDepth));
             m_MaxIntensity = Unpack(o.Find(x => x.maximumIntensity));
             m_SkyImportanceSampling = Unpack(o.Find(x => x.skyImportanceSampling));
+            m_SeedMode = Unpack(o.Find(x => x.seedMode));
 
 #if UNITY_64 && ENABLE_UNITY_DENOISING_PLUGIN && UNITY_EDITOR_WIN
             m_Denoising = Unpack(o.Find(x => x.denoising));
@@ -80,6 +82,7 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
                         PropertyField(m_MaxDepth);
                         PropertyField(m_MaxIntensity);
                         PropertyField(m_SkyImportanceSampling);
+                    	PropertyField(m_SeedMode);
 #if UNITY_64 && ENABLE_UNITY_DENOISING_PLUGIN && UNITY_EDITOR_WIN
                         PropertyField(m_Denoising);
                         var denoiserType = m_Denoising.value.GetEnumValue<DenoiserType>();
