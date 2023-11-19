@@ -180,7 +180,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (data.runBigTilePrepass)
                 {
                     ClearLightList(data, cmd, data.output.bigTileLightList);
-                    ClearLightList(data, cmd, data.output.bigTileVolumetricLightList);
+                    if (data.supportsVolumetric)
+                        ClearLightList(data, cmd, data.output.bigTileVolumetricLightList);
                 }
                 if (data.canClearLightList) // This can happen when we dont have a GPULight list builder and a light list instantiated.
                     ClearLightList(data, cmd, data.output.lightList);
