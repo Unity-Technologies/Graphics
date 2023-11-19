@@ -1,4 +1,4 @@
-Shader "Hidden/HDRP/ProbeVolumeFragmentationDebug"
+Shader "Hidden/Core/ProbeVolumeFragmentationDebug"
 {
     SubShader
     {
@@ -13,6 +13,7 @@ Shader "Hidden/HDRP/ProbeVolumeFragmentationDebug"
             HLSLPROGRAM
             #pragma editor_sync_compilation
             #pragma target 4.5
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
             // #pragma enable_d3d11_debug_symbols
 
             #pragma vertex Vert
