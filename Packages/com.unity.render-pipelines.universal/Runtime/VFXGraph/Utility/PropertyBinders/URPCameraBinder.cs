@@ -1,28 +1,23 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+#if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
 using UnityEngine.Rendering;
-using UnityEngine.Rendering.HighDefinition;
-using UnityEngine.VFX;
+using UnityEngine.Rendering.Universal;
 
 namespace UnityEngine.VFX.Utility
 {
     /// <summary>
     /// Camera parameter binding helper class.
     /// </summary>
-    [VFXBinder("HDRP/HDRP Camera")]
-    public class HDRPCameraBinder : VFXBinderBase
+    [VFXBinder("URP/URP Camera")]
+    public class URPCameraBinder : VFXBinderBase
     {
         /// <summary>
-        /// Camera HDRP additional data.
+        /// Camera URP additional data.
         /// </summary>
-        public HDAdditionalCameraData AdditionalData;
+        public UniversalAdditionalCameraData AdditionalData;
         Camera m_Camera;
 
         [VFXPropertyBinding("UnityEditor.VFX.CameraType"), SerializeField]
         ExposedProperty CameraProperty = "Camera";
-
-        RTHandle m_Texture;
 
         ExposedProperty m_Position;
         ExposedProperty m_Angles;
@@ -51,7 +46,7 @@ namespace UnityEngine.VFX.Utility
 
         void UpdateSubProperties()
         {
-            // Get Camera component from HDRP additional data
+            // Get Camera component from URP additional data
             if (AdditionalData != null)
             {
                 m_Camera = AdditionalData.GetComponent<Camera>();
@@ -74,10 +69,10 @@ namespace UnityEngine.VFX.Utility
             m_ScaledDimensions = CameraProperty + "_scaledPixelDimensions";
         }
 
-        void RequestHDRPBuffersAccess(ref HDAdditionalCameraData.BufferAccess access)
+        static void RequestHistoryAccess(IPerFrameHistoryAccessTracker access)
         {
-            access.RequestAccess(HDAdditionalCameraData.BufferAccessType.Color);
-            access.RequestAccess(HDAdditionalCameraData.BufferAccessType.Depth);
+            access?.RequestAccess<RawColorHistory>();
+            access?.RequestAccess<RawDepthHistory>();
         }
 
         /// <summary>
@@ -88,7 +83,7 @@ namespace UnityEngine.VFX.Utility
             base.OnEnable();
 
             if (AdditionalData != null)
-                AdditionalData.requestGraphicsBuffer += RequestHDRPBuffersAccess;
+                AdditionalData.history.OnGatherHistoryRequests += RequestHistoryAccess;
 
             UpdateSubProperties();
         }
@@ -101,15 +96,14 @@ namespace UnityEngine.VFX.Utility
             base.OnDisable();
 
             if (AdditionalData != null)
-                AdditionalData.requestGraphicsBuffer -= RequestHDRPBuffersAccess;
+                AdditionalData.history.OnGatherHistoryRequests -= RequestHistoryAccess;
         }
 
         private void OnValidate()
         {
             UpdateSubProperties();
-
             if (AdditionalData != null)
-                AdditionalData.requestGraphicsBuffer += RequestHDRPBuffersAccess;
+                AdditionalData.history.OnGatherHistoryRequests += RequestHistoryAccess;
         }
 
         /// <summary>
@@ -143,6 +137,10 @@ namespace UnityEngine.VFX.Utility
         /// <param name="component">Component to update.</param>
         public override void UpdateBinding(VisualEffect component)
         {
+            var asset = UniversalRenderPipeline.asset;
+            if (AdditionalData == null || asset == null)
+                return;
+
             var targetSpace = component.visualEffectAsset.GetExposedSpace(m_Position);
             Matrix4x4 readTransform;
             if (targetSpace == VFXSpace.Local)
@@ -167,20 +165,20 @@ namespace UnityEngine.VFX.Utility
             component.SetVector2(m_LensShift, m_Camera.lensShift);
             component.SetFloat(m_AspectRatio, m_Camera.aspect);
 
-            component.SetVector2(m_Dimensions, new Vector2(m_Camera.pixelWidth, m_Camera.pixelHeight));
-            DynamicResolutionHandler.UpdateAndUseCamera(m_Camera);
-            Vector2 scaledSize = DynamicResolutionHandler.instance.GetScaledSize(new Vector2Int(m_Camera.pixelWidth, m_Camera.pixelHeight));
-            DynamicResolutionHandler.ClearSelectedCamera();
+            var cameraSize = new Vector2(m_Camera.pixelWidth, m_Camera.pixelHeight);
+            component.SetVector2(m_Dimensions, cameraSize);
+
+            var scaledSize = new Vector2(m_Camera.scaledPixelWidth, m_Camera.scaledPixelHeight) * asset.renderScale;
             component.SetVector2(m_ScaledDimensions, scaledSize);
 
-            var depth = AdditionalData.GetGraphicsBuffer(HDAdditionalCameraData.BufferAccessType.Depth);
-            var color = AdditionalData.GetGraphicsBuffer(HDAdditionalCameraData.BufferAccessType.Color);
+            var depth = AdditionalData.history.GetHistoryForRead<RawDepthHistory>()?.GetCurrentTexture();
+            var color = AdditionalData.history.GetHistoryForRead<RawColorHistory>()?.GetCurrentTexture();
 
             if (depth != null)
-                component.SetTexture(m_DepthBuffer, depth.rt);
+                component.SetTexture(m_DepthBuffer, depth);
 
             if (color != null)
-                component.SetTexture(m_ColorBuffer, color.rt);
+                component.SetTexture(m_ColorBuffer, color);
         }
 
         /// <summary>
@@ -189,7 +187,9 @@ namespace UnityEngine.VFX.Utility
         /// <returns>String containing the binder information.</returns>
         public override string ToString()
         {
-            return string.Format($"HDRP Camera : '{(AdditionalData == null ? "null" : AdditionalData.gameObject.name)}' -> {CameraProperty}");
+            return string.Format($"URP Camera : '{(AdditionalData == null ? "null" : AdditionalData.gameObject.name)}' -> {CameraProperty}");
         }
     }
 }
+
+#endif

@@ -80,13 +80,6 @@ namespace UnityEditor.VFX.Block
         public override VFXContextType compatibleContexts { get { return VFXContextType.Init; } }
         public override VFXDataType compatibleData { get { return VFXDataType.Particle; } }
 
-        internal sealed override void GenerateErrors(VFXInvalidateErrorReporter manager)
-        {
-            base.GenerateErrors(manager);
-            if (camera == CameraMode.Main && (UnityEngine.Rendering.RenderPipelineManager.currentPipeline == null || !UnityEngine.Rendering.RenderPipelineManager.currentPipeline.ToString().Contains("HDRenderPipeline")))
-                manager.RegisterError("PositionDepthBlockUnavailableWithoutHDRP", VFXErrorType.Warning, "Position (Depth) is currently only supported in the High Definition Render Pipeline (HDRP).");
-        }
-
         public override IEnumerable<VFXAttributeInfo> attributes
         {
             get

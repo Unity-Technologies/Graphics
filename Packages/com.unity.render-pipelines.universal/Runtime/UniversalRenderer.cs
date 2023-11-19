@@ -1259,6 +1259,12 @@ namespace UnityEngine.Rendering.Universal
             }
             EnqueuePass(m_OnRenderObjectCallbackPass);
 
+#if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
+            // SetupVFXCameraBuffer will interrogate VFXManager to automatically enable RequestAccess on RawColor and/or RawDepth. This must be done before SetupRawColorDepthHistory.
+            // SetupVFXCameraBuffer will also provide the GetCurrentTexture from history manager to the VFXManager which can be sampled during the next VFX.Update for the following frame.
+            SetupVFXCameraBuffer(cameraData);
+#endif
+
             // "Raw render" color/depth history.
             // Should include opaque and transparent geometry before TAA or any post-processing effects. No UI overlays etc.
             SetupRawColorDepthHistory(cameraData, ref cameraTargetDescriptor);
@@ -1381,6 +1387,31 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
+        private void SetupVFXCameraBuffer(UniversalCameraData cameraData)
+        {
+            if (cameraData != null && cameraData.historyManager != null)
+            {
+                var vfxBufferNeeded = VFX.VFXManager.IsCameraBufferNeeded(cameraData.camera);
+                if (vfxBufferNeeded.HasFlag(VFX.VFXCameraBufferTypes.Color))
+                {
+                    cameraData.historyManager.RequestAccess<RawColorHistory>();
+
+                    var handle = cameraData.historyManager.GetHistoryForRead<RawColorHistory>()?.GetCurrentTexture();
+                    VFX.VFXManager.SetCameraBuffer(cameraData.camera, VFX.VFXCameraBufferTypes.Color, handle, 0, 0,
+                        (int)(cameraData.pixelWidth * cameraData.renderScale), (int)(cameraData.pixelHeight * cameraData.renderScale));
+                }
+
+                if (vfxBufferNeeded.HasFlag(VFX.VFXCameraBufferTypes.Depth))
+                {
+                    cameraData.historyManager.RequestAccess<RawDepthHistory>();
+
+                    var handle = cameraData.historyManager.GetHistoryForRead<RawDepthHistory>()?.GetCurrentTexture();
+                    VFX.VFXManager.SetCameraBuffer(cameraData.camera, VFX.VFXCameraBufferTypes.Depth, handle, 0, 0,
+                        (int)(cameraData.pixelWidth * cameraData.renderScale), (int)(cameraData.pixelHeight * cameraData.renderScale));
+                }
+            }
+        }
+
         // "Raw render" color/depth history.
         // Should include opaque and transparent geometry before TAA or any post-processing effects. No UI overlays etc.
         private void SetupRawColorDepthHistory(UniversalCameraData cameraData, ref RenderTextureDescriptor cameraTargetDescriptor)
@@ -1396,13 +1427,17 @@ namespace UnityEngine.Rendering.Universal
                 multipassId = cameraData.xr.multipassId;
 #endif
 
-                if (history.IsAccessRequested<RawColorHistory>())
+                // m_ActiveCameraColorAttachment will be used as source and cast to a Texture.
+                // Casting empty handle to Texture asserts, so it can't be used for checking null.
+                // RTHandle could also be set from an external Texture. However it can't be null checked without casting.
+                // It is assumed that checking the RenderTexture for active color attachment is enough.
+                if (history.IsAccessRequested<RawColorHistory>() && m_ActiveCameraColorAttachment?.rt != null)
                 {
                     var colorHistory = history.GetHistoryForWrite<RawColorHistory>();
                     if (colorHistory != null)
                     {
                         colorHistory.Update(ref cameraTargetDescriptor, xrMultipassEnabled);
-                        if (colorHistory.GetCurrentTexture(multipassId) != null && m_ActiveCameraColorAttachment != null)
+                        if (colorHistory.GetCurrentTexture(multipassId) != null)
                         {
                             m_HistoryRawColorCopyPass.Setup(m_ActiveCameraColorAttachment, colorHistory.GetCurrentTexture(multipassId), Downsampling.None);
                             // See pass creation for actual execution order.
@@ -1411,7 +1446,7 @@ namespace UnityEngine.Rendering.Universal
                     }
                 }
 
-                if (history.IsAccessRequested<RawDepthHistory>())
+                if (history.IsAccessRequested<RawDepthHistory>() && m_ActiveCameraDepthAttachment?.rt != null)
                 {
                     var depthHistory = history.GetHistoryForWrite<RawDepthHistory>();
                     if (depthHistory != null)
@@ -1428,7 +1463,7 @@ namespace UnityEngine.Rendering.Universal
                         else
                             depthHistory.Update(ref cameraTargetDescriptor, xrMultipassEnabled);
 
-                        if (depthHistory.GetCurrentTexture() != null && m_ActiveCameraDepthAttachment != null)
+                        if (depthHistory.GetCurrentTexture(multipassId) != null)
                         {
                             m_HistoryRawDepthCopyPass.Setup(m_ActiveCameraDepthAttachment, depthHistory.GetCurrentTexture(multipassId));
                             // See pass creation for actual execution order.

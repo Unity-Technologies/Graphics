@@ -656,13 +656,13 @@ namespace UnityEngine.Rendering.Universal
                 multipassId = cameraData.xr.multipassId;
 #endif
 
-                if (history.IsAccessRequested<RawColorHistory>())
+                if (history.IsAccessRequested<RawColorHistory>() && resourceData.cameraColor.IsValid())
                 {
                     var colorHistory = history.GetHistoryForWrite<RawColorHistory>();
                     if (colorHistory != null)
                     {
                         colorHistory.Update(ref cameraData.cameraTargetDescriptor, xrMultipassEnabled);
-                        if (colorHistory.GetCurrentTexture() != null && resourceData.cameraColor.IsValid())
+                        if (colorHistory.GetCurrentTexture(multipassId) != null)
                         {
                             var colorHistoryTarget = renderGraph.ImportTexture(colorHistory.GetCurrentTexture(multipassId));
                             // See pass create in UniversalRenderer() for execution order.
@@ -671,7 +671,7 @@ namespace UnityEngine.Rendering.Universal
                     }
                 }
 
-                if (history.IsAccessRequested<RawDepthHistory>())
+                if (history.IsAccessRequested<RawDepthHistory>() && resourceData.cameraDepth.IsValid())
                 {
                     var depthHistory = history.GetHistoryForWrite<RawDepthHistory>();
                     if (depthHistory != null)
@@ -688,7 +688,7 @@ namespace UnityEngine.Rendering.Universal
                         else
                             depthHistory.Update(ref cameraData.cameraTargetDescriptor, xrMultipassEnabled);
 
-                        if (depthHistory.GetCurrentTexture(multipassId) != null && resourceData.cameraDepth.IsValid())
+                        if (depthHistory.GetCurrentTexture(multipassId) != null)
                         {
                             var depthHistoryTarget = renderGraph.ImportTexture(depthHistory.GetCurrentTexture(multipassId));
                             // See pass create in UniversalRenderer() for execution order.
@@ -1050,6 +1050,15 @@ namespace UnityEngine.Rendering.Universal
 
             if (context.HasInvokeOnRenderObjectCallbacks())
                 m_OnRenderObjectCallbackPass.Render(renderGraph, resourceData.activeColorTexture, resourceData.activeDepthTexture);
+
+#if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
+            if (resourceData != null)
+            {
+                // SetupVFXCameraBuffer will interrogate VFXManager to automatically enable RequestAccess on RawColor and/or RawDepth. This must be done before SetupRawColorDepthHistory.
+                // SetupVFXCameraBuffer will also provide the GetCurrentTexture from history manager to the VFXManager which can be sampled during the next VFX.Update for the following frame.
+                SetupVFXCameraBuffer(cameraData);
+            }
+#endif
 
             RenderRawColorDepthHistory(renderGraph, cameraData, resourceData);
 
