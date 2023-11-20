@@ -620,6 +620,120 @@ namespace UnityEngine.Rendering.Tests
         }
 
         [Test, ConditionalIgnore("IgnoreGfxAPI", "Graphics API Not Supported.")]
+        public void TestGpuDrivenSmallMeshCulling()
+        {
+            var gameObject = new GameObject("Root");
+            var sphere0 = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            sphere0.transform.parent = gameObject.transform;
+            var sphere1 = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            sphere1.AddComponent<DisallowSmallMeshCulling>();
+            sphere1.transform.parent = gameObject.transform;
+
+            var objList = new List<MeshRenderer>();
+            objList.Add(sphere0.GetComponent<MeshRenderer>());
+            objList.Add(sphere1.GetComponent<MeshRenderer>());
+
+            var objIDs = new NativeList<int>(Allocator.TempJob);
+
+            var simpleDots = Shader.Find("Unlit/SimpleDots");
+            var simpleDotsMat = new Material(simpleDots);
+            foreach (var obj in objList)
+            {
+                obj.material = simpleDotsMat;
+                objIDs.Add(obj.GetInstanceID());
+            }
+
+            var instances = new NativeArray<InstanceHandle>(objList.Count, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+            for (int i = 0; i < objList.Count; ++i)
+                instances[i] = InstanceHandle.Invalid;
+
+            var rbcDesc = RenderersBatchersContextDesc.NewDefault();
+            rbcDesc.instanceNumInfo = new InstanceNumInfo(meshRendererNum: 64, 0);
+            rbcDesc.supportDitheringCrossFade = true;
+            rbcDesc.smallMeshScreenPercentage = 10.0f;
+
+            var gpuDrivenProcessor = new GPUDrivenProcessor();
+
+            using (var brgContext = new RenderersBatchersContext(rbcDesc, gpuDrivenProcessor, m_Resources))
+            {
+                var cpuDrivenDesc = InstanceCullingBatcherDesc.NewDefault();
+                var expectedMeshIDs = new List<int>();
+                var expectedFlags = new List<BatchDrawCommandFlags>();
+                var expectedDrawCommandCount = 0;
+                cpuDrivenDesc.onCompleteCallback = (JobHandle jobHandle, in BatchCullingContext cc, in BatchCullingOutput cullingOutput) =>
+                {
+                    if (cc.viewType != BatchCullingViewType.Camera)
+                        return;
+
+                    jobHandle.Complete();
+                    BatchCullingOutputDrawCommands drawCommands = cullingOutput.drawCommands[0];
+
+                    unsafe
+                    {
+                        Assert.AreEqual(1, drawCommands.drawRangeCount);
+                        BatchDrawRange range = drawCommands.drawRanges[0];
+                        Assert.AreEqual(range.drawCommandsCount, expectedDrawCommandCount, " Incorrect draw Command Count");
+                        for (int i = 0; i < range.drawCommandsCount; ++i)
+                        {
+                            BatchDrawCommand cmd = drawCommands.drawCommands[range.drawCommandsBegin + i];
+                            Assert.AreEqual(expectedMeshIDs[i], cmd.meshID.value, "Incorrect mesh rendered");
+                            Assert.AreEqual(cmd.flags & BatchDrawCommandFlags.LODCrossFade, expectedFlags[i], "Incorrect flag for the current draw command");
+                        }
+                    }
+                };
+
+                using (var brg = new GPUResidentBatcher(brgContext, cpuDrivenDesc, gpuDrivenProcessor))
+                {
+                    brg.UpdateRenderers(objIDs.AsArray());
+
+                    var cameraObject = new GameObject("myCamera");
+                    var mainCamera = cameraObject.AddComponent<Camera>();
+                    mainCamera.fieldOfView = 60;
+
+                    //Test 0 - (1m) Should render both spheres.
+                    expectedMeshIDs.Add(1);
+                    expectedMeshIDs.Add(1);
+                    expectedFlags.Add(BatchDrawCommandFlags.LODCrossFadeValuePacked);
+                    expectedFlags.Add(BatchDrawCommandFlags.LODCrossFadeValuePacked);
+                    expectedDrawCommandCount = 1;
+                    cameraObject.transform.position = new Vector3(0.0f, 0.0f, -1.0f);
+                    mainCamera.Render();
+
+                    //Test 1 - (8.5m) Should render sphere1 + crossfaded sphere0.
+                    expectedMeshIDs.Clear();
+                    expectedMeshIDs.Add(1);
+                    expectedMeshIDs.Add(1);
+                    expectedFlags.Clear();
+                    expectedFlags.Add(BatchDrawCommandFlags.LODCrossFadeValuePacked);
+                    expectedFlags.Add(BatchDrawCommandFlags.LODCrossFade);
+                    expectedDrawCommandCount = 1;
+                    cameraObject.transform.position = new Vector3(0.0f, 0.0f, -8.5f);
+                    mainCamera.Render();
+
+                    //Test 2 - (10m) Should only render sphere1.
+                    expectedMeshIDs.Clear();
+                    expectedMeshIDs.Add(1);
+                    expectedFlags.Clear();
+                    expectedFlags.Add(BatchDrawCommandFlags.LODCrossFadeValuePacked);
+                    expectedDrawCommandCount = 1;
+                    cameraObject.transform.position = new Vector3(0.0f, 0.0f, -10.0f);
+                    mainCamera.Render();
+
+                    mainCamera = null;
+                    GameObject.DestroyImmediate(cameraObject);
+
+                    brgContext.ScheduleQueryRendererGroupInstancesJob(objIDs.AsArray(), instances).Complete();
+                    brg.DestroyInstances(instances);
+                }
+            }
+
+            gpuDrivenProcessor.Dispose();
+
+            objIDs.Dispose();
+            instances.Dispose();
+        }
+
+        [Test, ConditionalIgnore("IgnoreGfxAPI", "Graphics API Not Supported.")]
         public void TestInstanceDataBuffer()
         {
             var gpuResources = new GPUInstanceDataBufferUploader.GPUResources();

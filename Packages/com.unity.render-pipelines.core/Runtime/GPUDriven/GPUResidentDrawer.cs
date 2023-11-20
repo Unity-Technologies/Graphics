@@ -289,6 +289,7 @@ namespace UnityEngine.Rendering
             var rbcDesc = RenderersBatchersContextDesc.NewDefault();
             rbcDesc.instanceNumInfo = new InstanceNumInfo(meshRendererNum: maxInstanceCount, speedTreeNum: maxTreeInstanceCount);
             rbcDesc.supportDitheringCrossFade = settings.supportDitheringCrossFade;
+            rbcDesc.smallMeshScreenPercentage = settings.smallMeshScreenPercentage;
             rbcDesc.enableCullerDebugStats = true; // for now, always allow the possibility of reading counter stats from the cullers.
 
             var instanceCullingBatcherDesc = InstanceCullingBatcherDesc.NewDefault();

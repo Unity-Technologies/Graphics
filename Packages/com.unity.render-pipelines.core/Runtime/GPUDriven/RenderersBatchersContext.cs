@@ -16,6 +16,7 @@ namespace UnityEngine.Rendering
         public InstanceNumInfo instanceNumInfo;
         public bool supportDitheringCrossFade;
         public bool enableBoundingSpheresInstanceData;
+        public float smallMeshScreenPercentage;
         public bool enableCullerDebugStats;
 
         public static RenderersBatchersContextDesc NewDefault()
@@ -46,6 +47,8 @@ namespace UnityEngine.Rendering
         public GPUInstanceDataBuffer.ReadOnly instanceDataBuffer { get { return m_InstanceDataBuffer.AsReadOnly(); } }
         public NativeArray<InstanceHandle> aliveInstances { get { return m_InstanceDataSystem.aliveInstances; } }
 
+        public float smallMeshScreenPercentage { get { return m_SmallMeshScreenPercentage; } }
+
         private InstanceDataSystem m_InstanceDataSystem;
 
         public GPUResidentDrawerResources resources { get { return m_Resources; } }
@@ -68,6 +71,7 @@ namespace UnityEngine.Rendering
 
         private bool m_EnableDeferredVertexShader;
         private bool m_EnableDeferredMaterialPartialMeshConversion;
+        private float m_SmallMeshScreenPercentage;
 
         private GPUDrivenLODGroupDataCallback m_UpdateLODGroupCallback;
         private GPUDrivenLODGroupDataCallback m_TransformLODGroupCallback;
@@ -76,7 +80,7 @@ namespace UnityEngine.Rendering
 
         internal DebugRendererBatcherStats debugStats { get => m_DebugStats; }
 
-        public RenderersBatchersContext(in RenderersBatchersContextDesc desc, GPUDrivenProcessor gpuDrivenProcessor, GPUResidentDrawerResources resources) 
+        public RenderersBatchersContext(in RenderersBatchersContextDesc desc, GPUDrivenProcessor gpuDrivenProcessor, GPUResidentDrawerResources resources)
         {
             m_Resources = resources;
             m_GPUDrivenProcessor = gpuDrivenProcessor;
@@ -102,6 +106,7 @@ namespace UnityEngine.Rendering
             m_LightmapManager = new LightmapManager();
 
             m_InstanceDataSystem = new InstanceDataSystem(desc.instanceNumInfo.GetTotalInstanceNum(), desc.enableBoundingSpheresInstanceData, resources);
+            m_SmallMeshScreenPercentage = desc.smallMeshScreenPercentage;
 
             m_UpdateLODGroupCallback = UpdateLODGroupData;
             m_TransformLODGroupCallback = TransformLODGroupData;

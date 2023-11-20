@@ -144,6 +144,10 @@ namespace UnityEditor.Rendering.Universal
 
                 if ((GPUResidentDrawerMode)serialized.gpuResidentDrawerMode.intValue != GPUResidentDrawerMode.Disabled)
                 {
+                    ++EditorGUI.indentLevel;
+                    serialized.smallMeshScreenPercentage.floatValue = Mathf.Clamp(EditorGUILayout.FloatField(Styles.smallMeshScreenPercentage, serialized.smallMeshScreenPercentage.floatValue), 0.0f, 20.0f);
+                    --EditorGUI.indentLevel;
+
                     if (brgStrippingError)
                         EditorGUILayout.HelpBox(Styles.brgShaderStrippingErrorMessage.text, MessageType.Warning, true);
                     if (lightingModeError)

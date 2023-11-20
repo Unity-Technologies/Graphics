@@ -134,6 +134,8 @@ namespace UnityEngine.Rendering
         const float k_LODPercentFullyVisible = 1.0f;
         const float k_LODPercentSpeedTree = 2.0f;
 
+        const float k_SmallMeshTransitionWidth = 0.1f;
+
         enum CrossFadeType
         {
             kDisabled,
@@ -147,6 +149,7 @@ namespace UnityEngine.Rendering
         [ReadOnly] public BatchCullingViewType viewType;
         [ReadOnly] public float3 cameraPosition;
         [ReadOnly] public float sqrScreenRelativeMetric;
+        [ReadOnly] public float minScreenRelativeHeight;
         [ReadOnly] public bool isOrtho;
         [ReadOnly] public bool cullLightmappedShadowCasters;
         [ReadOnly] public int maxLOD;
@@ -179,7 +182,7 @@ namespace UnityEngine.Rendering
             return packed;
         }
 
-        unsafe float CalculateLODVisibility(int sharedInstanceIndex)
+        unsafe float CalculateLODVisibility(int instanceIndex, int sharedInstanceIndex, InstanceFlags instanceFlags)
         {
             var lodPercent = k_LODPercentFullyVisible;
             var lodDataIndexAndMask = sharedInstanceData.lodGroupAndMasks[sharedInstanceIndex];
@@ -217,7 +220,7 @@ namespace UnityEngine.Rendering
                     {
                         var type = (CrossFadeType)(lodMask & 3);
 
-                        // Instance is in this and/or the next lod. 
+                        // Instance is in this and/or the next lod.
                         if (type != CrossFadeType.kDisabled)
                         {
                             // Instance is in both this and the next lod. No need to fade.
@@ -277,6 +280,21 @@ namespace UnityEngine.Rendering
                     lodMask >>= 1;
                 }
             }
+            else if(viewType < BatchCullingViewType.SelectionOutline && (instanceFlags & InstanceFlags.SmallMeshCulling) != 0)
+            {
+                ref readonly AABB worldAABB = ref instanceData.worldAABBs.UnsafeElementAt(instanceIndex);
+                var cameraSqrDist = isOrtho ? sqrScreenRelativeMetric : LODGroupRenderingUtils.CalculateSqrPerspectiveDistance(worldAABB.center, cameraPosition, sqrScreenRelativeMetric);
+                var cameraDist = math.sqrt(cameraSqrDist);
+
+                var aabbSize = worldAABB.extents * 2.0f;
+                var worldSpaceSize = math.max(math.max(aabbSize.x, aabbSize.y), aabbSize.z);
+                var maxDist = LODGroupRenderingUtils.CalculateLODDistance(minScreenRelativeHeight, worldSpaceSize);
+
+                var transitionHeight = minScreenRelativeHeight + k_SmallMeshTransitionWidth * minScreenRelativeHeight;
+                var fadeOutRange = Mathf.Max(0.0f,maxDist - LODGroupRenderingUtils.CalculateLODDistance(transitionHeight, worldSpaceSize));
+
+                lodPercent = math.saturate((maxDist - cameraDist) / fadeOutRange);
+            }
 
             return lodPercent;
         }
@@ -322,7 +340,7 @@ namespace UnityEngine.Rendering
 
             if (visibilityMask != 0)
             {
-                float lodPercent = CalculateLODVisibility(sharedInstanceIndex);
+                float lodPercent = CalculateLODVisibility(instanceIndex, sharedInstanceIndex, instanceFlags);
 
                 if (lodPercent != k_LODPercentInvisible)
                 {
@@ -1074,6 +1092,7 @@ namespace UnityEngine.Rendering
             in CPUSharedInstanceData.ReadOnly sharedInstanceData,
             NativeList<LODGroupCullingData> lodGroupCullingData,
             in BinningConfig binningConfig,
+            float smallMeshScreenPercentage,
             out NativeArray<byte> rendererVisibilityMasks,
             out NativeArray<byte> rendererCrossFadeValues)
         {
@@ -1103,6 +1122,7 @@ namespace UnityEngine.Rendering
                 cullLightmappedShadowCasters = (cc.cullingFlags & BatchCullingFlags.CullLightmappedShadowCasters) != 0,
                 cameraPosition = cc.lodParameters.cameraPosition,
                 sqrScreenRelativeMetric = screenRelativeMetric * screenRelativeMetric,
+                minScreenRelativeHeight = smallMeshScreenPercentage * 0.01f,
                 isOrtho = cc.lodParameters.isOrthographic,
                 instanceData = instanceData,
                 sharedInstanceData = sharedInstanceData,
@@ -1159,7 +1179,8 @@ namespace UnityEngine.Rendering
             NativeList<LODGroupCullingData> lodGroupCullingData,
             CPUDrawInstanceData drawInstanceData,
             NativeParallelHashMap<uint, BatchID> batchIDs,
-            int crossFadedRendererCount)
+            int crossFadedRendererCount,
+            float smallMeshScreenPercentage)
         {
             var binningConfig = new BinningConfig
             {
@@ -1174,6 +1195,7 @@ namespace UnityEngine.Rendering
                 sharedInstanceData,
                 lodGroupCullingData,
                 binningConfig,
+                smallMeshScreenPercentage,
                 out var rendererVisibilityMasks,
                 out var rendererCrossFadeValues);
 

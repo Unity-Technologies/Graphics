@@ -907,7 +907,8 @@ namespace UnityEngine.Rendering
                 m_BatchersContext.lodGroupCullingData,
                 m_DrawInstanceData,
                 m_GlobalBatchIDs,
-                m_BatchersContext.crossfadedRendererCount);
+                m_BatchersContext.crossfadedRendererCount,
+                m_BatchersContext.smallMeshScreenPercentage);
 
             if (m_OnCompleteCallback != null)
                 m_OnCompleteCallback(jobHandle, cc, cullingOutput);

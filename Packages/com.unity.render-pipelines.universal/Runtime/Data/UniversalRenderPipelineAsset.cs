@@ -584,12 +584,14 @@ namespace UnityEngine.Rendering.Universal
         // GPU Resident Drawer
         [FormerlySerializedAs("m_MacroBatcherMode"), SerializeField]
         private GPUResidentDrawerMode m_GPUResidentDrawerMode = GPUResidentDrawerMode.Disabled;
+        [SerializeField] float m_SmallMeshScreenPercentage = 0.0f;
 
         GPUResidentDrawerSettings IGPUResidentRenderPipeline.gpuResidentDrawerSettings => new()
         {
             mode = m_GPUResidentDrawerMode,
             supportDitheringCrossFade = m_EnableLODCrossFade,
             allowInEditMode = true,
+            smallMeshScreenPercentage = m_SmallMeshScreenPercentage,
 #if UNITY_EDITOR
             pickingShader = Shader.Find("Hidden/Universal Render Pipeline/BRGPicking"),
 #endif
@@ -1838,6 +1840,22 @@ namespace UnityEngine.Rendering.Universal
                 Debug.LogWarning("GPUResidentDrawer: Disabled due to some configured Universal Renderers not supporting Forward+ ");
 
             return supported;
+        }
+
+        /// <summary>
+        /// Default minimum screen percentage (0-20%) gpu-driven Renderers can cover before getting culled.
+        /// </summary>
+        public float smallMeshScreenPercentage
+        {
+            get => m_SmallMeshScreenPercentage;
+            set
+            {
+                if (Math.Abs(value - m_SmallMeshScreenPercentage) < float.Epsilon)
+                    return;
+
+                m_SmallMeshScreenPercentage = Mathf.Clamp(value, 0.0f, 20.0f);
+                OnValidate();
+            }
         }
 
         /// <summary>

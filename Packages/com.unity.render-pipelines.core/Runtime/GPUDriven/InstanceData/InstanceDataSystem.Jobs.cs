@@ -761,6 +761,10 @@ namespace UnityEngine.Rendering
                 if (lmIndexMasked != k_LightmapIndexNotLightmapped)
                     instanceFlags |= InstanceFlags.AffectsLightmaps;
 
+                // Mark if it should perform the small-mesh culling test
+                if (packedRendererData.smallMeshCulling)
+                    instanceFlags |= InstanceFlags.SmallMeshCulling;
+
                 uint lodGroupAndMask = k_InvalidLODGroupAndMask;
 
                 // Renderer's LODGroup could be disabled which means that the renderer is not managed by it.
