@@ -201,6 +201,102 @@ namespace UnityEngine.Rendering.Universal
         }
     }
 
+    public abstract partial class ScriptableRendererData
+    {
+        /// <summary>
+        /// Class contains references to shader resources used by Rendering Debugger.
+        /// </summary>
+        [Obsolete("Moved to UniversalRenderPipelineDebugShaders on GraphicsSettings. #from(2023.3)", false)]
+        [Serializable, ReloadGroup]
+        public sealed class DebugShaderResources
+        {
+            /// <summary>
+            /// Debug shader used to output interpolated vertex attributes.
+            /// </summary>
+            [Obsolete("Moved to UniversalRenderPipelineDebugShaders on GraphicsSettings. #from(2023.3)", false)]
+            [Reload("Shaders/Debug/DebugReplacement.shader")]
+            public Shader debugReplacementPS;
+
+            /// <summary>
+            /// Debug shader used to output HDR Chromacity mapping.
+            /// </summary>
+            [Obsolete("Moved to UniversalRenderPipelineDebugShaders on GraphicsSettings. #from(2023.3)", false)]
+            [Reload("Shaders/Debug/HDRDebugView.shader")]
+            public Shader hdrDebugViewPS;
+
+#if UNITY_EDITOR
+            /// <summary>
+            /// Debug shader used to output world position and world normal for the pixel under the cursor.
+            /// </summary>
+            [Obsolete("Moved to UniversalRenderPipelineDebugShaders on GraphicsSettings. #from(2023.3)", false)]
+            [Reload("Shaders/Debug/ProbeVolumeSamplingDebugPositionNormal.compute")]
+            public ComputeShader probeVolumeSamplingDebugComputeShader;
+#endif
+        }
+
+        /// <summary>
+        /// Container for shader resources used by Rendering Debugger.
+        /// </summary>
+        [Obsolete("Moved to UniversalRenderPipelineDebugShaders on GraphicsSettings. #from(2023.3)", false)]
+        public DebugShaderResources debugShaders;
+
+        /// <summary>
+        /// Class contains references to shader resources used by APV.
+        /// </summary>
+        [Serializable, ReloadGroup]
+        [Obsolete("Probe volume debug resource are now in the ProbeVolumeDebugResources class.")]
+        public sealed class ProbeVolumeResources
+        {
+            /// <summary>
+            /// Debug shader used to render probes in the volume.
+            /// </summary>
+            [Obsolete("This shader is now in the ProbeVolumeDebugResources class.")]
+            public Shader probeVolumeDebugShader;
+
+            /// <summary>
+            /// Debug shader used to display fragmentation of the GPU memory.
+            /// </summary>
+            [Obsolete("This shader is now in the ProbeVolumeDebugResources class.")]
+            public Shader probeVolumeFragmentationDebugShader;
+
+            /// <summary>
+            /// Debug shader used to draw the offset direction used for a probe.
+            /// </summary>
+            [Obsolete("This shader is now in the ProbeVolumeDebugResources class.")]
+            public Shader probeVolumeOffsetDebugShader;
+
+            /// <summary>
+            /// Debug shader used to draw the sampling weights of the probe volume.
+            /// </summary>
+            [Obsolete("This shader is now in the ProbeVolumeDebugResources class.")]
+            public Shader probeVolumeSamplingDebugShader;
+
+            /// <summary>
+            /// Debug mesh used to draw the sampling weights of the probe volume.
+            /// </summary>
+            [Obsolete("This shader is now in the ProbeVolumeDebugResources class.")]
+            public Mesh probeSamplingDebugMesh;
+
+            /// <summary>
+            /// Texture with the numbers dor sampling weights.
+            /// </summary>
+            [Obsolete("This shader is now in the ProbeVolumeDebugResources class.")]
+            public Texture2D probeSamplingDebugTexture;
+
+            /// <summary>
+            /// Compute Shader used for Blending.
+            /// </summary>
+            [Obsolete("This shader is now in the ProbeVolumeRuntimeResources class.")]
+            public ComputeShader probeVolumeBlendStatesCS;
+        }
+
+        /// <summary>
+        /// Probe volume resources used by URP
+        /// </summary>
+        [Obsolete("Probe volume debug resource are now in the ProbeVolumeDebugResources class.")]
+        public ProbeVolumeResources probeVolumeResources;
+    }
+
     public sealed partial class Bloom : VolumeComponent, IPostProcessComponent
     {
         // Deprecated in 13.x.x

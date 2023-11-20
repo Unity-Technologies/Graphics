@@ -327,7 +327,8 @@ namespace UnityEngine.Rendering.Universal
 
 #if UNITY_EDITOR
             m_FinalDepthCopyPass = new CopyDepthPass(RenderPassEvent.AfterRendering + 9, data.shaders.copyDepthPS);
-            m_ProbeVolumeDebugPass = new ProbeVolumeDebugPass(RenderPassEvent.BeforeRenderingTransparents, data.debugShaders.probeVolumeSamplingDebugComputeShader);
+            var debugShaders = GraphicsSettings.GetRenderPipelineSettings<UniversalRenderPipelineDebugShaders>();
+            m_ProbeVolumeDebugPass = new ProbeVolumeDebugPass(RenderPassEvent.BeforeRenderingTransparents, debugShaders?.probeVolumeSamplingDebugComputeShader);
 #endif
 
             // RenderTexture format depends on camera and pipeline (HDR, non HDR, etc)
@@ -1517,7 +1518,7 @@ namespace UnityEngine.Rendering.Universal
                 cullingParameters.maximumVisibleLights = UniversalRenderPipeline.maxVisibleAdditionalLights;
                 // Sort the reflection probes in engine.
                 cullingParameters.reflectionProbeSortingCriteria = ReflectionProbeSortingCriteria.ImportanceThenSize;
-            }    
+            }
             else
             {
                 // We set the number of maximum visible lights allowed and we add one for the mainlight...

@@ -628,7 +628,7 @@ namespace UnityEngine.Rendering.Universal
         public ScriptableRenderer(ScriptableRendererData data)
         {
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
-            DebugHandler = new DebugHandler(data);
+            DebugHandler = new DebugHandler();
 #endif
             profilingExecute = new ProfilingSampler($"{nameof(ScriptableRenderer)}.{nameof(ScriptableRenderer.Execute)}: {data.name}");
 
