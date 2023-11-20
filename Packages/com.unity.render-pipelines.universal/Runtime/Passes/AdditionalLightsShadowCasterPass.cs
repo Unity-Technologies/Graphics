@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Unity.Collections;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal.Internal
 {
@@ -673,7 +673,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         void SetEmptyAdditionalShadowmapAtlas(RasterCommandBuffer cmd)
         {
-            cmd.SetKeyword(ref ShaderGlobalKeywords.AdditionalLightShadows, true);
+            cmd.SetKeyword(ShaderGlobalKeywords.AdditionalLightShadows, true);
 
             if (RenderingUtils.useStructuredBuffer)
             {
@@ -698,7 +698,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 bool anyShadowSliceRenderer = false;
                 int shadowSlicesCount = m_ShadowSliceToAdditionalLightIndex.Count;
                 if (shadowSlicesCount > 0)
-                    cmd.SetKeyword(ref ShaderGlobalKeywords.CastingPunctualLightShadow, true);
+                    cmd.SetKeyword(ShaderGlobalKeywords.CastingPunctualLightShadow, true);
 
                 float lastDepthBias = -10f;
                 float lastNormalBias = -10f;
@@ -753,7 +753,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // If the OFF variant has been stripped, the additional light shadows keyword must always be enabled
                 bool hasOffVariant = !data.stripShadowsOffVariants;
                 data.shadowData.isKeywordAdditionalLightShadowsEnabled = !hasOffVariant || anyShadowSliceRenderer;
-                cmd.SetKeyword(ref ShaderGlobalKeywords.AdditionalLightShadows, data.shadowData.isKeywordAdditionalLightShadowsEnabled);
+                cmd.SetKeyword(ShaderGlobalKeywords.AdditionalLightShadows, data.shadowData.isKeywordAdditionalLightShadowsEnabled);
 
                 bool softShadows = data.shadowData.supportsSoftShadows && (mainLightHasSoftShadows || additionalLightHasSoftShadows);
                 data.shadowData.isKeywordSoftShadowsEnabled = softShadows;
@@ -891,7 +891,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     }
 
                     shadowTexture = UniversalRenderer.CreateRenderGraphTexture(graph, m_AdditionalLightsShadowmapHandle.rt.descriptor, "_AdditionalLightsShadowmapTexture", true,  ShadowUtils.m_ForceShadowPointSampling ? FilterMode.Point : FilterMode.Bilinear);
-                    builder.UseTextureFragmentDepth(shadowTexture, IBaseRenderGraphBuilder.AccessFlags.Write);
+                    builder.SetRenderAttachmentDepth(shadowTexture, AccessFlags.Write);
                 }
                 else
                 {
@@ -903,7 +903,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 builder.AllowGlobalStateModification(true);
 
                 if (shadowTexture.IsValid())
-                    builder.PostSetGlobalTexture(shadowTexture, passData.shadowmapID);
+                    builder.SetGlobalTextureAfterPass(shadowTexture, passData.shadowmapID);
 
                 builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
                 {

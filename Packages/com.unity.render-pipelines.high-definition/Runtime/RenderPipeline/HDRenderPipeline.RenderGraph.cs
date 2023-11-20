@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Unity.Mathematics;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.VFX;
 
 // Resove the ambiguity in the RendererList name (pick the in-engine version)
@@ -420,19 +420,20 @@ namespace UnityEngine.Rendering.HighDefinition
             ScriptableRenderContext renderContext,
             CommandBuffer commandBuffer)
         {
-            using (m_RenderGraph.RecordAndExecute(new RenderGraphParameters
+            var parameters = new RenderGraphParameters
             {
                 executionName = renderRequest.hdCamera.name,
                 currentFrameIndex = m_FrameCount,
                 rendererListCulling = m_GlobalSettings.rendererListCulling,
                 scriptableRenderContext = renderContext,
                 commandBuffer = commandBuffer
-            }))
-            {
-                RecordRenderGraph(
-                    renderRequest, aovRequest, aovBuffers,
-                    aovCustomPassBuffers, renderContext, commandBuffer);
-            }
+            };
+
+            m_RenderGraph.BeginRecording(parameters);
+            RecordRenderGraph(
+                renderRequest, aovRequest, aovBuffers,
+                aovCustomPassBuffers, renderContext, commandBuffer);
+            m_RenderGraph.EndRecordingAndExecute();
 
 
             if (aovRequest.isValid)

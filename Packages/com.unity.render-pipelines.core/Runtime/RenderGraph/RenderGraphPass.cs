@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.RenderGraphModule
+namespace UnityEngine.Rendering.RenderGraphModule
 {
     [DebuggerDisplay("RenderPass: {name} (Index:{index} Async:{enableAsyncCompute})")]
     abstract class RenderGraphPass
@@ -22,15 +22,15 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public bool enableFoveatedRasterization { get; protected set; }
 
         public TextureHandle depthBuffer { get; protected set; }
-        public IBaseRenderGraphBuilder.AccessFlags depthBufferAccessFlags { get; protected set; }
+        public AccessFlags depthBufferAccessFlags { get; protected set; }
 
         public TextureHandle[] colorBuffers { get; protected set; } = new TextureHandle[RenderGraph.kMaxMRTCount];
-        public IBaseRenderGraphBuilder.AccessFlags[] colorBufferAccessFlags { get; protected set; } = new IBaseRenderGraphBuilder.AccessFlags[RenderGraph.kMaxMRTCount];
+        public AccessFlags[] colorBufferAccessFlags { get; protected set; } = new AccessFlags[RenderGraph.kMaxMRTCount];
         public int colorBufferMaxIndex { get; protected set; } = -1;
 
         // Used by native pass compiler only
         public TextureHandle[] fragmentInputs { get; protected set; } = new TextureHandle[RenderGraph.kMaxMRTCount];
-        public IBaseRenderGraphBuilder.AccessFlags[] fragmentInputAccessFlags { get; protected set; } = new IBaseRenderGraphBuilder.AccessFlags[RenderGraph.kMaxMRTCount];
+        public AccessFlags[] fragmentInputAccessFlags { get; protected set; } = new AccessFlags[RenderGraph.kMaxMRTCount];
         public int fragmentInputMaxIndex { get; protected set; } = -1;
 
         public struct RandomWriteResourceInfo
@@ -99,13 +99,13 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             for (int i = 0; i < RenderGraph.kMaxMRTCount; ++i)
             {
                 colorBuffers[i] = TextureHandle.nullHandle;
-                colorBufferAccessFlags[i] = IBaseRenderGraphBuilder.AccessFlags.None;
+                colorBufferAccessFlags[i] = AccessFlags.None;
             }
             fragmentInputMaxIndex = -1;
             for (int i = 0; i < RenderGraph.kMaxMRTCount; ++i)
             {
                 fragmentInputs[i] = TextureHandle.nullHandle;
-                fragmentInputAccessFlags[i] = IBaseRenderGraphBuilder.AccessFlags.None;
+                fragmentInputAccessFlags[i] = AccessFlags.None;
             }
             randomAccessResourceMaxIndex = -1;
             for (int i = 0; i < RenderGraph.kMaxMRTCount; ++i)
@@ -115,7 +115,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         }
 
         // Check if the pass has any render targets set-up
-        public bool HasUseTextureFragments()
+        public bool HasRenderAttachments()
         {
             // Temporarily disabled until case UUM-53711 is fixed
             return true;
@@ -236,7 +236,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         }
 
         // Sets up the color buffer for this pass but not any resource Read/Writes for it
-        public void SetColorBufferRaw(TextureHandle resource, int index, IBaseRenderGraphBuilder.AccessFlags accessFlags)
+        public void SetColorBufferRaw(TextureHandle resource, int index, AccessFlags accessFlags)
         {
             Debug.Assert(index < RenderGraph.kMaxMRTCount && index >= 0);
             if (colorBuffers[index].handle.Equals(resource.handle) || colorBuffers[index].handle.IsNull())
@@ -248,14 +248,14 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             else
             {
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
-                // You tried to do UseTextureFragment(tex1, 1, ..); UseTextureFragment(tex2, 1, ..); that is not valid for different textures on the same index
+                // You tried to do SetRenderAttachment(tex1, 1, ..); SetRenderAttachment(tex2, 1, ..); that is not valid for different textures on the same index
                 throw new InvalidOperationException("You can only bind a single texture to an MRT index. Verify your indexes are correct.");
 #endif
             }
         }
 
         // Sets up the color buffer for this pass but not any resource Read/Writes for it
-        public void SetFragmentInputRaw(TextureHandle resource, int index, IBaseRenderGraphBuilder.AccessFlags accessFlags)
+        public void SetFragmentInputRaw(TextureHandle resource, int index, AccessFlags accessFlags)
         {
             Debug.Assert(index < RenderGraph.kMaxMRTCount && index >= 0);
             if (fragmentInputs[index].handle.Equals(resource.handle) || fragmentInputs[index].handle.IsNull())
@@ -267,14 +267,14 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             else
             {
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
-                // You tried to do UseTextureFragment(tex1, 1, ..); UseTextureFragment(tex2, 1, ..); that is not valid for different textures on the same index
+                // You tried to do SetRenderAttachment(tex1, 1, ..); SetRenderAttachment(tex2, 1, ..); that is not valid for different textures on the same index
                 throw new InvalidOperationException("You can only bind a single texture to an fragment input index. Verify your indexes are correct.");
 #endif
             }
         }
 
         // Sets up the color buffer for this pass but not any resource Read/Writes for it
-        public void SetRandomWriteResourceRaw(ResourceHandle resource, int index, bool preserveCounterValue, IBaseRenderGraphBuilder.AccessFlags accessFlags)
+        public void SetRandomWriteResourceRaw(ResourceHandle resource, int index, bool preserveCounterValue, AccessFlags accessFlags)
         {
             Debug.Assert(index < RenderGraph.kMaxMRTCount && index >= 0);
             if (randomAccessResource[index].h.Equals(resource) || randomAccessResource[index].h.IsNull())
@@ -286,7 +286,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
             else
             {
-                // You tried to do UseTextureFragment(tex1, 1, ..); UseTextureFragment(tex2, 1, ..); that is not valid for different textures on the same index
+                // You tried to do SetRenderAttachment(tex1, 1, ..); SetRenderAttachment(tex2, 1, ..); that is not valid for different textures on the same index
                 throw new InvalidOperationException("You can only bind a single texture to an random write input index. Verify your indexes are correct.");
             }
         }
@@ -302,7 +302,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         }
 
         // Sets up the depth buffer for this pass but not any resource Read/Writes for it
-        public void SetDepthBufferRaw(TextureHandle resource, IBaseRenderGraphBuilder.AccessFlags accessFlags)
+        public void SetDepthBufferRaw(TextureHandle resource, AccessFlags accessFlags)
         {
             // If no depth buffer yet or it's the same one as previous allow the call otherwise log an error.
             if (depthBuffer.handle.Equals(resource.handle) || depthBuffer.handle.IsNull())
@@ -320,7 +320,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     }
 
     // This used to have an extra generic argument 'RenderGraphContext' abstracting the context and avoiding
-    // the RenderGraphPass/ComputeRenderGraphPass/RasterRenderGraphPass/LowLevelRenderGraphPass classes below
+    // the RenderGraphPass/ComputeRenderGraphPass/RasterRenderGraphPass/UnsafeRenderGraphPass classes below
     // but this confuses IL2CPP and causes garbage when boxing the context created (even though they are structs)
     [DebuggerDisplay("RenderPass: {name} (Index:{index} Async:{enableAsyncCompute})")]
     internal abstract class BaseRenderGraphPass<PassData> : RenderGraphPass
@@ -427,11 +427,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     }
 
     [DebuggerDisplay("RenderPass: {name} (Index:{index} Async:{enableAsyncCompute})")]
-    internal sealed class LowLevelRenderGraphPass<PassData> : BaseRenderGraphPass<PassData>
-    where PassData : class, new()
+    internal sealed class UnsafeRenderGraphPass<PassData> : BaseRenderGraphPass<PassData>
+        where PassData : class, new()
     {
-        internal BaseRenderFunc<PassData, LowLevelGraphContext> renderFunc;
-        internal static LowLevelGraphContext c = new LowLevelGraphContext();
+        internal BaseRenderFunc<PassData, UnsafeGraphContext> renderFunc;
+        internal static UnsafeGraphContext c = new UnsafeGraphContext();
 
         public override void Execute(InternalRenderGraphContext renderGraphContext)
         {

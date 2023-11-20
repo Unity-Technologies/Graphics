@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 using CommonResourceData = UnityEngine.Rendering.Universal.UniversalResourceData;
 
 namespace UnityEngine.Rendering.Universal
@@ -130,12 +130,12 @@ namespace UnityEngine.Rendering.Universal
                         builder.UseTexture(passData.lightTextures[i]);
                 }
 
-                IBaseRenderGraphBuilder.AccessFlags accessFlags = IBaseRenderGraphBuilder.AccessFlags.Read;
+                AccessFlags accessFlags = AccessFlags.Read;
                 if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal)
-                    accessFlags = IBaseRenderGraphBuilder.AccessFlags.Write;
+                    accessFlags = AccessFlags.Write;
 
-                builder.UseTextureFragment(commonResourceData.activeColorTexture, 0);
-                builder.UseTextureFragmentDepth(commonResourceData.activeDepthTexture, accessFlags);
+                builder.SetRenderAttachment(commonResourceData.activeColorTexture, 0);
+                builder.SetRenderAttachmentDepth(commonResourceData.activeDepthTexture, accessFlags);
                 builder.AllowPassCulling(false);
                 builder.AllowGlobalStateModification(true);
 

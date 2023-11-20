@@ -4,7 +4,7 @@ using Unity.Mathematics;
 using UnityEditor.SceneManagement;
 #endif
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {

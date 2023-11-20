@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEngine.Rendering

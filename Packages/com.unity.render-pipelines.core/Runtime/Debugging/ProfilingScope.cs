@@ -267,7 +267,7 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="cmd">Command buffer used to add markers and compute execution timings.</param>
         /// <param name="sampler">Profiling Sampler to be used for this scope.</param>
-        public ProfilingScope(UnityEngine.Experimental.Rendering.BaseCommandBuffer cmd, ProfilingSampler sampler)
+        public ProfilingScope(BaseCommandBuffer cmd, ProfilingSampler sampler)
         {
             // NOTE: Do not mix with named CommandBuffers.
             // Currently there's an issue which results in mismatched markers.
@@ -335,7 +335,7 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="cmd">Command buffer used to add markers and compute execution timings.</param>
         /// <param name="sampler">Profiling Sampler to be used for this scope.</param>
-        public ProfilingScope(UnityEngine.Experimental.Rendering.BaseCommandBuffer cmd, ProfilingSampler sampler)
+        public ProfilingScope(BaseCommandBuffer cmd, ProfilingSampler sampler)
         {
         }
 

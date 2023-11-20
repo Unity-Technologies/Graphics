@@ -1,5 +1,5 @@
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Rendering.Universal.Internal;
 
 namespace UnityEngine.Rendering.Universal
@@ -179,7 +179,7 @@ namespace UnityEngine.Rendering.Universal
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
             UniversalLightData lightData = frameData.Get<UniversalLightData>();
 
-            m_ForwardLights.SetupLights(universalRenderingData.commandBuffer, universalRenderingData, cameraData, lightData);
+            m_ForwardLights.SetupLights(CommandBufferHelpers.GetUnsafeCommandBuffer(universalRenderingData.commandBuffer), universalRenderingData, cameraData, lightData);
         }
 
         internal override bool supportsNativeRenderPassRendergraphCompiler { get => true; }

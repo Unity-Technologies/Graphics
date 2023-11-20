@@ -1,6 +1,6 @@
 using System;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 using System.Collections.Generic;
 
 namespace UnityEngine.Rendering.Universal.Internal
@@ -237,7 +237,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         void SetEmptyMainLightCascadeShadowmap(RasterCommandBuffer cmd)
         {
-            cmd.SetKeyword(ref ShaderGlobalKeywords.MainLightShadows, true);
+            cmd.SetKeyword(ShaderGlobalKeywords.MainLightShadows, true);
             cmd.SetGlobalVector(MainLightShadowConstantBuffer._ShadowParams,
                 new Vector4(1, 0, 1, 0));
             cmd.SetGlobalVector(MainLightShadowConstantBuffer._ShadowmapSize,
@@ -263,14 +263,14 @@ namespace UnityEngine.Rendering.Universal.Internal
                 {
                     Vector4 shadowBias = ShadowUtils.GetShadowBias(ref shadowLight, shadowLightIndex, data.shadowData, m_CascadeSlices[cascadeIndex].projectionMatrix, m_CascadeSlices[cascadeIndex].resolution);
                     ShadowUtils.SetupShadowCasterConstantBuffer(cmd, ref shadowLight, shadowBias);
-                    cmd.SetKeyword(ref ShaderGlobalKeywords.CastingPunctualLightShadow, false);
+                    cmd.SetKeyword(ShaderGlobalKeywords.CastingPunctualLightShadow, false);
                     RendererList shadowRendererList = isRenderGraph? data.shadowRendererListsHandle[cascadeIndex] : data.shadowRendererLists[cascadeIndex];
                     ShadowUtils.RenderShadowSlice(cmd, ref m_CascadeSlices[cascadeIndex], ref shadowRendererList, m_CascadeSlices[cascadeIndex].projectionMatrix, m_CascadeSlices[cascadeIndex].viewMatrix);
                 }
 
                 data.shadowData.isKeywordSoftShadowsEnabled = shadowLight.light.shadows == LightShadows.Soft && data.shadowData.supportsSoftShadows;
-                cmd.SetKeyword(ref ShaderGlobalKeywords.MainLightShadows, data.shadowData.mainLightShadowCascadesCount == 1);
-                cmd.SetKeyword(ref ShaderGlobalKeywords.MainLightShadowCascades, data.shadowData.mainLightShadowCascadesCount > 1);
+                cmd.SetKeyword(ShaderGlobalKeywords.MainLightShadows, data.shadowData.mainLightShadowCascadesCount == 1);
+                cmd.SetKeyword(ShaderGlobalKeywords.MainLightShadowCascades, data.shadowData.mainLightShadowCascadesCount > 1);
                 ShadowUtils.SetSoftShadowQualityShaderKeywords(cmd, data.shadowData);
 
                 SetupMainLightShadowReceiverConstants(cmd, ref shadowLight, data.shadowData);
@@ -432,7 +432,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     }
 
                     shadowTexture = UniversalRenderer.CreateRenderGraphTexture(graph, m_MainLightShadowmapTexture.rt.descriptor, "_MainLightShadowmapTexture", true, ShadowUtils.m_ForceShadowPointSampling ? FilterMode.Point : FilterMode.Bilinear);
-                    builder.UseTextureFragmentDepth(shadowTexture, IBaseRenderGraphBuilder.AccessFlags.Write);
+                    builder.SetRenderAttachmentDepth(shadowTexture, AccessFlags.Write);
                 }
                 else
                 {
@@ -445,7 +445,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
 
                 if (shadowTexture.IsValid())
-                    builder.PostSetGlobalTexture(shadowTexture, m_MainLightShadowmapID);
+                    builder.SetGlobalTextureAfterPass(shadowTexture, m_MainLightShadowmapID);
 
                 builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
                 {

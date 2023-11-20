@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassCompiler
+namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 {
     // External debuggers implement this interface to get notified every time a graph is compiled
     // It's up to the debuggers to filter this callback to executions they are interested in

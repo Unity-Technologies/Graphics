@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -233,12 +233,12 @@ namespace UnityEngine.Rendering.Universal
                 {
                     if (passIndex == 0)
                     {
-                        cmd.SetKeyword(ref ShaderGlobalKeywords.DEBUG_DISPLAY, false);
+                        cmd.SetKeyword(ShaderGlobalKeywords.DEBUG_DISPLAY, false);
                     }
                     else if (passIndex == 1)
                     {
                         cmd.SetGlobalColor(k_DebugColorPropertyId, Color.black);
-                        cmd.SetKeyword(ref ShaderGlobalKeywords.DEBUG_DISPLAY, true);
+                        cmd.SetKeyword(ShaderGlobalKeywords.DEBUG_DISPLAY, true);
                     }
 
                     break;

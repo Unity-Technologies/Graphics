@@ -1,4 +1,4 @@
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -20,9 +20,9 @@ namespace UnityEngine.Rendering.Universal
                 currentFrameIndex = Time.frameCount,
             };
 
-            var executor = renderGraph.RecordAndExecute(rgParams);
+            renderGraph.BeginRecording(rgParams);
             RecordRenderGraph(renderGraph, context, renderer);
-            executor.Dispose();
+            renderGraph.EndRecordingAndExecute();
         }
     }
 }

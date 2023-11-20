@@ -1,7 +1,8 @@
 using System.Collections.Generic;
 using System.Diagnostics;
+using UnityEngine.Experimental.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.RenderGraphModule
+namespace UnityEngine.Rendering.RenderGraphModule
 {
     public partial class RenderGraph
     {

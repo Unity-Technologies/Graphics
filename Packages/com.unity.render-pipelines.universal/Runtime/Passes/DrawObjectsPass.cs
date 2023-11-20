@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Profiling;
 
 namespace UnityEngine.Rendering.Universal.Internal
@@ -250,19 +250,25 @@ namespace UnityEngine.Rendering.Universal.Internal
                 InitPassData(cameraData, ref passData);
 
                 if (colorTarget.IsValid())
-                    passData.albedoHdl = builder.UseTextureFragment(colorTarget, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
+                {
+                    passData.albedoHdl = colorTarget;
+                    builder.SetRenderAttachment(colorTarget, 0, AccessFlags.Write);
+                }
 
                 if (depthTarget.IsValid())
-                    passData.depthHdl = builder.UseTextureFragmentDepth(depthTarget, IBaseRenderGraphBuilder.AccessFlags.Write);
+                {
+                    passData.depthHdl = depthTarget;
+                    builder.SetRenderAttachmentDepth(depthTarget, AccessFlags.Write);
+                }
 
                 if (mainShadowsTexture.IsValid())
-                    builder.UseTexture(mainShadowsTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+                    builder.UseTexture(mainShadowsTexture, AccessFlags.Read);
                 if (additionalShadowsTexture.IsValid())
-                    builder.UseTexture(additionalShadowsTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+                    builder.UseTexture(additionalShadowsTexture, AccessFlags.Read);
 
                 TextureHandle ssaoTexture = resourceData.ssaoTexture;
                 if (ssaoTexture.IsValid())
-                    builder.UseTexture(ssaoTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+                    builder.UseTexture(ssaoTexture, AccessFlags.Read);
                 RenderGraphUtils.UseDBufferIfValid(builder, resourceData);
 
                 InitRendererLists(renderingData, cameraData, lightData, ref passData, default(ScriptableRenderContext), renderGraph, true);
@@ -386,20 +392,22 @@ namespace UnityEngine.Rendering.Universal.Internal
                 InitPassData(cameraData, ref passData.basePassData);
                 passData.maskSize = maskSize;
 
-                passData.basePassData.albedoHdl = builder.UseTextureFragment(colorTarget, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
-                builder.UseTextureFragment(renderingLayersTexture, 1, IBaseRenderGraphBuilder.AccessFlags.Write);
-                passData.basePassData.depthHdl = builder.UseTextureFragmentDepth(depthTarget, IBaseRenderGraphBuilder.AccessFlags.Write);
+                passData.basePassData.albedoHdl = colorTarget;
+                builder.SetRenderAttachment(colorTarget, 0, AccessFlags.Write);
+                builder.SetRenderAttachment(renderingLayersTexture, 1, AccessFlags.Write);
+                passData.basePassData.depthHdl = depthTarget;
+                builder.SetRenderAttachmentDepth(depthTarget, AccessFlags.Write);
                 if (mainShadowsTexture.IsValid())
-                    builder.UseTexture(mainShadowsTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+                    builder.UseTexture(mainShadowsTexture, AccessFlags.Read);
                 if (additionalShadowsTexture.IsValid())
-                    builder.UseTexture(additionalShadowsTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+                    builder.UseTexture(additionalShadowsTexture, AccessFlags.Read);
 
                 UniversalRenderer renderer = cameraData.renderer as UniversalRenderer;
                 if (renderer != null)
                 {
                     TextureHandle ssaoTexture = resourceData.ssaoTexture;
                     if (ssaoTexture.IsValid())
-                        builder.UseTexture(ssaoTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+                        builder.UseTexture(ssaoTexture, AccessFlags.Read);
 
                     RenderGraphUtils.UseDBufferIfValid(builder, resourceData);
                 }
@@ -424,7 +432,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 builder.SetRenderFunc((RenderingLayersPassData data, RasterGraphContext context) =>
                 {
                     // Enable Rendering Layers
-                    context.cmd.SetKeyword(ref ShaderGlobalKeywords.WriteRenderingLayers, true);
+                    context.cmd.SetKeyword(ShaderGlobalKeywords.WriteRenderingLayers, true);
 
                     RenderingLayerUtils.SetupProperties(context.cmd, data.maskSize);
 
@@ -439,7 +447,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     ExecutePass(context.cmd, data.basePassData, data.basePassData.rendererListHdl, data.basePassData.objectsWithErrorRendererListHdl, yFlip);
 
                     // Clean up
-                    context.cmd.SetKeyword(ref ShaderGlobalKeywords.WriteRenderingLayers, false);
+                    context.cmd.SetKeyword(ShaderGlobalKeywords.WriteRenderingLayers, false);
                 });
             }
         }

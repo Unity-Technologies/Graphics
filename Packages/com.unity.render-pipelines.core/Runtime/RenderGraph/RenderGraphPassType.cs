@@ -1,11 +1,11 @@
 using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.RenderGraphModule
+namespace UnityEngine.Rendering.RenderGraphModule
 {
     internal enum RenderGraphPassType
     {
         Legacy,
-        LowLevel,
+        Unsafe,
         Raster,
         Compute
     }

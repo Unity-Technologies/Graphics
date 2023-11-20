@@ -1,4 +1,4 @@
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -31,13 +31,15 @@ namespace UnityEngine.Rendering.Universal
 
         internal void Render(RenderGraph renderGraph, TextureHandle colorTarget, TextureHandle depthTarget)
         {
-            using (var builder = renderGraph.AddLowLevelPass<PassData>("OnRenderObject Callback Pass", out var passData,
+            using (var builder = renderGraph.AddUnsafePass<PassData>("OnRenderObject Callback Pass", out var passData,
                 base.profilingSampler))
             {
-                passData.colorTarget = builder.UseTexture(colorTarget, IBaseRenderGraphBuilder.AccessFlags.Write);
-                passData.depthTarget = builder.UseTexture(depthTarget, IBaseRenderGraphBuilder.AccessFlags.Write);
+                passData.colorTarget = colorTarget;
+                builder.UseTexture(colorTarget, AccessFlags.Write);
+                passData.depthTarget = depthTarget;
+                builder.UseTexture(depthTarget, AccessFlags.Write);
                 builder.AllowPassCulling(false);
-                builder.SetRenderFunc((PassData data, LowLevelGraphContext context) =>
+                builder.SetRenderFunc((PassData data, UnsafeGraphContext context) =>
                 {
                     context.cmd.InvokeOnRenderObjectCallbacks();
                 });

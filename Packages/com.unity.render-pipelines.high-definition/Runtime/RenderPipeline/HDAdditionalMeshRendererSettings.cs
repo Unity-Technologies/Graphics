@@ -4,7 +4,7 @@ using System.Linq;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition

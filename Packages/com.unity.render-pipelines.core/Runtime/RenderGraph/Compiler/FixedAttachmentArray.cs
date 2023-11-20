@@ -2,7 +2,7 @@ using System;
 using System.Runtime.InteropServices;
 using Unity.Collections;
 
-namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassCompiler
+namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 {
     /// <summary>
     /// A fixed-size array that can contain up to maximum render target attachment amount of items.

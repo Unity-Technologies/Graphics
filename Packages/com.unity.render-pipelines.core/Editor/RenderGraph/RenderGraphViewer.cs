@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEditor.UIElements;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 using System.Collections.Generic;
 using UnityEditor.Overlays;
 using UnityEngine.Scripting.APIUpdating;
@@ -116,7 +116,7 @@ namespace UnityEditor.Rendering
         int m_CurrentHoveredVisibleResourceIndex = -1;
         int m_CurrentSelectedVisiblePassIndex = -1;
 
-        PassFilter m_PassFilter = PassFilter.CulledPasses | PassFilter.RasterPasses | PassFilter.LowLevelPasses | PassFilter.ComputePasses;
+        PassFilter m_PassFilter = PassFilter.CulledPasses | PassFilter.RasterPasses | PassFilter.UnsafePasses | PassFilter.ComputePasses;
         PassFilterLegacy m_PassFilterLegacy = PassFilterLegacy.CulledPasses;
 
         ResourceFilter m_ResourceFilter =
@@ -161,7 +161,7 @@ namespace UnityEditor.Rendering
         {
             CulledPasses = 1 << 0,
             RasterPasses = 1 << 1,
-            LowLevelPasses = 1 << 2,
+            UnsafePasses = 1 << 2,
             ComputePasses = 1 << 3,
         }
 
@@ -968,7 +968,7 @@ namespace UnityEditor.Rendering
                     return false;
                 if (pass.type == RenderGraphPassType.Raster && !m_PassFilter.HasFlag(PassFilter.RasterPasses))
                     return false;
-                if (pass.type == RenderGraphPassType.LowLevel && !m_PassFilter.HasFlag(PassFilter.LowLevelPasses))
+                if (pass.type == RenderGraphPassType.Unsafe && !m_PassFilter.HasFlag(PassFilter.UnsafePasses))
                     return false;
             }
             else

@@ -5,7 +5,7 @@ using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine.Rendering;
 using System.Collections.Generic;
 
-namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassCompiler
+namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 {
     // Per pass info on inputs to the pass
     [DebuggerDisplay("PassInputData: Res({resource.index})")]
@@ -26,7 +26,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
     internal struct PassFragmentData
     {
         public ResourceHandle resource;
-        public IBaseRenderGraphBuilder.AccessFlags accessFlags;
+        public AccessFlags accessFlags;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override int GetHashCode()

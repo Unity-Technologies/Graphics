@@ -1,5 +1,5 @@
 using System;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.Universal.Internal
@@ -261,8 +261,10 @@ namespace UnityEngine.Rendering.Universal.Internal
                 InitPassData(cameraData, ref passData, outputsToHDR ? BlitType.HDR : BlitType.Core);
 
                 passData.sourceID = ShaderPropertyId.sourceTex;
-                passData.source = builder.UseTexture(src, IBaseRenderGraphBuilder.AccessFlags.Read);
-                passData.destination = builder.UseTextureFragment(dest, 0, IBaseRenderGraphBuilder.AccessFlags.Write); ;
+                passData.source = src;
+                builder.UseTexture(src, AccessFlags.Read);
+                passData.destination = dest;
+                builder.SetRenderAttachment(dest, 0, AccessFlags.Write); ;
 
                 if (outputsToHDR && overlayUITexture.IsValid())
                 {
@@ -270,7 +272,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     Tonemapping tonemapping = stack.GetComponent<Tonemapping>();
                     UniversalRenderPipeline.GetHDROutputLuminanceParameters(passData.cameraData.hdrDisplayInformation, passData.cameraData.hdrDisplayColorGamut, tonemapping, out passData.hdrOutputLuminanceParams);
 
-                    builder.UseTexture(overlayUITexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+                    builder.UseTexture(overlayUITexture, AccessFlags.Read);
                 }
                 else
                 {
@@ -283,7 +285,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 {
                     data.blitMaterialData.material.enabledKeywords = null;
 
-                    context.cmd.SetKeyword(ref ShaderGlobalKeywords.LinearToSRGBConversion, data.requireSrgbConversion);
+                    context.cmd.SetKeyword(ShaderGlobalKeywords.LinearToSRGBConversion, data.requireSrgbConversion);
                     data.blitMaterialData.material.SetTexture(data.sourceID, data.source);
 
                     DebugHandler debugHandler = GetActiveDebugHandler(data.cameraData);

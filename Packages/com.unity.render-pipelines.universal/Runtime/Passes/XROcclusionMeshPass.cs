@@ -1,5 +1,5 @@
 #if ENABLE_VR && ENABLE_XR_MODULE
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.Universal
@@ -46,7 +46,8 @@ namespace UnityEngine.Rendering.Universal
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("XR Occlusion Pass", out var passData, base.profilingSampler))
             {
                 passData.xr = cameraData.xr;
-                passData.cameraDepthAttachment = builder.UseTextureFragmentDepth(cameraDepthAttachment, IBaseRenderGraphBuilder.AccessFlags.Write);
+                passData.cameraDepthAttachment = cameraDepthAttachment;
+                builder.SetRenderAttachmentDepth(cameraDepthAttachment, AccessFlags.Write);
 
                 //  TODO RENDERGRAPH: culling? force culling off for testing
                 builder.AllowPassCulling(false);

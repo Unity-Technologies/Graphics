@@ -92,7 +92,7 @@ namespace UnityEngine.Rendering
         /// 
         /// Logic ported from "FsrEasuCon()" in Runtime/PostProcessing/Shaders/ffx/ffx_fsr1.hlsl
         /// </summary>
-        /// <param name="cmd">RasterCommandBuffer/ComputeCommandBuffer/LowlevelCommandBuffer to modify</param>
+        /// <param name="cmd">RasterCommandBuffer/ComputeCommandBuffer/UnsafeCommandBuffer to modify</param>
         /// <param name="inputViewportSizeInPixels">This the rendered image resolution being upscaled</param>
         /// <param name="inputImageSizeInPixels">This is the resolution of the resource containing the input image (useful for dynamic resolution)</param>
         /// <param name="outputImageSizeInPixels">This is the display resolution which the input image gets upscaled to</param>

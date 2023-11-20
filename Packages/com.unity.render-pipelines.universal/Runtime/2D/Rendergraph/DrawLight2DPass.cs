@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 using CommonResourceData = UnityEngine.Rendering.Universal.UniversalResourceData;
 
 namespace UnityEngine.Rendering.Universal
@@ -143,7 +143,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        internal static void ExecuteLowLevel(LowLevelCommandBuffer cmd, PassData passData, ref LayerBatch layerBatch, List<Light2D> lights, bool useShadows = false)
+        internal static void ExecuteUnsafe(UnsafeCommandBuffer cmd, PassData passData, ref LayerBatch layerBatch, List<Light2D> lights, bool useShadows = false)
         {
             cmd.SetGlobalFloat(k_InverseHDREmulationScaleID, 1.0f / passData.rendererData.hdrEmulationScale);
 
@@ -255,16 +255,16 @@ namespace UnityEngine.Rendering.Universal
             // OpenGL has a bug with MRTs - support single RTs by using low level pass
             if (!isVolumetric && Renderer2D.IsGLDevice())
             {
-                using (var builder = graph.AddLowLevelPass<PassData>( k_LightLowLevelPass, out var passData, m_ProfilingSamplerLowLevel))
+                using (var builder = graph.AddUnsafePass<PassData>( k_LightLowLevelPass, out var passData, m_ProfilingSamplerLowLevel))
                 {
                     intermediateTexture[0] = commonResourceData.activeColorTexture;
                     passData.lightTextures = universal2DResourceData.lightTextures[batchIndex];
                     passData.depthTexture = universal2DResourceData.intermediateDepth;
 
                     for (var i = 0; i < passData.lightTextures.Length; i++)
-                        builder.UseTexture(passData.lightTextures[i], IBaseRenderGraphBuilder.AccessFlags.Write);
+                        builder.UseTexture(passData.lightTextures[i], AccessFlags.Write);
 
-                    builder.UseTexture(passData.depthTexture, IBaseRenderGraphBuilder.AccessFlags.Write);
+                    builder.UseTexture(passData.depthTexture, AccessFlags.Write);
 
                     if (layerBatch.lightStats.useNormalMap)
                         builder.UseTexture(universal2DResourceData.normalsTexture[batchIndex]);
@@ -295,9 +295,9 @@ namespace UnityEngine.Rendering.Universal
                     builder.AllowPassCulling(false);
                     builder.AllowGlobalStateModification(true);
 
-                    builder.SetRenderFunc((PassData data, LowLevelGraphContext context) =>
+                    builder.SetRenderFunc((PassData data, UnsafeGraphContext context) =>
                     {
-                        ExecuteLowLevel(context.cmd, data, ref data.layerBatch, data.layerBatch.lights);
+                        ExecuteUnsafe(context.cmd, data, ref data.layerBatch, data.layerBatch.lights);
                     });
                 }
             }
@@ -311,9 +311,9 @@ namespace UnityEngine.Rendering.Universal
                     var depthTexture = !isVolumetric ? universal2DResourceData.intermediateDepth : commonResourceData.activeDepthTexture;
 
                     for (var i = 0; i < lightTextures.Length; i++)
-                        builder.UseTextureFragment(lightTextures[i], i);
+                        builder.SetRenderAttachment(lightTextures[i], i);
 
-                    builder.UseTextureFragmentDepth(depthTexture);
+                    builder.SetRenderAttachmentDepth(depthTexture);
 
                     if (layerBatch.lightStats.useNormalMap)
                         builder.UseTexture(universal2DResourceData.normalsTexture[batchIndex]);

@@ -1,11 +1,10 @@
 
 using System;
-using UnityEngine.Rendering;
 using System.Collections.Generic;
 using Unity.Collections;
 using UnityEngine.Profiling;
 using Unity.Profiling;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 
 // NOTE  NOTE  NOTE  NOTE  NOTE  NOTE  NOTE  NOTE  NOTE
 //
@@ -24,14 +23,13 @@ using UnityEngine.Experimental.Rendering.RenderGraphModule;
 // <unity root>\Packages\com.unity.render-pipelines.core\Runtime\CommandBuffers\
 //
 // NOTE  NOTE  NOTE  NOTE  NOTE  NOTE  NOTE  NOTE  NOTE
-namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Rendering
 {
-    using RendererList = UnityEngine.Rendering.RendererList;
 
     /// <summary>
     /// This interface declares functions shared by several command buffer types.
     /// </summary>
-    public interface IBaseCommandBuffer
+    public interface IBaseCommandBuffer 
     {
 
         /// <summary>Wraps [SetInvertCulling](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetInvertCulling.html) on a CommandBuffer.</summary>
@@ -86,17 +84,17 @@ namespace UnityEngine.Experimental.Rendering
 
         /// <summary>Wraps [EnableKeyword](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.EnableKeyword.html) on a CommandBuffer.</summary>
         /// <param name="keyword">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.EnableKeyword.html)</param>
-        public void EnableKeyword(ref GlobalKeyword keyword) ;
+        public void EnableKeyword(in GlobalKeyword keyword) ;
 
         /// <summary>Wraps [EnableKeyword](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.EnableKeyword.html) on a CommandBuffer.</summary>
         /// <param name="material">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.EnableKeyword.html)</param>
         /// <param name="keyword">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.EnableKeyword.html)</param>
-        public void EnableKeyword(Material material, ref LocalKeyword keyword) ;
+        public void EnableKeyword(Material material, in LocalKeyword keyword) ;
 
         /// <summary>Wraps [EnableKeyword](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.EnableKeyword.html) on a CommandBuffer.</summary>
         /// <param name="computeShader">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.EnableKeyword.html)</param>
         /// <param name="keyword">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.EnableKeyword.html)</param>
-        public void EnableKeyword(ComputeShader computeShader, ref LocalKeyword keyword) ;
+        public void EnableKeyword(ComputeShader computeShader, in LocalKeyword keyword) ;
 
         /// <summary>Wraps [DisableShaderKeyword](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.DisableShaderKeyword.html) on a CommandBuffer.</summary>
         /// <param name="keyword">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.DisableShaderKeyword.html)</param>
@@ -104,34 +102,34 @@ namespace UnityEngine.Experimental.Rendering
 
         /// <summary>Wraps [DisableKeyword](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.DisableKeyword.html) on a CommandBuffer.</summary>
         /// <param name="keyword">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.DisableKeyword.html)</param>
-        public void DisableKeyword(ref GlobalKeyword keyword) ;
+        public void DisableKeyword(in GlobalKeyword keyword) ;
 
         /// <summary>Wraps [DisableKeyword](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.DisableKeyword.html) on a CommandBuffer.</summary>
         /// <param name="material">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.DisableKeyword.html)</param>
         /// <param name="keyword">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.DisableKeyword.html)</param>
-        public void DisableKeyword(Material material, ref LocalKeyword keyword) ;
+        public void DisableKeyword(Material material, in LocalKeyword keyword) ;
 
         /// <summary>Wraps [DisableKeyword](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.DisableKeyword.html) on a CommandBuffer.</summary>
         /// <param name="computeShader">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.DisableKeyword.html)</param>
         /// <param name="keyword">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.DisableKeyword.html)</param>
-        public void DisableKeyword(ComputeShader computeShader, ref LocalKeyword keyword) ;
+        public void DisableKeyword(ComputeShader computeShader, in LocalKeyword keyword) ;
 
         /// <summary>Wraps [SetKeyword](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetKeyword.html) on a CommandBuffer.</summary>
         /// <param name="keyword">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetKeyword.html)</param>
         /// <param name="value">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetKeyword.html)</param>
-        public void SetKeyword(ref GlobalKeyword keyword, bool value) ;
+        public void SetKeyword(in GlobalKeyword keyword, bool value) ;
 
         /// <summary>Wraps [SetKeyword](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetKeyword.html) on a CommandBuffer.</summary>
         /// <param name="material">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetKeyword.html)</param>
         /// <param name="keyword">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetKeyword.html)</param>
         /// <param name="value">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetKeyword.html)</param>
-        public void SetKeyword(Material material, ref LocalKeyword keyword, bool value) ;
+        public void SetKeyword(Material material, in LocalKeyword keyword, bool value) ;
 
         /// <summary>Wraps [SetKeyword](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetKeyword.html) on a CommandBuffer.</summary>
         /// <param name="computeShader">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetKeyword.html)</param>
         /// <param name="keyword">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetKeyword.html)</param>
         /// <param name="value">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetKeyword.html)</param>
-        public void SetKeyword(ComputeShader computeShader, ref LocalKeyword keyword, bool value) ;
+        public void SetKeyword(ComputeShader computeShader, in LocalKeyword keyword, bool value) ;
 
         /// <summary>Wraps [SetViewProjectionMatrices](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetViewProjectionMatrices.html) on a CommandBuffer.</summary>
         /// <param name="view">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetViewProjectionMatrices.html)</param>

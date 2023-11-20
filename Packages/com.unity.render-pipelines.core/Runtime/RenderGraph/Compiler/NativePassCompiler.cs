@@ -4,7 +4,7 @@ using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassCompiler
+namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 {
     internal partial class NativePassCompiler
     {
@@ -107,7 +107,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
                     {
                         throw new Exception("Pass '" + inputPass.name + "' is using the legacy rendergraph API." +
                             " You cannot use legacy passes with the native render pass compiler." +
-                            " Please do not use AddPass on the rendergrpah but use one of the more specific pas types such as AddRasterPass");
+                            " Please do not use AddPass on the rendergrpah but use one of the more specific pass types such as AddRasterRenderPass");
                     }
 #endif
 
@@ -750,7 +750,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
                             // Check if we're handling the depth attachment
                             if (graphPass.fragmentInfoHasDepth && fragmentIdx == 0)
                             {
-                                desc.flags = (fragment.accessFlags.HasFlag(IBaseRenderGraphBuilder.AccessFlags.Write)) ? SubPassFlags.None : SubPassFlags.ReadOnlyDepth;
+                                desc.flags = (fragment.accessFlags.HasFlag(AccessFlags.Write)) ? SubPassFlags.None : SubPassFlags.ReadOnlyDepth;
                             }
                             // It's a color attachment
                             else
@@ -843,12 +843,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
                     // Writing by-default has to preserve the contents, think rendering only a few small triangles on top of a big framebuffer
                     // So it means we need to load/clear contents potentially.
                     // If a user pass knows it will write all pixels in a buffer (like a blit) it can use the WriteAll/Discard usage to indicate this to the graph
-                    bool partialWrite = fragment.accessFlags.HasFlag(IBaseRenderGraphBuilder.AccessFlags.Write) && !fragment.accessFlags.HasFlag(IBaseRenderGraphBuilder.AccessFlags.Discard);
+                    bool partialWrite = fragment.accessFlags.HasFlag(AccessFlags.Write) && !fragment.accessFlags.HasFlag(AccessFlags.Discard);
 
                     ref readonly var resourceData = ref contextData.UnversionedResourceData(fragment.resource);
                     bool isImported = resourceData.isImported;
 
-                    if (fragment.accessFlags.HasFlag(IBaseRenderGraphBuilder.AccessFlags.Read) || partialWrite)
+                    if (fragment.accessFlags.HasFlag(AccessFlags.Read) || partialWrite)
                     {
                         // The resource is already allocated before this pass so we need to load it
                         if (resourceData.firstUsePassID < nativePass.firstGraphPass)
@@ -891,7 +891,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
                         }
                     }
 
-                    if (fragment.accessFlags.HasFlag(IBaseRenderGraphBuilder.AccessFlags.Write))
+                    if (fragment.accessFlags.HasFlag(AccessFlags.Write))
                     {
                         // Simple non-msaa case
                         if (nativePass.samples <= 1)

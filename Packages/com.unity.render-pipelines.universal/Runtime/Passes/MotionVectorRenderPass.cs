@@ -1,7 +1,7 @@
 using System;
 using Unity.Collections;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -212,19 +212,22 @@ namespace UnityEngine.Rendering.Universal
                 builder.AllowGlobalStateModification(true);
                 builder.EnableFoveatedRasterization(cameraData.xr.supportsFoveatedRendering);
 
-                passData.motionVectorColor = builder.UseTextureFragment(motionVectorColor, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
-                passData.motionVectorDepth = builder.UseTextureFragmentDepth(motionVectorDepth, IBaseRenderGraphBuilder.AccessFlags.Write);
+                passData.motionVectorColor = motionVectorColor;
+                builder.SetRenderAttachment(motionVectorColor, 0, AccessFlags.Write);
+                passData.motionVectorDepth = motionVectorDepth;
+                builder.SetRenderAttachmentDepth(motionVectorDepth, AccessFlags.Write);
                 InitPassData(ref passData, cameraData);
-                passData.cameraDepth = builder.UseTexture(cameraDepthTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+                passData.cameraDepth = cameraDepthTexture;
+                builder.UseTexture(cameraDepthTexture, AccessFlags.Read);
 
                 InitRendererLists(ref passData, ref renderingData.cullResults, renderingData.supportsDynamicBatching,
                     default(ScriptableRenderContext), renderGraph, true);
                 builder.UseRendererList(passData.rendererListHdl);
 
                 if (motionVectorColor.IsValid())
-                    builder.PostSetGlobalTexture(motionVectorColor, Shader.PropertyToID(k_MotionVectorTextureName));
+                    builder.SetGlobalTextureAfterPass(motionVectorColor, Shader.PropertyToID(k_MotionVectorTextureName));
                 if (motionVectorDepth.IsValid())
-                    builder.PostSetGlobalTexture(motionVectorDepth, Shader.PropertyToID(k_MotionVectorDepthTextureName));
+                    builder.SetGlobalTextureAfterPass(motionVectorDepth, Shader.PropertyToID(k_MotionVectorDepthTextureName));
 
                 builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
                 {

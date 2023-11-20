@@ -1,13 +1,7 @@
 using System;
-using System.Diagnostics;
-using System.Collections.Generic;
-using UnityEngine.Rendering;
-using UnityEngine.Rendering.RendererUtils;
-using System.Diagnostics.CodeAnalysis;
-using UnityEngine.Internal;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 
-namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Rendering
 {
     /// <summary>
     /// Render graph command buffer types inherit from this base class.
@@ -46,7 +40,7 @@ namespace UnityEngine.Experimental.Rendering
         internal protected void ThrowIfRasterNotAllowed()
         {
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
-            if (m_ExecutingPass != null && !m_ExecutingPass.HasUseTextureFragments()) throw new InvalidOperationException($"{m_ExecutingPass.name}: Using raster commands from a pass with no active render targets is not allowed as it will use an undefined render target state. Please set-up the pass's render targets using UseTextureFragment.");
+            if (m_ExecutingPass != null && !m_ExecutingPass.HasRenderAttachments()) throw new InvalidOperationException($"{m_ExecutingPass.name}: Using raster commands from a pass with no active render targets is not allowed as it will use an undefined render target state. Please set-up the pass's render targets using SetRenderAttachments.");
 #endif
         }
 
@@ -65,7 +59,7 @@ namespace UnityEngine.Experimental.Rendering
             }
             if (m_ExecutingPass.IsAttachment(h))
             {
-                throw new Exception("Pass '" + m_ExecutingPass.name + "' is using a texture as a fragment attachment (UseTextureFragment/UseTextureFragmentDepth) but is also trying to bind it as regular texture. Please fix this pass. ");
+                throw new Exception("Pass '" + m_ExecutingPass.name + "' is using a texture as a fragment attachment (SetRenderAttachment/SetRenderAttachmentDepth) but is also trying to bind it as regular texture. Please fix this pass. ");
             }
 #endif
         }
@@ -81,7 +75,7 @@ namespace UnityEngine.Experimental.Rendering
             }
             if (m_ExecutingPass.IsAttachment(h))
             {
-                throw new Exception("Pass '" + m_ExecutingPass.name + "' is using a texture as a fragment attachment (UseTextureFragment/UseTextureFragmentDepth) but is also trying to bind it as regular texture. Please fix this pass. ");
+                throw new Exception("Pass '" + m_ExecutingPass.name + "' is using a texture as a fragment attachment (SetRenderAttachment/SetRenderAttachmentDepth) but is also trying to bind it as regular texture. Please fix this pass. ");
             }
 #endif
         }
@@ -102,7 +96,7 @@ namespace UnityEngine.Experimental.Rendering
             }
             if (m_ExecutingPass.IsAttachment(h))
             {
-                throw new Exception("Pass '" + m_ExecutingPass.name + "' is using a texture as a fragment attachment (UseTextureFragment/UseTextureFragmentDepth) but is also trying to bind it as regular texture. Please fix this pass. ");
+                throw new Exception("Pass '" + m_ExecutingPass.name + "' is using a texture as a fragment attachment (SetRenderAttachment/SetRenderAttachmentDepth) but is also trying to bind it as regular texture. Please fix this pass. ");
             }
 #endif
         }

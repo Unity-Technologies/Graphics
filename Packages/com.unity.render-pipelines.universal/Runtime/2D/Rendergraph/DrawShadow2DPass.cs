@@ -1,15 +1,15 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 using CommonResourceData = UnityEngine.Rendering.Universal.UniversalResourceData;
 
 namespace UnityEngine.Rendering.Universal
 {
     internal class DrawShadow2DPass : ScriptableRenderPass
     {
-        static readonly string k_ShadowPass = "Shadow2D LowLevelPass";
-        static readonly string k_ShadowVolumetricPass = "Shadow2D Volumetric LowLevelPass";
+        static readonly string k_ShadowPass = "Shadow2D UnsafePass";
+        static readonly string k_ShadowVolumetricPass = "Shadow2D Volumetric UnsafePass";
 
         private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler(k_ShadowPass);
         private static readonly ProfilingSampler m_ProfilingSamplerVolume = new ProfilingSampler(k_ShadowVolumetricPass);
@@ -24,7 +24,7 @@ namespace UnityEngine.Rendering.Universal
             throw new NotImplementedException();
         }
 
-        private static void ExecuteShadowPass(LowLevelCommandBuffer cmd, DrawLight2DPass.PassData passData, Light2D light)
+        private static void ExecuteShadowPass(UnsafeCommandBuffer cmd, DrawLight2DPass.PassData passData, Light2D light)
         {
             using (new ProfilingScope(cmd, m_ExecuteProfilingSampler))
             {
@@ -53,7 +53,7 @@ namespace UnityEngine.Rendering.Universal
             var shadowTexture = universal2DResourceData.shadowsTexture;
             var depthTexture = universal2DResourceData.shadowsDepth;
 
-            using (var builder = graph.AddLowLevelPass<DrawLight2DPass.PassData>(!isVolumetric ? k_ShadowPass : k_ShadowVolumetricPass, out var passData, !isVolumetric ? m_ProfilingSampler : m_ProfilingSamplerVolume))
+            using (var builder = graph.AddUnsafePass<DrawLight2DPass.PassData>(!isVolumetric ? k_ShadowPass : k_ShadowVolumetricPass, out var passData, !isVolumetric ? m_ProfilingSampler : m_ProfilingSamplerVolume))
             {
                 passData.layerBatch = layerBatch;
                 passData.rendererData = rendererData;
@@ -77,14 +77,14 @@ namespace UnityEngine.Rendering.Universal
                     passData.lightTexturesRT = new RenderTargetIdentifier[passData.lightTextures.Length];
 
                 for (int i = 0; i < passData.lightTextures.Length; ++i)
-                    builder.UseTexture(passData.lightTextures[i], IBaseRenderGraphBuilder.AccessFlags.Write);
+                    builder.UseTexture(passData.lightTextures[i], AccessFlags.Write);
 
                 if (layerBatch.lightStats.useNormalMap)
                     builder.UseTexture(universal2DResourceData.normalsTexture[batchIndex]);
 
-                builder.UseTexture(shadowTexture, IBaseRenderGraphBuilder.AccessFlags.Write);
-                builder.UseTexture(depthTexture, IBaseRenderGraphBuilder.AccessFlags.Write);
-                builder.UseTexture(passData.depthTexture, IBaseRenderGraphBuilder.AccessFlags.Write);
+                builder.UseTexture(shadowTexture, AccessFlags.Write);
+                builder.UseTexture(depthTexture, AccessFlags.Write);
+                builder.UseTexture(passData.depthTexture, AccessFlags.Write);
                 builder.UseTexture(passData.fallOffLookUp);
                 builder.UseTexture(passData.lightLookUp);
 
@@ -100,7 +100,7 @@ namespace UnityEngine.Rendering.Universal
                 builder.AllowPassCulling(false);
                 builder.AllowGlobalStateModification(true);
 
-                builder.SetRenderFunc((DrawLight2DPass.PassData data, LowLevelGraphContext context) =>
+                builder.SetRenderFunc((DrawLight2DPass.PassData data, UnsafeGraphContext context) =>
                 {
                     for (int i = 0; i < data.layerBatch.shadowLights.Count; ++i)
                     {
@@ -126,7 +126,7 @@ namespace UnityEngine.Rendering.Universal
                         // Light Pass
                         using (new ProfilingScope(cmd, DrawLight2DPass.m_ProfilingSamplerLowLevel))
                         {
-                            DrawLight2DPass.ExecuteLowLevel(cmd, data, ref data.layerBatch, intermediateLight, true);
+                            DrawLight2DPass.ExecuteUnsafe(cmd, data, ref data.layerBatch, intermediateLight, true);
                         }
                     }
                 });

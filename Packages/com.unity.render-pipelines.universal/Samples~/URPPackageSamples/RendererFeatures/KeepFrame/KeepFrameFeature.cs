@@ -2,7 +2,7 @@ using System;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
@@ -69,8 +69,9 @@ public class KeepFrameFeature : ScriptableRendererFeature
                 if (!source.IsValid() || !destination.IsValid())
                     return;
 
-                passData.source = builder.UseTexture(source, IBaseRenderGraphBuilder.AccessFlags.Read);
-                builder.UseTextureFragment(destination, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
+                passData.source = source;
+                builder.UseTexture(source, AccessFlags.Read);
+                builder.SetRenderAttachment(destination, 0, AccessFlags.Write);
 
                 builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
                 {
@@ -143,8 +144,8 @@ public class KeepFrameFeature : ScriptableRendererFeature
                 passData.source = oldFrameTextureHandle;
                 passData.name = m_TextureName;
 
-                builder.UseTexture(oldFrameTextureHandle, IBaseRenderGraphBuilder.AccessFlags.Read);
-                builder.UseTextureFragment(destination, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
+                builder.UseTexture(oldFrameTextureHandle, AccessFlags.Read);
+                builder.SetRenderAttachment(destination, 0, AccessFlags.Write);
 
                 // Normally global state modifications are not allowed when using RenderGraph and will result in errors.
                 // In the exceptional cases where this is intentional we must let the RenderGraph API know by calling

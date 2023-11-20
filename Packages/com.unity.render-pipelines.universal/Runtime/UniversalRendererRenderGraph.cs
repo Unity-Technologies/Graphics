@@ -1,5 +1,5 @@
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Rendering.Universal.Internal;
 
 namespace UnityEngine.Rendering.Universal
@@ -1495,12 +1495,13 @@ namespace UnityEngine.Rendering.Universal
             using (var builder = graph.AddRasterRenderPass<PassData>(passName, out var passData, s_SetGlobalTextureProfilingSampler))
             {
                 passData.nameID = nameId;
-                passData.texture = builder.UseTexture(handle, IBaseRenderGraphBuilder.AccessFlags.Read);
+                passData.texture = handle;
+                builder.UseTexture(handle, AccessFlags.Read);
 
                 builder.AllowPassCulling(false);
                 builder.AllowGlobalStateModification(true);
 
-                builder.PostSetGlobalTexture(handle, nameId);
+                builder.SetGlobalTextureAfterPass(handle, nameId);
 
                 builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
                 {
@@ -1540,10 +1541,16 @@ namespace UnityEngine.Rendering.Universal
             using (var builder = graph.AddRasterRenderPass<PassData>("Clear Targets Pass", out var passData, s_ClearProfilingSampler))
             {
                 if (colorHandle.IsValid())
-                    passData.color = builder.UseTextureFragment(colorHandle, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
+                {
+                    passData.color = colorHandle;
+                    builder.SetRenderAttachment(colorHandle, 0, AccessFlags.Write);
+                }
 
                 if (depthHandle.IsValid())
-                    passData.depth = builder.UseTextureFragmentDepth(depthHandle, IBaseRenderGraphBuilder.AccessFlags.Write);
+                {
+                    passData.depth = depthHandle;
+                    builder.SetRenderAttachmentDepth(depthHandle, AccessFlags.Write);
+                }
 
                 passData.clearFlags = clearFlags;
                 passData.clearColor = clearColor;

@@ -5,7 +5,7 @@ using UnityEngine;
 #if UNITY_EDITOR
 using UnityEditor.Experimental.GraphView;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassCompiler;
+using UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler;
 using UnityEngine.UIElements;
 
 

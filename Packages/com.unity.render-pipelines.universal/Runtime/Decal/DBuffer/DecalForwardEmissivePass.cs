@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -91,8 +91,8 @@ namespace UnityEngine.Rendering.Universal
                 builder.UseRendererList(passData.rendererList);
 
                 UniversalRenderer renderer = (UniversalRenderer)cameraData.renderer;
-                builder.UseTextureFragment(resourceData.activeColorTexture, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
-                builder.UseTextureFragmentDepth(resourceData.activeDepthTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+                builder.SetRenderAttachment(resourceData.activeColorTexture, 0, AccessFlags.Write);
+                builder.SetRenderAttachmentDepth(resourceData.activeDepthTexture, AccessFlags.Read);
 
                 builder.SetRenderFunc((PassData data, RasterGraphContext rgContext) =>
                 {

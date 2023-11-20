@@ -5,7 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using UnityEngine.Experimental.GlobalIllumination;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Rendering.RendererUtils;
 using UnityEngine.UI;
 

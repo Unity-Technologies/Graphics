@@ -1,6 +1,6 @@
 ﻿using UnityEditor.Overlays;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.Rendering

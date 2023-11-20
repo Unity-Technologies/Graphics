@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 using Unity.Collections;
 using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassCompiler
+namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 {
     // Data per usage of a resource(version)
     internal struct ResourceReaderData

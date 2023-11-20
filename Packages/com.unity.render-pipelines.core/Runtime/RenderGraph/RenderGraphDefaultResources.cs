@@ -1,6 +1,6 @@
 using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.RenderGraphModule
+namespace UnityEngine.Rendering.RenderGraphModule
 {
     /// <summary>
     /// Helper class allowing access to default resources (black or white texture, etc.) during render passes.

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal.Internal
 {
@@ -114,14 +114,14 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 // Enable Rendering Layers
                 if (passData.enableRenderingLayers)
-                    cmd.SetKeyword(ref ShaderGlobalKeywords.WriteRenderingLayers, true);
+                    cmd.SetKeyword(ShaderGlobalKeywords.WriteRenderingLayers, true);
 
                 // Draw
                 cmd.DrawRendererList(rendererList);
 
                 // Clean up
                 if (passData.enableRenderingLayers)
-                    cmd.SetKeyword(ref ShaderGlobalKeywords.WriteRenderingLayers, false);
+                    cmd.SetKeyword(ShaderGlobalKeywords.WriteRenderingLayers, false);
             }
         }
 
@@ -182,14 +182,16 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("DepthNormals Prepass", out var passData, base.profilingSampler))
             {
-                passData.cameraNormalsTexture = builder.UseTextureFragment(cameraNormalsTexture, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
-                passData.cameraDepthTexture = builder.UseTextureFragmentDepth(cameraDepthTexture, IBaseRenderGraphBuilder.AccessFlags.Write);
+                passData.cameraNormalsTexture = cameraNormalsTexture;
+                builder.SetRenderAttachment(cameraNormalsTexture, 0, AccessFlags.Write);
+                passData.cameraDepthTexture = cameraDepthTexture;
+                builder.SetRenderAttachmentDepth(cameraDepthTexture, AccessFlags.Write);
 
                 passData.enableRenderingLayers = enableRenderingLayers;
 
                 if (passData.enableRenderingLayers)
                 {
-                    builder.UseTextureFragment(renderingLayersTexture, 1, IBaseRenderGraphBuilder.AccessFlags.Write);
+                    builder.SetRenderAttachment(renderingLayersTexture, 1, AccessFlags.Write);
                     passData.maskSize = renderingLayersMaskSize;
                 }
 
@@ -203,9 +205,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 {
                     var renderingMode = universalRenderer.renderingModeActual;
                     if (cameraNormalsTexture.IsValid() && renderingMode != RenderingMode.Deferred)
-                        builder.PostSetGlobalTexture(cameraNormalsTexture, Shader.PropertyToID("_CameraNormalsTexture"));
+                        builder.SetGlobalTextureAfterPass(cameraNormalsTexture, Shader.PropertyToID("_CameraNormalsTexture"));
                     if (cameraDepthTexture.IsValid() && renderingMode != RenderingMode.Deferred)
-                        builder.PostSetGlobalTexture(cameraDepthTexture, Shader.PropertyToID("_CameraDepthTexture"));
+                        builder.SetGlobalTextureAfterPass(cameraDepthTexture, Shader.PropertyToID("_CameraDepthTexture"));
                 }
 
                 //  TODO RENDERGRAPH: culling? force culling off for testing

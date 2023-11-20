@@ -1481,7 +1481,8 @@ namespace UnityEngine.Rendering.Universal
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
             UniversalLightData lightData = frameData.Get<UniversalLightData>();
 
-            m_ForwardLights.SetupLights(renderingData.commandBuffer, universalRenderingData, cameraData, lightData);
+            m_ForwardLights.SetupLights(CommandBufferHelpers.GetUnsafeCommandBuffer(renderingData.commandBuffer),
+                universalRenderingData, cameraData, lightData);
 
             if (this.renderingModeActual == RenderingMode.Deferred)
                 m_DeferredLights.SetupLights(renderingData.commandBuffer, cameraData, lightData);

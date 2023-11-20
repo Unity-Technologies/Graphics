@@ -5,7 +5,7 @@ using UnityEngine.Rendering;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 
-namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassCompiler
+namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 {
     // Wrapper struct to allow storing strings in a DynamicArray which requires a type with a parameterless constructor
     internal struct Name
@@ -136,7 +136,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
         public NativeList<SubPassDescriptor> nativeSubPassData; //Tighty packed list of per nrp subpasses
 
         // resources can be added as fragment both as input and output so make sure not to add them twice (return true upon new addition)
-        public bool AddToFragmentList(ResourceHandle h, IBaseRenderGraphBuilder.AccessFlags accessFlags, int listFirstIndex, int numItems)
+        public bool AddToFragmentList(ResourceHandle h, AccessFlags accessFlags, int listFirstIndex, int numItems)
         {
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
             if (h.type != RenderGraphResourceType.Texture) new Exception("Only textures can be used as a fragment attachment.");

@@ -1,5 +1,5 @@
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal.Internal
 {
@@ -286,7 +286,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 passData.cameraData = cameraData;
                 passData.postProcessingData = postProcessingData;
 
-                passData.internalLut = builder.UseTextureFragment(internalColorLut, 0, IBaseRenderGraphBuilder.AccessFlags.WriteAll);
+                passData.internalLut = internalColorLut;
+                builder.SetRenderAttachment(internalColorLut, 0, AccessFlags.WriteAll);
                 passData.lutBuilderLdr = m_LutBuilderLdr;
                 passData.lutBuilderHdr = m_LutBuilderHdr;
                 passData.allowColorGradingACESHDR = m_AllowColorGradingACESHDR;

@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Rendering.Universal.Internal;
 
 namespace UnityEngine.Rendering.Universal
@@ -164,11 +164,11 @@ namespace UnityEngine.Rendering.Universal
 
         private static void SetKeywords(RasterCommandBuffer cmd, PassData passData)
         {
-            cmd.SetKeyword(ref ShaderGlobalKeywords.DBufferMRT1, passData.settings.surfaceData == DecalSurfaceData.Albedo);
-            cmd.SetKeyword(ref ShaderGlobalKeywords.DBufferMRT2, passData.settings.surfaceData == DecalSurfaceData.AlbedoNormal);
-            cmd.SetKeyword(ref ShaderGlobalKeywords.DBufferMRT3, passData.settings.surfaceData == DecalSurfaceData.AlbedoNormalMAOS);
+            cmd.SetKeyword(ShaderGlobalKeywords.DBufferMRT1, passData.settings.surfaceData == DecalSurfaceData.Albedo);
+            cmd.SetKeyword(ShaderGlobalKeywords.DBufferMRT2, passData.settings.surfaceData == DecalSurfaceData.AlbedoNormal);
+            cmd.SetKeyword(ShaderGlobalKeywords.DBufferMRT3, passData.settings.surfaceData == DecalSurfaceData.AlbedoNormalMAOS);
 
-            cmd.SetKeyword(ref ShaderGlobalKeywords.DecalLayers, passData.decalLayers);
+            cmd.SetKeyword(ShaderGlobalKeywords.DecalLayers, passData.decalLayers);
         }
 
         private static void Clear(CommandBuffer cmd, PassData passData)
@@ -245,7 +245,7 @@ namespace UnityEngine.Rendering.Universal
                     desc.depthBufferBits = 0;
                     desc.msaaSamples = 1;
                     dbufferHandles[0] = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, s_DBufferNames[0], true, new Color(0, 0, 0, 1));
-                    builder.UseTextureFragment(dbufferHandles[0], 0, IBaseRenderGraphBuilder.AccessFlags.Write);
+                    builder.SetRenderAttachment(dbufferHandles[0], 0, AccessFlags.Write);
                 }
 
                 if (m_Settings.surfaceData == DecalSurfaceData.AlbedoNormal || m_Settings.surfaceData == DecalSurfaceData.AlbedoNormalMAOS)
@@ -255,7 +255,7 @@ namespace UnityEngine.Rendering.Universal
                     desc.depthBufferBits = 0;
                     desc.msaaSamples = 1;
                     dbufferHandles[1] = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, s_DBufferNames[1], true, new Color(0.5f, 0.5f, 0.5f, 1));
-                    builder.UseTextureFragment(dbufferHandles[1], 1, IBaseRenderGraphBuilder.AccessFlags.Write);
+                    builder.SetRenderAttachment(dbufferHandles[1], 1, AccessFlags.Write);
                 }
 
                 if (m_Settings.surfaceData == DecalSurfaceData.AlbedoNormalMAOS)
@@ -265,17 +265,17 @@ namespace UnityEngine.Rendering.Universal
                     desc.depthBufferBits = 0;
                     desc.msaaSamples = 1;
                     dbufferHandles[2] = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, s_DBufferNames[2], true, new Color(0, 0, 0, 1));
-                    builder.UseTextureFragment(dbufferHandles[2], 2, IBaseRenderGraphBuilder.AccessFlags.Write);
+                    builder.SetRenderAttachment(dbufferHandles[2], 2, AccessFlags.Write);
                 }
 
-                builder.UseTextureFragmentDepth(depthTarget, IBaseRenderGraphBuilder.AccessFlags.Write);
+                builder.SetRenderAttachmentDepth(depthTarget, AccessFlags.Write);
                 if (cameraData.cameraTargetDescriptor.msaaSamples > 1)
-                    builder.PostSetGlobalTexture(depthTarget, Shader.PropertyToID("_CameraDepthTexture"));
+                    builder.SetGlobalTextureAfterPass(depthTarget, Shader.PropertyToID("_CameraDepthTexture"));
 
                 if (cameraDepthTexture.IsValid())
-                    builder.UseTexture(cameraDepthTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+                    builder.UseTexture(cameraDepthTexture, AccessFlags.Read);
                 if (cameraNormalsTexture.IsValid())
-                    builder.UseTexture(cameraNormalsTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+                    builder.UseTexture(cameraNormalsTexture, AccessFlags.Read);
 
                 var param = InitRendererListParams(renderingData, cameraData, lightData);
                 passData.rendererList = renderGraph.CreateRendererList(param);
@@ -284,7 +284,7 @@ namespace UnityEngine.Rendering.Universal
                 for (int i = 0; i < RenderGraphUtils.DBufferSize; ++i)
                 {
                     if (dbufferHandles[i].IsValid())
-                        builder.PostSetGlobalTexture(dbufferHandles[i], Shader.PropertyToID(s_DBufferNames[i]));
+                        builder.SetGlobalTextureAfterPass(dbufferHandles[i], Shader.PropertyToID(s_DBufferNames[i]));
                 }
 
                 builder.AllowPassCulling(false);

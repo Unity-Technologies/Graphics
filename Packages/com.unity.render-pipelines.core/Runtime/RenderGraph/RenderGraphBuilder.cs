@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.RenderGraphModule
+namespace UnityEngine.Rendering.RenderGraphModule
 {
     /// <summary>
     /// Use this struct to set up a new Render Pass.
