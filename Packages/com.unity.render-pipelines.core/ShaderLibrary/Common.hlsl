@@ -1,7 +1,7 @@
 #ifndef UNITY_COMMON_INCLUDED
 #define UNITY_COMMON_INCLUDED
 
-#if SHADER_API_MOBILE || SHADER_API_GLES3
+#if SHADER_API_MOBILE || SHADER_API_GLES3 || defined(UNITY_UNIFIED_SHADER_PRECISION_MODEL)
 #pragma warning (disable : 3205) // conversion of larger type to smaller
 #endif
 
@@ -118,7 +118,7 @@
 // The including shader should define whether half
 // precision is suitable for its needs.  The shader
 // API (for now) can indicate whether half is possible.
-#if defined(SHADER_API_MOBILE) || defined(SHADER_API_SWITCH)
+#if defined(SHADER_API_MOBILE) || defined(SHADER_API_SWITCH) || defined(UNITY_UNIFIED_SHADER_PRECISION_MODEL)
 #define HAS_HALF 1
 #else
 #define HAS_HALF 0
@@ -134,7 +134,7 @@
 #define REAL_IS_HALF 0
 #endif // Do we have half?
 
-#if REAL_IS_HALF || (defined(UNITY_UNIFIED_SHADER_PRECISION_MODEL) && (defined(UNITY_COMPILER_HLSL) || defined(UNITY_COMPILER_DXC)))
+#if REAL_IS_HALF
 #define half min16float
 #define half2 min16float2
 #define half3 min16float3
