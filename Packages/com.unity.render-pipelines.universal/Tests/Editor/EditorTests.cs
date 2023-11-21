@@ -88,9 +88,6 @@ class EditorTests
     {
         string templatePath = AssetDatabase.GUIDToAssetPath(ResourceGuid.rendererTemplate);
         Assert.IsFalse(string.IsNullOrEmpty(templatePath));
-
-        string editorResourcesPath = AssetDatabase.GUIDToAssetPath(UniversalRenderPipelineAsset.editorResourcesGUID);
-        Assert.IsFalse(string.IsNullOrEmpty(editorResourcesPath));
     }
 
     // Validate that ShaderUtils.GetShaderGUID results are valid and that ShaderUtils.GetShaderPath match shader names.
@@ -126,8 +123,16 @@ class EditorTests
     [Test]
     public void ValidateNewAssetResources()
     {
+        if (GraphicsSettings.currentRenderPipeline is not UniversalRenderPipelineAsset)
+        {
+            Assert.Ignore("This test is only available when URP is the current pipeline.");
+            return;
+        }
+
         UniversalRendererData data = ScriptableObject.CreateInstance<UniversalRendererData>();
         UniversalRenderPipelineAsset asset = UniversalRenderPipelineAsset.Create(data);
+        UniversalRenderPipelineGlobalSettings.Ensure();
+
         Assert.AreNotEqual(null, asset.defaultMaterial);
         Assert.AreNotEqual(null, asset.defaultParticleMaterial);
         Assert.AreNotEqual(null, asset.defaultLineMaterial);
@@ -139,8 +144,8 @@ class EditorTests
         Assert.AreEqual(null, asset.defaultUIOverdrawMaterial);
         Assert.AreEqual(null, asset.defaultUIETC1SupportedMaterial);
         Assert.AreEqual(null, asset.default2DMaterial);
+        Assert.AreEqual(null, asset.default2DMaskMaterial);
 
-        Assert.AreNotEqual(null, asset.m_EditorResourcesAsset, "Editor Resources should be initialized when creating a new pipeline.");
         Assert.AreNotEqual(null, asset.m_RendererDataList, "A default renderer data should be created when creating a new pipeline.");
         ScriptableObject.DestroyImmediate(asset);
         ScriptableObject.DestroyImmediate(data);

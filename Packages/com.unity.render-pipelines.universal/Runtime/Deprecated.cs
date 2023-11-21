@@ -77,6 +77,11 @@ namespace UnityEngine.Rendering.Universal
 
     public partial class UniversalRenderPipelineAsset
     {
+        #if UNITY_EDITOR
+        [Obsolete("Editor resources are stored directly into GraphicsSettings. #from(23.3)", false)]
+        public static readonly string editorResourcesGUID = "a3d8d823eedde654bb4c11a1cfaf1abb";
+        #endif
+
         [SerializeField] int m_ShaderVariantLogLevel;
 
 #pragma warning disable 618 // Obsolete warning
@@ -308,4 +313,138 @@ namespace UnityEngine.Rendering.Universal
         [Tooltip("The number of final iterations to skip in the effect processing sequence.")]
         public ClampedIntParameter skipIterations = new ClampedIntParameter(1, 0, 16);
     }
+
+    /// <summary>
+    /// Class containing shader and texture resources needed in URP.
+    /// </summary>
+    /// <seealso cref="Shader"/>
+    /// <seealso cref="Material"/>
+    [Obsolete("Moved to GraphicsSettings. #from(23.3)", false)]
+    public class UniversalRenderPipelineEditorResources : ScriptableObject
+    {
+        /// <summary>
+        /// Class containing shader resources used in URP.
+        /// </summary>
+        [Serializable, ReloadGroup]
+        [Obsolete("UniversalRenderPipelineEditorResources.ShaderResources is obsolete GraphicsSettings.TryGetRenderPipelineSettings<UniversalRenderPipelineEditorShaders>(). #from(23.3)", false)]
+        public sealed class ShaderResources
+        {
+            /// <summary>
+            /// Autodesk Interactive ShaderGraph shader.
+            /// </summary>
+            [Reload("Shaders/AutodeskInteractive/AutodeskInteractive.shadergraph")]
+            public Shader autodeskInteractivePS;
+
+            /// <summary>
+            /// Autodesk Interactive Transparent ShaderGraph shader.
+            /// </summary>
+            [Reload("Shaders/AutodeskInteractive/AutodeskInteractiveTransparent.shadergraph")]
+            public Shader autodeskInteractiveTransparentPS;
+
+            /// <summary>
+            /// Autodesk Interactive Masked ShaderGraph shader.
+            /// </summary>
+            [Reload("Shaders/AutodeskInteractive/AutodeskInteractiveMasked.shadergraph")]
+            public Shader autodeskInteractiveMaskedPS;
+
+            /// <summary>
+            /// Terrain Detail Lit shader.
+            /// </summary>
+            [Reload("Shaders/Terrain/TerrainDetailLit.shader")]
+            public Shader terrainDetailLitPS;
+
+            /// <summary>
+            /// Terrain Detail Grass shader.
+            /// </summary>
+            [Reload("Shaders/Terrain/WavingGrass.shader")]
+            public Shader terrainDetailGrassPS;
+
+            /// <summary>
+            /// Waving Grass Billboard shader.
+            /// </summary>
+            [Reload("Shaders/Terrain/WavingGrassBillboard.shader")]
+            public Shader terrainDetailGrassBillboardPS;
+
+            /// <summary>
+            /// SpeedTree7 shader.
+            /// </summary>
+            [Reload("Shaders/Nature/SpeedTree7.shader")]
+            public Shader defaultSpeedTree7PS;
+
+            /// <summary>
+            /// SpeedTree8 ShaderGraph shader.
+            /// </summary>
+            [Reload("Shaders/Nature/SpeedTree8_PBRLit.shadergraph")]
+            public Shader defaultSpeedTree8PS;
+        }
+
+        /// <summary>
+        /// Class containing material resources used in URP.
+        /// </summary>
+        [Serializable, ReloadGroup]
+        [Obsolete("UniversalRenderPipelineEditorResources.MaterialResources is obsolete GraphicsSettings.TryGetRenderPipelineSettings<UniversalRenderPipelineEditorMaterials>(). #from(23.3)", false)]
+        public sealed class MaterialResources
+        {
+            /// <summary>
+            /// Lit material.
+            /// </summary>
+            [Reload("Runtime/Materials/Lit.mat")]
+            public Material lit;
+
+            // particleLit is the URP default material for new particle systems.
+            // ParticlesUnlit.mat is closest match to the built-in shader.
+            // This is correct (current 22.2) despite the Lit/Unlit naming conflict.
+            /// <summary>
+            /// Particle Lit material.
+            /// </summary>
+            [Reload("Runtime/Materials/ParticlesUnlit.mat")]
+            public Material particleLit;
+
+            /// <summary>
+            /// Terrain Lit material.
+            /// </summary>
+            [Reload("Runtime/Materials/TerrainLit.mat")]
+            public Material terrainLit;
+
+            /// <summary>
+            /// Decal material.
+            /// </summary>
+            [Reload("Runtime/Materials/Decal.mat")]
+            public Material decal;
+        }
+
+        /// <summary>
+        /// Shader resources used in URP.
+        /// </summary>
+        [Obsolete("UniversalRenderPipelineEditorResources.ShaderResources is obsolete GraphicsSettings.TryGetRenderPipelineSettings<UniversalRenderPipelineEditorShaders>(). #from(23.3)", false)]
+        public ShaderResources shaders;
+
+        /// <summary>
+        /// Material resources used in URP.
+        /// </summary>
+        [Obsolete("UniversalRenderPipelineEditorResources.MaterialResources is obsolete GraphicsSettings.TryGetRenderPipelineSettings<UniversalRenderPipelineEditorMaterials>(). #from(23.3)", false)]
+        public MaterialResources materials;
+    }
+
+#if UNITY_EDITOR
+    [UnityEditor.CustomEditor(typeof(UniversalRenderPipelineEditorResources), true)]
+    [Obsolete("Deprectated alongside with UniversalRenderPipelineEditorResources. #from(23.3)", false)]
+    class UniversalRenderPipelineEditorResourcesEditor : UnityEditor.Editor
+    {
+        /// <inheritdoc/>
+        public override void OnInspectorGUI()
+        {
+            DrawDefaultInspector();
+
+            // Add a "Reload All" button in inspector when we are in developer's mode
+            if (UnityEditor.EditorPrefs.GetBool("DeveloperMode") && GUILayout.Button("Reload All"))
+            {
+                var resources = target as UniversalRenderPipelineEditorResources;
+                resources.materials = null;
+                resources.shaders = null;
+                ResourceReloader.ReloadAllNullIn(target, UniversalRenderPipelineAsset.packagePath);
+            }
+        }
+    }
+#endif
 }

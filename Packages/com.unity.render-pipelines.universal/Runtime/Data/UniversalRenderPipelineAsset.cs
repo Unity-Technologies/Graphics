@@ -429,7 +429,6 @@ namespace UnityEngine.Rendering.Universal
 #endif
     public partial class UniversalRenderPipelineAsset : RenderPipelineAsset<UniversalRenderPipeline>, ISerializationCallbackReceiver, IProbeVolumeEnabledRenderPipeline, IGPUResidentRenderPipeline
     {
-        Shader m_DefaultShader;
         ScriptableRenderer[] m_Renderers = new ScriptableRenderer[1];
 
         internal bool IsAtLastVersion() => k_LastVersion == k_AssetVersion;
@@ -653,23 +652,15 @@ namespace UnityEngine.Rendering.Universal
         public ReadOnlySpan<ScriptableRenderer> renderers => m_Renderers;
 
 #if UNITY_EDITOR
-        [NonSerialized]
-        internal UniversalRenderPipelineEditorResources m_EditorResourcesAsset;
-
         public static readonly string packagePath = "Packages/com.unity.render-pipelines.universal";
-        public static readonly string editorResourcesGUID = "a3d8d823eedde654bb4c11a1cfaf1abb";
 
         public static UniversalRenderPipelineAsset Create(ScriptableRendererData rendererData = null)
         {
             // Create Universal RP Asset
             var instance = CreateInstance<UniversalRenderPipelineAsset>();
-            if (rendererData != null)
-                instance.m_RendererDataList[0] = rendererData;
-            else
-                instance.m_RendererDataList[0] = CreateInstance<UniversalRendererData>();
 
-            // Initialize default Renderer
-            instance.m_EditorResourcesAsset = instance.editorResources;
+            // Initialize default renderer data
+            instance.m_RendererDataList[0] = (rendererData != null) ? rendererData : CreateInstance<UniversalRendererData>();
 
             // Only enable for new URP assets by default
             instance.m_ConservativeEnclosingSphere = true;
@@ -721,29 +712,6 @@ namespace UnityEngine.Rendering.Universal
                     rendererData.postProcessData = PostProcessData.GetDefaultPostProcessData();
                     return rendererData;
                 }
-            }
-        }
-
-        // Hide: User aren't suppose to have to create it.
-        //[MenuItem("Assets/Create/Rendering/URP Editor Resources", priority = CoreUtils.Sections.section8 + CoreUtils.Priorities.assetsCreateRenderingMenuPriority)]
-        static void CreateUniversalPipelineEditorResources()
-        {
-            var instance = CreateInstance<UniversalRenderPipelineEditorResources>();
-            ResourceReloader.ReloadAllNullIn(instance, packagePath);
-            AssetDatabase.CreateAsset(instance, string.Format("Assets/{0}.asset", typeof(UniversalRenderPipelineEditorResources).Name));
-        }
-
-        UniversalRenderPipelineEditorResources editorResources
-        {
-            get
-            {
-                if (m_EditorResourcesAsset != null && !m_EditorResourcesAsset.Equals(null))
-                    return m_EditorResourcesAsset;
-
-                string resourcePath = AssetDatabase.GUIDToAssetPath(editorResourcesGUID);
-                var objs = InternalEditorUtility.LoadSerializedFileAndForget(resourcePath);
-                m_EditorResourcesAsset = objs != null && objs.Length > 0 ? objs.First() as UniversalRenderPipelineEditorResources : null;
-                return m_EditorResourcesAsset;
             }
         }
 #endif
@@ -880,39 +848,6 @@ namespace UnityEngine.Rendering.Universal
                 if (m_RendererDataList[i] != null)
                     m_Renderers[i] = m_RendererDataList[i].InternalCreateRenderer();
             }
-        }
-
-        Material GetMaterial(DefaultMaterialType materialType)
-        {
-#if UNITY_EDITOR
-            if (scriptableRendererData == null || editorResources == null)
-                return null;
-
-            var material = scriptableRendererData.GetDefaultMaterial(materialType);
-            if (material != null)
-                return material;
-
-            switch (materialType)
-            {
-                case DefaultMaterialType.Standard:
-                    return editorResources.materials.lit;
-
-                case DefaultMaterialType.Particle:
-                    return editorResources.materials.particleLit;
-
-                case DefaultMaterialType.Terrain:
-                    return editorResources.materials.terrainLit;
-
-                case DefaultMaterialType.Decal:
-                    return editorResources.materials.decal;
-
-                // Unity Builtin Default
-                default:
-                    return null;
-            }
-#else
-            return null;
-#endif
         }
 
         /// <summary>
@@ -1634,153 +1569,8 @@ namespace UnityEngine.Rendering.Universal
             set => m_NumIterationsEnclosingSphere = value;
         }
 
-        /// <summary>
-        /// Returns the default Material.
-        /// </summary>
-        /// <returns>Returns the default Material.</returns>
-        public override Material defaultMaterial => GetMaterial(DefaultMaterialType.Standard);
-
-        /// <summary>
-        /// Returns the default particle Material.
-        /// </summary>
-        /// <returns>Returns the default particle Material.</returns>
-        public override Material defaultParticleMaterial => GetMaterial(DefaultMaterialType.Particle);
-
-        /// <summary>
-        /// Returns the default line Material.
-        /// </summary>
-        /// <returns>Returns the default line Material.</returns>
-        public override Material defaultLineMaterial => GetMaterial(DefaultMaterialType.Particle);
-
-        /// <summary>
-        /// Returns the default terrain Material.
-        /// </summary>
-        /// <returns>Returns the default terrain Material.</returns>
-        public override Material defaultTerrainMaterial => GetMaterial(DefaultMaterialType.Terrain);
-
-        /// <summary>
-        /// Returns the default UI Material.
-        /// </summary>
-        /// <returns>Returns the default UI Material.</returns>
-        public override Material defaultUIMaterial => GetMaterial(DefaultMaterialType.UnityBuiltinDefault);
-
-        /// <summary>
-        /// Returns the default UI overdraw Material.
-        /// </summary>
-        /// <returns>Returns the default UI overdraw Material.</returns>
-        public override Material defaultUIOverdrawMaterial => GetMaterial(DefaultMaterialType.UnityBuiltinDefault);
-
-        /// <summary>
-        /// Returns the default UIETC1 supported Material for this asset.
-        /// </summary>
-        /// <returns>Returns the default UIETC1 supported Material.</returns>
-        public override Material defaultUIETC1SupportedMaterial => GetMaterial(DefaultMaterialType.UnityBuiltinDefault);
-
-        /// <summary>
-        /// Returns the default material for the 2D renderer.
-        /// </summary>
-        /// <returns>Returns the material containing the default lit and unlit shader passes for sprites in the 2D renderer.</returns>
-        public override Material default2DMaterial => GetMaterial(DefaultMaterialType.Sprite);
-
-        /// <summary>
-        /// Returns the default sprite mask material for the 2D renderer.
-        /// </summary>
-        /// <returns>Returns the material containing the default shader pass for sprite mask in the 2D renderer.</returns>
-        public override Material default2DMaskMaterial => GetMaterial(DefaultMaterialType.SpriteMask);
-
-        /// <summary>
-        /// Returns the Material that Unity uses to render decals.
-        /// </summary>
-        /// <returns>Returns the Material containing the Unity decal shader.</returns>
-        public Material decalMaterial => GetMaterial(DefaultMaterialType.Decal);
-
-        /// <summary>
-        /// Returns the default shader for the specified renderer. When creating new objects in the editor, the materials of those objects will use the selected default shader.
-        /// </summary>
-        /// <returns>Returns the default shader for the specified renderer.</returns>
-        public override Shader defaultShader
-        {
-            get
-            {
-#if UNITY_EDITOR
-                // TODO: When importing project, AssetPreviewUpdater:CreatePreviewForAsset will be called multiple time
-                // which in turns calls this property to get the default shader.
-                // The property should never return null as, when null, it loads the data using AssetDatabase.LoadAssetAtPath.
-                // However it seems there's an issue that LoadAssetAtPath will not load the asset in some cases. so adding the null check
-                // here to fix template tests.
-                if (scriptableRendererData != null)
-                {
-                    Shader defaultShader = scriptableRendererData.GetDefaultShader();
-                    if (defaultShader != null)
-                        return defaultShader;
-                }
-
-                if (m_DefaultShader == null)
-                {
-                    string path = AssetDatabase.GUIDToAssetPath(ShaderUtils.GetShaderGUID(ShaderPathID.Lit));
-                    m_DefaultShader  = AssetDatabase.LoadAssetAtPath<Shader>(path);
-                }
-#endif
-
-                if (m_DefaultShader == null)
-                    m_DefaultShader = Shader.Find(ShaderUtils.GetShaderPath(ShaderPathID.Lit));
-
-                return m_DefaultShader;
-            }
-        }
-
-#if UNITY_EDITOR
-        /// <summary>
-        /// Returns the Autodesk Interactive shader that this asset uses.
-        /// </summary>
-        /// <returns>Returns the Autodesk Interactive shader that this asset uses.</returns>
-        public override Shader autodeskInteractiveShader => editorResources?.shaders.autodeskInteractivePS;
-
-        /// <summary>
-        /// Returns the Autodesk Interactive transparent shader that this asset uses.
-        /// </summary>
-        /// <returns>Returns the Autodesk Interactive transparent shader that this asset uses.</returns>
-        public override Shader autodeskInteractiveTransparentShader => editorResources?.shaders.autodeskInteractiveTransparentPS;
-
-        /// <summary>
-        /// Returns the Autodesk Interactive mask shader that this asset uses.
-        /// </summary>
-        /// <returns>Returns the Autodesk Interactive mask shader that this asset uses</returns>
-        public override Shader autodeskInteractiveMaskedShader => editorResources?.shaders.autodeskInteractiveMaskedPS;
-
-        /// <summary>
-        /// Returns the terrain detail lit shader that this asset uses.
-        /// </summary>
-        /// <returns>Returns the terrain detail lit shader that this asset uses.</returns>
-        public override Shader terrainDetailLitShader => editorResources?.shaders.terrainDetailLitPS;
-
-        /// <summary>
-        /// Returns the terrain detail grass shader that this asset uses.
-        /// </summary>
-        /// <returns>Returns the terrain detail grass shader that this asset uses.</returns>
-        public override Shader terrainDetailGrassShader => editorResources?.shaders.terrainDetailGrassPS;
-
-        /// <summary>
-        /// Returns the terrain detail grass billboard shader that this asset uses.
-        /// </summary>
-        /// <returns>Returns the terrain detail grass billboard shader that this asset uses.</returns>
-        public override Shader terrainDetailGrassBillboardShader => editorResources?.shaders.terrainDetailGrassBillboardPS;
-
-        /// <summary>
-        /// Returns the default SpeedTree7 shader that this asset uses.
-        /// </summary>
-        /// <returns>Returns the default SpeedTree7 shader that this asset uses.</returns>
-        public override Shader defaultSpeedTree7Shader => editorResources?.shaders.defaultSpeedTree7PS;
-
-        /// <summary>
-        /// Returns the default SpeedTree8 shader that this asset uses.
-        /// </summary>
-        /// <returns>Returns the default SpeedTree8 shader that this asset uses.</returns>
-        public override Shader defaultSpeedTree8Shader => editorResources?.shaders.defaultSpeedTree8PS;
-
         /// <inheritdoc/>
         public override string renderPipelineShaderTag => UniversalRenderPipeline.k_ShaderTagName;
-#endif
 
         /// <summary>Names used for display of rendering layer masks.</summary>
         public override string[] renderingLayerMaskNames => UniversalRenderPipelineGlobalSettings.instance.renderingLayerMaskNames;
