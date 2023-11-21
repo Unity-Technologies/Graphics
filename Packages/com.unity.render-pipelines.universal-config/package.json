@@ -1,0 +1,10 @@
+{
+  "name": "com.unity.render-pipelines.universal-config",
+  "description": "Configuration files for the Universal Render Pipeline.",
+  "version": "14.0.9",
+  "unity": "2022.3",
+  "displayName": "Universal RP Config",
+  "dependencies": {
+    "com.unity.render-pipelines.core": "14.0.9"
+  }
+}
