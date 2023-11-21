@@ -680,7 +680,6 @@ Compiled compute shader: UberPost, kernel: Uber, keywords <no keywords>
 Compiled compute shader: UberPost, kernel: Uber, keywords CHROMATIC_ABERRATION ENABLE_ALPHA LENS_DISTORTION VIGNETTE
 Compiled compute shader: UberPost, kernel: Uber, keywords CHROMATIC_ABERRATION GAMMA2_OUTPUT LENS_DISTORTION VIGNETTE
 Compiled compute shader: UberPost, kernel: Uber, keywords ENABLE_ALPHA
-Compiled compute shader: VolumetricClouds, kernel: ConvertObliqueDepth, keywords <no keywords>
 Compiled compute shader: VolumetricClouds, kernel: DownscaleDepth, keywords <no keywords>
 Compiled compute shader: VolumetricClouds, kernel: PreUpscaleClouds, keywords <no keywords>
 Compiled compute shader: VolumetricClouds, kernel: ReprojectClouds, keywords <no keywords>
@@ -2329,16 +2328,16 @@ Compiled shader: Shader Graphs/Water, pass: LowRes, stage: pixel, keywords <no k
 Compiled shader: Shader Graphs/Water, pass: LowRes, stage: pixel, keywords STEREO_INSTANCING_ON
 Compiled shader: Shader Graphs/Water, pass: LowRes, stage: vertex, keywords <no keywords>
 Compiled shader: Shader Graphs/Water, pass: LowRes, stage: vertex, keywords STEREO_INSTANCING_ON
-Compiled shader: Shader Graphs/Water, pass: WaterGBuffer, stage: all, keywords DECALS_4RT PROCEDURAL_INSTANCING_ON WATER_LOCAL_CURRENT WATER_THREE_BANDS
-Compiled shader: Shader Graphs/Water, pass: WaterGBuffer, stage: all, keywords DECALS_4RT WATER_LOCAL_CURRENT WATER_THREE_BANDS
-Compiled shader: Shader Graphs/Water, pass: WaterGBuffer, stage: pixel, keywords DECALS_4RT PROCEDURAL_INSTANCING_ON STEREO_INSTANCING_ON WATER_LOCAL_CURRENT WATER_THREE_BANDS
-Compiled shader: Shader Graphs/Water, pass: WaterGBuffer, stage: pixel, keywords DECALS_4RT PROCEDURAL_INSTANCING_ON WATER_LOCAL_CURRENT WATER_THREE_BANDS
-Compiled shader: Shader Graphs/Water, pass: WaterGBuffer, stage: pixel, keywords DECALS_4RT STEREO_INSTANCING_ON WATER_LOCAL_CURRENT WATER_THREE_BANDS
-Compiled shader: Shader Graphs/Water, pass: WaterGBuffer, stage: pixel, keywords DECALS_4RT WATER_LOCAL_CURRENT WATER_THREE_BANDS
-Compiled shader: Shader Graphs/Water, pass: WaterGBuffer, stage: vertex, keywords PROCEDURAL_INSTANCING_ON STEREO_INSTANCING_ON WATER_LOCAL_CURRENT WATER_THREE_BANDS
-Compiled shader: Shader Graphs/Water, pass: WaterGBuffer, stage: vertex, keywords PROCEDURAL_INSTANCING_ON WATER_LOCAL_CURRENT WATER_THREE_BANDS
-Compiled shader: Shader Graphs/Water, pass: WaterGBuffer, stage: vertex, keywords STEREO_INSTANCING_ON WATER_LOCAL_CURRENT WATER_THREE_BANDS
-Compiled shader: Shader Graphs/Water, pass: WaterGBuffer, stage: vertex, keywords WATER_LOCAL_CURRENT WATER_THREE_BANDS
+Compiled shader: Shader Graphs/Water, pass: WaterGBuffer, stage: all, keywords DECALS_4RT PROCEDURAL_INSTANCING_ON WATER_THREE_BANDS
+Compiled shader: Shader Graphs/Water, pass: WaterGBuffer, stage: all, keywords DECALS_4RT WATER_THREE_BANDS
+Compiled shader: Shader Graphs/Water, pass: WaterGBuffer, stage: pixel, keywords DECALS_4RT PROCEDURAL_INSTANCING_ON STEREO_INSTANCING_ON WATER_THREE_BANDS
+Compiled shader: Shader Graphs/Water, pass: WaterGBuffer, stage: pixel, keywords DECALS_4RT PROCEDURAL_INSTANCING_ON WATER_THREE_BANDS
+Compiled shader: Shader Graphs/Water, pass: WaterGBuffer, stage: pixel, keywords DECALS_4RT STEREO_INSTANCING_ON WATER_THREE_BANDS
+Compiled shader: Shader Graphs/Water, pass: WaterGBuffer, stage: pixel, keywords DECALS_4RT WATER_THREE_BANDS
+Compiled shader: Shader Graphs/Water, pass: WaterGBuffer, stage: vertex, keywords PROCEDURAL_INSTANCING_ON STEREO_INSTANCING_ON WATER_THREE_BANDS
+Compiled shader: Shader Graphs/Water, pass: WaterGBuffer, stage: vertex, keywords PROCEDURAL_INSTANCING_ON WATER_THREE_BANDS
+Compiled shader: Shader Graphs/Water, pass: WaterGBuffer, stage: vertex, keywords STEREO_INSTANCING_ON WATER_THREE_BANDS
+Compiled shader: Shader Graphs/Water, pass: WaterGBuffer, stage: vertex, keywords WATER_THREE_BANDS
 Compiled shader: Shader Graphs/WaterPuddle, pass: DBufferProjector, stage: all, keywords DECALS_4RT INSTANCING_ON _MATERIAL_AFFECTS_ALBEDO _MATERIAL_AFFECTS_MASKMAP _MATERIAL_AFFECTS_NORMAL
 Compiled shader: Shader Graphs/WaterPuddle, pass: DBufferProjector, stage: pixel, keywords DECALS_4RT INSTANCING_ON _MATERIAL_AFFECTS_ALBEDO _MATERIAL_AFFECTS_MASKMAP _MATERIAL_AFFECTS_NORMAL
 Compiled shader: Shader Graphs/WaterPuddle, pass: DBufferProjector, stage: pixel, keywords DECALS_4RT INSTANCING_ON STEREO_INSTANCING_ON _MATERIAL_AFFECTS_ALBEDO _MATERIAL_AFFECTS_MASKMAP _MATERIAL_AFFECTS_NORMAL
