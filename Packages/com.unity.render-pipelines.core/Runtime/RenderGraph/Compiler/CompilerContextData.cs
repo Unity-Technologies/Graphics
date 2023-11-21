@@ -5,7 +5,7 @@ using UnityEngine.Rendering;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 
-namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassCompiler
+namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 {
     // Wrapper struct to allow storing strings in a DynamicArray which requires a type with a parameterless constructor
     internal struct Name
@@ -47,6 +47,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
         public CompilerContextData(int estimatedNumPasses, int estimatedNumResourcesPerType)
         {
             passData = new NativeList<PassData>(estimatedNumPasses, AllocatorManager.Persistent);
+            fences = new Dictionary<int, GraphicsFence>();
             passNames = new DynamicArray<Name>(estimatedNumPasses, false); // T in NativeList<T> cannot contain managed types, so the names are stored separately
             inputData = new NativeList<PassInputData>(estimatedNumPasses * 2, AllocatorManager.Persistent);
             outputData = new NativeList<PassOutputData>(estimatedNumPasses * 2, AllocatorManager.Persistent);
@@ -67,6 +68,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
         public void Clear()
         {
             passData.Clear();
+            fences.Clear();
             passNames.Clear();
             inputData.Clear();
             outputData.Clear();
@@ -118,6 +120,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
 
         // Data per graph level renderpass
         public NativeList<PassData> passData;
+        public Dictionary<int, GraphicsFence> fences;
         public DynamicArray<Name> passNames;
 
         // Tightly packed lists all passes, add to these lists then index in it using offset+count
@@ -128,13 +131,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
         public NativeList<ResourceHandle> destroyData;
         public NativeList<PassRandomWriteData> randomAccessResourceData;
 
-
         // Data per native renderpas
         public NativeList<NativePassData> nativePassData;
         public NativeList<SubPassDescriptor> nativeSubPassData; //Tighty packed list of per nrp subpasses
 
         // resources can be added as fragment both as input and output so make sure not to add them twice (return true upon new addition)
-        public bool AddToFragmentList(ResourceHandle h, IBaseRenderGraphBuilder.AccessFlags accessFlags, int listFirstIndex, int numItems)
+        public bool AddToFragmentList(ResourceHandle h, AccessFlags accessFlags, int listFirstIndex, int numItems)
         {
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
             if (h.type != RenderGraphResourceType.Texture) new Exception("Only textures can be used as a fragment attachment.");

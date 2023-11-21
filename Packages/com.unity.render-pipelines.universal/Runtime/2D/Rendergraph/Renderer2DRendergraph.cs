@@ -1,5 +1,5 @@
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 using static UnityEngine.Rendering.Universal.UniversalResourceDataBase;
 
 using CommonResourceData = UnityEngine.Rendering.Universal.UniversalResourceData;
@@ -419,11 +419,18 @@ namespace UnityEngine.Rendering.Universal
 
         internal override void OnRecordRenderGraph(RenderGraph renderGraph, ScriptableRenderContext context)
         {
+            CommonResourceData commonResourceData = frameData.GetOrCreate<CommonResourceData>();
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+
             InitializeLayerBatches();
 
             CreateResources(renderGraph);
 
-            SetupRenderGraphCameraProperties(renderGraph, false);
+            var isTargetFlipped = commonResourceData.isActiveTargetBackBuffer;
+            if (IsGLDevice())
+                isTargetFlipped = !cameraData.IsCameraProjectionMatrixFlipped();
+
+            SetupRenderGraphCameraProperties(renderGraph, isTargetFlipped);
 
 #if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
             ProcessVFXCameraCommand(renderGraph);

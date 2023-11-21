@@ -26,6 +26,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Materials and Compute shaders
         Material m_FoamMaterial;
+        
+        // The pass used in the WaterFoam.shader
+        int m_ShoreWaveFoamGenerationPass;
+        int m_OtherFoamGenerationPass;
+        int m_ReprojectionPass;
+        
         ComputeShader m_WaterFoamCS;
         int m_ReprojectFoamKernel;
         int m_PostProcessFoamKernel;
@@ -49,6 +55,10 @@ namespace UnityEngine.Rendering.HighDefinition
             m_WaterFoamCS = runtimeShaders.waterFoamCS;
             m_ReprojectFoamKernel = m_WaterFoamCS.FindKernel("ReprojectFoam");
             m_PostProcessFoamKernel = m_WaterFoamCS.FindKernel("PostProcessFoam");
+            
+            m_ShoreWaveFoamGenerationPass = m_FoamMaterial.FindPass("ShoreWaveFoamGeneration");
+            m_OtherFoamGenerationPass = m_FoamMaterial.FindPass("OtherFoamGeneration");
+            m_ReprojectionPass = m_FoamMaterial.FindPass("Reprojection");
         }
 
         void ReleaseWaterFoam()
@@ -217,13 +227,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Apply an attenuation on the existing foam
                 CoreUtils.SetRenderTarget(cmd, tmpFoamBuffer);
-                cmd.DrawProcedural(Matrix4x4.identity, m_FoamMaterial, 2, MeshTopology.Triangles, 3, 1);
+                cmd.DrawProcedural(Matrix4x4.identity, m_FoamMaterial, m_ReprojectionPass, MeshTopology.Triangles, 3, 1);
 
                 // Then we render the deformers and the generators
                 if (waterDeformers)
-                    cmd.DrawProcedural(Matrix4x4.identity, m_FoamMaterial, 0, MeshTopology.Triangles, 6, m_ActiveWaterDeformers);
+                    cmd.DrawProcedural(Matrix4x4.identity, m_FoamMaterial, m_ShoreWaveFoamGenerationPass, MeshTopology.Triangles, 6, m_ActiveWaterDeformers);
                 if (foamGenerators)
-                    cmd.DrawProcedural(Matrix4x4.identity, m_FoamMaterial, 1, MeshTopology.Triangles, 6, m_ActiveWaterFoamGenerators);
+                    cmd.DrawProcedural(Matrix4x4.identity, m_FoamMaterial, m_OtherFoamGenerationPass, MeshTopology.Triangles, 6, m_ActiveWaterFoamGenerators);
 
                 // To avoid the swap in swap out of the textures, we do this.
                 cmd.SetComputeTextureParam(m_WaterFoamCS, m_PostProcessFoamKernel, HDShaderIDs._WaterFoamBuffer, tmpFoamBuffer);

@@ -4,7 +4,7 @@ using System.Linq;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
@@ -27,12 +27,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         [SerializeField]
         private bool m_EnableHighQualityLineRendering;
-
-    #if !UNITY_EDITOR
-        // Maintain a record of shader/compute pairs to recover the vertex setup kernel in a standalone runtime.
-        // This helps us avoid the constraint of relying on the Resources mechanism.
-        private static Dictionary<Shader, ComputeShader> s_VertexSetupComputeShaders = new Dictionary<Shader, ComputeShader>();
-    #endif
 
         /// <summary>
         /// Set the enablement of high quality line rendering for this mesh renderer.
@@ -291,13 +285,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private void OnDestroy()
         {
-    #if !UNITY_EDITOR
-            // Store an associative reference to the vertex setup compute kernel in case someone attempts to re-create
-            // an instance of this mesh renderer later on in the runtime.
-            if (m_MeshRenderer != null && m_MeshRenderer.sharedMaterial != null && m_MeshRenderer.sharedMaterial.shader != null)
-                s_VertexSetupComputeShaders.TryAdd(m_MeshRenderer.sharedMaterial.shader, m_VertexSetupCompute);
-    #endif
-
             DeRegisterCallbacks();
 
             if (m_EnableHighQualityLineRendering)
@@ -376,11 +363,24 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (!s_FirstOnValidateCalled)
                     s_FirstOnValidateCalled = true;
 #else
-                // Try to recover the vertex setup compute kernel at run time.
-                if (s_VertexSetupComputeShaders.ContainsKey(material.shader))
-                    m_VertexSetupCompute = s_VertexSetupComputeShaders[material.shader];
-#endif
+                if (!GraphicsSettings.TryGetRenderPipelineSettings<HDRenderPipelineRuntimeAssets>(out var assets))
+                {
+                    Debug.LogError("Failed to load runtime resources.");
+                    return;
+                }
 
+                if (!assets.computeMaterialLibrary)
+                {
+                    Debug.LogError("Failed to load compute material library.");
+                    return;
+                }
+
+                if (!assets.computeMaterialLibrary.Get(material.shader, out m_VertexSetupCompute))
+                {
+                    Debug.LogError("Failed to load compute material for the given shader.");
+                    return;
+                }
+#endif
                 m_OldMaterial = material;
             }
         }

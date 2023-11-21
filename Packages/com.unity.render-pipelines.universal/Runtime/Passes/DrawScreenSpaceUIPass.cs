@@ -1,5 +1,5 @@
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -65,8 +65,8 @@ namespace UnityEngine.Rendering.Universal
             commandBuffer.DrawRendererList(rendererList);
         }
 
-        // Specific to RG cases which have to go through LowLevel commands
-        private static void ExecutePass(LowLevelCommandBuffer commandBuffer, LowLevelPassData passData, RendererList rendererList)
+        // Specific to RG cases which have to go through Unsafe commands
+        private static void ExecutePass(UnsafeCommandBuffer commandBuffer, UnsafePassData passData, RendererList rendererList)
         {
             commandBuffer.DrawRendererList(rendererList);
         }
@@ -144,8 +144,8 @@ namespace UnityEngine.Rendering.Universal
             internal RendererListHandle rendererList;
         }
 
-        // Specific to RG cases which have to go through LowLevel commands
-        private class LowLevelPassData
+        // Specific to RG cases which have to go through Unsafe commands
+        private class UnsafePassData
         {
             internal RendererListHandle rendererList;
             internal TextureHandle colorTarget;
@@ -174,15 +174,15 @@ namespace UnityEngine.Rendering.Universal
                 // Render uGUI and UIToolkit overlays
                 using (var builder = renderGraph.AddRasterRenderPass<PassData>("Draw Screen Space uGUI/UIToolkit Pass - Offscreen", out var passData, base.profilingSampler))
                 {
-                    builder.UseTextureFragment(output, 0);
+                    builder.SetRenderAttachment(output, 0);
                     
                     passData.rendererList = renderGraph.CreateUIOverlayRendererList(cameraData.camera, UISubset.UGUI | UISubset.UIToolkit);
                     builder.UseRendererList(passData.rendererList);
 
-                    builder.UseTextureFragmentDepth(depthBuffer, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
+                    builder.SetRenderAttachmentDepth(depthBuffer, AccessFlags.ReadWrite);
 
                     if (output.IsValid())
-                        builder.PostSetGlobalTexture(output, ShaderPropertyId.overlayUITexture);
+                        builder.SetGlobalTextureAfterPass(output, ShaderPropertyId.overlayUITexture);
 
                     builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
                     {
@@ -190,21 +190,23 @@ namespace UnityEngine.Rendering.Universal
                     });
                 }
                 // Render IMGUI overlay and software cursor
-                using (var builder = renderGraph.AddLowLevelPass<LowLevelPassData>("Draw Screen Space IMGUI/SoftwareCursor Pass - Offscreen", out var passData, base.profilingSampler))
+                using (var builder = renderGraph.AddUnsafePass<UnsafePassData>("Draw Screen Space IMGUI/SoftwareCursor Pass - Offscreen", out var passData, base.profilingSampler))
                 {
-                    passData.colorTarget = builder.UseTexture(output, IBaseRenderGraphBuilder.AccessFlags.Write);
+                    passData.colorTarget = output;
+                    builder.UseTexture(output, AccessFlags.Write);
                     
                     passData.rendererList = renderGraph.CreateUIOverlayRendererList(cameraData.camera, UISubset.LowLevel);
                     builder.UseRendererList(passData.rendererList);
 
-                    passData.depthTarget = builder.UseTexture(depthBuffer, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
+                    passData.depthTarget = depthBuffer;
+                    builder.UseTexture(depthBuffer, AccessFlags.ReadWrite);
 
                     if (output.IsValid())
-                        builder.PostSetGlobalTexture(output, ShaderPropertyId.overlayUITexture);
+                        builder.SetGlobalTextureAfterPass(output, ShaderPropertyId.overlayUITexture);
 
-                    builder.SetRenderFunc((LowLevelPassData data, LowLevelGraphContext context) =>
+                    builder.SetRenderFunc((UnsafePassData data, UnsafeGraphContext context) =>
                     {
-                        context.legacyCmd.SetRenderTarget(data.colorTarget, data.depthTarget);
+                        context.cmd.SetRenderTarget(data.colorTarget, data.depthTarget);
 
                         ExecutePass(context.cmd, data, data.rendererList);
                     });
@@ -214,21 +216,23 @@ namespace UnityEngine.Rendering.Universal
             else if(isDX12)
             {
                 // Render uGUI overlay
-                using (var builder = renderGraph.AddLowLevelPass<LowLevelPassData>("Draw Screen Space uGUI Pass - Offscreen", out var passData, base.profilingSampler))
+                using (var builder = renderGraph.AddUnsafePass<UnsafePassData>("Draw Screen Space uGUI Pass - Offscreen", out var passData, base.profilingSampler))
                 {
-                    passData.colorTarget = builder.UseTexture(output, IBaseRenderGraphBuilder.AccessFlags.Write);
+                    passData.colorTarget = output;
+                    builder.UseTexture(output, AccessFlags.Write);
                     
                     passData.rendererList = renderGraph.CreateUIOverlayRendererList(cameraData.camera, UISubset.UGUI);
                     builder.UseRendererList(passData.rendererList);
 
-                    passData.depthTarget = builder.UseTexture(depthBuffer, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
+                    passData.depthTarget = depthBuffer;
+                    builder.UseTexture(depthBuffer, AccessFlags.ReadWrite);
 
                     if (output.IsValid())
-                        builder.PostSetGlobalTexture(output, ShaderPropertyId.overlayUITexture);
+                        builder.SetGlobalTextureAfterPass(output, ShaderPropertyId.overlayUITexture);
 
-                    builder.SetRenderFunc((LowLevelPassData data, LowLevelGraphContext context) =>
+                    builder.SetRenderFunc((UnsafePassData data, UnsafeGraphContext context) =>
                     {
-                        context.legacyCmd.SetRenderTarget(data.colorTarget, data.depthTarget);
+                        context.cmd.SetRenderTarget(data.colorTarget, data.depthTarget);
 
                         ExecutePass(context.cmd, data, data.rendererList);
                     });
@@ -236,15 +240,15 @@ namespace UnityEngine.Rendering.Universal
                 // Render UIToolkit/IMGUI overlays and software cursor
                 using (var builder = renderGraph.AddRasterRenderPass<PassData>("Draw Screen Space UIToolkit/IMGUI/SoftwareCursor Pass - Offscreen", out var passData, base.profilingSampler))
                 {
-                    builder.UseTextureFragment(output, 0);
+                    builder.SetRenderAttachment(output, 0);
                     
                     passData.rendererList = renderGraph.CreateUIOverlayRendererList(cameraData.camera, UISubset.UIToolkit | UISubset.LowLevel);
                     builder.UseRendererList(passData.rendererList);
 
-                    builder.UseTextureFragmentDepth(depthBuffer, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
+                    builder.SetRenderAttachmentDepth(depthBuffer, AccessFlags.ReadWrite);
 
                     if (output.IsValid())
-                        builder.PostSetGlobalTexture(output, ShaderPropertyId.overlayUITexture);
+                        builder.SetGlobalTextureAfterPass(output, ShaderPropertyId.overlayUITexture);
 
                     builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
                     {
@@ -257,15 +261,15 @@ namespace UnityEngine.Rendering.Universal
                 // Render all UI at once
                 using (var builder = renderGraph.AddRasterRenderPass<PassData>("Draw Screen Space UI Pass - Offscreen", out var passData, base.profilingSampler))
                 {
-                    builder.UseTextureFragment(output, 0);
+                    builder.SetRenderAttachment(output, 0);
                     
                     passData.rendererList = renderGraph.CreateUIOverlayRendererList(cameraData.camera, UISubset.All);
                     builder.UseRendererList(passData.rendererList);
 
-                    builder.UseTextureFragmentDepth(depthBuffer, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
+                    builder.SetRenderAttachmentDepth(depthBuffer, AccessFlags.ReadWrite);
 
                     if (output.IsValid())
-                        builder.PostSetGlobalTexture(output, ShaderPropertyId.overlayUITexture);
+                        builder.SetGlobalTextureAfterPass(output, ShaderPropertyId.overlayUITexture);
 
                     builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
                     {
@@ -287,8 +291,8 @@ namespace UnityEngine.Rendering.Universal
                 // Render uGUI and UIToolkit overlays
                 using (var builder = renderGraph.AddRasterRenderPass<PassData>("Draw Screen Space uGUI/UIToolkit Pass - Overlay", out var passData, base.profilingSampler))
                 {
-                    builder.UseTextureFragment(colorBuffer, 0);
-                    builder.UseTextureFragmentDepth(depthBuffer, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
+                    builder.SetRenderAttachment(colorBuffer, 0);
+                    builder.SetRenderAttachmentDepth(depthBuffer, AccessFlags.ReadWrite);
                         
                     passData.rendererList = renderGraph.CreateUIOverlayRendererList(camera, UISubset.UGUI | UISubset.UIToolkit);
                     builder.UseRendererList(passData.rendererList);
@@ -299,17 +303,19 @@ namespace UnityEngine.Rendering.Universal
                     });
                 }
                 // Render IMGUI overlay and software cursor
-                using (var builder = renderGraph.AddLowLevelPass<LowLevelPassData>("Draw Screen Space IMGUI/SoftwareCursor Pass - Overlay", out var passData, base.profilingSampler))
+                using (var builder = renderGraph.AddUnsafePass<UnsafePassData>("Draw Screen Space IMGUI/SoftwareCursor Pass - Overlay", out var passData, base.profilingSampler))
                 {
-                    passData.colorTarget = builder.UseTexture(colorBuffer, IBaseRenderGraphBuilder.AccessFlags.Write);
-                    passData.depthTarget = builder.UseTexture(depthBuffer, IBaseRenderGraphBuilder.AccessFlags.Write);
+                    passData.colorTarget = colorBuffer;
+                    builder.UseTexture(colorBuffer, AccessFlags.Write);
+                    passData.depthTarget = depthBuffer;
+                    builder.UseTexture(depthBuffer, AccessFlags.Write);
 
                     passData.rendererList = renderGraph.CreateUIOverlayRendererList(camera, UISubset.LowLevel);
                     builder.UseRendererList(passData.rendererList);
 
-                    builder.SetRenderFunc((LowLevelPassData data, LowLevelGraphContext context) =>
+                    builder.SetRenderFunc((UnsafePassData data, UnsafeGraphContext context) =>
                     {
-                        context.legacyCmd.SetRenderTarget(data.colorTarget, data.depthTarget);
+                        context.cmd.SetRenderTarget(data.colorTarget, data.depthTarget);
 
                         ExecutePass(context.cmd, data, data.rendererList);
                     });
@@ -319,17 +325,19 @@ namespace UnityEngine.Rendering.Universal
             else if(isDX12)
             {
                 // Render uGUI overlay
-                using (var builder = renderGraph.AddLowLevelPass<LowLevelPassData>("Draw Screen Space uGUI Pass - Overlay", out var passData, base.profilingSampler))
+                using (var builder = renderGraph.AddUnsafePass<UnsafePassData>("Draw Screen Space uGUI Pass - Overlay", out var passData, base.profilingSampler))
                 {
-                    passData.colorTarget = builder.UseTexture(colorBuffer, IBaseRenderGraphBuilder.AccessFlags.Write);
-                    passData.depthTarget = builder.UseTexture(depthBuffer, IBaseRenderGraphBuilder.AccessFlags.Write);
+                    passData.colorTarget = colorBuffer;
+                    builder.UseTexture(colorBuffer, AccessFlags.Write);
+                    passData.depthTarget = depthBuffer;
+                    builder.UseTexture(depthBuffer, AccessFlags.Write);
 
                     passData.rendererList = renderGraph.CreateUIOverlayRendererList(camera, UISubset.UGUI);
                     builder.UseRendererList(passData.rendererList);
 
-                    builder.SetRenderFunc((LowLevelPassData data, LowLevelGraphContext context) =>
+                    builder.SetRenderFunc((UnsafePassData data, UnsafeGraphContext context) =>
                     {
-                        context.legacyCmd.SetRenderTarget(data.colorTarget, data.depthTarget);
+                        context.cmd.SetRenderTarget(data.colorTarget, data.depthTarget);
                         
                         ExecutePass(context.cmd, data, data.rendererList);
                     });
@@ -337,8 +345,8 @@ namespace UnityEngine.Rendering.Universal
                 // Render UIToolkit/IMGUI overlays and software cursor
                 using (var builder = renderGraph.AddRasterRenderPass<PassData>("Draw Screen Space UIToolkit/IMGUI/SoftwareCursor Pass - Overlay", out var passData, base.profilingSampler))
                 {
-                    builder.UseTextureFragment(colorBuffer, 0);
-                    builder.UseTextureFragmentDepth(depthBuffer, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
+                    builder.SetRenderAttachment(colorBuffer, 0);
+                    builder.SetRenderAttachmentDepth(depthBuffer, AccessFlags.ReadWrite);
                         
                     passData.rendererList = renderGraph.CreateUIOverlayRendererList(camera, UISubset.UIToolkit | UISubset.LowLevel);
                     builder.UseRendererList(passData.rendererList);
@@ -354,8 +362,8 @@ namespace UnityEngine.Rendering.Universal
                 // Render all UI at once
                 using (var builder = renderGraph.AddRasterRenderPass<PassData>("Draw Screen Space UI Pass - Overlay", out var passData, base.profilingSampler))
                 {
-                    builder.UseTextureFragment(colorBuffer, 0);
-                    builder.UseTextureFragmentDepth(depthBuffer, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
+                    builder.SetRenderAttachment(colorBuffer, 0);
+                    builder.SetRenderAttachmentDepth(depthBuffer, AccessFlags.ReadWrite);
                         
                     passData.rendererList = renderGraph.CreateUIOverlayRendererList(camera, UISubset.All);
                     builder.UseRendererList(passData.rendererList);

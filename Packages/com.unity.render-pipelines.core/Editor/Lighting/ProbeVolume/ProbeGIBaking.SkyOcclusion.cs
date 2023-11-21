@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.UnifiedRayTracing;
+using UnityEngine.Rendering.Sampling;
 using System.Runtime.InteropServices;
 using UnityEditor;
 
@@ -102,12 +103,12 @@ namespace UnityEngine.Rendering
             skyShadingBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, (bakeSkyShadingDirection > 0) ? numProbes : 1, Marshal.SizeOf<Vector3>());
             skyShadingIndexBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, (bakeSkyShadingDirection > 0) ? numProbes : 1, Marshal.SizeOf<uint>());
 
-            int sobolBufferSize = (int)(UnityEngine.Rendering.UnifiedRayTracing.SobolData.SobolDims * UnityEngine.Rendering.UnifiedRayTracing.SobolData.SobolSize);
+            int sobolBufferSize = (int)(UnityEngine.Rendering.Sampling.SobolData.SobolDims * UnityEngine.Rendering.Sampling.SobolData.SobolSize);
             sobolBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, sobolBufferSize, Marshal.SizeOf<uint>());
-            sobolBuffer.SetData(UnityEngine.Rendering.UnifiedRayTracing.SobolData.SobolMatrices);
+            sobolBuffer.SetData(UnityEngine.Rendering.Sampling.SobolData.SobolMatrices);
 
-            cprBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, UnityEngine.Rendering.UnifiedRayTracing.SamplingResources.cranleyPattersonRotationBufferSize, Marshal.SizeOf<float>());
-            cprBuffer.SetData(UnityEngine.Rendering.UnifiedRayTracing.SamplingResources.GetCranleyPattersonRotations());
+            cprBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, UnityEngine.Rendering.Sampling.SamplingResources.cranleyPattersonRotationBufferSize, Marshal.SizeOf<float>());
+            cprBuffer.SetData(UnityEngine.Rendering.Sampling.SamplingResources.GetCranleyPattersonRotations());
 
             if (bakeSkyShadingDirection > 0)
             {
@@ -217,7 +218,7 @@ namespace UnityEngine.Rendering
             for (int sampleId = startSampleId; sampleId < startSampleId + sampleCount; sampleId+= sampleCountPerDispatch)
             {
                 skyOccShader.SetAccelerationStructure(cmd, "_AccelStruct", ProbeGIBaking.m_SkyOcclusionRayTracingAccelerationStructure);
-                RayTracingContext.BindSamplingTextures(cmd, ProbeGIBaking.m_SamplingResources);
+                SamplingResources.BindSamplingTextures(cmd, ProbeGIBaking.m_SamplingResources);
 
                 skyOccShader.SetIntParam(cmd, _SampleCount, maxSampleCount);
                 skyOccShader.SetIntParam(cmd, _SampleId, sampleId);

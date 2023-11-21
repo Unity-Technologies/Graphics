@@ -48,6 +48,11 @@
             "define": "ENABLE_NVIDIA_MODULE"
         },
         {
+            "name": "com.unity.modules.amd",
+            "expression": "1.0.0",
+            "define": "ENABLE_AMD_MODULE"
+        },
+        {
             "name": "com.unity.mathematics",
             "expression": "1.2.1",
             "define": "ENABLE_MATHEMATICS_1_2_1"

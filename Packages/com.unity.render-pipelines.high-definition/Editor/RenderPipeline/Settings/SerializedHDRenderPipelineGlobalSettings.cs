@@ -36,31 +36,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public SerializedProperty serializedCustomPostProcessOrdersSettings;
 
-        //RenderPipelineResources not always exist and thus cannot be serialized normally.
-        bool? m_HasEditorResourceHasMultipleDifferentValues;
-        public bool editorResourceHasMultipleDifferentValues
-        {
-            get
-            {
-                if (m_HasEditorResourceHasMultipleDifferentValues.HasValue)
-                    return m_HasEditorResourceHasMultipleDifferentValues.Value;
-
-                if (serializedObject.targetObjects.Length < 2)
-                {
-                    m_HasEditorResourceHasMultipleDifferentValues = false;
-                }
-                else
-                {
-                    m_HasEditorResourceHasMultipleDifferentValues = serializedSettings.Skip(1).Any(t => t.renderPipelineEditorResources != firstEditorResources);
-                }
-
-                return m_HasEditorResourceHasMultipleDifferentValues.Value;
-            }
-        }
-
-        public HDRenderPipelineEditorResources firstEditorResources
-            => serializedSettings[0]?.renderPipelineEditorResources;
-
         private List<HDRenderPipelineGlobalSettings> serializedSettings = new List<HDRenderPipelineGlobalSettings>();
 
         public SerializedHDRenderPipelineGlobalSettings(SerializedObject serializedObject)

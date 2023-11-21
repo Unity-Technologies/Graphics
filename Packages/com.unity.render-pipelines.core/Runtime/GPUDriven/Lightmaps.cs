@@ -282,6 +282,7 @@ namespace UnityEngine.Rendering
                 nameSuffix.Append("_ShadowMasked");
 
             var lightmappedMaterial = new Material(material);
+            lightmappedMaterial.hideFlags = HideFlags.HideAndDontSave;
             lightmappedMaterial.name += nameSuffix;
 
             SetMaterialLightmapProperties(lightmappedMaterial, key, textureIndex);
@@ -677,7 +678,8 @@ namespace UnityEngine.Rendering
                     filterMode = colorData.filterMode,
                     wrapMode = colorData.wrapMode,
                     anisoLevel = colorData.anisoLevel,
-                    mipMapBias = colorData.mipMapBias
+                    mipMapBias = colorData.mipMapBias,
+                    hideFlags = HideFlags.DontSave
                 });
             }
 
@@ -700,7 +702,8 @@ namespace UnityEngine.Rendering
                         filterMode = directionData.filterMode,
                         wrapMode = directionData.wrapMode,
                         anisoLevel = directionData.anisoLevel,
-                        mipMapBias = directionData.mipMapBias
+                        mipMapBias = directionData.mipMapBias,
+                        hideFlags = HideFlags.DontSave
                     });
                 }
             }
@@ -723,7 +726,8 @@ namespace UnityEngine.Rendering
                         filterMode = shadowMaskData.filterMode,
                         wrapMode = shadowMaskData.wrapMode,
                         anisoLevel = shadowMaskData.anisoLevel,
-                        mipMapBias = shadowMaskData.mipMapBias
+                        mipMapBias = shadowMaskData.mipMapBias,
+                        hideFlags = HideFlags.DontSave
                     });
 
                 }
@@ -761,7 +765,8 @@ namespace UnityEngine.Rendering
                 filterMode = first.filterMode,
                 wrapMode = first.wrapMode,
                 anisoLevel = first.anisoLevel,
-                mipMapBias = first.mipMapBias
+                mipMapBias = first.mipMapBias,
+                hideFlags = HideFlags.DontSave
             });
         }
 

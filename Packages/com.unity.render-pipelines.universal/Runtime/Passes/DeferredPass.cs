@@ -1,7 +1,7 @@
 using UnityEngine.Experimental.GlobalIllumination;
 using UnityEngine.Profiling;
 using Unity.Collections;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Experimental.Rendering;
 
 // cleanup code
@@ -73,8 +73,10 @@ namespace UnityEngine.Rendering.Universal.Internal
                 passData.lightData = lightData;
                 passData.shadowData = shadowData;
 
-                passData.color = builder.UseTextureFragment(color, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
-                passData.depth = builder.UseTextureFragmentDepth(depth, IBaseRenderGraphBuilder.AccessFlags.Write);
+                passData.color = color;
+                builder.SetRenderAttachment(color, 0, AccessFlags.Write);
+                passData.depth = depth;
+                builder.SetRenderAttachmentDepth(depth, AccessFlags.Write);
                 passData.deferredLights = m_DeferredLights;
 
                 if (!m_DeferredLights.UseFramebufferFetch)
@@ -82,7 +84,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     for (int i = 0; i < gbuffer.Length; ++i)
                     {
                         if (i != m_DeferredLights.GBufferLightingIndex)
-                            builder.UseTexture(gbuffer[i], IBaseRenderGraphBuilder.AccessFlags.Read);
+                            builder.UseTexture(gbuffer[i], AccessFlags.Read);
                     }
                 }
                 else
@@ -92,7 +94,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     {
                         if (i != m_DeferredLights.GBufferLightingIndex)
                         {
-                            builder.UseTextureFragmentInput(gbuffer[i], idx, IBaseRenderGraphBuilder.AccessFlags.Read);
+                            builder.SetInputAttachment(gbuffer[i], idx, AccessFlags.Read);
                             idx++;
                         }
                     }

@@ -1,6 +1,6 @@
 using System;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -195,13 +195,14 @@ namespace UnityEngine.Rendering.Universal
 
                 using (var builder = renderGraph.AddRasterRenderPass<PassData>("Screen Space Shadows Pass", out var passData, m_ProfilingSampler))
                 {
-                    passData.target = builder.UseTextureFragment(color, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
+                    passData.target = color;
+                    builder.SetRenderAttachment(color, 0, AccessFlags.Write);
 
                     InitPassData(ref passData);
                     builder.AllowGlobalStateModification(true);
 
                     if (color.IsValid())
-                        builder.PostSetGlobalTexture(color, m_ScreenSpaceShadowmapTextureID);
+                        builder.SetGlobalTextureAfterPass(color, m_ScreenSpaceShadowmapTextureID);
 
                     builder.SetRenderFunc((PassData data, RasterGraphContext rgContext) =>
                     {
@@ -213,9 +214,9 @@ namespace UnityEngine.Rendering.Universal
             private static void ExecutePass(RasterCommandBuffer cmd, PassData data, RTHandle target)
             {
                 Blitter.BlitTexture(cmd, target, Vector2.one, data.material, 0);
-                cmd.SetKeyword(ref ShaderGlobalKeywords.MainLightShadows, false);
-                cmd.SetKeyword(ref ShaderGlobalKeywords.MainLightShadowCascades, false);
-                cmd.SetKeyword(ref ShaderGlobalKeywords.MainLightShadowScreen, true);
+                cmd.SetKeyword(ShaderGlobalKeywords.MainLightShadows, false);
+                cmd.SetKeyword(ShaderGlobalKeywords.MainLightShadowCascades, false);
+                cmd.SetKeyword(ShaderGlobalKeywords.MainLightShadowScreen, true);
             }
 
             /// <inheritdoc/>
@@ -256,11 +257,11 @@ namespace UnityEngine.Rendering.Universal
                 bool receiveShadowsCascades = mainLightShadows && cascadesCount > 1;
 
                 // Before transparent object pass, force to disable screen space shadow of main light
-                cmd.SetKeyword(ref ShaderGlobalKeywords.MainLightShadowScreen, false);
+                cmd.SetKeyword(ShaderGlobalKeywords.MainLightShadowScreen, false);
 
                 // then enable main light shadows with or without cascades
-                cmd.SetKeyword(ref ShaderGlobalKeywords.MainLightShadows, receiveShadowsNoCascade);
-                cmd.SetKeyword(ref ShaderGlobalKeywords.MainLightShadowCascades, receiveShadowsCascades);
+                cmd.SetKeyword(ShaderGlobalKeywords.MainLightShadows, receiveShadowsNoCascade);
+                cmd.SetKeyword(ShaderGlobalKeywords.MainLightShadowCascades, receiveShadowsCascades);
             }
 
             public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -286,7 +287,7 @@ namespace UnityEngine.Rendering.Universal
                     UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
 
                     TextureHandle color = resourceData.activeColorTexture;
-                    builder.UseTextureFragment(color, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
+                    builder.SetRenderAttachment(color, 0, AccessFlags.Write);
                     passData.shadowData = frameData.Get<UniversalShadowData>();
                     passData.pass = this;
 

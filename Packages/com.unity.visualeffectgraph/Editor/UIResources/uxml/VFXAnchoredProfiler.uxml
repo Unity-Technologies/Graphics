@@ -1,0 +1,6 @@
+<UXML xmlns:ui="UnityEngine.UIElements">
+<ui:VisualElement name="node" pickingMode="Ignore" >
+    <ui:Foldout name="header" picking-mode="Ignore" />
+    <ui:VisualElement name="lock-button" />
+</ui:VisualElement>
+</UXML>

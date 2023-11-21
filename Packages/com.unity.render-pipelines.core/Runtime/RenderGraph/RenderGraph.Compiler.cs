@@ -1,13 +1,12 @@
 using System;
 using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.RenderGraphModule
+namespace UnityEngine.Rendering.RenderGraphModule
 {
     public partial class RenderGraph
     {
         //TODO(ddebaets) move old compile func/members over
 
-        NativeRenderPassCompiler.PassCommandBuffer<NativeRenderPassCompiler.DefaultExecution> nativeRenderPasses = new NativeRenderPassCompiler.PassCommandBuffer<NativeRenderPassCompiler.DefaultExecution>();
         NativeRenderPassCompiler.NativePassCompiler nativeCompiler = null;
 
         internal NativeRenderPassCompiler.NativePassCompiler CompileNativeRenderGraph()
@@ -24,10 +23,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 }
 
                 nativeCompiler.Initialize(this.m_Resources, this.m_RenderPasses, this.m_DebugParameters.disablePassCulling, this.name);
-
-                nativeCompiler.GeneratePassCommandBuffer(ref nativeRenderPasses);
-
-                nativeCompiler.OutputDebugGraph();
 
                 var passData = nativeCompiler.contextData.passData;
                 int numPasses = passData.Length;
@@ -49,8 +44,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
             using (new ProfilingScope(m_RenderGraphContext.cmd, ProfilingSampler.Get(NativeRenderPassCompiler.NativePassCompiler.NativeCompilerProfileId.NRPRGComp_Execute)))
             {
-                nativeRenderPasses.Execute(m_RenderGraphContext, m_Resources, m_RenderPasses);
+                nativeCompiler.ExecuteGraph(m_RenderGraphContext, m_Resources, m_RenderPasses);
             }
+
+            nativeCompiler.OutputDebugGraph();
+
             if (m_RenderGraphContext.contextlessTesting == false)
                 m_RenderGraphContext.renderContext.ExecuteCommandBuffer(m_RenderGraphContext.cmd);
 

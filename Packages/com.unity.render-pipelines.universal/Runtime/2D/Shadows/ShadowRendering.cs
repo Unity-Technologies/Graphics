@@ -251,7 +251,7 @@ namespace UnityEngine.Rendering.Universal
             CreateShadowRenderTexture(pass, m_RenderTargetIds[shadowIndex], renderingData, cmdBuffer);
         }
 
-        internal static void PrerenderShadows(LowLevelCommandBuffer cmdBuffer, Renderer2DData rendererData, ref LayerBatch layer, Light2D light, int shadowIndex, float shadowIntensity)
+        internal static void PrerenderShadows(UnsafeCommandBuffer cmdBuffer, Renderer2DData rendererData, ref LayerBatch layer, Light2D light, int shadowIndex, float shadowIntensity)
         {
             RenderShadows(cmdBuffer, rendererData, ref layer, light);
         }
@@ -266,7 +266,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 cmdBuffer.SetRenderTarget(m_RenderTargets[shadowIndex].nameID, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
                 cmdBuffer.ClearRenderTarget(RTClearFlags.All, Color.clear, 1, 0);
-                RenderShadows(CommandBufferHelpers.GetLowLevelCommandBuffer(cmdBuffer), pass.rendererData, ref layer, light);
+                RenderShadows(CommandBufferHelpers.GetUnsafeCommandBuffer(cmdBuffer), pass.rendererData, ref layer, light);
             }
 
             m_LightInputTextures[shadowIndex] = m_RenderTargets[shadowIndex].nameID;
@@ -296,7 +296,7 @@ namespace UnityEngine.Rendering.Universal
             cmdBuffer.ReleaseTemporaryRT(m_RenderTargetIds[shadowIndex]);
         }
 
-        private static void SetShadowProjectionGlobals(LowLevelCommandBuffer cmdBuffer, ShadowCaster2D shadowCaster, Light2D light)
+        private static void SetShadowProjectionGlobals(UnsafeCommandBuffer cmdBuffer, ShadowCaster2D shadowCaster, Light2D light)
         {
             cmdBuffer.SetGlobalVector(k_ShadowModelScaleID, shadowCaster.m_CachedLossyScale);
             cmdBuffer.SetGlobalMatrix(k_ShadowModelMatrixID, shadowCaster.m_CachedShadowMatrix);
@@ -318,13 +318,7 @@ namespace UnityEngine.Rendering.Universal
             cmdBuffer.SetGlobalColor(k_ShadowUnshadowColorID, k_UnshadowColorLookup);
         }
 
-        internal static void SetGlobalShadowProp(RasterCommandBuffer cmdBuffer)
-        {
-            cmdBuffer.SetGlobalColor(k_ShadowShadowColorID, k_ShadowColorLookup);
-            cmdBuffer.SetGlobalColor(k_ShadowUnshadowColorID, k_UnshadowColorLookup);
-        }
-
-        internal static void SetGlobalShadowProp(LowLevelCommandBuffer cmdBuffer)
+        internal static void SetGlobalShadowProp(IRasterCommandBuffer cmdBuffer)
         {
             cmdBuffer.SetGlobalColor(k_ShadowShadowColorID, k_ShadowColorLookup);
             cmdBuffer.SetGlobalColor(k_ShadowUnshadowColorID, k_UnshadowColorLookup);
@@ -354,7 +348,7 @@ namespace UnityEngine.Rendering.Universal
             return renderer;
         }
 
-        private static void RenderProjectedShadows(LowLevelCommandBuffer cmdBuffer, int layerToRender, Light2D light, List<ShadowCaster2D> shadowCasters, Material projectedShadowsMaterial, int pass)
+        private static void RenderProjectedShadows(UnsafeCommandBuffer cmdBuffer, int layerToRender, Light2D light, List<ShadowCaster2D> shadowCasters, Material projectedShadowsMaterial, int pass)
         {
             // Draw the projected shadows for the shadow caster group. Writing into the group stencil buffer bit
             for (var i = 0; i < shadowCasters.Count; i++)
@@ -396,7 +390,7 @@ namespace UnityEngine.Rendering.Universal
             return numberOfSubmeshes;
         }
 
-        private static void RenderSelfShadowOption(LowLevelCommandBuffer cmdBuffer, int layerToRender, Light2D light, List<ShadowCaster2D> shadowCasters, Material projectedUnshadowMaterial, Material spriteShadowMaterial, Material spriteUnshadowMaterial, Material geometryShadowMaterial, Material geometryUnshadowMaterial)
+        private static void RenderSelfShadowOption(UnsafeCommandBuffer cmdBuffer, int layerToRender, Light2D light, List<ShadowCaster2D> shadowCasters, Material projectedUnshadowMaterial, Material spriteShadowMaterial, Material spriteUnshadowMaterial, Material geometryShadowMaterial, Material geometryUnshadowMaterial)
         {
             // Draw the sprites, either as self shadowing or unshadowing
             for (var i = 0; i < shadowCasters.Count; i++)
@@ -474,7 +468,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        private static void RenderShadows(LowLevelCommandBuffer cmdBuffer, Renderer2DData rendererData, ref LayerBatch layer, Light2D light)
+        private static void RenderShadows(UnsafeCommandBuffer cmdBuffer, Renderer2DData rendererData, ref LayerBatch layer, Light2D light)
         {
             using (new ProfilingScope(cmdBuffer, m_ProfilingSamplerShadows))
             {

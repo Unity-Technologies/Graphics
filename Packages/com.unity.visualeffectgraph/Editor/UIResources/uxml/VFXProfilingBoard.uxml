@@ -1,0 +1,29 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xmlns:gv="UnityEditor.Experimental.GraphView" vfx="UnityEditor.VFX.UI" editor-extension-mode="False">
+    <ui:VisualElement class="mainContainer">
+        <ui:VisualElement name="header" picking-mode="Ignore">
+            <ui:VisualElement name="labelContainer" picking-mode="Ignore">
+                <ui:VisualElement name="titleContainer" picking-mode="Ignore">
+                    <ui:Image name="title-icon" />
+                    <ui:Label name="titleLabel" text="Graph Debug Information"/>
+                    <ui:Button name="shortcut-windows"/>
+                </ui:VisualElement>
+                <ui:VisualElement name="subtitle" picking-mode="Ignore">
+                    <ui:Label name="subTitleLabel" />
+                    <ui:Image name="subTitle-icon" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:ScrollView class="stretchContentWidth">
+            <ui:VisualElement name="component-container">
+                <ui:VisualElement picking-mode="Ignore">
+                    <ui:VisualElement name="general-info-container"/>
+                    <ui:Foldout name="cpu-timings-foldout" text="CPU Information" />
+                    <ui:Foldout name="gpu-timings-foldout" text="GPU Information" />
+                    <ui:Foldout name="texture-info-foldout" text="Texture Usage" />
+                    <ui:Foldout name="heatmap-foldout" text="Heatmap Parameters" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:ScrollView>
+    </ui:VisualElement>
+    <gv:ResizableElement pickingMode="Ignore" />
+</ui:UXML>

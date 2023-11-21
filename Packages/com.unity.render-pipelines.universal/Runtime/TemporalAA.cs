@@ -1,6 +1,6 @@
 using System;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -436,11 +436,16 @@ namespace UnityEngine.Rendering.Universal
 
             using (var builder = renderGraph.AddRasterRenderPass<TaaPassData>("Temporal Anti-aliasing", out var passData, ProfilingSampler.Get(URPProfileId.RG_TAA)))
             {
-                passData.dstTex = builder.UseTextureFragment(dstColor, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
-                passData.srcColorTex = builder.UseTexture(srcColor, IBaseRenderGraphBuilder.AccessFlags.Read);
-                passData.srcDepthTex = builder.UseTexture(srcDepth, IBaseRenderGraphBuilder.AccessFlags.Read);
-                passData.srcMotionVectorTex = builder.UseTexture(activeMotionVectors, IBaseRenderGraphBuilder.AccessFlags.Read);
-                passData.srcTaaAccumTex = builder.UseTexture(srcAccumulation, IBaseRenderGraphBuilder.AccessFlags.Read);
+                passData.dstTex = dstColor;
+                builder.SetRenderAttachment(dstColor, 0, AccessFlags.Write);
+                passData.srcColorTex = srcColor;
+                builder.UseTexture(srcColor, AccessFlags.Read);
+                passData.srcDepthTex = srcDepth;
+                builder.UseTexture(srcDepth, AccessFlags.Read);
+                passData.srcMotionVectorTex = activeMotionVectors;
+                builder.UseTexture(activeMotionVectors, AccessFlags.Read);
+                passData.srcTaaAccumTex = srcAccumulation;
+                builder.UseTexture(srcAccumulation, AccessFlags.Read);
 
                 passData.material = taaMaterial;
                 passData.passIndex = (int)taa.quality;
@@ -487,8 +492,10 @@ namespace UnityEngine.Rendering.Universal
                 int kHistoryCopyPass = taaMaterial.shader.passCount - 1;
                 using (var builder = renderGraph.AddRasterRenderPass<TaaPassData>("Temporal Anti-aliasing Copy History", out var passData, ProfilingSampler.Get(URPProfileId.RG_TAACopyHistory)))
                 {
-                    passData.dstTex = builder.UseTextureFragment(srcAccumulation, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
-                    passData.srcColorTex = builder.UseTexture(dstColor, IBaseRenderGraphBuilder.AccessFlags.Read);   // Resolved color is the new history
+                    passData.dstTex = srcAccumulation;
+                    builder.SetRenderAttachment(srcAccumulation, 0, AccessFlags.Write);
+                    passData.srcColorTex = dstColor;
+                    builder.UseTexture(dstColor, AccessFlags.Read);   // Resolved color is the new history
 
                     passData.material = taaMaterial;
                     passData.passIndex = kHistoryCopyPass;

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
-using UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassCompiler;
+using UnityEngine.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler;
 using UnityEngine.Rendering;
 
 internal class RenderGraphDebugger : IRenderGraphDebugger
@@ -9,6 +9,7 @@ internal class RenderGraphDebugger : IRenderGraphDebugger
     public bool captureNextGraph;
 
     internal static RenderGraphDebugger instance;
+
     static RenderGraphDebugger()
     {
         instance = new RenderGraphDebugger();
@@ -94,6 +95,7 @@ internal class RenderGraphDebugger : IRenderGraphDebugger
 
 
     private static RenderGraphWindow debugWindow;
+
     static void CollectGraphDebugData(CompilerContextData ctx,
         NativePassCompiler.RenderGraphInputInfo inputInfo, RenderGraphView view)
     {
@@ -170,7 +172,9 @@ internal class RenderGraphDebugger : IRenderGraphDebugger
                     {
                         resources.GetRenderTargetInfo(inputResource, out info);
                     }
-                    catch (Exception) { }
+                    catch (Exception)
+                    {
+                    }
 
                     RenderGraphWindow.ResourceDebugData data = new RenderGraphWindow.ResourceDebugData
                     {
@@ -206,7 +210,6 @@ internal class RenderGraphDebugger : IRenderGraphDebugger
                 ref var nativePass = ref ctx.nativePassData.ElementAt(pass.nativePassIndex);
 
                 passDebug.nativeRPInfo = $"Attachment Dimensions: {nativePass.width}x{nativePass.height}x{nativePass.samples}\n";
-
                 passDebug.nativeRPInfo += "\nAttachments:\n";
                 for (int i = 0; i < nativePass.attachments.size; i++)
                 {
@@ -343,6 +346,7 @@ internal class RenderGraphDebugger : IRenderGraphDebugger
                         {
                             mergeMessage = "Passes can be merged but are not recorded consecutively.";
                         }
+
                         break;
 
                     case PassBreakReason.TargetSizeMismatch:
@@ -354,7 +358,8 @@ internal class RenderGraphDebugger : IRenderGraphDebugger
                         break;
 
                     case PassBreakReason.NextPassReadsTexture:
-                        mergeMessage = "The next pass reads one of the outputs as a regular texture, the pass needs to break.";
+                        mergeMessage =
+                            "The next pass reads one of the outputs as a regular texture, the pass needs to break.";
                         break;
 
                     case PassBreakReason.NonRasterPass:
@@ -397,11 +402,5 @@ internal class RenderGraphDebugger : IRenderGraphDebugger
             if (passes.Length > 1)
                 view.AddNRP(passes.Substring(0, passes.Length - 1));
         }
-    }
-
-    static internal void ShowRenderGraphDebugger()
-    {
-        //instance.captureNextGraph = true;
-        RenderGraphWindow.OpenGraphVisualizer();
     }
 }

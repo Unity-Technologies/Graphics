@@ -1560,101 +1560,168 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitReference.hlsl"
 
 //-----------------------------------------------------------------------------
-// EvaluateBSDF_Line - Approximation with Linearly Transformed Cosines
+// EvaluateBSDF_Area - Approximation with Linearly Transformed Cosines
 //-----------------------------------------------------------------------------
 
-DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
-                                    float3 V, PositionInputs posInput,
-                                     PreLightData preLightData, LightData lightData,
-                                     BSDFData bsdfData, BuiltinData builtinData)
+DirectLighting EvaluateBSDF_Area(LightLoopContext lightLoopContext,
+    float3 V, PositionInputs posInput,
+    PreLightData preLightData, LightData lightData,
+    BSDFData bsdfData, BuiltinData builtinData)
 {
     DirectLighting lighting;
     ZERO_INITIALIZE(DirectLighting, lighting);
 
-    float3 positionWS = posInput.positionWS;
+    const bool isRectLight = lightData.lightType == GPULIGHTTYPE_RECTANGLE; // static
+
+#if SHADEROPTIONS_BARN_DOOR
+    if (isRectLight)
+    {
+        RectangularLightApplyBarnDoor(lightData, posInput.positionWS);
+    }
+#endif
 
 #ifdef LIT_DISPLAY_REFERENCE_AREA
     if (posInput.positionNDC.x < 0.5)
     {
-    IntegrateBSDF_LineRef(V, positionWS, preLightData, lightData, bsdfData,
-                          lighting.diffuse, lighting.specular);
+        if (isRectLight)
+        {
+            IntegrateBSDF_AreaRef(V, positionWS, preLightData, lightData, bsdfData,
+                                  lighting.diffuse, lighting.specular);
+        }
+        else
+        {
+            IntegrateBSDF_LineRef(V, positionWS, preLightData, lightData, bsdfData,
+                                  lighting.diffuse, lighting.specular);
+        }
     }
     else
     {
 #endif // LIT_DISPLAY_REFERENCE_AREA
-    float3 unL = lightData.positionRWS - positionWS;
 
-    // We define the ellipsoid s.t. r1 = (r + len / 2), r2 = r3 = r.
-    // TODO: This could be precomputed.
-    float range          = lightData.range;
-    float halfLength     = 0.5 * lightData.size.x;
-    float invAspectRatio = saturate(range / (range + halfLength));
+    // Translate the light s.t. the shaded point is at the origin of the coordinate system.
+    float3 unL = lightData.positionRWS - posInput.positionWS;
 
-    // Compute the light attenuation.
-    float intensity = EllipsoidalDistanceAttenuation(unL, lightData.right, invAspectRatio,
-                                                     lightData.rangeAttenuationScale,
-                                                     lightData.rangeAttenuationBias);
+    // These values could be precomputed on CPU to save VGPR or ALU.
+    float halfLength = lightData.size.x * 0.5;
+    float halfHeight = lightData.size.y * 0.5; // = 0 for a line light
 
-    // Terminate if the shaded point is too far away.
-    if (intensity > 0)
+    float intensity = PillowWindowing(unL, lightData.right, lightData.up, halfLength, halfHeight,
+                                      lightData.rangeAttenuationScale, lightData.rangeAttenuationBias);
+
+    // Make sure the light is front-facing (and has a non-zero effective area).
+    intensity *= (isRectLight && dot(unL, lightData.forward) >= 0) ? 0 : 1;
+
+    bool isVisible = true;
+
+    // Raytracing shadow algorithm require to evaluate lighting without shadow, so it defined SKIP_RASTERIZED_AREA_SHADOWS
+    // This is only present in Lit Material as it is the only one using the improved shadow algorithm.
+#ifndef SKIP_RASTERIZED_AREA_SHADOWS
+    if (isRectLight && intensity > 0)
     {
-        lightData.diffuseDimmer  *= intensity;
-        lightData.specularDimmer *= intensity;
+        SHADOW_TYPE shadow = EvaluateShadow_RectArea(lightLoopContext, posInput, lightData, builtinData, bsdfData.normalWS, normalize(lightData.positionRWS), length(lightData.positionRWS));
+        lightData.color.rgb *= ComputeShadowColor(shadow, lightData.shadowTint, lightData.penumbraTint);
 
+        isVisible = Max3(lightData.color.r, lightData.color.g, lightData.color.b) > 0;
+    }
+#endif
+
+    // Terminate if the shaded point is occluded or is too far away.
+    if (isVisible && intensity > 0)
+    {
+        // Rotate the light vectors into the local coordinate system.
         float3 center = mul(preLightData.orthoBasisViewNormal, unL);
-        float3 axis   = mul(preLightData.orthoBasisViewNormal, lightData.right);
+        float3 right  = mul(preLightData.orthoBasisViewNormal, lightData.right);
+        float3 up     = mul(preLightData.orthoBasisViewNormal, lightData.up);
 
-        float ltcValue;
+        float4 ltcValue;
 
         // ----- 1. Evaluate the diffuse part -----
 
-        ltcValue = I_ltc_line(transpose(preLightData.ltcTransformDiffuse), center, axis, halfLength);
+        ltcValue = EvaluateLTC_Area(isRectLight, center, right, up, halfLength, halfHeight,
+                                #ifdef USE_DIFFUSE_LAMBERT_BRDF
+                                    k_identity3x3, 1.0f,
+                                #else
+                                    // LTC light cookies appear broken unless diffuse roughness is set to 1.
+                                    transpose(preLightData.ltcTransformDiffuse), /*bsdfData.perceptualRoughness*/ 1.0f,
+                                #endif
+                                    lightData.cookieMode, lightData.cookieScaleOffset);
+
+        ltcValue.a *= intensity * lightData.diffuseDimmer;
 
         // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
-        lighting.diffuse += ltcValue * lightData.diffuseDimmer;
+        lighting.diffuse += ltcValue.rgb * ltcValue.a;
 
-        UNITY_BRANCH if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
+        if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
         {
-            // Flip the view vector and the normal. The bitangent stays the same.
-            float3x3 flipMatrix = float3x3(-1,  0,  0,
-                                            0,  1,  0,
-                                            0,  0, -1);
+            // Flip the surface while maintaining the view direction.
+            float3x3 flipMatrix = float3x3(1,  0,  0,
+                                           0, -1,  0,
+                                           0,  0, -1);
 
+            // Transform the vectors instead of transforming the basis.
             // Use the Lambertian approximation for performance reasons.
             // TODO: performing the evaluation twice is very inefficient!
-            ltcValue = I_ltc_line(flipMatrix, center, axis, halfLength);
+            ltcValue = EvaluateLTC_Area(isRectLight, mul(flipMatrix, center), mul(flipMatrix, right), mul(flipMatrix, up), halfLength, halfHeight,
+                                        k_identity3x3, 1.0f,
+                                        lightData.cookieMode, lightData.cookieScaleOffset);
+
+            ltcValue.a *= intensity * lightData.diffuseDimmer;
 
             // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
             // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
-            lighting.diffuse += bsdfData.transmittance * (ltcValue * lightData.diffuseDimmer);
+            lighting.diffuse += bsdfData.transmittance * ltcValue.rgb * ltcValue.a;
         }
 
         // ----- 2. Evaluate the specular part -----
 
+        float perceptualRoughnessA = bsdfData.perceptualRoughness;
+        float perceptualRoughnessB = 0; // Set it to 0 just to avoid a warning from the compiler
+
+        // This is a dynamic branch if the MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING flag is enabled.
+        if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_SSS_DUAL_LOBE))
+        {
+            float lobeA, lobeB;
+            GetDualLobeParameters(bsdfData.diffusionProfileIndex, lobeA, lobeB, preLightData.ltcLobeMix);
+
+            perceptualRoughnessA = PerceptualSmoothnessToPerceptualRoughness(saturate((1.0f - bsdfData.perceptualRoughness) * lobeA));
+            perceptualRoughnessB = PerceptualSmoothnessToPerceptualRoughness(saturate((1.0f - bsdfData.perceptualRoughness) * lobeB));
+        }
+
         // First lobe
-        ltcValue = I_ltc_line(transpose(preLightData.ltcTransformSpecular[0]), center, axis, halfLength);
+        ltcValue = EvaluateLTC_Area(isRectLight, center, right, up, halfLength, halfHeight,
+                                    transpose(preLightData.ltcTransformSpecular[0]), perceptualRoughnessA,
+                                    lightData.cookieMode, lightData.cookieScaleOffset);
 
         if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_SSS_DUAL_LOBE))
         {
             // Second lobe
-            float ltcValue1 = I_ltc_line(transpose(preLightData.ltcTransformSpecular[1]), center, axis, halfLength);
+            float4 ltcValue1 = EvaluateLTC_Area(isRectLight, center, right, up, halfLength, halfHeight,
+                                                transpose(preLightData.ltcTransformSpecular[1]), perceptualRoughnessB,
+                                                lightData.cookieMode, lightData.cookieScaleOffset);
 
+            // Mix the lobes
             ltcValue = lerp(ltcValue, ltcValue1, preLightData.ltcLobeMix);
         }
 
+        ltcValue.a *= intensity * lightData.specularDimmer;
+
         // We need to multiply by the magnitude of the integral of the BRDF
         // ref: http://advances.realtimerendering.com/s2016/s2016_ltc_fresnel.pdf
-        lighting.specular += preLightData.specularFGD * (ltcValue * lightData.specularDimmer);
+        lighting.specular += preLightData.specularFGD * ltcValue.rgb * ltcValue.a;
 
         // ----- 3. Evaluate the clear coat part -----
 
         if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
         {
-            ltcValue = I_ltc_line(transpose(preLightData.ltcTransformCoat), center, axis, halfLength);
+            ltcValue = EvaluateLTC_Area(isRectLight, center, right, up, halfLength, halfHeight,
+                                        transpose(preLightData.ltcTransformCoat), RoughnessToPerceptualRoughness(bsdfData.coatRoughness),
+                                        lightData.cookieMode, lightData.cookieScaleOffset);
+
+            ltcValue.a *= intensity * lightData.specularDimmer;
 
             // For clear coat we don't fetch specularFGD we can use directly the perfect fresnel coatIblF
-            lighting.diffuse *= (1.0 - preLightData.coatIblF);
-            lighting.specular = lerp(lighting.specular, ltcValue * lightData.specularDimmer, preLightData.coatIblF);
+            lighting.diffuse *= 1.0 - preLightData.coatIblF;
+            lighting.specular = lerp(lighting.specular, ltcValue.rgb * ltcValue.a, preLightData.coatIblF);
         }
 
         // We need to multiply by the magnitude of the integral of the BRDF
@@ -1667,11 +1734,15 @@ DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
     #ifdef DEBUG_DISPLAY
         if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
         {
-            ltcValue = I_ltc_line(k_identity3x3, center, axis, halfLength);
+            ltcValue = EvaluateLTC_Area(isRectLight, center, right, up, halfLength, halfHeight,
+                                        k_identity3x3, 1.0f,
+                                        lightData.cookieMode, lightData.cookieScaleOffset);
+
+            ltcValue.a *= intensity * lightData.diffuseDimmer;
 
             // Only lighting, not BSDF
-            lighting.diffuse  = lightData.color * (ltcValue * lightData.diffuseDimmer);
-            // Apply area light on lambert then multiply by PI to cancel Lambert
+            lighting.diffuse  = lightData.color * ltcValue.rgb * ltcValue.a;
+            // Apply area light on Lambert then multiply by PI to cancel Lambert
             lighting.diffuse *= PI;
         }
     #endif
@@ -1682,211 +1753,6 @@ DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
 #endif // LIT_DISPLAY_REFERENCE_AREA
 
     return lighting;
-}
-
-//-----------------------------------------------------------------------------
-// EvaluateBSDF_Rect - Approximation with Linearly Transformed Cosines
-//-----------------------------------------------------------------------------
-
-// #define ELLIPSOIDAL_ATTENUATION
-
-DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
-                                    float3 V, PositionInputs posInput,
-                                    PreLightData preLightData, LightData lightData,
-                                    BSDFData bsdfData, BuiltinData builtinData)
-{
-    DirectLighting lighting;
-    ZERO_INITIALIZE(DirectLighting, lighting);
-
-    float3 positionWS = posInput.positionWS;
-
-#if SHADEROPTIONS_BARN_DOOR
-    // Apply the barn door modification to the light data
-    RectangularLightApplyBarnDoor(lightData, positionWS);
-#endif
-
-#ifdef LIT_DISPLAY_REFERENCE_AREA
-    if (posInput.positionNDC.x < 0.5)
-    {
-    IntegrateBSDF_AreaRef(V, positionWS, preLightData, lightData, bsdfData,
-                          lighting.diffuse, lighting.specular);
-    }
-    else
-    {
-#endif // LIT_DISPLAY_REFERENCE_AREA
-    float3 unL = lightData.positionRWS - positionWS;
-
-    if (dot(lightData.forward, unL) < FLT_EPS)
-    {
-        // Rotate the light direction into the light space.
-        float3x3 lightToWorld = float3x3(lightData.right, lightData.up, -lightData.forward);
-        unL = mul(unL, transpose(lightToWorld));
-
-        // TODO: This could be precomputed.
-        float halfWidth  = lightData.size.x * 0.5;
-        float halfHeight = lightData.size.y * 0.5;
-
-        // Define the dimensions of the attenuation volume.
-        // TODO: This could be precomputed.
-        float  range      = lightData.range;
-        float3 invHalfDim = rcp(float3(range + halfWidth,
-                                    range + halfHeight,
-                                    range));
-
-        // Compute the light attenuation.
-    #ifdef ELLIPSOIDAL_ATTENUATION
-        // The attenuation volume is an axis-aligned ellipsoid s.t.
-        // r1 = (r + w / 2), r2 = (r + h / 2), r3 = r.
-        float intensity = EllipsoidalDistanceAttenuation(unL, invHalfDim,
-                                                        lightData.rangeAttenuationScale,
-                                                        lightData.rangeAttenuationBias);
-    #else
-        // The attenuation volume is an axis-aligned box s.t.
-        // hX = (r + w / 2), hY = (r + h / 2), hZ = r.
-        float intensity = BoxDistanceAttenuation(unL, invHalfDim,
-                                                lightData.rangeAttenuationScale,
-                                                lightData.rangeAttenuationBias);
-    #endif
-
-        // Terminate if the shaded point is too far away.
-        if (intensity > 0)
-        {
-            lightData.diffuseDimmer  *= intensity;
-            lightData.specularDimmer *= intensity;
-
-            // Translate the light s.t. the shaded point is at the origin of the coordinate system.
-            lightData.positionRWS -= positionWS;
-
-            float4x3 lightVerts;
-
-            // TODO: precompute (to save VGPR by utilizing SGPR).
-            lightVerts[0] = lightData.positionRWS + lightData.right * -halfWidth + lightData.up * -halfHeight; // LL
-            lightVerts[1] = lightData.positionRWS + lightData.right * -halfWidth + lightData.up *  halfHeight; // UL
-            lightVerts[2] = lightData.positionRWS + lightData.right *  halfWidth + lightData.up *  halfHeight; // UR
-            lightVerts[3] = lightData.positionRWS + lightData.right *  halfWidth + lightData.up * -halfHeight; // LR
-
-            // Rotate the endpoints into the local coordinate system.
-            lightVerts = mul(lightVerts, transpose(preLightData.orthoBasisViewNormal));
-
-            float4 ltcValue;
-
-            // ----- 1. Evaluate the diffuse part -----
-
-            ltcValue = EvaluateLTC_Rect(mul(lightVerts, preLightData.ltcTransformDiffuse), 1.0f,
-                                        lightData.cookieMode, lightData.cookieScaleOffset);
-
-            // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
-            lighting.diffuse += ltcValue.rgb * (ltcValue.a * lightData.diffuseDimmer);
-
-            UNITY_BRANCH if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
-            {
-                // Flip the view vector and the normal. The bitangent stays the same.
-                float3x3 flipMatrix = float3x3(-1,  0,  0,
-                                                0,  1,  0,
-                                                0,  0, -1);
-
-                // Use the Lambertian approximation for performance reasons.
-                // TODO: performing the evaluation twice is very inefficient!
-                ltcValue = EvaluateLTC_Rect(mul(lightVerts, flipMatrix), 1.0f,
-                                            lightData.cookieMode, lightData.cookieScaleOffset);
-
-                // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
-                // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
-                lighting.diffuse += bsdfData.transmittance * (ltcValue.rgb * (ltcValue.a * lightData.diffuseDimmer));
-            }
-
-            // ----- 2. Evaluate the specular part -----
-
-            float perceptualRoughnessA = bsdfData.perceptualRoughness;
-            float perceptualRoughnessB = 0; // Set it to 0 just to avoid a warning from the compiler
-
-            // This is a dynamic branch if the MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING flag is enabled.
-            if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_SSS_DUAL_LOBE))
-            {
-                float lobeA, lobeB;
-                GetDualLobeParameters(bsdfData.diffusionProfileIndex, lobeA, lobeB, preLightData.ltcLobeMix);
-
-                perceptualRoughnessA = PerceptualSmoothnessToPerceptualRoughness(saturate((1.0f - bsdfData.perceptualRoughness) * lobeA));
-                perceptualRoughnessB = PerceptualSmoothnessToPerceptualRoughness(saturate((1.0f - bsdfData.perceptualRoughness) * lobeB));
-            }
-
-            // First lobe
-            ltcValue = EvaluateLTC_Rect(mul(lightVerts, preLightData.ltcTransformSpecular[0]), perceptualRoughnessA,
-                                        lightData.cookieMode, lightData.cookieScaleOffset);
-
-            if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_SSS_DUAL_LOBE))
-            {
-                // Second lobe
-                float4 ltcValue1 = EvaluateLTC_Rect(mul(lightVerts, preLightData.ltcTransformSpecular[1]), perceptualRoughnessB,
-                                                    lightData.cookieMode, lightData.cookieScaleOffset);
-
-                ltcValue = lerp(ltcValue, ltcValue1, preLightData.ltcLobeMix);
-            }
-
-            // We need to multiply by the magnitude of the integral of the BRDF
-            // ref: http://advances.realtimerendering.com/s2016/s2016_ltc_fresnel.pdf
-            lighting.specular += preLightData.specularFGD * (ltcValue.rgb * (ltcValue.a * lightData.specularDimmer));
-
-            // ----- 3. Evaluate the clear coat part -----
-
-            if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
-            {
-                ltcValue = EvaluateLTC_Rect(mul(lightVerts, preLightData.ltcTransformCoat), RoughnessToPerceptualRoughness(bsdfData.coatRoughness),
-                                            lightData.cookieMode, lightData.cookieScaleOffset);
-
-                // For clear coat we don't fetch specularFGD we can use directly the perfect fresnel coatIblF
-                lighting.diffuse *= 1.0 - preLightData.coatIblF;
-                lighting.specular = lerp(lighting.specular, ltcValue.rgb * (ltcValue.a * lightData.specularDimmer), preLightData.coatIblF);
-            }
-
-            // Raytracing shadow algorithm require to evaluate lighting without shadow, so it defined SKIP_RASTERIZED_AREA_SHADOWS
-            // This is only present in Lit Material as it is the only one using the improved shadow algorithm.
-        #ifndef SKIP_RASTERIZED_AREA_SHADOWS
-            SHADOW_TYPE shadow = EvaluateShadow_RectArea(lightLoopContext, posInput, lightData, builtinData, bsdfData.normalWS, normalize(lightData.positionRWS), length(lightData.positionRWS));
-            lightData.color.rgb *= ComputeShadowColor(shadow, lightData.shadowTint, lightData.penumbraTint);
-        #endif
-
-            // We need to multiply by the magnitude of the integral of the BRDF
-            // ref: http://advances.realtimerendering.com/s2016/s2016_ltc_fresnel.pdf
-            lighting.diffuse  *= lightData.color * preLightData.diffuseFGD;
-            lighting.specular *= lightData.color;
-
-            // ----- 4. Debug display -----
-
-        #ifdef DEBUG_DISPLAY
-            if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
-            {
-                ltcValue = EvaluateLTC_Rect(lightVerts, 1.0f,
-                                            lightData.cookieMode, lightData.cookieScaleOffset);
-
-                // Only lighting, not BSDF
-                lighting.diffuse  = lightData.color * ltcValue.rgb * (ltcValue.a * lightData.diffuseDimmer);
-                // Apply area light on Lambert then multiply by PI to cancel Lambert
-                lighting.diffuse *= PI;
-            }
-        #endif
-        }
-    }
-#ifdef LIT_DISPLAY_REFERENCE_AREA
-}
-#endif // LIT_DISPLAY_REFERENCE_AREA
-
-    return lighting;
-}
-
-DirectLighting EvaluateBSDF_Area(LightLoopContext lightLoopContext,
-    float3 V, PositionInputs posInput,
-    PreLightData preLightData, LightData lightData,
-    BSDFData bsdfData, BuiltinData builtinData)
-{
-    if (lightData.lightType == GPULIGHTTYPE_TUBE)
-    {
-        return EvaluateBSDF_Line(lightLoopContext, V, posInput, preLightData, lightData, bsdfData, builtinData);
-    }
-    else
-    {
-        return EvaluateBSDF_Rect(lightLoopContext, V, posInput, preLightData, lightData, bsdfData, builtinData);
-    }
 }
 
 //-----------------------------------------------------------------------------

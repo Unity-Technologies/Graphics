@@ -285,7 +285,7 @@ namespace UnityEngine.Rendering
 
             foreach (var sceneData in prv.perSceneDataList)
             {
-                prv.AddPendingSceneLoading(sceneData.sceneGUID);
+                prv.AddPendingSceneLoading(sceneData.sceneGUID, sceneData.bakingSet);
             }
 
             prv.PerformPendingOperations();

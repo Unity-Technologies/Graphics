@@ -1,6 +1,6 @@
 using System;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -51,8 +51,8 @@ namespace UnityEngine.Rendering.Universal
 
                 builder.AllowPassCulling(false);
 
-                builder.UseTextureFragment(universal2DResourceData.normalsTexture[batchIndex], 0);
-                builder.UseTextureFragmentDepth(universal2DResourceData.intermediateDepth, IBaseRenderGraphBuilder.AccessFlags.Write);
+                builder.SetRenderAttachment(universal2DResourceData.normalsTexture[batchIndex], 0);
+                builder.SetRenderAttachmentDepth(universal2DResourceData.intermediateDepth, AccessFlags.Write);
 
                 var param = new RendererListParams(renderingData.cullResults, drawSettings, filterSettings);
                 passData.rendererList = graph.CreateRendererList(param);

@@ -1,6 +1,6 @@
 using NUnit.Framework;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Tests
 {
@@ -488,7 +488,7 @@ namespace UnityEngine.Rendering.Tests
         }
 
         [Test]
-        public void UseTextureFragmentValidation()
+        public void SetRenderAttachmentValidation()
         {
             TextureHandle texture0;
             texture0 = m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
@@ -499,10 +499,10 @@ namespace UnityEngine.Rendering.Tests
             // Using two different textures on the same slot not allowed
             using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("Async_TestPass0", out var passData))
             {
-                builder.UseTextureFragment(texture0, 0, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
+                builder.SetRenderAttachment(texture0, 0, AccessFlags.ReadWrite);
                 Assert.Throws<System.InvalidOperationException>(() =>
                 {
-                    builder.UseTextureFragment(texture1, 0, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
+                    builder.SetRenderAttachment(texture1, 0, AccessFlags.ReadWrite);
                 });
                 builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
             }
@@ -511,10 +511,10 @@ namespace UnityEngine.Rendering.Tests
             // TODO: Would this be allowed if read-only? Likely an edge case possibly hardware dependent... let's not bother with it
             using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("Async_TestPass0", out var passData))
             {
-                builder.UseTextureFragment(texture0, 0, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
+                builder.SetRenderAttachment(texture0, 0, AccessFlags.ReadWrite);
                 Assert.Throws<System.InvalidOperationException>(() =>
                 {
-                    builder.UseTextureFragment(texture0, 1, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
+                    builder.SetRenderAttachment(texture0, 1, AccessFlags.ReadWrite);
                 });
                 builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
             }
@@ -522,10 +522,10 @@ namespace UnityEngine.Rendering.Tests
             // Using a texture both as a texture and as a fragment, not allowed
             using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("Async_TestPass0", out var passData))
             {
-                builder.UseTexture(texture0, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
+                builder.UseTexture(texture0, AccessFlags.ReadWrite);
                 Assert.Throws<System.InvalidOperationException>(() =>
                 {
-                    builder.UseTextureFragment(texture0, 0, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
+                    builder.SetRenderAttachment(texture0, 0, AccessFlags.ReadWrite);
                 });
                 builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
             }
@@ -534,10 +534,10 @@ namespace UnityEngine.Rendering.Tests
             // Using a texture both as a texture and as a fragment, not allowed (reversed)
             using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("Async_TestPass0", out var passData))
             {
-                builder.UseTexture(texture0, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
+                builder.UseTexture(texture0, AccessFlags.ReadWrite);
                 Assert.Throws<System.InvalidOperationException>(() =>
                 {
-                    builder.UseTextureFragment(texture0, 0, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
+                    builder.SetRenderAttachment(texture0, 0, AccessFlags.ReadWrite);
                 });
                 builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
             }
@@ -555,10 +555,10 @@ namespace UnityEngine.Rendering.Tests
             // Writing the same texture twice is not allowed
             using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("Async_TestPass0", out var passData))
             {
-                builder.UseTexture(texture0, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
+                builder.UseTexture(texture0, AccessFlags.ReadWrite);
                 Assert.Throws<System.InvalidOperationException>(() =>
                 {
-                    builder.UseTexture(texture0, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
+                    builder.UseTexture(texture0, AccessFlags.ReadWrite);
                 });
                 builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
             }
@@ -566,12 +566,14 @@ namespace UnityEngine.Rendering.Tests
             // Reading the same texture twice is allowed
             using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("Async_TestPass0", out var passData))
             {
-                builder.UseTexture(texture0, IBaseRenderGraphBuilder.AccessFlags.Read);
-                builder.UseTexture(texture0, IBaseRenderGraphBuilder.AccessFlags.Read);
+                builder.UseTexture(texture0, AccessFlags.Read);
+                builder.UseTexture(texture0, AccessFlags.Read);
                 builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
             }
         }
 
+        /*
+        // Disabled for now as version management is not exposed to user code
         [Test]
         public void VersionManagement()
         {
@@ -591,7 +593,7 @@ namespace UnityEngine.Rendering.Tests
             // Writing bumps the version
             using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("Async_TestPass0", out var passData))
             {
-                texture0v1 = builder.UseTexture(texture0, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
+                texture0v1 = builder.UseTexture(texture0, AccessFlags.ReadWrite);
                 Assert.AreEqual(true, texture0v1.handle.IsVersioned);
                 Assert.AreEqual(1, texture0v1.handle.version);
                 builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
@@ -600,7 +602,7 @@ namespace UnityEngine.Rendering.Tests
             // Writing again bumps again
             using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("Async_TestPass1", out var passData))
             {
-                texture0v2 = builder.UseTexture(texture0, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
+                texture0v2 = builder.UseTexture(texture0, AccessFlags.ReadWrite);
                 Assert.AreEqual(true, texture0v2.handle.IsVersioned);
                 Assert.AreEqual(2, texture0v2.handle.version);
                 builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
@@ -609,7 +611,7 @@ namespace UnityEngine.Rendering.Tests
             // Reading leaves the version alone
             using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("Async_TestPass2", out var passData))
             {
-                var versioned = builder.UseTexture(texture0, IBaseRenderGraphBuilder.AccessFlags.Read);
+                var versioned = builder.UseTexture(texture0, AccessFlags.Read);
                 Assert.AreEqual(true, versioned.handle.IsVersioned);
                 Assert.AreEqual(2, versioned.handle.version);
                 builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
@@ -621,10 +623,10 @@ namespace UnityEngine.Rendering.Tests
                 // If you want do achieve this and avoid copying the move should be used
                 Assert.Throws<System.InvalidOperationException>(() =>
                 {
-                    var versioned = builder.UseTexture(texture0v1, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
+                    var versioned = builder.UseTexture(texture0v1, AccessFlags.ReadWrite);
                 });
                 builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
             }
-        }
+        }*/
     }
 }

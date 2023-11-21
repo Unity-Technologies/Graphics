@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEngine.Rendering
@@ -170,27 +170,110 @@ namespace UnityEngine.Rendering
         {
             // Stage group sizes.
             public const int NumLaneSegmentSetup = 1024;
-            public const int NumLaneRasterBin = 512;
+            public const int NumLaneRasterBin    = 512;
 
-            // Parameters.
-            public Vector2 _DimBin;
-            public int _SegmentCount;
-            public int _BinCount;
+            // Due to structure alignment issues on certain API (Metal, Vulkan) we ensure 16-byte alignment
+            // like this to ensure there is no mismatch.
+            public Vector4 _Params0; // { Dim Bin X, Dim Bin Y, Segment Count, Bin Count }
+            public Vector4 _Params1; // { Size Screen, Inv. Size Screen }
+            public Vector4 _Params2; // { Size Bin, Inv. Size Bin }
+            public Vector4 _Params3; // { Vertex Count, Vertex Stride, Active Bin Count, Cluster Depth }
+            public Vector4 _Params4; // { Shading Atlas Dim, Cluster Count, Tile Opacity Threshold }
+            public Vector4 _Params5; // { View Index, Padding }
 
-            public Vector4 _SizeScreen;
-            public Vector4 _SizeBin;
+            // Aliases
+            public Vector2 _DimBin
+            {
+                get => new Vector2(_Params0.x, _Params0.y);
 
-            public int _VertexCount;
-            public int _VertexStride;
-            public int _ActiveBinCount;
-            public int _ClusterDepth;
+                set
+                {
+                    _Params0.x = value.x;
+                    _Params0.y = value.y;
+                }
+            }
 
-            public Vector2Int _ShadingAtlasDimensions;
-            public int _ClusterCount;
-            public float _TileOpacityThreshold;
+            public int _SegmentCount
+            {
+                get => (int)_Params0.z;
+                set => _Params0.z = (float)value;
+            }
 
-            public int _ViewIndex;
-            public Vector3 _padding;
+            public int _BinCount
+            {
+                get => (int)_Params0.w;
+                set => _Params0.w = (float)value;
+            }
+
+            public Vector4 _SizeScreen
+            {
+                get => _Params1;
+                set => _Params1 = value;
+            }
+
+            public Vector4 _SizeBin
+            {
+                get => _Params2;
+                set => _Params2 = value;
+            }
+
+            public int _VertexCount
+            {
+                get => (int)_Params3.x;
+                set => _Params3.x = (float)value;
+            }
+
+            public int _VertexStride
+            {
+                get => (int)_Params3.y;
+                set => _Params3.y = (float)value;
+            }
+
+            public int _ActiveBinCount
+            {
+                get => (int)_Params3.z;
+                set => _Params3.z = (float)value;
+            }
+
+            public int _ClusterDepth
+            {
+                get => (int)_Params3.w;
+                set => _Params3.w = (float)value;
+            }
+
+            public Vector2 _ShadingAtlasDimensions
+            {
+                get => new Vector2(_Params4.x, _Params4.y);
+
+                set
+                {
+                    _Params4.x = value.x;
+                    _Params4.y = value.y;
+                }
+            }
+
+            public int _ClusterCount
+            {
+                get => (int)_Params4.z;
+                set => _Params4.z = (float)value;
+            }
+
+            public float _TileOpacityThreshold
+            {
+                get => _Params4.w;
+                set => _Params4.w = value;
+            }
+
+            public int _ViewIndex
+            {
+                get => (int)_Params5.x;
+                set => _Params5.x = (float)value;
+            }
+        }
+
+        static unsafe int GetShaderVariablesSize()
+        {
+            return sizeof(ShaderVariables);
         }
 
         [GenerateHLSL(PackingRules.Exact, false)]
@@ -201,8 +284,8 @@ namespace UnityEngine.Rendering
             public Vector3 positionRWS;
             public Vector3 tangentWS;
             public Vector3 normalWS;
-            public float   texCoord0;
-            public float   texCoord1;
+            public uint    texCoord0;
+            public uint    texCoord1;
         }
 
         [GenerateHLSL(PackingRules.Exact, false)]
@@ -228,14 +311,15 @@ namespace UnityEngine.Rendering
 
         internal class SharedPassData
         {
+            public ShaderVariables                 shaderVariables;
+            public ConstantBuffer<ShaderVariables> shaderVariablesBuffer;
+
             public TextureHandle   depthRT;
             public SystemResources systemResources;
-            public ShaderVariables shaderVariables;
             public Buffers         sharedBuffers;
 
             internal struct Buffers
             {
-                public BufferHandle  constantBuffer;
                 public BufferHandle  vertexStream0;          // Vertex Stream 0: Position CS
                 public BufferHandle  vertexStream1;          // Vertex Stream 1: Previous Position CS
                 public BufferHandle  vertexStream2;          // Vertex Stream 2: XY Tangent ZW Normal
@@ -259,12 +343,6 @@ namespace UnityEngine.Rendering
                         return renderGraph.CreateBuffer(new BufferDesc(elementCount, stride, target) {name = name});
                     }
 
-                    int constantBufferSize;
-                    unsafe
-                    {
-                        constantBufferSize = sizeof(ShaderVariables);
-                    }
-
                     int shadingSampleAtlasWidth =  Mathf.NextPowerOfTwo(Mathf.CeilToInt(Mathf.Sqrt(parameters.countVertex)));
                     shadingSampleAtlasWidth = Math.Max(shadingSampleAtlasWidth, 1);
                     int shadingSampleAtlasHeight = Mathf.NextPowerOfTwo(Mathf.CeilToInt(DivRoundUp(parameters.countVertex, shadingSampleAtlasWidth)));
@@ -278,7 +356,6 @@ namespace UnityEngine.Rendering
                         counterBuffer           = CreateBuffer(8, sizeof(uint), GraphicsBuffer.Target.Raw, "Counters"),
                         recordBufferSegment     = CreateBuffer(4 * 2 * parameters.countSegment, sizeof(uint), GraphicsBuffer.Target.Raw, "Record Buffer [Segment]"),
                         viewSpaceDepthRange     = CreateBuffer(2, sizeof(float), GraphicsBuffer.Target.Raw, "View Space Depth Range"),
-                        constantBuffer          = CreateBuffer(1, constantBufferSize, GraphicsBuffer.Target.Constant, "Line Rendering Constants"),
 
                         groupShadingSampleAtlas = renderGraph.CreateTexture(new TextureDesc(shadingSampleAtlasWidth, shadingSampleAtlasHeight)
                         {
@@ -294,10 +371,11 @@ namespace UnityEngine.Rendering
 
         internal class GeometryPassData : SharedPassData
         {
-            public Buffers        transientBuffers;
-            public RendererData[] rendererData;
-            public ShadingAtlas   shadingAtlas;
-            public Matrix4x4      matrixIVP;
+            public Buffers               transientBuffers;
+            public RendererData[]        rendererData;
+            public ShadingAtlas          shadingAtlas;
+            public Matrix4x4             matrixIVP;
+            public MaterialPropertyBlock materialPropertyBlock;
 
             // TODO: Move into RendererData?
             public int[] offsetsVertex;
@@ -359,6 +437,10 @@ namespace UnityEngine.Rendering
 #if UNITY_EDITOR
             public bool  renderDataStillHasShadersCompiling;
 #endif
+
+            public int binCount;
+            public int clusterCount;
+            public int clusterDepth;
 
             internal new struct Buffers
             {

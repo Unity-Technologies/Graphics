@@ -1,7 +1,7 @@
 using System;
 using System.Diagnostics;
 
-namespace UnityEngine.Experimental.Rendering.RenderGraphModule
+namespace UnityEngine.Rendering.RenderGraphModule
 {
     // RendererList is a different case so not represented here.
     internal enum RenderGraphResourceType

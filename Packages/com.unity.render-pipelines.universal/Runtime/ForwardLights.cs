@@ -6,7 +6,9 @@ using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Collections.LowLevel.Unsafe;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+
+using UnityEngine.Experimental.Rendering;
+using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal.Internal
 {
@@ -330,7 +332,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
             UniversalLightData lightData = frameData.Get<UniversalLightData>();
 
-            SetupLights(renderingData.commandBuffer, universalRenderingData, cameraData, lightData);
+            SetupLights(CommandBufferHelpers.GetUnsafeCommandBuffer(renderingData.commandBuffer), universalRenderingData, cameraData, lightData);
         }
 
         static ProfilingSampler s_SetupForwardLights = new ProfilingSampler("Setup Forward lights.");
@@ -346,7 +348,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// </summary>
         internal void SetupRenderGraphLights(RenderGraph renderGraph, UniversalRenderingData renderingData, UniversalCameraData cameraData, UniversalLightData lightData)
         {
-            using (var builder = renderGraph.AddLowLevelPass<SetupLightPassData>("SetupForwardLights", out var passData,
+            using (var builder = renderGraph.AddUnsafePass<SetupLightPassData>("SetupForwardLights", out var passData,
                 s_SetupForwardLights))
             {
                 passData.renderingData = renderingData;
@@ -356,14 +358,14 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 builder.AllowPassCulling(false);
 
-                builder.SetRenderFunc((SetupLightPassData data, LowLevelGraphContext rgContext) =>
+                builder.SetRenderFunc((SetupLightPassData data, UnsafeGraphContext rgContext) =>
                 {
-                    data.forwardLights.SetupLights(rgContext.legacyCmd, data.renderingData, data.cameraData, data.lightData);
+                    data.forwardLights.SetupLights(rgContext.cmd, data.renderingData, data.cameraData, data.lightData);
                 });
             }
         }
 
-        internal void SetupLights(CommandBuffer cmd, UniversalRenderingData renderingData, UniversalCameraData cameraData, UniversalLightData lightData)
+        internal void SetupLights(UnsafeCommandBuffer cmd, UniversalRenderingData renderingData, UniversalCameraData cameraData, UniversalLightData lightData)
         {
             int additionalLightsCount = lightData.additionalLightsCount;
             bool additionalLightsPerVertex = lightData.shadeAdditionalLightsPerVertex;
@@ -371,7 +373,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 if (m_UseForwardPlus)
                 {
-                    m_ReflectionProbeManager.UpdateGpuData(cmd, ref renderingData.cullResults);
+                    m_ReflectionProbeManager.UpdateGpuData(CommandBufferHelpers.GetNativeCommandBuffer(cmd), ref renderingData.cullResults);
 
                     using (new ProfilingScope(m_ProfilingSamplerFPComplete))
                     {
@@ -421,7 +423,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetKeyword(ShaderGlobalKeywords.EVALUATE_SH_VERTEX, shMode == ShEvalMode.PerVertex);
                 
                 var stack = VolumeManager.instance.stack;
-                bool enableProbeVolumes = ProbeReferenceVolume.instance.UpdateShaderVariablesProbeVolumes(cmd,
+                bool enableProbeVolumes = ProbeReferenceVolume.instance.UpdateShaderVariablesProbeVolumes(
+                    CommandBufferHelpers.GetNativeCommandBuffer(cmd),
                     stack.GetComponent<ProbeVolumesOptions>(),
                     cameraData.IsTemporalAAEnabled() ? Time.frameCount : 0);
 
@@ -430,7 +433,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 if (m_LightCookieManager != null)
                 {
-                    m_LightCookieManager.Setup(cmd, lightData);
+                    m_LightCookieManager.Setup(CommandBufferHelpers.GetNativeCommandBuffer(cmd), lightData);
                 }
                 else
                 {
@@ -495,7 +498,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
-        void SetupShaderLightConstants(CommandBuffer cmd, ref CullingResults cullResults, UniversalLightData lightData)
+        void SetupShaderLightConstants(UnsafeCommandBuffer cmd, ref CullingResults cullResults, UniversalLightData lightData)
         {
             m_MixedLightingSetup = MixedLightingSetup.None;
 
@@ -505,7 +508,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             SetupAdditionalLightConstants(cmd, ref cullResults, lightData);
         }
 
-        void SetupMainLightConstants(CommandBuffer cmd, UniversalLightData lightData)
+        void SetupMainLightConstants(UnsafeCommandBuffer cmd, UniversalLightData lightData)
         {
             Vector4 lightPos, lightColor, lightAttenuation, lightSpotDir, lightOcclusionChannel;
             bool supportsLightLayers = lightData.supportsLightLayers;
@@ -522,7 +525,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetGlobalInt(LightConstantBuffer._MainLightLayerMask, (int)lightLayerMask);
         }
 
-        void SetupAdditionalLightConstants(CommandBuffer cmd, ref CullingResults cullResults, UniversalLightData lightData)
+        void SetupAdditionalLightConstants(UnsafeCommandBuffer cmd, ref CullingResults cullResults, UniversalLightData lightData)
         {
             bool supportsLightLayers = lightData.supportsLightLayers;
             var lights = lightData.visibleLights;

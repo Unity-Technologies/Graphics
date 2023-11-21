@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 
 public class HistoryVisualizer : ScriptableRendererFeature
 {
@@ -157,7 +157,7 @@ public class HistoryVisualizer : ScriptableRendererFeature
             {
                 UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
 
-                builder.UseTextureFragment(resourceData.activeColorTexture, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
+                builder.SetRenderAttachment(resourceData.activeColorTexture, 0, AccessFlags.Write);
                 passData.material = m_Material;
 
                 int multipassId = 0;

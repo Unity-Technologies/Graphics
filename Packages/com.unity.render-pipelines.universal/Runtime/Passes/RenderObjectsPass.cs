@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Rendering.Universal
@@ -274,29 +274,30 @@ namespace UnityEngine.Rendering.Universal
 
                 InitPassData(cameraData, ref passData);
 
-                passData.color = builder.UseTextureFragment(resourceData.activeColorTexture, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
-                builder.UseTextureFragmentDepth(resourceData.activeDepthTexture, IBaseRenderGraphBuilder.AccessFlags.Write);
+                passData.color = resourceData.activeColorTexture;
+                builder.SetRenderAttachment(resourceData.activeColorTexture, 0, AccessFlags.Write);
+                builder.SetRenderAttachmentDepth(resourceData.activeDepthTexture, AccessFlags.Write);
 
                 TextureHandle mainShadowsTexture = resourceData.mainShadowsTexture;
                 TextureHandle additionalShadowsTexture = resourceData.additionalShadowsTexture;
 
                 if (mainShadowsTexture.IsValid())
-                    builder.UseTexture(mainShadowsTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+                    builder.UseTexture(mainShadowsTexture, AccessFlags.Read);
 
                 if (additionalShadowsTexture.IsValid())
-                    builder.UseTexture(additionalShadowsTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+                    builder.UseTexture(additionalShadowsTexture, AccessFlags.Read);
 
                 TextureHandle[] dBufferHandles = resourceData.dBuffer;
                 for (int i = 0; i < dBufferHandles.Length; ++i)
                 {
                     TextureHandle dBuffer = dBufferHandles[i];
                     if (dBuffer.IsValid())
-                        builder.UseTexture(dBuffer, IBaseRenderGraphBuilder.AccessFlags.Read);
+                        builder.UseTexture(dBuffer, AccessFlags.Read);
                 }
 
                 TextureHandle ssaoTexture = resourceData.ssaoTexture;
                 if (ssaoTexture.IsValid())
-                    builder.UseTexture(ssaoTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+                    builder.UseTexture(ssaoTexture, AccessFlags.Read);
 
                 InitRendererLists(renderingData, lightData, ref passData, default(ScriptableRenderContext), renderGraph, true);
                 var activeDebugHandler = GetActiveDebugHandler(passData.cameraData);

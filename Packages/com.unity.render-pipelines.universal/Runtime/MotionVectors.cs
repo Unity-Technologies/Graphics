@@ -65,7 +65,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        internal int GetXRMultiPassId(XRPass xr)
+        static private int GetXRMultiPassId(XRPass xr)
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
             return xr.enabled ? xr.multipassId : 0;
@@ -76,7 +76,6 @@ namespace UnityEngine.Rendering.Universal
 
         public void Update(UniversalCameraData cameraData)
         {
-            var camera = cameraData.camera;
             int idx = GetXRMultiPassId(cameraData.xr);
 
             // A camera could be rendered multiple times per frame, only update the view projections if needed
@@ -103,6 +102,24 @@ namespace UnityEngine.Rendering.Universal
 
                 m_LastFrameIndex[idx] = Time.frameCount;
                 m_PrevAspectRatio[idx] = cameraData.aspectRatio;
+            }
+        }
+
+        // Set global motion vector matrix GPU constants.
+        public void SetGlobalMotionMatrices(RasterCommandBuffer cmd, XRPass xr)
+        {
+            var passID = GetXRMultiPassId(xr);
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (xr.enabled && xr.singlePassEnabled)
+            {
+                cmd.SetGlobalMatrixArray(ShaderPropertyId.previousViewProjectionNoJitterStereo, previousViewProjectionStereo);
+                cmd.SetGlobalMatrixArray(ShaderPropertyId.viewProjectionNoJitterStereo, viewProjectionStereo);
+            }
+            else
+#endif
+            {
+                cmd.SetGlobalMatrix(ShaderPropertyId.previousViewProjectionNoJitter, previousViewProjectionStereo[passID]);
+                cmd.SetGlobalMatrix(ShaderPropertyId.viewProjectionNoJitter, viewProjectionStereo[passID]);
             }
         }
     }

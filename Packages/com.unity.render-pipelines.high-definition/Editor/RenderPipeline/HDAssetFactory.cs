@@ -53,27 +53,5 @@ namespace UnityEditor.Rendering.HighDefinition
                 ProjectWindowUtil.ShowCreatedAsset(newAsset);
             }
         }
-
-        class DoCreateNewAssetHDRenderPipelineEditorResources : ProjectWindowCallback.EndNameEditAction
-        {
-            public override void Action(int instanceId, string pathName, string resourceFile)
-            {
-                var newAsset = CreateInstance<HDRenderPipelineEditorResources>();
-                newAsset.name = Path.GetFileName(pathName);
-
-                ResourceReloader.ReloadAllNullIn(newAsset, HDUtils.GetHDRenderPipelinePath());
-
-                AssetDatabase.CreateAsset(newAsset, pathName);
-                ProjectWindowUtil.ShowCreatedAsset(newAsset);
-            }
-        }
-
-        // Hide: User aren't suppose to have to create it.
-        //[MenuItem("Assets/Create/Rendering/HDRP Editor Resources", priority = CoreUtils.Sections.section7 + CoreUtils.Priorities.assetsCreateRenderingMenuPriority + 1)]
-        static void CreateRenderPipelineEditorResources()
-        {
-            var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetHDRenderPipelineEditorResources>(), "New HDRenderPipelineEditorResources.asset", icon, null);
-        }
     }
 }

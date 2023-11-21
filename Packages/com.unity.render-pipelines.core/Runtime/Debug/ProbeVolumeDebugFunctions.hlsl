@@ -28,7 +28,7 @@
 
                 FindSamplingData(debugPosition.xyz, debugNormal.xyz, snappedProbePosition_WS, samplingPosition_WS, samplingPositionNoAntiLeak_WS, probeDistance, normalizedOffset, validityWeight);
 
-                float3 probePosition_WS = GetAbsolutePositionWS(mul(UNITY_MATRIX_M, float4(0.0f, 0.0f, 0.0f, 1.0f)).xyz);
+                float3 probePosition_WS = mul(UNITY_MATRIX_M, float4(0.0f, 0.0f, 0.0f, 1.0f)).xyz;
 
                 float samplingFactor = ComputeSamplingFactor(probePosition_WS, snappedProbePosition_WS, normalizedOffset, probeDistance);
 
@@ -50,7 +50,6 @@
                 o.texCoord = v.texCoord;
                 o.samplingFactor_ValidityWeight = float2(samplingFactor, 1.0f);
             }
-
             else
             {
                 float4 wsPos = mul(UNITY_MATRIX_M, float4(v.vertex.xyz * _ProbeSize, 1.0));

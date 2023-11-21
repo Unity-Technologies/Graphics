@@ -98,9 +98,6 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly ConfigStyle hdrpRuntimeResources = new ConfigStyle(
                 label: L10n.Tr("Runtime resources"),
                 error: L10n.Tr("There is an issue with the runtime resources!"));
-            public static readonly ConfigStyle hdrpEditorResources = new ConfigStyle(
-                label: L10n.Tr("Editor resources"),
-                error: L10n.Tr("There is an issue with the editor resources!"));
             public static readonly ConfigStyle hdrpBatcher = new ConfigStyle(
                 label: L10n.Tr("SRP Batcher"),
                 error: L10n.Tr("SRP Batcher must be enabled!"));

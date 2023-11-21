@@ -217,7 +217,7 @@ void SkyViewLUT(uint2 coord : SV_DispatchThreadID)
     float3 skyColor, skyTransmittance;
     EvaluateAtmosphericColor(O, V, tExit, skyColor, skyTransmittance);
 
-    _SkyViewLUT_RW[coord] = skyColor * _SkyLUTScale;
+    _SkyViewLUT_RW[coord] = skyColor / _CelestialLightExposure;
 }
 
 // Atmospheric Scattering LUT

@@ -2,67 +2,28 @@ using System;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.RenderGraphModule
+namespace UnityEngine.Rendering.RenderGraphModule
 {
     /// <summary>
     /// Common base interface for the different render graph builders. These functions are supported on all builders.
     /// </summary>
     public interface IBaseRenderGraphBuilder : IDisposable
     {
-
-        /// <summary>
-        /// Express the operations the rendergraph pass will do on a resource.
-        /// </summary>
-        [Flags]
-        public enum AccessFlags
-        {
-            ///<summary>The pass does not access the resource at all. Calling Use* functions with none has no effect.</summary>
-            None = 0,
-            ///<summary>This pass will read data the resource. Data in the resource should never be written unless one of the write flags is also present. Writing to a read-only resource may lead to undefined results, significant performance penaties, and GPU crashes.</summary>
-            Read = 1 << 0,
-
-            ///<summary>This pass will at least write some data to the resource. Data in the resource should never be read unless one of the read flags is also present. Reading from a write-only resource may lead to undefined results, significant performance penaties, and GPU crashes.</summary>
-            Write = 1 << 1,
-
-            ///<summary>Previous data in the resource is not preserved. The resource will contain undefined data at the beginning of the pass.</summary>
-            Discard = 1 << 2,
-
-            ///<summary>All data in the resource will be written by this pass. Data in the resource should never be read.</summary>
-            WriteAll = Write | Discard,
-
-            /// <summary>Allow auto "Grabbing" a framebuffer to a texture at the beginning of the pass. Normally UseTexture(Read) in combination with UseFrameBuffer(x) is not allowed as the texture reads would not nececarily show
-            /// modifications to the frame buffer. By passing this flag you indicate to the Graph it's ok to grab the frame buffer once at the beginning of the
-            /// pass and then use that as the  input texture. Depending on usage flags this may cause a new temporary buffer+buffer copy to be generated. This is mainly
-            /// useful in complex cases were you are unsure the handles are coming from and they may sometimes refer to the same resource. Say you want to do
-            /// distortion on the frame buffer but then also blend the distortion results over it. UseTexture(myBuff, Read  | Grab) USeFrameBuffer(myBuff, ReadWrite) to achieve this
-            /// if you have similar code  UseTexture(myBuff1, Read  | Grab) USeFrameBuffer(myBuff2, ReadWrite) where depending on the active passes myBuff1 may be different from myBuff@
-            /// the graph will always take the optimal path, not copying to a temp copy if they are in fact different, and auto-allocating a temp copy if they are.</summary>
-            AllowGrab = 1 << 3,
-
-            ///<summary> Shortcut for Read | AllowGrab</summary>
-            GrabRead = Read | AllowGrab,
-
-            ///<summary> Shortcut for Read | Write</summary>
-            ReadWrite = Read | Write
-        }
-
         /// <summary>
         /// Declare that this pass uses the input texture.
         /// </summary>
         /// <param name="input">The texture resource to use during the pass.</param>
         /// <param name="flags">A combination of flags indicating how the resource will be used during the pass. Default value is set to AccessFlag.Read </param>
-        /// <returns>A explicitly versioned handle representing the latest version of the passed in texture.
-        /// Note that except for special cases where you want to refer to a specific version return value is generally discarded.</returns>
-        public TextureHandle UseTexture(in TextureHandle input, AccessFlags flags = AccessFlags.Read);
+        public void UseTexture(in TextureHandle input, AccessFlags flags = AccessFlags.Read);
 
         /// <summary>
         /// Declare that this pass uses the texture assigned to the global texture slot. The actual texture referenced is indirectly specified here it depends
         /// on the value previous passes that were added to the graph set for the global texture slot. If no previous pass set a texture to the global slot an
         /// exception will be raised.
         /// </summary>
-        /// <param name="glboalTextureSlotId">The global texture slot read by shaders in this pass. Use Shader.PropertyToID to generate these ids.</param>
+        /// <param name="propertyId">The global texture slot read by shaders in this pass. Use Shader.PropertyToID to generate these ids.</param>
         /// <param name="flags">A combination of flags indicating how the resource will be used during the pass. Default value is set to AccessFlag.Read </param>
-        public void UseGlobalTexture(int glboalTextureSlotId, AccessFlags flags = AccessFlags.Read);
+        public void UseGlobalTexture(int propertyId, AccessFlags flags = AccessFlags.Read);
 
         /// <summary>
         /// Indicate that this pass will reference all textures in global texture slots known to the graph. The default setting is true.
@@ -87,8 +48,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// globals slots can be set witout overhead if you're unsure if a resource will be used or not, the graph will still maintain the correct lifetimes.
         /// </summary>
         /// <param name="input">The texture value to set in the global texture slot. This can be an null handle to clear the global texture slot.</param>
-        /// <param name="globalPropertyID">The global texture slot to set the value for. Use Shader.PropertyToID to generate the id.</param>
-        public void PostSetGlobalTexture(in TextureHandle input, int globalPropertyID);
+        /// <param name="propertyId">The global texture slot to set the value for. Use Shader.PropertyToID to generate the id.</param>
+        public void SetGlobalTextureAfterPass(in TextureHandle input, int propertyId);
 
         /// <summary>
         /// Declare that this pass uses the input compute buffer.
@@ -185,19 +146,18 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     }
 
     /// <summary>
-    /// A builder for a low-level render pass.
-    /// <see cref="RenderGraph.AddLowLevelPass"/>
+    /// A builder for an unsafe render pass.
+    /// <see cref="RenderGraph.AddUnsafePass"/>
     /// </summary>
-    public interface ILowLevelRenderGraphBuilder : IBaseRenderGraphBuilder
+    public interface IUnsafeRenderGraphBuilder : IBaseRenderGraphBuilder
     {
-
         /// <summary>
         /// Specify the render function to use for this pass.
         /// A call to this is mandatory for the pass to be valid.
         /// </summary>
         /// <typeparam name="PassData">The Type of the class that provides data to the Render Pass.</typeparam>
         /// <param name="renderFunc">Render function for the pass.</param>
-        public void SetRenderFunc<PassData>(BaseRenderFunc<PassData, LowLevelGraphContext> renderFunc)
+        public void SetRenderFunc<PassData>(BaseRenderFunc<PassData, UnsafeGraphContext> renderFunc)
             where PassData : class, new();
     }
 
@@ -226,68 +186,62 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// </summary>
         /// <param name="tex">Texture to use during this pass.</param>
         /// <param name="index">Index the shader will use to access this texture.</param>
-        /// <param name="flags">How this pass will acess the texture. Default value is set to AccessFlag.Write </param>
-        /// <returns>A explicitly versioned handle representing the latest version of the passed in texture.
-        /// Note that except for special cases where you want to refer to a specific version return value is generally discarded.</returns>
-        TextureHandle UseTextureFragment(TextureHandle tex, int index, AccessFlags flags = AccessFlags.Write);
+        /// <param name="flags">How this pass will access the texture. Default value is set to AccessFlag.Write </param>
+        void SetRenderAttachment(TextureHandle tex, int index, AccessFlags flags = AccessFlags.Write);
 
         /// <summary>
         /// Use the texture as an input attachment.
         ///
         /// This informs the graph that any shaders in pass will only read from this texture at the current fragment position using the
         /// LOAD_FRAMEBUFFER_INPUT(idx)/LOAD_FRAMEBUFFER_INPUT_MS(idx,sampleIdx) macros. The index passed to LOAD_FRAMEBUFFER_INPUT needs
-        /// to match the index passed to UseTextureFragmentInput for this texture.
+        /// to match the index passed to SetInputAttachment for this texture.
         ///
         /// </summary>
         /// <param name="tex">Texture to use during this pass.</param>
         /// <param name="index">Index the shader will use to access this texture.</param>
-        /// <param name="flags">How this pass will acess the texture. Default value is set to AccessFlag.Read. Writing is currently not supported on any platform. </param>
-        /// <returns>A explicitly versioned handle representing the latest version of the passed in texture.
-        /// Note that except for special cases where you want to refer to a specific version return value is generally discarded.</returns>
-        TextureHandle UseTextureFragmentInput(TextureHandle tex, int index, AccessFlags flags = AccessFlags.Read);
+        /// <param name="flags">How this pass will access the texture. Default value is set to AccessFlag.Read. Writing is currently not supported on any platform. </param>
+        void SetInputAttachment(TextureHandle tex, int index, AccessFlags flags = AccessFlags.Read);
 
         /// <summary>
         /// Use the texture as a depth buffer for the Z-Buffer hardware.  Note you can only test-against and write-to a single depth texture in a pass.
-        /// If you want to write depth to more than one texture you will need to register the second texture as UseTextureFragment and manually calculate
+        /// If you want to write depth to more than one texture you will need to register the second texture as SetRenderAttachment and manually calculate
         /// and write the depth value in the shader.
-        /// Calling UseTextureFragmentDepth twice on the same builder is an error.
+        /// Calling SetRenderAttachmentDepth twice on the same builder is an error.
         /// Write:
         /// Indicate a texture will be written with the current fragment depth by the ROPs (but not for depth reading (i.e. z-test == always)).
         /// Read:
         /// Indicate a texture will be used as an input for the depth testing unit.
         /// </summary>
         /// <param name="tex">Texture to use during this pass.</param>
-        /// <param name="flags">How this pass will acess the texture. Default value is set to AccessFlag.Write </param>
-        /// <returns>A explicitly versioned handle representing the latest version of the passed in texture.
-        /// Note that except for special cases where you want to refer to a specific version return value is generally discarded.</returns>
-        TextureHandle UseTextureFragmentDepth(TextureHandle tex, AccessFlags flags = AccessFlags.Write);
+        /// <param name="flags">How this pass will access the texture. Default value is set to AccessFlag.Write </param>
+        void SetRenderAttachmentDepth(TextureHandle tex, AccessFlags flags = AccessFlags.Write);
 
         /// <summary>
         /// Use the texture as an random access attachment. This is called "Unordered Access View" in DX12 and "Storage Image" in Vulkan.
         ///
-        /// This informs the graph that any shaders in the pass will access the texture as a random access attachment through RWTexture2d&lt;T&gt;, RWTexture3d&lt;T&gt;,... 
+        /// This informs the graph that any shaders in the pass will access the texture as a random access attachment through RWTexture2d&lt;T&gt;, RWTexture3d&lt;T&gt;,...
         /// The texture can then be read/written by regular HLSL commands (including atomics, etc.).
         ///
         /// As in other parts of the Unity graphics APIs random access textures share the index-based slots with render targets and input attachments. See CommandBuffer.SetRandomWriteTarget for details.
         /// </summary>
         /// <param name="tex">Texture to use during this pass.</param>
         /// <param name="index">Index the shader will use to access this texture. This is set in the shader through the `register(ux)`  keyword.</param>
-        /// <param name="flags">How this pass will acess the texture. Default value is set to AccessFlag.ReadWrite.</param>
+        /// <param name="flags">How this pass will access the texture. Default value is set to AccessFlag.ReadWrite.</param>
         /// <returns>A explicitly versioned handle representing the latest version of the passed in texture.
         /// Note that except for special cases where you want to refer to a specific version return value is generally discarded.</returns>
-        TextureHandle UseTextureRandomAccess(TextureHandle tex, int index, AccessFlags flags = AccessFlags.ReadWrite);
+        TextureHandle SetRandomAccessAttachment(TextureHandle tex, int index, AccessFlags flags = AccessFlags.ReadWrite);
 
         /// <summary>
         /// Use the buffer as an random access attachment. This is called "Unordered Access View" in DX12 and "Storage Buffer" in Vulkan.
         ///
-        /// This informs the graph that any shaders in the pass will access the buffer as a random access attachment through RWStructuredBuffer, RWByteAddressBuffer,... 
+        /// This informs the graph that any shaders in the pass will access the buffer as a random access attachment through RWStructuredBuffer, RWByteAddressBuffer,...
         /// The buffer can then be read/written by regular HLSL commands (including atomics, etc.).
         ///
         /// As in other parts of the Unity graphics APIs random access buffers share the index-based slots with render targets and input attachments. See CommandBuffer.SetRandomWriteTarget for details.
         /// </summary>
         /// <param name="tex">Buffer to use during this pass.</param>
         /// <param name="index">Index the shader will use to access this texture. This is set in the shader through the `register(ux)`  keyword.</param>
-        /// <param name="flags">How this pass will acess the buffer. Default value is set to AccessFlag.Read.</param>
+        /// <param name="flags">How this pass will access the buffer. Default value is set to AccessFlag.Read.</param>
         /// <returns>A explicitly versioned handle representing the latest version of the passed in buffer.
         /// Note that except for special cases where you want to refer to a specific version return value is generally discarded.</returns>
         BufferHandle UseBufferRandomAccess(BufferHandle tex, int index, AccessFlags flags = AccessFlags.Read);
@@ -295,7 +249,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <summary>
         /// Use the buffer as an random access attachment. This is called "Unordered Access View" in DX12 and "Storage Buffer" in Vulkan.
         ///
-        /// This informs the graph that any shaders in the pass will access the buffer as a random access attachment through RWStructuredBuffer, RWByteAddressBuffer,... 
+        /// This informs the graph that any shaders in the pass will access the buffer as a random access attachment through RWStructuredBuffer, RWByteAddressBuffer,...
         /// The buffer can then be read/written by regular HLSL commands (including atomics, etc.).
         ///
         /// As in other parts of the Unity graphics APIs random access buffers share the index-based slots with render targets and input attachments. See CommandBuffer.SetRandomWriteTarget for details.
@@ -303,7 +257,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <param name="tex">Buffer to use during this pass.</param>
         /// <param name="index">Index the shader will use to access this texture. This is set in the shader through the `register(ux)`  keyword.</param>
         /// <param name="preserveCounterValue">Whether to leave the append/consume counter value unchanged. The default is to preserve the value.</param>
-        /// <param name="flags">How this pass will acess the buffer. Default value is set to AccessFlag.Read.</param>
+        /// <param name="flags">How this pass will access the buffer. Default value is set to AccessFlag.Read.</param>
         /// <returns>A explicitly versioned handle representing the latest version of the passed in buffer.
         /// Note that except for special cases where you want to refer to a specific version return value is generally discarded.</returns>
         BufferHandle UseBufferRandomAccess(BufferHandle tex, int index, bool preserveCounterValue, AccessFlags flags = AccessFlags.Read);

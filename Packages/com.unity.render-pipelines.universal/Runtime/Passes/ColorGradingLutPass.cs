@@ -1,5 +1,5 @@
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal.Internal
 {
@@ -281,12 +281,13 @@ namespace UnityEngine.Rendering.Universal.Internal
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("Color Lut Pass", out var passData, base.profilingSampler))
             {
                 this.ConfigureDescriptor(in postProcessingData, out var lutDesc, out var filterMode);
-                internalColorLut = UniversalRenderer.CreateRenderGraphTexture(renderGraph, lutDesc, "_InternalGradingLut", true, FilterMode.Bilinear);
+                internalColorLut = UniversalRenderer.CreateRenderGraphTexture(renderGraph, lutDesc, "_InternalGradingLut", true, filterMode);
 
                 passData.cameraData = cameraData;
                 passData.postProcessingData = postProcessingData;
 
-                passData.internalLut = builder.UseTextureFragment(internalColorLut, 0, IBaseRenderGraphBuilder.AccessFlags.WriteAll);
+                passData.internalLut = internalColorLut;
+                builder.SetRenderAttachment(internalColorLut, 0, AccessFlags.WriteAll);
                 passData.lutBuilderLdr = m_LutBuilderLdr;
                 passData.lutBuilderHdr = m_LutBuilderHdr;
                 passData.allowColorGradingACESHDR = m_AllowColorGradingACESHDR;

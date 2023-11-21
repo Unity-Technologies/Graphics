@@ -2,10 +2,13 @@ using System;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-public class TabButton : VisualElement
+[UxmlElement]
+public partial class TabButton : VisualElement
 {
+    [Obsolete("UxmlFactory is deprecated and will be removed. Use UxmlElementAttribute instead.", false)]
     internal new class UxmlFactory : UxmlFactory<TabButton, UxmlTraits> { }
 
+    [Obsolete("UxmlTraits is deprecated and will be removed. Use UxmlElementAttribute instead.", false)]
     internal new class UxmlTraits : VisualElement.UxmlTraits
     {
         private readonly UxmlStringAttributeDescription m_Text = new UxmlStringAttributeDescription { name = "text" };
@@ -29,8 +32,17 @@ public class TabButton : VisualElement
     private Label m_Label;
 
     public bool IsCloseable { get; set; }
+
+    [UxmlAttribute("target")]
     public string TargetId { get; private set; }
     public VisualElement Target { get; set; }
+
+    [UxmlAttribute]
+    internal string text
+    { 
+        get => m_Label.text;
+        set => m_Label.text = value;
+    }
 
     public event Action<TabButton> OnSelect;
     public event Action<TabButton> OnClose;

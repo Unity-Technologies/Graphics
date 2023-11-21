@@ -468,6 +468,9 @@ EditorBuildSettings:
     path: Assets/Scenes/5023_PathTracing_MeshInstancing_SG_Lit.unity
     guid: ec1f3295dcc2dc44eb68106c1619f321
   - enabled: 1
+    path: Assets/Scenes/5026_PathTracing_BoxLight.unity
+    guid: 45b52694c362f2541aae5f1c87c4ce34
+  - enabled: 1
     path: Assets/Scenes/6000_VertexFormats.unity
     guid: 6788ab4459664394f96537c7ad864afb
   - enabled: 1

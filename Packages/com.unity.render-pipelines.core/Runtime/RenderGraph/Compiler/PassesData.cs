@@ -1,28 +1,32 @@
 using System;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine.Rendering;
 using System.Collections.Generic;
 
-namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassCompiler
+namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 {
     // Per pass info on inputs to the pass
+    [DebuggerDisplay("PassInputData: Res({resource.index})")]
     internal struct PassInputData
     {
         public ResourceHandle resource;
     }
 
     // Per pass info on outputs to the pass
+    [DebuggerDisplay("PassOutputData: Res({resource.index})")] 
     internal struct PassOutputData
     {
         public ResourceHandle resource;
     }
 
     // Per pass fragment (attachment) info
+    [DebuggerDisplay("PassFragmentData: Res({resource.index}):{accessFlags}")]
     internal struct PassFragmentData
     {
         public ResourceHandle resource;
-        public IBaseRenderGraphBuilder.AccessFlags accessFlags;
+        public AccessFlags accessFlags;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override int GetHashCode()
@@ -41,6 +45,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
     }
 
     // Per pass random write texture info
+    [DebuggerDisplay("PassRandomWriteData: Res({resource.index}):{index}:{preserveCounterValue}")]
     internal struct PassRandomWriteData
     {
         public ResourceHandle resource;
@@ -70,19 +75,13 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
 
         public int passId; // Index of self in the passData list, can we calculate this somehow in c#? would use offsetof in c++
         public RenderGraphPassType type;
-        public bool asyncCompute;
-        public bool hasSideEffects;
-        public bool culled;
         public bool hasFoveatedRasterization;
         public int tag; // Arbitrary per node int used by various graph analysis tools
 
         public PassMergeState mergeState;
         public int nativePassIndex; // Index of the native pass this pass belongs to
         public int nativeSubPassIndex; // Index of the native subpass this pass belongs to
-        public bool beginNativeSubpass; // If true this is the first graph pass of a merged native subpass
 
-        public bool isSource;
-        public bool isSink;
         public int firstInput; //base+offset in CompilerContextData.inputData (use the InputNodes iterator to iterate this more easily)
         public int numInputs;
         public int firstOutput; //base+offset in CompilerContextData.outputData (use the OutputNodes iterator to iterate this more easily)
@@ -98,15 +97,22 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
         public int firstDestroy; //base+offset in CompilerContextData.destroyData (use the InputNodes iterator to iterate this more easily)
         public int numDestroyed;
 
-        public bool fragmentInfoValid;
         public int fragmentInfoWidth;
         public int fragmentInfoHeight;
         public int fragmentInfoVolumeDepth;
         public int fragmentInfoSamples;
-        public bool fragmentInfoHasDepth;
-
-        public bool insertGraphicsFence; // Whether this pass should insert a fence into the command buffer
+        
         public int waitOnGraphicsFencePassId; // -1 if no fence wait is needed, otherwise the passId to wait on
+
+        public bool asyncCompute;
+        public bool hasSideEffects;
+        public bool culled;
+        public bool beginNativeSubpass; // If true this is the first graph pass of a merged native subpass
+        public bool isSource;
+        public bool isSink;
+        public bool fragmentInfoValid;
+        public bool fragmentInfoHasDepth;
+        public bool insertGraphicsFence; // Whether this pass should insert a fence into the command buffer
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Name GetName(CompilerContextData ctx) => ctx.GetFullPassName(passId);
@@ -361,6 +367,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
     }
 
     // Data per attachment of a native renderpass
+    [DebuggerDisplay("Res({handle.index}) : {loadAction} : {storeAction} : {memoryless}")]
     internal struct NativePassAttachment
     {
         public ResourceHandle handle;
@@ -369,7 +376,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
         public bool memoryless;
     }
 
-#if UNITY_EDITOR
     internal enum LoadReason
     {
         InvalidReason,
@@ -377,17 +383,20 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
         LoadPreviouslyWritten,
         ClearImported,
         ClearCreated,
-        FullyRewritten
+        FullyRewritten,
+
+        Count
     }
 
+    [DebuggerDisplay("{reason} : {passId}")]
     internal struct LoadAudit
     {
-        public static string[] LoadReasonMessages = new string[] {
+        public static readonly string[] LoadReasonMessages = {
             "Invalid reason",
-            "The resource is imported in the graph and loaded to fetch the existing buffer contents.",
-            "The resource is written by '{pass}' exexuted previously in the graph. The data is loaded.",
+            "The resource is imported in the graph and loaded to retrieve the existing buffer contents.",
+            "The resource is written by {pass} executed previously in the graph. The data is loaded.",
             "The resource is imported in the graph but was imported with the 'clear on first use' option enabled. The data is cleared.",
-            "The resource is created this pass and cleared on first use.",
+            "The resource is created in this pass and cleared on first use.",
             "The pass indicated it will rewrite the full resource contents. Existing contents are not loaded or cleared.",
         };
 
@@ -396,6 +405,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
 
         public LoadAudit(LoadReason setReason, int setPassId = -1)
         {
+#if UNITY_EDITOR
+            Debug.Assert(LoadReasonMessages.Length == (int)LoadReason.Count,
+                $"Make sure {nameof(LoadReasonMessages)} is in sync with {nameof(LoadReason)}");
+#endif
+
             reason = setReason;
             passId = setPassId;
         }
@@ -409,16 +423,19 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
         DiscardImported,
         DiscardUnused,
         DiscardBindMs,
-        NoMSAABuffer
+        NoMSAABuffer,
+
+        Count
     }
 
+    [DebuggerDisplay("{reason} : {passId} / MSAA {msaaReason} : {msaaPassId}")]
     internal struct StoreAudit
     {
-        public static string[] StoreReasonMessages = new string[] {
+        public static readonly string[] StoreReasonMessages = {
             "Invalid reason",
             "The resource is imported in the graph. The data is stored so results are available outside the graph.",
-            "The resource is read by pass '{pass}' executed later in the graph. The data is stored.",
-            "The resource is imported but the import was with the `discard on last use` option enabled. The data is discarded.",
+            "The resource is read by pass {pass} executed later in the graph. The data is stored.",
+            "The resource is imported but the import was with the 'discard on last use' option enabled. The data is discarded.",
             "The resource is written by this pass but no later passes are using the results. The data is discarded.",
             "The resource was created as MSAA only resource, the data can never be resolved.",
             "The resource is an single sample resource, there is no multi-sample data to handle.",
@@ -431,13 +448,17 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
 
         public StoreAudit(StoreReason setReason, int setPassId = -1, StoreReason setMsaaReason = StoreReason.NoMSAABuffer, int setMsaaPassId = -1)
         {
+#if UNITY_EDITOR
+            Debug.Assert(StoreReasonMessages.Length == (int)StoreReason.Count,
+                $"Make sure {nameof(StoreReasonMessages)} is in sync with {nameof(StoreReason)}");
+#endif
+
             reason = setReason;
             passId = setPassId;
             msaaReason = setMsaaReason;
             msaaPassId = setMsaaPassId;
         }
     }
-#endif
 
     internal enum PassBreakReason
     {
@@ -449,9 +470,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
         AttachmentLimitReached, // Adding the next pass would have used more attachments than allowed
         EndOfGraph, // The last pass in the graph was reached
         FRStateMismatch, // One pass is using foveated rendering and the other not
-        Merged // I actually got merged
+        Merged, // I actually got merged
+
+        Count
     }
 
+    [DebuggerDisplay("{reason} : {breakPass}")]
     internal struct PassBreakAudit
     {
         public PassBreakReason reason;
@@ -459,18 +483,22 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
 
         public PassBreakAudit(PassBreakReason reason, int breakPass)
         {
+#if UNITY_EDITOR
+            Debug.Assert(BreakReasonMessages.Length == (int)PassBreakReason.Count,
+                $"Make sure {nameof(BreakReasonMessages)} is in sync with {nameof(PassBreakReason)}");
+#endif
+
             this.reason = reason;
             this.breakPass = breakPass; // This is not so simple as finding the next pass as it might be culled etc, so we store it to be sure we get the right pass
         }
 
-        public static string[] BreakReasonMessages = new string[] {
+        public static readonly string[] BreakReasonMessages = {
             "The native render pass optimizer never ran on this pass. Pass is standalone and not merged.",
             "The render target sizes of the next pass do not match.",
-            "This pass has a different depth buffer enable state than the next pass. (One used depth the other not)",
-            "The next data output by this pass as a regular texture.",
-            "The next pass is not a raster pass.",
+            "The next pass reads data output by this pass as a regular texture.",
+            "The next pass is not a raster render pass.",
             "The next pass uses a different depth buffer. All passes in the native render pass need to use the same depth buffer.",
-            "The limit of 8 native pass attachments would be exceeded when merging with the next pass.",
+            $"The limit of {FixedAttachmentArray<PassFragmentData>.MaxAttachments} native pass attachments would be exceeded when merging with the next pass.",
             "This is the last pass in the graph, there are no other passes to merge.",
             "The the next pass uses a different foveated rendering state",
             "The next pass got merged into this pass.",
@@ -480,27 +508,25 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
     // Data per native renderpass
     internal struct NativePassData
     {
+        public FixedAttachmentArray<LoadAudit> loadAudit;
+        public FixedAttachmentArray<StoreAudit> storeAudit;
+        public PassBreakAudit breakAudit;
+
+        public FixedAttachmentArray<PassFragmentData> fragments;
+        public FixedAttachmentArray<NativePassAttachment> attachments;
+
         // Index of the first graph pass this native pass encapsulates
         public int firstGraphPass; // Offset+count in context pass array
         public int numGraphPasses;
 
         public int firstNativeSubPass; // Offset+count in context subpass array
         public int numNativeSubPasses;
-
-        public FixedAttachmentArray<PassFragmentData> fragments;
-        public FixedAttachmentArray<NativePassAttachment> attachments;
         public int width;
         public int height;
         public int volumeDepth;
         public int samples;
         public bool hasDepth;
         public bool hasFoveatedRasterization;
-
-#if UNITY_EDITOR
-        public FixedAttachmentArray<LoadAudit> loadAudit;
-        public FixedAttachmentArray<StoreAudit> storeAudit;
-        public PassBreakAudit breakAudit;
-#endif
 
         public NativePassData(ref PassData pass, CompilerContextData ctx)
         {
@@ -519,11 +545,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
             hasDepth = pass.fragmentInfoHasDepth;
             hasFoveatedRasterization = pass.hasFoveatedRasterization;
             
-#if UNITY_EDITOR
             loadAudit = new FixedAttachmentArray<LoadAudit>();
             storeAudit = new FixedAttachmentArray<StoreAudit>();
             breakAudit = new PassBreakAudit(PassBreakReason.NotOptimized, -1);
-#endif
 
             foreach (ref readonly var fragment in pass.Fragments(ctx))
             {
@@ -542,10 +566,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
             numGraphPasses = 0;
             attachments.Clear();
             fragments.Clear();
-#if UNITY_EDITOR
             loadAudit.Clear();
             storeAudit.Clear();
-#endif
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

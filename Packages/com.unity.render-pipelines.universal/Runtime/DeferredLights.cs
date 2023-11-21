@@ -5,7 +5,7 @@ using UnityEngine.Profiling;
 using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 using static Unity.Mathematics.math;
 //#define URP_HAS_BURST
 
@@ -276,7 +276,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// </summary>
         internal void SetupRenderGraphLights(RenderGraph renderGraph, UniversalCameraData cameraData, UniversalLightData lightData)
         {
-            using (var builder = renderGraph.AddLowLevelPass<SetupLightPassData>("SetupDeferredLights", out var passData,
+            using (var builder = renderGraph.AddUnsafePass<SetupLightPassData>("SetupDeferredLights", out var passData,
                 s_SetupDeferredLights))
             {
                 passData.cameraData = cameraData;
@@ -285,9 +285,9 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 builder.AllowPassCulling(false);
 
-                builder.SetRenderFunc((SetupLightPassData data, LowLevelGraphContext rgContext) =>
+                builder.SetRenderFunc((SetupLightPassData data, UnsafeGraphContext rgContext) =>
                 {
-                    data.deferredLights.SetupLights(rgContext.legacyCmd, data.cameraData, data.lightData);
+                    data.deferredLights.SetupLights(CommandBufferHelpers.GetNativeCommandBuffer(rgContext.cmd), data.cameraData, data.lightData);
                 });
             }
         }
@@ -338,7 +338,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     cmd.SetKeyword(ShaderGlobalKeywords.RenderPassEnabled, this.UseFramebufferFetch && (cameraData.cameraType == CameraType.Game || camera.cameraType == CameraType.SceneView));
                     cmd.SetKeyword(ShaderGlobalKeywords.LightLayers, UseLightLayers && !CoreUtils.IsSceneLightingDisabled(camera));
 
-                    RenderingLayerUtils.SetupProperties(CommandBufferHelpers.GetRasterCommandBuffer(cmd), RenderingLayerMaskSize);
+                    RenderingLayerUtils.SetupProperties(cmd, RenderingLayerMaskSize);
                 }
             }
 
@@ -604,7 +604,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // This does 2 things:
                 // - baked geometry are skipped (do not receive dynamic lighting)
                 // - non-baked geometry (== non-static geometry) use shadowMask/occlusionProbes to emulate baked shadows influences.
-                cmd.SetKeyword(ref ShaderGlobalKeywords._DEFERRED_MIXED_LIGHTING, this.UseShadowMask);
+                cmd.SetKeyword(ShaderGlobalKeywords._DEFERRED_MIXED_LIGHTING, this.UseShadowMask);
 
                 // This must be set for each eye in XR mode multipass.
                 SetupMatrixConstants(cmd, cameraData);
@@ -615,16 +615,16 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 RenderStencilLights(cmd, lightData, shadowData, cameraData.renderer.stripShadowsOffVariants);
 
-                cmd.SetKeyword(ref ShaderGlobalKeywords._DEFERRED_MIXED_LIGHTING, false);
+                cmd.SetKeyword(ShaderGlobalKeywords._DEFERRED_MIXED_LIGHTING, false);
 
                 // Legacy fog (Windows -> Rendering -> Lighting Settings -> Fog)
                 RenderFog(cmd, cameraData.camera.orthographic);
             }
 
             // Restore shader keywords
-            cmd.SetKeyword(ref ShaderGlobalKeywords.AdditionalLightShadows, shadowData.isKeywordAdditionalLightShadowsEnabled);
+            cmd.SetKeyword(ShaderGlobalKeywords.AdditionalLightShadows, shadowData.isKeywordAdditionalLightShadowsEnabled);
             ShadowUtils.SetSoftShadowQualityShaderKeywords(cmd, shadowData);
-            cmd.SetKeyword(ref ShaderGlobalKeywords.LightCookies, m_LightCookieManager != null && m_LightCookieManager.IsKeywordLightCookieEnabled);
+            cmd.SetKeyword(ShaderGlobalKeywords.LightCookies, m_LightCookieManager != null && m_LightCookieManager.IsKeywordLightCookieEnabled);
         }
 
         // adapted from ForwardLights.SetupShaderLightConstants
@@ -798,7 +798,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (m_FullscreenMesh == null)
                 m_FullscreenMesh = CreateFullscreenMesh();
 
-            cmd.SetKeyword(ref ShaderGlobalKeywords._DIRECTIONAL, true);
+            cmd.SetKeyword(ShaderGlobalKeywords._DIRECTIONAL, true);
 
             // TODO bundle extra directional lights rendering by batches of 8.
             // Also separate shadow caster lights from non-shadow caster.
@@ -845,8 +845,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // Update keywords states
                 SetAdditionalLightsShadowsKeyword(ref cmd, stripShadowsOffVariants, shadowData.additionalLightShadowsEnabled, hasDeferredShadows, isFirstLight, ref lastShadowsKeywordState);
                 SetSoftShadowsKeyword(cmd, shadowData, light, hasDeferredShadows, isFirstLight, ref lastSoftShadowsKeywordState);
-                cmd.SetKeyword(ref ShaderGlobalKeywords._DEFERRED_FIRST_LIGHT, isFirstLight); // First directional light applies SSAO
-                cmd.SetKeyword(ref ShaderGlobalKeywords._DEFERRED_MAIN_LIGHT, isMainLight); // main directional light use different uniform constants from additional directional lights
+                cmd.SetKeyword(ShaderGlobalKeywords._DEFERRED_FIRST_LIGHT, isFirstLight); // First directional light applies SSAO
+                cmd.SetKeyword(ShaderGlobalKeywords._DEFERRED_MAIN_LIGHT, isMainLight); // main directional light use different uniform constants from additional directional lights
 
                 // Update Global properties
                 cmd.SetGlobalVector(ShaderConstants._LightColor, lightColor); // VisibleLight.finalColor already returns color in active color space
@@ -860,7 +860,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 isFirstLight = false;
             }
 
-            cmd.SetKeyword(ref ShaderGlobalKeywords._DIRECTIONAL, false);
+            cmd.SetKeyword(ShaderGlobalKeywords._DIRECTIONAL, false);
         }
 
         void RenderStencilPointLights(RasterCommandBuffer cmd, bool stripShadowsOffVariants, UniversalLightData lightData, UniversalShadowData shadowData, NativeArray<VisibleLight> visibleLights)
@@ -868,7 +868,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (m_SphereMesh == null)
                 m_SphereMesh = CreateSphereMesh();
 
-            cmd.SetKeyword(ref ShaderGlobalKeywords._POINT, true);
+            cmd.SetKeyword(ShaderGlobalKeywords._POINT, true);
 
             bool isFirstLight = true;
             bool hasLightCookieManager = m_LightCookieManager != null;
@@ -931,7 +931,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 isFirstLight = false;
             }
 
-            cmd.SetKeyword(ref ShaderGlobalKeywords._POINT, false);
+            cmd.SetKeyword(ShaderGlobalKeywords._POINT, false);
         }
 
         void RenderStencilSpotLights(RasterCommandBuffer cmd, bool stripShadowsOffVariants, UniversalLightData lightData, UniversalShadowData shadowData, NativeArray<VisibleLight> visibleLights)
@@ -939,7 +939,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (m_HemisphereMesh == null)
                 m_HemisphereMesh = CreateHemisphereMesh();
 
-            cmd.SetKeyword(ref ShaderGlobalKeywords._SPOT, true);
+            cmd.SetKeyword(ShaderGlobalKeywords._SPOT, true);
 
             bool isFirstLight = true;
             bool hasLightCookieManager = m_LightCookieManager != null;
@@ -1005,7 +1005,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 isFirstLight = false;
             }
 
-            cmd.SetKeyword(ref ShaderGlobalKeywords._SPOT, false);
+            cmd.SetKeyword(ShaderGlobalKeywords._SPOT, false);
         }
 
         void RenderSSAOBeforeShading(RasterCommandBuffer cmd)
@@ -1222,7 +1222,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             // Update the keyword state
             lastShadowsKeyword = shouldEnable;
-            cmd.SetKeyword(ref ShaderGlobalKeywords.AdditionalLightShadows, shouldEnable);
+            cmd.SetKeyword(ShaderGlobalKeywords.AdditionalLightShadows, shouldEnable);
         }
 
         // Enable/Disable the _SHADOWS_SOFT keyword if it has changed...
@@ -1250,7 +1250,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (shouldOverride || newState != lastLightCookieState)
             {
                 lastLightCookieState = newState;
-                cmd.SetKeyword(ref ShaderGlobalKeywords.LightCookies, newState);
+                cmd.SetKeyword(ShaderGlobalKeywords.LightCookies, newState);
             }
 
             if (shouldOverride || cookieLightIndex != lastCookieLightIndex)

@@ -30,6 +30,14 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty deepLearningSuperSamplingUseOptimalSettings;
         public SerializedProperty deepLearningSuperSamplingSharpening;
 
+        public SerializedProperty allowFidelityFX2SuperResolution;
+        public SerializedProperty fidelityFX2SuperResolutionUseCustomQualitySettings;
+        public SerializedProperty fidelityFX2SuperResolutionQuality;
+        public SerializedProperty fidelityFX2SuperResolutionUseCustomAttributes;
+        public SerializedProperty fidelityFX2SuperResolutionUseOptimalSettings;
+        public SerializedProperty fidelityFX2SuperResolutionEnableSharpening;
+        public SerializedProperty fidelityFX2SuperResolutionSharpening;
+
         public SerializedProperty fsrOverrideSharpness;
         public SerializedProperty fsrSharpness;
 
@@ -85,6 +93,14 @@ namespace UnityEditor.Rendering.HighDefinition
             deepLearningSuperSamplingUseCustomAttributes = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.deepLearningSuperSamplingUseCustomAttributes);
             deepLearningSuperSamplingUseOptimalSettings = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.deepLearningSuperSamplingUseOptimalSettings);
             deepLearningSuperSamplingSharpening = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.deepLearningSuperSamplingSharpening);
+
+            allowFidelityFX2SuperResolution = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.allowFidelityFX2SuperResolution);
+            fidelityFX2SuperResolutionUseCustomQualitySettings = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.fidelityFX2SuperResolutionUseCustomQualitySettings);
+            fidelityFX2SuperResolutionQuality = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.fidelityFX2SuperResolutionQuality);
+            fidelityFX2SuperResolutionUseCustomAttributes = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.fidelityFX2SuperResolutionUseCustomAttributes);
+            fidelityFX2SuperResolutionUseOptimalSettings = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.fidelityFX2SuperResolutionUseOptimalSettings);
+            fidelityFX2SuperResolutionEnableSharpening = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.fidelityFX2SuperResolutionEnableSharpening);
+            fidelityFX2SuperResolutionSharpening = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.fidelityFX2SuperResolutionSharpening);
 
             fsrOverrideSharpness = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.fsrOverrideSharpness);
             fsrSharpness = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.fsrSharpness);

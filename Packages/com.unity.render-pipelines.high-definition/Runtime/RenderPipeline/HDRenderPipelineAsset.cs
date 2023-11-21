@@ -40,7 +40,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Migrate();
             ///////////////////////////
 
-            HDRenderPipeline.SetupDLSSFeature();
+            HDDynamicResolutionPlatformCapabilities.SetupFeatures();
         }
 
         void Reset()
@@ -208,6 +208,14 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool virtualTexturingEnabled { get { return true; } }
 
         /// <summary>
+        /// Indicates if this render pipeline instance supports Adaptive Probe Volume.
+        /// </summary>
+        public bool supportProbeVolume
+        {
+            get => currentPlatformRenderPipelineSettings.supportProbeVolume;
+        }
+
+        /// <summary>
         /// Indicates the maximum number of SH Bands used by this render pipeline instance.
         /// </summary>
         public ProbeVolumeSHBands maxSHBands
@@ -221,16 +229,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        /// <summary>
-        /// Returns the projects global ProbeVolumeSceneData instance.
-        /// </summary>
-        public ProbeVolumeSceneData probeVolumeSceneData
-        {
-            get
-            {
-                return HDRenderPipelineGlobalSettings.instance?.apvScenesData;
-            }
-        }
 
         /// <summary>
         /// Global settings struct for GPU Resident Drawer
@@ -240,6 +238,7 @@ namespace UnityEngine.Rendering.HighDefinition
             mode = m_RenderPipelineSettings.gpuResidentDrawerSettings.mode,
             supportDitheringCrossFade = QualitySettings.enableLODCrossFade,
             allowInEditMode = true,
+            smallMeshScreenPercentage = m_RenderPipelineSettings.gpuResidentDrawerSettings.smallMeshScreenPercentage,
 #if UNITY_EDITOR
             pickingShader = Shader.Find("Hidden/HDRP/BRGPicking"),
 #endif
@@ -263,5 +262,10 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        /// <summary>
+        /// Returns the projects global ProbeVolumeSceneData instance.
+        /// </summary>
+        [Obsolete("This property is no longer necessary.")]
+        public ProbeVolumeSceneData probeVolumeSceneData => null;
     }
 }

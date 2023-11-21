@@ -26,8 +26,10 @@ namespace UnityEngine.Rendering
         [SerializeField] [FormerlySerializedAs("streamableAssetPath")]string m_StreamableAssetPath = ""; // At runtime, path of the asset within the StreamingAssets data folder.
         [SerializeField] [FormerlySerializedAs("elementSize")]int m_ElementSize; // Size of an element. Can be a data chunk, a brick, etc.
         [SerializeField] [FormerlySerializedAs("streamableCellDescs")] SerializedDictionary<int, StreamableCellDesc> m_StreamableCellDescs = new SerializedDictionary<int, StreamableCellDesc>();
+        [SerializeField] TextAsset m_Asset;
 
         public string assetGUID { get => m_AssetGUID; }
+        public TextAsset asset { get => m_Asset; }
         public int elementSize { get => m_ElementSize; }
         public SerializedDictionary<int, StreamableCellDesc> streamableCellDescs { get => m_StreamableCellDescs; }
 
@@ -63,6 +65,10 @@ namespace UnityEngine.Rendering
 #if UNITY_EDITOR
             return File.Exists(GetAssetPath());
 #else
+            // When not using streaming assets, this reference should always be valid.
+            if (m_Asset != null)
+                return true;
+
             FileInfoResult result;
             AsyncReadManager.GetFileInfo(GetAssetPath(), &result).JobHandle.Complete();
             return result.FileState == FileState.Exists;
@@ -74,6 +80,11 @@ namespace UnityEngine.Rendering
         {
             AssetDatabase.RenameAsset(AssetDatabase.GUIDToAssetPath(m_AssetGUID), newName);
             m_FinalAssetPath = "";
+        }
+
+        public void UpdateAssetReference(bool useStreamingAsset)
+        {
+            m_Asset = useStreamingAsset ? null : AssetDatabase.LoadAssetAtPath<TextAsset>(GetAssetPath());
         }
 #endif
 

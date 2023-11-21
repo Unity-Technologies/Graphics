@@ -1,4 +1,5 @@
 using System;
+using UnityEditor.SearchService;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -14,9 +15,16 @@ namespace UnityEditor.VFX.UI
         {
             styleSheets.Add(VFXView.LoadStyleSheet("ObjectPropertyRM"));
 
+            if (m_Provider.portType.IsSubclassOf(typeof(Texture)))
+            {
+                m_ObjectField = new ObjectField { objectType = typeof(Texture), allowSceneObjects = false };
+                m_ObjectField.onObjectSelectorShow += OnShowObjectSelector;
+            }
+            else
+            {
+                m_ObjectField = new ObjectField { objectType = m_Provider.portType, allowSceneObjects = false };
+            }
 
-            m_ObjectField = new ObjectField { objectType = m_Provider.portType };
-            m_ObjectField.allowSceneObjects = false;
             m_ObjectField.RegisterCallback<ChangeEvent<UnityObject>>(OnValueChanged);
             Add(m_ObjectField);
         }
@@ -50,8 +58,29 @@ namespace UnityEditor.VFX.UI
 
         private void OnValueChanged(ChangeEvent<UnityObject> evt)
         {
-            SetValue(evt.newValue);
-            NotifyValueChanged();
+            var newValueType = evt.newValue != null ? evt.newValue.GetType() : null;
+            if (newValueType != null && newValueType != m_Provider.portType && (newValueType != typeof(RenderTexture) || m_Provider.portType == typeof(CubemapArray)))
+            {
+                m_ObjectField.SetValueWithoutNotify(evt.previousValue);
+            }
+            else
+            {
+                SetValue(evt.newValue);
+                NotifyValueChanged();
+            }
+        }
+
+        private void OnShowObjectSelector()
+        {
+            var searchFilter = $"t:{m_Provider.portType.Name}";
+            if (m_Provider.portType != typeof(CubemapArray))
+            {
+                searchFilter += ObjectSelectorSearch.HasEngineOverride()
+                    ? " or t:RenderTexture"
+                    : " t:RenderTexture";
+            }
+
+            ObjectSelector.get.searchFilter = searchFilter;
         }
     }
 }

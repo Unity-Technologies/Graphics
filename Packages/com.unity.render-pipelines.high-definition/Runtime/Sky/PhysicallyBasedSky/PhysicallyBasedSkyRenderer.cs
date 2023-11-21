@@ -241,7 +241,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeTextureParam(s_SkyLUTGenerator, s_SkyViewKernel, HDShaderIDs._MultiScatteringLUT, m_MultiScatteringLut);
                 cmd.SetComputeTextureParam(s_SkyLUTGenerator, s_SkyViewKernel, HDShaderIDs._SkyViewLUT_RW, m_SkyViewLut);
                 cmd.SetComputeBufferParam(s_SkyLUTGenerator, s_SkyViewKernel, HDShaderIDs._CelestialBodyDatas, s_CelestialBodyBuffer);
-                cmd.SetComputeFloatParam(s_SkyLUTGenerator, HDShaderIDs._SkyLUTScale, 1.0f / s_CelestialLightExposure);
 
                 cmd.DispatchCompute(s_SkyLUTGenerator, s_SkyViewKernel,
                     (int)PbrSkyConfig.SkyViewLutWidth / 8,
@@ -253,7 +252,6 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 var cmd = builtinParams.commandBuffer;
                 cmd.SetComputeMatrixParam(s_SkyLUTGenerator, HDShaderIDs._PixelCoordToViewDirWS, builtinParams.pixelCoordToViewDirMatrix);
-                cmd.SetComputeFloatParam(s_SkyLUTGenerator, HDShaderIDs._SkyLUTScale, 1.0f / s_CelestialLightExposure);
 
                 int kernel = IsWorldSpace() ? s_AtmosphericScatteringKernelWorld : s_AtmosphericScatteringKernelCamera;
 

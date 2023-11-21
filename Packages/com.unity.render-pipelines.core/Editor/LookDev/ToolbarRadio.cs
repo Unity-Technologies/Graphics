@@ -7,9 +7,6 @@ namespace UnityEditor.Rendering.LookDev
 {
     class ToolbarRadio : UIElements.Toolbar, INotifyValueChanged<int>
     {
-        public new class UxmlFactory : UxmlFactory<ToolbarRadio, UxmlTraits> { }
-        public new class UxmlTraits : Button.UxmlTraits { }
-
         List<ToolbarToggle> radios = new List<ToolbarToggle>();
 
         public new static readonly string ussClassName = "unity-toolbar-radio";

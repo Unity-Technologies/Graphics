@@ -22,6 +22,8 @@ namespace UnityEngine.Rendering.Universal
 
         #region Version system
 
+        internal bool IsAtLastVersion() => k_LastVersion == m_AssetVersion;
+
         internal const int k_LastVersion = 5;
 
 #pragma warning disable CS0414
@@ -290,6 +292,8 @@ namespace UnityEngine.Rendering.Universal
 
         #endregion
 
+#pragma warning disable 618
+#pragma warning disable 612
         #region APV
         // This is temporarily here until we have a core place to put it shared between pipelines.
         [SerializeField]
@@ -303,6 +307,8 @@ namespace UnityEngine.Rendering.Universal
             apvScenesData.SetParentObject(this);
             return apvScenesData;
         }
+#pragma warning restore 612
+#pragma warning restore 618
 
         #endregion
     }

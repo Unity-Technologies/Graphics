@@ -128,8 +128,8 @@ public class LightScriptCreator : MonoBehaviour
                     hdLight.useContactShadow.useOverride = true;
                     hdLight.useContactShadow.@override = true;
                     break;
-                case 10: // Light Layer
-                    hdLight.lightlayersMask = RenderingLayerMask.RenderingLayer2;
+                case 10: // Light Layers
+                    hdLight.lightlayersMask = UnityEngine.Rendering.HighDefinition.RenderingLayerMask.RenderingLayer2;
                     break;
                 case 11: // Affect diffuse
                     hdLight.affectDiffuse = false;

@@ -414,6 +414,7 @@ namespace UnityEngine.Rendering
             var lightmapIndex = rendererData.lightmapIndex[i];
             var packedRendererData = rendererData.packedRendererData[i];
             var rendererPriority = rendererData.rendererPriority[i];
+            var lodGroupID = rendererData.lodGroupID[i];
 
             int instanceCount;
             int instanceOffset;
@@ -436,6 +437,10 @@ namespace UnityEngine.Rendering
             const int kLightmapIndexInfluenceOnly = 0xfffe;
 
             var overridenComponents = InstanceComponentGroup.Default;
+
+            // Add per-instance wind parameters
+            if(packedRendererData.hasTree)
+                overridenComponents |= InstanceComponentGroup.Wind;
 
             var lmIndexMasked = lightmapIndex & kLightmapIndexMask;
 
@@ -489,7 +494,8 @@ namespace UnityEngine.Rendering
 
                 batchMaterialHash.TryGetValue(materialID, out BatchMaterialID batchMaterialID);
 
-                var flags = BatchDrawCommandFlags.None;
+                // We always provide crossfade value packed in instance index. We don't use None even if there is no LOD to not split the batch.
+                var flags = BatchDrawCommandFlags.LODCrossFadeValuePacked;
 
                 // assume that a custom motion vectors pass contains deformation motion, so should always output motion vectors
                 // (otherwise this flag is set dynamically during culling only when the transform is changing)
@@ -743,12 +749,20 @@ namespace UnityEngine.Rendering
         private int m_CachedInstanceDataBufferLayoutVersion;
 
         private OnCullingCompleteCallback m_OnCompleteCallback;
-        public InstanceCullingBatcher(RenderersBatchersContext batcherContext, InstanceCullingBatcherDesc desc)
+
+        public InstanceCullingBatcher(RenderersBatchersContext batcherContext, InstanceCullingBatcherDesc desc, BatchRendererGroup.OnFinishedCulling onFinishedCulling)
         {
             m_BatchersContext = batcherContext;
             m_DrawInstanceData = new CPUDrawInstanceData();
             m_DrawInstanceData.Initialize();
-            m_BRG = new BatchRendererGroup(OnPerformCulling, IntPtr.Zero);
+
+            m_BRG = new BatchRendererGroup(new BatchRendererGroupCreateInfo()
+            {
+                cullingCallback = OnPerformCulling,
+                finishedCullingCallback = onFinishedCulling,
+                userContext = IntPtr.Zero
+            });
+
 #if UNITY_EDITOR
             if (desc.brgPicking != null)
             {
@@ -777,6 +791,7 @@ namespace UnityEngine.Rendering
             };
             m_BRG.SetEnabledViewTypes(viewTypes);
 #endif
+
             m_Culler = new InstanceCuller();
             m_Culler.Init(batcherContext.debugStats);
 
@@ -787,8 +802,11 @@ namespace UnityEngine.Rendering
 
             m_GlobalBatchIDs = new NativeParallelHashMap<uint, BatchID>(6, Allocator.Persistent);
             m_GlobalBatchIDs.Add((uint)InstanceComponentGroup.Default, GetBatchID(InstanceComponentGroup.Default));
+            m_GlobalBatchIDs.Add((uint)InstanceComponentGroup.DefaultWind, GetBatchID(InstanceComponentGroup.DefaultWind));
             m_GlobalBatchIDs.Add((uint)InstanceComponentGroup.DefaultLightProbe, GetBatchID(InstanceComponentGroup.DefaultLightProbe));
             m_GlobalBatchIDs.Add((uint)InstanceComponentGroup.DefaultLightmap, GetBatchID(InstanceComponentGroup.DefaultLightmap));
+            m_GlobalBatchIDs.Add((uint)InstanceComponentGroup.DefaultWindLightProbe, GetBatchID(InstanceComponentGroup.DefaultWindLightProbe));
+            m_GlobalBatchIDs.Add((uint)InstanceComponentGroup.DefaultWindLightmap, GetBatchID(InstanceComponentGroup.DefaultWindLightmap));
         }
 
         public void Dispose()
@@ -889,7 +907,8 @@ namespace UnityEngine.Rendering
                 m_BatchersContext.lodGroupCullingData,
                 m_DrawInstanceData,
                 m_GlobalBatchIDs,
-                m_BatchersContext.crossfadedRendererCount);
+                m_BatchersContext.crossfadedRendererCount,
+                m_BatchersContext.smallMeshScreenPercentage);
 
             if (m_OnCompleteCallback != null)
                 m_OnCompleteCallback(jobHandle, cc, cullingOutput);
@@ -1050,8 +1069,17 @@ namespace UnityEngine.Rendering
             m_Culler.UpdateFrame();
         }
 
+        public ParallelBitArray GetCompactedVisibilityMasks(bool syncCullingJobs)
+        {
+            return m_Culler.GetCompactedVisibilityMasks(syncCullingJobs);
+        }
+
         public void OnEndContextRendering()
         {
+            ParallelBitArray compactedVisibilityMasks = GetCompactedVisibilityMasks(syncCullingJobs: true);
+
+            if(compactedVisibilityMasks.IsCreated)
+                m_BatchersContext.UpdatePerFrameInstanceVisibility(compactedVisibilityMasks);
         }
     }
 }

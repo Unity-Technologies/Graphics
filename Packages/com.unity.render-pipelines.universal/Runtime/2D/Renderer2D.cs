@@ -493,6 +493,20 @@ namespace UnityEngine.Rendering.Universal
             m_ColorBufferSystem.EnableMSAA(enable);
         }
 
-        internal override bool supportsNativeRenderPassRendergraphCompiler { get => true; }
+        internal static bool IsGLDevice()
+        {
+            return SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3 || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore;
+        }
+
+        internal static bool supportsMRT
+        {
+            get => !IsGLDevice();
+        }
+
+        internal override bool supportsNativeRenderPassRendergraphCompiler
+        {
+            get => !IsGLDevice() // GLES and doesn't support MSAA resolve with the NRP API
+                   && SystemInfo.graphicsDeviceType != GraphicsDeviceType.Direct3D12;
+        }
     }
 }

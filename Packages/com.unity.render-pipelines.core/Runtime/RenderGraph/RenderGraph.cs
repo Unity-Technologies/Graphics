@@ -7,8 +7,9 @@ using NameAndTooltip = UnityEngine.Rendering.DebugUI.Widget.NameAndTooltip;
 // Typedef for the in-engine RendererList API (to avoid conflicts with the experimental version)
 using CoreRendererListDesc = UnityEngine.Rendering.RendererUtils.RendererListDesc;
 using System.Runtime.CompilerServices;
+using UnityEngine.Experimental.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.RenderGraphModule
+namespace UnityEngine.Rendering.RenderGraphModule
 {
     /// <summary>
     /// Sets the read and write access for the depth buffer.
@@ -22,6 +23,31 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         Write = 1 << 1,
         ///<summary>Read and Write Access.</summary>
         ReadWrite = Read | Write,
+    }
+
+    /// <summary>
+    /// Express the operations the rendergraph pass will do on a resource.
+    /// </summary>
+    [Flags]
+    public enum AccessFlags
+    {
+        ///<summary>The pass does not access the resource at all. Calling Use* functions with none has no effect.</summary>
+        None = 0,
+
+        ///<summary>This pass will read data the resource. Data in the resource should never be written unless one of the write flags is also present. Writing to a read-only resource may lead to undefined results, significant performance penaties, and GPU crashes.</summary>
+        Read = 1 << 0,
+
+        ///<summary>This pass will at least write some data to the resource. Data in the resource should never be read unless one of the read flags is also present. Reading from a write-only resource may lead to undefined results, significant performance penaties, and GPU crashes.</summary>
+        Write = 1 << 1,
+
+        ///<summary>Previous data in the resource is not preserved. The resource will contain undefined data at the beginning of the pass.</summary>
+        Discard = 1 << 2,
+
+        ///<summary>All data in the resource will be written by this pass. Data in the resource should never be read.</summary>
+        WriteAll = Write | Discard,
+
+        ///<summary> Shortcut for Read | Write</summary>
+        ReadWrite = Read | Write
     }
 
     /// <summary>
@@ -138,18 +164,15 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     }
 
     /// <summary>
-    /// This class declares the context object passed to the execute function of a low level render pass.
-    /// <see cref="RenderGraph.AddLowLevelPass"/>
+    /// This class declares the context object passed to the execute function of an unsafe render pass.
+    /// <see cref="RenderGraph.AddUnsafePass"/>
     /// </summary>
-    public class LowLevelGraphContext : IDerivedRendergraphContext
+    public class UnsafeGraphContext : IDerivedRendergraphContext
     {
         private InternalRenderGraphContext wrappedContext;
 
-        ///<summary>Underlying CommandBuffer used for rendering. It should only be used for backward-compatibility purpose.</summary>
-        public CommandBuffer legacyCmd { get => llcmd.m_WrappedCommandBuffer; }
-
-        ///<summary>LowLevel Command Buffer used for rendering.</summary>
-        public LowLevelCommandBuffer cmd;
+        ///<summary>Unsafe Command Buffer used for rendering.</summary>
+        public UnsafeCommandBuffer cmd;
 
         ///<summary>Render Graph default resources.</summary>
         public RenderGraphDefaultResources defaultResources { get => wrappedContext.defaultResources; }
@@ -157,14 +180,14 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         ///<summary>Render Graph pool used for temporary data.</summary>
         public RenderGraphObjectPool renderGraphPool { get => wrappedContext.renderGraphPool; }
 
-        static internal LowLevelCommandBuffer llcmd = new LowLevelCommandBuffer(null, null, false);
+        internal static UnsafeCommandBuffer unsCmd = new UnsafeCommandBuffer(null, null, false);
         /// <inheritdoc />
         public void FromInternalContext(InternalRenderGraphContext context)
         {
             wrappedContext = context;
-            llcmd.m_WrappedCommandBuffer = wrappedContext.cmd;
-            llcmd.m_ExecutingPass = context.executingPass;
-            cmd = llcmd;
+            unsCmd.m_WrappedCommandBuffer = wrappedContext.cmd;
+            unsCmd.m_ExecutingPass = context.executingPass;
+            cmd = unsCmd;
         }
     }
 
@@ -187,28 +210,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         ///This allows you to run tests that rely on code execution the way to the pass render functions
         ///This also changes some behaviours with exception handling and error logging so the test framework can act on exceptions to validate behaviour better.</summary>
         internal bool invalidContextForTesting;
-    }
-
-    /// <summary>
-    /// This struct is used to define the scope where the Render Graph is recorded before the execution.
-    /// When this struct goes out of scope or is disposed, the Render Graph will be automatically executed.
-    /// </summary>
-    /// <seealso cref="RenderGraph.RecordAndExecute(in RenderGraphParameters)"/>
-    public struct RenderGraphExecution : IDisposable
-    {
-        RenderGraph renderGraph;
-
-        /// <summary>
-        /// Internal constructor for RenderGraphExecution
-        /// </summary>
-        /// <param name="renderGraph">renderGraph</param>
-        internal RenderGraphExecution(RenderGraph renderGraph)
-            => this.renderGraph = renderGraph;
-
-        /// <summary>
-        /// This function triggers the Render Graph to be executed.
-        /// </summary>
-        public void Dispose() => renderGraph.Execute();
     }
 
     class RenderGraphDebugParams : IDebugDisplaySettingsQuery
@@ -321,52 +322,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     /// <param name="renderGraphContext">Global Render Graph context.</param>
     public delegate void BaseRenderFunc<PassData, ContextType>(PassData data, ContextType renderGraphContext) where PassData : class, new();
 
-    internal class RenderGraphDebugData
-    {
-        [DebuggerDisplay("PassDebug: {name}")]
-        public struct PassDebugData
-        {
-            public string name;
-            public List<int>[] resourceReadLists;
-            public List<int>[] resourceWriteLists;
-            public bool culled;
-            public bool async;
-            public int syncToPassIndex; // Index of the pass that needs to be waited for.
-            public int syncFromPassIndex; // Smaller pass index that waits for this pass.
-            // We have this member instead of removing the pass altogether because we need the full list of passes in order to be able to remap them correctly when we remove them from display in the viewer.
-            public bool generateDebugData;
-        }
-
-        [DebuggerDisplay("ResourceDebug: {name} [{creationPassIndex}:{releasePassIndex}]")]
-        public struct ResourceDebugData
-        {
-            public string name;
-            public bool imported;
-            public int creationPassIndex;
-            public int releasePassIndex;
-
-            public List<int> consumerList;
-            public List<int> producerList;
-        }
-
-        public List<PassDebugData> passList = new List<PassDebugData>();
-        public List<ResourceDebugData>[] resourceLists = new List<ResourceDebugData>[(int)RenderGraphResourceType.Count];
-
-        public void Clear()
-        {
-            passList.Clear();
-
-            // Create if needed
-            if (resourceLists[0] == null)
-            {
-                for (int i = 0; i < (int)RenderGraphResourceType.Count; ++i)
-                    resourceLists[i] = new List<ResourceDebugData>();
-            }
-
-            for (int i = 0; i < (int)RenderGraphResourceType.Count; ++i)
-                resourceLists[i].Clear();
-        }
-    }
 
     /// <summary>
     /// This class is the main entry point of the Render Graph system.
@@ -403,24 +358,25 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             public RenderGraphPass pass;
             public List<int>[] resourceCreateList;
             public List<int>[] resourceReleaseList;
-            public int refCount;
-            public bool culled;
-            public bool culledByRendererList;
-            public bool hasSideEffect;
-            public int syncToPassIndex; // Index of the pass that needs to be waited for.
-            public int syncFromPassIndex; // Smaller pass index that waits for this pass.
-            public bool needGraphicsFence;
             public GraphicsFence fence;
-
-            public bool enableAsyncCompute;
-            public bool allowPassCulling { get { return pass.allowPassCulling; } }
-            public bool enableFoveatedRasterization { get { return pass.enableFoveatedRasterization; } }
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
             // This members are only here to ease debugging.
-            public List<string>[]   debugResourceReads;
-            public List<string>[]   debugResourceWrites;
+            public List<string>[] debugResourceReads;
+            public List<string>[] debugResourceWrites;
 #endif
+
+            public int refCount;
+            public int syncToPassIndex; // Index of the pass that needs to be waited for.
+            public int syncFromPassIndex; // Smaller pass index that waits for this pass.
+
+            public bool enableAsyncCompute;
+            public bool allowPassCulling { get { return pass.allowPassCulling; } }
+            public bool needGraphicsFence;
+            public bool culled;
+            public bool culledByRendererList;
+            public bool hasSideEffect;
+            public bool enableFoveatedRasterization { get { return pass.enableFoveatedRasterization; } }
 
             public void Reset(RenderGraphPass pass)
             {
@@ -488,7 +444,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// When setting this setting to true some existing render graph API is no longer valid as it can't express detailed frame information needed to emit
         /// native render pases. In particular:
         /// - The ImportBackbuffer overload without a RenderTargetInfo argument.
-        /// - Any AddRenderPass overloads. The more specific AddRasterPass/AddComputePass/AddLowLevelPass functions should be used to register passes.
+        /// - Any AddRenderPass overloads. The more specific AddRasterRenderPass/AddComputePass/AddUnsafePass functions should be used to register passes.
         ///
         /// In addition to this, additional validation will be done on the correctness of arguments of existing API that was not previously done. This could lead
         /// to new errors when using existing render graph code with NativeRenderPassesEnabled.
@@ -501,7 +457,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             get; set;
         }
 
-
         internal/*for tests*/ RenderGraphResourceRegistry m_Resources;
         RenderGraphObjectPool m_RenderGraphPool = new RenderGraphObjectPool();
         RenderGraphBuilders m_builderInstance = new RenderGraphBuilders();
@@ -511,10 +466,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         RenderGraphLogger m_FrameInformationLogger = new RenderGraphLogger();
         RenderGraphDefaultResources m_DefaultResources = new RenderGraphDefaultResources();
         Dictionary<int, ProfilingSampler> m_DefaultProfilingSamplers = new Dictionary<int, ProfilingSampler>();
-        bool m_ExecutionExceptionWasRaised;
         InternalRenderGraphContext m_RenderGraphContext = new InternalRenderGraphContext();
         CommandBuffer m_PreviousCommandBuffer;
-        int m_CurrentImmediatePassIndex;
         List<int>[] m_ImmediateModeResourceList = new List<int>[(int)RenderGraphResourceType.Count];
 
         // Compiled Render Graph info.
@@ -524,12 +477,15 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         DynamicArray<CompiledPassInfo> m_CompiledPassInfos = new DynamicArray<CompiledPassInfo>();
         Stack<int> m_CullingStack = new Stack<int>();
 
+        string m_CurrentExecutionName;
         int m_ExecutionCount;
         int m_CurrentFrameIndex;
+        int m_CurrentImmediatePassIndex;
+        bool m_ExecutionExceptionWasRaised;
         bool m_HasRenderGraphBegun;
-        string m_CurrentExecutionName;
         bool m_RendererListCulling;
-        Dictionary<string, RenderGraphDebugData> m_DebugData = new Dictionary<string, RenderGraphDebugData>();
+        string m_CaptureDebugDataForExecution; // Null unless debug data has been requested
+        Dictionary<string, DebugData> m_DebugData = new Dictionary<string, DebugData>();
 
         // Global list of living render graphs
         static List<RenderGraph> s_RegisteredGraphs = new List<RenderGraph>();
@@ -537,11 +493,15 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         #region Public Interface
         /// <summary>Name of the Render Graph.</summary>
         public string name { get; private set; } = "RenderGraph";
-        /// <summary>If true, the Render Graph will generate execution debug information.</summary>
-        internal static bool requireDebugData { get; set; } = false;
+
+        /// <summary>Request debug data be captured for the provided execution on the next frame.</summary>
+        internal void RequestCaptureDebugData(string executionName)
+        {
+            m_CaptureDebugDataForExecution = executionName;
+        }
 
         /// <summary>If true, the Render Graph Viewer is active.</summary>
-        public static bool isRenderGraphViewerActive => requireDebugData;
+        public static bool isRenderGraphViewerActive { get; internal set; }
 
         /// <summary>
         /// Set of default resources usable in a pass rendering code.
@@ -624,7 +584,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// Returns the last rendered frame debug data. Can be null if requireDebugData is set to false.
         /// </summary>
         /// <returns>The last rendered frame debug data</returns>
-        internal RenderGraphDebugData GetDebugData(string executionName)
+        internal DebugData GetDebugData(string executionName)
         {
             if (m_DebugData.TryGetValue(executionName, out var debugData))
                 return debugData;
@@ -937,97 +897,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return m_Resources.ImportRayTracingAccelerationStructure(accelStruct, name);
         }
 
-        private class MovePassData
-        {
-            public TextureHandle from;
-            public TextureHandle to;
-        }
-
-        /// <summary>
-        /// Add a new Render Pass to the Render Graph that resolves the source texture into the destination texture.
-        /// Note this is a special pass that depending on the GPU configuration might be "semi-free" and not execute any additional GPU commands.
-        /// It is highly recommended to use resolve passes instead of making small passes that for example do commandBuffer.ResolveAntiAliasedSurface
-        /// If the source and destination texture are both non MSAA this is equivalent to a move (see AddMovePass).
-        ///
-        /// </summary>
-        /// <param name="source">Texture to read data from.</param>
-        /// <param name="destination">Texture to copy data into.</param>
-        /// <param name="file">File name of the source file this function is called from. Used for debugging. This parameter is automatically generated by the compiler. Users do not need to pass it.</param>
-        /// <param name="line">File line of the source file this function is called from. Used for debugging. This parameter is automatically generated by the compiler. Users do not need to pass it.</param>
-        public void AddResolvePass(TextureHandle source, TextureHandle destination
-#if !CORE_PACKAGE_DOCTOOLS
-            ,[CallerFilePath] string file = "",
-            [CallerLineNumber] int line = 0)
-#endif
-        {
-            var desc = m_Resources.GetTextureResourceDesc(source.handle);
-            if (desc.msaaSamples == MSAASamples.None)
-            {
-                AddMovePass(source, destination, file, line);
-            }
-            else
-            {
-#if DEBUG
-                string passName = "Resolve " + m_Resources.GetRenderGraphResourceName(source.handle) + " to " + m_Resources.GetRenderGraphResourceName(destination.handle);
-#else
-                string passName = "Resolve Pass";
-#endif
-                using (var builder = AddRenderPass<MovePassData>(passName, out var passData, file, line))
-                {
-                    passData.from = source;
-                    passData.to = destination;
-                    builder.ReadTexture(source);
-                    builder.WriteTexture(destination);
-                    builder.SetRenderFunc(
-                        (MovePassData data, RenderGraphContext context) =>
-                        {
-
-                            context.cmd.ResolveAntiAliasedSurface(source, destination);
-                        }
-                    );
-                }
-            }
-        }
-
-        /// <summary>
-        /// Add a new move pass to the Render Graph. This pass moves data from one texture to another. Note that this pass is more limited
-        /// in functionality than for example doing a blit from one texture to another. It cannot do any type conversions, the textures
-        /// have to be the same size,...
-        /// This pass may be optimized away by the RenderGraph depending on the dependencies within the graph. E.g. if the destination resource
-        /// is the only resource ever using the data in source the graph may decide to directly render to the destination instead of rendering
-        /// to source and then doing an copy to destination.
-        /// </summary>
-        /// <param name="source">Texture to read data from.</param>
-        /// <param name="destination">Texture to copy data into.</param>
-        /// <param name="file">File name of the source file this function is called from. Used for debugging. This parameter is automatically generated by the compiler. Users do not need to pass it.</param>
-        /// <param name="line">File line of the source file this function is called from. Used for debugging. This parameter is automatically generated by the compiler. Users do not need to pass it.</param>
-        public void AddMovePass(TextureHandle source, TextureHandle destination
-#if !CORE_PACKAGE_DOCTOOLS
-            ,[CallerFilePath] string file = "",
-            [CallerLineNumber] int line = 0)
-#endif
-        {
-#if DEBUG
-            string passName = "Move " + m_Resources.GetRenderGraphResourceName(source.handle) + " to " + m_Resources.GetRenderGraphResourceName(destination.handle);
-#else
-            string passName = "Move Pass";
-#endif
-
-            using (var builder = AddRenderPass<MovePassData>(passName, out var passData, file, line))
-            {
-                passData.from = source;
-                passData.to = destination;
-                builder.ReadTexture(source);
-                builder.WriteTexture(destination);
-                builder.SetRenderFunc(
-                    (MovePassData data, RenderGraphContext context) =>
-                    {
-                        context.cmd.CopyTexture(source, destination);
-                    }
-                );
-            }
-        }
-
         /// <summary>
         /// Add a new Raster Render Pass to the Render Graph. Raster passes can execute rasterization workloads but cannot do other GPU work like copies or compute.
         /// </summary>
@@ -1118,12 +987,14 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return m_builderInstance;
         }
 
+
         /// <summary>
-        /// Add a new Low Level Render Pass to the Render Graph. Low level passes can do certain operations compute/raster render passes cannot do and have
-        /// access to the full command buffer API. The low level API should be used sparingly as it has the following downsides
+        /// Add a new Unsafe Render Pass to the Render Graph. Unsafe passes can do certain operations compute/raster render passes cannot do and have
+        /// access to the full command buffer API. The unsafe API should be used sparingly as it has the following downsides:
+        /// - Limited automatic validation of the commands and resource dependencies. The user is responsible to ensure that all dependencies are correctly declared.
         /// - All native render passes will be serialized out.
-        /// - In the future the render graph compiler may generate a sub-optimal command stream for low level passes.
-        /// When using a low level pass the graph will also not automatically set-up graphics state like rendertargets. The pass should do this itself
+        /// - In the future the render graph compiler may generate a sub-optimal command stream for unsafe passes.
+        /// When using a unsafe pass the graph will also not automatically set up graphics state like rendertargets. The pass should do this itself
         /// using cmd.SetRenderTarget and related commands.
         /// </summary>
         /// <typeparam name="PassData">Type of the class to use to provide data to the Render Pass.</typeparam>
@@ -1131,22 +1002,24 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <param name="passData">Instance of PassData that is passed to the render function and you must fill.</param>
         /// <param name="file">File name of the source file this function is called from. Used for debugging. This parameter is automatically generated by the compiler. Users do not need to pass it.</param>
         /// <param name="line">File line of the source file this function is called from. Used for debugging. This parameter is automatically generated by the compiler. Users do not need to pass it.</param>
-        /// <returns>A new instance of a ILowLevelRenderGraphBuilder used to setup the new Low Level Render Pass.</returns>
-        public ILowLevelRenderGraphBuilder AddLowLevelPass<PassData>(string passName, out PassData passData
+        /// <returns>A new instance of a IUnsafeRenderGraphBuilder used to setup the new Unsafe Render Pass.</returns>
+        public IUnsafeRenderGraphBuilder AddUnsafePass<PassData>(string passName, out PassData passData
 #if !CORE_PACKAGE_DOCTOOLS
             , [CallerFilePath] string file = "",
             [CallerLineNumber] int line = 0) where PassData : class, new()
 #endif
         {
-            return AddLowLevelPass(passName, out passData, GetDefaultProfilingSampler(passName), file, line);
+            return AddUnsafePass(passName, out passData, GetDefaultProfilingSampler(passName), file, line);
         }
 
+
         /// <summary>
-        /// Add a new Low Level Render Pass to the Render Graph. Low level passes can do certain operations compute/raster render passes cannot do and have
-        /// access to the full command buffer API. The low level API should be used sparingly as it has the following downsides
+        /// Add a new unsafe Render Pass to the Render Graph. Unsafe passes can do certain operations compute/raster render passes cannot do and have
+        /// access to the full command buffer API. The unsafe API should be used sparingly as it has the following downsides:
+        /// - Limited automatic validation of the commands and resource dependencies. The user is responsible to ensure that all dependencies are correctly declared.
         /// - All native render passes will be serialized out.
-        /// - In the future the render graph compiler may generate a sub-optimal command stream for low level passes.
-        /// When using a low level pass the graph will also not automatically set-up graphics state like rendertargets. The pass should do this itself
+        /// - In the future the render graph compiler may generate a sub-optimal command stream for unsafe passes.
+        /// When using an unsafe pass the graph will also not automatically set up graphics state like rendertargets. The pass should do this itself
         /// using cmd.SetRenderTarget and related commands.
         /// </summary>
         /// <typeparam name="PassData">Type of the class to use to provide data to the Render Pass.</typeparam>
@@ -1155,15 +1028,15 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <param name="sampler">Profiling sampler used around the pass.</param>
         /// <param name="file">File name of the source file this function is called from. Used for debugging. This parameter is automatically generated by the compiler. Users do not need to pass it.</param>
         /// <param name="line">File line of the source file this function is called from. Used for debugging. This parameter is automatically generated by the compiler. Users do not need to pass it.</param>
-        /// <returns>A new instance of a ILowLevelRenderGraphBuilder used to setup the new Low Level Render Pass.</returns>
-        public ILowLevelRenderGraphBuilder AddLowLevelPass<PassData>(string passName, out PassData passData, ProfilingSampler sampler
+        /// <returns>A new instance of a IUnsafeRenderGraphBuilder used to setup the new unsafe Render Pass.</returns>
+        public IUnsafeRenderGraphBuilder AddUnsafePass<PassData>(string passName, out PassData passData, ProfilingSampler sampler
 #if !CORE_PACKAGE_DOCTOOLS
             , [CallerFilePath] string file = "",
             [CallerLineNumber] int line = 0) where PassData : class, new()
 #endif
         {
-            var renderPass = m_RenderGraphPool.Get<LowLevelRenderGraphPass<PassData>>();
-            renderPass.Initialize(m_RenderPasses.Count, m_RenderGraphPool.Get<PassData>(), passName, RenderGraphPassType.LowLevel, sampler);
+            var renderPass = m_RenderGraphPool.Get<UnsafeRenderGraphPass<PassData>>();
+            renderPass.Initialize(m_RenderPasses.Count, m_RenderGraphPool.Get<PassData>(), passName, RenderGraphPassType.Unsafe, sampler);
             renderPass.AllowGlobalState(true);
 
             passData = renderPass.data;
@@ -1220,22 +1093,19 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         }
 
         /// <summary>
-        /// Starts the recording of the the render graph and then automatically execute when the return value goes out of scope.
+        /// Starts the recording of the render graph.
         /// This must be called before adding any pass to the render graph.
         /// </summary>
         /// <param name="parameters">Parameters necessary for the render graph execution.</param>
         /// <example>
-        /// This shows how to increment an integer.
+        /// <para>Begin recording the Render Graph.</para>
         /// <code>
-        /// using (renderGraph.RecordAndExecute(parameters))
-        /// {
-        ///     // Add your render graph passes here.
-        /// }
+        /// renderGraph.BeginRecording(parameters)
+        /// // Add your render graph passes here.
+        /// renderGraph.EndRecordingAndExecute()
         /// </code>
         /// </example>
-        /// <seealso cref="RenderGraphExecution"/>
-        /// <returns><see cref="RenderGraphExecution"/></returns>
-        public RenderGraphExecution RecordAndExecute(in RenderGraphParameters parameters)
+        public void BeginRecording(in RenderGraphParameters parameters)
         {
             m_CurrentFrameIndex = parameters.currentFrameIndex;
             m_CurrentExecutionName = parameters.executionName != null ? parameters.executionName : "RenderGraphExecution";
@@ -1277,8 +1147,15 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
                 m_Resources.BeginExecute(m_CurrentFrameIndex);
             }
-
-            return new RenderGraphExecution(this);
+        }
+        
+        /// <summary>
+        /// Ends the recording and executes the render graph.
+        /// This must be called once all passes have been added to the render graph.
+        /// </summary>
+        public void EndRecordingAndExecute()
+        {
+            Execute();
         }
 
         /// <summary>
@@ -1292,7 +1169,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             {
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
                 if (m_RenderGraphContext.cmd == null)
-                    throw new InvalidOperationException("RenderGraph.RecordAndExecute was not called before executing the render graph.");
+                    throw new InvalidOperationException("RenderGraph.BeginRecording was not called before executing the render graph.");
 #endif
                 if (!m_DebugParameters.immediateMode)
                 {
@@ -1433,6 +1310,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         internal delegate void OnExecutionRegisteredDelegate(RenderGraph graph, string executionName);
         internal static event OnExecutionRegisteredDelegate onExecutionRegistered;
         internal static event OnExecutionRegisteredDelegate onExecutionUnregistered;
+        internal static event Action onDebugDataCaptured;
 
         #endregion
 
@@ -2347,7 +2225,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return sampler;
         }
 
-        void UpdateImportedResourceLifeTime(ref RenderGraphDebugData.ResourceDebugData data, List<int> passList)
+        void UpdateImportedResourceLifeTime(ref DebugData.ResourceData data, List<int> passList)
         {
             foreach (var pass in passList)
             {
@@ -2368,7 +2246,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             if (m_ExecutionExceptionWasRaised)
                 return;
 
-            if (!requireDebugData)
+            if (!isRenderGraphViewerActive)
             {
                 CleanupDebugData();
                 return;
@@ -2377,21 +2255,38 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             if (!m_DebugData.TryGetValue(m_CurrentExecutionName, out var debugData))
             {
                 onExecutionRegistered?.Invoke(this, m_CurrentExecutionName);
-                debugData = new RenderGraphDebugData();
+                debugData = new DebugData();
                 m_DebugData.Add(m_CurrentExecutionName, debugData);
             }
 
+            // Only generate debug data on request
+            if (m_CaptureDebugDataForExecution == null || !m_CaptureDebugDataForExecution.Equals(m_CurrentExecutionName))
+                return;
+
             debugData.Clear();
 
+            if (NativeRenderPassesEnabled)
+                nativeCompiler.GenerateNativeCompilerDebugData(ref debugData);
+            else
+                GenerateCompilerDebugData(ref debugData);
+
+            onDebugDataCaptured?.Invoke();
+
+            m_CaptureDebugDataForExecution = null;
+        }
+
+        void GenerateCompilerDebugData(ref DebugData debugData)
+        {
             for (int type = 0; type < (int)RenderGraphResourceType.Count; ++type)
             {
                 for (int i = 0; i < m_CompiledResourcesInfos[type].size; ++i)
                 {
                     ref var resourceInfo = ref m_CompiledResourcesInfos[type][i];
-                    RenderGraphDebugData.ResourceDebugData newResource = new RenderGraphDebugData.ResourceDebugData();
+                    DebugData.ResourceData newResource = new DebugData.ResourceData();
                     if (i != 0)
                     {
-                        newResource.name = m_Resources.GetRenderGraphResourceName((RenderGraphResourceType)type, i);
+                        var resName = m_Resources.GetRenderGraphResourceName((RenderGraphResourceType)type, i);
+                        newResource.name = !string.IsNullOrEmpty(resName) ? resName : "(unnamed)";
                         newResource.imported = m_Resources.IsRenderGraphResourceImported((RenderGraphResourceType)type, i);
                     }
                     else
@@ -2403,6 +2298,22 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
                     newResource.creationPassIndex = -1;
                     newResource.releasePassIndex = -1;
+
+                    RenderGraphResourceType resourceType = (RenderGraphResourceType) type;
+                    var handle = new ResourceHandle(i, resourceType, false);
+                    if (i != 0 && handle.IsValid())
+                    {
+                        if (resourceType == RenderGraphResourceType.Texture)
+                        {
+                            m_Resources.GetRenderTargetInfo(handle, out var renderTargetInfo);
+
+                            newResource.width = renderTargetInfo.width;
+                            newResource.height = renderTargetInfo.height;
+                            newResource.depth = renderTargetInfo.volumeDepth;
+                            newResource.samples = renderTargetInfo.msaaSamples;
+                            newResource.format = renderTargetInfo.format;
+                        }
+                    }
 
                     newResource.consumerList = new List<int>(resourceInfo.consumers);
                     newResource.producerList = new List<int>(resourceInfo.producers);
@@ -2421,8 +2332,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             {
                 ref CompiledPassInfo passInfo = ref m_CompiledPassInfos[i];
 
-                RenderGraphDebugData.PassDebugData newPass = new RenderGraphDebugData.PassDebugData();
+                DebugData.PassData newPass = new DebugData.PassData();
                 newPass.name = passInfo.pass.name;
+                newPass.type = passInfo.pass.type;
                 newPass.culled = passInfo.culled;
                 newPass.async = passInfo.enableAsyncCompute;
                 newPass.generateDebugData = passInfo.pass.generateDebugData;
@@ -2507,9 +2419,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     /// </summary>
     public struct RenderGraphProfilingScope : IDisposable
     {
-        bool m_Disposed;
         ProfilingSampler m_Sampler;
         RenderGraph m_RenderGraph;
+        bool m_Disposed;
 
         /// <summary>
         /// Profiling Scope constructor

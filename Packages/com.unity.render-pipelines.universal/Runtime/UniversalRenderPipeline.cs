@@ -8,8 +8,9 @@ using UnityEditor.Rendering.Universal;
 using UnityEngine.Scripting.APIUpdating;
 using Lightmapping = UnityEngine.Experimental.GlobalIllumination.Lightmapping;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Profiling;
+using static UnityEngine.Camera;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -158,6 +159,8 @@ namespace UnityEngine.Rendering.Universal
 
         private UniversalRenderPipelineGlobalSettings m_GlobalSettings;
 
+        internal UniversalRenderPipelineRuntimeTextures runtimeTextures { get; private set; }
+
         /// <summary>
         /// The default Render Pipeline Global Settings.
         /// </summary>
@@ -198,6 +201,8 @@ namespace UnityEngine.Rendering.Universal
 #else
             m_GlobalSettings = UniversalRenderPipelineGlobalSettings.instance;
 #endif
+
+            runtimeTextures = GraphicsSettings.GetRenderPipelineSettings<UniversalRenderPipelineRuntimeTextures>();
 
             SetSupportedRenderingFeatures(pipelineAsset);
 
@@ -255,24 +260,19 @@ namespace UnityEngine.Rendering.Universal
             SupportedRenderingFeatures.active.overridesLightProbeSystem = apvIsEnabled;
             if (apvIsEnabled)
             {
-                bool supportBlending = SystemInfo.supportsComputeShaders && asset.supportProbeVolumeScenarios && asset.supportProbeVolumeScenarioBlending;
                 var pvr = ProbeReferenceVolume.instance;
                 ProbeReferenceVolume.instance.Initialize(new ProbeVolumeSystemParameters
                 {
                     memoryBudget = asset.probeVolumeMemoryBudget,
                     blendingMemoryBudget = asset.probeVolumeBlendingMemoryBudget,
-                    probeDebugShader = asset.scriptableRendererData.probeVolumeResources.probeVolumeDebugShader,
-                    fragmentationDebugShader = asset.scriptableRendererData.probeVolumeResources.probeVolumeFragmentationDebugShader,
-                    probeSamplingDebugShader = asset.scriptableRendererData.probeVolumeResources.probeVolumeSamplingDebugShader,
-                    probeSamplingDebugMesh = asset.scriptableRendererData.probeVolumeResources.probeSamplingDebugMesh,
-                    probeSamplingDebugTexture = asset.scriptableRendererData.probeVolumeResources.probeSamplingDebugTexture,
-                    offsetDebugShader = asset.scriptableRendererData.probeVolumeResources.probeVolumeOffsetDebugShader,
-                    scenarioBlendingShader = supportBlending ? asset.scriptableRendererData.probeVolumeResources.probeVolumeBlendStatesCS : null,
-                    sceneData = m_GlobalSettings.GetOrCreateAPVSceneData(),
                     shBands = asset.probeVolumeSHBands,
                     supportGPUStreaming = asset.supportProbeVolumeStreaming,
                     supportDiskStreaming = false,
                     supportScenarios = asset.supportProbeVolumeScenarios,
+                    supportScenarioBlending = asset.supportProbeVolumeScenarioBlending,
+#pragma warning disable 618
+                    sceneData = m_GlobalSettings.GetOrCreateAPVSceneData(),
+#pragma warning restore 618
                 });
             }
         }
@@ -725,7 +725,7 @@ namespace UnityEngine.Rendering.Universal
                     ProbeReferenceVolume.instance.BindAPVRuntimeResources(cmd, true);
 
                 // Must be called before culling because it emits intermediate renderers via Graphics.DrawInstanced.
-                ProbeReferenceVolume.instance.RenderDebug(camera);
+                ProbeReferenceVolume.instance.RenderDebug(camera, Texture2D.whiteTexture);
 
                 // Update camera motion tracking (prev matrices) from cameraData.
                 // Called and updated only once, as the same camera can be rendered multiple times.
@@ -748,6 +748,9 @@ namespace UnityEngine.Rendering.Universal
                 // UniversalRenderingData needs to be created here to avoid copying cullResults.
                 var data = frameData.Create<UniversalRenderingData>();
                 data.cullResults = context.Cull(ref cullingParameters);
+
+                GPUResidentDrawer.PostCullBeginCameraRendering(new RenderRequestBatcherContext { commandBuffer = cmd, ambientProbe = RenderSettings.ambientProbe });
+
                 var isForwardPlus = cameraData.renderer is UniversalRenderer { renderingModeActual: RenderingMode.ForwardPlus };
 
                 // Initialize all the data types required for rendering.
@@ -1080,11 +1083,6 @@ namespace UnityEngine.Rendering.Universal
             baseCameraData.pixelHeight = (int)System.Math.Round(camPixelRect.height + camPixelRect.y) - (int)System.Math.Round(camPixelRect.y);
             baseCameraData.aspectRatio = (float)baseCameraData.pixelWidth / (float)baseCameraData.pixelHeight;
 
-            bool isDefaultXRViewport = (!(Math.Abs(xrViewport.x) > 0.0f || Math.Abs(xrViewport.y) > 0.0f ||
-                Math.Abs(xrViewport.width) < xr.renderTargetDesc.width ||
-                Math.Abs(xrViewport.height) < xr.renderTargetDesc.height));
-            baseCameraData.isDefaultViewport = baseCameraData.isDefaultViewport && isDefaultXRViewport;
-
             // Update cameraData cameraTargetDescriptor for XR. This descriptor is mainly used for configuring intermediate screen space textures
             var originalTargetDesc = baseCameraData.cameraTargetDescriptor;
             baseCameraData.cameraTargetDescriptor = xr.renderTargetDesc;
@@ -1093,8 +1091,24 @@ namespace UnityEngine.Rendering.Universal
                 baseCameraData.cameraTargetDescriptor.graphicsFormat = originalTargetDesc.graphicsFormat;
             }
             baseCameraData.cameraTargetDescriptor.msaaSamples = originalTargetDesc.msaaSamples;
-            baseCameraData.cameraTargetDescriptor.width = baseCameraData.pixelWidth;
-            baseCameraData.cameraTargetDescriptor.height = baseCameraData.pixelHeight;
+
+            if (baseCameraData.isDefaultViewport)
+            {
+                // When viewport is default, intermediate textures created with this descriptor will have dynamic resolution enabled.
+                baseCameraData.cameraTargetDescriptor.useDynamicScale = true;
+            }
+            else
+            {
+                // Some effects like Vignette computes aspect ratio from width and height. We have to take viewport into consideration if it is not default viewport.
+                baseCameraData.cameraTargetDescriptor.width = baseCameraData.pixelWidth;
+                baseCameraData.cameraTargetDescriptor.height = baseCameraData.pixelHeight;
+				baseCameraData.cameraTargetDescriptor.useDynamicScale = false;
+            }
+
+            bool isDefaultXRViewport = (!(Math.Abs(xrViewport.x) > 0.0f || Math.Abs(xrViewport.y) > 0.0f ||
+                Math.Abs(xrViewport.width) < xr.renderTargetDesc.width ||
+                Math.Abs(xrViewport.height) < xr.renderTargetDesc.height));
+            baseCameraData.isDefaultViewport = baseCameraData.isDefaultViewport && isDefaultXRViewport;
         }
 
         static void UpdateVolumeFramework(Camera camera, UniversalAdditionalCameraData additionalCameraData)
@@ -1827,22 +1841,31 @@ namespace UnityEngine.Rendering.Universal
             return brightestDirectionalLightIndex;
         }
 
-        static void SetupPerFrameShaderConstants()
+        void SetupPerFrameShaderConstants()
         {
             using var profScope = new ProfilingScope(Profiling.Pipeline.setupPerFrameShaderConstants);
 
             // Required for 2D Unlit Shadergraph master node as it doesn't currently support hidden properties.
             Shader.SetGlobalColor(ShaderPropertyId.rendererColor, Color.white);
 
-            if (asset.lodCrossFadeDitheringType == LODCrossFadeDitheringType.BayerMatrix)
+            Texture2D ditheringTexture = null;
+            switch (asset.lodCrossFadeDitheringType)
             {
-                Shader.SetGlobalFloat(ShaderPropertyId.ditheringTextureInvSize, 1.0f / asset.textures.bayerMatrixTex.width);
-                Shader.SetGlobalTexture(ShaderPropertyId.ditheringTexture, asset.textures.bayerMatrixTex);
+                case LODCrossFadeDitheringType.BayerMatrix:
+                    ditheringTexture = runtimeTextures.bayerMatrixTex;
+                    break;
+                case LODCrossFadeDitheringType.BlueNoise:
+                    ditheringTexture = runtimeTextures.blueNoise64LTex;
+                    break;
+                default:
+                    Debug.LogWarning($"This Lod Cross Fade Dithering Type is not supported: {asset.lodCrossFadeDitheringType}");
+                    break;
             }
-            else if (asset.lodCrossFadeDitheringType == LODCrossFadeDitheringType.BlueNoise)
+
+            if (ditheringTexture != null)
             {
-                Shader.SetGlobalFloat(ShaderPropertyId.ditheringTextureInvSize, 1.0f / asset.textures.blueNoise64LTex.width);
-                Shader.SetGlobalTexture(ShaderPropertyId.ditheringTexture, asset.textures.blueNoise64LTex);
+                Shader.SetGlobalFloat(ShaderPropertyId.ditheringTextureInvSize, 1.0f / ditheringTexture.width);
+                Shader.SetGlobalTexture(ShaderPropertyId.ditheringTexture, ditheringTexture);
             }
         }
 

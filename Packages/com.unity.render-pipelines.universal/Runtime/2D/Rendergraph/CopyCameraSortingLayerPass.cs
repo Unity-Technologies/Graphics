@@ -1,6 +1,6 @@
 using System;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -62,7 +62,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 passData.source = cameraColorAttachment;
 
-                builder.UseTextureFragment(destination, 0);
+                builder.SetRenderAttachment(destination, 0);
                 builder.UseTexture(passData.source);
                 builder.AllowPassCulling(false);
 

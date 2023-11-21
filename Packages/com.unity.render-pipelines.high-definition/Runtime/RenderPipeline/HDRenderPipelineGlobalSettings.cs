@@ -96,19 +96,31 @@ namespace UnityEngine.Rendering.HighDefinition
             SetUpRPAssetIncluded();
 
             // ensure resources are here
-            EnsureEditorResources(forceReload: true);
             EnsureRuntimeResources(forceReload: true);
 
-            var defaultVolumeProfile = GetOrCreateDefaultVolumeProfile();
-            var diffusionProfileList = GetOrCreateDiffusionProfileList(defaultVolumeProfile);
-
-            if (diffusionProfileList.diffusionProfiles.value.Length == 0)
+            HDRenderPipelineGlobalSettings hdrpSource = source as HDRenderPipelineGlobalSettings;
+            if (hdrpSource != null)
             {
-                diffusionProfileList.diffusionProfiles.value = CreateArrayWithDefaultDiffusionProfileSettingsList(m_RenderPipelineEditorResources);
-                EditorUtility.SetDirty(diffusionProfileList);
+                volumeProfile = hdrpSource.volumeProfile;
+                lookDevVolumeProfile = hdrpSource.lookDevVolumeProfile;
             }
 
-            GetOrAssignLookDevVolumeProfile();
+            if (TryGet(typeof(HDRenderPipelineEditorAssets), out var editorAssets))
+            {
+                var assets = (HDRenderPipelineEditorAssets)editorAssets;
+                volumeProfile ??= VolumeUtils.CopyVolumeProfileFromResourcesToAssets(assets.defaultVolumeProfile);
+
+                // Initialize the Volume Profile with the default diffusion profiles
+                var diffusionProfileList = VolumeUtils.GetOrCreateDiffusionProfileList(volumeProfile);
+
+                if (diffusionProfileList.diffusionProfiles.value.Length == 0)
+                {
+                    diffusionProfileList.diffusionProfiles.value = VolumeUtils.CreateArrayWithDefaultDiffusionProfileSettingsList(assets);
+                    EditorUtility.SetDirty(diffusionProfileList);
+                }
+
+                lookDevVolumeProfile ??= VolumeUtils.CopyVolumeProfileFromResourcesToAssets(assets.lookDevVolumeProfile);
+            }
         }
 
         void SetUpRPAssetIncluded()
@@ -137,48 +149,10 @@ namespace UnityEngine.Rendering.HighDefinition
             set => m_DefaultVolumeProfile = value;
         }
 
-        /// <summary>Get the current default VolumeProfile asset. If it is missing, the builtin one is assigned to the current settings.</summary>
-        /// <returns>The default VolumeProfile if an HDRenderPipelineAsset is the base SRP asset, null otherwise.</returns>
-        internal VolumeProfile GetOrCreateDefaultVolumeProfile()
-        {
-#if UNITY_EDITOR
-            if (volumeProfile == null || volumeProfile.Equals(null))
-            {
-                volumeProfile = CopyVolumeProfileFromResourcesToAssets(renderPipelineEditorResources.defaultSettingsVolumeProfile);
-            }
-#endif
-            return volumeProfile;
-        }
-
-#if UNITY_EDITOR
-        internal bool IsVolumeProfileFromResources()
-        {
-            return volumeProfile != null && !volumeProfile.Equals(null) && renderPipelineEditorResources != null && volumeProfile.Equals(renderPipelineEditorResources.defaultSettingsVolumeProfile);
-        }
-
-        static VolumeProfile CopyVolumeProfileFromResourcesToAssets(VolumeProfile profileInResourcesFolder)
-        {
-            string path = $"Assets/{HDProjectSettingsReadOnlyBase.projectSettingsFolderPath}/{profileInResourcesFolder.name}.asset";
-            if (!UnityEditor.AssetDatabase.IsValidFolder($"Assets/{HDProjectSettingsReadOnlyBase.projectSettingsFolderPath}"))
-                UnityEditor.AssetDatabase.CreateFolder("Assets", HDProjectSettingsReadOnlyBase.projectSettingsFolderPath);
-
-            //try load one if one already exist
-            var profile = UnityEditor.AssetDatabase.LoadAssetAtPath<VolumeProfile>(path);
-            if (profile == null || profile.Equals(null))
-            {
-                //else create it
-                UnityEditor.AssetDatabase.CopyAsset(UnityEditor.AssetDatabase.GetAssetPath(profileInResourcesFolder), path);
-                profile = UnityEditor.AssetDatabase.LoadAssetAtPath<VolumeProfile>(path);
-            }
-
-            return profile;
-        }
-
-#endif
-
         #endregion
 
         #region Look Dev Profile
+
 #if UNITY_EDITOR
         [SerializeField, FormerlySerializedAs("VolumeProfileLookDev")]
         private VolumeProfile m_LookDevVolumeProfile;
@@ -188,21 +162,6 @@ namespace UnityEngine.Rendering.HighDefinition
             get => m_LookDevVolumeProfile;
             set => m_LookDevVolumeProfile = value;
         }
-
-        internal VolumeProfile GetOrAssignLookDevVolumeProfile()
-        {
-            if (lookDevVolumeProfile == null || lookDevVolumeProfile.Equals(null))
-            {
-                lookDevVolumeProfile = CopyVolumeProfileFromResourcesToAssets(renderPipelineEditorResources.lookDev.defaultLookDevVolumeProfile);
-            }
-            return lookDevVolumeProfile;
-        }
-
-        internal bool IsVolumeProfileLookDevFromResources()
-        {
-            return lookDevVolumeProfile != null && !lookDevVolumeProfile.Equals(null) && renderPipelineEditorResources != null && lookDevVolumeProfile.Equals(renderPipelineEditorResources.lookDev.defaultLookDevVolumeProfile);
-        }
-
 #endif
         #endregion
 
@@ -211,7 +170,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // we create a runtime copy (m_ActiveFrameSettings that is used, and any parametrization is done on serialized frameSettings)
         [SerializeField, FormerlySerializedAs("m_RenderingPathDefaultCameraFrameSettings"), Obsolete("Kept For Migration. #from(2023.2")]
         FrameSettings m_ObsoleteRenderingPathDefaultCameraFrameSettings = FrameSettingsDefaults.Get(FrameSettingsRenderType.Camera);
-        
+
         [SerializeField, FormerlySerializedAs("m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings"), Obsolete("Kept For Migration. #from(2023.2")]
         FrameSettings m_ObsoleteRenderingPathDefaultBakedOrCustomReflectionFrameSettings = FrameSettingsDefaults.Get(FrameSettingsRenderType.CustomOrBakedReflection);
 
@@ -283,41 +242,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #endif //UNITY_EDITOR
         #endregion // Runtime Resources
-
-        #region Editor Resources (not serialized)
-#if UNITY_EDITOR
-        HDRenderPipelineEditorResources m_RenderPipelineEditorResources;
-        internal HDRenderPipelineEditorResources renderPipelineEditorResources
-        {
-            get
-            {
-                //there is no clean way to load editor resources without having it serialized
-                // - impossible to load them at deserialization
-                // - constructor only called at asset creation
-                // - cannot rely on OnEnable
-                //thus fallback with lazy init for them
-                EnsureEditorResources(forceReload: false);
-                return m_RenderPipelineEditorResources;
-            }
-        }
-
-        // be sure to cach result for not using GC in a frame after first one.
-        static readonly string editorResourcesPath = HDUtils.GetHDRenderPipelinePath() + "Editor/RenderPipelineResources/HDRenderPipelineEditorResources.asset";
-
-        internal void EnsureEditorResources(bool forceReload)
-            => ResourceReloader.EnsureResources(forceReload, ref m_RenderPipelineEditorResources, editorResourcesPath, AreEditorResourcesCreated_Internal, this);
-
-        // Passing method in a Func argument create a functor that create GC
-        // If it is static it is then only computed once but the Ensure is called after first frame which will make our GC check fail
-        // So create it once and store it here.
-        // Expected usage: HDRenderPipelineGlobalSettings.AreEditorResourcesCreated(anyHDRenderPipelineGlobalSettings) that will return a bool
-        static Func<HDRenderPipelineGlobalSettings, bool> AreEditorResourcesCreated_Internal = global
-            => global.m_RenderPipelineEditorResources != null && !global.m_RenderPipelineEditorResources.Equals(null);
-
-        internal bool AreEditorResourcesCreated() => AreEditorResourcesCreated_Internal(this);
-#endif
-
-        #endregion //Editor Resources
 
         #region Custom Post Processes Injections
 
@@ -428,101 +352,6 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField]
         internal bool rendererListCulling;
 
-        static readonly DiffusionProfileSettings[] kEmptyProfiles = new DiffusionProfileSettings[0];
-        internal DiffusionProfileSettings[] diffusionProfileSettingsList
-        {
-            get
-            {
-                if (instance.volumeProfile != null && instance.volumeProfile.TryGet<DiffusionProfileList>(out var overrides))
-                    return overrides.diffusionProfiles.value ?? kEmptyProfiles;
-                return kEmptyProfiles;
-            }
-            set { GetOrCreateDiffusionProfileList().diffusionProfiles.value = value; }
-        }
-
-        internal DiffusionProfileList GetOrCreateDiffusionProfileList(VolumeProfile defaultVolumeProfile = null)
-        {
-            if (defaultVolumeProfile == null)
-                defaultVolumeProfile = instance.GetOrCreateDefaultVolumeProfile();
-
-            if (!defaultVolumeProfile.TryGet<DiffusionProfileList>(out var component))
-            {
-                component = volumeProfile.Add<DiffusionProfileList>(true);
-
-#if UNITY_EDITOR
-                if (EditorUtility.IsPersistent(defaultVolumeProfile))
-                {
-                    UnityEditor.AssetDatabase.AddObjectToAsset(component, defaultVolumeProfile);
-                    EditorUtility.SetDirty(defaultVolumeProfile);
-                }
-#endif
-            }
-
-            component.diffusionProfiles.value ??= Array.Empty<DiffusionProfileSettings>();
-            return component;
-        }
-
-#if UNITY_EDITOR
-        internal DiffusionProfileSettings[] CreateArrayWithDefaultDiffusionProfileSettingsList(HDRenderPipelineEditorResources resources)
-        {
-            if (resources == null)
-                return Array.Empty<DiffusionProfileSettings>();
-
-            var diffusionProfileSettingsArray = resources.defaultDiffusionProfileSettingsList;
-
-            var length = diffusionProfileSettingsArray.Length;
-            var diffusionProfileSettingsArrayCopy = new DiffusionProfileSettings[diffusionProfileSettingsArray.Length];
-            Array.Copy(diffusionProfileSettingsArray, diffusionProfileSettingsArrayCopy, length);
-
-            return diffusionProfileSettingsArrayCopy;
-        }
-
-        internal void TryAutoRegisterDiffusionProfile(DiffusionProfileSettings profile)
-        {
-            if (!autoRegisterDiffusionProfiles || profile == null || diffusionProfileSettingsList == null || diffusionProfileSettingsList.Any(d => d == profile))
-                return;
-
-            if (diffusionProfileSettingsList.Length >= DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT - 1)
-            {
-                Debug.LogError($"Failed to register profile '{profile.name}'. You have reached the limit of {DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT - 1} custom diffusion profiles in HDRP's Global Settings Default Volume.\n" +
-                        "Remove one from the list or disable the automatic registration of missing diffusion profiles in the Global Settings.", HDRenderPipelineGlobalSettings.instance);
-                return;
-            }
-
-            AddDiffusionProfile(profile);
-        }
-
-        internal bool AddDiffusionProfile(DiffusionProfileSettings profile)
-        {
-            var overrides = GetOrCreateDiffusionProfileList();
-            var profiles = overrides.diffusionProfiles.value;
-
-            for (int i = 0; i < profiles.Length; i++)
-            {
-                if (profiles[i] == null)
-                {
-                    profiles[i] = profile;
-                    return true;
-                }
-            }
-
-            if (profiles.Length >= DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT - 1)
-            {
-                Debug.LogErrorFormat("Failed to register profile {0}. You have reached the limit of {1} custom diffusion profiles in HDRP's Global Settings Default Volume. Please remove one before adding a new one.", profile.name, DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT - 1);
-                return false;
-            }
-
-            int index = profiles.Length;
-            Array.Resize(ref profiles, index + 1);
-            profiles[index] = profile;
-
-            overrides.diffusionProfiles.value = profiles;
-            EditorUtility.SetDirty(overrides);
-            return true;
-        }
-
-#endif
-
         [SerializeField]
         [Obsolete("This field is not used anymore. #from(2023.2)")]
         internal string DLSSProjectId = "000000";
@@ -547,6 +376,9 @@ namespace UnityEngine.Rendering.HighDefinition
         #endregion
 
         #region APV
+
+#pragma warning disable 618
+#pragma warning disable 612
         // This is temporarily here until we have a core place to put it shared between pipelines.
         [SerializeField]
         internal ProbeVolumeSceneData apvScenesData;
@@ -559,6 +391,8 @@ namespace UnityEngine.Rendering.HighDefinition
             apvScenesData.SetParentObject(this);
             return apvScenesData;
         }
+#pragma warning restore 612
+#pragma warning restore 618
 
         #endregion
     }

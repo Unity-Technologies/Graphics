@@ -82,6 +82,7 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty supportScreenSpaceLensFlare { get; }
 
         public SerializedProperty gpuResidentDrawerMode { get; }
+        public SerializedProperty smallMeshScreenPercentage { get; }
 
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
         public SerializedProperty useAdaptivePerformance { get; }
@@ -173,6 +174,7 @@ namespace UnityEditor.Rendering.Universal
             supportScreenSpaceLensFlare = serializedObject.FindProperty("m_SupportScreenSpaceLensFlare");
 
             gpuResidentDrawerMode = serializedObject.FindProperty("m_GPUResidentDrawerMode");
+            smallMeshScreenPercentage = serializedObject.FindProperty("m_SmallMeshScreenPercentage");
 
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
             useAdaptivePerformance = serializedObject.FindProperty("m_UseAdaptivePerformance");

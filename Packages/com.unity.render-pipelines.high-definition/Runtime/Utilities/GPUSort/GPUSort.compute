@@ -11,6 +11,8 @@
 
 #define LOCAL_SIZE 1024
 
+#define MAX_DISPERSE_UNROLL_COUNT 16
+
 struct Semantics
 {
     uint groupIndex : SV_GroupIndex;
@@ -121,6 +123,7 @@ void LocalDisperse(uint h)
 {
     const uint t = s_Semantics.groupIndex;
 
+    [unroll(MAX_DISPERSE_UNROLL_COUNT)]
     for ( ; h > 1 ; h /= 2 )
     {
         GroupMemoryBarrierWithGroupSync();

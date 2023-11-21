@@ -552,7 +552,7 @@ APVSample ManuallyFilteredSample(APVResources apvRes, float3 posWS, float3 norma
             APVSample apvSample = LoadAndDecodeAPV(apvRes, texCoordInt + offset);
             float geoW = GetNormalWeight(offset, posWS, positionCentralProbe, normalWS, subdiv);
 
-            float finalW = geoW * trilinearW;
+            half finalW = half(geoW * trilinearW);
             AccumulateSamples(baseSample, apvSample, finalW);
             totalW += finalW;
         }
@@ -911,7 +911,7 @@ float GetReflectionProbeNormalizationFactor(float3 lightingInReflDir, float3 sam
 {
     float refProbeNormalization = EvaluateReflectionProbeSH(sampleDir, reflProbeSHL0L1, reflProbeSHL2_1, reflProbeSHL2_2);
 
-    float localNormalization = Luminance(lightingInReflDir);
+    float localNormalization = Luminance(real3(lightingInReflDir));
     return lerp(1.f, clamp(SafeDiv(localNormalization, refProbeNormalization), _MinReflProbeNormalizationFactor, _MaxReflProbeNormalizationFactor), _Weight);
 
 }

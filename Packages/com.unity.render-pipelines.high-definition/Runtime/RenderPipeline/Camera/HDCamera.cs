@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 using Unity.Collections;
 
 namespace UnityEngine.Rendering.HighDefinition
@@ -931,9 +931,14 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_AdditionalCameraData == null ? false : m_AdditionalCameraData.cameraCanRenderDLSS;
         }
 
+        internal bool IsFSR2Enabled()
+        {
+            return m_AdditionalCameraData == null ? false : m_AdditionalCameraData.cameraCanRenderFSR2;
+        }
+
         internal bool IsTAAUEnabled()
         {
-            return DynamicResolutionHandler.instance.DynamicResolutionEnabled() && DynamicResolutionHandler.instance.filter == DynamicResUpscaleFilter.TAAU && !IsDLSSEnabled();
+            return DynamicResolutionHandler.instance.DynamicResolutionEnabled() && DynamicResolutionHandler.instance.filter == DynamicResUpscaleFilter.TAAU && !IsDLSSEnabled() && !IsFSR2Enabled();
         }
 
         internal bool IsPathTracingEnabled()
@@ -975,6 +980,10 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 return HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.DLSSInjectionPoint;
             }
+            else if (IsFSR2Enabled())
+            {
+                return HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.FSR2InjectionPoint;
+            }
             else if (IsTAAUEnabled())
             {
                 return DynamicResolutionHandler.UpsamplerScheduleType.BeforePost;
@@ -991,12 +1000,21 @@ namespace UnityEngine.Rendering.HighDefinition
         internal bool deepLearningSuperSamplingUseCustomAttributes => m_AdditionalCameraData == null ? false : m_AdditionalCameraData.deepLearningSuperSamplingUseCustomAttributes;
         internal bool deepLearningSuperSamplingUseOptimalSettings => m_AdditionalCameraData == null ? false : m_AdditionalCameraData.deepLearningSuperSamplingUseOptimalSettings;
         internal float deepLearningSuperSamplingSharpening => m_AdditionalCameraData == null ? 0.0f : m_AdditionalCameraData.deepLearningSuperSamplingSharpening;
+
+        internal bool allowFidelityFX2SuperResolution => m_AdditionalCameraData == null ? false : m_AdditionalCameraData.allowFidelityFX2SuperResolution;
+        internal bool fidelityFX2SuperResolutionUseCustomQualitySettings => m_AdditionalCameraData == null ? false : m_AdditionalCameraData.fidelityFX2SuperResolutionUseCustomQualitySettings;
+        internal uint fidelityFX2SuperResolutionQuality => m_AdditionalCameraData == null ? 0u : m_AdditionalCameraData.fidelityFX2SuperResolutionQuality;
+        internal bool fidelityFX2SuperResolutionUseCustomAttributes => m_AdditionalCameraData == null ? false : m_AdditionalCameraData.fidelityFX2SuperResolutionUseCustomAttributes;
+        internal bool fidelityFX2SuperResolutionUseOptimalSettings => m_AdditionalCameraData == null ? false : m_AdditionalCameraData.fidelityFX2SuperResolutionUseOptimalSettings;
+        internal bool fidelityFX2SuperResolutionEnableSharpening => m_AdditionalCameraData == null ? false : m_AdditionalCameraData.fidelityFX2SuperResolutionEnableSharpening;
+        internal float fidelityFX2SuperResolutionSharpening => m_AdditionalCameraData == null ? 0.0f : m_AdditionalCameraData.fidelityFX2SuperResolutionSharpening;
+
         internal bool fsrOverrideSharpness => m_AdditionalCameraData == null ? false : m_AdditionalCameraData.fsrOverrideSharpness;
         internal float fsrSharpness => m_AdditionalCameraData == null ? FSRUtils.kDefaultSharpnessLinear : m_AdditionalCameraData.fsrSharpness;
 
         internal bool RequiresCameraJitter()
         {
-            return (antialiasing == AntialiasingMode.TemporalAntialiasing || IsDLSSEnabled() || IsTAAUEnabled()) && !IsPathTracingEnabled();
+            return (antialiasing == AntialiasingMode.TemporalAntialiasing || IsFSR2Enabled() || IsDLSSEnabled() || IsTAAUEnabled()) && !IsPathTracingEnabled();
         }
 
         internal bool IsSSREnabled(bool transparent = false)
@@ -2114,7 +2132,7 @@ namespace UnityEngine.Rendering.HighDefinition
             float jitterX = HaltonSequence.Get(taaFrameIndex + 1, 2) - 0.5f;
             float jitterY = HaltonSequence.Get(taaFrameIndex + 1, 3) - 0.5f;
 
-            if (!(IsDLSSEnabled() || IsTAAUEnabled() || camera.cameraType == CameraType.SceneView))
+            if (!(IsFSR2Enabled() || IsDLSSEnabled() || IsTAAUEnabled() || camera.cameraType == CameraType.SceneView))
             {
                 jitterX *= taaJitterScale;
                 jitterY *= taaJitterScale;

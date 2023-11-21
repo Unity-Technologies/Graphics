@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 
 public class Deferred_GBuffer_Visualization_RenderFeature : ScriptableRendererFeature
 {
@@ -85,7 +85,7 @@ public class Deferred_GBuffer_Visualization_RenderFeature : ScriptableRendererFe
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("Test GBuffer visualization.", out var passData))
             {
-                builder.UseTextureFragment(resourceData.activeColorTexture, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
+                builder.SetRenderAttachment(resourceData.activeColorTexture, 0, AccessFlags.Write);
                 passData.material = m_Material;
                 passData.visualizeAlphaChannel = m_VisualizeAlphaChannel;
 

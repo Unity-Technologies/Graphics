@@ -20,7 +20,8 @@ namespace UnityEditor.VFX.UI
         public enum Board
         {
             blackboard,
-            componentBoard
+            componentBoard,
+            profilingBoard,
         }
 
 
@@ -226,6 +227,8 @@ namespace UnityEditor.VFX.UI
             capabilities |= Capabilities.Movable;
 
             RegisterCallback<MouseDownEvent>(OnMouseClick);
+            // Prevent graphview from zooming in/out when using the mouse wheel over the component board
+            RegisterCallback<WheelEvent>(e => e.StopPropagation());
 
             style.position = PositionType.Absolute;
 
@@ -851,6 +854,8 @@ namespace UnityEditor.VFX.UI
             BoardPreferenceHelper.SavePosition(BoardPreferenceHelper.Board.componentBoard, GetPosition());
         }
     }
+
+    [System.Obsolete("VFXComponentBoardEventUIFactory is deprecated and will be removed. Use UxmlElementAttribute instead.", false)]
     class VFXComponentBoardEventUIFactory : UxmlFactory<VFXComponentBoardEventUI>
     { }
     class VFXComponentBoardEventUI : VisualElement
@@ -914,6 +919,7 @@ namespace UnityEditor.VFX.UI
         }
     }
 
+    [System.Obsolete("VFXComponentBoardBoundsSystemUIFactory is deprecated and will be removed. Use UxmlElementAttribute instead.", false)]
     class VFXComponentBoardBoundsSystemUIFactory : UxmlFactory<VFXComponentBoardBoundsSystemUI>
     { }
 

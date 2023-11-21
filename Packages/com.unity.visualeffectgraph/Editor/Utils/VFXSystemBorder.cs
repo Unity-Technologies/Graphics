@@ -10,11 +10,8 @@ using UnityObject = UnityEngine.Object;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXSystemBorderFactory : UxmlFactory<VFXSystemBorder>
-    { }
-
-
-    class VFXSystemBorder : GraphElement, IControlledElement<VFXSystemController>, IDisposable
+    [UxmlElement]
+    partial class VFXSystemBorder : GraphElement, IControlledElement<VFXSystemController>, IDisposable
     {
         class Content : ImmediateModeElement
         {
@@ -260,13 +257,13 @@ namespace UnityEditor.VFX.UI
         }
 
         VFXContextUI[] m_Contexts;
-        private VFXContextUI[] contexts
+        internal VFXContextUI[] contexts
         {
             get
             {
                 return m_Contexts;
             }
-            set
+            private set
             {
                 if (m_Contexts != null)
                 {

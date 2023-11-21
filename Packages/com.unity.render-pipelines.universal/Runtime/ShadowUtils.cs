@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -673,40 +673,40 @@ namespace UnityEngine.Rendering.Universal
         internal static void SetPerLightSoftShadowKeyword(RasterCommandBuffer cmd, bool hasSoftShadows)
         {
             if (SupportsPerLightSoftShadowQuality())
-                cmd.SetKeyword(ref ShaderGlobalKeywords.SoftShadows, hasSoftShadows);
+                cmd.SetKeyword(ShaderGlobalKeywords.SoftShadows, hasSoftShadows);
         }
 
         internal static void SetSoftShadowQualityShaderKeywords(RasterCommandBuffer cmd, UniversalShadowData shadowData)
         {
-            cmd.SetKeyword(ref ShaderGlobalKeywords.SoftShadows, shadowData.isKeywordSoftShadowsEnabled);
+            cmd.SetKeyword(ShaderGlobalKeywords.SoftShadows, shadowData.isKeywordSoftShadowsEnabled);
             if (SupportsPerLightSoftShadowQuality())
             {
-                cmd.SetKeyword(ref ShaderGlobalKeywords.SoftShadowsLow, false);
-                cmd.SetKeyword(ref ShaderGlobalKeywords.SoftShadowsMedium, false);
-                cmd.SetKeyword(ref ShaderGlobalKeywords.SoftShadowsHigh, false);
+                cmd.SetKeyword(ShaderGlobalKeywords.SoftShadowsLow, false);
+                cmd.SetKeyword(ShaderGlobalKeywords.SoftShadowsMedium, false);
+                cmd.SetKeyword(ShaderGlobalKeywords.SoftShadowsHigh, false);
             }
             else
             {
                 if (shadowData.isKeywordSoftShadowsEnabled && UniversalRenderPipeline.asset?.softShadowQuality == SoftShadowQuality.Low)
                 {
-                    cmd.SetKeyword(ref ShaderGlobalKeywords.SoftShadowsLow, true);
-                    cmd.SetKeyword(ref ShaderGlobalKeywords.SoftShadowsMedium, false);
-                    cmd.SetKeyword(ref ShaderGlobalKeywords.SoftShadowsHigh, false);
-                    cmd.SetKeyword(ref ShaderGlobalKeywords.SoftShadows, false);
+                    cmd.SetKeyword(ShaderGlobalKeywords.SoftShadowsLow, true);
+                    cmd.SetKeyword(ShaderGlobalKeywords.SoftShadowsMedium, false);
+                    cmd.SetKeyword(ShaderGlobalKeywords.SoftShadowsHigh, false);
+                    cmd.SetKeyword(ShaderGlobalKeywords.SoftShadows, false);
                 }
                 else if (shadowData.isKeywordSoftShadowsEnabled && UniversalRenderPipeline.asset?.softShadowQuality == SoftShadowQuality.Medium)
                 {
-                    cmd.SetKeyword(ref ShaderGlobalKeywords.SoftShadowsLow, false);
-                    cmd.SetKeyword(ref ShaderGlobalKeywords.SoftShadowsMedium, true);
-                    cmd.SetKeyword(ref ShaderGlobalKeywords.SoftShadowsHigh, false);
-                    cmd.SetKeyword(ref ShaderGlobalKeywords.SoftShadows, false);
+                    cmd.SetKeyword(ShaderGlobalKeywords.SoftShadowsLow, false);
+                    cmd.SetKeyword(ShaderGlobalKeywords.SoftShadowsMedium, true);
+                    cmd.SetKeyword(ShaderGlobalKeywords.SoftShadowsHigh, false);
+                    cmd.SetKeyword(ShaderGlobalKeywords.SoftShadows, false);
                 }
                 else if (shadowData.isKeywordSoftShadowsEnabled && UniversalRenderPipeline.asset?.softShadowQuality == SoftShadowQuality.High)
                 {
-                    cmd.SetKeyword(ref ShaderGlobalKeywords.SoftShadowsLow, false);
-                    cmd.SetKeyword(ref ShaderGlobalKeywords.SoftShadowsMedium, false);
-                    cmd.SetKeyword(ref ShaderGlobalKeywords.SoftShadowsHigh, true);
-                    cmd.SetKeyword(ref ShaderGlobalKeywords.SoftShadows, false);
+                    cmd.SetKeyword(ShaderGlobalKeywords.SoftShadowsLow, false);
+                    cmd.SetKeyword(ShaderGlobalKeywords.SoftShadowsMedium, false);
+                    cmd.SetKeyword(ShaderGlobalKeywords.SoftShadowsHigh, true);
+                    cmd.SetKeyword(ShaderGlobalKeywords.SoftShadows, false);
                 }
             }
         }

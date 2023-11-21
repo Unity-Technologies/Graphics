@@ -39,9 +39,9 @@ namespace UnityEngine.Rendering.Universal
             using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
                 // Toggle light shadows enabled based on the renderer setting set in the constructor
-                cmd.SetKeyword(ref ShaderGlobalKeywords.MainLightShadows, shouldReceiveShadows);
-                cmd.SetKeyword(ref ShaderGlobalKeywords.MainLightShadowCascades, shouldReceiveShadows);
-                cmd.SetKeyword(ref ShaderGlobalKeywords.AdditionalLightShadows, shouldReceiveShadows);
+                cmd.SetKeyword(ShaderGlobalKeywords.MainLightShadows, shouldReceiveShadows);
+                cmd.SetKeyword(ShaderGlobalKeywords.MainLightShadowCascades, shouldReceiveShadows);
+                cmd.SetKeyword(ShaderGlobalKeywords.AdditionalLightShadows, shouldReceiveShadows);
             }
         }
     }

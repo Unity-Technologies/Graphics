@@ -173,6 +173,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private void Awake()
         {
+            k_Migration.Migrate(this);
+
             // Add this water surface to the internal surface management
             RegisterInstance(this);
         }

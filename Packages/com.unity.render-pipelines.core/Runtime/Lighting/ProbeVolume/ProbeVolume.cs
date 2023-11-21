@@ -203,16 +203,16 @@ namespace UnityEngine.Rendering
         // Only the first PV of the available ones will draw gizmos.
         bool IsResponsibleToDrawGizmo() => instances.Count > 0 && instances[0] == this;
 
-        internal bool ShouldCullCell(Vector3 cellPosition, Vector3 originWS = default(Vector3))
+        internal bool ShouldCullCell(Vector3 cellPosition)
         {
             var cellSizeInMeters = ProbeReferenceVolume.instance.MaxBrickSize();
             var debugDisplay = ProbeReferenceVolume.instance.probeVolumeDebug;
             if (debugDisplay.realtimeSubdivision)
             {
-                var profile = ProbeReferenceVolume.instance.sceneData.GetBakingSetForScene(gameObject.scene);
-                if (profile == null)
+                if (!ProbeReferenceVolume.instance.TryGetBakingSetForLoadedScene(gameObject.scene, out var bakingSet))
                     return true;
-                cellSizeInMeters = profile.cellSizeInMeters;
+
+                cellSizeInMeters = bakingSet.cellSizeInMeters;
             }
 
             if (Camera.current == null)
@@ -220,7 +220,7 @@ namespace UnityEngine.Rendering
 
             var cameraTransform = Camera.current.transform;
 
-            Vector3 cellCenterWS = cellPosition * cellSizeInMeters + originWS + Vector3.one * (cellSizeInMeters / 2.0f);
+            Vector3 cellCenterWS = cellPosition * cellSizeInMeters + Vector3.one * (cellSizeInMeters / 2.0f);
 
             // Round down to cell size distance
             float roundedDownDist = Mathf.Floor(Vector3.Distance(cameraTransform.position, cellCenterWS) / cellSizeInMeters) * cellSizeInMeters;
@@ -249,7 +249,7 @@ namespace UnityEngine.Rendering
         {
             Gizmos.DrawIcon(transform.position, s_gizmosLocationPath + "ProbeVolume.png", true);
 
-            if (!ProbeReferenceVolume.instance.isInitialized || !IsResponsibleToDrawGizmo() || ProbeReferenceVolume.instance.sceneData == null)
+            if (!ProbeReferenceVolume.instance.isInitialized || !IsResponsibleToDrawGizmo())
                 return;
 
             var debugDisplay = ProbeReferenceVolume.instance.probeVolumeDebug;
@@ -258,8 +258,7 @@ namespace UnityEngine.Rendering
             var cellSizeInMeters = ProbeReferenceVolume.instance.MaxBrickSize();
             if (debugDisplay.realtimeSubdivision)
             {
-                var bakingSet = ProbeReferenceVolume.instance.sceneData.GetBakingSetForScene(gameObject.scene);
-                if (bakingSet == null)
+                if (!ProbeReferenceVolume.instance.TryGetBakingSetForLoadedScene(gameObject.scene, out var bakingSet))
                     return;
 
                 // Overwrite settings with data from profile
@@ -293,7 +292,7 @@ namespace UnityEngine.Rendering
                             if (!cell.loaded)
                                 continue;
 
-                            if (ShouldCullCell(cell.desc.position, ProbeReferenceVolume.instance.GetTransform().posWS))
+                            if (ShouldCullCell(cell.desc.position))
                                 continue;
 
                             if (cell.data.bricks == null)
@@ -350,7 +349,7 @@ namespace UnityEngine.Rendering
                     {
                         foreach (var cell in ProbeReferenceVolume.instance.cells.Values)
                         {
-                            if (ShouldCullCell(cell.desc.position, prv.GetTransform().posWS))
+                            if (ShouldCullCell(cell.desc.position))
                                 continue;
 
                             var positionF = new Vector4(cell.desc.position.x, cell.desc.position.y, cell.desc.position.z, 0.0f);
@@ -373,7 +372,6 @@ namespace UnityEngine.Rendering
                     }
                 }
 
-                Matrix4x4 trs = Matrix4x4.TRS(ProbeReferenceVolume.instance.GetTransform().posWS, ProbeReferenceVolume.instance.GetTransform().rot, Vector3.one);
                 var oldGizmoMatrix = Gizmos.matrix;
 
                 if (cellGizmo == null)
@@ -382,7 +380,7 @@ namespace UnityEngine.Rendering
                 foreach (var cell in GetVisibleCellDebugData())
                 {
                     Gizmos.color = cell.color;
-                    Gizmos.matrix = trs;
+                    Gizmos.matrix = Matrix4x4.identity;
 
                     Gizmos.DrawCube(cell.center, Vector3.one * cellSizeInMeters);
                     var wireColor = cell.color;

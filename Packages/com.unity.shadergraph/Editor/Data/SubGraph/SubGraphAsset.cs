@@ -95,6 +95,7 @@ namespace UnityEditor.ShaderGraph
 
         private SubGraphData m_SubGraphData;
 
+        [HideInInspector]
         [SerializeField]
         private SerializationHelper.JSONSerializedElement m_SerializedSubGraphData;
 

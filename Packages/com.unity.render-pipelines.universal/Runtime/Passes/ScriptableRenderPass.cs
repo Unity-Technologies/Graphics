@@ -5,7 +5,7 @@ using System.ComponentModel;
 using Unity.Collections;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -179,7 +179,7 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// <c>ScriptableRenderPass</c> implements a logical rendering pass that can be used to extend Universal RP renderer.
     /// </summary>
-    public abstract partial class ScriptableRenderPass
+    public abstract partial class ScriptableRenderPass: IRenderGraphRecorder
     {
         /// <summary>
         /// RTHandle alias for BuiltinRenderTextureType.CameraTarget which is the backbuffer.
@@ -626,11 +626,7 @@ namespace UnityEngine.Rendering.Universal
             Debug.LogWarning("Execute is not implemented, the pass " + this.ToString() + " won't be executed in the current render loop.");
         }
 
-        /// <summary>
-        /// Record the render graph pass. This is where custom rendering occurs. Specific details are left to the implementation
-        /// </summary>
-        /// <param name="renderGraph"></param>
-        /// <param name="frameData"></param>
+        /// <inheritdoc cref="IRenderGraphRecorder.RecordRenderGraph"/>
         public virtual void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
             Debug.LogWarning("RecordRenderGraph is not implemented, the pass " + this.ToString() + " won't be recorded in the current RenderGraph.");

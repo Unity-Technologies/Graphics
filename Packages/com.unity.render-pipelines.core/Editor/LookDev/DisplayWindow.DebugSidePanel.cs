@@ -99,10 +99,6 @@ namespace UnityEditor.Rendering.LookDev
 
         class MultipleDifferentValue : TextElement
         {
-            public new class UxmlFactory : UxmlFactory<MultipleDifferentValue, UxmlTraits> { }
-
-            public new class UxmlTraits : TextElement.UxmlTraits { }
-
             public new static readonly string ussClassName = "unity-multipledifferentevalue";
 
             public MultipleDifferentValue()
