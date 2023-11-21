@@ -319,6 +319,12 @@ void Frag(PackedVaryings packedInput,
     outColor = color;
 #elif defined(DECAL_GBUFFER)
 
+    // Need to reconstruct normal here for inputData.bakedGI, but also save off surfaceData.normalWS for correct GBuffer blending
+    half3 normalToPack = surfaceData.normalWS.xyz;
+#ifdef DECAL_RECONSTRUCT_NORMAL
+    surfaceData.normalWS.xyz = normalize(lerp(normalWS.xyz, surfaceData.normalWS.xyz, surfaceData.normalWS.w));
+#endif
+
     InputData inputData;
     InitializeInputData(input, positionWS, surfaceData.normalWS.xyz, viewDirectionWS, inputData);
 
@@ -330,21 +336,15 @@ void Frag(PackedVaryings packedInput,
 
     // Skip GI if there is no abledo
 #ifdef _MATERIAL_AFFECTS_ALBEDO
-
-    // GI needs blended normal
-#ifdef DECAL_RECONSTRUCT_NORMAL
-    half3 normalGI = normalize(lerp(normalWS.xyz, surfaceData.normalWS.xyz, surfaceData.normalWS.w));
-#endif
-
     Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, inputData.shadowMask);
-    MixRealtimeAndBakedGI(mainLight, normalGI, inputData.bakedGI, inputData.shadowMask);
-    half3 color = GlobalIllumination(brdfData, inputData.bakedGI, surface.occlusion, normalGI, inputData.viewDirectionWS);
+    MixRealtimeAndBakedGI(mainLight, surfaceData.normalWS.xyz, inputData.bakedGI, inputData.shadowMask);
+    half3 color = GlobalIllumination(brdfData, inputData.bakedGI, surface.occlusion, surfaceData.normalWS.xyz, inputData.viewDirectionWS);
 #else
     half3 color = 0;
 #endif
 
     // We can not use usual GBuffer functions (etc. BRDFDataToGbuffer) as we use alpha for blending
-    half3 packedNormalWS = PackNormal(surfaceData.normalWS.xyz);
+    half3 packedNormalWS = PackNormal(normalToPack);
     fragmentOutput.GBuffer0 = half4(surfaceData.baseColor.rgb, surfaceData.baseColor.a);
     fragmentOutput.GBuffer1 = 0;
     fragmentOutput.GBuffer2 = half4(packedNormalWS, surfaceData.normalWS.a);

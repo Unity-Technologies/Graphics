@@ -440,7 +440,7 @@ namespace UnityEngine.Rendering.Universal
                 if (xr.enabled)
                     hdrDisplayOutputActive = xr.isHDRDisplayOutputActive;
 #endif
-        		return hdrDisplayOutputActive && allowHDROutput && resolveToScreen;
+                return hdrDisplayOutputActive && allowHDROutput && resolveToScreen;
             }
         }
 
@@ -1019,7 +1019,7 @@ namespace UnityEngine.Rendering.Universal
         /// True if fast approximation functions are used when converting between the sRGB and Linear color spaces, false otherwise.
         /// </summary>
         public bool useFastSRGBLinearConversion;
-        
+
         /// <summary>
         /// Returns true if Data Driven Lens Flare are supported by this asset, false otherwise.
         /// </summary>
@@ -1205,8 +1205,8 @@ namespace UnityEngine.Rendering.Universal
         /// <summary> Keyword used for Gamma 2.0. </summary>
         public const string Gamma20 = "_GAMMA_20";
 
-        /// <summary> Keyword used for Gamma 2.0 with HDR_INPUT. </summary>
-        public const string Gamma20AndHDRInput = "_GAMMA_20_AND_HDR_INPUT";
+        /// <summary> Keyword used for Fast Approximate Anti-aliasing (FXAA) with Gamma 2.0 encoding. </summary>
+        public const string FxaaAndGamma20 = "_FXAA_AND_GAMMA_20";
 
         /// <summary> Keyword used for high quality sampling for Depth Of Field. </summary>
         public const string HighQualitySampling = "_HIGH_QUALITY_SAMPLING";

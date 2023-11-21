@@ -843,6 +843,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.DebugDisplay },
                 { CoreKeywordDescriptors.LightCookies },
                 { CoreKeywordDescriptors.ForwardPlus },
+                { CoreKeywordDescriptors.EvaluateShVertex },
+                { CoreKeywordDescriptors.EvaluateShMixed },
             };
 
             public static readonly KeywordCollection GBuffer = new KeywordCollection

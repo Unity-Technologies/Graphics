@@ -2,59 +2,73 @@
 
 This section describes how to create a custom Renderer Feature for a URP Renderer.
 
-This section assumes the following:
+This walkthrough contains the following sections:
 
-* The **Scriptable Render Pipeline Settings** property refers to a URP asset (**Project Settings** > **Graphics** > **Scriptable Render Pipeline Settings**).
+* [Overview of this example implementation](#example-implementation-overview)
+* [Create example Scene and GameObjects](#example-scene)
+* [Create a scriptable Renderer Feature and add it to the Universal Renderer](#scriptable-renderer-feature)
+    * [Add the Renderer Feature to the the Universal Renderer asset](#add-renderer-feature-to-asset)
+* [Create the scriptable Render Pass](#scriptable-render-pass)
+* [Implement the settings for the custom render pass](#implement-the-settings-for-the-custom-render-pass)
+* [Enqueue the render pass in the custom renderer feature](#enqueue-the-render-pass-in-the-custom-renderer-feature)
+* [Implement the volume component](#volume-component)
+* [Complete code for the scripts in this example](#complete-code-for-the-scripts-in-this-example)
+    * [Custom Renderer Feature code](#code-renderer-feature)
+    * [Custom render pass code](#code-render-pass)
+    * [Volume Component code](#code-volume-component)
+* [The custom shader for the blur effect](#example-shader)
 
-This article contains the following sections:
+## <a name="example-implementation-overview"></a>Overview of this example implementation
 
-* [Create example Scene and GameObjects.](#example-scene)
+The example workflow on this page implements a custom Renderer Feature that adds a blur effect to the camera output.
 
-* [Create a scriptable Renderer Feature and add it to the Universal Renderer.](#scriptable-renderer-feature)
+The implementation consists of the following parts:
 
-* [Create and enqueue the scriptable Render Pass.](#scriptable-render-pass)
+* A `ScriptableRendererFeature` instance that enqueues a `ScriptableRenderPass` instance every frame.
 
-* [Implement rendering commands in the Execute method.](#execute-method)
+* A `ScriptableRenderPass` instance that performs the following steps:
 
-* [Implement the example-specific Material and rendering code.](#example-specific-material)
+    * Creates a temporary render texture using the `RenderTextureDescriptor` API.
 
-* [Change the order of the render passes](#order-of-passes)
-
-* [Complete code for this example](#complete-code)
+    * Applies two passes of the [custom shader](#example-shader) to the camera output using the `RTHandle` and the `Blit` API.
 
 ## <a name="example-scene"></a>Create example Scene and GameObjects
 
-To follow the steps in this section, create a new Scene with the following GameObjects:
+To set your project up for this example workflow:
 
-1. Create a plane.
+1. Create a new Scene.
 
-2. Create a new Material and assign it the `Universal Render Pipeline/Lit` shader. Set the base color to grey (for example, `#6A6A6A`). Call the Material `Plane`.
+1. Create two GameObjects: a Cube GameObject called `Cube`, and a Sphere GameObject called `Sphere`.
 
-3. Create a Point Light and place it above the plane.
+2. Create two Materials with a shader that lets you specify the base color (for example, the `Universal Render Pipeline/Lit` shader). Call the Materials `Blue` and `Red`, and set the base colors of the Materials to blue and red respectively.
 
-Your Scene should look like the following illustration:
+3. Assign the `Red` Material to the cube and the `Blue` Material to the sphere.
 
-![Example Scene](../Images/customizing-urp/custom-renderer-feature/sample-scene.png)
+3. Position the camera so that it has the cube and the sphere in its view.
+
+The sample scene should look like the following image:
+
+![Sample scene](../Images/customizing-urp/custom-renderer-feature/sample-scene.png)
 
 ## <a name="scriptable-renderer-feature"></a>Create a scriptable Renderer Feature and add it to the Universal Renderer
 
-This part shows how to create a scriptable Renderer Feature and implement the methods that let you configure and inject `ScriptableRenderPass` instances into the scriptable Renderer.
+1. Create a new C# script and name it `BlurRendererFeature.cs`.
 
-1. Create a new C# script. Call the script `LensFlareRendererFeature.cs`.
+2. In the script, remove the code that Unity inserted in the `BlurRendererFeature` class.
 
-2. Open the script, remove all the code from the `LensFlareRendererFeature` class that Unity created. Add the following `using` directive.
+3. Add the following `using` directive:
 
     ```C#
     using UnityEngine.Rendering.Universal;
     ```
 
-3. The `LensFlareRendererFeature` class must inherit from the `ScriptableRendererFeature` class.
+3. Create the `BlurRendererFeature` class that inherits from the **ScriptableRendererFeature** class.
 
     ```C#
-    public class LensFlareRendererFeature : ScriptableRendererFeature
+    public class BlurRendererFeature : ScriptableRendererFeature    
     ```
 
-4. The class must implement the following methods:
+4. In the `BlurRendererFeature` class, implement the following methods:
 
     * `Create`: Unity calls this method on the following events:
 
@@ -64,403 +78,627 @@ This part shows how to create a scriptable Renderer Feature and implement the me
 
         * When you change a property in the inspector of the Renderer Feature.
 
-    * `AddRenderPasses`: Unity calls this method every frame, once for each Camera. This method lets you inject `ScriptableRenderPass` instances into the scriptable Renderer.
+    * `AddRenderPasses`: Unity calls this method every frame, once for each camera. This method lets you inject `ScriptableRenderPass` instances into the scriptable Renderer.
 
-Now you have the custom `LensFlareRendererFeature` Renderer Feature with its main methods.
+Now you have the custom `BlurRendererFeature` Renderer Feature with its main methods.
 
-Below is the complete code for this part.
-
-```C#
-using UnityEngine;
-using UnityEngine.Rendering;
-using UnityEngine.Rendering.Universal;
-
-public class LensFlareRendererFeature : ScriptableRendererFeature
-{
-    public override void Create()
-    { }
-
-    public override void AddRenderPasses(ScriptableRenderer renderer,
-    ref RenderingData renderingData)
-    { }
-}
-```
-
-Add the Renderer Feature you created to the the Universal Renderer asset. [Follow this link to read how to add a Renderer Feature to a Renderer](../urp-renderer-feature-how-to-add.md).
-
-![Add the Lens Flare Renderer Feature to the Universal Renderer.](../Images/customizing-urp/custom-renderer-feature/add-new-renderer-feature.png)<br/>*Add the Lens Flare Renderer Feature to the Universal Renderer.*
-
-## <a name="scriptable-render-pass"></a>Create and enqueue the scriptable Render Pass
-
-This part shows how to create a scriptable Render Pass and and enqueue its instance into the scriptable Renderer.
-
-1. In the `LensFlareRendererFeature` class, declare the `LensFlarePass` class that inherits from `ScriptableRenderPass`.
-
-    ```C#
-    class LensFlarePass : ScriptableRenderPass
-    { }
-    ```
-
-2. In `LensFlarePass`, add the `Execute` method.
-
-    Unity runs the `Execute` method every frame. In this method, you can implement your custom rendering functionality.
-
-    ```C#
-    public override void Execute(ScriptableRenderContext context,
-    ref RenderingData renderingData)
-    { }
-    ```
-
-3. In the `LensFlareRendererFeature` class, declare a private `LensFlarePass` field.
-
-    ```C#
-    private LensFlarePass _lensFlarePass;
-    ```
-
-4. In the `Create` method, instantiate the `_lensFlarePass` object:
-
-    ```C#
-    _lensFlarePass = new LensFlarePass(FlareSettings);
-    ```
-
-5. In the `AddRenderPasses` method, use the `EnqueuePass` method of the `renderer` object to enqueue `_lensFlarePass` in the rendering queue.
-
-    ```C#
-    renderer.EnqueuePass(_lensFlarePass);
-    ```
-
-Now your custom `LensFlareRendererFeature` Renderer Feature is executing the `Execute` method inside the custom `LensFlarePass` pass.
-
-Below is the complete code for this part.
+Below is the complete code for this step.
 
 ```C#
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
-public class LensFlareRendererFeature : ScriptableRendererFeature
+public class BlurRendererFeature : ScriptableRendererFeature
 {
-    class LensFlarePass : ScriptableRenderPass
-    {
-        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
-        {
-            Debug.Log(message: "The Execute() method runs.");
-        }
-    }
-
-    private LensFlarePass _lensFlarePass;
-
     public override void Create()
     {
-        _lensFlarePass = new LensFlarePass();
-    }
 
-    public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
-    {
-        renderer.EnqueuePass(_lensFlarePass);
-    }
-}
-```
-
-## <a name="execute-method"></a>Implement rendering commands in the Execute method
-
-This part shows how to implement custom logic in the Execute method.
-
-1. Create a [CommandBuffer](https://docs.unity3d.com/2021.2/Documentation/ScriptReference/Rendering.CommandBuffer.html) type object. This object holds the list of rendering commands to execute.
-
-    In the `Execute` method, add the following line:
-
-    ```C#
-    CommandBuffer cmd = CommandBufferPool.Get(name: "LensFlarePass");
-    ```
-
-    The method `CommandBufferPool.Get(name: "LensFlarePass")` gets the new command buffer and assigns a name to it.
-
-2. Add the line that executes the command buffer and the line that releases it.
-
-    In the `Execute` method, add the following lines after the command buffer declaration:
-
-    ```C#
-    context.ExecuteCommandBuffer(cmd);
-    CommandBufferPool.Release(cmd);
-    ```
-
-    Now the boilerplate part is ready and we can proceed to implementing the custom rendering logic.
-
-The following steps implement the custom rendering logic.
-
-In this example, the Renderer Feature draws lens flares as a texture on a Quad. The implementation requires a Material and a mesh (Quad).
-
-1. In the `LensFlarePass` class, declare two private fields: `Material` and `Mesh`:
-
-    ```C#
-    private Material _material;
-    private Mesh _mesh;
-    ```
-
-    Then declare the constructor that takes those variables as arguments:
-
-    ```C#
-    public LensFlarePass(Material material, Mesh mesh)
-    {
-        _material = material;
-        _mesh = mesh;
-    }
-    ```
-
-2. Now the `LensFlarePass` class expects two arguments. To initialize the class with the arguments, add the following public fields in the `LensFlareRendererFeature` class:
-
-    ```C#
-    public Material material;
-    public Mesh mesh;
-    ```
-
-    And add the arguments to the `LensFlarePass` declaration in the `Create` method:
-
-    ```C#
-    _lensFlarePass = new LensFlarePass(material, mesh);
-    ```
-
-3. In the `Execute` method, use the `DrawMesh` method of the `cmd` object. The method takes the `_material` and the `_mesh` fields as arguments. Add the following line between the `cmd` object declaration and the command `context.ExecuteCommandBuffer(cmd)`.
-
-    ```C#
-    cmd.DrawMesh(_mesh, Matrix4x4.identity, _material);
-    ```
-
-    To ensure that Unity does call the `DrawMesh` method with `null` arguments, in the `AddRenderPasses` method, wrap the `EnqueuePass` call in the null check condition:
-
-    ```C#
-    if (material != null && mesh != null)
-    {
-        renderer.EnqueuePass(_lensFlarePass);
-    }
-    ```
-
-Now the `LensFlarePass` class has the following basic logic in the `Execute` method:
-
-1. Get the new command buffer and assign it the name `LensFlarePass`.
-
-2. Add rendering commands.
-
-3. Execute the command buffer.
-
-4. Release the buffer.
-
-> **NOTE:** Unity does not enqueue the `LensFlarePass` pass yet, because the `Material` and the `Mesh` properties are null.
-
-Below is the complete code for this part.
-
-```C#
-using UnityEngine;
-using UnityEngine.Rendering;
-using UnityEngine.Rendering.Universal;
-
-public class LensFlareRendererFeature : ScriptableRendererFeature
-{
-    class LensFlarePass : ScriptableRenderPass
-    {
-        private Material _material;
-        private Mesh _mesh;
-
-        public LensFlarePass(Material material, Mesh mesh)
-        {
-            _material = material;
-            _mesh = mesh;
-        }
-
-        public override void Execute(ScriptableRenderContext context,
-            ref RenderingData renderingData)
-        {
-            CommandBuffer cmd = CommandBufferPool.Get(name: "LensFlarePass");
-            cmd.DrawMesh(_mesh, Matrix4x4.identity, _material);
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
-        }
-    }
-
-    private LensFlarePass _lensFlarePass;
-    public Material material;
-    public Mesh mesh;
-
-    public override void Create()
-    {
-        _lensFlarePass = new LensFlarePass(material, mesh);
     }
 
     public override void AddRenderPasses(ScriptableRenderer renderer,
         ref RenderingData renderingData)
     {
-        if (material != null && mesh != null)
+
+    }
+}
+```
+
+### <a name="add-renderer-feature-to-asset"></a>Add the Renderer Feature to the the Universal Renderer asset
+
+Add the Renderer Feature you created to the the Universal Renderer asset. For information on how to do this, refer to the page [How to add a Renderer Feature to a Renderer](../urp-renderer-feature-how-to-add.md).
+
+## <a name="scriptable-render-pass"></a>Create the scriptable Render Pass
+
+This section demonstrates how to create a scriptable Render Pass and enqueue its instance into the scriptable Renderer.
+
+1. Create a new C# script and name it `BlurRenderPass.cs`.
+
+2. In the script, remove the code that Unity inserted in the `BlurRenderPass` class. Add the following `using` directive:
+
+    ```C#
+    using UnityEngine.Rendering;
+    using UnityEngine.Rendering.Universal;
+    ```
+
+3. Create the `BlurRenderPass` class that inherits from the **ScriptableRenderPass** class.
+
+    ```C#
+    public class BlurRenderPass : ScriptableRenderPass
+    ```
+
+4. Add the `Execute` method to the class. Unity calls this method every frame, once for each camera. This method lets you implement the rendering logic of the scriptable Render Pass.
+
+    ```C#
+    public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
+    { }
+    ```
+
+Below is the complete code for the BlurRenderPass.cs file from this section.
+
+```C#
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
+
+public class BlurRenderPass : ScriptableRenderPass
+{
+    public override void Execute(ScriptableRenderContext context,
+        ref RenderingData renderingData)
+    {
+        
+    }
+}
+```
+
+## Implement the settings for the custom render pass
+
+This section demonstrates how to implement the settings for the custom blur render pass.
+
+1. The Renderer Feature in this example uses the [shader](#example-shader) that performs the blur horizontally in one pass, and vertically in another pass. To let users control the blur value for each pass, add the following `BlurSettings` class to the `BlurRendererFeature.cs` script.
+
+    ```C#
+    [Serializable]
+    public class BlurSettings
+    {
+        [Range(0,0.4f)] public float horizontalBlur;
+        [Range(0,0.4f)] public float verticalBlur;
+    }
+    ```
+
+2. In the `BlurRendererFeature` class, declare the following fields:
+
+    ```C#
+    [SerializeField] private BlurSettings settings;
+    [SerializeField] private Shader shader;
+    private Material material;
+    private BlurRenderPass blurRenderPass;
+    ```
+
+3. In the `BlurRenderPass` class, add the fields for the settings, the Material, and the constructor that uses those fields.
+
+    ```C#
+    private BlurSettings defaultSettings;
+    private Material material;
+
+    public BlurRenderPass(Material material, BlurSettings defaultSettings)
+    {
+        this.material = material;
+        this.defaultSettings = defaultSettings;        
+    }
+    ```
+
+4. In the `BlurRenderPass` class, add the `RenderTextureDescriptor` field and initialize it in the constructor:
+
+    ```C#
+    using UnityEngine;
+
+    private RenderTextureDescriptor blurTextureDescriptor;
+
+    public BlurRenderPass(Material material, BlurSettings defaultSettings)
+    {
+        this.material = material;
+        this.defaultSettings = defaultSettings;
+
+        blurTextureDescriptor = new RenderTextureDescriptor(Screen.width,
+            Screen.height, RenderTextureFormat.Default, 0);
+    }
+    ```
+
+5. In the `BlurRenderPass` class, declare the `RTHandle` field to store the reference to the temporary blur texture. 
+
+    ```C#
+    private RTHandle blurTextureHandle;
+    ```
+
+6. In the `BlurRenderPass` class, implement the `Configure` method. Unity calls this method before executing the render pass.
+
+    ```C#
+    public override void Configure(CommandBuffer cmd,
+        RenderTextureDescriptor cameraTextureDescriptor)
+    {
+        //Set the blur texture size to be the same as the camera target size.
+        blurTextureDescriptor.width = cameraTextureDescriptor.width;
+        blurTextureDescriptor.height = cameraTextureDescriptor.height;
+
+        //Check if the descriptor has changed, and reallocate the RTHandle if necessary.
+        RenderingUtils.ReAllocateIfNeeded(ref blurTextureHandle, blurTextureDescriptor);
+    }
+    ```
+
+7. In the `BlurRenderPass` class, implement the `UpdateBlurSettings` method that updates the shader values.
+
+    Use the `Blit` method to apply the two passes from the custom shader to the camera output.
+
+    ```C#
+    private static readonly int horizontalBlurId =
+        Shader.PropertyToID("_HorizontalBlur");
+    private static readonly int verticalBlurId =
+        Shader.PropertyToID("_VerticalBlur");
+
+    ...
+
+    private void UpdateBlurSettings()
+    {
+        if (material == null) return;
+                
+        material.SetFloat(horizontalBlurId, defaultSettings.horizontalBlur);
+        material.SetFloat(verticalBlurId, defaultSettings.verticalBlur);
+    }
+    ```
+
+8. Call the `UpdateBlurSettings` method in the `Execute` method.
+
+    ```C#
+    public override void Execute(ScriptableRenderContext context,
+        ref RenderingData renderingData)
+    {
+        //Get a CommandBuffer from pool.
+        CommandBuffer cmd = CommandBufferPool.Get();
+
+        RTHandle cameraTargetHandle =
+            renderingData.cameraData.renderer.cameraColorTargetHandle;
+
+        UpdateBlurSettings();
+
+        // Blit from the camera target to the temporary render texture,
+        // using the first shader pass.
+        Blit(cmd, cameraTargetHandle, blurTextureHandle, material, 0);
+        // Blit from the temporary render texture to the camera target,
+        // using the second shader pass.
+        Blit(cmd, blurTextureHandle, cameraTargetHandle, material, 1);
+
+        //Execute the command buffer and release it back to the pool.
+        context.ExecuteCommandBuffer(cmd);
+        CommandBufferPool.Release(cmd);
+    }
+    ```
+
+9. Implement the `Dispose` method that destroys the Material and the temporary render texture after the render pass execution.
+
+    ```C#
+    public void Dispose()
+    {
+        #if UNITY_EDITOR
+                if (EditorApplication.isPlaying)
+                {
+                    Object.Destroy(material);
+                }
+                else
+                {
+                    Object.DestroyImmediate(material);
+                }
+        #else
+                Object.Destroy(material);
+        #endif
+        
+        if (blurTextureHandle != null) blurTextureHandle.Release();
+    }
+    ```
+
+The complete code for this part is in section [Custom render pass code](#code-render-pass).
+
+## Enqueue the render pass in the custom renderer feature
+
+In this section, you instantiate the render pass in the `Create` method of the `BlurRendererFeature` class, and enqueue it in the `AddRenderPasses` method.
+
+1. In the `Create` method of the `BlurRendererFeature` class, instantiate the `BlurRenderPass` class.
+
+    In the method, use the `renderPassEvent` field to specify when to execute the render pass.
+
+    ```C#
+    public override void Create()
+    {
+        if (shader == null)
         {
-            renderer.EnqueuePass(_lensFlarePass);
+            return;
+        }
+        material = new Material(shader);
+        blurRenderPass = new BlurRenderPass(material, settings);
+
+        renderPassEvent = RenderPassEvent.AfterRenderingSkybox;
+    }
+    ```
+
+2. In the `AddRenderPasses` method of the `BlurRendererFeature` class, enqueue the render pass with the `EnqueuePass` method.
+
+    ```C#
+    public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
+    {
+        if (renderingData.cameraData.cameraType == CameraType.Game)
+        {
+            renderer.EnqueuePass(blurRenderPass);
         }
     }
-}
-```
-
-## <a name="example-specific-material"></a>Implement the example-specific Material and rendering code
-
-This section shows how to create a Material for the lens flare effect and how to implement the code to render flares at the positions of Lights.
-
-1. Create a new Material, and assign it the `Universal Render Pipeline/Unlit` shader. Call the Material `LensFlare`.
-
-1. For demonstration purpose, change the base color of the Material to red.
-
-2. In the Universal Renderer, in `Lens Flare Renderer Feature`, select the `LensFlare` Material in the Material property, and the `Quad` mesh in the Mesh property.
-
-    ![](../Images/customizing-urp/custom-renderer-feature/select-mesh-and-material.png)
-
-3. The Renderer Feature draws the quad in the Scene, but at this point it's just black. This is because the `Universal Render Pipeline/Unlit` shader has multiple passes, and one of them paints the quad black. To change this behavior, use the `cmd.DrawMesh` method overload that accepts the `shaderPass` argument, and specify shader pass 0:
-
-    ```C#
-    cmd.DrawMesh(_mesh, Matrix4x4.identity, _material, 0, 0);
     ```
 
-The following steps show the changes that are specific to the effect implementation in this example. They are for illustrative purposes.
-
-1. Add the following lines in the `Execute` method. Place them after the `cmd` object declaration. These lines ensure that Unity draws the quad with the flare in the following way:
-
-    <ul>
-        <li>In the screen space.</li>
-        <li>With the correct aspect ratio.</li>
-        <li>For each Light, in the center of the Light.</li>
-    </ul>
+3. Implement the `Dispose` method that destroys the material instance that the Renderer Feature creates. The method also calls the `Dispose` method from the render pass class.
 
     ```C#
-    // Get the Camera data from the renderingData argument.
-    Camera camera = renderingData.cameraData.camera;
-    // Set the projection matrix so that Unity draws the quad in screen space
-    cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
-    // Add the scale variable, use the Camera aspect ratio for the y coordinate
-    Vector3 scale = new Vector3(1, camera.aspect, 1);
-    // Draw a quad for each Light, at the screen space position of the Light.
-    foreach (VisibleLight visibleLight in renderingData.lightData.visibleLights)
+    protected override void Dispose(bool disposing)
     {
-        Light light = visibleLight.light;
-        // Convert the position of each Light from world to viewport point.
-        Vector3 position =
-            camera.WorldToViewportPoint(light.transform.position) * 2 - Vector3.one;
-        // Set the z coordinate of the quads to 0 so that Uniy draws them on the same plane.
-        position.z = 0;
-        // Change the Matrix4x4 argument in the cmd.DrawMesh method to use the position and
-        // the scale variables.
-        cmd.DrawMesh(_mesh, Matrix4x4.TRS(position, Quaternion.identity, scale),
-            _material, 0, 0);
+        blurRenderPass.Dispose();
+        #if UNITY_EDITOR
+            if (EditorApplication.isPlaying)
+            {
+                Destroy(material);
+            }
+            else
+            {
+                DestroyImmediate(material);
+            }
+        #else
+                Destroy(material);
+        #endif
     }
     ```
 
-    Now Unity draws a quad in the center of each Light.
+For the complete Renderer Feature code, refer to section [Custom Renderer Feature code](#code-renderer-feature).
 
-    ![](../Images/customizing-urp/custom-renderer-feature/quad-in-screen-space-on-light.png)
+## <a name="volume-component"></a>Implement the volume component
 
-2. To visualize the lens flare, make the following changes to the `LensFlare` Material.
+This section shows how to implement a volume component that lets you control the input values for the custom renderer feature.
 
-    Add the following texture to the base map:<br/>![Lens flare texture.](../Images/customizing-urp/custom-renderer-feature/lens-flare-texture.png)
+1. Create a new C# script and name it `CustomVolumeComponent.cs`.
 
-    Set the color to white.
+1. Inherit the `CustomVolumeComponent` class from the `VolumeComponent` class, add the `[Serializable]` attribute to the class. Add the `using UnityEngine.Rendering;` directive.
 
-    Set `Surface Type` to `Transparent`.
+    ```C#
+    using System;
+    using UnityEngine.Rendering;
 
-    Set `Blending Mode` to `Additive`.
+    [Serializable]
+    public class CustomVolumeComponent : VolumeComponent
+    {
 
-Now Unity draws the lens flare texture on the quad, but a part of the flare is not visible:
+    }
+    ```
 
-![](../Images/customizing-urp/custom-renderer-feature/skybox-after-lens-flare.png)
+2. Add the `BoolParameter` field to the `CustomVolumeComponent` class. This field lets you enable or disable the custom renderer feature.
 
-This is because Unity draws the skybox after the `LensFlarePass` render pass.
+    ```C#
+    public class BlurVolumeComponent : VolumeComponent
+    {
+        public BoolParameter isActive = new BoolParameter(true);
+    }
+    ```
 
-## <a name="order-of-passes"></a>Change the order of the render passes
+3. Add the fields to control the blur settings defined in the custom renderer feature.
 
-To see the order in which Unity draws the render passes, open the **Frame Debugger** (**Window** > **Analysis** > **Frame&#160;Debugger**).
+    ```C#
+    [Serializable]
+    public class CustomVolumeComponent : VolumeComponent
+    {
+        public BoolParameter isActive = new BoolParameter(true);
+        public ClampedFloatParameter horizontalBlur =
+            new ClampedFloatParameter(0.05f, 0, 0.5f);
+        public ClampedFloatParameter verticalBlur =
+            new ClampedFloatParameter(0.05f, 0, 0.5f);
+    }
+    ```
 
-![](../Images/customizing-urp/custom-renderer-feature/frame-debug-view.png)
+4. In the `BlurRenderPass` script, change the `UpdateBlurSettings` method so that it uses the settings defined in a Volume or the default settings if no Volume is set.
 
-To enqueue the `LensFlarePass` pass after the skybox pass, use the `renderPassEvent` property of `LensFlarePass`. Assign the property the `AfterRenderingSkybox` event from the `RenderPassEvent` enum.
+    ```C#
+    private void UpdateBlurSettings()
+    {
+        if (material == null) return;
 
-Make the following changes in the `Create` method:
+        // Use the Volume settings or the default settings if no Volume is set.
+        var volumeComponent =
+            VolumeManager.instance.stack.GetComponent<CustomVolumeComponent>();
+        float horizontalBlur = volumeComponent.horizontalBlur.overrideState ?
+            volumeComponent.horizontalBlur.value : defaultSettings.horizontalBlur;
+        float verticalBlur = volumeComponent.verticalBlur.overrideState ?
+            volumeComponent.verticalBlur.value : defaultSettings.verticalBlur;
+        material.SetFloat(horizontalBlurId, horizontalBlur);
+        material.SetFloat(verticalBlurId, verticalBlur);
+    }
+    ```
+
+5. In the Unity scene, create a [local Box Volume](../Volumes.md). If a [Volume Profile](../VolumeProfile.md) is missing, create a new one by clicking **New** next to the **Profile** property. Add the `Custom Volume Component` [override](../VolumeOverrides.md) to the Volume.
+
+    ![Box Volume properties](../Images/customizing-urp/custom-renderer-feature/local-volume.png)
+
+6. Enable the settings in the `Custom Volume Component` override and set the values for this Volume. Move the Volume so that the camera is inside it. The settings from the Volume override the default settings from the custom renderer feature.  
+
+## All complete code for the scripts in this example
+
+This section contains the complete code for all the scripts in this example.
+
+### <a name="code-renderer-feature"></a>Custom Renderer Feature code
+
+Below is the complete code for the custom Renderer Feature script.
 
 ```C#
-public override void Create()
+using System;
+using UnityEditor;
+using UnityEngine;
+using UnityEngine.Rendering.Universal;
+
+public class BlurRendererFeature : ScriptableRendererFeature
 {
-    _lensFlarePass = new LensFlarePass(material, mesh);
-    // Draw the lens flare effect after the skybox.
-    _lensFlarePass.renderPassEvent = RenderPassEvent.AfterRenderingSkybox;
+    [SerializeField] private BlurSettings settings;
+    [SerializeField] private Shader shader;
+    private Material material;
+    private BlurRenderPass blurRenderPass;
+
+    public override void Create()
+    {
+        if (shader == null)
+        {
+            return;
+        }
+        material = new Material(shader);
+        blurRenderPass = new BlurRenderPass(material, settings);
+        
+        blurRenderPass.renderPassEvent = RenderPassEvent.AfterRenderingSkybox;
+    }
+
+    public override void AddRenderPasses(ScriptableRenderer renderer,
+        ref RenderingData renderingData)
+    {
+        if (renderingData.cameraData.cameraType == CameraType.Game)
+        {
+            renderer.EnqueuePass(blurRenderPass);
+        }
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        blurRenderPass.Dispose();
+        #if UNITY_EDITOR
+            if (EditorApplication.isPlaying)
+            {
+                Destroy(material);
+            }
+            else
+            {
+                DestroyImmediate(material);
+            }
+        #else
+                Destroy(material);
+        #endif
+    }
+}
+
+[Serializable]
+public class BlurSettings
+{
+    [Range(0, 0.4f)] public float horizontalBlur;
+    [Range(0, 0.4f)] public float verticalBlur;
 }
 ```
 
-Now Unity draws the lens flare on top of the skybox.
+### <a name="code-render-pass"></a>Custom render pass code
 
-![](../Images/customizing-urp/custom-renderer-feature/final-lens-flare-view.png)
-
-## <a name="complete-code"></a>Complete code for this example
-
-Below is the complete code for this example.
+Below is the complete code for the custom Render Pass script.
 
 ```C#
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
-public class LensFlareRendererFeature : ScriptableRendererFeature
+public class BlurRenderPass : ScriptableRenderPass
 {
-    class LensFlarePass : ScriptableRenderPass
+    private static readonly int horizontalBlurId =
+        Shader.PropertyToID("_HorizontalBlur");
+    private static readonly int verticalBlurId =
+        Shader.PropertyToID("_VerticalBlur");
+
+    private BlurSettings defaultSettings;
+    private Material material;
+
+    private RenderTextureDescriptor blurTextureDescriptor;
+    private RTHandle blurTextureHandle;
+
+    public BlurRenderPass(Material material, BlurSettings defaultSettings)
     {
-        private Material _material;
-        private Mesh _mesh;
+        this.material = material;
+        this.defaultSettings = defaultSettings;
 
-        public LensFlarePass(Material material, Mesh mesh)
+        blurTextureDescriptor = new RenderTextureDescriptor(Screen.width,
+            Screen.height, RenderTextureFormat.Default, 0);
+    }
+
+    public override void Configure(CommandBuffer cmd,
+        RenderTextureDescriptor cameraTextureDescriptor)
+    {
+        // Set the blur texture size to be the same as the camera target size.
+        blurTextureDescriptor.width = cameraTextureDescriptor.width;
+        blurTextureDescriptor.height = cameraTextureDescriptor.height;
+
+        // Check if the descriptor has changed, and reallocate the RTHandle if necessary
+        RenderingUtils.ReAllocateIfNeeded(ref blurTextureHandle, blurTextureDescriptor);
+    }
+
+    private void UpdateBlurSettings()
+    {
+        if (material == null) return;
+
+        // Use the Volume settings or the default settings if no Volume is set.
+        var volumeComponent =
+            VolumeManager.instance.stack.GetComponent<CustomVolumeComponent>();
+        float horizontalBlur = volumeComponent.horizontalBlur.overrideState ?
+            volumeComponent.horizontalBlur.value : defaultSettings.horizontalBlur;
+        float verticalBlur = volumeComponent.verticalBlur.overrideState ?
+            volumeComponent.verticalBlur.value : defaultSettings.verticalBlur;
+        material.SetFloat(horizontalBlurId, horizontalBlur);
+        material.SetFloat(verticalBlurId, verticalBlur);
+    }
+
+    public override void Execute(ScriptableRenderContext context,
+        ref RenderingData renderingData)
+    {
+        //Get a CommandBuffer from pool.
+        CommandBuffer cmd = CommandBufferPool.Get();
+
+        RTHandle cameraTargetHandle =
+            renderingData.cameraData.renderer.cameraColorTargetHandle;
+
+        UpdateBlurSettings();
+
+        // Blit from the camera target to the temporary render texture,
+        // using the first shader pass.
+        Blit(cmd, cameraTargetHandle, blurTextureHandle, material, 0);
+        // Blit from the temporary render texture to the camera target,
+        // using the second shader pass.
+        Blit(cmd, blurTextureHandle, cameraTargetHandle, material, 1);
+
+        //Execute the command buffer and release it back to the pool.
+        context.ExecuteCommandBuffer(cmd);
+        CommandBufferPool.Release(cmd);
+    }
+
+    public void Dispose()
+    {
+    #if UNITY_EDITOR
+        if (EditorApplication.isPlaying)
         {
-            _material = material;
-            _mesh = mesh;
+            Object.Destroy(material);
         }
-
-        public override void Execute(ScriptableRenderContext context,
-            ref RenderingData renderingData)
+        else
         {
-            CommandBuffer cmd = CommandBufferPool.Get(name: "LensFlarePass");
-            // Get the Camera data from the renderingData argument.
-            Camera camera = renderingData.cameraData.camera;
-            // Set the projection matrix so that Unity draws the quad in screen space.
-            cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
-            // Add the scale variable, use the Camera aspect ratio for the y coordinate
-            Vector3 scale = new Vector3(1, camera.aspect, 1);
+            Object.DestroyImmediate(material);
+        }
+    #else
+                Object.Destroy(material);
+    #endif
 
-            // Draw a quad for each Light, at the screen space position of the Light.
-            foreach (VisibleLight visibleLight in renderingData.lightData.visibleLights)
+        if (blurTextureHandle != null) blurTextureHandle.Release();
+    }
+}
+```
+
+### <a name="code-volume-component"></a>Volume Component code
+
+Below is the complete code for the Volume Component script.
+
+```C#
+using System;
+using UnityEngine.Rendering;
+
+[Serializable]
+public class CustomVolumeComponent : VolumeComponent
+{
+    public BoolParameter isActive = new BoolParameter(true);
+    public ClampedFloatParameter horizontalBlur =
+        new ClampedFloatParameter(0.05f, 0, 0.5f);
+    public ClampedFloatParameter verticalBlur =
+        new ClampedFloatParameter(0.05f, 0, 0.5f);
+}
+```
+
+## <a name="example-shader"></a>The custom shader for the blur effect
+
+This section contains the code for the custom shader that implements the blur effect.
+
+```c++
+Shader "CustomEffects/Blur"
+{
+    HLSLINCLUDE
+    
+        #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+        // The Blit.hlsl file provides the vertex shader (Vert),
+        // the input structure (Attributes), and the output structure (Varyings)
+        #include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/Blit.hlsl"
+
+        float _VerticalBlur;
+        float _HorizontalBlur;
+    
+        float4 _BlitTexture_TexelSize;
+    
+        float4 BlurVertical (Varyings input) : SV_Target
+        {
+            const float BLUR_SAMPLES = 64;
+            const float BLUR_SAMPLES_RANGE = BLUR_SAMPLES / 2;
+            
+            float3 color = 0;
+            float blurPixels = _VerticalBlur * _ScreenParams.y;
+            
+            for(float i = -BLUR_SAMPLES_RANGE; i <= BLUR_SAMPLES_RANGE; i++)
             {
-                Light light = visibleLight.light;
-                // Convert the position of each Light from world to viewport point.
-                Vector3 position =
-                    camera.WorldToViewportPoint(light.transform.position) * 2 - Vector3.one;
-                // Set the z coordinate of the quads to 0 so that Uniy draws them on the same
-                // plane.
-                position.z = 0;
-                // Change the Matrix4x4 argument in the cmd.DrawMesh method to use
-                // the position and the scale variables.
-                cmd.DrawMesh(_mesh, Matrix4x4.TRS(position, Quaternion.identity, scale),
-                    _material, 0, 0);
+                float2 sampleOffset =
+                    float2 (0, (blurPixels / _BlitTexture_TexelSize.w) *
+                        (i / BLUR_SAMPLES_RANGE));
+                color +=
+                    SAMPLE_TEXTURE2D(_BlitTexture, sampler_LinearClamp,
+                        input.texcoord + sampleOffset).rgb;
             }
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
+            
+            return float4(color.rgb / (BLUR_SAMPLES + 1), 1);
         }
-    }
 
-    private LensFlarePass _lensFlarePass;
-    public Material material;
-    public Mesh mesh;
-
-    public override void Create()
-    {
-        _lensFlarePass = new LensFlarePass(material, mesh);
-        // Draw the lens flare effect after the skybox.
-        _lensFlarePass.renderPassEvent = RenderPassEvent.AfterRenderingSkybox;
-    }
-
-    public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
-    {
-        if (material != null && mesh != null)
+        float4 BlurHorizontal (Varyings input) : SV_Target
         {
-            renderer.EnqueuePass(_lensFlarePass);
+            const float BLUR_SAMPLES = 64;
+            const float BLUR_SAMPLES_RANGE = BLUR_SAMPLES / 2;
+            
+            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+            float3 color = 0;
+            float blurPixels = _HorizontalBlur * _ScreenParams.x;
+            for(float i = -BLUR_SAMPLES_RANGE; i <= BLUR_SAMPLES_RANGE; i++)
+            {
+                float2 sampleOffset =
+                    float2 ((blurPixels / _BlitTexture_TexelSize.z) *
+                        (i / BLUR_SAMPLES_RANGE), 0);
+                color +=
+                    SAMPLE_TEXTURE2D(_BlitTexture, sampler_LinearClamp,
+                        input.texcoord + sampleOffset).rgb;
+            }
+            return float4(color / (BLUR_SAMPLES + 1), 1);
+        }
+    
+    ENDHLSL
+    
+    SubShader
+    {
+        Tags { "RenderType"="Opaque" "RenderPipeline" = "UniversalPipeline"}
+        LOD 100
+        ZWrite Off Cull Off
+        Pass
+        {
+            Name "BlurPassVertical"
+
+            HLSLPROGRAM
+            
+            #pragma vertex Vert
+            #pragma fragment BlurVertical
+            
+            ENDHLSL
+        }
+        
+        Pass
+        {
+            Name "BlurPassHorizontal"
+
+            HLSLPROGRAM
+            
+            #pragma vertex Vert
+            #pragma fragment BlurHorizontal
+            
+            ENDHLSL
         }
     }
 }

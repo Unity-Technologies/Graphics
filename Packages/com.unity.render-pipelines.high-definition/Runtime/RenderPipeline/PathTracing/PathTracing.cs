@@ -35,6 +35,23 @@ namespace UnityEngine.Rendering.HighDefinition
         Off
     }
 
+    /// <summary>
+    /// Options for per-sample noise index calculation per sample in path tracing.
+    /// </summary>
+    public enum SeedMode
+    {
+
+        /// <summary>
+        /// The non repeating mode bases the seed on the camera frame count. This avoids screen-based artefacts when using Path Tracing with the Recorder package. 
+        /// </summary>
+        NonRepeating,
+
+        /// <summary>
+        /// The repeating mode resets the seed to zero when the accumulation of samples resets. This allows for easier debugging through deterministic behaviour per frame.
+        /// </summary>
+        Repeating
+    }
+
 #if UNITY_64 && ENABLE_UNITY_DENOISING_PLUGIN && (UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN)
     // For the HDRP path tracer we only enable a subset of the denoisers that are available in the denoising plugin
 
@@ -74,6 +91,21 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
         public SkyImportanceSamplingParameter(SkyImportanceSamplingMode value, bool overrideState = false) : base(value, overrideState) { }
+    }
+
+
+    /// <summary>
+    /// A <see cref="VolumeParameter"/> that holds a <see cref="SeedMode"/> value.
+    /// </summary>
+    [Serializable]
+    public sealed class SeedModeParameter : VolumeParameter<SeedMode>
+    {
+        /// <summary>
+        /// Creates a new <see cref="SeedModeParameter"/> instance.
+        /// </summary>
+        /// <param name="value">The initial value to store in the parameter.</param>
+        /// <param name="overrideState">The initial override state for the parameter.</param>
+        public SeedModeParameter(SeedMode value, bool overrideState = false) : base(value, overrideState) { }
     }
 
     /// <summary>
@@ -157,6 +189,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Tooltip("Defines the number of tiles (X: width, Y: height) and the indices of the current tile (Z: i in [0, width[, W: j in [0, height[) for interleaved tiled rendering.")]
         public Vector4Parameter tilingParameters = new Vector4Parameter(new Vector4(1, 1, 0, 0));
+
+
+        /// <summary>
+        /// Defines the mode used to calculate the noise index.
+        /// </summary>
+        [Tooltip("Defines the mode used to calculate the noise index used per path tracing sample.")]
+        public SeedModeParameter seedMode = new SeedModeParameter(SeedMode.Repeating);
 
         /// <summary>
         /// Default constructor for the path tracing volume component.
@@ -537,7 +576,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.shaderVariablesRaytracingCB._RaytracingMaxRecursion = m_PathTracingSettings.maximumDepth.value;
 #endif
                 passData.shaderVariablesRaytracingCB._RaytracingIntensityClamp = m_PathTracingSettings.maximumIntensity.value;
-                passData.shaderVariablesRaytracingCB._RaytracingSampleIndex = (int)cameraData.currentIteration;
+                int seed = m_PathTracingSettings.seedMode == SeedMode.Repeating ? (int)cameraData.currentIteration : (((int)hdCamera.GetCameraFrameCount() - 1) % m_PathTracingSettings.maximumSamples.max);
+                passData.shaderVariablesRaytracingCB._RaytracingSampleIndex = seed;
 
                 passData.skyReflection = m_SkyManager.GetSkyReflection(hdCamera);
                 passData.skyBG = builder.ReadTexture(m_SkyBGTexture);
