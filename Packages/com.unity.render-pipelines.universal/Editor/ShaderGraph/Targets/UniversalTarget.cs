@@ -1768,6 +1768,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             // Pre-graph
             { CorePregraph },
             { ShaderGraphPregraph },
+            { DOTSPregraph },
 
             // Post-graph
             { CorePostgraph },
@@ -1779,6 +1780,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             // Pre-graph
             { CorePregraph },
             { ShaderGraphPregraph },
+            { DOTSPregraph },
 
             // Post-graph
             { CorePostgraph },
@@ -1894,6 +1896,24 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             definition = KeywordDefinition.ShaderFeature,
             scope = KeywordScope.Local,
             stages = KeywordShaderStage.Fragment,
+        };
+
+        public static readonly KeywordDescriptor EvaluateShMixed = new KeywordDescriptor()
+        {
+            displayName = ShaderKeywordStrings.EVALUATE_SH_MIXED,
+            referenceName = ShaderKeywordStrings.EVALUATE_SH_MIXED,
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+        };
+
+        public static readonly KeywordDescriptor EvaluateShVertex = new KeywordDescriptor()
+        {
+            displayName = ShaderKeywordStrings.EVALUATE_SH_VERTEX,
+            referenceName = ShaderKeywordStrings.EVALUATE_SH_VERTEX,
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
         };
 
         public static readonly KeywordDescriptor MainLightShadows = new KeywordDescriptor()

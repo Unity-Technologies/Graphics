@@ -52,7 +52,6 @@ The [Lens Flare](shared/lens-flare/lens-flare-component.md) samples include the 
 
 ## Volumetric samples
 
-![Volumetric Samples](Images/VolumetricSamples.png)
 The volumetric samples include a scene that contains multiple examples of [volumetric fog](create-a-local-fog-effect.md). This scene includes the following:
 
 - 3D textures.

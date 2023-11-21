@@ -265,12 +265,6 @@ float4 EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInpu
     }
 #endif
 
-#ifndef LIGHT_EVALUATION_NO_CLOUDS_SHADOWS
-    // Apply the volumetric cloud shadow if relevant
-    if (_VolumetricCloudsShadowOriginToggle.w == 1.0)
-        color.rgb *= EvaluateVolumetricCloudsShadows(lightLoopContext, light, posInput.positionWS);
-#endif
-
     return color;
 }
 

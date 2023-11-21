@@ -214,5 +214,8 @@ CBSDF SampleHairReference(float3 wo, out float3 wi, out float pdf, float4 u, BSD
     // Don't forget the residual lobe
     pdf += LongitudinalScattering(cosThetaI, angles.cosThetaO, sinThetaI, angles.sinThetaO, data.v[PATH_MAX]) * APDF[PATH_MAX] * INV_TWO_PI;
 
+    // Enforce a maximum pdf to prevent divide-by-zeros and NaN propagation in path tracer.
+    pdf = max(pdf, 1e-3);
+
     return EvaluateHairReference(wo, wi, bsdfData);
 }

@@ -290,7 +290,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             unchecked
             {
-                hash = hash * 23 + litData.materialTypeMask.GetHashCode();
+                // hash must be 0 by default when we create a ShaderGraph, otherwise it's dirty when opened for the first time.
+                int h = (int)litData.materialTypeMask - (int)HDLitData.MaterialTypeMask.Standard;
+                hash = hash * 23 + h;
             }
 
             return hash;

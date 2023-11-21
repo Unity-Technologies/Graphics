@@ -19,6 +19,7 @@ MonoBehaviour:
     ColorSpace: 1
     BuildPlatform: -2
     GraphicsDevice: 16
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: Disable this test as we disable the feature for Yamto on Mac
@@ -28,6 +29,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 16
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: fail on yamato
@@ -37,6 +39,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 16
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: incorrect on metal
@@ -46,6 +49,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 16
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: incorrect on metal
@@ -55,6 +59,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 16
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: incorrect on metal
@@ -64,6 +69,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 16
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: corrupt on yamato
@@ -73,6 +79,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 16
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: corrupt on yamato

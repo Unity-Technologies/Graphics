@@ -1,7 +1,7 @@
 #ifndef VOLUMETRIC_CLOUDS_SHADOW_SAMPLING
 #define VOLUMETRIC_CLOUDS_SHADOW_SAMPLING
 
-float EvaluateVolumetricCloudsShadows(LightLoopContext lightLoopContext, DirectionalLightData light, float3 positionWS)
+float EvaluateVolumetricCloudsShadows(DirectionalLightData light, float3 positionWS)
 {
     // Compute the vector from the shadow origin to the point to shade
     float3 shadowOriginVec = positionWS - _VolumetricCloudsShadowOriginToggle.xyz;

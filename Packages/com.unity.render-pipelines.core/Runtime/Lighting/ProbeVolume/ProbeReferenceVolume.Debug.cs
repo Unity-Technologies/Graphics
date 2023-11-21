@@ -384,16 +384,53 @@ namespace UnityEngine.Rendering
 
             var widgetList = new List<DebugUI.Widget>();
 
-            var subdivContainer = new DebugUI.Container() { displayName = "Subdivision Visualization" };
-            subdivContainer.children.Add(new DebugUI.BoolField { displayName = "Display Cells", tooltip = "Draw Cells used for loading and streaming.", getter = () => probeVolumeDebug.drawCells, setter = value => probeVolumeDebug.drawCells = value, onValueChanged = RefreshDebug });
-            subdivContainer.children.Add(new DebugUI.BoolField { displayName = "Display Bricks", tooltip = "Display Subdivision bricks.", getter = () => probeVolumeDebug.drawBricks, setter = value => probeVolumeDebug.drawBricks = value, onValueChanged = RefreshDebug });
-#if UNITY_EDITOR
-            subdivContainer.children.Add(new DebugUI.BoolField { displayName = "Live Subdivision Preview", tooltip = "Enable a preview of Probe Volume data in the Scene without baking. Can impact Editor performance.", getter = () => probeVolumeDebug.realtimeSubdivision, setter = value => probeVolumeDebug.realtimeSubdivision = value, onValueChanged = RefreshDebug });
-            if (probeVolumeDebug.realtimeSubdivision)
+            var subdivContainer = new DebugUI.Container()
             {
-                var cellUpdatePerFrame = new DebugUI.IntField { displayName = "Cell Updates Per Frame", tooltip = "The number of Cells, bricks, and probe positions updated per frame. Higher numbers can impact Editor performance.", getter = () => probeVolumeDebug.subdivisionCellUpdatePerFrame, setter = value => probeVolumeDebug.subdivisionCellUpdatePerFrame = value, min = () => 1, max = () => 100 };
-                var delayBetweenUpdates = new DebugUI.FloatField { displayName = "Update Frequency", tooltip = "Delay in seconds between updates to Cell, Brick, and Probe positions if Live Subdivision Preview is enabled.", getter = () => probeVolumeDebug.subdivisionDelayInSeconds, setter = value => probeVolumeDebug.subdivisionDelayInSeconds = value, min = () => 0.1f, max = () => 10 };
-                subdivContainer.children.Add(new DebugUI.Container { children = { cellUpdatePerFrame, delayBetweenUpdates } });
+                displayName = "Subdivision Visualization",
+                isHiddenCallback = () =>
+                {
+#if UNITY_EDITOR
+                    return false;
+#else
+                    return false; // Cells / Bricks visualization is not implemented in a runtime compatible way atm.
+#endif
+                }
+            };
+            subdivContainer.children.Add(new DebugUI.BoolField 
+            { 
+                displayName = "Display Cells",
+                tooltip = "Draw Cells used for loading and streaming.",
+                getter = () => probeVolumeDebug.drawCells,
+                setter = value => probeVolumeDebug.drawCells = value,
+                onValueChanged = RefreshDebug
+            });
+            subdivContainer.children.Add(new DebugUI.BoolField
+            {
+                displayName = "Display Bricks",
+                tooltip = "Display Subdivision bricks.",
+                getter = () => probeVolumeDebug.drawBricks,
+                setter = value => probeVolumeDebug.drawBricks = value,
+                onValueChanged = RefreshDebug
+            });
+
+#if UNITY_EDITOR
+            if (probeVolumeDebug.drawCells || probeVolumeDebug.drawBricks)
+            {
+                subdivContainer.children.Add(new DebugUI.BoolField
+                {
+                    displayName = "Live Subdivision Preview",
+                    tooltip = "Enable a preview of Probe Volume data in the Scene without baking. Can impact Editor performance.",
+                    getter = () => probeVolumeDebug.realtimeSubdivision,
+                    setter = value => probeVolumeDebug.realtimeSubdivision = value,
+                });
+
+                var realtimeSubdivisonChildContainer = new DebugUI.Container()
+                {
+                    isHiddenCallback = () => !probeVolumeDebug.realtimeSubdivision
+                };
+                realtimeSubdivisonChildContainer.children.Add(new DebugUI.IntField { displayName = "Cell Updates Per Frame", tooltip = "The number of Cells, bricks, and probe positions updated per frame. Higher numbers can impact Editor performance.", getter = () => probeVolumeDebug.subdivisionCellUpdatePerFrame, setter = value => probeVolumeDebug.subdivisionCellUpdatePerFrame = value, min = () => 1, max = () => 100 });
+                realtimeSubdivisonChildContainer.children.Add(new DebugUI.FloatField { displayName = "Update Frequency", tooltip = "Delay in seconds between updates to Cell, Brick, and Probe positions if Live Subdivision Preview is enabled.", getter = () => probeVolumeDebug.subdivisionDelayInSeconds, setter = value => probeVolumeDebug.subdivisionDelayInSeconds = value, min = () => 0.1f, max = () => 10 });
+                subdivContainer.children.Add(realtimeSubdivisonChildContainer);
             }
 #endif
 

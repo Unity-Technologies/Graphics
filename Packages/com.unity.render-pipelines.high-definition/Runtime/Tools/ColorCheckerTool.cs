@@ -6,29 +6,27 @@ using UnityEngine.Rendering;
 
 
 [ExecuteInEditMode]
-[RequireComponent(typeof(MeshRenderer))]
-[RequireComponent(typeof(MeshFilter))]
+[SelectionBaseAttribute]
 /// <summary>
-/// This component generates a procedural color checker. It will overwrite the mesh renderer and the mesh filter. 
+/// This component generates a procedural color checker. 
 /// </summary>
 public class ColorCheckerTool : MonoBehaviour
 {
     /// <summary>
     /// Enum of the color checker mode.
-    /// Colors : Color Palette, possibility to color pick each field.
-    /// Grayscale : Fixed preset. Those value have been probed without specular lighting using a cross polarized filter. 
-    /// MiddleGray : Fixed preset. Gray value.
-    /// Stepped Luminance : Fixed preset. To check on contrast.
-    /// Materials : Material palette, possibility to color pick the basecolor for each field. Displayed in a smoothness gradient, using metallic workflow.
-    /// Texture : possibility to just feed texture for lit and unlit (as a source of comparison).
+    /// Colors : This procedural color checker can be used for color and lighting calibration. Color fields are customizable and persistent, with up to 64 values.
+    /// Grayscale : These values have been measured without specular lighting using a cross-polarized filter, making it more accurate for light calibration in PBR.
+    /// MiddleGray : This is the mid-gray value.
+    /// Reflection : Useful for checking local reflections.
+    /// Stepped Luminance : Stepped luminance is a good way to check gamma calibration.
+    /// Materials :Each row represents a material with varying smoothness. Material fields are customizable and persistent, with up to 12 values.
+    /// Texture : Useful for calibration using captured data. Use the slicer to compare lit values to unlit, raw values. Pre-exposure can be disabled.
     /// /// </summary>
-    public enum ColorCheckerModes { Colors, Grayscale, MiddleGray, Reflection, SteppedLuminance, Materials, Texture }; 
+    public enum ColorCheckerModes {[InspectorName("Color Palette")]Colors, [InspectorName("Cross Polarized Grayscale")]Grayscale, MiddleGray, Reflection, SteppedLuminance, [InspectorName("Material Palette")]Materials,[InspectorName("External Texture")] Texture }; 
     /// <summary>
     /// Current mode of the color checker.
     /// </summary>
     public ColorCheckerModes Mode = ColorCheckerModes.Colors;
-    Renderer ColorCheckerRenderer;
-    MeshFilter ColorCheckerFilter;
     /// <summary>
     /// Add the gradient field to the color checker.
     /// </summary>
@@ -38,13 +36,9 @@ public class ColorCheckerTool : MonoBehaviour
     /// </summary>
     public bool unlitCompare = false; 
     /// <summary>
-    /// Each field will have spherical pixel normals. The geometry will stay flat.
+    /// Instantiates spheres for each fields
     /// </summary>
-    public bool spherical = false;
-    /// <summary>
-    /// Makes the checker always face view. This is performed in the vertex shader, and thus is not supported in Path tracing.
-    /// </summary>
-    public bool faceCamera;
+    public bool sphereMode = false;
 
     /// related to UI
     [SerializeField] int fieldCount = 24;
@@ -53,6 +47,14 @@ public class ColorCheckerTool : MonoBehaviour
     [SerializeField] float gridThickness = 0.1f;
     [SerializeField] float fieldSize = 0.1f;
     [SerializeField] float gradientPower = 2.2f;
+
+    //related to material and geometry update
+    int fieldsToDisplay;
+    int fieldsPerRowToDisplay;
+    float sizeToDisplay;
+    internal bool sphereModeToDisplay;
+    bool gradientToDisplay;
+    float gridToDisplay;
 
     /// <summary>
     /// First color used by the gradient field.
@@ -88,31 +90,31 @@ public class ColorCheckerTool : MonoBehaviour
     static readonly Color32[] colorPalette = //This is use to initialize and reset the color palette
     {
 
-        //Color Checker
-    new Color32(243, 243, 242, 255), //White
-    new Color32(200, 200, 200, 255), //Neutral 8
-    new Color32(160, 160, 160, 255), //Neutral 6.5
-    new Color32(122, 122, 121, 255), //Neutral 5
-    new Color32(85, 85, 85, 255), //Neutral 3.5
-    new Color32(52, 52, 52, 255), //Black 
-    new Color32(56, 61, 150, 255), //Blue
-    new Color32(70, 148, 73, 255), //Green
-    new Color32(175, 54, 60, 255), //Red
-    new Color32(231, 199, 31, 255), //Yellow
-    new Color32(187, 86, 149, 255), //Magenta
-    new Color32(8, 133, 161, 255), //Cyan
-    new Color32(214, 126, 44, 255), //Orange
-    new Color32(80, 91, 166, 255), //Purplish Blue
-    new Color32(193, 90, 99, 255), //Moderate Red
-    new Color32(94, 60, 108, 255), //Purple
-    new Color32(157, 188, 64, 255), //Yellow Green
-    new Color32(224, 163, 46, 255), //Orange Yellow
+        //Color Checker BabelColor Avg
+    new Color32(245, 245, 240, 255), //White
+    new Color32(201, 202, 201, 255), //Neutral 8
+    new Color32(161, 162, 162, 255), //Neutral 6.5
+    new Color32(120, 121, 121, 255), //Neutral 5
+    new Color32(83, 85, 85, 255), //Neutral 3.5
+    new Color32(50, 50, 51, 255), //Black 
+    new Color32(42, 63, 147, 255), //Blue
+    new Color32(72, 149, 72, 255), //Green
+    new Color32(175, 50, 57, 255), //Red
+    new Color32(238, 200, 22, 255), //Yellow
+    new Color32(188, 84, 150, 255), //Magenta
+    new Color32(0, 137, 166, 255), //Cyan
+    new Color32(220, 123, 46, 255), //Orange
+    new Color32(72, 92, 168, 255), //Purplish Blue
+    new Color32(194, 84, 97, 255), //Moderate Red
+    new Color32(91, 59, 104, 255), //Purple
+    new Color32(161, 189, 62, 255), //Yellow Green
+    new Color32(229, 161, 40, 255), //Orange Yellow
     new Color32(115, 82, 68, 255), //Dark Skin
-    new Color32(194, 150, 130, 255), //Light Skin
-    new Color32(98, 122, 157, 255), //Blue Sky
-    new Color32(87, 108, 67, 255), //Foliage
-    new Color32(133, 128, 177, 255), //Blue Flower
-    new Color32(103, 189, 170, 255), //Bluish Green        
+    new Color32(194, 149, 128, 255), //Light Skin
+    new Color32(93, 123, 157, 255), //Blue Sky
+    new Color32(91, 108, 65, 255), //Foliage
+    new Color32(130, 129, 175, 255), //Blue Flower
+    new Color32(99, 191, 171, 255), //Bluish Green        
         //PBR values example
     new Color32(50, 50, 50, 255), //Coal
     new Color32(243, 243, 243, 255), //Snow
@@ -192,7 +194,7 @@ public class ColorCheckerTool : MonoBehaviour
     /// Color Array used for the "Middle Gray" mode.
     /// </summary>
     /// <returns></returns>
-    public Color32[] MiddleGray = {new Color32(118,118,118,255)};
+    public Color32[] MiddleGray = {new Color32(120, 121, 121, 255)};   
     /// <summary>
     /// Color Array used for the "Stepped Luminance" mode.
     /// </summary>
@@ -200,18 +202,18 @@ public class ColorCheckerTool : MonoBehaviour
 
     static readonly Color32[] materialPalette = //This is use to initialize and reset the material palette, the Alpha value is used to say if it is a metal or not.
     {
-        new Color32(232,232,232,0), //Snow
-        new Color32(40,40,40,0), //Charcoal
-        new Color32(135,131,126,255), //Iron
-        new Color32(236,184,129,255), //Copper
-        new Color32(245,242,235,255),//Silver
-        new Color32(241,198,95,255),//Gold
+        new Color32(237,237,237,0), //Snow
+        new Color32(39,39,39,0), //Charcoal
+        new Color32(193,190,187,255), //Iron
+        new Color32(247,221,188,255), //Copper
+        new Color32(251,249,246,255),//Silver
+        new Color32(249,228,164,255),//Gold
         new Color32(175, 54, 60, 0), //Red
         new Color32(177, 167, 132, 0), //Sand
         new Color32(87, 108, 67, 0), //Foliage
         new Color32(98, 122, 157, 0), //Blue Sky
-        new Color32(233,233,235,255),//Aluminium
-        new Color32(226,201,111,255),//Brass
+        new Color32(245,245,246,255),//Aluminium
+        new Color32(242,230,176,255),//Brass
     };
 
     /// <summary>
@@ -220,36 +222,46 @@ public class ColorCheckerTool : MonoBehaviour
     /// <returns></returns>
     public Color32[] customMaterials = materialPalette.Clone() as Color32[];
     public bool[] isMetalBools = {false,false,true,true,true,true,false,false,false,false,true,true};
-
+    //not used right now, can be useful for URP implementation later. 
     internal bool isHDRP;
-    
-    void GenerateGeometry()
-    {
-        hideFlags = HideFlags.DontSaveInBuild;
-        ColorCheckerRenderer = GetComponent<MeshRenderer>();
-        ColorCheckerFilter = GetComponent<MeshFilter>();
-        tag = "EditorOnly"; //This Tool should not be used in build.
-        ColorCheckerRenderer.hideFlags = HideFlags.HideInInspector;
-        ColorCheckerFilter.hideFlags = HideFlags.HideInInspector;
-        ColorCheckerFilter.sharedMesh = Resources.GetBuiltinResource<Mesh>("Cube.fbx");
-        ColorCheckerRenderer.sharedMaterial = Resources.Load<Material>("ColorCheckerMaterial");
-        ColorCheckerRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-    }
 
-    void GenerateTexture()
-    {
-        colorCheckerTexture = new Texture2D(8, 8, TextureFormat.RGBA32, 0, false); 
-        colorCheckerTexture.name = "ProceduralColorcheckerTexture";
-        colorCheckerTexture.filterMode = FilterMode.Point;
-        colorCheckerTexture.hideFlags = HideFlags.HideAndDontSave;
-        UpdateMaterial();
-    }
+    //Users can customize colors and materials, we use booleans to save the texture colors in next update.
+    bool saveCustomColors = false;
+    bool saveCustomMaterials = false;
+
+    //Geometry is instanciated as child
+    [SerializeField] GameObject ColorCheckerObject;
+    Renderer ColorCheckerRenderer;
+    MeshFilter ColorCheckerFilter;
+    
 
     void Awake()
     {
-        CheckPipeline();
-        GenerateGeometry();
+        if (ColorCheckerObject == null) 
+        {
+            ColorCheckerObject = new GameObject("Colorchecker Geometry");
+            ColorCheckerObject.transform.position = transform.position;
+            ColorCheckerObject.transform.rotation= transform.rotation;
+            ColorCheckerObject.transform.localScale = transform.localScale;
+            ColorCheckerObject.tag = "EditorOnly"; 
+            ColorCheckerObject.transform.parent = transform;
+            ColorCheckerRenderer = ColorCheckerObject.AddComponent<MeshRenderer>();
+            ColorCheckerFilter = ColorCheckerObject.AddComponent<MeshFilter>();
+            ColorCheckerFilter.hideFlags = HideFlags.NotEditable;
+            ColorCheckerRenderer.sharedMaterial = Resources.Load<Material>("ColorCheckerMaterial");
+            ColorCheckerRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+        }
+        else
+        {
+            ColorCheckerRenderer = ColorCheckerObject.GetComponent<MeshRenderer>();
+            ColorCheckerFilter = ColorCheckerObject.GetComponent<MeshFilter>();           
+        }
+
+
+        tag = "EditorOnly"; //This Tool should not be used in build.
         GenerateTexture();
+        UpdateGeometry();
+        UpdateMaterial();
 
         //SteppedLuminance array setup
         for (int i = 0; i < 16; i++)
@@ -257,46 +269,60 @@ public class ColorCheckerTool : MonoBehaviour
                 byte luminance = (byte)(17 * i);
                 steppedLuminance[i] = new Color32(luminance,luminance,luminance,255);
             }
+
+    }
+
+
+
+   void OnValidate()
+    {
+        UpdateMaterial(); //to make sure every binded properties in UI builder update the material.
+
     }
 
     void Update()
-    {
-        ColorCheckerRenderer.hideFlags = HideFlags.HideInInspector;
-        ColorCheckerFilter.hideFlags = HideFlags.HideInInspector;
-        tag = "EditorOnly"; //This Tool should not be used in build.
+    {     
+        if (saveCustomColors) 
+        {
+            saveTextureColors(customColors);
+            saveCustomColors = false;
+        }
+
+        if (saveCustomMaterials) 
+        {
+            saveTextureColors(customMaterials);
+            saveCustomMaterials = false;
+        }
     }
 
-
-    void OnValidate()
+        void GenerateTexture()
     {
-        UpdateMaterial(); //to make sure every binded properties in UI builder update the material.
+        colorCheckerTexture = new Texture2D(8, 8, TextureFormat.RGBA32, 0, false); 
+        colorCheckerTexture.name = "ProceduralColorcheckerTexture";
+        colorCheckerTexture.filterMode = FilterMode.Point;
+        colorCheckerTexture.hideFlags = HideFlags.HideAndDontSave;
+        UpdateTexture(textureColors);
     }
-
 
     internal void UpdateMaterial()
     {
-        int fieldsToDisplay = fieldCount;
-        int fieldsPerRowToDisplay = fieldsPerRow;
-        float gridToDisplay = gridThickness;
-        float sizeToDisplay = fieldSize;
-        bool sphericalToDisplay = spherical;
+        fieldsToDisplay = fieldCount;
+        fieldsPerRowToDisplay = fieldsPerRow;
+        sizeToDisplay = fieldSize;
+        sphereModeToDisplay = sphereMode;
+        gradientToDisplay = addGradient;
+        gridToDisplay = gridThickness;
+
         bool unlitToDisplay = unlitCompare;
-        bool gradientToDisplay = addGradient;
-        Texture2D textureToDisplay = Texture2D.blackTexture;
-        if (colorCheckerTexture != null)
-        {
-            textureToDisplay = colorCheckerTexture;
-        }
-        else
-        {
-            GenerateTexture();
-        }
+
+        if (colorCheckerTexture==null) GenerateTexture();
+        Texture2D textureToDisplay = colorCheckerTexture;
 
         switch (Mode)
         {
             case ColorCheckerModes.Colors:
                 UpdateTexture(textureColors);
-                saveCustomColors(customColors);
+                saveCustomColors = true;
                 break;
             case ColorCheckerModes.Grayscale:
                 UpdateTexture(textureColors);
@@ -317,22 +343,22 @@ public class ColorCheckerTool : MonoBehaviour
                 colorCheckerTexture.SetPixel(0, 0, Color.white); 
                 colorCheckerTexture.Apply();
                 sizeToDisplay *= 4f;
-                sphericalToDisplay = true;
+                sphereModeToDisplay = true;
                 gradientToDisplay = false;
                 break;
             case ColorCheckerModes.SteppedLuminance:
                 fieldsToDisplay = 16;
                 fieldsPerRowToDisplay = 16;
                 gridToDisplay = 0f;
-                sphericalToDisplay = false;
+                sphereModeToDisplay = false;
                 UpdateTexture(textureColors);
                 break;
             case ColorCheckerModes.Materials:
                 UpdateTexture(textureColors);
-                saveCustomColors(customMaterials);
+                saveCustomMaterials = true;
                 fieldsToDisplay = materialFieldsCount*6;
                 fieldsPerRowToDisplay = 6;
-                sphericalToDisplay = true;
+                sphereModeToDisplay = true;
                 unlitToDisplay = false;
                 gradientToDisplay = false;
                 break;
@@ -340,7 +366,7 @@ public class ColorCheckerTool : MonoBehaviour
                 fieldsToDisplay = 1;
                 fieldsPerRowToDisplay = 1;
                 sizeToDisplay *= 6f;
-                sphericalToDisplay = false;
+                sphereModeToDisplay = false;
                 unlitToDisplay = true;
                 gradientToDisplay = false;
                 gridToDisplay = 0f;
@@ -355,38 +381,85 @@ public class ColorCheckerTool : MonoBehaviour
                 break;
         }
 
-        CheckPipeline();
-
         //Update properties
-         ColorCheckerRenderer = GetComponent<MeshRenderer>();
         var propertyBlock = new MaterialPropertyBlock();
+        if(ColorCheckerRenderer==null)  return;
         ColorCheckerRenderer.GetPropertyBlock(propertyBlock);
-        propertyBlock.SetInt("_Compare_to_Unlit", unlitToDisplay ? 1 : 0);
-        propertyBlock.SetInt("_Face_Camera", faceCamera ? 1 : 0);
-        propertyBlock.SetInt("_NumberOfFields", fieldsToDisplay);
-        propertyBlock.SetInt("_FieldsPerRow", fieldsPerRowToDisplay);
-        propertyBlock.SetFloat("_gridThickness", gridToDisplay * 0.5f);
-        propertyBlock.SetFloat("_SquareSize", sizeToDisplay);
-        propertyBlock.SetInt("_Add_Gradient", gradientToDisplay ? 1 : 0);
-        propertyBlock.SetColor("_Gradient_Color_A",gradientA);
-        propertyBlock.SetColor("_Gradient_Color_B",gradientB);
-        propertyBlock.SetFloat("_gradient_power",  gradientPower); 
-        propertyBlock.SetInt("_Spherical",sphericalToDisplay? 1 :0);
-        propertyBlock.SetInt("_material_mode", Mode == ColorCheckerModes.Materials? 1 :0 );       
-        propertyBlock.SetTexture("_CheckerTexture", textureToDisplay);
-        propertyBlock.SetInt("_texture_mode",  Mode == ColorCheckerModes.Texture? 1 :0 ); 
-        propertyBlock.SetInt("_reflection_mode",  Mode == ColorCheckerModes.Reflection? 1 :0 ); 
-        if (userTextureRaw!=null){propertyBlock.SetTexture("_rawTexture", userTextureRaw);} 
-        propertyBlock.SetInt("_rawTexturePreExposure",unlitTextureExposure? 1 :0);
-        propertyBlock.SetFloat("_textureSlice", textureSlice);
-        propertyBlock.SetInt("_isHDRP", isHDRP ? 1 : 0);
-        ColorCheckerRenderer.SetPropertyBlock(propertyBlock);
+        if (propertyBlock!=null) 
+        {
+            propertyBlock.SetInt("_Compare_to_Unlit", unlitToDisplay ? 1 : 0);
+            propertyBlock.SetInt("_NumberOfFields", fieldsToDisplay);
+            propertyBlock.SetInt("_FieldsPerRow", fieldsPerRowToDisplay);
+            propertyBlock.SetFloat("_gridThickness", gridToDisplay * 0.5f);
+            propertyBlock.SetFloat("_SquareSize", sizeToDisplay);
+            propertyBlock.SetInt("_Add_Gradient", gradientToDisplay ? 1 : 0);
+            propertyBlock.SetColor("_Gradient_Color_A",gradientA);
+            propertyBlock.SetColor("_Gradient_Color_B",gradientB);
+            propertyBlock.SetFloat("_gradient_power",  gradientPower); 
+            propertyBlock.SetInt("_sphereMode",sphereModeToDisplay? 1 :0);
+            propertyBlock.SetInt("_material_mode", Mode == ColorCheckerModes.Materials? 1 :0 );       
+            propertyBlock.SetTexture("_CheckerTexture", textureToDisplay);
+            propertyBlock.SetInt("_texture_mode",  Mode == ColorCheckerModes.Texture? 1 :0 ); 
+            propertyBlock.SetInt("_reflection_mode",  Mode == ColorCheckerModes.Reflection? 1 :0 ); 
+            if (userTextureRaw!=null){propertyBlock.SetTexture("_rawTexture", userTextureRaw);} 
+            propertyBlock.SetInt("_rawTexturePreExposure",unlitTextureExposure? 1 :0);
+            propertyBlock.SetFloat("_textureSlice", textureSlice);
+            ColorCheckerRenderer.SetPropertyBlock(propertyBlock);
+        }
 
-        //resize Geometry to have even squares
+    }
+
+    internal void UpdateGeometry()
+    {
+        CombineInstance[] combine = new CombineInstance[1];
+        Mesh colorcheckerMesh = new Mesh();
+        colorcheckerMesh.hideFlags = HideFlags.HideAndDontSave;
         int numberOfRows = Mathf.CeilToInt((float)fieldsToDisplay/(float)fieldsPerRowToDisplay);
-        numberOfRows = gradientToDisplay ? numberOfRows + 1 : numberOfRows;
-        Vector3 checkerSize = new Vector3(sizeToDisplay * fieldsPerRowToDisplay, sizeToDisplay*numberOfRows, 0.02f); 
-        transform.localScale = checkerSize;
+    
+        if(sphereModeToDisplay)
+        {
+            combine = new CombineInstance[gradientToDisplay?fieldsToDisplay+1:fieldsToDisplay];
+            for (int i=0;i<fieldsToDisplay;i++)
+            {
+                combine[i].mesh=Resources.GetBuiltinResource<Mesh>("Sphere.fbx");
+                float unit = sizeToDisplay;
+                float scale = Mathf.Lerp(1,0.01f,gridToDisplay)*sizeToDisplay*0.5f; //field margin resize the spheres.
+                int lastFullRow = fieldsToDisplay - (fieldsToDisplay-((numberOfRows-1)*fieldsPerRowToDisplay));
+                float posx = i%fieldsPerRowToDisplay*sizeToDisplay+sizeToDisplay*0.5f;
+                int fieldsModulo = fieldsToDisplay%fieldsPerRowToDisplay;
+                if (i+1 > lastFullRow && fieldsModulo!=0) //checks if last row is incomplete to better center the spheres
+                {
+                    int spaces = fieldsModulo*2;
+                    int missing = fieldsPerRow - fieldsModulo;
+                    float spacing = (float)missing/spaces;
+                    posx += sizeToDisplay*spacing+(i-lastFullRow)*sizeToDisplay*spacing*2;
+                }
+       
+                float posy = (i/fieldsPerRowToDisplay)*unit+unit*0.5f;
+                Vector3 pos = new Vector3(posx,posy,0f);
+                combine[i].transform = Matrix4x4.TRS(pos, Quaternion.identity,new Vector3(scale,scale,scale));
+            }
+            if (gradientToDisplay) //if gradient is enabled, we instanciate it
+            {   
+                combine[fieldsToDisplay].mesh=Resources.GetBuiltinResource<Mesh>("Cube.fbx");
+                Vector3 scale = new Vector3(sizeToDisplay * fieldsPerRowToDisplay, sizeToDisplay, 0.02f); 
+                Vector3 pos = new Vector3(scale.x*0.5f,scale.y*0.5f-sizeToDisplay,0);
+                combine[fieldsToDisplay].transform = Matrix4x4.TRS(pos, Quaternion.identity,scale);
+            }
+            colorcheckerMesh.CombineMeshes(combine);
+        }
+        else
+        { 
+            numberOfRows = gradientToDisplay ? numberOfRows + 1 : numberOfRows;
+            combine[0].mesh=Resources.GetBuiltinResource<Mesh>("Cube.fbx");
+            Vector3 scale = new Vector3(sizeToDisplay * fieldsPerRowToDisplay, sizeToDisplay*numberOfRows, 0.02f); 
+            Vector3 pos = new Vector3(scale.x*0.5f,scale.y*0.5f,0);
+            pos.y -= gradientToDisplay ? sizeToDisplay : 0;
+            combine[0].transform = Matrix4x4.TRS(pos, Quaternion.identity,scale);
+            colorcheckerMesh.CombineMeshes(combine);
+        }
+        
+        ColorCheckerFilter.mesh = colorcheckerMesh;
 
     }
 
@@ -401,7 +474,6 @@ public class ColorCheckerTool : MonoBehaviour
                 for (int x = 0; x < 8; x++)
                 {
                     int pixel = x + y * 8;
-
                         colorCheckerTexture.SetPixel(x, y, pixel<newColors.Length ? newColors[pixel]: Color.grey);
                 }
             }
@@ -409,7 +481,7 @@ public class ColorCheckerTool : MonoBehaviour
         }
     }
 
-    internal void saveCustomColors(Color32[] modeColors)
+    internal void saveTextureColors(Color32[] modeColors)
     {
        for (int i=0; i<modeColors.Length;i++)
         {
@@ -434,12 +506,10 @@ public class ColorCheckerTool : MonoBehaviour
                             isMetalBools[i] = materialPalette[i].a == (byte)255 ? true : false;
                         }
                 break;
-            }
-        UpdateMaterial();                 
+            }            
     }
 
-
-    private void CheckPipeline()
+    private void CheckPipeline() //not used right now as it only landed in HDRP, we are waiting for the Exposure node support in URP. 
     {
         var currentPipeline = RenderPipelineManager.currentPipeline;
         if (currentPipeline!=null)
@@ -447,13 +517,9 @@ public class ColorCheckerTool : MonoBehaviour
 
     }
 
-    private void OnDestroy()
+    void OnDestroy()
     {
-        //Clearing the Hide Flags in case
-        ColorCheckerRenderer.hideFlags = HideFlags.None;
-        ColorCheckerFilter.hideFlags = HideFlags.None;
-        hideFlags = HideFlags.None; 
-        ColorCheckerRenderer.sharedMaterial = null;
+        if(ColorCheckerObject != null)  DestroyImmediate(ColorCheckerObject);
     }
 
 }

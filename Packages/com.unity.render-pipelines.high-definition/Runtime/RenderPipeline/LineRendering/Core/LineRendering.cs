@@ -60,7 +60,13 @@ namespace UnityEngine.Rendering
         // Compute resources and utility container.
         private SystemResources m_SystemResources;
 
-        static readonly ProfilingSampler k_LineRenderingSampler = new ProfilingSampler("LineRendering");
+        static readonly ProfilingSampler k_LineRenderingGeometrySampler      = new ProfilingSampler("LineRenderingGeometry");
+        static readonly ProfilingSampler k_LineRenderingRasterizationSampler = new ProfilingSampler("LineRenderingRasterization");
+
+        private ConstantBuffer<ShaderVariables> m_ShaderVariablesBuffer;
+
+        // System keywords
+        private LocalKeyword[] m_SegmentIndicesKeywords;
 
         internal void Initialize(SystemResources parameters)
         {
@@ -71,6 +77,14 @@ namespace UnityEngine.Rendering
             }
 
             m_SystemResources = parameters;
+
+            m_SegmentIndicesKeywords = new LocalKeyword[]
+            {
+                new(m_SystemResources.stageSetupSegmentCS, "INDEX_FORMAT_UINT_16"),
+                new(m_SystemResources.stageSetupSegmentCS, "INDEX_FORMAT_UINT_32")
+            };
+
+            m_ShaderVariablesBuffer = new ConstantBuffer<ShaderVariables>();
 
             m_IsInitialized = true;
         }
@@ -143,17 +157,18 @@ namespace UnityEngine.Rendering
             // Utility for binding the common buffers between passes one and two.
             void UseSharedBuffers(RenderGraphBuilder builder, SharedPassData.Buffers buff)
             {
-                builder.WriteBuffer(buff.constantBuffer);
                 builder.WriteBuffer(buff.counterBuffer);
                 builder.WriteBuffer(buff.vertexStream0);
                 builder.WriteBuffer(buff.vertexStream1);
+                builder.WriteBuffer(buff.vertexStream2);
+                builder.WriteBuffer(buff.vertexStream3);
                 builder.WriteBuffer(buff.recordBufferSegment);
                 builder.WriteBuffer(buff.viewSpaceDepthRange);
                 builder.ReadWriteTexture(buff.groupShadingSampleAtlas);
             }
 
             // Pass 1: Geometry Processing and Shading
-            using (var builder = args.renderGraph.AddRenderPass<GeometryPassData>("Geometry Processing", out var passData, k_LineRenderingSampler))
+            using (var builder = args.renderGraph.AddRenderPass<GeometryPassData>("Geometry Processing", out var passData, k_LineRenderingGeometrySampler))
             {
                 // TODO: Get rid of this...
                 // Unfortunately we currently need this utility to "reimport" some buffers.
@@ -171,51 +186,56 @@ namespace UnityEngine.Rendering
                 }
 
                 // Set up other various dependent data.
-                passData.depthRT          = builder.ReadTexture(args.depthTexture);
+                passData.shaderVariables       = shaderVariables;
+                passData.shaderVariablesBuffer = m_ShaderVariablesBuffer;
+
                 passData.systemResources  = m_SystemResources;
                 passData.rendererData     = ImportRenderDatas();
                 passData.offsetsVertex    = PrefixSum(renderDatas.Select(o => o.mesh.vertexCount).ToArray());
                 passData.offsetsSegment   = PrefixSum(renderDatas.Select(o => (int)o.mesh.GetIndexCount(0) / 2).ToArray());
                 passData.matrixIVP        = args.matrixIVP;
                 passData.shadingAtlas     = args.shadingAtlas;
-                passData.shaderVariables  = shaderVariables;
 
                 // Set up the shared resources.
                 passData.sharedBuffers = sharedBuffers;
+                passData.depthRT       = builder.ReadTexture(args.depthTexture);
                 UseSharedBuffers(builder, sharedBuffers);
 
                 // Then set up the resources specific to this pass.
                 passData.transientBuffers = GeometryPassData.Buffers.Allocate(args.renderGraph, builder, new GeometryPassData.Buffers.AllocationParameters
                 {
-                    countVertex  = passData.shaderVariables._VertexCount,
+                    countVertex  = shaderVariables._VertexCount,
                     countVertexMaxPerRenderer = renderDatas.Max(o => o.mesh.vertexCount),
                 });
 
                 builder.SetRenderFunc((GeometryPassData data, RenderGraphContext context) =>
                 {
-                    // Upload the constant buffer before the geometry pass.
-                    var constantBufferData = new NativeArray<ShaderVariables>(1, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
-                    {
-                        constantBufferData[0] = shaderVariables;
-                        context.cmd.SetBufferData(data.sharedBuffers.constantBuffer, constantBufferData);
-                        constantBufferData.Dispose();
-                    }
+                    // Upload the constants to device.
+                    data.shaderVariablesBuffer.UpdateData(context.cmd, data.shaderVariables);
+
+                    // Render-graph provides a scratch MPB for our needs.
+                    data.materialPropertyBlock = context.renderGraphPool.GetTempMaterialPropertyBlock();
 
                     ExecuteGeometryPass(context.cmd, data);
                 });
             }
 
             // Pass 2: Rasterization
-            using (var builder = args.renderGraph.AddRenderPass<RasterizationPassData>("Rasterization", out var passData, k_LineRenderingSampler))
+            using (var builder = args.renderGraph.AddRenderPass<RasterizationPassData>("Rasterization", out var passData, k_LineRenderingRasterizationSampler))
             {
                 // Optionally schedule this pass in async. (This is actually the whole reason we split this process into two passes).
                 builder.EnableAsyncCompute(args.settings.executeAsync);
 
                 // Set up other various dependent data.
+                passData.shaderVariables       = shaderVariables;
+                passData.shaderVariablesBuffer = m_ShaderVariablesBuffer;
+
+                passData.binCount         = shaderVariables._BinCount;
+                passData.clusterCount     = shaderVariables._ClusterCount;
+                passData.clusterDepth     = shaderVariables._ClusterDepth;
                 passData.systemResources  = m_SystemResources;
                 passData.debugModeIndex   = (int)args.settings.debugMode;
                 passData.qualityModeIndex = (int)args.settings.sortingQuality;
-                passData.shaderVariables  = shaderVariables;
 #if UNITY_EDITOR
                 passData.renderDataStillHasShadersCompiling = shadersStillCompiling;
 #endif
@@ -229,14 +249,15 @@ namespace UnityEngine.Rendering
 
                 // Set up the shared resources.
                 passData.sharedBuffers = sharedBuffers;
+                passData.depthRT       = builder.ReadTexture(args.depthTexture);
                 UseSharedBuffers(builder, sharedBuffers);
 
                 // Then set up the resources specific to this pass.
                 passData.transientBuffers = RasterizationPassData.Buffers.Allocate(args.renderGraph, builder, new RasterizationPassData.Buffers.AllocationParameters
                 {
-                    countBin     = passData.shaderVariables._BinCount,
-                    countCluster = passData.shaderVariables._ClusterCount,
-                    depthCluster = passData.shaderVariables._ClusterDepth,
+                    countBin     = shaderVariables._BinCount,
+                    countCluster = shaderVariables._ClusterCount,
+                    depthCluster = shaderVariables._ClusterDepth,
 
                     countBinRecords = ComputeBinningRecordCapacity(args.settings.memoryBudget),
                     countWorkQUeue  = ComputeWorkQueueCapacity(args.settings.memoryBudget)

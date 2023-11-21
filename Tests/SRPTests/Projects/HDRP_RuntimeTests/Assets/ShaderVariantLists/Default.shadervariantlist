@@ -501,7 +501,8 @@ Compiled compute shader: ClearLightLists, kernel: ClearList, keywords <no keywor
 Compiled compute shader: ClearUIntTextureArray, kernel: ClearUIntTexture, keywords <no keywords>
 Compiled compute shader: ClearUIntTextureArray, kernel: ClearUIntTextureArray, keywords <no keywords>
 Compiled compute shader: ComputeGgxIblSampleData, kernel: ComputeGgxIblSampleData, keywords <no keywords>
-Compiled compute shader: ComputeShader-VertexSetup, kernel: VertexSetup, keywords _FORCE_DISABLE_TANGENT_STREAM
+Compiled compute shader: ComputeShader-VertexSetup, kernel: VertexSetup, keywords <no keywords>
+Compiled compute shader: Deferred, kernel: Deferred_Indirect_Fptl_Variant0, keywords AREA_SHADOW_MEDIUM DIRECTIONAL_SHADOW_HIGH PROBE_VOLUMES_L1 PUNCTUAL_SHADOW_HIGH SCREEN_SPACE_SHADOWS_OFF
 Compiled compute shader: Deferred, kernel: Deferred_Indirect_Fptl_Variant0, keywords AREA_SHADOW_MEDIUM DIRECTIONAL_SHADOW_HIGH PUNCTUAL_SHADOW_HIGH SCREEN_SPACE_SHADOWS_OFF
 Compiled compute shader: Deferred, kernel: Deferred_Indirect_Fptl_Variant0, keywords AREA_SHADOW_MEDIUM DIRECTIONAL_SHADOW_LOW PUNCTUAL_SHADOW_LOW SCREEN_SPACE_SHADOWS_OFF
 Compiled compute shader: Deferred, kernel: Deferred_Indirect_Fptl_Variant0, keywords AREA_SHADOW_MEDIUM DIRECTIONAL_SHADOW_MEDIUM PROBE_VOLUMES_L1 PUNCTUAL_SHADOW_MEDIUM SCREEN_SPACE_SHADOWS_OFF
@@ -884,11 +885,12 @@ Compiled compute shader: StagePrepare, kernel: UpdateOffsets, keywords <no keywo
 Compiled compute shader: StageRasterBin, kernel: Main, keywords <no keywords>
 Compiled compute shader: StageRasterBin, kernel: MainArgs, keywords <no keywords>
 Compiled compute shader: StageRasterFine, kernel: Main, keywords <no keywords>
-Compiled compute shader: StageSetupSegment, kernel: Main, keywords <no keywords>
+Compiled compute shader: StageSetupSegment, kernel: Main, keywords INDEX_FORMAT_UINT_32
 Compiled compute shader: StageShadingSetup, kernel: ClearShadingCompactionBuffer, keywords <no keywords>
 Compiled compute shader: StageShadingSetup, kernel: ClearShadingSampleVisibilityBuffer, keywords <no keywords>
 Compiled compute shader: StageShadingSetup, kernel: CreateCompactedShadingSamplesMapping, keywords <no keywords>
 Compiled compute shader: StageShadingSetup, kernel: ReplicateShadedSamplesToShadingAtlas, keywords <no keywords>
+Compiled compute shader: StageWorkQueue, kernel: BuildFineRasterArgs, keywords <no keywords>
 Compiled compute shader: StageWorkQueue, kernel: WorkQueueActiveBins, keywords <no keywords>
 Compiled compute shader: StageWorkQueue, kernel: WorkQueueActiveClusters, keywords <no keywords>
 Compiled compute shader: StageWorkQueue, kernel: WorkQueueBuild, keywords <no keywords>
@@ -2162,13 +2164,18 @@ Compiled shader: Shader Graphs/HQLinesShader, pass: ForwardOnly, stage: all, key
 Compiled shader: Shader Graphs/HQLinesShader, pass: ForwardOnly, stage: pixel, keywords STEREO_INSTANCING_ON
 Compiled shader: Shader Graphs/HQLinesShader, pass: ForwardOnly, stage: vertex, keywords STEREO_INSTANCING_ON
 Compiled shader: Shader Graphs/HQLinesShader, pass: LineRenderingOffscreenShading, stage: all, keywords <no keywords>
+Compiled shader: Shader Graphs/HQLinesShader, pass: LineRenderingOffscreenShading, stage: pixel, keywords <no keywords>
 Compiled shader: Shader Graphs/HQLinesShader, pass: LineRenderingOffscreenShading, stage: pixel, keywords STEREO_INSTANCING_ON
+Compiled shader: Shader Graphs/HQLinesShader, pass: LineRenderingOffscreenShading, stage: vertex, keywords <no keywords>
 Compiled shader: Shader Graphs/HQLinesShader, pass: LineRenderingOffscreenShading, stage: vertex, keywords STEREO_INSTANCING_ON
 Compiled shader: Shader Graphs/HQLinesShader, pass: MotionVectors, stage: all, keywords WRITE_MSAA_DEPTH
+Compiled shader: Shader Graphs/HQLinesShader, pass: MotionVectors, stage: pixel, keywords <no keywords>
 Compiled shader: Shader Graphs/HQLinesShader, pass: MotionVectors, stage: pixel, keywords STEREO_INSTANCING_ON WRITE_MSAA_DEPTH
 Compiled shader: Shader Graphs/HQLinesShader, pass: MotionVectors, stage: vertex, keywords <no keywords>
 Compiled shader: Shader Graphs/HQLinesShader, pass: MotionVectors, stage: vertex, keywords STEREO_INSTANCING_ON
 Compiled shader: Shader Graphs/HQLinesShader, pass: ShadowCaster, stage: all, keywords <no keywords>
+Compiled shader: Shader Graphs/HQLinesShader, pass: ShadowCaster, stage: pixel, keywords <no keywords>
+Compiled shader: Shader Graphs/HQLinesShader, pass: ShadowCaster, stage: vertex, keywords <no keywords>
 Compiled shader: Shader Graphs/KeywordGraph, pass: DepthForwardOnly, stage: all, keywords TESTKEYWORD_ONESTACK
 Compiled shader: Shader Graphs/KeywordGraph, pass: DepthForwardOnly, stage: all, keywords TESTKEYWORD_ONESTACK WRITE_MSAA_DEPTH
 Compiled shader: Shader Graphs/KeywordGraph, pass: DepthForwardOnly, stage: all, keywords TESTKEYWORD_TWOSTACKS

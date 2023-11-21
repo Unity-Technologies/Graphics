@@ -2,6 +2,7 @@
 #pragma kernel WorkQueueBuild
 #pragma kernel WorkQueueActiveBins
 #pragma kernel WorkQueueActiveClusters
+#pragma kernel BuildFineRasterArgs
 
 #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
@@ -21,6 +22,7 @@ RWByteAddressBuffer _CounterBuffer;
 RWByteAddressBuffer _BinActiveBuffer;
 RWByteAddressBuffer _ActiveClusterIndices;
 RWByteAddressBuffer _BinCountersBuffer;
+RWBuffer<uint> _FineRasterDispatchArgs;
 
 [numthreads(1, 1, 1)]
 void WorkQueueBuildArgs()
@@ -87,4 +89,14 @@ void WorkQueueActiveBins(Group group)
 
     if(wave.IsFirstLane())
         _CounterBuffer.InterlockedAdd(COUNTER_BIN_QUEUE_SIZE, numActiveBin);
+}
+
+[numthreads(1, 1, 1)]
+void BuildFineRasterArgs()
+{
+    const uint dispatchSize = _CounterBuffer.Load(COUNTER_BIN_QUEUE_SIZE);
+
+    _FineRasterDispatchArgs[0] = max(1, dispatchSize);
+    _FineRasterDispatchArgs[1] = 1;
+    _FineRasterDispatchArgs[2] = 1;
 }

@@ -240,7 +240,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     colorBuffer = RenderTransparency(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.resolvedNormalBuffer, vtFeedbackBuffer, currentColorPyramid, volumetricLighting, rayCountTexture,
                         m_SkyManager.GetSkyReflection(hdCamera), gpuLightListOutput, transparentPrepass, ref prepassOutput, shadowResult, cullingResults, customPassCullingResults, aovRequest, aovCustomPassBuffers);
 
-                    uiBuffer = RenderTransparentUI(m_RenderGraph, hdCamera, prepassOutput.depthBuffer);
+                    uiBuffer = RenderTransparentUI(m_RenderGraph, hdCamera);
 
                     if (NeedMotionVectorForTransparent(hdCamera.frameSettings))
                     {
@@ -985,17 +985,16 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public Camera camera;
             public FrameSettings frameSettings;
+            public Rect viewport;
         }
 
         TextureHandle CreateOffscreenUIBuffer(RenderGraph renderGraph, MSAASamples msaaSamples)
         {
-            return renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.R8G8B8A8_SRGB, clearBuffer = true, clearColor = Color.clear, msaaSamples = msaaSamples, name = "UI Buffer" });
+            return renderGraph.CreateTexture(new TextureDesc(Vector2.one, false, true)
+                { colorFormat = GraphicsFormat.R8G8B8A8_SRGB, clearBuffer = false, msaaSamples = msaaSamples, name = "UI Buffer" });
         }
 
-        TextureHandle RenderTransparentUI(RenderGraph renderGraph,
-            HDCamera hdCamera,
-            TextureHandle depthBuffer)
+        TextureHandle RenderTransparentUI(RenderGraph renderGraph, HDCamera hdCamera)
         {
             var output = renderGraph.defaultResources.blackTextureXR;
             if (HDROutputActiveForCameraType(hdCamera) && SupportedRenderingFeatures.active.rendersUIOverlay && !NeedHDRDebugMode(m_CurrentDebugDisplaySettings))
@@ -1003,13 +1002,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 using (var builder = renderGraph.AddRenderPass<RenderOffscreenUIData>("UI Rendering", out var passData, ProfilingSampler.Get(HDProfileId.OffscreenUIRendering)))
                 {
                     output = builder.UseColorBuffer(CreateOffscreenUIBuffer(renderGraph, hdCamera.msaaSamples), 0);
-                    builder.UseDepthBuffer(depthBuffer, DepthAccess.ReadWrite);
 
                     passData.camera = hdCamera.camera;
                     passData.frameSettings = hdCamera.frameSettings;
+                    passData.viewport = new Rect(0.0f, 0.0f, hdCamera.finalViewport.width, hdCamera.finalViewport.height);
 
                     builder.SetRenderFunc((RenderOffscreenUIData data, RenderGraphContext context) =>
                     {
+                        context.cmd.SetViewport(data.viewport);
+                        context.cmd.ClearRenderTarget(false, true, Color.clear);
                         context.renderContext.ExecuteCommandBuffer(context.cmd);
                         context.cmd.Clear();
                         context.renderContext.DrawUIOverlay(data.camera);
@@ -1645,7 +1646,7 @@ namespace UnityEngine.Rendering.HighDefinition
             RenderLines(m_RenderGraph, prepassOutput.depthPyramidTexture, hdCamera, lightLists);
 
             // Immediately compose the lines if the user wants lines in the color pyramid (refraction), but with poor TAA ghosting.
-            ComposeLines(renderGraph, hdCamera, colorBuffer, transparentPrepass.depthBufferPreRefraction, prepassOutput.motionVectorsBuffer, (int)LineRendering.CompositionMode.BeforeColorPyramid);
+            ComposeLines(renderGraph, hdCamera, colorBuffer, prepassOutput.resolvedDepthBuffer, prepassOutput.motionVectorsBuffer, (int)LineRendering.CompositionMode.BeforeColorPyramid);
 
             // Render the transparent SSR lighting
             var ssrLightingBuffer = RenderSSR(renderGraph, hdCamera, ref prepassOutput, in transparentPrepass, renderGraph.defaultResources.blackTextureXR, rayCountTexture, renderGraph.defaultResources.blackTextureXR, skyTexture, transparent: true);

@@ -27,27 +27,29 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!s_SupportLineRendering)
                 return;
 
-            m_LineCompositePass = CoreUtils.CreateEngineMaterial(defaultResources.shaders.lineCompositePS);
+            var runtimeShaders = m_Asset.renderPipelineResources.shaders;
+
+            m_LineCompositePass = CoreUtils.CreateEngineMaterial(runtimeShaders.lineCompositePS);
 
             m_PrefixSum = new GPUPrefixSum(new GPUPrefixSum.SystemResources
             {
-                computeAsset = defaultResources.shaders.gpuPrefixSumCS
+                computeAsset = runtimeShaders.gpuPrefixSumCS
             });
 
             m_Sorter = new GPUSort(new GPUSort.SystemResources
             {
-                computeAsset = defaultResources.shaders.gpuSortCS
+                computeAsset = runtimeShaders.gpuSortCS
             });
 
             LineRendering.Instance.Initialize(new LineRendering.SystemResources
             {
                 // Due to a lack of a "Core Resource" concept, we pass along the kernel assets as initialization parameters.
-                stagePrepareCS      = defaultResources.shaders.lineStagePrepareCS,
-                stageSetupSegmentCS = defaultResources.shaders.lineStageSetupSegmentCS,
-                stageShadingSetupCS = defaultResources.shaders.lineStageShadingSetupCS,
-                stageRasterBinCS    = defaultResources.shaders.lineStageRasterBinCS,
-                stageWorkQueue      = defaultResources.shaders.lineStageWorkQueueCS,
-                stageRasterFineCS   = defaultResources.shaders.lineStageRasterFineCS,
+                stagePrepareCS      = runtimeShaders.lineStagePrepareCS,
+                stageSetupSegmentCS = runtimeShaders.lineStageSetupSegmentCS,
+                stageShadingSetupCS = runtimeShaders.lineStageShadingSetupCS,
+                stageRasterBinCS    = runtimeShaders.lineStageRasterBinCS,
+                stageWorkQueue      = runtimeShaders.lineStageWorkQueueCS,
+                stageRasterFineCS   = runtimeShaders.lineStageRasterFineCS,
 
                 // Misc. Compute Utility
                 gpuSort      = m_Sorter,
@@ -227,11 +229,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.mainTargetColor = builder.UseColorBuffer(colorBuffer, 0);
                 passData.mainTargetDepth = builder.UseDepthBuffer(depthBuffer, DepthAccess.ReadWrite);
 
-                if (motionVectorBuffer.IsValid())
+                if (motionVectorBuffer.IsValid() && hdCamera.frameSettings.IsEnabled(FrameSettingsField.MotionVectors))
                 {
                     // The motion vectors may be invalid in case of material debug view. So don't bind it in that case.
                     passData.mainTargetMV = builder.UseColorBuffer(motionVectorBuffer, 1);
                 }
+                else
+                    passData.mainTargetMV = TextureHandle.nullHandle;
 
                 passData.lineTargetColor = builder.ReadTexture(m_LineColorBuffer);
                 passData.lineTargetDepth = builder.ReadTexture(m_LineDepthBuffer);

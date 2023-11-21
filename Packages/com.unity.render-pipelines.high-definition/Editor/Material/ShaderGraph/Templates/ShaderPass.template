@@ -350,10 +350,6 @@ Pass
         $SurfaceDescription.VTPackedFeedback: builtinData.vtPackedFeedback = surfaceDescription.VTPackedFeedback;
         #endif
 
-        #ifdef LINE_RENDERING_OFFSCREEN_SHADING
-        $SurfaceDescription.LineWidth: builtinData.lineWidth = surfaceDescription.LineWidth;
-        #endif
-
         #if _DEPTHOFFSET_ON
         builtinData.depthOffset = surfaceDescription.DepthOffset;
         #endif
