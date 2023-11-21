@@ -29,6 +29,7 @@ Shader "Hidden/HDRP/DebugFullScreen"
 
             CBUFFER_START (UnityDebug)
             float _FullScreenDebugMode;
+            float _ApplyExposure;
             float4 _FullScreenDebugDepthRemap;
             float _TransparencyOverdrawMaxPixelCost;
             float _QuadOverdrawMaxQuadCost;
@@ -190,9 +191,10 @@ Shader "Hidden/HDRP/DebugFullScreen"
 
                 // Note: If the single shadow debug mode is enabled, we don't render other full screen debug modes
                 // and the value of _FullScreenDebugMode is forced to 0
-                if (_DebugShadowMapMode == SHADOWMAPDEBUGMODE_SINGLE_SHADOW)
+                if (_DebugShadowMapMode == SHADOWMAPDEBUGMODE_SINGLE_SHADOW || _FullScreenDebugMode == FULLSCREENDEBUGMODE_NONE)
                 {
                     float4 color = SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord);
+                    color *= _ApplyExposure > 0.0 ? GetCurrentExposureMultiplier() : 1.0;
                     return color;
                 }
                 // SSAO

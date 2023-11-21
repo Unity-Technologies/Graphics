@@ -358,6 +358,18 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (hdCamera.xr.enabled && hdCamera.xr.copyDepth)
                     CopyDepth(m_RenderGraph, hdCamera, prepassOutput.resolvedDepthBuffer, backBuffer, true);
 
+                if (m_CurrentDebugDisplaySettings.data.historyBuffersView != -1)
+                {
+                    int historyFrameIndex = Mathf.Min(m_CurrentDebugDisplaySettings.data.historyBufferFrameIndex, hdCamera.GetHistoryFrameCount(m_CurrentDebugDisplaySettings.data.historyBuffersView)-1);
+                    RTHandle historyRT = hdCamera.GetFrameRT(m_CurrentDebugDisplaySettings.data.historyBuffersView, historyFrameIndex);
+                    TextureHandle historyTexture = m_RenderGraph.defaultResources.blackTextureArrayXR;
+                    if (historyRT != null)
+                    {
+                        historyTexture = m_RenderGraph.ImportTexture(historyRT);
+                    }
+                    PushFullScreenHistoryBuffer(m_RenderGraph, historyTexture, (HDCameraFrameHistoryType)m_CurrentDebugDisplaySettings.data.historyBuffersView);
+                }
+
                 // In developer build, we always render post process in an intermediate buffer at (0,0) in which we will then render debug.
                 // Because of this, we need another blit here to the final render target at the right viewport.
                 if (!postProcessIsFinalPass)

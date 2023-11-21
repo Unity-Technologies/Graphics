@@ -178,7 +178,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal static HDCamera GetOrCreate(Camera camera, int xrMultipassId, HistoryChannel historyChannel)
         {
             HDCamera hdCamera;
-            
+
             if (historyChannel == HistoryChannel.HistoryChannelCount)
                 throw new System.Exception("No camera can be created with this history channel " + historyChannel + " (internal use only)");
 
@@ -226,11 +226,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             throw new System.Exception("All 8 user history channels are already existing for camera " + camera.name + " and XR pass " + xrMultipassId + ", use FreeUserHistoryChannel() or use an existing one.");
         }
-        
+
         // internal only for now, to be publicly available when history API is implemented in SRP Core
         /// <summary>
         /// Free given user history channel for a pair of camera and XR multi-pass Id if existing.
-        /// </summary>        
+        /// </summary>
         /// <param name="camera">Camera.</param>
         /// <param name="xrMultipassId">XR multi-pass Id.</param>
         /// <param name="channel">User history channel to remove.</param>
@@ -254,7 +254,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // internal only for now, to be publicly available when history API is implemented in SRP Core
         /// <summary>
         /// Free all existing user history channels for a pair of camera and XR multi-pass Id.
-        /// </summary>        
+        /// </summary>
         /// <param name="camera">Camera.</param>
         /// <param name="xrMultipassId">XR multi-pass Id.</param>
         /// <returns></returns>
@@ -325,6 +325,27 @@ namespace UnityEngine.Rendering.HighDefinition
         public RTHandle GetCurrentFrameRT(int id)
         {
             return m_HistoryRTSystem.GetFrameRT(id, 0);
+        }
+
+        /// <summary>
+        /// Returns the id RTHandle of a particular frame.
+        /// </summary>
+        /// <param name="id">Id of the history RTHandle.</param>
+        /// <param name="frame">Index of the desired frame.</param>
+        /// <returns>The RTHandle of the requested frame.</returns>
+        public RTHandle GetFrameRT(int id, int frame)
+        {
+            return m_HistoryRTSystem.GetFrameRT(id, frame);
+        }
+
+        /// <summary>
+        /// Returns the number of frames for a particular id RTHandle.
+        /// </summary>
+        /// <param name="id">Id of the history RTHandle.</param>
+        /// <returns>The frame count.</returns>
+        public int GetHistoryFrameCount(int id)
+        {
+            return m_HistoryRTSystem.GetNumFramesAllocated(id);
         }
 
         #endregion

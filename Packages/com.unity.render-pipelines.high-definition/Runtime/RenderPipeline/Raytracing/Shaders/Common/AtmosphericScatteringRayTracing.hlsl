@@ -33,6 +33,20 @@ void ApplyFogAttenuation(float3 origin, float3 direction, float t, inout float3 
     }
 }
 
+void ApplyFogAttenuation(float3 origin, float3 direction, float t, inout float3 value, inout float3 unlitShadowColor, inout float alpha, inout float3 throughput, bool useFogColor = true)
+{
+    if (_FogEnabled)
+    {
+        float fogTransmittance = GetHeightFogTransmittance(origin, direction, t);
+        float3 fogColor = useFogColor? GetHeightFogColor(direction, t) : 0.0;
+
+        value = lerp(fogColor, value, fogTransmittance);
+        unlitShadowColor = lerp(fogColor, unlitShadowColor, fogTransmittance);
+        alpha = saturate(1.0 - fogTransmittance) + fogTransmittance * alpha;
+        throughput *= fogTransmittance;
+    }
+}
+
 // Used on transmission rays of local lights
 void ApplyFogAttenuation(float3 origin, float3 direction, float t, inout float3 value, bool useFogColor = true)
 {

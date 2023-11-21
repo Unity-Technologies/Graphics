@@ -131,8 +131,9 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             bool fullScreenDebugEnabled = m_CurrentDebugDisplaySettings.data.fullScreenDebugMode != FullScreenDebugMode.None;
             bool lightingDebugEnabled = m_CurrentDebugDisplaySettings.data.lightingDebugSettings.shadowDebugMode == ShadowMapDebugMode.SingleShadow;
+            bool historyBufferViewEnabled = m_CurrentDebugDisplaySettings.data.historyBuffersView != -1;
 
-            return fullScreenDebugEnabled || lightingDebugEnabled;
+            return fullScreenDebugEnabled || lightingDebugEnabled || historyBufferViewEnabled;
         }
 
         unsafe void ApplyDebugDisplaySettings(HDCamera hdCamera, CommandBuffer cmd, bool aovOutput)
@@ -599,6 +600,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         mpb.SetTexture(HDShaderIDs._DebugFullScreenTexture, data.input);
                         mpb.SetTexture(HDShaderIDs._CameraDepthTexture, data.depthPyramid);
                         mpb.SetFloat(HDShaderIDs._FullScreenDebugMode, (float)data.debugDisplaySettings.data.fullScreenDebugMode);
+                        mpb.SetFloat(HDShaderIDs._ApplyExposure, data.debugDisplaySettings.data.SupportsExposure() && data.debugDisplaySettings.data.applyExposure ? 1 : 0);
                         if (data.debugDisplaySettings.data.enableDebugDepthRemap)
                             mpb.SetVector(HDShaderIDs._FullScreenDebugDepthRemap, new Vector4(data.debugDisplaySettings.data.fullScreenDebugDepthRemap.x, data.debugDisplaySettings.data.fullScreenDebugDepthRemap.y, data.hdCamera.camera.nearClipPlane, data.hdCamera.camera.farClipPlane));
                         else // Setup neutral value
@@ -1583,6 +1585,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 PushFullScreenDebugTexture(renderGraph, input, colorFormat, mipIndex);
             }
+        }
+
+        void PushFullScreenHistoryBuffer(RenderGraph renderGraph, TextureHandle input, HDCameraFrameHistoryType historyType, GraphicsFormat colorFormat = GraphicsFormat.R16G16B16A16_SFloat)
+        {
+            PushFullScreenDebugTexture(renderGraph, input, colorFormat);
         }
 
         void PushFullScreenDebugTexture(RenderGraph renderGraph, TextureHandle input, GraphicsFormat rtFormat = GraphicsFormat.R16G16B16A16_SFloat, int mipIndex = -1, bool xrTexture = true)

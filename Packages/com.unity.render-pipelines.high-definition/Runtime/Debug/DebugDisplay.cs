@@ -242,6 +242,8 @@ namespace UnityEngine.Rendering.HighDefinition
         static int[] s_RenderingFullScreenDebugValues = null;
         static GUIContent[] s_MaterialFullScreenDebugStrings = null;
         static int[] s_MaterialFullScreenDebugValues = null;
+        static GUIContent[] s_RenderingHistoryBuffersStrings = null;
+        static int[] s_RenderingHistoryBuffersValues = null;
 
         static List<GUIContent> s_CameraNames = new List<GUIContent>();
         static GUIContent[] s_CameraNamesStrings = { new ("No Visible Camera") };
@@ -275,6 +277,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool xrSinglePassTestMode = false;
             /// <summary>Whether to display the average timings every second.</summary>
             public bool averageProfilerTimingsOverASecond = false;
+            /// <summary>Current history buffers view.</summary>
+            public int historyBuffersView = -1;
 
             /// <summary>Current material debug settings.</summary>
             public MaterialDebugSettings materialDebugSettings = new MaterialDebugSettings();
@@ -325,6 +329,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public float motionVecVisualizationScale = 40.0f;
             /// <summary>Whether to visualize motion vector intensity as heat map or greyscale (if off).</summary>
             public bool motionVecIntensityHeat = false;
+            /// <summary>Whether to apply exposure to certain fullscreen debug outputs.</summary>
+            public bool applyExposure = false;
             /// <summary>The debug mode used for high quality line rendering.</summary>
             public LineRendering.DebugMode lineRenderingDebugMode = LineRendering.DebugMode.SegmentsPerTile;
 
@@ -346,6 +352,7 @@ namespace UnityEngine.Rendering.HighDefinition
             internal int clusterDebugModeEnumIndex;
             internal int lightVolumeDebugTypeEnumIndex;
             internal int renderingFulscreenDebugModeEnumIndex;
+            internal int renderingHistoryBuffersViewEnumIndex;
             internal int terrainTextureEnumIndex;
             internal int colorPickerDebugModeEnumIndex;
             internal int exposureDebugModeEnumIndex;
@@ -357,6 +364,7 @@ namespace UnityEngine.Rendering.HighDefinition
             internal int volumetricCloudsDebugModeEnumIndex;
             internal int lineRenderingDebugModeEnumIndex;
             internal int lightClusterCategoryDebug;
+            internal int historyBufferFrameIndex = 0;
 
             private float m_DebugGlobalMipBiasOverride = 0.0f;
 
@@ -390,6 +398,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_UseDebugGlobalMipBiasOverride = value;
             }
 
+            internal bool SupportsExposure()
+            {
+                return historyBuffersView == (int)HDCameraFrameHistoryType.PathTracingOutput ||
+                       historyBuffersView == (int)HDCameraFrameHistoryType.PathTracingDenoised ||
+                       historyBuffersView == (int)HDCameraFrameHistoryType.PathTracingVolumetricFogDenoised ||
+                       historyBuffersView == (int)HDCameraFrameHistoryType.PathTracingVolumetricFog;
+            }
+
             // When settings mutually exclusives enum values, we need to reset the other ones.
             internal void ResetExclusiveEnumIndices()
             {
@@ -402,6 +418,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 gBufferEnumIndex = 0;
                 lightingFulscreenDebugModeEnumIndex = 0;
                 renderingFulscreenDebugModeEnumIndex = 0;
+                renderingHistoryBuffersViewEnumIndex = -1;
             }
         }
         DebugData m_Data;
@@ -436,6 +453,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 s_RenderingFullScreenDebugStrings = s_RenderingFullScreenDebugStrings.Where((val, idx) => (idx + FullScreenDebugMode.MinRenderingFullScreenDebug) != FullScreenDebugMode.QuadOverdraw).ToArray();
                 s_RenderingFullScreenDebugValues = s_RenderingFullScreenDebugValues.Where((val, idx) => (idx + FullScreenDebugMode.MinRenderingFullScreenDebug) != FullScreenDebugMode.QuadOverdraw).ToArray();
             }
+
+            FillHistoryBuffersEnum(ref s_RenderingHistoryBuffersStrings, ref s_RenderingHistoryBuffersValues);
 
             s_MaterialFullScreenDebugStrings[(int)FullScreenDebugMode.ValidateDiffuseColor - ((int)FullScreenDebugMode.MinMaterialFullScreenDebug)] = new GUIContent("Diffuse Color");
             s_MaterialFullScreenDebugStrings[(int)FullScreenDebugMode.ValidateSpecularColor - ((int)FullScreenDebugMode.MinMaterialFullScreenDebug)] = new GUIContent("Metal or SpecularColor");
@@ -756,9 +775,30 @@ namespace UnityEngine.Rendering.HighDefinition
                 data.lightingDebugSettings.debugLightingMode = DebugLightingMode.None;
                 data.materialDebugSettings.DisableMaterialDebug();
                 data.mipMapDebugSettings.debugMipMapMode = DebugMipMapMode.None;
+                data.historyBuffersView = -1;
             }
 
             data.fullScreenDebugMode = value;
+        }
+
+        /// <summary>
+        /// Set the current History Buffers View.
+        /// </summary>
+        /// <param name="value">Desired History Buffer to view.</param>
+        public void SetHistoryBufferView(int value)
+        {
+            if (data.lightingDebugSettings.shadowDebugMode == ShadowMapDebugMode.SingleShadow)
+                value = 0;
+
+            if (value != -1)
+            {
+                data.lightingDebugSettings.debugLightingMode = DebugLightingMode.None;
+                data.materialDebugSettings.DisableMaterialDebug();
+                data.mipMapDebugSettings.debugMipMapMode = DebugMipMapMode.None;
+                data.fullScreenDebugMode = FullScreenDebugMode.None;
+            }
+
+            data.historyBuffersView = value;
         }
 
         /// <summary>
@@ -1549,6 +1589,11 @@ namespace UnityEngine.Rendering.HighDefinition
             public static readonly NameAndTooltip WaveformParade      = new() { name = "Parade mode", tooltip = "Toggles the parade mode of the waveform monitor, splitting the waveform into the red, green and blue channels separately." };
             public static readonly NameAndTooltip VectorscopeToggle   = new() { name = "Vectorscope", tooltip = "Toggles the vectorscope monitor, allowing to measure the overall range of hue and saturation within the image." };
             public static readonly NameAndTooltip VectorscopeExposure = new() { name = "Exposure"   , tooltip = "Set the exposure of the vectorscope monitor." };
+
+            // History Buffers
+            public static readonly NameAndTooltip HistoryBuffersView = new() { name = "Buffer",         tooltip = "Use the drop-down to select a history buffer to display as an overlay on the screen." };
+            public static readonly NameAndTooltip FrameIndex         = new() { name = "Frame Index",    tooltip = "The index of the frame in the history to display (0 is the current frame)." };
+            public static readonly NameAndTooltip ApplyExposure      = new() { name = "Apply Exposure", tooltip = "Apply the Exposure value to the buffer output." };
         }
 
         void RegisterRenderingDebug()
@@ -1766,6 +1811,38 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             });
 
+            widgetList.Add(new DebugUI.Container
+            {
+                displayName = "History Buffers",
+                children =
+                {
+                    new DebugUI.EnumField
+                    {
+                        nameAndTooltip = RenderingStrings.HistoryBuffersView,
+                        getter = () => (int)data.historyBuffersView,
+                        setter = value => SetHistoryBufferView(value),
+                        enumNames = s_RenderingHistoryBuffersStrings,
+                        enumValues = s_RenderingHistoryBuffersValues,
+                        getIndex = () => data.renderingHistoryBuffersViewEnumIndex,
+                        setIndex = value => { data.ResetExclusiveEnumIndices(); data.renderingHistoryBuffersViewEnumIndex = value; }
+                    },
+                    new DebugUI.IntField
+                    {
+                        nameAndTooltip = RenderingStrings.FrameIndex,
+                        getter = () => data.historyBufferFrameIndex,
+                        setter = value => data.historyBufferFrameIndex = value,
+                        min = () => 0, max = () => 2
+                    },
+                    new DebugUI.BoolField
+                    {
+                        isHiddenCallback = () => !data.SupportsExposure(),
+                        nameAndTooltip = RenderingStrings.ApplyExposure,
+                        getter = ()    =>   data.applyExposure,
+                        setter = value => { data.applyExposure = value; }
+                    },
+                }
+            });
+
 #if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
             widgetList.Add(nvidiaDebugView.CreateWidget());
 #endif
@@ -1817,6 +1894,39 @@ namespace UnityEngine.Rendering.HighDefinition
                 strings[index] = new GUIContent(((FullScreenDebugMode)i).ToString());
                 values[index] = i;
                 index++;
+            }
+        }
+
+        void FillHistoryBuffersEnum(ref GUIContent[] strings, ref int[] values)
+        {
+            var type = typeof(HDCameraFrameHistoryType);
+            var historyBufferFields = type.GetFields();
+            var historyBufferEnums = Enum.GetValues(type).Cast<HDCameraFrameHistoryType>();
+
+            int min = (int)historyBufferEnums.Min();
+            int max = (int)historyBufferEnums.Max();
+            int count = max - min + 1;
+            strings = new GUIContent[count + 1];
+            values = new int[count + 1];
+            // There's no None enum values for history buffers so might as well use this one
+            strings[0] = new GUIContent(FullScreenDebugMode.None.ToString());
+            values[0] = -1;
+            int index = 1;
+
+            // Sort them by name
+            foreach (var field in historyBufferFields.OrderBy(f => f.Name))
+            {
+                if (field.Name.Equals("value__"))
+                    continue;
+
+                // Ignore the field if it is obsolete
+                if (field.CustomAttributes.All(attr => attr.AttributeType != typeof(ObsoleteAttribute)))
+                {
+                    var value = (int)field.GetRawConstantValue();
+                    strings[index] = new GUIContent(field.Name);
+                    values[index] = value;
+                    index++;
+                }
             }
         }
 

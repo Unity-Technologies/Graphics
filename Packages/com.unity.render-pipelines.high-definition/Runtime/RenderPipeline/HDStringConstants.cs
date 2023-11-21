@@ -748,6 +748,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _AlbedoAOV = Shader.PropertyToID("_AlbedoAOV");
         public static readonly int _NormalAOV = Shader.PropertyToID("_NormalAOV");
         public static readonly int _MotionVectorAOV = Shader.PropertyToID("_MotionVectorAOV");
+        public static readonly int _VolumetricScatteringAOV = Shader.PropertyToID("_VolumetricScatteringAOV");
 
         // Light Cluster
         public static readonly int _RaytracingLightCluster = Shader.PropertyToID("_RaytracingLightCluster");
@@ -950,6 +951,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _ProceduralMaskParams2 = Shader.PropertyToID("_ProceduralMaskParams2");
         public static readonly int _Variants = Shader.PropertyToID("_Variants");
         public static readonly int _InputTexture = Shader.PropertyToID("_InputTexture");
+        public static readonly int _InputTexture2 = Shader.PropertyToID("_InputTexture2");
         public static readonly int _InputTextureArray = Shader.PropertyToID("_InputTextureArray");
         public static readonly int _InputTextureMSAA = Shader.PropertyToID("_InputTextureMSAA");
         public static readonly int _OutputTexture = Shader.PropertyToID("_OutputTexture");

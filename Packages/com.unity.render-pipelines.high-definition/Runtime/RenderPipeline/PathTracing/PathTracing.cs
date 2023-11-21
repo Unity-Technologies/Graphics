@@ -42,7 +42,7 @@ namespace UnityEngine.Rendering.HighDefinition
     {
 
         /// <summary>
-        /// The non repeating mode bases the seed on the camera frame count. This avoids screen-based artefacts when using Path Tracing with the Recorder package. 
+        /// The non repeating mode bases the seed on the camera frame count. This avoids screen-based artefacts when using Path Tracing with the Recorder package.
         /// </summary>
         NonRepeating,
 
@@ -50,7 +50,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// The repeating mode resets the seed to zero when the accumulation of samples resets. This allows for easier debugging through deterministic behavior per frame.
         /// </summary>
         Repeating,
-        
+
         /// <summary>
         /// The custom mode allows you to choose the seed through a script by setting the customSeed parameter on the PathTracing volume override.
         /// </summary>
@@ -177,6 +177,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Tooltip("Enables temporally-stable denoising when recording animation sequences (only affects recording / multi-frame accumulation)")]
         public BoolParameter temporal = new BoolParameter(false);
+
+        /// <summary>
+        /// Enables separate denoising of the volumetrics scattering results, but with extra GPU memory usage.
+        /// </summary>
+        [Tooltip("Enables the denoising of volumetric fog in a separate pass. This gives a smoother result at the expense of extra GPU memory usage. The extra pass does not take into account the temporal parameter of the denoiser.")]
+        public BoolParameter separateVolumetrics = new BoolParameter(false);
 
         /// <summary>
         /// Controls whether denoising will be asynchronous (non-blocking) for the scene view camera.
@@ -560,6 +566,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle albedoAOV;
             public TextureHandle normalAOV;
             public TextureHandle motionVectorAOV;
+            public bool enableVolumetricScattering;
+            public TextureHandle volumetricScatteringAOV;
 
             public bool enableDecals;
 
@@ -568,7 +576,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
         }
 
-        void RenderPathTracingFrame(RenderGraph renderGraph, HDCamera hdCamera, in CameraData cameraData, TextureHandle pathTracingBuffer, TextureHandle albedo, TextureHandle normal, TextureHandle motionVector)
+        void RenderPathTracingFrame(RenderGraph renderGraph, HDCamera hdCamera, in CameraData cameraData, TextureHandle pathTracingBuffer, TextureHandle albedo, TextureHandle normal, TextureHandle motionVector, TextureHandle volumetricScattering)
         {
             using (var builder = renderGraph.AddRenderPass<RenderPathTracingData>("Render Path Tracing Frame", out var passData))
             {
@@ -617,6 +625,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.albedoAOV = builder.WriteTexture(albedo);
                     passData.normalAOV = builder.WriteTexture(normal);
                     passData.motionVectorAOV = builder.WriteTexture(motionVector);
+                }
+                passData.enableVolumetricScattering = volumetricScattering.IsValid();
+                if (passData.enableVolumetricScattering)
+                {
+                    passData.volumetricScatteringAOV = builder.WriteTexture(volumetricScattering);
                 }
 
                 passData.enableDecals = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals);
@@ -673,9 +686,16 @@ namespace UnityEngine.Rendering.HighDefinition
                             ctx.cmd.SetRayTracingTextureParam(data.shader, HDShaderIDs._NormalAOV, data.normalAOV);
                             ctx.cmd.SetRayTracingTextureParam(data.shader, HDShaderIDs._MotionVectorAOV, data.motionVectorAOV);
                         }
+                        if (data.enableVolumetricScattering)
+                        {
+                            ctx.cmd.SetRayTracingTextureParam(data.shader, HDShaderIDs._VolumetricScatteringAOV, data.volumetricScatteringAOV);
+                        }
 
                         // Run the computation
-                        ctx.cmd.DispatchRays(data.shader, data.enableAOVs ? "RayGenAOV" : "RayGen", (uint)data.width, (uint)data.height, 1);
+                        var shaderName = data.enableAOVs ?
+                                         (data.enableVolumetricScattering ? "RayGenVolScatteringAOV" : "RayGenAOV") :
+                                         (data.enableVolumetricScattering ? "RayGenVolScattering" : "RayGen");
+                        ctx.cmd.DispatchRays(data.shader, shaderName, (uint)data.width, (uint)data.height, 1);
                     });
             }
         }
@@ -756,9 +776,11 @@ namespace UnityEngine.Rendering.HighDefinition
             var motionVector = TextureHandle.nullHandle;
             var albedo = TextureHandle.nullHandle;
             var normal = TextureHandle.nullHandle;
+            var volumetricScattering = TextureHandle.nullHandle;
 
 #if UNITY_64 && ENABLE_UNITY_DENOISING_PLUGIN && (UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN)
             bool needsAOVs = m_PathTracingSettings.denoising.value != HDDenoiserType.None && (m_PathTracingSettings.useAOVs.value || m_PathTracingSettings.temporal.value);
+            bool needsVolumetricFogAOV = m_PathTracingSettings.denoising.value != HDDenoiserType.None && m_PathTracingSettings.separateVolumetrics.value;
 
             if (needsAOVs)
             {
@@ -779,16 +801,32 @@ namespace UnityEngine.Rendering.HighDefinition
                 normal = renderGraph.CreateTexture(aovDesc);
             }
 
+            if (needsVolumetricFogAOV)
+            {
+                TextureDesc aovDesc = new TextureDesc(hdCamera.actualWidth, hdCamera.actualHeight, true, true)
+                {
+                    colorFormat = GraphicsFormat.R32G32B32A32_SFloat,
+                    bindTextureMS = false,
+                    msaaSamples = MSAASamples.None,
+                    clearBuffer = true,
+                    clearColor = Color.black,
+                    enableRandomWrite = true,
+                    useMipMap = false,
+                    autoGenerateMips = false,
+                    name = "Path traced volumetrics AOV buffer"
+                };
+                volumetricScattering = renderGraph.CreateTexture(aovDesc);
+            }
             pathTracedAOVs.Clear();
 #endif
 
             int camID = hdCamera.camera.GetInstanceID();
             CameraData camData = m_SubFrameManager.GetCameraData(camID);
 
-            // Set up the subframe manager for correct accumulation in case of multiframe accumulation  
+            // Set up the subframe manager for correct accumulation in case of multiframe accumulation
             // Check if the camera has a valid history buffer and if not reset the accumulation.
             // This can happen if a script disables and re-enables the camera (case 1337843).
-            if (!hdCamera.isPersistent && hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.PathTracing) == null)
+            if (!hdCamera.isPersistent && hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.PathTracingOutput) == null)
                 m_SubFrameManager.Reset(camID);
 
             if (!m_SubFrameManager.isRecording)
@@ -827,20 +865,25 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
 
-                RenderPathTracingFrame(m_RenderGraph, hdCamera, camData, m_FrameTexture, albedo, normal, motionVector);
+                RenderPathTracingFrame(m_RenderGraph, hdCamera, camData, m_FrameTexture, albedo, normal, motionVector, volumetricScattering);
 
 #if UNITY_64 && ENABLE_UNITY_DENOISING_PLUGIN && (UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN)
                 bool denoise = m_PathTracingSettings.denoising.value != HDDenoiserType.None;
                 // Note: for now we enable AOVs when temporal is also enabled, because this seems to work better with Optix.
                 if (denoise && (m_PathTracingSettings.useAOVs.value || m_PathTracingSettings.temporal.value))
                 {
-                    pathTracedAOVs.Add(new Tuple<TextureHandle, HDCameraFrameHistoryType>(albedo, HDCameraFrameHistoryType.AlbedoAOV));
-                    pathTracedAOVs.Add(new Tuple<TextureHandle, HDCameraFrameHistoryType>(normal, HDCameraFrameHistoryType.NormalAOV));
+                    pathTracedAOVs.Add(new Tuple<TextureHandle, HDCameraFrameHistoryType>(albedo, HDCameraFrameHistoryType.PathTracingAlbedo));
+                    pathTracedAOVs.Add(new Tuple<TextureHandle, HDCameraFrameHistoryType>(normal, HDCameraFrameHistoryType.PathTracingNormal));
                 }
 
                 if (denoise && m_PathTracingSettings.temporal.value)
                 {
-                    pathTracedAOVs.Add(new Tuple<TextureHandle, HDCameraFrameHistoryType>(motionVector, HDCameraFrameHistoryType.MotionVectorAOV));
+                    pathTracedAOVs.Add(new Tuple<TextureHandle, HDCameraFrameHistoryType>(motionVector, HDCameraFrameHistoryType.PathTracingMotionVector));
+                }
+
+                if (denoise && m_PathTracingSettings.separateVolumetrics.value)
+                {
+                    pathTracedAOVs.Add(new Tuple<TextureHandle, HDCameraFrameHistoryType>(volumetricScattering, HDCameraFrameHistoryType.PathTracingVolumetricFog));
                 }
 #endif
             }

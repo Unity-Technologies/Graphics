@@ -67,7 +67,6 @@ bool SampleVolumeScatteringPosition(uint2 pixelCoord, inout float inputSample, i
     {
         inputSample = RescaleSampleOver(inputSample, transmittanceThreshold);
         pdf *= 1.0 - transmittanceThreshold;
-
         return false;
     }
 
@@ -110,6 +109,8 @@ void ComputeVolumeScattering(inout PathPayload payload : SV_RayPayload, float3 i
 
     if (minDepthAllowsDirect && !haveReachedMaxDepth)
     {
+        float scatteringHeight = dot(scatteringPosition, _PlanetUp);
+
         // Light sampling
         if (SampleLights(lightList, inputSample, scatteringPosition, 0.0, true, sampleRayDirection, value, pdf, sampleRayDistance, shadowOpacity))
         {
@@ -127,7 +128,7 @@ void ComputeVolumeScattering(inout PathPayload payload : SV_RayPayload, float3 i
         if (SampleHenyeyGreenstein(incomingDirection, _GlobalFogAnisotropy, inputSample, sampleRayDirection, pdf))
         {
             // Applying phase function and dividing by PDF cancels out
-            value = _HeightFogBaseScattering.xyz * ComputeHeightFogMultiplier(scatteringPosition.y);
+            value = _HeightFogBaseScattering.xyz * ComputeHeightFogMultiplier(scatteringHeight);
 
             if (Luminance(value) > 0.001)
             {
@@ -137,9 +138,6 @@ void ComputeVolumeScattering(inout PathPayload payload : SV_RayPayload, float3 i
             }
         }
     }
-
-    // Override AOV motion vector information
-    payload.aovMotionVector = 0.0;
 }
 
 #endif // UNITY_PATH_TRACING_VOLUME_INCLUDED

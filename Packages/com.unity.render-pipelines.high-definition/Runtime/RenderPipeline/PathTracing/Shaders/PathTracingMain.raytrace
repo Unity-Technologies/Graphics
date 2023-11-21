@@ -41,6 +41,7 @@ RW_TEXTURE2D_X(float4, _FrameTexture);
 RW_TEXTURE2D_X(float4, _AlbedoAOV);
 RW_TEXTURE2D_X(float4, _NormalAOV);
 RW_TEXTURE2D_X(float4, _MotionVectorAOV);
+RW_TEXTURE2D_X(float4, _VolumetricScatteringAOV);
 
 [shader("miss")]
 void CameraMiss(inout PathPayload payload : SV_RayPayload)
@@ -81,7 +82,7 @@ void CameraMiss(inout PathPayload payload : SV_RayPayload)
 
             // Apply volumetric attenuation (beware of passing the right distance to the shading point)
             ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), payload.rayTHit, payload.value, payload.lightSampleShadowColor, payload.alpha, payload.lightSampleShadowOpacityAndShadowTint.y, payload.throughput, payload.lightSampleValue, false);
-            
+
             // Apply the volume PDF, including to throughput as we might continue the path after sampling a volume event.
             payload.value /= volPdf;
             payload.alpha /= volPdf;
@@ -124,7 +125,7 @@ void ApplyDepthOfField(uint2 pixelCoord, float dotDirection, inout float3 origin
     direction = normalize(focusPoint - origin);
 }
 
-void GenerateCameraRay(uint2 pixelCoord, out PathPayload payload, out RayDesc ray, bool withAOV = false)
+void GenerateCameraRay(uint2 pixelCoord, out PathPayload payload, out RayDesc ray, bool withAOV = false, bool withVolumetricScatteringAOV = false)
 {
     // Get the current tile coordinates (for interleaved tiling) and update pixel coordinates accordingly
     uint2 tileCount = uint2(_PathTracingTilingParameters.xy);
@@ -142,14 +143,18 @@ void GenerateCameraRay(uint2 pixelCoord, out PathPayload payload, out RayDesc ra
     payload.pixelCoord = tiledPixelCoord;
     payload.segmentID = 0;
     ClearPathTracingFlags(payload);
-    payload.materialSamplePdf = -1.f;  // negative pdf value means we didn't sample, so don't apply MIS 
+    payload.materialSamplePdf = -1.f;  // negative pdf value means we didn't sample, so don't apply MIS
+    ClearOutputFlags(payload);
+    if (withAOV)
+        SetOutputFlag(payload, OUTPUT_FLAG_AOV);
+    if (withVolumetricScatteringAOV)
+        SetOutputFlag(payload, OUTPUT_FLAG_SEPARATE_VOLUMETRICS);
 
     // In order to achieve texture filtering, we need to compute the spread angle of the subpixel
     payload.cone.spreadAngle = _RaytracingPixelSpreadAngle / min(tileCount.x, tileCount.y);
     payload.cone.width = 0.0;
 
-    // The motion vector AOV value will also serve as a on/off indicator for AOV computations
-    payload.aovMotionVector = withAOV ? jitteredPixelCoord.xy : 0.0;
+    payload.aovMotionVector = jitteredPixelCoord.xy;
     payload.aovAlbedo = 0.0;
     payload.aovNormal = 0.0;
 
@@ -205,7 +210,7 @@ float3 ComputeLightSampleTransmission(in PathPayload basePayload)
     PathPayload shadowPayload;
     shadowPayload.segmentID = IsPathTracingFlagOn(basePayload, PATHTRACING_FLAG_DUAL_SCATTERING_VIS) ? SEGMENT_ID_DUAL_SCATTERING_VIS : SEGMENT_ID_TRANSMISSION;
     shadowPayload.value = 1.0;
-    
+
     TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_FORCE_NON_OPAQUE | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER,
              RAYTRACINGRENDERERFLAG_CAST_SHADOW, 0, 1, 1, ray, shadowPayload);
 
@@ -230,15 +235,15 @@ float3 HandleUnlitModel(inout PathPayload basePayload, bool computeDirect)
 
     float builtinOpacity = basePayload.alpha;
 
-    // Compute the new opacity value using the shadow visibility 
+    // Compute the new opacity value using the shadow visibility
     if(IsPathTracingFlagOn(basePayload, PATHTRACING_FLAG_INTERPOLATE_OPACITY))
         builtinOpacity = lerp(basePayload.lightSampleShadowOpacityAndShadowTint.y, builtinOpacity, transmission);
 
-	// cancel material sample if opacity is 1 after recomputing it 
+	// cancel material sample if opacity is 1 after recomputing it
     if(!(builtinOpacity <  1.0))
     {
         ClearPathTracingFlag(basePayload, PATHTRACING_FLAG_MATERIAL_SAMPLE);
-        // Set alpha back to 1.0 
+        // Set alpha back to 1.0
         basePayload.alpha = 1.0;
     }
     // otherwise, update throughput and alpha with (potentially) new opacity.
@@ -246,7 +251,7 @@ float3 HandleUnlitModel(inout PathPayload basePayload, bool computeDirect)
     {
         basePayload.throughput *= 1.0 - builtinOpacity;
         basePayload.alpha = builtinOpacity;
-    
+
         if(computeDirect)
         {
             basePayload.value *= builtinOpacity;
@@ -264,7 +269,7 @@ float3 GetLightingAlongVolumetricSegment(PathPayload basePayload)
     if(!IsPathTracingFlagOn(basePayload, PATHTRACING_FLAG_MATERIAL_SAMPLE))
         return 0.0;
 
-    // segmentID + 1 because this function traces the next segment from basePayload 
+    // segmentID + 1 because this function traces the next segment from basePayload
     if(basePayload.segmentID + 1 < _RaytracingMinRecursion - 1)
         return 0.0;
 
@@ -297,7 +302,7 @@ float3 GetLightingAlongVolumetricSegment(PathPayload basePayload)
 float3 GetLightingAlongSegment( uint segmentID, float3 scatteringPosition, float3 rayOrigin, float3 rayDirection, float rayHitDistance,
                                 float materialSamplePdf, float4 lightListParams)
 {
-    // only evaluate lights and sky if min depth allows it 
+    // only evaluate lights and sky if min depth allows it
     if(segmentID < _RaytracingMinRecursion - 1)
         return 0.0;
 
@@ -332,7 +337,7 @@ float3 CombineContributions(float3 payloadValue, float3 lightValue, uint segment
 {
     // Add any lighting contributions that were calculated for the segment, while clamping fireflies.
 
-    // don't clamp contributions from 1 or 2 segments 
+    // don't clamp contributions from 1 or 2 segments
     if(segmentID == 0)
         return (lightValue + payloadValue);
 
@@ -343,16 +348,18 @@ float3 CombineContributions(float3 payloadValue, float3 lightValue, uint segment
     return ClampValue(payloadValue + lightValue);
 }
 
-void TracePath(uint2 pixelCoord, bool withAOV = false)
+void TracePath(uint2 pixelCoord, bool withAOV = false, bool withVolumetricScatteringAOV = false)
 {
     // Generate the initial camera ray
     PathPayload payload;
     RayDesc ray;
-    GenerateCameraRay(pixelCoord, payload, ray, withAOV);
+    GenerateCameraRay(pixelCoord, payload, ray, withAOV, withVolumetricScatteringAOV);
 
     // These are the quantities we want to compute for the path
     float3 throughputThroughCurrentSegment = 1.0;
+    float3 contribution;
     float3 pathContribution = 0;
+    float3 pathVolumetricContribution = 0;
     float pathAlpha = 0;
     bool continuePath = true;
     // These are the quantities we need to store for computing light evaluation along the next segment
@@ -363,17 +370,17 @@ void TracePath(uint2 pixelCoord, bool withAOV = false)
 
     for (uint segmentID = 0; segmentID < _RaytracingMaxRecursion && continuePath; segmentID++)
     {
-        // the hit shaders will update the throughput based on the next segment, so we take its current value to correctly compute NEE. 
+        // the hit shaders will update the throughput based on the next segment, so we take its current value to correctly compute NEE.
         throughputThroughCurrentSegment = payload.throughput;
 
         // We send the current ray into the scene to discover the next interaction.
-        // The updated payload includes the brdf/bsdf-based sampling information to trace the next rays. 
+        // The updated payload includes the brdf/bsdf-based sampling information to trace the next rays.
         TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, segmentID == 0 ? 0 : 1, ray, payload);
 
         // The closest hit shader might have sampled a light source for direct lighting
-        // Important to note that this call will send another ray, so is in fact tracing part of the next segment's contribution. 
+        // Important to note that this call will send another ray, so is in fact tracing part of the next segment's contribution.
         float3 lightSampleValue;
-        if(IsPathTracingFlagOn(payload, PATHTRACING_FLAG_UNLIT_MODEL))
+        if (IsPathTracingFlagOn(payload, PATHTRACING_FLAG_UNLIT_MODEL))
             lightSampleValue = HandleUnlitModel(payload, segmentID >= _RaytracingMinRecursion-1);
         else
             lightSampleValue = ComputeLightSampleTransmission(payload) * payload.lightSampleValue;
@@ -382,14 +389,18 @@ void TracePath(uint2 pixelCoord, bool withAOV = false)
 
         // Evaluate lights along the segment that we just traced (except on the camera ray)
         float3 lightValue = 0.0;
-        if(segmentID > 0 && evalLightsAlongSegment)
+        if (segmentID > 0 && evalLightsAlongSegment)
             lightValue = GetLightingAlongSegment(segmentID, scatteringPosition, ray.Origin, ray.Direction, payload.rayTHit, materialSamplePdf, lightListParams);
 
-        // Add contribution computed from this segment 
-        pathContribution += throughputThroughCurrentSegment * CombineContributions(payload.value, lightValue, segmentID);
+        // Add contribution computed from this segment
+        contribution = throughputThroughCurrentSegment * CombineContributions(payload.value, lightValue, segmentID);
+        if (withVolumetricScatteringAOV && IsPathTracingFlagOn(payload, PATHTRACING_FLAG_VOLUME_INTERACTION))
+            pathVolumetricContribution += contribution;
+        else
+            pathContribution += contribution;
         pathAlpha += (1.0 - pathAlpha) * payload.alpha;
 
-        // Check if we will continue tracing 
+        // Check if we will continue tracing
         continuePath = IsPathTracingFlagOn(payload, PATHTRACING_FLAG_MATERIAL_SAMPLE);
         // Don't evaluate lights along the next segment if we've just hit Unlit
         evalLightsAlongSegment = !IsPathTracingFlagOn(payload, PATHTRACING_FLAG_UNLIT_MODEL);
@@ -399,13 +410,17 @@ void TracePath(uint2 pixelCoord, bool withAOV = false)
         materialSamplePdf = payload.materialSamplePdf;
 
         // We don't do multiple scattering nor continuation rays after a volumetric interaction
-        if(IsPathTracingFlagOn(payload, PATHTRACING_FLAG_VOLUME_INTERACTION))
+        if (IsPathTracingFlagOn(payload, PATHTRACING_FLAG_VOLUME_INTERACTION))
         {
-            pathContribution += GetLightingAlongVolumetricSegment(payload);
+            contribution = GetLightingAlongVolumetricSegment(payload);
+            if (withVolumetricScatteringAOV)
+                pathVolumetricContribution += contribution;
+            else
+                pathContribution += contribution;
             break;
         }
 
-        // Set the ray for tracing the next segment 
+        // Set the ray for tracing the next segment
         ray.Origin = payload.materialSampleRayOrigin;
         ray.Direction = payload.materialSampleRayDirection;
         ray.TMin = 0.0;
@@ -413,7 +428,6 @@ void TracePath(uint2 pixelCoord, bool withAOV = false)
         // Prepare Payload for tracing the next segment
         SetPayloadForNextSegment(segmentID, payload);
     }
-
 
     _FrameTexture[COORD_TEXTURE2D_X(pixelCoord)] = float4(pathContribution, pathAlpha);
 
@@ -424,6 +438,11 @@ void TracePath(uint2 pixelCoord, bool withAOV = false)
         _NormalAOV[COORD_TEXTURE2D_X(pixelCoord)] = float4(payload.aovNormal, 1.0);
         _MotionVectorAOV[COORD_TEXTURE2D_X(pixelCoord)] = float4(payload.aovMotionVector, 0.0, 1.0);
     }
+
+    if (withVolumetricScatteringAOV)
+    {
+        _VolumetricScatteringAOV[COORD_TEXTURE2D_X(pixelCoord)] = float4(pathVolumetricContribution, 1.0);
+    }
 }
 
 [shader("raygeneration")]
@@ -433,7 +452,19 @@ void RayGen()
 }
 
 [shader("raygeneration")]
+void RayGenVolScattering()
+{
+    TracePath(DispatchRaysIndex().xy, false, true);
+}
+
+[shader("raygeneration")]
 void RayGenAOV()
 {
     TracePath(DispatchRaysIndex().xy, true);
+}
+
+[shader("raygeneration")]
+void RayGenVolScatteringAOV()
+{
+    TracePath(DispatchRaysIndex().xy, true, true);
 }

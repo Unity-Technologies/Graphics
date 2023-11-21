@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d7fd9488000d3734a9e00ee676215985, type: 3}
-  m_Name: Global Volume Profile_Denoised_Optix
+  m_Name: Volume Profile_Denoised_Volumetrics_AOV_Intel
   m_EditorClassIdentifier: 
   components:
-  - {fileID: 2962052274233826358}
---- !u!114 &2962052274233826358
+  - {fileID: 8637028523502836013}
+--- !u!114 &8637028523502836013
 MonoBehaviour:
   m_ObjectHideFlags: 3
   m_CorrespondingSourceObject: {fileID: 0}
@@ -49,11 +49,14 @@ MonoBehaviour:
     m_Value: 10
   denoising:
     m_OverrideState: 1
-    m_Value: 2
+    m_Value: 1
   useAOVs:
     m_OverrideState: 1
     m_Value: 1
   temporal:
+    m_OverrideState: 0
+    m_Value: 0
+  separateVolumetrics:
     m_OverrideState: 1
     m_Value: 1
   asyncDenoising:
@@ -65,3 +68,9 @@ MonoBehaviour:
   tilingParameters:
     m_OverrideState: 0
     m_Value: {x: 1, y: 1, z: 0, w: 0}
+  seedMode:
+    m_OverrideState: 1
+    m_Value: 1
+  customSeed:
+    m_OverrideState: 0
+    m_Value: 0

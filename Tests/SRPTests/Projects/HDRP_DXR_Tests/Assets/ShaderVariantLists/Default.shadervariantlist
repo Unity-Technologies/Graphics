@@ -382,6 +382,7 @@ Compiled compute shader: Accumulation, kernel: KMain, keywords INPUT_FROM_FRAME_
 Compiled compute shader: AlphaCopy, kernel: KMain, keywords <no keywords>
 Compiled compute shader: AmbientProbeConvolution, kernel: AmbientProbeConvolutionDiffuseVolumetric, keywords <no keywords>
 Compiled compute shader: BilateralUpsample, kernel: BilateralUpSampleColor, keywords <no keywords>
+Compiled compute shader: BlitAndExpose, kernel: KAddMain, keywords <no keywords>
 Compiled compute shader: BlitAndExpose, kernel: KMain, keywords <no keywords>
 Compiled compute shader: BloomBlur, kernel: KDownsample, keywords <no keywords>
 Compiled compute shader: BloomBlur, kernel: KMain, keywords <no keywords>
@@ -481,6 +482,7 @@ Compiled compute shader: DiffuseShadowDenoiser, kernel: BilateralFilterVSingleSp
 Compiled compute shader: DiffuseShadowDenoiser, kernel: BilateralFilterVSingleSpot, keywords DISTANCE_BASED_DENOISER
 Compiled compute shader: EVSMBlur, kernel: ConvertAndBlur, keywords <no keywords>
 Compiled compute shader: Exposure, kernel: KFixedExposure, keywords <no keywords>
+Compiled compute shader: GPUCopy, kernel: KSampleCopy4_1_x_1, keywords <no keywords>
 Compiled compute shader: GPUCopy, kernel: KSampleCopy4_1_x_8, keywords <no keywords>
 Compiled compute shader: GroundIrradiancePrecomputation, kernel: main, keywords <no keywords>
 Compiled compute shader: GTAO, kernel: GTAOMain, keywords HALF_RES TEMPORAL
