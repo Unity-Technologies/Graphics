@@ -1,0 +1,62 @@
+.header-foldout
+{
+	border-width: 1px 0px 1px 0px;
+	border-color: var(--unity-colors-inspector_titlebar-border);
+
+	/* ensure border take all width */
+	margin: 0px -6px 0px -31px;
+	padding: 0px 0px 0px 0;
+}
+
+.header-foldout > Toggle
+{
+	/* ensure background take all width */
+	margin: 0px 0px 0px 0px;
+	padding: 0px 6px 0px 31px;
+}
+
+.header-foldout > Toggle Label
+{
+	-unity-font-style: bold;
+	font-size: 13px;
+	flex-grow: 1;
+}
+
+.header-foldout > Toggle Button
+{
+	background-color: transparent;
+	border-width: 0px;
+	margin: 1px 2px 1px 0px;
+	padding: 0px 0px 0px 0px;
+	border-radius: 0px;
+}
+
+.header-foldout > Toggle Button:hover
+{
+	background-color: var(--unity-colors-button-background-hover);
+}
+
+.header-foldout > Toggle Button:disabled
+{
+	display: none;
+}
+
+.header-foldout > Toggle Image
+{
+	min-width: 16px;
+}
+
+.header-foldout > #unity-content
+{
+	margin: 0px 5px 0px 47px;
+}
+
+.header-foldout #enable-checkbox
+{
+	margin: 2px 6px 3px 1px;
+}
+
+.header-foldout #enable-checkbox #unity-checkmark
+{
+	background-size: 80% 80%;
+}
