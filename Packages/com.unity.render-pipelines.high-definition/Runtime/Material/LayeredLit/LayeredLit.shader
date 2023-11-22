@@ -284,7 +284,7 @@ Shader "HDRP/LayeredLit"
         _AlphaCutoffPrepass("_AlphaCutoffPrepass", Range(0.0, 1.0)) = 0.5
         _AlphaCutoffPostpass("_AlphaCutoffPostpass", Range(0.0, 1.0)) = 0.5
         _TransparentSortPriority("_TransparentSortPriority", Float) = 0
-        
+
         // Transparency
         [Enum(None, 0, Planar, 1, Sphere, 2, Thin, 3)]_RefractionModel("Refraction Model", Int) = 0
         _Ior("Index Of Refraction", Range(1.0, 2.5)) = 1.5
@@ -317,8 +317,8 @@ Shader "HDRP/LayeredLit"
         [HideInInspector][ToggleUI] _ZWrite ("__zw", Float) = 1.0
         [HideInInspector][ToggleUI] _TransparentZWrite("_TransparentZWrite", Float) = 0.0
         [HideInInspector] _CullMode("__cullmode", Float) = 2.0
-        [Enum(UnityEditor.Rendering.HighDefinition.TransparentCullMode)] _TransparentCullMode("_TransparentCullMode", Int) = 2 // Back culling by default
-        [Enum(UnityEditor.Rendering.HighDefinition.OpaqueCullMode)] _OpaqueCullMode("_OpaqueCullMode", Int) = 2 // Back culling by default
+        [Enum(UnityEngine.Rendering.HighDefinition.TransparentCullMode)] _TransparentCullMode("_TransparentCullMode", Int) = 2 // Back culling by default
+        [Enum(UnityEngine.Rendering.HighDefinition.OpaqueCullMode)] _OpaqueCullMode("_OpaqueCullMode", Int) = 2 // Back culling by default
         [HideInInspector] _ZTestDepthEqualForOpaque("_ZTestDepthEqualForOpaque", Int) = 4 // Less equal
         [HideInInspector] _ZTestGBuffer("_ZTestGBuffer", Int) = 4
         [Enum(UnityEngine.Rendering.CompareFunction)] _ZTestTransparent("Transparent ZTest", Int) = 4 // Less equal

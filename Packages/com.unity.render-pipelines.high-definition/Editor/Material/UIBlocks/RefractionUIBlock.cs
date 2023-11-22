@@ -135,7 +135,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 if (refractionModel.floatValue != 0 && blendMode != null)
                 {
-                    if (blendMode.floatValue != (int)BlendMode.Alpha)
+                    if (blendMode.floatValue != (int)BlendingMode.Alpha)
                         EditorGUILayout.HelpBox(Styles.refractionBlendModeWarning, MessageType.Warning);
 
                     // Check for multi-selection render queue different values

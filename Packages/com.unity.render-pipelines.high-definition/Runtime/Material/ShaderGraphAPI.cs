@@ -38,7 +38,7 @@ namespace UnityEngine.Rendering.HighDefinition
             bool useSplitLighting = false;
             if (material.HasProperty(kMaterialID))
             {
-                var materialId = material.GetMaterialId();
+                var materialId = material.GetMaterialType();
 
                 // Check that the value of material type is in range with the allowed values from the shader:
                 int materialTypeMaskIndex = material.shader.FindPropertyIndex(kMaterialTypeMask);

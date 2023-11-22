@@ -71,7 +71,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (isTransparent)
             {
-                material.SetFloat("_BlendMode", (float)BlendMode.Alpha);
+                material.SetFloat("_BlendMode", (float)BlendingMode.Alpha);
                 material.SetFloat("_EnableBlendModePreserveSpecularLighting", 1.0f);
                 material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
                 material.SetFloat("_SurfaceType", (float)SurfaceType.Transparent);

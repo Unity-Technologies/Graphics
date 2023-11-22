@@ -9,8 +9,6 @@ using UnityEditor.VFX;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
-using BlendMode = UnityEditor.Rendering.HighDefinition.BlendMode;
-
 using static UnityEngine.Rendering.HighDefinition.HDMaterial;
 
 namespace UnityEditor.VFX.HDRP
@@ -79,13 +77,13 @@ namespace UnityEditor.VFX.HDRP
             {
                 switch (blendModeFloat)
                 {
-                    case (int)BlendMode.Alpha:
+                    case (int)BlendingMode.Alpha:
                         blendMode = VFXAbstractRenderedOutput.BlendMode.Alpha;
                         break;
-                    case (int)BlendMode.Additive:
+                    case (int)BlendingMode.Additive:
                         blendMode = VFXAbstractRenderedOutput.BlendMode.Additive;
                         break;
-                    case (int)BlendMode.Premultiply:
+                    case (int)BlendingMode.Premultiply:
                         blendMode = VFXAbstractRenderedOutput.BlendMode.AlphaPremultiplied;
                         break;
                 }

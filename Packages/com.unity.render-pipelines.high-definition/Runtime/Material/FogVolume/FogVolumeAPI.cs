@@ -17,8 +17,8 @@ namespace UnityEngine.Rendering.HighDefinition
         internal static readonly string k_SingleScatteringAlbedoProperty = "_FogVolumeSingleScatteringAlbedo";
         internal static readonly string k_FogDistanceProperty = "_FogVolumeFogDistanceProperty";
 
-        internal static void ComputeBlendParameters(LocalVolumetricFogBlendingMode mode, out BlendMode srcColorBlend,
-            out BlendMode srcAlphaBlend, out BlendMode dstColorBlend, out BlendMode dstAlphaBlend,
+        internal static void ComputeBlendParameters(LocalVolumetricFogBlendingMode mode, out Rendering.BlendMode srcColorBlend,
+            out Rendering.BlendMode srcAlphaBlend, out Rendering.BlendMode dstColorBlend, out Rendering.BlendMode dstAlphaBlend,
             out BlendOp colorBlendOp, out BlendOp alphaBlendOp)
         {
             colorBlendOp = BlendOp.Add;
@@ -28,36 +28,36 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 default:
                 case LocalVolumetricFogBlendingMode.Additive:
-                    srcColorBlend = BlendMode.One;
-                    dstColorBlend = BlendMode.One;
-                    srcAlphaBlend = BlendMode.One;
-                    dstAlphaBlend = BlendMode.One;
+                    srcColorBlend = Rendering.BlendMode.One;
+                    dstColorBlend = Rendering.BlendMode.One;
+                    srcAlphaBlend = Rendering.BlendMode.One;
+                    dstAlphaBlend = Rendering.BlendMode.One;
                     break;
                 case LocalVolumetricFogBlendingMode.Multiply:
-                    srcColorBlend = BlendMode.DstColor;
-                    dstColorBlend = BlendMode.Zero;
-                    srcAlphaBlend = BlendMode.DstAlpha;
-                    dstAlphaBlend = BlendMode.Zero;
+                    srcColorBlend = Rendering.BlendMode.DstColor;
+                    dstColorBlend = Rendering.BlendMode.Zero;
+                    srcAlphaBlend = Rendering.BlendMode.DstAlpha;
+                    dstAlphaBlend = Rendering.BlendMode.Zero;
                     break;
                 case LocalVolumetricFogBlendingMode.Overwrite:
-                    srcColorBlend = BlendMode.One;
-                    dstColorBlend = BlendMode.Zero;
-                    srcAlphaBlend = BlendMode.One;
-                    dstAlphaBlend = BlendMode.Zero;
+                    srcColorBlend = Rendering.BlendMode.One;
+                    dstColorBlend = Rendering.BlendMode.Zero;
+                    srcAlphaBlend = Rendering.BlendMode.One;
+                    dstAlphaBlend = Rendering.BlendMode.Zero;
                     break;
                 case LocalVolumetricFogBlendingMode.Max:
-                    srcColorBlend = BlendMode.One;
-                    dstColorBlend = BlendMode.One;
-                    srcAlphaBlend = BlendMode.One;
-                    dstAlphaBlend = BlendMode.One;
+                    srcColorBlend = Rendering.BlendMode.One;
+                    dstColorBlend = Rendering.BlendMode.One;
+                    srcAlphaBlend = Rendering.BlendMode.One;
+                    dstAlphaBlend = Rendering.BlendMode.One;
                     alphaBlendOp = BlendOp.Max;
                     colorBlendOp = BlendOp.Max;
                     break;
                 case LocalVolumetricFogBlendingMode.Min:
-                    srcColorBlend = BlendMode.One;
-                    dstColorBlend = BlendMode.One;
-                    srcAlphaBlend = BlendMode.One;
-                    dstAlphaBlend = BlendMode.One;
+                    srcColorBlend = Rendering.BlendMode.One;
+                    dstColorBlend = Rendering.BlendMode.One;
+                    srcAlphaBlend = Rendering.BlendMode.One;
+                    dstAlphaBlend = Rendering.BlendMode.One;
                     alphaBlendOp = BlendOp.Min;
                     colorBlendOp = BlendOp.Min;
                     break;

@@ -393,7 +393,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             HDSubShaderUtilities.AddBlendingStatesShaderProperties(
                 collector,
                 systemData.surfaceType,
-                systemData.blendMode,
+                systemData.blendingMode,
                 systemData.sortPriority,
                 systemData.transparentZWrite,
                 systemData.transparentCullMode,
@@ -418,7 +418,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             material.SetFloat(kDoubleSidedNormalMode, (int)systemData.doubleSidedMode);
             material.SetFloat(kDoubleSidedEnable, systemData.doubleSidedMode != DoubleSidedMode.Disabled ? 1 : 0);
             material.SetFloat(kAlphaCutoffEnabled, systemData.alphaTest ? 1 : 0);
-            material.SetFloat(kBlendMode, (int)systemData.blendMode);
+            material.SetFloat(kBlendMode, (int)systemData.blendingMode);
             material.SetFloat(kEnableFogOnTransparent, builtinData.transparencyFog ? 1.0f : 0.0f);
             material.SetFloat(kZTestTransparent, (int)systemData.zTest);
             material.SetFloat(kTransparentCullMode, (int)systemData.transparentCullMode);
