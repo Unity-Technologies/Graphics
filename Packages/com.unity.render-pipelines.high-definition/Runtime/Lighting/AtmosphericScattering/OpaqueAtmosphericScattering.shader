@@ -55,7 +55,7 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
             return output;
         }
 
-        void AtmosphericScatteringCompute(Varyings input, float3 V, float depth, out float3 color, out float3 opacity)
+        void AtmosphericScatteringCompute(Varyings input, float3 V, float depth, bool atmosphericScattering, out float3 color, out float3 opacity)
         {
             PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
 
@@ -74,6 +74,11 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
                 // Warning: we do not modify depth values. Use them with care!
             }
 
+            // Warning: this is a hack to strip the atmospheric scattering code for some variants
+            // and we can't have different #define for each pass (we need multicompile but it generates variants)
+            if (!atmosphericScattering)
+                posInput.deviceDepth = UNITY_RAW_FAR_CLIP_VALUE;
+
             EvaluateAtmosphericScattering(posInput, V, color, opacity); // Premultiplied alpha
 
             #ifdef SUPPORT_WATER_ABSORPTION
@@ -89,7 +94,7 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
             float  depth       = LoadCameraDepth(positionSS);
 
             float3 volColor, volOpacity;
-            AtmosphericScatteringCompute(input, V, depth, volColor, volOpacity);
+            AtmosphericScatteringCompute(input, V, depth, false, volColor, volOpacity);
 
             return float4(volColor, 1.0 - volOpacity.x);
         }
@@ -102,7 +107,7 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
             float  depth       = LOAD_TEXTURE2D_X_MSAA(_DepthTextureMS, (int2)positionSS, sampleIndex).x;
 
             float3 volColor, volOpacity;
-            AtmosphericScatteringCompute(input, V, depth, volColor, volOpacity);
+            AtmosphericScatteringCompute(input, V, depth, false, volColor, volOpacity);
 
             return float4(volColor, 1.0 - volOpacity.x);
         }
@@ -116,7 +121,7 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
             float4 surfColor = LOAD_TEXTURE2D_X(_ColorTexture, (int2)positionSS);
 
             float3 volColor, volOpacity;
-            AtmosphericScatteringCompute(input, V, depth, volColor, volOpacity);
+            AtmosphericScatteringCompute(input, V, depth, true, volColor, volOpacity);
 
             return float4(volColor + (1 - volOpacity) * surfColor.rgb, surfColor.a); // Premultiplied alpha (over operator), preserve alpha for the alpha channel for compositing
         }
@@ -130,7 +135,7 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
             float4 surfColor = LOAD_TEXTURE2D_X_MSAA(_ColorTextureMS, (int2)positionSS, sampleIndex);
 
             float3 volColor, volOpacity;
-            AtmosphericScatteringCompute(input, V, depth, volColor, volOpacity);
+            AtmosphericScatteringCompute(input, V, depth, true, volColor, volOpacity);
 
             return float4(volColor + (1 - volOpacity) * surfColor.rgb, surfColor.a); // Premultiplied alpha (over operator), preserve alpha for the alpha channel for compositing
         }
@@ -139,6 +144,7 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
     SubShader
     {
         Tags{ "RenderPipeline" = "HDRenderPipeline" }
+
         // 0: NOMSAA
         Pass
         {
@@ -149,7 +155,6 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
             ZTest Less  // Required for XR occlusion mesh optimization
 
             HLSLPROGRAM
-                #define ATMOSPHERE_NO_AERIAL_PERSPECTIVE
                 #pragma vertex Vert
                 #pragma fragment Frag
             ENDHLSL
@@ -165,7 +170,6 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
             ZTest Less  // Required for XR occlusion mesh optimization
 
             HLSLPROGRAM
-                #define ATMOSPHERE_NO_AERIAL_PERSPECTIVE
                 #pragma vertex Vert
                 #pragma fragment FragMSAA
             ENDHLSL

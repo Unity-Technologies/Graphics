@@ -41,6 +41,13 @@ namespace UnityEditor.Rendering.HighDefinition
                     return true;
             }
 
+            // Volumetric clouds
+            if (!settings.supportVolumetricClouds)
+            {
+                if (shader == m_ShaderResources.volumetricCloudsCombinePS)
+                    return true;
+            }
+
             // If Screen Space Lens Flare is disabled, strip all the shaders
             if (!settings.supportScreenSpaceLensFlare)
             {
