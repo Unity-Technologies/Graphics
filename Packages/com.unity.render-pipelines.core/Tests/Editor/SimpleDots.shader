@@ -20,7 +20,6 @@ Shader "Unlit/SimpleDots"
             #pragma multi_compile _ DOTS_INSTANCING_ON
 
             float4x4 unity_MatrixVP;
-            float4x4 unity_ObjectToWorld;
             #define UNITY_MATRIX_VP unity_MatrixVP
             #define UNITY_MATRIX_M unity_ObjectToWorld
 
@@ -57,6 +56,13 @@ Shader "Unlit/SimpleDots"
                 UNITY_DOTS_INSTANCING_END(BuiltinPropertyMetadata)
 
                 #define _col UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _col)
+            #else
+                CBUFFER_START(UnityPerDraw)
+                    float4x4 unity_ObjectToWorld;
+                    float4x4 unity_WorldToObject;
+                    float4 unity_LODFade;
+                    float4 unity_WorldTransformParams;
+                CBUFFER_END
             #endif
 
             v2f vert (appdata v)
