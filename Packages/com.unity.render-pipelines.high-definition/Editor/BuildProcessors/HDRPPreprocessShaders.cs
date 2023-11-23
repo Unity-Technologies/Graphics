@@ -8,12 +8,12 @@ namespace UnityEditor.Rendering.HighDefinition
     class CommonShaderPreprocessor : BaseShaderPreprocessor
     {
         public override int Priority => 100;
-        private HDRenderPipelineRuntimeResources.ShaderResources m_ShaderResources;
+        private HDRenderPipelineRuntimeShaders m_ShaderResources;
         private HDRenderPipelineRuntimeMaterials m_MaterialResources;
 
         public CommonShaderPreprocessor()
         {
-            m_ShaderResources = HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders;
+            m_ShaderResources = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeShaders>();
             m_MaterialResources = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeMaterials>();
         }
 

@@ -297,6 +297,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             CoreUtils.Destroy(m_ExposureCurveTexture);
             CoreUtils.Destroy(m_InternalSpectralLut);
+
             CoreUtils.Destroy(m_FinalPassMaterial);
             CoreUtils.Destroy(m_ClearBlackMaterial);
             CoreUtils.Destroy(m_SMAAMaterial);
@@ -2069,7 +2070,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         data.smaaMaterial.SetTexture(HDShaderIDs._SMAASearchTex, data.smaaSearchTex);
                         data.smaaMaterial.SetInt(HDShaderIDs._StencilRef, (int)StencilUsage.SMAA);
                         data.smaaMaterial.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.SMAA);
-                        
                         int edgeDetectionPassIndex = data.smaaMaterial.FindPass("Edge detection");
                         int blendWeightsPassIndex = data.smaaMaterial.FindPass("Blend Weights Calculation");
                         int neighborhoodBlendingPassIndex = data.smaaMaterial.FindPass("Neighborhood Blending");

@@ -24,7 +24,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             AssignObjectIDs();
 
-            overrideMaterial = CoreUtils.CreateEngineMaterial(HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaderGraphs.objectIDPS);
+            var runtimeShaders = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeShaders>();
+            overrideMaterial = CoreUtils.CreateEngineMaterial(runtimeShaders.objectIDPS);
             overrideMaterialPassName = "ForwardOnly";
         }
 

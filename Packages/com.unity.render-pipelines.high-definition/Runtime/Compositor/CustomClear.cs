@@ -33,7 +33,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             if (!HDRenderPipeline.isReady)
                 return;
 
-            var runtimeShaders = HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders;
+            var runtimeShaders = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeShaders>();
 
             // Setup code here
             if (string.IsNullOrEmpty(name)) name = "CustomClear";

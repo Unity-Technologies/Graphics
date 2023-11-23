@@ -31,6 +31,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// </summary>
     public partial class HDRenderPipeline : RenderPipeline
     {
+
         #region Global Settings
         private HDRenderPipelineGlobalSettings m_GlobalSettings;
         /// <summary>
@@ -64,7 +65,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal HDRenderPipelineAsset asset => m_Asset;
 
         internal HDRenderPipelineRuntimeMaterials runtimeMaterials { get; private set; }
-        internal HDRenderPipelineRuntimeResources.ShaderResources runtimeShaders { get; private set; }
+        internal HDRenderPipelineRuntimeShaders runtimeShaders { get; private set; }
         internal HDRenderPipelineRuntimeAssets runtimeAssets { get; private set; }
         internal HDRenderPipelineRuntimeTextures runtimeTextures { get; private set; }
 
@@ -445,7 +446,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_GlobalSettings = HDRenderPipelineGlobalSettings.instance;
 
             runtimeMaterials = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeMaterials>();
-            runtimeShaders   = m_GlobalSettings.renderPipelineResources.shaders;
+            runtimeShaders   = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeShaders>();
             runtimeAssets    = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeAssets>();
             runtimeTextures  = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeTextures>();
 
@@ -474,7 +475,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!m_ResourcesInitialized)
                 return;
 
-            m_GlobalSettings.EnsureShadersCompiled();
+            runtimeShaders.EnsureShadersCompiled();
 #endif
 
             // The first thing we need to do is to set the defines that depend on the render pipeline settings
@@ -818,7 +819,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         bool CheckResourcesValidity()
         {
-            if (!(runtimeShaders.defaultPS?.isSupported ?? true))
+            if (!(runtimeShaders.defaultShader?.isSupported ?? true))
             {
                 HDUtils.DisplayMessageNotification("Unable to compile Default Material based on Lit.shader. Either there is a compile error in Lit.shader or the current platform / API isn't compatible.");
                 return false;
@@ -2065,7 +2066,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Potentially the asset might have been deleted by the user
             // Obtain the asset again at least one per frame to make sure we are pointing to a valid resources.
             runtimeMaterials = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeMaterials>();
-            runtimeShaders   = m_GlobalSettings.renderPipelineResources.shaders;
+            runtimeShaders   = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeShaders>();
             runtimeAssets    = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeAssets>();
             runtimeTextures  = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeTextures>();
 

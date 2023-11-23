@@ -217,29 +217,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool AreRuntimeResourcesCreated() => AreRuntimeResourcesCreated_Internal(this);
 
-        internal void EnsureShadersCompiled()
-        {
-            void CheckComputeShaderMessages(ComputeShader computeShader)
-            {
-                foreach (var message in UnityEditor.ShaderUtil.GetComputeShaderMessages(computeShader))
-                {
-                    if (message.severity == UnityEditor.Rendering.ShaderCompilerMessageSeverity.Error)
-                    {
-                        // Will be catched by the try in HDRenderPipelineAsset.CreatePipeline()
-                        throw new System.Exception(System.String.Format(
-                            "Compute Shader compilation error on platform {0} in file {1}:{2}: {3}{4}\n" +
-                            "HDRP will not run until the error is fixed.\n",
-                            message.platform, message.file, message.line, message.message, message.messageDetails
-                        ));
-                    }
-                }
-            }
-
-            // We iterate over all compute shader to verify if they are all compiled, if it's not the case then
-            // we throw an exception to avoid allocating resources and crashing later on by using a null compute kernel.
-            m_RenderPipelineResources.shaders.ForEachFieldOfType<ComputeShader>(CheckComputeShaderMessages, BindingFlags.Public | BindingFlags.Instance);
-        }
-
 #endif //UNITY_EDITOR
         #endregion // Runtime Resources
 

@@ -15,11 +15,11 @@ namespace UnityEditor.Rendering.HighDefinition
         protected ShaderKeyword m_ProbeVolumesL1 = new ShaderKeyword("PROBE_VOLUMES_L1");
         protected ShaderKeyword m_ProbeVolumesL2 = new ShaderKeyword("PROBE_VOLUMES_L2");
 
-        protected HDRenderPipelineRuntimeResources.ShaderResources m_Shaders;
+        protected HDRenderPipelineRuntimeShaders m_Shaders;
 
         public HDRPComputeShaderVariantStripper()
         {
-            m_Shaders = HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders;
+            m_Shaders = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeShaders>();
         }
 
         // Modify this function to add more stripping clauses

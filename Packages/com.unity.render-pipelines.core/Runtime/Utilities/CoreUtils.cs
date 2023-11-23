@@ -1067,6 +1067,9 @@ namespace UnityEngine.Rendering
         /// <returns>A new Material instance using the shader found at the provided path.</returns>
         public static Material CreateEngineMaterial(string shaderPath)
         {
+            if (string.IsNullOrEmpty(shaderPath))
+                throw new ArgumentException(nameof(shaderPath));
+
             Shader shader = Shader.Find(shaderPath);
             if (shader == null)
             {
@@ -1074,11 +1077,7 @@ namespace UnityEngine.Rendering
                 return null;
             }
 
-            var mat = new Material(shader)
-            {
-                hideFlags = HideFlags.HideAndDontSave
-            };
-            return mat;
+            return CreateEngineMaterial(shader);
         }
 
         /// <summary>
@@ -1095,11 +1094,11 @@ namespace UnityEngine.Rendering
                 return null;
             }
 
-            var mat = new Material(shader)
+
+            return new Material(shader)
             {
                 hideFlags = HideFlags.HideAndDontSave
             };
-            return mat;
         }
 
         /// <summary>

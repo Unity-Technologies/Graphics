@@ -231,7 +231,8 @@ namespace UnityEngine.Rendering.HighDefinition
             var lutAzimuthalScattering    = GetTemporaryHairMaterialRT(lookupDescriptor, "_HairAzimuthalScatteringUAV",    GraphicsFormat.R16G16B16A16_SFloat); // ~2mb
             var lutLongitudinalScattering = GetTemporaryHairMaterialRT(lookupDescriptor, "_HairLongitudinalScatteringUAV", GraphicsFormat.R16G16B16A16_SFloat); // ~2mb
 
-            var kernels = HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders.preIntegratedFiberScatteringCS;
+            var shaders = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeShaders>();
+            var kernels = shaders.preIntegratedFiberScatteringCS;
 
             void ComputeHairLookUpTable(string kernelName, RenderTexture resource)
             {

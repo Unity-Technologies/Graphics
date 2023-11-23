@@ -139,7 +139,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 return null;
             }
 
-            var shader = HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders.waterPS;
+            var shaders = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeShaders>();
+            var shader = shaders.waterPS;
             if (!AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(shader), path))
             {
                 Debug.LogWarning($"Failed to copy the Water Shader Graph to {path}");

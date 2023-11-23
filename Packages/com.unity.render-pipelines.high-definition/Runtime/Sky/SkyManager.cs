@@ -1650,7 +1650,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Happens sometime in the tests.
             if (m_StandardSkyboxMaterial == null && HDRenderPipelineGlobalSettings.instance != null)
-                m_StandardSkyboxMaterial = CoreUtils.CreateEngineMaterial(HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders.skyboxCubemapPS);
+            {
+                var shaders = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeShaders>();
+                m_StandardSkyboxMaterial = CoreUtils.CreateEngineMaterial(shaders.skyboxCubemapPS);
+            }
 
             if (m_StandardSkyboxMaterial == null)
                 Debug.LogError("Unable to create the default Skybox material. Baking cancelled.");

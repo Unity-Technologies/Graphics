@@ -323,7 +323,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public override void Build()
         {
-            var shaders = HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders;
+            var shaders = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeShaders>();
             var hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
 
             if (hdPipeline != null)
