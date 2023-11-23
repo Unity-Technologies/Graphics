@@ -160,6 +160,10 @@ namespace UnityEngine.Rendering.Universal
                 var samples = pass.overrideCameraTarget ? GetFirstAllocatedRTHandle(pass).rt.descriptor.msaaSamples :
                     (cameraData.targetTexture != null ? cameraData.targetTexture.descriptor.msaaSamples : cameraData.cameraTargetDescriptor.msaaSamples);
 
+                bool rendererSupportsMSAA = cameraData.renderer != null && cameraData.renderer.supportedRenderingFeatures.msaa;
+                if (!cameraData.camera.allowMSAA || !rendererSupportsMSAA)
+                    samples = 1;
+
                 // only override existing non destructive actions
                 for (int i = 0; i < m_FinalColorStoreAction.Length; ++i)
                 {
