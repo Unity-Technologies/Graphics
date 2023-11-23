@@ -8,8 +8,10 @@ namespace UnityEngine.Rendering.Universal
     internal class DrawRenderer2DPass : ScriptableRenderPass
     {
         static readonly string k_RenderPass = "Renderer2D Pass";
+        static readonly string k_SetLightGlobalPass = "SetLightGlobals Pass";
 
         private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler(k_RenderPass);
+        private static readonly ProfilingSampler m_SetLightGlobalProfilingSampler = new ProfilingSampler(k_SetLightGlobalPass);
         private static readonly ShaderTagId k_CombinedRenderingPassName = new ShaderTagId("Universal2D");
         private static readonly ShaderTagId k_LegacyPassName = new ShaderTagId("SRPDefaultUnlit");
 
@@ -38,8 +40,6 @@ namespace UnityEngine.Rendering.Universal
             RendererLighting.SetLightShaderGlobals(cmd, passData.lightBlendStyles, passData.blendStyleIndices);
 
 #if UNITY_EDITOR
-            cmd.SetGlobalTexture(k_DefaultWhiteTextureID, context.defaultResources.whiteTexture);
-
             if (passData.isLitView)
 #endif
             {
@@ -47,20 +47,12 @@ namespace UnityEngine.Rendering.Universal
                 {
                     for (var blendStyleIndex = 0; blendStyleIndex < blendStylesCount; blendStyleIndex++)
                     {
-                        cmd.SetGlobalTexture(RendererLighting.k_ShapeLightTextureIDs[blendStyleIndex], passData.lightTextures[blendStyleIndex]);
                         RendererLighting.EnableBlendStyle(cmd, blendStyleIndex, true);
                     }
                 }
-                else
+                else if (passData.isSceneLit)
                 {
-                    if (passData.isSceneLit)
-                    {
-                        for (var blendStyleIndex = 0; blendStyleIndex < blendStylesCount; blendStyleIndex++)
-                        {
-                            cmd.SetGlobalTexture(RendererLighting.k_ShapeLightTextureIDs[blendStyleIndex], context.defaultResources.blackTexture);
-                            RendererLighting.EnableBlendStyle(cmd, blendStyleIndex, blendStyleIndex == 0);
-                        }
-                    }
+                    RendererLighting.EnableBlendStyle(cmd, 0, true);
                 }
             }
 
@@ -68,6 +60,11 @@ namespace UnityEngine.Rendering.Universal
             cmd.DrawRendererList(passData.rendererList);
 
             RendererLighting.DisableAllKeywords(cmd);
+        }
+
+        class SetGlobalPassData
+        {
+            internal TextureHandle[] lightTextures;
         }
 
         class PassData
@@ -85,7 +82,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
-        public void Render(RenderGraph graph, ContextContainer frameData, Renderer2DData rendererData, ref LayerBatch layerBatch, int batchIndex, ref FilteringSettings filterSettings)
+        public void Render(RenderGraph graph, ContextContainer frameData, Renderer2DData rendererData, ref LayerBatch[] layerBatches, int batchIndex, ref FilteringSettings filterSettings)
         {
             UniversalRenderingData renderingData = frameData.Get<UniversalRenderingData>();
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
@@ -93,7 +90,32 @@ namespace UnityEngine.Rendering.Universal
             Universal2DResourceData universal2DResourceData = frameData.Get<Universal2DResourceData>();
             CommonResourceData commonResourceData = frameData.Get<CommonResourceData>();
 
+            var layerBatch = layerBatches[batchIndex];
 
+            // Preset global light textures for first batch
+            if (batchIndex == 0)
+            {
+                using (var builder = graph.AddRasterRenderPass<SetGlobalPassData>(k_SetLightGlobalPass, out var passData, m_SetLightGlobalProfilingSampler))
+                {
+                    if (layerBatch.lightStats.useAnyLights)
+                    {
+                        passData.lightTextures = universal2DResourceData.lightTextures[batchIndex];
+                        for (var i = 0; i < passData.lightTextures.Length; i++)
+                            builder.UseTexture(passData.lightTextures[i]);
+                    }
+
+                    SetGlobalLightTextures(graph, builder, passData.lightTextures, cameraData, ref layerBatch, rendererData);
+
+                    builder.AllowPassCulling(false);
+                    builder.AllowGlobalStateModification(true);
+
+                    builder.SetRenderFunc((SetGlobalPassData data, RasterGraphContext context) =>
+                    {
+                    });
+                }
+            }
+
+            // Renderer Pass
             using (var builder = graph.AddRasterRenderPass<PassData>(k_RenderPass, out var passData, m_ProfilingSampler))
             {
                 passData.lightBlendStyles = rendererData.lightBlendStyles;
@@ -130,19 +152,54 @@ namespace UnityEngine.Rendering.Universal
                         builder.UseTexture(passData.lightTextures[i]);
                 }
 
-                AccessFlags accessFlags = AccessFlags.Read;
-                if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal)
-                    accessFlags = AccessFlags.Write;
+                AccessFlags accessFlags = DrawShadow2DPass.hasShadowVolumetricPass ? AccessFlags.Read : AccessFlags.Write;
 
                 builder.SetRenderAttachment(commonResourceData.activeColorTexture, 0);
                 builder.SetRenderAttachmentDepth(commonResourceData.activeDepthTexture, accessFlags);
                 builder.AllowPassCulling(false);
                 builder.AllowGlobalStateModification(true);
 
+                // Post set global light textures for next renderer pass 
+                var nextBatch = batchIndex + 1;
+                if (nextBatch < universal2DResourceData.lightTextures.Length)
+                    SetGlobalLightTextures(graph, builder, universal2DResourceData.lightTextures[nextBatch], cameraData, ref layerBatches[nextBatch], rendererData);
+
                 builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
                 {
                     Execute(context, data);
                 });
+            }
+        }
+
+        void SetGlobalLightTextures(RenderGraph graph, IRasterRenderGraphBuilder builder, TextureHandle[] lightTextures, UniversalCameraData cameraData, ref LayerBatch layerBatch, Renderer2DData rendererData)
+        {
+#if UNITY_EDITOR
+            bool isLitView = true;
+
+            // Early out for prefabs
+            if (cameraData.isSceneViewCamera && !UnityEditor.SceneView.currentDrawingSceneView.sceneLighting)
+                isLitView = false;
+
+            // Early out for preview camera
+            if (cameraData.cameraType == CameraType.Preview)
+                isLitView = false;
+
+            builder.SetGlobalTextureAfterPass(graph.defaultResources.whiteTexture, k_DefaultWhiteTextureID);
+
+            if (isLitView)
+#endif
+            {
+                if (layerBatch.lightStats.useAnyLights)
+                {
+                    for (var blendStyleIndex = 0; blendStyleIndex < lightTextures.Length; blendStyleIndex++)
+                    {
+                        builder.SetGlobalTextureAfterPass(lightTextures[blendStyleIndex], Shader.PropertyToID(RendererLighting.k_ShapeLightTextureIDs[blendStyleIndex]));
+                    }
+                }
+                else if (rendererData.lightCullResult.IsSceneLit())
+                {
+                    builder.SetGlobalTextureAfterPass(graph.defaultResources.blackTexture, Shader.PropertyToID(RendererLighting.k_ShapeLightTextureIDs[0]));
+                }
             }
         }
     }

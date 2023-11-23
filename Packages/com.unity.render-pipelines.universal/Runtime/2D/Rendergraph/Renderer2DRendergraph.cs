@@ -467,9 +467,11 @@ namespace UnityEngine.Rendering.Universal
                 culledLights[i].CacheValues();
             }
 
+            DrawShadow2DPass.hasShadowVolumetricPass = false;
             ShadowCasterGroup2DManager.CacheValues();
-
             ShadowRendering.CallOnBeforeRender(cameraData.camera, m_Renderer2DData.lightCullResult);
+
+            RendererLighting.lightBatch.Reset();
         }
 
         private void OnMainRendering(RenderGraph renderGraph)
@@ -489,9 +491,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             var cameraSortingLayerBoundsIndex = Render2DLightingPass.GetCameraSortingLayerBoundsIndex(m_Renderer2DData);
-
-            RendererLighting.lightBatch.Reset();
-
+         
             // Main render passes
 
             // Normal Pass
@@ -519,7 +519,7 @@ namespace UnityEngine.Rendering.Universal
                 ref var layerBatch = ref m_LayerBatches[i];
 
                 LayerUtility.GetFilterSettings(m_Renderer2DData, ref m_LayerBatches[i], cameraSortingLayerBoundsIndex, out var filterSettings);
-                m_RendererPass.Render(renderGraph, frameData, m_Renderer2DData, ref layerBatch, i, ref filterSettings);
+                m_RendererPass.Render(renderGraph, frameData, m_Renderer2DData, ref m_LayerBatches, i, ref filterSettings);
 
                 // Shadow Volumetric Pass
                 m_ShadowPass.Render(renderGraph, frameData, m_Renderer2DData, ref m_LayerBatches[i], i, true);
@@ -536,7 +536,7 @@ namespace UnityEngine.Rendering.Universal
                         m_CopyCameraSortingLayerPass.Render(renderGraph, commonResourceData.activeColorTexture, universal2DResourceData.cameraSortingLayerTexture);
 
                         filterSettings.sortingLayerRange = new SortingLayerRange((short)(cameraSortingLayerBoundsIndex + 1), layerBatch.layerRange.upperBound);
-                        m_RendererPass.Render(renderGraph, frameData, m_Renderer2DData, ref layerBatch, i, ref filterSettings);
+                        m_RendererPass.Render(renderGraph, frameData, m_Renderer2DData, ref m_LayerBatches, i, ref filterSettings);
                     }
                     else if (cameraSortingLayerBoundsIndex == layerBatch.layerRange.upperBound)
                     {

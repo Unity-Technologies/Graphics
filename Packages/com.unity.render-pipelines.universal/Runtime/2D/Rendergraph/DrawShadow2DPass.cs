@@ -15,6 +15,7 @@ namespace UnityEngine.Rendering.Universal
         private static readonly ProfilingSampler m_ProfilingSamplerVolume = new ProfilingSampler(k_ShadowVolumetricPass);
         private static readonly ProfilingSampler m_ExecuteProfilingSampler = new ProfilingSampler("Draw Shadow");
         private static readonly ProfilingSampler m_ExecuteLightProfilingSampler = new ProfilingSampler("Draw Light");
+        internal static bool hasShadowVolumetricPass = false;
 
         TextureHandle[] intermediateTexture = new TextureHandle[1];
         static List<Light2D> intermediateLight = new List<Light2D>(1);
@@ -49,6 +50,10 @@ namespace UnityEngine.Rendering.Universal
             if (!layerBatch.lightStats.useShadows ||
                 isVolumetric && !layerBatch.lightStats.useVolumetricShadowLights)
                 return;
+
+            // Fix depth resolve read access issue on dx platforms
+            if (layerBatch.lightStats.useVolumetricShadowLights && (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D11 || SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D12))
+                hasShadowVolumetricPass = true;
 
             var shadowTexture = universal2DResourceData.shadowsTexture;
             var depthTexture = universal2DResourceData.shadowsDepth;
