@@ -47,8 +47,6 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 nativeCompiler.ExecuteGraph(m_RenderGraphContext, m_Resources, m_RenderPasses);
             }
 
-            nativeCompiler.OutputDebugGraph();
-
             if (m_RenderGraphContext.contextlessTesting == false)
                 m_RenderGraphContext.renderContext.ExecuteCommandBuffer(m_RenderGraphContext.cmd);
 

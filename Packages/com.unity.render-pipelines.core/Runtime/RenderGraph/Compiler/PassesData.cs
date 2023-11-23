@@ -108,8 +108,6 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         public bool hasSideEffects;
         public bool culled;
         public bool beginNativeSubpass; // If true this is the first graph pass of a merged native subpass
-        public bool isSource;
-        public bool isSink;
         public bool fragmentInfoValid;
         public bool fragmentInfoHasDepth;
         public bool insertGraphicsFence; // Whether this pass should insert a fence into the command buffer
@@ -132,8 +130,6 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             culled = false;
             tag = 0;
 
-            isSource = false;
-            isSink = false;
             firstInput = 0;
             numInputs = 0;
             firstOutput = 0;
@@ -177,8 +173,6 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             culled = false;
             tag = 0;
 
-            isSource = false;
-            isSink = false;
             firstInput = 0;
             numInputs = 0;
             firstOutput = 0;
@@ -204,8 +198,6 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             insertGraphicsFence = false;
             waitOnGraphicsFencePassId = -1;
         }
-
-        public string identifier => "pass_" + passId;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly ReadOnlySpan<PassOutputData> Outputs(CompilerContextData ctx)
