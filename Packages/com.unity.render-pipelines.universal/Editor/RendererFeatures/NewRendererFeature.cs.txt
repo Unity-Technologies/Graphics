@@ -1,7 +1,7 @@
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.Rendering.RenderGraphModule;
 
 public class #SCRIPTNAME# : ScriptableRendererFeature
 {
@@ -40,7 +40,7 @@ public class #SCRIPTNAME# : ScriptableRendererFeature
                 // Eg:
                 // builder.UseTexture(resourceData.activeColorTexture);
                 // TextureHandle destination = UniversalRenderer.CreateRenderGraphTexture(renderGraph, cameraData.cameraTargetDescriptor, "Destination Texture", false);
-                // builder.UseTextureFragment(destination, 0);
+                // builder.SetRenderAttachment(destination, 0);
 
                 // Assigns the ExecutePass function to the render pass delegate. This will be called by the render graph when executing the pass.
                 builder.SetRenderFunc((PassData data, RasterGraphContext context) => ExecutePass(data, context));
