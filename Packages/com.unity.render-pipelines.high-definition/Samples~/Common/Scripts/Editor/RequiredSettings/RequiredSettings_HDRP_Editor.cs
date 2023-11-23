@@ -44,13 +44,13 @@ namespace UnityEditor.Rendering.HighDefinition
                         case HDRenderPipelineUI.ExpandableGroup.Lighting:
                             property.intValue = (int)(HDRenderPipelineUI.ExpandableLighting)EditorGUI.EnumPopup(position, label, (HDRenderPipelineUI.ExpandableLighting)property.intValue);
                             break;
-                        case HDRenderPipelineUI.ExpandableGroup.LightingQuality:
+                        case HDRenderPipelineUI.ExpandableGroup.LightingTiers:
                             property.intValue = (int)(HDRenderPipelineUI.ExpandableLightingQuality)EditorGUI.EnumPopup(position, label, (HDRenderPipelineUI.ExpandableLightingQuality)property.intValue);
                             break;
                         case HDRenderPipelineUI.ExpandableGroup.PostProcess:
                             property.intValue = (int)(HDRenderPipelineUI.ExpandablePostProcess)EditorGUI.EnumPopup(position, label, (HDRenderPipelineUI.ExpandablePostProcess)property.intValue);
                             break;
-                        case HDRenderPipelineUI.ExpandableGroup.PostProcessQuality:
+                        case HDRenderPipelineUI.ExpandableGroup.PostProcessTiers:
                             property.intValue = (int)(HDRenderPipelineUI.ExpandablePostProcessQuality)EditorGUI.EnumPopup(position, label, (HDRenderPipelineUI.ExpandablePostProcessQuality)property.intValue);
                             break;
                         default:
