@@ -142,9 +142,9 @@ namespace UnityEngine.Rendering
             }
         }
 
-        CellStreamingScratchBuffer CreateScratchBuffer(int chunkCount)
+        CellStreamingScratchBuffer CreateScratchBuffer(int chunkCount, bool allocateGraphicsBuffers)
         {
-            var scratchBuffer = new CellStreamingScratchBuffer(chunkCount, chunkSize);
+            var scratchBuffer = new CellStreamingScratchBuffer(chunkCount, chunkSize, allocateGraphicsBuffers);
             m_CurrentlyAllocatedChunkCount += chunkCount;
 
             return scratchBuffer;
@@ -154,7 +154,7 @@ namespace UnityEngine.Rendering
         static int s_ChunkCount;
 
         // Will return a the smallest GraphicsBuffer with at least enough space for chunkCount chunks.
-        public bool AllocateScratchBuffer(int chunkCount, out CellStreamingScratchBuffer scratchBuffer, out CellStreamingScratchBufferLayout layout)
+        public bool AllocateScratchBuffer(int chunkCount, out CellStreamingScratchBuffer scratchBuffer, out CellStreamingScratchBufferLayout layout, bool allocateGraphicsBuffers)
         {
             s_ChunkCount = chunkCount;
             int index = m_Pools.FindIndex(0, (o) => o.chunkCount == s_ChunkCount);
@@ -194,7 +194,7 @@ namespace UnityEngine.Rendering
                     // We did not find any suitable buffer. Create a new one with the exact requested size.
                     if ((m_CurrentlyAllocatedChunkCount + chunkCount) < maxChunkCount)
                     {
-                        scratchBuffer = CreateScratchBuffer(chunkCount);
+                        scratchBuffer = CreateScratchBuffer(chunkCount, allocateGraphicsBuffers);
                         return true;
                     }
                     // If we are above the maximum, we don't allocate more buffers.
@@ -213,14 +213,14 @@ namespace UnityEngine.Rendering
                 m_Pools.Add(newPool);
                 m_Pools.Sort();
 
-                scratchBuffer = CreateScratchBuffer(chunkCount);
+                scratchBuffer = CreateScratchBuffer(chunkCount, allocateGraphicsBuffers);
                 return true;
             }
         }
 
         public void ReleaseScratchBuffer(CellStreamingScratchBuffer scratchBuffer)
         {
-            s_ChunkCount = scratchBuffer.buffer.count * 4 / chunkSize;
+            s_ChunkCount = scratchBuffer.chunkCount;
             var pool = m_Pools.Find((o) => o.chunkCount == s_ChunkCount);
             Debug.Assert(pool != null);
             pool.pool.Push(scratchBuffer);

@@ -204,7 +204,7 @@ namespace UnityEngine.Rendering
             rr.L2_3 = m_Pool.TexL2_3 as RenderTexture;
 
             rr.Validity = m_Pool.TexValidity as RenderTexture;
-			rr.SkyOcclusionL0L1 = m_Pool.TexSkyOcclusion as RenderTexture;
+            rr.SkyOcclusionL0L1 = m_Pool.TexSkyOcclusion as RenderTexture;
             rr.SkyShadingDirectionIndices = m_Pool.TexSkyShadingDirectionIndices as RenderTexture;
         }
 

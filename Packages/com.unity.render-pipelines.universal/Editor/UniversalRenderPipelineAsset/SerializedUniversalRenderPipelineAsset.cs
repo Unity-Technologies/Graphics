@@ -33,7 +33,8 @@ namespace UnityEditor.Rendering.Universal
         internal SerializedProperty lightProbeSystem;
         internal SerializedProperty probeVolumeTextureSize;
         internal SerializedProperty probeVolumeBlendingTextureSize;
-        internal SerializedProperty supportProbeVolumeStreaming;
+        internal SerializedProperty supportProbeVolumeGPUStreaming;
+        internal SerializedProperty supportProbeVolumeDiskStreaming;
         internal SerializedProperty supportProbeVolumeScenarios;
         internal SerializedProperty supportProbeVolumeScenarioBlending;
         internal SerializedProperty probeVolumeSHBands;
@@ -117,7 +118,8 @@ namespace UnityEditor.Rendering.Universal
             lightProbeSystem = serializedObject.FindProperty("m_LightProbeSystem");
             probeVolumeTextureSize = serializedObject.FindProperty("m_ProbeVolumeMemoryBudget");
             probeVolumeBlendingTextureSize = serializedObject.FindProperty("m_ProbeVolumeBlendingMemoryBudget");
-            supportProbeVolumeStreaming = serializedObject.FindProperty("m_SupportProbeVolumeStreaming");
+            supportProbeVolumeGPUStreaming = serializedObject.FindProperty("m_SupportProbeVolumeGPUStreaming");
+            supportProbeVolumeDiskStreaming = serializedObject.FindProperty("m_SupportProbeVolumeDiskStreaming");
             supportProbeVolumeScenarios = serializedObject.FindProperty("m_SupportProbeVolumeScenarios");
             supportProbeVolumeScenarioBlending = serializedObject.FindProperty("m_SupportProbeVolumeScenarioBlending");
             probeVolumeSHBands = serializedObject.FindProperty("m_ProbeVolumeSHBands");

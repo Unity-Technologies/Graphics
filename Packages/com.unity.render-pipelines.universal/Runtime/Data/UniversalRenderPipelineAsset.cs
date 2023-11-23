@@ -485,7 +485,8 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] LightProbeSystem m_LightProbeSystem = LightProbeSystem.LegacyLightProbes;
         [SerializeField] ProbeVolumeTextureMemoryBudget m_ProbeVolumeMemoryBudget = ProbeVolumeTextureMemoryBudget.MemoryBudgetMedium;
         [SerializeField] ProbeVolumeBlendingTextureMemoryBudget m_ProbeVolumeBlendingMemoryBudget = ProbeVolumeBlendingTextureMemoryBudget.MemoryBudgetMedium;
-        [SerializeField] bool m_SupportProbeVolumeStreaming = false;
+        [SerializeField] [FormerlySerializedAs("m_SupportProbeVolumeStreaming")] bool m_SupportProbeVolumeGPUStreaming = false;
+        [SerializeField] bool m_SupportProbeVolumeDiskStreaming = false;
         [SerializeField] bool m_SupportProbeVolumeScenarios = false;
         [SerializeField] bool m_SupportProbeVolumeScenarioBlending = false;
 #if UNITY_EDITOR
@@ -1154,12 +1155,31 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Support Streaming for Probe Volumes.
+        /// Support GPU Streaming for Probe Volumes.
         /// </summary>
+        [Obsolete( "This is obsolete, use supportProbeVolumeGPUStreaming instead.")]
         public bool supportProbeVolumeStreaming
         {
-            get => m_SupportProbeVolumeStreaming;
-            internal set => m_SupportProbeVolumeStreaming = value;
+            get => m_SupportProbeVolumeGPUStreaming;
+            internal set => m_SupportProbeVolumeGPUStreaming = value;
+        }
+
+        /// <summary>
+        /// Support GPU Streaming for Probe Volumes.
+        /// </summary>
+        public bool supportProbeVolumeGPUStreaming
+        {
+            get => m_SupportProbeVolumeGPUStreaming;
+            internal set => m_SupportProbeVolumeGPUStreaming = value;
+        }
+
+        /// <summary>
+        /// Support Disk Streaming for Probe Volumes.
+        /// </summary>
+        public bool supportProbeVolumeDiskStreaming
+        {
+            get => m_SupportProbeVolumeDiskStreaming;
+            internal set => m_SupportProbeVolumeDiskStreaming = value;
         }
 
         /// <summary>

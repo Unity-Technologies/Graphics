@@ -260,14 +260,13 @@ namespace UnityEngine.Rendering.Universal
             SupportedRenderingFeatures.active.overridesLightProbeSystem = apvIsEnabled;
             if (apvIsEnabled)
             {
-                var pvr = ProbeReferenceVolume.instance;
                 ProbeReferenceVolume.instance.Initialize(new ProbeVolumeSystemParameters
                 {
                     memoryBudget = asset.probeVolumeMemoryBudget,
                     blendingMemoryBudget = asset.probeVolumeBlendingMemoryBudget,
                     shBands = asset.probeVolumeSHBands,
-                    supportGPUStreaming = asset.supportProbeVolumeStreaming,
-                    supportDiskStreaming = false,
+                    supportGPUStreaming = asset.supportProbeVolumeGPUStreaming,
+                    supportDiskStreaming = asset.supportProbeVolumeDiskStreaming,
                     supportScenarios = asset.supportProbeVolumeScenarios,
                     supportScenarioBlending = asset.supportProbeVolumeScenarioBlending,
 #pragma warning disable 618
