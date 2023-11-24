@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed obsolete FormatUsage bug
 - Disabled compute based effects not supported on WebGL and Android OpenGL (IN-2999)
 - Fixed grid gizmo is visible through geometry when Post Process Layer is enabled (IN-10318)
+- Fixed transparent objects rendering incorrectly when TAA is disabled (IN-31494)
 
 ## [3.3.0] - 2023-05-11
 
