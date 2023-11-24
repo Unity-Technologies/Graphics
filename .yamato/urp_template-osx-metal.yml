@@ -13,6 +13,7 @@ URP_Template_OSX_Metal_playmode_mono_Linear_trunk:
         type: Unity::metal::macmini
         image: automation-tooling/macos-11:v2.1225910
         flavor: m1.mac
+        model: 2018-i3-macos11
     variables:
         CACHE_ARGS: '{{cache.flags}}'
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
@@ -55,6 +56,7 @@ URP_Template_OSX_Metal_Standalone_mono_Linear_trunk:
         type: Unity::metal::macmini
         image: automation-tooling/macos-11:v2.1225910
         flavor: m1.mac
+        model: 2018-i3-macos11
     variables:
         CACHE_ARGS: '{{cache.flags}}'
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
@@ -97,6 +99,7 @@ URP_Template_OSX_Metal_playmode_mono_Linear_CUSTOM-REVISION:
         type: Unity::metal::macmini
         image: automation-tooling/macos-11:v2.1225910
         flavor: m1.mac
+        model: 2018-i3-macos11
     variables:
         CACHE_ARGS: '{{cache.flags}}'
         CUSTOM_REVISION: custom_revision_not_set
@@ -139,6 +142,7 @@ URP_Template_OSX_Metal_Standalone_mono_Linear_CUSTOM-REVISION:
         type: Unity::metal::macmini
         image: automation-tooling/macos-11:v2.1225910
         flavor: m1.mac
+        model: 2018-i3-macos11
     variables:
         CACHE_ARGS: '{{cache.flags}}'
         CUSTOM_REVISION: custom_revision_not_set
