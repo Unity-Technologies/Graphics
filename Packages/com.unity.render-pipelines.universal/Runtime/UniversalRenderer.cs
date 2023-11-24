@@ -556,6 +556,20 @@ namespace UnityEngine.Rendering.Universal
             return false;
         }
 
+        internal bool HasPassesRequiringIntermediateTexture()
+        {
+            if (activeRenderPassQueue.Count == 0)
+                return false;
+
+            foreach (var pass in activeRenderPassQueue)
+            {
+                if (pass.requiresIntermediateTexture)
+                    return true;
+            }
+
+            return false;
+        }
+
         /// <inheritdoc />
         public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
         {
@@ -618,6 +632,7 @@ namespace UnityEngine.Rendering.Universal
             bool isPreviewCamera = cameraData.isPreviewCamera;
             var createColorTexture = ((HasActiveRenderFeatures() && m_IntermediateTextureMode == IntermediateTextureMode.Always) && !isPreviewCamera) ||
                 (Application.isEditor && m_Clustering);
+            createColorTexture |= HasPassesRequiringIntermediateTexture();
 
             // Gather render pass history requests and update history textures.
             UpdateCameraHistory(cameraData);

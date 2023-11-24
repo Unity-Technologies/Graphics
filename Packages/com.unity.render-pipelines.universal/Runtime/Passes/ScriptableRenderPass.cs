@@ -261,6 +261,11 @@ namespace UnityEngine.Rendering.Universal
         RenderBufferStoreAction[] m_ColorStoreActions = new RenderBufferStoreAction[] { RenderBufferStoreAction.Store };
         RenderBufferStoreAction m_DepthStoreAction = RenderBufferStoreAction.Store;
 
+        /// <summary>
+        /// Setting this property to true forces rendering of all passes in the URP frame via an intermediate texture. Use this option for passes that do not support rendering directly to the backbuffer or that require sampling the active color target. Using this option might have a significant performance impact on untethered VR platforms.
+        /// </summary>
+        public bool requiresIntermediateTexture { get; set; }
+
         // by default all store actions are Store. The overridden flags are used to keep track of explicitly requested store actions, to
         // help figuring out the correct final store action for merged render passes when using the RenderPass API.
         private bool[] m_OverriddenColorStoreActions = new bool[] { false };

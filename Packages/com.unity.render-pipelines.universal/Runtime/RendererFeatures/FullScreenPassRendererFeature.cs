@@ -106,6 +106,8 @@ public partial class FullScreenPassRendererFeature : ScriptableRendererFeature
         m_FullScreenPass.ConfigureInput(requirements);
         m_FullScreenPass.SetupMembers(passMaterial, passIndex, fetchColorBuffer, bindDepthStencilAttachment);
 
+        m_FullScreenPass.requiresIntermediateTexture = fetchColorBuffer;
+
         renderer.EnqueuePass(m_FullScreenPass);
     }
 
