@@ -11,7 +11,7 @@ URP_Template_OSX_Metal_playmode_mono_Linear_trunk:
     name: URP_Template on OSX_Metal_playmode_mono_Linear on version trunk
     agent:
         type: Unity::metal::macmini
-        image: automation-tooling/macos-10.14:v2.901415
+        image: automation-tooling/macos-11:v2.1225910
         flavor: m1.mac
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -53,7 +53,7 @@ URP_Template_OSX_Metal_Standalone_mono_Linear_trunk:
     name: URP_Template on OSX_Metal_Standalone_mono_Linear on version trunk
     agent:
         type: Unity::metal::macmini
-        image: automation-tooling/macos-10.14:v2.901415
+        image: automation-tooling/macos-11:v2.1225910
         flavor: m1.mac
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -95,7 +95,7 @@ URP_Template_OSX_Metal_playmode_mono_Linear_CUSTOM-REVISION:
     name: URP_Template on OSX_Metal_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::metal::macmini
-        image: automation-tooling/macos-10.14:v2.901415
+        image: automation-tooling/macos-11:v2.1225910
         flavor: m1.mac
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -137,7 +137,7 @@ URP_Template_OSX_Metal_Standalone_mono_Linear_CUSTOM-REVISION:
     name: URP_Template on OSX_Metal_Standalone_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::metal::macmini
-        image: automation-tooling/macos-10.14:v2.901415
+        image: automation-tooling/macos-11:v2.1225910
         flavor: m1.mac
     variables:
         CACHE_ARGS: '{{cache.flags}}'
