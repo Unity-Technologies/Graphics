@@ -75,6 +75,8 @@ namespace UnityEditor.VFX.UI
                     { Event.KeyboardEvent("F5"), view.ReinitComponents },
                     { Event.KeyboardEvent("#^r"), view.ReinitAndPlayComponents },
                     { Event.KeyboardEvent("#F5"), view.ReinitAndPlayComponents },
+                    { Event.KeyboardEvent("p"), view.m_ProfilingBoard.ExpandAllGraphPanels },
+                    { Event.KeyboardEvent("#p"), view.m_ProfilingBoard.CloseAllGraphPanels },
                 });
         }
 

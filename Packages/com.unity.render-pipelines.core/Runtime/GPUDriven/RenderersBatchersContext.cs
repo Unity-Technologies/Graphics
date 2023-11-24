@@ -16,13 +16,14 @@ namespace UnityEngine.Rendering
         public InstanceNumInfo instanceNumInfo;
         public bool supportDitheringCrossFade;
         public bool enableBoundingSpheresInstanceData;
+        public float smallMeshScreenPercentage;
         public bool enableCullerDebugStats;
 
         public static RenderersBatchersContextDesc NewDefault()
         {
             return new RenderersBatchersContextDesc()
             {
-                instanceNumInfo = new InstanceNumInfo(meshRendererNum: 1024),
+                instanceNumInfo = new InstanceNumInfo(meshRendererNum: 1024, speedTreeNum: 32),
             };
         }
     }
@@ -46,6 +47,8 @@ namespace UnityEngine.Rendering
         public GPUInstanceDataBuffer.ReadOnly instanceDataBuffer { get { return m_InstanceDataBuffer.AsReadOnly(); } }
         public NativeArray<InstanceHandle> aliveInstances { get { return m_InstanceDataSystem.aliveInstances; } }
 
+        public float smallMeshScreenPercentage { get { return m_SmallMeshScreenPercentage; } }
+
         private InstanceDataSystem m_InstanceDataSystem;
 
         public GPUResidentDrawerResources resources { get { return m_Resources; } }
@@ -68,6 +71,7 @@ namespace UnityEngine.Rendering
 
         private bool m_EnableDeferredVertexShader;
         private bool m_EnableDeferredMaterialPartialMeshConversion;
+        private float m_SmallMeshScreenPercentage;
 
         private GPUDrivenLODGroupDataCallback m_UpdateLODGroupCallback;
         private GPUDrivenLODGroupDataCallback m_TransformLODGroupCallback;
@@ -76,7 +80,7 @@ namespace UnityEngine.Rendering
 
         internal DebugRendererBatcherStats debugStats { get => m_DebugStats; }
 
-        public RenderersBatchersContext(in RenderersBatchersContextDesc desc, GPUDrivenProcessor gpuDrivenProcessor, GPUResidentDrawerResources resources) 
+        public RenderersBatchersContext(in RenderersBatchersContextDesc desc, GPUDrivenProcessor gpuDrivenProcessor, GPUResidentDrawerResources resources)
         {
             m_Resources = resources;
             m_GPUDrivenProcessor = gpuDrivenProcessor;
@@ -102,6 +106,7 @@ namespace UnityEngine.Rendering
             m_LightmapManager = new LightmapManager();
 
             m_InstanceDataSystem = new InstanceDataSystem(desc.instanceNumInfo.GetTotalInstanceNum(), desc.enableBoundingSpheresInstanceData, resources);
+            m_SmallMeshScreenPercentage = desc.smallMeshScreenPercentage;
 
             m_UpdateLODGroupCallback = UpdateLODGroupData;
             m_TransformLODGroupCallback = TransformLODGroupData;
@@ -163,10 +168,13 @@ namespace UnityEngine.Rendering
         private void EnsureInstanceBufferCapacity()
         {
             const int kMeshRendererGrowNum = 1024;
+            const int kSpeedTreeGrowNum = 256;
 
             int maxCPUMeshRendererNum = m_InstanceDataSystem.GetMaxInstancesOfType(InstanceType.MeshRenderer);
+            int maxCPUSpeedTreeNum = m_InstanceDataSystem.GetMaxInstancesOfType(InstanceType.SpeedTree);
 
             int maxGPUMeshRendererInstances = m_InstanceDataBuffer.instanceNumInfo.GetInstanceNum(InstanceType.MeshRenderer);
+            int maxGPUSpeedTreeInstances = m_InstanceDataBuffer.instanceNumInfo.GetInstanceNum(InstanceType.SpeedTree);
 
             bool needToGrow = false;
 
@@ -175,9 +183,14 @@ namespace UnityEngine.Rendering
                 needToGrow = true;
                 maxGPUMeshRendererInstances = maxCPUMeshRendererNum + kMeshRendererGrowNum;
             }
+            if(maxCPUSpeedTreeNum > maxGPUSpeedTreeInstances)
+            {
+                needToGrow = true;
+                maxGPUSpeedTreeInstances = maxCPUSpeedTreeNum + kSpeedTreeGrowNum;
+            }
 
             if (needToGrow)
-                GrowInstanceBuffer(new InstanceNumInfo(meshRendererNum: maxGPUMeshRendererInstances));
+                GrowInstanceBuffer(new InstanceNumInfo(meshRendererNum: maxGPUMeshRendererInstances, speedTreeNum: maxGPUSpeedTreeInstances));
         }
 
         private void UpdateLODGroupData(in GPUDrivenLODGroupData lodGroupData)
@@ -306,6 +319,15 @@ namespace UnityEngine.Rendering
             }
         }
 
+        public void UpdateInstanceWindDataHistory(NativeArray<GPUInstanceIndex> gpuInstanceIndices)
+        {
+            if (gpuInstanceIndices.Length == 0)
+                return;
+
+            m_InstanceDataSystem.UpdateInstanceWindDataHistory(gpuInstanceIndices, m_RenderersParameters, m_InstanceDataBuffer);
+            ChangeInstanceBufferVersion();
+        }
+
         // This should be called at the end of the frame loop to properly update motion vectors.
         public void UpdateInstanceMotions()
         {
@@ -319,6 +341,11 @@ namespace UnityEngine.Rendering
                 return;
 
             m_GPUDrivenProcessor.DispatchLODGroupData(lodGroupsID, m_TransformLODGroupCallback);
+        }
+
+        public void UpdatePerFrameInstanceVisibility(in ParallelBitArray compactedVisibilityMasks)
+        {
+            m_InstanceDataSystem.UpdatePerFrameInstanceVisibility(compactedVisibilityMasks);
         }
 
         public JobHandle ScheduleCollectInstancesLODGroupAndMasksJob(NativeArray<InstanceHandle> instances, NativeArray<uint> lodGroupAndMasks)
@@ -341,6 +368,12 @@ namespace UnityEngine.Rendering
             instances.Dispose();
 
             return instance;
+        }
+
+        public void GetVisibleTreeInstances(in ParallelBitArray compactedVisibilityMasks, in ParallelBitArray processedBits, NativeList<int> visibeTreeRendererIDs,
+            NativeList<InstanceHandle> visibeTreeInstances, bool becomeVisibleOnly, out int becomeVisibeTreeInstancesCount)
+        {
+            m_InstanceDataSystem.GetVisibleTreeInstances(compactedVisibilityMasks, processedBits, visibeTreeRendererIDs, visibeTreeInstances, becomeVisibleOnly, out becomeVisibeTreeInstancesCount);
         }
 
         public GPUInstanceDataBuffer GetInstanceDataBuffer()

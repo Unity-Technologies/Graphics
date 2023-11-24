@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using Unity.Collections;
 using UnityEditor;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -282,7 +282,7 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetGlobalVector(ShaderPropertyId.orthoParams, orthoParams);
 
             cmd.SetGlobalVector(ShaderPropertyId.screenSize, new Vector4(scaledCameraWidth, scaledCameraHeight, 1.0f / scaledCameraWidth, 1.0f / scaledCameraHeight));
-            cmd.SetKeyword(ref ShaderGlobalKeywords.SCREEN_COORD_OVERRIDE, cameraData.useScreenCoordOverride);
+            cmd.SetKeyword(ShaderGlobalKeywords.SCREEN_COORD_OVERRIDE, cameraData.useScreenCoordOverride);
             cmd.SetGlobalVector(ShaderPropertyId.screenSizeOverride, cameraData.screenSizeOverride);
             cmd.SetGlobalVector(ShaderPropertyId.screenCoordScaleBias, cameraData.screenCoordScaleBias);
 
@@ -312,7 +312,7 @@ namespace UnityEngine.Rendering.Universal
             Matrix4x4 worldToCameraMatrix = cameraData.GetViewMatrix();
             Vector3 cameraPos = cameraData.worldSpaceCameraPos;
 
-            cmd.SetKeyword(ref ShaderGlobalKeywords.BillboardFaceCameraPos, QualitySettings.billboardsFaceCameraPosition);
+            cmd.SetKeyword(ShaderGlobalKeywords.BillboardFaceCameraPos, QualitySettings.billboardsFaceCameraPosition);
 
             Vector3 billboardTangent;
             Vector3 billboardNormal;
@@ -628,7 +628,7 @@ namespace UnityEngine.Rendering.Universal
         public ScriptableRenderer(ScriptableRendererData data)
         {
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
-            DebugHandler = new DebugHandler(data);
+            DebugHandler = new DebugHandler();
 #endif
             profilingExecute = new ProfilingSampler($"{nameof(ScriptableRenderer)}.{nameof(ScriptableRenderer.Execute)}: {data.name}");
 
@@ -788,16 +788,16 @@ namespace UnityEngine.Rendering.Universal
 
         private void InitRenderGraphFrame(RenderGraph renderGraph)
         {
-            using (var builder = renderGraph.AddLowLevelPass<PassData>("InitFrame", out var passData,
+            using (var builder = renderGraph.AddUnsafePass<PassData>("InitFrame", out var passData,
                 Profiling.initRenderGraphFrame))
             {
                 passData.renderer = this;
 
                 builder.AllowPassCulling(false);
 
-                builder.SetRenderFunc((PassData data, LowLevelGraphContext rgContext) =>
+                builder.SetRenderFunc((PassData data, UnsafeGraphContext rgContext) =>
                 {
-                    LowLevelCommandBuffer cmd = rgContext.cmd;
+                    UnsafeCommandBuffer cmd = rgContext.cmd;
 #if UNITY_EDITOR
                     float time = Application.isPlaying ? Time.time : Time.realtimeSinceStartup;
 #else
@@ -826,7 +826,7 @@ namespace UnityEngine.Rendering.Universal
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
             XRPass xr = cameraData.xr;
 
-            using (var builder = renderGraph.AddLowLevelPass<VFXProcessCameraPassData>("ProcessVFXCameraCommand", out var passData,
+            using (var builder = renderGraph.AddUnsafePass<VFXProcessCameraPassData>("ProcessVFXCameraCommand", out var passData,
                        Profiling.vfxProcessCamera))
             {
                 passData.camera = cameraData.camera;
@@ -839,7 +839,7 @@ namespace UnityEngine.Rendering.Universal
 
                 builder.AllowPassCulling(false);
 
-                builder.SetRenderFunc((VFXProcessCameraPassData data, LowLevelGraphContext context) =>
+                builder.SetRenderFunc((VFXProcessCameraPassData data, UnsafeGraphContext context) =>
                 {
                     if (data.xrPass != null)
                         data.xrPass.StartSinglePass(context.cmd);
@@ -867,6 +867,8 @@ namespace UnityEngine.Rendering.Universal
 
                 builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
                 {
+                    bool yFlip = !SystemInfo.graphicsUVStartsAtTop || data.isTargetBackbuffer;
+
                     // This is still required because of the following reasons:
                     // - Camera billboard properties.
                     // - Camera frustum planes: unity_CameraWorldClipPlanes[6]
@@ -878,13 +880,13 @@ namespace UnityEngine.Rendering.Universal
                     if (data.cameraData.renderType == CameraRenderType.Base)
                     {
                         context.cmd.SetupCameraProperties(data.cameraData.camera);
-                        data.renderer.SetPerCameraShaderVariables(context.cmd, data.cameraData, !data.isTargetBackbuffer);
+                        data.renderer.SetPerCameraShaderVariables(context.cmd, data.cameraData, !yFlip);
                     }
                     else
                     {
                         // Set new properties
-                        data.renderer.SetPerCameraShaderVariables(context.cmd, data.cameraData, !data.isTargetBackbuffer);
-                        data.renderer.SetPerCameraClippingPlaneProperties(context.cmd, in data.cameraData, !data.isTargetBackbuffer);
+                        data.renderer.SetPerCameraShaderVariables(context.cmd, data.cameraData, !yFlip);
+                        data.renderer.SetPerCameraClippingPlaneProperties(context.cmd, in data.cameraData, !yFlip);
                         data.renderer.SetPerCameraBillboardProperties(context.cmd, data.cameraData);
                     }
 
@@ -926,8 +928,8 @@ namespace UnityEngine.Rendering.Universal
             using (var builder = renderGraph.AddRasterRenderPass<DrawGizmosPassData>("Draw Gizmos Pass", out var passData,
                 Profiling.drawGizmos))
             {
-                builder.UseTextureFragment(color, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
-                builder.UseTextureFragmentDepth(depth, IBaseRenderGraphBuilder.AccessFlags.Read);
+                builder.SetRenderAttachment(color, 0, AccessFlags.Write);
+                builder.SetRenderAttachmentDepth(depth, AccessFlags.Read);
 
                 passData.gizmoRenderList = renderGraph.CreateGizmoRendererList(cameraData.camera, gizmoSubset);
                 builder.UseRendererList(passData.gizmoRenderList);
@@ -977,7 +979,7 @@ namespace UnityEngine.Rendering.Universal
                             context.cmd.ConfigureFoveatedRendering(data.cameraData.xr.foveatedRenderingInfo);
 
                             if (XRSystem.foveatedRenderingCaps.HasFlag(FoveatedRenderingCaps.NonUniformRaster))
-                                context.cmd.SetKeyword(ref ShaderGlobalKeywords.FoveatedRenderingNonUniformRaster, true);
+                                context.cmd.SetKeyword(ShaderGlobalKeywords.FoveatedRenderingNonUniformRaster, true);
                         }
                     }
                 });
@@ -1015,7 +1017,7 @@ namespace UnityEngine.Rendering.Universal
                     if (XRSystem.foveatedRenderingCaps != FoveatedRenderingCaps.None)
                     {
                         if (XRSystem.foveatedRenderingCaps.HasFlag(FoveatedRenderingCaps.NonUniformRaster))
-                            context.cmd.SetKeyword(ref ShaderGlobalKeywords.FoveatedRenderingNonUniformRaster, false);
+                            context.cmd.SetKeyword(ShaderGlobalKeywords.FoveatedRenderingNonUniformRaster, false);
 
                         context.cmd.ConfigureFoveatedRendering(IntPtr.Zero);
                     }
@@ -1030,14 +1032,14 @@ namespace UnityEngine.Rendering.Universal
 
         private void SetEditorTarget(RenderGraph renderGraph)
         {
-            using (var builder = renderGraph.AddLowLevelPass<DummyData>("SetEditorTarget", out var passData,
+            using (var builder = renderGraph.AddUnsafePass<DummyData>("SetEditorTarget", out var passData,
                 Profiling.setEditorTarget))
             {
                 builder.AllowPassCulling(false);
 
-                builder.SetRenderFunc((DummyData data, LowLevelGraphContext context) =>
+                builder.SetRenderFunc((DummyData data, UnsafeGraphContext context) =>
                 {
-                    context.legacyCmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget,
+                    context.cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget,
                         RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, // color
                         RenderBufferLoadAction.Load, RenderBufferStoreAction.DontCare); // depth
                 });
@@ -1513,23 +1515,23 @@ namespace UnityEngine.Rendering.Universal
             using var profScope = new ProfilingScope(Profiling.clearRenderingState);
 
             // Reset per-camera shader keywords. They are enabled depending on which render passes are executed.
-            cmd.SetKeyword(ref ShaderGlobalKeywords.MainLightShadows, false);
-            cmd.SetKeyword(ref ShaderGlobalKeywords.MainLightShadowCascades, false);
-            cmd.SetKeyword(ref ShaderGlobalKeywords.AdditionalLightsVertex, false);
-            cmd.SetKeyword(ref ShaderGlobalKeywords.AdditionalLightsPixel, false);
-            cmd.SetKeyword(ref ShaderGlobalKeywords.ForwardPlus, false);
-            cmd.SetKeyword(ref ShaderGlobalKeywords.AdditionalLightShadows, false);
-            cmd.SetKeyword(ref ShaderGlobalKeywords.ReflectionProbeBlending, false);
-            cmd.SetKeyword(ref ShaderGlobalKeywords.ReflectionProbeBoxProjection, false);
-            cmd.SetKeyword(ref ShaderGlobalKeywords.SoftShadows, false);
-            cmd.SetKeyword(ref ShaderGlobalKeywords.SoftShadowsLow, false);
-            cmd.SetKeyword(ref ShaderGlobalKeywords.SoftShadowsMedium, false);
-            cmd.SetKeyword(ref ShaderGlobalKeywords.SoftShadowsHigh, false);
-            cmd.SetKeyword(ref ShaderGlobalKeywords.MixedLightingSubtractive, false);
-            cmd.SetKeyword(ref ShaderGlobalKeywords.LightmapShadowMixing, false);
-            cmd.SetKeyword(ref ShaderGlobalKeywords.ShadowsShadowMask, false);
-            cmd.SetKeyword(ref ShaderGlobalKeywords.LinearToSRGBConversion, false);
-            cmd.SetKeyword(ref ShaderGlobalKeywords.LightLayers, false);
+            cmd.SetKeyword(ShaderGlobalKeywords.MainLightShadows, false);
+            cmd.SetKeyword(ShaderGlobalKeywords.MainLightShadowCascades, false);
+            cmd.SetKeyword(ShaderGlobalKeywords.AdditionalLightsVertex, false);
+            cmd.SetKeyword(ShaderGlobalKeywords.AdditionalLightsPixel, false);
+            cmd.SetKeyword(ShaderGlobalKeywords.ForwardPlus, false);
+            cmd.SetKeyword(ShaderGlobalKeywords.AdditionalLightShadows, false);
+            cmd.SetKeyword(ShaderGlobalKeywords.ReflectionProbeBlending, false);
+            cmd.SetKeyword(ShaderGlobalKeywords.ReflectionProbeBoxProjection, false);
+            cmd.SetKeyword(ShaderGlobalKeywords.SoftShadows, false);
+            cmd.SetKeyword(ShaderGlobalKeywords.SoftShadowsLow, false);
+            cmd.SetKeyword(ShaderGlobalKeywords.SoftShadowsMedium, false);
+            cmd.SetKeyword(ShaderGlobalKeywords.SoftShadowsHigh, false);
+            cmd.SetKeyword(ShaderGlobalKeywords.MixedLightingSubtractive, false);
+            cmd.SetKeyword(ShaderGlobalKeywords.LightmapShadowMixing, false);
+            cmd.SetKeyword(ShaderGlobalKeywords.ShadowsShadowMask, false);
+            cmd.SetKeyword(ShaderGlobalKeywords.LinearToSRGBConversion, false);
+            cmd.SetKeyword(ShaderGlobalKeywords.LightLayers, false);
         }
 
         internal void Clear(CameraRenderType cameraType)

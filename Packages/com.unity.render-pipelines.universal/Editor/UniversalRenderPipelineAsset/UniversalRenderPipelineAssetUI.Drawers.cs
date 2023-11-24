@@ -100,11 +100,6 @@ namespace UnityEditor.Rendering.Universal
             return unsupportedGraphicsApisMessage == null;
         }
 
-        static bool ValidateCrossFadeDitheringTextures(UniversalRenderPipelineAsset pipelineAsset)
-        {
-            return pipelineAsset.textures?.bayerMatrixTex && pipelineAsset.textures?.blueNoise64LTex;
-        }
-
         static readonly ExpandedState<Expandable, UniversalRenderPipelineAsset> k_ExpandedState = new(Expandable.Rendering, "URP");
         readonly static AdditionalPropertiesState<ExpandableAdditional, Light> k_AdditionalPropertiesState = new(0, "URP");
 
@@ -149,6 +144,10 @@ namespace UnityEditor.Rendering.Universal
 
                 if ((GPUResidentDrawerMode)serialized.gpuResidentDrawerMode.intValue != GPUResidentDrawerMode.Disabled)
                 {
+                    ++EditorGUI.indentLevel;
+                    serialized.smallMeshScreenPercentage.floatValue = Mathf.Clamp(EditorGUILayout.FloatField(Styles.smallMeshScreenPercentage, serialized.smallMeshScreenPercentage.floatValue), 0.0f, 20.0f);
+                    --EditorGUI.indentLevel;
+
                     if (brgStrippingError)
                         EditorGUILayout.HelpBox(Styles.brgShaderStrippingErrorMessage.text, MessageType.Warning, true);
                     if (lightingModeError)
@@ -201,9 +200,6 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.PropertyField(serialized.enableLODCrossFadeProp, Styles.enableLODCrossFadeText);
             EditorGUI.BeginDisabledGroup(!serialized.enableLODCrossFadeProp.boolValue);
             EditorGUILayout.PropertyField(serialized.lodCrossFadeDitheringTypeProp, Styles.lodCrossFadeDitheringTypeText);
-            if (!ValidateCrossFadeDitheringTextures(serialized.asset))
-                CoreEditorUtils.DrawFixMeBox("Asset doesn't hold references to dithering textures. LOD Cross Fade might not work correctly.",
-                    () => ResourceReloader.ReloadAllNullIn(serialized.asset, UniversalRenderPipelineAsset.packagePath));
             EditorGUI.EndDisabledGroup();
         }
 

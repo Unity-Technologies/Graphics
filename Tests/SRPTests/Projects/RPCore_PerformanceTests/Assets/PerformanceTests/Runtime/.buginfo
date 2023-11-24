@@ -1,5 +1,5 @@
-when:
-  path:
-    - ^.*RenderGraph.*$
-add:
+rp-foundation:
+  when:
+    path:
+      - ^.*RenderGraph.*$
   area: RP Foundation

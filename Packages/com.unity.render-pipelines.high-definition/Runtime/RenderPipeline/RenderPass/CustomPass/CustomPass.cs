@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System;
 using UnityEngine.Serialization;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {

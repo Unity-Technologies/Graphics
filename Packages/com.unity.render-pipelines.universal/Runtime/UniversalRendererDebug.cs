@@ -1,5 +1,5 @@
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Rendering.Universal.Internal;
 
 namespace UnityEngine.Rendering.Universal
@@ -129,9 +129,18 @@ namespace UnityEngine.Rendering.Universal
         {
             using (var builder = renderGraph.AddRasterRenderPass<CopyToDebugTexturePassData>(passName, out var passData))
             {
-                passData.src = source.IsValid() ? builder.UseTexture(source) : renderGraph.defaultResources.blackTexture;
+                if (source.IsValid())
+                {
+                    passData.src = source;
+                    builder.UseTexture(source);
+                }
+                else
+                {
+                    passData.src = renderGraph.defaultResources.blackTexture;
+                }
 
-                passData.dest = builder.UseTextureFragment(destination, 0);
+                passData.dest = destination;
+                builder.SetRenderAttachment(destination, 0);
 
                 builder.AllowPassCulling(false);
 

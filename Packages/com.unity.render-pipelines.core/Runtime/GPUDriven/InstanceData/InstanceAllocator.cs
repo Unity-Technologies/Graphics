@@ -108,13 +108,16 @@ namespace UnityEngine.Rendering
     internal unsafe struct InstanceAllocators
     {
         private InstanceAllocator m_InstanceAlloc_MeshRenderer;
+        private InstanceAllocator m_InstanceAlloc_SpeedTree;
         private InstanceAllocator m_SharedInstanceAlloc;
 
         public void Initialize()
         {
             //@ Will keep it as two separate allocators for two types for now. Nested native containers are not allowed in burst.
             m_InstanceAlloc_MeshRenderer = new InstanceAllocator();
+            m_InstanceAlloc_SpeedTree = new InstanceAllocator();
             m_InstanceAlloc_MeshRenderer.Initialize((int)InstanceType.MeshRenderer, InstanceTypeInfo.kMaxInstanceTypesCount);
+            m_InstanceAlloc_SpeedTree.Initialize((int)InstanceType.SpeedTree, InstanceTypeInfo.kMaxInstanceTypesCount);
 
             m_SharedInstanceAlloc = new InstanceAllocator();
             m_SharedInstanceAlloc.Initialize();
@@ -123,6 +126,7 @@ namespace UnityEngine.Rendering
         public unsafe void Dispose()
         {
             m_InstanceAlloc_MeshRenderer.Dispose();
+            m_InstanceAlloc_SpeedTree.Dispose();
             m_SharedInstanceAlloc.Dispose();
         }
 
@@ -132,6 +136,8 @@ namespace UnityEngine.Rendering
             {
                 case InstanceType.MeshRenderer:
                     return m_InstanceAlloc_MeshRenderer;
+                case InstanceType.SpeedTree:
+                    return m_InstanceAlloc_SpeedTree;
                 default:
                     throw new ArgumentException("Allocator for this type is not created.");
             }

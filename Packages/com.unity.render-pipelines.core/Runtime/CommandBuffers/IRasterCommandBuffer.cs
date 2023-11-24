@@ -1,11 +1,10 @@
 
 using System;
-using UnityEngine.Rendering;
 using System.Collections.Generic;
 using Unity.Collections;
 using UnityEngine.Profiling;
 using Unity.Profiling;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 
 // NOTE  NOTE  NOTE  NOTE  NOTE  NOTE  NOTE  NOTE  NOTE
 //
@@ -24,9 +23,8 @@ using UnityEngine.Experimental.Rendering.RenderGraphModule;
 // <unity root>\Packages\com.unity.render-pipelines.core\Runtime\CommandBuffers\
 //
 // NOTE  NOTE  NOTE  NOTE  NOTE  NOTE  NOTE  NOTE  NOTE
-namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Rendering
 {
-    using RendererList = UnityEngine.Rendering.RendererList;
 
     /// <summary>
     /// This interface declares functions that are specific to a rasterization command buffer.

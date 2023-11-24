@@ -1,0 +1,195 @@
+VFXProfilingBoard.graphElement
+{
+    position:Absolute;
+    padding: 0;
+    margin:0;
+    min-width: 286px;
+    min-height: 100px;
+}
+
+VFXProfilingBoard.graphElement > .mainContainer
+{
+    flex: 1 1 auto;
+    background-color: #292929;
+    border-color: #191919;
+}
+
+*
+{
+    font-size: 12px;
+}
+
+#divider {
+    background-color: rgba(35,35,35,0.8);
+    border-color: rgba(35,35,35,0.8);
+}
+
+#divider.horizontal {
+    height: 0.05px;
+    border-bottom-width: 1px;
+}
+
+VFXProfilingBoard .unity-scroll-view
+{
+    flex-direction:column;
+    align-items:stretch;
+    overflow:hidden;
+    flex: 1 1 auto;
+}
+
+VFXProfilingBoard, #component-container
+{
+    flex-direction:column;
+    align-items:stretch;
+    overflow:hidden;
+}
+
+#header {
+    flex-direction: row;
+    align-items: stretch;
+    background-color: #393939;
+    border-bottom-width: 1px;
+    border-color: #212121;
+    border-top-right-radius: 4px;
+    border-top-left-radius: 4px;
+    padding-left: 8px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+}
+#header > #labelContainer {
+    flex:1 0 auto;
+    flex-direction: column;
+    align-items: stretch;
+}
+#header > #labelContainer > #titleContainer > #titleLabel {
+    font-size : 14px;
+    -unity-font-style: bold;
+    color: #c1c1c1;
+    flex-grow: 1;
+}
+#header > #labelContainer > #subtitle >#subTitleLabel {
+    font-size: 11px;
+    color: #606060;
+    white-space: normal;
+}
+
+#attach, #select
+{
+    width: 60px;
+}
+
+#component-path
+{
+    flex:1;
+}
+
+#attach-container
+{
+    padding-top: 8px;
+    padding-bottom: 8px;
+}
+
+#events-label
+{
+    padding-top: 8px;
+}
+#subtitle, #titleContainer
+{
+    flex-direction:row;
+    flex:1 0 auto;
+    align-items:center;
+}
+
+#subTitleLabel
+{
+    height: 16px;
+    flex-grow: 1;
+    -unity-text-align: lower-left;
+    margin-right: 4px;
+    overflow: hidden;
+}
+
+#subTitle-icon
+{
+    margin-right: 4px;
+}
+
+#title-icon
+{
+    margin-left: 4px;
+    margin-right: 4px;
+    --unity-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/debug.png");
+}
+
+.unity-foldout__toggle
+{
+    background-color: #474747;
+    padding-top: 4px;
+    padding-bottom: 4px;
+    margin-left: 0;
+    margin-right: 0;
+    margin-bottom : 1px;
+    height: 30px;
+}
+
+.unity-foldout__toggle__
+{
+    margin-left: 0;
+    margin-right: 0;
+}
+
+.unity-foldout__input
+{
+    margin-left: 10px;
+    margin-right: 0;
+}
+
+.unity-foldout__content
+{
+    margin-top: 4px;
+    margin-bottom: 4px;
+}
+
+
+/*
+.unity-foldout--depth-0
+{
+    margin-top: 4px;
+    margin-bottom: 4px;
+}
+*/
+
+#shortcut-windows
+{
+    flex-grow: 0;
+    margin: 0 3px;
+    height:16px ;
+    background-color: rgba(0,0,0,0);
+    border-color: rgba(0,0,0,0);
+    background-image: resource("Builtin Skins/DarkSkin/Images/pane options.png");
+    align-self: flex-end;
+    border-radius: 1px;
+}
+
+#shortcut-windows:hover
+{
+    background-color:rgba(103,103,103,1);
+}
+
+#exec-time Label {
+    flex-grow: 2;
+}
+
+.dynamic-label {
+    flex-direction: row;
+    padding: 2px 0;
+}
+
+.dynamic-label .main {
+    flex-grow: 1;
+}
+
+.dynamic-label .dynamic {
+    flex-grow: 0;
+    align-self: flex-end;
+}

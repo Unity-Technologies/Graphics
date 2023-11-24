@@ -13,7 +13,7 @@ namespace UnityEditor.Rendering
         void IPreprocessBuildWithReport.OnPreprocessBuild(BuildReport report)
         {
             m_BuildData?.Dispose();
-            m_BuildData = CoreBuildData.CreateInstance();
+            m_BuildData = CoreBuildData.instance;
         }
 
         void IPostprocessBuildWithReport.OnPostprocessBuild(BuildReport report)

@@ -16,6 +16,23 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("List of diffusion profiles used inside the volume.")]
         [SerializeField]
         public DiffusionProfileSettingsParameter diffusionProfiles = new DiffusionProfileSettingsParameter(default(DiffusionProfileSettings[]));
+
+        internal int Length => diffusionProfiles.value == null ? 0 : diffusionProfiles.value.Length;
+
+        internal DiffusionProfileSettings[] ToArray()
+        {
+            return diffusionProfiles.value ?? Array.Empty<DiffusionProfileSettings>();
+        }
+
+        internal void ReplaceWithArray(DiffusionProfileSettings[] profileSettingsArray)
+        {
+            profileSettingsArray ??= Array.Empty<DiffusionProfileSettings>();
+
+            if (profileSettingsArray.Length >= DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT)
+                throw new IndexOutOfRangeException($"The length {profileSettingsArray.Length} of {nameof(profileSettingsArray)} exceeds the limit {DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT}");
+
+            diffusionProfiles.value = profileSettingsArray;
+        }
     }
 
     /// <summary>

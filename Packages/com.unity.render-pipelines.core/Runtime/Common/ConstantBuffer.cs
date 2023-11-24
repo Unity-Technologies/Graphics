@@ -324,6 +324,16 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
+        /// Bind the constant buffer to a material property block.
+        /// </summary>
+        /// <param name="mpb">Material property block to which the constant buffer should be bound.</param>
+        /// <param name="shaderId">Shader porperty id to bind the constant buffer to.</param>
+        public void Set(MaterialPropertyBlock mpb, int shaderId)
+        {
+            mpb.SetConstantBuffer(shaderId, m_GPUConstantBuffer, 0, m_GPUConstantBuffer.stride);
+        }
+
+        /// <summary>
         /// Update the GPU data of the constant buffer and bind it globally via a command buffer.
         /// </summary>
         /// <param name="cmd">Command Buffer used to execute the graphic commands.</param>

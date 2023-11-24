@@ -262,22 +262,12 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         /// <summary>
-        /// Queue up render commands to enable single-pass techniques.
-        /// Note: depending on the platform and settings, either single-pass instancing or the multiview extension will be used.
-        /// </summary>
-        /// <param name="cmd">RasterCommandBuffer to modify</param>
-        public void StartSinglePass(RasterCommandBuffer cmd)
-        {
-            StartSinglePass(cmd.m_WrappedCommandBuffer);
-        }
-
-        /// <summary>
         /// Queue up render commands to disable single-pass techniques.
         /// </summary>
-        /// <param name="cmd">CommandBuffer to modify.</param>
-        public void StartSinglePass(LowLevelCommandBuffer cmd)
+        /// <param name="cmd">IRasterCommandBuffer compatible command buffer to modify (This can be a RasterCommandBuffer or an UnsafeCommandBuffer)</param>
+        public void StartSinglePass(IRasterCommandBuffer cmd)
         {
-            StartSinglePass(cmd.m_WrappedCommandBuffer);
+            StartSinglePass((cmd as BaseCommandBuffer).m_WrappedCommandBuffer);
         }
 
         /// <summary>
@@ -307,17 +297,8 @@ namespace UnityEngine.Experimental.Rendering
         /// <summary>
         /// Queue up render commands to disable single-pass techniques.
         /// </summary>
-        /// <param name="cmd">RasterCommandBuffer to modify</param>
-        public void StopSinglePass(RasterCommandBuffer cmd)
-        {
-            StopSinglePass(cmd.m_WrappedCommandBuffer);
-        }
-
-        /// <summary>
-        /// Queue up render commands to disable single-pass techniques.
-        /// </summary>
-        /// <param name="cmd">The command buffer to use.</param>
-        public void StopSinglePass(LowLevelCommandBuffer cmd)
+        /// <param name="cmd">BaseCommandBuffer to modify</param>
+        public void StopSinglePass(BaseCommandBuffer cmd)
         {
             StopSinglePass(cmd.m_WrappedCommandBuffer);
         }

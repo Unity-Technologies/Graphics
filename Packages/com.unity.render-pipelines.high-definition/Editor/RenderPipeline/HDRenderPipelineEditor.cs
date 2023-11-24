@@ -1,6 +1,8 @@
 using System.Linq;
 using UnityEditor.VFX.HDRP;
 using UnityEditor.VFX.UI;
+using UnityEditorInternal;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
@@ -13,6 +15,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         internal bool largeLabelWidth = true;
         internal bool needRefreshVfxWarnings = false;
+
+        internal ReorderableList reusableReorderableList;
 
         void OnEnable()
         {

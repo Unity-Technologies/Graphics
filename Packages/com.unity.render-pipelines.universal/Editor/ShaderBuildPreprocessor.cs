@@ -693,6 +693,7 @@ namespace UnityEditor.Rendering.Universal
                         shaderFeatures |= ShaderFeatures.DBufferMRT1;
                         shaderFeatures |= ShaderFeatures.DBufferMRT2;
                         shaderFeatures |= ShaderFeatures.DBufferMRT3;
+                        shaderFeatures |= ShaderFeatures.DecalScreenSpace;
                         shaderFeatures |= ShaderFeatures.DecalNormalBlendLow;
                         shaderFeatures |= ShaderFeatures.DecalNormalBlendMedium;
                         shaderFeatures |= ShaderFeatures.DecalNormalBlendHigh;

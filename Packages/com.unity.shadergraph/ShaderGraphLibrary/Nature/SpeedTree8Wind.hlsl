@@ -46,6 +46,78 @@ float4 _ST_WindFrondRippleHistory;
 float4 _ST_WindAnimationHistory;
 CBUFFER_END
 
+#ifdef UNITY_DOTS_INSTANCING_ENABLED
+
+UNITY_DOTS_INSTANCING_START(UserPropertyMetadata)
+    UNITY_DOTS_INSTANCED_PROP(float4, _ST_WindVector)
+    UNITY_DOTS_INSTANCED_PROP(float4, _ST_WindGlobal)
+    UNITY_DOTS_INSTANCED_PROP(float4, _ST_WindBranch)
+    UNITY_DOTS_INSTANCED_PROP(float4, _ST_WindBranchTwitch)
+    UNITY_DOTS_INSTANCED_PROP(float4, _ST_WindBranchWhip)
+    UNITY_DOTS_INSTANCED_PROP(float4, _ST_WindBranchAnchor)
+    UNITY_DOTS_INSTANCED_PROP(float4, _ST_WindBranchAdherences)
+    UNITY_DOTS_INSTANCED_PROP(float4, _ST_WindTurbulences)
+    UNITY_DOTS_INSTANCED_PROP(float4, _ST_WindLeaf1Ripple)
+    UNITY_DOTS_INSTANCED_PROP(float4, _ST_WindLeaf1Tumble)
+    UNITY_DOTS_INSTANCED_PROP(float4, _ST_WindLeaf1Twitch)
+    UNITY_DOTS_INSTANCED_PROP(float4, _ST_WindLeaf2Ripple)
+    UNITY_DOTS_INSTANCED_PROP(float4, _ST_WindLeaf2Tumble)
+    UNITY_DOTS_INSTANCED_PROP(float4, _ST_WindLeaf2Twitch)
+    UNITY_DOTS_INSTANCED_PROP(float4, _ST_WindFrondRipple)
+    UNITY_DOTS_INSTANCED_PROP(float4, _ST_WindAnimation)
+    UNITY_DOTS_INSTANCED_PROP(float4, _ST_WindVectorHistory)
+    UNITY_DOTS_INSTANCED_PROP(float4, _ST_WindGlobalHistory)
+    UNITY_DOTS_INSTANCED_PROP(float4, _ST_WindBranchHistory)
+    UNITY_DOTS_INSTANCED_PROP(float4, _ST_WindBranchTwitchHistory)
+    UNITY_DOTS_INSTANCED_PROP(float4, _ST_WindBranchWhipHistory)
+    UNITY_DOTS_INSTANCED_PROP(float4, _ST_WindBranchAnchorHistory)
+    UNITY_DOTS_INSTANCED_PROP(float4, _ST_WindBranchAdherencesHistory)
+    UNITY_DOTS_INSTANCED_PROP(float4, _ST_WindTurbulencesHistory)
+    UNITY_DOTS_INSTANCED_PROP(float4, _ST_WindLeaf1RippleHistory)
+    UNITY_DOTS_INSTANCED_PROP(float4, _ST_WindLeaf1TumbleHistory)
+    UNITY_DOTS_INSTANCED_PROP(float4, _ST_WindLeaf1TwitchHistory)
+    UNITY_DOTS_INSTANCED_PROP(float4, _ST_WindLeaf2RippleHistory)
+    UNITY_DOTS_INSTANCED_PROP(float4, _ST_WindLeaf2TumbleHistory)
+    UNITY_DOTS_INSTANCED_PROP(float4, _ST_WindLeaf2TwitchHistory)
+    UNITY_DOTS_INSTANCED_PROP(float4, _ST_WindFrondRippleHistory)
+    UNITY_DOTS_INSTANCED_PROP(float4, _ST_WindAnimationHistory)
+UNITY_DOTS_INSTANCING_END(UserPropertyMetadata)
+
+#define _ST_WindVector                  UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _ST_WindVector)
+#define _ST_WindGlobal                  UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _ST_WindGlobal)
+#define _ST_WindBranch                  UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _ST_WindBranch)
+#define _ST_WindBranchTwitch            UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _ST_WindBranchTwitch)
+#define _ST_WindBranchWhip              UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _ST_WindBranchWhip)
+#define _ST_WindBranchAnchor            UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _ST_WindBranchAnchor)
+#define _ST_WindBranchAdherences        UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _ST_WindBranchAdherences)
+#define _ST_WindTurbulences             UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _ST_WindTurbulences)
+#define _ST_WindLeaf1Ripple             UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _ST_WindLeaf1Ripple)
+#define _ST_WindLeaf1Tumble             UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _ST_WindLeaf1Tumble)
+#define _ST_WindLeaf1Twitch             UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _ST_WindLeaf1Twitch)
+#define _ST_WindLeaf2Ripple             UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _ST_WindLeaf2Ripple)
+#define _ST_WindLeaf2Tumble             UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _ST_WindLeaf2Tumble)
+#define _ST_WindLeaf2Twitch             UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _ST_WindLeaf2Twitch)
+#define _ST_WindFrondRipple             UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _ST_WindFrondRipple)
+#define _ST_WindAnimation               UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _ST_WindAnimation)
+#define _ST_WindVectorHistory           UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _ST_WindVectorHistory)
+#define _ST_WindGlobalHistory           UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _ST_WindGlobalHistory)
+#define _ST_WindBranchHistory           UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _ST_WindBranchHistory)
+#define _ST_WindBranchTwitchHistory     UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _ST_WindBranchTwitchHistory)
+#define _ST_WindBranchWhipHistory       UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _ST_WindBranchWhipHistory)
+#define _ST_WindBranchAnchorHistory     UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _ST_WindBranchAnchorHistory)
+#define _ST_WindBranchAdherencesHistory UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _ST_WindBranchAdherencesHistory)
+#define _ST_WindTurbulencesHistory      UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _ST_WindTurbulencesHistory)
+#define _ST_WindLeaf1RippleHistory      UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _ST_WindLeaf1RippleHistory)
+#define _ST_WindLeaf1TumbleHistory      UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _ST_WindLeaf1TumbleHistory)
+#define _ST_WindLeaf1TwitchHistory      UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _ST_WindLeaf1TwitchHistory)
+#define _ST_WindLeaf2RippleHistory      UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _ST_WindLeaf2RippleHistory)
+#define _ST_WindLeaf2TumbleHistory      UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _ST_WindLeaf2TumbleHistory)
+#define _ST_WindLeaf2TwitchHistory      UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _ST_WindLeaf2TwitchHistory)
+#define _ST_WindFrondRippleHistory      UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _ST_WindFrondRippleHistory)
+#define _ST_WindAnimationHistory        UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _ST_WindAnimationHistory)
+
+#endif
+
 #define ST_WIND_QUALITY_NONE 0
 #define ST_WIND_QUALITY_FASTEST 1
 #define ST_WIND_QUALITY_FAST 2
@@ -54,24 +126,24 @@ CBUFFER_END
 #define ST_WIND_QUALITY_PALM 5
 
 ///////////////////////////////////////////////////////////////////////
-//  GetCBuffer_*() functions
-float4 GetCBuffer_WindVector(bool bHistory) { return bHistory ? _ST_WindVectorHistory : _ST_WindVector; }
-float4 GetCBuffer_WindGlobal(bool bHistory) { return bHistory ? _ST_WindGlobalHistory : _ST_WindGlobal; }
-float4 GetCBuffer_WindBranch(bool bHistory) { return bHistory ? _ST_WindBranchHistory : _ST_WindBranch; }
-float4 GetCBuffer_WindBranchTwitch(bool bHistory) { return bHistory ? _ST_WindBranchTwitchHistory : _ST_WindBranchTwitch; }
-float4 GetCBuffer_WindBranchWhip(bool bHistory) { return bHistory ? _ST_WindBranchWhipHistory : _ST_WindBranchWhip; }
-float4 GetCBuffer_WindBranchAnchor(bool bHistory) { return bHistory ? _ST_WindBranchAnchorHistory : _ST_WindBranchAnchor; }
-float4 GetCBuffer_WindBranchAdherences(bool bHistory) { return bHistory ? _ST_WindBranchAdherencesHistory : _ST_WindBranchAdherences; }
-float4 GetCBuffer_WindTurbulences(bool bHistory) { return bHistory ? _ST_WindTurbulencesHistory : _ST_WindTurbulences; }
-float4 GetCBuffer_WindLeaf1Ripple(bool bHistory) { return bHistory ? _ST_WindLeaf1RippleHistory : _ST_WindLeaf1Ripple; }
-float4 GetCBuffer_WindLeaf1Tumble(bool bHistory) { return bHistory ? _ST_WindLeaf1TumbleHistory : _ST_WindLeaf1Tumble; }
-float4 GetCBuffer_WindLeaf1Twitch(bool bHistory) { return bHistory ? _ST_WindLeaf1TwitchHistory : _ST_WindLeaf1Twitch; }
-float4 GetCBuffer_WindLeaf2Ripple(bool bHistory) { return bHistory ? _ST_WindLeaf2RippleHistory : _ST_WindLeaf2Ripple; }
-float4 GetCBuffer_WindLeaf2Tumble(bool bHistory) { return bHistory ? _ST_WindLeaf2TumbleHistory : _ST_WindLeaf2Tumble; }
-float4 GetCBuffer_WindLeaf2Twitch(bool bHistory) { return bHistory ? _ST_WindLeaf2TwitchHistory : _ST_WindLeaf2Twitch; }
-float4 GetCBuffer_WindFrondRipple(bool bHistory) { return bHistory ? _ST_WindFrondRippleHistory : _ST_WindFrondRipple; }
-float4 GetCBuffer_WindAnimation(bool bHistory) { return bHistory ? _ST_WindAnimationHistory : _ST_WindAnimation; }
+//  Get_Wind*() functions
 
+float4 Get_WindVector(bool bHistory) { return bHistory ? _ST_WindVectorHistory : _ST_WindVector; }
+float4 Get_WindGlobal(bool bHistory) { return bHistory ? _ST_WindGlobalHistory : _ST_WindGlobal; }
+float4 Get_WindBranch(bool bHistory) { return bHistory ? _ST_WindBranchHistory : _ST_WindBranch; }
+float4 Get_WindBranchTwitch(bool bHistory) { return bHistory ? _ST_WindBranchTwitchHistory : _ST_WindBranchTwitch; }
+float4 Get_WindBranchWhip(bool bHistory) { return bHistory ? _ST_WindBranchWhipHistory : _ST_WindBranchWhip; }
+float4 Get_WindBranchAnchor(bool bHistory) { return bHistory ? _ST_WindBranchAnchorHistory : _ST_WindBranchAnchor; }
+float4 Get_WindBranchAdherences(bool bHistory) { return bHistory ? _ST_WindBranchAdherencesHistory : _ST_WindBranchAdherences; }
+float4 Get_WindTurbulences(bool bHistory) { return bHistory ? _ST_WindTurbulencesHistory : _ST_WindTurbulences; }
+float4 Get_WindLeaf1Ripple(bool bHistory) { return bHistory ? _ST_WindLeaf1RippleHistory : _ST_WindLeaf1Ripple; }
+float4 Get_WindLeaf1Tumble(bool bHistory) { return bHistory ? _ST_WindLeaf1TumbleHistory : _ST_WindLeaf1Tumble; }
+float4 Get_WindLeaf1Twitch(bool bHistory) { return bHistory ? _ST_WindLeaf1TwitchHistory : _ST_WindLeaf1Twitch; }
+float4 Get_WindLeaf2Ripple(bool bHistory) { return bHistory ? _ST_WindLeaf2RippleHistory : _ST_WindLeaf2Ripple; }
+float4 Get_WindLeaf2Tumble(bool bHistory) { return bHistory ? _ST_WindLeaf2TumbleHistory : _ST_WindLeaf2Tumble; }
+float4 Get_WindLeaf2Twitch(bool bHistory) { return bHistory ? _ST_WindLeaf2TwitchHistory : _ST_WindLeaf2Twitch; }
+float4 Get_WindFrondRipple(bool bHistory) { return bHistory ? _ST_WindFrondRippleHistory : _ST_WindFrondRipple; }
+float4 Get_WindAnimation(bool bHistory) { return bHistory ? _ST_WindAnimationHistory : _ST_WindAnimation; }
 
 ///////////////////////////////////////////////////////////////////////
 //  UnpackNormalFromFloat
@@ -247,7 +319,7 @@ float Oscillate(float3 vPos,
         fBroadDetail = lerp(fBroadDetail, fTarget, fAmount);
         fBroadDetail = lerp(fBroadDetail, fTarget, fAmount);
 
-        fOscillation = fBroadDetail * fTwitch * (1.0 - GetCBuffer_WindVector(bHistory).w) + fFineDetail * (1.0 - fTwitch);
+        fOscillation = fBroadDetail * fTwitch * (1.0 - Get_WindVector(bHistory).w) + fFineDetail * (1.0 - fTwitch);
 
         if (bWhip)
             fOscillation *= 1.0 + (vOscillations.w * fWhip);
@@ -297,8 +369,8 @@ float3 GlobalWind(float3 vPos, float3 vInstancePos, bool bPreserveShape, float3 
 {
     // WIND_LOD_GLOBAL may be on, but if the global wind effect (WIND_EFFECT_GLOBAL_ST_Wind)
     // was disabled for the tree in the Modeler, we should skip it
-    const float4 windGlobal = GetCBuffer_WindGlobal(bHistory);
-    const float4 windBranchAdherences = GetCBuffer_WindBranchAdherences(bHistory);
+    const float4 windGlobal = Get_WindGlobal(bHistory);
+    const float4 windBranchAdherences = Get_WindBranchAdherences(bHistory);
 
     float fLength = 1.0;
     if (bPreserveShape)
@@ -410,10 +482,10 @@ float3 DirectionalBranchWind(float3 vPos,
     // add in the direction, accounting for turbulence
     float fAdherenceScale = 1.0;
     if (bTurbulence)
-        fAdherenceScale = Turbulence(fTime, fOffset, GetCBuffer_WindAnimation(bHistory).x, fTurbulence);
+        fAdherenceScale = Turbulence(fTime, fOffset, Get_WindAnimation(bHistory).x, fTurbulence);
 
     if (bWhip)
-        fAdherenceScale += vOscillations.w * GetCBuffer_WindVector(bHistory).w * fWhip;
+        fAdherenceScale += vOscillations.w * Get_WindVector(bHistory).w * fWhip;
 
     //if (bRoll)
     //  fAdherenceScale = Roll(fAdherenceScale, _ST_WindRollingBranches.x, _ST_WindRollingBranches.y, _ST_WindRollingBranches.z, _ST_WindRollingBranches.w, vPos.xyz, fTime + fOffset, vRotatedWindVector);
@@ -462,13 +534,13 @@ float3 DirectionalBranchWindFrondStyle(float3 vPos,
     // add in the direction, accounting for turbulence
     float fAdherenceScale = 1.0;
     if (bTurbulence)
-        fAdherenceScale = Turbulence(fTime, fOffset, GetCBuffer_WindAnimation(bHistory).x, fTurbulence);
+        fAdherenceScale = Turbulence(fTime, fOffset, Get_WindAnimation(bHistory).x, fTurbulence);
 
     //if (bRoll)
     //  fAdherenceScale = Roll(fAdherenceScale, _ST_WindRollingBranches.x, _ST_WindRollingBranches.y, _ST_WindRollingBranches.z, _ST_WindRollingBranches.w, vPos.xyz, fTime + fOffset, vRotatedWindVector);
 
     if (bWhip)
-        fAdherenceScale += vOscillations.w * GetCBuffer_WindVector(bHistory).w * fWhip;
+        fAdherenceScale += vOscillations.w * Get_WindVector(bHistory).w * fWhip;
 
     float3 vWindAdherenceVector = vRotatedBranchAnchor - vPos.xyz;
     vPos.xyz += vWindAdherenceVector * fAdherence * fAdherenceScale * fWeight;
@@ -483,11 +555,11 @@ float3 DirectionalBranchWindFrondStyle(float3 vPos,
 // Apply only to better, best, palm winds
 float3 BranchWind(bool isPalmWind, float3 vPos, float3 vInstancePos, float4 vWindData, float3 vRotatedWindVector, float3 vRotatedBranchAnchor, bool bHistory)
 {
-    const float4 windBranch = GetCBuffer_WindBranch(bHistory);
-    const float4 windBranchTwitch = GetCBuffer_WindBranchTwitch(bHistory);
-    const float4 windBranchAdherences = GetCBuffer_WindBranchAdherences(bHistory);
-    const float4 windBarnchWhip = GetCBuffer_WindBranchWhip(bHistory);
-    const float4 windTurbulences = GetCBuffer_WindTurbulences(bHistory);
+    const float4 windBranch = Get_WindBranch(bHistory);
+    const float4 windBranchTwitch = Get_WindBranchTwitch(bHistory);
+    const float4 windBranchAdherences = Get_WindBranchAdherences(bHistory);
+    const float4 windBarnchWhip = Get_WindBranchWhip(bHistory);
+    const float4 windTurbulences = Get_WindTurbulences(bHistory);
     const bool bWhip = isPalmWind;
     const bool bRoll = false;
     const bool bComplex = true;
@@ -646,12 +718,12 @@ float3 LeafWind(bool isBestWind,
     float3 vRotatedWindVector,
     bool bHistory)
 {
-    const float4 windLeaf2Ripple = GetCBuffer_WindLeaf2Ripple(bHistory);
-    const float4 windLeaf1Ripple = GetCBuffer_WindLeaf1Ripple(bHistory);
-    const float4 windLeaf1Tumble = GetCBuffer_WindLeaf1Tumble(bHistory);
-    const float4 windLeaf2Tumble = GetCBuffer_WindLeaf2Tumble(bHistory);
-    const float4 windLeaf1Twitch = GetCBuffer_WindLeaf2Twitch(bHistory);
-    const float4 windLeaf2Twitch = GetCBuffer_WindLeaf2Twitch(bHistory);
+    const float4 windLeaf2Ripple = Get_WindLeaf2Ripple(bHistory);
+    const float4 windLeaf1Ripple = Get_WindLeaf1Ripple(bHistory);
+    const float4 windLeaf1Tumble = Get_WindLeaf1Tumble(bHistory);
+    const float4 windLeaf2Tumble = Get_WindLeaf2Tumble(bHistory);
+    const float4 windLeaf1Twitch = Get_WindLeaf2Twitch(bHistory);
+    const float4 windLeaf2Twitch = Get_WindLeaf2Twitch(bHistory);
 
     vPos = LeafRipple(vPos, vDirection, fScale, fPackedRippleDir,
         (bLeaf2 ? windLeaf2Ripple.x : windLeaf1Ripple.x),
@@ -696,7 +768,7 @@ float3 RippleFrondOneSided(float3 vPos,
     if (fU < 0.5)
         fOffset = 0.75;
 
-    const float4 windFrondRipple = GetCBuffer_WindFrondRipple(bHistory);
+    const float4 windFrondRipple = Get_WindFrondRipple(bHistory);
 
     float4 vOscillations = TrigApproximate(float4((windFrondRipple.x + fV) * windFrondRipple.z + fOffset, 0.0, 0.0, 0.0));
 
@@ -731,7 +803,7 @@ float3 RippleFrondTwoSided(float3 vPos,
 #endif
 )
 {
-    const float4 windFrondRipple = GetCBuffer_WindFrondRipple(bHistory);
+    const float4 windFrondRipple = Get_WindFrondRipple(bHistory);
     float4 vOscillations = TrigApproximate(float4(windFrondRipple.x * fLengthPercent * windFrondRipple.z, 0.0, 0.0, 0.0));
 
     float3 vRippleDir = UnpackNormalFromFloat(fPackedRippleDir);
@@ -804,7 +876,6 @@ float3 SpeedTreeWind(
 
     // ---------------------------------------------------------------------------------
     // TODO: move this outside of this function as they have nothing to do with wind
-    // -  ApplySmoothLODTransition()
     // -  DoLeafFacing()
     // ---------------------------------------------------------------------------------
     if (!bCrossfade && !bBillboard)
@@ -820,7 +891,7 @@ float3 SpeedTreeWind(
     // ---------------------------------------------------------------------------------
 
     // check wind enabled & data available
-    const float3 windVector = GetCBuffer_WindVector(bHistory).xyz;
+    const float3 windVector = Get_WindVector(bHistory).xyz;
     float3 rotatedWindVector = TransformWorldToObjectDir(windVector);
     float windLength = length(rotatedWindVector);
     bool bWindEnabled = (iWindQuality > 0) && (length(windVector) > 1.0e-5);
@@ -833,7 +904,7 @@ float3 SpeedTreeWind(
     rotatedWindVector /= windLength;
     float4x4 matObjectToWorld = GetObjectToWorldMatrix();
     float3 treePos = GetAbsolutePositionWS(float3(matObjectToWorld[0].w, matObjectToWorld[1].w, matObjectToWorld[2].w));
-    float globalWindTime = GetCBuffer_WindGlobal(bHistory).x;
+    float globalWindTime = Get_WindGlobal(bHistory).x;
 
     // BILLBOARD WIND =======================================================================================================================
     if(bBillboard) 
@@ -868,7 +939,7 @@ float3 SpeedTreeWind(
     bool bDoBranchWind = (iWindQuality == ST_WIND_QUALITY_BETTER) || (iWindQuality == ST_WIND_QUALITY_BEST) || (iWindQuality == ST_WIND_QUALITY_PALM);
     if (bDoBranchWind)
     {
-        const float4 windBranchAnchorHistory = GetCBuffer_WindBranchAnchor(bHistory);
+        const float4 windBranchAnchorHistory = Get_WindBranchAnchor(bHistory);
         float3 rotatedBranchAnchor = TransformWorldToObjectDir(windBranchAnchorHistory.xyz) * windBranchAnchorHistory.w;
         vReturnPos = BranchWind(bDoPalmWind, vReturnPos, treePos, float4(vTexcoord0.zw, 0, 0), rotatedWindVector, rotatedBranchAnchor, bHistory);
     }
@@ -878,16 +949,12 @@ float3 SpeedTreeWind(
     return vReturnPos;
 }
 
-
 // This version is used by ShaderGraph
 void SpeedTreeWind_float(float3 vPos, float3 vNormal, float4 vTexcoord0, float4 vTexcoord1, float4 vTexcoord2, float4 vTexcoord3, int iWindQuality, bool bBillboard, bool bCrossfade, bool bHistory, out float3 outPos)
 {
     if (iWindQuality != ST_WIND_QUALITY_NONE)
-    {
         outPos = SpeedTreeWind(vPos, vNormal, vTexcoord0, vTexcoord1, vTexcoord2, vTexcoord3, iWindQuality, bBillboard, bCrossfade, bHistory);
-    }
     else
         outPos = vPos;
-
 }
 #endif // SPEEDTREE_WIND_INCLUDED

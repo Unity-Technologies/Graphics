@@ -257,19 +257,19 @@ platforms:
     agents_project:
       default:
         type: Unity::VM::GPU
-        image: automation-tooling/win-10-1909-unity:v2.929716
+        image: automation-tooling/win-10-21H1:v2.1243286
         flavor: b1.large
       standalone_build:
         type: Unity::VM
-        image: automation-tooling/win-10-1909-unity:v2.929716
+        image: automation-tooling/win-10-21H1:v2.1243286
         flavor: b1.xlarge
       editmode:
         type: Unity::VM
-        image: automation-tooling/win-10-1909-unity:v2.929716
+        image: automation-tooling/win-10-21H1:v2.1243286
         flavor: b1.large
     agent_package:
       type: Unity::VM
-      image: package-ci/win10:v4
+      image: package-ci/win10:v4.30.0
       flavor: b1.large
     copycmd: copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
     editorpath: .\.Editor
@@ -312,16 +312,18 @@ platforms:
     agents_project_Metal:
       default:
         type: Unity::metal::macmini
-        image: automation-tooling/macos-10.14:v2.901415
+        image: automation-tooling/macos-11:v2.1225910
         flavor: m1.mac
+        model: 2018-i3-macos11
     agents_project_OpenGLCore:
       default:
         type: Unity::VM::osx
-        image: automation-tooling/macos-10.14:v2.901415
+        image: automation-tooling/macos-11:v2.1225910
         flavor: m1.mac
+        model: 2018-i3-macos11
     agent_package:
       type: Unity::VM::osx
-      image: package-ci/macos-13:v4
+      image: package-ci/macos-13:v4.30.0
       flavor: m1.mac
     copycmd: cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
     editorpath: "$(pwd)/.Editor/Unity.app/Contents/MacOS/Unity"
@@ -402,15 +404,15 @@ platforms:
     agents_project:
       default:
         type: Unity::VM::GPU
-        image: desktop/ubuntu-20.04-desktop:v2.1179434
+        image: desktop/ubuntu-20.04-desktop:v2.1348791
         flavor: b1.large
       editmode:
         type: Unity::VM
-        image: desktop/ubuntu-20.04-desktop:v2.1179434
+        image: desktop/ubuntu-20.04-desktop:v2.1348791
         flavor: b1.large
       standalone_build:
         type: Unity::VM
-        image: desktop/ubuntu-20.04-desktop:v2.1179434
+        image: desktop/ubuntu-20.04-desktop:v2.1348791
         flavor: b1.xlarge
     commands:
       [OpenGlCore, Vulkan]:
@@ -447,21 +449,21 @@ platforms:
 non_project_agents:
   package_ci_ubuntu_large:
     type: Unity::VM
-    image: package-ci/ubuntu-22.04:v4
+    image: package-ci/ubuntu-22.04:v4.30.0
     flavor: b1.large
   package_ci_ubuntu_xlarge:
     type: Unity::VM
-    image: package-ci/ubuntu-22.04:v4
+    image: package-ci/ubuntu-22.04:v4.30.0
     flavor: b1.xlarge
   package_ci_ubuntu_small:
     type: Unity::VM
-    image: package-ci/ubuntu-22.04:v4
+    image: package-ci/ubuntu-22.04:v4.30.0
     flavor: b1.small
   package_ci_win_large:
     type: Unity::VM
-    image: package-ci/win10:v4
+    image: package-ci/win10:v4.30.0
     flavor: b1.large
   package_ci_mac:
     type: Unity::VM::osx
-    image: package-ci/macos-13:v4
+    image: package-ci/macos-13:v4.30.0
     flavor: m1.mac

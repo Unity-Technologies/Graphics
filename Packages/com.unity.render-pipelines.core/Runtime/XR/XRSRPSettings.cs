@@ -134,7 +134,7 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Eye texture height.
+        /// Occlusion mesh's scaling factor. 
         /// </summary>
         public static float occlusionMeshScale
         {
@@ -156,7 +156,7 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Eye texture height.
+        /// Controls XR mirror view blit operation
         /// </summary>
         public static int mirrorViewMode
         {

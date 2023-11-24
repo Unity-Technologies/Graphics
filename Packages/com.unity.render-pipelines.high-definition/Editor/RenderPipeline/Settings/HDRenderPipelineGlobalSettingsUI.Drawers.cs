@@ -64,10 +64,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 bool oldGuiEnabled = GUI.enabled;
                 GUI.enabled = false;
 
-                // Not serialized as editor only datas... Retrieve them in data
-                EditorGUI.showMixedValue = serialized.editorResourceHasMultipleDifferentValues;
-                var editorResources = EditorGUILayout.ObjectField(Styles.renderPipelineEditorResourcesContent, serialized.firstEditorResources, typeof(HDRenderPipelineEditorResources), allowSceneObjects: false) as HDRenderPipelineEditorResources;
-
                 EditorGUI.showMixedValue = false;
 
                 GUI.enabled = oldGuiEnabled;
@@ -134,7 +130,16 @@ namespace UnityEditor.Rendering.HighDefinition
                 VolumeProfile lookDevAsset = RenderPipelineGlobalSettingsUI.DrawVolumeProfileAssetField(
                     serialized.lookDevVolumeProfile,
                     Styles.lookDevVolumeProfileAssetLabel,
-                    getOrCreateVolumeProfile: () => globalSettings.GetOrAssignLookDevVolumeProfile(),
+                    getOrCreateVolumeProfile: () =>
+                    {
+                        var globalSettings = serialized.serializedObject.targetObject as HDRenderPipelineGlobalSettings;
+                        var volumeProfile = globalSettings.lookDevVolumeProfile;
+                        if (volumeProfile != null)
+                            return volumeProfile;
+
+                        return VolumeUtils.CopyVolumeProfileFromResourcesToAssets(GraphicsSettings
+                            .GetRenderPipelineSettings<HDRenderPipelineEditorAssets>().lookDevVolumeProfile);
+                    },
                     ref s_LookDevVolumeProfileFoldoutExpanded
                 );
 
@@ -293,8 +298,6 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         #endregion
-
-
 
         static readonly CED.IDrawer Inspector = CED.Group(
             VolumeSection,

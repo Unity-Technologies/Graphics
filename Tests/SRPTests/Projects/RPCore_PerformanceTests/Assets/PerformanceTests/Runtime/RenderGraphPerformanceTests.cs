@@ -5,8 +5,8 @@ using NUnit.Framework;
 using Unity.PerformanceTesting;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
-using UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassCompiler;
+using UnityEngine.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler;
 using UnityEngine.Rendering;
 using UnityEngine.TestTools;
 
@@ -120,8 +120,7 @@ namespace PerformanceTests.Runtime
                 invalidContextForTesting = true
             };
 
-            var executor = m_RenderGraph.RecordAndExecute(rgParams);
-
+            m_RenderGraph.BeginRecording(rgParams);
             switch (testCase)
             {
                 case TestCase.SimplePass:
@@ -131,7 +130,7 @@ namespace PerformanceTests.Runtime
                     throw new NotImplementedException();
             }
 
-            executor.Dispose();
+            m_RenderGraph.EndRecordingAndExecute();
         }
 
         class SimplePassData
@@ -154,8 +153,8 @@ namespace PerformanceTests.Runtime
             {
                 using (var builder = m_RenderGraph.AddRasterRenderPass<SimplePassData>("Simple Pass", out var passData))
                 {
-                    builder.UseTextureFragment(colorTarget, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
-                    builder.UseTextureFragmentDepth(depthTarget, IBaseRenderGraphBuilder.AccessFlags.Write);
+                    builder.UseTextureFragment(colorTarget, 0, AccessFlags.Write);
+                    builder.UseTextureFragmentDepth(depthTarget, AccessFlags.Write);
                     builder.AllowPassCulling(false);
                     builder.SetRenderFunc((SimplePassData data, RasterGraphContext context) => { });
                 }

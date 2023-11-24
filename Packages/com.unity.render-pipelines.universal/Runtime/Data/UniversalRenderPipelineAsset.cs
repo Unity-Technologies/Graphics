@@ -432,9 +432,12 @@ namespace UnityEngine.Rendering.Universal
         Shader m_DefaultShader;
         ScriptableRenderer[] m_Renderers = new ScriptableRenderer[1];
 
+        internal bool IsAtLastVersion() => k_LastVersion == k_AssetVersion;
+
+        private const int k_LastVersion = 12;
         // Default values set when a new UniversalRenderPipeline asset is created
-        [SerializeField] int k_AssetVersion = 12;
-        [SerializeField] int k_AssetPreviousVersion = 12;
+        [SerializeField] int k_AssetVersion = k_LastVersion;
+        [SerializeField] int k_AssetPreviousVersion = k_LastVersion;
 
         // Deprecated settings for upgrading sakes
         [SerializeField] RendererType m_RendererType = RendererType.UniversalRenderer;
@@ -581,12 +584,14 @@ namespace UnityEngine.Rendering.Universal
         // GPU Resident Drawer
         [FormerlySerializedAs("m_MacroBatcherMode"), SerializeField]
         private GPUResidentDrawerMode m_GPUResidentDrawerMode = GPUResidentDrawerMode.Disabled;
+        [SerializeField] float m_SmallMeshScreenPercentage = 0.0f;
 
         GPUResidentDrawerSettings IGPUResidentRenderPipeline.gpuResidentDrawerSettings => new()
         {
             mode = m_GPUResidentDrawerMode,
             supportDitheringCrossFade = m_EnableLODCrossFade,
             allowInEditMode = true,
+            smallMeshScreenPercentage = m_SmallMeshScreenPercentage,
 #if UNITY_EDITOR
             pickingShader = Shader.Find("Hidden/Universal Render Pipeline/BRGPicking"),
 #endif
@@ -604,8 +609,6 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] VolumeFrameworkUpdateMode m_VolumeFrameworkUpdateMode = VolumeFrameworkUpdateMode.EveryFrame;
 
         [SerializeField] VolumeProfile m_VolumeProfile;
-
-        [SerializeField] TextureResources m_Textures;
 
         // Note: A lut size of 16^3 is barely usable with the HDR grading mode. 32 should be the
         // minimum, the lut being encoded in log. Lower sizes would work better with an additional
@@ -1792,25 +1795,6 @@ namespace UnityEngine.Rendering.Universal
         public string[] lightLayerMaskNames => new string[0];
 
         /// <summary>
-        /// Returns asset texture resources
-        /// </summary>
-        public TextureResources textures
-        {
-            get
-            {
-                if (m_Textures == null)
-                    m_Textures = new TextureResources();
-
-#if UNITY_EDITOR
-                if (m_Textures.NeedsReload())
-                    ResourceReloader.ReloadAllNullIn(this, packagePath);
-#endif
-
-                return m_Textures;
-            }
-        }
-
-        /// <summary>
         /// GPUResidentDrawerMode configured on this pipeline asset
         /// </summary>
         public GPUResidentDrawerMode gpuResidentDrawerMode
@@ -1856,6 +1840,22 @@ namespace UnityEngine.Rendering.Universal
                 Debug.LogWarning("GPUResidentDrawer: Disabled due to some configured Universal Renderers not supporting Forward+ ");
 
             return supported;
+        }
+
+        /// <summary>
+        /// Default minimum screen percentage (0-20%) gpu-driven Renderers can cover before getting culled.
+        /// </summary>
+        public float smallMeshScreenPercentage
+        {
+            get => m_SmallMeshScreenPercentage;
+            set
+            {
+                if (Math.Abs(value - m_SmallMeshScreenPercentage) < float.Epsilon)
+                    return;
+
+                m_SmallMeshScreenPercentage = Mathf.Clamp(value, 0.0f, 20.0f);
+                OnValidate();
+            }
         }
 
         /// <summary>
@@ -2076,31 +2076,11 @@ namespace UnityEngine.Rendering.Universal
         #endregion
 
         /// <summary>
-        /// Class containing texture resources used in URP.
+        /// Indicates if this render pipeline instance supports Adaptive Probe Volume.
         /// </summary>
-        [Serializable, ReloadGroup]
-        public sealed class TextureResources
+        public bool supportProbeVolume
         {
-            /// <summary>
-            /// Pre-baked blue noise textures.
-            /// </summary>
-            [Reload("Textures/BlueNoise64/L/LDR_LLL1_0.png")]
-            public Texture2D blueNoise64LTex;
-
-            /// <summary>
-            /// Bayer matrix texture.
-            /// </summary>
-            [Reload("Textures/BayerMatrix.png")]
-            public Texture2D bayerMatrixTex;
-
-            /// <summary>
-            /// Check if the textures need reloading.
-            /// </summary>
-            /// <returns>True if any of the textures need reloading.</returns>
-            public bool NeedsReload()
-            {
-                return blueNoise64LTex == null || bayerMatrixTex == null;
-            }
+            get => lightProbeSystem == LightProbeSystem.ProbeVolumes;
         }
 
         /// <summary>
@@ -2120,12 +2100,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Returns the projects global ProbeVolumeSceneData instance.
         /// </summary>
-        public ProbeVolumeSceneData probeVolumeSceneData
-        {
-            get
-            {
-                return UniversalRenderPipelineGlobalSettings.instance?.apvScenesData;
-            }
-        }
+        [Obsolete("This property is no longer necessary.")]
+        public ProbeVolumeSceneData probeVolumeSceneData => null;
     }
 }

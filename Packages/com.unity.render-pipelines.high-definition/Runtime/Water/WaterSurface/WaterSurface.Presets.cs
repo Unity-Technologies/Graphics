@@ -11,6 +11,7 @@ namespace UnityEngine.Rendering.HighDefinition
             waterSurface.cpuLowLatency = false;
             waterSurface.cpuFullResolution = false;
             waterSurface.cpuEvaluateRipples = false;
+            waterSurface.renderingLayerMask = (RenderingLayerMask)GraphicsSettings.defaultRenderingLayerMask;
 
             // Simulation
             waterSurface.waterMask = null;

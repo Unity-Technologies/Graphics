@@ -8,6 +8,7 @@ namespace UnityEngine.Rendering
 {
     internal struct ParallelBitArray
     {
+        private Allocator m_Allocator;
         private NativeArray<long> m_Bits;
         private int m_Length;
 
@@ -20,6 +21,7 @@ namespace UnityEngine.Rendering
 
         public ParallelBitArray(int length, Allocator allocator, NativeArrayOptions options = NativeArrayOptions.ClearMemory)
         {
+            m_Allocator = allocator;
             m_Bits = new NativeArray<long>((length + 63) / 64, allocator, options);
             m_Length = length;
         }
@@ -39,7 +41,15 @@ namespace UnityEngine.Rendering
             int oldBitsLength = m_Bits.Length;
             int newBitsLength = (newLength + 63) / 64;
             if (newBitsLength != oldBitsLength)
-                m_Bits.ResizeArray(newBitsLength);
+            {
+                var newBits = new NativeArray<long>(newBitsLength, m_Allocator, NativeArrayOptions.UninitializedMemory);
+                if (m_Bits.IsCreated)
+                {
+                    NativeArray<long>.Copy(m_Bits, newBits, m_Bits.Length);
+                    m_Bits.Dispose();
+                }
+                m_Bits = newBits;
+            }
 
             // mask off bits past the length
             int validLength = Math.Min(oldLength, newLength);
@@ -101,6 +111,24 @@ namespace UnityEngine.Rendering
         public void SetChunk(int chunk_index, ulong chunk_bits)
         {
             m_Bits[chunk_index] = (long)chunk_bits;
+        }
+
+        public unsafe ulong InterlockedReadChunk(int chunk_index)
+        {
+            long* entries = (long*)m_Bits.GetUnsafeReadOnlyPtr();
+            return (ulong)Interlocked.Read(ref entries[chunk_index]);
+        }
+
+        public unsafe void InterlockedOrChunk(int chunk_index, ulong chunk_bits)
+        {
+            long* entries = (long*)m_Bits.GetUnsafePtr();
+
+            long old_entry, new_entry;
+            do
+            {
+                old_entry = Interlocked.Read(ref entries[chunk_index]);
+                new_entry = old_entry | (long)chunk_bits;
+            } while (Interlocked.CompareExchange(ref entries[chunk_index], new_entry, old_entry) != old_entry);
         }
 
         public int ChunkCount()

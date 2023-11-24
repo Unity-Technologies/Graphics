@@ -9,19 +9,14 @@
 
 int _HairDebugMode;
 
-// #ifdef DEBUG_DISPLAY
-// Don't care about this warning in debug (still, it doesn't make sense why it's being raised, barely any registers used..)
-#pragma warning( disable : 4714 ) // sum of temp registers and indexable temp registers times 256 threads exceeds the recommended total 16384.  Performance may be reduced at kernel
-//#endif
-
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Coverage.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/LineRendering/Core/LineRenderingCommon.hlsl"
-
 // TODO: Unfortunately have to include these random files just to be able to call ComputeMotionVector.
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/Unlit.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/SortingComputeUtils.hlsl"
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Coverage.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/LineRendering/Core/LineRenderingCommon.hlsl"
 
 #define THREADING_BLOCK_SIZE 64
 
@@ -48,9 +43,9 @@ ByteAddressBuffer _ClusterCountersBuffer;
 Texture2D<half4> _ShadingSamplesTexture;
 
 // Outputs
-RW_TEXTURE2D_X(half4, _OutputTargetColor);
-RW_TEXTURE2D_X(half4, _OutputTargetMV);
-RW_TEXTURE2D_X(half,  _OutputTargetDepth);
+RW_TEXTURE2D_X(float4, _OutputTargetColor);
+RW_TEXTURE2D_X(float4, _OutputTargetMV);
+RW_TEXTURE2D_X(float,  _OutputTargetDepth);
 
 struct Bin
 {

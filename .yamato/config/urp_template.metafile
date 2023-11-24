@@ -35,21 +35,21 @@ platforms:
     agents_project:
       default:
         type: Unity::VM::GPU
-        image: automation-tooling/win-10-1909-unity:v2.929716
+        image: automation-tooling/win-10-21H1:v2.1243286
         flavor: b1.large
         model: gtx1080
       editmode:
         type: Unity::VM
-        image: automation-tooling/win-10-1909-unity:v2.929716
+        image: automation-tooling/win-10-21H1:v2.1243286
         flavor: b1.large
       standalone:
         type: Unity::VM::GPU
-        image: automation-tooling/win-10-1909-unity:v2.929716
+        image: automation-tooling/win-10-21H1:v2.1243286
         flavor: b1.large
         model: gtx1080
       standalone_build:
         type: Unity::VM
-        image: automation-tooling/win-10-1909-unity:v2.929716
+        image: automation-tooling/win-10-21H1:v2.1243286
         flavor: b1.large
   - name: OSX
     apis:

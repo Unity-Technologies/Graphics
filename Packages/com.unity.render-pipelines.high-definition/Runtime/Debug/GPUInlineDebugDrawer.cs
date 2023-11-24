@@ -4,7 +4,7 @@
 
 using System.Runtime.InteropServices;
 using Unity.Collections.LowLevel.Unsafe;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -190,7 +190,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.mousePosition = new Vector2(Mathf.Round(Event.current.mousePosition.x), Mathf.Round(cam.actualHeight - 1 - Event.current.mousePosition.y));
 
                 builder.SetRenderFunc(
-                    (GPUInlineDebugDrawerData data, Experimental.Rendering.RenderGraphModule.RenderGraphContext ctx) =>
+                    (GPUInlineDebugDrawerData data, Rendering.RenderGraphModule.RenderGraphContext ctx) =>
                     {
                         ((GraphicsBuffer)data.lineWSBuffer).SetCounterValue(0u);
                         ((GraphicsBuffer)data.lineCSBuffer).SetCounterValue(0u);

@@ -1,6 +1,6 @@
 using Unity.Mathematics;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 using static Unity.Mathematics.math;
 
 namespace UnityEngine.Rendering.HighDefinition

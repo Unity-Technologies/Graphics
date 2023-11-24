@@ -143,12 +143,6 @@ namespace UnityEngine.VFX.Utility
         /// <param name="component">Component to update.</param>
         public override void UpdateBinding(VisualEffect component)
         {
-            var depth = AdditionalData.GetGraphicsBuffer(HDAdditionalCameraData.BufferAccessType.Depth);
-            var color = AdditionalData.GetGraphicsBuffer(HDAdditionalCameraData.BufferAccessType.Color);
-
-            if (depth == null && color == null)
-                return;
-
             var targetSpace = component.visualEffectAsset.GetExposedSpace(m_Position);
             Matrix4x4 readTransform;
             if (targetSpace == VFXSpace.Local)
@@ -178,6 +172,9 @@ namespace UnityEngine.VFX.Utility
             Vector2 scaledSize = DynamicResolutionHandler.instance.GetScaledSize(new Vector2Int(m_Camera.pixelWidth, m_Camera.pixelHeight));
             DynamicResolutionHandler.ClearSelectedCamera();
             component.SetVector2(m_ScaledDimensions, scaledSize);
+
+            var depth = AdditionalData.GetGraphicsBuffer(HDAdditionalCameraData.BufferAccessType.Depth);
+            var color = AdditionalData.GetGraphicsBuffer(HDAdditionalCameraData.BufferAccessType.Color);
 
             if (depth != null)
                 component.SetTexture(m_DepthBuffer, depth.rt);

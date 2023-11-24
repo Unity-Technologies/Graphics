@@ -5,7 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using UnityEngine.Experimental.GlobalIllumination;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Rendering.RendererUtils;
 using UnityEngine.UI;
 
@@ -466,13 +466,10 @@ namespace UnityEngine.Rendering.HighDefinition
             QualitySettings.maximumLODLevel = cameraFrameSettings.GetResolvedMaximumLODLevel(m_Asset);
 
 #if UNITY_EDITOR
-            UpgradeResourcesIfNeeded();
-
             //In case we are loading element in the asset pipeline (occurs when library is not fully constructed) the creation of the HDRenderPipeline is done at a time we cannot access resources.
             //So in this case, the reloader would fail and the resources cannot be validated. So skip validation here.
             //The HDRenderPipeline will be reconstructed in a few frame which will fix this issue.
-            m_ResourcesInitialized = m_GlobalSettings.AreRuntimeResourcesCreated() &&
-                                     m_GlobalSettings.AreEditorResourcesCreated();
+            m_ResourcesInitialized = m_GlobalSettings.AreRuntimeResourcesCreated();
 
             if (!m_ResourcesInitialized)
                 return;
@@ -616,26 +613,18 @@ namespace UnityEngine.Rendering.HighDefinition
             SupportedRenderingFeatures.active.skyOcclusion = apvIsEnabled;
             if (apvIsEnabled)
             {
-                var pvr = ProbeReferenceVolume.instance;
-                bool supportBlending = m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolumeScenarioBlending;
                 ProbeReferenceVolume.instance.Initialize(new ProbeVolumeSystemParameters
                 {
                     memoryBudget = m_Asset.currentPlatformRenderPipelineSettings.probeVolumeMemoryBudget,
                     blendingMemoryBudget = m_Asset.currentPlatformRenderPipelineSettings.probeVolumeBlendingMemoryBudget,
-                    probeDebugShader = runtimeShaders.probeVolumeDebugShader,
-                    fragmentationDebugShader = runtimeShaders.probeVolumeFragmentationDebugShader,
-                    probeSamplingDebugShader = runtimeShaders.probeVolumeSamplingDebugShader,
-                    probeSamplingDebugMesh = runtimeAssets.probeSamplingDebugMesh,
-                    probeSamplingDebugTexture = runtimeTextures.numbersDisplayTex,
-                    offsetDebugShader = runtimeShaders.probeVolumeOffsetDebugShader,
-                    streamingUploadShader = runtimeShaders.probeVolumeUploadDataCS,
-                    streamingUploadL2Shader = runtimeShaders.probeVolumeUploadDataL2CS,
-                    scenarioBlendingShader = supportBlending ? runtimeShaders.probeVolumeBlendStatesCS : null,
-                    sceneData = m_GlobalSettings.GetOrCreateAPVSceneData(),
                     shBands = m_Asset.currentPlatformRenderPipelineSettings.probeVolumeSHBands,
                     supportScenarios = m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolumeScenarios,
+                    supportScenarioBlending = m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolumeScenarioBlending,
                     supportDiskStreaming = m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolumeDiskStreaming,
-                    supportGPUStreaming = m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolumeGPUStreaming
+                    supportGPUStreaming = m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolumeGPUStreaming,
+#pragma warning disable 618
+                    sceneData = m_GlobalSettings.GetOrCreateAPVSceneData(), // Only needed for migration
+#pragma warning restore 618
                 });
                 RegisterRetrieveOfProbeVolumeExtraDataAction();
             }
@@ -718,12 +707,6 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 #if UNITY_EDITOR
-        void UpgradeResourcesIfNeeded()
-        {
-            // Check that the serialized Resources are not broken
-            m_GlobalSettings.EnsureEditorResources(forceReload: true);
-        }
-
         public void UpdateDecalSystemShaderGraphs()
         {
             DecalSystem.instance.UpdateTransparentShaderGraphs();
@@ -816,14 +799,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
             m_DebugDisplaySettings.nvidiaDebugView.Reset();
-            SetupDLSSFeature();
 #endif
-        }
-
-        internal static void SetupDLSSFeature()
-        {
-            if (DLSSPass.SetupFeature())
-                HDDynamicResolutionPlatformCapabilities.ActivateDLSS();
+            HDDynamicResolutionPlatformCapabilities.SetupFeatures();
         }
 
         bool CheckAPIValidity()
@@ -1285,7 +1262,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void SetupDLSSForCameraDataAndDynamicResHandler(
+        void SetupPartnerUpscalers(
             in HDAdditionalCameraData hdCam,
             Camera camera,
             XRPass xrPass,
@@ -1295,18 +1272,50 @@ namespace UnityEngine.Rendering.HighDefinition
             if (hdCam == null)
                 return;
 
-            hdCam.cameraCanRenderDLSS = cameraRequestedDynamicRes
-                && HDDynamicResolutionPlatformCapabilities.DLSSDetected
-                && hdCam.allowDeepLearningSuperSampling
-                && m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.enableDLSS
-                && m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.enabled;
+            hdCam.cameraCanRenderDLSS = false;
+            hdCam.cameraCanRenderFSR2 = false;
 
-            if (m_DLSSPass != null && hdCam.cameraCanRenderDLSS)
+            if (!cameraRequestedDynamicRes || !m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.enabled)
+                return;
+
+            var upscalerList = m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.advancedUpscalersByPriority;
+            if (upscalerList == null || upscalerList.Count == 0)
+                return;
+
+            // External upscaler priority system: we pick the first upscaler in the pre sorted priority list to activate for the frame.
+            bool found = false;
+            for (int i = 0; i < upscalerList.Count && !found; ++i)
             {
-                bool useOptimalSettings = hdCam.deepLearningSuperSamplingUseCustomAttributes
-                    ? hdCam.deepLearningSuperSamplingUseOptimalSettings
-                    : m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.DLSSUseOptimalSettings;
-                m_DLSSPass.SetupDRSScaling(useOptimalSettings, camera, xrPass, ref outDrsSettings);
+                var scaler = upscalerList[i];
+                switch (scaler)
+                {
+                case AdvancedUpscalers.DLSS:
+                    {
+                        hdCam.cameraCanRenderDLSS = HDDynamicResolutionPlatformCapabilities.DLSSDetected && hdCam.allowDeepLearningSuperSampling;
+                        found = hdCam.cameraCanRenderDLSS;
+                        if (m_DLSSPass != null && hdCam.cameraCanRenderDLSS)
+                        {
+                            bool useOptimalSettings = hdCam.deepLearningSuperSamplingUseCustomAttributes
+                                ? hdCam.deepLearningSuperSamplingUseOptimalSettings
+                                : m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.DLSSUseOptimalSettings;
+                            m_DLSSPass.SetupDRSScaling(useOptimalSettings, camera, hdCam, xrPass, ref outDrsSettings);
+                        }
+                    }
+                    break;
+                case AdvancedUpscalers.FSR2:
+                    {
+                        hdCam.cameraCanRenderFSR2 = HDDynamicResolutionPlatformCapabilities.FSR2Detected && hdCam.allowFidelityFX2SuperResolution;
+                        found = hdCam.cameraCanRenderFSR2;
+                        if (m_FSR2Pass != null && hdCam.cameraCanRenderFSR2)
+                        {
+                            bool useOptimalSettings = hdCam.fidelityFX2SuperResolutionUseCustomQualitySettings
+                                ? hdCam.fidelityFX2SuperResolutionUseOptimalSettings
+                                : m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.FSR2UseOptimalSettings;
+                            m_FSR2Pass.SetupDRSScaling(useOptimalSettings, camera, hdCam, xrPass, ref outDrsSettings);
+                        }
+                    }
+                    break;
+                }
             }
         }
 
@@ -2207,8 +2216,9 @@ namespace UnityEngine.Rendering.HighDefinition
                         cameraRequestedDynamicRes &= !HDCamera.GetOrCreate(camera).IsPathTracingEnabled();
                     }
 
-                    // We now setup DLSS if its enabled. DLSS can override the drsSettings (i.e. setting a System scaler slot, and providing quality settings).
-                    SetupDLSSForCameraDataAndDynamicResHandler(hdCam, camera, xrPass, cameraRequestedDynamicRes, ref drsSettings);
+                    // We now setup DLSS/FSR2 and partner upscalers if enabled.
+                    // These upscalers can override the drsSettings (i.e. setting a System scaler slot, and providing quality settings).
+                    SetupPartnerUpscalers(hdCam, camera, xrPass, cameraRequestedDynamicRes, ref drsSettings);
 
                     // only select the current instance for this camera. We dont pass the settings set to prevent an update.
                     // This will set a new instance in DynamicResolutionHandler.instance that is specific to this camera.
@@ -2873,7 +2883,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             //Forcefully disable antialiasing if DLSS is enabled.
             if (additionalCameraData != null)
-                currentFrameSettings.SetEnabled(FrameSettingsField.Antialiasing, currentFrameSettings.IsEnabled(FrameSettingsField.Antialiasing) && !additionalCameraData.cameraCanRenderDLSS);
+                currentFrameSettings.SetEnabled(FrameSettingsField.Antialiasing, currentFrameSettings.IsEnabled(FrameSettingsField.Antialiasing) && !additionalCameraData.cameraCanRenderDLSS && !additionalCameraData.cameraCanRenderFSR2);
 
             // From this point, we should only use frame settings from the camera
             hdCamera.Update(currentFrameSettings, this, xrPass);
@@ -3005,7 +3015,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Must be called before culling because it emits intermediate renderers via Graphics.DrawInstanced.
             if (currentPipeline.apvIsEnabled)
             {
-                ProbeReferenceVolume.instance.RenderDebug(hdCamera.camera);
+                ProbeReferenceVolume.instance.RenderDebug(hdCamera.camera, currentPipeline.GetExposureTexture(hdCamera));
             }
 
             // Set the LOD bias and store current value to be able to restore it.

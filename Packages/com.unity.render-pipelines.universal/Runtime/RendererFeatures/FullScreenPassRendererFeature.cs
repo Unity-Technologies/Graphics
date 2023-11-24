@@ -1,6 +1,6 @@
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
@@ -209,9 +209,10 @@ public partial class FullScreenPassRendererFeature : ScriptableRendererFeature
 
                 using (var builder = renderGraph.AddRasterRenderPass<CopyPassData>("FullScreenPass_CopyColor", out var passData, profilingSampler))
                 {
-                    passData.inputTexture = builder.UseTexture(resourcesData.activeColorTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+                    passData.inputTexture = resourcesData.activeColorTexture;
+                    builder.UseTexture(resourcesData.activeColorTexture, AccessFlags.Read);
 
-                    builder.UseTextureFragment(copiedColor, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
+                    builder.SetRenderAttachment(copiedColor, 0, AccessFlags.Write);
 
                     builder.SetRenderFunc((CopyPassData data, RasterGraphContext rgContext) =>
                     {
@@ -225,11 +226,14 @@ public partial class FullScreenPassRendererFeature : ScriptableRendererFeature
                 passData.material = m_Material;
                 passData.passIndex = m_PassIndex;
                 if (m_CopyActiveColor)
-                    passData.inputTexture = builder.UseTexture(copiedColor, IBaseRenderGraphBuilder.AccessFlags.Read);
+                {
+                    passData.inputTexture = copiedColor;
+                    builder.UseTexture(copiedColor, AccessFlags.Read);
+                }
 
-                builder.UseTextureFragment(resourcesData.activeColorTexture, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
+                builder.SetRenderAttachment(resourcesData.activeColorTexture, 0, AccessFlags.Write);
                 if (m_BindDepthStencilAttachment)
-                    builder.UseTextureFragmentDepth(resourcesData.activeDepthTexture, IBaseRenderGraphBuilder.AccessFlags.Write);
+                    builder.SetRenderAttachmentDepth(resourcesData.activeDepthTexture, AccessFlags.Write);
 
                 builder.SetRenderFunc((MainPassData data, RasterGraphContext rgContext) =>
                 {

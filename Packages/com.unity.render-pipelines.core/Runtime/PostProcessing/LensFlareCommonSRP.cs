@@ -618,7 +618,7 @@ namespace UnityEngine.Rendering
             bool usePanini, float paniniDistance, float paniniCropToFit, bool isCameraRelative,
             Vector3 cameraPositionWS,
             Matrix4x4 viewProjMatrix,
-            Experimental.Rendering.LowLevelCommandBuffer cmd,
+            UnsafeCommandBuffer cmd,
             bool taaEnabled, bool hasCloudLayer, Texture cloudOpacityTexture, Texture sunOcclusionTexture, Texture waterGBuffer3Thickness,
             int _FlareOcclusionTex, int _FlareCloudOpacity, int _FlareOcclusionIndex, int _FlareTex, int _FlareColorValue, int _FlareSunOcclusionTex, int _FlareData0, int _FlareData1, int _FlareData2, int _FlareData3, int _FlareData4)
         {
@@ -902,7 +902,7 @@ namespace UnityEngine.Rendering
             bool isCameraRelative,
             Vector3 cameraPositionWS,
             Matrix4x4 viewProjMatrix,
-            Experimental.Rendering.LowLevelCommandBuffer cmd,
+            UnsafeCommandBuffer cmd,
             bool taaEnabled, bool hasCloudLayer, Texture cloudOpacityTexture, Texture sunOcclusionTexture,
             Rendering.RenderTargetIdentifier colorBuffer,
             System.Func<Light, Camera, Vector3, float> GetLensFlareLightAttenuation,
@@ -1449,7 +1449,7 @@ namespace UnityEngine.Rendering
         /// <param name="parameters3">samples, sampleDimmer, chromaticAbberationIntensity, chromaticAbberationSamples</param>
         /// <param name="parameters4">streaksIntensity, streaksLength, streaksOrientation, streaksThreshold</param>
         /// <param name="parameters5">downsampleStreak, warpedFlareScaleX, warpedFlareScaleY, freeSlot</param>
-        /// <param name="cmd">LowLevelCommandBuffer</param>
+        /// <param name="cmd">UnsafeCommandBuffer</param>
         /// <param name="result">Result RT for the Lens Flare Screen Space</param>
         /// <param name="debugView">Information if we are in debug mode or not</param>
         static public void DoLensFlareScreenSpaceCommon(
@@ -1468,7 +1468,7 @@ namespace UnityEngine.Rendering
             Vector4 parameters3,
             Vector4 parameters4,
             Vector4 parameters5,
-            LowLevelCommandBuffer cmd,
+            UnsafeCommandBuffer cmd,
             RTHandle result,
             bool debugView)
         {

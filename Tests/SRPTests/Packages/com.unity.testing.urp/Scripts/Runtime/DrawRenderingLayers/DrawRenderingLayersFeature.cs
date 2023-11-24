@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
@@ -54,7 +54,7 @@ public class DrawRenderingLayersFeature : ScriptableRendererFeature
                 UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
 
                 passData.color = resourceData.activeColorTexture;
-                builder.UseTextureFragment(passData.color, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
+                builder.SetRenderAttachment(passData.color, 0, AccessFlags.Write);
                 builder.UseTexture(renderingLayerTexture);
                 passData.viewportScale = m_TestRenderingLayersTextureHandle.useScaling ? new Vector2(m_TestRenderingLayersTextureHandle.rtHandleProperties.rtHandleScale.x, m_TestRenderingLayersTextureHandle.rtHandleProperties.rtHandleScale.y) : Vector2.one;
                 builder.AllowPassCulling(false);
@@ -133,7 +133,7 @@ public class DrawRenderingLayersFeature : ScriptableRendererFeature
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("Draw Rendering PrePass", out var passData, m_ProfilingSampler))
             {
                 renderingLayerTexture = renderGraph.ImportTexture(m_ColoredRenderingLayersTextureHandle);
-                builder.UseTextureFragment(renderingLayerTexture, 0, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
+                builder.SetRenderAttachment(renderingLayerTexture, 0, AccessFlags.ReadWrite);
                 builder.AllowPassCulling(false);
                 builder.AllowGlobalStateModification(true);
 

@@ -4,9 +4,22 @@ using UnityEditor;
 using System.IO;
 using UnityEditor.SceneManagement;
 using UnityEngine.SceneManagement;
+using static UnityEditor.Rendering.AnimationClipUpgrader;
 
 internal static class URP2DConverterUtility
 {
+    public static bool IsPSB(string path)
+    {
+        if (string.IsNullOrEmpty(path))
+            throw new ArgumentNullException(nameof(path));
+
+        if (path.StartsWith("Packages"))
+            return false;
+
+        return path.EndsWith(".psb") || path.EndsWith(".psd");
+    }
+
+
     public static bool IsMaterialPath(string path, string id)
     {
         if (string.IsNullOrEmpty(path))
@@ -59,6 +72,12 @@ internal static class URP2DConverterUtility
         }
 
         return false;
+    }
+
+    public static string UpgradePSB(string path)
+    {
+        AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate);
+        return string.Empty;
     }
 
     public static string UpgradePrefab(string path, Action<GameObject> objectUpgrader)

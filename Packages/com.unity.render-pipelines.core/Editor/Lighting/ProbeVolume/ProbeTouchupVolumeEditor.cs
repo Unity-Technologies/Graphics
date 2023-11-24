@@ -126,7 +126,7 @@ namespace UnityEditor.Rendering
             {
                 ProbeTouchupVolume ptv = (serialized.serializedObject.targetObject as ProbeTouchupVolume);
 
-                var bakingSet = ProbeReferenceVolume.instance.sceneData.GetBakingSetForScene(ptv.gameObject.scene);
+                var bakingSet = ProbeVolumeBakingSet.GetBakingSetForScene(ptv.gameObject.scene);
                 bool useVirtualOffset = bakingSet != null ? bakingSet.settings.virtualOffsetSettings.useVirtualOffset : false;
                 bool useSkyOcclusion = bakingSet.bakedSkyShadingDirection && bakingSet.bakedSkyOcclusion;
 

@@ -283,6 +283,9 @@ namespace UnityEngine.Rendering
         /// <param name="profile">VolumeProfile that has changed.</param>
         public void OnVolumeProfileChanged(VolumeProfile profile)
         {
+            if (!isInitialized)
+                return;
+
             if (globalDefaultProfile == profile ||
                 qualityDefaultProfile == profile ||
                 (customDefaultProfiles != null && customDefaultProfiles.Contains(profile)))

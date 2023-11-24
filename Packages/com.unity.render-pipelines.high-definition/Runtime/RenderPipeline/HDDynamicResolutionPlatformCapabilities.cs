@@ -12,8 +12,18 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public static bool DLSSDetected { get { return m_DLSSDetected; } }
 
-        private static bool m_DLSSDetected = false;
+        /// <summary>
+        /// True if the render pipeline detected FSR2 capable platform. False otherwise.
+        /// </summary>
+        public static bool FSR2Detected { get { return m_FSR2Detected; } }
 
-        internal static void ActivateDLSS() { m_DLSSDetected = true; }
+        private static bool m_DLSSDetected = false;
+        private static bool m_FSR2Detected = false;
+
+        internal static void SetupFeatures()
+        {
+            m_DLSSDetected = DLSSPass.SetupFeature();
+            m_FSR2Detected = FSR2Pass.SetupFeature();
+        }
     }
 }

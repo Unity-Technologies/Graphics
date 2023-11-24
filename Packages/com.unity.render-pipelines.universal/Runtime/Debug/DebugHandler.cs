@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -133,15 +133,15 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        internal DebugHandler(ScriptableRendererData scriptableRendererData)
+        internal DebugHandler()
         {
-            Shader debugReplacementShader = scriptableRendererData.debugShaders.debugReplacementPS;
-            Shader hdrDebugViewShader = scriptableRendererData.debugShaders.hdrDebugViewPS;
-
             m_DebugDisplaySettings = UniversalRenderPipelineDebugDisplaySettings.Instance;
 
-            m_ReplacementMaterial = (debugReplacementShader == null) ? null : CoreUtils.CreateEngineMaterial(debugReplacementShader);
-            m_HDRDebugViewMaterial = (hdrDebugViewShader == null) ? null : CoreUtils.CreateEngineMaterial(hdrDebugViewShader);
+            if (GraphicsSettings.TryGetRenderPipelineSettings<UniversalRenderPipelineDebugShaders>(out var shaders))
+            {
+                m_ReplacementMaterial = (shaders.debugReplacementPS != null) ? CoreUtils.CreateEngineMaterial(shaders.debugReplacementPS) : null;
+                m_HDRDebugViewMaterial = (shaders.hdrDebugViewPS != null) ? CoreUtils.CreateEngineMaterial(shaders.hdrDebugViewPS) : null;
+            }
 
             m_HDRDebugViewPass = new HDRDebugViewPass(m_HDRDebugViewMaterial);
         }
@@ -233,12 +233,12 @@ namespace UnityEngine.Rendering.Universal
                 {
                     if (passIndex == 0)
                     {
-                        cmd.SetKeyword(ref ShaderGlobalKeywords.DEBUG_DISPLAY, false);
+                        cmd.SetKeyword(ShaderGlobalKeywords.DEBUG_DISPLAY, false);
                     }
                     else if (passIndex == 1)
                     {
                         cmd.SetGlobalColor(k_DebugColorPropertyId, Color.black);
-                        cmd.SetKeyword(ref ShaderGlobalKeywords.DEBUG_DISPLAY, true);
+                        cmd.SetKeyword(ShaderGlobalKeywords.DEBUG_DISPLAY, true);
                     }
 
                     break;

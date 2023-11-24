@@ -12,8 +12,6 @@ SAMPLER(sampler_SkyViewLUT);
 TEXTURE2D(_MultiScatteringLUT);
 TEXTURE3D(_AtmosphericScatteringLUT);
 
-float _SkyLUTScale;
-
 // Integration utilities
 
 float3 IntegrateOverSegment(float3 S, float3 transmittanceOverSegment, float3 transmittance, float3 sigmaE)

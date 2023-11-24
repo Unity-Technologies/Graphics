@@ -1,7 +1,7 @@
 using System;
 using System.Diagnostics;
 
-namespace UnityEngine.Experimental.Rendering.RenderGraphModule
+namespace UnityEngine.Rendering.RenderGraphModule
 {
     /// <summary>
     /// Graphics Buffer resource handle.

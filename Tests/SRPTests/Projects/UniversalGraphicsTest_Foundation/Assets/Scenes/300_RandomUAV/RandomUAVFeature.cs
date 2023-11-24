@@ -1,6 +1,6 @@
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
@@ -142,9 +142,9 @@ public class RandomUAVFeature : ScriptableRendererFeature
                 passData.material.SetVector(m_ImageSizePropertyID, imageSize);
 
                 // Setup up the builder
-                builder.UseTextureFragment(dummyTarget, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
-                builder.UseTextureRandomAccess(UAVResources.uavTextureBuffer, 1, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
-                builder.UseBufferRandomAccess(UAVResources.uavBuffer, 2, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
+                builder.SetRenderAttachment(dummyTarget, 0, AccessFlags.Write);
+                builder.SetRandomAccessAttachment(UAVResources.uavTextureBuffer, 1, AccessFlags.ReadWrite);
+                builder.UseBufferRandomAccess(UAVResources.uavBuffer, 2, AccessFlags.ReadWrite);
                 builder.SetRenderFunc((PassData data, RasterGraphContext rgContext) => ExecutePass(data, rgContext.cmd));
                 builder.AllowPassCulling(false);
             }
@@ -158,9 +158,9 @@ public class RandomUAVFeature : ScriptableRendererFeature
                 passData.material.SetVector(m_ImageSizePropertyID, imageSize);
 
                 // Setup up the builder
-                builder.UseTextureFragment(dummyTarget, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
-                builder.UseTextureRandomAccess(UAVResources.uavTextureBuffer, 1, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
-                builder.UseBufferRandomAccess(UAVResources.uavBuffer, 2, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
+                builder.SetRenderAttachment(dummyTarget, 0, AccessFlags.Write);
+                builder.SetRandomAccessAttachment(UAVResources.uavTextureBuffer, 1, AccessFlags.ReadWrite);
+                builder.UseBufferRandomAccess(UAVResources.uavBuffer, 2, AccessFlags.ReadWrite);
                 builder.SetRenderFunc((PassData data, RasterGraphContext rgContext) => ExecutePass(data, rgContext.cmd));
                 builder.AllowPassCulling(false);
             }
@@ -174,9 +174,9 @@ public class RandomUAVFeature : ScriptableRendererFeature
                 passData.material.SetVector(m_ImageSizePropertyID, imageSize);
 
                 // Setup up the builder
-                builder.UseTextureFragment(resourceData.activeColorTexture, 0);
-                builder.UseTextureRandomAccess(UAVResources.uavTextureBuffer, 1, IBaseRenderGraphBuilder.AccessFlags.Read);
-                builder.UseBufferRandomAccess(UAVResources.uavBuffer, 2, IBaseRenderGraphBuilder.AccessFlags.Read);
+                builder.SetRenderAttachment(resourceData.activeColorTexture, 0);
+                builder.SetRandomAccessAttachment(UAVResources.uavTextureBuffer, 1, AccessFlags.Read);
+                builder.UseBufferRandomAccess(UAVResources.uavBuffer, 2, AccessFlags.Read);
                 builder.SetRenderFunc((PassData data, RasterGraphContext rgContext) => ExecutePass(data, rgContext.cmd));
                 builder.AllowPassCulling(false);
             }

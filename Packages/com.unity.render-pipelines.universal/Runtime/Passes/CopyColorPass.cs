@@ -1,5 +1,5 @@
 using System;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.Universal.Internal
@@ -210,8 +210,10 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             using (var builder = renderGraph.AddRasterRenderPass<PassData>(passName, out var passData, base.profilingSampler))
             {
-                passData.destination = builder.UseTextureFragment(destination, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
-                passData.source = builder.UseTexture(source, IBaseRenderGraphBuilder.AccessFlags.Read);
+                passData.destination = destination;
+                builder.SetRenderAttachment(destination, 0, AccessFlags.Write);
+                passData.source = source;
+                builder.UseTexture(source, AccessFlags.Read);
                 passData.useProceduralBlit = useProceduralBlit;
                 passData.samplingMaterial = m_SamplingMaterial;
                 passData.copyColorMaterial = m_CopyColorMaterial;
@@ -219,7 +221,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 passData.sampleOffsetShaderHandle = m_SampleOffsetShaderHandle;
 
                 if (destination.IsValid())
-                    builder.PostSetGlobalTexture(destination, Shader.PropertyToID("_CameraOpaqueTexture"));
+                    builder.SetGlobalTextureAfterPass(destination, Shader.PropertyToID("_CameraOpaqueTexture"));
 
                 // TODO RENDERGRAPH: culling? force culling off for testing
                 builder.AllowPassCulling(false);

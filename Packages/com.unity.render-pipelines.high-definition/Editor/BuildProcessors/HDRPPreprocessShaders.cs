@@ -125,17 +125,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     return true;
             }
 
-            // Remove APV debug if disabled
-            if (m_StripDebugVariants || !settings.supportProbeVolume)
-            {
-                if (shader == m_ShaderResources.probeVolumeDebugShader ||
-                    shader == m_ShaderResources.probeVolumeFragmentationDebugShader ||
-                    shader == m_ShaderResources.probeVolumeSamplingDebugShader ||
-                    shader == m_ShaderResources.probeVolumeOffsetDebugShader)
-                    return true;
-            }
-
-
             if (settings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly)
             {
                 if (shader == m_ShaderResources.deferredPS ||

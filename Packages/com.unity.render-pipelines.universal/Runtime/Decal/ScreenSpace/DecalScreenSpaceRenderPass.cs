@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Rendering.Universal.Internal;
 
 namespace UnityEngine.Rendering.Universal
@@ -92,12 +92,12 @@ namespace UnityEngine.Rendering.Universal
         {
             NormalReconstruction.SetupProperties(cmd, passData.cameraData);
 
-            cmd.SetKeyword(ref ShaderGlobalKeywords.DecalNormalBlendLow, passData.settings.normalBlend == DecalNormalBlend.Low);
-            cmd.SetKeyword(ref ShaderGlobalKeywords.DecalNormalBlendMedium, passData.settings.normalBlend == DecalNormalBlend.Medium);
-            cmd.SetKeyword(ref ShaderGlobalKeywords.DecalNormalBlendHigh, passData.settings.normalBlend == DecalNormalBlend.High);
+            cmd.SetKeyword(ShaderGlobalKeywords.DecalNormalBlendLow, passData.settings.normalBlend == DecalNormalBlend.Low);
+            cmd.SetKeyword(ShaderGlobalKeywords.DecalNormalBlendMedium, passData.settings.normalBlend == DecalNormalBlend.Medium);
+            cmd.SetKeyword(ShaderGlobalKeywords.DecalNormalBlendHigh, passData.settings.normalBlend == DecalNormalBlend.High);
 
             if (!passData.isGLDevice)
-                cmd.SetKeyword(ref ShaderGlobalKeywords.DecalLayers, passData.decalLayers);
+                cmd.SetKeyword(ShaderGlobalKeywords.DecalLayers, passData.decalLayers);
 
             passData.drawSystem?.Execute(cmd);
             cmd.DrawRendererList(rendererList);
@@ -117,8 +117,8 @@ namespace UnityEngine.Rendering.Universal
 
                 InitPassData(cameraData, ref passData);
                 passData.colorTarget = resourceData.cameraColor;
-                builder.UseTextureFragment(resourceData.activeColorTexture, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
-                builder.UseTextureFragmentDepth(resourceData.activeDepthTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+                builder.SetRenderAttachment(resourceData.activeColorTexture, 0, AccessFlags.Write);
+                builder.SetRenderAttachmentDepth(resourceData.activeDepthTexture, AccessFlags.Read);
 
 
                 var param = CreateRenderListParams(renderingData, passData.cameraData, lightData);
@@ -126,7 +126,7 @@ namespace UnityEngine.Rendering.Universal
                 builder.UseRendererList(passData.rendererList);
 
                 if (cameraDepthTexture.IsValid())
-                    builder.UseTexture(cameraDepthTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+                    builder.UseTexture(cameraDepthTexture, AccessFlags.Read);
 
                 builder.AllowGlobalStateModification(true);
 

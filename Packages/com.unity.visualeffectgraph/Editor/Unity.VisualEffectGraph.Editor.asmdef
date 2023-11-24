@@ -5,7 +5,8 @@
         "Unity.Timeline",
         "Unity.Timeline.Editor",
         "Unity.ShaderGraph.Editor",
-        "Unity.RenderPipelines.Core.Editor"
+        "Unity.RenderPipelines.Core.Editor",
+        "Unity.RenderPipelines.Core.Runtime"
     ],
     "includePlatforms": [
         "Editor"

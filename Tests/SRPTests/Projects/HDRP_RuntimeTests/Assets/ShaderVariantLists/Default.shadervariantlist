@@ -627,6 +627,7 @@ Compiled compute shader: lightlistbuild, kernel: TileLightListGen, keywords USE_
 Compiled compute shader: lightlistbuild, kernel: TileLightListGen, keywords USE_OBLIQUE_MODE USE_TWO_PASS_TILED_LIGHTING
 Compiled compute shader: lightlistbuild, kernel: TileLightListGen, keywords USE_TWO_PASS_TILED_LIGHTING
 Compiled compute shader: lightlistbuild-bigtile, kernel: BigTileLightListGen, keywords <no keywords>
+Compiled compute shader: lightlistbuild-bigtile, kernel: BigTileLightListGen, keywords GENERATE_VOLUMETRIC_BIGTILE
 Compiled compute shader: lightlistbuild-clearatomic, kernel: ClearAtomic, keywords <no keywords>
 Compiled compute shader: lightlistbuild-clustered, kernel: TileLightListGen_DepthRT_MSAA_SrcBigTile, keywords <no keywords>
 Compiled compute shader: lightlistbuild-clustered, kernel: TileLightListGen_DepthRT_SrcBigTile, keywords <no keywords>
@@ -660,7 +661,7 @@ Compiled compute shader: StagePrepare, kernel: UpdateOffsets, keywords <no keywo
 Compiled compute shader: StageRasterBin, kernel: Main, keywords <no keywords>
 Compiled compute shader: StageRasterBin, kernel: MainArgs, keywords <no keywords>
 Compiled compute shader: StageRasterFine, kernel: Main, keywords <no keywords>
-Compiled compute shader: StageSetupSegment, kernel: Main, keywords <no keywords>
+Compiled compute shader: StageSetupSegment, kernel: Main, keywords INDEX_FORMAT_UINT_32
 Compiled compute shader: StageShadingSetup, kernel: ClearShadingCompactionBuffer, keywords <no keywords>
 Compiled compute shader: StageShadingSetup, kernel: ClearShadingSampleVisibilityBuffer, keywords <no keywords>
 Compiled compute shader: StageShadingSetup, kernel: CreateCompactedShadingSamplesMapping, keywords <no keywords>
@@ -1558,12 +1559,12 @@ Compiled shader: Hidden/HDRP/WaterExclusion, pass: StencilTag, stage: pixel, key
 Compiled shader: Hidden/HDRP/WaterExclusion, pass: StencilTag, stage: pixel, keywords STEREO_INSTANCING_ON
 Compiled shader: Hidden/HDRP/WaterExclusion, pass: StencilTag, stage: vertex, keywords <no keywords>
 Compiled shader: Hidden/HDRP/WaterExclusion, pass: StencilTag, stage: vertex, keywords STEREO_INSTANCING_ON
-Compiled shader: Hidden/HDRP/WaterFoam, pass: <Unnamed Pass 0>, stage: all, keywords <no keywords>
-Compiled shader: Hidden/HDRP/WaterFoam, pass: <Unnamed Pass 0>, stage: pixel, keywords <no keywords>
-Compiled shader: Hidden/HDRP/WaterFoam, pass: <Unnamed Pass 0>, stage: vertex, keywords <no keywords>
-Compiled shader: Hidden/HDRP/WaterFoam, pass: <Unnamed Pass 2>, stage: all, keywords <no keywords>
-Compiled shader: Hidden/HDRP/WaterFoam, pass: <Unnamed Pass 2>, stage: pixel, keywords <no keywords>
-Compiled shader: Hidden/HDRP/WaterFoam, pass: <Unnamed Pass 2>, stage: vertex, keywords <no keywords>
+Compiled shader: Hidden/HDRP/WaterFoam, pass: Reprojection, stage: all, keywords <no keywords>
+Compiled shader: Hidden/HDRP/WaterFoam, pass: Reprojection, stage: pixel, keywords <no keywords>
+Compiled shader: Hidden/HDRP/WaterFoam, pass: Reprojection, stage: vertex, keywords <no keywords>
+Compiled shader: Hidden/HDRP/WaterFoam, pass: ShoreWaveFoamGeneration, stage: all, keywords <no keywords>
+Compiled shader: Hidden/HDRP/WaterFoam, pass: ShoreWaveFoamGeneration, stage: pixel, keywords <no keywords>
+Compiled shader: Hidden/HDRP/WaterFoam, pass: ShoreWaveFoamGeneration, stage: vertex, keywords <no keywords>
 Compiled shader: Hidden/HDRP/XRMirrorView, pass: <Unnamed Pass 0>, stage: pixel, keywords <no keywords>
 Compiled shader: Hidden/HDRP/XRMirrorView, pass: <Unnamed Pass 0>, stage: pixel, keywords DISABLE_TEXTURE2D_X_ARRAY
 Compiled shader: Hidden/HDRP/XRMirrorView, pass: <Unnamed Pass 0>, stage: vertex, keywords <no keywords>

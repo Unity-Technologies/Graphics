@@ -5,17 +5,17 @@ using UnityEngine;
 #if UNITY_EDITOR
 using UnityEditor.Experimental.GraphView;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassCompiler;
-using UnityEngine.Rendering;
+using UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler;
 using UnityEngine.UIElements;
 
 
 internal class RenderGraphWindow : EditorWindow
 {
+    [MenuItem("Window/Analysis/Render Graph Viewer (NRP Prototype)", false, 10007)]
     internal static RenderGraphView OpenGraphVisualizer()
     {
         var window = GetWindow<RenderGraphWindow>();
-        window.titleContent = new GUIContent("Render Graph Visualizer");
+        window.titleContent = new GUIContent("Render Graph Viewer (NRP Prototype)");
 
         return window.GetView();
     }
@@ -699,80 +699,6 @@ internal class RenderGraphView : GraphView
             LinqButNotLinq.First(resource.Children()).style.borderRightColor = color;
         }
     }
-
-    string CollectInfoString(RenderGraphNode pass, ref float nodeInfoLength)
-    {
-        string extra = String.Empty;
-        bool hasInfo = false;
-
-        if (pass.m_Width > 0)
-        {
-            extra = pass.m_Width + "x" + pass.m_Height + "\n \n";
-            nodeInfoLength += pass.m_Writes.Count * 15.0f;
-            hasInfo = true;
-        }
-
-        if (pass.m_Reads.Count > 0)
-        {
-            extra += "Reads: \n";
-            extra += pass.m_ReadString;
-            nodeInfoLength += pass.m_Writes.Count * 15.0f + 10.0f;
-        }
-
-        if (pass.m_Writes.Count > 0)
-        {
-            extra += "\nWrites: \n";
-            extra += pass.m_WriteString;
-            nodeInfoLength += pass.m_Writes.Count * 15.0f + 10.0f;
-        }
-
-        if (pass.m_LastWriteString.Length > 0)
-        {
-            extra += "\nLast Writes: \n";
-            extra += pass.m_LastWriteString;
-            nodeInfoLength += pass.m_Writes.Count * 15.0f + 10.0f;
-        }
-
-        if (pass.m_AllocString.Length > 0)
-        {
-            extra += "\nAllocations: \n";
-            extra += pass.m_AllocString;
-            nodeInfoLength += pass.m_Writes.Count * 15.0f + 10.0f;
-        }
-
-        if (pass.m_ReleaseString.Length > 0)
-        {
-            extra += "\nReleases: \n";
-            extra += pass.m_ReleaseString;
-            nodeInfoLength += pass.m_Writes.Count * 15.0f + 10.0f;
-        }
-
-        if (pass.m_SyncList.Length > 0)
-        {
-            extra += "\nSyncs: \n";
-            extra += pass.m_SyncList;
-            nodeInfoLength += 30.0f;
-        }
-
-        if (pass.m_NativeRPInfo != String.Empty)
-        {
-            extra += pass.m_NativeRPInfo;
-            nodeInfoLength += pass.m_Writes.Count * 15.0f + 10.0f;
-        }
-
-        if (hasInfo)
-        {
-            extra += "\n Depth enabled: " + pass.m_HasDepth + '\n';
-            extra += "\n Async Compute: " + pass.m_AsyncCompute + '\n';
-            extra += pass.m_Info;
-
-            nodeInfoLength += 150.0f;
-        }
-
-        return extra;
-    }
-
-
 
     //Sorting heuristic
     void ReOrder()

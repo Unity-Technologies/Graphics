@@ -137,6 +137,15 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float vL
 #endif
 #endif
 
+#ifdef USE_TWO_PASS_TILED_LIGHTING
+uint FetchBigTileLightIndex(uint lightStart, uint lightOffset)
+{
+    const uint lightOffsetPlusOne = lightOffset + 1; // Add +1 as first slot is reserved to store number of light
+    // Light index are store on 16bit
+    return (g_vBigTileLightList[MAX_NR_BIG_TILE_LIGHTS_PLUS_ONE * lightStart / 2 + (lightOffsetPlusOne >> 1)] >> ((lightOffsetPlusOne & 1) * 16)) & 0xffff;
+}
+#endif
+
 [numthreads(NR_THREADS, 1, 1)]
 void TileLightListGen(uint3 dispatchThreadId : SV_DispatchThreadID, uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 {
@@ -214,11 +223,11 @@ void TileLightListGen(uint3 dispatchThreadId : SV_DispatchThreadID, uint threadI
     int NrBigTilesX = (nrTilesX + ((1 << log2BigTileToTileRatio) -1 )) >> log2BigTileToTileRatio;
     int NrBigTilesY = (nrTilesY + ((1 << log2BigTileToTileRatio) - 1)) >> log2BigTileToTileRatio;
     const int bigTileBase = unity_StereoEyeIndex * NrBigTilesX * NrBigTilesY;
-    const int bigTileIdx = bigTileBase + (tileIDX.y>>log2BigTileToTileRatio)*NrBigTilesX + (tileIDX.x>>log2BigTileToTileRatio);       // map the idx to 64x64 tiles
-    int nrBigTileLights = g_vBigTileLightList[MAX_NR_BIG_TILE_LIGHTS_PLUS_ONE*bigTileIdx+0];
+    const uint bigTileIdx = bigTileBase + (tileIDX.y>>log2BigTileToTileRatio)*NrBigTilesX + (tileIDX.x>>log2BigTileToTileRatio);       // map the idx to 64x64 tiles
+    int nrBigTileLights = g_vBigTileLightList[MAX_NR_BIG_TILE_LIGHTS_PLUS_ONE * bigTileIdx / 2 + 0] & 0xFFFF;
     for(int l0=(int) t; l0<(int) nrBigTileLights; l0 += NR_THREADS)
     {
-        int l = g_vBigTileLightList[MAX_NR_BIG_TILE_LIGHTS_PLUS_ONE*bigTileIdx+l0+1];
+        int l = FetchBigTileLightIndex(bigTileIdx, l0);
 #else
     for(int l=(int) t; l<(int) g_iNrVisibLights; l += NR_THREADS)
     {
@@ -568,7 +577,7 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float vL
             localCount += countbits(ldsDoesLightIntersect[ii]);
 
         if (t == 0) ldsNrLightsFinal = localCount;
-    
+
         #define MAX_LIGHT_WRITE_LOOP_CNT (((SHADEROPTIONS_FPTLMAX_LIGHT_COUNT+1) + NR_THREADS - 1)/NR_THREADS)
         [unroll(MAX_LIGHT_WRITE_LOOP_CNT)]
         for (uint it = 0; it < MAX_LIGHT_WRITE_LOOP_CNT; ++it)

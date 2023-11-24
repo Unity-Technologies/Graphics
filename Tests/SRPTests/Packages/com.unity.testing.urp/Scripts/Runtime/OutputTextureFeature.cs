@@ -1,5 +1,5 @@
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
@@ -83,7 +83,7 @@ public class OutputTextureFeature : ScriptableRendererFeature
             CoreUtils.SetRenderTarget(cmd, m_Renderer.cameraColorTargetHandle, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, ClearFlag.None, Color.clear);
             m_PassData.profilingSampler = m_ProfilingSampler;
             m_PassData.material = m_Material;
-            ExecutePass(m_PassData, UnityEngine.Experimental.Rendering.CommandBufferHelpers.GetRasterCommandBuffer(cmd));
+            ExecutePass(m_PassData, CommandBufferHelpers.GetRasterCommandBuffer(cmd));
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
@@ -95,7 +95,7 @@ public class OutputTextureFeature : ScriptableRendererFeature
             internal Material material;
         }
 
-        private static void ExecutePass(PassData passData, UnityEngine.Experimental.Rendering.RasterCommandBuffer cmd)
+        private static void ExecutePass(PassData passData, RasterCommandBuffer cmd)
         {
             using (new ProfilingScope(cmd, passData.profilingSampler))
             {
@@ -110,7 +110,7 @@ public class OutputTextureFeature : ScriptableRendererFeature
 
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("Output Texture Pass", out var passData, m_ProfilingSampler))
             {
-                builder.UseTextureFragment(resourceData.activeColorTexture, 0, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
+                builder.SetRenderAttachment(resourceData.activeColorTexture, 0, AccessFlags.ReadWrite);
                 builder.AllowPassCulling(false);
                 passData.profilingSampler = m_ProfilingSampler;
                 passData.material = m_Material;

@@ -2,7 +2,7 @@ using UnityEngine.Experimental.GlobalIllumination;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Profiling;
 using Unity.Collections;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal.Internal
 {
@@ -141,7 +141,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             bool usesRenderingLayers = data.deferredLights.UseRenderingLayers && !data.deferredLights.HasRenderingLayerPrepass;
             if (usesRenderingLayers)
-                cmd.SetKeyword(ref ShaderGlobalKeywords.WriteRenderingLayers, true);
+                cmd.SetKeyword(ShaderGlobalKeywords.WriteRenderingLayers, true);
 
             if (data.deferredLights.IsOverlay)
                 data.deferredLights.ClearStencilPartial(cmd);
@@ -153,7 +153,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             // Clean up
             if (usesRenderingLayers)
-                cmd.SetKeyword(ref ShaderGlobalKeywords.WriteRenderingLayers, false);
+                cmd.SetKeyword(ShaderGlobalKeywords.WriteRenderingLayers, false);
         }
 
         /// <summary>
@@ -247,13 +247,14 @@ namespace UnityEngine.Rendering.Universal.Internal
                     // Note: We don't store the returned handle here it is a versioned handle.
                     // In general it should be fine to use unversioned handles anyway especially unversioned resources
                     // should be registered in the frame data
-                    builder.UseTextureFragment(gbuffer[i], i, IBaseRenderGraphBuilder.AccessFlags.Write);
+                    builder.SetRenderAttachment(gbuffer[i], i, AccessFlags.Write);
                 }
 
                 RenderGraphUtils.UseDBufferIfValid(builder, resourceData);
                 resourceData.gBuffer = gbuffer;
 
-                passData.depth = builder.UseTextureFragmentDepth(cameraDepth, IBaseRenderGraphBuilder.AccessFlags.Write);
+                passData.depth = cameraDepth;
+                builder.SetRenderAttachmentDepth(cameraDepth, AccessFlags.Write);
                 passData.deferredLights = m_DeferredLights;
 
                 InitRendererLists(ref passData, default(ScriptableRenderContext), renderGraph, renderingData, cameraData, lightData, true);
@@ -279,18 +280,18 @@ namespace UnityEngine.Rendering.Universal.Internal
             for (int i = 0; i < gbuffer.Length; i++)
             {
                 if (i != deferredLights.GBufferLightingIndex && gbuffer[i].IsValid())
-                    builder.PostSetGlobalTexture(gbuffer[i], Shader.PropertyToID(DeferredLights.k_GBufferNames[i]));
+                    builder.SetGlobalTextureAfterPass(gbuffer[i], Shader.PropertyToID(DeferredLights.k_GBufferNames[i]));
             }
 
             // If any sub-system needs camera normal texture, make it available.
             // Input attachments will only be used when this is not needed so safe to skip in that case
             if (gbuffer[deferredLights.GBufferNormalSmoothnessIndex].IsValid())
-                builder.PostSetGlobalTexture(gbuffer[deferredLights.GBufferNormalSmoothnessIndex], s_CameraNormalsTextureID);
+                builder.SetGlobalTextureAfterPass(gbuffer[deferredLights.GBufferNormalSmoothnessIndex], s_CameraNormalsTextureID);
 
             if (deferredLights.UseRenderingLayers && gbuffer[deferredLights.GBufferRenderingLayers].IsValid())
             {
-                builder.PostSetGlobalTexture(gbuffer[deferredLights.GBufferRenderingLayers], Shader.PropertyToID(DeferredLights.k_GBufferNames[deferredLights.GBufferRenderingLayers]));
-                builder.PostSetGlobalTexture(gbuffer[deferredLights.GBufferRenderingLayers], Shader.PropertyToID("_CameraRenderingLayersTexture"));
+                builder.SetGlobalTextureAfterPass(gbuffer[deferredLights.GBufferRenderingLayers], Shader.PropertyToID(DeferredLights.k_GBufferNames[deferredLights.GBufferRenderingLayers]));
+                builder.SetGlobalTextureAfterPass(gbuffer[deferredLights.GBufferRenderingLayers], Shader.PropertyToID("_CameraRenderingLayersTexture"));
             }
         }
 
@@ -307,11 +308,13 @@ namespace UnityEngine.Rendering.Universal.Internal
                 for (int i = 0; i < deferredLights.GBufferSliceCount; i++)
                 {
                     if (i != deferredLights.GBufferLightingIndex)
-                        passData.gbuffer[i] =
-                            builder.UseTextureFragment(gbuffer[i], i, IBaseRenderGraphBuilder.AccessFlags.Write);
+                    {
+                        passData.gbuffer[i] = gbuffer[i];
+                        builder.SetRenderAttachment(gbuffer[i], i, AccessFlags.Write);
+                    }
                 }
 
-                builder.UseTextureFragmentDepth(depthTarget, IBaseRenderGraphBuilder.AccessFlags.Write);
+                builder.SetRenderAttachmentDepth(depthTarget, AccessFlags.Write);
                 builder.AllowPassCulling(false);
                 builder.AllowGlobalStateModification(true);
 

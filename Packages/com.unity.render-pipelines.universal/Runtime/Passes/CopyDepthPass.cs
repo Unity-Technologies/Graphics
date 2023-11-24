@@ -1,6 +1,6 @@
 using System;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal.Internal
 {
@@ -150,35 +150,35 @@ namespace UnityEngine.Rendering.Universal.Internal
                 switch (cameraSamples)
                 {
                     case 8:
-                        cmd.SetKeyword(ref ShaderGlobalKeywords.DepthMsaa2, false);
-                        cmd.SetKeyword(ref ShaderGlobalKeywords.DepthMsaa4, false);
-                        cmd.SetKeyword(ref ShaderGlobalKeywords.DepthMsaa8, true);
+                        cmd.SetKeyword(ShaderGlobalKeywords.DepthMsaa2, false);
+                        cmd.SetKeyword(ShaderGlobalKeywords.DepthMsaa4, false);
+                        cmd.SetKeyword(ShaderGlobalKeywords.DepthMsaa8, true);
                         break;
 
                     case 4:
-                        cmd.SetKeyword(ref ShaderGlobalKeywords.DepthMsaa2, false);
-                        cmd.SetKeyword(ref ShaderGlobalKeywords.DepthMsaa4, true);
-                        cmd.SetKeyword(ref ShaderGlobalKeywords.DepthMsaa8, false);
+                        cmd.SetKeyword(ShaderGlobalKeywords.DepthMsaa2, false);
+                        cmd.SetKeyword(ShaderGlobalKeywords.DepthMsaa4, true);
+                        cmd.SetKeyword(ShaderGlobalKeywords.DepthMsaa8, false);
                         break;
 
                     case 2:
-                        cmd.SetKeyword(ref ShaderGlobalKeywords.DepthMsaa2, true);
-                        cmd.SetKeyword(ref ShaderGlobalKeywords.DepthMsaa4, false);
-                        cmd.SetKeyword(ref ShaderGlobalKeywords.DepthMsaa8, false);
+                        cmd.SetKeyword(ShaderGlobalKeywords.DepthMsaa2, true);
+                        cmd.SetKeyword(ShaderGlobalKeywords.DepthMsaa4, false);
+                        cmd.SetKeyword(ShaderGlobalKeywords.DepthMsaa8, false);
                         break;
 
                     // MSAA disabled, auto resolve supported or ms textures not supported
                     default:
-                        cmd.SetKeyword(ref ShaderGlobalKeywords.DepthMsaa2, false);
-                        cmd.SetKeyword(ref ShaderGlobalKeywords.DepthMsaa4, false);
-                        cmd.SetKeyword(ref ShaderGlobalKeywords.DepthMsaa8, false);
+                        cmd.SetKeyword(ShaderGlobalKeywords.DepthMsaa2, false);
+                        cmd.SetKeyword(ShaderGlobalKeywords.DepthMsaa4, false);
+                        cmd.SetKeyword(ShaderGlobalKeywords.DepthMsaa8, false);
                         break;
                 }
 
                 if (copyToDepth || destination.rt.graphicsFormat == GraphicsFormat.None)
-                    cmd.SetKeyword(ref ShaderGlobalKeywords._OUTPUT_DEPTH, true);
+                    cmd.SetKeyword(ShaderGlobalKeywords._OUTPUT_DEPTH, true);
                 else
-                    cmd.SetKeyword(ref ShaderGlobalKeywords._OUTPUT_DEPTH, false);
+                    cmd.SetKeyword(ShaderGlobalKeywords._OUTPUT_DEPTH, false);
 
                 Vector2 viewportScale = source.useScaling ? new Vector2(source.rtHandleProperties.rtHandleScale.x, source.rtHandleProperties.rtHandleScale.y) : Vector2.one;
                 // We y-flip if
@@ -254,24 +254,27 @@ namespace UnityEngine.Rendering.Universal.Internal
                 if (CopyToDepth)
                 {
                     // Writes depth using custom depth output
-                    passData.destination = builder.UseTextureFragmentDepth(destination, IBaseRenderGraphBuilder.AccessFlags.Write);
+                    passData.destination = destination;
+                    builder.SetRenderAttachmentDepth(destination, AccessFlags.Write);
 
 #if UNITY_EDITOR
                     // binding a dummy color target as a workaround to an OSX issue in Editor scene view (UUM-47698).
                     if (cameraData.isSceneViewCamera)
-                        builder.UseTextureFragment(resourceData.activeColorTexture, 0);
+                        builder.SetRenderAttachment(resourceData.activeColorTexture, 0);
 #endif
                 }
                 else
                 {
                     // Writes depth as "grayscale color" output
-                    passData.destination = builder.UseTextureFragment(destination, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
+                    passData.destination = destination;
+                    builder.SetRenderAttachment(destination, 0, AccessFlags.Write);
                 }
 
-                passData.source = builder.UseTexture(source, IBaseRenderGraphBuilder.AccessFlags.Read);
+                passData.source = source;
+                builder.UseTexture(source, AccessFlags.Read);
 
                 if (bindAsCameraDepth && destination.IsValid())
-                    builder.PostSetGlobalTexture(destination, Shader.PropertyToID("_CameraDepthTexture"));
+                    builder.SetGlobalTextureAfterPass(destination, Shader.PropertyToID("_CameraDepthTexture"));
 
                 // TODO RENDERGRAPH: culling? force culling off for testing
                 builder.AllowPassCulling(false);

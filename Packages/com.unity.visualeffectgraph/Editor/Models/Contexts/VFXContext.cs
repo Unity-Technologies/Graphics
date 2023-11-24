@@ -714,5 +714,10 @@ namespace UnityEditor.VFX
                 attributesInfos = attributesInfos.Concat(block.attributes);
             return attributesInfos;
         }
+
+        public List<VFXData.TaskProfilingData> GetContextTaskIndices()
+        {
+            return GetData().GetContextTaskIndices(this);
+        }
     }
 }

@@ -1,4 +1,4 @@
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.Universal
@@ -116,8 +116,8 @@ namespace UnityEngine.Rendering.Universal
             {
                 InitSkyboxRendererList(context, cameraData);
                 InitPassData(ref passData, cameraData.xr);
-                builder.UseTextureFragment(colorTarget, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
-                builder.UseTextureFragmentDepth(depthTarget, IBaseRenderGraphBuilder.AccessFlags.Write);
+                builder.SetRenderAttachment(colorTarget, 0, AccessFlags.Write);
+                builder.SetRenderAttachmentDepth(depthTarget, AccessFlags.Write);
 
                 builder.AllowPassCulling(false);
                 builder.EnableFoveatedRasterization(cameraData.xr.supportsFoveatedRendering);

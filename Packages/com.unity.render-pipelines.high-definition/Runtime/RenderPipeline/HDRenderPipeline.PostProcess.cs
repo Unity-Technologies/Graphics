@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine.Assertions;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Rendering.HighDefinition.Compositor;
 
 namespace UnityEngine.Rendering.HighDefinition
@@ -174,16 +174,20 @@ namespace UnityEngine.Rendering.HighDefinition
 
         System.Random m_Random;
 
-        bool m_DLSSPassEnabled = false;
-        Material m_DLSSBiasColorMaskMaterial;
+        int m_EnabledAdvancedUpscalerPassMask = 0;
+        bool isAnyAdvancedUpscalerActive => m_EnabledAdvancedUpscalerPassMask != 0;
+
+        Material m_UpscalerBiasColorMaskMaterial;
         DLSSPass m_DLSSPass = null;
+        FSR2Pass m_FSR2Pass = null;
         void InitializePostProcess()
         {
+
             m_FinalPassMaterial = CoreUtils.CreateEngineMaterial(runtimeShaders.finalPassPS);
             m_ClearBlackMaterial = CoreUtils.CreateEngineMaterial(runtimeShaders.clearBlackPS);
             m_SMAAMaterial = CoreUtils.CreateEngineMaterial(runtimeShaders.SMAAPS);
             m_TemporalAAMaterial = CoreUtils.CreateEngineMaterial(runtimeShaders.temporalAntialiasingPS);
-            m_DLSSBiasColorMaskMaterial = CoreUtils.CreateEngineMaterial(runtimeShaders.DLSSBiasColorMaskPS);
+            m_UpscalerBiasColorMaskMaterial = CoreUtils.CreateEngineMaterial(runtimeShaders.DLSSBiasColorMaskPS);
 
             // Lens Flare
             m_LensFlareDataDrivenShader = CoreUtils.CreateEngineMaterial(runtimeShaders.lensFlareDataDrivenPS);
@@ -248,11 +252,18 @@ namespace UnityEngine.Rendering.HighDefinition
 
             SetExposureTextureToEmpty(m_EmptyExposureTexture);
 
-            m_GradingAndTonemappingLUT = RTHandles.Alloc(m_LutSize, m_LutSize, m_LutSize, dimension: TextureDimension.Tex3D, colorFormat: m_LutFormat, filterMode: FilterMode.Bilinear, wrapMode: TextureWrapMode.Clamp, enableRandomWrite: true);
+            m_GradingAndTonemappingLUT = RTHandles.Alloc(m_LutSize, m_LutSize, m_LutSize,
+                dimension: TextureDimension.Tex3D,
+                colorFormat: m_LutFormat,
+                filterMode: FilterMode.Bilinear,
+                wrapMode: TextureWrapMode.Clamp,
+                enableRandomWrite: true,
+                name: "GradingAndTonemappingLUT");
 
             resGroup = ResolutionGroup.BeforeDynamicResUpscale;
 
             m_DLSSPass = DLSSPass.Create();
+            m_FSR2Pass = FSR2Pass.Create();
         }
 
         GraphicsFormat GetPostprocessTextureFormat(HDCamera camera)
@@ -304,6 +315,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DebugImageHistogramBuffer = null;
             m_DebugExposureData = null;
             m_DLSSPass = null;
+            m_FSR2Pass = null;
         }
 
         // In some cases, the internal buffer of render textures might be invalid.
@@ -370,7 +382,9 @@ namespace UnityEngine.Rendering.HighDefinition
             m_AntialiasingFS &= !camera.IsPathTracingEnabled();
 
             // Sanity check, cant run dlss unless the pass is not null
-            m_DLSSPassEnabled = m_DLSSPass != null && camera.IsDLSSEnabled();
+            m_EnabledAdvancedUpscalerPassMask = 0;
+            m_EnabledAdvancedUpscalerPassMask |= m_DLSSPass != null && camera.IsDLSSEnabled() ? (1 << (int)AdvancedUpscalers.DLSS): 0;
+            m_EnabledAdvancedUpscalerPassMask |= m_FSR2Pass != null && camera.IsFSR2Enabled() ? (1 << (int)AdvancedUpscalers.FSR2): 0;
 
             m_DebugExposureCompensation = m_CurrentDebugDisplaySettings.data.lightingDebugSettings.debugExposure;
 
@@ -395,8 +409,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetGlobalTexture(HDShaderIDs._PrevExposureTexture, GetPreviousExposureTexture(camera));
             }
 
-            if (m_DLSSPass != null)
-                m_DLSSPass.BeginFrame(camera);
+            m_DLSSPass?.BeginFrame(camera);
+            m_FSR2Pass?.BeginFrame(camera);
         }
 
         int ComputeLUTHash(HDCamera hdCamera)
@@ -533,7 +547,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 source = DoDLSSPasses(renderGraph, hdCamera, DynamicResolutionHandler.UpsamplerScheduleType.BeforePost, source, depthBuffer, motionVectors);
 
+                source = DoFSR2Passes(renderGraph, hdCamera, DynamicResolutionHandler.UpsamplerScheduleType.BeforePost, source, depthBuffer, motionVectors);
+
                 source = CustomPostProcessPass(renderGraph, hdCamera, source, depthBuffer, normalBuffer, motionVectors, customPostProcessingOrders.beforeTAACustomPostProcesses, HDProfileId.CustomPostProcessBeforeTAA);
+
 
                 // Temporal anti-aliasing goes first
                 if (m_AntialiasingFS)
@@ -567,6 +584,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 ComposeLines(renderGraph, hdCamera, source, prepassOutput.depthBuffer, motionVectors, (int)LineRendering.CompositionMode.AfterDepthOfField);
 
                 source = DoDLSSPasses(renderGraph, hdCamera, DynamicResolutionHandler.UpsamplerScheduleType.AfterDepthOfField, source, depthBuffer, motionVectors);
+        
+                source = DoFSR2Passes(renderGraph, hdCamera, DynamicResolutionHandler.UpsamplerScheduleType.AfterDepthOfField, source, depthBuffer, motionVectors);
 
                 if (m_DepthOfField.IsActive() && m_SubFrameManager.isRecording && m_SubFrameManager.subFrameCount > 1 && !hdCamera.IsPathTracingEnabled())
                 {
@@ -620,6 +639,8 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 source = DoDLSSPasses(renderGraph, hdCamera, DynamicResolutionHandler.UpsamplerScheduleType.BeforePost, source, depthBuffer, motionVectors);
                 source = DoDLSSPasses(renderGraph, hdCamera, DynamicResolutionHandler.UpsamplerScheduleType.AfterDepthOfField, source, depthBuffer, motionVectors);
+                source = DoFSR2Passes(renderGraph, hdCamera, DynamicResolutionHandler.UpsamplerScheduleType.BeforePost, source, depthBuffer, motionVectors);
+                source = DoFSR2Passes(renderGraph, hdCamera, DynamicResolutionHandler.UpsamplerScheduleType.AfterDepthOfField, source, depthBuffer, motionVectors);
             }
 
             if (DynamicResolutionHandler.instance.upsamplerSchedule == DynamicResolutionHandler.UpsamplerScheduleType.AfterPost)
@@ -627,6 +648,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (hdCamera.IsDLSSEnabled())
                 {
                     source = DoDLSSPasses(renderGraph, hdCamera, DynamicResolutionHandler.UpsamplerScheduleType.AfterPost, source, depthBuffer, motionVectors);
+                }
+                else if (hdCamera.IsFSR2Enabled())
+                {
+                    source = DoFSR2Passes(renderGraph, hdCamera, DynamicResolutionHandler.UpsamplerScheduleType.AfterPost, source, depthBuffer, motionVectors);
                 }
                 else
                 {
@@ -682,18 +707,18 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        #region DLSS
-        class DLSSColorMaskPassData
+        #region Upscaler Common Passes 
+        class UpscalerColorMaskPassData
         {
             public Material colorMaskMaterial;
             public int destWidth;
             public int destHeight;
         }
 
-        TextureHandle DoDLSSColorMaskPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle inputDepth)
+        TextureHandle UpscalerColorMaskPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle inputDepth)
         {
             TextureHandle output = TextureHandle.nullHandle;
-            using (var builder = renderGraph.AddRenderPass<DLSSColorMaskPassData>("DLSS Color Mask", out var passData, ProfilingSampler.Get(HDProfileId.DeepLearningSuperSamplingColorMask)))
+            using (var builder = renderGraph.AddRenderPass<UpscalerColorMaskPassData>("Upscaler Color Mask", out var passData, ProfilingSampler.Get(HDProfileId.UpscalerColorMask)))
             {
                 output = builder.UseColorBuffer(renderGraph.CreateTexture(
                     new TextureDesc(Vector2.one, true, true)
@@ -701,17 +726,17 @@ namespace UnityEngine.Rendering.HighDefinition
                         colorFormat = GraphicsFormat.R8G8B8A8_UNorm,
                         clearBuffer = true,
                         clearColor = Color.black,
-                        name = "DLSS Color Mask"
+                        name = "Upscaler Color Mask"
                     }), 0);
                 builder.UseDepthBuffer(inputDepth, DepthAccess.Read);
 
-                passData.colorMaskMaterial = m_DLSSBiasColorMaskMaterial;
+                passData.colorMaskMaterial = m_UpscalerBiasColorMaskMaterial;
 
                 passData.destWidth = hdCamera.actualWidth;
                 passData.destHeight = hdCamera.actualHeight;
 
                 builder.SetRenderFunc(
-                    (DLSSColorMaskPassData data, RenderGraphContext ctx) =>
+                    (UpscalerColorMaskPassData data, RenderGraphContext ctx) =>
                     {
                         Rect targetViewport = new Rect(0.0f, 0.0f, data.destWidth, data.destHeight);
                         data.colorMaskMaterial.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.ExcludeFromTUAndAA);
@@ -723,21 +748,31 @@ namespace UnityEngine.Rendering.HighDefinition
 
             return output;
         }
+        #endregion
 
+        #region DLSS
         class DLSSData
         {
             public DLSSPass.Parameters parameters;
-            public DLSSPass.CameraResourcesHandles resourceHandles;
+            public UpscalerResources.CameraResourcesHandles resourceHandles;
             public DLSSPass pass;
         }
 
         TextureHandle DoDLSSPasses(RenderGraph renderGraph, HDCamera hdCamera, DynamicResolutionHandler.UpsamplerScheduleType upsamplerSchedule,
             TextureHandle source, TextureHandle depthBuffer, TextureHandle motionVectors)
         {
-            if (!m_DLSSPassEnabled || upsamplerSchedule != currentAsset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.DLSSInjectionPoint)
+            int upscalerMask = (1 << (int)AdvancedUpscalers.DLSS);
+
+            // Quick safety check: If we have one or more upscaler that is not DLSS running, we avoid running DLSS.
+            // This should be taken care in the HDRenderPipeline.cs script when we pick the upscaler by priority.
+            if (((upscalerMask - 1) & m_EnabledAdvancedUpscalerPassMask) != 0)
                 return source;
 
-            TextureHandle colorBiasMask = DoDLSSColorMaskPass(renderGraph, hdCamera, depthBuffer);
+            if ((m_EnabledAdvancedUpscalerPassMask & upscalerMask) == 0
+                || upsamplerSchedule != currentAsset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.DLSSInjectionPoint)
+                return source;
+
+            TextureHandle colorBiasMask = UpscalerColorMaskPass(renderGraph, hdCamera, depthBuffer);
             source = DoDLSSPass(renderGraph, hdCamera, source, depthBuffer, motionVectors, colorBiasMask);
             SetCurrentResolutionGroup(renderGraph, hdCamera, ResolutionGroup.AfterDynamicResUpscale);
             return source;
@@ -758,7 +793,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // For now we clamp the exposure to a reasonable value.
                 passData.parameters.preExposure = Mathf.Clamp(hdCamera.GpuExposureValue(), 0.35f, 2.0f);
 
-                var viewHandles = new DLSSPass.ViewResourceHandles();
+                var viewHandles = new UpscalerResources.ViewResourceHandles();
                 viewHandles.source = builder.ReadTexture(source);
                 viewHandles.output = builder.WriteTexture(GetPostprocessUpsampledOutputHandle(hdCamera, renderGraph, "DLSS destination"));
                 viewHandles.depth = builder.ReadTexture(depthBuffer);
@@ -769,7 +804,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 else
                     viewHandles.biasColorMask = TextureHandle.nullHandle;
 
-                passData.resourceHandles = DLSSPass.CreateCameraResources(hdCamera, renderGraph, builder, viewHandles);
+                passData.resourceHandles = UpscalerResources.CreateCameraResources(hdCamera, renderGraph, builder, viewHandles);
 
                 source = viewHandles.output;
                 passData.pass = m_DLSSPass;
@@ -777,7 +812,72 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                     (DLSSData data, RenderGraphContext ctx) =>
                     {
-                        data.pass.Render(data.parameters, DLSSPass.GetCameraResources(data.resourceHandles), ctx.cmd);
+                        data.pass.Render(data.parameters, UpscalerResources.GetCameraResources(data.resourceHandles), ctx.cmd);
+                    });
+            }
+            return source;
+        }
+
+        #endregion
+
+        #region FSR2 
+        class FSR2Data
+        {
+            public FSR2Pass.Parameters parameters;
+            public UpscalerResources.CameraResourcesHandles resourceHandles;
+            public FSR2Pass pass;
+        }
+
+        TextureHandle DoFSR2Passes(RenderGraph renderGraph, HDCamera hdCamera, DynamicResolutionHandler.UpsamplerScheduleType upsamplerSchedule,
+            TextureHandle source, TextureHandle depthBuffer, TextureHandle motionVectors)
+        {
+            int upscalerMask = (1 << (int)AdvancedUpscalers.FSR2);
+
+            // Quick safety check: If we have one or more upscaler that is not DLSS running, we avoid running DLSS.
+            // This should be taken care in the HDRenderPipeline.cs script when we pick the upscaler by priority.
+            if (((upscalerMask - 1) & m_EnabledAdvancedUpscalerPassMask) != 0)
+                return source;
+
+            if ((m_EnabledAdvancedUpscalerPassMask & upscalerMask) == 0
+               || upsamplerSchedule != currentAsset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.FSR2InjectionPoint)
+                return source;
+
+            TextureHandle colorBiasMask = UpscalerColorMaskPass(renderGraph, hdCamera, depthBuffer);
+            source = DoFSR2Pass(renderGraph, hdCamera, source, depthBuffer, motionVectors, colorBiasMask);
+            SetCurrentResolutionGroup(renderGraph, hdCamera, ResolutionGroup.AfterDynamicResUpscale);
+            return source;
+        }
+
+        TextureHandle DoFSR2Pass(
+            RenderGraph renderGraph, HDCamera hdCamera,
+            TextureHandle source, TextureHandle depthBuffer, TextureHandle motionVectors, TextureHandle biasColorMask)
+        {
+            using (var builder = renderGraph.AddRenderPass<FSR2Data>("Fidelity FX 2 Super Resolution", out var passData, ProfilingSampler.Get(HDProfileId.FSR2)))
+            {
+                passData.parameters = new FSR2Pass.Parameters();
+                passData.parameters.hdCamera = hdCamera;
+                passData.parameters.drsSettings = currentAsset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings;
+
+                var viewHandles = new UpscalerResources.ViewResourceHandles();
+                viewHandles.source = builder.ReadTexture(source);
+                viewHandles.output = builder.WriteTexture(GetPostprocessUpsampledOutputHandle(hdCamera, renderGraph, "FSR2 destination"));
+                viewHandles.depth = builder.ReadTexture(depthBuffer);
+                viewHandles.motionVectors = builder.ReadTexture(motionVectors);
+
+                if (biasColorMask.IsValid())
+                    viewHandles.biasColorMask = builder.ReadTexture(biasColorMask);
+                else
+                    viewHandles.biasColorMask = TextureHandle.nullHandle;
+
+                passData.resourceHandles = UpscalerResources.CreateCameraResources(hdCamera, renderGraph, builder, viewHandles);
+
+                source = viewHandles.output;
+                passData.pass = m_FSR2Pass;
+
+                builder.SetRenderFunc(
+                    (FSR2Data data, RenderGraphContext ctx) =>
+                    {
+                        data.pass.Render(data.parameters, UpscalerResources.GetCameraResources(data.resourceHandles), ctx.cmd);
                     });
             }
             return source;
@@ -3020,7 +3120,7 @@ namespace UnityEngine.Rendering.HighDefinition
             bool isOrtho = hdCamera.camera.orthographic;
 
             // If DLSS is enabled, we need to stabilize the CoC buffer (because the upsampled depth is jittered)
-            if (m_DLSSPassEnabled && currentAsset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.DLSSInjectionPoint == DynamicResolutionHandler.UpsamplerScheduleType.BeforePost)
+            if (isAnyAdvancedUpscalerActive && currentAsset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.DLSSInjectionPoint == DynamicResolutionHandler.UpsamplerScheduleType.BeforePost)
                 stabilizeCoC = true;
 
             // If Path tracing is enabled, then DoF is computed in the path tracer by sampling the lens aperure (when using the physical camera mode)
@@ -4969,7 +5069,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.uberPostCS.EnableKeyword("ENABLE_ALPHA");
                 }
 
-                if (hdCamera.DynResRequest.enabled && hdCamera.DynResRequest.filter == DynamicResUpscaleFilter.EdgeAdaptiveScalingUpres && DynamicResolutionHandler.instance.upsamplerSchedule == DynamicResolutionHandler.UpsamplerScheduleType.AfterPost && !hdCamera.IsDLSSEnabled())
+                if (hdCamera.DynResRequest.enabled && hdCamera.DynResRequest.filter == DynamicResUpscaleFilter.EdgeAdaptiveScalingUpres && DynamicResolutionHandler.instance.upsamplerSchedule == DynamicResolutionHandler.UpsamplerScheduleType.AfterPost && !isAnyAdvancedUpscalerActive)
                 {
                     passData.uberPostCS.EnableKeyword("GAMMA2_OUTPUT");
                 }
@@ -5367,7 +5467,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 // General
                 passData.postProcessEnabled = m_PostProcessEnabled;
-                passData.performUpsampling = !hdCamera.IsDLSSEnabled() && DynamicResolutionHandler.instance.upsamplerSchedule == DynamicResolutionHandler.UpsamplerScheduleType.AfterPost;
+                passData.performUpsampling = !isAnyAdvancedUpscalerActive && DynamicResolutionHandler.instance.upsamplerSchedule == DynamicResolutionHandler.UpsamplerScheduleType.AfterPost;
                 passData.finalPassMaterial = m_FinalPassMaterial;
                 passData.hdCamera = hdCamera;
                 passData.blueNoise = blueNoise;

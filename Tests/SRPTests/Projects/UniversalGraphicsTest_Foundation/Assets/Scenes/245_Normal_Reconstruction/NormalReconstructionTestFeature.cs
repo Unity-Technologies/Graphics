@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.Rendering.Universal.Internal;
@@ -110,7 +110,8 @@ public class NormalReconstructionTestFeature : ScriptableRendererFeature
                 UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
 
                 TextureHandle color = resourceData.activeColorTexture;
-                passData.color = builder.UseTextureFragment(color, 0, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
+                passData.color = color;
+                builder.SetRenderAttachment(color, 0, AccessFlags.ReadWrite);
                 passData.cameraData = cameraData;
                 builder.AllowGlobalStateModification(true);
 

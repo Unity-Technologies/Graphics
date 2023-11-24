@@ -123,6 +123,12 @@ EditorBuildSettings:
     path: Assets/GraphicsTests/105_MotionVectors.unity
     guid: 5de9ddd5ce5b150408a504798854e72e
   - enabled: 1
+    path: Assets/GraphicsTests/106_SampleSceneColorAndDepth.unity
+    guid: 001278b81ccf8004e96455183da29bc9
+  - enabled: 1
+    path: Assets/GraphicsTests/106_SampleSceneColorAndDepth_Custom.unity
+    guid: c7d2587d0a33fe54fa13d806367dad0e
+  - enabled: 1
     path: Assets/GraphicsTests/Instancing/Instancing512.unity
     guid: 73939114e75ef4f4f8e9ffb3df23b104
   - enabled: 1

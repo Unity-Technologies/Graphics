@@ -615,6 +615,7 @@ namespace UnityEngine.Rendering
         IsShadowsOff = 1 << 1, // shadow casting mode is ShadowCastingMode.Off
         IsShadowsOnly = 1 << 2, // shadow casting mode is ShadowCastingMode.ShadowsOnly
         HasProgressiveLod = 1 << 3,
+        SmallMeshCulling = 1 << 4
     }
 
     internal struct CPUSharedInstanceFlags

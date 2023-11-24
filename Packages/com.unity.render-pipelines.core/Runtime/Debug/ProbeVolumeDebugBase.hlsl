@@ -1,14 +1,47 @@
 #ifndef PROBEVOLUMEDEBUG_BASE_HLSL
 #define PROBEVOLUMEDEBUG_BASE_HLSL
 
-// Requires includes in the .shader file
+// TEMPORARY WORKAROUND
+// Unfortunately we don't have a cross pipeline way to pass per frame constant.
+// One of the reason is that we don't want to force a certain Constant Buffer layout on users (read: SRP writer) for shared data.
+// This means that usually SRP Core functions (see SpaceTransforms.hlsl for example) use common names that are NOT declared in the Core package but rather in each pipelines.
+// The consequence is that when writing core shaders that need those variables, we currently have to copy their declaration and set them manually from core C# code to the relevant shaders.
+
+// Here is current the subset of variables and functions required by APV debug.
+// Copying them here means that these shaders don't support either XR or Camera Relative rendering (at least until those concept become fully cross pipeline)
+CBUFFER_START(ShaderVariablesProbeVolumeDebug)
+float4x4 unity_MatrixVP;        // Sent by builtin
+float4x4 unity_MatrixInvV;      // Sent by builtin
+float4x4 unity_ObjectToWorld;   // Sent by builtin
+float4 _ScreenSize;
+float3 _WorldSpaceCameraPos;    // Sent by builtin
+CBUFFER_END
+
+TEXTURE2D(_ExposureTexture);
+
+#define UNITY_MATRIX_VP unity_MatrixVP
+#define UNITY_MATRIX_V unity_MatrixV
+#define UNITY_MATRIX_I_V unity_MatrixInvV
+#define UNITY_MATRIX_M unity_ObjectToWorld
+
+float3 GetCurrentViewPosition()
+{
+    return UNITY_MATRIX_I_V._14_24_34;
+}
+
+float GetCurrentExposureMultiplier()
+{
+    return LOAD_TEXTURE2D(_ExposureTexture, int2(0, 0)).x;
+}
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/DecodeSH.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/ProbeVolume.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/ProbeReferenceVolume.Debug.cs.hlsl"
 
+
 uniform int _ShadingMode;
 uniform float _ExposureCompensation;
-uniform bool _BypassExposure;
 uniform float _ProbeSize;
 uniform float4 _Color;
 uniform int _SubdivLevel;
@@ -72,7 +105,7 @@ void FindSamplingData(float3 posWS, float3 normalWS, out float3 snappedProbePosi
 
     if (_DebugSamplingNoise)
     {
-        float2 posNDC = ComputeNormalizedDeviceCoordinates(GetCameraRelativePositionWS(posWS), UNITY_MATRIX_VP);
+        float2 posNDC = ComputeNormalizedDeviceCoordinates(posWS, UNITY_MATRIX_VP);
         float2 posSS = floor(posNDC.xy * _ScreenSize.xy);
         posWS = AddNoiseToSamplingPosition(posWS, posSS, viewDir_WS);
     }
@@ -257,10 +290,7 @@ float3 CalculateDiffuseLighting(v2f i)
             if (index != 255)
                 skyShadingDirection = apvRes.SkyPrecomputedDirections[index].rgb;
         }
-        float value = 1.0f;
-        // TODO: doesn't comile on URP
-        //if (_BypassExposure)
-        //    value *= 1.0f / GetCurrentExposureMultiplier();
+        float value = 1.0f / GetCurrentExposureMultiplier();
 
         if (index == 255)
             return float3(value, 0.0f, 0.0f);
@@ -272,21 +302,15 @@ float3 CalculateDiffuseLighting(v2f i)
     else
     {
         float skyOcclusion = 0.0f;
-        float skyOcclusionNoExposure = 0.0f;
         if (_SkyOcclusionIntensity > 0)
         {
             // L0 L1
             float4 temp = float4(kSHBasis0, kSHBasis1 * normal.x, kSHBasis1 * normal.y, kSHBasis1 * normal.z);
             skyOcclusion = dot(temp, apvRes.SkyOcclusionL0L1[texLoc].rgba);
-            skyOcclusionNoExposure = skyOcclusion ;//* 1.0f / GetCurrentExposureMultiplier();
         }
 
         if (_ShadingMode == DEBUGPROBESHADINGMODE_SKY_OCCLUSION_SH)
-        {
-            if (_BypassExposure)
-                return float3(skyOcclusionNoExposure, skyOcclusionNoExposure, skyOcclusionNoExposure);
-            return float3(skyOcclusion, skyOcclusion, skyOcclusion);
-        }
+            return skyOcclusion / GetCurrentExposureMultiplier();
 
         float4 L0_L1Rx = apvRes.L0_L1Rx[texLoc].rgba;
         float3 L0 = L0_L1Rx.xyz;

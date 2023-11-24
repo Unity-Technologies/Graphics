@@ -2,19 +2,20 @@ using System;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    public partial class WaterSurface : IVersionable<WaterSurface.Version>, ISerializationCallbackReceiver
+    public partial class WaterSurface : IVersionable<WaterSurface.Version>
     {
         enum Version
         {
             First,
             GenericRenderingLayers,
             AutomaticFading,
+            FoamRemap,
 
             Count,
         }
 
         [SerializeField]
-        Version m_Version = MigrationDescription.LastVersion<Version>();
+        Version m_Version = MigrationDescription.LastVersion<Version>() - 1;
         Version IVersionable<Version>.version { get => m_Version; set => m_Version = value; }
 
         static readonly MigrationDescription<Version, WaterSurface> k_Migration = MigrationDescription.New(
@@ -32,6 +33,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 s.largeBand1FadeMode = s.largeBand1FadeToggle ? FadeMode.Custom : FadeMode.None;
                 s.ripplesFadeMode = s.ripplesFadeToggle ? FadeMode.Custom : FadeMode.None;
 #pragma warning restore 618
+            }),
+            MigrationStep.New(Version.FoamRemap, (WaterSurface s) =>
+            {
+                s.foamPersistenceMultiplier = Mathf.Min(s.foamPersistenceMultiplier * 3.0f, 1.0f);
             })
         );
 
@@ -54,24 +59,5 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary></summary>
         [SerializeField, Obsolete("Use ripplesFadeMode instead @from(2023.1)")]
         public bool ripplesFadeToggle = true;
-
-
-        /// <summary>
-        /// OnAfterDeserialize implementation.
-        /// </summary>
-        void ISerializationCallbackReceiver.OnBeforeSerialize()
-        {
-            if (m_Version == Version.Count) // serializing a newly created object
-                m_Version = Version.Count - 1; // mark as up to date
-        }
-
-        /// <summary>
-        /// OnBeforeSerialize implementation.
-        /// </summary>
-        void ISerializationCallbackReceiver.OnAfterDeserialize()
-        {
-            if (m_Version == Version.Count) // deserializing and object without version
-                m_Version = Version.First; // reset to run the migration
-        }
     }
 }

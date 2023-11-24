@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 5241.604, g: 9259.829, b: 14082.822, a: 1}
+  m_IndirectSpecularColor: {r: 5243.344, g: 9262.884, b: 14089.986, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -247,6 +247,9 @@ MonoBehaviour:
   bowWaveElevation: 1
   range: {x: 0, y: 1}
   texture: {fileID: 0}
+  resolution: {x: 256, y: 256}
+  updateMode: 0
+  material: {fileID: 0}
   deepFoamDimmer: 1
   surfaceFoamDimmer: 1
 --- !u!1 &291779567
@@ -372,6 +375,9 @@ MonoBehaviour:
   bowWaveElevation: 1
   range: {x: 0, y: 1}
   texture: {fileID: 0}
+  resolution: {x: 256, y: 256}
+  updateMode: 0
+  material: {fileID: 0}
   deepFoamDimmer: 1
   surfaceFoamDimmer: 1
 --- !u!4 &302749970
@@ -497,6 +503,7 @@ MonoBehaviour:
   foamAreaSize: {x: 300, y: 256}
   foamAreaOffset: {x: -64, y: 0}
   foamPersistenceMultiplier: 0.5
+  foamCurrentInfluence: 0.6
   foamColor: {r: 1, g: 1, b: 1, a: 1}
   foamTextureTiling: 0.1
   foamSmoothness: 0.3
@@ -1097,6 +1104,9 @@ MonoBehaviour:
   bowWaveElevation: 1
   range: {x: 0, y: 1}
   texture: {fileID: 2800000, guid: 930408e364142f84f94d98104f04c309, type: 3}
+  resolution: {x: 256, y: 256}
+  updateMode: 0
+  material: {fileID: 0}
   deepFoamDimmer: 1
   surfaceFoamDimmer: 1
 --- !u!4 &746521535
@@ -1177,12 +1187,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0050ecd2d32680645848edd91f37442d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  type: 0
-  regionSize: {x: 10, y: 10}
+  type: 3
+  regionSize: {x: 20, y: 15}
   texture: {fileID: 0}
-  surfaceFoamDimmer: 0.18
+  resolution: {x: 256, y: 256}
+  material: {fileID: 2100000, guid: 670243648442e0a428ea430740211ab2, type: 2}
+  surfaceFoamDimmer: 0.6
   deepFoamDimmer: 1
-  scaleMode: 1
+  scaleMode: 0
 --- !u!4 &807039431
 Transform:
   m_ObjectHideFlags: 0
@@ -1191,13 +1203,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 807039429}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0.12645967, z: -0, w: 0.9919718}
-  m_LocalPosition: {x: -6.3100014, y: 0, z: 0.10000014}
-  m_LocalScale: {x: 1.7000002, y: 1, z: 1.15}
+  m_LocalRotation: {x: -0, y: 0.9940536, z: -0, w: 0.108891815}
+  m_LocalPosition: {x: -9.11, y: 0, z: -1.46}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 2057688235}
-  m_LocalEulerAnglesHint: {x: 0, y: -14.53, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 167.497, z: 0}
 --- !u!1 &838711648
 GameObject:
   m_ObjectHideFlags: 0
@@ -1480,7 +1492,9 @@ MonoBehaviour:
   type: 0
   regionSize: {x: 3, y: 3}
   texture: {fileID: 0}
-  surfaceFoamDimmer: 0.33
+  resolution: {x: 256, y: 256}
+  material: {fileID: 0}
+  surfaceFoamDimmer: 1
   deepFoamDimmer: 1
   scaleMode: 1
 --- !u!1 &879231442
@@ -1671,7 +1685,9 @@ MonoBehaviour:
   type: 0
   regionSize: {x: 3, y: 3}
   texture: {fileID: 0}
-  surfaceFoamDimmer: 0.5
+  resolution: {x: 256, y: 256}
+  material: {fileID: 0}
+  surfaceFoamDimmer: 1
   deepFoamDimmer: 1
   scaleMode: 1
 --- !u!1001 &974883611
@@ -2687,7 +2703,9 @@ MonoBehaviour:
   type: 0
   regionSize: {x: 3, y: 3}
   texture: {fileID: 0}
-  surfaceFoamDimmer: 0.33
+  resolution: {x: 256, y: 256}
+  material: {fileID: 0}
+  surfaceFoamDimmer: 1
   deepFoamDimmer: 1
   scaleMode: 1
 --- !u!1 &1399800658
@@ -3179,43 +3197,43 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0eb0f05b8b3956a4eb944822a894e535, type: 3}
       propertyPath: m_LocalScale.x
-      value: 0.061139748
+      value: 0.25
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0eb0f05b8b3956a4eb944822a894e535, type: 3}
       propertyPath: m_LocalScale.y
-      value: 0.061139748
+      value: 0.25
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0eb0f05b8b3956a4eb944822a894e535, type: 3}
       propertyPath: m_LocalScale.z
-      value: 0.061139748
+      value: 0.25
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0eb0f05b8b3956a4eb944822a894e535, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -63.645153
+      value: 3.039689
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0eb0f05b8b3956a4eb944822a894e535, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -1.9756131
+      value: 1.9465079
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0eb0f05b8b3956a4eb944822a894e535, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -11.239211
+      value: -4.3795395
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0eb0f05b8b3956a4eb944822a894e535, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0.16508967
+      value: -0.481052
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0eb0f05b8b3956a4eb944822a894e535, type: 3}
       propertyPath: m_LocalRotation.x
-      value: -0.16508967
+      value: 0.481052
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0eb0f05b8b3956a4eb944822a894e535, type: 3}
       propertyPath: m_LocalRotation.y
-      value: -0.68756485
+      value: -0.5182557
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0eb0f05b8b3956a4eb944822a894e535, type: 3}
       propertyPath: m_LocalRotation.z
-      value: -0.68756485
+      value: -0.5182557
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0eb0f05b8b3956a4eb944822a894e535, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -3341,6 +3359,9 @@ MonoBehaviour:
   bowWaveElevation: 1
   range: {x: 0, y: 1}
   texture: {fileID: 0}
+  resolution: {x: 256, y: 256}
+  updateMode: 0
+  material: {fileID: 0}
   deepFoamDimmer: 1
   surfaceFoamDimmer: 1
 --- !u!1001 &1763826137
@@ -3369,31 +3390,31 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0eb0f05b8b3956a4eb944822a894e535, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -41.68148
+      value: 31.701576
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0eb0f05b8b3956a4eb944822a894e535, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -1.9937797
+      value: 1.9834881
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0eb0f05b8b3956a4eb944822a894e535, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -1.9509811
+      value: 16.068668
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0eb0f05b8b3956a4eb944822a894e535, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0.6888879
+      value: 0.24874365
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0eb0f05b8b3956a4eb944822a894e535, type: 3}
       propertyPath: m_LocalRotation.x
-      value: -0.6888879
+      value: -0.24874365
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0eb0f05b8b3956a4eb944822a894e535, type: 3}
       propertyPath: m_LocalRotation.y
-      value: -0.15947887
+      value: -0.6619113
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0eb0f05b8b3956a4eb944822a894e535, type: 3}
       propertyPath: m_LocalRotation.z
-      value: -0.15947887
+      value: -0.6619113
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0eb0f05b8b3956a4eb944822a894e535, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -3504,6 +3525,9 @@ MonoBehaviour:
   bowWaveElevation: 1
   range: {x: 0, y: 1}
   texture: {fileID: 8600000, guid: 192cdbf6ed39c52429a81fa2d565308c, type: 2}
+  resolution: {x: 256, y: 256}
+  updateMode: 0
+  material: {fileID: 0}
   deepFoamDimmer: 0
   surfaceFoamDimmer: 0
 --- !u!4 &1778885197
@@ -3851,6 +3875,9 @@ MonoBehaviour:
   bowWaveElevation: 1
   range: {x: 0, y: 1}
   texture: {fileID: 0}
+  resolution: {x: 256, y: 256}
+  updateMode: 0
+  material: {fileID: 0}
   deepFoamDimmer: 1
   surfaceFoamDimmer: 1
 --- !u!1 &1862284147
@@ -3995,31 +4022,31 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0eb0f05b8b3956a4eb944822a894e535, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 35.56363
+      value: 22.150824
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0eb0f05b8b3956a4eb944822a894e535, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 1.9255695
+      value: 1.9970641
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0eb0f05b8b3956a4eb944822a894e535, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 10.518551
+      value: 16.156023
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0eb0f05b8b3956a4eb944822a894e535, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0.64529556
+      value: 0.116650864
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0eb0f05b8b3956a4eb944822a894e535, type: 3}
       propertyPath: m_LocalRotation.x
-      value: -0.64529556
+      value: -0.116650864
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0eb0f05b8b3956a4eb944822a894e535, type: 3}
       propertyPath: m_LocalRotation.y
-      value: -0.28912565
+      value: -0.6974185
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0eb0f05b8b3956a4eb944822a894e535, type: 3}
       propertyPath: m_LocalRotation.z
-      value: -0.28912565
+      value: -0.6974185
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0eb0f05b8b3956a4eb944822a894e535, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x

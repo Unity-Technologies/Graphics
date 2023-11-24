@@ -10,6 +10,7 @@ namespace UnityEngine.Rendering
     internal enum InstanceType
     {
         MeshRenderer = 0,
+        SpeedTree = 1,
         Count,
 
         LODGroup = 0, // Aliased for now because it is part of a different instance data space.
@@ -39,6 +40,7 @@ namespace UnityEngine.Rendering
             s_ParentTypes = new InstanceType[(int)InstanceType.Count];
 
             s_ParentTypes[(int)InstanceType.MeshRenderer] = InstanceType.MeshRenderer;
+            s_ParentTypes[(int)InstanceType.SpeedTree] = InstanceType.MeshRenderer;
             // Add more parent types here if needed...
         }
 
@@ -52,10 +54,10 @@ namespace UnityEngine.Rendering
             for (int i = 0; i < (int)InstanceType.Count; ++i)
             {
                 var type = (InstanceType)i;
-                var parentType = s_ParentTypes[(int)type]; 
+                var parentType = s_ParentTypes[(int)type];
 
                 if (type != parentType)
-                    s_ChildTypes[(int)parentType].Add(type); 
+                    s_ChildTypes[(int)parentType].Add(type);
             }
         }
 
@@ -127,6 +129,7 @@ namespace UnityEngine.Rendering
         {
             InitDefault();
             InstanceNums[(int)InstanceType.MeshRenderer] = meshRendererNum;
+            InstanceNums[(int)InstanceType.SpeedTree] = speedTreeNum;
         }
 
         public int GetInstanceNum(InstanceType type)

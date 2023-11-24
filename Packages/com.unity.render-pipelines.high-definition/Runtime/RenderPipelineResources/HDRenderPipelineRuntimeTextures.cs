@@ -257,14 +257,5 @@ namespace UnityEngine.Rendering.HighDefinition
             get => m_DefaultCloudMap;
             set => this.SetValueAndNotify(ref m_DefaultCloudMap, value);
         }
-
-        // APV Sampling debug
-        [SerializeField][ResourcePath("Runtime/RenderPipelineResources/Texture/APV/NumbersDisplayTex.png")]
-        private Texture2D m_NumbersDisplayTex;
-        public Texture2D numbersDisplayTex
-        {
-            get => m_NumbersDisplayTex;
-            set => this.SetValueAndNotify(ref m_NumbersDisplayTex, value);
-        }
     }
 }

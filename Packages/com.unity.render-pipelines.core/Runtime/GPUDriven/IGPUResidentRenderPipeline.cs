@@ -38,6 +38,11 @@ namespace UnityEngine.Rendering
         /// </summary>
         public bool allowInEditMode;
 
+        /// <summary>
+        /// Default minimum screen percentage (0-20%) gpu-driven Renderers can cover before getting culled.
+        /// </summary>
+        public float smallMeshScreenPercentage;
+
 #if UNITY_EDITOR
         /// <summary>
         /// Shader used if no custom picking pass has been implemented

@@ -584,7 +584,7 @@ namespace UnityEngine.Rendering
                 }
 
                 // Cell position in cell space is the top left corner. So we need to shift the camera position by half a cell to make things comparable.
-                var cameraPositionCellSpace = (m_FrozenCameraPosition - m_Transform.posWS) / MaxBrickSize() - Vector3.one * 0.5f;
+                var cameraPositionCellSpace = m_FrozenCameraPosition / MaxBrickSize() - Vector3.one * 0.5f;
 
                 DynamicArray<Cell> bestUnloadedCells;
                 DynamicArray<Cell> worseLoadedCells;
@@ -741,7 +741,7 @@ namespace UnityEngine.Rendering
             }
 
             // Handle cell streaming for blending
-            if (enableScenarioBlending)
+            if (supportScenarioBlending)
             {
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(CoreProfileId.APVScenarioBlendingUpdate)))
                     UpdateBlendingCellStreaming(cmd);
@@ -1183,7 +1183,7 @@ namespace UnityEngine.Rendering
 
         void AllocateScratchBufferPoolIfNeeded()
         {
-            if (m_DiskStreamingUseCompute)
+            if (m_SupportDiskStreaming)
             {
                 int shChunkSize = m_CurrentBakingSet.GetChunkGPUMemory(m_SHBands);
                 int maxSHChunkCount = m_CurrentBakingSet.maxSHChunkCount;
@@ -1322,8 +1322,6 @@ namespace UnityEngine.Rendering
 
             using (new ProfilingScope(ProfilingSampler.Get(CoreProfileId.APVDiskStreamingUpdate)))
             {
-                Debug.Assert(m_DiskStreamingUseCompute);
-
                 AllocateScratchBufferPoolIfNeeded();
                 ProcessNewRequests();
                 UpdateActiveRequests(cmd);
@@ -1351,6 +1349,13 @@ namespace UnityEngine.Rendering
                         otherScenarioData.cellOptionalDataAsset.CloseFile();
                     }
                 }
+            }
+
+            // Debug flag to force unload/reload of cells to be able to debug streaming shader code.
+            if (probeVolumeDebug.debugStreaming)
+            {
+                if (m_ToBeLoadedCells.size == 0 && m_ActiveStreamingRequests.Count == 0)
+                    UnloadAllCells();
             }
         }
 

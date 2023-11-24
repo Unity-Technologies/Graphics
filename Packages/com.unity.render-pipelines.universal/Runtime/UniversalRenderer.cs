@@ -327,7 +327,8 @@ namespace UnityEngine.Rendering.Universal
 
 #if UNITY_EDITOR
             m_FinalDepthCopyPass = new CopyDepthPass(RenderPassEvent.AfterRendering + 9, data.shaders.copyDepthPS);
-            m_ProbeVolumeDebugPass = new ProbeVolumeDebugPass(RenderPassEvent.BeforeRenderingTransparents, data.debugShaders.probeVolumeSamplingDebugComputeShader);
+            var debugShaders = GraphicsSettings.GetRenderPipelineSettings<UniversalRenderPipelineDebugShaders>();
+            m_ProbeVolumeDebugPass = new ProbeVolumeDebugPass(RenderPassEvent.BeforeRenderingTransparents, debugShaders?.probeVolumeSamplingDebugComputeShader);
 #endif
 
             // RenderTexture format depends on camera and pipeline (HDR, non HDR, etc)
@@ -1219,7 +1220,7 @@ namespace UnityEngine.Rendering.Universal
                 depthDescriptor.msaaSamples = 1;
                 RenderingUtils.ReAllocateIfNeeded(ref m_MotionVectorDepth, depthDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: MotionVectorRenderPass.k_MotionVectorDepthTextureName);
 
-                SetupMotionVectorGlobalMatrix(cmd, cameraData);
+                MotionVectorRenderPass.SetMotionVectorGlobalMatrices(cmd, cameraData);
 
                 m_MotionVectorPass.Setup(m_MotionVectorColor, m_MotionVectorDepth);
                 EnqueuePass(m_MotionVectorPass);
@@ -1258,6 +1259,12 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(m_RenderTransparentForwardPass);
             }
             EnqueuePass(m_OnRenderObjectCallbackPass);
+
+#if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
+            // SetupVFXCameraBuffer will interrogate VFXManager to automatically enable RequestAccess on RawColor and/or RawDepth. This must be done before SetupRawColorDepthHistory.
+            // SetupVFXCameraBuffer will also provide the GetCurrentTexture from history manager to the VFXManager which can be sampled during the next VFX.Update for the following frame.
+            SetupVFXCameraBuffer(cameraData);
+#endif
 
             // "Raw render" color/depth history.
             // Should include opaque and transparent geometry before TAA or any post-processing effects. No UI overlays etc.
@@ -1381,6 +1388,31 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
+        private void SetupVFXCameraBuffer(UniversalCameraData cameraData)
+        {
+            if (cameraData != null && cameraData.historyManager != null)
+            {
+                var vfxBufferNeeded = VFX.VFXManager.IsCameraBufferNeeded(cameraData.camera);
+                if (vfxBufferNeeded.HasFlag(VFX.VFXCameraBufferTypes.Color))
+                {
+                    cameraData.historyManager.RequestAccess<RawColorHistory>();
+
+                    var handle = cameraData.historyManager.GetHistoryForRead<RawColorHistory>()?.GetCurrentTexture();
+                    VFX.VFXManager.SetCameraBuffer(cameraData.camera, VFX.VFXCameraBufferTypes.Color, handle, 0, 0,
+                        (int)(cameraData.pixelWidth * cameraData.renderScale), (int)(cameraData.pixelHeight * cameraData.renderScale));
+                }
+
+                if (vfxBufferNeeded.HasFlag(VFX.VFXCameraBufferTypes.Depth))
+                {
+                    cameraData.historyManager.RequestAccess<RawDepthHistory>();
+
+                    var handle = cameraData.historyManager.GetHistoryForRead<RawDepthHistory>()?.GetCurrentTexture();
+                    VFX.VFXManager.SetCameraBuffer(cameraData.camera, VFX.VFXCameraBufferTypes.Depth, handle, 0, 0,
+                        (int)(cameraData.pixelWidth * cameraData.renderScale), (int)(cameraData.pixelHeight * cameraData.renderScale));
+                }
+            }
+        }
+
         // "Raw render" color/depth history.
         // Should include opaque and transparent geometry before TAA or any post-processing effects. No UI overlays etc.
         private void SetupRawColorDepthHistory(UniversalCameraData cameraData, ref RenderTextureDescriptor cameraTargetDescriptor)
@@ -1396,13 +1428,17 @@ namespace UnityEngine.Rendering.Universal
                 multipassId = cameraData.xr.multipassId;
 #endif
 
-                if (history.IsAccessRequested<RawColorHistory>())
+                // m_ActiveCameraColorAttachment will be used as source and cast to a Texture.
+                // Casting empty handle to Texture asserts, so it can't be used for checking null.
+                // RTHandle could also be set from an external Texture. However it can't be null checked without casting.
+                // It is assumed that checking the RenderTexture for active color attachment is enough.
+                if (history.IsAccessRequested<RawColorHistory>() && m_ActiveCameraColorAttachment?.rt != null)
                 {
                     var colorHistory = history.GetHistoryForWrite<RawColorHistory>();
                     if (colorHistory != null)
                     {
                         colorHistory.Update(ref cameraTargetDescriptor, xrMultipassEnabled);
-                        if (colorHistory.GetCurrentTexture(multipassId) != null && m_ActiveCameraColorAttachment != null)
+                        if (colorHistory.GetCurrentTexture(multipassId) != null)
                         {
                             m_HistoryRawColorCopyPass.Setup(m_ActiveCameraColorAttachment, colorHistory.GetCurrentTexture(multipassId), Downsampling.None);
                             // See pass creation for actual execution order.
@@ -1411,7 +1447,7 @@ namespace UnityEngine.Rendering.Universal
                     }
                 }
 
-                if (history.IsAccessRequested<RawDepthHistory>())
+                if (history.IsAccessRequested<RawDepthHistory>() && m_ActiveCameraDepthAttachment?.rt != null)
                 {
                     var depthHistory = history.GetHistoryForWrite<RawDepthHistory>();
                     if (depthHistory != null)
@@ -1428,7 +1464,7 @@ namespace UnityEngine.Rendering.Universal
                         else
                             depthHistory.Update(ref cameraTargetDescriptor, xrMultipassEnabled);
 
-                        if (depthHistory.GetCurrentTexture() != null && m_ActiveCameraDepthAttachment != null)
+                        if (depthHistory.GetCurrentTexture(multipassId) != null)
                         {
                             m_HistoryRawDepthCopyPass.Setup(m_ActiveCameraDepthAttachment, depthHistory.GetCurrentTexture(multipassId));
                             // See pass creation for actual execution order.
@@ -1446,7 +1482,8 @@ namespace UnityEngine.Rendering.Universal
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
             UniversalLightData lightData = frameData.Get<UniversalLightData>();
 
-            m_ForwardLights.SetupLights(renderingData.commandBuffer, universalRenderingData, cameraData, lightData);
+            m_ForwardLights.SetupLights(CommandBufferHelpers.GetUnsafeCommandBuffer(renderingData.commandBuffer),
+                universalRenderingData, cameraData, lightData);
 
             if (this.renderingModeActual == RenderingMode.Deferred)
                 m_DeferredLights.SetupLights(renderingData.commandBuffer, cameraData, lightData);
@@ -1481,7 +1518,7 @@ namespace UnityEngine.Rendering.Universal
                 cullingParameters.maximumVisibleLights = UniversalRenderPipeline.maxVisibleAdditionalLights;
                 // Sort the reflection probes in engine.
                 cullingParameters.reflectionProbeSortingCriteria = ReflectionProbeSortingCriteria.ImportanceThenSize;
-            }    
+            }
             else
             {
                 // We set the number of maximum visible lights allowed and we add one for the mainlight...
@@ -1496,32 +1533,6 @@ namespace UnityEngine.Rendering.Universal
             cullingParameters.conservativeEnclosingSphere = UniversalRenderPipeline.asset.conservativeEnclosingSphere;
 
             cullingParameters.numIterationsEnclosingSphere = UniversalRenderPipeline.asset.numIterationsEnclosingSphere;
-        }
-
-
-        // Used for MotionVector passes and also read in VFX early compute shader
-        static void SetupMotionVectorGlobalMatrix(CommandBuffer cmd, UniversalCameraData cameraData)
-        {
-            if (!cameraData.camera.TryGetComponent<UniversalAdditionalCameraData>(out var additionalCameraData))
-                return;
-
-            var motionData = additionalCameraData.motionVectorsPersistentData;
-            if (motionData != null)
-            {
-                var passID = motionData.GetXRMultiPassId(cameraData.xr);
-#if ENABLE_VR && ENABLE_XR_MODULE
-                if (cameraData.xr.enabled && cameraData.xr.singlePassEnabled)
-                {
-                    cmd.SetGlobalMatrixArray(ShaderPropertyId.previousViewProjectionNoJitterStereo, motionData.previousViewProjectionStereo);
-                    cmd.SetGlobalMatrixArray(ShaderPropertyId.viewProjectionNoJitterStereo, motionData.viewProjectionStereo);
-                }
-                else
-#endif
-                {
-                    cmd.SetGlobalMatrix(ShaderPropertyId.previousViewProjectionNoJitter, motionData.previousViewProjectionStereo[passID]);
-                    cmd.SetGlobalMatrix(ShaderPropertyId.viewProjectionNoJitter, motionData.viewProjectionStereo[passID]);
-                }
-            }
         }
 
         /// <inheritdoc />
@@ -1793,7 +1804,8 @@ namespace UnityEngine.Rendering.Universal
         internal override bool supportsNativeRenderPassRendergraphCompiler
         {
             get => SystemInfo.graphicsDeviceType != GraphicsDeviceType.Direct3D12
-                   && SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES3 // GLES doesn't support backbuffer MSAA resolve with the NRP API
+                   && SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES3    // GLES doesn't support backbuffer MSAA resolve with the NRP API
+                   && SystemInfo.graphicsDeviceType != GraphicsDeviceType.PlayStation5 // UUM-56295
             ;
         }
     }

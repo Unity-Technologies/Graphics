@@ -1,5 +1,5 @@
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -223,17 +223,20 @@ namespace UnityEngine.Rendering.Universal
 
                 // Using low level pass because of random UAV support, and since this is a debug view, we don't care much about merging passes or optimizing for TBDR.
                 // This could be a compute pass (like in HDRP) but doing it in pixel is compatible with devices that might support HDR output but not compute shaders.
-                using (var builder = renderGraph.AddLowLevelPass<PassDataCIExy>("Generate HDR DebugView CIExy", out var passData, base.profilingSampler))
+                using (var builder = renderGraph.AddUnsafePass<PassDataCIExy>("Generate HDR DebugView CIExy", out var passData, base.profilingSampler))
                 {
                     passData.material = m_material;
                     passData.luminanceParameters = luminanceParameters;
-                    passData.srcColor = builder.UseTexture(srcColor);
-                    passData.xyBuffer = builder.UseTexture(xyBuffer, IBaseRenderGraphBuilder.AccessFlags.Write); 
-                    passData.passThrough = builder.UseTexture(intermediateRT, IBaseRenderGraphBuilder.AccessFlags.Write);
+                    passData.srcColor = srcColor;
+                    builder.UseTexture(srcColor);
+                    passData.xyBuffer = xyBuffer;
+                    builder.UseTexture(xyBuffer, AccessFlags.Write);
+                    passData.passThrough = intermediateRT;
+                    builder.UseTexture(intermediateRT, AccessFlags.Write);
 
-                    builder.SetRenderFunc((PassDataCIExy data, LowLevelGraphContext context) =>
+                    builder.SetRenderFunc((PassDataCIExy data, UnsafeGraphContext context) =>
                     {
-                        ExecuteCIExyPrepass(context.legacyCmd, data, data.srcColor, data.xyBuffer, data.passThrough);
+                        ExecuteCIExyPrepass(CommandBufferHelpers.GetNativeCommandBuffer(context.cmd), data, data.srcColor, data.xyBuffer, data.passThrough);
                     });
                 }
             }
@@ -246,14 +249,22 @@ namespace UnityEngine.Rendering.Universal
                 passData.cameraData = cameraData;
 
                 if (requiresCIExyData)
-                    passData.xyBuffer = builder.UseTexture(xyBuffer);
+                {
+                    passData.xyBuffer = xyBuffer;
+                    builder.UseTexture(xyBuffer);
+                }
 
-                passData.srcColor = builder.UseTexture(srcColor);
-                passData.dstColor = builder.UseTextureFragment(dstColor, 0, IBaseRenderGraphBuilder.AccessFlags.WriteAll);
+                passData.srcColor = srcColor;
+                builder.UseTexture(srcColor);
+                passData.dstColor = dstColor;
+                builder.SetRenderAttachment(dstColor, 0, AccessFlags.WriteAll);
 
                 if (overlayUITexture.IsValid())
-                    passData.overlayUITexture = builder.UseTexture(overlayUITexture);
-                
+                {
+                    passData.overlayUITexture = overlayUITexture;
+                    builder.UseTexture(overlayUITexture);
+                }
+
                 builder.SetRenderFunc((PassDataDebugView data, RasterGraphContext context) =>
                 {
                     data.material.enabledKeywords = null;

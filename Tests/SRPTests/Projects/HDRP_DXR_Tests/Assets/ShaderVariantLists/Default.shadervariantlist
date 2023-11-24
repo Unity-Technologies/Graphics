@@ -493,6 +493,7 @@ Compiled compute shader: Internal-Skinning, kernel: main, keywords <no keywords>
 Compiled compute shader: lightlistbuild, kernel: TileLightListGen, keywords USE_FEATURE_FLAGS USE_TWO_PASS_TILED_LIGHTING
 Compiled compute shader: lightlistbuild, kernel: TileLightListGen, keywords USE_TWO_PASS_TILED_LIGHTING
 Compiled compute shader: lightlistbuild-bigtile, kernel: BigTileLightListGen, keywords <no keywords>
+Compiled compute shader: lightlistbuild-bigtile, kernel: BigTileLightListGen, keywords GENERATE_VOLUMETRIC_BIGTILE
 Compiled compute shader: lightlistbuild-clearatomic, kernel: ClearAtomic, keywords <no keywords>
 Compiled compute shader: lightlistbuild-clustered, kernel: TileLightListGen_DepthRT_SrcBigTile, keywords <no keywords>
 Compiled compute shader: LutBuilder3D, kernel: KBuild, keywords GRADE_IN_SRGB TONEMAPPING_ACES_APPROX

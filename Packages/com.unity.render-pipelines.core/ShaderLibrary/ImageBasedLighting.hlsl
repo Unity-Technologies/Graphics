@@ -1,7 +1,7 @@
 #ifndef UNITY_IMAGE_BASED_LIGHTING_HLSL_INCLUDED
 #define UNITY_IMAGE_BASED_LIGHTING_HLSL_INCLUDED
 
-#if SHADER_API_MOBILE || SHADER_API_GLES3
+#if SHADER_API_MOBILE || SHADER_API_GLES3 || defined(UNITY_UNIFIED_SHADER_PRECISION_MODEL)
 #pragma warning (disable : 3205) // conversion of larger type to smaller
 #endif
 

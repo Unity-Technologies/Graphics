@@ -1,6 +1,6 @@
 using System.Runtime.CompilerServices;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 using System;
 
 namespace UnityEngine.Rendering.Universal
@@ -28,8 +28,10 @@ namespace UnityEngine.Rendering.Universal
             using (var builder = renderGraph.AddRasterRenderPass<StopNaNsPassData>("Stop NaNs", out var passData,
                        ProfilingSampler.Get(URPProfileId.RG_StopNaNs)))
             {
-                passData.stopNaNTarget = builder.UseTextureFragment(stopNaNTarget, 0, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
-                passData.sourceTexture = builder.UseTexture(activeCameraColor, IBaseRenderGraphBuilder.AccessFlags.Read);
+                passData.stopNaNTarget = stopNaNTarget;
+                builder.SetRenderAttachment(stopNaNTarget, 0, AccessFlags.ReadWrite);
+                passData.sourceTexture = activeCameraColor;
+                builder.UseTexture(activeCameraColor, AccessFlags.Read);
                 passData.stopNaN = m_Materials.stopNaN;
                 builder.SetRenderFunc((StopNaNsPassData data, RasterGraphContext context) =>
                 {
@@ -140,10 +142,13 @@ namespace UnityEngine.Rendering.Universal
 
             using (var builder = renderGraph.AddRasterRenderPass<SMAAPassData>("SMAA Edge Detection", out var passData, ProfilingSampler.Get(URPProfileId.RG_SMAAEdgeDetection)))
             {
-                passData.destinationTexture = builder.UseTextureFragment(edgeTexture, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
-                passData.depthStencilTexture = builder.UseTextureFragmentDepth(edgeTextureStencil, IBaseRenderGraphBuilder.AccessFlags.Write);
-                passData.sourceTexture = builder.UseTexture(source, IBaseRenderGraphBuilder.AccessFlags.Read);
-                builder.UseTexture(resourceData.cameraDepth ,IBaseRenderGraphBuilder.AccessFlags.Read);
+                passData.destinationTexture = edgeTexture;
+                builder.SetRenderAttachment(edgeTexture, 0, AccessFlags.Write);
+                passData.depthStencilTexture = edgeTextureStencil;
+                builder.SetRenderAttachmentDepth(edgeTextureStencil, AccessFlags.Write);
+                passData.sourceTexture = source;
+                builder.UseTexture(source, AccessFlags.Read);
+                builder.UseTexture(resourceData.cameraDepth ,AccessFlags.Read);
                 passData.material = material;
 
                 builder.SetRenderFunc((SMAAPassData data, RasterGraphContext context) =>
@@ -160,8 +165,10 @@ namespace UnityEngine.Rendering.Universal
 
             using (var builder = renderGraph.AddRasterRenderPass<SMAAPassData>("SMAA Blend weights", out var passData, ProfilingSampler.Get(URPProfileId.RG_SMAABlendWeight)))
             {
-                passData.destinationTexture = builder.UseTextureFragment(blendTexture, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
-                passData.sourceTexture = builder.UseTexture(edgeTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+                passData.destinationTexture = blendTexture;
+                builder.SetRenderAttachment(blendTexture, 0, AccessFlags.Write);
+                passData.sourceTexture = edgeTexture;
+                builder.UseTexture(edgeTexture, AccessFlags.Read);
                 passData.material = material;
 
                 builder.SetRenderFunc((SMAAPassData data, RasterGraphContext context) =>
@@ -179,9 +186,12 @@ namespace UnityEngine.Rendering.Universal
             using (var builder = renderGraph.AddRasterRenderPass<SMAAPassData>("SMAA Neighborhood blending", out var passData, ProfilingSampler.Get(URPProfileId.RG_SMAANeighborhoodBlend)))
             {
                 builder.AllowGlobalStateModification(true);
-                passData.destinationTexture = builder.UseTextureFragment(SMAATarget, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
-                passData.sourceTexture = builder.UseTexture(source, IBaseRenderGraphBuilder.AccessFlags.Read);
-                passData.blendTexture = builder.UseTexture(blendTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+                passData.destinationTexture = SMAATarget;
+                builder.SetRenderAttachment(SMAATarget, 0, AccessFlags.Write);
+                passData.sourceTexture = source;
+                builder.UseTexture(source, AccessFlags.Read);
+                passData.blendTexture = blendTexture;
+                builder.UseTexture(blendTexture, AccessFlags.Read);
                 passData.material = material;
 
                 builder.SetRenderFunc((SMAAPassData data, RasterGraphContext context) =>
@@ -248,7 +258,8 @@ namespace UnityEngine.Rendering.Universal
                 passData.dirtTexture = dirtTexture;
                 passData.highQualityFilteringValue = m_Bloom.highQualityFiltering.value;
 
-                passData.bloomTexture = builder.UseTexture(bloomTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+                passData.bloomTexture = bloomTexture;
+                builder.UseTexture(bloomTexture, AccessFlags.Read);
                 passData.uberMaterial = uberMaterial;
 
                 // TODO RENDERGRAPH: properly setup dependencies between passes
@@ -358,8 +369,9 @@ namespace UnityEngine.Rendering.Universal
             _BloomMipUp[0] = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, "_BloomMipUp", true, FilterMode.Bilinear);
             using (var builder = renderGraph.AddRasterRenderPass<BloomPassData>("Bloom - Prefilter", out var passData, ProfilingSampler.Get(URPProfileId.RG_BloomPrefilter)))
             {
-                builder.UseTextureFragment(_BloomMipDown[0], 0, IBaseRenderGraphBuilder.AccessFlags.Write);
-                passData.sourceTexture = builder.UseTexture(source, IBaseRenderGraphBuilder.AccessFlags.Read);
+                builder.SetRenderAttachment(_BloomMipDown[0], 0, AccessFlags.Write);
+                passData.sourceTexture = source;
+                builder.UseTexture(source, AccessFlags.Read);
                 passData.material = bloomMaterial;
 
                 builder.SetRenderFunc((BloomPassData data, RasterGraphContext context) =>
@@ -393,8 +405,9 @@ namespace UnityEngine.Rendering.Universal
                 //   Second pass does 9-tap gaussian using a 5-tap filter + bilinear filtering
                 using (var builder = renderGraph.AddRasterRenderPass<BloomPassData>("Bloom - First pass", out var passData, ProfilingSampler.Get(URPProfileId.RG_BloomFirstPass)))
                 {
-                    builder.UseTextureFragment(mipUp, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
-                    passData.sourceTexture = builder.UseTexture(lastDown, IBaseRenderGraphBuilder.AccessFlags.Read);
+                    builder.SetRenderAttachment(mipUp, 0, AccessFlags.Write);
+                    passData.sourceTexture = lastDown;
+                    builder.UseTexture(lastDown, AccessFlags.Read);
                     passData.material = bloomMaterial;
 
                     builder.SetRenderFunc((BloomPassData data, RasterGraphContext context) =>
@@ -410,8 +423,9 @@ namespace UnityEngine.Rendering.Universal
 
                 using (var builder = renderGraph.AddRasterRenderPass<BloomPassData>("Bloom - Second pass", out var passData, ProfilingSampler.Get(URPProfileId.RG_BloomSecondPass)))
                 {
-                    builder.UseTextureFragment(mipDown, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
-                    passData.sourceTexture = builder.UseTexture(mipUp, IBaseRenderGraphBuilder.AccessFlags.Read);
+                    builder.SetRenderAttachment(mipDown, 0, AccessFlags.Write);
+                    passData.sourceTexture = mipUp;
+                    builder.UseTexture(mipUp, AccessFlags.Read);
                     passData.material = bloomMaterial;
 
                     builder.SetRenderFunc((BloomPassData data, RasterGraphContext context) =>
@@ -437,10 +451,12 @@ namespace UnityEngine.Rendering.Universal
 
                 using (var builder = renderGraph.AddRasterRenderPass<BloomPassData>("Bloom - Upsample", out var passData, ProfilingSampler.Get(URPProfileId.RG_BloomUpsample)))
                 {
-                    builder.UseTextureFragment(dst, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
+                    builder.SetRenderAttachment(dst, 0, AccessFlags.Write);
                     builder.AllowGlobalStateModification(true);
-                    passData.sourceTexture = builder.UseTexture(highMip, IBaseRenderGraphBuilder.AccessFlags.Read);
-                    passData.sourceTextureLowMip = builder.UseTexture(lowMip, IBaseRenderGraphBuilder.AccessFlags.Read);
+                    passData.sourceTexture = highMip;
+                    builder.UseTexture(highMip, AccessFlags.Read);
+                    passData.sourceTextureLowMip = lowMip;
+                    builder.UseTexture(lowMip, AccessFlags.Read);
 
                     // We need a separate material for each upsample pass because setting the low texture mip source
                     // gets overriden by the time the render func is executed.
@@ -556,10 +572,11 @@ namespace UnityEngine.Rendering.Universal
 
             using (var builder = renderGraph.AddRasterRenderPass<DoFGaussianPassData>("Depth of Field - Compute CoC", out var passData, ProfilingSampler.Get(URPProfileId.RG_DOFComputeCOC)))
             {
-                builder.UseTextureFragment(fullCoCTexture, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
-                passData.sourceTexture = builder.UseTexture(source, IBaseRenderGraphBuilder.AccessFlags.Read);
+                builder.SetRenderAttachment(fullCoCTexture, 0, AccessFlags.Write);
+                passData.sourceTexture = source;
+                builder.UseTexture(source, AccessFlags.Read);
 
-                builder.UseTexture(resourceData.cameraDepthTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+                builder.UseTexture(resourceData.cameraDepthTexture, AccessFlags.Read);
 
                 passData.material = material;
                 builder.SetRenderFunc((DoFGaussianPassData data, RasterGraphContext context) =>
@@ -575,15 +592,17 @@ namespace UnityEngine.Rendering.Universal
 
             using (var builder = renderGraph.AddRasterRenderPass<DoFGaussianPassData>("Depth of Field - Downscale & Prefilter Color + CoC", out var passData, ProfilingSampler.Get(URPProfileId.RG_DOFDownscalePrefilter)))
             {
-                builder.UseTextureFragment(halfCoCTexture, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
-                builder.UseTextureFragment(pingTexture, 1, IBaseRenderGraphBuilder.AccessFlags.Write);
+                builder.SetRenderAttachment(halfCoCTexture, 0, AccessFlags.Write);
+                builder.SetRenderAttachment(pingTexture, 1, AccessFlags.Write);
                 // TODO RENDERGRAPH: Setting MRTs without a depth buffer is not supported in the old path, could we add the support and remove the depth?
                 // Should go away if the old path goes away
                 if (!renderGraph.NativeRenderPassesEnabled)
-                    builder.UseTextureFragmentDepth(renderGraph.CreateTexture(halfCoCTexture), IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
+                    builder.SetRenderAttachmentDepth(renderGraph.CreateTexture(halfCoCTexture), AccessFlags.ReadWrite);
                 builder.AllowGlobalStateModification(true);
-                passData.sourceTexture = builder.UseTexture(source, IBaseRenderGraphBuilder.AccessFlags.Read);
-                passData.cocTexture = builder.UseTexture(fullCoCTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+                passData.sourceTexture = source;
+                builder.UseTexture(source, AccessFlags.Read);
+                passData.cocTexture = fullCoCTexture;
+                builder.UseTexture(fullCoCTexture, AccessFlags.Read);
                 passData.material = material;
 
                 builder.SetRenderFunc((DoFGaussianPassData data, RasterGraphContext context) =>
@@ -601,10 +620,12 @@ namespace UnityEngine.Rendering.Universal
 
             using (var builder = renderGraph.AddRasterRenderPass<DoFGaussianPassData>("Depth of Field - Blur H", out var passData, ProfilingSampler.Get(URPProfileId.RG_DOFBlurH)))
             {
-                builder.UseTextureFragment(pongTexture, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
+                builder.SetRenderAttachment(pongTexture, 0, AccessFlags.Write);
                 builder.AllowGlobalStateModification(true);
-                passData.sourceTexture = builder.UseTexture(pingTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
-                passData.cocTexture = builder.UseTexture(halfCoCTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+                passData.sourceTexture = pingTexture;
+                builder.UseTexture(pingTexture, AccessFlags.Read);
+                passData.cocTexture = halfCoCTexture;
+                builder.UseTexture(halfCoCTexture, AccessFlags.Read);
                 passData.material = material;
 
                 builder.SetRenderFunc((DoFGaussianPassData data, RasterGraphContext context) =>
@@ -622,10 +643,12 @@ namespace UnityEngine.Rendering.Universal
 
             using (var builder = renderGraph.AddRasterRenderPass<DoFGaussianPassData>("Depth of Field - Blur V", out var passData, ProfilingSampler.Get(URPProfileId.RG_DOFBlurV)))
             {
-                builder.UseTextureFragment(pingTexture, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
+                builder.SetRenderAttachment(pingTexture, 0, AccessFlags.Write);
                 builder.AllowGlobalStateModification(true);
-                passData.sourceTexture = builder.UseTexture(pongTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
-                passData.cocTexture = builder.UseTexture(halfCoCTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+                passData.sourceTexture = pongTexture;
+                builder.UseTexture(pongTexture, AccessFlags.Read);
+                passData.cocTexture = halfCoCTexture;
+                builder.UseTexture(halfCoCTexture, AccessFlags.Read);
                 passData.material = material;
 
                 builder.SetRenderFunc((DoFGaussianPassData data, RasterGraphContext context) =>
@@ -643,11 +666,14 @@ namespace UnityEngine.Rendering.Universal
 
             using (var builder = renderGraph.AddRasterRenderPass<DoFGaussianPassData>("Depth of Field - Composite", out var passData, ProfilingSampler.Get(URPProfileId.RG_DOFComposite)))
             {
-                builder.UseTextureFragment(destination, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
+                builder.SetRenderAttachment(destination, 0, AccessFlags.Write);
                 builder.AllowGlobalStateModification(true);
-                passData.sourceTexture = builder.UseTexture(source, IBaseRenderGraphBuilder.AccessFlags.Read);
-                passData.cocTexture = builder.UseTexture(fullCoCTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
-                passData.colorTexture = builder.UseTexture(pingTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+                passData.sourceTexture = source;
+                builder.UseTexture(source, AccessFlags.Read);
+                passData.cocTexture = fullCoCTexture;
+                builder.UseTexture(fullCoCTexture, AccessFlags.Read);
+                passData.colorTexture = pingTexture;
+                builder.UseTexture(pingTexture, AccessFlags.Read);
                 passData.material = material;
 
                 builder.SetRenderFunc((DoFGaussianPassData data, RasterGraphContext context) =>
@@ -749,11 +775,12 @@ namespace UnityEngine.Rendering.Universal
 
             using (var builder = renderGraph.AddRasterRenderPass<DoFBokehPassData>("Depth of Field - Compute CoC", out var passData, ProfilingSampler.Get(URPProfileId.RG_DOFComputeCOC)))
             {
-                builder.UseTextureFragment(fullCoCTexture, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
-                passData.sourceTexture = builder.UseTexture(source, IBaseRenderGraphBuilder.AccessFlags.Read);
+                builder.SetRenderAttachment(fullCoCTexture, 0, AccessFlags.Write);
+                passData.sourceTexture = source;
+                builder.UseTexture(source, AccessFlags.Read);
                 passData.material = material;
 
-                builder.UseTexture(resourceData.cameraDepthTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+                builder.UseTexture(resourceData.cameraDepthTexture, AccessFlags.Read);
 
                 builder.SetRenderFunc((DoFBokehPassData data, RasterGraphContext context) =>
                 {
@@ -769,10 +796,12 @@ namespace UnityEngine.Rendering.Universal
 
             using (var builder = renderGraph.AddRasterRenderPass<DoFBokehPassData>("Depth of Field - Downscale & Prefilter Color + CoC", out var passData, ProfilingSampler.Get(URPProfileId.RG_DOFDownscalePrefilter)))
             {
-                builder.UseTextureFragment(pingTexture, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
+                builder.SetRenderAttachment(pingTexture, 0, AccessFlags.Write);
                 builder.AllowGlobalStateModification(true);
-                passData.sourceTexture = builder.UseTexture(source, IBaseRenderGraphBuilder.AccessFlags.Read);
-                passData.cocTexture = builder.UseTexture(fullCoCTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+                passData.sourceTexture = source;
+                builder.UseTexture(source, AccessFlags.Read);
+                passData.cocTexture = fullCoCTexture;
+                builder.UseTexture(fullCoCTexture, AccessFlags.Read);
                 passData.material = material;
 
                 builder.SetRenderFunc((DoFBokehPassData data, RasterGraphContext context) =>
@@ -790,8 +819,9 @@ namespace UnityEngine.Rendering.Universal
 
             using (var builder = renderGraph.AddRasterRenderPass<DoFBokehPassData>("Depth of Field - Bokeh Blur", out var passData, ProfilingSampler.Get(URPProfileId.RG_DOFBlurBokeh)))
             {
-                builder.UseTextureFragment(pongTexture, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
-                passData.sourceTexture = builder.UseTexture(pingTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+                builder.SetRenderAttachment(pongTexture, 0, AccessFlags.Write);
+                passData.sourceTexture = pingTexture;
+                builder.UseTexture(pingTexture, AccessFlags.Read);
                 passData.material = material;
 
                 builder.SetRenderFunc((DoFBokehPassData data, RasterGraphContext context) =>
@@ -808,8 +838,9 @@ namespace UnityEngine.Rendering.Universal
 
             using (var builder = renderGraph.AddRasterRenderPass<DoFBokehPassData>("Depth of Field - Post-filtering", out var passData, ProfilingSampler.Get(URPProfileId.RG_DOFPostFilter)))
             {
-                builder.UseTextureFragment(pingTexture, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
-                passData.sourceTexture = builder.UseTexture(pongTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+                builder.SetRenderAttachment(pingTexture, 0, AccessFlags.Write);
+                passData.sourceTexture = pongTexture;
+                builder.UseTexture(pongTexture, AccessFlags.Read);
                 passData.material = material;
 
                 builder.SetRenderFunc((DoFBokehPassData data, RasterGraphContext context) =>
@@ -827,11 +858,13 @@ namespace UnityEngine.Rendering.Universal
 
             using (var builder = renderGraph.AddRasterRenderPass<DoFBokehPassData>("Depth of Field - Composite", out var passData, ProfilingSampler.Get(URPProfileId.RG_DOFComposite)))
             {
-                builder.UseTextureFragment(destination, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
+                builder.SetRenderAttachment(destination, 0, AccessFlags.Write);
                 builder.AllowGlobalStateModification(true);
-                passData.sourceTexture = builder.UseTexture(source, IBaseRenderGraphBuilder.AccessFlags.Read);
-                passData.dofTexture = builder.UseTexture(pingTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
-                builder.UseTexture(fullCoCTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+                passData.sourceTexture = source;
+                builder.UseTexture(source, AccessFlags.Read);
+                passData.dofTexture = pingTexture;
+                builder.UseTexture(pingTexture, AccessFlags.Read);
+                builder.UseTexture(fullCoCTexture, AccessFlags.Read);
                 passData.material = material;
 
                 builder.SetRenderFunc((DoFBokehPassData data, RasterGraphContext context) =>
@@ -885,8 +918,10 @@ namespace UnityEngine.Rendering.Universal
             using (var builder = renderGraph.AddRasterRenderPass<PaniniProjectionPassData>("Panini Projection", out var passData, ProfilingSampler.Get(URPProfileId.PaniniProjection)))
             {
                 builder.AllowGlobalStateModification(true);
-                passData.destinationTexture = builder.UseTextureFragment(destination, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
-                passData.sourceTexture = builder.UseTexture(source, IBaseRenderGraphBuilder.AccessFlags.Read);
+                passData.destinationTexture = destination;
+                builder.SetRenderAttachment(destination, 0, AccessFlags.Write);
+                passData.sourceTexture = source;
+                builder.UseTexture(source, AccessFlags.Read);
                 passData.material = m_Materials.paniniProjection;
                 passData.paniniParams = new Vector4(viewExtents.x, viewExtents.y, paniniD, paniniS);
                 passData.isPaniniGeneric = 1f - Mathf.Abs(paniniD) > float.Epsilon;
@@ -962,10 +997,22 @@ namespace UnityEngine.Rendering.Universal
             using (var builder = renderGraph.AddRasterRenderPass<MotionBlurPassData>("Motion Blur", out var passData, ProfilingSampler.Get(URPProfileId.RG_MotionBlur)))
             {
                 builder.AllowGlobalStateModification(true);
-                passData.destinationTexture = builder.UseTextureFragment(destination, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
-                passData.sourceTexture = builder.UseTexture(source, IBaseRenderGraphBuilder.AccessFlags.Read);
-                passData.motionVectors = (mode == MotionBlurMode.CameraAndObjects) ? builder.UseTexture(motionVectorColor, IBaseRenderGraphBuilder.AccessFlags.Read) : TextureHandle.nullHandle;
-                builder.UseTexture(cameraDepthTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+                passData.destinationTexture = destination;
+                builder.SetRenderAttachment(destination, 0, AccessFlags.Write);
+                passData.sourceTexture = source;
+                builder.UseTexture(source, AccessFlags.Read);
+
+                if (mode == MotionBlurMode.CameraAndObjects)
+                {
+                    passData.motionVectors = motionVectorColor;
+                    builder.UseTexture(motionVectorColor, AccessFlags.Read);
+                }
+                else
+                {
+                    passData.motionVectors = TextureHandle.nullHandle;
+                }
+
+                builder.UseTexture(cameraDepthTexture, AccessFlags.Read);
                 passData.material = material;
                 passData.passIndex = passIndex;
                 passData.camera = cameraData.camera;
@@ -1009,11 +1056,12 @@ namespace UnityEngine.Rendering.Universal
             if (!LensFlareCommonSRP.IsOcclusionRTCompatible())
                 return;
 
-            using (var builder = renderGraph.AddLowLevelPass<LensFlarePassData>("Lens Flare Compute Occlusion", out var passData, ProfilingSampler.Get(URPProfileId.LensFlareDataDrivenComputeOcclusion)))
+            using (var builder = renderGraph.AddUnsafePass<LensFlarePassData>("Lens Flare Compute Occlusion", out var passData, ProfilingSampler.Get(URPProfileId.LensFlareDataDrivenComputeOcclusion)))
             {
                 RTHandle occH = LensFlareCommonSRP.occlusionRT;
                 TextureHandle occlusionHandle = renderGraph.ImportTexture(LensFlareCommonSRP.occlusionRT);
-                passData.destinationTexture = builder.UseTexture(occlusionHandle, IBaseRenderGraphBuilder.AccessFlags.Write);
+                passData.destinationTexture = occlusionHandle;
+                builder.UseTexture(occlusionHandle, AccessFlags.Write);
                 passData.camera = camera;
                 passData.material = m_Materials.lensFlareDataDriven;
                 if (m_PaniniProjection.IsActive())
@@ -1029,10 +1077,10 @@ namespace UnityEngine.Rendering.Universal
                     passData.paniniCropToFit = 1.0f;
                 }
 
-                builder.UseTexture(resourceData.cameraDepthTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+                builder.UseTexture(resourceData.cameraDepthTexture, AccessFlags.Read);
 
                 builder.SetRenderFunc(
-                    (LensFlarePassData data, LowLevelGraphContext ctx) =>
+                    (LensFlarePassData data, UnsafeGraphContext ctx) =>
                     {
                         var gpuView = data.camera.worldToCameraMatrix;
                         var gpuNonJitteredProj = GL.GetGPUProjectionMatrix(data.camera.projectionMatrix, true);
@@ -1056,11 +1104,12 @@ namespace UnityEngine.Rendering.Universal
 
         public void RenderLensFlareDataDriven(RenderGraph renderGraph, Camera camera, in TextureHandle destination)
         {
-            using (var builder = renderGraph.AddLowLevelPass<LensFlarePassData>("Lens Flare Data Driven Pass", out var passData, ProfilingSampler.Get(URPProfileId.LensFlareDataDriven)))
+            using (var builder = renderGraph.AddUnsafePass<LensFlarePassData>("Lens Flare Data Driven Pass", out var passData, ProfilingSampler.Get(URPProfileId.LensFlareDataDriven)))
             {
                 // Use WriteTexture here because DoLensFlareDataDrivenCommon will call SetRenderTarget internally.
                 // TODO RENDERGRAPH: convert SRP core lensflare to be rendergraph friendly
-                passData.destinationTexture = builder.UseTexture(destination, IBaseRenderGraphBuilder.AccessFlags.Write);
+                passData.destinationTexture = destination;
+                builder.UseTexture(destination, AccessFlags.Write);
                 passData.sourceDescriptor = m_Descriptor;
                 passData.camera = camera;
                 passData.material = m_Materials.lensFlareDataDriven;
@@ -1079,10 +1128,10 @@ namespace UnityEngine.Rendering.Universal
                 if (LensFlareCommonSRP.IsOcclusionRTCompatible())
                 {
                     TextureHandle occlusionHandle = renderGraph.ImportTexture(LensFlareCommonSRP.occlusionRT);
-                    builder.UseTexture(occlusionHandle, IBaseRenderGraphBuilder.AccessFlags.Read);
+                    builder.UseTexture(occlusionHandle, AccessFlags.Read);
                 }
 
-                builder.SetRenderFunc((LensFlarePassData data, LowLevelGraphContext context) =>
+                builder.SetRenderFunc((LensFlarePassData data, UnsafeGraphContext context) =>
                 {
                     var cmd = context.cmd;
                     var camera = data.camera;
@@ -1130,36 +1179,40 @@ namespace UnityEngine.Rendering.Universal
         public TextureHandle RenderLensFlareScreenSpace(RenderGraph renderGraph, Camera camera, in TextureHandle destination, TextureHandle originalBloomTexture, TextureHandle screenSpaceLensFlareBloomMipTexture, bool enableXR)
         {
             var downsample = (int) m_LensFlareScreenSpace.resolution.value;
+
             int width = m_Descriptor.width / downsample;
             int height = m_Descriptor.height / downsample;
 
-            var streakTextureDesc = PostProcessPass.GetCompatibleDescriptor(m_Descriptor, width, height, m_DefaultHDRFormat);
+            var streakTextureDesc = GetCompatibleDescriptor(m_Descriptor, width, height, m_DefaultHDRFormat);
             var streakTmpTexture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, streakTextureDesc, "_StreakTmpTexture", true, FilterMode.Bilinear);
             var streakTmpTexture2 = UniversalRenderer.CreateRenderGraphTexture(renderGraph, streakTextureDesc, "_StreakTmpTexture2", true, FilterMode.Bilinear);
-            TextureHandle result = renderGraph.defaultResources.blackTextureXR;
+            var resultTexture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, streakTextureDesc, "Lens Flare Screen Space Result", true, FilterMode.Bilinear);
 
-            using (var builder = renderGraph.AddLowLevelPass<LensFlareScreenSpacePassData>("Lens Flare Screen Space Pass", out var passData, ProfilingSampler.Get(URPProfileId.LensFlareScreenSpace)))
+            using (var builder = renderGraph.AddUnsafePass<LensFlareScreenSpacePassData>("Lens Flare Screen Space Pass", out var passData, ProfilingSampler.Get(URPProfileId.LensFlareScreenSpace)))
             {
                 // Use WriteTexture here because DoLensFlareScreenSpaceCommon will call SetRenderTarget internally.
                 // TODO RENDERGRAPH: convert SRP core lensflare to be rendergraph friendly
-                passData.destinationTexture = builder.UseTexture(destination, IBaseRenderGraphBuilder.AccessFlags.Write);
-                passData.streakTmpTexture = builder.UseTexture(streakTmpTexture, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
-                passData.streakTmpTexture2 = builder.UseTexture(streakTmpTexture2, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
-                passData.screenSpaceLensFlareBloomMipTexture = builder.UseTexture(screenSpaceLensFlareBloomMipTexture, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
-                passData.originalBloomTexture = builder.UseTexture(originalBloomTexture, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
+                passData.destinationTexture = destination;
+                builder.UseTexture(destination, AccessFlags.Write);
+                passData.streakTmpTexture = streakTmpTexture;
+                builder.UseTexture(streakTmpTexture, AccessFlags.ReadWrite);
+                passData.streakTmpTexture2 = streakTmpTexture2;
+                builder.UseTexture(streakTmpTexture2, AccessFlags.ReadWrite);
+                passData.screenSpaceLensFlareBloomMipTexture = screenSpaceLensFlareBloomMipTexture;
+                builder.UseTexture(screenSpaceLensFlareBloomMipTexture, AccessFlags.ReadWrite);
+                passData.originalBloomTexture = originalBloomTexture;
+                builder.UseTexture(originalBloomTexture, AccessFlags.ReadWrite);
                 passData.sourceDescriptor = m_Descriptor;
                 passData.camera = camera;
                 passData.material = m_Materials.lensFlareScreenSpace;
                 passData.downsample = downsample;
+                passData.result = resultTexture;
+                builder.UseTexture(resultTexture, AccessFlags.Write);
 
-                passData.result = builder.UseTexture(renderGraph.CreateTexture(new TextureDesc(width, height, true, enableXR)
-                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, useMipMap = false, name = "Lens Flare Screen Space Result" }), IBaseRenderGraphBuilder.AccessFlags.Write);
-
-                builder.SetRenderFunc((LensFlareScreenSpacePassData data, LowLevelGraphContext context) =>
+                builder.SetRenderFunc((LensFlareScreenSpacePassData data, UnsafeGraphContext context) =>
                 {
                     var cmd = context.cmd;
                     var camera = data.camera;
-                    var ratio = (int) m_LensFlareScreenSpace.resolution.value;
 
                     LensFlareCommonSRP.DoLensFlareScreenSpaceCommon(
                         m_Materials.lensFlareScreenSpace,
@@ -1247,8 +1300,10 @@ namespace UnityEngine.Rendering.Universal
                     SetupHDROutput(cameraData.hdrDisplayInformation, cameraData.hdrDisplayColorGamut, material, hdrOperations);
 
                 builder.AllowGlobalStateModification(true);
-                passData.destinationTexture = builder.UseTextureFragment(destination, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
-                passData.sourceTexture = builder.UseTexture(source, IBaseRenderGraphBuilder.AccessFlags.Read);
+                passData.destinationTexture = destination;
+                builder.SetRenderAttachment(destination, 0, AccessFlags.Write);
+                passData.sourceTexture = source;
+                builder.UseTexture(source, AccessFlags.Read);
                 passData.cameraData = cameraData;
                 passData.material = material;
 
@@ -1280,8 +1335,10 @@ namespace UnityEngine.Rendering.Universal
             using (var builder = renderGraph.AddRasterRenderPass<PostProcessingFinalFSRScalePassData>("Postprocessing Final FSR Scale Pass", out var passData, ProfilingSampler.Get(URPProfileId.RG_FinalFSRScale)))
             {
                 builder.AllowGlobalStateModification(true);
-                passData.destinationTexture = builder.UseTextureFragment(destination, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
-                passData.sourceTexture = builder.UseTexture(source, IBaseRenderGraphBuilder.AccessFlags.Read);
+                passData.destinationTexture = destination;
+                builder.SetRenderAttachment(destination, 0, AccessFlags.Write);
+                passData.sourceTexture = source;
+                builder.UseTexture(source, AccessFlags.Read);
                 passData.material = m_Materials.easu;
 
                 builder.SetRenderFunc((PostProcessingFinalFSRScalePassData data, RasterGraphContext context) =>
@@ -1310,37 +1367,54 @@ namespace UnityEngine.Rendering.Universal
             internal TextureHandle sourceTexture;
             internal Material material;
             internal UniversalCameraData cameraData;
-            internal bool isFxaaEnabled;
-            internal bool isFsrEnabled;
-            internal bool requireHDROutput;
-            internal bool resolveToDebugScreen;
+            internal FinalBlitSettings settings;
         }
 
-        public void RenderFinalBlit(RenderGraph renderGraph, UniversalCameraData cameraData, in TextureHandle source, in TextureHandle overlayUITexture, in TextureHandle postProcessingTarget, bool performFXAA, bool performFsr, bool requireHDROutput, bool resolveToDebugScreen)
+        public struct FinalBlitSettings
+        {
+            public bool isFxaaEnabled;
+            public bool isFsrEnabled;
+            public bool isTaaSharpeningEnabled;
+            public bool requireHDROutput;
+            public bool resolveToDebugScreen;
+
+            public static FinalBlitSettings Create()
+            {
+                FinalBlitSettings s = new FinalBlitSettings();
+                s.isFxaaEnabled = false;
+                s.isFsrEnabled = false;
+                s.isTaaSharpeningEnabled = false;
+                s.requireHDROutput = false;
+                s.resolveToDebugScreen = false;
+                return s;
+            }
+        };
+
+        public void RenderFinalBlit(RenderGraph renderGraph, UniversalCameraData cameraData, in TextureHandle source, in TextureHandle overlayUITexture, in TextureHandle postProcessingTarget, ref FinalBlitSettings settings)
         {
             using (var builder = renderGraph.AddRasterRenderPass<PostProcessingFinalBlitPassData>("Postprocessing Final Blit Pass", out var passData, ProfilingSampler.Get(URPProfileId.RG_FinalBlit)))
             {
                 builder.AllowGlobalStateModification(true);
-                passData.destinationTexture = builder.UseTextureFragment(postProcessingTarget, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
-                passData.sourceTexture = builder.UseTexture(source, IBaseRenderGraphBuilder.AccessFlags.Read);
+                passData.destinationTexture = postProcessingTarget;
+                builder.SetRenderAttachment(postProcessingTarget, 0, AccessFlags.Write);
+                passData.sourceTexture = source;
+                builder.UseTexture(source, AccessFlags.Read);
                 passData.cameraData = cameraData;
                 passData.material = m_Materials.finalPass;
-                passData.isFxaaEnabled = performFXAA;
-                passData.isFsrEnabled = performFsr;
-                passData.requireHDROutput = requireHDROutput;
-                passData.resolveToDebugScreen = resolveToDebugScreen;
+                passData.settings = settings;
 
-                if (requireHDROutput && m_EnableColorEncodingIfNeeded)
-                    builder.UseTexture(overlayUITexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+                if (settings.requireHDROutput && m_EnableColorEncodingIfNeeded)
+                    builder.UseTexture(overlayUITexture, AccessFlags.Read);
 
-                builder.SetRenderFunc((PostProcessingFinalBlitPassData data, RasterGraphContext context) =>
+                builder.SetRenderFunc(static (PostProcessingFinalBlitPassData data, RasterGraphContext context) =>
                 {
                     var cmd = context.cmd;
                     var material = data.material;
-                    var isFxaaEnabled = data.isFxaaEnabled;
-                    var isFsrEnabled = data.isFsrEnabled;
-                    var requireHDROutput = data.requireHDROutput;
-                    var resolveToDebugScreen = data.resolveToDebugScreen;
+                    var isFxaaEnabled = data.settings.isFxaaEnabled;
+                    var isFsrEnabled = data.settings.isFsrEnabled;
+                    var isRcasEnabled = data.settings.isTaaSharpeningEnabled;
+                    var requireHDROutput = data.settings.requireHDROutput;
+                    var resolveToDebugScreen = data.settings.resolveToDebugScreen;
                     RTHandle sourceTextureHdl = data.sourceTexture;
                     RTHandle destinationTextureHdl = data.destinationTexture;
 
@@ -1355,7 +1429,6 @@ namespace UnityEngine.Rendering.Universal
                         // Use the override value if it's available, otherwise use the default.
                         float sharpness = data.cameraData.fsrOverrideSharpness ? data.cameraData.fsrSharpness : FSRUtils.kDefaultSharpnessLinear;
 
-
                         // Set up the parameters for the RCAS pass unless the sharpness value indicates that it wont have any effect.
                         if (data.cameraData.fsrSharpness > 0.0f)
                         {
@@ -1363,6 +1436,13 @@ namespace UnityEngine.Rendering.Universal
                             material.EnableKeyword(requireHDROutput ? ShaderKeywordStrings.EasuRcasAndHDRInput : ShaderKeywordStrings.Rcas);
                             FSRUtils.SetRcasConstantsLinear(cmd, sharpness);
                         }
+                    }
+                    else if (isRcasEnabled)   // RCAS only
+                    {
+                        // Reuse RCAS as a standalone sharpening filter for TAA.
+                        // If FSR is enabled then it overrides the sharpening/TAA setting and we skip it.
+                        material.EnableKeyword(ShaderKeywordStrings.Rcas);
+                        FSRUtils.SetRcasConstantsLinear(cmd, data.cameraData.taaSettings.contrastAdaptiveSharpening);
                     }
 
                     bool isRenderToBackBufferTarget = !data.cameraData.isSceneViewCamera;
@@ -1404,6 +1484,8 @@ namespace UnityEngine.Rendering.Universal
 
             material.shaderKeywords = null;
 
+            FinalBlitSettings settings = FinalBlitSettings.Create();
+
             // TODO RENDERGRAPH: when we remove the old path we should review the naming of these variables...
             // m_HasFinalPass is used to let FX passes know when they are not being called by the actual final pass, so they can skip any "final work"
             m_HasFinalPass = false;
@@ -1437,8 +1519,8 @@ namespace UnityEngine.Rendering.Universal
                 material.EnableKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
 
             HDROutputUtils.Operation hdrOperations = HDROutputUtils.Operation.None;
-            bool requireHDROutput = RequireHDROutput(cameraData);
-            if (requireHDROutput)
+            settings.requireHDROutput = RequireHDROutput(cameraData);
+            if (settings.requireHDROutput)
             {
                 // If there is a final post process pass, it's always the final pass so do color encoding
                 hdrOperations = m_EnableColorEncodingIfNeeded ? HDROutputUtils.Operation.ColorEncoding : HDROutputUtils.Operation.None;
@@ -1454,13 +1536,13 @@ namespace UnityEngine.Rendering.Universal
             debugHandler?.UpdateShaderGlobalPropertiesForFinalValidationPass(cmd, cameraData, !m_HasFinalPass && !resolveToDebugScreen);
 
             bool outputToHDR = cameraData.isHDROutputActive;
-            bool isFxaaEnabled = (cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing);
-            bool isFsrEnabled = ((cameraData.imageScalingMode == ImageScalingMode.Upscaling) && (cameraData.upscalingFilter == ImageUpscalingFilter.FSR));
+            settings.isFxaaEnabled = (cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing);
+            settings.isFsrEnabled = ((cameraData.imageScalingMode == ImageScalingMode.Upscaling) && (cameraData.upscalingFilter == ImageUpscalingFilter.FSR));
 
             // Reuse RCAS pass as an optional standalone post sharpening pass for TAA.
             // This avoids the cost of EASU and is available for other upscaling options.
             // If FSR is enabled then FSR settings override the TAA settings and we perform RCAS only once.
-            bool isTaaSharpeningEnabled = (cameraData.IsTemporalAAEnabled() && cameraData.taaSettings.contrastAdaptiveSharpening > 0.0f) && !isFsrEnabled;
+            settings.isTaaSharpeningEnabled = (cameraData.IsTemporalAAEnabled() && cameraData.taaSettings.contrastAdaptiveSharpening > 0.0f) && !settings.isFsrEnabled;
 
             var tempRtDesc = cameraData.cameraTargetDescriptor;
             tempRtDesc.msaaSamples = 1;
@@ -1468,7 +1550,7 @@ namespace UnityEngine.Rendering.Universal
 
             // Select a UNORM format since we've already performed tonemapping. (Values are in 0-1 range)
             // This improves precision and is required if we want to avoid excessive banding when FSR is in use.
-            if (!requireHDROutput)
+            if (!settings.requireHDROutput)
                 tempRtDesc.graphicsFormat = UniversalRenderPipeline.MakeUnormRenderTextureGraphicsFormat();
 
             var scalingSetupTarget = UniversalRenderer.CreateRenderGraphTexture(renderGraph, tempRtDesc, "scalingSetupTarget", true, FilterMode.Point);
@@ -1487,16 +1569,16 @@ namespace UnityEngine.Rendering.Universal
                 // NOTE: An ideal implementation could inline this color conversion logic into the UberPost pass, but the current code structure would make
                 //       this process very complex. Specifically, we'd need to guarantee that the uber post output is always written to a UNORM format render
                 //       target in order to preserve the precision of specially encoded color data.
-                bool isSetupRequired = (isFxaaEnabled || isFsrEnabled);
+                bool isSetupRequired = (settings.isFxaaEnabled || settings.isFsrEnabled);
 
                 // When FXAA is needed while scaling is active, we must perform it before the scaling takes place.
                 if (isSetupRequired)
                 {
-                    RenderFinalSetup(renderGraph, cameraData, in currentSource, in scalingSetupTarget, isFxaaEnabled, isFsrEnabled, hdrOperations);
+                    RenderFinalSetup(renderGraph, cameraData, in currentSource, in scalingSetupTarget, settings.isFxaaEnabled, settings.isFsrEnabled, hdrOperations);
                     currentSource = scalingSetupTarget;
 
                     // Indicate that we no longer need to perform FXAA in the final pass since it was already perfomed here.
-                    isFxaaEnabled = false;
+                    settings.isFxaaEnabled = false;
                 }
 
                 switch (cameraData.imageScalingMode)
@@ -1508,7 +1590,7 @@ namespace UnityEngine.Rendering.Universal
                             case ImageUpscalingFilter.Point:
                             {
                                 // TAA post sharpening is an RCAS pass, avoid overriding it with point sampling.
-                                if (!isTaaSharpeningEnabled)
+                                if (!settings.isTaaSharpeningEnabled)
                                     material.EnableKeyword(ShaderKeywordStrings.PointSampling);
                                 break;
                             }
@@ -1531,27 +1613,18 @@ namespace UnityEngine.Rendering.Universal
                         // and it's already the default option in the shader.
 
                         // Also disable TAA post sharpening pass when downscaling.
-                        isTaaSharpeningEnabled = false;
+                        settings.isTaaSharpeningEnabled = false;
                         break;
                     }
                 }
             }
-            else if (isFxaaEnabled)
+            else if (settings.isFxaaEnabled)
             {
                 // In unscaled renders, FXAA can be safely performed in the FinalPost shader
                 material.EnableKeyword(ShaderKeywordStrings.Fxaa);
             }
 
-            // Reuse RCAS as a standalone sharpening filter for TAA.
-            // If FSR is enabled then it overrides the TAA setting and we skip it.
-            if (isTaaSharpeningEnabled)
-            {
-                material.EnableKeyword(ShaderKeywordStrings.Rcas);
-                // TODO: this uses renderingData.commandBuffer in the RenderGraph path!! Fix it to run in a proper RenderGraph pass
-                FSRUtils.SetRcasConstantsLinear(cmd, cameraData.taaSettings.contrastAdaptiveSharpening);
-            }
-
-            RenderFinalBlit(renderGraph, cameraData, in currentSource, in overlayUITexture, in postProcessingTarget, isFxaaEnabled, isFsrEnabled, requireHDROutput, resolveToDebugScreen);
+            RenderFinalBlit(renderGraph, cameraData, in currentSource, in overlayUITexture, in postProcessingTarget, ref settings);
         }
 #endregion
 
@@ -1594,16 +1667,23 @@ namespace UnityEngine.Rendering.Universal
             using (var builder = renderGraph.AddRasterRenderPass<UberPostPassData>("Postprocessing Uber Post Pass", out var passData, ProfilingSampler.Get(URPProfileId.RG_UberPost)))
             {
                 builder.AllowGlobalStateModification(true);
-                passData.destinationTexture = builder.UseTextureFragment(destTexture, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
-                passData.sourceTexture = builder.UseTexture(sourceTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
-                passData.lutTexture = builder.UseTexture(lutTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+                passData.destinationTexture = destTexture;
+                builder.SetRenderAttachment(destTexture, 0, AccessFlags.Write);
+                passData.sourceTexture = sourceTexture;
+                builder.UseTexture(sourceTexture, AccessFlags.Read);
+                passData.lutTexture = lutTexture;
+                builder.UseTexture(lutTexture, AccessFlags.Read);
                 passData.lutParams = lutParams;
                 if (userLutTexture.IsValid())
-                    passData.userLutTexture = builder.UseTexture(userLutTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+                {
+                    passData.userLutTexture = userLutTexture;
+                    builder.UseTexture(userLutTexture, AccessFlags.Read);
+                }
+
                 if (m_Bloom.IsActive())
-                    builder.UseTexture(_BloomMipUp[0], IBaseRenderGraphBuilder.AccessFlags.Read);
+                    builder.UseTexture(_BloomMipUp[0], AccessFlags.Read);
                 if (requireHDROutput && m_EnableColorEncodingIfNeeded)
-                    builder.UseTexture(overlayUITexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+                    builder.UseTexture(overlayUITexture, AccessFlags.Read);
                 passData.userLutParams = userLutParams;
                 passData.cameraData = cameraData;
                 passData.material = material;

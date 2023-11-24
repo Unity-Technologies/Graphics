@@ -9,6 +9,7 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         /// <summary>Quality level used by this component.</summary>
         [Tooltip("Specifies the quality level to be used for performance relevant parameters.")]
+        [InspectorName("Tier")]
         public ScalableSettingLevelParameter quality = new ScalableSettingLevelParameter((int)ScalableSettingLevelParameter.Level.Medium, false);
 
         static internal GlobalPostProcessingQualitySettings GetPostProcessingQualitySettings()

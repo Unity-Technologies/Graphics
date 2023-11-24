@@ -1189,6 +1189,7 @@ namespace UnityEditor.VFX
 
             // Ensures that the outputs are always after all the per camera update tasks while keeping the original declaration order of the contexts
             sortedTaskList = sortedTaskList.OrderBy(t => t.sortKey).ToList();
+            m_ContextsToTaskIndex.Clear();
 
             foreach (var (context, task, contextCompiledData, contextIndex) in sortedTaskList)
             {
@@ -1425,11 +1426,13 @@ namespace UnityEditor.VFX
                         VFXEditorTaskDesc singleMeshTaskDesc = taskDesc;
                         singleMeshTaskDesc.parameters = VFXMultiMeshHelper.PatchCPUMapping(taskDesc.parameters, multiMeshOutput.meshCount, j).ToArray();
                         singleMeshTaskDesc.buffers = VFXMultiMeshHelper.PatchBufferMapping(taskDesc.buffers, j).ToArray();
-                        taskDescs.Add(singleMeshTaskDesc);
+                        AddTaskDesc(taskDescs, singleMeshTaskDesc, context);
                     }
                 }
                 else
-                    taskDescs.Add(taskDesc);
+                {
+                    AddTaskDesc(taskDescs, taskDesc, context);
+                }
 
                 // if task is a per output update with sorting, add sort tasks
                 // TODO: Replace this hardcoded pass by a task in the OutputUpdate context.
@@ -1459,8 +1462,22 @@ namespace UnityEditor.VFX
                             sortTaskDesc.parameters[0] = new VFXMapping("globalSort", 0);
                             sortTaskDesc.parameters[1] = new VFXMapping("isPerCameraSort", outUpdate.isPerCamera ? 1 : 0);
 
-                            taskDescs.Add(sortTaskDesc);
+                            AddTaskDesc(taskDescs, sortTaskDesc, outUpdate.output);
                         }
+                    }
+                }
+            }
+
+            if (hasStrip && hasKill)
+            {
+                var lastUpdateContext = m_Contexts.OfType<VFXBasicUpdate>().LastOrDefault();
+                if (lastUpdateContext != null)
+                {
+                    if (m_ContextsToTaskIndex.TryGetValue(lastUpdateContext, out List<TaskProfilingData> tasksIndices))
+                    {
+                        TaskProfilingData taskProfilingData = new TaskProfilingData()
+                            { taskIndex = taskDescs.Count, taskName = "Update Strips" };
+                        tasksIndices.Add(taskProfilingData);
                     }
                 }
             }
@@ -1483,6 +1500,36 @@ namespace UnityEditor.VFX
                 type = VFXSystemType.Particle,
                 layer = m_Layer
             });
+        }
+
+        void AddTaskDesc(List<VFXEditorTaskDesc> taskDescs, VFXEditorTaskDesc taskDesc, VFXContext context)
+        {
+            TaskProfilingData taskProfilingData = new TaskProfilingData()
+                { taskIndex = taskDescs.Count, taskName = taskDesc.type.ToString() };
+
+            VFXContext visualContext;
+            if (context is VFXOutputUpdate outputUpdate)
+            {
+                visualContext = outputUpdate.output;
+            }
+            else if (context is VFXGlobalSort)
+            {
+                visualContext = m_ContextsToTaskIndex.Keys.FirstOrDefault(o => o is VFXBasicUpdate);
+            }
+            else
+            {
+                visualContext = context;
+            }
+
+            if (m_ContextsToTaskIndex.TryGetValue(visualContext, out List<TaskProfilingData> tasksIndices))
+            {
+                tasksIndices.Add(taskProfilingData);
+            }
+            else
+            {
+                m_ContextsToTaskIndex.Add(visualContext, new List<TaskProfilingData>() {taskProfilingData});
+            }
+            taskDescs.Add(taskDesc);
         }
 
         private void FillGraphValuesBuffers(List<VFXGPUBufferDesc> outBufferDescs, List<VFXMapping> systemBufferMappings, GraphValuesLayout graphValuesLayout, out int graphValuesIndex)

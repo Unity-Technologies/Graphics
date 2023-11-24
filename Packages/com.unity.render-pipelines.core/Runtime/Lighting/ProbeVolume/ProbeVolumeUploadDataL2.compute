@@ -1,0 +1,70 @@
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+//#pragma enable_d3d11_debug_symbols
+
+#include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/ProbeVolumeUploadDataCommon.hlsl"
+
+#pragma kernel UploadDataL2
+
+RWTexture3D<float4> _Out_L2_0;
+RWTexture3D<float4> _Out_L2_1;
+RWTexture3D<float4> _Out_L2_2;
+RWTexture3D<float4> _Out_L2_3;
+
+
+[numthreads(64, 1, 1)]
+void UploadDataL2(uint3 dispatchThreadID : SV_DispatchThreadID)
+{
+    uint chunkIndex = dispatchThreadID.z;
+    uint chunkProbeIndex = dispatchThreadID.x * 4; // One thread processes 4 probes.
+
+    // We extract 4 probes at a time.
+    // This is driven by the minimum amount of data that we can load at once with a ByteAddressBuffer
+    // Shared data is currently 1 byte per probe so we can load at minimum 4 probes at a time with one ByteAddressBuffer.Load(uint)
+
+
+    uint offsetL2_0 = _L2_0Offset + chunkIndex * _L2Size + chunkProbeIndex * _L2ProbeSize; // 4 x 4 bytes probes.
+    uint offsetL2_1 = _L2_1Offset + chunkIndex * _L2Size + chunkProbeIndex * _L2ProbeSize; // 4 x 4 bytes probes.
+    uint offsetL2_2 = _L2_2Offset + chunkIndex * _L2Size + chunkProbeIndex * _L2ProbeSize; // 4 x 4 bytes probes.
+    uint offsetL2_3 = _L2_3Offset + chunkIndex * _L2Size + chunkProbeIndex * _L2ProbeSize; // 4 x 4 bytes probes.
+
+    // Extract L2
+    float4 L2_0_probe_0, L2_0_probe_1, L2_0_probe_2, L2_0_probe_3;
+    float4 L2_1_probe_0, L2_1_probe_1, L2_1_probe_2, L2_1_probe_3;
+    float4 L2_2_probe_0, L2_2_probe_1, L2_2_probe_2, L2_2_probe_3;
+    float4 L2_3_probe_0, L2_3_probe_1, L2_3_probe_2, L2_3_probe_3;
+    ExtractByte(_ScratchBuffer.Load4(offsetL2_0), L2_0_probe_0, L2_0_probe_1, L2_0_probe_2, L2_0_probe_3);
+    ExtractByte(_ScratchBuffer.Load4(offsetL2_1), L2_1_probe_0, L2_1_probe_1, L2_1_probe_2, L2_1_probe_3);
+    ExtractByte(_ScratchBuffer.Load4(offsetL2_2), L2_2_probe_0, L2_2_probe_1, L2_2_probe_2, L2_2_probe_3);
+    ExtractByte(_ScratchBuffer.Load4(offsetL2_3), L2_3_probe_0, L2_3_probe_1, L2_3_probe_2, L2_3_probe_3);
+
+    APVResourcesRW output;
+    LOAD_APV_RES_L2(output, _Out);
+
+    uint3 baseProbe;
+    uint3 loc;
+    uint3 probe1Offset;
+    uint3 probe2Offset;
+    uint3 probe3Offset;
+    getProbeLocationAndOffsets(chunkIndex, chunkProbeIndex, baseProbe, loc, probe1Offset, probe2Offset, probe3Offset);
+
+
+    _Out_L2_0[loc] = L2_0_probe_0;
+    _Out_L2_0[loc + probe1Offset] = L2_0_probe_1;
+    _Out_L2_0[loc + probe2Offset] = L2_0_probe_2;
+    _Out_L2_0[loc + probe3Offset] = L2_0_probe_3;
+
+    _Out_L2_1[loc] = L2_1_probe_0;
+    _Out_L2_1[loc + probe1Offset] = L2_1_probe_1;
+    _Out_L2_1[loc + probe2Offset] = L2_1_probe_2;
+    _Out_L2_1[loc + probe3Offset] = L2_1_probe_3;
+
+    _Out_L2_2[loc] = L2_2_probe_0;
+    _Out_L2_2[loc + probe1Offset] = L2_2_probe_1;
+    _Out_L2_2[loc + probe2Offset] = L2_2_probe_2;
+    _Out_L2_2[loc + probe3Offset] = L2_2_probe_3;
+
+    _Out_L2_3[loc] = L2_3_probe_0;
+    _Out_L2_3[loc + probe1Offset] = L2_3_probe_1;
+    _Out_L2_3[loc + probe2Offset] = L2_3_probe_2;
+    _Out_L2_3[loc + probe3Offset] = L2_3_probe_3;
+}

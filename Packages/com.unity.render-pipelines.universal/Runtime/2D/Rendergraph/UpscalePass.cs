@@ -1,6 +1,6 @@
 using System;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -70,7 +70,7 @@ namespace UnityEngine.Rendering.Universal
             using (var builder = graph.AddRasterRenderPass<PassData>(k_UpscalePass, out var passData, m_ProfilingSampler))
             {
                 passData.source = cameraColorAttachment;
-                builder.UseTextureFragment(upscaleHandle, 0);
+                builder.SetRenderAttachment(upscaleHandle, 0);
                 builder.UseTexture(cameraColorAttachment);
 
                 builder.AllowPassCulling(false);

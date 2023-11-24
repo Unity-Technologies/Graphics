@@ -17,8 +17,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent xrTitle = EditorGUIUtility.TrTextContent("XR");
             public static readonly GUIContent virtualTexturingTitle = EditorGUIUtility.TrTextContent("Virtual Texturing", "Virtual Texturing Settings. These are only available when Virtual Texturing is enabled in the Player Settings.");
             public static readonly GUIContent lightLoopSubTitle = EditorGUIUtility.TrTextContent("Lights");
-            public static readonly GUIContent postProcessQualitySubTitle = EditorGUIUtility.TrTextContent("Post-processing Quality Settings");
-            public static readonly GUIContent lightingQualitySettings = EditorGUIUtility.TrTextContent("Lighting Quality Settings");
+            public static readonly GUIContent tierSubTitle = EditorGUIUtility.TrTextContent("Tier Settings");
 
             public static readonly GUIContent volumetricSubTitle = EditorGUIUtility.TrTextContent("Volumetrics");
             public static readonly GUIContent volumetricCloudsSubTitle = EditorGUIUtility.TrTextContent("Volumetric Clouds");
@@ -266,20 +265,32 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent directionalFilteringQuality = EditorGUIUtility.TrTextContent("Directional Shadow Filtering Quality", "Specifies the quality of directional shadows. See the documentation for details on the algorithm HDRP uses for each preset.");
             public static readonly GUIContent areaFilteringQuality = EditorGUIUtility.TrTextContent("Area Shadow Filtering Quality", "Specifies the quality of area shadows. See the documentation for details on the algorithm HDRP uses for each preset.");
 
+
+            public static readonly GUIContent DLSSTitle = EditorGUIUtility.TrTextContent("NVIDIA Deep Learning Super Sampling (DLSS)");
             public static readonly GUIContent enabled = EditorGUIUtility.TrTextContent("Enable", "When enabled, HDRP dynamically lowers the resolution of render targets to reduce the workload on the GPU.");
             public static readonly GUIContent enableDLSS = EditorGUIUtility.TrTextContent("Enable DLSS", "Enables NVIDIA Deep Learning Super Sampling (DLSS).");
-            public static readonly GUIContent DLSSQualitySettingContent = EditorGUIUtility.TrTextContent("Mode", "Selects a performance quality setting for NVIDIA Deep Learning Super Sampling (DLSS).");
-            public static readonly GUIContent DLSSInjectionPoint = EditorGUIUtility.TrTextContent("Injection Point", "The injection point at which to apply DLSS upscaling.");
-            public static readonly GUIContent DLSSUseOptimalSettingsContent = EditorGUIUtility.TrTextContent("Use Optimal Settings", "Sets the sharpness and scale automatically for NVIDIA Deep Learning Super Sampling, depending on the values of quality settings. When DLSS Optimal Settings is on, the percentage settings for Dynamic Resolution Scaling are ignored.");
-            public static readonly GUIContent DLSSSharpnessContent = EditorGUIUtility.TrTextContent("Sharpness", "NVIDIA Deep Learning Super Sampling pixel sharpness of upsampler. Controls how the DLSS upsampler will render edges on the image. More sharpness usually means more contrast and clearer image but can increase flickering and fireflies. This setting is ignored if use optimal settings is used");
+            public static readonly GUIContent DLSSQualitySettingContent = EditorGUIUtility.TrTextContent("DLSS Mode", "Selects a performance quality setting for NVIDIA Deep Learning Super Sampling (DLSS).");
+            public static readonly GUIContent DLSSInjectionPoint = EditorGUIUtility.TrTextContent("DLSS Injection Point", "The injection point at which to apply DLSS upscaling.");
+            public static readonly GUIContent DLSSUseOptimalSettingsContent = EditorGUIUtility.TrTextContent("DLSS Use Optimal Settings", "Sets the sharpness and scale automatically for NVIDIA Deep Learning Super Sampling, depending on the values of quality settings. When DLSS Optimal Settings is on, the percentage settings for Dynamic Resolution Scaling are ignored.");
+            public static readonly GUIContent DLSSSharpnessContent = EditorGUIUtility.TrTextContent("DLSS Sharpness", "NVIDIA Deep Learning Super Sampling pixel sharpness of upsampler. Controls how the DLSS upsampler will render edges on the image. More sharpness usually means more contrast and clearer image but can increase flickering and fireflies. This setting is ignored if optimal settings are used.");
 
-            public static readonly GUIContent[] DLSSInjectionPointNames =
+            public static readonly GUIContent FSR2Title = EditorGUIUtility.TrTextContent("AMD FidelityFX Super Resolution 2.0 (FSR2)");
+            public static readonly GUIContent enableFSR2 = EditorGUIUtility.TrTextContent("Enable Fidelity FX 2.2", "Enables FidelityFX 2.0 Super Resolution (FSR2).");
+            public static readonly GUIContent FSR2InjectionPoint = EditorGUIUtility.TrTextContent("FSR2 Injection Point", "The injection point at which to apply FidelityFX 2.0 Super Resolution (FSR2).");
+            public static readonly GUIContent FSR2EnableSharpness = EditorGUIUtility.TrTextContent("FSR2 Enable Sharpness", "Enable an additional sharpening pass on FidelityFX 2.0 Super Resolution (FSR2).");
+            public static readonly GUIContent FSR2UseOptimalSettingsContent = EditorGUIUtility.TrTextContent("FSR2 Use Optimal Settings", "Sets the scale automatically for AMD Fidelity FX 2.0 Super Resolution (FSR2), depending on the values of quality settings. When FSR2 Optimal Settings is on, the percentage settings for Dynamic Resolution Scaling are ignored.");
+            public static readonly GUIContent FSR2QualitySettingContent = EditorGUIUtility.TrTextContent("FSR2 Mode", "Selects a performance quality setting for AMD FidelityFX 2.0 Super Resolution (FSR2).");
+            public static readonly GUIContent FSR2Sharpness = EditorGUIUtility.TrTextContent("FSR2 Sharpness", "The sharpness value between 0 and 1, where 0 is no additional sharpness and 1 is maximum additional sharpness.");
+
+            public static readonly GUIContent FSRTitle = EditorGUIUtility.TrTextContent("AMD FidelityFX Super Resolution 1.0 (FSR)");
+
+            public static readonly GUIContent[] UpscalerInjectionPointNames =
             {
                 new GUIContent("Before Post Process (Default)"),
                 new GUIContent("After Depth Of Field (Low depth of field cost)"),
                 new GUIContent("After Post Process (Low post process cost)")
             };
-            public static readonly int[] DLSSInjectionPointValues =
+            public static readonly int[] UpscalerInjectionPointValues =
             {
                 (int)DynamicResolutionHandler.UpsamplerScheduleType.BeforePost,
                 (int)DynamicResolutionHandler.UpsamplerScheduleType.AfterDepthOfField,
@@ -293,6 +304,12 @@ namespace UnityEditor.Rendering.HighDefinition
             public const string DLSSIgnorePercentages = "Unity detected that NVIDIA Deep Learning Super Sampling (DLSS) is using Optimal Settings. When DLSS Optimal Settings is on, the percentage settings for Dynamic Resolution Scaling are ignored.";
             public const string DLSSWinTargetWarning = "HDRP does not support DLSS for the current build target. To enable DLSS, set your build target to Windows x86_64.";
             public const string DLSSSwitchTarget64Button = "Fix";
+
+            public const string FSR2PackageLabel = "AMD Fidelity FX2 Super Sampling (FSR2) is not active in this project. To activate it, install the AMD package.";
+            public const string FSR2WinTargetWarning = "HDRP does not support AMD Fidelity FX2 for the current build target and graphics device API. To enable FSR2, set your build target to Windows x86_64 and DirectX12.";
+            public const string FSR2SwitchTarget64Button = "Fix";
+            public const string FSR2FeatureDetectedMsg = "Unity detected AMD Fidelity FX 2 Super Resolution and will ignore the Fallback Upscale Filter.";
+            public const string FSR2FeatureNotDetectedMsg = "Unity cannot detect Unity detected AMD Fidelity FX 2 Super Resolution and will use the Fallback Upscale Filter instead.";
 
             public static readonly GUIContent fsrOverrideSharpness = EditorGUIUtility.TrTextContent("Override FSR Sharpness", "Overrides the FSR sharpness value for the render pipeline asset.");
             public static readonly GUIContent fsrSharpnessText = EditorGUIUtility.TrTextContent("FSR Sharpness", "Controls the intensity of the sharpening filter used by AMD FidelityFX Super Resolution.");
@@ -329,6 +346,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly int[] shadowBitDepthValues = { (int)DepthBits.Depth32, (int)DepthBits.Depth16 };
 
             public static GUIContent gpuResidentDrawerMode = EditorGUIUtility.TrTextContent("GPU Resident Drawer", "Enables draw submission through the GPU Resident Drawer, which can improve CPU performance");
+            public static readonly GUIContent smallMeshScreenPercentage = EditorGUIUtility.TrTextContent("Small-Mesh Screen-Percentage", "Default minimum screen percentage (0-20%) gpu-driven Renderers can cover before getting culled. If a Renderer is part of a LODGroup, this will be ignored.");
 
             public static GUIContent brgShaderStrippingErrorMessage =
                 EditorGUIUtility.TrTextContent("\"BatchRendererGroup Variants\" setting must be \"Keep All\". To fix, modify Graphics settings and set \"BatchRendererGroup Variants\" to \"Keep All\".");

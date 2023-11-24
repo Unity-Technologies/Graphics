@@ -1,7 +1,7 @@
 #if ENABLE_VIRTUALTEXTURES
 using VirtualTexturing = UnityEngine.Rendering.VirtualTexturing;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 
 namespace  UnityEngine.Rendering.HighDefinition
 {

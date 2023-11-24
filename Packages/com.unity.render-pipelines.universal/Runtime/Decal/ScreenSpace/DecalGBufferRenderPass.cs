@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Rendering.Universal.Internal;
 
 namespace UnityEngine.Rendering.Universal
@@ -138,11 +138,11 @@ namespace UnityEngine.Rendering.Universal
         {
             NormalReconstruction.SetupProperties(cmd, passData.cameraData);
 
-            cmd.SetKeyword(ref ShaderGlobalKeywords.DecalNormalBlendLow, passData.settings.normalBlend == DecalNormalBlend.Low);
-            cmd.SetKeyword(ref ShaderGlobalKeywords.DecalNormalBlendMedium, passData.settings.normalBlend == DecalNormalBlend.Medium);
-            cmd.SetKeyword(ref ShaderGlobalKeywords.DecalNormalBlendHigh, passData.settings.normalBlend == DecalNormalBlend.High);
+            cmd.SetKeyword(ShaderGlobalKeywords.DecalNormalBlendLow, passData.settings.normalBlend == DecalNormalBlend.Low);
+            cmd.SetKeyword(ShaderGlobalKeywords.DecalNormalBlendMedium, passData.settings.normalBlend == DecalNormalBlend.Medium);
+            cmd.SetKeyword(ShaderGlobalKeywords.DecalNormalBlendHigh, passData.settings.normalBlend == DecalNormalBlend.High);
 
-            cmd.SetKeyword(ref ShaderGlobalKeywords.DecalLayers, passData.decalLayers);
+            cmd.SetKeyword(ShaderGlobalKeywords.DecalLayers, passData.decalLayers);
 
             passData.drawSystem?.Execute(cmd);
             cmd.DrawRendererList(rendererList);
@@ -162,20 +162,20 @@ namespace UnityEngine.Rendering.Universal
                 InitPassData(cameraData, ref passData);
 
                 TextureHandle[] gBufferHandles = resourceData.gBuffer;
-                builder.UseTextureFragment(gBufferHandles[0], 0, IBaseRenderGraphBuilder.AccessFlags.Write);
-                builder.UseTextureFragment(gBufferHandles[1], 1, IBaseRenderGraphBuilder.AccessFlags.Write);
-                builder.UseTextureFragment(gBufferHandles[2], 2, IBaseRenderGraphBuilder.AccessFlags.Write);
-                builder.UseTextureFragment(gBufferHandles[3], 3, IBaseRenderGraphBuilder.AccessFlags.Write);
-                builder.UseTextureFragmentDepth(resourceData.activeDepthTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+                builder.SetRenderAttachment(gBufferHandles[0], 0, AccessFlags.Write);
+                builder.SetRenderAttachment(gBufferHandles[1], 1, AccessFlags.Write);
+                builder.SetRenderAttachment(gBufferHandles[2], 2, AccessFlags.Write);
+                builder.SetRenderAttachment(gBufferHandles[3], 3, AccessFlags.Write);
+                builder.SetRenderAttachmentDepth(resourceData.activeDepthTexture, AccessFlags.Read);
 
                 if (renderGraph.NativeRenderPassesEnabled)
                 {
-                    builder.UseTextureFragmentInput(gBufferHandles[4], 0, IBaseRenderGraphBuilder.AccessFlags.Read);
+                    builder.SetInputAttachment(gBufferHandles[4], 0, AccessFlags.Read);
                     if (m_DecalLayers)
-                        builder.UseTextureFragmentInput(gBufferHandles[5], 1, IBaseRenderGraphBuilder.AccessFlags.Read);
+                        builder.SetInputAttachment(gBufferHandles[5], 1, AccessFlags.Read);
                 }
                 else if (cameraDepthTexture.IsValid())
-                    builder.UseTexture(cameraDepthTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+                    builder.UseTexture(cameraDepthTexture, AccessFlags.Read);
 
                 SortingCriteria sortingCriteria = passData.cameraData.defaultOpaqueSortFlags;
                 DrawingSettings drawingSettings = RenderingUtils.CreateDrawingSettings(m_ShaderTagIdList, renderingData,

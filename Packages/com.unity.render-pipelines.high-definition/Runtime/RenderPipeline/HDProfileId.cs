@@ -264,7 +264,8 @@ namespace UnityEngine.Rendering.HighDefinition
         DynamicExposure,
         ApplyExposure,
         TemporalAntialiasing,
-        DeepLearningSuperSamplingColorMask,
+        UpscalerColorMask,
+        FSR2,
         DeepLearningSuperSampling,
         DepthOfField,
         DepthOfFieldKernel,
@@ -306,9 +307,10 @@ namespace UnityEngine.Rendering.HighDefinition
         Sharpening,
         ContrastAdaptiveSharpen,
         EdgeAdaptiveSpatialUpsampling,
-        PrepareProbeVolumeList,
-        ProbeVolumeDebug,
         CustomPassBufferClearDebug,
+
+        // Temp
+        APVSamplingDebug,
 
         AOVExecute,
         AOVOutput,

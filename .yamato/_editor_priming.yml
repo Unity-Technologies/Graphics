@@ -57,7 +57,7 @@ editor:priming:test_min_editor:Win:
     name: '[Min_Editor,Win] Editor priming'
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu-22.04:v4
+        image: package-ci/ubuntu-22.04:v4.30.0
         flavor: b1.small
     variables:
         DISPLAY: ":0"
@@ -126,7 +126,7 @@ editor:priming:test_min_editor:OSX:
     name: '[Min_Editor,OSX] Editor priming'
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu-22.04:v4
+        image: package-ci/ubuntu-22.04:v4.30.0
         flavor: b1.small
     variables:
         DISPLAY: ":0"
@@ -195,7 +195,7 @@ editor:priming:test_min_editor:Linux:
     name: '[Min_Editor,Linux] Editor priming'
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu-22.04:v4
+        image: package-ci/ubuntu-22.04:v4.30.0
         flavor: b1.small
     variables:
         DISPLAY: ":0"

@@ -1,5 +1,5 @@
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -68,7 +68,8 @@ namespace UnityEngine.Rendering.Universal
                 UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
 
                 TextureHandle color = resourceData.activeColorTexture;
-                passData.target = builder.UseTextureFragment(color, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
+                passData.target = color;
+                builder.SetRenderAttachment(color, 0, AccessFlags.Write);
                 passData.camera = cameraData.camera;
                 passData.material = m_Material;
                 passData.intensity = m_intensity;

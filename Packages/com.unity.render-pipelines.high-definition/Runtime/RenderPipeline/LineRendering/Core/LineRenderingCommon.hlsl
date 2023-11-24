@@ -2,6 +2,21 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/LineRendering/Core/LineRendering.Data.cs.hlsl"
 
+// Shader Variable Constant Aliases
+#define _DimBin                 _Params0.xy
+#define _SegmentCount           _Params0.z
+#define _BinCount               _Params0.w
+#define _SizeScreen             _Params1
+#define _SizeBin                _Params2
+#define _VertexCount            _Params3.x
+#define _VertexStride           _Params3.y
+#define _ActiveBinCount         _Params3.z
+#define _ClusterDepth           _Params3.w
+#define _ShadingAtlasDimensions _Params4.xy
+#define _ClusterCount           _Params4.z
+#define _TileOpacityThreshold   _Params4.w
+#define _ViewIndex        (uint)_Params5.x
+
 #define COUNTER_BIN_RECORD          0 << 2
 #define COUNTER_BIN_QUEUE_SIZE      1 << 2
 #define COUNTER_BIN_QUEUE_INDEX     2 << 2

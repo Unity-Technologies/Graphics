@@ -165,7 +165,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public uint featureFlags;
 
         public Vector3 boxInvRange;  // Box: 1 / (OuterBoxExtents - InnerBoxExtents)
-        public float unused2;
+        public int affectVolumetric; // 1 if the volumetric dimmer of the light is above 0
     };
 
     /// <summary>
@@ -872,6 +872,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 Shader.EnableKeyword("DECAL_SURFACE_GRADIENT");
             else
                 Shader.DisableKeyword("DECAL_SURFACE_GRADIENT");
+
+            s_BigTileVolumetricLightListKeyword = new LocalKeyword(buildPerBigTileLightListShader, "GENERATE_VOLUMETRIC_BIGTILE");
         }
 
         void CleanupLightLoop()
@@ -2016,7 +2018,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // TODO-WL: Directional lights?
             cb._WorldDirectionalLightCount = 0u;
             cb._WorldPunctualLightCount = (uint)m_WorldLights.pointLightCount;
-            cb._WorldAreaLightCount = (uint)m_WorldLights.rectLightCount;
+            cb._WorldAreaLightCount = (uint)(m_WorldLights.rectLightCount + m_WorldLights.lineLightCount + m_WorldLights.discLightCount);
             cb._WorldEnvLightCount = (uint)m_WorldLights.envLightCount;
 
             cb._DecalCount = (uint)DecalSystem.m_DecalDatasCount;
