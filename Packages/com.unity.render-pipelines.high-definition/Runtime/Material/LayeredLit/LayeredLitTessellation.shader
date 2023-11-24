@@ -17,7 +17,6 @@ Shader "HDRP/LayeredLitTessellation"
         _BaseColorMap1("BaseColorMap1", 2D) = "white" {}
         _BaseColorMap2("BaseColorMap2", 2D) = "white" {}
         _BaseColorMap3("BaseColorMap3", 2D) = "white" {}
-        [HideInInspector] _BaseColorMap0_MipInfo("_BaseColorMap0_MipInfo", Vector) = (0, 0, 0, 0)
 
         _Metallic0("Metallic0", Range(0.0, 1.0)) = 0
         _Metallic1("Metallic1", Range(0.0, 1.0)) = 0
@@ -428,7 +427,6 @@ Shader "HDRP/LayeredLitTessellation"
         [HideInInspector][NoScaleOffset]unity_Lightmaps("unity_Lightmaps", 2DArray) = "" {}
         [HideInInspector][NoScaleOffset]unity_LightmapsInd("unity_LightmapsInd", 2DArray) = "" {}
         [HideInInspector][NoScaleOffset]unity_ShadowMasks("unity_ShadowMasks", 2DArray) = "" {}
-
     }
 
     HLSLINCLUDE

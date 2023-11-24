@@ -41,6 +41,7 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
 
     #if defined(DEBUG_DISPLAY)
     inputData.positionWS = input.positionWS;
+    inputData.positionCS = input.positionCS;
     inputData.viewDirectionWS = input.viewDirWS;
     #else
     inputData.positionWS = float3(0, 0, 0);
@@ -138,7 +139,7 @@ void BakedLitForwardPassFragment(
     #endif
     InputData inputData;
     InitializeInputData(input, normalTS, inputData);
-    SETUP_DEBUG_TEXTURE_DATA(inputData, input.uv0AndFogCoord.xy, _BaseMap);
+    SETUP_DEBUG_TEXTURE_DATA(inputData, UNDO_TRANSFORM_TEX(input.uv0AndFogCoord.xy, _BaseMap));
 
     half4 texColor = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uv);
     half3 color = texColor.rgb * _BaseColor.rgb;

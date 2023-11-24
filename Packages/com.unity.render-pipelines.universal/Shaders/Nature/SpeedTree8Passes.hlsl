@@ -436,7 +436,7 @@ half4 SpeedTree8Frag(SpeedTreeFragmentInput input) : SV_Target
 
     InputData inputData;
     InitializeInputData(input, normalTs, inputData);
-    SETUP_DEBUG_TEXTURE_DATA(inputData, input.interpolated.uv, _MainTex);
+    SETUP_DEBUG_TEXTURE_DATA(inputData, input.interpolated.uv);
 
 #if defined(GBUFFER) || defined(EFFECT_SUBSURFACE)
     Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, inputData.shadowMask);

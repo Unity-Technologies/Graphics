@@ -13,20 +13,37 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceData.hlsl"
 
-#define SETUP_DEBUG_TEXTURE_DATA(inputData, uv, texture)    SetupDebugDataTexture(inputData, uv, texture##_TexelSize, texture##_MipInfo, GetMipCount(TEXTURE2D_ARGS(texture, sampler##texture)))
+#define SETUP_DEBUG_TEXTURE_DATA(inputData, uv)                   SetupDebugDataTexture(inputData, TRANSFORM_TEX(uv.xy, unity_MipmapStreaming_DebugTex), unity_MipmapStreaming_DebugTex_TexelSize, unity_MipmapStreaming_DebugTex_MipInfo, unity_MipmapStreaming_DebugTex_StreamInfo, unity_MipmapStreaming_DebugTex)
+#define SETUP_DEBUG_TEXTURE_DATA_NO_UV(inputData)                 SetupDebugDataTexture(inputData, float2(0.0f, 0.0f), unity_MipmapStreaming_DebugTex_TexelSize, unity_MipmapStreaming_DebugTex_MipInfo, unity_MipmapStreaming_DebugTex_StreamInfo, unity_MipmapStreaming_DebugTex)
+#define SETUP_DEBUG_TEXTURE_DATA_FOR_TEX(inputData, uv, texture)  SetupDebugDataTexture(inputData, uv, texture##_TexelSize, texture##_MipInfo, texture##_StreamInfo, texture)
+#define SETUP_DEBUG_TEXTURE_DATA_FOR_TERRAIN(inputData)           SetupDebugDataTerrain(inputData)
 
-void SetupDebugDataTexture(inout InputData inputData, float2 uv, float4 texelSize, float4 mipInfo, uint mipCount)
+void SetupDebugDataTexture(inout InputData inputData, float2 uv, float4 texelSize, float4 mipInfo, float4 streamInfo, TEXTURE2D(tex))
 {
     inputData.uv = uv;
     inputData.texelSize = texelSize;
     inputData.mipInfo = mipInfo;
-    inputData.mipCount = mipCount;
+    inputData.streamInfo = streamInfo;
+    inputData.mipCount = GetMipCount(TEXTURE2D_ARGS(tex, sampler_PointClamp));
+    inputData.originalColor = 0.0f;
+
+    if (_DebugMipInfoMode != DEBUGMIPINFOMODE_NONE)
+    {
+        inputData.originalColor = SAMPLE_TEXTURE2D(tex, sampler_LinearRepeat, uv).xyz;
+    }
 }
 
 void SetupDebugDataBrdf(inout InputData inputData, half3 brdfDiffuse, half3 brdfSpecular)
 {
     inputData.brdfDiffuse = brdfDiffuse;
     inputData.brdfSpecular = brdfSpecular;
+}
+
+void SetupDebugDataTerrain(inout InputData inputData)
+{
+    // no streamInfo will have been set (no MeshRenderer); set status to "6" to reflect in the debug status that this is a terrain
+    // also, set the per-material status to "4" to indicate warnings
+    inputData.streamInfo = float4(0.0f, 0.0f, float(6 | (4 << 4)), 0.0f);
 }
 
 bool UpdateSurfaceAndInputDataForDebug(inout SurfaceData surfaceData, inout InputData inputData)
@@ -162,9 +179,18 @@ bool CalculateColorForDebugMaterial(in InputData inputData, in SurfaceData surfa
     }
 }
 
+bool CalculateColorForDebugMipmapStreaming(in InputData inputData, in SurfaceData surfaceData, inout half4 debugColor)
+{
+    return CalculateColorForDebugMipmapStreaming(inputData.mipCount, inputData.positionCS.xy, inputData.texelSize, inputData.uv, inputData.mipInfo, inputData.streamInfo, inputData.originalColor, debugColor);
+}
+
 bool CalculateColorForDebug(in InputData inputData, in SurfaceData surfaceData, inout half4 debugColor)
 {
     if (CalculateColorForDebugSceneOverride(debugColor))
+    {
+        return true;
+    }
+    else if (CalculateColorForDebugMipmapStreaming(inputData, surfaceData, debugColor))
     {
         return true;
     }
@@ -324,7 +350,10 @@ bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData su
 #else
 
 // When "DEBUG_DISPLAY" isn't defined this macro does nothing - there's no debug-data to set-up...
-#define SETUP_DEBUG_TEXTURE_DATA(inputData, uv, texture)
+#define SETUP_DEBUG_TEXTURE_DATA(inputData, uv)
+#define SETUP_DEBUG_TEXTURE_DATA_NO_UV(inputData)
+#define SETUP_DEBUG_TEXTURE_DATA_FOR_TEX(inputData, uv, texture)
+#define SETUP_DEBUG_TEXTURE_DATA_FOR_TERRAIN(inputData)
 
 #endif
 

@@ -167,6 +167,9 @@ TEXTURE2D_X(_RenderingLayerMaskTexture);
 TEXTURE2D_ARRAY(_ThicknessTexture);
 StructuredBuffer<uint> _ThicknessReindexMap;
 
+// Mipmap Streaming Debug
+TEXTURE2D(unity_MipmapStreaming_DebugTex);
+
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesXR.cs.hlsl"
 
 // In HDRP, all material samplers have the possibility of having a mip bias.

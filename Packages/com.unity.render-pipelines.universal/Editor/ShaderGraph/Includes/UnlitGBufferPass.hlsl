@@ -10,6 +10,7 @@ void InitializeInputData(Varyings input, out InputData inputData)
     // InputData is only used for DebugDisplay purposes in Unlit, so these are not initialized.
     #if defined(DEBUG_DISPLAY)
     inputData.positionWS = input.positionWS;
+    inputData.positionCS = input.positionCS;
     inputData.normalWS = NormalizeNormalPerPixel(input.normalWS);
     #else
     inputData.positionWS = half3(0, 0, 0);

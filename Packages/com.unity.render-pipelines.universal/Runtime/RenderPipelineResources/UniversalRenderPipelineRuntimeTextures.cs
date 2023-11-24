@@ -15,7 +15,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         ///  Version of the Texture resources
         /// </summary>
-        public int version => 0;
+        public int version => 1;
 
         bool IRenderPipelineGraphicsSettings.isAvailableInPlayerBuild => true;
 
@@ -43,6 +43,19 @@ namespace UnityEngine.Rendering.Universal
         {
             get => m_BayerMatrixTex;
             set => this.SetValueAndNotify(ref m_BayerMatrixTex, value, nameof(m_BayerMatrixTex));
+        }
+
+        [SerializeField]
+        [ResourcePath("Textures/DebugFont.tga")]
+        private Texture2D m_DebugFontTex;
+
+        /// <summary>
+        /// Debug font texture.
+        /// </summary>
+        public Texture2D debugFontTexture
+        {
+            get => m_DebugFontTex;
+            set => this.SetValueAndNotify(ref m_DebugFontTex, value, nameof(m_DebugFontTex));
         }
     }
 }

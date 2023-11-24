@@ -210,7 +210,7 @@ half4 LitPassFragmentGrass(GrassVertexOutput input) : SV_Target
 
     InputData inputData;
     InitializeInputData(input, inputData);
-    SETUP_DEBUG_TEXTURE_DATA(inputData, input.uv, _MainTex);
+    SETUP_DEBUG_TEXTURE_DATA_FOR_TEX(inputData, input.uv, _MainTex);
 
 #ifdef TERRAIN_GBUFFER
     half4 color = half4(inputData.bakedGI * surfaceData.albedo + surfaceData.emission, surfaceData.alpha);

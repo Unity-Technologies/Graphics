@@ -132,8 +132,9 @@ namespace UnityEngine.Rendering.HighDefinition
             bool fullScreenDebugEnabled = m_CurrentDebugDisplaySettings.data.fullScreenDebugMode != FullScreenDebugMode.None;
             bool lightingDebugEnabled = m_CurrentDebugDisplaySettings.data.lightingDebugSettings.shadowDebugMode == ShadowMapDebugMode.SingleShadow;
             bool historyBufferViewEnabled = m_CurrentDebugDisplaySettings.data.historyBuffersView != -1;
+            bool mipmapDebuggingEnabled = m_CurrentDebugDisplaySettings.data.mipMapDebugSettings.debugMipMapMode != DebugMipMapMode.None;
 
-            return fullScreenDebugEnabled || lightingDebugEnabled || historyBufferViewEnabled;
+            return fullScreenDebugEnabled || lightingDebugEnabled || historyBufferViewEnabled || mipmapDebuggingEnabled;
         }
 
         unsafe void ApplyDebugDisplaySettings(HDCamera hdCamera, CommandBuffer cmd, bool aovOutput)
@@ -157,10 +158,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_CurrentDebugDisplaySettings.data.colorPickerDebugSettings.colorPickerMode != ColorPickerDebugMode.None ||
                 m_CurrentDebugDisplaySettings.IsDebugExposureModeEnabled())
             {
-                // This is for texture streaming
-                m_CurrentDebugDisplaySettings.UpdateMaterials();
-
-
                 var lightingDebugSettings = m_CurrentDebugDisplaySettings.data.lightingDebugSettings;
                 var materialDebugSettings = m_CurrentDebugDisplaySettings.data.materialDebugSettings;
 
@@ -208,6 +205,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 cb._DebugLightLayersMask = (int)m_CurrentDebugDisplaySettings.GetDebugLightLayersMask();
                 cb._DebugShadowMapMode = (int)m_CurrentDebugDisplaySettings.GetDebugShadowMapMode();
                 cb._DebugMipMapMode = (int)m_CurrentDebugDisplaySettings.GetDebugMipMapMode();
+                cb._DebugMipMapOpacity = m_CurrentDebugDisplaySettings.GetDebugMipMapOpacity();
+                cb._DebugMipMapStatusMode = (int) m_CurrentDebugDisplaySettings.GetDebugMipMapStatusMode();
+                cb._DebugMipMapShowStatusCode = m_CurrentDebugDisplaySettings.GetDebugMipMapShowStatusCode() ? 1 : 0;
+                cb._DebugMipMapRecentlyUpdatedCooldown = m_CurrentDebugDisplaySettings.GetDebugMipMapRecentlyUpdatedCooldown();
                 cb._DebugIsLitShaderModeDeferred = hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred ? 1 : 0;
                 cb._DebugMipMapModeTerrainTexture = (int)m_CurrentDebugDisplaySettings.GetDebugMipMapModeTerrainTexture();
                 cb._ColorPickerMode = (int)m_CurrentDebugDisplaySettings.GetDebugColorPickerMode();
@@ -237,6 +238,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 cb._DebugSingleShadowIndex = m_CurrentDebugDisplaySettings.data.lightingDebugSettings.shadowDebugUseSelection ? m_DebugSelectedLightShadowIndex : (int)m_CurrentDebugDisplaySettings.data.lightingDebugSettings.shadowMapIndex;
 
                 cb._DebugAOVOutput = aovOutput ? 1 : 0;
+
+#if UNITY_EDITOR
+                cb._DebugCurrentRealTime = (float) EditorApplication.timeSinceStartup;
+#else
+                cb._DebugCurrentRealTime = Time.realtimeSinceStartup;
+#endif
 
                 ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesDebugDisplayCB, HDShaderIDs._ShaderVariablesDebugDisplay);
 

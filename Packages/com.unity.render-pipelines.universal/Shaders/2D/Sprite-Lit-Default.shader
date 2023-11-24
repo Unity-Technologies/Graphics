@@ -58,9 +58,13 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
             };
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/LightingUtility.hlsl"
+            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/DebugMipmapStreamingMacros.hlsl"
 
             TEXTURE2D(_MainTex);
             SAMPLER(sampler_MainTex);
+            float4 _MainTex_TexelSize;
+            UNITY_TEXTURE_STREAMING_DEBUG_VARS_FOR_TEX(_MainTex);
+
             TEXTURE2D(_MaskTex);
             SAMPLER(sampler_MaskTex);
 
@@ -117,6 +121,8 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
 
                 InitializeSurfaceData(main.rgb, main.a, mask, surfaceData);
                 InitializeInputData(i.uv, i.lightingUV, inputData);
+
+                SETUP_DEBUG_TEXTURE_DATA_2D(inputData, i.positionWS, i.positionCS, _MainTex);
 
                 return CombinedShapeLightShared(surfaceData, inputData);
             }
@@ -205,11 +211,15 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
             HLSLPROGRAM
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/Core2D.hlsl"
+            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/DebugMipmapStreamingMacros.hlsl"
+            #if defined(DEBUG_DISPLAY)
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Debug/Debugging2D.hlsl"
+            #endif
 
             #pragma vertex UnlitVertex
             #pragma fragment UnlitFragment
 
-            #pragma multi_compile _ SKINNED_SPRITE
+            #pragma multi_compile _ DEBUG_DISPLAY SKINNED_SPRITE
 
             struct Attributes
             {
@@ -233,6 +243,8 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
 
             TEXTURE2D(_MainTex);
             SAMPLER(sampler_MainTex);
+            float4 _MainTex_TexelSize;
+            UNITY_TEXTURE_STREAMING_DEBUG_VARS_FOR_TEX(_MainTex);
 
             // NOTE: Do not ifdef the properties here as SRP batcher can not handle different layouts.
             CBUFFER_START( UnityPerMaterial )
@@ -251,7 +263,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
                 attributes.positionOS = UnityFlipSprite( attributes.positionOS, unity_SpriteProps.xy);
                 o.positionCS = TransformObjectToHClip(attributes.positionOS);
                 #if defined(DEBUG_DISPLAY)
-                o.positionWS = TransformObjectToWorld(v.positionOS);
+                o.positionWS = TransformObjectToWorld(attributes.positionOS);
                 #endif
                 o.uv = TRANSFORM_TEX(attributes.uv, _MainTex);
                 o.color = attributes.color * _Color * unity_SpriteColor;
@@ -269,7 +281,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
 
                 InitializeSurfaceData(mainTex.rgb, mainTex.a, surfaceData);
                 InitializeInputData(i.uv, inputData);
-                SETUP_DEBUG_DATA_2D(inputData, i.positionWS);
+                SETUP_DEBUG_TEXTURE_DATA_2D(inputData, i.positionWS, i.positionCS, _MainTex);
 
                 if(CanDebugOverrideOutputColor(surfaceData, inputData, debugColor))
                 {

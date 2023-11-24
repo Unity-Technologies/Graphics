@@ -1,6 +1,8 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using UnityEditor;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
 
@@ -11,9 +13,11 @@ namespace UnityEngine.Rendering.Universal
         #region Property Id Constants
 
         static readonly int k_DebugColorInvalidModePropertyId = Shader.PropertyToID("_DebugColorInvalidMode");
+        static readonly int k_DebugCurrentRealTimeId = Shader.PropertyToID("_DebugCurrentRealTime");
 
         static readonly int k_DebugColorPropertyId = Shader.PropertyToID("_DebugColor");
         static readonly int k_DebugTexturePropertyId = Shader.PropertyToID("_DebugTexture");
+        static readonly int k_DebugFontId = Shader.PropertyToID("_DebugFont");
         static readonly int k_DebugTextureNoStereoPropertyId = Shader.PropertyToID("_DebugTextureNoStereo");
         static readonly int k_DebugTextureDisplayRect = Shader.PropertyToID("_DebugTextureDisplayRect");
         static readonly int k_DebugRenderTargetSupportsStereo = Shader.PropertyToID("_DebugRenderTargetSupportsStereo");
@@ -25,6 +29,11 @@ namespace UnityEngine.Rendering.Universal
 
         // Rendering settings...
         static readonly int k_DebugMipInfoModeId = Shader.PropertyToID("_DebugMipInfoMode");
+        static readonly int k_DebugMipMapStatusModeId = Shader.PropertyToID("_DebugMipMapStatusMode");
+        static readonly int k_DebugMipMapShowStatusCodeId = Shader.PropertyToID("_DebugMipMapShowStatusCode");
+        static readonly int k_DebugMipMapOpacityId = Shader.PropertyToID("_DebugMipMapOpacity");
+        static readonly int k_DebugMipMapRecentlyUpdatedCooldownId = Shader.PropertyToID("_DebugMipMapRecentlyUpdatedCooldown");
+        static readonly int k_DebugMipMapTerrainTextureModeId = Shader.PropertyToID("_DebugMipMapTerrainTextureMode");
         static readonly int k_DebugSceneOverrideModeId = Shader.PropertyToID("_DebugSceneOverrideMode");
         static readonly int k_DebugFullScreenModeId = Shader.PropertyToID("_DebugFullScreenMode");
         static readonly int k_DebugValidationModeId = Shader.PropertyToID("_DebugValidationMode");
@@ -59,6 +68,8 @@ namespace UnityEngine.Rendering.Universal
         RTHandle m_DebugScreenColorHandle;
         RTHandle m_DebugScreenDepthHandle;
 
+        readonly UniversalRenderPipelineRuntimeTextures m_RuntimeTextures;
+
         bool m_HasDebugRenderTarget;
         bool m_DebugRenderTargetSupportsStereo;
         Vector4 m_DebugRenderTargetPixelRect;
@@ -88,7 +99,8 @@ namespace UnityEngine.Rendering.Universal
             m_DebugDisplaySettings.renderingSettings.sceneOverrideMode != DebugSceneOverrideMode.None ||
             m_DebugDisplaySettings.materialSettings.materialDebugMode != DebugMaterialMode.None ||
             m_DebugDisplaySettings.materialSettings.vertexAttributeDebugMode != DebugVertexAttributeMode.None ||
-            m_DebugDisplaySettings.materialSettings.materialValidationMode != DebugMaterialValidationMode.None;
+            m_DebugDisplaySettings.materialSettings.materialValidationMode != DebugMaterialValidationMode.None ||
+            m_DebugDisplaySettings.renderingSettings.mipInfoMode != DebugMipInfoMode.None;
 
         /// <inheritdoc/>
         public bool TryGetScreenClearColor(ref Color color)
@@ -144,6 +156,8 @@ namespace UnityEngine.Rendering.Universal
             }
 
             m_HDRDebugViewPass = new HDRDebugViewPass(m_HDRDebugViewMaterial);
+
+            m_RuntimeTextures = GraphicsSettings.GetRenderPipelineSettings<UniversalRenderPipelineRuntimeTextures>();
         }
 
         public void Dispose()
@@ -309,6 +323,12 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetGlobalFloat(k_RangeMinimumId, renderingSettings.validationRangeMin);
                 cmd.SetGlobalFloat(k_RangeMaximumId, renderingSettings.validationRangeMax);
             }
+
+            if (renderingSettings.mipInfoMode != DebugMipInfoMode.None)
+            {
+                // some (not all) of these need text rendering
+                cmd.SetGlobalTexture(k_DebugFontId, m_RuntimeTextures.debugFontTexture);
+            }
         }
 
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
@@ -326,6 +346,11 @@ namespace UnityEngine.Rendering.Universal
 
                 // Rendering settings...
                 cmd.SetGlobalInteger(k_DebugMipInfoModeId, (int)RenderingSettings.mipInfoMode);
+                cmd.SetGlobalInteger(k_DebugMipMapStatusModeId, (int)RenderingSettings.mipDebugStatusMode);
+                cmd.SetGlobalInteger(k_DebugMipMapShowStatusCodeId, RenderingSettings.mipDebugStatusShowCode ? 1 : 0);
+                cmd.SetGlobalFloat(k_DebugMipMapOpacityId, RenderingSettings.mipDebugOpacity);
+                cmd.SetGlobalFloat(k_DebugMipMapRecentlyUpdatedCooldownId, RenderingSettings.mipDebugRecentUpdateCooldown);
+                cmd.SetGlobalFloat(k_DebugMipMapTerrainTextureModeId, (int)RenderingSettings.mipDebugTerrainTexture);
                 cmd.SetGlobalInteger(k_DebugSceneOverrideModeId, (int)RenderingSettings.sceneOverrideMode);
                 cmd.SetGlobalInteger(k_DebugFullScreenModeId, (int)RenderingSettings.fullScreenDebugMode);
                 cmd.SetGlobalInteger(k_DebugMaxPixelCost, (int)RenderingSettings.maxOverdrawCount);
@@ -339,6 +364,11 @@ namespace UnityEngine.Rendering.Universal
 
                 // Set-up any other persistent properties...
                 cmd.SetGlobalColor(k_DebugColorInvalidModePropertyId, Color.red);
+#if UNITY_EDITOR
+                cmd.SetGlobalFloat(k_DebugCurrentRealTimeId, (float)EditorApplication.timeSinceStartup);
+#else
+                cmd.SetGlobalFloat(k_DebugCurrentRealTimeId, Time.realtimeSinceStartup);
+#endif
             }
             else
             {

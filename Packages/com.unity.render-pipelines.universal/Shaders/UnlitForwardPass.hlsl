@@ -43,6 +43,7 @@ void InitializeInputData(Varyings input, out InputData inputData)
 
     #if defined(DEBUG_DISPLAY)
     inputData.positionWS = input.positionWS;
+    inputData.positionCS = input.positionCS;
     inputData.normalWS = input.normalWS;
     inputData.viewDirectionWS = input.viewDirWS;
     #else
@@ -117,7 +118,7 @@ void UnlitPassFragment(
 
     InputData inputData;
     InitializeInputData(input, inputData);
-    SETUP_DEBUG_TEXTURE_DATA(inputData, input.uv, _BaseMap);
+    SETUP_DEBUG_TEXTURE_DATA(inputData, UNDO_TRANSFORM_TEX(input.uv, _BaseMap));
 
 #ifdef _DBUFFER
     ApplyDecalToBaseColor(input.positionCS, color);

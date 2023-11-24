@@ -175,7 +175,12 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
         // Mipmap mode debugging isn't supported with ray tracing as it relies on derivatives
         if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
         {
-            // TODO: need to update mip info
+            #ifdef FRAG_INPUTS_USE_TEXCOORD0
+                surfaceData.baseColor = GET_TEXTURE_STREAMING_DEBUG(posInput.positionSS, fragInputs.texCoord0);
+            #else
+                surfaceData.baseColor = GET_TEXTURE_STREAMING_DEBUG_NO_UV(posInput.positionSS);
+            #endif
+            surfaceData.metallic = 0;
         }
     #endif
 

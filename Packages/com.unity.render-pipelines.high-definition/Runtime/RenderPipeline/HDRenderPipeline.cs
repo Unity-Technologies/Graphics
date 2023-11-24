@@ -2138,6 +2138,9 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 HDDebugDisplaySettings.Instance.UpdateDisplayStats();
             }
+
+            // This is for texture streaming
+            m_DebugDisplaySettings.UpdateMaterials();
 #endif
             Terrain.GetActiveTerrains(m_ActiveTerrains);
 

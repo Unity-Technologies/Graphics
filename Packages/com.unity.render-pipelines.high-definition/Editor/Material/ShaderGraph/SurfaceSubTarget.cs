@@ -389,6 +389,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 overrideReferenceName = kPerPixelSorting,
             });
 
+            // This adds utility properties for mipmap streaming debugging, only to HLSL since there's no need to expose ShaderLab properties
+            // This is, by definition, HLSLDeclaration.UnityPerMaterial
+            collector.AddShaderProperty(MipmapStreamingShaderProperties.kDebugTex);
+
             // Add all shader properties required by the inspector
             HDSubShaderUtilities.AddBlendingStatesShaderProperties(
                 collector,

@@ -616,7 +616,14 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.viewWS = V;
 
     float3 normalTS = float3(0.0, 0.0, 0.0);
-    float alpha = AXF_SAMPLE_SMP_TEXTURE2D(_SVBRDF_AlphaMap, sampler_SVBRDF_AlphaMap, uvMapping).x;
+
+    float alpha = 1.0f;
+#ifdef DEBUG_DISPLAY
+    if (_DebugMipMapMode == DEBUGMIPMAPMODE_NONE)
+#endif
+    {
+        alpha = AXF_SAMPLE_SMP_TEXTURE2D(_SVBRDF_AlphaMap, sampler_SVBRDF_AlphaMap, uvMapping).x;
+    }
 
 #ifdef _ALPHATEST_ON
     float alphaCutoff = _AlphaCutoff;
@@ -778,8 +785,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // Mipmap mode debugging isn't supported with ray tracing as it relies on derivatives
     if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
     {
-        // Not debug streaming information with AxF (this should never be stream)
-        surfaceData.diffuseColor = float3(0.0, 0.0, 0.0);
+        surfaceData.diffuseColor = GET_TEXTURE_STREAMING_DEBUG(posInput.positionSS, input.texCoord0);
     }
 #endif
 

@@ -1,3 +1,5 @@
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/DebugMipmapStreamingMacros.hlsl"
+
 TEXTURE2D(_DistortionVectorMap);
 SAMPLER(sampler_DistortionVectorMap);
 
@@ -12,7 +14,6 @@ CBUFFER_START(UnityPerMaterial)
 float4  _UnlitColor;
 float4 _UnlitColorMap_ST;
 float4 _UnlitColorMap_TexelSize;
-float4 _UnlitColorMap_MipInfo;
 
 float3 _EmissiveColor;
 float4 _EmissiveColorMap_ST;
@@ -39,6 +40,9 @@ float3 _EmissionColor;
 // For raytracing indirect illumination effects, we need to be able to define if the emissive part of the material should contribute or not (mainly for area light sources in order to avoid double contribution)
 // By default, the emissive is contributing
 float _IncludeIndirectLighting;
+
+// Mipmap Streaming Debug
+UNITY_TEXTURE_STREAMING_DEBUG_VARS;
 
 CBUFFER_END
 

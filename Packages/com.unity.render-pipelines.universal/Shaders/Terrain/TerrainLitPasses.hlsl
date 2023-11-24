@@ -234,6 +234,43 @@ void SplatmapFinalColor(inout half4 color, half fogCoord)
     #endif
 }
 
+void SetupTerrainDebugTextureData(inout InputData inputData, float2 uv)
+{
+    #if defined(DEBUG_DISPLAY)
+        #if defined(TERRAIN_SPLAT_ADDPASS)
+            if (_DebugMipInfoMode != DEBUGMIPINFOMODE_NONE)
+            {
+                discard; // Layer 4 & beyond are done additively, doesn't make sense for the mipmap streaming debug views -> stop.
+            }
+        #endif
+
+        switch (_DebugMipMapTerrainTextureMode)
+        {
+            case DEBUGMIPMAPMODETERRAINTEXTURE_CONTROL:
+                SETUP_DEBUG_TEXTURE_DATA_FOR_TEX(inputData, TRANSFORM_TEX(uv, _Control), _Control);
+                break;
+            case DEBUGMIPMAPMODETERRAINTEXTURE_LAYER0:
+                SETUP_DEBUG_TEXTURE_DATA_FOR_TEX(inputData, TRANSFORM_TEX(uv, _Splat0), _Splat0);
+                break;
+            case DEBUGMIPMAPMODETERRAINTEXTURE_LAYER1:
+                SETUP_DEBUG_TEXTURE_DATA_FOR_TEX(inputData, TRANSFORM_TEX(uv, _Splat1), _Splat1);
+                break;
+            case DEBUGMIPMAPMODETERRAINTEXTURE_LAYER2:
+                SETUP_DEBUG_TEXTURE_DATA_FOR_TEX(inputData, TRANSFORM_TEX(uv, _Splat2), _Splat2);
+                break;
+            case DEBUGMIPMAPMODETERRAINTEXTURE_LAYER3:
+                SETUP_DEBUG_TEXTURE_DATA_FOR_TEX(inputData, TRANSFORM_TEX(uv, _Splat3), _Splat3);
+                break;
+            default:
+                break;
+        }
+
+        // no streamInfo will have been set (no MeshRenderer); set status to "6" to reflect in the debug status that this is a terrain
+        // also, set the per-material status to "4" to indicate warnings
+        inputData.streamInfo = float4(0.0f, 0.0f, float(6 | (4 << 4)), 0.0f);
+    #endif
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 //                  Vertex and Fragment functions                            //
 ///////////////////////////////////////////////////////////////////////////////
@@ -388,7 +425,7 @@ void SplatmapFragment(
 
     InputData inputData;
     InitializeInputData(IN, normalTS, inputData);
-    SETUP_DEBUG_TEXTURE_DATA(inputData, IN.uvMainAndLM.xy, _BaseMap);
+    SetupTerrainDebugTextureData(inputData, IN.uvMainAndLM.xy);
 
 #if defined(_DBUFFER)
     half3 specular = half3(0.0h, 0.0h, 0.0h);

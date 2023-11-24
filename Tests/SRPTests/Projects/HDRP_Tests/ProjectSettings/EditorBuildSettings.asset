@@ -504,6 +504,30 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/3x_DebugView/3009_MaterialOverrides.unity
     guid: a469a947680f48644967493aba255270
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/3x_DebugView/3010_MipMapMode_MipCount.unity
+    guid: 5bcfbca35b56f48478b5b1f1db789a7b
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/3x_DebugView/3011_MipMapMode_MipRatio.unity
+    guid: b9e35fedcf7c00f4891e7b2a6fc414fb
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/3x_DebugView/3012_MipMapMode_MipStreamingPerformance.unity
+    guid: c75d7d73a802a834ca6b668e4e004000
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/3x_DebugView/3013_MipMapMode_MipStreamingStatus_PerMaterial.unity
+    guid: bcef6a8c1b14ae849bdfd5b864638568
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/3x_DebugView/3014_MipMapMode_MipStreamingStatus_PerTexture.unity
+    guid: f768999a2b72a684db5d66eb13d567a2
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/3x_DebugView/3015_MipMapMode_MipStreamingPriority.unity
+    guid: 5d6c832b9cd7677469c54668cda4d2ae
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/3x_DebugView/3016_MipMapMode_MipStreamingActivity_PerMaterial.unity
+    guid: 4015b85baa802a54497e07047461834a
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/3x_DebugView/3017_MipMapMode_MipStreamingActivity_PerTexture.unity
+    guid: d139cb1b2bd79304f944e75ff24ecf19
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/4x_PostProcessing/4001_Exposure.unity
     guid: f32cdac65dd17f847b4cdaaa85bb990a
   - enabled: 1

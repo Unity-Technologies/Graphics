@@ -411,6 +411,30 @@ EditorBuildSettings:
     path: Assets/Scenes/280_HistoryFinalColorDepth_ExternalColor.unity
     guid: f0bc0b58fd157401e8ce7dfa0eca3084
   - enabled: 1
+    path: Assets/Scenes/290_DebugViews_MipMapMode_MipCount.unity
+    guid: df9ecbd3ee4e5004b9987029b4a54000
+  - enabled: 1
+    path: Assets/Scenes/291_DebugViews_MipMapMode_MipRatio.unity
+    guid: 072dea7c1ff3b4c438fcf0d15ef2792d
+  - enabled: 1
+    path: Assets/Scenes/292_DebugViews_MipMapMode_MipStreamingStatus_PerMaterial.unity
+    guid: 5533322bdbc381043993a9d3f5a7bb05
+  - enabled: 1
+    path: Assets/Scenes/293_DebugViews_MipMapMode_MipStreamingStatus_PerTexture.unity
+    guid: de8c47297e49eeb43bf4c01dcf675a77
+  - enabled: 1
+    path: Assets/Scenes/294_DebugViews_MipMapMode_MipStreamingPerformance.unity
+    guid: d7a4da34f29dc024ca7cdc62413c21e0
+  - enabled: 1
+    path: Assets/Scenes/295_DebugViews_MipMapMode_MipStreamingPriority.unity
+    guid: f959a64217d4e5f41896b8d1171b7b3b
+  - enabled: 1
+    path: Assets/Scenes/296_DebugViews_MipMapMode_MipStreamingActivity_PerMaterial.unity
+    guid: d1d22e35a1ae8d04ab8df1bb370e0b22
+  - enabled: 1
+    path: Assets/Scenes/297_DebugViews_MipMapMode_MipStreamingActivity_PerTexture.unity
+    guid: ee7e786ca1044e9488f4e81fd2cddfb4
+  - enabled: 1
     path: Assets/Scenes/300_RandomUAV.unity
     guid: 5e57a94eeee3964488362ad6cab7cfb2
   m_configObjects: {}

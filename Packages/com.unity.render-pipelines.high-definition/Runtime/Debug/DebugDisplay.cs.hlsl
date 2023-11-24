@@ -66,6 +66,10 @@ CBUFFER_START(ShaderVariablesDebugDisplay)
     float _DebugTransparencyOverdrawWeight;
     int _DebugMipMapModeTerrainTexture;
     int _ColorPickerMode;
+    float _DebugMipMapOpacity;
+    int _DebugMipMapStatusMode;
+    int _DebugMipMapShowStatusCode;
+    float _DebugMipMapRecentlyUpdatedCooldown;
     float4 _DebugViewportSize;
     float4 _DebugLightingAlbedo;
     float4 _DebugLightingSmoothness;
@@ -82,10 +86,10 @@ CBUFFER_START(ShaderVariablesDebugDisplay)
     float _MatcapViewScale;
     int _DebugSingleShadowIndex;
     int _DebugIsLitShaderModeDeferred;
+    float _DebugCurrentRealTime;
     int _DebugAOVOutput;
     float _ShaderVariablesDebugDisplayPad0;
     float _ShaderVariablesDebugDisplayPad1;
-    float _ShaderVariablesDebugDisplayPad2;
 CBUFFER_END
 
 

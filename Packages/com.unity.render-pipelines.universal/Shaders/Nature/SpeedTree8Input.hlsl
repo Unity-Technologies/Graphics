@@ -9,6 +9,7 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceInput.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/DebugMipmapStreamingMacros.hlsl"
 
 #if defined(ENABLE_WIND) && !defined(_WINDQUALITY_NONE)
     #define SPEEDTREE_Y_UP
@@ -30,7 +31,6 @@ int _TwoSided;
 TEXTURE2D(_MainTex);
 SAMPLER(sampler_MainTex);
 float4 _MainTex_TexelSize;
-float4 _MainTex_MipInfo;
 
 #ifdef EFFECT_EXTRA_TEX
     sampler2D _ExtraTex;
@@ -65,5 +65,7 @@ float3 _LightPosition;
 #define GEOM_TYPE_FACINGLEAF 3
 
 #define _Surface 0.0 // Speed Trees are always opaque
+
+UNITY_TEXTURE_STREAMING_DEBUG_VARS;
 
 #endif

@@ -133,19 +133,57 @@ namespace UnityEngine.Rendering.Universal
     }
 
     /// <summary>
-    /// Debug modes for texture mipmaps.
+    /// Debug mode for texture mipmap streaming.
     /// </summary>
+    // Keep in sync with DebugMipMapMode in HDRP's Runtime/Debug/MipMapDebug.cs
     [GenerateHLSL]
     public enum DebugMipInfoMode
     {
         /// <summary>No mipmap debug.</summary>
         None,
-        /// <summary>Display the mipmap level sampled.</summary>
-        Level,
-        /// <summary>Display the amount of mip levels available.</summary>
-        Count,
-        /// <summary>Display the mip ratio.</summary>
-        Ratio
+        /// <summary>Display savings and shortage due to streaming.</summary>
+        MipStreamingPerformance,
+        /// <summary>Display the streaming status of materials and textures.</summary>
+        MipStreamingStatus,
+        /// <summary>Highlight recently streamed data.</summary>
+        MipStreamingActivity,
+        /// <summary>Display streaming priorities as set up when importing.</summary>
+        MipStreamingPriority,
+        /// <summary>Display the amount of uploaded mip levels.</summary>
+        MipCount,
+        /// <summary>Visualize the pixel density for the highest-resolution uploaded mip level from the camera's point-of-view.</summary>
+        MipRatio,
+    }
+
+    /// <summary>
+    /// Aggregation mode for texture mipmap streaming debugging information.
+    /// </summary>
+    // Keep in sync with DebugMipMapStatusMode in HDRP's Runtime/Debug/MipMapDebug.cs
+    [GenerateHLSL]
+    public enum DebugMipMapStatusMode
+    {
+        /// <summary>Show debug information aggregated per material.</summary>
+        Material,
+        /// <summary>Show debug information for the selected texture slot.</summary>
+        Texture,
+    }
+
+    /// <summary>
+    /// Terrain layer for texture mipmap streaming debugging.
+    /// </summary>
+    [GenerateHLSL]
+    public enum DebugMipMapModeTerrainTexture
+    {
+        /// <summary>Control texture debug.</summary>
+        Control,
+        /// <summary>Layer 0 diffuse texture debug.</summary>
+        [InspectorName("Layer 0 - Diffuse")] Layer0,
+        /// <summary>Layer 1 diffuse texture debug.</summary>
+        [InspectorName("Layer 1 - Diffuse")] Layer1,
+        /// <summary>Layer 2 diffuse texture debug.</summary>
+        [InspectorName("Layer 2 - Diffuse")] Layer2,
+        /// <summary>Layer 3 diffuse texture debug.</summary>
+        [InspectorName("Layer 3 - Diffuse")] Layer3,
     }
 
     /// <summary>

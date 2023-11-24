@@ -119,7 +119,7 @@ AttributesMesh ApplyMeshModification(AttributesMesh input, float3 timeParameters
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLitSurfaceData.hlsl"
 
 void TerrainLitShade(float2 uv, inout TerrainLitSurfaceData surfaceData);
-void TerrainLitDebug(float2 uv, inout float3 baseColor);
+void TerrainLitDebug(float2 uv, uint2 screenSpaceCoords, out float3 baseColor);
 
 float3 ConvertToNormalTS(float3 normalData, float3 tangentWS, float3 bitangentWS)
 {
@@ -258,7 +258,7 @@ void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionIn
     // Mipmap mode debugging isn't supported with ray tracing as it relies on derivatives
     if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
     {
-        TerrainLitDebug(input.texCoord0.xy, surfaceData.baseColor);
+        TerrainLitDebug(input.texCoord0.xy, posInput.positionSS, surfaceData.baseColor);
         surfaceData.metallic = 0;
     }
 #endif

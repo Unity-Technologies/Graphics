@@ -380,6 +380,9 @@ namespace UnityEngine.Rendering.Universal
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
             if (DebugManager.instance.isAnyDebugUIActive)
                 UniversalRenderPipelineDebugDisplaySettings.Instance.UpdateDisplayStats();
+
+            // This is for texture streaming
+            UniversalRenderPipelineDebugDisplaySettings.Instance.UpdateMaterials();
 #endif
 
             SortCameras(cameras);

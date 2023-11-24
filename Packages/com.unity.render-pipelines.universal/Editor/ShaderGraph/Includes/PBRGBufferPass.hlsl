@@ -90,8 +90,11 @@ FragmentOutput frag(PackedVaryings packedInput)
 
     InputData inputData;
     InitializeInputData(unpacked, surfaceDescription, inputData);
-    // TODO: Mip debug modes would require this, open question how to do this on ShaderGraph.
-    //SETUP_DEBUG_TEXTURE_DATA(inputData, unpacked.uv, _MainTex);
+    #ifdef VARYINGS_NEED_TEXCOORD0
+        SETUP_DEBUG_TEXTURE_DATA(inputData, unpacked.texCoord0);
+    #else
+        SETUP_DEBUG_TEXTURE_DATA_NO_UV(inputData);
+    #endif
 
     #ifdef _SPECULAR_SETUP
         float3 specular = surfaceDescription.Specular;

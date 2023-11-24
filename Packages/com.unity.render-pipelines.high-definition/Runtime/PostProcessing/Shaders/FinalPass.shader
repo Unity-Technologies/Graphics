@@ -41,8 +41,10 @@ Shader "Hidden/HDRP/FinalPass"
 
         TEXTURE2D_X(_UITexture);
 
+#if !defined(UNITY_CORE_SAMPLERS_INCLUDED)
         SAMPLER(sampler_LinearClamp);
         SAMPLER(sampler_LinearRepeat);
+#endif
 
         #define FSR_INPUT_TEXTURE _InputTexture
         #define FSR_INPUT_SAMPLER s_linear_clamp_sampler

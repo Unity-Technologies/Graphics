@@ -459,6 +459,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             collector.AddShaderProperty(LightmappingShaderProperties.kLightmapsIndirectionArray);
             collector.AddShaderProperty(LightmappingShaderProperties.kShadowMasksArray);
 
+            collector.AddShaderProperty(MipmapStreamingShaderProperties.kDebugTex);
 
             // SubTarget blocks
             m_ActiveSubTarget.value.CollectShaderProperties(collector, generationMode);
@@ -1674,6 +1675,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         const string kLODCrossFade = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl";
         const string kFoveatedRenderingKeywords = "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl";
         const string kFoveatedRendering = "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl";
+        const string kMipmapDebugMacros = "Packages/com.unity.render-pipelines.core/ShaderLibrary/DebugMipmapStreamingMacros.hlsl";
 
         // Files that are included with #include_with_pragmas
         const string kDOTS = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DOTS.hlsl";
@@ -1690,6 +1692,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { kTextureStack, IncludeLocation.Pregraph },        // TODO: put this on a conditional
             { kFoveatedRenderingKeywords, IncludeLocation.Pregraph, true },
             { kFoveatedRendering, IncludeLocation.Pregraph },
+            { kMipmapDebugMacros, IncludeLocation.Pregraph}
         };
 
         public static readonly IncludeCollection DOTSPregraph = new IncludeCollection

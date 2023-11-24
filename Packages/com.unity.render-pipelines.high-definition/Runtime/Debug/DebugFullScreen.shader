@@ -189,6 +189,42 @@ Shader "Hidden/HDRP/DebugFullScreen"
             {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
+                // Note: If mipmap debug mode is enabled, we don't render other full screen debug modes
+                // and the value of _FullScreenDebugMode is forced to 0
+                if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
+                {
+                    // just passing through
+                    float4 color = SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord);
+
+                    // draw legend
+                    switch(_DebugMipMapMode)
+                    {
+                        case DEBUGMIPMAPMODE_MIP_COUNT:
+                            DrawMipCountLegend(input.texcoord / _RTHandleScale.xy, _ScreenSize, color.rgb);
+                            break;
+                        case DEBUGMIPMAPMODE_MIP_RATIO:
+                            DrawMipRatioLegend(input.texcoord / _RTHandleScale.xy, _ScreenSize, color.rgb);
+                            break;
+                        case DEBUGMIPMAPMODE_MIP_STREAMING_STATUS:
+                            if (_DebugMipMapStatusMode == DEBUGMIPMAPSTATUSMODE_TEXTURE)
+                                DrawMipStreamingStatusLegend(input.texcoord / _RTHandleScale.xy, _ScreenSize, _DebugMipMapShowStatusCode, color.rgb);
+                            else
+                                DrawMipStreamingStatusPerMaterialLegend(input.texcoord / _RTHandleScale.xy, _ScreenSize, color.rgb);
+                            break;
+                        case DEBUGMIPMAPMODE_MIP_STREAMING_PERFORMANCE:
+                            DrawTextureStreamingPerformanceLegend(input.texcoord / _RTHandleScale.xy, _ScreenSize, color.rgb);
+                            break;
+                        case DEBUGMIPMAPMODE_MIP_STREAMING_PRIORITY:
+                            DrawMipPriorityLegend(input.texcoord / _RTHandleScale.xy, _ScreenSize, color.rgb);
+                            break;
+                        case DEBUGMIPMAPMODE_MIP_STREAMING_ACTIVITY:
+                            DrawMipRecentlyUpdatedLegend(input.texcoord / _RTHandleScale.xy, _ScreenSize, _DebugMipMapStatusMode == DEBUGMIPMAPSTATUSMODE_MATERIAL, color.rgb);
+                            break;
+                    }
+
+                    return color;
+                }
+
                 // Note: If the single shadow debug mode is enabled, we don't render other full screen debug modes
                 // and the value of _FullScreenDebugMode is forced to 0
                 if (_DebugShadowMapMode == SHADOWMAPDEBUGMODE_SINGLE_SHADOW || _FullScreenDebugMode == FULLSCREENDEBUGMODE_NONE)
@@ -197,6 +233,7 @@ Shader "Hidden/HDRP/DebugFullScreen"
                     color *= _ApplyExposure > 0.0 ? GetCurrentExposureMultiplier() : 1.0;
                     return color;
                 }
+
                 // SSAO
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_SCREEN_SPACE_AMBIENT_OCCLUSION)
                 {

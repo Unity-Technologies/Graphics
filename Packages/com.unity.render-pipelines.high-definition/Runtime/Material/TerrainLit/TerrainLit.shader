@@ -79,6 +79,12 @@ Shader "HDRP/TerrainLit"
     // Define _DEFERRED_CAPABLE_MATERIAL for shader capable to run in deferred pass
     #define _DEFERRED_CAPABLE_MATERIAL
 
+    #ifdef DEBUG_DISPLAY
+        // Mipmap debug views can inspect all 8 layers: this ensures that, even if
+        // layers 4 / 5 / 6 / 7 aren't set up, we can display something reasonable.
+        #define _TERRAIN_8_LAYERS
+    #endif
+
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLit_Splatmap_Includes.hlsl"
 
     ENDHLSL

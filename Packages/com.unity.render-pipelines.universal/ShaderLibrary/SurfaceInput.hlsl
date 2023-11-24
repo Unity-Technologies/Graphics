@@ -5,11 +5,12 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceData.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/DebugMipmapStreamingMacros.hlsl"
 
 TEXTURE2D(_BaseMap);
 SAMPLER(sampler_BaseMap);
 float4 _BaseMap_TexelSize;
-float4 _BaseMap_MipInfo;
+UNITY_TEXTURE_STREAMING_DEBUG_VARS_FOR_TEX(_BaseMap);
 TEXTURE2D(_BumpMap);
 SAMPLER(sampler_BumpMap);
 TEXTURE2D(_EmissionMap);

@@ -40,21 +40,22 @@
         float _HeightTransition;
 #endif
 
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/DebugMipmapStreamingMacros.hlsl"
 #define UNITY_TERRAIN_CB_DEBUG_VARS \
-    float4 _Control0_MipInfo;       \
-    float4 _Splat0_TexelSize;       \
-    float4 _Splat0_MipInfo;         \
-    float4 _Splat1_TexelSize;       \
-    float4 _Splat1_MipInfo;         \
-    float4 _Splat2_TexelSize;       \
-    float4 _Splat2_MipInfo;         \
-    float4 _Splat3_TexelSize;       \
-    float4 _Splat3_MipInfo;         \
-    float4 _Splat4_TexelSize;       \
-    float4 _Splat4_MipInfo;         \
-    float4 _Splat5_TexelSize;       \
-    float4 _Splat5_MipInfo;         \
-    float4 _Splat6_TexelSize;       \
-    float4 _Splat6_MipInfo;         \
-    float4 _Splat7_TexelSize;       \
-    float4 _Splat7_MipInfo;
+    UNITY_TEXTURE_STREAMING_DEBUG_VARS_FOR_TEX(_Control0); \
+    float4 _Splat0_TexelSize;                                 \
+    UNITY_TEXTURE_STREAMING_DEBUG_VARS_FOR_TEX(_Splat0);   \
+    float4 _Splat1_TexelSize;                                 \
+    UNITY_TEXTURE_STREAMING_DEBUG_VARS_FOR_TEX(_Splat1);   \
+    float4 _Splat2_TexelSize;                                 \
+    UNITY_TEXTURE_STREAMING_DEBUG_VARS_FOR_TEX(_Splat2);   \
+    float4 _Splat3_TexelSize;                                 \
+    UNITY_TEXTURE_STREAMING_DEBUG_VARS_FOR_TEX(_Splat3);   \
+    float4 _Splat4_TexelSize;                                 \
+    UNITY_TEXTURE_STREAMING_DEBUG_VARS_FOR_TEX(_Splat4);   \
+    float4 _Splat5_TexelSize;                                 \
+    UNITY_TEXTURE_STREAMING_DEBUG_VARS_FOR_TEX(_Splat5);   \
+    float4 _Splat6_TexelSize;                                 \
+    UNITY_TEXTURE_STREAMING_DEBUG_VARS_FOR_TEX(_Splat6);   \
+    float4 _Splat7_TexelSize;                                 \
+    UNITY_TEXTURE_STREAMING_DEBUG_VARS_FOR_TEX(_Splat7);

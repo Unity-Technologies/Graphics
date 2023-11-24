@@ -5,6 +5,7 @@
 // ===========================================================================
 //
 
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/DebugMipmapStreamingMacros.hlsl"
 
 //////////////////////////////////////////////////////////////////////////////
 // SVBRDF
@@ -164,6 +165,9 @@ float _RayTracing;
 // In our case we don't use such a mechanism but need to keep the code quiet. We declare the value and always enable it.
 // TODO: Fix the code in legacy unity so we can customize the behavior for GI
 float3 _EmissionColor;
+
+// Mipmap Streaming Debug
+UNITY_TEXTURE_STREAMING_DEBUG_VARS;
 
 CBUFFER_END
 
