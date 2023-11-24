@@ -174,7 +174,8 @@ namespace UnityEngine.Rendering.Universal
             PlatformAutoDetect.Initialize();
 
 #if ENABLE_VR && ENABLE_XR_MODULE
-            Experimental.Rendering.XRSystem.Initialize(XRPassUniversal.Create, data.xrSystemData.shaders.xrOcclusionMeshPS, data.xrSystemData.shaders.xrMirrorViewPS);
+            if (GraphicsSettings.TryGetRenderPipelineSettings<UniversalRenderPipelineRuntimeXRResources>(out var xrResources))
+                Experimental.Rendering.XRSystem.Initialize(XRPassUniversal.Create, xrResources.xrOcclusionMeshPS, xrResources.xrMirrorViewPS);
 #endif
             m_BlitMaterial = CoreUtils.CreateEngineMaterial(data.shaders.coreBlitPS);
             m_BlitHDRMaterial = CoreUtils.CreateEngineMaterial(data.shaders.blitHDROverlay);
@@ -327,8 +328,8 @@ namespace UnityEngine.Rendering.Universal
 
 #if UNITY_EDITOR
             m_FinalDepthCopyPass = new CopyDepthPass(RenderPassEvent.AfterRendering + 9, data.shaders.copyDepthPS);
-            var debugShaders = GraphicsSettings.GetRenderPipelineSettings<UniversalRenderPipelineDebugShaders>();
-            m_ProbeVolumeDebugPass = new ProbeVolumeDebugPass(RenderPassEvent.BeforeRenderingTransparents, debugShaders?.probeVolumeSamplingDebugComputeShader);
+            if (GraphicsSettings.TryGetRenderPipelineSettings<UniversalRenderPipelineDebugShaders>(out var debugShaders))
+                m_ProbeVolumeDebugPass = new ProbeVolumeDebugPass(RenderPassEvent.BeforeRenderingTransparents, debugShaders?.probeVolumeSamplingDebugComputeShader);
 #endif
 
             // RenderTexture format depends on camera and pipeline (HDR, non HDR, etc)

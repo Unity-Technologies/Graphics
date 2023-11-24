@@ -315,6 +315,52 @@ namespace UnityEngine.Rendering.Universal
     }
 
     /// <summary>
+    /// Class containing shader resources needed in URP for XR.
+    /// </summary>
+    /// <seealso cref="Shader"/>
+    [Serializable]
+    [Obsolete("Moved to UniversalRenderPipelineRuntimeXRResources on GraphicsSettings. #from(2023.3)", false)]
+    public class XRSystemData : ScriptableObject
+    {
+        /// <summary>
+        /// Class containing shader resources used in URP for XR.
+        /// </summary>
+        [Serializable, ReloadGroup]
+        [Obsolete("Moved to UniversalRenderPipelineRuntimeXRResources on GraphicsSettings. #from(2023.3)", false)]
+        public sealed class ShaderResources
+        {
+            /// <summary>
+            /// XR Occlusion mesh shader.
+            /// </summary>
+            [Reload("Shaders/XR/XROcclusionMesh.shader")]
+            public Shader xrOcclusionMeshPS;
+
+            /// <summary>
+            /// XR Mirror View shader.
+            /// </summary>
+            [Reload("Shaders/XR/XRMirrorView.shader")]
+            public Shader xrMirrorViewPS;
+        }
+
+        /// <summary>
+        /// Shader resources used in URP for XR.
+        /// </summary>
+        [Obsolete("Moved to UniversalRenderPipelineRuntimeXRResources on GraphicsSettings. #from(2023.3)", false)]
+        public ShaderResources shaders;
+    }
+    
+    public partial class UniversalRendererData
+    {
+#if ENABLE_VR && ENABLE_XR_MODULE
+        /// <summary>
+        /// Shader resources needed in URP for XR.
+        /// </summary>
+        [Obsolete("Moved to UniversalRenderPipelineRuntimeXRResources on GraphicsSettings. #from(2023.3)", false)]
+        //[Reload("Runtime/Data/XRSystemData.asset")]
+        public XRSystemData xrSystemData;
+#endif
+    }
+
     /// Class containing shader and texture resources needed in URP.
     /// </summary>
     /// <seealso cref="Shader"/>

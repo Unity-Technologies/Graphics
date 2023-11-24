@@ -27,7 +27,7 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     [Serializable, ReloadGroup, ExcludeFromPreset]
     [URPHelpURL("urp-universal-renderer")]
-    public class UniversalRendererData : ScriptableRendererData, ISerializationCallbackReceiver
+    public partial class UniversalRendererData : ScriptableRendererData, ISerializationCallbackReceiver
     {
 #if UNITY_EDITOR
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1812")]
@@ -139,14 +139,6 @@ namespace UnityEngine.Rendering.Universal
         /// Resources needed for Post Processing.
         /// </summary>
         public PostProcessData postProcessData = null;
-
-#if ENABLE_VR && ENABLE_XR_MODULE
-        /// <summary>
-        /// Shader resources needed in URP for XR.
-        /// </summary>
-        [Reload("Runtime/Data/XRSystemData.asset")]
-        public XRSystemData xrSystemData = null;
-#endif
 
         /// <summary>
         /// Shader resources used in URP.
@@ -320,10 +312,6 @@ namespace UnityEngine.Rendering.Universal
 
             if (postProcessData != null)
                 ResourceReloader.TryReloadAllNullIn(postProcessData, UniversalRenderPipelineAsset.packagePath);
-
-#if ENABLE_VR && ENABLE_XR_MODULE
-            ResourceReloader.TryReloadAllNullIn(xrSystemData, UniversalRenderPipelineAsset.packagePath);
-#endif
 #endif
         }
 

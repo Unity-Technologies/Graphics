@@ -508,7 +508,8 @@ namespace UnityEditor.Rendering.Universal
             rsd.needsReflectionProbeBoxProjection = urpAsset.reflectionProbeBoxProjection;
 
             #if ENABLE_VR && ENABLE_XR_MODULE
-            rsd.needsProcedural                   = rsd.isUniversalRenderer && universalRendererData.xrSystemData != null;
+            var xrResourcesAreValid = GraphicsSettings.GetRenderPipelineSettings<UniversalRenderPipelineRuntimeXRResources>()?.valid ?? false;
+            rsd.needsProcedural                   = rsd.isUniversalRenderer && xrResourcesAreValid;
             #else
             rsd.needsProcedural                   = false;
             #endif
