@@ -132,6 +132,7 @@ void ComputeSurfaceScattering(inout PathPayload payload : SV_RayPayload, Surface
         #endif
 
         // multiply the absorption along the just traced segment into the throughput for the next segments
+        payload.segmentThroughput *= segmentAbsorption;
         payload.throughput *= segmentAbsorption;
         // and into the emission
         payload.value *= segmentAbsorption;
@@ -174,6 +175,7 @@ void ComputeSurfaceScattering(inout PathPayload payload : SV_RayPayload, Surface
             pdf = mtlResult.diffPdf + mtlResult.specPdf;
             value = (mtlResult.diffValue + mtlResult.specValue) / pdf;
             payload.throughput *= value;
+            payload.interactionThroughput *= value;
             payload.materialSamplePdf = pdf;
 
             // Compute absorption if we refract through a thin surface
@@ -198,6 +200,7 @@ void ComputeSurfaceScattering(inout PathPayload payload : SV_RayPayload, Surface
                 sampleRayOrigin = shadingPosition + GetPositionBias(mtlData.bsdfData.geomNormalWS, _RayTracingRayBias, isSampleBelow);
 
                 // Adjust the path parameters to prepare for the next segment
+                payload.interactionThroughput *= rrFactor * interfaceAbsorption;
                 payload.throughput *= rrFactor * interfaceAbsorption;
                 payload.maxRoughness = AdjustPathRoughness(mtlData, mtlResult, isSampleBelow, payload.maxRoughness);
                 payload.cone.spreadAngle = payload.cone.spreadAngle + roughnessToSpreadAngle(payload.maxRoughness);

@@ -133,6 +133,7 @@ void ComputeVolumeScattering(inout PathPayload payload : SV_RayPayload, float3 i
             if (Luminance(value) > 0.001)
             {
                 payload.throughput *= value;
+                payload.interactionThroughput *= value;
                 payload.materialSamplePdf = pdf;
                 PushMaterialSampleQuery(scatteringPosition, sampleRayDirection, payload);
             }

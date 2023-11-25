@@ -105,13 +105,14 @@ void ClosestHit(inout PathPayload payload : SV_RayPayload, AttributeData attribu
 
     // Apply volumetric attenuation (beware of passing the right distance to the shading point)
     ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), payload.rayTHit, payload.value, payload.lightSampleShadowColor, payload.alpha,
-                        payload.lightSampleShadowOpacityAndShadowTint.y, payload.throughput, payload.lightSampleValue, minDepthAllowsEmissive);
+                        payload.lightSampleShadowOpacityAndShadowTint.y, payload.throughput, payload.segmentThroughput, payload.lightSampleValue, minDepthAllowsEmissive);
 
     // Apply the volume/surface PDF
     payload.value /= volSurfPdf;
     payload.alpha /= volSurfPdf;
     payload.lightSampleShadowOpacityAndShadowTint.y /= volSurfPdf;
     payload.throughput /= volSurfPdf;
+    payload.segmentThroughput /= volSurfPdf;
     payload.lightSampleValue /= volSurfPdf;
 }
 

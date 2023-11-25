@@ -63,7 +63,9 @@ struct PathPayload
     //
     // Input/output
     //
-    float3  throughput;      // Current path throughput
+    float3  throughput;             // Current path throughput
+    float3  interactionThroughput;  // throughput incurred by the interaction traced by this ray
+    float3  segmentThroughput;      // throughput incurred by the segment traced by this ray
     float   maxRoughness;    // Current maximum roughness encountered along the path
     RayCone cone;            // Ray differential information (not used currently)
 
@@ -167,6 +169,8 @@ void SetPayloadForNextSegment(uint segmentID, inout PathPayload payload)
     payload.rayTHit = FLT_INF;
     payload.segmentID = segmentID + 1; // it's for the next one.
     payload.lightSampleValue = 0.0; // make sure we don't use the previous value
+    payload.interactionThroughput = 1.0;
+    payload.segmentThroughput = 1.0;
     ClearPathTracingFlags(payload);
     // Don't touch throughput, materialSamplePdf or any other value that is Input and Output.
 }

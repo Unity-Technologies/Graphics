@@ -17,7 +17,7 @@ float3 GetHeightFogColor(float3 direction, float t)
 }
 
 // Used in path tracing
-void ApplyFogAttenuation(float3 origin, float3 direction, float t, inout float3 value, inout float3 unlitShadowColor, inout float alpha, inout float alphaShadowTint, inout float3 throughput, inout float3 neeValue, bool useFogColor = true)
+void ApplyFogAttenuation(float3 origin, float3 direction, float t, inout float3 value, inout float3 unlitShadowColor, inout float alpha, inout float alphaShadowTint, inout float3 throughput, inout float3 segmentThroughput, inout float3 neeValue, bool useFogColor = true)
 {
     if (_FogEnabled)
     {
@@ -29,6 +29,7 @@ void ApplyFogAttenuation(float3 origin, float3 direction, float t, inout float3 
         alpha = saturate(1.0 - fogTransmittance) + fogTransmittance * alpha;
         alphaShadowTint = saturate(1.0 - fogTransmittance) + fogTransmittance * alphaShadowTint;
         throughput *= fogTransmittance;
+        segmentThroughput *= fogTransmittance;
         neeValue *= fogTransmittance;
     }
 }
