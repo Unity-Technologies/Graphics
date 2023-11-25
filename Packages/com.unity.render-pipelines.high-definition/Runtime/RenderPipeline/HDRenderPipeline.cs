@@ -1260,7 +1260,76 @@ namespace UnityEngine.Rendering.HighDefinition
                 CoreUtils.SetKeyword(cmd, "WRITE_MSAA_DEPTH", hdCamera.msaaEnabled);
 
                 CoreUtils.SetKeyword(cmd, "SCREEN_COORD_OVERRIDE", hdCamera.frameSettings.IsEnabled(FrameSettingsField.ScreenCoordOverride));
+
+                if (hdCamera.xr.enabled && hdCamera.xr.supportsFoveatedRendering)
+                {
+                    cmd.ConfigureFoveatedRendering(hdCamera.xr.foveatedRenderingInfo);
+                }
             }
+        }
+
+        // EnableFoveatedRasterization() is used to enable non-uniform foveated rasteriazation state
+        // and also the foveated non-uniform remapping shader functions FoveatedRemap*() via
+        // _FOVEATED_RENDERING_NON_UNIFORM_RASTER shader constant. The constant uses dynamic_branch
+        // to avoid shader variants and branching in shaders is done using:
+        //     if(_FOVEATED_RENDERING_NON_UNIFORM_RASTER) {...}
+        // instead of
+        //     #ifdef _FOVEATED_RENDERING_NON_UNIFORM_RASTER
+        // EnableFoveatedRasterization() function should not be used for compute-only passes to keep
+        // them async compatible, but EnableFoveatedRemapping() should be used instead which enables
+        // only the remapping shader functions. EnableFoveatedRemapping() can be used also with
+        // rasterization passes where foveated rasterization isn't desired (e.g. full-screen pass with
+        // foveated remapping in shaders).
+        static GlobalKeyword _FOVEATED_RENDERING_NON_UNIFORM_RASTER = GlobalKeyword.Create("_FOVEATED_RENDERING_NON_UNIFORM_RASTER");
+
+        /// <summary>
+        /// Enable foveated rasterization state and foveated coordinate remapping by FoveatedRemap*() shader functions.
+        /// </summary>
+        /// <param name="cmd">Command Buffer used to execute the graphic commands.</param>
+        /// <param name="useFoveatedRendering">Set to true if foveated rendering is enabled.</param>
+        public static void EnableFoveatedRasterization(CommandBuffer cmd, bool useFoveatedRendering)
+        {
+            if(useFoveatedRendering)
+            {
+                cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Enabled);
+                cmd.EnableKeyword(_FOVEATED_RENDERING_NON_UNIFORM_RASTER);
+            }
+        }
+
+        /// <summary>
+        /// Disable foveated rasterization state and foveated coordinate remapping by FoveatedRemap*() shader functions.
+        /// </summary>
+        /// <param name="cmd">Command Buffer used to execute the graphic commands.</param>
+        /// <param name="useFoveatedRendering">Set to true if foveated rendering is enabled.</param>
+        public static void DisableFoveatedRasterization(CommandBuffer cmd, bool useFoveatedRendering)
+        {
+            if(useFoveatedRendering)
+            {
+                cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Disabled);
+                cmd.DisableKeyword(_FOVEATED_RENDERING_NON_UNIFORM_RASTER);
+            }
+        }
+
+        /// <summary>
+        /// Enable foveated coordinate remapping by FoveatedRemap*() shader functions.
+        /// </summary>
+        /// <param name="cmd">Command Buffer used to execute the graphic commands.</param>
+        /// <param name="useFoveatedRendering">Set to true if foveated rendering is enabled.</param>
+        public static void EnableFoveatedRemapping(CommandBuffer cmd, bool useFoveatedRendering)
+        {
+            if(useFoveatedRendering)
+                cmd.EnableKeyword(_FOVEATED_RENDERING_NON_UNIFORM_RASTER);
+        }
+
+        /// <summary>
+        /// Disable foveated coordinate remapping by FoveatedRemap*() shader functions.
+        /// </summary>
+        /// <param name="cmd">Command Buffer used to execute the graphic commands.</param>
+        /// <param name="useFoveatedRendering">Set to true if foveated rendering is enabled.</param>
+        public static void DisableFoveatedRemapping(CommandBuffer cmd, bool useFoveatedRendering)
+        {
+            if(useFoveatedRendering)
+                cmd.DisableKeyword(_FOVEATED_RENDERING_NON_UNIFORM_RASTER);
         }
 
         void SetupPartnerUpscalers(
