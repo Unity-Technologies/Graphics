@@ -35,6 +35,16 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public RenderingMode renderingMode { get; internal set; }
 
+        /// <summary>
+        /// The layer mask set on the renderer to filter opaque objects.
+        /// </summary>
+        public LayerMask opaqueLayerMask { get; internal set; }
+
+        /// <summary>
+        /// The layer mask set on the renderer to filter transparent objects.
+        /// </summary>
+        public LayerMask transparentLayerMask { get; internal set; }
+
         /// <inheritdoc/>
         public override void Reset()
         {
@@ -43,6 +53,8 @@ namespace UnityEngine.Rendering.Universal
             supportsDynamicBatching = default;
             perObjectData = default;
             renderingMode = default;
+            opaqueLayerMask = -1;
+            transparentLayerMask = -1;
         }
     }
 }

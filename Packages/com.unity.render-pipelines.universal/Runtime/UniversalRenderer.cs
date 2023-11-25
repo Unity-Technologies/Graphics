@@ -163,6 +163,8 @@ namespace UnityEngine.Rendering.Universal
         internal PostProcessPass finalPostProcessPass { get => m_PostProcessPasses.finalPostProcessPass; }
         internal RTHandle colorGradingLut { get => m_PostProcessPasses.colorGradingLut; }
         internal DeferredLights deferredLights { get => m_DeferredLights; }
+        internal LayerMask opaqueLayerMask { get; set; }
+        internal LayerMask transparentLayerMask { get; set; }
 
         /// <summary>
         /// Constructor for the Universal Renderer.
@@ -192,6 +194,8 @@ namespace UnityEngine.Rendering.Universal
             m_DefaultStencilState.SetZFailOperation(stencilData.zFailOperation);
 
             m_IntermediateTextureMode = data.intermediateTextureMode;
+            opaqueLayerMask = data.opaqueLayerMask;
+            transparentLayerMask = data.transparentLayerMask;
 
             if (UniversalRenderPipeline.asset?.supportsLightCookies ?? false)
             {

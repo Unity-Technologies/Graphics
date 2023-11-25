@@ -1476,15 +1476,20 @@ namespace UnityEngine.Rendering.Universal
 
         static UniversalRenderingData CreateRenderingData(ContextContainer frameData, UniversalRenderPipelineAsset settings, CommandBuffer cmd, bool isForwardPlus, ScriptableRenderer renderer)
         {
-            var universalLightData = frameData.Get<UniversalLightData>();
+            UniversalLightData universalLightData = frameData.Get<UniversalLightData>();
 
-            var data = frameData.Get<UniversalRenderingData>();
+            UniversalRenderingData data = frameData.Get<UniversalRenderingData>();
             data.supportsDynamicBatching = settings.supportsDynamicBatching;
             data.perObjectData = GetPerObjectLightFlags(universalLightData.additionalLightsCount, isForwardPlus);
             data.commandBuffer = cmd;
 
             UniversalRenderer universalRenderer = renderer as UniversalRenderer;
-            data.renderingMode = universalRenderer?.renderingModeActual ?? RenderingMode.Forward;
+            if (universalRenderer != null)
+            {
+                data.renderingMode = universalRenderer.renderingModeActual;
+                data.opaqueLayerMask = universalRenderer.opaqueLayerMask;
+                data.transparentLayerMask = universalRenderer.transparentLayerMask;
+            }
 
             return data;
         }
