@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -87,37 +88,113 @@ namespace UnityEditor.VFX
             }
         }
 
-        public static IEnumerable<VFXPropertyWithValue> GetProperties(ShaderGraphVfxAsset shaderGraph)
+        public struct Property
+        {
+            public VFXPropertyWithValue property;
+            public bool multiCompile;
+            public string[] keywordsMapping;
+        }
+
+        public static bool HasAnyKeywordProperty(ShaderGraphVfxAsset shaderGraph)
         {
             foreach (var property in shaderGraph.properties)
             {
-                if (property.hidden)
-                    continue;
+                if (property is ShaderGraph.ShaderKeyword)
+                    return true;
+            }
+            return false;
+        }
 
-                var type = GetPropertyType(property);
-                if (type == null)
-                    continue;
-
-                if (property.propertyType == PropertyType.Float)
+        public static IEnumerable<Property> GetProperties(ShaderGraphVfxAsset shaderGraph)
+        {
+            foreach (var property in shaderGraph.properties)
+            {
+                if (property is AbstractShaderProperty shaderProperty)
                 {
-                    if (property is Vector1ShaderProperty prop)
+                    if (shaderProperty.hidden)
+                        continue;
+
+                    var type = GetPropertyType(shaderProperty);
+                    if (type == null)
+                        continue;
+
+                    var current = new Property()
                     {
-                        if (prop.floatType == FloatType.Slider)
-                            yield return new VFXPropertyWithValue(
-                                new VFXProperty(type, property.referenceName,
-                                    new RangeAttribute(prop.rangeValues.x, prop.rangeValues.y)),
-                                GetPropertyValue(property));
-                        else if (prop.floatType == FloatType.Integer)
-                            yield return new VFXPropertyWithValue(new VFXProperty(typeof(int), property.referenceName),
-                                VFXConverter.ConvertTo(GetPropertyValue(property), typeof(int)));
+                        keywordsMapping = null
+                    };
+
+                    if (shaderProperty.propertyType == PropertyType.Float)
+                    {
+                        if (property is Vector1ShaderProperty prop)
+                        {
+                            if (prop.floatType == FloatType.Slider)
+                                current.property = new VFXPropertyWithValue(
+                                    new VFXProperty(type, property.referenceName,
+                                        new RangeAttribute(prop.rangeValues.x, prop.rangeValues.y)),
+                                    GetPropertyValue(shaderProperty));
+                            else if (prop.floatType == FloatType.Integer)
+                                current.property = new VFXPropertyWithValue(
+                                    new VFXProperty(typeof(int), property.referenceName),
+                                    VFXConverter.ConvertTo(GetPropertyValue(shaderProperty), typeof(int)));
+                            else
+                                current.property = new VFXPropertyWithValue(new VFXProperty(type, property.referenceName),
+                                    GetPropertyValue(shaderProperty));
+                        }
                         else
-                            yield return new VFXPropertyWithValue(new VFXProperty(type, property.referenceName),
-                                GetPropertyValue(property));
+                        {
+                            //it could be a diffusion profile in HDRP.
+                            continue;
+                        }
+                    }
+                    else
+                        current.property = new VFXPropertyWithValue(new VFXProperty(type, property.referenceName),
+                            GetPropertyValue(shaderProperty));
+
+                    yield return current;
+
+                }
+                else if (property is ShaderGraph.ShaderKeyword shaderKeyword)
+                {
+                    if (!shaderKeyword.isExposed)
+                        continue;
+
+                    if (shaderKeyword.keywordType == KeywordType.Boolean)
+                    {
+                        yield return new Property()
+                        {
+                            property = new VFXPropertyWithValue(
+                                new VFXProperty(typeof(bool), shaderKeyword.referenceName), shaderKeyword.value != 0),
+                            multiCompile = shaderKeyword.keywordDefinition == KeywordDefinition.MultiCompile,
+                            keywordsMapping = new[] { shaderKeyword.referenceName }
+                        };
+                    }
+                    else if (shaderKeyword.keywordType == KeywordType.Enum)
+                    {
+                        var keywordsMapping = new string[shaderKeyword.entries.Count];
+                        var enumNames = new string[shaderKeyword.entries.Count];
+                        for (int index = 0; index < shaderKeyword.entries.Count; ++index)
+                        {
+                            keywordsMapping[index] = shaderKeyword.referenceName + "_" + shaderKeyword.entries[index].referenceName;
+                            enumNames[index] = shaderKeyword.entries[index].displayName;
+                        }
+
+                        yield return new Property
+                        {
+                            property = new VFXPropertyWithValue(
+                                new VFXProperty(typeof(uint), shaderKeyword.referenceName, new VFXPropertyAttributes(new EnumAttribute(enumNames))), (uint)shaderKeyword.value),
+                            multiCompile = shaderKeyword.keywordDefinition == KeywordDefinition.MultiCompile,
+                            keywordsMapping = keywordsMapping
+                        };
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException("Unsupported keyword type: " + shaderKeyword.keywordType);
                     }
                 }
                 else
-                    yield return new VFXPropertyWithValue(new VFXProperty(type, property.referenceName),
-                        GetPropertyValue(property));
+                {
+                    throw new InvalidOperationException("Unsupported property type: " + property);
+                }
             }
         }
 
@@ -172,24 +249,18 @@ namespace UnityEditor.VFX
             return null;
         }
 
-        public static void GetShaderGraphParameter(VFXContext context, out List<string> fragmentParameters, out List<string> vertexParameter)
+        public static void GetShaderGraphParameter(ShaderGraphVfxAsset shaderGraph, out List<string> fragmentParameters, out List<string> vertexParameter)
         {
-            fragmentParameters = null;
-            vertexParameter = null;
-            var shaderGraph = GetShaderGraph(context);
-            if (shaderGraph != null)
-            {
-                fragmentParameters = new List<string>();
-                vertexParameter = new List<string>();
+            fragmentParameters = new List<string>();
+            vertexParameter = new List<string>();
 
-                foreach (var param in shaderGraph.fragmentProperties)
-                    if (!IsTexture(param.propertyType)) // Remove exposed textures from list of interpolants
-                        fragmentParameters.Add(param.referenceName);
+            foreach (var param in shaderGraph.fragmentProperties)
+                if (!IsTexture(param.propertyType)) // Remove exposed textures from list of interpolants
+                    fragmentParameters.Add(param.referenceName);
 
-                foreach (var param in shaderGraph.vertexProperties)
-                    if (!IsTexture(param.propertyType)) // Remove exposed textures from list of interpolants
-                        vertexParameter.Add(param.referenceName);
-            }
+            foreach (var param in shaderGraph.vertexProperties)
+                if (!IsTexture(param.propertyType)) // Remove exposed textures from list of interpolants
+                    vertexParameter.Add(param.referenceName);
         }
     }
 }

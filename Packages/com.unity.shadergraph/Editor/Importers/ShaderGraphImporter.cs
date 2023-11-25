@@ -866,7 +866,7 @@ Shader ""Hidden/GraphErrorShader2""
             sharedCodeIndices.Add(codeSnippets.Count);
             codeSnippets.Add($"{outputStructName} {evaluationFunctionName}({nl}{indent}{inputStructName} IN");
 
-            var inputProperties = new List<AbstractShaderProperty>();
+            var inputProperties = new List<ShaderInput>();
             var portPropertyIndices = new List<int>[ports.Count];
             var propertiesStages = new List<ShaderStageCapability>();
             for (var portIndex = 0; portIndex < ports.Count; portIndex++)
@@ -878,7 +878,6 @@ Shader ""Hidden/GraphErrorShader2""
             // Union with the flat properties collection because previous shader graph version could store properties without category
             var sortedProperties = graph.categories
                 .SelectMany(x => x.Children)
-                .OfType<AbstractShaderProperty>()
                 .Union(graph.properties)
                 .Where(x => x.isExposed);
 
@@ -901,7 +900,9 @@ Shader ""Hidden/GraphErrorShader2""
 
                 propertiesStages.Add(stageCapability);
                 inputProperties.Add(property);
-                codeSnippets.Add($",{nl}{indent}/* Property: {property.displayName} */ {property.GetPropertyAsArgumentStringForVFX(property.concretePrecision.ToShaderString())}");
+
+                if (property is AbstractShaderProperty shaderProperty)
+                    codeSnippets.Add($",{nl}{indent}/* Property: {property.displayName} */ {shaderProperty.GetPropertyAsArgumentStringForVFX(shaderProperty.concretePrecision.ToShaderString())}");
             }
 
             sharedCodeIndices.Add(codeSnippets.Count);

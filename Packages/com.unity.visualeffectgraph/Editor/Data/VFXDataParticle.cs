@@ -1736,10 +1736,17 @@ namespace UnityEditor.VFX
                 var contextUniformMapper = new VFXUniformMapper(gpuMapper, context.doesGenerateShader, true);
 
                 // SG inputs if needed
-                VFXShaderGraphHelpers.GetShaderGraphParameter(context, out var fragInputNames, out var vertInputNames);
+                var shaderGraph = VFXShaderGraphHelpers.GetShaderGraph(context);
+                VFXSGInputs contextSGInputs = null;
+                if (shaderGraph)
+                {
+                    var firstTaskOfContext = compiledData.contextToCompiledData[context].tasks.First();
+                    var cpuMapper = compiledData.taskToCompiledData[firstTaskOfContext].cpuMapper;
 
-                var contextSGInputs = (fragInputNames?.Count > 0) || (vertInputNames?.Count > 0)
-                                      ? new VFXSGInputs(gpuMapper, contextUniformMapper, vertInputNames, fragInputNames) : null;
+                    contextSGInputs = new VFXSGInputs(cpuMapper, gpuMapper, contextUniformMapper, shaderGraph);
+                    if (contextSGInputs.IsEmpty())
+                        contextSGInputs = null;
+                }
 
                 // Add gpu and uniform mapper
                 foreach (var task in compiledData.contextToCompiledData[context].tasks)

@@ -129,5 +129,61 @@ namespace UnityEditor.VFX.Test
             Assert.IsNotNull(shader);
             Assert.IsNotNull(computeShader);
         }
+
+        static IEnumerable<string> allCompilationMode
+        {
+            get
+            {
+                foreach (var mode in Enum.GetValues(typeof(VFXCompilationMode)))
+                    yield return mode.ToString();
+            }
+        }
+
+        [Test]
+        public void Constant_Folding_With_ShaderKeyword([ValueSource("allCompilationMode")] string compilationModeName)
+        {
+            VFXCompilationMode compilationMode;
+            Enum.TryParse(compilationModeName, out compilationMode);
+
+            string vfxPath = "Packages/com.unity.testing.visualeffectgraph/Scenes/025_ShaderKeywords_Constant_MultiCompile.vfx";
+            Assert.IsTrue(AssetDatabase.AssetPathExists(vfxPath));
+
+            var vfx = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(vfxPath).GetResource();
+            vfx.GetOrCreateGraph().SetCompilationMode(compilationMode);
+
+            Assert.AreEqual(5, vfx.GetShaderSourceCount());
+
+            int shaderCount = 0;
+            for (int index = 0; index < 5; index++)
+            {
+                var source = vfx.GetShaderSource(index);
+                if (source.Contains("#pragma kernel CSMain"))
+                    continue;
+
+                var pragmaList = VFXTestShaderSrcUtils.GetPragmaListFromSource(source);
+
+                var allVariants = pragmaList
+                    .Where(o => o.type != null && (o.type.StartsWith("multi_compile") || o.type.StartsWith("shader_feature")))
+                    .SelectMany(o => o.values)
+                    .ToList();
+                Assert.AreNotEqual(0, allVariants.Count);
+
+                var matchingVariant = allVariants.Where(o => o.Contains("_SMOOTH") || o.Contains("_COLOR")).ToList();
+
+                if (compilationMode == VFXCompilationMode.Runtime)
+                {
+                    Assert.AreEqual(0, matchingVariant.Count);
+                }
+                else
+                {
+                    //In edition, we are keeping locally matching variant (two colors with 8 choices + smooth)
+                    Assert.AreEqual(8 + 8 + 1, matchingVariant.Count);
+                }
+
+                shaderCount++;
+            }
+            Assert.AreEqual(4, shaderCount);
+            vfx.GetOrCreateGraph().SetCompilationMode(VFXCompilationMode.Runtime);
+        }
     }
 }

@@ -390,15 +390,16 @@ namespace UnityEditor.VFX
             return keywords;
         }
 
-        static DefineCollection ApplyDefineModifier(DefineCollection defines, VFXSRPBinder.ShaderGraphBinder shaderGraphSRPInfo)
+        static DefineCollection ApplyDefineModifier(DefineCollection inputDefines, VFXSRPBinder.ShaderGraphBinder shaderGraphSRPInfo, VFXTaskCompiledData data)
         {
-            if (defines != null)
-            {
-                var defineReplacement = k_CommonDefineReplacement;
-                //So far, no SRP custom define replacement
+            var defineReplacement = k_CommonDefineReplacement;
+            //So far, no SRP custom define replacement
 
-                var overridenDefines = new DefineCollection();
-                foreach (var define in defines)
+            var overridenDefines = new DefineCollection();
+            bool empty = true;
+            if (inputDefines != null)
+            {
+                foreach (var define in inputDefines)
                 {
                     var currentDefine = define;
 
@@ -410,10 +411,25 @@ namespace UnityEditor.VFX
                         currentDefine = new DefineCollection.Item(replacement.newDesc, currentDefine.index, currentDefine.fieldConditions);
 
                     overridenDefines.Add(currentDefine.descriptor, currentDefine.index, currentDefine.fieldConditions);
+                    empty = false;
                 }
-                return overridenDefines;
             }
-            return defines;
+
+            if (data.SGInputs != null)
+            {
+                foreach (var keyword in data.SGInputs.keywordsToDefine)
+                {
+                    if (!string.IsNullOrEmpty(keyword.Value))
+                    {
+                        //Even if the keyword behind the scene is an enum, we are short cutting the definition to boolean
+                        //It will generate `#define _MY_ACTIVE_ENUM_OPTION 1`
+                        overridenDefines.Add(new KeywordDescriptor() {referenceName = keyword.Value}, 1);
+                        empty = false;
+                    }
+                }
+            }
+
+            return !empty ? overridenDefines : null;
         }
 
         internal static SubShaderDescriptor PostProcessSubShader(SubShaderDescriptor subShaderDescriptor, VFXContext context, VFXTaskCompiledData data)
@@ -477,7 +493,7 @@ namespace UnityEditor.VFX
 
                 passDescriptor.pragmas = ApplyPragmaModifier(passDescriptor.pragmas, shaderGraphSRPInfo, addPragmaRequireCubeArray);
                 passDescriptor.keywords = ApplyKeywordModifier(passDescriptor.keywords, shaderGraphSRPInfo);
-                passDescriptor.defines = ApplyDefineModifier(passDescriptor.defines, shaderGraphSRPInfo);
+                passDescriptor.defines = ApplyDefineModifier(passDescriptor.defines, shaderGraphSRPInfo, data);
 
                 // Warning: We are replacing the struct provided in the regular pass. It is ok as for now the VFX editor don't support
                 // tessellation or raytracing

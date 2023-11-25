@@ -63,38 +63,30 @@ namespace UnityEditor.VFX
         public virtual string GetShaderName(ShaderGraphVfxAsset shaderGraph) => string.Empty;
 
         // List of shader properties that currently are not supported for exposure in VFX shaders (for all pipeline).
-        private static readonly Dictionary<Type, string> s_BaseUnsupportedShaderPropertyTypes = new Dictionary<Type, string>()
+        private static readonly List<(Type type, string name)> s_BaseUnsupportedShaderPropertyTypes = new()
         {
-            { typeof(VirtualTextureShaderProperty),   "Virtual Texture"   },
-            { typeof(GradientShaderProperty),         "Gradient"          }
+            (typeof(VirtualTextureShaderProperty), "Virtual Texture")
         };
 
-        public virtual IEnumerable<KeyValuePair<Type, string>> GetUnsupportedShaderPropertyType()
+        public virtual IEnumerable<(Type type, string name)> GetUnsupportedShaderPropertyType()
         {
             return s_BaseUnsupportedShaderPropertyTypes;
         }
 
-        public bool IsGraphDataValid(GraphData graph)
+        public bool CheckGraphDataValid(GraphData graph)
         {
-            var valid = true;
+            bool valid = true;
             var warnings = new List<string>();
 
-            var unsupportedShaderPropertyTypes = GetUnsupportedShaderPropertyType().ToDictionary(a => a.Key, b => b.Value);
-            // Filter property list for any unsupported shader properties.
-            foreach (var property in graph.properties)
+            // Filter property list for any unsupported exposed shader properties.
+            foreach (var property in graph.properties.Where(o => o.isExposed))
             {
-                if (unsupportedShaderPropertyTypes.ContainsKey(property.GetType()))
+                var unsupported = GetUnsupportedShaderPropertyType().FirstOrDefault(o => o.type == property.GetType());
+                if (unsupported.type != null)
                 {
-                    warnings.Add(unsupportedShaderPropertyTypes[property.GetType()]);
                     valid = false;
+                    warnings.Add(unsupported.name);
                 }
-            }
-
-            // VFX currently does not support the concept of per-particle keywords.
-            if (graph.keywords.Any())
-            {
-                warnings.Add("Keyword");
-                valid = false;
             }
 
             if (!valid)

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using UnityEngine;
 
@@ -94,6 +95,69 @@ namespace UnityEditor.VFX.Test
             }
 
             return structFields.ToArray();
+        }
+
+        public struct Pragma
+        {
+            public string type;
+            public string[] values;
+        }
+
+        class PragmaComparer : IEqualityComparer<Pragma>
+        {
+            public bool Equals(Pragma x, Pragma y)
+            {
+                if (x.type != y.type)
+                    return false;
+
+                if (x.values.Length != y.values.Length)
+                    return false;
+
+                for (int i = 0; i < x.values.Length; ++i)
+                    if (x.values[i] != y.values[i])
+                        return false;
+
+                return true;
+
+            }
+
+            public int GetHashCode(Pragma obj)
+            {
+                var hash = obj.type.GetHashCode();
+                foreach (var value in obj.values)
+                {
+                    hash = HashCode.Combine(hash, value);
+                }
+                return hash;
+            }
+        }
+
+        public static Pragma[] GetPragmaListFromSource(string source)
+        {
+            var pragmas = new List<Pragma>();
+
+            var stringReader = new StringReader(source);
+            while (true)
+            {
+                var currentLine = stringReader.ReadLine();
+                if (currentLine == null)
+                    break;
+
+                var pragmaIndex = currentLine.IndexOf("#pragma", StringComparison.InvariantCultureIgnoreCase);
+                if (pragmaIndex == -1)
+                    continue;
+
+                var pragmaContent = currentLine.Substring(pragmaIndex);
+                var content = pragmaContent.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+                pragmas.Add(new Pragma
+                {
+                    type = content.Skip(1).FirstOrDefault(),
+                    values = content.Skip(2).ToArray()
+                });
+            }
+
+            return pragmas.Distinct(new PragmaComparer()).ToArray();
         }
     }
 }

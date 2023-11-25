@@ -245,7 +245,8 @@ namespace UnityEditor.VFX
                 var sg = GetOrRefreshShaderGraphObject();
                 if (sg != null)
                 {
-                    var shaderGraphProperties = VFXShaderGraphHelpers.GetProperties(sg);
+                    //This path is only used with old shader graph integration. It doesn't support keyword.
+                    var shaderGraphProperties = VFXShaderGraphHelpers.GetProperties(sg).Where(o => o.keywordsMapping == null).Select(o => o.property);
                     properties = properties.Concat(shaderGraphProperties);
                 }
                 return properties;

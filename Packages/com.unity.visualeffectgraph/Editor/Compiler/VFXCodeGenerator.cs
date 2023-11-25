@@ -848,7 +848,7 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             graph.ValidateGraph();
 
             // Check the validity of the shader graph (unsupported keywords or shader property usage).
-            if (VFXLibrary.currentSRPBinder == null || !VFXLibrary.currentSRPBinder.IsGraphDataValid(graph))
+            if (VFXLibrary.currentSRPBinder == null || !VFXLibrary.currentSRPBinder.CheckGraphDataValid(graph))
                 return stringBuilder;
 
             var target = graph.activeTargets.Where(o =>
@@ -866,6 +866,18 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
 
             if (target == null || !target.TryConfigureContextData(context, taskData))
                 return stringBuilder; //If TryConfigureContextData failed, it would be nice to fallback to the error feedback (done with https://github.cds.internal.unity3d.com/unity/unity/pull/8564)
+
+            //Remove multi_compile which are going to be constant folded
+            if (taskData.SGInputs != null)
+            {
+                foreach (var keyword in graph.keywords)
+                {
+                    if (taskData.SGInputs.IsPredefinedKeyword(keyword.referenceName))
+                    {
+                        keyword.keywordDefinition = KeywordDefinition.Predefined;
+                    }
+                }
+            }
 
             // Use ShaderGraph to generate the VFX shader.
             var text = ShaderGraphImporter.GetShaderText(path, out var configuredTextures, assetCollection, graph, GenerationMode.VFX, new[] { target });

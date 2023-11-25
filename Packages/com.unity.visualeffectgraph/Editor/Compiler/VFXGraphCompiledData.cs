@@ -1316,7 +1316,7 @@ namespace UnityEditor.VFX
                         return e.initSystems.Length > 0 || e.startSystems.Length > 0 || e.stopSystems.Length > 0;
                     }).ToArray();
 
-                VFXInstancingDisabledReason instancingDisabledReason = ValidateInstancing(compilableContexts, expressionSheet);
+                VFXInstancingDisabledReason instancingDisabledReason = ValidateInstancing(compilableContexts);
 
                 resource.SetRuntimeData(expressionSheet, systemDescs.ToArray(), vfxEventDesc, bufferDescs.ToArray(), cpuBufferDescs.ToArray(), temporaryBufferDescs.ToArray(), shaderSources, shadowCastingMode, motionVectorGenerationMode, instancingDisabledReason, compiledVersion);
                 m_ExpressionValues = expressionSheet.values;
@@ -1392,7 +1392,7 @@ namespace UnityEditor.VFX
             m_Graph.visualEffectResource.SetValueSheet(m_ExpressionValues);
         }
 
-        public VFXInstancingDisabledReason ValidateInstancing(IEnumerable<VFXContext> compilableContexts, VFXExpressionSheet expressionSheet)
+        public VFXInstancingDisabledReason ValidateInstancing(IEnumerable<VFXContext> compilableContexts)
         {
             VFXInstancingDisabledReason reason = VFXInstancingDisabledReason.None;
 
@@ -1411,6 +1411,15 @@ namespace UnityEditor.VFX
                 if (model is VFXStaticMeshOutput)
                 {
                     reason |= VFXInstancingDisabledReason.MeshOutput;
+                }
+
+                if (model is VFXComposedParticleOutput shaderGraphOutput)
+                {
+                    var shaderGraph = shaderGraphOutput.GetShaderGraph();
+                    if (VFXShaderGraphHelpers.HasAnyKeywordProperty(shaderGraph))
+                    {
+                        reason |= VFXInstancingDisabledReason.ShaderKeyword;
+                    }
                 }
             }
 

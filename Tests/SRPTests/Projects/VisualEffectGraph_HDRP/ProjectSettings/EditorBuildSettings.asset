@@ -305,5 +305,8 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/41_AfterPostProcess.unity
     guid: 45ab75100e0c9524b96d75550ccb469f
+  - enabled: 1
+    path: Packages/com.unity.testing.visualeffectgraph/Scenes/025_ShaderKeywords.unity
+    guid: e11040b9d33c05d42aa28be2278f0146
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0
