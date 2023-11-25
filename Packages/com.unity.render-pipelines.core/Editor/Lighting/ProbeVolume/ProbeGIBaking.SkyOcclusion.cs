@@ -65,7 +65,7 @@ namespace UnityEngine.Rendering
                 ProbeGIBaking.m_SkyOcclusionRayTracingContext = new RayTracingContext(RayTracingBackend.Compute, resources);
                 ProbeGIBaking.m_SkyOcclusionRayTracingShader = ProbeGIBaking.m_SkyOcclusionRayTracingContext.CreateRayTracingShader(ProbeGIBaking.m_DynamicGISkyOcclusionResources.rayTracingShader);
             }
-            ProbeGIBaking.m_SkyOcclusionRayTracingAccelerationStructure = ProbeGIBaking.m_SkyOcclusionRayTracingContext.CreateAccelerationStructure(new AccelerationStructureOptions());
+            ProbeGIBaking.m_SkyOcclusionRayTracingAccelerationStructure = ProbeGIBaking.m_SkyOcclusionRayTracingContext.CreateAccelerationStructure(new AccelerationStructureOptions{buildFlags = BuildFlags.PreferFastBuild}); // Use PreferFastBuild to avoid bug triggered with big meshes (UUM-52552)
 
             ProbeGIBaking.m_SamplingResources = ScriptableObject.CreateInstance<SamplingResources>();
             ResourceReloader.ReloadAllNullIn(ProbeGIBaking.m_SamplingResources, packagePath);
