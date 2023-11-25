@@ -748,6 +748,14 @@ The **NVIDIA device debug view** is a panel that displays a list of the current 
 | **Output resolution**    | Displays the target resolution for this particular DLSS view. |
 | **Quality**              | Displays the quality selected for this particular DLSS view.  |
 
+The **History Buffers view** lets you display various render pipeline full screen buffers that persist across multiple frames.
+
+| **Debug Option**   | **Description**                                              |
+| ------------------ | ------------------------------------------------------------ |
+| **Buffer**         | Choose the history buffer to visualize as a full screen output. |
+| **Frame Index**    | Choose what frame version of the history buffer to visualize. Certain buffers only have a limited number of versions. |
+| **Apply Exposure** | Enable exposure correction of the buffer. It is only available for certain history buffers. |
+
 <a name="CameraPanel"></a>
 
 ## Camera panels

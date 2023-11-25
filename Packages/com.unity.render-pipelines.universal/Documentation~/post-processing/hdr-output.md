@@ -167,8 +167,10 @@ This debug view uses a color coded gradient to indicate parts of the Scene that 
 URP only supports HDR Output on the following platforms:
 
 * Windows with DirectX 11, DirectX 12 or Vulkan
-* Devices that use Metal
+* MacOS devices that use Metal
+* iOS 16+ devices
 * Consoles
 * XR devices with HDR support
+* Android devices that use Vulkan and GLES
 
 > **Note**: DirectX 11 only supports HDR Output in the Player, it does not support HDR Output in the Editor.
