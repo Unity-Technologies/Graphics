@@ -424,10 +424,20 @@ namespace UnityEngine.Rendering.Universal
             // rendering to the same screen. See e.g. test foundation 014 that renders a minimap)
             bool clearBackbufferOnFirstUse = (cameraData.renderType == CameraRenderType.Base) && !m_CreateColorTexture;
 
+            // UI Overlay is rendered by native engine if not done within SRP
+            // To check if the engine does it natively post-URP, we look at SupportedRenderingFeatures
+            // and restrict it to cases where we resolve to screen and render UI overlay, i.e mostly final camera for game view 
+            // We cannot use directly !cameraData.rendersOverlayUI but this is similar logic
+            bool isNativeUIOverlayRenderingAfterURP = !SupportedRenderingFeatures.active.rendersUIOverlay && cameraData.resolveToScreen;
+            bool isNativeRenderingAfterURP = UnityEngine.Rendering.Watermark.IsVisible() || isNativeUIOverlayRenderingAfterURP;
+            // If MSAA > 1, no extra native rendering after SRP and we target the BB directly (!m_CreateColorTexture)
+            // then we can discard MSAA buffers and only resolve, otherwise we must store and resolve
+            bool noStoreOnlyResolveBBColor = !m_CreateColorTexture && !isNativeRenderingAfterURP && (cameraData.cameraTargetDescriptor.msaaSamples > 1);
+
             ImportResourceParams importBackbufferColorParams = new ImportResourceParams();
             importBackbufferColorParams.clearOnFirstUse = clearBackbufferOnFirstUse;
             importBackbufferColorParams.clearColor = cameraBackgroundColor;
-            importBackbufferColorParams.discardOnLastUse = false;
+            importBackbufferColorParams.discardOnLastUse = noStoreOnlyResolveBBColor;
 
             ImportResourceParams importBackbufferDepthParams = new ImportResourceParams();
             importBackbufferDepthParams.clearOnFirstUse = clearBackbufferOnFirstUse;
