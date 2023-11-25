@@ -403,7 +403,7 @@ float3 MixFogColor(float3 fragColor, float3 fogColor, float fogFactor)
 
 half3 MixFog(half3 fragColor, half fogFactor)
 {
-    return MixFogColor(fragColor, unity_FogColor.rgb, fogFactor);
+    return MixFogColor(fragColor, half3(unity_FogColor.rgb), fogFactor);
 }
 
 float3 MixFog(float3 fragColor, float fogFactor)

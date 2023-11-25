@@ -771,7 +771,7 @@ float3 HDRMappingFromRec709(float3 Rec709Input, float paperWhite, float minNits,
 float3 HDRMappingACES(float3 aces, float hdrBoost, float minNits, float maxNits, int reductionMode, bool skipOETF = false)
 {
     aces = (aces * hdrBoost * 0.01f);
-    float3 oces = RRT(aces);
+    half3 oces = RRT(half3(aces));
 
     float3 AP1ODT = 0;
 

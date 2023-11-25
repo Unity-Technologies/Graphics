@@ -622,7 +622,7 @@ float3 AcesTonemap(float3 aces)
 {
 #if TONEMAPPING_USE_FULL_ACES
 
-    float3 oces = RRT(aces);
+    float3 oces = RRT(half3(aces));
     float3 odt = ODT_RGBmonitor_100nits_dim(oces);
     return odt;
 

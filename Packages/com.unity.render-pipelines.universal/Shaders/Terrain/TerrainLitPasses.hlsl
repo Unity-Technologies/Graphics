@@ -132,7 +132,7 @@ void NormalMapMix(float4 uvSplat01, float4 uvSplat23, inout half4 splatControl, 
         nrm += splatControl.a * UnpackNormalScale(SAMPLE_TEXTURE2D(_Normal3, sampler_Normal0, uvSplat23.zw), _NormalScale3);
 
         // avoid risk of NaN when normalizing.
-        #if HAS_HALF
+        #if !HALF_IS_FLOAT
             nrm.z += half(0.01);
         #else
             nrm.z += 1e-5f;

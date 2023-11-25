@@ -4,7 +4,7 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/ProbeVolume.hlsl"
 
-APVSample BlendAPVSamples(APVSample state0, APVSample state1, float factor)
+APVSample BlendAPVSamples(APVSample state0, APVSample state1, half factor)
 {
     APVSample result;
     result.L0   = lerp(state0.L0,   state1.L0,   factor);

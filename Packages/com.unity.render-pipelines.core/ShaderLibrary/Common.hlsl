@@ -135,6 +135,7 @@
 #endif // Do we have half?
 
 #if REAL_IS_HALF
+#define HALF_IS_FLOAT 0
 #define half min16float
 #define half2 min16float2
 #define half3 min16float3
@@ -146,6 +147,8 @@
 #define half3x4 min16float3x4
 #define half4x3 min16float4x3
 #define half4x4 min16float4x4
+#else
+#define HALF_IS_FLOAT (!defined(UNITY_DEVICE_SUPPORTS_NATIVE_16BIT))
 #endif
 
 #if REAL_IS_HALF

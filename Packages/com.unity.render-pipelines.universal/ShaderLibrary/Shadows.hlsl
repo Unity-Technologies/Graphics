@@ -123,12 +123,12 @@ ShadowSamplingData GetMainLightShadowSamplingData()
     ShadowSamplingData shadowSamplingData;
 
     // shadowOffsets are used in SampleShadowmapFiltered for low quality soft shadows.
-    shadowSamplingData.shadowOffset0 = _MainLightShadowOffset0;
-    shadowSamplingData.shadowOffset1 = _MainLightShadowOffset1;
+    shadowSamplingData.shadowOffset0 = half4(_MainLightShadowOffset0);
+    shadowSamplingData.shadowOffset1 = half4(_MainLightShadowOffset1);
 
     // shadowmapSize is used in SampleShadowmapFiltered otherwise
     shadowSamplingData.shadowmapSize = _MainLightShadowmapSize;
-    shadowSamplingData.softShadowQuality = _MainLightShadowParams.y;
+    shadowSamplingData.softShadowQuality = half(_MainLightShadowParams.y);
 
     return shadowSamplingData;
 }
@@ -155,7 +155,7 @@ ShadowSamplingData GetAdditionalLightShadowSamplingData(int index)
 // y: 1.0 if shadow is soft, 0.0 otherwise
 half4 GetMainLightShadowParams()
 {
-    return _MainLightShadowParams;
+    return half4(_MainLightShadowParams);
 }
 
 
@@ -503,7 +503,7 @@ float ApplyShadowFade(float shadowAttenuation, float3 positionWS)
 // Deprecated: Use GetMainLightShadowParams instead.
 half GetMainLightShadowStrength()
 {
-    return _MainLightShadowData.x;
+    return half(_MainLightShadowData.x);
 }
 
 // Deprecated: Use GetAdditionalLightShadowParams instead.
@@ -511,9 +511,9 @@ half GetAdditionalLightShadowStrenth(int lightIndex)
 {
     #if defined(ADDITIONAL_LIGHT_CALCULATE_SHADOWS)
         #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
-            return _AdditionalShadowParams_SSBO[lightIndex].x;
+            return half(_AdditionalShadowParams_SSBO[lightIndex].x);
         #else
-            return _AdditionalShadowParams[lightIndex].x;
+            return half(_AdditionalShadowParams[lightIndex].x);
         #endif
     #else
         return half(1.0);

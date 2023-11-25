@@ -116,15 +116,15 @@ struct APVResourcesRW
 
 struct APVSample
 {
-    real3 L0;
-    real3 L1_R;
-    real3 L1_G;
-    real3 L1_B;
+    half3 L0;
+    half3 L1_R;
+    half3 L1_G;
+    half3 L1_B;
 #ifdef PROBE_VOLUMES_L2
-    real4 L2_R;
-    real4 L2_G;
-    real4 L2_B;
-    real3 L2_C;
+    half4 L2_R;
+    half4 L2_G;
+    half4 L2_B;
+    half3 L2_C;
 #endif // PROBE_VOLUMES_L2
 
     float4 skyOcclusionL0L1;
@@ -226,7 +226,7 @@ uint3 GetSampleOffset(uint i)
 
 // The validity mask is sampled once and contains a binary info on whether a probe neighbour (relevant for trilinear) is to be used
 // or not. The entry in the mask uses the same mapping that GetSampleOffset above uses.
-real GetValidityWeight(uint offset, uint validityMask)
+half GetValidityWeight(uint offset, uint validityMask)
 {
     uint mask = 1U << offset;
     return (validityMask & mask) > 0 ? 1 : 0;
@@ -237,9 +237,9 @@ float ProbeDistance(uint subdiv)
     return pow(3, subdiv) * _MinBrickSize / 3.0f;
 }
 
-real ProbeDistanceReal(uint subdiv)
+half ProbeDistanceHalf(uint subdiv)
 {
-    return pow(3, subdiv) * _MinBrickSize / 3.0;
+    return pow(half(3), half(subdiv)) * half(_MinBrickSize) / 3.0;
 }
 
 float3 GetSnappedProbePosition(float3 posWS, uint subdiv)
@@ -258,12 +258,12 @@ float GetNormalWeight(uint3 offset, float3 posWS, float3 sample0Pos, float3 norm
     return weight;
 }
 
-real GetNormalWeightReal(uint3 offset, float3 posWS, float3 sample0Pos, float3 normalWS, uint subdiv)
+half GetNormalWeightHalf(uint3 offset, float3 posWS, float3 sample0Pos, float3 normalWS, uint subdiv)
 {
     // TODO: This can be optimized.
-    real3 samplePos = (real3)(sample0Pos - posWS) + (real3)offset * ProbeDistanceReal(subdiv);
-    real3 vecToProbe = normalize(samplePos);
-    real weight = saturate(dot(vecToProbe, (half3)normalWS) - (real)_MinValidNormalWeight);
+    half3 samplePos = (half3)(sample0Pos - posWS) + (half3)offset * ProbeDistanceHalf(subdiv);
+    half3 vecToProbe = normalize(samplePos);
+    half weight = saturate(dot(vecToProbe, (half3)normalWS) - (half)_MinValidNormalWeight);
     return weight;
 }
 
@@ -423,20 +423,20 @@ bool TryToGetPoolUVW(APVResources apvRes, float3 posWS, float3 normalWS, float3 
 APVSample SampleAPV(APVResources apvRes, float3 uvw)
 {
     APVSample apvSample;
-    real4 L0_L1Rx = SAMPLE_TEXTURE3D_LOD(apvRes.L0_L1Rx, s_linear_clamp_sampler, uvw, 0).rgba;
-    real4 L1G_L1Ry = SAMPLE_TEXTURE3D_LOD(apvRes.L1G_L1Ry, s_linear_clamp_sampler, uvw, 0).rgba;
-    real4 L1B_L1Rz = SAMPLE_TEXTURE3D_LOD(apvRes.L1B_L1Rz, s_linear_clamp_sampler, uvw, 0).rgba;
+    half4 L0_L1Rx = half4(SAMPLE_TEXTURE3D_LOD(apvRes.L0_L1Rx, s_linear_clamp_sampler, uvw, 0).rgba);
+    half4 L1G_L1Ry = half4(SAMPLE_TEXTURE3D_LOD(apvRes.L1G_L1Ry, s_linear_clamp_sampler, uvw, 0).rgba);
+    half4 L1B_L1Rz = half4(SAMPLE_TEXTURE3D_LOD(apvRes.L1B_L1Rz, s_linear_clamp_sampler, uvw, 0).rgba);
 
     apvSample.L0 = L0_L1Rx.xyz;
-    apvSample.L1_R = real3(L0_L1Rx.w, L1G_L1Ry.w, L1B_L1Rz.w);
+    apvSample.L1_R = half3(L0_L1Rx.w, L1G_L1Ry.w, L1B_L1Rz.w);
     apvSample.L1_G = L1G_L1Ry.xyz;
     apvSample.L1_B = L1B_L1Rz.xyz;
 
 #ifdef PROBE_VOLUMES_L2
-    apvSample.L2_R = SAMPLE_TEXTURE3D_LOD(apvRes.L2_0, s_linear_clamp_sampler, uvw, 0).rgba;
-    apvSample.L2_G = SAMPLE_TEXTURE3D_LOD(apvRes.L2_1, s_linear_clamp_sampler, uvw, 0).rgba;
-    apvSample.L2_B = SAMPLE_TEXTURE3D_LOD(apvRes.L2_2, s_linear_clamp_sampler, uvw, 0).rgba;
-    apvSample.L2_C = SAMPLE_TEXTURE3D_LOD(apvRes.L2_3, s_linear_clamp_sampler, uvw, 0).rgb;
+    apvSample.L2_R = half4(SAMPLE_TEXTURE3D_LOD(apvRes.L2_0, s_linear_clamp_sampler, uvw, 0).rgba);
+    apvSample.L2_G = half4(SAMPLE_TEXTURE3D_LOD(apvRes.L2_1, s_linear_clamp_sampler, uvw, 0).rgba);
+    apvSample.L2_B = half4(SAMPLE_TEXTURE3D_LOD(apvRes.L2_2, s_linear_clamp_sampler, uvw, 0).rgba);
+    apvSample.L2_C = half3(SAMPLE_TEXTURE3D_LOD(apvRes.L2_3, s_linear_clamp_sampler, uvw, 0).rgb);
 #endif // PROBE_VOLUMES_L2
 
     if(_SkyOcclusionIntensity > 0)
@@ -467,20 +467,20 @@ APVSample LoadAndDecodeAPV(APVResources apvRes, int3 loc)
 {
     APVSample apvSample;
 
-    real4 L0_L1Rx = LOAD_TEXTURE3D(apvRes.L0_L1Rx, loc).rgba;
-    real4 L1G_L1Ry = LOAD_TEXTURE3D(apvRes.L1G_L1Ry, loc).rgba;
-    real4 L1B_L1Rz = LOAD_TEXTURE3D(apvRes.L1B_L1Rz, loc).rgba;
+    half4 L0_L1Rx =  half4(LOAD_TEXTURE3D(apvRes.L0_L1Rx, loc).rgba);
+    half4 L1G_L1Ry = half4(LOAD_TEXTURE3D(apvRes.L1G_L1Ry, loc).rgba);
+    half4 L1B_L1Rz = half4(LOAD_TEXTURE3D(apvRes.L1B_L1Rz, loc).rgba);
 
     apvSample.L0 = L0_L1Rx.xyz;
-    apvSample.L1_R = real3(L0_L1Rx.w, L1G_L1Ry.w, L1B_L1Rz.w);
+    apvSample.L1_R = half3(L0_L1Rx.w, L1G_L1Ry.w, L1B_L1Rz.w);
     apvSample.L1_G = L1G_L1Ry.xyz;
     apvSample.L1_B = L1B_L1Rz.xyz;
 
 #ifdef PROBE_VOLUMES_L2
-    apvSample.L2_R = LOAD_TEXTURE3D(apvRes.L2_0, loc).rgba;
-    apvSample.L2_G = LOAD_TEXTURE3D(apvRes.L2_1, loc).rgba;
-    apvSample.L2_B = LOAD_TEXTURE3D(apvRes.L2_2, loc).rgba;
-    apvSample.L2_C = LOAD_TEXTURE3D(apvRes.L2_3, loc).rgb;
+    apvSample.L2_R = half4(LOAD_TEXTURE3D(apvRes.L2_0, loc).rgba);
+    apvSample.L2_G = half4(LOAD_TEXTURE3D(apvRes.L2_1, loc).rgba);
+    apvSample.L2_B = half4(LOAD_TEXTURE3D(apvRes.L2_2, loc).rgba);
+    apvSample.L2_C = half3(LOAD_TEXTURE3D(apvRes.L2_3, loc).rgb);
 #endif // PROBE_VOLUMES_L2
 
     apvSample.status = APV_SAMPLE_STATUS_ENCODED;
@@ -489,7 +489,7 @@ APVSample LoadAndDecodeAPV(APVResources apvRes, int3 loc)
     return apvSample;
 }
 
-void WeightSample(inout APVSample apvSample, real weight)
+void WeightSample(inout APVSample apvSample, half weight)
 {
     apvSample.L0 *= weight;
     apvSample.L1_R *= weight;
@@ -504,7 +504,7 @@ void WeightSample(inout APVSample apvSample, real weight)
 #endif // PROBE_VOLUMES_L2
 }
 
-void AccumulateSamples(inout APVSample dst, APVSample other, real weight)
+void AccumulateSamples(inout APVSample dst, APVSample other, half weight)
 {
     WeightSample(other, weight);
     dst.L0   += other.L0;
@@ -545,12 +545,12 @@ APVSample ManuallyFilteredSample(APVResources apvRes, float3 posWS, float3 norma
             ((offset.y == 1) ? texFrac.y : oneMinTexFrac.y) *
             ((offset.z == 1) ? texFrac.z : oneMinTexFrac.z);
 
-        float validityWeight = GetValidityWeight(i, validityMask);
+        half validityWeight = GetValidityWeight(i, validityMask);
 
         if (validityWeight > 0)
         {
             APVSample apvSample = LoadAndDecodeAPV(apvRes, texCoordInt + offset);
-            float geoW = GetNormalWeight(offset, posWS, positionCentralProbe, normalWS, subdiv);
+            half geoW = GetNormalWeightHalf(offset, posWS, positionCentralProbe, normalWS, subdiv);
 
             half finalW = half(geoW * trilinearW);
             AccumulateSamples(baseSample, apvSample, finalW);
@@ -558,7 +558,7 @@ APVSample ManuallyFilteredSample(APVResources apvRes, float3 posWS, float3 norma
         }
     }
 
-    WeightSample(baseSample, rcp(totalW));
+    WeightSample(baseSample, half(rcp(totalW)));
 
     return baseSample;
 }
@@ -567,12 +567,12 @@ void WarpUVWLeakReduction(APVResources apvRes, float3 posWS, float3 normalWS, ui
 {
     float3 texCoordFloat = uvw * _PoolDim - 0.5f;
     int3 texCoordInt = texCoordFloat;
-    real3 texFrac = frac(texCoordFloat);
-    real3 oneMinTexFrac = 1.0 - texFrac;
+    half3 texFrac = half3(frac(texCoordFloat));
+    half3 oneMinTexFrac = 1.0 - texFrac;
     uint validityMask = LOAD_TEXTURE3D(apvRes.Validity, texCoordInt).x * 255.0;
 
-    real4 weights[2];
-    real totalW = 0.0;
+    half4 weights[2];
+    half totalW = 0.0;
     uint i = 0;
     float3 positionCentralProbe = GetSnappedProbePosition(biasedPosWS, subdiv);
 
@@ -580,17 +580,17 @@ void WarpUVWLeakReduction(APVResources apvRes, float3 posWS, float3 normalWS, ui
     for (i = 0; i < 8; ++i)
     {
         uint3 offset = GetSampleOffset(i);
-        real trilinearW =
+        half trilinearW =
             ((offset.x == 1) ? texFrac.x : oneMinTexFrac.x) *
             ((offset.y == 1) ? texFrac.y : oneMinTexFrac.y) *
             ((offset.z == 1) ? texFrac.z : oneMinTexFrac.z);
 
-        real validityWeight = GetValidityWeight(i, validityMask);
+        half validityWeight = GetValidityWeight(i, validityMask);
         validityWeights[i] = validityWeight;
 
-        real geoW = GetNormalWeightReal(offset, posWS, positionCentralProbe, normalWS, subdiv);
+        half geoW = GetNormalWeightHalf(offset, posWS, positionCentralProbe, normalWS, subdiv);
 
-        real weight = saturate(trilinearW * (geoW * validityWeight));
+        half weight = saturate(trilinearW * (geoW * validityWeight));
 
         weights[i/4][i%4] = weight;
         totalW += weight;
@@ -600,13 +600,13 @@ void WarpUVWLeakReduction(APVResources apvRes, float3 posWS, float3 normalWS, ui
     weights[0] *= rcpTotalW;
     weights[1] *= rcpTotalW;
 
-    real3 fracOffset = -texFrac;
+    half3 fracOffset = -texFrac;
 
     UNITY_UNROLL
     for (i = 0; i < 8; ++i)
     {
         uint3 offset = GetSampleOffset(i);
-        fracOffset += (real3)offset * weights[i/4][i%4];
+        fracOffset += (half3)offset * weights[i/4][i%4];
     }
 
     normalizedOffset = (float3)(fracOffset + texFrac);

@@ -90,7 +90,7 @@ float EvaluateCurve(TEXTURE2D(curve), float t)
 float3 RotateToColorGradingSpace_LogToLinear(float3 logColor)
 {
 #if defined(TONEMAPPING_ACES) || defined(GRADE_IN_ACESCG)
-    return ACES_to_ACEScg(ACEScc_to_ACES(logColor));
+    return ACES_to_ACEScg(ACEScc_to_ACES(half3(logColor)));
 #elif defined(GRADE_IN_SRGB)
     return LogCToLinear(logColor);
 #endif
@@ -99,7 +99,7 @@ float3 RotateToColorGradingSpace_LogToLinear(float3 logColor)
 float3 RotateToColorGradingSpace_LinearToLog(float3 linearColor)
 {
 #if defined(TONEMAPPING_ACES) || defined(GRADE_IN_ACESCG)
-    return ACES_to_ACEScc(unity_to_ACES(linearColor));
+    return ACES_to_ACEScc(unity_to_ACES(half3(linearColor)));
 #elif defined(GRADE_IN_SRGB)
     return LinearToLogC(linearColor);
 #endif
@@ -117,7 +117,7 @@ float3 RotateToColorGradeOutputSpace(float3 gradedColor)
 
     // If we are doing HDR we expect grading to finish at Rec2020. Any supplemental rotation is done inside the various options.
 #ifdef GRADE_IN_ACESCG
-    return ACEScg_to_Rec2020(gradedColor);
+    return ACEScg_to_Rec2020(half3(gradedColor));
 #elif defined(GRADE_IN_SRGB)
     return RotateRec709ToRec2020(gradedColor);
 #endif
@@ -126,7 +126,7 @@ float3 RotateToColorGradeOutputSpace(float3 gradedColor)
 
 #ifdef GRADE_IN_ACESCG
     // If we are not HDR or ACES, we move back to Rec709
-    return ACEScg_to_unity(gradedColor);
+    return ACEScg_to_unity(half3(gradedColor));
 #elif defined(GRADE_IN_SRGB)
     // We already graded in sRGB
     return gradedColor;
@@ -261,7 +261,7 @@ float3 NeutralColorGrade(float3 colorLutSpace)
     float3 colorLinear = PQToLinear(colorLutSpace, 100.0f);
 #ifdef GRADE_IN_ACESCG
     // In ACESCG grading mode color grading space is ACEScg so RotateToColorGradeOutputSpace will move out of this space. Here that means we need to move into that space to balance it.
-    colorLinear = unity_to_ACEScg(colorLinear);
+    colorLinear = unity_to_ACEScg(half3(colorLinear));
 #endif
 #else
     float3 colorLinear = LogCToLinear(colorLutSpace);
