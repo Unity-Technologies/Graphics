@@ -48,6 +48,9 @@ EditorBuildSettings:
     path: Assets/Scenes/InstancedRendering.unity
     guid: e2be1657f285b724c8e4fc40a9ab77fd
   - enabled: 1
+    path: Assets/Scenes/InstanceIDWithKeywords.unity
+    guid: 9ea201c786bfd4e04bb62addbef3440d
+  - enabled: 1
     path: Assets/Scenes/SamplerStateTests.unity
     guid: ed2fd0ccb16dc6645a13091bfa602856
   - enabled: 1
@@ -57,3 +60,4 @@ EditorBuildSettings:
     path: Assets/Scenes/Fullscreen.unity
     guid: 8b2856898c3f1cb43a36c7329bdbcc97
   m_configObjects: {}
+  m_UseUCBPForAssetBundles: 0

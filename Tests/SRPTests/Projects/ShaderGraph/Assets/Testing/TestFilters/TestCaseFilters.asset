@@ -16,11 +16,152 @@ MonoBehaviour:
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: 1c45ab02ee5353c44b809073fe83edf7, type: 3}
-    - {fileID: 102900000, guid: 6efc74ac9f48a3243a990cf89991972c, type: 3}
     - {fileID: 102900000, guid: ed2fd0ccb16dc6645a13091bfa602856, type: 3}
+    - {fileID: 102900000, guid: 6efc74ac9f48a3243a990cf89991972c, type: 3}
     ColorSpace: -1
     BuildPlatform: 13
     GraphicsDevice: 11
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: 'GLES3 renders these tests incorrectly (FB: 1354427)'
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 9ea201c786bfd4e04bb62addbef3440d, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 11
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: Platform Independent
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 9ea201c786bfd4e04bb62addbef3440d, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 13
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: Platform Independent
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 9ea201c786bfd4e04bb62addbef3440d, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 14
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: Platform Independent
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 9ea201c786bfd4e04bb62addbef3440d, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: Platform Independent
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 9ea201c786bfd4e04bb62addbef3440d, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 17
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: Platform Independent
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 9ea201c786bfd4e04bb62addbef3440d, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 18
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: Platform Independent
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 9ea201c786bfd4e04bb62addbef3440d, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 21
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: Platform Independent
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 9ea201c786bfd4e04bb62addbef3440d, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 22
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: Platform Independent
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 9ea201c786bfd4e04bb62addbef3440d, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 23
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: Platform Independent
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 9ea201c786bfd4e04bb62addbef3440d, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 24
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: Platform Independent
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 9ea201c786bfd4e04bb62addbef3440d, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 25
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: Platform Independent
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 9ea201c786bfd4e04bb62addbef3440d, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 26
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: Platform Independent
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 9ea201c786bfd4e04bb62addbef3440d, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 27
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: Platform Independent
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 9ea201c786bfd4e04bb62addbef3440d, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 28
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: Platform Independent
