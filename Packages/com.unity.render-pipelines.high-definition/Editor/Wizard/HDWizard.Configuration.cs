@@ -501,8 +501,8 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!GraphicsSettings.TryGetRenderPipelineSettings<HDRenderPipelineEditorAssets>(out var _))
                 return false;
 
-            var volumeProfile = HDRenderPipelineGlobalSettings.instance.volumeProfile;
-            var profileList = VolumeUtils.GetOrCreateDiffusionProfileList(volumeProfile).ToArray();
+            var settings = GraphicsSettings.GetRenderPipelineSettings<HDRPDefaultVolumeProfileSettings>();
+            var profileList = VolumeUtils.GetOrCreateDiffusionProfileList(settings.volumeProfile).ToArray();
             return profileList.Length != 0 && profileList.Any(p => p != null);
         }
 
@@ -514,7 +514,8 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!IsDefaultVolumeProfileCorrect())
                 FixDefaultVolumeProfile(fromAsyncUnused: false);
 
-            var volumeProfile = HDRenderPipelineGlobalSettings.instance.volumeProfile;
+            var settings = GraphicsSettings.GetRenderPipelineSettings<HDRPDefaultVolumeProfileSettings>();
+            var volumeProfile = settings.volumeProfile;
             var diffusionProfileList = VolumeUtils.GetOrCreateDiffusionProfileList(volumeProfile);
             if (diffusionProfileList.diffusionProfiles.value.Length == 0)
             {
@@ -529,15 +530,15 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!IsHdrpGlobalSettingsUsedCorrect())
                 return false;
 
-            var defaultVolumeProfile = HDRenderPipelineGlobalSettings.instance.volumeProfile;
-            if (defaultVolumeProfile == null)
+            if (!GraphicsSettings.TryGetRenderPipelineSettings<HDRPDefaultVolumeProfileSettings>(out var settings) ||
+                settings.volumeProfile == null)
                 return false;
 
             if (!GraphicsSettings.TryGetRenderPipelineSettings<HDRenderPipelineEditorAssets>(out var editorAssets))
                 return false;
 
             var defaultValuesAsset = editorAssets.defaultVolumeProfile;
-            return !VolumeUtils.IsDefaultVolumeProfile(defaultVolumeProfile, defaultValuesAsset);
+            return !VolumeUtils.IsDefaultVolumeProfile(settings.volumeProfile, defaultValuesAsset);
         }
 
         void FixDefaultVolumeProfile(bool fromAsyncUnused)
@@ -545,9 +546,10 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!IsHdrpGlobalSettingsUsedCorrect())
                 FixHdrpGlobalSettingsUsed(fromAsync: false);
 
+            var defaultVolumeProfileSettings = GraphicsSettings.GetRenderPipelineSettings<HDRPDefaultVolumeProfileSettings>();
             var defaultValuesAsset = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineEditorAssets>().defaultVolumeProfile;
             var volumeProfileCopy = VolumeUtils.CopyVolumeProfileFromResourcesToAssets(defaultValuesAsset);
-            HDRenderPipelineGlobalSettings.instance.volumeProfile = volumeProfileCopy;
+            defaultVolumeProfileSettings.volumeProfile = volumeProfileCopy;
             EditorUtility.SetDirty(HDRenderPipelineGlobalSettings.instance);
 
             if (VolumeManager.instance.isInitialized)
@@ -559,15 +561,15 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!IsHdrpGlobalSettingsUsedCorrect())
                 return false;
 
-            var defaultVolumeProfile = HDRenderPipelineGlobalSettings.instance.lookDevVolumeProfile;
-            if (defaultVolumeProfile == null)
+            if (!GraphicsSettings.TryGetRenderPipelineSettings<LookDevVolumeProfileSettings>(out var settings) ||
+                settings.volumeProfile == null)
                 return false;
 
             if (!GraphicsSettings.TryGetRenderPipelineSettings<HDRenderPipelineEditorAssets>(out var editorAssets))
                 return false;
 
             var defaultValuesAsset = editorAssets.lookDevVolumeProfile;
-            return !VolumeUtils.IsDefaultVolumeProfile(defaultVolumeProfile, defaultValuesAsset);
+            return !VolumeUtils.IsDefaultVolumeProfile(settings.volumeProfile, defaultValuesAsset);
         }
 
         void FixDefaultLookDevVolumeProfile(bool fromAsyncUnused)
@@ -575,10 +577,9 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!IsHdrpGlobalSettingsUsedCorrect())
                 FixHdrpGlobalSettingsUsed(fromAsync: false);
 
+            var settings = GraphicsSettings.GetRenderPipelineSettings<LookDevVolumeProfileSettings>();
             var defaultValuesAsset = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineEditorAssets>().lookDevVolumeProfile;
-            var volumeProfileCopy = VolumeUtils.CopyVolumeProfileFromResourcesToAssets(defaultValuesAsset);
-            HDRenderPipelineGlobalSettings.instance.lookDevVolumeProfile = volumeProfileCopy;
-            EditorUtility.SetDirty(HDRenderPipelineGlobalSettings.instance);
+            settings.volumeProfile = VolumeUtils.CopyVolumeProfileFromResourcesToAssets(defaultValuesAsset);
         }
 
         IEnumerable<IMigratableAsset> migratableAssets
@@ -800,10 +801,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
         bool IsDXRScreenSpaceShadowFSCorrect()
         {
-            if (!IsHdrpGlobalSettingsUsedCorrect())
+            if (!GraphicsSettings.TryGetRenderPipelineSettings<RenderingPathFrameSettings>(out var renderingPathFrameSettings))
                 return false;
 
-            FrameSettings defaultCameraFS = HDRenderPipelineGlobalSettings.instance.GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
+            FrameSettings defaultCameraFS = renderingPathFrameSettings.GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
             return defaultCameraFS.IsEnabled(FrameSettingsField.ScreenSpaceShadows);
         }
 
@@ -813,10 +814,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
         bool IsDXRReflectionsFSCorrect()
         {
-            if (!IsHdrpGlobalSettingsUsedCorrect())
+            if (!GraphicsSettings.TryGetRenderPipelineSettings<RenderingPathFrameSettings>(out var renderingPathFrameSettings))
                 return false;
 
-            FrameSettings defaultCameraFS = HDRenderPipelineGlobalSettings.instance.GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
+            FrameSettings defaultCameraFS = renderingPathFrameSettings.GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
             return defaultCameraFS.IsEnabled(FrameSettingsField.SSR);
         }
 
@@ -826,10 +827,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
         bool IsDXRTransparentReflectionsFSCorrect()
         {
-            if (!IsHdrpGlobalSettingsUsedCorrect())
+            if (!GraphicsSettings.TryGetRenderPipelineSettings<RenderingPathFrameSettings>(out var renderingPathFrameSettings))
                 return false;
 
-            FrameSettings defaultCameraFS = HDRenderPipelineGlobalSettings.instance.GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
+            FrameSettings defaultCameraFS = renderingPathFrameSettings.GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
             return defaultCameraFS.IsEnabled(FrameSettingsField.TransparentSSR);
         }
 
@@ -839,10 +840,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
         bool IsDXRGIFSCorrect()
         {
-            if (!IsHdrpGlobalSettingsUsedCorrect())
+            if (!GraphicsSettings.TryGetRenderPipelineSettings<RenderingPathFrameSettings>(out var renderingPathFrameSettings))
                 return false;
 
-            FrameSettings defaultCameraFS = HDRenderPipelineGlobalSettings.instance.GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
+            FrameSettings defaultCameraFS = renderingPathFrameSettings.GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
             return defaultCameraFS.IsEnabled(FrameSettingsField.SSGI);
         }
 
@@ -852,10 +853,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
         bool IsDXRVFXFSCorrect()
         {
-            if (!IsHdrpGlobalSettingsUsedCorrect())
+            if (!GraphicsSettings.TryGetRenderPipelineSettings<RenderingPathFrameSettings>(out var renderingPathFrameSettings))
                 return false;
 
-            FrameSettings defaultCameraFS = HDRenderPipelineGlobalSettings.instance.GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
+            FrameSettings defaultCameraFS = renderingPathFrameSettings.GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
             return defaultCameraFS.IsEnabled(FrameSettingsField.RaytracingVFX);
         }
 

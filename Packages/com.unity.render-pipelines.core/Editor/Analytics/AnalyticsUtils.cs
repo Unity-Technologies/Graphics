@@ -88,7 +88,7 @@ namespace UnityEditor.Rendering
             {
                 for (int i = 0; i < list.Count; i++)
                 {
-                    tempList.Add(list[i].ToString());
+                    tempList.Add(list[i] != null ? list[i].ToString() : "null");
                 }
 
                 var arrayValues = string.Join(",", tempList);

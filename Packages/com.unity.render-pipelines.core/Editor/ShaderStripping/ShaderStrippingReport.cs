@@ -157,8 +157,7 @@ namespace UnityEditor.Rendering
         public ShaderStrippingReportLogger()
         {
             // Check the current pipeline and check the shader variant settings
-            if (GraphicsSettings.TryGetCurrentRenderPipelineGlobalSettings(out var settings) &&
-                settings is IShaderVariantSettings shaderVariantSettings)
+            if (GraphicsSettings.TryGetRenderPipelineSettings<ShaderStrippingSetting>(out var shaderVariantSettings))
             {
                 m_IsLogEnabled = shaderVariantSettings.shaderVariantLogLevel != ShaderVariantLogLevel.Disabled;
             }
@@ -361,12 +360,11 @@ namespace UnityEditor.Rendering
             bool exportStrippedVariants = s_DefaultExport;
 
             // Check the current pipeline and check the shader variant settings
-            if (GraphicsSettings.TryGetCurrentRenderPipelineGlobalSettings(out var settings) &&
-                settings is IShaderVariantSettings shaderVariantSettings)
+            if (GraphicsSettings.TryGetRenderPipelineSettings<ShaderStrippingSetting>(out var shaderVariantSettings))
             {
                 logStrippedVariants = shaderVariantSettings.shaderVariantLogLevel;
                 exportStrippedVariants = shaderVariantSettings.exportShaderVariants;
-                s_ShowWarningDebugShaders = shaderVariantSettings.stripDebugVariants && isDevelopmentBuild;
+                s_ShowWarningDebugShaders = shaderVariantSettings.stripRuntimeDebugShaders && isDevelopmentBuild;
             }
 
             m_Reporter = (logStrippedVariants == ShaderVariantLogLevel.Disabled && exportStrippedVariants == false) ?

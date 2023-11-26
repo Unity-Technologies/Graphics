@@ -1,10 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using UnityEngine;
-using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph;
-using UnityEditor.ShaderGraph.Internal;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition;
+using BlendOp = UnityEditor.ShaderGraph.BlendOp;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
@@ -44,6 +41,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             return defines;
         }
 
+        private static bool isAnalyticDerivativesEnabled => GraphicsSettings.TryGetRenderPipelineSettings<AnalyticDerivativeSettings>(
+            out var analyticDerivativeSettings) && analyticDerivativeSettings.emulation;
+
         #region Distortion Pass
 
         public static PassDescriptor GenerateDistortionPass(bool supportLighting, bool useVFX, bool useTessellation)
@@ -73,7 +73,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     { RenderState.Blend(Blend.One, Blend.One, Blend.One, Blend.One), new FieldCondition(HDFields.DistortionAdd, true) },
                     { RenderState.Blend(Blend.DstColor, Blend.Zero, Blend.DstAlpha, Blend.Zero), new FieldCondition(HDFields.DistortionMultiply, true) },
                     { RenderState.Blend(Blend.One, Blend.Zero, Blend.One, Blend.Zero), new FieldCondition(HDFields.DistortionReplace, true) },
-                    { RenderState.BlendOp(BlendOp.Add, BlendOp.Add) },
+                    { RenderState.BlendOp((BlendOp)BlendOp.Add, BlendOp.Add) },
                     { RenderState.Cull(CoreRenderStates.Uniforms.cullMode) },
                     { RenderState.ZWrite(ZWrite.Off) },
                     { RenderState.ZTest(ZTest.Always), new FieldCondition(HDFields.DistortionDepthTest, false) },
@@ -459,7 +459,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 defines = GenerateDefines(supportLighting ? CoreDefines.Forward : CoreDefines.ForwardUnlit, useVFX, useTessellation),
                 includes = GenerateIncludes(),
 
-                analyticDerivativesEnabled = (HDRenderPipelineGlobalSettings.instance is not null) ? HDRenderPipelineGlobalSettings.instance.analyticDerivativeEmulation : false,
+                analyticDerivativesEnabled = isAnalyticDerivativesEnabled,
                 analyticDerivativesApplyEmulate = true,
 
                 virtualTextureFeedback = true,
@@ -771,7 +771,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         #endregion
 
         #region GBuffer
-
         public static PassDescriptor GenerateGBuffer(bool useVFX, bool useTessellation)
         {
             return new PassDescriptor
@@ -790,7 +789,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 defines = GenerateDefines(CoreDefines.ShaderGraphRaytracingDefault, useVFX, useTessellation),
                 keywords = GBufferKeywords,
                 includes = GBufferIncludes,
-                analyticDerivativesEnabled = (HDRenderPipelineGlobalSettings.instance is not null) ? HDRenderPipelineGlobalSettings.instance.analyticDerivativeEmulation : false,
+                analyticDerivativesEnabled = isAnalyticDerivativesEnabled,
                 analyticDerivativesApplyEmulate = true,
                 virtualTextureFeedback = true,
                 customInterpolators = CoreCustomInterpolators.Common,

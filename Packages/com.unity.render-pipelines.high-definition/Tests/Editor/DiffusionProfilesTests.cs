@@ -2,6 +2,7 @@ using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using UnityEditor;
+using UnityEditor.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition.Tests
 {
@@ -13,7 +14,6 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         private bool m_AutoRegister = false;
         private DiffusionProfileSettings[] m_RollBackProfiles;
         private DiffusionProfileList m_List;
-        private HDRenderPipelineGlobalSettings m_PipelineSettings;
 
         [OneTimeSetUp]
         public void OneTimeSetup()
@@ -28,14 +28,14 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             CoreUtils.EnsureFolderTreeInAssetFilePath(k_ProfilePath);
             AssetDatabase.CreateAsset(m_Profile, k_ProfilePath);
 
-            Assert.IsTrue(GraphicsSettings.TryGetCurrentRenderPipelineGlobalSettings(out var hdGlobalSettings));
-            Assert.IsInstanceOf<HDRenderPipelineGlobalSettings>(hdGlobalSettings);
+            Assert.IsTrue(GraphicsSettings.TryGetRenderPipelineSettings<DiffusionProfileDefaultSettings>(out var diffusionProfileDefaultSettings));
+            Assert.IsInstanceOf<DiffusionProfileDefaultSettings>(diffusionProfileDefaultSettings);
 
-            m_PipelineSettings = hdGlobalSettings as HDRenderPipelineGlobalSettings;
-            Assert.IsNotNull(m_PipelineSettings);
+            Assert.IsTrue(GraphicsSettings.TryGetRenderPipelineSettings<HDRPDefaultVolumeProfileSettings>(out var defaultVolumeProfileSettings));
+            Assert.IsInstanceOf<HDRPDefaultVolumeProfileSettings>(defaultVolumeProfileSettings);
 
-            m_AutoRegister = m_PipelineSettings.autoRegisterDiffusionProfiles;
-            m_List = VolumeUtils.GetOrCreateDiffusionProfileList(m_PipelineSettings.volumeProfile);
+            m_AutoRegister = diffusionProfileDefaultSettings.autoRegister;
+            m_List = VolumeUtils.GetOrCreateDiffusionProfileList(defaultVolumeProfileSettings.volumeProfile);
             m_RollBackProfiles = m_List.ToArray();
         }
 
@@ -44,7 +44,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         {
             if (m_Profile != null) // If it is null, no setup has been done
             {
-                m_PipelineSettings.autoRegisterDiffusionProfiles = m_AutoRegister;
+                GraphicsSettings.GetRenderPipelineSettings<DiffusionProfileDefaultSettings>().autoRegister = m_AutoRegister;
                 m_List.ReplaceWithArray(m_RollBackProfiles);
 
                 AssetDatabase.DeleteAsset($"Assets/Temp/{nameof(DiffusionProfileTests)}");
@@ -65,7 +65,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         public void DiffusionProfile_AutoRegister()
         {
             m_List.ReplaceWithArray(Array.Empty<DiffusionProfileSettings>());
-            m_PipelineSettings.autoRegisterDiffusionProfiles = true;
+            GraphicsSettings.GetRenderPipelineSettings<DiffusionProfileDefaultSettings>().autoRegister = true;
 
             var profile1 = ScriptableObject.CreateInstance<DiffusionProfileSettings>();
             AssetDatabase.CreateAsset(profile1, AssetDatabase.GenerateUniqueAssetPath(k_ProfilePath));
@@ -76,7 +76,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             CreateMaterialAndSetProfile(materialPath, profile1);
 
             AssetDatabase.SaveAssets(); // Trigger OnPostProcessAllAssets where the registration is being performed
-            
+
             var profiles = m_List.ToArray();
             bool bothAreRegistered = VolumeUtils.IsDiffusionProfileRegistered(m_Profile, profiles) &&
                                      VolumeUtils.IsDiffusionProfileRegistered(profile1, profiles);
@@ -108,7 +108,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             var volumeProfile = ScriptableObject.CreateInstance<VolumeProfile>();
             var list = VolumeUtils.GetOrCreateDiffusionProfileList(volumeProfile);
             list.ReplaceWithArray(new DiffusionProfileSettings[] {null, null});
-            
+
             Assert.IsTrue(VolumeUtils.TryAddSingleDiffusionProfile(volumeProfile, m_Profile));
             Assert.AreEqual(1, list.ToArray().Length);
 
@@ -116,44 +116,9 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         }
 
         [Test]
-        public void MigrationAddsTheDiffusionProfilesToTheVolumeProfile()
-        {
-            var instance = ScriptableObject.CreateInstance<HDRenderPipelineGlobalSettings>();
-
-            // Set the version just before the migration step MoveDiffusionProfilesToVolume.
-            instance.m_Version = HDRenderPipelineGlobalSettings.Version.DisableAutoRegistration;
-
-            var profiles = new [] {
-                ScriptableObject.CreateInstance<DiffusionProfileSettings>(),
-                ScriptableObject.CreateInstance<DiffusionProfileSettings>(),
-                ScriptableObject.CreateInstance<DiffusionProfileSettings>(),
-                ScriptableObject.CreateInstance<DiffusionProfileSettings>(),
-                ScriptableObject.CreateInstance<DiffusionProfileSettings>(),
-                ScriptableObject.CreateInstance<DiffusionProfileSettings>(),
-                ScriptableObject.CreateInstance<DiffusionProfileSettings>(),
-                ScriptableObject.CreateInstance<DiffusionProfileSettings>(),
-            };
-
-#pragma warning disable 618 // Type or member is obsolete
-            instance.m_ObsoleteDiffusionProfileSettingsList = profiles;
-#pragma warning restore 618
-
-            instance.Migrate();
-
-            // Check that the list is now on the Volume Component of the Default Volume Profile
-            var migratedDiffusionProfileList = VolumeUtils.GetOrCreateDiffusionProfileList(instance.volumeProfile);
-            Assert.AreEqual(profiles, migratedDiffusionProfileList.diffusionProfiles.value);
-
-            foreach (var p in profiles)
-                ScriptableObject.DestroyImmediate(p);
-
-            ScriptableObject.DestroyImmediate(instance);
-        }
-
-        [Test]
         public void RegisterReferencedDiffusionProfiles()
         {
-            m_PipelineSettings.autoRegisterDiffusionProfiles = true;
+            GraphicsSettings.GetRenderPipelineSettings<DiffusionProfileDefaultSettings>().autoRegister = true;
             m_List.ReplaceWithArray(Array.Empty<DiffusionProfileSettings>());
 
             var materialPath = $"Assets/Temp/{nameof(DiffusionProfileTests)}/{nameof(DiffusionProfile_AutoRegister)}/Material.mat";

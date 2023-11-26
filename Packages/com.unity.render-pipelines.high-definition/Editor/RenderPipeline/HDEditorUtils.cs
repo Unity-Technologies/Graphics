@@ -5,9 +5,8 @@ using System.Linq;
 using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
-using UnityEditor.ShaderGraph;
 using UnityEngine.UIElements;
-using System.Runtime.CompilerServices;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -363,7 +362,7 @@ namespace UnityEditor.Rendering.HighDefinition
         internal static void FrameSettingsHelpBox(HDCamera hdCamera, FrameSettingsField field, string displayName)
         {
             var data = HDUtils.TryGetAdditionalCameraDataOrDefault(hdCamera.camera);
-            var defaults = HDRenderPipelineGlobalSettings.instance.GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
+            var defaults = GraphicsSettings.GetRenderPipelineSettings<RenderingPathFrameSettings>().GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
 
             var type = MessageType.Warning;
             var attribute = OverridableFrameSettingsArea.GetFieldAttribute(field);

@@ -236,17 +236,20 @@ namespace UnityEditor.Rendering.Universal
         // Retrieves the global and platform settings used in the project...
         private static void GetGlobalAndPlatformSettings(bool isDevelopmentBuild)
         {
-            UniversalRenderPipelineGlobalSettings globalSettings = UniversalRenderPipelineGlobalSettings.instance;
-            if (globalSettings)
+            if (GraphicsSettings.TryGetRenderPipelineSettings<ShaderStrippingSetting>(out var shaderStrippingSettings))
             {
-                s_StripUnusedPostProcessingVariants = globalSettings.stripUnusedPostProcessingVariants;
-                s_StripDebugDisplayShaders = !isDevelopmentBuild || globalSettings.stripDebugVariants;
-                s_StripUnusedVariants = globalSettings.stripUnusedVariants;
-                s_StripScreenCoordOverrideVariants = globalSettings.stripScreenCoordOverrideVariants;
+                s_StripDebugDisplayShaders = !isDevelopmentBuild || shaderStrippingSettings.stripRuntimeDebugShaders;
             }
             else
             {
                 s_StripDebugDisplayShaders = true;
+            }
+
+            if (GraphicsSettings.TryGetRenderPipelineSettings<URPShaderStrippingSetting>(out var urpShaderStrippingSettings))
+            {
+                s_StripUnusedPostProcessingVariants = urpShaderStrippingSettings.stripUnusedPostProcessingVariants;
+                s_StripUnusedVariants               = urpShaderStrippingSettings.stripUnusedVariants;
+                s_StripScreenCoordOverrideVariants  = urpShaderStrippingSettings.stripScreenCoordOverrideVariants;
             }
 
             #if XR_MANAGEMENT_4_0_1_OR_NEWER

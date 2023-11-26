@@ -41,17 +41,15 @@ namespace UnityEditor.Rendering.Universal
 
         void OnUndoRedoPerformed()
         {
-            if (target is UniversalRenderPipelineGlobalSettings settings)
+            var settings = GraphicsSettings.GetRenderPipelineSettings<URPDefaultVolumeProfileSettings>();
+            if (settings.volumeProfile != VolumeManager.instance.globalDefaultProfile)
             {
-                if (settings.volumeProfile != VolumeManager.instance.globalDefaultProfile)
-                {
-                    VolumeProfileUtils.UpdateGlobalDefaultVolumeProfile<UniversalRenderPipeline>(settings.volumeProfile);
-                    DestroyDefaultVolumeProfileEditor();
-                }
-                else
-                {
-                    VolumeManager.instance.OnVolumeProfileChanged(settings.volumeProfile);
-                }
+                VolumeProfileUtils.UpdateGlobalDefaultVolumeProfile<UniversalRenderPipeline>(settings.volumeProfile);
+                DestroyDefaultVolumeProfileEditor();
+            }
+            else
+            {
+                VolumeManager.instance.OnVolumeProfileChanged(settings.volumeProfile);
             }
         }
 
@@ -67,7 +65,18 @@ namespace UnityEditor.Rendering.Universal
         {
             var root = new VisualElement();
 
-            root.Add(new IMGUIContainer(() => m_SerializedGlobalSettings.serializedObject.Update()));
+            root.Add(new IMGUIContainer(() =>
+            {
+                if (m_SerializedGlobalSettings == null ||
+                    m_SerializedGlobalSettings.serializedObject == null ||
+                    m_SerializedGlobalSettings.serializedObject.targetObject == null)
+                {
+                    SettingsService.NotifySettingsProviderChanged();
+                    return;
+                }
+
+                m_SerializedGlobalSettings.serializedObject.Update();
+            }));
 
             root.Add(CreateVolumeProfileSection());
             root.Add(UniversalRenderPipelineGlobalSettingsUI.CreateImguiSections(m_SerializedGlobalSettings, this));
@@ -147,13 +156,14 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUIUtility.labelWidth = UniversalRenderPipelineGlobalSettingsUI.Styles.defaultVolumeLabelWidth;
 
                 var globalSettings = serialized.serializedObject.targetObject as UniversalRenderPipelineGlobalSettings;
+                var defaultVolumeProfileSettings = GraphicsSettings.GetRenderPipelineSettings<URPDefaultVolumeProfileSettings>();
 
                 bool expanded = m_DefaultVolumeProfileFoldoutExpanded.value;
                 var previousDefaultVolumeProfileAsset = serialized.defaultVolumeProfile.objectReferenceValue;
                 VolumeProfile defaultVolumeProfileAsset = RenderPipelineGlobalSettingsUI.DrawVolumeProfileAssetField(
                     serialized.defaultVolumeProfile,
                     UniversalRenderPipelineGlobalSettingsUI.Styles.defaultVolumeProfileLabel,
-                    getOrCreateVolumeProfile: () => globalSettings.GetOrCreateDefaultVolumeProfile(),
+                    getOrCreateVolumeProfile: () => globalSettings.GetOrCreateDefaultVolumeProfile(defaultVolumeProfileSettings.volumeProfile),
                     ref expanded
                 );
                 m_DefaultVolumeProfileFoldoutExpanded.value = expanded;
@@ -184,17 +194,14 @@ namespace UnityEditor.Rendering.Universal
             SerializedUniversalRenderPipelineGlobalSettings serialized,
             DefaultVolumeProfileEditor defaultVolumeProfileEditor)
         {
-            var globalSettings = serialized.serializedObject.targetObject as UniversalRenderPipelineGlobalSettings;
-
-            VolumeProfileUtils.OnVolumeProfileContextClick(position, globalSettings.volumeProfile, defaultVolumeProfileEditor.allEditors,
+            VolumeProfileUtils.OnVolumeProfileContextClick(position, serialized.defaultVolumeProfile.objectReferenceValue as VolumeProfile, defaultVolumeProfileEditor.allEditors,
                 overrideStateOnReset: true,
                 defaultVolumeProfilePath: "Assets/VolumeProfile_Default.asset",
                 onNewVolumeProfileCreated: volumeProfile =>
                 {
-                    Undo.RecordObject(globalSettings, "Set Global Settings Volume Profile");
-                    globalSettings.volumeProfile = volumeProfile;
+                    serialized.defaultVolumeProfile.objectReferenceValue = volumeProfile;
+                    serialized.serializedObject.ApplyModifiedProperties();
                     VolumeProfileUtils.UpdateGlobalDefaultVolumeProfile<UniversalRenderPipeline>(volumeProfile);
-                    EditorUtility.SetDirty(globalSettings);
                 },
                 onComponentEditorsExpandedCollapsed: defaultVolumeProfileEditor.RebuildListViews);
         }

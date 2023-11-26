@@ -1,6 +1,7 @@
 using System; //Type
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using UnityEditorInternal; //ReorderableList
 using UnityEngine; //ScriptableObject
 using UnityEngine.Rendering; //CoreUtils.Destroy
@@ -22,19 +23,18 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty renderingLayerNames;
         internal ReorderableList renderingLayerNamesList;
 
-        public SerializedProperty lensAttenuation;
-        public SerializedProperty colorGradingSpace;
-        public SerializedProperty specularFade;
-        public SerializedProperty autoRegisterDiffusionProfiles;
-
-        public SerializedProperty analyticDerivativeEmulation;
-        public SerializedProperty analyticDerivativeDebugOutput;
-
-        public SerializedProperty rendererListCulling;
-
-        public SerializedProperty apvScenesData;
-
+        public SerializedProperty serializedShaderStrippingSettings;
+        public SerializedProperty serializedRenderingPathProperty;
         public SerializedProperty serializedCustomPostProcessOrdersSettings;
+
+        public class MiscSettingsItem
+        {
+            public SerializedProperty serializedProperty;
+            public string displayName;
+            public string tooltip;
+        }
+
+        public List<MiscSettingsItem> miscSectionSerializedProperties = new();
 
         private List<HDRenderPipelineGlobalSettings> serializedSettings = new List<HDRenderPipelineGlobalSettings>();
 
@@ -54,14 +54,7 @@ namespace UnityEditor.Rendering.HighDefinition
             renderPipelineResources = serializedObject.FindProperty("m_RenderPipelineResources");
             renderPipelineRayTracingResources = serializedObject.FindProperty("m_RenderPipelineRayTracingResources");
 
-            var serializedRenderingPathProperty = serializedObject.FindProperty("m_RenderingPath");
-            if (serializedRenderingPathProperty == null)
-                throw new Exception($"Unable to find m_RenderingPath property on object {typeof(HDRenderPipelineGlobalSettings)}");
-
-            serializedCustomPostProcessOrdersSettings = serializedObject.FindProperty("m_CustomPostProcessOrdersSettings");
-
-            defaultVolumeProfile = serializedObject.FindProperty("m_DefaultVolumeProfile");
-            lookDevVolumeProfile = serializedObject.FindProperty("m_LookDevVolumeProfile");
+            InitializeRenderPipelineGraphicsSettingsProperties(serializedObject);
 
             defaultRenderingLayerMask = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.defaultRenderingLayerMask);
             renderingLayerNames = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.renderingLayerNames);
@@ -88,19 +81,89 @@ namespace UnityEditor.Rendering.HighDefinition
                     list.serializedProperty.GetArrayElementAtIndex(index).stringValue = HDRenderPipelineGlobalSettings.GetDefaultLayerName(index);
                 },
             };
+        }
 
-            // HDRP
-            lensAttenuation = serializedObject.FindProperty("lensAttenuationMode");
-            colorGradingSpace = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.colorGradingSpace);
-            rendererListCulling = serializedObject.FindProperty("rendererListCulling");
+        private void InitializeRenderPipelineGraphicsSettingsProperties(SerializedObject serializedObject)
+        {
+            var renderPipelineGraphicsSettingsContainerSerializedProperty = serializedObject.FindProperty("m_Settings.m_SettingsList");
+            if (renderPipelineGraphicsSettingsContainerSerializedProperty == null)
+                throw new Exception(
+                    $"Unable to find m_Settings.m_SettingsList property on object from type {typeof(RenderPipelineGraphicsSettingsContainer)}");
 
-            specularFade               = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.specularFade);
-            autoRegisterDiffusionProfiles = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.autoRegisterDiffusionProfiles);
+            var serializedRenderPipelineGraphicsSettingsArray =
+                renderPipelineGraphicsSettingsContainerSerializedProperty.FindPropertyRelative("m_List");
 
-            analyticDerivativeEmulation = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.analyticDerivativeEmulation);
-            analyticDerivativeDebugOutput = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.analyticDerivativeDebugOutput);
+            for (int i = 0; i < serializedRenderPipelineGraphicsSettingsArray.arraySize; i++)
+            {
+                var currentElementProperty = serializedRenderPipelineGraphicsSettingsArray.GetArrayElementAtIndex(i);
+                var type = currentElementProperty.boxedValue.GetType();
 
-            apvScenesData = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.apvScenesData);
+                // skip resources
+                if (typeof(IRenderPipelineResources).IsAssignableFrom(type))
+                    continue;
+
+                if (type == typeof(CustomPostProcessOrdersSettings))
+                {
+                    serializedCustomPostProcessOrdersSettings = currentElementProperty;
+                    continue;
+                }
+
+                if (type == typeof(ShaderStrippingSetting))
+                {
+                    serializedShaderStrippingSettings = currentElementProperty;
+                    continue;
+                }
+
+                if (type == typeof(RenderingPathFrameSettings))
+                {
+                    serializedRenderingPathProperty = currentElementProperty;
+                    continue;
+                }
+
+                if (type == typeof(HDRPDefaultVolumeProfileSettings))
+                {
+                    defaultVolumeProfile = currentElementProperty.FindPropertyRelative("m_VolumeProfile");
+                    continue;
+                }
+
+                if (type == typeof(LookDevVolumeProfileSettings))
+                {
+                    lookDevVolumeProfile = currentElementProperty.FindPropertyRelative("m_VolumeProfile");
+                    continue;
+                }
+
+                // Add everything else to misc section
+                void AddMiscProperty(string propertyName)
+                {
+                    FieldInfo fieldInfo = type.GetField(propertyName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+                    InspectorNameAttribute inspectorNameAttribute = fieldInfo.GetCustomAttribute<InspectorNameAttribute>();
+                    string displayName = inspectorNameAttribute?.displayName;
+                    TooltipAttribute tooltipAttribute = fieldInfo.GetCustomAttribute<TooltipAttribute>();
+                    string tooltip = tooltipAttribute?.tooltip;
+                    miscSectionSerializedProperties.Add(new MiscSettingsItem
+                    {
+                        serializedProperty = currentElementProperty.FindPropertyRelative(propertyName),
+                        displayName = displayName,
+                        tooltip = tooltip
+                    });
+                }
+
+                if (type == typeof(LensSettings))
+                    AddMiscProperty("m_LensAttenuationMode");
+                else if (type == typeof(ColorGradingSettings))
+                    AddMiscProperty("m_ColorGradingSpace");
+                else if (type == typeof(RenderGraphSettings))
+                    AddMiscProperty("m_DynamicRenderPassCulling");
+                else if (type == typeof(SpecularFadeSettings))
+                    AddMiscProperty("m_SpecularFade");
+                else if (type == typeof(DiffusionProfileDefaultSettings))
+                    AddMiscProperty("m_AutoRegisterDiffusionProfiles");
+                else if (type == typeof(AnalyticDerivativeSettings))
+                {
+                    AddMiscProperty("m_AnalyticDerivativeEmulation");
+                    AddMiscProperty("m_AnalyticDerivativeDebugOutput");
+                }
+            }
         }
     }
 }

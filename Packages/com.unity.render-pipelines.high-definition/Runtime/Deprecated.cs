@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.Serialization;
 
@@ -488,6 +489,110 @@ namespace UnityEngine.Rendering.HighDefinition
 
     partial class HDRenderPipelineGlobalSettings
     {
+        #region Custom Post Processes Injections
+
+        [SerializeField, Obsolete("Keep for migration. #from(23.2)")]
+        private CustomPostProcessOrdersSettings m_CustomPostProcessOrdersSettings = new();
+
+        // List of custom post process Types that will be executed in the project, in the order of the list (top to back)
+        [SerializeField, Obsolete("Keep for migration. #from(23.2)")]
+        internal List<string> beforeTransparentCustomPostProcesses = new List<string>();
+        [SerializeField, Obsolete("Keep for migration. #from(23.2)")]
+        internal List<string> beforePostProcessCustomPostProcesses = new List<string>();
+        [SerializeField, Obsolete("Keep for migration. #from(23.2)")]
+        internal List<string> afterPostProcessBlursCustomPostProcesses = new List<string>();
+        [SerializeField, Obsolete("Keep for migration. #from(23.2)")]
+        internal List<string> afterPostProcessCustomPostProcesses = new List<string>();
+        [SerializeField, Obsolete("Keep for migration. #from(23.2)")]
+        internal List<string> beforeTAACustomPostProcesses = new List<string>();
+
+        #endregion
+
+        [SerializeField, Obsolete("Keep for Migration. #from(23.2)")] internal ShaderStrippingSetting m_ShaderStrippingSetting = new();
+
+#pragma warning disable 0414
+        [SerializeField, FormerlySerializedAs("shaderVariantLogLevel"), Obsolete("Keep for Migration. #from(23.2)")] internal ShaderVariantLogLevel m_ShaderVariantLogLevel = ShaderVariantLogLevel.Disabled;
+        [SerializeField, FormerlySerializedAs("supportRuntimeDebugDisplay"), Obsolete("Keep for Migration. #from(23.2)")] internal bool m_SupportRuntimeDebugDisplay = false;
+
+        [SerializeField, Obsolete("Keep for Migration. #from(23.2)")] internal bool m_ExportShaderVariants = true;
+        [SerializeField, Obsolete("Keep for Migration. #from(23.2)")] internal bool m_StripDebugVariants = false;
+#pragma warning restore 0414
+
+        [SerializeField]
+        [Obsolete("This field is not used anymore. #from(2023.2)")]
+        internal string DLSSProjectId = "000000";
+
+        [SerializeField]
+        [Obsolete("This field is not used anymore. #from(2023.2)")]
+        internal bool useDLSSCustomProjectId = false;
+
+        [SerializeField, Obsolete("Keep for Migration. #from(23.2)")]
+        internal bool supportProbeVolumes = false;
+
+        [Obsolete("Keep for Migration. #from(23.2)")]
+        public bool autoRegisterDiffusionProfiles = true;
+
+        [Obsolete("Keep for Migration. #from(23.2)")]
+        public bool analyticDerivativeEmulation = false;
+
+        [Obsolete("Keep for Migration. #from(23.2)")]
+        public bool analyticDerivativeDebugOutput = false;
+
+        [SerializeField]
+        [Obsolete("Keep for Migration. #from(23.2)")]
+        internal LensAttenuationMode lensAttenuationMode;
+
+        [SerializeField]
+        [Obsolete("Keep for Migration. #from(23.2)")]
+        internal ColorGradingSpace colorGradingSpace;
+
+        [SerializeField, FormerlySerializedAs("diffusionProfileSettingsList")]
+        [Obsolete("Keep for Migration. #from(23.2)")]
+        internal DiffusionProfileSettings[] m_ObsoleteDiffusionProfileSettingsList;
+
+        [SerializeField]
+        [Obsolete("Keep for Migration. #from(23.2)")]
+        internal bool specularFade;
+
+        [SerializeField]
+        [Obsolete("Keep for Migration. #from(23.2)")]
+        internal bool rendererListCulling;
+
+        [SerializeField, FormerlySerializedAs("m_DefaultVolumeProfile"), FormerlySerializedAs("m_VolumeProfileDefault")]
+        [Obsolete("Kept for migration. #from(2023.3)")]
+        internal VolumeProfile m_ObsoleteDefaultVolumeProfile;
+
+#if UNITY_EDITOR
+        [SerializeField, FormerlySerializedAs("m_LookDevVolumeProfile"), FormerlySerializedAs("VolumeProfileLookDev")]
+        [Obsolete("Kept for migration. #from(2023.3)")]
+        internal VolumeProfile m_ObsoleteLookDevVolumeProfile;
+#endif
+
+        #region Camera's FrameSettings
+        // To be able to turn on/off FrameSettings properties at runtime for debugging purpose without affecting the original one
+        // we create a runtime copy (m_ActiveFrameSettings that is used, and any parametrization is done on serialized frameSettings)
+        [SerializeField, FormerlySerializedAs("m_RenderingPathDefaultCameraFrameSettings"), Obsolete("Kept For Migration. #from(2023.2")]
+        FrameSettings m_ObsoleteRenderingPathDefaultCameraFrameSettings = FrameSettingsDefaults.Get(FrameSettingsRenderType.Camera);
+
+        [SerializeField, FormerlySerializedAs("m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings"), Obsolete("Kept For Migration. #from(2023.2")]
+        FrameSettings m_ObsoleteRenderingPathDefaultBakedOrCustomReflectionFrameSettings = FrameSettingsDefaults.Get(FrameSettingsRenderType.CustomOrBakedReflection);
+
+        [SerializeField, FormerlySerializedAs("m_RenderingPathDefaultRealtimeReflectionFrameSettings"), Obsolete("Kept For Migration. #from(2023.2")]
+        FrameSettings m_ObsoleteRenderingPathDefaultRealtimeReflectionFrameSettings = FrameSettingsDefaults.Get(FrameSettingsRenderType.RealtimeReflection);
+
+        [SerializeField, FormerlySerializedAs("m_RenderingPath"), Obsolete("Kept For Migration. #from(2023.2")]
+        internal RenderingPathFrameSettings m_ObsoleteRenderingPath = new();
+
+        [Obsolete("Kept For Migration. #from(2023.2")]
+        internal ref FrameSettings GetDefaultFrameSettings(FrameSettingsRenderType type)
+        {
+#pragma warning disable 618 // Type or member is obsolete
+            return ref m_ObsoleteRenderingPath.GetDefaultFrameSettings(type);
+#pragma warning restore 618
+        }
+
+        #endregion
+        
         [SerializeField, FormerlySerializedAs("m_RenderPipelineRayTracingResources"), Obsolete("Migrated to IRenderPipelineResources. #from(23.3)")]
         HDRenderPipelineRayTracingResources m_ObsoleteRenderPipelineRayTracingResources;
     }

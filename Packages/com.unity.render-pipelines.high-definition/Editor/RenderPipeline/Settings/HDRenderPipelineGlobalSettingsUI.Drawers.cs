@@ -12,6 +12,14 @@ namespace UnityEditor.Rendering.HighDefinition
 
     internal partial class HDRenderPipelineGlobalSettingsUI
     {
+        static void RenderPipelineGraphicsSettings_Drawer<T>(SerializedProperty property)
+        {
+            if (property == null)
+                EditorGUILayout.HelpBox($"Unable to find {typeof(T)}", MessageType.Error);
+            else
+                EditorGUILayout.PropertyField(property);
+        }
+
         public class DocumentationUrls
         {
             public static readonly string k_Volumes = "Volumes";
@@ -84,7 +92,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void DrawFrameSettings(SerializedHDRenderPipelineGlobalSettings serialized, Editor owner)
         {
-            EditorGUILayout.PropertyField(serialized.serializedObject.FindProperty("m_RenderingPath"));
+            RenderPipelineGraphicsSettings_Drawer<RenderingPathFrameSettings>(serialized.serializedRenderingPathProperty);
         }
 
         #endregion // Frame Settings
@@ -98,7 +106,7 @@ namespace UnityEditor.Rendering.HighDefinition
         );
         static void DrawCustomPostProcess(SerializedHDRenderPipelineGlobalSettings serialized, Editor owner)
         {
-            EditorGUILayout.PropertyField(serialized.serializedCustomPostProcessOrdersSettings);
+            RenderPipelineGraphicsSettings_Drawer<CustomPostProcessOrdersSettings>(serialized.serializedCustomPostProcessOrdersSettings);
         }
 
         #endregion // Custom Post Processes
@@ -126,19 +134,19 @@ namespace UnityEditor.Rendering.HighDefinition
                 var oldWidth = EditorGUIUtility.labelWidth;
                 EditorGUIUtility.labelWidth = Styles.defaultVolumeLabelWidth;
 
-                HDRenderPipelineGlobalSettings globalSettings = serialized.serializedObject.targetObject as HDRenderPipelineGlobalSettings;
+                var lookDevVolumeProfileSettings = GraphicsSettings.GetRenderPipelineSettings<LookDevVolumeProfileSettings>();
+
                 VolumeProfile lookDevAsset = RenderPipelineGlobalSettingsUI.DrawVolumeProfileAssetField(
                     serialized.lookDevVolumeProfile,
                     Styles.lookDevVolumeProfileAssetLabel,
                     getOrCreateVolumeProfile: () =>
                     {
-                        var globalSettings = serialized.serializedObject.targetObject as HDRenderPipelineGlobalSettings;
-                        var volumeProfile = globalSettings.lookDevVolumeProfile;
-                        if (volumeProfile != null)
-                            return volumeProfile;
-
-                        return VolumeUtils.CopyVolumeProfileFromResourcesToAssets(GraphicsSettings
-                            .GetRenderPipelineSettings<HDRenderPipelineEditorAssets>().lookDevVolumeProfile);
+                        if (lookDevVolumeProfileSettings.volumeProfile == null)
+                        {
+                            lookDevVolumeProfileSettings.volumeProfile = VolumeUtils.CopyVolumeProfileFromResourcesToAssets(GraphicsSettings
+                                .GetRenderPipelineSettings<HDRenderPipelineEditorAssets>().lookDevVolumeProfile);
+                        }
+                        return lookDevVolumeProfileSettings.volumeProfile;
                     },
                     ref s_LookDevVolumeProfileFoldoutExpanded
                 );
@@ -167,20 +175,17 @@ namespace UnityEditor.Rendering.HighDefinition
             if (owner is not HDRenderPipelineGlobalSettingsEditor hdGlobalSettingsEditor)
                 return;
 
-            var editor = hdGlobalSettingsEditor.GetLookDevDefaultVolumeProfileEditor(
-                serialized.lookDevVolumeProfile.objectReferenceValue as VolumeProfile) as VolumeProfileEditor;
-            var componentEditors = editor != null ? editor.componentList.editors : null;
-            var globalSettings = serialized.serializedObject.targetObject as HDRenderPipelineGlobalSettings;
-
-            VolumeProfileUtils.OnVolumeProfileContextClick(pos, globalSettings.lookDevVolumeProfile, componentEditors,
+            var lookDevVolumeProfile = serialized.lookDevVolumeProfile.objectReferenceValue as VolumeProfile;
+            var editor = hdGlobalSettingsEditor.GetLookDevDefaultVolumeProfileEditor(lookDevVolumeProfile) as VolumeProfileEditor;
+			var componentEditors = editor != null ? editor.componentList.editors : null;
+			
+            VolumeProfileUtils.OnVolumeProfileContextClick(pos, lookDevVolumeProfile, componentEditors,
                 overrideStateOnReset: false,
                 defaultVolumeProfilePath: $"Assets/{HDProjectSettings.projectSettingsFolderPath}/LookDevProfile_Default.asset",
                 onNewVolumeProfileCreated: volumeProfile =>
                 {
-
-                    Undo.RecordObject(globalSettings, "Set Global Settings LookDev Profile");
-                    globalSettings.lookDevVolumeProfile = volumeProfile;
-                    EditorUtility.SetDirty(globalSettings);
+                    serialized.lookDevVolumeProfile.objectReferenceValue = volumeProfile;
+                    serialized.serializedObject.ApplyModifiedProperties();
                 });
         }
 
@@ -206,7 +211,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 using (new EditorGUI.IndentLevelScope())
                 {
                     EditorGUILayout.Space();
-                    EditorGUILayout.PropertyField(s.serializedObject.FindProperty("m_ShaderStrippingSetting"));
+                    RenderPipelineGraphicsSettings_Drawer<ShaderStrippingSetting>(s.serializedShaderStrippingSettings);
                 }
                 EditorGUIUtility.labelWidth = oldWidth;
             })
@@ -218,18 +223,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
             using (new EditorGUI.IndentLevelScope())
             {
-                EditorGUILayout.PropertyField(serialized.lensAttenuation, Styles.lensAttenuationModeContentLabel);
-                EditorGUILayout.PropertyField(serialized.colorGradingSpace, Styles.colorGradingSpaceContentLabel);
-                EditorGUILayout.PropertyField(serialized.rendererListCulling, Styles.rendererListCulling);
-                EditorGUILayout.PropertyField(serialized.specularFade, Styles.specularFade);
-
-                EditorGUILayout.PropertyField(serialized.autoRegisterDiffusionProfiles, Styles.autoRegisterDiffusionProfilesContentLabel);
-
-                EditorGUILayout.PropertyField(serialized.analyticDerivativeEmulation, Styles.analyticDerivativeEmulationContentLabel);
-                EditorGUILayout.PropertyField(serialized.analyticDerivativeDebugOutput, Styles.analyticDerivativeDebugOutputContentLabel);
-
+                foreach (var p in serialized.miscSectionSerializedProperties)
+                {
+                    EditorGUILayout.PropertyField(p.serializedProperty, EditorGUIUtility.TrTextContent(p.displayName, p.tooltip));
+                }
             }
             EditorGUIUtility.labelWidth = oldWidth;
+            EditorGUILayout.Space(5);
         }
 
         #endregion // Misc Settings

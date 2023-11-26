@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Unity.Mathematics;
 using UnityEngine.Experimental.Rendering;
@@ -436,7 +437,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 executionName = renderRequest.hdCamera.name,
                 currentFrameIndex = m_FrameCount,
-                rendererListCulling = m_GlobalSettings.rendererListCulling,
+                rendererListCulling = m_RenderGraphSettings.dynamicRenderPassCullingEnabled,
                 scriptableRenderContext = renderContext,
                 commandBuffer = commandBuffer
             };

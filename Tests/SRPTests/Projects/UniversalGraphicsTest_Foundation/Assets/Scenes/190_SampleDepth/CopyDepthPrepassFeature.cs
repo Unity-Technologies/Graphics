@@ -26,8 +26,8 @@ internal class ForceDepthPrepassFeature : ScriptableRendererFeature
             Debug.LogWarningFormat("{0}.AddRenderPasses(): Missing materials. {1} render pass will not be added.", GetType().Name, name);
             return;
         }
-
-        if (UniversalRenderPipeline.asset.enableRenderGraph)
+        
+        if (GraphicsSettings.GetRenderPipelineSettings<RenderGraphSettings>().useRenderGraph)
             renderer.EnqueuePass(copyDepthPasses);
         else
             copyDepthPasses.EnqueuePasses(renderer);

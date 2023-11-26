@@ -3,6 +3,7 @@ using System.Linq;
 
 #if UNITY_EDITOR
 using UnityEditor.Rendering;
+using UnityEngine.Assertions;
 #endif
 
 namespace UnityEngine.Rendering.HighDefinition
@@ -26,12 +27,13 @@ namespace UnityEngine.Rendering.HighDefinition
             DisableAutoRegistration,
             MoveDiffusionProfilesToVolume,
             GenericRenderingLayers,
-            SupportRuntimeDebugDisplayToStripRuntimeDebugShaders, 
-            EnableAmethystFeaturesByDefault, 
+            SupportRuntimeDebugDisplayToStripRuntimeDebugShaders,
+            EnableAmethystFeaturesByDefault,
             ShaderStrippingSettings,
             RenderingPathFrameSettings,
             CustomPostProcessOrdersSettings,
             SetUpIncluderRenderPipelineAssetGraphicsSettings,
+            ToRenderPipelineGraphicsSettings
         }
 
         static Version[] skipedStepWhenCreatedFromHDRPAsset = new Version[] { };
@@ -69,8 +71,10 @@ namespace UnityEngine.Rendering.HighDefinition
             }),
             MigrationStep.New(Version.DisableAutoRegistration, (HDRenderPipelineGlobalSettings data) =>
             {
+#pragma warning disable 618 // Type or member is obsolete
                 // Field is on for new projects, but disable it for existing projects
                 data.autoRegisterDiffusionProfiles = false;
+#pragma warning restore 618
             }),
             MigrationStep.New(Version.MoveDiffusionProfilesToVolume, (HDRenderPipelineGlobalSettings data) =>
             {
@@ -79,21 +83,22 @@ namespace UnityEngine.Rendering.HighDefinition
                     data.m_ObsoleteDiffusionProfileSettingsList.Length == 0)
                     return;
 
-                var defaultVolumeProfile = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineEditorAssets>().defaultVolumeProfile;
-                if (data.m_DefaultVolumeProfile != null && VolumeUtils.IsDefaultVolumeProfile(data.m_DefaultVolumeProfile, defaultVolumeProfile))
+                // Ensure the default volume exists at this point
+                var defaultVolumeProfile = GetOrCreateGraphicsSettings<HDRenderPipelineEditorAssets>(data).defaultVolumeProfile;
+                if (data.m_ObsoleteDefaultVolumeProfile != null && VolumeUtils.IsDefaultVolumeProfile(data.m_ObsoleteDefaultVolumeProfile, defaultVolumeProfile))
                 {
                     // Profile from resources is read only in released packages, so we have to copy it to the assets folder
-                    data.m_DefaultVolumeProfile = null;
+                    data.m_ObsoleteDefaultVolumeProfile = null;
                 }
 
-                if (data.m_DefaultVolumeProfile == null)
+                if (data.m_ObsoleteDefaultVolumeProfile == null)
                 {
-                    data.m_DefaultVolumeProfile = VolumeUtils.CopyVolumeProfileFromResourcesToAssets(defaultVolumeProfile);
+                    data.m_ObsoleteDefaultVolumeProfile = VolumeUtils.CopyVolumeProfileFromResourcesToAssets(defaultVolumeProfile);
                 }
 
-                UnityEditor.AssetDatabase.MakeEditable(UnityEditor.AssetDatabase.GetAssetPath(data.m_DefaultVolumeProfile));
+                UnityEditor.AssetDatabase.MakeEditable(UnityEditor.AssetDatabase.GetAssetPath(data.m_ObsoleteDefaultVolumeProfile));
 
-                VolumeUtils.TryAddDiffusionProfiles(data.m_DefaultVolumeProfile, data.m_ObsoleteDiffusionProfileSettingsList);
+                VolumeUtils.TryAddDiffusionProfiles(data.m_ObsoleteDefaultVolumeProfile, data.m_ObsoleteDiffusionProfileSettingsList);
 #pragma warning restore 618
             }),
             MigrationStep.New(Version.GenericRenderingLayers, (HDRenderPipelineGlobalSettings data) =>
@@ -126,7 +131,7 @@ namespace UnityEngine.Rendering.HighDefinition
             MigrationStep.New(Version.SupportRuntimeDebugDisplayToStripRuntimeDebugShaders, (HDRenderPipelineGlobalSettings data) =>
             {
 #pragma warning disable 618 // Type or member is obsolete
-                data.stripDebugVariants = !data.m_SupportRuntimeDebugDisplay; // Inversion logic
+                data.m_StripDebugVariants = !data.m_SupportRuntimeDebugDisplay; // Inversion logic
 #pragma warning restore 618
             }),
             MigrationStep.New(Version.EnableAmethystFeaturesByDefault, (HDRenderPipelineGlobalSettings data) =>
@@ -142,17 +147,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 data.m_ShaderStrippingSetting.shaderVariantLogLevel = data.m_ShaderVariantLogLevel;
                 data.m_ShaderStrippingSetting.stripRuntimeDebugShaders= data.m_StripDebugVariants;
 #pragma warning restore 618
-            })
-            ,
+            }),
             MigrationStep.New(Version.RenderingPathFrameSettings, (HDRenderPipelineGlobalSettings data) =>
             {
 #pragma warning disable 618 // Type or member is obsolete
-                data.m_RenderingPath.GetDefaultFrameSettings(FrameSettingsRenderType.Camera)                  = data.m_ObsoleteRenderingPathDefaultCameraFrameSettings;
-                data.m_RenderingPath.GetDefaultFrameSettings(FrameSettingsRenderType.CustomOrBakedReflection) = data.m_ObsoleteRenderingPathDefaultBakedOrCustomReflectionFrameSettings;
-                data.m_RenderingPath.GetDefaultFrameSettings(FrameSettingsRenderType.RealtimeReflection)      = data.m_ObsoleteRenderingPathDefaultRealtimeReflectionFrameSettings;
+                data.m_ObsoleteRenderingPath.GetDefaultFrameSettings(FrameSettingsRenderType.Camera) = data.m_ObsoleteRenderingPathDefaultCameraFrameSettings;
+                data.m_ObsoleteRenderingPath.GetDefaultFrameSettings(FrameSettingsRenderType.CustomOrBakedReflection) = data.m_ObsoleteRenderingPathDefaultBakedOrCustomReflectionFrameSettings;
+                data.m_ObsoleteRenderingPath.GetDefaultFrameSettings(FrameSettingsRenderType.RealtimeReflection) = data.m_ObsoleteRenderingPathDefaultRealtimeReflectionFrameSettings;
 #pragma warning restore 618
-            })
-            ,
+            }),
             MigrationStep.New(Version.CustomPostProcessOrdersSettings, (HDRenderPipelineGlobalSettings data) =>
             {
 #pragma warning disable 618 // Type or member is obsolete
@@ -165,6 +168,11 @@ namespace UnityEngine.Rendering.HighDefinition
             })
             ,
             MigrationStep.New(Version.SetUpIncluderRenderPipelineAssetGraphicsSettings, (HDRenderPipelineGlobalSettings data) => data.SetUpRPAssetIncluded())
+            ,
+            MigrationStep.New(Version.ToRenderPipelineGraphicsSettings, (HDRenderPipelineGlobalSettings data) =>
+            {
+                MigrateToRenderPipelineGraphicsSettings(data);
+            })
         );
         public bool Migrate()
             => k_Migration.Migrate(this);
@@ -190,8 +198,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             //2. Migrate obsolete assets (version DefaultSettingsAsAnAsset)
 #pragma warning disable 618 // Type or member is obsolete
-            assetToUpgrade.volumeProfile        = oldAsset.m_ObsoleteDefaultVolumeProfile;
-            assetToUpgrade.lookDevVolumeProfile = oldAsset.m_ObsoleteDefaultLookDevProfile;
+            assetToUpgrade.m_ObsoleteDefaultVolumeProfile = oldAsset.m_ObsoleteDefaultVolumeProfile;
+            assetToUpgrade.m_ObsoleteLookDevVolumeProfile = oldAsset.m_ObsoleteDefaultLookDevProfile;
 
             assetToUpgrade.m_ObsoleteRenderingPathDefaultCameraFrameSettings                  = oldAsset.m_ObsoleteFrameSettingsMovedToDefaultSettings;
             assetToUpgrade.m_ObsoleteRenderingPathDefaultBakedOrCustomReflectionFrameSettings = oldAsset.m_ObsoleteBakedOrCustomReflectionFrameSettingsMovedToDefaultSettings;
@@ -226,7 +234,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 assetToUpgrade.decalLayerName7 = oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteDecalLayerName7;
             }
 
-            assetToUpgrade.shaderVariantLogLevel = (ShaderVariantLogLevel) oldAsset.m_ObsoleteShaderVariantLogLevel;
+            assetToUpgrade.m_ShaderVariantLogLevel = (ShaderVariantLogLevel) oldAsset.m_ObsoleteShaderVariantLogLevel;
             assetToUpgrade.lensAttenuationMode = oldAsset.m_ObsoleteLensAttenuation;
 
             // we need to make sure the old diffusion profile had time to upgrade before moving it away
@@ -253,6 +261,136 @@ namespace UnityEngine.Rendering.HighDefinition
             assetToUpgrade.m_Version = MigrationDescription.LastVersion<Version>();
             UnityEditor.EditorUtility.SetDirty(assetToUpgrade);
         }
+
+        #region MigrateToRenderPipelineGraphicsSettings
+        public static void MigrateToRenderPipelineGraphicsSettings(HDRenderPipelineGlobalSettings data)
+        {
+            MigrateToShaderStrippingSetting(data);
+            MigrateRenderingPathFrameSettings(data);
+            MigrateMiscSection(data);
+            MigrateCustomPostProcessOrdersSettings(data);
+            MigrateDefaultVolumeProfile(data);
+            MigrateLookDevVolumeProfile(data);
+        }
+
+        private static T GetOrCreateGraphicsSettings<T>(HDRenderPipelineGlobalSettings data)
+            where T : class, IRenderPipelineGraphicsSettings, new()
+        {
+            T settings;
+
+            if (data.TryGet(typeof(T), out var baseSettings))
+            {
+                settings = baseSettings as T;
+            }
+            else
+            {
+                settings = new T();
+                data.Add(settings);
+            }
+
+            return settings;
+        }
+
+        public static void MigrateMiscSection(HDRenderPipelineGlobalSettings data)
+        {
+#pragma warning disable 618 // Type or member is obsolete
+            var diffusionProfileDefaultSettings = GetOrCreateGraphicsSettings<DiffusionProfileDefaultSettings>(data);
+            diffusionProfileDefaultSettings.autoRegister = data.autoRegisterDiffusionProfiles;
+
+            var specularFade = GetOrCreateGraphicsSettings<SpecularFadeSettings>(data);
+            specularFade.enabled = data.specularFade;
+
+            var colorGrading = GetOrCreateGraphicsSettings<ColorGradingSettings>(data);
+            colorGrading.space = data.colorGradingSpace;
+
+            var lens = GetOrCreateGraphicsSettings<LensSettings>(data);
+            lens.attenuationMode = data.lensAttenuationMode;
+
+            var analyticDerivative = GetOrCreateGraphicsSettings<AnalyticDerivativeSettings>(data);
+            analyticDerivative.debugOutput = data.analyticDerivativeDebugOutput;
+            analyticDerivative.emulation = data.analyticDerivativeEmulation;
+
+            var renderGraphSettings = GetOrCreateGraphicsSettings<RenderGraphSettings>(data);
+            renderGraphSettings.dynamicRenderPassCullingEnabled = data.rendererListCulling;
+#pragma warning restore 618
+        }
+
+        public static void MigrateDefaultVolumeProfile(HDRenderPipelineGlobalSettings data)
+        {
+#pragma warning disable 618 // Type or member is obsolete
+            if (data.m_ObsoleteDefaultVolumeProfile == null)
+            {
+                var defaultVolumeProfileFromResources = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineEditorAssets>().defaultVolumeProfile;
+                data.m_ObsoleteDefaultVolumeProfile = VolumeUtils.CopyVolumeProfileFromResourcesToAssets(defaultVolumeProfileFromResources);
+            }
+
+            var defaultVolumeProfileSettings = GetOrCreateGraphicsSettings<HDRPDefaultVolumeProfileSettings>(data);
+            defaultVolumeProfileSettings.volumeProfile = data.m_ObsoleteDefaultVolumeProfile;
+
+            data.m_ObsoleteDefaultVolumeProfile = null; // Discard old reference after it is migrated
+#pragma warning restore 618 // Type or member is obsolete
+        }
+
+        public static void MigrateLookDevVolumeProfile(HDRenderPipelineGlobalSettings data)
+        {
+#pragma warning disable 618 // Type or member is obsolete
+            if (data.m_ObsoleteLookDevVolumeProfile == null)
+            {
+                var lookDevProfileFromResources = GetOrCreateGraphicsSettings<HDRenderPipelineEditorAssets>(data).lookDevVolumeProfile;
+                data.m_ObsoleteLookDevVolumeProfile = VolumeUtils.CopyVolumeProfileFromResourcesToAssets(lookDevProfileFromResources);
+            }
+
+            var lookDevVolumeProfileSettings = GetOrCreateGraphicsSettings<LookDevVolumeProfileSettings>(data);
+            lookDevVolumeProfileSettings.volumeProfile = data.m_ObsoleteLookDevVolumeProfile;
+
+            data.m_ObsoleteLookDevVolumeProfile = null; // Discard old reference after it is migrated
+#pragma warning restore 618 // Type or member is obsolete
+        }
+
+        public static void MigrateToShaderStrippingSetting(HDRenderPipelineGlobalSettings data)
+        {
+            var shaderStrippingSetting = GetOrCreateGraphicsSettings<ShaderStrippingSetting>(data);
+
+#pragma warning disable 618 // Type or member is obsolete
+            shaderStrippingSetting.shaderVariantLogLevel = data.m_ShaderStrippingSetting.shaderVariantLogLevel;
+            shaderStrippingSetting.exportShaderVariants = data.m_ShaderStrippingSetting.exportShaderVariants;
+            shaderStrippingSetting.stripRuntimeDebugShaders = data.m_ShaderStrippingSetting.stripRuntimeDebugShaders;
+#pragma warning restore 618
+        }
+
+        static readonly FrameSettingsRenderType[] k_RenderPaths =
+            new[] { FrameSettingsRenderType.Camera, FrameSettingsRenderType.CustomOrBakedReflection, FrameSettingsRenderType.RealtimeReflection };
+
+        internal static void MigrateRenderingPathFrameSettings(HDRenderPipelineGlobalSettings data)
+        {
+            RenderingPathFrameSettings renderingPathFrameSettings = GetOrCreateGraphicsSettings<RenderingPathFrameSettings>(data);
+
+#pragma warning disable 618 // Type or member is obsolete
+            foreach (var path in k_RenderPaths)
+                renderingPathFrameSettings.GetDefaultFrameSettings(path) = data.m_ObsoleteRenderingPath.GetDefaultFrameSettings(path);
+#pragma warning restore 618
+        }
+        
+        internal static void MigrateCustomPostProcessOrdersSettings(HDRenderPipelineGlobalSettings data)
+        {
+            CustomPostProcessOrdersSettings customPostProcessOrdersSettings = GetOrCreateGraphicsSettings<CustomPostProcessOrdersSettings>(data);
+
+#pragma warning disable 618 // Type or member is obsolete
+            customPostProcessOrdersSettings.beforeTAACustomPostProcesses =
+                data.m_CustomPostProcessOrdersSettings.beforeTAACustomPostProcesses;
+            customPostProcessOrdersSettings.beforePostProcessCustomPostProcesses =
+                data.m_CustomPostProcessOrdersSettings.beforePostProcessCustomPostProcesses;
+            customPostProcessOrdersSettings.beforeTransparentCustomPostProcesses =
+                data.m_CustomPostProcessOrdersSettings.beforeTransparentCustomPostProcesses;
+            customPostProcessOrdersSettings.afterPostProcessBlursCustomPostProcesses =
+                data.m_CustomPostProcessOrdersSettings.afterPostProcessBlursCustomPostProcesses;
+            customPostProcessOrdersSettings.afterPostProcessCustomPostProcesses =
+                data.m_CustomPostProcessOrdersSettings.afterPostProcessCustomPostProcesses;
+#pragma warning restore 618
+        }
+        
+
+        #endregion
 
 #endif
     }

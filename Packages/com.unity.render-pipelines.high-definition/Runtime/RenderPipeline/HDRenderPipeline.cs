@@ -34,6 +34,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #region Global Settings
         private HDRenderPipelineGlobalSettings m_GlobalSettings;
+
+        private LensSettings m_LensSettings;
+        private SpecularFadeSettings m_SpecularFadeSettings;
+        private ColorGradingSettings m_ColorGradingSettings;
+        private RenderGraphSettings m_RenderGraphSettings;
+        private RenderingPathFrameSettings m_RenderingPathFrameSettings;
+        private CustomPostProcessOrdersSettings m_CustomPostProcessOrdersSettings;
+
         /// <summary>
         /// Accessor to the active Global Settings for the HD Render Pipeline.
         /// </summary>
@@ -445,6 +453,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_GlobalSettings = HDRenderPipelineGlobalSettings.instance;
 
+            m_LensSettings                    = GraphicsSettings.GetRenderPipelineSettings<LensSettings>();
+            m_SpecularFadeSettings            = GraphicsSettings.GetRenderPipelineSettings<SpecularFadeSettings>();
+            m_ColorGradingSettings            = GraphicsSettings.GetRenderPipelineSettings<ColorGradingSettings>();
+            m_RenderGraphSettings             = GraphicsSettings.GetRenderPipelineSettings<RenderGraphSettings>();
+            m_RenderingPathFrameSettings      = GraphicsSettings.GetRenderPipelineSettings<RenderingPathFrameSettings>();
+            m_CustomPostProcessOrdersSettings = GraphicsSettings.GetRenderPipelineSettings<CustomPostProcessOrdersSettings>();
             runtimeMaterials = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeMaterials>();
             runtimeShaders   = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeShaders>();
             runtimeAssets    = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeAssets>();
@@ -459,12 +473,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             SetRenderingFeatures();
 
-            var cameraFrameSettings = m_GlobalSettings.GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
-
-            // Initialize lod settings with the default frame settings. This will pull LoD values from the current quality level HDRP asset if necessary.
-            // This will make the LoD Group UI consistent with the scene view camera like it is for builtin pipeline.
-            QualitySettings.lodBias = cameraFrameSettings.GetResolvedLODBias(m_Asset);
-            QualitySettings.maximumLODLevel = cameraFrameSettings.GetResolvedMaximumLODLevel(m_Asset);
+            SetLodQualitySettings();
 
 #if UNITY_EDITOR
             //In case we are loading element in the asset pipeline (occurs when library is not fully constructed) the creation of the HDRenderPipeline is done at a time we cannot access resources.
@@ -583,7 +592,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_ClearStencilBufferMaterial = CoreUtils.CreateEngineMaterial(runtimeShaders.clearStencilBufferPS);
 
-            VolumeManager.instance.Initialize(m_GlobalSettings.volumeProfile, m_Asset.volumeProfile);
+            var defaultVolumeProfileSettings = GraphicsSettings.GetRenderPipelineSettings<HDRPDefaultVolumeProfileSettings>();
+            VolumeManager.instance.Initialize(defaultVolumeProfileSettings.volumeProfile, m_Asset.volumeProfile);
 
             InitializeDebug();
 
@@ -705,6 +715,16 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
             GPUInlineDebugDrawer.Initialize();
 #endif
+        }
+
+        private void SetLodQualitySettings()
+        {
+            var cameraFrameSettings = m_RenderingPathFrameSettings.GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
+
+            // Initialize lod settings with the default frame settings. This will pull LoD values from the current quality level HDRP asset if necessary.
+            // This will make the LoD Group UI consistent with the scene view camera like it is for builtin pipeline.
+            QualitySettings.lodBias = cameraFrameSettings.GetResolvedLODBias(m_Asset);
+            QualitySettings.maximumLODLevel = cameraFrameSettings.GetResolvedMaximumLODLevel(m_Asset);
         }
 
 #if UNITY_EDITOR
@@ -2140,14 +2160,8 @@ namespace UnityEngine.Rendering.HighDefinition
             runtimeTextures  = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeTextures>();
 
 #endif
-            if (m_GlobalSettings.lensAttenuationMode == LensAttenuationMode.ImperfectLens)
-            {
-                ColorUtils.s_LensAttenuation = 0.65f;
-            }
-            else if (m_GlobalSettings.lensAttenuationMode == LensAttenuationMode.PerfectLens)
-            {
-                ColorUtils.s_LensAttenuation = 0.78f;
-            }
+
+            ColorUtils.s_LensAttenuation = m_LensSettings.GetLensAttenuationValue();
 
             DecalSystem.instance.StartDecalUpdateJobs();
 
@@ -2440,7 +2454,6 @@ namespace UnityEngine.Rendering.HighDefinition
             EndFrameRendering(renderContext, cameras);
 #endif
         }
-
 
         /// <summary>
         /// Check whether RenderRequest type is supported
@@ -2895,9 +2908,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // Compute the FrameSettings actually used to draw the frame
             // FrameSettingsHistory do the same while keeping all step of FrameSettings aggregation in memory for DebugMenu
             if (m_FrameSettingsHistoryEnabled && camera.cameraType != CameraType.Preview && camera.cameraType != CameraType.Reflection)
-                FrameSettingsHistory.AggregateFrameSettings(ref currentFrameSettings, camera, additionalCameraData, m_Asset, null);
+                FrameSettingsHistory.AggregateFrameSettings(m_RenderingPathFrameSettings, ref currentFrameSettings, camera, additionalCameraData, m_Asset, null);
             else
-                FrameSettings.AggregateFrameSettings(ref currentFrameSettings, camera, additionalCameraData, m_Asset);
+                FrameSettings.AggregateFrameSettings(m_RenderingPathFrameSettings, ref currentFrameSettings, camera, additionalCameraData, m_Asset);
 
             // With the Frame Settings now properly set up, we can resolve the sample budget.
             currentFrameSettings.sssResolvedSampleBudget = currentFrameSettings.GetResolvedSssSampleBudget(m_Asset);

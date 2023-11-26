@@ -2,6 +2,9 @@
 // way to being deprecated and removed in future releases
 using System;
 using System.ComponentModel;
+using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -88,11 +91,11 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Previously returned the shader variant log level for this Render Pipeline Asset but is now deprecated.
         /// </summary>
-        [Obsolete("Use UniversalRenderPipelineGlobalSettings.instance.shaderVariantLogLevel", true)]
+        [Obsolete("Use GraphicsSettings.GetRenderPipelineSettings<ShaderStrippingSetting>().shaderVariantLogLevel instead.", true)]
         public ShaderVariantLogLevel shaderVariantLogLevel
         {
-            get { return (ShaderVariantLogLevel)UniversalRenderPipelineGlobalSettings.instance.shaderVariantLogLevel; }
-            set { UniversalRenderPipelineGlobalSettings.instance.shaderVariantLogLevel = (Rendering.ShaderVariantLogLevel)value; }
+            get => (ShaderVariantLogLevel)GraphicsSettings.GetRenderPipelineSettings<ShaderStrippingSetting>().shaderVariantLogLevel;
+            set => GraphicsSettings.GetRenderPipelineSettings<ShaderStrippingSetting>().shaderVariantLogLevel = (Rendering.ShaderVariantLogLevel)value;
         }
 #pragma warning restore 618 // Obsolete warning
 
@@ -493,4 +496,32 @@ namespace UnityEngine.Rendering.Universal
         }
     }
 #endif
+
+    partial class UniversalRenderPipelineGlobalSettings
+    {
+#pragma warning disable 0414
+        [SerializeField, Obsolete("Keep for migration. #from(23.2)")] internal ShaderStrippingSetting m_ShaderStrippingSetting = new();
+        [SerializeField, Obsolete("Keep for migration. #from(23.2)")] internal URPShaderStrippingSetting m_URPShaderStrippingSetting = new();
+        [SerializeField, Obsolete("Keep for migration. #from(23.2)")] internal Rendering.ShaderVariantLogLevel m_ShaderVariantLogLevel = Rendering.ShaderVariantLogLevel.Disabled;
+        [SerializeField, Obsolete("Keep for migration. #from(23.2)")] internal bool m_ExportShaderVariants = true;
+        [SerializeField, Obsolete("Keep for migration. #from(23.2)")] internal bool m_StripDebugVariants = true;
+        [SerializeField, Obsolete("Keep for migration. #from(23.2)")] internal bool m_StripUnusedPostProcessingVariants = false;
+        [SerializeField, Obsolete("Keep for migration. #from(23.2)")] internal bool m_StripUnusedVariants = true;
+        [SerializeField, Obsolete("Keep for migration. #from(23.2)")] internal bool m_StripScreenCoordOverrideVariants = true;
+#pragma warning restore 0414
+
+        /// <summary>
+        /// If this property is true, Unity strips the LOD variants if the LOD cross-fade feature (UniversalRenderingPipelineAsset.enableLODCrossFade) is disabled.
+        /// </summary>
+        [Obsolete("No longer used as Shader Prefiltering automatically strips out unused LOD Crossfade variants. Please use the LOD Crossfade setting in the URP Asset to disable the feature if not used. #from(2023.1)", false)]
+        public bool stripUnusedLODCrossFadeVariants { get => false; set { } }
+
+        /// <summary>
+        /// Controls whether debug display shaders for Rendering Debugger are available in Player builds.
+        /// </summary>
+        [Obsolete("Please use stripRuntimeDebugShaders instead. #from(23.1)", false)]
+        public bool supportRuntimeDebugDisplay = false;
+
+        [SerializeField, Obsolete("Keep for migration. #from(23.2)")] internal bool m_EnableRenderGraph;
+    }
 }

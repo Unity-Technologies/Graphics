@@ -316,6 +316,10 @@ namespace UnityEngine.Rendering
             if (!GraphicsSettings.TryGetRenderPipelineSettings<ProbeVolumeDebugResources>(out var debugResources))
                 return false;
 
+#if !UNITY_EDITOR // On non editor builds, we need to check if the standalone build contains debug shaders
+            if (GraphicsSettings.TryGetRenderPipelineSettings<ShaderStrippingSetting>(out var shaderStrippingSetting) && shaderStrippingSetting.stripRuntimeDebugShaders)
+                return false;
+#endif
             m_DebugMaterial = CoreUtils.CreateEngineMaterial(debugResources.probeVolumeDebugShader);
             m_DebugMaterial.enableInstancing = true;
 

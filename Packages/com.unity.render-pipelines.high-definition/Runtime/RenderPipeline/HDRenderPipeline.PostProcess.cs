@@ -429,9 +429,8 @@ namespace UnityEngine.Rendering.HighDefinition
                    HDROutputActiveForCameraType(hdCamera).GetHashCode()
 #if UNITY_EDITOR
                    * 23
-                   + m_GlobalSettings.colorGradingSpace.GetHashCode() * 23 +
+                   + m_ColorGradingSettings.space.GetHashCode() * 23 +
                    + UnityEditor.PlayerSettings.hdrBitDepth.GetHashCode()
-
 #endif
                    ;
         }
@@ -540,8 +539,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (m_PostProcessEnabled || m_AntialiasingFS)
             {
-                var customPostProcessingOrders = m_GlobalSettings.customPostProcessOrdersSettings;
-
                 source = StopNaNsPass(renderGraph, hdCamera, source);
 
                 source = DynamicExposurePass(renderGraph, hdCamera, source);
@@ -550,8 +547,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 source = DoFSR2Passes(renderGraph, hdCamera, DynamicResolutionHandler.UpsamplerScheduleType.BeforePost, source, depthBuffer, motionVectors);
 
-                source = CustomPostProcessPass(renderGraph, hdCamera, source, depthBuffer, normalBuffer, motionVectors, customPostProcessingOrders.beforeTAACustomPostProcesses, HDProfileId.CustomPostProcessBeforeTAA);
-
+                source = CustomPostProcessPass(renderGraph, hdCamera, source, depthBuffer, normalBuffer, motionVectors, m_CustomPostProcessOrdersSettings.beforeTAACustomPostProcesses, HDProfileId.CustomPostProcessBeforeTAA);
 
                 // Temporal anti-aliasing goes first
                 if (m_AntialiasingFS)
@@ -578,7 +574,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 ComposeLines(renderGraph, hdCamera, source, prepassOutput.depthBuffer, motionVectors, (int)LineRendering.CompositionMode.AfterTemporalAntialiasing);
 
-                source = BeforeCustomPostProcessPass(renderGraph, hdCamera, source, depthBuffer, normalBuffer, motionVectors, customPostProcessingOrders.beforePostProcessCustomPostProcesses, HDProfileId.CustomPostProcessBeforePP);
+                source = BeforeCustomPostProcessPass(renderGraph, hdCamera, source, depthBuffer, normalBuffer, motionVectors, m_CustomPostProcessOrdersSettings.beforePostProcessCustomPostProcesses, HDProfileId.CustomPostProcessBeforePP);
 
                 source = DepthOfFieldPass(renderGraph, hdCamera, depthBuffer, motionVectors, depthBufferMipChain, source, depthMinMaxAvgMSAA, prepassOutput.stencilBuffer);
 
@@ -597,7 +593,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // blurred bokeh rather than out of focus motion blur)
                 source = MotionBlurPass(renderGraph, hdCamera, depthBuffer, motionVectors, source);
 
-                source = CustomPostProcessPass(renderGraph, hdCamera, source, depthBuffer, normalBuffer, motionVectors, customPostProcessingOrders.afterPostProcessBlursCustomPostProcesses, HDProfileId.CustomPostProcessAfterPPBlurs);
+                source = CustomPostProcessPass(renderGraph, hdCamera, source, depthBuffer, normalBuffer, motionVectors, m_CustomPostProcessOrdersSettings.afterPostProcessBlursCustomPostProcesses, HDProfileId.CustomPostProcessAfterPPBlurs);
 
                 // Panini projection is done as a fullscreen pass after all depth-based effects are
                 // done and before bloom kicks in
@@ -628,7 +624,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 source = UberPass(renderGraph, hdCamera, logLutOutput, bloomTexture, source);
                 PushFullScreenDebugTexture(renderGraph, source, hdCamera.postProcessRTScales, FullScreenDebugMode.ColorLog);
 
-                source = CustomPostProcessPass(renderGraph, hdCamera, source, depthBuffer, normalBuffer, motionVectors, customPostProcessingOrders.afterPostProcessCustomPostProcesses, HDProfileId.CustomPostProcessAfterPP);
+                source = CustomPostProcessPass(renderGraph, hdCamera, source, depthBuffer, normalBuffer, motionVectors, m_CustomPostProcessOrdersSettings.afterPostProcessCustomPostProcesses, HDProfileId.CustomPostProcessAfterPP);
 
                 source = FXAAPass(renderGraph, hdCamera, source);
 
@@ -1518,7 +1514,7 @@ namespace UnityEngine.Rendering.HighDefinition
             using (new RenderGraphProfilingScope(renderGraph, ProfilingSampler.Get(HDProfileId.CustomPostProcessAfterOpaqueAndSky)))
             {
                 TextureHandle source = colorBuffer;
-                bool needBlitToColorBuffer = DoCustomPostProcess(renderGraph, hdCamera, ref source, depthBuffer, normalBuffer, motionVectors, m_GlobalSettings.customPostProcessOrdersSettings.beforeTransparentCustomPostProcesses);
+                bool needBlitToColorBuffer = DoCustomPostProcess(renderGraph, hdCamera, ref source, depthBuffer, normalBuffer, motionVectors, m_CustomPostProcessOrdersSettings.beforeTransparentCustomPostProcesses);
 
                 if (needBlitToColorBuffer)
                 {
@@ -4506,10 +4502,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 GetHDROutputParameters(HDRDisplayInformationForCamera(hdCamera), HDRDisplayColorGamutForCamera(hdCamera), m_Tonemapping, out passData.hdroutParameters, out passData.hdroutParameters2);
             }
 
-            if (m_GlobalSettings.colorGradingSpace == ColorGradingSpace.sRGB)
-                passData.builderCS.EnableKeyword("GRADE_IN_SRGB");
-            else if (m_GlobalSettings.colorGradingSpace == ColorGradingSpace.AcesCg)
-                passData.builderCS.EnableKeyword("GRADE_IN_ACESCG");
+            passData.builderCS.EnableKeyword(m_ColorGradingSettings.GetColorGradingSpaceKeyword());
 
             passData.lutSize = m_LutSize;
 

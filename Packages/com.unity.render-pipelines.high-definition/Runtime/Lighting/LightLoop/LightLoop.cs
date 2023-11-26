@@ -2047,7 +2047,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Misc
             cb._EnableSSRefraction = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Refraction) ? 1u : 0u;
-            cb._SpecularFade       = m_GlobalSettings.specularFade ? 1 : 0;
+            cb._SpecularFade       = m_SpecularFadeSettings.enabled ? 1 : 0;
         }
 
         void PushLightDataGlobalParams(CommandBuffer cmd)

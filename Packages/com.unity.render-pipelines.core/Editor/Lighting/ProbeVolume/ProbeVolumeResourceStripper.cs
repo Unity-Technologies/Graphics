@@ -17,8 +17,8 @@ namespace UnityEditor.Rendering
         public bool CanRemoveSettings(ProbeVolumeDebugResources settings)
         {
             var stripDebugVariants = false;
-            if (GraphicsSettings.TryGetCurrentRenderPipelineGlobalSettings(out var globalSettings) && globalSettings is IShaderVariantSettings shaderVariantSettings)
-                stripDebugVariants = shaderVariantSettings.stripDebugVariants;
+            if (GraphicsSettings.TryGetRenderPipelineSettings<ShaderStrippingSetting>(out var shaderVariantSettings))
+                stripDebugVariants = shaderVariantSettings.stripRuntimeDebugShaders;
 
             return stripDebugVariants || !ProbeVolumeGlobalSettingsStripper.ProbeVolumeSupportedForBuild();
         }

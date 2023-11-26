@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using UnityEditorInternal;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
@@ -17,6 +19,49 @@ namespace UnityEditor.Rendering.Universal
         public ReorderableList renderingLayerNameList;
 
         public SerializedProperty enableRenderGraph;
+        public SerializedProperty serializedShaderStrippingSettings;
+        public SerializedProperty serializedURPShaderStrippingSettings;
+
+        private void InitializeRenderPipelineGraphicsSettingsProperties(SerializedObject serializedObject)
+        {
+            var renderPipelineGraphicsSettingsContainerSerializedProperty = serializedObject.FindProperty("m_Settings.m_SettingsList");
+            if (renderPipelineGraphicsSettingsContainerSerializedProperty == null)
+                throw new Exception(
+                    $"Unable to find m_Settings.m_SettingsList property on object from type {typeof(RenderPipelineGraphicsSettingsContainer)}");
+
+            var serializedRenderPipelineGraphicsSettingsArray =
+                renderPipelineGraphicsSettingsContainerSerializedProperty.FindPropertyRelative("m_List");
+
+            for (int i = 0; i < serializedRenderPipelineGraphicsSettingsArray.arraySize; i++)
+            {
+                var currentElementProperty = serializedRenderPipelineGraphicsSettingsArray.GetArrayElementAtIndex(i);
+                var type = currentElementProperty.boxedValue.GetType();
+
+                if (type == typeof(ShaderStrippingSetting))
+                {
+                    serializedShaderStrippingSettings = currentElementProperty;
+                    continue;
+                }
+
+                if (type == typeof(URPShaderStrippingSetting))
+                {
+                    serializedURPShaderStrippingSettings = currentElementProperty;
+                    continue;
+                }
+
+                if (type == typeof(URPDefaultVolumeProfileSettings))
+                {
+                    defaultVolumeProfile = currentElementProperty.FindPropertyRelative("m_VolumeProfile");
+                    continue;
+                }
+
+                if (type == typeof(RenderGraphSettings))
+                {
+                    enableRenderGraph = currentElementProperty.FindPropertyRelative("m_UseRenderGraph");
+                    continue;
+                }
+            }
+        }
 
         public SerializedUniversalRenderPipelineGlobalSettings(SerializedObject serializedObject)
         {
@@ -31,8 +76,6 @@ namespace UnityEditor.Rendering.Universal
                     throw new System.Exception($"Target object has an invalid object, objects must be of type {typeof(UniversalRenderPipelineGlobalSettings)}");
             }
 
-            defaultVolumeProfile = serializedObject.FindProperty("m_DefaultVolumeProfile");
-
             renderingLayerNames = serializedObject.FindProperty("m_RenderingLayerNames");
 
             renderingLayerNameList = new ReorderableList(serializedObject, renderingLayerNames, false, false, true, true)
@@ -43,7 +86,7 @@ namespace UnityEditor.Rendering.Universal
                 onAddCallback = OnAddElement,
             };
 
-            enableRenderGraph = serializedObject.FindProperty("m_EnableRenderGraph");
+            InitializeRenderPipelineGraphicsSettingsProperties(serializedObject);
         }
 
         void OnAddElement(ReorderableList list)

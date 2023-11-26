@@ -69,7 +69,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 => "Scene Camera";
 
             public MinimalHistoryContainer()
-                => m_FrameSettingsHistory.debug = HDRenderPipelineGlobalSettings.instance?.GetDefaultFrameSettings(FrameSettingsRenderType.Camera) ?? FrameSettingsDefaults.Get(FrameSettingsRenderType.Camera);
+            {
+                m_FrameSettingsHistory.debug = GraphicsSettings.TryGetRenderPipelineSettings<RenderingPathFrameSettings>(out var renderingPathFrameSettings)
+                    ? renderingPathFrameSettings.GetDefaultFrameSettings(FrameSettingsRenderType.Camera)
+                    : FrameSettingsDefaults.Get(FrameSettingsRenderType.Camera);
+            }
 
             Action IDebugData.GetReset()
             //caution: we actually need to retrieve the
@@ -129,11 +133,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="camera">The camera rendering.</param>
         /// <param name="additionalData">Additional data of the camera rendering.</param>
         /// <param name="hdrpAsset">HDRenderPipelineAsset contening supported features.</param>
-        public static void AggregateFrameSettings(ref FrameSettings aggregatedFrameSettings, Camera camera, HDAdditionalCameraData additionalData, HDRenderPipelineAsset hdrpAsset, HDRenderPipelineAsset defaultHdrpAsset)
+        public static void AggregateFrameSettings(RenderingPathFrameSettings defaultRenderingPathFrameSettings, ref FrameSettings aggregatedFrameSettings, Camera camera, HDAdditionalCameraData additionalData, HDRenderPipelineAsset hdrpAsset, HDRenderPipelineAsset defaultHdrpAsset)
         {
             if (hdrpAsset == null && defaultHdrpAsset == null)
                 return;
 
+            var type = additionalData != null ? additionalData.defaultFrameSettings : FrameSettingsRenderType.Camera;
             AggregateFrameSettings(
                 ref aggregatedFrameSettings,
                 camera,
@@ -141,7 +146,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 camera.cameraType == CameraType.SceneView ? sceneViewFrameSettingsContainer :
 #endif
                 additionalData,
-                ref HDRenderPipelineGlobalSettings.instance.GetDefaultFrameSettings(additionalData?.defaultFrameSettings ?? FrameSettingsRenderType.Camera), //fallback on Camera for SceneCamera and PreviewCamera
+                ref defaultRenderingPathFrameSettings.GetDefaultFrameSettings(type), //fallback on Camera for SceneCamera and PreviewCamera
                 hdrpAsset != null ? hdrpAsset.currentPlatformRenderPipelineSettings : defaultHdrpAsset.currentPlatformRenderPipelineSettings
             );
         }
@@ -190,11 +195,12 @@ namespace UnityEngine.Rendering.HighDefinition
             historyContainer.frameSettingsHistory = history;
         }
 
-        static DebugUI.HistoryBoolField GenerateHistoryBoolField(IFrameSettingsHistoryContainer frameSettingsContainer, FrameSettingsField field, FrameSettingsFieldAttribute attribute)
+        static DebugUI.HistoryBoolField GenerateHistoryBoolField(RenderingPathFrameSettings defaulRenderingPathFrameSettings, IFrameSettingsHistoryContainer frameSettingsContainer, FrameSettingsField field, FrameSettingsFieldAttribute attribute)
         {
             string displayIndent = "";
             for (int indent = 0; indent < attribute.indentLevel; ++indent)
                 displayIndent += "  ";
+
             return new DebugUI.HistoryBoolField
             {
                 displayName = displayIndent + attribute.displayedName,
@@ -210,12 +216,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     () => frameSettingsContainer.frameSettingsHistory.sanitazed.IsEnabled(field),
                     () => frameSettingsContainer.frameSettingsHistory.overridden.IsEnabled(field),
-                    () => HDRenderPipelineGlobalSettings.instance.GetDefaultFrameSettings(frameSettingsContainer.frameSettingsHistory.defaultType).IsEnabled(field)
+                    () => defaulRenderingPathFrameSettings?.GetDefaultFrameSettings(frameSettingsContainer.frameSettingsHistory.defaultType).IsEnabled(field) ?? false
                 }
             };
         }
 
-        static DebugUI.HistoryEnumField GenerateHistoryEnumField(IFrameSettingsHistoryContainer frameSettingsContainer, FrameSettingsField field, FrameSettingsFieldAttribute attribute, Type autoEnum)
+        static DebugUI.HistoryEnumField GenerateHistoryEnumField(RenderingPathFrameSettings defaulRenderingPathFrameSettings, IFrameSettingsHistoryContainer frameSettingsContainer, FrameSettingsField field, FrameSettingsFieldAttribute attribute, Type autoEnum)
         {
             string displayIndent = "";
             for (int indent = 0; indent < attribute.indentLevel; ++indent)
@@ -242,7 +248,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     () => frameSettingsContainer.frameSettingsHistory.sanitazed.IsEnabled(field) ? 1 : 0,
                     () => frameSettingsContainer.frameSettingsHistory.overridden.IsEnabled(field) ? 1 : 0,
-                    () => HDRenderPipelineGlobalSettings.instance.GetDefaultFrameSettings(frameSettingsContainer.frameSettingsHistory.defaultType).IsEnabled(field) ? 1 : 0
+                    () => defaulRenderingPathFrameSettings
+                        .GetDefaultFrameSettings(frameSettingsContainer.frameSettingsHistory.defaultType).IsEnabled(field) ? 1 : 0
                 }
             };
         }
@@ -255,18 +262,22 @@ namespace UnityEngine.Rendering.HighDefinition
                 throw new ArgumentException("Unknown groupIndex");
 
             var area = new ObservableList<DebugUI.Widget>();
+
+            var defaulRenderingPathFrameSettings =
+                GraphicsSettings.GetRenderPipelineSettings<RenderingPathFrameSettings>();
+
             foreach (var field in attributesGroup[groupIndex])
             {
                 switch (field.Value.type)
                 {
                     case FrameSettingsFieldAttribute.DisplayType.BoolAsCheckbox:
-                        area.Add(GenerateHistoryBoolField(
+                        area.Add(GenerateHistoryBoolField(defaulRenderingPathFrameSettings,
                             frameSettingsContainer,
                             field.Key,
                             field.Value));
                         break;
                     case FrameSettingsFieldAttribute.DisplayType.BoolAsEnumPopup:
-                        area.Add(GenerateHistoryEnumField(
+                        area.Add(GenerateHistoryEnumField(defaulRenderingPathFrameSettings,
                             frameSettingsContainer,
                             field.Key,
                             field.Value,

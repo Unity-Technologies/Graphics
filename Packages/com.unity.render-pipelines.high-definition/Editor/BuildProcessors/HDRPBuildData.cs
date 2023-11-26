@@ -50,7 +50,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     var runtimeShaders = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeShaders>();
                     runtimeShaders?.ForEachFieldOfType<ComputeShader>(computeShader => computeShaderCache.Add(computeShader.GetInstanceID(), computeShader));
 
-                    stripDebugVariants = !isDevelopmentBuild || hdrpGlobalSettingsInstance.stripDebugVariants;
+                    stripDebugVariants = !isDevelopmentBuild || GraphicsSettings.GetRenderPipelineSettings<ShaderStrippingSetting>().stripRuntimeDebugShaders;
                 }
             }
 

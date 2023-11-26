@@ -792,14 +792,17 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="camera">The camera rendering.</param>
         /// <param name="additionalData">Additional data of the camera rendering.</param>
         /// <param name="hdrpAsset">HDRenderPipelineAsset contening default FrameSettings.</param>
-        internal static void AggregateFrameSettings(ref FrameSettings aggregatedFrameSettings, Camera camera, HDAdditionalCameraData additionalData, HDRenderPipelineAsset hdrpAsset)
-            => AggregateFrameSettings(
+        internal static void AggregateFrameSettings(RenderingPathFrameSettings defaultRenderingPathFrameSettings, ref FrameSettings aggregatedFrameSettings, Camera camera,
+            HDAdditionalCameraData additionalData, HDRenderPipelineAsset hdrpAsset)
+        {
+            var type = additionalData != null ? additionalData.defaultFrameSettings : FrameSettingsRenderType.Camera;
+            AggregateFrameSettings(
                 ref aggregatedFrameSettings,
                 camera,
                 additionalData,
-                ref HDRenderPipelineGlobalSettings.instance.GetDefaultFrameSettings(additionalData?.defaultFrameSettings ?? FrameSettingsRenderType.Camera), //fallback on Camera for SceneCamera and PreviewCamera
-                hdrpAsset.currentPlatformRenderPipelineSettings
-            );
+                ref defaultRenderingPathFrameSettings.GetDefaultFrameSettings(type), //fallback on Camera for SceneCamera and PreviewCamera
+                hdrpAsset.currentPlatformRenderPipelineSettings);
+        }
 
         // Note: this version is the one tested as there is issue getting HDRenderPipelineAsset in batchmode in unit test framework currently.
         /// <summary>Aggregation is default with override of the renderer then sanitized depending on supported features of hdrpasset.</summary>
@@ -811,7 +814,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal static void AggregateFrameSettings(ref FrameSettings aggregatedFrameSettings, Camera camera, HDAdditionalCameraData additionalData, ref FrameSettings defaultFrameSettings, RenderPipelineSettings supportedFeatures)
         {
             aggregatedFrameSettings = defaultFrameSettings; //fallback on Camera for SceneCamera and PreviewCamera
-            if (additionalData && additionalData.customRenderingSettings)
+            if (additionalData != null && additionalData.customRenderingSettings)
                 Override(ref aggregatedFrameSettings, additionalData.renderingPathCustomFrameSettings, additionalData.renderingPathCustomFrameSettingsOverrideMask);
             Sanitize(ref aggregatedFrameSettings, camera, supportedFeatures);
         }

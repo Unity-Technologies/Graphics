@@ -787,7 +787,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // By doing that, we force the update of frame settings debug data once. Otherwise, when the Rendering Debugger is opened,
             // Wrong data is registered to the undo system because it did not get the chance to be updated once.
             FrameSettings dummy = new FrameSettings();
-            FrameSettingsHistory.AggregateFrameSettings(ref dummy, m_Camera, this, HDRenderPipeline.currentAsset, null);
+            if (GraphicsSettings.TryGetRenderPipelineSettings<RenderingPathFrameSettings>(out var renderingPathFrameSettings))
+                FrameSettingsHistory.AggregateFrameSettings(renderingPathFrameSettings, ref dummy, m_Camera, this, HDRenderPipeline.currentAsset, null);
 
             RegisterDebug();
 

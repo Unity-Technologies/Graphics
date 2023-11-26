@@ -42,9 +42,10 @@ namespace UnityEditor.Rendering.HighDefinition
                     newGuid = HDUtils.ConvertGUIDToVector4(guid);
                     hash = HDShadowUtils.Asfloat(diffusionProfile.profile.hash);
 
-                    if (HDRenderPipelineGlobalSettings.instance.autoRegisterDiffusionProfiles)
+                    if (GraphicsSettings.GetRenderPipelineSettings<DiffusionProfileDefaultSettings>().autoRegister)
                     {
-                        VolumeUtils.TryAddSingleDiffusionProfile(HDRenderPipelineGlobalSettings.instance.volumeProfile, diffusionProfile);
+                        var defaultVolumeProfileSettings = GraphicsSettings.GetRenderPipelineSettings<HDRPDefaultVolumeProfileSettings>();
+                        VolumeUtils.TryAddSingleDiffusionProfile(defaultVolumeProfileSettings.volumeProfile, diffusionProfile);
                     }
                 }
 
@@ -72,12 +73,19 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.HelpBox(diffusionProfileNotAssigned, MessageType.Error);
             else
             {
-                if (!VolumeUtils.IsDiffusionProfileRegistered(materialProfile, HDRenderPipelineGlobalSettings.instance.volumeProfile))
-                    CoreEditorUtils.DrawFixMeBox(diffusionProfileNotInHDRPAsset, "Fix", () =>
+                if (GraphicsSettings.TryGetRenderPipelineSettings<HDRPDefaultVolumeProfileSettings>(
+                        out var defaultVolumeProfileSettings))
+                {
+                    var volumeProfile = defaultVolumeProfileSettings.volumeProfile;
+                    if (!VolumeUtils.IsDiffusionProfileRegistered(materialProfile, volumeProfile))
                     {
-                        if (VolumeUtils.TryAddSingleDiffusionProfile(HDRenderPipelineGlobalSettings.instance.volumeProfile, materialProfile))
-                            VolumeManager.instance.OnVolumeProfileChanged(HDRenderPipelineGlobalSettings.instance.volumeProfile);
-                    });
+                        CoreEditorUtils.DrawFixMeBox(diffusionProfileNotInHDRPAsset, "Fix", () =>
+                        {
+                            if (VolumeUtils.TryAddSingleDiffusionProfile(volumeProfile, materialProfile))
+                                VolumeManager.instance.OnVolumeProfileChanged(volumeProfile);
+                        });
+                    }
+                }
             }
         }
     }

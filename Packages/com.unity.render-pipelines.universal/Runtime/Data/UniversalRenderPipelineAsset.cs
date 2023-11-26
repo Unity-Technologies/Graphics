@@ -1511,15 +1511,8 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Controls whether the RenderGraph render path is enabled.
         /// </summary>
-        public bool enableRenderGraph
-        {
-            get
-            {
-                if (UniversalRenderPipelineGlobalSettings.instance)
-                    return UniversalRenderPipelineGlobalSettings.instance.enableRenderGraph || RenderGraphGraphicsAutomatedTests.enabled;
-                return RenderGraphGraphicsAutomatedTests.enabled;
-            }
-        }
+        [Obsolete("This has been deprecated, please use GraphicsSettings.GetRenderPipelineSettings<RenderGraphSettings>().useRenderGraph instead.")]
+        public bool enableRenderGraph => GraphicsSettings.GetRenderPipelineSettings<RenderGraphSettings>().useRenderGraph;
 
         internal void OnEnableRenderGraphChanged()
         {
@@ -1819,7 +1812,10 @@ namespace UnityEngine.Rendering.Universal
 
             if (asset.k_AssetPreviousVersion < 10)
             {
-                UniversalRenderPipelineGlobalSettings.Ensure().shaderVariantLogLevel = (Rendering.ShaderVariantLogLevel) asset.m_ShaderVariantLogLevel;
+#pragma warning disable 618 // Obsolete warning
+                var instance = UniversalRenderPipelineGlobalSettings.Ensure();
+                instance.m_ShaderVariantLogLevel = (Rendering.ShaderVariantLogLevel) asset.m_ShaderVariantLogLevel;
+#pragma warning restore 618 // Obsolete warning
                 asset.k_AssetPreviousVersion = 10;
             }
 

@@ -154,7 +154,8 @@ namespace UnityEditor.Rendering
                 });
                 contentContainer.Add(renderPipelineGraphicsSettingsWidget);
 
-                contentContainer.Add(new InspectorElement(renderPipelineSettings)
+                m_Editor = Editor.CreateEditor(renderPipelineSettings);
+                contentContainer.Add(new InspectorElement(m_Editor)
                 {
                     style = { paddingLeft = 0}
                 });

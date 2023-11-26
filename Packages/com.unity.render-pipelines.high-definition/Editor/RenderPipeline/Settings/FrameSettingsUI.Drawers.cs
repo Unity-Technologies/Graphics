@@ -147,15 +147,21 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static FrameSettings? GetDefaultFrameSettingsFor(Editor owner)
         {
-            if (owner is IHDProbeEditor)
+            if (GraphicsSettings.TryGetRenderPipelineSettings<RenderingPathFrameSettings>(out var renderingPathFrameSettings))
             {
-                var getType = owner as IDefaultFrameSettingsType;
-                return HDRenderPipelineGlobalSettings.instance.GetDefaultFrameSettings(getType.GetFrameSettingsType());
+                switch (owner)
+                {
+                    case IHDProbeEditor:
+                    {
+                        if (owner is IDefaultFrameSettingsType getType)
+                            return renderingPathFrameSettings.GetDefaultFrameSettings(getType.GetFrameSettingsType());
+                        break;
+                    }
+                    case HDCameraEditor:
+                        return renderingPathFrameSettings.GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
+                }
             }
-            else if (owner is HDCameraEditor)
-            {
-                return HDRenderPipelineGlobalSettings.instance.GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
-            }
+
             return null;
         }
 

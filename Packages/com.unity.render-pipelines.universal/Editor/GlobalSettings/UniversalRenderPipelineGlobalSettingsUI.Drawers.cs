@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.UIElements;
 
@@ -8,6 +9,14 @@ namespace UnityEditor.Rendering.Universal
 
     internal partial class UniversalRenderPipelineGlobalSettingsUI
     {
+        static void RenderPipelineGraphicsSettings_Drawer<T>(SerializedProperty property)
+        {
+            if (property == null)
+                EditorGUILayout.HelpBox($"Unable to find {typeof(T)}", MessageType.Error);
+            else
+                EditorGUILayout.PropertyField(property);
+        }
+
         // Temporary labelWidth indentation scope while we still use IMGUI
         class ImguiLabelWidthGUIScope : GUI.Scope
         {
@@ -44,6 +53,7 @@ namespace UnityEditor.Rendering.Universal
                 using (var changedScope = new EditorGUI.ChangeCheckScope())
                 {
                     RenderingLayerNamesSection.Draw(serialized, owner);
+                    ShaderStrippingSection.Draw(serialized, owner);
                     MiscSection.Draw(serialized, owner);
 
                     if (changedScope.changed)
@@ -99,34 +109,36 @@ namespace UnityEditor.Rendering.Universal
 
 
         #region Misc Settings
-        static void DrawRenderGraphCheckBox(SerializedUniversalRenderPipelineGlobalSettings serialized, Editor owner)
-        {
-            using (new EditorGUI.IndentLevelScope())
-            {
-                EditorGUI.BeginChangeCheck();
-                EditorGUILayout.PropertyField(serialized.serializedObject?.FindProperty("m_EnableRenderGraph"), Styles.enableRenderGraphLabel);
-                if (EditorGUI.EndChangeCheck())
-                    UniversalRenderPipeline.asset.OnEnableRenderGraphChanged();
-                EditorGUILayout.Space();
-            }
-        }
 
         private static readonly CED.IDrawer MiscSection =
             CED.Group((s, owner) =>
             {
+                EditorGUI.BeginChangeCheck();
                 CoreEditorUtils.DrawSectionHeader(Styles.renderGraphHeaderLabel);
+                using var indentScope = new EditorGUI.IndentLevelScope();
                 EditorGUILayout.Space();
-                DrawRenderGraphCheckBox(s, owner);
+                EditorGUILayout.PropertyField(s.enableRenderGraph, Styles.enableRenderGraphLabel);
+                EditorGUILayout.Space();
+                if (EditorGUI.EndChangeCheck())
+                    GraphicsSettings.GetRenderPipelineSettings<RenderGraphSettings>().useRenderGraph = s.enableRenderGraph.boolValue;
+            });
+
+        #endregion
+
+        private static readonly CED.IDrawer ShaderStrippingSection =
+            CED.Group((s, owner) =>
+            {
 #pragma warning disable 618 // Obsolete warning
                 CoreEditorUtils.DrawSectionHeader(RenderPipelineGlobalSettingsUI.Styles.shaderStrippingSettingsLabel);
 #pragma warning restore 618 // Obsolete warning
                 using var indentScope = new EditorGUI.IndentLevelScope();
                 EditorGUILayout.Space();
-                EditorGUILayout.PropertyField(s.serializedObject.FindProperty("m_ShaderStrippingSetting"));
-                EditorGUILayout.PropertyField(s.serializedObject.FindProperty("m_URPShaderStrippingSetting"));
+
+                RenderPipelineGraphicsSettings_Drawer<ShaderStrippingSetting>(s.serializedShaderStrippingSettings);
+                RenderPipelineGraphicsSettings_Drawer<URPShaderStrippingSetting>(s.serializedURPShaderStrippingSettings);
                 EditorGUILayout.Space();
             });
 
-        #endregion
+
     }
 }

@@ -48,7 +48,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 rect.y += rect.height + EditorGUIUtility.standardVerticalSpacing;
 
                 CoreEditorUtils.DrawSplitter(new Rect(rect.x, rect.y, position.width, 1f));
-                
+
                 string key = $"UI_State_{nameof(FrameSettingsPropertyDrawer)}_{property.displayName}_{i}";
 
                 var isExpanded = EditorPrefs.GetBool(key);
@@ -62,6 +62,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     serializedFrameSettings ??= new SerializedFrameSettings(property, null);
                     rect.y += rect.height + EditorGUIUtility.standardVerticalSpacing;
 
+                    serializedFrameSettings.serializedObject.Update();
+
                     using (new EditorGUI.IndentLevelScope())
                     {
                         bool oldEnabled = GUI.enabled;
@@ -69,6 +71,8 @@ namespace UnityEditor.Rendering.HighDefinition
                         area.Draw(ref rect);
                         GUI.enabled = oldEnabled;
                     }
+
+                    serializedFrameSettings.serializedObject.ApplyModifiedProperties();
                 }
             }
 
@@ -83,7 +87,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
-            return m_TotalHeight; 
+            return m_TotalHeight;
         }
     }
 }

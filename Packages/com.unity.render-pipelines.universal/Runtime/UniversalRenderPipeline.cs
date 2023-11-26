@@ -196,8 +196,11 @@ namespace UnityEngine.Rendering.Universal
         public UniversalRenderPipeline(UniversalRenderPipelineAsset asset)
         {
             pipelineAsset = asset;
+
 #if UNITY_EDITOR
             m_GlobalSettings = UniversalRenderPipelineGlobalSettings.Ensure();
+
+            GraphicsSettings.Subscribe<RenderGraphSettings>(OnRenderGraphEnabledChanged);
 #else
             m_GlobalSettings = UniversalRenderPipelineGlobalSettings.instance;
 #endif
@@ -226,7 +229,8 @@ namespace UnityEngine.Rendering.Universal
                 QualitySettings.antiAliasing = asset.msaaSampleCount;
             }
 
-            VolumeManager.instance.Initialize(m_GlobalSettings.volumeProfile, asset.volumeProfile);
+            var defaultVolumeProfileSettings = GraphicsSettings.GetRenderPipelineSettings<URPDefaultVolumeProfileSettings>();
+            VolumeManager.instance.Initialize(defaultVolumeProfileSettings.volumeProfile, asset.volumeProfile);
 
             // Configure initial XR settings
             MSAASamples msaaSamples = (MSAASamples)Mathf.Clamp(Mathf.NextPowerOfTwo(QualitySettings.antiAliasing), (int)MSAASamples.None, (int)MSAASamples.MSAA8x);
@@ -244,7 +248,8 @@ namespace UnityEngine.Rendering.Universal
             DecalProjector.defaultMaterial = asset.decalMaterial;
 
             s_RenderGraph = new RenderGraph("URPRenderGraph");
-            useRenderGraph = false;
+            useRenderGraph = GraphicsSettings.GetRenderPipelineSettings<RenderGraphSettings>().useRenderGraph;
+            //Debug.Log($"RenderGraph is now {(useRenderGraph ? "enabled" : "disabled")}.");
 
             s_RTHandlePool = new RTHandleResourcePool();
 
@@ -275,6 +280,14 @@ namespace UnityEngine.Rendering.Universal
                 });
             }
         }
+
+
+#if UNITY_EDITOR
+        private void OnRenderGraphEnabledChanged(RenderGraphSettings _, string __)
+        {
+            pipelineAsset.OnEnableRenderGraphChanged();
+        }
+#endif
 
         /// <inheritdoc/>
         protected override void Dispose(bool disposing)
@@ -316,6 +329,10 @@ namespace UnityEngine.Rendering.Universal
 
             DisposeAdditionalCameraData();
             AdditionalLightsShadowAtlasLayout.ClearStaticCaches();
+
+#if UNITY_EDITOR
+            GraphicsSettings.Unsubscribe<RenderGraphSettings>(OnRenderGraphEnabledChanged);
+#endif
         }
 
         // If the URP gets destroyed, we must clean up all the added URP specific camera data and
@@ -348,8 +365,6 @@ namespace UnityEngine.Rendering.Universal
         protected override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
 #endif
         {
-            useRenderGraph = asset.enableRenderGraph;
-
             SetHDRState(cameras);
 
             // For XR and HDR, UI Overlay ownership must be enforced

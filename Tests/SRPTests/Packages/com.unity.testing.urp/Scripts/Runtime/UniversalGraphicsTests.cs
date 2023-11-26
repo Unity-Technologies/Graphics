@@ -82,15 +82,13 @@ public class UniversalGraphicsTests
             Assert.Ignore("Test scene is not compatible with GPU Driven and and will be skipped.");
 
         // Check for RenderGraph compatibility and skip test if needed.
-        bool isUsingRenderGraph = RenderGraphGraphicsAutomatedTests.enabled;
-        if (UniversalRenderPipelineGlobalSettings.instance)
-            isUsingRenderGraph |= UniversalRenderPipelineGlobalSettings.instance.enableRenderGraph;
+        bool isUsingRenderGraph = RenderGraphGraphicsAutomatedTests.enabled ||
+            (GraphicsSettings.GetRenderPipelineSettings<RenderGraphSettings>()?.useRenderGraph ?? false);
 
         if (isUsingRenderGraph && settings.renderBackendCompatibility == UniversalGraphicsTestSettings.RenderBackendCompatibility.NonRenderGraph)
             Assert.Ignore("Test scene is not compatible with Render Graph and will be skipped.");
         else if (!isUsingRenderGraph && settings.renderBackendCompatibility == UniversalGraphicsTestSettings.RenderBackendCompatibility.RenderGraph)
             Assert.Ignore("Test scene is not compatible with non-Render Graph and will be skipped.");
-
 
         int waitFrames = 1;
 

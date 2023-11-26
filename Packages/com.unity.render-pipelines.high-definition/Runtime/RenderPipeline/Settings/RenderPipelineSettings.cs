@@ -370,11 +370,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool supportDataDrivenLensFlare;
 
         /// <summary>Support runtime debug display.</summary>
-        [Obsolete("Use HDRenderPipelineGlobalSettings.instance.stripDebugVariants) instead.@from(23.1)", false)]
+        [Obsolete("Use HDRenderPipelineGlobalSettings.instance.stripDebugVariants) instead. #from(23.1)", false)]
         public bool supportRuntimeDebugDisplay
         {
-            get => !HDRenderPipelineGlobalSettings.instance.stripDebugVariants;
-            set => HDRenderPipelineGlobalSettings.instance.stripDebugVariants = !value;
+            get => !HDRenderPipelineGlobalSettings.instance.m_StripDebugVariants;
+            set => HDRenderPipelineGlobalSettings.instance.m_StripDebugVariants = !value;
         }
 
         internal bool supportProbeVolume => (lightProbeSystem == LightProbeSystem.ProbeVolumes);

@@ -6,8 +6,11 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// Class that stores the shader stripping settings that are specific for <see cref="UniversalRenderPipeline"/>
     /// </summary>
-    [Serializable][Category("Shader Stripping")]
-    public class URPShaderStrippingSetting
+    [Serializable]
+    [HideInInspector] // TODO remove when fully UITK implementation is being done
+    [Category("Additional Shader Stripping Settings")]
+    [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
+    public class URPShaderStrippingSetting : IRenderPipelineGraphicsSettings
     {
         #region Version
         internal enum Version : int
@@ -45,7 +48,7 @@ namespace UnityEngine.Rendering.Universal
         public bool stripUnusedPostProcessingVariants
         {
             get => m_StripUnusedPostProcessingVariants;
-            set => m_StripUnusedPostProcessingVariants = value;
+            set => this.SetValueAndNotify(ref m_StripUnusedPostProcessingVariants, value);
         }
 
         /// <summary>
@@ -54,7 +57,7 @@ namespace UnityEngine.Rendering.Universal
         public bool stripUnusedVariants
         {
             get => m_StripUnusedVariants;
-            set => m_StripUnusedVariants = value;
+            set => this.SetValueAndNotify(ref m_StripUnusedVariants, value);
         }
 
         /// <summary>
@@ -63,7 +66,7 @@ namespace UnityEngine.Rendering.Universal
         public bool stripScreenCoordOverrideVariants
         {
             get => m_StripScreenCoordOverrideVariants;
-            set => m_StripScreenCoordOverrideVariants = value;
+            set => this.SetValueAndNotify(ref m_StripScreenCoordOverrideVariants, value);
         }
         #endregion
     }

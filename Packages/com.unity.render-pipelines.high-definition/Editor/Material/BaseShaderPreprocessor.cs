@@ -102,8 +102,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public virtual int Priority => 0;
 
-        protected bool m_StripDebugVariants = false;
-
         public BaseShaderPreprocessor()
         {
             // NOTE: All these keyword should be automatically stripped so there's no need to handle them ourselves.
@@ -142,8 +140,6 @@ namespace UnityEditor.Rendering.HighDefinition
             m_SensorEnableLidar = new ShaderKeyword("SENSORSDK_ENABLE_LIDAR");
             m_SensorOverrideReflectance = new ShaderKeyword("SENSORSDK_OVERRIDE_REFLECTANCE");
 #endif
-
-            m_StripDebugVariants = HDRPBuildData.instance.stripDebugVariants;
         }
 
         public bool ShadersStripper(HDRenderPipelineAsset hdrpAsset, Shader shader, ShaderSnippetData snippet,

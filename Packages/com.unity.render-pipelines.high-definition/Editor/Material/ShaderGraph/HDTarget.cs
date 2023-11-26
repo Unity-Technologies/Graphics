@@ -504,8 +504,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 success = false;
             }
+            var isDebugOutputNeed =
+                GraphicsSettings.TryGetRenderPipelineSettings<AnalyticDerivativeSettings>(
+                    out var analyticDerivativeSettings) && analyticDerivativeSettings.debugOutput;
 
-            if (HDRenderPipelineGlobalSettings.instance.analyticDerivativeDebugOutput)
+            if (isDebugOutputNeed)
             {
                 string cleanName = primaryShaderName.Replace("/", "_").Replace("\\", "_"); ;
                 string dstDebugBasePath = "Temp/ShaderDerivative_" + cleanName + "__" + passName + "__";
