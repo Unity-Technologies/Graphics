@@ -127,7 +127,7 @@ namespace UnityEngine.Rendering.Universal
                 bool msaaSamplesChangedThisFrame = false;
 #if !UNITY_EDITOR
                 // for safety do this only for the NRP path, even though works also on non NRP, but would need extensive testing
-                if (m_CreateColorTexture && renderGraph.NativeRenderPassesEnabled && Screen.msaaSamples > 1)
+                if (m_CreateColorTexture && renderGraph.nativeRenderPassesEnabled && Screen.msaaSamples > 1)
                 {
                     msaaSamplesChangedThisFrame = true;
                     Screen.SetMSAASamples(1);
@@ -503,7 +503,7 @@ namespace UnityEngine.Rendering.Universal
             // Default Render Pass
             for (var i = 0; i < m_BatchCount; i++)
             {
-                if (!renderGraph.NativeRenderPassesEnabled && i == 0)
+                if (!renderGraph.nativeRenderPassesEnabled && i == 0)
                 {
                     RTClearFlags clearFlags = (RTClearFlags)GetCameraClearFlag(cameraData);
                     if (clearFlags != RTClearFlags.None)

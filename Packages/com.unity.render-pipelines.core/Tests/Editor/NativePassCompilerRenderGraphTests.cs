@@ -66,7 +66,7 @@ namespace UnityEngine.Rendering.Tests
         RenderGraph AllocateRenderGraph()
         {
             RenderGraph g = new RenderGraph();
-            g.NativeRenderPassesEnabled = true;
+            g.nativeRenderPassesEnabled = true;
             return g;
         }
 

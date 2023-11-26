@@ -468,7 +468,7 @@ namespace UnityEngine.Rendering.Universal
                 int oldSamples = cameraData.cameraTargetDescriptor.msaaSamples;
 #if !UNITY_EDITOR
                 // for safety do this only for the NRP path, even though works also on non NRP, but would need extensive testing
-                if (m_CreateColorTexture && renderGraph.NativeRenderPassesEnabled && Screen.msaaSamples > 1)
+                if (m_CreateColorTexture && renderGraph.nativeRenderPassesEnabled && Screen.msaaSamples > 1)
                 {
                     oldSamples = Mathf.Max(Screen.msaaSamples, oldSamples);
                     msaaSamplesChangedThisFrame = true;
@@ -579,7 +579,7 @@ namespace UnityEngine.Rendering.Universal
                 depthDescriptor.bindMS = false;
 
                 bool hasMSAA = depthDescriptor.msaaSamples > 1 && (SystemInfo.supportsMultisampledTextures != 0);
-                bool resolveDepth = RenderingUtils.MultisampleDepthResolveSupported() && renderGraph.NativeRenderPassesEnabled;
+                bool resolveDepth = RenderingUtils.MultisampleDepthResolveSupported() && renderGraph.nativeRenderPassesEnabled;
 
                 // TODO RENDERGRAPH: once all passes are ported to RasterCommandBuffers we need to reenable depth resolve
                 m_CopyDepthMode = renderPassInputs.requiresDepthTextureEarliestEvent < RenderPassEvent.AfterRenderingTransparents ? CopyDepthMode.AfterOpaques : m_CopyDepthMode;
@@ -647,7 +647,7 @@ namespace UnityEngine.Rendering.Universal
             m_ForwardLights.SetupRenderGraphLights(renderGraph, renderingData, cameraData, lightData);
             if (this.renderingModeActual == RenderingMode.Deferred)
             {
-                m_DeferredLights.UseFramebufferFetch = renderGraph.NativeRenderPassesEnabled;
+                m_DeferredLights.UseFramebufferFetch = renderGraph.nativeRenderPassesEnabled;
                 m_DeferredLights.SetupRenderGraphLights(renderGraph, cameraData, lightData);
             }
         }
@@ -727,7 +727,7 @@ namespace UnityEngine.Rendering.Universal
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
             UniversalLightData lightData = frameData.Get<UniversalLightData>();
 
-            useRenderPassEnabled = renderGraph.NativeRenderPassesEnabled;
+            useRenderPassEnabled = renderGraph.nativeRenderPassesEnabled;
 
             MotionVectorRenderPass.SetRenderGraphMotionVectorGlobalMatrices(renderGraph, cameraData);
 
@@ -792,7 +792,7 @@ namespace UnityEngine.Rendering.Universal
 
         private void OnOffscreenDepthTextureRendering(RenderGraph renderGraph, ScriptableRenderContext context, UniversalResourceData resourceData, UniversalCameraData cameraData)
         {
-            if (!renderGraph.NativeRenderPassesEnabled)
+            if (!renderGraph.nativeRenderPassesEnabled)
                 ClearTargetsPass.Render(renderGraph, resourceData.activeColorTexture, resourceData.backBufferDepth, RTClearFlags.Depth, cameraData.backgroundColor);
 
             RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.BeforeRenderingShadows, RenderPassEvent.BeforeRenderingOpaques);
@@ -845,7 +845,7 @@ namespace UnityEngine.Rendering.Universal
             UniversalLightData lightData = frameData.Get<UniversalLightData>();
             UniversalPostProcessingData postProcessingData = frameData.Get<UniversalPostProcessingData>();
 
-            if (!renderGraph.NativeRenderPassesEnabled)
+            if (!renderGraph.nativeRenderPassesEnabled)
             {
                 RTClearFlags clearFlags = (RTClearFlags) GetCameraClearFlag(cameraData);
 
@@ -928,7 +928,7 @@ namespace UnityEngine.Rendering.Universal
                 if (m_DeferredLights != null)
                 {
                     // We need to be sure there are no custom passes in between GBuffer/Deferred passes, if there are - we disable fb fetch just to be safe`
-                    m_DeferredLights.UseFramebufferFetch = renderGraph.NativeRenderPassesEnabled;
+                    m_DeferredLights.UseFramebufferFetch = renderGraph.nativeRenderPassesEnabled;
                     m_DeferredLights.HasNormalPrepass = renderPassInputs.requiresNormalsTexture;
                     m_DeferredLights.HasDepthPrepass = requiresDepthPrepass;
                     m_DeferredLights.ResolveMixedLightingMode(lightData);
@@ -939,14 +939,14 @@ namespace UnityEngine.Rendering.Universal
 
                 m_GBufferPass.Render(renderGraph, frameData, resourceData.activeColorTexture, resourceData.activeDepthTexture);
 
-                if (!renderGraph.NativeRenderPassesEnabled)
+                if (!renderGraph.nativeRenderPassesEnabled)
                 {
                     TextureHandle cameraDepthTexture = resourceData.cameraDepthTexture;
                     m_GBufferCopyDepthPass.Render(renderGraph, frameData, cameraDepthTexture, resourceData.activeDepthTexture, true, "GBuffer Depth Copy");
                 }
                 else
                 {
-                    // if NativeRenderPassesEnabled, we write the camera depth to gBuffer[4], to be used with framebuffer fetch
+                    // if nativeRenderPassesEnabled, we write the camera depth to gBuffer[4], to be used with framebuffer fetch
                     resourceData.cameraDepthTexture = resourceData.gBuffer[m_DeferredLights.GbufferDepthIndex];
                 }
 

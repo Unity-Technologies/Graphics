@@ -447,12 +447,12 @@ namespace UnityEngine.Rendering.RenderGraphModule
         /// - Any AddRenderPass overloads. The more specific AddRasterRenderPass/AddComputePass/AddUnsafePass functions should be used to register passes.
         ///
         /// In addition to this, additional validation will be done on the correctness of arguments of existing API that was not previously done. This could lead
-        /// to new errors when using existing render graph code with NativeRenderPassesEnabled.
+        /// to new errors when using existing render graph code with nativeRenderPassesEnabled.
         ///
         /// Note: that CommandBuffer.BeginRenderPass/EndRenderPass calls are different by design from SetRenderTarget so this could also have
         /// effects outside of render graph (e.g. for code relying on the currently active render target as this will not be updated when using render passes).
         /// </summary>
-        public bool NativeRenderPassesEnabled
+        public bool nativeRenderPassesEnabled
         {
             get; set;
         }
@@ -680,7 +680,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
         /// <summary>
         /// Import the final backbuffer to render graph.
-        /// This function can only be used when NativeRenderPassesEnabled is false.
+        /// This function can only be used when nativeRenderPassesEnabled is false.
         /// </summary>
         /// <param name="rt">Backbuffer render target identifier.</param>
         /// <returns>A new TextureHandle that represents the imported texture in the context of this rendergraph.</returns>
@@ -1175,14 +1175,14 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 {
                     LogFrameInformation();
 
-                    if (NativeRenderPassesEnabled)
+                    if (nativeRenderPassesEnabled)
                         CompileNativeRenderGraph();
                     else
                         CompileRenderGraph();
 
                     m_Resources.BeginExecute(m_CurrentFrameIndex);
 
-                    if (NativeRenderPassesEnabled)
+                    if (nativeRenderPassesEnabled)
                         ExecuteNativeRenderGraph();
                     else
                         ExecuteRenderGraph();
@@ -2265,7 +2265,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
             debugData.Clear();
 
-            if (NativeRenderPassesEnabled)
+            if (nativeRenderPassesEnabled)
                 nativeCompiler.GenerateNativeCompilerDebugData(ref debugData);
             else
                 GenerateCompilerDebugData(ref debugData);

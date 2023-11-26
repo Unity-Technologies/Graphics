@@ -596,7 +596,7 @@ namespace UnityEngine.Rendering.Universal
                 builder.SetRenderAttachment(pingTexture, 1, AccessFlags.Write);
                 // TODO RENDERGRAPH: Setting MRTs without a depth buffer is not supported in the old path, could we add the support and remove the depth?
                 // Should go away if the old path goes away
-                if (!renderGraph.NativeRenderPassesEnabled)
+                if (!renderGraph.nativeRenderPassesEnabled)
                     builder.SetRenderAttachmentDepth(renderGraph.CreateTexture(halfCoCTexture), AccessFlags.ReadWrite);
                 builder.AllowGlobalStateModification(true);
                 passData.sourceTexture = source;

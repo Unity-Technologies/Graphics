@@ -168,7 +168,7 @@ namespace UnityEngine.Rendering.Universal
                 builder.SetRenderAttachment(gBufferHandles[3], 3, AccessFlags.Write);
                 builder.SetRenderAttachmentDepth(resourceData.activeDepthTexture, AccessFlags.Read);
 
-                if (renderGraph.NativeRenderPassesEnabled)
+                if (renderGraph.nativeRenderPassesEnabled)
                 {
                     builder.SetInputAttachment(gBufferHandles[4], 0, AccessFlags.Read);
                     if (m_DecalLayers)

@@ -165,7 +165,7 @@ namespace UnityEngine.Rendering.Universal
             var depthHandle = renderGraph.ImportTexture(m_TargetDepthHandle, importInfoDepth, importBackbufferParams);
 
 
-            if (!renderGraph.NativeRenderPassesEnabled)
+            if (!renderGraph.nativeRenderPassesEnabled)
             {
                 ClearTargetsPass.Render(renderGraph, targetHandle, depthHandle, cameraData);
             }

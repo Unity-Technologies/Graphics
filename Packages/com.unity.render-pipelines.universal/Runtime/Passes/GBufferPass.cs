@@ -262,7 +262,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 builder.UseRendererList(passData.objectsWithErrorRendererListHdl);
 
                 // With NRP GBuffer textures are set after Deferred, we do this to avoid breaking the pass
-                if (!renderGraph.NativeRenderPassesEnabled)
+                if (!renderGraph.nativeRenderPassesEnabled)
                     GBufferPass.SetGlobalGBufferTextures(builder, gbuffer, ref m_DeferredLights);
 
                 builder.AllowPassCulling(false);
