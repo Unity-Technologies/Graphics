@@ -6,7 +6,7 @@ For more information on rendering in URP, see also [Rendering in the Universal R
 
 ## Rendering Paths
 
-The URP Universal Renderer implements two Rendering Paths:
+The URP Universal Renderer implements three Rendering Paths:
 
 * Forward Rendering Path.
 
@@ -15,6 +15,12 @@ The URP Universal Renderer implements two Rendering Paths:
 * [Deferred Rendering Path](rendering/deferred-rendering-path.md).
 
 ### Rendering Path comparison
+
+Each rendering path uses a different set of steps to calculate lighting and draw objects. Which rendering path you choose affects the performance of your game and lighting options.
+
+- Forward rendering path: URP draws each object one by one. For each object, URP checks every light that affects it to calculate how the object looks. 
+- Forward+ rendering path: Works similarly to the Forward rendering path, but lets you use many more lights without affecting performance. 
+- Deferred rendering path: URP first renders information about every object into multiple buffers. Then in a later ('deferred') step, URP draws each screen pixel one by one by combining the information from the buffers.
 
 The following table shows the differences between the Forward and the Deferred Rendering Paths in URP.
 

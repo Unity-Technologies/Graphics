@@ -1,6 +1,6 @@
 # How to create a custom Renderer Feature
 
-This section describes how to create a custom Renderer Feature for a URP Renderer.
+This section describes how to create a [custom Renderer Feature](./scriptable-renderer-features/intro-to-scriptable-renderer-features.md) for a URP Renderer.
 
 This walkthrough contains the following sections:
 
@@ -20,7 +20,7 @@ This walkthrough contains the following sections:
 
 ## <a name="example-implementation-overview"></a>Overview of this example implementation
 
-The example workflow on this page implements a custom Renderer Feature that adds a blur effect to the camera output.
+The example workflow on this page implements a custom Renderer Feature that uses [custom Render Passes](./scriptable-renderer-features/intro-to-scriptable-render-passes.md) to add a blur effect to the camera output.
 
 The implementation consists of the following parts:
 
@@ -354,6 +354,10 @@ In this section, you instantiate the render pass in the `Create` method of the `
     ```
 
 For the complete Renderer Feature code, refer to section [Custom Renderer Feature code](#code-renderer-feature).
+
+The Scriptable Renderer Feature is now complete. The following image shows the effect of the feature in the Game view and the example settings.
+
+![The effect of the Scriptable Renderer Feature in the Game view](../Images/customizing-urp/custom-renderer-feature/final-effect.png)<br/>*The effect of the Scriptable Renderer Feature in the Game view.*
 
 ## <a name="volume-component"></a>Implement the volume component
 
