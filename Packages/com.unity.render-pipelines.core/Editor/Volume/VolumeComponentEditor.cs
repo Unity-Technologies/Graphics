@@ -427,6 +427,13 @@ namespace UnityEditor.Rendering
                 () => VolumeProfileUtils.AssignValuesToProfile(VolumeManager.instance.globalDefaultProfile, targetComponent, property));
         }
 
+        /// <summary>
+        /// Unity calls this method after drawing the header for each VolumeComponentEditor
+        /// </summary>
+        protected virtual void OnBeforeInspectorGUI()
+        {
+        }
+
         internal bool OnInternalInspectorGUI()
         {
             if (serializedObject == null || serializedObject.targetObject == null)
@@ -435,6 +442,7 @@ namespace UnityEditor.Rendering
             serializedObject.Update();
             using (new EditorGUILayout.VerticalScope())
             {
+                OnBeforeInspectorGUI();
                 if (enableOverrides)
                     TopRowFields();
                 else
@@ -594,7 +602,7 @@ namespace UnityEditor.Rendering
         /// </summary>
         /// <param name="property">The property to obtain the attributes and handle the decorators</param>
         /// <param name="title">A custom label and/or tooltip that might be updated by <see cref="TooltipAttribute"/> and/or by <see cref="InspectorNameAttribute"/></param>
-        void HandleDecorators(SerializedDataParameter property, GUIContent title)
+        internal void HandleDecorators(SerializedDataParameter property, GUIContent title)
         {
             foreach (var attr in property.attributes)
             {
