@@ -473,9 +473,22 @@ half LoadDOTSInstancedData_half(uint metadata)
     min16float f16 = min16float(f);
     return f16;
 }
+half LoadDOTSInstancedDataOverridden_half(uint metadata)
+{
+    float f = LoadDOTSInstancedDataOverridden_float(metadata);
+    min16float f16 = min16float(f);
+    return f16;
+}
+
 half4 LoadDOTSInstancedData_half4(uint metadata)
 {
     float4 f = LoadDOTSInstancedData_float4(metadata);
+    min16float4 f16x4 = min16float4(f.x, f.y, f.z, f.w);
+    return f16x4;
+}
+half4 LoadDOTSInstancedDataOverridden_half4(uint metadata)
+{
+    float4 f = LoadDOTSInstancedDataOverridden_float4(metadata);
     min16float4 f16x4 = min16float4(f.x, f.y, f.z, f.w);
     return f16x4;
 }
@@ -484,15 +497,26 @@ min16float LoadDOTSInstancedData_min16float(uint metadata)
 {
     return min16float(LoadDOTSInstancedData_half(metadata));
 }
+min16float LoadDOTSInstancedDataOverridden_min16float(uint metadata)
+{
+    return min16float(LoadDOTSInstancedDataOverridden_half(metadata));
+}
+
 min16float4 LoadDOTSInstancedData_min16float4(uint metadata)
 {
     return min16float4(LoadDOTSInstancedData_half4(metadata));
 }
+min16float4 LoadDOTSInstancedDataOverridden_min16float4(uint metadata)
+{
+    return min16float4(LoadDOTSInstancedDataOverridden_half4(metadata));
+}
+
 min16float LoadDOTSInstancedData_min16float(min16float default_value, uint metadata)
 {
     return IsDOTSInstancedProperty(metadata) ?
         LoadDOTSInstancedData_min16float(metadata) : default_value;
 }
+
 min16float4 LoadDOTSInstancedData_min16float4(min16float4 default_value, uint metadata)
 {
     return IsDOTSInstancedProperty(metadata) ?
@@ -503,6 +527,19 @@ min16float4 LoadDOTSInstancedData_min16float4(min16float4 default_value, uint me
 float4x4 LoadDOTSInstancedData_float4x4(uint metadata)
 {
     uint address = ComputeDOTSInstanceDataAddress(metadata, 4 * 16);
+    float4 p1 = asfloat(DOTSInstanceData_Load4(address + 0 * 16));
+    float4 p2 = asfloat(DOTSInstanceData_Load4(address + 1 * 16));
+    float4 p3 = asfloat(DOTSInstanceData_Load4(address + 2 * 16));
+    float4 p4 = asfloat(DOTSInstanceData_Load4(address + 3 * 16));
+    return float4x4(
+        p1.x, p2.x, p3.x, p4.x,
+        p1.y, p2.y, p3.y, p4.y,
+        p1.z, p2.z, p3.z, p4.z,
+        p1.w, p2.w, p3.w, p4.w);
+}
+float4x4 LoadDOTSInstancedDataOverridden_float4x4(uint metadata)
+{
+    uint address = ComputeDOTSInstanceDataAddressOverridden(metadata, 4 * 16);
     float4 p1 = asfloat(DOTSInstanceData_Load4(address + 0 * 16));
     float4 p2 = asfloat(DOTSInstanceData_Load4(address + 1 * 16));
     float4 p3 = asfloat(DOTSInstanceData_Load4(address + 2 * 16));
@@ -528,8 +565,7 @@ float4x4 LoadDOTSInstancedData_float4x4_from_float3x4(uint metadata)
         0.0,  0.0,  0.0,  1.0
     );
 }
-
-float4x4 LoadDOTSInstancedData_float4x4_from_float3x4_overridden(uint metadata)
+float4x4 LoadDOTSInstancedDataOverridden_float4x4_from_float3x4(uint metadata)
 {
     uint address = ComputeDOTSInstanceDataAddressOverridden(metadata, 3 * 16);
     float4 p1 = asfloat(DOTSInstanceData_Load4(address + 0 * 16));
@@ -544,20 +580,16 @@ float4x4 LoadDOTSInstancedData_float4x4_from_float3x4_overridden(uint metadata)
     );
 }
 
-float4x4 LoadDOTSInstancedData_float4x4_from_float3x4_o2w(uint metadata)
-{
-    // uint metadata = kPerInstanceDataBit | 0;
-    return LoadDOTSInstancedData_float4x4_from_float3x4_overridden(metadata);
-}
-float4x4 LoadDOTSInstancedData_float4x4_from_float3x4_w2o(uint metadata)
-{
-    // uint metadata = kPerInstanceDataBit | 48;
-    return LoadDOTSInstancedData_float4x4_from_float3x4_overridden(metadata);
-}
-
 float2x4 LoadDOTSInstancedData_float2x4(uint metadata)
 {
     uint address = ComputeDOTSInstanceDataAddress(metadata, 4 * 8);
+    return float2x4(
+        asfloat(DOTSInstanceData_Load4(address + 0 * 8)),
+        asfloat(DOTSInstanceData_Load4(address + 1 * 8)));
+}
+float2x4 LoadDOTSInstancedDataOverridden_float2x4(uint metadata)
+{
+    uint address = ComputeDOTSInstanceDataAddressOverridden(metadata, 4 * 8);
     return float2x4(
         asfloat(DOTSInstanceData_Load4(address + 0 * 8)),
         asfloat(DOTSInstanceData_Load4(address + 1 * 8)));
@@ -587,9 +619,19 @@ float2x4 LoadDOTSInstancedData_float2x4(float2x4 default_value, uint metadata)
         LoadDOTSInstancedData_float2x4(metadata) : default_value;
 }
 
-float4  LoadDOTSInstancedData_RenderingLayer()
+float4 LoadDOTSInstancedData_RenderingLayer()
 {
     return float4(asfloat(unity_DOTSVisibleInstances[0].VisibleData.z), 0,0,0);
+}
+
+float3 LoadDOTSInstancedData_MeshLocalBoundCenter()
+{
+    return float3(asfloat(unity_DOTSVisibleInstances[1].VisibleData.z), asfloat(unity_DOTSVisibleInstances[1].VisibleData.w), asfloat(unity_DOTSVisibleInstances[2].VisibleData.z));
+}
+
+float3 LoadDOTSInstancedData_MeshLocalBoundExtent()
+{
+    return float3(asfloat(unity_DOTSVisibleInstances[2].VisibleData.w), asfloat(unity_DOTSVisibleInstances[3].VisibleData.z), asfloat(unity_DOTSVisibleInstances[3].VisibleData.w));
 }
 
 float4 LoadDOTSInstancedData_MotionVectorsParams()
