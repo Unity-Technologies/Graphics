@@ -420,17 +420,12 @@ namespace UnityEngine.Rendering.Universal
         internal override void OnRecordRenderGraph(RenderGraph renderGraph, ScriptableRenderContext context)
         {
             CommonResourceData commonResourceData = frameData.GetOrCreate<CommonResourceData>();
-            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
 
             InitializeLayerBatches();
 
             CreateResources(renderGraph);
 
-            var isTargetFlipped = commonResourceData.isActiveTargetBackBuffer;
-            if (IsGLDevice())
-                isTargetFlipped = !cameraData.IsCameraProjectionMatrixFlipped();
-
-            SetupRenderGraphCameraProperties(renderGraph, isTargetFlipped);
+            SetupRenderGraphCameraProperties(renderGraph, commonResourceData.isActiveTargetBackBuffer);
 
 #if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
             ProcessVFXCameraCommand(renderGraph);
@@ -467,7 +462,6 @@ namespace UnityEngine.Rendering.Universal
                 culledLights[i].CacheValues();
             }
 
-            DrawShadow2DPass.hasShadowVolumetricPass = false;
             ShadowCasterGroup2DManager.CacheValues();
             ShadowRendering.CallOnBeforeRender(cameraData.camera, m_Renderer2DData.lightCullResult);
 

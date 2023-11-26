@@ -152,7 +152,7 @@ namespace UnityEngine.Rendering.Universal
                         builder.UseTexture(passData.lightTextures[i]);
                 }
 
-                AccessFlags accessFlags = DrawShadow2DPass.hasShadowVolumetricPass ? AccessFlags.Read : AccessFlags.Write;
+                AccessFlags accessFlags = SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal ? AccessFlags.Write: AccessFlags.Read;
 
                 builder.SetRenderAttachment(commonResourceData.activeColorTexture, 0);
                 builder.SetRenderAttachmentDepth(commonResourceData.activeDepthTexture, accessFlags);
