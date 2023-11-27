@@ -13,6 +13,7 @@
 
 #if defined(ENABLE_WIND) && !defined(_WINDQUALITY_NONE)
     #define SPEEDTREE_Y_UP
+    #define SPEEDTREE_8_WIND 1
     #include "SpeedTreeWind.cginc"
     float _WindEnabled;
     UNITY_INSTANCING_BUFFER_START(STWind)

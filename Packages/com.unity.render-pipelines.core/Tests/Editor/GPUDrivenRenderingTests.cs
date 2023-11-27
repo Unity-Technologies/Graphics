@@ -7,6 +7,7 @@ using UnityEditor;
 using Unity.Mathematics;
 using NUnit.Framework.Internal;
 using System.Diagnostics;
+using System.Reflection;
 #if UNITY_EDITOR
 using UnityEditor.Rendering;
 #endif
@@ -1232,10 +1233,23 @@ namespace UnityEngine.Rendering.Tests
             var simpleSpeedTreeDots = Shader.Find("Unlit/SimpleSpeedTreeDots");
             var simpleSpeedTreeDotsMat = new Material(simpleSpeedTreeDots);
 
+            // SpeedTreeWindAsset doesn't have publicly exposed constructor.
+            // Without SpeedTreeWindAsset trees will not be treated as speed tree trees with wind.
+            SpeedTreeWindAsset CreateDummySpeedTreeWindAsset(params object[] args)
+            {
+                var type = typeof(SpeedTreeWindAsset);
+                var instance = type.Assembly.CreateInstance(type.FullName, false, BindingFlags.Instance | BindingFlags.NonPublic, null, args, null, null);
+                return (SpeedTreeWindAsset)instance;
+            }
+
+            SpeedTreeWindAsset dummyWindAsset = CreateDummySpeedTreeWindAsset(0, null);
+            Assert.NotNull(dummyWindAsset);
+            dummyWindAsset.Version = 0; // st8 version.
+
             var tree0 = GameObject.CreatePrimitive(PrimitiveType.Cube);
             var tree1 = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            tree0.AddComponent<Tree>();
-            tree1.AddComponent<Tree>();
+            tree0.AddComponent<Tree>().windAsset = dummyWindAsset;
+            tree1.AddComponent<Tree>().windAsset = dummyWindAsset;
 
             var renderers = new List<MeshRenderer>
             {

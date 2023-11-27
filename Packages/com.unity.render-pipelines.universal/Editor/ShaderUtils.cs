@@ -28,6 +28,7 @@ namespace Unity.Rendering.Universal
             SpeedTree7 = ShaderPathID.SpeedTree7,
             SpeedTree7Billboard = ShaderPathID.SpeedTree7Billboard,
             SpeedTree8 = ShaderPathID.SpeedTree8,
+            SpeedTree9 = ShaderPathID.SpeedTree9,
             ComplexLit = ShaderPathID.ComplexLit,
 
             // ShaderGraph IDs start at 1000, correspond to subtargets
@@ -140,6 +141,9 @@ namespace Unity.Rendering.Universal
                     ParticlesUnlitShader.SetMaterialKeywords(material, null, ParticleGUI.SetMaterialKeywords);
                     break;
                 case ShaderID.SpeedTree8:
+                    ShaderGraphLitGUI.UpdateMaterial(material, updateType);
+                    break;
+                case ShaderID.SpeedTree9:
                     ShaderGraphLitGUI.UpdateMaterial(material, updateType);
                     break;
                 case ShaderID.SG_Lit:

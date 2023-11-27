@@ -63,6 +63,11 @@ namespace UnityEngine.Rendering.Universal
         /// Use this for URP SpeedTree 8 shader.
         /// </summary>
         SpeedTree8,
+
+        /// <summary>
+        /// Use this for URP SpeedTree 9 shader.
+        /// </summary>
+        SpeedTree9,
         // If you add a value here, also add it to ShaderID in Editor/ShaderUtils.cs
 
         /// <summary>
