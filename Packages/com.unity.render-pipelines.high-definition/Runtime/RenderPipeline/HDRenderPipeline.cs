@@ -3195,7 +3195,8 @@ namespace UnityEngine.Rendering.HighDefinition
             RenderQueueRange? renderQueueRange = null,
             RenderStateBlock? stateBlock = null,
             Material overrideMaterial = null,
-            bool excludeObjectMotionVectors = false
+            bool excludeObjectMotionVectors = false,
+            uint batchLayerMask = uint.MaxValue
         )
         {
             var result = new RendererListDesc(passName, cull, camera)
@@ -3205,6 +3206,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 sortingCriteria = HDUtils.k_OpaqueSortingCriteria,
                 stateBlock = stateBlock,
                 overrideMaterial = overrideMaterial,
+                batchLayerMask = batchLayerMask,
                 excludeObjectMotionVectors = excludeObjectMotionVectors
             };
             return result;
@@ -3218,7 +3220,8 @@ namespace UnityEngine.Rendering.HighDefinition
             RenderQueueRange? renderQueueRange = null,
             RenderStateBlock? stateBlock = null,
             Material overrideMaterial = null,
-            bool excludeObjectMotionVectors = false
+            bool excludeObjectMotionVectors = false,
+            uint batchLayerMask = uint.MaxValue
         )
         {
             var result = new RendererListDesc(passNames, cull, camera)
@@ -3228,6 +3231,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 sortingCriteria = HDUtils.k_OpaqueSortingCriteria,
                 stateBlock = stateBlock,
                 overrideMaterial = overrideMaterial,
+                batchLayerMask = batchLayerMask,
                 excludeObjectMotionVectors = excludeObjectMotionVectors
             };
             return result;

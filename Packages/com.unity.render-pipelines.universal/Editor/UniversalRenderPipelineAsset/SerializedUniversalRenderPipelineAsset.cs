@@ -84,6 +84,7 @@ namespace UnityEditor.Rendering.Universal
 
         public SerializedProperty gpuResidentDrawerMode { get; }
         public SerializedProperty smallMeshScreenPercentage { get; }
+        public SerializedProperty gpuResidentDrawerEnableOcclusionCullingInCameras { get; }
 
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
         public SerializedProperty useAdaptivePerformance { get; }
@@ -177,6 +178,7 @@ namespace UnityEditor.Rendering.Universal
 
             gpuResidentDrawerMode = serializedObject.FindProperty("m_GPUResidentDrawerMode");
             smallMeshScreenPercentage = serializedObject.FindProperty("m_SmallMeshScreenPercentage");
+            gpuResidentDrawerEnableOcclusionCullingInCameras = serializedObject.FindProperty("m_GPUResidentDrawerEnableOcclusionCullingInCameras");
 
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
             useAdaptivePerformance = serializedObject.FindProperty("m_UseAdaptivePerformance");

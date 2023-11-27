@@ -98,8 +98,6 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedScalableSetting lodBias;
         public SerializedScalableSetting maximumLODLevel;
 
-        public SerializedProperty useBRGForDrawSubmission;
-
 #pragma warning disable 618 // Type or member is obsolete
         [FormerlySerializedAs("enableUltraQualitySSS"), FormerlySerializedAs("increaseSssSampleCount"), Obsolete("For data migration")]
         SerializedProperty m_ObsoleteincreaseSssSampleCount;

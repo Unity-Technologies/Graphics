@@ -787,6 +787,11 @@ namespace UnityEngine.Rendering.Universal
             m_DepthNormalPrepass.OnCameraCleanup(renderingData.commandBuffer);
         }
 
+        /// <summary>
+        /// Used to determine if this renderer supports the use of GPU occlusion culling.
+        /// </summary>
+        public override bool supportsGPUOcclusion => m_RenderingMode != RenderingMode.Deferred;
+
         private static bool m_CreateColorTexture;
         private static bool m_CreateDepthTexture;
 
@@ -796,12 +801,12 @@ namespace UnityEngine.Rendering.Universal
                 ClearTargetsPass.Render(renderGraph, resourceData.activeColorTexture, resourceData.backBufferDepth, RTClearFlags.Depth, cameraData.backgroundColor);
 
             RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.BeforeRenderingShadows, RenderPassEvent.BeforeRenderingOpaques);
-            m_RenderOpaqueForwardPass.Render(renderGraph, frameData, TextureHandle.nullHandle, resourceData.backBufferDepth, TextureHandle.nullHandle, TextureHandle.nullHandle);
+            m_RenderOpaqueForwardPass.Render(renderGraph, frameData, TextureHandle.nullHandle, resourceData.backBufferDepth, TextureHandle.nullHandle, TextureHandle.nullHandle, uint.MaxValue);
             RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.AfterRenderingOpaques, RenderPassEvent.BeforeRenderingTransparents);
 #if ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER
             if (needTransparencyPass)
 #endif
-            m_RenderTransparentForwardPass.Render(renderGraph, frameData, TextureHandle.nullHandle, resourceData.backBufferDepth, TextureHandle.nullHandle, TextureHandle.nullHandle);
+            m_RenderTransparentForwardPass.Render(renderGraph, frameData, TextureHandle.nullHandle, resourceData.backBufferDepth, TextureHandle.nullHandle, TextureHandle.nullHandle, uint.MaxValue);
             RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.AfterRenderingTransparents, RenderPassEvent.AfterRendering);
         }
         private void OnBeforeRendering(RenderGraph renderGraph)
@@ -836,6 +841,28 @@ namespace UnityEngine.Rendering.Universal
                 SetupRenderGraphCameraProperties(renderGraph, resourceData.isActiveTargetBackBuffer);
 
             RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.AfterRenderingShadows);
+        }
+
+        private void UpdateInstanceOccluders(RenderGraph renderGraph, UniversalCameraData cameraData, TextureHandle depthTexture)
+        {
+            var viewMatrix = cameraData.GetViewMatrix();
+            var projMatrix = cameraData.GetProjectionMatrix();
+            var occluderParams = new OccluderParameters(cameraData.camera.GetInstanceID())
+            {
+                viewMatrix = viewMatrix,
+                invViewMatrix = viewMatrix.inverse,
+                gpuProjMatrix = GL.GetGPUProjectionMatrix(projMatrix, true),
+                viewOffsetWorldSpace = Vector3.zero,
+                depthTexture = depthTexture,
+                depthSize = new Vector2Int(cameraData.pixelWidth, cameraData.pixelHeight),
+            };
+            GPUResidentDrawer.UpdateInstanceOccluders(renderGraph, occluderParams);
+        }
+
+        private void InstanceOcclusionTest(RenderGraph renderGraph, UniversalCameraData cameraData, OcclusionTest occlusionTest)
+        {
+            var settings = new OcclusionCullingSettings(cameraData.camera.GetInstanceID(), occlusionTest);
+            GPUResidentDrawer.InstanceOcclusionTest(renderGraph, settings);
         }
 
         private void OnMainRendering(RenderGraph renderGraph, ScriptableRenderContext context)
@@ -880,23 +907,46 @@ namespace UnityEngine.Rendering.Universal
 
             bool isDeferred = this.renderingModeActual == RenderingMode.Deferred;
 
+            bool needsOccluderUpdate = cameraData.useGPUOcclusionCulling;
             if (requiresDepthPrepass)
             {
                 // TODO RENDERGRAPH: is this always a valid assumption for deferred rendering?
                 TextureHandle depthTarget = (renderingModeActual == RenderingMode.Deferred) ? resourceData.activeDepthTexture : resourceData.cameraDepthTexture;
                 depthTarget = (useDepthPriming && (cameraData.renderType == CameraRenderType.Base || cameraData.clearDepth)) ? resourceData.activeDepthTexture : depthTarget;
 
-                if (renderPassInputs.requiresNormalsTexture)
+                var passCount = needsOccluderUpdate ? 2 : 1;
+                for (int passIndex = 0; passIndex < passCount; ++passIndex)
                 {
-                    DepthNormalPrepassRender(renderGraph, renderPassInputs, depthTarget);
-                }
-                else
-                {
-                    m_DepthPrepass.Render(renderGraph, frameData, ref depthTarget);
+                    uint batchLayerMask = uint.MaxValue;
+                    if (needsOccluderUpdate)
+                    {
+                        // first pass: test everything against previous frame final depth pyramid
+                        // second pass: re-test culled against current frame intermediate depth pyramid
+                        OcclusionTest occlusionTest = (passIndex == 0) ? OcclusionTest.TestAll : OcclusionTest.TestCulled;
+                        InstanceOcclusionTest(renderGraph, cameraData, occlusionTest);
+                        batchLayerMask = occlusionTest.GetBatchLayerMask();
+                    }
 
-                    if (!useDepthPriming && depthTarget.IsValid())
-                        RenderGraphUtils.SetGlobalTexture(renderGraph, Shader.PropertyToID("_CameraDepthTexture"), depthTarget, "Set Global Depth Texture");
+                    bool isLastPass = (passIndex == (passCount - 1));
+                    if (renderPassInputs.requiresNormalsTexture)
+                        DepthNormalPrepassRender(renderGraph, renderPassInputs, depthTarget, batchLayerMask, isLastPass);
+                    else
+                    {
+                        m_DepthPrepass.Render(renderGraph, frameData, ref depthTarget, batchLayerMask);
+                        if (isLastPass && !useDepthPriming && depthTarget.IsValid())
+                            RenderGraphUtils.SetGlobalTexture(renderGraph, Shader.PropertyToID("_CameraDepthTexture"), depthTarget, "Set Global Depth Texture");
+                    }
+
+                    if (needsOccluderUpdate)
+                    {
+                        // first pass: make current frame intermediate depth pyramid
+                        // second pass: make current frame final depth pyramid, set occlusion test results for later passes
+                        UpdateInstanceOccluders(renderGraph, cameraData, depthTarget);
+                        if (passIndex != 0)
+                            InstanceOcclusionTest(renderGraph, cameraData, OcclusionTest.TestAll);
+                    }
                 }
+                needsOccluderUpdate = false;
             }
 
             // depth priming still needs to copy depth because the prepass doesn't target anymore CameraDepthTexture
@@ -963,35 +1013,61 @@ namespace UnityEngine.Rendering.Universal
 
                 TextureHandle mainShadowsTexture = resourceData.mainShadowsTexture;
                 TextureHandle additionalShadowsTexture = resourceData.additionalShadowsTexture;
-                m_RenderOpaqueForwardOnlyPass.Render(renderGraph, frameData, resourceData.activeColorTexture, resourceData.activeDepthTexture, mainShadowsTexture, additionalShadowsTexture);
+                m_RenderOpaqueForwardOnlyPass.Render(renderGraph, frameData, resourceData.activeColorTexture, resourceData.activeDepthTexture, mainShadowsTexture, additionalShadowsTexture, uint.MaxValue);
             }
             else
             {
                 RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.BeforeRenderingOpaques);
 
-                if (m_RenderingLayerProvidesRenderObjectPass)
+                var passCount = needsOccluderUpdate ? 2 : 1;
+                for (int passIndex = 0; passIndex < passCount; ++passIndex)
                 {
-                    m_RenderOpaqueForwardWithRenderingLayersPass.Render(
-                        renderGraph,
-                        frameData,
-                        resourceData.activeColorTexture,
-                        resourceData.renderingLayersTexture,
-                        resourceData.activeDepthTexture,
-                        resourceData.mainShadowsTexture,
-                        resourceData.additionalShadowsTexture,
-                        m_RenderingLayersMaskSize);
-                    SetRenderingLayersGlobalTextures(renderGraph);
+                    uint batchLayerMask = uint.MaxValue;
+                    if (needsOccluderUpdate)
+                    {
+                        // first pass: test everything against previous frame final depth pyramid
+                        // second pass: re-test culled against current frame intermediate depth pyramid
+                        OcclusionTest occlusionTest = (passIndex) == 0 ? OcclusionTest.TestAll : OcclusionTest.TestCulled;
+                        InstanceOcclusionTest(renderGraph, cameraData, occlusionTest);
+                        batchLayerMask = occlusionTest.GetBatchLayerMask();
+                    }
+
+                    if (m_RenderingLayerProvidesRenderObjectPass)
+                    {
+                        m_RenderOpaqueForwardWithRenderingLayersPass.Render(
+                            renderGraph,
+                            frameData,
+                            resourceData.activeColorTexture,
+                            resourceData.renderingLayersTexture,
+                            resourceData.activeDepthTexture,
+                            resourceData.mainShadowsTexture,
+                            resourceData.additionalShadowsTexture,
+                            m_RenderingLayersMaskSize,
+                            batchLayerMask);
+                        SetRenderingLayersGlobalTextures(renderGraph);
+                    }
+                    else
+                    {
+                        m_RenderOpaqueForwardPass.Render(
+                            renderGraph,
+                            frameData,
+                            resourceData.activeColorTexture,
+                            resourceData.activeDepthTexture,
+                            resourceData.mainShadowsTexture,
+                            resourceData.additionalShadowsTexture,
+                            batchLayerMask);
+                    }
+
+                    if (needsOccluderUpdate)
+                    {
+                        // first pass: make current frame intermediate depth pyramid
+                        // second pass: make current frame final depth pyramid, set occlusion test results for later passes
+                        UpdateInstanceOccluders(renderGraph, cameraData, resourceData.activeDepthTexture);
+                        if (passIndex != 0)
+                            InstanceOcclusionTest(renderGraph, cameraData, OcclusionTest.TestAll);
+                    }
                 }
-                else
-                {
-                    m_RenderOpaqueForwardPass.Render(
-                        renderGraph,
-                        frameData,
-                        resourceData.activeColorTexture,
-                        resourceData.activeDepthTexture,
-                        resourceData.mainShadowsTexture,
-                        resourceData.additionalShadowsTexture);
-                }
+                needsOccluderUpdate = false;
             }
 
             // Custom passes come before built-in passes to keep parity with non-RG code path where custom passes are added before renderer Setup.
@@ -1441,7 +1517,7 @@ namespace UnityEngine.Rendering.Universal
             resourceData.afterPostProcessColor = CreateRenderGraphTexture(renderGraph, desc, "_AfterPostProcessTexture", true);
         }
 
-        void DepthNormalPrepassRender(RenderGraph renderGraph, RenderPassInputSummary renderPassInputs, TextureHandle depthTarget)
+        void DepthNormalPrepassRender(RenderGraph renderGraph, RenderPassInputSummary renderPassInputs, TextureHandle depthTarget, uint batchLayerMask, bool postSetGlobalTextures)
         {
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
 
@@ -1469,7 +1545,7 @@ namespace UnityEngine.Rendering.Universal
 
             TextureHandle normalsTexture = resourceData.cameraNormalsTexture;
             TextureHandle renderingLayersTexture = resourceData.renderingLayersTexture;
-            m_DepthNormalPrepass.Render(renderGraph, frameData, normalsTexture, depthTarget, renderingLayersTexture);
+            m_DepthNormalPrepass.Render(renderGraph, frameData, normalsTexture, depthTarget, renderingLayersTexture, batchLayerMask, postSetGlobalTextures);
 
             if (m_RequiresRenderingLayer)
                 SetRenderingLayersGlobalTextures(renderGraph);

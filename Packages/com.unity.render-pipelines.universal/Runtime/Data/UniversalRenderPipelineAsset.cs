@@ -586,9 +586,12 @@ namespace UnityEngine.Rendering.Universal
         private GPUResidentDrawerMode m_GPUResidentDrawerMode = GPUResidentDrawerMode.Disabled;
         [SerializeField] float m_SmallMeshScreenPercentage = 0.0f;
 
+        [SerializeField] bool m_GPUResidentDrawerEnableOcclusionCullingInCameras;
+
         GPUResidentDrawerSettings IGPUResidentRenderPipeline.gpuResidentDrawerSettings => new()
         {
             mode = m_GPUResidentDrawerMode,
+            enableOcclusionCulling = m_GPUResidentDrawerEnableOcclusionCullingInCameras,
             supportDitheringCrossFade = m_EnableLODCrossFade,
             allowInEditMode = true,
             smallMeshScreenPercentage = m_SmallMeshScreenPercentage,
@@ -1609,6 +1612,22 @@ namespace UnityEngine.Rendering.Universal
                     return;
 
                 m_GPUResidentDrawerMode = value;
+                OnValidate();
+            }
+        }
+
+        /// <summary>
+        /// Determines if the GPU Resident Drawer should perform occlusion culling in camera views
+        /// </summary>
+        public bool gpuResidentDrawerEnableOcclusionCullingInCameras
+        {
+            get => m_GPUResidentDrawerEnableOcclusionCullingInCameras;
+            set
+            {
+                if (value == m_GPUResidentDrawerEnableOcclusionCullingInCameras)
+                    return;
+
+                m_GPUResidentDrawerEnableOcclusionCullingInCameras = value;
                 OnValidate();
             }
         }

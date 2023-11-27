@@ -146,6 +146,7 @@ namespace UnityEditor.Rendering.Universal
                 {
                     ++EditorGUI.indentLevel;
                     serialized.smallMeshScreenPercentage.floatValue = Mathf.Clamp(EditorGUILayout.FloatField(Styles.smallMeshScreenPercentage, serialized.smallMeshScreenPercentage.floatValue), 0.0f, 20.0f);
+                    EditorGUILayout.PropertyField(serialized.gpuResidentDrawerEnableOcclusionCullingInCameras, Styles.gpuResidentDrawerEnableOcclusionCullingInCameras);
                     --EditorGUI.indentLevel;
 
                     if (brgStrippingError)
@@ -154,6 +155,8 @@ namespace UnityEditor.Rendering.Universal
                         EditorGUILayout.HelpBox(Styles.lightModeErrorMessage.text, MessageType.Warning, true);
                     if (staticBatchingWarning)
                         EditorGUILayout.HelpBox(Styles.staticBatchingInfoMessage.text, MessageType.Info, true);
+                    if (serialized.gpuResidentDrawerEnableOcclusionCullingInCameras.boolValue)
+                        EditorGUILayout.HelpBox(Styles.renderGraphNotEnabledErrorMessage.text, MessageType.Info, true);
                 }
             }
         }

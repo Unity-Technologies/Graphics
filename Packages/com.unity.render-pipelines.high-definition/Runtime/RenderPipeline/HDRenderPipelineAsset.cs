@@ -237,6 +237,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             mode = m_RenderPipelineSettings.gpuResidentDrawerSettings.mode,
             supportDitheringCrossFade = QualitySettings.enableLODCrossFade,
+            enableOcclusionCulling = m_RenderPipelineSettings.gpuResidentDrawerSettings.enableOcclusionCullingInCameras,
             allowInEditMode = true,
             smallMeshScreenPercentage = m_RenderPipelineSettings.gpuResidentDrawerSettings.smallMeshScreenPercentage,
 #if UNITY_EDITOR

@@ -2225,5 +2225,10 @@ namespace UnityEngine.Rendering.Universal
         }
 
         internal virtual bool supportsNativeRenderPassRendergraphCompiler { get => false; }
+
+        /// <summary>
+        /// Used to determine if this renderer supports the use of GPU occlusion culling.
+        /// </summary>
+        public virtual bool supportsGPUOcclusion => false;
     }
 }

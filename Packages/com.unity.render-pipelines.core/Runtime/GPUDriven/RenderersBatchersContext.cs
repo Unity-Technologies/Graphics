@@ -42,6 +42,7 @@ namespace UnityEngine.Rendering
         public int crossfadedRendererCount { get { return m_LODGroupDataPool.crossfadedRendererCount; } }
         public SphericalHarmonicsL2 cachedAmbientProbe { get { return m_CachedAmbientProbe; } }
 
+        public bool hasBoundingSpheres { get { return m_InstanceDataSystem.hasBoundingSpheres; } }
         public CPUInstanceData.ReadOnly instanceData { get { return m_InstanceDataSystem.instanceData; } }
         public CPUSharedInstanceData.ReadOnly sharedInstanceData { get { return m_InstanceDataSystem.sharedInstanceData; } }
         public GPUInstanceDataBuffer.ReadOnly instanceDataBuffer { get { return m_InstanceDataBuffer.AsReadOnly(); } }
@@ -69,15 +70,15 @@ namespace UnityEngine.Rendering
 
         private SphericalHarmonicsL2 m_CachedAmbientProbe;
 
-        private bool m_EnableDeferredVertexShader;
-        private bool m_EnableDeferredMaterialPartialMeshConversion;
         private float m_SmallMeshScreenPercentage;
 
         private GPUDrivenLODGroupDataCallback m_UpdateLODGroupCallback;
         private GPUDrivenLODGroupDataCallback m_TransformLODGroupCallback;
 
+        private OcclusionCullingCommon m_OcclusionCullingCommon;
         private DebugRendererBatcherStats m_DebugStats;
 
+        internal OcclusionCullingCommon occlusionCullingCommon { get => m_OcclusionCullingCommon; }
         internal DebugRendererBatcherStats debugStats { get => m_DebugStats; }
 
         public RenderersBatchersContext(in RenderersBatchersContextDesc desc, GPUDrivenProcessor gpuDrivenProcessor, GPUResidentDrawerResources resources)
@@ -111,6 +112,8 @@ namespace UnityEngine.Rendering
             m_UpdateLODGroupCallback = UpdateLODGroupData;
             m_TransformLODGroupCallback = TransformLODGroupData;
 
+            m_OcclusionCullingCommon = new OcclusionCullingCommon();
+            m_OcclusionCullingCommon.Init(resources);
             m_DebugStats = desc.enableCullerDebugStats ? new DebugRendererBatcherStats() : null;
         }
 
@@ -132,9 +135,10 @@ namespace UnityEngine.Rendering
 
             m_UpdateLODGroupCallback = null;
             m_TransformLODGroupCallback = null;
-
             m_DebugStats?.Dispose();
             m_DebugStats = null;
+            m_OcclusionCullingCommon?.Dispose();
+            m_OcclusionCullingCommon = null;
         }
 
         public int GetMaxInstancesOfType(InstanceType instanceType)
@@ -383,6 +387,9 @@ namespace UnityEngine.Rendering
 
         public void UpdateFrame()
         {
+            m_OcclusionCullingCommon.UpdateFrame();
+            if (m_DebugStats != null)
+                m_OcclusionCullingCommon.UpdateOccluderStats(m_DebugStats);
         }
     }
 }

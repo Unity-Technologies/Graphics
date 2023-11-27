@@ -2,11 +2,12 @@ using System;
 using System.Collections.Generic;
 using Unity.Collections;
 using UnityEngine.Assertions;
+using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering
 {
     /// <summary>
-    /// Context struct for passing into GPUResidentRenderPipeline.PostCullBeginCameraRendering
+    /// Context struct for passing into GPUResidentDrawer.PostCullBeginCameraRendering
     /// </summary>
     public struct RenderRequestBatcherContext
     {
@@ -22,75 +23,91 @@ namespace UnityEngine.Rendering
     }
 
     /// <summary>
-    /// Enum for split view types
+    /// The type of occlusion test
     /// </summary>
-    internal enum SplitViewType
+    public enum OcclusionTest
     {
-        Camera,
-        Shadow,
+        /// <summary>No occlusion test, all instances are visible.</summary>
+        None,
+        /// <summary>Test all instances against the latest occluders.</summary>
+        TestAll,
+        /// <summary>Only test the culled objects from the previous pass.</summary>
+        TestCulled,
     }
 
-    /// <summary>
-    /// Identifies a split within a view
-    /// </summary>
-    internal struct SplitID : IEquatable<SplitID>
+    /// <summary>Extension methods for OcclusionTest.</summary>
+    public static class OcclusionTestMethods
     {
-        public SplitViewType viewType;
-        public int viewID;
-        public int splitIndex;
-
-        public bool isCamera { get { return viewType == SplitViewType.Camera; } }
-
-        public static SplitID FromCamera(Camera camera)
+        /// <summary>
+        /// Converts this occlusion test into a batch layer mask for rendering.
+        /// This helper function is used to limit the second rendering pass when building
+        /// occluders to only indirect draw calls, so that only false positives from
+        /// the first rendering pass are rendered.
+        /// </summary>
+        /// <param name="occlusionTest">The occlusion test.</param>
+        /// <returns>The batch layer mask that should be used to render the results of this occlusion test.</returns>
+        public static uint GetBatchLayerMask(this OcclusionTest occlusionTest)
         {
-            return new SplitID { viewType = SplitViewType.Camera, viewID = camera.GetInstanceID() };
-        }
-        public static SplitID FromCamera(int cameraInstanceID)
-        {
-            return new SplitID { viewType = SplitViewType.Camera, viewID = cameraInstanceID };
-        }
-
-        public static SplitID FromShadow(int lightInstanceID, int splitIndex = 0)
-        {
-            return new SplitID { viewType = SplitViewType.Shadow, viewID = lightInstanceID, splitIndex = splitIndex };
-        }
-
-        public bool Equals(SplitID other)
-        {
-            return viewType == other.viewType && viewID == other.viewID && splitIndex == other.splitIndex;
-        }
-
-        public override int GetHashCode()
-        {
-            int hash = 13;
-            hash = (hash * 23) + (int)viewType;
-            hash = (hash * 23) + (int)viewID;
-            hash = (hash * 23) + (int)splitIndex;
-            return hash;
+            // limit to indirect batches only when rendering false positives, otherwise render everything
+            return (occlusionTest == OcclusionTest.TestCulled) ? BatchLayer.InstanceCullingIndirectMask : uint.MaxValue;
         }
     }
 
-    internal struct InstanceCullerViewStats
+    /// <summary>Parameter structure for passing to GPUResidentDrawer.InstanceOcclusionTest.</summary>
+    public struct OcclusionCullingSettings
     {
-        public SplitID splitID;
-        public int visibleInstances;
-        public int drawCommands;
+        /// <summary>The instance ID of the camera, to identify the culling output and occluders to use.</summary>
+        public int viewInstanceID;
+        /// <summary>The occlusion test to use.</summary>
+        public OcclusionTest occlusionTest;
+
+        /// <summary>Creates a new structure using the given parameters.</summary>
+        /// <param name="viewInstanceID">The instance ID of the camera to find culling output and occluders for.</param>
+        /// <param name="occlusionTest">The occlusion test to use.</param>
+        public OcclusionCullingSettings(int viewInstanceID, OcclusionTest occlusionTest)
+        {
+            this.viewInstanceID = viewInstanceID;
+            this.occlusionTest = occlusionTest;
+        }
     }
 
-    internal class DebugRendererBatcherStats : IDisposable
+    /// <summary>Parameters structure for passing to GPUResidentDrawer.UpdateInstanceOccluders.</summary>
+    public struct OccluderParameters
     {
-        public bool enabled;
-        public NativeList<InstanceCullerViewStats> instanceCullerStats;
+        /// <summary>The instance ID of the camera, used to identify these occluders for the occlusion test.</summary>
+        public int viewInstanceID;
 
-        public DebugRendererBatcherStats()
-        {
-            instanceCullerStats = new NativeList<InstanceCullerViewStats>(Allocator.Persistent);
-        }
+        /// <summary>The transform from world space to view space when rendering the depth buffer.</summary>
+        public Matrix4x4 viewMatrix;
+        /// <summary>The transform from view space to world space when rendering the depth buffer.</summary>
+        public Matrix4x4 invViewMatrix;
+        /// <summary>The GPU projection matrix when rendering the depth buffer.</summary>
+        public Matrix4x4 gpuProjMatrix;
+        /// <summary>An additional world space offset to apply when moving between world space and view space.</summary>
+        public Vector3 viewOffsetWorldSpace;
 
-        public void Dispose()
+        /// <summary>The depth texture to read.</summary>
+        public TextureHandle depthTexture;
+        /// <summary>The offset in pixels to the start of the depth data to read.</summary>
+        public Vector2Int depthOffset;
+        /// <summary>The size in pixels of the area of the depth data to read.</summary>
+        public Vector2Int depthSize;
+        /// <summary>The number of slices, expected to be 0 or 1 for 2D and 2DArray textures respectively.</summary>
+        public int depthSliceCount;
+
+        /// <summary>Creates a new structure using the given parameters.</summary>
+        /// <param name="viewInstanceID">The instance ID of the camera to associate with these occluders.</param>
+        public OccluderParameters(int viewInstanceID)
         {
-            if (instanceCullerStats.IsCreated)
-                instanceCullerStats.Dispose();
+            this.viewInstanceID = viewInstanceID;
+            this.viewMatrix = Matrix4x4.identity;
+            this.invViewMatrix = Matrix4x4.identity;
+            this.gpuProjMatrix = Matrix4x4.identity;
+            this.viewOffsetWorldSpace = Vector3.zero;
+            this.depthTexture = TextureHandle.nullHandle;
+            this.depthOffset = Vector2Int.zero;
+            this.depthSize = Vector2Int.zero;
+            this.depthSliceCount = 0;
         }
     }
 }

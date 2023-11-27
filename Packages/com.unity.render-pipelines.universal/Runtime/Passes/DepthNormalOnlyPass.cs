@@ -174,7 +174,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             return new RendererListParams(renderingData.cullResults, drawSettings, m_FilteringSettings);
         }
 
-        internal void Render(RenderGraph renderGraph, ContextContainer frameData, TextureHandle cameraNormalsTexture, TextureHandle cameraDepthTexture, TextureHandle renderingLayersTexture)
+        internal void Render(RenderGraph renderGraph, ContextContainer frameData, TextureHandle cameraNormalsTexture, TextureHandle cameraDepthTexture, TextureHandle renderingLayersTexture, uint batchLayerMask = uint.MaxValue, bool postSetGlobalTextures = true)
         {
             UniversalRenderingData renderingData = frameData.Get<UniversalRenderingData>();
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
@@ -196,12 +196,13 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
 
                 var param = InitRendererListParams(renderingData, cameraData, lightData);
+                param.filteringSettings.batchLayerMask = batchLayerMask;
                 passData.rendererList = renderGraph.CreateRendererList(param);
                 builder.UseRendererList(passData.rendererList);
                 builder.EnableFoveatedRasterization(cameraData.xr.supportsFoveatedRendering);
 
                 UniversalRenderer universalRenderer = cameraData.renderer as UniversalRenderer;
-                if (universalRenderer != null)
+                if (postSetGlobalTextures && universalRenderer != null)
                 {
                     var renderingMode = universalRenderer.renderingModeActual;
                     if (cameraNormalsTexture.IsValid() && renderingMode != RenderingMode.Deferred)

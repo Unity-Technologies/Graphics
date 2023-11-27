@@ -1437,6 +1437,13 @@ namespace UnityEngine.Rendering.Universal
             cameraData.postProcessingRequiresDepthTexture = CheckPostProcessForDepth(cameraData);
             cameraData.resolveFinalTarget = resolveFinalTarget;
 
+            // enable GPU occlusion culling in game and scene views only
+            cameraData.useGPUOcclusionCulling = GPUResidentDrawer.IsInstanceOcclusionCullingEnabled()
+                && renderer.supportsGPUOcclusion
+                && !XRSRPSettings.enabled
+                && camera.cameraType is CameraType.SceneView or CameraType.Game or CameraType.Preview;
+            cameraData.requiresDepthTexture |= cameraData.useGPUOcclusionCulling;
+
             // Disable depth and color copy. We should add it in the renderer instead to avoid performance pitfalls
             // of camera stacking breaking render pass execution implicitly.
             bool isOverlayCamera = (cameraData.renderType == CameraRenderType.Overlay);

@@ -34,6 +34,11 @@ namespace UnityEngine.Rendering
         public bool supportDitheringCrossFade;
 
         /// <summary>
+        /// Enable GPU data for occlusion culling
+        /// </summary>
+        public bool enableOcclusionCulling;
+
+        /// <summary>
         /// Allows the GPU Resident Drawer to run in edit mode
         /// </summary>
         public bool allowInEditMode;

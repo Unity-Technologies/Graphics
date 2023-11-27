@@ -234,6 +234,9 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public bool xrRendering;
 
+        // True if GPU occlusion culling should be used when rendering this camera.
+        internal bool useGPUOcclusionCulling;
+
         internal bool requireSrgbConversion
         {
             get
@@ -572,6 +575,7 @@ namespace UnityEngine.Rendering.Universal
             requiresOpaqueTexture = false;
             postProcessingRequiresDepthTexture = false;
             xrRendering = false;
+            useGPUOcclusionCulling = false;
             defaultOpaqueSortFlags = SortingCriteria.None;
             xr = default;
             maxShadowDistance = 0.0f;

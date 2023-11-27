@@ -2,11 +2,10 @@ using System;
 using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Jobs;
-using Unity.Jobs.LowLevel.Unsafe;
-using Unity.Burst;
 using UnityEngine.Profiling;
 using Unity.Mathematics;
 using UnityEngine.Assertions;
+using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering
 {
@@ -17,6 +16,8 @@ namespace UnityEngine.Rendering
         private GPUDrivenRendererDataCallback m_UpdateRendererDataCallback;
         private GPUDrivenSpeedTreeWindDataCallback m_UpdateSpeedTreeWindData;
 
+        internal RenderersBatchersContext batchersContext { get => m_BatchersContext; }
+        internal OcclusionCullingCommon occlusionCullingCommon { get => m_BatchersContext.occlusionCullingCommon; }
         internal InstanceCullingBatcher instanceCullingBatcher { get => m_InstanceCullingBatcher; }
 
         private InstanceCullingBatcher m_InstanceCullingBatcher = null;
@@ -76,6 +77,22 @@ namespace UnityEngine.Rendering
         public void DestroyMeshes(NativeArray<int> destroyedMeshes)
         {
             m_InstanceCullingBatcher.DestroyMeshes(destroyedMeshes);
+        }
+
+        public void InstanceOcclusionTest(RenderGraph renderGraph, in OcclusionCullingSettings settings)
+        {
+            if (!m_BatchersContext.hasBoundingSpheres)
+                return;
+
+            m_InstanceCullingBatcher.culler.InstanceOcclusionTest(renderGraph, settings, m_BatchersContext);
+        }
+
+        public void UpdateInstanceOccluders(RenderGraph renderGraph, in OccluderParameters occluderParams)
+        {
+            if (!m_BatchersContext.hasBoundingSpheres)
+                return;
+
+            m_BatchersContext.occlusionCullingCommon.UpdateInstanceOccluders(renderGraph, occluderParams);
         }
 
         public void UpdateRenderers(NativeArray<int> renderersID)
@@ -221,6 +238,7 @@ namespace UnityEngine.Rendering
         private void OnFinishedCulling(IntPtr customCullingResult)
         {
             ProcessTrees();
+            m_InstanceCullingBatcher.OnFinishedCulling(customCullingResult);
         }
 
         private void ProcessTrees()

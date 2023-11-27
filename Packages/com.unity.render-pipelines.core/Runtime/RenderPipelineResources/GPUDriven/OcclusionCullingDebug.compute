@@ -1,0 +1,25 @@
+#pragma kernel ClearOcclusionDebug
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+
+#define OCCLUSION_DEBUG 1
+
+#include "Packages/com.unity.render-pipelines.core/Runtime/GPUDriven/OcclusionCullingCommon.hlsl"
+
+[numthreads(8, 8, 1)]
+void ClearOcclusionDebug(uint2 dispatchIndex : SV_DispatchThreadID, uint3 groupId : SV_GroupID)
+{
+#ifdef OCCLUSION_DEBUG
+    SET_SLICE_INDEX(groupId.z);
+
+    for (int i = 0; i < OCCLUSIONCULLINGCOMMONCONFIG_MAX_OCCLUDER_MIPS; ++i)
+    {
+        uint4 bounds = _OccluderMipBounds[i];
+        if (all(dispatchIndex < bounds.zw))
+            _OcclusionDebugPyramid[toDebugPyramidCoord(bounds.xy + dispatchIndex)] = 0;
+    }
+
+    if (all(dispatchIndex == 0))
+        _OcclusionDebugPyramid[0] = 0;
+#endif
+}

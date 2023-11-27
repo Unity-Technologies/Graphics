@@ -30,6 +30,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Material m_DebugHDShadowMapMaterial;
         Material m_DebugLocalVolumetricFogMaterial;
         Material m_DebugBlitMaterial;
+        Material m_DebugDrawClustersBoundsMaterial;
 
         // Color monitors
         Material m_DebugVectorscope;
@@ -1006,6 +1007,29 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        void RenderOcclusionOverlay(RenderGraph renderGraph, TextureHandle colorBuffer, HDCamera hdCamera)
+        {
+            GPUResidentDrawer.RenderDebugOcclusionTestOverlay(
+                renderGraph,
+                HDDebugDisplaySettings.Instance?.gpuResidentDrawerSettings ?? null,
+                hdCamera.camera.GetInstanceID(),
+                colorBuffer);
+        }
+
+        void RenderOccluderDebugOverlay(RenderGraph renderGraph, TextureHandle colorBuffer, HDCamera hdCamera)
+        {
+            var debugSettings = HDDebugDisplaySettings.Instance?.gpuResidentDrawerSettings ?? null;
+            if (debugSettings != null && debugSettings.occluderDebugViewEnable)
+            {
+                Rect rect = m_DebugOverlay.Next();
+                GPUResidentDrawer.RenderDebugOccluderOverlay(
+                    renderGraph,
+                    debugSettings,
+                    new Vector2(rect.x, rect.y), rect.height,
+                    colorBuffer);
+            }
+        }
+
         void RenderDebugOverlays(RenderGraph renderGraph,
             TextureHandle                    colorBuffer,
             TextureHandle                    depthBuffer,
@@ -1037,6 +1061,9 @@ namespace UnityEngine.Rendering.HighDefinition
             RenderMonitorsOverlay(renderGraph, colorBuffer, hdCamera);
 
             ProbeReferenceVolume.instance.RenderFragmentationOverlay(renderGraph, colorBuffer, depthBuffer, m_DebugOverlay);
+
+            RenderOcclusionOverlay(renderGraph, colorBuffer, hdCamera);
+            RenderOccluderDebugOverlay(renderGraph, colorBuffer, hdCamera);
         }
 
         void RenderLightVolumes(RenderGraph renderGraph, TextureHandle destination, TextureHandle depthBuffer, CullingResults cullResults, HDCamera hdCamera)

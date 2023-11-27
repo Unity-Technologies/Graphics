@@ -61,5 +61,65 @@ namespace UnityEngine.Rendering
             get => m_WindDataUpdaterKernels;
             set => this.SetValueAndNotify(ref m_WindDataUpdaterKernels, value, nameof(m_WindDataUpdaterKernels));
         }
+
+        [SerializeField, ResourcePath("Runtime/RenderPipelineResources/GPUDriven/OccluderDepthPyramidKernels.compute")]
+        ComputeShader m_OccluderDepthPyramidKernels;
+
+        /// <summary>
+        /// OccluderDepthPyramidKernels compute shader reference
+        /// </summary>
+        public ComputeShader occluderDepthPyramidKernels
+        {
+            get => m_OccluderDepthPyramidKernels;
+            set => this.SetValueAndNotify(ref m_OccluderDepthPyramidKernels, value, nameof(m_OccluderDepthPyramidKernels));
+        }
+
+        [SerializeField, ResourcePath("Runtime/RenderPipelineResources/GPUDriven/InstanceOcclusionCullingKernels.compute")]
+        ComputeShader m_InstanceOcclusionCullingKernels;
+
+        /// <summary>
+        /// InstanceOcclusionCullingKernels compute shader reference
+        /// </summary>
+        public ComputeShader instanceOcclusionCullingKernels
+        {
+            get => m_InstanceOcclusionCullingKernels;
+            set => this.SetValueAndNotify(ref m_InstanceOcclusionCullingKernels, value, nameof(m_InstanceOcclusionCullingKernels));
+        }
+
+        [SerializeField, ResourcePath("Runtime/RenderPipelineResources/GPUDriven/OcclusionCullingDebug.compute")]
+        ComputeShader m_OcclusionCullingDebugKernels;
+
+        /// <summary>
+        /// OcclusionCullingDebugKernels compute shader reference
+        /// </summary>
+        public ComputeShader occlusionCullingDebugKernels
+        {
+            get => m_OcclusionCullingDebugKernels;
+            set => this.SetValueAndNotify(ref m_OcclusionCullingDebugKernels, value, nameof(m_OcclusionCullingDebugKernels));
+        }
+
+        [SerializeField, ResourcePath("Runtime/RenderPipelineResources/GPUDriven/DebugOcclusionTest.shader")]
+        Shader m_DebugOcclusionTestPS;
+
+        /// <summary>
+        /// DebugOcclusionTestPS pixel shader reference
+        /// </summary>
+        public Shader debugOcclusionTestPS
+        {
+            get => m_DebugOcclusionTestPS;
+            set => this.SetValueAndNotify(ref m_DebugOcclusionTestPS, value, nameof(m_DebugOcclusionTestPS));
+        }
+
+        [SerializeField, ResourcePath("Runtime/RenderPipelineResources/GPUDriven/DebugOccluder.shader")]
+        Shader m_DebugOccluderPS;
+
+        /// <summary>
+        /// DebugOccluderPS pixel shader reference
+        /// </summary>
+        public Shader debugOccluderPS
+        {
+            get => m_DebugOccluderPS;
+            set => this.SetValueAndNotify(ref m_DebugOccluderPS, value, nameof(m_DebugOccluderPS));
+        }
     }
 }
