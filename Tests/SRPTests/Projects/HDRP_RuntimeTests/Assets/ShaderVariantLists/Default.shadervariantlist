@@ -1390,18 +1390,13 @@ Compiled shader: Hidden/HDRP/FinalPass, pass: <Unnamed Pass 0>, stage: vertex, k
 Compiled shader: Hidden/HDRP/GGXConvolve, pass: <Unnamed Pass 0>, stage: all, keywords <no keywords>
 Compiled shader: Hidden/HDRP/GGXConvolve, pass: <Unnamed Pass 0>, stage: pixel, keywords <no keywords>
 Compiled shader: Hidden/HDRP/GGXConvolve, pass: <Unnamed Pass 0>, stage: vertex, keywords <no keywords>
-Compiled shader: Hidden/HDRP/LensFlareDataDriven, pass: LensFlareAdditive, stage: all, keywords FLARE_CIRCLE
-Compiled shader: Hidden/HDRP/LensFlareDataDriven, pass: LensFlareAdditive, stage: all, keywords FLARE_CIRCLE FLARE_HAS_OCCLUSION
+Compiled shader: Hidden/HDRP/LensFlareDataDriven, pass: LensFlareAdditive, stage: all, keywords <no keywords>
 Compiled shader: Hidden/HDRP/LensFlareDataDriven, pass: LensFlareAdditive, stage: all, keywords FLARE_HAS_OCCLUSION
 Compiled shader: Hidden/HDRP/LensFlareDataDriven, pass: LensFlareAdditive, stage: all, keywords FLARE_POLYGON
-Compiled shader: Hidden/HDRP/LensFlareDataDriven, pass: LensFlareAdditive, stage: pixel, keywords FLARE_CIRCLE
-Compiled shader: Hidden/HDRP/LensFlareDataDriven, pass: LensFlareAdditive, stage: pixel, keywords FLARE_CIRCLE FLARE_HAS_OCCLUSION
-Compiled shader: Hidden/HDRP/LensFlareDataDriven, pass: LensFlareAdditive, stage: pixel, keywords FLARE_CIRCLE FLARE_HAS_OCCLUSION STEREO_INSTANCING_ON
-Compiled shader: Hidden/HDRP/LensFlareDataDriven, pass: LensFlareAdditive, stage: pixel, keywords FLARE_CIRCLE STEREO_INSTANCING_ON
+Compiled shader: Hidden/HDRP/LensFlareDataDriven, pass: LensFlareAdditive, stage: pixel, keywords <no keywords>
 Compiled shader: Hidden/HDRP/LensFlareDataDriven, pass: LensFlareAdditive, stage: pixel, keywords FLARE_HAS_OCCLUSION
 Compiled shader: Hidden/HDRP/LensFlareDataDriven, pass: LensFlareAdditive, stage: pixel, keywords FLARE_HAS_OCCLUSION STEREO_INSTANCING_ON
-Compiled shader: Hidden/HDRP/LensFlareDataDriven, pass: LensFlareAdditive, stage: pixel, keywords FLARE_POLYGON
-Compiled shader: Hidden/HDRP/LensFlareDataDriven, pass: LensFlareAdditive, stage: pixel, keywords FLARE_POLYGON STEREO_INSTANCING_ON
+Compiled shader: Hidden/HDRP/LensFlareDataDriven, pass: LensFlareAdditive, stage: pixel, keywords STEREO_INSTANCING_ON
 Compiled shader: Hidden/HDRP/LensFlareDataDriven, pass: LensFlareAdditive, stage: vertex, keywords <no keywords>
 Compiled shader: Hidden/HDRP/LensFlareDataDriven, pass: LensFlareAdditive, stage: vertex, keywords FLARE_HAS_OCCLUSION
 Compiled shader: Hidden/HDRP/LensFlareDataDriven, pass: LensFlareAdditive, stage: vertex, keywords FLARE_HAS_OCCLUSION STEREO_INSTANCING_ON

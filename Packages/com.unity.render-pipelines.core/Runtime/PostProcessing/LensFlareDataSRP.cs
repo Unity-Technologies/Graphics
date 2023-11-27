@@ -1,3 +1,4 @@
+using NUnit.Framework;
 using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering
@@ -55,6 +56,7 @@ namespace UnityEngine.Rendering
     /// shader: LensFlareDataDrivenPreview.shader
     /// </summary>
     [System.Serializable]
+    [GenerateHLSL]
     public enum SRPLensFlareType
     {
         /// <summary>
@@ -68,7 +70,36 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Polygon
         /// </summary>
-        Polygon
+        Polygon,
+        /// <summary>
+        /// shape as a ring
+        /// </summary>
+        Ring,
+        /// <summary>
+        /// Hoop
+        /// </summary>
+        LensFlareDataSRP
+    }
+
+    /// <summary>
+    /// SRPLensFlareColorType describe how to colorize LensFlare
+    /// </summary>
+    [System.Serializable]
+    [GenerateHLSL]
+    public enum SRPLensFlareColorType
+    {
+        /// <summary>
+        /// Constant Color
+        /// </summary>
+        Constant = 0,
+        /// <summary>
+        /// Radial Gradient
+        /// </summary>
+        RadialGradient,
+        /// <summary>
+        /// Angular Gradient
+        /// </summary>
+        AngularGradient
     }
 
     /// <summary>
@@ -80,6 +111,8 @@ namespace UnityEngine.Rendering
         /// <summary> Initialize default values </summary>
         public LensFlareDataElementSRP()
         {
+            lensFlareDataSRP = null;
+
             visible = true;
 
             localIntensity = 1.0f;
@@ -93,8 +126,29 @@ namespace UnityEngine.Rendering
             allowMultipleElement = false;
             count = 5;
             rotation = 0.0f;
+            preserveAspectRatio = false;
+
+            // Ring
+            ringThickness = 0.25f;
+
+            // Hoop
+            hoopFactor = 1.0f;
+
+            // Shimmer
+            noiseAmplitude = 1.0f;
+            noiseFrequency = 1;
+            noiseSpeed = 0;
+
+            shapeCutOffSpeed = 0.0f;
+            shapeCutOffRadius = 10.0f;
+
+            tintColorType = SRPLensFlareColorType.Constant;
             tint = new Color(1.0f, 1.0f, 1.0f, 0.5f);
+            tintGradient = new TextureGradient(
+                new GradientColorKey[] { new GradientColorKey(Color.black, 0.0f), new GradientColorKey(Color.white, 1.0f) },
+                new GradientAlphaKey[] { new GradientAlphaKey(0.0f, 0.0f), new GradientAlphaKey(1.0f, 1.0f) });
             blendMode = SRPLensFlareBlendMode.Additive;
+
             autoRotate = false;
             isFoldOpened = true;
             flareType = SRPLensFlareType.Circle;
@@ -107,6 +161,7 @@ namespace UnityEngine.Rendering
                 new GradientAlphaKey[] { new GradientAlphaKey(1.0f, 0.0f), new GradientAlphaKey(1.0f, 1.0f) });
             positionCurve = new AnimationCurve(new Keyframe(0.0f, 0.0f, 1.0f, 1.0f), new Keyframe(1.0f, 1.0f, 1.0f, -1.0f));
             scaleCurve = new AnimationCurve(new Keyframe(0.0f, 1.0f), new Keyframe(1.0f, 1.0f));
+            uniformAngle = 0.0f;
             uniformAngleCurve = new AnimationCurve(new Keyframe(0.0f, 0.0f), new Keyframe(1.0f, 0.0f));
 
             // Random
@@ -130,6 +185,86 @@ namespace UnityEngine.Rendering
             inverseSDF = false;
         }
 
+        /// <summary>
+        /// Clone the current LensFlareDataElementSRP.
+        /// </summary>
+        /// <returns>Cloned LensFlareDataElementSRP.</returns>
+        public LensFlareDataElementSRP Clone()
+        {
+            LensFlareDataElementSRP clone = new LensFlareDataElementSRP();
+            clone.lensFlareDataSRP = lensFlareDataSRP;
+
+            clone.visible = visible;
+
+            clone.localIntensity = localIntensity;
+            clone.position = position;
+            clone.positionOffset = positionOffset;
+            clone.angularOffset = angularOffset;
+            clone.translationScale = translationScale;
+            clone.lensFlareTexture = lensFlareTexture;
+            clone.uniformScale = uniformScale;
+            clone.sizeXY = sizeXY;
+            clone.allowMultipleElement = allowMultipleElement;
+            clone.count = count;
+            clone.rotation = rotation;
+            clone.preserveAspectRatio = preserveAspectRatio;
+
+            clone.ringThickness = ringThickness;
+
+            clone.hoopFactor = hoopFactor;
+
+            clone.noiseAmplitude = noiseAmplitude;
+            clone.noiseFrequency = noiseFrequency;
+            clone.noiseSpeed = noiseSpeed;
+
+            clone.shapeCutOffSpeed = shapeCutOffSpeed;
+            clone.shapeCutOffRadius = shapeCutOffRadius;
+
+            clone.tintColorType = tintColorType;
+            clone.tint = tint;
+            clone.tintGradient = new TextureGradient(tintGradient.colorKeys, tintGradient.alphaKeys, tintGradient.mode, tintGradient.colorSpace, tintGradient.textureSize);
+            clone.tintGradient = new TextureGradient(tintGradient.colorKeys, tintGradient.alphaKeys);
+            clone.blendMode = blendMode;
+
+            clone.autoRotate = autoRotate;
+            clone.isFoldOpened = isFoldOpened;
+            clone.flareType = flareType;
+
+            clone.distribution = distribution;
+
+            clone.lengthSpread = lengthSpread;
+            clone.colorGradient = new Gradient();
+            clone.colorGradient.SetKeys(colorGradient.colorKeys, colorGradient.alphaKeys);
+            clone.colorGradient.mode =  colorGradient.mode;
+            clone.colorGradient.colorSpace = colorGradient.colorSpace;
+            clone.positionCurve = new AnimationCurve(positionCurve.keys);
+            clone.scaleCurve = new AnimationCurve(scaleCurve.keys);
+            clone.uniformAngle = uniformAngle;
+            clone.uniformAngleCurve = new AnimationCurve(uniformAngleCurve.keys);
+
+            clone.seed = seed;
+            clone.intensityVariation = intensityVariation;
+            clone.positionVariation = positionVariation;
+            clone.scaleVariation = scaleVariation;
+            clone.rotationVariation = rotationVariation;
+
+            clone.enableRadialDistortion = enableRadialDistortion;
+            clone.targetSizeDistortion = targetSizeDistortion;
+            clone.distortionCurve = new AnimationCurve(distortionCurve.keys);
+            clone.distortionRelativeToCenter = distortionRelativeToCenter;
+
+            clone.fallOff = fallOff;
+            clone.edgeOffset = edgeOffset;
+            clone.sdfRoundness = sdfRoundness;
+            clone.sideCount = sideCount;
+            clone.inverseSDF = inverseSDF;
+
+            return clone;
+        }
+
+        /// <summary> Current Element is himselft another LensFlareDataSRP </summary>
+        public LensFlareDataSRP lensFlareDataSRP;
+
         /// <summary> Visibility checker for current element </summary>
         public bool visible;
 
@@ -144,6 +279,28 @@ namespace UnityEngine.Rendering
 
         /// <summary> Translation Scale </summary>
         public Vector2 translationScale;
+
+        // For Hoop
+        /// <summary>Ring thickness</summary>
+        [Range(0.0f, 1.0f)]
+        public float ringThickness;
+
+        /// <summary>Hoop thickness</summary>
+        [Range(-1.0f, 1.0f)]
+        public float hoopFactor;
+
+        // For Ring
+        /// <summary>Noise parameter amplitude</summary>
+        public float noiseAmplitude;
+        /// <summary>Noise parameter frequency</summary>
+        public int noiseFrequency;
+        /// <summary>Noise parameter Speed</summary>
+        public float noiseSpeed;
+
+        /// <summary>To simulate the cutoff of the flare by the circular shape of the lens. How quickly this cutoff happen.</summary>
+        public float shapeCutOffSpeed;
+        /// <summary>To simulate the cutoff of the flare by the circular shape of the lens.</summary>
+        public float shapeCutOffRadius;
 
         [Min(0), SerializeField, FormerlySerializedAs("localIntensity")]
         float m_LocalIntensity;
@@ -183,8 +340,14 @@ namespace UnityEngine.Rendering
         /// <summary> Local rotation of the texture </summary>
         public float rotation;
 
-        /// <summary> Tint of the texture can be modulated by the light we are attached to </summary>
+        /// <summary>Specify how to tint flare.</summary>
+        public SRPLensFlareColorType tintColorType;
+
+        /// <summary> Tint of the texture can be modulated by the light we are attached to</summary>
         public Color tint;
+
+        /// <summary> Tint radially of the texture can be modulated by the light we are attached to . </summary>
+        public TextureGradient tintGradient;
 
         /// <summary> Blend mode used </summary>
         public SRPLensFlareBlendMode blendMode;
@@ -311,6 +474,24 @@ namespace UnityEngine.Rendering
         public LensFlareDataSRP()
         {
             elements = null;
+        }
+
+        /// <summary>
+        /// Check if we have at last one 'modulatedByLightColor' enabled.
+        /// </summary>
+        /// <returns>true if we have at least one 'modulatedByLightColor' on the asset.</returns>
+        public bool HasAModulateByLightColorElement()
+        {
+            if (elements != null)
+            {
+                foreach (LensFlareDataElementSRP e in elements)
+                {
+                    if (e.modulateByLightColor)
+                        return true;
+                }
+            }
+
+            return false;
         }
 
         /// <summary> List of LensFlareDataElementSRP </summary>

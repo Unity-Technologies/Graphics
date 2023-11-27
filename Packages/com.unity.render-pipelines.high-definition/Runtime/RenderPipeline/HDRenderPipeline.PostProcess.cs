@@ -3395,9 +3395,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 data.hdCamera.mainViewConstants.worldSpaceCameraPos,
                                 data.hdCamera.mainViewConstants.nonJitteredViewProjMatrix,
                                 ctx.cmd,
-                                data.taaEnabled, data.hasCloudLayer, data.cloudOpacityTexture, data.sunOcclusion, data.waterGBuffer3Thickness,
-                                HDShaderIDs._FlareOcclusionTex, HDShaderIDs._FlareCloudOpacity, HDShaderIDs._FlareOcclusionIndex, HDShaderIDs._FlareTex, HDShaderIDs._FlareColorValue,
-                                HDShaderIDs._FlareSunOcclusionTex, HDShaderIDs._FlareData0, HDShaderIDs._FlareData1, HDShaderIDs._FlareData2, HDShaderIDs._FlareData3, HDShaderIDs._FlareData4);
+                                data.taaEnabled, data.hasCloudLayer, data.cloudOpacityTexture, data.sunOcclusion, data.waterGBuffer3Thickness);
                         });
                 }
             }
@@ -3470,9 +3468,6 @@ namespace UnityEngine.Rendering.HighDefinition
                                 // If you pass directly 'GetLensFlareLightAttenuation' that create alloc apparently to cast to System.Func
                                 // And here the lambda setup like that seem to not alloc anything.
                                 (a, b, c) => { return GetLensFlareLightAttenuation(a, b, c); },
-                                HDShaderIDs._FlareOcclusionRemapTex, HDShaderIDs._FlareOcclusionTex, HDShaderIDs._FlareOcclusionIndex,
-                                HDShaderIDs._FlareCloudOpacity, HDShaderIDs._FlareSunOcclusionTex,
-                                HDShaderIDs._FlareTex, HDShaderIDs._FlareColorValue, HDShaderIDs._FlareData0, HDShaderIDs._FlareData1, HDShaderIDs._FlareData2, HDShaderIDs._FlareData3, HDShaderIDs._FlareData4,
                                 data.parameters.skipCopy);
                         });
 

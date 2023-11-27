@@ -18,6 +18,7 @@ Some properties only appear when you attach this component to a light.
 | Lens Flare Data | Select the [Lens Flare (SRP) Asset](lens-flare-data-driven-asset.md) asset this component controls. |
 | Intensity     | Multiplies the intensity of the lens flare. |
 | Scale         | Multiplies the scale of the lens flare. |
+| Light Override  | Specifies the light component where the color and shape values are fetched from when using "Modulate By Light Color" or "Attenuation By Light Shape" properties on a Lens Flare Element. If nothing is specified, the light component from this gameobject is used. |
 | Attenuation by Light Shape | Enable this property to automatically change the appearance of the lens flare based on the type of light you attached this component to.<br/>For example, if this component is attached to a spot light and the camera is looking at this light from behind, the lens flare will not be visible. <br/>This property is only available when this component is attached to a light. |
 | Attenuation Distance |The distance between the start and the end of the Attenuation Distance Curve.<br/>This value operates between 0 and 1 in world space.  |
 | Attenuation Distance Curve | Fades out the appearance of the lens flare over the distance between the GameObject this asset is attached to, and the Camera. |

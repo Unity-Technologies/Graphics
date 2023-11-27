@@ -226,3 +226,34 @@ MonoBehaviour:
     XrSdk: None
     StereoModes: 0
     Reason: HDR not supported on WebGL OpenGLES3
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 1a7776e5343210f439cfe2e361eba611, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 4
+    Architecture: 0
+    XrSdk: OculusLoader
+    StereoModes: 0
+    Reason: Instability on Quest - frame captured appears to not always have a consistent
+      index
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 4ef59c3ae21f842c5858909f4d07493f, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 4
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: Occlusion not working on OpenGL
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 4ef59c3ae21f842c5858909f4d07493f, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 20
+    GraphicsDevice: 4
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: Occlusion not working on OpenGL

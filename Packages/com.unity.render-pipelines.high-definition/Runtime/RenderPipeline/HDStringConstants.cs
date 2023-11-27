@@ -1009,7 +1009,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _FlareData2 = Shader.PropertyToID("_FlareData2");
         public static readonly int _FlareData3 = Shader.PropertyToID("_FlareData3");
         public static readonly int _FlareData4 = Shader.PropertyToID("_FlareData4");
-        public static readonly int _FlareData5 = Shader.PropertyToID("_FlareData5");
         public static readonly int _FlareOcclusionIndex = Shader.PropertyToID("_FlareOcclusionIndex");
         public static readonly int _FlareCloudOpacity = Shader.PropertyToID("_FlareCloudOpacity");
 

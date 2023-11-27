@@ -3,6 +3,7 @@ using UnityEditor;
 #endif
 
 using System;
+using System.Dynamic;
 
 namespace UnityEngine.Rendering
 {
@@ -31,6 +32,7 @@ namespace UnityEngine.Rendering
                 OnValidate();
             }
         }
+
         /// <summary>
         /// Intensity
         /// </summary>
@@ -114,6 +116,11 @@ namespace UnityEngine.Rendering
         public TextureCurve occlusionRemapCurve = new TextureCurve(AnimationCurve.Linear(0.0f, 0.0f, 1.0f, 1.0f), 1.0f, false, new Vector2(0.0f, 1.0f));
 
         /// <summary>
+        /// Light override, change the light which influences the flares including "modulate by light color" and "Attenuation By Light Shape" but not the position.
+        /// </summary>
+        public Light lightOverride = null;
+
+        /// <summary>
         /// Retrieves the projected occlusion radius from a particular celestial in the infinity plane with an angular radius.
         /// This is used for directional lights which require to have consistent occlusion radius regardless of the near/farplane configuration.
         /// </summary>
@@ -123,6 +130,14 @@ namespace UnityEngine.Rendering
         {
             float projectedRadius = (float)Math.Tan(sCelestialAngularRadius) * mainCam.farClipPlane;
             return occlusionRadius * projectedRadius;
+        }
+
+        void Awake()
+        {
+#if UNITY_EDITOR
+            if (!lensFlareData)
+                lensFlareData = AssetDatabase.LoadAssetAtPath<LensFlareDataSRP>("Packages/com.unity.render-pipelines.core/Runtime/RenderPipelineResources/Default Lens Flare (SRP).asset");
+#endif
         }
 
         /// <summary>
@@ -159,6 +174,11 @@ namespace UnityEngine.Rendering
             }
         }
 
+        private void OnDestroy()
+        {
+            occlusionRemapCurve.Release();
+        }
+
 #if UNITY_EDITOR
         private float sDebugClippingSafePercentage = 0.9f; //for debug gizmo, only push 90% further so we avoid clipping of debug lines.
         void OnDrawGizmosSelected()
@@ -190,7 +210,6 @@ namespace UnityEngine.Rendering
                 Handles.color = previousH;
             }
         }
-
 #endif
     }
 }

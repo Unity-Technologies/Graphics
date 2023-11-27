@@ -31,6 +31,7 @@ namespace UnityEditor.Rendering
         SerializedProperty m_VolumetricCloudOcclusion;
         SerializedProperty m_OcclusionRemapTextureCurve;
         SerializedProperty m_OcclusionRemapCurve;
+        SerializedProperty m_LightOverride;
 
         void MakeTextureDirtyCallback()
         {
@@ -60,6 +61,7 @@ namespace UnityEditor.Rendering
             m_VolumetricCloudOcclusion = entryPoint.Find(x => x.volumetricCloudOcclusion);
             m_OcclusionRemapTextureCurve = entryPoint.Find(x => x.occlusionRemapCurve);
             m_OcclusionRemapCurve = m_OcclusionRemapTextureCurve.FindPropertyRelative("m_Curve");
+            m_LightOverride = entryPoint.Find(x => x.lightOverride);
 
             Undo.undoRedoPerformed += MakeTextureDirtyCallback;
         }
@@ -130,6 +132,10 @@ namespace UnityEditor.Rendering
                 }
                 EditorGUILayout.PropertyField(m_Intensity, Styles.intensity);
                 EditorGUILayout.PropertyField(m_Scale, Styles.scale);
+                if (lensFlareData.lensFlareData != null && (lensFlareData.lensFlareData.HasAModulateByLightColorElement() || lensFlareData.attenuationByLightShape))
+                {
+                    EditorGUILayout.PropertyField(m_LightOverride, Styles.lightOverride);
+                }
                 if (!lightIsDirLight)
                 {
                     if (attachedToLight)
@@ -179,7 +185,7 @@ namespace UnityEditor.Rendering
         static class Styles
         {
             static public readonly GUIContent generalData = EditorGUIUtility.TrTextContent("General");
-            static public readonly GUIContent occlusionData = EditorGUIUtility.TrTextContent("Occlusion");
+            static public readonly GUIContent occlusionData = EditorGUIUtility.TrTextContent("Screen Space Occlusion");
 
             static public readonly GUIContent lensFlareData = EditorGUIUtility.TrTextContent("Lens Flare Data", "Specifies the SRP Lens Flare Data asset this component uses.");
             static public readonly GUIContent newButton = EditorGUIUtility.TrTextContent("New", "Create a new SRP Lens Flare Data asset.");
@@ -198,8 +204,9 @@ namespace UnityEditor.Rendering
             static public readonly GUIContent sampleCount = EditorGUIUtility.TrTextContent("Sample Count", "Sets the number of random samples used inside the Occlusion Radius area. A higher sample count gives a smoother attenuation when occluded.");
             static public readonly GUIContent occlusionOffset = EditorGUIUtility.TrTextContent("Occlusion Offset", "Sets the offset of the occlusion area in meters between the GameObject this asset is attached to, and the Camera. A positive value moves the occlusion area closer to the Camera.");
             static public readonly GUIContent occlusionRemapCurve = EditorGUIUtility.TrTextContent("Occlusion Remap Curve", "Specifies the curve used to remap the occlusion of the flare. By default, the occlusion is linear, between 0 and 1. This can be specifically useful to occlude flare more drastically when behind clouds.");
-            static public readonly GUIContent allowOffScreen = EditorGUIUtility.TrTextContent("Allow Off Screen", "When enabled, allows the lens flare to affect the scene even when it is outside the Camera's field of view.");
+            static public readonly GUIContent allowOffScreen = EditorGUIUtility.TrTextContent("Allow OffScreen", "When enabled, allows the lens flare to affect the scene even when it is outside the Camera's field of view.");
             static public readonly GUIContent volumetricCloudOcclusion = EditorGUIUtility.TrTextContent("Volumetric Clouds", "When enabled, HDRP uses the volumetric clouds texture (in screen space) for the occlusion.");
+            static public readonly GUIContent lightOverride = EditorGUIUtility.TrTextContent("Light Override", "Specifies the light component where the color and shape values are fetched from when using \"Modulate By Light Color\" or \"Attenuation By Light Shape\" properties on a Lens Flare Element. If nothing is specified, the light component from this gameobject is used.");
             static public readonly GUIContent waterOcclusion = EditorGUIUtility.TrTextContent("Water", "When enabled, HDRP uses the Water Rendering (in screen space) for the occlusion.");
         }
     }
