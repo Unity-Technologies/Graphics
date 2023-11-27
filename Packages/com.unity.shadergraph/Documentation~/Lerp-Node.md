@@ -8,12 +8,12 @@ For example, when the value of input **T** is 0 the return value is equal to the
 
 ## Ports
 
-| Name        | Direction           | Type  | Description |
-|:------------ |:-------------|:-----|:---|
-| A      | Input | Dynamic Vector | First input value |
-| B      | Input | Dynamic Vector | Second input value |
-| T      | Input | Dynamic Vector | Time value |
-| Out | Output      |    Dynamic Vector | Output value |
+| Name | Direction | Type           | Description |
+|:-----|:----------|:---------------|:------------|
+| A    | Input     | Dynamic Vector | First input value  |
+| B    | Input     | Dynamic Vector | Second input value |
+| T    | Input     | Dynamic Vector | Time value. Typical range: 0 to 1. Though you can use values outside of this range they may cause unpredictable results.  |
+| Out  | Output    | Dynamic Vector | Output value |
 
 ## Generated Code Example
 

@@ -33,7 +33,7 @@ To select SMAA for a Camera:
 
 ## Temporal Anti-aliasing (TAA)<a name="taa"></a>
 
-TAA uses frames from a color history buffer to smooth edges over the course of multiple frames. This means edges in motion are smoother and there's less flickering. Because TAA calculates its effects over time, it often creates ghosting artifacts in extreme situations, such as when a GameObject moves quickly in front of a surface that contrasts with it.
+TAA uses frames from a color history buffer to smooth edges over the course of multiple frames. Because TAA calculates its effects over time, it often creates ghosting artifacts in extreme situations, such as when a GameObject moves quickly in front of a surface that contrasts with it. TAA uses [motion vectors](features/motion-vectors.md).
 
 To select TAA for a Camera:
 
