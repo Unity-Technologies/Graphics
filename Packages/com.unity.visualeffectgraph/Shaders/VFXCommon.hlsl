@@ -13,6 +13,7 @@
 #define FIXED_RAND2(h) float2(FIXED_RAND(h),FIXED_RAND(h))
 #define FIXED_RAND3(h) float3(FIXED_RAND(h),FIXED_RAND(h),FIXED_RAND(h))
 #define FIXED_RAND4(h) float4(FIXED_RAND(h),FIXED_RAND(h),FIXED_RAND(h),FIXED_RAND(h))
+#define FIXED_RAND_INT(h) AnotherHash(particleId ^ asuint(systemSeed) ^ h)
 
 #define VFXRAND Rand(attributes.seed)
 #define VFXRAND2 float2(VFXRAND,VFXRAND)
@@ -522,6 +523,14 @@ float SampleCurve(float4 curveData, float u)
     return curveData.y * SampleTexture(VFX_SAMPLER(bakedTexture), float2(uNorm, curveData.z), 0)[asuint(curveData.w) & 0x3];
 }
 
+float RemapCurve(float4 curveData, float u, float t)
+{
+    float startInt, endInt;
+    float startFrac = modf(u, startInt);
+    float endFrac = modf(u + t, endInt);
+    return SampleCurve(curveData, endFrac) - SampleCurve(curveData, startFrac) + endInt - startInt;
+}
+
 ///////////
 // Utils //
 ///////////
@@ -714,20 +723,24 @@ VFXUVData GetUVData(float2 uv) // no flipbooks
     return data;
 }
 
-VFXUVData GetUVData(float2 flipBookSize, float2 invFlipBookSize, float2 uv, float texIndex) // with flipbooks
+VFXUVData GetUVData(float2 flipBookSize, float2 invFlipBookSize, float2 uv, float texIndex, float texIndexBlend) // with flipbooks
 {
     VFXUVData data = (VFXUVData)0;
     float frameBlend = frac(texIndex);
     float frameIndex = texIndex - frameBlend;
     data.uvs.xy = GetSubUV(frameIndex, uv, flipBookSize, invFlipBookSize);
 #if USE_FLIPBOOK_INTERPOLATION
-    data.uvs.zw = GetSubUV(frameIndex + 1, uv, flipBookSize, invFlipBookSize);
+    data.uvs.zw = GetSubUV(frameIndex + texIndexBlend, uv, flipBookSize, invFlipBookSize);
     data.blend = frameBlend;
 #endif
     return data;
 }
+VFXUVData GetUVData(float2 flipBookSize, float2 invFlipBookSize, float2 uv, float texIndex)
+{
+    return GetUVData(flipBookSize, invFlipBookSize, uv, texIndex, 1.0f);
+}
 
-VFXUVData GetUVData(float flipBookSize, float2 uv, float texIndex) // with flipbooks array layout (flipBookSize is a single float)
+VFXUVData GetUVData(float flipBookSize, float2 uv, float texIndex, float texIndexBlend) // with flipbooks array layout (flipBookSize is a single float)
 {
     VFXUVData data = (VFXUVData)0;
     texIndex = fmod(texIndex, flipBookSize);
@@ -735,17 +748,25 @@ VFXUVData GetUVData(float flipBookSize, float2 uv, float texIndex) // with flipb
     float frameIndex = texIndex - frameBlend;
     data.uvs.xyz = float3(uv, frameIndex);
 #if USE_FLIPBOOK_INTERPOLATION
-    data.uvs.w = fmod(frameIndex + 1, flipBookSize);
+    data.uvs.w = frameIndex + texIndexBlend;
     data.blend = frameBlend;
 #endif
     return data;
 }
+VFXUVData GetUVData(float flipBookSize, float2 uv, float texIndex)
+{
+    return GetUVData(flipBookSize, uv, texIndex, 1.0f);
+}
 
-
+VFXUVData GetUVData(float2 flipBookSize, float2 uv, float texIndex, float texIndexBlend)
+{
+    return GetUVData(flipBookSize, 1.0f / flipBookSize, uv, texIndex, texIndexBlend);
+}
 VFXUVData GetUVData(float2 flipBookSize, float2 uv, float texIndex)
 {
-    return GetUVData(flipBookSize, 1.0f / flipBookSize, uv, texIndex);
+    return GetUVData(flipBookSize, uv, texIndex, 1.0f);
 }
+
 //////////////////
 // Orient Utils //
 //////////////////

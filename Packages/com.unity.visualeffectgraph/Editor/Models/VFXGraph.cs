@@ -475,7 +475,8 @@ namespace UnityEditor.VFX
         // 14: ShaderGraph integration uses the material variant workflow
         // 15: New ShaderGraph integration uses independent output
         // 16: Add a collection of custom attributes (to be listed in blackboard)
-        public static readonly int CurrentVersion = 16;
+        // 17: New Flipbook player and split the different Flipbook modes in UVMode into separate variables
+        public static readonly int CurrentVersion = 17;
 
         [NonSerialized]
         internal static bool compilingInEditMode = false;

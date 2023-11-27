@@ -90,6 +90,9 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 		#ifdef VFX_VARYING_TEXINDEX
 			o.VFX_VARYING_TEXINDEX = attributes.texIndex;
 		#endif
+		#ifdef VFX_VARYING_TEXINDEXBLEND
+			o.VFX_VARYING_TEXINDEXBLEND = attributes.texIndexBlend;
+		#endif
 
 		#if defined(VFX_VARYING_FLIPBOOKSIZE)
 			o.VFX_VARYING_FLIPBOOKSIZE = flipBookSize;
@@ -106,7 +109,7 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 					o.VFX_VARYING_MOTIONVECTORSCALE = motionVectorScale * invFlipBookSize;
 				#endif
 			#endif
-			#endif
+		#endif
 	#endif
 
 	${VFXVertexAdditionalProcess}

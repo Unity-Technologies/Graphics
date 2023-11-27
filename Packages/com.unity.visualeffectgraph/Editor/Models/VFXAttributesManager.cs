@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 using UnityEditor.VFX.Block;
@@ -30,7 +30,8 @@ namespace UnityEditor.VFX
         public static readonly VFXAttribute AngularVelocityX = new VFXAttribute("angularVelocityX", VFXValueType.Float, "The angular rotation of the particle, in degrees per second.", VFXVariadic.BelongsToVariadic);
         public static readonly VFXAttribute AngularVelocityY = new VFXAttribute("angularVelocityY", VFXValueType.Float, "The angular rotation of the particle, in degrees per second.", VFXVariadic.BelongsToVariadic);
         public static readonly VFXAttribute AngularVelocityZ = new VFXAttribute("angularVelocityZ", VFXValueType.Float, "The angular rotation of the particle, in degrees per second.", VFXVariadic.BelongsToVariadic);
-        public static readonly VFXAttribute TexIndex = new VFXAttribute("texIndex", VFXValueType.Float, "The current index of the flipbook. This attribute is used if ‘UV Mode’ in the output is set to use flipbooks.");
+        public static readonly VFXAttribute TexIndex = new VFXAttribute("texIndex", VFXValueType.Float, "The current frame index of the flipbook. This attribute is used if ‘UV Mode’ in the output is set to use flipbooks.");
+        public static readonly VFXAttribute TexIndexBlend = new VFXAttribute("texIndexBlend", VFXValue.Constant(1.0f), "The next frame index of the flipbook, if flipbook frame blending is enabled.");
         public static readonly VFXAttribute MeshIndex = new VFXAttribute("meshIndex", VFXValueType.Uint32, "The current index of the mesh. This attribute determines which mesh to use when Mesh Count setting of a Mesh Output is higher than one.");
         public static readonly VFXAttribute PivotX = new VFXAttribute("pivotX", VFXValue.Constant(0.0f), "The point around which the particle rotates, moves, or is scaled. By default, this is the center of the particle.", VFXVariadic.BelongsToVariadic);
         public static readonly VFXAttribute PivotY = new VFXAttribute("pivotY", VFXValue.Constant(0.0f), "The point around which the particle rotates, moves, or is scaled. By default, this is the center of the particle.", VFXVariadic.BelongsToVariadic);

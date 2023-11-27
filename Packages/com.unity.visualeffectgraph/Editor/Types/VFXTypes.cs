@@ -312,6 +312,9 @@ namespace UnityEditor.VFX
         public int x;
         public int y;
 
+        public static implicit operator Vector2(FlipBook flipbook) => new Vector2(flipbook.x, flipbook.y);
+        public static implicit operator FlipBook(Vector2 v) => new FlipBook { x = Mathf.RoundToInt(v.x), y = Mathf.RoundToInt(v.y) };
+
         public static FlipBook defaultValue = new FlipBook { x = 4, y = 4 };
     }
 

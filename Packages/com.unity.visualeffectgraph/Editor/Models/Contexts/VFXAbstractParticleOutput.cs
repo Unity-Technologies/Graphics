@@ -2,11 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEngine.Serialization;
-using UnityEditor.VFX;
-using UnityEngine.VFX;
-using static UnityEditor.VFX.VFXSortingUtility;
 
 namespace UnityEditor.VFX
 {
@@ -51,9 +47,7 @@ namespace UnityEditor.VFX
         {
             Default,
             Flipbook,
-            FlipbookBlend,
-            ScaleAndBias,
-            FlipbookMotionBlend,
+            ScaleAndBias = 3
         }
 
         public enum SortActivationMode
@@ -92,6 +86,12 @@ namespace UnityEditor.VFX
         [VFXSetting, SerializeField, Tooltip("Specifies the layout of the flipbook. It can either use a single texture with multiple frames, or a Texture2DArray with multiple slices.")]
         protected FlipbookLayout flipbookLayout = FlipbookLayout.Texture2D;
 
+        [VFXSetting, SerializeField, Tooltip("Blend between frames of the flipbook.")]
+        protected bool flipbookBlendFrames = false;
+
+        [VFXSetting, SerializeField, Tooltip("Use motion vectors to improve blending between frames of the flipbook.")]
+        protected bool flipbookMotionVectors = false;
+
         [VFXSetting, SerializeField, Tooltip("When enabled, transparent particles fade out when near the surface of objects writing into the depth buffer (e.g. when intersecting with solid objects in the level).")]
         protected bool useSoftParticle = false;
 
@@ -102,7 +102,7 @@ namespace UnityEditor.VFX
         protected SortActivationMode sort = SortActivationMode.Auto;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Specifies the draw order of particles. They can be sorted by their distance, age, depth, or by a custom value.")]
-        protected SortCriteria sortMode = SortCriteria.DistanceToCamera;
+        protected VFXSortingUtility.SortCriteria sortMode = VFXSortingUtility.SortCriteria.DistanceToCamera;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Reverses the drawing order of the particles.")]
         internal bool revertSorting = false;
@@ -155,7 +155,25 @@ namespace UnityEditor.VFX
 
         public bool needsOwnSort = false;
 
-        public SortCriteria GetSortCriterion() { return sortMode; }
+        public VFXSortingUtility.SortCriteria GetSortCriterion() { return sortMode; }
+
+        public override void OnEnable()
+        {
+            switch ((int)uvMode)
+            {
+                case 2: // FlipbookBlend
+                    uvMode = UVMode.Flipbook;
+                    flipbookBlendFrames = true;
+                    flipbookMotionVectors = false;
+                    break;
+                case 4: // FlipbookMotionBlend
+                    uvMode = UVMode.Flipbook;
+                    flipbookBlendFrames = true;
+                    flipbookMotionVectors = true;
+                    break;
+            }
+            base.OnEnable();
+        }
 
         public bool NeedsOwnAabbBuffer()
         {
@@ -188,7 +206,7 @@ namespace UnityEditor.VFX
                     features |= VFXOutputUpdate.Features.Culling;
                 if (HasSorting() && (VFXOutputUpdate.HasFeature(features, VFXOutputUpdate.Features.IndirectDraw) || needsOwnSort))
                 {
-                    if (IsPerCamera(sortMode))
+                    if (VFXSortingUtility.IsPerCamera(sortMode))
                         features |= VFXOutputUpdate.Features.CameraSort;
                     else
                         features |= VFXOutputUpdate.Features.Sort;
@@ -233,7 +251,9 @@ namespace UnityEditor.VFX
 
         private bool hasSoftParticles => supportSoftParticles && useSoftParticle;
 
-        protected bool usesFlipbook { get { return supportsUV && (uvMode == UVMode.Flipbook || uvMode == UVMode.FlipbookBlend || uvMode == UVMode.FlipbookMotionBlend); } }
+        public bool usesFlipbook { get { return supportsUV && uvMode == UVMode.Flipbook; } }
+        public bool flipbookHasInterpolation { get { return usesFlipbook && flipbookBlendFrames; } }
+        public bool flipbookHasMotionVectors { get { return flipbookHasInterpolation && flipbookMotionVectors; } }
 
         public Type GetFlipbookType()
         {
@@ -292,17 +312,18 @@ namespace UnityEditor.VFX
 
             if (supportsUV && uvMode != UVMode.Default)
             {
-                VFXNamedExpression flipBookSizeExp;
+                VFXExpression flipBookSizeXExp;
+                VFXExpression flipBookSizeYExp;
                 switch (uvMode)
                 {
                     case UVMode.Flipbook:
-                    case UVMode.FlipbookBlend:
-                    case UVMode.FlipbookMotionBlend:
                         if (flipbookLayout == FlipbookLayout.Texture2D)
                         {
-                            flipBookSizeExp = slotExpressions.First(o => o.name == "flipBookSize");
-                            yield return flipBookSizeExp;
-                            yield return new VFXNamedExpression(VFXValue.Constant(Vector2.one) / flipBookSizeExp.exp, "invFlipBookSize");
+                            flipBookSizeXExp = slotExpressions.First(o => o.name == "flipBookSize_x").exp;
+                            flipBookSizeYExp = slotExpressions.First(o => o.name == "flipBookSize_y").exp;
+                            VFXExpression flipBookSizeExp = new VFXExpressionCombine(new VFXExpressionCastIntToFloat(flipBookSizeXExp), new VFXExpressionCastIntToFloat(flipBookSizeYExp));
+                            yield return new VFXNamedExpression(flipBookSizeExp, "flipBookSize");
+                            yield return new VFXNamedExpression(VFXValue.Constant(Vector2.one) / flipBookSizeExp, "invFlipBookSize");
                         }
                         else if (flipbookLayout == FlipbookLayout.Texture2DArray)
                         {
@@ -320,7 +341,7 @@ namespace UnityEditor.VFX
                             }
                             yield return new VFXNamedExpression(new VFXExpressionCastUintToFloat(new VFXExpressionTextureDepth(mainTextureExp.exp)), "flipBookSize");
                         }
-                        if (uvMode == UVMode.FlipbookMotionBlend)
+                        if (flipbookHasMotionVectors)
                         {
                             yield return slotExpressions.First(o => o.name == "motionVectorMap");
                             yield return slotExpressions.First(o => o.name == "motionVectorScale");
@@ -385,14 +406,12 @@ namespace UnityEditor.VFX
                     switch (uvMode)
                     {
                         case UVMode.Flipbook:
-                        case UVMode.FlipbookBlend:
-                        case UVMode.FlipbookMotionBlend:
                             if (flipbookLayout == FlipbookLayout.Texture2D)
                             {
-                                yield return new VFXPropertyWithValue(new VFXProperty(typeof(Vector2), "flipBookSize"), new Vector2(4, 4));
+                                yield return new VFXPropertyWithValue(new VFXProperty(typeof(FlipBook), "flipBookSize"), FlipBook.defaultValue);
                             }
 
-                            if (uvMode == UVMode.FlipbookMotionBlend)
+                            if (flipbookHasMotionVectors)
                             {
                                 yield return new VFXPropertyWithValue(new VFXProperty(GetFlipbookType(), "motionVectorMap"));
                                 yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "motionVectorScale"), 1.0f);
@@ -424,6 +443,49 @@ namespace UnityEditor.VFX
                 {
                     yield return new VFXPropertyWithValue(new VFXProperty(typeof(Vector2), "rayTracedScaling"), Vector2.one);
                 }
+            }
+        }
+
+        protected IEnumerable<VFXAttributeInfo> flipbookAttributes
+        {
+            get
+            {
+                if (usesFlipbook)
+                {
+                    yield return new VFXAttributeInfo(VFXAttribute.TexIndex, VFXAttributeMode.Read);
+                    if (flipbookBlendFrames)
+                    {
+                        yield return new VFXAttributeInfo(VFXAttribute.TexIndexBlend, VFXAttributeMode.Read);
+                    }
+                }
+            }
+        }
+
+        public override IEnumerable<VFXAttributeInfo> attributes
+        {
+            get
+            {
+                yield return new VFXAttributeInfo(VFXAttribute.Position, VFXAttributeMode.Read);
+                yield return new VFXAttributeInfo(VFXAttribute.Color, VFXAttributeMode.Read);
+                yield return new VFXAttributeInfo(VFXAttribute.Alpha, VFXAttributeMode.Read);
+                yield return new VFXAttributeInfo(VFXAttribute.Alive, VFXAttributeMode.Read);
+                yield return new VFXAttributeInfo(VFXAttribute.AxisX, VFXAttributeMode.Read);
+                yield return new VFXAttributeInfo(VFXAttribute.AxisY, VFXAttributeMode.Read);
+                yield return new VFXAttributeInfo(VFXAttribute.AxisZ, VFXAttributeMode.Read);
+                yield return new VFXAttributeInfo(VFXAttribute.AngleX, VFXAttributeMode.Read);
+                yield return new VFXAttributeInfo(VFXAttribute.AngleY, VFXAttributeMode.Read);
+                yield return new VFXAttributeInfo(VFXAttribute.AngleZ, VFXAttributeMode.Read);
+                yield return new VFXAttributeInfo(VFXAttribute.PivotX, VFXAttributeMode.Read);
+                yield return new VFXAttributeInfo(VFXAttribute.PivotY, VFXAttributeMode.Read);
+                yield return new VFXAttributeInfo(VFXAttribute.PivotZ, VFXAttributeMode.Read);
+
+                yield return new VFXAttributeInfo(VFXAttribute.Size, VFXAttributeMode.Read);
+                yield return new VFXAttributeInfo(VFXAttribute.ScaleX, VFXAttributeMode.Read);
+                yield return new VFXAttributeInfo(VFXAttribute.ScaleY, VFXAttributeMode.Read);
+                yield return new VFXAttributeInfo(VFXAttribute.ScaleZ, VFXAttributeMode.Read);
+
+                foreach (var attribute in flipbookAttributes)
+                    yield return attribute;
             }
         }
 
@@ -511,19 +573,10 @@ namespace UnityEditor.VFX
                     {
                         case UVMode.Flipbook:
                             yield return "USE_FLIPBOOK";
-                            if (flipbookLayout == FlipbookLayout.Texture2DArray)
-                                yield return "USE_FLIPBOOK_ARRAY_LAYOUT";
-                            break;
-                        case UVMode.FlipbookBlend:
-                            yield return "USE_FLIPBOOK";
-                            yield return "USE_FLIPBOOK_INTERPOLATION";
-                            if (flipbookLayout == FlipbookLayout.Texture2DArray)
-                                yield return "USE_FLIPBOOK_ARRAY_LAYOUT";
-                            break;
-                        case UVMode.FlipbookMotionBlend:
-                            yield return "USE_FLIPBOOK";
-                            yield return "USE_FLIPBOOK_INTERPOLATION";
-                            yield return "USE_FLIPBOOK_MOTIONVECTORS";
+                            if (flipbookHasInterpolation)
+                                yield return "USE_FLIPBOOK_INTERPOLATION";
+                            if (flipbookHasMotionVectors)
+                                yield return "USE_FLIPBOOK_MOTIONVECTORS";
                             if (flipbookLayout == FlipbookLayout.Texture2DArray)
                                 yield return "USE_FLIPBOOK_ARRAY_LAYOUT";
                             break;
@@ -596,6 +649,11 @@ namespace UnityEditor.VFX
                 if (!usesFlipbook)
                 {
                     yield return "flipbookLayout";
+                    yield return "flipbookBlendFrames";
+                }
+                if (!flipbookHasInterpolation)
+                {
+                    yield return "flipbookMotionVectors";
                 }
                 if (!subOutput.supportsExcludeFromTUAndAA)
                     yield return "excludeFromTUAndAA";
@@ -831,7 +889,7 @@ namespace UnityEditor.VFX
                     }
                 }
 
-                if (sortMode == SortCriteria.YoungestInFront)
+                if (sortMode == VFXSortingUtility.SortCriteria.YoungestInFront)
                 {
                     if (!GetData().IsAttributeUsed(VFXAttribute.Age))
                         manager.RegisterError("NoAgeToSort", VFXErrorType.Warning,

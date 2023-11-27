@@ -78,6 +78,9 @@ EditorBuildSettings:
     path: Packages/com.unity.testing.visualeffectgraph/Scenes/024_StripIndirectAndSorting.unity
     guid: 673d2dc917b35534896164975171c05f
   - enabled: 1
+    path: Packages/com.unity.testing.visualeffectgraph/Scenes/025_Flipbook.unity
+    guid: 5225b8aba587ba546b0315581715cd5b
+  - enabled: 1
     path: Assets/GraphicsTests/100_Fog.unity
     guid: b288e123b6536de40bc86452b3811b20
   - enabled: 1

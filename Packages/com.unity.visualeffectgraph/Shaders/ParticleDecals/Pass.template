@@ -12,7 +12,8 @@ struct ps_input
 	// x: alpha threshold
 	// y: texture index
 	// z: exposure weight
-	nointerpolation float3 builtInInterpolants : TEXCOORD0;
+	// w: texture index blend
+	nointerpolation float4 builtInInterpolants : TEXCOORD0;
 	#if USE_FLIPBOOK
 	#if USE_FLIPBOOK_ARRAY_LAYOUT
 			nointerpolation float flipBookSize : TEXCOORD6;
@@ -56,6 +57,9 @@ struct ps_output
 #define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.x
 #if USE_FLIPBOOK
 #define VFX_VARYING_TEXINDEX builtInInterpolants.y
+#if USE_FLIPBOOK_INTERPOLATION
+#define VFX_VARYING_TEXINDEXBLEND builtInInterpolants.w
+#endif
 #if USE_FLIPBOOK_ARRAY_LAYOUT
 	#define VFX_VARYING_FLIPBOOKSIZE flipBookSize
 #else

@@ -70,15 +70,21 @@ VFXUVData GetUVData(VFX_VARYING_PS_INPUTS i,float2 uv) // uvs are provided from 
     float texIndex = 0.0f;
 #endif
 
+#ifdef VFX_VARYING_TEXINDEXBLEND
+    float texIndexBlend = i.VFX_VARYING_TEXINDEXBLEND;
+#else
+    float texIndexBlend = 1.0f;
+#endif
+
 #if USE_UV_SCALE_BIAS && defined(VFX_VARYING_UV_SCALE)
     uv.xy = uv.xy * i.VFX_VARYING_UV_SCALE + i.VFX_VARYING_UV_BIAS;
 #endif
 
     VFXUVData data;
     #if USE_FLIPBOOK_ARRAY_LAYOUT
-        data = GetUVData(flipBookSize, uv, texIndex);
+        data = GetUVData(flipBookSize, uv, texIndex, texIndexBlend);
     #else
-        data = GetUVData(flipBookSize, invFlipBookSize, uv, texIndex);
+        data = GetUVData(flipBookSize, invFlipBookSize, uv, texIndex, texIndexBlend);
     #endif
     data.mvs = GetFlipbookMotionVectors(i, data.uvs, data.blend);
     return data;

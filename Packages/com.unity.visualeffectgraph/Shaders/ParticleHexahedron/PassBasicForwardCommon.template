@@ -28,7 +28,9 @@ struct ps_input
 	#else
 		nointerpolation float4 flipBookSize : TEXCOORD6;
 	#endif
-	nointerpolation float texIndex : TEXCOORD7;
+	// x: texIndex
+	// y: texIndexBlend
+	nointerpolation float2 texIndices : TEXCOORD7;
 	#endif
 	#if VFX_FEATURE_MOTION_VECTORS_FORWARD
 	VFX_DECLARE_MOTION_VECTORS_STORAGE(7, 8)
@@ -61,7 +63,10 @@ struct ps_output
 #define VFX_VARYING_UV_BIAS scaleBias.zw
 #endif
 #if USE_FLIPBOOK
-#define VFX_VARYING_TEXINDEX texIndex
+#define VFX_VARYING_TEXINDEX texIndices.x
+#if USE_FLIPBOOK_INTERPOLATION
+#define VFX_VARYING_TEXINDEXBLEND texIndices.y
+#endif
 #if USE_FLIPBOOK_ARRAY_LAYOUT
 #define VFX_VARYING_FLIPBOOKSIZE flipBookSize
 #else
