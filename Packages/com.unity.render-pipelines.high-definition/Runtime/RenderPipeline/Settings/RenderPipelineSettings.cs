@@ -151,14 +151,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Water Properties
                 supportWater = false,
                 waterSimulationResolution = WaterSimulationResolution.Medium128,
-                supportWaterDeformation = false,
+                supportWaterDeformation = true,
                 deformationAtlasSize = WaterAtlasSize.AtlasSize512,
                 maximumDeformerCount = 64,
-                supportWaterFoam = false,
+                supportWaterFoam = true,
                 foamAtlasSize = WaterAtlasSize.AtlasSize512,
-                supportWaterExclusion = false,
-                waterCPUSimulation = false,
-                
+                supportWaterExclusion = true,
+                waterScriptInteractionsMode = WaterScriptInteractionsMode.GPUReadback,
+                waterFullCPUSimulation = false,
+
                 supportScreenSpaceLensFlare = true,
                 supportDataDrivenLensFlare = true,
                 supportRayTracing = false,
@@ -277,8 +278,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool supportWaterFoam;
         /// <summary>Defines the resolution of the foam system atlas.</summary>
         public WaterAtlasSize foamAtlasSize;
-        /// <summary>Enable water CPU simulation.</summary>
-        public bool waterCPUSimulation;
+        /// <summary>Defines if the script interactions should simulate water on CPU or fetch simulation from the GPU.</summary>
+        [Tooltip("Defines if the script interactions should simulate water on CPU or fetch simulation from the GPU.")]
+        public WaterScriptInteractionsMode waterScriptInteractionsMode;
+        /// <summary>Defines if the CPU simulation should be evaluated at full resolution or half resolution.</summary>
+        [Tooltip("Defines if the CPU simulation should be evaluated at full resolution or half resolution.")]
+        public bool waterFullCPUSimulation;
 
         // Compute Thickness
         /// <summary>Sample Compute Thickness algorithm.</summary>
@@ -362,7 +367,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>Support motion vectors.</summary>
         public bool supportMotionVectors;
-        
+
         // Post Processing
         /// <summary>Support Screen Space Lens Flare.</summary>
         public bool supportScreenSpaceLensFlare;

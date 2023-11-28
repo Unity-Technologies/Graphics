@@ -129,10 +129,11 @@ namespace UnityEditor.Rendering.HighDefinition
         
         internal static Material CreateNewWaterMaterialAndShader(MonoBehaviour component)
         {
-            string folderName = GetWaterResourcesPath(component);
+            string directory = GetWaterResourcesPath(component);
+            System.IO.Directory.CreateDirectory(directory);
 
             // Make sure they don't already exist
-            var path = $"{folderName}/{component.name}.shadergraph";
+            var path = $"{directory}/{component.name}.shadergraph";
             if (AssetDatabase.AssetPathExists(path))
             {
                 Debug.LogWarning($"A Water Shader or Material at {path} already exists.");

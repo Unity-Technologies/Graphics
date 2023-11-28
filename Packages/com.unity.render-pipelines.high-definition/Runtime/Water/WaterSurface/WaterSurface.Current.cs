@@ -64,8 +64,7 @@ namespace UnityEngine.Rendering.HighDefinition
             wsd.sectorData = HDRenderPipeline.currentPipeline.m_SectorData;
 
             // Swell / Agitation
-            NativeArray<uint> currentBuffer = largeCurrentMapSynchronizer.CurrentBuffer();
-            if (largeCurrentMap != null && currentBuffer.Length > 0 && largeCurrentMapSynchronizer.CurrentResolution().x != 0)
+            if (largeCurrentMap != null && largeCurrentMapSynchronizer.TryGetBuffer(out var currentBuffer) && currentBuffer.Length > 0 && largeCurrentMapSynchronizer.CurrentResolution().x != 0)
             {
                 wsd.activeGroup0CurrentMap = true;
                 wsd.group0CurrentMap = currentBuffer;
@@ -85,8 +84,7 @@ namespace UnityEngine.Rendering.HighDefinition
             wsd.group0CurrentMapInfluence = largeCurrentMapInfluence;
 
             // Ripples
-            currentBuffer = ripplesCurrentMapSynchronizer.CurrentBuffer();
-            if (ripplesCurrentMap != null && currentBuffer.Length > 0 && ripplesCurrentMapSynchronizer.CurrentResolution().x != 0)
+            if (ripplesCurrentMap != null && ripplesCurrentMapSynchronizer.TryGetBuffer(out currentBuffer) && currentBuffer.Length > 0 && ripplesCurrentMapSynchronizer.CurrentResolution().x != 0)
             {
                 wsd.activeGroup1CurrentMap = true;
                 wsd.group1CurrentMap = currentBuffer;

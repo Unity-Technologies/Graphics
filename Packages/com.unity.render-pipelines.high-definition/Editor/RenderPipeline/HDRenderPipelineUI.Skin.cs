@@ -127,7 +127,6 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent supportWaterFoamContent = EditorGUIUtility.TrTextContent("Foam", "When enabled, HDRP allocates additional memory to support water foam.");
             public static readonly GUIContent foamAtlasSizeContent = EditorGUIUtility.TrTextContent("Foam Atlas Size", "Specifies the size of the atlas used to store texture water foam.");
             public static readonly GUIContent supportWaterExclusionContent = EditorGUIUtility.TrTextContent("Exclusion", "When enabled, HDRP allocates a stencil bit to support water excluders.");
-            public static readonly GUIContent cpuSimulationContent = EditorGUIUtility.TrTextContent("Script Interactions", "When enabled, HDRP allocates memory for the water simulation on the CPU. This allows you to enable CPU simulation on water surfaces to query height information.");
 
             // High Quality Line Rendering
             public static readonly GUIContent highQualityLineRenderingSubTitle = EditorGUIUtility.TrTextContent("High Quality Line Rendering");

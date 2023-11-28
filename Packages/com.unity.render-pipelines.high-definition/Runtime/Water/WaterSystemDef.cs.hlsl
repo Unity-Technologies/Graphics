@@ -54,8 +54,8 @@ CBUFFER_START(ShaderVariablesWater)
     float2 _WaterMaskOffset;
     float2 _WaterMaskRemap;
     float2 _GroupOrientation;
-    float2 _WaterDeformationCenter;
-    float2 _WaterDeformationExtent;
+    float2 _DeformationRegionOffset;
+    float2 _DeformationRegionScale;
     float4 _Band0_ScaleOffset_AmplitudeMultiplier;
     float4 _Band1_ScaleOffset_AmplitudeMultiplier;
     float4 _Band2_ScaleOffset_AmplitudeMultiplier;
@@ -87,10 +87,9 @@ CBUFFER_START(ShaderVariablesWater)
     float _FoamSmoothness;
     float _WaterSmoothness;
     float _FoamPersistenceMultiplier;
+    float2 _WaterForwardXZ;
+    int _DeformationRegionResolution;
     float _PaddingW1;
-    float _PaddingW2;
-    float _PaddingW3;
-    int _WaterDeformationResolution;
     float _MaxWaveDisplacement;
     float _MaxWaveHeight;
     float _SimulationTime;
@@ -115,11 +114,11 @@ CBUFFER_END
 CBUFFER_START(ShaderVariablesWaterRendering)
     float4x4 _WaterSurfaceTransform;
     float4x4 _WaterSurfaceTransform_Inverse;
-    float4 _PatchOffset;
+    float2 _PatchOffset;
     float2 _GridSize;
-    float2 _GridOffset;
     float2 _RegionExtent;
     float2 _CurrentMapInfluence;
+    float _GridSizeMultiplier;
     uint _MaxLOD;
     float _MaxWaterDeformation;
     float _CausticsMaxLOD;
@@ -127,7 +126,6 @@ CBUFFER_START(ShaderVariablesWaterRendering)
     float _CausticsIntensity;
     float _CausticsShadowIntensity;
     float _CausticsPlaneBlendDistance;
-    int _PaddingWR1;
     float4 _Group0CurrentRegionScaleOffset;
     float4 _Group1CurrentRegionScaleOffset;
     uint _WaterRenderingLayer;

@@ -36,6 +36,9 @@ namespace UnityEditor.Rendering.HighDefinition
                         return true;
                 }
 
+                if (stripDebugVariants && snippet.passName.StartsWith(HDRenderPipeline.k_WaterMaskPass))
+                    return true;
+
                 if (shader == m_ShaderResources.waterCausticsPS ||
                     shader == m_ShaderResources.waterFoamPS ||
                     shader == m_ShaderResources.waterPS ||

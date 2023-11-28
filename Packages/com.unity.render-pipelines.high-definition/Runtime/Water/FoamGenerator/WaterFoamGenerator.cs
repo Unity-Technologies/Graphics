@@ -56,10 +56,26 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector2Int resolution = new Vector2Int(256, 256);
 
         /// <summary>
+        /// Frequency of update of the Material in the atlas.
+        /// </summary>
+        [Tooltip("Frequency of update of the Material in the atlas.")]
+        public CustomRenderTextureUpdateMode updateMode = CustomRenderTextureUpdateMode.OnLoad;
+
+        /// <summary>
         /// Specifies the material used for the foam.
         /// </summary>
         [Tooltip("Specifies the material used for the generator.")]
         public Material material = null;
+
+        internal bool shouldUpdate = false;
+
+        /// <summary>
+        /// Triggers a render of the material in the deformer atlas.
+        /// </summary>
+        public void RequestUpdate()
+        {
+            shouldUpdate = true;
+        }
 
         internal MaterialPropertyBlock mpb;
 
@@ -183,6 +199,9 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // Add this water surface to the internal surface management
             RegisterInstance(this);
+
+            if (updateMode == CustomRenderTextureUpdateMode.OnLoad)
+                shouldUpdate = true;
         }
 
         private void OnDisable()

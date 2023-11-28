@@ -116,7 +116,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         ConstantBuffer.Push(ctx.cmd, data.waterDebugCB, data.parameters.waterMaterial, HDShaderIDs._ShaderVariablesWaterDebug);
 
                         // For the debug mode, we don't bother using the indirect method as we do not care about perf.
-                        DrawWaterSurface(ctx.cmd, data.parameters, k_WaterMaskPass, data.patchDataBuffer, data.indirectBuffer, data.frustumBuffer);
+                        DrawWaterSurface(ctx.cmd, data.parameters, k_PassesWaterMask, data.patchDataBuffer, data.indirectBuffer, data.frustumBuffer);
 
                         // Reset the keywords
                         ResetWaterShaderKeyword(ctx.cmd);

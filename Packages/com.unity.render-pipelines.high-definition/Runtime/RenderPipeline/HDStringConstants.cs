@@ -653,7 +653,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Water caustics
         public static readonly int _WaterCausticsDataBuffer = Shader.PropertyToID("_WaterCausticsDataBuffer");
         public static readonly int _WaterFoamBuffer = Shader.PropertyToID("_WaterFoamBuffer");
-        public static readonly int _PreviousFoamRegionData = Shader.PropertyToID("_PreviousFoamRegionData");
+        public static readonly int _PreviousFoamRegionScaleOffset = Shader.PropertyToID("_PreviousFoamRegionScaleOffset");
         public static readonly int _WaterFoamBufferRW = Shader.PropertyToID("_WaterFoamBufferRW");
         public static readonly int _CausticsNormalsMipOffset = Shader.PropertyToID("_CausticsNormalsMipOffset");
         public static readonly int _CausticGeometryResolution = Shader.PropertyToID("_CausticGeometryResolution");

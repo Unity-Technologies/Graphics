@@ -392,8 +392,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // Per group data
         public float2 _GroupOrientation;
 
-        public Vector2 _WaterDeformationCenter;
-        public Vector2 _WaterDeformationExtent;
+        public Vector2 _DeformationRegionOffset;
+        public Vector2 _DeformationRegionScale;
 
         // Per band data
         public Vector4 _Band0_ScaleOffset_AmplitudeMultiplier;
@@ -456,11 +456,11 @@ namespace UnityEngine.Rendering.HighDefinition
         // Controls the fade multiplier of the foam
         public float _FoamPersistenceMultiplier;
 
-        public float _PaddingW1;
-        public float _PaddingW2;
-        public float _PaddingW3;
+        // Forward vector of water surface
+        public float2 _WaterForwardXZ;
         // Deformation region resolution
-        public int _WaterDeformationResolution;
+        public int _DeformationRegionResolution;
+        public float _PaddingW1;
 
         // Maximal horizontal displacement
         public float _MaxWaveDisplacement;
@@ -481,35 +481,32 @@ namespace UnityEngine.Rendering.HighDefinition
         public Matrix4x4 _WaterSurfaceTransform_Inverse;
 
         // Offset of the patch w/r to the origin. w is used to scale the low res water mesh
-        public Vector4 _PatchOffset;
-
+        public float2 _PatchOffset;
         // Horizontal size of the grid in the horizontal plane
-        public Vector2 _GridSize;
-        // 2D offset for procedural surfaces
-        public Vector2 _GridOffset;
+        public float2 _GridSize;
 
         // Size of the quad in world space (to cull non-infinite instanced quads)
-        public Vector2 _RegionExtent;
+        public float2 _RegionExtent;
         // Current Map Influence
         public Vector2 _CurrentMapInfluence;
 
+        // Low res grid multiplier
+        public float _GridSizeMultiplier;
         // Maximum LOD
         public uint _MaxLOD;
         // Maximum horizontal deformation
         public float _MaxWaterDeformation;
         // Offset applied to the caustics LOD
         public float _CausticsMaxLOD;
+
         // Tiling of the caustics texture
         public float _CausticsTilingFactor;
-
         // Intensity of the water caustics
         public float _CausticsIntensity;
         // Intensity of the water caustics in sun shadow
         public float _CausticsShadowIntensity;
         // Blend distance
         public float _CausticsPlaneBlendDistance;
-        // Padding
-        public int _PaddingWR1;
 
         // Scale & offset of the large
         public Vector4 _Group0CurrentRegionScaleOffset;

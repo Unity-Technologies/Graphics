@@ -39,7 +39,8 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty supportWaterFoam;
         public SerializedProperty foamAtlasSize;
         public SerializedProperty supportWaterExclusion;
-        public SerializedProperty waterCPUSimulation;
+        public SerializedProperty waterScriptInteractionsMode;
+        public SerializedProperty waterFullCPUSimulation;
 
         public SerializedProperty supportComputeThickness;
         public SerializedProperty computeThicknessResolution;
@@ -130,7 +131,8 @@ namespace UnityEditor.Rendering.HighDefinition
             supportWaterFoam = root.Find((RenderPipelineSettings s) => s.supportWaterFoam);
             foamAtlasSize = root.Find((RenderPipelineSettings s) => s.foamAtlasSize);
             supportWaterExclusion = root.Find((RenderPipelineSettings s) => s.supportWaterExclusion);
-            waterCPUSimulation = root.Find((RenderPipelineSettings s) => s.waterCPUSimulation);
+            waterScriptInteractionsMode = root.Find((RenderPipelineSettings s) => s.waterScriptInteractionsMode);
+            waterFullCPUSimulation = root.Find((RenderPipelineSettings s) => s.waterFullCPUSimulation);
 
             supportComputeThickness = root.Find((RenderPipelineSettings s) => s.supportComputeThickness);
             computeThicknessResolution = root.Find((RenderPipelineSettings s) => s.computeThicknessResolution);
