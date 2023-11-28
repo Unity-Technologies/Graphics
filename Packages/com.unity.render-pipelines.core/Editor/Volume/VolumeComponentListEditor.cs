@@ -142,7 +142,8 @@ namespace UnityEditor.Rendering
             bool forceOpen = false)
         {
             var editor = (VolumeComponentEditor) Editor.CreateEditor(component);
-            editor.inspector = m_BaseEditor;
+            editor.SetVolume(m_BaseEditor.target as Volume); // May be null if we're editing the asset
+            editor.SetVolumeProfile(asset);
             editor.enableOverrides = !m_IsDefaultVolumeProfile;
             editor.Init();
 

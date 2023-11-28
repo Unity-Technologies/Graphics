@@ -178,7 +178,8 @@ namespace UnityEditor.Rendering.HighDefinition
             var lookDevVolumeProfile = serialized.lookDevVolumeProfile.objectReferenceValue as VolumeProfile;
             var editor = hdGlobalSettingsEditor.GetLookDevDefaultVolumeProfileEditor(lookDevVolumeProfile) as VolumeProfileEditor;
 			var componentEditors = editor != null ? editor.componentList.editors : null;
-			
+
+#pragma warning disable 618 // Obsolete warning
             VolumeProfileUtils.OnVolumeProfileContextClick(pos, lookDevVolumeProfile, componentEditors,
                 overrideStateOnReset: false,
                 defaultVolumeProfilePath: $"Assets/{HDProjectSettings.projectSettingsFolderPath}/LookDevProfile_Default.asset",
@@ -187,6 +188,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     serialized.lookDevVolumeProfile.objectReferenceValue = volumeProfile;
                     serialized.serializedObject.ApplyModifiedProperties();
                 });
+#pragma warning restore 618 // Obsolete warning
         }
 
         #endregion // Volume Profiles

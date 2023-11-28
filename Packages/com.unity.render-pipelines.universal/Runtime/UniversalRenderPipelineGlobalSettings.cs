@@ -90,7 +90,7 @@ namespace UnityEngine.Rendering.Universal
             if (asset.m_AssetVersion < 5)
             {
 #pragma warning disable 618 // Type or member is obsolete
-                asset.m_ObsoleteDefaultVolumeProfile = asset.GetOrCreateDefaultVolumeProfile(asset.m_ObsoleteDefaultVolumeProfile);
+                asset.m_ObsoleteDefaultVolumeProfile = GetOrCreateDefaultVolumeProfile(asset.m_ObsoleteDefaultVolumeProfile);
 #pragma warning restore 618 // Type or member is obsolete
                 asset.m_AssetVersion = 5;
             }
@@ -222,7 +222,7 @@ namespace UnityEngine.Rendering.Universal
             UpdateRenderingLayerNames();
         }
 
-        internal VolumeProfile GetOrCreateDefaultVolumeProfile(VolumeProfile defaultVolumeProfile)
+        internal static VolumeProfile GetOrCreateDefaultVolumeProfile(VolumeProfile defaultVolumeProfile)
         {
 #if UNITY_EDITOR
             if (defaultVolumeProfile == null || defaultVolumeProfile.Equals(null))

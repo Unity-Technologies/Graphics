@@ -10,13 +10,12 @@ namespace UnityEditor.Rendering
     /// <summary>
     /// Editor for the Default Volume Profile
     /// </summary>
-    public sealed class DefaultVolumeProfileEditor
+    public sealed partial class DefaultVolumeProfileEditor
     {
         const string k_TemplatePath = "Packages/com.unity.render-pipelines.core/Editor/UXML/DefaultVolumeProfileEditor.uxml";
 
-        const int k_ContainerMarginLeft = 10;
+        const int k_ContainerMarginLeft = 27;
         const int k_ImguiContainerPaddingLeft = 18;
-        const int k_DefaultVolumeLabelWidth = 274;
 
         static Lazy<GUIStyle> s_ImguiContainerScopeStyle = new(() => new GUIStyle
         {
@@ -27,6 +26,7 @@ namespace UnityEditor.Rendering
 
         readonly Dictionary<VolumeComponentEditor, string> m_VolumeComponentHelpUrls = new();
         readonly VolumeProfile m_Profile;
+        readonly SerializedObject m_TargetSerializedObject;
         readonly Editor m_BaseEditor;
 
         DefaultVolumeProfileCategories m_Categories;
@@ -36,12 +36,12 @@ namespace UnityEditor.Rendering
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="baseEditor">Editor that displays the content of this class</param>
         /// <param name="profile">VolumeProfile to display</param>
-        public DefaultVolumeProfileEditor(Editor baseEditor, VolumeProfile profile)
+        /// <param name="targetSerializedObject">Target serialized object to update when the default volume profile changes</param>
+        public DefaultVolumeProfileEditor(VolumeProfile profile, SerializedObject targetSerializedObject)
         {
-            m_BaseEditor = baseEditor;
             m_Profile = profile;
+            m_TargetSerializedObject = targetSerializedObject;
         }
 
         /// <summary>
@@ -71,7 +71,7 @@ namespace UnityEditor.Rendering
             m_SearchField = m_Root.Q<ToolbarSearchField>();
             m_SearchField.RegisterValueChangedCallback(_ => CreateComponentLists());
 
-            m_Categories = new DefaultVolumeProfileCategories(m_Profile, m_BaseEditor);
+            m_Categories = new DefaultVolumeProfileCategories(m_Profile);
 
             CreateComponentLists();
 
@@ -117,7 +117,12 @@ namespace UnityEditor.Rendering
                     (e as IMGUIContainer).onGUIHandler = () =>
                     {
                         using var indentScope = new SettingsProviderGUIScope();
-                        EditorGUIUtility.labelWidth = k_DefaultVolumeLabelWidth;
+                        /* values adapted to the ProjectSettings > Graphics */
+                        /* they also works in the DefaultVolume inspector */
+                        var minWidth = 120;
+                        var indent = 66;
+                        var ratio = 0.45f;
+                        EditorGUIUtility.labelWidth = Mathf.Max(minWidth, (int)((e.worldBound.width - indent) * ratio));
                         VolumeComponentEditorOnGUI(filteredCategoryEditors[i]);
                     };
                 };
@@ -188,7 +193,7 @@ namespace UnityEditor.Rendering
 
                 if (changedScope.changed)
                 {
-                    m_BaseEditor.serializedObject.ApplyModifiedProperties();
+                    m_TargetSerializedObject.ApplyModifiedProperties();
                     VolumeManager.instance.OnVolumeProfileChanged(m_Profile);
                 }
             }

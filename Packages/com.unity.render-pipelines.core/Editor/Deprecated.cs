@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering
 {
@@ -135,5 +136,20 @@ namespace UnityEditor.Rendering
         /// If the Runtime Rendering Debugger Debug Variants should be stripped
         /// </summary>
         SerializedProperty stripDebugVariants { get => null; }
+    }
+
+    public sealed partial class DefaultVolumeProfileEditor
+    {
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="baseEditor">Editor that displays the content of this class</param>
+        /// <param name="profile">VolumeProfile to display</param>
+        [Obsolete("Use DefaultVolumeProfileEditor(VolumeProfile, SerializedObject) instead. #from(23.3)")]
+        public DefaultVolumeProfileEditor(Editor baseEditor, VolumeProfile profile)
+        {
+            m_Profile = profile;
+            m_TargetSerializedObject = baseEditor.serializedObject;
+        }
     }
 }

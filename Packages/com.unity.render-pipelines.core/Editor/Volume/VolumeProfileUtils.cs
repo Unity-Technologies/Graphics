@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.Rendering
 {
@@ -247,6 +248,92 @@ namespace UnityEditor.Rendering
         }
 
         /// <summary>
+        /// Adds context menu dropdown items for a Volume Profile.
+        /// </summary>
+        /// <param name="menu">Dropdown menu to add items to</param>
+        /// <param name="volumeProfile">VolumeProfile associated with the context menu</param>
+        /// <param name="componentEditors">List of VolumeComponentEditors associated with the profile</param>
+        /// <param name="overrideStateOnReset">Default override state for components when they are reset</param>
+        /// <param name="defaultVolumeProfilePath">Default path for the new volume profile&lt;</param>
+        /// <param name="onNewVolumeProfileCreated">Callback when new volume profile has been created</param>
+        /// <param name="onComponentEditorsExpandedCollapsed">Callback when all editors are collapsed or expanded</param>
+        public static void AddVolumeProfileContextMenuItems(
+            ref GenericDropdownMenu menu,
+            VolumeProfile volumeProfile,
+            List<VolumeComponentEditor> componentEditors,
+            bool overrideStateOnReset,
+            string defaultVolumeProfilePath,
+            Action<VolumeProfile> onNewVolumeProfileCreated,
+            Action onComponentEditorsExpandedCollapsed = null)
+        {
+            menu.AddItem(Styles.newVolumeProfile.text, false, () =>
+            {
+                VolumeProfileFactory.CreateVolumeProfileWithCallback(defaultVolumeProfilePath,
+                    onNewVolumeProfileCreated);
+            });
+
+            if (volumeProfile != null)
+            {
+                menu.AddItem(Styles.clone.text, false, () =>
+                {
+                    var pathName = AssetDatabase.GenerateUniqueAssetPath(AssetDatabase.GetAssetPath(volumeProfile));
+                    var clone = VolumeProfileFactory.CreateVolumeProfileAtPath(pathName, volumeProfile);
+                    onNewVolumeProfileCreated(clone);
+                });
+
+                menu.AddSeparator(string.Empty);
+
+                menu.AddItem(Styles.collapseAll.text, false, () =>
+                {
+                    SetComponentEditorsExpanded(componentEditors, false);
+                    onComponentEditorsExpandedCollapsed?.Invoke();
+                });
+                menu.AddItem(Styles.expandAll.text, false, () =>
+                {
+                    SetComponentEditorsExpanded(componentEditors, true);
+                    onComponentEditorsExpandedCollapsed?.Invoke();
+                });
+
+                menu.AddSeparator(string.Empty);
+
+                menu.AddItem(Styles.resetAll.text, false, () =>
+                {
+                    VolumeComponent[] components = new VolumeComponent[componentEditors.Count];
+                    for (int i = 0; i < componentEditors.Count; i++)
+                        components[i] = componentEditors[i].volumeComponent;
+
+                    ResetComponentsInternal(new SerializedObject(volumeProfile), volumeProfile, components, overrideStateOnReset);
+                });
+            }
+
+            menu.AddSeparator(string.Empty);
+
+            menu.AddItem(Styles.showAllAdditionalProperties.text, false,
+                CoreRenderPipelinePreferences.Open);
+
+            menu.AddSeparator(string.Empty);
+
+            menu.AddItem(Styles.openInRenderingDebugger.text, false, DebugDisplaySettingsVolume.OpenInRenderingDebugger);
+
+            if (volumeProfile != null)
+            {
+                menu.AddSeparator(string.Empty);
+
+                menu.AddItem(Styles.copyAllSettings.text, false,
+                    () => VolumeComponentCopyPaste.CopySettings(volumeProfile.components));
+
+                if (VolumeComponentCopyPaste.CanPaste(volumeProfile.components))
+                    menu.AddItem(Styles.pasteSettings.text, false, () =>
+                    {
+                        VolumeComponentCopyPaste.PasteSettings(volumeProfile.components);
+                        VolumeManager.instance.OnVolumeProfileChanged(volumeProfile);
+                    });
+                else
+                    menu.AddDisabledItem(Styles.pasteSettings.text, false);
+            }
+        }
+
+        /// <summary>
         /// Draws the context menu dropdown for a Volume Profile.
         /// </summary>
         /// <param name="position">Context menu position</param>
@@ -256,6 +343,7 @@ namespace UnityEditor.Rendering
         /// <param name="overrideStateOnReset">Default override state for components when they are reset</param>
         /// <param name="onNewVolumeProfileCreated">Callback when new volume profile has been created</param>
         /// <param name="onComponentEditorsExpandedCollapsed">Callback when all editors are collapsed or expanded</param>
+        [Obsolete("Deprecated, use AddVolumeProfileContextMenuItems instead. #from(23.3)")]
         public static void OnVolumeProfileContextClick(
             Vector2 position,
             VolumeProfile volumeProfile,

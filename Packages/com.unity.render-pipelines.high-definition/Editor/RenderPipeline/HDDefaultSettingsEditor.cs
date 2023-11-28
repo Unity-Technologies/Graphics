@@ -106,7 +106,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (volumeProfile == VolumeManager.instance.globalDefaultProfile)
                 VolumeProfileUtils.EnsureAllOverridesForDefaultProfile(volumeProfile);
 
-            m_DefaultVolumeProfileEditor = new DefaultVolumeProfileEditor(this, volumeProfile);
+            m_DefaultVolumeProfileEditor = new DefaultVolumeProfileEditor(volumeProfile, serializedObject);
             m_DefaultVolumeProfileEditorRoot.Add(m_DefaultVolumeProfileEditor.Create());
 
             m_DefaultVolumeProfileEditorRoot.Q<HelpBox>("volume-override-info-box").text = EditorGUIUtility.TrTextContent(
@@ -210,6 +210,7 @@ namespace UnityEditor.Rendering.HighDefinition
             SerializedHDRenderPipelineGlobalSettings serialized,
             DefaultVolumeProfileEditor defaultVolumeProfileEditor)
         {
+#pragma warning disable 618 // Obsolete warning
             VolumeProfileUtils.OnVolumeProfileContextClick(position, serialized.defaultVolumeProfile.objectReferenceValue as VolumeProfile, defaultVolumeProfileEditor.allEditors,
                 overrideStateOnReset: true,
                 defaultVolumeProfilePath: VolumeUtils.GetDefaultNameForVolumeProfile(GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineEditorAssets>().defaultVolumeProfile),
@@ -222,6 +223,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     VolumeProfileUtils.UpdateGlobalDefaultVolumeProfile<HDRenderPipeline>(volumeProfile, defaultValuesAsset);
                 },
                 onComponentEditorsExpandedCollapsed: defaultVolumeProfileEditor.RebuildListViews);
+#pragma warning restore 618 // Obsolete warning
         }
 
         #endregion

@@ -97,7 +97,7 @@ namespace UnityEditor.Rendering.Universal
             if (volumeProfile == VolumeManager.instance.globalDefaultProfile)
                 VolumeProfileUtils.EnsureAllOverridesForDefaultProfile(volumeProfile);
 
-            m_DefaultVolumeProfileEditor = new DefaultVolumeProfileEditor(this, volumeProfile);
+            m_DefaultVolumeProfileEditor = new DefaultVolumeProfileEditor(volumeProfile, serializedObject);
             m_DefaultVolumeProfileEditorRoot.Add(m_DefaultVolumeProfileEditor.Create());
 
             m_DefaultVolumeProfileEditorRoot.Q<HelpBox>("volume-override-info-box").text = EditorGUIUtility.TrTextContent(
@@ -155,7 +155,6 @@ namespace UnityEditor.Rendering.Universal
                 var oldWidth = EditorGUIUtility.labelWidth;
                 EditorGUIUtility.labelWidth = UniversalRenderPipelineGlobalSettingsUI.Styles.defaultVolumeLabelWidth;
 
-                var globalSettings = serialized.serializedObject.targetObject as UniversalRenderPipelineGlobalSettings;
                 var defaultVolumeProfileSettings = GraphicsSettings.GetRenderPipelineSettings<URPDefaultVolumeProfileSettings>();
 
                 bool expanded = m_DefaultVolumeProfileFoldoutExpanded.value;
@@ -163,7 +162,7 @@ namespace UnityEditor.Rendering.Universal
                 VolumeProfile defaultVolumeProfileAsset = RenderPipelineGlobalSettingsUI.DrawVolumeProfileAssetField(
                     serialized.defaultVolumeProfile,
                     UniversalRenderPipelineGlobalSettingsUI.Styles.defaultVolumeProfileLabel,
-                    getOrCreateVolumeProfile: () => globalSettings.GetOrCreateDefaultVolumeProfile(defaultVolumeProfileSettings.volumeProfile),
+                    getOrCreateVolumeProfile: () => UniversalRenderPipelineGlobalSettings.GetOrCreateDefaultVolumeProfile(defaultVolumeProfileSettings.volumeProfile),
                     ref expanded
                 );
                 m_DefaultVolumeProfileFoldoutExpanded.value = expanded;
@@ -194,6 +193,7 @@ namespace UnityEditor.Rendering.Universal
             SerializedUniversalRenderPipelineGlobalSettings serialized,
             DefaultVolumeProfileEditor defaultVolumeProfileEditor)
         {
+#pragma warning disable 618 // Obsolete warning
             VolumeProfileUtils.OnVolumeProfileContextClick(position, serialized.defaultVolumeProfile.objectReferenceValue as VolumeProfile, defaultVolumeProfileEditor.allEditors,
                 overrideStateOnReset: true,
                 defaultVolumeProfilePath: "Assets/VolumeProfile_Default.asset",
@@ -204,6 +204,7 @@ namespace UnityEditor.Rendering.Universal
                     VolumeProfileUtils.UpdateGlobalDefaultVolumeProfile<UniversalRenderPipeline>(volumeProfile);
                 },
                 onComponentEditorsExpandedCollapsed: defaultVolumeProfileEditor.RebuildListViews);
+#pragma warning restore 618 // Obsolete warning
         }
 
         #endregion

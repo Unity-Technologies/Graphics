@@ -13,7 +13,7 @@ namespace UnityEditor.Rendering
 
         public Dictionary<string, List<VolumeComponentEditor>> categories { get; } = new();
 
-        public DefaultVolumeProfileCategories(VolumeProfile profile, Editor baseEditor)
+        public DefaultVolumeProfileCategories(VolumeProfile profile)
         {
             var pipelineType = RenderPipelineManager.currentPipeline.GetType();
             var volumeComponentTypeList = VolumeManager.instance.GetVolumeComponentsForDisplay(pipelineType);
@@ -29,7 +29,7 @@ namespace UnityEditor.Rendering
                     if (type == component.GetType())
                     {
                         var editor = (VolumeComponentEditor) Editor.CreateEditor(component);
-                        editor.inspector = baseEditor;
+                        editor.SetVolumeProfile(profile);
                         editor.enableOverrides = false;
                         editor.categoryTitle = ToCategoryName(path);
                         editor.Init();
