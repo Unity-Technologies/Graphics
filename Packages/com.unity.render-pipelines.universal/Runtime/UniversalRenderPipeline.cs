@@ -251,7 +251,10 @@ namespace UnityEngine.Rendering.Universal
 
             s_RenderGraph = new RenderGraph("URPRenderGraph");
             useRenderGraph = GraphicsSettings.GetRenderPipelineSettings<RenderGraphSettings>().useRenderGraph;
-            //Debug.Log($"RenderGraph is now {(useRenderGraph ? "enabled" : "disabled")}.");
+
+#if !UNITY_EDITOR
+            Debug.Log($"RenderGraph is now {(useRenderGraph ? "enabled" : "disabled")}.");
+#endif
 
             s_RTHandlePool = new RTHandleResourcePool();
 
