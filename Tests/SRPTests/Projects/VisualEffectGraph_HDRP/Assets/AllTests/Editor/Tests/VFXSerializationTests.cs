@@ -35,6 +35,22 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
+        public void VFXMemorySerializer_Dont_Crash_But_Trigger_Exception_On_Invalid_Usage()
+        {
+            var vfxGraph = VFXTestCommon.MakeTemporaryGraph();
+            var spawner = ScriptableObject.CreateInstance<VFXBasicSpawner>();
+            vfxGraph.AddChild(spawner);
+
+            var dependencies = new HashSet<ScriptableObject>(new [] { vfxGraph });
+            vfxGraph.CollectDependencies(dependencies);
+            dependencies.Add(null); //Voluntary add an invalid element
+
+            Byte[] backup = null;
+            Assert.Throws<NullReferenceException>( () => backup = VFXMemorySerializer.StoreObjectsToByteArray(dependencies.ToArray()));
+            Assert.IsNull(backup);
+        }
+
+        [Test]
         public void Sanitize_GetSpawnCount()
         {
             string kSourceAsset = "Assets/AllTests/Editor/Tests/VFXSerializationTests_GetSpawnCount.vfx_";

@@ -501,12 +501,13 @@ namespace UnityEditor.VFX.UI
 
                     var outputs = traversingInEdges[newSourceInputs[i]];
 
-                    var linkedParameter = outputs.FirstOrDefault(t => t.sourceNode is VFXParameterNodeController);
-                    if (linkedParameter != null)
+                    var linkedParameter = outputs.Select(t => t.sourceNode).OfType<VFXParameterNodeController>().FirstOrDefault();
+                    if (linkedParameter != null &&
+                        newTargetParameter.type == linkedParameter.parentController.model.type)
                     {
-                        newTargetParamController.exposedName = (linkedParameter.sourceNode as VFXParameterNodeController).parentController.exposedName;
+                        newTargetParamController.exposedName = ReplaceReservedName(linkedParameter.parentController.exposedName);
                         {
-                            VFXParameter originalParameter = (linkedParameter.sourceNode as VFXParameterNodeController).parentController.model;
+                            VFXParameter originalParameter = linkedParameter.parentController.model;
 
                             newTargetParameter.valueFilter = originalParameter.valueFilter;
                             if (originalParameter.valueFilter == VFXValueFilter.Range)
@@ -521,7 +522,7 @@ namespace UnityEditor.VFX.UI
                         }
                     }
                     else
-                        newTargetParamController.exposedName = newSourceInputs[i].name;
+                        newTargetParamController.exposedName = ReplaceReservedName(newSourceInputs[i].name);
 
                     //first the equivalent of sourceInput in the target
 
@@ -584,6 +585,13 @@ namespace UnityEditor.VFX.UI
                 }
             }
 
+            static string ReplaceReservedName(string name)
+            {
+                if (name == VFXBlock.activationSlotName)
+                    return "enabled";
+                return name;
+            }
+
             void TransfertOperatorOutputEdges()
             {
                 var traversingOutEdges = new Dictionary<VFXDataAnchorController, List<VFXDataAnchorController>>();
@@ -625,9 +633,9 @@ namespace UnityEditor.VFX.UI
 
                     var linkedParameter = inputs.FirstOrDefault(t => t.sourceNode is VFXParameterNodeController);
                     if (linkedParameter != null)
-                        newTargetParamController.exposedName = (linkedParameter.sourceNode as VFXParameterNodeController).parentController.exposedName;
+                        newTargetParamController.exposedName = ReplaceReservedName((linkedParameter.sourceNode as VFXParameterNodeController).parentController.exposedName);
                     else
-                        newTargetParamController.exposedName = newSourceOutputs[i].name;
+                        newTargetParamController.exposedName = ReplaceReservedName(newSourceOutputs[i].name);
 
                     //first the equivalent of sourceInput in the target
 
