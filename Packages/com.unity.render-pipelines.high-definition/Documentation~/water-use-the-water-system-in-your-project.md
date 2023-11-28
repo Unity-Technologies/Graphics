@@ -8,7 +8,7 @@ This page provides an overview of the basic workflow to include a water surface 
 ### Enable water in the HDRP Asset's Quality settings
 1. Open the Project Settings.
 2. In **Quality** > **HDRP**, open the **Rendering** section.
-3. Enable **Water**. To run the water simulation on the CPU, see [Scripting in the Water System](water-scripting-in-the-water-system.md).
+3. Enable **Water**. 
 
 ### Enable water in the Frame Settings
 1. Open the Project Settings.

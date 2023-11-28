@@ -4,7 +4,7 @@
 
 You can add buoyancy to the water simulation with a script that queries the height of the water surface.
 
-To do this, enable **Script Interactions** in the Water section of the [HDRP Asset](HDRP-Asset.md#water-scriptinteractions) and in the Inspector for the water surface you want to query (see [Settings and properties related to the Water System](settings-and-properties-related-to-the-water-system.md#scriptinteractions)).
+To do this, enable **Script Interactions** in the water surface you want to query (see [Settings and properties related to the Water System](settings-and-properties-related-to-the-water-system.md#scriptinteractions)).
 
 The [WaterSearchParameters](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@14.0/api/UnityEngine.Rendering.HighDefinition.WaterSearchParameters.html) struct makes water height queries possible.
 
@@ -173,6 +173,6 @@ water.simulationStart = referenceSurface.simulationStart;
 ```
 
 ### Limitations
-[Masks](water-decals-and-masking-in-the-water-system.md) do not affect CPU simulations. As a result, buoyancy scripts produce incorrect results for masked water surfaces.
+[Masks](water-decals-and-masking-in-the-water-system.md) do not affect CPU simulations. As a result, buoyancy scripts produce incorrect results for masked water surfaces when CPU Simulation is selected as Simulation Mode parameter.
 
 

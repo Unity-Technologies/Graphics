@@ -8,6 +8,8 @@ HDRP limits the maximum number of deformers active at the same time in a scene. 
 
 The region of a water surface that can receive deformation is limited. You can select the size and offset of the rectangular region that supports deformation in the **Deformation** section of the water surface Inspector window. To highlight this region for debug purposes, go to **Miscellaneous** > **Debug Mode** and select **Deformation**.
 
+Also, there is a maximum number of deformer you can have in a scene. This limit can be set directly in the HDRP Asset under **Water** > **Deformation** > **Maximum Deformer Count**. 
+
 ![](Images/watersystem-deformer.png)
 
 ## Create a Water Deformer

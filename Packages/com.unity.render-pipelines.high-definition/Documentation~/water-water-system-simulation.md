@@ -75,13 +75,6 @@ Waves that are closer together, like **Ripples**, are more frequent; they have a
 
 Because they separate higher and lower frequency waves, **Simulation Bands** make it easier to produce realistic wave behavior on both large and small water surfaces.
 
-## Amplification
-To amplify a signal is to increase its ability to affect its environment. The **Amplitude Multiplier**, on the other hand, is a dimmer that increases and decreases waves' affect on the water surface.
-
-The **Amplitude Multiplier** controls serve the same purpose for the **Swell** bands in **Ocean, Sea, or Lake** water surfaces and the **Agitation** band of **River** surfaces.
-
-If you amplify two **Swell** bands, you can see some interesting interference patterns. These are not the same as **Ripples** for configuration purposes, however.
-
 ## Current
 In the real world, factors other than wind can displace water, like gravity, temperature, salinity, and topography. The **Current** control accounts for this. Currents can flow in an orientation independent of the wind orientation settings.
 
@@ -90,7 +83,7 @@ On **River** and **Ocean, Sea, or Lake** water surfaces, **Swell** and **Agitati
 ## Chaos
 To break up overly regular patterns of waves, you can increase the **Chaos** value, which is the inverse of the wave's directionality.
 * At a **Chaos** value of 0, the waves (ripples and swell) follow the wind direction 100%.
-* At a **Chaos** value of 50, the waves (ripples and swell) follow the wind direction 50% and otherwise behave chaotically.
+* At a **Chaos** value of 0.5, the waves (ripples and swell) follow the wind direction 50% and otherwise behave chaotically.
 * At a **Chaos** value of 1, the waves (ripples and swell) disregard wind direction, and behave entirely chaotically.
 
 <a name="patchgrid"></a>
@@ -98,7 +91,7 @@ To break up overly regular patterns of waves, you can increase the **Chaos** val
 The Volume Override uses the terms Patch and Grid. The Patch is the size of the area on which Unity runs the simulation for a particular Simulation Band. The Grid is the geometry Unity uses to render the water, which is always a rectangle.
 
 ## Scripting with the water simulation
-The simulation outputs water height data which you can use in scripts, for example to create a customized buoyancy effect that makes it possible to float a ball on the waves (for example). To access this data with C# scripts, you need to run the simulation on your CPU. See [Scripting in the Water System](water-scripting-in-the-water-system.md) for more information.
+You can query a water surface for position and current direction which you can use in scripts, for example to create a customized buoyancy effect that makes it possible to float a ball on the waves (for example). See [Scripting in the Water System](water-scripting-in-the-water-system.md) for more information.
 
 
 ## Additional resources
