@@ -209,7 +209,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // (uint)FullResolutionCloudsForSky
         };
 
-        public static uint[] GetFrameSettingsRenderTypeBitDatas(FrameSettingsRenderType defaultFrameSettingsRenderType)
+        static uint[] GetFrameSettingsRenderTypeBitDatas(FrameSettingsRenderType defaultFrameSettingsRenderType)
         {
             switch (defaultFrameSettingsRenderType)
             {

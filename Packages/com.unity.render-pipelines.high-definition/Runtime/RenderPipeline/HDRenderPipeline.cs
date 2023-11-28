@@ -2904,7 +2904,7 @@ namespace UnityEngine.Rendering.HighDefinition
             hdCamera = default;
             cullingParams = default;
 
-            FrameSettings currentFrameSettings = new FrameSettings();
+            FrameSettings currentFrameSettings = new FrameSettings(); //don't require full init as will be fully reset in AggregateFrameSettings
             // Compute the FrameSettings actually used to draw the frame
             // FrameSettingsHistory do the same while keeping all step of FrameSettings aggregation in memory for DebugMenu
             if (m_FrameSettingsHistoryEnabled && camera.cameraType != CameraType.Preview && camera.cameraType != CameraType.Reflection)

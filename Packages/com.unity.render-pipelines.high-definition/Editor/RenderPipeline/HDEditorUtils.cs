@@ -257,26 +257,6 @@ namespace UnityEditor.Rendering.HighDefinition
             DrawRenderingLayerMask(rect, property, style);
         }
 
-        /// <summary>
-        /// Similar to <see cref="EditorGUI.HandlePrefixLabel(Rect, Rect, GUIContent)"/> but indent the label
-        /// with <see cref="EditorGUI.indentLevel"/> value.
-        ///
-        /// Use this method to draw a label that will be highlighted during field search.
-        /// </summary>
-        /// <param name="totalPosition"></param>
-        /// <param name="labelPosition"></param>
-        /// <param name="label"></param>
-        internal static void HandlePrefixLabelWithIndent(Rect totalPosition, Rect labelPosition, GUIContent label)
-        {
-            // HandlePrefixLabel does not indent with EditorGUI.indentLevel.
-            // It seems that it is 15 pixels per indent space.
-            // You can check by adding 'EditorGUI.LabelField(labelRect, field.label);' before and check that the
-            // is properly overdrawn
-            //
-            labelPosition.x += EditorGUI.indentLevel * 15;
-            EditorGUI.HandlePrefixLabel(totalPosition, labelPosition, label);
-        }
-
         // IsPreset is an internal API - lets reuse the usable part of this function
         // 93 is a "magic number" and does not represent a combination of other flags here
         internal static bool IsPresetEditor(UnityEditor.Editor editor)
@@ -327,10 +307,10 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             CoreEditorUtils.DrawFixMeBox(message, type, "Open", () =>
             {
-                var attribute = OverridableFrameSettingsArea.GetFieldAttribute(field);
+                var attribute = FrameSettingsExtractedDatas.GetFieldAttribute(field);
 
                 SettingsService.OpenProjectSettings("Project/Graphics/HDRP Global Settings");
-                FrameSettingsPropertyDrawer.Expand(FrameSettingsRenderType.Camera, attribute.group);
+                FrameSettingsPropertyDrawer.SetExpended(FrameSettingsRenderType.Camera.ToString(), attribute.group, true);
                 CoreEditorUtils.Highlight("Project Settings", displayName, HighlightSearchMode.Auto);
                 GUIUtility.ExitGUI();
             });
@@ -365,7 +345,7 @@ namespace UnityEditor.Rendering.HighDefinition
             var defaults = GraphicsSettings.GetRenderPipelineSettings<RenderingPathFrameSettings>().GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
 
             var type = MessageType.Warning;
-            var attribute = OverridableFrameSettingsArea.GetFieldAttribute(field);
+            var attribute = FrameSettingsExtractedDatas.GetFieldAttribute(field);
 
             bool disabledInGlobal = !defaults.IsEnabled(field);
             bool disabledByCamera = data.renderingPathCustomFrameSettingsOverrideMask.mask[(uint)field] &&

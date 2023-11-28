@@ -1,0 +1,5 @@
+.frame-settings-override-header > Button
+{
+	/* there is no variable for disabled label yet */
+	color: rgba(255, 255, 255, 0.5); /*from BuilderInspectorLight.uss*/
+}

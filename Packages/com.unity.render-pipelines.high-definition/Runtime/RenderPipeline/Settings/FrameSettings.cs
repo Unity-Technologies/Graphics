@@ -28,6 +28,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Set the current quality settings value.</summary>
         OverrideQualitySettings,
     }
+
     /// <summary>
     /// Defines how the MaximumLOD is computed.
     /// </summary>
@@ -40,6 +41,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Set the current quality settings value.</summary>
         OverrideQualitySettings,
     }
+
     /// <summary>
     /// Defines how the SssSampleBudget is computed.
     /// </summary>
@@ -276,7 +278,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [FrameSettingsField(0, autoName: LODBias, type: FrameSettingsFieldAttribute.DisplayType.Others, positiveDependencies: new[] { LODBiasMode }, tooltip: "Sets the Level Of Detail Bias or the Scale on it.")]
         LODBias = 61,
         /// <summary>The quality level to use when fetching the value from the quality settings.</summary>
-        [FrameSettingsField(0, displayedName: "Quality Level", type: FrameSettingsFieldAttribute.DisplayType.Others, customOrderInGroup: 100, positiveDependencies: new[] { LODBiasMode }, tooltip: "The quality level to use when fetching the value from the quality settings.")]
+        [FrameSettingsField(0, displayedName: "Tier Level", type: FrameSettingsFieldAttribute.DisplayType.Others, customOrderInGroup: 100, positiveDependencies: new[] { LODBiasMode }, tooltip: "The quality level to use when fetching the value from the quality settings.")]
         LODBiasQualityLevel = 64,
         // true <=> Fixed, false <=> FromQualitySettings (default)
         /// <summary>Specifies the Maximum Level Of Detail Mode for Cameras using these Frame Settings to use to render the Scene. Offset allows you to add an offset factor while Override allows you to set a specific value.</summary>
@@ -286,7 +288,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [FrameSettingsField(0, autoName: MaximumLODLevel, type: FrameSettingsFieldAttribute.DisplayType.Others, positiveDependencies: new[] { MaximumLODLevelMode }, tooltip: "Sets the Maximum Level Of Detail Level or the Offset on it.")]
         MaximumLODLevel = 63,
         /// <summary>The quality level to use when fetching the value from the quality settings.</summary>
-        [FrameSettingsField(0, displayedName: "Quality Level", type: FrameSettingsFieldAttribute.DisplayType.Others, customOrderInGroup: 102, positiveDependencies: new[] { MaximumLODLevelMode }, tooltip: "The quality level to use when fetching the value from the quality settings.")]
+        [FrameSettingsField(0, displayedName: "Tier Level", type: FrameSettingsFieldAttribute.DisplayType.Others, customOrderInGroup: 102, positiveDependencies: new[] { MaximumLODLevelMode }, tooltip: "The quality level to use when fetching the value from the quality settings.")]
         MaximumLODLevelQualityLevel = 65,
         /// <summary>The quality level to use when fetching the value from the quality settings.</summary>
         [FrameSettingsField(0, autoName: MaterialQualityLevel, type: FrameSettingsFieldAttribute.DisplayType.Others, tooltip: "The material quality level to use.")]
@@ -322,11 +324,11 @@ namespace UnityEngine.Rendering.HighDefinition
             tooltip: "When enabled, Cameras using these Frame Settings render subsurface scattering (SSS) effects for GameObjects that use a SSS Material (Depends on \"Subsurface Scattering\" in current HDRP Asset).")]
         SubsurfaceScattering = 46,
         /// <summary>Configures the sample budget of the Subsurface Scattering algorithm using Quality Levels. You can either pick from one of the existing values in the Quality Settings, or request a custom number of samples.</summary>
-        [FrameSettingsField(1, customOrderInGroup: 47, displayedName: "Quality Mode", positiveDependencies: new[] { SubsurfaceScattering }, type: FrameSettingsFieldAttribute.DisplayType.Others, targetType: typeof(SssQualityMode),
+        [FrameSettingsField(1, customOrderInGroup: 47, displayedName: "Tier Mode", positiveDependencies: new[] { SubsurfaceScattering }, type: FrameSettingsFieldAttribute.DisplayType.Others, targetType: typeof(SssQualityMode),
             tooltip: "Configures the way the sample budget of the Subsurface Scattering algorithm is determined. You can either pick from one of the existing values in the Quality Settings, or request a custom number of samples.")]
         SssQualityMode = 47,
         /// <summary>Sets the Quality Level of the Subsurface Scattering algorithm.</summary>
-        [FrameSettingsField(1, customOrderInGroup: 48, displayedName: "Quality Level", positiveDependencies: new[] { SubsurfaceScattering }, type: FrameSettingsFieldAttribute.DisplayType.Others,
+        [FrameSettingsField(1, customOrderInGroup: 48, displayedName: "Tier Level", positiveDependencies: new[] { SubsurfaceScattering }, type: FrameSettingsFieldAttribute.DisplayType.Others,
             tooltip: "Sets the Quality Level of the Subsurface Scattering algorithm.")]
         SssQualityLevel = 48,
         /// <summary>Sets the custom sample budget of the Subsurface Scattering algorithm.</summary>
@@ -459,42 +461,31 @@ namespace UnityEngine.Rendering.HighDefinition
         /// If <c>lodBiasMode</c> is <c>LODBiasMode.Fixed</c>, then this value overwrites <c>QualitySettings.lodBias</c>.
         /// If <c>lodBiasMode</c> is <c>LODBiasMode.ScaleQualitySettings</c>, then this value scales <c>QualitySettings.lodBias</c>.
         /// </summary>
-        [SerializeField]
         public float lodBias;
         /// <summary>Specifies how HDRP calculates <c>QualitySettings.lodBias</c>.</summary>
-        [SerializeField]
         public LODBiasMode lodBiasMode;
         /// <summary>The quality level the rendering component uses when it fetches the quality setting value.</summary>
-        [SerializeField]
         public int lodBiasQualityLevel;
         /// <summary>
         /// If <c>maximumLODLevelMode</c> is <c>MaximumLODLevelMode.FromQualitySettings</c>, then this value overwrites <c>QualitySettings.maximumLODLevel</c>
         /// If <c>maximumLODLevelMode</c> is <c>MaximumLODLevelMode.OffsetQualitySettings</c>, then this value offsets <c>QualitySettings.maximumLODLevel</c>
         /// </summary>
-        [SerializeField]
         public int maximumLODLevel;
         /// <summary>Specifies how HDRP calculates <c>QualitySettings.maximumLODLevel</c>.</summary>
-        [SerializeField]
         public MaximumLODLevelMode maximumLODLevelMode;
         /// <summary>The maximum quality level the rendering component uses when it fetches the quality setting value.</summary>
-        [SerializeField]
         public int maximumLODLevelQualityLevel;
 
         /// <summary>Stores SssQualityMode on disk.</summary>
-        [SerializeField]
         public SssQualityMode sssQualityMode;
         /// <summary>Stores SssQualityLevel on disk.</summary>
-        [SerializeField]
         public int sssQualityLevel;
         /// <summary>Stores SssCustomSampleBudget on disk.</summary>
-        [SerializeField]
         public int sssCustomSampleBudget;
         /// <summary>Stores SssCustomDownsampleSteps on disk.</summary>
-        [SerializeField]
         public int sssCustomDownsampleSteps;
 
         /// <summary>Stores MSAA Mode on disk.</summary>
-        [SerializeField]
         public MSAAMode msaaMode;
 
         /// <summary>The actual value used by the Subsurface Scattering algorithm. Updated every frame.</summary>
@@ -616,7 +607,16 @@ namespace UnityEngine.Rendering.HighDefinition
         internal bool ContactShadowsRunsAsync() => asyncEnabled && bitDatas[(int)FrameSettingsField.ContactShadowsAsync];
         internal bool VolumeVoxelizationRunsAsync() => asyncEnabled && bitDatas[(int)FrameSettingsField.VolumeVoxelizationsAsync];
         internal bool HighQualityLinesRunsAsync() => SystemInfo.supportsAsyncCompute && bitDatas[(int)FrameSettingsField.AsyncCompute] && bitDatas[(uint)FrameSettingsField.HighQualityLinesAsync];
-
+        
+        /// <summary>Construct and initialize a <see cref="FrameSettings"/></summary>
+        /// <returns>A new <see cref="FrameSettings"/> initialized</returns>
+        public static FrameSettings Create()
+        {
+            var res = new FrameSettings();
+            //Initialize default values that are not the C# defaults
+            res.msaaMode = MSAAMode.None;
+            return res;
+        }
 
         /// <summary>Override a frameSettings according to a mask.</summary>
         /// <param name="overriddenFrameSettings">Overrided FrameSettings. Must contains default data before attempting the override.</param>
@@ -987,5 +987,36 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         #endregion
+    }
+
+    //Keep it internal for now. We need to update the whole system of FrameSettings in future versions
+    /// <summary>
+    /// Use this attribute to specify path to a FrameSettingsOverrideMask to use when drawing Inspectors
+    /// </summary>
+    /// <example>
+    ///     public class FrameSettingsHandler : MonoBehaviour
+    ///     {
+    ///         [UseOverrideMask(nameof(m_FrameSettingsOverride))]
+    ///         [SerializeField] FrameSettings m_FrameSettings = FrameSettings.Create();
+    ///         [SerializeField, HideInInspector] FrameSettingsOverrideMask m_FrameSettingsOverride;
+    ///     }
+    /// </example>
+    [AttributeUsage(AttributeTargets.Field)]
+    class UseOverrideMaskAttribute : Attribute
+    {
+#if UNITY_EDITOR
+        /// <summary>Path to look for mask</summary>
+        public readonly string pathToOverrideMask;
+        public readonly FrameSettingsRenderType defaultValuesToUse;
+#endif
+        /// <summary> Constructor </summary>
+        /// <param name="pathToOverrideMask">Path to look for mask</param>
+        public UseOverrideMaskAttribute(string pathToOverrideMask, FrameSettingsRenderType defaultValuesToUse)
+        {
+#if UNITY_EDITOR
+            this.pathToOverrideMask = pathToOverrideMask;
+            this.defaultValuesToUse = defaultValuesToUse;
+#endif
+        }
     }
 }
