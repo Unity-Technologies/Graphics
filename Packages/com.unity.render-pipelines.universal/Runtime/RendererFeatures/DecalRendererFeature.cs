@@ -175,16 +175,6 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField]
         private DecalSettings m_Settings = new DecalSettings();
 
-        [SerializeField]
-        [HideInInspector]
-        [Reload("Shaders/Utils/CopyDepth.shader")]
-        private Shader m_CopyDepthPS;
-
-        [SerializeField]
-        [HideInInspector]
-        [Reload("Runtime/Decal/DBuffer/DBufferClear.shader")]
-        private Shader m_DBufferClear;
-
         private DecalTechnique m_Technique = DecalTechnique.Invalid;
         private DBufferSettings m_DBufferSettings;
         private DecalScreenSpaceSettings m_ScreenSpaceSettings;
@@ -382,7 +372,11 @@ namespace UnityEngine.Rendering.Universal
             m_DBufferSettings = GetDBufferSettings();
             m_ScreenSpaceSettings = GetScreenSpaceSettings();
 
-            m_DBufferClearMaterial = CoreUtils.CreateEngineMaterial(m_DBufferClear);
+            var rendererShaders = GraphicsSettings.GetRenderPipelineSettings<UniversalRendererResources>();
+            if (rendererShaders == null)
+                return false;
+
+            m_DBufferClearMaterial = CoreUtils.CreateEngineMaterial(rendererShaders.decalDBufferClear);
 
             if (m_DecalEntityManager == null)
             {
@@ -425,14 +419,16 @@ namespace UnityEngine.Rendering.Universal
                     break;
 
                 case DecalTechnique.DBuffer:
-                    // the RenderPassEvent needs to be RenderPassEvent.AfterRenderingPrePasses + 1, so we are sure that if depth priming is enabled
-                    // this copy happens after the primed depth is copied, so the depth texture is available
-                    m_CopyDepthPass = new DBufferCopyDepthPass(RenderPassEvent.AfterRenderingPrePasses + 1, m_CopyDepthPS, false, universalRenderer.renderingModeActual != RenderingMode.Deferred);
-                    m_DecalDrawDBufferSystem = new DecalDrawDBufferSystem(m_DecalEntityManager);
+                    {
+                        // the RenderPassEvent needs to be RenderPassEvent.AfterRenderingPrePasses + 1, so we are sure that if depth priming is enabled
+                        // this copy happens after the primed depth is copied, so the depth texture is available
+                        m_CopyDepthPass = new DBufferCopyDepthPass(RenderPassEvent.AfterRenderingPrePasses + 1, rendererShaders.copyDepthPS, false, universalRenderer.renderingModeActual != RenderingMode.Deferred);
+                        m_DecalDrawDBufferSystem = new DecalDrawDBufferSystem(m_DecalEntityManager);
 
-                    m_DBufferRenderPass = new DBufferRenderPass(m_DBufferClearMaterial, m_DBufferSettings, m_DecalDrawDBufferSystem, m_Settings.decalLayers);
-                    m_DecalDrawForwardEmissiveSystem = new DecalDrawFowardEmissiveSystem(m_DecalEntityManager);
-                    m_ForwardEmissivePass = new DecalForwardEmissivePass(m_DecalDrawForwardEmissiveSystem);
+                        m_DBufferRenderPass = new DBufferRenderPass(m_DBufferClearMaterial, m_DBufferSettings, m_DecalDrawDBufferSystem, m_Settings.decalLayers);
+                        m_DecalDrawForwardEmissiveSystem = new DecalDrawFowardEmissiveSystem(m_DecalEntityManager);
+                        m_ForwardEmissivePass = new DecalForwardEmissivePass(m_DecalDrawForwardEmissiveSystem);
+                    }
                     break;
             }
 

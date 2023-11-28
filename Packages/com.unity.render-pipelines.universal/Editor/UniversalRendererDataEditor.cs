@@ -167,20 +167,6 @@ namespace UnityEditor.Rendering.Universal
             serializedObject.ApplyModifiedProperties();
 
             base.OnInspectorGUI(); // Draw the base UI, contains ScriptableRenderFeatures list
-
-            // Add a "Reload All" button in inspector when we are in developer's mode
-            if (EditorPrefs.GetBool("DeveloperMode"))
-            {
-                EditorGUILayout.Space();
-                EditorGUILayout.PropertyField(m_Shaders, true);
-
-                if (GUILayout.Button("Reload All"))
-                {
-                    var resources = target as UniversalRendererData;
-                    resources.shaders = null;
-                    ResourceReloader.ReloadAllNullIn(target, UniversalRenderPipelineAsset.packagePath);
-                }
-            }
         }
     }
 }

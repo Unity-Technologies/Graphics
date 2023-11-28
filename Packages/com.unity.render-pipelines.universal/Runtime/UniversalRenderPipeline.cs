@@ -198,14 +198,16 @@ namespace UnityEngine.Rendering.Universal
             pipelineAsset = asset;
 
 #if UNITY_EDITOR
-            m_GlobalSettings = UniversalRenderPipelineGlobalSettings.Ensure();
 
             GraphicsSettings.Subscribe<RenderGraphSettings>(OnRenderGraphEnabledChanged);
-#else
-            m_GlobalSettings = UniversalRenderPipelineGlobalSettings.instance;
 #endif
 
+            m_GlobalSettings = UniversalRenderPipelineGlobalSettings.instance;
+
             runtimeTextures = GraphicsSettings.GetRenderPipelineSettings<UniversalRenderPipelineRuntimeTextures>();
+
+            var shaders = GraphicsSettings.GetRenderPipelineSettings<UniversalRenderPipelineRuntimeShaders>();
+            Blitter.Initialize(shaders.coreBlitPS, shaders.coreBlitColorAndDepthPS);
 
             SetSupportedRenderingFeatures(pipelineAsset);
 

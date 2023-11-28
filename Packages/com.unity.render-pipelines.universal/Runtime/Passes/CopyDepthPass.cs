@@ -42,7 +42,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             base.profilingSampler = customPassName != null ? new ProfilingSampler(customPassName) : new ProfilingSampler(nameof(CopyDepthPass));
             m_PassData = new PassData();
             CopyToDepth = copyToDepth;
-            m_CopyDepthMaterial = CoreUtils.CreateEngineMaterial(copyDepthShader);
+            m_CopyDepthMaterial = copyDepthShader != null ? CoreUtils.CreateEngineMaterial(copyDepthShader) : null;
             renderPassEvent = evt;
             m_CopyResolvedDepth = copyResolvedDepth;
             m_ShouldClear = shouldClear;

@@ -35,14 +35,16 @@ namespace UnityEngine.Rendering.Universal
         Material m_SamplingMaterial;
 
         private readonly Renderer2DData m_Renderer2DData;
+        private readonly Texture2D m_FallOffLookup;
         private bool m_NeedsDepth;
         private short m_CameraSortingLayerBoundsIndex;
 
-        public Render2DLightingPass(Renderer2DData rendererData, Material blitMaterial, Material samplingMaterial)
+        public Render2DLightingPass(Renderer2DData rendererData, Material blitMaterial, Material samplingMaterial, Texture2D fallOffLookup)
         {
             m_Renderer2DData = rendererData;
             m_BlitMaterial = blitMaterial;
             m_SamplingMaterial = samplingMaterial;
+            m_FallOffLookup = fallOffLookup;
 
             m_CameraSortingLayerBoundsIndex = GetCameraSortingLayerBoundsIndex(m_Renderer2DData);
         }
@@ -362,7 +364,7 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetGlobalFloat(k_HDREmulationScaleID, m_Renderer2DData.hdrEmulationScale);
                 cmd.SetGlobalFloat(k_InverseHDREmulationScaleID, 1.0f / m_Renderer2DData.hdrEmulationScale);
                 cmd.SetGlobalColor(k_RendererColorID, Color.white);
-                cmd.SetGlobalTexture(k_FalloffLookupID, m_Renderer2DData.fallOffLookup);
+                cmd.SetGlobalTexture(k_FalloffLookupID, m_FallOffLookup);
                 cmd.SetGlobalTexture(k_LightLookupID, Light2DLookupTexture.GetLightLookupTexture());
                 RendererLighting.SetLightShaderGlobals(m_Renderer2DData, CommandBufferHelpers.GetRasterCommandBuffer(cmd));
 

@@ -49,101 +49,9 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
         /// <summary>
-        /// Class containing shader resources used in URP.
-        /// </summary>
-        [Serializable, ReloadGroup]
-        public sealed class ShaderResources
-        {
-            /// <summary>
-            /// Blit shader.
-            /// </summary>
-            [Reload("Shaders/Utils/Blit.shader")]
-            public Shader blitPS;
-
-            /// <summary>
-            /// Copy Depth shader.
-            /// </summary>
-            [Reload("Shaders/Utils/CopyDepth.shader")]
-            public Shader copyDepthPS;
-
-            /// <summary>
-            /// Screen Space Shadows shader.
-            /// </summary>
-            [Obsolete("Obsolete, this feature will be supported by new 'ScreenSpaceShadows' renderer feature", true)]
-            public Shader screenSpaceShadowPS = null;
-
-            /// <summary>
-            /// Sampling shader.
-            /// </summary>
-            [Reload("Shaders/Utils/Sampling.shader")]
-            public Shader samplingPS;
-
-            /// <summary>
-            /// Stencil Deferred shader.
-            /// </summary>
-            [Reload("Shaders/Utils/StencilDeferred.shader")]
-            public Shader stencilDeferredPS;
-
-            /// <summary>
-            /// Fallback error shader.
-            /// </summary>
-            [Reload("Shaders/Utils/FallbackError.shader")]
-            public Shader fallbackErrorPS;
-
-            /// <summary>
-            /// Fallback loading shader.
-            /// </summary>
-            [Reload("Shaders/Utils/FallbackLoading.shader")]
-            public Shader fallbackLoadingPS;
-
-            /// <summary>
-            /// Material Error shader.
-            /// </summary>
-            [Obsolete("Use fallbackErrorPS instead", true)]
-            public Shader materialErrorPS = null;
-
-            // Core blitter shaders, adapted from HDRP
-            // TODO: move to core and share with HDRP
-            [Reload("Shaders/Utils/CoreBlit.shader"), SerializeField]
-            internal Shader coreBlitPS;
-
-            [Reload("Shaders/Utils/CoreBlitColorAndDepth.shader"), SerializeField]
-            internal Shader coreBlitColorAndDepthPS;
-
-            /// <summary>
-            /// Blit shader that blits UI Overlay and performs HDR encoding.
-            /// </summary>
-            [Reload("Shaders/Utils/BlitHDROverlay.shader"), SerializeField]
-            internal Shader blitHDROverlay;
-
-            /// <summary>
-            /// Camera Motion Vectors shader.
-            /// </summary>
-            [Reload("Shaders/CameraMotionVectors.shader")]
-            public Shader cameraMotionVector;
-            
-            /// <summary>
-            /// Screen Space Lens Flare shader.
-            /// </summary>
-            [Reload("Shaders/PostProcessing/LensFlareScreenSpace.shader")]
-            public Shader screenSpaceLensFlare;
-            
-            /// <summary>
-            /// Data Driven Lens Flare shader.
-            /// </summary>
-            [Reload("Shaders/PostProcessing/LensFlareDataDriven.shader")]
-            public Shader dataDrivenLensFlare;
-        }
-
-        /// <summary>
         /// Resources needed for Post Processing.
         /// </summary>
         public PostProcessData postProcessData = null;
-
-        /// <summary>
-        /// Shader resources used in URP.
-        /// </summary>
-        public ShaderResources shaders = null;
 
         const int k_LatestAssetVersion = 2;
         [SerializeField] int m_AssetVersion = 0;
@@ -294,19 +202,16 @@ namespace UnityEngine.Rendering.Universal
         protected override void OnEnable()
         {
             base.OnEnable();
-
-            // Upon asset creation, OnEnable is called and `shaders` reference is not yet initialized
-            // We need to call the OnEnable for data migration when updating from old versions of UniversalRP that
-            // serialized resources in a different format. Early returning here when OnEnable is called
-            // upon asset creation is fine because we guarantee new assets get created with all resources initialized.
-            if (shaders == null)
-                return;
-
             ReloadAllNullProperties();
         }
 
         private void ReloadAllNullProperties()
         {
+            // Upon asset creation, OnEnable is called and `shaders` reference is not yet initialized
+            // We need to call the OnEnable for data migration when updating from old versions of UniversalRP that
+            // serialized resources in a different format. Early returning here when OnEnable is called
+            // upon asset creation is fine because we guarantee new assets get created with all resources initialized.
+
 #if UNITY_EDITOR
             ResourceReloader.TryReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
 

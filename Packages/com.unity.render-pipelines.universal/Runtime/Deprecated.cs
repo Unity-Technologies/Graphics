@@ -497,6 +497,106 @@ namespace UnityEngine.Rendering.Universal
     }
 #endif
 
+    /// <summary>
+    /// Class containing shader resources used in URP.
+    /// </summary>
+    [Serializable, ReloadGroup]
+    [Obsolete("Moved to UniversalRenderPipelineRuntimeShaders on GraphicsSettings. #from(2023.3)", false)]
+    public sealed class ShaderResources
+    {
+        /// <summary>
+        /// Blit shader.
+        /// </summary>
+        [Obsolete("Moved to UniversalRenderPipelineRuntimeShaders on GraphicsSettings. #from(2023.3)", false)]
+        [Reload("Shaders/Utils/Blit.shader")]
+        public Shader blitPS;
+
+        /// <summary>
+        /// Copy Depth shader.
+        /// </summary>
+        [Reload("Shaders/Utils/CopyDepth.shader")]
+        [Obsolete("Moved to UniversalRenderPipelineRuntimeShaders on GraphicsSettings. #from(2023.3)", false)]
+        public Shader copyDepthPS;
+
+        /// <summary>
+        /// Screen Space Shadows shader.
+        /// </summary>
+        [Obsolete("Obsolete, this feature will be supported by new 'ScreenSpaceShadows' renderer feature", true)]
+        public Shader screenSpaceShadowPS = null;
+
+        /// <summary>
+        /// Sampling shader.
+        /// </summary>
+        [Obsolete("Moved to UniversalRenderPipelineRuntimeShaders on GraphicsSettings. #from(2023.3)", false)]
+        [Reload("Shaders/Utils/Sampling.shader")]
+        public Shader samplingPS;
+
+        /// <summary>
+        /// Stencil Deferred shader.
+        /// </summary>
+        [Reload("Shaders/Utils/StencilDeferred.shader")]
+        [Obsolete("Moved to UniversalRenderPipelineRuntimeShaders on GraphicsSettings. #from(2023.3)", false)]
+        public Shader stencilDeferredPS;
+
+        /// <summary>
+        /// Fallback error shader.
+        /// </summary>
+        [Reload("Shaders/Utils/FallbackError.shader")]
+        [Obsolete("Moved to UniversalRenderPipelineRuntimeShaders on GraphicsSettings. #from(2023.3)", false)]
+        public Shader fallbackErrorPS;
+
+        /// <summary>
+        /// Fallback loading shader.
+        /// </summary>
+        [Reload("Shaders/Utils/FallbackLoading.shader")]
+        [Obsolete("Moved to UniversalRenderPipelineRuntimeShaders on GraphicsSettings. #from(2023.3)", false)]
+        public Shader fallbackLoadingPS;
+
+        /// <summary>
+        /// Material Error shader.
+        /// </summary>
+        [Obsolete("Use fallbackErrorPS instead", true)]
+        public Shader materialErrorPS = null;
+
+        // Core blitter shaders, adapted from HDRP
+        // TODO: move to core and share with HDRP
+        [Reload("Shaders/Utils/CoreBlit.shader"), SerializeField]
+        [Obsolete("Moved to UniversalRenderPipelineRuntimeShaders on GraphicsSettings. #from(2023.3)", false)]
+        internal Shader coreBlitPS;
+
+        [Reload("Shaders/Utils/CoreBlitColorAndDepth.shader"), SerializeField]
+        [Obsolete("Moved to UniversalRenderPipelineRuntimeShaders on GraphicsSettings. #from(2023.3)", false)]
+        internal Shader coreBlitColorAndDepthPS;
+
+        /// <summary>
+        /// Blit shader that blits UI Overlay and performs HDR encoding.
+        /// </summary>
+        [Reload("Shaders/Utils/BlitHDROverlay.shader"), SerializeField]
+        [Obsolete("Moved to UniversalRenderPipelineRuntimeShaders on GraphicsSettings. #from(2023.3)", false)]
+        internal Shader blitHDROverlay;
+
+        /// <summary>
+        /// Camera Motion Vectors shader.
+        /// </summary>
+        [Reload("Shaders/CameraMotionVectors.shader")]
+        [Obsolete("Moved to UniversalRenderPipelineRuntimeShaders on GraphicsSettings. #from(2023.3)", false)]
+        public Shader cameraMotionVector;
+
+        /// <summary>
+        /// Screen Space Lens Flare shader.
+        /// </summary>
+        [Reload("Shaders/PostProcessing/LensFlareScreenSpace.shader")]
+        [Obsolete("Moved to UniversalRenderPipelineRuntimeShaders on GraphicsSettings. #from(2023.3)", false)]
+        public Shader screenSpaceLensFlare;
+
+        /// <summary>
+        /// Data Driven Lens Flare shader.
+        /// </summary>
+        [Reload("Shaders/PostProcessing/LensFlareDataDriven.shader")]
+        [Obsolete("Moved to UniversalRenderPipelineRuntimeShaders on GraphicsSettings. #from(2023.3)", false)]
+        public Shader dataDrivenLensFlare;
+    }
+  
     partial class UniversalRenderPipelineGlobalSettings
     {
 #pragma warning disable 0414

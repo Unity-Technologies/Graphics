@@ -679,9 +679,12 @@ namespace UnityEngine.Rendering.Universal
 
         private static Material CreateLightMaterial(Renderer2DData rendererData, Light2D light, bool isVolume)
         {
+            if (!GraphicsSettings.TryGetRenderPipelineSettings<Renderer2DResources>(out var resources))
+                return null;
+
             var isPoint = light.isPointLight;
 
-            Material material = CoreUtils.CreateEngineMaterial(rendererData.lightShader);
+            Material material = CoreUtils.CreateEngineMaterial(resources.lightShader);
 
             if (!isVolume)
             {

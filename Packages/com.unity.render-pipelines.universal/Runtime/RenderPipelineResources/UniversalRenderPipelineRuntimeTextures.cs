@@ -12,10 +12,12 @@ namespace UnityEngine.Rendering.Universal
     [Category("Resources/Runtime Textures")]
     public class UniversalRenderPipelineRuntimeTextures : IRenderPipelineResources
     {
+        [SerializeField][HideInInspector] private int m_Version = 1;
+
         /// <summary>
         ///  Version of the Texture resources
         /// </summary>
-        public int version => 1;
+        public int version => m_Version;
 
         bool IRenderPipelineGraphicsSettings.isAvailableInPlayerBuild => true;
 
