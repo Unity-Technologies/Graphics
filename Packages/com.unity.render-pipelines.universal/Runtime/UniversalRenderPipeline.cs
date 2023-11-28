@@ -268,6 +268,7 @@ namespace UnityEngine.Rendering.Universal
 
             apvIsEnabled = asset != null && asset.lightProbeSystem == LightProbeSystem.ProbeVolumes;
             SupportedRenderingFeatures.active.overridesLightProbeSystem = apvIsEnabled;
+            SupportedRenderingFeatures.active.skyOcclusion = apvIsEnabled;
             if (apvIsEnabled)
             {
                 ProbeReferenceVolume.instance.Initialize(new ProbeVolumeSystemParameters

@@ -523,4 +523,10 @@ uint DecodeMeshRenderingLayer(float renderingLayer)
     return (uint)(renderingLayer * maxInt + 0.5); // Round instead of truncating
 }
 
+// TODO: implement
+float GetCurrentExposureMultiplier()
+{
+    return 1;
+}
+
 #endif // UNITY_SHADER_VARIABLES_FUNCTIONS_INCLUDED

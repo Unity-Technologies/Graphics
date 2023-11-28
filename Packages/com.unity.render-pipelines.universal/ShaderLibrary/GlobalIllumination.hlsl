@@ -6,6 +6,9 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ImageBasedLighting.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/RealtimeLights.hlsl"
 
+#define AMBIENT_PROBE_BUFFER 0
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/AmbientProbe.hlsl"
+
 #if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/ProbeVolume.hlsl"
 #endif
@@ -20,29 +23,13 @@
     #define _MIXED_LIGHTING_SUBTRACTIVE
 #endif
 
-// Samples SH L0, L1 and L2 terms
-half3 SampleSH(half3 normalWS)
-{
-    // LPPV is not supported in Ligthweight Pipeline
-    real4 SHCoefficients[7];
-    SHCoefficients[0] = unity_SHAr;
-    SHCoefficients[1] = unity_SHAg;
-    SHCoefficients[2] = unity_SHAb;
-    SHCoefficients[3] = unity_SHBr;
-    SHCoefficients[4] = unity_SHBg;
-    SHCoefficients[5] = unity_SHBb;
-    SHCoefficients[6] = unity_SHC;
-
-    return max(half3(0, 0, 0), SampleSH9(SHCoefficients, normalWS));
-}
-
 // SH Vertex Evaluation. Depending on target SH sampling might be
 // done completely per vertex or mixed with L2 term per vertex and L0, L1
 // per pixel. See SampleSHPixel
 half3 SampleSHVertex(half3 normalWS)
 {
 #if defined(EVALUATE_SH_VERTEX)
-    return SampleSH(normalWS);
+    return EvaluateAmbientProbeSRGB(normalWS);
 #elif defined(EVALUATE_SH_MIXED)
     // no max since this is only L2 contribution
     return SHEvalLinearL2(normalWS, unity_SHBr, unity_SHBg, unity_SHBb, unity_SHC);
@@ -67,7 +54,7 @@ half3 SampleSHPixel(half3 L2Term, half3 normalWS)
 #endif
 
     // Default: Evaluate SH fully per-pixel
-    return SampleSH(normalWS);
+    return EvaluateAmbientProbeSRGB(normalWS);
 }
 
 // APV Prove volume
@@ -86,8 +73,11 @@ half3 SampleProbeVolumeVertex(in float3 absolutePositionWS, in float3 normalWS, 
     }
     else
     {
-        bakedGI = SampleSH(normalWS);
+        bakedGI = EvaluateAmbientProbe(normalWS);
     }
+#ifdef UNITY_COLORSPACE_GAMMA
+    bakedGI = LinearToSRGB(bakedGI);
+#endif
     return bakedGI;
 #else
     return half3(0, 0, 0);
@@ -106,12 +96,11 @@ half3 SampleProbeVolumePixel(in half3 vertexValue, in float3 absolutePositionWS,
     }
     else
     {
-        bakedGI = SampleSH(normalWS);
+        bakedGI = EvaluateAmbientProbe(normalWS);
     }
 #ifdef UNITY_COLORSPACE_GAMMA
-    bakedGI = LinearToSRGB(bakedGI);
+        bakedGI = LinearToSRGB(bakedGI);
 #endif
-
     return bakedGI;
 #else
     return half3(0, 0, 0);

@@ -364,7 +364,7 @@ void Frag(PackedVaryings packedInput,
 
 #elif defined(DECAL_FORWARD_EMISSIVE)
     // Emissive need to be pre-exposed
-    outEmissive.rgb = surfaceData.emissive;// *GetCurrentExposureMultiplier();
+    outEmissive.rgb = surfaceData.emissive * GetCurrentExposureMultiplier();
     outEmissive.a = surfaceData.baseColor.a;
 #else
 #endif

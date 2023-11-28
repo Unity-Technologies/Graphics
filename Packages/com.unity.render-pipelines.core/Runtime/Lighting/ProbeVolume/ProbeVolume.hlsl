@@ -37,11 +37,10 @@
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/DecodeSH.hlsl"
 #endif
 
-#ifndef __BUILTINGIUTILITIES_HLSL__
-// TODO Until ambient probe is moved to core
+#ifndef __AMBIENTPROBE_HLSL__
 float3 EvaluateAmbientProbe(float3 normalWS)
 {
-    return float3(0.0f, 0.0f, 0.0f);
+    return float3(0, 0, 0);
 }
 #endif
 
@@ -674,30 +673,21 @@ float EvalSHSkyOcclusion(float3 dir, APVSample apvSample)
 
 float3 EvaluateOccludedSky(APVSample apvSample, float3 N)
 {
-#ifndef __BUILTINGIUTILITIES_HLSL__
-    return float3(0.0f,0.0f,0.0f);
-#else
-    if (_SkyOcclusionIntensity > 0)
-    {
-        float occValue = EvalSHSkyOcclusion(N, apvSample);
-        float3 shadingNormal = N;
+    float occValue = EvalSHSkyOcclusion(N, apvSample);
+    float3 shadingNormal = N;
 
-        if (_EnableSkyOcclusionShadingDirection > 0)
+    if (_EnableSkyOcclusionShadingDirection > 0)
+    {
+        shadingNormal = apvSample.skyShadingDirection;
+        float normSquared = dot(shadingNormal, shadingNormal);
+        if (normSquared < 0.2f)
+            shadingNormal = N;
+        else
         {
-            shadingNormal = apvSample.skyShadingDirection;
-            float normSquared = dot(shadingNormal, shadingNormal);
-            if (normSquared < 0.2f)
-                shadingNormal = N;
-            else
-            {
-                shadingNormal = shadingNormal / sqrt(normSquared);
-            }
+            shadingNormal = shadingNormal * rsqrt(normSquared);
         }
-        return occValue * EvaluateAmbientProbe(shadingNormal);
     }
-    else
-       return float3(0.0f, 0.0f, 0.0f);
-#endif
+    return occValue * EvaluateAmbientProbe(shadingNormal);
 }
 
 // -------------------------------------------------------------
