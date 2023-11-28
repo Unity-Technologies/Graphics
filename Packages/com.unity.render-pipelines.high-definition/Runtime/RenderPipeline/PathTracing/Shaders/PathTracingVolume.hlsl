@@ -118,7 +118,7 @@ void ComputeVolumeScattering(inout PathPayload payload : SV_RayPayload, float3 i
             float phasePdf = HenyeyGreensteinPhaseFunction(_GlobalFogAnisotropy,  dot(incomingDirection, sampleRayDirection));
             value *= _HeightFogBaseScattering.xyz * ComputeHeightFogMultiplier(scatteringPosition.y) * phasePdf / pdf;
 
-            if (Luminance(value) > 0.001)
+            if (GetCurrentExposureMultiplier() * Luminance(value) > 0.0001)
             {
                 PushLightSampleQuery(scatteringPosition, sampleRayDirection, sampleRayDistance - _RayTracingRayBias, PowerHeuristic(pdf, phasePdf) * value, shadowOpacity, payload);
             }

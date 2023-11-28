@@ -153,7 +153,7 @@ void ComputeSurfaceScattering(inout PathPayload payload : SV_RayPayload, Surface
             {
                 EvaluateMaterial(mtlData, sampleRayDirection, mtlResult);
                 value *= (mtlResult.diffValue + mtlResult.specValue) / pdf;
-                if (Luminance(value) > 0.001)
+                if (GetCurrentExposureMultiplier() * Luminance(value) > 0.001)
                 {
                     // When leaving a solid object, include absorption for Light Sampling
                     // When shading a thin object, don't

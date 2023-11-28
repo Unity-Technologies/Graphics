@@ -62,7 +62,7 @@ void ClosestHit(inout PathPayload payload : SV_RayPayload, AttributeData attribu
 
     // If we need to sample volume we won't do the scattering part in the function but we might still need it to evaluate
     // the AOV values if we write the volumetric scattering values separately in another AOV.
-    const bool alwaysWriteAOV = NeedAOVData(payload) && IsOutputFlagOn(payload, OUTPUT_FLAG_SEPARATE_VOLUMETRICS);
+    const bool alwaysWriteAOV = NeedAOVData(payload);
     if (!sampleVolume || alwaysWriteAOV)
     {
         GetSurfaceInfo(payload, attributeData, surfaceInfo);
