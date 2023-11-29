@@ -6,6 +6,7 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         public SerializedProperty root;
         public SerializedProperty mode;
+        public SerializedProperty useLegacyLightmaps;
         public SerializedProperty smallMeshScreenPercentage;
         public SerializedProperty enableOcclusionCullingInCameras;
         public SerializedProperty useDepthPrepassForOccluders;
@@ -14,6 +15,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             this.root = root;
             mode = root.Find((GlobalGPUResidentDrawerSettings s) => s.mode);
+            useLegacyLightmaps = root.Find((GlobalGPUResidentDrawerSettings s) => s.useLegacyLightmaps);
             smallMeshScreenPercentage = root.Find((GlobalGPUResidentDrawerSettings s) => s.smallMeshScreenPercentage);
             enableOcclusionCullingInCameras = root.Find((GlobalGPUResidentDrawerSettings s) => s.enableOcclusionCullingInCameras);
             useDepthPrepassForOccluders = root.Find((GlobalGPUResidentDrawerSettings s) => s.useDepthPrepassForOccluders);

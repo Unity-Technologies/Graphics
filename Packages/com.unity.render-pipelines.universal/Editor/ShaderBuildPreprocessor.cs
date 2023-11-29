@@ -51,7 +51,7 @@ namespace UnityEditor.Rendering.Universal
         ScreenSpaceOcclusionAfterOpaque = (1L << 28),
         AdditionalLightsKeepOffVariants = (1L << 29),
         ShadowsKeepOffVariants = (1L << 30),
-        // Unused = (1L << 31),
+        UseLegacyLightmaps = (1L << 31),
         DecalLayers = (1L << 32),
         OpaqueWriteRenderingLayers = (1L << 33),
         GBufferWriteRenderingLayers = (1L << 34),
@@ -428,6 +428,9 @@ namespace UnityEditor.Rendering.Universal
 
             if (urpAsset.supportDataDrivenLensFlare)
                 urpAssetShaderFeatures |= ShaderFeatures.DataDrivenLensFlare;
+
+            if (urpAsset.useLegacyLightmaps)
+                urpAssetShaderFeatures |= ShaderFeatures.UseLegacyLightmaps;
 
             // Check each renderer & renderer feature
             urpAssetShaderFeatures = GetSupportedShaderFeaturesFromRenderers(
@@ -915,6 +918,9 @@ namespace UnityEditor.Rendering.Universal
                    !IsFeatureEnabled(shaderFeatures, ShaderFeatures.DepthNormalPassRenderingLayers)
                 && !IsFeatureEnabled(shaderFeatures, ShaderFeatures.GBufferWriteRenderingLayers)
                 && !IsFeatureEnabled(shaderFeatures, ShaderFeatures.OpaqueWriteRenderingLayers);
+
+            // Disable lightmap texture arrays (GPU resident drawer)
+            spd.useLegacyLightmaps = IsFeatureEnabled(shaderFeatures, ShaderFeatures.UseLegacyLightmaps);
 
             // Screen Space Ambient Occlusion
             spd.screenSpaceOcclusionPrefilteringMode = PrefilteringMode.Remove;

@@ -1289,6 +1289,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUILayout.PropertyField(serialized.renderPipelineSettings.gpuResidentDrawerSettings.useDepthPrepassForOccluders, Styles.useDepthPrepassForOccluders);
                     --EditorGUI.indentLevel;
                 }
+                EditorGUILayout.PropertyField(gpuResidentDrawerSettings.useLegacyLightmaps, Styles.useLegacyLightmaps);
                 --EditorGUI.indentLevel;
 
                 if(brgStrippingError)

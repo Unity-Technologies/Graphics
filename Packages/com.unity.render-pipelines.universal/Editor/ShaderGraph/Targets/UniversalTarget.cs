@@ -2250,11 +2250,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             referenceName = ShaderKeywordStrings.LOD_FADE_CROSSFADE,
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
-            
+
             // Note: SpeedTree shaders used to have their own PS-based Crossfade,
             //       as well as a VS-based smooth LOD transition effect.
             //       These shaders need the LOD_FADE_CROSSFADE keyword in the VS
-            //       to skip the VS-based effect. 
+            //       to skip the VS-based effect.
             // Note: DOTS instancing uses a different instance index encoding
             //       when crossfade is active, so all stages are affected by the
             //       LOD_FADE_CROSSFADE keyword.
@@ -2279,6 +2279,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
             stages = KeywordShaderStage.Fragment,
+        };
+
+        public static readonly KeywordDescriptor UseLegacyLightmaps = new KeywordDescriptor()
+        {
+            displayName = "Use Legacy Lightmaps",
+            referenceName = ShaderKeywordStrings.USE_LEGACY_LIGHTMAPS,
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global
         };
     }
     #endregion

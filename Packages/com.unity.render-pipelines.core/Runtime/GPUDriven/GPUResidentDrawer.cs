@@ -397,6 +397,7 @@ namespace UnityEngine.Rendering
             rbcDesc.smallMeshScreenPercentage = settings.smallMeshScreenPercentage;
             rbcDesc.enableBoundingSpheresInstanceData = settings.enableOcclusionCulling;
             rbcDesc.enableCullerDebugStats = true; // for now, always allow the possibility of reading counter stats from the cullers.
+            rbcDesc.useLegacyLightmaps = settings.useLegacyLightmaps;
 
             var instanceCullingBatcherDesc = InstanceCullingBatcherDesc.NewDefault();
 #if UNITY_EDITOR
@@ -431,6 +432,19 @@ namespace UnityEngine.Rendering
             RenderPipelineManager.beginContextRendering += OnBeginContextRendering;
             RenderPipelineManager.endContextRendering += OnEndContextRendering;
 
+            // Depending on a UI setting, we want to either keep lightmaps as texture arrays,
+            // or instead opt out and keep them as individual textures.
+            // Accordingly, we set the keyword globally across all shaders.
+            const string useLegacyLightmapsKeyword = "USE_LEGACY_LIGHTMAPS";
+            if (settings.useLegacyLightmaps)
+            {
+                Shader.EnableKeyword(useLegacyLightmapsKeyword);
+            }
+            else
+            {
+                Shader.DisableKeyword(useLegacyLightmapsKeyword);
+            }
+
             InsertIntoPlayerLoop();
         }
 
@@ -449,6 +463,9 @@ namespace UnityEngine.Rendering
             RenderPipelineManager.endContextRendering -= OnEndContextRendering;
 
             RemoveFromPlayerLoop();
+
+            const string useLegacyLightmapsKeyword = "USE_LEGACY_LIGHTMAPS";
+            Shader.DisableKeyword(useLegacyLightmapsKeyword);
 
             m_ChangedMaterials.Clear();
             m_ChangedMaterials = null;
@@ -578,7 +595,8 @@ namespace UnityEngine.Rendering
             if (changed.Length == 0 && destroyed.Length == 0)
                 return;
 
-            m_BatchersContext.lightmapManager.RecreateLightmaps();
+            // The lightmap manager is null if lightmap texture arrays are disabled.
+            m_BatchersContext.lightmapManager?.RecreateLightmaps();
         }
 
         private void ProcessMaterials(IList<Object> changed, NativeArray<int> changedID, NativeArray<int> destroyedID)
@@ -587,11 +605,12 @@ namespace UnityEngine.Rendering
                 return;
 
             var destroyedLightmappedMaterialsID = new NativeList<int>(Allocator.TempJob);
-            m_BatchersContext.lightmapManager.DestroyMaterials(destroyedID, destroyedLightmappedMaterialsID);
+			// The lightmap manager is null if lightmap texture arrays are disabled.
+            m_BatchersContext.lightmapManager?.DestroyMaterials(destroyedID, destroyedLightmappedMaterialsID);
             m_Batcher.DestroyMaterials(destroyedLightmappedMaterialsID.AsArray());
             destroyedLightmappedMaterialsID.Dispose();
 
-            m_BatchersContext.lightmapManager.UpdateMaterials(changed, changedID);
+            m_BatchersContext.lightmapManager?.UpdateMaterials(changed, changedID);
             m_Batcher.DestroyMaterials(destroyedID);
         }
 

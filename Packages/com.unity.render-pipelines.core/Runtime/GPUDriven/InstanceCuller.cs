@@ -67,6 +67,7 @@ namespace UnityEngine.Rendering
         public int transparentInstanceId; // non-zero for transparent instances, to ensure each instance has its own draw command (for sorting)
         public uint overridenComponents;
         public RangeKey range;
+        public int lightmapIndex;
 
         public bool Equals(DrawKey other)
         {
@@ -77,7 +78,8 @@ namespace UnityEngine.Rendering
                 flags == other.flags &&
                 transparentInstanceId == other.transparentInstanceId &&
                 overridenComponents == other.overridenComponents &&
-                range.Equals(other.range);
+                range.Equals(other.range) &&
+                lightmapIndex == other.lightmapIndex;
         }
 
         public override int GetHashCode()
@@ -90,6 +92,7 @@ namespace UnityEngine.Rendering
             hash = (hash * 23) + transparentInstanceId;
             hash = (hash * 23) + range.GetHashCode();
             hash = (hash * 23) + (int)overridenComponents;
+            hash = (hash * 23) + lightmapIndex;
             return hash;
         }
     }
@@ -844,6 +847,7 @@ namespace UnityEngine.Rendering
                         batchID = batchIDs[drawBatch.key.overridenComponents],
                         materialID = drawBatch.key.materialID,
                         splitVisibilityMask = (ushort)visibilityMask,
+                        lightmapIndex = (ushort)drawBatch.key.lightmapIndex,
                         sortingPosition = sortingPosition,
                         meshID = drawBatch.key.meshID,
                         topology = drawBatch.procInfo.topology,
@@ -866,6 +870,7 @@ namespace UnityEngine.Rendering
                         batchID = batchIDs[drawBatch.key.overridenComponents],
                         materialID = drawBatch.key.materialID,
                         splitVisibilityMask = (ushort)visibilityMask,
+						lightmapIndex = (ushort)drawBatch.key.lightmapIndex,
                         sortingPosition = sortingPosition,
                         meshID = drawBatch.key.meshID,
                         submeshIndex = (ushort)drawBatch.key.submeshIndex,
@@ -1116,6 +1121,7 @@ namespace UnityEngine.Rendering
                             batchID = batchIDs[drawBatch.key.overridenComponents],
                             materialID = drawBatch.key.materialID,
                             splitVisibilityMask = 0x1,
+                            lightmapIndex = (ushort)drawBatch.key.lightmapIndex,
                             sortingPosition = 0,
                             meshID = drawBatch.key.meshID,
                             submeshIndex = (ushort)drawBatch.key.submeshIndex,

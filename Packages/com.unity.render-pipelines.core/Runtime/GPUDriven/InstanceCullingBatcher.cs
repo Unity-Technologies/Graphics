@@ -312,6 +312,7 @@ namespace UnityEngine.Rendering
         [ReadOnly] public NativeParallelHashMap<LightmapManager.RendererSubmeshPair, int> rendererToMaterialMap;
         [ReadOnly] public NativeParallelHashMap<int, BatchMeshID> batchMeshHash;
         [ReadOnly] public NativeParallelHashMap<int, BatchMaterialID> batchMaterialHash;
+        [ReadOnly] public bool useLegacyLightmaps;
 
         public NativeParallelHashMap<RangeKey, int> rangeHash;
         public NativeList<DrawRange> drawRanges;
@@ -472,6 +473,10 @@ namespace UnityEngine.Rendering
                 if (isTransparent)
                     flags |= BatchDrawCommandFlags.HasSortingPosition;
 
+                // Let the engine know if we've opted out of lightmap texture arrays
+                if (useLegacyLightmaps)
+                    flags |= BatchDrawCommandFlags.UseLegacyLightmapsKeyword;
+
                 {
                     var submeshIndex = startSubMesh + matIndex;
                     var subMeshDesc = rendererData.subMeshDesc[subMeshDescOffset + submeshIndex];
@@ -484,7 +489,13 @@ namespace UnityEngine.Rendering
                         flags = flags,
                         transparentInstanceId = isTransparent ? rendererGroupID : 0,
                         range = rangeKey,
-                        overridenComponents = (uint)overridenComponents
+                        overridenComponents = (uint)overridenComponents,
+                        // When we've opted out of lightmap texture arrays, we
+                        // need to pass in a valid lightmap index. The engine
+                        // uses this index for sorting and for breaking the
+                        // batch when lightmaps change across draw calls, and
+                        // for binding the correct light map.
+                        lightmapIndex = lightmapIndex
                     };
 
                     ref DrawBatch drawBatch = ref EditDrawBatch(drawKey, subMeshDesc);
@@ -1027,7 +1038,8 @@ namespace UnityEngine.Rendering
                 drawRanges = m_DrawInstanceData.drawRanges,
                 batchHash = m_DrawInstanceData.batchHash,
                 drawBatches = m_DrawInstanceData.drawBatches,
-                drawInstances = m_DrawInstanceData.drawInstances
+                drawInstances = m_DrawInstanceData.drawInstances,
+				useLegacyLightmaps = m_BatchersContext.lightmapManager == null,
             }.Run();
 
             m_DrawInstanceData.NeedsRebuild();

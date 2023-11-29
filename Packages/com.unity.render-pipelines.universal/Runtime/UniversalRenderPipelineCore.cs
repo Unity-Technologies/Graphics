@@ -1406,6 +1406,9 @@ namespace UnityEngine.Rendering.Universal
         /// <summary> Keyword used for APV with SH L2 </summary>
         public const string ProbeVolumeL2 = "PROBE_VOLUMES_L2";
 
+        /// <summary> Keyword used for opting out of lightmap texture arrays, when using BatchRendererGroup. </summary>
+        public const string USE_LEGACY_LIGHTMAPS = "USE_LEGACY_LIGHTMAPS";
+
         /// <summary> Keyword used for CopyDepth pass. </summary>
         public const string _OUTPUT_DEPTH = "_OUTPUT_DEPTH";
     }

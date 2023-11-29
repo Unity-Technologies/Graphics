@@ -348,6 +348,10 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent smallMeshScreenPercentage = EditorGUIUtility.TrTextContent("Small-Mesh Screen-Percentage", "Default minimum screen percentage (0-20%) gpu-driven Renderers can cover before getting culled. If a Renderer is part of a LODGroup, this will be ignored.");
             public static readonly GUIContent enableOcclusionCullingInCameras = EditorGUIUtility.TrTextContent("GPU Occlusion Culling", "Enables GPU occlusion culling in Game and SceneView cameras.");
             public static readonly GUIContent useDepthPrepassForOccluders = EditorGUIUtility.TrTextContent("Occluders From Depth Prepass", "Always builds occluders from the depth pre-pass. If this flag is on, or the Full Depth Prepass within Deferred frame setting is enabled, or Lit Shader Mode is Forward Only, occluders are built during the depth pre-pass.  Otherwise occluders are built during the gbuffer pass.");
+            public static GUIContent useLegacyLightmaps = EditorGUIUtility.TrTextContent("Use Legacy Lightmaps",
+                "When enabled, lightmaps will be bound as individual textures instead of as a single texture array. This causes the batch to break if a new lightmap needs to be bound, potentially increasing the number of draw calls."
+                + "This can reduce memory usage and may improve performance on certain hardware that doesn't support texture arrays efficiently."
+            );
 
             public static GUIContent brgShaderStrippingErrorMessage =
                 EditorGUIUtility.TrTextContent("\"BatchRendererGroup Variants\" setting must be \"Keep All\". To fix, modify Graphics settings and set \"BatchRendererGroup Variants\" to \"Keep All\".");

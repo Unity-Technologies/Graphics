@@ -44,6 +44,17 @@ namespace UnityEngine.Rendering
         public bool allowInEditMode;
 
         /// <summary>
+        /// If set to true, we opt-out from binding lightmaps as texture
+        /// arrays. In this case, we bind them as individual textures, which
+        /// breaks the batch every time lightmaps are changed. This is
+        /// well-supported on all GPUs.
+        /// If set to false, we opt for lightmap texture arrays. This minimizes
+        /// batch breakages, but texture arrays aren't supported in a performant
+        /// way on all GPUs.
+        /// </summary>
+        public bool useLegacyLightmaps;
+
+		/// <summary>
         /// Default minimum screen percentage (0-20%) gpu-driven Renderers can cover before getting culled.
         /// </summary>
         public float smallMeshScreenPercentage;

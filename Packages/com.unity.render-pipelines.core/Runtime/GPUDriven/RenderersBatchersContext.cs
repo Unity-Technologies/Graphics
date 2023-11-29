@@ -18,6 +18,7 @@ namespace UnityEngine.Rendering
         public bool enableBoundingSpheresInstanceData;
         public float smallMeshScreenPercentage;
         public bool enableCullerDebugStats;
+        public bool useLegacyLightmaps;
 
         public static RenderersBatchersContextDesc NewDefault()
         {
@@ -104,7 +105,9 @@ namespace UnityEngine.Rendering
 
             m_CachedAmbientProbe = RenderSettings.ambientProbe;
 
-            m_LightmapManager = new LightmapManager();
+            // If lightmap texture arrays are disabled, the engine binds the individual lightmap texture before issuing a draw call.
+            // We don't need any of the texture atlasing functionality provided by the LightmapManager, so we initialize it to null.
+            m_LightmapManager = desc.useLegacyLightmaps ? null : new LightmapManager();
 
             m_InstanceDataSystem = new InstanceDataSystem(desc.instanceNumInfo.GetTotalInstanceNum(), desc.enableBoundingSpheresInstanceData, resources);
             m_SmallMeshScreenPercentage = desc.smallMeshScreenPercentage;
@@ -131,7 +134,7 @@ namespace UnityEngine.Rendering
             m_UploadResources.Dispose();
             m_LODGroupDataPool.Dispose();
             m_InstanceDataBuffer.Dispose();
-            m_LightmapManager.Dispose();
+            m_LightmapManager?.Dispose();
 
             m_UpdateLODGroupCallback = null;
             m_TransformLODGroupCallback = null;

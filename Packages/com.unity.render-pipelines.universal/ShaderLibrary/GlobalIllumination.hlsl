@@ -117,12 +117,18 @@ half3 SampleProbeSHVertex(in float3 absolutePositionWS, in float3 normalWS, in f
 #endif
 }
 
-#if defined(UNITY_DOTS_INSTANCING_ENABLED)
+#if defined(UNITY_DOTS_INSTANCING_ENABLED) && !defined(USE_LEGACY_LIGHTMAPS)
+// ^ GPU-driven rendering is enabled, and we haven't opted-out from lightmap
+// texture arrays. This minimizes batch breakages, but texture arrays aren't
+// supported in a performant way on all GPUs.
 #define LIGHTMAP_NAME unity_Lightmaps
 #define LIGHTMAP_INDIRECTION_NAME unity_LightmapsInd
 #define LIGHTMAP_SAMPLER_NAME samplerunity_Lightmaps
 #define LIGHTMAP_SAMPLE_EXTRA_ARGS staticLightmapUV, unity_LightmapIndex.x
 #else
+// ^ Lightmaps are not bound as texture arrays, but as individual textures. The
+// batch is broken every time lightmaps are changed, but this is well-supported
+// on all GPUs.
 #define LIGHTMAP_NAME unity_Lightmap
 #define LIGHTMAP_INDIRECTION_NAME unity_LightmapInd
 #define LIGHTMAP_SAMPLER_NAME samplerunity_Lightmap

@@ -61,7 +61,10 @@ void EvaluateLightmap(float3 positionRWS, float3 normalWS, float3 backNormalWS, 
 #endif
 #endif
 
-#if defined(UNITY_DOTS_INSTANCING_ENABLED)
+#if defined(UNITY_DOTS_INSTANCING_ENABLED) && !defined(USE_LEGACY_LIGHTMAPS)
+// ^ GPU-driven rendering is enabled, and we haven't opted-out from lightmap
+// texture arrays. This minimizes batch breakages, but texture arrays aren't
+// supported in a performant way on all GPUs.
 #define LIGHTMAP_NAME unity_Lightmaps
 #define LIGHTMAP_INDIRECTION_NAME unity_LightmapsInd
 #define SHADOWMASK_NAME unity_ShadowMasks
@@ -70,6 +73,9 @@ void EvaluateLightmap(float3 positionRWS, float3 normalWS, float3 backNormalWS, 
 #define LIGHTMAP_SAMPLE_EXTRA_ARGS uvStaticLightmap, unity_LightmapIndex.x
 #define SHADOWMASK_SAMPLE_EXTRA_ARGS uv, unity_LightmapIndex.x
 #else
+// ^ Lightmaps are not bound as texture arrays, but as individual textures. The
+// batch is broken every time lightmaps are changed, but this is well-supported
+// on all GPUs.
 #define LIGHTMAP_NAME unity_Lightmap
 #define LIGHTMAP_INDIRECTION_NAME unity_LightmapInd
 #define SHADOWMASK_NAME unity_ShadowMask

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using UnityEngine.Experimental.Rendering;
 using Unity.Collections;
 using UnityEngine.Assertions;
@@ -26,13 +27,13 @@ namespace UnityEngine.Rendering
         {
             public int baseMaterialID;
             public LightMapKey lmKey;
-            public int textureIndex;
+            public int textureArrayIndex;
             public LightmappingFlags flags;
 
             public override int GetHashCode()
             {
                 int hash = baseMaterialID;
-                hash = hash * 31 + textureIndex;
+                hash = hash * 31 + textureArrayIndex;
                 hash = hash * 31 + lmKey.resolution;
                 hash = hash * 31 + lmKey.format;
                 hash = hash * 31 + (int)flags;
@@ -42,7 +43,7 @@ namespace UnityEngine.Rendering
             public bool Equals(MaterialLookupKey other)
             {
                 return baseMaterialID == other.baseMaterialID &&
-                    textureIndex == other.textureIndex &&
+                    textureArrayIndex == other.textureArrayIndex &&
                     lmKey.Equals(other.lmKey) &&
                     flags == other.flags;
             }
@@ -189,7 +190,22 @@ namespace UnityEngine.Rendering
 
                 lightmappedMaterial.CopyPropertiesFromMaterial(baseMaterial);
 
-                SetMaterialLightmapProperties(lightmappedMaterial, lightmappedMaterialKey.lmKey, lightmappedMaterialKey.textureIndex);
+                var lmArray = m_Lightmaps[lightmappedMaterialKey.lmKey];
+                var colorTextureArray = lmArray.colorArrays[lightmappedMaterialKey.textureArrayIndex];
+
+                Texture2DArray dirTextureArray = null;
+                if (lmArray.directionArrays != null && lmArray.directionArrays.Count > 0)
+                {
+                    dirTextureArray = lmArray.directionArrays[lightmappedMaterialKey.textureArrayIndex];
+                }
+
+                Texture2DArray shadowMaskTextureArray = null;
+                if (lmArray.shadowMaskArrays != null && lmArray.shadowMaskArrays.Count > 0)
+                {
+                    shadowMaskTextureArray = lmArray.shadowMaskArrays[lightmappedMaterialKey.textureArrayIndex];
+                }
+
+                SetMaterialLightmapProperties(lightmappedMaterial, colorTextureArray, dirTextureArray, shadowMaskTextureArray);
             }
 
             baseMaterialIndices.Dispose();
@@ -234,7 +250,7 @@ namespace UnityEngine.Rendering
             var key = new MaterialLookupKey
             {
                 baseMaterialID = baseMaterial.GetInstanceID(),
-                textureIndex = textureIndex,
+                textureArrayIndex = m_Lightmaps[lmKey].GetArrayIndex(textureIndex),
                 lmKey = lmKey,
                 flags = flags
             };
@@ -253,21 +269,21 @@ namespace UnityEngine.Rendering
             }
         }
 
-        private void SetMaterialLightmapProperties(Material lightmappedMaterial, LightMapKey key, int textureIndex)
+        private void SetMaterialLightmapProperties(Material lightmappedMaterial, Texture2DArray lightmapArray, Texture2DArray dirArray, Texture2DArray shadowMaskArray)
         {
             lightmappedMaterial.EnableKeyword("LIGHTMAP_ON");
-            lightmappedMaterial.SetTexture("unity_Lightmaps", m_Lightmaps[key].GetColorsAtIndex(textureIndex));
+            lightmappedMaterial.SetTexture("unity_Lightmaps", lightmapArray);
 
-            if (m_Lightmaps[key].HasDirectionsAtIndex(textureIndex))
+            if (dirArray != null)
             {
                 lightmappedMaterial.EnableKeyword("DIRLIGHTMAP_COMBINED");
-                lightmappedMaterial.SetTexture("unity_LightmapsInd", m_Lightmaps[key].GetDirectionsAtIndex(textureIndex));
+                lightmappedMaterial.SetTexture("unity_LightmapsInd", dirArray);
             }
 
-            if (m_Lightmaps[key].HasShadowMaskAtIndex(textureIndex))
+            if (shadowMaskArray != null)
             {
                 lightmappedMaterial.EnableKeyword("SHADOWS_SHADOWMASK");
-                lightmappedMaterial.SetTexture("unity_ShadowMasks", m_Lightmaps[key].GetshadowMasksAtIndex(textureIndex));
+                lightmappedMaterial.SetTexture("unity_ShadowMasks", shadowMaskArray);
             }
         }
 
@@ -275,17 +291,27 @@ namespace UnityEngine.Rendering
         {
             System.Text.StringBuilder nameSuffix = new("_Lightmapped", 40);
 
-            if (m_Lightmaps[key].HasDirectionsAtIndex(textureIndex))
-                nameSuffix.Append("_DirLightmap");
+            var lightmapArray = m_Lightmaps[key].GetColorsAtIndex(textureIndex);
 
+            Texture2DArray dirArray = null;
+            if (m_Lightmaps[key].HasDirectionsAtIndex(textureIndex))
+            {
+                nameSuffix.Append("_DirLightmap");
+                dirArray = m_Lightmaps[key].GetDirectionsAtIndex(textureIndex);
+            }
+
+            Texture2DArray shadowMaskArray = null;
             if (m_Lightmaps[key].HasShadowMaskAtIndex(textureIndex))
+            {
                 nameSuffix.Append("_ShadowMasked");
+                shadowMaskArray = m_Lightmaps[key].GetshadowMasksAtIndex(textureIndex);
+            }
 
             var lightmappedMaterial = new Material(material);
             lightmappedMaterial.hideFlags = HideFlags.HideAndDontSave;
             lightmappedMaterial.name += nameSuffix;
 
-            SetMaterialLightmapProperties(lightmappedMaterial, key, textureIndex);
+            SetMaterialLightmapProperties(lightmappedMaterial, lightmapArray, dirArray, shadowMaskArray);
 
             return lightmappedMaterial;
         }
@@ -541,6 +567,12 @@ namespace UnityEngine.Rendering
         public bool isShadowMaskValid => m_ShadowMasks != null ? m_ShadowMasks.Count != 0 : false;
         public bool isFullyCreated => isColorValid && isDirValid && isShadowMaskValid;
         public bool isValid => isColorValid; // Lightmaps can be valid with just color
+
+        public ReadOnlyCollection<Texture2DArray> colorArrays => m_Colors?.AsReadOnly();
+
+        public ReadOnlyCollection<Texture2DArray> directionArrays => m_Directions?.AsReadOnly();
+
+        public ReadOnlyCollection<Texture2DArray> shadowMaskArrays => m_ShadowMasks?.AsReadOnly();
 
         public LightmapArray()
         {

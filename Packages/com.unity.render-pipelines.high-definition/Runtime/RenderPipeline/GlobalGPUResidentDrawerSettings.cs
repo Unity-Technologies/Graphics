@@ -14,10 +14,14 @@ namespace UnityEngine.Rendering.HighDefinition
             smallMeshScreenPercentage = 0.0f,
             enableOcclusionCullingInCameras = false,
             useDepthPrepassForOccluders = true,
+            useLegacyLightmaps = false,
         };
 
         /// <summary>batching mode of macro batcher.</summary>
         public GPUResidentDrawerMode mode;
+
+        /// <summary>Whether to use texture arrays for lightmaps.</summary>
+        public bool useLegacyLightmaps;
 
         /// <summary>
         /// Default minimum screen percentage (0-20%) gpu-driven Renderers can cover before getting culled.

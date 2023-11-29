@@ -370,6 +370,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // If we removed lightmaps from the unlit target this would ruin a lot of peoples days.
                 CoreKeywordDescriptors.StaticLightmap,
                 CoreKeywordDescriptors.DirectionalLightmapCombined,
+                CoreKeywordDescriptors.UseLegacyLightmaps,
                 CoreKeywordDescriptors.SampleGI,
                 CoreKeywordDescriptors.DBuffer,
                 CoreKeywordDescriptors.DebugDisplay,

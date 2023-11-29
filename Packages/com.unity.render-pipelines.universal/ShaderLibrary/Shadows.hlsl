@@ -23,11 +23,17 @@
     #endif
 #endif
 
-#if defined(UNITY_DOTS_INSTANCING_ENABLED)
+#if defined(UNITY_DOTS_INSTANCING_ENABLED) && !defined(USE_LEGACY_LIGHTMAPS)
+// ^ GPU-driven rendering is enabled, and we haven't opted-out from lightmap
+// texture arrays. This minimizes batch breakages, but texture arrays aren't
+// supported in a performant way on all GPUs.
 #define SHADOWMASK_NAME unity_ShadowMasks
 #define SHADOWMASK_SAMPLER_NAME samplerunity_ShadowMasks
 #define SHADOWMASK_SAMPLE_EXTRA_ARGS , unity_LightmapIndex.x
 #else
+// ^ Lightmaps are not bound as texture arrays, but as individual textures. The
+// batch is broken every time lightmaps are changed, but this is well-supported
+// on all GPUs.
 #define SHADOWMASK_NAME unity_ShadowMask
 #define SHADOWMASK_SAMPLER_NAME samplerunity_ShadowMask
 #define SHADOWMASK_SAMPLE_EXTRA_ARGS
