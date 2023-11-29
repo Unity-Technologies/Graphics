@@ -804,27 +804,25 @@ namespace UnityEditor.VFX.UI
                     badge.Detach();
                     badge.RemoveFromHierarchy();
                 }));
-                badge.AddManipulator(new DownClickable(() =>
+                badge.AddManipulator(new ContextualMenuManipulator(e =>
                 {
-                    GenericMenu menu = new GenericMenu();
-                    menu.AddItem(EditorGUIUtility.TrTextContent("Hide"), false, () =>
-                    {
-                        badge.Detach();
-                        badge.RemoveFromHierarchy();
-                    });
+                    e.menu.AppendAction("Hide",
+                        _ =>
+                        {
+                            badge.Detach();
+                            badge.RemoveFromHierarchy();
+                        });
 
                     if (type != VFXErrorType.Error)
                     {
-                        menu.AddItem(EditorGUIUtility.TrTextContent("Ignore"), false, () =>
+                        e.menu.AppendAction("Ignore", _ =>
                         {
                             badge.Detach();
                             badge.RemoveFromHierarchy();
                             model.IgnoreError(error);
                         });
                     }
-                    menu.ShowAsContext();
-                }
-                ));
+                }));
             }
         }
 
